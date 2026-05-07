@@ -295,89 +295,6 @@
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     .loading { animation: pulse 1.2s infinite; }
-
-    /* ── SESSION V2 ── */
-    .sess-section {
-      display: flex; align-items: center; gap: 10px; margin: 22px 0 10px;
-      font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
-      text-transform: uppercase; color: var(--dim);
-    }
-    .sess-section::after { content: ''; flex: 1; height: 1px; background: var(--line); }
-    .sess-header-row { display: flex; gap: 8px; align-items: center; }
-    .sess-header-row input[type=date] { width: auto; flex: 1; font-size: 15px; font-weight: 600; }
-    .sess-save { padding: 11px 22px; font-size: 13px; font-weight: 800; letter-spacing: 0.05em; }
-    .ex-cards { display: grid; gap: 10px; }
-    .ex-card {
-      background: var(--card); border: 1px solid var(--line);
-      border-left: 3px solid var(--accent); border-radius: var(--radius);
-      padding: 14px 14px 12px; position: relative;
-      transition: border-color 150ms, box-shadow 150ms;
-    }
-    .ex-card:focus-within {
-      border-color: rgba(94,234,212,0.4);
-      box-shadow: 0 0 0 1px rgba(94,234,212,0.1), 0 4px 20px rgba(0,0,0,0.25);
-    }
-    .ex-card-name {
-      font-weight: 700; font-size: 14px; margin-bottom: 14px;
-      padding-right: 30px; letter-spacing: -0.01em; line-height: 1.3;
-    }
-    .ex-metrics {
-      display: grid; grid-template-columns: 1fr 18px 1fr 18px 1fr;
-      align-items: center; gap: 6px; margin-bottom: 10px;
-    }
-    .ex-metric { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-    .ex-metric-num {
-      width: 100%; text-align: center; font-family: var(--mono);
-      font-size: 28px; font-weight: 800; padding: 8px 4px;
-      background: var(--bg2); border: 1px solid var(--line);
-      border-radius: var(--radius-sm); color: var(--ink);
-      letter-spacing: -0.03em; transition: border-color 120ms;
-      -webkit-appearance: none; appearance: none;
-    }
-    .ex-metric-num:focus { outline: none; border-color: var(--accent); }
-    .ex-metric-num:disabled { opacity: 0.2; background: transparent; border-color: transparent; }
-    .ex-metric-label {
-      font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
-      text-transform: uppercase; color: var(--dim);
-    }
-    .ex-sep { font-size: 15px; color: var(--dim); text-align: center; font-weight: 300; }
-    .ex-card-footer { display: flex; align-items: center; gap: 6px; }
-    .ex-note-inp {
-      flex: 1; padding: 7px 10px; background: var(--bg2);
-      border: 1px solid var(--line); border-radius: var(--radius-xs);
-      color: var(--muted); font: 12px var(--font); transition: all 120ms;
-    }
-    .ex-note-inp::placeholder { color: var(--dim); }
-    .ex-note-inp:focus { outline: none; border-color: var(--accent); color: var(--ink); }
-    .ex-hit-toggle {
-      padding: 6px 9px; border: 1px solid var(--line); border-radius: var(--radius-xs);
-      background: var(--bg2); cursor: pointer; font: 700 10px var(--font);
-      letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim);
-      transition: all 120ms; white-space: nowrap; flex-shrink: 0;
-    }
-    .ex-hit-toggle.active {
-      color: var(--accent-2); border-color: rgba(245,158,11,0.5);
-      background: rgba(245,158,11,0.08);
-    }
-    .ex-card-del {
-      position: absolute; top: 10px; right: 10px; background: none; border: none;
-      color: var(--dim); cursor: pointer; font-size: 18px; padding: 4px 6px;
-      border-radius: var(--radius-xs); line-height: 1; transition: all 120ms;
-    }
-    .ex-card-del:hover { color: var(--red); background: rgba(239,68,68,0.1); }
-    .ex-empty {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 36px 16px; text-align: center;
-      border: 2px dashed var(--line); border-radius: var(--radius);
-    }
-    .ex-empty svg { opacity: 0.25; margin-bottom: 12px; }
-    .ex-empty p { font-size: 13px; color: var(--dim); font-weight: 600; }
-    .add-ex-box {
-      background: var(--bg2); border: 1px solid var(--line);
-      border-radius: var(--radius); padding: 12px; margin-top: 10px;
-    }
-    .sess-quality-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
-    .effort-val { font-family: var(--mono); font-size: 22px; font-weight: 800; min-width: 26px; color: var(--accent); }
   </style>
 </head>
 <body>
@@ -456,59 +373,74 @@
 
     <!-- ══ SESSION ══ -->
     <div class="view" id="view-session">
+      <div class="card">
+        <h2>Session</h2>
+        <div class="row mb-8">
+          <input type="date" id="sessDate" style="flex:1;" />
+          <button class="btn btn-primary" id="sessSave">Speichern</button>
+        </div>
 
-      <!-- Datum + Speichern -->
-      <div class="sess-header-row">
-        <input type="date" id="sessDate" />
-        <button class="btn btn-primary sess-save" id="sessSave">Speichern</button>
-      </div>
+        <h3>Split</h3>
+        <div class="block-grid mb-8" id="sessBlockGrid"></div>
+        <div class="plan-hint hidden mb-8" id="sessPlanHint"></div>
 
-      <!-- Split -->
-      <div class="sess-section">Split</div>
-      <div class="block-grid" id="sessBlockGrid"></div>
-      <div class="plan-hint hidden mt-8" id="sessPlanHint"></div>
+        <h3>Übung hinzufügen</h3>
 
-      <!-- Muskelgruppen-Filter -->
-      <div class="muscle-filter-badge hidden mt-8" id="muscleGroupFilter">
-        Muskelgruppe: <strong id="muscleGroupFilterName"></strong>
-        <button id="clearMuscleFilter">×</button>
-      </div>
+        <!-- Muscle group filter badge -->
+        <div class="muscle-filter-badge hidden mb-8" id="muscleGroupFilter">
+          Muskelgruppe: <strong id="muscleGroupFilterName"></strong>
+          <button id="clearMuscleFilter">×</button>
+        </div>
 
-      <!-- Übungen -->
-      <div class="sess-section">Übungen</div>
-      <div class="ex-cards" id="exRows"></div>
-
-      <!-- Übung hinzufügen -->
-      <div class="add-ex-box">
-        <div class="search-wrap mb-8">
+        <!-- wger Live Search -->
+        <div class="search-wrap">
           <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
           </svg>
-          <input type="text" id="wgerSearch" placeholder="Übung suchen…" autocomplete="off" />
+          <input type="text" id="wgerSearch" placeholder="Übung suchen (wger)…" autocomplete="off" />
           <div class="search-spinner" id="wgerSpinner"></div>
           <div class="search-results" id="wgerResults"></div>
         </div>
+
+        <!-- Quick Parse -->
         <div class="quick-row">
-          <input type="text" id="quickInput" placeholder="bench 3x8@80 rpe7" />
+          <input type="text" id="quickInput" placeholder="Kurzbefehl: bench 3x8@80 rpe7" />
           <button class="btn btn-secondary btn-sm" id="quickParse">+</button>
         </div>
+
+        <!-- Effort + Mood -->
+        <div class="effort-bar mt-8">
+          <span class="muted text-xs">Effort</span>
+          <input type="range" id="sessEffort" min="1" max="10" value="5" />
+          <span id="sessEffortLabel" style="font-family:var(--mono);font-size:13px;min-width:16px">5</span>
+        </div>
+        <div class="mood-row mb-8" id="sessMoods"></div>
+
+        <!-- Exercise Table -->
+        <div style="overflow-x:auto;margin-top:10px;">
+          <table class="ex-table">
+            <thead>
+              <tr>
+                <th>Übung</th>
+                <th style="width:36px">HIT</th>
+                <th style="width:46px">Sätze</th>
+                <th style="width:46px">Wdh</th>
+                <th style="width:60px">kg</th>
+                <th style="width:90px">Notiz</th>
+                <th style="width:26px"></th>
+              </tr>
+            </thead>
+            <tbody id="exRows"></tbody>
+          </table>
+        </div>
+
         <div class="btn-row mt-8">
           <button class="btn btn-secondary btn-sm" id="addExRow">+ Zeile</button>
           <button class="btn btn-secondary btn-sm" id="loadLastSession">Letzte laden</button>
         </div>
-      </div>
 
-      <!-- Intensität + Notizen -->
-      <div class="sess-section">Qualität</div>
-      <div class="sess-quality-card">
-        <div class="effort-bar">
-          <span class="muted text-xs">Effort</span>
-          <input type="range" id="sessEffort" min="1" max="10" value="5" />
-          <span class="effort-val" id="sessEffortLabel">5</span>
-        </div>
-        <div class="mood-row mt-8 mb-8" id="sessMoods"></div>
-        <h3>Notizen</h3>
+        <h3 class="mt-12">Session-Notizen</h3>
         <textarea id="sessNotes" placeholder="Gefühl, Technik, Schmerzen…"></textarea>
         <div class="muted text-xs mt-8" id="sessStatus"></div>
       </div>
@@ -808,98 +740,53 @@ function highlightActiveBlock() {
 // EXERCISE TABLE
 // ═══════════════════════════════════════════════════════════════════════════
 function renderExTable() {
-  const container = $("#exRows");
-  container.innerHTML = "";
-
-  if (!state.session.exercises.length) {
-    container.innerHTML = `<div class="ex-empty">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M6.5 6.5h11M6.5 12h8M6.5 17.5h5"/><rect x="3" y="2" width="18" height="20" rx="2"/>
-      </svg>
-      <p>Noch keine Übungen — suche oben oder tippe einen Kurzbefehl</p>
-    </div>`;
-    return;
-  }
-
+  const tbody = $("#exRows");
+  tbody.innerHTML = "";
   state.session.exercises.forEach((ex, idx) => {
-    const card = document.createElement("div");
-    card.className = "ex-card";
+    const tr = document.createElement("tr");
 
     // Name
-    const nameEl = document.createElement("div");
-    nameEl.className = "ex-card-name";
-    if (ex.name) {
-      nameEl.textContent = ex.name;
-    } else {
-      const ph = document.createElement("span");
-      ph.style.cssText = "color:var(--dim);font-style:italic;font-weight:400";
-      ph.textContent = "Übung";
-      nameEl.appendChild(ph);
-    }
-    card.appendChild(nameEl);
+    const tdN = document.createElement("td");
+    tdN.style.fontWeight = "500";
+    tdN.style.fontSize = "12px";
+    tdN.style.maxWidth = "120px";
+    tdN.textContent = ex.name || "—";
+    tr.appendChild(tdN);
+
+    // HIT
+    const tdH = document.createElement("td");
+    tdH.style.textAlign = "center";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.checked = ex.isHIT || false; cb.style.cursor = "pointer";
+    cb.addEventListener("change", e => {
+      ex.isHIT = e.target.checked;
+      const row = e.target.closest("tr");
+      const s = row.cells[2].querySelector("input");
+      const r = row.cells[3].querySelector("input");
+      if (e.target.checked) { s.disabled = r.disabled = true; s.value = r.value = ex.sets = ex.reps = ""; }
+      else { s.disabled = r.disabled = false; }
+    });
+    tdH.appendChild(cb); tr.appendChild(tdH);
+
+    // Sets, Reps, kg, Note
+    [["sets","3"],["reps","8"],["weight","—"],["note",""]].forEach(([key, ph]) => {
+      const td = document.createElement("td");
+      const inp = document.createElement("input");
+      inp.value = ex[key] || ""; inp.placeholder = ph;
+      inp.style.width = "100%";
+      if (ex.isHIT && (key === "sets" || key === "reps")) inp.disabled = true;
+      inp.addEventListener("input", e => { ex[key] = e.target.value; });
+      td.appendChild(inp); tr.appendChild(td);
+    });
 
     // Delete
-    const delBtn = document.createElement("button");
-    delBtn.className = "ex-card-del";
-    delBtn.type = "button";
-    delBtn.textContent = "×";
-    delBtn.addEventListener("click", () => { state.session.exercises.splice(idx, 1); renderExTable(); });
-    card.appendChild(delBtn);
+    const tdD = document.createElement("td");
+    const del = document.createElement("button");
+    del.className = "del-btn"; del.textContent = "×";
+    del.onclick = () => { state.session.exercises.splice(idx, 1); renderExTable(); };
+    tdD.appendChild(del); tr.appendChild(tdD);
 
-    // Metrics: Sätze × Wdhl @ kg
-    const metricsEl = document.createElement("div");
-    metricsEl.className = "ex-metrics";
-    const defs = [
-      { key: "sets",   label: "Sätze", mode: "numeric" },
-      { sep: "×" },
-      { key: "reps",   label: "Wdhl",  mode: "numeric" },
-      { sep: "@" },
-      { key: "weight", label: "kg",    mode: "decimal" },
-    ];
-    defs.forEach(def => {
-      if (def.sep) {
-        const s = document.createElement("div");
-        s.className = "ex-sep"; s.textContent = def.sep;
-        metricsEl.appendChild(s); return;
-      }
-      const { key, label, mode } = def;
-      const m = document.createElement("div");
-      m.className = "ex-metric";
-      const inp = document.createElement("input");
-      inp.className = "ex-metric-num";
-      inp.type = "text"; inp.inputMode = mode; inp.placeholder = "—";
-      inp.value = ex[key] || "";
-      if (ex.isHIT && (key === "sets" || key === "reps")) inp.disabled = true;
-      inp.addEventListener("input", e => { state.session.exercises[idx][key] = e.target.value; });
-      const lbl = document.createElement("div");
-      lbl.className = "ex-metric-label"; lbl.textContent = label;
-      m.appendChild(inp); m.appendChild(lbl);
-      metricsEl.appendChild(m);
-    });
-    card.appendChild(metricsEl);
-
-    // Footer: Notiz + HIT-Toggle
-    const footer = document.createElement("div");
-    footer.className = "ex-card-footer";
-
-    const noteInp = document.createElement("input");
-    noteInp.className = "ex-note-inp";
-    noteInp.type = "text"; noteInp.placeholder = "Notiz, RPE…";
-    noteInp.value = ex.note || "";
-    noteInp.addEventListener("input", e => { state.session.exercises[idx].note = e.target.value; });
-
-    const hitBtn = document.createElement("button");
-    hitBtn.className = "ex-hit-toggle" + (ex.isHIT ? " active" : "");
-    hitBtn.type = "button"; hitBtn.textContent = "HIT";
-    hitBtn.addEventListener("click", () => {
-      state.session.exercises[idx].isHIT = !state.session.exercises[idx].isHIT;
-      renderExTable();
-    });
-
-    footer.appendChild(noteInp);
-    footer.appendChild(hitBtn);
-    card.appendChild(footer);
-    container.appendChild(card);
+    tbody.appendChild(tr);
   });
 }
 $("#addExRow").onclick = () => {

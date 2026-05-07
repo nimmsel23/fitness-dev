@@ -120,26 +120,28 @@ const server = http.createServer(async (req, res) => {
     const q     = url.searchParams.get("q") || "";
     const limit = Math.min(Number(url.searchParams.get("limit") || 12), 50);
     if (q.length < 2) return json(res, 200, { ok: true, results: [] });
-    const data = await fetchWger("/exercise/", `limit=${limit}&name__search=${encodeURIComponent(q)}&language=2`);
-    const results = (data.results || []).map(e => ({
-      id:               e.uuid || String(e.id),
-      name:             e.name || "",
-      category:         e.category?.name || "",
-      primaryMuscles:   (e.muscles || []).map(m => m.name_en || m.name),
-      secondaryMuscles: (e.muscles_secondary || []).map(m => m.name_en || m.name),
-    }));
+    const data = await fetchWger("/exerciseinfo/", `limit=${limit}&name__search=${encodeURIComponent(q)}&language=2`);
+    const results = (data.results || []).map(e => {
+      const trans = (e.translations || []).find(t => t.language === 2) || (e.translations || [])[0] || {};
+      return {
+        id:               e.uuid || String(e.id),
+        name:             trans.name || "",
+        category:         e.category?.name || "",
+        primaryMuscles:   (e.muscles || []).map(m => m.name_en || m.name).filter(Boolean),
+        secondaryMuscles: (e.muscles_secondary || []).map(m => m.name_en || m.name).filter(Boolean),
+      };
+    }).filter(e => e.name);
     return json(res, 200, { ok: true, results });
   }
 
   // ── Exercises by muscle group ──
   if (p === "/exercises/by-group") {
     const group = url.searchParams.get("group") || "";
-    const data  = await fetchWger("/exercise/", `limit=20&muscles__name_en__icontains=${encodeURIComponent(group)}&language=2`);
-    const results = (data.results || []).map(e => ({
-      id:        e.uuid || String(e.id),
-      name_en:   e.name || "",
-      relevance: "primary",
-    }));
+    const data  = await fetchWger("/exerciseinfo/", `limit=20&muscles__name_en__icontains=${encodeURIComponent(group)}&language=2`);
+    const results = (data.results || []).map(e => {
+      const trans = (e.translations || []).find(t => t.language === 2) || (e.translations || [])[0] || {};
+      return { id: e.uuid || String(e.id), name_en: trans.name || "", relevance: "primary" };
+    }).filter(e => e.name_en);
     return json(res, 200, { ok: true, exercises: results });
   }
 
