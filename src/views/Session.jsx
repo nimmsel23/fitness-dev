@@ -1,24 +1,202 @@
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, Save, RotateCcw, Zap } from 'lucide-react'
+import { Save, RotateCcw, Zap, Dumbbell } from 'lucide-react'
 import ExerciseSearch from '../components/ExerciseSearch.jsx'
 import { api, localToday, parseQuick } from '../api.js'
 
+// ── Section header with rule ──────────────────────────────────────────────────
+function SectionHeader({ children }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '10px',
+      margin: '22px 0 10px',
+      fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em',
+      textTransform: 'uppercase', color: 'var(--dim)',
+    }}>
+      {children}
+      <div style={{ flex: 1, height: '1px', background: 'var(--line)' }} />
+    </div>
+  )
+}
+
+// ── Exercise card ─────────────────────────────────────────────────────────────
+function fmtDate(iso) {
+  if (!iso) return ''
+  const [, m, d] = iso.split('-')
+  return `${d}.${m}.`
+}
+
+function ExCard({ ex, i, updateEx, removeEx, prev }) {
+  const metricInput = (key, mode) => {
+    const disabled = ex.isHIT && (key === 'sets' || key === 'reps')
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
+        <input
+          type="text"
+          inputMode={mode}
+          placeholder="—"
+          value={ex[key] || ''}
+          disabled={disabled}
+          onChange={e => updateEx(i, key, e.target.value)}
+          style={{
+            width: '100%',
+            textAlign: 'center',
+            fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+            fontSize: '28px',
+            fontWeight: 800,
+            letterSpacing: '-0.03em',
+            padding: '8px 4px',
+            background: disabled ? 'transparent' : 'var(--bg2)',
+            border: `1px solid ${disabled ? 'transparent' : 'var(--line)'}`,
+            borderRadius: '10px',
+            color: 'var(--ink)',
+            outline: 'none',
+            opacity: disabled ? 0.2 : 1,
+            WebkitAppearance: 'none',
+            MozAppearance: 'textfield',
+            appearance: 'none',
+          }}
+          onFocus={e => { if (!disabled) e.target.style.borderColor = 'var(--accent)' }}
+          onBlur={e => { e.target.style.borderColor = disabled ? 'transparent' : 'var(--line)' }}
+        />
+        <div style={{
+          fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em',
+          textTransform: 'uppercase', color: 'var(--dim)',
+        }}>
+          {{ sets: 'Sätze', reps: 'Wdhl', weight: 'kg' }[key]}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{
+      background: 'var(--card)',
+      border: '1px solid var(--line)',
+      borderLeft: '3px solid var(--accent)',
+      borderRadius: '14px',
+      padding: '14px',
+      position: 'relative',
+      marginBottom: '10px',
+    }}>
+      {/* Name + optional muscle hint */}
+      <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '14px', paddingRight: '28px', letterSpacing: '-0.01em', lineHeight: 1.3 }}>
+        {ex.name
+          ? ex.name
+          : <span style={{ color: 'var(--dim)', fontStyle: 'italic', fontWeight: 400 }}>Übung</span>
+        }
+        {prev && (
+          <div style={{
+            fontSize: '11px', color: 'var(--dim)', fontFamily: "'JetBrains Mono', monospace",
+            fontWeight: 500, marginTop: '3px', letterSpacing: '-0.01em',
+          }}>
+            {[prev.sets, prev.reps].filter(Boolean).join('×')}
+            {prev.weight ? ` @ ${prev.weight} kg` : ''}
+            <span style={{ fontFamily: 'inherit', fontWeight: 400, marginLeft: '6px', opacity: 0.6 }}>
+              {fmtDate(prev.date)}
+            </span>
+          </div>
+        )}
+        {!prev && (ex.primaryMuscles || []).length > 0 && (
+          <div style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: 500, marginTop: '2px', opacity: 0.65 }}>
+            {ex.primaryMuscles.slice(0, 2).join(' · ')}
+          </div>
+        )}
+      </div>
+
+      {/* Delete */}
+      <button
+        onClick={() => removeEx(i)}
+        style={{
+          position: 'absolute', top: '10px', right: '10px',
+          background: 'none', border: 'none',
+          color: 'var(--dim)', cursor: 'pointer',
+          fontSize: '18px', padding: '4px 6px',
+          borderRadius: '6px', lineHeight: 1,
+        }}
+        onMouseEnter={e => { e.currentTarget.style.color = 'var(--red)'; e.currentTarget.style.background = 'rgba(239,68,68,0.1)' }}
+        onMouseLeave={e => { e.currentTarget.style.color = 'var(--dim)'; e.currentTarget.style.background = 'none' }}
+      >×</button>
+
+      {/* Sätze × Wdhl @ kg */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr 18px 1fr 18px 1fr',
+        alignItems: 'center',
+        gap: '6px',
+        marginBottom: '10px',
+      }}>
+        {metricInput('sets', 'numeric')}
+        <div style={{ fontSize: '15px', color: 'var(--dim)', textAlign: 'center', fontWeight: 300 }}>×</div>
+        {metricInput('reps', 'numeric')}
+        <div style={{ fontSize: '15px', color: 'var(--dim)', textAlign: 'center', fontWeight: 300 }}>@</div>
+        {metricInput('weight', 'decimal')}
+      </div>
+
+      {/* Note + HIT */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <input
+          type="text"
+          placeholder="Notiz, RPE…"
+          value={ex.note || ''}
+          onChange={e => updateEx(i, 'note', e.target.value)}
+          style={{
+            flex: 1, padding: '6px 10px',
+            background: 'var(--bg2)', border: '1px solid var(--line)',
+            borderRadius: '6px', color: 'var(--muted)',
+            fontSize: '12px', outline: 'none',
+          }}
+          onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.color = 'var(--ink)' }}
+          onBlur={e => { e.target.style.borderColor = 'var(--line)'; e.target.style.color = 'var(--muted)' }}
+        />
+        <button
+          onClick={() => updateEx(i, 'isHIT', !ex.isHIT)}
+          style={{
+            padding: '6px 9px',
+            border: `1px solid ${ex.isHIT ? 'rgba(245,158,11,0.5)' : 'var(--line)'}`,
+            borderRadius: '6px',
+            background: ex.isHIT ? 'rgba(245,158,11,0.08)' : 'var(--bg2)',
+            cursor: 'pointer',
+            fontSize: '10px', fontWeight: 700,
+            letterSpacing: '0.08em', textTransform: 'uppercase',
+            color: ex.isHIT ? '#f59e0b' : 'var(--dim)',
+            whiteSpace: 'nowrap', flexShrink: 0,
+          }}
+        >HIT</button>
+      </div>
+    </div>
+  )
+}
+
+// ── Main view ─────────────────────────────────────────────────────────────────
 export default function Session() {
-  const [date, setDate]         = useState(localToday())
-  const [blocks, setBlocks]     = useState([])
-  const [block, setBlock]       = useState('')
+  const [date, setDate]           = useState(localToday())
+  const [blocks, setBlocks]       = useState([])
+  const [block, setBlock]         = useState('')
   const [exercises, setExercises] = useState([])
-  const [effort, setEffort]     = useState(5)
-  const [mood, setMood]         = useState('')
-  const [notes, setNotes]       = useState('')
-  const [saving, setSaving]     = useState(false)
-  const [toast, setToast]       = useState('')
-  const [hint, setHint]         = useState(null)
-  const [gaps, setGaps]         = useState([])
+  const [effort, setEffort]       = useState(5)
+  const [mood, setMood]           = useState('')
+  const [notes, setNotes]         = useState('')
+  const [saving, setSaving]       = useState(false)
+  const [toast, setToast]         = useState('')
+  const [hint, setHint]           = useState(null)
+  const [gaps, setGaps]           = useState([])
   const [quickInput, setQuickInput] = useState('')
+  const [prevMap, setPrevMap]       = useState({})
 
   useEffect(() => {
     api.get('/blocks').then(d => { if (d?.blocks) setBlocks(d.blocks) }).catch(() => {})
+    api.get('/session/history?limit=60').then(d => {
+      if (!d?.sessions) return
+      const map = {}
+      for (const sess of d.sessions) {
+        for (const ex of (sess.exercises || [])) {
+          if (ex.name && !map[ex.name] && sess.date !== date) {
+            map[ex.name] = { date: sess.date, sets: ex.sets, reps: ex.reps, weight: ex.weight }
+          }
+        }
+      }
+      setPrevMap(map)
+    }).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -33,10 +211,7 @@ export default function Session() {
         setBlock(''); setExercises([]); setEffort(5); setMood(''); setNotes('')
       }
     }).catch(() => {})
-
-    api.get(`/plan/today?date=${date}`).then(d => {
-      setHint(d?.suggestion || null)
-    }).catch(() => {})
+    api.get(`/plan/today?date=${date}`).then(d => setHint(d?.suggestion || null)).catch(() => {})
   }, [date])
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 2200) }
@@ -70,8 +245,7 @@ export default function Session() {
       const r = await api.get('/session/latest')
       if (!r?.session?.data) { showToast('Keine vorherige Session'); return }
       const d = r.session.data
-      setBlock(d.block || '')
-      setExercises(d.exercises || [])
+      setBlock(d.block || ''); setExercises(d.exercises || [])
       showToast('Letzte Session geladen')
     } catch { showToast('Fehler beim Laden') }
   }
@@ -87,198 +261,211 @@ export default function Session() {
     finally { setSaving(false) }
   }
 
+  const splitLabels = blocks.length
+    ? blocks.map(b => b.label)
+    : ['Push', 'Pull', 'Legs', 'Upper', 'Lower', 'Full']
+
   return (
     <div>
-      {/* Date + Save */}
-      <div className="flex gap-2 mb-4">
+      {/* ── Datum + Speichern ── */}
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
         <input
           type="date" value={date} max={localToday()}
           onChange={e => setDate(e.target.value)}
-          className="flex-1 px-3 py-2 rounded-xl text-sm"
-          style={{ background: 'var(--card)', border: '1px solid var(--line)', color: 'var(--ink)', outline: 'none' }}
+          style={{
+            flex: 1, padding: '10px 14px',
+            background: 'var(--card)', border: '1px solid var(--line)',
+            color: 'var(--ink)', borderRadius: '12px',
+            fontSize: '15px', fontWeight: 600, outline: 'none',
+          }}
+          onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+          onBlur={e => e.target.style.borderColor = 'var(--line)'}
         />
-        <button onClick={save} disabled={saving}
-          className="px-4 py-2 rounded-xl font-semibold text-sm flex items-center gap-1.5"
-          style={{ background: 'var(--accent)', color: '#080b12', opacity: saving ? 0.6 : 1 }}>
+        <button
+          onClick={save} disabled={saving}
+          style={{
+            padding: '10px 22px',
+            background: 'linear-gradient(135deg, #22d3ee, #14b8a6)',
+            color: '#062026', borderRadius: '12px', border: 'none',
+            fontSize: '13px', fontWeight: 800, letterSpacing: '0.04em',
+            cursor: saving ? 'default' : 'pointer',
+            opacity: saving ? 0.6 : 1,
+            display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap',
+          }}
+        >
           <Save size={14} /> {saving ? '…' : 'Speichern'}
         </button>
       </div>
 
       {/* Plan hint */}
       {hint && (
-        <div className="mb-3 px-3 py-2 rounded-xl flex items-center gap-2 text-sm"
-          style={{ background: 'var(--accent)' + '15', border: '1px solid var(--accent)' + '33' }}>
-          <Zap size={13} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-          <span style={{ color: 'var(--accent)' }}>{hint.block}</span>
-          <span style={{ color: 'var(--muted)' }}>{(hint.exercises || []).slice(0,3).join(', ')}</span>
+        <div style={{
+          marginTop: '10px', padding: '8px 12px', borderRadius: '10px',
+          background: 'rgba(94,234,212,0.08)', border: '1px solid rgba(94,234,212,0.2)',
+          display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px',
+        }}>
+          <Zap size={12} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+          <span style={{ color: 'var(--accent)', fontWeight: 700 }}>{hint.block}</span>
+          <span style={{ color: 'var(--muted)' }}>{(hint.exercises || []).slice(0, 3).join(', ')}</span>
         </div>
       )}
 
-      {/* Block selector */}
-      <div className="mb-4 p-3 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-        <div className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>Split</div>
-        <div className="flex flex-wrap gap-1.5">
-          {blocks.map(b => (
-            <button key={b.id} onClick={() => setBlock(b.label)}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-              style={{
-                background: block === b.label ? 'var(--accent)' + '25' : 'var(--bg2)',
-                color: block === b.label ? 'var(--accent)' : 'var(--muted)',
-                border: `1px solid ${block === b.label ? 'var(--accent)' + '66' : 'var(--line)'}`,
-              }}>
-              {b.label}
-            </button>
-          ))}
-          {!blocks.length && ['Push','Pull','Legs','Upper','Lower','Full'].map(l => (
-            <button key={l} onClick={() => setBlock(l)}
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold"
-              style={{
-                background: block === l ? 'var(--accent)' + '25' : 'var(--bg2)',
-                color: block === l ? 'var(--accent)' : 'var(--muted)',
-                border: `1px solid ${block === l ? 'var(--accent)' + '66' : 'var(--line)'}`,
-              }}>
-              {l}
-            </button>
-          ))}
-        </div>
+      {/* ── Split ── */}
+      <SectionHeader>Split</SectionHeader>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+        {splitLabels.map(l => (
+          <button key={l} onClick={() => setBlock(l)}
+            style={{
+              padding: '9px 16px',
+              border: `2px solid ${block === l ? 'var(--accent)' : 'var(--line)'}`,
+              borderRadius: '10px',
+              background: block === l ? 'rgba(94,234,212,0.08)' : 'var(--bg2)',
+              color: block === l ? 'var(--accent)' : 'var(--muted)',
+              fontSize: '13px', fontWeight: 800, letterSpacing: '0.04em',
+              textTransform: 'uppercase', cursor: 'pointer',
+              boxShadow: block === l ? '0 0 16px rgba(94,234,212,0.08)' : 'none',
+              transition: 'all 140ms',
+            }}
+          >{l}</button>
+        ))}
       </div>
 
-      {/* Search + Quick Parse */}
-      <div className="mb-4 p-3 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-        <div className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>Übung hinzufügen</div>
+      {/* ── Übungen ── */}
+      <SectionHeader>Übungen</SectionHeader>
+
+      {exercises.length === 0 ? (
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          justifyContent: 'center', padding: '36px 16px', textAlign: 'center',
+          border: '2px dashed var(--line)', borderRadius: '14px', marginBottom: '10px',
+        }}>
+          <Dumbbell size={34} style={{ opacity: 0.2, marginBottom: '12px' }} />
+          <p style={{ fontSize: '13px', color: 'var(--dim)', fontWeight: 600, margin: 0 }}>
+            Noch keine Übungen — suche oder tippe einen Kurzbefehl
+          </p>
+        </div>
+      ) : (
+        exercises.map((ex, i) => (
+          <ExCard key={i} ex={ex} i={i} updateEx={updateEx} removeEx={removeEx} prev={prevMap[ex.name]} />
+        ))
+      )}
+
+      {/* ── Übung hinzufügen ── */}
+      <div style={{
+        background: 'var(--bg2)', border: '1px solid var(--line)',
+        borderRadius: '14px', padding: '12px', marginBottom: '4px',
+      }}>
         <ExerciseSearch onSelect={addEx} />
-        <div className="flex gap-2 mt-2">
-          <input type="text" value={quickInput}
+        <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+          <input
+            type="text" value={quickInput}
             onChange={e => setQuickInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addQuick()}
             placeholder="bench 3x8@80 rpe7"
-            className="flex-1 px-3 py-2 text-sm rounded-lg"
-            style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)', outline: 'none' }}
+            style={{
+              flex: 1, padding: '8px 12px',
+              background: 'var(--card)', border: '1px solid var(--line)',
+              borderRadius: '8px', color: 'var(--ink)',
+              fontSize: '13px', fontFamily: 'monospace', outline: 'none',
+            }}
+            onFocus={e => e.target.style.borderColor = '#f59e0b'}
+            onBlur={e => e.target.style.borderColor = 'var(--line)'}
           />
           <button onClick={addQuick}
-            className="px-3 py-2 rounded-lg font-bold"
-            style={{ background: 'var(--accent)' + '22', color: 'var(--accent)', border: '1px solid var(--accent)' + '44' }}>
-            <Plus size={14} />
-          </button>
+            style={{
+              padding: '8px 14px',
+              background: 'rgba(245,158,11,0.12)',
+              border: '1px solid rgba(245,158,11,0.3)',
+              borderRadius: '8px', color: '#f59e0b',
+              cursor: 'pointer', fontWeight: 800, fontSize: '16px',
+            }}>+</button>
         </div>
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-[10px]" style={{ color: 'var(--dim)' }}>Name SetsxReps@kg (z.B. bench 4x6@100)</span>
-          <button onClick={loadLast} className="flex items-center gap-1 text-[10px] font-semibold"
-            style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+          <button onClick={loadLast}
+            style={{
+              background: 'none', border: 'none', color: 'var(--muted)',
+              cursor: 'pointer', fontSize: '11px', fontWeight: 600,
+              display: 'flex', alignItems: 'center', gap: '4px',
+            }}>
             <RotateCcw size={10} /> Letzte laden
           </button>
         </div>
       </div>
 
-      {/* Exercise table */}
-      {exercises.length > 0 && (
-        <div className="mb-4 rounded-2xl overflow-hidden" style={{ border: '1px solid var(--line)' }}>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs" style={{ background: 'var(--card)', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--line)' }}>
-                  {['Übung','HIT','Sets','Reps','kg','Notiz',''].map(h => (
-                    <th key={h} className="px-2 py-2 text-left font-semibold" style={{ color: 'var(--muted)', whiteSpace: 'nowrap' }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {exercises.map((ex, i) => (
-                  <tr key={i} style={{ borderBottom: i < exercises.length-1 ? '1px solid var(--line)' : 'none' }}>
-                    <td className="px-2 py-1.5" style={{ color: 'var(--ink)', fontWeight: 500, maxWidth: '110px' }}>
-                      <div className="truncate">{ex.name || '—'}</div>
-                      {(ex.primaryMuscles||[]).length > 0 && (
-                        <div className="text-[9px] mt-0.5 truncate" style={{ color: 'var(--accent)' }}>
-                          {ex.primaryMuscles.slice(0,2).join(', ')}
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-2 py-1.5 text-center">
-                      <input type="checkbox" checked={ex.isHIT || false}
-                        onChange={e => updateEx(i, 'isHIT', e.target.checked)}
-                        style={{ accentColor: 'var(--accent)', cursor: 'pointer' }} />
-                    </td>
-                    {['sets','reps','weight'].map(f => (
-                      <td key={f} className="px-1 py-1.5">
-                        <input type="number" value={ex[f] || ''}
-                          onChange={e => updateEx(i, f, e.target.value)}
-                          disabled={ex.isHIT && (f === 'sets' || f === 'reps')}
-                          placeholder="—"
-                          className="rounded text-center"
-                          style={{
-                            width: '38px', background: 'var(--bg2)',
-                            border: '1px solid var(--line)', color: 'var(--ink)',
-                            outline: 'none', padding: '2px 4px',
-                            opacity: ex.isHIT && (f === 'sets' || f === 'reps') ? 0.35 : 1,
-                          }}
-                        />
-                      </td>
-                    ))}
-                    <td className="px-1 py-1.5">
-                      <input type="text" value={ex.note || ''}
-                        onChange={e => updateEx(i, 'note', e.target.value)}
-                        placeholder="RPE…"
-                        className="rounded"
-                        style={{ width: '72px', background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)', outline: 'none', padding: '2px 6px' }}
-                      />
-                    </td>
-                    <td className="px-1 py-1.5">
-                      <button onClick={() => removeEx(i)}
-                        style={{ background: 'none', border: 'none', color: 'var(--dim)', cursor: 'pointer', padding: '2px' }}>
-                        <Trash2 size={12} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      {/* ── Qualität ── */}
+      <SectionHeader>Qualität</SectionHeader>
+      <div style={{
+        background: 'var(--card)', border: '1px solid var(--line)',
+        borderRadius: '14px', padding: '14px',
+      }}>
+        {/* Effort */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+          <span style={{
+            fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em',
+            textTransform: 'uppercase', color: 'var(--dim)', flexShrink: 0,
+          }}>Effort</span>
+          <input type="range" min={1} max={10} value={effort}
+            onChange={e => setEffort(Number(e.target.value))}
+            style={{ flex: 1, accentColor: 'var(--accent)' }} />
+          <span style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '22px', fontWeight: 800,
+            color: 'var(--accent)', minWidth: '28px', textAlign: 'right',
+          }}>{effort}</span>
         </div>
-      )}
 
-      {/* Effort */}
-      <div className="mb-4 p-3 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-        <div className="text-[10px] font-semibold uppercase tracking-widest mb-1 flex justify-between" style={{ color: 'var(--muted)' }}>
-          <span>Effort</span><span style={{ color: 'var(--accent)', fontFamily: 'monospace' }}>{effort}/10</span>
-        </div>
-        <input type="range" min={1} max={10} value={effort}
-          onChange={e => setEffort(Number(e.target.value))}
-          className="w-full" style={{ accentColor: 'var(--accent)' }}
-        />
-        <div className="flex justify-between text-[9px] mt-0.5" style={{ color: 'var(--dim)' }}>
-          <span>Leicht</span><span>Maximal</span>
-        </div>
-      </div>
-
-      {/* Notes */}
-      <div className="mb-4">
-        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3}
+        {/* Notes */}
+        <div style={{
+          fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em',
+          textTransform: 'uppercase', color: 'var(--dim)', marginBottom: '6px',
+        }}>Notizen</div>
+        <textarea
+          value={notes} onChange={e => setNotes(e.target.value)} rows={3}
           placeholder="Gefühl, Technik, Schmerzen…"
-          className="w-full px-3 py-2 text-sm rounded-2xl resize-none"
-          style={{ background: 'var(--card)', border: '1px solid var(--line)', color: 'var(--ink)', outline: 'none' }}
+          style={{
+            width: '100%', padding: '10px 12px',
+            background: 'var(--bg2)', border: '1px solid var(--line)',
+            borderRadius: '10px', color: 'var(--ink)',
+            fontSize: '13px', outline: 'none', resize: 'vertical',
+          }}
           onFocus={e => e.target.style.borderColor = 'var(--accent)'}
           onBlur={e => e.target.style.borderColor = 'var(--line)'}
         />
       </div>
 
-      {/* Gap hints (after save) */}
+      {/* Gap hints */}
       {gaps.length > 0 && (
-        <div className="mb-4 p-3 rounded-2xl" style={{ background: 'var(--red)' + '10', border: '1px solid var(--red)' + '30' }}>
-          <div className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--red)' }}>Coverage-Lücken</div>
-          <div className="flex flex-wrap gap-1.5">
+        <div style={{
+          marginTop: '12px', padding: '12px', borderRadius: '14px',
+          background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)',
+        }}>
+          <div style={{
+            fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em',
+            textTransform: 'uppercase', color: 'var(--red)', marginBottom: '8px',
+          }}>Coverage-Lücken</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
             {gaps.map(g => (
-              <span key={g.name} className="text-xs px-2 py-0.5 rounded-lg"
-                style={{ background: 'var(--red)' + '20', color: 'var(--red)' }}>
-                {g.name}
-              </span>
+              <span key={g.name} style={{
+                fontSize: '12px', padding: '3px 10px', borderRadius: '20px',
+                background: 'rgba(239,68,68,0.12)', color: 'var(--red)',
+                border: '1px solid rgba(239,68,68,0.2)',
+              }}>{g.name}</span>
             ))}
           </div>
         </div>
       )}
 
+      {/* Toast */}
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-medium shadow-xl z-50"
-          style={{ background: 'var(--card)', color: 'var(--accent)', border: '1px solid var(--line)' }}>
+        <div style={{
+          position: 'fixed', bottom: '96px', left: '50%', transform: 'translateX(-50%)',
+          padding: '10px 16px', borderRadius: '10px',
+          fontSize: '13px', fontWeight: 600,
+          background: 'var(--card)', color: 'var(--accent)',
+          border: '1px solid var(--line)',
+          boxShadow: '0 0 30px rgba(0,0,0,0.4)',
+          whiteSpace: 'nowrap', zIndex: 50,
+        }}>
           {toast}
         </div>
       )}
