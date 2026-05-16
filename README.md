@@ -1,43 +1,135 @@
-# fitness-dev (Standalone)
+# Fitness Centre
 
-Fitness Centre als **Standalone**-App (React/Vite UI + Node HTTP API).
+Workout-Tracking CLI und PWA für Krafttraining, Cardio und Trainingsplanung.
 
-## Dev
+Ziel:
+- Offline-fähiges Workout-Logging ohne externe Apps
+- Strukturierte Trainingspläne mit wger Exercise DB
+- Lokale, file-basierte Speicherung
+- Spätere Integration in `~/vital` Klienten-System
 
-- Install: `npm install`
-- Start (UI + API): `npm run dev`
-- UI only: `npm run ui:dev`
-- API only: `npm run start`
+## Schichten
 
-Ports (Default):
-- UI (Vite): `http://127.0.0.1:5902`
-- API (Node): `http://127.0.0.1:9002`
+- **CLI** — `~/fitness-dev/fitness` (Python/Typer) für schnelles Logging
+- **Universal Dispatcher** — `hab` in `~/.dotfiles/logger/` für auto-detectable context
+- **Runtime** — `fitness-runtime.mjs` (Node.js) mit JSON-Datenspeicherung
+- **PWA** — geplant (wie fuel-dev)
 
-## WGER (Exercise Search)
+## CLI-Tools & Logging
 
-`/exercises/search` nutzt `wger` über das lokale API:
-- Base: `http://127.0.0.1:8000/api/v2`
-- Token ist default **hardcoded** in `fitness-dev/server.mjs`, kann aber via `WGER_TOKEN`/`WGER_API_TOKEN` überschrieben werden (optional auch `WGER_BASE`).
+### Workouts Logging
 
-## Daten (lokal)
+**Direktes Logging via `fitness` CLI:**
+```bash
+fitness log barbell_bench 5x5 100kg --yesterday
+fitness log squat 3x10 120kg --time morning
+fitness log deadlift 1x5 200kg
+fitness today [--day YYYY-MM-DD]
+fitness list                           # alle workouts
+fitness week [--date YYYY-MM-DD]       # wochenreport
+```
 
-Alle Daten liegen im Repo unter `data/`:
-- `data/sessions/YYYY-MM-DD.json`
-- `data/journal/YYYY-MM-DD.md`
-- `data/theme.json`
+**Universal Dispatcher `hab`:**
+```bash
+hab barbell_bench 5x5 100kg            # auto-detects → fitness log barbell_bench ...
+hab squat 3x10 120kg --yesterday       # multiple sets/reps
+```
 
-## Export
+`hab` categorisiert automatisch und routet zu:
+- `fuel log` für Supplements
+- `fuel nutrition` für Nutrition-Items
+- `fitness log` für Workouts
 
-Dashboard hat Buttons für CSV-Export:
-- `GET /export/csv?days=7`
-- `GET /export/csv?days=14`
+### Katalog-Struktur
 
-Response: `{ ok:true, filename, csv }` (CSV wird clientseitig als Download gespeichert).
+Workouts werden in JSON-Katalogen definiert (mit wger Exercise DB Integration):
 
-## Production/Static
+```
+~/.aos/fitness/
+├── workouts/
+│   ├── catalog.json     (barbell_bench, squat, deadlift, ...)
+│   └── logs/            (YYYY-MM-DD.json mit sessions)
+```
 
-`node server.mjs` serviert:
-- `dist/` wenn vorhanden (Vite Build)
-- sonst fallback `public/`
+Jedes Workout-Item hat:
+```json
+{
+  "id": "barbell_bench",
+  "name": "Barbell Bench Press",
+  "wger_id": 89,
+  "default_sets": 5,
+  "default_reps": 5,
+  "muscles": ["chest", "triceps", "shoulders"],
+  "difficulty": "intermediate"
+}
+```
 
-Override: `FITNESS_STATIC_DIR=/path/to/static`.
+## CLI Tooling-Stack
+
+- **fitness** (`~/fitness-dev/fitness`) — Python/Typer CLI für Workout-Logging
+  - Typer + loguru für saubere Fehlerbehandlung
+  - Dynamic help mit Catalog-Auflistung
+  - Automatische zsh-Completions
+  - wger Exercise DB Integration
+
+- **hab** (`~/.dotfiles/logger/hab`) — Universal Dispatcher
+  - Auto-detects Kontext (Supplements, Nutrition, Fitness)
+  - Routes zu korrekter CLI
+  - Supports mehrere Workouts auf einmal
+  - loguru + gum für schöne Output
+
+## Datenmodell
+
+Logs landen unter `~/.aos/fitness/workouts/logs/YYYY-MM-DD.json`:
+
+```json
+{
+  "date": "2026-05-16",
+  "sessions": [
+    {
+      "id": "fit_xyz789",
+      "workout_id": "barbell_bench",
+      "name": "Barbell Bench Press",
+      "sets": 5,
+      "reps": 5,
+      "weight": 100,
+      "unit": "kg",
+      "muscles": ["chest", "triceps"],
+      "time": "2026-05-16T14:00:00Z"
+    }
+  ]
+}
+```
+
+## Workout-Catalog Building
+
+**Owner**: `fitness-agent` (Claude Skill in `~/.fitness-agent/`)
+
+Der fitness-agent hat bereits umfangreiche Trainings- und Anatomie-Daten:
+- `Top-Exercises-by-Muscle-Group.yaml` — Exercise-Master-Liste
+- `muscles.yaml` — Muscle-Group-Taxonomie
+- `exercises/` — strukturierte Exercise-Daten
+- `program_rules.yaml` — Trainingsgesetze, Periodisierung
+
+**Integration**:
+1. fitness-agent exportiert `~/.aos/fitness/workouts/catalog.json`
+2. `fitness` CLI liest aus dieser Catalog-JSON
+3. `fitness-runtime.mjs` serviert Catalog via API
+4. `hab` dispatcher routet zu `fitness` CLI
+
+## Integration mit `hab`
+
+Siehe `~/.dotfiles/logger/README.md` für Details zur Universal Dispatcher Architektur.
+
+Relevante Memory: `project_nutrition_fitness_integration.md` — dokumentiert die unified Architektur für fuel-agent + fitness-agent mit wger/OFF Enrichment.
+
+## Nächste sinnvolle Ausbauten
+
+- fitness-agent Catalog Export Task implementieren
+- Workout-Katalog von fitness-agent zu `~/.aos/fitness/workouts/catalog.json` exportieren
+- `fitness` CLI bauen (Python/Typer, analog fuel-dev)
+- PWA für Web/Mobile-Logging (analog fuel-dev)
+- Trainingsplan-Verwaltung (Periodisierung, Progression)
+- Stats/Reporting (Volume, Muscle-Group-Frequency, 1RM-Estimation)
+- Bridge API Endpoints für Core4 Score Integration
+- Klienten-Auth für `~/vital`-Integration
