@@ -25,10 +25,11 @@ function pythonJson(script, args = [], input = null) {
 }
 
 const SNAPSHOT_SCRIPT = String.raw`
-import json, sys, pathlib
+import json, os, sys, pathlib
 
 root = pathlib.Path(sys.argv[1]).expanduser().resolve()
 sys.path.insert(0, str(root))
+os.environ['FITNESS_AGENT_HOME'] = str(root)
 
 from fitness_agent.loader import load_runtime_directory_yaml, load_runtime_yaml
 from fitness_agent.resolver import build_exercise_index
@@ -82,7 +83,7 @@ print(json.dumps(snapshot, ensure_ascii=False))
 `
 
 function loadRuntimeSnapshot() {
-  const runtimeRoot = resolveHomeDir(process.env.FITNESS_AGENT_HOME || '~/.fitness-agent')
+  const runtimeRoot = resolveHomeDir(process.env.FITNESS_AGENT_HOME || '~/fitness-dev/catalog')
   try {
     return pythonJson(SNAPSHOT_SCRIPT, [runtimeRoot])
   } catch (error) {
@@ -499,10 +500,11 @@ export function buildPlan({ template = '', split = '', day = '', goal = '' } = {
 }
 
 const EXPORT_SCRIPT = String.raw`
-import json, sys, pathlib
+import json, os, sys, pathlib
 
 root = pathlib.Path(sys.argv[1]).expanduser().resolve()
 sys.path.insert(0, str(root))
+os.environ['FITNESS_AGENT_HOME'] = str(root)
 
 kind = sys.argv[2]
 payload = json.load(sys.stdin)
@@ -529,17 +531,18 @@ print(json.dumps({
 `
 
 export function exportWithPython(kind, payload = {}) {
-  const runtimeRoot = resolveHomeDir(process.env.FITNESS_AGENT_HOME || '~/.fitness-agent')
+  const runtimeRoot = resolveHomeDir(process.env.FITNESS_AGENT_HOME || '~/fitness-dev/catalog')
   return pythonJson(EXPORT_SCRIPT, [runtimeRoot, kind], payload)
 }
 
 const WEEKLY_SCRIPT = String.raw`
-import json, sys, pathlib
+import json, os, sys, pathlib
 from collections import defaultdict
 
 root = pathlib.Path(sys.argv[1]).expanduser().resolve()
 week_selector = sys.argv[2]
 sys.path.insert(0, str(root))
+os.environ['FITNESS_AGENT_HOME'] = str(root)
 
 from fitness_agent.history import read_history_range
 from fitness_agent.resolver import build_exercise_index
@@ -641,7 +644,7 @@ print(json.dumps(payload, ensure_ascii=False))
 `
 
 export function getWeeklySummary(weekSelector = 'current') {
-  const runtimeRoot = resolveHomeDir(process.env.FITNESS_AGENT_HOME || '~/.fitness-agent')
+  const runtimeRoot = resolveHomeDir(process.env.FITNESS_AGENT_HOME || '~/fitness-dev/catalog')
   return pythonJson(WEEKLY_SCRIPT, [runtimeRoot, weekSelector])
 }
 

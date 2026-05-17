@@ -18,7 +18,6 @@ const HABITSYNC_BASE = "http://localhost:6842";
 const HS_AUTH = "Basic Y29hY2g6Y29hY2gxMjM="; // coach:coach123
 
 for (const d of ["sessions","journal"]) fs.mkdirSync(path.join(DATA_DIR, d), { recursive: true });
-syncRuntimeHistoryFromSessions();
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const MIME = { ".html":"text/html;charset=utf-8", ".js":"application/javascript;charset=utf-8",
@@ -39,81 +38,6 @@ function readJson(p, fallback = null) {
 }
 function writeJson(p, data) { fs.writeFileSync(p, JSON.stringify(data, null, 2)); }
 
-function syncRuntimeHistoryFromSessions() {
-  const dir = path.join(DATA_DIR, "sessions");
-  if (!fs.existsSync(dir)) return;
-  const files = fs.readdirSync(dir).filter(f => f.endsWith(".json"));
-  if (!files.length) return;
-
-  const runtimeRoot = process.env.FITNESS_AGENT_HOME || path.join(process.env.HOME || "/home/alpha", ".fitness-agent");
-  const payload = files.map(file => {
-    const date = file.replace(/\.json$/, "");
-    const data = readJson(path.join(dir, file)) || {};
-    return { date, ...data };
-  });
-
-  const script = String.raw`
-import json, sqlite3, sys, pathlib
-
-root = pathlib.Path(sys.argv[1]).expanduser().resolve()
-payload = json.load(sys.stdin)
-sys.path.insert(0, str(root))
-
-from fitness_agent.resolver import resolve_query
-from fitness_agent.history import ensure_history_db
-
-db_path = ensure_history_db()
-con = sqlite3.connect(db_path)
-cur = con.cursor()
-
-for session in payload:
-    date = str(session.get("date") or "").strip()
-    workout_id = str(session.get("workout_id") or date or "workout").strip() or "workout"
-    if not date:
-        continue
-    cur.execute("DELETE FROM training_history WHERE date = ?", (date,))
-    for ex in session.get("exercises") or []:
-        raw_query = str(ex.get("exercise_id") or ex.get("id") or ex.get("name") or "").strip()
-        if not raw_query:
-            continue
-        resolution = resolve_query(raw_query)
-        exercise_id = resolution.canonical_id or raw_query
-        display_name = resolution.display_name or str(ex.get("name") or exercise_id)
-        cur.execute(
-            """
-            INSERT INTO training_history (
-                date, workout_id, exercise_id, display_name, sets, reps, weight, rpe, done, notes, pain, completion_status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                date,
-                workout_id,
-                exercise_id,
-                display_name,
-                int(ex.get("sets") or 0),
-                int(ex.get("reps") or 0),
-                float(ex.get("weight") or 0),
-                int(ex.get("rpe") or 8),
-                1 if ex.get("done") else 0,
-                str(ex.get("note") or ""),
-                "",
-                "completed" if ex.get("done") else "planned",
-            ),
-        )
-
-con.commit()
-con.close()
-`;
-
-  const result = spawnSync("python3", ["-c", script, runtimeRoot], {
-    input: JSON.stringify(payload),
-    encoding: "utf8",
-    maxBuffer: 10 * 1024 * 1024,
-  });
-  if (result.status !== 0) {
-    console.error("[fitness-dev] history sync failed:", (result.stderr || result.stdout || "").trim());
-  }
-}
 
 function localToday() {
   const d = new Date();
