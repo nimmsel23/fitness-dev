@@ -1,0 +1,133 @@
+body_highlighter_bridge:
+  version: "0.1.0"
+
+  canonical_regions:
+    chest_front:
+      label_de: "Brust"
+      muscles:
+        - pectoralis_major
+        - upper_pectoralis_major
+        - lower_pectoralis_major
+
+    shoulders_front:
+      label_de: "Vordere Schulter"
+      muscles:
+        - anterior_deltoid
+
+    shoulders_side:
+      label_de: "Seitliche Schulter"
+      muscles:
+        - lateral_deltoid
+
+    shoulders_rear:
+      label_de: "Hintere Schulter"
+      muscles:
+        - rear_deltoid
+
+    upper_arm_front:
+      label_de: "Bizeps / Armbeuger"
+      muscles:
+        - biceps_brachii
+        - brachialis
+
+    upper_arm_back:
+      label_de: "Trizeps / Armstrecker"
+      muscles:
+        - triceps_brachii
+        - triceps_long_head
+        - triceps_lateral_head
+        - triceps_medial_head
+
+    forearms:
+      label_de: "Unterarme"
+      muscles:
+        - brachioradialis
+        - wrist_flexors
+        - wrist_extensors
+
+    lats:
+      label_de: "Latissimus"
+      muscles:
+        - latissimus_dorsi
+        - teres_major
+
+    upper_back:
+      label_de: "Oberer Rücken"
+      muscles:
+        - trapezius
+        - rhomboids
+        - rear_deltoid
+
+    lower_back:
+      label_de: "Unterer Rücken"
+      muscles:
+        - spinal_erectors
+        - quadratus_lumborum
+
+    abdomen_front:
+      label_de: "Bauch"
+      muscles:
+        - rectus_abdominis
+        - transverse_abdominis
+
+    obliques:
+      label_de: "Seitliche Bauchmuskeln"
+      muscles:
+        - obliques
+
+    glutes:
+      label_de: "Gesäß"
+      muscles:
+        - gluteus_maximus
+        - gluteus_medius
+        - gluteus_minimus
+
+    thigh_front:
+      label_de: "Vorderer Oberschenkel"
+      muscles:
+        - quadriceps
+        - rectus_femoris
+        - vastus_lateralis
+        - vastus_medialis
+        - vastus_intermedius
+
+    thigh_back:
+      label_de: "Hinterer Oberschenkel"
+      muscles:
+        - hamstrings
+        - biceps_femoris
+        - semitendinosus
+        - semimembranosus
+
+    thigh_inner:
+      label_de: "Innenschenkel"
+      muscles:
+        - adductors
+        - adductor_magnus
+        - adductor_longus
+        - adductor_brevis
+
+    calves:
+      label_de: "Waden"
+      muscles:
+        - gastrocnemius
+        - soleus
+
+  output_format:
+    exercise_coverage:
+      fields:
+        - exercise_id
+        - display_name
+        - regions
+        - muscles
+        - source
+        - confidence
+
+    workout_coverage:
+      fields:
+        - workout_id
+        - total_sets
+        - region_scores
+        - muscle_scores
+        - missing_regions
+        - overemphasized_regions

@@ -1,0 +1,77 @@
+name: lunge_lesson
+description: Anatomy teaching seed for lunge.
+lessons:
+  - exercise_id: lunge
+    title: "Lunge - Beinachse, Hüfte und Balance"
+    region: legs
+    learning_goal:
+      short: "Ausfallschritt als kontrollierte Bein- und Beckenarbeit verstehen."
+      detailed: "Lern, wie Lunge Knie, Hüfte und Fuß zusammenbringt und warum Balance und Achse entscheidend sind."
+    movement_pattern:
+      primary: lunge
+      secondary:
+        - unilateral_squat_pattern
+    joint_actions:
+      hip:
+        eccentric:
+          - flexion_control
+        concentric:
+          - extension
+        stabilization:
+          - pelvic_control
+      knee:
+        eccentric:
+          - flexion_control
+        concentric:
+          - extension
+        stabilization:
+          - valgus_control
+      ankle:
+        stabilization:
+          - balance_control
+    muscle_roles:
+      prime_movers:
+        - legs
+        - glutes
+      synergists:
+        - thigh_back
+      stabilizers:
+        - core
+    body_highlighter_regions:
+      primary:
+        - thigh_front
+        - glutes
+      secondary:
+        - thigh_back
+      light:
+        - calves
+        - abdomen_front
+    trainer_explanation:
+      simple: "Der Ausfallschritt lehrt Kontrolle über Knie, Hüfte und Balance."
+      technical: "Als einbeinige Kniebeugevariante fordert die Lunge die Beinachse, Beckenstabilität und kontrollierte Kraftentwicklung im Standbein."
+      client_friendly: "Du sollst dich auf dem vorderen Bein stabil fühlen und das Knie sauber führen."
+    feel_cues:
+      - "Vorderes Bein trägt."
+      - "Becken bleibt stabil."
+      - "Knie folgt dem Fuß."
+    coaching_cues:
+      - "Lang und stabil treten."
+      - "Knie sauber führen."
+      - "Oberkörper kontrolliert."
+    common_errors:
+      - error: "Knie nach innen fallen."
+        anatomical_reason: "Hüfte und Fuß stabilisieren die Beinachse nicht genug."
+        correction: "Stand breiter und Fuß aktiv."
+        coaching_cue: "Knie folgt den Zehen."
+      - error: "Zu kurze Schritte."
+        anatomical_reason: "Die Last landet zu sehr auf dem vorderen Knie."
+        correction: "Schritt länger setzen."
+        coaching_cue: "Mehr Platz im Stand."
+    variations_teach:
+      - variation: "walking lunge"
+        lesson: "Dynamischer und koordinativ anspruchsvoller."
+      - variation: "reverse lunge"
+        lesson: "Oft knie-freundlicher und leichter zu kontrollieren."
+    quiz:
+      - question: "Was lernt man am meisten aus der Lunge?"
+        answer: "Beinachse, Balance und kontrollierte Hüft- und Kniearbeit."

@@ -33,7 +33,7 @@ export default function ExerciseSearch({ onSelect, placeholder = 'Ãœbung suchenâ
     debounceRef.current = setTimeout(async () => {
       setLoading(true)
       try {
-        const res = await fetch(`/exercises/search?q=${encodeURIComponent(query)}&limit=12`, { cache: 'no-store' })
+        const res = await fetch(`/fitness/search?q=${encodeURIComponent(query)}&limit=12`, { cache: 'no-store' })
         if (res.ok) {
           const data = await res.json()
           setResults(data.results || [])
@@ -93,6 +93,11 @@ export default function ExerciseSearch({ onSelect, placeholder = 'Ãœbung suchenâ
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
               <div className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{ex.name}</div>
+              {ex.source && (
+                <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
+                  {ex.source === 'local_yaml' ? 'Local YAML' : ex.source}
+                </div>
+              )}
               <div className="flex flex-wrap gap-1 mt-1">
                 {(ex.primaryMuscles || []).map(m => (
                   <span key={m} className="text-[10px] px-1.5 py-0.5 rounded font-medium"

@@ -1,0 +1,38 @@
+app:
+  name: fitness-agent
+  version: 0.1.0
+  language: de
+
+paths:
+  root: "~/.fitness-agent"
+  exercises: "~/.fitness-agent/exercises"
+  muscles: "~/.fitness-agent/muscles"
+  rules: "~/.fitness-agent/rules"
+  maps: "~/.fitness-agent/maps"
+  anatomy_teaching: "~/.fitness-agent/anatomy_teaching"
+  state: "~/.fitness-agent/state"
+  cache: "~/.fitness-agent/cache"
+  exports: "~/.fitness-agent/exports"
+
+obsidian:
+  enabled: true
+  vault_path: "/tmp/Obsidian/Vitaltrainer"
+  export_path: "/tmp/Obsidian/Vitaltrainer/Fitness-Agent"
+
+wger:
+  enabled: false
+  base_url: "http://localhost:8000"
+  api_token_env: "WGER_API_TOKEN"
+  timeout_seconds: 10
+
+external_dbs:
+  yuhonas_free_exercise_db:
+    enabled: false
+    local_path: "~/code/free-exercise-db"
+    cache_file: "~/.fitness-agent/cache/external_exercises.json"
+
+behavior:
+  source_of_truth: custom_yaml
+  uncertain_mappings_require_review: true
+  backup_before_write: true
+  default_output_format: markdown_obsidian

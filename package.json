@@ -8,7 +8,8 @@
     "start": "node server.mjs",
     "ui:dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:catalog": "python3 scripts/build-catalog.py"
   },
   "dependencies": {
     "lucide-react": "^0.453.0",

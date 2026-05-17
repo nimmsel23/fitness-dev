@@ -1,7 +1,9 @@
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises, resolveExerciseQuery } from "./fitness-runtime.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR   = path.join(__dirname, "data");
@@ -12,8 +14,11 @@ const PORT = Number(process.env.PORT || 9002);
 const HOST = process.env.HOST || "127.0.0.1";
 const WGER_TOKEN = process.env.WGER_API_TOKEN || process.env.WGER_TOKEN || "92d9ea44fc0ac065e336e9ec443a196c40c68afe";
 const WGER_BASE  = process.env.WGER_BASE || "http://127.0.0.1:8000/api/v2";
+const HABITSYNC_BASE = "http://localhost:6842";
+const HS_AUTH = "Basic Y29hY2g6Y29hY2gxMjM="; // coach:coach123
 
 for (const d of ["sessions","journal"]) fs.mkdirSync(path.join(DATA_DIR, d), { recursive: true });
+syncRuntimeHistoryFromSessions();
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const MIME = { ".html":"text/html;charset=utf-8", ".js":"application/javascript;charset=utf-8",
@@ -33,6 +38,82 @@ function readJson(p, fallback = null) {
   try { return JSON.parse(fs.readFileSync(p, "utf8")); } catch { return fallback; }
 }
 function writeJson(p, data) { fs.writeFileSync(p, JSON.stringify(data, null, 2)); }
+
+function syncRuntimeHistoryFromSessions() {
+  const dir = path.join(DATA_DIR, "sessions");
+  if (!fs.existsSync(dir)) return;
+  const files = fs.readdirSync(dir).filter(f => f.endsWith(".json"));
+  if (!files.length) return;
+
+  const runtimeRoot = process.env.FITNESS_AGENT_HOME || path.join(process.env.HOME || "/home/alpha", ".fitness-agent");
+  const payload = files.map(file => {
+    const date = file.replace(/\.json$/, "");
+    const data = readJson(path.join(dir, file)) || {};
+    return { date, ...data };
+  });
+
+  const script = String.raw`
+import json, sqlite3, sys, pathlib
+
+root = pathlib.Path(sys.argv[1]).expanduser().resolve()
+payload = json.load(sys.stdin)
+sys.path.insert(0, str(root))
+
+from fitness_agent.resolver import resolve_query
+from fitness_agent.history import ensure_history_db
+
+db_path = ensure_history_db()
+con = sqlite3.connect(db_path)
+cur = con.cursor()
+
+for session in payload:
+    date = str(session.get("date") or "").strip()
+    workout_id = str(session.get("workout_id") or date or "workout").strip() or "workout"
+    if not date:
+        continue
+    cur.execute("DELETE FROM training_history WHERE date = ?", (date,))
+    for ex in session.get("exercises") or []:
+        raw_query = str(ex.get("exercise_id") or ex.get("id") or ex.get("name") or "").strip()
+        if not raw_query:
+            continue
+        resolution = resolve_query(raw_query)
+        exercise_id = resolution.canonical_id or raw_query
+        display_name = resolution.display_name or str(ex.get("name") or exercise_id)
+        cur.execute(
+            """
+            INSERT INTO training_history (
+                date, workout_id, exercise_id, display_name, sets, reps, weight, rpe, done, notes, pain, completion_status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                date,
+                workout_id,
+                exercise_id,
+                display_name,
+                int(ex.get("sets") or 0),
+                int(ex.get("reps") or 0),
+                float(ex.get("weight") or 0),
+                int(ex.get("rpe") or 8),
+                1 if ex.get("done") else 0,
+                str(ex.get("note") or ""),
+                "",
+                "completed" if ex.get("done") else "planned",
+            ),
+        )
+
+con.commit()
+con.close()
+`;
+
+  const result = spawnSync("python3", ["-c", script, runtimeRoot], {
+    input: JSON.stringify(payload),
+    encoding: "utf8",
+    maxBuffer: 10 * 1024 * 1024,
+  });
+  if (result.status !== 0) {
+    console.error("[fitness-dev] history sync failed:", (result.stderr || result.stdout || "").trim());
+  }
+}
 
 function localToday() {
   const d = new Date();
@@ -67,6 +148,23 @@ async function fetchWger(path, qs = "") {
   });
 }
 
+function localExerciseGroupMatches(group) {
+  const g = String(group || "").trim().toLowerCase();
+  if (!g) return [];
+  const normalized = g.replace(/\s+/g, "_");
+  return fitnessData.exercises.filter(ex => {
+    const primary = (ex.primary_muscles || []).map(x => String(x || "").trim().toLowerCase());
+    const secondary = (ex.secondary_muscles || []).map(x => String(x || "").trim().toLowerCase());
+    const tags = (ex.tags || []).map(x => String(x || "").trim().toLowerCase());
+    const haystack = [...primary, ...secondary, ...tags, String(ex.category || "").toLowerCase()];
+    return haystack.includes(g) || haystack.includes(normalized) || haystack.some(v => v.includes(g) || v.includes(normalized));
+  }).map(ex => ({
+    id: ex.exercise_id,
+    name_en: ex.display_name || ex.name || ex.exercise_id,
+    relevance: "primary",
+  }));
+}
+
 // ── Week dates (Mo–So) ────────────────────────────────────────────────────────
 function weekDates(anchor) {
   const d = new Date(anchor + "T12:00:00");
@@ -79,6 +177,74 @@ function weekDates(anchor) {
 }
 
 // ── Muscle coverage from sessions ─────────────────────────────────────────────
+function normMuscleKey(s) {
+  return String(s || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\u2019']/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function muscleToGroupId(muscleName) {
+  const k = normMuscleKey(muscleName);
+  if (!k) return null;
+
+  // wger returns a mix of anatomical names ("Pectoralis major") and
+  // sometimes broad groups ("Chest"). Normalize both to our internal IDs.
+  const MAP = {
+    chest: [
+      "chest", "pec", "pecs", "pectoralis", "pectoralis major", "pectoralis minor",
+    ],
+    back: [
+      "back", "lat", "lats", "latissimus", "latissimus dorsi", "trapezius", "rhomboids",
+    ],
+    shoulders: [
+      "shoulder", "shoulders", "delt", "delts", "deltoid", "rotator cuff",
+    ],
+    arms: [
+      "arm", "arms", "biceps", "biceps brachii", "triceps", "triceps brachii", "forearms", "brachialis",
+    ],
+    core: [
+      "core", "abs", "abdominals", "rectus abdominis", "obliques", "transverse abdominis",
+    ],
+    glutes: [
+      "glutes", "glute", "gluteus maximus", "gluteus medius",
+    ],
+    quads: [
+      "quads", "quad", "quadriceps", "quadriceps femoris", "vastus lateralis",
+    ],
+    hamstrings: [
+      "hamstrings", "hamstring", "biceps femoris", "semitendinosus",
+    ],
+    calves: [
+      "calves", "calf", "gastrocnemius", "soleus",
+    ],
+  };
+
+  for (const [id, keys] of Object.entries(MAP)) {
+    if (keys.includes(k)) return id;
+  }
+  return null;
+}
+
+function displayMuscleName(s) {
+  const t = String(s || "").trim();
+  if (!t) return "";
+  // Preserve common wger/session capitalization like "Chest", but collapse weird whitespace.
+  return t.replace(/\s+/g, " ");
+}
+
+function defaultBlocks() {
+  return [
+    { id:"push",  label:"Push",  muscle_groups:["chest","shoulders","arms"] },
+    { id:"pull",  label:"Pull",  muscle_groups:["back","arms"] },
+    { id:"legs",  label:"Legs",  muscle_groups:["quads","hamstrings","glutes","calves"] },
+    { id:"upper", label:"Upper", muscle_groups:["chest","back","shoulders","arms"] },
+    { id:"lower", label:"Lower", muscle_groups:["quads","hamstrings","glutes","calves"] },
+  ];
+}
+
 function computeCoverage(days) {
   const dates = weekDates(localToday()).slice(0, days);
   const allDates = [];
@@ -91,11 +257,58 @@ function computeCoverage(days) {
   for (const date of allDates) {
     const sess = readJson(path.join(DATA_DIR, "sessions", `${date}.json`));
     for (const ex of (sess?.exercises || [])) {
-      for (const m of (ex.primaryMuscles || [])) hits[m] = (hits[m] || 0) + 1;
-      for (const m of (ex.secondaryMuscles || [])) hits[m] = (hits[m] || 0) + 0.5;
+      for (const m of (ex.primaryMuscles || [])) {
+        const id = muscleToGroupId(m) || normMuscleKey(m);
+        if (!id) continue;
+        hits[id] = (hits[id] || 0) + 1;
+      }
+      for (const m of (ex.secondaryMuscles || [])) {
+        const id = muscleToGroupId(m) || normMuscleKey(m);
+        if (!id) continue;
+        hits[id] = (hits[id] || 0) + 0.5;
+      }
     }
   }
   return hits;
+}
+
+function computeCoverageAnatomy(days) {
+  const allDates = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(localToday() + "T12:00:00");
+    d.setDate(d.getDate() - i);
+    allDates.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
+  }
+
+  const map = new Map(); // normKey -> { name_en, primaryHits, secondaryHits, totalScore }
+
+  function hit(name, w, kind) {
+    const key = normMuscleKey(name);
+    if (!key) return;
+    const cur = map.get(key) || {
+      name_en: displayMuscleName(name),
+      primaryHits: 0,
+      secondaryHits: 0,
+      totalScore: 0,
+    };
+    if (kind === "primary") cur.primaryHits += w;
+    if (kind === "secondary") cur.secondaryHits += w;
+    cur.totalScore += w;
+    // Keep the longest-seen label as display name to prefer "Pectoralis major" over "pec".
+    const label = displayMuscleName(name);
+    if (label.length > (cur.name_en || "").length) cur.name_en = label;
+    map.set(key, cur);
+  }
+
+  for (const date of allDates) {
+    const sess = readJson(path.join(DATA_DIR, "sessions", `${date}.json`));
+    for (const ex of (sess?.exercises || [])) {
+      for (const m of (ex.primaryMuscles || [])) hit(m, 1, "primary");
+      for (const m of (ex.secondaryMuscles || [])) hit(m, 0.5, "secondary");
+    }
+  }
+
+  return Array.from(map.values()).sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -119,6 +332,9 @@ const server = http.createServer(async (req, res) => {
   if (p === "/exercises/search") {
     const q     = url.searchParams.get("q") || "";
     const limit = Math.min(Number(url.searchParams.get("limit") || 12), 50);
+    if (q.length < 1) return json(res, 200, { ok: true, results: [] });
+    const local = searchExercises(q, limit);
+    if (local?.results?.length) return json(res, 200, local);
     if (q.length < 2) return json(res, 200, { ok: true, results: [] });
     const data = await fetchWger("/exerciseinfo/", `limit=${limit}&name__search=${encodeURIComponent(q)}&language=2`);
     const results = (data.results || []).map(e => {
@@ -129,46 +345,167 @@ const server = http.createServer(async (req, res) => {
         category:         e.category?.name || "",
         primaryMuscles:   (e.muscles || []).map(m => m.name_en || m.name).filter(Boolean),
         secondaryMuscles: (e.muscles_secondary || []).map(m => m.name_en || m.name).filter(Boolean),
+        source:           "wger",
       };
     }).filter(e => e.name);
-    return json(res, 200, { ok: true, results });
+    return json(res, 200, { ok: true, source: "wger", results });
   }
 
   // ── Exercises by muscle group ──
   if (p === "/exercises/by-group") {
     const group = url.searchParams.get("group") || "";
+    const results = localExerciseGroupMatches(group);
+    if (results.length) return json(res, 200, { ok: true, exercises: results });
     const data  = await fetchWger("/exerciseinfo/", `limit=20&muscles__name_en__icontains=${encodeURIComponent(group)}&language=2`);
-    const results = (data.results || []).map(e => {
+    const fallback = (data.results || []).map(e => {
       const trans = (e.translations || []).find(t => t.language === 2) || (e.translations || [])[0] || {};
-      return { id: e.uuid || String(e.id), name_en: trans.name || "", relevance: "primary" };
+      return { id: e.uuid || String(e.id), name_en: trans.name || "", relevance: "primary", source: "wger" };
     }).filter(e => e.name_en);
-    return json(res, 200, { ok: true, exercises: results });
+    return json(res, 200, { ok: true, exercises: fallback });
+  }
+
+  if (p === "/fitness/config") {
+    return json(res, 200, {
+      ok: true,
+      config: fitnessData.config,
+      exportPath: obsidianTargetPath(),
+      root: fitnessData.config?.paths?.root || "~/.fitness-agent",
+      source: "local_yaml",
+    });
+  }
+
+  if (p === "/fitness/search") {
+    const q = url.searchParams.get("q") || "";
+    const limit = Math.min(Number(url.searchParams.get("limit") || 12), 50);
+    return json(res, 200, searchExercises(q, limit));
+  }
+
+  if (p === "/fitness/plan") {
+    const template = url.searchParams.get("template") || "";
+    const split = url.searchParams.get("split") || "";
+    const day = url.searchParams.get("day") || "";
+    const goal = url.searchParams.get("goal") || "";
+    return json(res, 200, buildPlan({ template, split, day, goal }));
+  }
+
+  if (p === "/fitness/weekly") {
+    const week = url.searchParams.get("week") || "current";
+    return json(res, 200, getWeeklySummary(week));
+  }
+
+  if (p === "/fitness/export") {
+    if (req.method !== "POST") return json(res, 405, { ok: false, error: "method_not_allowed" });
+    const data = B();
+    const kind = String(data.kind || "").trim();
+    try {
+      if (kind === "session") {
+        const result = exportSessionMarkdown(data.session || data);
+        return json(res, 200, { ok: true, kind, ...result });
+      }
+      if (kind === "exercise_sheet") {
+        const query = String(data.query || data.exercise_id || "").trim();
+        if (!query) return json(res, 400, { ok: false, error: "missing_query" });
+        const result = exportWithPython("exercise_sheet", { query, force: !!data.force });
+        return json(res, 200, { ok: true, kind, ...result });
+      }
+      if (kind === "exercise_lesson") {
+        const exercise_id = String(data.exercise_id || "").trim();
+        if (!exercise_id) return json(res, 400, { ok: false, error: "missing_exercise_id" });
+        const result = exportWithPython("exercise_lesson", { exercise_id, mode: data.mode || "trainer", force: !!data.force });
+        return json(res, 200, { ok: true, kind, ...result });
+      }
+      if (kind === "plan") {
+        const plan = data.plan || buildPlan(data.plan_options || data);
+        const result = exportWithPython("plan", { plan, force: !!data.force });
+        return json(res, 200, { ok: true, kind, ...result });
+      }
+      if (kind === "weekly") {
+        const result = exportWithPython("weekly", { week_selector: data.week_selector || "current", force: !!data.force });
+        return json(res, 200, { ok: true, kind, ...result });
+      }
+      return json(res, 400, { ok: false, error: "unknown_export_kind" });
+    } catch (error) {
+      return json(res, 500, { ok: false, error: "export_failed", details: String(error?.message || error) });
+    }
+  }
+
+  // ── HabitSync proxy (avoid CORS + keep credentials server-side) ──
+  if (p === "/habitsync/habits") {
+    if (req.method !== "GET") return json(res, 405, { ok: false, error: "method_not_allowed" });
+    try {
+      const r = await fetch(`${HABITSYNC_BASE}/api/habit/list`, {
+        headers: { Authorization: HS_AUTH },
+      });
+      const text = await r.text();
+      res.writeHead(r.ok ? 200 : 502, { "Content-Type": "application/json;charset=utf-8" });
+      res.end(text);
+      return;
+    } catch {
+      return json(res, 502, { ok: false, error: "habitsync_unreachable" });
+    }
+  }
+
+  if (p.startsWith("/habitsync/record/")) {
+    if (req.method !== "POST") return json(res, 405, { ok: false, error: "method_not_allowed" });
+    const uuid = decodeURIComponent(p.slice("/habitsync/record/".length));
+    if (!uuid) return json(res, 400, { ok: false, error: "missing_uuid" });
+    try {
+      const r = await fetch(`${HABITSYNC_BASE}/api/record/${encodeURIComponent(uuid)}`, {
+        method: "POST",
+        headers: { Authorization: HS_AUTH, "Content-Type": "application/json" },
+      });
+      if (!r.ok) return json(res, 502, { ok: false, error: "habitsync_error", status: r.status });
+      // HabitSync may return empty body; keep a stable local response.
+      return json(res, 200, { ok: true });
+    } catch {
+      return json(res, 502, { ok: false, error: "habitsync_unreachable" });
+    }
   }
 
   // ── Plan hint (reads plan.json if it exists) ──
   if (p === "/plan/today") {
     const date = url.searchParams.get("date") || localToday();
     const plan = readJson(path.join(DATA_DIR, "plan.json"));
-    if (!plan) return json(res, 200, { ok: true, suggestion: null });
     const dow  = ["So","Mo","Di","Mi","Do","Fr","Sa"][new Date(date + "T12:00:00").getDay()];
-    const match = (plan.einheiten || []).find(e => (e.days || []).includes(dow));
-    if (!match) return json(res, 200, { ok: true, suggestion: null });
-    const exercises = (match.abschnitte || []).flatMap(a => (a.übungen || a.uebungen || []).map(u => u.name));
-    return json(res, 200, { ok: true, suggestion: { day: dow, block: match.name, exercises } });
+    if (plan) {
+      const match = (plan.einheiten || []).find(e => (e.days || []).includes(dow));
+      if (match) {
+        const exercises = (match.abschnitte || []).flatMap(a => (a.übungen || a.uebungen || []).map(u => u.name));
+        return json(res, 200, { ok: true, suggestion: { day: dow, block: match.name, exercises } });
+      }
+    }
+
+    const fallback = {
+      Mo: { block: "Push", exercises: ["Incline Dumbbell Press", "Dips", "Lateral Raise", "Cable Fly", "Triceps Extension"] },
+      Di: { block: "Pull", exercises: ["Pull-Up", "Row", "Lat Pulldown", "Face Pull", "Biceps Curl"] },
+      Mi: { block: "Legs", exercises: ["Squat", "Romanian Deadlift", "Lunge", "Leg Curl", "Calf Raise"] },
+      Do: { block: "Upper", exercises: ["Bench Press", "Row", "Overhead Press", "Pulldown", "Curl"] },
+      Fr: { block: "Lower", exercises: ["Deadlift", "Split Squat", "Hip Thrust", "Leg Curl", "Calf Raise"] },
+      Sa: { block: "Full Body", exercises: ["Squat", "Press", "Row", "Hinge", "Carry"] },
+      So: { block: "Recovery", exercises: ["Mobility", "Walk", "Core Breathing"] },
+    }[dow] || { block: "Full Body", exercises: ["Squat", "Press", "Row"] };
+
+    return json(res, 200, { ok: true, suggestion: { day: dow, block: fallback.block, exercises: fallback.exercises } });
   }
 
   // ── Blocks (from plan or defaults) ──
   if (p === "/blocks") {
     const plan   = readJson(path.join(DATA_DIR, "plan.json"));
-    const blocks = (plan?.einheiten || []).map(e => ({ id: e.name.toLowerCase().replace(/\s+/g,"_"), label: e.name, muscle_groups: e.muscle_groups || [] }));
-    if (blocks.length) return json(res, 200, { ok: true, blocks });
-    return json(res, 200, { ok: true, blocks: [
-      { id:"push",  label:"Push",  muscle_groups:["chest","shoulders","arms"] },
-      { id:"pull",  label:"Pull",  muscle_groups:["back","arms"] },
-      { id:"legs",  label:"Legs",  muscle_groups:["quads","hamstrings","glutes","calves"] },
-      { id:"upper", label:"Upper", muscle_groups:["chest","back","shoulders","arms"] },
-      { id:"lower", label:"Lower", muscle_groups:["quads","hamstrings","glutes","calves"] },
-    ]});
+    const blocks = defaultBlocks();
+    for (const unit of (plan?.einheiten || [])) {
+      const id = String(unit.name || "").trim().toLowerCase().replace(/\s+/g,"_");
+      if (!id) continue;
+      const label = String(unit.name || "").trim() || id;
+      const muscle_groups = Array.isArray(unit.muscle_groups) ? unit.muscle_groups : [];
+      const existing = blocks.find(block => block.id === id);
+      if (existing) {
+        existing.label = label || existing.label;
+        existing.muscle_groups = [...new Set([...(existing.muscle_groups || []), ...muscle_groups])];
+      } else {
+        blocks.push({ id, label, muscle_groups });
+      }
+    }
+    return json(res, 200, { ok: true, blocks });
   }
 
   // ── Session ──
@@ -182,6 +519,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "POST") {
       const data = B();
       writeJson(file, { ...data, date, saved_at: new Date().toISOString() });
+      syncRuntimeHistoryFromSessions();
       return json(res, 200, { ok: true });
     }
   }
@@ -238,27 +576,34 @@ const server = http.createServer(async (req, res) => {
     const days = Number(url.searchParams.get("days") || 7);
     const hits = computeCoverage(days);
     const GROUPS = {
-      chest: ["Pectoralis major","Pectoralis minor"],
-      back:  ["Latissimus dorsi","Trapezius","Rhomboids"],
-      shoulders: ["Deltoid","Rotator cuff"],
-      arms:  ["Biceps brachii","Triceps brachii"],
-      core:  ["Rectus abdominis","Obliques","Transverse abdominis"],
-      glutes: ["Gluteus maximus","Gluteus medius"],
-      quads: ["Quadriceps femoris","Vastus lateralis"],
-      hamstrings: ["Biceps femoris","Semitendinosus"],
-      calves: ["Gastrocnemius","Soleus"],
+      // Keep "muscles" as display labels; scoring is driven by normalized group IDs.
+      chest: ["Chest"],
+      back:  ["Back"],
+      shoulders: ["Shoulders"],
+      arms:  ["Arms"],
+      core:  ["Core"],
+      glutes: ["Glutes"],
+      quads: ["Quads"],
+      hamstrings: ["Hamstrings"],
+      calves: ["Calves"],
     };
     const groups = Object.entries(GROUPS).map(([id, muscleNames]) => ({
       id,
       muscles: muscleNames.map(name => ({
         name_en:       name,
-        primaryHits:   Math.round((hits[name] || 0)),
+        primaryHits:   Math.round((hits[id] || 0)),
         secondaryHits: 0,
-        totalScore:    hits[name] || 0,
+        totalScore:    hits[id] || 0,
       })),
     }));
     const muscles = groups.flatMap(g => g.muscles);
     return json(res, 200, { ok: true, groups, muscles });
+  }
+
+  if (p === "/coverage/anatomy") {
+    const days = Number(url.searchParams.get("days") || 7);
+    const muscles = computeCoverageAnatomy(days);
+    return json(res, 200, { ok: true, days, muscles });
   }
 
   if (p === "/coverage/gaps") {

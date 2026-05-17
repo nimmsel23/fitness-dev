@@ -1,0 +1,65 @@
+muscle_coverage_rules:
+  version: "0.1.0"
+
+  intensity_weights:
+    primary: 1.0
+    secondary: 0.5
+    stabilizer: 0.2
+    minor: 0.1
+
+  set_weighting:
+    description: "Coverage contribution per performed set."
+    formula: "coverage_score = sets * muscle_role_weight * effort_factor"
+
+  effort_factor_by_rpe:
+    "6": 0.6
+    "7": 0.75
+    "8": 0.9
+    "9": 1.0
+    "10": 1.05
+
+  default_role_mapping:
+    primary_muscles: primary
+    secondary_muscles: secondary
+    stabilizers: stabilizer
+
+  body_highlighter:
+    mode: "weighted_heatmap"
+    scale:
+      none: 0
+      low: "0.1-2.9"
+      moderate: "3.0-5.9"
+      high: "6.0-9.9"
+      very_high: "10+"
+
+    display_rules:
+      - "Primary muscles receive strongest highlight."
+      - "Secondary muscles receive medium highlight."
+      - "Stabilizers receive light highlight unless accumulated across many exercises."
+      - "Untrained muscles remain unhighlighted."
+      - "If two sources disagree, prefer custom_yaml over external database."
+
+  weekly_targets:
+    hypertrophy:
+      chest: "8-16"
+      back: "10-20"
+      shoulders: "8-18"
+      biceps: "6-14"
+      triceps: "6-14"
+      quads: "8-18"
+      hamstrings: "6-16"
+      glutes: "8-18"
+      calves: "6-16"
+      abs: "4-12"
+
+    strength_hypertrophy:
+      chest: "6-12"
+      back: "8-16"
+      shoulders: "6-14"
+      biceps: "4-10"
+      triceps: "4-10"
+      quads: "6-14"
+      hamstrings: "5-12"
+      glutes: "6-14"
+      calves: "4-12"
+      abs: "3-10"

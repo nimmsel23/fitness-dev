@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fitness-agent"
+version = "0.1.0"
+description = "Local fitness agent foundation CLI"
+requires-python = ">=3.11"
+dependencies = [
+  "PyYAML>=6.0",
+]
+
+[project.scripts]
+fitness-agent = "fitness_agent.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["fitness_agent*"]
+
+[tool.setuptools.package-data]
+fitness_agent = ["py.typed"]

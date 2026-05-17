@@ -1,0 +1,1236 @@
+Perfekt. Dann bauen wir jetzt die **Regel-Datei**, damit dein lokaler Agent aus den Körperregion-YAMLs sinnvolle Workouts generieren kann.
+
+## `program_rules.yml`
+
+```yaml
+program_rules:
+  version: "0.1.0"
+  language: "de"
+  purpose: "Rules for generating strength and hypertrophy workouts from the exercise library."
+
+training_goals:
+  hypertrophy:
+    description: "Muskelaufbau mit moderater bis hoher Wiederholungszahl und kontrollierter Technik."
+    default_rep_ranges:
+      compound: "6-10"
+      machine_compound: "8-12"
+      isolation: "10-20"
+      core: "8-20"
+    default_sets:
+      compound: 3
+      machine_compound: 3
+      isolation: 2
+      core: 2
+    default_rpe:
+      compound: "7-9"
+      machine_compound: "8-9"
+      isolation: "8-10"
+      core: "7-9"
+    rest_seconds:
+      compound: 120
+      machine_compound: 90
+      isolation: 60
+      core: 45
+
+  strength:
+    description: "Kraftaufbau mit höherer Last, längeren Pausen und niedrigerer Wiederholungszahl."
+    default_rep_ranges:
+      compound: "3-6"
+      machine_compound: "5-8"
+      isolation: "8-15"
+      core: "8-15"
+    default_sets:
+      compound: 4
+      machine_compound: 3
+      isolation: 2
+      core: 2
+    default_rpe:
+      compound: "6-8"
+      machine_compound: "7-8"
+      isolation: "7-9"
+      core: "7-8"
+    rest_seconds:
+      compound: 180
+      machine_compound: 120
+      isolation: 60
+      core: 60
+
+  strength_hypertrophy:
+    description: "Mischform aus Kraft und Muskelaufbau."
+    default_rep_ranges:
+      compound: "5-8"
+      machine_compound: "8-12"
+      isolation: "10-15"
+      core: "8-15"
+    default_sets:
+      compound: 3
+      machine_compound: 3
+      isolation: 2
+      core: 2
+    default_rpe:
+      compound: "7-8"
+      machine_compound: "8-9"
+      isolation: "8-9"
+      core: "7-9"
+    rest_seconds:
+      compound: 150
+      machine_compound: 90
+      isolation: 60
+      core: 45
+
+workout_templates:
+  push_day:
+    label_de: "Push Day"
+    description: "Brust, Schulter, Trizeps."
+    allowed_categories:
+      - chest
+      - shoulders
+      - arms
+    allowed_sections:
+      - triceps
+    required_patterns:
+      - horizontal_push
+      - vertical_push
+      - elbow_extension
+    optional_patterns:
+      - incline_push
+      - horizontal_adduction
+      - shoulder_abduction
+      - scapular_retraction_external_rotation
+    exercise_order:
+      - main_chest_press
+      - secondary_press
+      - shoulder_press_or_raise
+      - chest_isolation
+      - triceps_isolation
+      - shoulder_health_optional
+    slots:
+      main_chest_press:
+        choose_from:
+          - barbell_bench_press
+          - dumbbell_bench_press
+          - incline_dumbbell_press
+          - dips_chest
+        sets: 3
+        reps: "5-10"
+        rpe: "7-9"
+
+      secondary_press:
+        choose_from:
+          - incline_dumbbell_press
+          - dumbbell_bench_press
+          - machine_chest_press
+          - dips_chest
+          - close_grip_bench_press
+        sets: 2
+        reps: "8-12"
+        rpe: "8-9"
+
+      shoulder_press_or_raise:
+        choose_from:
+          - overhead_press
+          - dumbbell_shoulder_press
+          - lateral_raise
+        sets: 2
+        reps: "8-15"
+        rpe: "7-9"
+
+      chest_isolation:
+        choose_from:
+          - cable_fly
+          - pec_deck
+        sets: 2
+        reps: "10-20"
+        rpe: "8-10"
+
+      triceps_isolation:
+        choose_from:
+          - overhead_triceps_extension
+          - cable_pushdown
+          - skull_crusher
+        sets: 2
+        reps: "10-15"
+        rpe: "8-9"
+
+      shoulder_health_optional:
+        choose_from:
+          - face_pull
+          - rear_delt_fly
+        sets: 1
+        reps: "15-25"
+        rpe: "6-8"
+        optional: true
+
+  pull_day:
+    label_de: "Pull Day"
+    description: "Rücken, hintere Schulter, Bizeps."
+    allowed_categories:
+      - back
+      - shoulders
+      - arms
+    allowed_sections:
+      - biceps
+    required_patterns:
+      - vertical_pull
+      - horizontal_pull
+      - elbow_flexion
+    optional_patterns:
+      - horizontal_abduction
+      - scapular_retraction_external_rotation
+    exercise_order:
+      - main_vertical_pull
+      - main_horizontal_pull
+      - secondary_row_or_pulldown
+      - rear_delt
+      - biceps_main
+      - biceps_secondary_optional
+    slots:
+      main_vertical_pull:
+        choose_from:
+          - pull_up
+          - chin_up
+          - lat_pulldown
+        sets: 3
+        reps: "5-10"
+        rpe: "7-9"
+
+      main_horizontal_pull:
+        choose_from:
+          - barbell_row
+          - chest_supported_row
+          - t_bar_row
+        sets: 3
+        reps: "6-12"
+        rpe: "7-9"
+
+      secondary_row_or_pulldown:
+        choose_from:
+          - lat_pulldown
+          - chest_supported_row
+          - t_bar_row
+        sets: 2
+        reps: "8-12"
+        rpe: "8-9"
+
+      rear_delt:
+        choose_from:
+          - rear_delt_fly
+          - face_pull
+        sets: 2
+        reps: "12-25"
+        rpe: "8-9"
+
+      biceps_main:
+        choose_from:
+          - barbell_curl
+          - incline_dumbbell_curl
+          - preacher_curl
+        sets: 2
+        reps: "8-15"
+        rpe: "8-9"
+
+      biceps_secondary_optional:
+        choose_from:
+          - hammer_curl
+          - cable_curl
+        sets: 1
+        reps: "10-15"
+        rpe: "8-9"
+        optional: true
+
+  legs_day:
+    label_de: "Leg Day"
+    description: "Quads, Hamstrings, Glutes, Waden, Core."
+    allowed_categories:
+      - legs
+      - core
+    required_patterns:
+      - squat
+      - hinge
+      - knee_flexion
+      - plantar_flexion
+    optional_patterns:
+      - unilateral_squat
+      - knee_extension
+      - hip_extension
+      - anti_extension
+      - anti_rotation
+    exercise_order:
+      - main_squat
+      - main_hinge
+      - unilateral_or_machine
+      - hamstring_isolation
+      - quad_isolation_optional
+      - calves
+      - core
+    slots:
+      main_squat:
+        choose_from:
+          - back_squat
+          - front_squat
+          - leg_press
+        sets: 3
+        reps: "5-10"
+        rpe: "7-9"
+
+      main_hinge:
+        choose_from:
+          - deadlift
+          - romanian_deadlift
+        sets: 3
+        reps: "5-10"
+        rpe: "7-9"
+
+      unilateral_or_machine:
+        choose_from:
+          - bulgarian_split_squat
+          - lunge
+          - leg_press
+          - hip_thrust
+        sets: 2
+        reps: "8-12"
+        rpe: "8-9"
+
+      hamstring_isolation:
+        choose_from:
+          - leg_curl
+        sets: 2
+        reps: "10-15"
+        rpe: "8-9"
+
+      quad_isolation_optional:
+        choose_from:
+          - leg_extension
+        sets: 1
+        reps: "12-20"
+        rpe: "8-10"
+        optional: true
+
+      calves:
+        choose_from:
+          - calf_raise
+        sets: 2
+        reps: "8-20"
+        rpe: "8-10"
+
+      core:
+        choose_from:
+          - hanging_leg_raise
+          - cable_crunch
+          - ab_wheel
+          - plank
+          - pallof_press
+          - side_plank
+        sets: 2
+        reps: "8-20"
+        rpe: "7-9"
+
+  upper_day:
+    label_de: "Upper Body Day"
+    description: "Oberkörper komplett: Brust, Rücken, Schultern, Arme."
+    allowed_categories:
+      - chest
+      - back
+      - shoulders
+      - arms
+    required_patterns:
+      - horizontal_push
+      - vertical_pull
+      - horizontal_pull
+    optional_patterns:
+      - vertical_push
+      - shoulder_abduction
+      - elbow_flexion
+      - elbow_extension
+    exercise_order:
+      - chest_press
+      - vertical_pull
+      - horizontal_pull
+      - shoulder
+      - biceps_optional
+      - triceps_optional
+    slots:
+      chest_press:
+        choose_from:
+          - barbell_bench_press
+          - dumbbell_bench_press
+          - incline_dumbbell_press
+          - dips_chest
+        sets: 3
+        reps: "5-10"
+        rpe: "7-9"
+
+      vertical_pull:
+        choose_from:
+          - pull_up
+          - chin_up
+          - lat_pulldown
+        sets: 3
+        reps: "5-10"
+        rpe: "7-9"
+
+      horizontal_pull:
+        choose_from:
+          - barbell_row
+          - chest_supported_row
+          - t_bar_row
+        sets: 2
+        reps: "8-12"
+        rpe: "8-9"
+
+      shoulder:
+        choose_from:
+          - overhead_press
+          - dumbbell_shoulder_press
+          - lateral_raise
+          - rear_delt_fly
+        sets: 2
+        reps: "8-15"
+        rpe: "7-9"
+
+      biceps_optional:
+        choose_from:
+          - barbell_curl
+          - incline_dumbbell_curl
+          - hammer_curl
+        sets: 1
+        reps: "10-15"
+        rpe: "8-9"
+        optional: true
+
+      triceps_optional:
+        choose_from:
+          - cable_pushdown
+          - overhead_triceps_extension
+          - skull_crusher
+        sets: 1
+        reps: "10-15"
+        rpe: "8-9"
+        optional: true
+
+  lower_day:
+    label_de: "Lower Body Day"
+    description: "Unterkörper komplett."
+    allowed_categories:
+      - legs
+      - core
+    required_patterns:
+      - squat
+      - hinge
+    optional_patterns:
+      - unilateral_squat
+      - knee_extension
+      - knee_flexion
+      - plantar_flexion
+      - anti_extension
+    exercise_order:
+      - squat
+      - hinge
+      - unilateral
+      - isolation
+      - calves
+      - core
+    slots:
+      squat:
+        choose_from:
+          - back_squat
+          - front_squat
+          - leg_press
+        sets: 3
+        reps: "5-10"
+        rpe: "7-9"
+
+      hinge:
+        choose_from:
+          - romanian_deadlift
+          - deadlift
+          - hip_thrust
+        sets: 3
+        reps: "6-12"
+        rpe: "7-9"
+
+      unilateral:
+        choose_from:
+          - bulgarian_split_squat
+          - lunge
+        sets: 2
+        reps: "8-12"
+        rpe: "8-9"
+
+      isolation:
+        choose_from:
+          - leg_curl
+          - leg_extension
+        sets: 2
+        reps: "10-20"
+        rpe: "8-10"
+
+      calves:
+        choose_from:
+          - calf_raise
+        sets: 2
+        reps: "8-20"
+        rpe: "8-10"
+
+      core:
+        choose_from:
+          - ab_wheel
+          - cable_crunch
+          - plank
+          - pallof_press
+        sets: 2
+        reps: "8-20"
+        rpe: "7-9"
+
+weekly_splits:
+  ppl_3_day:
+    label_de: "Push Pull Legs 3x/Woche"
+    days:
+      - day: 1
+        template: push_day
+      - day: 2
+        template: pull_day
+      - day: 3
+        template: legs_day
+    rest_guidance:
+      - "Mindestens 1 Ruhetag nach Bedarf."
+      - "Ideal bei 3 Trainingstagen pro Woche."
+
+  upper_lower_4_day:
+    label_de: "Upper Lower 4x/Woche"
+    days:
+      - day: 1
+        template: upper_day
+      - day: 2
+        template: lower_day
+      - day: 3
+        template: upper_day
+      - day: 4
+        template: lower_day
+    rest_guidance:
+      - "Nicht zwingend 4 Tage hintereinander."
+      - "Sinnvoll: Upper, Lower, Rest, Upper, Lower."
+
+  ppl_6_day:
+    label_de: "Push Pull Legs 6x/Woche"
+    days:
+      - day: 1
+        template: push_day
+      - day: 2
+        template: pull_day
+      - day: 3
+        template: legs_day
+      - day: 4
+        template: push_day
+      - day: 5
+        template: pull_day
+      - day: 6
+        template: legs_day
+    rest_guidance:
+      - "Nur sinnvoll bei guter Regeneration."
+      - "Volumen pro Einheit moderat halten."
+      - "Mindestens 1 kompletter Ruhetag pro Woche."
+
+selection_rules:
+  general:
+    - "Prefer compound exercises early in the workout."
+    - "Use isolation exercises after main compound work."
+    - "Avoid too many overlapping high-fatigue exercises in one session."
+    - "Do not select deadlift and back_squat as maximal-effort lifts in the same session unless explicitly requested."
+    - "Prefer chest_supported_row over barbell_row if lower back fatigue is high."
+    - "Prefer machine or cable isolation if the user reports joint discomfort."
+
+  push_day:
+    - "Select at least one chest press."
+    - "Select at least one triceps isolation."
+    - "Select lateral_raise unless overhead volume is already high."
+    - "If dips_chest is selected, reduce additional triceps volume slightly."
+
+  pull_day:
+    - "Select one vertical pull and one horizontal pull."
+    - "Include rear_delt_fly or face_pull for shoulder balance."
+    - "If chin_up is selected, reduce direct biceps volume slightly."
+
+  legs_day:
+    - "Select one squat pattern and one hinge pattern."
+    - "Include leg_curl if hamstring hypertrophy is a goal."
+    - "Include calf_raise unless session length is very limited."
+    - "Use unilateral work for balance and functional carryover."
+
+  core:
+    - "Do not overload spinal flexion if lower back is irritated."
+    - "Use pallof_press or side_plank for stability-focused sessions."
+    - "Use cable_crunch for progressive abdominal hypertrophy."
+    - "Use ab_wheel only if anti-extension control is sufficient."
+
+fatigue_management:
+  high_fatigue_exercises:
+    - deadlift
+    - back_squat
+    - front_squat
+    - barbell_row
+    - weighted_dips
+    - weighted_pull_up
+    - overhead_press
+
+  moderate_fatigue_exercises:
+    - romanian_deadlift
+    - leg_press
+    - bulgarian_split_squat
+    - dumbbell_bench_press
+    - incline_dumbbell_press
+    - chest_supported_row
+    - t_bar_row
+
+  low_fatigue_exercises:
+    - cable_fly
+    - pec_deck
+    - lateral_raise
+    - rear_delt_fly
+    - face_pull
+    - cable_pushdown
+    - cable_curl
+    - leg_extension
+    - leg_curl
+    - calf_raise
+    - pallof_press
+
+progression_rules:
+  double_progression:
+    description: "Increase reps first, then load."
+    rule:
+      - "Choose a rep range, e.g. 8-12."
+      - "Keep the same weight until all sets reach the top of the rep range."
+      - "Then increase load slightly and return to the lower end of the range."
+
+  load_increment_guidance:
+    upper_body:
+      dumbbells: "1-2 kg per dumbbell when possible"
+      barbell: "2.5-5 kg total"
+      cable_machine: "smallest available increment"
+    lower_body:
+      barbell: "2.5-10 kg total depending on exercise"
+      machines: "smallest sensible increment"
+    isolation:
+      rule: "Prefer reps and control before load jumps."
+
+  deload:
+    trigger_examples:
+      - "Performance drops across multiple sessions."
+      - "Joint pain increases."
+      - "Sleep and recovery are poor."
+      - "Motivation and energy are unusually low."
+    default_action:
+      - "Reduce sets by 30-50% for one week."
+      - "Keep technique sharp."
+      - "Avoid failure training."
+
+safety_rules:
+  general:
+    - "Pain is not the same as effort."
+    - "Sharp pain means stop or modify the exercise."
+    - "Technique quality overrides load."
+    - "Warm up before heavy compounds."
+    - "Do not prescribe true failure on high-risk compounds by default."
+
+  shoulder_sensitive:
+    prefer:
+      - dumbbell_bench_press
+      - machine_chest_press
+      - cable_fly
+      - landmine_press
+      - face_pull
+    avoid_or_modify:
+      - deep_dips
+      - very_wide_grip_bench_press
+      - behind_neck_pulldown
+      - upright_row
+
+  lower_back_sensitive:
+    prefer:
+      - chest_supported_row
+      - leg_press
+      - hip_thrust
+      - leg_curl
+      - split_squat
+    avoid_or_modify:
+      - heavy_deadlift
+      - heavy_barbell_row
+      - good_morning
+      - very_fatigued_back_squat
+
+output_format:
+  workout:
+    fields:
+      - day_name
+      - template
+      - goal
+      - exercises
+      - notes
+
+  exercise_output:
+    fields:
+      - order
+      - exercise_id
+      - name
+      - sets
+      - reps
+      - rpe
+      - rest_seconds
+      - notes
+
+example_generated_workout:
+  day_name: "Push Day"
+  template: push_day
+  goal: hypertrophy
+  exercises:
+    - order: 1
+      exercise_id: incline_dumbbell_press
+      name: "Schrägbankdrücken mit Kurzhanteln"
+      sets: 3
+      reps: "6-10"
+      rpe: "8"
+      rest_seconds: 120
+      notes: "Oberer Brustfokus."
+    - order: 2
+      exercise_id: dips_chest
+      name: "Brust-Dips"
+      sets: 2
+      reps: "8-12"
+      rpe: "8"
+      rest_seconds: 120
+      notes: "Leichte Vorneigung."
+    - order: 3
+      exercise_id: lateral_raise
+      name: "Seitheben"
+      sets: 2
+      reps: "12-20"
+      rpe: "9"
+      rest_seconds: 60
+      notes: "Kontrolliert, kein Schwung."
+    - order: 4
+      exercise_id: cable_fly
+      name: "Kabelzug-Fliegende"
+      sets: 2
+      reps: "12-20"
+      rpe: "9"
+      rest_seconds: 60
+      notes: "Konstante Spannung."
+    - order: 5
+      exercise_id: overhead_triceps_extension
+      name: "Überkopf-Trizepsstrecken"
+      sets: 2
+      reps: "10-15"
+      rpe: "8-9"
+      rest_seconds: 60
+      notes: "Langer Trizepskopf."
+```
+
+Und für deine App würde ich zusätzlich noch eine **Alias-Datei** machen, damit freie Texte wie `"bench"`, `"bankdrücken"`, `"db incline"` usw. sauber auf IDs gemappt werden.
+
+## `aliases.yml`
+
+```yaml
+aliases:
+  barbell_bench_press:
+    - "bench"
+    - "bench press"
+    - "bankdrücken"
+    - "langhantel bankdrücken"
+    - "lh bankdrücken"
+    - "flat bench"
+
+  dumbbell_bench_press:
+    - "db bench"
+    - "dumbbell bench"
+    - "kurzhantel bankdrücken"
+    - "kh bankdrücken"
+
+  incline_dumbbell_press:
+    - "incline db press"
+    - "incline dumbbell press"
+    - "schrägbankdrücken"
+    - "kh schrägbankdrücken"
+    - "kurzhantel schrägbankdrücken"
+
+  dips_chest:
+    - "dips"
+    - "brust dips"
+    - "chest dips"
+    - "weighted dips"
+
+  cable_fly:
+    - "cable fly"
+    - "cable crossover"
+    - "kabelzug brust"
+    - "kabel fliegende"
+    - "low to high cable fly"
+    - "high to low cable fly"
+
+  pec_deck:
+    - "pec deck"
+    - "butterfly"
+    - "butterfly maschine"
+
+  pull_up:
+    - "pull up"
+    - "pull-up"
+    - "klimmzug obergriff"
+    - "klimmzüge obergriff"
+    - "obergriff klimmzug"
+
+  chin_up:
+    - "chin up"
+    - "chin-up"
+    - "klimmzug untergriff"
+    - "klimmzüge untergriff"
+    - "untergriff klimmzug"
+
+  lat_pulldown:
+    - "lat pulldown"
+    - "latzug"
+    - "lat ziehen"
+    - "pulldown"
+
+  barbell_row:
+    - "barbell row"
+    - "bent over row"
+    - "langhantelrudern"
+    - "lh rudern"
+    - "rudern langhantel"
+
+  chest_supported_row:
+    - "chest supported row"
+    - "brustgestütztes rudern"
+    - "machine row"
+    - "maschinenrudern"
+
+  t_bar_row:
+    - "t bar row"
+    - "t-bar row"
+    - "t bar rudern"
+    - "landmine row"
+
+  overhead_press:
+    - "ohp"
+    - "overhead press"
+    - "military press"
+    - "schulterdrücken"
+    - "langhantel schulterdrücken"
+
+  dumbbell_shoulder_press:
+    - "db shoulder press"
+    - "dumbbell shoulder press"
+    - "kurzhantel schulterdrücken"
+    - "kh schulterdrücken"
+
+  lateral_raise:
+    - "lateral raise"
+    - "seitheben"
+    - "side lateral raise"
+    - "cable lateral raise"
+
+  rear_delt_fly:
+    - "rear delt fly"
+    - "reverse fly"
+    - "reverse pec deck"
+    - "hintere schulter"
+
+  face_pull:
+    - "face pull"
+    - "facepull"
+    - "rope face pull"
+
+  back_squat:
+    - "squat"
+    - "back squat"
+    - "kniebeuge"
+    - "langhantel kniebeuge"
+
+  front_squat:
+    - "front squat"
+    - "frontkniebeuge"
+    - "front kniebeuge"
+
+  leg_press:
+    - "leg press"
+    - "beinpresse"
+
+  leg_extension:
+    - "leg extension"
+    - "beinstrecker"
+
+  deadlift:
+    - "deadlift"
+    - "kreuzheben"
+    - "conventional deadlift"
+    - "sumo deadlift"
+
+  romanian_deadlift:
+    - "rdl"
+    - "romanian deadlift"
+    - "rumänisches kreuzheben"
+    - "gestrecktes kreuzheben"
+
+  leg_curl:
+    - "leg curl"
+    - "beinbeuger"
+    - "hamstring curl"
+
+  bulgarian_split_squat:
+    - "bulgarian split squat"
+    - "bulgarian"
+    - "bss"
+    - "bulgarische split squats"
+
+  lunge:
+    - "lunge"
+    - "lunges"
+    - "ausfallschritt"
+    - "ausfallschritte"
+
+  hip_thrust:
+    - "hip thrust"
+    - "hipthrust"
+    - "glute bridge"
+
+  calf_raise:
+    - "calf raise"
+    - "wadenheben"
+    - "standing calf raise"
+    - "seated calf raise"
+
+  barbell_curl:
+    - "barbell curl"
+    - "langhantelcurl"
+    - "lh curl"
+    - "ez curl"
+
+  incline_dumbbell_curl:
+    - "incline curl"
+    - "incline dumbbell curl"
+    - "schrägbank curl"
+
+  hammer_curl:
+    - "hammer curl"
+    - "hammercurl"
+    - "hammer curls"
+
+  preacher_curl:
+    - "preacher curl"
+    - "scott curl"
+    - "scottcurl"
+
+  close_grip_bench_press:
+    - "close grip bench"
+    - "close grip bench press"
+    - "enges bankdrücken"
+
+  overhead_triceps_extension:
+    - "overhead triceps extension"
+    - "overhead extension"
+    - "überkopf trizeps"
+    - "katana extension"
+    - "french press"
+
+  cable_pushdown:
+    - "pushdown"
+    - "triceps pushdown"
+    - "trizepsdrücken"
+    - "trizepsdrücken am kabel"
+
+  skull_crusher:
+    - "skull crusher"
+    - "skull crushers"
+    - "liegende french press"
+
+  hanging_leg_raise:
+    - "hanging leg raise"
+    - "hängendes beinheben"
+    - "leg raise"
+    - "toes to bar"
+
+  cable_crunch:
+    - "cable crunch"
+    - "kabel crunch"
+    - "kabelcrunch"
+
+  ab_wheel:
+    - "ab wheel"
+    - "ab rollout"
+    - "rollout"
+
+  plank:
+    - "plank"
+    - "unterarmstütz"
+
+  pallof_press:
+    - "pallof press"
+    - "anti rotation press"
+
+  side_plank:
+    - "side plank"
+    - "seitstütz"
+```
+
+Damit hast du jetzt drei Ebenen:
+
+```text
+1. exercise YAMLs      = Wissen pro Körperregion
+2. program_rules.yml  = Logik für Workout-Erstellung
+3. aliases.yml        = Textinput → Exercise-ID
+```
+
+funny thing is, dass wger local als docker-app läuft, aber mit exercise db bin ich dennoch nicht ganz zufrieden. ich denke der lokale agent wird eine lösung finden wie man das mit deinen yamls überbrücken und für die fitness app nutzen kann, ja?
+
+Ja, absolut. **wger muss nicht perfekt sein**, damit es nützlich ist. Der sauberste Ansatz wäre:
+
+**wger = lokales Tracking-/UI-/Datenbank-System**
+**deine YAMLs = eigene Coach-/Semantik-/Programmierlogik darüber**
+
+wger ist dafür grundsätzlich geeignet, weil es self-hostable ist, Workout-/Fitnessdaten verwaltet und eine REST API für Integrationen anbietet. Die offizielle Doku beschreibt es explizit als Open-Source-Webapp für Workouts, Gewicht, Ernährung und einfache Gym-Verwaltung mit REST API; das GitHub-README nennt außerdem Custom Workout Routines, Exercise Wiki, Self-Hosting via Docker und API-Integrationen. ([wger.readthedocs.io][1])
+
+Der lokale Agent könnte also so arbeiten:
+
+```text
+User/App Input
+   ↓
+aliases.yml
+   ↓
+eigene exercise YAMLs
+   ↓
+program_rules.yml
+   ↓
+Workout-Generator / Coach Logic
+   ↓
+wger API / lokale wger DB / Export
+```
+
+Das heißt: **nicht wger Exercise DB blind vertrauen**, sondern wger eher als Speicher, Kalender, Logger und Oberfläche nutzen.
+
+## Sinnvolle Architektur
+
+```yaml
+fitness_app_bridge:
+  sources:
+    custom_yaml_library:
+      role: "semantic_source_of_truth"
+      contains:
+        - exercise_names
+        - german_names
+        - muscles
+        - movement_patterns
+        - variations
+        - coaching_notes
+        - common_errors
+        - tags
+        - program_rules
+
+    wger_local:
+      role: "tracking_and_storage_backend"
+      contains:
+        - workouts
+        - routines
+        - logs
+        - sets
+        - reps
+        - weights
+        - bodyweight
+        - nutrition_optional
+
+  agent_roles:
+    resolver:
+      input: "free text exercise name"
+      uses:
+        - aliases.yml
+      output: "canonical_exercise_id"
+
+    mapper:
+      input: "canonical_exercise_id"
+      uses:
+        - custom YAMLs
+        - wger exercise list/API
+      output:
+        - "custom_exercise_id"
+        - "wger_exercise_id if available"
+        - "mapping_confidence"
+
+    planner:
+      input:
+        - "goal"
+        - "available days"
+        - "equipment"
+        - "injury constraints"
+      uses:
+        - program_rules.yml
+        - regional exercise YAMLs
+      output: "planned workout"
+
+    exporter:
+      input: "planned workout"
+      output:
+        - "wger routine"
+        - "markdown note"
+        - "json export"
+        - "yaml export"
+
+    logger:
+      input: "completed workout"
+      output:
+        - "wger log entry"
+        - "local history"
+        - "progression recommendation"
+```
+
+## Der Trick: Mapping statt Ersetzen
+
+Du brauchst nicht zwingend alle Übungen in wger perfekt pflegen. Du kannst eine Mapping-Datei dazwischenlegen:
+
+## `wger_mapping.yml`
+
+```yaml
+wger_mapping:
+  version: "0.1.0"
+
+  exercises:
+    barbell_bench_press:
+      custom_id: barbell_bench_press
+      wger_match:
+        status: "needs_lookup"
+        wger_id: null
+        confidence: null
+      fallback_name: "Langhantel-Bankdrücken"
+      export_as_custom_exercise: true
+
+    incline_dumbbell_press:
+      custom_id: incline_dumbbell_press
+      wger_match:
+        status: "needs_lookup"
+        wger_id: null
+        confidence: null
+      fallback_name: "Schrägbankdrücken mit Kurzhanteln"
+      export_as_custom_exercise: true
+
+    pull_up:
+      custom_id: pull_up
+      wger_match:
+        status: "needs_lookup"
+        wger_id: null
+        confidence: null
+      fallback_name: "Klimmzug im Obergriff"
+      export_as_custom_exercise: true
+
+    chin_up:
+      custom_id: chin_up
+      wger_match:
+        status: "needs_lookup"
+        wger_id: null
+        confidence: null
+      fallback_name: "Klimmzug im Untergriff"
+      export_as_custom_exercise: true
+
+    deadlift:
+      custom_id: deadlift
+      wger_match:
+        status: "needs_lookup"
+        wger_id: null
+        confidence: null
+      fallback_name: "Kreuzheben"
+      export_as_custom_exercise: true
+
+    front_squat:
+      custom_id: front_squat
+      wger_match:
+        status: "needs_lookup"
+        wger_id: null
+        confidence: null
+      fallback_name: "Frontkniebeuge"
+      export_as_custom_exercise: true
+
+    cable_fly:
+      custom_id: cable_fly
+      wger_match:
+        status: "needs_lookup"
+        wger_id: null
+        confidence: null
+      fallback_name: "Kabelzug-Fliegende"
+      export_as_custom_exercise: true
+
+    overhead_triceps_extension:
+      custom_id: overhead_triceps_extension
+      wger_match:
+        status: "needs_lookup"
+        wger_id: null
+        confidence: null
+      fallback_name: "Überkopf-Trizepsstrecken"
+      export_as_custom_exercise: true
+```
+
+Der Agent kann dann später automatisiert sagen:
+
+```text
+"Ich kenne barbell_bench_press aus deiner YAML.
+Ich suche in wger nach passenden Übungen.
+Wenn exakter Match schlecht ist, erstelle ich/verwende ich eine Custom Exercise oder exportiere es separat."
+```
+
+## Wichtiger Punkt
+
+Die **wger Exercise DB** ist dann nicht mehr dein Gehirn. Sie ist nur noch eine mögliche Datenquelle.
+
+Dein echtes Gehirn ist:
+
+```text
+exercise_library/*.yml
+program_rules.yml
+aliases.yml
+wger_mapping.yml
+training_history.json/sqlite
+```
+
+## Beste Lösung für deine App
+
+Ich würde es so bauen:
+
+```text
+~/.fitness-agent/
+├── exercises/
+│   ├── chest.yml
+│   ├── back.yml
+│   ├── shoulders.yml
+│   ├── arms.yml
+│   ├── legs.yml
+│   └── core.yml
+├── rules/
+│   ├── program_rules.yml
+│   ├── progression_rules.yml
+│   └── safety_rules.yml
+├── maps/
+│   ├── aliases.yml
+│   └── wger_mapping.yml
+├── state/
+│   ├── training_history.sqlite
+│   └── last_generated_plan.yml
+└── exports/
+    ├── obsidian/
+    ├── wger/
+    └── json/
+```
+
+## Fazit
+
+Ja: **dein lokaler Agent kann wger sehr gut überbrücken.**
+
+Die ideale Rolle wäre:
+
+```text
+YAMLs = bessere Exercise Intelligence
+Agent = Coach / Translator / Planner
+wger = lokales Tracking-System
+Obsidian = Wissensbasis und Langzeitdokumentation
+```
+
+Das ist sogar stärker als nur wger allein, weil du deine eigene Logik für PPL, Übungsauswahl, Muskelgruppen, Coachingpoints, Progression und Obsidian-Export kontrollierst.
+
+[1]: https://wger.readthedocs.io/?utm_source=chatgpt.com "Welcome to the wger 2.6 documentation — wger project 2.6 ..."
+

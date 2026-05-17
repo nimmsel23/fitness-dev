@@ -1,0 +1,226 @@
+muscle_taxonomy:
+  version: "0.1.0"
+  language: "de"
+
+  muscle_groups:
+    chest:
+      label_de: "Brust"
+      label_en: "Chest"
+      aliases:
+        - chest
+        - pecs
+        - pectorals
+        - pectoralis
+        - pectoralis_major
+        - brust
+        - brustmuskel
+      body_highlight_region:
+        - chest_front
+      submuscles:
+        - pectoralis_major_clavicular
+        - pectoralis_major_sternal
+        - pectoralis_major_costal
+        - pectoralis_minor
+
+    back:
+      label_de: "Rücken"
+      label_en: "Back"
+      aliases:
+        - back
+        - upper_back
+        - middle_back
+        - lats
+        - latissimus
+        - latissimus_dorsi
+        - rhomboids
+        - traps
+        - trapezius
+        - rücken
+      body_highlight_region:
+        - upper_back
+        - mid_back
+        - lats
+      submuscles:
+        - latissimus_dorsi
+        - trapezius_upper
+        - trapezius_middle
+        - trapezius_lower
+        - rhomboids
+        - teres_major
+        - rear_deltoid
+        - spinal_erectors
+
+    shoulders:
+      label_de: "Schultern"
+      label_en: "Shoulders"
+      aliases:
+        - shoulders
+        - delts
+        - deltoids
+        - deltoideus
+        - schulter
+        - schultern
+      body_highlight_region:
+        - shoulders_front
+        - shoulders_side
+        - shoulders_rear
+      submuscles:
+        - anterior_deltoid
+        - lateral_deltoid
+        - rear_deltoid
+        - rotator_cuff
+
+    biceps:
+      label_de: "Bizeps"
+      label_en: "Biceps"
+      aliases:
+        - biceps
+        - biceps_brachii
+        - armbeuger
+        - bizeps
+      body_highlight_region:
+        - upper_arm_front
+      submuscles:
+        - biceps_brachii
+        - brachialis
+        - brachioradialis
+
+    triceps:
+      label_de: "Trizeps"
+      label_en: "Triceps"
+      aliases:
+        - triceps
+        - triceps_brachii
+        - armstrecker
+        - trizeps
+      body_highlight_region:
+        - upper_arm_back
+      submuscles:
+        - triceps_long_head
+        - triceps_lateral_head
+        - triceps_medial_head
+
+    forearms:
+      label_de: "Unterarme"
+      label_en: "Forearms"
+      aliases:
+        - forearms
+        - grip
+        - unterarme
+        - griffkraft
+      body_highlight_region:
+        - forearms
+      submuscles:
+        - wrist_flexors
+        - wrist_extensors
+        - brachioradialis
+
+    abs:
+      label_de: "Bauch"
+      label_en: "Abs"
+      aliases:
+        - abs
+        - abdominals
+        - core
+        - rectus_abdominis
+        - bauch
+        - rumpf
+      body_highlight_region:
+        - abdomen_front
+      submuscles:
+        - rectus_abdominis
+        - transverse_abdominis
+        - obliques
+
+    lower_back:
+      label_de: "Unterer Rücken"
+      label_en: "Lower Back"
+      aliases:
+        - lower_back
+        - spinal_erectors
+        - erector_spinae
+        - unterer_rücken
+        - rückenstrecker
+      body_highlight_region:
+        - lower_back
+      submuscles:
+        - spinal_erectors
+        - quadratus_lumborum
+
+    quads:
+      label_de: "Quadrizeps"
+      label_en: "Quadriceps"
+      aliases:
+        - quads
+        - quadriceps
+        - quadrizeps
+        - vorderer_oberschenkel
+      body_highlight_region:
+        - thigh_front
+      submuscles:
+        - rectus_femoris
+        - vastus_lateralis
+        - vastus_medialis
+        - vastus_intermedius
+
+    hamstrings:
+      label_de: "Hamstrings"
+      label_en: "Hamstrings"
+      aliases:
+        - hamstrings
+        - hamstring
+        - beinbeuger
+        - hinterer_oberschenkel
+      body_highlight_region:
+        - thigh_back
+      submuscles:
+        - biceps_femoris
+        - semitendinosus
+        - semimembranosus
+
+    glutes:
+      label_de: "Gesäß"
+      label_en: "Glutes"
+      aliases:
+        - glutes
+        - gluteus
+        - gluteus_maximus
+        - gesäß
+        - po
+      body_highlight_region:
+        - glutes
+      submuscles:
+        - gluteus_maximus
+        - gluteus_medius
+        - gluteus_minimus
+
+    adductors:
+      label_de: "Adduktoren"
+      label_en: "Adductors"
+      aliases:
+        - adductors
+        - inner_thigh
+        - adduktoren
+        - innenschenkel
+      body_highlight_region:
+        - thigh_inner
+      submuscles:
+        - adductor_magnus
+        - adductor_longus
+        - adductor_brevis
+        - gracilis
+
+    calves:
+      label_de: "Waden"
+      label_en: "Calves"
+      aliases:
+        - calves
+        - calf
+        - waden
+        - gastrocnemius
+        - soleus
+      body_highlight_region:
+        - calves
+      submuscles:
+        - gastrocnemius
+        - soleus

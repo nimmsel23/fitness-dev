@@ -3,12 +3,29 @@
 Workout-Tracking CLI und PWA für Krafttraining, Cardio und Trainingsplanung.
 
 Ziel:
+- **Praktisches Werkzeug zur Unterstützung der Diplom Präventiver Vitaltrainer Ausbildung** (Fitnesstrainer-Modul + Health Personal Fitness Trainer + Prävention)
+- Erfüllung der Pflichtaufgaben: Trainingspläne erstellen, Logs führen, Anatomie-Lehre dokumentieren
 - Offline-fähiges Workout-Logging ohne externe Apps
-- Strukturierte Trainingspläne mit wger Exercise DB
-- Lokale, file-basierte Speicherung
+- Strukturierte Trainingspläne mit vollständig integriertem wger Backend (lokal) + yuhonas Ergänzung
+- Lokale, file-basierte Speicherung unter `~/.aos/fitness/`
+- Anatomie Teaching Layer (Ansatz & Ursprung) für echte Trainer-Ausbildung
 - Spätere Integration in `~/vital` Klienten-System
 
-## Schichten
+## System: fitness-agent (Prophet) + fitness-dev (Tempel)
+
+**fitness-agent** (Skill, `/fitness-agent`):
+- Liest Fitnesstrainer-Module der Ausbildung (8 Fächer + Health Personal Fitness Trainer + Prävention)
+- Schreibt & erweitert Katalog in `~/fitness-dev/catalog/` (YAML: Exercises, Anatomy Teaching, Rules, Mappings)
+- Schreibt Tickets für fitness-dev-coding-agent wenn Features/Gaps sichtbar werden
+- Silent DB-Manager: Anatomie-Lehre, Katalog-Normalisierung, Quellen-Integration
+
+**fitness-dev** (das Repo, wird von fitness-dev-coding-agent gebaut):
+- Backend (`server.mjs`, `fitness-runtime.mjs`): API für Session-Logs, Pläne, Coverage-Analyse
+- Frontend (React + Vite): Workout-Logging, Trainingsplanung, Anatomie-Ansicht, Muskelabdeckungs-Analyse
+- Vollständig integriertes wger Backend (:8000 lokal) + yuhonas Ergänzung für Bilder/Varianten
+- Unterstützt Pflichtaufgaben: Trainingsplanerstellung, Logs, Export, Analyse
+
+## Schichten (fitness-dev)
 
 - **CLI** — `~/fitness-dev/fitness` (Python/Typer) für schnelles Logging
 - **Universal Dispatcher** — `hab` in `~/.dotfiles/logger/` für auto-detectable context

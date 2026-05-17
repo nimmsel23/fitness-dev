@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Save, RotateCcw, Zap, Dumbbell } from 'lucide-react'
+import { Save, RotateCcw, Zap, Dumbbell, Download } from 'lucide-react'
 import ExerciseSearch from '../components/ExerciseSearch.jsx'
-import { api, localToday, parseQuick } from '../api.js'
+import { api, localToday, parseQuick, downloadText } from '../api.js'
+import { buildSessionCoachSheet } from '../lib/exerciseInsights.js'
 
 // ── Section header with rule ──────────────────────────────────────────────────
 function SectionHeader({ children }) {
@@ -25,7 +26,20 @@ function fmtDate(iso) {
   return `${d}.${m}.`
 }
 
-function ExCard({ ex, i, updateEx, removeEx, prev }) {
+function ExCard({ ex, i, updateEx, removeEx, prev, onInspectExercise }) {
+  const num = (v) => {
+    if (v === null || v === undefined) return null
+    const s = String(v).trim().replace(',', '.')
+    if (!s) return null
+    const n = Number(s)
+    return Number.isFinite(n) ? n : null
+  }
+
+  const setsN = num(ex.sets)
+  const repsN = num(ex.reps)
+  const weightN = num(ex.weight)
+  const volume = (setsN !== null && repsN !== null && weightN !== null) ? (setsN * repsN * weightN) : null
+
   const metricInput = (key, mode) => {
     const disabled = ex.isHIT && (key === 'sets' || key === 'reps')
     return (
@@ -80,10 +94,24 @@ function ExCard({ ex, i, updateEx, removeEx, prev }) {
     }}>
       {/* Name + optional muscle hint */}
       <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '14px', paddingRight: '28px', letterSpacing: '-0.01em', lineHeight: 1.3 }}>
-        {ex.name
-          ? ex.name
-          : <span style={{ color: 'var(--dim)', fontStyle: 'italic', fontWeight: 400 }}>Übung</span>
-        }
+        <button
+          type="button"
+          onClick={() => onInspectExercise?.(ex)}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            color: 'inherit',
+            font: 'inherit',
+            cursor: onInspectExercise ? 'pointer' : 'default',
+            textAlign: 'left',
+          }}
+        >
+          {ex.name
+            ? ex.name
+            : <span style={{ color: 'var(--dim)', fontStyle: 'italic', fontWeight: 400 }}>Übung</span>
+          }
+        </button>
         {prev && (
           <div style={{
             fontSize: '11px', color: 'var(--dim)', fontFamily: "'JetBrains Mono', monospace",
@@ -132,7 +160,20 @@ function ExCard({ ex, i, updateEx, removeEx, prev }) {
         {metricInput('weight', 'decimal')}
       </div>
 
-      {/* Note + HIT */}
+      {volume !== null && (
+        <div style={{
+          fontSize: '11px',
+          fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+          color: 'var(--dim)',
+          marginTop: '-4px',
+          marginBottom: '10px',
+          textAlign: 'right',
+        }}>
+          {Math.round(volume).toLocaleString('de-AT')} kg
+        </div>
+      )}
+
+      {/* Note + status */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         <input
           type="text"
@@ -149,6 +190,25 @@ function ExCard({ ex, i, updateEx, removeEx, prev }) {
           onBlur={e => { e.target.style.borderColor = 'var(--line)'; e.target.style.color = 'var(--muted)' }}
         />
         <button
+          onClick={() => updateEx(i, 'done', !ex.done)}
+          style={{
+            width: '34px',
+            height: '34px',
+            border: `1px solid ${ex.done ? 'rgba(34,197,94,0.5)' : 'var(--line)'}`,
+            borderRadius: '6px',
+            background: ex.done ? 'rgba(34,197,94,0.12)' : 'var(--bg2)',
+            cursor: 'pointer',
+            fontSize: '12px',
+            fontWeight: 800,
+            color: ex.done ? 'var(--green)' : 'var(--dim)',
+            flexShrink: 0,
+          }}
+          aria-label={ex.done ? 'Done' : 'Not done'}
+          title={ex.done ? 'Done' : 'Not done'}
+        >
+          {ex.done ? '✓' : '□'}
+        </button>
+        <button
           onClick={() => updateEx(i, 'isHIT', !ex.isHIT)}
           style={{
             padding: '6px 9px',
@@ -163,13 +223,25 @@ function ExCard({ ex, i, updateEx, removeEx, prev }) {
           }}
         >HIT</button>
       </div>
+      {ex.isFinisher && (
+        <div style={{
+          marginTop: '8px',
+          fontSize: '10px',
+          fontWeight: 800,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          color: ex.done ? 'var(--green)' : '#f59e0b',
+        }}>
+          {ex.done ? 'Finisher done' : 'Finisher'}
+        </div>
+      )}
     </div>
   )
 }
 
 // ── Main view ─────────────────────────────────────────────────────────────────
-export default function Session() {
-  const [date, setDate]           = useState(localToday())
+export default function Session({ initialDate, initialDraft = null, onInspectExercise }) {
+  const [date, setDate]           = useState(initialDate || localToday())
   const [blocks, setBlocks]       = useState([])
   const [block, setBlock]         = useState('')
   const [exercises, setExercises] = useState([])
@@ -208,20 +280,26 @@ export default function Session() {
         setMood(d.data.mood || '')
         setNotes(d.data.notes || '')
       } else {
-        setBlock(''); setExercises([]); setEffort(5); setMood(''); setNotes('')
+        if (initialDraft && date === (initialDate || localToday())) {
+          setBlock(initialDraft.block || '')
+          setExercises(Array.isArray(initialDraft.exercises) ? initialDraft.exercises : [])
+          setEffort(5); setMood(''); setNotes('')
+        } else {
+          setBlock(''); setExercises([]); setEffort(5); setMood(''); setNotes('')
+        }
       }
     }).catch(() => {})
     api.get(`/plan/today?date=${date}`).then(d => setHint(d?.suggestion || null)).catch(() => {})
-  }, [date])
+  }, [date, initialDate, initialDraft])
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 2200) }
 
   function addEx(ex) {
-    setExercises(prev => [...prev, {
+      setExercises(prev => [...prev, {
       name: ex.name, id: ex.id || '',
       primaryMuscles: ex.primaryMuscles || [],
       secondaryMuscles: ex.secondaryMuscles || [],
-      sets: '', reps: '', weight: '', note: '', isHIT: false,
+      sets: '', reps: '', weight: '', note: ex.note || '', done: !!ex.done, isHIT: false, isFinisher: !!ex.isFinisher,
     }])
     showToast(`+ ${ex.name}`)
   }
@@ -239,6 +317,30 @@ export default function Session() {
   function removeEx(i) {
     setExercises(prev => prev.filter((_, idx) => idx !== i))
   }
+
+  const totalVolume = exercises.reduce((sum, ex) => {
+    const toNum = (v) => {
+      if (v === null || v === undefined) return null
+      const s = String(v).trim().replace(',', '.')
+      if (!s) return null
+      const n = Number(s)
+      return Number.isFinite(n) ? n : null
+    }
+    const setsN = toNum(ex.sets)
+    const repsN = toNum(ex.reps)
+    const weightN = toNum(ex.weight)
+    if (setsN === null || repsN === null || weightN === null) return sum
+    return sum + (setsN * repsN * weightN)
+  }, 0)
+
+  const renderedExercises = exercises
+    .map((ex, idx) => ({ ex, idx }))
+    .sort((a, b) => {
+      const aFinisher = !!a.ex.isFinisher
+      const bFinisher = !!b.ex.isFinisher
+      if (aFinisher !== bFinisher) return aFinisher ? 1 : -1
+      return a.idx - b.idx
+    })
 
   async function loadLast() {
     try {
@@ -259,6 +361,19 @@ export default function Session() {
       setGaps(r?.gaps || [])
     } catch { showToast('Fehler beim Speichern') }
     finally { setSaving(false) }
+  }
+
+  async function exportObsidian() {
+    try {
+      const result = await api.post('/fitness/export', {
+        kind: 'session',
+        session: { date, block, exercises, effort, mood, notes },
+        force: true,
+      })
+      showToast(result?.path ? `Export: ${result.path}` : 'Exportiert')
+    } catch {
+      showToast('Export fehlgeschlagen')
+    }
   }
 
   const splitLabels = blocks.length
@@ -345,9 +460,22 @@ export default function Session() {
           </p>
         </div>
       ) : (
-        exercises.map((ex, i) => (
-          <ExCard key={i} ex={ex} i={i} updateEx={updateEx} removeEx={removeEx} prev={prevMap[ex.name]} />
+        renderedExercises.map(({ ex, idx }) => (
+          <ExCard key={`${idx}-${ex.name}`} ex={ex} i={idx} updateEx={updateEx} removeEx={removeEx} prev={prevMap[ex.name]} onInspectExercise={onInspectExercise} />
         ))
+      )}
+
+      {totalVolume > 0 && (
+        <div style={{
+          marginBottom: '10px',
+          textAlign: 'right',
+          fontSize: '12px',
+          fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+          color: 'var(--muted)',
+          fontWeight: 700,
+        }}>
+          Total: {Math.round(totalVolume).toLocaleString('de-AT')} kg
+        </div>
       )}
 
       {/* ── Übung hinzufügen ── */}
@@ -454,6 +582,71 @@ export default function Session() {
           </div>
         </div>
       )}
+
+      {/* ── Export ── */}
+      <SectionHeader>Export</SectionHeader>
+      <div style={{
+        background: 'var(--card)',
+        border: '1px solid var(--line)',
+        borderRadius: '14px',
+        padding: '14px',
+        marginBottom: '12px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+          <div>
+            <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--dim)' }}>
+              Coach Sheet
+            </div>
+            <div style={{ marginTop: '4px', fontSize: '13px', color: 'var(--muted)' }}>
+              Markdown-Export fuer Obsidian oder Archiv.
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={exportObsidian}
+              style={{
+                padding: '9px 14px',
+                background: 'rgba(94,234,212,0.12)',
+                border: '1px solid rgba(94,234,212,0.28)',
+                borderRadius: '10px',
+                color: 'var(--accent)',
+                fontWeight: 800,
+                fontSize: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <Download size={14} /> Obsidian Export
+            </button>
+            <button
+              onClick={() => downloadText(
+                `fitness-session-${date}.md`,
+                buildSessionCoachSheet({ date, block, exercises, effort, mood, notes }),
+                'text/markdown;charset=utf-8',
+              )}
+              style={{
+                padding: '9px 14px',
+                background: 'var(--bg2)',
+                border: '1px solid var(--line)',
+                borderRadius: '10px',
+                color: 'var(--ink)',
+                fontWeight: 800,
+                fontSize: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <Download size={14} /> Laden
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Toast */}
       {toast && (

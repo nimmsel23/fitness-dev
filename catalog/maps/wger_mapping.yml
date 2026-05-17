@@ -1,0 +1,4 @@
+wger_mapping:
+  enabled: false
+  notes: "Seed mapping placeholder for later wger sync."
+  mappings: {}
