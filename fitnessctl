@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# fitnessctl — manage fitness-dev server (API :9002, UI :5902)
+# fitnessctl — manage fitness-dev server (API :9100, UI :5902)
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
-API_PORT="${FITNESS_API_PORT:-9002}"
+API_PORT="${FITNESS_API_PORT:-9100}"
 UI_PORT="${FITNESS_UI_PORT:-5902}"
 HOST="${FITNESS_HOST:-127.0.0.1}"
 API_URL="http://${HOST}:${API_PORT}"
