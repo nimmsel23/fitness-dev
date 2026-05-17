@@ -16,6 +16,8 @@ export default defineConfig({
       '/blocks':    BACKEND,
       '/theme':     BACKEND,
       '/health':    BACKEND,
+      '/export':    BACKEND,
+      '/fitness':   BACKEND,
     }
   },
   build: {

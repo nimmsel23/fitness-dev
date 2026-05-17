@@ -620,29 +620,56 @@ const server = http.createServer(async (req, res) => {
   if (p === "/export/csv") {
     const days = Math.min(365, Math.max(1, Number(url.searchParams.get("days") || 14)));
     const dates = lastDates(days).reverse();
-    const rows = [["date","block","exercise","sets","reps","weight","note","effort","hit"]];
+    const rows = [["date","block","location","duration_min","exercise","sets","reps","weight","note","effort"]];
     for (const date of dates) {
       const sess = readJson(path.join(DATA_DIR, "sessions", `${date}.json`));
       const block = sess?.block || "";
       const effort = sess?.effort ?? "";
-      const hit = sess?.hit ? "1" : "0";
+      const location = sess?.location || "";
+      const duration = sess?.duration || "";
       for (const ex of (sess?.exercises || [])) {
         rows.push([
           date,
           escapeCsvValue(block),
+          escapeCsvValue(location),
+          String(duration),
           escapeCsvValue(ex.name || ""),
           String(ex.sets ?? ""),
           String(ex.reps ?? ""),
           String(ex.weight ?? ""),
           escapeCsvValue(ex.note || ""),
           String(effort),
-          hit,
         ]);
       }
     }
     const csv = rows.map(r => r.map(v => `"${v}"`).join(",")).join("\n") + "\n";
     const filename = `fitness-${days}d-${localToday()}.csv`;
     return json(res, 200, { ok: true, filename, csv });
+  }
+
+  if (p === "/export/pflichtaufgabe") {
+    const dir = path.join(DATA_DIR, "sessions");
+    const files = fs.existsSync(dir)
+      ? fs.readdirSync(dir).filter(f => f.endsWith(".json")).sort()
+      : [];
+    const rows = [["Nr","Datum","Einheit","Ort","Dauer (min)"]];
+    let nr = 1;
+    for (const file of files) {
+      const sess = readJson(path.join(dir, file));
+      if (!sess) continue;
+      const date = file.replace(".json", "");
+      const [y, m, d] = date.split("-");
+      rows.push([
+        String(nr++),
+        `${d}.${m}.${y}`,
+        escapeCsvValue(sess.block || ""),
+        escapeCsvValue(sess.location || ""),
+        String(sess.duration || ""),
+      ]);
+    }
+    const csv = rows.map(r => r.map(v => `"${v}"`).join(",")).join("\n") + "\n";
+    const filename = `trainingsprotokoll-pflichtaufgabe-${localToday()}.csv`;
+    return json(res, 200, { ok: true, filename, csv, count: nr - 1 });
   }
 
   // ── Theme ──

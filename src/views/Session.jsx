@@ -246,7 +246,8 @@ export default function Session({ initialDate, initialDraft = null, onInspectExe
   const [block, setBlock]         = useState('')
   const [exercises, setExercises] = useState([])
   const [effort, setEffort]       = useState(5)
-  const [mood, setMood]           = useState('')
+  const [location, setLocation]   = useState('')
+  const [duration, setDuration]   = useState('')
   const [notes, setNotes]         = useState('')
   const [saving, setSaving]       = useState(false)
   const [toast, setToast]         = useState('')
@@ -277,15 +278,16 @@ export default function Session({ initialDate, initialDraft = null, onInspectExe
         setBlock(d.data.block || '')
         setExercises(d.data.exercises || [])
         setEffort(d.data.effort ?? 5)
-        setMood(d.data.mood || '')
+        setLocation(d.data.location || '')
+        setDuration(d.data.duration || '')
         setNotes(d.data.notes || '')
       } else {
         if (initialDraft && date === (initialDate || localToday())) {
           setBlock(initialDraft.block || '')
           setExercises(Array.isArray(initialDraft.exercises) ? initialDraft.exercises : [])
-          setEffort(5); setMood(''); setNotes('')
+          setEffort(5); setLocation(''); setDuration(''); setNotes('')
         } else {
-          setBlock(''); setExercises([]); setEffort(5); setMood(''); setNotes('')
+          setBlock(''); setExercises([]); setEffort(5); setLocation(''); setDuration(''); setNotes('')
         }
       }
     }).catch(() => {})
@@ -355,7 +357,7 @@ export default function Session({ initialDate, initialDraft = null, onInspectExe
   async function save() {
     setSaving(true)
     try {
-      await api.post(`/session?date=${date}`, { block, exercises, effort, mood, notes })
+      await api.post(`/session?date=${date}`, { block, exercises, effort, location, duration, notes })
       showToast('Gespeichert ✓')
       const r = await api.get('/coverage/gaps?days=7')
       setGaps(r?.gaps || [])
@@ -367,7 +369,7 @@ export default function Session({ initialDate, initialDraft = null, onInspectExe
     try {
       const result = await api.post('/fitness/export', {
         kind: 'session',
-        session: { date, block, exercises, effort, mood, notes },
+        session: { date, block, exercises, effort, location, duration, notes },
         force: true,
       })
       showToast(result?.path ? `Export: ${result.path}` : 'Exportiert')
@@ -410,6 +412,42 @@ export default function Session({ initialDate, initialDraft = null, onInspectExe
         >
           <Save size={14} /> {saving ? '…' : 'Speichern'}
         </button>
+      </div>
+
+      {/* ── Ort + Dauer ── */}
+      <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+        <input
+          type="text" value={location} placeholder="Ort (z.B. Gym, Zuhause)"
+          onChange={e => setLocation(e.target.value)}
+          style={{
+            flex: 2, padding: '10px 14px',
+            background: 'var(--card)', border: '1px solid var(--line)',
+            color: 'var(--ink)', borderRadius: '12px',
+            fontSize: '14px', outline: 'none',
+          }}
+          onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+          onBlur={e => e.target.style.borderColor = 'var(--line)'}
+        />
+        <div style={{ position: 'relative', flex: 1 }}>
+          <input
+            type="number" value={duration} placeholder="Min"
+            min={1} max={300}
+            onChange={e => setDuration(e.target.value)}
+            style={{
+              width: '100%', padding: '10px 36px 10px 14px',
+              background: 'var(--card)', border: '1px solid var(--line)',
+              color: 'var(--ink)', borderRadius: '12px',
+              fontSize: '14px', outline: 'none',
+              WebkitAppearance: 'none', MozAppearance: 'textfield',
+            }}
+            onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+            onBlur={e => e.target.style.borderColor = 'var(--line)'}
+          />
+          <span style={{
+            position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)',
+            fontSize: '11px', fontWeight: 700, color: 'var(--dim)', pointerEvents: 'none',
+          }}>min</span>
+        </div>
       </div>
 
       {/* Plan hint */}
@@ -624,7 +662,7 @@ export default function Session({ initialDate, initialDraft = null, onInspectExe
             <button
               onClick={() => downloadText(
                 `fitness-session-${date}.md`,
-                buildSessionCoachSheet({ date, block, exercises, effort, mood, notes }),
+                buildSessionCoachSheet({ date, block, exercises, effort, location, duration, notes }),
                 'text/markdown;charset=utf-8',
               )}
               style={{
@@ -646,6 +684,44 @@ export default function Session({ initialDate, initialDraft = null, onInspectExe
             </button>
           </div>
         </div>
+      </div>
+
+      {/* ── Pflichtaufgabe Export ── */}
+      <div style={{
+        background: 'var(--card)', border: '1px solid var(--line)',
+        borderRadius: '14px', padding: '14px', marginBottom: '12px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
+      }}>
+        <div>
+          <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--dim)' }}>
+            Pflichtaufgabe
+          </div>
+          <div style={{ marginTop: '4px', fontSize: '13px', color: 'var(--muted)' }}>
+            Alle Einheiten als CSV (Datum, Einheit, Ort, Dauer)
+          </div>
+        </div>
+        <button
+          onClick={async () => {
+            try {
+              const r = await api.get('/export/pflichtaufgabe')
+              if (r?.ok && r.csv) {
+                downloadText(r.filename, r.csv, 'text/csv;charset=utf-8')
+                showToast(`${r.count} Einheiten exportiert`)
+              }
+            } catch { showToast('Export fehlgeschlagen') }
+          }}
+          style={{
+            padding: '9px 14px',
+            background: 'rgba(245,158,11,0.12)',
+            border: '1px solid rgba(245,158,11,0.3)',
+            borderRadius: '10px', color: '#f59e0b',
+            fontWeight: 800, fontSize: '12px',
+            cursor: 'pointer', display: 'flex',
+            alignItems: 'center', gap: '6px', whiteSpace: 'nowrap',
+          }}
+        >
+          <Download size={14} /> CSV Export
+        </button>
       </div>
 
       {/* Toast */}
