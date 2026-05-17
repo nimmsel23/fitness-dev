@@ -15,6 +15,29 @@ fitness-agent **baut fitness-dev nicht selbst** — fitness-dev-coding-agent imp
 
 ---
 
+## Kernprinzip: Training als angewandte Anatomie
+
+> Nicht nur: „Welche Muskeln trainiert diese Übung?"
+> Sondern: „Welche Bewegung erklärt mir Anatomie praktisch am eigenen Körper?"
+
+Das ist der Layer der in wger, yuhonas und allen anderen Open-Source-DBs fehlt.
+
+**Was Open-Source-DBs liefern:**
+- Übungsnamen, Kategorien, Muskelgruppen, Bilder/GIFs, IDs — Fundament
+
+**Was sie nicht liefern (= Aufgabe des Katalogs):**
+- Warum ein Muskel beteiligt ist
+- Welche Gelenkaktion passiert (concentric, eccentric, stabilization)
+- Ob ein Muskel Prime Mover, Synergist oder Stabilizer ist
+- Wie Griff, Winkel, ROM die Beteiligung ändern
+- Was der Trainierende dabei spüren sollte
+- Warum ein Fehlerbild entsteht — und welche Muskeln das erklärt
+- Wie daraus Anatomieverständnis wird
+
+**Das ist der didaktische Layer. Das ist der Wert des Katalogs.**
+
+---
+
 ## Fitnesstrainer-Module (Richtung der Ausbildung)
 
 ### Fitnesstrainer-Modul (8 Fächer)
@@ -94,21 +117,57 @@ fitness-agent schreibt + erweitert diese Struktur:
 
 ### Anatomy Teaching (Kernaufgabe)
 
-**Jede Übung braucht Anatomy Teaching**, um die Frage zu beantworten:
-> Wie verstehe ich Ansatz & Ursprung, was wger/yuhonas nicht zeigen?
+**Jede Übung braucht Anatomy Teaching.** Das ist die Antwort auf das was kein DB-System gibt.
 
-Schema:
-- **movement_pattern** — Bewegungstyp (horizontal_pull, squat, etc.)
-- **joint_actions** — Welche Gelenke arbeiten, eccentric/concentric/stabilization
-- **muscle_roles** — prime_movers, synergists, stabilizers
-- **trainer_explanation** — simple, technical, client_friendly
-- **feel_cues** — Was der Trainierende spüren sollte
-- **coaching_cues** — Wie man es coacht
-- **common_errors** — Fehlerbilder + anatomische Gründe + Korrektionen
-- **variations_teach** — Varianten + was sie lehren
-- **quiz** — Fragen zum Verständnis
+```yaml
+anatomy_teaching:
+  exercise_id: string
+  title: string
 
-Beispiel: `barbell_row.yml` → erklärt horizontales Ziehen, Lat vs. Posterior Delt Aktivierung, Ellbogen-Position etc.
+  main_lesson:
+    - string                    # 2-3 Sätze was diese Übung anatomisch lehrt
+
+  joint_actions:
+    joint_name:
+      - flexion_concentric
+      - extension_eccentric
+      - stabilization
+
+  muscle_roles:
+    primary:
+      - muscle
+    secondary:
+      - muscle
+    stabilizers:
+      - muscle
+
+  feel_map:
+    muscle_name:
+      cue: string               # Was man spüren sollte + warum
+
+  simple_explanation: string    # Für Clients
+  detailed_explanation: string  # Für Trainer-Ausbildung
+
+  coaching_cues:
+    - cue
+
+  common_errors_explained:
+    error_name:
+      reason: string            # Anatomische Ursache
+      muscles_to_teach:
+        - muscle
+      correction: string
+
+  variations_teach:
+    variation_name:
+      teaches: string           # Was diese Variante zusätzlich zeigt
+
+  quiz_prompts:
+    - question: string
+      answer: string
+```
+
+Beispiel: `barbell_row.yml` → erklärt horizontales Ziehen, Lat vs. Posterior Delt, Ellbogen-Position, warum breiter Griff die Rhomboiden stärker aktiviert.
 
 ---
 

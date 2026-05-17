@@ -1,209 +1,199 @@
-# Fitness Centre — Architektur
+# fitness-dev — Architektur
 
-Stand: 2026-05-16
-
----
-
-## Was steht (implementiert)
-
-### Runtime (`fitness-runtime.mjs`, Port 9728)
-
-Node.js HTTP-Server mit JSON-Datenspeicherung unter `~/.aos/fitness/`.
-
-```
-GET  /health
-GET  /workouts/catalog
-POST /workouts/catalog
-GET  /workouts/log?date=
-POST /workouts/log
-GET  /workouts/stats?days=&anchor=
-GET  /v2                    (future)
-```
-
-**Datenstruktur**:
-- `~/.aos/fitness/workouts/catalog.json` — Workout-Items mit wger-IDs, muscle groups
-- `~/.aos/fitness/workouts/logs/YYYY-MM-DD.json` — Daily session logs
-
-### CLI (`fitness`, Python/Typer)
-
-**Status**: Nicht implementiert. Wird analog `~/fuel-dev/fuel` gebaut.
-
-```bash
-fitness log barbell_bench 5x5 100kg
-fitness log squat 3x10 120kg --time morning
-fitness today
-fitness list
-fitness week
-```
-
-**Features** (planned):
-- Typer + loguru + gum (wie fuel CLI)
-- Auto-detect Catalog-Items mit zsh-Completions
-- Supports multiple workouts in one command
-- Pre-parser für `--yesterday`, `--1d`, `--2d`
+Stand: 2026-05-17
 
 ---
 
-## CLI & Universal Logging
+## Stack
 
-### `fitness` CLI (Python/Typer)
-
-**File**: `~/fitness-dev/fitness` (not yet created)
-
-Python/Typer-basierte Workout-Logging CLI.
-
-```bash
-fitness log barbell_bench 5x5 100kg --yesterday
-fitness log squat 3x10 120kg --time morning
-fitness log deadlift 1x5 200kg
-fitness today [--day YYYY-MM-DD]
-fitness list                       # Catalog anzeigen
-fitness week [--date YYYY-MM-DD]   # Wochenreport + CSV-Export
-fitness --help                     # Shows full catalog inline
 ```
-
-**Features**:
-- Typer + loguru + gum für saubere Fehlerbehandlung
-- Dynamischer help-text mit Catalog-Auflistung
-- Automatische zsh-Completions
-- Workouts aus `~/.aos/fitness/workouts/catalog.json`
-- Logs zu `~/.aos/fitness/workouts/logs/YYYY-MM-DD.json`
-
-**Architecture**: Identical to `~/fuel-dev/fuel`
-
-### Workout-Catalog Building
-
-**Owner**: `fitness-agent` (Claude Skill in `~/.fitness-agent/`)
-
-The fitness-agent already maintains:
-- `~/.fitness-agent/Top-Exercises-by-Muscle-Group.yaml` — exercise master list with wger mapping
-- `~/.fitness-agent/muscles.yaml` — muscle group taxonomy
-- `~/.fitness-agent/exercises/` — structured exercise data
-- `~/.fitness-agent/program_rules.yaml` — periodization + programming rules
-
-**Workflow**:
-1. fitness-agent exports catalog from `~/.fitness-agent/` sources
-2. Generates `~/.aos/fitness/workouts/catalog.json` for CLI consumption
-3. `fitness` CLI reads from `~/.aos/fitness/workouts/catalog.json`
-4. Runtime server (`fitness-runtime.mjs`) serves catalog via API
-
-**Future**: fitness-agent should expose `catalog-export` or similar command to keep catalogs in sync with source data.
-
-### `hab` Universal Dispatcher
-
-**File**: `~/.dotfiles/logger/hab` (Shared dispatcher)
-
-Auto-detecting dispatcher für alle Domains:
-
-```bash
-hab barbell_bench 5x5 100kg --yesterday    # Auto → fitness log barbell_bench ...
-hab melatonin --yesterday                  # Auto → fuel log melatonin
-hab apple 100g                             # Auto → fuel nutrition apple 100g
+React + Vite        :5902 (dev)     ~/fitness-dev/src/
+Node.js Server      :9100           ~/fitness-dev/server.mjs
+YAML Katalog        —               ~/fitness-dev/catalog/
+Session-Daten       —               ~/fitness-dev/data/
 ```
-
-Routes to:
-- `fuel log` for Supplements
-- `fuel nutrition` for Nutrition Items
-- `fitness log` for Workouts
-
-See `~/.dotfiles/logger/README.md` for details.
 
 ---
 
-## Datenmodell
+## Server (server.mjs)
+
+Node.js HTTP-Server, kein Framework.
+
+| Endpoint | Methode | Beschreibung |
+|----------|---------|-------------|
+| `/health` | GET | Status |
+| `/session?date=` | GET/POST | Tages-Session (Übungen, Block, Ort, Dauer, Notes) |
+| `/session/history?limit=` | GET | Letzte N Sessions |
+| `/session/latest` | GET | Neueste Session |
+| `/exercises/search?q=` | GET | Suche lokal + wger + yuhonas |
+| `/coverage/detailed?days=` | GET | Muscle-Coverage mit Gewichtung |
+| `/coverage/gaps?days=` | GET | Untertrainierte Muskelgruppen |
+| `/blocks` | GET | Split-Labels (Push/Pull/Legs etc.) |
+| `/plan/today?date=` | GET | Plan-Hint für heute |
+| `/export/csv?days=` | GET | CSV pro Übung (detailliert) |
+| `/export/pflichtaufgabe` | GET | CSV pro Einheit (Datum, Block, Ort, Dauer) |
+| `/fitness/export` | POST | Markdown-Export (Obsidian, Coach Sheet, Plan) |
+| `/theme` | GET/POST | UI-Theme |
+
+---
+
+## Frontend (src/)
 
 ```
-~/.aos/fitness/
-├── workouts/
-│   ├── catalog.json              (Items mit wger-IDs, muscles, difficulty)
-│   └── logs/
-│       ├── 2026-05-15.json
-│       └── 2026-05-16.json       (sessions array)
+src/views/
+├─ Dashboard.jsx      — Überblick, heutiger Plan, Coverage-Summary
+├─ Session.jsx        — Workout-Logging (Block, Ort, Dauer, Übungen, Export)
+├─ Journal.jsx        — Text-Notizen
+├─ Muscles.jsx        — Body-Map + Coverage-Analyse
+├─ Learn.jsx          — Anatomy Teaching, Exercise Details
+└─ WeeklyReview.jsx   — Wochenreport
+
+src/components/
+├─ ExerciseSearch.jsx      — Suche lokal + wger + yuhonas
+├─ BodyMap.jsx             — react-body-highlighter
+├─ PlanBuilder.jsx         — Trainingsplanung
+├─ HabitWidget.jsx         — HabitSync-Integration
+└─ ExerciseInsightModal.jsx — Anatomy Teaching Modal
 ```
 
-**Workout Item** (catalog.json):
+---
+
+## Datenschichten
+
+Drei Quellen, eine Hierarchie:
+
+```
+custom_yaml (Semantic Truth)     ~/fitness-dev/catalog/
+  ↑ überschreibt bei Konflikt
+wger (:8000, lokal)              Exercise Master Data, Tracking Backend
+  ↑ ergänzt
+yuhonas/free-exercise-db         Bilder, alternative Namen, Varianten
+```
+
+**Was jede Schicht liefert:**
+
+| Schicht | Liefert | Fehlt |
+|---------|---------|-------|
+| wger + yuhonas | Namen, Muskel-Tags, Bilder, IDs | Gelenkaktionen, Fehlerbilder, Feel Cues, didaktischer Layer |
+| custom_yaml | Anatomy Teaching, Bewegungsmuster, Coaching Notes | — das ist der Wert |
+
+---
+
+## Katalog (~/fitness-dev/catalog/)
+
+```
+catalog/
+├─ config.yml
+├─ data_source_priority.yml
+├─ exercises/                    — Exercise-Definitionen (canonical IDs)
+├─ anatomy_teaching/             — Didaktischer Layer pro Übung
+├─ maps/
+│  ├─ aliases.yml                — Freie Eingabe → canonical_id
+│  ├─ wger_mapping.yml           — custom_id ↔ wger_id
+│  └─ external_db_mapping.yml    — custom_id ↔ yuhonas_id
+├─ muscles/
+│  ├─ muscles.yaml               — Muskel-Taxonomie
+│  ├─ muscle_coverage_rules.yml  — primary/secondary/stabilizer Gewichtungen
+│  └─ body_highlighter_bridge.yml — Muskeln → visuelle Body-Regionen
+└─ rules/
+   ├─ program_rules.yml          — PPL, Sätze/Wdh, Periodisierung
+   ├─ progression_rules.yml      — Double Progression, Deload
+   └─ safety_rules.yml           — Kontraindikationen, Joint-Schutz
+```
+
+Build: `npm run build:catalog` → `~/.aos/fitness/workouts/catalog.json`
+
+---
+
+## Anatomy Teaching Schema
+
+```yaml
+anatomy_teaching:
+  exercise_id: string
+  title: string
+
+  main_lesson:
+    - string
+
+  joint_actions:
+    joint_name:
+      - flexion_concentric
+      - extension_eccentric
+      - stabilization
+
+  muscle_roles:
+    primary: [muscle]
+    secondary: [muscle]
+    stabilizers: [muscle]
+
+  feel_map:
+    muscle_name:
+      cue: string
+
+  simple_explanation: string
+  detailed_explanation: string
+  coaching_cues: [string]
+
+  common_errors_explained:
+    error_name:
+      reason: string
+      muscles_to_teach: [muscle]
+      correction: string
+
+  variations_teach:
+    variation_name:
+      teaches: string
+
+  quiz_prompts:
+    - question: string
+      answer: string
+```
+
+---
+
+## Session-Format (data/sessions/YYYY-MM-DD.json)
+
 ```json
 {
-  "id": "barbell_bench",
-  "name": "Barbell Bench Press",
-  "wger_id": 89,
-  "default_sets": 5,
-  "default_reps": 5,
-  "muscles": ["chest", "triceps", "shoulders"],
-  "difficulty": "intermediate"
+  "date": "2026-05-17",
+  "block": "Push",
+  "location": "Gym",
+  "duration": 60,
+  "exercises": [
+    {
+      "name": "Bankdrücken",
+      "sets": 4,
+      "reps": 8,
+      "weight": 80,
+      "primaryMuscles": ["chest"],
+      "secondaryMuscles": ["triceps", "shoulders"],
+      "done": true,
+      "rpe": 8
+    }
+  ],
+  "effort": 8,
+  "notes": "",
+  "saved_at": "2026-05-17T18:30:00Z"
 }
 ```
 
-**Session** (logs/YYYY-MM-DD.json):
-```json
-{
-  "id": "fit_xyz789",
-  "workout_id": "barbell_bench",
-  "name": "Barbell Bench Press",
-  "sets": 5,
-  "reps": 5,
-  "weight": 100,
-  "unit": "kg",
-  "muscles": ["chest", "triceps"],
-  "time": "2026-05-16T14:00:00Z"
-}
-```
+---
+
+## Externe Services
+
+| Service | Port | Zweck |
+|---------|------|-------|
+| wger (Docker) | :8000 | Exercise Master Data, Tracking Backend |
+| HabitSync | :6842 | HabitWidget Integration |
 
 ---
 
-## Integration
+## Commands
 
-### With Fuel (Supplements)
-
-Both use `hab` for unified command interface:
-```bash
-hab melatonin --yesterday
-hab barbell_bench 5x5 100kg --yesterday
-```
-
-See: `project_nutrition_fitness_integration.md` (Memory)
-
-### With Core4 (Score)
-
-Future: Fitness domain in Core4 score system.
-- Muscle group frequency tracking
-- Volume totals per week
-- 1RM estimation trends
-
-### With vital-hub (Klienten)
-
-Future: Route normalization for `/c/<clientId>/fitness/…`
-
----
-
-## wger Integration (future)
-
-Local wger Docker stack on :8000 provides:
-- Exercise master data with form videos
-- Muscle group taxonomy
-- Difficulty levels
-- Custom workouts stored locally
-
-**Hybrid approach**:
-- Primary: local wger (`http://localhost:8000/api/…`)
-- Fallback: OFF for nutrition (not applicable for fitness)
-
-API endpoints needed:
-- `GET /api/v4/exercise` (list, search, filter by muscles)
-- `GET /api/v4/muscle` (taxonomy)
-
----
-
-## Next Steps (Priority)
-
-1. Create `fitness` CLI (Python/Typer, analog fuel-dev)
-2. Build workout catalog (50+ exercises from wger)
-3. wger API integration (fetch exercises with form videos)
-4. PWA frontend (analog fuel-dev, tabs for Workouts/Calendar/Stats)
-5. Stats/Reporting (volume, muscle frequency, 1RM trends)
-6. Bridge API routes + Core4 integration
-7. vital-hub client auth layer
-
----
-
-See also: `~/.dotfiles/logger/README.md`, `NUTRITION_FITNESS_ARCHITECTURE.md` (Memory)
+| Befehl | Zweck |
+|--------|-------|
+| `npm run dev` | Backend (:9100) + Vite (:5902) |
+| `npm run ui:dev` | Nur Vite |
+| `npm run build` | Production Build → dist/ |
+| `npm run build:catalog` | Katalog → ~/.aos/fitness/workouts/catalog.json |
+| `fitnessctl start/stop/status` | Server-Management |
