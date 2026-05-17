@@ -1,0 +1,45 @@
+id: ppl-push-a
+name: PPL – Push A
+goal: Hypertrophie
+notes: "RIR 1–2 auf allen Arbeitssätzen. Letzte Wiederholung mit sauberer Technik."
+
+exercises:
+  - name: Barbell Bench Press - Medium Grip
+    order: 1
+    sets: 4
+    reps: "6-9"
+    rir: 1
+    rest_seconds: 210
+    tempo: "30X1"
+    notes: "Schulterblätter retrahiert, Ellenbogen ca. 75°"
+
+  - name: Incline Dumbbell Press
+    order: 2
+    sets: 3
+    reps: "9-12"
+    rir: 1
+    rest_seconds: 120
+    superset_group: 1
+
+  - name: Cable Seated Lateral Raise
+    order: 3
+    sets: 3
+    reps: "12-15"
+    rir: 0
+    rest_seconds: 15
+    superset_group: 1
+    notes: "Kurze Pause im Superset – direkt nach Incline Press"
+
+  - name: Close-Grip Barbell Bench Press
+    order: 4
+    sets: 4
+    reps: "8-10"
+    rir: 1
+    rest_seconds: 165
+
+  - name: Triceps Pushdown
+    order: 5
+    sets: 3
+    reps: "12-15"
+    rir: 0
+    rest_seconds: 90

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Muscle Arena</title>
+    <meta name="theme-color" content="#070909" />
+    <link rel="manifest" href="./manifest.json" />
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  </head>
+  <body class="bg-darkbg text-white">
+    <main class="min-h-screen px-4 py-6 sm:py-10">
+      <div class="mx-auto flex w-full max-w-6xl flex-col gap-6 lg:flex-row">
+        <section class="flex-1 rounded-3xl border border-neon/35 bg-zinc-950/80 p-5 shadow-neon">
+          <header class="mb-4 flex items-end justify-between gap-4">
+            <div>
+              <h1 class="text-4xl font-black tracking-tight text-neon sm:text-5xl">MUSCLE ARENA</h1>
+              <p class="text-xs uppercase tracking-[0.24em] text-zinc-400">2D Skeleton Edition</p>
+            </div>
+            <button @click="$dispatch('focus-exercise')" class="rounded-2xl border border-neon/40 bg-neon/15 px-4 py-2 text-sm font-bold uppercase tracking-widest text-neon hover:bg-neon/25">Neues Workout</button>
+          </header>
+
+          <div id="skeletonStage" class="relative rounded-3xl border border-zinc-800 bg-black/50 p-3 sm:p-5">
+            <div id="coverageRing" class="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+              <svg width="130" height="130" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="8"></circle>
+                <circle id="coverageRingFg" cx="60" cy="60" r="52" fill="none" stroke="#39ff14" stroke-width="8" stroke-linecap="round" stroke-dasharray="326.73" stroke-dashoffset="326.73" transform="rotate(-90 60 60)"></circle>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <div id="coverageScore" class="text-2xl font-black text-neon">0%</div>
+                <div class="text-[10px] uppercase tracking-[0.22em] text-zinc-400">today</div>
+              </div>
+            </div>
+            <div id="skeletonRoot" class="mx-auto max-w-[560px]"></div>
+          </div>
+        </section>
+
+        <aside class="w-full rounded-3xl border border-zinc-800 bg-zinc-950/80 p-5 lg:w-[390px]" x-data="arenaApp()">
+          <h2 class="mb-3 text-lg font-extrabold text-neon">Quick Log</h2>
+          <p class="mb-3 text-xs" :class="syncWarning ? 'text-amber-400' : (syncMode === 'server' ? 'text-lime-400' : 'text-zinc-500')" x-text="syncStatus"></p>
+          <form @submit.prevent="submitLog" class="space-y-3">
+            <div>
+              <label class="mb-1 block text-xs uppercase tracking-widest text-zinc-400">Übung</label>
+              <input x-model="formData.exercise" class="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-neon" list="exerciseSuggestions" placeholder="Bench Press / Bankdrücken" @focus="$refs.exerciseSuggestions.innerHTML = exerciseOptions" />
+              <datalist id="exerciseSuggestions" x-ref="exerciseSuggestions"></datalist>
+            </div>
+            <div>
+              <label class="mb-1 block text-xs uppercase tracking-widest text-zinc-400">Muskelgruppe</label>
+              <select x-model="formData.group" class="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-neon" @change="onGroupChange">
+                <template x-for="group in muscleGroups" :key="group.id">
+                  <option :value="group.id" x-text="group.name"></option>
+                </template>
+              </select>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="mb-1 block text-xs uppercase tracking-widest text-zinc-400">Sets</label>
+                <input x-model.number="formData.sets" type="number" min="1" class="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-neon" />
+              </div>
+              <div>
+                <label class="mb-1 block text-xs uppercase tracking-widest text-zinc-400">Reps</label>
+                <input x-model.number="formData.reps" type="number" min="1" class="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-neon" />
+              </div>
+              <div>
+                <label class="mb-1 block text-xs uppercase tracking-widest text-zinc-400">Kg</label>
+                <input x-model.number="formData.weight" type="number" min="0" step="0.5" class="w-full rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white outline-none focus:border-neon" />
+              </div>
+            </div>
+            <button type="submit" class="w-full rounded-2xl bg-neon py-3 text-sm font-black uppercase tracking-widest text-black hover:brightness-110">Log it</button>
+          </form>
+
+          <div class="mt-5 rounded-2xl border border-zinc-800 bg-black/40 p-3">
+            <h3 class="text-sm font-bold text-neon" x-text="muscleInfo.title"></h3>
+            <p class="mt-1 text-xs text-zinc-400" x-text="muscleInfo.meta"></p>
+            <ul class="mt-2 space-y-1 text-xs text-zinc-300">
+              <template x-for="ex in muscleInfo.topExercises" :key="ex.id">
+                <li x-text="`• ${ex.name_de} / ${ex.name_en}`"></li>
+              </template>
+              <li x-show="muscleInfo.topExercises.length === 0" class="text-zinc-500">Keine Übungen gefunden.</li>
+            </ul>
+          </div>
+
+          <div class="mt-5">
+            <h3 class="text-sm font-bold text-neon">Heute</h3>
+            <ul class="mt-2 max-h-56 space-y-2 overflow-y-auto text-xs">
+              <template x-for="log in todayLogs" :key="log.ts">
+                <li class="rounded-xl border border-zinc-800 bg-black/40 p-2">
+                  <div class="font-semibold text-zinc-100" x-text="log.exercise"></div>
+                  <div class="text-zinc-400" x-text="`${log.sets}x${log.reps} @ ${log.weight}kg | ${log.groupLabel}`"></div>
+                </li>
+              </template>
+              <li x-show="todayLogs.length === 0" class="rounded-xl border border-zinc-800 bg-black/40 p-2 text-zinc-500">Noch keine Logs heute.</li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <script type="module" src="./src/main.mjs"></script>
+  </body>
+</html>
