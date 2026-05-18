@@ -36,8 +36,8 @@ https://github.com/exercemus/exercises
 ## npm — Charts
 
 ### recharts
-React-nativ, SVG-basiert. RadarChart für Muskelabdeckung, LineChart für Progression,
-BarChart für wöchentliches Volumen. Passt gut zu TailwindCSS.
+React-nativ, SVG-basiert. RadarChart für Muskelabdeckung, LineChart für Belastungsverläufe.
+Passt gut zu TailwindCSS.
 `npm install recharts`
 https://github.com/recharts/recharts
 
@@ -65,40 +65,14 @@ https://vulovix.github.io/body-muscles/
 
 ## Open Source Apps — Referenz + Ideen
 
-### Liftosaur (wichtigste Referenz)
-Preact/TypeScript, AGPL. Hat:
-- Wöchentliches Volumen pro Muskelgruppe (prescribed vs. completed)
-- Alle Standard-Programme als lesbarer Code (PPL, 5/3/1, GZCLP etc.)
-- Mesozyklen-Konzept vollständig implementiert
-- Progressionslogik-Struktur als Vorbild nutzbar
-https://github.com/astashov/liftosaur
-
-### WhyAsh5114/MyFit
-SvelteKit, RP Hypertrophy inspiriert. Hat Volume Landmarks implementiert:
-MV / MEV / MAV / MRV pro Muskelgruppe — Konzept direkt in Coverage-Analyse übernehmen.
-https://github.com/WhyAsh5114/MyFit
-
 ### cfilipov/MuscleBook.net
 Offline-WebApp, IndexedDB, AGPL. Fokus auf Datenanalyse.
 ExerciseYAMLFormat ist gut dokumentiert — relevant weil fitness-dev auch YAML-Katalog nutzt.
 https://github.com/cfilipov/MuscleBook.net
 
-### GitMazzone/workout-tracker
-React Native + Expo, RP Hypertrophy Clone. Gute Set-Logging-Komponenten + Mesozyklus-UI.
-https://github.com/GitMazzone/workout-tracker
-
 ---
 
 ## Konzepte die den Tempel interessant machen
-
-**Volume Landmarks (aus MyFit/Liftosaur)**
-MV (Maintenance Volume) / MEV (Minimum Effective) / MAV (Maximum Adaptive) / MRV (Maximum Recoverable)
-pro Muskelgruppe — zeigt ob eine Muskelgruppe unter- oder übertrainiert ist. Wäre eine
-starke Erweiterung der Coverage-Analyse.
-
-**Liftoscript-Idee (aus Liftosaur)**
-Progressionsregeln als deklarativer Code/YAML statt hart verdrahtet.
-fitness-dev hat bereits `program_rules.yaml` — Konzept ist kompatibel.
 
 **GIFs/Animationen pro Übung**
 wger hat wenig Medien. bootstrapping-lab/exercisedb-api oder wrkout/exercises.json

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Zap, TrendingUp, AlertCircle, Download } from 'lucide-react'
 import { api, localToday, getWeekDates, downloadText } from '../api.js'
 import HabitWidget from '../components/HabitWidget.jsx'
+import WeightChart from '../components/WeightChart.jsx'
 
 const DAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 
@@ -150,6 +151,8 @@ export default function Dashboard({ onOpenSession, onInspectExercise, onOpenRevi
           })}
         </div>
       </div>
+
+      <WeightChart days={30} />
 
       {/* Last sessions (7d) */}
       {weekData.some(w => w.block) && (

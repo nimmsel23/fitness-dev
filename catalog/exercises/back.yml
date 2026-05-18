@@ -1,171 +1,209 @@
 name: back
 description: Default back exercise seed data.
 exercises:
-  - exercise_id: pull_up
-    id: pull_up
-    name: Pull Up
-    display_name: "Klimmzug im Obergriff"
-    german: "Klimmzug im Obergriff"
-    category: back
-    type: compound
-    movement_pattern: vertical_pull
-    equipment:
-      - pull_up_bar
-    primary_muscles:
-      - back
-    secondary_muscles:
-      - arms
-    stabilizers:
-      - core
-    variations:
-      - assisted_pull_up
-    coaching_notes:
-      - "Brust zur Stange ziehen."
-      - "Kontrolliert absenken."
-    common_errors:
-      - "Mit Schwung arbeiten."
-      - "Schultern hochziehen."
-    tags:
-      - back
-      - pull
-    aliases:
-      - "klimmzug obergriff"
-      - "obergriff klimmzug"
-  - exercise_id: chin_up
-    id: chin_up
-    name: Chin Up
-    display_name: "Klimmzug im Untergriff"
-    german: "Klimmzug im Untergriff"
-    category: back
-    type: compound
-    movement_pattern: vertical_pull
-    equipment:
-      - pull_up_bar
-    primary_muscles:
-      - back
-    secondary_muscles:
-      - arms
-    stabilizers:
-      - core
-    variations:
-      - assisted_chin_up
-    coaching_notes:
-      - "Ellbogen nach unten ziehen."
-      - "Volle Kontrolle in der Negativphase."
-    common_errors:
-      - "Kinn nur irgendwie über die Stange bringen."
-      - "Hohlkreuz übertreiben."
-    tags:
-      - back
-      - pull
-  - exercise_id: lat_pulldown
-    id: lat_pulldown
-    name: Lat Pulldown
-    display_name: "Latzug"
-    german: "Latzug"
-    category: back
-    type: compound
-    movement_pattern: vertical_pull
-    equipment:
-      - cable_machine
-    primary_muscles:
-      - back
-    secondary_muscles:
-      - arms
-    stabilizers:
-      - core
-    variations:
-      - neutral_grip_lat_pulldown
-    coaching_notes:
-      - "Brust anheben, Stange zur oberen Brust ziehen."
-      - "Schulterblätter nach unten führen."
-    common_errors:
-      - "Mit dem Oberkörper reißen."
-      - "Zurücklehnen statt ziehen."
-    tags:
-      - back
-      - pull
-  - exercise_id: barbell_row
-    id: barbell_row
-    name: Barbell Row
-    display_name: "Langhantelrudern"
-    german: "Langhantelrudern"
-    category: back
-    type: compound
-    movement_pattern: horizontal_pull
-    equipment:
-      - barbell
-    primary_muscles:
-      - back
-    secondary_muscles:
-      - arms
-      - shoulders
-    stabilizers:
-      - core
-    variations:
-      - pendlay_row
-    coaching_notes:
-      - "Rumpf stabil halten."
-      - "Stange zur unteren Brust oder zum Bauch ziehen."
-    common_errors:
-      - "Rücken rund machen."
-      - "Zu viel Schwung."
-    tags:
-      - back
-      - row
-  - exercise_id: chest_supported_row
-    id: chest_supported_row
-    name: Chest Supported Row
-    display_name: "Brustgestütztes Rudern"
-    german: "Brustgestütztes Rudern"
-    category: back
-    type: compound
-    movement_pattern: horizontal_pull
-    equipment:
-      - machine
-    primary_muscles:
-      - back
-    secondary_muscles:
-      - arms
-      - shoulders
-    stabilizers:
-      - core
-    variations:
-      - incline_bench_row
-    coaching_notes:
-      - "Brust am Polster lassen."
-      - "Sauber bis in die Schulterblätter ziehen."
-    common_errors:
-      - "Schwung aus dem Oberkörper."
-      - "Zu kurz ziehen."
-    tags:
-      - back
-      - row
-  - exercise_id: t_bar_row
-    id: t_bar_row
-    name: T Bar Row
-    display_name: "T-Bar-Rudern"
-    german: "T-Bar-Rudern"
-    category: back
-    type: compound
-    movement_pattern: horizontal_pull
-    equipment:
-      - machine
-    primary_muscles:
-      - back
-    secondary_muscles:
-      - arms
-      - shoulders
-    stabilizers:
-      - core
-    variations:
-      - landmine_row
-    coaching_notes:
-      - "Rumpf fest und Zug sauber."
-      - "Ellbogen nah am Körper führen."
-    common_errors:
-      - "Oberkörper hochziehen."
-      - "Schultern nach vorne fallen lassen."
-    tags:
-      - back
-      - row
+- exercise_id: pull_up
+  id: pull_up
+  name: Pull Up
+  display_name: Klimmzug im Obergriff
+  german: Klimmzug im Obergriff
+  category: back
+  type: compound
+  movement_pattern: vertical_pull
+  equipment:
+  - pull_up_bar
+  primary_muscles:
+  - back
+  secondary_muscles:
+  - arms
+  stabilizers:
+  - core
+  variations:
+  - assisted_pull_up
+  coaching_notes:
+  - Brust zur Stange ziehen.
+  - Kontrolliert absenken.
+  common_errors:
+  - Mit Schwung arbeiten.
+  - Schultern hochziehen.
+  tags:
+  - back
+  - pull
+  aliases:
+  - klimmzug obergriff
+  - obergriff klimmzug
+  wger_muscle_ids:
+    primary:
+    - 12
+    secondary:
+    - 1
+    - 9
+- exercise_id: chin_up
+  id: chin_up
+  name: Chin Up
+  display_name: Klimmzug im Untergriff
+  german: Klimmzug im Untergriff
+  category: back
+  type: compound
+  movement_pattern: vertical_pull
+  equipment:
+  - pull_up_bar
+  primary_muscles:
+  - back
+  secondary_muscles:
+  - arms
+  stabilizers:
+  - core
+  variations:
+  - assisted_chin_up
+  coaching_notes:
+  - Ellbogen nach unten ziehen.
+  - Volle Kontrolle in der Negativphase.
+  common_errors:
+  - Kinn nur irgendwie über die Stange bringen.
+  - Hohlkreuz übertreiben.
+  tags:
+  - back
+  - pull
+  wger_muscle_ids:
+    primary:
+    - 12
+    - 1
+    secondary:
+    - 9
+- exercise_id: lat_pulldown
+  id: lat_pulldown
+  name: Lat Pulldown
+  display_name: Latzug
+  german: Latzug
+  category: back
+  type: compound
+  movement_pattern: vertical_pull
+  equipment:
+  - cable_machine
+  primary_muscles:
+  - back
+  secondary_muscles:
+  - arms
+  stabilizers:
+  - core
+  variations:
+  - neutral_grip_lat_pulldown
+  coaching_notes:
+  - Brust anheben, Stange zur oberen Brust ziehen.
+  - Schulterblätter nach unten führen.
+  common_errors:
+  - Mit dem Oberkörper reißen.
+  - Zurücklehnen statt ziehen.
+  tags:
+  - back
+  - pull
+  wger_muscle_ids:
+    primary:
+    - 12
+    secondary:
+    - 1
+    - 9
+- exercise_id: barbell_row
+  id: barbell_row
+  name: Barbell Row
+  display_name: Langhantelrudern
+  german: Langhantelrudern
+  category: back
+  type: compound
+  movement_pattern: horizontal_pull
+  equipment:
+  - barbell
+  primary_muscles:
+  - back
+  secondary_muscles:
+  - arms
+  - shoulders
+  stabilizers:
+  - core
+  variations:
+  - pendlay_row
+  coaching_notes:
+  - Rumpf stabil halten.
+  - Stange zur unteren Brust oder zum Bauch ziehen.
+  common_errors:
+  - Rücken rund machen.
+  - Zu viel Schwung.
+  tags:
+  - back
+  - row
+  wger_muscle_ids:
+    primary:
+    - 12
+    - 9
+    secondary:
+    - 1
+    - 16
+- exercise_id: chest_supported_row
+  id: chest_supported_row
+  name: Chest Supported Row
+  display_name: Brustgestütztes Rudern
+  german: Brustgestütztes Rudern
+  category: back
+  type: compound
+  movement_pattern: horizontal_pull
+  equipment:
+  - machine
+  primary_muscles:
+  - back
+  secondary_muscles:
+  - arms
+  - shoulders
+  stabilizers:
+  - core
+  variations:
+  - incline_bench_row
+  coaching_notes:
+  - Brust am Polster lassen.
+  - Sauber bis in die Schulterblätter ziehen.
+  common_errors:
+  - Schwung aus dem Oberkörper.
+  - Zu kurz ziehen.
+  tags:
+  - back
+  - row
+  wger_muscle_ids:
+    primary:
+    - 12
+    - 9
+    secondary:
+    - 1
+- exercise_id: t_bar_row
+  id: t_bar_row
+  name: T Bar Row
+  display_name: T-Bar-Rudern
+  german: T-Bar-Rudern
+  category: back
+  type: compound
+  movement_pattern: horizontal_pull
+  equipment:
+  - machine
+  primary_muscles:
+  - back
+  secondary_muscles:
+  - arms
+  - shoulders
+  stabilizers:
+  - core
+  variations:
+  - landmine_row
+  coaching_notes:
+  - Rumpf fest und Zug sauber.
+  - Ellbogen nah am Körper führen.
+  common_errors:
+  - Oberkörper hochziehen.
+  - Schultern nach vorne fallen lassen.
+  tags:
+  - back
+  - row
+  wger_muscle_ids:
+    primary:
+    - 12
+    - 9
+    secondary:
+    - 1
+    - 16

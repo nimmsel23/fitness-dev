@@ -1,6 +1,6 @@
 # fitness-dev — Architektur
 
-Stand: 2026-05-17
+Stand: 2026-05-18
 
 ---
 
@@ -89,12 +89,12 @@ catalog/
 ├─ anatomy_teaching/             — Didaktischer Layer pro Übung
 ├─ maps/
 │  ├─ aliases.yml                — Freie Eingabe → canonical_id
-│  ├─ wger_mapping.yml           — custom_id ↔ wger_id
-│  └─ external_db_mapping.yml    — custom_id ↔ yuhonas_id
+│  ├─ wger_mapping.yml           — wger Muscle-ID (1–16) → interne catalog Muscle-ID ✓ befüllt
+│  └─ external_db_mapping.yml    — custom_id ↔ yuhonas_id (Placeholder)
 ├─ muscles/
-│  ├─ muscles.yaml               — Muskel-Taxonomie
-│  ├─ muscle_coverage_rules.yml  — primary/secondary/stabilizer Gewichtungen
-│  └─ body_highlighter_bridge.yml — Muskeln → visuelle Body-Regionen
+│  ├─ muscles.yml                — Muskel-Taxonomie (22 granulare IDs)
+│  ├─ muscle_coverage_rules.yml  — primary 1.0 / secondary 0.5 / stabilizer 0.2 + RPE-Faktoren
+│  └─ body_highlighter_bridge.yml — Muskeln → visuelle Body-Regionen (enabled: false)
 └─ rules/
    ├─ program_rules.yml          — PPL, Sätze/Wdh, Periodisierung
    ├─ progression_rules.yml      — Double Progression, Deload
@@ -102,6 +102,11 @@ catalog/
 ```
 
 Build: `npm run build:catalog` → `~/.aos/fitness/workouts/catalog.json`
+
+**Muscle-Mapping Hierarchie:**
+Session-JSONs speichern Muscle-Namen als Strings (wger `name_en`: `"Chest"`, `"Lats"`, `"Lower back"` etc.).
+`muscleToGroupId()` in server.mjs mappt diese auf interne Gruppen-IDs für Coverage-Berechnung.
+`wger_mapping.yml` mappt numerische wger IDs → granulare catalog-IDs (für zukünftigen wger-Sync).
 
 ---
 
@@ -183,8 +188,30 @@ anatomy_teaching:
 
 | Service | Port | Zweck |
 |---------|------|-------|
-| wger (Docker) | :8000 | Exercise Master Data, Tracking Backend |
+| wger (Docker) | :8000 | Exercise Master Data — 845 Exercises, 16 Muscles mit stabilen IDs |
 | HabitSync | :6842 | HabitWidget Integration |
+
+**wger Muscle-IDs** (stabil, für wger_mapping.yml):
+`1` Biceps · `2` Anterior deltoid · `4` Pectoralis major · `5` Triceps · `6` Rectus abdominis
+`7` Gastrocnemius · `8` Gluteus maximus · `9` Trapezius · `10` Quads · `11` Hamstrings
+`12` Latissimus dorsi · `13` Brachialis · `14` Obliques · `15` Soleus · `16` Erector spinae
+
+---
+
+## Body Data (fitness-mail)
+
+Fitbit-Daten via IMAP-Poller (`bin/fitness-mail`), Systemd-Timer 2× täglich (11:00 + 19:00).
+
+```
+~/.aos/fitness/body/YYYY-MM-DD.json
+  weight_kg, bmi, body_fat_pct, lean_mass_kg
+  steps, active_min, calories_burned, distance_km
+  sleep_h, sleep_score, sleep_deep_min, sleep_rem_min
+  resting_hr
+  weekly_steps, weekly_distance_km, weekly_active_min, weekly_calories_avg
+```
+
+Endpoint: `GET /fitness/body?days=N` (von WeightChart.jsx genutzt, shared mit fuel-dev + relax-dev).
 
 ---
 

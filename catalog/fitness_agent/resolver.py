@@ -24,6 +24,7 @@ class ExerciseRecord:
     coaching_notes: list[str] | None = None
     common_errors: list[str] | None = None
     tags: list[str] | None = None
+    wger_muscle_ids: dict | None = None
 
 
 @dataclass
@@ -121,6 +122,7 @@ def parse_exercise_document(path: Path, document: Any) -> list[ExerciseRecord]:
         coaching_notes = list_of_text(entry.get("coaching_notes"))
         common_errors = list_of_text(entry.get("common_errors"))
         tags = list_of_text(entry.get("tags"))
+        wger_muscle_ids = entry.get("wger_muscle_ids") or None
         records.append(
             ExerciseRecord(
                 exercise_id=exercise_id,
@@ -137,6 +139,7 @@ def parse_exercise_document(path: Path, document: Any) -> list[ExerciseRecord]:
                 coaching_notes=coaching_notes,
                 common_errors=common_errors,
                 tags=tags,
+                wger_muscle_ids=wger_muscle_ids,
             )
         )
     return records

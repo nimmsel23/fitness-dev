@@ -5,3 +5,7 @@ data/
 .env
 .env.*.local
 .DS_Store
+*.bak
+__pycache__/
+*.pyc
+catalog/fitness_agent/__pycache__/

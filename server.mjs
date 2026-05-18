@@ -1,12 +1,14 @@
 import fs from "node:fs";
 import http from "node:http";
+import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import Database from "better-sqlite3";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises, resolveExerciseQuery } from "./fitness-runtime.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR   = path.join(__dirname, "data");
+const DATA_DIR   = path.join(os.homedir(), ".aos", "fitness");
 const PUBLIC_DIR = path.join(__dirname, "public");
 const DIST_DIR   = path.join(__dirname, "dist");
 const STATIC_DIR = process.env.FITNESS_STATIC_DIR ? path.resolve(process.env.FITNESS_STATIC_DIR) : (fs.existsSync(DIST_DIR) ? DIST_DIR : PUBLIC_DIR);
@@ -16,8 +18,62 @@ const WGER_TOKEN = process.env.WGER_API_TOKEN || process.env.WGER_TOKEN || "92d9
 const WGER_BASE  = process.env.WGER_BASE || "http://127.0.0.1:8000/api/v2";
 const HABITSYNC_BASE = "http://localhost:6842";
 const HS_AUTH = "Basic Y29hY2g6Y29hY2gxMjM="; // coach:coach123
+const BODY_DIR = path.join(os.homedir(), ".aos", "fitness", "body");
 
 for (const d of ["sessions","journal"]) fs.mkdirSync(path.join(DATA_DIR, d), { recursive: true });
+
+// ── SQLite dual-write ─────────────────────────────────────────────────────────
+const DB_PATH = path.join(DATA_DIR, "sessions", "training_history.sqlite");
+const db = new Database(DB_PATH);
+db.exec(`
+  CREATE TABLE IF NOT EXISTS training_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    workout_id TEXT NOT NULL,
+    exercise_id TEXT NOT NULL,
+    display_name TEXT NOT NULL,
+    sets INTEGER NOT NULL DEFAULT 0,
+    reps INTEGER NOT NULL DEFAULT 0,
+    weight REAL NOT NULL DEFAULT 0,
+    rpe INTEGER NOT NULL DEFAULT 0,
+    done INTEGER NOT NULL DEFAULT 0,
+    notes TEXT NOT NULL DEFAULT '',
+    pain TEXT NOT NULL DEFAULT '',
+    completion_status TEXT NOT NULL DEFAULT 'completed'
+  );
+  CREATE INDEX IF NOT EXISTS idx_th_exercise_date
+    ON training_history(exercise_id, date DESC, id DESC);
+`);
+
+const stmtDeleteDate  = db.prepare("DELETE FROM training_history WHERE date = ?");
+const stmtInsertEntry = db.prepare(`
+  INSERT INTO training_history
+    (date, workout_id, exercise_id, display_name, sets, reps, weight, rpe, done, notes, completion_status)
+  VALUES
+    (@date, @workout_id, @exercise_id, @display_name, @sets, @reps, @weight, @rpe, @done, @notes, @completion_status)
+`);
+
+function syncSessionToDb(date, session) {
+  const block = session.block || "";
+  db.transaction(() => {
+    stmtDeleteDate.run(date);
+    for (const ex of (session.exercises || [])) {
+      stmtInsertEntry.run({
+        date,
+        workout_id:        block,
+        exercise_id:       ex.exercise_id || ex.id || "",
+        display_name:      ex.name || ex.exercise_id || ex.id || "",
+        sets:              Number(ex.sets)   || 0,
+        reps:              Number(ex.reps)   || 0,
+        weight:            Number(ex.weight) || 0,
+        rpe:               Number(ex.rpe)    || 0,
+        done:              ex.done ? 1 : 0,
+        notes:             ex.note || "",
+        completion_status: ex.done ? "completed" : "pending",
+      });
+    }
+  })();
+}
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const MIME = { ".html":"text/html;charset=utf-8", ".js":"application/javascript;charset=utf-8",
@@ -121,25 +177,30 @@ function muscleToGroupId(muscleName) {
       "chest", "pec", "pecs", "pectoralis", "pectoralis major", "pectoralis minor",
     ],
     back: [
-      "back", "lat", "lats", "latissimus", "latissimus dorsi", "trapezius", "rhomboids",
+      "back", "lat", "lats", "lats", "latissimus", "latissimus dorsi",
+      "trapezius", "traps", "rhomboids", "rhomboid", "lower back", "erector spinae", "erector",
     ],
     shoulders: [
-      "shoulder", "shoulders", "delt", "delts", "deltoid", "rotator cuff",
+      "shoulder", "shoulders", "delt", "delts", "deltoid", "deltoids",
+      "anterior deltoid", "posterior deltoid", "lateral deltoid", "rotator cuff",
     ],
     arms: [
-      "arm", "arms", "biceps", "biceps brachii", "triceps", "triceps brachii", "forearms", "brachialis",
+      "arm", "arms", "biceps", "biceps brachii", "triceps", "triceps brachii",
+      "forearms", "forearm", "brachialis",
     ],
     core: [
-      "core", "abs", "abdominals", "rectus abdominis", "obliques", "transverse abdominis",
+      "core", "abs", "abdominals", "rectus abdominis",
+      "obliques", "obliquus externus abdominis", "oblique", "transverse abdominis",
     ],
     glutes: [
-      "glutes", "glute", "gluteus maximus", "gluteus medius",
+      "glutes", "glute", "gluteus maximus", "gluteus medius", "gluteus minimus",
     ],
     quads: [
       "quads", "quad", "quadriceps", "quadriceps femoris", "vastus lateralis",
+      "vastus medialis", "rectus femoris",
     ],
     hamstrings: [
-      "hamstrings", "hamstring", "biceps femoris", "semitendinosus",
+      "hamstrings", "hamstring", "biceps femoris", "semitendinosus", "semimembranosus",
     ],
     calves: [
       "calves", "calf", "gastrocnemius", "soleus",
@@ -269,6 +330,10 @@ const server = http.createServer(async (req, res) => {
         category:         e.category?.name || "",
         primaryMuscles:   (e.muscles || []).map(m => m.name_en || m.name).filter(Boolean),
         secondaryMuscles: (e.muscles_secondary || []).map(m => m.name_en || m.name).filter(Boolean),
+        wger_muscle_ids: {
+          primary:   (e.muscles || []).map(m => m.id),
+          secondary: (e.muscles_secondary || []).map(m => m.id),
+        },
         source:           "wger",
       };
     }).filter(e => e.name);
@@ -280,12 +345,28 @@ const server = http.createServer(async (req, res) => {
     const group = url.searchParams.get("group") || "";
     const results = localExerciseGroupMatches(group);
     if (results.length) return json(res, 200, { ok: true, exercises: results });
-    const data  = await fetchWger("/exerciseinfo/", `limit=20&muscles__name_en__icontains=${encodeURIComponent(group)}&language=2`);
-    const fallback = (data.results || []).map(e => {
+
+    // wger_mapping.yml: { mappings: { "1": "upper_arm_front", ... } }
+    const mappings = fitnessData.wgerMapping?.mappings || {};
+    const wgerIds = Object.entries(mappings)
+      .filter(([, catalogId]) => catalogId === group)
+      .map(([wgerId]) => wgerId);
+
+    let data;
+    if (wgerIds.length) {
+      // ID-basierte Abfrage — sauber und stabil
+      const params = wgerIds.map(id => `muscles=${id}`).join("&");
+      data = await fetchWger("/exerciseinfo/", `limit=20&language=2&${params}`);
+    } else {
+      // Fallback: Textsuche wenn kein Mapping vorhanden
+      data = await fetchWger("/exerciseinfo/", `limit=20&muscles__name_en__icontains=${encodeURIComponent(group)}&language=2`);
+    }
+
+    const exercises = (data.results || []).map(e => {
       const trans = (e.translations || []).find(t => t.language === 2) || (e.translations || [])[0] || {};
       return { id: e.uuid || String(e.id), name_en: trans.name || "", relevance: "primary", source: "wger" };
     }).filter(e => e.name_en);
-    return json(res, 200, { ok: true, exercises: fallback });
+    return json(res, 200, { ok: true, exercises });
   }
 
   if (p === "/fitness/config") {
@@ -314,7 +395,11 @@ const server = http.createServer(async (req, res) => {
 
   if (p === "/fitness/weekly") {
     const week = url.searchParams.get("week") || "current";
-    return json(res, 200, getWeeklySummary(week));
+    try {
+      return json(res, 200, getWeeklySummary(week));
+    } catch (e) {
+      return json(res, 500, { ok: false, error: e.message });
+    }
   }
 
   if (p === "/fitness/export") {
@@ -442,8 +527,9 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === "POST") {
       const data = B();
-      writeJson(file, { ...data, date, saved_at: new Date().toISOString() });
-      syncRuntimeHistoryFromSessions();
+      const session = { ...data, date, saved_at: new Date().toISOString() };
+      writeJson(file, session);
+      syncSessionToDb(date, session);
       return json(res, 200, { ok: true });
     }
   }
@@ -544,7 +630,7 @@ const server = http.createServer(async (req, res) => {
   if (p === "/export/csv") {
     const days = Math.min(365, Math.max(1, Number(url.searchParams.get("days") || 14)));
     const dates = lastDates(days).reverse();
-    const rows = [["date","block","location","duration_min","exercise","sets","reps","weight","note","effort"]];
+    const rows = [["date","block","location","duration_min","exercise","hit","sets","reps","weight","note","effort"]];
     for (const date of dates) {
       const sess = readJson(path.join(DATA_DIR, "sessions", `${date}.json`));
       const block = sess?.block || "";
@@ -558,8 +644,9 @@ const server = http.createServer(async (req, res) => {
           escapeCsvValue(location),
           String(duration),
           escapeCsvValue(ex.name || ""),
-          String(ex.sets ?? ""),
-          String(ex.reps ?? ""),
+          ex.isHIT ? "1" : "",
+          ex.isHIT ? "" : String(ex.sets ?? ""),
+          ex.isHIT ? "" : String(ex.reps ?? ""),
           String(ex.weight ?? ""),
           escapeCsvValue(ex.note || ""),
           String(effort),
@@ -576,7 +663,7 @@ const server = http.createServer(async (req, res) => {
     const files = fs.existsSync(dir)
       ? fs.readdirSync(dir).filter(f => f.endsWith(".json")).sort()
       : [];
-    const rows = [["Nr","Datum","Einheit","Ort","Dauer (min)"]];
+    const rows = [["Nr","Datum","Trainingsart","Ort","Dauer (min)"]];
     let nr = 1;
     for (const file of files) {
       const sess = readJson(path.join(dir, file));
@@ -586,7 +673,7 @@ const server = http.createServer(async (req, res) => {
       rows.push([
         String(nr++),
         `${d}.${m}.${y}`,
-        escapeCsvValue(sess.block || ""),
+        escapeCsvValue(sess.trainingsart || sess.block || ""),
         escapeCsvValue(sess.location || ""),
         String(sess.duration || ""),
       ]);
@@ -594,6 +681,26 @@ const server = http.createServer(async (req, res) => {
     const csv = rows.map(r => r.map(v => `"${v}"`).join(",")).join("\n") + "\n";
     const filename = `trainingsprotokoll-pflichtaufgabe-${localToday()}.csv`;
     return json(res, 200, { ok: true, filename, csv, count: nr - 1 });
+  }
+
+  // ── Body Metrics (Fitbit via fitness-mail) ──
+  if (p === "/fitness/body") {
+    const days = Math.min(365, Math.max(1, Number(url.searchParams.get("days") || 30)));
+    fs.mkdirSync(BODY_DIR, { recursive: true });
+    const files = fs.existsSync(BODY_DIR)
+      ? fs.readdirSync(BODY_DIR).filter(f => f.match(/^\d{4}-\d{2}-\d{2}\.json$/)).sort().reverse().slice(0, days)
+      : [];
+    const entries = files.map(f => readJson(path.join(BODY_DIR, f))).filter(Boolean);
+    if (req.method === "GET") return json(res, 200, { ok: true, entries });
+    if (req.method === "POST") {
+      const body = await new Promise(r => { let b=""; req.on("data",c=>b+=c); req.on("end",()=>r(b)); });
+      const payload = JSON.parse(body);
+      const day = payload.date || localToday();
+      const file = path.join(BODY_DIR, `${day}.json`);
+      const existing = readJson(file, { date: day });
+      writeJson(file, { ...existing, ...payload, updated_at: new Date().toISOString() });
+      return json(res, 200, { ok: true, day });
+    }
   }
 
   // ── Theme ──

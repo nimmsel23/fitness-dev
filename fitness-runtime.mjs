@@ -74,6 +74,7 @@ for record in build_exercise_index():
         "coaching_notes": record.coaching_notes or [],
         "common_errors": record.common_errors or [],
         "tags": record.tags or [],
+        "wger_muscle_ids": record.wger_muscle_ids if hasattr(record, 'wger_muscle_ids') else None,
     })
 
 for lesson in load_all_lessons():
@@ -290,6 +291,7 @@ export function enrichExercise(record, lesson = null) {
     commonErrors: record.common_errors || [],
     tags: record.tags || [],
     movementPattern: record.movement_pattern || '',
+    wger_muscle_ids: record.wger_muscle_ids || null,
     lesson,
   }
 }

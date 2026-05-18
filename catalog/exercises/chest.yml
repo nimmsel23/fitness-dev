@@ -1,115 +1,138 @@
 name: chest
 description: Default chest exercise seed data.
 exercises:
-  - exercise_id: incline_dumbbell_press
-    id: incline_dumbbell_press
-    name: Incline Dumbbell Press
-    display_name: "Schrägbankdrücken mit Kurzhanteln"
-    german: "Schrägbankdrücken mit Kurzhanteln"
-    category: chest
-    type: compound
-    movement_pattern: horizontal_press
-    equipment:
-      - dumbbells
-    primary_muscles:
-      - chest
-    secondary_muscles:
-      - shoulders
-    stabilizers:
-      - core
-    variations:
-      - incline_barbell_press
-    coaching_notes:
-      - "Kontrollierte Exzentrik."
-      - "Brust oben halten."
-    common_errors:
-      - "Schultern hochziehen."
-      - "Zu kurze ROM."
-    tags:
-      - chest
-      - press
-    aliases:
-      - "kh schrägbank"
-      - "kurzhantel schrägbank"
-  - exercise_id: dips_chest
-    id: dips_chest
-    name: Chest Dips
-    display_name: "Dips mit Brustfokus"
-    german: "Dips mit Brustfokus"
-    category: chest
-    type: compound
-    movement_pattern: dip_press
-    equipment:
-      - dip_bars
-    primary_muscles:
-      - chest
-    secondary_muscles:
-      - shoulders
-      - arms
-    stabilizers:
-      - core
-    variations:
-      - assisted_dips
-    coaching_notes:
-      - "Leicht nach vorne lehnen."
-      - "Schultern stabil halten."
-    common_errors:
-      - "Zu aufrecht bleiben."
-      - "Schultern nach vorne kippen."
-    tags:
-      - chest
-      - dips
-  - exercise_id: cable_fly
-    id: cable_fly
-    name: Cable Fly
-    display_name: "Kabel-Flys"
-    german: "Kabel-Flys"
-    category: chest
-    type: isolation
-    movement_pattern: horizontal_adduction
-    equipment:
-      - cable_machine
-    primary_muscles:
-      - chest
-    secondary_muscles:
-      - shoulders
-    stabilizers:
-      - core
-    variations:
-      - dumbbell_fly
-    coaching_notes:
-      - "Leichte Ellbogenbeugung beibehalten."
-      - "Am Ende die Brust zusammenführen."
-    common_errors:
-      - "Zu viel Schwung."
-      - "Schultern übernehmen die Bewegung."
-    tags:
-      - chest
-      - isolation
-  - exercise_id: pec_deck
-    id: pec_deck
-    name: Pec Deck
-    display_name: "Pec Deck"
-    german: "Pec Deck"
-    category: chest
-    type: isolation
-    movement_pattern: horizontal_adduction
-    equipment:
-      - machine
-    primary_muscles:
-      - chest
-    secondary_muscles:
-      - shoulders
-    stabilizers:
-      - core
-    variations:
-      - cable_fly
-    coaching_notes:
-      - "Bewegung kontrolliert beenden."
-      - "Brust statt Hände führen lassen."
-    common_errors:
-      - "Zu weit zurückziehen."
-      - "Schultern hochziehen."
-    tags:
-      - chest
-      - machine
+- exercise_id: incline_dumbbell_press
+  id: incline_dumbbell_press
+  name: Incline Dumbbell Press
+  display_name: Schrägbankdrücken mit Kurzhanteln
+  german: Schrägbankdrücken mit Kurzhanteln
+  category: chest
+  type: compound
+  movement_pattern: horizontal_press
+  equipment:
+  - dumbbells
+  primary_muscles:
+  - chest
+  secondary_muscles:
+  - shoulders
+  stabilizers:
+  - core
+  variations:
+  - incline_barbell_press
+  coaching_notes:
+  - Kontrollierte Exzentrik.
+  - Brust oben halten.
+  common_errors:
+  - Schultern hochziehen.
+  - Zu kurze ROM.
+  tags:
+  - chest
+  - press
+  aliases:
+  - kh schrägbank
+  - kurzhantel schrägbank
+  wger_muscle_ids:
+    primary:
+    - 4
+    secondary:
+    - 2
+    - 5
+- exercise_id: dips_chest
+  id: dips_chest
+  name: Chest Dips
+  display_name: Dips mit Brustfokus
+  german: Dips mit Brustfokus
+  category: chest
+  type: compound
+  movement_pattern: dip_press
+  equipment:
+  - dip_bars
+  primary_muscles:
+  - chest
+  secondary_muscles:
+  - shoulders
+  - arms
+  stabilizers:
+  - core
+  variations:
+  - assisted_dips
+  coaching_notes:
+  - Leicht nach vorne lehnen.
+  - Schultern stabil halten.
+  common_errors:
+  - Zu aufrecht bleiben.
+  - Schultern nach vorne kippen.
+  tags:
+  - chest
+  - dips
+  wger_muscle_ids:
+    primary:
+    - 4
+    - 5
+    secondary:
+    - 2
+- exercise_id: cable_fly
+  id: cable_fly
+  name: Cable Fly
+  display_name: Kabel-Flys
+  german: Kabel-Flys
+  category: chest
+  type: isolation
+  movement_pattern: horizontal_adduction
+  equipment:
+  - cable_machine
+  primary_muscles:
+  - chest
+  secondary_muscles:
+  - shoulders
+  stabilizers:
+  - core
+  variations:
+  - dumbbell_fly
+  coaching_notes:
+  - Leichte Ellbogenbeugung beibehalten.
+  - Am Ende die Brust zusammenführen.
+  common_errors:
+  - Zu viel Schwung.
+  - Schultern übernehmen die Bewegung.
+  tags:
+  - chest
+  - isolation
+  wger_muscle_ids:
+    primary:
+    - 4
+    - 3
+    secondary:
+    - 2
+- exercise_id: pec_deck
+  id: pec_deck
+  name: Pec Deck
+  display_name: Pec Deck
+  german: Pec Deck
+  category: chest
+  type: isolation
+  movement_pattern: horizontal_adduction
+  equipment:
+  - machine
+  primary_muscles:
+  - chest
+  secondary_muscles:
+  - shoulders
+  stabilizers:
+  - core
+  variations:
+  - cable_fly
+  coaching_notes:
+  - Bewegung kontrolliert beenden.
+  - Brust statt Hände führen lassen.
+  common_errors:
+  - Zu weit zurückziehen.
+  - Schultern hochziehen.
+  tags:
+  - chest
+  - machine
+  wger_muscle_ids:
+    primary:
+    - 4
+    secondary:
+    - 3

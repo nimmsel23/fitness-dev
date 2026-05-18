@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Save, RotateCcw, Zap, Dumbbell, Download } from 'lucide-react'
 import ExerciseSearch from '../components/ExerciseSearch.jsx'
+import BodyMap from '../components/BodyMap.jsx'
 import { api, localToday, parseQuick, downloadText } from '../api.js'
 import { buildSessionCoachSheet } from '../lib/exerciseInsights.js'
 
@@ -248,6 +249,7 @@ export default function Session({ initialDate, initialDraft = null, onInspectExe
   const [effort, setEffort]       = useState(5)
   const [location, setLocation]   = useState('')
   const [duration, setDuration]   = useState('')
+  const [trainingsart, setTrainingsart] = useState('')
   const [notes, setNotes]         = useState('')
   const [saving, setSaving]       = useState(false)
   const [toast, setToast]         = useState('')
@@ -276,6 +278,7 @@ export default function Session({ initialDate, initialDraft = null, onInspectExe
     api.get(`/session?date=${date}`).then(d => {
       if (d?.ok && d.data) {
         setBlock(d.data.block || '')
+        setTrainingsart(d.data.trainingsart || '')
         setExercises(d.data.exercises || [])
         setEffort(d.data.effort ?? 5)
         setLocation(d.data.location || '')
@@ -357,7 +360,7 @@ export default function Session({ initialDate, initialDraft = null, onInspectExe
   async function save() {
     setSaving(true)
     try {
-      await api.post(`/session?date=${date}`, { block, exercises, effort, location, duration, notes })
+      await api.post(`/session?date=${date}`, { block, exercises, effort, location, duration, notes, trainingsart })
       showToast('Gespeichert ✓')
       const r = await api.get('/coverage/gaps?days=7')
       setGaps(r?.gaps || [])
@@ -377,6 +380,11 @@ export default function Session({ initialDate, initialDraft = null, onInspectExe
       showToast('Export fehlgeschlagen')
     }
   }
+
+  const doneExercises = useMemo(
+    () => exercises.filter(ex => ex.done),
+    [exercises]
+  )
 
   const splitLabels = blocks.length
     ? blocks.map(b => b.label)
@@ -450,6 +458,24 @@ export default function Session({ initialDate, initialDraft = null, onInspectExe
         </div>
       </div>
 
+      {/* ── Trainingsart ── */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+        {['Krafttraining', 'Hypertrophie', 'Ausdauer', 'Koordination', 'Beweglichkeit', 'Sonstiges'].map(art => (
+          <button
+            key={art}
+            type="button"
+            onClick={() => setTrainingsart(trainingsart === art ? '' : art)}
+            style={{
+              padding: '6px 12px', borderRadius: '10px', fontSize: '12px', fontWeight: 600,
+              border: `1px solid ${trainingsart === art ? 'var(--accent)' : 'var(--line)'}`,
+              background: trainingsart === art ? 'rgba(94,234,212,0.08)' : 'var(--card)',
+              color: trainingsart === art ? 'var(--accent)' : 'var(--muted)',
+              cursor: 'pointer',
+            }}
+          >{art}</button>
+        ))}
+      </div>
+
       {/* Plan hint */}
       {hint && (
         <div style={{
@@ -482,6 +508,25 @@ export default function Session({ initialDate, initialDraft = null, onInspectExe
           >{l}</button>
         ))}
       </div>
+
+      {/* ── Body Map (nur done exercises) ── */}
+      {doneExercises.length > 0 && (
+        <div style={{
+          display: 'flex', justifyContent: 'center', gap: '16px',
+          margin: '14px 0 4px', padding: '12px',
+          background: 'var(--card)', border: '1px solid var(--line)',
+          borderRadius: '14px',
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+            <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--dim)' }}>Vorne</span>
+            <BodyMap exercises={doneExercises} type="anterior" />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+            <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--dim)' }}>Hinten</span>
+            <BodyMap exercises={doneExercises} type="posterior" />
+          </div>
+        </div>
+      )}
 
       {/* ── Übungen ── */}
       <SectionHeader>Übungen</SectionHeader>

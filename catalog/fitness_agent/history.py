@@ -23,7 +23,7 @@ class TrainingLogResult:
 
 
 def history_db_path() -> Path:
-    return runtime_root() / "state" / DB_FILENAME
+    return Path.home() / ".aos" / "fitness" / "sessions" / DB_FILENAME
 
 
 def ensure_history_db() -> Path:

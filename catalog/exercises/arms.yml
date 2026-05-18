@@ -1,220 +1,257 @@
 name: arms
 description: Default arms exercise seed data.
 exercises:
-  - exercise_id: overhead_triceps_extension
-    id: overhead_triceps_extension
-    name: Overhead Triceps Extension
-    display_name: "Überkopf-Trizepsstrecken"
-    german: "Überkopf-Trizepsstrecken"
-    category: arms
-    type: isolation
-    movement_pattern: elbow_extension
-    equipment:
-      - dumbbells
-    primary_muscles:
-      - arms
-    secondary_muscles:
-      - shoulders
-    stabilizers:
-      - core
-    variations:
-      - cable_overhead_triceps_extension
-    coaching_notes:
-      - "Ellbogen eng halten."
-      - "Kontrolliert über Kopf arbeiten."
-    common_errors:
-      - "Ellbogen aufmachen."
-      - "Rücken ins Hohlkreuz bringen."
-    tags:
-      - arms
-      - triceps
-  - exercise_id: cable_pushdown
-    id: cable_pushdown
-    name: Cable Pushdown
-    display_name: "Trizepsdrücken am Kabel"
-    german: "Trizepsdrücken am Kabel"
-    category: arms
-    type: isolation
-    movement_pattern: elbow_extension
-    equipment:
-      - cable_machine
-    primary_muscles:
-      - arms
-    secondary_muscles:
-      - shoulders
-    stabilizers:
-      - core
-    variations:
-      - rope_pushdown
-    coaching_notes:
-      - "Oberarme ruhig halten."
-      - "Volle Streckung ohne Schwung."
-    common_errors:
-      - "Schultern nach vorne ziehen."
-      - "Mit dem Körper drücken."
-    tags:
-      - arms
-      - triceps
-  - exercise_id: skull_crusher
-    id: skull_crusher
-    name: Skull Crusher
-    display_name: "French Press"
-    german: "French Press"
-    category: arms
-    type: isolation
-    movement_pattern: elbow_extension
-    equipment:
-      - barbell
-    primary_muscles:
-      - arms
-    secondary_muscles:
-      - shoulders
-    stabilizers:
-      - core
-    variations:
-      - dumbbell_skull_crusher
-    coaching_notes:
-      - "Ellbogen schmal und stabil."
-      - "Nur den Unterarm bewegen."
-    common_errors:
-      - "Ellbogen ausstellen."
-      - "Zu tief in die Schultern fallen."
-    tags:
-      - arms
-      - triceps
-  - exercise_id: close_grip_bench_press
-    id: close_grip_bench_press
-    name: Close Grip Bench Press
-    display_name: "Enges Bankdrücken"
-    german: "Enges Bankdrücken"
-    category: arms
-    type: compound
-    movement_pattern: horizontal_press
-    equipment:
-      - barbell
-    primary_muscles:
-      - arms
-    secondary_muscles:
-      - chest
-      - shoulders
-    stabilizers:
-      - core
-    variations:
-      - close_grip_dumbbell_press
-    coaching_notes:
-      - "Griff enger als Schulterbreite."
-      - "Kontrollierte Abwärtsphase."
-    common_errors:
-      - "Zu breit greifen."
-      - "Ellbogen nach außen kippen."
-    tags:
-      - arms
-      - triceps
-  - exercise_id: barbell_curl
-    id: barbell_curl
-    name: Barbell Curl
-    display_name: "Langhantelcurl"
-    german: "Langhantelcurl"
-    category: arms
-    type: isolation
-    movement_pattern: elbow_flexion
-    equipment:
-      - barbell
-    primary_muscles:
-      - arms
-    secondary_muscles:
-      - shoulders
-    stabilizers:
-      - core
-    variations:
-      - ez_bar_curl
-    coaching_notes:
-      - "Ellbogen ruhig halten."
-      - "Kontrolliert hoch und runter."
-    common_errors:
-      - "Schwung aus dem Rücken."
-      - "Handgelenke einknicken."
-    tags:
-      - arms
-      - biceps
-  - exercise_id: incline_dumbbell_curl
-    id: incline_dumbbell_curl
-    name: Incline Dumbbell Curl
-    display_name: "Schrägbankcurl"
-    german: "Schrägbankcurl"
-    category: arms
-    type: isolation
-    movement_pattern: elbow_flexion
-    equipment:
-      - dumbbells
-    primary_muscles:
-      - arms
-    secondary_muscles:
-      - shoulders
-    stabilizers:
-      - core
-    variations:
-      - dumbbell_curl
-    coaching_notes:
-      - "Oberarm ruhig und gestreckt lassen."
-      - "Volle Dehnung unten ausnutzen."
-    common_errors:
-      - "Ellbogen nach vorne schieben."
-      - "Zu schnell ablassen."
-    tags:
-      - arms
-      - biceps
-  - exercise_id: hammer_curl
-    id: hammer_curl
-    name: Hammer Curl
-    display_name: "Hammer Curl"
-    german: "Hammer Curl"
-    category: arms
-    type: isolation
-    movement_pattern: elbow_flexion
-    equipment:
-      - dumbbells
-    primary_muscles:
-      - arms
-    secondary_muscles:
-      - shoulders
-    stabilizers:
-      - core
-    variations:
-      - cross_body_hammer_curl
-    coaching_notes:
-      - "Neutralen Griff behalten."
-      - "Ohne Schwung arbeiten."
-    common_errors:
-      - "Schultern hochziehen."
-      - "Aus dem Oberkörper schwingen."
-    tags:
-      - arms
-      - biceps
-  - exercise_id: preacher_curl
-    id: preacher_curl
-    name: Preacher Curl
-    display_name: "Scott-Curl"
-    german: "Scott-Curl"
-    category: arms
-    type: isolation
-    movement_pattern: elbow_flexion
-    equipment:
-      - machine
-    primary_muscles:
-      - arms
-    secondary_muscles:
-      - shoulders
-    stabilizers:
-      - core
-    variations:
-      - ez_bar_preacher_curl
-    coaching_notes:
-      - "Oberarme auf dem Polster lassen."
-      - "Saubere Endposition erreichen."
-    common_errors:
-      - "Ellbogen vom Polster heben."
-      - "Zu schnell absenken."
-    tags:
-      - arms
-      - biceps
+- exercise_id: overhead_triceps_extension
+  id: overhead_triceps_extension
+  name: Overhead Triceps Extension
+  display_name: Überkopf-Trizepsstrecken
+  german: Überkopf-Trizepsstrecken
+  category: arms
+  type: isolation
+  movement_pattern: elbow_extension
+  equipment:
+  - dumbbells
+  primary_muscles:
+  - arms
+  secondary_muscles:
+  - shoulders
+  stabilizers:
+  - core
+  variations:
+  - cable_overhead_triceps_extension
+  coaching_notes:
+  - Ellbogen eng halten.
+  - Kontrolliert über Kopf arbeiten.
+  common_errors:
+  - Ellbogen aufmachen.
+  - Rücken ins Hohlkreuz bringen.
+  tags:
+  - arms
+  - triceps
+  wger_muscle_ids:
+    primary:
+    - 5
+    secondary: []
+- exercise_id: cable_pushdown
+  id: cable_pushdown
+  name: Cable Pushdown
+  display_name: Trizepsdrücken am Kabel
+  german: Trizepsdrücken am Kabel
+  category: arms
+  type: isolation
+  movement_pattern: elbow_extension
+  equipment:
+  - cable_machine
+  primary_muscles:
+  - arms
+  secondary_muscles:
+  - shoulders
+  stabilizers:
+  - core
+  variations:
+  - rope_pushdown
+  coaching_notes:
+  - Oberarme ruhig halten.
+  - Volle Streckung ohne Schwung.
+  common_errors:
+  - Schultern nach vorne ziehen.
+  - Mit dem Körper drücken.
+  tags:
+  - arms
+  - triceps
+  wger_muscle_ids:
+    primary:
+    - 5
+    secondary: []
+- exercise_id: skull_crusher
+  id: skull_crusher
+  name: Skull Crusher
+  display_name: French Press
+  german: French Press
+  category: arms
+  type: isolation
+  movement_pattern: elbow_extension
+  equipment:
+  - barbell
+  primary_muscles:
+  - arms
+  secondary_muscles:
+  - shoulders
+  stabilizers:
+  - core
+  variations:
+  - dumbbell_skull_crusher
+  coaching_notes:
+  - Ellbogen schmal und stabil.
+  - Nur den Unterarm bewegen.
+  common_errors:
+  - Ellbogen ausstellen.
+  - Zu tief in die Schultern fallen.
+  tags:
+  - arms
+  - triceps
+  wger_muscle_ids:
+    primary:
+    - 5
+    secondary: []
+- exercise_id: close_grip_bench_press
+  id: close_grip_bench_press
+  name: Close Grip Bench Press
+  display_name: Enges Bankdrücken
+  german: Enges Bankdrücken
+  category: arms
+  type: compound
+  movement_pattern: horizontal_press
+  equipment:
+  - barbell
+  primary_muscles:
+  - arms
+  secondary_muscles:
+  - chest
+  - shoulders
+  stabilizers:
+  - core
+  variations:
+  - close_grip_dumbbell_press
+  coaching_notes:
+  - Griff enger als Schulterbreite.
+  - Kontrollierte Abwärtsphase.
+  common_errors:
+  - Zu breit greifen.
+  - Ellbogen nach außen kippen.
+  tags:
+  - arms
+  - triceps
+  wger_muscle_ids:
+    primary:
+    - 5
+    secondary:
+    - 4
+    - 2
+- exercise_id: barbell_curl
+  id: barbell_curl
+  name: Barbell Curl
+  display_name: Langhantelcurl
+  german: Langhantelcurl
+  category: arms
+  type: isolation
+  movement_pattern: elbow_flexion
+  equipment:
+  - barbell
+  primary_muscles:
+  - arms
+  secondary_muscles:
+  - shoulders
+  stabilizers:
+  - core
+  variations:
+  - ez_bar_curl
+  coaching_notes:
+  - Ellbogen ruhig halten.
+  - Kontrolliert hoch und runter.
+  common_errors:
+  - Schwung aus dem Rücken.
+  - Handgelenke einknicken.
+  tags:
+  - arms
+  - biceps
+  wger_muscle_ids:
+    primary:
+    - 1
+    secondary:
+    - 13
+- exercise_id: incline_dumbbell_curl
+  id: incline_dumbbell_curl
+  name: Incline Dumbbell Curl
+  display_name: Schrägbankcurl
+  german: Schrägbankcurl
+  category: arms
+  type: isolation
+  movement_pattern: elbow_flexion
+  equipment:
+  - dumbbells
+  primary_muscles:
+  - arms
+  secondary_muscles:
+  - shoulders
+  stabilizers:
+  - core
+  variations:
+  - dumbbell_curl
+  coaching_notes:
+  - Oberarm ruhig und gestreckt lassen.
+  - Volle Dehnung unten ausnutzen.
+  common_errors:
+  - Ellbogen nach vorne schieben.
+  - Zu schnell ablassen.
+  tags:
+  - arms
+  - biceps
+  wger_muscle_ids:
+    primary:
+    - 1
+    secondary:
+    - 13
+- exercise_id: hammer_curl
+  id: hammer_curl
+  name: Hammer Curl
+  display_name: Hammer Curl
+  german: Hammer Curl
+  category: arms
+  type: isolation
+  movement_pattern: elbow_flexion
+  equipment:
+  - dumbbells
+  primary_muscles:
+  - arms
+  secondary_muscles:
+  - shoulders
+  stabilizers:
+  - core
+  variations:
+  - cross_body_hammer_curl
+  coaching_notes:
+  - Neutralen Griff behalten.
+  - Ohne Schwung arbeiten.
+  common_errors:
+  - Schultern hochziehen.
+  - Aus dem Oberkörper schwingen.
+  tags:
+  - arms
+  - biceps
+  wger_muscle_ids:
+    primary:
+    - 13
+    - 1
+    secondary: []
+- exercise_id: preacher_curl
+  id: preacher_curl
+  name: Preacher Curl
+  display_name: Scott-Curl
+  german: Scott-Curl
+  category: arms
+  type: isolation
+  movement_pattern: elbow_flexion
+  equipment:
+  - machine
+  primary_muscles:
+  - arms
+  secondary_muscles:
+  - shoulders
+  stabilizers:
+  - core
+  variations:
+  - ez_bar_preacher_curl
+  coaching_notes:
+  - Oberarme auf dem Polster lassen.
+  - Saubere Endposition erreichen.
+  common_errors:
+  - Ellbogen vom Polster heben.
+  - Zu schnell absenken.
+  tags:
+  - arms
+  - biceps
+  wger_muscle_ids:
+    primary:
+    - 1
+    secondary: []

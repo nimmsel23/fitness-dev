@@ -1,152 +1,76 @@
 # Fitness Centre
 
-Workout-Tracking CLI und PWA für Krafttraining, Cardio und Trainingsplanung.
+Workout-Tracking PWA für Krafttraining — Pflichtaufgaben-Werkzeug der Diplom Präventiver Vitaltrainer Ausbildung (Fitnesstrainer-Modul, Health Personal Fitness Trainer, Prävention).
 
-Ziel:
-- **Praktisches Werkzeug zur Unterstützung der Diplom Präventiver Vitaltrainer Ausbildung** (Fitnesstrainer-Modul + Health Personal Fitness Trainer + Prävention)
-- Erfüllung der Pflichtaufgaben: Trainingspläne erstellen, Logs führen, Anatomie-Lehre dokumentieren
-- Offline-fähiges Workout-Logging ohne externe Apps
-- Strukturierte Trainingspläne mit vollständig integriertem wger Backend (lokal) + yuhonas Ergänzung
-- Lokale, file-basierte Speicherung unter `~/.aos/fitness/`
-- Anatomie Teaching Layer (Ansatz & Ursprung) für echte Trainer-Ausbildung
-- Spätere Integration in `~/vital` Klienten-System
+**Vollständige technische Dokumentation:** [CLAUDE.md](./CLAUDE.md)
 
-## System: fitness-agent (Prophet) + fitness-dev (Tempel)
+---
 
-**fitness-agent** (Skill, `/fitness-agent`):
-- Liest Fitnesstrainer-Module der Ausbildung (8 Fächer + Health Personal Fitness Trainer + Prävention)
-- Schreibt & erweitert Katalog in `~/fitness-dev/catalog/` (YAML: Exercises, Anatomy Teaching, Rules, Mappings)
-- Schreibt Tickets für fitness-dev-coding-agent wenn Features/Gaps sichtbar werden
-- Silent DB-Manager: Anatomie-Lehre, Katalog-Normalisierung, Quellen-Integration
+## System
 
-**fitness-dev** (das Repo, wird von fitness-dev-coding-agent gebaut):
-- Backend (`server.mjs`, `fitness-runtime.mjs`): API für Session-Logs, Pläne, Coverage-Analyse
-- Frontend (React + Vite): Workout-Logging, Trainingsplanung, Anatomie-Ansicht, Muskelabdeckungs-Analyse
-- Vollständig integriertes wger Backend (:8000 lokal) + yuhonas Ergänzung für Bilder/Varianten
-- Unterstützt Pflichtaufgaben: Trainingsplanerstellung, Logs, Export, Analyse
+**fitness-agent** (Skill) — Katalog-Manager: liest Ausbildungsmodule, schreibt YAML-Katalog unter `~/fitness-dev/catalog/`, schreibt Tickets für fitness-dev-coding-agent.
 
-## Schichten (fitness-dev)
+**fitness-dev** (dieses Repo) — Backend + Frontend, gebaut von fitness-dev-coding-agent.
 
-- **CLI** — `~/fitness-dev/fitness` (Python/Typer) für schnelles Logging
-- **Universal Dispatcher** — `hab` in `~/.dotfiles/logger/` für auto-detectable context
-- **Runtime** — `fitness-runtime.mjs` (Node.js) mit JSON-Datenspeicherung
-- **PWA** — geplant (wie fuel-dev)
+---
 
-## CLI-Tools & Logging
+## Stack
 
-### Workouts Logging
+| Schicht | Technologie | Port |
+|---------|-------------|------|
+| Backend | Node.js (`server.mjs`) | 9100 |
+| Frontend | React + Vite | 5902 (dev) |
+| Exercise DB | wger (lokal) | 8000 |
+| Ergänzung | yuhonas free-exercise-db | — |
 
-**Direktes Logging via `fitness` CLI:**
+---
+
+## Commands
+
 ```bash
-fitness log barbell_bench 5x5 100kg --yesterday
-fitness log squat 3x10 120kg --time morning
-fitness log deadlift 1x5 200kg
-fitness today [--day YYYY-MM-DD]
-fitness list                           # alle workouts
-fitness week [--date YYYY-MM-DD]       # wochenreport
+npm run dev          # Backend (9100) + Vite DevServer (5902) mit HMR
+npm run ui:dev       # Nur Vite DevServer
+npm run build        # Production-Build → dist/
+npm run build:catalog  # Katalog → ~/.aos/fitness/workouts/catalog.json
 ```
 
-**Universal Dispatcher `hab`:**
-```bash
-hab barbell_bench 5x5 100kg            # auto-detects → fitness log barbell_bench ...
-hab squat 3x10 120kg --yesterday       # multiple sets/reps
-```
+---
 
-`hab` categorisiert automatisch und routet zu:
-- `fuel log` für Supplements
-- `fuel nutrition` für Nutrition-Items
-- `fitness log` für Workouts
-
-### Katalog-Struktur
-
-Workouts werden in JSON-Katalogen definiert (mit wger Exercise DB Integration):
+## Daten
 
 ```
 ~/.aos/fitness/
-├── workouts/
-│   ├── catalog.json     (barbell_bench, squat, deadlift, ...)
-│   └── logs/            (YYYY-MM-DD.json mit sessions)
+├── sessions/        YYYY-MM-DD.json — Session-Logs
+├── journal/         YYYY-MM-DD.md — Text-Notizen
+├── body/            YYYY-MM-DD.json — Körpermessungen
+├── plan.json        Aktiver Trainingsplan
+└── theme.json       UI-Präferenz
 ```
 
-Jedes Workout-Item hat:
-```json
-{
-  "id": "barbell_bench",
-  "name": "Barbell Bench Press",
-  "wger_id": 89,
-  "default_sets": 5,
-  "default_reps": 5,
-  "muscles": ["chest", "triceps", "shoulders"],
-  "difficulty": "intermediate"
-}
-```
+---
 
-## CLI Tooling-Stack
+## Dokumentation
 
-- **fitness** (`~/fitness-dev/fitness`) — Python/Typer CLI für Workout-Logging
-  - Typer + loguru für saubere Fehlerbehandlung
-  - Dynamic help mit Catalog-Auflistung
-  - Automatische zsh-Completions
-  - wger Exercise DB Integration
+| Dokument | Inhalt |
+|----------|--------|
+| [CLAUDE.md](./CLAUDE.md) | API-Referenz, Katalog-Struktur, Session-Format, Design-Patterns |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | Technische Architektur, Datenquellen |
+| [VISION.md](./VISION.md) | Richtung, Volume Landmarks, Anatomie Teaching Layer |
+| [ROADMAP.md](./ROADMAP.md) | Feature-Roadmap |
+| [AGENTS.md](./AGENTS.md) | Agent-Workflow |
+| [UNKLARHEITEN.md](./UNKLARHEITEN.md) | Offene Design-Fragen |
+| [FITNESS-MAIL-PIPELINE.md](./FITNESS-MAIL-PIPELINE.md) | Gmail-Pipeline-Spec |
 
-- **hab** (`~/.dotfiles/logger/hab`) — Universal Dispatcher
-  - Auto-detects Kontext (Supplements, Nutrition, Fitness)
-  - Routes zu korrekter CLI
-  - Supports mehrere Workouts auf einmal
-  - loguru + gum für schöne Output
+---
 
-## Datenmodell
+## Status
 
-Logs landen unter `~/.aos/fitness/workouts/logs/YYYY-MM-DD.json`:
-
-```json
-{
-  "date": "2026-05-16",
-  "sessions": [
-    {
-      "id": "fit_xyz789",
-      "workout_id": "barbell_bench",
-      "name": "Barbell Bench Press",
-      "sets": 5,
-      "reps": 5,
-      "weight": 100,
-      "unit": "kg",
-      "muscles": ["chest", "triceps"],
-      "time": "2026-05-16T14:00:00Z"
-    }
-  ]
-}
-```
-
-## Workout-Catalog Building
-
-**Owner**: `fitness-agent` (Claude Skill in `~/.fitness-agent/`)
-
-Der fitness-agent hat bereits umfangreiche Trainings- und Anatomie-Daten:
-- `Top-Exercises-by-Muscle-Group.yaml` — Exercise-Master-Liste
-- `muscles.yaml` — Muscle-Group-Taxonomie
-- `exercises/` — strukturierte Exercise-Daten
-- `program_rules.yaml` — Trainingsgesetze, Periodisierung
-
-**Integration**:
-1. fitness-agent exportiert `~/.aos/fitness/workouts/catalog.json`
-2. `fitness` CLI liest aus dieser Catalog-JSON
-3. `fitness-runtime.mjs` serviert Catalog via API
-4. `hab` dispatcher routet zu `fitness` CLI
-
-## Integration mit `hab`
-
-Siehe `~/.dotfiles/logger/README.md` für Details zur Universal Dispatcher Architektur.
-
-Relevante Memory: `project_nutrition_fitness_integration.md` — dokumentiert die unified Architektur für fuel-agent + fitness-agent mit wger/OFF Enrichment.
-
-## Nächste sinnvolle Ausbauten
-
-- fitness-agent Catalog Export Task implementieren
-- Workout-Katalog von fitness-agent zu `~/.aos/fitness/workouts/catalog.json` exportieren
-- `fitness` CLI bauen (Python/Typer, analog fuel-dev)
-- PWA für Web/Mobile-Logging (analog fuel-dev)
-- Trainingsplan-Verwaltung (Periodisierung, Progression)
-- Stats/Reporting (Volume, Muscle-Group-Frequency, 1RM-Estimation)
-- Bridge API Endpoints für Core4 Score Integration
-- Klienten-Auth für `~/vital`-Integration
+- ✅ Backend + API
+- ✅ Frontend Views (Dashboard, Session, Journal, Muscles, Learn, WeeklyReview)
+- ✅ wger Integration (lokal)
+- ✅ yuhonas Integration (Bilder, Varianten)
+- ✅ Katalog-Struktur (Exercises, Anatomy Teaching, Rules, Maps)
+- ✅ Gmail-Pipeline (`bin/fitness-mail`)
+- ⏳ `fitness` CLI (Python/Typer)
+- ⏳ Anatomie-Lehre für alle Übungen
+- ⏳ PWA Offline-Unterstützung

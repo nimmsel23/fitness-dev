@@ -1,141 +1,166 @@
 name: shoulders
 description: Default shoulders exercise seed data.
 exercises:
-  - exercise_id: overhead_press
-    id: overhead_press
-    name: Overhead Press
-    display_name: "Überkopfdrücken"
-    german: "Überkopfdrücken"
-    category: shoulders
-    type: compound
-    movement_pattern: vertical_press
-    equipment:
-      - barbell
-    primary_muscles:
-      - shoulders
-    secondary_muscles:
-      - arms
-      - core
-    stabilizers:
-      - back
-    variations:
-      - dumbbell_shoulder_press
-    coaching_notes:
-      - "Rippen unten halten."
-      - "Gerade Linie über Kopf."
-    common_errors:
-      - "Hohlkreuz übertreiben."
-      - "Stange vor dem Gesicht verlieren."
-    tags:
-      - shoulders
-      - press
-  - exercise_id: dumbbell_shoulder_press
-    id: dumbbell_shoulder_press
-    name: Dumbbell Shoulder Press
-    display_name: "Kurzhantel-Schulterdrücken"
-    german: "Kurzhantel-Schulterdrücken"
-    category: shoulders
-    type: compound
-    movement_pattern: vertical_press
-    equipment:
-      - dumbbells
-    primary_muscles:
-      - shoulders
-    secondary_muscles:
-      - arms
-      - core
-    stabilizers:
-      - back
-    variations:
-      - overhead_press
-    coaching_notes:
-      - "Neutralen Griff stabil halten."
-      - "Saubere Bahn nach oben."
-    common_errors:
-      - "Zu weit nach außen ausweichen."
-      - "Unterer Rücken kippt ab."
-    tags:
-      - shoulders
-      - press
-  - exercise_id: lateral_raise
-    id: lateral_raise
-    name: Lateral Raise
-    display_name: "Seitheben"
-    german: "Seitheben"
-    category: shoulders
-    type: isolation
-    movement_pattern: abduction
-    equipment:
-      - dumbbells
-    primary_muscles:
-      - shoulders
-    secondary_muscles:
-      - arms
-    stabilizers:
-      - core
-    variations:
-      - cable_lateral_raise
-    coaching_notes:
-      - "Mit leicht gebeugtem Ellbogen heben."
-      - "Bis Schulterhöhe kontrollieren."
-    common_errors:
-      - "Schwung aus dem Körper holen."
-      - "Zu hoch ziehen."
-    tags:
-      - shoulders
-      - isolation
-  - exercise_id: face_pull
-    id: face_pull
-    name: Face Pull
-    display_name: "Face Pull"
-    german: "Face Pull"
-    category: shoulders
-    type: accessory
-    movement_pattern: horizontal_pull
-    equipment:
-      - cable_machine
-    primary_muscles:
-      - shoulders
-    secondary_muscles:
-      - back
-      - arms
-    stabilizers:
-      - core
-    variations:
-      - band_face_pull
-    coaching_notes:
-      - "Ellbogen hoch und außen führen."
-      - "Schulterblätter kontrolliert bewegen."
-    common_errors:
-      - "Zu tief ziehen."
-      - "Nacken verspannen."
-    tags:
-      - shoulders
-      - rear_delt
-  - exercise_id: rear_delt_fly
-    id: rear_delt_fly
-    name: Rear Delt Fly
-    display_name: "Reverse Fly"
-    german: "Reverse Fly"
-    category: shoulders
-    type: isolation
-    movement_pattern: horizontal_abduction
-    equipment:
-      - dumbbells
-    primary_muscles:
-      - shoulders
-    secondary_muscles:
-      - back
-    stabilizers:
-      - core
-    variations:
-      - cable_rear_delt_fly
-    coaching_notes:
-      - "Hintere Schulter aktiv halten."
-      - "Bewegung klein und präzise."
-    common_errors:
-      - "Zu viel Schwung."
-      - "Rücken statt Schulter arbeiten lassen."
-    tags:
-      - shoulders
-      - rear_delt
+- exercise_id: overhead_press
+  id: overhead_press
+  name: Overhead Press
+  display_name: Überkopfdrücken
+  german: Überkopfdrücken
+  category: shoulders
+  type: compound
+  movement_pattern: vertical_press
+  equipment:
+  - barbell
+  primary_muscles:
+  - shoulders
+  secondary_muscles:
+  - arms
+  - core
+  stabilizers:
+  - back
+  variations:
+  - dumbbell_shoulder_press
+  coaching_notes:
+  - Rippen unten halten.
+  - Gerade Linie über Kopf.
+  common_errors:
+  - Hohlkreuz übertreiben.
+  - Stange vor dem Gesicht verlieren.
+  tags:
+  - shoulders
+  - press
+  wger_muscle_ids:
+    primary:
+    - 2
+    secondary:
+    - 5
+    - 9
+- exercise_id: dumbbell_shoulder_press
+  id: dumbbell_shoulder_press
+  name: Dumbbell Shoulder Press
+  display_name: Kurzhantel-Schulterdrücken
+  german: Kurzhantel-Schulterdrücken
+  category: shoulders
+  type: compound
+  movement_pattern: vertical_press
+  equipment:
+  - dumbbells
+  primary_muscles:
+  - shoulders
+  secondary_muscles:
+  - arms
+  - core
+  stabilizers:
+  - back
+  variations:
+  - overhead_press
+  coaching_notes:
+  - Neutralen Griff stabil halten.
+  - Saubere Bahn nach oben.
+  common_errors:
+  - Zu weit nach außen ausweichen.
+  - Unterer Rücken kippt ab.
+  tags:
+  - shoulders
+  - press
+  wger_muscle_ids:
+    primary:
+    - 2
+    secondary:
+    - 5
+- exercise_id: lateral_raise
+  id: lateral_raise
+  name: Lateral Raise
+  display_name: Seitheben
+  german: Seitheben
+  category: shoulders
+  type: isolation
+  movement_pattern: abduction
+  equipment:
+  - dumbbells
+  primary_muscles:
+  - shoulders
+  secondary_muscles:
+  - arms
+  stabilizers:
+  - core
+  variations:
+  - cable_lateral_raise
+  coaching_notes:
+  - Mit leicht gebeugtem Ellbogen heben.
+  - Bis Schulterhöhe kontrollieren.
+  common_errors:
+  - Schwung aus dem Körper holen.
+  - Zu hoch ziehen.
+  tags:
+  - shoulders
+  - isolation
+  wger_muscle_ids:
+    primary:
+    - 2
+    secondary: []
+- exercise_id: face_pull
+  id: face_pull
+  name: Face Pull
+  display_name: Face Pull
+  german: Face Pull
+  category: shoulders
+  type: accessory
+  movement_pattern: horizontal_pull
+  equipment:
+  - cable_machine
+  primary_muscles:
+  - shoulders
+  secondary_muscles:
+  - back
+  - arms
+  stabilizers:
+  - core
+  variations:
+  - band_face_pull
+  coaching_notes:
+  - Ellbogen hoch und außen führen.
+  - Schulterblätter kontrolliert bewegen.
+  common_errors:
+  - Zu tief ziehen.
+  - Nacken verspannen.
+  tags:
+  - shoulders
+  - rear_delt
+  wger_muscle_ids:
+    primary:
+    - 9
+    secondary:
+    - 2
+- exercise_id: rear_delt_fly
+  id: rear_delt_fly
+  name: Rear Delt Fly
+  display_name: Reverse Fly
+  german: Reverse Fly
+  category: shoulders
+  type: isolation
+  movement_pattern: horizontal_abduction
+  equipment:
+  - dumbbells
+  primary_muscles:
+  - shoulders
+  secondary_muscles:
+  - back
+  stabilizers:
+  - core
+  variations:
+  - cable_rear_delt_fly
+  coaching_notes:
+  - Hintere Schulter aktiv halten.
+  - Bewegung klein und präzise.
+  common_errors:
+  - Zu viel Schwung.
+  - Rücken statt Schulter arbeiten lassen.
+  tags:
+  - shoulders
+  - rear_delt
+  wger_muscle_ids:
+    primary:
+    - 9
+    secondary:
+    - 2
