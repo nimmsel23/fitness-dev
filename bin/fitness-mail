@@ -343,18 +343,22 @@ def poll() -> None:
         _, uids = imap.search(None, "UNSEEN")
         uid_list = uids[0].split()
         if not uid_list:
-            logger.info("keine neuen Fitness-Mails")
+            logger.info("poll: keine neuen Mails im Label '{}'", label)
             return
 
+        logger.info("poll: {} neue Mail(s) gefunden", len(uid_list))
         for uid in uid_list:
             _, data = imap.fetch(uid, "(RFC822)")
             raw = data[0][1]
             msg = email.message_from_bytes(raw, policy=email.policy.default)
+            subject = msg.get("Subject", "?")
+            date_str = msg.get("Date", "?")
+            logger.info("mail: subject='{}' date='{}'", subject, date_str)
             result = _dispatch(msg)
             if result:
                 imap.store(uid, "+FLAGS", "\\Seen")
             else:
-                logger.warning("kein Handler für: {}", msg.get("Subject", "?"))
+                logger.warning("kein Handler für: subject='{}'", subject)
 
 
 @app.command()
