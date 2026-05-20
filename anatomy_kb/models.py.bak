@@ -21,27 +21,10 @@ class MuscleRoles:
         if not d:
             return cls()
         return cls(
-            primary=cls._flatten(d.get("primary")),
-            secondary=cls._flatten(d.get("secondary")),
-            stabilizers=cls._flatten(d.get("stabilizers")),
+            primary=d.get("primary") or [],
+            secondary=d.get("secondary") or [],
+            stabilizers=d.get("stabilizers") or [],
         )
-
-    @staticmethod
-    def _flatten(value) -> list[str]:
-        """Liste oder Dict (z.B. {front_leg: [...], back_leg: [...]}) → flache Liste."""
-        if not value:
-            return []
-        if isinstance(value, list):
-            return value
-        if isinstance(value, dict):
-            result = []
-            for v in value.values():
-                if isinstance(v, list):
-                    result.extend(v)
-                elif isinstance(v, str):
-                    result.append(v)
-            return result
-        return []
 
 
 @dataclass

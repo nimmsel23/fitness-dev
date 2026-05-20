@@ -1,0 +1,515 @@
+#!/usr/bin/env python3
+"""
+anatomy-agent — Dispatcher für das anatomy-kb System
+
+Subcommands:
+  serve               API-Server starten (:9200)
+  list                Alle Übungen als Tabelle
+  pick                Interaktive Übungsauswahl via fzf
+  show   <id>         Vollständige YAML-Rohdaten
+  teach  <id>         Anatomy-Teaching: Erklärung, Gelenke, Muskeln, Cues
+  errors <id>         Fehlerbilder mit anatomischer Begründung
+  quiz   <id>         Quiz-Fragen mit aufdeckbaren Antworten
+  reload              YAML-Cache des laufenden Servers leeren
+  doctor              System-Health prüfen
+
+Beispiele:
+  anatomy-agent list
+  anatomy-agent pick                    # fzf-Auswahl → teach
+  anatomy-agent teach bench_press
+  anatomy-agent errors pull_up
+  anatomy-agent quiz squat
+  anatomy-agent serve
+  anatomy-agent doctor
+"""
+
+import subprocess
+import sys
+from pathlib import Path
+
+import typer
+import yaml
+from loguru import logger
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich import box
+from rich.text import Text
+from rich.rule import Rule
+
+ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+
+from anatomy_kb import loader
+from anatomy_kb.models import Exercise
+
+console = Console()
+app = typer.Typer(
+    name="anatomy-agent",
+    help="[bold]anatomy-kb[/bold] — Anatomy Intelligence Layer\n\nTransformiert Exercise-Daten in anatomisches Verständnis.",
+    add_completion=False,
+    rich_markup_mode="rich",
+)
+
+EXERCISES_DIR = ROOT / "exercises"
+SERVER_PORT = 9200
+
+
+# --- Helpers -----------------------------------------------------------------
+
+def _have_gum() -> bool:
+    return subprocess.run(["which", "gum"], capture_output=True).returncode == 0
+
+
+def _gum_log(level: str, msg: str) -> None:
+    if _have_gum():
+        subprocess.run(["gum", "log", f"--level={level}", msg])
+    else:
+        icons = {"info": "ℹ", "warn": "⚠", "error": "✗"}
+        console.print(f"{icons.get(level, '·')} {msg}")
+
+
+def _init_loader() -> None:
+    loader.init(EXERCISES_DIR)
+
+
+def _load_exercise(exercise_id: str) -> Exercise:
+    _init_loader()
+    data = loader.load_one(exercise_id)
+    if data is None:
+        _gum_log("error", f"Übung nicht gefunden: {exercise_id}")
+        console.print(f"\n  Verfügbar: [dim]{', '.join(loader.list_ids())}[/dim]\n")
+        raise typer.Exit(1)
+    return Exercise.from_dict(data)
+
+
+def _fzf_pick(options: list[str], prompt: str = "Übung wählen") -> str | None:
+    result = subprocess.run(
+        ["fzf", "--prompt", f"{prompt}: ", "--height=40%", "--border", "--ansi"],
+        input="\n".join(options),
+        text=True,
+        capture_output=True,
+    )
+    return result.stdout.strip() or None
+
+
+def _section(title: str) -> None:
+    console.print(Rule(f"[bold cyan]{title}[/bold cyan]", style="dim"))
+
+
+# --- Subcommands -------------------------------------------------------------
+
+@app.command()
+def serve(
+    port: int = typer.Option(SERVER_PORT, "--port", "-p", help="Port (default: 9200)"),
+):
+    """
+    [bold]API-Server starten[/bold]
+
+    Startet den aiohttp-Server mit allen REST-Endpoints.
+
+    \b
+    Endpoints:
+      GET  /health
+      GET  /api/exercises
+      GET  /api/exercise/{id}
+      GET  /api/exercise/{id}/teaching
+      GET  /api/exercise/{id}/errors
+      GET  /api/exercise/{id}/quiz
+      POST /api/reload
+    """
+    console.print(Panel.fit(
+        f"[bold green]anatomy-kb[/bold green] startet auf [cyan]:{port}[/cyan]\n"
+        f"[dim]Root: {ROOT}[/dim]",
+        title="serve",
+        border_style="green",
+    ))
+    subprocess.run([sys.executable, str(ROOT / "server.py"), "--port", str(port)])
+
+
+@app.command("list")
+def list_exercises():
+    """
+    [bold]Alle Übungen auflisten[/bold]
+
+    Zeigt eine Tabelle aller verfügbaren Übungen mit ID, Kategorie,
+    Bewegungsmuster und primären Muskeln.
+    """
+    _init_loader()
+    all_data = loader.load_all()
+    if not all_data:
+        _gum_log("warn", "Keine Übungen gefunden")
+        raise typer.Exit(1)
+
+    table = Table(
+        show_header=True,
+        header_style="bold cyan",
+        box=box.ROUNDED,
+        title="[bold]anatomy-kb — Übungen[/bold]",
+        title_style="white",
+    )
+    table.add_column("ID", style="yellow", no_wrap=True)
+    table.add_column("Name", style="bold white")
+    table.add_column("Kategorie", style="cyan")
+    table.add_column("Muster", style="dim")
+    table.add_column("Primäre Muskeln", style="green")
+
+    for data in all_data.values():
+        ex = Exercise.from_dict(data)
+        primary = ", ".join(ex.muscle_roles.primary[:3])
+        table.add_row(
+            ex.exercise_id,
+            ex.name,
+            ex.category,
+            ex.movement_pattern,
+            primary,
+        )
+
+    console.print()
+    console.print(table)
+    console.print()
+
+
+@app.command()
+def pick():
+    """
+    [bold]Interaktive Übungsauswahl via fzf[/bold]
+
+    Öffnet fzf zur Auswahl einer Übung und zeigt dann
+    automatisch das vollständige Anatomy-Teaching.
+    """
+    _init_loader()
+    ids = loader.list_ids()
+    if not ids:
+        _gum_log("error", "Keine Übungen gefunden")
+        raise typer.Exit(1)
+
+    chosen = _fzf_pick(ids, "Übung wählen")
+    if not chosen:
+        console.print("[dim]Abgebrochen.[/dim]")
+        raise typer.Exit(0)
+
+    _teach_exercise(chosen)
+
+
+@app.command()
+def show(
+    exercise_id: str = typer.Argument(..., help="Exercise-ID (z.B. bench_press, pull_up, squat)"),
+):
+    """
+    [bold]Vollständige YAML-Rohdaten einer Übung[/bold]
+
+    Gibt alle Felder exakt wie in der YAML-Datei aus —
+    nützlich für Debugging, Editieren und Schema-Inspektion.
+
+    \b
+    Verfügbare IDs: bench_press, pull_up, squat, lunge, rdl
+    """
+    ex = _load_exercise(exercise_id)
+    console.print()
+    console.print(Panel(
+        yaml.dump(ex.raw, allow_unicode=True, default_flow_style=False, sort_keys=False),
+        title=f"[bold yellow]{exercise_id}.yml[/bold yellow]",
+        border_style="yellow",
+    ))
+
+
+def _teach_exercise(exercise_id: str) -> None:
+    """Interne Teaching-Logik — wird von teach() und pick() verwendet."""
+    ex = _load_exercise(exercise_id)
+    raw = ex.raw
+
+    console.print()
+    console.print(Panel.fit(
+        f"[bold white]{ex.name}[/bold white]  [dim]·  {ex.category}  ·  {ex.movement_pattern}[/dim]",
+        title="[cyan]anatomy-kb[/cyan]",
+        border_style="cyan",
+    ))
+    console.print()
+
+    _section("Kurzerklärung")
+    console.print(f"  {ex.simple_explanation.strip()}\n")
+
+    _section("Anatomie")
+    for line in ex.detailed_explanation.strip().splitlines():
+        console.print(f"  {line.strip()}")
+    console.print()
+
+    if raw.get("joint_actions"):
+        _section("Gelenkaktionen")
+        for joint, phases in raw["joint_actions"].items():
+            if isinstance(phases, dict):
+                for phase, actions in phases.items():
+                    if isinstance(actions, list):
+                        console.print(f"  [yellow]{joint}[/yellow] / [dim]{phase}[/dim]: {', '.join(actions)}")
+                    elif isinstance(actions, str):
+                        console.print(f"  [yellow]{joint}[/yellow] / [dim]{phase}[/dim]: {actions}")
+            elif isinstance(phases, list):
+                console.print(f"  [yellow]{joint}[/yellow]: {', '.join(phases)}")
+        console.print()
+
+    _section("Muskeln")
+    if ex.muscle_roles.primary:
+        console.print(f"  [bold green]Primär:[/bold green]       {', '.join(ex.muscle_roles.primary)}")
+    if ex.muscle_roles.secondary:
+        console.print(f"  [green]Sekundär:[/green]     {', '.join(ex.muscle_roles.secondary)}")
+    if ex.muscle_roles.stabilizers:
+        console.print(f"  [dim]Stabilisator:[/dim] {', '.join(ex.muscle_roles.stabilizers)}")
+    console.print()
+
+    if ex.feel_cues:
+        _section("Körpergefühl")
+        for cue in ex.feel_cues:
+            console.print(f"  [cyan]→[/cyan] {cue}")
+        console.print()
+
+    if raw.get("coaching_cues"):
+        _section("Coaching-Cues")
+        cues = raw["coaching_cues"]
+        if isinstance(cues, dict):
+            for phase, items in cues.items():
+                console.print(f"  [bold]{phase}:[/bold]")
+                for item in (items or []):
+                    console.print(f"    · {item}")
+        console.print()
+
+    variation_keys = [
+        ("body_position_effect", "Körperposition-Effekte"),
+        ("grip_variation_effect", "Griff-Variationen"),
+        ("stance_variation_effect", "Stand-Variationen"),
+        ("lunge_variation_effect", "Ausfallschritt-Variationen"),
+        ("rdl_vs_deadlift", "RDL vs. Deadlift"),
+    ]
+    for key, label in variation_keys:
+        if raw.get(key):
+            _section(label)
+            console.print(f"  [dim]{yaml.dump(raw[key], allow_unicode=True, default_flow_style=False).strip()}[/dim]")
+            console.print()
+
+
+@app.command()
+def teach(
+    exercise_id: str = typer.Argument(..., help="Exercise-ID (z.B. bench_press, pull_up, squat)"),
+):
+    """
+    [bold]Anatomy-Teaching einer Übung[/bold]
+
+    Zeigt die vollständige didaktische Schicht:
+
+    \b
+    - Kurz- und Detailerklärung
+    - Gelenkaktionen (konzentrisch / exzentrisch / statisch)
+    - Muskelrollen (primär / sekundär / stabilisierend)
+    - Körpergefühl-Cues
+    - Coaching-Cues (Setup + Ausführung)
+    - Variations-Effekte (Griff, Winkel, Stand)
+
+    \b
+    Beispiel: anatomy-agent teach pull_up
+    """
+    _teach_exercise(exercise_id)
+
+
+@app.command()
+def errors(
+    exercise_id: str = typer.Argument(..., help="Exercise-ID"),
+):
+    """
+    [bold]Fehlerbilder mit anatomischer Begründung[/bold]
+
+    Für jedes Fehlerbild:
+
+    \b
+    - Beschreibung des Fehlers
+    - Anatomischer Grund (welcher Muskel / welches Gelenk versagt)
+    - Korrektur-Hinweis
+    - Welche Anatomie-Konzepte es lehrt
+
+    \b
+    Beispiel: anatomy-agent errors squat
+    """
+    ex = _load_exercise(exercise_id)
+    common_errors = ex.raw.get("common_errors_explained")
+    if not common_errors:
+        _gum_log("warn", f"Keine Fehlerbilder für {exercise_id}")
+        return
+
+    console.print()
+    console.print(Panel.fit(
+        f"[bold white]{ex.name}[/bold white] — Fehlerbilder",
+        border_style="red",
+    ))
+    console.print()
+
+    for error_id, error in common_errors.items():
+        table = Table(box=box.SIMPLE, show_header=False, padding=(0, 1))
+        table.add_column("Label", style="bold red", no_wrap=True)
+        table.add_column("Inhalt", style="white")
+
+        table.add_row("Problem", error.get("description", ""))
+        reason = error.get("anatomical_reason", "").strip().replace("\n", " ")
+        table.add_row("Anatomie", reason)
+        table.add_row("Korrektur", error.get("correction", ""))
+        teaches = error.get("teaches", [])
+        if teaches:
+            table.add_row("Lehrt", ", ".join(teaches))
+
+        console.print(Panel(table, title=f"[yellow]{error_id}[/yellow]", border_style="dim"))
+        console.print()
+
+
+@app.command()
+def quiz(
+    exercise_id: str = typer.Argument(..., help="Exercise-ID"),
+    reveal: bool = typer.Option(False, "--reveal", "-r", help="Antworten sofort anzeigen"),
+):
+    """
+    [bold]Quiz-Prompts mit Fragen und Antworten[/bold]
+
+    Gibt alle Quiz-Fragen der Übung aus. Standardmäßig werden
+    Antworten erst auf Tastendruck angezeigt.
+
+    \b
+    Optionen:
+      --reveal / -r    Alle Antworten direkt einblenden
+
+    \b
+    Beispiel:
+      anatomy-agent quiz rdl
+      anatomy-agent quiz rdl --reveal
+    """
+    ex = _load_exercise(exercise_id)
+    prompts = ex.raw.get("quiz_prompts") or []
+    if not prompts:
+        _gum_log("warn", f"Keine Quiz-Prompts für {exercise_id}")
+        return
+
+    console.print()
+    console.print(Panel.fit(
+        f"[bold white]{ex.name}[/bold white] — Quiz  [dim]({len(prompts)} Fragen)[/dim]",
+        border_style="magenta",
+    ))
+    console.print()
+
+    for i, prompt in enumerate(prompts, 1):
+        question = prompt.get("question", "").strip()
+        answer = prompt.get("answer", "").strip().replace("\n", " ")
+
+        console.print(Panel(
+            f"[bold]{question}[/bold]",
+            title=f"[magenta]Frage {i}[/magenta]",
+            border_style="magenta",
+        ))
+
+        if reveal:
+            console.print(Panel(
+                answer,
+                title=f"[green]Antwort {i}[/green]",
+                border_style="green",
+            ))
+        else:
+            typer.prompt("  → Enter für Antwort", default="", show_default=False, prompt_suffix="")
+            console.print(Panel(
+                answer,
+                title=f"[green]Antwort {i}[/green]",
+                border_style="green",
+            ))
+
+        console.print()
+
+
+@app.command()
+def reload():
+    """
+    [bold]YAML-Cache leeren[/bold]
+
+    Wenn der Server läuft: POST /api/reload an localhost:9200.
+    Wenn der Server nicht läuft: lokalen In-Memory-Cache leeren.
+
+    Nützlich nach dem Editieren von Exercise-YAMLs —
+    kein Server-Neustart nötig.
+    """
+    try:
+        import urllib.request
+        req = urllib.request.Request(
+            f"http://localhost:{SERVER_PORT}/api/reload",
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            _gum_log("info", f"Server-Cache geleert → {resp.read().decode().strip()}")
+    except Exception as e:
+        _gum_log("warn", f"Server nicht erreichbar ({e})")
+        _init_loader()
+        loader.reload()
+        _gum_log("info", "Lokaler Cache geleert")
+
+
+@app.command()
+def doctor():
+    """
+    [bold]System-Health prüfen[/bold]
+
+    Prüft alle kritischen Komponenten:
+
+    \b
+    - exercises/ Verzeichnis vorhanden
+    - YAML-Dateien vorhanden und parsebar
+    - Python-Module vorhanden (server.py, loader, models)
+    - Server erreichbar auf :9200 (optional)
+
+    Exit-Code 0 wenn alles OK, 1 wenn FAIL vorhanden.
+    """
+    checks: list[tuple[str, bool, str]] = []
+
+    def check(label: str, ok: bool, detail: str = "") -> None:
+        checks.append((label, ok, detail))
+
+    check("exercises_dir", EXERCISES_DIR.exists(), str(EXERCISES_DIR))
+
+    yml_files = list(EXERCISES_DIR.glob("*.yml")) if EXERCISES_DIR.exists() else []
+    check("exercises yml", len(yml_files) > 0, f"{len(yml_files)} Dateien")
+
+    parse_errors = []
+    for f in yml_files:
+        try:
+            yaml.safe_load(f.read_text())
+        except yaml.YAMLError:
+            parse_errors.append(f.name)
+    check("yaml parse", len(parse_errors) == 0, ", ".join(parse_errors) if parse_errors else "alle ok")
+
+    check("server.py", (ROOT / "server.py").exists(), "")
+    check("anatomy_kb/loader.py", (ROOT / "anatomy_kb" / "loader.py").exists(), "")
+    check("anatomy_kb/models.py", (ROOT / "anatomy_kb" / "models.py").exists(), "")
+
+    try:
+        import urllib.request
+        urllib.request.urlopen(f"http://localhost:{SERVER_PORT}/health", timeout=2)
+        check(f"server :{SERVER_PORT}", True, "erreichbar")
+    except Exception:
+        check(f"server :{SERVER_PORT}", False, "nicht erreichbar — starte mit: anatomy-agent serve")
+
+    table = Table(box=box.ROUNDED, show_header=True, header_style="bold cyan")
+    table.add_column("Status", no_wrap=True)
+    table.add_column("Check")
+    table.add_column("Detail", style="dim")
+
+    for label, ok, detail in checks:
+        status = Text("OK", style="bold green") if ok else Text("FAIL", style="bold red")
+        table.add_row(status, label, detail)
+
+    console.print()
+    console.print(table)
+    console.print()
+
+    failed = [c for c in checks if not c[1]]
+    if failed:
+        _gum_log("error", f"{len(failed)} Check(s) fehlgeschlagen")
+        raise typer.Exit(1)
+    else:
+        _gum_log("info", "anatomy-kb: alles ok")
+
+
+# --- Entry Point -------------------------------------------------------------
+
+if __name__ == "__main__":
+    app()
