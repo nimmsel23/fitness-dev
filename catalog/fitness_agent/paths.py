@@ -67,6 +67,7 @@ SEED_FILE_MAP = {
     "anatomy_teaching/leg_curl.yml": "anatomy_teaching/leg_curl.yml",
     "anatomy_teaching/calf_raise.yml": "anatomy_teaching/calf_raise.yml",
     "anatomy_teaching/lunge.yml": "anatomy_teaching/lunge.yml",
+    "anatomy_teaching/supplementary_mvp_lessons.yml": "anatomy_teaching/supplementary_mvp_lessons.yml",
 }
 
 REQUIRED_RUNTIME_FILES = [
