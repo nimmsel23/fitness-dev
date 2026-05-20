@@ -68,7 +68,14 @@ def command(
         _gum_log("info", f"Vault-Root: {VAULT_ROOT}")
         raise typer.Exit(1)
 
-    raw_content = vault_path.read_text()
+    for _enc in ("utf-8", "latin-1", "cp1252"):
+        try:
+            raw_content = vault_path.read_text(encoding=_enc)
+            break
+        except UnicodeDecodeError:
+            continue
+    else:
+        raw_content = vault_path.read_bytes().decode("utf-8", errors="replace")
     note_content = _strip_wikilinks(raw_content)
     note_name = vault_path.stem
     vault_tags = _extract_vault_tags(raw_content)

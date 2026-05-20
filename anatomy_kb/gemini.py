@@ -91,7 +91,7 @@ common_errors_explained:
 ```
 
 Wenn Ursprung/Ansatz in der Notiz nicht explizit genannt: aus anatomischem Fachwissen ergänzen.
-Wenn ein Fehlerabschnitt fehlt: leeres `common_errors_explained: {}` zurückgeben.
+Wenn ein Fehlerabschnitt fehlt: leeres `common_errors_explained: {{}}` zurückgeben.
 Muskel-Keys immer snake_case, keine Leerzeichen.
 
 ---

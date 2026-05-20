@@ -60,7 +60,14 @@ def find_file(query: str) -> Path | None:
 
 def update_frontmatter(md_path: Path, exercise_id: str, fields: list[str]) -> None:
     """Fügt anatomy_kb-Block ins YAML-Frontmatter der MD-Notiz ein."""
-    raw = md_path.read_text()
+    for enc in ("utf-8", "latin-1", "cp1252"):
+        try:
+            raw = md_path.read_text(encoding=enc)
+            break
+        except UnicodeDecodeError:
+            continue
+    else:
+        raw = md_path.read_bytes().decode("utf-8", errors="replace")
     today = date.today().isoformat()
 
     kb_entry = {
