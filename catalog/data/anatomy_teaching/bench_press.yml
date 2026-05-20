@@ -1,0 +1,81 @@
+name: bench_press_lesson
+description: Anatomy teaching seed for bench_press.
+lessons:
+  - exercise_id: bench_press
+    title: "Bankdrücken — Horizontales Drücken verstehen"
+    region: chest
+    learning_goal:
+      short: "Pectoralis, vordere Schulter und Trizeps als Drück-Synergie verstehen."
+      detailed: "Lern warum Bankdrücken keine reine Brustübung ist und wie Scapula-Setup die Kraftübertragung bestimmt."
+    movement_pattern:
+      primary: horizontal_push
+      secondary:
+        - elbow_extension
+        - shoulder_horizontal_adduction
+    joint_actions:
+      shoulder:
+        concentric:
+          - horizontal_adduction
+          - flexion_partial
+        eccentric:
+          - horizontal_abduction_control
+        stabilization:
+          - glenohumeral_centering
+      elbow:
+        concentric:
+          - extension
+        eccentric:
+          - flexion_control
+      scapula:
+        stabilization:
+          - retraction
+          - depression
+    muscle_roles:
+      prime_movers:
+        - chest
+        - shoulders_front
+      synergists:
+        - upper_arm_back
+      stabilizers:
+        - upper_back
+        - core
+    body_highlighter_regions:
+      primary:
+        - chest
+      secondary:
+        - shoulders_front
+        - upper_arm_back
+      light:
+        - core
+    trainer_explanation:
+      simple: "Bankdrücken trainiert Brust, vordere Schulter und Trizeps gleichzeitig."
+      technical: "Der Pectoralis major führt horizontale Adduktion und Schulterflexion aus. Der Trizeps brachii streckt den Ellenbogen in der oberen Hälfte. Scapula-Stabilität ist Voraussetzung für effiziente Kraftübertragung."
+      client_friendly: "Du drückst nicht nur mit der Brust — Schulter und Trizeps arbeiten immer mit."
+    feel_cues:
+      - "Brust spannt beim Herunterführen exzentrisch."
+      - "Trizeps übernimmt in der oberen Hälfte des Drückens."
+      - "Schulterblätter bleiben aktiv nach hinten/unten gezogen."
+      - "Vordere Schulter hilft besonders in der unteren Phase."
+    coaching_cues:
+      - "Schulterblätter vor dem Satz retrahieren und deprimieren."
+      - "Ellenbogen 45–60° einziehen, nicht auf 90° ausweichen."
+      - "Stange zur unteren Brust führen, nicht zur Schulter."
+    common_errors:
+      - error: "Ellenbogen weichen auf 90° zur Seite aus."
+        anatomical_reason: "Maximale Außenrotation des Humerus impingiert den Supraspinatus und überlädt die vordere Schulterkapsel."
+        correction: "Ellenbogen auf 45–60° einziehen, Lat minimal anspannen."
+        coaching_cue: "Ellenbogen in Richtung Hüfte, nicht in Richtung Wand."
+      - error: "Schulterblätter kippen beim Drücken nach vorne."
+        anatomical_reason: "Ohne stabilen Scapula-Anker verliert der Pectoralis major seinen Ursprung — vordere Schulter übernimmt kompensatorisch."
+        correction: "Aktiv retrahieren und halten. Scapula-Setup vor jedem Satz neu setzen."
+        coaching_cue: "Schulterblätter in die Hosentaschen."
+    variations_teach:
+      - variation: "Incline Bench Press"
+        lesson: "Mehr klavikulärer Pectoralis und vordere Schulter, weniger sternaler Brustanteil."
+      - variation: "Close Grip Bench Press"
+        lesson: "Trizeps-Dominanz steigt, Pectoralis-Beteiligung sinkt bei schmalem Griff."
+    quiz:
+      - question: "Warum ist Bankdrücken keine reine Brustübung?"
+        answer: "Weil Trizeps (Ellenbogenstreckung) und vordere Schulter immer mitarbeiten. Je enger der Griff, desto mehr Trizeps. Je steiler die Bank, desto mehr Schulter."
+      - question: "Warum fühlen Anfänger Bankdrücken oft in der Schulter statt in der Brust?"
+        answer: "Meist fehlendes Scapula-Setup und Ellenbogen-Flare. Ohne stabilen Schulterblatt-Anker fehlt der Kraftursprung für den Pectoralis — die Schulter übernimmt."

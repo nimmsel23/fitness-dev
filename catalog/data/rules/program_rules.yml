@@ -1,0 +1,88 @@
+program_rules:
+  default_split: full_body
+  max_sessions_per_week: 4
+  coverage_defaults:
+    sets: 1
+    rpe: 8
+  templates:
+    push_day:
+      slots:
+        - name: main_chest_press
+          choose_from:
+            - incline_dumbbell_press
+            - dips_chest
+        - name: secondary_press
+          choose_from:
+            - close_grip_bench_press
+            - dumbbell_shoulder_press
+        - name: shoulder_press_or_raise
+          choose_from:
+            - overhead_press
+            - lateral_raise
+        - name: chest_isolation
+          choose_from:
+            - cable_fly
+            - pec_deck
+        - name: triceps_isolation
+          choose_from:
+            - cable_pushdown
+            - skull_crusher
+    pull_day:
+      slots:
+        - name: vertical_pull
+          choose_from:
+            - pull_up
+            - chin_up
+            - lat_pulldown
+        - name: horizontal_pull
+          choose_from:
+            - barbell_row
+            - chest_supported_row
+            - t_bar_row
+        - name: secondary_row_or_pulldown
+          choose_from:
+            - lat_pulldown
+            - chest_supported_row
+            - t_bar_row
+        - name: rear_delt_or_face_pull
+          choose_from:
+            - face_pull
+            - rear_delt_fly
+        - name: biceps_movement
+          choose_from:
+            - barbell_curl
+            - incline_dumbbell_curl
+            - hammer_curl
+            - preacher_curl
+    legs_day:
+      slots:
+        - name: main_squat
+          choose_from:
+            - front_squat
+            - back_squat
+            - leg_press
+        - name: main_hinge
+          choose_from:
+            - romanian_deadlift
+            - deadlift
+            - hip_thrust
+        - name: unilateral_or_machine
+          choose_from:
+            - bulgarian_split_squat
+            - lunge
+            - leg_press
+        - name: hamstring_isolation
+          choose_from:
+            - leg_curl
+            - hip_thrust
+        - name: calves
+          choose_from:
+            - calf_raise
+        - name: core_optional
+          choose_from:
+            - hanging_leg_raise
+            - cable_crunch
+            - ab_wheel
+            - plank
+            - pallof_press
+            - side_plank

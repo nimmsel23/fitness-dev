@@ -1,0 +1,32 @@
+bridge:
+  enabled: false
+  source: local_yaml
+  muscle_to_region:
+    chest: torso
+    back: torso
+    shoulders: upper_body
+    arms: upper_body
+    legs: lower_body
+    core: torso
+  body_regions:
+    - chest_front
+    - shoulders_front
+    - shoulders_side
+    - shoulders_back
+    - upper_arm_front
+    - upper_arm_back
+    - upper_back
+    - lats
+    - abdomen_front
+    - thigh_front
+    - thigh_back
+    - glutes
+    - calves
+    - feet
+    - forearms
+    - lower_back
+    - neck
+    - shin_front
+    - torso
+    - upper_body
+    - lower_body

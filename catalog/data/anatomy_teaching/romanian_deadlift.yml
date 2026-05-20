@@ -1,0 +1,75 @@
+name: romanian_deadlift_lesson
+description: Anatomy teaching seed for romanian deadlift.
+lessons:
+  - exercise_id: romanian_deadlift
+    title: "Romanian Deadlift - Hamstrings unter Spannung"
+    region: legs
+    learning_goal:
+      short: "Hinge, Dehnung und kontrollierte Hüftbewegung verstehen."
+      detailed: "Lern, wie der RDL den hinteren Oberschenkel unter Zug hält und die Hüfte nach hinten schiebt."
+    movement_pattern:
+      primary: hinge
+      secondary:
+        - hip_extension
+        - hamstring_lengthening
+    joint_actions:
+      hip:
+        eccentric:
+          - flexion_control
+        concentric:
+          - extension
+        stabilization:
+          - pelvis_control
+      knee:
+        stabilization:
+          - slight_flexion_hold
+      trunk:
+        stabilization:
+          - anti_flexion
+          - bracing
+    muscle_roles:
+      prime_movers:
+        - thigh_back
+        - glutes
+      synergists:
+        - back
+      stabilizers:
+        - core
+    body_highlighter_regions:
+      primary:
+        - thigh_back
+        - glutes
+      secondary:
+        - lower_back
+      light:
+        - forearms
+        - upper_back
+    trainer_explanation:
+      simple: "Der RDL lädt den hinteren Oberschenkel durch die Hinge-Bewegung stark auf."
+      technical: "Durch die Hüfthinterführung bleibt die Hamstring-Länge hoch und die exzentrische Kontrolle in der hinteren Kette steigt."
+      client_friendly: "Du sollst die Dehnung hinten im Bein spüren und die Hüfte sauber nach hinten schieben."
+    feel_cues:
+      - "Dehnung in den Hamstrings."
+      - "Hüfte nach hinten."
+      - "Rumpf bleibt fest."
+    coaching_cues:
+      - "Knie nur leicht beugen."
+      - "Lang und kontrolliert absenken."
+      - "Rücken neutral."
+    common_errors:
+      - error: "Knie zu stark beugen."
+        anatomical_reason: "Der Hinge wird zu einer Kniebeuge und der hintere Oberschenkel verliert Spannung."
+        correction: "Knie nur leicht flexieren."
+        coaching_cue: "Hüfte zurück, nicht runter."
+      - error: "Rumpf verlieren."
+        anatomical_reason: "Die Zugspannung endet im unteren Rücken statt in der hinteren Kette."
+        correction: "Bracing verstärken."
+        coaching_cue: "Bauch fest."
+    variations_teach:
+      - variation: "dumbbell rdl"
+        lesson: "Freie Variante mit ähnlichem Hinge."
+      - variation: "single leg rdl"
+        lesson: "Mehr Stabilität und Einbein-Kontrolle."
+    quiz:
+      - question: "Woran erkennst du einen guten RDL?"
+        answer: "An der kontrollierten Hüftbewegung und der klaren Dehnung im hinteren Oberschenkel."

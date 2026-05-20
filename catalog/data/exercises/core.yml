@@ -1,0 +1,194 @@
+name: core
+description: Default core exercise seed data.
+exercises:
+- exercise_id: hanging_leg_raise
+  id: hanging_leg_raise
+  name: Hanging Leg Raise
+  german: Hängendes Beinheben
+  category: core
+  type: isolation
+  movement_pattern: trunk_flexion
+  equipment:
+  - pull_up_bar
+  primary_muscles:
+  - core
+  secondary_muscles:
+  - legs
+  stabilizers:
+  - back
+  variations:
+  - knee_raise
+  coaching_notes:
+  - Becken kontrolliert kippen.
+  - Nicht schwingen.
+  common_errors:
+  - Mit Schwung hochziehen.
+  - Hohlkreuz behalten.
+  tags:
+  - core
+  - abs
+  wger_muscle_ids:
+    primary:
+    - 6
+    secondary:
+    - 14
+- exercise_id: cable_crunch
+  id: cable_crunch
+  name: Cable Crunch
+  german: Kabel-Crunch
+  category: core
+  type: isolation
+  movement_pattern: trunk_flexion
+  equipment:
+  - cable_machine
+  primary_muscles:
+  - core
+  secondary_muscles:
+  - shoulders
+  stabilizers:
+  - back
+  variations:
+  - kneeling_cable_crunch
+  coaching_notes:
+  - Rippen nach unten ziehen.
+  - Bauch aktiv verkürzen.
+  common_errors:
+  - Mit den Armen ziehen.
+  - Hüfte bewegen statt Rumpf.
+  tags:
+  - core
+  - abs
+  wger_muscle_ids:
+    primary:
+    - 6
+    secondary:
+    - 14
+- exercise_id: ab_wheel
+  id: ab_wheel
+  name: Ab Wheel
+  german: Ab Wheel
+  category: core
+  type: compound
+  movement_pattern: anti_extension
+  equipment:
+  - ab_wheel
+  primary_muscles:
+  - core
+  secondary_muscles:
+  - shoulders
+  stabilizers:
+  - back
+  variations:
+  - rollout
+  coaching_notes:
+  - Rippen unten halten.
+  - Nur so weit rollen wie kontrollierbar.
+  common_errors:
+  - Hohlkreuz durchdrücken.
+  - Zu weit und zu schnell rollen.
+  tags:
+  - core
+  - abs
+  wger_muscle_ids:
+    primary:
+    - 6
+    secondary:
+    - 14
+    - 3
+- exercise_id: plank
+  id: plank
+  name: Plank
+  german: Unterarmstütz
+  category: core
+  type: isometric
+  movement_pattern: anti_extension
+  equipment:
+  - bodyweight
+  primary_muscles:
+  - core
+  secondary_muscles:
+  - shoulders
+  - legs
+  stabilizers:
+  - back
+  variations:
+  - high_plank
+  coaching_notes:
+  - Gerade Linie vom Kopf bis zur Ferse.
+  - Rumpf aktiv verspannen.
+  common_errors:
+  - Hüfte durchhängen lassen.
+  - Schultern hochziehen.
+  tags:
+  - core
+  - stability
+  wger_muscle_ids:
+    primary:
+    - 14
+    - 6
+    secondary:
+    - 1
+    - 10
+    - 5
+- exercise_id: pallof_press
+  id: pallof_press
+  name: Pallof Press
+  german: Pallof Press
+  category: core
+  type: isolation
+  movement_pattern: anti_rotation
+  equipment:
+  - cable_machine
+  primary_muscles:
+  - core
+  secondary_muscles:
+  - shoulders
+  stabilizers:
+  - back
+  variations:
+  - band_pallof_press
+  coaching_notes:
+  - Gegen Rotation stabil bleiben.
+  - Langsam ausstrecken.
+  common_errors:
+  - Oberkörper verdrehen.
+  - Zu schwer laden.
+  tags:
+  - core
+  - stability
+  wger_muscle_ids:
+    primary:
+    - 14
+    secondary:
+    - 6
+- exercise_id: side_plank
+  id: side_plank
+  name: Side Plank
+  german: Seitstütz
+  category: core
+  type: isometric
+  movement_pattern: anti_lateral_flexion
+  equipment:
+  - bodyweight
+  primary_muscles:
+  - core
+  secondary_muscles:
+  - shoulders
+  stabilizers:
+  - back
+  variations:
+  - weighted_side_plank
+  coaching_notes:
+  - Hüfte hoch und stabil halten.
+  - Seitliche Linie sauber halten.
+  common_errors:
+  - Hüfte absinken lassen.
+  - Schulter einknicken.
+  tags:
+  - core
+  - stability
+  wger_muscle_ids:
+    primary:
+    - 14
+    secondary:
+    - 6
