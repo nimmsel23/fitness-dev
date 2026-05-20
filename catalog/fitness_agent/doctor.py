@@ -71,7 +71,7 @@ def run_doctor() -> DoctorReport:
         else:
             lines.append(fail(f"{relative_dir} is missing"))
 
-    for relative_dir in ["state", "exports"]:
+    for relative_dir in ["agent-state", "exports"]:
         directory = runtime / relative_dir
         if directory.exists() and is_writable(directory):
             lines.append(ok(f"{relative_dir} is writable"))

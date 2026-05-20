@@ -43,7 +43,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="fitness-agent")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    bootstrap_parser = subparsers.add_parser("bootstrap", help="Initialize ~/.fitness-agent")
+    bootstrap_parser = subparsers.add_parser("bootstrap", help="Initialize ~/.aos/fitness")
     bootstrap_parser.add_argument(
         "--force",
         action="store_true",

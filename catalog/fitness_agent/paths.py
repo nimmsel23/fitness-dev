@@ -13,7 +13,7 @@ def runtime_root() -> Path:
     override = os.environ.get("FITNESS_AGENT_HOME", "").strip()
     if override:
         return Path(override).expanduser()
-    return Path.home() / ".fitness-agent"
+    return Path.home() / ".aos" / "fitness"
 
 RUNTIME_SUBDIRS = [
     "exercises",
@@ -21,7 +21,7 @@ RUNTIME_SUBDIRS = [
     "rules",
     "maps",
     "anatomy_teaching",
-    "state",
+    "agent-state",
     "cache",
     "backups",
     "exports",
