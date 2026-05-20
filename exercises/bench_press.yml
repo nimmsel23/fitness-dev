@@ -1,0 +1,150 @@
+exercise_id: bench_press
+name: Bankdrücken
+category: push
+movement_pattern: horizontal_push
+equipment: barbell
+
+simple_explanation: >
+  Bankdrücken zeigt dir, wie Brust, vordere Schulter und Trizeps beim
+  horizontalen Drücken zusammenarbeiten. Der Pectoralis major führt die
+  Bewegung, der Trizeps streckt den Ellenbogen durch, die vordere Schulter
+  unterstützt besonders in der unteren und mittleren Phase.
+
+detailed_explanation: >
+  Der Pectoralis major ist der primäre Krafterzeuger: Er zieht den Oberarm
+  von außen unten zur Körpermitte (horizontale Adduktion) und addiert
+  Schulterflexionsanteile. Der Trizeps brachii übernimmt die Ellenbogen-
+  extension von der Mitte bis zur vollen Streckung. Der Musculus deltoideus
+  pars clavicularis (vordere Schulter) leistet in der ersten Bewegungshälfte
+  den größten Synergisten-Beitrag. Die Scapula muss stabil retrahiert und
+  deprimiert bleiben — das ist Aufgabe von Trapezius (mittlerer/unterer Anteil)
+  und Rhomboiden.
+
+joint_actions:
+  shoulder:
+    concentric:
+      - horizontal_adduction
+      - flexion_partial
+    eccentric:
+      - horizontal_abduction_control
+      - extension_control
+  elbow:
+    concentric:
+      - extension
+    eccentric:
+      - flexion_control
+  scapula:
+    static:
+      - retraction
+      - depression
+
+muscle_roles:
+  primary:
+    - pectoralis_major
+  secondary:
+    - anterior_deltoid
+    - triceps_brachii
+  stabilizers:
+    - serratus_anterior
+    - trapezius_middle_lower
+    - rhomboids
+    - rotator_cuff
+
+body_position_effect:
+  incline:
+    increases:
+      - anterior_deltoid
+      - pectoralis_major_clavicular_head
+    decreases_relative:
+      - pectoralis_major_sternal_head
+  decline:
+    increases:
+      - pectoralis_major_sternal_head
+      - lower_chest_fibers
+    decreases_relative:
+      - anterior_deltoid
+  flat:
+    note: "Ausgewogene Beteiligung aller Brustanteile."
+  grip_width:
+    wide:
+      increases:
+        - pectoralis_major
+      decreases_relative:
+        - triceps_brachii
+    narrow:
+      increases:
+        - triceps_brachii
+        - anterior_deltoid
+      decreases_relative:
+        - pectoralis_major_range
+
+feel_cues:
+  - "Brustmuskeln spannen beim Herunterführen exzentrisch."
+  - "Beim Durchdrücken spürst du den Trizeps in der oberen Hälfte."
+  - "Vordere Schulter arbeitet besonders in der unteren Phase."
+  - "Schulterblätter bleiben die ganze Zeit aktiv nach hinten/unten gezogen."
+
+coaching_cues:
+  setup:
+    - "Schulterblätter retrahieren und deprimieren, Brückenwölbung erlaubt."
+    - "Stange über Mittelfuß-Schulter-Linie ins Rack."
+    - "Griffweite: Unterarme senkrecht bei 90° Ellenbogenwinkel."
+  execution:
+    - "Stange kontrolliert zur unteren Brust führen."
+    - "Ellenbogen 45–75° zum Rumpf (nicht 90° flared)."
+    - "Explosiv drücken, Scapula-Setup halten."
+
+common_errors_explained:
+  shoulder_flare:
+    description: "Ellenbogen weichen auf 90° zur Seite aus."
+    anatomical_reason: >
+      Bei 90° Ellenbogen-Flare liegt der Oberarmknochen in maximaler
+      Außenrotation. Das impingiert den Supraspinatus im Schultergelenk
+      und überlädt die vordere Schulterkapsel.
+    correction: "Ellenbogen auf 45–60° einziehen, Lat minimal anspannen."
+    teaches:
+      - rotator_cuff
+      - shoulder_impingement
+      - glenohumeral_mechanics
+
+  scapula_instability:
+    description: "Schulterblätter kippen nach vorne/heben ab."
+    anatomical_reason: >
+      Wenn Serratus anterior und mittlerer Trapezius die Scapula nicht
+      stabilisieren, verliert der Pectoralis major seinen stabilen Ursprung
+      und die Kraftübertragung bricht zusammen.
+    correction: "Vor dem Satz aktiv retrahieren und deprimieren. Halten."
+    teaches:
+      - scapulohumeral_rhythm
+      - serratus_anterior_function
+      - force_transfer_principle
+
+  bar_path_deviation:
+    description: "Stange wird zur Schulter statt zur unteren Brust geführt."
+    anatomical_reason: >
+      Zu hohe Stangen-Bahn bedeutet mehr Schulterflexion und weniger
+      horizontale Adduktion — der Pectoralis major verliert ROM,
+      vordere Schulter übernimmt.
+    correction: "Stange Richtung Brustnippel/untere Brust absenken."
+    teaches:
+      - moment_arm_principles
+      - pectoralis_major_fiber_orientation
+
+quiz_prompts:
+  - question: "Warum ist Bankdrücken keine reine Brustübung?"
+    answer: >
+      Weil Trizeps (Ellenbogenstreckung) und vordere Schulter (horizontale
+      Flexionsanteile) immer mitarbeiten. Je enger der Griff, desto mehr
+      Trizeps. Je steiler die Bank, desto mehr Schulter.
+
+  - question: "Warum fühlen Anfänger Bankdrücken oft mehr in der Schulter als in der Brust?"
+    answer: >
+      Meist fehlende Scapula-Stabilität und/oder Ellenbogen-Flare.
+      Wenn die Schulterblätter nicht gesetzt sind, fehlt der stabile
+      Ursprung für den Pectoralis major — die Schulter übernimmt kompensatorisch.
+
+  - question: "Was passiert anatomisch beim Incline Bankdrücken?"
+    answer: >
+      Der klavikulare Anteil des Pectoralis major und der vordere Deltamuskel
+      werden stärker rekrutiert, weil der Winkel mehr Schulterflexion beinhaltet.
+      Der sternale Brustanteil verliert etwas Beteiligung.
