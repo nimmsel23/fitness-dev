@@ -26,10 +26,12 @@ Beispiele:
   anatomy-agent doctor
 """
 
+import json
 import subprocess
 import sys
 from pathlib import Path
 
+import httpx
 import typer
 import yaml
 from loguru import logger
@@ -420,6 +422,245 @@ def quiz(
             ))
 
         console.print()
+
+
+def _load_gemini_env() -> tuple[str, str]:
+    env_file = Path.home() / ".env" / "gemini.env"
+    key, model = "", "gemini-2.5-flash"
+    if env_file.exists():
+        for line in env_file.read_text().splitlines():
+            line = line.strip()
+            if line.startswith("GEMINI_API_KEY="):
+                key = line.split("=", 1)[1].strip().strip('"')
+            elif line.startswith("GEMINI_MODEL="):
+                model = line.split("=", 1)[1].strip().strip('"')
+    return key, model
+
+
+def _call_gemini(prompt: str, api_key: str, model: str) -> str:
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+    payload = {"contents": [{"parts": [{"text": prompt}]}]}
+    resp = httpx.post(url, params={"key": api_key}, json=payload, timeout=60)
+    resp.raise_for_status()
+    return resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+
+
+def _extract_yaml_block(text: str) -> str:
+    """Extrahiert den YAML-Block aus Gemini-Antwort (```yaml ... ```)."""
+    if "```yaml" in text:
+        start = text.index("```yaml") + 7
+        end = text.index("```", start)
+        return text[start:end].strip()
+    if "```" in text:
+        start = text.index("```") + 3
+        end = text.index("```", start)
+        return text[start:end].strip()
+    return text.strip()
+
+
+_ENRICH_PROMPT = """\
+Du bist Anatomie-Experte für die Diplom Präventiver Vitaltrainer Ausbildung (FlexyFit, Wien).
+
+Übung: {name}
+Kategorie: {category}
+Bewegungsmuster: {movement_pattern}
+
+Beteiligte Muskeln:
+  Primär: {primary}
+  Sekundär: {secondary}
+  Stabilisatoren: {stabilizers}
+
+Aufgabe: Gib für jeden oben genannten Muskel die anatomischen Grunddaten an.
+Sprache: Deutsch. Fachterminologie auf Latein wo sinnvoll (in Klammern).
+
+Antworte NUR mit diesem YAML-Block, kein erklärender Text davor oder danach:
+
+```yaml
+muscle_anatomy:
+  muskelname_snake_case:
+    latin: "Musculus ..."
+    origin: "Ursprung (Origo) — genaue Knochenstruktur"
+    insertion: "Ansatz (Insertio) — genaue Knochenstruktur"
+    innervation: "Nervname (Segmente C/L/S)"
+    function_in_exercise: "Was dieser Muskel in dieser Übung konkret tut (1-2 Sätze)"
+```
+
+Wichtig:
+- Muskelname als snake_case Key (z.B. pectoralis_major, triceps_brachii)
+- Alle Muskeln aus der Liste abdecken
+- Keine Erfindungen — nur gesichertes anatomisches Wissen
+- Ursprung und Ansatz so präzise wie möglich (Knochenmarken)
+"""
+
+
+@app.command()
+def enrich(
+    exercise_id: str = typer.Argument(..., help="Exercise-ID (z.B. bench_press, pull_up)"),
+    dry_run: bool = typer.Option(False, "--dry-run", "-n", help="Nur anzeigen, nicht schreiben"),
+    force: bool = typer.Option(False, "--force", "-f", help="Auch wenn muscle_anatomy schon existiert"),
+):
+    """
+    [bold]Ursprung & Ansatz via Gemini generieren[/bold]
+
+    Ruft Gemini auf und generiert für jeden beteiligten Muskel:
+
+    \b
+    - Ursprung (Origo) — genaue Knochenstruktur
+    - Ansatz (Insertio) — genaue Knochenstruktur
+    - Innervation (Nerv + Segmente)
+    - Funktion in dieser Übung
+
+    Du musst die Ausgabe bestätigen bevor sie gespeichert wird —
+    das Lesen ist der Lernschritt.
+
+    \b
+    Beispiele:
+      anatomy-agent enrich bench_press
+      anatomy-agent enrich pull_up --dry-run
+      anatomy-agent enrich squat --force
+    """
+    api_key, model = _load_gemini_env()
+    if not api_key:
+        _gum_log("error", "GEMINI_API_KEY nicht gefunden in ~/.env/gemini.env")
+        raise typer.Exit(1)
+
+    ex = _load_exercise(exercise_id)
+    raw = ex.raw
+
+    if raw.get("muscle_anatomy") and not force:
+        _gum_log("warn", f"muscle_anatomy existiert bereits für {exercise_id} — nutze --force zum Überschreiben")
+        raise typer.Exit(0)
+
+    def _flatten_muscles(val) -> list[str]:
+        if isinstance(val, list):
+            return [str(v) for v in val]
+        if isinstance(val, dict):
+            result = []
+            for v in val.values():
+                result.extend(_flatten_muscles(v))
+            return result
+        return [str(val)] if val else []
+
+    roles = raw.get("muscle_roles", {})
+    primary = _flatten_muscles(roles.get("primary", []))
+    secondary = _flatten_muscles(roles.get("secondary", []))
+    stabilizers = _flatten_muscles(roles.get("stabilizers", []))
+
+    prompt = _ENRICH_PROMPT.format(
+        name=ex.name,
+        category=ex.category,
+        movement_pattern=ex.movement_pattern,
+        primary=", ".join(primary) or "—",
+        secondary=", ".join(secondary) or "—",
+        stabilizers=", ".join(stabilizers) or "—",
+    )
+
+    console.print()
+    console.print(Panel.fit(
+        f"[bold white]{ex.name}[/bold white]\n[dim]Gemini [{model}] generiert Ursprung & Ansatz...[/dim]",
+        title="[cyan]anatomy enrich[/cyan]",
+        border_style="cyan",
+    ))
+    console.print()
+
+    fallback_models = [model, "gemini-2.0-flash", "gemini-2.0-flash-001", "gemini-flash-lite-latest"]
+    response_text = None
+    with console.status("[dim]Gemini antwortet...[/dim]"):
+        for attempt_model in fallback_models:
+            try:
+                response_text = _call_gemini(prompt, api_key, attempt_model)
+                if attempt_model != model:
+                    _gum_log("warn", f"Fallback auf {attempt_model}")
+                break
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code in (503, 429):
+                    continue
+                _gum_log("error", f"Gemini HTTP {e.response.status_code}: {e.response.text[:150]}")
+                raise typer.Exit(1)
+            except Exception as e:
+                _gum_log("error", f"Gemini-Fehler: {type(e).__name__}: {str(e)[:120]}")
+                raise typer.Exit(1)
+
+    if response_text is None:
+        _gum_log("error", "Alle Gemini-Modelle nicht verfügbar — später nochmal versuchen")
+        raise typer.Exit(1)
+
+    yaml_str = _extract_yaml_block(response_text)
+
+    try:
+        parsed = yaml.safe_load(yaml_str)
+    except yaml.YAMLError as e:
+        _gum_log("error", f"YAML-Parse-Fehler: {e}")
+        console.print(Panel(yaml_str, title="Rohantwort", border_style="red"))
+        raise typer.Exit(1)
+
+    muscle_anatomy = parsed.get("muscle_anatomy", {}) if isinstance(parsed, dict) else {}
+    if not muscle_anatomy:
+        _gum_log("error", "Kein muscle_anatomy-Block in der Antwort")
+        console.print(Panel(yaml_str, title="Rohantwort", border_style="red"))
+        raise typer.Exit(1)
+
+    # --- Anzeige als Lerntabelle ---
+    console.print(Rule("[bold cyan]Ursprung & Ansatz[/bold cyan]", style="dim"))
+    console.print()
+
+    for muscle_key, data in muscle_anatomy.items():
+        if not isinstance(data, dict):
+            continue
+        latin = data.get("latin", "")
+        header = f"[bold yellow]{muscle_key}[/bold yellow]"
+        if latin:
+            header += f"  [dim]{latin}[/dim]"
+
+        table = Table(box=box.SIMPLE, show_header=False, padding=(0, 1))
+        table.add_column("Feld", style="bold cyan", no_wrap=True, width=14)
+        table.add_column("Inhalt", style="white")
+
+        table.add_row("Ursprung", data.get("origin", "—"))
+        table.add_row("Ansatz", data.get("insertion", "—"))
+        table.add_row("Innervation", data.get("innervation", "—"))
+        table.add_row("Funktion", data.get("function_in_exercise", "—"))
+
+        console.print(Panel(table, title=header, border_style="dim"))
+        console.print()
+
+    if dry_run:
+        console.print("[dim]  dry-run: nichts gespeichert.[/dim]")
+        return
+
+    console.print(Rule(style="dim"))
+    confirmed = typer.confirm(
+        f"  muscle_anatomy für [{exercise_id}] speichern?",
+        default=False,
+    )
+    if not confirmed:
+        console.print("[dim]  Abgebrochen — nichts gespeichert.[/dim]")
+        raise typer.Exit(0)
+
+    yml_file = EXERCISES_DIR / f"{exercise_id}.yml"
+    if not yml_file.exists():
+        _gum_log("error", f"YAML-Datei nicht gefunden: {yml_file}")
+        raise typer.Exit(1)
+
+    try:
+        from ruamel.yaml import YAML as _RYAML
+        ry = _RYAML()
+        ry.preserve_quotes = True
+        ry.width = 120
+        existing = ry.load(yml_file.read_text())
+        existing["muscle_anatomy"] = muscle_anatomy
+        import io as _io
+        buf = _io.StringIO()
+        ry.dump(existing, buf)
+        yml_file.write_text(buf.getvalue())
+    except ImportError:
+        existing = yaml.safe_load(yml_file.read_text()) or {}
+        existing["muscle_anatomy"] = muscle_anatomy
+        yml_file.write_text(
+            yaml.dump(existing, allow_unicode=True, default_flow_style=False,
+                      sort_keys=False, width=120)
+        )
+    _gum_log("info", f"muscle_anatomy gespeichert → {yml_file.name}")
 
 
 @app.command()
