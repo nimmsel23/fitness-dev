@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
 from anatomy_kb.commands import (
-    serve, browse, teach, learn, enrich, ingest, audit, system
+    serve, browse, teach, learn, enrich, ingest, audit, system, flashcard
 )
 
 app = typer.Typer(
@@ -28,6 +28,7 @@ app.command("quiz")(learn.quiz_command)
 app.command("enrich")(enrich.command)
 app.command("ingest")(ingest.command)
 app.command("audit")(audit.command)
+app.command("flashcard")(flashcard.command)
 app.command("reload")(system.reload_command)
 app.command("doctor")(system.doctor_command)
 
