@@ -35,7 +35,7 @@ def run_doctor() -> DoctorReport:
 
     # Catalog YAML layer (DATA_DIR = catalog/data/)
     if DATA_DIR.exists():
-        lines.append(ok(f"catalog/data exists"))
+        lines.append(ok(f"catalog/kb exists"))
     else:
         lines.append(fail(f"catalog/data missing: {DATA_DIR}"))
         return DoctorReport(lines)

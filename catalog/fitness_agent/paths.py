@@ -6,7 +6,7 @@ from pathlib import Path
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = PACKAGE_ROOT.parent
-DATA_DIR = REPO_ROOT / "data"
+DATA_DIR = REPO_ROOT / "kb"
 
 
 def runtime_root() -> Path:
