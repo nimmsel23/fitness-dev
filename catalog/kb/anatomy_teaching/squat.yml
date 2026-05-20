@@ -1,7 +1,7 @@
 name: squat_lesson
 description: Anatomy teaching seed for squat.
 lessons:
-  - exercise_id: squat
+  - exercise_id: back_squat
     title: "Kniebeuge — Knie, Hüfte und Beinachse"
     region: legs
     learning_goal:

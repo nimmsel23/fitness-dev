@@ -1,6 +1,50 @@
 name: chest
 description: Default chest exercise seed data.
 exercises:
+- exercise_id: bench_press
+  id: bench_press
+  name: Barbell Bench Press
+  display_name: Bankdrücken mit Langhantel
+  german: Bankdrücken
+  category: chest
+  type: compound
+  movement_pattern: horizontal_press
+  equipment:
+  - barbell
+  - bench
+  primary_muscles:
+  - chest
+  secondary_muscles:
+  - shoulders
+  - arms
+  stabilizers:
+  - core
+  variations:
+  - incline_barbell_press
+  - close_grip_bench_press
+  - dumbbell_bench_press
+  coaching_notes:
+  - Schulterblätter zusammen und runter ziehen.
+  - Füße flach auf dem Boden.
+  - Kontrollierte Exzentrik (2-3 Sek. runter).
+  common_errors:
+  - Schultern hochziehen.
+  - Hohlrücken übertrieben.
+  - Zu wenig ROM.
+  tags:
+  - chest
+  - press
+  - barbell
+  aliases:
+  - bankdrücken
+  - bench press
+  - flachbank
+  wger_muscle_ids:
+    primary:
+    - 4
+    secondary:
+    - 2
+    - 5
 - exercise_id: incline_dumbbell_press
   id: incline_dumbbell_press
   name: Incline Dumbbell Press
