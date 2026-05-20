@@ -7,7 +7,7 @@ from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
-from .paths import RUNTIME_SUBDIRS, SEED_FILE_MAP, runtime_root
+from .paths import RUNTIME_SUBDIRS, seed_file_map, runtime_root
 from .yaml_utils import load_yaml
 
 
@@ -51,7 +51,7 @@ def run_doctor() -> DoctorReport:
     else:
         lines.append(fail("config.yml is missing"))
 
-    for relative_path in SEED_FILE_MAP:
+    for relative_path in seed_file_map():
         if relative_path == "config.yml":
             continue
         file_path = runtime / relative_path

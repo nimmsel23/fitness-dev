@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from .paths import DATA_DIR, RUNTIME_SUBDIRS, SEED_FILE_MAP, runtime_root
+from .paths import DATA_DIR, RUNTIME_SUBDIRS, seed_file_map, runtime_root
 
 
 @dataclass
@@ -20,7 +20,7 @@ def bootstrap(force: bool = False) -> list[BootstrapEvent]:
     runtime = runtime_root()
     ensure_runtime_layout(events)
 
-    for relative_target, relative_source in SEED_FILE_MAP.items():
+    for relative_target, relative_source in seed_file_map().items():
         source = DATA_DIR / relative_source
         target = runtime / relative_target
         copied = copy_seed_file(source, target, force=force)
