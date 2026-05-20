@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises, resolveExerciseQuery } from "./fitness-runtime.mjs";
+import { mirrorSession, mirrorJournal } from "./firestore-mirror.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR   = path.join(os.homedir(), ".aos", "fitness");
@@ -530,6 +531,7 @@ const server = http.createServer(async (req, res) => {
       const session = { ...data, date, saved_at: new Date().toISOString() };
       writeJson(file, session);
       syncSessionToDb(date, session);
+      mirrorSession(date, session);
       return json(res, 200, { ok: true });
     }
   }
@@ -565,6 +567,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "POST") {
       const { content } = B();
       fs.writeFileSync(file, content || "");
+      mirrorJournal(date, { text: content || "" });
       return json(res, 200, { ok: true });
     }
   }

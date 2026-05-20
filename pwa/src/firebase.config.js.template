@@ -1,0 +1,10 @@
+// Kopieren nach firebase.config.js und Werte eintragen
+// firebase apps:sdkconfig WEB <appId> --project fitness-aos
+export const config = {
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: "",
+};
