@@ -294,9 +294,10 @@ def run_coverage_audit() -> AuditReport:
             if score > 0 and muscle in taxonomy and not muscle_regions(muscle, taxonomy, bridge):
                 exercise_failures.append(f"{exercise.exercise_id} muscle has no body region: {muscle}")
 
-        for region in sample["body_region_scores"].keys():
-            if region not in body_regions:
-                exercise_failures.append(f"{exercise.exercise_id} unknown body region: {region}")
+        if body_regions is not None:
+            for region in sample["body_region_scores"].keys():
+                if region not in body_regions:
+                    exercise_failures.append(f"{exercise.exercise_id} unknown body region: {region}")
 
         if exercise_failures:
             for message in exercise_failures:
@@ -356,9 +357,10 @@ def audit_coverage() -> CoverageAuditResult:
             continue
         if not any(sample["muscle_scores"].values()):
             zero_coverage_exercises.append(exercise.exercise_id)
-        for region in sample["body_region_scores"].keys():
-            if region not in body_regions:
-                lines.append(fail(f"{exercise.exercise_id} unknown body region: {region}"))
+        if body_regions is not None:
+            for region in sample["body_region_scores"].keys():
+                if region not in body_regions:
+                    lines.append(fail(f"{exercise.exercise_id} unknown body region: {region}"))
         lines.append(ok(f"{exercise.exercise_id} coverage valid"))
 
     unmapped_body_regions = sorted(
@@ -550,7 +552,7 @@ def audit_all() -> AuditBundle:
 def validate_lesson(
     lesson: dict[str, Any],
     exercise_ids: set[str],
-    body_regions: set[str],
+    body_regions: set[str] | None,
     muscles_taxonomy: set[str],
 ) -> list[AuditLine]:
     lines: list[AuditLine] = []
@@ -608,17 +610,14 @@ def validate_lesson(
                     if muscle not in muscles_taxonomy:
                         lines.append(warn(f"{exercise_id} {field[:-1]} not in taxonomy: {muscle}"))
 
-    regions = lesson.get("body_highlighter_regions")
-    if not regions:
-        lines.append(fail(f"{exercise_id} missing body_highlighter_regions"))
-    else:
-        invalid_regions = []
-        for region in extract_region_values(regions):
-            if region not in body_regions:
-                invalid_regions.append(region)
-        if invalid_regions:
-            for region in invalid_regions:
-                lines.append(fail(f"{exercise_id} references unknown body region: {region}"))
+    if body_regions is not None:
+        regions = lesson.get("body_highlighter_regions")
+        if not regions:
+            lines.append(fail(f"{exercise_id} missing body_highlighter_regions"))
+        else:
+            for region in extract_region_values(regions):
+                if region not in body_regions:
+                    lines.append(fail(f"{exercise_id} references unknown body region: {region}"))
 
     trainer = lesson.get("trainer_explanation")
     if not isinstance(trainer, dict) or not text_value(trainer.get("simple")):
@@ -719,7 +718,7 @@ def audit_anatomy() -> AnatomyAuditResult:
         if not lesson.get("common_errors"):
             lessons_without_common_errors.append(exercise_id)
         regions = extract_region_values(lesson.get("body_highlighter_regions"))
-        if any(region not in body_regions for region in regions):
+        if body_regions is not None and any(region not in body_regions for region in regions):
             lessons_with_unmapped_body_regions.append(exercise_id)
         lines.append(ok(f"{exercise_id} anatomy valid"))
 
@@ -867,7 +866,13 @@ def load_muscle_taxonomy() -> set[str]:
     return {str(key) for key in muscles.keys() if str(key).strip()}
 
 
-def load_body_regions() -> set[str]:
+def load_body_regions() -> set[str] | None:
+    """Gibt None zurück wenn body_highlighter_bridge deaktiviert ist."""
+    document = load_catalog_yaml("muscles/body_highlighter_bridge.yml")
+    if isinstance(document, dict):
+        bridge_section = document.get("bridge", {})
+        if isinstance(bridge_section, dict) and not bridge_section.get("enabled", False):
+            return None
     bridge = load_body_highlighter_bridge()
     regions: set[str] = set()
     for value in bridge.values():
@@ -875,15 +880,12 @@ def load_body_regions() -> set[str]:
             for item in value:
                 if isinstance(item, str) and item.strip():
                     regions.add(item.strip())
-    document = load_catalog_yaml("muscles/body_highlighter_bridge.yml")
     if isinstance(document, dict):
         bridge_section = document.get("bridge", {})
         if isinstance(bridge_section, dict):
-            explicit_regions = bridge_section.get("body_regions", [])
-            if isinstance(explicit_regions, list):
-                for item in explicit_regions:
-                    if isinstance(item, str) and item.strip():
-                        regions.add(item.strip())
+            for item in bridge_section.get("body_regions", []):
+                if isinstance(item, str) and item.strip():
+                    regions.add(item.strip())
     return regions
 
 
