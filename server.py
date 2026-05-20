@@ -17,6 +17,7 @@ from aiohttp import web
 from loguru import logger
 
 from anatomy_kb import handlers
+from anatomy_kb import firestore_handler as fs
 
 FITNESS_DEV = Path(__file__).resolve().parent.parent / "fitness-dev" / "catalog"
 sys.path.insert(0, str(FITNESS_DEV))
@@ -50,6 +51,10 @@ def create_app() -> web.Application:
     app.router.add_get("/api/exercise/{id}/bodymap",       handlers.bodymap)
     app.router.add_get("/api/resolve",                     handlers.resolve)
     app.router.add_post("/api/plan/generate",              handlers.plan_generate)
+    app.router.add_post("/api/firestore/sync",             fs.sync_all)
+    app.router.add_post("/api/firestore/sync/exercises",   fs.sync_exercises_handler)
+    app.router.add_post("/api/firestore/sync/anatomy",     fs.sync_anatomy_handler)
+    app.router.add_get("/api/firestore/status",            fs.status)
     return app
 
 
