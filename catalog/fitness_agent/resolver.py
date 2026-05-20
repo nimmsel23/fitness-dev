@@ -5,7 +5,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
-from .loader import load_runtime_directory_yaml, load_runtime_yaml
+from .loader import load_catalog_directory_yaml, load_catalog_yaml
 
 
 @dataclass
@@ -40,7 +40,7 @@ class ResolveResult:
 
 def build_exercise_index() -> list[ExerciseRecord]:
     records: list[ExerciseRecord] = []
-    for path, document in load_runtime_directory_yaml("exercises"):
+    for path, document in load_catalog_directory_yaml("exercises"):
         records.extend(parse_exercise_document(path, document))
     return records
 
@@ -82,7 +82,7 @@ def resolve_query(query: str) -> ResolveResult:
 
 def load_alias_map() -> dict[str, str]:
     try:
-        aliases = load_runtime_yaml("maps/aliases.yml")
+        aliases = load_catalog_yaml("maps/aliases.yml")
     except FileNotFoundError:
         return {}
     if not isinstance(aliases, dict):

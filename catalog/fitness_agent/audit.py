@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .coverage import calculate_coverage, load_coverage_rules, load_body_highlighter_bridge, load_muscle_taxonomy
-from .loader import load_runtime_directory_yaml, load_runtime_yaml
+from .loader import load_catalog_directory_yaml, load_catalog_yaml
 from .resolver import build_exercise_index, normalize_text
 from .teaching import parse_lesson_document
 
@@ -657,7 +657,7 @@ def validate_lesson(
 
 def load_all_anatomy_lessons() -> list[dict[str, Any]]:
     lessons: list[dict[str, Any]] = []
-    for path, document in load_runtime_directory_yaml("anatomy_teaching"):
+    for path, document in load_catalog_directory_yaml("anatomy_teaching"):
         if path.name in {"chest_lessons.yml", "joint_actions.yml", "coaching_language.yml"}:
             continue
         lessons.extend(parse_lesson_document(document))
@@ -666,7 +666,7 @@ def load_all_anatomy_lessons() -> list[dict[str, Any]]:
 
 def load_legacy_lesson_ids() -> set[str]:
     try:
-        document = load_runtime_yaml("anatomy_teaching/chest_lessons.yml")
+        document = load_catalog_yaml("anatomy_teaching/chest_lessons.yml")
     except FileNotFoundError:
         return set()
     return {
@@ -678,7 +678,7 @@ def load_legacy_lesson_ids() -> set[str]:
 
 def load_aliases_document() -> dict[str, Any] | None:
     try:
-        aliases = load_runtime_yaml("maps/aliases.yml")
+        aliases = load_catalog_yaml("maps/aliases.yml")
     except FileNotFoundError:
         return None
     if not isinstance(aliases, dict):
@@ -851,14 +851,14 @@ def _format_lines(level: str, lines: list[AuditLine]) -> str:
 
 def load_exercises_documents() -> list[tuple[str, dict[str, Any]]]:
     documents: list[tuple[str, dict[str, Any]]] = []
-    for path, document in load_runtime_directory_yaml("exercises"):
+    for path, document in load_catalog_directory_yaml("exercises"):
         if isinstance(document, dict):
             documents.append((path.name, document))
     return documents
 
 
 def load_muscle_taxonomy() -> set[str]:
-    document = load_runtime_yaml("muscles/muscles.yml")
+    document = load_catalog_yaml("muscles/muscles.yml")
     if not isinstance(document, dict):
         return set()
     muscles = document.get("muscles", {})
@@ -875,7 +875,7 @@ def load_body_regions() -> set[str]:
             for item in value:
                 if isinstance(item, str) and item.strip():
                     regions.add(item.strip())
-    document = load_runtime_yaml("muscles/body_highlighter_bridge.yml")
+    document = load_catalog_yaml("muscles/body_highlighter_bridge.yml")
     if isinstance(document, dict):
         bridge_section = document.get("bridge", {})
         if isinstance(bridge_section, dict):

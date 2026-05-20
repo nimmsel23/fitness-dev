@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
-from .loader import load_runtime_yaml
+from .loader import load_catalog_yaml
 from .resolver import build_exercise_index, resolve_query
 
 ROLE_WEIGHTS = {
@@ -68,7 +68,7 @@ def add_role_scores(muscle_scores: dict[str, float], muscles: list[str], sets: i
 
 
 def load_muscle_taxonomy() -> dict[str, dict[str, Any]]:
-    taxonomy = load_runtime_yaml("muscles/muscles.yml")
+    taxonomy = load_catalog_yaml("muscles/muscles.yml")
     if not isinstance(taxonomy, dict):
         return {}
     muscles = taxonomy.get("muscles", {})
@@ -82,14 +82,14 @@ def load_muscle_taxonomy() -> dict[str, dict[str, Any]]:
 
 
 def load_coverage_rules() -> dict[str, Any]:
-    rules = load_runtime_yaml("muscles/muscle_coverage_rules.yml")
+    rules = load_catalog_yaml("muscles/muscle_coverage_rules.yml")
     if isinstance(rules, dict):
         return rules.get("coverage_rules", rules) if isinstance(rules.get("coverage_rules", rules), dict) else {}
     return {}
 
 
 def load_body_highlighter_bridge() -> dict[str, list[str]]:
-    bridge = load_runtime_yaml("muscles/body_highlighter_bridge.yml")
+    bridge = load_catalog_yaml("muscles/body_highlighter_bridge.yml")
     if not isinstance(bridge, dict):
         return {}
     raw_bridge = bridge.get("bridge", bridge)

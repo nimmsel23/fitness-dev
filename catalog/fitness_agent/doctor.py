@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import os
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
-from .paths import RUNTIME_SUBDIRS, seed_file_map, runtime_root
+from .paths import DATA_DIR, RUNTIME_SUBDIRS, runtime_root
 from .yaml_utils import load_yaml
 
 
@@ -34,13 +33,14 @@ def run_doctor() -> DoctorReport:
     lines: list[DoctorLine] = []
     runtime = runtime_root()
 
-    if runtime.exists():
-        lines.append(ok(f"{runtime} exists"))
+    # Catalog YAML layer (DATA_DIR = catalog/data/)
+    if DATA_DIR.exists():
+        lines.append(ok(f"catalog/data exists"))
     else:
-        lines.append(fail(f"{runtime} is missing"))
+        lines.append(fail(f"catalog/data missing: {DATA_DIR}"))
         return DoctorReport(lines)
 
-    config_path = runtime / "config.yml"
+    config_path = DATA_DIR / "config.yml"
     config = None
     if config_path.exists():
         try:
@@ -51,19 +51,19 @@ def run_doctor() -> DoctorReport:
     else:
         lines.append(fail("config.yml is missing"))
 
-    for relative_path in seed_file_map():
-        if relative_path == "config.yml":
+    for yaml_file in sorted(DATA_DIR.rglob("*.yml")):
+        relative = str(yaml_file.relative_to(DATA_DIR))
+        if relative == "config.yml":
             continue
-        file_path = runtime / relative_path
-        if file_path.exists():
-            try:
-                load_yaml(file_path)
-                lines.append(ok(f"{relative_path} exists and parses"))
-            except Exception as exc:
-                lines.append(fail(f"{relative_path} parse failed: {exc}"))
-        else:
-            lines.append(fail(f"{relative_path} is missing"))
+        try:
+            load_yaml(yaml_file)
+            lines.append(ok(f"{relative} parses"))
+        except Exception as exc:
+            lines.append(fail(f"{relative} parse failed: {exc}"))
 
+    # Mutable runtime dirs (~/.aos/fitness/)
+    runtime.mkdir(parents=True, exist_ok=True)
+    lines.append(ok(f"{runtime} exists"))
     for relative_dir in RUNTIME_SUBDIRS:
         directory = runtime / relative_dir
         if directory.exists():
@@ -83,8 +83,7 @@ def run_doctor() -> DoctorReport:
         if isinstance(wger_section, dict) and wger_section.get("enabled"):
             base_url = str(wger_section.get("base_url", "")).strip()
             if base_url:
-                reachable = check_wger_api(base_url)
-                if reachable:
+                if check_wger_api(base_url):
                     lines.append(ok("wger API reachable"))
                 else:
                     lines.append(warn("wger API not reachable"))

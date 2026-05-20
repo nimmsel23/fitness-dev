@@ -12,8 +12,7 @@ from urllib.request import Request, urlopen
 
 import yaml
 
-from .bootstrap import backup_existing
-from .loader import load_runtime_yaml
+from .loader import backup_existing, catalog_path, load_catalog_yaml
 from .paths import runtime_root
 from .resolver import candidate_texts, resolve_query
 
@@ -200,7 +199,7 @@ def build_plan_wger_payload(plan: Any, *, export_format: str = "wger-json") -> d
 
 
 def load_runtime_config() -> dict[str, Any]:
-    config = load_runtime_yaml("config.yml")
+    config = load_catalog_yaml("config.yml")
     if not isinstance(config, dict):
         raise ValueError("config.yml is invalid")
     return config
@@ -213,7 +212,7 @@ def load_wger_section(config: dict[str, Any]) -> dict[str, Any]:
 
 def get_wger_mapping(exercise_id: str) -> dict[str, Any]:
     try:
-        document = load_runtime_yaml("maps/wger_mapping.yml")
+        document = load_catalog_yaml("maps/wger_mapping.yml")
     except FileNotFoundError:
         return {}
     if not isinstance(document, dict):
@@ -352,15 +351,14 @@ def join_api_url(base_url: str, path: str) -> str:
 
 
 def write_wger_mapping(exercise_id: str, selected_match: WgerMatch) -> Path:
-    mapping_path = runtime_root() / "maps" / "wger_mapping.yml"
-    mapping_path.parent.mkdir(parents=True, exist_ok=True)
+    mapping_path = catalog_path("maps/wger_mapping.yml")
     if mapping_path.exists():
         backup_existing(mapping_path)
 
     document = {}
     if mapping_path.exists():
         try:
-            loaded = load_runtime_yaml("maps/wger_mapping.yml")
+            loaded = load_catalog_yaml("maps/wger_mapping.yml")
             if isinstance(loaded, dict):
                 document = loaded
         except Exception:

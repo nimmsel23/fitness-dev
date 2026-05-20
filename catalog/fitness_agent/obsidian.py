@@ -9,7 +9,7 @@ import yaml
 
 from .coverage import calculate_coverage
 from .coach_sheet import build_coach_sheet, render_coach_sheet_markdown
-from .loader import load_runtime_yaml
+from .loader import load_catalog_yaml
 from .resolver import build_exercise_index, resolve_query
 from .teaching import find_lesson, render_lesson_markdown
 from .weekly import build_weekly_coverage
@@ -190,7 +190,7 @@ def obsidian_export_dir() -> Path:
 
 
 def load_runtime_config() -> dict[str, Any]:
-    config = load_runtime_yaml("config.yml")
+    config = load_catalog_yaml("config.yml")
     if not isinstance(config, dict):
         raise ValueError("config.yml is invalid")
     return config

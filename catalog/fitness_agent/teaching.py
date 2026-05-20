@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from .loader import load_runtime_directory_yaml, load_runtime_yaml
+from .loader import load_catalog_directory_yaml, load_catalog_yaml
 
 
 def load_chest_lessons() -> list[dict[str, Any]]:
-    document = load_runtime_yaml("anatomy_teaching/chest_lessons.yml")
+    document = load_catalog_yaml("anatomy_teaching/chest_lessons.yml")
     if not isinstance(document, dict):
         return []
     return parse_lesson_document(document)
@@ -14,7 +14,7 @@ def load_chest_lessons() -> list[dict[str, Any]]:
 
 def load_all_lessons() -> list[dict[str, Any]]:
     lessons: list[dict[str, Any]] = []
-    for _, document in load_runtime_directory_yaml("anatomy_teaching"):
+    for _, document in load_catalog_directory_yaml("anatomy_teaching"):
         lessons.extend(parse_lesson_document(document))
     return lessons
 

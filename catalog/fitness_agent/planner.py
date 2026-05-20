@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from .coverage import calculate_coverage
-from .loader import load_runtime_yaml
+from .loader import load_catalog_yaml
 from .resolver import build_exercise_index
 
 
@@ -41,7 +41,7 @@ def build_plan(*, template: str | None = None, split: str | None = None, day: st
 
 
 def load_program_rules() -> dict[str, Any]:
-    rules = load_runtime_yaml("rules/program_rules.yml")
+    rules = load_catalog_yaml("rules/program_rules.yml")
     if isinstance(rules, dict):
         section = rules.get("program_rules", rules)
         if isinstance(section, dict):
