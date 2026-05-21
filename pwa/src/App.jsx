@@ -1,6 +1,22 @@
-import { useState } from "react";
-import { LayoutDashboard, Dumbbell, BookOpen, Activity, Brain, BarChart2 } from "lucide-react";
-import Dashboard from "./views/Dashboard.jsx";
+import { useState, Component } from "react";
+
+class ErrorBoundary extends Component {
+  state = { error: null };
+  static getDerivedStateFromError(e) { return { error: e }; }
+  render() {
+    if (this.state.error) return (
+      <div style={{ padding: 24, color: "#ff6584" }}>
+        <strong>Fehler:</strong> {this.state.error.message}
+        <br />
+        <button onClick={() => this.setState({ error: null })} style={{ marginTop: 12, padding: "6px 14px", borderRadius: 8, border: "1px solid #ff6584", background: "transparent", color: "#ff6584", cursor: "pointer" }}>
+          Zurück
+        </button>
+      </div>
+    );
+    return this.props.children;
+  }
+}
+import { Dumbbell, BookOpen, Activity, Brain, BarChart2 } from "lucide-react";
 import Session from "./views/Session.jsx";
 import Journal from "./views/Journal.jsx";
 import Muscles from "./views/Muscles.jsx";
@@ -8,7 +24,6 @@ import Learn from "./views/Learn.jsx";
 import WeeklyReview from "./views/WeeklyReview.jsx";
 
 const VIEWS = [
-  { id: "dashboard", label: "Heute",    icon: LayoutDashboard, component: Dashboard },
   { id: "session",   label: "Training", icon: Dumbbell,        component: Session },
   { id: "journal",   label: "Journal",  icon: BookOpen,        component: Journal },
   { id: "muscles",   label: "Muskeln",  icon: Activity,        component: Muscles },
@@ -23,7 +38,9 @@ export default function App() {
   return (
     <>
       <main>
-        <Active onNavigate={setView} />
+        <ErrorBoundary key={view}>
+          <Active onNavigate={setView} />
+        </ErrorBoundary>
       </main>
       <nav>
         {VIEWS.map(({ id, label, icon: Icon }) => (

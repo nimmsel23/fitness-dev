@@ -184,6 +184,31 @@ anatomy_teaching:
 
 ---
 
+## Firestore (Firebase PWA + Bisync)
+
+Details → [FIRESTORE.md](FIRESTORE.md)
+
+```
+fitness-dev/
+├── firestore/                    Python-Modul (sync-Logik)
+│   ├── _db.py                    Firebase-Init, shared
+│   ├── sync.py                   pull/push one-shot
+│   ├── sync_cli.py               CLI entry (python -m firestore.sync_cli)
+│   └── mirror.py                 on_snapshot Daemon
+├── firestore-mirror.mjs          Node: lokal → Firestore (server.mjs import)
+├── firestore-sync.mjs            Node: spawnt Python pull/push
+└── pwa/                          Firebase PWA (fitness-aos.web.app)
+```
+
+| Richtung | Mechanismus | Trigger |
+|----------|-------------|---------|
+| lokal → Firestore | `firestore-mirror.mjs` | automatisch bei POST /session + /journal |
+| Firestore → lokal (live) | `python -m firestore.mirror` | on_snapshot Daemon |
+| Firestore → lokal (once) | `fitness-sync pull` | manuell |
+| lokal → Firestore (once) | `fitness-sync push` | manuell |
+
+---
+
 ## Externe Services
 
 | Service | Port | Zweck |

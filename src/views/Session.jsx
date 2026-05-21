@@ -191,25 +191,6 @@ function ExCard({ ex, i, updateEx, removeEx, prev, onInspectExercise }) {
           onBlur={e => { e.target.style.borderColor = 'var(--line)'; e.target.style.color = 'var(--muted)' }}
         />
         <button
-          onClick={() => updateEx(i, 'done', !ex.done)}
-          style={{
-            width: '34px',
-            height: '34px',
-            border: `1px solid ${ex.done ? 'rgba(34,197,94,0.5)' : 'var(--line)'}`,
-            borderRadius: '6px',
-            background: ex.done ? 'rgba(34,197,94,0.12)' : 'var(--bg2)',
-            cursor: 'pointer',
-            fontSize: '12px',
-            fontWeight: 800,
-            color: ex.done ? 'var(--green)' : 'var(--dim)',
-            flexShrink: 0,
-          }}
-          aria-label={ex.done ? 'Done' : 'Not done'}
-          title={ex.done ? 'Done' : 'Not done'}
-        >
-          {ex.done ? '✓' : '□'}
-        </button>
-        <button
           onClick={() => updateEx(i, 'isHIT', !ex.isHIT)}
           style={{
             padding: '6px 9px',

@@ -22,6 +22,11 @@ import { db } from "./firebase.js";
 
 const UID = "default";
 
+const BRIDGE_NOTIFY = "https://alpha-aos.ts.net/api/fitness/notify";
+function pingBridge() {
+  fetch(BRIDGE_NOTIFY, { method: "POST" }).catch(() => {});
+}
+
 function todayISO() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -41,6 +46,7 @@ export async function saveSession(date = todayISO(), sessionData) {
     date,
     saved_at: serverTimestamp(),
   });
+  pingBridge();
   return { ok: true };
 }
 
@@ -73,13 +79,22 @@ export async function savePlan(plan) {
 // ── Journal ───────────────────────────────────────────────────────────────────
 
 export async function getJournal(date = todayISO()) {
-  const q = query(
-    collection(db, "fitness", UID, "journal"),
-    where("date", "==", date),
-    orderBy("time", "desc")
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  try {
+    const q = query(
+      collection(db, "fitness", UID, "journal"),
+      where("date", "==", date),
+      orderBy("time", "desc")
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  } catch {
+    // Index noch nicht bereit — fallback ohne orderBy
+    const q = query(collection(db, "fitness", UID, "journal"), where("date", "==", date));
+    const snap = await getDocs(q);
+    return snap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.time || "").localeCompare(a.time || ""));
+  }
 }
 
 export async function saveJournal(date = todayISO(), text, tags = []) {
@@ -90,6 +105,7 @@ export async function saveJournal(date = todayISO(), text, tags = []) {
     time: new Date().toISOString(),
     created_at: serverTimestamp(),
   });
+  pingBridge();
   return { id: ref.id, date, text };
 }
 
