@@ -19,6 +19,7 @@ from loguru import logger
 from anatomy_kb import handlers
 from anatomy_kb import firestore_handler as fs
 from anatomy_kb import muscle_handler as mh
+from anatomy_kb import db_handler as dbh
 
 FITNESS_DEV = Path(__file__).resolve().parent.parent / "fitness-dev" / "catalog"
 sys.path.insert(0, str(FITNESS_DEV))
@@ -61,6 +62,9 @@ def create_app() -> web.Application:
     app.router.add_get("/api/muscles/{muscle_id}",         mh.get_muscle)
     app.router.add_post("/api/muscles/enrich",             mh.enrich_muscles)
     app.router.add_post("/api/muscles/push",               mh.push_to_teaching)
+    app.router.add_post("/api/db/sync",                    dbh.sync)
+    app.router.add_get("/api/db/status",                   dbh.status)
+    app.router.add_get("/api/db/query",                    dbh.query)
     return app
 
 
