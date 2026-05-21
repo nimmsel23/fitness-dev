@@ -8,6 +8,8 @@ import typer
 ROOT = Path(__file__).resolve().parent.parent.parent
 EXERCISES_DIR = ROOT / "exercises"
 FITNESS_DEV = ROOT.parent / "fitness-dev"
+CATALOG_DIR = FITNESS_DEV / "catalog" / "kb" / "exercises"
+ANATOMY_TEACHING_DIR = FITNESS_DEV / "catalog" / "kb" / "anatomy_teaching"
 SERVER_PORT = 9200
 
 sys.path.insert(0, str(ROOT))
@@ -20,7 +22,7 @@ console = _display.console
 
 
 def init_loader() -> None:
-    loader.init(EXERCISES_DIR)
+    loader.init(EXERCISES_DIR, catalog_dir=CATALOG_DIR if CATALOG_DIR.exists() else None)
 
 
 def load_exercise(exercise_id: str) -> Exercise:

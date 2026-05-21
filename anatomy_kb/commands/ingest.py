@@ -8,10 +8,10 @@ from rich.panel import Panel
 from rich.rule import Rule
 
 from anatomy_kb.commands._helpers import (
-    EXERCISES_DIR, console, init_loader, _gum_log,
+    EXERCISES_DIR, ANATOMY_TEACHING_DIR, console, init_loader, _gum_log,
 )
 from anatomy_kb import loader, gemini as _gemini, vault as _vault
-from anatomy_kb import display as _display
+from anatomy_kb import display as _display, muscle_store as _store
 from anatomy_kb.models import Exercise
 
 _load_gemini_env = _gemini.load_env
@@ -150,41 +150,43 @@ def command(
         return
 
     console.print(Rule(style="dim"))
-    yml_file = EXERCISES_DIR / f"{exercise_id}.yml"
-    if not yml_file.exists():
-        _gum_log("warn", f"Kein YAML in exercises/{exercise_id}.yml — Daten werden als neue Datei angelegt")
-        confirmed = typer.confirm(f"  Neue Datei exercises/{exercise_id}.yml anlegen?", default=False)
-        if not confirmed:
-            console.print("[dim]  Abgebrochen.[/dim]")
-            raise typer.Exit(0)
-        new_data: dict = {"exercise_id": exercise_id}
-        if muscle_anatomy:
-            new_data["muscle_anatomy"] = muscle_anatomy
-        if errors:
-            new_data["common_errors_explained"] = errors
-        yml_file.write_text(yaml.dump(new_data, allow_unicode=True, default_flow_style=False, sort_keys=False))
-        _gum_log("info", f"Neue Datei angelegt → {yml_file.name}")
-        return
-
     confirmed = typer.confirm(
-        f"  Daten für [{exercise_id}] in exercises/{exercise_id}.yml mergen?",
+        f"  Anatomy für [{exercise_id}] speichern?",
         default=False,
     )
     if not confirmed:
         console.print("[dim]  Abgebrochen.[/dim]")
         raise typer.Exit(0)
 
-    _display.save_to_yaml(yml_file, muscle_anatomy, errors, vault_tags)
-
     saved_fields = []
+
+    # muscle_anatomy → muscles/*.yml (gematcht gegen wger muscle-index)
     if muscle_anatomy:
+        saved_muscles, skipped_muscles = [], []
+        for raw_id, anatomy_data in muscle_anatomy.items():
+            canonical = _store.canonical_id(raw_id)
+            if canonical is None:
+                skipped_muscles.append(raw_id)
+                continue
+            _store.update_muscle(canonical, anatomy_data, exercise_id, force=force)
+            saved_muscles.append(canonical)
+        _gum_log("info", f"muscles/: {len(saved_muscles)} gespeichert{f', {len(skipped_muscles)} übersprungen: {skipped_muscles}' if skipped_muscles else ''}")
         saved_fields.append("muscle_anatomy")
+
+    # muscle_anatomy in anatomy_teaching einbetten + common_errors als extra
+    extra: dict = {}
     if errors:
+        extra["common_errors_explained"] = errors
         saved_fields.append("common_errors_explained")
     if vault_tags:
-        saved_fields.append("vault_tags")
+        extra["vault_tags"] = vault_tags
 
-    _gum_log("info", f"Gespeichert → {yml_file.name}  ({len(muscle_anatomy)} Muskeln, {len(errors)} Fehler, {len(vault_tags)} Tags)")
+    teaching_file = _store.push_to_teaching(exercise_id, ANATOMY_TEACHING_DIR, extra=extra or None)
+    if teaching_file:
+        _gum_log("info", f"anatomy_teaching/{teaching_file.name} aktualisiert")
+
+    if vault_tags:
+        saved_fields.append("vault_tags")
 
     try:
         _vault.update_frontmatter(vault_path, exercise_id, saved_fields)

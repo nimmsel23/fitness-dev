@@ -1,0 +1,21 @@
+muscle_id: trapezius
+wger_id: 9
+latin: Trapezius
+name_en: ''
+is_front: false
+origin: Linea nuchae superior (medialer Anteil), Protuberantia occipitalis externa,
+  Ligamentum nuchae, Processus spinosi der Hals- und Brustwirbel (C1-T12)
+insertion: Clavicula (laterales Drittel), Acromion, Spina scapulae
+innervation: Nervus accessorius (CN XI), Plexus cervicalis (C2-C4)
+function: Die oberen Fasern des Trapezius bilden eine Ablagefläche für die Langhantel
+  bei der High Bar Position und stabilisieren die Schulterblätter und den oberen Rücken,
+  um eine aufrechte Haltung zu unterstützen.
+exercises:
+  back_squat:
+    function_in_exercise: Die oberen Fasern des Trapezius bilden eine Ablagefläche
+      für die Langhantel bei der High Bar Position und stabilisieren die Schulterblätter
+      und den oberen Rücken, um eine aufrechte Haltung zu unterstützen.
+  bench_press:
+    function_in_exercise: Stabilisiert die Scapula durch Retraktion (mittlere Fasern)
+      und Depression (untere Fasern) an der Brustwand, wodurch eine stabile Basis
+      für die Bewegung des Humerus geschaffen wird.

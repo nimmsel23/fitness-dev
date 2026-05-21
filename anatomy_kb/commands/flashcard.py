@@ -12,8 +12,8 @@ from rich.panel import Panel
 from rich.rule import Rule
 from rich.table import Table
 
-from ._helpers import ROOT, EXERCISES_DIR, init_loader, _gum_log, console
-from anatomy_kb import loader
+from ._helpers import init_loader, _gum_log, console
+from anatomy_kb import loader, muscle_store as _store
 
 SCORES_FILE = Path.home() / ".aos" / "fitness" / "anatomy-scores.json"
 WEAK_THRESHOLD = 0.6  # correct_rate unter 60% → weak
@@ -61,34 +61,39 @@ def _is_weak(scores: dict, muscle: str, field: str) -> bool:
 # --- Karten-Sammlung ---------------------------------------------------------
 
 def _collect_cards(exercise_filter: str | None, weak_only: bool, scores: dict) -> list[dict]:
-    """Gibt Liste von {exercise, muscle, latin, origin, insertion} zurück."""
+    """Liest Karten aus muscles/*.yml, optional gefiltert nach Übung."""
     init_loader()
-    all_data = loader.load_all()
+    ex_lookup = {ex_id: (d.get("name") or d.get("display_name") or ex_id)
+                 for ex_id, d in loader.load_all().items()}
+
+    muscle_ids = (_store.muscles_for_exercise(exercise_filter)
+                  if exercise_filter else _store.list_muscles())
+
     cards = []
-    for ex_id, ex_data in all_data.items():
-        if exercise_filter and ex_id != exercise_filter:
+    for muscle_id in muscle_ids:
+        doc = _store.load_muscle(muscle_id)
+        if not doc:
             continue
-        muscle_anatomy = ex_data.get("muscle_anatomy") or {}
-        ex_name = ex_data.get("name") or ex_data.get("display_name") or ex_id
-        for muscle, info in muscle_anatomy.items():
-            if not isinstance(info, dict):
-                continue
-            origin = info.get("origin", "").strip()
-            insertion = info.get("insertion", "").strip()
-            if not origin and not insertion:
-                continue
-            if weak_only:
-                if not (_is_weak(scores, muscle, "origin") or _is_weak(scores, muscle, "insertion")):
-                    continue
-            cards.append({
-                "exercise_id": ex_id,
-                "exercise_name": ex_name,
-                "muscle": muscle,
-                "latin": info.get("latin", ""),
-                "origin": origin,
-                "insertion": insertion,
-                "innervation": info.get("innervation", ""),
-            })
+        origin = (doc.get("origin") or "").strip()
+        insertion = (doc.get("insertion") or "").strip()
+        if not origin and not insertion:
+            continue
+        if weak_only and not (_is_weak(scores, muscle_id, "origin") or
+                               _is_weak(scores, muscle_id, "insertion")):
+            continue
+        # Eine Karte pro Muskel — Exercise-Kontext aus exercises-Block
+        exercises = list(doc.get("exercises", {}).keys())
+        ex_id = exercises[0] if exercises else ""
+        ex_name = ex_lookup.get(ex_id, ex_id) if ex_id else ""
+        cards.append({
+            "exercise_id": ex_id,
+            "exercise_name": ex_name,
+            "muscle": muscle_id,
+            "latin": doc.get("latin", ""),
+            "origin": origin,
+            "insertion": insertion,
+            "innervation": doc.get("innervation", ""),
+        })
     return cards
 
 

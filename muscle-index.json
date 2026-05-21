@@ -1,0 +1,130 @@
+{
+  "biceps_brachii": {
+    "muscle_id": "biceps_brachii",
+    "wger_id": 1,
+    "latin": "Biceps brachii",
+    "name_en": "Biceps",
+    "is_front": true,
+    "file": "muscles/biceps_brachii.yml"
+  },
+  "anterior_deltoid": {
+    "muscle_id": "anterior_deltoid",
+    "wger_id": 2,
+    "latin": "Anterior deltoid",
+    "name_en": "Shoulders",
+    "is_front": true,
+    "file": "muscles/anterior_deltoid.yml"
+  },
+  "serratus_anterior": {
+    "muscle_id": "serratus_anterior",
+    "wger_id": 3,
+    "latin": "Serratus anterior",
+    "name_en": "",
+    "is_front": true,
+    "file": "muscles/serratus_anterior.yml"
+  },
+  "pectoralis_major": {
+    "muscle_id": "pectoralis_major",
+    "wger_id": 4,
+    "latin": "Pectoralis major",
+    "name_en": "Chest",
+    "is_front": true,
+    "file": "muscles/pectoralis_major.yml"
+  },
+  "triceps_brachii": {
+    "muscle_id": "triceps_brachii",
+    "wger_id": 5,
+    "latin": "Triceps brachii",
+    "name_en": "Triceps",
+    "is_front": false,
+    "file": "muscles/triceps_brachii.yml"
+  },
+  "rectus_abdominis": {
+    "muscle_id": "rectus_abdominis",
+    "wger_id": 6,
+    "latin": "Rectus abdominis",
+    "name_en": "Abs",
+    "is_front": true,
+    "file": "muscles/rectus_abdominis.yml"
+  },
+  "gastrocnemius": {
+    "muscle_id": "gastrocnemius",
+    "wger_id": 7,
+    "latin": "Gastrocnemius",
+    "name_en": "Calves",
+    "is_front": false,
+    "file": "muscles/gastrocnemius.yml"
+  },
+  "gluteus_maximus": {
+    "muscle_id": "gluteus_maximus",
+    "wger_id": 8,
+    "latin": "Gluteus maximus",
+    "name_en": "Glutes",
+    "is_front": false,
+    "file": "muscles/gluteus_maximus.yml"
+  },
+  "trapezius": {
+    "muscle_id": "trapezius",
+    "wger_id": 9,
+    "latin": "Trapezius",
+    "name_en": "",
+    "is_front": false,
+    "file": "muscles/trapezius.yml"
+  },
+  "quadriceps_femoris": {
+    "muscle_id": "quadriceps_femoris",
+    "wger_id": 10,
+    "latin": "Quadriceps femoris",
+    "name_en": "Quads",
+    "is_front": true,
+    "file": "muscles/quadriceps_femoris.yml"
+  },
+  "biceps_femoris": {
+    "muscle_id": "biceps_femoris",
+    "wger_id": 11,
+    "latin": "Biceps femoris",
+    "name_en": "Hamstrings",
+    "is_front": false,
+    "file": "muscles/biceps_femoris.yml"
+  },
+  "latissimus_dorsi": {
+    "muscle_id": "latissimus_dorsi",
+    "wger_id": 12,
+    "latin": "Latissimus dorsi",
+    "name_en": "Lats",
+    "is_front": false,
+    "file": "muscles/latissimus_dorsi.yml"
+  },
+  "brachialis": {
+    "muscle_id": "brachialis",
+    "wger_id": 13,
+    "latin": "Brachialis",
+    "name_en": "",
+    "is_front": true,
+    "file": "muscles/brachialis.yml"
+  },
+  "obliquus_externus_abdominis": {
+    "muscle_id": "obliquus_externus_abdominis",
+    "wger_id": 14,
+    "latin": "Obliquus externus abdominis",
+    "name_en": "",
+    "is_front": true,
+    "file": "muscles/obliquus_externus_abdominis.yml"
+  },
+  "soleus": {
+    "muscle_id": "soleus",
+    "wger_id": 15,
+    "latin": "Soleus",
+    "name_en": "",
+    "is_front": false,
+    "file": "muscles/soleus.yml"
+  },
+  "erector_spinae": {
+    "muscle_id": "erector_spinae",
+    "wger_id": 16,
+    "latin": "Erector spinae",
+    "name_en": "Lower back",
+    "is_front": false,
+    "file": "muscles/erector_spinae.yml"
+  }
+}

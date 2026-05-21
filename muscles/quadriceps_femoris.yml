@@ -1,0 +1,24 @@
+muscle_id: quadriceps_femoris
+wger_id: 10
+latin: Quadriceps femoris
+name_en: Quads
+is_front: true
+origin: 'Rectus Femoris: Spina iliaca anterior inferior (SIAI), Corpus ossis ilii
+  superior des Acetabulum. Vastus Lateralis: Linea aspera (laterale Lippe), Trochanter
+  major. Vastus Medialis: Linea aspera (mediale Lippe), Linea intertrochanterica.
+  Vastus Intermedius: Vordere und laterale Femurschaftoberfläche.'
+insertion: Patella über die Quadricepssehne, Tuberositas tibiae über das Ligamentum
+  patellae
+innervation: Nervus femoralis (L2, L3, L4)
+function: Der Quadriceps ist der primäre Knieextensor. Er ist maßgeblich für das Aufrichten
+  aus der Hocke verantwortlich und kontrolliert die Kniebeugung während der Abwärtsbewegung,
+  besonders aktiv bei einer aufrechteren Rumpfhaltung (High Bar).
+exercises:
+  back_squat:
+    function_in_exercise: Der Quadriceps ist der primäre Knieextensor. Er ist maßgeblich
+      für das Aufrichten aus der Hocke verantwortlich und kontrolliert die Kniebeugung
+      während der Abwärtsbewegung, besonders aktiv bei einer aufrechteren Rumpfhaltung
+      (High Bar).
+  lunge:
+    function_in_exercise: Er fungiert als Haupttreiber in der konzentrischen Phase
+      durch die Streckung des Kniegelenks.

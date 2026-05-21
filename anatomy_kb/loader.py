@@ -1,11 +1,10 @@
 """
-Lädt alle Exercise-YAMLs aus dem exercises/-Verzeichnis.
+Lädt Exercise-Daten aus zwei Quellen und merged sie:
 
-Verzeichnis-Konvention:
-  ~/anatomy-kb/exercises/<exercise_id>.yml
+  1. fitness-dev/catalog/kb/exercises/*.yml  — Base-Layer (name, category, muscle_roles, ...)
+  2. anatomy-kb/exercises/*.yml              — Anatomy-Layer (muscle_anatomy, quiz_prompts, ...)
 
-Jede Datei wird beim ersten Zugriff geladen und im Speicher gecacht.
-reload() leert den Cache — nützlich für Live-Reload ohne Server-Neustart.
+Der Anatomy-Layer überschreibt/ergänzt den Base-Layer per exercise_id.
 """
 
 from pathlib import Path
@@ -16,14 +15,15 @@ from loguru import logger
 
 _cache: dict[str, dict] = {}
 _exercises_dir: Optional[Path] = None
+_catalog_dir: Optional[Path] = None
 
 
-def init(exercises_dir: Path) -> None:
-    """Setzt das Exercises-Verzeichnis und leert den Cache."""
-    global _exercises_dir
+def init(exercises_dir: Path, catalog_dir: Optional[Path] = None) -> None:
+    global _exercises_dir, _catalog_dir
     _exercises_dir = exercises_dir
+    _catalog_dir = catalog_dir
     _cache.clear()
-    logger.info(f"loader: exercises_dir={exercises_dir}")
+    logger.info(f"loader: exercises_dir={exercises_dir}, catalog_dir={catalog_dir}")
 
 
 def _dir() -> Path:
@@ -32,41 +32,63 @@ def _dir() -> Path:
     return _exercises_dir
 
 
+def _load_catalog_base() -> dict[str, dict]:
+    """Liest fitness-dev/catalog/kb/exercises/*.yml → {exercise_id: base_data}."""
+    if _catalog_dir is None or not _catalog_dir.exists():
+        return {}
+    base: dict[str, dict] = {}
+    for yml_file in sorted(_catalog_dir.glob("*.yml")):
+        try:
+            doc = yaml.safe_load(yml_file.read_text(encoding="utf-8"))
+            if not isinstance(doc, dict):
+                continue
+            for ex in doc.get("exercises", []):
+                if not isinstance(ex, dict):
+                    continue
+                ex_id = ex.get("exercise_id") or ex.get("id")
+                if ex_id:
+                    base[ex_id] = ex
+        except Exception as e:
+            logger.warning(f"catalog: Fehler in {yml_file.name}: {e}")
+    logger.info(f"loader: {len(base)} Übungen aus fitness-dev Katalog")
+    return base
+
+
 def load_all() -> dict[str, dict]:
-    """Lädt alle YAMLs und gibt {exercise_id: data} zurück."""
+    """Merged catalog base + anatomy enrichment → {exercise_id: merged_data}."""
     if _cache:
         return _cache
 
-    path = _dir()
-    if not path.exists():
-        logger.warning(f"exercises_dir existiert nicht: {path}")
-        return {}
+    base = _load_catalog_base()
 
-    for yml_file in sorted(path.glob("*.yml")):
+    for yml_file in sorted(_dir().glob("*.yml")):
         exercise_id = yml_file.stem
         try:
-            data = yaml.safe_load(yml_file.read_text())
-            if data and isinstance(data, dict):
-                _cache[exercise_id] = data
+            anatomy = yaml.safe_load(yml_file.read_text(encoding="utf-8"))
+            if not anatomy or not isinstance(anatomy, dict):
+                continue
+            merged = {**base.get(exercise_id, {}), **anatomy}
+            _cache[exercise_id] = merged
         except yaml.YAMLError as e:
             logger.error(f"YAML-Fehler in {yml_file.name}: {e}")
 
-    logger.info(f"loader: {len(_cache)} Übungen geladen")
+    # Catalog-Übungen ohne anatomy-kb Datei trotzdem einschließen
+    for ex_id, ex_data in base.items():
+        if ex_id not in _cache:
+            _cache[ex_id] = ex_data
+
+    logger.info(f"loader: {len(_cache)} Übungen geladen (merged)")
     return _cache
 
 
 def load_one(exercise_id: str) -> Optional[dict]:
-    """Gibt eine einzelne Übung zurück oder None wenn nicht gefunden."""
-    all_exercises = load_all()
-    return all_exercises.get(exercise_id)
+    return load_all().get(exercise_id)
 
 
 def reload() -> None:
-    """Leert den In-Memory-Cache. Nächster Zugriff lädt neu von Disk."""
     _cache.clear()
     logger.info("loader: cache geleert")
 
 
 def list_ids() -> list[str]:
-    """Gibt alle bekannten exercise_ids zurück."""
     return sorted(load_all().keys())

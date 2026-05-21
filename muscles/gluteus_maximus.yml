@@ -1,0 +1,25 @@
+muscle_id: gluteus_maximus
+wger_id: 8
+latin: Gluteus maximus
+name_en: Glutes
+is_front: false
+origin: Facies glutealis ossis ilii (hinterer Anteil), Kreuzbein (Os sacrum), Steißbein
+  (Os coccygis), Fascia thoracolumbalis
+insertion: Tractus iliotibialis, Tuberositas glutea femoris
+innervation: Nervus gluteus inferior (L5, S1, S2)
+function: Die Gluteen, insbesondere der Gluteus Maximus, sind starke Hüftextensoren.
+  Sie sind entscheidend für das explosive Aufrichten aus der Hocke und die Stabilisierung
+  des Beckens, besonders bei tieferen Hocken und mehr Rumpfvorlage (Low Bar).
+exercises:
+  back_squat:
+    function_in_exercise: Die Gluteen, insbesondere der Gluteus Maximus, sind starke
+      Hüftextensoren. Sie sind entscheidend für das explosive Aufrichten aus der Hocke
+      und die Stabilisierung des Beckens, besonders bei tieferen Hocken und mehr Rumpfvorlage
+      (Low Bar).
+  lunge:
+    function_in_exercise: Er ist maßgeblich für die Hüftstreckung verantwortlich,
+      um den Körper aus der tiefen Position wieder aufzurichten.
+  romanian_deadlift:
+    function_in_exercise: Hauptverantwortlich für die Hüftextension in der Aufwärtsbewegung
+      (konzentrisch) und exzentrische Kontrolle der Hüftflexion in der Abwärtsbewegung,
+      um das Hip-Hinge-Muster zu unterstützen.
