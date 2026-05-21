@@ -1,16 +1,31 @@
 # Fitness Centre
 
-Workout-Tracking PWA für Krafttraining — Pflichtaufgaben-Werkzeug der Diplom Präventiver Vitaltrainer Ausbildung (Fitnesstrainer-Modul, Health Personal Fitness Trainer, Prävention).
+Workout-Tracking PWA und CLI für Krafttraining — Pflichtaufgaben-Werkzeug der Diplom Präventiver Vitaltrainer Ausbildung (Fitnesstrainer-Modul, Health Personal Fitness Trainer, Prävention).
+
+**Ziel:**
+- Praktisches Werkzeug zur Unterstützung der Ausbildung: Trainingspläne erstellen, Logs führen, Anatomie-Lehre dokumentieren
+- Offline-fähiges Workout-Logging ohne externe Apps
+- Strukturierte Trainingspläne mit vollständig integriertem wger Backend (lokal) + yuhonas Ergänzung
+- Lokale, file-basierte Speicherung unter `~/.aos/fitness/`
+- Anatomie Teaching Layer für echte Trainer-Ausbildung (Ursprung, Ansatz, Innervation, Coaching-Cues)
+- Firebase PWA unter `fitness-aos.web.app` für mobiles Logging
 
 **Vollständige technische Dokumentation:** [CLAUDE.md](./CLAUDE.md)
 
 ---
 
-## System
+## System: fitness-agent (Prophet) + fitness-dev (Tempel)
 
-**fitness-agent** (Skill) — Katalog-Manager: liest Ausbildungsmodule, schreibt YAML-Katalog unter `~/fitness-dev/catalog/`, schreibt Tickets für fitness-dev-coding-agent.
+**fitness-agent** (Skill) — Katalog-Manager:
+- Liest Fitnesstrainer-Module der Ausbildung
+- Schreibt & erweitert Katalog in `~/fitness-dev/catalog/` (YAML: Exercises, Anatomy Teaching, Rules, Mappings)
+- Schreibt Tickets für fitness-dev-coding-agent wenn Features/Gaps sichtbar werden
+- Silent DB-Manager: Anatomie-Lehre, Katalog-Normalisierung, Quellen-Integration
 
-**fitness-dev** (dieses Repo) — Backend + Frontend, gebaut von fitness-dev-coding-agent.
+**fitness-dev** (dieses Repo) — Backend + Frontend, gebaut von fitness-dev-coding-agent:
+- Backend (`server.mjs`, `fitness-runtime.mjs`): API für Session-Logs, Pläne, Coverage-Analyse
+- Frontend (React + Vite): Workout-Logging, Trainingsplanung, Anatomie-Ansicht, Muskelabdeckungs-Analyse
+- Firebase PWA (`pwa/`): mobiles Logging direkt in Firestore, kein lokaler Server
 
 ---
 
@@ -20,6 +35,7 @@ Workout-Tracking PWA für Krafttraining — Pflichtaufgaben-Werkzeug der Diplom 
 |---------|-------------|------|
 | Backend | Node.js (`server.mjs`) | 9100 |
 | Frontend | React + Vite | 5902 (dev) |
+| PWA | Firebase Hosting | fitness-aos.web.app |
 | Exercise DB | wger (lokal) | 8000 |
 | Ergänzung | yuhonas free-exercise-db | — |
 
@@ -32,6 +48,10 @@ npm run dev          # Backend (9100) + Vite DevServer (5902) mit HMR
 npm run ui:dev       # Nur Vite DevServer
 npm run build        # Production-Build → dist/
 npm run build:catalog  # Katalog → ~/.aos/fitness/workouts/catalog.json
+
+python -m catalog.fitness_agent audit       # Katalog-Qualität prüfen
+python -m catalog.fitness_agent kb-sync     # catalog/kb → Firestore
+bin/firestore-sync pull                     # Firestore → ~/.aos/fitness/
 ```
 
 ---
@@ -54,19 +74,20 @@ npm run build:catalog  # Katalog → ~/.aos/fitness/workouts/catalog.json
 | Dokument | Inhalt |
 |----------|--------|
 | [CLAUDE.md](./CLAUDE.md) | API-Referenz, Katalog-Struktur, Session-Format, Design-Patterns |
+| [FIRESTORE.md](./FIRESTORE.md) | Firebase/Firestore Sync-Architektur |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Technische Architektur, Datenquellen |
 | [VISION.md](./VISION.md) | Richtung, Volume Landmarks, Anatomie Teaching Layer |
 | [ROADMAP.md](./ROADMAP.md) | Feature-Roadmap |
 | [AGENTS.md](./AGENTS.md) | Agent-Workflow |
-| [UNKLARHEITEN.md](./UNKLARHEITEN.md) | Offene Design-Fragen |
-| [FITNESS-MAIL-PIPELINE.md](./FITNESS-MAIL-PIPELINE.md) | Gmail-Pipeline-Spec |
 
 ---
 
 ## Status
 
-- ✅ Backend + API
+- ✅ Backend + API (Node.js, Port 9100)
 - ✅ Frontend Views (Dashboard, Session, Journal, Muscles, Learn, WeeklyReview)
+- ✅ Firebase PWA (fitness-aos.web.app) — Firestore-basiert, kein lokaler Server
+- ✅ Firestore Sync (on-demand pull via Bridge-Ping, Oneshot beim Boot)
 - ✅ wger Integration (lokal)
 - ✅ yuhonas Integration (Bilder, Varianten)
 - ✅ Katalog-Struktur (Exercises, Anatomy Teaching, Rules, Maps)
