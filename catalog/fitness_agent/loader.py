@@ -34,6 +34,10 @@ def load_catalog_directory_yaml(relative_dir: str) -> list[tuple[Path, Any]]:
     return [(p, load_yaml(p)) for p in iter_catalog_yaml_files(relative_dir)]
 
 
+load_runtime_yaml = load_catalog_yaml
+load_runtime_directory_yaml = load_catalog_directory_yaml
+
+
 def backup_existing(target: Path) -> Path:
     timestamp = datetime.now().strftime("%Y%m%dT%H%M%S%f")
     backup_root = runtime_root() / "backups" / timestamp
