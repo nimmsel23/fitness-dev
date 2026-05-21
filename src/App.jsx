@@ -47,9 +47,17 @@ export default function App() {
     setTab('session')
   }
 
-  function inspectExercise(exercise) {
+  async function inspectExercise(exercise) {
     if (!exercise) return
     setInspectorExercise(exercise)
+    const id = exercise.exercise_id || exercise.id
+    if (!id || exercise.lesson) return
+    try {
+      const data = await api.get(`/exercise/${encodeURIComponent(id)}/teaching`)
+      if (data?.ok && data.lesson) {
+        setInspectorExercise(prev => prev ? { ...prev, lesson: data.lesson } : prev)
+      }
+    } catch {}
   }
 
   return (

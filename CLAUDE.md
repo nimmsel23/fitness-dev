@@ -63,9 +63,9 @@ Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach
 
 ## Backend
 
-**server.mjs** (Port 9100): Node.js HTTP-Server
+**server.mjs** (Port 9100): **Hono**-Server (`@hono/node-server`)
 - API-Routen: `/session`, `/journal`, `/exercises/search`, `/coverage`, `/fitness/plan`, `/fitness/weekly`, `/fitness/export`
-- Static-Serving (dist/ oder public/)
+- Static-Serving (dist/ oder public/) + SPA-Fallback
 - Proxies: wger (:8000 lokal), HabitSync (:6842)
 - **Dual-write**: `POST /session` schreibt JSON-File + SQLite synchron
 
@@ -162,6 +162,7 @@ Port 5902 (dev), Proxy zu Backend API-Routen.
 | Endpoint | Methode | Beschreibung |
 |----------|---------|-------------|
 | `/health` | GET | Server-Status |
+| `/exercise/:id/teaching` | GET | Anatomy-Lesson aus catalog/kb/anatomy_teaching/ |
 | `/session?date=YYYY-MM-DD` | GET/POST | Tageslog — POST macht dual-write (JSON + SQLite) |
 | `/session/history?limit=10` | GET | Letzte N Sessions |
 | `/exercises/search?q=...` | GET | Search lokal + wger + yuhonas |

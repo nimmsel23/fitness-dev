@@ -1,6 +1,59 @@
-import { Download, X, Copy } from 'lucide-react'
+import { useState } from 'react'
+import { Download, X, Copy, ChevronDown, ChevronUp } from 'lucide-react'
 import { api, downloadText } from '../api.js'
 import { buildExerciseCoachSheet, buildExerciseInsights } from '../lib/exerciseInsights.js'
+
+function MuscleAnatomySection({ muscleAnatomy }) {
+  const [open, setOpen] = useState(false)
+  const entries = Object.entries(muscleAnatomy || {})
+  if (!entries.length) return null
+  return (
+    <section className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--line)' }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3"
+        style={{ background: 'var(--card)', color: 'var(--ink)' }}
+      >
+        <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
+          Muskel-Anatomie ({entries.length} Muskeln)
+        </span>
+        {open ? <ChevronUp size={15} style={{ color: 'var(--muted)' }} /> : <ChevronDown size={15} style={{ color: 'var(--muted)' }} />}
+      </button>
+      {open && (
+        <div className="px-4 pb-4 pt-1 grid gap-3 md:grid-cols-2" style={{ background: 'var(--card)' }}>
+          {entries.map(([id, m]) => (
+            <div key={id} className="p-3 rounded-xl space-y-1.5" style={{ background: 'var(--bg2)', border: '1px solid var(--line)' }}>
+              <div className="text-sm font-bold" style={{ color: 'var(--accent)' }}>{m.latin || id}</div>
+              {m.origin && (
+                <div>
+                  <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Ursprung </span>
+                  <span className="text-xs" style={{ color: 'var(--ink)' }}>{m.origin}</span>
+                </div>
+              )}
+              {m.insertion && (
+                <div>
+                  <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Ansatz </span>
+                  <span className="text-xs" style={{ color: 'var(--ink)' }}>{m.insertion}</span>
+                </div>
+              )}
+              {m.innervation && (
+                <div>
+                  <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Innervation </span>
+                  <span className="text-xs" style={{ color: 'var(--ink)' }}>{m.innervation}</span>
+                </div>
+              )}
+              {m.function_in_exercise && (
+                <div className="pt-1 text-xs leading-5" style={{ color: 'var(--muted)', borderTop: '1px solid var(--line)' }}>
+                  {m.function_in_exercise}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
 
 export default function ExerciseInsightModal({ exercise, onClose }) {
   if (!exercise) return null
@@ -163,6 +216,14 @@ export default function ExerciseInsightModal({ exercise, onClose }) {
             <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Lernfrage</div>
             <p className="text-sm leading-6" style={{ color: 'var(--ink)' }}>{insight.quiz[0]?.question}</p>
           </section>
+
+          <MuscleAnatomySection muscleAnatomy={exercise.lesson?.muscle_anatomy} />
+
+          {!exercise.lesson && (
+            <div className="text-center py-2 text-xs" style={{ color: 'var(--muted)' }}>
+              Anatomie-Daten werden geladen…
+            </div>
+          )}
         </div>
       </div>
     </div>
