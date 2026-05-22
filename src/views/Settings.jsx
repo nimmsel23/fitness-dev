@@ -41,21 +41,67 @@ export function useLocalSettings() {
 const DAY_START = 6
 const DAY_END   = 20
 
-const DARK_THEMES = [
-  { id: 'honey',     label: '🍯 Honey Night' },
-  { id: 'mocha',     label: '🐱 Mocha' },
-  { id: 'macchiato', label: '🐱 Macchiato' },
-  { id: 'frappe',    label: '🐱 Frappé' },
-  { id: 'sweet',     label: '🔵 Sweet Amber' },
-  { id: 'nordic',    label: '❄️ Nordic' },
-  { id: 'nothing',   label: '⬛ Nothing' },
+const THEME_GROUPS = [
+  {
+    label: 'Catppuccin',
+    dark:  [
+      { id: 'mocha',     label: 'Mocha' },
+      { id: 'macchiato', label: 'Macchiato' },
+      { id: 'frappe',    label: 'Frappé' },
+    ],
+    light: [
+      { id: 'latte',     label: 'Latte' },
+    ],
+  },
+  {
+    label: 'Dracula',
+    dark:  [
+      { id: 'dracula',        label: 'Dracula' },
+      { id: 'dracula-purple', label: 'Purple' },
+    ],
+    light: [
+      { id: 'alucard', label: 'Alucard' },
+    ],
+  },
+  {
+    label: 'Nordic',
+    dark:  [
+      { id: 'nordic',         label: 'Standard' },
+      { id: 'nordic-darker',  label: 'Darker' },
+      { id: 'nordic-bluish',  label: 'Bluish' },
+    ],
+    light: [],
+  },
+  {
+    label: 'Arc',
+    dark:  [{ id: 'arc-dark', label: 'Arc Dark' }],
+    light: [{ id: 'arc',      label: 'Arc' }],
+  },
+  {
+    label: 'Sweet',
+    dark:  [
+      { id: 'sweet',        label: 'Amber Blue' },
+      { id: 'sweet-purple', label: 'Purple' },
+    ],
+    light: [],
+  },
+  {
+    label: 'Solarized',
+    dark:  [{ id: 'solarized-dark', label: 'Dark' }],
+    light: [{ id: 'solarized',      label: 'Light' }],
+  },
+  {
+    label: 'Andere',
+    dark:  [
+      { id: 'honey',   label: '🍯 Honey Night' },
+      { id: 'ant-dark', label: 'Ant Dark' },
+      { id: 'materia',  label: 'Materia' },
+      { id: 'nothing',  label: '⬛ Nothing' },
+    ],
+    light: [],
+  },
 ]
-const LIGHT_THEMES = [
-  { id: 'latte',     label: '🐱 Latte' },
-  { id: 'arc',       label: '🔵 Arc' },
-  { id: 'alucard',   label: '🧛 Alucard' },
-  { id: 'solarized', label: '🌞 Solarized' },
-]
+
 
 function ThemeBtn({ label, active, onClick }) {
   return (
@@ -242,31 +288,46 @@ export default function Settings({ themeMode, circDark, circLight, onSetThemeMod
           <h2 className="font-semibold text-base">Darstellung</h2>
         </div>
 
-        <p style={{ ...labelCls, marginBottom: '0.4rem' }}>Dunkel</p>
-        <div className="grid grid-cols-4 gap-2 mb-4" style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
-          {DARK_THEMES.map(t => (
-            <ThemeBtn key={t.id} label={t.label}
-              active={circDark === t.id}
-              onClick={() => {
-                onSetCircadianDark(t.id)
-                if (themeMode !== 'circadian') onSetManualTheme(t.id)
-              }}
-            />
-          ))}
-        </div>
-
-        <p style={{ ...labelCls, marginBottom: '0.4rem' }}>Hell</p>
-        <div className="grid grid-cols-4 gap-2 mb-4" style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
-          {LIGHT_THEMES.map(t => (
-            <ThemeBtn key={t.id} label={t.label}
-              active={circLight === t.id}
-              onClick={() => {
-                onSetCircadianLight(t.id)
-                if (themeMode !== 'circadian') onSetManualTheme(t.id)
-              }}
-            />
-          ))}
-        </div>
+        {THEME_GROUPS.map(group => {
+          const hasLight = group.light.length > 0
+          const hasDark  = group.dark.length > 0
+          if (!hasDark && !hasLight) return null
+          return (
+            <div key={group.label} className="mb-4">
+              <p style={{ ...labelCls, marginBottom: '0.3rem' }}>{group.label}</p>
+              <div style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
+                {hasDark && (
+                  <div className={`grid gap-1 ${hasLight ? 'mb-1' : ''}`}
+                    style={{ gridTemplateColumns: `repeat(${group.dark.length}, 1fr)` }}>
+                    {group.dark.map(t => (
+                      <ThemeBtn key={t.id} label={t.label}
+                        active={circDark === t.id}
+                        onClick={() => {
+                          onSetCircadianDark(t.id)
+                          if (themeMode !== 'circadian') onSetManualTheme(t.id)
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+                {hasLight && (
+                  <div className="grid gap-1"
+                    style={{ gridTemplateColumns: `repeat(${group.light.length}, 1fr)` }}>
+                    {group.light.map(t => (
+                      <ThemeBtn key={t.id} label={`☀️ ${t.label}`}
+                        active={circLight === t.id}
+                        onClick={() => {
+                          onSetCircadianLight(t.id)
+                          if (themeMode !== 'circadian') onSetManualTheme(t.id)
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
 
         <div className="flex items-center justify-between" style={{ background: 'var(--panel)', borderRadius: '0.6rem', padding: '0.6rem 0.85rem', border: '1px solid var(--line)' }}>
           <div>
