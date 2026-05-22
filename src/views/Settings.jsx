@@ -41,7 +41,36 @@ export function useLocalSettings() {
 const DAY_START = 6
 const DAY_END   = 20
 
-export default function Settings({ theme, themeMode, onSetThemeMode, onSetManualTheme }) {
+const DARK_THEMES  = [
+  { id: 'mocha',   label: '🍯 Honey Night' },
+  { id: 'nothing', label: '⬛ Nothing' },
+]
+const LIGHT_THEMES = [
+  { id: 'latte',  label: '☀️ Latte' },
+  { id: 'nordic', label: '❄️ Nordic' },
+]
+
+function ThemeBtn({ label, active, onClick }) {
+  return (
+    <button onClick={onClick} style={{
+      padding: '0.45rem 0.25rem',
+      borderRadius: '0.55rem',
+      border: 'none',
+      cursor: 'pointer',
+      fontSize: '0.72rem',
+      fontWeight: active ? '700' : '400',
+      background: active ? 'var(--accent-glow)' : 'transparent',
+      color: active ? 'var(--accent)' : 'var(--muted)',
+      outline: active ? '1px solid var(--accent)' : '1px solid transparent',
+      transition: 'all 0.15s',
+      whiteSpace: 'nowrap',
+    }}>
+      {label}
+    </button>
+  )
+}
+
+export default function Settings({ theme, themeMode, circDark, circLight, onSetThemeMode, onSetManualTheme, onSetCircadianDark, onSetCircadianLight }) {
   const { age, weight_kg, freq_per_week, split, hit_default, set } = useLocalSettings()
   const [health, setHealth] = useState(null)
   const [wger, setWger] = useState(null)
@@ -206,58 +235,67 @@ export default function Settings({ theme, themeMode, onSetThemeMode, onSetManual
           <h2 className="font-semibold text-base">Darstellung</h2>
         </div>
 
-        {/* Mode-Auswahl */}
-        <div className="grid grid-cols-3 gap-2 mb-3" style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
-          {[
-            { id: 'manual-dark',  label: '🍯 Honey Night', mode: 'manual',  theme: 'mocha' },
-            { id: 'circadian',    label: '🌅 Circadian', mode: 'circadian', theme: null },
-            { id: 'manual-light', label: '☀️ Hell',     mode: 'manual',    theme: 'latte' },
-          ].map(opt => {
-            const active = opt.mode === 'circadian'
-              ? themeMode === 'circadian'
-              : themeMode === 'manual' && theme === opt.theme
-            return (
-              <button
-                key={opt.id}
-                onClick={() => {
-                  if (opt.mode === 'circadian') {
-                    onSetThemeMode('circadian')
-                  } else {
-                    onSetThemeMode('manual')
-                    onSetManualTheme(opt.theme)
-                  }
-                }}
-                style={{
-                  padding: '0.5rem 0.25rem',
-                  borderRadius: '0.55rem',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.75rem',
-                  fontWeight: active ? '700' : '400',
-                  background: active ? 'var(--accent-glow)' : 'transparent',
-                  color: active ? 'var(--accent)' : 'var(--muted)',
-                  outline: active ? '1px solid var(--accent)' : '1px solid transparent',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {opt.label}
-              </button>
-            )
-          })}
+        {/* Dark Themes */}
+        <p style={{ ...labelCls, marginBottom: '0.4rem' }}>Dunkel</p>
+        <div className="grid grid-cols-2 gap-2 mb-3" style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
+          {DARK_THEMES.map(t => (
+            <ThemeBtn key={t.id} label={t.label}
+              active={themeMode === 'manual' && theme === t.id}
+              onClick={() => onSetManualTheme(t.id)}
+            />
+          ))}
         </div>
 
-        {/* Circadian-Info */}
+        {/* Circadian */}
+        <p style={{ ...labelCls, marginBottom: '0.4rem' }}>Automatisch</p>
+        <div className="mb-3" style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
+          <ThemeBtn label="🌅 Circadian (Tag/Nacht automatisch)"
+            active={themeMode === 'circadian'}
+            onClick={() => onSetThemeMode('circadian')}
+          />
+        </div>
+
+        {/* Circadian pair picker — nur sichtbar wenn aktiv */}
         {themeMode === 'circadian' && (
-          <div style={{ background: 'var(--panel)', borderRadius: '0.6rem', padding: '0.6rem 0.85rem', border: '1px solid var(--line)', fontSize: '0.75rem', color: 'var(--muted)' }}>
-            <div className="flex items-center justify-between mb-1">
-              <span>Aktuelles Theme</span>
-              <span style={{ color: 'var(--ink)', fontWeight: 600 }}>{theme === 'latte' ? '☀️ Hell' : '🌙 Dunkel'}</span>
+          <div className="grid gap-2 mb-3">
+            <div style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.4rem 0.6rem', border: '1px solid var(--line)' }}>
+              <p style={{ ...labelCls, marginBottom: '0.3rem' }}>🌙 Nacht-Theme</p>
+              <div className="grid grid-cols-2 gap-1">
+                {DARK_THEMES.map(t => (
+                  <ThemeBtn key={t.id} label={t.label}
+                    active={circDark === t.id}
+                    onClick={() => onSetCircadianDark(t.id)}
+                  />
+                ))}
+              </div>
             </div>
-            <div style={{ color: 'var(--dim)' }}>
-              ☀️ {DAY_START}:00–{DAY_END}:00 · 🌙 {DAY_END}:00–{DAY_START}:00
+            <div style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.4rem 0.6rem', border: '1px solid var(--line)' }}>
+              <p style={{ ...labelCls, marginBottom: '0.3rem' }}>☀️ Tag-Theme</p>
+              <div className="grid grid-cols-2 gap-1">
+                {LIGHT_THEMES.map(t => (
+                  <ThemeBtn key={t.id} label={t.label}
+                    active={circLight === t.id}
+                    onClick={() => onSetCircadianLight(t.id)}
+                  />
+                ))}
+              </div>
+            </div>
+            <div style={{ fontSize: '0.72rem', color: 'var(--dim)', padding: '0 0.25rem' }}>
+              Aktiv: <strong style={{ color: 'var(--ink)' }}>{theme}</strong> · ☀️ {DAY_START}:00–{DAY_END}:00 · 🌙 {DAY_END}:00–{DAY_START}:00
             </div>
           </div>
         )}
+
+        {/* Light Themes */}
+        <p style={{ ...labelCls, marginBottom: '0.4rem' }}>Hell</p>
+        <div className="grid grid-cols-2 gap-2" style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
+          {LIGHT_THEMES.map(t => (
+            <ThemeBtn key={t.id} label={t.label}
+              active={themeMode === 'manual' && theme === t.id}
+              onClick={() => onSetManualTheme(t.id)}
+            />
+          ))}
+        </div>
       </section>
 
       {/* System */}
