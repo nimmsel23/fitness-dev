@@ -156,6 +156,46 @@ anatomy_teaching:
 
 ---
 
+## BodyMap (react-body-highlighter) — Zwei Stufen
+
+**Stufe 1: Basis-Visualisierung — aktiv, fertig implementiert.**
+
+`BodyMap.jsx` nutzt `react-body-highlighter` und rendert anterior + posterior Körpermodell.
+Datenfluss:
+
+```
+Session-Exercises (done: true)
+  ↓ exercisesToModelData()    [BodyMap.jsx]
+  ├─ Pfad A (präzise):  wger_muscle_ids.primary/secondary → WGER_TO_RBH → RBH-Muskelname
+  └─ Pfad B (Fallback): primaryMuscles/secondaryMuscles (Strings) → LABEL_TO_GROUP → GROUP_TO_RBH → RBH-Muskelname
+  ↓
+react-body-highlighter <Model>  (anterior oder posterior)
+```
+
+`WGER_TO_RBH` mappt wger-Muscle-IDs 1–16 direkt auf RBH-Muskelregionen.
+Primary-Muscles zählen doppelt (`score +2`), Secondary einfach (`+1`). `frequency` steuert die Einfärbungsintensität.
+
+Eingebunden in `Session.jsx` — zeigt ausschließlich Muskeln von Übungen mit `done: true`.
+Auch in `Muscles.jsx` über den `groupScores`-Pfad (Coverage-View, Legacy-Fallback).
+
+---
+
+**Stufe 2: Granulare Muskel-Visualisierung — noch nicht aktiv.**
+
+`catalog/kb/muscles/body_highlighter_bridge.yml` (`enabled: false`) ist die Konfiguration für eine
+zukünftige Erweiterung: Mapping von granularen Katalog-Muskel-IDs (aus `muscles.yml`, 22 IDs wie
+`pectoralis_major`, `anterior_deltoid`) auf RBH-Regionen — statt der groben Gruppen-Strings.
+
+Sobald aktiviert: `muscle_coverage_rules.yml` liefert primary/secondary/stabilizer-Gewichtungen
+aus dem Katalog-YAML, statt aus wger-IDs oder Session-Strings. Vorteil: Anatomie-Präzision auf
+Einzelmuskel-Ebene, konsistent mit dem Anatomy-Teaching-Layer.
+
+**Was `enabled: false` bedeutet:** Der Code-Pfad existiert noch nicht. `body_highlighter_bridge.yml`
+ist eine Planungsdatei, kein Toggle. Aktivieren erfordert einen neuen Datenpfad in `BodyMap.jsx`
+und `server.mjs` (Coverage-Endpoint muss granulare Katalog-IDs zurückgeben).
+
+---
+
 ## Session-Format (data/sessions/YYYY-MM-DD.json)
 
 ```json

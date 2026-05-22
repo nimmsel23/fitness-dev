@@ -91,6 +91,7 @@ bin/firestore-sync pull                     # Firestore → ~/.aos/fitness/
 - ✅ wger Integration (lokal)
 - ✅ yuhonas Integration (Bilder, Varianten)
 - ✅ Katalog-Struktur (Exercises, Anatomy Teaching, Rules, Maps)
+- ✅ BodyMap (react-body-highlighter) — Muskelvisualisierung in Session + Coverage-View
 - ✅ Gmail-Pipeline (`bin/fitness-mail`)
 - ⏳ `fitness` CLI (Python/Typer)
 - ⏳ Anatomie-Lehre für alle Übungen
