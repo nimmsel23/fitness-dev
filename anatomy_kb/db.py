@@ -26,6 +26,28 @@ FITNESS_DEV = ROOT.parent / "fitness-dev"
 CATALOG_EXERCISES = FITNESS_DEV / "catalog" / "kb" / "exercises"
 ANATOMY_TEACHING = FITNESS_DEV / "catalog" / "kb" / "anatomy_teaching"
 SCORES_FILE = Path.home() / ".aos" / "fitness" / "anatomy-scores.json"
+TRAINING_DB = Path.home() / ".aos" / "fitness" / "sessions" / "training_history.sqlite"
+
+# Katalog-Kategorie → muscle_ids (broad mapping, kein wger-Lookup nötig)
+CATEGORY_MUSCLES: dict[str, list[str]] = {
+    "chest":        ["pectoralis_major", "serratus_anterior"],
+    "back":         ["latissimus_dorsi", "trapezius"],
+    "lats":         ["latissimus_dorsi"],
+    "upper_back":   ["trapezius"],
+    "lower_back":   ["erector_spinae"],
+    "shoulders":    ["anterior_deltoid"],
+    "shoulders_front": ["anterior_deltoid"],
+    "arms":         ["biceps_brachii", "triceps_brachii", "brachialis"],
+    "upper_arm_front": ["biceps_brachii", "brachialis"],
+    "upper_arm_back":  ["triceps_brachii"],
+    "core":         ["rectus_abdominis", "obliquus_externus_abdominis"],
+    "glutes":       ["gluteus_maximus"],
+    "thigh_front":  ["quadriceps_femoris"],
+    "thigh_back":   ["biceps_femoris"],
+    "quads":        ["quadriceps_femoris"],
+    "hamstrings":   ["biceps_femoris"],
+    "calves":       ["gastrocnemius", "soleus"],
+}
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS muscles (
@@ -82,15 +104,53 @@ CREATE TABLE IF NOT EXISTS flashcard_scores (
     PRIMARY KEY (muscle_id, field)
 );
 
-CREATE VIEW IF NOT EXISTS muscle_training_gap AS
+CREATE VIEW IF NOT EXISTS muscle_coverage AS
     SELECT
         m.muscle_id,
         m.latin,
-        COALESCE(s.correct * 1.0 / NULLIF(s.correct + s.incorrect, 0), 0) AS score_rate,
-        s.last_seen
+        m.origin IS NOT NULL                                              AS has_anatomy,
+        COUNT(DISTINCT em.exercise_id)                                    AS exercise_count,
+        GROUP_CONCAT(DISTINCT em.exercise_id)                             AS exercises,
+        COALESCE(fs.correct * 1.0 / NULLIF(fs.correct + fs.incorrect, 0), 0) AS score_rate,
+        fs.last_seen                                                      AS last_flashcard
     FROM muscles m
-    LEFT JOIN flashcard_scores s ON m.muscle_id = s.muscle_id AND s.field = 'origin'
-    WHERE m.origin IS NOT NULL;
+    LEFT JOIN exercise_muscles em ON m.muscle_id = em.muscle_id
+    LEFT JOIN flashcard_scores fs ON m.muscle_id = fs.muscle_id AND fs.field = 'origin'
+    GROUP BY m.muscle_id;
+
+CREATE VIEW IF NOT EXISTS weak_muscles AS
+    SELECT muscle_id, latin, score_rate, last_flashcard, exercise_count
+    FROM muscle_coverage
+    WHERE has_anatomy = 1
+      AND (score_rate < 0.6 OR last_flashcard IS NULL)
+    ORDER BY score_rate ASC;
+
+CREATE TABLE IF NOT EXISTS training_sessions (
+    id          INTEGER PRIMARY KEY,
+    date        TEXT NOT NULL,
+    workout_id  TEXT,
+    exercise_id TEXT NOT NULL,
+    sets        INTEGER,
+    reps        INTEGER,
+    weight      REAL,
+    rpe         INTEGER,
+    done        INTEGER DEFAULT 1
+);
+
+CREATE VIEW IF NOT EXISTS muscle_training_freq AS
+    SELECT
+        em.muscle_id,
+        m.latin,
+        em.role,
+        COUNT(DISTINCT ts.date)  AS session_days,
+        COUNT(*)                 AS total_sets,
+        MAX(ts.date)             AS last_trained
+    FROM training_sessions ts
+    JOIN exercise_muscles em ON ts.exercise_id = em.exercise_id
+    JOIN muscles m ON em.muscle_id = m.muscle_id
+    WHERE ts.done = 1
+    GROUP BY em.muscle_id, em.role
+    ORDER BY session_days DESC;
 """
 
 
@@ -175,6 +235,23 @@ def sync_exercises(conn: sqlite3.Connection) -> int:
                 _j(ex.get("equipment")),
                 ex.get("wger_id"),
             ))
+
+            # Muskel-Rollen aus Katalog-Kategorien auflösen
+            role_fields = [
+                ("primary",    ex.get("primary_muscles", [])),
+                ("secondary",  ex.get("secondary_muscles", [])),
+                ("stabilizer", ex.get("stabilizers", [])),
+            ]
+            for role, categories in role_fields:
+                for cat in (categories or []):
+                    for muscle_id in CATEGORY_MUSCLES.get(cat, []):
+                        conn.execute("""
+                            INSERT INTO exercise_muscles (exercise_id, muscle_id, role)
+                            VALUES (?,?,?)
+                            ON CONFLICT(exercise_id, muscle_id) DO UPDATE SET
+                                role=CASE WHEN excluded.role='primary' THEN 'primary'
+                                          ELSE role END
+                        """, (ex_id, muscle_id, role))
             count += 1
     conn.commit()
     return count
@@ -245,6 +322,31 @@ def sync_scores(conn: sqlite3.Connection) -> int:
     return count
 
 
+def sync_training(conn: sqlite3.Connection) -> int:
+    if not TRAINING_DB.exists():
+        return 0
+    src = sqlite3.connect(str(TRAINING_DB))
+    src.row_factory = sqlite3.Row
+    rows = src.execute(
+        "SELECT id, date, workout_id, exercise_id, sets, reps, weight, rpe, done "
+        "FROM training_history WHERE done=1"
+    ).fetchall()
+    src.close()
+    count = 0
+    for r in rows:
+        conn.execute("""
+            INSERT INTO training_sessions (id, date, workout_id, exercise_id, sets, reps, weight, rpe, done)
+            VALUES (?,?,?,?,?,?,?,?,?)
+            ON CONFLICT(id) DO UPDATE SET
+                sets=excluded.sets, reps=excluded.reps, weight=excluded.weight,
+                rpe=excluded.rpe, done=excluded.done
+        """, (r["id"], r["date"], r["workout_id"], r["exercise_id"],
+              r["sets"], r["reps"], r["weight"], r["rpe"], r["done"]))
+        count += 1
+    conn.commit()
+    return count
+
+
 def sync_all() -> dict:
     conn = connect()
     return {
@@ -252,6 +354,7 @@ def sync_all() -> dict:
         "exercises": sync_exercises(conn),
         "teaching":  sync_teaching(conn),
         "scores":    sync_scores(conn),
+        "sessions":  sync_training(conn),
     }
 
 

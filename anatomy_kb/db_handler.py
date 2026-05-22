@@ -36,7 +36,7 @@ async def sync(request: web.Request) -> web.Response:
 async def status(request: web.Request) -> web.Response:
     try:
         conn = _db.connect()
-        tables = ["muscles", "exercises", "exercise_muscles", "anatomy_teaching", "flashcard_scores"]
+        tables = ["muscles", "exercises", "exercise_muscles", "anatomy_teaching", "flashcard_scores", "training_sessions"]
         counts = {t: conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0] for t in tables}
         return _ok({"ok": True, "db": str(_db.DB_PATH), "tables": counts})
     except Exception as exc:
