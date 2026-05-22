@@ -22,22 +22,22 @@
 }
 
 [data-theme="latte"] {
-  --bg:         #f5f0e8;
-  --bg2:        #ebe5db;
-  --panel:      #e2dbd0;
-  --card:       #f0ebe3;
-  --card-hover: #e8e2d8;
-  --line:       #cdc4b6;
-  --ink:        #1e1c19;
-  --muted:      #6b6356;
-  --dim:        #9a9080;
-  --accent:     #0e7a73;
-  --accent-glow: rgba(14,122,115,0.08);
-  --green:      #16a34a;
-  --red:        #dc2626;
-  --orange:     #ea580c;
-  --glass:      rgba(226,219,208,0.85);
-  --glass-border: rgba(14,122,115,0.1);
+  --bg:         #eff1f5;
+  --bg2:        #e6e8ef;
+  --panel:      #dce0e8;
+  --card:       #e6e8ef;
+  --card-hover: #ccd0da;
+  --line:       #bcc0cc;
+  --ink:        #4c4f69;
+  --muted:      #5c5f77;
+  --dim:        #8c8fa1;
+  --accent:     #179299;
+  --accent-glow: rgba(23,146,153,0.1);
+  --green:      #40a02b;
+  --red:        #d20f39;
+  --orange:     #fe640b;
+  --glass:      rgba(230,232,239,0.88);
+  --glass-border: rgba(23,146,153,0.12);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
