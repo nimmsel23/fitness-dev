@@ -79,22 +79,22 @@
 }
 
 [data-theme="nordic"] {
-  --bg:         #d8dee9;
-  --bg2:        #cdd4e0;
-  --panel:      #c0c8d8;
-  --card:       #cdd4e0;
-  --card-hover: #bcc4d4;
-  --line:       #aab4c8;
-  --ink:        #2e3440;
-  --muted:      #4c566a;
-  --dim:        #7b8898;
-  --accent:     #5e81ac;
-  --accent-glow: rgba(94,129,172,0.12);
+  --bg:         #2e3440;
+  --bg2:        #3b4252;
+  --panel:      #2f3945;
+  --card:       #434c5e;
+  --card-hover: #4c566a;
+  --line:       #5e6a7a;
+  --ink:        #d8dee9;
+  --muted:      #666a73;
+  --dim:        #4a5060;
+  --accent:     #8fbcbb;
+  --accent-glow: rgba(143,188,187,0.12);
   --green:      #a3be8c;
   --red:        #bf616a;
   --orange:     #d08770;
-  --glass:      rgba(200,210,226,0.88);
-  --glass-border: rgba(94,129,172,0.12);
+  --glass:      rgba(47,52,63,0.88);
+  --glass-border: rgba(143,188,187,0.1);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
