@@ -23,7 +23,7 @@ const TABS = [
 ]
 
 export const DARK_THEMES  = ['honey', 'mocha', 'macchiato', 'frappe', 'sweet', 'nordic', 'nothing']
-export const LIGHT_THEMES = ['latte']
+export const LIGHT_THEMES = ['latte', 'arc', 'alucard', 'solarized']
 
 const DAY_START = 6
 const DAY_END   = 20
