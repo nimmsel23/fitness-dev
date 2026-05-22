@@ -69,13 +69,13 @@
   --ink:        #4c4f69;
   --muted:      #5c5f77;
   --dim:        #8c8fa1;
-  --accent:     #1e66f5;
-  --accent-glow: rgba(30,102,245,0.1);
+  --accent:     #7287fd;
+  --accent-glow: rgba(114,135,253,0.12);
   --green:      #40a02b;
   --red:        #d20f39;
   --orange:     #fe640b;
   --glass:      rgba(220,224,232,0.88);
-  --glass-border: rgba(30,102,245,0.1);
+  --glass-border: rgba(114,135,253,0.1);
 }
 
 [data-theme="nordic"] {
