@@ -31,6 +31,7 @@ from fitness_agent import teaching as teach_module
 from fitness_agent.paths import runtime_root
 
 PORT = 9200
+PUBLIC = Path(__file__).resolve().parent / "public"
 
 
 def create_app() -> web.Application:
@@ -65,6 +66,8 @@ def create_app() -> web.Application:
     app.router.add_post("/api/db/sync",                    dbh.sync)
     app.router.add_get("/api/db/status",                   dbh.status)
     app.router.add_get("/api/db/query",                    dbh.query)
+    if PUBLIC.exists():
+        app.router.add_static("/", PUBLIC, show_index=True)
     return app
 
 
