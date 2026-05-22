@@ -22,12 +22,27 @@ import sys
 from datetime import datetime, date, timezone
 from pathlib import Path
 
+import subprocess
+
 import typer
 from loguru import logger
 
 app = typer.Typer(add_completion=False)
 
-IMAP_HOST = "imap.gmail.com"
+IMAP_HOST  = "imap.gmail.com"
+
+
+def _notify(title: str, body: str) -> None:
+    try:
+        subprocess.run(
+            ["notify-send", "--app-name=fitness-mail", "--icon=heart", title, body],
+            env={**os.environ, "DBUS_SESSION_BUS_ADDRESS": "unix:path=/run/user/1000/bus"},
+            timeout=3,
+        )
+    except Exception as e:
+        logger.warning("notify-send fehlgeschlagen: {}", e)
+
+
 IMAP_PORT = 993
 BODY_DIR  = Path.home() / ".aos" / "fitness" / "body"
 
@@ -254,11 +269,10 @@ def handle_hr(subject: str, body_text: str, day: str) -> bool:
 def handle_weekly(subject: str, body_text: str, day: str) -> bool:
     """
     Fitbit Wöchentlicher Fortschrittsbericht (HTML-Email, deutsches Zahlenformat).
-    Felder: weekly_steps, weekly_distance_km, weekly_active_min, weekly_calories_avg.
+    Format geprüft 2026-05-21 gegen echte Fitbit-Mail (DE-Locale).
     """
-    # HTML-Tags entfernen
     clean = re.sub(r"<[^>]+>", " ", body_text)
-    clean = re.sub(r"&[a-z#\d]+;", " ", clean)
+    clean = re.sub(r"&#?[a-zA-Z\d]+;", " ", clean)
     clean = re.sub(r"\s+", " ", clean)
 
     def de_int(s: str) -> int:
@@ -269,24 +283,46 @@ def handle_weekly(subject: str, body_text: str, day: str) -> bool:
 
     data: dict = {}
 
+    # "52.360 Schritte insgesamt"
     m = re.search(r"([\d\.]+)\s+Schritte\s+insgesamt", clean, re.IGNORECASE)
     if m:
         try: data["weekly_steps"] = de_int(m.group(1))
         except ValueError: pass
 
+    # "39,43 km insgesamt"
     m = re.search(r"([\d,\.]+)\s*km\s+insgesamt", clean, re.IGNORECASE)
     if m:
         try: data["weekly_distance_km"] = de_float(m.group(1))
         except ValueError: pass
 
-    m = re.search(r"([\d\.]+)\s+(?:min\s+)?aktive\s+Minuten", clean, re.IGNORECASE)
+    # "33 Aktivzonenminuten insgesamt"
+    m = re.search(r"(\d+)\s+Aktivzonenminuten\s+insgesamt", clean, re.IGNORECASE)
     if m:
-        try: data["weekly_active_min"] = de_int(m.group(1))
+        try: data["weekly_active_min"] = int(m.group(1))
         except ValueError: pass
 
-    m = re.search(r"([\d\.]+)\s+(?:kcal|durchsch)", clean, re.IGNORECASE)
+    # "2.806 durchsch. verbrannte Kalorien pro Tag"
+    m = re.search(r"([\d\.]+)\s+durchsch", clean, re.IGNORECASE)
     if m:
         try: data["weekly_calories_avg"] = de_int(m.group(1))
+        except ValueError: pass
+
+    # "206 Etagen insgesamt"
+    m = re.search(r"([\d\.]+)\s+Etagen\s+insgesamt", clean, re.IGNORECASE)
+    if m:
+        try: data["weekly_floors"] = de_int(m.group(1))
+        except ValueError: pass
+
+    # "6 Std 19 Min durchschn. erholsamer Schlaf"
+    m = re.search(r"(\d+)\s+Std\s+(\d+)\s+Min\s+durchschn.*?Schlaf", clean, re.IGNORECASE)
+    if m:
+        try: data["weekly_sleep_h"] = round(int(m.group(1)) + int(m.group(2)) / 60, 2)
+        except ValueError: pass
+
+    # "68 SPM durchschn. Ruheherzfrequenz"
+    m = re.search(r"(\d+)\s+SPM\s+durchschn.*?Ruheherzfrequenz", clean, re.IGNORECASE)
+    if m:
+        try: data["weekly_resting_hr"] = int(m.group(1))
         except ValueError: pass
 
     if not data:
@@ -357,6 +393,22 @@ def poll() -> None:
             result = _dispatch(msg)
             if result:
                 imap.store(uid, "+FLAGS", "\\Seen")
+                day  = _date_from_msg(msg)
+                d    = _read_body(day)
+                lines = []
+                if "weight_kg" in d:
+                    lines.append(f"Gewicht: {d['weight_kg']} kg")
+                if "steps" in d:
+                    lines.append(f"Schritte: {d['steps']:,}")
+                if "active_min" in d:
+                    lines.append(f"Aktiv: {d['active_min']} min")
+                if "calories_burned" in d:
+                    lines.append(f"Kalorien: {d['calories_burned']} kcal")
+                if "sleep_h" in d:
+                    lines.append(f"Schlaf: {d['sleep_h']} h")
+                if "resting_hr" in d:
+                    lines.append(f"HR: {d['resting_hr']} bpm")
+                _notify(f"Fitbit {day}", "\n".join(lines) if lines else subject[:80])
             else:
                 logger.warning("kein Handler für: subject='{}'", subject)
 
