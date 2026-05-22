@@ -43,6 +43,7 @@ const DAY_END   = 20
 
 const DARK_THEMES  = [
   { id: 'mocha',   label: '🍯 Honey Night' },
+  { id: 'sweet',   label: '🔵 Sweet Amber' },
   { id: 'nothing', label: '⬛ Nothing' },
 ]
 const LIGHT_THEMES = [
@@ -236,7 +237,7 @@ export default function Settings({ themeMode, circDark, circLight, onSetThemeMod
         </div>
 
         <p style={{ ...labelCls, marginBottom: '0.4rem' }}>Dunkel</p>
-        <div className="grid grid-cols-2 gap-2 mb-4" style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
+        <div className="grid grid-cols-3 gap-2 mb-4" style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
           {DARK_THEMES.map(t => (
             <ThemeBtn key={t.id} label={t.label}
               active={circDark === t.id}
