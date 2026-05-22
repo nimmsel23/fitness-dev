@@ -77,6 +77,11 @@ export async function mirrorJournal(date, entry) {
   );
 }
 
+export async function getFirestoreStatus() {
+  const db = await getDb();
+  return { ok: db !== null, project: db ? PROJECT : null };
+}
+
 export async function mirrorPlan(plan) {
   const db = await getDb();
   if (!db) return;

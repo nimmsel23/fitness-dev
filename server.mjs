@@ -7,7 +7,7 @@ import { serve } from "@hono/node-server";
 import yaml from "js-yaml";
 import Database from "better-sqlite3";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
-import { mirrorSession, mirrorJournal } from "./firestore-mirror.mjs";
+import { mirrorSession, mirrorJournal, getFirestoreStatus } from "./firestore-mirror.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR   = path.join(os.homedir(), ".aos", "fitness");
@@ -630,6 +630,27 @@ app.post("/fitness/body", async (c) => {
 const themeFile = path.join(DATA_DIR, "theme.json");
 app.get("/theme",  (c) => c.json(readJson(themeFile, { theme: "mocha" })));
 app.post("/theme", async (c) => { writeJson(themeFile, await c.req.json().catch(() => ({}))); return c.json({ ok: true }); });
+
+// ── Firestore ─────────────────────────────────────────────────────────────────
+app.get("/firestore/status", async (c) => c.json(await getFirestoreStatus()));
+
+app.post("/firestore/sync", async (c) => {
+  const status = await getFirestoreStatus();
+  if (!status.ok) return c.json({ ok: false, error: "Firestore nicht verbunden" }, 503);
+  const sessDir = path.join(DATA_DIR, "sessions");
+  let synced = 0;
+  if (fs.existsSync(sessDir)) {
+    const files = fs.readdirSync(sessDir)
+      .filter(f => f.endsWith(".json") && !f.includes("history"))
+      .slice(-30);
+    for (const f of files) {
+      const date = f.replace(".json", "");
+      const data = readJson(path.join(sessDir, f));
+      if (data) { mirrorSession(date, data); synced++; }
+    }
+  }
+  return c.json({ ok: true, synced });
+});
 
 // ── Static / SPA fallback ─────────────────────────────────────────────────────
 app.get("*", async (c) => {

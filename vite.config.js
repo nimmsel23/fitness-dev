@@ -18,6 +18,7 @@ export default defineConfig({
       '/health':    BACKEND,
       '/export':    BACKEND,
       '/fitness':   BACKEND,
+      '/firestore': BACKEND,
     }
   },
   build: {
