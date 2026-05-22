@@ -70,7 +70,7 @@ function ThemeBtn({ label, active, onClick }) {
   )
 }
 
-export default function Settings({ theme, themeMode, circDark, circLight, onSetThemeMode, onSetManualTheme, onSetCircadianDark, onSetCircadianLight }) {
+export default function Settings({ themeMode, circDark, circLight, onSetThemeMode, onSetManualTheme, onSetCircadianDark, onSetCircadianLight }) {
   const { age, weight_kg, freq_per_week, split, hit_default, set } = useLocalSettings()
   const [health, setHealth] = useState(null)
   const [wger, setWger] = useState(null)
@@ -235,66 +235,56 @@ export default function Settings({ theme, themeMode, circDark, circLight, onSetT
           <h2 className="font-semibold text-base">Darstellung</h2>
         </div>
 
-        {/* Dark Themes */}
         <p style={{ ...labelCls, marginBottom: '0.4rem' }}>Dunkel</p>
-        <div className="grid grid-cols-2 gap-2 mb-3" style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
+        <div className="grid grid-cols-2 gap-2 mb-4" style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
           {DARK_THEMES.map(t => (
             <ThemeBtn key={t.id} label={t.label}
-              active={themeMode === 'manual' && theme === t.id}
-              onClick={() => onSetManualTheme(t.id)}
+              active={circDark === t.id}
+              onClick={() => {
+                onSetCircadianDark(t.id)
+                if (themeMode !== 'circadian') onSetManualTheme(t.id)
+              }}
             />
           ))}
         </div>
 
-        {/* Circadian */}
-        <p style={{ ...labelCls, marginBottom: '0.4rem' }}>Automatisch</p>
-        <div className="mb-3" style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
-          <ThemeBtn label="🌅 Circadian (Tag/Nacht automatisch)"
-            active={themeMode === 'circadian'}
-            onClick={() => onSetThemeMode('circadian')}
-          />
-        </div>
-
-        {/* Circadian pair picker — nur sichtbar wenn aktiv */}
-        {themeMode === 'circadian' && (
-          <div className="grid gap-2 mb-3">
-            <div style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.4rem 0.6rem', border: '1px solid var(--line)' }}>
-              <p style={{ ...labelCls, marginBottom: '0.3rem' }}>🌙 Nacht-Theme</p>
-              <div className="grid grid-cols-2 gap-1">
-                {DARK_THEMES.map(t => (
-                  <ThemeBtn key={t.id} label={t.label}
-                    active={circDark === t.id}
-                    onClick={() => onSetCircadianDark(t.id)}
-                  />
-                ))}
-              </div>
-            </div>
-            <div style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.4rem 0.6rem', border: '1px solid var(--line)' }}>
-              <p style={{ ...labelCls, marginBottom: '0.3rem' }}>☀️ Tag-Theme</p>
-              <div className="grid grid-cols-2 gap-1">
-                {LIGHT_THEMES.map(t => (
-                  <ThemeBtn key={t.id} label={t.label}
-                    active={circLight === t.id}
-                    onClick={() => onSetCircadianLight(t.id)}
-                  />
-                ))}
-              </div>
-            </div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--dim)', padding: '0 0.25rem' }}>
-              Aktiv: <strong style={{ color: 'var(--ink)' }}>{theme}</strong> · ☀️ {DAY_START}:00–{DAY_END}:00 · 🌙 {DAY_END}:00–{DAY_START}:00
-            </div>
-          </div>
-        )}
-
-        {/* Light Themes */}
         <p style={{ ...labelCls, marginBottom: '0.4rem' }}>Hell</p>
-        <div className="grid grid-cols-2 gap-2" style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
+        <div className="grid grid-cols-2 gap-2 mb-4" style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
           {LIGHT_THEMES.map(t => (
             <ThemeBtn key={t.id} label={t.label}
-              active={themeMode === 'manual' && theme === t.id}
-              onClick={() => onSetManualTheme(t.id)}
+              active={circLight === t.id}
+              onClick={() => {
+                onSetCircadianLight(t.id)
+                if (themeMode !== 'circadian') onSetManualTheme(t.id)
+              }}
             />
           ))}
+        </div>
+
+        <div className="flex items-center justify-between" style={{ background: 'var(--panel)', borderRadius: '0.6rem', padding: '0.6rem 0.85rem', border: '1px solid var(--line)' }}>
+          <div>
+            <span className="text-sm">🌅 Circadian</span>
+            {themeMode === 'circadian' && (
+              <span style={{ fontSize: '0.7rem', color: 'var(--dim)', marginLeft: '0.5rem' }}>
+                ☀️ {DAY_START}:00–{DAY_END}:00 · 🌙 {DAY_END}:00–{DAY_START}:00
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => onSetThemeMode(themeMode === 'circadian' ? 'manual' : 'circadian')}
+            style={{
+              width: '2.5rem', height: '1.4rem', borderRadius: '999px', border: 'none', cursor: 'pointer',
+              background: themeMode === 'circadian' ? 'var(--accent)' : 'var(--line)',
+              position: 'relative', transition: 'background 0.2s', flexShrink: 0,
+            }}
+          >
+            <span style={{
+              position: 'absolute', top: '0.15rem',
+              left: themeMode === 'circadian' ? '1.15rem' : '0.15rem',
+              width: '1.1rem', height: '1.1rem', borderRadius: '50%',
+              background: 'white', transition: 'left 0.2s',
+            }} />
+          </button>
         </div>
       </section>
 
