@@ -1,18 +1,25 @@
 const BASE = import.meta.env.VITE_API_BASE || ''
 
+function apiFetch(url, opts) {
+  const fn = window.aosOfflineQueue?.fetch ?? fetch
+  return fn(url, opts)
+}
+
 export const api = {
   async get(path) {
-    const res = await fetch(BASE + path, { cache: 'no-store' })
-    if (!res.ok) throw new Error(`GET ${path} → ${res.status}`)
+    const res = await apiFetch(BASE + path, { cache: 'no-store' })
+    if (!res.ok && !res.headers?.get?.('X-Source')?.startsWith('offline'))
+      throw new Error(`GET ${path} → ${res.status}`)
     return res.json()
   },
   async post(path, data) {
-    const res = await fetch(BASE + path, {
+    const res = await apiFetch(BASE + path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })
-    if (!res.ok) throw new Error(`POST ${path} → ${res.status}`)
+    // 202 = offline-queued, das ist ok
+    if (!res.ok && res.status !== 202) throw new Error(`POST ${path} → ${res.status}`)
     return res.json()
   }
 }

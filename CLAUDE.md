@@ -85,6 +85,29 @@ Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach
 
 ---
 
+## PWA / Offline
+
+**Service Worker** (`public/sw.js`, `fitness-v1`):
+- Install: `public/` statische Assets vorcachen
+- GET `/session*`, `/coverage*`, `/fitness/weekly`, `/plan/today`, `/blocks` → stale-while-revalidate (Cache sofort, Netz im Hintergrund)
+- Navigate → network-first + app-shell fallback
+- Hashed Vite-Assets → cache-first + runtime fill
+- Background Sync Tag `fitness-flush-queue` → flusht IDB-Queue beim Reconnect
+
+**Offline-Queue** (`public/offline-queue.js`):
+- IDB: `aos-offline-fitness` (stores: `queue`, `cache`)
+- `window.aosOfflineQueue.fetch` — drop-in für `fetch`, von `src/api.js` genutzt
+- GET offline → IDB-Cache zurückgeben statt Fehler
+- POST offline → in Queue einreihen, Background Sync registrieren, 202 zurück
+- Auto-flush beim `online`-Event
+
+**Firestore Sync** (`firestore-mirror.mjs`, firebase-admin):
+- Creds: `~/.env/firebase-fitness.json` (Service Account), Projekt: `fitness-aos`
+- Dual-write bei `POST /session` + `POST /journal` (fire-and-forget)
+- `/firestore/status` → Verbindungsstatus; `/firestore/sync` → letzte 30 Sessions pushen
+
+---
+
 ## Frontend (React + Vite)
 
 **src/views/**:
@@ -171,6 +194,8 @@ Port 5902 (dev), Proxy zu Backend API-Routen.
 | `/fitness/weekly?week=2025-W45` | GET | Wochenreport (week: "current" oder "YYYY-Www") |
 | `/fitness/export` | POST | Session/Plan/Sheet/Lesson-Export |
 | `/theme` | GET/POST | UI-Theme-Pref |
+| `/firestore/status` | GET | Firestore-Verbindungsstatus (`{ ok, project }`) |
+| `/firestore/sync` | POST | Letzte 30 Sessions → Firestore pushen |
 
 ---
 
@@ -255,8 +280,9 @@ Kein strukturierter Test-Suite. Manuelle Tests über Web-UI:
 - ✅ Session dual-write (JSON + SQLite via better-sqlite3)
 - ✅ BodyMap in Session-View (nur done exercises)
 - ✅ Gmail-Pipeline (bin/fitness-mail, Fitbit-Daten)
+- ✅ Firestore Sync (`/firestore/status` + `/firestore/sync`, firebase-admin, Creds: `~/.env/firebase-fitness.json`)
+- ✅ PWA Offline-Unterstützung (SW + IndexedDB offline-queue)
 - ⏳ AI Agent Workflow (Gemini → anatomy_teaching YAML-Generierung)
 - ⏳ body_highlighter_bridge.yml enabled: true (granulare Muskel-Visualisierung)
 - ⏳ Coverage-Granularität (primary/secondary/stabilizer)
 - ⏳ Anatomie-Lehre für alle Übungen
-- ⏳ PWA Offline-Unterstützung

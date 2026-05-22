@@ -99,22 +99,22 @@
 }
 
 [data-theme="dracula-purple"] {
-  --bg:         #1e1f29;
-  --bg2:        #282a36;
-  --panel:      #21222c;
-  --card:       #44475a;
-  --card-hover: #4e5268;
-  --line:       #6272a4;
+  --bg:         #1a1526;
+  --bg2:        #221d33;
+  --panel:      #1e1930;
+  --card:       #2d2645;
+  --card-hover: #38305a;
+  --line:       #4a3f6e;
   --ink:        #f8f8f2;
-  --muted:      #6272a4;
-  --dim:        #44475a;
-  --accent:     #7c60a3;
-  --accent-glow: rgba(124,96,163,0.13);
+  --muted:      #9580aa;
+  --dim:        #4a3f6e;
+  --accent:     #ff79c6;
+  --accent-glow: rgba(255,121,198,0.13);
   --green:      #50fa7b;
   --red:        #ff5555;
   --orange:     #ffb86c;
-  --glass:      rgba(33,34,44,0.9);
-  --glass-border: rgba(124,96,163,0.1);
+  --glass:      rgba(30,25,48,0.9);
+  --glass-border: rgba(255,121,198,0.12);
 }
 
 /* ── Nordic family ──────────────────────────────────────────── */
