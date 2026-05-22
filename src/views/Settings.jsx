@@ -209,7 +209,7 @@ export default function Settings({ theme, themeMode, onSetThemeMode, onSetManual
         {/* Mode-Auswahl */}
         <div className="grid grid-cols-3 gap-2 mb-3" style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
           {[
-            { id: 'manual-dark',  label: '🌙 Amber',    mode: 'manual',    theme: 'mocha' },
+            { id: 'manual-dark',  label: '🍯 Honey Night', mode: 'manual',  theme: 'mocha' },
             { id: 'circadian',    label: '🌅 Circadian', mode: 'circadian', theme: null },
             { id: 'manual-light', label: '☀️ Hell',     mode: 'manual',    theme: 'latte' },
           ].map(opt => {
