@@ -61,11 +61,11 @@
 
 [data-theme="latte"] {
   --bg:         #eff1f5;
-  --bg2:        #e6e8ef;
-  --panel:      #dce0e8;
-  --card:       #ccd0da;
-  --card-hover: #bcc0cc;
-  --line:       #acb0be;
+  --bg2:        #e8ebf2;
+  --panel:      #e2e5ed;
+  --card:       #dce0e8;
+  --card-hover: #d2d6e0;
+  --line:       #c4c8d4;
   --ink:        #4c4f69;
   --muted:      #5c5f77;
   --dim:        #8c8fa1;
