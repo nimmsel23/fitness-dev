@@ -27,18 +27,43 @@ function getHashTab() {
   return VALID_TABS.has(hash) ? hash : 'dash'
 }
 
+// Returns 'latte' between DAY_START and DAY_END, else 'mocha'
+const DAY_START = 6   // 06:00
+const DAY_END   = 20  // 20:00
+
+function circadianTheme() {
+  const h = new Date().getHours()
+  return h >= DAY_START && h < DAY_END ? 'latte' : 'mocha'
+}
+
+function loadThemeMode() {
+  return localStorage.getItem('fitness-theme-mode') || 'manual'
+}
+
 export default function App() {
   const [tab, setTab] = useState(getHashTab)
   const [theme, setTheme] = useState('mocha')
+  const [themeMode, setThemeModeState] = useState(loadThemeMode)
   const [sessionDate, setSessionDate] = useState(null)
   const [sessionDraft, setSessionDraft] = useState(null)
   const [inspectorExercise, setInspectorExercise] = useState(null)
 
+  // Load manual theme from server on first render (only when not circadian)
   useEffect(() => {
-    api.get('/theme').then(d => {
-      if (d?.theme) setTheme(d.theme)
-    }).catch(() => {})
+    if (loadThemeMode() !== 'circadian') {
+      api.get('/theme').then(d => {
+        if (d?.theme) setTheme(d.theme)
+      }).catch(() => {})
+    }
   }, [])
+
+  // Circadian: set theme immediately + update every minute
+  useEffect(() => {
+    if (themeMode !== 'circadian') return
+    setTheme(circadianTheme())
+    const id = setInterval(() => setTheme(circadianTheme()), 60_000)
+    return () => clearInterval(id)
+  }, [themeMode])
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme === 'latte' ? 'latte' : '')
@@ -64,10 +89,17 @@ export default function App() {
     setTab(id)
   }
 
-  function toggleTheme() {
-    const next = theme === 'mocha' ? 'latte' : 'mocha'
-    setTheme(next)
-    api.post('/theme', { theme: next }).catch(() => {})
+  function setThemeMode(mode) {
+    localStorage.setItem('fitness-theme-mode', mode)
+    setThemeModeState(mode)
+    if (mode === 'circadian') {
+      setTheme(circadianTheme())
+    }
+  }
+
+  function setManualTheme(t) {
+    setTheme(t)
+    api.post('/theme', { theme: t }).catch(() => {})
   }
 
   function openSession(date, draft = null) {
@@ -110,7 +142,7 @@ export default function App() {
           {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} />}
           {tab === 'journal'  && <Journal />}
           {tab === 'muscles'  && <Muscles />}
-          {tab === 'settings' && <Settings theme={theme} onToggleTheme={toggleTheme} />}
+          {tab === 'settings' && <Settings theme={theme} themeMode={themeMode} onSetThemeMode={setThemeMode} onSetManualTheme={setManualTheme} />}
         </div>
       </main>
 

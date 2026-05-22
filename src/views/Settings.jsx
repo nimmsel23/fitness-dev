@@ -38,7 +38,10 @@ export function useLocalSettings() {
   return { ...s, set }
 }
 
-export default function Settings({ theme, onToggleTheme }) {
+const DAY_START = 6
+const DAY_END   = 20
+
+export default function Settings({ theme, themeMode, onSetThemeMode, onSetManualTheme }) {
   const { age, weight_kg, freq_per_week, split, hit_default, set } = useLocalSettings()
   const [health, setHealth] = useState(null)
   const [wger, setWger] = useState(null)
@@ -202,15 +205,59 @@ export default function Settings({ theme, onToggleTheme }) {
           <Activity size={18} style={{ color: 'var(--muted)' }} />
           <h2 className="font-semibold text-base">Darstellung</h2>
         </div>
-        <div className="flex items-center justify-between" style={{ background: 'var(--panel)', borderRadius: '0.6rem', padding: '0.6rem 0.85rem', border: '1px solid var(--line)' }}>
-          <span className="text-sm">Theme</span>
-          <button
-            onClick={onToggleTheme}
-            style={{ fontSize: '0.8rem', padding: '0.3rem 0.85rem', borderRadius: '0.5rem', border: '1px solid var(--line)', background: 'var(--card)', color: 'var(--muted)', cursor: 'pointer' }}
-          >
-            {theme === 'mocha' ? '☀️ Hell' : '🌙 Dunkel'}
-          </button>
+
+        {/* Mode-Auswahl */}
+        <div className="grid grid-cols-3 gap-2 mb-3" style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
+          {[
+            { id: 'manual-dark',  label: '🌙 Dunkel',   mode: 'manual',    theme: 'mocha' },
+            { id: 'circadian',    label: '🌅 Circadian', mode: 'circadian', theme: null },
+            { id: 'manual-light', label: '☀️ Hell',     mode: 'manual',    theme: 'latte' },
+          ].map(opt => {
+            const active = opt.mode === 'circadian'
+              ? themeMode === 'circadian'
+              : themeMode === 'manual' && theme === opt.theme
+            return (
+              <button
+                key={opt.id}
+                onClick={() => {
+                  if (opt.mode === 'circadian') {
+                    onSetThemeMode('circadian')
+                  } else {
+                    onSetThemeMode('manual')
+                    onSetManualTheme(opt.theme)
+                  }
+                }}
+                style={{
+                  padding: '0.5rem 0.25rem',
+                  borderRadius: '0.55rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                  fontWeight: active ? '700' : '400',
+                  background: active ? 'var(--accent-glow)' : 'transparent',
+                  color: active ? 'var(--accent)' : 'var(--muted)',
+                  outline: active ? '1px solid var(--accent)' : '1px solid transparent',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {opt.label}
+              </button>
+            )
+          })}
         </div>
+
+        {/* Circadian-Info */}
+        {themeMode === 'circadian' && (
+          <div style={{ background: 'var(--panel)', borderRadius: '0.6rem', padding: '0.6rem 0.85rem', border: '1px solid var(--line)', fontSize: '0.75rem', color: 'var(--muted)' }}>
+            <div className="flex items-center justify-between mb-1">
+              <span>Aktuelles Theme</span>
+              <span style={{ color: 'var(--ink)', fontWeight: 600 }}>{theme === 'latte' ? '☀️ Hell' : '🌙 Dunkel'}</span>
+            </div>
+            <div style={{ color: 'var(--dim)' }}>
+              ☀️ {DAY_START}:00–{DAY_END}:00 · 🌙 {DAY_END}:00–{DAY_START}:00
+            </div>
+          </div>
+        )}
       </section>
 
       {/* System */}
