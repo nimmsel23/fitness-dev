@@ -41,14 +41,17 @@ export function useLocalSettings() {
 const DAY_START = 6
 const DAY_END   = 20
 
-const DARK_THEMES  = [
-  { id: 'mocha',   label: '🍯 Honey Night' },
-  { id: 'sweet',   label: '🔵 Sweet Amber' },
-  { id: 'nordic',  label: '❄️ Nordic' },
-  { id: 'nothing', label: '⬛ Nothing' },
+const DARK_THEMES = [
+  { id: 'honey',     label: '🍯 Honey Night' },
+  { id: 'mocha',     label: '🐱 Mocha' },
+  { id: 'macchiato', label: '🐱 Macchiato' },
+  { id: 'frappe',    label: '🐱 Frappé' },
+  { id: 'sweet',     label: '🔵 Sweet Amber' },
+  { id: 'nordic',    label: '❄️ Nordic' },
+  { id: 'nothing',   label: '⬛ Nothing' },
 ]
 const LIGHT_THEMES = [
-  { id: 'latte',  label: '☀️ Latte' },
+  { id: 'latte', label: '🐱 Latte' },
 ]
 
 function ThemeBtn({ label, active, onClick }) {

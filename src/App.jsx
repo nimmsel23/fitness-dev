@@ -22,8 +22,8 @@ const TABS = [
   { id: 'settings', label: 'Setup',    Icon: Settings2 },
 ]
 
-export const DARK_THEMES  = ['mocha', 'nothing']
-export const LIGHT_THEMES = ['latte', 'nordic']
+export const DARK_THEMES  = ['honey', 'mocha', 'macchiato', 'frappe', 'sweet', 'nordic', 'nothing']
+export const LIGHT_THEMES = ['latte']
 
 const DAY_START = 6
 const DAY_END   = 20
@@ -42,15 +42,15 @@ function savePref(key, val) {
 }
 
 function applyTheme(t) {
-  document.documentElement.setAttribute('data-theme', t === 'mocha' ? '' : t)
+  document.documentElement.setAttribute('data-theme', t === 'honey' ? '' : t)
 }
 
 export default function App() {
   const [tab, setTab]             = useState(getHashTab)
-  const [theme, setThemeState]    = useState(() => loadPref('fitness-theme', 'mocha'))
+  const [theme, setThemeState]    = useState(() => loadPref('fitness-theme', 'honey'))
   const [themeMode, setModeState] = useState(() => loadPref('fitness-theme-mode', 'manual'))
   // Circadian: which dark + which light to use
-  const [circDark,  setCircDark]  = useState(() => loadPref('fitness-circ-dark',  'mocha'))
+  const [circDark,  setCircDark]  = useState(() => loadPref('fitness-circ-dark',  'honey'))
   const [circLight, setCircLight] = useState(() => loadPref('fitness-circ-light', 'latte'))
   const [sessionDate, setSessionDate]   = useState(null)
   const [sessionDraft, setSessionDraft] = useState(null)
