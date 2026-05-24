@@ -196,6 +196,17 @@ export async function getHabits() {
   }));
 }
 
+export async function addHabit(name) {
+  return await addDoc(collection(db, "fitness", getUid(), "habits"), {
+    name,
+    created_at: serverTimestamp()
+  });
+}
+
+export async function deleteHabit(uuid) {
+  await setDoc(doc(db, "fitness", getUid(), "habits", uuid), { deleted: true }, { merge: true });
+}
+
 export async function recordHabit(uuid) {
   const today = todayISO();
   const ref = doc(db, "fitness", getUid(), "habitRecords", `${uuid}_${today}`);

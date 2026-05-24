@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Check } from 'lucide-react'
-import { getHabits, recordHabit } from '../db.js'
+import { Check, Plus, Trash2 } from 'lucide-react'
+import { getHabits, recordHabit, addHabit, deleteHabit } from '../db.js'
 
 function epochDayNow() {
   return Math.floor(Date.now() / 86400000)
@@ -11,125 +11,63 @@ function todayCompletion(habit, todayEpochDay) {
   return rec?.completion || 'MISSED'
 }
 
-function compactStatusLabel(completion) {
-  if (completion === 'DONE') return 'Done'
-  if (completion === 'PARTIAL') return 'Partial'
-  return 'Missed'
-}
-
 export default function HabitWidget() {
   const [habits, setHabits] = useState([])
   const [loading, setLoading] = useState(true)
-  const [err, setErr] = useState('')
+  const [newHabit, setNewHabit] = useState('')
   const todayEpochDay = useMemo(() => epochDayNow(), [])
 
-  useEffect(() => {
-    let alive = true
+  async function load() {
+    setLoading(true)
+    const data = await getHabits()
+    setHabits(data.filter(h => !h.deleted))
+    setLoading(false)
+  }
 
-    async function load() {
-      setLoading(true)
-      setErr('')
-      try {
-        const data = await getHabits()
-        if (!alive) return
-        setHabits(data)
-      } catch (e) {
-        if (!alive) return
-        setErr('Habits nicht erreichbar')
-        setHabits([])
-      } finally {
-        if (!alive) return
-        setLoading(false)
-      }
-    }
-
-    load()
-    return () => { alive = false }
-  }, [])
+  useEffect(() => { load() }, [])
 
   async function checkIn(uuid) {
-    // Optimistic update: mark as DONE for today locally.
-    setHabits(prev => prev.map(h => {
-      if (h.uuid !== uuid) return h
-      const records = Array.isArray(h.records) ? [...h.records] : []
-      const i = records.findIndex(r => r.epochDay === todayEpochDay)
-      const nextRec = { epochDay: todayEpochDay, recordValue: 1.0, completion: 'DONE' }
-      if (i >= 0) records[i] = { ...records[i], ...nextRec }
-      else records.push(nextRec)
-      return { ...h, records }
-    }))
+    await recordHabit(uuid)
+    load()
+  }
 
-    try {
-      await recordHabit(uuid)
-    } catch {
-      // Revert on failure.
-      setHabits(prev => prev.map(h => {
-        if (h.uuid !== uuid) return h
-        const records = (h.records || []).filter(r => r.epochDay !== todayEpochDay)
-        return { ...h, records }
-      }))
-      setErr('Check-in fehlgeschlagen')
-      setTimeout(() => setErr(''), 1800)
-    }
+  async function handleAdd() {
+    if (!newHabit.trim()) return
+    await addHabit(newHabit.trim())
+    setNewHabit('')
+    load()
+  }
+
+  async function handleDelete(uuid) {
+    await deleteHabit(uuid)
+    load()
   }
 
   return (
-    <div className="mb-4">
-      <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>
-        Habits (heute)
+    <div className="card">
+      <div className="label-caps mb-3">Habits (heute)</div>
+
+      <div className="flex gap-2 mb-4">
+        <input type="text" value={newHabit} onChange={e => setNewHabit(e.target.value)}
+          placeholder="Neuer Habit..." className="flex-1" />
+        <button onClick={handleAdd} className="btn btn-secondary"><Plus size={18} /></button>
       </div>
 
-      {loading && (
-        <div className="text-sm" style={{ color: 'var(--dim)' }}>Lade…</div>
-      )}
+      {loading && <div className="text-sm text-dim">Lade...</div>}
 
-      {!loading && err && (
-        <div className="text-sm" style={{ color: 'var(--red)' }}>{err}</div>
-      )}
-
-      {!loading && !err && habits.length === 0 && (
-        <div className="text-sm" style={{ color: 'var(--dim)' }}>Keine Habits definiert.</div>
-      )}
-
-      <div className="flex flex-col gap-2">
+      <div className="space-y-2">
         {habits.map(h => {
-          const completion = todayCompletion(h, todayEpochDay)
-          const done = completion === 'DONE'
+          const done = todayCompletion(h, todayEpochDay) === 'DONE'
           return (
-            <div
-              key={h.uuid}
-              className="p-3 rounded-2xl flex items-center justify-between"
-              style={{
-                background: 'var(--card)',
-                border: '1px solid var(--line)',
-                borderLeft: done ? '3px solid var(--green)' : '3px solid transparent',
-              }}
-            >
-              <div style={{ minWidth: 0 }}>
-                <div className="text-sm font-semibold truncate" style={{ color: 'var(--ink)' }}>
-                  {h.name || 'Habit'}
-                </div>
-                <div className="text-[11px] font-semibold uppercase tracking-widest"
-                  style={{ color: done ? 'var(--green)' : 'var(--dim)' }}>
-                  {compactStatusLabel(completion)}
-                </div>
-              </div>
-
+            <div key={h.uuid} className={`p-3 rounded-xl flex items-center justify-between border ${done ? 'bg-green/10 border-green/20' : 'bg-bg2 border-line'}`}>
+              <span className="font-semibold text-sm">{h.name}</span>
               <div className="flex items-center gap-2">
                 {done ? (
-                  <div className="flex items-center gap-1 text-xs font-semibold"
-                    style={{ color: 'var(--green)' }}>
-                    <Check size={16} />
-                  </div>
+                  <Check size={20} className="text-green" />
                 ) : (
-                  <button
-                    onClick={() => checkIn(h.uuid)}
-                    className="text-xs px-3 py-2 rounded-xl border font-semibold"
-                    style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}
-                  >
-                    Abhaken
-                  </button>
+                  <button onClick={() => checkIn(h.uuid)} className="btn btn-primary py-1 px-3 text-xs">Check</button>
                 )}
+                <button onClick={() => handleDelete(h.uuid)} className="text-dim hover:text-red"><Trash2 size={16}/></button>
               </div>
             </div>
           )
