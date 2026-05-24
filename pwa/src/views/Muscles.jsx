@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getSessionHistory } from "../db.js";
+import { getSessionHistory, getAllExercises } from "../db.js";
 import BodyMap from "../components/BodyMap.jsx";
 
 const DAYS_OPTIONS = [7, 14, 28];
@@ -9,21 +9,35 @@ export default function Muscles() {
   const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(false);
 
-      useEffect(() => {
+  useEffect(() => {
     setLoading(true);
-    getSessionHistory(days * 2).then(sessions => {
+    Promise.all([
+      getSessionHistory(days * 2),
+      getAllExercises()
+    ]).then(([sessions, kbExercises]) => {
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - days);
       const cutoffStr = cutoff.toISOString().slice(0, 10);
       
+      // Map KB for quick lookup by name
+      const kbMap = new Map();
+      kbExercises.forEach(ex => {
+        kbMap.set((ex.display_name || ex.name).toLowerCase(), ex);
+      });
+      
       const inRange = sessions
         .filter(s => s.date >= cutoffStr)
         .flatMap(s => s.exercises || [])
-        .filter(ex => ex.done);
-      
-      console.log("Muscles - session count:", sessions.length);
-      console.log("Muscles - exercises found:", inRange.length);
-      console.log("Muscles - first exercise:", inRange[0]);
+        .filter(ex => ex.done)
+        .map(ex => {
+          // Enrich with KB data if available
+          const kbEx = kbMap.get((ex.name || "").toLowerCase());
+          return {
+            ...ex,
+            primaryMuscles: kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [],
+            secondaryMuscles: kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || []
+          };
+        });
       
       setExercises(inRange);
     }).catch(() => setExercises([])).finally(() => setLoading(false));
