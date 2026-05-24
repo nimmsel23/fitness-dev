@@ -30,7 +30,7 @@ function fmtDate(iso) {
   return `${d}.${m}.`
 }
 
-function ExCard({ ex, i, updateEx, removeEx, prev }) {
+function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast }) {
   const num = (v) => {
     if (v === null || v === undefined) return null
     const s = String(v).trim().replace(',', '.')
@@ -69,7 +69,7 @@ function ExCard({ ex, i, updateEx, removeEx, prev }) {
 
   return (
     <div className="card border-l-4 border-accent relative mb-3 p-4">
-      <div className="font-bold text-sm mb-4 pr-7 leading-tight">
+      <div className="font-bold text-sm mb-4 pr-16 leading-tight">
         {ex.name || <span className="text-dim italic">Übung</span>}
         {prev && !ex.isHIT && (
           <div className="text-[11px] text-dim font-mono mt-1">
@@ -80,8 +80,13 @@ function ExCard({ ex, i, updateEx, removeEx, prev }) {
         )}
       </div>
 
-      <button onClick={() => removeEx(i)} className="absolute top-2.5 right-2.5 text-dim text-xl hover:text-red transition-colors">
-        ×
+      <div className="absolute top-2 right-2 flex flex-col gap-1">
+        <button onClick={() => moveEx(i, -1)} disabled={isFirst} className="text-dim hover:text-accent disabled:opacity-20 text-lg">↑</button>
+        <button onClick={() => moveEx(i, 1)} disabled={isLast} className="text-dim hover:text-accent disabled:opacity-20 text-lg">↓</button>
+      </div>
+      
+      <button onClick={() => removeEx(i)} className="absolute bottom-2 right-2.5 text-dim text-sm hover:text-red transition-colors">
+        Löschen
       </button>
 
       <div className={`grid items-center gap-1.5 mb-3 ${ex.isHIT ? 'grid-cols-[1fr]' : 'grid-cols-[1fr_18px_1fr_18px_1fr]'}`}>
@@ -179,6 +184,17 @@ export default function Session({ initialDate }) {
     setExercises(prev => prev.map((ex, idx) => idx === i ? { ...ex, [field]: value } : ex))
   }
 
+  function moveEx(i, direction) {
+    if (i + direction < 0 || i + direction >= exercises.length) return
+    setExercises(prev => {
+      const next = [...prev]
+      const temp = next[i]
+      next[i] = next[i + direction]
+      next[i + direction] = temp
+      return next
+    })
+  }
+
   function removeEx(i) {
     setExercises(prev => prev.filter((_, idx) => idx !== i))
   }
@@ -242,7 +258,17 @@ export default function Session({ initialDate }) {
       <SectionHeader>Übungen</SectionHeader>
       <div className="flex flex-col gap-2 mb-4">
         {exercises.map((ex, idx) => (
-          <ExCard key={idx} ex={ex} i={idx} updateEx={updateEx} removeEx={removeEx} prev={prevMap[ex.name]} />
+          <ExCard 
+            key={idx} 
+            ex={ex} 
+            i={idx} 
+            updateEx={updateEx} 
+            removeEx={removeEx} 
+            moveEx={moveEx}
+            isFirst={idx === 0}
+            isLast={idx === exercises.length - 1}
+            prev={prevMap[ex.name]} 
+          />
         ))}
         {exercises.length === 0 && <p className="text-center py-8 text-sm opacity-40">Keine Übungen — suche oder nutze Quick Entry</p>}
       </div>
