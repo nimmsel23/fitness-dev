@@ -42,10 +42,9 @@ function ExCard({ ex, i, updateEx, removeEx, prev }) {
   const setsN = num(ex.sets)
   const repsN = num(ex.reps)
   const weightN = num(ex.weight)
-  const volume = (setsN !== null && repsN !== null && weightN !== null) ? (setsN * repsN * weightN) : null
+  const volume = (!ex.isHIT && setsN !== null && repsN !== null && weightN !== null) ? (setsN * repsN * weightN) : null
 
   const metricInput = (key, mode) => {
-    const disabled = ex.isHIT && (key === 'sets' || key === 'reps')
     return (
       <div className="flex flex-col items-center gap-1.5">
         <input
@@ -53,14 +52,12 @@ function ExCard({ ex, i, updateEx, removeEx, prev }) {
           inputMode={mode}
           placeholder="—"
           value={ex[key] || ''}
-          disabled={disabled}
           onChange={e => updateEx(i, key, e.target.value)}
           className="text-center font-mono font-extrabold text-3xl p-2 rounded-xl"
           style={{
             width: '100%',
-            background: disabled ? 'transparent' : 'var(--bg2)',
-            border: `1px solid ${disabled ? 'transparent' : 'var(--line)'}`,
-            opacity: disabled ? 0.2 : 1,
+            background: 'var(--bg2)',
+            border: `1px solid var(--line)`,
           }}
         />
         <div className="label-caps !text-[8px]">
@@ -74,7 +71,7 @@ function ExCard({ ex, i, updateEx, removeEx, prev }) {
     <div className="card border-l-4 border-accent relative mb-3 p-4">
       <div className="font-bold text-sm mb-4 pr-7 leading-tight">
         {ex.name || <span className="text-dim italic">Übung</span>}
-        {prev && (
+        {prev && !ex.isHIT && (
           <div className="text-[11px] text-dim font-mono mt-1">
             {[prev.sets, prev.reps].filter(Boolean).join('×')}
             {prev.weight ? ` @ ${prev.weight} kg` : ''}
@@ -87,11 +84,11 @@ function ExCard({ ex, i, updateEx, removeEx, prev }) {
         ×
       </button>
 
-      <div className="grid grid-cols-[1fr_18px_1fr_18px_1fr] items-center gap-1.5 mb-3">
-        {metricInput('sets', 'numeric')}
-        <div className="text-dim text-center">×</div>
-        {metricInput('reps', 'numeric')}
-        <div className="text-dim text-center">@</div>
+      <div className={`grid items-center gap-1.5 mb-3 ${ex.isHIT ? 'grid-cols-[1fr]' : 'grid-cols-[1fr_18px_1fr_18px_1fr]'}`}>
+        {!ex.isHIT && metricInput('sets', 'numeric')}
+        {!ex.isHIT && <div className="text-dim text-center">×</div>}
+        {!ex.isHIT && metricInput('reps', 'numeric')}
+        {!ex.isHIT && <div className="text-dim text-center">@</div>}
         {metricInput('weight', 'decimal')}
       </div>
 
@@ -187,6 +184,7 @@ export default function Session({ initialDate }) {
   }
 
   const totalVolume = exercises.reduce((sum, ex) => {
+    if (ex.isHIT) return sum
     const s = parseFloat(ex.sets), r = parseFloat(ex.reps), w = parseFloat(ex.weight)
     return (isFinite(s) && isFinite(r) && isFinite(w)) ? sum + s * r * w : sum
   }, 0)
