@@ -151,12 +151,12 @@ export default function Session({ initialDate }) {
 
   function addEx(ex) {
     setExercises(prev => [...prev, {
-      name: ex.name,
-      primaryMuscles: ex.primaryMuscles || [],
-      secondaryMuscles: ex.secondaryMuscles || [],
+      name: ex.display_name || ex.name,
+      primaryMuscles: ex.primary_muscles || ex.primaryMuscles || [],
+      secondaryMuscles: ex.secondary_muscles || ex.secondaryMuscles || [],
       sets: '', reps: '', weight: '', note: '', done: true, isHIT: false,
     }])
-    showToast(`+ ${ex.name}`)
+    showToast(`+ ${ex.display_name || ex.name}`)
   }
 
   function addQuick() {

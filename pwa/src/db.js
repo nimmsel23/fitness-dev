@@ -263,11 +263,14 @@ export async function getCoverageGaps(days = 7) {
     const session = await getSession(date);
     for (const ex of (session?.exercises || [])) {
       if (!ex.done) continue;
-      for (const m of (ex.primaryMuscles || [])) {
+      const primary = ex.primaryMuscles || ex.primary_muscles || [];
+      const secondary = ex.secondaryMuscles || ex.secondary_muscles || [];
+      
+      for (const m of primary) {
         const id = muscleToGroupId(m);
         if (id) hits[id] = (hits[id] || 0) + 1;
       }
-      for (const m of (ex.secondaryMuscles || [])) {
+      for (const m of secondary) {
         const id = muscleToGroupId(m);
         if (id) hits[id] = (hits[id] || 0) + 0.5;
       }
