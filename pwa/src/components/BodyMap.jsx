@@ -36,27 +36,34 @@ export function exercisesToModelData(exercises) {
   const rbhScores = {}
 
   for (const ex of exercises) {
-    const primary   = ex.wger_muscle_ids?.primary   || []
-    const secondary = ex.wger_muscle_ids?.secondary || []
+    // Priority: use the labels directly from the exercise catalog
+    const primary   = ex.primaryMuscles || ex.primary_muscles || []
+    const secondary = ex.secondaryMuscles || ex.secondary_muscles || []
 
     if (primary.length || secondary.length) {
-      for (const id of primary) { const m = WGER_TO_RBH[id]; if (m) rbhScores[m] = (rbhScores[m] || 0) + 2 }
-      for (const id of secondary) { const m = WGER_TO_RBH[id]; if (m) rbhScores[m] = (rbhScores[m] || 0) + 1 }
-    } else {
-      const allLabels = [...(ex.primaryMuscles || []), ...(ex.secondaryMuscles || [])]
-      for (const label of allLabels) {
-        const lowerLabel = label.toLowerCase()
-        let group = null
-        for (const [key, g] of Object.entries(LABEL_TO_GROUP)) {
-          if (lowerLabel.includes(key)) { group = g; break }
-        }
+      for (const label of primary) {
+        const group = LABEL_TO_GROUP[label.toLowerCase()]
         if (group) {
-          const weight = (ex.primaryMuscles || []).includes(label) ? 2 : 1
-          for (const m of (GROUP_TO_RBH[group] || [])) {
-            rbhScores[m] = (rbhScores[m] || 0) + weight
-          }
+           for (const m of (GROUP_TO_RBH[group] || [])) {
+             rbhScores[m] = (rbhScores[m] || 0) + 2
+           }
         }
       }
+      for (const label of secondary) {
+        const group = LABEL_TO_GROUP[label.toLowerCase()]
+        if (group) {
+           for (const m of (GROUP_TO_RBH[group] || [])) {
+             rbhScores[m] = (rbhScores[m] || 0) + 1
+           }
+        }
+      }
+    } else {
+      // Fallback: WGER IDs if catalog labels are missing
+      const wPrimary = ex.wger_muscle_ids?.primary || []
+      const wSecondary = ex.wger_muscle_ids?.secondary || []
+      
+      for (const id of wPrimary) { const m = WGER_TO_RBH[id]; if (m) rbhScores[m] = (rbhScores[m] || 0) + 2 }
+      for (const id of wSecondary) { const m = WGER_TO_RBH[id]; if (m) rbhScores[m] = (rbhScores[m] || 0) + 1 }
     }
   }
 
