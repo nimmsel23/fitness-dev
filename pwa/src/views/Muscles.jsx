@@ -46,11 +46,11 @@ export default function Muscles() {
           <div className="p-6 rounded-2xl border mb-6 flex justify-center gap-12" style={{ background: 'var(--card)', borderColor: 'var(--line)' }}>
             <div className="text-center">
               <div className="text-[9px] font-black uppercase tracking-widest opacity-30 mb-2">Vorne</div>
-              <BodyMap exercises={exercises} style={{ maxWidth: 140 }} />
+              <BodyMap exercises={exercises} highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 140 }} />
             </div>
             <div className="text-center">
               <div className="text-[9px] font-black uppercase tracking-widest opacity-30 mb-2">Hinten</div>
-              <BodyMap exercises={exercises} type="posterior" style={{ maxWidth: 140 }} />
+              <BodyMap exercises={exercises} type="posterior" highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 140 }} />
             </div>
           </div>
 

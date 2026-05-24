@@ -3,6 +3,7 @@ import { Zap, TrendingUp, AlertCircle, Download, Activity, Dumbbell } from "luci
 import { getSession, getRecentSessions, getPlan, getLatestSession, getCoverageGaps, exportCsv } from "../db.js";
 import HabitWidget from "../components/HabitWidget.jsx";
 import WeightChart from "../components/WeightChart.jsx";
+import BodyMap from "../components/BodyMap.jsx";
 
 const DAY_LABELS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
@@ -109,6 +110,14 @@ export default function Dashboard({ onNavigate }) {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      <div className="mb-4 card">
+        <h3 className="label-caps mb-3">Muskel-Coverage</h3>
+        <div className="flex justify-center gap-4">
+          <BodyMap exercises={recent.flatMap(s => s.exercises || []).filter(e => e.done)} highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 100 }} />
+          <BodyMap exercises={recent.flatMap(s => s.exercises || []).filter(e => e.done)} type="posterior" highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 100 }} />
         </div>
       </div>
 
