@@ -349,7 +349,41 @@ export async function getWeeklyReport(selector = "current") {
   };
 }
 
-// ── Export CSV ────────────────────────────────────────────────────────────────
+// ── Progress Tracking ─────────────────────────────────────────────────────────
+
+export async function getProgressTrend(exerciseName, lastN = 4) {
+  const history = await getSessionHistory(lastN * 7); // Load enough sessions
+  
+  // Extract sessions containing this exercise, sorted by date desc
+  const sessions = history
+    .filter(s => s.exercises?.some(ex => ex.name === exerciseName))
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  if (sessions.length < 2) return { status: 'neutral', message: 'Nicht genug Daten' };
+
+  // Calculate volume per session for this exercise
+  const volumes = sessions.map(s => {
+    const ex = s.exercises.find(e => e.name === exerciseName);
+    if (!ex || ex.isHIT) return null; // Ignore HIT in volume trend
+    const sN = parseFloat(ex.sets), rN = parseFloat(ex.reps), wN = parseFloat(ex.weight);
+    return (isFinite(sN) && isFinite(rN) && isFinite(wN)) ? sN * rN * wN : null;
+  }).filter(v => v !== null);
+
+  if (volumes.length < 2) return { status: 'neutral', message: 'Zu wenig Volumen-Daten' };
+
+  // Simple Trend: Compare last session with the average of previous ones (excluding deload if 4th)
+  const current = volumes[0];
+  const previous = volumes.slice(1, lastN);
+  
+  // Deload detection: If we have 4 weeks, consider 4th as deload (optional tolerance)
+  // Here: Just simple average of available data points for robust trend
+  const avgPrevious = previous.reduce((a, b) => a + b, 0) / previous.length;
+  const pctChange = ((current - avgPrevious) / avgPrevious) * 100;
+
+  if (pctChange > 5) return { status: 'up', change: pctChange.toFixed(1) };
+  if (pctChange < -5) return { status: 'down', change: pctChange.toFixed(1) };
+  return { status: 'neutral', change: pctChange.toFixed(1) };
+}
 
 export async function exportCsv(days = 14) {
   const today = new Date();
