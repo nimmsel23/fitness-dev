@@ -239,13 +239,6 @@ export default function Session({ initialDate }) {
         ))}
       </div>
 
-      {exercises.length > 0 && (
-        <div className="mb-6 flex justify-center gap-4 card">
-          <BodyMap exercises={exercises} type="anterior" />
-          <BodyMap exercises={exercises} type="posterior" />
-        </div>
-      )}
-
       <SectionHeader>Übungen</SectionHeader>
       <div className="flex flex-col gap-2 mb-4">
         {exercises.map((ex, idx) => (

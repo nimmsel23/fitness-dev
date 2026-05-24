@@ -9,7 +9,7 @@ export default function Muscles() {
   const [exercises, setExercises] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
+      useEffect(() => {
     setLoading(true);
     getSessionHistory(days * 2).then(sessions => {
       const cutoff = new Date();
@@ -20,7 +20,7 @@ export default function Muscles() {
         .filter(s => s.date >= cutoffStr)
         .flatMap(s => s.exercises || [])
         .filter(ex => ex.done);
-        
+      
       setExercises(inRange);
     }).catch(() => setExercises([])).finally(() => setLoading(false));
   }, [days]);
