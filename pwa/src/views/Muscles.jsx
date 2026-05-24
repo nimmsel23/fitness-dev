@@ -21,6 +21,10 @@ export default function Muscles() {
         .flatMap(s => s.exercises || [])
         .filter(ex => ex.done);
       
+      console.log("Muscles - session count:", sessions.length);
+      console.log("Muscles - exercises found:", inRange.length);
+      console.log("Muscles - first exercise:", inRange[0]);
+      
       setExercises(inRange);
     }).catch(() => setExercises([])).finally(() => setLoading(false));
   }, [days]);

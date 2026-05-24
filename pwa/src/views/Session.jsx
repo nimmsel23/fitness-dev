@@ -46,8 +46,34 @@ function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast }) {
     const n = Number(s)
     return Number.isFinite(n) ? n : null
   }
-  
-  // ... (rest of the component logic) ...
+
+  const metricInput = (key, mode) => {
+    return (
+      <div className="flex flex-col items-center gap-1.5">
+        <input
+          type="text"
+          inputMode={mode}
+          placeholder="—"
+          value={ex[key] || ''}
+          onChange={e => updateEx(i, key, e.target.value)}
+          className="text-center font-mono font-extrabold text-3xl p-2 rounded-xl"
+          style={{
+            width: '100%',
+            background: 'var(--bg2)',
+            border: `1px solid var(--line)`,
+          }}
+        />
+        <div className="label-caps !text-[8px]">
+          {{ sets: 'Sätze', reps: 'Wdhl', weight: 'kg' }[key]}
+        </div>
+      </div>
+    )
+  }
+
+  const setsN = num(ex.sets)
+  const repsN = num(ex.reps)
+  const weightN = num(ex.weight)
+  const volume = (!ex.isHIT && setsN !== null && repsN !== null && weightN !== null) ? (setsN * repsN * weightN) : null
 
   return (
     <div className="card border-l-4 border-accent relative mb-3 p-4">
@@ -78,11 +104,11 @@ function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast }) {
         Löschen
       </button>
 
-      <div className="grid grid-cols-[1fr_18px_1fr_18px_1fr] items-center gap-1.5 mb-3">
-        {ex.isHIT ? <div /> : metricInput('sets', 'numeric')}
-        {ex.isHIT ? <div /> : <div className="text-dim text-center">×</div>}
-        {ex.isHIT ? <div /> : metricInput('reps', 'numeric')}
-        {ex.isHIT ? <div /> : <div className="text-dim text-center">@</div>}
+      <div className={`grid items-center gap-1.5 mb-3 ${ex.isHIT ? 'grid-cols-[1fr]' : 'grid-cols-[1fr_18px_1fr_18px_1fr]'}`}>
+        {!ex.isHIT && metricInput('sets', 'numeric')}
+        {!ex.isHIT && <div className="text-dim text-center">×</div>}
+        {!ex.isHIT && metricInput('reps', 'numeric')}
+        {!ex.isHIT && <div className="text-dim text-center">@</div>}
         {metricInput('weight', 'decimal')}
       </div>
 
