@@ -40,7 +40,9 @@ export function exercisesToModelData(exercises) {
     const primary   = ex.primaryMuscles || ex.primary_muscles || []
     const secondary = ex.secondaryMuscles || ex.secondary_muscles || []
 
-    if (primary.length || secondary.length) {
+    console.log("BodyMap - processing ex:", ex.name, "primary:", primary, "secondary:", secondary);
+
+    if (primary.length > 0 || secondary.length > 0) {
       for (const label of primary) {
         const group = LABEL_TO_GROUP[label.toLowerCase()]
         if (group) {
@@ -67,11 +69,13 @@ export function exercisesToModelData(exercises) {
     }
   }
 
-  return Object.entries(rbhScores).map(([muscle, score]) => ({
+  const data = Object.entries(rbhScores).map(([muscle, score]) => ({
     name: muscle,
     muscles: [muscle],
     frequency: Math.ceil(score),
-  }))
+  }));
+  console.log("BodyMap - generated data:", data);
+  return data;
 }
 
 function groupScoresToModelData(groupScores) {
