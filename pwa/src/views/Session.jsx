@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Save, RotateCcw, Zap, Dumbbell, Download, Activity } from 'lucide-react'
 import ExerciseSearch from '../components/ExerciseSearch.jsx'
 import BodyMap from '../components/BodyMap.jsx'
@@ -11,14 +11,9 @@ import { buildSessionCoachSheet } from '../lib/exerciseInsights.js'
 // ── Section header ────────────────────────────────────────────────────────────
 function SectionHeader({ children }) {
   return (
-    <div style={{
-      display: 'flex', alignItems: 'center', gap: '10px',
-      margin: '22px 0 10px',
-      fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em',
-      textTransform: 'uppercase', color: 'var(--dim)',
-    }}>
+    <div className="flex items-center gap-2.5 my-5 text-[10px] font-bold uppercase tracking-[0.15em] text-dim">
       {children}
-      <div style={{ flex: 1, height: '1px', background: 'var(--line)' }} />
+      <div className="flex-1 h-px bg-line" />
     </div>
   )
 }
@@ -47,33 +42,8 @@ function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast }) {
     return Number.isFinite(n) ? n : null
   }
 
-  const metricInput = (key, mode) => {
-    return (
-      <div className="flex flex-col items-center gap-1.5">
-        <input
-          type="text"
-          inputMode={mode}
-          placeholder="—"
-          value={ex[key] || ''}
-          onChange={e => updateEx(i, key, e.target.value)}
-          className="text-center font-mono font-extrabold text-3xl p-2 rounded-xl"
-          style={{
-            width: '100%',
-            background: 'var(--bg2)',
-            border: `1px solid var(--line)`,
-          }}
-        />
-        <div className="label-caps !text-[8px]">
-          {{ sets: 'Sätze', reps: 'Wdhl', weight: 'kg' }[key]}
-        </div>
-      </div>
-    )
-  }
-
-  const setsN = num(ex.sets)
-  const repsN = num(ex.reps)
-  const weightN = num(ex.weight)
-  const volume = (!ex.isHIT && setsN !== null && repsN !== null && weightN !== null) ? (setsN * repsN * weightN) : null
+  const volume = (!ex.isHIT && num(ex.sets) !== null && num(ex.reps) !== null && num(ex.weight) !== null) 
+    ? (num(ex.sets) * num(ex.reps) * num(ex.weight)) : null
 
   return (
     <div className="card border-l-4 border-accent relative mb-3 p-4">
@@ -104,12 +74,16 @@ function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast }) {
         Löschen
       </button>
 
-      <div className={`grid items-center gap-1.5 mb-3 ${ex.isHIT ? 'grid-cols-[1fr]' : 'grid-cols-[1fr_18px_1fr_18px_1fr]'}`}>
-        {!ex.isHIT && metricInput('sets', 'numeric')}
-        {!ex.isHIT && <div className="text-dim text-center">×</div>}
-        {!ex.isHIT && metricInput('reps', 'numeric')}
-        {!ex.isHIT && <div className="text-dim text-center">@</div>}
-        {metricInput('weight', 'decimal')}
+      <div className={`grid items-center gap-2 mb-3 ${ex.isHIT ? 'grid-cols-[1fr]' : 'grid-cols-[1fr_18px_1fr_18px_1fr]'}`}>
+        {!ex.isHIT && (
+          <>
+            <div className="flex flex-col items-center gap-1"><input type="text" inputMode="numeric" placeholder="—" value={ex.sets || ''} onChange={e => updateEx(i, 'sets', e.target.value)} className="text-center font-mono font-extrabold text-2xl p-2 rounded-xl bg-bg2 border border-line w-full" /><div className="label-caps !text-[8px]">Sätze</div></div>
+            <div className="text-dim text-center">×</div>
+            <div className="flex flex-col items-center gap-1"><input type="text" inputMode="numeric" placeholder="—" value={ex.reps || ''} onChange={e => updateEx(i, 'reps', e.target.value)} className="text-center font-mono font-extrabold text-2xl p-2 rounded-xl bg-bg2 border border-line w-full" /><div className="label-caps !text-[8px]">Wdhl</div></div>
+            <div className="text-dim text-center">@</div>
+          </>
+        )}
+        <div className="flex flex-col items-center gap-1"><input type="text" inputMode="decimal" placeholder="—" value={ex.weight || ''} onChange={e => updateEx(i, 'weight', e.target.value)} className="text-center font-mono font-extrabold text-2xl p-2 rounded-xl bg-bg2 border border-line w-full" /><div className="label-caps !text-[8px]">kg</div></div>
       </div>
 
       {volume !== null && (
