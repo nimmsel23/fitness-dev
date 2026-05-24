@@ -89,11 +89,11 @@ function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast }) {
         Löschen
       </button>
 
-      <div className={`grid items-center gap-1.5 mb-3 ${ex.isHIT ? 'grid-cols-[1fr]' : 'grid-cols-[1fr_18px_1fr_18px_1fr]'}`}>
-        {!ex.isHIT && metricInput('sets', 'numeric')}
-        {!ex.isHIT && <div className="text-dim text-center">×</div>}
-        {!ex.isHIT && metricInput('reps', 'numeric')}
-        {!ex.isHIT && <div className="text-dim text-center">@</div>}
+      <div className="grid grid-cols-[1fr_18px_1fr_18px_1fr] items-center gap-1.5 mb-3">
+        {ex.isHIT ? <div /> : metricInput('sets', 'numeric')}
+        {ex.isHIT ? <div /> : <div className="text-dim text-center">×</div>}
+        {ex.isHIT ? <div /> : metricInput('reps', 'numeric')}
+        {ex.isHIT ? <div /> : <div className="text-dim text-center">@</div>}
         {metricInput('weight', 'decimal')}
       </div>
 
