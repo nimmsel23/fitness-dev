@@ -128,7 +128,7 @@ export default function Dashboard({ onNavigate }) {
             </div>
           </div>
           <div className="flex items-center justify-between gap-3 mb-1">
-            <div className="font-extrabold text-lg" style={{ color: 'var(--ink)', color: blockColor(plan.today.block) || 'var(--accent)' }}>
+            <div className="font-extrabold text-lg" style={{ color: blockColor(plan.today.block) || 'var(--accent)' }}>
               {plan.today.block}
             </div>
             <button
