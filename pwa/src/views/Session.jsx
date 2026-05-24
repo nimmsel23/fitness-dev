@@ -1,215 +1,321 @@
-import { useEffect, useState, useRef } from "react";
-import { getSession, saveSession, getAllExercises } from "../db.js";
-import Model from "react-body-highlighter";
+import { useState, useEffect, useMemo } from 'react'
+import { Save, RotateCcw, Zap, Dumbbell, Download, Activity } from 'lucide-react'
+import ExerciseSearch from '../components/ExerciseSearch.jsx'
+import BodyMap from '../components/BodyMap.jsx'
+import { 
+  getSession, saveSession, getSessionHistory, 
+  localToday, parseQuick, exportCsv 
+} from '../db.js'
+import { buildSessionCoachSheet } from '../lib/exerciseInsights.js'
 
-const BLOCKS = ["Push", "Pull", "Legs", "Upper", "Lower", "Full Body"];
-
-function todayISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+// ── Section header ────────────────────────────────────────────────────────────
+function SectionHeader({ children }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '10px',
+      margin: '22px 0 10px',
+      fontSize: '10px', fontWeight: 700, letterSpacing: '0.12em',
+      textTransform: 'uppercase', color: 'var(--dim)',
+    }}>
+      {children}
+      <div style={{ flex: 1, height: '1px', background: 'var(--line)' }} />
+    </div>
+  )
 }
 
-function ExercisePicker({ onAdd }) {
-  const [open, setOpen] = useState(false);
-  const [q, setQ]       = useState("");
-  const [all, setAll]   = useState([]);
-  const ref             = useRef();
+// ── Exercise card ─────────────────────────────────────────────────────────────
+function fmtDate(iso) {
+  if (!iso) return ''
+  const [, m, d] = iso.split('-')
+  return `${d}.${m}.`
+}
 
-  useEffect(() => {
-    if (open && all.length === 0) getAllExercises().then(setAll).catch(() => {});
-  }, [open]);
+function ExCard({ ex, i, updateEx, removeEx, prev }) {
+  const num = (v) => {
+    if (v === null || v === undefined) return null
+    const s = String(v).trim().replace(',', '.')
+    if (!s) return null
+    const n = Number(s)
+    return Number.isFinite(n) ? n : null
+  }
 
-  useEffect(() => {
-    function handler(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  const setsN = num(ex.sets)
+  const repsN = num(ex.reps)
+  const weightN = num(ex.weight)
+  const volume = (setsN !== null && repsN !== null && weightN !== null) ? (setsN * repsN * weightN) : null
 
-  const filtered = q.length < 2 ? [] : all.filter(ex =>
-    (ex.display_name || ex.name || "").toLowerCase().includes(q.toLowerCase())
-  ).slice(0, 10);
-
-  function pick(ex) {
-    onAdd({
-      exercise_id: ex.id,
-      name: ex.display_name || ex.name,
-      sets: "", reps: "", weight: "", note: "",
-      primaryMuscles: ex.primary_muscles || ex.primaryMuscles || [],
-      secondaryMuscles: ex.secondary_muscles || ex.secondaryMuscles || [],
-      done: true,
-    });
-    setQ(""); setOpen(false);
+  const metricInput = (key, mode) => {
+    const disabled = ex.isHIT && (key === 'sets' || key === 'reps')
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
+        <input
+          type="text"
+          inputMode={mode}
+          placeholder="—"
+          value={ex[key] || ''}
+          disabled={disabled}
+          onChange={e => updateEx(i, key, e.target.value)}
+          style={{
+            width: '100%',
+            textAlign: 'center',
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: '28px',
+            fontWeight: 800,
+            padding: '8px 4px',
+            background: disabled ? 'transparent' : 'var(--bg2)',
+            border: `1px solid ${disabled ? 'transparent' : 'var(--line)'}`,
+            borderRadius: '10px',
+            color: 'var(--ink)',
+            outline: 'none',
+            opacity: disabled ? 0.2 : 1,
+          }}
+        />
+        <div style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--dim)' }}>
+          {{ sets: 'Sätze', reps: 'Wdhl', weight: 'kg' }[key]}
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div ref={ref} style={{ position: "relative", marginBottom: 10 }}>
-      <input
-        placeholder="Übung hinzufügen…"
-        value={q}
-        onFocus={() => setOpen(true)}
-        onChange={e => { setQ(e.target.value); setOpen(true); }}
-        style={{ width: "100%", boxSizing: "border-box", padding: "10px 14px", borderRadius: 12, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)", fontSize: 14 }}
-      />
-      {open && filtered.length > 0 && (
-        <div style={{
-          position: "absolute", zIndex: 100, width: "100%",
-          background: "var(--surface)", border: "1px solid var(--border)",
-          borderRadius: 12, marginTop: 4, maxHeight: 280, overflowY: "auto",
-        }}>
-          {filtered.map(ex => (
-            <div key={ex.id} onClick={() => pick(ex)} style={{ padding: "10px 14px", cursor: "pointer", borderBottom: "1px solid var(--border)" }}>
-              <div style={{ fontWeight: 600, color: "var(--text)" }}>{ex.display_name || ex.name}</div>
-              <div style={{ fontSize: 12, color: "var(--muted)" }}>{(ex.primary_muscles || []).join(", ")}</div>
-            </div>
-          ))}
+    <div style={{
+      background: 'var(--card)', border: '1px solid var(--line)',
+      borderLeft: '3px solid var(--accent)', borderRadius: '14px',
+      padding: '14px', position: 'relative', marginBottom: '10px',
+    }}>
+      <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '14px', paddingRight: '28px', lineHeight: 1.3 }}>
+        {ex.name || <span style={{ color: 'var(--dim)', fontStyle: 'italic' }}>Übung</span>}
+        {prev && (
+          <div style={{ fontSize: '11px', color: 'var(--dim)', fontFamily: "'JetBrains Mono', monospace", marginTop: '3px' }}>
+            {[prev.sets, prev.reps].filter(Boolean).join('×')}
+            {prev.weight ? ` @ ${prev.weight} kg` : ''}
+            <span style={{ marginLeft: '6px', opacity: 0.6 }}>{fmtDate(prev.date)}</span>
+          </div>
+        )}
+      </div>
+
+      <button onClick={() => removeEx(i)}
+        style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', color: 'var(--dim)', cursor: 'pointer', fontSize: '18px' }}>
+        ×
+      </button>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 18px 1fr 18px 1fr', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+        {metricInput('sets', 'numeric')}
+        <div style={{ fontSize: '15px', color: 'var(--dim)', textAlign: 'center' }}>×</div>
+        {metricInput('reps', 'numeric')}
+        <div style={{ fontSize: '15px', color: 'var(--dim)', textAlign: 'center' }}>@</div>
+        {metricInput('weight', 'decimal')}
+      </div>
+
+      {volume !== null && (
+        <div style={{ fontSize: '11px', fontFamily: "'JetBrains Mono', monospace", color: 'var(--dim)', textAlign: 'right', marginBottom: '10px' }}>
+          {Math.round(volume).toLocaleString('de-AT')} kg
         </div>
       )}
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <input type="text" placeholder="Notiz, RPE…" value={ex.note || ''} onChange={e => updateEx(i, 'note', e.target.value)}
+          style={{ flex: 1, padding: '6px 10px', background: 'var(--bg2)', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--muted)', fontSize: '12px', outline: 'none' }} />
+        <button onClick={() => updateEx(i, 'isHIT', !ex.isHIT)}
+          style={{ padding: '6px 9px', border: `1px solid ${ex.isHIT ? '#f59e0b' : 'var(--line)'}`, borderRadius: '6px', background: ex.isHIT ? 'rgba(245,158,11,0.08)' : 'var(--bg2)', cursor: 'pointer', fontSize: '10px', fontWeight: 700, color: ex.isHIT ? '#f59e0b' : 'var(--dim)' }}>
+          HIT
+        </button>
+      </div>
     </div>
-  );
+  )
 }
 
-export default function Session() {
-  const [date, setDate]       = useState(todayISO());
-  const [session, setSession] = useState(null);
-  const [saving, setSaving]   = useState(false);
-  const [toast, setToast]     = useState("");
+// ── Main view ─────────────────────────────────────────────────────────────────
+export default function Session({ initialDate }) {
+  const [date, setDate]           = useState(initialDate || localToday())
+  const [block, setBlock]         = useState('')
+  const [exercises, setExercises] = useState([])
+  const [effort, setEffort]       = useState(5)
+  const [location, setLocation]   = useState('')
+  const [duration, setDuration]   = useState('')
+  const [trainingsart, setTrainingsart] = useState('')
+  const [notes, setNotes]         = useState('')
+  const [saving, setSaving]       = useState(false)
+  const [toast, setToast]         = useState('')
+  const [quickInput, setQuickInput] = useState('')
+  const [prevMap, setPrevMap]       = useState({})
 
   useEffect(() => {
-    const empty = { date, block: "", exercises: [], effort: "", mood: "", notes: "" };
-    getSession(date)
-      .then(s => setSession({ ...empty, ...s }))
-      .catch(() => setSession(empty));
-  }, [date]);
+    getSessionHistory(60).then(sessions => {
+      const map = {}
+      for (const sess of sessions) {
+        for (const ex of (sess.exercises || [])) {
+          if (ex.name && !map[ex.name]) {
+            map[ex.name] = { date: sess.date, sets: ex.sets, reps: ex.reps, weight: ex.weight }
+          }
+        }
+      }
+      setPrevMap(map)
+    }).catch(() => {})
+  }, [])
 
-  function showToast(msg) { setToast(msg); setTimeout(() => setToast(""), 2000); }
+  useEffect(() => {
+    getSession(date).then(d => {
+      if (d) {
+        setBlock(d.block || '')
+        setExercises(d.exercises || [])
+        setEffort(d.effort ?? 5)
+        setLocation(d.location || '')
+        setDuration(d.duration || '')
+        setNotes(d.notes || '')
+        setTrainingsart(d.trainingsart || '')
+      }
+    }).catch(() => {})
+  }, [date])
 
-  if (!session) return <p style={{ color: "var(--muted)", padding: 24 }}>Laden…</p>;
+  function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 2200) }
 
-  const highlightData = (session.exercises || []).flatMap(e => [
-    ...(e.primaryMuscles || []).map(m => ({ muscle: m, exercises: [e.name || e.exercise_id] })),
-    ...(e.secondaryMuscles || []).map(m => ({ muscle: m, exercises: [e.name || e.exercise_id] })),
-  ]);
-
-  function addExercise(ex) {
-    setSession(s => ({ ...s, exercises: [...(s.exercises || []), ex] }));
+  function addEx(ex) {
+    setExercises(prev => [...prev, {
+      name: ex.name,
+      primaryMuscles: ex.primaryMuscles || [],
+      secondaryMuscles: ex.secondaryMuscles || [],
+      sets: '', reps: '', weight: '', note: '', done: true, isHIT: false,
+    }])
+    showToast(`+ ${ex.name}`)
   }
 
-  function removeExercise(idx) {
-    setSession(s => ({ ...s, exercises: s.exercises.filter((_, i) => i !== idx) }));
+  function addQuick() {
+    if (!quickInput.trim()) return
+    const ex = parseQuick(quickInput)
+    if (ex) { 
+      setExercises(prev => [...prev, ex])
+      setQuickInput('')
+      showToast(`+ ${ex.name}`) 
+    }
   }
 
-  function updateField(idx, field, value) {
-    setSession(s => ({ ...s, exercises: s.exercises.map((e, i) => i === idx ? { ...e, [field]: value } : e) }));
+  function updateEx(i, field, value) {
+    setExercises(prev => prev.map((ex, idx) => idx === i ? { ...ex, [field]: value } : ex))
   }
+
+  function removeEx(i) {
+    setExercises(prev => prev.filter((_, idx) => idx !== i))
+  }
+
+  const totalVolume = exercises.reduce((sum, ex) => {
+    const s = parseFloat(ex.sets), r = parseFloat(ex.reps), w = parseFloat(ex.weight)
+    return (isFinite(s) && isFinite(r) && isFinite(w)) ? sum + s * r * w : sum
+  }, 0)
 
   async function save() {
-    setSaving(true);
+    setSaving(true)
     try {
-      await saveSession(date, { ...session, exercises: session.exercises.map(e => ({ ...e, done: true })) });
-      showToast("Gespeichert ✓");
-    } catch { showToast("Fehler beim Speichern"); }
-    finally { setSaving(false); }
+      await saveSession(date, { block, exercises, effort, location, duration, notes, trainingsart })
+      showToast('Gespeichert ✓')
+    } catch { showToast('Fehler beim Speichern') }
+    finally { setSaving(false) }
   }
 
-  const totalVol = (session.exercises || []).reduce((sum, ex) => {
-    const s = parseFloat(ex.sets), r = parseFloat(ex.reps), w = parseFloat(ex.weight);
-    return (isFinite(s) && isFinite(r) && isFinite(w)) ? sum + s * r * w : sum;
-  }, 0);
+  function handleDownload() {
+    const md = buildSessionCoachSheet({ date, block, exercises, effort, location, duration, notes });
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fitness-session-${date}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
-    <div>
-      {/* Datum + Speichern */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-        <input type="date" value={date} max={todayISO()} onChange={e => setDate(e.target.value)}
-          style={{ flex: 1, padding: "10px 14px", borderRadius: 12, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)", fontSize: 15, fontWeight: 600 }} />
-        <button onClick={save} disabled={saving}
-          style={{ padding: "10px 20px", background: "linear-gradient(135deg,#22d3ee,#14b8a6)", color: "#062026", borderRadius: 12, border: "none", fontWeight: 800, fontSize: 13, cursor: saving ? "default" : "pointer", opacity: saving ? 0.6 : 1, whiteSpace: "nowrap" }}>
-          {saving ? "…" : "Speichern"}
+    <div className="pb-20">
+      <div className="flex gap-2 mb-4">
+        <input type="date" value={date} max={localToday()} onChange={e => setDate(e.target.value)}
+          className="flex-1 p-3 rounded-xl border font-bold" style={{ background: 'var(--card)', borderColor: 'var(--line)', color: 'var(--ink)' }} />
+        <button onClick={save} disabled={saving} className="px-5 py-3 rounded-xl font-extrabold text-sm flex items-center gap-2"
+          style={{ background: 'linear-gradient(135deg, #22d3ee, #14b8a6)', color: '#062026', opacity: saving ? 0.6 : 1 }}>
+          <Save size={16} /> {saving ? '…' : 'Save'}
         </button>
       </div>
 
-      {/* Block */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
-        {BLOCKS.map(b => (
-          <button key={b} onClick={() => setSession(s => ({ ...s, block: b }))}
-            style={{ padding: "8px 14px", borderRadius: 10, fontWeight: 700, fontSize: 13, textTransform: "uppercase", cursor: "pointer", border: `2px solid ${session.block === b ? "var(--accent)" : "var(--border)"}`, background: session.block === b ? "rgba(108,99,255,0.1)" : "var(--surface)", color: session.block === b ? "var(--accent)" : "var(--muted)" }}>
-            {b}
-          </button>
+      <div className="flex gap-2 mb-4">
+        <input type="text" value={location} placeholder="Ort" onChange={e => setLocation(e.target.value)}
+          className="flex-[2] p-3 rounded-xl border text-sm" style={{ background: 'var(--card)', borderColor: 'var(--line)', color: 'var(--ink)' }} />
+        <div className="flex-1 relative">
+          <input type="number" value={duration} placeholder="Min" onChange={e => setDuration(e.target.value)}
+            className="w-full p-3 pr-10 rounded-xl border text-sm" style={{ background: 'var(--card)', borderColor: 'var(--line)', color: 'var(--ink)' }} />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold opacity-40">MIN</span>
+        </div>
+      </div>
+
+      <SectionHeader>Split</SectionHeader>
+      <div className="flex flex-wrap gap-2 mb-4">
+        {['Push', 'Pull', 'Legs', 'Upper', 'Lower', 'Full'].map(l => (
+          <button key={l} onClick={() => setBlock(l)}
+            className="px-4 py-2 rounded-xl text-xs font-bold border transition-all"
+            style={{ 
+              background: block === l ? 'rgba(94,234,212,0.1)' : 'var(--bg2)', 
+              borderColor: block === l ? 'var(--accent)' : 'var(--line)',
+              color: block === l ? 'var(--accent)' : 'var(--muted)'
+            }}>{l}</button>
         ))}
       </div>
 
-      {/* BodyMap */}
-      {highlightData.length > 0 && (
-        <div style={{ display: "flex", justifyContent: "center", gap: 20, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: 14, marginBottom: 12 }}>
-          <Model data={highlightData} style={{ width: 110 }} />
-          <Model data={highlightData} type="posterior" style={{ width: 110 }} />
+      {exercises.length > 0 && (
+        <div className="mb-6 flex justify-center gap-4 p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+          <BodyMap exercises={exercises} type="anterior" />
+          <BodyMap exercises={exercises} type="posterior" />
         </div>
       )}
 
-      {/* Exercises */}
-      <ExercisePicker onAdd={addExercise} />
-
-      {(session.exercises || []).length === 0 && (
-        <p style={{ textAlign: "center", color: "var(--muted)", padding: "24px 0", fontSize: 14 }}>
-          Übung suchen und hinzufügen
-        </p>
-      )}
-
-      {(session.exercises || []).map((ex, i) => (
-        <div key={i} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderLeft: "3px solid var(--accent)", borderRadius: 14, padding: 14, marginBottom: 10, position: "relative" }}>
-          <button onClick={() => removeExercise(i)}
-            style={{ position: "absolute", top: 10, right: 10, background: "none", border: "none", color: "var(--muted)", cursor: "pointer", fontSize: 18, lineHeight: 1, padding: "2px 6px" }}>×</button>
-          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4, paddingRight: 24 }}>{ex.name || ex.exercise_id}</div>
-          {(ex.primaryMuscles || []).length > 0 && (
-            <div style={{ fontSize: 11, color: "var(--accent)", opacity: 0.7, marginBottom: 10 }}>{ex.primaryMuscles.slice(0, 2).join(" · ")}</div>
-          )}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 16px 1fr 16px 1fr", alignItems: "center", gap: 6, marginBottom: 8 }}>
-            {["sets", "reps", "weight"].map((f, fi) => (
-              <>
-                {fi > 0 && <div style={{ textAlign: "center", color: "var(--muted)", fontSize: 14 }}>{fi === 1 ? "×" : "@"}</div>}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }} key={f}>
-                  <input type="text" inputMode={f === "weight" ? "decimal" : "numeric"} placeholder="—" value={ex[f] || ""}
-                    onChange={e => updateField(i, f, e.target.value)}
-                    style={{ width: "100%", textAlign: "center", fontFamily: "monospace", fontSize: 26, fontWeight: 800, padding: "6px 4px", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, color: "var(--text)", outline: "none" }} />
-                  <span style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", color: "var(--muted)" }}>{{ sets: "Sätze", reps: "Wdhl", weight: "kg" }[f]}</span>
-                </div>
-              </>
-            ))}
-          </div>
-          {totalVol > 0 && ex.sets && ex.reps && ex.weight && (
-            <div style={{ fontSize: 11, color: "var(--muted)", fontFamily: "monospace", textAlign: "right" }}>
-              {Math.round(parseFloat(ex.sets) * parseFloat(ex.reps) * parseFloat(ex.weight)).toLocaleString("de-AT")} kg
-            </div>
-          )}
-          <input type="text" placeholder="Notiz, RPE…" value={ex.note || ""} onChange={e => updateField(i, "note", e.target.value)}
-            style={{ width: "100%", padding: "6px 10px", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--muted)", fontSize: 12, boxSizing: "border-box", marginTop: 6 }} />
-        </div>
-      ))}
-
-      {totalVol > 0 && (
-        <div style={{ textAlign: "right", fontSize: 12, fontFamily: "monospace", color: "var(--muted)", fontWeight: 700, marginBottom: 8 }}>
-          Total: {Math.round(totalVol).toLocaleString("de-AT")} kg
-        </div>
-      )}
-
-      {/* Qualität */}
-      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: 14, marginBottom: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-          <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "var(--muted)", flexShrink: 0 }}>Effort</span>
-          <input type="range" min={1} max={10} value={session.effort || 5} onChange={e => setSession(s => ({ ...s, effort: e.target.value }))}
-            style={{ flex: 1, accentColor: "var(--accent)" }} />
-          <span style={{ fontFamily: "monospace", fontSize: 22, fontWeight: 800, color: "var(--accent)", minWidth: 24 }}>{session.effort || 5}</span>
-        </div>
-        <textarea rows={3} placeholder="Gefühl, Technik, Schmerzen…" value={session.notes || ""}
-          onChange={e => setSession(s => ({ ...s, notes: e.target.value }))}
-          style={{ width: "100%", padding: "8px 12px", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, color: "var(--text)", fontSize: 13, resize: "vertical", boxSizing: "border-box" }} />
+      <SectionHeader>Übungen</SectionHeader>
+      <div className="flex flex-col gap-2 mb-4">
+        {exercises.map((ex, idx) => (
+          <ExCard key={idx} ex={ex} i={idx} updateEx={updateEx} removeEx={removeEx} prev={prevMap[ex.name]} />
+        ))}
+        {exercises.length === 0 && <p className="text-center py-8 text-sm opacity-40">Keine Übungen — suche oder nutze Quick Entry</p>}
       </div>
 
+      {totalVolume > 0 && (
+        <div className="text-right text-xs font-bold opacity-50 mb-4 font-mono">
+          Total: {Math.round(totalVolume).toLocaleString('de-AT')} kg
+        </div>
+      )}
+
+      <div className="p-4 rounded-2xl mb-6" style={{ background: 'var(--bg2)', border: '1px solid var(--line)' }}>
+        <ExerciseSearch onSelect={addEx} />
+        <div className="flex gap-2 mt-3">
+          <input type="text" value={quickInput} onChange={e => setQuickInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && addQuick()}
+            placeholder="bench 3x8@80" className="flex-1 p-2 rounded-lg border text-sm font-mono"
+            style={{ background: 'var(--card)', borderColor: 'var(--line)', color: 'var(--ink)' }} />
+          <button onClick={addQuick} className="px-4 py-2 rounded-lg font-bold" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)' }}>+</button>
+        </div>
+      </div>
+
+      <SectionHeader>Qualität</SectionHeader>
+      <div className="p-4 rounded-2xl mb-6" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+        <div className="flex items-center gap-4 mb-4">
+          <span className="text-[10px] font-bold uppercase opacity-40">Effort</span>
+          <input type="range" min={1} max={10} value={effort} onChange={e => setEffort(Number(e.target.value))} className="flex-1" />
+          <span className="text-xl font-black text-accent w-6 text-right">{effort}</span>
+        </div>
+        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Notizen…"
+          className="w-full p-3 rounded-xl border text-sm" style={{ background: 'var(--bg2)', borderColor: 'var(--line)', color: 'var(--ink)' }} />
+      </div>
+
+      <SectionHeader>Export</SectionHeader>
+      <button onClick={handleDownload} className="w-full p-4 rounded-2xl border flex items-center justify-between"
+        style={{ background: 'var(--card)', borderColor: 'var(--line)' }}>
+        <div className="text-left">
+          <div className="text-xs font-bold uppercase opacity-40">Coach Sheet</div>
+          <div className="text-xs opacity-60">Markdown-Export für Obsidian</div>
+        </div>
+        <Download size={18} className="text-accent" />
+      </button>
+
       {toast && (
-        <div style={{ position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)", background: "var(--surface)", color: "var(--accent)", border: "1px solid var(--border)", borderRadius: 12, padding: "8px 18px", fontSize: 13, fontWeight: 600, zIndex: 50, whiteSpace: "nowrap" }}>
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-bold shadow-2xl z-50"
+          style={{ background: 'var(--card)', color: 'var(--accent)', border: '1px solid var(--line)' }}>
           {toast}
         </div>
       )}
     </div>
-  );
+  )
 }

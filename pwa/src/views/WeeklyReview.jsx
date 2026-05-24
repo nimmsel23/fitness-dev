@@ -1,139 +1,160 @@
-import { useEffect, useState } from "react";
-import { getRecentSessions } from "../db.js";
-import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { useEffect, useState } from 'react'
+import { AlertCircle, BarChart3, CalendarDays, Download, Dumbbell, Sparkles, Target, TrendingUp } from 'lucide-react'
+import { getWeeklyReport } from '../db.js'
 
-const BLOCK_COLORS = {
-  push: "#f472b6", pull: "#34d399", legs: "#fb923c",
-  upper: "#38bdf8", lower: "#a78bfa", full: "#fbbf24",
-};
-
-function blockColor(block) {
-  if (!block) return "var(--accent)";
-  for (const [key, color] of Object.entries(BLOCK_COLORS)) {
-    if (block.toLowerCase().includes(key)) return color;
-  }
-  return "var(--accent)";
+function formatVolume(value) {
+  const num = Number(value || 0)
+  return `${Math.round(num).toLocaleString('de-AT')} kg`
 }
 
-const card = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: 16, marginBottom: 12 };
-const statCard = { flex: 1, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 12, padding: "12px", textAlign: "center" };
-
 export default function WeeklyReview({ onNavigate }) {
-  const [sessions, setSessions] = useState([]);
+  const [week, setWeek] = useState('current')
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    getRecentSessions(14).then(setSessions).catch(() => setSessions([]));
-  }, []);
+    setLoading(true)
+    getWeeklyReport(week)
+      .then(d => setData(d || null))
+      .catch(() => setData(null))
+      .finally(() => setLoading(false))
+  }, [week])
 
-  const thisWeek = (() => {
-    const today = new Date();
-    const day   = (today.getDay() + 6) % 7;
-    const monday = new Date(today); monday.setDate(today.getDate() - day);
-    return sessions.filter(s => s.date >= monday.toISOString().slice(0, 10));
-  })();
-
-  const totalDone   = thisWeek.reduce((n, s) => n + (s.exercises?.filter(e => e.done).length ?? 0), 0);
-  const effortVals  = thisWeek.filter(s => s.effort).map(s => Number(s.effort));
-  const avgEffort   = effortVals.length ? (effortVals.reduce((a, b) => a + b, 0) / effortVals.length).toFixed(1) : "—";
-
-  const chartData = [...thisWeek].reverse().map(s => ({
-    date: s.date?.slice(5),
-    exercises: s.exercises?.filter(e => e.done).length ?? 0,
-    block: s.block,
-  }));
-
-  const muscleFreq = {};
-  for (const s of thisWeek) {
-    for (const ex of s.exercises || []) {
-      if (!ex.done) continue;
-      for (const m of ex.primaryMuscles || []) {
-        muscleFreq[m] = (muscleFreq[m] || 0) + 1;
-      }
-    }
-  }
-  const muscleEntries = Object.entries(muscleFreq).sort((a, b) => b[1] - a[1]);
+  const muscleEntries = Object.entries(data?.muscle_scores || {})
+  const regionEntries = Object.entries(data?.body_region_scores || {})
+  const missingRegions = data?.missing_regions || []
 
   return (
-    <div>
-      {/* Stats */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <div style={statCard}>
-          <div style={{ fontSize: 28, fontWeight: 800, color: "var(--text)" }}>{thisWeek.length}</div>
-          <div style={{ fontSize: 11, color: "var(--muted)" }}>Sessions</div>
+    <div className="space-y-4 pb-20">
+      <section className="p-4 rounded-2xl" style={{ background: 'linear-gradient(180deg, var(--card), var(--bg2))', border: '1px solid var(--line)' }}>
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
+          <BarChart3 size={13} />
+          Weekly Review
         </div>
-        <div style={statCard}>
-          <div style={{ fontSize: 28, fontWeight: 800, color: "var(--text)" }}>{totalDone}</div>
-          <div style={{ fontSize: 11, color: "var(--muted)" }}>Übungen</div>
-        </div>
-        <div style={statCard}>
-          <div style={{ fontSize: 28, fontWeight: 800, color: "var(--accent)" }}>{avgEffort}</div>
-          <div style={{ fontSize: 11, color: "var(--muted)" }}>Ø Effort</div>
-        </div>
-      </div>
+        <h2 className="mt-2 text-xl font-black" style={{ color: 'var(--ink)' }}>
+          Trainingswoche Analyse
+        </h2>
+      </section>
 
-      {/* Chart */}
-      {chartData.length > 0 && (
-        <div style={card}>
-          <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--muted)", marginBottom: 10 }}>
-            Übungen pro Tag
-          </div>
-          <ResponsiveContainer width="100%" height={110}>
-            <BarChart data={chartData}>
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: "var(--muted)" }} />
-              <Tooltip contentStyle={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 8 }} />
-              <Bar dataKey="exercises" radius={4}>
-                {chartData.map((d, i) => <Cell key={i} fill={blockColor(d.block)} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+      <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+        <div className="flex items-center gap-2">
+          <input
+            value={week}
+            onChange={e => setWeek(e.target.value)}
+            placeholder="current oder 2026-W19"
+            className="flex-1 px-3 py-2 rounded-xl text-sm border"
+            style={{ background: 'var(--bg2)', borderColor: 'var(--line)', color: 'var(--ink)' }}
+          />
+          <button
+            onClick={() => setWeek('current')}
+            className="px-4 py-2 rounded-xl text-sm font-bold border"
+            style={{ background: 'var(--bg2)', borderColor: 'var(--line)', color: 'var(--ink)' }}
+          >
+            current
+          </button>
         </div>
-      )}
+      </section>
 
-      {/* Muskel-Frequenz */}
-      {muscleEntries.length > 0 && (
-        <div style={card}>
-          <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--muted)", marginBottom: 10 }}>
-            Muskeln diese Woche
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {muscleEntries.map(([m, n]) => (
-              <span key={m} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, padding: "4px 10px", fontSize: 12, color: "var(--text)" }}>
-                {m} <span style={{ color: "var(--muted)" }}>{n}×</span>
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+      {loading ? (
+        <div className="flex justify-center py-12 text-sm opacity-40">Lade Report…</div>
+      ) : data ? (
+        <>
+          <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-4 opacity-40">
+              <CalendarDays size={13} />
+              Übersicht
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--line)' }}>
+                <div className="text-[10px] uppercase font-bold opacity-40">Sessions</div>
+                <div className="mt-1 text-2xl font-black">{data.session_count || 0}</div>
+              </div>
+              <div className="p-3 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--line)' }}>
+                <div className="text-[10px] uppercase font-bold opacity-40">Volumen</div>
+                <div className="mt-1 text-lg font-black text-accent">{formatVolume(data.total_volume)}</div>
+              </div>
+            </div>
+          </section>
 
-      {/* Sessions */}
-      {thisWeek.length > 0 && (
-        <div style={card}>
-          <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--muted)", marginBottom: 10 }}>
-            Sessions
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {thisWeek.map(s => (
-              <button key={s.date} onClick={() => onNavigate?.("session", s.date)}
-                style={{ textAlign: "left", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 14px", cursor: "pointer" }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontWeight: 600, color: "var(--text)" }}>{s.date}</span>
-                  <span style={{ fontWeight: 700, fontSize: 13, color: blockColor(s.block) }}>{s.block || "—"}</span>
+          <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-4 opacity-40">
+              <Sparkles size={13} />
+              Empfehlungen
+            </div>
+            <div className="space-y-2">
+              {(data.recommendations || []).map((rec, i) => (
+                <div key={i} className="p-3 rounded-xl text-sm font-medium border" style={{ background: 'var(--bg2)', borderColor: 'var(--line)' }}>
+                  {rec}
                 </div>
-                <span style={{ fontSize: 12, color: "var(--muted)" }}>
-                  {s.exercises?.filter(e => e.done).length ?? 0} Übungen
-                  {s.effort ? ` · Effort ${s.effort}` : ""}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+              ))}
+            </div>
+          </section>
 
-      {thisWeek.length === 0 && (
-        <p style={{ textAlign: "center", color: "var(--muted)", padding: "32px 0" }}>
-          Noch keine Sessions diese Woche
-        </p>
+          <div className="grid gap-4 md:grid-cols-2">
+            <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-4 opacity-40">
+                <TrendingUp size={13} />
+                Regionen
+              </div>
+              <div className="space-y-2">
+                {regionEntries.map(([name, score]) => (
+                  <div key={name} className="flex items-center justify-between text-sm px-3 py-2 rounded-xl border" style={{ background: 'var(--bg2)', borderColor: 'var(--line)' }}>
+                    <span className="font-medium uppercase text-[10px] tracking-wider opacity-60">{name}</span>
+                    <span className="font-bold text-accent">{Number(score).toFixed(1)}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-4 opacity-40">
+                <Target size={13} />
+                Lücken
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {missingRegions.map(region => (
+                  <span key={region} className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border" 
+                    style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--red)', borderColor: 'rgba(239,68,68,0.2)' }}>
+                    {region}
+                  </span>
+                ))}
+                {missingRegions.length === 0 && <span className="text-sm text-green-500 font-bold">✓ Alles abgedeckt</span>}
+              </div>
+            </section>
+          </div>
+
+          <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-4 opacity-40">
+              <Dumbbell size={13} />
+              Sessions
+            </div>
+            <div className="space-y-2">
+              {(data.sessions || []).map(session => (
+                <button
+                  key={`${session.date}`}
+                  onClick={() => onNavigate?.("session", session.date)}
+                  className="w-full text-left px-4 py-3 rounded-xl border transition-all"
+                  style={{ background: 'var(--bg2)', borderColor: 'var(--line)' }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-black text-sm">{session.date}</div>
+                      <div className="text-[10px] font-bold opacity-50 uppercase tracking-widest mt-0.5">{session.block}</div>
+                    </div>
+                    <div className="text-right text-xs font-black text-accent">
+                      {formatVolume(session.total_volume)}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+        </>
+      ) : (
+        <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+          <p className="text-sm opacity-40">Wochenreport konnte nicht geladen werden.</p>
+        </section>
       )}
     </div>
-  );
+  )
 }

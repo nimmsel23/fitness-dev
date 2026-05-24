@@ -1,15 +1,8 @@
 import { useState, useEffect } from "react";
-import { getJournal, saveJournal } from "../db.js";
-
-function todayISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-const card = { background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: 16, marginBottom: 12 };
+import { getJournal, saveJournal, localToday } from "../db.js";
 
 export default function Journal() {
-  const [date, setDate]     = useState(todayISO());
+  const [date, setDate]     = useState(localToday());
   const [text, setText]     = useState("");
   const [entries, setEntries] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -28,57 +21,58 @@ export default function Journal() {
       const entry = await saveJournal(date, text);
       setEntries(prev => [entry, ...prev]);
       setText("");
-      showToast("Gespeichert");
+      showToast("Gespeichert ✓");
     } catch { showToast("Fehler beim Speichern"); }
     finally { setSaving(false); }
   }
 
   return (
-    <div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <input type="date" value={date} max={todayISO()}
+    <div className="pb-20">
+      <div className="flex gap-2 mb-4">
+        <input type="date" value={date} max={localToday()}
           onChange={e => setDate(e.target.value)}
-          style={{ flex: 1, padding: "8px 12px", borderRadius: 10, background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)", fontSize: 14 }}
+          className="flex-1 p-3 rounded-xl border font-bold"
+          style={{ background: 'var(--card)', borderColor: 'var(--line)', color: 'var(--ink)' }}
         />
       </div>
 
-      <div style={card}>
-        <textarea value={text} onChange={e => setText(e.target.value)} rows={5}
+      <div className="p-4 rounded-2xl mb-6" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+        <textarea value={text} onChange={e => setText(e.target.value)} rows={6}
           placeholder="Training, Notizen, Learnings…"
-          style={{ width: "100%", background: "transparent", border: "none", color: "var(--text)", fontSize: 14, lineHeight: 1.65, resize: "none", outline: "none" }}
-          onFocus={e => e.target.parentElement.style.borderColor = "var(--accent)"}
-          onBlur={e => e.target.parentElement.style.borderColor = "var(--border)"}
+          className="w-full bg-transparent border-none outline-none text-sm leading-relaxed"
+          style={{ color: 'var(--ink)' }}
         />
         <button onClick={submit} disabled={saving || !text.trim()}
-          style={{ marginTop: 10, width: "100%", background: "var(--accent)", color: "#fff", border: "none", borderRadius: 10, padding: "10px", fontWeight: 700, fontSize: 14, cursor: saving || !text.trim() ? "default" : "pointer", opacity: saving || !text.trim() ? 0.5 : 1 }}>
-          {saving ? "…" : "Speichern"}
+          className="w-full mt-4 p-3 rounded-xl font-bold transition-all"
+          style={{ 
+            background: 'var(--accent)', color: '#fff',
+            opacity: saving || !text.trim() ? 0.5 : 1
+          }}>
+          {saving ? "…" : "Speichern ↵"}
         </button>
       </div>
 
       {entries.length > 0 && (
-        <div style={card}>
-          <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--muted)", marginBottom: 10 }}>
+        <div className="space-y-3">
+          <div className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">
             Einträge — {date}
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {entries.map((e, i) => (
-              <div key={e.id || i} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 14px" }}>
-                <p style={{ color: "var(--text)", fontSize: 14, lineHeight: 1.6 }}>{e.text}</p>
-                {e.time && <p style={{ color: "var(--muted)", fontSize: 11, marginTop: 4 }}>{e.time.slice(11, 16)}</p>}
-              </div>
-            ))}
-          </div>
+          {entries.map((e, i) => (
+            <div key={e.id || i} className="p-4 rounded-2xl border" style={{ background: 'var(--card)', borderColor: 'var(--line)' }}>
+              <p className="text-sm leading-relaxed" style={{ color: 'var(--ink)' }}>{e.text}</p>
+              {e.time && <p className="text-[10px] font-bold opacity-30 mt-3 font-mono">{e.time.slice(11, 16)}</p>}
+            </div>
+          ))}
         </div>
       )}
 
-      {entries.length === 0 && date !== todayISO() && (
-        <p style={{ textAlign: "center", color: "var(--muted)", padding: "24px 0", fontSize: 14 }}>
-          Kein Eintrag für {date}
-        </p>
+      {entries.length === 0 && date !== localToday() && (
+        <p className="text-center py-12 text-sm opacity-40">Kein Eintrag für {date}</p>
       )}
 
       {toast && (
-        <div style={{ position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)", background: "var(--surface)", color: "var(--accent)", border: "1px solid var(--border)", borderRadius: 12, padding: "8px 18px", fontSize: 13, fontWeight: 600, zIndex: 50 }}>
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-bold shadow-2xl z-50"
+          style={{ background: 'var(--card)', color: 'var(--accent)', border: '1px solid var(--line)' }}>
           {toast}
         </div>
       )}
