@@ -47,7 +47,7 @@ function ExCard({ ex, i, updateEx, removeEx, prev }) {
   const metricInput = (key, mode) => {
     const disabled = ex.isHIT && (key === 'sets' || key === 'reps')
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px' }}>
+      <div className="flex flex-col items-center gap-1.5">
         <input
           type="text"
           inputMode={mode}
@@ -55,22 +55,15 @@ function ExCard({ ex, i, updateEx, removeEx, prev }) {
           value={ex[key] || ''}
           disabled={disabled}
           onChange={e => updateEx(i, key, e.target.value)}
+          className="text-center font-mono font-extrabold text-3xl p-2 rounded-xl"
           style={{
             width: '100%',
-            textAlign: 'center',
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: '28px',
-            fontWeight: 800,
-            padding: '8px 4px',
             background: disabled ? 'transparent' : 'var(--bg2)',
             border: `1px solid ${disabled ? 'transparent' : 'var(--line)'}`,
-            borderRadius: '10px',
-            color: 'var(--ink)',
-            outline: 'none',
             opacity: disabled ? 0.2 : 1,
           }}
         />
-        <div style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--dim)' }}>
+        <div className="label-caps !text-[8px]">
           {{ sets: 'Sätze', reps: 'Wdhl', weight: 'kg' }[key]}
         </div>
       </div>
@@ -78,46 +71,41 @@ function ExCard({ ex, i, updateEx, removeEx, prev }) {
   }
 
   return (
-    <div style={{
-      background: 'var(--card)', border: '1px solid var(--line)',
-      borderLeft: '3px solid var(--accent)', borderRadius: '14px',
-      padding: '14px', position: 'relative', marginBottom: '10px',
-    }}>
-      <div style={{ fontWeight: 700, fontSize: '14px', marginBottom: '14px', paddingRight: '28px', lineHeight: 1.3 }}>
-        {ex.name || <span style={{ color: 'var(--dim)', fontStyle: 'italic' }}>Übung</span>}
+    <div className="card border-l-4 border-accent relative mb-3 p-4">
+      <div className="font-bold text-sm mb-4 pr-7 leading-tight">
+        {ex.name || <span className="text-dim italic">Übung</span>}
         {prev && (
-          <div style={{ fontSize: '11px', color: 'var(--dim)', fontFamily: "'JetBrains Mono', monospace", marginTop: '3px' }}>
+          <div className="text-[11px] text-dim font-mono mt-1">
             {[prev.sets, prev.reps].filter(Boolean).join('×')}
             {prev.weight ? ` @ ${prev.weight} kg` : ''}
-            <span style={{ marginLeft: '6px', opacity: 0.6 }}>{fmtDate(prev.date)}</span>
+            <span className="ml-1.5 opacity-60">{fmtDate(prev.date)}</span>
           </div>
         )}
       </div>
 
-      <button onClick={() => removeEx(i)}
-        style={{ position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', color: 'var(--dim)', cursor: 'pointer', fontSize: '18px' }}>
+      <button onClick={() => removeEx(i)} className="absolute top-2.5 right-2.5 text-dim text-xl hover:text-red transition-colors">
         ×
       </button>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 18px 1fr 18px 1fr', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+      <div className="grid grid-cols-[1fr_18px_1fr_18px_1fr] items-center gap-1.5 mb-3">
         {metricInput('sets', 'numeric')}
-        <div style={{ fontSize: '15px', color: 'var(--dim)', textAlign: 'center' }}>×</div>
+        <div className="text-dim text-center">×</div>
         {metricInput('reps', 'numeric')}
-        <div style={{ fontSize: '15px', color: 'var(--dim)', textAlign: 'center' }}>@</div>
+        <div className="text-dim text-center">@</div>
         {metricInput('weight', 'decimal')}
       </div>
 
       {volume !== null && (
-        <div style={{ fontSize: '11px', fontFamily: "'JetBrains Mono', monospace", color: 'var(--dim)', textAlign: 'right', marginBottom: '10px' }}>
+        <div className="text-[11px] font-mono text-dim text-right mb-3">
           {Math.round(volume).toLocaleString('de-AT')} kg
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div className="flex items-center gap-2">
         <input type="text" placeholder="Notiz, RPE…" value={ex.note || ''} onChange={e => updateEx(i, 'note', e.target.value)}
-          style={{ flex: 1, padding: '6px 10px', background: 'var(--bg2)', border: '1px solid var(--line)', borderRadius: '6px', color: 'var(--muted)', fontSize: '12px', outline: 'none' }} />
+          className="flex-1 py-1.5 px-3 text-xs bg-bg2 border-line rounded-lg" />
         <button onClick={() => updateEx(i, 'isHIT', !ex.isHIT)}
-          style={{ padding: '6px 9px', border: `1px solid ${ex.isHIT ? '#f59e0b' : 'var(--line)'}`, borderRadius: '6px', background: ex.isHIT ? 'rgba(245,158,11,0.08)' : 'var(--bg2)', cursor: 'pointer', fontSize: '10px', fontWeight: 700, color: ex.isHIT ? '#f59e0b' : 'var(--dim)' }}>
+          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-colors ${ex.isHIT ? 'border-orange bg-orange/10 text-orange' : 'border-line bg-bg2 text-dim'}`}>
           HIT
         </button>
       </div>
@@ -227,19 +215,18 @@ export default function Session({ initialDate }) {
     <div className="pb-20">
       <div className="flex gap-2 mb-4">
         <input type="date" value={date} max={localToday()} onChange={e => setDate(e.target.value)}
-          className="flex-1 p-3 rounded-xl border font-bold" style={{ background: 'var(--card)', borderColor: 'var(--line)', color: 'var(--ink)' }} />
-        <button onClick={save} disabled={saving} className="px-5 py-3 rounded-xl font-extrabold text-sm flex items-center gap-2"
-          style={{ background: 'linear-gradient(135deg, #22d3ee, #14b8a6)', color: '#062026', opacity: saving ? 0.6 : 1 }}>
+          className="flex-1 p-3 rounded-xl border font-bold bg-card border-line text-ink" />
+        <button onClick={save} disabled={saving} className="btn btn-primary px-5">
           <Save size={16} /> {saving ? '…' : 'Save'}
         </button>
       </div>
 
       <div className="flex gap-2 mb-4">
         <input type="text" value={location} placeholder="Ort" onChange={e => setLocation(e.target.value)}
-          className="flex-[2] p-3 rounded-xl border text-sm" style={{ background: 'var(--card)', borderColor: 'var(--line)', color: 'var(--ink)' }} />
+          className="flex-[2] p-3 rounded-xl border text-sm bg-card border-line text-ink" />
         <div className="flex-1 relative">
           <input type="number" value={duration} placeholder="Min" onChange={e => setDuration(e.target.value)}
-            className="w-full p-3 pr-10 rounded-xl border text-sm" style={{ background: 'var(--card)', borderColor: 'var(--line)', color: 'var(--ink)' }} />
+            className="w-full p-3 pr-10 rounded-xl border text-sm bg-card border-line text-ink" />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold opacity-40">MIN</span>
         </div>
       </div>
@@ -248,17 +235,14 @@ export default function Session({ initialDate }) {
       <div className="flex flex-wrap gap-2 mb-4">
         {['Push', 'Pull', 'Legs', 'Upper', 'Lower', 'Full'].map(l => (
           <button key={l} onClick={() => setBlock(l)}
-            className="px-4 py-2 rounded-xl text-xs font-bold border transition-all"
-            style={{ 
-              background: block === l ? 'rgba(94,234,212,0.1)' : 'var(--bg2)', 
-              borderColor: block === l ? 'var(--accent)' : 'var(--line)',
-              color: block === l ? 'var(--accent)' : 'var(--muted)'
-            }}>{l}</button>
+            className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${block === l ? 'border-accent bg-accent/10 text-accent' : 'border-line bg-bg2 text-muted'}`}>
+            {l}
+          </button>
         ))}
       </div>
 
       {exercises.length > 0 && (
-        <div className="mb-6 flex justify-center gap-4 p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+        <div className="mb-6 flex justify-center gap-4 card">
           <BodyMap exercises={exercises} type="anterior" />
           <BodyMap exercises={exercises} type="posterior" />
         </div>
@@ -273,46 +257,43 @@ export default function Session({ initialDate }) {
       </div>
 
       {totalVolume > 0 && (
-        <div className="text-right text-xs font-bold opacity-50 mb-4 font-mono">
-          Total: {Math.round(totalVolume).toLocaleString('de-AT')} kg
+        <div className="text-right text-[10px] font-bold opacity-40 mb-4 font-mono uppercase tracking-widest">
+          Total Volume: {Math.round(totalVolume).toLocaleString('de-AT')} kg
         </div>
       )}
 
-      <div className="p-4 rounded-2xl mb-6" style={{ background: 'var(--bg2)', border: '1px solid var(--line)' }}>
+      <div className="p-4 rounded-2xl mb-6 bg-bg2 border border-line">
         <ExerciseSearch onSelect={addEx} />
         <div className="flex gap-2 mt-3">
           <input type="text" value={quickInput} onChange={e => setQuickInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addQuick()}
-            placeholder="bench 3x8@80" className="flex-1 p-2 rounded-lg border text-sm font-mono"
-            style={{ background: 'var(--card)', borderColor: 'var(--line)', color: 'var(--ink)' }} />
-          <button onClick={addQuick} className="px-4 py-2 rounded-lg font-bold" style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.2)' }}>+</button>
+            placeholder="bench 3x8@80" className="flex-1 p-2 rounded-lg border text-sm font-mono bg-card border-line text-ink" />
+          <button onClick={addQuick} className="btn btn-secondary py-2 px-4 text-orange border-orange/20 bg-orange/5">+</button>
         </div>
       </div>
 
       <SectionHeader>Qualität</SectionHeader>
-      <div className="p-4 rounded-2xl mb-6" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+      <div className="card mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <span className="text-[10px] font-bold uppercase opacity-40">Effort</span>
+          <span className="label-caps">Effort</span>
           <input type="range" min={1} max={10} value={effort} onChange={e => setEffort(Number(e.target.value))} className="flex-1" />
           <span className="text-xl font-black text-accent w-6 text-right">{effort}</span>
         </div>
         <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Notizen…"
-          className="w-full p-3 rounded-xl border text-sm" style={{ background: 'var(--bg2)', borderColor: 'var(--line)', color: 'var(--ink)' }} />
+          className="w-full p-3 rounded-xl border text-sm bg-bg2 border-line text-ink" />
       </div>
 
       <SectionHeader>Export</SectionHeader>
-      <button onClick={handleDownload} className="w-full p-4 rounded-2xl border flex items-center justify-between"
-        style={{ background: 'var(--card)', borderColor: 'var(--line)' }}>
+      <button onClick={handleDownload} className="w-full p-4 rounded-2xl border flex items-center justify-between bg-card border-line">
         <div className="text-left">
-          <div className="text-xs font-bold uppercase opacity-40">Coach Sheet</div>
-          <div className="text-xs opacity-60">Markdown-Export für Obsidian</div>
+          <div className="label-caps">Coach Sheet</div>
+          <div className="text-[11px] opacity-60">Markdown-Export für Obsidian</div>
         </div>
         <Download size={18} className="text-accent" />
       </button>
 
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-bold shadow-2xl z-50"
-          style={{ background: 'var(--card)', color: 'var(--accent)', border: '1px solid var(--line)' }}>
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-bold shadow-2xl z-50 bg-card text-accent border border-line">
           {toast}
         </div>
       )}

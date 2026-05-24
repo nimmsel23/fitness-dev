@@ -145,10 +145,10 @@ export default function App() {
       <p className="text-dim text-sm mb-12 max-w-xs">
         Logge deine Workouts, tracke deinen Fortschritt und verbessere deine Form.
       </p>
-      <button onClick={signIn} className="flex items-center gap-3 bg-white text-black px-8 py-4 rounded-2xl font-bold text-lg shadow-xl active:scale-95 transition-transform">
+      <button onClick={signIn} className="btn btn-primary px-8 py-4 text-lg shadow-xl">
         <LogIn size={20} /> Mit Google anmelden
       </button>
-      <div className="mt-12 text-[10px] uppercase font-bold tracking-[0.2em] opacity-30">
+      <div className="mt-12 label-caps opacity-30">
         AlphaOS Ecosystem
       </div>
     </div>
@@ -165,7 +165,7 @@ export default function App() {
         </div>
         <div className="flex items-center gap-3">
           <div className="flex flex-col items-end">
-             <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest leading-none">{user.displayName?.split(' ')[0]}</span>
+             <span className="label-caps leading-none">{user.displayName?.split(' ')[0]}</span>
           </div>
           <button onClick={() => navigate('settings')} className="p-2 rounded-xl" style={{ background: tab === 'settings' ? 'var(--bg2)' : 'transparent' }}>
              <User size={18} className={tab === 'settings' ? 'text-accent' : 'text-dim'} />
@@ -184,20 +184,19 @@ export default function App() {
             {tab === 'learn'    && <Learn />}
             {tab === 'settings' && (
               <div className="space-y-8">
-                 <section className="p-6 rounded-2xl border flex flex-col items-center text-center" style={{ background: 'var(--card)', borderColor: 'var(--line)' }}>
+                 <section className="card flex flex-col items-center text-center">
                     <div className="w-16 h-16 rounded-full overflow-hidden mb-4 border-2 border-accent/20">
                        <img src={user.photoURL} alt={user.displayName} />
                     </div>
                     <h2 className="text-lg font-black mb-1">{user.displayName}</h2>
                     <p className="text-xs opacity-40 mb-6">{user.email}</p>
-                    <button onClick={signOut} className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold border" 
-                      style={{ background: 'var(--bg2)', borderColor: 'var(--line)', color: 'var(--red)' }}>
+                    <button onClick={signOut} className="btn btn-red px-6 py-2.5">
                        <LogOut size={16} /> Abmelden
                     </button>
                  </section>
 
                  <section>
-                    <h2 className="text-[10px] font-bold uppercase tracking-widest mb-4 opacity-50 ml-1">Themen Auswahl</h2>
+                    <h2 className="label-caps mb-4 ml-1">Themen Auswahl</h2>
                     <div className="grid grid-cols-3 gap-2">
                        {DARK_THEMES.map(t => (
                          <button key={t} onClick={() => setManualTheme(t)} 

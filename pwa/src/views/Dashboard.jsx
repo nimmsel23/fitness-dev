@@ -69,15 +69,11 @@ export default function Dashboard({ onNavigate }) {
   return (
     <div className="pb-20">
       {/* Exports & Quick actions */}
-      <div className="mb-4 p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+      <div className="mb-4 card">
         <div className="flex items-center justify-between">
-          <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Dashboard</div>
+          <div className="label-caps">Dashboard</div>
           <div className="flex gap-2">
-            <button
-              onClick={() => handleExport(30)}
-              className="text-xs px-3 py-2 rounded-xl border font-semibold flex items-center gap-2"
-              style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}
-            >
+            <button onClick={() => handleExport(30)} className="btn btn-secondary py-2 text-xs">
               <Download size={14} /> CSV
             </button>
           </div>
@@ -85,8 +81,8 @@ export default function Dashboard({ onNavigate }) {
       </div>
 
       {/* Week Heatmap */}
-      <div className="mb-4 p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-        <h3 className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Diese Woche</h3>
+      <div className="mb-4 card">
+        <h3 className="label-caps mb-3">Diese Woche</h3>
         <div className="grid grid-cols-7 gap-1.5">
           {weekDates.map((date, i) => {
             const s = sessionByDate[date];
@@ -120,11 +116,11 @@ export default function Dashboard({ onNavigate }) {
 
       {/* Plan-Hint */}
       {plan?.today && (
-        <div className="mb-4 p-4 rounded-2xl" style={{ background: 'linear-gradient(180deg, var(--card), var(--bg2))', border: '1px solid var(--line)' }}>
+        <div className="mb-4 card" style={{ background: 'linear-gradient(180deg, var(--card), var(--bg2))' }}>
           <div className="flex items-center justify-between gap-3 mb-2">
             <div className="flex items-center gap-2">
-              <Zap size={15} style={{ color: 'var(--accent)' }} />
-              <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Plan heute</span>
+              <Zap size={15} className="text-accent" />
+              <span className="label-caps">Plan heute</span>
             </div>
           </div>
           <div className="flex items-center justify-between gap-3 mb-1">
@@ -133,7 +129,7 @@ export default function Dashboard({ onNavigate }) {
             </div>
             <button
               onClick={() => onNavigate?.("session")}
-              className="text-xs px-3 py-2 rounded-xl font-semibold"
+              className="btn btn-primary py-2 text-xs"
               style={{ background: 'rgba(94,234,212,0.12)', border: '1px solid rgba(94,234,212,0.28)', color: 'var(--accent)' }}
             >
               Starten →
@@ -142,7 +138,7 @@ export default function Dashboard({ onNavigate }) {
           {plan.today.exercises?.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
               {plan.today.exercises.slice(0, 6).map((e, i) => (
-                <span key={i} className="text-xs px-2 py-0.5 rounded-lg" style={{ background: 'var(--bg2)', color: 'var(--muted)' }}>
+                <span key={i} className="text-xs px-2 py-0.5 rounded-lg bg-bg2 text-muted">
                   {typeof e === "string" ? e : e.name}
                 </span>
               ))}
@@ -153,13 +149,13 @@ export default function Dashboard({ onNavigate }) {
 
       {/* Coverage Gaps */}
       {coverage !== null && (
-        <div className="mb-4 p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+        <div className="mb-4 card">
           <div className="flex items-center gap-2 mb-2">
-            <TrendingUp size={15} style={{ color: 'var(--accent)' }} />
-            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Coverage (7 Tage)</span>
+            <TrendingUp size={15} className="text-accent" />
+            <span className="label-caps">Coverage (7 Tage)</span>
           </div>
           {coverage.length === 0 ? (
-            <p className="text-sm" style={{ color: 'var(--green)' }}>✓ Alle Muskelgruppen abgedeckt</p>
+            <p className="text-sm text-green">✓ Alle Muskelgruppen abgedeckt</p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
               {coverage.map(g => (
@@ -178,24 +174,24 @@ export default function Dashboard({ onNavigate }) {
 
       {/* Heutige Session Status */}
       {todaySession?.exercises?.length > 0 && (
-        <div className="mb-4 p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-          <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Heute — {todaySession.block}</div>
+        <div className="mb-4 card">
+          <div className="label-caps mb-3">Heute — {todaySession.block}</div>
           <div className="flex items-center justify-between mb-4">
             <div className="flex gap-4">
               <div className="flex flex-col">
-                <span className="text-lg font-bold" style={{ color: 'var(--ink)' }}>
+                <span className="text-lg font-bold text-ink">
                   {todaySession.exercises.filter(e => e.done).length}/{todaySession.exercises.length}
                 </span>
-                <span className="text-[10px] uppercase font-bold text-dim">Übungen</span>
+                <span className="label-caps">Übungen</span>
               </div>
               {todaySession.effort && (
                 <div className="flex flex-col">
-                  <span className="text-lg font-bold" style={{ color: 'var(--ink)' }}>{todaySession.effort}</span>
-                  <span className="text-[10px] uppercase font-bold text-dim">Effort</span>
+                  <span className="text-lg font-bold text-ink">{todaySession.effort}</span>
+                  <span className="label-caps">Effort</span>
                 </div>
               )}
             </div>
-            <button onClick={() => onNavigate?.("session")} className="px-4 py-2 bg-accent text-white rounded-xl font-bold text-sm">
+            <button onClick={() => onNavigate?.("session")} className="btn btn-primary">
               Weiter →
             </button>
           </div>
@@ -204,18 +200,17 @@ export default function Dashboard({ onNavigate }) {
 
       {/* Letzte Sessions */}
       {recent.filter(s => s.date !== today).length > 0 && (
-        <div className="mb-4 p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-          <h3 className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Letzte Sessions</h3>
+        <div className="mb-4 card">
+          <h3 className="label-caps mb-3">Letzte Sessions</h3>
           <div className="flex flex-col gap-2">
             {recent.filter(s => s.date !== today).slice(0, 4).map(s => (
               <button key={s.date} onClick={() => onNavigate?.("session", s.date)}
-                className="w-full text-left px-3 py-2 rounded-xl"
-                style={{ background: 'var(--bg2)', border: '1px solid var(--line)', cursor: 'pointer' }}>
+                className="w-full text-left px-3 py-2 rounded-xl bg-bg2 border border-line cursor-pointer">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>{s.date}</div>
+                  <div className="text-sm font-semibold text-ink">{s.date}</div>
                   <div className="text-xs font-semibold" style={{ color: blockColor(s.block) || 'var(--accent)' }}>{s.block}</div>
                 </div>
-                <div className="text-[11px] mt-0.5" style={{ color: 'var(--muted)' }}>
+                <div className="text-[11px] mt-0.5 text-muted">
                   {s.exercises?.filter(e => e.done).length ?? 0} Übungen
                 </div>
               </button>
