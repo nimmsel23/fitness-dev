@@ -11,7 +11,10 @@ import {
 import { 
   signInWithPopup, 
   onAuthStateChanged,
-  signOut as fbSignOut 
+  signOut as fbSignOut,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile
 } from "firebase/auth";
 import { db, auth, googleProvider } from "./firebase.js";
 
@@ -28,6 +31,17 @@ export function watchAuth(callback) {
 
 export async function signIn() {
   await signInWithPopup(auth, googleProvider);
+}
+
+export async function signInEmail(email, password) {
+  await signInWithEmailAndPassword(auth, email, password);
+}
+
+export async function signUpEmail(email, password, displayName) {
+  const cred = await createUserWithEmailAndPassword(auth, email, password);
+  if (displayName) {
+    await updateProfile(cred.user, { displayName });
+  }
 }
 
 export async function signOut() {
@@ -241,21 +255,23 @@ export async function getAnatomy(exerciseId) {
 // ── Coverage Logic ───────────────────────────────────────────────────────────
 
 const MUSCLE_GROUPS = {
-  chest: ["pecs", "chest"],
-  back: ["lats", "traps", "lower back", "back"],
-  shoulders: ["shoulders", "delts"],
-  arms: ["biceps", "triceps", "forearms"],
-  core: ["abs", "obliques", "core"],
-  glutes: ["glutes"],
-  quads: ["quads"],
-  hamstrings: ["hamstrings"],
-  calves: ["calves"]
+  chest: ["pecs", "chest", "pectoralis"],
+  back: ["lats", "traps", "lower back", "back", "latissimus", "trapezius", "rhomboids"],
+  shoulders: ["shoulders", "delts", "deltoid"],
+  arms: ["biceps", "triceps", "forearms", "brachii"],
+  core: ["abs", "obliques", "core", "abdominis"],
+  glutes: ["glutes", "gluteus"],
+  quads: ["quads", "quadriceps"],
+  hamstrings: ["hamstrings", "biceps femoris"],
+  calves: ["calves", "gastrocnemius"]
 };
 
-function muscleToGroupId(muscle) {
+function muscleToGroupId(muscle, exerciseName = "") {
   const m = muscle.toLowerCase();
+  const name = exerciseName.toLowerCase();
+  
   for (const [group, list] of Object.entries(MUSCLE_GROUPS)) {
-    if (list.some(x => m.includes(x))) return group;
+    if (list.some(x => m.includes(x) || (name && name.includes(x)))) return group;
   }
   return null;
 }
@@ -276,13 +292,20 @@ export async function getCoverageGaps(days = 7) {
       if (!ex.done) continue;
       const primary = ex.primaryMuscles || ex.primary_muscles || [];
       const secondary = ex.secondaryMuscles || ex.secondary_muscles || [];
+      const name = ex.name || "";
       
+      // If no muscles tagged, try to infer from name
+      if (primary.length === 0 && secondary.length === 0) {
+        const id = muscleToGroupId("", name);
+        if (id) hits[id] = (hits[id] || 0) + 1;
+      }
+
       for (const m of primary) {
-        const id = muscleToGroupId(m);
+        const id = muscleToGroupId(m, name);
         if (id) hits[id] = (hits[id] || 0) + 1;
       }
       for (const m of secondary) {
-        const id = muscleToGroupId(m);
+        const id = muscleToGroupId(m, name);
         if (id) hits[id] = (hits[id] || 0) + 0.5;
       }
     }
@@ -331,14 +354,29 @@ export async function getWeeklyReport(selector = "current") {
       const s = parseFloat(ex.sets), r = parseFloat(ex.reps), w = parseFloat(ex.weight);
       const vol = (isFinite(s) && isFinite(r) && isFinite(w)) ? s * r * w : 0;
       sessVolume += vol;
-      const id = ex.name || ex.exercise_id;
-      if (id) topExMap[id] = (topExMap[id] || 0) + 1;
-      for (const m of (ex.primaryMuscles || [])) {
-        const gid = muscleToGroupId(m);
+      const exName = ex.name || ex.exercise_id || "";
+      if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
+      
+      const primary = ex.primaryMuscles || ex.primary_muscles || [];
+      const secondary = ex.secondaryMuscles || ex.secondary_muscles || [];
+
+      // Infer group if no muscles are explicitly tagged
+      if (primary.length === 0 && secondary.length === 0) {
+        const gid = muscleToGroupId("", exName);
+        if (gid) bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
+      }
+
+      for (const m of primary) {
+        const gid = muscleToGroupId(m, exName);
         if (gid) {
           muscleScores[m] = (muscleScores[m] || 0) + 1;
           bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
         }
+      }
+      // Secondary muscles contribute 0.5 to region score (optional, following getCoverageGaps logic)
+      for (const m of secondary) {
+        const gid = muscleToGroupId(m, exName);
+        if (gid) bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5;
       }
     }
     totalVolume += sessVolume;

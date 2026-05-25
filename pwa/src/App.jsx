@@ -6,7 +6,7 @@ import Journal from "./views/Journal.jsx";
 import Muscles from "./views/Muscles.jsx";
 import Learn from "./views/Learn.jsx";
 import WeeklyReview from "./views/WeeklyReview.jsx";
-import { getSettings, saveSettings, watchAuth, signIn, signOut } from "./db.js";
+import { getSettings, saveSettings, watchAuth, signIn, signOut, signInEmail, signUpEmail } from "./db.js";
 
 class ErrorBoundary extends Component {
   state = { error: null };
@@ -61,6 +61,13 @@ export default function App() {
   const [circDark,  setCircDark]  = useState('honey')
   const [circLight, setCircLight] = useState('latte')
   const [sessionDate, setSessionDate] = useState(null)
+
+  // Auth form state
+  const [isSignup, setIsSignup]   = useState(false)
+  const [email, setEmail]         = useState('')
+  const [password, setPassword]   = useState('')
+  const [name, setName]           = useState('')
+  const [error, setError]         = useState(null)
 
   // Watch Auth State
   useEffect(() => {
@@ -130,6 +137,20 @@ export default function App() {
     else if (id !== 'session') setSessionDate(null);
   }
 
+  async function handleEmailAuth(e) {
+    e.preventDefault();
+    setError(null);
+    try {
+      if (isSignup) {
+        await signUpEmail(email, password, name);
+      } else {
+        await signInEmail(email, password);
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+
   if (authLoading) return (
     <div className="flex items-center justify-center h-screen bg-[#090b10]">
       <div className="spinner" />
@@ -137,7 +158,7 @@ export default function App() {
   );
 
   if (!user) return (
-    <div className="flex flex-col items-center justify-center h-screen px-8 bg-[#090b10] text-white text-center">
+    <div className="flex flex-col items-center justify-center min-h-screen px-8 py-12 bg-[#090b10] text-white text-center">
       <div className="mb-8 p-6 rounded-full bg-accent/10 border border-accent/20">
         <Dumbbell size={64} className="text-accent" />
       </div>
@@ -145,9 +166,61 @@ export default function App() {
       <p className="text-dim text-sm mb-12 max-w-xs">
         Logge deine Workouts, tracke deinen Fortschritt und verbessere deine Form.
       </p>
-      <button onClick={signIn} className="btn btn-primary px-8 py-4 text-lg shadow-xl">
-        <LogIn size={20} /> Mit Google anmelden
-      </button>
+      
+      <div className="w-full max-w-sm space-y-4">
+        <form onSubmit={handleEmailAuth} className="space-y-3">
+          {isSignup && (
+            <input 
+              type="text" 
+              placeholder="Name" 
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-accent outline-none"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              required
+            />
+          )}
+          <input 
+            type="email" 
+            placeholder="E-Mail" 
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-accent outline-none"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
+          <input 
+            type="password" 
+            placeholder="Passwort" 
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-accent outline-none"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
+          
+          {error && <p className="text-red-400 text-xs text-left px-1">{error}</p>}
+
+          <button type="submit" className="btn btn-primary w-full py-4 text-lg shadow-xl">
+            {isSignup ? 'Registrieren' : 'Anmelden'}
+          </button>
+        </form>
+
+        <div className="flex items-center gap-4 py-2">
+          <div className="flex-1 h-px bg-white/10" />
+          <span className="text-[10px] uppercase tracking-widest opacity-30 font-bold">oder</span>
+          <div className="flex-1 h-px bg-white/10" />
+        </div>
+
+        <button onClick={signIn} className="w-full flex items-center justify-center gap-3 px-8 py-3.5 bg-white text-black rounded-xl font-bold transition-transform active:scale-95">
+          <LogIn size={20} /> Mit Google anmelden
+        </button>
+
+        <button 
+          onClick={() => setIsSignup(!isSignup)} 
+          className="text-xs text-dim hover:text-white transition-colors mt-4"
+        >
+          {isSignup ? 'Bereits ein Konto? Hier anmelden' : 'Noch kein Konto? Hier registrieren'}
+        </button>
+      </div>
+
       <div className="mt-12 label-caps opacity-30">
         AlphaOS Ecosystem
       </div>
@@ -165,7 +238,9 @@ export default function App() {
         </div>
         <div className="flex items-center gap-3">
           <div className="flex flex-col items-end">
-             <span className="label-caps leading-none">{user.displayName?.split(' ')[0]}</span>
+             <span className="label-caps leading-none">
+               {user.displayName ? user.displayName.split(' ')[0] : user.email?.split('@')[0]}
+             </span>
           </div>
           <button onClick={() => navigate('settings')} className="p-2 rounded-xl" style={{ background: tab === 'settings' ? 'var(--bg2)' : 'transparent' }}>
              <User size={18} className={tab === 'settings' ? 'text-accent' : 'text-dim'} />
@@ -185,10 +260,14 @@ export default function App() {
             {tab === 'settings' && (
               <div className="space-y-8">
                  <section className="card flex flex-col items-center text-center">
-                    <div className="w-16 h-16 rounded-full overflow-hidden mb-4 border-2 border-accent/20">
-                       <img src={user.photoURL} alt={user.displayName} />
+                    <div className="w-16 h-16 rounded-full overflow-hidden mb-4 border-2 border-accent/20 flex items-center justify-center bg-accent/10">
+                       {user.photoURL ? (
+                         <img src={user.photoURL} alt={user.displayName} />
+                       ) : (
+                         <User size={32} className="text-accent" />
+                       )}
                     </div>
-                    <h2 className="text-lg font-black mb-1">{user.displayName}</h2>
+                    <h2 className="text-lg font-black mb-1">{user.displayName || user.email?.split('@')[0]}</h2>
                     <p className="text-xs opacity-40 mb-6">{user.email}</p>
                     <button onClick={signOut} className="btn btn-red px-6 py-2.5">
                        <LogOut size={16} /> Abmelden
