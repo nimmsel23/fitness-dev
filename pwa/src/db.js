@@ -349,16 +349,32 @@ function getWeekBounds(selector = "current") {
 
 export async function getWeeklyReport(selector = "current") {
   const dates = getWeekBounds(selector);
-  console.log("WeeklyReport - Analyzing dates:", dates);
   
-  const [kbExercises] = await Promise.all([
-    getAllExercises()
+  const [kbExercises, history] = await Promise.all([
+    getAllExercises(),
+    getSessionHistory(120) // Get more history for accurate recovery tracking
   ]);
 
   const kbMap = new Map();
   kbExercises.forEach(ex => {
     kbMap.set((ex.display_name || ex.name).toLowerCase(), ex);
   });
+
+  // Pre-process history to identify muscle groups for each session
+  const historyWithMuscles = history.map(s => {
+    const groups = new Set();
+    for (const ex of (s.exercises || [])) {
+      if (!ex.done) continue;
+      const kbEx = kbMap.get((ex.name || "").toLowerCase());
+      const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];
+      const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
+      [...primary, ...secondary].forEach(m => {
+        const gid = muscleToGroupId(m, ex.name);
+        if (gid) groups.add(gid);
+      });
+    }
+    return { date: s.date, groups: Array.from(groups) };
+  }).sort((a, b) => b.date.localeCompare(a.date));
 
   const sessions = [];
   let totalVolume = 0;
@@ -371,14 +387,13 @@ export async function getWeeklyReport(selector = "current") {
     const sess = await getSession(date);
     if (!sess) continue;
     
-    const blockName = sess.block || sess.trainingsart || "Training";
     let sessVolume = 0;
     let hasDoneExercises = false;
+    const sessGroupsCount = {};
 
     for (let ex of (sess.exercises || [])) {
       if (!ex.done) continue;
       
-      // Enrich on-the-fly for the report
       const kbEx = kbMap.get((ex.name || "").toLowerCase());
       if (kbEx) {
         ex = {
@@ -399,11 +414,10 @@ export async function getWeeklyReport(selector = "current") {
       const primary = ex.primaryMuscles || [];
       const secondary = ex.secondaryMuscles || [];
 
-      // Fallback if still no muscles
-      if (primary.length === 0 && secondary.length === 0) {
-        const gid = muscleToGroupId("", exName);
-        if (gid) bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
-      }
+      [...primary, ...secondary].forEach(m => {
+        const gid = muscleToGroupId(m, exName);
+        if (gid) sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
+      });
 
       for (const m of primary) {
         const gid = muscleToGroupId(m, exName);
@@ -419,27 +433,31 @@ export async function getWeeklyReport(selector = "current") {
     }
 
     if (hasDoneExercises || sess.block) {
-      console.log(`WeeklyReport - Found session on ${date}: ${blockName}, Volume: ${sessVolume}`);
-      totalVolume += sessVolume;
-      
-      // Find previous session of same split for rest calculation
-      let splitRestHours = null;
-      try {
-        const history = await getSessionHistory(90);
-        const lastSameBlock = history.find(s => s.date < date && (s.block === blockName || s.trainingsart === blockName));
-        if (lastSameBlock) {
-          const d1 = new Date(date);
-          const d2 = new Date(lastSameBlock.date);
-          splitRestHours = Math.round((d1 - d2) / (1000 * 60 * 60));
-        }
-      } catch (e) { console.warn("Rest calc error", e); }
+      // Auto-Split Detection: find the dominant group
+      const sortedGroups = Object.entries(sessGroupsCount).sort((a, b) => b[1] - a[1]);
+      let autoSplit = sess.block || sess.trainingsart || "Training";
+      if (!sess.block && sortedGroups.length > 0) {
+        autoSplit = sortedGroups[0][0].charAt(0).toUpperCase() + sortedGroups[0][0].slice(1);
+      }
 
+      // Calculate Per-Muscle Recovery
+      const muscleRecovery = {};
+      for (const gid of Object.keys(sessGroupsCount)) {
+        const lastSessionWithGroup = historyWithMuscles.find(h => h.date < date && h.groups.includes(gid));
+        if (lastSessionWithGroup) {
+          const d1 = new Date(date);
+          const d2 = new Date(lastSessionWithGroup.date);
+          muscleRecovery[gid] = Math.round((d1 - d2) / (1000 * 60 * 60));
+        }
+      }
+
+      totalVolume += sessVolume;
       sessions.push({ 
         ...sess, 
-        block: blockName, 
+        block: autoSplit, 
         total_volume: sessVolume, 
         exercise_count: sess.exercises?.length || 0,
-        rest_hours: splitRestHours
+        muscle_recovery: muscleRecovery
       });
     }
   }

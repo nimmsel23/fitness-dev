@@ -151,13 +151,17 @@ export default function WeeklyReview({ onNavigate }) {
                          <div className="text-xs font-black text-accent">
                            {formatVolume(session.total_volume)}
                          </div>
-                         {session.rest_hours !== null && (
-                           <div className="text-[9px] font-bold text-accent flex items-center gap-1 mt-0.5">
-                             <Clock size={8} /> {session.rest_hours}h Rest
+                         
+                         {session.muscle_recovery && Object.keys(session.muscle_recovery).length > 0 ? (
+                           <div className="flex flex-wrap justify-end gap-x-2 gap-y-0.5 mt-1 max-w-[120px]">
+                              {Object.entries(session.muscle_recovery).map(([m, hrs]) => (
+                                <div key={m} className="text-[7px] font-bold text-accent uppercase flex items-center gap-0.5 whitespace-nowrap">
+                                  <Clock size={6} /> {m}: {hrs}h
+                                </div>
+                              ))}
                            </div>
-                         )}
-                         {session.rest_hours === null && (
-                           <div className="text-[8px] opacity-20 uppercase font-bold mt-0.5">No prev session</div>
+                         ) : (
+                           <div className="text-[8px] opacity-20 uppercase font-bold mt-0.5">Base Session</div>
                          )}
                       </div>
                     </div>
