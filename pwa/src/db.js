@@ -263,7 +263,8 @@ const MUSCLE_GROUPS = {
   glutes: ["glutes", "gluteus"],
   quads: ["quads", "quadriceps"],
   hamstrings: ["hamstrings", "biceps femoris"],
-  calves: ["calves", "gastrocnemius"]
+  calves: ["calves", "gastrocnemius"],
+  legs: ["legs", "squat", "deadlift", "lunge"]
 };
 
 function muscleToGroupId(muscle, exerciseName = "") {
