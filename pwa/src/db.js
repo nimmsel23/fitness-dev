@@ -338,6 +338,7 @@ function getWeekBounds(selector = "current") {
 
 export async function getWeeklyReport(selector = "current") {
   const dates = getWeekBounds(selector);
+  console.log("WeeklyReport - Analyzing dates:", dates);
   const sessions = [];
   let totalVolume = 0;
   let entriesCount = 0;
@@ -347,10 +348,16 @@ export async function getWeeklyReport(selector = "current") {
 
   for (const date of dates) {
     const sess = await getSession(date);
-    if (!sess || !sess.block) continue;
+    if (!sess) continue;
+    // Don't skip if block is missing, just use fallback
+    const blockName = sess.block || sess.trainingsart || "Training";
+    
     let sessVolume = 0;
+    let hasDoneExercises = false;
+
     for (const ex of (sess.exercises || [])) {
       if (!ex.done) continue;
+      hasDoneExercises = true;
       entriesCount++;
       const s = parseFloat(ex.sets), r = parseFloat(ex.reps), w = parseFloat(ex.weight);
       const vol = (isFinite(s) && isFinite(r) && isFinite(w)) ? s * r * w : 0;
@@ -374,17 +381,20 @@ export async function getWeeklyReport(selector = "current") {
           bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
         }
       }
-      // Secondary muscles contribute 0.5 to region score (optional, following getCoverageGaps logic)
       for (const m of secondary) {
         const gid = muscleToGroupId(m, exName);
         if (gid) bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5;
       }
     }
-    totalVolume += sessVolume;
-    sessions.push({ ...sess, total_volume: sessVolume, exercise_count: sess.exercises?.length || 0 });
+
+    if (hasDoneExercises || sess.block) {
+      console.log(`WeeklyReport - Found session on ${date}: ${blockName}, Volume: ${sessVolume}`);
+      totalVolume += sessVolume;
+      sessions.push({ ...sess, block: blockName, total_volume: sessVolume, exercise_count: sess.exercises?.length || 0 });
+    }
   }
 
-  const allGroups = ["chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves"];
+  const allGroups = ["chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves", "legs"];
   const gaps = allGroups.filter(g => (bodyRegionScores[g] || 0) < 1);
 
   return {
