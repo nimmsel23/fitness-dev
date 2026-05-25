@@ -43,14 +43,16 @@ export function exercisesToModelData(exercises) {
 
     // Fallback: Infer muscles from name if tags are missing
     if (primary.length === 0 && secondary.length === 0) {
+      console.log(`BodyMap [${ex.name}] - Tags missing, attempting fallback...`);
       for (const [key, group] of Object.entries(LABEL_TO_GROUP)) {
         if (exName.includes(key.toLowerCase())) {
+          console.log(`BodyMap [${ex.name}] - Fallback found match: ${key} -> ${group}`);
           primary.push(key);
         }
       }
     }
 
-    console.log(`BodyMap [${ex.name}] - primary:`, primary, "secondary:", secondary);
+    console.log(`BodyMap [${ex.name}] - Final primary:`, primary, "secondary:", secondary);
 
     if (primary.length > 0 || secondary.length > 0) {
       for (const label of primary) {
