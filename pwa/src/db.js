@@ -496,6 +496,21 @@ export async function getWeeklyReport(selector = "current") {
   };
 }
 
+export async function sendToInbox(exerciseData) {
+  try {
+    const res = await fetch("/inbox/exercise", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(exerciseData),
+    });
+    pingBridge();
+    return await res.json();
+  } catch (e) {
+    console.error("Inbox ping failed:", e);
+    return { ok: false };
+  }
+}
+
 // ── Progress Tracking ─────────────────────────────────────────────────────────
 
 export async function getProgressTrend(exerciseName, lastN = 4) {

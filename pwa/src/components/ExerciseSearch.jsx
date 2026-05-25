@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search } from 'lucide-react'
+import { Search, Plus } from 'lucide-react'
 import { getAllExercises } from '../db.js'
 
 const MUSCLE_COLORS = {
@@ -59,6 +59,12 @@ export default function ExerciseSearch({ onSelect, placeholder = 'Übung suchen�
     onSelect(ex)
   }
 
+  function handleAddNew() {
+    onSelect({ name: query, id: 'new_' + Date.now(), isNew: true });
+    setQuery('');
+    setOpen(false);
+  }
+
   return (
     <div ref={wrapRef} className="relative">
       <div className="relative">
@@ -79,27 +85,43 @@ export default function ExerciseSearch({ onSelect, placeholder = 'Übung suchen�
         />
       </div>
 
-      {open && results.length > 0 && (
+      {open && (
         <div className="absolute z-50 left-0 right-0 mt-1 rounded-xl shadow-2xl overflow-hidden overflow-y-auto max-h-64"
           style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-          {results.map(ex => (
-            <button key={ex.id} onClick={() => pick(ex)}
-              className="w-full text-left px-3 py-2.5 transition-colors border-b last:border-0"
-              style={{ borderColor: 'var(--line)', background: 'transparent' }}
+          {results.length > 0 ? (
+            results.map(ex => (
+              <button key={ex.id} onClick={() => pick(ex)}
+                className="w-full text-left px-3 py-2.5 transition-colors border-b last:border-0"
+                style={{ borderColor: 'var(--line)', background: 'transparent' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'var(--card-hover)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                <div className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{ex.name}</div>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {(ex.primaryMuscles || []).map(m => (
+                    <span key={m} className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                      style={{ background: muscleColor(m) + '22', color: muscleColor(m) }}>
+                      {m}
+                    </span>
+                  ))}
+                </div>
+              </button>
+            ))
+          ) : (
+            <button onClick={handleAddNew}
+              className="w-full text-left px-3 py-4 flex items-center gap-3 transition-colors"
               onMouseEnter={e => e.currentTarget.style.background = 'var(--card-hover)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              <div className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{ex.name}</div>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {(ex.primaryMuscles || []).map(m => (
-                  <span key={m} className="text-[10px] px-1.5 py-0.5 rounded font-medium"
-                    style={{ background: muscleColor(m) + '22', color: muscleColor(m) }}>
-                    {m}
-                  </span>
-                ))}
+              <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center text-accent">
+                <Plus size={18} />
+              </div>
+              <div>
+                <div className="text-sm font-bold text-ink">"{query}" hinzufügen</div>
+                <div className="text-[10px] text-muted uppercase font-bold tracking-tight">Übung existiert noch nicht</div>
               </div>
             </button>
-          ))}
+          )}
         </div>
       )}
     </div>

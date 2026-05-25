@@ -4,7 +4,7 @@ import ExerciseSearch from '../components/ExerciseSearch.jsx'
 import BodyMap from '../components/BodyMap.jsx'
 import { 
   getSession, saveSession, getSessionHistory, 
-  localToday, parseQuick, exportCsv, getProgressTrend, getExercise
+  localToday, parseQuick, exportCsv, getProgressTrend, getExercise, sendToInbox
 } from '../db.js'
 import { buildSessionCoachSheet } from '../lib/exerciseInsights.js'
 
@@ -167,8 +167,13 @@ export default function Session({ initialDate, hitMode }) {
     let primary = ex.primaryMuscles || ex.primary_muscles || [];
     let secondary = ex.secondaryMuscles || ex.secondary_muscles || [];
 
+    // If it's a new exercise from search, notify inbox
+    if (ex.isNew) {
+      sendToInbox({ name: ex.name, source: 'search_add' });
+    }
+
     // If muscles are missing, try to fetch from KB
-    if (primary.length === 0 && secondary.length === 0) {
+    if (!ex.isNew && primary.length === 0 && secondary.length === 0) {
       try {
         const kbEx = await getExercise(ex.id || ex.name);
         if (kbEx) {
