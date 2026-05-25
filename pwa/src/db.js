@@ -320,6 +320,17 @@ export async function getCoverageGaps(days = 7) {
 
 function getWeekBounds(selector = "current") {
   let d = new Date();
+  if (selector === "current") {
+    // Rolling 7 days instead of hard Monday reset
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const x = new Date();
+      x.setDate(d.getDate() - (6 - i));
+      dates.push(x.toISOString().slice(0, 10));
+    }
+    return dates;
+  }
+  
   if (selector !== "current") {
     const [year, week] = selector.split("-W");
     d = new Date(year, 0, 1 + (parseInt(week) - 1) * 7);
