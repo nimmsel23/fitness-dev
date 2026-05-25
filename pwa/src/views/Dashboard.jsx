@@ -94,9 +94,50 @@ export default function Dashboard({ onNavigate }) {
 
   return (
     <div className="pb-20">
-      {/* ... [rest of JSX stays the same, but use enrichedRecent instead of recent for BodyMap] ... */}
-      
-      {/* BodyMap update */}
+      {/* Exports & Quick actions */}
+      <div className="mb-4 card">
+        <div className="flex items-center justify-between">
+          <div className="label-caps">Dashboard</div>
+          <div className="flex gap-2">
+            <button onClick={() => handleExport(30)} className="btn btn-secondary py-2 text-xs">
+              <Download size={14} /> CSV
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Week Heatmap */}
+      <div className="mb-4 card">
+        <h3 className="label-caps mb-3">Diese Woche</h3>
+        <div className="grid grid-cols-7 gap-1.5">
+          {weekDates.map((date, i) => {
+            const s = sessionByDate[date];
+            const done = !!s?.block;
+            const isToday = date === today;
+            const color = done ? blockColor(s.block) : null;
+            return (
+              <div key={date} className="flex flex-col items-center gap-1">
+                <button
+                  onClick={() => done && onNavigate?.("session", date)}
+                  className="w-full aspect-square rounded-lg flex items-center justify-center text-[10px] font-bold transition-all"
+                  style={{
+                    background: done ? (color + '33') : 'var(--bg2)',
+                    border: isToday ? `1.5px solid ${color || 'var(--accent)'}` : '1.5px solid transparent',
+                    color: done ? color : 'var(--dim)',
+                    cursor: done ? 'pointer' : 'default',
+                  }}
+                >
+                  {done ? "✓" : "·"}
+                </button>
+                <span className="text-[9px] font-semibold" style={{ color: isToday ? 'var(--accent)' : 'var(--dim)' }}>
+                  {DAY_LABELS[i]}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="mb-4 card">
         <h3 className="label-caps mb-3">Muskel-Coverage</h3>
         <div className="flex justify-center gap-4">
@@ -104,11 +145,6 @@ export default function Dashboard({ onNavigate }) {
           <BodyMap exercises={enrichedRecent.flatMap(s => s.exercises || []).filter(e => e.done)} type="posterior" highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 100 }} />
         </div>
       </div>
-      
-      {/* ... [rest of Dashboard JSX] ... */}
-    </div>
-  );
-}
 
       <WeightChart days={30} />
 

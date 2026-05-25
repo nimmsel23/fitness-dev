@@ -92,7 +92,7 @@ export function exercisesToModelData(exercises) {
     muscles: [muscle],
     frequency: Math.ceil(score),
   }));
-  console.log("BodyMap - FINAL generated data:", data);
+  console.log("BodyMap - FINAL generated data [v2.0]:", data);
   return data;
 }
 
