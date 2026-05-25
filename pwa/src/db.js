@@ -339,6 +339,16 @@ function getWeekBounds(selector = "current") {
 export async function getWeeklyReport(selector = "current") {
   const dates = getWeekBounds(selector);
   console.log("WeeklyReport - Analyzing dates:", dates);
+  
+  const [kbExercises] = await Promise.all([
+    getAllExercises()
+  ]);
+
+  const kbMap = new Map();
+  kbExercises.forEach(ex => {
+    kbMap.set((ex.display_name || ex.name).toLowerCase(), ex);
+  });
+
   const sessions = [];
   let totalVolume = 0;
   let entriesCount = 0;
@@ -349,14 +359,24 @@ export async function getWeeklyReport(selector = "current") {
   for (const date of dates) {
     const sess = await getSession(date);
     if (!sess) continue;
-    // Don't skip if block is missing, just use fallback
-    const blockName = sess.block || sess.trainingsart || "Training";
     
+    const blockName = sess.block || sess.trainingsart || "Training";
     let sessVolume = 0;
     let hasDoneExercises = false;
 
-    for (const ex of (sess.exercises || [])) {
+    for (let ex of (sess.exercises || [])) {
       if (!ex.done) continue;
+      
+      // Enrich on-the-fly for the report
+      const kbEx = kbMap.get((ex.name || "").toLowerCase());
+      if (kbEx) {
+        ex = {
+          ...ex,
+          primaryMuscles: kbEx.primary_muscles || kbEx.primaryMuscles || ex.primaryMuscles || [],
+          secondaryMuscles: kbEx.secondary_muscles || kbEx.secondaryMuscles || ex.secondaryMuscles || []
+        };
+      }
+
       hasDoneExercises = true;
       entriesCount++;
       const s = parseFloat(ex.sets), r = parseFloat(ex.reps), w = parseFloat(ex.weight);
@@ -365,10 +385,10 @@ export async function getWeeklyReport(selector = "current") {
       const exName = ex.name || ex.exercise_id || "";
       if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
       
-      const primary = ex.primaryMuscles || ex.primary_muscles || [];
-      const secondary = ex.secondaryMuscles || ex.secondary_muscles || [];
+      const primary = ex.primaryMuscles || [];
+      const secondary = ex.secondaryMuscles || [];
 
-      // Infer group if no muscles are explicitly tagged
+      // Fallback if still no muscles
       if (primary.length === 0 && secondary.length === 0) {
         const gid = muscleToGroupId("", exName);
         if (gid) bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
