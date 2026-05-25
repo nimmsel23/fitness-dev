@@ -148,35 +148,7 @@ export async function saveJournal(date = todayISO(), text, tags = []) {
     time: new Date().toISOString(),
     created_at: serverTimestamp(),
   });
-  pingBridge();
-  return { id: ref.id, date, text };
-}
-
-// ── Body / Weight ─────────────────────────────────────────────────────────────
-
-export async function getBodyEntry(date = todayISO()) {
-  const snap = await getDoc(doc(db, "fitness", getUid(), "body", date));
-  if (!snap.exists()) return null;
-  return snap.data();
-}
-
-export async function saveBodyEntry(date = todayISO(), data) {
-  await setDoc(doc(db, "fitness", getUid(), "body", date), {
-    ...data,
-    date,
-    saved_at: serverTimestamp(),
-  });
-  return { ok: true };
-}
-
-export async function getBodyEntries(days = 30) {
-  const q = query(
-    collection(db, "fitness", getUid(), "body"),
-    orderBy("date", "desc"),
-    limit(days)
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map(d => d.data());
+  return { id: ref.id };
 }
 
 // ── Settings ──────────────────────────────────────────────────────────────────
@@ -267,14 +239,17 @@ const MUSCLE_GROUPS = {
   legs: ["legs", "squat", "deadlift", "lunge"]
 };
 
-function muscleToGroupId(muscle, exerciseName = "") {
+function muscleToGroupIds(muscle, exerciseName = "") {
   const m = muscle.toLowerCase();
   const name = exerciseName.toLowerCase();
+  const matches = new Set();
   
   for (const [group, list] of Object.entries(MUSCLE_GROUPS)) {
-    if (list.some(x => m.includes(x) || (name && name.includes(x)))) return group;
+    if (list.some(x => m.includes(x) || (name && name.includes(x)))) {
+      matches.add(group);
+    }
   }
-  return null;
+  return Array.from(matches);
 }
 
 export async function getCoverageGaps(days = 7) {
@@ -286,29 +261,42 @@ export async function getCoverageGaps(days = 7) {
     dates.push(d.toISOString().slice(0, 10));
   }
 
+  const [kbExercises] = await Promise.all([
+    getAllExercises()
+  ]);
+
+  const kbMap = new Map();
+  kbExercises.forEach(ex => {
+    kbMap.set((ex.display_name || ex.name).toLowerCase(), ex);
+  });
+
   const hits = {};
   for (const date of dates) {
     const session = await getSession(date);
-    for (const ex of (session?.exercises || [])) {
+    if (!session) continue;
+    
+    for (let ex of (session.exercises || [])) {
       if (!ex.done) continue;
-      const primary = ex.primaryMuscles || ex.primary_muscles || [];
-      const secondary = ex.secondaryMuscles || ex.secondary_muscles || [];
-      const name = ex.name || "";
       
-      // If no muscles tagged, try to infer from name
-      if (primary.length === 0 && secondary.length === 0) {
-        const id = muscleToGroupId("", name);
-        if (id) hits[id] = (hits[id] || 0) + 1;
+      const kbEx = kbMap.get((ex.name || "").toLowerCase());
+      const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];
+      const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
+      const name = ex.name || "";
+
+      // Track hits for all groups this exercise touches
+      const groups = new Set();
+      [...primary, ...secondary].forEach(m => {
+        muscleToGroupIds(m, name).forEach(gid => groups.add(gid));
+      });
+
+      // Fallback if no muscles identified
+      if (groups.size === 0) {
+        muscleToGroupIds("", name).forEach(gid => groups.add(gid));
       }
 
-      for (const m of primary) {
-        const id = muscleToGroupId(m, name);
-        if (id) hits[id] = (hits[id] || 0) + 1;
-      }
-      for (const m of secondary) {
-        const id = muscleToGroupId(m, name);
-        if (id) hits[id] = (hits[id] || 0) + 0.5;
-      }
+      groups.forEach(gid => {
+        hits[gid] = (hits[gid] || 0) + 1;
+      });
     }
   }
 
@@ -369,8 +357,7 @@ export async function getWeeklyReport(selector = "current") {
       const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];
       const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
       [...primary, ...secondary].forEach(m => {
-        const gid = muscleToGroupId(m, ex.name);
-        if (gid) groups.add(gid);
+        muscleToGroupIds(m, ex.name).forEach(gid => groups.add(gid));
       });
     }
     return { date: s.date, groups: Array.from(groups) };
@@ -387,6 +374,7 @@ export async function getWeeklyReport(selector = "current") {
     const sess = await getSession(date);
     if (!sess) continue;
     
+    const blockName = sess.block || sess.trainingsart || "Training";
     let sessVolume = 0;
     let hasDoneExercises = false;
     const sessGroupsCount = {};
@@ -415,20 +403,21 @@ export async function getWeeklyReport(selector = "current") {
       const secondary = ex.secondaryMuscles || [];
 
       [...primary, ...secondary].forEach(m => {
-        const gid = muscleToGroupId(m, exName);
-        if (gid) sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
+        muscleToGroupIds(m, exName).forEach(gid => {
+           sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
+        });
       });
 
       for (const m of primary) {
-        const gid = muscleToGroupId(m, exName);
-        if (gid) {
+        muscleToGroupIds(m, exName).forEach(gid => {
           muscleScores[m] = (muscleScores[m] || 0) + 1;
           bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
-        }
+        });
       }
       for (const m of secondary) {
-        const gid = muscleToGroupId(m, exName);
-        if (gid) bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5;
+        muscleToGroupIds(m, exName).forEach(gid => {
+          bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5;
+        });
       }
     }
 
