@@ -4,7 +4,7 @@ import ExerciseSearch from '../components/ExerciseSearch.jsx'
 import BodyMap from '../components/BodyMap.jsx'
 import { 
   getSession, saveSession, getSessionHistory, 
-  localToday, parseQuick, exportCsv, getProgressTrend
+  localToday, parseQuick, exportCsv, getProgressTrend, getExercise
 } from '../db.js'
 import { buildSessionCoachSheet } from '../lib/exerciseInsights.js'
 
@@ -149,11 +149,27 @@ export default function Session({ initialDate }) {
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 2200) }
 
-  function addEx(ex) {
+  async function addEx(ex) {
+    let primary = ex.primaryMuscles || ex.primary_muscles || [];
+    let secondary = ex.secondaryMuscles || ex.secondary_muscles || [];
+
+    // If muscles are missing, try to fetch from KB
+    if (primary.length === 0 && secondary.length === 0) {
+      try {
+        const kbEx = await getExercise(ex.id || ex.name);
+        if (kbEx) {
+          primary = kbEx.primaryMuscles || kbEx.primary_muscles || [];
+          secondary = kbEx.secondaryMuscles || kbEx.secondary_muscles || [];
+        }
+      } catch (e) {
+        console.warn("Could not fetch KB data:", e);
+      }
+    }
+
     setExercises(prev => [...prev, {
       name: ex.display_name || ex.name,
-      primaryMuscles: ex.primary_muscles || ex.primaryMuscles || [],
-      secondaryMuscles: ex.secondary_muscles || ex.secondaryMuscles || [],
+      primaryMuscles: primary,
+      secondaryMuscles: secondary,
       sets: '', reps: '', weight: '', note: '', done: true, isHIT: false,
     }])
     showToast(`+ ${ex.display_name || ex.name}`)
