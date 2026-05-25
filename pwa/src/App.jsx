@@ -60,6 +60,7 @@ export default function App() {
   const [themeMode, setModeState] = useState('manual')
   const [circDark,  setCircDark]  = useState('honey')
   const [circLight, setCircLight] = useState('latte')
+  const [hitMode, setHitMode]     = useState(false)
   const [sessionDate, setSessionDate] = useState(null)
 
   // Auth form state
@@ -86,6 +87,7 @@ export default function App() {
       if (s.themeMode) setModeState(s.themeMode);
       if (s.circDark) setCircDark(s.circDark);
       if (s.circLight) setCircLight(s.circLight);
+      if (s.hitMode !== undefined) setHitMode(s.hitMode);
       if (s.themeMode !== 'circadian') applyTheme(s.theme || 'honey');
     });
   }, [user]);
@@ -121,8 +123,14 @@ export default function App() {
   }, [])
 
   function updateSettings(newSettings) {
-    const updated = { theme, themeMode, circDark, circLight, ...newSettings };
+    const updated = { theme, themeMode, circDark, circLight, hitMode, ...newSettings };
     saveSettings(updated);
+  }
+
+  function toggleHitMode() {
+    const next = !hitMode;
+    setHitMode(next);
+    updateSettings({ hitMode: next });
   }
 
   function setManualTheme(t) {
@@ -252,7 +260,7 @@ export default function App() {
         <div className="max-w-2xl mx-auto px-4 py-4 pb-28">
           <ErrorBoundary key={tab}>
             {tab === 'dash'     && <Dashboard onNavigate={navigate} />}
-            {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} />}
+            {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} hitMode={hitMode} />}
             {tab === 'review'   && <WeeklyReview onNavigate={navigate} />}
             {tab === 'journal'  && <Journal />}
             {tab === 'muscles'  && <Muscles />}
@@ -272,6 +280,20 @@ export default function App() {
                     <button onClick={signOut} className="btn btn-red px-6 py-2.5">
                        <LogOut size={16} /> Abmelden
                     </button>
+                 </section>
+
+                 <section className="card">
+                    <h2 className="label-caps mb-4">Modus</h2>
+                    <div className="flex items-center justify-between">
+                       <div className="text-left">
+                          <div className="text-sm font-bold text-ink">HIT Modus</div>
+                          <div className="text-[10px] opacity-40">Rest-Hours statt Volumen</div>
+                       </div>
+                       <button onClick={toggleHitMode} 
+                         className={`w-10 h-5 rounded-full transition-colors relative border ${hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
+                         <div className={`absolute top-0.5 w-3.5 h-3.5 rounded-full transition-transform bg-white ${hitMode ? 'right-0.5' : 'left-0.5'}`} />
+                       </button>
+                    </div>
                  </section>
 
                  <section>

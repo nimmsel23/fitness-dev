@@ -105,7 +105,7 @@ function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast }) {
 }
 
 // ── Main view ─────────────────────────────────────────────────────────────────
-export default function Session({ initialDate }) {
+export default function Session({ initialDate, hitMode }) {
   const [date, setDate]           = useState(initialDate || localToday())
   const [block, setBlock]         = useState('')
   const [exercises, setExercises] = useState([])
@@ -118,9 +118,10 @@ export default function Session({ initialDate }) {
   const [toast, setToast]         = useState('')
   const [quickInput, setQuickInput] = useState('')
   const [prevMap, setPrevMap]       = useState({})
+  const [restHours, setRestHours]   = useState(null)
 
   useEffect(() => {
-    getSessionHistory(60).then(sessions => {
+    getSessionHistory(90).then(sessions => {
       const map = {}
       for (const sess of sessions) {
         for (const ex of (sess.exercises || [])) {
@@ -130,8 +131,21 @@ export default function Session({ initialDate }) {
         }
       }
       setPrevMap(map)
+      
+      // Calculate rest hours for the current block
+      if (block) {
+        const lastSameBlock = sessions.find(s => s.date < date && (s.block === block || s.trainingsart === block));
+        if (lastSameBlock) {
+          const d1 = new Date(date);
+          const d2 = new Date(lastSameBlock.date);
+          const hours = Math.round((d1 - d2) / (1000 * 60 * 60));
+          setRestHours(hours);
+        } else {
+          setRestHours(null);
+        }
+      }
     }).catch(() => {})
-  }, [])
+  }, [block, date])
 
   useEffect(() => {
     getSession(date).then(d => {
@@ -278,10 +292,18 @@ export default function Session({ initialDate }) {
         {exercises.length === 0 && <p className="text-center py-8 text-sm opacity-40">Keine Übungen — suche oder nutze Quick Entry</p>}
       </div>
 
-      {totalVolume > 0 && (
-        <div className="text-right text-[10px] font-bold opacity-40 mb-4 font-mono uppercase tracking-widest">
-          Total Volume: {Math.round(totalVolume).toLocaleString('de-AT')} kg
-        </div>
+      {hitMode ? (
+        restHours !== null && (
+          <div className="text-right text-[10px] font-bold text-accent mb-4 font-mono uppercase tracking-widest">
+            Rest since last {block}: {restHours} Hours
+          </div>
+        )
+      ) : (
+        totalVolume > 0 && (
+          <div className="text-right text-[10px] font-bold opacity-40 mb-4 font-mono uppercase tracking-widest">
+            Total Volume: {Math.round(totalVolume).toLocaleString('de-AT')} kg
+          </div>
+        )
       )}
 
       <div className="p-4 rounded-2xl mb-6 bg-bg2 border border-line">
