@@ -21,8 +21,8 @@ const GROUP_TO_RBH = {
 }
 
 const LABEL_TO_GROUP = {
-  chest: 'chest', pec: 'chest', pecs: 'chest', pectoralis: 'chest',
-  back: 'back', lats: 'back', lat: 'back', trapezius: 'back', traps: 'back',
+  chest: 'chest', pec: 'chest', pecs: 'chest', pectoralis: 'chest', 'pectoralis major': 'chest',
+  back: 'back', lats: 'back', lat: 'back', trapezius: 'back', traps: 'back', latissimus: 'back', rhoboids: 'back',
   shoulder: 'shoulders', shoulders: 'shoulders', delt: 'shoulders', delts: 'shoulders', deltoid: 'shoulders',
   arms: 'arms', arm: 'arms', biceps: 'arms', triceps: 'arms', forearm: 'arms', forearms: 'arms',
   core: 'core', abs: 'core', abdominal: 'core',
