@@ -18,6 +18,13 @@ import {
 } from "firebase/auth";
 import { db, auth, googleProvider } from "./firebase.js";
 
+export const ACTIVITY_MUSCLE_MAPPING = {
+  hiking: { muscles: ["legs", "core", "glutes"], impact: 1.0 },
+  running: { muscles: ["quads", "hamstrings", "calves"], impact: 1.0 },
+  cycling: { muscles: ["quads", "calves"], impact: 0.8 },
+  swimming: { muscles: ["back", "shoulders", "core"], impact: 0.7 }
+};
+
 let currentUid = null;
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
@@ -448,21 +455,6 @@ export async function getWeeklyReport(selector = "current") {
       }
     }
 
-// ── Activity Mapping ──────────────────────────────────────────────────────────
-
-export const ACTIVITY_MUSCLE_MAPPING = {
-  hiking: { muscles: ["legs", "core", "glutes"], impact: 1.0 },
-  running: { muscles: ["quads", "hamstrings", "calves"], impact: 1.0 },
-  cycling: { muscles: ["quads", "calves"], impact: 0.8 },
-  swimming: { muscles: ["back", "shoulders", "core"], impact: 0.7 }
-};
-
-// ── Coverage Logic ───────────────────────────────────────────────────────────
-// ... [existing MUSCLE_GROUPS and muscleToGroupIds] ...
-
-// ... [getCoverageGaps] ...
-
-// ... [getWeeklyReport modifications] ...
     if (hasDoneExercises || sess.block || sess.activity) {
       // Auto-Split Detection: find the dominant group
       const sortedGroups = Object.entries(sessGroupsCount).sort((a, b) => b[1] - a[1]);
