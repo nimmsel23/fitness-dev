@@ -151,6 +151,33 @@ export async function saveJournal(date = todayISO(), text, tags = []) {
   return { id: ref.id };
 }
 
+// ── Body / Weight ─────────────────────────────────────────────────────────────
+
+export async function getBodyEntry(date = todayISO()) {
+  const snap = await getDoc(doc(db, "fitness", getUid(), "body", date));
+  if (!snap.exists()) return null;
+  return snap.data();
+}
+
+export async function saveBodyEntry(date = todayISO(), data) {
+  await setDoc(doc(db, "fitness", getUid(), "body", date), {
+    ...data,
+    date,
+    saved_at: serverTimestamp(),
+  });
+  return { ok: true };
+}
+
+export async function getBodyEntries(days = 30) {
+  const q = query(
+    collection(db, "fitness", getUid(), "body"),
+    orderBy("date", "desc"),
+    limit(days)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => d.data());
+}
+
 // ── Settings ──────────────────────────────────────────────────────────────────
 
 export async function getSettings() {
