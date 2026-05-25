@@ -119,6 +119,8 @@ export default function Session({ initialDate, hitMode }) {
   const [quickInput, setQuickInput] = useState('')
   const [prevMap, setPrevMap]       = useState({})
   const [restHours, setRestHours]   = useState(null)
+  const [isActivity, setIsActivity] = useState(false)
+  const [activity, setActivity]   = useState({ type: 'hiking', duration: '', intensity: 5 })
 
   useEffect(() => {
     getSessionHistory(90).then(sessions => {
@@ -157,6 +159,12 @@ export default function Session({ initialDate, hitMode }) {
         setDuration(d.duration || '')
         setNotes(d.notes || '')
         setTrainingsart(d.trainingsart || '')
+        if (d.activity) {
+          setIsActivity(true)
+          setActivity(d.activity)
+        } else {
+          setIsActivity(false)
+        }
       }
     }).catch(() => {})
   }, [date])
@@ -232,7 +240,9 @@ export default function Session({ initialDate, hitMode }) {
   async function save() {
     setSaving(true)
     try {
-      await saveSession(date, { block, exercises, effort, location, duration, notes, trainingsart })
+      const sessData = { block, exercises, effort, location, duration, notes, trainingsart }
+      if (isActivity) sessData.activity = activity
+      await saveSession(date, sessData)
       showToast('Gespeichert ✓')
     } catch { showToast('Fehler beim Speichern') }
     finally { setSaving(false) }
@@ -268,58 +278,81 @@ export default function Session({ initialDate, hitMode }) {
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold opacity-40">MIN</span>
         </div>
       </div>
-
-      <SectionHeader>Split</SectionHeader>
-      <div className="flex flex-wrap gap-2 mb-4">
-        {['Push', 'Pull', 'Legs', 'Upper', 'Lower', 'Full'].map(l => (
-          <button key={l} onClick={() => setBlock(l)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${block === l ? 'border-accent bg-accent/10 text-accent' : 'border-line bg-bg2 text-muted'}`}>
-            {l}
-          </button>
-        ))}
+      
+      <div className="flex gap-2 mb-4">
+        <button onClick={() => setIsActivity(!isActivity)} 
+          className={`flex-1 p-3 rounded-xl border font-bold ${isActivity ? 'border-accent bg-accent/10 text-accent' : 'border-line bg-card text-dim'}`}>
+          {isActivity ? 'Cardio/Activity Log' : 'Krafttraining Log'}
+        </button>
       </div>
 
-      <SectionHeader>Übungen</SectionHeader>
-      <div className="flex flex-col gap-2 mb-4">
-        {exercises.map((ex, idx) => (
-          <ExCard 
-            key={idx} 
-            ex={ex} 
-            i={idx} 
-            updateEx={updateEx} 
-            removeEx={removeEx} 
-            moveEx={moveEx}
-            isFirst={idx === 0}
-            isLast={idx === exercises.length - 1}
-            prev={prevMap[ex.name]} 
-          />
-        ))}
-        {exercises.length === 0 && <p className="text-center py-8 text-sm opacity-40">Keine Übungen — suche oder nutze Quick Entry</p>}
-      </div>
-
-      {hitMode ? (
-        restHours !== null && (
-          <div className="text-right text-[10px] font-bold text-accent mb-4 font-mono uppercase tracking-widest">
-            Rest since last {block}: {restHours} Hours
-          </div>
-        )
-      ) : (
-        totalVolume > 0 && (
-          <div className="text-right text-[10px] font-bold opacity-40 mb-4 font-mono uppercase tracking-widest">
-            Total Volume: {Math.round(totalVolume).toLocaleString('de-AT')} kg
-          </div>
-        )
-      )}
-
-      <div className="p-4 rounded-2xl mb-6 bg-bg2 border border-line">
-        <ExerciseSearch onSelect={addEx} />
-        <div className="flex gap-2 mt-3">
-          <input type="text" value={quickInput} onChange={e => setQuickInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && addQuick()}
-            placeholder="bench 3x8@80" className="flex-1 p-2 rounded-lg border text-sm font-mono bg-card border-line text-ink" />
-          <button onClick={addQuick} className="btn btn-secondary py-2 px-4 text-orange border-orange/20 bg-orange/5">+</button>
+      {isActivity ? (
+        <div className="card mb-6 space-y-4">
+          <select value={activity.type} onChange={e => setActivity({...activity, type: e.target.value})}
+            className="w-full p-3 rounded-xl border bg-card border-line text-ink">
+            <option value="hiking">Wandern</option>
+            <option value="running">Laufen</option>
+            <option value="cycling">Radfahren</option>
+            <option value="swimming">Schwimmen</option>
+          </select>
+          <input type="number" placeholder="Dauer (Min)" value={activity.duration} onChange={e => setActivity({...activity, duration: e.target.value})}
+            className="w-full p-3 rounded-xl border bg-card border-line text-ink" />
         </div>
-      </div>
+      ) : (
+        <>
+          <SectionHeader>Split</SectionHeader>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {['Push', 'Pull', 'Legs', 'Upper', 'Lower', 'Full'].map(l => (
+              <button key={l} onClick={() => setBlock(l)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${block === l ? 'border-accent bg-accent/10 text-accent' : 'border-line bg-bg2 text-muted'}`}>
+                {l}
+              </button>
+            ))}
+          </div>
+
+          <SectionHeader>Übungen</SectionHeader>
+          <div className="flex flex-col gap-2 mb-4">
+            {exercises.map((ex, idx) => (
+              <ExCard 
+                key={idx} 
+                ex={ex} 
+                i={idx} 
+                updateEx={updateEx} 
+                removeEx={removeEx} 
+                moveEx={moveEx}
+                isFirst={idx === 0}
+                isLast={idx === exercises.length - 1}
+                prev={prevMap[ex.name]} 
+              />
+            ))}
+            {exercises.length === 0 && <p className="text-center py-8 text-sm opacity-40">Keine Übungen — suche oder nutze Quick Entry</p>}
+          </div>
+
+          {hitMode ? (
+            restHours !== null && (
+              <div className="text-right text-[10px] font-bold text-accent mb-4 font-mono uppercase tracking-widest">
+                Rest since last {block}: {restHours} Hours
+              </div>
+            )
+          ) : (
+            totalVolume > 0 && (
+              <div className="text-right text-[10px] font-bold opacity-40 mb-4 font-mono uppercase tracking-widest">
+                Total Volume: {Math.round(totalVolume).toLocaleString('de-AT')} kg
+              </div>
+            )
+          )}
+
+          <div className="p-4 rounded-2xl mb-6 bg-bg2 border border-line">
+            <ExerciseSearch onSelect={addEx} />
+            <div className="flex gap-2 mt-3">
+              <input type="text" value={quickInput} onChange={e => setQuickInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addQuick()}
+                placeholder="bench 3x8@80" className="flex-1 p-2 rounded-lg border text-sm font-mono bg-card border-line text-ink" />
+              <button onClick={addQuick} className="btn btn-secondary py-2 px-4 text-orange border-orange/20 bg-orange/5">+</button>
+            </div>
+          </div>
+        </>
+      )}
 
       <SectionHeader>Qualität</SectionHeader>
       <div className="card mb-6">

@@ -448,12 +448,36 @@ export async function getWeeklyReport(selector = "current") {
       }
     }
 
-    if (hasDoneExercises || sess.block) {
+// ── Activity Mapping ──────────────────────────────────────────────────────────
+
+export const ACTIVITY_MUSCLE_MAPPING = {
+  hiking: { muscles: ["legs", "core", "glutes"], impact: 1.0 },
+  running: { muscles: ["quads", "hamstrings", "calves"], impact: 1.0 },
+  cycling: { muscles: ["quads", "calves"], impact: 0.8 },
+  swimming: { muscles: ["back", "shoulders", "core"], impact: 0.7 }
+};
+
+// ── Coverage Logic ───────────────────────────────────────────────────────────
+// ... [existing MUSCLE_GROUPS and muscleToGroupIds] ...
+
+// ... [getCoverageGaps] ...
+
+// ... [getWeeklyReport modifications] ...
+    if (hasDoneExercises || sess.block || sess.activity) {
       // Auto-Split Detection: find the dominant group
       const sortedGroups = Object.entries(sessGroupsCount).sort((a, b) => b[1] - a[1]);
       let autoSplit = sess.block || sess.trainingsart || "Training";
       if (!sess.block && sortedGroups.length > 0) {
         autoSplit = sortedGroups[0][0].charAt(0).toUpperCase() + sortedGroups[0][0].slice(1);
+      }
+
+      // Handle Activity as a synthetic workout
+      if (sess.activity && ACTIVITY_MUSCLE_MAPPING[sess.activity.type]) {
+        const act = ACTIVITY_MUSCLE_MAPPING[sess.activity.type];
+        act.muscles.forEach(gid => {
+           sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
+           bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
+        });
       }
 
       // Calculate Per-Muscle Recovery
