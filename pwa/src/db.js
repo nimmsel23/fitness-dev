@@ -421,7 +421,26 @@ export async function getWeeklyReport(selector = "current") {
     if (hasDoneExercises || sess.block) {
       console.log(`WeeklyReport - Found session on ${date}: ${blockName}, Volume: ${sessVolume}`);
       totalVolume += sessVolume;
-      sessions.push({ ...sess, block: blockName, total_volume: sessVolume, exercise_count: sess.exercises?.length || 0 });
+      
+      // Find previous session of same split for rest calculation
+      let splitRestHours = null;
+      try {
+        const history = await getSessionHistory(90);
+        const lastSameBlock = history.find(s => s.date < date && (s.block === blockName || s.trainingsart === blockName));
+        if (lastSameBlock) {
+          const d1 = new Date(date);
+          const d2 = new Date(lastSameBlock.date);
+          splitRestHours = Math.round((d1 - d2) / (1000 * 60 * 60));
+        }
+      } catch (e) { console.warn("Rest calc error", e); }
+
+      sessions.push({ 
+        ...sess, 
+        block: blockName, 
+        total_volume: sessVolume, 
+        exercise_count: sess.exercises?.length || 0,
+        rest_hours: splitRestHours
+      });
     }
   }
 

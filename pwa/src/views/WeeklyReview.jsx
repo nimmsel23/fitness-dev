@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { AlertCircle, BarChart3, CalendarDays, Download, Dumbbell, Sparkles, Target, TrendingUp } from 'lucide-react'
-import { getWeeklyReport } from '../db.js'
+import { AlertCircle, BarChart3, CalendarDays, Download, Dumbbell, Sparkles, Target, TrendingUp, Clock } from 'lucide-react'
+import { getWeeklyReport, getSettings } from '../db.js'
 
 function formatVolume(value) {
   const num = Number(value || 0)
@@ -11,6 +11,11 @@ export default function WeeklyReview({ onNavigate }) {
   const [week, setWeek] = useState('current')
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [hitMode, setHitMode] = useState(false)
+
+  useEffect(() => {
+    getSettings().then(s => setHitMode(!!s.hitMode));
+  }, []);
 
   useEffect(() => {
     setLoading(true)
@@ -126,7 +131,7 @@ export default function WeeklyReview({ onNavigate }) {
           <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-4 opacity-40">
               <Dumbbell size={13} />
-              Sessions
+              Sessions {hitMode && <span className="ml-auto text-[8px] text-accent">HIT MODE: REST TRACKING</span>}
             </div>
             <div className="space-y-2">
               {(data.sessions || []).map(session => (
@@ -141,8 +146,19 @@ export default function WeeklyReview({ onNavigate }) {
                       <div className="font-black text-sm">{session.date}</div>
                       <div className="text-[10px] font-bold opacity-50 uppercase tracking-widest mt-0.5">{session.block}</div>
                     </div>
-                    <div className="text-right text-xs font-black text-accent">
-                      {formatVolume(session.total_volume)}
+                    <div className="text-right">
+                      {hitMode && session.rest_hours !== null ? (
+                        <div className="flex flex-col items-end">
+                           <div className="text-xs font-black text-accent flex items-center gap-1">
+                             <Clock size={10} /> {session.rest_hours}h Rest
+                           </div>
+                           <div className="text-[8px] opacity-30 uppercase font-bold">since last {session.block}</div>
+                        </div>
+                      ) : (
+                        <div className="text-xs font-black text-accent">
+                          {formatVolume(session.total_volume)}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </button>
