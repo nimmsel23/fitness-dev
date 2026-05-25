@@ -61,6 +61,7 @@ export default function App() {
   const [circDark,  setCircDark]  = useState('honey')
   const [circLight, setCircLight] = useState('latte')
   const [hitMode, setHitMode]     = useState(false)
+  const [split, setSplit]         = useState('PPL')
   const [sessionDate, setSessionDate] = useState(null)
 
   // Auth form state
@@ -88,6 +89,7 @@ export default function App() {
       if (s.circDark) setCircDark(s.circDark);
       if (s.circLight) setCircLight(s.circLight);
       if (s.hitMode !== undefined) setHitMode(s.hitMode);
+      if (s.split) setSplit(s.split);
       if (s.themeMode !== 'circadian') applyTheme(s.theme || 'honey');
     });
   }, [user]);
@@ -123,7 +125,7 @@ export default function App() {
   }, [])
 
   function updateSettings(newSettings) {
-    const updated = { theme, themeMode, circDark, circLight, hitMode, ...newSettings };
+    const updated = { theme, themeMode, circDark, circLight, hitMode, split, ...newSettings };
     saveSettings(updated);
   }
 
@@ -131,6 +133,11 @@ export default function App() {
     const next = !hitMode;
     setHitMode(next);
     updateSettings({ hitMode: next });
+  }
+
+  function setManualSplit(s) {
+    setSplit(s);
+    updateSettings({ split: s });
   }
 
   function setManualTheme(t) {
@@ -284,7 +291,7 @@ export default function App() {
 
                  <section className="card">
                     <h2 className="label-caps mb-4">Modus</h2>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-6">
                        <div className="text-left">
                           <div className="text-sm font-bold text-ink">HIT Modus</div>
                           <div className="text-[10px] opacity-40">Rest-Hours statt Volumen</div>
@@ -293,6 +300,18 @@ export default function App() {
                          className={`w-10 h-5 rounded-full transition-colors relative border ${hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
                          <div className={`absolute top-0.5 w-3.5 h-3.5 rounded-full transition-transform bg-white ${hitMode ? 'right-0.5' : 'left-0.5'}`} />
                        </button>
+                    </div>
+
+                    <div className="text-left">
+                       <div className="text-[10px] font-bold uppercase tracking-widest opacity-40 mb-3">Aktueller Split</div>
+                       <div className="flex flex-wrap gap-2">
+                          {['PPL', 'Upper/Lower', 'Full Body', 'Bro-Split', 'Custom'].map(s => (
+                            <button key={s} onClick={() => setManualSplit(s)}
+                              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${split === s ? 'border-accent bg-accent/10 text-accent' : 'border-line bg-bg2 text-muted'}`}>
+                              {s}
+                            </button>
+                          ))}
+                       </div>
                     </div>
                  </section>
 

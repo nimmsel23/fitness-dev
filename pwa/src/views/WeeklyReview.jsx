@@ -147,18 +147,19 @@ export default function WeeklyReview({ onNavigate }) {
                       <div className="text-[10px] font-bold opacity-50 uppercase tracking-widest mt-0.5">{session.block}</div>
                     </div>
                     <div className="text-right">
-                      {hitMode && session.rest_hours !== null ? (
-                        <div className="flex flex-col items-end">
-                           <div className="text-xs font-black text-accent flex items-center gap-1">
-                             <Clock size={10} /> {session.rest_hours}h Rest
+                      <div className="flex flex-col items-end">
+                         <div className="text-xs font-black text-accent">
+                           {formatVolume(session.total_volume)}
+                         </div>
+                         {session.rest_hours !== null && (
+                           <div className="text-[9px] font-bold text-accent flex items-center gap-1 mt-0.5">
+                             <Clock size={8} /> {session.rest_hours}h Rest
                            </div>
-                           <div className="text-[8px] opacity-30 uppercase font-bold">since last {session.block}</div>
-                        </div>
-                      ) : (
-                        <div className="text-xs font-black text-accent">
-                          {formatVolume(session.total_volume)}
-                        </div>
-                      )}
+                         )}
+                         {session.rest_hours === null && (
+                           <div className="text-[8px] opacity-20 uppercase font-bold mt-0.5">No prev session</div>
+                         )}
+                      </div>
                     </div>
                   </div>
                 </button>
