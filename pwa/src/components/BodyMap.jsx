@@ -50,7 +50,7 @@ export function exercisesToModelData(exercises) {
       }
     }
 
-    console.log("BodyMap - processing ex:", ex.name, "primary:", primary, "secondary:", secondary);
+    console.log(`BodyMap [${ex.name}] - primary:`, primary, "secondary:", secondary);
 
     if (primary.length > 0 || secondary.length > 0) {
       for (const label of primary) {
@@ -58,6 +58,7 @@ export function exercisesToModelData(exercises) {
         if (group) {
            for (const m of (GROUP_TO_RBH[group] || [])) {
              rbhScores[m] = (rbhScores[m] || 0) + 2
+             console.log(`BodyMap [${ex.name}] - added score to ${m}, total: ${rbhScores[m]}`);
            }
         }
       }
@@ -66,6 +67,7 @@ export function exercisesToModelData(exercises) {
         if (group) {
            for (const m of (GROUP_TO_RBH[group] || [])) {
              rbhScores[m] = (rbhScores[m] || 0) + 1
+             console.log(`BodyMap [${ex.name}] - added score to ${m}, total: ${rbhScores[m]}`);
            }
         }
       }
@@ -74,8 +76,8 @@ export function exercisesToModelData(exercises) {
       const wPrimary = ex.wger_muscle_ids?.primary || []
       const wSecondary = ex.wger_muscle_ids?.secondary || []
       
-      for (const id of wPrimary) { const m = WGER_TO_RBH[id]; if (m) rbhScores[m] = (rbhScores[m] || 0) + 2 }
-      for (const id of wSecondary) { const m = WGER_TO_RBH[id]; if (m) rbhScores[m] = (rbhScores[m] || 0) + 1 }
+      for (const id of wPrimary) { const m = WGER_TO_RBH[id]; if (m) { rbhScores[m] = (rbhScores[m] || 0) + 2; console.log(`BodyMap [${ex.name}] - WGER primary score to ${m}, total: ${rbhScores[m]}`); } }
+      for (const id of wSecondary) { const m = WGER_TO_RBH[id]; if (m) { rbhScores[m] = (rbhScores[m] || 0) + 1; console.log(`BodyMap [${ex.name}] - WGER secondary score to ${m}, total: ${rbhScores[m]}`); } }
     }
   }
 
@@ -84,7 +86,7 @@ export function exercisesToModelData(exercises) {
     muscles: [muscle],
     frequency: Math.ceil(score),
   }));
-  console.log("BodyMap - generated data:", data);
+  console.log("BodyMap - FINAL generated data:", data);
   return data;
 }
 
