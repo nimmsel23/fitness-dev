@@ -37,8 +37,18 @@ export function exercisesToModelData(exercises) {
 
   for (const ex of exercises) {
     // Priority: use the labels directly from the exercise catalog
-    const primary   = ex.primaryMuscles || ex.primary_muscles || []
-    const secondary = ex.secondaryMuscles || ex.secondary_muscles || []
+    let primary   = ex.primaryMuscles || ex.primary_muscles || []
+    let secondary = ex.secondaryMuscles || ex.secondary_muscles || []
+    const exName = (ex.name || "").toLowerCase();
+
+    // Fallback: Infer muscles from name if tags are missing
+    if (primary.length === 0 && secondary.length === 0) {
+      for (const [key, group] of Object.entries(LABEL_TO_GROUP)) {
+        if (exName.includes(key.toLowerCase())) {
+          primary.push(key);
+        }
+      }
+    }
 
     console.log("BodyMap - processing ex:", ex.name, "primary:", primary, "secondary:", secondary);
 
