@@ -47,7 +47,8 @@ export function exercisesToModelData(exercises) {
       for (const [key, group] of Object.entries(LABEL_TO_GROUP)) {
         if (exName.includes(key.toLowerCase())) {
           console.log(`BodyMap [${ex.name}] - Fallback found match: ${key} -> ${group}`);
-          primary.push(key);
+          // Add the group directly to primary muscles as a fallback tag
+          primary.push(group);
         }
       }
     }
@@ -56,18 +57,19 @@ export function exercisesToModelData(exercises) {
 
     if (primary.length > 0 || secondary.length > 0) {
       for (const label of primary) {
-        const group = LABEL_TO_GROUP[label.toLowerCase()]
-        if (group) {
-           for (const m of (GROUP_TO_RBH[group] || [])) {
+        const group = LABEL_TO_GROUP[label.toLowerCase()] || label.toLowerCase();
+        // Check if group exists in GROUP_TO_RBH, otherwise it might be a raw muscle
+        if (GROUP_TO_RBH[group]) {
+           for (const m of GROUP_TO_RBH[group]) {
              rbhScores[m] = (rbhScores[m] || 0) + 2
              console.log(`BodyMap [${ex.name}] - added score to ${m}, total: ${rbhScores[m]}`);
            }
         }
       }
       for (const label of secondary) {
-        const group = LABEL_TO_GROUP[label.toLowerCase()]
-        if (group) {
-           for (const m of (GROUP_TO_RBH[group] || [])) {
+        const group = LABEL_TO_GROUP[label.toLowerCase()] || label.toLowerCase();
+        if (GROUP_TO_RBH[group]) {
+           for (const m of GROUP_TO_RBH[group]) {
              rbhScores[m] = (rbhScores[m] || 0) + 1
              console.log(`BodyMap [${ex.name}] - added score to ${m}, total: ${rbhScores[m]}`);
            }
