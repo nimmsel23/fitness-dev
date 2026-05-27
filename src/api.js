@@ -202,9 +202,12 @@ export async function getWeeklyReport(selector = "current") {
       const primary = ex.primaryMuscles || [];
       const secondary = ex.secondaryMuscles || [];
 
+      let hasMapped = false;
+
       [...primary, ...secondary].forEach(m => {
         muscleToGroupIds(m, exName).forEach(gid => {
            sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
+           hasMapped = true;
         });
       });
 
@@ -212,13 +215,23 @@ export async function getWeeklyReport(selector = "current") {
         muscleToGroupIds(m, exName).forEach(gid => {
           muscleScores[m] = (muscleScores[m] || 0) + 1;
           bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
+          hasMapped = true;
         });
       }
       for (const m of secondary) {
         muscleToGroupIds(m, exName).forEach(gid => {
           bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5;
+          hasMapped = true;
         });
       }
+
+      if (!hasMapped && exName) {
+         muscleToGroupIds("", exName).forEach(gid => {
+            sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
+            bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; // treat as primary
+         });
+      }
+
     }
 
     if (hasDoneExercises || sess.block || sess.activity) {
