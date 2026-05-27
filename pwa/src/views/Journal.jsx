@@ -28,54 +28,58 @@ export default function Journal() {
 
   return (
     <div className="pb-20">
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-2 mb-6">
         <input type="date" value={date} max={localToday()}
           onChange={e => setDate(e.target.value)}
-          className="flex-1 p-3 rounded-xl border font-bold"
-          style={{ background: 'var(--card)', borderColor: 'var(--line)', color: 'var(--ink)' }}
+          className="flex-1 p-3 rounded-xl border font-bold bg-card border-line text-ink"
         />
       </div>
 
-      <div className="p-4 rounded-2xl mb-6" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-        <textarea value={text} onChange={e => setText(e.target.value)} rows={6}
-          placeholder="Training, Notizen, Learnings…"
-          className="w-full bg-transparent border-none outline-none text-sm leading-relaxed"
-          style={{ color: 'var(--ink)' }}
-        />
-        <button onClick={submit} disabled={saving || !text.trim()}
-          className="w-full mt-4 p-3 rounded-xl font-bold transition-all"
-          style={{ 
-            background: 'var(--accent)', color: '#fff',
-            opacity: saving || !text.trim() ? 0.5 : 1
-          }}>
-          {saving ? "…" : "Speichern ↵"}
-        </button>
-      </div>
-
-      {entries.length > 0 && (
-        <div className="space-y-3">
-          <div className="text-[10px] font-bold uppercase tracking-widest opacity-40 ml-1">
-            Einträge — {date}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-8">
+        <div className="space-y-4">
+          <div className="label-caps px-1">Neuer Eintrag</div>
+          <div className="p-5 rounded-3xl border bg-card border-line shadow-xl">
+            <textarea value={text} onChange={e => setText(e.target.value)} rows={12}
+              placeholder="Was hast du heute gelernt? Wie war das Training?"
+              className="w-full bg-transparent border-none outline-none text-sm leading-relaxed resize-none text-ink"
+            />
+            <button onClick={submit} disabled={saving || !text.trim()}
+              className="btn btn-primary w-full mt-4"
+              style={{ opacity: saving || !text.trim() ? 0.5 : 1 }}>
+              {saving ? "…" : "Eintrag speichern"}
+            </button>
           </div>
-          {entries.map((e, i) => (
-            <div key={e.id || i} className="p-4 rounded-2xl border" style={{ background: 'var(--card)', borderColor: 'var(--line)' }}>
-              <p className="text-sm leading-relaxed" style={{ color: 'var(--ink)' }}>{e.text}</p>
-              {e.time && <p className="text-[10px] font-bold opacity-30 mt-3 font-mono">{e.time.slice(11, 16)}</p>}
-            </div>
-          ))}
         </div>
-      )}
 
-      {entries.length === 0 && date !== localToday() && (
-        <p className="text-center py-12 text-sm opacity-40">Kein Eintrag für {date}</p>
-      )}
+        <div className="space-y-4">
+          <div className="label-caps px-1">Einträge — {date}</div>
+          <div className="space-y-3">
+            {entries.length > 0 ? (
+              entries.map((e, i) => (
+                <div key={e.id || i} className="p-5 rounded-2xl border bg-card border-line hover:border-accent/20 transition-colors">
+                  <p className="text-sm leading-relaxed text-ink">{e.text}</p>
+                  {e.time && (
+                    <div className="flex items-center gap-2 mt-4 opacity-30">
+                       <div className="w-1 h-1 rounded-full bg-accent" />
+                       <span className="text-[10px] font-bold font-mono">{e.time.slice(11, 16)} Uhr</span>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="p-12 text-center rounded-3xl border border-dashed border-line opacity-30">
+                <p className="text-sm">Keine Einträge für diesen Tag</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-bold shadow-2xl z-50"
-          style={{ background: 'var(--card)', color: 'var(--accent)', border: '1px solid var(--line)' }}>
+        <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl text-sm font-bold shadow-2xl z-50 bg-card text-accent border border-line">
           {toast}
         </div>
       )}
     </div>
-  );
+  )
 }

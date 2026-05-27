@@ -246,7 +246,7 @@ export default function App() {
     <div className="flex flex-col h-screen" style={{ background: 'var(--bg)', color: 'var(--ink)', overflow: 'hidden' }}>
 
       <header style={{ background: 'var(--glass)', borderBottom: '1px solid var(--line)', backdropFilter: 'blur(20px)' }}
-        className="flex items-center justify-between px-4 py-2.5 z-20 shrink-0">
+        className="flex lg:hidden items-center justify-between px-4 py-2.5 z-20 shrink-0">
         <div className="flex items-center gap-2 font-extrabold text-base tracking-tight">
           <Dumbbell size={22} style={{ color: 'var(--accent)' }} />
           Fitness
@@ -263,78 +263,113 @@ export default function App() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto overflow-x-hidden relative" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <div className="max-w-2xl mx-auto px-4 py-4 pb-28">
-          <ErrorBoundary key={tab}>
-            {tab === 'dash'     && <Dashboard onNavigate={navigate} />}
-            {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} hitMode={hitMode} />}
-            {tab === 'review'   && <WeeklyReview onNavigate={navigate} />}
-            {tab === 'journal'  && <Journal />}
-            {tab === 'muscles'  && <Muscles />}
-            {tab === 'learn'    && <Learn />}
-            {tab === 'settings' && (
-              <div className="space-y-8">
-                 <section className="card flex flex-col items-center text-center">
-                    <div className="w-16 h-16 rounded-full overflow-hidden mb-4 border-2 border-accent/20 flex items-center justify-center bg-accent/10">
-                       {user.photoURL ? (
-                         <img src={user.photoURL} alt={user.displayName} />
-                       ) : (
-                         <User size={32} className="text-accent" />
-                       )}
-                    </div>
-                    <h2 className="text-lg font-black mb-1">{user.displayName || user.email?.split('@')[0]}</h2>
-                    <p className="text-xs opacity-40 mb-6">{user.email}</p>
-                    <button onClick={signOut} className="btn btn-red px-6 py-2.5">
-                       <LogOut size={16} /> Abmelden
-                    </button>
-                 </section>
+      <div className="flex-1 flex overflow-hidden main-wrapper">
+        <aside className="desktop-sidebar hidden lg:flex">
+          <div className="flex items-center gap-3 font-black text-xl tracking-tighter mb-10 px-2">
+            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+              <Dumbbell size={24} className="text-accent" />
+            </div>
+            <span>Fitness</span>
+          </div>
 
-                 <section className="card">
-                    <h2 className="label-caps mb-4">Modus</h2>
-                    <div className="flex items-center justify-between mb-6">
-                       <div className="text-left">
-                          <div className="text-sm font-bold text-ink">HIT Modus</div>
-                          <div className="text-[10px] opacity-40">Rest-Hours statt Volumen</div>
-                       </div>
-                       <button onClick={toggleHitMode} 
-                         className={`w-10 h-5 rounded-full transition-colors relative border ${hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
-                         <div className={`absolute top-0.5 w-3.5 h-3.5 rounded-full transition-transform bg-white ${hitMode ? 'right-0.5' : 'left-0.5'}`} />
-                       </button>
-                    </div>
+          <nav className="flex-1 space-y-1">
+            {TABS.map(({ id, Icon, label }) => (
+              <button key={id} onClick={() => navigate(id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${tab === id ? 'bg-accent/10 text-accent' : 'text-dim hover:bg-white/5 hover:text-ink'}`}>
+                <Icon size={20} />
+                {label}
+              </button>
+            ))}
+          </nav>
 
-                    <div className="text-left">
-                       <div className="text-[10px] font-bold uppercase tracking-widest opacity-40 mb-3">Aktueller Split</div>
-                       <div className="flex flex-wrap gap-2">
-                          {['PPL', 'Upper/Lower', 'Full Body', 'Bro-Split', 'Custom'].map(s => (
-                            <button key={s} onClick={() => setManualSplit(s)}
-                              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${split === s ? 'border-accent bg-accent/10 text-accent' : 'border-line bg-bg2 text-muted'}`}>
-                              {s}
-                            </button>
-                          ))}
-                       </div>
-                    </div>
-                 </section>
-
-                 <section>
-                    <h2 className="label-caps mb-4 ml-1">Themen Auswahl</h2>
-                    <div className="grid grid-cols-3 gap-2">
-                       {DARK_THEMES.map(t => (
-                         <button key={t} onClick={() => setManualTheme(t)} 
-                           className="p-3 rounded-xl text-[10px] font-bold border truncate"
-                           style={{ background: theme === t ? 'var(--accent)' : 'var(--bg2)', color: theme === t ? '#000' : 'var(--ink)', borderColor: theme === t ? 'var(--accent)' : 'var(--line)' }}>
-                           {t}
-                         </button>
-                       ))}
-                    </div>
-                 </section>
+          <div className="mt-auto pt-6 border-t border-line">
+            <button onClick={() => navigate('settings')} 
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${tab === 'settings' ? 'bg-accent/10 text-accent' : 'text-dim hover:bg-white/5 hover:text-ink'}`}>
+              <div className="w-8 h-8 rounded-full overflow-hidden border border-line bg-bg2 flex items-center justify-center">
+                {user.photoURL ? <img src={user.photoURL} alt="" /> : <User size={16} />}
               </div>
-            )}
-          </ErrorBoundary>
-        </div>
-      </main>
+              <div className="flex-1 text-left truncate">
+                <div className="text-xs truncate">{user.displayName || user.email?.split('@')[0]}</div>
+                <div className="text-[10px] opacity-40 truncate">{user.email}</div>
+              </div>
+              <Settings2 size={16} />
+            </button>
+          </div>
+        </aside>
+
+        <main className="flex-1 overflow-y-auto overflow-x-hidden relative" style={{ WebkitOverflowScrolling: 'touch' }}>
+          <div className="max-w-3xl lg:max-w-4xl mx-auto px-4 py-6 lg:py-10 pb-28 lg:pb-10">
+            <ErrorBoundary key={tab}>
+              {tab === 'dash'     && <Dashboard onNavigate={navigate} />}
+              {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} hitMode={hitMode} />}
+              {tab === 'review'   && <WeeklyReview onNavigate={navigate} />}
+              {tab === 'journal'  && <Journal />}
+              {tab === 'muscles'  && <Muscles />}
+              {tab === 'learn'    && <Learn />}
+              {tab === 'settings' && (
+                <div className="space-y-8 max-w-2xl">
+                   <section className="card flex flex-col items-center text-center">
+                      <div className="w-16 h-16 rounded-full overflow-hidden mb-4 border-2 border-accent/20 flex items-center justify-center bg-accent/10">
+                         {user.photoURL ? (
+                           <img src={user.photoURL} alt={user.displayName} />
+                         ) : (
+                           <User size={32} className="text-accent" />
+                         )}
+                      </div>
+                      <h2 className="text-lg font-black mb-1">{user.displayName || user.email?.split('@')[0]}</h2>
+                      <p className="text-xs opacity-40 mb-6">{user.email}</p>
+                      <button onClick={signOut} className="btn btn-red px-6 py-2.5">
+                         <LogOut size={16} /> Abmelden
+                      </button>
+                   </section>
+
+                   <section className="card">
+                      <h2 className="label-caps mb-4">Modus</h2>
+                      <div className="flex items-center justify-between mb-6">
+                         <div className="text-left">
+                            <div className="text-sm font-bold text-ink">HIT Modus</div>
+                            <div className="text-[10px] opacity-40">Rest-Hours statt Volumen</div>
+                         </div>
+                         <button onClick={toggleHitMode} 
+                           className={`w-10 h-5 rounded-full transition-colors relative border ${hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
+                           <div className={`absolute top-0.5 w-3.5 h-3.5 rounded-full transition-transform bg-white ${hitMode ? 'right-0.5' : 'left-0.5'}`} />
+                         </button>
+                      </div>
+
+                      <div className="text-left">
+                         <div className="text-[10px] font-bold uppercase tracking-widest opacity-40 mb-3">Aktueller Split</div>
+                         <div className="flex flex-wrap gap-2">
+                            {['PPL', 'Upper/Lower', 'Full Body', 'Bro-Split', 'Custom'].map(s => (
+                              <button key={s} onClick={() => setManualSplit(s)}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${split === s ? 'border-accent bg-accent/10 text-accent' : 'border-line bg-bg2 text-muted'}`}>
+                                {s}
+                              </button>
+                            ))}
+                         </div>
+                      </div>
+                   </section>
+
+                   <section>
+                      <h2 className="label-caps mb-4 ml-1">Themen Auswahl</h2>
+                      <div className="grid grid-cols-3 gap-2">
+                         {DARK_THEMES.map(t => (
+                           <button key={t} onClick={() => setManualTheme(t)} 
+                             className="p-3 rounded-xl text-[10px] font-bold border truncate"
+                             style={{ background: theme === t ? 'var(--accent)' : 'var(--bg2)', color: theme === t ? '#000' : 'var(--ink)', borderColor: theme === t ? 'var(--accent)' : 'var(--line)' }}>
+                             {t}
+                           </button>
+                         ))}
+                      </div>
+                   </section>
+                </div>
+              )}
+            </ErrorBoundary>
+          </div>
+        </main>
+      </div>
 
       <nav style={{ background: 'var(--glass)', borderTop: '1px solid var(--line)', backdropFilter: 'blur(20px)' }}
-        className="flex shrink-0 px-2 pb-safe z-20">
+        className="bottom-nav flex shrink-0 px-2 pb-safe z-20">
         {TABS.map(({ id, Icon, label }) => (
           <button key={id} onClick={() => navigate(id)}
             className="flex-1 flex flex-col items-center gap-0.5 py-2 rounded-xl text-[10px] font-semibold tracking-wide transition-all"

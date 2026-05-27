@@ -104,6 +104,34 @@ function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast }) {
   )
 }
 
+const BLOCK_COLORS = {
+  push: "#f472b6", pull: "#34d399", legs: "#fb923c",
+  upper: "#38bdf8", lower: "#a78bfa", full: "#fbbf24",
+  hiking: "#48c87a", running: "#e05060", cycling: "#38bdf8", swimming: "#5294e2"
+};
+
+function blockColor(block, activity) {
+  if (activity?.type && BLOCK_COLORS[activity.type]) return BLOCK_COLORS[activity.type];
+  if (!block) return "var(--accent)";
+  for (const [key, color] of Object.entries(BLOCK_COLORS)) {
+    if (block.toLowerCase().includes(key)) return color;
+  }
+  return "var(--accent)";
+}
+
+function getRolling10Days() {
+  const dates = [];
+  const today = new Date();
+  for (let i = 9; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    dates.push(d.toISOString().slice(0, 10));
+  }
+  return dates;
+}
+
+const DAY_LABELS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+
 // ── Main view ─────────────────────────────────────────────────────────────────
 export default function Session({ initialDate, hitMode }) {
   const [date, setDate]           = useState(initialDate || localToday())
@@ -121,11 +149,16 @@ export default function Session({ initialDate, hitMode }) {
   const [restHours, setRestHours]   = useState(null)
   const [isActivity, setIsActivity] = useState(false)
   const [activity, setActivity]   = useState({ type: 'hiking', duration: '', intensity: 5 })
+  const [recentSessions, setRecentSessions] = useState({})
+
+  const rollingDays = getRolling10Days();
 
   useEffect(() => {
-    getSessionHistory(90).then(sessions => {
+    getSessionHistory(30).then(sessions => {
       const map = {}
+      const sessByDate = {}
       for (const sess of sessions) {
+        sessByDate[sess.date] = sess
         for (const ex of (sess.exercises || [])) {
           if (ex.name && !map[ex.name]) {
             map[ex.name] = { date: sess.date, sets: ex.sets, reps: ex.reps, weight: ex.weight }
@@ -133,6 +166,7 @@ export default function Session({ initialDate, hitMode }) {
         }
       }
       setPrevMap(map)
+      setRecentSessions(sessByDate)
       
       // Calculate rest hours for the current block
       if (block) {
@@ -261,121 +295,177 @@ export default function Session({ initialDate, hitMode }) {
 
   return (
     <div className="pb-20">
-      <div className="flex gap-2 mb-4">
-        <input type="date" value={date} max={localToday()} onChange={e => setDate(e.target.value)}
-          className="flex-1 p-3 rounded-xl border font-bold bg-card border-line text-ink" />
-        <button onClick={save} disabled={saving} className="btn btn-primary px-5">
-          <Save size={16} /> {saving ? '…' : 'Save'}
-        </button>
-      </div>
-
-      <div className="flex gap-2 mb-4">
-        <input type="text" value={location} placeholder="Ort" onChange={e => setLocation(e.target.value)}
-          className="flex-[2] p-3 rounded-xl border text-sm bg-card border-line text-ink" />
-        <div className="flex-1 relative">
-          <input type="number" value={duration} placeholder="Min" onChange={e => setDuration(e.target.value)}
-            className="w-full p-3 pr-10 rounded-xl border text-sm bg-card border-line text-ink" />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold opacity-40">MIN</span>
+      <div className="card mb-6 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="label-caps !mb-0">Datum auswählen</div>
+          <div className="flex gap-2">
+            <input type="date" value={date} max={localToday()} onChange={e => setDate(e.target.value)}
+              className="px-3 py-1.5 rounded-lg border text-xs font-bold bg-bg2 border-line text-ink w-32" />
+            <button onClick={save} disabled={saving} className="btn btn-primary py-1.5 px-4 text-xs">
+              {saving ? '…' : 'Save'}
+            </button>
+          </div>
         </div>
-      </div>
-      
-      <div className="flex gap-2 mb-4">
-        <button onClick={() => setIsActivity(!isActivity)} 
-          className={`flex-1 p-3 rounded-xl border font-bold ${isActivity ? 'border-accent bg-accent/10 text-accent' : 'border-line bg-card text-dim'}`}>
-          {isActivity ? 'Cardio/Activity Log' : 'Krafttraining Log'}
-        </button>
-      </div>
 
-      {isActivity ? (
-        <div className="card mb-6 space-y-4">
-          <select value={activity.type} onChange={e => setActivity({...activity, type: e.target.value})}
-            className="w-full p-3 rounded-xl border bg-card border-line text-ink">
-            <option value="hiking">Wandern</option>
-            <option value="running">Laufen</option>
-            <option value="cycling">Radfahren</option>
-            <option value="swimming">Schwimmen</option>
-          </select>
-          <input type="number" placeholder="Dauer (Min)" value={activity.duration} onChange={e => setActivity({...activity, duration: e.target.value})}
-            className="w-full p-3 rounded-xl border bg-card border-line text-ink" />
-        </div>
-      ) : (
-        <>
-          <SectionHeader>Split</SectionHeader>
-          <div className="flex flex-wrap gap-2 mb-4">
-            {['Push', 'Pull', 'Legs', 'Upper', 'Lower', 'Full'].map(l => (
-              <button key={l} onClick={() => setBlock(l)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all ${block === l ? 'border-accent bg-accent/10 text-accent' : 'border-line bg-bg2 text-muted'}`}>
-                {l}
+        <div className="grid grid-cols-5 lg:grid-cols-10 gap-2">
+          {rollingDays.map((d) => {
+            const sess = recentSessions[d];
+            const done = !!(sess?.block || sess?.activity);
+            const isSelected = d === date;
+            const isToday = d === localToday();
+            const color = done ? blockColor(sess.block, sess.activity) : null;
+            const dayName = DAY_LABELS[new Date(d).getDay()];
+
+            return (
+              <button key={d} onClick={() => setDate(d)}
+                className="flex flex-col items-center gap-1.5 group">
+                <div className={`w-full aspect-square rounded-xl flex items-center justify-center text-[10px] font-bold transition-all border-2 ${isSelected ? 'border-accent' : 'border-transparent'}`}
+                  style={{ 
+                    background: isSelected ? 'var(--accent)' : done ? (color + '22') : 'var(--bg2)',
+                    color: isSelected ? '#000' : done ? color : 'var(--dim)'
+                  }}>
+                  {done ? '✓' : '·'}
+                </div>
+                <div className="flex flex-col items-center">
+                  <span className={`text-[8px] font-bold uppercase tracking-tighter ${isSelected ? 'text-accent' : 'opacity-40'}`}>{dayName}</span>
+                  <span className={`text-[9px] font-black ${isSelected ? 'text-accent' : 'opacity-20'}`}>{d.split('-')[2]}</span>
+                </div>
               </button>
-            ))}
-          </div>
-
-          <SectionHeader>Übungen</SectionHeader>
-          <div className="flex flex-col gap-2 mb-4">
-            {exercises.map((ex, idx) => (
-              <ExCard 
-                key={idx} 
-                ex={ex} 
-                i={idx} 
-                updateEx={updateEx} 
-                removeEx={removeEx} 
-                moveEx={moveEx}
-                isFirst={idx === 0}
-                isLast={idx === exercises.length - 1}
-                prev={prevMap[ex.name]} 
-              />
-            ))}
-            {exercises.length === 0 && <p className="text-center py-8 text-sm opacity-40">Keine Übungen — suche oder nutze Quick Entry</p>}
-          </div>
-
-          {hitMode ? (
-            restHours !== null && (
-              <div className="text-right text-[10px] font-bold text-accent mb-4 font-mono uppercase tracking-widest">
-                Rest since last {block}: {restHours} Hours
-              </div>
             )
-          ) : (
-            totalVolume > 0 && (
-              <div className="text-right text-[10px] font-bold opacity-40 mb-4 font-mono uppercase tracking-widest">
-                Total Volume: {Math.round(totalVolume).toLocaleString('de-AT')} kg
+          })}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8">
+        <aside className="space-y-6">
+          <section>
+            <SectionHeader>Details</SectionHeader>
+            <div className="space-y-3">
+              <input type="text" value={location} placeholder="Ort" onChange={e => setLocation(e.target.value)}
+                className="w-full p-3 rounded-xl border text-sm bg-card border-line text-ink" />
+              <div className="relative">
+                <input type="number" value={duration} placeholder="Dauer" onChange={e => setDuration(e.target.value)}
+                  className="w-full p-3 pr-10 rounded-xl border text-sm bg-card border-line text-ink" />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold opacity-40">MIN</span>
               </div>
-            )
+              <button onClick={() => setIsActivity(!isActivity)} 
+                className={`w-full p-3 rounded-xl border text-xs font-bold transition-all ${isActivity ? 'border-orange bg-orange/10 text-orange' : 'border-accent bg-accent/10 text-accent'}`}>
+                {isActivity ? 'Wechsel zu Krafttraining' : 'Wechsel zu Cardio/Activity'}
+              </button>
+            </div>
+          </section>
+
+          {!isActivity && (
+            <section>
+              <SectionHeader>Split</SectionHeader>
+              <div className="grid grid-cols-2 gap-2">
+                {['Push', 'Pull', 'Legs', 'Upper', 'Lower', 'Full'].map(l => (
+                  <button key={l} onClick={() => setBlock(l)}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all ${block === l ? 'border-accent bg-accent/10 text-accent' : 'border-line bg-bg2 text-muted'}`}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+            </section>
           )}
 
-          <div className="p-4 rounded-2xl mb-6 bg-bg2 border border-line">
-            <ExerciseSearch onSelect={addEx} />
-            <div className="flex gap-2 mt-3">
-              <input type="text" value={quickInput} onChange={e => setQuickInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && addQuick()}
-                placeholder="bench 3x8@80" className="flex-1 p-2 rounded-lg border text-sm font-mono bg-card border-line text-ink" />
-              <button onClick={addQuick} className="btn btn-secondary py-2 px-4 text-orange border-orange/20 bg-orange/5">+</button>
+          <section>
+            <SectionHeader>Qualität</SectionHeader>
+            <div className="card mb-0 p-4">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="label-caps !mb-0 text-[9px]">Effort</span>
+                <input type="range" min={1} max={10} value={effort} onChange={e => setEffort(Number(e.target.value))} className="flex-1" />
+                <span className="text-lg font-black text-accent w-5 text-right">{effort}</span>
+              </div>
+              <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Notizen…"
+                className="w-full p-3 rounded-xl border text-xs bg-bg2 border-line text-ink focus:border-accent outline-none" />
             </div>
-          </div>
-        </>
-      )}
+          </section>
 
-      <SectionHeader>Qualität</SectionHeader>
-      <div className="card mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <span className="label-caps">Effort</span>
-          <input type="range" min={1} max={10} value={effort} onChange={e => setEffort(Number(e.target.value))} className="flex-1" />
-          <span className="text-xl font-black text-accent w-6 text-right">{effort}</span>
-        </div>
-        <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Notizen…"
-          className="w-full p-3 rounded-xl border text-sm bg-bg2 border-line text-ink" />
+          <section>
+            <SectionHeader>Export</SectionHeader>
+            <button onClick={handleDownload} className="w-full p-4 rounded-2xl border flex items-center justify-between bg-card border-line hover:border-accent/30 transition-colors">
+              <div className="text-left">
+                <div className="label-caps !mb-0 text-[9px]">Coach Sheet</div>
+                <div className="text-[10px] opacity-60">Markdown Export</div>
+              </div>
+              <Download size={16} className="text-accent" />
+            </button>
+          </section>
+        </aside>
+
+        <main className="space-y-6">
+          {isActivity ? (
+            <div className="card space-y-4">
+              <h3 className="label-caps">Activity Details</h3>
+              <select value={activity.type} onChange={e => setActivity({...activity, type: e.target.value})}
+                className="w-full p-3 rounded-xl border bg-card border-line text-ink">
+                <option value="hiking">Wandern</option>
+                <option value="running">Laufen</option>
+                <option value="cycling">Radfahren</option>
+                <option value="swimming">Schwimmen</option>
+              </select>
+              <input type="number" placeholder="Dauer (Min)" value={activity.duration} onChange={e => setActivity({...activity, duration: e.target.value})}
+                className="w-full p-3 rounded-xl border bg-card border-line text-ink" />
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <SectionHeader>Übungen</SectionHeader>
+                {hitMode ? (
+                  restHours !== null && (
+                    <div className="text-[10px] font-bold text-accent font-mono uppercase tracking-widest bg-accent/5 px-2 py-1 rounded">
+                      Rest: {restHours}h
+                    </div>
+                  )
+                ) : (
+                  totalVolume > 0 && (
+                    <div className="text-[10px] font-bold opacity-40 font-mono uppercase tracking-widest">
+                      Vol: {Math.round(totalVolume).toLocaleString('de-AT')} kg
+                    </div>
+                  )
+                )}
+              </div>
+              
+              <div className="space-y-3">
+                {exercises.map((ex, idx) => (
+                  <ExCard 
+                    key={idx} 
+                    ex={ex} 
+                    i={idx} 
+                    updateEx={updateEx} 
+                    removeEx={removeEx} 
+                    moveEx={moveEx}
+                    isFirst={idx === 0}
+                    isLast={idx === exercises.length - 1}
+                    prev={prevMap[ex.name]} 
+                  />
+                ))}
+                {exercises.length === 0 && (
+                  <div className="card border-dashed flex flex-col items-center justify-center py-12 opacity-30">
+                    <Dumbbell size={32} className="mb-2" />
+                    <p className="text-sm">Keine Übungen hinzugefügt</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-5 rounded-2xl bg-bg2 border border-line shadow-inner">
+                <div className="label-caps !mb-3">Übung hinzufügen</div>
+                <ExerciseSearch onSelect={addEx} />
+                <div className="flex gap-2 mt-3">
+                  <input type="text" value={quickInput} onChange={e => setQuickInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && addQuick()}
+                    placeholder="Quick Entry (z.B. bench 3x8@80)" className="flex-1 p-3 rounded-xl border text-sm font-mono bg-card border-line text-ink focus:border-accent outline-none" />
+                  <button onClick={addQuick} className="btn btn-secondary py-3 px-5 text-orange border-orange/20 bg-orange/5">+</button>
+                </div>
+              </div>
+            </>
+          )}
+        </main>
       </div>
 
-      <SectionHeader>Export</SectionHeader>
-      <button onClick={handleDownload} className="w-full p-4 rounded-2xl border flex items-center justify-between bg-card border-line">
-        <div className="text-left">
-          <div className="label-caps">Coach Sheet</div>
-          <div className="text-[11px] opacity-60">Markdown-Export für Obsidian</div>
-        </div>
-        <Download size={18} className="text-accent" />
-      </button>
-
       {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl text-sm font-bold shadow-2xl z-50 bg-card text-accent border border-line">
+        <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl text-sm font-bold shadow-2xl z-50 bg-card text-accent border border-line">
           {toast}
         </div>
       )}
