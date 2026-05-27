@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Brain } from "lucide-react";
 import { getSessionHistory, getAllExercises } from "../db.js";
 import BodyMap from "../components/BodyMap.jsx";
 
