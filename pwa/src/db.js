@@ -514,15 +514,13 @@ export async function getWeeklyReport(selector = "current") {
 
 export async function sendToInbox(exerciseData) {
   try {
-    const res = await fetch("/inbox/exercise", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(exerciseData),
+    const ref = await addDoc(collection(db, "fitness", getUid(), "inbox"), {
+      ...exerciseData,
+      received_at: serverTimestamp(),
     });
-    pingBridge();
-    return await res.json();
+    return { ok: true, id: ref.id };
   } catch (e) {
-    console.error("Inbox ping failed:", e);
+    console.error("Inbox Firestore push failed:", e);
     return { ok: false };
   }
 }

@@ -1,10 +1,11 @@
+import os
 from pathlib import Path
 import firebase_admin
 from firebase_admin import credentials, firestore
 
 CRED_PATH = Path.home() / ".env" / "firebase-fitness.json"
-PROJECT   = "fitness-aos"
-UID       = "default"
+PROJECT   = os.getenv("FIREBASE_FITNESS_PROJECT", "fitness-aos")
+UID       = os.getenv("FITNESS_UID", "default")
 
 _db = None
 
