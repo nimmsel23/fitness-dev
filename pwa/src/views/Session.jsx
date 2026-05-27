@@ -411,14 +411,18 @@ export default function Session({ initialDate, hitMode }) {
             <div className="card space-y-4">
               <h3 className="label-caps">Activity Details</h3>
               <select value={activity.type} onChange={e => setActivity({...activity, type: e.target.value})}
-                className="w-full p-3 rounded-xl border bg-card border-line text-ink">
+                className="w-full p-4 rounded-2xl border bg-bg2 border-line text-ink font-bold text-sm focus:border-accent outline-none">
                 <option value="hiking">Wandern</option>
                 <option value="running">Laufen</option>
                 <option value="cycling">Radfahren</option>
                 <option value="swimming">Schwimmen</option>
+                <option value="yoga">Yoga</option>
               </select>
-              <input type="number" placeholder="Dauer (Min)" value={activity.duration} onChange={e => setActivity({...activity, duration: e.target.value})}
-                className="w-full p-3 rounded-xl border bg-card border-line text-ink" />
+              <div className="relative">
+                <input type="number" placeholder="Dauer" value={activity.duration} onChange={e => setActivity({...activity, duration: e.target.value})}
+                  className="w-full p-4 pr-16 rounded-2xl border bg-bg2 border-line text-ink font-bold text-sm focus:border-accent outline-none" />
+                <span className="absolute right-5 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest opacity-30">Minuten</span>
+              </div>
             </div>
           ) : (
             <>

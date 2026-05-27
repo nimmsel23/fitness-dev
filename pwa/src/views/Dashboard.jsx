@@ -8,21 +8,23 @@ import BodyMap from "../components/BodyMap.jsx";
 const BLOCK_COLORS = {
   push: "#f472b6", pull: "#34d399", legs: "#fb923c",
   upper: "#38bdf8", lower: "#a78bfa", full: "#fbbf24",
-  hiking: "#48c87a", running: "#e05060", cycling: "#38bdf8", swimming: "#5294e2"
+  hiking: "#48c87a", running: "#e05060", cycling: "#38bdf8", swimming: "#5294e2", yoga: "#bd93f9"
 };
 
 const ACTIVITY_LABELS = {
   hiking: "Wandern",
   running: "Laufen",
   cycling: "Radfahren",
-  swimming: "Schwimmen"
+  swimming: "Schwimmen",
+  yoga: "Yoga"
 };
 
 const ACTIVITY_ICONS = {
   hiking: Footprints,
   running: Footprints,
   cycling: Bike,
-  swimming: Waves
+  swimming: Waves,
+  yoga: Activity
 };
 
 function blockColor(block, activity) {
