@@ -245,7 +245,7 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen" style={{ background: 'var(--bg)', color: 'var(--ink)', overflow: 'hidden' }}>
 
-      <header style={{ background: 'var(--glass)', borderBottom: '1px solid var(--line)', backdropFilter: 'blur(20px)' }}
+      <header style={{ background: 'var(--glass)', borderBottom: '1px solid var(--glass-border)', backdropFilter: 'blur(20px)' }}
         className="flex lg:hidden items-center justify-between px-4 py-2.5 z-20 shrink-0">
         <div className="flex items-center gap-2 font-extrabold text-base tracking-tight">
           <Dumbbell size={22} style={{ color: 'var(--accent)' }} />
@@ -310,58 +310,111 @@ export default function App() {
               {tab === 'muscles'  && <Muscles />}
               {tab === 'learn'    && <Learn />}
               {tab === 'settings' && (
-                <div className="space-y-8 max-w-2xl">
-                   <section className="card flex flex-col items-center text-center">
-                      <div className="w-16 h-16 rounded-full overflow-hidden mb-4 border-2 border-accent/20 flex items-center justify-center bg-accent/10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                   <section className="card flex flex-col items-center text-center justify-center">
+                      <div className="w-20 h-20 rounded-full overflow-hidden mb-4 border-2 border-accent/20 flex items-center justify-center bg-accent/10 shadow-lg shadow-accent/5">
                          {user.photoURL ? (
                            <img src={user.photoURL} alt={user.displayName} />
                          ) : (
-                           <User size={32} className="text-accent" />
+                           <User size={40} className="text-accent" />
                          )}
                       </div>
-                      <h2 className="text-lg font-black mb-1">{user.displayName || user.email?.split('@')[0]}</h2>
-                      <p className="text-xs opacity-40 mb-6">{user.email}</p>
-                      <button onClick={signOut} className="btn btn-red px-6 py-2.5">
+                      <h2 className="text-xl font-black mb-1 text-ink">{user.displayName || user.email?.split('@')[0]}</h2>
+                      <p className="text-xs font-bold opacity-30 uppercase tracking-widest mb-6">{user.email}</p>
+                      <button onClick={signOut} className="btn btn-red w-full">
                          <LogOut size={16} /> Abmelden
                       </button>
                    </section>
 
                    <section className="card">
-                      <h2 className="label-caps mb-4">Modus</h2>
-                      <div className="flex items-center justify-between mb-6">
-                         <div className="text-left">
-                            <div className="text-sm font-bold text-ink">HIT Modus</div>
-                            <div className="text-[10px] opacity-40">Rest-Hours statt Volumen</div>
-                         </div>
-                         <button onClick={toggleHitMode} 
-                           className={`w-10 h-5 rounded-full transition-colors relative border ${hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
-                           <div className={`absolute top-0.5 w-3.5 h-3.5 rounded-full transition-transform bg-white ${hitMode ? 'right-0.5' : 'left-0.5'}`} />
-                         </button>
+                      <div className="flex items-center gap-2 mb-6">
+                        <Dumbbell size={18} className="text-accent" />
+                        <h2 className="text-base font-black uppercase tracking-widest text-ink">Training</h2>
                       </div>
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                           <div className="text-left">
+                              <div className="text-sm font-bold text-ink">HIT Modus</div>
+                              <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Standard-Modus für neue Sessions</div>
+                           </div>
+                           <button onClick={toggleHitMode} 
+                             className={`w-12 h-6 rounded-full transition-colors relative border-2 ${hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
+                             <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${hitMode ? 'right-0.5' : 'left-0.5'}`} />
+                           </button>
+                        </div>
 
-                      <div className="text-left">
-                         <div className="text-[10px] font-bold uppercase tracking-widest opacity-40 mb-3">Aktueller Split</div>
-                         <div className="flex flex-wrap gap-2">
-                            {['PPL', 'Upper/Lower', 'Full Body', 'Bro-Split', 'Custom'].map(s => (
-                              <button key={s} onClick={() => setManualSplit(s)}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${split === s ? 'border-accent bg-accent/10 text-accent' : 'border-line bg-bg2 text-muted'}`}>
-                                {s}
-                              </button>
-                            ))}
-                         </div>
+                        <div className="text-left">
+                           <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30 mb-3">Aktueller Split</div>
+                           <div className="flex flex-wrap gap-2">
+                              {['PPL', 'Upper/Lower', 'Full Body', 'Bro-Split', 'Custom'].map(s => (
+                                <button key={s} onClick={() => setManualSplit(s)}
+                                  className={`px-3 py-2 rounded-xl text-[10px] font-black border transition-all ${split === s ? 'border-accent bg-accent text-black shadow-lg shadow-accent/20' : 'border-line bg-bg2 text-muted hover:text-ink'}`}>
+                                  {s}
+                                </button>
+                              ))}
+                           </div>
+                        </div>
                       </div>
                    </section>
 
-                   <section>
-                      <h2 className="label-caps mb-4 ml-1">Themen Auswahl</h2>
-                      <div className="grid grid-cols-3 gap-2">
-                         {DARK_THEMES.map(t => (
-                           <button key={t} onClick={() => setManualTheme(t)} 
-                             className="p-3 rounded-xl text-[10px] font-bold border truncate"
-                             style={{ background: theme === t ? 'var(--accent)' : 'var(--bg2)', color: theme === t ? '#000' : 'var(--ink)', borderColor: theme === t ? 'var(--accent)' : 'var(--line)' }}>
-                             {t}
-                           </button>
-                         ))}
+                   <section className="card md:col-span-2">
+                      <div className="flex items-center gap-2 mb-6">
+                        <Activity size={18} className="text-accent" />
+                        <h2 className="text-base font-black uppercase tracking-widest text-ink">Darstellung</h2>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                          <h3 className="label-caps mb-4 ml-1">Dark Themes</h3>
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                             {DARK_THEMES.map(t => (
+                               <button key={t} onClick={() => setManualTheme(t)} 
+                                 className={`p-2.5 rounded-xl text-[10px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-accent bg-accent text-black' : 'bg-bg2 border-line text-ink hover:border-accent/40'}`}
+                                 style={{ borderColor: theme === t ? 'var(--accent)' : '' }}>
+                                 {t}
+                               </button>
+                             ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h3 className="label-caps mb-4 ml-1">Light Themes</h3>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                             {LIGHT_THEMES.map(t => (
+                               <button key={t} onClick={() => setManualTheme(t)} 
+                                 className={`p-2.5 rounded-xl text-[10px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-accent bg-accent text-black' : 'bg-bg2 border-line text-ink hover:border-accent/40'}`}
+                                 style={{ borderColor: theme === t ? 'var(--accent)' : '' }}>
+                                 {t}
+                               </button>
+                             ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-8 pt-8 border-t border-line/50 flex items-center justify-between">
+                         <div className="flex flex-col">
+                            <span className="text-sm font-bold text-ink">🌅 Circadian Mode</span>
+                            <span className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Tag/Nacht Automatik</span>
+                         </div>
+                         <button onClick={() => setModeState(themeMode === 'circadian' ? 'manual' : 'circadian')}
+                           className={`w-12 h-6 rounded-full transition-colors relative border-2 ${themeMode === 'circadian' ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
+                           <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${themeMode === 'circadian' ? 'right-0.5' : 'left-0.5'}`} />
+                         </button>
+                      </div>
+                   </section>
+
+                   <section className="card md:col-span-2 opacity-50 border-dashed">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Settings2 size={18} className="text-dim" />
+                        <h2 className="text-base font-black uppercase tracking-widest text-muted">System & Sync</h2>
+                      </div>
+                      <div className="flex items-center justify-between py-2">
+                         <span className="text-xs font-bold text-muted uppercase tracking-widest">Plattform</span>
+                         <span className="text-xs font-black text-ink">Firebase Cloud Architecture</span>
+                      </div>
+                      <div className="flex items-center justify-between py-2 border-t border-line/30">
+                         <span className="text-xs font-bold text-muted uppercase tracking-widest">Status</span>
+                         <span className="text-[10px] font-black px-3 py-1 rounded-full bg-green/10 text-green border border-green/20">VERBUNDEN</span>
                       </div>
                    </section>
                 </div>
