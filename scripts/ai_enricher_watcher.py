@@ -24,28 +24,37 @@ USERS_DIR = FITNESS_DIR / "users"
 # Adjust this path based on where the script is run from
 PROJECT_ROOT = Path(__file__).parent.parent
 CATALOG_EXERCISES = PROJECT_ROOT / "catalog" / "kb" / "exercises"
-CATALOG_TEACHING = PROJECT_ROOT / "catalog" / "kb" / "anatomy_teaching"
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 PROMPT_TEMPLATE = """
 You are an expert fitness coach and biomechanics expert.
-Analyze the following exercise: "{exercise_name}"
+A user has logged a new exercise: "{exercise_name}"
 
 Return a JSON object with the following structure exactly. Do not include markdown formatting like ```json.
+It must match our base exercise schema. Use German for display_name and coaching_notes.
 
 {{
   "exercise_id": "{safe_name}",
-  "display_name": "{exercise_name}",
-  "primary_muscles": ["muscle1", "muscle2"],
-  "secondary_muscles": ["muscle3"],
-  "trainer_explanation": {{
-    "client_friendly": "A simple 1-2 sentence explanation of what this exercise does."
-  }},
+  "id": "{safe_name}",
+  "name": "{exercise_name}",
+  "display_name": "German Translation or Native Name",
+  "german": "German Name",
+  "category": "chest|back|shoulders|arms|core|legs|cardio",
+  "type": "compound|isolation",
+  "movement_pattern": "e.g. horizontal_press, vertical_pull",
+  "equipment": ["dumbbell", "barbell", "machine", "bodyweight", "cable"],
+  "primary_muscles": ["muscle1"],
+  "secondary_muscles": ["muscle2"],
   "coaching_notes": [
-    "Important form cue 1",
-    "Important form cue 2"
-  ]
+    "Wichtiger Ausführungshinweis 1",
+    "Wichtiger Ausführungshinweis 2"
+  ],
+  "common_errors": [
+    "Häufiger Fehler 1"
+  ],
+  "tags": ["tag1", "tag2"],
+  "aliases": ["alias1", "alias2"]
 }}
 """
 
@@ -71,7 +80,6 @@ def call_gemini(exercise_name: str, safe_name: str) -> dict:
         with urllib.request.urlopen(req) as response:
             result = json.loads(response.read().decode("utf-8"))
             text_response = result["candidates"][0]["content"]["parts"][0]["text"]
-            # Clean up potential markdown wrapper
             text_response = text_response.replace("```json", "").replace("```", "").strip()
             return json.loads(text_response)
     except Exception as e:
@@ -88,7 +96,7 @@ def process_inbox_file(file_path: Path):
             return
 
         safe_name = name.lower().replace(" ", "_")
-        target_file = CATALOG_TEACHING / f"{safe_name}.yml"
+        target_file = CATALOG_EXERCISES / f"inbox_{safe_name}.yml"
 
         if target_file.exists():
             logger.info(f"Catalog entry for '{name}' already exists. Removing from inbox.")
@@ -100,14 +108,19 @@ def process_inbox_file(file_path: Path):
         
         if enriched_data:
             import yaml
-            CATALOG_TEACHING.mkdir(parents=True, exist_ok=True)
+            CATALOG_EXERCISES.mkdir(parents=True, exist_ok=True)
             
-            # Simple YAML dump (could be refined to match existing format exactly)
+            wrapper = {
+                "name": f"inbox_{safe_name}",
+                "description": f"AI generated base entry for {name}",
+                "exercises": [enriched_data]
+            }
+            
             with target_file.open("w", encoding="utf-8") as f:
-                yaml.dump(enriched_data, f, allow_unicode=True, sort_keys=False)
+                yaml.dump(wrapper, f, allow_unicode=True, sort_keys=False)
             
-            logger.success(f"Successfully generated catalog entry for {name}")
-            file_path.unlink() # Delete from inbox after successful processing
+            logger.success(f"Successfully generated base exercise entry for {name}")
+            file_path.unlink()
         else:
             logger.warning(f"Failed to enrich {name}. Keeping in inbox.")
             
