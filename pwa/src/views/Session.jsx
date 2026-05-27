@@ -336,32 +336,38 @@ export default function Session({ initialDate, hitMode }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8">
         <aside className="space-y-6">
-          <section>
+          <section className="card p-6 shadow-lg border-line/50">
             <SectionHeader>Details</SectionHeader>
-            <div className="space-y-3">
-              <input type="text" value={location} placeholder="Ort" onChange={e => setLocation(e.target.value)}
-                className="w-full p-3 rounded-xl border text-sm bg-card border-line text-ink" />
-              <div className="relative">
-                <input type="number" value={duration} placeholder="Dauer" onChange={e => setDuration(e.target.value)}
-                  className="w-full p-3 pr-10 rounded-xl border text-sm bg-card border-line text-ink" />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold opacity-40">MIN</span>
+            <div className="space-y-4">
+              <div>
+                <label className="text-[9px] font-black uppercase tracking-widest opacity-30 mb-2 block ml-1">Location</label>
+                <input type="text" value={location} placeholder="z.B. Home Gym" onChange={e => setLocation(e.target.value)}
+                  className="w-full p-3.5 rounded-2xl border text-sm font-bold bg-bg2 border-line text-ink focus:border-accent outline-none" />
               </div>
-              <button onClick={() => setIsActivity(!isActivity)} 
-                className={`w-full p-3 rounded-xl border text-xs font-bold transition-all ${isActivity ? 'border-orange bg-orange/10 text-orange' : 'border-accent bg-accent/10 text-accent'}`}>
-                {isActivity ? 'Wechsel zu Krafttraining' : 'Wechsel zu Cardio/Activity'}
-              </button>
+              <div className="relative">
+                <label className="text-[9px] font-black uppercase tracking-widest opacity-30 mb-2 block ml-1">Dauer</label>
+                <input type="number" value={duration} placeholder="Minuten" onChange={e => setDuration(e.target.value)}
+                  className="w-full p-3.5 pr-12 rounded-2xl border text-sm font-bold bg-bg2 border-line text-ink focus:border-accent outline-none" />
+                <span className="absolute right-4 bottom-3.5 text-[10px] font-black opacity-20 uppercase">MIN</span>
+              </div>
+              <div className="pt-2">
+                <button onClick={() => setIsActivity(!isActivity)} 
+                  className={`w-full p-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all shadow-sm ${isActivity ? 'border-orange bg-orange/5 text-orange' : 'border-accent/40 bg-accent/5 text-accent'}`}>
+                  {isActivity ? 'Switch to Strength' : 'Switch to Activity'}
+                </button>
+              </div>
             </div>
           </section>
 
           {!isActivity && (
-            <section>
-              <SectionHeader>Split</SectionHeader>
+            <section className="card p-6 shadow-lg border-line/50">
+              <SectionHeader>Training Split</SectionHeader>
               <div className="grid grid-cols-2 gap-2">
                 {['Push', 'Pull', 'Legs', 'Upper', 'Lower', 'Full'].map(l => (
                   <button key={l} onClick={() => setBlock(l)}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold border transition-all ${block === l ? 'border-accent bg-accent/10 text-accent' : 'border-line bg-bg2 text-muted'}`}>
+                    className={`px-3 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${block === l ? 'border-accent bg-accent text-black shadow-lg shadow-accent/20' : 'border-line bg-bg2 text-muted hover:text-ink'}`}>
                     {l}
                   </button>
                 ))}
@@ -369,32 +375,38 @@ export default function Session({ initialDate, hitMode }) {
             </section>
           )}
 
-          <section>
-            <SectionHeader>Qualität</SectionHeader>
-            <div className="card mb-0 p-4">
-              <div className="flex items-center gap-3 mb-4">
-                <span className="label-caps !mb-0 text-[9px]">Effort</span>
-                <input type="range" min={1} max={10} value={effort} onChange={e => setEffort(Number(e.target.value))} className="flex-1" />
-                <span className="text-lg font-black text-accent w-5 text-right">{effort}</span>
+          <section className="card p-6 shadow-lg border-line/50">
+            <SectionHeader>Qualität & Fokus</SectionHeader>
+            <div className="space-y-6">
+              <div>
+                <div className="flex items-center justify-between mb-3 px-1">
+                  <span className="text-[9px] font-black uppercase tracking-widest opacity-30">Effort (RPE)</span>
+                  <span className="text-xl font-black text-accent">{effort}</span>
+                </div>
+                <input type="range" min={1} max={10} value={effort} onChange={e => setEffort(Number(e.target.value))} className="w-full accent-accent" />
               </div>
-              <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} placeholder="Notizen…"
-                className="w-full p-3 rounded-xl border text-xs bg-bg2 border-line text-ink focus:border-accent outline-none" />
+              <div>
+                <label className="text-[9px] font-black uppercase tracking-widest opacity-30 mb-2 block ml-1">Notizen</label>
+                <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={4} placeholder="Wie war der Fokus?"
+                  className="w-full p-4 rounded-2xl border text-sm font-medium bg-bg2 border-line text-ink focus:border-accent outline-none resize-none leading-relaxed" />
+              </div>
             </div>
           </section>
 
           <section>
-            <SectionHeader>Export</SectionHeader>
-            <button onClick={handleDownload} className="w-full p-4 rounded-2xl border flex items-center justify-between bg-card border-line hover:border-accent/30 transition-colors">
+            <button onClick={handleDownload} className="w-full p-5 rounded-3xl border flex items-center justify-between bg-card border-line hover:border-accent/30 transition-all shadow-xl group">
               <div className="text-left">
-                <div className="label-caps !mb-0 text-[9px]">Coach Sheet</div>
-                <div className="text-[10px] opacity-60">Markdown Export</div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-accent mb-1 group-hover:translate-x-1 transition-transform">Coach Sheet</div>
+                <div className="text-[11px] font-bold opacity-30">Markdown Export</div>
               </div>
-              <Download size={16} className="text-accent" />
+              <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent">
+                <Download size={18} />
+              </div>
             </button>
           </section>
         </aside>
 
-        <main className="space-y-6">
+        <main className="space-y-6 pb-20">
           {isActivity ? (
             <div className="card space-y-4">
               <h3 className="label-caps">Activity Details</h3>

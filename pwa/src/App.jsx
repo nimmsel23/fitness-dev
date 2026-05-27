@@ -265,34 +265,37 @@ export default function App() {
 
       <div className="flex-1 flex overflow-hidden main-wrapper">
         <aside className="desktop-sidebar hidden lg:flex">
-          <div className="flex items-center gap-3 font-black text-xl tracking-tighter mb-10 px-2">
-            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-              <Dumbbell size={24} className="text-accent" />
+          <div className="flex items-center gap-3 font-black text-2xl tracking-tighter mb-12 px-2">
+            <div className="w-12 h-12 rounded-2xl bg-accent flex items-center justify-center shadow-lg shadow-accent/20">
+              <Dumbbell size={28} className="text-black" />
             </div>
-            <span>Fitness</span>
+            <div className="flex flex-col">
+              <span className="leading-tight">Fitness</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-30 -mt-1">AlphaOS</span>
+            </div>
           </div>
 
-          <nav className="flex-1 space-y-1">
+          <nav className="flex-1 space-y-2">
             {TABS.map(({ id, Icon, label }) => (
               <button key={id} onClick={() => navigate(id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${tab === id ? 'bg-accent/10 text-accent' : 'text-dim hover:bg-white/5 hover:text-ink'}`}>
-                <Icon size={20} />
+                className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${tab === id ? 'bg-accent text-black shadow-lg shadow-accent/10' : 'text-dim hover:bg-white/5 hover:text-ink'}`}>
+                <Icon size={18} className={tab === id ? 'text-black' : 'text-dim group-hover:text-accent'} />
                 {label}
               </button>
             ))}
           </nav>
 
-          <div className="mt-auto pt-6 border-t border-line">
+          <div className="mt-auto pt-8 border-t border-line/50">
             <button onClick={() => navigate('settings')} 
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${tab === 'settings' ? 'bg-accent/10 text-accent' : 'text-dim hover:bg-white/5 hover:text-ink'}`}>
-              <div className="w-8 h-8 rounded-full overflow-hidden border border-line bg-bg2 flex items-center justify-center">
-                {user.photoURL ? <img src={user.photoURL} alt="" /> : <User size={16} />}
+              className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all ${tab === 'settings' ? 'bg-white/5 border border-line' : 'hover:bg-white/5'}`}>
+              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-accent/20 bg-bg2 flex items-center justify-center shrink-0">
+                {user.photoURL ? <img src={user.photoURL} alt="" /> : <User size={20} className="text-accent" />}
               </div>
               <div className="flex-1 text-left truncate">
-                <div className="text-xs truncate">{user.displayName || user.email?.split('@')[0]}</div>
-                <div className="text-[10px] opacity-40 truncate">{user.email}</div>
+                <div className="text-xs font-black text-ink truncate">{user.displayName || user.email?.split('@')[0]}</div>
+                <div className="text-[10px] font-bold opacity-30 truncate uppercase tracking-tighter">{user.email}</div>
               </div>
-              <Settings2 size={16} />
+              <Settings2 size={16} className={tab === 'settings' ? 'text-accent' : 'text-dim'} />
             </button>
           </div>
         </aside>
