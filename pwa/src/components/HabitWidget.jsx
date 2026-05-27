@@ -11,7 +11,7 @@ function todayCompletion(habit, todayEpochDay) {
   return rec?.completion || 'MISSED'
 }
 
-export default function HabitWidget() {
+export default function HabitWidget({ onNavigate }) {
   const [habits, setHabits] = useState([])
   const [loading, setLoading] = useState(true)
   const [newHabit, setNewHabit] = useState('')
@@ -31,47 +31,41 @@ export default function HabitWidget() {
     load()
   }
 
-  async function handleAdd() {
-    if (!newHabit.trim()) return
-    await addHabit(newHabit.trim())
-    setNewHabit('')
-    load()
-  }
-
-  async function handleDelete(uuid) {
-    await deleteHabit(uuid)
-    load()
-  }
-
   return (
-    <div className="card">
-      <div className="label-caps mb-3">Habits (heute)</div>
-
-      <div className="flex gap-2 mb-4">
-        <input type="text" value={newHabit} onChange={e => setNewHabit(e.target.value)}
-          placeholder="Neuer Habit..." className="flex-1" />
-        <button onClick={handleAdd} className="btn btn-secondary"><Plus size={18} /></button>
+    <div className="card mb-0 shadow-lg border-line/40">
+      <div className="flex items-center justify-between mb-4 px-1">
+        <div className="label-caps !mb-0 flex items-center gap-2">
+           <Check size={14} className="text-green" />
+           Habits (heute)
+        </div>
+        <button onClick={() => onNavigate?.('habits')} className="text-[10px] font-black uppercase tracking-widest text-accent hover:opacity-70 transition-opacity">
+           Manage
+        </button>
       </div>
 
-      {loading && <div className="text-sm text-dim">Lade...</div>}
+      {loading && <div className="py-4 flex justify-center opacity-20"><div className="spinner" /></div>}
 
       <div className="space-y-2">
-        {habits.map(h => {
+        {habits.slice(0, 4).map(h => {
           const done = todayCompletion(h, todayEpochDay) === 'DONE'
           return (
-            <div key={h.uuid} className={`p-3 rounded-xl flex items-center justify-between border ${done ? 'bg-green/10 border-green/20' : 'bg-bg2 border-line'}`}>
-              <span className="font-semibold text-sm">{h.name}</span>
+            <div key={h.uuid} className={`p-3.5 rounded-2xl flex items-center justify-between border transition-all ${done ? 'bg-green/10 border-green/20' : 'bg-bg2 border-line hover:border-dim'}`}>
+              <span className={`font-bold text-xs ${done ? 'text-green' : 'text-ink'}`}>{h.name}</span>
               <div className="flex items-center gap-2">
                 {done ? (
-                  <Check size={20} className="text-green" />
+                  <div className="w-6 h-6 rounded-full bg-green text-black flex items-center justify-center">
+                    <Check size={14} className="stroke-[4]" />
+                  </div>
                 ) : (
-                  <button onClick={() => checkIn(h.uuid)} className="btn btn-primary py-1 px-3 text-xs">Check</button>
+                  <button onClick={() => checkIn(h.uuid)} className="btn btn-primary !py-1 !px-3 !text-[10px] !rounded-lg uppercase tracking-widest shadow-none">Done</button>
                 )}
-                <button onClick={() => handleDelete(h.uuid)} className="text-dim hover:text-red"><Trash2 size={16}/></button>
               </div>
             </div>
           )
         })}
+        {habits.length === 0 && !loading && (
+          <p className="text-center py-4 text-[10px] font-black uppercase opacity-20 tracking-widest">Keine Habits aktiv</p>
+        )}
       </div>
     </div>
   )

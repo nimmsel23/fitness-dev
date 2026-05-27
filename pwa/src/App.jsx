@@ -1,11 +1,12 @@
 import { useState, useEffect, Component } from "react";
-import { Activity, BarChart3, BookOpen, Dumbbell, Layers, Search, Settings2, Brain, LogIn, LogOut, User } from "lucide-react";
+import { Activity, BarChart3, BookOpen, Dumbbell, Layers, Search, Settings2, Brain, LogIn, LogOut, User, Target } from "lucide-react";
 import Dashboard from "./views/Dashboard.jsx";
 import Session from "./views/Session.jsx";
 import Journal from "./views/Journal.jsx";
 import Muscles from "./views/Muscles.jsx";
 import Learn from "./views/Learn.jsx";
 import WeeklyReview from "./views/WeeklyReview.jsx";
+import Habits from "./views/Habits.jsx";
 import { getSettings, saveSettings, watchAuth, signIn, signOut, signInEmail, signUpEmail } from "./db.js";
 
 class ErrorBoundary extends Component {
@@ -25,12 +26,13 @@ class ErrorBoundary extends Component {
   }
 }
 
-const VALID_TABS = new Set(['dash', 'session', 'review', 'learn', 'journal', 'muscles', 'settings'])
+const VALID_TABS = new Set(['dash', 'session', 'review', 'learn', 'journal', 'habits', 'muscles', 'settings'])
 
 const TABS = [
   { id: 'dash',     label: 'Heute',    Icon: Activity },
   { id: 'session',  label: 'Training', Icon: Dumbbell },
   { id: 'review',   label: 'Review',   Icon: BarChart3 },
+  { id: 'habits',   label: 'Habits',   Icon: Target },
   { id: 'learn',    label: 'Lernen',   Icon: Search },
   { id: 'journal',  label: 'Journal',  Icon: BookOpen },
   { id: 'muscles',  label: 'Muskeln',  Icon: Layers },
@@ -62,6 +64,9 @@ export default function App() {
   const [circLight, setCircLight] = useState('latte')
   const [hitMode, setHitMode]     = useState(false)
   const [split, setSplit]         = useState('PPL')
+  const [cycleLength, setCycleLength] = useState(4)
+  const [trainingGoal, setTrainingGoal] = useState('Hypertrophie')
+  const [defaultLocation, setDefaultLocation] = useState('Gym')
   const [sessionDate, setSessionDate] = useState(null)
 
   // Auth form state
@@ -90,6 +95,9 @@ export default function App() {
       if (s.circLight) setCircLight(s.circLight);
       if (s.hitMode !== undefined) setHitMode(s.hitMode);
       if (s.split) setSplit(s.split);
+      if (s.cycleLength) setCycleLength(s.cycleLength);
+      if (s.trainingGoal) setTrainingGoal(s.trainingGoal);
+      if (s.defaultLocation) setDefaultLocation(s.defaultLocation);
       if (s.themeMode !== 'circadian') applyTheme(s.theme || 'honey');
     });
   }, [user]);
@@ -306,6 +314,7 @@ export default function App() {
               {tab === 'dash'     && <Dashboard onNavigate={navigate} />}
               {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} hitMode={hitMode} />}
               {tab === 'review'   && <WeeklyReview onNavigate={navigate} />}
+              {tab === 'habits'   && <Habits />}
               {tab === 'journal'  && <Journal />}
               {tab === 'muscles'  && <Muscles />}
               {tab === 'learn'    && <Learn />}
@@ -354,6 +363,32 @@ export default function App() {
                               ))}
                            </div>
                         </div>
+
+                        <div className="pt-4 border-t border-line/30 space-y-4">
+                           <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                 <label className="label-caps !mb-2">Zyklus (Wochen)</label>
+                                 <input type="number" value={cycleLength} onChange={e => { setCycleLength(Number(e.target.value)); updateSettings({cycleLength: Number(e.target.value)}) }}
+                                    className="bg-bg2 border-line rounded-xl px-3 py-2 text-xs font-bold" />
+                              </div>
+                              <div>
+                                 <label className="label-caps !mb-2">Standard-Ort</label>
+                                 <input type="text" value={defaultLocation} onChange={e => { setDefaultLocation(e.target.value); updateSettings({defaultLocation: e.target.value}) }}
+                                    className="bg-bg2 border-line rounded-xl px-3 py-2 text-xs font-bold" />
+                              </div>
+                           </div>
+                           <div>
+                              <label className="label-caps !mb-2">Primäres Ziel</label>
+                              <select value={trainingGoal} onChange={e => { setTrainingGoal(e.target.value); updateSettings({trainingGoal: e.target.value}) }}
+                                 className="bg-bg2 border-line rounded-xl px-3 py-2 text-xs font-bold">
+                                 <option>Hypertrophie</option>
+                                 <option>Maximalkraft</option>
+                                 <option>Kraftausdauer</option>
+                                 <option>Fettabbau / Cut</option>
+                                 <option>Reha / Prehab</option>
+                              </select>
+                           </div>
+                        </div>
                       </div>
                    </section>
 
@@ -400,6 +435,39 @@ export default function App() {
                            className={`w-12 h-6 rounded-full transition-colors relative border-2 ${themeMode === 'circadian' ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
                            <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${themeMode === 'circadian' ? 'right-0.5' : 'left-0.5'}`} />
                          </button>
+                      </div>
+                   </section>
+
+                   <section className="card md:col-span-2 opacity-50 border-dashed">
+                      <div className="flex items-center gap-2 mb-6">
+                        <Sparkles size={18} className="text-accent" />
+                        <h2 className="text-base font-black uppercase tracking-widest text-ink/70">App Roadmap (Zukunft)</h2>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                         <div className="space-y-2">
+                            <div className="text-[10px] font-black uppercase tracking-widest text-muted">V1.2: Progress</div>
+                            <ul className="text-[11px] font-bold space-y-1 text-ink/40">
+                               <li>• 1RM Estimations</li>
+                               <li>• Volume Progress Charts</li>
+                               <li>• Muscle-Level Fatigue</li>
+                            </ul>
+                         </div>
+                         <div className="space-y-2">
+                            <div className="text-[10px] font-black uppercase tracking-widest text-muted">V1.5: Social</div>
+                            <ul className="text-[11px] font-bold space-y-1 text-ink/40">
+                               <li>• Shared Workouts</li>
+                               <li>• Public Profiles</li>
+                               <li>• Challenges</li>
+                            </ul>
+                         </div>
+                         <div className="space-y-2">
+                            <div className="text-[10px] font-black uppercase tracking-widest text-muted">V2.0: Intelligence</div>
+                            <ul className="text-[11px] font-bold space-y-1 text-ink/40">
+                               <li>• AI Coach Recommendations</li>
+                               <li>• Form Analysis</li>
+                               <li>• Nutrition Sync</li>
+                            </ul>
+                         </div>
                       </div>
                    </section>
 
