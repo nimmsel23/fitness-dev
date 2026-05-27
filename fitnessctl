@@ -27,6 +27,9 @@ fitnessctl — fitness-dev service control (API :${API_PORT}, UI :${UI_PORT})
   fitnessctl build        npm run build (Vite → dist/)
   fitnessctl logs         Tail API server log
 
+  fitnessctl sync         Pull fresh data from Firebase for all users
+  fitnessctl watch        Start AI Enricher Watcher (background)
+
   fitnessctl session today          Show today's session
   fitnessctl session get DATE       Show session for DATE (YYYY-MM-DD)
   fitnessctl session list [N]       List last N sessions (default 10)
@@ -111,6 +114,29 @@ cmd_logs() {
   tail -f "$LOGFILE"
 }
 
+cmd_sync() {
+  msg "Syncing Firestore..."
+  cd "$ROOT" && python3 -m firestore.sync_cli sync
+}
+
+cmd_watch() {
+  local watch_pidfile="/tmp/fitness-enricher.pid"
+  local watch_logfile="/tmp/fitness-enricher.log"
+  
+  if [[ -f "$watch_pidfile" ]] && kill -0 "$(cat "$watch_pidfile")" 2>/dev/null; then
+    warn "Watcher already running (PID $(cat "$watch_pidfile"))"; return
+  fi
+  cd "$ROOT"
+  nohup python3 scripts/ai_enricher_watcher.py >"$watch_logfile" 2>&1 &
+  echo $! >"$watch_pidfile"
+  sleep 0.5
+  if kill -0 "$(cat "$watch_pidfile")" 2>/dev/null; then
+    msg "Watcher Started (PID $(cat "$watch_pidfile"))"
+  else
+    die "Failed to start watcher — check $watch_logfile"
+  fi
+}
+
 api_get() { curl -fsS --max-time 5 "${API_URL}$1" 2>&1 || die "Request failed: $1"; }
 
 cmd_session() {
@@ -173,6 +199,8 @@ case "${1:-help}" in
   dev)      cmd_dev ;;
   build)    cmd_build ;;
   logs)     cmd_logs ;;
+  sync)     cmd_sync ;;
+  watch)    cmd_watch ;;
   session)  shift; cmd_session "$@" ;;
   journal)  shift; cmd_journal "$@" ;;
   coverage) shift; cmd_coverage "$@" ;;
