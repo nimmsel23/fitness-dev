@@ -261,16 +261,16 @@ export async function getAnatomy(exerciseId) {
 // ── Coverage Logic ───────────────────────────────────────────────────────────
 
 const MUSCLE_GROUPS = {
-  chest: ["pecs", "chest", "pectoralis"],
-  back: ["lats", "traps", "lower back", "back", "latissimus", "trapezius", "rhomboids"],
-  shoulders: ["shoulders", "delts", "deltoid"],
-  arms: ["biceps", "triceps", "forearms", "brachii"],
-  core: ["abs", "obliques", "core", "abdominis"],
-  glutes: ["glutes", "gluteus"],
-  quads: ["quads", "quadriceps"],
-  hamstrings: ["hamstrings", "biceps femoris"],
-  calves: ["calves", "gastrocnemius"],
-  legs: ["legs", "squat", "deadlift", "lunge"]
+  chest: ["pecs", "chest", "pectoralis", "brust"],
+  back: ["lats", "traps", "lower back", "back", "latissimus", "trapezius", "rhomboids", "rücken", "pull-up", "klimmzug", "rudern", "row"],
+  shoulders: ["shoulders", "delts", "deltoid", "schulter", "schultern", "overhead", "press"],
+  arms: ["biceps", "triceps", "forearms", "brachii", "bizeps", "trizeps", "arm", "arme", "curl", "extension"],
+  core: ["abs", "obliques", "core", "abdominis", "bauch"],
+  glutes: ["glutes", "gluteus", "po", "gesäß", "hip thrust"],
+  quads: ["quads", "quadriceps", "oberschenkel", "squat", "kniebeuge"],
+  hamstrings: ["hamstrings", "biceps femoris", "beinbeuger", "leg curl"],
+  calves: ["calves", "gastrocnemius", "waden", "calf"],
+  legs: ["legs", "squat", "deadlift", "lunge", "beine", "bein", "leg press"]
 };
 
 function muscleToGroupIds(muscle, exerciseName = "") {
