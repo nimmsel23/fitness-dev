@@ -1,27 +1,12 @@
 import Model from 'react-body-highlighter'
 
 // wger muscle ID → react-body-highlighter muscle name
-// Source: GET /api/v2/muscle/ (local wger :8000)
 export const WGER_TO_RBH = {
-  1:  'biceps',          // Biceps brachii
-  2:  'front-deltoids',  // Anterior deltoid
-  3:  'chest',           // Serratus anterior
-  4:  'chest',           // Pectoralis major
-  5:  'triceps',         // Triceps brachii
-  6:  'abs',             // Rectus abdominis
-  7:  'calves',          // Gastrocnemius
-  8:  'gluteal',         // Gluteus maximus
-  9:  'upper-back',      // Trapezius
-  10: 'quadriceps',      // Quadriceps femoris
-  11: 'hamstring',       // Biceps femoris
-  12: 'upper-back',      // Latissimus dorsi
-  13: 'forearm',         // Brachialis
-  14: 'obliques',        // Obliquus externus abdominis
-  15: 'calves',          // Soleus
-  16: 'lower-back',      // Erector spinae
+  1:  'biceps', 2:  'front-deltoids', 3:  'chest', 4:  'chest', 5:  'triceps', 6:  'abs', 
+  7:  'calves', 8:  'gluteal', 9:  'upper-back', 10: 'quadriceps', 11: 'hamstring', 
+  12: 'upper-back', 13: 'forearm', 14: 'obliques', 15: 'calves', 16: 'lower-back',
 }
 
-// Broad group → RBH names (fallback wenn keine wger-IDs vorhanden)
 const GROUP_TO_RBH = {
   chest:      ['chest'],
   back:       ['upper-back', 'lower-back'],
@@ -35,75 +20,82 @@ const GROUP_TO_RBH = {
   legs:       ['quadriceps', 'hamstring'],
 }
 
-// Broad label → group key (für primaryMuscles aus Sessions)
 const LABEL_TO_GROUP = {
-  chest: 'chest', pec: 'chest', pecs: 'chest',
-  back: 'back', lats: 'back', lat: 'back',
-  shoulder: 'shoulders', shoulders: 'shoulders', delt: 'shoulders', delts: 'shoulders',
+  chest: 'chest', pec: 'chest', pecs: 'chest', pectoralis: 'chest', 'pectoralis major': 'chest',
+  back: 'back', lats: 'back', lat: 'back', trapezius: 'back', traps: 'back', latissimus: 'back', rhoboids: 'back', deadlift: 'back',
+  shoulder: 'shoulders', shoulders: 'shoulders', delt: 'shoulders', delts: 'shoulders', deltoid: 'shoulders',
   arms: 'arms', arm: 'arms', biceps: 'arms', triceps: 'arms', forearm: 'arms', forearms: 'arms',
-  core: 'core', abs: 'core',
-  glutes: 'glutes', glute: 'glutes',
+  core: 'core', abs: 'core', abdominal: 'core',
+  glutes: 'glutes', glute: 'glutes', gluteus: 'glutes',
   legs: 'legs', quads: 'quads', quad: 'quads', quadriceps: 'quads',
   hamstrings: 'hamstrings', hamstring: 'hamstrings',
-  calves: 'calves', calf: 'calves',
+  calves: 'calves', calf: 'calves', gastrocnemius: 'calves',
 }
 
-export const GROUP_COLORS = {
-  chest:      '#ef4444',
-  back:       '#3b82f6',
-  shoulders:  '#f59e0b',
-  arms:       '#a78bfa',
-  core:       '#22c55e',
-  glutes:     '#ec4899',
-  quads:      '#f97316',
-  hamstrings: '#06b6d4',
-  calves:     '#8b5cf6',
-}
-
-export const GROUP_LABELS = {
-  chest: 'Brust', back: 'Rücken', shoulders: 'Schultern', arms: 'Arme',
-  core: 'Core', glutes: 'Gesäß', quads: 'Oberschenkel v.', hamstrings: 'Oberschenkel h.', calves: 'Waden',
-}
-
-// Converts a list of session exercises to IExerciseData[] for react-body-highlighter.
-// Uses wger_muscle_ids when available (precise), falls back to primaryMuscles labels (broad).
 export function exercisesToModelData(exercises) {
   const rbhScores = {}
 
   for (const ex of exercises) {
-    const primary   = ex.wger_muscle_ids?.primary   || []
-    const secondary = ex.wger_muscle_ids?.secondary || []
+    // Priority: use the labels directly from the exercise catalog
+    let primary   = ex.primaryMuscles || ex.primary_muscles || []
+    let secondary = ex.secondaryMuscles || ex.secondary_muscles || []
+    const exName = (ex.name || "").toLowerCase();
 
-    if (primary.length || secondary.length) {
-      // Precise path: wger muscle IDs → RBH names
-      for (const id of primary) {
-        const m = WGER_TO_RBH[id]
-        if (m) rbhScores[m] = (rbhScores[m] || 0) + 2
-      }
-      for (const id of secondary) {
-        const m = WGER_TO_RBH[id]
-        if (m) rbhScores[m] = (rbhScores[m] || 0) + 1
-      }
-    } else {
-      // Fallback: broad labels → group → RBH names
-      for (const label of [...(ex.primaryMuscles || []), ...(ex.secondaryMuscles || [])]) {
-        const group = LABEL_TO_GROUP[label.toLowerCase()]
-        const weight = (ex.primaryMuscles || []).includes(label) ? 2 : 1
-        for (const m of (GROUP_TO_RBH[group] || [])) {
-          rbhScores[m] = (rbhScores[m] || 0) + weight
+    // Fallback: Infer muscles from name if tags are missing
+    const hasValidMuscles = (primary.length > 0 && primary.some(m => m)) || (secondary.length > 0 && secondary.some(m => m));
+
+    if (!hasValidMuscles) {
+      console.log(`BodyMap [${ex.name}] - Tags missing or invalid (P: ${primary}, S: ${secondary}), attempting fallback...`);
+      for (const [key, group] of Object.entries(LABEL_TO_GROUP)) {
+        if (exName.includes(key.toLowerCase())) {
+          console.log(`BodyMap [${ex.name}] - Fallback found match: ${key} -> ${group}`);
+          // Add the group directly to primary muscles as a fallback tag
+          primary.push(group);
         }
       }
     }
+
+    console.log(`BodyMap [${ex.name}] - Final primary:`, primary, "secondary:", secondary);
+
+    if (primary.length > 0 || secondary.length > 0) {
+      for (const label of primary) {
+        const group = LABEL_TO_GROUP[label.toLowerCase()] || label.toLowerCase();
+        // Check if group exists in GROUP_TO_RBH, otherwise it might be a raw muscle
+        if (GROUP_TO_RBH[group]) {
+           for (const m of GROUP_TO_RBH[group]) {
+             rbhScores[m] = (rbhScores[m] || 0) + 2
+             console.log(`BodyMap [${ex.name}] - added score to ${m}, total: ${rbhScores[m]}`);
+           }
+        }
+      }
+      for (const label of secondary) {
+        const group = LABEL_TO_GROUP[label.toLowerCase()] || label.toLowerCase();
+        if (GROUP_TO_RBH[group]) {
+           for (const m of GROUP_TO_RBH[group]) {
+             rbhScores[m] = (rbhScores[m] || 0) + 1
+             console.log(`BodyMap [${ex.name}] - added score to ${m}, total: ${rbhScores[m]}`);
+           }
+        }
+      }
+    } else {
+      // Fallback: WGER IDs if catalog labels are missing
+      const wPrimary = ex.wger_muscle_ids?.primary || []
+      const wSecondary = ex.wger_muscle_ids?.secondary || []
+      
+      for (const id of wPrimary) { const m = WGER_TO_RBH[id]; if (m) { rbhScores[m] = (rbhScores[m] || 0) + 2; console.log(`BodyMap [${ex.name}] - WGER primary score to ${m}, total: ${rbhScores[m]}`); } }
+      for (const id of wSecondary) { const m = WGER_TO_RBH[id]; if (m) { rbhScores[m] = (rbhScores[m] || 0) + 1; console.log(`BodyMap [${ex.name}] - WGER secondary score to ${m}, total: ${rbhScores[m]}`); } }
+    }
   }
 
-  return Object.entries(rbhScores).map(([muscle, score]) => ({
+  const data = Object.entries(rbhScores).map(([muscle, score]) => ({
     name: muscle,
     muscles: [muscle],
     frequency: Math.ceil(score),
-  }))
+  }));
+  console.log("BodyMap - FINAL generated data [v2.0]:", data);
+  return data;
 }
 
-// Legacy: coverage-view groupScores → IExerciseData[]
 function groupScoresToModelData(groupScores) {
   return Object.entries(groupScores).flatMap(([groupId, gs]) => {
     const muscles = GROUP_TO_RBH[groupId]
@@ -112,7 +104,6 @@ function groupScoresToModelData(groupScores) {
   })
 }
 
-// reverse-map RBH muscle name → group key
 function rbhMuscleToGroup(muscle) {
   for (const [group, muscles] of Object.entries(GROUP_TO_RBH)) {
     if (muscles.includes(muscle)) return group
@@ -120,11 +111,7 @@ function rbhMuscleToGroup(muscle) {
   return null
 }
 
-// Props:
-//   exercises   — session exercise array (preferred, uses wger_muscle_ids)
-//   groupScores — coverage map {groupId: {score}} (fallback for Muscles.jsx)
-//   onGroupClick, type, style
-export default function BodyMap({ exercises, groupScores = {}, onGroupClick, type = 'anterior', style }) {
+export default function BodyMap({ exercises, groupScores = {}, onGroupClick, type = 'anterior', style, highlightedColors }) {
   const data = exercises
     ? exercisesToModelData(exercises)
     : groupScoresToModelData(groupScores)
@@ -139,10 +126,10 @@ export default function BodyMap({ exercises, groupScores = {}, onGroupClick, typ
     <Model
       type={type}
       data={data}
-      highlightedColors={['#1e3a5f', '#1d6fa5', '#1a9fd4', '#22c55e']}
+      highlightedColors={highlightedColors || ['#1e3a5f', '#1d6fa5', '#1a9fd4', '#22c55e']}
       bodyColor="var(--line)"
       onClick={handleClick}
-      style={{ maxWidth: '130px', cursor: onGroupClick ? 'pointer' : 'default', ...style }}
+      style={{ maxWidth: '140px', cursor: onGroupClick ? 'pointer' : 'default', ...style }}
     />
   )
 }

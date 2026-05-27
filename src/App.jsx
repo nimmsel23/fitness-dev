@@ -1,21 +1,23 @@
 import { useState, useEffect } from 'react'
-import { Activity, BarChart3, BookOpen, Dumbbell, Layers, Search, Settings2 } from 'lucide-react'
+import { Activity, BarChart3, BookOpen, Dumbbell, Layers, Search, Settings2, Target } from 'lucide-react'
 import Dashboard from './views/Dashboard.jsx'
 import Session from './views/Session.jsx'
 import Journal from './views/Journal.jsx'
 import Muscles from './views/Muscles.jsx'
 import Learn from './views/Learn.jsx'
+import Habits from './views/Habits.jsx'
 import WeeklyReview from './views/WeeklyReview.jsx'
 import Settings from './views/Settings.jsx'
 import ExerciseInsightModal from './components/ExerciseInsightModal.jsx'
 import { api } from './api.js'
 
-const VALID_TABS = new Set(['dash', 'session', 'review', 'learn', 'journal', 'muscles', 'settings'])
+const VALID_TABS = new Set(['dash', 'session', 'review', 'learn', 'journal', 'habits', 'muscles', 'settings'])
 
 const TABS = [
   { id: 'dash',     label: 'Heute',    Icon: Activity },
   { id: 'session',  label: 'Training', Icon: Dumbbell },
   { id: 'review',   label: 'Review',   Icon: BarChart3 },
+  { id: 'habits',   label: 'Habits',   Icon: Target },
   { id: 'learn',    label: 'Lernen',   Icon: Search },
   { id: 'journal',  label: 'Journal',  Icon: BookOpen },
   { id: 'muscles',  label: 'Muskeln',  Icon: Layers },
@@ -155,6 +157,7 @@ export default function App() {
           {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}
           {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} />}
           {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} />}
+          {tab === 'habits'   && <Habits />}
           {tab === 'journal'  && <Journal />}
           {tab === 'muscles'  && <Muscles />}
           {tab === 'settings' && (

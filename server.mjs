@@ -338,6 +338,10 @@ app.get("/fitness/search", (c) => {
   return c.json(searchExercises(q, limit));
 });
 
+app.get("/fitness/exercises/all", (c) => {
+  return c.json({ ok: true, exercises: fitnessData.exercises || [] });
+});
+
 app.get("/fitness/plan", (c) => {
   const template = c.req.query("template") || "";
   const split    = c.req.query("split")    || "";
@@ -409,7 +413,36 @@ app.post("/habitsync/record/:uuid", async (c) => {
   }
 });
 
-// ── Plan today ────────────────────────────────────────────────────────────────
+app.post("/habitsync/add", async (c) => {
+  const { name } = await c.req.json().catch(() => ({}));
+  if (!name) return c.json({ ok: false, error: "missing_name" }, 400);
+  try {
+    const r = await fetch(`${HABITSYNC_BASE}/api/habit`, {
+      method: "POST",
+      headers: { Authorization: HS_AUTH, "Content-Type": "application/json" },
+      body: JSON.stringify({ name, unit: "boolean", targetValue: 1.0 })
+    });
+    if (!r.ok) return c.json({ ok: false, error: "habitsync_error", status: r.status }, 502);
+    return c.json({ ok: true });
+  } catch {
+    return c.json({ ok: false, error: "habitsync_unreachable" }, 502);
+  }
+});
+
+app.delete("/habitsync/delete/:uuid", async (c) => {
+  const uuid = c.req.param("uuid");
+  if (!uuid) return c.json({ ok: false, error: "missing_uuid" }, 400);
+  try {
+    const r = await fetch(`${HABITSYNC_BASE}/api/habit/${encodeURIComponent(uuid)}`, {
+      method: "DELETE",
+      headers: { Authorization: HS_AUTH },
+    });
+    if (!r.ok) return c.json({ ok: false, error: "habitsync_error", status: r.status }, 502);
+    return c.json({ ok: true });
+  } catch {
+    return c.json({ ok: false, error: "habitsync_unreachable" }, 502);
+  }
+});
 app.get("/plan/today", (c) => {
   const date = c.req.query("date") || localToday();
   const plan = readJson(path.join(DATA_DIR, "plan.json"));
