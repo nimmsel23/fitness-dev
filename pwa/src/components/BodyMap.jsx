@@ -111,7 +111,7 @@ function rbhMuscleToGroup(muscle) {
   return null
 }
 
-export default function BodyMap({ exercises, groupScores = {}, onGroupClick, type = 'anterior', style }) {
+export default function BodyMap({ exercises, groupScores = {}, onGroupClick, type = 'anterior', style, highlightedColors }) {
   const data = exercises
     ? exercisesToModelData(exercises)
     : groupScoresToModelData(groupScores)
@@ -126,7 +126,7 @@ export default function BodyMap({ exercises, groupScores = {}, onGroupClick, typ
     <Model
       type={type}
       data={data}
-      highlightedColors={['#1e3a5f', '#1d6fa5', '#1a9fd4', '#22c55e']}
+      highlightedColors={highlightedColors || ['#1e3a5f', '#1d6fa5', '#1a9fd4', '#22c55e']}
       bodyColor="var(--line)"
       onClick={handleClick}
       style={{ maxWidth: '140px', cursor: onGroupClick ? 'pointer' : 'default', ...style }}
