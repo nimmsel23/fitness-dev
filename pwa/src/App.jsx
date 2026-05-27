@@ -316,7 +316,7 @@ export default function App() {
               {tab === 'review'   && <WeeklyReview onNavigate={navigate} />}
               {tab === 'habits'   && <Habits />}
               {tab === 'journal'  && <Journal />}
-              {tab === 'muscles'  && <Muscles />}
+              {tab === 'muscles'  && <Muscles hitMode={hitMode} />}
               {tab === 'learn'    && <Learn />}
               {tab === 'settings' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -346,7 +346,7 @@ export default function App() {
                               <div className="text-sm font-bold text-ink">HIT Modus</div>
                               <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Standard-Modus für neue Sessions</div>
                            </div>
-                           <button onClick={toggleHitMode} 
+                           <button onClick={() => { const next = !hitMode; setHitMode(next); updateSettings({hitMode: next}); }} 
                              className={`w-12 h-6 rounded-full transition-colors relative border-2 ${hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
                              <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${hitMode ? 'right-0.5' : 'left-0.5'}`} />
                            </button>
@@ -356,7 +356,7 @@ export default function App() {
                            <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30 mb-3">Aktueller Split</div>
                            <div className="flex flex-wrap gap-2">
                               {['PPL', 'Upper/Lower', 'Full Body', 'Bro-Split', 'Custom'].map(s => (
-                                <button key={s} onClick={() => setManualSplit(s)}
+                                <button key={s} onClick={() => { setSplit(s); updateSettings({split: s}); }}
                                   className={`px-3 py-2 rounded-xl text-[10px] font-black border transition-all ${split === s ? 'border-accent bg-accent text-black shadow-lg shadow-accent/20' : 'border-line bg-bg2 text-muted hover:text-ink'}`}>
                                   {s}
                                 </button>
@@ -431,7 +431,7 @@ export default function App() {
                             <span className="text-sm font-bold text-ink">🌅 Circadian Mode</span>
                             <span className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Tag/Nacht Automatik</span>
                          </div>
-                         <button onClick={() => setModeState(themeMode === 'circadian' ? 'manual' : 'circadian')}
+                         <button onClick={() => { const next = themeMode === 'circadian' ? 'manual' : 'circadian'; setModeState(next); updateSettings({themeMode: next}); }}
                            className={`w-12 h-6 rounded-full transition-colors relative border-2 ${themeMode === 'circadian' ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
                            <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${themeMode === 'circadian' ? 'right-0.5' : 'left-0.5'}`} />
                          </button>
