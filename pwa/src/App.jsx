@@ -155,6 +155,7 @@ export default function App() {
   }
 
   function navigate(id, date = null) {
+    console.log("Navigating to:", id);
     setTab(id);
     if (date) setSessionDate(date);
     else if (id !== 'session') setSessionDate(null);
