@@ -259,7 +259,7 @@ export default function App() {
   );
 
   return (
-    <div className="flex flex-col h-screen" style={{ background: 'var(--bg)', color: 'var(--ink)', overflow: 'hidden' }}>
+    <div className="flex flex-col h-dvh" style={{ background: 'var(--bg)', color: 'var(--ink)', overflow: 'hidden' }}>
 
       <header style={{ background: 'var(--glass)', borderBottom: '1px solid var(--glass-border)', backdropFilter: 'blur(20px)' }}
         className="flex lg:hidden items-center justify-between px-4 py-2.5 z-20 shrink-0">
