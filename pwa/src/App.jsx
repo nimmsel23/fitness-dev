@@ -117,10 +117,13 @@ export default function App() {
 
   // Circadian: tick every minute
   useEffect(() => {
-    if (themeMode !== 'circadian') return
+    console.log("Circadian effect triggered. Mode:", themeMode);
+    if (themeMode !== 'circadian') return;
+
     function tick() {
       const h = new Date().getHours()
       const t = h >= DAY_START && h < DAY_END ? circLight : circDark
+      console.log("Circadian tick, applying:", t);
       setThemeState(t)
       applyTheme(t)
     }
