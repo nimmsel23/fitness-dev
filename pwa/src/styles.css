@@ -80,6 +80,42 @@
   --glass:      rgba(30,30,46,0.88);
 }
 
+[data-theme="gruvbox"] {
+  --bg:         #282828;
+  --bg2:        #3c3836;
+  --panel:      #1d2021;
+  --card:       #504945;
+  --card-hover: #665c54;
+  --line:       #7c6f64;
+  --ink:        #ebdbb2;
+  --muted:      #a89984;
+  --dim:        #928374;
+  --accent:     #fabd2f;
+  --accent-glow: rgba(250,189,47,0.12);
+  --green:      #b8bb26;
+  --red:        #fb4934;
+  --orange:     #fe8019;
+  --glass:      rgba(40,40,40,0.88);
+}
+
+[data-theme="homunculus"] {
+  --bg:         #18181b;
+  --bg2:        #242429;
+  --panel:      #121215;
+  --card:       #303035;
+  --card-hover: #404048;
+  --line:       #50505a;
+  --ink:        #d4d4d8;
+  --muted:      #94a3b8;
+  --dim:        #64748b;
+  --accent:     #a16262;
+  --accent-glow: rgba(161,98,98,0.15);
+  --green:      #6a9955;
+  --red:        #c04040;
+  --orange:     #d97706;
+  --glass:      rgba(24,24,27,0.88);
+}
+
 /* Default fallback */
 :root {
   --bg:         #090b10;
