@@ -40,8 +40,8 @@ const TABS = [
   { id: 'settings', label: 'Setup',    Icon: Settings2 },
 ]
 
-export const DARK_THEMES  = ['honey','mocha','macchiato','frappe','dracula','dracula-purple','nordic','nordic-darker','nordic-bluish','arc-dark','sweet','sweet-purple','ant-dark','materia','solarized-dark','nothing','gruvbox','homunculus']
-export const LIGHT_THEMES = ['latte','alucard','arc','solarized']
+export const DARK_THEMES  = ['honey','mocha','macchiato','frappe','dracula','dracula-purple','nordic','nordic-darker','nordic-bluish','arc-dark','sweet','sweet-purple','sweet-mars','sweet-amber-blue','ant-dark','materia','solarized-dark','nothing','gruvbox','homunculus']
+export const LIGHT_THEMES = ['latte','alucard','arc','solarized','ant']
 
 const DAY_START = 6
 const DAY_END   = 20
