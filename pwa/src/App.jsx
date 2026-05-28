@@ -316,7 +316,7 @@ export default function App() {
           </div>
         </aside>
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden relative" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden relative min-h-0" style={{ WebkitOverflowScrolling: 'touch' }}>
           <div className="max-w-3xl lg:max-w-4xl mx-auto px-4 py-6 lg:py-10 pb-28 lg:pb-10">
             <ErrorBoundary key={tab}>
               {tab === 'dash'     && <Dashboard onNavigate={navigate} />}
