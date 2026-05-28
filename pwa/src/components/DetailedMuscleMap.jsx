@@ -13,7 +13,7 @@ const MAP_TO_RBH = {
   calves: 'calves'
 };
 
-export default function DetailedMuscleMap({ exercises, style, colors, gender }) {
+export default function DetailedMuscleMap({ exercises, style, colors, gender, onGroupClick }) {
   // Convert our exercises data to react-muscle-highlighter format
   const data = exercises.flatMap(ex => {
     const muscles = [...(ex.primaryMuscles || []), ...(ex.secondaryMuscles || [])];
@@ -23,6 +23,10 @@ export default function DetailedMuscleMap({ exercises, style, colors, gender }) 
     }));
   });
 
+  function handlePress(part) {
+    if (onGroupClick) onGroupClick(part.slug);
+  }
+
   return (
     <div style={{...style, display: 'flex', justifyContent: 'center' }}>
         <Body 
@@ -30,6 +34,7 @@ export default function DetailedMuscleMap({ exercises, style, colors, gender }) 
             colors={colors || ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444']}
             gender={gender || 'male'}
             side="front"
+            onBodyPartPress={handlePress}
         />
     </div>
   );

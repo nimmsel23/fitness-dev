@@ -178,7 +178,12 @@ export default function Muscles({ hitMode, gender }) {
               <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent/5 to-transparent pointer-events-none" />
               
               {showDetailed ? (
-                <DetailedMuscleMap exercises={volExercises} gender={gender} style={{ minWidth: '300px' }} />
+                <DetailedMuscleMap 
+                  exercises={volExercises} 
+                  gender={gender} 
+                  style={{ minWidth: '300px' }} 
+                  onGroupClick={(slug) => alert(`Clicked: ${slug}`)}
+                />
               ) : (
                 <>
                   <div className="text-center relative z-10">
