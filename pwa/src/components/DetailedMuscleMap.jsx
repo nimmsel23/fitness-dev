@@ -1,26 +1,31 @@
 import Body from 'react-muscle-highlighter';
 
-// Maps our internal muscle group slugs to react-muscle-highlighter slugs
+// Maps canonical muscle tags to react-muscle-highlighter slugs
 const MAP_TO_RBH = {
-  chest: 'chest',
-  back: 'upper-back',
-  shoulders: 'deltoids',
-  arms: 'biceps', // Simplified for demo
-  core: 'abs',
-  glutes: 'gluteal',
-  quads: 'quadriceps',
-  hamstrings: 'hamstring',
-  calves: 'calves'
+  // Chest
+  'chest': 'chest', 'pecs': 'chest',
+  // Back
+  'back': 'upper-back', 'lats': 'upper-back', 'traps': 'upper-back',
+  // Shoulders
+  'shoulders': 'deltoids', 'delts': 'deltoids',
+  // Arms
+  'biceps': 'biceps', 'triceps': 'triceps', 'forearms': 'forearm',
+  // Core
+  'abs': 'abs', 'core': 'abs', 'obliques': 'abs',
+  // Legs/Posterior Chain
+  'glutes': 'gluteal', 'quads': 'quadriceps', 'hamstrings': 'hamstring', 'calves': 'calves'
 };
 
 export default function DetailedMuscleMap({ exercises, style, colors, gender, onGroupClick }) {
   // Convert our exercises data to react-muscle-highlighter format
   const data = exercises.flatMap(ex => {
     const muscles = [...(ex.primaryMuscles || []), ...(ex.secondaryMuscles || [])];
-    return muscles.map(m => ({
-      slug: MAP_TO_RBH[m.toLowerCase()] || 'chest', // Default to chest if mapping missing
-      intensity: 3 // Fixed intensity for now
-    }));
+    return muscles
+      .filter(m => MAP_TO_RBH[m.toLowerCase()])
+      .map(m => ({
+        slug: MAP_TO_RBH[m.toLowerCase()],
+        intensity: 3
+      }));
   });
 
   function handlePress(part) {
