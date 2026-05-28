@@ -1,5 +1,5 @@
 import { useState, useEffect, Component } from "react";
-import { Activity, BarChart3, BookOpen, Dumbbell, Layers, Search, Settings2, Brain, LogIn, LogOut, User, Target, Sparkles } from "lucide-react";
+import { Activity, BarChart3, BookOpen, Dumbbell, Layers, Search, Settings2, Brain, LogIn, LogOut, User, Target, Sparkles, RefreshCw } from "lucide-react";
 import Dashboard from "./views/Dashboard.jsx";
 import Session from "./views/Session.jsx";
 import Journal from "./views/Journal.jsx";
@@ -8,6 +8,7 @@ import Learn from "./views/Learn.jsx";
 import WeeklyReview from "./views/WeeklyReview.jsx";
 import Habits from "./views/Habits.jsx";
 import { getSettings, saveSettings, watchAuth, signIn, signOut, signInEmail, signUpEmail } from "./db.js";
+import { registerServiceWorkerUpdate } from "./lib/pwa-update.js";
 
 class ErrorBoundary extends Component {
   state = { error: null };
@@ -55,6 +56,7 @@ function applyTheme(t) {
 }
 
 export default function App() {
+  const [updateAvailable, setUpdateAvailable] = useState(false);
   const [user, setUser]           = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [tab, setTab]             = useState(getHashTab)
@@ -78,6 +80,7 @@ export default function App() {
 
   // Watch Auth State
   useEffect(() => {
+    registerServiceWorkerUpdate(() => setUpdateAvailable(true));
     return watchAuth((u) => {
       setUser(user); // Force refresh context if needed
       setUser(u);
@@ -491,9 +494,17 @@ export default function App() {
             </ErrorBoundary>
           </div>
         </main>
-      </div>
+        </div>
 
-      <nav style={{ background: 'var(--glass)', borderTop: '1px solid var(--line)', backdropFilter: 'blur(20px)' }}
+        {updateAvailable && (
+        <button onClick={() => window.location.reload()}
+          className="fixed bottom-24 right-6 bg-accent text-black px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest animate-bounce z-50">
+          <RefreshCw size={18} /> Update verfügbar – Jetzt laden
+        </button>
+        )}
+
+        <nav style={{ background: 'var(--glass)', borderTop: '1px solid var(--line)', backdropFilter: 'blur(20px)' }}
+
         className="bottom-nav flex shrink-0 px-2 pb-safe z-20">
         {TABS.map(({ id, Icon, label }) => (
           <button key={id} onClick={() => navigate(id)}
