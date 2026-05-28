@@ -65,6 +65,7 @@ export default function App() {
   const [circDark,  setCircDark]  = useState('honey')
   const [circLight, setCircLight] = useState('latte')
   const [hitMode, setHitMode]     = useState(false)
+  const [gender, setGender]       = useState('male')
   const [split, setSplit]         = useState('PPL')
   const [cycleLength, setCycleLength] = useState(4)
   const [trainingGoal, setTrainingGoal] = useState('Hypertrophie')
@@ -97,6 +98,7 @@ export default function App() {
       if (s.circDark) setCircDark(s.circDark);
       if (s.circLight) setCircLight(s.circLight);
       if (s.hitMode !== undefined) setHitMode(s.hitMode);
+      if (s.gender) setGender(s.gender);
       if (s.split) setSplit(s.split);
       if (s.cycleLength) setCycleLength(s.cycleLength);
       if (s.trainingGoal) setTrainingGoal(s.trainingGoal);
@@ -136,7 +138,7 @@ export default function App() {
   }, [])
 
   function updateSettings(newSettings) {
-    const updated = { theme, themeMode, circDark, circLight, hitMode, split, ...newSettings };
+    const updated = { theme, themeMode, circDark, circLight, hitMode, gender, split, ...newSettings };
     saveSettings(updated);
   }
 
@@ -320,7 +322,7 @@ export default function App() {
               {tab === 'review'   && <WeeklyReview onNavigate={navigate} />}
               {tab === 'habits'   && <Habits />}
               {tab === 'journal'  && <Journal />}
-              {tab === 'muscles'  && <Muscles hitMode={hitMode} />}
+              {tab === 'muscles'  && <Muscles hitMode={hitMode} gender={gender} />}
               {tab === 'learn'    && <Learn />}
               {tab === 'settings' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
@@ -354,6 +356,21 @@ export default function App() {
                              className={`w-12 h-6 rounded-full transition-colors relative border-2 ${hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
                              <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${hitMode ? 'right-0.5' : 'left-0.5'}`} />
                            </button>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                           <div className="text-left">
+                              <div className="text-sm font-bold text-ink">Geschlecht</div>
+                              <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Für anatomische Darstellung</div>
+                           </div>
+                           <div className="flex bg-bg2 rounded-lg p-1">
+                              {['male', 'female'].map(g => (
+                                <button key={g} onClick={() => { setGender(g); updateSettings({gender: g}); }}
+                                  className={`px-3 py-1 rounded-md text-[10px] font-black uppercase ${gender === g ? 'bg-accent text-black' : 'text-dim'}`}>
+                                  {g}
+                                </button>
+                              ))}
+                           </div>
                         </div>
 
                         <div className="text-left">

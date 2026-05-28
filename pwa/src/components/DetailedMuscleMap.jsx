@@ -13,7 +13,7 @@ const MAP_TO_RBH = {
   calves: 'calves'
 };
 
-export default function DetailedMuscleMap({ exercises, style, colors }) {
+export default function DetailedMuscleMap({ exercises, style, colors, gender }) {
   // Convert our exercises data to react-muscle-highlighter format
   const data = exercises.flatMap(ex => {
     const muscles = [...(ex.primaryMuscles || []), ...(ex.secondaryMuscles || [])];
@@ -28,6 +28,7 @@ export default function DetailedMuscleMap({ exercises, style, colors }) {
         <Body 
             data={data} 
             colors={colors || ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444']}
+            gender={gender || 'male'}
             side="front"
         />
     </div>

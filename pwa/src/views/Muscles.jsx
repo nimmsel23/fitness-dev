@@ -29,7 +29,7 @@ function getMuscleGroup(name) {
   return map[name?.toLowerCase()] || name?.toLowerCase();
 }
 
-export default function Muscles({ hitMode }) {
+export default function Muscles({ hitMode, gender }) {
   const [days, setDays] = useState(7);
   const [loading, setLoading] = useState(true);
   const [volExercises, setVolExercises] = useState([]);
@@ -178,7 +178,7 @@ export default function Muscles({ hitMode }) {
               <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent/5 to-transparent pointer-events-none" />
               
               {showDetailed ? (
-                <DetailedMuscleMap exercises={volExercises} style={{ minWidth: '300px' }} />
+                <DetailedMuscleMap exercises={volExercises} gender={gender} style={{ minWidth: '300px' }} />
               ) : (
                 <>
                   <div className="text-center relative z-10">
