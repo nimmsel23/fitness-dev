@@ -463,15 +463,36 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div className="pt-6 border-t border-line/50 flex items-center justify-between">
-                         <div className="flex flex-col">
-                            <span className="text-sm font-bold text-ink">🌅 Circadian Mode</span>
-                            <span className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Tag/Nacht Automatik</span>
+                      <div className="pt-6 border-t border-line/50 flex flex-col gap-4">
+                         <div className="flex items-center justify-between">
+                            <div className="flex flex-col">
+                               <span className="text-sm font-bold text-ink">🌅 Circadian Mode</span>
+                               <span className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Tag/Nacht Automatik</span>
+                            </div>
+                            <button onClick={() => { const next = themeMode === 'circadian' ? 'manual' : 'circadian'; setModeState(next); updateSettings({themeMode: next}); }}
+                              className={`w-12 h-6 rounded-full transition-colors relative border-2 ${themeMode === 'circadian' ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
+                              <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${themeMode === 'circadian' ? 'right-0.5' : 'left-0.5'}`} />
+                            </button>
                          </div>
-                         <button onClick={() => { const next = themeMode === 'circadian' ? 'manual' : 'circadian'; setModeState(next); updateSettings({themeMode: next}); }}
-                           className={`w-12 h-6 rounded-full transition-colors relative border-2 ${themeMode === 'circadian' ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
-                           <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${themeMode === 'circadian' ? 'right-0.5' : 'left-0.5'}`} />
-                         </button>
+
+                         {themeMode === 'circadian' && (
+                           <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
+                             <div>
+                               <label className="label-caps !mb-2">Tag-Theme (Light)</label>
+                               <select value={circLight} onChange={e => { setCircLight(e.target.value); updateSettings({circLight: e.target.value}); }}
+                                 className="w-full p-2 text-xs font-bold rounded-lg bg-bg2 border-line">
+                                 {LIGHT_THEMES.map(t => <option key={t} value={t}>{t}</option>)}
+                               </select>
+                             </div>
+                             <div>
+                               <label className="label-caps !mb-2">Nacht-Theme (Dark)</label>
+                               <select value={circDark} onChange={e => { setCircDark(e.target.value); updateSettings({circDark: e.target.value}); }}
+                                 className="w-full p-2 text-xs font-bold rounded-lg bg-bg2 border-line">
+                                 {DARK_THEMES.map(t => <option key={t} value={t}>{t}</option>)}
+                               </select>
+                             </div>
+                           </div>
+                         )}
                       </div>
                    </section>
 
