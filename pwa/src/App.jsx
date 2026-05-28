@@ -156,6 +156,7 @@ export default function App() {
   }
 
   function setManualTheme(t) {
+    console.log("Setting manual theme:", t);
     setModeState('manual')
     setThemeState(t)
     updateSettings({ theme: t, themeMode: 'manual' });
