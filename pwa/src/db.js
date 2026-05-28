@@ -305,23 +305,14 @@ function muscleToGroupIds(muscle, exerciseName = "") {
   return Array.from(matches);
 }
 
-export async function getCoverageGaps(days = 7) {
-  const today = new Date();
+export async function getMuscleCoverage(days = 7) {
   const dates = [];
+  const today = new Date();
   for (let i = 0; i < days; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
     dates.push(d.toISOString().slice(0, 10));
   }
-
-  const [kbExercises] = await Promise.all([
-    getAllExercises()
-  ]);
-
-  const kbMap = new Map();
-  kbExercises.forEach(ex => {
-    kbMap.set((ex.display_name || ex.name).toLowerCase(), ex);
-  });
 
   const hits = {};
   for (const date of dates) {
@@ -331,28 +322,20 @@ export async function getCoverageGaps(days = 7) {
     for (let ex of (session.exercises || [])) {
       if (!ex.done) continue;
       
-      // Use explicit tags saved in session, fallback to KB/Name mapping
       const primary = ex.primaryMuscles || [];
       const secondary = ex.secondaryMuscles || [];
       const exName = ex.name || ex.exercise_id || "";
 
-      // Track hits for all groups this exercise touches
-      const groups = new Set();
       [...primary, ...secondary].forEach(m => {
-        muscleToGroupIds(m, exName).forEach(gid => groups.add(gid));
-      });
-
-      // Fallback: If no explicit muscles are set, try mapping purely by exercise name
-      if (groups.size === 0 && exName) {
-         muscleToGroupIds("", exName).forEach(gid => groups.add(gid));
-      }
-
-      groups.forEach(gid => {
-        hits[gid] = (hits[gid] || 0) + 1;
+        muscleToGroupIds(m, exName).forEach(gid => hits[gid] = (hits[gid] || 0) + 1);
       });
     }
   }
+  return hits;
+}
 
+export async function getCoverageGaps(days = 7) {
+  const hits = await getMuscleCoverage(days);
   const all = Object.keys(MUSCLE_GROUPS);
   return all.filter(g => (hits[g] || 0) < 1).map(g => ({ name: g, hits: hits[g] || 0 }));
 }
