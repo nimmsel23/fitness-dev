@@ -279,7 +279,7 @@ export default function App() {
         </div>
       </header>
 
-      <div className="flex-1 flex flex-col min-h-0 main-wrapper">
+      <div className="flex-1 flex flex-col lg:flex-row min-h-0 main-wrapper">
         <aside className="desktop-sidebar hidden lg:flex">
           <div className="flex items-center gap-3 font-black text-2xl tracking-tighter mb-12 px-2">
             <div className="w-12 h-12 rounded-2xl bg-accent flex items-center justify-center shadow-lg shadow-accent/20">
