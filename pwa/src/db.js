@@ -273,6 +273,19 @@ const MUSCLE_TAG_TO_GROUP = {
   "calves": "calves", "gastrocnemius": "calves"
 };
 
+const MUSCLE_GROUPS = {
+  chest: ["pecs", "chest", "pectoralis", "brust"],
+  back: ["lats", "traps", "lower back", "back", "latissimus", "trapezius", "rhomboids", "rücken", "pull-up", "klimmzug", "rudern", "row"],
+  shoulders: ["shoulders", "delts", "deltoid", "schulter", "schultern", "overhead", "press"],
+  arms: ["biceps", "triceps", "forearms", "brachii", "bizeps", "trizeps", "arm", "arme", "curl", "extension"],
+  core: ["abs", "obliques", "core", "abdominis", "bauch"],
+  glutes: ["glutes", "gluteus", "po", "gesäß", "hip thrust"],
+  quads: ["quads", "quadriceps", "oberschenkel", "squat", "kniebeuge"],
+  hamstrings: ["hamstrings", "biceps femoris", "beinbeuger", "leg curl"],
+  calves: ["calves", "gastrocnemius", "waden", "calf"],
+  legs: ["legs", "squat", "deadlift", "lunge", "beine", "bein", "leg press"]
+};
+
 function muscleToGroupIds(muscle, exerciseName = "") {
   const m = muscle.toLowerCase().trim();
   const name = exerciseName.toLowerCase();
@@ -283,20 +296,7 @@ function muscleToGroupIds(muscle, exerciseName = "") {
     matches.add(MUSCLE_TAG_TO_GROUP[m]);
   }
   
-  // 2. Fallback to fuzzy mapping via search patterns (for legacy/inferred data)
-  const MUSCLE_GROUPS = {
-    chest: ["pecs", "chest", "pectoralis", "brust"],
-    back: ["lats", "traps", "lower back", "back", "latissimus", "trapezius", "rhomboids", "rücken", "pull-up", "klimmzug", "rudern", "row"],
-    shoulders: ["shoulders", "delts", "deltoid", "schulter", "schultern", "overhead", "press"],
-    arms: ["biceps", "triceps", "forearms", "brachii", "bizeps", "trizeps", "arm", "arme", "curl", "extension"],
-    core: ["abs", "obliques", "core", "abdominis", "bauch"],
-    glutes: ["glutes", "gluteus", "po", "gesäß", "hip thrust"],
-    quads: ["quads", "quadriceps", "oberschenkel", "squat", "kniebeuge"],
-    hamstrings: ["hamstrings", "biceps femoris", "beinbeuger", "leg curl"],
-    calves: ["calves", "gastrocnemius", "waden", "calf"],
-    legs: ["legs", "squat", "deadlift", "lunge", "beine", "bein", "leg press"]
-  };
-
+  // 2. Fallback to fuzzy mapping via search patterns
   for (const [group, list] of Object.entries(MUSCLE_GROUPS)) {
     if (list.some(x => m.includes(x) || (name && name.includes(x)))) {
       matches.add(group);
@@ -501,11 +501,17 @@ export async function getWeeklyReport(selector = "current") {
       // Calculate Per-Muscle Recovery
       const muscleRecovery = {};
       for (const gid of Object.keys(sessGroupsCount)) {
-        const lastSessionWithGroup = historyWithMuscles.find(h => h.date < date && h.groups.includes(gid));
+        // Suche die letzte Session mit dieser Gruppe, die VOR dem aktuellen date liegt
+        const lastSessionWithGroup = historyWithMuscles
+          .filter(h => h.date < date && h.groups.includes(gid))
+          .sort((a, b) => b.date.localeCompare(a.date))[0]; // Nehme die neuste der Vergangenheit
+
         if (lastSessionWithGroup) {
           const d1 = new Date(date);
           const d2 = new Date(lastSessionWithGroup.date);
-          muscleRecovery[gid] = Math.round((d1 - d2) / (1000 * 60 * 60));
+          // Korrektur: Zeitdifferenz in Stunden
+          const diffHours = Math.round((d1 - d2) / (1000 * 60 * 60));
+          muscleRecovery[gid] = diffHours;
         }
       }
 
