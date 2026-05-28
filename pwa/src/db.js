@@ -416,26 +416,18 @@ export async function getWeeklyReport(selector = "current") {
     for (let ex of (sess.exercises || [])) {
       if (!ex.done) continue;
       
-      const kbEx = kbMap.get((ex.name || "").toLowerCase());
-      if (kbEx) {
-        ex = {
-          ...ex,
-          primaryMuscles: kbEx.primary_muscles || kbEx.primaryMuscles || ex.primaryMuscles || [],
-          secondaryMuscles: kbEx.secondary_muscles || kbEx.secondaryMuscles || ex.secondaryMuscles || []
-        };
-      }
+      // Use explicit tags saved in session, fallback to KB/Name mapping
+      const primary = ex.primaryMuscles || [];
+      const secondary = ex.secondaryMuscles || [];
+      const exName = ex.name || ex.exercise_id || "";
 
       hasDoneExercises = true;
       entriesCount++;
       const s = parseFloat(ex.sets), r = parseFloat(ex.reps), w = parseFloat(ex.weight);
       const vol = (isFinite(s) && isFinite(r) && isFinite(w)) ? s * r * w : 0;
       sessVolume += vol;
-      const exName = ex.name || ex.exercise_id || "";
       if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
       
-      const primary = ex.primaryMuscles || [];
-      const secondary = ex.secondaryMuscles || [];
-
       let hasMapped = false;
 
       [...primary, ...secondary].forEach(m => {
@@ -459,7 +451,7 @@ export async function getWeeklyReport(selector = "current") {
         });
       }
 
-      // Fallback: If no explicit muscles are set, try mapping purely by exercise name
+      // Fallback: If no explicit muscles are set (old sessions), try mapping purely by exercise name
       if (!hasMapped && exName) {
          muscleToGroupIds("", exName).forEach(gid => {
             sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
