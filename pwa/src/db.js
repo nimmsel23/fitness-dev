@@ -441,6 +441,7 @@ export async function getWeeklyReport(selector = "current") {
         muscleToGroupIds(m, exName).forEach(gid => {
           muscleScores[m] = (muscleScores[m] || 0) + 1;
           bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
+          console.log(`Debug: Adding score for ${gid} from ${m} (Primary)`);
           hasMapped = true;
         });
       }
