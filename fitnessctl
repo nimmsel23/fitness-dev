@@ -29,6 +29,7 @@ fitnessctl — fitness-dev service control (API :${API_PORT}, UI :${UI_PORT})
 
   fitnessctl sync         Pull fresh data from Firebase for all users
   fitnessctl watch        Start AI Enricher Watcher (background)
+  fitnessctl kb-sync      Push local catalog (exercises/anatomy) to Firestore
 
   fitnessctl session today          Show today's session
   fitnessctl session get DATE       Show session for DATE (YYYY-MM-DD)
@@ -64,33 +65,53 @@ cmd_start() {
 }
 
 cmd_stop() {
+  # Stop API Server
   if [[ -f "$PIDFILE" ]]; then
     local pid; pid="$(cat "$PIDFILE")"
     if kill -0 "$pid" 2>/dev/null; then
       kill "$pid" && rm -f "$PIDFILE"
-      msg "Stopped (PID $pid)"
+      msg "API Stopped (PID $pid)"
     else
-      rm -f "$PIDFILE"; warn "Was not running"
+      rm -f "$PIDFILE"; warn "API was not running"
     fi
   else
-    warn "No pidfile found"
+    warn "No API pidfile found"
+  fi
+
+  # Stop AI Watcher
+  local watch_pidfile="/tmp/fitness-enricher.pid"
+  if [[ -f "$watch_pidfile" ]]; then
+    local wpid; wpid="$(cat "$watch_pidfile")"
+    if kill -0 "$wpid" 2>/dev/null; then
+      kill "$wpid" && rm -f "$watch_pidfile"
+      msg "Watcher Stopped (PID $wpid)"
+    else
+      rm -f "$watch_pidfile"; warn "Watcher was not running"
+    fi
   fi
 }
 
 cmd_status() {
-  local api_ok=false ui_ok=false
+  local api_ok=false ui_ok=false watch_ok=false
   curl -fsS --max-time 2 "${API_URL}/health" >/dev/null 2>&1 && api_ok=true
   curl -fsS --max-time 2 "http://${HOST}:${UI_PORT}" >/dev/null 2>&1 && ui_ok=true
+  
+  local watch_pidfile="/tmp/fitness-enricher.pid"
+  if [[ -f "$watch_pidfile" ]] && kill -0 "$(cat "$watch_pidfile")" 2>/dev/null; then
+    watch_ok=true
+  fi
 
   if have_gum; then
     {
       echo "SERVICE,PORT,STATUS"
       echo "fitness-api,${API_PORT},$($api_ok && echo '✓ up' || echo '✗ down')"
       echo "fitness-ui,${UI_PORT},$($ui_ok && echo '✓ up' || echo '✗ down')"
+      echo "ai-enricher,-,$($watch_ok && echo '✓ active' || echo '✗ inactive')"
     } | gum table --print --separator=","
   else
     printf "  %-14s :%-6s %s\n" "fitness-api" "$API_PORT" "$($api_ok && echo 'up' || echo 'down')"
     printf "  %-14s :%-6s %s\n" "fitness-ui"  "$UI_PORT"  "$($ui_ok  && echo 'up' || echo 'down')"
+    printf "  %-14s :%-6s %s\n" "ai-enricher" "-"       "$($watch_ok && echo 'active' || echo 'inactive')"
   fi
 }
 
@@ -135,6 +156,11 @@ cmd_watch() {
   else
     die "Failed to start watcher — check $watch_logfile"
   fi
+}
+
+cmd_kb_sync() {
+  msg "Syncing local catalog to Firestore..."
+  cd "$ROOT" && python3 -c "import sys; sys.path.insert(0, 'catalog'); from fitness_agent.kb_sync import run_kb_sync; run_kb_sync()"
 }
 
 api_get() { curl -fsS --max-time 5 "${API_URL}$1" 2>&1 || die "Request failed: $1"; }
@@ -201,6 +227,7 @@ case "${1:-help}" in
   logs)     cmd_logs ;;
   sync)     cmd_sync ;;
   watch)    cmd_watch ;;
+  kb-sync)  cmd_kb_sync ;;
   session)  shift; cmd_session "$@" ;;
   journal)  shift; cmd_journal "$@" ;;
   coverage) shift; cmd_coverage "$@" ;;

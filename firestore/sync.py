@@ -28,8 +28,8 @@ def pull() -> dict:
     total_inbox = 0
 
     # Iterate over all user documents in the fitness collection
-    for user_doc in db.collection("fitness").stream():
-        uid = user_doc.id
+    for user_ref in db.collection("fitness").list_documents():
+        uid = user_ref.id
         user_dir = FITNESS_DIR / "users" / uid
         sessions_dir = user_dir / "sessions"
         journal_dir = user_dir / "journal"

@@ -25,6 +25,17 @@ USERS_DIR = FITNESS_DIR / "users"
 PROJECT_ROOT = Path(__file__).parent.parent
 CATALOG_EXERCISES = PROJECT_ROOT / "catalog" / "kb" / "exercises"
 
+def load_env_file():
+    env_path = Path.home() / ".env" / "fitness.env"
+    if env_path.exists():
+        for line in env_path.read_text().splitlines():
+            if "=" in line and not line.startswith("#"):
+                key, val = line.split("=", 1)
+                if key.strip() == "GEMINI_API_KEY" and not os.environ.get("GEMINI_API_KEY"):
+                    os.environ["GEMINI_API_KEY"] = val.strip()
+                    logger.info(f"Loaded GEMINI_API_KEY from {env_path}")
+
+load_env_file()
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 PROMPT_TEMPLATE = """
@@ -121,6 +132,14 @@ def process_inbox_file(file_path: Path):
             
             logger.success(f"Successfully generated base exercise entry for {name}")
             file_path.unlink()
+            
+            # Automatically trigger KB Sync to Firestore
+            try:
+                import subprocess
+                subprocess.run([sys.executable, "-c", "import sys; sys.path.insert(0, 'catalog'); from fitness_agent.kb_sync import run_kb_sync; run_kb_sync()"], check=False)
+                logger.info("Auto-sync to Firestore triggered.")
+            except Exception as se:
+                logger.error(f"Auto-sync failed: {se}")
         else:
             logger.warning(f"Failed to enrich {name}. Keeping in inbox.")
             

@@ -10,14 +10,14 @@ def main():
     cmd = sys.argv[1] if len(sys.argv) > 1 else "sync"
     if cmd == "pull":
         r = pull()
-        logger.success(f"pull — sessions {r['sessions']} · journal {r['journal']}")
+        logger.success(f"pull — sessions {r['sessions']} · journal {r['journal']} · inbox {r['inbox']}")
     elif cmd == "push":
         r = push()
         logger.success(f"push — sessions {r['sessions']}")
     elif cmd == "sync":
         r1 = pull()
         r2 = push()
-        logger.success(f"sync — ↓ sessions {r1['sessions']} journal {r1['journal']}  ↑ sessions {r2['sessions']}")
+        logger.success(f"sync — ↓ sessions {r1['sessions']} journal {r1['journal']} inbox {r1['inbox']}  ↑ sessions {r2['sessions']}")
     else:
         logger.error(f"Unbekannter Befehl: {cmd}  (pull|push|sync)")
         sys.exit(1)

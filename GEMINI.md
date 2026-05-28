@@ -24,6 +24,7 @@ A unified fitness ecosystem serving two primary roles:
 ### Integration Points
 *   **wger**: Master exercise database for curation.
 *   **HabitSync**: External habit management API integration.
+*   **Anatomy-KB**: Dedicated repository (`~/anatomy-kb`) for deep biomechanical data (Origin, Insertion, Innervation) and anatomical error analysis. Serves as the source for `muscles` and `anatomy` collections in Firestore.
 *   **EspoCRM**: Targeted for future client/contact lifecycle management linked to Firestore UIDs.
 *   **AI Enricher**: Gemini-powered worker that generates anatomy data and coaching notes from user-submitted inbox entries.
 
@@ -53,4 +54,5 @@ A unified fitness ecosystem serving two primary roles:
 1.  **Edit PWA**: Implement features in `/pwa`.
 2.  **Sync Parity**: Update corresponding components in `/src` to maintain the local-development target.
 3.  **Deploy**: Use `npm run deploy --prefix pwa` for Firebase Hosting updates.
-4.  **Document**: Update this `GEMINI.md` when architectural shifts occur.
+4.  **Anatomy Parity**: When adding exercises, ensure deep anatomy is enriched in `~/anatomy-kb` and passes `./anatomy-agent audit all` before syncing to Firestore.
+5.  **Document**: Update this `GEMINI.md` when architectural shifts occur.
