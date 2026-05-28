@@ -511,6 +511,7 @@ export async function getWeeklyReport(selector = "current") {
           const d2 = new Date(lastSessionWithGroup.date);
           // Korrektur: Zeitdifferenz in Stunden
           const diffHours = Math.round((d1 - d2) / (1000 * 60 * 60));
+          console.log(`Debug Recovery: gid=${gid}, lastDate=${lastSessionWithGroup.date}, diff=${diffHours}h`);
           muscleRecovery[gid] = diffHours;
         }
       }

@@ -52,7 +52,12 @@ function getHashTab() {
 }
 
 function applyTheme(t) {
-  document.documentElement.setAttribute('data-theme', t === 'honey' ? '' : t)
+  console.log("Applying theme:", t);
+  document.documentElement.setAttribute('data-theme', t === 'honey' ? '' : t);
+  // Force repaint
+  document.documentElement.style.display = 'none';
+  document.documentElement.offsetHeight;
+  document.documentElement.style.display = '';
 }
 
 export default function App() {
