@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 /* ==========================================================================
-   1. ARCHITECTURE: Global Structural & Default Theme (Honey)
+   1. ARCHITECTURE: Global Structural Variables & Default Theme (Honey)
    ========================================================================== */
 
 /*
  * :root contains NON-THEMATIC structural variables and serves as the
- * DEFAULT theme if no data-theme is explicitly present.
+ * DEFAULT theme (Honey palette) if no data-theme is explicitly present.
  */
 :root {
   /* Structural Variables */
@@ -17,6 +17,7 @@
   --radius-lg: 24px;
   --scrollbar-width: 6px;
   --scrollbar-radius: 3px;
+  --glass-border: rgba(255,255,255,0.05); /* Global glass border */
 
   /* Default Theme Colors (Honey Palette) */
   --bg: #0f0d09; --bg2: #1a1711; --panel: #26221a; --card: #332e24;
@@ -55,7 +56,7 @@
   --green: #a6e3a1; --red: #f38ba8; --orange: #fab387; --glass: rgba(30,30,46,0.88);
 }
 
-/* Honey (explicit, though also default) */
+/* Honey (explicit, though also default, for consistency) */
 [data-theme="honey"] {
   --bg: #0f0d09; --bg2: #1a1711; --panel: #26221a; --card: #332e24;
   --card-hover: #403a2e; --line: #4d4638; --ink: #f2e9d3; --muted: #a69a84;
@@ -129,10 +130,10 @@
   --ink: #ffffff; --muted: #888888; --dim: #4a4a4a; --accent: #8ab4f8; --accent-glow: rgba(138,180,248,0.12);
   --green: #4caf50; --red: #f44336; --orange: #ff9800; --glass: rgba(18,18,18,0.92);
 }
-[data-theme="homunculus"] {
-  --bg: #18181b; --bg2: #242429; --panel: #121215; --card: #303035; --card-hover: #404048; --line: #50505a;
-  --ink: #d4d4d8; --muted: #94a3b8; --dim: #64748b; --accent: #a16262; --accent-glow: rgba(161,98,98,0.15);
-  --green: #6a9955; --red: #c04040; --orange: #d97706; --glass: rgba(24,24,27,0.88);
+[data-theme="solarized-dark"] {
+  --bg: #002b36; --bg2: #073642; --panel: #001f27; --card: #073642; --card-hover: #0d4454; --line: #586e75;
+  --ink: #839496; --muted: #657b83; --dim: #586e75; --accent: #268bd2; --accent-glow: rgba(38,139,210,0.12);
+  --green: #859900; --red: #dc322f; --orange: #cb4b16; --glass: rgba(7,54,66,0.9);
 }
 [data-theme="nothing"] {
   --bg: #000000; --bg2: #050505; --panel: #0a0a0a; --card: #0f0f0f; --card-hover: #151515; --line: #202020;
@@ -140,7 +141,32 @@
   --green: #00ff00; --red: #ff0000; --orange: #ff8000; --glass: rgba(0,0,0,0.95);
 }
 
-/* --- Global Base Styles --- */
+/* --- Light Themes --- */
+[data-theme="ant"] {
+  --bg: #f0f2f5; --bg2: #ffffff; --panel: #fafafa; --card: #ffffff; --card-hover: #f0f0f0; --line: #d9d9d9;
+  --ink: #000000; --muted: #8c8c8c; --dim: #bfbfbf; --accent: #1677ff; --accent-glow: rgba(22,119,255,0.12);
+  --green: #52c41a; --red: #ff4d4f; --orange: #faad14; --glass: rgba(255,255,255,0.88);
+}
+[data-theme="arc"] {
+  --bg: #ffffff; --bg2: #eff0f1; --panel: #e7e8eb; --card: #d3dae3; --card-hover: #c5cdd8; --line: #bdc3c7;
+  --ink: #5c6168; --muted: #a3a5ac; --dim: #bfc1c7; --accent: #5294e2; --accent-glow: rgba(82,148,226,0.12);
+  --green: #27ae60; --red: #da4453; --orange: #f67400; --glass: rgba(231,232,235,0.9);
+}
+[data-theme="solarized"] {
+  --bg: #fdf6e3; --bg2: #eee8d5; --panel: #e4ddc8; --card: #ddd6c0; --card-hover: #d3cbb5; --line: #c8c0aa;
+  --ink: #657b83; --muted: #839496; --dim: #93a1a1; --accent: #268bd2; --accent-glow: rgba(38,139,210,0.12);
+  --green: #859900; --red: #dc322f; --orange: #cb4b16; --glass: rgba(228,221,200,0.9);
+}
+[data-theme="alucard"] {
+  --bg: #fffbeb; --bg2: #f5f0d8; --panel: #ede6cc; --card: #e4dcc2; --card-hover: #d8cfb4; --line: #cfcfde;
+  --ink: #1f1f1f; --muted: #6c664b; --dim: #a09a80; --accent: #644ac9; --accent-glow: rgba(100,74,201,0.12);
+  --green: #14710a; --red: #cb3a2a; --orange: #a34d14; --glass: rgba(237,230,204,0.9);
+}
+
+/* ==========================================================================
+   3. GLOBAL STYLES: Base element styling using the variables
+   ========================================================================== */
+
 *, *::before, *::after { box-sizing: border-box; }
 html { height: 100%; -webkit-tap-highlight-color: transparent; }
 body {

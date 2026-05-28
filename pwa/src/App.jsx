@@ -68,15 +68,14 @@ function getHashTab() {
 
 function applyTheme(t) {
   console.log("Applying theme:", t);
-  const theme = t;
-  document.documentElement.setAttribute('data-theme', theme);
-  document.body.setAttribute('data-theme', theme);
+  const themeAttr = t === 'honey' ? '' : t; // If honey, let :root rule, otherwise set explicit data-theme
+  document.documentElement.setAttribute('data-theme', themeAttr);
+  document.body.setAttribute('data-theme', themeAttr);
   // Force repaint
   document.documentElement.style.display = 'none';
   document.documentElement.offsetHeight;
   document.documentElement.style.display = '';
 }
-
 export default function App() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [user, setUser]           = useState(null)
@@ -116,7 +115,9 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     getSettings().then(s => {
-      if (s.theme) setThemeState(s.theme);
+      // Set the theme state based on saved settings, defaulting to 'honey' if none saved.
+      setThemeState(s.theme || 'honey'); 
+
       if (s.themeMode) setModeState(s.themeMode);
       if (s.circDark) setCircDark(s.circDark);
       if (s.circLight) setCircLight(s.circLight);
@@ -127,6 +128,9 @@ export default function App() {
       if (s.cycleLength) setCycleLength(s.cycleLength);
       if (s.trainingGoal) setTrainingGoal(s.trainingGoal);
       if (s.defaultLocation) setDefaultLocation(s.defaultLocation);
+      
+      // Apply the loaded or default theme.
+      // If the mode is circadian, the circadian effect will handle applyTheme.
       if (s.themeMode !== 'circadian') applyTheme(s.theme || 'honey');
     });
   }, [user]);
