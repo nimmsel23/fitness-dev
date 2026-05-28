@@ -25,7 +25,7 @@ function fmtDate(iso) {
   return `${d}.${m}.`
 }
 
-function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast, planMode, date }) {
+function ExCard({ ex, i, updateEx, addSet, removeSet, removeEx, moveEx, prev, isFirst, isLast, planMode, date }) {
   const [trend, setTrend] = useState(null)
   const isFuture = new Date(date) > new Date();
   
@@ -43,8 +43,8 @@ function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast, plan
     return Number.isFinite(n) ? n : null
   }
 
-  const volume = (!ex.isHIT && num(ex.sets) !== null && num(ex.reps) !== null && num(ex.weight) !== null) 
-    ? (num(ex.sets) * num(ex.reps) * num(ex.weight)) : null
+  const volume = (!ex.isHIT && ex.setsArray) 
+    ? ex.setsArray.reduce((acc, set) => acc + (num(set.reps) || 0) * (num(set.weight) || 0), 0) : null
 
   return (
     <div className={`card border-l-4 relative mb-3 p-4 ${planMode && isFuture && !ex.done ? 'border-orange' : 'border-accent'}`}>
@@ -55,14 +55,6 @@ function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast, plan
           <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded ${trend.status === 'up' ? 'bg-green/10 text-green' : 'bg-red/10 text-red'}`}>
             {trend.status === 'up' ? '↗' : '↘'} {trend.change}%
           </span>
-        )}
-        
-        {prev && !ex.isHIT && (
-          <div className="text-[11px] text-dim font-mono mt-1">
-            {[prev.sets, prev.reps].filter(Boolean).join('×')}
-            {prev.weight ? ` @ ${prev.weight} kg` : ''}
-            <span className="ml-1.5 opacity-60">{fmtDate(prev.date)}</span>
-          </div>
         )}
       </div>
 
@@ -75,26 +67,30 @@ function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast, plan
         Löschen
       </button>
 
-      <div className={`grid items-center gap-2 mb-3 ${ex.isHIT ? 'grid-cols-[1fr]' : 'grid-cols-[1fr_18px_1fr_18px_1fr]'}`}>
-        {!ex.isHIT && (
-          <>
-            <div className="flex flex-col items-center gap-1"><input type="text" inputMode="numeric" placeholder="—" value={ex.sets || ''} onChange={e => updateEx(i, 'sets', e.target.value)} className="text-center font-mono font-extrabold text-2xl p-2 rounded-xl bg-bg2 border border-line w-full" /><div className="label-caps !text-[8px]">Sätze</div></div>
-            <div className="text-dim text-center">×</div>
-            <div className="flex flex-col items-center gap-1"><input type="text" inputMode="numeric" placeholder="—" value={ex.reps || ''} onChange={e => updateEx(i, 'reps', e.target.value)} className="text-center font-mono font-extrabold text-2xl p-2 rounded-xl bg-bg2 border border-line w-full" /><div className="label-caps !text-[8px]">Wdhl</div></div>
-            <div className="text-dim text-center">@</div>
-          </>
-        )}
-        <div className="flex flex-col items-center gap-1"><input type="text" inputMode="decimal" placeholder="—" value={ex.weight || ''} onChange={e => updateEx(i, 'weight', e.target.value)} className="text-center font-mono font-extrabold text-2xl p-2 rounded-xl bg-bg2 border border-line w-full" /><div className="label-caps !text-[8px]">kg</div></div>
-      </div>
+      {!ex.isHIT && ex.setsArray && (
+        <div className="space-y-2 mb-3">
+            {ex.setsArray.map((set, sIdx) => (
+                <div key={sIdx} className="grid grid-cols-[1fr_20px_1fr_20px_1fr_30px] items-center gap-2">
+                    <input type="text" inputMode="numeric" placeholder="Reps" value={set.reps || ''} onChange={e => updateEx(i, 'reps', e.target.value, sIdx)} className="text-center font-mono font-bold p-2 rounded-lg bg-bg2 border border-line w-full text-sm" />
+                    <span className="text-dim text-center text-xs">@</span>
+                    <input type="text" inputMode="decimal" placeholder="kg" value={set.weight || ''} onChange={e => updateEx(i, 'weight', e.target.value, sIdx)} className="text-center font-mono font-bold p-2 rounded-lg bg-bg2 border border-line w-full text-sm" />
+                    <span className="text-dim text-center text-xs">kg</span>
+                    <div className="text-[10px] font-bold text-ink bg-bg2 rounded-lg p-2 text-center border border-line">{ (num(set.reps) || 0) * (num(set.weight) || 0) }</div>
+                    <button onClick={() => removeSet(i, sIdx)} className="text-dim hover:text-red text-xs">×</button>
+                </div>
+            ))}
+            <button onClick={() => addSet(i)} className="w-full text-center text-[10px] font-bold text-accent py-2 border border-dashed border-accent/30 rounded-lg hover:bg-accent/5">+ Satz</button>
+        </div>
+      )}
 
       {volume !== null && (
         <div className="text-[11px] font-mono text-dim text-right mb-3">
-          {Math.round(volume).toLocaleString('de-AT')} kg
+          Gesamt: {Math.round(volume).toLocaleString('de-AT')} kg
         </div>
       )}
 
       <div className="flex items-center gap-2">
-        <input type="text" placeholder="Notiz, RPE…" value={ex.note || ''} onChange={e => updateEx(i, 'note', e.target.value)}
+        <input type="text" placeholder="Notiz…" value={ex.note || ''} onChange={e => updateEx(i, 'note', e.target.value)}
           className="flex-1 py-1.5 px-3 text-xs bg-bg2 border-line rounded-lg" />
         {planMode && isFuture && (
            <button onClick={() => updateEx(i, 'done', !ex.done)}
@@ -235,7 +231,8 @@ export default function Session({ initialDate, hitMode, planMode }) {
       name: ex.display_name || ex.name,
       primaryMuscles: primary,
       secondaryMuscles: secondary,
-      sets: '', reps: '', weight: '', note: '', done: true, isHIT: false,
+      setsArray: [{reps: '', weight: ''}],
+      note: '', done: true, isHIT: false,
     }]);
 
     // 3. Handle new exercises
@@ -256,8 +253,30 @@ export default function Session({ initialDate, hitMode, planMode }) {
     }
   }
 
-  function updateEx(i, field, value) {
-    setExercises(prev => prev.map((ex, idx) => idx === i ? { ...ex, [field]: value } : ex))
+  function updateEx(i, field, value, setIdx = null) {
+    setExercises(prev => prev.map((ex, idx) => {
+      if (idx !== i) return ex;
+      if (setIdx !== null) {
+        const newSets = [...ex.setsArray];
+        newSets[setIdx] = { ...newSets[setIdx], [field]: value };
+        return { ...ex, setsArray: newSets };
+      }
+      return { ...ex, [field]: value };
+    }))
+  }
+
+  function addSet(i) {
+    setExercises(prev => prev.map((ex, idx) => {
+      if (idx !== i) return ex;
+      return { ...ex, setsArray: [...ex.setsArray, {reps: '', weight: ''}] };
+    }))
+  }
+
+  function removeSet(i, setIdx) {
+    setExercises(prev => prev.map((ex, idx) => {
+      if (idx !== i || ex.setsArray.length <= 1) return ex;
+      return { ...ex, setsArray: ex.setsArray.filter((_, sIdx) => sIdx !== setIdx) };
+    }))
   }
 
   function moveEx(i, direction) {
@@ -459,7 +478,9 @@ export default function Session({ initialDate, hitMode, planMode }) {
                     key={idx} 
                     ex={ex} 
                     i={idx} 
-                    updateEx={updateEx} 
+                    updateEx={updateEx}
+                    addSet={addSet}
+                    removeSet={removeSet}
                     removeEx={removeEx} 
                     moveEx={moveEx}
                     isFirst={idx === 0}
