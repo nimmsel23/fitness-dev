@@ -206,16 +206,12 @@ export default function Session({ initialDate, hitMode }) {
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 2200) }
 
   async function addEx(ex) {
+    // 1. Determine muscles: prioritize tags, then fallback to KB lookup
     let primary = ex.primaryMuscles || ex.primary_muscles || [];
     let secondary = ex.secondaryMuscles || ex.secondary_muscles || [];
 
-    // If it's a new exercise from search, notify inbox
-    if (ex.isNew) {
-      sendToInbox({ name: ex.name, source: 'search_add' });
-    }
-
-    // If muscles are missing, try to fetch from KB
-    if (!ex.isNew && primary.length === 0 && secondary.length === 0) {
+    // If muscles are missing, fetch from KB
+    if (primary.length === 0 && secondary.length === 0) {
       try {
         const kbEx = await getExercise(ex.id || ex.name);
         if (kbEx) {
@@ -223,17 +219,24 @@ export default function Session({ initialDate, hitMode }) {
           secondary = kbEx.secondaryMuscles || kbEx.secondary_muscles || [];
         }
       } catch (e) {
-        console.warn("Could not fetch KB data:", e);
+        console.warn("Could not fetch KB data for muscle tags:", e);
       }
     }
 
+    // 2. Add to session with explicit muscle tags
     setExercises(prev => [...prev, {
       name: ex.display_name || ex.name,
       primaryMuscles: primary,
       secondaryMuscles: secondary,
       sets: '', reps: '', weight: '', note: '', done: true, isHIT: false,
-    }])
-    showToast(`+ ${ex.display_name || ex.name}`)
+    }]);
+
+    // 3. Handle new exercises
+    if (ex.isNew) {
+      sendToInbox({ name: ex.name, source: 'search_add' });
+    }
+    
+    showToast(`+ ${ex.display_name || ex.name}`);
   }
 
   function addQuick() {
