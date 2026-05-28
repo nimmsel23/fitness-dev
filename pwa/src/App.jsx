@@ -509,8 +509,7 @@ export default function App() {
         )}
 
         <nav style={{ background: 'var(--glass)', borderTop: '1px solid var(--line)', backdropFilter: 'blur(20px)' }}
-
-        className="bottom-nav flex shrink-0 px-2 pb-safe z-20">
+          className="bottom-nav flex lg:hidden shrink-0 px-2 pb-safe z-20">
         {TABS.map(({ id, Icon, label }) => (
           <button key={id} onClick={() => navigate(id)}
             className="flex-1 flex flex-col items-center gap-0.5 py-2 rounded-xl text-[10px] font-semibold tracking-wide transition-all"
