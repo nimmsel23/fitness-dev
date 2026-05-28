@@ -130,7 +130,7 @@ export default function Dashboard({ onNavigate }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         {/* Activity Heatmap - Full Width */}
         <div className="lg:col-span-3 card !p-8 shadow-lg bg-gradient-to-br from-card to-bg2">
           <div className="flex items-center justify-between mb-8">
@@ -170,17 +170,17 @@ export default function Dashboard({ onNavigate }) {
           </div>
         </div>
 
-        {/* Column 1: Physical Status */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="card mb-0 flex flex-col items-center justify-center py-8">
-            <h3 className="label-caps mb-8 w-full px-2 text-center">Muskel-Status</h3>
-            <div className="flex justify-center gap-6">
-              <BodyMap exercises={enrichedRecent.flatMap(s => s.exercises || []).filter(e => e.done)} highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 120 }} />
-              <BodyMap exercises={enrichedRecent.flatMap(s => s.exercises || []).filter(e => e.done)} type="posterior" highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 120 }} />
+        {/* Muscle Status - 2 Columns wide */}
+        <div className="lg:col-span-2 card p-8 flex flex-col">
+            <h3 className="label-caps mb-8">Muskel-Status</h3>
+            <div className="flex flex-1 justify-center items-center gap-12">
+              <BodyMap exercises={enrichedRecent.flatMap(s => s.exercises || []).filter(e => e.done)} highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 160 }} />
+              <BodyMap exercises={enrichedRecent.flatMap(s => s.exercises || []).filter(e => e.done)} type="posterior" highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 160 }} />
             </div>
-          </div>
+        </div>
 
-          <div className="card mb-0 bg-accent/5 border-accent/20 p-8">
+        {/* Coverage - 1 Column */}
+        <div className="lg:col-span-1 card bg-accent/5 border-accent/20 p-8">
             <div className="flex items-center gap-3 mb-8">
               <TrendingUp size={20} className="text-accent" />
               <span className="label-caps !mb-0 text-sm">Coverage (7 Tage)</span>
@@ -203,7 +203,6 @@ export default function Dashboard({ onNavigate }) {
                 ))}
               </div>
             )}
-          </div>
         </div>
 
         {/* Column 2: Progress & Habits */}
