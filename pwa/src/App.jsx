@@ -68,7 +68,7 @@ function getHashTab() {
 
 function applyTheme(t) {
   console.log("Applying theme:", t);
-  const theme = t === 'honey' ? 'mocha' : t; // Use mocha as default if honey is passed
+  const theme = t;
   document.documentElement.setAttribute('data-theme', theme);
   document.body.setAttribute('data-theme', theme);
   // Force repaint
@@ -76,6 +76,7 @@ function applyTheme(t) {
   document.documentElement.offsetHeight;
   document.documentElement.style.display = '';
 }
+
 export default function App() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [user, setUser]           = useState(null)
