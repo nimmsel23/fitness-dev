@@ -260,24 +260,43 @@ export async function getAnatomy(exerciseId) {
 
 // ── Coverage Logic ───────────────────────────────────────────────────────────
 
-const MUSCLE_GROUPS = {
-  chest: ["pecs", "chest", "pectoralis", "brust"],
-  back: ["lats", "traps", "lower back", "back", "latissimus", "trapezius", "rhomboids", "rücken", "pull-up", "klimmzug", "rudern", "row"],
-  shoulders: ["shoulders", "delts", "deltoid", "schulter", "schultern", "overhead", "press"],
-  arms: ["biceps", "triceps", "forearms", "brachii", "bizeps", "trizeps", "arm", "arme", "curl", "extension"],
-  core: ["abs", "obliques", "core", "abdominis", "bauch"],
-  glutes: ["glutes", "gluteus", "po", "gesäß", "hip thrust"],
-  quads: ["quads", "quadriceps", "oberschenkel", "squat", "kniebeuge"],
-  hamstrings: ["hamstrings", "biceps femoris", "beinbeuger", "leg curl"],
-  calves: ["calves", "gastrocnemius", "waden", "calf"],
-  legs: ["legs", "squat", "deadlift", "lunge", "beine", "bein", "leg press"]
+// Maps canonical muscle tags to Group IDs
+const MUSCLE_TAG_TO_GROUP = {
+  "chest": "chest", "pecs": "chest", "pectoralis": "chest",
+  "back": "back", "lats": "back", "traps": "back", "trapezius": "back", "rhomboids": "back",
+  "shoulders": "shoulders", "delts": "shoulders", "deltoid": "shoulders",
+  "biceps": "arms", "triceps": "arms", "forearms": "arms",
+  "abs": "core", "obliques": "core", "core": "core", "abdominis": "core",
+  "glutes": "glutes", "gluteus": "glutes",
+  "quads": "quads", "quadriceps": "quads",
+  "hamstrings": "hamstrings", "biceps femoris": "hamstrings",
+  "calves": "calves", "gastrocnemius": "calves"
 };
 
 function muscleToGroupIds(muscle, exerciseName = "") {
-  const m = muscle.toLowerCase();
+  const m = muscle.toLowerCase().trim();
   const name = exerciseName.toLowerCase();
   const matches = new Set();
   
+  // 1. Try exact tag mapping
+  if (MUSCLE_TAG_TO_GROUP[m]) {
+    matches.add(MUSCLE_TAG_TO_GROUP[m]);
+  }
+  
+  // 2. Fallback to fuzzy mapping via search patterns (for legacy/inferred data)
+  const MUSCLE_GROUPS = {
+    chest: ["pecs", "chest", "pectoralis", "brust"],
+    back: ["lats", "traps", "lower back", "back", "latissimus", "trapezius", "rhomboids", "rücken", "pull-up", "klimmzug", "rudern", "row"],
+    shoulders: ["shoulders", "delts", "deltoid", "schulter", "schultern", "overhead", "press"],
+    arms: ["biceps", "triceps", "forearms", "brachii", "bizeps", "trizeps", "arm", "arme", "curl", "extension"],
+    core: ["abs", "obliques", "core", "abdominis", "bauch"],
+    glutes: ["glutes", "gluteus", "po", "gesäß", "hip thrust"],
+    quads: ["quads", "quadriceps", "oberschenkel", "squat", "kniebeuge"],
+    hamstrings: ["hamstrings", "biceps femoris", "beinbeuger", "leg curl"],
+    calves: ["calves", "gastrocnemius", "waden", "calf"],
+    legs: ["legs", "squat", "deadlift", "lunge", "beine", "bein", "leg press"]
+  };
+
   for (const [group, list] of Object.entries(MUSCLE_GROUPS)) {
     if (list.some(x => m.includes(x) || (name && name.includes(x)))) {
       matches.add(group);
