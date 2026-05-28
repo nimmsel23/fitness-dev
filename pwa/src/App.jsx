@@ -131,6 +131,8 @@ export default function App() {
       
       // Apply the loaded or default theme.
       // If the mode is circadian, the circadian effect will handle applyTheme.
+      // applyTheme needs the theme string, not an empty string for default.
+      // The `s.theme || 'honey'` ensures 'honey' is passed if no theme is saved.
       if (s.themeMode !== 'circadian') applyTheme(s.theme || 'honey');
     });
   }, [user]);

@@ -135,6 +135,11 @@
   --ink: #839496; --muted: #657b83; --dim: #586e75; --accent: #268bd2; --accent-glow: rgba(38,139,210,0.12);
   --green: #859900; --red: #dc322f; --orange: #cb4b16; --glass: rgba(7,54,66,0.9);
 }
+[data-theme="homunculus"] {
+  --bg: #18181b; --bg2: #242429; --panel: #121215; --card: #303035; --card-hover: #404048; --line: #50505a;
+  --ink: #d4d4d8; --muted: #94a3b8; --dim: #64748b; --accent: #a16262; --accent-glow: rgba(161,98,98,0.15);
+  --green: #6a9955; --red: #c04040; --orange: #d97706; --glass: rgba(24,24,27,0.88);
+}
 [data-theme="nothing"] {
   --bg: #000000; --bg2: #050505; --panel: #0a0a0a; --card: #0f0f0f; --card-hover: #151515; --line: #202020;
   --ink: #ffffff; --muted: #707070; --dim: #404040; --accent: #ffffff; --accent-glow: rgba(255,255,255,0.1);
