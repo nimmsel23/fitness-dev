@@ -290,7 +290,7 @@ export default function App() {
       </header>
 
       <div className="flex-1 flex flex-col lg:flex-row min-h-0 main-wrapper">
-        <aside className="desktop-sidebar hidden lg:flex">
+        <aside className="hidden lg:flex flex-col w-[260px] flex-shrink-0 bg-bg2 border-r border-line p-6">
           <div className="flex items-center gap-3 font-black text-2xl tracking-tighter mb-12 px-2">
             <div className="w-12 h-12 rounded-2xl bg-accent flex items-center justify-center shadow-lg shadow-accent/20">
               <Dumbbell size={28} className="text-black" />
