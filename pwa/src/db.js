@@ -201,6 +201,20 @@ export async function saveSettings(settings) {
   return { ok: true };
 }
 
+export async function getLayout() {
+  const snap = await getDoc(doc(db, "fitness", getUid(), "settings", "layout"));
+  if (!snap.exists()) return null;
+  return snap.data()?.layout;
+}
+
+export async function saveLayout(layout) {
+  await setDoc(doc(db, "fitness", getUid(), "settings", "layout"), {
+    layout,
+    updated_at: serverTimestamp(),
+  });
+  return { ok: true };
+}
+
 // ── Habits ────────────────────────────────────────────────────────────────────
 
 export async function getHabits() {
