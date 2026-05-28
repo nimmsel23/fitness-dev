@@ -65,6 +65,7 @@ export default function App() {
   const [circDark,  setCircDark]  = useState('honey')
   const [circLight, setCircLight] = useState('latte')
   const [hitMode, setHitMode]     = useState(false)
+  const [planMode, setPlanMode]   = useState(false)
   const [gender, setGender]       = useState('male')
   const [split, setSplit]         = useState('PPL')
   const [cycleLength, setCycleLength] = useState(4)
@@ -98,6 +99,7 @@ export default function App() {
       if (s.circDark) setCircDark(s.circDark);
       if (s.circLight) setCircLight(s.circLight);
       if (s.hitMode !== undefined) setHitMode(s.hitMode);
+      if (s.planMode !== undefined) setPlanMode(s.planMode);
       if (s.gender) setGender(s.gender);
       if (s.split) setSplit(s.split);
       if (s.cycleLength) setCycleLength(s.cycleLength);
@@ -138,7 +140,7 @@ export default function App() {
   }, [])
 
   function updateSettings(newSettings) {
-    const updated = { theme, themeMode, circDark, circLight, hitMode, gender, split, ...newSettings };
+    const updated = { theme, themeMode, circDark, circLight, hitMode, planMode, gender, split, ...newSettings };
     saveSettings(updated);
   }
 
@@ -318,7 +320,7 @@ export default function App() {
           <div className="max-w-3xl lg:max-w-4xl mx-auto px-4 py-6 lg:py-10 pb-28 lg:pb-10">
             <ErrorBoundary key={tab}>
               {tab === 'dash'     && <Dashboard onNavigate={navigate} />}
-              {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} hitMode={hitMode} />}
+              {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} hitMode={hitMode} planMode={planMode} />}
               {tab === 'review'   && <WeeklyReview onNavigate={navigate} />}
               {tab === 'habits'   && <Habits />}
               {tab === 'journal'  && <Journal />}
@@ -349,12 +351,12 @@ export default function App() {
                       <div className="space-y-6">
                         <div className="flex items-center justify-between">
                            <div className="text-left">
-                              <div className="text-sm font-bold text-ink">HIT Modus</div>
-                              <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Standard-Modus für neue Sessions</div>
+                              <div className="text-sm font-bold text-ink">Plan Mode</div>
+                              <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Zukünftige Workouts planen</div>
                            </div>
-                           <button onClick={() => { const next = !hitMode; setHitMode(next); updateSettings({hitMode: next}); }} 
-                             className={`w-12 h-6 rounded-full transition-colors relative border-2 ${hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
-                             <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${hitMode ? 'right-0.5' : 'left-0.5'}`} />
+                           <button onClick={() => { const next = !planMode; setPlanMode(next); updateSettings({planMode: next}); }} 
+                             className={`w-12 h-6 rounded-full transition-colors relative border-2 ${planMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
+                             <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${planMode ? 'right-0.5' : 'left-0.5'}`} />
                            </button>
                         </div>
 

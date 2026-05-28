@@ -25,8 +25,9 @@ function fmtDate(iso) {
   return `${d}.${m}.`
 }
 
-function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast }) {
+function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast, planMode, date }) {
   const [trend, setTrend] = useState(null)
+  const isFuture = new Date(date) > new Date();
   
   useEffect(() => {
     if (!ex.isHIT && ex.name) {
@@ -46,7 +47,7 @@ function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast }) {
     ? (num(ex.sets) * num(ex.reps) * num(ex.weight)) : null
 
   return (
-    <div className="card border-l-4 border-accent relative mb-3 p-4">
+    <div className={`card border-l-4 relative mb-3 p-4 ${planMode && isFuture && !ex.done ? 'border-orange' : 'border-accent'}`}>
       <div className="font-bold text-sm mb-4 pr-16 leading-tight">
         {ex.name || <span className="text-dim italic">Übung</span>}
         
@@ -95,6 +96,12 @@ function ExCard({ ex, i, updateEx, removeEx, moveEx, prev, isFirst, isLast }) {
       <div className="flex items-center gap-2">
         <input type="text" placeholder="Notiz, RPE…" value={ex.note || ''} onChange={e => updateEx(i, 'note', e.target.value)}
           className="flex-1 py-1.5 px-3 text-xs bg-bg2 border-line rounded-lg" />
+        {planMode && isFuture && (
+           <button onClick={() => updateEx(i, 'done', !ex.done)}
+             className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-colors ${ex.done ? 'border-green bg-green/10 text-green' : 'border-line bg-bg2 text-dim'}`}>
+             {ex.done ? 'Done' : 'ToDo'}
+           </button>
+        )}
         <button onClick={() => updateEx(i, 'isHIT', !ex.isHIT)}
           className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-colors ${ex.isHIT ? 'border-orange bg-orange/10 text-orange' : 'border-line bg-bg2 text-dim'}`}>
           HIT
@@ -133,7 +140,7 @@ function getRollingDays(count) {
 const DAY_LABELS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
 // ── Main view ─────────────────────────────────────────────────────────────────
-export default function Session({ initialDate, hitMode }) {
+export default function Session({ initialDate, hitMode, planMode }) {
   const [date, setDate]           = useState(initialDate || localToday())
   const [block, setBlock]         = useState('')
   const [exercises, setExercises] = useState([])
@@ -457,7 +464,9 @@ export default function Session({ initialDate, hitMode }) {
                     moveEx={moveEx}
                     isFirst={idx === 0}
                     isLast={idx === exercises.length - 1}
-                    prev={prevMap[ex.name]} 
+                    prev={prevMap[ex.name]}
+                    planMode={planMode}
+                    date={date}
                   />
                 ))}
                 {exercises.length === 0 && (
