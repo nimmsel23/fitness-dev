@@ -403,12 +403,24 @@ export async function getWeeklyReport(selector = "current") {
     const groups = new Set();
     for (const ex of (s.exercises || [])) {
       if (!ex.done) continue;
-      const kbEx = kbMap.get((ex.name || "").toLowerCase());
-      const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];
-      const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
+      const primary = ex.primaryMuscles || [];
+      const secondary = ex.secondaryMuscles || [];
+      const exName = ex.name || ex.exercise_id || "";
+
+      let hasMapped = false;
       [...primary, ...secondary].forEach(m => {
-        muscleToGroupIds(m, ex.name).forEach(gid => groups.add(gid));
+        muscleToGroupIds(m, exName).forEach(gid => {
+          groups.add(gid);
+          hasMapped = true;
+        });
       });
+      if (!hasMapped && exName) {
+        muscleToGroupIds("", exName).forEach(gid => groups.add(gid));
+      }
+    }
+    // Also include activity muscles in history for recovery calculation
+    if (s.activity && ACTIVITY_MUSCLE_MAPPING[s.activity.type]) {
+      ACTIVITY_MUSCLE_MAPPING[s.activity.type].muscles.forEach(gid => groups.add(gid));
     }
     return { date: s.date, groups: Array.from(groups) };
   }).sort((a, b) => b.date.localeCompare(a.date));
