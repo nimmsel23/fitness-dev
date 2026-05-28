@@ -119,10 +119,10 @@ function blockColor(block, activity) {
   return "var(--accent)";
 }
 
-function getRolling10Days() {
+function getRollingDays(count) {
   const dates = [];
   const today = new Date();
-  for (let i = 9; i >= 0; i--) {
+  for (let i = count - 1; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
     dates.push(d.toISOString().slice(0, 10));
@@ -151,7 +151,7 @@ export default function Session({ initialDate, hitMode }) {
   const [activity, setActivity]   = useState({ type: 'hiking', duration: '', intensity: 5 })
   const [recentSessions, setRecentSessions] = useState({})
 
-  const rollingDays = getRolling10Days();
+  const rollingDays = getRollingDays(30);
 
   useEffect(() => {
     getSessionHistory(30).then(sessions => {
@@ -310,7 +310,7 @@ export default function Session({ initialDate, hitMode }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-5 lg:grid-cols-10 gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-4 -mx-2 px-2">
           {rollingDays.map((d) => {
             const sess = recentSessions[d];
             const done = !!(sess?.block || sess?.activity);
@@ -321,7 +321,7 @@ export default function Session({ initialDate, hitMode }) {
 
             return (
               <button key={d} onClick={() => setDate(d)}
-                className="flex flex-col items-center gap-1.5 group">
+                className="flex flex-col items-center gap-1.5 group shrink-0 w-10">
                 <div className={`w-full aspect-square rounded-xl flex items-center justify-center text-[10px] font-bold transition-all border-2 ${isSelected ? 'border-accent' : 'border-transparent'}`}
                   style={{ 
                     background: isSelected ? 'var(--accent)' : done ? (color + '22') : 'var(--bg2)',
