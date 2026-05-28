@@ -151,6 +151,7 @@ export default function Session({ initialDate, hitMode, planMode }) {
   const [prevMap, setPrevMap]       = useState({})
   const [restHours, setRestHours]   = useState(null)
   const [hasActivity, setHasActivity] = useState(false)
+  const [isActivity, setIsActivity] = useState(false) // Restore isActivity for compatibility
   const [activity, setActivity]   = useState({ type: 'hiking', duration: '', intensity: 5 })
   const [recentSessions, setRecentSessions] = useState({})
 

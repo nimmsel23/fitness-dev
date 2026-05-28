@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Zap, TrendingUp, AlertCircle, Download, Activity, Dumbbell, Bike, Waves, Footprints, Timer, ChevronRight } from "lucide-react";
-import { getSession, getRecentSessions, getPlan, getLatestSession, getCoverageGaps, exportCsv, getAllExercises } from "../db.js";
+import { getSession, getRecentSessions, getPlan, getLatestSession, getMuscleCoverage, exportCsv, getAllExercises } from "../db.js";
 import HabitWidget from "../components/HabitWidget.jsx";
 import WeightChart from "../components/WeightChart.jsx";
 import BodyMap from "../components/BodyMap.jsx";
