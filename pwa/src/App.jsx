@@ -40,9 +40,24 @@ const TABS = [
   { id: 'settings', label: 'Setup',    Icon: Settings2 },
 ]
 
-export const DARK_THEMES  = ['honey','mocha','macchiato','frappe','dracula','dracula-purple','nordic','nordic-darker','nordic-bluish','arc-dark','sweet','sweet-purple','sweet-mars','sweet-amber-blue','ant-dark','materia','solarized-dark','nothing','gruvbox','homunculus']
-export const LIGHT_THEMES = ['latte','alucard','arc','solarized','ant']
-
+export const DARK_THEMES  = [
+  // Catppuccin
+  'mocha','macchiato','frappe',
+  // Dracula
+  'dracula','dracula-purple',
+  // Nordic
+  'nordic','nordic-darker','nordic-bluish',
+  // Sweet
+  'sweet','sweet-purple','sweet-mars','sweet-amber-blue',
+  // Other Dark
+  'honey','gruvbox','homunculus','arc-dark','ant-dark','materia','solarized-dark','nothing'
+]
+export const LIGHT_THEMES = [
+  // Catppuccin
+  'latte',
+  // Other Light
+  'alucard','arc','solarized','ant'
+]
 const DAY_START = 6
 const DAY_END   = 20
 
@@ -441,7 +456,7 @@ export default function App() {
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
                         <div>
                           <h3 className="label-caps mb-4 ml-1">Dark Themes</h3>
-                          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                              {DARK_THEMES.map(t => (
                                <button key={t} onClick={() => setManualTheme(t)} 
                                  className={`p-2 rounded-xl text-[9px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-[var(--accent)] bg-[var(--accent)] text-black' : 'bg-[var(--bg2)] border-[var(--line)] text-[var(--ink)]'}`}
@@ -454,7 +469,7 @@ export default function App() {
 
                           <div>
                           <h3 className="label-caps mb-4 ml-1">Light Themes</h3>
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                              {LIGHT_THEMES.map(t => (
                                <button key={t} onClick={() => setManualTheme(t)} 
                                  className={`p-2 rounded-xl text-[9px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-[var(--accent)] bg-[var(--accent)] text-black' : 'bg-[var(--bg2)] border-[var(--line)] text-[var(--ink)]'}`}
