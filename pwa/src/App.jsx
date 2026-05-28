@@ -341,8 +341,194 @@ export default function App() {
                 {tab === 'muscles'  && <Muscles hitMode={hitMode} gender={gender} />}
                 {tab === 'learn'    && <Learn />}
                 {tab === 'settings' && (
-                  <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
-                    {/* Settings Content... */}
+                <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
+                   {/* 1. Account */}
+                   <section className="card flex flex-row items-center gap-6 p-6 bg-[var(--card)] border border-[var(--line)]">
+                      <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--accent)]/20 flex items-center justify-center bg-[var(--accent)]/10">
+                         {user.photoURL ? (
+                           <img src={user.photoURL} alt={user.displayName} />
+                         ) : (
+                           <User size={32} className="text-[var(--accent)]" />
+                         )}
+                      </div>
+                      <div className="flex-1">
+                        <h2 className="text-lg font-black text-[var(--ink)]">{user.displayName || user.email?.split('@')[0]}</h2>
+                        <p className="text-[10px] font-bold opacity-30 uppercase tracking-widest">{user.email}</p>
+                      </div>
+                      <button onClick={signOut} className="btn btn-red px-6 py-2">
+                         <LogOut size={16} />
+                      </button>
+                   </section>
+
+                   {/* 2. Training Settings */}
+                   <section className="card p-6 bg-[var(--card)] border border-[var(--line)]">
+                      <div className="flex items-center gap-2 mb-6">
+                        <Dumbbell size={18} className="text-[var(--accent)]" />
+                        <h2 className="text-base font-black uppercase tracking-widest text-[var(--ink)]">Training Einstellungen</h2>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                           <div className="flex items-center justify-between">
+                              <div className="text-left">
+                                 <div className="text-sm font-bold text-[var(--ink)]">HIT Modus</div>
+                                 <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Standard-Modus für neue Sessions</div>
+                              </div>
+                              <button onClick={() => { const next = !hitMode; setHitMode(next); updateSettings({hitMode: next}); }} 
+                                className={`w-12 h-6 rounded-full transition-colors relative border-2 ${hitMode ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--bg2)] border-[var(--line)]'}`}>
+                                <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${hitMode ? 'right-0.5' : 'left-0.5'}`} />
+                              </button>
+                           </div>
+                           <div className="flex items-center justify-between">
+                              <div className="text-left">
+                                 <div className="text-sm font-bold text-[var(--ink)]">Plan Mode</div>
+                                 <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Zukünftige Workouts planen</div>
+                              </div>
+                              <button onClick={() => { const next = !planMode; setPlanMode(next); updateSettings({planMode: next}); }} 
+                                className={`w-12 h-6 rounded-full transition-colors relative border-2 ${planMode ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--bg2)] border-[var(--line)]'}`}>
+                                <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${planMode ? 'right-0.5' : 'left-0.5'}`} />
+                              </button>
+                           </div>
+                           <div className="flex items-center justify-between">
+                              <div className="text-left">
+                                 <div className="text-sm font-bold text-[var(--ink)]">Geschlecht</div>
+                                 <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Für anatomische Darstellung</div>
+                              </div>
+                              <div className="flex bg-[var(--bg2)] rounded-lg p-1">
+                                 {['male', 'female'].map(g => (
+                                   <button key={g} onClick={() => { setGender(g); updateSettings({gender: g}); }}
+                                     className={`px-3 py-1 rounded-md text-[10px] font-black uppercase ${gender === g ? 'bg-[var(--accent)] text-black' : 'text-[var(--dim)]'}`}>
+                                     {g}
+                                   </button>
+                                 ))}
+                              </div>
+                           </div>
+                        </div>
+
+                        <div className="space-y-4">
+                           <div className="text-left">
+                              <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30 mb-3">Aktueller Split</div>
+                              <div className="flex flex-wrap gap-2">
+                                 {['PPL', 'Upper/Lower', 'Full Body', 'Bro-Split', 'Custom'].map(s => (
+                                   <button key={s} onClick={() => { setSplit(s); updateSettings({split: s}); }}
+                                     className={`px-3 py-2 rounded-xl text-[10px] font-black border transition-all ${split === s ? 'border-[var(--accent)] bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20' : 'border-[var(--line)] bg-[var(--bg2)] text-[var(--muted)] hover:text-[var(--ink)]'}`}>
+                                     {s}
+                                   </button>
+                                 ))}
+                              </div>
+                           </div>
+                           <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                 <label className="label-caps !mb-2">Zyklus (Wochen)</label>
+                                 <input type="number" value={cycleLength} onChange={e => { setCycleLength(Number(e.target.value)); updateSettings({cycleLength: Number(e.target.value)}) }}
+                                    className="bg-[var(--bg2)] border-[var(--line)] rounded-xl px-3 py-2 text-xs font-bold w-full" />
+                              </div>
+                              <div>
+                                 <label className="label-caps !mb-2">Standard-Ort</label>
+                                 <input type="text" value={defaultLocation} onChange={e => { setDefaultLocation(e.target.value); updateSettings({defaultLocation: e.target.value}) }}
+                                    className="bg-[var(--bg2)] border-[var(--line)] rounded-xl px-3 py-2 text-xs font-bold w-full" />
+                              </div>
+                           </div>
+                        </div>
+                      </div>
+                   </section>
+
+                   {/* 3. Appearance */}
+                   <section className="card p-6 bg-[var(--card)] border border-[var(--line)]">
+                      <div className="flex items-center gap-2 mb-6">
+                        <Activity size={18} className="text-[var(--accent)]" />
+                        <h2 className="text-base font-black uppercase tracking-widest text-[var(--ink)]">Darstellung</h2>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
+                        <div>
+                          <h3 className="label-caps mb-4 ml-1">Dark Themes</h3>
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                               {DARK_THEMES.map(t => (
+                                 <button key={t} onClick={() => setManualTheme(t)} 
+                                   className={`p-2 rounded-xl text-[9px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-[var(--accent)] bg-[var(--accent)] text-black' : 'bg-[var(--bg2)] border-[var(--line)] text-[var(--ink)]'}`}
+                                   style={{ borderColor: theme === t ? 'var(--accent)' : '' }}>
+                                   {t}
+                                 </button>
+                               ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <h3 className="label-caps mb-4 ml-1">Light Themes</h3>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                               {LIGHT_THEMES.map(t => (
+                                 <button key={t} onClick={() => setManualTheme(t)} 
+                                   className={`p-2 rounded-xl text-[9px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-[var(--accent)] bg-[var(--accent)] text-black' : 'bg-[var(--bg2)] border-[var(--line)] text-[var(--ink)]'}`}
+                                   style={{ borderColor: theme === t ? 'var(--accent)' : '' }}>
+                                   {t}
+                                 </button>
+                               ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="pt-6 border-t border-[var(--line)]/50 flex flex-col gap-4">
+                           <div className="flex items-center justify-between">
+                              <div className="flex flex-col">
+                                 <span className="text-sm font-bold text-[var(--ink)]">🌅 Circadian Mode</span>
+                                 <span className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Tag/Nacht Automatik</span>
+                              </div>
+                              <button onClick={() => { const next = themeMode === 'circadian' ? 'manual' : 'circadian'; setModeState(next); updateSettings({themeMode: next}); }}
+                                className={`w-12 h-6 rounded-full transition-colors relative border-2 ${themeMode === 'circadian' ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--bg2)] border-[var(--line)]'}`}>
+                                <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${themeMode === 'circadian' ? 'right-0.5' : 'left-0.5'}`} />
+                              </button>
+                           </div>
+
+                           {themeMode === 'circadian' && (
+                             <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
+                               <div>
+                                 <label className="label-caps !mb-2">Tag-Theme (Light)</label>
+                                 <select value={circLight} onChange={e => { setCircLight(e.target.value); updateSettings({circLight: e.target.value}); }}
+                                   className="w-full p-2 text-xs font-bold rounded-lg bg-[var(--bg2)] border-[var(--line)]">
+                                   {LIGHT_THEMES.map(t => <option key={t} value={t}>{t}</option>)}
+                                 </select>
+                               </div>
+                               <div>
+                                 <label className="label-caps !mb-2">Nacht-Theme (Dark)</label>
+                                 <select value={circDark} onChange={e => { setCircDark(e.target.value); updateSettings({circDark: e.target.value}); }}
+                                   className="w-full p-2 text-xs font-bold rounded-lg bg-[var(--bg2)] border-[var(--line)]">
+                                   {DARK_THEMES.map(t => <option key={t} value={t}>{t}</option>)}
+                                 </select>
+                               </div>
+                             </div>
+                           )}
+                        </div>
+                     </section>
+
+                     {/* 4. Roadmap & System */}
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <section className="card p-6 opacity-80 border-dashed bg-[var(--card)] border border-[var(--line)]">
+                          <div className="flex items-center gap-2 mb-6">
+                            <Sparkles size={18} className="text-[var(--accent)]" />
+                            <h2 className="text-sm font-black uppercase tracking-widest text-[var(--ink)]">Roadmap</h2>
+                          </div>
+                          <div className="text-[11px] font-bold space-y-2 text-[var(--ink)]/60">
+                             <div><span className="text-[var(--accent)]">V1.2:</span> Progress (1RM, Charts, Fatigue)</div>
+                             <div><span className="text-[var(--accent)]">V1.5:</span> Social (Shared, Profiles)</div>
+                             <div><span className="text-[var(--accent)]">V2.0:</span> Intelligence (AI Coach, Form)</div>
+                          </div>
+                       </section>
+
+                       <section className="card p-6 opacity-80 border-dashed bg-[var(--card)] border border-[var(--line)]">
+                          <div className="flex items-center gap-2 mb-4">
+                            <Settings2 size={18} className="text-[var(--dim)]" />
+                            <h2 className="text-base font-black uppercase tracking-widest text-[var(--muted)]">System</h2>
+                          </div>
+                          <div className="flex items-center justify-between py-1">
+                             <span className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest">Plattform</span>
+                             <span className="text-[10px] font-black text-[var(--ink)]">Firebase</span>
+                          </div>
+                          <div className="flex items-center justify-between py-1 border-t border-[var(--line)]/30 mt-2 pt-2">
+                             <span className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest">Status</span>
+                             <span className="text-[9px] font-black px-2 py-0.5 rounded bg-green/10 text-green border border-green/20">CONNECTED</span>
+                          </div>
+                       </section>
+                     </div>
                   </div>
                 )}
               </ErrorBoundary>
