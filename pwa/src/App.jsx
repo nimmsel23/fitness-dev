@@ -53,13 +53,14 @@ function getHashTab() {
 
 function applyTheme(t) {
   console.log("Applying theme:", t);
-  document.documentElement.setAttribute('data-theme', t === 'honey' ? '' : t);
+  const theme = t === 'honey' ? '' : t;
+  document.documentElement.setAttribute('data-theme', theme);
+  document.body.setAttribute('data-theme', theme);
   // Force repaint
   document.documentElement.style.display = 'none';
   document.documentElement.offsetHeight;
   document.documentElement.style.display = '';
 }
-
 export default function App() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [user, setUser]           = useState(null)
