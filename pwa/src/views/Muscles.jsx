@@ -5,8 +5,7 @@ import BodyMap from "../components/BodyMap.jsx";
 import DetailedMuscleMap from "../components/DetailedMuscleMap.jsx";
 
 const DAYS_OPTIONS = [7, 14, 28];
-// ... (rest of the file)
-
+const MUSCLE_GROUPS = [
   "chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves"
 ];
 
