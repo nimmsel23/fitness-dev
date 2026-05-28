@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 /* ==========================================================================
-   1. ARCHITECTURE: Global Structural Variables & Default Theme (Honey)
+   1. ARCHITECTURE: Global Structural Variables
    ========================================================================== */
 
 /*
- * :root contains NON-THEMATIC structural variables and serves as the
- * DEFAULT theme (Honey palette) if no data-theme is explicitly present.
+ * :root contains NON-THEMATIC structural variables only.
+ * Color definitions for themes start from `[data-theme="..."]` blocks.
  */
 :root {
   /* Structural Variables */
@@ -18,19 +18,13 @@
   --scrollbar-width: 6px;
   --scrollbar-radius: 3px;
   --glass-border: rgba(255,255,255,0.05); /* Global glass border */
-
-  /* Default Theme Colors (Honey Palette) */
-  --bg: #0f0d09; --bg2: #1a1711; --panel: #26221a; --card: #332e24;
-  --card-hover: #403a2e; --line: #4d4638; --ink: #f2e9d3; --muted: #a69a84;
-  --dim: #7a7364; --accent: #e8a020; --accent-glow: rgba(232,160,32,0.13);
-  --green: #48c87a; --red: #e05060; --orange: #e07840; --glass: rgba(15,13,9,0.88);
 }
 
 /* ==========================================================================
    2. THEME DEFINITIONS: Fully Self-Contained Color Palettes
    ========================================================================== */
 
-/* Catppuccin Palettes */
+/* --- Catppuccin Palettes (Official) --- */
 [data-theme="latte"] {
   --bg: #eff1f5; --bg2: #e6e9ef; --panel: #dce0e8; --card: #ccd0da;
   --card-hover: #bcc0cc; --line: #acb0be; --ink: #4c4f69; --muted: #6c6f85;
@@ -56,7 +50,7 @@
   --green: #a6e3a1; --red: #f38ba8; --orange: #fab387; --glass: rgba(30,30,46,0.88);
 }
 
-/* Honey (explicit, though also default, for consistency) */
+/* --- Honey (Original) --- */
 [data-theme="honey"] {
   --bg: #0f0d09; --bg2: #1a1711; --panel: #26221a; --card: #332e24;
   --card-hover: #403a2e; --line: #4d4638; --ink: #f2e9d3; --muted: #a69a84;
@@ -64,12 +58,14 @@
   --green: #48c87a; --red: #e05060; --orange: #e07840; --glass: rgba(15,13,9,0.88);
 }
 
-/* Other Dark Themes */
+/* --- Gruvbox (Dark) --- */
 [data-theme="gruvbox"] {
   --bg: #282828; --bg2: #32302f; --panel: #1d2021; --card: #504945; --card-hover: #665c54; --line: #7c6f64;
   --ink: #ebdbb2; --muted: #a89984; --dim: #928374; --accent: #fabd2f; --accent-glow: rgba(250,189,47,0.12);
   --green: #b8bb26; --red: #fb4934; --orange: #fe8019; --glass: rgba(40,40,40,0.88);
 }
+
+/* --- Dracula (Dark) --- */
 [data-theme="dracula"] {
   --bg: #1e1f29; --bg2: #282a36; --panel: #21222c; --card: #44475a; --card-hover: #4e5268; --line: #6272a4;
   --ink: #f8f8f2; --muted: #6272a4; --dim: #44475a; --accent: #bd93f9; --accent-glow: rgba(189,147,249,0.13);
@@ -80,6 +76,8 @@
   --ink: #f8f8f2; --muted: #9580aa; --dim: #4a3f6e; --accent: #ff79c6; --accent-glow: rgba(255,121,198,0.13);
   --green: #50fa7b; --red: #ff5555; --orange: #ffb86c; --glass: rgba(30,25,48,0.9);
 }
+
+/* --- Nordic (Dark) --- */
 [data-theme="nordic"] {
   --bg: #2e3440; --bg2: #3b4252; --panel: #252c3a; --card: #3c4454; --card-hover: #464e62; --line: #505a6a;
   --ink: #d8dee9; --muted: #8191ab; --dim: #4c566a; --accent: #88c0d0; --accent-glow: rgba(136,192,208,0.12);
@@ -95,14 +93,18 @@
   --ink: #d8dee9; --muted: #8191ab; --dim: #4c566a; --accent: #81a1c1; --accent-glow: rgba(129,161,193,0.12);
   --green: #a3be8c; --red: #bf616a; --orange: #d08770; --glass: rgba(37,44,58,0.88);
 }
+
+/* --- Arc (Dark) --- */
 [data-theme="arc-dark"] {
   --bg: #2f3445; --bg2: #383c4a; --panel: #252833; --card: #404552; --card-hover: #4b5263; --line: #5c6276;
   --ink: #d3dae3; --muted: #a3a5ac; --dim: #707584; --accent: #5294e2; --accent-glow: rgba(82,148,226,0.12);
   --green: #27ae60; --red: #da4453; --orange: #f67400; --glass: rgba(47,52,69,0.88);
 }
+
+/* --- Sweet (Dark) --- */
 [data-theme="sweet"] {
   --bg: #101013; --bg2: #1c1c21; --panel: #2f3945; --card: #31363d; --card-hover: #404552; --line: #3a3f4b;
-  --ink: #d3d6e5; --muted: #666a73; --dim: #4a4e5a; --accent: #0072ff; --accent-glow: rgba(0,114,255,0.13);
+  --ink: #d3d6e5; --muted: #666a73; --dim: #4a4e5a; --accent: #ff4081; --accent-glow: rgba(255,64,129,0.13);
   --green: #71f79f; --red: #ed254e; --orange: #ff6a00; --glass: rgba(47,57,69,0.88);
 }
 [data-theme="sweet-purple"] {
@@ -120,26 +122,36 @@
   --ink: #f1f5f9; --muted: #94a3b8; --dim: #475569; --accent: #f59e0b; --accent-glow: rgba(245,158,11,0.15);
   --green: #22c55e; --red: #ef4444; --orange: #f97316; --glass: rgba(15,23,42,0.88);
 }
+
+/* --- Ant (Dark) --- */
 [data-theme="ant-dark"] {
   --bg: #222e32; --bg2: #1e2824; --panel: #192124; --card: #2a3a3e; --card-hover: #334448; --line: #3e5055;
   --ink: #c3c7d1; --muted: #789090; --dim: #4a6066; --accent: #9bbfbf; --accent-glow: rgba(155,191,191,0.12);
   --green: #b3e235; --red: #ff5d73; --orange: #f39c12; --glass: rgba(25,33,36,0.9);
 }
+
+/* --- Materia (Dark) --- */
 [data-theme="materia"] {
   --bg: #1e1e1e; --bg2: #121212; --panel: #121212; --card: #2e2e2e; --card-hover: #3a3a3a; --line: #424242;
   --ink: #ffffff; --muted: #888888; --dim: #4a4a4a; --accent: #8ab4f8; --accent-glow: rgba(138,180,248,0.12);
   --green: #4caf50; --red: #f44336; --orange: #ff9800; --glass: rgba(18,18,18,0.92);
 }
+
+/* --- Solarized (Dark) --- */
 [data-theme="solarized-dark"] {
   --bg: #002b36; --bg2: #073642; --panel: #001f27; --card: #073642; --card-hover: #0d4454; --line: #586e75;
   --ink: #839496; --muted: #657b83; --dim: #586e75; --accent: #268bd2; --accent-glow: rgba(38,139,210,0.12);
   --green: #859900; --red: #dc322f; --orange: #cb4b16; --glass: rgba(7,54,66,0.9);
 }
+
+/* --- Homunculus (Dark) --- */
 [data-theme="homunculus"] {
   --bg: #18181b; --bg2: #242429; --panel: #121215; --card: #303035; --card-hover: #404048; --line: #50505a;
   --ink: #d4d4d8; --muted: #94a3b8; --dim: #64748b; --accent: #a16262; --accent-glow: rgba(161,98,98,0.15);
   --green: #6a9955; --red: #c04040; --orange: #d97706; --glass: rgba(24,24,27,0.88);
 }
+
+/* --- Nothing (Minimal Dark) --- */
 [data-theme="nothing"] {
   --bg: #000000; --bg2: #050505; --panel: #0a0a0a; --card: #0f0f0f; --card-hover: #151515; --line: #202020;
   --ink: #ffffff; --muted: #707070; --dim: #404040; --accent: #ffffff; --accent-glow: rgba(255,255,255,0.1);
@@ -178,8 +190,8 @@ body {
   font-family: "Inter", system-ui, -apple-system, sans-serif;
   font-size: 14px;
   line-height: 1.55;
-  background: var(--bg);
-  color: var(--ink);
+  background: var(--bg); /* Uses theme's background */
+  color: var(--ink);     /* Uses theme's text color */
   height: 100%;
   overflow: hidden;
   margin: 0;
@@ -191,7 +203,7 @@ body {
 /* Scrollbar Styles */
 ::-webkit-scrollbar { width: var(--scrollbar-width); }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: var(--scrollbar-radius); }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: var(--scrollbar-radius); } /* Changed to accent */
 
 /* Card & Panel Border Radii */
 .card { border-radius: var(--radius-md); }
