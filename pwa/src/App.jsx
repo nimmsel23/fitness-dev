@@ -327,118 +327,111 @@ export default function App() {
               {tab === 'muscles'  && <Muscles hitMode={hitMode} gender={gender} />}
               {tab === 'learn'    && <Learn />}
               {tab === 'settings' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-                   <section className="card flex flex-col items-center text-center justify-center">
-                      <div className="w-20 h-20 rounded-full overflow-hidden mb-4 border-2 border-accent/20 flex items-center justify-center bg-accent/10 shadow-lg shadow-accent/5">
+                <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
+                   {/* 1. Account */}
+                   <section className="card flex flex-row items-center gap-6 p-6">
+                      <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-accent/20 flex items-center justify-center bg-accent/10">
                          {user.photoURL ? (
                            <img src={user.photoURL} alt={user.displayName} />
                          ) : (
-                           <User size={40} className="text-accent" />
+                           <User size={32} className="text-accent" />
                          )}
                       </div>
-                      <h2 className="text-xl font-black mb-1 text-ink">{user.displayName || user.email?.split('@')[0]}</h2>
-                      <p className="text-xs font-bold opacity-30 uppercase tracking-widest mb-6">{user.email}</p>
-                      <button onClick={signOut} className="btn btn-red w-full">
-                         <LogOut size={16} /> Abmelden
+                      <div className="flex-1">
+                        <h2 className="text-lg font-black text-ink">{user.displayName || user.email?.split('@')[0]}</h2>
+                        <p className="text-[10px] font-bold opacity-30 uppercase tracking-widest">{user.email}</p>
+                      </div>
+                      <button onClick={signOut} className="btn btn-red px-6 py-2">
+                         <LogOut size={16} />
                       </button>
                    </section>
 
-                   <section className="card">
+                   {/* 2. Training Settings */}
+                   <section className="card p-6">
                       <div className="flex items-center gap-2 mb-6">
                         <Dumbbell size={18} className="text-accent" />
-                        <h2 className="text-base font-black uppercase tracking-widest text-ink">Training</h2>
+                        <h2 className="text-base font-black uppercase tracking-widest text-ink">Training Einstellungen</h2>
                       </div>
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                           <div className="flex items-center justify-between">
+                              <div className="text-left">
+                                 <div className="text-sm font-bold text-ink">HIT Modus</div>
+                                 <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Standard-Modus für neue Sessions</div>
+                              </div>
+                              <button onClick={() => { const next = !hitMode; setHitMode(next); updateSettings({hitMode: next}); }} 
+                                className={`w-12 h-6 rounded-full transition-colors relative border-2 ${hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
+                                <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${hitMode ? 'right-0.5' : 'left-0.5'}`} />
+                              </button>
+                           </div>
+                           <div className="flex items-center justify-between">
+                              <div className="text-left">
+                                 <div className="text-sm font-bold text-ink">Plan Mode</div>
+                                 <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Zukünftige Workouts planen</div>
+                              </div>
+                              <button onClick={() => { const next = !planMode; setPlanMode(next); updateSettings({planMode: next}); }} 
+                                className={`w-12 h-6 rounded-full transition-colors relative border-2 ${planMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
+                                <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${planMode ? 'right-0.5' : 'left-0.5'}`} />
+                              </button>
+                           </div>
+                           <div className="flex items-center justify-between">
+                              <div className="text-left">
+                                 <div className="text-sm font-bold text-ink">Geschlecht</div>
+                                 <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Für anatomische Darstellung</div>
+                              </div>
+                              <div className="flex bg-bg2 rounded-lg p-1">
+                                 {['male', 'female'].map(g => (
+                                   <button key={g} onClick={() => { setGender(g); updateSettings({gender: g}); }}
+                                     className={`px-3 py-1 rounded-md text-[10px] font-black uppercase ${gender === g ? 'bg-accent text-black' : 'text-dim'}`}>
+                                     {g}
+                                   </button>
+                                 ))}
+                              </div>
+                           </div>
+                        </div>
+
+                        <div className="space-y-4">
                            <div className="text-left">
-                              <div className="text-sm font-bold text-ink">HIT Modus</div>
-                              <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Standard-Modus für neue Sessions</div>
+                              <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30 mb-3">Aktueller Split</div>
+                              <div className="flex flex-wrap gap-2">
+                                 {['PPL', 'Upper/Lower', 'Full Body', 'Bro-Split', 'Custom'].map(s => (
+                                   <button key={s} onClick={() => { setSplit(s); updateSettings({split: s}); }}
+                                     className={`px-3 py-2 rounded-xl text-[10px] font-black border transition-all ${split === s ? 'border-accent bg-accent text-black shadow-lg shadow-accent/20' : 'border-line bg-bg2 text-muted hover:text-ink'}`}>
+                                     {s}
+                                   </button>
+                                 ))}
+                              </div>
                            </div>
-                           <button onClick={() => { const next = !hitMode; setHitMode(next); updateSettings({hitMode: next}); }} 
-                             className={`w-12 h-6 rounded-full transition-colors relative border-2 ${hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
-                             <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${hitMode ? 'right-0.5' : 'left-0.5'}`} />
-                           </button>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                           <div className="text-left">
-                              <div className="text-sm font-bold text-ink">Plan Mode</div>
-                              <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Zukünftige Workouts planen</div>
-                           </div>
-                           <button onClick={() => { const next = !planMode; setPlanMode(next); updateSettings({planMode: next}); }} 
-                             className={`w-12 h-6 rounded-full transition-colors relative border-2 ${planMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
-                             <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${planMode ? 'right-0.5' : 'left-0.5'}`} />
-                           </button>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                           <div className="text-left">
-                              <div className="text-sm font-bold text-ink">Geschlecht</div>
-                              <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Für anatomische Darstellung</div>
-                           </div>
-                           <div className="flex bg-bg2 rounded-lg p-1">
-                              {['male', 'female'].map(g => (
-                                <button key={g} onClick={() => { setGender(g); updateSettings({gender: g}); }}
-                                  className={`px-3 py-1 rounded-md text-[10px] font-black uppercase ${gender === g ? 'bg-accent text-black' : 'text-dim'}`}>
-                                  {g}
-                                </button>
-                              ))}
-                           </div>
-                        </div>
-
-                        <div className="text-left">
-                           <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30 mb-3">Aktueller Split</div>
-                           <div className="flex flex-wrap gap-2">
-                              {['PPL', 'Upper/Lower', 'Full Body', 'Bro-Split', 'Custom'].map(s => (
-                                <button key={s} onClick={() => { setSplit(s); updateSettings({split: s}); }}
-                                  className={`px-3 py-2 rounded-xl text-[10px] font-black border transition-all ${split === s ? 'border-accent bg-accent text-black shadow-lg shadow-accent/20' : 'border-line bg-bg2 text-muted hover:text-ink'}`}>
-                                  {s}
-                                </button>
-                              ))}
-                           </div>
-                        </div>
-
-                        <div className="pt-4 border-t border-line/30 space-y-4">
                            <div className="grid grid-cols-2 gap-4">
                               <div>
                                  <label className="label-caps !mb-2">Zyklus (Wochen)</label>
                                  <input type="number" value={cycleLength} onChange={e => { setCycleLength(Number(e.target.value)); updateSettings({cycleLength: Number(e.target.value)}) }}
-                                    className="bg-bg2 border-line rounded-xl px-3 py-2 text-xs font-bold" />
+                                    className="bg-bg2 border-line rounded-xl px-3 py-2 text-xs font-bold w-full" />
                               </div>
                               <div>
                                  <label className="label-caps !mb-2">Standard-Ort</label>
                                  <input type="text" value={defaultLocation} onChange={e => { setDefaultLocation(e.target.value); updateSettings({defaultLocation: e.target.value}) }}
-                                    className="bg-bg2 border-line rounded-xl px-3 py-2 text-xs font-bold" />
+                                    className="bg-bg2 border-line rounded-xl px-3 py-2 text-xs font-bold w-full" />
                               </div>
-                           </div>
-                           <div>
-                              <label className="label-caps !mb-2">Primäres Ziel</label>
-                              <select value={trainingGoal} onChange={e => { setTrainingGoal(e.target.value); updateSettings({trainingGoal: e.target.value}) }}
-                                 className="bg-bg2 border-line rounded-xl px-3 py-2 text-xs font-bold">
-                                 <option>Hypertrophie</option>
-                                 <option>Maximalkraft</option>
-                                 <option>Kraftausdauer</option>
-                                 <option>Fettabbau / Cut</option>
-                                 <option>Reha / Prehab</option>
-                              </select>
                            </div>
                         </div>
                       </div>
                    </section>
 
-                   <section className="card md:col-span-2">
+                   {/* 3. Appearance */}
+                   <section className="card p-6">
                       <div className="flex items-center gap-2 mb-6">
                         <Activity size={18} className="text-accent" />
                         <h2 className="text-base font-black uppercase tracking-widest text-ink">Darstellung</h2>
                       </div>
                       
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
                         <div>
                           <h3 className="label-caps mb-4 ml-1">Dark Themes</h3>
                           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                              {DARK_THEMES.map(t => (
                                <button key={t} onClick={() => setManualTheme(t)} 
-                                 className={`p-2.5 rounded-xl text-[10px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-accent bg-accent text-black' : 'bg-bg2 border-line text-ink hover:border-accent/40'}`}
+                                 className={`p-2 rounded-xl text-[9px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-accent bg-accent text-black' : 'bg-bg2 border-line text-ink'}`}
                                  style={{ borderColor: theme === t ? 'var(--accent)' : '' }}>
                                  {t}
                                </button>
@@ -451,7 +444,7 @@ export default function App() {
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                              {LIGHT_THEMES.map(t => (
                                <button key={t} onClick={() => setManualTheme(t)} 
-                                 className={`p-2.5 rounded-xl text-[10px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-accent bg-accent text-black' : 'bg-bg2 border-line text-ink hover:border-accent/40'}`}
+                                 className={`p-2 rounded-xl text-[9px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-accent bg-accent text-black' : 'bg-bg2 border-line text-ink'}`}
                                  style={{ borderColor: theme === t ? 'var(--accent)' : '' }}>
                                  {t}
                                </button>
@@ -460,7 +453,7 @@ export default function App() {
                         </div>
                       </div>
 
-                      <div className="mt-8 pt-8 border-t border-line/50 flex items-center justify-between">
+                      <div className="pt-6 border-t border-line/50 flex items-center justify-between">
                          <div className="flex flex-col">
                             <span className="text-sm font-bold text-ink">🌅 Circadian Mode</span>
                             <span className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Tag/Nacht Automatik</span>
@@ -472,53 +465,35 @@ export default function App() {
                       </div>
                    </section>
 
-                   <section className="card md:col-span-2 opacity-50 border-dashed">
-                      <div className="flex items-center gap-2 mb-6">
-                        <Sparkles size={18} className="text-accent" />
-                        <h2 className="text-base font-black uppercase tracking-widest text-ink/70">App Roadmap (Zukunft)</h2>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                         <div className="space-y-2">
-                            <div className="text-[10px] font-black uppercase tracking-widest text-muted">V1.2: Progress</div>
-                            <ul className="text-[11px] font-bold space-y-1 text-ink/40">
-                               <li>• 1RM Estimations</li>
-                               <li>• Volume Progress Charts</li>
-                               <li>• Muscle-Level Fatigue</li>
-                            </ul>
-                         </div>
-                         <div className="space-y-2">
-                            <div className="text-[10px] font-black uppercase tracking-widest text-muted">V1.5: Social</div>
-                            <ul className="text-[11px] font-bold space-y-1 text-ink/40">
-                               <li>• Shared Workouts</li>
-                               <li>• Public Profiles</li>
-                               <li>• Challenges</li>
-                            </ul>
-                         </div>
-                         <div className="space-y-2">
-                            <div className="text-[10px] font-black uppercase tracking-widest text-muted">V2.0: Intelligence</div>
-                            <ul className="text-[11px] font-bold space-y-1 text-ink/40">
-                               <li>• AI Coach Recommendations</li>
-                               <li>• Form Analysis</li>
-                               <li>• Nutrition Sync</li>
-                            </ul>
-                         </div>
-                      </div>
-                   </section>
+                   {/* 4. Roadmap & System */}
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <section className="card p-6 opacity-80 border-dashed">
+                        <div className="flex items-center gap-2 mb-6">
+                          <Sparkles size={18} className="text-accent" />
+                          <h2 className="text-sm font-black uppercase tracking-widest text-ink">Roadmap</h2>
+                        </div>
+                        <div className="text-[11px] font-bold space-y-2 text-ink/60">
+                           <div><span className="text-accent">V1.2:</span> Progress (1RM, Charts, Fatigue)</div>
+                           <div><span className="text-accent">V1.5:</span> Social (Shared, Profiles)</div>
+                           <div><span className="text-accent">V2.0:</span> Intelligence (AI Coach, Form)</div>
+                        </div>
+                     </section>
 
-                   <section className="card md:col-span-2 opacity-50 border-dashed">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Settings2 size={18} className="text-dim" />
-                        <h2 className="text-base font-black uppercase tracking-widest text-muted">System & Sync</h2>
-                      </div>
-                      <div className="flex items-center justify-between py-2">
-                         <span className="text-xs font-bold text-muted uppercase tracking-widest">Plattform</span>
-                         <span className="text-xs font-black text-ink">Firebase Cloud Architecture</span>
-                      </div>
-                      <div className="flex items-center justify-between py-2 border-t border-line/30">
-                         <span className="text-xs font-bold text-muted uppercase tracking-widest">Status</span>
-                         <span className="text-[10px] font-black px-3 py-1 rounded-full bg-green/10 text-green border border-green/20">VERBUNDEN</span>
-                      </div>
-                   </section>
+                     <section className="card p-6 opacity-80 border-dashed">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Settings2 size={18} className="text-dim" />
+                          <h2 className="text-sm font-black uppercase tracking-widest text-muted">System</h2>
+                        </div>
+                        <div className="flex items-center justify-between py-1">
+                           <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Plattform</span>
+                           <span className="text-[10px] font-black text-ink">Firebase</span>
+                        </div>
+                        <div className="flex items-center justify-between py-1 border-t border-line/30 mt-2 pt-2">
+                           <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Status</span>
+                           <span className="text-[9px] font-black px-2 py-0.5 rounded bg-green/10 text-green border border-green/20">CONNECTED</span>
+                        </div>
+                     </section>
+                   </div>
                 </div>
               )}
             </ErrorBoundary>
