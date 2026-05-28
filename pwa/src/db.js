@@ -331,20 +331,20 @@ export async function getCoverageGaps(days = 7) {
     for (let ex of (session.exercises || [])) {
       if (!ex.done) continue;
       
-      const kbEx = kbMap.get((ex.name || "").toLowerCase());
-      const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];
-      const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
-      const name = ex.name || "";
+      // Use explicit tags saved in session, fallback to KB/Name mapping
+      const primary = ex.primaryMuscles || [];
+      const secondary = ex.secondaryMuscles || [];
+      const exName = ex.name || ex.exercise_id || "";
 
       // Track hits for all groups this exercise touches
       const groups = new Set();
       [...primary, ...secondary].forEach(m => {
-        muscleToGroupIds(m, name).forEach(gid => groups.add(gid));
+        muscleToGroupIds(m, exName).forEach(gid => groups.add(gid));
       });
 
-      // Fallback if no muscles identified
-      if (groups.size === 0) {
-        muscleToGroupIds("", name).forEach(gid => groups.add(gid));
+      // Fallback: If no explicit muscles are set, try mapping purely by exercise name
+      if (groups.size === 0 && exName) {
+         muscleToGroupIds("", exName).forEach(gid => groups.add(gid));
       }
 
       groups.forEach(gid => {
