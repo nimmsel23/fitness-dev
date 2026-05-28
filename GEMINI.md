@@ -55,4 +55,13 @@ A unified fitness ecosystem serving two primary roles:
 2.  **Sync Parity**: Update corresponding components in `/src` to maintain the local-development target.
 3.  **Deploy**: Use `npm run deploy --prefix pwa` for Firebase Hosting updates.
 4.  **Anatomy Parity**: When adding exercises, ensure deep anatomy is enriched in `~/anatomy-kb` and passes `./anatomy-agent audit all` before syncing to Firestore.
-5.  **Document**: Update this `GEMINI.md` when architectural shifts occur.
+5.  **Data Persistence**: Current strategy is repo-local storage for local development data.
+6.  **Pending Automations**: Implementation of a script to automate the synchronization of the Knowledge Base (`catalog/kb/`) to Firestore is required.
+7.  **Document**: Update this `GEMINI.md` when architectural shifts occur.
+
+## 6. Future Roadmap & Experiments
+*   **Anatomy Learning**: Integrating `body-muscles` (70+ regions) into the `Learn` view for deep anatomical education and interaction.
+*   **KB Sync Automation**: Pending implementation of an automated sync pipeline from `catalog/kb/` to Firestore.
+
+## 7. Document History
+*   2026-05-28: Integrated `react-muscle-highlighter` in `Muscles` tab (detailed view) with toggle support. Retained `react-body-highlighter` for dashboard.

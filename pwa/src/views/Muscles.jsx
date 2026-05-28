@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { Brain } from "lucide-react";
+import { Brain, LayoutGrid, User } from "lucide-react";
 import { getSessionHistory, getAllExercises } from "../db.js";
 import BodyMap from "../components/BodyMap.jsx";
+import DetailedMuscleMap from "../components/DetailedMuscleMap.jsx";
 
 const DAYS_OPTIONS = [7, 14, 28];
-const MUSCLE_GROUPS = [
+// ... (rest of the file)
+
   "chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves"
 ];
 
@@ -140,6 +142,7 @@ export default function Muscles({ hitMode }) {
   // ==========================================
   // VIEW: HIT SUPERCOMPENSATION
   // ==========================================
+  const [showDetailed, setShowDetailed] = useState(false);
   if (hitMode) {
     const { heavy, recovering, super: supercomp, ready, scores } = hitAnalysis;
     const colors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444'];
@@ -154,9 +157,15 @@ export default function Muscles({ hitMode }) {
 
     return (
       <div className="pb-20">
-        <div className="mb-8">
-           <div className="text-[10px] font-black uppercase tracking-widest text-accent mb-2">HIT Modus</div>
-           <h2 className="text-2xl font-black text-ink">Superkompensation</h2>
+        <div className="mb-8 flex justify-between items-end">
+           <div>
+             <div className="text-[10px] font-black uppercase tracking-widest text-accent mb-2">HIT Modus</div>
+             <h2 className="text-2xl font-black text-ink">Superkompensation</h2>
+           </div>
+           <button onClick={() => setShowDetailed(!showDetailed)} className="flex items-center gap-2 p-2 rounded-lg bg-card border border-line text-xs font-bold hover:bg-accent/10">
+             {showDetailed ? <LayoutGrid size={14}/> : <User size={14}/>}
+             {showDetailed ? 'Standard' : 'Detailliert'}
+           </button>
         </div>
 
         {loading ? (
@@ -168,14 +177,21 @@ export default function Muscles({ hitMode }) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-8 p-10 rounded-[40px] border flex justify-center gap-20 bg-card border-line shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent/5 to-transparent pointer-events-none" />
-              <div className="text-center relative z-10">
-                <div className="text-[10px] font-black uppercase tracking-[0.3em] opacity-20 mb-8">Anterior</div>
-                <BodyMap groupScores={scores} highlightedColors={colors} style={{ maxWidth: 200 }} />
-              </div>
-              <div className="text-center relative z-10">
-                <div className="text-[10px] font-black uppercase tracking-[0.3em] opacity-20 mb-8">Posterior</div>
-                <BodyMap groupScores={scores} type="posterior" highlightedColors={colors} style={{ maxWidth: 200 }} />
-              </div>
+              
+              {showDetailed ? (
+                <DetailedMuscleMap exercises={volExercises} style={{ minWidth: '300px' }} />
+              ) : (
+                <>
+                  <div className="text-center relative z-10">
+                    <div className="text-[10px] font-black uppercase tracking-[0.3em] opacity-20 mb-8">Anterior</div>
+                    <BodyMap groupScores={scores} highlightedColors={colors} style={{ maxWidth: 200 }} />
+                  </div>
+                  <div className="text-center relative z-10">
+                    <div className="text-[10px] font-black uppercase tracking-[0.3em] opacity-20 mb-8">Posterior</div>
+                    <BodyMap groupScores={scores} type="posterior" highlightedColors={colors} style={{ maxWidth: 200 }} />
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="lg:col-span-4 space-y-6">
