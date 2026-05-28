@@ -442,30 +442,29 @@ export default function App() {
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
                         <div>
                           <h3 className="label-caps mb-4 ml-1">Dark Themes</h3>
-                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                               {DARK_THEMES.map(t => (
-                                 <button key={t} onClick={() => setManualTheme(t)} 
-                                   className={`p-2 rounded-xl text-[9px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-[var(--accent)] bg-[var(--accent)] text-black' : 'bg-[var(--bg2)] border-[var(--line)] text-[var(--ink)]'}`}
-                                   style={{ borderColor: theme === t ? 'var(--accent)' : '' }}>
-                                   {t}
-                                 </button>
-                               ))}
-                            </div>
+                          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                             {DARK_THEMES.map(t => (
+                               <button key={t} onClick={() => setManualTheme(t)} 
+                                 className={`p-2 rounded-xl text-[9px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-[var(--accent)] bg-[var(--accent)] text-black' : 'bg-[var(--bg2)] border-[var(--line)] text-[var(--ink)]'}`}
+                                 style={{ borderColor: theme === t ? 'var(--accent)' : '' }}>
+                                 {t}
+                               </button>
+                             ))}
+                          </div>
                           </div>
 
                           <div>
-                            <h3 className="label-caps mb-4 ml-1">Light Themes</h3>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                               {LIGHT_THEMES.map(t => (
-                                 <button key={t} onClick={() => setManualTheme(t)} 
-                                   className={`p-2 rounded-xl text-[9px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-[var(--accent)] bg-[var(--accent)] text-black' : 'bg-[var(--bg2)] border-[var(--line)] text-[var(--ink)]'}`}
-                                   style={{ borderColor: theme === t ? 'var(--accent)' : '' }}>
-                                   {t}
-                                 </button>
-                               ))}
-                            </div>
+                          <h3 className="label-caps mb-4 ml-1">Light Themes</h3>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                             {LIGHT_THEMES.map(t => (
+                               <button key={t} onClick={() => setManualTheme(t)} 
+                                 className={`p-2 rounded-xl text-[9px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-[var(--accent)] bg-[var(--accent)] text-black' : 'bg-[var(--bg2)] border-[var(--line)] text-[var(--ink)]'}`}
+                                 style={{ borderColor: theme === t ? 'var(--accent)' : '' }}>
+                                 {t}
+                               </button>
+                             ))}
                           </div>
-                        </div>
+                          </div>                        </div>
 
                         <div className="pt-6 border-t border-[var(--line)]/50 flex flex-col gap-4">
                            <div className="flex items-center justify-between">
