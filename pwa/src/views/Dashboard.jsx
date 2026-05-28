@@ -70,7 +70,11 @@ export default function Dashboard({ onNavigate }) {
     getSession(today).then(setTodaySession).catch(() => setTodaySession({}));
     getPlan().then(setPlan).catch(() => setPlan(null));
     getLatestSession().then(setLastSession).catch(() => setLastSession(null));
-    getCoverageGaps(7).then(setCoverage).catch(() => setCoverage([]));
+    getMuscleCoverage(7).then(scores => {
+       const allGroups = ["chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves", "legs"];
+       const gaps = allGroups.filter(g => (scores[g] || 0) < 1).map(g => ({ name: g }));
+       setCoverage(gaps);
+    }).catch(() => setCoverage([]));
     
     Promise.all([
       getRecentSessions(10),
