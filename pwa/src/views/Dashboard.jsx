@@ -130,17 +130,17 @@ export default function Dashboard({ onNavigate }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-12">
         {/* Activity Heatmap - Full Width */}
-        <div className="lg:col-span-3 card !p-8 shadow-xl bg-gradient-to-br from-card to-bg2">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="label-caps !mb-0 flex items-center gap-3 text-sm">
-              <Activity size={16} className="text-accent" />
+        <div className="lg:col-span-3 card !p-10 shadow-2xl bg-gradient-to-br from-card to-bg2">
+          <div className="flex items-center justify-between mb-10">
+            <h3 className="label-caps !mb-0 flex items-center gap-4 text-base">
+              <Activity size={20} className="text-accent" />
               Aktivität & Konsistenz
             </h3>
-            <span className="text-[11px] font-bold opacity-30 uppercase tracking-widest">Letzte 10 Tage</span>
+            <span className="text-xs font-bold opacity-30 uppercase tracking-[0.2em]">Letzte 10 Tage</span>
           </div>
-          <div className="grid grid-cols-5 lg:grid-cols-10 gap-4">
+          <div className="grid grid-cols-5 lg:grid-cols-10 gap-6">
             {rollingDays.map((date) => {
               const s = sessionByDate[date];
               const done = !!(s?.block || s?.activity);
@@ -148,10 +148,10 @@ export default function Dashboard({ onNavigate }) {
               const color = done ? blockColor(s.block, s.activity) : null;
               const dayName = DAY_LABELS[new Date(date).getDay()];
               return (
-                <div key={date} className="flex flex-col items-center gap-3 group">
+                <div key={date} className="flex flex-col items-center gap-4 group">
                   <button
                     onClick={() => done && onNavigate?.("session", date)}
-                    className="w-full aspect-square rounded-2xl flex items-center justify-center text-sm font-black transition-all shadow-inner border-2"
+                    className="w-full aspect-square rounded-3xl flex items-center justify-center text-lg font-black transition-all shadow-lg border-2"
                     style={{
                       background: isToday ? 'var(--accent)' : done ? (color + '15') : 'var(--bg2)',
                       borderColor: isToday ? 'var(--accent)' : done ? (color + '30') : 'transparent',
@@ -161,7 +161,7 @@ export default function Dashboard({ onNavigate }) {
                   >
                     {done ? "✓" : "·"}
                   </button>
-                  <span className="text-[10px] font-black opacity-40 uppercase tracking-widest group-hover:opacity-100 transition-opacity">
+                  <span className="text-[11px] font-black opacity-40 uppercase tracking-widest group-hover:opacity-100 transition-opacity">
                     {dayName}
                   </span>
                 </div>
@@ -171,33 +171,33 @@ export default function Dashboard({ onNavigate }) {
         </div>
 
         {/* Column 1: Physical Status */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="card mb-0 flex flex-col items-center justify-center py-8">
-            <h3 className="label-caps mb-8 w-full px-1">Muskel-Status</h3>
-            <div className="flex justify-center gap-10">
-              <BodyMap exercises={enrichedRecent.flatMap(s => s.exercises || []).filter(e => e.done)} highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 110 }} />
-              <BodyMap exercises={enrichedRecent.flatMap(s => s.exercises || []).filter(e => e.done)} type="posterior" highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 110 }} />
+        <div className="lg:col-span-1 space-y-10">
+          <div className="card mb-0 flex flex-col items-center justify-center py-12">
+            <h3 className="label-caps mb-12 w-full px-2 text-center">Muskel-Status</h3>
+            <div className="flex justify-center gap-12">
+              <BodyMap exercises={enrichedRecent.flatMap(s => s.exercises || []).filter(e => e.done)} highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 140 }} />
+              <BodyMap exercises={enrichedRecent.flatMap(s => s.exercises || []).filter(e => e.done)} type="posterior" highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 140 }} />
             </div>
           </div>
 
-          <div className="card mb-0 bg-accent/5 border-accent/20">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp size={15} className="text-accent" />
-              <span className="label-caps !mb-0">Coverage (7 Tage)</span>
+          <div className="card mb-0 bg-accent/5 border-accent/20 p-8">
+            <div className="flex items-center gap-3 mb-8">
+              <TrendingUp size={20} className="text-accent" />
+              <span className="label-caps !mb-0 text-sm">Coverage (7 Tage)</span>
             </div>
             {coverage === null ? (
-              <div className="animate-pulse h-12 bg-bg2 rounded-xl" />
+              <div className="animate-pulse h-16 bg-bg2 rounded-2xl" />
             ) : coverage.length === 0 ? (
-              <div className="flex items-center gap-3 text-green">
-                <div className="w-8 h-8 rounded-full bg-green/10 flex items-center justify-center text-xs font-black">✓</div>
-                <p className="text-xs font-bold">Alles abgedeckt</p>
+              <div className="flex items-center gap-4 text-green">
+                <div className="w-12 h-12 rounded-full bg-green/10 flex items-center justify-center text-sm font-black">✓</div>
+                <p className="text-sm font-bold">Alles abgedeckt</p>
               </div>
             ) : (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 {coverage.map(g => (
-                  <span key={g.name} className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl flex items-center gap-1.5"
-                    style={{ background: 'var(--red)' + '15', color: 'var(--red)', border: '1px solid var(--red)20' }}>
-                    <AlertCircle size={10} />
+                  <span key={g.name} className="text-[11px] font-black uppercase tracking-widest px-5 py-2.5 rounded-2xl flex items-center gap-2"
+                    style={{ background: 'var(--red)' + '15', color: 'var(--red)', border: '1px solid var(--red)30' }}>
+                    <AlertCircle size={14} />
                     {g.name}
                   </span>
                 ))}
