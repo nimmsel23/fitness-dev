@@ -151,7 +151,6 @@ export default function Session({ initialDate, hitMode, planMode }) {
   const [prevMap, setPrevMap]       = useState({})
   const [restHours, setRestHours]   = useState(null)
   const [hasActivity, setHasActivity] = useState(false)
-  const [isActivity, setIsActivity] = useState(false) // Restore isActivity for compatibility
   const [activity, setActivity]   = useState({ type: 'hiking', duration: '', intensity: 5 })
   const [recentSessions, setRecentSessions] = useState({})
 
@@ -374,27 +373,25 @@ export default function Session({ initialDate, hitMode, planMode }) {
                 <span className="absolute right-4 bottom-3.5 text-[10px] font-black opacity-20 uppercase">MIN</span>
               </div>
               <div className="pt-2">
-                <button onClick={() => setIsActivity(!isActivity)} 
-                  className={`w-full p-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all shadow-sm ${isActivity ? 'border-orange bg-orange/5 text-orange' : 'border-accent/40 bg-accent/5 text-accent'}`}>
-                  {isActivity ? 'Switch to Strength' : 'Switch to Activity'}
+                <button onClick={() => setHasActivity(!hasActivity)} 
+                  className={`w-full p-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all shadow-sm ${hasActivity ? 'border-orange bg-orange/5 text-orange' : 'border-line bg-bg2 text-dim'}`}>
+                  {hasActivity ? 'Activity aktiv' : 'Activity hinzufügen'}
                 </button>
               </div>
             </div>
           </section>
 
-          {!isActivity && (
-            <section className="card p-6 shadow-lg border-line/50">
-              <SectionHeader>Training Split</SectionHeader>
-              <div className="grid grid-cols-2 gap-2">
-                {['Push', 'Pull', 'Legs', 'Upper', 'Lower', 'Full'].map(l => (
-                  <button key={l} onClick={() => setBlock(l)}
-                    className={`px-3 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${block === l ? 'border-accent bg-accent text-black shadow-lg shadow-accent/20' : 'border-line bg-bg2 text-muted hover:text-ink'}`}>
-                    {l}
-                  </button>
-                ))}
-              </div>
-            </section>
-          )}
+          <section className="card p-6 shadow-lg border-line/50">
+            <SectionHeader>Training Split</SectionHeader>
+            <div className="grid grid-cols-2 gap-2">
+              {['Push', 'Pull', 'Legs', 'Upper', 'Lower', 'Full'].map(l => (
+                <button key={l} onClick={() => setBlock(l)}
+                  className={`px-3 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${block === l ? 'border-accent bg-accent text-black shadow-lg shadow-accent/20' : 'border-line bg-bg2 text-muted hover:text-ink'}`}>
+                  {l}
+                </button>
+              ))}
+            </div>
+          </section>
 
           <section className="card p-6 shadow-lg border-line/50">
             <SectionHeader>Qualität & Fokus</SectionHeader>
