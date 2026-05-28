@@ -192,68 +192,15 @@ main {
   display: block;
 }
 
-nav.bottom-nav {
-  display: flex;
-  justify-content: space-around;
-  padding: 12px 0 env(safe-area-inset-bottom);
-  background: var(--glass);
-  border-top: 1px solid var(--line);
-  backdrop-filter: blur(20px);
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  max-width: 650px;
-  margin: 0 auto;
-  z-index: 50;
-}
-
-@media (min-width: 1024px) {
-  nav.bottom-nav {
-    display: none;
-  }
-  .desktop-sidebar {
-    display: flex;
-    flex-direction: column;
-    width: 260px;
-    height: 100%;
-    background: var(--bg2);
-    border-right: 1px solid var(--line);
-    padding: 24px;
-    position: sticky;
-    top: 0;
-    flex-shrink: 0;
-  }
-  .main-wrapper {
-    flex-direction: row !important;
-  }
+/* Mobile adjustments */
+@media (max-width: 480px) {
   main {
-    padding-bottom: 40px;
+    padding: 16px 16px 100px;
+  }
+  .card {
+    padding: 20px;
   }
 }
-
-@media (max-width: 1023px) {
-  .desktop-sidebar {
-    display: none;
-  }
-}
-
-nav button {
-  background: none;
-  border: none;
-  color: var(--dim);
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 8px 12px;
-  transition: all 0.2s;
-}
-
-nav button.active { color: var(--accent); }
 
 /* Form elements */
 input, textarea, select {
