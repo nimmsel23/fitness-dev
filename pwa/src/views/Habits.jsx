@@ -179,7 +179,7 @@ export default function Habits() {
                         return (
                           <div key={d} className="flex flex-col items-center gap-1">
                             <div 
-                              className={`w-full aspect-square rounded-md shadow-sm transition-all border ${done ? 'bg-green/30 border-green/20' : 'bg-bg2 border-line/50'}`}
+                              className={`w-full aspect-square rounded-md shadow-sm transition-all border ${done ? 'bg-green/50 border-green/40' : 'bg-bg2 border-line/50'}`}
                               title={d}
                             />
                           </div>
