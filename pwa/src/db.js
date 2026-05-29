@@ -337,9 +337,9 @@ const MUSCLE_GROUPS = {
   core: ["abs", "obliques", "core", "abdominis", "bauch"],
   glutes: ["glutes", "gluteus", "po", "gesäß", "hip thrust"],
   quads: ["quads", "quadriceps", "oberschenkel", "squat", "kniebeuge"],
-  hamstrings: ["hamstrings", "biceps femoris", "beinbeuger", "leg curl"],
-  calves: ["calves", "gastrocnemius", "waden", "calf"],
-  legs: ["legs", "squat", "deadlift", "lunge", "beine", "bein", "leg press"]
+  hamstrings: ["hamstrings", "biceps femoris", "beinbeuger", "leg curl", "kreuzheben", "good mornings", "rumänisches kreuzheben"],
+  calves: ["calves", "gastrocnemius", "waden", "calf", "wadenheben", "stehendes wadenheben"],
+  legs: ["legs", "squat", "deadlift", "lunge", "beine", "bein", "leg press", "kniebeuge"]
 };
 
 function muscleToGroupIds(muscle, exerciseName = "") {
@@ -517,7 +517,7 @@ export async function getWeeklyReport(selector = "current") {
       }
       for (const m of secondary) {
         muscleToGroupIds(m, exName).forEach(gid => {
-          bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5;
+          bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; // treat as primary
           hasMapped = true;
         });
       }
