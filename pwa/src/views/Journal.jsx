@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { getJournal, saveJournal, localToday } from "../db.js";
+import { getJournal, saveJournal } from "../db.js";
+import { localToday } from "../lib/utils.js";
 
 export default function Journal() {
   const [date, setDate]     = useState(localToday());

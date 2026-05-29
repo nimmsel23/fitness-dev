@@ -4,9 +4,9 @@ import ExerciseSearch from '../components/ExerciseSearch.jsx'
 import BodyMap from '../components/BodyMap.jsx'
 import { 
   getSession, saveSession, getSessionHistory, 
-  localToday, parseQuick, exportCsv, getProgressTrend, getExercise, sendToInbox
+  parseQuick, exportCsv, getProgressTrend, getExercise, sendToInbox
 } from '../db.js'
-import { buildSessionCoachSheet } from '../lib/exerciseInsights.js'
+import { localToday } from '../lib/utils.js'
 
 // ── Section header ────────────────────────────────────────────────────────────
 function SectionHeader({ children }) {
