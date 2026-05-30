@@ -119,6 +119,7 @@ def pull() -> dict:
             data = doc.to_dict()
             date = data.get("date", "")
             text = data.get("text", "").strip()
+            coach_feedback = data.get("coachFeedback", "").strip()
             hid  = data.get("habitId", "")
             hname = habit_names.get(hid, f"Habit:{hid}")
 
@@ -133,6 +134,8 @@ def pull() -> dict:
 
             with md_file.open("a", encoding="utf-8") as fh:
                 fh.write(f"\n{marker}\n**Habit: {hname}**\n{text}\n")
+                if coach_feedback:
+                    fh.write(f"> **Coach Feedback:** {coach_feedback}\n")
             known_habits.add(doc.id)
             total_habit_journal += 1
         

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getJournal, saveJournal, getAllHabitJournalsForDate, getHabits, getSession } from "../db.js";
 import { localToday } from "../lib/utils.js";
-import { Target, Book, Dumbbell } from "lucide-react";
+import { Target, Book, Dumbbell, Brain } from "lucide-react";
 
 export default function Journal() {
   const [date, setDate]     = useState(localToday());
@@ -109,6 +109,15 @@ export default function Journal() {
                       </div>
                     )}
                     <p className="text-sm leading-relaxed text-ink whitespace-pre-wrap">{e.text}</p>
+                    {isHabit && e.coachFeedback && (
+                      <div className="mt-4 pt-4 border-t border-accent/10">
+                         <div className="flex items-center gap-2 mb-1.5">
+                            <Brain size={12} className="text-accent" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-accent">Coach Feedback</span>
+                         </div>
+                         <p className="text-xs font-bold italic text-ink/70">"{e.coachFeedback}"</p>
+                      </div>
+                    )}
                     {(e.time || e.updated_at) && (
                       <div className="flex items-center gap-2 mt-4 opacity-30">
                          <div className={`w-1 h-1 rounded-full ${isHabit || isWorkout ? 'bg-accent' : 'bg-dim'}`} />

@@ -1,4 +1,4 @@
-import { X, Calendar, Check, Save, History } from "lucide-react";
+import { X, Calendar, Check, Save, History, Brain } from "lucide-react";
 import { ICON_COMPONENTS_MAP, getRollingDays } from "./utils";
 
 export default function HabitSidebar({ 
@@ -98,9 +98,25 @@ export default function HabitSidebar({
                    <div className="absolute top-3 right-3 animate-pulse">
                      <Save size={14} className="text-[var(--accent)]" />
                    </div>
-                 )}
-              </div>
-              <div className="flex items-center justify-between opacity-30">
+                   )}
+                   </div>
+
+                   {/* Current Coach Feedback */}
+                   {(() => {
+                   const currentEntry = journalHistory.find(h => h.date === selectedSidebarDate);
+                   if (!currentEntry?.coachFeedback) return null;
+                   return (
+                   <div className="p-4 rounded-2xl bg-[var(--accent)]/5 border border-[var(--accent)]/20 animate-in fade-in slide-in-from-top-2">
+                     <div className="flex items-center gap-2 mb-2">
+                        <Brain size={14} className="text-[var(--accent)]" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[var(--accent)]">Coach Feedback</span>
+                     </div>
+                     <p className="text-xs font-bold leading-relaxed text-[var(--ink)]/90 italic">"{currentEntry.coachFeedback}"</p>
+                   </div>
+                   );
+                   })()}
+
+                   <div className="flex items-center justify-between opacity-30">
                  <span className="text-[9px] font-black uppercase tracking-tighter">Strg + Enter zum Speichern</span>
               </div>
             </div>
@@ -117,6 +133,15 @@ export default function HabitSidebar({
                     <div key={idx} className="p-4 rounded-2xl bg-[var(--bg2)] border border-[var(--line)]/50">
                       <div className="text-[9px] font-black opacity-30 uppercase tracking-widest mb-2">{item.date}</div>
                       <div className="text-xs font-bold leading-relaxed text-[var(--ink)]/80 whitespace-pre-wrap">{item.text}</div>
+                      {item.coachFeedback && (
+                        <div className="mt-4 pt-4 border-t border-[var(--line)]/30">
+                           <div className="flex items-center gap-2 mb-1.5">
+                              <Brain size={10} className="text-[var(--accent)]" />
+                              <span className="text-[9px] font-black uppercase tracking-widest text-[var(--accent)]">Coach Feedback</span>
+                           </div>
+                           <p className="text-[11px] font-bold italic text-[var(--ink)]/70">"{item.coachFeedback}"</p>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
