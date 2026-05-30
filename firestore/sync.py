@@ -19,12 +19,22 @@ def _save_known(uid: str, ids: set):
     state_file = STATE_DIR / f"fsm-known-journal-{uid}.json"
     state_file.write_text(json.dumps(sorted(ids), indent=2))
 
+def _load_known_habits(uid: str) -> set:
+    state_file = STATE_DIR / f"fsm-known-habit-journal-{uid}.json"
+    return set(json.loads(state_file.read_text())) if state_file.exists() else set()
+
+def _save_known_habits(uid: str, ids: set):
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    state_file = STATE_DIR / f"fsm-known-habit-journal-{uid}.json"
+    state_file.write_text(json.dumps(sorted(ids), indent=2))
+
 
 def pull() -> dict:
     db = get_db()
     total_pulled = 0
     total_skipped = 0
     total_journal = 0
+    total_habit_journal = 0
     total_inbox = 0
 
     # Iterate over all user documents in the fitness collection
@@ -40,6 +50,15 @@ def pull() -> dict:
         inbox_dir.mkdir(parents=True, exist_ok=True)
 
         logger.info(f"Syncing user: {uid}")
+
+        # Fetch Habits for name resolution
+        habit_names = {}
+        try:
+            for hdoc in db.collection("fitness").document(uid).collection("habits").stream():
+                hdata = hdoc.to_dict()
+                habit_names[hdoc.id] = hdata.get("name", "Unknown Habit")
+        except Exception as e:
+            logger.warning(f"Could not fetch habits for {uid}: {e}")
 
         # Pull Sessions
         for doc in db.collection("fitness").document(uid).collection("sessions").stream():
@@ -58,6 +77,16 @@ def pull() -> dict:
             out = {k: (ts(v) if hasattr(v, "isoformat") else v) for k, v in data.items()}
             local.write_text(json.dumps(out, indent=2, ensure_ascii=False))
             total_pulled += 1
+
+            # Unify notes into journal markdown
+            notes = data.get("notes", "").strip()
+            if notes:
+                md_file = journal_dir / f"{date}.md"
+                marker = f"<!-- fssn:{doc.id} -->"
+                if not (md_file.exists() and marker in md_file.read_text()):
+                    block = data.get("block", "Training")
+                    with md_file.open("a", encoding="utf-8") as fh:
+                        fh.write(f"\n{marker}\n**Session: {block}**\n{notes}\n")
 
         # Pull Journal
         known = _load_known(uid)
@@ -81,6 +110,31 @@ def pull() -> dict:
                 fh.write(f"\n{marker}\n**{time}** {text}\n")
             known.add(doc.id)
             total_journal += 1
+
+        # Pull Habit Journal
+        known_habits = _load_known_habits(uid)
+        for doc in db.collection("fitness").document(uid).collection("habitJournals").stream():
+            if doc.id in known_habits:
+                continue
+            data = doc.to_dict()
+            date = data.get("date", "")
+            text = data.get("text", "").strip()
+            hid  = data.get("habitId", "")
+            hname = habit_names.get(hid, f"Habit:{hid}")
+
+            if not date or not text:
+                continue
+
+            md_file = journal_dir / f"{date}.md"
+            marker = f"<!-- fshid:{doc.id} -->"
+            if md_file.exists() and marker in md_file.read_text():
+                known_habits.add(doc.id)
+                continue
+
+            with md_file.open("a", encoding="utf-8") as fh:
+                fh.write(f"\n{marker}\n**Habit: {hname}**\n{text}\n")
+            known_habits.add(doc.id)
+            total_habit_journal += 1
         
         # Pull Inbox
         for doc in db.collection("fitness").document(uid).collection("inbox").stream():
@@ -93,8 +147,9 @@ def pull() -> dict:
                 total_inbox += 1
 
         _save_known(uid, known)
+        _save_known_habits(uid, known_habits)
 
-    return {"sessions": total_pulled, "skipped": total_skipped, "journal": total_journal, "inbox": total_inbox}
+    return {"sessions": total_pulled, "skipped": total_skipped, "journal": total_journal, "habit_journal": total_habit_journal, "inbox": total_inbox}
 
 
 def push() -> dict:
