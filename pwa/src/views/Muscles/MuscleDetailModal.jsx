@@ -11,21 +11,27 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
     
     setExLoading(true);
     getAllExercises().then(all => {
-      // Find exercises that target any of the muscles in this slug group
-      const relatedIds = muscleData.muscles || [muscleId];
-      const found = all.filter(ex => {
-        const primary = (ex.primary_muscles || ex.primaryMuscles || []);
-        const secondary = (ex.secondary_muscles || ex.secondaryMuscles || []);
-        return [...primary, ...secondary].some(m => relatedIds.includes(m.toLowerCase()));
-      });
-      setExercises(found.slice(0, 8));
+      // 1. Use pre-calculated "trained_by" if available from Anatomy-KB
+      if (muscleData.trained_by && Array.isArray(muscleData.trained_by)) {
+         const found = all.filter(ex => muscleData.trained_by.includes(ex.exercise_id || ex.id));
+         setExercises(found.slice(0, 10));
+      } else {
+         // 2. Fallback: Manual search in local library
+         const relatedIds = muscleData.muscles || [muscleId];
+         const found = all.filter(ex => {
+           const primary = (ex.primary_muscles || ex.primaryMuscles || []);
+           const secondary = (ex.secondary_muscles || ex.secondaryMuscles || []);
+           return [...primary, ...secondary].some(m => relatedIds.includes(m.toLowerCase()));
+         });
+         setExercises(found.slice(0, 8));
+      }
     }).finally(() => setExLoading(false));
   }, [muscleId, muscleData]);
 
   if (!muscleId) return null;
 
-  const name = muscleData?.display_name || muscleId.charAt(0).toUpperCase() + muscleId.slice(1);
-  const latin = muscleData?.latin_name;
+  const name = muscleData?.name_de || muscleData?.display_name || muscleId.charAt(0).toUpperCase() + muscleId.slice(1);
+  const latin = muscleData?.latin_name || muscleData?.latin;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
