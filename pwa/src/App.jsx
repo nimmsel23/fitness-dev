@@ -5,7 +5,7 @@ import Session from "./views/Session.jsx";
 import Journal from "./views/Journal/index.jsx";
 import Muscles from "./views/Muscles.jsx";
 import Learn from "./views/Learn.jsx";
-import WeeklyReview from "./views/WeeklyReview.jsx";
+import WeeklyReview from "./views/WeeklyReview/index.jsx";
 import Habits from "./views/Habits/index.jsx";
 import { getSettings, saveSettings, watchAuth, signIn, signOut, signInEmail, signUpEmail } from "./db.js";
 import { registerServiceWorkerUpdate } from "./lib/pwa-update.js";
