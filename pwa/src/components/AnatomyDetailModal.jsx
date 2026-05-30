@@ -1,5 +1,5 @@
 import { X, Target, Brain, Info, BookOpen, Search } from "lucide-react";
-import { getAllExercises } from "../../db.js";
+import { getAllExercises } from "../db.js";
 import { useState, useEffect } from "react";
 
 export default function MuscleDetailModal({ muscleId, muscleData, onClose, loading }) {
