@@ -16,16 +16,24 @@ const MAP_TO_RBH = {
   'glutes': 'gluteal', 'quads': 'quadriceps', 'hamstrings': 'hamstring', 'calves': 'calves'
 };
 
-export default function DetailedMuscleMap({ exercises, style, colors, gender, onGroupClick }) {
-  // Convert our exercises data to react-muscle-highlighter format
-  const data = exercises.flatMap(ex => {
+export default function DetailedMuscleMap({ exercises, style, colors, gender, side, onGroupClick }) {
+  // 1. Group exercises by muscle slug and calculate "hits"
+  const muscleHits = {};
+  exercises.forEach(ex => {
     const muscles = [...(ex.primaryMuscles || []), ...(ex.secondaryMuscles || [])];
-    return muscles
-      .filter(m => MAP_TO_RBH[m.toLowerCase()])
-      .map(m => ({
-        slug: MAP_TO_RBH[m.toLowerCase()],
-        intensity: 3
-      }));
+    muscles.forEach(m => {
+      const slug = MAP_TO_RBH[m.toLowerCase()];
+      if (slug) {
+        muscleHits[slug] = (muscleHits[slug] || 0) + 1;
+      }
+    });
+  });
+
+  // 2. Convert to react-muscle-highlighter format with intensity scale (1-4)
+  const data = Object.entries(muscleHits).map(([slug, hits]) => {
+    // Basic scaling: 1 hit = intensity 1, 2-3 = 2, 4-5 = 3, 6+ = 4
+    const intensity = hits >= 6 ? 4 : hits >= 4 ? 3 : hits >= 2 ? 2 : 1;
+    return { slug, intensity };
   });
 
   function handlePress(part) {
@@ -38,7 +46,7 @@ export default function DetailedMuscleMap({ exercises, style, colors, gender, on
             data={data} 
             colors={colors || ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444']}
             gender={gender || 'male'}
-            side="front"
+            side={side || 'front'}
             onBodyPartPress={handlePress}
         />
     </div>
