@@ -295,6 +295,23 @@ export async function unrecordHabit(uuid, date = todayISO()) {
   }, { merge: true }); // Merge true to avoid overwriting recorded_at if already exists
   return { ok: true };
 }
+
+export async function getHabitJournal(habitId, date) {
+  const snap = await getDoc(doc(db, "fitness", getUid(), "habitJournals", `${habitId}_${date}`));
+  return snap.exists() ? snap.data() : null;
+}
+
+export async function saveHabitJournal(habitId, date, text) {
+  const ref = doc(db, "fitness", getUid(), "habitJournals", `${habitId}_${date}`);
+  await setDoc(ref, {
+    habitId,
+    date,
+    text: text.trim(),
+    updated_at: serverTimestamp(),
+  }, { merge: true });
+  return { ok: true };
+}
+
 // ── Knowledge Base ───────────────────────────────────────────────────────────
 
 export async function getExercise(exerciseId) {

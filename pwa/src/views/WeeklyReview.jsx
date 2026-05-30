@@ -168,7 +168,7 @@ export default function WeeklyReview({ onNavigate }) {
                 {hitMode && <span className="text-[10px] text-accent font-black tracking-[0.2em] bg-accent/10 px-3 py-1 rounded-full">RECOVERY FOCUS</span>}
               </div>
               <div className="space-y-4">
-                {(data.sessions || []).map(session => {
+                {(data.sessions || []).slice().reverse().map(session => {
                   const isActivity = !!session.activity;
                   return (
                     <button
@@ -197,10 +197,11 @@ export default function WeeklyReview({ onNavigate }) {
                         {session.muscle_recovery && Object.keys(session.muscle_recovery).length > 0 ? (
                           <div className="flex justify-end gap-1.5 flex-wrap max-w-[150px]">
                              {Object.entries(session.muscle_recovery).slice(0, 4).map(([m, hrs]) => {
-                               const isSuper = hrs >= 96 && hrs <= 168;
-                               const isRecovering = hrs >= 72 && hrs < 96;
+                               // Recovery logic: < 24h = active, 24-48 = recovering, 48+ = fresh
+                               const status = hrs < 24 ? 'active' : hrs < 48 ? 'recovering' : 'fresh';
+                               const colorMap = { active: 'bg-red/10 text-red border-red/20', recovering: 'bg-orange/10 text-orange border-orange/20', fresh: 'bg-green/10 text-green border-green/20' };
                                return (
-                                 <span key={m} className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md border ${isSuper ? 'bg-green/10 text-green border-green/20' : isRecovering ? 'bg-orange/10 text-orange border-orange/20' : 'bg-bg2 text-muted border-line'}`}>
+                                 <span key={m} className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md border ${colorMap[status]}`}>
                                    {m.slice(0,4)} {hrs}h
                                  </span>
                                )

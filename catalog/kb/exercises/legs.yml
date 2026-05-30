@@ -11,8 +11,10 @@ exercises:
   equipment:
   - barbell
   primary_muscles:
-  - legs
+  - quads
+  - glutes
   secondary_muscles:
+  - hamstrings
   - core
   stabilizers:
   - back
@@ -43,7 +45,8 @@ exercises:
   equipment:
   - barbell
   primary_muscles:
-  - legs
+  - quads
+  - glutes
   secondary_muscles:
   - core
   stabilizers:
@@ -105,7 +108,7 @@ exercises:
   equipment:
   - machine
   primary_muscles:
-  - legs
+  - quads
   secondary_muscles:
   - core
   stabilizers:
@@ -135,9 +138,11 @@ exercises:
   equipment:
   - barbell
   primary_muscles:
-  - legs
+  - hamstrings
+  - glutes
   - back
   secondary_muscles:
+  - quads
   - core
   stabilizers:
   - shoulders

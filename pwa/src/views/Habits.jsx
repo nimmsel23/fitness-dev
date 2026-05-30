@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { Check, Plus, Trash2, Calendar, Target, TrendingUp, Activity, Star, CalendarDays, Edit, X, Footprints, Apple, BookOpen, Coffee, Droplet, Dumbbell, Feather, Heart, Home, Moon, Sunrise, Sun, Zap } from "lucide-react";
-import { getHabits, recordHabit, unrecordHabit, addHabit, deleteHabit, updateHabit, getHabitRecordsForDate } from "../db.js";
+import { Check, Plus, Trash2, Calendar, Target, TrendingUp, Activity, Star, CalendarDays, Edit, X, Footprints, Apple, BookOpen, Coffee, Droplet, Dumbbell, Feather, Heart, Home, Moon, Sunrise, Sun, Zap, Save } from "lucide-react";
+import { getHabits, recordHabit, unrecordHabit, addHabit, deleteHabit, updateHabit, getHabitRecordsForDate, getHabitJournal, saveHabitJournal } from "../db.js";
 import { localToday } from "../lib/utils.js";
 
 const ICON_OPTIONS = [
@@ -54,6 +54,10 @@ export default function Habits() {
   const [editingHabitId, setEditingHabitId] = useState(null);
   const [editingIcon, setEditingIcon] = useState(null); // NEW: State for icon during inline editing
   const [selectedHabitId, setSelectedHabitId] = useState(null); // Replaced expandedHabitId with selectedHabitId
+  const [selectedSidebarDate, setSelectedSidebarDate] = useState(localToday());
+  const [journalText, setJournalText] = useState("");
+  const [isJournalSaving, setIsJournalSaving] = useState(false);
+
   const rollingDates = useMemo(() => getRollingDays(28), []);
 
   async function load() {
@@ -76,6 +80,16 @@ export default function Habits() {
 
   useEffect(() => { load(); }, [selectedDate]); // Reload habits when selectedDate changes
 
+  // Fetch journal when habit or sidebar date changes
+  useEffect(() => {
+    if (selectedHabitId && selectedSidebarDate) {
+      setJournalText(""); // Clear while loading
+      getHabitJournal(selectedHabitId, selectedSidebarDate).then(j => {
+        setJournalText(j?.text || "");
+      });
+    }
+  }, [selectedHabitId, selectedSidebarDate]);
+
   useEffect(() => {
     if (editingHabitId) {
       const habitToEdit = habits.find(h => h.uuid === editingHabitId);
@@ -92,6 +106,28 @@ export default function Habits() {
       await recordHabit(h.uuid, selectedDate);
     }
     load();
+  }
+
+  async function toggleSidebarDone(habitId, date) {
+    const h = habits.find(x => x.uuid === habitId);
+    const isDone = h?.records?.some(r => r.date === date && r.completion === 'DONE');
+    if (isDone) {
+      await unrecordHabit(habitId, date);
+    } else {
+      await recordHabit(habitId, date);
+    }
+    load();
+  }
+
+  async function saveJournal(textOverride = null) {
+    const textToSave = textOverride !== null ? textOverride : journalText;
+    if (!selectedHabitId || !selectedSidebarDate) return;
+    setIsJournalSaving(true);
+    try {
+      await saveHabitJournal(selectedHabitId, selectedSidebarDate, textToSave);
+    } finally {
+      setIsJournalSaving(false);
+    }
   }
 
   async function handleAdd(e) {
@@ -352,16 +388,59 @@ export default function Habits() {
                           <div className="grid grid-cols-7 sm:grid-cols-14 lg:grid-cols-28 gap-1.5">
                               {getRollingDays(28).map(d => {
                                   const done = selectedHabit.records.some(r => r.date === d && r.completion === 'DONE');
+                                  const isSelectedDate = d === selectedSidebarDate;
                                   return (
                                   <div key={d} className="flex flex-col items-center gap-1">
-                                      <div
-                                      className={`w-full aspect-square rounded-md shadow-sm transition-all border ${done ? 'bg-emerald-500 border-emerald-600' : 'bg-[var(--bg2)] border-[var(--line)]/50'}`}
+                                      <button
+                                      onClick={() => setSelectedSidebarDate(d)}
+                                      className={`w-full aspect-square rounded-md shadow-sm transition-all border ${done ? 'bg-emerald-500 border-emerald-600' : 'bg-[var(--bg2)] border-[var(--line)]/50'} ${isSelectedDate ? 'ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--card)] scale-110 z-10' : ''}`}
                                       title={`${d}: ${done ? 'Erledigt' : 'Offen'}`}
                                       />
                                   </div>
                                   )
                               })}
                           </div>
+                      </div>
+
+                      {/* Status & Journal Section */}
+                      <div className="card p-6 space-y-4">
+                        <div className="flex items-center justify-between">
+                           <div>
+                              <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-0.5">{selectedSidebarDate}</div>
+                              <h4 className="text-sm font-black text-[var(--ink)]">Status & Notizen</h4>
+                           </div>
+                           <button 
+                             onClick={() => toggleSidebarDone(selectedHabitId, selectedSidebarDate)}
+                             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedHabit.records.some(r => r.date === selectedSidebarDate && r.completion === 'DONE') ? 'bg-green text-black shadow-lg shadow-green/20' : 'bg-[var(--bg2)] border border-[var(--line)] text-[var(--dim)]'}`}>
+                             <Check size={14} className={selectedHabit.records.some(r => r.date === selectedSidebarDate && r.completion === 'DONE') ? 'stroke-[3]' : ''} />
+                             {selectedHabit.records.some(r => r.date === selectedSidebarDate && r.completion === 'DONE') ? 'Erledigt' : 'Offen'}
+                           </button>
+                        </div>
+
+                        <div className="relative">
+                           <textarea
+                             value={journalText}
+                             onChange={(e) => setJournalText(e.target.value)}
+                             onBlur={() => saveJournal()}
+                             onKeyDown={(e) => {
+                               if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                 e.preventDefault();
+                                 saveJournal();
+                                 e.target.blur();
+                               }
+                             }}
+                             placeholder="Daily Reflection..."
+                             className="w-full h-32 bg-[var(--bg2)] border border-[var(--line)] rounded-2xl p-4 text-xs font-bold focus:border-[var(--accent)] outline-none resize-none transition-all"
+                           />
+                           {isJournalSaving && (
+                             <div className="absolute top-3 right-3 animate-pulse">
+                               <Save size={14} className="text-[var(--accent)]" />
+                             </div>
+                           )}
+                        </div>
+                        <div className="flex items-center justify-between opacity-30">
+                           <span className="text-[9px] font-black uppercase tracking-tighter">Strg + Enter zum Speichern</span>
+                        </div>
                       </div>
                   </div>
                 </>
