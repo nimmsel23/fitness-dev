@@ -53,6 +53,7 @@ const THEMES = {
   arc: { bg: '#ffffff', accent: '#5294e2' },
   solarized: { bg: '#fdf6e3', accent: '#268bd2' },
   alucard: { bg: '#fffbeb', accent: '#644ac9' },
+  gruvbox: { bg: '#282828', accent: '#fabd2f' },
   honey: { bg: '#fffaf0', accent: '#f59e0b' },
   midnight: { bg: '#090b10', accent: '#3b82f6' },
   matrix: { bg: '#000000', accent: '#00ff41' },
