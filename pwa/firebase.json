@@ -4,9 +4,14 @@
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
+    "site": "fitness-aos",
     "public": "dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [{ "source": "**", "destination": "/index.html" }],
+    "rewrites": [
+      { "source": "/standalone/habits/**", "destination": "/standalone/habits/index.html" },
+      { "source": "/standalone/journal/**", "destination": "/standalone/journal/index.html" },
+      { "source": "**", "destination": "/index.html" }
+    ],
     "headers": [
       {
         "source": "/sw.js",
