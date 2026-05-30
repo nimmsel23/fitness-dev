@@ -7,7 +7,7 @@ import MuscleAnalysis from "./MuscleAnalysis";
 import MuscleDetailedMap from "./MuscleDetailedMap";
 import MuscleBodyMap from "./MuscleBodyMap";
 import MuscleInsights from "./MuscleInsights";
-import MuscleDetailModal from "./MuscleDetailModal";
+import AnatomyDetailModal from "../../components/AnatomyDetailModal";
 
 const CAT_HEAVY = 72;
 const CAT_RECOVERING = 96;
@@ -178,7 +178,7 @@ export default function Muscles({ hitMode, gender }) {
         </div>
       )}
 
-      <MuscleDetailModal 
+      <AnatomyDetailModal 
         muscleId={selectedMuscleId}
         muscleData={muscleData}
         loading={muscleLoading}
