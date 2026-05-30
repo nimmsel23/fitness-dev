@@ -1,6 +1,12 @@
 import { Dumbbell } from 'lucide-react';
 import { formatVolume } from './utils';
 
+function formatRecovery(hrs) {
+  if (hrs >= 96) return 'FRESH';
+  if (hrs >= 48) return `${Math.round(hrs / 24)}d`;
+  return `${hrs}h`;
+}
+
 export default function ReviewSessionList({ sessions, onNavigate, hitMode }) {
   return (
     <section className="card mb-0 shadow-lg border-line/50 p-8">
@@ -45,7 +51,7 @@ export default function ReviewSessionList({ sessions, onNavigate, hitMode }) {
                        const colorMap = { active: 'bg-red/10 text-red border-red/20', recovering: 'bg-orange/10 text-orange border-orange/20', fresh: 'bg-green/10 text-green border-green/20' };
                        return (
                          <span key={m} className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md border ${colorMap[status]}`}>
-                           {m.slice(0,4)} {hrs}h
+                           {m.slice(0,4)} {formatRecovery(hrs)}
                          </span>
                        )
                      })}
