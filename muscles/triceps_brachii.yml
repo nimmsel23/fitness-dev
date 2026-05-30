@@ -1,6 +1,6 @@
 muscle_id: triceps_brachii
 wger_id: 5
-latin: Triceps brachii
+latin: Musculus triceps brachii
 name_en: Triceps
 is_front: false
 origin: 'Caput longum: Tuberculum infraglenoidale der Scapula. Caput laterale: Laterale
@@ -11,9 +11,11 @@ innervation: Nervus radialis (C6-C8).
 function: Primärer Agonist für die Extension des Unterarms im Ellenbogengelenk.
 exercises:
   bench_press:
-    function_in_exercise: Primärer Agonist für die Extension des Unterarms im Ellenbogengelenk, entscheidend
-      für das Ausstrecken der Arme gegen den Widerstand beim Hochdrücken der Hantel.
+    function_in_exercise: Primärer Agonist für die Extension des Unterarms im Ellenbogengelenk,
+      entscheidend für das Ausstrecken der Arme gegen den Widerstand beim Hochdrücken
+      der Hantel.
   schulterdruecken_mit_hueftschwung:
-    function_in_exercise: Streckt den Ellenbogen im oberen Drittel der Bewegung bis zum Lockout.
+    function_in_exercise: Streckt den Ellenbogen im oberen Drittel der Bewegung bis
+      zum Lockout.
   reissen_und_umsetzen:
     function_in_exercise: Streckt die Arme beim Jerk explosiv durch.

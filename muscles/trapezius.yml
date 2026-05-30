@@ -1,6 +1,6 @@
 muscle_id: trapezius
 wger_id: 9
-latin: Trapezius
+latin: Musculus trapezius
 name_en: Upper Back
 is_front: false
 origin: Os occipitale, Processus spinosi C1-T12.
@@ -13,6 +13,8 @@ exercises:
   bench_press:
     function_in_exercise: Stabilisiert die Scapula durch Retraktion und Depression.
   schulterdruecken_mit_hueftschwung:
-    function_in_exercise: Stabilisiert den Schultergürtel und unterstützt die Upward Rotation der Scapula.
+    function_in_exercise: Stabilisiert den Schultergürtel und unterstützt die Upward
+      Rotation der Scapula.
   reissen_und_umsetzen:
-    function_in_exercise: Zieht die Schultern explosiv nach oben beim Shrug-Anteil des Zugs.
+    function_in_exercise: Zieht die Schultern explosiv nach oben beim Shrug-Anteil
+      des Zugs.

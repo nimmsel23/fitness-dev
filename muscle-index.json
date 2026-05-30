@@ -2,7 +2,7 @@
   "biceps_brachii": {
     "muscle_id": "biceps_brachii",
     "wger_id": 1,
-    "latin": "Biceps brachii",
+    "latin": "Musculus biceps brachii",
     "name_en": "Biceps",
     "name_de": "Bizeps",
     "is_front": true,
@@ -14,7 +14,7 @@
   "anterior_deltoid": {
     "muscle_id": "anterior_deltoid",
     "wger_id": 2,
-    "latin": "Anterior deltoid",
+    "latin": "Musculus deltoideus, Pars clavicularis",
     "name_en": "Shoulders",
     "name_de": "Vorderer Delta-Muskel",
     "is_front": true,
@@ -26,7 +26,7 @@
   "serratus_anterior": {
     "muscle_id": "serratus_anterior",
     "wger_id": 3,
-    "latin": "Serratus anterior",
+    "latin": "Musculus serratus anterior",
     "name_en": "",
     "name_de": "Vorderer Sägemuskel",
     "is_front": true,
@@ -38,7 +38,7 @@
   "pectoralis_major": {
     "muscle_id": "pectoralis_major",
     "wger_id": 4,
-    "latin": "Pectoralis major",
+    "latin": "Musculus pectoralis major",
     "name_en": "Chest",
     "name_de": "Großer Brustmuskel",
     "is_front": true,
@@ -51,7 +51,7 @@
   "triceps_brachii": {
     "muscle_id": "triceps_brachii",
     "wger_id": 5,
-    "latin": "Triceps brachii",
+    "latin": "Musculus triceps brachii",
     "name_en": "Triceps",
     "name_de": "Trizeps",
     "is_front": false,
@@ -64,7 +64,7 @@
   "rectus_abdominis": {
     "muscle_id": "rectus_abdominis",
     "wger_id": 6,
-    "latin": "Rectus abdominis",
+    "latin": "Musculus rectus abdominis",
     "name_en": "Abs",
     "name_de": "Gerader Bauchmuskel",
     "is_front": true,
@@ -77,7 +77,7 @@
   "gastrocnemius": {
     "muscle_id": "gastrocnemius",
     "wger_id": 7,
-    "latin": "Gastrocnemius",
+    "latin": "Musculus gastrocnemius",
     "name_en": "Calves",
     "name_de": "Zwillingswadenmuskel",
     "is_front": false,
@@ -90,7 +90,7 @@
   "gluteus_maximus": {
     "muscle_id": "gluteus_maximus",
     "wger_id": 8,
-    "latin": "Gluteus maximus",
+    "latin": "Musculus gluteus maximus",
     "name_en": "Glutes",
     "name_de": "Großer Gesäßmuskel",
     "is_front": false,
@@ -102,7 +102,7 @@
   "trapezius": {
     "muscle_id": "trapezius",
     "wger_id": 9,
-    "latin": "Trapezius",
+    "latin": "Musculus trapezius",
     "name_en": "",
     "name_de": "Trapezmuskel / Kapuzenmuskel",
     "is_front": false,
@@ -117,7 +117,7 @@
   "quadriceps_femoris": {
     "muscle_id": "quadriceps_femoris",
     "wger_id": 10,
-    "latin": "Quadriceps femoris",
+    "latin": "Musculus quadriceps femoris",
     "name_en": "Quads",
     "name_de": "Vierköpfiger Oberschenkelmuskel",
     "is_front": true,
@@ -129,7 +129,7 @@
   "biceps_femoris": {
     "muscle_id": "biceps_femoris",
     "wger_id": 11,
-    "latin": "Biceps femoris",
+    "latin": "Musculus biceps femoris",
     "name_en": "Hamstrings",
     "name_de": "Beinbeuger",
     "is_front": false,
@@ -142,7 +142,7 @@
   "latissimus_dorsi": {
     "muscle_id": "latissimus_dorsi",
     "wger_id": 12,
-    "latin": "Latissimus dorsi",
+    "latin": "Musculus latissimus dorsi",
     "name_en": "Lats",
     "name_de": "Breitester Rückenmuskel",
     "is_front": false,
@@ -156,7 +156,7 @@
   "brachialis": {
     "muscle_id": "brachialis",
     "wger_id": 13,
-    "latin": "Brachialis",
+    "latin": "Musculus brachialis",
     "name_en": "",
     "name_de": "Armbeuger",
     "is_front": true,
@@ -168,7 +168,7 @@
   "obliquus_externus_abdominis": {
     "muscle_id": "obliquus_externus_abdominis",
     "wger_id": 14,
-    "latin": "Obliquus externus abdominis",
+    "latin": "Musculus obliquus externus abdominis",
     "name_en": "",
     "name_de": "Äußerer schräger Bauchmuskel",
     "is_front": true,
@@ -180,7 +180,7 @@
   "soleus": {
     "muscle_id": "soleus",
     "wger_id": 15,
-    "latin": "Soleus",
+    "latin": "Musculus soleus",
     "name_de": "Schollenmuskel",
     "name_en": "",
     "is_front": false,
@@ -192,7 +192,7 @@
   "erector_spinae": {
     "muscle_id": "erector_spinae",
     "wger_id": 16,
-    "latin": "Erector spinae",
+    "latin": "Musculus erector spinae",
     "name_en": "Lower back",
     "name_de": "Rückenstrecker",
     "is_front": false,
@@ -205,7 +205,7 @@
   "lateral_deltoid": {
     "muscle_id": "lateral_deltoid",
     "wger_id": null,
-    "latin": "Pars acromialis deltoidei",
+    "latin": "Musculus deltoideus, Pars acromialis",
     "name_en": "Lateral deltoid",
     "name_de": "Mittlerer Deltamuskel",
     "is_front": true,
@@ -217,7 +217,7 @@
   "posterior_deltoid": {
     "muscle_id": "posterior_deltoid",
     "wger_id": null,
-    "latin": "Pars spinalis deltoidei",
+    "latin": "Musculus deltoideus, Pars spinalis",
     "name_en": "Rear deltoid",
     "name_de": "Hinterer Deltamuskel",
     "is_front": false,
@@ -229,7 +229,7 @@
   "gluteus_medius": {
     "muscle_id": "gluteus_medius",
     "wger_id": null,
-    "latin": "Gluteus medius",
+    "latin": "Musculus gluteus medius",
     "name_en": "Gluteus medius",
     "name_de": "Mittlerer Gesäßmuskel",
     "is_front": false,
@@ -241,7 +241,7 @@
   "tibialis_anterior": {
     "muscle_id": "tibialis_anterior",
     "wger_id": null,
-    "latin": "Tibialis anterior",
+    "latin": "Musculus tibialis anterior",
     "name_en": "Tibialis anterior",
     "name_de": "Vorderer Schienbeinmuskel",
     "is_front": true,
@@ -253,7 +253,7 @@
   "adductors": {
     "muscle_id": "adductors",
     "wger_id": null,
-    "latin": "Adductores",
+    "latin": "Musculi adductores",
     "name_en": "Adductors",
     "name_de": "Adduktoren",
     "is_front": true,
@@ -291,7 +291,7 @@
   "quadratus_lumborum": {
     "muscle_id": "quadratus_lumborum",
     "wger_id": null,
-    "latin": "Quadratus lumborum",
+    "latin": "Musculus quadratus lumborum",
     "name_en": "Quadratus lumborum",
     "name_de": "Quadratischer Lendenmuskel",
     "is_front": false,

@@ -1,6 +1,6 @@
 muscle_id: quadriceps_femoris
 wger_id: 10
-latin: Quadriceps femoris
+latin: Musculus quadriceps femoris
 name_en: Thigh Front
 is_front: true
 origin: Femur und Spina iliaca anterior inferior.
@@ -9,7 +9,8 @@ innervation: Nervus femoralis (L2-L4).
 function: Streckung im Kniegelenk.
 exercises:
   back_squat:
-    function_in_exercise: Primärer Agonist für die Kniestreckung, verantwortlich für die Aufwärtsbewegung aus der Hocke.
+    function_in_exercise: Primärer Agonist für die Kniestreckung, verantwortlich für
+      die Aufwärtsbewegung aus der Hocke.
   lunge:
     function_in_exercise: Primärer Agonist für die Kniestreckung im vorderen Bein.
   squat:
@@ -17,4 +18,5 @@ exercises:
   schulterdruecken_mit_hueftschwung:
     function_in_exercise: Erzeugt den initialen Impuls (Drive) durch explosive Kniestreckung.
   reissen_und_umsetzen:
-    function_in_exercise: Streckt das Knie beim Zug und stabilisiert beim Catch in der Frontbeuge.
+    function_in_exercise: Streckt das Knie beim Zug und stabilisiert beim Catch in
+      der Frontbeuge.

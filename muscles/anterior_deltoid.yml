@@ -1,6 +1,6 @@
 muscle_id: anterior_deltoid
 wger_id: 2
-latin: Anterior deltoid
+latin: Musculus deltoideus, Pars clavicularis
 name_en: Shoulders
 is_front: true
 origin: Clavicula (lateraler Anteil), Acromion, Spina scapulae
@@ -15,6 +15,8 @@ exercises:
     function_in_exercise: Unterstützt den Pectoralis Major bei der Flexion und horizontalen
       Adduktion des Arms im Schultergelenk.
   schulterdruecken_mit_hueftschwung:
-    function_in_exercise: Primärer Beweger für die Elevation des Arms über Kopf nach dem Bein-Impuls.
+    function_in_exercise: Primärer Beweger für die Elevation des Arms über Kopf nach
+      dem Bein-Impuls.
   reissen_und_umsetzen:
-    function_in_exercise: Hilft beim Abfangen der Last über Kopf (Catch) und beim Ausstoß (Jerk).
+    function_in_exercise: Hilft beim Abfangen der Last über Kopf (Catch) und beim
+      Ausstoß (Jerk).
