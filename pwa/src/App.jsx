@@ -4,7 +4,7 @@ import Dashboard from "./views/Dashboard.jsx";
 import Session from "./views/Session.jsx";
 import Journal from "./views/Journal/index.jsx";
 import Muscles from "./views/Muscles/index.jsx";
-import Learn from "./views/Learn.jsx";
+import Learn from "./views/Learn/index.jsx";
 import WeeklyReview from "./views/WeeklyReview/index.jsx";
 import Habits from "./views/Habits/index.jsx";
 import { getSettings, saveSettings, watchAuth, signIn, signOut, signInEmail, signUpEmail } from "./db.js";
