@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { getJournal, saveJournal, getAllHabitJournalsForDate, getHabits } from "../db.js";
+import { getJournal, saveJournal, getAllHabitJournalsForDate, getHabits, getSession } from "../db.js";
 import { localToday } from "../lib/utils.js";
-import { Target, Book } from "lucide-react";
+import { Target, Book, Dumbbell } from "lucide-react";
 
 export default function Journal() {
   const [date, setDate]     = useState(localToday());
@@ -13,10 +13,11 @@ export default function Journal() {
 
   useEffect(() => {
     async function load() {
-      const [regularEntries, habitEntries, allHabits] = await Promise.all([
+      const [regularEntries, habitEntries, allHabits, session] = await Promise.all([
         getJournal(date),
         getAllHabitJournalsForDate(date),
-        getHabits()
+        getHabits(),
+        getSession(date)
       ]);
       
       setHabits(allHabits);
@@ -24,7 +25,19 @@ export default function Journal() {
       const combined = [
         ...regularEntries.map(e => ({ ...e, type: 'regular' })),
         ...habitEntries
-      ].sort((a, b) => {
+      ];
+
+      if (session && session.notes && session.notes.trim()) {
+        combined.push({
+          id: 'workout-note-' + date,
+          text: session.notes,
+          type: 'workout',
+          block: session.block || 'Training',
+          updated_at: session.saved_at
+        });
+      }
+
+      combined.sort((a, b) => {
         const timeA = a.time || (a.updated_at?.seconds ? new Date(a.updated_at.seconds * 1000).toISOString() : "");
         const timeB = b.time || (b.updated_at?.seconds ? new Date(b.updated_at.seconds * 1000).toISOString() : "");
         return timeB.localeCompare(timeA);
@@ -80,22 +93,25 @@ export default function Journal() {
             {entries.length > 0 ? (
               entries.map((e, i) => {
                 const isHabit = e.type === 'habit';
+                const isWorkout = e.type === 'workout';
                 const habit = isHabit ? habits.find(h => h.uuid === e.habitId) : null;
                 
                 return (
-                  <div key={e.id || i} className={`p-5 rounded-2xl border bg-card transition-colors ${isHabit ? 'border-accent/10 hover:border-accent/30' : 'border-line hover:border-accent/20'}`}>
-                    {isHabit && (
+                  <div key={e.id || i} className={`p-5 rounded-2xl border bg-card transition-colors ${isHabit ? 'border-accent/10 hover:border-accent/30' : isWorkout ? 'border-accent/10 bg-gradient-to-br from-card to-bg2' : 'border-line hover:border-accent/20'}`}>
+                    {(isHabit || isWorkout) && (
                       <div className="flex items-center gap-2 mb-3">
                          <div className="p-1.5 rounded-lg bg-accent/10 text-accent">
-                            <Target size={12} />
+                            {isHabit ? <Target size={12} /> : <Dumbbell size={12} />}
                          </div>
-                         <span className="text-[10px] font-black uppercase tracking-widest text-accent">{habit?.name || "Habit"} Notiz</span>
+                         <span className="text-[10px] font-black uppercase tracking-widest text-accent">
+                           {isHabit ? `${habit?.name || "Habit"} Notiz` : `${e.block} Notiz`}
+                         </span>
                       </div>
                     )}
                     <p className="text-sm leading-relaxed text-ink whitespace-pre-wrap">{e.text}</p>
-                    {(e.time || (isHabit && e.updated_at)) && (
+                    {(e.time || e.updated_at) && (
                       <div className="flex items-center gap-2 mt-4 opacity-30">
-                         <div className={`w-1 h-1 rounded-full ${isHabit ? 'bg-accent' : 'bg-dim'}`} />
+                         <div className={`w-1 h-1 rounded-full ${isHabit || isWorkout ? 'bg-accent' : 'bg-dim'}`} />
                          <span className="text-[10px] font-bold font-mono">
                            {e.time ? e.time.slice(11, 16) : (e.updated_at?.seconds ? new Date(e.updated_at.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "")} Uhr
                          </span>
