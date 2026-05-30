@@ -4,568 +4,314 @@ import Dashboard from "./views/Dashboard/index.jsx";
 import Session from "./views/Session/index.jsx";
 import Journal from "./views/Journal/index.jsx";
 import Muscles from "./views/Muscles/index.jsx";
-import Learn from "./views/Learn/index.jsx";
+import Learn from "./views/Learn.jsx";
 import WeeklyReview from "./views/WeeklyReview/index.jsx";
 import Habits from "./views/Habits/index.jsx";
+import Settings from "./views/Settings/index.jsx";
 import { getSettings, saveSettings, watchAuth, signIn, signOut, signInEmail, signUpEmail } from "./db.js";
 import { registerServiceWorkerUpdate } from "./lib/pwa-update.js";
 
 class ErrorBoundary extends Component {
   state = { error: null };
-  static getDerivedStateFromError(e) { return { error: e }; }
+  static getDerivedStateFromError(error) { return { error }; }
   render() {
     if (this.state.error) return (
-      <div style={{ padding: 24, color: "#ff6584", background: "var(--bg)", height: '100vh' }}>
-        <strong>Fehler:</strong> {this.state.error.message}
-        <br />
-        <button onClick={() => this.setState({ error: null })} style={{ marginTop: 12, padding: "6px 14px", borderRadius: 8, border: "1px solid #ff6584", background: "transparent", color: "#ff6584", cursor: "pointer" }}>
-          Zurück
-        </button>
+      <div className="p-8 bg-red/10 text-red rounded-3xl border border-red/20 m-4">
+        <h2 className="font-black mb-2 uppercase tracking-widest text-xs">Runtime Error</h2>
+        <p className="text-sm opacity-80 font-bold">{this.state.error.message}</p>
+        <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-red text-white rounded-xl text-xs font-black uppercase">Reload App</button>
       </div>
     );
     return this.props.children;
   }
 }
 
+const DARK_THEMES = ['nordic', 'dracula', 'midnight', 'matrix', 'forest', 'crimson', 'slate', 'zinc'];
+const LIGHT_THEMES = ['honey', 'snow', 'rose', 'latte', 'mint', 'cyan', 'gold'];
+
+const THEMES = {
+  nordic:   { bg: '#2e3440', accent: '#88c0d0' },
+  dracula:  { bg: '#282a36', accent: '#bd93f9' },
+  midnight: { bg: '#090b10', accent: '#3b82f6' },
+  matrix:   { bg: '#000000', accent: '#00ff41' },
+  forest:   { bg: '#1a2f23', accent: '#4ade80' },
+  crimson:  { bg: '#1a0f12', accent: '#f43f5e' },
+  slate:    { bg: '#0f172a', accent: '#38bdf8' },
+  zinc:     { bg: '#18181b', accent: '#a1a1aa' },
+  honey:    { bg: '#fffaf0', accent: '#f59e0b' },
+  snow:     { bg: '#ffffff', accent: '#3b82f6' },
+  rose:     { bg: '#fff1f2', accent: '#f43f5e' },
+  latte:    { bg: '#f5e0dc', accent: '#1e66f5' },
+  mint:     { bg: '#f0fff4', accent: '#10b981' },
+  cyan:     { bg: '#ecfeff', accent: '#06b6d4' },
+  gold:     { bg: '#fffbeb', accent: '#d97706' }
+};
+
 const VALID_TABS = new Set(['dash', 'session', 'review', 'learn', 'journal', 'habits', 'muscles', 'settings'])
 
-const TABS = [
+const NAV_ITEMS = [
   { id: 'dash',     label: 'Heute',    Icon: Activity },
   { id: 'session',  label: 'Training', Icon: Dumbbell },
-  { id: 'review',   label: 'Review',   Icon: BarChart3 },
   { id: 'habits',   label: 'Habits',   Icon: Target },
-  { id: 'learn',    label: 'Lernen',   Icon: Search },
   { id: 'journal',  label: 'Journal',  Icon: BookOpen },
-  { id: 'muscles',  label: 'Muskeln',  Icon: Layers },
+  { id: 'muscles',  label: 'Muskeln',  Icon: Brain },
+  { id: 'review',   label: 'Review',   Icon: BarChart3 },
+  { id: 'learn',    label: 'Lernen',   Icon: Sparkles },
   { id: 'settings', label: 'Setup',    Icon: Settings2 },
-]
-
-export const DARK_THEMES  = [
-  // Catppuccin
-  'mocha','macchiato','frappe',
-  // Dracula
-  'dracula','dracula-purple',
-  // Nordic
-  'nordic','nordic-darker','nordic-bluish',
-  // Sweet
-  'sweet','sweet-purple','sweet-mars','sweet-amber-blue',
-  // Other Dark
-  'honey','gruvbox','homunculus','arc-dark','ant-dark','materia','solarized-dark','nothing'
-]
-export const LIGHT_THEMES = [
-  // Catppuccin
-  'latte',
-  // Other Light
-  'alucard','arc','solarized','ant'
-]
-const DAY_START = 6
-const DAY_END   = 20
-
-function getHashTab() {
-  const hash = window.location.hash.slice(1)
-  return VALID_TABS.has(hash) ? hash : 'dash'
-}
-
-function applyTheme(t) {
-  console.log("Applying theme:", t);
-  const themeAttr = t; // No special handling for honey needed, :root defines it.
-  document.documentElement.setAttribute('data-theme', themeAttr);
-  document.body.setAttribute('data-theme', themeAttr);
-  // Force repaint
-  document.documentElement.style.display = 'none';
-  document.documentElement.offsetHeight;
-  document.documentElement.style.display = '';
-}
+];
 
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [tab, setTab] = useState(() => {
+     const p = window.location.pathname.replace(/^\//, '')
+     return VALID_TABS.has(p) ? p : 'dash'
+  });
+  const [loading, setLoading] = useState(true);
+  const [theme, setThemeState] = useState('nordic');
+  const [themeMode, setModeState] = useState('manual');
+  const [circLight, setCircLight] = useState('honey');
+  const [circDark, setCircDark] = useState('nordic');
+  const [hitMode, setHitMode] = useState(false);
+  const [planMode, setPlanMode] = useState(false);
+  const [gender, setGender] = useState('male');
+  const [split, setSplit] = useState('PPL');
+  const [cycleLength, setCycleLength] = useState(4);
+  const [defaultLocation, setDefaultLocation] = useState('Home');
   const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [user, setUser]           = useState(null)
-  const [authLoading, setAuthLoading] = useState(true)
-  const [tab, setTab]             = useState(getHashTab)
-  const [theme, setThemeState]    = useState('honey')
-  const [themeMode, setModeState] = useState('manual')
-  const [circDark,  setCircDark]  = useState('honey')
-  const [circLight, setCircLight] = useState('latte')
-  const [hitMode, setHitMode]     = useState(false)
-  const [planMode, setPlanMode]   = useState(false)
-  const [gender, setGender]       = useState('male')
-  const [split, setSplit]         = useState('PPL')
-  const [cycleLength, setCycleLength] = useState(4)
-  const [trainingGoal, setTrainingGoal] = useState('Hypertrophie')
-  const [defaultLocation, setDefaultLocation] = useState('Gym')
-  const [sessionDate, setSessionDate] = useState(null)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
 
-  // Auth form state
-  const [isSignup, setIsSignup]   = useState(false)
-  const [email, setEmail]         = useState('')
-  const [password, setPassword]   = useState('')
-  const [name, setName]           = useState('')
-  const [error, setError]         = useState(null)
+  function navigate(id) {
+    setTab(id)
+    window.history.pushState(null, '', `/${id}`)
+  }
 
-  // Watch Auth State
   useEffect(() => {
-    registerServiceWorkerUpdate(() => setUpdateAvailable(true));
+    const handlePopState = () => {
+      const p = window.location.pathname.replace(/^\//, '')
+      setTab(VALID_TABS.has(p) ? p : 'dash')
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  useEffect(() => {
     return watchAuth((u) => {
-      setUser(user); // Force refresh context if needed
       setUser(u);
-      setAuthLoading(false);
+      setLoading(false);
     });
   }, []);
 
-  // Load settings from Firestore when user changes
   useEffect(() => {
     if (!user) return;
     getSettings().then(s => {
-      // Set the theme state based on saved settings, defaulting to 'honey' if none saved.
-      setThemeState(s.theme || 'honey'); 
-
+      if (s.theme) setThemeState(s.theme);
       if (s.themeMode) setModeState(s.themeMode);
-      if (s.circDark) setCircDark(s.circDark);
       if (s.circLight) setCircLight(s.circLight);
+      if (s.circDark) setCircDark(s.circDark);
       if (s.hitMode !== undefined) setHitMode(s.hitMode);
       if (s.planMode !== undefined) setPlanMode(s.planMode);
       if (s.gender) setGender(s.gender);
       if (s.split) setSplit(s.split);
       if (s.cycleLength) setCycleLength(s.cycleLength);
-      if (s.trainingGoal) setTrainingGoal(s.trainingGoal);
       if (s.defaultLocation) setDefaultLocation(s.defaultLocation);
-      
-      // Apply the loaded or default theme.
-      // If the mode is circadian, the circadian effect will handle applyTheme.
-      if (s.themeMode !== 'circadian') applyTheme(s.theme || 'honey');
     });
   }, [user]);
 
-  // Circadian: tick every minute
   useEffect(() => {
-    console.log("Circadian effect triggered. Mode:", themeMode);
-    if (themeMode !== 'circadian') return;
-
-    function tick() {
-      const h = new Date().getHours()
-      const t = h >= DAY_START && h < DAY_END ? circLight : circDark
-      console.log("Circadian tick, applying:", t);
-      setThemeState(t)
-      applyTheme(t)
+    if (themeMode === 'manual') {
+      document.documentElement.setAttribute('data-theme', theme);
+    } else {
+      const hour = new Date().getHours();
+      const current = (hour >= 8 && hour < 20) ? circLight : circDark;
+      document.documentElement.setAttribute('data-theme', current);
     }
-    tick()
-    const id = setInterval(tick, 60_000)
-    return () => clearInterval(id)
-  }, [themeMode, circDark, circLight])
-
-  // Manual theme → apply to DOM
-  useEffect(() => {
-    if (themeMode !== 'circadian') applyTheme(theme)
-  }, [theme, themeMode])
-
-  // Sync tab → URL hash
-  useEffect(() => {
-    if (window.location.hash.slice(1) !== tab) history.pushState(null, '', `#${tab}`)
-  }, [tab])
+  }, [theme, themeMode, circLight, circDark]);
 
   useEffect(() => {
-    function onPopState() { setTab(getHashTab()) }
-    window.addEventListener('popstate', onPopState)
-    return () => window.removeEventListener('popstate', onPopState)
-  }, [])
+    registerServiceWorkerUpdate(() => setUpdateAvailable(true));
+  }, []);
 
   function updateSettings(newSettings) {
-    const updated = { theme, themeMode, circDark, circLight, hitMode, planMode, gender, split, ...newSettings };
+    const updated = { theme, themeMode, circDark, circLight, hitMode, planMode, gender, split, cycleLength, defaultLocation, ...newSettings };
     saveSettings(updated);
   }
 
-  function toggleHitMode() {
-    const next = !hitMode;
-    setHitMode(next);
-    updateSettings({ hitMode: next });
-  }
-
-  function setManualSplit(s) {
-    setSplit(s);
-    updateSettings({ split: s });
-  }
-
-  function setManualTheme(t) {
-    console.log("Setting manual theme:", t);
-    setModeState('manual')
-    setThemeState(t)
-    updateSettings({ theme: t, themeMode: 'manual' });
-  }
-
-  function navigate(id, date = null) {
-    console.log("Navigating to:", id);
-    setTab(id);
-    if (date) setSessionDate(date);
-    else if (id !== 'session') setSessionDate(null);
-  }
-
-  async function handleEmailAuth(e) {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setError(null);
+    setAuthError("");
     try {
-      if (isSignup) {
-        await signUpEmail(email, password, name);
+      if (isRegistering) {
+        await signUpEmail(email, password);
       } else {
         await signInEmail(email, password);
       }
     } catch (err) {
-      setError(err.message);
+      setAuthError("Fehler bei der Authentifizierung.");
     }
-  }
+  };
 
-  if (authLoading) return (
-    <div className="flex items-center justify-center h-screen bg-[#090b10]">
-      <div className="spinner" />
-    </div>
-  );
+  if (loading) return <div className="min-h-screen bg-[#090b10] flex items-center justify-center"><div className="spinner" /></div>;
 
   if (!user) return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-8 py-12 bg-[#090b10] text-white text-center">
-      <div className="mb-8 p-6 rounded-full bg-accent/10 border border-accent/20">
-        <Dumbbell size={64} className="text-accent" />
-      </div>
-      <h1 className="text-3xl font-black mb-2 tracking-tight">Fitness PWA</h1>
-      <p className="text-dim text-sm mb-12 max-w-xs">
-        Logge deine Workouts, tracke deinen Fortschritt und verbessere deine Form.
-      </p>
-      
-      <div className="w-full max-w-sm space-y-4">
-        <form onSubmit={handleEmailAuth} className="space-y-3">
-          {isSignup && (
-            <input 
-              type="text" 
-              placeholder="Name" 
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-accent outline-none"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
-            />
-          )}
-          <input 
-            type="email" 
-            placeholder="E-Mail" 
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-accent outline-none"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-          />
-          <input 
-            type="password" 
-            placeholder="Passwort" 
-            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:border-accent outline-none"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-          
-          {error && <p className="text-red-400 text-xs text-left px-1">{error}</p>}
+    <div className="min-h-screen bg-[#090b10] flex items-center justify-center p-6">
+      <div className="w-full max-w-sm card p-8 space-y-8 animate-in fade-in zoom-in duration-500">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-6 text-accent border border-accent/20 shadow-lg shadow-accent/10">
+            <Activity size={32} />
+          </div>
+          <h1 className="text-3xl font-black text-white tracking-tight">AlphaOS Fitness</h1>
+          <p className="text-dim text-xs font-bold uppercase tracking-widest mt-2">Personal Coaching Platform</p>
+        </div>
 
-          <button type="submit" className="btn btn-primary w-full py-4 text-lg shadow-xl">
-            {isSignup ? 'Registrieren' : 'Anmelden'}
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required
+            className="w-full bg-bg2 border border-line rounded-xl px-4 py-3 text-sm font-bold text-white focus:border-accent outline-none transition-all" />
+          <input type="password" placeholder="Passwort" value={password} onChange={e => setPassword(e.target.value)} required
+            className="w-full bg-bg2 border border-line rounded-xl px-4 py-3 text-sm font-bold text-white focus:border-accent outline-none transition-all" />
+          
+          {authError && <p className="text-red text-[10px] font-bold uppercase text-center">{authError}</p>}
+
+          <button type="submit" className="w-full btn btn-primary py-4 font-black uppercase tracking-widest shadow-xl shadow-accent/20">
+            {isRegistering ? "Account erstellen" : "Anmelden"}
           </button>
         </form>
 
-        <div className="flex items-center gap-4 py-2">
-          <div className="flex-1 h-px bg-white/10" />
-          <span className="text-[10px] uppercase tracking-widest opacity-30 font-bold">oder</span>
-          <div className="flex-1 h-px bg-white/10" />
+        <div className="space-y-4">
+          <div className="flex items-center gap-4 py-2">
+            <div className="h-px bg-line flex-1 opacity-50" />
+            <span className="text-[10px] font-black text-dim uppercase">oder</span>
+            <div className="h-px bg-line flex-1 opacity-50" />
+          </div>
+
+          <button onClick={signIn} className="w-full flex items-center justify-center gap-3 px-4 py-3.5 bg-white text-black rounded-xl font-black uppercase text-[10px] tracking-widest transition-transform active:scale-95 shadow-xl">
+            <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="Google" />
+            Google Login
+          </button>
+
+          <button onClick={() => setIsRegistering(!isRegistering)} className="w-full text-[10px] font-black text-dim uppercase hover:text-accent transition-colors">
+            {isRegistering ? "Bereits einen Account? Login" : "Neu hier? Account erstellen"}
+          </button>
         </div>
-
-        <button onClick={signIn} className="w-full flex items-center justify-center gap-3 px-8 py-3.5 bg-white text-black rounded-xl font-bold transition-transform active:scale-95">
-          <LogIn size={20} /> Mit Google anmelden
-        </button>
-
-        <button 
-          onClick={() => setIsSignup(!isSignup)} 
-          className="text-xs text-dim hover:text-white transition-colors mt-4"
-        >
-          {isSignup ? 'Bereits ein Konto? Hier anmelden' : 'Noch kein Konto? Hier registrieren'}
-        </button>
-      </div>
-
-      <div className="mt-12 label-caps opacity-30">
-        AlphaOS Ecosystem
       </div>
     </div>
   );
 
   return (
-    <div className="flex flex-col h-dvh bg-[var(--bg)] text-[var(--ink)] overflow-hidden">
-      {/* Mobile Header */}
-      <header className="flex lg:hidden items-center justify-between px-4 py-2.5 z-20 shrink-0 bg-[var(--glass)] border-b border-[var(--glass-border)] backdrop-blur-lg">
-        <div className="flex items-center gap-2 font-extrabold text-base tracking-tight">
-          <Dumbbell size={22} className="text-[var(--accent)]" />
-          Fitness
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex flex-col items-end">
-             <span className="label-caps leading-none">
-               {user.displayName ? user.displayName.split(' ')[0] : user.email?.split('@')[0]}
-             </span>
+    <ErrorBoundary>
+      <div className="flex min-h-screen bg-[var(--bg)] text-[var(--ink)] font-sans transition-colors duration-500">
+        
+        {/* Desktop Sidebar (lg:flex) */}
+        <aside className="hidden lg:flex flex-col w-[280px] bg-[var(--card)] border-r border-[var(--line)] fixed inset-y-0 z-50">
+          <div className="p-8">
+             <div className="flex items-center gap-3 mb-10">
+                <div className="w-10 h-10 rounded-xl bg-[var(--accent)] text-black flex items-center justify-center shadow-lg shadow-[var(--accent)]/30">
+                   <Activity size={22} />
+                </div>
+                <div>
+                   <h2 className="text-lg font-black tracking-tight text-[var(--ink)]">Fitness</h2>
+                   <div className="text-[9px] font-black uppercase tracking-widest text-[var(--accent)] -mt-1">AlphaOS System</div>
+                </div>
+             </div>
+             
+             <nav className="space-y-1">
+                {NAV_ITEMS.map(({ id, label, Icon }) => (
+                  <button key={id} onClick={() => navigate(id)}
+                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all ${tab === id ? 'bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20 font-black' : 'text-[var(--dim)] hover:bg-white/5 font-bold'}`}>
+                    <Icon size={18} className={tab === id ? 'stroke-[2.5]' : ''} />
+                    <span className="text-sm">{label}</span>
+                  </button>
+                ))}
+             </nav>
           </div>
-          <button onClick={() => navigate('settings')} className="p-2 rounded-xl bg-[var(--bg2)]">
-             <User size={18} className="text-[var(--accent)]" />
-          </button>
-        </div>
-      </header>
-
-      {/* Main Content Area: Desktop Sidebar + Main View */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Desktop Sidebar */}
-        <aside className="hidden lg:flex flex-col w-[260px] flex-shrink-0 bg-[var(--bg2)] border-r border-[var(--line)] p-6">
-          <div className="flex items-center gap-3 font-black text-2xl tracking-tighter mb-12 px-2">
-            <div className="w-12 h-12 rounded-2xl bg-[var(--accent)] flex items-center justify-center shadow-lg shadow-[var(--accent)]/20">
-              <Dumbbell size={28} className="text-black" />
-            </div>
-            <div className="flex flex-col">
-              <span className="leading-tight">Fitness</span>
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em] opacity-30 -mt-1">AlphaOS</span>
-            </div>
-          </div>
-
-          <nav className="flex-1 space-y-2">
-            {TABS.map(({ id, Icon, label }) => (
-              <button key={id} onClick={() => navigate(id)}
-                className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${tab === id ? 'bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/10' : 'text-[var(--dim)] hover:bg-white/5 hover:text-[var(--ink)]'}`}>
-                <Icon size={18} className={tab === id ? 'text-black' : 'text-[var(--dim)] group-hover:text-[var(--accent)]'} />
-                {label}
-              </button>
-            ))}
-          </nav>
-
-          <div className="mt-auto pt-8 border-t border-[var(--line)]/50">
-            <button onClick={() => navigate('settings')} 
-              className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all ${tab === 'settings' ? 'bg-white/5 border border-[var(--line)]' : 'hover:bg-white/5'}`}>
-              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[var(--accent)]/20 bg-[var(--bg2)] flex items-center justify-center shrink-0">
-                {user.photoURL ? <img src={user.photoURL} alt="" /> : <User size={20} className="text-[var(--accent)]" />}
-              </div>
-              <div className="flex-1 text-left truncate">
-                <div className="text-xs font-black text-[var(--ink)] truncate">{user.displayName || user.email?.split('@')[0]}</div>
-                <div className="text-[10px] font-bold opacity-30 truncate uppercase tracking-tighter">{user.email}</div>
-              </div>
-              <Settings2 size={16} className={tab === 'settings' ? 'text-[var(--accent)]' : 'text-[var(--dim)]'} />
-            </button>
+          
+          <div className="mt-auto p-6 space-y-4">
+             <div className="p-4 rounded-2xl bg-[var(--bg2)] border border-[var(--line)]">
+                <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 overflow-hidden">
+                      {user.photoURL ? <img src={user.photoURL} alt="Avatar" /> : <User size={20} className="m-2.5 text-[var(--accent)]" />}
+                   </div>
+                   <div className="flex-1 min-w-0">
+                      <div className="text-[11px] font-black text-[var(--ink)] truncate">{user.displayName || "Client"}</div>
+                      <div className="text-[9px] font-bold text-[var(--dim)] truncate opacity-50">{user.email}</div>
+                   </div>
+                </div>
+             </div>
+             <button onClick={signOut} className="w-full flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--red)] bg-[var(--red)]/5 border border-[var(--red)]/10 rounded-xl hover:bg-[var(--red)]/10 transition-all">
+                <LogOut size={14} /> Abmelden
+             </button>
           </div>
         </aside>
 
-        {/* Main Viewport */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <main className="flex-1 overflow-y-auto overflow-x-hidden">
-            <div className="max-w-3xl lg:max-w-4xl mx-auto px-4 py-6 lg:py-10 pb-28 lg:pb-10">
-              <ErrorBoundary key={tab}>
-                {tab === 'dash'     && <Dashboard onNavigate={navigate} />}
-                {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} hitMode={hitMode} planMode={planMode} />}
-                {tab === 'review'   && <WeeklyReview onNavigate={navigate} />}
-                {tab === 'habits'   && <Habits />}
-                {tab === 'journal'  && <Journal />}
-                {tab === 'muscles'  && <Muscles hitMode={hitMode} gender={gender} />}
-                {tab === 'learn'    && <Learn />}
+        {/* Main Content Area */}
+        <div className="flex-1 lg:ml-[280px]">
+          {/* Mobile Header (lg:hidden) */}
+          <header className="lg:hidden h-16 flex items-center justify-between px-6 bg-[var(--card)] border-b border-[var(--line)] sticky top-0 z-40">
+            <div className="flex items-center gap-2 font-black text-lg">
+              <Activity size={20} className="text-[var(--accent)]" />
+              Fitness
+            </div>
+            <button onClick={() => navigate('settings')} className="p-2 rounded-xl bg-[var(--bg2)]">
+               <Settings2 size={18} className="text-[var(--dim)]" />
+            </button>
+          </header>
+
+          <main className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto">
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {tab === 'dash' && <Dashboard onNavigate={navigate} />}
+                {tab === 'session' && <Session hitMode={hitMode} planMode={planMode} />}
+                {tab === 'habits' && <Habits />}
+                {tab === 'journal' && <Journal />}
+                {tab === 'muscles' && <Muscles hitMode={hitMode} gender={gender} />}
+                {tab === 'review' && <WeeklyReview onNavigate={navigate} />}
+                {tab === 'learn' && <Learn />}
                 {tab === 'settings' && (
-                <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
-                   {/* 1. Account */}
-                   <section className="card flex flex-row items-center gap-6 p-6 bg-[var(--card)] border border-[var(--line)]">
-                      <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-[var(--accent)]/20 flex items-center justify-center bg-[var(--accent)]/10">
-                         {user.photoURL ? (
-                           <img src={user.photoURL} alt={user.displayName} />
-                         ) : (
-                           <User size={32} className="text-[var(--accent)]" />
-                         )}
-                      </div>
-                      <div className="flex-1">
-                        <h2 className="text-lg font-black text-[var(--ink)]">{user.displayName || user.email?.split('@')[0]}</h2>
-                        <p className="text-[10px] font-bold opacity-30 uppercase tracking-widest">{user.email}</p>
-                      </div>
-                      <button onClick={signOut} className="btn btn-red px-6 py-2">
-                         <LogOut size={16} />
-                      </button>
-                   </section>
-
-                   {/* 2. Training Settings */}
-                   <section className="card p-6 bg-[var(--card)] border border-[var(--line)]">
-                      <div className="flex items-center gap-2 mb-6">
-                        <Dumbbell size={18} className="text-[var(--accent)]" />
-                        <h2 className="text-base font-black uppercase tracking-widest text-[var(--ink)]">Training Einstellungen</h2>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                           <div className="flex items-center justify-between">
-                              <div className="text-left">
-                                 <div className="text-sm font-bold text-[var(--ink)]">HIT Modus</div>
-                                 <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Standard-Modus für neue Sessions</div>
-                              </div>
-                              <button onClick={() => { const next = !hitMode; setHitMode(next); updateSettings({hitMode: next}); }} 
-                                className={`w-12 h-6 rounded-full transition-colors relative border-2 ${hitMode ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--bg2)] border-[var(--line)]'}`}>
-                                <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${hitMode ? 'right-0.5' : 'left-0.5'}`} />
-                              </button>
-                           </div>
-                           <div className="flex items-center justify-between">
-                              <div className="text-left">
-                                 <div className="text-sm font-bold text-[var(--ink)]">Plan Mode</div>
-                                 <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Zukünftige Workouts planen</div>
-                              </div>
-                              <button onClick={() => { const next = !planMode; setPlanMode(next); updateSettings({planMode: next}); }} 
-                                className={`w-12 h-6 rounded-full transition-colors relative border-2 ${planMode ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--bg2)] border-[var(--line)]'}`}>
-                                <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${planMode ? 'right-0.5' : 'left-0.5'}`} />
-                              </button>
-                           </div>
-                           <div className="flex items-center justify-between">
-                              <div className="text-left">
-                                 <div className="text-sm font-bold text-[var(--ink)]">Geschlecht</div>
-                                 <div className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Für anatomische Darstellung</div>
-                              </div>
-                              <div className="flex bg-[var(--bg2)] rounded-lg p-1">
-                                 {['male', 'female'].map(g => (
-                                   <button key={g} onClick={() => { setGender(g); updateSettings({gender: g}); }}
-                                     className={`px-3 py-1 rounded-md text-[10px] font-black uppercase ${gender === g ? 'bg-[var(--accent)] text-black' : 'text-[var(--dim)]'}`}>
-                                     {g}
-                                   </button>
-                                 ))}
-                              </div>
-                           </div>
-                        </div>
-
-                        <div className="space-y-4">
-                           <div className="text-left">
-                              <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30 mb-3">Aktueller Split</div>
-                              <div className="flex flex-wrap gap-2">
-                                 {['PPL', 'Upper/Lower', 'Full Body', 'Bro-Split', 'Custom'].map(s => (
-                                   <button key={s} onClick={() => { setSplit(s); updateSettings({split: s}); }}
-                                     className={`px-3 py-2 rounded-xl text-[10px] font-black border transition-all ${split === s ? 'border-[var(--accent)] bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20' : 'border-[var(--line)] bg-[var(--bg2)] text-[var(--muted)] hover:text-[var(--ink)]'}`}>
-                                     {s}
-                                   </button>
-                                 ))}
-                              </div>
-                           </div>
-                           <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                 <label className="label-caps !mb-2">Zyklus (Wochen)</label>
-                                 <input type="number" value={cycleLength} onChange={e => { setCycleLength(Number(e.target.value)); updateSettings({cycleLength: Number(e.target.value)}) }}
-                                    className="bg-[var(--bg2)] border-[var(--line)] rounded-xl px-3 py-2 text-xs font-bold w-full" />
-                              </div>
-                              <div>
-                                 <label className="label-caps !mb-2">Standard-Ort</label>
-                                 <input type="text" value={defaultLocation} onChange={e => { setDefaultLocation(e.target.value); updateSettings({defaultLocation: e.target.value}) }}
-                                    className="bg-[var(--bg2)] border-[var(--line)] rounded-xl px-3 py-2 text-xs font-bold w-full" />
-                              </div>
-                           </div>
-                        </div>
-                      </div>
-                   </section>
-
-                   {/* 3. Appearance */}
-                   <section className="card p-6 bg-[var(--card)] border border-[var(--line)]">
-                      <div className="flex items-center gap-2 mb-6">
-                        <Activity size={18} className="text-[var(--accent)]" />
-                        <h2 className="text-base font-black uppercase tracking-widest text-[var(--ink)]">Darstellung</h2>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
-                        <div>
-                          <h3 className="label-caps mb-4 ml-1">Dark Themes</h3>
-                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                             {DARK_THEMES.map(t => (
-                               <button key={t} onClick={() => setManualTheme(t)} 
-                                 className={`p-2 rounded-xl text-[9px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-[var(--accent)] bg-[var(--accent)] text-black' : 'bg-[var(--bg2)] border-[var(--line)] text-[var(--ink)]'}`}
-                                 style={{ borderColor: theme === t ? 'var(--accent)' : '' }}>
-                                 {t}
-                               </button>
-                             ))}
-                          </div>
-                          </div>
-
-                          <div>
-                          <h3 className="label-caps mb-4 ml-1">Light Themes</h3>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                             {LIGHT_THEMES.map(t => (
-                               <button key={t} onClick={() => setManualTheme(t)} 
-                                 className={`p-2 rounded-xl text-[9px] font-black border truncate transition-all active:scale-95 ${theme === t ? 'border-[var(--accent)] bg-[var(--accent)] text-black' : 'bg-[var(--bg2)] border-[var(--line)] text-[var(--ink)]'}`}
-                                 style={{ borderColor: theme === t ? 'var(--accent)' : '' }}>
-                                 {t}
-                               </button>
-                             ))}
-                          </div>
-                          </div>                        </div>
-
-                        <div className="pt-6 border-t border-[var(--line)]/50 flex flex-col gap-4">
-                           <div className="flex items-center justify-between">
-                              <div className="flex flex-col">
-                                 <span className="text-sm font-bold text-[var(--ink)]">🌅 Circadian Mode</span>
-                                 <span className="text-[10px] font-bold opacity-30 uppercase tracking-tight">Tag/Nacht Automatik</span>
-                              </div>
-                              <button onClick={() => { const next = themeMode === 'circadian' ? 'manual' : 'circadian'; setModeState(next); updateSettings({themeMode: next}); }}
-                                className={`w-12 h-6 rounded-full transition-colors relative border-2 ${themeMode === 'circadian' ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--bg2)] border-[var(--line)]'}`}>
-                                <div className={`absolute top-0.5 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${themeMode === 'circadian' ? 'right-0.5' : 'left-0.5'}`} />
-                              </button>
-                           </div>
-
-                           {themeMode === 'circadian' && (
-                             <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2">
-                               <div>
-                                 <label className="label-caps !mb-2">Tag-Theme (Light)</label>
-                                 <select value={circLight} onChange={e => { setCircLight(e.target.value); updateSettings({circLight: e.target.value}); }}
-                                   className="w-full p-2 text-xs font-bold rounded-lg bg-[var(--bg2)] border-[var(--line)]">
-                                   {LIGHT_THEMES.map(t => <option key={t} value={t}>{t}</option>)}
-                                 </select>
-                               </div>
-                               <div>
-                                 <label className="label-caps !mb-2">Nacht-Theme (Dark)</label>
-                                 <select value={circDark} onChange={e => { setCircDark(e.target.value); updateSettings({circDark: e.target.value}); }}
-                                   className="w-full p-2 text-xs font-bold rounded-lg bg-[var(--bg2)] border-[var(--line)]">
-                                   {DARK_THEMES.map(t => <option key={t} value={t}>{t}</option>)}
-                                 </select>
-                               </div>
-                             </div>
-                           )}
-                        </div>
-                     </section>
-
-                     {/* 4. Roadmap & System */}
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                       <section className="card p-6 opacity-80 border-dashed bg-[var(--card)] border border-[var(--line)]">
-                          <div className="flex items-center gap-2 mb-6">
-                            <Sparkles size={18} className="text-[var(--accent)]" />
-                            <h2 className="text-sm font-black uppercase tracking-widest text-[var(--ink)]">Roadmap</h2>
-                          </div>
-                          <div className="text-[11px] font-bold space-y-2 text-[var(--ink)]/60">
-                             <div><span className="text-[var(--accent)]">V1.2:</span> Progress (1RM, Charts, Fatigue)</div>
-                             <div><span className="text-[var(--accent)]">V1.5:</span> Social (Shared, Profiles)</div>
-                             <div><span className="text-[var(--accent)]">V2.0:</span> Intelligence (AI Coach, Form)</div>
-                          </div>
-                       </section>
-
-                       <section className="card p-6 opacity-80 border-dashed bg-[var(--card)] border border-[var(--line)]">
-                          <div className="flex items-center gap-2 mb-4">
-                            <Settings2 size={18} className="text-[var(--dim)]" />
-                            <h2 className="text-base font-black uppercase tracking-widest text-[var(--muted)]">System</h2>
-                          </div>
-                          <div className="flex items-center justify-between py-1">
-                             <span className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest">Plattform</span>
-                             <span className="text-[10px] font-black text-[var(--ink)]">Firebase</span>
-                          </div>
-                          <div className="flex items-center justify-between py-1 border-t border-[var(--line)]/30 mt-2 pt-2">
-                             <span className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest">Status</span>
-                             <span className="text-[9px] font-black px-2 py-0.5 rounded bg-green/10 text-green border border-green/20">CONNECTED</span>
-                          </div>
-                       </section>
-                     </div>
-                  </div>
+                   <Settings 
+                     hitMode={hitMode} setHitMode={setHitMode}
+                     planMode={planMode} setPlanMode={setPlanMode}
+                     gender={gender} setGender={setGender}
+                     split={split} setSplit={setSplit}
+                     cycleLength={cycleLength} setCycleLength={setCycleLength}
+                     defaultLocation={defaultLocation} setDefaultLocation={setDefaultLocation}
+                     themeMode={themeMode} setModeState={setModeState}
+                     circLight={circLight} setCircLight={setCircLight}
+                     circDark={circDark} setCircDark={setCircDark}
+                     themes={THEMES} theme={theme} setThemeState={setThemeState}
+                     updateSettings={updateSettings}
+                   />
                 )}
-              </ErrorBoundary>
             </div>
           </main>
 
-          {/* Mobile Bottom Nav */}
-          <nav className="flex lg:hidden shrink-0 px-2 pb-safe z-20 bg-[var(--glass)] border-t border-[var(--line)] backdrop-blur-lg">
-            {TABS.map(({ id, Icon, label }) => (
+          {/* Update Notify (Toast) */}
+          {updateAvailable && (
+            <div className="fixed bottom-24 lg:bottom-10 right-6 z-[100] animate-in slide-in-from-right duration-500">
+               <div className="bg-[var(--accent)] text-black p-4 rounded-2xl shadow-2xl flex items-center gap-4 border-2 border-white/20">
+                  <div className="flex-1">
+                     <div className="text-[10px] font-black uppercase tracking-widest opacity-70">System Update</div>
+                     <div className="text-xs font-black">Neue Version verfügbar!</div>
+                  </div>
+                  <button onClick={() => window.location.reload()} className="px-4 py-2 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                     Update
+                  </button>
+               </div>
+            </div>
+          )}
+
+          {/* Mobile Navigation (lg:hidden) */}
+          <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-[var(--card)]/90 backdrop-blur-xl border-t border-[var(--line)] px-2 flex items-center justify-around z-50">
+            {NAV_ITEMS.map(({ id, label, Icon }) => (
               <button key={id} onClick={() => navigate(id)}
-                className={`flex-1 flex flex-col items-center gap-0.5 py-2 rounded-xl text-[10px] font-semibold tracking-wide transition-all ${tab === id ? 'text-[var(--accent)]' : 'text-[var(--dim)]'}`}>
-                <Icon size={22} />
-                {label}
+                className={`flex flex-col items-center gap-1.5 p-2 transition-all ${tab === id ? 'text-[var(--accent)]' : 'text-[var(--dim)]'}`}>
+                <Icon size={22} className={tab === id ? 'stroke-[2.5]' : ''} />
+                <span className="text-[8px] font-black uppercase tracking-widest">{label}</span>
               </button>
             ))}
           </nav>
         </div>
       </div>
-    </div>
+    </ErrorBoundary>
   )
 }
