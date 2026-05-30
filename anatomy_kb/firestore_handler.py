@@ -105,7 +105,7 @@ def _sync_muscles(db, dry_run: bool = False) -> dict:
             
         # Enrich with index metadata
         sync_doc = {**doc}
-        for field in ["rbh_slug", "name_de", "name_en", "latin", "wger_id", "is_front"]:
+        for field in ["rbh_slugs", "name_de", "name_en", "latin", "wger_id", "is_front"]:
             if field in meta and (not sync_doc.get(field) or sync_doc.get(field) == ""):
                 sync_doc[field] = meta[field]
         
@@ -122,11 +122,19 @@ def _sync_muscles(db, dry_run: bool = False) -> dict:
                 counts["error"] += 1
 
         # 2. Collect for slug-based sync
-        slug = sync_doc.get("rbh_slug")
-        if slug:
+        base_slugs = sync_doc.get("rbh_slugs") or []
+        
+        # Expand base slugs to include -left and -right variants
+        expanded_slugs = []
+        for s in base_slugs:
+            expanded_slugs.append(s)
+            expanded_slugs.append(f"{s}-left")
+            expanded_slugs.append(f"{s}-right")
+            
+        for slug in expanded_slugs:
             if slug not in slug_docs:
                 slug_docs[slug] = {
-                    "display_name": sync_doc.get("name_de") or sync_doc.get("name_en") or slug.capitalize(),
+                    "display_name": sync_doc.get("name_de") or sync_doc.get("name_en") or slug.replace("-left", "").replace("-right", "").replace("-", " ").title(),
                     "latin_name": sync_doc.get("latin"),
                     "origin": sync_doc.get("origin"),
                     "insertion": sync_doc.get("insertion"),
@@ -138,7 +146,8 @@ def _sync_muscles(db, dry_run: bool = False) -> dict:
             else:
                 # Merge logic for groups (e.g. chest = pectoralis + serratus)
                 existing = slug_docs[slug]
-                existing["muscles"].append(muscle_id)
+                if muscle_id not in existing["muscles"]:
+                    existing["muscles"].append(muscle_id)
                 for field in ["origin", "insertion", "innervation", "function"]:
                     if sync_doc.get(field) and sync_doc[field] not in existing[field]:
                         existing[field] += f"\n\n---\n\n{sync_doc[field]}"
