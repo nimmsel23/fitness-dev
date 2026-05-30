@@ -17,12 +17,14 @@ const MUSCLE_TAG_TO_GROUP = {
   "glutes": "glutes", "gluteus": "glutes",
   "quads": "quads", "quadriceps": "quads",
   "hamstrings": "hamstrings", "biceps femoris": "hamstrings",
-  "calves": "calves", "gastrocnemius": "calves"
+  "calves": "calves", "gastrocnemius": "calves",
+  "traps": "trapezius", "trapezius": "trapezius"
 };
 
 export const MUSCLE_GROUPS = {
   chest: ["pecs", "chest", "pectoralis", "brust"],
-  back: ["lats", "traps", "lower back", "back", "latissimus", "trapezius", "rhomboids", "rücken", "pull-up", "klimmzug", "rudern", "row"],
+  back: ["lats", "lower back", "back", "latissimus", "rhomboids", "rücken", "pull-up", "klimmzug", "rudern", "row"],
+  trapezius: ["traps", "trapezius", "nacken", "shrugs"],
   shoulders: ["shoulders", "delts", "deltoid", "schulter", "schultern", "overhead", "press"],
   arms: ["biceps", "triceps", "forearms", "brachii", "bizeps", "trizeps", "arm", "arme", "curl", "extension"],
   core: ["abs", "obliques", "core", "abdominis", "bauch"],
