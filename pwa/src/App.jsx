@@ -4,7 +4,7 @@ import Dashboard from "./views/Dashboard/index.jsx";
 import Session from "./views/Session/index.jsx";
 import Journal from "./views/Journal/index.jsx";
 import Muscles from "./views/Muscles/index.jsx";
-import Learn from "./views/Learn.jsx";
+import Learn from "./views/Learn/index.jsx";
 import WeeklyReview from "./views/WeeklyReview/index.jsx";
 import Habits from "./views/Habits/index.jsx";
 import Settings from "./views/Settings/index.jsx";
