@@ -1,6 +1,27 @@
-import { X, Target, Brain, Info, BookOpen } from "lucide-react";
+import { X, Target, Brain, Info, BookOpen, Search } from "lucide-react";
+import { getAllExercises } from "../../db.js";
+import { useState, useEffect } from "react";
 
 export default function MuscleDetailModal({ muscleId, muscleData, onClose, loading }) {
+  const [exercises, setExercises] = useState([]);
+  const [exLoading, setExLoading] = useState(false);
+
+  useEffect(() => {
+    if (!muscleId || !muscleData) return;
+    
+    setExLoading(true);
+    getAllExercises().then(all => {
+      // Find exercises that target any of the muscles in this slug group
+      const relatedIds = muscleData.muscles || [muscleId];
+      const found = all.filter(ex => {
+        const primary = (ex.primary_muscles || ex.primaryMuscles || []);
+        const secondary = (ex.secondary_muscles || ex.secondaryMuscles || []);
+        return [...primary, ...secondary].some(m => relatedIds.includes(m.toLowerCase()));
+      });
+      setExercises(found.slice(0, 8));
+    }).finally(() => setExLoading(false));
+  }, [muscleId, muscleData]);
+
   if (!muscleId) return null;
 
   const name = muscleData?.display_name || muscleId.charAt(0).toUpperCase() + muscleId.slice(1);
@@ -51,7 +72,7 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
                             <Info size={14} className="text-accent" />
                             Ursprung
                          </div>
-                         <p className="text-sm font-medium leading-relaxed text-ink/80">{muscleData.origin}</p>
+                         <p className="text-xs font-medium leading-relaxed text-ink/80 whitespace-pre-wrap">{muscleData.origin}</p>
                       </div>
                     )}
                     {muscleData.insertion && (
@@ -60,7 +81,7 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
                             <Info size={14} className="text-accent" />
                             Ansatz
                          </div>
-                         <p className="text-sm font-medium leading-relaxed text-ink/80">{muscleData.insertion}</p>
+                         <p className="text-xs font-medium leading-relaxed text-ink/80 whitespace-pre-wrap">{muscleData.insertion}</p>
                       </div>
                     )}
                     {muscleData.innervation && (
@@ -69,7 +90,7 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
                             <Brain size={14} className="text-accent" />
                             Innervation
                          </div>
-                         <p className="text-sm font-medium leading-relaxed text-ink/80">{muscleData.innervation}</p>
+                         <p className="text-xs font-medium leading-relaxed text-ink/80 whitespace-pre-wrap">{muscleData.innervation}</p>
                       </div>
                     )}
                     {muscleData.function && (
@@ -78,15 +99,32 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
                             <BookOpen size={14} className="text-accent" />
                             Funktion
                          </div>
-                         <p className="text-sm font-medium leading-relaxed text-ink/80">{muscleData.function}</p>
+                         <p className="text-xs font-medium leading-relaxed text-ink/80 whitespace-pre-wrap">{muscleData.function}</p>
                       </div>
                     )}
                  </div>
 
-                 {/* Exercises Section Placeholder */}
-                 <div className="pt-4 border-t border-line/30">
-                    <div className="label-caps mb-4">Übungsvorschläge</div>
-                    <p className="text-xs italic opacity-40">Klassische Übungen für {name} folgen…</p>
+                 {/* Exercises Section */}
+                 <div className="pt-6 border-t border-line/30">
+                    <div className="label-caps mb-4 flex items-center gap-2">
+                       <Search size={14} className="text-accent" />
+                       Passende Übungen
+                    </div>
+                    {exLoading ? (
+                       <div className="animate-pulse flex gap-2">
+                          {[1,2,3].map(i => <div key={i} className="h-8 w-24 bg-bg2 rounded-lg" />)}
+                       </div>
+                    ) : exercises.length > 0 ? (
+                       <div className="flex flex-wrap gap-2">
+                          {exercises.map(ex => (
+                             <span key={ex.exercise_id} className="px-3 py-1.5 rounded-xl bg-accent/10 border border-accent/20 text-accent text-[10px] font-black uppercase tracking-widest">
+                                {ex.display_name || ex.name}
+                             </span>
+                          ))}
+                       </div>
+                    ) : (
+                       <p className="text-xs italic opacity-30">Keine spezifischen Übungen gefunden.</p>
+                    )}
                  </div>
               </div>
             ) : (
