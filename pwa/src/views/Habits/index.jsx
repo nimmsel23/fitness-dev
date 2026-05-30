@@ -51,6 +51,10 @@ export default function Habits() {
   useEffect(() => { load(); }, [selectedDate]);
 
   useEffect(() => {
+    setSelectedSidebarDate(selectedDate);
+  }, [selectedDate]);
+
+  useEffect(() => {
     if (selectedHabitId && selectedSidebarDate) {
       setJournalText("");
       getHabitJournal(selectedHabitId, selectedSidebarDate).then(j => {
