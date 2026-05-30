@@ -209,7 +209,7 @@ def sync_muscles(conn: sqlite3.Connection) -> int:
         for ex_id, ex_data in (doc.get("exercises") or {}).items():
             conn.execute("""
                 INSERT INTO exercise_muscles (exercise_id, muscle_id, role, function_in_exercise)
-                VALUES (?, ?, 'primary', ?)
+                VALUES (?, ?, NULL, ?)
                 ON CONFLICT(exercise_id, muscle_id) DO UPDATE SET
                     function_in_exercise=excluded.function_in_exercise
             """, (ex_id, doc.get("muscle_id", yml.stem),
@@ -248,10 +248,11 @@ def sync_exercises(conn: sqlite3.Connection) -> int:
             ))
 
             # Muskel-Rollen aus Katalog-Kategorien auflösen
+            # Wir verarbeiten von schwach nach stark, damit primary immer überschreibt.
             role_fields = [
-                ("primary",    ex.get("primary_muscles", [])),
-                ("secondary",  ex.get("secondary_muscles", [])),
                 ("stabilizer", ex.get("stabilizers", [])),
+                ("secondary",  ex.get("secondary_muscles", [])),
+                ("primary",    ex.get("primary_muscles", [])),
             ]
             for role, categories in role_fields:
                 for cat in (categories or []):
@@ -260,8 +261,7 @@ def sync_exercises(conn: sqlite3.Connection) -> int:
                             INSERT INTO exercise_muscles (exercise_id, muscle_id, role)
                             VALUES (?,?,?)
                             ON CONFLICT(exercise_id, muscle_id) DO UPDATE SET
-                                role=CASE WHEN excluded.role='primary' THEN 'primary'
-                                          ELSE role END
+                                role=excluded.role
                         """, (ex_id, muscle_id, role))
             count += 1
     conn.commit()

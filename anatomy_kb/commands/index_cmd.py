@@ -45,6 +45,8 @@ def command():
                     slugs[slug] = {
                         "slug": slug,
                         "display_name": mdata["name_de"] or mdata["name_en"] or slug.capitalize(),
+                        "name_de": mdata["name_de"],
+                        "name_en": mdata["name_en"],
                         "latin_name": mdata["latin"],
                         "origin": mdata["origin"],
                         "insertion": mdata["insertion"],
@@ -60,6 +62,10 @@ def command():
                     for field in ["origin", "insertion", "innervation", "function"]:
                         if mdata[field] and mdata[field] not in s[field]:
                             s[field] += f"\n\n---\n\n{mdata[field]}"
+                    for field in ["name_de", "name_en", "latin_name"]:
+                        val = mdata.get(field if field != "latin_name" else "latin")
+                        if val and val not in (s.get(field) or ""):
+                            s[field] = f"{s.get(field) or ''} / {val}".strip(" / ")
 
             # 3. Build Exercises Registry
             exercises = {}

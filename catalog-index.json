@@ -1,6 +1,6 @@
 {
   "version": "1.1",
-  "generated_at": "2026-05-30T11:16:05.009616",
+  "generated_at": "2026-05-30T11:24:08.800039",
   "slugs": {},
   "exercises": {
     "overhead_triceps_extension": {
@@ -316,15 +316,15 @@
       "rbh_slugs": [],
       "muscles": {
         "primary": [
-          "anterior_deltoid",
           "pectoralis_major",
           "serratus_anterior",
-          "trapezius",
-          "triceps_brachii"
+          "trapezius"
         ],
         "secondary": [
+          "anterior_deltoid",
           "biceps_brachii",
-          "brachialis"
+          "brachialis",
+          "triceps_brachii"
         ],
         "stabilizer": [
           "obliquus_externus_abdominis",
@@ -560,12 +560,12 @@
       "muscles": {
         "primary": [
           "anterior_deltoid",
-          "gluteus_maximus",
           "quadriceps_femoris",
           "trapezius",
           "triceps_brachii"
         ],
         "secondary": [
+          "gluteus_maximus",
           "obliquus_externus_abdominis",
           "rectus_abdominis"
         ],
@@ -581,17 +581,17 @@
       "muscles": {
         "primary": [
           "anterior_deltoid",
-          "biceps_femoris",
           "gluteus_maximus",
-          "quadriceps_femoris",
-          "trapezius"
+          "quadriceps_femoris"
         ],
         "secondary": [
+          "biceps_femoris",
           "obliquus_externus_abdominis",
           "rectus_abdominis"
         ],
         "stabilizer": [
-          "latissimus_dorsi"
+          "latissimus_dorsi",
+          "trapezius"
         ]
       }
     },

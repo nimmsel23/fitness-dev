@@ -135,6 +135,8 @@ def _sync_muscles(db, dry_run: bool = False) -> dict:
             if slug not in slug_docs:
                 slug_docs[slug] = {
                     "display_name": sync_doc.get("name_de") or sync_doc.get("name_en") or slug.replace("-left", "").replace("-right", "").replace("-", " ").title(),
+                    "name_de": sync_doc.get("name_de"),
+                    "name_en": sync_doc.get("name_en"),
                     "latin_name": sync_doc.get("latin"),
                     "origin": sync_doc.get("origin"),
                     "insertion": sync_doc.get("insertion"),
@@ -151,6 +153,10 @@ def _sync_muscles(db, dry_run: bool = False) -> dict:
                 for field in ["origin", "insertion", "innervation", "function"]:
                     if sync_doc.get(field) and sync_doc[field] not in existing[field]:
                         existing[field] += f"\n\n---\n\n{sync_doc[field]}"
+                for field in ["name_de", "name_en", "latin_name"]:
+                    val = sync_doc.get(field if field != "latin_name" else "latin")
+                    if val and val not in (existing.get(field) or ""):
+                        existing[field] = f"{existing.get(field) or ''} / {val}".strip(" / ")
 
     # 3. Sync slug-based documents
     for slug, data in slug_docs.items():
