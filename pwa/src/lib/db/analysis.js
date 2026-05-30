@@ -26,10 +26,10 @@ export const MUSCLE_GROUPS = {
   shoulders: ["shoulders", "delts", "deltoid", "schulter", "schultern", "overhead", "press"],
   arms: ["biceps", "triceps", "forearms", "brachii", "bizeps", "trizeps", "arm", "arme", "curl", "extension"],
   core: ["abs", "obliques", "core", "abdominis", "bauch"],
-  glutes: ["glutes", "gluteus", "po", "gesäß", "hip thrust"],
+  glutes: ["glutes", "gluteus", "po", "gesäß", "hip thrust", "squat", "kniebeuge"],
   quads: ["quads", "quadriceps", "oberschenkel", "squat", "kniebeuge"],
-  hamstrings: ["hamstrings", "biceps femoris", "beinbeuger", "leg curl", "kreuzheben", "good mornings", "rumänisches kreuzheben"],
-  calves: ["calves", "gastrocnemius", "waden", "calf", "wadenheben", "stehendes wadenheben"],
+  hamstrings: ["hamstrings", "biceps femoris", "beinbeuger", "leg curl", "kreuzheben", "good mornings", "rumänisches kreuzheben", "squat", "kniebeuge"],
+  calves: ["calves", "gastrocnemius", "waden", "calf", "wadenheben", "stehendes wadenheben", "squat", "kniebeuge"],
   legs: ["legs", "squat", "deadlift", "lunge", "beine", "bein", "leg press", "kniebeuge"]
 };
 
