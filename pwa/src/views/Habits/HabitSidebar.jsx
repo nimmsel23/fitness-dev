@@ -1,4 +1,4 @@
-import { X, Calendar, Check, Save } from "lucide-react";
+import { X, Calendar, Check, Save, History } from "lucide-react";
 import { ICON_COMPONENTS_MAP, getRollingDays } from "./utils";
 
 export default function HabitSidebar({ 
@@ -12,7 +12,8 @@ export default function HabitSidebar({
   setJournalText, 
   isJournalSaving, 
   onSaveJournal, 
-  onToggleSidebarDone 
+  onToggleSidebarDone,
+  journalHistory
 }) {
   const selectedHabit = habits.find(h => h.uuid === selectedHabitId);
   if (!selectedHabit) return null;
@@ -103,6 +104,24 @@ export default function HabitSidebar({
                  <span className="text-[9px] font-black uppercase tracking-tighter">Strg + Enter zum Speichern</span>
               </div>
             </div>
+
+            {/* History Section */}
+            {journalHistory && journalHistory.length > 0 && (
+              <div className="space-y-4 pb-12">
+                <div className="flex items-center gap-2 px-1">
+                   <History size={14} className="text-[var(--dim)]" />
+                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--dim)]">Historie</h4>
+                </div>
+                <div className="space-y-3">
+                  {journalHistory.map((item, idx) => (
+                    <div key={idx} className="p-4 rounded-2xl bg-[var(--bg2)] border border-[var(--line)]/50">
+                      <div className="text-[9px] font-black opacity-30 uppercase tracking-widest mb-2">{item.date}</div>
+                      <div className="text-xs font-bold leading-relaxed text-[var(--ink)]/80 whitespace-pre-wrap">{item.text}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
         </div>
       </div>
     </div>

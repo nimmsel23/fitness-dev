@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Star, CalendarDays, Activity } from "lucide-react";
 import { 
   getHabits, recordHabit, unrecordHabit, addHabit, deleteHabit, 
-  updateHabit, getHabitRecordsForDate, getHabitJournal, saveHabitJournal 
+  updateHabit, getHabitRecordsForDate, getHabitJournal, saveHabitJournal, getHabitJournalHistory 
 } from "../../db.js";
 import { localToday } from "../../lib/utils.js";
 
@@ -24,6 +24,7 @@ export default function Habits() {
   const [selectedHabitId, setSelectedHabitId] = useState(null);
   const [selectedSidebarDate, setSelectedSidebarDate] = useState(localToday());
   const [journalText, setJournalText] = useState("");
+  const [journalHistory, setJournalHistory] = useState([]);
   const [isJournalSaving, setIsJournalSaving] = useState(false);
 
   const rollingDates = useMemo(() => getRollingDays(28), []);
@@ -54,6 +55,9 @@ export default function Habits() {
       getHabitJournal(selectedHabitId, selectedSidebarDate).then(j => {
         setJournalText(j?.text || "");
       });
+    }
+    if (selectedHabitId) {
+      getHabitJournalHistory(selectedHabitId).then(setJournalHistory);
     }
   }, [selectedHabitId, selectedSidebarDate]);
 
@@ -92,6 +96,7 @@ export default function Habits() {
     setIsJournalSaving(true);
     try {
       await saveHabitJournal(selectedHabitId, selectedSidebarDate, textToSave);
+      getHabitJournalHistory(selectedHabitId).then(setJournalHistory);
     } finally {
       setIsJournalSaving(false);
     }
@@ -230,6 +235,7 @@ export default function Habits() {
         isJournalSaving={isJournalSaving}
         onSaveJournal={onSaveJournal}
         onToggleSidebarDone={toggleSidebarDone}
+        journalHistory={journalHistory}
       />
 
       {selectedHabitId && (
