@@ -3,17 +3,22 @@ import Body from 'react-muscle-highlighter';
 // Maps canonical muscle tags to react-muscle-highlighter slugs
 const MAP_TO_RBH = {
   // Chest
-  'chest': 'chest', 'pecs': 'chest',
+  'chest': 'chest', 'pecs': 'chest', 'pectoralis': 'chest', 'serratus': 'chest',
   // Back
-  'back': 'upper-back', 'lats': 'upper-back', 'traps': 'upper-back',
+  'back': 'upper-back', 'lats': 'latissimus', 'latissimus': 'latissimus', 
+  'traps': 'traps', 'trapezius': 'traps', 'upper-back': 'upper-back',
+  'lower-back': 'lower-back', 'erector spinae': 'lower-back', 'lumbar': 'lower-back',
   // Shoulders
-  'shoulders': 'deltoids', 'delts': 'deltoids',
+  'shoulders': 'front-deltoids', 'delts': 'front-deltoids', 'deltoid': 'front-deltoids', 'front-deltoids': 'front-deltoids',
   // Arms
-  'biceps': 'biceps', 'triceps': 'triceps', 'forearms': 'forearm',
+  'biceps': 'biceps', 'triceps': 'triceps', 'forearms': 'forearm', 'forearm': 'forearm', 'brachialis': 'biceps',
   // Core
-  'abs': 'abs', 'core': 'abs', 'obliques': 'abs',
+  'abs': 'abs', 'core': 'abs', 'obliques': 'abs', 'obliquus': 'abs',
   // Legs/Posterior Chain
-  'glutes': 'gluteal', 'quads': 'quadriceps', 'hamstrings': 'hamstring', 'calves': 'calves'
+  'glutes': 'gluteal', 'gluteus': 'gluteal', 
+  'quads': 'quadriceps', 'quadriceps': 'quadriceps', 
+  'hamstrings': 'hamstring', 'hamstring': 'hamstring', 
+  'calves': 'calves', 'gastrocnemius': 'calves', 'soleus': 'calves'
 };
 
 export default function DetailedMuscleMap({ exercises, style, colors, gender, side, onGroupClick }) {
