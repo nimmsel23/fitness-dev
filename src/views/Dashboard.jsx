@@ -212,7 +212,7 @@ export default function Dashboard({ onOpenSession }) {
             <WeightChart days={30} />
           </div>
           <div className="mb-0">
-            <HabitWidget onNavigate={onNavigate} />
+            <HabitWidget />
           </div>
         </div>
 

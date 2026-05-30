@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Check } from 'lucide-react'
+import { api } from '../api.js'
 
 function epochDayNow() {
   return Math.floor(Date.now() / 86400000)
@@ -29,9 +30,7 @@ export default function HabitWidget() {
       setLoading(true)
       setErr('')
       try {
-        const res = await fetch(`/habitsync/habits`)
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        const data = await res.json()
+        const data = await api.get('/habitsync/habits')
         if (!alive) return
         setHabits(Array.isArray(data) ? data : [])
       } catch (e) {
@@ -61,10 +60,7 @@ export default function HabitWidget() {
     }))
 
     try {
-      const res = await fetch(`/habitsync/record/${encodeURIComponent(uuid)}`, {
-        method: 'POST',
-      })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      await api.post(`/habitsync/record/${encodeURIComponent(uuid)}`, {})
     } catch {
       // Revert on failure.
       setHabits(prev => prev.map(h => {

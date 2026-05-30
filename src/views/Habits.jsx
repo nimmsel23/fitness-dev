@@ -66,7 +66,7 @@ export default function Habits() {
   async function handleDelete(uuid) {
     if (!confirm("Habit wirklich löschen?")) return;
     try {
-       await fetch(`${import.meta.env.VITE_API_BASE || ''}/habitsync/delete/${encodeURIComponent(uuid)}`, { method: 'DELETE' });
+       await api.delete(`/habitsync/delete/${encodeURIComponent(uuid)}`);
        load();
     } catch (e) {
        console.error(e);

@@ -21,6 +21,14 @@ export const api = {
     // 202 = offline-queued, das ist ok
     if (!res.ok && res.status !== 202) throw new Error(`POST ${path} → ${res.status}`)
     return res.json()
+  },
+  async delete(path) {
+    const res = await apiFetch(BASE + path, {
+      method: 'DELETE',
+    })
+    // 202 = offline-queued, das ist ok
+    if (!res.ok && res.status !== 202) throw new Error(`DELETE ${path} → ${res.status}`)
+    return res.json()
   }
 }
 
