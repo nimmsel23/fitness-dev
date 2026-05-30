@@ -39,7 +39,9 @@ export function muscleToGroupIds(muscle, exerciseName = "") {
   const m = muscle.toLowerCase().trim();
   const name = exerciseName.toLowerCase();
   const matches = new Set();
+  
   if (MUSCLE_TAG_TO_GROUP[m]) matches.add(MUSCLE_TAG_TO_GROUP[m]);
+  
   for (const [group, list] of Object.entries(MUSCLE_GROUPS)) {
     if (list.some(x => m.includes(x) || (name && name.includes(x)))) {
       matches.add(group);

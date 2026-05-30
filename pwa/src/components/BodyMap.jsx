@@ -10,6 +10,7 @@ export const WGER_TO_RBH = {
 const GROUP_TO_RBH = {
   chest:      ['chest'],
   back:       ['upper-back', 'lower-back'],
+  trapezius:  ['traps'],
   shoulders:  ['front-deltoids', 'back-deltoids'],
   arms:       ['biceps', 'triceps', 'forearm'],
   core:       ['abs', 'obliques'],
@@ -22,7 +23,8 @@ const GROUP_TO_RBH = {
 
 const LABEL_TO_GROUP = {
   chest: 'chest', pec: 'chest', pecs: 'chest', pectoralis: 'chest', 'pectoralis major': 'chest',
-  back: 'back', lats: 'back', lat: 'back', trapezius: 'back', traps: 'back', latissimus: 'back', rhoboids: 'back', deadlift: 'back',
+  back: 'back', lats: 'back', lat: 'back', latissimus: 'back', rhoboids: 'back', deadlift: 'back',
+  trapezius: 'trapezius', traps: 'trapezius', shrugs: 'trapezius', nacken: 'trapezius',
   shoulder: 'shoulders', shoulders: 'shoulders', delt: 'shoulders', delts: 'shoulders', deltoid: 'shoulders',
   arms: 'arms', arm: 'arms', biceps: 'arms', triceps: 'arms', forearm: 'arms', forearms: 'arms',
   core: 'core', abs: 'core', abdominal: 'core',
