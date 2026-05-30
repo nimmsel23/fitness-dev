@@ -193,3 +193,5 @@ def command(
         _gum_log("info", f"Frontmatter aktualisiert → {vault_path.name}")
     except Exception as e:
         _gum_log("warn", f"Frontmatter-Update fehlgeschlagen: {e}")
+
+    _gum_log("info", "Sync-Tipp: 'anatomy-agent firestore sync' um Änderungen zu Firestore zu pushen.")

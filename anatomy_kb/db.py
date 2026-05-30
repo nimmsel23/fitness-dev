@@ -55,6 +55,8 @@ CREATE TABLE IF NOT EXISTS muscles (
     wger_id     INTEGER,
     latin       TEXT,
     name_en     TEXT,
+    name_de     TEXT,
+    rbh_slug    TEXT,
     is_front    INTEGER,
     origin      TEXT,
     insertion   TEXT,
@@ -168,26 +170,35 @@ def _j(val: Any) -> str | None:
 
 
 def sync_muscles(conn: sqlite3.Connection) -> int:
+    from .muscle_store import load_index
+    index = load_index()
     count = 0
     for yml in sorted(MUSCLES_DIR.glob("*.yml")):
         doc = yaml.safe_load(yml.read_text(encoding="utf-8"))
         if not isinstance(doc, dict):
             continue
+        muscle_id = doc.get("muscle_id", yml.stem)
+        meta = index.get(muscle_id, {})
+        
         conn.execute("""
-            INSERT INTO muscles (muscle_id, wger_id, latin, name_en, is_front,
+            INSERT INTO muscles (muscle_id, wger_id, latin, name_en, name_de, rbh_slug, is_front,
                                  origin, insertion, innervation, function)
-            VALUES (?,?,?,?,?,?,?,?,?)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(muscle_id) DO UPDATE SET
                 wger_id=excluded.wger_id, latin=excluded.latin,
+                name_en=excluded.name_en, name_de=excluded.name_de,
+                rbh_slug=excluded.rbh_slug,
                 origin=excluded.origin, insertion=excluded.insertion,
                 innervation=excluded.innervation, function=excluded.function,
                 updated_at=datetime('now')
         """, (
-            doc.get("muscle_id", yml.stem),
-            doc.get("wger_id"),
-            doc.get("latin"),
-            doc.get("name_en"),
-            1 if doc.get("is_front") else 0,
+            muscle_id,
+            doc.get("wger_id") or meta.get("wger_id"),
+            doc.get("latin") or meta.get("latin"),
+            doc.get("name_en") or meta.get("name_en"),
+            meta.get("name_de"),
+            meta.get("rbh_slug"),
+            1 if (doc.get("is_front") or meta.get("is_front")) else 0,
             doc.get("origin"),
             doc.get("insertion"),
             doc.get("innervation"),

@@ -67,7 +67,10 @@ def create_app() -> web.Application:
     app.router.add_get("/api/db/status",                   dbh.status)
     app.router.add_get("/api/db/query",                    dbh.query)
     if PUBLIC.exists():
-        app.router.add_static("/", PUBLIC, show_index=True)
+        async def _index(request):
+            return web.FileResponse(PUBLIC / "index.html")
+        app.router.add_get("/", _index)
+        app.router.add_static("/", PUBLIC)
     return app
 
 

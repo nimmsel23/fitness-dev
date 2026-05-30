@@ -77,9 +77,16 @@ def _sync_exercises(db, dry_run: bool = False) -> dict:
 
 
 def _sync_muscles(db, dry_run: bool = False) -> dict:
-    """anatomy-kb/muscles/*.yml → Firestore fitness/kb/muscles/{muscle_id}"""
+    """anatomy-kb/muscles/*.yml → Firestore fitness/kb/muscles/{muscle_id} AND fitness/kb/muscles/{rbh_slug}"""
+    from .muscle_store import load_index
+    index = load_index()
+    
     counts = {"ok": 0, "skip": 0, "error": 0}
     col = db.collection("fitness").document("kb").collection("muscles")
+    
+    # Store data by slug for merging
+    slug_docs: dict[str, dict] = {}
+    
     for yml in sorted(MUSCLES_DIR.glob("*.yml")):
         try:
             doc = yaml.safe_load(yml.read_text(encoding="utf-8"))
@@ -90,20 +97,65 @@ def _sync_muscles(db, dry_run: bool = False) -> dict:
             counts["skip"] += 1
             continue
         muscle_id = doc.get("muscle_id", yml.stem)
+        meta = index.get(muscle_id, {})
+        
         if not doc.get("origin"):
             counts["skip"] += 1
             continue
+            
+        # Enrich with index metadata
+        sync_doc = {**doc}
+        for field in ["rbh_slug", "name_de", "name_en", "latin", "wger_id", "is_front"]:
+            if field in meta and (not sync_doc.get(field) or sync_doc.get(field) == ""):
+                sync_doc[field] = meta[field]
+        
+        # 1. Sync by canonical muscle_id
         if dry_run:
             logger.info(f"[dry] muscles/{muscle_id}")
+        else:
+            try:
+                col.document(muscle_id).set({k: v for k, v in sync_doc.items() if v is not None})
+                counts["ok"] += 1
+            except Exception as exc:
+                logger.error(f"muscles/{muscle_id}: {exc}")
+                counts["error"] += 1
+
+        # 2. Collect for slug-based sync
+        slug = sync_doc.get("rbh_slug")
+        if slug:
+            if slug not in slug_docs:
+                slug_docs[slug] = {
+                    "display_name": sync_doc.get("name_de") or sync_doc.get("name_en") or slug.capitalize(),
+                    "latin_name": sync_doc.get("latin"),
+                    "origin": sync_doc.get("origin"),
+                    "insertion": sync_doc.get("insertion"),
+                    "innervation": sync_doc.get("innervation"),
+                    "function": sync_doc.get("function"),
+                    "is_slug_group": True,
+                    "muscles": [muscle_id]
+                }
+            else:
+                # Merge logic for groups (e.g. chest = pectoralis + serratus)
+                existing = slug_docs[slug]
+                existing["muscles"].append(muscle_id)
+                for field in ["origin", "insertion", "innervation", "function"]:
+                    if sync_doc.get(field) and sync_doc[field] not in existing[field]:
+                        existing[field] += f"\n\n---\n\n{sync_doc[field]}"
+
+    # 3. Sync slug-based documents
+    for slug, data in slug_docs.items():
+        if dry_run:
+            logger.info(f"[dry] muscles/slug:{slug}")
             counts["ok"] += 1
-            continue
-        try:
-            col.document(muscle_id).set({k: v for k, v in doc.items() if v is not None})
-            logger.info(f"muscles/{muscle_id}")
-            counts["ok"] += 1
-        except Exception as exc:
-            logger.error(f"muscles/{muscle_id}: {exc}")
-            counts["error"] += 1
+        else:
+            try:
+                col.document(slug).set(data)
+                logger.info(f"muscles/slug:{slug}")
+                counts["ok"] += 1
+            except Exception as exc:
+                logger.error(f"muscles/slug:{slug}: {exc}")
+                counts["error"] += 1
+                
     return counts
 
 

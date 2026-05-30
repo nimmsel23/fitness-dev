@@ -4,7 +4,9 @@
     "wger_id": 1,
     "latin": "Biceps brachii",
     "name_en": "Biceps",
+    "name_de": "Bizeps",
     "is_front": true,
+    "rbh_slug": "biceps",
     "file": "muscles/biceps_brachii.yml"
   },
   "anterior_deltoid": {
@@ -12,7 +14,9 @@
     "wger_id": 2,
     "latin": "Anterior deltoid",
     "name_en": "Shoulders",
+    "name_de": "Vorderer Delta-Muskel",
     "is_front": true,
+    "rbh_slug": "front-deltoids",
     "file": "muscles/anterior_deltoid.yml"
   },
   "serratus_anterior": {
@@ -20,7 +24,9 @@
     "wger_id": 3,
     "latin": "Serratus anterior",
     "name_en": "",
+    "name_de": "Vorderer Sägemuskel",
     "is_front": true,
+    "rbh_slug": "chest",
     "file": "muscles/serratus_anterior.yml"
   },
   "pectoralis_major": {
@@ -28,7 +34,9 @@
     "wger_id": 4,
     "latin": "Pectoralis major",
     "name_en": "Chest",
+    "name_de": "Großer Brustmuskel",
     "is_front": true,
+    "rbh_slug": "chest",
     "file": "muscles/pectoralis_major.yml"
   },
   "triceps_brachii": {
@@ -36,7 +44,9 @@
     "wger_id": 5,
     "latin": "Triceps brachii",
     "name_en": "Triceps",
+    "name_de": "Trizeps",
     "is_front": false,
+    "rbh_slug": "triceps",
     "file": "muscles/triceps_brachii.yml"
   },
   "rectus_abdominis": {
@@ -44,7 +54,9 @@
     "wger_id": 6,
     "latin": "Rectus abdominis",
     "name_en": "Abs",
+    "name_de": "Gerader Bauchmuskel",
     "is_front": true,
+    "rbh_slug": "abs",
     "file": "muscles/rectus_abdominis.yml"
   },
   "gastrocnemius": {
@@ -52,7 +64,9 @@
     "wger_id": 7,
     "latin": "Gastrocnemius",
     "name_en": "Calves",
+    "name_de": "Zwillingswadenmuskel",
     "is_front": false,
+    "rbh_slug": "calves",
     "file": "muscles/gastrocnemius.yml"
   },
   "gluteus_maximus": {
@@ -60,7 +74,9 @@
     "wger_id": 8,
     "latin": "Gluteus maximus",
     "name_en": "Glutes",
+    "name_de": "Großer Gesäßmuskel",
     "is_front": false,
+    "rbh_slug": "gluteal",
     "file": "muscles/gluteus_maximus.yml"
   },
   "trapezius": {
@@ -68,7 +84,9 @@
     "wger_id": 9,
     "latin": "Trapezius",
     "name_en": "",
+    "name_de": "Trapezmuskel / Kapuzenmuskel",
     "is_front": false,
+    "rbh_slug": "traps",
     "file": "muscles/trapezius.yml"
   },
   "quadriceps_femoris": {
@@ -76,7 +94,9 @@
     "wger_id": 10,
     "latin": "Quadriceps femoris",
     "name_en": "Quads",
+    "name_de": "Vierköpfiger Oberschenkelmuskel",
     "is_front": true,
+    "rbh_slug": "quadriceps",
     "file": "muscles/quadriceps_femoris.yml"
   },
   "biceps_femoris": {
@@ -84,7 +104,9 @@
     "wger_id": 11,
     "latin": "Biceps femoris",
     "name_en": "Hamstrings",
+    "name_de": "Beinbeuger",
     "is_front": false,
+    "rbh_slug": "hamstring",
     "file": "muscles/biceps_femoris.yml"
   },
   "latissimus_dorsi": {
@@ -92,7 +114,9 @@
     "wger_id": 12,
     "latin": "Latissimus dorsi",
     "name_en": "Lats",
+    "name_de": "Breitester Rückenmuskel",
     "is_front": false,
+    "rbh_slug": "latissimus",
     "file": "muscles/latissimus_dorsi.yml"
   },
   "brachialis": {
@@ -100,7 +124,9 @@
     "wger_id": 13,
     "latin": "Brachialis",
     "name_en": "",
+    "name_de": "Armbeuger",
     "is_front": true,
+    "rbh_slug": "biceps",
     "file": "muscles/brachialis.yml"
   },
   "obliquus_externus_abdominis": {
@@ -108,15 +134,19 @@
     "wger_id": 14,
     "latin": "Obliquus externus abdominis",
     "name_en": "",
+    "name_de": "Äußerer schräger Bauchmuskel",
     "is_front": true,
+    "rbh_slug": "abs",
     "file": "muscles/obliquus_externus_abdominis.yml"
   },
   "soleus": {
     "muscle_id": "soleus",
     "wger_id": 15,
     "latin": "Soleus",
+    "name_de": "Schollenmuskel",
     "name_en": "",
     "is_front": false,
+    "rbh_slug": "calves",
     "file": "muscles/soleus.yml"
   },
   "erector_spinae": {
@@ -124,7 +154,9 @@
     "wger_id": 16,
     "latin": "Erector spinae",
     "name_en": "Lower back",
+    "name_de": "Rückenstrecker",
     "is_front": false,
+    "rbh_slug": "lower-back",
     "file": "muscles/erector_spinae.yml"
   }
 }

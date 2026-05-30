@@ -147,3 +147,5 @@ def command(
     teaching_file = _store.push_to_teaching(exercise_id, ANATOMY_TEACHING_DIR)
     if teaching_file:
         _gum_log("info", f"anatomy_teaching/{teaching_file.name} aktualisiert")
+    
+    _gum_log("info", "Sync-Tipp: 'anatomy-agent firestore sync' um Änderungen zu Firestore zu pushen.")
