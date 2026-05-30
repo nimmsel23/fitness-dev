@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getJournal, saveJournal, getAllHabitJournalsForDate, getHabits, getSession } from "../db.js";
 import { localToday } from "../lib/utils.js";
-import { Target, Book, Dumbbell, Brain, Calendar, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { Target, Book, Dumbbell, Brain, Calendar, Clock, ChevronLeft, ChevronRight, X } from "lucide-react";
 
 function formatRelativeDate(dateStr) {
   const today = localToday();
@@ -22,6 +22,7 @@ export default function Journal() {
   const [habits, setHabits]   = useState([]);
   const [saving, setSaving] = useState(false);
   const [toast, setToast]   = useState("");
+  const [selectedEntry, setSelectedEntry] = useState(null);
 
   useEffect(() => {
     async function load() {
