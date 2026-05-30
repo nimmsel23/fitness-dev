@@ -2,7 +2,7 @@ import { useState, useEffect, Component } from "react";
 import { Activity, BarChart3, BookOpen, Dumbbell, Layers, Search, Settings2, Brain, LogIn, LogOut, User, Target, Sparkles, RefreshCw } from "lucide-react";
 import Dashboard from "./views/Dashboard.jsx";
 import Session from "./views/Session.jsx";
-import Journal from "./views/Journal.jsx";
+import Journal from "./views/Journal/index.jsx";
 import Muscles from "./views/Muscles.jsx";
 import Learn from "./views/Learn.jsx";
 import WeeklyReview from "./views/WeeklyReview.jsx";

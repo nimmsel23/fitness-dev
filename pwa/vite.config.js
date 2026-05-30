@@ -9,6 +9,7 @@ export default defineConfig({
       input: {
         index: resolve(__dirname, 'index.html'),
         habits: resolve(__dirname, 'standalone/habits/index.html'),
+        journal: resolve(__dirname, 'standalone/journal/index.html'),
       },
     },
   },
