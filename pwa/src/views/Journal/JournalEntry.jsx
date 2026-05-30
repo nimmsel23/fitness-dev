@@ -1,6 +1,6 @@
-import { Target, Dumbbell, Clock, Brain } from "lucide-react";
+import { Target, Dumbbell, Clock, Brain, Edit } from "lucide-react";
 
-export default function JournalEntry({ e, i, habits, setSelectedEntry }) {
+export default function JournalEntry({ e, i, habits, setSelectedEntry, onEdit }) {
   const isHabit = e.type === 'habit';
   const isWorkout = e.type === 'workout';
   const habit = isHabit ? habits.find(h => h.uuid === e.habitId) : null;
@@ -34,9 +34,20 @@ export default function JournalEntry({ e, i, habits, setSelectedEntry }) {
            )}
 
            {(e.time || e.updated_at) && (
-             <span className="text-[10px] font-black font-mono opacity-20 bg-[var(--bg2)] px-2 py-1 rounded-md">
-               {e.time ? e.time.slice(11, 16) : (e.updated_at?.seconds ? new Date(e.updated_at.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "")}
-             </span>
+             <div className="flex items-center gap-3">
+                {e.type === 'regular' && (
+                  <button 
+                    onClick={(ev) => { ev.stopPropagation(); onEdit(e); }}
+                    className="p-1.5 rounded-lg hover:bg-[var(--bg2)] text-[var(--dim)] hover:text-[var(--accent)] transition-all"
+                    title="Eintrag bearbeiten"
+                  >
+                    <Edit size={12} />
+                  </button>
+                )}
+                <span className="text-[10px] font-black font-mono opacity-20 bg-[var(--bg2)] px-2 py-1 rounded-md">
+                  {e.time ? e.time.slice(11, 16) : (e.updated_at?.seconds ? new Date(e.updated_at.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "")}
+                </span>
+             </div>
            )}
         </div>
 

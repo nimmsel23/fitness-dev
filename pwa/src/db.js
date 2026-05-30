@@ -153,6 +153,15 @@ export async function saveJournal(date = todayISO(), text, tags = []) {
   return { id: ref.id };
 }
 
+export async function updateJournal(id, text) {
+  const ref = doc(db, "fitness", getUid(), "journal", id);
+  await setDoc(ref, {
+    text: text.trim(),
+    updated_at: serverTimestamp(),
+  }, { merge: true });
+  return { ok: true };
+}
+
 // ── Body / Weight ─────────────────────────────────────────────────────────────
 
 export async function getBodyEntry(date = todayISO()) {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getJournal, saveJournal, getAllHabitJournalsForDate, getHabits, getSession } from "../../db.js";
+import { getJournal, saveJournal, updateJournal, getAllHabitJournalsForDate, getHabits, getSession } from "../../db.js";
 import { localToday } from "../../lib/utils.js";
 import { Book } from "lucide-react";
 
@@ -28,6 +28,7 @@ export default function Journal() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast]   = useState("");
   const [selectedEntry, setSelectedEntry] = useState(null);
+  const [editingEntry, setEditingEntry] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -62,6 +63,15 @@ export default function Journal() {
       });
 
       setEntries(combined);
+      
+      // Auto-load if exactly one regular entry exists and text is empty
+      if (regularEntries.length === 1 && !text) {
+        setEditingEntry(regularEntries[0]);
+        setText(regularEntries[0].text);
+      } else {
+        setEditingEntry(null);
+        setText("");
+      }
     }
     load().catch(() => setEntries([]));
   }, [date]);
@@ -72,17 +82,30 @@ export default function Journal() {
     if (!text.trim()) return;
     setSaving(true);
     try {
-      const entry = await saveJournal(date, text);
-      setEntries(prev => [entry, ...prev].sort((a, b) => {
-          const timeA = a.time || (a.updated_at?.seconds ? new Date(a.updated_at.seconds * 1000).toISOString() : "");
-          const timeB = b.time || (b.updated_at?.seconds ? new Date(b.updated_at.seconds * 1000).toISOString() : "");
-          return timeB.localeCompare(timeA);
-      }));
+      if (editingEntry) {
+        await updateJournal(editingEntry.id, text);
+        setEntries(prev => prev.map(e => e.id === editingEntry.id ? { ...e, text: text.trim() } : e));
+        setEditingEntry(null);
+        showToast("Aktualisiert ✓");
+      } else {
+        const entry = await saveJournal(date, text);
+        setEntries(prev => [{ ...entry, text: text.trim(), type: 'regular', time: new Date().toISOString() }, ...prev].sort((a, b) => {
+            const timeA = a.time || (a.updated_at?.seconds ? new Date(a.updated_at.seconds * 1000).toISOString() : "");
+            const timeB = b.time || (b.updated_at?.seconds ? new Date(b.updated_at.seconds * 1000).toISOString() : "");
+            return timeB.localeCompare(timeA);
+        }));
+        showToast("Gespeichert ✓");
+      }
       setText("");
-      showToast("Gespeichert ✓");
     } catch { showToast("Fehler beim Speichern"); }
     finally { setSaving(false); }
   }
+
+  const handleEdit = (entry) => {
+    setEditingEntry(entry);
+    setText(entry.text);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
     <div className="pb-20 max-w-5xl mx-auto px-2">
@@ -99,6 +122,8 @@ export default function Journal() {
           setText={setText} 
           onSubmit={submit} 
           saving={saving} 
+          editingEntry={editingEntry}
+          onCancelEdit={() => { setEditingEntry(null); setText(""); }}
         />
 
         <div className="relative pl-8 border-l border-[var(--line)] space-y-8">
@@ -110,6 +135,7 @@ export default function Journal() {
                 i={i} 
                 habits={habits} 
                 setSelectedEntry={setSelectedEntry} 
+                onEdit={handleEdit}
               />
             ))
           ) : (
