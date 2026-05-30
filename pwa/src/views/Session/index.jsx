@@ -1,0 +1,258 @@
+import { useState, useEffect } from 'react';
+import { 
+  getSession, saveSession, getSessionHistory, 
+  parseQuick, getExercise, sendToInbox
+} from '../../db.js';
+import { localToday } from '../../lib/utils.js';
+import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
+
+import DateHeader from './DateHeader';
+import SessionSidebar from './SessionSidebar';
+import ExerciseSection from './ExerciseSection';
+import ActivitySection from './ActivitySection';
+import { getRollingDays } from './utils';
+
+export default function Session({ initialDate, hitMode, planMode }) {
+  const [date, setDate]           = useState(initialDate || localToday());
+  const [block, setBlock]         = useState('');
+  const [exercises, setExercises] = useState([]);
+  const [effort, setEffort]       = useState(5);
+  const [location, setLocation]   = useState('');
+  const [duration, setDuration]   = useState('');
+  const [trainingsart, setTrainingsart] = useState('');
+  const [notes, setNotes]         = useState('');
+  const [saving, setSaving]       = useState(false);
+  const [toast, setToast]         = useState('');
+  const [quickInput, setQuickInput] = useState('');
+  const [restHours, setRestHours]   = useState(null);
+  const [hasActivity, setHasActivity] = useState(false);
+  const [activity, setActivity]   = useState({ type: 'hiking', duration: '', intensity: 5 });
+  const [recentSessions, setRecentSessions] = useState({});
+
+  const rollingDays = getRollingDays(30);
+
+  useEffect(() => {
+    getSessionHistory(30).then(sessions => {
+      const sessByDate = {};
+      sessions.forEach(s => { sessByDate[s.date] = s; });
+      setRecentSessions(sessByDate);
+      
+      if (block) {
+        const lastSameBlock = sessions.find(s => s.date < date && (s.block === block || s.trainingsart === block));
+        if (lastSameBlock) {
+          const d1 = new Date(date);
+          const d2 = new Date(lastSameBlock.date);
+          const hours = Math.round((d1 - d2) / (1000 * 60 * 60));
+          setRestHours(hours);
+        } else {
+          setRestHours(null);
+        }
+      }
+    }).catch(() => {});
+  }, [block, date]);
+
+  useEffect(() => {
+    getSession(date).then(d => {
+      if (d) {
+        setBlock(d.block || '');
+        setExercises(d.exercises || []);
+        setEffort(d.effort ?? 5);
+        setLocation(d.location || '');
+        setDuration(d.duration || '');
+        setNotes(d.notes || '');
+        setTrainingsart(d.trainingsart || '');
+        if (d.activity) {
+          setHasActivity(true);
+          setActivity(d.activity);
+        } else {
+          setHasActivity(false);
+        }
+      } else {
+        setBlock('');
+        setExercises([]);
+        setEffort(5);
+        setLocation('');
+        setDuration('');
+        setNotes('');
+        setTrainingsart('');
+        setHasActivity(false);
+      }
+    }).catch(() => {});
+  }, [date]);
+
+  function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 2200); }
+
+  async function addEx(ex) {
+    let primary = ex.primaryMuscles || ex.primary_muscles || [];
+    let secondary = ex.secondaryMuscles || ex.secondary_muscles || [];
+
+    if (primary.length === 0 && secondary.length === 0) {
+      try {
+        const kbEx = await getExercise(ex.id || ex.name);
+        if (kbEx) {
+          primary = kbEx.primaryMuscles || kbEx.primary_muscles || [];
+          secondary = kbEx.secondaryMuscles || kbEx.secondary_muscles || [];
+        }
+      } catch (e) {
+        console.warn("Could not fetch KB data for muscle tags:", e);
+      }
+    }
+
+    setExercises(prev => [...prev, {
+      name: ex.display_name || ex.name,
+      primaryMuscles: primary,
+      secondaryMuscles: secondary,
+      setsArray: [{reps: '', weight: ''}],
+      note: '', done: true, isHIT: false,
+    }]);
+
+    if (ex.isNew) {
+      sendToInbox({ name: ex.name, source: 'search_add' });
+    }
+    
+    showToast(`+ ${ex.display_name || ex.name}`);
+  }
+
+  function addQuick() {
+    if (!quickInput.trim()) return;
+    const ex = parseQuick(quickInput);
+    if (ex) { 
+      setExercises(prev => [...prev, ex]);
+      setQuickInput('');
+      showToast(`+ ${ex.name}`); 
+    }
+  }
+
+  function updateEx(i, field, value, setIdx = null) {
+    setExercises(prev => prev.map((ex, idx) => {
+      if (idx !== i) return ex;
+      if (setIdx !== null) {
+        const newSets = [...ex.setsArray];
+        newSets[setIdx] = { ...newSets[setIdx], [field]: value };
+        return { ...ex, setsArray: newSets };
+      }
+      return { ...ex, [field]: value };
+    }));
+  }
+
+  function addSet(i) {
+    setExercises(prev => prev.map((ex, idx) => {
+      if (idx !== i) return ex;
+      return { ...ex, setsArray: [...ex.setsArray, {reps: '', weight: ''}] };
+    }));
+  }
+
+  function removeSet(i, setIdx) {
+    setExercises(prev => prev.map((ex, idx) => {
+      if (idx !== i || ex.setsArray.length <= 1) return ex;
+      return { ...ex, setsArray: ex.setsArray.filter((_, sIdx) => sIdx !== setIdx) };
+    }));
+  }
+
+  function moveEx(i, direction) {
+    if (i + direction < 0 || i + direction >= exercises.length) return;
+    setExercises(prev => {
+      const next = [...prev];
+      const temp = next[i];
+      next[i] = next[i + direction];
+      next[i + direction] = temp;
+      return next;
+    });
+  }
+
+  function removeEx(i) {
+    setExercises(prev => prev.filter((_, idx) => idx !== i));
+  }
+
+  const totalVolume = exercises.reduce((sum, ex) => {
+    if (ex.isHIT) return sum;
+    if (!ex.setsArray) return sum;
+    const vol = ex.setsArray.reduce((acc, set) => {
+        const r = parseFloat(String(set.reps).replace(',', '.'));
+        const w = parseFloat(String(set.weight).replace(',', '.'));
+        return (isFinite(r) && isFinite(w)) ? acc + r * w : acc;
+    }, 0);
+    return sum + vol;
+  }, 0);
+
+  async function save() {
+    setSaving(true);
+    try {
+      const sessData = { block, exercises, effort, location, duration, notes, trainingsart };
+      if (hasActivity) sessData.activity = activity;
+      await saveSession(date, sessData);
+      showToast('Gespeichert ✓');
+    } catch { showToast('Fehler beim Speichern'); }
+    finally { setSaving(false); }
+  }
+
+  function handleDownload() {
+    const md = buildSessionCoachSheet({ date, block, exercises, effort, location, duration, notes });
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fitness-session-${date}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <div className="pb-20">
+      <DateHeader 
+        date={date} 
+        setDate={setDate} 
+        rollingDays={rollingDays} 
+        recentSessions={recentSessions} 
+        localToday={localToday()} 
+        onSave={save} 
+        saving={saving} 
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8 px-2">
+        <SessionSidebar 
+          location={location} setLocation={setLocation}
+          duration={duration} setDuration={setDuration}
+          hasActivity={hasActivity} setHasActivity={setHasActivity}
+          block={block} setBlock={setBlock}
+          effort={effort} setEffort={setEffort}
+          notes={notes} setNotes={setNotes}
+          onDownload={handleDownload}
+        />
+
+        <main className="space-y-8">
+          <ExerciseSection 
+            exercises={exercises}
+            hitMode={hitMode}
+            restHours={restHours}
+            totalVolume={totalVolume}
+            updateEx={updateEx}
+            addSet={addSet}
+            removeSet={removeSet}
+            removeEx={removeEx}
+            moveEx={moveEx}
+            planMode={planMode}
+            date={date}
+            addEx={addEx}
+            quickInput={quickInput}
+            setQuickInput={setQuickInput}
+            addQuick={addQuick}
+          />
+
+          <ActivitySection 
+            hasActivity={hasActivity}
+            setHasActivity={setHasActivity}
+            activity={activity}
+            setActivity={setActivity}
+          />
+        </main>
+      </div>
+
+      {toast && (
+        <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl text-sm font-bold shadow-2xl z-50 bg-card text-accent border border-line animate-in slide-in-from-bottom-4 duration-300">
+          {toast}
+        </div>
+      )}
+    </div>
+  );
+}
