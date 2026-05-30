@@ -1,7 +1,8 @@
-import { Brain, Star, Info, Target, Dumbbell } from "lucide-react";
+import { Brain, Star, Info, Target, Dumbbell, Video } from "lucide-react";
 
 export default function AnatDetail({ anatomy, ex, onBack, isEmbedded, loading }) {
   const name = ex?.display_name || ex?.name || "Übung wählen";
+  const gif = ex?.gif_url || ex?.gifUrl || anatomy?.gif_url || anatomy?.gifUrl;
 
   if (!ex && isEmbedded) {
     return (
@@ -22,6 +23,20 @@ export default function AnatDetail({ anatomy, ex, onBack, isEmbedded, loading })
         )}
         <h2 className="text-xl font-black">{name}</h2>
       </div>
+
+      {gif && (
+        <div className="mb-6 rounded-3xl overflow-hidden border border-line shadow-2xl bg-bg2 relative group">
+           <img 
+             src={gif} 
+             alt={name} 
+             className="w-full h-auto aspect-video object-cover transition-transform duration-700 group-hover:scale-105"
+             loading="lazy"
+           />
+           <div className="absolute top-3 right-3 p-2 rounded-xl bg-black/40 backdrop-blur-md border border-white/10 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+              <Video size={14} />
+           </div>
+        </div>
+      )}
 
       <div className="p-5 rounded-2xl border mb-6 flex flex-wrap gap-2 bg-bg2 border-line">
         <div className="w-full text-[9px] font-black uppercase tracking-widest opacity-30 mb-2">Muskelgruppen</div>
