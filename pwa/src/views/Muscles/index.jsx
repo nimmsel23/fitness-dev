@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Brain, LayoutGrid, User } from "lucide-react";
-import { getSessionHistory, getAllExercises } from "../../db.js";
+import { getSessionHistory, getAllExercises, getMuscle } from "../../db.js";
 
 import MuscleHeader from "./MuscleHeader";
 import MuscleAnalysis from "./MuscleAnalysis";
 import MuscleDetailedMap from "./MuscleDetailedMap";
 import MuscleBodyMap from "./MuscleBodyMap";
 import MuscleInsights from "./MuscleInsights";
+import MuscleDetailModal from "./MuscleDetailModal";
 
 const CAT_HEAVY = 72;
 const CAT_RECOVERING = 96;
@@ -36,6 +37,18 @@ export default function Muscles({ hitMode, gender }) {
   const [volExercises, setVolExercises] = useState([]);
   const [hitAnalysis, setHitAnalysis] = useState({ heavy: [], recovering: [], super: [], ready: [], scores: {} });
   const [showDetailed, setShowDetailed] = useState(false);
+  const [selectedMuscleId, setSelectedMuscleId] = useState(null);
+  const [muscleData, setMuscleData] = useState(null);
+  const [muscleLoading, setMuscleLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedMuscleId) { setMuscleData(null); return; }
+    setMuscleLoading(true);
+    getMuscle(selectedMuscleId)
+      .then(d => setMuscleData(d || null))
+      .catch(() => setMuscleData(null))
+      .finally(() => setMuscleLoading(false));
+  }, [selectedMuscleId]);
 
   useEffect(() => {
     setLoading(true);
@@ -147,7 +160,7 @@ export default function Muscles({ hitMode, gender }) {
               <MuscleDetailedMap 
                 exercises={volExercises} 
                 gender={gender} 
-                onGroupClick={(slug) => alert(`Clicked: ${slug}`)}
+                onGroupClick={setSelectedMuscleId}
               />
             ) : (
               <MuscleBodyMap 
@@ -164,6 +177,13 @@ export default function Muscles({ hitMode, gender }) {
           </div>
         </div>
       )}
+
+      <MuscleDetailModal 
+        muscleId={selectedMuscleId}
+        muscleData={muscleData}
+        loading={muscleLoading}
+        onClose={() => setSelectedMuscleId(null)}
+      />
     </div>
   );
 }

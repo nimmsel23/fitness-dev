@@ -20,6 +20,12 @@ export async function getAnatomy(exerciseId) {
   return snap.data();
 }
 
+export async function getMuscle(muscleId) {
+  const snap = await getDoc(doc(db, "fitness", "kb", "muscles", muscleId));
+  if (!snap.exists()) return null;
+  return snap.data();
+}
+
 export async function sendToInbox(exerciseData) {
   try {
     const ref = await addDoc(collection(db, "fitness", getUid(), "inbox"), {
