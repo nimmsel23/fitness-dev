@@ -112,6 +112,7 @@ def _sync_muscles(db, dry_run: bool = False) -> dict:
         # 1. Sync by canonical muscle_id
         if dry_run:
             logger.info(f"[dry] muscles/{muscle_id}")
+            counts["ok"] += 1
         else:
             try:
                 col.document(muscle_id).set({k: v for k, v in sync_doc.items() if v is not None})
