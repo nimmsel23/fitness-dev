@@ -6,7 +6,6 @@ import { BodyChart } from 'body-muscles';
  * Provides deep anatomical visualization with 70+ regions.
  */
 export default function BodyMusclesMap({ 
-  gender = 'male', 
   side = 'front', 
   onMuscleClick,
   highlightedMuscles = [] 
@@ -18,45 +17,48 @@ export default function BodyMusclesMap({
     if (!containerRef.current) return;
 
     // Initialize the BodyChart
-    chartRef.current = new BodyChart({
-      target: containerRef.current,
-      gender: gender,
-      side: side,
-      onMuscleClick: (muscle) => {
-        if (onMuscleClick) onMuscleClick(muscle);
+    chartRef.current = new BodyChart(containerRef.current, {
+      view: side === 'front' ? 'FRONT' : 'BACK',
+      bodyState: {},
+      onMuscleClick: (id, name) => {
+        // body-muscles ids are like 'biceps-left'. We extract the base group.
+        const baseMuscle = id.split('-')[0];
+        if (onMuscleClick) onMuscleClick(baseMuscle);
       }
     });
 
     // Cleanup on unmount
     return () => {
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
+      if (chartRef.current) {
+        chartRef.current.destroy();
       }
     };
-  }, []);
+  }, []); // Run once on mount
 
-  // Update gender and side when props change
+  // Update view when side prop changes
   useEffect(() => {
     if (chartRef.current) {
-      chartRef.current.setGender(gender);
-      chartRef.current.setSide(side);
+      chartRef.current.update({ view: side === 'front' ? 'FRONT' : 'BACK' });
     }
-  }, [gender, side]);
+  }, [side]);
 
   // Update highlights
   useEffect(() => {
     if (chartRef.current && highlightedMuscles) {
-      // The library expects an array of { id: string, intensity: number }
-      // For the Learn tab, we might just want to highlight the selected muscle
-      chartRef.current.setData(highlightedMuscles);
+      // Create bodyState object for highlighted muscles
+      const newState = {};
+      highlightedMuscles.forEach(m => {
+         newState[m.slug] = { intensity: m.intensity || 5, selected: true };
+      });
+      chartRef.current.update({ bodyState: newState });
     }
   }, [highlightedMuscles]);
 
   return (
-    <div className="w-full h-full flex items-center justify-center p-4">
+    <div className="w-full flex items-center justify-center p-4 touch-pan-y">
       <div 
         ref={containerRef} 
-        className="w-full h-full max-h-[600px] flex items-center justify-center"
+        className="w-full max-w-[400px] min-h-[500px] flex items-center justify-center"
         style={{ '--muscle-accent': 'var(--accent)', '--muscle-bg': 'var(--bg2)' }}
       />
     </div>
