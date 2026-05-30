@@ -197,7 +197,7 @@ body {
   -webkit-font-smoothing: antialiased;
   min-height: 100%;
 }
-#root { display: flex; flex-direction: column; background: var(--bg); position: relative; min-height: 100vh; }
+#root { display: flex; flex-direction: column; background: var(--bg); position: relative; min-height: 100vh; overflow-x: hidden; }
 
 /* Scrollbar Styles */
 ::-webkit-scrollbar { width: var(--scrollbar-width); }
