@@ -2,7 +2,7 @@ import { useState } from "react";
 import { MoveHorizontal, Info, Search } from "lucide-react";
 import BodyMusclesMap from "./BodyMusclesMap";
 
-export default function AnatomyExplorer({ onMuscleClick }) {
+export default function AnatomyExplorer({ exercises, onMuscleClick }) {
   const [side, setSide] = useState("front");
 
   return (
@@ -28,6 +28,7 @@ export default function AnatomyExplorer({ onMuscleClick }) {
           
           <BodyMusclesMap 
             side={side} 
+            exercises={exercises}
             onMuscleClick={onMuscleClick}
           />
        </div>

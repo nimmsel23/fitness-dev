@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { BodyChart } from 'body-muscles';
+import { BODY_MUSCLES_SLUGS } from '../../lib/muscleMapping';
 
 /**
  * React Wrapper for the framework-agnostic body-muscles library.
@@ -8,10 +9,28 @@ import { BodyChart } from 'body-muscles';
 export default function BodyMusclesMap({ 
   side = 'front', 
   onMuscleClick,
-  highlightedMuscles = [] 
+  exercises = [] // Now accept exercises to calculate intensity
 }) {
   const containerRef = useRef(null);
   const chartRef = useRef(null);
+
+  // Calculate intensity based on exercises
+  const highlightedMuscles = useMemo(() => {
+    const muscleHits = {};
+    exercises.forEach(ex => {
+      const muscles = [...(ex.primaryMuscles || []), ...(ex.secondaryMuscles || [])];
+      muscles.forEach(m => {
+        const slug = BODY_MUSCLES_SLUGS[m.toLowerCase()];
+        if (slug) {
+          muscleHits[slug] = (muscleHits[slug] || 0) + 1;
+        }
+      });
+    });
+    return Object.entries(muscleHits).map(([slug, hits]) => ({
+      slug,
+      intensity: Math.min(10, hits * 2) // scale to 0-10 for body-muscles
+    }));
+  }, [exercises]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -27,25 +46,15 @@ export default function BodyMusclesMap({
       }
     });
 
-    // Cleanup on unmount
-    return () => {
-      if (chartRef.current) {
-        chartRef.current.destroy();
-      }
-    };
-  }, []); // Run once on mount
+    return () => chartRef.current?.destroy();
+  }, []);
 
-  // Update view when side prop changes
   useEffect(() => {
-    if (chartRef.current) {
-      chartRef.current.update({ view: side === 'front' ? 'FRONT' : 'BACK' });
-    }
+    chartRef.current?.update({ view: side === 'front' ? 'FRONT' : 'BACK' });
   }, [side]);
 
-  // Update highlights
   useEffect(() => {
     if (chartRef.current && highlightedMuscles) {
-      // Create bodyState object for highlighted muscles
       const newState = {};
       highlightedMuscles.forEach(m => {
          newState[m.slug] = { intensity: m.intensity || 5, selected: true };
@@ -64,3 +73,6 @@ export default function BodyMusclesMap({
     </div>
   );
 }
+
+// Helper to make useMemo work (missing import in previous file state)
+import { useMemo } from 'react';

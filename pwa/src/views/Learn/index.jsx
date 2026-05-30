@@ -78,7 +78,10 @@ export default function Learn() {
         </div>
       ) : (
         <div className="animate-in fade-in duration-300 max-w-5xl mx-auto">
-           <AnatomyExplorer onMuscleClick={setSelectedMuscleId} />
+           <AnatomyExplorer 
+              exercises={exercises} 
+              onMuscleClick={setSelectedMuscleId} 
+           />
         </div>
       )}
 
