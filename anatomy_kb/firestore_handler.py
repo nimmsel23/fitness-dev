@@ -213,7 +213,39 @@ def _run_sync(dry_run: bool = False) -> dict:
         "exercises": _sync_exercises(db, dry_run=dry_run),
         "muscles":   _sync_muscles(db, dry_run=dry_run),
         "anatomy":   _sync_anatomy(db, dry_run=dry_run),
+        "index":     _sync_index(db, dry_run=dry_run),
     }
+
+
+def _sync_index(db, dry_run: bool = False) -> dict:
+    """catalog-index.json → Firestore fitness/kb/index/catalog"""
+    from pathlib import Path
+    import json
+    
+    index_file = Path(__file__).parent.parent / "catalog-index.json"
+    counts = {"ok": 0, "skip": 0, "error": 0}
+    
+    if not index_file.exists():
+        logger.error(f"Index-Datei nicht gefunden: {index_file}")
+        counts["error"] += 1
+        return counts
+        
+    try:
+        data = json.loads(index_file.read_text(encoding="utf-8"))
+        col = db.collection("fitness").document("kb").collection("index")
+        
+        if dry_run:
+            logger.info(f"[dry] index/catalog (v{data.get('version')})")
+            counts["ok"] += 1
+        else:
+            col.document("catalog").set(data)
+            logger.info(f"index/catalog (v{data.get('version')})")
+            counts["ok"] += 1
+    except Exception as exc:
+        logger.error(f"index/catalog: {exc}")
+        counts["error"] += 1
+        
+    return counts
 
 
 # --- HTTP Helpers ---
@@ -270,6 +302,17 @@ async def sync_anatomy_handler(request: web.Request) -> web.Response:
     try:
         db = await asyncio.get_event_loop().run_in_executor(None, _init_firebase)
         counts = await asyncio.get_event_loop().run_in_executor(None, lambda: _sync_anatomy(db, dry_run=dry))
+        return _ok({"ok": True, "counts": counts, "dry": dry})
+    except Exception as exc:
+        logger.error(exc)
+        return _err(str(exc))
+
+
+async def sync_index_handler(request: web.Request) -> web.Response:
+    dry = _dry(request)
+    try:
+        db = await asyncio.get_event_loop().run_in_executor(None, _init_firebase)
+        counts = await asyncio.get_event_loop().run_in_executor(None, lambda: _sync_index(db, dry_run=dry))
         return _ok({"ok": True, "counts": counts, "dry": dry})
     except Exception as exc:
         logger.error(exc)

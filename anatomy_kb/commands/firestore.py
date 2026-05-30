@@ -51,6 +51,8 @@ def command(
                     results = {"exercises": _fs._sync_exercises(db, dry_run=dry_run)}
                 elif scope == "anatomy":
                     results = {"anatomy": _fs._sync_anatomy(db, dry_run=dry_run)}
+                elif scope == "index":
+                    results = {"index": _fs._sync_index(db, dry_run=dry_run)}
                 else:
                     _gum_log("error", f"Unbekannter Scope: {scope}")
                     raise typer.Exit(1)

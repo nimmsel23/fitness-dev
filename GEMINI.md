@@ -107,6 +107,7 @@ The `anatomy` command acts as a top-level dispatcher for various `anatomy-agent`
 - `anatomy reload`: Clears the YAML cache without restarting the server.
 - `anatomy firestore sync`: Pushes local YAML data (muscles, exercises, anatomy) to Firestore.
     - Options: `--scope <muscles|exercises|anatomy|all>`, `--dry-run`.
+- `anatomy index`: Builds a comprehensive `catalog-index.json` bridging muscles, regions, and exercises.
 
 
 ### API Endpoints (`:9200`)

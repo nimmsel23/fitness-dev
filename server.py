@@ -58,6 +58,7 @@ def create_app() -> web.Application:
     app.router.add_post("/api/firestore/sync/exercises",   fs.sync_exercises_handler)
     app.router.add_post("/api/firestore/sync/muscles",     fs.sync_muscles_handler)
     app.router.add_post("/api/firestore/sync/anatomy",     fs.sync_anatomy_handler)
+    app.router.add_post("/api/firestore/sync/index",       fs.sync_index_handler)
     app.router.add_get("/api/firestore/status",            fs.status)
     app.router.add_get("/api/muscles",                     mh.list_muscles)
     app.router.add_get("/api/muscles/{muscle_id}",         mh.get_muscle)
