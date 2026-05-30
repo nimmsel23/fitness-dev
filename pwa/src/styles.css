@@ -185,20 +185,19 @@
    ========================================================================== */
 
 *, *::before, *::after { box-sizing: border-box; }
-html { height: 100%; -webkit-tap-highlight-color: transparent; }
+html { -webkit-tap-highlight-color: transparent; height: 100%; }
 body {
   font-family: "Inter", system-ui, -apple-system, sans-serif;
   font-size: 14px;
   line-height: 1.55;
-  background: var(--bg); /* Uses theme's background */
-  color: var(--ink);     /* Uses theme's text color */
-  height: 100%;
-  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
+  min-height: 100%;
 }
-#root { height: 100%; display: flex; flex-direction: column; background: var(--bg); position: relative; }
+#root { display: flex; flex-direction: column; background: var(--bg); position: relative; min-height: 100vh; }
 
 /* Scrollbar Styles */
 ::-webkit-scrollbar { width: var(--scrollbar-width); }
