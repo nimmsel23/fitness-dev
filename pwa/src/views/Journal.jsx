@@ -207,7 +207,6 @@ export default function Journal() {
           )}
         </div>
       </div>
-      </div>
 
       {toast && (
         <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl text-sm font-bold shadow-2xl z-50 bg-card text-accent border border-line">
@@ -215,5 +214,5 @@ export default function Journal() {
         </div>
       )}
     </div>
-  )
+  );
 }
