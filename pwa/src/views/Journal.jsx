@@ -1,16 +1,38 @@
 import { useState, useEffect } from "react";
-import { getJournal, saveJournal } from "../db.js";
+import { getJournal, saveJournal, getAllHabitJournalsForDate, getHabits } from "../db.js";
 import { localToday } from "../lib/utils.js";
+import { Target, Book } from "lucide-react";
 
 export default function Journal() {
   const [date, setDate]     = useState(localToday());
   const [text, setText]     = useState("");
   const [entries, setEntries] = useState([]);
+  const [habits, setHabits]   = useState([]);
   const [saving, setSaving] = useState(false);
   const [toast, setToast]   = useState("");
 
   useEffect(() => {
-    getJournal(date).then(setEntries).catch(() => setEntries([]));
+    async function load() {
+      const [regularEntries, habitEntries, allHabits] = await Promise.all([
+        getJournal(date),
+        getAllHabitJournalsForDate(date),
+        getHabits()
+      ]);
+      
+      setHabits(allHabits);
+      
+      const combined = [
+        ...regularEntries.map(e => ({ ...e, type: 'regular' })),
+        ...habitEntries
+      ].sort((a, b) => {
+        const timeA = a.time || (a.updated_at?.seconds ? new Date(a.updated_at.seconds * 1000).toISOString() : "");
+        const timeB = b.time || (b.updated_at?.seconds ? new Date(b.updated_at.seconds * 1000).toISOString() : "");
+        return timeB.localeCompare(timeA);
+      });
+
+      setEntries(combined);
+    }
+    load().catch(() => setEntries([]));
   }, [date]);
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(""), 2000); }
@@ -56,17 +78,32 @@ export default function Journal() {
           <div className="label-caps px-1">Einträge — {date}</div>
           <div className="space-y-3">
             {entries.length > 0 ? (
-              entries.map((e, i) => (
-                <div key={e.id || i} className="p-5 rounded-2xl border bg-card border-line hover:border-accent/20 transition-colors">
-                  <p className="text-sm leading-relaxed text-ink">{e.text}</p>
-                  {e.time && (
-                    <div className="flex items-center gap-2 mt-4 opacity-30">
-                       <div className="w-1 h-1 rounded-full bg-accent" />
-                       <span className="text-[10px] font-bold font-mono">{e.time.slice(11, 16)} Uhr</span>
-                    </div>
-                  )}
-                </div>
-              ))
+              entries.map((e, i) => {
+                const isHabit = e.type === 'habit';
+                const habit = isHabit ? habits.find(h => h.uuid === e.habitId) : null;
+                
+                return (
+                  <div key={e.id || i} className={`p-5 rounded-2xl border bg-card transition-colors ${isHabit ? 'border-accent/10 hover:border-accent/30' : 'border-line hover:border-accent/20'}`}>
+                    {isHabit && (
+                      <div className="flex items-center gap-2 mb-3">
+                         <div className="p-1.5 rounded-lg bg-accent/10 text-accent">
+                            <Target size={12} />
+                         </div>
+                         <span className="text-[10px] font-black uppercase tracking-widest text-accent">{habit?.name || "Habit"} Notiz</span>
+                      </div>
+                    )}
+                    <p className="text-sm leading-relaxed text-ink whitespace-pre-wrap">{e.text}</p>
+                    {(e.time || (isHabit && e.updated_at)) && (
+                      <div className="flex items-center gap-2 mt-4 opacity-30">
+                         <div className={`w-1 h-1 rounded-full ${isHabit ? 'bg-accent' : 'bg-dim'}`} />
+                         <span className="text-[10px] font-bold font-mono">
+                           {e.time ? e.time.slice(11, 16) : (e.updated_at?.seconds ? new Date(e.updated_at.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : "")} Uhr
+                         </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
             ) : (
               <div className="p-12 text-center rounded-3xl border border-dashed border-line opacity-30">
                 <p className="text-sm">Keine Einträge für diesen Tag</p>

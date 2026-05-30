@@ -312,6 +312,15 @@ export async function getHabitJournalHistory(habitId) {
   return snap.docs.map(d => d.data());
 }
 
+export async function getAllHabitJournalsForDate(date) {
+  const q = query(
+    collection(db, "fitness", getUid(), "habitJournals"),
+    where("date", "==", date)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data(), type: 'habit' }));
+}
+
 export async function saveHabitJournal(habitId, date, text) {
   const ref = doc(db, "fitness", getUid(), "habitJournals", `${habitId}_${date}`);
   await setDoc(ref, {
