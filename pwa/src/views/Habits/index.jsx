@@ -28,6 +28,7 @@ export default function Habits() {
   const [isJournalSaving, setIsJournalSaving] = useState(false);
 
   const rollingDates = useMemo(() => getRollingDays(28), []);
+  const recentDates = useMemo(() => getRollingDays(10), []);
 
   async function load() {
     setLoading(true);
@@ -153,21 +154,12 @@ export default function Habits() {
 
   return (
     <div className="pb-20 px-2 sm:px-4 lg:px-6">
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div className="flex-1">
-          <h1 className="text-3xl font-black text-[var(--ink)] mb-1">Deine Habits</h1>
-          <p className="text-xs font-bold opacity-30 uppercase tracking-[0.2em]">Konsistenz schlägt Intensität</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <span className="p-2 rounded-xl border text-sm font-bold bg-[var(--card)] border-[var(--line)] text-[var(--ink)]">
-            {new Date(selectedDate).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })}
-          </span>
-          {selectedDate !== localToday() && (
-              <button onClick={() => setSelectedDate(localToday())}
-                  className="p-2 rounded-full bg-[var(--card)] border border-[var(--line)] text-[var(--dim)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-all shadow-md">
-                  <CalendarDays size={18} />
-              </button>
-          )}
+      <div className="mb-10 flex flex-col gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div className="flex-1">
+            <h1 className="text-3xl font-black text-[var(--ink)] mb-1">Deine Habits</h1>
+            <p className="text-xs font-bold opacity-30 uppercase tracking-[0.2em]">Konsistenz schlägt Intensität</p>
+          </div>
           <div className="flex items-center gap-4 bg-[var(--card)] border border-[var(--line)] px-4 py-2.5 rounded-2xl shadow-xl">
              <div className="flex flex-col items-end">
                 <span className="text-[9px] font-black uppercase tracking-widest opacity-30">Gesamt-Score</span>
@@ -175,6 +167,45 @@ export default function Habits() {
              </div>
              <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
                 <Star size={20} fill="currentColor" fillOpacity={0.2} />
+             </div>
+          </div>
+        </div>
+
+        {/* Scrollable 10-Day Date Picker */}
+        <div className="flex items-center gap-3 overflow-x-auto pb-4 hide-scrollbar -mx-2 px-2">
+          {recentDates.map(d => {
+            const isSelected = d === selectedDate;
+            const isToday = d === localToday();
+            const dateObj = new Date(d);
+            const weekday = dateObj.toLocaleDateString('de-DE', { weekday: 'short' });
+            const dayNum = dateObj.getDate();
+
+            return (
+              <button
+                key={d}
+                onClick={() => setSelectedDate(d)}
+                className={`flex-shrink-0 flex flex-col items-center min-w-[52px] py-3 rounded-2xl border transition-all
+                  ${isSelected 
+                    ? 'bg-[var(--accent)] border-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20 scale-105 z-10' 
+                    : 'bg-[var(--card)] border-[var(--line)] text-[var(--dim)] hover:border-[var(--accent)]/50'}`}
+              >
+                <span className={`text-[8px] font-black uppercase tracking-widest mb-1 ${isSelected ? 'opacity-70' : 'opacity-40'}`}>
+                  {weekday}
+                </span>
+                <span className="text-sm font-black tracking-tighter">
+                  {dayNum}
+                </span>
+                {isToday && !isSelected && (
+                  <div className="w-1 h-1 rounded-full bg-[var(--accent)] mt-1" />
+                )}
+              </button>
+            );
+          })}
+          
+          <div className="flex-shrink-0 pl-4 border-l border-[var(--line)]/30 flex items-center">
+             <div className="p-3 rounded-2xl bg-[var(--card)] border border-[var(--line)] text-[var(--ink)] text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                <CalendarDays size={14} className="text-[var(--dim)]" />
+                {new Date(selectedDate).toLocaleDateString('de-DE', { month: 'short' })}
              </div>
           </div>
         </div>
