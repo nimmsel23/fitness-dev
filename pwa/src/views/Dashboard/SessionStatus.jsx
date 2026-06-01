@@ -88,18 +88,19 @@ export default function SessionStatus({ plan, todaySession, recent, today, onNav
       )}
 
       {/* Letzte Sessions */}
-      {recentSessions.filter(s => s.date !== today).length > 0 && (
+      {recentSessions.filter(s => s?.date !== today).length > 0 && (
         <div className="space-y-3">
           <h3 className="label-caps px-1">Verlauf</h3>
           <div className="flex flex-col gap-2">
-            {recentSessions.filter(s => s.date !== today).slice(0, 3).map(s => {
+            {recentSessions.filter(s => s?.date !== today).slice(0, 3).map((s, idx) => {
+              if (!s) return null;
               const isActivity = !!s.activity;
               const ActivityIcon = isActivity ? (ACTIVITY_ICONS[s.activity.type] || Activity) : Dumbbell;
               const label = isActivity ? ACTIVITY_LABELS[s.activity.type] : s.block;
               const color = blockColor(s.block, s.activity);
 
               return (
-                <button key={s.date} onClick={() => onNavigate?.("session", s.date)}
+                <button key={s.date || idx} onClick={() => onNavigate?.("session", s.date)}
                   className="w-full text-left px-4 py-3 rounded-2xl bg-card border border-line cursor-pointer hover:border-accent/30 transition-all group">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -120,7 +121,7 @@ export default function SessionStatus({ plan, todaySession, recent, today, onNav
                         </div>
                       ) : (
                         <div className="text-[9px] font-black px-2 py-1 rounded-lg bg-bg2 text-muted uppercase tracking-widest border border-line">
-                          {s.exercises?.filter(e => e.done).length ?? 0} Ex
+                          {Array.isArray(s.exercises) ? s.exercises.filter(e => e.done).length : 0} Ex
                         </div>
                       )}
                     </div>
