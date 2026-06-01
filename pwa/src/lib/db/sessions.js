@@ -7,7 +7,17 @@ import { todayISO } from "../utils";
 export async function getSession(date = todayISO()) {
   const snap = await getDoc(doc(db, "fitness", getUid(), "sessions", date));
   if (!snap.exists()) return { date, block: "", exercises: [], effort: null, mood: "", notes: "" };
-  return snap.data();
+  const data = snap.data() || {};
+  return {
+    date,
+    block: "",
+    exercises: [],
+    effort: null,
+    mood: "",
+    notes: "",
+    ...data,
+    exercises: Array.isArray(data.exercises) ? data.exercises : [],
+  };
 }
 
 export async function saveSession(date = todayISO(), sessionData) {
@@ -27,7 +37,16 @@ export async function getRecentSessions(n = 10) {
     limit(n)
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => d.data());
+  return snap.docs
+    .map((d) => {
+      const data = d.data() || {};
+      return {
+        id: d.id,
+        ...data,
+        exercises: Array.isArray(data.exercises) ? data.exercises : [],
+      };
+    })
+    .filter(Boolean);
 }
 
 export async function getLatestSession() {

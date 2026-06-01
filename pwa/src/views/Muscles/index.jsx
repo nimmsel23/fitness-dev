@@ -56,6 +56,10 @@ export default function Muscles({ hitMode, gender }) {
       getSessionHistory(60),
       getAllExercises()
     ]).then(([sessions, kbExercises]) => {
+      const safeSessions = Array.isArray(sessions) ? sessions.filter(Boolean).map(s => ({
+        ...s,
+        exercises: Array.isArray(s.exercises) ? s.exercises : [],
+      })) : [];
       const kbMap = new Map();
       kbExercises.forEach(ex => {
         kbMap.set((ex.display_name || ex.name).toLowerCase(), ex);
@@ -66,7 +70,7 @@ export default function Muscles({ hitMode, gender }) {
       cutoffVol.setDate(cutoffVol.getDate() - days);
       const cutoffStr = cutoffVol.toISOString().slice(0, 10);
       
-      const inRange = sessions
+      const inRange = safeSessions
         .filter(s => s.date >= cutoffStr)
         .flatMap(s => s.exercises || [])
         .filter(ex => ex.done)
@@ -83,7 +87,7 @@ export default function Muscles({ hitMode, gender }) {
       // HIT Logic
       const now = new Date();
       const lastSeen = {};
-      const sortedSessions = [...sessions].sort((a, b) => b.date.localeCompare(a.date));
+      const sortedSessions = [...safeSessions].sort((a, b) => b.date.localeCompare(a.date));
 
       for (const s of sortedSessions) {
         const sessionDate = new Date(s.date + "T12:00:00");

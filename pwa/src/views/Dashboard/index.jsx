@@ -37,14 +37,18 @@ export default function Dashboard({ onNavigate }) {
       getRecentSessions(10),
       getAllExercises()
     ]).then(([sessions, kbExercises]) => {
-      setRecent(sessions);
+      const safeSessions = Array.isArray(sessions) ? sessions.filter(Boolean).map(s => ({
+        ...s,
+        exercises: Array.isArray(s.exercises) ? s.exercises : [],
+      })) : [];
+      setRecent(safeSessions);
       
       const kbMap = new Map();
       kbExercises.forEach(ex => {
         kbMap.set((ex.display_name || ex.name).toLowerCase(), ex);
       });
       
-      const enriched = sessions.map(s => ({
+      const enriched = safeSessions.map(s => ({
         ...s,
         exercises: (s.exercises || []).map(ex => {
           const kbEx = kbMap.get((ex.name || "").toLowerCase());

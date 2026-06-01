@@ -62,7 +62,7 @@ export async function getMuscleCoverage(days = 7) {
   for (const date of dates) {
     const session = await getSession(date);
     if (!session) continue;
-    for (let ex of (session.exercises || [])) {
+    for (let ex of (Array.isArray(session.exercises) ? session.exercises : [])) {
       if (!ex.done) continue;
       const primary = ex.primaryMuscles || [];
       const secondary = ex.secondaryMuscles || [];
@@ -117,7 +117,14 @@ export async function getWeeklyReport(selector = "current") {
   const kbMap = new Map();
   kbExercises.forEach(ex => kbMap.set((ex.display_name || ex.name).toLowerCase(), ex));
 
-  const historyWithMuscles = history.map(s => {
+  const safeHistory = Array.isArray(history)
+    ? history.filter(Boolean).map(s => ({
+        ...s,
+        exercises: Array.isArray(s.exercises) ? s.exercises : [],
+      }))
+    : [];
+
+  const historyWithMuscles = safeHistory.map(s => {
     const groups = new Set();
     for (const ex of (s.exercises || [])) {
       if (!ex.done) continue;
@@ -146,7 +153,7 @@ export async function getWeeklyReport(selector = "current") {
     let sessVolume = 0, hasDoneExercises = false;
     const sessGroupsCount = {};
 
-    for (let ex of (sess.exercises || [])) {
+    for (let ex of (Array.isArray(sess.exercises) ? sess.exercises : [])) {
       if (!ex.done) continue;
       const primary = ex.primaryMuscles || [], secondary = ex.secondaryMuscles || [], exName = ex.name || ex.exercise_id || "";
       hasDoneExercises = true; entriesCount++;
@@ -202,7 +209,13 @@ export async function getWeeklyReport(selector = "current") {
 
 export async function getProgressTrend(exerciseName, lastN = 4) {
   const history = await getSessionHistory(lastN * 7);
-  const sessions = history.filter(s => s.exercises?.some(ex => ex.name === exerciseName)).sort((a, b) => b.date.localeCompare(a.date));
+  const safeHistory = Array.isArray(history)
+    ? history.filter(Boolean).map(s => ({
+        ...s,
+        exercises: Array.isArray(s.exercises) ? s.exercises : [],
+      }))
+    : [];
+  const sessions = safeHistory.filter(s => s.exercises.some(ex => ex.name === exerciseName)).sort((a, b) => b.date.localeCompare(a.date));
   if (sessions.length < 2) return { status: 'neutral', message: 'Nicht genug Daten' };
   const volumes = sessions.map(s => {
     const ex = s.exercises.find(e => e.name === exerciseName);
