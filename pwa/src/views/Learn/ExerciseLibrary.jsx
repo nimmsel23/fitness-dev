@@ -1,9 +1,11 @@
 import { Search, ChevronRight, Activity } from "lucide-react";
 
 export default function ExerciseLibrary({ exercises, selected, setSelected, q, setQ, recent, loading }) {
+  const safeExercises = Array.isArray(exercises) ? exercises : [];
+  const safeRecent = Array.isArray(recent) ? recent : [];
   const filtered = q.length >= 2
-    ? exercises.filter(ex => (ex.display_name || ex.name || "").toLowerCase().includes(q.toLowerCase()))
-    : exercises;
+    ? safeExercises.filter(ex => (ex.display_name || ex.name || "").toLowerCase().includes(q.toLowerCase()))
+    : safeExercises;
 
   return (
     <div className="space-y-6">
@@ -16,12 +18,12 @@ export default function ExerciseLibrary({ exercises, selected, setSelected, q, s
         />
       </div>
 
-      {recent.length > 0 && !q && (
+      {safeRecent.length > 0 && !q && (
         <div className="space-y-3">
           <div className="label-caps px-1">Zuletzt Trainiert</div>
           <div className="flex flex-wrap gap-2">
-            {recent.slice(0, 6).map((ex, i) => {
-              const found = exercises.find(e => e.exercise_id === ex.exercise_id || (e.display_name || e.name) === (ex.name || ex.exercise_id));
+            {safeRecent.slice(0, 6).map((ex, i) => {
+              const found = safeExercises.find(e => e.exercise_id === ex.exercise_id || (e.display_name || e.name) === (ex.name || ex.exercise_id));
               return (
                 <button key={i} onClick={() => found && setSelected(found)}
                   className={`px-4 py-2.5 rounded-xl border text-xs font-black transition-all ${selected?.exercise_id === found?.exercise_id ? 'bg-accent text-black border-accent shadow-lg shadow-accent/20' : 'bg-bg2 border-line text-muted hover:text-ink'}`}>

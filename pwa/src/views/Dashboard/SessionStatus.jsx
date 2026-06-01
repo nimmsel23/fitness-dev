@@ -2,6 +2,10 @@ import { Zap, ChevronRight, Dumbbell, Activity, Timer } from "lucide-react";
 import { blockColor, ACTIVITY_LABELS, ACTIVITY_ICONS } from "./utils";
 
 export default function SessionStatus({ plan, todaySession, recent, today, onNavigate }) {
+  const planExercises = Array.isArray(plan?.today?.exercises) ? plan.today.exercises : [];
+  const todayExercises = Array.isArray(todaySession?.exercises) ? todaySession.exercises : [];
+  const recentSessions = Array.isArray(recent) ? recent : [];
+
   return (
     <div className="lg:col-span-1 space-y-6">
       {/* Plan-Hint */}
@@ -19,11 +23,11 @@ export default function SessionStatus({ plan, todaySession, recent, today, onNav
               <div className="text-2xl font-black text-ink mb-1" style={{ color: blockColor(plan.today.block) || 'var(--accent)' }}>
                 {plan.today.block}
               </div>
-              <div className="h-1 w-12 bg-accent rounded-full" />
-            </div>
-            {plan.today.exercises?.length > 0 && (
+            <div className="h-1 w-12 bg-accent rounded-full" />
+          </div>
+            {planExercises.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {plan.today.exercises.slice(0, 6).map((e, i) => (
+                {planExercises.slice(0, 6).map((e, i) => (
                   <span key={i} className="text-[9px] font-bold px-2 py-1 rounded-lg bg-bg2 text-muted border border-line">
                     {typeof e === "string" ? e : e.name}
                   </span>
@@ -41,11 +45,11 @@ export default function SessionStatus({ plan, todaySession, recent, today, onNav
       )}
 
       {/* Heutige Session Status */}
-      { (todaySession?.exercises?.length > 0 || todaySession?.activity) ? (
+      { (todayExercises.length > 0 || todaySession?.activity) ? (
         <div className="card mb-0 border-accent/20 shadow-lg shadow-accent/5">
           <div className="label-caps mb-6 flex items-center justify-between">
             <span>Aktuelle Session</span>
-            <span className="text-accent font-black">{todaySession.activity ? ACTIVITY_LABELS[todaySession.activity.type] : todaySession.block}</span>
+            <span className="text-accent font-black">{todaySession?.activity ? ACTIVITY_LABELS[todaySession.activity.type] : todaySession?.block}</span>
           </div>
           <div className="flex items-center justify-between mb-6">
             <div className="flex gap-6">
@@ -59,12 +63,12 @@ export default function SessionStatus({ plan, todaySession, recent, today, onNav
               ) : (
                 <div className="flex flex-col">
                   <span className="text-2xl font-black text-ink">
-                    {todaySession.exercises.filter(e => e.done).length}<span className="text-lg opacity-30">/{todaySession.exercises.length}</span>
+                    {todayExercises.filter(e => e.done).length}<span className="text-lg opacity-30">/{todayExercises.length}</span>
                   </span>
                   <span className="text-[9px] font-black uppercase tracking-widest opacity-30">Übungen</span>
                 </div>
               )}
-              {todaySession.effort && (
+              {todaySession?.effort && (
                 <div className="flex flex-col">
                   <span className="text-2xl font-black text-ink">{todaySession.effort}</span>
                   <span className="text-[9px] font-black uppercase tracking-widest opacity-30">Effort</span>
@@ -84,11 +88,11 @@ export default function SessionStatus({ plan, todaySession, recent, today, onNav
       )}
 
       {/* Letzte Sessions */}
-      {recent.filter(s => s.date !== today).length > 0 && (
+      {recentSessions.filter(s => s.date !== today).length > 0 && (
         <div className="space-y-3">
           <h3 className="label-caps px-1">Verlauf</h3>
           <div className="flex flex-col gap-2">
-            {recent.filter(s => s.date !== today).slice(0, 3).map(s => {
+            {recentSessions.filter(s => s.date !== today).slice(0, 3).map(s => {
               const isActivity = !!s.activity;
               const ActivityIcon = isActivity ? (ACTIVITY_ICONS[s.activity.type] || Activity) : Dumbbell;
               const label = isActivity ? ACTIVITY_LABELS[s.activity.type] : s.block;

@@ -4,10 +4,12 @@ import ExerciseItem from "./ExerciseItem";
 import ExerciseSearch from "../../components/ExerciseSearch";
 
 export default function ExerciseSection({ 
-  exercises, hitMode, restHours, totalVolume, 
+  exercises = [], hitMode, restHours, totalVolume, 
   updateEx, addSet, removeSet, removeEx, moveEx, 
   planMode, date, addEx, quickInput, setQuickInput, addQuick 
 }) {
+  const safeExercises = Array.isArray(exercises) ? exercises : [];
+
   return (
     <div>
       <div className="flex items-center justify-between">
@@ -28,7 +30,7 @@ export default function ExerciseSection({
       </div>
       
       <div className="space-y-3">
-        {exercises.map((ex, idx) => (
+        {safeExercises.map((ex, idx) => (
           <ExerciseItem 
             key={idx} 
             ex={ex} 
@@ -39,12 +41,12 @@ export default function ExerciseSection({
             removeEx={removeEx} 
             moveEx={moveEx}
             isFirst={idx === 0}
-            isLast={idx === exercises.length - 1}
+            isLast={idx === safeExercises.length - 1}
             planMode={planMode}
             date={date}
           />
         ))}
-        {exercises.length === 0 && (
+        {safeExercises.length === 0 && (
           <div className="card border-dashed flex flex-col items-center justify-center py-12 opacity-30 bg-bg2/30">
             <Dumbbell size={32} className="mb-3" />
             <p className="text-xs font-black uppercase tracking-widest">Keine Übungen geloggt</p>
