@@ -28,6 +28,7 @@ fitnessctl — fitness-dev service control (API :${API_PORT}, UI :${UI_PORT})
   fitnessctl logs         Tail API server log
 
   fitnessctl sync         Pull fresh data from Firebase for all users
+  fitnessctl sync-views   Push shared views (Habits, Journal) to PWA
   fitnessctl watch        Start AI Enricher Watcher (background)
   fitnessctl kb-sync      Push local catalog (exercises/anatomy) to Firestore
 
@@ -47,20 +48,34 @@ EOF
 }
 
 PIDFILE="/tmp/fitness-dev.pid"
+AGENT_PIDFILE="/tmp/fitness-agent.pid"
 LOGFILE="/tmp/fitness-dev.log"
+AGENT_LOGFILE="/tmp/fitness-agent.log"
 
 cmd_start() {
+  # Start Agent Server
+  if [[ -f "$AGENT_PIDFILE" ]] && kill -0 "$(cat "$AGENT_PIDFILE")" 2>/dev/null; then
+    warn "Agent already running (PID $(cat "$AGENT_PIDFILE"))"
+  else
+    cd "$ROOT"
+    PYTHONPATH=catalog nohup python3 -m fitness_agent.server >"$AGENT_LOGFILE" 2>&1 &
+    echo $! >"$AGENT_PIDFILE"
+    sleep 0.5
+    msg "Agent Started (PID $(cat "$AGENT_PIDFILE"), Port :9120)"
+  fi
+
+  # Start API Server
   if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
-    warn "Already running (PID $(cat "$PIDFILE"))"; return
+    warn "API already running (PID $(cat "$PIDFILE"))"; return
   fi
   cd "$ROOT"
   nohup node server.mjs >"$LOGFILE" 2>&1 &
   echo $! >"$PIDFILE"
   sleep 0.5
   if kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
-    msg "Started (PID $(cat "$PIDFILE"), API :${API_PORT})"
+    msg "API Started (PID $(cat "$PIDFILE"), Port :${API_PORT})"
   else
-    die "Failed to start — check $LOGFILE"
+    die "Failed to start API — check $LOGFILE"
   fi
 }
 
@@ -78,6 +93,19 @@ cmd_stop() {
     warn "No API pidfile found"
   fi
 
+  # Stop Agent Server
+  if [[ -f "$AGENT_PIDFILE" ]]; then
+    local apid; apid="$(cat "$AGENT_PIDFILE")"
+    if kill -0 "$apid" 2>/dev/null; then
+      kill "$apid" && rm -f "$AGENT_PIDFILE"
+      msg "Agent Stopped (PID $apid)"
+    else
+      rm -f "$AGENT_PIDFILE"; warn "Agent was not running"
+    fi
+  else
+    warn "No Agent pidfile found"
+  fi
+
   # Stop AI Watcher
   local watch_pidfile="/tmp/fitness-enricher.pid"
   if [[ -f "$watch_pidfile" ]]; then
@@ -92,9 +120,10 @@ cmd_stop() {
 }
 
 cmd_status() {
-  local api_ok=false ui_ok=false watch_ok=false
+  local api_ok=false ui_ok=false watch_ok=false agent_ok=false
   curl -fsS --max-time 2 "${API_URL}/health" >/dev/null 2>&1 && api_ok=true
   curl -fsS --max-time 2 "http://${HOST}:${UI_PORT}" >/dev/null 2>&1 && ui_ok=true
+  curl -fsS --max-time 2 "http://${HOST}:9120/" >/dev/null 2>&1 && agent_ok=true
   
   local watch_pidfile="/tmp/fitness-enricher.pid"
   if [[ -f "$watch_pidfile" ]] && kill -0 "$(cat "$watch_pidfile")" 2>/dev/null; then
@@ -105,13 +134,15 @@ cmd_status() {
     {
       echo "SERVICE,PORT,STATUS"
       echo "fitness-api,${API_PORT},$($api_ok && echo '✓ up' || echo '✗ down')"
+      echo "fitness-agent,9120,$($agent_ok && echo '✓ up' || echo '✗ down')"
       echo "fitness-ui,${UI_PORT},$($ui_ok && echo '✓ up' || echo '✗ down')"
       echo "ai-enricher,-,$($watch_ok && echo '✓ active' || echo '✗ inactive')"
     } | gum table --print --separator=","
   else
-    printf "  %-14s :%-6s %s\n" "fitness-api" "$API_PORT" "$($api_ok && echo 'up' || echo 'down')"
-    printf "  %-14s :%-6s %s\n" "fitness-ui"  "$UI_PORT"  "$($ui_ok  && echo 'up' || echo 'down')"
-    printf "  %-14s :%-6s %s\n" "ai-enricher" "-"       "$($watch_ok && echo 'active' || echo 'inactive')"
+    printf "  %-14s :%-6s %s\n" "fitness-api"   "$API_PORT" "$($api_ok && echo 'up' || echo 'down')"
+    printf "  %-14s :%-6s %s\n" "fitness-agent" "9120"      "$($agent_ok && echo 'up' || echo 'down')"
+    printf "  %-14s :%-6s %s\n" "fitness-ui"    "$UI_PORT"  "$($ui_ok  && echo 'up' || echo 'down')"
+    printf "  %-14s :%-6s %s\n" "ai-enricher"   "-"       "$($watch_ok && echo 'active' || echo 'inactive')"
   fi
 }
 
@@ -138,6 +169,11 @@ cmd_logs() {
 cmd_sync() {
   msg "Syncing Firestore..."
   cd "$ROOT" && python3 -m firestore.sync_cli sync
+}
+
+cmd_sync_views() {
+  msg "Deploying shared views to PWA..."
+  cd "$ROOT" && npm run sync-views
 }
 
 cmd_watch() {
@@ -187,52 +223,57 @@ cmd_journal() {
 
 cmd_coverage() {
   local days="${1:-7}"
-  api_get "/coverage/detailed?days=${days}" | python3 -c "
-import sys,json; d=json.load(sys.stdin)
+  api_get "/coverage/detailed?days=${days}" | python3 - <<EOF
+import sys,json
+d=json.load(sys.stdin)
 for g in d.get('groups',[]):
     score=sum(m['totalScore'] for m in g['muscles'])
     bar='█'*int(score*2)
-    print(f'  {g[\"id\"]:12s} {score:5.1f}  {bar}')
-"
+    print(f'  {g["id"]:12s} {score:5.1f}  {bar}')
+EOF
 }
 
 cmd_gaps() {
   local days="${1:-7}"
-  api_get "/coverage/gaps?days=${days}" | python3 -c "
-import sys,json; d=json.load(sys.stdin)
+  api_get "/coverage/gaps?days=${days}" | python3 - <<EOF
+import sys,json
+d=json.load(sys.stdin)
 gaps=d.get('gaps',[])
 if not gaps: print('  No gaps in the last ${days} days')
-else: [print(f'  {g[\"name\"]:14s} ({g[\"hits\"]} hits)') for g in gaps]
-"
+else: [print(f'  {g["name"]:14s} ({g["hits"]} hits)') for g in gaps]
+EOF
 }
 
 cmd_search() {
   [[ -n "${1:-}" ]] || die "Usage: search QUERY"
-  api_get "/exercises/search?q=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote('$*'))")" | python3 -c "
-import sys,json; d=json.load(sys.stdin)
+  local query; query=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote('$*'))")
+  api_get "/exercises/search?q=${query}" | python3 - <<EOF
+import sys,json
+d=json.load(sys.stdin)
 for r in d.get('results',[]):
     muscles=' '.join(r.get('primaryMuscles',[]))
-    print(f'  {r[\"name\"]:30s} {muscles}')
-"
+    print(f'  {r["name"]:30s} {muscles}')
+EOF
 }
 
 case "${1:-help}" in
-  start)    cmd_start ;;
-  stop)     cmd_stop ;;
-  restart)  cmd_stop; sleep 0.3; cmd_start ;;
-  status)   cmd_status ;;
-  health)   cmd_health ;;
-  dev)      cmd_dev ;;
-  build)    cmd_build ;;
-  logs)     cmd_logs ;;
-  sync)     cmd_sync ;;
-  watch)    cmd_watch ;;
-  kb-sync)  cmd_kb_sync ;;
-  session)  shift; cmd_session "$@" ;;
-  journal)  shift; cmd_journal "$@" ;;
-  coverage) shift; cmd_coverage "$@" ;;
-  gaps)     shift; cmd_gaps "$@" ;;
-  search)   shift; cmd_search "$@" ;;
+  start)      cmd_start ;;
+  stop)       cmd_stop ;;
+  restart)    cmd_stop; sleep 0.3; cmd_start ;;
+  status)     cmd_status ;;
+  health)     cmd_health ;;
+  dev)        cmd_dev ;;
+  build)      cmd_build ;;
+  logs)       cmd_logs ;;
+  sync)       cmd_sync ;;
+  sync-views) cmd_sync_views ;;
+  watch)      cmd_watch ;;
+  kb-sync)    cmd_kb_sync ;;
+  session)    shift; cmd_session "$@" ;;
+  journal)    shift; cmd_journal "$@" ;;
+  coverage)   shift; cmd_coverage "$@" ;;
+  gaps)       shift; cmd_gaps "$@" ;;
+  search)     shift; cmd_search "$@" ;;
   help|-h|--help) usage ;;
   *) die "Unknown command: ${1}. Run 'fitnessctl help'" ;;
 esac

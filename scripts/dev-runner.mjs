@@ -11,8 +11,9 @@ function run(cmd, args, env = {}) {
   return p
 }
 
-const api  = run('node', ['node_modules/.bin/nodemon', '--watch', 'server.mjs', '--ext', 'mjs', '--signal', 'SIGTERM', 'server.mjs'])
-const vite = run('node', ['node_modules/.bin/vite'], { VITE_API_BASE: '' })
+const agent = run('python3', ['-m', 'fitness_agent.server'], { PYTHONPATH: 'catalog' })
+const api   = run('node', ['node_modules/.bin/nodemon', '--watch', 'server.mjs', '--ext', 'mjs', '--signal', 'SIGTERM', 'server.mjs'])
+const vite  = run('node', ['node_modules/.bin/vite'], { VITE_API_BASE: '' })
 
-process.on('SIGTERM', () => { api.kill(); vite.kill() })
-process.on('SIGINT',  () => { api.kill(); vite.kill() })
+process.on('SIGTERM', () => { agent.kill(); api.kill(); vite.kill() })
+process.on('SIGINT',  () => { agent.kill(); api.kill(); vite.kill() })

@@ -117,23 +117,6 @@ async function fetchWger(wgerPath, qs = "") {
   }
 }
 
-function localExerciseGroupMatches(group) {
-  const g = String(group || "").trim().toLowerCase();
-  if (!g) return [];
-  const normalized = g.replace(/\s+/g, "_");
-  return fitnessData.exercises.filter(ex => {
-    const primary   = (ex.primary_muscles   || []).map(x => String(x || "").trim().toLowerCase());
-    const secondary = (ex.secondary_muscles || []).map(x => String(x || "").trim().toLowerCase());
-    const tags      = (ex.tags              || []).map(x => String(x || "").trim().toLowerCase());
-    const haystack  = [...primary, ...secondary, ...tags, String(ex.category || "").toLowerCase()];
-    return haystack.includes(g) || haystack.includes(normalized) || haystack.some(v => v.includes(g) || v.includes(normalized));
-  }).map(ex => ({
-    id:       ex.exercise_id,
-    name_en:  ex.display_name || ex.name || ex.exercise_id,
-    relevance:"primary",
-  }));
-}
-
 
 function normMuscleKey(s) {
   return String(s || "")
@@ -246,7 +229,7 @@ app.get("/exercises/search", async (c) => {
   const q     = c.req.query("q")     || "";
   const limit = Math.min(Number(c.req.query("limit") || 12), 50);
   if (q.length < 1) return c.json({ ok: true, results: [] });
-  const local = searchExercises(q, limit);
+  const local = await searchExercises(q, limit);
   if (local?.results?.length) return c.json(local);
   if (q.length < 2) return c.json({ ok: true, results: [] });
   const data = await fetchWger("/exerciseinfo/", `limit=${limit}&name__search=${encodeURIComponent(q)}&language=2`);
@@ -271,7 +254,20 @@ app.get("/exercises/search", async (c) => {
 // ── Exercises by muscle group ─────────────────────────────────────────────────
 app.get("/exercises/by-group", async (c) => {
   const group = c.req.query("group") || "";
-  const local = localExerciseGroupMatches(group);
+  // Delegating search logic to agent if possible, but keeping local filter for now
+  const normalized = group.toLowerCase().replace(/\s+/g, "_");
+  const local = (fitnessData.exercises || []).filter(ex => {
+    const primary   = (ex.primary_muscles   || []).map(x => String(x || "").toLowerCase());
+    const secondary = (ex.secondary_muscles || []).map(x => String(x || "").toLowerCase());
+    const tags      = (ex.tags              || []).map(x => String(x || "").toLowerCase());
+    const haystack  = [...primary, ...secondary, ...tags, String(ex.category || "").toLowerCase()];
+    return haystack.includes(group.toLowerCase()) || haystack.includes(normalized);
+  }).map(ex => ({
+    id:       ex.exercise_id,
+    name_en:  ex.display_name || ex.name || ex.exercise_id,
+    relevance:"primary",
+  }));
+
   if (local.length) return c.json({ ok: true, exercises: local });
 
   const mappings = fitnessData.wgerMapping?.mappings || {};
@@ -291,34 +287,82 @@ app.get("/exercises/by-group", async (c) => {
 });
 
 // ── Exercise teaching (anatomy-kb → catalog/kb/anatomy_teaching) ─────────────
-const ANATOMY_DIR = path.join(__dirname, "catalog", "kb", "anatomy_teaching");
+app.get("/exercise/:id/teaching", async (c) => {
+  const id = c.req.param("id");
+  try {
+    const res = await fetch(`http://localhost:9120/exercise/${id}`);
+    const data = await res.json();
+    if (!data || !data.lesson) return c.json({ ok: false, error: "no_lesson" }, 404);
+    return c.json({ ok: true, lesson: data.lesson });
+  } catch (err) {
+    return c.json({ ok: false, error: "agent_unreachable" }, 502);
+  }
+});
 
-function loadLesson(exerciseId) {
-  const file = path.join(ANATOMY_DIR, `${exerciseId}.yml`);
+// ── Inbox Management ─────────────────────────────────────────────────────────
+const EXERCISES_DIR = path.join(__dirname, "catalog", "kb", "exercises");
+
+app.get("/fitness/clients", (c) => {
+  const usersDir = path.join(os.homedir(), ".aos", "fitness", "users");
+  if (!fs.existsSync(usersDir)) return c.json({ ok: true, clients: [] });
+  
+  const uids = fs.readdirSync(usersDir).filter(d => 
+    fs.statSync(path.join(usersDir, d)).isDirectory() && !["default", "kb"].includes(d)
+  );
+
+  const clients = uids.map(uid => {
+    let name = uid.slice(0, 8);
+    const sessDir = path.join(usersDir, uid, "sessions");
+    if (fs.existsSync(sessDir)) {
+      const files = fs.readdirSync(sessDir).filter(f => f.endsWith(".json")).sort().reverse();
+      if (files.length) {
+        const lastSess = readJson(path.join(sessDir, files[0]));
+        if (lastSess?.user_name) name = lastSess.user_name;
+      }
+    }
+    return { uid, name };
+  });
+
+  return c.json({ ok: true, clients });
+});
+
+app.get("/fitness/inbox", (c) => {
+  if (!fs.existsSync(EXERCISES_DIR)) return c.json({ ok: true, exercises: [] });
+  const files = fs.readdirSync(EXERCISES_DIR).filter(f => f.startsWith("inbox_") && f.endsWith(".yml"));
+  const exercises = files.map(f => {
+    const doc = yaml.load(fs.readFileSync(path.join(EXERCISES_DIR, f), "utf8"));
+    return {
+      file_id: f.replace(".yml", ""),
+      ...doc
+    };
+  });
+  return c.json({ ok: true, exercises });
+});
+
+app.post("/fitness/inbox/:id/approve", async (c) => {
+  const id = c.req.param("id");
+  const oldPath = path.join(EXERCISES_DIR, `${id}.yml`);
+  const newId = id.replace(/^inbox_/, "");
+  const newPath = path.join(EXERCISES_DIR, `${newId}.yml`);
+
+  if (!fs.existsSync(oldPath)) return c.json({ ok: false, error: "not_found" }, 404);
+
+  let content = fs.readFileSync(oldPath, "utf8");
+  content = content.replace(`name: ${id}`, `name: ${newId}`);
+  fs.writeFileSync(newPath, content);
+  fs.unlinkSync(oldPath);
+
+  return c.json({ ok: true, id: newId });
+});
+
+app.delete("/fitness/inbox/:id", (c) => {
+  const id = c.req.param("id");
+  const file = path.join(EXERCISES_DIR, `${id}.yml`);
   if (fs.existsSync(file)) {
-    const doc = yaml.load(fs.readFileSync(file, "utf8"));
-    if (doc && typeof doc === "object") {
-      const lessons = doc.lessons || (doc.exercise_id ? [doc] : []);
-      return lessons.find(l => l.exercise_id === exerciseId) || lessons[0] || null;
-    }
+    fs.unlinkSync(file);
+    return c.json({ ok: true });
   }
-  // Fallback: multi-lesson files (chest_lessons.yml etc.)
-  if (fs.existsSync(ANATOMY_DIR)) {
-    for (const f of fs.readdirSync(ANATOMY_DIR).filter(f => f.endsWith(".yml"))) {
-      const doc = yaml.load(fs.readFileSync(path.join(ANATOMY_DIR, f), "utf8"));
-      const lessons = doc?.lessons || (doc?.exercise_id ? [doc] : []);
-      const match = lessons.find(l => l.exercise_id === exerciseId);
-      if (match) return match;
-    }
-  }
-  return null;
-}
-
-app.get("/exercise/:id/teaching", (c) => {
-  const id     = c.req.param("id");
-  const lesson = loadLesson(id);
-  if (!lesson) return c.json({ ok: false, error: "no_lesson" }, 404);
-  return c.json({ ok: true, lesson });
+  return c.json({ ok: false, error: "not_found" }, 404);
 });
 
 // ── Fitness config / search / plan / weekly / export ─────────────────────────
@@ -332,27 +376,27 @@ app.get("/fitness/config", (c) =>
   })
 );
 
-app.get("/fitness/search", (c) => {
+app.get("/fitness/search", async (c) => {
   const q     = c.req.query("q")     || "";
   const limit = Math.min(Number(c.req.query("limit") || 12), 50);
-  return c.json(searchExercises(q, limit));
+  return c.json(await searchExercises(q, limit));
 });
 
 app.get("/fitness/exercises/all", (c) => {
   return c.json({ ok: true, exercises: fitnessData.exercises || [] });
 });
 
-app.get("/fitness/plan", (c) => {
+app.get("/fitness/plan", async (c) => {
   const template = c.req.query("template") || "";
   const split    = c.req.query("split")    || "";
   const day      = c.req.query("day")      || "";
   const goal     = c.req.query("goal")     || "";
-  return c.json(buildPlan({ template, split, day, goal }));
+  return c.json(await buildPlan({ template, split, day, goal }));
 });
 
-app.get("/fitness/weekly", (c) => {
+app.get("/fitness/weekly", async (c) => {
   const week = c.req.query("week") || "current";
-  try { return c.json(getWeeklySummary(week)); }
+  try { return c.json(await getWeeklySummary(week)); }
   catch (e) { return c.json({ ok: false, error: e.message }, 500); }
 });
 
@@ -367,19 +411,19 @@ app.post("/fitness/export", async (c) => {
     if (kind === "exercise_sheet") {
       const query = String(data.query || data.exercise_id || "").trim();
       if (!query) return c.json({ ok: false, error: "missing_query" }, 400);
-      return c.json({ ok: true, kind, ...exportWithPython("exercise_sheet", { query, force: !!data.force }) });
+      return c.json({ ok: true, kind, ...await exportWithPython("exercise_sheet", { query, force: !!data.force }) });
     }
     if (kind === "exercise_lesson") {
       const exercise_id = String(data.exercise_id || "").trim();
       if (!exercise_id) return c.json({ ok: false, error: "missing_exercise_id" }, 400);
-      return c.json({ ok: true, kind, ...exportWithPython("exercise_lesson", { exercise_id, mode: data.mode || "trainer", force: !!data.force }) });
+      return c.json({ ok: true, kind, ...await exportWithPython("exercise_lesson", { exercise_id, mode: data.mode || "trainer", force: !!data.force }) });
     }
     if (kind === "plan") {
-      const plan   = data.plan || buildPlan(data.plan_options || data);
-      return c.json({ ok: true, kind, ...exportWithPython("plan", { plan, force: !!data.force }) });
+      const plan   = data.plan || await buildPlan(data.plan_options || data);
+      return c.json({ ok: true, kind, ...await exportWithPython("plan", { plan, force: !!data.force }) });
     }
     if (kind === "weekly") {
-      return c.json({ ok: true, kind, ...exportWithPython("weekly", { week_selector: data.week_selector || "current", force: !!data.force }) });
+      return c.json({ ok: true, kind, ...await exportWithPython("weekly", { week_selector: data.week_selector || "current", force: !!data.force }) });
     }
     return c.json({ ok: false, error: "unknown_export_kind" }, 400);
   } catch (error) {
@@ -488,25 +532,32 @@ app.get("/blocks", (c) => {
 
 // ── Session ───────────────────────────────────────────────────────────────────
 app.get("/session", (c) => {
+  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || "default";
   const date = c.req.query("date") || localToday();
-  const data = readJson(path.join(DATA_DIR, "sessions", `${date}.json`));
+  const file = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions", `${date}.json`);
+  const data = readJson(file);
   return data ? c.json({ ok: true, data }) : c.json({ ok: false }, 404);
 });
 
 app.post("/session", async (c) => {
+  const uid     = c.req.header("X-User-UID") || "default";
   const date    = c.req.query("date") || localToday();
-  const file    = path.join(DATA_DIR, "sessions", `${date}.json`);
+  const userDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
+  fs.mkdirSync(userDir, { recursive: true });
+  const file    = path.join(userDir, `${date}.json`);
   const data    = await c.req.json().catch(() => ({}));
   const session = { ...data, date, saved_at: new Date().toISOString() };
   writeJson(file, session);
   syncSessionToDb(date, session);
-  mirrorSession(date, session);
+  mirrorSession(date, session, uid);
   return c.json({ ok: true });
 });
 
 app.get("/session/history", (c) => {
+  const uid     = c.req.query("uid") || c.req.header("X-User-UID") || "default";
   const limit   = Number(c.req.query("limit") || 10);
-  const dir     = path.join(DATA_DIR, "sessions");
+  const dir     = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
+  if (!fs.existsSync(dir)) return c.json({ ok: true, sessions: [] });
   const files   = fs.readdirSync(dir).filter(f => f.endsWith(".json")).sort().reverse().slice(0, limit);
   const sessions = files.map(f => ({ date: f.replace(".json", ""), ...readJson(path.join(dir, f)) }));
   return c.json({ ok: true, sessions });
@@ -531,11 +582,12 @@ app.get("/journal", (c) => {
 });
 
 app.post("/journal", async (c) => {
+  const uid           = c.req.header("X-User-UID") || "default";
   const date          = c.req.query("date") || localToday();
   const file          = path.join(DATA_DIR, "journal", `${date}.md`);
   const { content }   = await c.req.json().catch(() => ({}));
   fs.writeFileSync(file, content || "");
-  mirrorJournal(date, { text: content || "" });
+  mirrorJournal(date, { text: content || "" }, uid);
   return c.json({ ok: true });
 });
 
@@ -670,6 +722,7 @@ app.post("/theme", async (c) => { writeJson(themeFile, await c.req.json().catch(
 app.get("/firestore/status", async (c) => c.json(await getFirestoreStatus()));
 
 app.post("/firestore/sync", async (c) => {
+  const uid = c.req.header("X-User-UID") || "default";
   const status = await getFirestoreStatus();
   if (!status.ok) return c.json({ ok: false, error: "Firestore nicht verbunden" }, 503);
   const sessDir = path.join(DATA_DIR, "sessions");
@@ -681,7 +734,7 @@ app.post("/firestore/sync", async (c) => {
     for (const f of files) {
       const date = f.replace(".json", "");
       const data = readJson(path.join(sessDir, f));
-      if (data) { mirrorSession(date, data); synced++; }
+      if (data) { mirrorSession(date, data, uid); synced++; }
     }
   }
   return c.json({ ok: true, synced });
