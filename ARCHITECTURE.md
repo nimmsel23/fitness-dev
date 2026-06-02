@@ -9,9 +9,26 @@ Stand: 2026-05-18
 ```
 React + Vite        :5902 (dev)     ~/fitness-dev/src/
 Node.js Server      :9100           ~/fitness-dev/server.mjs
+Fitness Agent KB    :9120           ~/fitness-dev/catalog/fitness_agent/server.py
 YAML Katalog        —               ~/fitness-dev/catalog/
 Session-Daten       —               ~/fitness-dev/data/
 ```
+
+---
+
+## Exercise KB Server (Python/aiohttp :9120)
+
+Der `fitness-agent` stellt einen dedizierten Server für die semantische Exercise Library bereit. Er dient als "Coach Brain" API.
+
+| Endpoint | Methode | Beschreibung |
+|----------|---------|-------------|
+| `/exercises` | GET | Liste aller Übungen aus den YAML-Files |
+| `/exercise/{id}` | GET | Detaildaten (Muskeln, Equipment, Notes) |
+| `/resolve?q=` | GET | Löst Freitext/Aliase auf canonical IDs auf |
+| `/muscles` | GET | Muskel-Taxonomie aus muscles.yml |
+| `/taxonomy` | GET | Kombiniertes Schema (Muskeln, Rules, Bridge) |
+
+CORS ist für alle Origins aktiviert, um die Integration in die PWA und lokale Tools zu ermöglichen.
 
 ---
 
