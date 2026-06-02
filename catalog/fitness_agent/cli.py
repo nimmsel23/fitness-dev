@@ -37,6 +37,7 @@ from .wger import build_plan_wger_payload, map_wger, wger_check
 from .resolver import resolve_query
 from .weekly import build_weekly_coverage
 from .tui import run_tui
+from .watcher import run_watcher
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -119,6 +120,9 @@ def build_parser() -> argparse.ArgumentParser:
     export_coverage_parser.add_argument("--force", action="store_true", help="Overwrite the target file")
     preview_parser = subparsers.add_parser("preview", help="Preview a markdown file")
     preview_parser.add_argument("--file", required=True, help="Markdown file to preview")
+
+    subparsers.add_parser("watch", help="Start the AI enricher watcher daemon")
+
     return parser
 
 
@@ -511,6 +515,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
         print(path.read_text(encoding="utf-8"), end="")
         return 0
+
+    if args.command == "watch":
+        try:
+            run_watcher()
+            return 0
+        except KeyboardInterrupt:
+            return 0
+        except Exception as exc:
+            print(f"FAIL: {exc}")
+            return 1
 
     return 2
 

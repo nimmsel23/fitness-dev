@@ -184,7 +184,7 @@ cmd_watch() {
     warn "Watcher already running (PID $(cat "$watch_pidfile"))"; return
   fi
   cd "$ROOT"
-  nohup python3 scripts/ai_enricher_watcher.py >"$watch_logfile" 2>&1 &
+  PYTHONPATH=catalog nohup python3 -m fitness_agent.cli watch >"$watch_logfile" 2>&1 &
   echo $! >"$watch_pidfile"
   sleep 0.5
   if kill -0 "$(cat "$watch_pidfile")" 2>/dev/null; then
