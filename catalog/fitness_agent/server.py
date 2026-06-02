@@ -1,19 +1,22 @@
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import asdict
+from pathlib import Path
 from typing import Any
 
 from aiohttp import web
 
 from .resolver import build_exercise_index, resolve_query, find_by_id
 from .loader import load_catalog_yaml, load_runtime_yaml
-from .paths import DATA_DIR
+from .paths import DATA_DIR, REPO_ROOT
 from .teaching import load_all_lessons, find_lesson
 from .planner import build_plan
 from .weekly import build_weekly_coverage, resolve_week_selector
 from .history import read_history_range
 from .obsidian import export_coach_sheet_note, export_teach_note, export_plan_note, export_weekly_report_note
+from .yaml_utils import load_yaml
 
 
 async def handle_index(request: web.Request) -> web.Response:
@@ -29,7 +32,10 @@ async def handle_index(request: web.Request) -> web.Response:
             "/snapshot",
             "/plan",
             "/weekly?week=...",
-            "/export/{kind}"
+            "/export/{kind}",
+            "/inbox",
+            "/inbox/{id}/approve",
+            "/inbox/{id}/delete"
         ]
     })
 
@@ -127,7 +133,6 @@ async def handle_snapshot(request: web.Request) -> web.Response:
 
 async def handle_plan(request: web.Request) -> web.Response:
     try:
-        # Use query params or POST body
         if request.method == "POST":
             data = await request.json()
         else:
@@ -151,8 +156,6 @@ async def handle_weekly(request: web.Request) -> web.Response:
         bounds = resolve_week_selector(week_selector)
         entries = read_history_range(bounds["date_from"], bounds["date_to"])
         
-        # In a real scenario, we might want to enrich entries here too, 
-        # but let's stick to what WEEKLY_SCRIPT does for now.
         return web.json_response({
             **week,
             "week_selector": week_selector,
@@ -191,6 +194,63 @@ async def handle_export(request: web.Request) -> web.Response:
         return web.json_response({"error": str(e)}, status=500)
 
 
+async def handle_inbox_list(request: web.Request) -> web.Response:
+    exercises_dir = DATA_DIR / "exercises"
+    if not exercises_dir.exists():
+        return web.json_response({"ok": True, "exercises": []})
+    
+    files = [f for f in exercises_dir.glob("inbox_*.yml")]
+    exercises = []
+    for f in files:
+        try:
+            doc = load_yaml(f)
+            exercises.append({
+                "file_id": f.stem,
+                **doc
+            })
+        except Exception:
+            continue
+            
+    return web.json_response({"ok": True, "exercises": exercises})
+
+
+async def handle_inbox_approve(request: web.Request) -> web.Response:
+    file_id = request.match_info.get("id")
+    exercises_dir = DATA_DIR / "exercises"
+    old_path = exercises_dir / f"{file_id}.yml"
+    
+    if not old_path.exists():
+        return web.json_response({"ok": False, "error": "not_found"}, status=404)
+        
+    new_id = file_id.replace("inbox_", "")
+    new_path = exercises_dir / f"{new_id}.yml"
+    
+    try:
+        content = old_path.read_text(encoding="utf-8")
+        # Simple string replace for the name field if it exists
+        content = content.replace(f"name: {file_id}", f"name: {new_id}")
+        new_path.write_text(content, encoding="utf-8")
+        old_path.unlink()
+        
+        # Note: In a future iteration, we could trigger a sync/audit in anatomy-kb here.
+        
+        return web.json_response({"ok": True, "id": new_id})
+    except Exception as e:
+        return web.json_response({"ok": False, "error": str(e)}, status=500)
+
+
+async def handle_inbox_delete(request: web.Request) -> web.Response:
+    file_id = request.match_info.get("id")
+    exercises_dir = DATA_DIR / "exercises"
+    file_path = exercises_dir / f"{file_id}.yml"
+    
+    if file_path.exists():
+        file_path.unlink()
+        return web.json_response({"ok": True})
+    
+    return web.json_response({"ok": False, "error": "not_found"}, status=404)
+
+
 @web.middleware
 async def cors_middleware(request: web.Request, handler: Any) -> web.StreamResponse:
     if request.method == "OPTIONS":
@@ -219,6 +279,9 @@ def create_app() -> web.Application:
         web.post("/plan", handle_plan),
         web.get("/weekly", handle_weekly),
         web.post("/export/{kind}", handle_export),
+        web.get("/inbox", handle_inbox_list),
+        web.post("/inbox/{id}/approve", handle_inbox_approve),
+        web.delete("/inbox/{id}", handle_inbox_delete),
     ])
     
     return app

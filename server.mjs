@@ -326,43 +326,36 @@ app.get("/fitness/clients", (c) => {
   return c.json({ ok: true, clients });
 });
 
-app.get("/fitness/inbox", (c) => {
-  if (!fs.existsSync(EXERCISES_DIR)) return c.json({ ok: true, exercises: [] });
-  const files = fs.readdirSync(EXERCISES_DIR).filter(f => f.startsWith("inbox_") && f.endsWith(".yml"));
-  const exercises = files.map(f => {
-    const doc = yaml.load(fs.readFileSync(path.join(EXERCISES_DIR, f), "utf8"));
-    return {
-      file_id: f.replace(".yml", ""),
-      ...doc
-    };
-  });
-  return c.json({ ok: true, exercises });
+app.get("/fitness/inbox", async (c) => {
+  try {
+    const res = await fetch("http://localhost:9120/inbox");
+    const data = await res.json();
+    return c.json(data);
+  } catch (err) {
+    return c.json({ ok: false, error: "agent_unreachable" }, 502);
+  }
 });
 
 app.post("/fitness/inbox/:id/approve", async (c) => {
   const id = c.req.param("id");
-  const oldPath = path.join(EXERCISES_DIR, `${id}.yml`);
-  const newId = id.replace(/^inbox_/, "");
-  const newPath = path.join(EXERCISES_DIR, `${newId}.yml`);
-
-  if (!fs.existsSync(oldPath)) return c.json({ ok: false, error: "not_found" }, 404);
-
-  let content = fs.readFileSync(oldPath, "utf8");
-  content = content.replace(`name: ${id}`, `name: ${newId}`);
-  fs.writeFileSync(newPath, content);
-  fs.unlinkSync(oldPath);
-
-  return c.json({ ok: true, id: newId });
+  try {
+    const res = await fetch(`http://localhost:9120/inbox/${id}/approve`, { method: "POST" });
+    const data = await res.json();
+    return c.json(data, res.status);
+  } catch (err) {
+    return c.json({ ok: false, error: "agent_unreachable" }, 502);
+  }
 });
 
-app.delete("/fitness/inbox/:id", (c) => {
+app.delete("/fitness/inbox/:id", async (c) => {
   const id = c.req.param("id");
-  const file = path.join(EXERCISES_DIR, `${id}.yml`);
-  if (fs.existsSync(file)) {
-    fs.unlinkSync(file);
-    return c.json({ ok: true });
+  try {
+    const res = await fetch(`http://localhost:9120/inbox/${id}`, { method: "DELETE" });
+    const data = await res.json();
+    return c.json(data, res.status);
+  } catch (err) {
+    return c.json({ ok: false, error: "agent_unreachable" }, 502);
   }
-  return c.json({ ok: false, error: "not_found" }, 404);
 });
 
 // ── Fitness config / search / plan / weekly / export ─────────────────────────
