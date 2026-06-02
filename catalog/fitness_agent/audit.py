@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .coverage import calculate_coverage, load_coverage_rules, load_body_highlighter_bridge, load_muscle_taxonomy
+from .coverage import calculate_coverage, load_coverage_rules, load_body_highlighter_bridge, load_muscle_taxonomy, normalize_muscle_id
 from .loader import load_catalog_directory_yaml, load_catalog_yaml
 from .resolver import build_exercise_index, normalize_text
 from .teaching import parse_lesson_document
@@ -266,19 +266,22 @@ def run_coverage_audit() -> AuditReport:
     for exercise in exercise_index:
         exercise_failures: list[str] = []
         for muscle in (exercise.primary_muscles or []):
-            if muscle not in taxonomy:
+            norm_id = normalize_muscle_id(muscle)
+            if norm_id not in taxonomy:
                 exercise_failures.append(f"{exercise.exercise_id} unknown primary muscle: {muscle}")
-            elif not muscle_regions(muscle, taxonomy, bridge):
+            elif not muscle_regions(norm_id, taxonomy, bridge):
                 exercise_failures.append(f"{exercise.exercise_id} primary muscle has no body region: {muscle}")
         for muscle in (exercise.secondary_muscles or []):
-            if muscle not in taxonomy:
+            norm_id = normalize_muscle_id(muscle)
+            if norm_id not in taxonomy:
                 exercise_failures.append(f"{exercise.exercise_id} unknown secondary muscle: {muscle}")
-            elif not muscle_regions(muscle, taxonomy, bridge):
+            elif not muscle_regions(norm_id, taxonomy, bridge):
                 exercise_failures.append(f"{exercise.exercise_id} secondary muscle has no body region: {muscle}")
         for muscle in (exercise.stabilizers or []):
-            if muscle not in taxonomy:
+            norm_id = normalize_muscle_id(muscle)
+            if norm_id not in taxonomy:
                 exercise_failures.append(f"{exercise.exercise_id} unknown stabilizer: {muscle}")
-            elif not muscle_regions(muscle, taxonomy, bridge):
+            elif not muscle_regions(norm_id, taxonomy, bridge):
                 exercise_failures.append(f"{exercise.exercise_id} stabilizer has no body region: {muscle}")
 
         try:
@@ -290,9 +293,10 @@ def run_coverage_audit() -> AuditReport:
         if not any(sample["muscle_scores"].values()):
             zero_coverage.append(exercise.exercise_id)
 
-        for muscle, score in sample["muscle_scores"].items():
-            if score > 0 and muscle in taxonomy and not muscle_regions(muscle, taxonomy, bridge):
-                exercise_failures.append(f"{exercise.exercise_id} muscle has no body region: {muscle}")
+        for muscle_id, score in sample["muscle_scores"].items():
+            # sample[muscle_scores] is already normalized keys from calculate_coverage
+            if score > 0 and muscle_id in taxonomy and not muscle_regions(muscle_id, taxonomy, bridge):
+                exercise_failures.append(f"{exercise.exercise_id} muscle has no body region: {muscle_id}")
 
         if body_regions is not None:
             for region in sample["body_region_scores"].keys():
@@ -333,7 +337,7 @@ def audit_coverage() -> CoverageAuditResult:
             muscle
             for exercise in exercise_index
             for muscle in (exercise.primary_muscles or []) + (exercise.secondary_muscles or []) + (exercise.stabilizers or [])
-            if muscle not in taxonomy
+            if normalize_muscle_id(muscle) not in taxonomy
         }
     )
 
@@ -344,11 +348,11 @@ def audit_coverage() -> CoverageAuditResult:
     lines: list[AuditLine] = []
 
     for exercise in exercise_index:
-        if any(muscle not in taxonomy for muscle in (exercise.primary_muscles or [])):
+        if any(normalize_muscle_id(muscle) not in taxonomy for muscle in (exercise.primary_muscles or [])):
             exercises_with_unmapped_primary_muscles.append(exercise.exercise_id)
-        if any(muscle not in taxonomy for muscle in (exercise.secondary_muscles or [])):
+        if any(normalize_muscle_id(muscle) not in taxonomy for muscle in (exercise.secondary_muscles or [])):
             exercises_with_unmapped_secondary_muscles.append(exercise.exercise_id)
-        if any(muscle not in taxonomy for muscle in (exercise.stabilizers or [])):
+        if any(normalize_muscle_id(muscle) not in taxonomy for muscle in (exercise.stabilizers or [])):
             exercises_with_unmapped_stabilizers.append(exercise.exercise_id)
         try:
             sample = calculate_coverage(exercise.exercise_id, 1, 8)
@@ -368,7 +372,7 @@ def audit_coverage() -> CoverageAuditResult:
             region
             for exercise in exercise_index
             for muscle in (exercise.primary_muscles or []) + (exercise.secondary_muscles or []) + (exercise.stabilizers or [])
-            for region in muscle_regions(muscle, taxonomy, bridge)
+            for region in muscle_regions(normalize_muscle_id(muscle), taxonomy, bridge)
             if body_regions is not None and region not in body_regions
         }
     )
@@ -553,7 +557,7 @@ def validate_lesson(
     lesson: dict[str, Any],
     exercise_ids: set[str],
     body_regions: set[str] | None,
-    muscles_taxonomy: set[str],
+    muscles_taxonomy: dict[str, Any],
 ) -> list[AuditLine]:
     lines: list[AuditLine] = []
     exercise_id = str(lesson.get("exercise_id", "")).strip()
@@ -599,7 +603,7 @@ def validate_lesson(
             lines.append(fail(f"{exercise_id} missing muscle_roles.prime_movers"))
         else:
             for muscle in prime:
-                if muscle not in muscles_taxonomy:
+                if normalize_muscle_id(muscle) not in muscles_taxonomy:
                     lines.append(warn(f"{exercise_id} prime mover not in taxonomy: {muscle}"))
         for field in ["synergists", "stabilizers"]:
             items = as_list(muscle_roles.get(field))
@@ -607,7 +611,7 @@ def validate_lesson(
                 lines.append(warn(f"{exercise_id} has empty muscle_roles.{field}"))
             else:
                 for muscle in items:
-                    if muscle not in muscles_taxonomy:
+                    if normalize_muscle_id(muscle) not in muscles_taxonomy:
                         lines.append(warn(f"{exercise_id} {field[:-1]} not in taxonomy: {muscle}"))
 
     if body_regions is not None:

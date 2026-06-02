@@ -34,8 +34,13 @@ def calculate_coverage(exercise_query: str, sets: int, rpe: int) -> dict[str, An
 
     body_region_scores: dict[str, float] = defaultdict(float)
     unmapped_muscles: list[str] = []
+    
+    # Pre-process taxonomy keys for normalized lookup if needed
+    # But better to just normalize the input muscle_id
+    
     for muscle_id, score in muscle_scores.items():
-        regions = muscle_regions(muscle_id, taxonomy, bridge)
+        norm_id = normalize_muscle_id(muscle_id)
+        regions = muscle_regions(norm_id, taxonomy, bridge)
         if regions:
             for region in regions:
                 body_region_scores[region] += score
@@ -64,7 +69,23 @@ def find_exercise(exercise_id: str):
 
 def add_role_scores(muscle_scores: dict[str, float], muscles: list[str], sets: int, role_weight: float, effort_factor: float) -> None:
     for muscle_id in muscles:
-        muscle_scores[muscle_id] += sets * role_weight * effort_factor
+        norm_id = normalize_muscle_id(muscle_id)
+        muscle_scores[norm_id] += sets * role_weight * effort_factor
+
+
+def normalize_muscle_id(name: str) -> str:
+    """Konvertiert Muskelnamen in eine kanonische ID (lowercase, snake_case)."""
+    import re
+    import unicodedata
+    
+    if not name:
+        return ""
+    
+    # Normalisierung analog zu resolver.py aber mit Underscores
+    normalized = unicodedata.normalize("NFKD", name)
+    stripped = "".join(char for char in normalized if not unicodedata.combining(char))
+    collapsed = re.sub(r"[^a-zA-Z0-9]+", "_", stripped.casefold())
+    return collapsed.strip("_")
 
 
 def load_muscle_taxonomy() -> dict[str, dict[str, Any]]:

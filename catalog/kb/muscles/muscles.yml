@@ -1,64 +1,278 @@
 muscles:
+  # --- Brust (Chest) ---
   chest:
     display_name: Chest
-    body_region: torso
+    label_de: "Brust"
+    body_region: chest_front
+  pectoralis_major:
+    display_name: Pectoralis Major
+    label_de: "Großer Brustmuskel"
+    body_region: chest_front
+  pectoralis_major_clavicular:
+    display_name: Pectoralis Major (Clavicular)
+    label_de: "Oberer Brustmuskel"
+    body_region: chest_front
+  pectoralis_major_clavicular_head:
+    display_name: Pectoralis Major (Clavicular Head)
+    label_de: "Oberer Brustmuskel"
+    body_region: chest_front
+  pectoralis_minor:
+    display_name: Pectoralis Minor
+    label_de: "Kleiner Brustmuskel"
+    body_region: chest_front
+
+  # --- Rücken (Back) ---
   back:
     display_name: Back
-    body_region: torso
-  shoulders:
-    display_name: Shoulders
-    body_region: upper_body
-  arms:
-    display_name: Arms
-    body_region: upper_body
-  legs:
-    display_name: Legs
-    body_region: lower_body
-  core:
-    display_name: Core
-    body_region: torso
-  glutes:
-    display_name: Glutes
-    body_region: lower_body
-  thigh_front:
-    display_name: Thigh Front
-    body_region: lower_body
-  thigh_back:
-    display_name: Thigh Back
-    body_region: lower_body
-  calves:
-    display_name: Calves
-    body_region: lower_body
-  upper_back:
-    display_name: Upper Back
-    body_region: torso
-  upper_arm_front:
-    display_name: Upper Arm Front
-    body_region: upper_body
-  upper_arm_back:
-    display_name: Upper Arm Back
-    body_region: upper_body
-  shoulders_front:
-    display_name: Shoulders Front
-    body_region: upper_body
-  shoulders_side:
-    display_name: Shoulders Side
-    body_region: upper_body
-  shoulders_back:
-    display_name: Shoulders Back
-    body_region: upper_body
+    label_de: "Rücken"
+    body_region: upper_back
   lats:
     display_name: Lats
-    body_region: torso
-  forearms:
-    display_name: Forearms
-    body_region: upper_body
-  foot_intrinsics:
-    display_name: Foot Intrinsics
-    body_region: lower_body
-  tibialis_anterior:
-    display_name: Tibialis Anterior
-    body_region: lower_body
+    label_de: "Latissimus"
+    body_region: lats
+  latissimus_dorsi:
+    display_name: Latissimus Dorsi
+    label_de: "Breiter Rückenmuskel"
+    body_region: lats
+  trapezius:
+    display_name: Trapezius
+    label_de: "Trapezmuskel / Kapuzenmuskel"
+    body_region: upper_back
+  trapezius_upper:
+    display_name: Trapezius Upper
+    label_de: "Oberer Trapez"
+    body_region: neck
+  trapezius_middle:
+    display_name: Trapezius Middle
+    label_de: "Mittlerer Trapez"
+    body_region: upper_back
+  trapezius_lower:
+    display_name: Trapezius Lower
+    label_de: "Unterer Trapez"
+    body_region: upper_back
+  rhomboids:
+    display_name: Rhomboids
+    label_de: "Rautenmuskeln"
+    body_region: upper_back
+  erector_spinae:
+    display_name: Erector Spinae
+    label_de: "Rückenstrecker"
+    body_region: lower_back
+  teres_major:
+    display_name: Teres Major
+    label_de: "Großer Rundmuskel"
+    body_region: lats
+  quadratus_lumborum:
+    display_name: Quadratus Lumborum
+    label_de: "Quadratischer Lendenmuskel"
+    body_region: lower_back
   lower_back:
     display_name: Lower Back
-    body_region: torso
+    label_de: "Unterer Rücken"
+    body_region: lower_back
+
+  # --- Schultern (Shoulders) ---
+  shoulders:
+    display_name: Shoulders
+    label_de: "Schultern"
+    body_region: shoulders_side
+  deltoids:
+    display_name: Deltoids
+    label_de: "Schultermuskeln"
+    body_region: shoulders_side
+  deltoid:
+    display_name: Deltoid
+    label_de: "Schultermuskel"
+    body_region: shoulders_side
+  anterior_deltoid:
+    display_name: Anterior Deltoid
+    label_de: "Vordere Schulter"
+    body_region: shoulders_front
+  lateral_deltoid:
+    display_name: Lateral Deltoid
+    label_de: "Seitliche Schulter"
+    body_region: shoulders_side
+  posterior_deltoid:
+    display_name: Posterior Deltoid
+    label_de: "Hintere Schulter"
+    body_region: shoulders_back
+  posterior_deltoids:
+    display_name: Posterior Deltoids
+    label_de: "Hintere Schulter"
+    body_region: shoulders_back
+  deltoid_posterior:
+    display_name: Deltoid Posterior
+    label_de: "Hintere Schulter"
+    body_region: shoulders_back
+  rotator_cuff:
+    display_name: Rotator Cuff
+    label_de: "Rotatorenmanschette"
+    body_region: shoulders_side
+
+  # --- Arme (Arms) ---
+  arms:
+    display_name: Arms
+    label_de: "Arme"
+    body_region: upper_arm_front
+  biceps:
+    display_name: Biceps
+    label_de: "Bizeps"
+    body_region: upper_arm_front
+  biceps_brachii:
+    display_name: Biceps Brachii
+    label_de: "Bizeps"
+    body_region: upper_arm_front
+  brachialis:
+    display_name: Brachialis
+    label_de: "Armbeuger"
+    body_region: upper_arm_front
+  triceps:
+    display_name: Triceps
+    label_de: "Trizeps"
+    body_region: upper_arm_back
+  triceps_brachii:
+    display_name: Triceps Brachii
+    label_de: "Trizeps"
+    body_region: upper_arm_back
+  forearms:
+    display_name: Forearms
+    label_de: "Unterarme"
+    body_region: forearms
+  brachioradialis:
+    display_name: Brachioradialis
+    label_de: "Oberarmspeichenmuskel"
+    body_region: forearms
+  forearm_flexors:
+    display_name: Forearm Flexors
+    label_de: "Unterarmbeuger"
+    body_region: forearms
+  anconeus:
+    display_name: Anconeus
+    label_de: "Knorrenmuskel"
+    body_region: upper_arm_back
+
+  # --- Bauch / Core ---
+  core:
+    display_name: Core
+    label_de: "Kern / Bauch"
+    body_region: abdomen_front
+  rectus_abdominis:
+    display_name: Rectus Abdominis
+    label_de: "Gerader Bauchmuskel"
+    body_region: abdomen_front
+  abdominals:
+    display_name: Abdominals
+    label_de: "Bauchmuskeln"
+    body_region: abdomen_front
+  obliques:
+    display_name: Obliques
+    label_de: "Schräge Bauchmuskeln"
+    body_region: abdomen_front
+  transverse_abdominis:
+    display_name: Transverse Abdominis
+    label_de: "Querer Bauchmuskel"
+    body_region: abdomen_front
+
+  # --- Beine & Gesäß (Lower Body) ---
+  legs:
+    display_name: Legs
+    label_de: "Beine"
+    body_region: thigh_front
+  glutes:
+    display_name: Glutes
+    label_de: "Gesäß"
+    body_region: glutes
+  gluteus_maximus:
+    display_name: Gluteus Maximus
+    label_de: "Großer Gesäßmuskel"
+    body_region: glutes
+  gluteus_medius:
+    display_name: Gluteus Medius
+    label_de: "Mittlerer Gesäßmuskel"
+    body_region: glutes
+  quadriceps:
+    display_name: Quadriceps
+    label_de: "Beinstrecker / Quadrizeps"
+    body_region: thigh_front
+  quads:
+    display_name: Quads
+    label_de: "Quadrizeps"
+    body_region: thigh_front
+  hamstrings:
+    display_name: Hamstrings
+    label_de: "Beinbeuger"
+    body_region: thigh_back
+  adductors:
+    display_name: Adductors
+    label_de: "Adduktoren"
+    body_region: thigh_front
+  calves:
+    display_name: Calves
+    label_de: "Waden"
+    body_region: calves
+  gastrocnemius:
+    display_name: Gastrocnemius
+    label_de: "Zwillingswadenmuskel"
+    body_region: calves
+  soleus:
+    display_name: Soleus
+    label_de: "Schollenmuskel"
+    body_region: calves
+  tibialis_anterior:
+    display_name: Tibialis Anterior
+    label_de: "Vorderer Schienbeinmuskel"
+    body_region: shin_front
+  shin_front:
+    display_name: Shin Front
+    label_de: "Schienbein"
+    body_region: shin_front
+
+  # --- Body Regions (for Lessons/Legacy support) ---
+  shoulders_front:
+    display_name: Shoulders (Front)
+    label_de: "Vordere Schulter"
+    body_region: shoulders_front
+  shoulders_side:
+    display_name: Shoulders (Side)
+    label_de: "Seitliche Schulter"
+    body_region: shoulders_side
+  shoulders_back:
+    display_name: Shoulders (Back)
+    label_de: "Hintere Schulter"
+    body_region: shoulders_back
+  upper_arm_front:
+    display_name: Upper Arm (Front)
+    label_de: "Bizeps / Armbeuger"
+    body_region: upper_arm_front
+  upper_arm_back:
+    display_name: Upper Arm (Back)
+    label_de: "Trizeps"
+    body_region: upper_arm_back
+  upper_back:
+    display_name: Upper Back
+    label_de: "Oberer Rücken"
+    body_region: upper_back
+  thigh_front:
+    display_name: Thigh (Front)
+    label_de: "Oberschenkel (Vorderseite)"
+    body_region: thigh_front
+  thigh_back:
+    display_name: Thigh (Back)
+    label_de: "Oberschenkel (Rückseite)"
+    body_region: thigh_back
+  neck:
+    display_name: Neck
+    label_de: "Nacken"
+    body_region: neck
+  quadriceps_femoris:
+    display_name: Quadriceps Femoris
+    label_de: "Vierköpfiger Oberschenkelmuskel"
+    body_region: thigh_front
+  biceps_femoris:
+    display_name: Biceps Femoris
+    label_de: "Beinbeuger"
+    body_region: thigh_back
+  foot_intrinsics:
+    display_name: Foot Intrinsics
+    label_de: "Fußmuskulatur"
+    body_region: feet
