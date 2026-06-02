@@ -27,6 +27,9 @@ Der `fitness-agent` stellt einen dedizierten Server für die semantische Exercis
 | `/resolve?q=` | GET | Löst Freitext/Aliase auf canonical IDs auf |
 | `/muscles` | GET | Muskel-Taxonomie aus muscles.yml |
 | `/taxonomy` | GET | Kombiniertes Schema (Muskeln, Rules, Bridge) |
+| `/inbox` | GET | Liste der KI-angereicherten Neuanfragen |
+| `/inbox/{id}/approve` | POST | Freigabe einer Übung in die KB |
+| `/inbox/{id}` | DELETE | Ablehnen/Löschen einer Inbox-Anfrage |
 
 CORS ist für alle Origins aktiviert, um die Integration in die PWA und lokale Tools zu ermöglichen.
 

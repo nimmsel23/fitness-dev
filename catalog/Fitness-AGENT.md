@@ -31,7 +31,12 @@ Enthält:
 - Tags
 - Schwierigkeit / Ziel optional
 
-### 2. aliases.yml
+### 2. Exercise Inbox (Staging Area)
+- Empfängt neue Übungsanfragen von Klienten.
+- Speichert KI-angereicherte Drafts (`inbox_*.yml`).
+- Dient als Puffer für biomechanische Audits (anatomy-kb).
+
+### 3. aliases.yml
 Löst freie Nutzereingaben auf canonical exercise IDs auf.
 
 Beispiel:
@@ -85,7 +90,15 @@ wger wird nicht blind als Wissensquelle vertraut.
 
 ## Canonical Flow
 
-User Input
+User Input (New Exercise)
+→ AI Enrichment
+→ Exercise Inbox (Draft)
+→ Manual Review / Audit
+→ Approval
+→ Exercise KB (Canonical ID)
+→ wger mapping / Obsidian export
+
+User Input (Workout)
 → alias resolver
 → canonical exercise_id
 → exercise YAML lookup
