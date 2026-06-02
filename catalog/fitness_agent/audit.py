@@ -369,7 +369,7 @@ def audit_coverage() -> CoverageAuditResult:
             for exercise in exercise_index
             for muscle in (exercise.primary_muscles or []) + (exercise.secondary_muscles or []) + (exercise.stabilizers or [])
             for region in muscle_regions(muscle, taxonomy, bridge)
-            if region not in body_regions
+            if body_regions is not None and region not in body_regions
         }
     )
 
@@ -856,14 +856,14 @@ def load_exercises_documents() -> list[tuple[str, dict[str, Any]]]:
     return documents
 
 
-def load_muscle_taxonomy() -> set[str]:
+def load_muscle_taxonomy() -> dict[str, dict[str, Any]]:
     document = load_catalog_yaml("muscles/muscles.yml")
     if not isinstance(document, dict):
-        return set()
+        return {}
     muscles = document.get("muscles", {})
     if not isinstance(muscles, dict):
-        return set()
-    return {str(key) for key in muscles.keys() if str(key).strip()}
+        return {}
+    return {str(k): v for k, v in muscles.items() if isinstance(v, dict)}
 
 
 def load_body_regions() -> set[str] | None:
