@@ -98,7 +98,8 @@ def command():
                     "display_name": r["display_name"],
                     "category": r["category"],
                     "rbh_slugs": list(ex_slugs),
-                    "muscles": role_map
+                    "muscles": role_map,
+                    "unreviewed": bool(r["unreviewed"])
                 }
 
             # Final Index Structure

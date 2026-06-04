@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS exercises (
     movement_pattern TEXT,
     equipment        TEXT,
     wger_id          INTEGER,
+    unreviewed       INTEGER DEFAULT 0,
     updated_at       TEXT DEFAULT (datetime('now'))
 );
 
@@ -220,8 +221,18 @@ def sync_muscles(conn: sqlite3.Connection) -> int:
 
 
 def sync_exercises(conn: sqlite3.Connection) -> int:
+    """Sync exercises from YAML files to SQLite, respecting tier priorities."""
     count = 0
-    for yml in sorted(CATALOG_EXERCISES.glob("*.yml")):
+    all_ymls = sorted(CATALOG_EXERCISES.glob("*.yml"))
+    
+    # Tier-Priorisierung (Expert gewinnt)
+    bulk = [f for f in all_ymls if f.name.startswith("unreviewed_")]
+    inbox = [f for f in all_ymls if f.name.startswith("inbox_")]
+    expert = [f for f in all_ymls if f not in bulk and f not in inbox]
+    
+    sorted_files = bulk + inbox + expert
+    
+    for yml in sorted_files:
         doc = yaml.safe_load(yml.read_text(encoding="utf-8"))
         if not isinstance(doc, dict):
             continue
@@ -231,11 +242,15 @@ def sync_exercises(conn: sqlite3.Connection) -> int:
                 continue
             conn.execute("""
                 INSERT INTO exercises (exercise_id, name, display_name, category,
-                                       movement_pattern, equipment, wger_id)
-                VALUES (?,?,?,?,?,?,?)
+                                       movement_pattern, equipment, wger_id, unreviewed)
+                VALUES (?,?,?,?,?,?,?,?)
                 ON CONFLICT(exercise_id) DO UPDATE SET
                     name=excluded.name, category=excluded.category,
+                    display_name=excluded.display_name,
                     movement_pattern=excluded.movement_pattern,
+                    equipment=excluded.equipment,
+                    wger_id=excluded.wger_id,
+                    unreviewed=excluded.unreviewed,
                     updated_at=datetime('now')
             """, (
                 ex_id,
@@ -245,6 +260,7 @@ def sync_exercises(conn: sqlite3.Connection) -> int:
                 ex.get("movement_pattern"),
                 _j(ex.get("equipment")),
                 ex.get("wger_id"),
+                1 if (ex.get("unreviewed") or yml.name.startswith("unreviewed_")) else 0,
             ))
 
             # Muskel-Rollen aus Katalog-Kategorien auflösen

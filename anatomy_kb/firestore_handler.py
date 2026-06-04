@@ -45,10 +45,25 @@ def _init_firebase():
 
 
 def _sync_exercises(db, dry_run: bool = False) -> dict:
-    """fitness-dev/catalog/kb/exercises/*.yml → Firestore fitness/kb/exercises/{id}"""
+    """fitness-dev/catalog/kb/exercises/*.yml → Firestore fitness/kb/exercises/{id}
+    
+    Smart Merge Protection: Expert wins.
+    Priorität beim Schreiben: unreviewed_* (Bulk) -> inbox_* (Inbox) -> Expert Files.
+    """
     counts = {"ok": 0, "skip": 0, "error": 0}
     col = db.collection("fitness").document("kb").collection("exercises")
-    for yml in sorted(CATALOG_EXERCISES.glob("*.yml")):
+    
+    # Dateien nach Tier-Priorität sortieren
+    all_ymls = sorted(CATALOG_EXERCISES.glob("*.yml"))
+    
+    bulk = [f for f in all_ymls if f.name.startswith("unreviewed_")]
+    inbox = [f for f in all_ymls if f.name.startswith("inbox_")]
+    expert = [f for f in all_ymls if f not in bulk and f not in inbox]
+    
+    # Reihenfolge: Bulk -> Inbox -> Expert (Expert gewinnt, da es zuletzt schreibt)
+    sorted_files = bulk + inbox + expert
+    
+    for yml in sorted_files:
         try:
             doc = yaml.safe_load(yml.read_text(encoding="utf-8"))
         except Exception:
@@ -62,13 +77,22 @@ def _sync_exercises(db, dry_run: bool = False) -> dict:
             if not ex_id:
                 counts["skip"] += 1
                 continue
+            
+            # Tier-Tag hinzufügen für Transparenz im Firestore (optional, aber hilfreich)
+            if yml.name.startswith("unreviewed_"):
+                ex["tier"] = "wiki"
+            elif yml.name.startswith("inbox_"):
+                ex["tier"] = "inbox"
+            else:
+                ex["tier"] = "expert"
+
             if dry_run:
-                logger.info(f"[dry] exercises/{ex_id}")
+                logger.info(f"[dry] exercises/{ex_id} ({ex['tier']})")
                 counts["ok"] += 1
                 continue
             try:
                 col.document(ex_id).set({k: v for k, v in ex.items() if v is not None})
-                logger.info(f"exercises/{ex_id}")
+                logger.info(f"exercises/{ex_id} ({ex['tier']})")
                 counts["ok"] += 1
             except Exception as exc:
                 logger.error(f"exercises/{ex_id}: {exc}")
