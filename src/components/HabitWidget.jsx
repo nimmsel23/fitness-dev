@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Check } from 'lucide-react'
-import { api } from '../api.js'
+import { Check, BookOpen } from 'lucide-react'
+import { api, localToday } from '../api.js'
+import HabitJournalModal from './HabitJournalModal.jsx'
 
 function epochDayNow() {
   return Math.floor(Date.now() / 86400000)
@@ -21,6 +22,7 @@ export default function HabitWidget() {
   const [habits, setHabits] = useState([])
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState('')
+  const [modalHabit, setModalHabit] = useState(null)
   const todayEpochDay = useMemo(() => epochDayNow(), [])
 
   useEffect(() => {
@@ -111,11 +113,16 @@ export default function HabitWidget() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <button 
+                  onClick={() => setModalHabit(h)}
+                  className="p-2 rounded-xl border border-line hover:bg-bg2 transition-all text-dim hover:text-accent"
+                >
+                  <BookOpen size={16} />
+                </button>
                 {done ? (
-                  <div className="flex items-center gap-1 text-xs font-semibold"
-                    style={{ color: 'var(--green)' }}>
-                    <Check size={16} />
+                  <div className="flex items-center justify-center w-10 h-9 text-[var(--green)]">
+                    <Check size={18} className="stroke-[3]" />
                   </div>
                 ) : (
                   <button
@@ -131,6 +138,13 @@ export default function HabitWidget() {
           )
         })}
       </div>
+
+      <HabitJournalModal 
+        isOpen={!!modalHabit} 
+        onClose={() => setModalHabit(null)}
+        habit={modalHabit}
+        date={localToday()}
+      />
     </div>
   )
 }

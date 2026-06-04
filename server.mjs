@@ -172,8 +172,10 @@ function computeCoverage(days) {
   for (const date of allDates) {
     const sess = readJson(path.join(DATA_DIR, "sessions", `${date}.json`));
     for (const ex of (sess?.exercises || [])) {
-      for (const m of (ex.primaryMuscles   || [])) { const id = muscleToGroupId(m) || normMuscleKey(m); if (id) hits[id] = (hits[id] || 0) + 1; }
-      for (const m of (ex.secondaryMuscles || [])) { const id = muscleToGroupId(m) || normMuscleKey(m); if (id) hits[id] = (hits[id] || 0) + 0.5; }
+      const pm = ex.primary_muscles || ex.primaryMuscles || [];
+      const sm = ex.secondary_muscles || ex.secondaryMuscles || [];
+      for (const m of pm) { const id = muscleToGroupId(m) || normMuscleKey(m); if (id) hits[id] = (hits[id] || 0) + 1; }
+      for (const m of sm) { const id = muscleToGroupId(m) || normMuscleKey(m); if (id) hits[id] = (hits[id] || 0) + 0.5; }
     }
   }
   return hits;
@@ -201,8 +203,10 @@ function computeCoverageAnatomy(days) {
   for (const date of allDates) {
     const sess = readJson(path.join(DATA_DIR, "sessions", `${date}.json`));
     for (const ex of (sess?.exercises || [])) {
-      for (const m of (ex.primaryMuscles   || [])) hit(m, 1,   "primary");
-      for (const m of (ex.secondaryMuscles || [])) hit(m, 0.5, "secondary");
+      const pm = ex.primary_muscles || ex.primaryMuscles || [];
+      const sm = ex.secondary_muscles || ex.secondaryMuscles || [];
+      for (const m of pm) hit(m, 1,   "primary");
+      for (const m of sm) hit(m, 0.5, "secondary");
     }
   }
   return Array.from(map.values()).sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));

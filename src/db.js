@@ -63,6 +63,7 @@ function mapHabits(raw) {
         name: h.name,
         icon: h.icon || "Activity",
         deleted: !!h.deleted,
+        source: h.source || (isLocalMode() ? "coach" : "user"), // Hybrid logic
         records,
         hasRecord: (date) => records.some((x) => x.date === date && x.completion === "DONE"),
       };

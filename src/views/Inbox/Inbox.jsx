@@ -73,6 +73,9 @@ export default function Inbox({ onInspectExercise }) {
         <div className="grid gap-4">
           {exercises.map((ex) => {
             const data = ex.exercises?.[0] || {};
+            const isProactive = ex.description?.toLowerCase().includes("proactively");
+            const warnings = data.biomechanical_warnings || [];
+
             return (
               <div key={ex.file_id} className="card p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-accent/30 transition-all group">
                 <div className="flex-1 min-w-0">
@@ -81,6 +84,15 @@ export default function Inbox({ onInspectExercise }) {
                     <span className="text-[9px] font-black px-2 py-0.5 bg-bg2 rounded-full border border-line text-dim uppercase tracking-tighter">
                       {data.category}
                     </span>
+                    {isProactive ? (
+                      <span className="flex items-center gap-1 text-[9px] font-black px-2 py-0.5 bg-blue/10 text-blue rounded-full border border-blue/20 uppercase tracking-tighter">
+                        <Sparkles size={10} /> Proaktiv
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-[9px] font-black px-2 py-0.5 bg-green/10 text-green rounded-full border border-green/20 uppercase tracking-tighter">
+                        Klient
+                      </span>
+                    )}
                   </div>
                   
                   <div className="flex flex-wrap gap-1.5 mb-4">
@@ -90,6 +102,17 @@ export default function Inbox({ onInspectExercise }) {
                       </span>
                     ))}
                   </div>
+
+                  {warnings.length > 0 && (
+                    <div className="mb-4 p-3 bg-red/5 border border-red/10 rounded-xl space-y-1">
+                      {warnings.map((w, i) => (
+                        <div key={i} className="flex items-start gap-2 text-red text-[10px] font-bold uppercase leading-tight">
+                          <AlertTriangle size={12} className="shrink-0 mt-0.5" />
+                          <span>{w}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   <p className="text-xs text-dim line-clamp-2 leading-relaxed opacity-70 italic">
                     "{data.coaching_notes?.[0] || 'Keine Notizen generiert.'}"

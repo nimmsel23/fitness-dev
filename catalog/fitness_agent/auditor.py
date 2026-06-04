@@ -12,8 +12,52 @@ def load_biomechanical_rules() -> dict[str, Any]:
     except FileNotFoundError:
         return {}
 
+def audit_exercise_record(ex: Any, mp_rules: dict[str, Any], iso_rules: dict[str, Any]) -> list[str]:
+    """Prüft eine einzelne Übung auf biomechanische Konsistenz.
+    ex kann ein ExerciseRecord oder ein dict sein.
+    """
+    warnings = []
+    
+    # helper to get attributes from dict or object
+    def get_val(obj, key, default=None):
+        if isinstance(obj, dict): return obj.get(key, default)
+        return getattr(obj, key, default)
+
+    # 1. Check Movement Pattern Consistency
+    mp = get_val(ex, "movement_pattern")
+    if mp in mp_rules:
+        rule = mp_rules[mp]
+        required = rule.get("required_primary", [])
+        primary = [normalize_text(m) for m in (get_val(ex, "primary_muscles") or [])]
+        
+        if not any(normalize_text(req) in primary for req in required):
+            warnings.append(
+                f"Muster '{mp}' passt nicht zu primären Muskeln. Erwartet: {', '.join(required)}."
+            )
+    
+    # 2. Check Isolation vs Compound
+    ex_type = get_val(ex, "type", "unknown")
+    primary_count = len(get_val(ex, "primary_muscles") or [])
+    if ex_type == "isolation":
+        max_p = iso_rules.get("max_primary_muscles", 2)
+        if primary_count > max_p:
+            warnings.append(
+                f"Als 'Isolation' markiert, hat aber {primary_count} primäre Muskeln (max {max_p})."
+            )
+    
+    # 3. Contradictions
+    primary_set = set(get_val(ex, "primary_muscles") or [])
+    secondary_set = set(get_val(ex, "secondary_muscles") or [])
+    overlap = primary_set.intersection(secondary_set)
+    if overlap:
+        warnings.append(
+            f"Muskeln sowohl primär als auch sekundär gelistet: {', '.join(overlap)}."
+        )
+            
+    return warnings
+
 def run_biomechanical_audit() -> list[str]:
-    """Runs biomechanical consistency checks against the exercise catalog.
+    """Runs biomechanical consistency checks against the entire exercise catalog.
     Returns a list of warning messages.
     """
     rules = load_biomechanical_rules()
@@ -27,39 +71,9 @@ def run_biomechanical_audit() -> list[str]:
     exercises = build_exercise_index()
     
     for ex in exercises:
-        # 1. Check Movement Pattern Consistency
-        mp = ex.movement_pattern
-        if mp in mp_rules:
-            rule = mp_rules[mp]
-            required = rule.get("required_primary", [])
-            primary = [normalize_text(m) for m in (ex.primary_muscles or [])]
-            
-            # Check if at least one of the required muscles is present as primary
-            if not any(normalize_text(req) in primary for req in required):
-                warnings.append(
-                    f"BIOMECH: {ex.exercise_id} has pattern '{mp}' but missing expected primary muscles "
-                    f"({', '.join(required)}). Found: {', '.join(primary) or 'none'}."
-                )
-        
-        # 2. Check Isolation vs Compound
-        ex_type = getattr(ex, "type", "unknown")
-        primary_count = len(ex.primary_muscles or [])
-        if ex_type == "isolation":
-            max_p = iso_rules.get("max_primary_muscles", 2)
-            if primary_count > max_p:
-                warnings.append(
-                    f"BIOMECH: {ex.exercise_id} is marked as 'isolation' but has {primary_count} primary muscles "
-                    f"(expected <= {max_p})."
-                )
-        
-        # 3. Check for obvious contradictions (e.g. Primary vs Secondary overlap)
-        primary_set = set(ex.primary_muscles or [])
-        secondary_set = set(ex.secondary_muscles or [])
-        overlap = primary_set.intersection(secondary_set)
-        if overlap:
-            warnings.append(
-                f"BIOMECH: {ex.exercise_id} has muscles listed as both primary and secondary: {', '.join(overlap)}."
-            )
+        ex_warnings = audit_exercise_record(ex, mp_rules, iso_rules)
+        for w in ex_warnings:
+            warnings.append(f"BIOMECH: {ex.exercise_id} {w}")
             
     return warnings
 
