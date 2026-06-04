@@ -20,6 +20,10 @@ function app() {
     freqErr: '',
     freqRows: [],
 
+    demandLoading: false,
+    demandErr: '',
+    demandRows: [],
+
     sql: '',
     queryLoading: false,
     queryErr: '',
@@ -111,6 +115,18 @@ function app() {
         else this.freqErr = d.error || 'Fehler'
       } catch (e) { this.freqErr = e.message }
       this.freqLoading = false
+    },
+
+    async loadDemand() {
+      if (this.demandRows.length) return
+      this.demandLoading = true
+      this.demandErr = ''
+      try {
+        const d = await this._query('SELECT e.exercise_id, e.name, COUNT(*) as usage_count FROM training_sessions ts JOIN exercises e ON ts.exercise_id = e.exercise_id WHERE e.unreviewed = 1 GROUP BY e.exercise_id ORDER BY usage_count DESC LIMIT 10')
+        if (d.ok) this.demandRows = d.rows
+        else this.demandErr = d.error || 'Fehler'
+      } catch (e) { this.demandErr = e.message }
+      this.demandLoading = false
     },
 
     setSql(q) { this.sql = q },

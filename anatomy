@@ -9,7 +9,7 @@ have_gum() { command -v gum >/dev/null 2>&1; }
 err() { have_gum && gum log --level error "$*" >&2 || printf '\033[1;31m  %s\033[0m\n' "$*" >&2; }
 
 SERVER_CMDS="start|stop|restart|status|health|logs"
-AGENT_CMDS="list|pick|show|teach|errors|quiz|flashcard|enrich|ingest|audit|reload|doctor|serve|approve"
+AGENT_CMDS="list|pick|show|teach|errors|quiz|flashcard|enrich|ingest|audit|reload|doctor|serve|approve|refine"
 
 usage() {
   cat <<EOF
@@ -37,6 +37,7 @@ usage() {
     anatomy ingest <notiz>     Vault-Notiz → Gemini → YAML
     anatomy enrich <id>        Ursprung/Ansatz via Gemini generieren
     anatomy approve <id>       Übung von Bulk/Inbox → Expert heben
+    anatomy refine             Meistgenutzte unreviewed Übungen draften
     anatomy audit              Katalog-Integrität prüfen
 
   System:
@@ -53,7 +54,7 @@ case "$cmd" in
   start|stop|restart|status|health|logs)
     exec "$ROOT/kbctl" "$cmd" "$@"
     ;;
-  list|pick|show|teach|errors|quiz|flashcard|enrich|ingest|audit|reload|doctor|serve|approve)
+  list|pick|show|teach|errors|quiz|flashcard|enrich|ingest|audit|reload|doctor|serve|approve|refine)
     exec "$ROOT/anatomy-agent" "$cmd" "$@"
     ;;
   help|--help|-h)

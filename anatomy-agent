@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
 from anatomy_kb.commands import (
-    serve, browse, teach, learn, enrich, ingest, audit, system, flashcard, db_cmd, firestore, index_cmd, approve
+    serve, browse, teach, learn, enrich, ingest, audit, system, flashcard, db_cmd, firestore, index_cmd, approve, refine
 )
 
 app = typer.Typer(
@@ -35,6 +35,7 @@ app.command("index")(index_cmd.command)
 app.command("reload")(system.reload_command)
 app.command("doctor")(system.doctor_command)
 app.command("approve")(approve.command)
+app.command("refine")(refine.command)
 
 if __name__ == "__main__":
     app()

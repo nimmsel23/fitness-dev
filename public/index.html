@@ -36,6 +36,7 @@
     <button class="tab" :class="{active: tab==='muscles'}" @click="tab='muscles'; loadMuscles()">Muskeln</button>
     <button class="tab" :class="{active: tab==='gap'}"     @click="tab='gap'; loadGap()">Gap</button>
     <button class="tab" :class="{active: tab==='freq'}"    @click="tab='freq'; loadFreq()">Training</button>
+    <button class="tab" :class="{active: tab==='demand'}"  @click="tab='demand'; loadDemand()">Demand</button>
     <button class="tab" :class="{active: tab==='query'}"   @click="tab='query'">Query</button>
   </div>
 
@@ -86,7 +87,8 @@
               <tr>
                 <td>
                   <span class="mono" style="color:var(--accent)" x-text="r.muscle_id"></span>
-                  <span x-show="!r.has_anatomy" class="badge badge-red" style="margin-left:6px;font-size:10px">kein anatomy</span>
+                  <span x-show="r.has_anatomy" class="badge badge-green" style="margin-left:6px;font-size:10px">Expert Verified</span>
+                  <span x-show="!r.has_anatomy" class="badge badge-red" style="margin-left:6px;font-size:10px">Draft / Missing</span>
                 </td>
                 <td style="color:var(--muted)" x-text="r.latin || '—'"></td>
                 <td x-text="r.exercise_count"></td>
@@ -201,6 +203,55 @@
                   </td>
                   <td x-text="r.total_sets"></td>
                   <td style="color:var(--muted);font-size:12px" x-text="r.last_trained || '—'"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </template>
+  </div>
+
+  <!-- DEMAND -->
+  <div x-show="tab==='demand'">
+    <div class="card" x-show="demandLoading">
+      <div class="empty"><span class="spin">⟳</span> Lade…</div>
+    </div>
+    <div class="error" x-show="demandErr" x-text="demandErr"></div>
+    <template x-if="!demandLoading && demandRows.length === 0 && !demandErr">
+      <div class="card"><div class="empty" style="color:var(--green)">Kein aktueller Veredelungs-Bedarf.</div></div>
+    </template>
+    <template x-if="!demandLoading && demandRows.length">
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px">
+          Meistgenutzte unreviewed Übungen (Veredelungs-Bedarf)
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <table>
+            <thead>
+              <tr>
+                <th>Übung</th>
+                <th>ID</th>
+                <th>Sessions</th>
+                <th>Aktion</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="r in demandRows" :key="r.exercise_id">
+                <tr>
+                  <td>
+                    <span style="font-weight:700;color:var(--ink)" x-text="r.name"></span>
+                  </td>
+                  <td class="mono" style="font-size:12px;color:var(--muted)" x-text="r.exercise_id"></td>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span style="font-weight:700;color:var(--accent)" x-text="r.usage_count"></span>
+                      <div class="freq-bar" :style="`width:${Math.min(r.usage_count*15,100)}px;background:var(--accent)`"></div>
+                    </div>
+                  </td>
+                  <td>
+                    <code style="font-size:11px;color:var(--muted)">anatomy approve <span x-text="r.exercise_id"></span></code>
+                  </td>
                 </tr>
               </template>
             </tbody>

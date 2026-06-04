@@ -26,14 +26,48 @@ def command(
     Topics:
       anatomy    Anatomy-Teaching-Layer (Lessons, Duplikate, Referenzen)
       exercises  Exercise-Definitionen (Pflichtfelder, Muskelreferenzen)
+      demand     Meistgenutzte unreviewed Übungen (Veredelungs-Bedarf)
       all        Beide Topics (Standard)
 
     \b
     Beispiele:
       anatomy-agent audit
-      anatomy-agent audit anatomy
+      anatomy-agent audit demand
       anatomy-agent audit exercises --fail-fast
     """
+    if topic == "demand":
+        from anatomy_kb import db as _db
+        try:
+            conn = _db.connect()
+            sql = """
+                SELECT e.exercise_id, e.name, COUNT(*) as usage_count
+                FROM training_sessions ts
+                JOIN exercises e ON ts.exercise_id = e.exercise_id
+                WHERE e.unreviewed = 1
+                GROUP BY e.exercise_id
+                ORDER BY usage_count DESC
+                LIMIT 10
+            """
+            rows = _db.query(sql)
+            if not rows:
+                _gum_log("info", "Kein dringender Veredelungs-Bedarf (unreviewed + Sessions) gefunden.")
+                return
+
+            table = Table(box=box.SIMPLE, show_header=True, padding=(0, 2))
+            table.add_column("Übung", style="cyan")
+            table.add_column("ID", style="dim")
+            table.add_column("Sessions", justify="right", style="yellow")
+            
+            for r in rows:
+                table.add_row(r["name"] or r["exercise_id"], r["exercise_id"], str(r["usage_count"]))
+            
+            console.print(Panel(table, title="[bold yellow]Veredelungs-Bedarf (Demand)[/bold yellow]", border_style="yellow"))
+            _gum_log("info", "Tipp: Nutze 'anatomy approve <id>' zur Veredelung.")
+            return
+        except Exception as e:
+            _gum_log("error", f"Demand-Audit fehlgeschlagen: {e}")
+            raise typer.Exit(1)
+
     if not FITNESS_DEV.exists():
         _gum_log("error", f"fitness-dev nicht gefunden: {FITNESS_DEV}")
         raise typer.Exit(1)

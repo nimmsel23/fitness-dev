@@ -31,10 +31,46 @@ This autonomous logic transforms the maintenance workflow:
    ```
 4. **Promotion:** The exercise is moved to the **Expert Tier**, the `unreviewed` tag is removed, and the knowledge is synced to Firestore.
 
+## Operational State
+
+The daemon is now fully operational and integrated into the `kbctl` control utility.
+
+### Management via `kbctl`
+- `kbctl daemon-start`: Starts the background refinement process.
+- `kbctl daemon-stop`: Stops the daemon.
+- `kbctl daemon-status`: Shows PID, status, and uptime.
+- `kbctl daemon-logs`: Follows the daemon's log file (`/tmp/anatomy-daemon.log`).
+
+### Systemd Integration (Production)
+For a permanent background service on Arch Linux, create `/etc/systemd/system/anatomy-daemon.service`:
+
+```ini
+[Unit]
+Description=Anatomy Expert Daemon - Autonomous KB Refinement
+After=network.target
+
+[Service]
+Type=simple
+User=alpha
+WorkingDirectory=/home/alpha/anatomy-kb
+ExecStart=/usr/bin/python3 /home/alpha/anatomy-kb/daemon.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then enable and start:
+```bash
+sudo systemctl enable anatomy-daemon
+sudo systemctl start anatomy-daemon
+```
+
 ## Technical Components
 
+- **Daemon Worker:** `daemon.py` handles the 6-hour refinement and 1-hour sync loops.
+- **Refinement Logic:** `anatomy-agent refine` performs the demand-driven analysis.
 - **SQLite History:** `~/.aos/fitness/sessions/training_history.sqlite` provides the usage data.
-- **Analysis Engine:** Part of the Expert Daemon that identifies high-demand/low-quality gaps.
-- **Gemini Ingestion:** Utilizes the established `ingest`/`enrich` prompts to generate high-quality drafts.
 
 This ensures that the `anatomy-kb` is not just large, but **intelligently curated**, focusing expert effort where it provides the most value to clients.

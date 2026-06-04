@@ -162,6 +162,14 @@ def connect() -> sqlite3.Connection:
     conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
+    
+    # Migration: unreviewed-Spalte nachrüsten falls nötig
+    try:
+        conn.execute("SELECT unreviewed FROM exercises LIMIT 1")
+    except sqlite3.OperationalError:
+        conn.execute("ALTER TABLE exercises ADD COLUMN unreviewed INTEGER DEFAULT 0")
+        conn.commit()
+        
     conn.commit()
     return conn
 
@@ -254,7 +262,7 @@ def sync_exercises(conn: sqlite3.Connection) -> int:
                     updated_at=datetime('now')
             """, (
                 ex_id,
-                ex.get("name"),
+                ex.get("name") or ex.get("display_name") or ex.get("german") or ex_id,
                 ex.get("display_name") or ex.get("german"),
                 ex.get("category"),
                 ex.get("movement_pattern"),

@@ -28,6 +28,21 @@ Beteiligte Muskeln:
 Aufgabe: Gib für jeden oben genannten Muskel die anatomischen Grunddaten an.
 Sprache: Deutsch. Fachterminologie auf Latein wo sinnvoll (in Klammern).
 
+Expert-Beispiele (Stil-Vorgabe):
+  latissimus_dorsi:
+    latin: "Musculus latissimus dorsi"
+    origin: "Dornfortsätze Th7–L5, Fascia thoracolumbalis, Crista iliaca (labium externum), 9.–12. Rippe, Angulus inferior scapulae"
+    insertion: "Crista tuberculi minoris humeri"
+    innervation: "Nervus thoracodorsalis (C6–C8)"
+    function_in_exercise: "Hauptmotor der Adduktion und Retroversion des Oberarms."
+
+  pectoralis_major:
+    latin: "Musculus pectoralis major"
+    origin: "Pars clavicularis: mediale Hälfte der Clavicula; Pars sternocostalis: Sternum und 2.–6. Rippenknorpel; Pars abdominalis: Lamina anterior der Rectusscheide"
+    insertion: "Crista tuberculi majoris humeri"
+    innervation: "Nervi pectorales medialis et lateralis (C5–Th1)"
+    function_in_exercise: "Hauptmotor der horizontalen Adduktion und Innenrotation."
+
 Antworte NUR mit diesem YAML-Block, kein erklärender Text davor oder danach:
 
 ```yaml
@@ -39,12 +54,6 @@ muscle_anatomy:
     innervation: "Nervname (Segmente C/L/S)"
     function_in_exercise: "Was dieser Muskel in dieser Übung konkret tut (1-2 Sätze)"
 ```
-
-Wichtig:
-- Muskelname als snake_case Key (z.B. pectoralis_major, triceps_brachii)
-- Alle Muskeln aus der Liste abdecken
-- Keine Erfindungen — nur gesichertes anatomisches Wissen
-- Ursprung und Ansatz so präzise wie möglich (Knochenmarken)
 """
 
 INGEST_PROMPT = """\
