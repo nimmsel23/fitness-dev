@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { Brain } from "lucide-react";
+import { Brain, LayoutGrid, User } from "lucide-react";
 import { api } from "../api.js";
+import { getMuscle, getAllExercises } from "../db.js";
 import BodyMap from "../components/BodyMap.jsx";
+import DetailedMuscleMap from "../components/DetailedMuscleMap.jsx";
+import AnatomyDetailModal from "../components/AnatomyDetailModal.jsx";
 
 const DAYS_OPTIONS = [7, 14, 28];
 const MUSCLE_GROUPS = [
@@ -33,20 +36,31 @@ export default function Muscles({ hitMode, gender }) {
   const [loading, setLoading] = useState(true);
   const [volExercises, setVolExercises] = useState([]);
   const [hitAnalysis, setHitAnalysis] = useState({ heavy: [], recovering: [], super: [], ready: [], scores: {} });
+  const [showDetailed, setShowDetailed] = useState(false);
+  const [selectedMuscleId, setSelectedMuscleId] = useState(null);
+  const [muscleData, setMuscleData] = useState(null);
+  const [muscleLoading, setMuscleLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedMuscleId) { setMuscleData(null); return; }
+    setMuscleLoading(true);
+    getMuscle(selectedMuscleId)
+      .then(d => setMuscleData(d || null))
+      .catch(() => setMuscleData(null))
+      .finally(() => setMuscleLoading(false));
+  }, [selectedMuscleId]);
 
   useEffect(() => {
     setLoading(true);
     Promise.all([
       api.get("/session/history?limit=60"),
-      api.get("/fitness/exercises/all")
-    ]).then(([sessData, exData]) => {
+      getAllExercises()
+    ]).then(([sessData, kbExercises]) => {
       
       const sessions = sessData?.sessions || [];
-      const kbExercises = exData?.exercises || [];
-
       const kbMap = new Map();
       kbExercises.forEach(ex => {
-        kbMap.set((ex.display_name || ex.name || ex.exercise_id).toLowerCase(), ex);
+        kbMap.set((ex.display_name || ex.name || ex.exercise_id || "").toLowerCase(), ex);
       });
 
       // --- VOLUME LOGIC ---
@@ -114,11 +128,6 @@ export default function Muscles({ hitMode, gender }) {
       const ready = [];
       const scores = {};
 
-      scores['fake_1'] = { score: 1 };
-      scores['fake_2'] = { score: 2 };
-      scores['fake_3'] = { score: 3 };
-      scores['fake_4'] = { score: 4 };
-
       for (const m of MUSCLE_GROUPS) {
         const last = lastSeen[m];
         if (!last || last.type === 'cardio' || last.hours > CAT_SUPER) {
@@ -138,7 +147,7 @@ export default function Muscles({ hitMode, gender }) {
 
       setHitAnalysis({ heavy, recovering, super: supercomp, ready, scores, lastSeen });
     }).catch(e => console.error(e)).finally(() => setLoading(false));
-  }, [days]); // Need to recalculate when days changes for volume mode
+  }, [days]);
 
   // ==========================================
   // VIEW: HIT SUPERCOMPENSATION
@@ -157,9 +166,20 @@ export default function Muscles({ hitMode, gender }) {
 
     return (
       <div className="pb-20">
-        <div className="mb-8">
-           <div className="text-[10px] font-black uppercase tracking-widest text-accent mb-2">HIT Modus</div>
-           <h2 className="text-2xl font-black text-ink">Superkompensation</h2>
+        <div className="mb-8 flex items-end justify-between">
+           <div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-accent mb-2">HIT Modus</div>
+              <h2 className="text-2xl font-black text-ink">Superkompensation</h2>
+           </div>
+           <div className="flex gap-2">
+              <button 
+                onClick={() => setShowDetailed(!showDetailed)}
+                className={`btn ${showDetailed ? 'btn-primary' : 'btn-secondary'} py-2.5 px-4 text-[10px] font-black uppercase tracking-widest`}
+              >
+                {showDetailed ? <User size={14} /> : <LayoutGrid size={14} />}
+                {showDetailed ? 'Standard' : 'Detailliert'}
+              </button>
+           </div>
         </div>
 
         {loading ? (
@@ -171,14 +191,24 @@ export default function Muscles({ hitMode, gender }) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-8 p-10 rounded-[40px] border flex justify-center gap-20 bg-card border-line shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent/5 to-transparent pointer-events-none" />
-              <div className="text-center relative z-10">
-                <div className="text-[10px] font-black uppercase tracking-[0.3em] opacity-20 mb-8">Anterior</div>
-                <BodyMap groupScores={scores} highlightedColors={colors} style={{ maxWidth: 200 }} />
-              </div>
-              <div className="text-center relative z-10">
-                <div className="text-[10px] font-black uppercase tracking-[0.3em] opacity-20 mb-8">Posterior</div>
-                <BodyMap groupScores={scores} type="posterior" highlightedColors={colors} style={{ maxWidth: 200 }} />
-              </div>
+              {showDetailed ? (
+                <DetailedMuscleMap 
+                  exercises={volExercises} 
+                  gender={gender} 
+                  onGroupClick={setSelectedMuscleId}
+                />
+              ) : (
+                <>
+                  <div className="text-center relative z-10">
+                    <div className="text-[10px] font-black uppercase tracking-[0.3em] opacity-20 mb-8">Anterior</div>
+                    <BodyMap groupScores={scores} highlightedColors={colors} style={{ maxWidth: 200 }} />
+                  </div>
+                  <div className="text-center relative z-10">
+                    <div className="text-[10px] font-black uppercase tracking-[0.3em] opacity-20 mb-8">Posterior</div>
+                    <BodyMap groupScores={scores} type="posterior" highlightedColors={colors} style={{ maxWidth: 200 }} />
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="lg:col-span-4 space-y-6">
@@ -235,6 +265,12 @@ export default function Muscles({ hitMode, gender }) {
             </div>
           </div>
         )}
+        <AnatomyDetailModal 
+          muscleId={selectedMuscleId}
+          muscleData={muscleData}
+          loading={muscleLoading}
+          onClose={() => setSelectedMuscleId(null)}
+        />
       </div>
     );
   }
@@ -244,17 +280,28 @@ export default function Muscles({ hitMode, gender }) {
   // ==========================================
   return (
     <div className="pb-20">
-      <div className="mb-4">
-         <div className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2">Volume Modus</div>
-         <h2 className="text-2xl font-black text-ink mb-6">Muskel-Coverage</h2>
-         
-         <div className="flex gap-2 bg-card p-1.5 rounded-2xl border border-line shadow-inner max-w-xl">
-           {DAYS_OPTIONS.map(d => (
-             <button key={d} onClick={() => setDays(d)} 
-               className={`flex-1 p-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${days === d ? 'bg-accent text-black shadow-lg shadow-accent/20' : 'text-dim hover:text-ink hover:bg-white/5'}`}>
-               {d} Tage Fokus
-             </button>
-           ))}
+      <div className="mb-4 flex items-end justify-between">
+         <div>
+            <div className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-2">Volume Modus</div>
+            <h2 className="text-2xl font-black text-ink mb-6">Muskel-Coverage</h2>
+            
+            <div className="flex gap-2 bg-card p-1.5 rounded-2xl border border-line shadow-inner max-w-xl">
+              {DAYS_OPTIONS.map(d => (
+                <button key={d} onClick={() => setDays(d)} 
+                  className={`flex-1 p-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${days === d ? 'bg-accent text-black shadow-lg shadow-accent/20' : 'text-dim hover:text-ink hover:bg-white/5'}`}>
+                  {d} Tage Fokus
+                </button>
+              ))}
+            </div>
+         </div>
+         <div className="flex gap-2">
+            <button 
+              onClick={() => setShowDetailed(!showDetailed)}
+              className={`btn ${showDetailed ? 'btn-primary' : 'btn-secondary'} py-2.5 px-4 text-[10px] font-black uppercase tracking-widest`}
+            >
+              {showDetailed ? <User size={14} /> : <LayoutGrid size={14} />}
+              {showDetailed ? 'Standard' : 'Detailliert'}
+            </button>
          </div>
       </div>
 
@@ -267,14 +314,24 @@ export default function Muscles({ hitMode, gender }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8">
           <div className="lg:col-span-8 p-10 rounded-[40px] border flex justify-center gap-20 bg-card border-line shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent/5 to-transparent pointer-events-none" />
-            <div className="text-center relative z-10">
-              <div className="text-[10px] font-black uppercase tracking-[0.3em] opacity-20 mb-8">Anterior</div>
-              <BodyMap exercises={volExercises} highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 200 }} />
-            </div>
-            <div className="text-center relative z-10">
-              <div className="text-[10px] font-black uppercase tracking-[0.3em] opacity-20 mb-8">Posterior</div>
-              <BodyMap exercises={volExercises} type="posterior" highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 200 }} />
-            </div>
+            {showDetailed ? (
+              <DetailedMuscleMap 
+                exercises={volExercises} 
+                gender={gender} 
+                onGroupClick={setSelectedMuscleId}
+              />
+            ) : (
+              <>
+                <div className="text-center relative z-10">
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em] opacity-20 mb-8">Anterior</div>
+                  <BodyMap exercises={volExercises} highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 200 }} />
+                </div>
+                <div className="text-center relative z-10">
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em] opacity-20 mb-8">Posterior</div>
+                  <BodyMap exercises={volExercises} type="posterior" highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 200 }} />
+                </div>
+              </>
+            )}
           </div>
 
           <div className="lg:col-span-4 space-y-6">
@@ -291,21 +348,33 @@ export default function Muscles({ hitMode, gender }) {
                     Die Heatmap visualisiert die kumulierte Belastung deiner Muskulatur in den letzten {days} Tagen.
                   </p>
                   <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-3 text-xs">
-                      <div className="w-4 h-4 rounded-lg bg-[#ef4444] shadow-lg shadow-[#ef4444]/20" />
-                      <span className="font-bold opacity-60">Sehr hohe Belastung</span>
+                    <div className="flex items-center justify-between group">
+                      <div className="flex items-center gap-3 text-xs">
+                        <div className="w-4 h-4 rounded-lg bg-[#ef4444] shadow-lg shadow-[#ef4444]/20" />
+                        <span className="font-bold opacity-60">Sehr hohe Belastung</span>
+                      </div>
+                      <span className="text-[11px] font-black opacity-30">6+ Sätze</span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs">
-                      <div className="w-4 h-4 rounded-lg bg-[#f59e0b] shadow-lg shadow-[#f59e0b]/20" />
-                      <span className="font-bold opacity-60">Hohe Belastung</span>
+                    <div className="flex items-center justify-between group">
+                      <div className="flex items-center gap-3 text-xs">
+                        <div className="w-4 h-4 rounded-lg bg-[#f59e0b] shadow-lg shadow-[#f59e0b]/20" />
+                        <span className="font-bold opacity-60">Hohe Belastung</span>
+                      </div>
+                      <span className="text-[11px] font-black opacity-30">4-5 Sätze</span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs">
-                      <div className="w-4 h-4 rounded-lg bg-[#22c55e] shadow-lg shadow-[#22c55e]/20" />
-                      <span className="font-bold opacity-60">Moderate Belastung</span>
+                    <div className="flex items-center justify-between group">
+                      <div className="flex items-center gap-3 text-xs">
+                        <div className="w-4 h-4 rounded-lg bg-[#22c55e] shadow-lg shadow-[#22c55e]/20" />
+                        <span className="font-bold opacity-60">Moderate Belastung</span>
+                      </div>
+                      <span className="text-[11px] font-black opacity-30">2-3 Sätze</span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs">
-                      <div className="w-4 h-4 rounded-lg bg-[#3b82f6] shadow-lg shadow-[#3b82f6]/20" />
-                      <span className="font-bold opacity-60">Leichte Belastung</span>
+                    <div className="flex items-center justify-between group">
+                      <div className="flex items-center gap-3 text-xs">
+                        <div className="w-4 h-4 rounded-lg bg-[#3b82f6] shadow-lg shadow-[#3b82f6]/20" />
+                        <span className="font-bold opacity-60">Leichte Belastung</span>
+                      </div>
+                      <span className="text-[11px] font-black opacity-30">1 Satz</span>
                     </div>
                   </div>
                 </div>
@@ -325,6 +394,12 @@ export default function Muscles({ hitMode, gender }) {
           </div>
         </div>
       )}
+      <AnatomyDetailModal 
+        muscleId={selectedMuscleId}
+        muscleData={muscleData}
+        loading={muscleLoading}
+        onClose={() => setSelectedMuscleId(null)}
+      />
     </div>
   );
 }

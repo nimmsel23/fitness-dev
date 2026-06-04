@@ -291,8 +291,12 @@ export async function getAnatomy(exerciseId) {
   }
 }
 
-export async function getMuscle() {
-  return null;
+export async function getMuscle(muscleId) {
+  try {
+    return await api.get(`/fitness/muscles/${encodeURIComponent(muscleId)}`);
+  } catch {
+    return null;
+  }
 }
 
 export async function sendToInbox() {

@@ -383,6 +383,28 @@ app.get("/fitness/exercises/all", (c) => {
   return c.json({ ok: true, exercises: fitnessData.exercises || [] });
 });
 
+app.get("/fitness/muscles", async (c) => {
+  try {
+    const res = await fetch("http://localhost:9120/muscles");
+    return c.json(await res.json());
+  } catch (err) {
+    return c.json({ ok: false, error: "agent_unreachable" }, 502);
+  }
+});
+
+app.get("/fitness/muscles/:id", async (c) => {
+  const id = c.req.param("id");
+  try {
+    const res = await fetch("http://localhost:9120/muscles");
+    const data = await res.json();
+    const muscle = data.muscles?.[id];
+    if (!muscle) return c.json({ ok: false, error: "not_found" }, 404);
+    return c.json(muscle);
+  } catch (err) {
+    return c.json({ ok: false, error: "agent_unreachable" }, 502);
+  }
+});
+
 app.get("/fitness/plan", async (c) => {
   const template = c.req.query("template") || "";
   const split    = c.req.query("split")    || "";
