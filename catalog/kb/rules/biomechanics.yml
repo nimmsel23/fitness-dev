@@ -1,0 +1,31 @@
+# Biomechanical Consistency Rules
+# Maps movement patterns to required or expected primary muscles.
+
+movement_pattern_rules:
+  horizontal_press:
+    required_primary: [pectoralis_major, chest]
+    description: "Horizontal pressing should target the chest."
+  
+  vertical_press:
+    required_primary: [anterior_deltoid, shoulders, deltoids]
+    description: "Vertical pressing should target the shoulders."
+    
+  vertical_pull:
+    required_primary: [latissimus_dorsi, lats, back]
+    description: "Vertical pulling should target the lats/back."
+    
+  horizontal_pull:
+    required_primary: [trapezius_middle, trapezius_lower, rhomboids, latissimus_dorsi, lats, back]
+    description: "Horizontal pulling (rows) should target the back (lats, trapezius, rhomboids)."
+    
+  squat:
+    required_primary: [quadriceps, quads, legs]
+    description: "Squat patterns should target the quadriceps."
+    
+  hinge:
+    required_primary: [gluteus_maximus, glutes, hamstrings, erector_spinae]
+    description: "Hinge patterns (deadlifts) should target the posterior chain."
+
+isolation_rules:
+  max_primary_muscles: 2
+  description: "Isolation exercises should usually target only 1 or 2 primary muscles."

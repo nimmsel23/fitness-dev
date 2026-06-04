@@ -18,19 +18,28 @@ A unified fitness ecosystem serving two primary roles:
 
 ### Backend & Sync (`/firestore`, `server.mjs`, `catalog/`)
 *   **Local Server**: Hono-based Node.js server for local development and local tool integration.
-*   **Fitness Agent Daemon**: Python-based autonomous expert system (`catalog/fitness_agent/watcher.py`) that monitors client inboxes, enriches data via Gemini, and manages the indexed exercise catalog.
-*   **Multi-User Sync**: Python-based sync engine (`firestore/sync.py`) that pulls data from ALL clients into structured local storage: `~/.aos/fitness/users/{UID}/`.
-*   **Inbox Bridge**: PWA logs "new exercises" into a Firestore `inbox` collection per user, which is pulled locally for AI processing.
+*   **Fitness Agent Daemon**: Autonomous expert system (`catalog/fitness_agent/watcher.py`) with three proactive cycles:
+    1.  **Inbox Watcher**: Real-time AI-enrichment of new user requests.
+    2.  **Demand-Driven Refinement**: Hourly analysis of user logs (28-day window) to auto-draft expert versions of popular "Wiki-tier" exercises.
+    3.  **Continuous Auditing**: Bi-hourly biomechanical consistency checks against `rules/biomechanics.yml`.
+*   **Multi-User Sync**: Python-based engine (`firestore/sync.py`) that bridges Firestore and local storage.
 
 ### Integration Points
-*   **Indexed Exercise Catalog**: Separates high-performance indices (`chest.yml`, etc.) from deep-intelligence detail files (`exercises/bench_press.yml`). Uses wger-normalized muscle IDs for precise coverage calculation.
-*   **wger**: Master exercise database for curation.
-*   **HabitSync**: External habit management API integration.
-*   **Anatomy-KB**: Dedicated repository (`~/anatomy-kb`) for deep biomechanical data. Serves as the source for `anatomy` collections in Firestore.
-*   **EspoCRM**: Targeted for future client/contact lifecycle management linked to Firestore UIDs.
-*   **AI Enricher**: Gemini-powered worker integrated into the Fitness Agent Daemon.
+*   **3-Tier Exercise Catalog**: 
+    - **Expert Tier**: Curated indices and deep detail files.
+    - **Bulk Layer**: 1850+ unreviewed exercises (wger/yuhonas).
+    - **Lab (Inbox)**: AI-powered staging area for elevation.
+*   **wger**: Master database and ID source for muscle normalization.
+*   **Anatomy-KB**: Source for deep biomechanical facts and `anatomy` teaching data.
 
 ## 3. Engineering Standards
+
+### Biomechanical Integrity
+*   **Auditor Compliance**: All approved exercises must pass the biomechanical consistency check (correct muscles for given patterns).
+*   **Normalization**: Always use wger-mapped IDs from `muscles.yml` for muscle associations.
+
+### Data Flow
+*   **Expert-Wins Sync**: The `kb_sync` pipeline ensures Tier-1 data (Expert) always overwrites Tier-2 data (Bulk) in Firestore.
 
 ### CSS & Styling
 *   **Tailwind Namespace**: Use the `fit` namespace (e.g., `text-fit-accent`, `bg-fit-card`) to map directly to project-wide CSS variables.

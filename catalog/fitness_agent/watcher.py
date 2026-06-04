@@ -45,40 +45,55 @@ def load_gemini_key() -> str | None:
     return None
 
 
-PROMPT_TEMPLATE = """
+PROMPT_TEMPLATE_NEW = """
 You are an expert fitness coach and biomechanics expert.
-A user has logged a new exercise: "{exercise_name}"
+A user has logged a new, unknown exercise: "{exercise_name}"
 
 Return a JSON object with the following structure exactly. Do not include markdown formatting like ```json.
-It must match our base exercise schema. Use German for display_name and coaching_notes.
+Use German for display_name and coaching_notes.
 
 {{
   "exercise_id": "{safe_name}",
   "id": "{safe_name}",
   "name": "{exercise_name}",
-  "display_name": "German Translation or Native Name",
+  "display_name": "German Name",
   "german": "German Name",
   "category": "chest|back|shoulders|arms|core|legs|cardio",
   "type": "compound|isolation",
   "movement_pattern": "e.g. horizontal_press, vertical_pull",
   "equipment": ["dumbbell", "barbell", "machine", "bodyweight", "cable"],
-  "primary_muscles": ["muscle1"],
-  "secondary_muscles": ["muscle2"],
-  "coaching_notes": [
-    "Wichtiger Ausführungshinweis 1",
-    "Wichtiger Ausführungshinweis 2"
-  ],
-  "common_errors": [
-    "Häufiger Fehler 1"
-  ],
-  "tags": ["tag1", "tag2"],
-  "aliases": ["alias1", "alias2"]
+  "primary_muscles": ["muscle_id"],
+  "secondary_muscles": ["muscle_id"],
+  "coaching_notes": ["Hinweis 1", "Hinweis 2"],
+  "common_errors": ["Fehler 1"],
+  "tags": ["tag1"],
+  "aliases": []
 }}
 """
 
-def call_gemini(exercise_name: str, safe_name: str, api_key: str) -> dict | None:
-    prompt = PROMPT_TEMPLATE.format(exercise_name=exercise_name, safe_name=safe_name)
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+PROMPT_TEMPLATE_ENRICH = """
+You are an expert fitness coach and biomechanics expert.
+I have a basic exercise entry from a bulk import that needs professional "Expert Tier" enrichment.
+
+Existing Data (Wiki Layer):
+{existing_json}
+
+Your task:
+1. Keep the exercise_id and wger_id.
+2. Verify and refine the category and muscles.
+3. Generate HIGH-QUALITY coaching_notes and common_errors in GERMAN.
+4. Ensure the biomechanical movement_pattern is correct.
+
+Return a JSON object with the full enriched structure. Do not include markdown formatting like ```json.
+"""
+
+def call_gemini(exercise_name: str, safe_name: str, api_key: str, existing_data: dict | None = None) -> dict | None:
+    if existing_data:
+        prompt = PROMPT_TEMPLATE_ENRICH.format(existing_json=json.dumps(existing_data, indent=2))
+    else:
+        prompt = PROMPT_TEMPLATE_NEW.format(exercise_name=exercise_name, safe_name=safe_name)
+    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
     
     payload = {
         "contents": [{"parts": [{"text": prompt}]}]
@@ -97,7 +112,7 @@ def call_gemini(exercise_name: str, safe_name: str, api_key: str) -> dict | None
             text_response = text_response.replace("```json", "").replace("```", "").strip()
             return json.loads(text_response)
     except Exception as e:
-        log_err(f"Gemini API call failed for {exercise_name}: {e}")
+        log_err(f"Gemini API call failed: {e}")
         return None
 
 
@@ -106,57 +121,78 @@ def process_inbox_file(file_path: Path, api_key: str | None):
         data = json.loads(file_path.read_text())
         name = data.get("name")
         if not name:
-            log_warn(f"Inbox file {file_path.name} missing 'name'. Deleting.")
             file_path.unlink()
             return
 
         safe_name = name.lower().replace(" ", "_")
-        # In the agent, we store in catalog/kb/exercises with inbox_ prefix
-        # This keeps the "expert" in control (audit all will see them)
         target_file = DATA_DIR / "exercises" / f"inbox_{safe_name}.yml"
 
         if target_file.exists():
-            log(f"Inbox draft for '{name}' already exists. Removing from client inbox.")
             file_path.unlink()
             return
 
-        log(f"Enriching new exercise: {name}")
+        log(f"Enriching NEW exercise: {name}")
         
         enriched_data = None
         if api_key:
             enriched_data = call_gemini(name, safe_name, api_key)
         
         if enriched_data:
-            # Add placeholders for missing required fields to satisfy audit
-            if "stabilizers" not in enriched_data:
-                enriched_data["stabilizers"] = []
-            if "variations" not in enriched_data:
-                enriched_data["variations"] = []
-                
-            wrapper = {
-                "name": f"inbox_{safe_name}",
-                "description": f"AI generated base entry for {name}",
-                "exercises": [enriched_data]
-            }
-            
-            with target_file.open("w", encoding="utf-8") as f:
-                yaml.safe_dump(wrapper, f, allow_unicode=True, sort_keys=False)
-            
-            log_success(f"Successfully generated inbox entry for {name}")
+            save_inbox_draft(target_file, enriched_data, f"AI generated base entry for {name}")
             file_path.unlink()
-            
-            # Sync to Firestore so the user sees it in their web-UI inbox
-            try:
-                run_kb_sync()
-                log("Firestore sync triggered.")
-            except Exception as e:
-                log_err(f"Firestore sync failed: {e}")
-        else:
-            log_warn(f"Could not enrich {name}. Ensure GEMINI_API_KEY is set.")
-            
     except Exception as e:
         log_err(f"Failed to process {file_path}: {e}")
 
+def process_inbox_file_virtual(ex_id: str, display_name: str, api_key: str):
+    """Enriches an existing Wiki exercise by providing its current data as context."""
+    safe_name = ex_id.lower().replace(" ", "_")
+    target_file = DATA_DIR / "exercises" / f"inbox_{safe_name}.yml"
+    
+    if target_file.exists():
+        return
+
+    # Fetch existing Wiki data for context
+    from .resolver import find_by_id, build_exercise_index
+    records = build_exercise_index()
+    record = find_by_id(ex_id, records)
+    existing_data = None
+    if record:
+        existing_data = {
+            "exercise_id": record.exercise_id,
+            "display_name": record.display_name,
+            "category": record.category if hasattr(record, "category") else None,
+            "primary_muscles": record.primary_muscles,
+            "equipment": record.equipment,
+            "wger_id": record.wger_muscle_ids.get("wger_id") if record.wger_muscle_ids else None
+        }
+
+    log(f"Proactive Expert-Enrichment for: {display_name} (using Wiki context)")
+    enriched_data = call_gemini(display_name, safe_name, api_key, existing_data=existing_data)
+    
+    if enriched_data:
+        save_inbox_draft(target_file, enriched_data, f"Proactively generated expert draft for: {display_name}")
+
+def save_inbox_draft(target_file: Path, data: dict, description: str):
+    if "stabilizers" not in data: data["stabilizers"] = []
+    if "variations" not in data: data["variations"] = []
+    
+    wrapper = {
+        "name": target_file.stem,
+        "description": description,
+        "exercises": [data]
+    }
+    
+    with target_file.open("w", encoding="utf-8") as f:
+        yaml.safe_dump(wrapper, f, allow_unicode=True, sort_keys=False)
+    
+    log_success(f"Generated expert draft: {target_file.name}")
+    try:
+        run_kb_sync()
+    except Exception: pass
+
+
+from .ingestor import ingest_all_sessions, get_top_unreviewed_exercises
+from .auditor import write_biomechanical_report
 
 def run_watcher():
     log("Starting fitness-agent watcher daemon...")
@@ -165,8 +201,11 @@ def run_watcher():
         log_warn("GEMINI_API_KEY not found. Automated enrichment disabled.")
         
     users_dir = runtime_root() / "users"
+    last_ingest = 0
+    last_audit = 0
     
     while True:
+        # 1. Process explicit client inbox requests (JSON files)
         if users_dir.exists():
             for uid_dir in users_dir.iterdir():
                 if not uid_dir.is_dir():
@@ -175,4 +214,70 @@ def run_watcher():
                 if inbox_dir.exists():
                     for json_file in inbox_dir.glob("*.json"):
                         process_inbox_file(json_file, api_key)
+        
+        now = time.time()
+        
+        # 2. Periodically ingest sessions and proactively refine popular exercises
+        if now - last_ingest > 3600: # Every hour
+            log("Running session ingestion and proactive refinement check...")
+            try:
+                ingested = ingest_all_sessions()
+                if ingested:
+                    log(f"Ingested {ingested} new training entries.")
+                
+                if api_key:
+                    top_unreviewed = get_top_unreviewed_exercises(limit=3)
+                    for ex_id, count in top_unreviewed:
+                        log(f"Proactively refining popular unreviewed exercise: {ex_id} (used {count} times)")
+                        from .resolver import resolve_query
+                        res = resolve_query(ex_id)
+                        if res.matched:
+                            process_inbox_file_virtual(res.canonical_id, res.display_name, api_key)
+                
+                last_ingest = now
+            except Exception as e:
+                log_err(f"Periodic ingest/refinement failed: {e}")
+
+        # 3. Periodically run Biomechanical Auditor
+        if now - last_audit > 7200: # Every 2 hours
+            log("Running biomechanical consistency audit...")
+            try:
+                report_path = write_biomechanical_report()
+                log(f"Biomechanical audit complete. Report: {report_path}")
+                last_audit = now
+            except Exception as e:
+                log_err(f"Biomechanical audit failed: {e}")
+
         time.sleep(10)
+
+def process_inbox_file_virtual(ex_id: str, display_name: str, api_key: str):
+    """Enriches an exercise that didn't come from a JSON file but from usage analysis."""
+    safe_name = ex_id.lower().replace(" ", "_")
+    target_file = DATA_DIR / "exercises" / f"inbox_{safe_name}.yml"
+    
+    if target_file.exists():
+        return
+
+    log(f"Proactive enrichment for: {display_name}")
+    enriched_data = call_gemini(display_name, safe_name, api_key)
+    
+    if enriched_data:
+        if "stabilizers" not in enriched_data:
+            enriched_data["stabilizers"] = []
+        if "variations" not in enriched_data:
+            enriched_data["variations"] = []
+            
+        wrapper = {
+            "name": f"inbox_{safe_name}",
+            "description": f"Proactively generated expert draft for popular exercise: {display_name}",
+            "exercises": [enriched_data]
+        }
+        
+        with target_file.open("w", encoding="utf-8") as f:
+            yaml.safe_dump(wrapper, f, allow_unicode=True, sort_keys=False)
+        
+        log_success(f"Successfully generated proactive inbox entry for {display_name}")
+        
+        try:
+            run_kb_sync()
+        except Exception: pass
