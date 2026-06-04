@@ -7,6 +7,11 @@ export default defineConfig({
   define: {
     __IS_COACH__: 'false',
   },
+  server: {
+    fs: {
+      allow: ['..']
+    }
+  },
   build: {
     rollupOptions: {
       input: {
