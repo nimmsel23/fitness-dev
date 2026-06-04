@@ -1,13 +1,7 @@
 """
 KB Sync — catalog/kb/ → Firestore fitness/kb/
 
-Liest alle YAMLs aus catalog/kb/exercises/ und catalog/kb/anatomy_teaching/
-und schreibt sie nach Firestore:
-  fitness/kb/exercises/{exercise_id}
-  fitness/kb/anatomy/{exercise_id}
-
-Credentials: ~/.env/firebase-fitness.json (Service Account JSON)
-Oder: GOOGLE_APPLICATION_CREDENTIALS env var
+Optimiert mit WriteBatches für große Datenmengen.
 """
 from __future__ import annotations
 
@@ -43,7 +37,6 @@ def _init_firebase() -> Any:
 
 
 def _to_fs(v: Any) -> Any:
-    """Rekursiv alle Werte in Firestore-kompatible Typen konvertieren."""
     if isinstance(v, dict):
         return {str(k): _to_fs(vv) for k, vv in v.items()}
     if isinstance(v, list):
@@ -61,6 +54,9 @@ def sync_exercises(db_client: Any, dry_run: bool = False) -> dict[str, int]:
     counts = {"ok": 0, "skip": 0, "error": 0}
     col = db_client.collection("fitness").document("kb").collection("exercises")
 
+    # 1. Aggregation phase: Collect and merge all exercises by ID
+    all_exercises: dict[str, dict[str, Any]] = {}
+
     for path, doc in load_catalog_directory_yaml("exercises"):
         if not isinstance(doc, dict):
             continue
@@ -69,18 +65,53 @@ def sync_exercises(db_client: Any, dry_run: bool = False) -> dict[str, int]:
             if not ex_id:
                 counts["skip"] += 1
                 continue
-            payload = _flatten(exercise)
-            if dry_run:
-                logger.info(f"[dry] exercises/{ex_id}")
-                counts["ok"] += 1
-                continue
-            try:
-                col.document(ex_id).set(payload)
-                logger.info(f"exercises/{ex_id}")
-                counts["ok"] += 1
-            except Exception as exc:
-                logger.error(f"exercises/{ex_id}: {exc}")
-                counts["error"] += 1
+            
+            if ex_id not in all_exercises:
+                all_exercises[ex_id] = exercise
+            else:
+                # Merge logic: Prefer non-empty and longer lists/strings
+                # This ensures detail files (richer) complement index entries
+                for key, val in exercise.items():
+                    old_val = all_exercises[ex_id].get(key)
+                    if not old_val:
+                        all_exercises[ex_id][key] = val
+                    elif isinstance(val, list) and isinstance(old_val, list):
+                        if len(val) > len(old_val):
+                            all_exercises[ex_id][key] = val
+                    elif isinstance(val, str) and isinstance(old_val, str):
+                        if len(val) > len(old_val):
+                            all_exercises[ex_id][key] = val
+                    elif isinstance(val, dict) and isinstance(old_val, dict):
+                        # Shallow merge for dicts (like wger_muscle_ids)
+                        all_exercises[ex_id][key].update(val)
+
+    # 2. Sync phase: Write merged records to Firestore
+    batch = db_client.batch()
+    batch_count = 0
+
+    for ex_id, exercise in all_exercises.items():
+        payload = _flatten(exercise)
+        if dry_run:
+            counts["ok"] += 1
+            continue
+
+        try:
+            batch.set(col.document(ex_id), payload)
+            batch_count += 1
+            counts["ok"] += 1
+            
+            if batch_count >= 400:
+                batch.commit()
+                logger.info(f"Committed batch of {batch_count} merged exercises")
+                batch = db_client.batch()
+                batch_count = 0
+        except Exception as exc:
+            logger.error(f"exercises/{ex_id}: {exc}")
+            counts["error"] += 1
+
+    if batch_count > 0:
+        batch.commit()
+        logger.info(f"Committed final batch of {batch_count} merged exercises")
 
     return counts
 
@@ -88,15 +119,16 @@ def sync_exercises(db_client: Any, dry_run: bool = False) -> dict[str, int]:
 def sync_anatomy(db_client: Any, dry_run: bool = False) -> dict[str, int]:
     counts = {"ok": 0, "skip": 0, "error": 0}
     col = db_client.collection("fitness").document("kb").collection("anatomy")
+    
+    batch = db_client.batch()
+    batch_count = 0
 
     for path, doc in load_catalog_directory_yaml("anatomy_teaching"):
         if not isinstance(doc, dict):
             continue
 
-        # Einzelne Lesson-Datei
         if "exercise_id" in doc:
             lessons = [doc]
-        # Multi-Lesson-Datei (supplementary_mvp_lessons.yml etc.)
         elif "lessons" in doc:
             lessons = doc["lessons"]
         else:
@@ -107,17 +139,73 @@ def sync_anatomy(db_client: Any, dry_run: bool = False) -> dict[str, int]:
             if not ex_id:
                 counts["skip"] += 1
                 continue
+                
             if dry_run:
-                logger.info(f"[dry] anatomy/{ex_id}")
                 counts["ok"] += 1
                 continue
+                
             try:
-                col.document(ex_id).set(lesson)
-                logger.info(f"anatomy/{ex_id}")
+                batch.set(col.document(ex_id), lesson)
+                batch_count += 1
                 counts["ok"] += 1
+                
+                if batch_count >= 400:
+                    batch.commit()
+                    logger.info(f"Committed batch of {batch_count} anatomy lessons")
+                    batch = db_client.batch()
+                    batch_count = 0
             except Exception as exc:
                 logger.error(f"anatomy/{ex_id}: {exc}")
                 counts["error"] += 1
+
+    if batch_count > 0:
+        batch.commit()
+        logger.info(f"Committed final batch of {batch_count} anatomy lessons")
+
+    return counts
+
+
+def sync_muscles(db_client: Any, dry_run: bool = False) -> dict[str, int]:
+    counts = {"ok": 0, "skip": 0, "error": 0}
+    col = db_client.collection("fitness").document("kb").collection("muscles")
+
+    try:
+        taxonomy = load_catalog_yaml("muscles/muscles.yml")
+        if not isinstance(taxonomy, dict) or "muscles" not in taxonomy:
+            logger.error("muscles.yml has invalid structure")
+            counts["error"] += 1
+            return counts
+
+        muscles = taxonomy["muscles"]
+        batch = db_client.batch()
+        batch_count = 0
+        
+        for muscle_id, data in muscles.items():
+            if not isinstance(data, dict):
+                continue
+            
+            payload = _flatten(data)
+            payload["muscle_id"] = muscle_id
+            
+            if dry_run:
+                counts["ok"] += 1
+                continue
+            
+            batch.set(col.document(muscle_id), payload)
+            batch_count += 1
+            counts["ok"] += 1
+            
+            if batch_count >= 400:
+                batch.commit()
+                batch = db_client.batch()
+                batch_count = 0
+                
+        if batch_count > 0:
+            batch.commit()
+            
+    except Exception as exc:
+        logger.error(f"Failed to sync muscles: {exc}")
+        counts["error"] += 1
 
     return counts
 
@@ -133,7 +221,11 @@ def run_kb_sync(dry_run: bool = False) -> None:
     an = sync_anatomy(db_client, dry_run=dry_run)
     logger.info(f"anatomy: {an}")
 
-    total_ok = ex["ok"] + an["ok"]
-    total_err = ex["error"] + an["error"]
+    logger.info("=== KB Sync: muscles ===")
+    mu = sync_muscles(db_client, dry_run=dry_run)
+    logger.info(f"muscles: {mu}")
+
+    total_ok = ex["ok"] + an["ok"] + mu["ok"]
+    total_err = ex["error"] + an["error"] + mu["error"]
     status = "OK" if total_err == 0 else "ERRORS"
     logger.info(f"=== Fertig: {total_ok} geschrieben, {total_err} Fehler — {status} ===")

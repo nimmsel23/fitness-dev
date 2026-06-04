@@ -1,34 +1,41 @@
 # Fitness PWA: Catalog & Firestore Architecture
 
-Dieses Dokument beschreibt den Datenfluss zwischen der lokalen Knowledge Base (KB) und Firestore, um sicherzustellen, dass Übungsdaten und Metadaten (Muskel-Tags) konsistent gehalten werden.
+Dieses Dokument beschreibt die Architektur der Exercise-Datenbank, den Indexing-Mechanismus und die Integration von Bulk-Daten.
 
-## 1. Single Source of Truth (SSOT)
-Die lokale Quelle der Wahrheit liegt im Repository unter `catalog/kb/`.
-- **Struktur:** YAML-Dateien unter `catalog/kb/exercises/` und `catalog/kb/anatomy_teaching/`.
-- **Zweck:** Einfache Editierbarkeit durch den `fitness_agent` und menschliche Entwickler.
+## 1. Multi-Tier Datenstruktur
+Um sowohl Masse als auch Klasse zu bieten, nutzt das System drei Ebenen:
 
-## 2. Sync-Pipeline (`kb_sync.py`)
-Um die Daten in Firestore verfügbar zu machen (für die PWA-App), nutzen wir das Python-Skript `catalog/fitness_agent/kb_sync.py`.
+- **Tier 1: Expert-Tier (The "Coach Brain")**: 
+  - **Index**: Registry-Files (z.B. `chest.yml`) mit IDs und Muskel-Mappings.
+  - **Details**: Expert-Detail-Files (z.B. `exercises/bench_press.yml`) mit Coaching-Notes und Biomechanik.
+  - **Status**: Verifiziert und autoritativ.
+- **Tier 2: Bulk Staging Layer (The "Wiki")**:
+  - Großvolumige Importe aus `wger` (`unreviewed_wger.yml`) und `yuhonas` (`unreviewed_yuhonas.yml`).
+  - **Status**: Gekennzeichnet mit dem Tag `unreviewed`. Dient als Fallback, damit Nutzer sofort loggen können.
+- **Tier 3: Inbox (The "Lab")**:
+  - Temporäre Drafts (`inbox_*.yml`) für Neuanfragen oder zur Veredelung von Tier 2 Daten.
 
-### Ablauf:
-1.  **Lesen:** Das Skript parst alle YAML-Dateien aus `catalog/kb/`.
-2.  **Transformieren:** Die Daten werden in Firestore-kompatible Strukturen (z.B. flache Maps statt verschachtelter YAMLs) umgewandelt.
-3.  **Schreiben:** Die Daten werden nach Firestore gepusht:
-    - `fitness/kb/exercises/{exercise_id}`
-    - `fitness/kb/anatomy/{exercise_id}`
+## 2. Der Autonome Expert-Daemon (`fitness-agent watch`)
+Der `fitness-agent` agiert als autonomer Hintergrundprozess, der den Übergang zwischen den Tiers verwaltet.
 
-## 3. PWA-Frontend (Lesezugriff)
-Die PWA greift über die `db.js` auf Firestore zu:
-- `getAllExercises()`: Lädt die flache Liste aus `fitness/kb/exercises`.
-- `getExercise(id)`: Lädt Details einer spezifischen Übung nach.
+### Aufgaben:
+1.  **Inbox-Watcher**: Erkennt Neuanfragen (PWA -> Firestore -> Local).
+2.  **AI-Enrichment**: Nutzt Gemini, um biomechanisch korrekte Expert-Drafts zu erstellen.
+3.  **Tier-Elevation**: Ermöglicht es, Übungen aus dem Bulk-Layer (Tier 2) in den Expert-Tier (Tier 1) zu heben.
 
-## 4. Inbox-Mechanismus (Schreibzugriff / Enrichement)
-Um neue oder fehlende Übungsdaten dynamisch hinzuzufügen, wurde ein Inbox-Workflow implementiert:
+## 3. Smart Approval Workflow
+Der `approve`-Befehl ist das Qualitäts-Gate:
+1.  **Registry-Eintrag**: Schreibt Core-Metadaten in den Kategorie-Index.
+2.  **Expert-Storage**: Speichert die volle Intelligenz als Detail-File.
+3.  **Tag-Update**: Entfernt den `unreviewed`-Tag und markiert die Übung als verifiziert.
 
-1.  **Ping:** Wenn die PWA eine Übung ohne Muskel-Metadaten findet, sendet sie ein JSON-Objekt an `POST /inbox/exercise`.
-2.  **Inbox:** Der Server speichert dies unter `~/.aos/fitness/inbox/` als `.json`.
-3.  **Verarbeitung:** Ein lokaler Prozess (z.B. `fitness_agent` via TUI oder automatischer Watcher) konsumiert diese Dateien, validiert sie, speichert sie als YAML in `catalog/kb/` und triggert den `kb_sync`.
-4.  **Live:** Nach dem `kb_sync` sind die Daten in Firestore für die PWA verfügbar.
+## 4. Sync & Merge Pipeline (`kb_sync.py`)
+Das System führt beim Sync alle Tiers intelligent zusammen:
+- **Aggregation**: Lädt alle Übungen aus allen Tiers.
+- **Smart Merge**: Bei ID-Kollisionen gewinnen die Daten aus dem Expert-Tier (Tier 1). Das heißt: Sobald du eine Übung veredelst, überschreibt dein Wissen automatisch den generischen Bulk-Import in der PWA.
+
+## 5. Muskel-Normalisierung
+Alle Tiers referenzieren die zentrale `muscles.yml`. Dank der wger-ID Normalisierung ist die Muscle-Coverage über alle 1850+ Übungen hinweg konsistent berechenbar.
 
 ---
-*Dieser Kreislauf stellt sicher, dass die App performant aus Firestore liest, während die Redaktion der Daten sicher und versioniert im Git-Repository erfolgt.*
+*Diese Architektur garantiert, dass das System niemals "abdriftet": Die Masse der Bulk-Daten dient als Fundament, aber dein "Expert Brain" behält immer die Kontrolle über die Qualität.*

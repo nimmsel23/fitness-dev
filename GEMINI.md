@@ -16,17 +16,19 @@ A unified fitness ecosystem serving two primary roles:
 *   **Aesthetics**: "AlphaOS" design language—Glassmorphism, high density, JetBrains Mono for data, and consistent 15+ themes (Nordic, Dracula, etc.).
 *   **Desktop Mode**: Fixed sidebar navigation (`lg` breakpoint), responsive 3-column dashboard, and side-by-side split views for learning/journaling.
 
-### Backend & Sync (`/firestore`, `server.mjs`)
+### Backend & Sync (`/firestore`, `server.mjs`, `catalog/`)
 *   **Local Server**: Hono-based Node.js server for local development and local tool integration.
+*   **Fitness Agent Daemon**: Python-based autonomous expert system (`catalog/fitness_agent/watcher.py`) that monitors client inboxes, enriches data via Gemini, and manages the indexed exercise catalog.
 *   **Multi-User Sync**: Python-based sync engine (`firestore/sync.py`) that pulls data from ALL clients into structured local storage: `~/.aos/fitness/users/{UID}/`.
 *   **Inbox Bridge**: PWA logs "new exercises" into a Firestore `inbox` collection per user, which is pulled locally for AI processing.
 
 ### Integration Points
+*   **Indexed Exercise Catalog**: Separates high-performance indices (`chest.yml`, etc.) from deep-intelligence detail files (`exercises/bench_press.yml`). Uses wger-normalized muscle IDs for precise coverage calculation.
 *   **wger**: Master exercise database for curation.
 *   **HabitSync**: External habit management API integration.
-*   **Anatomy-KB**: Dedicated repository (`~/anatomy-kb`) for deep biomechanical data (Origin, Insertion, Innervation) and anatomical error analysis. Serves as the source for `muscles` and `anatomy` collections in Firestore.
+*   **Anatomy-KB**: Dedicated repository (`~/anatomy-kb`) for deep biomechanical data. Serves as the source for `anatomy` collections in Firestore.
 *   **EspoCRM**: Targeted for future client/contact lifecycle management linked to Firestore UIDs.
-*   **AI Enricher**: Gemini-powered worker that generates anatomy data and coaching notes from user-submitted inbox entries.
+*   **AI Enricher**: Gemini-powered worker integrated into the Fitness Agent Daemon.
 
 ## 3. Engineering Standards
 
@@ -56,12 +58,11 @@ A unified fitness ecosystem serving two primary roles:
 3.  **Deploy**: Use `npm run deploy --prefix pwa` for Firebase Hosting updates.
 4.  **Anatomy Parity**: When adding exercises, ensure deep anatomy is enriched in `~/anatomy-kb` and passes `./anatomy-agent audit all` before syncing to Firestore.
 5.  **Data Persistence**: Current strategy is repo-local storage for local development data.
-6.  **Pending Automations**: Implementation of a script to automate the synchronization of the Knowledge Base (`catalog/kb/`) to Firestore is required.
+6.  **Automations**: Use `fitnessctl watch` to run the autonomous daemon that handles inbox enrichment and catalog-to-firestore synchronization.
 7.  **Document**: Update this `GEMINI.md` when architectural shifts occur.
 
 ## 6. Future Roadmap & Experiments
 *   **Anatomy Learning**: Integrating `body-muscles` (70+ regions) into the `Learn` view for deep anatomical education and interaction.
-*   **KB Sync Automation**: Pending implementation of an automated sync pipeline from `catalog/kb/` to Firestore.
 
 ## 7. Document History
 *   2026-05-28: Integrated `react-muscle-highlighter` in `Muscles` tab (detailed view) with toggle support. Retained `react-body-highlighter` for dashboard.

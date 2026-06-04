@@ -38,6 +38,9 @@ from .resolver import resolve_query
 from .weekly import build_weekly_coverage
 from .tui import run_tui
 from .watcher import run_watcher
+from .importer import import_external_exercises
+from .kb_sync import run_kb_sync
+from .kb_sync import run_kb_sync
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -122,6 +125,9 @@ def build_parser() -> argparse.ArgumentParser:
     preview_parser.add_argument("--file", required=True, help="Markdown file to preview")
 
     subparsers.add_parser("watch", help="Start the AI enricher watcher daemon")
+    subparsers.add_parser("import", help="Bulk import exercises from external sources (wger, yuhonas)")
+    kb_sync_parser = subparsers.add_parser("kb-sync", help="Synchronize the local KB to Firestore")
+    kb_sync_parser.add_argument("--dry-run", action="store_true", help="Do not write to Firestore")
 
     return parser
 
@@ -516,11 +522,27 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(path.read_text(encoding="utf-8"), end="")
         return 0
 
+    if args.command == "kb-sync":
+        try:
+            run_kb_sync(dry_run=bool(args.dry_run))
+            return 0
+        except Exception as exc:
+            print(f"FAIL: {exc}")
+            return 1
+
     if args.command == "watch":
         try:
             run_watcher()
             return 0
         except KeyboardInterrupt:
+            return 0
+        except Exception as exc:
+            print(f"FAIL: {exc}")
+            return 1
+
+    if args.command == "import":
+        try:
+            import_external_exercises()
             return 0
         except Exception as exc:
             print(f"FAIL: {exc}")

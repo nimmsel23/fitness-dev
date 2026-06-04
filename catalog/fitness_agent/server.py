@@ -222,20 +222,96 @@ async def handle_inbox_approve(request: web.Request) -> web.Response:
     if not old_path.exists():
         return web.json_response({"ok": False, "error": "not_found"}, status=404)
         
-    new_id = file_id.replace("inbox_", "")
-    new_path = exercises_dir / f"{new_id}.yml"
-    
     try:
-        content = old_path.read_text(encoding="utf-8")
-        # Simple string replace for the name field if it exists
-        content = content.replace(f"name: {file_id}", f"name: {new_id}")
-        new_path.write_text(content, encoding="utf-8")
+        # 1. Load Inbox Data
+        doc = load_yaml(old_path)
+        if not isinstance(doc, dict) or "exercises" not in doc:
+            return web.json_response({"ok": False, "error": "invalid_inbox_format"}, status=400)
+            
+        exercises = doc["exercises"]
+        if not exercises:
+            return web.json_response({"ok": False, "error": "no_exercises_in_inbox"}, status=400)
+            
+        # We process the first exercise for now
+        ex = exercises[0]
+        ex_id = ex.get("exercise_id") or ex.get("id")
+        if not ex_id:
+            return web.json_response({"ok": False, "error": "missing_exercise_id"}, status=400)
+            
+        # Remove inbox_ prefix from ID if present in the data
+        if ex_id.startswith("inbox_"):
+            ex_id = ex_id.replace("inbox_", "")
+            ex["exercise_id"] = ex_id
+            ex["id"] = ex_id
+
+        category = ex.get("category", "unassigned")
+        category_path = exercises_dir / f"{category}.yml"
+        
+        # 2. Resolve Muscle IDs for Index
+        from .coverage import load_muscle_taxonomy, normalize_muscle_id
+        taxonomy = load_muscle_taxonomy()
+        
+        def get_wger_ids(muscles_list: Any) -> list[int]:
+            if not isinstance(muscles_list, list): return []
+            res = []
+            for m in muscles_list:
+                norm = normalize_muscle_id(str(m))
+                m_data = taxonomy.get(norm)
+                if m_data and "wger_id" in m_data:
+                    res.append(int(m_data["wger_id"]))
+            return sorted(list(set(res)))
+
+        wger_primary = get_wger_ids(ex.get("primary_muscles"))
+        wger_secondary = get_wger_ids(ex.get("secondary_muscles"))
+        
+        # 3. Update Category Index
+        index_entry = {
+            "exercise_id": ex_id,
+            "display_name": ex.get("display_name") or ex.get("name"),
+            "region": ex.get("region") or (taxonomy.get(normalize_muscle_id(str(ex.get("primary_muscles", [""])[0]))) or {}).get("body_region"),
+            "wger_muscle_ids": {
+                "primary": wger_primary,
+                "secondary": wger_secondary
+            },
+            "aliases": ex.get("aliases", [])
+        }
+        
+        # Append to category file if it exists, otherwise create
+        cat_doc = {"exercises": []}
+        if category_path.exists():
+            cat_doc = load_yaml(category_path) or {"exercises": []}
+        
+        # Avoid duplicates in index
+        cat_doc["exercises"] = [e for e in cat_doc.get("exercises", []) if (e.get("exercise_id") or e.get("id")) != ex_id]
+        cat_doc["exercises"].append(index_entry)
+        
+        with category_path.open("w", encoding="utf-8") as f:
+            yaml.safe_dump(cat_doc, f, sort_keys=False, allow_unicode=True)
+            
+        # 4. Save Detail File
+        detail_path = exercises_dir / f"{ex_id}.yml"
+        # If it was an inbox file, we move/cleanup
+        detail_doc = {
+            "exercise_id": ex_id,
+            "description": f"Expert details for {ex_id}",
+            "exercises": [ex]
+        }
+        with detail_path.open("w", encoding="utf-8") as f:
+            yaml.safe_dump(detail_doc, f, sort_keys=False, allow_unicode=True)
+            
         old_path.unlink()
         
-        # Note: In a future iteration, we could trigger a sync/audit in anatomy-kb here.
+        # 5. Trigger Sync
+        from .kb_sync import run_kb_sync
+        try:
+            run_kb_sync()
+        except Exception as e:
+            logger.error(f"Post-approval sync failed: {e}")
+
+        return web.json_response({"ok": True, "id": ex_id, "category": category})
         
-        return web.json_response({"ok": True, "id": new_id})
     except Exception as e:
+        logger.exception("Approval failed")
         return web.json_response({"ok": False, "error": str(e)}, status=500)
 
 
