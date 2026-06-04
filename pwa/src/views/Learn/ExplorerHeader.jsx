@@ -1,4 +1,4 @@
-import { Search, Brain } from "lucide-react";
+import { Search, Brain, BarChart3 } from "lucide-react";
 
 export default function ExplorerHeader({ viewMode, setViewMode }) {
   return (
@@ -20,6 +20,12 @@ export default function ExplorerHeader({ viewMode, setViewMode }) {
           className={`flex items-center gap-3 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'explorer' ? 'bg-accent text-black shadow-lg shadow-accent/20' : 'text-dim hover:text-ink'}`}>
           <Brain size={14} className={viewMode === 'explorer' ? 'stroke-[3]' : ''} />
           Explorer
+        </button>
+        <button 
+          onClick={() => setViewMode('analysis')}
+          className={`flex items-center gap-3 px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'analysis' ? 'bg-accent text-black shadow-lg shadow-accent/20' : 'text-dim hover:text-ink'}`}>
+          <BarChart3 size={14} className={viewMode === 'analysis' ? 'stroke-[3]' : ''} />
+          Muscles
         </button>
       </div>
     </div>

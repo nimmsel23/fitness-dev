@@ -13,7 +13,7 @@ export default function ExplorerHeader({ viewMode, setViewMode, onStartQuiz, has
           onClick={() => setViewMode('analysis')}
           className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'analysis' ? 'bg-accent text-black shadow-lg shadow-accent/20' : 'text-dim hover:text-ink'}`}>
           <Activity size={14} className={viewMode === 'analysis' ? 'stroke-[3]' : ''} />
-          <span className="hidden sm:inline">Analyse</span>
+          <span className="hidden sm:inline">Muscles</span>
         </button>
         <button 
           onClick={() => setViewMode('library')}

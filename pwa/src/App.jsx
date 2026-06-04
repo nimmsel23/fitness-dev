@@ -11,75 +11,16 @@ import Settings from "./views/Settings/index.jsx";
 import { getSettings, saveSettings, watchAuth, signIn, signOut, signInEmail, signUpEmail } from "./db.js";
 import { registerServiceWorkerUpdate } from "./lib/pwa-update.js";
 
-class ErrorBoundary extends Component {
-  state = { error: null };
-  static getDerivedStateFromError(error) { return { error }; }
-  render() {
-    if (this.state.error) return (
-      <div className="p-8 bg-red/10 text-red rounded-3xl border border-red/20 m-4">
-        <h2 className="font-black mb-2 uppercase tracking-widest text-xs">Runtime Error</h2>
-        <p className="text-sm opacity-80 font-bold">{this.state.error.message}</p>
-        <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-red text-white rounded-xl text-xs font-black uppercase">Reload App</button>
-      </div>
-    );
-    return this.props.children;
-  }
-}
+import Sidebar from "../../shared/components/Sidebar.jsx";
+import MobileNav from "../../shared/components/MobileNav.jsx";
+import MobileHeader from "../../shared/components/MobileHeader.jsx";
+import UserProfile from "../../shared/components/UserProfile.jsx";
+import ErrorBoundary from "../../shared/components/ErrorBoundary.jsx";
+import { NAV_ITEMS, VALID_TABS } from "../../shared/components/NavigationItems.js";
+import { THEMES, DARK_THEMES, LIGHT_THEMES } from "../../shared/components/Themes.js";
 
-const DARK_THEMES = ['nordic', 'dracula', 'midnight', 'matrix', 'forest', 'crimson', 'slate', 'zinc'];
-const LIGHT_THEMES = ['honey', 'snow', 'rose', 'latte', 'mint', 'cyan', 'gold'];
-
-const THEMES = {
-  latte: { bg: '#eff1f5', accent: '#1e66f5' },
-  frappe: { bg: '#303446', accent: '#8caaee' },
-  macchiato: { bg: '#24273a', accent: '#8aadf4' },
-  mocha: { bg: '#1e1e2e', accent: '#89b4fa' },
-  nordic: { bg: '#2e3440', accent: '#88c0d0' },
-  dracula: { bg: '#1e1f29', accent: '#bd93f9' },
-  'dracula-purple': { bg: '#1a1526', accent: '#ff79c6' },
-  'nordic-darker': { bg: '#2e3440', accent: '#88c0d0' },
-  'nordic-bluish': { bg: '#2e3440', accent: '#81a1c1' },
-  'arc-dark': { bg: '#2f3445', accent: '#5294e2' },
-  sweet: { bg: '#101013', accent: '#ff4081' },
-  'sweet-purple': { bg: '#161925', accent: '#c50ed2' },
-  'sweet-mars': { bg: '#2b1d1f', accent: '#ff5f5f' },
-  'sweet-amber-blue': { bg: '#0f172a', accent: '#f59e0b' },
-  'ant-dark': { bg: '#222e32', accent: '#9bbfbf' },
-  materia: { bg: '#1e1e1e', accent: '#8ab4f8' },
-  'solarized-dark': { bg: '#002b36', accent: '#268bd2' },
-  homunculus: { bg: '#18181b', accent: '#a16262' },
-  nothing: { bg: '#000000', accent: '#ffffff' },
-  ant: { bg: '#f0f2f5', accent: '#1677ff' },
-  arc: { bg: '#ffffff', accent: '#5294e2' },
-  solarized: { bg: '#fdf6e3', accent: '#268bd2' },
-  alucard: { bg: '#fffbeb', accent: '#644ac9' },
-  gruvbox: { bg: '#282828', accent: '#fabd2f' },
-  honey: { bg: '#fffaf0', accent: '#f59e0b' },
-  midnight: { bg: '#090b10', accent: '#3b82f6' },
-  matrix: { bg: '#000000', accent: '#00ff41' },
-  forest: { bg: '#1a2f23', accent: '#4ade80' },
-  crimson: { bg: '#1a0f12', accent: '#f43f5e' },
-  slate: { bg: '#0f172a', accent: '#38bdf8' },
-  zinc: { bg: '#18181b', accent: '#a1a1aa' },
-  snow: { bg: '#ffffff', accent: '#3b82f6' },
-  rose: { bg: '#fff1f2', accent: '#f43f5e' },
-  mint: { bg: '#f0fff4', accent: '#10b981' },
-  cyan: { bg: '#ecfeff', accent: '#06b6d4' },
-  gold: { bg: '#fffbeb', accent: '#d97706' }
-};
-
-const VALID_TABS = new Set(['dash', 'session', 'review', 'learn', 'journal', 'habits', 'muscles', 'settings'])
-
-const NAV_ITEMS = [
-  { id: 'dash',     label: 'Heute',    Icon: Activity },
-  { id: 'session',  label: 'Training', Icon: Dumbbell },
-  { id: 'habits',   label: 'Habits',   Icon: Target },
-  { id: 'journal',  label: 'Journal',  Icon: BookOpen },
-  { id: 'muscles',  label: 'Muskeln',  Icon: Brain },
-  { id: 'review',   label: 'Review',   Icon: BarChart3 },
-  { id: 'learn',    label: 'Lernen',   Icon: Sparkles },
-  { id: 'settings', label: 'Setup',    Icon: Settings2 },
-];
+const DAY_START = 8;
+const DAY_END = 20;
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -228,60 +169,16 @@ export default function App() {
     <ErrorBoundary>
       <div className="flex min-h-screen bg-[var(--bg)] text-[var(--ink)] font-sans transition-colors duration-500">
         
-        {/* Desktop Sidebar (lg:flex) */}
-        <aside className="hidden lg:flex flex-col w-[280px] bg-[var(--card)] border-r border-[var(--line)] fixed inset-y-0 z-50">
-          <div className="p-8">
-             <div className="flex items-center gap-3 mb-10">
-                <div className="w-10 h-10 rounded-xl bg-[var(--accent)] text-black flex items-center justify-center shadow-lg shadow-[var(--accent)]/30">
-                   <Activity size={22} />
-                </div>
-                <div>
-                   <h2 className="text-lg font-black tracking-tight text-[var(--ink)]">Fitness</h2>
-                   <div className="text-[9px] font-black uppercase tracking-widest text-[var(--accent)] -mt-1">AlphaOS System</div>
-                </div>
-             </div>
-             
-             <nav className="space-y-1">
-                {NAV_ITEMS.map(({ id, label, Icon }) => (
-                  <button key={id} onClick={() => navigate(id)}
-                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-all ${tab === id ? 'bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20 font-black' : 'text-[var(--dim)] hover:bg-white/5 font-bold'}`}>
-                    <Icon size={18} className={tab === id ? 'stroke-[2.5]' : ''} />
-                    <span className="text-sm">{label}</span>
-                  </button>
-                ))}
-             </nav>
-          </div>
-          
-          <div className="mt-auto p-6 space-y-4">
-             <div className="p-4 rounded-2xl bg-[var(--bg2)] border border-[var(--line)]">
-                <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 overflow-hidden">
-                      {user.photoURL ? <img src={user.photoURL} alt="Avatar" /> : <User size={20} className="m-2.5 text-[var(--accent)]" />}
-                   </div>
-                   <div className="flex-1 min-w-0">
-                      <div className="text-[11px] font-black text-[var(--ink)] truncate">{user.displayName || "Client"}</div>
-                      <div className="text-[9px] font-bold text-[var(--dim)] truncate opacity-50">{user.email}</div>
-                   </div>
-                </div>
-             </div>
-             <button onClick={signOut} className="w-full flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--red)] bg-[var(--red)]/5 border border-[var(--red)]/10 rounded-xl hover:bg-[var(--red)]/10 transition-all">
-                <LogOut size={14} /> Abmelden
-             </button>
-          </div>
-        </aside>
+        <Sidebar tab={tab} navigate={navigate}>
+          <UserProfile user={user} />
+          <button onClick={signOut} className="w-full flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--red)] bg-[var(--red)]/5 border border-[var(--red)]/10 rounded-xl hover:bg-[var(--red)]/10 transition-all">
+            <LogOut size={14} /> Abmelden
+          </button>
+        </Sidebar>
 
         {/* Main Content Area */}
         <div className="flex-1 lg:ml-[280px]">
-          {/* Mobile Header (lg:hidden) */}
-          <header className="lg:hidden h-16 flex items-center justify-between px-6 bg-[var(--card)] border-b border-[var(--line)] sticky top-0 z-40">
-            <div className="flex items-center gap-2 font-black text-lg">
-              <Activity size={20} className="text-[var(--accent)]" />
-              Fitness
-            </div>
-            <button onClick={() => navigate('settings')} className="p-2 rounded-xl bg-[var(--bg2)]">
-               <Settings2 size={18} className="text-[var(--dim)]" />
-            </button>
-          </header>
+          <MobileHeader navigate={navigate} />
 
           <main className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto">
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -291,7 +188,7 @@ export default function App() {
                 {tab === 'journal' && <Journal />}
                 {tab === 'muscles' && <Muscles hitMode={hitMode} gender={gender} />}
                 {tab === 'review' && <WeeklyReview onNavigate={navigate} />}
-                {tab === 'learn' && <Learn />}
+                {tab === 'learn' && <Learn hitMode={hitMode} gender={gender} />}
                 {tab === 'settings' && (
                    <Settings 
                      hitMode={hitMode} setHitMode={setHitMode}
@@ -325,16 +222,7 @@ export default function App() {
             </div>
           )}
 
-          {/* Mobile Navigation (lg:hidden) */}
-          <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-[var(--card)]/90 backdrop-blur-xl border-t border-[var(--line)] px-2 flex items-center justify-around z-50">
-            {NAV_ITEMS.map(({ id, label, Icon }) => (
-              <button key={id} onClick={() => navigate(id)}
-                className={`flex flex-col items-center gap-1.5 p-2 transition-all ${tab === id ? 'text-[var(--accent)]' : 'text-[var(--dim)]'}`}>
-                <Icon size={22} className={tab === id ? 'stroke-[2.5]' : ''} />
-                <span className="text-[8px] font-black uppercase tracking-widest">{label}</span>
-              </button>
-            ))}
-          </nav>
+          <MobileNav tab={tab} navigate={navigate} />
         </div>
       </div>
     </ErrorBoundary>

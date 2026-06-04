@@ -6,11 +6,12 @@ import AnatDetail from "./AnatDetail";
 import ExplorerHeader from "./ExplorerHeader";
 import AnatomyExplorer from "./AnatomyExplorer";
 import AnatomyDetailModal from "../../components/AnatomyDetailModal";
+import Muscles from "../Muscles/index.jsx";
 
-export default function Learn() {
+export default function Learn({ hitMode, gender }) {
   const [exercises, setExercises] = useState([]);
   const [selected, setSelected]   = useState(null);
-  const [viewMode, setViewMode]   = useState('library'); // 'library' or 'explorer'
+  const [viewMode, setViewMode]   = useState('library'); // 'library', 'explorer', or 'analysis'
   const [q, setQ]                 = useState("");
   const [recent, setRecent]       = useState([]);
   const [loading, setLoading]     = useState(true);
@@ -53,7 +54,11 @@ export default function Learn() {
     <div className="pb-20 lg:pb-0 px-2">
       <ExplorerHeader viewMode={viewMode} setViewMode={setViewMode} />
 
-      {viewMode === 'library' ? (
+      {viewMode === 'analysis' ? (
+        <div className="animate-in fade-in duration-300">
+           <Muscles hitMode={hitMode} gender={gender} />
+        </div>
+      ) : viewMode === 'library' ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-in fade-in duration-300">
           <ExerciseLibrary 
             exercises={exercises}
