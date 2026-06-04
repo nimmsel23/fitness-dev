@@ -1,5 +1,5 @@
 import { AlertCircle, TrendingUp } from "lucide-react";
-import BodyMap from "../../components/BodyMap";
+import BodyMap from "@shared/components/BodyMap";
 
 export default function MuscleStatus({ enrichedRecent, coverage }) {
   const safeRecent = Array.isArray(enrichedRecent) ? enrichedRecent.filter(Boolean) : [];

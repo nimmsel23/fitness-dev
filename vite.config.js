@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { resolve } from 'path'
 
 const BACKEND = 'http://localhost:9100'
 
@@ -8,6 +9,11 @@ export default defineConfig({
     __IS_COACH__: 'true',
   },
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@shared': resolve(__dirname, 'shared'),
+    },
+  },
   server: {
     port: 5902,
     proxy: {

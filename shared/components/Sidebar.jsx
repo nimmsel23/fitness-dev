@@ -1,5 +1,5 @@
 import { Activity } from "lucide-react";
-import { NAV_ITEMS } from "./NavigationItems";
+import { NAV_ITEMS } from "@shared/components/NavigationItems";
 
 export default function Sidebar({ tab, navigate, children }) {
   return (

@@ -12,6 +12,11 @@ export default defineConfig({
       allow: ['..']
     }
   },
+  resolve: {
+    alias: {
+      '@shared': resolve(__dirname, '../shared'),
+    },
+  },
   build: {
     rollupOptions: {
       input: {
