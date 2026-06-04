@@ -1,0 +1,50 @@
+name: inbox_kh-schrägbankdrücken
+description: AI generated base entry for KH-Schrägbankdrücken
+exercises:
+- exercise_id: kh-schraegbankdruecken
+  id: kh-schraegbankdruecken
+  name: KH-Schrägbankdrücken
+  display_name: Kurzhantel Schrägbankdrücken
+  german: Kurzhantel Schrägbankdrücken
+  category: chest
+  type: compound
+  movement_pattern: horizontal_press_incline
+  equipment:
+  - dumbbell
+  primary_muscles:
+  - pectoralis_major_clavicular_head
+  - anterior_deltoid
+  secondary_muscles:
+  - triceps_brachii
+  - serratus_anterior
+  coaching_notes:
+  - Stellen Sie die Schrägbank auf einen Winkel von 30-45 Grad ein, um den oberen
+    Brustbereich optimal zu aktivieren.
+  - Halten Sie die Kurzhanteln mit den Handflächen zueinander oder leicht nach vorne
+    gerichtet, um eine natürliche Handgelenksposition zu gewährleisten.
+  - Lassen Sie die Ellenbogen beim Herablassen der Hanteln leicht angewinkelt, um
+    die Schultergelenke zu schonen und die Spannung auf der Brust zu halten.
+  - Führen Sie die Bewegung kontrolliert und ohne Schwung aus. Die Abwärtsbewegung
+    sollte langsamer erfolgen als die Aufwärtsbewegung.
+  - Drücken Sie die Hanteln in einer leicht bogenförmigen Bewegung nach oben, bis
+    sich die Arme fast vollständig gestreckt haben, aber vermeiden Sie ein vollständiges
+    Durchstrecken der Ellenbogen.
+  common_errors:
+  - Zu hoher Winkel der Schrägbank, der die Belastung zu stark auf die vordere Schulter
+    verlagert.
+  - Das vollständige Durchstrecken der Ellenbogen am oberen Punkt der Bewegung, was
+    die Gelenke belastet und die Spannung von der Brust nimmt.
+  - Unkontrolliertes Herablassen der Gewichte, was das Verletzungsrisiko erhöht und
+    die Effektivität reduziert.
+  - Zu schmaler oder zu breiter Griff, der die Handgelenke oder Schultern unnötig
+    belastet.
+  tags:
+  - kurzhantel
+  - schrägbank
+  - brust
+  - schulter
+  - oberkörper
+  aliases:
+  - Incline Dumbbell Press
+  - Dumbbell Incline Press
+  - Schrägbankdrücken mit Kurzhanteln

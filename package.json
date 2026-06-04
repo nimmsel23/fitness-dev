@@ -9,11 +9,13 @@
     "ui:dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "sync-views": "node scripts/sync-views.mjs",
     "build:catalog": "python3 scripts/build-catalog.py"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.3",
     "better-sqlite3": "^12.10.0",
+    "firebase": "^10.14.1",
     "firebase-admin": "^12.7.0",
     "hono": "^4.12.19",
     "js-yaml": "^4.1.1",

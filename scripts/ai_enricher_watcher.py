@@ -16,6 +16,7 @@ import time
 from pathlib import Path
 import urllib.request
 import urllib.parse
+import yaml
 from loguru import logger
 
 FITNESS_DIR = Path.home() / ".aos" / "fitness"
@@ -23,7 +24,24 @@ USERS_DIR = FITNESS_DIR / "users"
 
 # Adjust this path based on where the script is run from
 PROJECT_ROOT = Path(__file__).parent.parent
-CATALOG_EXERCISES = PROJECT_ROOT / "catalog" / "kb" / "exercises"
+CATALOG_DIR = PROJECT_ROOT / "catalog"
+CATALOG_EXERCISES = CATALOG_DIR / "kb" / "exercises"
+MUSCLES_YML = CATALOG_DIR / "kb" / "muscles" / "muscles.yml"
+
+def load_muscle_taxonomy():
+    if not MUSCLES_YML.exists():
+        logger.warning(f"Muscle taxonomy not found at {MUSCLES_YML}")
+        return []
+    try:
+        with MUSCLES_YML.open("r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+            muscles = data.get("muscles", {})
+            return sorted(muscles.keys())
+    except Exception as e:
+        logger.error(f"Failed to load muscle taxonomy: {e}")
+        return []
+
+VALID_MUSCLES = load_muscle_taxonomy()
 
 def load_env_file():
     env_path = Path.home() / ".env" / "fitness.env"
@@ -45,6 +63,9 @@ A user has logged a new exercise: "{exercise_name}"
 Return a JSON object with the following structure exactly. Do not include markdown formatting like ```json.
 It must match our base exercise schema. Use German for display_name and coaching_notes.
 
+CRITICAL: You MUST only use the following muscle IDs for primary_muscles, secondary_muscles, and stabilizers:
+{muscle_list}
+
 {{
   "exercise_id": "{safe_name}",
   "id": "{safe_name}",
@@ -55,8 +76,9 @@ It must match our base exercise schema. Use German for display_name and coaching
   "type": "compound|isolation",
   "movement_pattern": "e.g. horizontal_press, vertical_pull",
   "equipment": ["dumbbell", "barbell", "machine", "bodyweight", "cable"],
-  "primary_muscles": ["muscle1"],
-  "secondary_muscles": ["muscle2"],
+  "primary_muscles": ["muscle_id"],
+  "secondary_muscles": ["muscle_id"],
+  "stabilizers": ["muscle_id"],
   "coaching_notes": [
     "Wichtiger Ausführungshinweis 1",
     "Wichtiger Ausführungshinweis 2"
@@ -74,7 +96,8 @@ def call_gemini(exercise_name: str, safe_name: str) -> dict:
         logger.error("GEMINI_API_KEY environment variable is missing. Cannot enrich.")
         return None
 
-    prompt = PROMPT_TEMPLATE.format(exercise_name=exercise_name, safe_name=safe_name)
+    muscle_list = ", ".join(VALID_MUSCLES)
+    prompt = PROMPT_TEMPLATE.format(exercise_name=exercise_name, safe_name=safe_name, muscle_list=muscle_list)
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
     
     payload = {
@@ -107,7 +130,7 @@ def process_inbox_file(file_path: Path):
             return
 
         safe_name = name.lower().replace(" ", "_")
-        target_file = CATALOG_EXERCISES / f"inbox_{safe_name}.yml"
+        target_file = CATALOG_EXERCISES / f"{safe_name}.yml"
 
         if target_file.exists():
             logger.info(f"Catalog entry for '{name}' already exists. Removing from inbox.")
@@ -121,8 +144,12 @@ def process_inbox_file(file_path: Path):
             import yaml
             CATALOG_EXERCISES.mkdir(parents=True, exist_ok=True)
             
+            # Ensure the internal name doesn't have the inbox prefix either
+            enriched_data["name"] = name 
+            enriched_data["exercise_id"] = safe_name
+            
             wrapper = {
-                "name": f"inbox_{safe_name}",
+                "name": safe_name,
                 "description": f"AI generated base entry for {name}",
                 "exercises": [enriched_data]
             }

@@ -6,6 +6,7 @@ import {
 import { localToday } from '../../lib/utils.js';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
 
+import { Save } from 'lucide-react';
 import DateHeader from './DateHeader';
 import SessionSidebar from './SessionSidebar';
 import ExerciseSection from './ExerciseSection';
@@ -210,17 +211,19 @@ export default function Session({ initialDate, hitMode, planMode }) {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8 px-2">
-        <SessionSidebar 
-          location={location} setLocation={setLocation}
-          duration={duration} setDuration={setDuration}
-          hasActivity={hasActivity} setHasActivity={setHasActivity}
-          block={block} setBlock={setBlock}
-          effort={effort} setEffort={setEffort}
-          notes={notes} setNotes={setNotes}
-          onDownload={handleDownload}
-        />
+        <div className="order-2 lg:order-1">
+          <SessionSidebar 
+            location={location} setLocation={setLocation}
+            duration={duration} setDuration={setDuration}
+            hasActivity={hasActivity} setHasActivity={setHasActivity}
+            block={block} setBlock={setBlock}
+            effort={effort} setEffort={setEffort}
+            notes={notes} setNotes={setNotes}
+            onDownload={handleDownload}
+          />
+        </div>
 
-        <main className="space-y-8">
+        <main className="space-y-8 order-1 lg:order-2">
           <ExerciseSection 
             exercises={exercises}
             hitMode={hitMode}
@@ -253,6 +256,15 @@ export default function Session({ initialDate, hitMode, planMode }) {
           {toast}
         </div>
       )}
+
+      {/* Floating Save Button for Mobile */}
+      <button 
+        onClick={save} 
+        disabled={saving}
+        className="lg:hidden fixed bottom-24 right-6 w-14 h-14 rounded-full bg-accent text-black shadow-2xl shadow-accent/40 flex items-center justify-center z-40 active:scale-95 transition-all disabled:opacity-50"
+      >
+        {saving ? <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" /> : <Save size={24} />}
+      </button>
     </div>
   );
 }

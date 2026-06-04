@@ -1,130 +1,24 @@
 import { useState, useEffect } from 'react'
-import { Activity, Dumbbell, Settings2, Sparkles, User } from 'lucide-react'
+import { Activity, Dumbbell, Settings2, Sparkles, RefreshCw, User, LayoutGrid, Clock, Moon, Sun, Check } from 'lucide-react'
 import { api } from '../api.js'
 
-const STORAGE_KEY = 'fitness-settings'
-
-const DEFAULTS = {
-  age: 30,
-  weight_kg: 80,
-  freq_per_week: 4,
-  split: 'ppl',
-  hit_default: true,
-}
-
-function loadSettings() {
-  try {
-    return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') }
-  } catch {
-    return { ...DEFAULTS }
-  }
-}
-
-function saveSettings(s) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(s))
-}
-
-export function useLocalSettings() {
-  const [s, setS] = useState(loadSettings)
-
-  function set(key, val) {
-    setS(prev => {
-      const next = { ...prev, [key]: val }
-      saveSettings(next)
-      return next
-    })
-  }
-
-  return { ...s, set }
-}
-
-const DAY_START = 6
-const DAY_END   = 20
-
-const THEME_GROUPS = [
-  {
-    label: 'Catppuccin',
-    dark:  [
-      { id: 'mocha',     label: 'Mocha' },
-      { id: 'macchiato', label: 'Macchiato' },
-      { id: 'frappe',    label: 'Frappé' },
-    ],
-    light: [
-      { id: 'latte',     label: 'Latte' },
-    ],
-  },
-  {
-    label: 'Dracula',
-    dark:  [
-      { id: 'dracula',        label: 'Dracula' },
-      { id: 'dracula-purple', label: 'Purple' },
-    ],
-    light: [
-      { id: 'alucard', label: 'Alucard' },
-    ],
-  },
-  {
-    label: 'Nordic',
-    dark:  [
-      { id: 'nordic',         label: 'Standard' },
-      { id: 'nordic-darker',  label: 'Darker' },
-      { id: 'nordic-bluish',  label: 'Bluish' },
-    ],
-    light: [],
-  },
-  {
-    label: 'Arc',
-    dark:  [{ id: 'arc-dark', label: 'Arc Dark' }],
-    light: [{ id: 'arc',      label: 'Arc' }],
-  },
-  {
-    label: 'Sweet',
-    dark:  [
-      { id: 'sweet',        label: 'Amber Blue' },
-      { id: 'sweet-purple', label: 'Purple' },
-    ],
-    light: [],
-  },
-  {
-    label: 'Solarized',
-    dark:  [{ id: 'solarized-dark', label: 'Dark' }],
-    light: [{ id: 'solarized',      label: 'Light' }],
-  },
-  {
-    label: 'Andere',
-    dark:  [
-      { id: 'honey',   label: '🍯 Honey Night' },
-      { id: 'ant-dark', label: 'Ant Dark' },
-      { id: 'materia',  label: 'Materia' },
-      { id: 'nothing',  label: '⬛ Nothing' },
-    ],
-    light: [],
-  },
-]
-
-
-function ThemeBtn({ label, active, onClick }) {
-  return (
-    <button onClick={onClick} style={{
-      padding: '0.45rem 0.25rem',
-      borderRadius: '0.55rem',
-      border: 'none',
-      cursor: 'pointer',
-      fontSize: '0.72rem',
-      fontWeight: active ? '700' : '400',
-      background: active ? 'var(--accent-glow)' : 'transparent',
-      color: active ? 'var(--accent)' : 'var(--muted)',
-      outline: active ? '1px solid var(--accent)' : '1px solid transparent',
-      transition: 'all 0.15s',
-      whiteSpace: 'nowrap',
-    }}>
-      {label}
-    </button>
-  )
-}
-
-export default function Settings({ themeMode, circDark, circLight, onSetThemeMode, onSetManualTheme, onSetCircadianDark, onSetCircadianLight }) {
-  const { age, weight_kg, freq_per_week, split, hit_default, set } = useLocalSettings()
+export default function Settings({
+  hitMode, setHitMode,
+  planMode, setPlanMode,
+  gender, setGender,
+  split, setSplit,
+  cycleLength, setCycleLength,
+  defaultLocation, setDefaultLocation,
+  themeMode, setModeState,
+  circLight, setCircLight,
+  circDark, setCircDark,
+  themes, theme, setThemeState,
+  darkThemes, lightThemes,
+  age, setAge,
+  weightKg, setWeightKg,
+  freqPerWeek, setFreqPerWeek,
+  DAY_START_PROP, DAY_END_PROP
+}) {
   const [health, setHealth] = useState(null)
   const [wger, setWger] = useState(null)
   const [firestoreStatus, setFirestoreStatus] = useState(null)
@@ -151,232 +45,197 @@ export default function Settings({ themeMode, circDark, circLight, onSetThemeMod
     }
   }
 
-  const card = {
-    background: 'var(--card)',
-    border: '1px solid var(--line)',
-    borderRadius: '1rem',
-    padding: '1.25rem',
-  }
-
-  const labelCls = {
-    display: 'block',
-    fontSize: '0.7rem',
-    textTransform: 'uppercase',
-    letterSpacing: '0.15em',
-    color: 'var(--muted)',
-    marginBottom: '0.35rem',
-  }
-
-  const inputCls = {
-    width: '100%',
-    background: 'var(--panel)',
-    border: '1px solid var(--line)',
-    borderRadius: '0.6rem',
-    padding: '0.6rem 0.85rem',
-    color: 'var(--ink)',
-    fontSize: '0.875rem',
-  }
-
   return (
-    <div className="grid gap-4">
-
-      {/* Trainingsprofil */}
-      <section style={card}>
-        <div className="flex items-center gap-2 mb-4">
-          <Dumbbell size={18} style={{ color: 'var(--accent)' }} />
-          <h2 className="font-semibold text-base">Training</h2>
-        </div>
-        <div className="grid gap-3">
-          <div>
-            <label style={labelCls}>Trainingstage / Woche</label>
-            <input
-              type="number" min={1} max={7} value={freq_per_week}
-              onChange={e => set('freq_per_week', Number(e.target.value))}
-              style={inputCls}
-            />
+    <div className="space-y-12 pb-24">
+       
+       {/* 1. Sync & System Status */}
+       <section className="card p-8 border-accent/20 bg-gradient-to-br from-card to-bg2 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+             <div>
+                <div className="label-caps !mb-3 text-accent flex items-center gap-2">
+                   <Sparkles size={14} className={syncing ? 'animate-spin' : ''} />
+                   System & Data
+                </div>
+                <h3 className="text-2xl font-black text-ink mb-2">Coach Backend</h3>
+                <p className="text-sm font-medium opacity-50 max-w-md leading-relaxed">
+                   Verwalte die lokale Datenbank und synchronisiere Daten mit Firestore für deine Klienten.
+                </p>
+             </div>
+             
+             <div className="flex flex-col gap-3 min-w-[240px]">
+                <div className="flex items-center justify-between bg-black/20 p-3 rounded-xl border border-line">
+                   <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Firestore</span>
+                   {firestoreStatus?.ok 
+                      ? <span className="text-[9px] font-black uppercase bg-green/10 text-green px-2 py-0.5 rounded-md border border-green/20">Verbunden</span>
+                      : <span className="text-[9px] font-black uppercase bg-red/10 text-red px-2 py-0.5 rounded-md border border-red/20">Offline</span>
+                   }
+                </div>
+                <button onClick={handleSync} disabled={syncing} className="btn btn-primary py-4 px-8 font-black uppercase tracking-widest shadow-xl shadow-accent/20">
+                   {syncing ? 'Synchronisiere...' : 'Jetzt Synchronisieren'}
+                </button>
+             </div>
           </div>
-          <div>
-            <label style={labelCls}>Bevorzugter Split</label>
-            <select value={split} onChange={e => set('split', e.target.value)} style={inputCls}>
-              <option value="ppl">Push / Pull / Legs</option>
-              <option value="upper_lower">Upper / Lower</option>
-              <option value="full_body">Full Body</option>
-              <option value="bro">Bro Split (Einzel-Muskel)</option>
-            </select>
+       </section>
+
+       {/* 2. Training Settings */}
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <section className="card p-8 space-y-8">
+             <div className="label-caps flex items-center gap-2">
+                <Activity size={14} className="text-accent" />
+                Training Logik
+             </div>
+             
+             <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                   <div>
+                      <div className="text-sm font-black text-ink">HIT Modus</div>
+                      <div className="text-[10px] font-bold opacity-30 uppercase">Recovery-basiertes Training</div>
+                   </div>
+                   <button onClick={() => setHitMode(!hitMode)}
+                      className={`w-12 h-6 rounded-full transition-colors relative border ${hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
+                      <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${hitMode ? 'left-7' : 'left-1'}`} />
+                   </button>
+                </div>
+
+                <div className="flex items-center justify-between">
+                   <div>
+                      <div className="text-sm font-black text-ink">Plan Modus</div>
+                      <div className="text-[10px] font-bold opacity-30 uppercase">Vorgefertigte Pläne nutzen</div>
+                   </div>
+                   <button onClick={() => setPlanMode(!planMode)}
+                      className={`w-12 h-6 rounded-full transition-colors relative border ${planMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
+                      <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${planMode ? 'left-7' : 'left-1'}`} />
+                   </button>
+                </div>
+             </div>
+          </section>
+
+          <section className="card p-8 space-y-8 text-ink">
+             <div className="label-caps flex items-center gap-2 text-dim">
+                <User size={14} />
+                Biometrie & Split
+             </div>
+             
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                   <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-3 ml-1">Anatomie-Modell</div>
+                   <div className="flex gap-1 p-1 bg-bg2 rounded-xl border border-line">
+                      {['male', 'female'].map(g => (
+                         <button key={g} onClick={() => setGender(g)}
+                            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${gender === g ? 'bg-card shadow-md text-accent' : 'text-dim hover:text-ink'}`}>
+                            {g === 'male' ? 'Male' : 'Female'}
+                         </button>
+                      ))}
+                   </div>
+                </div>
+                <div>
+                   <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-3 ml-1">Standard Split</div>
+                   <div className="flex gap-1 p-1 bg-bg2 rounded-xl border border-line overflow-x-auto hide-scrollbar">
+                      {['PPL', 'UL', 'GK'].map(s => (
+                         <button key={s} onClick={() => setSplit(s)}
+                            className={`px-3 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all whitespace-nowrap ${split === s ? 'bg-card shadow-md text-accent' : 'text-dim hover:text-ink'}`}>
+                            {s}
+                         </button>
+                      ))}
+                   </div>
+                </div>
+                <div>
+                   <label className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-3 block ml-1">Alter</label>
+                   <input type="number" value={age} onChange={e => setAge(Number(e.target.value))}
+                      className="w-full bg-bg2 border border-line rounded-xl px-4 py-3 text-sm font-bold focus:border-accent outline-none" />
+                </div>
+                <div>
+                   <label className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-3 block ml-1">Gewicht (kg)</label>
+                   <input type="number" value={weightKg} onChange={e => setWeightKg(Number(e.target.value))}
+                      className="w-full bg-bg2 border border-line rounded-xl px-4 py-3 text-sm font-bold focus:border-accent outline-none" />
+                </div>
+             </div>
+          </section>
+       </div>
+
+       {/* 3. Design & Theme Settings */}
+       <section className="card p-8 space-y-10">
+          <div className="flex items-center justify-between">
+             <div className="label-caps !mb-0 flex items-center gap-2">
+                <LayoutGrid size={14} className="text-accent" />
+                Interface Design
+             </div>
+             <button onClick={() => setModeState(themeMode === 'circadian' ? 'manual' : 'circadian')}
+                className={`flex items-center gap-3 px-5 py-2.5 rounded-xl border text-[10px] font-black uppercase tracking-[0.2em] transition-all ${themeMode === 'circadian' ? 'border-accent bg-accent/10 text-accent shadow-lg shadow-accent/10' : 'border-line bg-bg2 text-dim'}`}>
+                {themeMode === 'circadian' ? <Clock size={12} /> : <Moon size={12} />}
+                {themeMode === 'circadian' ? 'Circadian Aktiv' : 'Manuell'}
+             </button>
           </div>
-          <div className="flex items-center justify-between" style={{ background: 'var(--panel)', borderRadius: '0.6rem', padding: '0.6rem 0.85rem', border: '1px solid var(--line)' }}>
-            <span className="text-sm">HIT als Standard</span>
-            <button
-              onClick={() => set('hit_default', !hit_default)}
-              style={{
-                width: '2.5rem', height: '1.4rem', borderRadius: '999px', border: 'none', cursor: 'pointer',
-                background: hit_default ? 'var(--accent)' : 'var(--line)',
-                position: 'relative', transition: 'background 0.2s',
-              }}
-            >
-              <span style={{
-                position: 'absolute', top: '0.15rem', left: hit_default ? '1.15rem' : '0.15rem',
-                width: '1.1rem', height: '1.1rem', borderRadius: '50%',
-                background: 'white', transition: 'left 0.2s',
-              }} />
-            </button>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+             <div className="space-y-6">
+                <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Theme Palette</div>
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-4">
+                   {Object.entries(themes).map(([id, t]) => (
+                      <button key={id} onClick={() => { setThemeState(id); setModeState('manual'); }}
+                         className={`group relative flex flex-col items-center gap-2 transition-all ${theme === id ? 'scale-110' : 'hover:scale-105'}`}>
+                         <div className={`w-12 h-12 rounded-2xl border-4 transition-all shadow-xl flex items-center justify-center ${theme === id ? 'border-accent' : 'border-line group-hover:border-accent/40'}`} style={{ background: t.bg }}>
+                            <div className="w-4 h-4 rounded-full" style={{ background: t.accent }} />
+                            {theme === id && <Check size={12} className="absolute -top-1 -right-1 text-black bg-accent rounded-full p-0.5" />}
+                         </div>
+                         <span className={`text-[8px] font-black uppercase tracking-tighter transition-colors ${theme === id ? 'text-accent' : 'opacity-30'}`}>{id}</span>
+                      </button>
+                   ))}
+                </div>
+             </div>
+
+             <div className="space-y-8 bg-bg2/50 p-6 rounded-[24px] border border-dashed border-line">
+                <div className="text-[10px] font-black uppercase tracking-widest opacity-30 flex items-center gap-2 ml-1">
+                   <Clock size={12} /> Circadiane Automatik
+                </div>
+                <div className="grid grid-cols-2 gap-8">
+                   <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-xs font-black text-ink opacity-60">
+                         <Sun size={14} className="text-orange" /> Tag
+                      </div>
+                      <select value={circLight} onChange={e => setCircLight(e.target.value)}
+                         className="w-full bg-card border border-line rounded-xl px-4 py-3 text-sm font-bold focus:border-accent outline-none shadow-sm">
+                         {Object.keys(themes).map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                   </div>
+                   <div className="space-y-4">
+                      <div className="flex items-center gap-2 text-xs font-black text-ink opacity-60">
+                         <Moon size={14} className="text-accent" /> Nacht
+                      </div>
+                      <select value={circDark} onChange={e => setCircDark(e.target.value)}
+                         className="w-full bg-card border border-line rounded-xl px-4 py-3 text-sm font-bold focus:border-accent outline-none shadow-sm">
+                         {Object.keys(themes).map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                   </div>
+                </div>
+                <p className="text-[9px] font-medium opacity-30 leading-relaxed text-center px-4 italic">
+                   Das Interface wechselt automatisch zwischen Tag- und Nacht-Theme basierend auf deiner Systemzeit ({DAY_START_PROP}:00 - {DAY_END_PROP}:00 Uhr).
+                </p>
+             </div>
           </div>
-        </div>
-      </section>
+       </section>
 
-      {/* Körper */}
-      <section style={card}>
-        <div className="flex items-center gap-2 mb-4">
-          <User size={18} style={{ color: 'var(--orange)' }} />
-          <h2 className="font-semibold text-base">Körper</h2>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label style={labelCls}>Alter</label>
-            <input
-              type="number" min={15} max={99} value={age}
-              onChange={e => set('age', Number(e.target.value))}
-              style={inputCls}
-            />
+       {/* 4. System Info */}
+       <section className="card p-8 text-ink">
+          <div className="label-caps flex items-center gap-2 text-dim mb-6">
+             <Settings2 size={14} />
+             System Information
           </div>
-          <div>
-            <label style={labelCls}>Körpergewicht (kg)</label>
-            <input
-              type="number" min={30} max={300} step={0.5} value={weight_kg}
-              onChange={e => set('weight_kg', Number(e.target.value))}
-              style={inputCls}
-            />
+          <div className="grid gap-3">
+             {[
+               ['fitness-dev', health === null ? 'Prüfe…' : health.ok ? `online :${health.port}` : 'offline', health?.ok],
+               ['wger', wger === null ? 'Prüfe…' : wger ? 'online :8000' : 'offline', wger],
+               ['Daten', '~/.aos/fitness/', true],
+               ['Katalog', '~/fitness-dev/catalog/kb/', true],
+             ].map(([label, value, ok]) => (
+               <div key={label} className="flex items-center justify-between bg-bg2 p-4 rounded-xl border border-line">
+                 <span className="text-xs font-bold text-dim">{label}</span>
+                 <span className={`text-[11px] font-black uppercase tracking-wider ${ok ? 'text-green' : 'text-red'}`}>{value}</span>
+               </div>
+             ))}
           </div>
-        </div>
-        <p style={{ fontSize: '0.72rem', color: 'var(--dim)', marginTop: '0.75rem' }}>
-          Wird für Volumen-Empfehlungen und Coverage-Kontext genutzt.
-        </p>
-      </section>
-
-      {/* Sync */}
-      <section style={card}>
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles size={18} style={{ color: '#a78bfa' }} />
-          <h2 className="font-semibold text-base">Firestore Sync</h2>
-        </div>
-        <div className="flex items-center justify-between" style={{ background: 'var(--panel)', borderRadius: '0.6rem', padding: '0.6rem 0.85rem', border: '1px solid var(--line)', marginBottom: '0.75rem' }}>
-          <span className="text-sm" style={{ color: 'var(--muted)' }}>Status</span>
-          {firestoreStatus === null
-            ? <span style={{ fontSize: '0.75rem', color: 'var(--dim)' }}>Prüfe…</span>
-            : firestoreStatus.ok
-              ? <span style={{ fontSize: '0.75rem', color: 'var(--green)', background: 'rgba(34,197,94,0.1)', borderRadius: '999px', padding: '0.2rem 0.75rem' }}>verbunden</span>
-              : <span style={{ fontSize: '0.75rem', color: 'var(--red)', background: 'rgba(239,68,68,0.1)', borderRadius: '999px', padding: '0.2rem 0.75rem' }}>nicht erreichbar</span>
-          }
-        </div>
-        <button
-          onClick={handleSync}
-          disabled={syncing}
-          style={{
-            width: '100%', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.3)',
-            borderRadius: '0.6rem', padding: '0.6rem', color: '#c4b5fd', fontSize: '0.875rem', cursor: 'pointer',
-            opacity: syncing ? 0.5 : 1,
-          }}
-        >
-          {syncing ? 'Synchronisiere…' : 'Jetzt synchronisieren'}
-        </button>
-      </section>
-
-      {/* Darstellung */}
-      <section style={card}>
-        <div className="flex items-center gap-2 mb-4">
-          <Activity size={18} style={{ color: 'var(--muted)' }} />
-          <h2 className="font-semibold text-base">Darstellung</h2>
-        </div>
-
-        {THEME_GROUPS.map(group => {
-          const hasLight = group.light.length > 0
-          const hasDark  = group.dark.length > 0
-          if (!hasDark && !hasLight) return null
-          return (
-            <div key={group.label} className="mb-4">
-              <p style={{ ...labelCls, marginBottom: '0.3rem' }}>{group.label}</p>
-              <div style={{ background: 'var(--panel)', borderRadius: '0.75rem', padding: '0.3rem', border: '1px solid var(--line)' }}>
-                {hasDark && (
-                  <div className={`grid gap-1 ${hasLight ? 'mb-1' : ''}`}
-                    style={{ gridTemplateColumns: `repeat(${group.dark.length}, 1fr)` }}>
-                    {group.dark.map(t => (
-                      <ThemeBtn key={t.id} label={t.label}
-                        active={circDark === t.id}
-                        onClick={() => {
-                          onSetCircadianDark(t.id)
-                          if (themeMode !== 'circadian') onSetManualTheme(t.id)
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
-                {hasLight && (
-                  <div className="grid gap-1"
-                    style={{ gridTemplateColumns: `repeat(${group.light.length}, 1fr)` }}>
-                    {group.light.map(t => (
-                      <ThemeBtn key={t.id} label={`☀️ ${t.label}`}
-                        active={circLight === t.id}
-                        onClick={() => {
-                          onSetCircadianLight(t.id)
-                          if (themeMode !== 'circadian') onSetManualTheme(t.id)
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )
-        })}
-
-        <div className="flex items-center justify-between" style={{ background: 'var(--panel)', borderRadius: '0.6rem', padding: '0.6rem 0.85rem', border: '1px solid var(--line)' }}>
-          <div>
-            <span className="text-sm">🌅 Circadian</span>
-            {themeMode === 'circadian' && (
-              <span style={{ fontSize: '0.7rem', color: 'var(--dim)', marginLeft: '0.5rem' }}>
-                ☀️ {DAY_START}:00–{DAY_END}:00 · 🌙 {DAY_END}:00–{DAY_START}:00
-              </span>
-            )}
-          </div>
-          <button
-            onClick={() => onSetThemeMode(themeMode === 'circadian' ? 'manual' : 'circadian')}
-            style={{
-              width: '2.5rem', height: '1.4rem', borderRadius: '999px', border: 'none', cursor: 'pointer',
-              background: themeMode === 'circadian' ? 'var(--accent)' : 'var(--line)',
-              position: 'relative', transition: 'background 0.2s', flexShrink: 0,
-            }}
-          >
-            <span style={{
-              position: 'absolute', top: '0.15rem',
-              left: themeMode === 'circadian' ? '1.15rem' : '0.15rem',
-              width: '1.1rem', height: '1.1rem', borderRadius: '50%',
-              background: 'white', transition: 'left 0.2s',
-            }} />
-          </button>
-        </div>
-      </section>
-
-      {/* System */}
-      <section style={card}>
-        <div className="flex items-center gap-2 mb-4">
-          <Settings2 size={18} style={{ color: 'var(--dim)' }} />
-          <h2 className="font-semibold text-base">System</h2>
-        </div>
-        <div className="grid gap-2">
-          {[
-            ['fitness-dev', health === null ? 'Prüfe…' : health.ok ? `online :${health.port}` : 'offline', health?.ok],
-            ['wger', wger === null ? 'Prüfe…' : wger ? 'online :8000' : 'offline', wger],
-            ['Daten', '~/.aos/fitness/', true],
-            ['Katalog', '~/fitness-dev/catalog/kb/', true],
-          ].map(([label, value, ok]) => (
-            <div key={label} className="flex items-center justify-between" style={{ background: 'var(--panel)', borderRadius: '0.6rem', padding: '0.5rem 0.85rem', border: '1px solid var(--line)' }}>
-              <span className="text-sm" style={{ color: 'var(--muted)' }}>{label}</span>
-              <span style={{ fontSize: '0.75rem', color: ok ? 'var(--green)' : 'var(--dim)' }}>{value}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
+       </section>
     </div>
   )
 }

@@ -54,14 +54,14 @@ export default function ExerciseSection({
         )}
       </div>
 
-      <div className="p-6 rounded-3xl bg-bg2 border border-line shadow-inner mt-6 space-y-4">
+      <div className="p-4 sm:p-6 rounded-3xl bg-bg2 border border-line shadow-inner mt-6 space-y-4">
         <div className="label-caps !mb-0 font-black">Übung hinzufügen</div>
         <ExerciseSearch onSelect={addEx} />
         <div className="flex gap-2">
           <input type="text" value={quickInput} onChange={e => setQuickInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addQuick()}
-            placeholder="Quick Entry (z.B. bench 3x8@80)" className="flex-1 p-3.5 rounded-2xl border text-sm font-mono bg-card border-line text-ink focus:border-accent outline-none shadow-sm" />
-          <button onClick={addQuick} className="btn bg-orange/10 text-orange border border-orange/20 px-6 font-black">+</button>
+            placeholder="Quick (z.B. bench 3x8@80)" className="flex-1 p-3.5 rounded-2xl border text-sm font-mono bg-card border-line text-ink focus:border-accent outline-none shadow-sm min-w-0" />
+          <button onClick={addQuick} className="btn bg-orange/10 text-orange border border-orange/20 px-6 font-black shrink-0">+</button>
         </div>
       </div>
     </div>

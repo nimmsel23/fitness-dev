@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Brain } from "lucide-react";
 import { api } from "../api.js";
 import BodyMap from "../components/BodyMap.jsx";
-import { useLocalSettings } from "./Settings.jsx";
 
 const DAYS_OPTIONS = [7, 14, 28];
 const MUSCLE_GROUPS = [
@@ -29,8 +28,7 @@ function getMuscleGroup(name) {
   return map[name?.toLowerCase()] || name?.toLowerCase();
 }
 
-export default function Muscles() {
-  const { hit_default: hitMode } = useLocalSettings();
+export default function Muscles({ hitMode, gender }) {
   const [days, setDays] = useState(7);
   const [loading, setLoading] = useState(true);
   const [volExercises, setVolExercises] = useState([]);

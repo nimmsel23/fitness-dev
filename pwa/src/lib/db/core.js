@@ -43,7 +43,7 @@ export function getUid() {
   return currentUid;
 }
 
-const BRIDGE_NOTIFY = "https://alpha-aos.ts.net/api/fitness/notify";
+const BRIDGE_NOTIFY = "https://ideapad.tail7a15d6.ts.net/api/fitness/notify";
 export function pingBridge() {
   fetch(BRIDGE_NOTIFY, { method: "POST" }).catch(() => {});
 }

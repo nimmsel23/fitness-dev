@@ -15,7 +15,6 @@ import { join } from "node:path";
 
 const CRED_PATH = join(homedir(), ".env", "firebase-fitness.json");
 const PROJECT   = process.env.FIREBASE_FITNESS_PROJECT || "fitness-aos";
-const UID       = "default";
 
 let _db = null;
 let _unavailable = false;
@@ -53,11 +52,11 @@ function fire(fn) {
   fn().catch((e) => console.warn(`[firestore-mirror] write fehler: ${e.message}`));
 }
 
-export async function mirrorSession(date, session) {
+export async function mirrorSession(date, session, uid = "default") {
   const db = await getDb();
   if (!db) return;
   fire(() =>
-    db.collection("fitness").doc(UID).collection("sessions").doc(date).set({
+    db.collection("fitness").doc(uid).collection("sessions").doc(date).set({
       ...session,
       date,
       saved_at: new Date().toISOString(),
@@ -65,11 +64,11 @@ export async function mirrorSession(date, session) {
   );
 }
 
-export async function mirrorJournal(date, entry) {
+export async function mirrorJournal(date, entry, uid = "default") {
   const db = await getDb();
   if (!db) return;
   fire(() =>
-    db.collection("fitness").doc(UID).collection("journal").add({
+    db.collection("fitness").doc(uid).collection("journal").add({
       ...entry,
       date,
       time: new Date().toISOString(),
@@ -82,11 +81,11 @@ export async function getFirestoreStatus() {
   return { ok: db !== null, project: db ? PROJECT : null };
 }
 
-export async function mirrorPlan(plan) {
+export async function mirrorPlan(plan, uid = "default") {
   const db = await getDb();
   if (!db) return;
   fire(() =>
-    db.collection("fitness").doc(UID).collection("plan").doc("active").set({
+    db.collection("fitness").doc(uid).collection("plan").doc("active").set({
       ...plan,
       updated_at: new Date().toISOString(),
     })

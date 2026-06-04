@@ -4,6 +4,9 @@ import react from '@vitejs/plugin-react'
 const BACKEND = 'http://localhost:9100'
 
 export default defineConfig({
+  define: {
+    __IS_COACH__: 'true',
+  },
   plugins: [react()],
   server: {
     port: 5902,
@@ -19,6 +22,7 @@ export default defineConfig({
       '/export':    BACKEND,
       '/fitness':   BACKEND,
       '/firestore': BACKEND,
+      '/habitsync': BACKEND,
     }
   },
   build: {

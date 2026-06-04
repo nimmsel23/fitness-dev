@@ -4,6 +4,9 @@ import { VitePWA } from "vite-plugin-pwa";
 import { resolve } from "path";
 
 export default defineConfig({
+  define: {
+    __IS_COACH__: 'false',
+  },
   build: {
     rollupOptions: {
       input: {

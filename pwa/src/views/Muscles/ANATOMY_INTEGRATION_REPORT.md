@@ -19,8 +19,9 @@ The user wants to bridge the deep biomechanical data from your repository (`~/an
 1.  **Firestore Collection `muscles`**: We need a synchronized collection for the Muscle-Tab detail modal:
     - `id` (matching `react-muscle-highlighter` slugs).
     - `latin_name`, `display_name`, `origin`, `insertion`, `innervation`, `function`.
-2.  **Firestore Collection `anatomy`**: We need enhanced data for the Learn-Tab:
+2.  **Firestore Collection `anatomy` / `exercises`**: We need enhanced data for the Learn-Tab:
     - Exercise-specific biomechanics (which specific muscle head is used, coaching cues based on anatomy).
+    - **GIF Support**: Include a `gif_url` (or `gifUrl`) field pointing to an MP4 or GIF demonstration. The UI is already prepared to render these in a high-quality frame.
 
 ### Synergy Task:
 - **Me**: I have implemented the `AnatDetail` UI in the Learn tab and will implement the `MuscleDetailModal` in the Muscle tab.

@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react'
 import { AlertCircle, BarChart3, CalendarDays, Download, Dumbbell, Sparkles, Target, TrendingUp, Zap } from 'lucide-react'
 import { api, getWeeklyReport } from '../api.js'
-import { useLocalSettings } from './Settings.jsx'
 
 function formatVolume(value) {
   const num = Number(value || 0)
   return `${Math.round(num).toLocaleString('de-AT')} kg`
 }
 
-export default function WeeklyReview({ onOpenSession, onInspectExercise }) {
-  const { hit_default: hitMode } = useLocalSettings()
+export default function WeeklyReview({ onOpenSession, onInspectExercise, hitMode }) {
   const [week, setWeek] = useState('current')
   const [data, setData] = useState(null)
   const [config, setConfig] = useState(null)

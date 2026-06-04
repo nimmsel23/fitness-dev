@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MoveHorizontal, Info, Search } from "lucide-react";
+import { Info, Search } from "lucide-react";
 import BodyMusclesMap from "./BodyMusclesMap";
 
 export default function AnatomyExplorer({ exercises, onMuscleClick }) {
@@ -39,7 +39,7 @@ export default function AnatomyExplorer({ exercises, onMuscleClick }) {
              Deep Learning
           </div>
           <p className="text-[11px] font-medium opacity-60 leading-relaxed text-ink/80">
-             Klicke auf eine spezifische Muskelregion (z.B. Brachialis, Adduktor Longus), um biometrische Details und passende Übungen zu sehen.
+             Klicke auf eine spezifische Muskelregion, um biometrische Details und passende Übungen zu sehen.
           </p>
        </div>
     </div>

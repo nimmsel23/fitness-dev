@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { BodyChart } from 'body-muscles';
 import { BODY_MUSCLES_SLUGS } from '../../lib/muscleMapping';
 
@@ -9,7 +9,7 @@ import { BODY_MUSCLES_SLUGS } from '../../lib/muscleMapping';
 export default function BodyMusclesMap({ 
   side = 'front', 
   onMuscleClick,
-  exercises = [] // Now accept exercises to calculate intensity
+  exercises = [] 
 }) {
   const containerRef = useRef(null);
   const chartRef = useRef(null);
@@ -40,14 +40,13 @@ export default function BodyMusclesMap({
       view: side === 'front' ? 'FRONT' : 'BACK',
       bodyState: {},
       onMuscleClick: (id, name) => {
-        // body-muscles ids are like 'biceps-left'. We extract the base group.
         const baseMuscle = id.split('-')[0];
         if (onMuscleClick) onMuscleClick(baseMuscle);
       }
     });
 
     return () => chartRef.current?.destroy();
-  }, []);
+  }, []); // Run once on mount
 
   useEffect(() => {
     chartRef.current?.update({ view: side === 'front' ? 'FRONT' : 'BACK' });
@@ -73,6 +72,3 @@ export default function BodyMusclesMap({
     </div>
   );
 }
-
-// Helper to make useMemo work (missing import in previous file state)
-import { useMemo } from 'react';

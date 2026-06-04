@@ -1,4 +1,4 @@
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Save } from "lucide-react";
 import { blockColor, DAY_LABELS } from "./utils";
 
 export default function DateHeader({ 
@@ -7,12 +7,12 @@ export default function DateHeader({
   return (
     <div className="card mb-6 p-4">
       <div className="flex items-center justify-between mb-4">
-        <div className="label-caps !mb-0 font-black text-[var(--dim)]">Datum auswählen</div>
-        <div className="flex gap-2">
+        <div className="label-caps !mb-0 font-black text-[var(--dim)] hidden sm:block">Datum auswählen</div>
+        <div className="flex items-center gap-2 flex-1 sm:flex-none justify-between sm:justify-start">
           <input type="date" value={date} max={localToday} onChange={e => setDate(e.target.value)}
-            className="px-3 py-1.5 rounded-lg border text-xs font-bold bg-bg2 border-line text-ink w-32" />
-          <button onClick={onSave} disabled={saving} className="btn btn-primary py-1.5 px-4 text-xs shadow-lg shadow-accent/20">
-            {saving ? '…' : 'Save'}
+            className="px-3 py-2 rounded-xl border text-xs font-bold bg-bg2 border-line text-ink w-full sm:w-32 outline-none focus:border-accent" />
+          <button onClick={onSave} disabled={saving} className="btn btn-primary py-2 px-4 text-xs shadow-lg shadow-accent/20 flex items-center gap-2">
+            {saving ? '…' : <><Save size={14} /> <span className="hidden sm:inline">Save</span></>}
           </button>
         </div>
       </div>
