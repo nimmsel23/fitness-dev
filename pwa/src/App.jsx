@@ -11,13 +11,13 @@ import Settings from "./views/Settings/index.jsx";
 import { getSettings, saveSettings, watchAuth, signIn, signOut, signInEmail, signUpEmail } from "./db.js";
 import { registerServiceWorkerUpdate } from "./lib/pwa-update.js";
 
-import Sidebar from "@shared/components/Sidebar.jsx";
-import MobileNav from "@shared/components/MobileNav.jsx";
-import MobileHeader from "@shared/components/MobileHeader.jsx";
-import UserProfile from "@shared/components/UserProfile.jsx";
-import ErrorBoundary from "@shared/components/ErrorBoundary.jsx";
-import { NAV_ITEMS, VALID_TABS } from "@shared/components/NavigationItems.js";
-import { THEMES, DARK_THEMES, LIGHT_THEMES } from "@shared/components/Themes.js";
+import Sidebar from "../../src/components/layout/Sidebar.jsx";
+import MobileNav from "../../src/components/layout/MobileNav.jsx";
+import MobileHeader from "../../src/components/layout/MobileHeader.jsx";
+import UserProfile from "../../src/components/common/UserProfile.jsx";
+import ErrorBoundary from "../../src/components/common/ErrorBoundary.jsx";
+import { NAV_ITEMS, VALID_TABS } from "../../src/constants/NavigationItems.js";
+import { THEMES, DARK_THEMES, LIGHT_THEMES } from "../../src/constants/Themes.js";
 
 const DAY_START = 8;
 const DAY_END = 20;

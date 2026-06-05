@@ -10,13 +10,13 @@ import Settings from './views/Settings.jsx'
 import ExerciseInsightModal from './components/ExerciseInsightModal.jsx'
 import { api } from './api.js'
 
-import { NAV_ITEMS, VALID_TABS } from '@shared/components/NavigationItems.js'
-import { THEMES, DARK_THEMES, LIGHT_THEMES } from '@shared/components/Themes.js'
-import Sidebar from '@shared/components/Sidebar.jsx'
-import MobileNav from '@shared/components/MobileNav.jsx'
-import MobileHeader from '@shared/components/MobileHeader.jsx'
-import UserProfile from '@shared/components/UserProfile.jsx'
-import ErrorBoundary from '@shared/components/ErrorBoundary.jsx'
+import { NAV_ITEMS, VALID_TABS } from './constants/NavigationItems.js'
+import { THEMES, DARK_THEMES, LIGHT_THEMES } from './constants/Themes.js'
+import Sidebar from './components/layout/Sidebar.jsx'
+import MobileNav from './components/layout/MobileNav.jsx'
+import MobileHeader from './components/layout/MobileHeader.jsx'
+import UserProfile from './components/common/UserProfile.jsx'
+import ErrorBoundary from './components/common/ErrorBoundary.jsx'
 
 const DAY_START = 8; // 8 AM
 const DAY_END   = 20; // 8 PM

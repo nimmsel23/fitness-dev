@@ -1,4 +1,4 @@
-import { NAV_ITEMS } from "@shared/components/NavigationItems";
+import { NAV_ITEMS } from "../../constants/NavigationItems";
 
 export default function MobileNav({ tab, navigate }) {
   return (

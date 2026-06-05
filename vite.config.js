@@ -9,11 +9,6 @@ export default defineConfig({
     __IS_COACH__: 'true',
   },
   plugins: [react()],
-  resolve: {
-    alias: {
-      '@shared': resolve(__dirname, 'shared'),
-    },
-  },
   server: {
     port: 5902,
     proxy: {
