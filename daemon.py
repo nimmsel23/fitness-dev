@@ -8,6 +8,7 @@ Aufgaben:
 - Integritäts-Checks via 'audit'.
 """
 
+import os
 import time
 import subprocess
 import sys
@@ -20,7 +21,9 @@ AGENT = ROOT / "anatomy-agent"
 # Konfiguration (könnte in .env ausgelagert werden)
 REFINE_INTERVAL = 6 * 3600  # Alle 6 Stunden
 SYNC_INTERVAL = 1 * 3600    # Jede Stunde
-LOG_FILE = "/tmp/anatomy-daemon.log"
+
+USER = os.environ.get("USER", "alpha")
+LOG_FILE = f"/tmp/anatomy-daemon-{USER}.log"
 
 logger.add(LOG_FILE, rotation="10 MB", level="INFO")
 

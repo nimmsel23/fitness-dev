@@ -82,6 +82,6 @@ if __name__ == "__main__":
 
     logger.info(f"anatomy-kb server :{port}")
     logger.info(f"runtime_root: {runtime_root()}")
-    logger.info(f"fitness-dev: {FITNESS_DEV}")
+    logger.info(f"fitness-agent: {FITNESS_DEV}")
 
     web.run_app(create_app(), host="0.0.0.0", port=port, access_log=None)

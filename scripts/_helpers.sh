@@ -25,10 +25,10 @@ render_table() {
     local header="$1"
     local data="$2"
     if have_gum; then
-        printf "%s\n%s" "$header" "$data" | gum table --print --separator=$'\t'
+        printf "%b\n%b\n" "$header" "$data" | gum table --print --separator=$'\t'
     else
-        echo "  $header" | tr '\t' ' '
-        echo "$data" | tr '\t' ' '
+        printf "  %b\n" "$header" | tr '\t' ' '
+        printf "  %b\n" "$data" | tr '\t' ' '
     fi
 }
 
