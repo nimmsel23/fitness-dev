@@ -21,3 +21,13 @@ export async function updateJournal(id, text) {
   await api.post(`/journal?date=${date}`, { content: String(text || "").trim() });
   return { ok: true };
 }
+
+export async function getAllHabitJournalsForDate(date) {
+  const journals = JSON.parse(localStorage.getItem("fitness-local-habit-journals") || "{}");
+  return Object.entries(journals)
+    .map(([habitId, items]) => {
+      const current = (Array.isArray(items) ? items : []).find((item) => item.date === date);
+      return current ? { id: `${habitId}_${date}`, habitId, ...current, type: "habit" } : null;
+    })
+    .filter(Boolean);
+}

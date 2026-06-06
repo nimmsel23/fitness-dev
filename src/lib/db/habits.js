@@ -86,3 +86,22 @@ export async function getHabitRecordsForDate(date = localToday()) {
   const habits = await getHabits();
   return habits.filter((h) => h.hasRecord(date)).map((h) => h.uuid);
 }
+
+export async function getHabitJournal(habitId, date) {
+  const journals = readJSON(LOCAL_KEYS.habitJournals, {});
+  return (journals[habitId] || []).find((item) => item.date === date) || null;
+}
+
+export async function getHabitJournalHistory(habitId) {
+  const journals = readJSON(LOCAL_KEYS.habitJournals, {});
+  return (journals[habitId] || []).slice().sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export async function saveHabitJournal(habitId, date, text) {
+  const journals = readJSON(LOCAL_KEYS.habitJournals, {});
+  const items = Array.isArray(journals[habitId]) ? journals[habitId].filter((item) => item.date !== date) : [];
+  items.unshift({ date, text: String(text || "").trim(), updated_at: new Date().toISOString() });
+  journals[habitId] = items;
+  writeJSON(LOCAL_KEYS.habitJournals, journals);
+  return { ok: true };
+}

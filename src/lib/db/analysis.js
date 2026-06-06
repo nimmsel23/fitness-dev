@@ -101,3 +101,8 @@ export async function getWeeklyReport(selector = "current") {
     top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ display_name: name, count }))
   };
 }
+
+export async function getMuscleCoverage(days = 7) {
+  const report = await getWeeklyReport("current");
+  return report.body_region_scores || {};
+}

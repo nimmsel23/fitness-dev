@@ -44,3 +44,11 @@ export const num = (v) => {
   const n = Number(s);
   return Number.isFinite(n) ? n : null;
 };
+
+export async function exportCsv(days = 14) {
+  const { api } = await import("./core");
+  const res = await api.get(`/export/csv?days=${days}`);
+  if (!res?.ok) return { ok: false };
+  downloadText(res.filename || `fitness-${days}d-${localToday()}.csv`, res.csv || "", "text/csv;charset=utf-8");
+  return res;
+}

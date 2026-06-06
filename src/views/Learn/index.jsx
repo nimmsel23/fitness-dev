@@ -9,7 +9,7 @@ import ExplorerHeader from "./ExplorerHeader";
 import AnatomyExplorer from "./AnatomyExplorer";
 import AnatomyDetailModal from "../../components/AnatomyDetailModal";
 import PlanBuilder from "../../components/PlanBuilder.jsx";
-import Muscles from "../Muscles.jsx";
+import Muscles from "../Muscles/index.jsx";
 
 // Local Power Feature: QuizMode
 function QuizMode({ exercises, onExit }) {

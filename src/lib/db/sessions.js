@@ -36,6 +36,15 @@ export async function getProgressTrend(exerciseName) {
   return { status: "neutral", change: 0 };
 }
 
+export async function getPlan() {
+  return JSON.parse(localStorage.getItem("fitness-local-plan") || "null");
+}
+
+export async function savePlan(plan) {
+  localStorage.setItem("fitness-local-plan", JSON.stringify(plan));
+  return { ok: true };
+}
+
 export function parseQuick(raw) {
   if (!raw?.trim()) return null
   const name = raw.replace(/[\d@x\s].*/i, '').trim() || raw.trim()
