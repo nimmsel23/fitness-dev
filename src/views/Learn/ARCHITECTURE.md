@@ -16,8 +16,10 @@ This folder contains the modularized components for the exercise library and dee
 ## Data Flow
 
 1.  **Selection**: Clicking an exercise in `ExerciseLibrary` updates the `selected` state in `index.jsx`.
-2.  **Detail Fetching**: An effect in `index.jsx` detects the change and fetches deep anatomy data from `getAnatomy(id)` via Firestore.
-3.  **Visualization**: Data is passed to `AnatDetail` for rendering (either as a sticky side-panel on desktop or a full-screen overlay on mobile).
+2.  **Detail Fetching**: An effect in `index.jsx` detects the change and fetches deep anatomy data from `getAnatomy(id)`.
+    - **Local**: Calls `/exercise/:id/teaching` from the local Node server.
+    - **PWA**: Calls Firestore.
+3.  **Visualization**: Data is passed to `AnatDetail` for rendering.
 
 ## Synergy with Anatomy-KB
 This module is the primary consumer of the biomechanical data managed in the `~/anatomy-kb` repository. Whenever the KB agent enriches a muscle or exercise, it propagates here via Firestore synchronization.

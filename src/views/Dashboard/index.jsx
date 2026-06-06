@@ -7,11 +7,11 @@ import { localToday } from "../../lib/utils.js";
 import HabitWidget from "../../components/HabitWidget.jsx";
 import WeightChart from "../../components/WeightChart.jsx";
 
-import DashboardHeader from "../../../src/components/dashboard/DashboardHeader";
-import ActivityHeatmap from "../../../src/components/dashboard/ActivityHeatmap";
-import MuscleStatus from "../../../src/components/dashboard/MuscleStatus";
-import SessionStatus from "../../../src/components/dashboard/SessionStatus";
-import { getRolling10Days } from "../../../src/components/dashboard/utils";
+import DashboardHeader from "@src/components/dashboard/DashboardHeader";
+import ActivityHeatmap from "@src/components/dashboard/ActivityHeatmap";
+import MuscleStatus from "@src/components/dashboard/MuscleStatus";
+import SessionStatus from "@src/components/dashboard/SessionStatus";
+import { getRolling10Days } from "@src/components/dashboard/utils";
 
 export default function Dashboard({ onNavigate }) {
   const [todaySession, setTodaySession] = useState(null);

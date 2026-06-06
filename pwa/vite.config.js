@@ -12,6 +12,11 @@ export default defineConfig({
       allow: ['..']
     }
   },
+  resolve: {
+    alias: {
+      '@src': resolve(__dirname, '../src'),
+    },
+  },
   build: {
     rollupOptions: {
       input: {

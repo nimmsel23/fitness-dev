@@ -9,6 +9,11 @@ export default defineConfig({
     __IS_COACH__: 'true',
   },
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@src': resolve(__dirname, './src'),
+    },
+  },
   server: {
     port: 5902,
     proxy: {

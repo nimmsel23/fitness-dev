@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Sparkles, CheckCircle2, Trash2, Info, AlertTriangle, ExternalLink } from "lucide-react";
-import { api } from "../api.js";
+import { api } from "../../db.js";
 
 export default function Inbox({ onInspectExercise }) {
   const [exercises, setExercises] = useState([]);

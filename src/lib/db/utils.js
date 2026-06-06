@@ -1,47 +1,46 @@
-import { getSession } from "./sessions";
-import { todayISO } from "../utils";
+import { localToday } from "./core";
 
-export async function exportCsv(days = 14) {
-  const today = new Date();
-  const dates = [];
-  for (let i = 0; i < days; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    dates.push(d.toISOString().slice(0, 10));
-  }
-  const rows = [["date", "block", "exercise", "sets", "reps", "weight", "note", "effort"]];
-  for (const date of dates) {
-    const sess = await getSession(date);
-    const block = sess?.block || "";
-    const effort = sess?.effort ?? "";
-    for (const ex of (sess?.exercises || [])) {
-      rows.push([date, block, ex.name || "", ex.sets || "", ex.reps || "", ex.weight || "", ex.note || "", effort]);
-    }
-  }
-  const csv = rows.map(r => r.map(v => `"${v}"`).join(",")).join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `fitness-${days}d-${todayISO()}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+export function getWeekDates() {
+  const today = localToday()
+  const d = new Date(today + 'T12:00:00')
+  const off = (d.getDay() + 6) % 7
+  d.setDate(d.getDate() - off)
+  return Array.from({ length: 7 }, (_, i) => {
+    const x = new Date(d)
+    x.setDate(d.getDate() + i)
+    return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`
+  })
 }
 
-export function parseQuick(raw) {
-  if (!raw?.trim()) return null;
-  const name = raw.replace(/[\d@x\s].*/i, "").trim() || raw.trim();
-  const setsMatch = raw.match(/(\d+)\s*[xX×]\s*(\d+)/);
-  const weightMatch = raw.match(/@(\d+(?:\.\d+)?)/);
-  const rpeMatch = raw.match(/rpe\s*(\d+(?:\.\d+)?)/i);
-  return {
-    name,
-    sets: setsMatch ? setsMatch[1] : "3",
-    reps: setsMatch ? setsMatch[2] : "10",
-    weight: weightMatch ? weightMatch[1] : "",
-    note: rpeMatch ? `RPE ${rpeMatch[1]}` : "",
-    primaryMuscles: [],
-    secondaryMuscles: [],
-    done: true,
-  };
+export function calculateExVolume(ex) {
+  if (ex.isHIT) return 0;
+  if (Array.isArray(ex.setsArray)) {
+    return ex.setsArray.reduce((acc, set) => {
+      const r = parseFloat(String(set.reps || "").replace(',', '.'));
+      const w = parseFloat(String(set.weight || "").replace(',', '.'));
+      return (Number.isFinite(r) && Number.isFinite(w)) ? acc + (r * w) : acc;
+    }, 0);
+  }
+  const s = parseFloat(ex.sets), r = parseFloat(ex.reps), w = parseFloat(ex.weight);
+  return (Number.isFinite(s) && Number.isFinite(r) && Number.isFinite(w)) ? s * r * w : 0;
 }
+
+export function downloadText(filename, text, mime = 'text/plain;charset=utf-8') {
+  const blob = new Blob([text], { type: mime })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
+export const num = (v) => {
+  if (v === null || v === undefined) return null;
+  const s = String(v).trim().replace(',', '.');
+  if (!s) return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+};
