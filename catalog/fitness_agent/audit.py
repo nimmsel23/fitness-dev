@@ -495,13 +495,15 @@ def audit_aliases() -> AliasAuditResult:
 
 
 def run_all_audits() -> int:
+    from .rich_utils import print_audit_bundle
     bundle = audit_all()
-    print("Fitness Agent Audit Summary")
-    print(f"Exercises: {status_for_exercises(bundle.exercises)}")
-    print(f"Aliases:   {status_for_aliases(bundle.aliases)}")
-    print(f"Coverage:  {status_for_coverage(bundle.coverage)}")
-    print(f"Anatomy:   {status_for_anatomy(bundle.anatomy)}")
-    print(f"Overall: {bundle.overall_status}")
+    print_audit_bundle(
+        exercises_status=status_for_exercises(bundle.exercises),
+        aliases_status=status_for_aliases(bundle.aliases),
+        coverage_status=status_for_coverage(bundle.coverage),
+        anatomy_status=status_for_anatomy(bundle.anatomy),
+        overall_status=bundle.overall_status,
+    )
     write_audit_report(bundle)
     return 1 if bundle.overall_status == "FAIL" else 0
 

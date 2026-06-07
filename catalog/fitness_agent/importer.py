@@ -7,13 +7,13 @@ from pathlib import Path
 from typing import Any
 import urllib.request
 import yaml
+from tqdm import tqdm
 
+from loguru import logger
+from .rich_utils import console
 from .loader import DATA_DIR, load_catalog_yaml
 from .resolver import build_exercise_index, resolve_query, normalize_text
 from .coverage import normalize_muscle_id, load_muscle_taxonomy
-
-def log(msg: str):
-    print(f"[*] {msg}")
 
 WGER_API_BASE = "http://127.0.0.1:8000/api/v2"
 WGER_TOKEN = "92d9ea44fc0ac065e336e9ec443a196c40c68afe"
@@ -35,7 +35,7 @@ def fetch_json(url: str, headers: dict[str, str] | None = None) -> Any:
         return json.loads(response.read().decode("utf-8"))
 
 def import_external_exercises():
-    log("Starting bulk import from external sources...")
+    logger.info("Starting bulk import from external sources...")
     
     existing_exercises = build_exercise_index()
     existing_ids = {ex.exercise_id for ex in existing_exercises}
@@ -58,7 +58,7 @@ def import_external_exercises():
     # 1. Import from wger
     unreviewed_wger = []
     try:
-        log("Fetching exercises from local wger API in batches...")
+        logger.info("Fetching exercises from local wger API in batches...")
         offset = 0
         limit = 100
         while True:
@@ -112,25 +112,25 @@ def import_external_exercises():
                 }
                 unreviewed_wger.append(ex)
             
-            log(f"Processed {offset + len(results)}/{data.get('count', '?')} wger exercises...")
+            logger.info(f"Processed {offset + len(results)}/{data.get('count', '?')} wger exercises...")
             offset += limit
             if offset >= data.get("count", 0):
                 break
                 
-        log(f"Prepared {len(unreviewed_wger)} unreviewed exercises from wger.")
+        logger.info(f"Prepared {len(unreviewed_wger)} unreviewed exercises from wger.")
     except Exception as e:
-        print(f"[X] wger import failed: {e}")
+        logger.error(f"wger import failed: {e}")
 
     # 2. Import from yuhonas
     unreviewed_yuhonas = []
     yuhonas_path = Path.home() / "fitness/free-exercise-db/dist/exercises.json"
     if yuhonas_path.exists():
-        log("Importing from yuhonas free-exercise-db...")
+        logger.info("Importing from yuhonas free-exercise-db...")
         try:
             with yuhonas_path.open("r", encoding="utf-8") as f:
                 data = json.load(f)
                 
-            for item in data:
+            for item in tqdm(data, desc="yuhonas import", unit="ex"):
                 display_name = item.get("name")
                 if not display_name:
                     continue
@@ -172,11 +172,11 @@ def import_external_exercises():
                     }
                 }
                 unreviewed_yuhonas.append(ex)
-            log(f"Prepared {len(unreviewed_yuhonas)} unreviewed exercises from yuhonas.")
+            logger.info(f"Prepared {len(unreviewed_yuhonas)} unreviewed exercises from yuhonas.")
         except Exception as e:
-            print(f"[X] yuhonas import failed: {e}")
+            logger.error(f"yuhonas import failed: {e}")
     else:
-        log("yuhonas DB not found at ~/fitness/free-exercise-db/dist/exercises.json")
+        logger.info("yuhonas DB not found at ~/fitness/free-exercise-db/dist/exercises.json")
 
     # Save to catalog
     exercises_dir = DATA_DIR / "exercises"
@@ -191,7 +191,7 @@ def import_external_exercises():
         }
         with target.open("w", encoding="utf-8") as f:
             yaml.safe_dump(wrapper, f, allow_unicode=True, sort_keys=False)
-        log(f"Saved {len(unreviewed_wger)} exercises to {target}")
+        logger.info(f"Saved {len(unreviewed_wger)} exercises to {target}")
 
     if unreviewed_yuhonas:
         target = exercises_dir / "unreviewed_yuhonas.yml"
@@ -202,7 +202,7 @@ def import_external_exercises():
         }
         with target.open("w", encoding="utf-8") as f:
             yaml.safe_dump(wrapper, f, allow_unicode=True, sort_keys=False)
-        log(f"Saved {len(unreviewed_yuhonas)} exercises to {target}")
+        logger.info(f"Saved {len(unreviewed_yuhonas)} exercises to {target}")
 
 if __name__ == "__main__":
     import_external_exercises()

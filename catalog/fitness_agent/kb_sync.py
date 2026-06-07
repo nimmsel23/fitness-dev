@@ -12,7 +12,10 @@ from typing import Any
 import firebase_admin
 from firebase_admin import credentials, firestore
 from loguru import logger
+from tqdm import tqdm
+from halo import Halo
 
+from .rich_utils import console
 from .loader import catalog_path, load_catalog_directory_yaml, load_catalog_yaml
 from .yaml_utils import load_yaml
 
@@ -29,11 +32,17 @@ def _init_firebase() -> Any:
             f"Service Account nicht gefunden: {cred_file}\n"
             f"Alternativ: GOOGLE_APPLICATION_CREDENTIALS setzen"
         )
-    cred = credentials.Certificate(str(cred_file))
-    project = os.environ.get(PROJECT_ID_ENV, "fitness-aos")
-    firebase_admin.initialize_app(cred, {"projectId": project})
-    logger.info(f"Firebase initialisiert: {project}")
-    return firestore.client()
+    
+    spinner = Halo(text="Connecting to Firebase...", spinner="dots").start()
+    try:
+        cred = credentials.Certificate(str(cred_file))
+        project = os.environ.get(PROJECT_ID_ENV, "fitness-aos")
+        firebase_admin.initialize_app(cred, {"projectId": project})
+        spinner.succeed(f"Firebase initialisiert: {project}")
+        return firestore.client()
+    except Exception as e:
+        spinner.fail(f"Firebase initialization failed: {e}")
+        raise
 
 
 def _to_fs(v: Any) -> Any:
@@ -89,7 +98,7 @@ def sync_exercises(db_client: Any, dry_run: bool = False) -> dict[str, int]:
     batch = db_client.batch()
     batch_count = 0
 
-    for ex_id, exercise in all_exercises.items():
+    for ex_id, exercise in tqdm(all_exercises.items(), desc="Exercises", unit="ex"):
         payload = _flatten(exercise)
         if dry_run:
             counts["ok"] += 1
@@ -102,7 +111,6 @@ def sync_exercises(db_client: Any, dry_run: bool = False) -> dict[str, int]:
             
             if batch_count >= 400:
                 batch.commit()
-                logger.info(f"Committed batch of {batch_count} merged exercises")
                 batch = db_client.batch()
                 batch_count = 0
         except Exception as exc:
@@ -111,7 +119,6 @@ def sync_exercises(db_client: Any, dry_run: bool = False) -> dict[str, int]:
 
     if batch_count > 0:
         batch.commit()
-        logger.info(f"Committed final batch of {batch_count} merged exercises")
 
     return counts
 
@@ -123,44 +130,40 @@ def sync_anatomy(db_client: Any, dry_run: bool = False) -> dict[str, int]:
     batch = db_client.batch()
     batch_count = 0
 
+    all_lessons = []
     for path, doc in load_catalog_directory_yaml("anatomy_teaching"):
         if not isinstance(doc, dict):
             continue
-
         if "exercise_id" in doc:
-            lessons = [doc]
+            all_lessons.append(doc)
         elif "lessons" in doc:
-            lessons = doc["lessons"]
-        else:
-            lessons = []
+            all_lessons.extend(doc["lessons"])
 
-        for lesson in lessons:
-            ex_id = lesson.get("exercise_id")
-            if not ex_id:
-                counts["skip"] += 1
-                continue
-                
-            if dry_run:
-                counts["ok"] += 1
-                continue
-                
-            try:
-                batch.set(col.document(ex_id), lesson)
-                batch_count += 1
-                counts["ok"] += 1
-                
-                if batch_count >= 400:
-                    batch.commit()
-                    logger.info(f"Committed batch of {batch_count} anatomy lessons")
-                    batch = db_client.batch()
-                    batch_count = 0
-            except Exception as exc:
-                logger.error(f"anatomy/{ex_id}: {exc}")
-                counts["error"] += 1
+    for lesson in tqdm(all_lessons, desc="Anatomy", unit="lesson"):
+        ex_id = lesson.get("exercise_id")
+        if not ex_id:
+            counts["skip"] += 1
+            continue
+            
+        if dry_run:
+            counts["ok"] += 1
+            continue
+            
+        try:
+            batch.set(col.document(ex_id), lesson)
+            batch_count += 1
+            counts["ok"] += 1
+            
+            if batch_count >= 400:
+                batch.commit()
+                batch = db_client.batch()
+                batch_count = 0
+        except Exception as exc:
+            logger.error(f"anatomy/{ex_id}: {exc}")
+            counts["error"] += 1
 
     if batch_count > 0:
         batch.commit()
-        logger.info(f"Committed final batch of {batch_count} anatomy lessons")
 
     return counts
 
@@ -172,7 +175,7 @@ def sync_muscles(db_client: Any, dry_run: bool = False) -> dict[str, int]:
     try:
         taxonomy = load_catalog_yaml("muscles/muscles.yml")
         if not isinstance(taxonomy, dict) or "muscles" not in taxonomy:
-            logger.error("muscles.yml has invalid structure")
+            log_err("muscles.yml has invalid structure")
             counts["error"] += 1
             return counts
 
@@ -180,7 +183,7 @@ def sync_muscles(db_client: Any, dry_run: bool = False) -> dict[str, int]:
         batch = db_client.batch()
         batch_count = 0
         
-        for muscle_id, data in muscles.items():
+        for muscle_id, data in tqdm(muscles.items(), desc="Muscles", unit="muscle"):
             if not isinstance(data, dict):
                 continue
             
@@ -211,6 +214,8 @@ def sync_muscles(db_client: Any, dry_run: bool = False) -> dict[str, int]:
 
 
 def run_kb_sync(dry_run: bool = False) -> None:
+    from .rich_utils import setup_logging
+    setup_logging()
     db_client = _init_firebase()
 
     logger.info("=== KB Sync: exercises ===")

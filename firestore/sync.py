@@ -3,7 +3,6 @@
 import json
 from pathlib import Path
 
-from loguru import logger
 from ._db import get_db, ts, UID
 
 FITNESS_DIR = Path.home() / ".aos" / "fitness"
@@ -49,7 +48,7 @@ def pull() -> dict:
         journal_dir.mkdir(parents=True, exist_ok=True)
         inbox_dir.mkdir(parents=True, exist_ok=True)
 
-        logger.info(f"Syncing user: {uid}")
+        # logger.info(f"Syncing user: {uid}")
 
         # Fetch Habits for name resolution
         habit_names = {}
@@ -57,8 +56,8 @@ def pull() -> dict:
             for hdoc in db.collection("fitness").document(uid).collection("habits").stream():
                 hdata = hdoc.to_dict()
                 habit_names[hdoc.id] = hdata.get("name", "Unknown Habit")
-        except Exception as e:
-            logger.warning(f"Could not fetch habits for {uid}: {e}")
+        except Exception:
+            pass
 
         # Pull Sessions
         for doc in db.collection("fitness").document(uid).collection("sessions").stream():
@@ -168,7 +167,7 @@ def push() -> dict:
         sessions_dir = user_folder / "sessions"
         if not sessions_dir.exists(): continue
 
-        logger.info(f"Pushing sessions for user: {uid}")
+        # logger.info(f"Pushing sessions for user: {uid}")
 
         for f in sorted(sessions_dir.glob("*.json")):
             date       = f.stem
