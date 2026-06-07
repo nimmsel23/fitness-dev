@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Reichert catalog/exercises/*.yml mit wger_muscle_ids an.
+Reichert catalog/kb/exercises/*.yml mit wger_muscle_ids an.
 Kuratierte Mapping-Tabelle (exercise_id → wger muscle IDs) statt unsicheres Name-Matching.
 
 wger muscle IDs (/api/v2/muscle/):
@@ -13,12 +13,18 @@ wger muscle IDs (/api/v2/muscle/):
 """
 from __future__ import annotations
 
-import sys
 from pathlib import Path
+from typing import Optional
 
 import yaml
+import typer
+from loguru import logger
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
 
-CATALOG_DIR = Path(__file__).resolve().parent.parent / "catalog" / "exercises"
+app = typer.Typer(help="Enrich exercise catalog with wger muscle IDs")
+console = Console()
 
 # exercise_id → {primary: [wger muscle IDs], secondary: [wger muscle IDs]}
 MUSCLE_MAP: dict[str, dict[str, list[int]]] = {
@@ -76,43 +82,63 @@ MUSCLE_MAP: dict[str, dict[str, list[int]]] = {
 }
 
 
-def process_file(path: Path, dry_run: bool) -> int:
+def process_file(path: Path, dry_run: bool) -> tuple[int, int]:
     with open(path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
     exercises = data.get("exercises", [])
     updated = 0
+    skipped = 0
 
     for ex in exercises:
         eid = ex.get("exercise_id", "")
         mapping = MUSCLE_MAP.get(eid)
         if mapping is None:
-            print(f"  [{eid}] kein Mapping vorhanden")
+            skipped += 1
             continue
         ex["wger_muscle_ids"] = mapping
         updated += 1
-        print(f"  [{eid}] P={mapping['primary']} S={mapping['secondary']}")
 
     if updated and not dry_run:
         with open(path, "w", encoding="utf-8") as f:
             yaml.dump(data, f, allow_unicode=True, sort_keys=False,
                       default_flow_style=False, width=120)
-        print(f"  → {path.name} geschrieben ({updated} exercises)")
-    return updated
+    
+    return updated, skipped
 
 
-def main() -> None:
-    dry_run = "--dry-run" in sys.argv
+@app.command()
+def enrich(
+    catalog_dir: Optional[Path] = typer.Option(
+        Path(__file__).resolve().parent.parent / "catalog" / "kb" / "exercises",
+        help="Directory containing exercise YAML files"
+    ),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Do not write changes to files"),
+):
+    """Reichert catalog/kb/exercises/*.yml mit wger_muscle_ids an."""
+    
     if dry_run:
-        print("DRY RUN — keine Dateien werden geschrieben\n")
+        console.print(Panel("[bold yellow]DRY RUN — No files will be modified[/bold yellow]"))
 
-    total = 0
-    for yml in sorted(CATALOG_DIR.glob("*.yml")):
-        print(f"\n=== {yml.name} ===")
-        total += process_file(yml, dry_run)
+    table = Table(title="Muscle Enrichment Progress", box=None)
+    table.add_column("File", style="cyan")
+    table.add_column("Updated", style="green", justify="right")
+    table.add_column("Skipped", style="dim", justify="right")
 
-    print(f"\nFertig — {total} exercises mit wger_muscle_ids versehen.")
+    total_updated = 0
+    total_skipped = 0
+    
+    for yml in sorted(catalog_dir.glob("*.yml")):
+        updated, skipped = process_file(yml, dry_run)
+        table.add_row(yml.name, str(updated), str(skipped))
+        total_updated += updated
+        total_skipped += skipped
+
+    console.print(table)
+    
+    status_msg = f"[bold green]✓ Enrichment complete![/bold green]\nTotal Updated: {total_updated}\nTotal Skipped: {total_skipped}"
+    console.print(Panel(status_msg, expand=False))
 
 
 if __name__ == "__main__":
-    main()
+    app()

@@ -9,12 +9,16 @@ import threading
 from pathlib import Path
 
 from loguru import logger
+from rich.console import Console
+from rich.logging import RichHandler
 from ._db import get_db, ts, UID
 
 FITNESS_DIR = Path.home() / ".aos" / "fitness"
 SESSIONS    = FITNESS_DIR / "sessions"
 JOURNAL     = FITNESS_DIR / "journal"
 STATE_FILE  = FITNESS_DIR / "agent-state" / "fsm-known-journal.json"
+
+console = Console()
 
 
 def _load_known() -> set:
@@ -75,7 +79,11 @@ def on_journal(col_snapshot, changes, read_time):
 
 def main():
     logger.remove()
-    logger.add(sys.stderr, format="<green>{time:HH:mm:ss}</green> <level>{message}</level>")
+    logger.add(
+        RichHandler(console=console, rich_tracebacks=True),
+        format="{message}",
+        level="INFO",
+    )
     db = get_db()
     w1 = db.collection("fitness").document(UID).collection("sessions").on_snapshot(on_session)
     w2 = db.collection("fitness").document(UID).collection("journal").on_snapshot(on_journal)
