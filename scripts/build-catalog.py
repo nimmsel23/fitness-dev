@@ -5,6 +5,7 @@ Exports to ~/.aos/fitness/workouts/catalog.json
 """
 
 import json
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -13,26 +14,35 @@ import typer
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
 
 app = typer.Typer(help="Build fitness workout catalog from YAML sources")
 console = Console()
 
-@app.command()
-def build(
-    source_dir: Optional[Path] = typer.Option(
-        Path.home() / ".fitness-agent" / "exercises",
-        help="Directory containing exercise YAML files"
-    ),
-    output_file: Optional[Path] = typer.Option(
-        Path.home() / ".aos" / "fitness" / "workouts" / "catalog.json",
-        help="Target JSON file path"
-    )
-):
-    """Load all exercise YAMLs and build unified catalog."""
 
+class CatalogHandler(FileSystemEventHandler):
+    def __init__(self, source_dir: Path, output_file: Path):
+        self.source_dir = source_dir
+        self.output_file = output_file
+        self.last_run = 0
+
+    def on_modified(self, event):
+        if not event.is_directory and event.src_path.endswith(".yml"):
+            # Debounce
+            now = time.time()
+            if now - self.last_run < 2:
+                return
+            self.last_run = now
+            console.print(f"[dim]Change detected in {Path(event.src_path).name}, rebuilding...[/dim]")
+            run_build(self.source_dir, self.output_file)
+
+
+def run_build(source_dir: Path, output_file: Path):
     if not source_dir.exists():
         console.print(f"[bold red]✗ Error:[/bold red] source directory not found: {source_dir}")
-        raise typer.Exit(code=1)
+        return False
 
     catalog = {
         "version": "0.1.0",
@@ -87,7 +97,7 @@ def build(
 
     if not catalog["exercises"]:
         console.print("[bold red]✗ Error:[/bold red] No exercises found in YAML files")
-        raise typer.Exit(code=1)
+        return False
 
     # Write to target
     output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -106,6 +116,44 @@ def build(
     
     console.print(table)
     console.print(Panel(f"[bold green]✓ Catalog built successfully![/bold green]\nSaved to: [blue]{output_file}[/blue]", expand=False))
+    return True
+
+
+@app.command()
+def build(
+    source_dir: Optional[Path] = typer.Option(
+        Path.home() / ".fitness-agent" / "exercises",
+        help="Directory containing exercise YAML files"
+    ),
+    output_file: Optional[Path] = typer.Option(
+        Path.home() / ".aos" / "fitness" / "workouts" / "catalog.json",
+        help="Target JSON file path"
+    ),
+    watch: bool = typer.Option(False, "--watch", "-w", help="Watch for changes and auto-rebuild")
+):
+    """Load all exercise YAMLs and build unified catalog."""
+    
+    success = run_build(source_dir, output_file)
+    
+    if watch:
+        if not success:
+            console.print("[yellow]Initial build failed, but starting watcher anyway...[/yellow]")
+        
+        console.print(f"[bold blue]⟳ Watching {source_dir} for changes...[/bold blue]")
+        observer = Observer()
+        handler = CatalogHandler(source_dir, output_file)
+        observer.schedule(handler, str(source_dir), recursive=False)
+        observer.start()
+        
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            observer.stop()
+        observer.join()
+    else:
+        if not success:
+            raise typer.Exit(code=1)
 
 if __name__ == "__main__":
     app()

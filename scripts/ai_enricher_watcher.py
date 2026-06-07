@@ -16,14 +16,24 @@ import time
 from pathlib import Path
 import urllib.request
 import urllib.parse
+from typing import Optional
+
 import yaml
+import typer
 from loguru import logger
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler, FileCreatedEvent
+from rich.console import Console
+from rich.panel import Panel
+
+app = typer.Typer(help="AI Exercise Enricher Watcher")
+console = Console()
 
 FITNESS_DIR = Path.home() / ".aos" / "fitness"
 USERS_DIR = FITNESS_DIR / "users"
 
 # Adjust this path based on where the script is run from
-PROJECT_ROOT = Path(__file__).parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CATALOG_DIR = PROJECT_ROOT / "catalog"
 CATALOG_EXERCISES = CATALOG_DIR / "kb" / "exercises"
 MUSCLES_YML = CATALOG_DIR / "kb" / "muscles" / "muscles.yml"
@@ -91,14 +101,14 @@ CRITICAL: You MUST only use the following muscle IDs for primary_muscles, second
 }}
 """
 
-def call_gemini(exercise_name: str, safe_name: str) -> dict:
+def call_gemini(exercise_name: str, safe_name: str) -> Optional[dict]:
     if not GEMINI_API_KEY:
         logger.error("GEMINI_API_KEY environment variable is missing. Cannot enrich.")
         return None
 
     muscle_list = ", ".join(VALID_MUSCLES)
     prompt = PROMPT_TEMPLATE.format(exercise_name=exercise_name, safe_name=safe_name, muscle_list=muscle_list)
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
     
     payload = {
         "contents": [{"parts": [{"text": prompt}]}]
@@ -122,6 +132,7 @@ def call_gemini(exercise_name: str, safe_name: str) -> dict:
 
 def process_inbox_file(file_path: Path):
     try:
+        if not file_path.exists(): return
         data = json.loads(file_path.read_text())
         name = data.get("name")
         if not name:
@@ -130,7 +141,7 @@ def process_inbox_file(file_path: Path):
             return
 
         safe_name = name.lower().replace(" ", "_")
-        target_file = CATALOG_EXERCISES / f"{safe_name}.yml"
+        target_file = CATALOG_EXERCISES / f"inbox_{safe_name}.yml"
 
         if target_file.exists():
             logger.info(f"Catalog entry for '{name}' already exists. Removing from inbox.")
@@ -141,7 +152,6 @@ def process_inbox_file(file_path: Path):
         enriched_data = call_gemini(name, safe_name)
         
         if enriched_data:
-            import yaml
             CATALOG_EXERCISES.mkdir(parents=True, exist_ok=True)
             
             # Ensure the internal name doesn't have the inbox prefix either
@@ -173,19 +183,44 @@ def process_inbox_file(file_path: Path):
     except Exception as e:
         logger.error(f"Failed to process {file_path}: {e}")
 
-def run_watcher():
-    logger.info(f"Starting AI Enricher Watcher...")
+class InboxHandler(FileSystemEventHandler):
+    def on_created(self, event):
+        if not event.is_directory and event.src_path.endswith(".json"):
+            path = Path(event.src_path)
+            if "inbox" in path.parts:
+                # Small delay to ensure file is fully written
+                time.sleep(0.5)
+                process_inbox_file(path)
+
+@app.command()
+def watch():
+    """Watch for new exercises in client inbox directories."""
+    from .rich_utils import setup_logging
+    setup_logging()
+    
+    logger.info("Starting AI Enricher Watcher (Watchdog-powered)...")
     if not GEMINI_API_KEY:
         logger.warning("GEMINI_API_KEY is not set. Enrichment will not work.")
-        
-    while True:
-        if USERS_DIR.exists():
-            for uid_dir in USERS_DIR.iterdir():
-                inbox_dir = uid_dir / "inbox"
-                if inbox_dir.exists():
-                    for json_file in inbox_dir.glob("*.json"):
-                        process_inbox_file(json_file)
-        time.sleep(10) # Poll every 10 seconds
+    
+    if not USERS_DIR.exists():
+        USERS_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Initial scan
+    for json_file in USERS_DIR.glob("**/inbox/*.json"):
+        process_inbox_file(json_file)
+
+    observer = Observer()
+    handler = InboxHandler()
+    observer.schedule(handler, str(USERS_DIR), recursive=True)
+    observer.start()
+    
+    logger.info(f"Listening for changes in {USERS_DIR}...")
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
 
 if __name__ == "__main__":
-    run_watcher()
+    app()
