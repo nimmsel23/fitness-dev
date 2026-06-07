@@ -1,9 +1,10 @@
 import { RefreshCw, Zap, Target, User, LayoutGrid, Clock, Moon, Sun, Save, Check, Sparkles, Settings2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { api } from "../../db.js";
+import { api, isLocalMode } from "@db";
 
 export default function Settings({ 
   hitMode, setHitMode, planMode, setPlanMode, 
+  layoutScale, setLayoutScale,
   gender, setGender, split, setSplit, 
   cycleLength, setCycleLength, defaultLocation, setDefaultLocation,
   themeMode, setModeState, circLight, setCircLight, circDark, setCircDark,
@@ -15,6 +16,7 @@ export default function Settings({
   const [syncing, setSyncing] = useState(false)
 
   useEffect(() => {
+    if (!isLocalMode() || !api) return;
     api.get('/health').then(setHealth).catch(() => setHealth({ ok: false }))
     fetch('http://localhost:8000/api/v2/language/?format=json')
       .then(r => setWger(r.ok))
@@ -36,36 +38,38 @@ export default function Settings({
   }
 
   return (
-    <div className="space-y-12 pb-24">
+    <div className="space-y-12 pb-32">
        {/* 1. Sync & System Status (Local Intelligence) */}
-       <section className="card p-8 border-accent/20 bg-gradient-to-br from-card to-bg2 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-             <div>
-                <div className="label-caps !mb-3 text-accent flex items-center gap-2">
-                   <Sparkles size={14} className={syncing ? 'animate-spin' : ''} />
-                   System & Data
-                </div>
-                <h3 className="text-2xl font-black text-ink mb-2">Coach Backend</h3>
-                <p className="text-sm font-medium opacity-50 max-w-md leading-relaxed">
-                   Verwalte die lokale Datenbank und synchronisiere Daten mit Firestore für deine Klienten.
-                </p>
-             </div>
-             
-             <div className="flex flex-col gap-3 min-w-[240px]">
-                <div className="flex items-center justify-between bg-black/20 p-3 rounded-xl border border-line">
-                   <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Firestore</span>
-                   {firestoreStatus?.ok 
-                      ? <span className="text-[9px] font-black uppercase bg-green/10 text-green px-2 py-0.5 rounded-md border border-green/20">Verbunden</span>
-                      : <span className="text-[9px] font-black uppercase bg-red/10 text-red px-2 py-0.5 rounded-md border border-red/20">Offline</span>
-                   }
-                </div>
-                <button onClick={handleSync} disabled={syncing} className="btn btn-primary py-4 px-8 font-black uppercase tracking-widest shadow-xl shadow-accent/20">
-                   {syncing ? 'Synchronisiere...' : 'Jetzt Synchronisieren'}
-                </button>
-             </div>
-          </div>
-       </section>
+       {isLocalMode() && (
+         <section className="card p-8 border-accent/20 bg-gradient-to-br from-card to-bg2 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+               <div>
+                  <div className="label-caps !mb-3 text-accent flex items-center gap-2">
+                     <Sparkles size={14} className={syncing ? 'animate-spin' : ''} />
+                     System & Data
+                  </div>
+                  <h3 className="text-2xl font-black text-ink mb-2">Coach Backend</h3>
+                  <p className="text-sm font-medium opacity-50 max-w-md leading-relaxed">
+                     Verwalte die lokale Datenbank und synchronisiere Daten mit Firestore für deine Klienten.
+                  </p>
+               </div>
+               
+               <div className="flex flex-col gap-3 min-w-[240px]">
+                  <div className="flex items-center justify-between bg-black/20 p-3 rounded-xl border border-line">
+                     <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Firestore</span>
+                     {firestoreStatus?.ok 
+                        ? <span className="text-[9px] font-black uppercase bg-green/10 text-green px-2 py-0.5 rounded-md border border-green/20">Verbunden</span>
+                        : <span className="text-[9px] font-black uppercase bg-red/10 text-red px-2 py-0.5 rounded-md border border-red/20">Offline</span>
+                     }
+                  </div>
+                  <button onClick={handleSync} disabled={syncing} className="btn btn-primary py-4 px-8 font-black uppercase tracking-widest shadow-xl shadow-accent/20">
+                     {syncing ? 'Synchronisiere...' : 'Jetzt Synchronisieren'}
+                  </button>
+               </div>
+            </div>
+         </section>
+       )}
 
        {/* 2. Training Settings */}
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -158,19 +162,48 @@ export default function Settings({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-             <div className="space-y-6">
-                <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Theme Palette</div>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-4">
-                   {Object.entries(themes).map(([id, t]) => (
-                      <button key={id} onClick={() => { setThemeState(id); updateSettings?.({ theme: id, themeMode: 'manual' }); }}
-                         className={`group relative flex flex-col items-center gap-2 transition-all ${theme === id ? 'scale-110' : 'hover:scale-105'}`}>
-                         <div className={`w-12 h-12 rounded-2xl border-4 transition-all shadow-xl flex items-center justify-center ${theme === id ? 'border-accent' : 'border-line group-hover:border-accent/40'}`} style={{ background: t.bg }}>
-                            <div className="w-4 h-4 rounded-full" style={{ background: t.accent }} />
-                            {theme === id && <Check size={12} className="absolute -top-1 -right-1 text-black bg-accent rounded-full p-0.5" />}
+             <div className="space-y-8">
+                <div>
+                   <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1 mb-4">Layout Skalierung (Gym Mode)</div>
+                   <div className="bg-bg2/50 p-6 rounded-[24px] border border-line">
+                      <div className="flex items-center justify-between mb-6">
+                         <span className="text-[10px] font-black uppercase tracking-widest text-accent">{layoutScale}%</span>
+                         <div className="flex gap-2">
+                            {[85, 100, 125].map(v => (
+                               <button key={v} onClick={() => setLayoutScale(v)} 
+                                  className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase border transition-all ${layoutScale === v ? 'bg-accent border-accent text-black' : 'border-line text-dim'}`}>
+                                  {v === 85 ? 'Compact' : v === 125 ? 'Gym' : 'Std'}
+                               </button>
+                            ))}
                          </div>
-                         <span className={`text-[8px] font-black uppercase tracking-tighter transition-colors ${theme === id ? 'text-accent' : 'opacity-30'}`}>{id}</span>
-                      </button>
-                   ))}
+                      </div>
+                      <input 
+                         type="range" min="70" max="150" step="5" 
+                         value={layoutScale} 
+                         onChange={(e) => setLayoutScale(parseInt(e.target.value))}
+                         className="w-full h-1.5 bg-line rounded-lg appearance-none cursor-pointer accent-accent"
+                      />
+                      <div className="flex justify-between mt-3 px-1 text-[8px] font-black uppercase opacity-20 tracking-tighter">
+                         <span>Übersicht</span>
+                         <span>Max Sichtbarkeit</span>
+                      </div>
+                   </div>
+                </div>
+
+                <div className="space-y-6">
+                   <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Theme Palette</div>
+                   <div className="grid grid-cols-4 sm:grid-cols-6 gap-4">
+                      {Object.entries(themes).map(([id, t]) => (
+                         <button key={id} onClick={() => { setThemeState(id); updateSettings?.({ theme: id, themeMode: 'manual' }); }}
+                            className={`group relative flex flex-col items-center gap-2 transition-all ${theme === id ? 'scale-110' : 'hover:scale-105'}`}>
+                            <div className={`w-12 h-12 rounded-2xl border-4 transition-all shadow-xl flex items-center justify-center ${theme === id ? 'border-accent' : 'border-line group-hover:border-accent/40'}`} style={{ background: t.bg }}>
+                               <div className="w-4 h-4 rounded-full" style={{ background: t.accent }} />
+                               {theme === id && <Check size={12} className="absolute -top-1 -right-1 text-black bg-accent rounded-full p-0.5" />}
+                            </div>
+                            <span className={`text-[8px] font-black uppercase tracking-tighter transition-colors ${theme === id ? 'text-accent' : 'opacity-30'}`}>{id}</span>
+                         </button>
+                      ))}
+                   </div>
                 </div>
              </div>
 
@@ -206,25 +239,27 @@ export default function Settings({
        </section>
 
        {/* 4. System Info (Local Intelligence) */}
-       <section className="card p-8 text-ink">
-          <div className="label-caps flex items-center gap-2 text-dim mb-6">
-             <Settings2 size={14} />
-             System Information
-          </div>
-          <div className="grid gap-3">
-             {[
-               ['fitness-dev', health === null ? 'Prüfe…' : health.ok ? `online :${health.port}` : 'offline', health?.ok],
-               ['wger', wger === null ? 'Prüfe…' : wger ? 'online :8000' : 'offline', wger],
-               ['Daten', '~/.aos/fitness/', true],
-               ['Katalog', '~/fitness-dev/catalog/kb/', true],
-             ].map(([label, value, ok]) => (
-               <div key={label} className="flex items-center justify-between bg-bg2 p-4 rounded-xl border border-line">
-                 <span className="text-xs font-bold text-dim">{label}</span>
-                 <span className={`text-[11px] font-black uppercase tracking-wider ${ok ? 'text-green' : 'text-red'}`}>{value}</span>
-               </div>
-             ))}
-          </div>
-       </section>
+       {isLocalMode() && (
+         <section className="card p-8 text-ink">
+            <div className="label-caps flex items-center gap-2 text-dim mb-6">
+               <Settings2 size={14} />
+               System Information
+            </div>
+            <div className="grid gap-3">
+               {[
+                 ['fitness-dev', health === null ? 'Prüfe…' : health.ok ? `online :${health.port}` : 'offline', health?.ok],
+                 ['wger', wger === null ? 'Prüfe…' : wger ? 'online :8000' : 'offline', wger],
+                 ['Daten', '~/.aos/fitness/', true],
+                 ['Katalog', '~/fitness-dev/catalog/kb/', true],
+               ].map(([label, value, ok]) => (
+                 <div key={label} className="flex items-center justify-between bg-bg2 p-4 rounded-xl border border-line">
+                   <span className="text-xs font-bold text-dim">{label}</span>
+                   <span className={`text-[11px] font-black uppercase tracking-wider ${ok ? 'text-green' : 'text-red'}`}>{value}</span>
+                 </div>
+               ))}
+            </div>
+         </section>
+       )}
     </div>
   );
 }

@@ -12,6 +12,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@src': resolve(__dirname, './src'),
+      '@db': resolve(__dirname, './src/db.js'),
+      '@utils': resolve(__dirname, './src/lib/utils.js'),
     },
   },
   server: {

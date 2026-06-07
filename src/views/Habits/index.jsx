@@ -3,8 +3,8 @@ import { Star, CalendarDays, Activity } from "lucide-react";
 import { 
   getHabits, recordHabit, unrecordHabit, addHabit, deleteHabit, 
   updateHabit, getHabitRecordsForDate, getHabitJournal, saveHabitJournal, getHabitJournalHistory 
-} from "../../db.js";
-import { localToday } from "../../lib/utils.js";
+} from "@db";
+import { localToday } from "@utils";
 
 import HabitForm from "./HabitForm";
 import HabitItem from "./HabitItem";
@@ -157,7 +157,7 @@ export default function Habits() {
   };
 
   return (
-    <div className="pb-20 px-2 sm:px-4 lg:px-6">
+    <div className="pb-32 px-2 sm:px-4 lg:px-6">
       <div className="mb-10 flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div className="flex-1">

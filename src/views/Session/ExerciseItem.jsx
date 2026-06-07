@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getProgressTrend } from '../../db.js';
+import { getProgressTrend } from '@db';
 import { num } from './utils';
 
 export default function ExerciseItem({ 
@@ -68,19 +68,21 @@ export default function ExerciseItem({
       </div>
 
       {!ex.isHIT && ex.setsArray && (
-        <div className="space-y-2 mb-3">
+        <div className="space-y-3 mb-4">
             {ex.setsArray.map((set, sIdx) => (
-                <div key={sIdx} className="grid grid-cols-[1fr_auto_1fr_auto_minmax(40px,1fr)_25px] items-center gap-1 sm:gap-2">
-                    <input type="text" inputMode="numeric" placeholder="Reps" value={set.reps || ''} onChange={e => updateEx(i, 'reps', e.target.value, sIdx)} className="text-center font-mono font-bold p-2 rounded-lg bg-bg2 border border-line w-full text-sm" />
-                    <span className="text-dim text-center text-[10px] w-4">@</span>
-                    <input type="text" inputMode="decimal" placeholder="kg" value={set.weight || ''} onChange={e => updateEx(i, 'weight', e.target.value, sIdx)} className="text-center font-mono font-bold p-2 rounded-lg bg-bg2 border border-line w-full text-sm" />
-                    <span className="text-dim text-center text-[10px] w-5 hidden sm:inline">kg</span>
+                <div key={sIdx} className="grid grid-cols-[1fr_auto_1fr_auto_minmax(45px,1.2fr)_32px] items-center gap-2">
+                    <input type="text" inputMode="numeric" placeholder="Reps" value={set.reps || ''} onChange={e => updateEx(i, 'reps', e.target.value, sIdx)} className="text-center font-mono font-black py-3 px-1 rounded-xl bg-bg2 border border-line w-full text-sm focus:border-accent outline-none" />
+                    <span className="text-dim text-center text-[10px] w-4 font-black">@</span>
+                    <input type="text" inputMode="decimal" placeholder="kg" value={set.weight || ''} onChange={e => updateEx(i, 'weight', e.target.value, sIdx)} className="text-center font-mono font-black py-3 px-1 rounded-xl bg-bg2 border border-line w-full text-sm focus:border-accent outline-none" />
+                    <span className="text-dim text-center text-[10px] w-5 hidden sm:inline font-bold">kg</span>
                     <span className="text-dim text-center text-[10px] w-1 sm:hidden"></span>
-                    <div className="text-[10px] font-bold text-ink bg-bg2 rounded-lg py-2 px-1 text-center border border-line truncate">{ (num(set.reps) || 0) * (num(set.weight) || 0) }</div>
-                    <button onClick={() => removeSet(i, sIdx)} className="text-dim hover:text-red text-xs flex justify-center">×</button>
+                    <div className="text-[10px] font-black text-accent/80 bg-accent/5 rounded-xl py-3.5 px-1 text-center border border-accent/10 truncate shadow-inner">{ (num(set.reps) || 0) * (num(set.weight) || 0) }</div>
+                    <button onClick={() => removeSet(i, sIdx)} className="text-dim hover:text-red h-10 w-10 flex items-center justify-center -ml-1">
+                      <span className="text-xl leading-none">×</span>
+                    </button>
                 </div>
             ))}
-            <button onClick={() => addSet(i)} className="w-full text-center text-[10px] font-bold text-accent py-2 border border-dashed border-accent/30 rounded-lg hover:bg-accent/5">+ Satz</button>
+            <button onClick={() => addSet(i)} className="w-full text-center text-[11px] font-black uppercase tracking-widest text-accent py-4 border-2 border-dashed border-accent/20 rounded-2xl hover:bg-accent/5 active:scale-[0.98] transition-all">+ Satz hinzufügen</button>
         </div>
       )}
 

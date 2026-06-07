@@ -20,14 +20,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Node.js Backend + React Frontend. Logging, Visualisierung, Export.
 Wird von **fitness-dev-coding-agent** gebaut.
 
-### 2. catalog/fitness_agent/ — das Tool-Set für AI-Agenten
+### 2. catalog/fitness_agent/ — Python Tool-Set + HTTP-Server (:9120)
 Python-Paket das Claude oder Gemini als Tool nutzen um den Katalog zu erweitern.
-**Kein eigenständiger Agent** — ein Tool-Set das von einem AI-Agenten aufgerufen wird.
+**Läuft auch als eigenständiger HTTP-Server (:9120)** — `fitness-runtime.mjs` ruft ihn via HTTP auf.
 
 ```
 AI Agent (Claude / Gemini)
     ↓ ruft auf
-catalog/fitness_agent/           Python Tool-Set
+catalog/fitness_agent/           Python Tool-Set + HTTP-Server (:9120)
     ├── resolve_query()          Exercise-Name → canonical_id
     ├── teach_exercise()         Anatomie-Lesson aus YAML rendern
     ├── log_training_entry()     Eintrag in SQLite schreiben
@@ -36,10 +36,13 @@ catalog/fitness_agent/           Python Tool-Set
     ├── build_coach_sheet()      Coaching-Daten strukturiert aufbereiten
     └── map_wger()               Exercise ↔ wger_id zuordnen
     ↓ schreibt in
-catalog/anatomy_teaching/*.yml   Anatomie-YAML (Ursprung, Ansatz, Innervation)
-catalog/exercises/*.yml          Exercise-Definitionen
+catalog/kb/anatomy_teaching/*.yml  Anatomie-YAML (Ursprung, Ansatz, Innervation)
+catalog/kb/exercises/*.yml         Exercise-Definitionen
 ~/.aos/fitness/sessions/training_history.sqlite
 ```
+
+Server starten: `PYTHONPATH=catalog python3 -m fitness_agent.server` (Port 9120)
+Fällt der Agent aus, gibt `fitness-runtime.mjs` Fallback-Daten zurück.
 
 **Wozu:** wger liefert Übungsname + grobe Muskelgruppe. Was fehlt:
 - Anatomie-Detail (Ursprung, Ansatz, Innervation, Funktion) — Ausbildungs-Level
@@ -51,7 +54,7 @@ catalog/exercises/*.yml          Exercise-Definitionen
 ```
 audit --topic anatomy   → findet fehlende anatomy_teaching YAMLs
 Gemini generiert YAML   → aus Ausbildungswissen (Grosser, Weineck, Gottlob)
-write → catalog/anatomy_teaching/<exercise_id>.yml
+write → catalog/kb/anatomy_teaching/<exercise_id>.yml
 audit again             → validiert Struktur
 teach_exercise()        → UI kann Anatomie-Layer zeigen
 ```
@@ -110,23 +113,39 @@ Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach
 
 ## Frontend (React + Vite)
 
-**src/views/**:
-- Dashboard.jsx — Überblick + heute's Plan
-- Session.jsx — Workout-Logging (mit Live-BodyMap für done exercises)
-- Journal.jsx — Text-Notizen
-- Muscles.jsx — Body-Map + Coverage-Analyse
-- Learn.jsx — Anatomie-Lehre
-- WeeklyReview.jsx — Wochenreport
+**src/views/** (jede View ist ein Unterverzeichnis mit `index.jsx` + Sub-Komponenten):
+- Dashboard/ — Überblick + heute's Plan + Activity-Heatmap
+- Session/ — Workout-Logging (mit Live-BodyMap für done exercises)
+- Journal/ — Text-Notizen
+- Muscles/ — Body-Map + Coverage-Analyse
+- Learn/ — Anatomie-Lehre (aus catalog/kb/anatomy_teaching/)
+- WeeklyReview/ — Wochenrückblick + Charts
+- Habits/ — HabitSync-Integration
+- Settings/ — User-Prefs (Theme, Split, HIT-Mode, Gym Mode)
+- Inbox/ — Neue Übungen prüfen + genehmigen (`/fitness/inbox`)
 
 **src/components/**:
-- ExerciseSearch.jsx — Search lokal + wger + yuhonas
-- BodyMap.jsx — react-body-highlighter (Muskelabdeckung, anterior + posterior)
-- PlanBuilder.jsx — Trainingsplanung
-- HabitWidget.jsx — HabitSync-Integration
+- `layout/` — Sidebar, MobileNav, MobileHeader
+- `common/` — ErrorBoundary, UserProfile
+- `dashboard/` — Dashboard-spezifische Komponenten (ActivityHeatmap, etc.)
+- ExerciseSearch.jsx, BodyMap.jsx, PlanBuilder.jsx, HabitWidget.jsx u.a. (flat, shared)
+
+**src/lib/db/** — Dual DB-Layer:
+- `local/` — API-Layer für lokalen Node-Server (sessions, journal, habits, kb, ...)
+- `firebase/` — API-Layer für Firestore (gleiche Datei-Struktur)
+- `@db` Vite-Alias zeigt auf `src/db.local.js` (lokal) oder `src/db.firebase.js` (PWA-Build)
 
 Port 5902 (dev), Proxy zu Backend API-Routen.
 
-**BodyMap in Session.jsx:** Zeigt nur Muskeln von Exercises mit `done: true`. Kein Preview, kein Plan — nur was bereits abgehakt ist.
+**BodyMap in Session:** Zeigt nur Muskeln von Exercises mit `done: true`. Kein Preview, kein Plan — nur was bereits abgehakt ist.
+
+**Swipe-Navigation** (Mobile): Links/Rechts wischen wechselt zwischen Views (minSwipeDistance: 70px).
+
+**Gym Mode**: `layoutScale` (50–150%) skaliert `document.documentElement.fontSize` — für große Gym-Displays.
+
+**Zwei Build-Modi:**
+- Default (lokal/Coach): `@db` → `src/db.local.js`, `__IS_COACH__ = true`
+- PWA (Firebase): `cd pwa && npm run build` — eigenes package.json, `@db` → `src/db.firebase.js`, nutzt `src/` via `@src` Alias
 
 ---
 
@@ -136,23 +155,25 @@ Port 5902 (dev), Proxy zu Backend API-Routen.
 ~/fitness-dev/catalog/
 ├─ config.yml
 ├─ data_source_priority.yml
-├─ exercises/
-│  ├─ chest.yml, back.yml, ...     — Exercise-Definitionen (canonical IDs)
-├─ anatomy_teaching/               — Anatomie-YAML (vom AI-Agent befüllt)
-│  ├─ barbell_row.yml, ...         — Ursprung, Ansatz, Innervation, Funktion
-├─ maps/
-│  ├─ aliases.yml                  — Freie Eingaben → canonical_id
-│  ├─ wger_mapping.yml             — custom_id ↔ wger_id
-│  └─ external_db_mapping.yml      — custom_id ↔ yuhonas_id
-├─ muscles/
-│  ├─ muscles.yml                  — Muskel-Taxonomie
-│  ├─ muscle_coverage_rules.yml    — Gewichtungen (primary/secondary/stabilizer)
-│  └─ body_highlighter_bridge.yml  — Muskeln → visuelle Körperregionen (enabled: false)
-├─ rules/
-│  ├─ program_rules.yml
-│  ├─ progression_rules.yml
-│  └─ safety_rules.yml
-└─ fitness_agent/                  — Python Tool-Set für AI-Agenten (siehe oben)
+├─ kb/                             — Knowledge Base (eigentlicher SOT-Ordner)
+│  ├─ exercises/
+│  │  ├─ chest.yml, back.yml, ...  — Exercise-Definitionen (canonical IDs)
+│  ├─ anatomy_teaching/            — Anatomie-YAML (vom AI-Agent befüllt, ~28 Dateien)
+│  │  ├─ barbell_row.yml, ...      — Ursprung, Ansatz, Innervation, Funktion
+│  ├─ maps/
+│  │  ├─ aliases.yml               — Freie Eingaben → canonical_id
+│  │  ├─ wger_mapping.yml          — custom_id ↔ wger_id
+│  │  └─ external_db_mapping.yml   — custom_id ↔ yuhonas_id
+│  ├─ muscles/
+│  │  ├─ muscles.yml               — Muskel-Taxonomie
+│  │  ├─ muscle_coverage_rules.yml — Gewichtungen (primary/secondary/stabilizer)
+│  │  └─ body_highlighter_bridge.yml — Muskeln → visuelle Körperregionen (enabled: false)
+│  └─ rules/
+│     ├─ program_rules.yml
+│     ├─ progression_rules.yml
+│     └─ safety_rules.yml
+├─ fitness_agent/                  — Python Tool-Set + Server (siehe oben)
+└─ tests/                          — Pytest-Suite (resolver, coverage, planner, teaching, weekly)
 ```
 
 ---
@@ -177,6 +198,13 @@ Port 5902 (dev), Proxy zu Backend API-Routen.
 | `npm run ui:dev` | Nur Vite DevServer (Port 5902) |
 | `npm run build` | Production-Build in `dist/` |
 | `npm run build:catalog` | Katalog → ~/.aos/fitness/workouts/catalog.json |
+| `./fitnessctl start` | API (:9100) + fitness_agent (:9120) starten |
+| `./fitnessctl status` | Status-Übersicht aller Services (gum-Tabelle) |
+| `./fitnessctl kb-sync` | catalog/kb → Firestore pushen |
+| `./fitnessctl session today` | Heutige Session anzeigen |
+| `./fitnessctl coverage [DAYS]` | Muskelabdeckung der letzten N Tage |
+| `cd pwa && npm run dev` | Firebase PWA Dev-Server |
+| `cd pwa && npm run deploy` | Firebase PWA bauen + deployen |
 
 ---
 
@@ -238,7 +266,12 @@ Port 5902 (dev), Proxy zu Backend API-Routen.
 
 ## Testing
 
-Kein strukturierter Test-Suite. Manuelle Tests über Web-UI:
+**Python (catalog/fitness_agent):** Pytest-Suite in `catalog/tests/` — deckt resolver, coverage, planner, teaching, weekly, obsidian, wger ab.
+```bash
+cd ~/fitness-dev && python3 -m pytest catalog/tests/
+```
+
+**Node/Frontend:** Kein strukturierter Test-Suite. Manuelle Tests über Web-UI:
 - Session-Logging auf `/session`-View testen
 - Exercise-Suche mit `/exercises/search` validieren
 - Coverage-Daten unter `/coverage/detailed` prüfen
@@ -263,26 +296,58 @@ Kein strukturierter Test-Suite. Manuelle Tests über Web-UI:
 2. **User loggt Sessions** — über Session-View, dual-write in JSON + SQLite
 3. **AI Agent erweitert Katalog** — nutzt catalog/fitness_agent/ Tools:
    - `audit anatomy` → findet fehlende Übungen
-   - Gemini generiert YAML → catalog/anatomy_teaching/
+   - Gemini generiert YAML → catalog/kb/anatomy_teaching/
    - `map-wger` → verknüpft Übungen mit wger-IDs
 4. **fitness-dev zeigt es** — Anatomie-Layer, Coverage-Analyse, BodyMap
 5. **Loop** — mehr Logs → bessere Coverage-Analyse → bessere Vorschläge
 
 ---
 
+## anatomy-kb (verwandtes Repo: ~/anatomy-kb, :9200)
+
+Separates Projekt, aber direkt mit fitness-dev verknüpft. Muskel-Anatomie-Layer der Ausbildung.
+
+```
+anatomy-kb/muscles/*.yml       — Ein File pro Muskel (origin, insertion, innervation, function)
+anatomy-kb/catalog-index.json  — Muscle Registry (wger_id als Anker)
+anatomy-kb/server.py           — aiohttp Server (:9200)
+```
+
+**Daten-Stack:**
+```
+wger (:8000) + yuhonas
+    ↓
+catalog/kb/exercises/          — Base-Layer (name, wger_id, muscle_roles)
+    ↓
+catalog/kb/anatomy_teaching/   — Teaching-Layer (joint_actions, errors, cues, quiz)
+    ↑ push_to_teaching()
+anatomy-kb/muscles/            — Muskel-Layer (origin, insertion, innervation)
+    ↑ Gemini-Enrichment aus Ausbildungswissen
+```
+
+---
+
 ## Status
 
 - ✅ Backend + API (Node.js, Port 9100)
-- ✅ Frontend Views (Dashboard, Session, Journal, Muscles, Learn, Weekly)
+- ✅ fitness_agent Server (:9120, aiohttp)
+- ✅ Frontend Views (Dashboard, Session, Journal, Muscles, Learn, Weekly, Habits, Settings, Inbox)
+- ✅ Swipe-Navigation + Gym Mode (layout scaling)
+- ✅ Shared src/ für lokal + PWA (via @src Alias)
+- ✅ Dual DB-Layer (src/lib/db/local/ + src/lib/db/firebase/)
 - ✅ wger Integration (vollständig als Backend)
 - ✅ yuhonas Integration (Bilder, Varianten)
-- ✅ Katalog-Struktur (Exercises, Anatomy Teaching, Rules, Maps)
+- ✅ Katalog-Struktur in catalog/kb/ (Exercises, Anatomy Teaching, Rules, Maps)
+- ✅ Pytest-Suite (catalog/tests/)
 - ✅ Session dual-write (JSON + SQLite via better-sqlite3)
 - ✅ BodyMap in Session-View (nur done exercises)
 - ✅ Gmail-Pipeline (bin/fitness-mail, Fitbit-Daten)
 - ✅ Firestore Sync (`/firestore/status` + `/firestore/sync`, firebase-admin, Creds: `~/.env/firebase-fitness.json`)
 - ✅ PWA Offline-Unterstützung (SW + IndexedDB offline-queue)
+- ✅ pwa/ Unterpaket (Firebase PWA, eigenes package.json)
+- ✅ anatomy-kb Integration (~/anatomy-kb, :9200)
 - ⏳ AI Agent Workflow (Gemini → anatomy_teaching YAML-Generierung)
 - ⏳ body_highlighter_bridge.yml enabled: true (granulare Muskel-Visualisierung)
 - ⏳ Coverage-Granularität (primary/secondary/stabilizer)
-- ⏳ Anatomie-Lehre für alle Übungen
+- ⏳ Anatomie-Lehre für alle Übungen (~28 von ~50+ im Katalog)
+- ⏳ npm workspaces (root + pwa/ + arena/ als Workspace-Pakete)

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getWeeklyReport, getSettings, api } from '../../db.js';
+import { getWeeklyReport, getSettings, api } from '@db';
 
 import ReviewHeader from './ReviewHeader';
 import ReviewOverview from './ReviewOverview';
@@ -45,7 +45,7 @@ export default function WeeklyReview({ onNavigate, onInspectExercise }) {
   const missingRegions = data?.missing_regions || [];
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-32">
       <ReviewHeader 
         week={week} 
         setWeek={setWeek} 

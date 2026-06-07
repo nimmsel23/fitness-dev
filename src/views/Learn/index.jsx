@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Brain, CheckCircle, RotateCcw, ChevronRight } from "lucide-react";
 import { api } from "../../api.js"; // Local API
-import { getAllExercises, getAnatomy, getMuscle } from "../../db.js";
+import { getAllExercises, getAnatomy, getMuscle } from "@db";
 
 import ExerciseLibrary from "./ExerciseLibrary";
 import AnatDetail from "./AnatDetail";

@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { 
   getSession, getRecentSessions, getPlan, getLatestSession, 
   getMuscleCoverage, exportCsv, getAllExercises 
-} from "../../db.js";
-import { localToday } from "../../lib/utils.js";
+} from "@db";
+import { localToday } from "@utils";
 import HabitWidget from "../../components/HabitWidget.jsx";
 import WeightChart from "../../components/WeightChart.jsx";
 
@@ -77,7 +77,7 @@ export default function Dashboard({ onNavigate }) {
   }
 
   return (
-    <div className="pb-20">
+    <div className="pb-32">
       <DashboardHeader onExport={handleExport} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">

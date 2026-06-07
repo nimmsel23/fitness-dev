@@ -17,27 +17,31 @@ export default function DateHeader({
         </div>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-4 -mx-2 px-2 hide-scrollbar">
+      <div className="flex gap-3 overflow-x-auto pb-4 -mx-4 px-4 hide-scrollbar scroll-smooth snap-x">
         {rollingDays.map((d) => {
           const sess = recentSessions[d];
           const done = !!(sess?.block || sess?.activity);
           const isSelected = d === date;
           const color = done ? blockColor(sess.block, sess.activity) : null;
-          const dayName = DAY_LABELS[new Date(d).getDay()];
+          const dateObj = new Date(d);
+          const dayName = DAY_LABELS[dateObj.getDay()];
+          const isToday = d === localToday;
 
           return (
             <button key={d} onClick={() => setDate(d)}
-              className="flex flex-col items-center gap-1.5 group shrink-0 w-10">
-              <div className={`w-full aspect-square rounded-xl flex items-center justify-center text-[10px] font-bold transition-all border-2 ${isSelected ? 'border-accent shadow-lg shadow-accent/20 scale-105' : 'border-transparent'}`}
+              className="flex flex-col items-center gap-2 group shrink-0 w-12 snap-center">
+              <div className={`w-full aspect-square rounded-[18px] flex items-center justify-center text-xs font-black transition-all border-2 relative ${isSelected ? 'border-accent shadow-xl shadow-accent/20 scale-110 z-10' : 'border-line/20'}`}
                 style={{ 
-                  background: isSelected ? 'var(--accent)' : done ? (color + '22') : 'var(--bg2)',
+                  background: isSelected ? 'var(--accent)' : done ? (color + '15') : 'var(--bg2)',
                   color: isSelected ? '#000' : done ? color : 'var(--dim)'
                 }}>
-                {done ? '✓' : '·'}
+                {done ? '✓' : d.split('-')[2]}
+                {isToday && !isSelected && (
+                  <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-accent rounded-full border-2 border-[var(--card)]" />
+                )}
               </div>
-              <div className="flex flex-col items-center">
-                <span className={`text-[8px] font-bold uppercase tracking-tighter ${isSelected ? 'text-accent' : 'opacity-40'}`}>{dayName}</span>
-                <span className={`text-[9px] font-black ${isSelected ? 'text-accent' : 'opacity-20'}`}>{d.split('-')[2]}</span>
+              <div className="flex flex-col items-center gap-0.5">
+                <span className={`text-[8px] font-black uppercase tracking-[0.1em] ${isSelected ? 'text-accent' : 'opacity-40'}`}>{dayName}</span>
               </div>
             </button>
           )

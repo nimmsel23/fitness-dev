@@ -46,6 +46,54 @@ export default function App() {
   const [sessionDate, setSessionDate]   = useState(null)
   const [sessionDraft, setSessionDraft] = useState(null)
   const [inspectorExercise, setInspectorExercise] = useState(null)
+  const [layoutScale, setLayoutScale] = useState(() => parseInt(localStorage.getItem('fitness-layoutScale') || '100', 10));
+
+  // Swipe Navigation Logic
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const minSwipeDistance = 70;
+
+  useEffect(() => {
+    document.documentElement.style.fontSize = `${layoutScale}%`;
+  }, [layoutScale]);
+
+  useEffect(() => {
+    const onTouchStart = (e) => {
+      setTouchEnd(null);
+      setTouchStart(e.targetTouches[0].clientX);
+    };
+    const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+    const onTouchEnd = () => {
+      if (!touchStart || !touchEnd) return;
+      const distance = touchStart - touchEnd;
+      const isLeftSwipe = distance > minSwipeDistance;
+      const isRightSwipe = distance < -minSwipeDistance;
+      
+      if (isLeftSwipe || isRightSwipe) {
+        const items = NAV_ITEMS;
+        const currentIndex = items.findIndex(i => i.id === tab);
+        if (isLeftSwipe && currentIndex < items.length - 1) {
+          navigate(items[currentIndex + 1].id);
+        } else if (isRightSwipe && currentIndex > 0) {
+          navigate(items[currentIndex - 1].id);
+        }
+      }
+    };
+
+    const main = document.querySelector('main');
+    if (main) {
+      main.addEventListener('touchstart', onTouchStart);
+      main.addEventListener('touchmove', onTouchMove);
+      main.addEventListener('touchend', onTouchEnd);
+    }
+    return () => {
+      if (main) {
+        main.removeEventListener('touchstart', onTouchStart);
+        main.removeEventListener('touchmove', onTouchMove);
+        main.removeEventListener('touchend', onTouchEnd);
+      }
+    };
+  }, [touchStart, touchEnd, tab]);
 
   // Persistence Effects
   useEffect(() => { localStorage.setItem('fitness-hitMode', hitMode) }, [hitMode]);
@@ -61,6 +109,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem('fitness-theme-mode', themeMode) }, [themeMode]);
   useEffect(() => { localStorage.setItem('fitness-circ-dark', circDark) }, [circDark]);
   useEffect(() => { localStorage.setItem('fitness-circ-light', circLight) }, [circLight]);
+  useEffect(() => { localStorage.setItem('fitness-layoutScale', layoutScale) }, [layoutScale]);
 
   // Theme Logic from PWA
   useEffect(() => {
@@ -127,7 +176,7 @@ export default function App() {
         </Sidebar>
 
         <div className="flex-1 lg:ml-[280px]">
-          <MobileHeader navigate={navigate} />
+          <MobileHeader navigate={navigate} tab={tab} />
 
           <main className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto">
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -142,6 +191,7 @@ export default function App() {
                        user={user}
                        hitMode={hitMode} setHitMode={setHitMode}
                        planMode={planMode} setPlanMode={setPlanMode}
+                       layoutScale={layoutScale} setLayoutScale={setLayoutScale}
                        gender={gender} setGender={setGender}
                        split={split} setSplit={setSplit}
                        cycleLength={cycleLength} setCycleLength={setCycleLength}

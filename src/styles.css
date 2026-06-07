@@ -11,10 +11,10 @@
  * Color definitions for themes start from `[data-theme="..."]` blocks.
  */
 :root {
-  /* Structural Variables */
-  --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
+  /* Structural Variables - Using rem for layout scaling parity */
+  --radius-sm: 0.5rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
   --scrollbar-width: 6px;
   --scrollbar-radius: 3px;
   --glass-border: rgba(255,255,255,0.05); /* Global glass border */

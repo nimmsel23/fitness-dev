@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Brain, LayoutGrid, User } from "lucide-react";
-import { getSessionHistory, getAllExercises, getMuscle } from "../../db.js";
+import { getSessionHistory, getAllExercises, getMuscle } from "@db";
 
 import MuscleHeader from "./MuscleHeader";
 import MuscleAnalysis from "./MuscleAnalysis";
@@ -142,7 +142,7 @@ export default function Muscles({ hitMode, gender }) {
   }, [days]);
 
   return (
-    <div className="pb-20">
+    <div className="pb-32">
       <MuscleHeader 
         hitMode={hitMode} 
         days={days} 

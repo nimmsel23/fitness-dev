@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { 
   getSession, saveSession, getSessionHistory, 
   parseQuick, getExercise, sendToInbox, api, getPlan
-} from '../../db.js';
-import { localToday } from '../../lib/utils.js';
+} from '@db';
+import { localToday } from '@utils';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
 
 import { Save, Zap } from 'lucide-react';
@@ -249,7 +249,7 @@ export default function Session({ initialDate, hitMode, planMode }) {
   }
 
   return (
-    <div className="pb-20">
+    <div className="pb-32">
       <DateHeader 
         date={date} 
         setDate={setDate} 

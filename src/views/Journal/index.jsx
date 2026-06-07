@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { getJournal, saveJournal, updateJournal, getAllHabitJournalsForDate, getHabits, getSession } from "../../db.js";
-import { localToday } from "../../lib/utils.js";
+import { getJournal, saveJournal, updateJournal, getAllHabitJournalsForDate, getHabits, getSession } from "@db";
+import { localToday } from "@utils";
 import { Book } from "lucide-react";
 
 import JournalHeader from "./JournalHeader";
@@ -108,7 +108,7 @@ export default function Journal() {
   };
 
   return (
-    <div className="pb-20 max-w-5xl mx-auto px-2">
+    <div className="pb-32 max-w-5xl mx-auto px-2">
       <JournalHeader 
         date={date} 
         setDate={setDate} 
