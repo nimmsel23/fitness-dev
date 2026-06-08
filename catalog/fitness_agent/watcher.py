@@ -15,6 +15,7 @@ from watchdog.events import FileSystemEventHandler, FileCreatedEvent
 
 from .paths import DATA_DIR, runtime_root
 from .kb_sync import run_kb_sync
+from .resolver import resolve_query, find_by_id, build_exercise_index
 from .rich_utils import setup_logging
 
 # --- Gemini API Logic ---
@@ -121,6 +122,12 @@ def process_inbox_file(file_path: Path, api_key: str | None):
             file_path.unlink()
             return
 
+        resolution = resolve_query(name)
+        if resolution.matched and resolution.confidence == "high":
+            logger.info(f"Exercise already in catalog ({resolution.canonical_id}), skipping: {name}")
+            file_path.unlink()
+            return
+
         logger.info(f"Enriching NEW exercise: {name}")
         
         enriched_data = None
@@ -140,7 +147,6 @@ def process_inbox_file_virtual(ex_id: str, display_name: str, api_key: str):
     if target_file.exists():
         return
 
-    from .resolver import find_by_id, build_exercise_index
     records = build_exercise_index()
     record = find_by_id(ex_id, records)
     existing_data = None
@@ -229,7 +235,6 @@ def run_watcher():
                         top_unreviewed = get_top_unreviewed_exercises(limit=3)
                         for ex_id, count in top_unreviewed:
                             logger.info(f"Proactively refining popular unreviewed exercise: {ex_id} (used {count} times)")
-                            from .resolver import resolve_query
                             res = resolve_query(ex_id)
                             if res.matched:
                                 process_inbox_file_virtual(res.canonical_id, res.display_name, api_key)
