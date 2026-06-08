@@ -351,3 +351,35 @@ anatomy-kb/muscles/            — Muskel-Layer (origin, insertion, innervation)
 - ⏳ Coverage-Granularität (primary/secondary/stabilizer)
 - ⏳ Anatomie-Lehre für alle Übungen (~28 von ~50+ im Katalog)
 - ⏳ npm workspaces (root + pwa/ + arena/ als Workspace-Pakete)
+
+---
+
+## Code-Review 2026-06-07: catalog/fitness_agent
+
+### Kritische Bugs (sofort fixen)
+
+**server.py** — `import yaml` fehlt (wird in `handle_inbox_approve` auf Zeile ~289 genutzt). Crash beim `/inbox/{id}/approve` Endpoint. Außerdem `from loguru import logger` fehlt in server.py (verwendet auf Zeilen ~309, ~314).
+
+**kb_sync.py** — `log_err()` ist undefiniert (Zeile ~178). Sollte `logger.error()` sein. Crash beim KB-Sync.
+
+**server.py `handle_export`** — `data['query']`, `data['plan']` etc. ohne `.get()` → `KeyError` wenn Client-Body unvollständig. Alle `data[key]`-Zugriffe auf `data.get(key)` umstellen.
+
+### Duplikationen (medium, aufräumen)
+
+- `normalize_text()` ist identisch in `resolver.py` und `wger.py` definiert → in `yaml_utils.py` oder eigenes `utils.py` zentralisieren.
+- `load_runtime_config()` identisch in `wger.py` und `obsidian.py` → zentral in `paths.py`.
+- `find_exercise()` / `find_by_id()` ähnliche Logik in `coach_sheet.py`, `obsidian.py`, `wger.py`.
+- `load_muscle_taxonomy()` doppelt in `audit.py` und `coverage.py`.
+- `format_list()` doppelt in `obsidian.py` und `coach_sheet.py`.
+
+### Architektur-Beobachtungen
+
+- Modul-Aufteilung insgesamt sauber: Server, CLI, Tools klar getrennt.
+- `auditor.py` vs `audit.py`: `auditor.py` ist Writer (Bericht erstellen), `audit.py` ist CLI-Command. Trennung macht Sinn.
+- `ingestor.py` wird nur von `watcher.py` genutzt — kein toter Code.
+- Lokaler Import in `watcher.py` in while-Schleife (Zeile ~232): Anti-Pattern, funktioniert aber.
+- `history.py` hat keinen `UNIQUE`-Constraint auf `training_history` — parallele Schreiber könnten Duplikate erzeugen. `INSERT OR IGNORE` prüfen.
+
+### HTTP-Endpoint-Status (server.py :9120)
+
+Alle Endpoints bis auf `POST /export/{kind}` und `POST /inbox/{id}/approve` sind fehlerfrei. Die beiden sind durch obige Bugs betroffen.

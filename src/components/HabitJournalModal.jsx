@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, Save, Target, Sparkles } from "lucide-react";
-import { getHabitJournal, saveHabitJournal } from "../db.js";
+import { getHabitJournal, saveHabitJournal } from "@db";
 
 export default function HabitJournalModal({ isOpen, onClose, habit, date }) {
   const [text, setText] = useState("");

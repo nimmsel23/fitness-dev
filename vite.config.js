@@ -14,6 +14,7 @@ export default defineConfig({
       '@src': resolve(__dirname, './src'),
       '@db': resolve(__dirname, './src/db.js'),
       '@utils': resolve(__dirname, './src/lib/utils.js'),
+      '@aliase': resolve(__dirname, './catalog/kb/maps/aliases.yml'),
     },
   },
   server: {

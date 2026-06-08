@@ -1,4 +1,4 @@
-import * as db from "./db";
+import * as db from "@db";
 
 export const api = db.api;
 export const localToday = db.localToday;

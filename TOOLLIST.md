@@ -13,6 +13,8 @@ This document provides a comprehensive overview of the primary tools, libraries,
 | **Halo** | UX | Terminal spinners | Elegant feedback for asynchronous operations |
 | **Watchdog** | Automation | File system monitoring | Event-driven reactions to file changes |
 | **Gum** | Shell UX | Interactive shell scripts | Interactive menus and glamorous scripts |
+| **Rapidfuzz** | NLP | Fuzzy string matching | Smart exercise and alias resolution |
+| **Wasabi** | CLI UX | Lightweight console printing | Fast, colored console output for scripts |
 
 ---
 
