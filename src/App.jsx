@@ -1,5 +1,5 @@
-import { useState, useEffect, Component } from 'react'
-import { Activity, BarChart3, BookOpen, Dumbbell, Settings2, Brain, Target, Sparkles, User, RefreshCw } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { RefreshCw } from 'lucide-react'
 import Dashboard from './views/Dashboard/index.jsx'
 import Session from './views/Session/index.jsx'
 import Journal from './views/Journal/index.jsx'
@@ -11,7 +11,7 @@ import ExerciseInsightModal from './components/ExerciseInsightModal.jsx'
 import { api } from './api.js'
 
 import { NAV_ITEMS, VALID_TABS } from './constants/NavigationItems.js'
-import { THEMES, DARK_THEMES, LIGHT_THEMES } from './constants/Themes.js'
+import { THEMES } from './constants/Themes.js'
 import Sidebar from './components/layout/Sidebar.jsx'
 import MobileNav from './components/layout/MobileNav.jsx'
 import MobileHeader from './components/layout/MobileHeader.jsx'
@@ -40,9 +40,6 @@ export default function App() {
   const [split, setSplit] = useState(() => localStorage.getItem('fitness-split') || 'PPL');
   const [cycleLength, setCycleLength] = useState(() => parseInt(localStorage.getItem('fitness-cycleLength') || '4', 10));
   const [defaultLocation, setDefaultLocation] = useState(() => localStorage.getItem('fitness-defaultLocation') || 'Home');
-  const [age, setAge] = useState(() => parseInt(localStorage.getItem('fitness-age') || '30', 10));
-  const [weightKg, setWeightKg] = useState(() => parseFloat(localStorage.getItem('fitness-weightKg') || '80', 10));
-  const [freqPerWeek, setFreqPerWeek] = useState(() => parseInt(localStorage.getItem('fitness-freqPerWeek') || '4', 10));
   const [sessionDate, setSessionDate]   = useState(null)
   const [sessionDraft, setSessionDraft] = useState(null)
   const [inspectorExercise, setInspectorExercise] = useState(null)
@@ -102,9 +99,6 @@ export default function App() {
   useEffect(() => { localStorage.setItem('fitness-split', split) }, [split]);
   useEffect(() => { localStorage.setItem('fitness-cycleLength', cycleLength) }, [cycleLength]);
   useEffect(() => { localStorage.setItem('fitness-defaultLocation', defaultLocation) }, [defaultLocation]);
-  useEffect(() => { localStorage.setItem('fitness-age', age) }, [age]);
-  useEffect(() => { localStorage.setItem('fitness-weightKg', weightKg) }, [weightKg]);
-  useEffect(() => { localStorage.setItem('fitness-freqPerWeek', freqPerWeek) }, [freqPerWeek]);
   useEffect(() => { localStorage.setItem('fitness-theme', theme) }, [theme]);
   useEffect(() => { localStorage.setItem('fitness-theme-mode', themeMode) }, [themeMode]);
   useEffect(() => { localStorage.setItem('fitness-circ-dark', circDark) }, [circDark]);
@@ -137,11 +131,6 @@ export default function App() {
       window.removeEventListener('popstate', handlePopState);
     };
   }, []);
-
-  function setManualTheme(t) {
-    setModeState('manual')
-    setThemeState(t)
-  }
 
   function navigate(id) { setTab(id) }
 
@@ -188,7 +177,6 @@ export default function App() {
                   {tab === 'journal'  && <Journal />}
                   {tab === 'settings' && (
                      <Settings
-                       user={user}
                        hitMode={hitMode} setHitMode={setHitMode}
                        planMode={planMode} setPlanMode={setPlanMode}
                        layoutScale={layoutScale} setLayoutScale={setLayoutScale}
@@ -200,11 +188,6 @@ export default function App() {
                        circLight={circLight} setCircLight={setCircLight}
                        circDark={circDark} setCircDark={setCircDark}
                        themes={THEMES} theme={theme} setThemeState={setThemeState}
-                       darkThemes={DARK_THEMES} lightThemes={LIGHT_THEMES}
-                       age={age} setAge={setAge}
-                       weightKg={weightKg} setWeightKg={setWeightKg}
-                       freqPerWeek={freqPerWeek} setFreqPerWeek={setFreqPerWeek}
-                       DAY_START_PROP={DAY_START} DAY_END_PROP={DAY_END}
                      />
                   )}
               </div>

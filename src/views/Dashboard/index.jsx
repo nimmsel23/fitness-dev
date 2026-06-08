@@ -13,7 +13,11 @@ import MuscleStatus from "@src/components/dashboard/MuscleStatus";
 import SessionStatus from "@src/components/dashboard/SessionStatus";
 import { getRolling10Days } from "@src/components/dashboard/utils";
 
-export default function Dashboard({ onNavigate }) {
+export default function Dashboard({ onOpenSession, onInspectExercise, onOpenReview }) {
+  function onNavigate(tab, date) {
+    if (tab === 'session') onOpenSession?.(date || null);
+    else if (tab === 'review') onOpenReview?.();
+  }
   const [todaySession, setTodaySession] = useState(null);
   const [recent, setRecent] = useState([]);
   const [enrichedRecent, setEnrichedRecent] = useState([]);

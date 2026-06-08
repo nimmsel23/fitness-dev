@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getWeeklyReport, getSettings, api } from '@db';
+import { getWeeklyReport, api } from '@db';
 
 import ReviewHeader from './ReviewHeader';
 import ReviewOverview from './ReviewOverview';
@@ -8,16 +8,15 @@ import ReviewMuscleImpact from './ReviewMuscleImpact';
 import ReviewSessionList from './ReviewSessionList';
 import ReviewTopExercises from './ReviewTopExercises';
 
-export default function WeeklyReview({ onNavigate, onInspectExercise }) {
+export default function WeeklyReview({ onOpenSession, onInspectExercise, hitMode = false }) {
   const [week, setWeek] = useState('current');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [hitMode, setHitMode] = useState(false);
   const [toast, setToast] = useState('');
 
-  useEffect(() => {
-    getSettings().then(s => setHitMode(!!s.hitMode));
-  }, []);
+  function onNavigate(tab, date) {
+    if (tab === 'session') onOpenSession?.(date || null);
+  }
 
   useEffect(() => {
     setLoading(true);

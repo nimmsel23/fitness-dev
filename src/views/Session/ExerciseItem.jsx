@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { getProgressTrend } from '@db';
 import { num } from './utils';
 
-export default function ExerciseItem({ 
-  ex, i, updateEx, addSet, removeSet, removeEx, moveEx, 
-  isFirst, isLast, planMode, date, prev
+export default function ExerciseItem({
+  ex, i, updateEx, addSet, removeSet, removeEx, moveEx,
+  isFirst, isLast, planMode, date, prev, onInspectExercise
 }) {
   const [trend, setTrend] = useState(null);
   const isFuture = new Date(date) > new Date();
@@ -23,7 +23,12 @@ export default function ExerciseItem({
       <div className="flex justify-between items-start gap-4 mb-3">
         <div className="min-w-0 pr-4">
           <div className="font-bold text-sm leading-tight flex items-center flex-wrap gap-2">
-            {ex.name || <span className="text-dim italic">Übung</span>}
+            <span
+              onClick={() => onInspectExercise?.(ex)}
+              className={onInspectExercise ? 'cursor-pointer hover:text-accent transition-colors' : ''}
+            >
+              {ex.name || <span className="text-dim italic">Übung</span>}
+            </span>
             
             {trend && trend.status !== 'neutral' && (
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${trend.status === 'up' ? 'bg-green/10 text-green' : 'bg-red/10 text-red'}`}>

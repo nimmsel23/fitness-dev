@@ -3,11 +3,11 @@ import SectionHeader from "./SectionHeader";
 import ExerciseItem from "./ExerciseItem";
 import ExerciseSearch from "../../components/ExerciseSearch";
 
-export default function ExerciseSection({ 
-  exercises = [], hitMode, restHours, totalVolume, 
-  updateEx, addSet, removeSet, removeEx, moveEx, 
+export default function ExerciseSection({
+  exercises = [], hitMode, restHours, totalVolume,
+  updateEx, addSet, removeSet, removeEx, moveEx,
   planMode, date, addEx, quickInput, setQuickInput, addQuick,
-  prevMap = {}
+  prevMap = {}, onInspectExercise
 }) {
   const safeExercises = Array.isArray(exercises) ? exercises : [];
 
@@ -32,20 +32,21 @@ export default function ExerciseSection({
       
       <div className="space-y-3">
         {safeExercises.map((ex, idx) => (
-          <ExerciseItem 
-            key={idx} 
-            ex={ex} 
-            i={idx} 
+          <ExerciseItem
+            key={idx}
+            ex={ex}
+            i={idx}
             updateEx={updateEx}
             addSet={addSet}
             removeSet={removeSet}
-            removeEx={removeEx} 
+            removeEx={removeEx}
             moveEx={moveEx}
             isFirst={idx === 0}
             isLast={idx === safeExercises.length - 1}
             planMode={planMode}
             date={date}
             prev={prevMap[ex.name]}
+            onInspectExercise={onInspectExercise}
           />
         ))}
         {safeExercises.length === 0 && (

@@ -14,7 +14,7 @@ import ActivitySection from './ActivitySection';
 import BodyMap from '../../components/BodyMap.jsx';
 import { getRollingDays } from './utils';
 
-export default function Session({ initialDate, hitMode, planMode }) {
+export default function Session({ initialDate, initialDraft, hitMode, planMode, onInspectExercise }) {
   const [date, setDate]           = useState(initialDate || localToday());
   const [block, setBlock]         = useState('');
   const [exercises, setExercises] = useState([]);
@@ -94,8 +94,8 @@ export default function Session({ initialDate, hitMode, planMode }) {
           setHasActivity(false);
         }
       } else {
-        setBlock('');
-        setExercises([]);
+        setBlock(initialDraft?.block || '');
+        setExercises(initialDraft?.exercises || []);
         setEffort(5);
         setLocation('');
         setDuration('');
@@ -312,7 +312,7 @@ export default function Session({ initialDate, hitMode, planMode }) {
             </div>
           )}
 
-          <ExerciseSection 
+          <ExerciseSection
             exercises={exercises}
             hitMode={hitMode}
             restHours={restHours}
@@ -329,6 +329,7 @@ export default function Session({ initialDate, hitMode, planMode }) {
             setQuickInput={setQuickInput}
             addQuick={addQuick}
             prevMap={prevMap}
+            onInspectExercise={onInspectExercise}
           />
 
           <ActivitySection 
