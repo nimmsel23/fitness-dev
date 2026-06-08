@@ -1,11 +1,41 @@
 from __future__ import annotations
 
+import re
+import unicodedata
 from dataclasses import dataclass
-from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
+try:
+    from rapidfuzz import fuzz, process
+except ImportError:
+    from difflib import SequenceMatcher
+    fuzz = None
+    process = None
+
 from .loader import load_catalog_directory_yaml, load_catalog_yaml
+
+# Smart Gym Vocabulary for Normalization
+GYM_VOCAB = {
+    "kh": "kurzhantel dumbbell",
+    "lh": "langhantel barbell",
+    "sz": "sz-hantel sz-bar",
+    "db": "dumbbell kurzhantel",
+    "bb": "barbell langhantel",
+    "press": "drücken press",
+    "bench": "bankdrücken bench",
+    "incline": "schrägbank incline",
+    "decline": "negativbank decline",
+    "lat": "latzug lat-pulldown",
+    "pullup": "klimmzug pull-up",
+    "chinup": "klimmzug chin-up",
+    "row": "rudern row",
+    "curl": "curls curl",
+    "squat": "kniebeuge squat",
+    "dl": "deadlift kreuzheben",
+    "bp": "benchpress bankdrücken",
+    "ohp": "overheadpress überkopfdrücken",
+}
 
 
 @dataclass
@@ -47,7 +77,7 @@ def build_exercise_index() -> list[ExerciseRecord]:
 
 def resolve_query(query: str) -> ResolveResult:
     records = build_exercise_index()
-    normalized_query = normalize_text(query)
+    normalized_query = normalize_text(query, smart=True)
     alias_map = load_alias_map()
 
     exact = find_exact_id(query, records)
@@ -66,7 +96,8 @@ def resolve_query(query: str) -> ResolveResult:
 
     fuzzy_match, suggestions = find_fuzzy_match(normalized_query, records)
     if fuzzy_match:
-        confidence = "medium" if fuzzy_match.score >= 0.75 else "low"
+        # Rapidfuzz scores are 0-100
+        confidence = "high" if fuzzy_match.score >= 90 else ("medium" if fuzzy_match.score >= 75 else "low")
         return matched_result(query, fuzzy_match.record, "fuzzy", confidence, suggestions)
 
     return ResolveResult(
@@ -93,7 +124,7 @@ def load_alias_map() -> dict[str, str]:
     result: dict[str, str] = {}
     for alias, canonical_id in raw_aliases.items():
         if isinstance(alias, str) and isinstance(canonical_id, str):
-            result[normalize_text(alias)] = canonical_id
+            result[normalize_text(alias, smart=True)] = canonical_id
     return result
 
 
@@ -163,7 +194,7 @@ def find_by_id(exercise_id: str, records: list[ExerciseRecord]) -> ExerciseRecor
 def find_name_match(normalized_query: str, records: list[ExerciseRecord]) -> ExerciseRecord | None:
     for record in records:
         for candidate in candidate_texts(record):
-            if normalized_query == normalize_text(candidate):
+            if normalized_query == normalize_text(candidate, smart=True):
                 return record
     return None
 
@@ -175,23 +206,51 @@ class FuzzyMatch:
 
 
 def find_fuzzy_match(normalized_query: str, records: list[ExerciseRecord]) -> tuple[FuzzyMatch | None, list[dict[str, str]]]:
-    scored: list[FuzzyMatch] = []
-    for record in records:
-        best_score = 0.0
-        for candidate in candidate_texts(record):
-            score = SequenceMatcher(None, normalized_query, normalize_text(candidate)).ratio()
-            if score > best_score:
-                best_score = score
-        if best_score > 0:
-            scored.append(FuzzyMatch(record=record, score=best_score))
-    scored.sort(key=lambda item: item.score, reverse=True)
-    suggestions = suggestions_from_scored(scored[:3])
-    if not scored:
-        return None, suggestions
-    best = scored[0]
-    if best.score < 0.6:
-        return None, suggestions
-    return best, suggestions
+    if not records:
+        return None, []
+
+    # Prepare candidates: map normalized text to records
+    candidate_map: dict[str, ExerciseRecord] = {}
+    for r in records:
+        for text in candidate_texts(r):
+            norm = normalize_text(text, smart=True)
+            if norm not in candidate_map:
+                candidate_map[norm] = r
+
+    choices = list(candidate_map.keys())
+    
+    if process and fuzz:
+        # Use Rapidfuzz extract for speed and better scoring
+        # token_set_ratio is good for "kh bankdrücken" vs "bankdrücken kurzhantel"
+        results = process.extract(normalized_query, choices, scorer=fuzz.token_set_ratio, limit=5)
+        
+        if not results:
+            return None, []
+
+        scored = [FuzzyMatch(record=candidate_map[res[0]], score=res[1]) for res in results]
+        suggestions = suggestions_from_scored(scored[:3])
+        
+        best = scored[0]
+        # Threshold for matching
+        if best.score < 80:
+            return None, suggestions
+            
+        return best, suggestions
+    else:
+        # Fallback to difflib
+        from difflib import SequenceMatcher
+        scored_fallback: list[FuzzyMatch] = []
+        for norm, record in candidate_map.items():
+            score = SequenceMatcher(None, normalized_query, norm).ratio() * 100
+            scored_fallback.append(FuzzyMatch(record=record, score=score))
+        
+        scored_fallback.sort(key=lambda x: x.score, reverse=True)
+        suggestions = suggestions_from_scored(scored_fallback[:3])
+        
+        if not scored_fallback or scored_fallback[0].score < 60:
+            return None, suggestions
+            
+        return scored_fallback[0], suggestions
 
 
 def suggestions_for_unknown(normalized_query: str, records: list[ExerciseRecord]) -> list[dict[str, str]]:
@@ -245,11 +304,18 @@ def list_of_text(value: Any) -> list[str] | None:
     return items or None
 
 
-def normalize_text(text: str) -> str:
-    import re
-    import unicodedata
-
+def normalize_text(text: str, smart: bool = False) -> str:
+    if not text:
+        return ""
+        
     normalized = unicodedata.normalize("NFKD", text)
     stripped = "".join(char for char in normalized if not unicodedata.combining(char))
+    # Keep alphanumeric and spaces
     collapsed = re.sub(r"[^a-zA-Z0-9]+", " ", stripped.casefold())
-    return " ".join(collapsed.split())
+    words = collapsed.split()
+    
+    if smart:
+        # Apply Gym Vocabulary substitutions
+        words = [GYM_VOCAB.get(w, w) for w in words]
+        
+    return " ".join(words)
