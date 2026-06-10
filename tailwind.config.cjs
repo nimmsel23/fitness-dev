@@ -1,6 +1,16 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./index.html", "./src/**/*.{js,jsx}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,jsx,ts,tsx}",
+  ],
+  safelist: [
+    'lg:flex',
+    'lg:hidden',
+    'lg:ml-[280px]',
+    'justify-around',
+    'flex-col',
+  ],
   theme: {
     extend: {
       colors: {

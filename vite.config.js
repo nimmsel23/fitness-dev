@@ -5,9 +5,6 @@ import { resolve } from 'path'
 const BACKEND = 'http://localhost:9100'
 
 export default defineConfig({
-  define: {
-    __IS_COACH__: 'true',
-  },
   plugins: [react()],
   resolve: {
     alias: {

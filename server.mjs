@@ -8,7 +8,6 @@ import yaml from "js-yaml";
 import Database from "better-sqlite3";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
 import { mirrorSession, mirrorJournal, getFirestoreStatus } from "./firestore-mirror.mjs";
-import { exerciseInboxHandler } from "./pwa/routes/inbox.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR   = path.join(os.homedir(), ".aos", "fitness");
@@ -214,7 +213,6 @@ function computeCoverageAnatomy(days) {
 
 // ═════════════════════════════════════════════════════════════════════════════
 const app = new Hono();
-exerciseInboxHandler(app);
 
 app.use("*", async (c, next) => {
   c.res.headers.set("Access-Control-Allow-Origin", "*");

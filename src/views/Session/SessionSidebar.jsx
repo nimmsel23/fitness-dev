@@ -4,7 +4,8 @@ import SectionHeader from './SectionHeader';
 export default function SessionSidebar({ 
   location, setLocation, duration, setDuration, 
   hasActivity, setHasActivity, block, setBlock, 
-  effort, setEffort, notes, setNotes, onDownload 
+  effort, setEffort, notes, setNotes, onDownload,
+  onExportObsidian
 }) {
   return (
     <aside className="space-y-6">

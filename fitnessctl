@@ -104,8 +104,8 @@ cmd_stop() {
 cmd_status() {
   local api_ok=false ui_ok=false watch_ok=false agent_ok=false
   curl -fsS --max-time 2 "${API_URL}/health" >/dev/null 2>&1 && api_ok=true
-  curl -fsS --max-time 2 "http://${HOST}:${UI_PORT}" >/dev/null 2>&1 && ui_ok=true
-  curl -fsS --max-time 2 "http://${HOST}:9120/health" >/dev/null 2>&1 && agent_ok=true
+  curl -fsS --max-time 2 "http://localhost:${UI_PORT}" >/dev/null 2>&1 && ui_ok=true
+  curl -fsS --max-time 2 "http://${HOST}:9120/" >/dev/null 2>&1 && agent_ok=true
   
   local watch_pidfile="/tmp/fitness-enricher.pid"
   if [[ -f "$watch_pidfile" ]] && kill -0 "$(cat "$watch_pidfile")" 2>/dev/null; then
