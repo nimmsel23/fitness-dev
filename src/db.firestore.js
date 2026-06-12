@@ -212,6 +212,17 @@ export async function getJournal(date = todayISO()) {
   }
 }
 
+export async function getJournalHistory(limitCount = 50) {
+  const q = query(
+    collection(db, "fitness", getUid(), "journal"),
+    orderBy("date", "desc"),
+    orderBy("time", "desc"),
+    limit(limitCount)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
 export async function saveJournal(date = todayISO(), text, tags = []) {
   const ref = await addDoc(collection(db, "fitness", getUid(), "journal"), {
     date,
@@ -243,6 +254,16 @@ export async function getHabitJournalHistory(habitId) {
   );
   const snap = await getDocs(q);
   return snap.docs.map(d => d.data());
+}
+
+export async function getAllHabitJournalsHistory(limitCount = 50) {
+  const q = query(
+    collection(db, "fitness", getUid(), "habitJournals"),
+    orderBy("date", "desc"),
+    limit(limitCount)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data(), type: "habit" }));
 }
 
 export async function getAllHabitJournalsForDate(date) {

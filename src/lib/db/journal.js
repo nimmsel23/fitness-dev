@@ -10,6 +10,15 @@ export async function getJournal(date = localToday()) {
   }
 }
 
+export async function getJournalHistory(limitCount = 50) {
+  try {
+    const data = await api.get(`/journal/history?limit=${limitCount}`);
+    return data?.entries || [];
+  } catch {
+    return [];
+  }
+}
+
 export async function saveJournal(date = localToday(), text) {
   const content = String(text || "").trim();
   await api.post(`/journal?date=${date}`, { content });
@@ -30,4 +39,19 @@ export async function getAllHabitJournalsForDate(date) {
       return current ? { id: `${habitId}_${date}`, habitId, ...current, type: "habit" } : null;
     })
     .filter(Boolean);
+}
+
+export async function getAllHabitJournalsHistory(limitCount = 50) {
+  const journals = JSON.parse(localStorage.getItem("fitness-local-habit-journals") || "{}");
+  const allEntries = [];
+  
+  Object.entries(journals).forEach(([habitId, items]) => {
+    (Array.isArray(items) ? items : []).forEach(item => {
+       allEntries.push({ id: `${habitId}_${item.date}`, habitId, ...item, type: "habit" });
+    });
+  });
+  
+  return allEntries
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, limitCount);
 }
