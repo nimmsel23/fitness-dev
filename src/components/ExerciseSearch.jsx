@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Search } from 'lucide-react'
-import { api } from '../api.js'
+import { searchExercises } from '@db'
 
 const MUSCLE_COLORS = {
   'Biceps brachii':    '#a78bfa',
@@ -34,8 +34,8 @@ export default function ExerciseSearch({ onSelect, placeholder = 'Ãœbung suchenâ
     debounceRef.current = setTimeout(async () => {
       setLoading(true)
       try {
-        const data = await api.get(`/fitness/search?q=${encodeURIComponent(query)}&limit=12`)
-        setResults(data.results || [])
+        const data = await searchExercises(query, 12)
+        setResults(data?.results || [])
         setOpen(true)
       } catch { /* silent */ }
       finally { setLoading(false) }
