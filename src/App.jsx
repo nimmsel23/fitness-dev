@@ -46,6 +46,7 @@ export default function App() {
   const [layoutScale, setLayoutScale] = useState(() => parseInt(localStorage.getItem('fitness-layoutScale') || '100', 10));
   const [recentDays, setRecentDays] = useState(() => parseInt(localStorage.getItem('fitness-recentDays') || '7', 10));
   const [dashboardHighlighter, setDashboardHighlighter] = useState(() => localStorage.getItem('fitness-dashboardHighlighter') || 'body');
+  const [sidebarPinned, setSidebarPinned] = useState(() => localStorage.getItem('fitness-sidebarPinned') !== 'false');
 
   // Swipe Navigation Logic
   const [touchStart, setTouchStart] = useState(null);
@@ -108,6 +109,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem('fitness-layoutScale', layoutScale) }, [layoutScale]);
   useEffect(() => { localStorage.setItem('fitness-recentDays', recentDays) }, [recentDays]);
   useEffect(() => { localStorage.setItem('fitness-dashboardHighlighter', dashboardHighlighter) }, [dashboardHighlighter]);
+  useEffect(() => { localStorage.setItem('fitness-sidebarPinned', sidebarPinned) }, [sidebarPinned]);
 
   // Theme Logic from PWA
   useEffect(() => {
@@ -161,15 +163,15 @@ export default function App() {
       <ErrorBoundary>
         <div className="flex min-h-screen bg-[var(--bg)] text-[var(--ink)] font-sans transition-colors duration-500">
 
-        <Sidebar tab={tab} navigate={navigate}>
+        <Sidebar tab={tab} navigate={navigate} pinned={sidebarPinned} setPinned={setSidebarPinned}>
           <UserProfile user={user} subtitle={`${user.email} · localhost`} />
           <button onClick={() => window.location.reload()} className="w-full flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--dim)] bg-[var(--bg2)] rounded-xl hover:bg-white/5 transition-all">
             <RefreshCw size={14} /> Refresh
           </button>
         </Sidebar>
 
-        <div className="flex-1 lg:ml-[280px]">
-          <MobileHeader navigate={navigate} tab={tab} />
+        <div className={`flex-1 transition-all duration-300 ${sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-20'}`}>
+          <MobileHeader navigate={navigate} tab={tab} sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned} />
 
           <main className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto">
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">

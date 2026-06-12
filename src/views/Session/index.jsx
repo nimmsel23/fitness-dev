@@ -301,7 +301,7 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8 px-2">
-        <div className="order-2 lg:order-1 space-y-6">
+        <div className="order-1 lg:order-1 space-y-6">
           <SessionSidebar 
             location={location} setLocation={setLocation}
             duration={duration} setDuration={setDuration}
@@ -327,7 +327,7 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
           )}
         </div>
 
-        <main className="space-y-8 order-1 lg:order-2">
+        <main className="space-y-8 order-2 lg:order-2">
           {/* Plan hint */}
           {hint && (
             <div className="p-4 rounded-3xl bg-accent/5 border border-accent/20 flex items-center gap-4 text-sm">
