@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import os from 'node:os'
 import path from 'node:path'
 
 const AGENT_BASE = 'http://localhost:9120'
@@ -45,17 +44,24 @@ export function obsidianTargetPath() {
   return fitnessData.config?.obsidian?.export_path || ''
 }
 
+function toFrontendExercise(ex, extra = {}) {
+  if (!ex) return null
+  return {
+    ...ex,
+    id: ex.exercise_id || ex.id,
+    name: ex.display_name || ex.german || ex.name || ex.exercise_id,
+    displayName: ex.display_name || ex.name,
+    primaryMuscles: ex.primary_muscles || ex.primaryMuscles || [],
+    secondaryMuscles: ex.secondary_muscles || ex.secondaryMuscles || [],
+    source: ex.source || 'local_yaml',
+    ...extra,
+  }
+}
+
 export async function searchExercises(query, limit = 12) {
   const result = await fetchAgent(`/resolve?q=${encodeURIComponent(query)}`)
   if (result && result.matched && result.exercise) {
-    // Map to the format expected by the frontend
-    const enriched = {
-      ...result.exercise,
-      displayName: result.exercise.display_name,
-      primaryMuscles: result.exercise.primary_muscles,
-      secondaryMuscles: result.exercise.secondary_muscles,
-      lesson: result.lesson
-    }
+    const enriched = toFrontendExercise(result.exercise, { lesson: result.lesson })
     return {
       ok: true,
       source: 'local_yaml',
@@ -64,23 +70,24 @@ export async function searchExercises(query, limit = 12) {
       suggestions: result.suggestions,
     }
   }
-  
+
   // Fallback to searching the cached snapshot
   const normalized = query.toLowerCase()
   const matches = (fitnessData.exercises || [])
-    .filter(ex => 
-      ex.exercise_id.includes(normalized) || 
+    .filter(ex =>
+      (ex.exercise_id || '').includes(normalized) ||
       (ex.display_name || '').toLowerCase().includes(normalized) ||
       (ex.german || '').toLowerCase().includes(normalized)
     )
     .slice(0, limit)
-    
+    .map(ex => toFrontendExercise(ex))
+
   return {
     ok: true,
     source: 'local_yaml',
     query,
     results: matches,
-    suggestions: matches.slice(0, 3).map(m => ({ canonical_id: m.exercise_id, display_name: m.display_name })),
+    suggestions: matches.slice(0, 3).map(m => ({ canonical_id: m.id, display_name: m.name })),
   }
 }
 
