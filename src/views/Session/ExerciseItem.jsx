@@ -16,13 +16,13 @@ export default function ExerciseItem({
     }
   }, [ex.name, ex.isHIT]);
 
-  const isActuallyHIT = ex.isHIT || hitMode;
+  const isImplicitHIT = !hitMode && ex.setsArray?.length === 1 && !ex.setsArray[0].reps;
+  const isActuallyHIT = ex.isHIT || hitMode || isImplicitHIT;
 
   const handleRepsChange = (val, sIdx) => {
     const v = String(val).toUpperCase();
     if (v === 'H' || v === 'HIT') {
       updateEx(i, 'isHIT', true);
-      // We don't clear weight, just keep it.
       return;
     }
     updateEx(i, 'reps', val, sIdx);
