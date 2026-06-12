@@ -15,18 +15,10 @@ export default function ExerciseSection({
     <div>
       <div className="flex items-center justify-between">
         <SectionHeader>Übungen</SectionHeader>
-        {hitMode ? (
-          restHours !== null && (
-            <div className="text-[10px] font-bold text-accent font-mono uppercase tracking-widest bg-accent/5 px-2 py-1 rounded">
-              Rest: {restHours}h
-            </div>
-          )
-        ) : (
-          totalVolume > 0 && (
-            <div className="text-[10px] font-bold opacity-40 font-mono uppercase tracking-widest">
-              Vol: {Math.round(totalVolume).toLocaleString('de-AT')} kg
-            </div>
-          )
+        {restHours !== null && (
+          <div className="text-[10px] font-bold text-accent font-mono uppercase tracking-widest bg-accent/10 px-2.5 py-1.5 rounded-lg border border-accent/20 shadow-sm">
+            Rest: {restHours}h
+          </div>
         )}
       </div>
       
