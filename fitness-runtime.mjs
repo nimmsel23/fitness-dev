@@ -64,7 +64,7 @@ export async function searchExercises(query, limit = 12) {
     const enriched = toFrontendExercise(result.exercise, { lesson: result.lesson })
     return {
       ok: true,
-      source: 'local_yaml',
+      source: enriched.source,
       query,
       results: [enriched],
       suggestions: result.suggestions,
@@ -84,12 +84,13 @@ export async function searchExercises(query, limit = 12) {
 
   return {
     ok: true,
-    source: 'local_yaml',
+    source: matches.length > 0 ? matches[0].source : 'none',
     query,
     results: matches,
     suggestions: matches.slice(0, 3).map(m => ({ canonical_id: m.id, display_name: m.name })),
   }
 }
+
 
 export async function buildPlan(options = {}) {
   const query = new URLSearchParams(options).toString()

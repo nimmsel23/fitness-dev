@@ -43,6 +43,7 @@ class ExerciseRecord:
     exercise_id: str
     display_name: str
     source_file: str
+    source: str = "expert"
     german: str = ""
     movement_pattern: str = ""
     equipment: list[str] | None = None
@@ -134,6 +135,15 @@ def parse_exercise_document(path: Path, document: Any) -> list[ExerciseRecord]:
     exercises = document.get("exercises", [])
     if not isinstance(exercises, list):
         return []
+        
+    filename = path.name
+    if filename.startswith("unreviewed_"):
+        source_tier = "bulk"
+    elif filename.startswith("inbox_"):
+        source_tier = "inbox"
+    else:
+        source_tier = "expert"
+
     records: list[ExerciseRecord] = []
     for entry in exercises:
         if not isinstance(entry, dict):
@@ -159,6 +169,7 @@ def parse_exercise_document(path: Path, document: Any) -> list[ExerciseRecord]:
                 exercise_id=exercise_id,
                 display_name=display_name,
                 source_file=path.name,
+                source=source_tier,
                 german=german,
                 movement_pattern=movement_pattern,
                 equipment=equipment,
@@ -174,6 +185,7 @@ def parse_exercise_document(path: Path, document: Any) -> list[ExerciseRecord]:
             )
         )
     return records
+
 
 
 def find_exact_id(query: str, records: list[ExerciseRecord]) -> ExerciseRecord | None:

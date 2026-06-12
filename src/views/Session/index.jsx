@@ -174,12 +174,15 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
     }
 
     setExercises(prev => [...prev, {
+      id: ex.id || ex.exercise_id,
       name: ex.display_name || ex.name,
       primaryMuscles: primary,
       secondaryMuscles: secondary,
       setsArray: [{reps: '', weight: ''}],
       note: '', done: true, isHIT: false,
+      source: ex.source
     }]);
+
 
     if (ex.isNew) {
       sendToInbox({ name: ex.name, source: 'search_add' });

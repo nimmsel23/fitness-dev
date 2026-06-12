@@ -43,7 +43,14 @@ export default function ExerciseItem({
               {ex.name || <span className="text-dim italic">Übung</span>}
             </span>
             
+            {ex.source && ex.source !== 'expert' && (
+              <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest border transition-all ${ex.source === 'bulk' ? 'bg-bg2 text-dim/40 border-line' : 'bg-orange/5 text-orange/50 border-orange/10'}`}>
+                {ex.source === 'bulk' ? 'Bulk' : 'Inbox'}
+              </span>
+            )}
+
             {trend && trend.status !== 'neutral' && (
+
               <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${trend.status === 'up' ? 'bg-green/10 text-green' : 'bg-red/10 text-red'}`}>
                 {trend.status === 'up' ? '↗' : '↘'} {trend.change}%
               </span>

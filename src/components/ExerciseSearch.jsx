@@ -92,10 +92,16 @@ export default function ExerciseSearch({ onSelect, placeholder = 'Übung suchen�
             >
               <div className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{ex.name}</div>
               {ex.source && (
-                <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
-                  {ex.source === 'local_yaml' ? 'Local YAML' : ex.source}
+                <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-widest flex items-center gap-1.5" style={{ color: 'var(--muted)' }}>
+                  {ex.source === 'expert' && <span className="text-accent">★ Expert Catalog</span>}
+                  {ex.source === 'bulk' && <span>Bulk Library</span>}
+                  {ex.source === 'inbox' && <span className="text-orange">Inbox Staging</span>}
+                  {ex.source !== 'expert' && ex.source !== 'bulk' && ex.source !== 'inbox' && (
+                    ex.source === 'local_yaml' ? 'Local YAML' : ex.source
+                  )}
                 </div>
               )}
+
               <div className="flex flex-wrap gap-1 mt-1">
                 {(ex.primaryMuscles || []).map(m => (
                   <span key={m} className="text-[10px] px-1.5 py-0.5 rounded font-medium"
