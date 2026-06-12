@@ -103,6 +103,31 @@ export async function getWeeklyReport(selector = "current") {
 }
 
 export async function getMuscleCoverage(days = 7) {
-  const report = await getWeeklyReport("current");
-  return report.body_region_scores || {};
+  const cutoffDate = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+  const [exRes, histRes] = await Promise.all([
+    api.get('/fitness/exercises/all').catch(() => ({ exercises: [] })),
+    api.get('/session/history?limit=120').catch(() => ({ sessions: [] }))
+  ]);
+
+  const kbExercises = exRes.exercises || [];
+  const history = histRes.sessions || [];
+  const kbMap = new Map();
+  kbExercises.forEach(ex => kbMap.set((ex.display_name || ex.name || ex.exercise_id || "").toLowerCase(), ex));
+
+  const bodyRegionScores = {};
+  const sessionsInWindow = history.filter(s => s.date && s.date >= cutoffDate);
+
+  for (const sess of sessionsInWindow) {
+    for (let ex of (sess.exercises || [])) {
+      if (!ex.done) continue;
+      const exName = ex.name || ex.exercise_id || "";
+      const kbEx = kbMap.get(exName.toLowerCase());
+      const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];
+      const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
+      [...primary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; }));
+      [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
+    }
+  }
+
+  return bodyRegionScores;
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Lock } from "lucide-react";
+import { Lock, Pencil, Save, X } from "lucide-react";
 import { 
   getSession, getRecentSessions, getPlan, getLatestSession, 
   getMuscleCoverage, exportCsv, getAllExercises 
@@ -12,13 +12,29 @@ import DashboardHeader from "@src/components/dashboard/DashboardHeader";
 import ActivityHeatmap from "@src/components/dashboard/ActivityHeatmap";
 import MuscleStatus from "@src/components/dashboard/MuscleStatus";
 import SessionStatus from "@src/components/dashboard/SessionStatus";
+import DashboardWidget from "../../components/dashboard/DashboardWidget.jsx";
 import { getRolling10Days } from "@src/components/dashboard/utils";
 
-export default function Dashboard({ onOpenSession, onInspectExercise, onOpenReview, recentDays = 7, dashboardHighlighter = 'body' }) {
-  function onNavigate(tab, date) {
-    if (tab === 'session') onOpenSession?.(date || null);
-    else if (tab === 'review') onOpenReview?.();
+const DEFAULT_LAYOUT = ['session', 'habits', 'heatmap', 'muscles', 'weight'];
+
+export default function Dashboard({ onOpenSession, onInspectExercise, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body' }) {
+  function onNavigate(target, date) {
+    if (target === 'session') onOpenSession?.(date || null);
+    else if (target === 'review') onOpenReview?.();
+    else if (onOpenSession && typeof onOpenSession === 'function' && ['dash', 'session', 'review', 'learn', 'habits', 'journal', 'settings'].includes(target)) {
+      // This is a bit hacky because Dashboard doesn't have the global navigate,
+      // but onOpenSession is passed from App.jsx where it can trigger a tab change if needed.
+      // Better: we should pass a real 'navigate' prop if we want full control.
+      window.location.hash = `#${target}`;
+    }
   }
+
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [layout, setLayout] = useState(() => {
+    const saved = localStorage.getItem('fitness-dashboard-layout');
+    return saved ? JSON.parse(saved) : DEFAULT_LAYOUT;
+  });
+
   const [todaySession, setTodaySession] = useState(null);
   const [recent, setRecent] = useState([]);
   const [enrichedRecent, setEnrichedRecent] = useState([]);
@@ -34,7 +50,7 @@ export default function Dashboard({ onOpenSession, onInspectExercise, onOpenRevi
     getPlan().then(setPlan).catch(() => setPlan(null));
     getMuscleCoverage(recentDays).then(scores => {
        const allGroups = ["chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves", "legs"];
-       const gaps = allGroups.filter(g => (scores[g] || 0) < 1).map(g => ({ name: g }));
+       const gaps = allGroups.filter(g => (scores[g] || 0) < coverageThreshold).map(g => ({ name: g }));
        setCoverage(gaps);
     }).catch(() => setCoverage([]));
 
@@ -70,7 +86,7 @@ export default function Dashboard({ onOpenSession, onInspectExercise, onOpenRevi
       }));
       setEnrichedRecent(enriched);
     });
-  }, [today, recentDays]);
+  }, [today, recentDays, coverageThreshold]);
 
   const sessionByDate = Object.fromEntries(recent.map(s => [s.date, s]));
 
@@ -85,43 +101,90 @@ export default function Dashboard({ onOpenSession, onInspectExercise, onOpenRevi
     }
   }
 
+  const saveLayout = () => {
+    localStorage.setItem('fitness-dashboard-layout', JSON.stringify(layout));
+    setIsEditMode(false);
+  };
+
+  const moveWidget = (index, direction) => {
+    const newLayout = [...layout];
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= newLayout.length) return;
+    [newLayout[index], newLayout[targetIndex]] = [newLayout[targetIndex], newLayout[index]];
+    setLayout(newLayout);
+  };
+
+  const renderWidget = (id, index) => {
+    const editControls = isEditMode && (
+      <div className="absolute top-2 left-2 z-20 flex gap-1">
+        <button onClick={(e) => { e.stopPropagation(); moveWidget(index, -1); }} className="p-1 bg-accent text-black rounded shadow hover:scale-110">↑</button>
+        <button onClick={(e) => { e.stopPropagation(); moveWidget(index, 1); }} className="p-1 bg-accent text-black rounded shadow hover:scale-110">↓</button>
+      </div>
+    );
+
+    switch(id) {
+      case 'session':
+        return (
+          <DashboardWidget key="session" title="Session Status" onNavigate={onNavigate} targetTab="session" isEditMode={isEditMode} className="lg:col-span-1">
+            {editControls}
+            <SessionStatus plan={plan} todaySession={todaySession} recent={recent} today={today} onNavigate={onNavigate} />
+          </DashboardWidget>
+        );
+      case 'habits':
+        return (
+          <DashboardWidget key="habits" title="Habits (heute)" onNavigate={onNavigate} targetTab="habits" isEditMode={isEditMode} className="lg:col-span-1">
+            {editControls}
+            <HabitWidget onNavigate={onNavigate} />
+          </DashboardWidget>
+        );
+      case 'heatmap':
+        return (
+          <DashboardWidget key="heatmap" title="Aktivität & Konsistenz" onNavigate={onNavigate} targetTab="review" isEditMode={isEditMode} className="lg:col-span-3">
+            {editControls}
+            <ActivityHeatmap rollingDays={rollingDays} sessionByDate={sessionByDate} today={today} onNavigate={onNavigate} />
+          </DashboardWidget>
+        );
+      case 'muscles':
+        return (
+          <DashboardWidget key="muscles" title="Muskel-Status" onNavigate={onNavigate} targetTab="learn" isEditMode={isEditMode} className="lg:col-span-3 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {editControls}
+            <MuscleStatus enrichedRecent={enrichedRecent} coverage={coverage} recentDays={recentDays} highlighterMode={dashboardHighlighter} />
+          </DashboardWidget>
+        );
+      case 'weight':
+        return (
+          <DashboardWidget key="weight" title="Gewicht-Verlauf" isEditMode={isEditMode} className="lg:col-span-3 overflow-hidden">
+            {editControls}
+            <WeightChart days={30} />
+          </DashboardWidget>
+        );
+      default: return null;
+    }
+  };
+
   return (
-    <div className="pb-32">
+    <div className="pb-32 relative">
+      <div className="absolute top-0 right-0 z-50">
+        {isEditMode ? (
+          <div className="flex gap-2">
+            <button onClick={() => { setLayout(DEFAULT_LAYOUT); setIsEditMode(false); }} className="p-3 rounded-full bg-red/10 text-red border border-red/20 hover:bg-red/20 transition-all shadow-lg">
+              <X size={20} />
+            </button>
+            <button onClick={saveLayout} className="p-3 rounded-full bg-green/10 text-green border border-green/20 hover:bg-green/20 transition-all shadow-lg">
+              <Save size={20} />
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => setIsEditMode(true)} className="p-3 rounded-full bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20 transition-all shadow-lg">
+            <Pencil size={20} />
+          </button>
+        )}
+      </div>
+
       <DashboardHeader onExport={handleExport} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        {/* Row 1: Today's focus — Session + Habits */}
-        <SessionStatus
-          plan={plan}
-          todaySession={todaySession}
-          recent={recent}
-          today={today}
-          onNavigate={onNavigate}
-        />
-        <div className="lg:col-span-1">
-          <HabitWidget onNavigate={onNavigate} />
-        </div>
-
-        {/* Row 2: 10-day activity strip */}
-        <ActivityHeatmap
-          rollingDays={rollingDays}
-          sessionByDate={sessionByDate}
-          today={today}
-          onNavigate={onNavigate}
-        />
-
-        {/* Row 3: Muscle status + Coverage */}
-        <MuscleStatus
-          enrichedRecent={enrichedRecent}
-          coverage={coverage}
-          recentDays={recentDays}
-          highlighterMode={dashboardHighlighter}
-        />
-
-        {/* Row 4: Weight trend */}
-        <div className="lg:col-span-3 overflow-hidden">
-          <WeightChart days={30} />
-        </div>
+        {layout.map((id, idx) => renderWidget(id, idx))}
       </div>
 
       {/* Hidden Chambers Access */}
@@ -146,3 +209,4 @@ export default function Dashboard({ onOpenSession, onInspectExercise, onOpenRevi
     </div>
   );
 }
+

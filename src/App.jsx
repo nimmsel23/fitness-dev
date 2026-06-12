@@ -45,6 +45,8 @@ export default function App() {
   const [inspectorExercise, setInspectorExercise] = useState(null)
   const [layoutScale, setLayoutScale] = useState(() => parseInt(localStorage.getItem('fitness-layoutScale') || '100', 10));
   const [recentDays, setRecentDays] = useState(() => parseInt(localStorage.getItem('fitness-recentDays') || '7', 10));
+  const [coverageThreshold, setCoverageThreshold] = useState(() => parseFloat(localStorage.getItem('fitness-coverageThreshold') || '1.0'));
+  const [showAdvanced, setShowAdvanced] = useState(() => localStorage.getItem('fitness-showAdvanced') === 'true');
   const [dashboardHighlighter, setDashboardHighlighter] = useState(() => localStorage.getItem('fitness-dashboardHighlighter') || 'body');
   const [sidebarPinned, setSidebarPinned] = useState(() => localStorage.getItem('fitness-sidebarPinned') !== 'false');
 
@@ -72,6 +74,8 @@ export default function App() {
       if (isLeftSwipe || isRightSwipe) {
         const items = NAV_ITEMS;
         const currentIndex = items.findIndex(i => i.id === tab);
+        if (currentIndex === -1) return; // Not in main nav items (e.g. session/review)
+
         if (isLeftSwipe && currentIndex < items.length - 1) {
           navigate(items[currentIndex + 1].id);
         } else if (isRightSwipe && currentIndex > 0) {
@@ -108,6 +112,8 @@ export default function App() {
   useEffect(() => { localStorage.setItem('fitness-circ-light', circLight) }, [circLight]);
   useEffect(() => { localStorage.setItem('fitness-layoutScale', layoutScale) }, [layoutScale]);
   useEffect(() => { localStorage.setItem('fitness-recentDays', recentDays) }, [recentDays]);
+  useEffect(() => { localStorage.setItem('fitness-coverageThreshold', coverageThreshold) }, [coverageThreshold]);
+  useEffect(() => { localStorage.setItem('fitness-showAdvanced', showAdvanced) }, [showAdvanced]);
   useEffect(() => { localStorage.setItem('fitness-dashboardHighlighter', dashboardHighlighter) }, [dashboardHighlighter]);
   useEffect(() => { localStorage.setItem('fitness-sidebarPinned', sidebarPinned) }, [sidebarPinned]);
 
@@ -175,7 +181,7 @@ export default function App() {
 
           <main className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto">
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} dashboardHighlighter={dashboardHighlighter} />}
+                  {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} />}
                   {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}
                   {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} hitMode={hitMode} />}
                   {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} hitMode={hitMode} gender={gender} />}
@@ -187,6 +193,8 @@ export default function App() {
                        planMode={planMode} setPlanMode={setPlanMode}
                        layoutScale={layoutScale} setLayoutScale={setLayoutScale}
                        recentDays={recentDays} setRecentDays={setRecentDays}
+                       coverageThreshold={coverageThreshold} setCoverageThreshold={setCoverageThreshold}
+                       showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}
                        dashboardHighlighter={dashboardHighlighter} setDashboardHighlighter={setDashboardHighlighter}
                        gender={gender} setGender={setGender}
                        split={split} setSplit={setSplit}
@@ -196,6 +204,7 @@ export default function App() {
                        circLight={circLight} setCircLight={setCircLight}
                        circDark={circDark} setCircDark={setCircDark}
                        themes={THEMES} theme={theme} setThemeState={setThemeState}
+                       sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned}
                      />
                   )}
               </div>

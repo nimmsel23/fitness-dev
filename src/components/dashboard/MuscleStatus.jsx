@@ -1,21 +1,11 @@
 import { AlertCircle, TrendingUp } from "lucide-react";
-import BodyMap from "../BodyMap";
+import MuscleBody from "./MuscleBody";
 
-export default function MuscleStatus({ enrichedRecent, coverage }) {
-  const safeRecent = Array.isArray(enrichedRecent) ? enrichedRecent.filter(Boolean) : [];
-  const recentExercises = safeRecent
-    .flatMap(s => Array.isArray(s?.exercises) ? s.exercises : [])
-    .filter(Boolean)
-    .filter(e => e.done);
-
+export default function MuscleStatus({ enrichedRecent, coverage, recentDays = 7, highlighterMode = 'body' }) {
   return (
     <>
-      <div className="lg:col-span-2 card p-8 flex flex-col">
-          <h3 className="label-caps mb-8">Muskel-Status</h3>
-          <div className="flex flex-1 justify-center items-center gap-12">
-            <BodyMap exercises={recentExercises} highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 160 }} />
-            <BodyMap exercises={recentExercises} type="posterior" highlightedColors={['#ef4444', '#f59e0b', '#22c55e', '#3b82f6']} style={{ maxWidth: 160 }} />
-          </div>
+      <div className="lg:col-span-2">
+         <MuscleBody enrichedRecent={enrichedRecent} recentDays={recentDays} highlighterMode={highlighterMode} />
       </div>
 
       <div className="lg:col-span-1 card bg-accent/5 border-accent/20 p-8">
