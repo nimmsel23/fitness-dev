@@ -5,8 +5,10 @@ import { api, isLocalMode } from "@db";
 export default function Settings({ 
   hitMode, setHitMode, planMode, setPlanMode, 
   layoutScale, setLayoutScale,
-  gender, setGender, split, setSplit, 
+  gender, setGender, split, setSplit,
   cycleLength, setCycleLength, defaultLocation, setDefaultLocation,
+  recentDays, setRecentDays,
+  dashboardHighlighter, setDashboardHighlighter,
   themeMode, setModeState, circLight, setCircLight, circDark, setCircDark,
   themes, theme, setThemeState, updateSettings
 }) {
@@ -89,6 +91,26 @@ export default function Settings({
                       className={`w-12 h-6 rounded-full transition-colors relative border ${hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
                       <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${hitMode ? 'left-7' : 'left-1'}`} />
                    </button>
+                </div>
+
+                <div>
+                   <div className="flex items-center justify-between mb-3">
+                      <div>
+                         <div className="text-sm font-black text-ink">Recent-Fenster</div>
+                         <div className="text-[10px] font-bold opacity-30 uppercase">BodyMap & Coverage Zeitraum</div>
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-accent">{recentDays ?? 7} Tage</span>
+                   </div>
+                   <input
+                      type="range" min="1" max="30" step="1"
+                      value={recentDays ?? 7}
+                      onChange={(e) => { const v = parseInt(e.target.value, 10); setRecentDays?.(v); updateSettings?.({ recentDays: v }); }}
+                      className="w-full h-1.5 bg-line rounded-lg appearance-none cursor-pointer accent-accent"
+                   />
+                   <div className="flex justify-between mt-2 px-1 text-[8px] font-black uppercase opacity-20 tracking-tighter">
+                      <span>1 Tag</span>
+                      <span>30 Tage</span>
+                   </div>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -238,7 +260,37 @@ export default function Settings({
           </div>
        </section>
 
-       {/* 4. System Info (Local Intelligence) */}
+       {/* 4. Experimental Features */}
+       <section className="card p-8 space-y-8 border-dashed border-accent/30">
+          <div className="label-caps flex items-center gap-2 text-accent">
+             <Sparkles size={14} />
+             Experimental Features
+          </div>
+          <p className="text-[10px] font-bold opacity-30 uppercase -mt-4">
+             Frühe Features. Können sich ändern oder verschwinden.
+          </p>
+
+          <div className="space-y-6">
+             <div>
+                <div className="flex items-center justify-between mb-3">
+                   <div>
+                      <div className="text-sm font-black text-ink">Home Dashboard Highlighter</div>
+                      <div className="text-[10px] font-bold opacity-30 uppercase">Body-Figur oder Muskel-Liste</div>
+                   </div>
+                </div>
+                <div className="flex gap-1 p-1 bg-bg2 rounded-xl border border-line">
+                   {['body', 'muscles'].map(mode => (
+                      <button key={mode} onClick={() => { setDashboardHighlighter?.(mode); updateSettings?.({ dashboardHighlighter: mode }); }}
+                         className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${dashboardHighlighter === mode ? 'bg-card shadow-md text-accent' : 'text-dim hover:text-ink'}`}>
+                         {mode === 'body' ? 'Body' : 'Muscles'}
+                      </button>
+                   ))}
+                </div>
+             </div>
+          </div>
+       </section>
+
+       {/* 5. System Info (Local Intelligence) */}
        {isLocalMode() && (
          <section className="card p-8 text-ink">
             <div className="label-caps flex items-center gap-2 text-dim mb-6">

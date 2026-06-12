@@ -13,7 +13,7 @@ import MuscleStatus from "@src/components/dashboard/MuscleStatus";
 import SessionStatus from "@src/components/dashboard/SessionStatus";
 import { getRolling10Days } from "@src/components/dashboard/utils";
 
-export default function Dashboard({ onOpenSession, onInspectExercise, onOpenReview }) {
+export default function Dashboard({ onOpenSession, onInspectExercise, onOpenReview, recentDays = 7, dashboardHighlighter = 'body' }) {
   function onNavigate(tab, date) {
     if (tab === 'session') onOpenSession?.(date || null);
     else if (tab === 'review') onOpenReview?.();
@@ -31,14 +31,16 @@ export default function Dashboard({ onOpenSession, onInspectExercise, onOpenRevi
   useEffect(() => {
     getSession(today).then(setTodaySession).catch(() => setTodaySession({}));
     getPlan().then(setPlan).catch(() => setPlan(null));
-    getMuscleCoverage(7).then(scores => {
+    getMuscleCoverage(recentDays).then(scores => {
        const allGroups = ["chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves", "legs"];
        const gaps = allGroups.filter(g => (scores[g] || 0) < 1).map(g => ({ name: g }));
        setCoverage(gaps);
     }).catch(() => setCoverage([]));
-    
+
+    const cutoffDate = new Date(Date.now() - recentDays * 86400000).toISOString().slice(0, 10);
+
     Promise.all([
-      getRecentSessions(10),
+      getRecentSessions(Math.max(recentDays * 2, 10)),
       getAllExercises()
     ]).then(([sessions, kbExercises]) => {
       const safeSessions = Array.isArray(sessions) ? sessions.filter(Boolean).map(s => ({
@@ -46,13 +48,15 @@ export default function Dashboard({ onOpenSession, onInspectExercise, onOpenRevi
         exercises: Array.isArray(s.exercises) ? s.exercises : [],
       })) : [];
       setRecent(safeSessions);
-      
+
+      const sessionsInWindow = safeSessions.filter(s => s?.date && s.date >= cutoffDate);
+
       const kbMap = new Map();
       kbExercises.forEach(ex => {
         kbMap.set((ex.display_name || ex.name).toLowerCase(), ex);
       });
-      
-      const enriched = safeSessions.map(s => ({
+
+      const enriched = sessionsInWindow.map(s => ({
         ...s,
         exercises: (s.exercises || []).map(ex => {
           const kbEx = kbMap.get((ex.name || "").toLowerCase());
@@ -65,7 +69,7 @@ export default function Dashboard({ onOpenSession, onInspectExercise, onOpenRevi
       }));
       setEnrichedRecent(enriched);
     });
-  }, [today]);
+  }, [today, recentDays]);
 
   const sessionByDate = Object.fromEntries(recent.map(s => [s.date, s]));
 
@@ -92,9 +96,11 @@ export default function Dashboard({ onOpenSession, onInspectExercise, onOpenRevi
           onNavigate={onNavigate} 
         />
 
-        <MuscleStatus 
-          enrichedRecent={enrichedRecent} 
-          coverage={coverage} 
+        <MuscleStatus
+          enrichedRecent={enrichedRecent}
+          coverage={coverage}
+          recentDays={recentDays}
+          highlighterMode={dashboardHighlighter}
         />
 
         {/* Column 2: Progress & Habits */}

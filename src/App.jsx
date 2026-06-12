@@ -44,6 +44,8 @@ export default function App() {
   const [sessionDraft, setSessionDraft] = useState(null)
   const [inspectorExercise, setInspectorExercise] = useState(null)
   const [layoutScale, setLayoutScale] = useState(() => parseInt(localStorage.getItem('fitness-layoutScale') || '100', 10));
+  const [recentDays, setRecentDays] = useState(() => parseInt(localStorage.getItem('fitness-recentDays') || '7', 10));
+  const [dashboardHighlighter, setDashboardHighlighter] = useState(() => localStorage.getItem('fitness-dashboardHighlighter') || 'body');
 
   // Swipe Navigation Logic
   const [touchStart, setTouchStart] = useState(null);
@@ -104,6 +106,8 @@ export default function App() {
   useEffect(() => { localStorage.setItem('fitness-circ-dark', circDark) }, [circDark]);
   useEffect(() => { localStorage.setItem('fitness-circ-light', circLight) }, [circLight]);
   useEffect(() => { localStorage.setItem('fitness-layoutScale', layoutScale) }, [layoutScale]);
+  useEffect(() => { localStorage.setItem('fitness-recentDays', recentDays) }, [recentDays]);
+  useEffect(() => { localStorage.setItem('fitness-dashboardHighlighter', dashboardHighlighter) }, [dashboardHighlighter]);
 
   // Theme Logic from PWA
   useEffect(() => {
@@ -169,7 +173,7 @@ export default function App() {
 
           <main className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto">
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} />}
+                  {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} dashboardHighlighter={dashboardHighlighter} />}
                   {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}
                   {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} hitMode={hitMode} />}
                   {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} hitMode={hitMode} gender={gender} />}
@@ -180,6 +184,8 @@ export default function App() {
                        hitMode={hitMode} setHitMode={setHitMode}
                        planMode={planMode} setPlanMode={setPlanMode}
                        layoutScale={layoutScale} setLayoutScale={setLayoutScale}
+                       recentDays={recentDays} setRecentDays={setRecentDays}
+                       dashboardHighlighter={dashboardHighlighter} setDashboardHighlighter={setDashboardHighlighter}
                        gender={gender} setGender={setGender}
                        split={split} setSplit={setSplit}
                        cycleLength={cycleLength} setCycleLength={setCycleLength}
