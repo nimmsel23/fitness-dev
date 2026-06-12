@@ -242,17 +242,6 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
     setExercises(prev => prev.filter((_, idx) => idx !== i));
   }
 
-  const totalVolume = exercises.reduce((sum, ex) => {
-    if (ex.isHIT) return sum;
-    if (!ex.setsArray) return sum;
-    const vol = ex.setsArray.reduce((acc, set) => {
-        const r = parseFloat(String(set.reps).replace(',', '.'));
-        const w = parseFloat(String(set.weight).replace(',', '.'));
-        return (isFinite(r) && isFinite(w)) ? acc + r * w : acc;
-    }, 0);
-    return sum + vol;
-  }, 0);
-
   async function save() {
     setSaving(true);
     try {
@@ -347,7 +336,6 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
             hitMode={hitMode}
             restHours={restHours}
             muscleRecovery={recentSessions[date]?.muscle_recovery || {}}
-            totalVolume={totalVolume}
             updateEx={updateEx}
             addSet={addSet}
             removeSet={removeSet}
