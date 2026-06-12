@@ -3,19 +3,32 @@ import { getProgressTrend } from '@db';
 import { num } from './utils';
 
 export default function ExerciseItem({
-  ex, i, updateEx, addSet, removeSet, removeEx, moveEx,
+  ex, i, hitMode, updateEx, addSet, removeSet, removeEx, moveEx,
   isFirst, isLast, planMode, date, prev, onInspectExercise
 }) {
   const [trend, setTrend] = useState(null);
   const isFuture = new Date(date) > new Date();
   
+  // Show trend for HIT based on weight, or Volume for standard
   useEffect(() => {
-    if (!ex.isHIT && ex.name) {
+    if (ex.name) {
       getProgressTrend(ex.name).then(setTrend);
     }
   }, [ex.name, ex.isHIT]);
 
-  const volume = (!ex.isHIT && ex.setsArray) 
+  const isActuallyHIT = ex.isHIT || hitMode;
+
+  const handleRepsChange = (val, sIdx) => {
+    const v = String(val).toUpperCase();
+    if (v === 'H' || v === 'HIT') {
+      updateEx(i, 'isHIT', true);
+      // We don't clear weight, just keep it.
+      return;
+    }
+    updateEx(i, 'reps', val, sIdx);
+  };
+
+  const volume = (!isActuallyHIT && ex.setsArray) 
     ? ex.setsArray.reduce((acc, set) => acc + (num(set.reps) || 0) * (num(set.weight) || 0), 0) : null;
 
   return (
@@ -33,6 +46,12 @@ export default function ExerciseItem({
             {trend && trend.status !== 'neutral' && (
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${trend.status === 'up' ? 'bg-green/10 text-green' : 'bg-red/10 text-red'}`}>
                 {trend.status === 'up' ? '↗' : '↘'} {trend.change}%
+              </span>
+            )}
+
+            {isActuallyHIT && (
+              <span className="text-[9px] font-black bg-orange/10 text-orange px-2 py-0.5 rounded uppercase tracking-widest border border-orange/20">
+                HIT
               </span>
             )}
           </div>
@@ -72,11 +91,35 @@ export default function ExerciseItem({
         </div>
       </div>
 
-      {!ex.isHIT && ex.setsArray && (
+      {/* HIT View: Single Weight Row */}
+      {isActuallyHIT && ex.setsArray && (
+        <div className="grid grid-cols-[1fr_auto_1.5fr_auto] items-center gap-4 mb-4">
+          <div className="flex flex-col gap-1">
+             <span className="text-[9px] font-black uppercase tracking-[0.15em] opacity-30 ml-1">Intensität</span>
+             <div className="py-3 px-4 rounded-xl bg-orange/5 border border-orange/20 text-orange font-black text-xs uppercase tracking-widest text-center shadow-inner">Failure</div>
+          </div>
+          <span className="text-dim text-center text-[10px] font-black pt-4">@</span>
+          <div className="flex flex-col gap-1">
+            <span className="text-[9px] font-black uppercase tracking-[0.15em] opacity-30 ml-1">Gewicht (kg)</span>
+            <input 
+              type="text" 
+              inputMode="decimal" 
+              placeholder="kg" 
+              value={ex.setsArray[0]?.weight || ''} 
+              onChange={e => updateEx(i, 'weight', e.target.value, 0)} 
+              className="text-center font-mono font-black py-3 px-1 rounded-xl bg-bg2 border border-line w-full text-base focus:border-accent outline-none shadow-sm" 
+            />
+          </div>
+          <span className="text-dim text-center text-[10px] font-black pt-4">KG</span>
+        </div>
+      )}
+
+      {/* Standard View: Multi-Set Table */}
+      {!isActuallyHIT && ex.setsArray && (
         <div className="space-y-3 mb-4">
             {ex.setsArray.map((set, sIdx) => (
                 <div key={sIdx} className="grid grid-cols-[1fr_auto_1fr_auto_minmax(45px,1.2fr)_32px] items-center gap-2">
-                    <input type="text" inputMode="numeric" placeholder="Reps" value={set.reps || ''} onChange={e => updateEx(i, 'reps', e.target.value, sIdx)} className="text-center font-mono font-black py-3 px-1 rounded-xl bg-bg2 border border-line w-full text-sm focus:border-accent outline-none" />
+                    <input type="text" inputMode="numeric" placeholder="Reps" value={set.reps || ''} onChange={e => handleRepsChange(e.target.value, sIdx)} className="text-center font-mono font-black py-3 px-1 rounded-xl bg-bg2 border border-line w-full text-sm focus:border-accent outline-none" />
                     <span className="text-dim text-center text-[10px] w-4 font-black">@</span>
                     <input type="text" inputMode="decimal" placeholder="kg" value={set.weight || ''} onChange={e => updateEx(i, 'weight', e.target.value, sIdx)} className="text-center font-mono font-black py-3 px-1 rounded-xl bg-bg2 border border-line w-full text-sm focus:border-accent outline-none" />
                     <span className="text-dim text-center text-[10px] w-5 hidden sm:inline font-bold">kg</span>

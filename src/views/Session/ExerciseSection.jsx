@@ -36,6 +36,7 @@ export default function ExerciseSection({
             key={idx}
             ex={ex}
             i={idx}
+            hitMode={hitMode}
             updateEx={updateEx}
             addSet={addSet}
             removeSet={removeSet}

@@ -1,11 +1,14 @@
 /**
  * Firestore Data Layer — Fitness PWA (Multi-User)
  *
- * Counterpart to src/db.js (Node-API). Selected at build time via
+ * Mechanically bundled from pwa.bak/src/lib/db/*.js (last working
+ * Firestore state at git 5d9086c, before pwa/ was dissolved in v3.1).
+ *
+ * Counterpart to src/db.js (Local-Hybrid). Selected at build time via
  * `vite build --mode firebase` through the @db alias in vite.config.js.
  *
- * Public API parity with src/db.js (Node barrel) — views import either
- * via "@db" or relative "../../db.js" and must get the same names back.
+ * Public-API parity with src/db.js — views import either from "@db"
+ * or relative "../../db.js" and must get the same names back.
  */
 
 import {
@@ -19,39 +22,74 @@ import {
 } from "firebase/auth";
 
 import { db, auth, googleProvider } from "./firebase.js";
-import { getWeekDates, calculateExVolume, downloadText, num } from "./lib/db/utils.js";
 
-export { getWeekDates, calculateExVolume, downloadText, num };
+export { db, auth, googleProvider };
 
-// ── Mode flag ────────────────────────────────────────────────────────────────
+// ── Helpers (inlined from pwa.bak/src/lib/utils.js) ──────────────────────────
+
+export function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+export function localToday() { return todayISO(); }
+
+// Pure helpers that current src views may import via @db — keep parity.
+export function getWeekDates() {
+  const today = todayISO();
+  const d = new Date(today + 'T12:00:00');
+  const off = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - off);
+  return Array.from({ length: 7 }, (_, i) => {
+    const x = new Date(d);
+    x.setDate(d.getDate() + i);
+    return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;
+  });
+}
+
+export function calculateExVolume(ex) {
+  if (ex.isHIT) return 0;
+  if (Array.isArray(ex.setsArray)) {
+    return ex.setsArray.reduce((acc, set) => {
+      const r = parseFloat(String(set.reps || "").replace(',', '.'));
+      const w = parseFloat(String(set.weight || "").replace(',', '.'));
+      return (Number.isFinite(r) && Number.isFinite(w)) ? acc + (r * w) : acc;
+    }, 0);
+  }
+  const s = parseFloat(ex.sets), r = parseFloat(ex.reps), w = parseFloat(ex.weight);
+  return (Number.isFinite(s) && Number.isFinite(r) && Number.isFinite(w)) ? s * r * w : 0;
+}
+
+export function downloadText(filename, text, mime = 'text/plain;charset=utf-8') {
+  const blob = new Blob([text], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export const num = (v) => {
+  if (v === null || v === undefined) return null;
+  const s = String(v).trim().replace(',', '.');
+  if (!s) return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+};
+
+// ── Mode flag — distinguishes from Local-Hybrid db.js ────────────────────────
+
 export function isLocalMode() { return false; }
 
-// ── Date helpers ─────────────────────────────────────────────────────────────
-export function localToday() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-const todayISO = localToday;
-
-// ── Compat: api shim ─────────────────────────────────────────────────────────
-// Views that bypass @db and hit api directly (Session/Learn/Settings/Inbox)
-// are out of the smart-hybrid contract. We stub here so the Firebase bundle
-// still loads; calls are no-ops with a console warning to help track them down.
+// ── api compat shim — Views that bypass @db and call api directly will
+//    hit this no-op in firebase builds. Console warning helps track them.
 const noopApi = (verb) => async () => {
   console.warn(`[db.firestore] api.${verb}() called — view bypasses @db contract`);
   return null;
 };
 export const api = { get: noopApi("get"), post: noopApi("post"), delete: noopApi("delete") };
 
-// ── Activity → Muscle mapping (used by weekly report) ────────────────────────
-export const ACTIVITY_MUSCLE_MAPPING = {
-  hiking:   { muscles: ["legs", "core", "glutes"],        impact: 1.0 },
-  running:  { muscles: ["quads", "hamstrings", "calves"], impact: 1.0 },
-  cycling:  { muscles: ["quads", "calves"],               impact: 0.8 },
-  swimming: { muscles: ["back", "shoulders", "core"],     impact: 0.7 },
-};
+// ── Auth (from pwa.bak/src/lib/db/core.js) ───────────────────────────────────
 
-// ── Auth ─────────────────────────────────────────────────────────────────────
 let currentUid = null;
 
 export function watchAuth(callback) {
@@ -61,12 +99,19 @@ export function watchAuth(callback) {
   });
 }
 
-export async function signIn()                          { await signInWithPopup(auth, googleProvider); }
-export async function signInEmail(email, password)      { await signInWithEmailAndPassword(auth, email, password); }
-export async function signUpEmail(email, password, name) {
-  const cred = await createUserWithEmailAndPassword(auth, email, password);
-  if (name) await updateProfile(cred.user, { displayName: name });
+export async function signIn() {
+  await signInWithPopup(auth, googleProvider);
 }
+
+export async function signInEmail(email, password) {
+  await signInWithEmailAndPassword(auth, email, password);
+}
+
+export async function signUpEmail(email, password, displayName) {
+  const cred = await createUserWithEmailAndPassword(auth, email, password);
+  if (displayName) await updateProfile(cred.user, { displayName });
+}
+
 export async function signOut() { await fbSignOut(auth); }
 
 export function getUid() {
@@ -74,16 +119,27 @@ export function getUid() {
   return currentUid;
 }
 
-function pingBridge() {
-  fetch("https://alpha-aos.ts.net/api/fitness/notify", { method: "POST" }).catch(() => {});
+const BRIDGE_NOTIFY = "https://ideapad.tail7a15d6.ts.net/api/fitness/notify";
+export function pingBridge() {
+  fetch(BRIDGE_NOTIFY, { method: "POST" }).catch(() => {});
 }
 
-// ── Sessions ─────────────────────────────────────────────────────────────────
+// ── Sessions (from pwa.bak/src/lib/db/sessions.js) ───────────────────────────
 
 export async function getSession(date = todayISO()) {
   const snap = await getDoc(doc(db, "fitness", getUid(), "sessions", date));
   if (!snap.exists()) return { date, block: "", exercises: [], effort: null, mood: "", notes: "" };
-  return snap.data();
+  const data = snap.data() || {};
+  return {
+    date,
+    block: "",
+    exercises: [],
+    effort: null,
+    mood: "",
+    notes: "",
+    ...data,
+    exercises: Array.isArray(data.exercises) ? data.exercises : [],
+  };
 }
 
 export async function saveSession(date = todayISO(), sessionData) {
@@ -103,7 +159,16 @@ export async function getRecentSessions(n = 10) {
     limit(n),
   );
   const snap = await getDocs(q);
-  return snap.docs.map(d => d.data());
+  return snap.docs
+    .map((d) => {
+      const data = d.data() || {};
+      return {
+        id: d.id,
+        ...data,
+        exercises: Array.isArray(data.exercises) ? data.exercises : [],
+      };
+    })
+    .filter(Boolean);
 }
 
 export async function getLatestSession() {
@@ -113,11 +178,10 @@ export async function getLatestSession() {
 
 export async function getSessionHistory(n = 60) { return getRecentSessions(n); }
 
-// ── Plan ─────────────────────────────────────────────────────────────────────
-
 export async function getPlan() {
   const snap = await getDoc(doc(db, "fitness", getUid(), "plan"));
-  return snap.exists() ? snap.data() : null;
+  if (!snap.exists()) return null;
+  return snap.data();
 }
 
 export async function savePlan(plan) {
@@ -128,7 +192,7 @@ export async function savePlan(plan) {
   return { ok: true };
 }
 
-// ── Journal ──────────────────────────────────────────────────────────────────
+// ── Journal (from pwa.bak/src/lib/db/journal.js) ─────────────────────────────
 
 export async function getJournal(date = todayISO()) {
   try {
@@ -138,12 +202,12 @@ export async function getJournal(date = todayISO()) {
       orderBy("time", "desc"),
     );
     const snap = await getDocs(q);
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
   } catch {
     const q = query(collection(db, "fitness", getUid(), "journal"), where("date", "==", date));
     const snap = await getDocs(q);
     return snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
+      .map((d) => ({ id: d.id, ...d.data() }))
       .sort((a, b) => (b.time || "").localeCompare(a.time || ""));
   }
 }
@@ -151,161 +215,17 @@ export async function getJournal(date = todayISO()) {
 export async function saveJournal(date = todayISO(), text, tags = []) {
   const ref = await addDoc(collection(db, "fitness", getUid(), "journal"), {
     date,
-    text: String(text || "").trim(),
+    text: text.trim(),
     tags,
     time: new Date().toISOString(),
     created_at: serverTimestamp(),
   });
-  return { id: ref.id, date, text: String(text || "").trim() };
+  return { id: ref.id };
 }
 
 export async function updateJournal(id, text) {
-  await setDoc(
-    doc(db, "fitness", getUid(), "journal", id),
-    { text: String(text || "").trim(), updated_at: serverTimestamp() },
-    { merge: true },
-  );
-  return { ok: true };
-}
-
-// ── Body / Weight ────────────────────────────────────────────────────────────
-
-export async function getBodyEntry(date = todayISO()) {
-  const snap = await getDoc(doc(db, "fitness", getUid(), "body", date));
-  return snap.exists() ? snap.data() : null;
-}
-
-export async function saveBodyEntry(date = todayISO(), data) {
-  await setDoc(doc(db, "fitness", getUid(), "body", date), {
-    ...data,
-    date,
-    saved_at: serverTimestamp(),
-  });
-  return { ok: true };
-}
-
-export async function getBodyEntries(days = 30) {
-  const q = query(
-    collection(db, "fitness", getUid(), "body"),
-    orderBy("date", "desc"),
-    limit(days),
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map(d => d.data());
-}
-
-// ── Settings / Layout ────────────────────────────────────────────────────────
-
-export async function getSettings() {
-  const snap = await getDoc(doc(db, "fitness", getUid(), "settings", "general"));
-  if (!snap.exists()) return { theme: "honey", themeMode: "manual" };
-  return snap.data();
-}
-
-export async function saveSettings(settings) {
-  await setDoc(doc(db, "fitness", getUid(), "settings", "general"), {
-    ...settings,
-    updated_at: serverTimestamp(),
-  });
-  return { ok: true };
-}
-
-export async function getLayout() {
-  const snap = await getDoc(doc(db, "fitness", getUid(), "settings", "layout"));
-  return snap.exists() ? snap.data()?.layout : null;
-}
-
-export async function saveLayout(layout) {
-  await setDoc(doc(db, "fitness", getUid(), "settings", "layout"), {
-    layout,
-    updated_at: serverTimestamp(),
-  });
-  return { ok: true };
-}
-
-// ── Habits ───────────────────────────────────────────────────────────────────
-
-export async function getHabits(days = 28) {
-  const snap = await getDocs(collection(db, "fitness", getUid(), "habits"));
-  const habits = snap.docs.map(d => ({ uuid: d.id, ...d.data() }));
-
-  const start = new Date();
-  start.setDate(start.getDate() - (days - 1));
-  const startStr = start.toISOString().slice(0, 10);
-
-  const q = query(
-    collection(db, "fitness", getUid(), "habitRecords"),
-    where("date", ">=", startStr),
-    where("date", "<=", todayISO()),
-    orderBy("date", "desc"),
-  );
-  const recordsSnap = await getDocs(q);
-  const allRecords = recordsSnap.docs.map(d => d.data());
-
-  return habits
-    .filter(h => !h.deleted)
-    .map(h => {
-      const records = allRecords.filter(r => r.habitId === h.uuid);
-      return {
-        ...h,
-        records,
-        hasRecord: (date) => records.some(r => r.date === date && r.completion === "DONE"),
-      };
-    });
-}
-
-export async function updateHabit(uuid, newName, newIcon) {
-  await setDoc(
-    doc(db, "fitness", getUid(), "habits", uuid),
-    { name: newName, icon: newIcon, updated_at: serverTimestamp() },
-    { merge: true },
-  );
-  return { ok: true };
-}
-
-export async function addHabit(name, icon = "Activity") {
-  return addDoc(collection(db, "fitness", getUid(), "habits"), {
-    name: String(name).trim(),
-    icon,
-    created_at: serverTimestamp(),
-  });
-}
-
-export async function deleteHabit(uuid) {
-  await setDoc(
-    doc(db, "fitness", getUid(), "habits", uuid),
-    { deleted: true },
-    { merge: true },
-  );
-  return { ok: true };
-}
-
-export async function getHabitRecordsForDate(date = todayISO()) {
-  const q = query(
-    collection(db, "fitness", getUid(), "habitRecords"),
-    where("date", "==", date),
-    where("completion", "==", "DONE"),
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map(d => d.data().habitId);
-}
-
-export async function recordHabit(uuid, date = todayISO()) {
-  await setDoc(doc(db, "fitness", getUid(), "habitRecords", `${uuid}_${date}`), {
-    habitId: uuid,
-    date,
-    completion: "DONE",
-    recorded_at: serverTimestamp(),
-  });
-  return { ok: true };
-}
-
-export async function unrecordHabit(uuid, date = todayISO()) {
-  await setDoc(
-    doc(db, "fitness", getUid(), "habitRecords", `${uuid}_${date}`),
-    { habitId: uuid, date, completion: "MISSED", recorded_at: serverTimestamp() },
-    { merge: true },
-  );
+  const ref = doc(db, "fitness", getUid(), "journal", id);
+  await setDoc(ref, { text: text.trim(), updated_at: serverTimestamp() }, { merge: true });
   return { ok: true };
 }
 
@@ -335,42 +255,119 @@ export async function getAllHabitJournalsForDate(date) {
 }
 
 export async function saveHabitJournal(habitId, date, text) {
-  await setDoc(
-    doc(db, "fitness", getUid(), "habitJournals", `${habitId}_${date}`),
-    {
-      habitId,
-      date,
-      text: String(text || "").trim(),
-      updated_at: serverTimestamp(),
-    },
-    { merge: true },
-  );
+  const ref = doc(db, "fitness", getUid(), "habitJournals", `${habitId}_${date}`);
+  await setDoc(ref, {
+    habitId,
+    date,
+    text: text.trim(),
+    updated_at: serverTimestamp(),
+  }, { merge: true });
   return { ok: true };
 }
 
-// ── Knowledge Base ───────────────────────────────────────────────────────────
+// ── Habits (from pwa.bak/src/lib/db/habits.js) ───────────────────────────────
+
+export async function getHabits(days = 28) {
+  const snap = await getDocs(collection(db, "fitness", getUid(), "habits"));
+  const habits = snap.docs.map(d => ({ uuid: d.id, ...d.data() }));
+
+  const today = new Date();
+  const startDate = new Date();
+  startDate.setDate(today.getDate() - (days - 1));
+
+  const q = query(
+    collection(db, "fitness", getUid(), "habitRecords"),
+    where("date", ">=", startDate.toISOString().slice(0, 10)),
+    where("date", "<=", todayISO()),
+    orderBy("date", "desc"),
+  );
+  const recordsSnap = await getDocs(q);
+  const allRecords = recordsSnap.docs.map(d => d.data());
+
+  return habits.map(h => {
+    const habitRecords = allRecords.filter(r => r.habitId === h.uuid);
+    return {
+      ...h,
+      records: habitRecords,
+      hasRecord: (date) => habitRecords.some(r => r.date === date && r.completion === "DONE"),
+    };
+  });
+}
+
+export async function updateHabit(uuid, newName, newIcon) {
+  await setDoc(doc(db, "fitness", getUid(), "habits", uuid), {
+    name: newName,
+    icon: newIcon,
+    updated_at: serverTimestamp(),
+  }, { merge: true });
+}
+
+export async function addHabit(name, icon = "Activity") {
+  return await addDoc(collection(db, "fitness", getUid(), "habits"), {
+    name,
+    created_at: serverTimestamp(),
+  });
+}
+
+export async function deleteHabit(uuid) {
+  await setDoc(doc(db, "fitness", getUid(), "habits", uuid), { deleted: true }, { merge: true });
+}
+
+export async function getHabitRecordsForDate(date = todayISO()) {
+  const q = query(
+    collection(db, "fitness", getUid(), "habitRecords"),
+    where("date", "==", date),
+    where("completion", "==", "DONE"),
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => d.data().habitId);
+}
+
+export async function recordHabit(uuid, date = todayISO()) {
+  const ref = doc(db, "fitness", getUid(), "habitRecords", `${uuid}_${date}`);
+  await setDoc(ref, {
+    habitId: uuid,
+    date,
+    completion: "DONE",
+    recorded_at: serverTimestamp(),
+  });
+  return { ok: true };
+}
+
+export async function unrecordHabit(uuid, date = todayISO()) {
+  const ref = doc(db, "fitness", getUid(), "habitRecords", `${uuid}_${date}`);
+  await setDoc(ref, {
+    habitId: uuid,
+    date,
+    completion: "MISSED",
+    recorded_at: serverTimestamp(),
+  }, { merge: true });
+  return { ok: true };
+}
+
+// ── Knowledge Base (from pwa.bak/src/lib/db/kb.js) ───────────────────────────
 
 export async function getExercise(exerciseId) {
-  if (!exerciseId) return null;
-  const snap = await getDoc(doc(db, "fitness", "kb", "exercises", String(exerciseId)));
-  return snap.exists() ? { ...snap.data(), exercise_id: snap.id } : null;
+  const snap = await getDoc(doc(db, "fitness", "kb", "exercises", exerciseId));
+  if (!snap.exists()) return null;
+  return snap.data();
 }
 
 export async function getAllExercises() {
   const snap = await getDocs(collection(db, "fitness", "kb", "exercises"));
-  return snap.docs.map(d => ({ ...d.data(), exercise_id: d.data().exercise_id || d.id }));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
 export async function getAnatomy(exerciseId) {
-  if (!exerciseId) return null;
-  const snap = await getDoc(doc(db, "fitness", "kb", "anatomy", String(exerciseId)));
-  return snap.exists() ? snap.data() : null;
+  const snap = await getDoc(doc(db, "fitness", "kb", "anatomy", exerciseId));
+  if (!snap.exists()) return null;
+  return snap.data();
 }
 
 export async function getMuscle(muscleId) {
-  if (!muscleId) return null;
-  const snap = await getDoc(doc(db, "fitness", "kb", "muscles", String(muscleId)));
-  return snap.exists() ? snap.data() : null;
+  const snap = await getDoc(doc(db, "fitness", "kb", "muscles", muscleId));
+  if (!snap.exists()) return null;
+  return snap.data();
 }
 
 export async function sendToInbox(exerciseData) {
@@ -386,11 +383,18 @@ export async function sendToInbox(exerciseData) {
   }
 }
 
-// ── Coverage / Weekly Report ─────────────────────────────────────────────────
+// ── Analysis / Coverage / Weekly Report (from pwa.bak/src/lib/db/analysis.js) ─
+
+export const ACTIVITY_MUSCLE_MAPPING = {
+  hiking:   { muscles: ["legs", "core", "glutes"],        impact: 1.0 },
+  running:  { muscles: ["quads", "hamstrings", "calves"], impact: 1.0 },
+  cycling:  { muscles: ["quads", "calves"],               impact: 0.8 },
+  swimming: { muscles: ["back", "shoulders", "core"],     impact: 0.7 },
+};
 
 const MUSCLE_TAG_TO_GROUP = {
   chest: "chest", pecs: "chest", pectoralis: "chest",
-  back: "back", lats: "back", traps: "back", trapezius: "back", rhomboids: "back",
+  back: "back", lats: "back", rhomboids: "back",
   shoulders: "shoulders", delts: "shoulders", deltoid: "shoulders",
   biceps: "arms", triceps: "arms", forearms: "arms",
   abs: "core", obliques: "core", core: "core", abdominis: "core",
@@ -398,22 +402,24 @@ const MUSCLE_TAG_TO_GROUP = {
   quads: "quads", quadriceps: "quads",
   hamstrings: "hamstrings", "biceps femoris": "hamstrings",
   calves: "calves", gastrocnemius: "calves",
+  traps: "trapezius", trapezius: "trapezius",
 };
 
-const MUSCLE_GROUPS = {
+export const MUSCLE_GROUPS = {
   chest:      ["pecs", "chest", "pectoralis", "brust"],
-  back:       ["lats", "traps", "lower back", "back", "latissimus", "trapezius", "rhomboids", "rücken", "pull-up", "klimmzug", "rudern", "row"],
+  back:       ["lats", "lower back", "back", "latissimus", "rhomboids", "rücken", "pull-up", "klimmzug", "rudern", "row"],
+  trapezius:  ["traps", "trapezius", "nacken", "shrugs"],
   shoulders:  ["shoulders", "delts", "deltoid", "schulter", "schultern", "overhead", "press"],
   arms:       ["biceps", "triceps", "forearms", "brachii", "bizeps", "trizeps", "arm", "arme", "curl", "extension"],
   core:       ["abs", "obliques", "core", "abdominis", "bauch"],
-  glutes:     ["glutes", "gluteus", "po", "gesäß", "hip thrust"],
+  glutes:     ["glutes", "gluteus", "po", "gesäß", "hip thrust", "squat", "kniebeuge"],
   quads:      ["quads", "quadriceps", "oberschenkel", "squat", "kniebeuge"],
-  hamstrings: ["hamstrings", "biceps femoris", "beinbeuger", "leg curl", "kreuzheben", "good mornings", "rumänisches kreuzheben"],
-  calves:     ["calves", "gastrocnemius", "waden", "calf", "wadenheben", "stehendes wadenheben"],
+  hamstrings: ["hamstrings", "biceps femoris", "beinbeuger", "leg curl", "kreuzheben", "good mornings", "rumänisches kreuzheben", "squat", "kniebeuge"],
+  calves:     ["calves", "gastrocnemius", "waden", "calf", "wadenheben", "stehendes wadenheben", "squat", "kniebeuge"],
   legs:       ["legs", "squat", "deadlift", "lunge", "beine", "bein", "leg press", "kniebeuge"],
 };
 
-function muscleToGroupIds(muscle, exerciseName = "") {
+export function muscleToGroupIds(muscle, exerciseName = "") {
   const m = String(muscle || "").toLowerCase().trim();
   const name = String(exerciseName || "").toLowerCase();
   const matches = new Set();
@@ -425,17 +431,18 @@ function muscleToGroupIds(muscle, exerciseName = "") {
 }
 
 export async function getMuscleCoverage(days = 7) {
+  const dates = [];
   const today = new Date();
-  const dates = Array.from({ length: days }, (_, i) => {
+  for (let i = 0; i < days; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
-    return d.toISOString().slice(0, 10);
-  });
-
+    dates.push(d.toISOString().slice(0, 10));
+  }
   const hits = {};
   for (const date of dates) {
     const session = await getSession(date);
-    for (const ex of (session?.exercises || [])) {
+    if (!session) continue;
+    for (const ex of (Array.isArray(session.exercises) ? session.exercises : [])) {
       if (!ex.done) continue;
       const primary = ex.primaryMuscles || [];
       const secondary = ex.secondaryMuscles || [];
@@ -448,43 +455,65 @@ export async function getMuscleCoverage(days = 7) {
   return hits;
 }
 
+export async function getCoverageGaps(days = 7) {
+  const hits = await getMuscleCoverage(days);
+  const all = Object.keys(MUSCLE_GROUPS);
+  return all.filter(g => (hits[g] || 0) < 1).map(g => ({ name: g, hits: hits[g] || 0 }));
+}
+
 function getWeekBounds(selector = "current") {
+  let d = new Date();
   if (selector === "current") {
-    const today = new Date();
-    return Array.from({ length: 7 }, (_, i) => {
-      const x = new Date(today);
-      x.setDate(today.getDate() - (6 - i));
-      return x.toISOString().slice(0, 10);
-    });
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const x = new Date();
+      x.setDate(d.getDate() - (6 - i));
+      dates.push(x.toISOString().slice(0, 10));
+    }
+    return dates;
   }
   const [year, week] = selector.split("-W");
-  const d = new Date(Number(year), 0, 1 + (Number(week) - 1) * 7);
+  d = new Date(Number(year), 0, 1 + (parseInt(week) - 1) * 7);
   const off = (d.getDay() + 6) % 7;
   const start = new Date(d);
   start.setDate(d.getDate() - off);
-  return Array.from({ length: 7 }, (_, i) => {
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
     const x = new Date(start);
     x.setDate(start.getDate() + i);
-    return x.toISOString().slice(0, 10);
-  });
+    dates.push(x.toISOString().slice(0, 10));
+  }
+  return dates;
 }
 
 export async function getWeeklyReport(selector = "current") {
   const dates = getWeekBounds(selector);
-  const history = await getSessionHistory(120);
+  const [kbExercises, history] = await Promise.all([
+    getAllExercises(),
+    getSessionHistory(120),
+  ]);
+  const kbMap = new Map();
+  kbExercises.forEach(ex => kbMap.set((ex.display_name || ex.name || "").toLowerCase(), ex));
 
-  const historyWithMuscles = history.map(s => {
+  const safeHistory = Array.isArray(history)
+    ? history.filter(Boolean).map(s => ({
+        ...s,
+        exercises: Array.isArray(s.exercises) ? s.exercises : [],
+      }))
+    : [];
+
+  const historyWithMuscles = safeHistory.map(s => {
     const groups = new Set();
     for (const ex of (s.exercises || [])) {
       if (!ex.done) continue;
       const primary = ex.primaryMuscles || [];
       const secondary = ex.secondaryMuscles || [];
       const exName = ex.name || ex.exercise_id || "";
-      let mapped = false;
+      let hasMapped = false;
       [...primary, ...secondary].forEach(m => {
-        muscleToGroupIds(m, exName).forEach(gid => { groups.add(gid); mapped = true; });
+        muscleToGroupIds(m, exName).forEach(gid => { groups.add(gid); hasMapped = true; });
       });
-      if (!mapped && exName) muscleToGroupIds("", exName).forEach(gid => groups.add(gid));
+      if (!hasMapped && exName) muscleToGroupIds("", exName).forEach(gid => groups.add(gid));
     }
     if (s.activity && ACTIVITY_MUSCLE_MAPPING[s.activity.type]) {
       ACTIVITY_MUSCLE_MAPPING[s.activity.type].muscles.forEach(gid => groups.add(gid));
@@ -493,130 +522,189 @@ export async function getWeeklyReport(selector = "current") {
   }).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
   const sessions = [];
-  let totalVolume = 0;
-  let entriesCount = 0;
-  const muscleScores = {};
-  const bodyRegionScores = {};
-  const topExMap = {};
+  let totalVolume = 0, entriesCount = 0;
+  const muscleScores = {}, bodyRegionScores = {}, topExMap = {};
 
   for (const date of dates) {
     const sess = await getSession(date);
     if (!sess) continue;
-    let sessVolume = 0;
-    let hasDone = false;
+    let sessVolume = 0, hasDoneExercises = false;
     const sessGroupsCount = {};
 
-    for (const ex of (sess.exercises || [])) {
+    for (const ex of (Array.isArray(sess.exercises) ? sess.exercises : [])) {
       if (!ex.done) continue;
-      hasDone = true;
-      entriesCount++;
-      const primary = ex.primaryMuscles || [];
-      const secondary = ex.secondaryMuscles || [];
-      const exName = ex.name || ex.exercise_id || "";
-      const vol = calculateExVolume(ex);
+      const primary = ex.primaryMuscles || [], secondary = ex.secondaryMuscles || [], exName = ex.name || ex.exercise_id || "";
+      hasDoneExercises = true; entriesCount++;
+      const s = parseFloat(ex.sets), r = parseFloat(ex.reps), w = parseFloat(ex.weight);
+      const vol = (isFinite(s) && isFinite(r) && isFinite(w)) ? s * r * w : 0;
       sessVolume += vol;
       if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
-      let mapped = false;
+      let hasMapped = false;
+      [...primary, ...secondary].forEach(m => {
+        muscleToGroupIds(m, exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; hasMapped = true; });
+      });
       for (const m of primary) {
-        muscleToGroupIds(m, exName).forEach(gid => {
-          sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
-          muscleScores[m] = (muscleScores[m] || 0) + 1;
-          bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
-          mapped = true;
-        });
+        muscleToGroupIds(m, exName).forEach(gid => { muscleScores[m] = (muscleScores[m] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; hasMapped = true; });
       }
       for (const m of secondary) {
-        muscleToGroupIds(m, exName).forEach(gid => {
-          bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
-          mapped = true;
-        });
+        muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; hasMapped = true; });
       }
-      if (!mapped && exName) {
-        muscleToGroupIds("", exName).forEach(gid => {
-          sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
-          bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
-        });
+      if (!hasMapped && exName) {
+        muscleToGroupIds("", exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; });
       }
     }
 
-    if (hasDone || sess.block || sess.activity) {
+    if (hasDoneExercises || sess.block || sess.activity) {
       const sortedGroups = Object.entries(sessGroupsCount).sort((a, b) => b[1] - a[1]);
       let autoSplit = sess.block || sess.trainingsart || "Training";
-      if (!sess.block && sortedGroups.length) {
-        autoSplit = sortedGroups[0][0][0].toUpperCase() + sortedGroups[0][0].slice(1);
-      }
+      if (!sess.block && sortedGroups.length > 0) autoSplit = sortedGroups[0][0].charAt(0).toUpperCase() + sortedGroups[0][0].slice(1);
       if (sess.activity && ACTIVITY_MUSCLE_MAPPING[sess.activity.type]) {
-        ACTIVITY_MUSCLE_MAPPING[sess.activity.type].muscles.forEach(gid => {
-          sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
-          bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
-        });
+        ACTIVITY_MUSCLE_MAPPING[sess.activity.type].muscles.forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; });
       }
       const muscleRecovery = {};
       for (const gid of Object.keys(sessGroupsCount)) {
-        const last = historyWithMuscles
-          .filter(h => h.date < date && h.groups.includes(gid))
-          .sort((a, b) => b.date.localeCompare(a.date))[0];
-        if (last) {
-          const diffH = Math.round((new Date(date) - new Date(last.date)) / 3_600_000);
-          muscleRecovery[gid] = diffH;
+        const lastSessionWithGroup = historyWithMuscles.find(h => h.date < date && h.groups.includes(gid));
+        if (lastSessionWithGroup) {
+          const d1 = new Date(date), d2 = new Date(lastSessionWithGroup.date);
+          muscleRecovery[gid] = Math.round((d1 - d2) / (1000 * 60 * 60));
         }
       }
       totalVolume += sessVolume;
-      sessions.push({
-        ...sess,
-        block: autoSplit,
-        total_volume: sessVolume,
-        exercise_count: sess.exercises?.length || 0,
-        muscle_recovery: muscleRecovery,
-      });
+      sessions.push({ ...sess, block: autoSplit, total_volume: sessVolume, exercise_count: sess.exercises?.length || 0, muscle_recovery: muscleRecovery });
     }
   }
 
-  const allGroups = ["chest","back","shoulders","arms","core","glutes","quads","hamstrings","calves","legs"];
+  const allGroups = ["chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves", "legs"];
   const gaps = allGroups.filter(g => (bodyRegionScores[g] || 0) < 1);
 
   return {
-    ok: true,
-    week: selector,
-    session_count: sessions.length,
-    entries_count: entriesCount,
-    total_volume: totalVolume,
-    sessions,
-    muscle_scores: muscleScores,
-    body_region_scores: bodyRegionScores,
-    missing_regions: gaps,
+    ok: true, week: selector, session_count: sessions.length, entries_count: entriesCount, total_volume: totalVolume,
+    sessions, muscle_scores: muscleScores, body_region_scores: bodyRegionScores, missing_regions: gaps,
     top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ display_name: name, count })),
-    recommendations: gaps.length ? [`Fokus auf: ${gaps.join(", ")}`] : ["Woche perfekt abgedeckt!"],
+    recommendations: gaps.length > 0 ? [`Fokus auf: ${gaps.join(", ")}`] : ["Woche perfekt abgedeckt!"],
   };
 }
 
-// ── Progress Trend ───────────────────────────────────────────────────────────
-
 export async function getProgressTrend(exerciseName, lastN = 4) {
   const history = await getSessionHistory(lastN * 7);
-  const sessions = history
-    .filter(s => s.exercises?.some(ex => ex.name === exerciseName))
+  const safeHistory = Array.isArray(history)
+    ? history.filter(Boolean).map(s => ({
+        ...s,
+        exercises: Array.isArray(s.exercises) ? s.exercises : [],
+      }))
+    : [];
+  
+  const sessions = safeHistory
+    .filter(s => s.exercises.some(ex => ex.name === exerciseName))
     .sort((a, b) => b.date.localeCompare(a.date));
+
   if (sessions.length < 2) return { status: "neutral", message: "Nicht genug Daten" };
 
-  const volumes = sessions.map(s => {
+  const values = sessions.map(s => {
     const ex = s.exercises.find(e => e.name === exerciseName);
-    if (!ex || ex.isHIT) return null;
-    return calculateExVolume(ex) || null;
-  }).filter(v => v != null);
+    if (!ex) return null;
 
-  if (volumes.length < 2) return { status: "neutral", message: "Zu wenig Volumen-Daten" };
+    if (ex.isHIT) {
+      // For HIT, trend is based on pure weight
+      const w = ex.weight || (ex.setsArray && ex.setsArray[0]?.weight);
+      return num(w);
+    } else {
+      // For standard, trend is based on total volume
+      return calculateExVolume(ex);
+    }
+  }).filter(v => v !== null && v > 0);
 
-  const current = volumes[0];
-  const previous = volumes.slice(1, lastN);
-  const avg = previous.reduce((a, b) => a + b, 0) / previous.length;
-  const pct = ((current - avg) / avg) * 100;
-  if (pct >  5) return { status: "up",   change: pct.toFixed(1) };
-  if (pct < -5) return { status: "down", change: pct.toFixed(1) };
-  return        { status: "neutral",     change: pct.toFixed(1) };
+  if (values.length < 2) return { status: "neutral", message: "Zu wenig Daten" };
+  
+  const current = values[0];
+  const previous = values.slice(1, lastN);
+  const avgPrevious = previous.reduce((a, b) => a + b, 0) / previous.length;
+  
+  if (avgPrevious === 0) return { status: "neutral" };
+
+  const pctChange = ((current - avgPrevious) / avgPrevious) * 100;
+  if (pctChange > 2)  return { status: "up",      change: pctChange.toFixed(1) };
+  if (pctChange < -2) return { status: "down",    change: pctChange.toFixed(1) };
+  return                   { status: "neutral", change: pctChange.toFixed(1) };
 }
 
-// ── Quick parser (used by Session input) ─────────────────────────────────────
+// ── Settings / Layout / Body (from pwa.bak/src/lib/db/user.js) ───────────────
+
+export async function getSettings() {
+  const snap = await getDoc(doc(db, "fitness", getUid(), "settings", "general"));
+  if (!snap.exists()) return { theme: "honey", themeMode: "manual" };
+  return snap.data();
+}
+
+export async function saveSettings(settings) {
+  await setDoc(doc(db, "fitness", getUid(), "settings", "general"), {
+    ...settings,
+    updated_at: serverTimestamp(),
+  });
+  return { ok: true };
+}
+
+export async function getLayout() {
+  const snap = await getDoc(doc(db, "fitness", getUid(), "settings", "layout"));
+  if (!snap.exists()) return null;
+  return snap.data()?.layout;
+}
+
+export async function saveLayout(layout) {
+  await setDoc(doc(db, "fitness", getUid(), "settings", "layout"), {
+    layout,
+    updated_at: serverTimestamp(),
+  });
+  return { ok: true };
+}
+
+export async function getBodyEntry(date) {
+  const snap = await getDoc(doc(db, "fitness", getUid(), "body", date));
+  if (!snap.exists()) return null;
+  return snap.data();
+}
+
+export async function saveBodyEntry(date, data) {
+  await setDoc(doc(db, "fitness", getUid(), "body", date), {
+    ...data,
+    date,
+    saved_at: serverTimestamp(),
+  });
+  return { ok: true };
+}
+
+export async function getBodyEntries(days = 30) {
+  const q = query(
+    collection(db, "fitness", getUid(), "body"),
+    orderBy("date", "desc"),
+    limit(days),
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => d.data());
+}
+
+// ── Export + Quick parser (from pwa.bak/src/lib/db/utils.js) ─────────────────
+
+export async function exportCsv(days = 14) {
+  const today = new Date();
+  const dates = [];
+  for (let i = 0; i < days; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    dates.push(d.toISOString().slice(0, 10));
+  }
+  const rows = [["date", "block", "exercise", "sets", "reps", "weight", "note", "effort"]];
+  for (const date of dates) {
+    const sess = await getSession(date);
+    const block = sess?.block || "";
+    const effort = sess?.effort ?? "";
+    for (const ex of (sess?.exercises || [])) {
+      rows.push([date, block, ex.name || "", ex.sets || "", ex.reps || "", ex.weight || "", ex.note || "", effort]);
+    }
+  }
+  const csv = rows.map(r => r.map(v => `"${v}"`).join(",")).join("\n");
+  downloadText(`fitness-${days}d-${todayISO()}.csv`, csv, "text/csv;charset=utf-8");
+}
 
 export function parseQuick(raw) {
   if (!raw?.trim()) return null;
@@ -633,26 +721,4 @@ export function parseQuick(raw) {
     primaryMuscles: [], secondaryMuscles: [],
     done: true,
   };
-}
-
-// ── CSV Export ───────────────────────────────────────────────────────────────
-
-export async function exportCsv(days = 14) {
-  const today = new Date();
-  const dates = Array.from({ length: days }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    return d.toISOString().slice(0, 10);
-  });
-  const rows = [["date", "block", "exercise", "sets", "reps", "weight", "note", "effort"]];
-  for (const date of dates) {
-    const sess = await getSession(date);
-    const block = sess?.block || "";
-    const effort = sess?.effort ?? "";
-    for (const ex of (sess?.exercises || [])) {
-      rows.push([date, block, ex.name || "", ex.sets || "", ex.reps || "", ex.weight || "", ex.note || "", effort]);
-    }
-  }
-  const csv = rows.map(r => r.map(v => `"${v}"`).join(",")).join("\n");
-  downloadText(`fitness-${days}d-${todayISO()}.csv`, csv, "text/csv;charset=utf-8");
 }
