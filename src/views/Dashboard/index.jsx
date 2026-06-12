@@ -28,7 +28,7 @@ const WIDGET_META = {
   weight:   { title: 'Gewicht',       span: 'lg:col-span-3', targetTab: null },
 };
 
-export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body' }) {
+export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body', gender = 'male' }) {
   function onNavigate(target, date) {
     if (target === 'session') onOpenSession?.(date || null);
     else if (target === 'review') onOpenReview?.();
@@ -156,7 +156,7 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
       case 'heatmap':
         return <ActivityHeatmap rollingDays={rollingDays} sessionByDate={sessionByDate} today={today} onNavigate={onNavigate} />;
       case 'body':
-        return <MuscleBody enrichedRecent={enrichedRecent} recentDays={recentDays} highlighterMode={dashboardHighlighter} />;
+        return <MuscleBody enrichedRecent={enrichedRecent} recentDays={recentDays} highlighterMode={dashboardHighlighter} gender={gender} />;
       case 'coverage':
         return <MuscleCoverage coverage={coverage} recentDays={recentDays} />;
       case 'weight':

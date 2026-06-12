@@ -9,6 +9,7 @@ import WeeklyReview from './views/WeeklyReview/index.jsx'
 import Settings from './views/Settings/index.jsx'
 import ExerciseInsightModal from './components/ExerciseInsightModal.jsx'
 import { api } from './api.js'
+import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode } from '@db'
 
 import { NAV_ITEMS, VALID_TABS } from './constants/NavigationItems.js'
 import { THEMES } from './constants/Themes.js'
@@ -27,8 +28,18 @@ export default function App() {
      const hash = window.location.hash.replace(/^#\/?/, '');
      return VALID_TABS.has(hash) ? hash : 'dash';
   });
-  const user = { displayName: 'Local Host', email: 'localhost', photoURL: null };
-  
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [authRegistering, setAuthRegistering] = useState(false);
+
+  useEffect(() => watchAuth((u) => {
+    setUser(u);
+    setAuthLoading(false);
+  }), []);
+
   const [theme, setThemeState]    = useState(() => localStorage.getItem('fitness-theme') || 'nordic');
   const [themeMode, setModeState] = useState(() => localStorage.getItem('fitness-theme-mode') || 'manual');
   // Circadian: which dark + which light to use
@@ -164,13 +175,59 @@ export default function App() {
     } catch {}
   }
 
+  async function handleAuthSubmit(e) {
+    e.preventDefault();
+    setAuthError('');
+    try {
+      if (authRegistering) await signUpEmail(authEmail, authPassword);
+      else                 await signInEmail(authEmail, authPassword);
+    } catch {
+      setAuthError('Anmeldung fehlgeschlagen.');
+    }
+  }
+
+  if (authLoading) return (
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
+      <div className="text-[var(--dim)] text-xs font-black uppercase tracking-widest">…</div>
+    </div>
+  );
+
+  if (!user) return (
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg)] text-[var(--ink)] p-6">
+      <div className="w-full max-w-sm card p-8 space-y-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-black tracking-tight">AlphaOS Fitness</h1>
+          <p className="text-[var(--dim)] text-[10px] font-bold uppercase tracking-widest mt-2">Anmelden</p>
+        </div>
+        <form onSubmit={handleAuthSubmit} className="space-y-3">
+          <input type="email"    placeholder="Email"    value={authEmail}    onChange={e => setAuthEmail(e.target.value)}    required className="w-full bg-[var(--bg2)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm font-bold focus:border-[var(--accent)] outline-none" />
+          <input type="password" placeholder="Passwort" value={authPassword} onChange={e => setAuthPassword(e.target.value)} required className="w-full bg-[var(--bg2)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm font-bold focus:border-[var(--accent)] outline-none" />
+          {authError && <p className="text-[var(--red)] text-[10px] font-bold uppercase text-center">{authError}</p>}
+          <button type="submit" className="w-full btn btn-primary py-3 font-black uppercase tracking-widest">
+            {authRegistering ? 'Account erstellen' : 'Anmelden'}
+          </button>
+        </form>
+        <div className="flex items-center gap-3"><div className="h-px bg-[var(--line)] flex-1 opacity-50" /><span className="text-[9px] font-black uppercase text-[var(--dim)]">oder</span><div className="h-px bg-[var(--line)] flex-1 opacity-50" /></div>
+        <button onClick={signIn} className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white text-black rounded-xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-transform">Google Login</button>
+        <button onClick={() => setAuthRegistering(!authRegistering)} className="w-full text-[10px] font-black text-[var(--dim)] uppercase hover:text-[var(--accent)]">
+          {authRegistering ? 'Bereits einen Account? Anmelden' : 'Neu hier? Account erstellen'}
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <ErrorBoundary>
         <div className="flex min-h-screen bg-[var(--bg)] text-[var(--ink)] font-sans transition-colors duration-500">
 
         <Sidebar tab={tab} navigate={navigate} pinned={sidebarPinned} setPinned={setSidebarPinned}>
-          <UserProfile user={user} subtitle={`${user.email} · localhost`} />
+          <UserProfile user={user} subtitle={isLocalMode() ? `${user?.email || 'localhost'} · localhost` : (user?.email || '')} />
+          {!isLocalMode() && (
+            <button onClick={signOut} className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black uppercase tracking-widest text-[var(--red)] bg-[var(--red)]/5 border border-[var(--red)]/10 rounded-xl hover:bg-[var(--red)]/10 transition-all">
+              Logout
+            </button>
+          )}
           <button onClick={() => window.location.reload()} className="w-full flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--dim)] bg-[var(--bg2)] rounded-xl hover:bg-white/5 transition-all">
             <RefreshCw size={14} /> Refresh
           </button>
@@ -181,7 +238,7 @@ export default function App() {
 
           <main className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto">
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} />}
+                  {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} />}
                   {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}
                   {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} hitMode={hitMode} />}
                   {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} hitMode={hitMode} gender={gender} />}
