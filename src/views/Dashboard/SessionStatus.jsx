@@ -7,7 +7,7 @@ export default function SessionStatus({ plan, todaySession, recent, today, onNav
   const recentSessions = Array.isArray(recent) ? recent : [];
 
   return (
-    <div className="lg:col-span-1 space-y-6">
+    <div className="lg:col-span-2 space-y-6">
       {/* Plan-Hint */}
       {plan?.today && (
         <div className="card mb-0 flex flex-col justify-between p-6" style={{ background: 'linear-gradient(180deg, var(--card), var(--bg2))', borderColor: 'var(--accent)20' }}>
