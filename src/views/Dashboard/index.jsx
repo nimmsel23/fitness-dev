@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Lock } from "lucide-react";
 import { 
   getSession, getRecentSessions, getPlan, getLatestSession, 
   getMuscleCoverage, exportCsv, getAllExercises 
@@ -121,6 +122,19 @@ export default function Dashboard({ onOpenSession, onInspectExercise, onOpenRevi
         <div className="lg:col-span-3 overflow-hidden">
           <WeightChart days={30} />
         </div>
+      </div>
+
+      {/* Hidden Chambers Access */}
+      <div className="mt-16 pt-8 border-t border-dashed border-[var(--line)] flex justify-center opacity-10 hover:opacity-100 transition-opacity duration-1000">
+        <a 
+          href="https://ideapad.tail7a15d6.ts.net/workout/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-mono tracking-widest text-[var(--muted)] hover:text-[var(--accent)] hover:bg-[var(--panel)] transition-all"
+        >
+          <Lock size={12} />
+          SYSTEM::ACCESS_HIDDEN_CHAMBER::WORKOUT_FORGE
+        </a>
       </div>
 
       {exportToast && (
