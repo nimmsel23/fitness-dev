@@ -6,7 +6,7 @@ import {
 import { localToday } from '@utils';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
 
-import { Save, Zap, X } from 'lucide-react';
+import { Save, Zap, X, Dumbbell, ChevronRight } from 'lucide-react';
 import DateHeader from './DateHeader';
 import SessionSidebar from './SessionSidebar';
 import ExerciseSection from './ExerciseSection';
@@ -72,6 +72,10 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
   const [hint, setHint]           = useState(null);
   const [gaps, setGaps]           = useState([]);
   const [showMap, setShowMap]     = useState(false);
+  
+  const [isLogging, setIsLogging] = useState(!!initialDate || !!initialDraft);
+  const [historyList, setHistoryList] = useState([]);
+  const [historyLimit, setHistoryLimit] = useState(10);
 
   const [prevMap, setPrevMap]       = useState({});
 
@@ -79,6 +83,7 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
 
   useEffect(() => {
     getSessionHistory(60).then(sessions => {
+      setHistoryList(sessions);
       const sessByDate = {};
       const pMap = {};
       
@@ -278,6 +283,52 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
     a.download = `fitness-session-${date}.md`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  if (!isLogging) {
+    const visibleHistory = historyList.filter(s => s.block || (s.exercises && s.exercises.length > 0) || s.activity).slice(0, historyLimit);
+    
+    return (
+      <div className="pb-32 max-w-2xl mx-auto px-4 mt-8 animate-in fade-in zoom-in-95 duration-300">
+        <button 
+          onClick={() => { setDate(localToday()); setIsLogging(true); }} 
+          className="w-full py-12 rounded-[32px] bg-accent/10 border-2 border-dashed border-accent/30 text-accent hover:bg-accent/20 hover:border-accent/50 transition-all flex flex-col items-center gap-3 group"
+        >
+          <Dumbbell size={40} className="group-hover:scale-110 transition-transform" />
+          <span className="font-black text-xl tracking-widest uppercase">+ NEW Workout</span>
+        </button>
+
+        {visibleHistory.length > 0 && (
+          <div className="mt-16 space-y-4">
+            <h2 className="text-[10px] font-black uppercase tracking-widest text-dim ml-2 opacity-50">Recent Logs</h2>
+            {visibleHistory.map(s => (
+              <div 
+                key={s.date} 
+                onClick={() => { setDate(s.date); setIsLogging(true); }} 
+                className="card p-5 cursor-pointer hover:border-accent/50 hover:bg-accent/5 transition-all flex items-center justify-between group"
+              >
+                <div>
+                  <div className="font-black text-sm text-ink group-hover:text-accent transition-colors">{s.block || s.trainingsart || 'Training'}</div>
+                  <div className="text-[10px] font-bold text-dim uppercase tracking-widest mt-1">
+                    {s.date} · {s.exercises?.length || 0} Übungen
+                  </div>
+                </div>
+                <ChevronRight size={20} className="text-dim opacity-30 group-hover:opacity-100 group-hover:text-accent transition-all group-hover:translate-x-1" />
+              </div>
+            ))}
+            
+            {historyList.length > historyLimit && (
+              <button 
+                onClick={() => setHistoryLimit(p => p + 10)} 
+                className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-dim hover:text-ink transition-colors"
+              >
+                Mehr anzeigen ↓
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
   }
 
   return (
