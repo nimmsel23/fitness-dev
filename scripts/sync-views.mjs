@@ -1,50 +1,15 @@
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+// DISABLED 2026-06-12
+// This script previously copied src/views/{Habits,Journal}, src/lib/db,
+// and src/lib/utils.js → pwa/src/*, OVERWRITING the modularized Firestore
+// code in pwa/src/lib/db with the Node-API code from src/lib/db.
+//
+// Running this destroyed the smart-clean Firestore implementation every
+// time it was invoked. Do NOT run it. The correct integration direction
+// is the OPPOSITE: pwa/src/lib/db (Firestore, last good state at git
+// commit 5d9086c) → src/lib/db. The pwa/ folder no longer exists.
+//
+// If you want UI-parity sync of just the views (not lib/db), write a new
+// script that explicitly lists view directories and refuses to touch lib/.
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.join(__dirname, "..");
-const PWA_SRC = path.join(ROOT, "pwa", "src");
-const COACH_SRC = path.join(ROOT, "src");
-
-const TARGETS = [
-  "views/Habits",
-  "views/Journal",
-  "lib/db",
-  "lib/utils.js"
-];
-
-function copyRecursiveSync(src, dest) {
-  const exists = fs.existsSync(src);
-  const stats = exists && fs.statSync(src);
-  const isDirectory = exists && stats.isDirectory();
-  if (isDirectory) {
-    fs.mkdirSync(dest, { recursive: true });
-    fs.readdirSync(src).forEach(childItemName => {
-      copyRecursiveSync(path.join(src, childItemName), path.join(dest, childItemName));
-    });
-  } else if (exists) {
-    // create parent dir if needed for single files
-    fs.mkdirSync(path.dirname(dest), { recursive: true });
-    fs.copyFileSync(src, dest);
-  }
-}
-
-console.log("🔄 Syncing Single-Source-of-Truth Views to PWA...");
-
-for (const target of TARGETS) {
-  const srcPath = path.join(COACH_SRC, target);
-  const destPath = path.join(PWA_SRC, target);
-  
-  if (fs.existsSync(srcPath)) {
-    console.log(`  -> Syncing ${target}...`);
-    if (fs.existsSync(destPath)) {
-      fs.rmSync(destPath, { recursive: true, force: true });
-    }
-    copyRecursiveSync(srcPath, destPath);
-  } else {
-    console.warn(`  ! Source not found: ${srcPath}`);
-  }
-}
-
-console.log("✅ Sync complete!");
+console.error("sync-views.mjs is permanently disabled. See header comment.");
+process.exit(1);
