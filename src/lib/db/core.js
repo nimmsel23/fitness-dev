@@ -43,3 +43,11 @@ export function watchAuth(callback) {
   callback?.(user);
   return () => {};
 }
+
+// Auth stubs — public-API parity with src/db.firestore.js so views can
+// import the same names in both modes. No-ops in local; you're already
+// "signed in" as the Local Host stub returned by watchAuth above.
+export async function signIn()                  { return { ok: true }; }
+export async function signInEmail(email, pw)    { return { ok: true }; }
+export async function signUpEmail(email, pw, n) { return { ok: true }; }
+export async function signOut()                 { return { ok: true }; }

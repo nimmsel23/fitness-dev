@@ -11,7 +11,7 @@ import AnatomyDetailModal from "../../components/AnatomyDetailModal";
 import PlanBuilder from "../../components/PlanBuilder.jsx";
 import Muscles from "../Muscles/index.jsx";
 
-// Local Power Feature: QuizMode
+// QuizMode
 function QuizMode({ exercises, onExit }) {
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -184,7 +184,7 @@ export default function Learn({ onInspectExercise, hitMode, gender }) {
               loading={loading}
             />
             
-            {/* Local Power Feature: PlanBuilder integrated at the bottom of the library */}
+            {/* PlanBuilder integrated at the bottom of the library */}
             <div className="mt-12 pt-8 border-t border-line/50">
                <PlanBuilder onInspectExercise={onInspectExercise || setSelected} />
             </div>

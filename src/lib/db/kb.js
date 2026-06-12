@@ -18,6 +18,17 @@ export async function getAllExercises() {
   }
 }
 
+export async function searchExercises(query, limit = 12) {
+  const q = String(query || "").trim();
+  if (!q) return { ok: true, results: [], query: q, suggestions: [] };
+  try {
+    const data = await api.get(`/fitness/search?q=${encodeURIComponent(q)}&limit=${limit}`);
+    return data || { ok: false, results: [], query: q };
+  } catch {
+    return { ok: false, results: [], query: q };
+  }
+}
+
 export async function getAnatomy(exerciseId) {
   try {
     const data = await api.get(`/exercise/${encodeURIComponent(exerciseId)}/teaching`);
