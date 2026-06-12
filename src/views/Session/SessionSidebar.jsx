@@ -1,4 +1,4 @@
-import { Download } from 'lucide-react';
+import { Download, Zap } from 'lucide-react';
 import SectionHeader from './SectionHeader';
 
 export default function SessionSidebar({ 

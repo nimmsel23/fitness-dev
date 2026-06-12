@@ -52,7 +52,13 @@ self.addEventListener('fetch', e => {
       const cache = await caches.open(CACHE)
       const cached = await cache.match(req)
       const netPromise = fetch(req)
-        .then(fresh => { if (fresh?.ok) cache.put(req, fresh.clone()); return fresh })
+        .then(fresh => {
+          if (fresh?.ok) {
+            const copy = fresh.clone();
+            cache.put(req, copy);
+          }
+          return fresh
+        })
         .catch(() => null)
       if (cached) { netPromise; return cached }
       const net = await netPromise
@@ -69,7 +75,13 @@ self.addEventListener('fetch', e => {
   if (req.mode === 'navigate') {
     e.respondWith(
       fetch(req)
-        .then(r => { if (r.ok) caches.open(CACHE).then(c => c.put('/index.html', r.clone())); return r })
+        .then(r => {
+          if (r.ok) {
+            const copy = r.clone();
+            caches.open(CACHE).then(c => c.put('/index.html', copy));
+          }
+          return r
+        })
         .catch(() => caches.match('/index.html'))
     )
     return
@@ -81,12 +93,16 @@ self.addEventListener('fetch', e => {
     if (cached) return cached
     try {
       const fresh = await fetch(req)
-      if (fresh.ok) caches.open(CACHE).then(c => c.put(req, fresh.clone()))
+      if (fresh.ok) {
+        const copy = fresh.clone();
+        caches.open(CACHE).then(c => c.put(req, copy));
+      }
       return fresh
     } catch {
       return caches.match('/index.html')
     }
   })())
+
 })
 
 // Background Sync — flushed IDB-Queue wenn Connectivity zurückkommt
