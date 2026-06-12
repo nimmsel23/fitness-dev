@@ -553,7 +553,7 @@ app.get("/session", (c) => {
   const date = c.req.query("date") || localToday();
   const file = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions", `${date}.json`);
   const data = readJson(file);
-  return data ? c.json({ ok: true, data }) : c.json({ ok: false }, 404);
+  return c.json({ ok: true, data: data || null });
 });
 
 app.post("/session", async (c) => {
