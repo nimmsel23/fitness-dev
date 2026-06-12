@@ -6,13 +6,52 @@ import {
 import { localToday } from '@utils';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
 
-import { Save, Zap } from 'lucide-react';
+import { Save, Zap, X } from 'lucide-react';
 import DateHeader from './DateHeader';
 import SessionSidebar from './SessionSidebar';
 import ExerciseSection from './ExerciseSection';
 import ActivitySection from './ActivitySection';
-import BodyMap from '../../components/BodyMap.jsx';
+import DetailedMuscleMap from '../../components/DetailedMuscleMap.jsx';
 import { getRollingDays } from './utils';
+
+function MuscleMapModal({ exercises, onClose }) {
+  if (!exercises.length) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+      
+      <div className="relative w-full max-w-lg bg-card border border-line rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="p-8 border-b border-line/50 flex items-center justify-between">
+          <div>
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-accent mb-1">Anatomie-Check</h3>
+            <p className="text-[10px] font-bold opacity-30 uppercase tracking-widest">Heutige Muskelabdeckung</p>
+          </div>
+          <button onClick={onClose} className="w-10 h-10 rounded-2xl bg-bg2 flex items-center justify-center text-dim hover:text-ink transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="p-10 flex justify-center gap-16 bg-gradient-to-b from-card to-bg2">
+          <div className="flex flex-col items-center gap-4">
+            <span className="text-[10px] font-black uppercase tracking-widest opacity-20">Anterior</span>
+            <DetailedMuscleMap exercises={exercises} side="front" style={{ width: '160px' }} />
+          </div>
+          <div className="flex flex-col items-center gap-4">
+            <span className="text-[10px] font-black uppercase tracking-widest opacity-20">Posterior</span>
+            <DetailedMuscleMap exercises={exercises} side="back" style={{ width: '160px' }} />
+          </div>
+        </div>
+
+        <div className="p-6 bg-bg2 border-t border-line/50 flex justify-center">
+          <button onClick={onClose} className="px-8 py-3 rounded-2xl bg-accent text-black text-[11px] font-black uppercase tracking-widest shadow-xl shadow-accent/20 active:scale-95 transition-all">
+            Schließen
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Session({ initialDate, initialDraft, hitMode, planMode, onInspectExercise }) {
   const [date, setDate]           = useState(initialDate || localToday());
@@ -32,6 +71,7 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
   const [recentSessions, setRecentSessions] = useState({});
   const [hint, setHint]           = useState(null);
   const [gaps, setGaps]           = useState([]);
+  const [showMap, setShowMap]     = useState(false);
 
   const [prevMap, setPrevMap]       = useState({});
 
@@ -271,6 +311,7 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
             notes={notes} setNotes={setNotes}
             onDownload={handleDownload}
             onExportObsidian={exportObsidian}
+            onShowMap={() => setShowMap(true)}
           />
           
           {/* Gap hints */}
@@ -294,20 +335,6 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
               <div>
                 <span className="font-black text-accent uppercase tracking-widest mr-2">{hint.block}</span>
                 <span className="text-muted">{(hint.exercises || []).slice(0, 3).join(', ')}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Body Map (nur done exercises) */}
-          {doneExercises.length > 0 && (
-            <div className="card p-6 flex justify-center gap-12 bg-card border-line">
-              <div className="flex flex-col items-center gap-3">
-                <span className="text-[9px] font-black uppercase tracking-widest opacity-30">Vorne</span>
-                <BodyMap exercises={doneExercises} type="anterior" />
-              </div>
-              <div className="flex flex-col items-center gap-3">
-                <span className="text-[9px] font-black uppercase tracking-widest opacity-30">Hinten</span>
-                <BodyMap exercises={doneExercises} type="posterior" />
               </div>
             </div>
           )}
@@ -355,6 +382,13 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
       >
         {saving ? <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" /> : <Save size={24} />}
       </button>
+
+      {showMap && (
+        <MuscleMapModal 
+          exercises={doneExercises} 
+          onClose={() => setShowMap(false)} 
+        />
+      )}
     </div>
   );
 }

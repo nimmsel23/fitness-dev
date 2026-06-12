@@ -5,7 +5,7 @@ export default function SessionSidebar({
   location, setLocation, duration, setDuration, 
   hasActivity, setHasActivity, block, setBlock, 
   effort, setEffort, notes, setNotes, onDownload,
-  onExportObsidian
+  onExportObsidian, onShowMap
 }) {
   return (
     <aside className="space-y-6">
@@ -42,6 +42,18 @@ export default function SessionSidebar({
             </button>
           ))}
         </div>
+      </section>
+
+      <section className="space-y-2">
+        <button onClick={onShowMap} className="w-full p-5 rounded-3xl border flex items-center justify-between bg-card border-line hover:border-accent/30 transition-all shadow-xl group">
+          <div className="text-left">
+            <div className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1 group-hover:translate-x-1 transition-transform">Anatomie Check</div>
+            <div className="text-[11px] font-bold opacity-30">Muskelabdeckung visualisieren</div>
+          </div>
+          <div className="w-10 h-10 rounded-xl bg-bg2 flex items-center justify-center text-dim group-hover:text-accent group-hover:bg-accent/10 transition-colors">
+            <Zap size={18} />
+          </div>
+        </button>
       </section>
 
       <section className="card p-6 shadow-lg border-line/50">
