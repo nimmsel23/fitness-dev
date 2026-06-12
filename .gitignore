@@ -1,11 +1,12 @@
 node_modules/
 dist/
+.firebase/
 arena/public/data/
 arena/dist/data/
 *.log
 .env
 .env.*.local
-src/firebase.config.js
+firebase.config.js
 .DS_Store
 *.bak
 __pycache__/

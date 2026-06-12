@@ -8,8 +8,8 @@
     "start": "node server.mjs",
     "ui:dev": "vite",
     "build": "vite build",
-    "pwa:build": "vite build --mode pwa",
-    "pwa:deploy": "npm run pwa:build && firebase deploy --only hosting",
+    "build:firebase": "vite build --mode firebase",
+    "deploy:firebase": "npm run build:firebase && firebase deploy --only hosting",
     "preview": "vite preview",
     "build:catalog": "python3 scripts/build-catalog.py"
   },
