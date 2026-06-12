@@ -346,6 +346,7 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
             exercises={exercises}
             hitMode={hitMode}
             restHours={restHours}
+            muscleRecovery={recentSessions[date]?.muscle_recovery || {}}
             totalVolume={totalVolume}
             updateEx={updateEx}
             addSet={addSet}

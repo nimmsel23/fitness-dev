@@ -4,7 +4,7 @@ import ExerciseItem from "./ExerciseItem";
 import ExerciseSearch from "../../components/ExerciseSearch";
 
 export default function ExerciseSection({
-  exercises = [], hitMode, restHours, totalVolume,
+  exercises = [], hitMode, restHours, muscleRecovery = {}, totalVolume,
   updateEx, addSet, removeSet, removeEx, moveEx,
   planMode, date, addEx, quickInput, setQuickInput, addQuick,
   prevMap = {}, onInspectExercise
@@ -29,6 +29,7 @@ export default function ExerciseSection({
             ex={ex}
             i={idx}
             hitMode={hitMode}
+            muscleRecovery={muscleRecovery}
             updateEx={updateEx}
             addSet={addSet}
             removeSet={removeSet}

@@ -3,7 +3,7 @@ import { getProgressTrend } from '@db';
 import { num } from './utils';
 
 export default function ExerciseItem({
-  ex, i, hitMode, updateEx, addSet, removeSet, removeEx, moveEx,
+  ex, i, hitMode, muscleRecovery = {}, updateEx, addSet, removeSet, removeEx, moveEx,
   isFirst, isLast, planMode, date, prev, onInspectExercise
 }) {
   const [trend, setTrend] = useState(null);
@@ -27,9 +27,15 @@ export default function ExerciseItem({
     }
     updateEx(i, 'reps', val, sIdx);
   };
-
-  const volume = (!isActuallyHIT && ex.setsArray) 
-    ? ex.setsArray.reduce((acc, set) => acc + (num(set.reps) || 0) * (num(set.weight) || 0), 0) : null;
+  
+  // Determine specific recovery for this exercise based on primary muscles
+  let exRecoveryHours = null;
+  if (ex.primaryMuscles && ex.primaryMuscles.length > 0) {
+    const hours = ex.primaryMuscles.map(m => muscleRecovery[m]).filter(h => h !== undefined);
+    if (hours.length > 0) {
+       exRecoveryHours = Math.min(...hours); // Show the shortest recovery time among primary muscles
+    }
+  }
 
   return (
     <div className={`card border-l-2 relative mb-2 p-3 ${planMode && isFuture && !ex.done ? 'border-orange' : 'border-accent'}`}>
@@ -50,34 +56,42 @@ export default function ExerciseItem({
             )}
 
             {trend && trend.status !== 'neutral' && (
-
               <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${trend.status === 'up' ? 'bg-green/10 text-green' : 'bg-red/10 text-red'}`}>
                 {trend.status === 'up' ? '↗' : '↘'} {trend.change}%
               </span>
             )}
 
             {isActuallyHIT && (
-              <span className="text-[8px] font-black bg-orange/10 text-orange px-1.5 py-0.5 rounded uppercase tracking-widest border border-orange/10">
+              <span className="text-[8px] font-black bg-orange/10 text-orange px-1.5 py-0.5 rounded uppercase tracking-widest border border-orange/20">
                 HIT
               </span>
             )}
           </div>
 
-          {/* Previous Performance (Local Intelligence) */}
-          {prev && (
-            <div className="text-[9px] font-mono font-bold text-dim mt-0.5 opacity-60">
-              {prev.setsArray ? (
-                <span>
-                  {prev.setsArray.length}×{prev.setsArray[0].reps}@{prev.setsArray[0].weight}kg
-                </span>
-              ) : (
-                <span>
-                  {prev.sets}×{prev.reps}{prev.weight ? `@${prev.weight}kg` : ''}
-                </span>
-              )}
-              <span className="ml-1.5 opacity-40 font-normal">{prev.date}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2 mt-0.5">
+            {/* Previous Performance */}
+            {prev && (
+              <div className="text-[9px] font-mono font-bold text-dim opacity-60">
+                {prev.setsArray ? (
+                  <span>
+                    {prev.setsArray.length}×{prev.setsArray[0].reps}@{prev.setsArray[0].weight}kg
+                  </span>
+                ) : (
+                  <span>
+                    {prev.sets}×{prev.reps}{prev.weight ? `@${prev.weight}kg` : ''}
+                  </span>
+                )}
+                <span className="ml-1.5 opacity-40 font-normal">{prev.date}</span>
+              </div>
+            )}
+            
+            {/* Exercise Specific Recovery */}
+            {exRecoveryHours !== null && (
+              <div className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-bg2 rounded border border-line text-dim">
+                Rest: {exRecoveryHours}h
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-2">
