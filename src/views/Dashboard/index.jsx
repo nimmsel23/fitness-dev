@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { Lock, Pencil, Save, X } from "lucide-react";
-import { 
-  getSession, getRecentSessions, getPlan, getLatestSession, 
-  getMuscleCoverage, exportCsv, getAllExercises 
+import { useState, useEffect, useRef } from "react";
+import { Lock, GripVertical } from "lucide-react";
+import {
+  getSession, getRecentSessions, getPlan,
+  getMuscleCoverage, exportCsv, getAllExercises
 } from "@db";
 import { localToday } from "@utils";
 import HabitWidget from "../../components/HabitWidget.jsx";
@@ -10,30 +10,45 @@ import WeightChart from "../../components/WeightChart.jsx";
 
 import DashboardHeader from "@src/components/dashboard/DashboardHeader";
 import ActivityHeatmap from "@src/components/dashboard/ActivityHeatmap";
-import MuscleStatus from "@src/components/dashboard/MuscleStatus";
+import MuscleBody from "@src/components/dashboard/MuscleBody";
+import MuscleCoverage from "@src/components/dashboard/MuscleCoverage";
 import SessionStatus from "@src/components/dashboard/SessionStatus";
-import DashboardWidget from "../../components/dashboard/DashboardWidget.jsx";
+import DashboardWidget from "@src/components/dashboard/DashboardWidget";
 import { getRolling10Days } from "@src/components/dashboard/utils";
 
-const DEFAULT_LAYOUT = ['session', 'habits', 'heatmap', 'muscles', 'weight'];
+const DEFAULT_LAYOUT = ['session', 'habits', 'heatmap', 'body', 'coverage', 'weight'];
+const LAYOUT_KEY = 'fitness-dashboard-layout';
 
-export default function Dashboard({ onOpenSession, onInspectExercise, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body' }) {
+const WIDGET_META = {
+  session:  { title: 'Heute',         span: 'lg:col-span-2', targetTab: 'session' },
+  habits:   { title: 'Habits',        span: 'lg:col-span-1', targetTab: 'habits' },
+  heatmap:  { title: 'Aktivität',     span: 'lg:col-span-3', targetTab: 'review' },
+  body:     { title: 'Muskel-Status', span: 'lg:col-span-2', targetTab: 'learn' },
+  coverage: { title: 'Coverage',      span: 'lg:col-span-1', targetTab: 'learn' },
+  weight:   { title: 'Gewicht',       span: 'lg:col-span-3', targetTab: null },
+};
+
+export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body' }) {
   function onNavigate(target, date) {
     if (target === 'session') onOpenSession?.(date || null);
     else if (target === 'review') onOpenReview?.();
-    else if (onOpenSession && typeof onOpenSession === 'function' && ['dash', 'session', 'review', 'learn', 'habits', 'journal', 'settings'].includes(target)) {
-      // This is a bit hacky because Dashboard doesn't have the global navigate,
-      // but onOpenSession is passed from App.jsx where it can trigger a tab change if needed.
-      // Better: we should pass a real 'navigate' prop if we want full control.
-      window.location.hash = `#${target}`;
-    }
+    else window.location.hash = `#${target}`;
   }
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [layout, setLayout] = useState(() => {
-    const saved = localStorage.getItem('fitness-dashboard-layout');
-    return saved ? JSON.parse(saved) : DEFAULT_LAYOUT;
+    try {
+      const saved = JSON.parse(localStorage.getItem(LAYOUT_KEY) || 'null');
+      if (!Array.isArray(saved)) return DEFAULT_LAYOUT;
+      const known = saved.filter(id => WIDGET_META[id]);
+      const missing = DEFAULT_LAYOUT.filter(id => !known.includes(id));
+      return [...known, ...missing];
+    } catch { return DEFAULT_LAYOUT; }
   });
+  const [dragId, setDragId] = useState(null);
+  const [overId, setOverId] = useState(null);
+  const layoutRef = useRef(layout);
+  layoutRef.current = layout;
 
   const [todaySession, setTodaySession] = useState(null);
   const [recent, setRecent] = useState([]);
@@ -44,6 +59,10 @@ export default function Dashboard({ onOpenSession, onInspectExercise, onOpenRevi
 
   const today = localToday();
   const rollingDays = getRolling10Days();
+
+  useEffect(() => {
+    localStorage.setItem(LAYOUT_KEY, JSON.stringify(layout));
+  }, [layout]);
 
   useEffect(() => {
     getSession(today).then(setTodaySession).catch(() => setTodaySession({}));
@@ -101,97 +120,112 @@ export default function Dashboard({ onOpenSession, onInspectExercise, onOpenRevi
     }
   }
 
-  const saveLayout = () => {
-    localStorage.setItem('fitness-dashboard-layout', JSON.stringify(layout));
-    setIsEditMode(false);
-  };
+  function onDragStart(e, id) {
+    setDragId(id);
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', id); } catch {}
+  }
+  function onDragOver(e, id) {
+    if (!dragId || id === dragId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (overId !== id) setOverId(id);
+  }
+  function onDrop(e, targetId) {
+    e.preventDefault();
+    const sourceId = dragId;
+    setDragId(null); setOverId(null);
+    if (!sourceId || sourceId === targetId) return;
+    const next = [...layoutRef.current];
+    const from = next.indexOf(sourceId);
+    const to = next.indexOf(targetId);
+    if (from < 0 || to < 0) return;
+    next.splice(from, 1);
+    next.splice(to, 0, sourceId);
+    setLayout(next);
+  }
+  function onDragEnd() { setDragId(null); setOverId(null); }
+  function resetLayout() { setLayout(DEFAULT_LAYOUT); }
 
-  const moveWidget = (index, direction) => {
-    const newLayout = [...layout];
-    const targetIndex = index + direction;
-    if (targetIndex < 0 || targetIndex >= newLayout.length) return;
-    [newLayout[index], newLayout[targetIndex]] = [newLayout[targetIndex], newLayout[index]];
-    setLayout(newLayout);
-  };
-
-  const renderWidget = (id, index) => {
-    const editControls = isEditMode && (
-      <div className="absolute top-2 left-2 z-20 flex gap-1">
-        <button onClick={(e) => { e.stopPropagation(); moveWidget(index, -1); }} className="p-1 bg-accent text-black rounded shadow hover:scale-110">↑</button>
-        <button onClick={(e) => { e.stopPropagation(); moveWidget(index, 1); }} className="p-1 bg-accent text-black rounded shadow hover:scale-110">↓</button>
-      </div>
-    );
-
-    switch(id) {
+  function renderInner(id) {
+    switch (id) {
       case 'session':
-        return (
-          <DashboardWidget key="session" title="Session Status" onNavigate={onNavigate} targetTab="session" isEditMode={isEditMode} className="lg:col-span-1">
-            {editControls}
-            <SessionStatus plan={plan} todaySession={todaySession} recent={recent} today={today} onNavigate={onNavigate} />
-          </DashboardWidget>
-        );
+        return <SessionStatus plan={plan} todaySession={todaySession} recent={recent} today={today} onNavigate={onNavigate} />;
       case 'habits':
-        return (
-          <DashboardWidget key="habits" title="Habits (heute)" onNavigate={onNavigate} targetTab="habits" isEditMode={isEditMode} className="lg:col-span-1">
-            {editControls}
-            <HabitWidget onNavigate={onNavigate} />
-          </DashboardWidget>
-        );
+        return <HabitWidget onNavigate={onNavigate} />;
       case 'heatmap':
-        return (
-          <DashboardWidget key="heatmap" title="Aktivität & Konsistenz" onNavigate={onNavigate} targetTab="review" isEditMode={isEditMode} className="lg:col-span-3">
-            {editControls}
-            <ActivityHeatmap rollingDays={rollingDays} sessionByDate={sessionByDate} today={today} onNavigate={onNavigate} />
-          </DashboardWidget>
-        );
-      case 'muscles':
-        return (
-          <DashboardWidget key="muscles" title="Muskel-Status" onNavigate={onNavigate} targetTab="learn" isEditMode={isEditMode} className="lg:col-span-3 grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {editControls}
-            <MuscleStatus enrichedRecent={enrichedRecent} coverage={coverage} recentDays={recentDays} highlighterMode={dashboardHighlighter} />
-          </DashboardWidget>
-        );
+        return <ActivityHeatmap rollingDays={rollingDays} sessionByDate={sessionByDate} today={today} onNavigate={onNavigate} />;
+      case 'body':
+        return <MuscleBody enrichedRecent={enrichedRecent} recentDays={recentDays} highlighterMode={dashboardHighlighter} />;
+      case 'coverage':
+        return <MuscleCoverage coverage={coverage} recentDays={recentDays} />;
       case 'weight':
-        return (
-          <DashboardWidget key="weight" title="Gewicht-Verlauf" isEditMode={isEditMode} className="lg:col-span-3 overflow-hidden">
-            {editControls}
-            <WeightChart days={30} />
-          </DashboardWidget>
-        );
+        return <WeightChart days={30} />;
       default: return null;
     }
-  };
+  }
 
   return (
-    <div className="pb-32 relative">
-      <div className="absolute top-0 right-0 z-50">
-        {isEditMode ? (
-          <div className="flex gap-2">
-            <button onClick={() => { setLayout(DEFAULT_LAYOUT); setIsEditMode(false); }} className="p-3 rounded-full bg-red/10 text-red border border-red/20 hover:bg-red/20 transition-all shadow-lg">
-              <X size={20} />
-            </button>
-            <button onClick={saveLayout} className="p-3 rounded-full bg-green/10 text-green border border-green/20 hover:bg-green/20 transition-all shadow-lg">
-              <Save size={20} />
-            </button>
-          </div>
-        ) : (
-          <button onClick={() => setIsEditMode(true)} className="p-3 rounded-full bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20 transition-all shadow-lg">
-            <Pencil size={20} />
-          </button>
-        )}
-      </div>
+    <div className="pb-32">
+      <DashboardHeader
+        onExport={handleExport}
+        isEditMode={isEditMode}
+        onToggleEdit={() => setIsEditMode(v => !v)}
+        onResetLayout={resetLayout}
+      />
 
-      <DashboardHeader onExport={handleExport} />
+      {isEditMode && (
+        <div className="mb-4 px-4 py-3 rounded-xl bg-accent/5 border border-accent/20 text-[11px] font-bold tracking-wide text-accent flex items-center gap-2">
+          <GripVertical size={14} /> Widgets per Drag&Drop neu anordnen. „Fertig" speichert.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        {layout.map((id, idx) => renderWidget(id, idx))}
+        {layout.map(id => {
+          const meta = WIDGET_META[id];
+          if (!meta) return null;
+          const isDragging = dragId === id;
+          const isOver = overId === id && dragId && dragId !== id;
+          return (
+            <div
+              key={id}
+              className={[
+                meta.span,
+                'relative transition-all',
+                isEditMode ? 'ring-1 ring-dashed ring-accent/30 rounded-[32px]' : '',
+                isDragging ? 'opacity-40 scale-[0.98]' : '',
+                isOver ? 'ring-2 ring-accent rounded-[32px]' : '',
+              ].filter(Boolean).join(' ')}
+              draggable={isEditMode}
+              onDragStart={isEditMode ? (e) => onDragStart(e, id) : undefined}
+              onDragOver={isEditMode ? (e) => onDragOver(e, id) : undefined}
+              onDrop={isEditMode ? (e) => onDrop(e, id) : undefined}
+              onDragEnd={isEditMode ? onDragEnd : undefined}
+              style={isEditMode ? { cursor: 'grab' } : undefined}
+            >
+              {isEditMode && (
+                <div className="absolute top-3 right-3 z-20 flex items-center gap-2 px-2 py-1 rounded-lg bg-accent text-black text-[9px] font-black uppercase tracking-widest shadow-lg pointer-events-none">
+                  <GripVertical size={12} /> {meta.title}
+                </div>
+              )}
+              <DashboardWidget
+                title={meta.title}
+                onNavigate={onNavigate}
+                targetTab={meta.targetTab}
+                isEditMode={isEditMode}
+              >
+                {renderInner(id)}
+              </DashboardWidget>
+            </div>
+          );
+        })}
       </div>
 
       {/* Hidden Chambers Access */}
       <div className="mt-16 pt-8 border-t border-dashed border-[var(--line)] flex justify-center opacity-10 hover:opacity-100 transition-opacity duration-1000">
-        <a 
-          href="https://ideapad.tail7a15d6.ts.net/workout/" 
-          target="_blank" 
+        <a
+          href="https://ideapad.tail7a15d6.ts.net/workout/"
+          target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-mono tracking-widest text-[var(--muted)] hover:text-[var(--accent)] hover:bg-[var(--panel)] transition-all"
         >
@@ -209,4 +243,3 @@ export default function Dashboard({ onOpenSession, onInspectExercise, onOpenRevi
     </div>
   );
 }
-

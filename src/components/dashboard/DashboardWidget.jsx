@@ -51,7 +51,7 @@ export default function DashboardWidget({
         onDoubleClick={handleDoubleClick}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
-        className={`relative group cursor-pointer transition-all active:scale-[0.98] ${isEditMode ? 'animate-pulse' : ''} ${className}`}
+        className={`relative group transition-all h-full ${isEditMode ? 'pointer-events-none select-none' : 'cursor-pointer active:scale-[0.98]'} ${className}`}
       >
         {children}
         
