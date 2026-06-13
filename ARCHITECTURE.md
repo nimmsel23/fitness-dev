@@ -307,3 +307,25 @@ Endpoint: `GET /fitness/body?days=N` (von WeightChart.jsx genutzt, shared mit fu
 | `npm run build` | Production Build → dist/ |
 | `npm run build:catalog` | Katalog → ~/.aos/fitness/workouts/catalog.json |
 | `fitnessctl start/stop/status` | Server-Management |
+
+---
+
+## Deployment & Directory Evolution (Stand: 2026-06-13)
+
+Das Projekt wurde von einer verschachtelten Struktur (`pwa/` Unterordner) auf eine **Unified Root Structure** umgestellt. Die PWA-Sourcefiles (`src/`, `public/`, `index.html`) liegen nun direkt im Projekt-Root neben dem Node.js Backend.
+
+### Auto-Deploy Mechanismen
+
+1.  **GitHub Actions (`.github/workflows/deploy-pwa.yml`)**:
+    *   Triggert bei Pushes auf den `master`-Branch, sofern Dateien in `src/`, `public/` oder Konfigurationsdateien geändert wurden.
+    *   Führt `npm run build:firebase` aus und rollt das Ergebnis nach Firebase Hosting (`fitness-aos`) aus.
+
+2.  **Lokaler Git Hook (`.git/hooks/post-commit`)**:
+    *   Prüft nach jedem lokalen Commit, ob frontend-relevante Dateien im Root-Verzeichnis geändert wurden.
+    *   Führt bei Bedarf `npm run deploy` aus (automatischer Firebase-Upload vom Laptop).
+
+### Build-Varianten (`package.json`)
+
+*   `npm run build`: Standard Vite-Build für die lokale Produktion.
+*   `npm run build:firebase`: Spezieller Build für die Cloud-Umgebung (`--mode firebase`), der `@db` auf Firestore-Module mappt.
+*   `npm run deploy`: Alias für den vollständigen Firebase-Zyklus (Build + Hosting Upload).

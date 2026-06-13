@@ -3,7 +3,13 @@ name: Deploy Fitness PWA
 on:
   push:
     branches: [master]
-    paths: [pwa/**]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'vite.config.js'
+      - '.github/workflows/deploy-pwa.yml'
   workflow_dispatch:
 
 permissions:
@@ -19,20 +25,18 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: pwa/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Firebase config schreiben
-        run: echo "$FIREBASE_CONFIG" > pwa/src/firebase.config.js
+        run: echo "$FIREBASE_CONFIG" > firebase.config.js
         env:
           FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
 
       - name: Install
         run: npm ci
-        working-directory: pwa
 
       - name: Build
-        run: npm run build
-        working-directory: pwa
+        run: npm run build:firebase
 
       - name: Deploy to Firebase Hosting
         run: |
@@ -40,4 +44,3 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json \
             npx firebase-tools@latest deploy --only hosting,firestore:rules,firestore:indexes \
             --project fitness-aos --non-interactive
-        working-directory: pwa
