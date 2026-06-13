@@ -13,3 +13,4 @@ Requires-Dist: tqdm>=4.66.0
 Requires-Dist: halo>=0.0.31
 Requires-Dist: typing_extensions>=4.0.0
 Requires-Dist: firebase-admin>=6.0.0
+Requires-Dist: rapidfuzz>=3.14.5

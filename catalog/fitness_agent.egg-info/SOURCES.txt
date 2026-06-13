@@ -8,6 +8,8 @@ fitness_agent/cli.py
 fitness_agent/coach_sheet.py
 fitness_agent/coverage.py
 fitness_agent/doctor.py
+fitness_agent/enricher.py
+fitness_agent/enricher_yuhonas.py
 fitness_agent/history.py
 fitness_agent/importer.py
 fitness_agent/ingestor.py
