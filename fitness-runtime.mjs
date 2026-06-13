@@ -26,8 +26,16 @@ const fallbackData = {
 }
 
 let cachedSnapshot = null
+let lastSnapshotAttempt = 0
+const SNAPSHOT_TTL_MS = 30_000
 
-export async function loadRuntimeSnapshot() {
+export async function loadRuntimeSnapshot({ force = false } = {}) {
+  const now = Date.now()
+  const hasData = cachedSnapshot && (cachedSnapshot.exercises?.length || 0) > 0
+  if (!force && hasData && now - lastSnapshotAttempt < SNAPSHOT_TTL_MS) {
+    return cachedSnapshot
+  }
+  lastSnapshotAttempt = now
   const snapshot = await fetchAgent('/snapshot')
   if (snapshot) {
     cachedSnapshot = snapshot
@@ -36,9 +44,17 @@ export async function loadRuntimeSnapshot() {
   return cachedSnapshot || fallbackData
 }
 
-// These are now async or return cached data
-export const fitnessSnapshot = await loadRuntimeSnapshot()
-export const fitnessData = fitnessSnapshot
+// Lazy proxy — re-reads cachedSnapshot on every property access so callers
+// don't capture a stale empty object from boot time.
+export const fitnessData = new Proxy({}, {
+  get(_t, prop) {
+    const src = cachedSnapshot || fallbackData
+    return src[prop]
+  },
+})
+
+// Kick off an initial load in the background (non-blocking).
+loadRuntimeSnapshot().catch(() => {})
 
 export function obsidianTargetPath() {
   return fitnessData.config?.obsidian?.export_path || ''
@@ -71,9 +87,13 @@ export async function searchExercises(query, limit = 12) {
     }
   }
 
-  // Fallback to searching the cached snapshot
+  // Fallback to searching the cached snapshot — retry load if empty
+  let snapshot = cachedSnapshot
+  if (!snapshot || !(snapshot.exercises?.length)) {
+    snapshot = await loadRuntimeSnapshot({ force: true })
+  }
   const normalized = query.toLowerCase()
-  const matches = (fitnessData.exercises || [])
+  const matches = (snapshot?.exercises || [])
     .filter(ex =>
       (ex.exercise_id || '').includes(normalized) ||
       (ex.display_name || '').toLowerCase().includes(normalized) ||

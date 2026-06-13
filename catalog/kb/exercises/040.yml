@@ -3,7 +3,9 @@ description: Expert details for Barbell Bench Press
 exercises:
 - exercise_id: '040'
   id: '040'
+  wger_id: 73
   german: Bankdrücken
+
   category: chest
   type: compound
   movement_pattern: horizontal_press

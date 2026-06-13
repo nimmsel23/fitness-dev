@@ -55,12 +55,19 @@ export default function ExerciseLibrary({ exercises, selected, setSelected, q, s
             filtered.slice(0, 80).map(ex => (
               <button key={ex.exercise_id} onClick={() => setSelected(ex)}
                 className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between group ${selected?.exercise_id === ex.exercise_id ? 'bg-accent/10 border-accent/40 shadow-md' : 'bg-card border-line hover:border-accent/30'}`}>
-                <div>
-                  <div className={`font-black text-sm transition-colors ${selected?.exercise_id === ex.exercise_id ? 'text-accent' : 'text-ink'}`}>
-                    {ex.display_name || ex.name}
-                  </div>
-                  <div className="text-[10px] font-bold opacity-30 uppercase tracking-wider mt-1">
-                    {(ex.primary_muscles || ex.primaryMuscles || []).slice(0, 3).join(", ")}
+                <div className="flex items-center gap-4">
+                  {(ex.gif_url || ex.image_url) && (
+                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-line bg-bg2 shrink-0">
+                      <img src={ex.gif_url || ex.image_url} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                  )}
+                  <div>
+                    <div className={`font-black text-sm transition-colors ${selected?.exercise_id === ex.exercise_id ? 'text-accent' : 'text-ink'}`}>
+                      {ex.display_name || ex.name}
+                    </div>
+                    <div className="text-[10px] font-bold opacity-30 uppercase tracking-wider mt-1">
+                      {(ex.primary_muscles || ex.primaryMuscles || []).slice(0, 3).join(", ")}
+                    </div>
                   </div>
                 </div>
                 <ChevronRight size={16} className={`transition-all ${selected?.exercise_id === ex.exercise_id ? 'text-accent translate-x-1' : 'opacity-0 group-hover:opacity-100'}`} />

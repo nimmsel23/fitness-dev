@@ -3,7 +3,9 @@ description: Expert details for Pull Up
 exercises:
 - exercise_id: '020'
   id: '020'
+  wger_id: 821
   german: Klimmzug im Obergriff
+
   category: back
   type: compound
   movement_pattern: vertical_pull

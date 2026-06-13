@@ -59,6 +59,7 @@ class ExerciseRecord:
     common_errors: list[str] | None = None
     tags: list[str] | None = None
     gif_url: str | None = None
+    image_url: str | None = None
     wger_id: int | None = None
     wger_muscle_ids: dict | None = None
     anatomy: dict[str, Any] | None = None
@@ -144,7 +145,7 @@ def build_exercise_index() -> list[ExerciseRecord]:
                     # Felder aktualisieren
                     if entry_name: rec.display_name = entry_name
                     
-                    for field_name in ["german", "movement_pattern", "wger_id", "gif_url"]:
+                    for field_name in ["german", "movement_pattern", "wger_id", "gif_url", "image_url"]:
                         val = entry.get(field_name) or entry.get(field_name.replace("_", " "))
                         if val: setattr(rec, field_name, val)
 
@@ -300,13 +301,17 @@ def suggestions_for_unknown(normalized_query: str, records: list[ExerciseRecord]
 
 
 def suggestions_from_scored(scored: list[FuzzyMatch]) -> list[dict[str, str]]:
-    return [
-        {
-            "canonical_id": item.record.exercise_id,
-            "display_name": item.record.display_name,
-        }
-        for item in scored
-    ]
+    seen = set()
+    unique_suggestions = []
+    for item in scored:
+        if item.record.exercise_id not in seen:
+            seen.add(item.record.exercise_id)
+            unique_suggestions.append({
+                "canonical_id": item.record.exercise_id,
+                "display_name": item.record.display_name,
+            })
+    return unique_suggestions
+
 
 
 def matched_result(query: str, record: ExerciseRecord, source: str, confidence: str, suggestions: list[dict[str, str]]) -> ResolveResult:

@@ -48,7 +48,7 @@ sudo chown -R "$(id -u):$(id -g)" "$DEST"
 )
 
 # 4. Restart Service
-if systemctl list-unit-files | grep -q "^fitness.service"; then
+if systemctl restart fitness.service; then
   msg "🔄 Restarting fitness.service"
   sudo systemctl restart fitness.service
 else

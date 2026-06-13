@@ -51,6 +51,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 43
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0046-5VCj6iH.gif
 - exercise_id: wger_12
   display_name: Adduktoren-Maschine
   german: Adduktoren-Maschine
@@ -90,6 +91,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 41
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0084-7M66AVi.gif
 - exercise_id: wger_50
   display_name: Trizepsdrücken KH Über Kopf
   german: Trizepsdrücken KH Über Kopf
@@ -118,6 +120,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 48
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0082-LsZkfU6.gif
 - exercise_id: wger_94
   display_name: Bizeps Curls Mit SZ-Stange
   german: Bizeps Curls Mit SZ-Stange
@@ -157,6 +160,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 112
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0137-U6G2gk9.gif
 - exercise_id: wger_75
   display_name: Bankdrücken KH
   german: Bankdrücken KH
@@ -357,6 +361,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 154
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1326-T2mxWqc.gif
 - exercise_id: wger_135
   display_name: Butterfly
   german: Butterfly
@@ -432,6 +437,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 132
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1160-dK9394r.gif
 - exercise_id: wger_174
   display_name: Crunches With Legs Up
   german: Crunches With Legs Up
@@ -475,6 +481,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 235
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0459-UVo2Qs2.gif
 - exercise_id: wger_161
   display_name: Pull-Over KH
   german: Pull-Over KH
@@ -532,6 +539,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 178
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0276-iny3m5y.gif
 - exercise_id: wger_152
   display_name: Chin-ups
   german: Chin-ups
@@ -544,6 +552,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 152
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1326-T2mxWqc.gif
 - exercise_id: wger_193
   display_name: Diagonal Shoulder Press
   german: Diagonal Shoulder Press
@@ -569,6 +578,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 203
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1760-yn8yg1r.gif
 - exercise_id: wger_185
   display_name: Negativ Bankdrücken
   german: Negativ Bankdrücken
@@ -716,6 +726,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 211
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0351-mpKZGWz.gif
 - exercise_id: wger_194
   display_name: Dips
   german: Dips
@@ -950,6 +961,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 301
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0489-zhMwOwE.gif
 - exercise_id: wger_291
   display_name: Hindu Squats
   german: Hindu Squats
@@ -1059,6 +1071,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 282
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0471-rQxwMxO.gif
 - exercise_id: wger_294
   display_name: Beckenheben
   german: Beckenheben
@@ -1188,6 +1201,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 314
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0500-11wrviz.gif
 - exercise_id: wger_351
   display_name: Lateral-to-Front Raises
   german: Lateral-to-Front Raises
@@ -1215,6 +1229,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 313
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0493-B1EVP9F.gif
 - exercise_id: wger_341
   display_name: Kniebeuge an Multipresse - Eng
   german: Kniebeuge an Multipresse - Eng
@@ -1281,6 +1296,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 331
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0549-UHJlbu3.gif
 - exercise_id: wger_346
   display_name: Landmine-Press, Einarmig
   german: Landmine-Press, Einarmig
@@ -1526,6 +1542,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 423
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0631-yJUHKTn.gif
 - exercise_id: wger_382
   display_name: L Sit
   german: L Sit
@@ -1774,6 +1791,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 501
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0677-ezTvXcr.gif
 - exercise_id: wger_505
   display_name: Beinheben am Roman Chair
   german: Beinheben am Roman Chair
@@ -1870,6 +1888,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 801
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1700-FS63wTN.gif
 - exercise_id: wger_802
   display_name: Barbell Lunges Walking
   german: Barbell Lunges Walking
@@ -2184,6 +2203,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 598
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1625-yB9SvIF.gif
 - exercise_id: wger_576
   display_name: Side Crunch
   german: Side Crunch
@@ -2287,6 +2307,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 624
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0798-a8VDgLw.gif
 - exercise_id: wger_628
   display_name: Lat-Ziehen Mit Gesteckten Armen Mit (Stange)
   german: Lat-Ziehen Mit Gesteckten Armen Mit (Stange)
@@ -2814,6 +2835,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 907
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0471-rQxwMxO.gif
 - exercise_id: wger_908
   display_name: Zone 2 Running
   german: Zone 2 Running
@@ -2881,6 +2903,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 960
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0549-UHJlbu3.gif
 - exercise_id: wger_961
   display_name: Swimming 50m sprints
   german: Swimming 50m sprints
@@ -4149,6 +4172,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1109
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1631-NvfE43H.gif
 - exercise_id: wger_1132
   display_name: Extensión de gluteo en  máquina
   german: Extensión de gluteo en  máquina
@@ -4232,6 +4256,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1193
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0687-XVDdcoj.gif
 - exercise_id: wger_1124
   display_name: Jalón abierto
   german: Jalón abierto
@@ -4268,6 +4293,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1202
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/3667-c8f5cSY.gif
 - exercise_id: wger_1137
   display_name: PULL OVER POLEA ALTA
   german: PULL OVER POLEA ALTA
@@ -4293,6 +4319,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1088
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0117-KgI0tqW.gif
 - exercise_id: wger_1111
   display_name: Push-Ups | Incline
   german: Push-Ups | Incline
@@ -4409,6 +4436,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1090
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0662-I4hDWkc.gif
 - exercise_id: wger_1081
   display_name: Shoulder dislocates
   german: Shoulder dislocates
@@ -4534,6 +4562,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1233
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0381-SSsBDwB.gif
 - exercise_id: wger_1220
   display_name: Modified pulldown
   german: Modified pulldown
@@ -4611,6 +4640,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1230
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0832-s8nrDXF.gif
 - exercise_id: wger_1219
   display_name: Barbell Clean and press
   german: Barbell Clean and press
@@ -4625,6 +4655,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1219
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0028-SGY8Zui.gif
 - exercise_id: wger_912
   display_name: Straight Bar Cable Curls
   german: Straight Bar Cable Curls
@@ -4653,6 +4684,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1224
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0042-zG0zs85.gif
 - exercise_id: wger_1234
   display_name: Dumbbell Side Squat
   german: Dumbbell Side Squat
@@ -4693,6 +4725,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1229
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0406-NJzBsGJ.gif
 - exercise_id: wger_980
   display_name: commando pull-ups
   german: commando pull-ups
@@ -4747,6 +4780,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1232
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0407-IpONWYv.gif
 - exercise_id: wger_1105
   display_name: Seated Knee Tuck
   german: Seated Knee Tuck
@@ -4825,6 +4859,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1237
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1459-rR0LJzx.gif
 - exercise_id: wger_1221
   display_name: Dumbbell Bent Over Face Pull
   german: Dumbbell Bent Over Face Pull
@@ -4954,6 +4989,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1252
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0076-S9zHIvU.gif
 - exercise_id: wger_1248
   display_name: Incline Shoulder Press Up
   german: Incline Shoulder Press Up
@@ -5051,6 +5087,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1253
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0030-J6Dx1Mu.gif
 - exercise_id: wger_1256
   display_name: Triceps stretch right
   german: Triceps stretch right
@@ -5077,6 +5114,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1249
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/5201-KOpzGBL.gif
 - exercise_id: wger_1263
   display_name: Standing Soleus Stretch
   german: Standing Soleus Stretch
@@ -5147,6 +5185,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1255
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0817-uOV3Itw.gif
 - exercise_id: wger_1257
   display_name: Standing biceps stretch left
   german: Standing biceps stretch left
@@ -5242,6 +5281,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1262
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1398-qOKcgVP.gif
 - exercise_id: wger_310
   display_name: Rudern KH Auf Schrägbank
   german: Rudern KH Auf Schrägbank
@@ -5597,6 +5637,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1324
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1399-9RT8oQW.gif
 - exercise_id: wger_1306
   display_name: Lat Pulldown - Cross Body Single Arm
   german: Lat Pulldown - Cross Body Single Arm
@@ -5623,6 +5664,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1317
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0865-9IxJdtC.gif
 - exercise_id: wger_1311
   display_name: Cable Triceps Press
   german: Cable Triceps Press
@@ -5757,6 +5799,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1331
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0597-CHpahtl.gif
 - exercise_id: wger_1308
   display_name: JM Press
   german: JM Press
@@ -5945,6 +5988,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1343
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0573-rUXfn3R.gif
 - exercise_id: wger_1336
   display_name: Triceps Overhead (Dumbbell)
   german: Triceps Overhead (Dumbbell)
@@ -6001,6 +6045,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1346
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0438-vmwLyCg.gif
 - exercise_id: wger_1302
   display_name: Low-Cable Cross-Over - NB
   german: Low-Cable Cross-Over - NB
@@ -6264,6 +6309,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1268
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/3296-PkCN2lv.gif
 - exercise_id: wger_1284
   display_name: Plantarflexion Stretch with Band
   german: Plantarflexion Stretch with Band
@@ -6342,6 +6388,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1350
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0533-DB0n8AG.gif
 - exercise_id: wger_1352
   display_name: Blackroll
   german: Blackroll
@@ -6379,6 +6426,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1354
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0371-S4pwGlc.gif
 - exercise_id: wger_1355
   display_name: Dumbbell Deadlift
   german: Dumbbell Deadlift
@@ -6391,6 +6439,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1355
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0300-nUwVh7b.gif
 - exercise_id: wger_1356
   display_name: Triceps Dips (Assisted)
   german: Triceps Dips (Assisted)
@@ -7411,6 +7460,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1428
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0220-Eg98Ft9.gif
 - exercise_id: wger_1429
   display_name: Reverse Cable Flye
   german: Reverse Cable Flye
@@ -7532,6 +7582,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1438
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0391-TiaZTxx.gif
 - exercise_id: wger_1439
   display_name: Bizeps Curls Trifecta
   german: Bizeps Curls Trifecta
@@ -7608,6 +7659,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1444
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0375-9XjtHvS.gif
 - exercise_id: wger_1445
   display_name: Plank Jacks
   german: Plank Jacks
@@ -7691,6 +7743,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1451
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0662-I4hDWkc.gif
 - exercise_id: wger_1452
   display_name: DB Upper Chest Variation
   german: DB Upper Chest Variation
@@ -7789,6 +7842,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1458
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0298-Qyk5J3p.gif
 - exercise_id: wger_1459
   display_name: Dumbbell Frog Press
   german: Dumbbell Frog Press
@@ -7802,6 +7856,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1459
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0438-vmwLyCg.gif
 - exercise_id: wger_1460
   display_name: Dumbbell Bradford press
   german: Dumbbell Bradford press
@@ -7964,6 +8019,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1472
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/3302-XooAdhl.gif
 - exercise_id: wger_1473
   display_name: Cable Fly Lower Chest
   german: Cable Fly Lower Chest
@@ -8168,6 +8224,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1487
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0868-G08RZcQ.gif
 - exercise_id: wger_1488
   display_name: Pull-Ups (Wide Grip)
   german: Pull-Ups (Wide Grip)
@@ -8247,6 +8304,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1494
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0085-wQ2c4XD.gif
 - exercise_id: wger_1495
   display_name: One-Arm Heavy Row
   german: One-Arm Heavy Row
@@ -8334,6 +8392,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1500
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/3293-72BC5Za.gif
 - exercise_id: wger_1501
   display_name: Larsen Press
   german: Larsen Press
@@ -8422,6 +8481,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1507
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1273-wigSg76.gif
 - exercise_id: wger_1508
   display_name: Sleeper Stretch
   german: Sleeper Stretch
@@ -9023,6 +9083,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1568
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/3297-GaSzzuh.gif
 - exercise_id: wger_1577
   display_name: Cable pull through
   german: Cable pull through
@@ -9164,6 +9225,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1594
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0169-Vh0GsK4.gif
 - exercise_id: wger_1573
   display_name: Smith machine squat
   german: Smith machine squat
@@ -9334,6 +9396,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1593
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0872-nCU1Ekp.gif
 - exercise_id: wger_1566
   display_name: Single Leg Glute Bridge
   german: Single Leg Glute Bridge
@@ -9385,6 +9448,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1529
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0651-0V2YQjW.gif
 - exercise_id: wger_1525
   display_name: Respiración profunda (de pie o sentado)
   german: Respiración profunda (de pie o sentado)
@@ -9495,6 +9559,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1622
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0593-Krmb3cB.gif
 - exercise_id: wger_1608
   display_name: unilateral cross body cable pull down
   german: unilateral cross body cable pull down
@@ -9547,6 +9612,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1623
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1362-DIVyqrU.gif
 - exercise_id: wger_1629
   display_name: Double-Leg Abdominal Press
   german: Double-Leg Abdominal Press
@@ -9594,6 +9660,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1626
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0436-s5PdDyY.gif
 - exercise_id: wger_1621
   display_name: Parallel Bar Hold
   german: Parallel Bar Hold
@@ -9939,6 +10006,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1656
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1363-JbC2iaV.gif
 - exercise_id: wger_1664
   display_name: Lying Figure Four Stretch
   german: Lying Figure Four Stretch
@@ -10215,6 +10283,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1677
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0178-goJ6ezq.gif
 - exercise_id: wger_1614
   display_name: Barbell Full Squat
   german: Barbell Full Squat
@@ -10232,6 +10301,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1614
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0043-qXTaZnJ.gif
 - exercise_id: wger_1682
   display_name: Decline Bench Leg Raise
   german: Decline Bench Leg Raise
@@ -10273,6 +10343,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1681
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0710-7WaDzyL.gif
 - exercise_id: wger_1643
   display_name: Standing Pancake Good Morning
   german: Standing Pancake Good Morning
@@ -10593,6 +10664,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1714
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0017-kiJ4Z2K.gif
 - exercise_id: wger_1266
   display_name: Double Leg Calf Raise
   german: Double Leg Calf Raise
@@ -10649,6 +10721,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1703
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0577-T0yTjgW.gif
 - exercise_id: wger_1724
   display_name: Cat-Cow
   german: Cat-Cow
@@ -10883,6 +10956,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1741
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/2567-QY39eBr.gif
 - exercise_id: wger_92
   display_name: Bizeps KH-Curls
   german: Bizeps KH-Curls
@@ -10980,6 +11054,7 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1748
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0717-wpbD28t.gif
 - exercise_id: wger_1730
   display_name: dumbbell snatch
   german: dumbbell snatch
@@ -11129,3 +11204,4 @@ exercises:
   - unreviewed
   - wger
   wger_id: 1688
+  gif_url: https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/1460-IZVHb27.gif

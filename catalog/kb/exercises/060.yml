@@ -3,7 +3,9 @@ description: Expert details for Back Squat
 exercises:
 - exercise_id: '060'
   id: '060'
+  wger_id: 615
   german: Kniebeuge mit der Langhantel
+
   category: legs
   type: compound
   movement_pattern: squat

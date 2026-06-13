@@ -19,6 +19,10 @@ export default function ExerciseItem({
   const isImplicitHIT = !hitMode && ex.setsArray?.length === 1 && !ex.setsArray[0].reps;
   const isActuallyHIT = ex.isHIT || hitMode || isImplicitHIT;
 
+  const volume = (!isActuallyHIT && ex.setsArray)
+    ? ex.setsArray.reduce((sum, s) => sum + (num(s.reps) || 0) * (num(s.weight) || 0), 0)
+    : null;
+
   const handleRepsChange = (val, sIdx) => {
     const v = String(val).toUpperCase();
     if (v === 'H' || v === 'HIT') {
