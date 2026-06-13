@@ -52,9 +52,9 @@ Chart.js-Wrapper, mehr Chart-Typen, etwas schwerer. Doughnut für Coverage sieht
 ### react-body-highlighter ✅ (bereits eingebunden)
 https://github.com/dex-gov/react-body-highlighter
 
-### react-muscle-highlighter
-Direkte Alternative — klickbare Muskelregionen, TypeScript, Male/Female, Front/Back,
-Intensitätsstufen. Interessant wenn interaktive Auswahl (Klick = Filter) gebraucht wird.
+### react-muscle-highlighter ✅ (integriert in Muscles Tab)
+Interaktive Auswahl, klickbare Muskelregionen, front/back/side Ansichten.
+`npm install react-muscle-highlighter`
 https://github.com/soroojshehryar/react-muscle-highlighter
 
 ### body-muscles
@@ -77,3 +77,14 @@ https://github.com/cfilipov/MuscleBook.net
 **GIFs/Animationen pro Übung**
 wger hat wenig Medien. bootstrapping-lab/exercisedb-api oder wrkout/exercises.json
 könnten das füllen — besonders für den Anatomy Teaching Layer.
+
+---
+
+## Training Tab (Session) — Next Steps / Ideen
+*Gedankensammlung für zukünftige Iterationen des Trainingstabs nach dem Fokus auf Recovery/HIT.*
+
+* **Plan-Integration vertiefen**: Es gibt aktuell einen kleinen "Hint" (Blitz-Icon), wenn ein Plan vorliegt. Nächster Schritt: Ein 1-Klick-Button "Plan für heute laden", der die Übungen aus dem Plan sofort als leere Übungskarten in die Session schießt.
+* **Quick-Input für HIT optimieren**: Die Quick-Eingabe (z.B. `bench 3x8@80`) könnte so erweitert werden, dass `bench H@80` sofort als HIT-Satz geparst und gespeichert wird.
+* **Warm-Ups & Drop-Sets**: Falls doch mal mehr Differenzierung beim Logging im HIT-Kontext (z.B. Aufwärmsätze, Back-off Sätze) nötig ist, das UI leichtgewichtig um Set-Typen erweitern.
+* **Multi-Session pro Tag**: Aktuell überschreibt eine Session am selben Tag (`sessions/${date}.json`) die vorherige. Die Architektur auf `sessions/${sessionId}` umbauen, falls mal morgens und abends trainiert wird (steht auch in der MEMORY.md).
+* **Inline Habit/Journal**: Den "Wie war der Fokus?" (Notes) Bereich noch tiefer mit dem Journaling/Habit-System verknüpfen.

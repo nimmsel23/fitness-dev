@@ -175,7 +175,7 @@ def sync_muscles(db_client: Any, dry_run: bool = False) -> dict[str, int]:
     try:
         taxonomy = load_catalog_yaml("muscles/muscles.yml")
         if not isinstance(taxonomy, dict) or "muscles" not in taxonomy:
-            log_err("muscles.yml has invalid structure")
+            logger.error("muscles.yml has invalid structure")
             counts["error"] += 1
             return counts
 

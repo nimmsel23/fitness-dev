@@ -93,6 +93,6 @@ bin/firestore-sync pull                     # Firestore → ~/.aos/fitness/
 - ✅ Katalog-Struktur (Exercises, Anatomy Teaching, Rules, Maps)
 - ✅ BodyMap (react-body-highlighter) — Muskelvisualisierung in Session + Coverage-View
 - ✅ Gmail-Pipeline (`bin/fitness-mail`)
-- ⏳ `fitness` CLI (Python/Typer)
+- ✅ `fitness` CLI (Python/Typer) via `fitnessctl`
 - ⏳ Anatomie-Lehre für alle Übungen
 - ⏳ PWA Offline-Unterstützung

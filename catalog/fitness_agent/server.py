@@ -174,11 +174,17 @@ async def handle_export(request: web.Request) -> web.Response:
         
         result = None
         if kind == 'exercise_sheet':
-            result = export_coach_sheet_note(data['query'], force=force)
+            query = data.get('query')
+            if not query: return web.json_response({"error": "Missing 'query'"}, status=400)
+            result = export_coach_sheet_note(query, force=force)
         elif kind == 'exercise_lesson':
-            result = export_teach_note(data['exercise_id'], mode=data.get('mode', 'trainer'), force=force)
+            ex_id = data.get('exercise_id')
+            if not ex_id: return web.json_response({"error": "Missing 'exercise_id'"}, status=400)
+            result = export_teach_note(ex_id, mode=data.get('mode', 'trainer'), force=force)
         elif kind == 'plan':
-            result = export_plan_note(data['plan'], force=force)
+            plan = data.get('plan')
+            if not plan: return web.json_response({"error": "Missing 'plan'"}, status=400)
+            result = export_plan_note(plan, force=force)
         elif kind == 'weekly':
             _, result = export_weekly_report_note(data.get('week_selector', 'current'), force=force)
         else:

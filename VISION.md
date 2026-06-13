@@ -63,7 +63,7 @@ nicht als Schulaufgabe, sondern als echtes Werkzeug das nebenher dokumentiert.
 
 ## Offene Fragen (ehrlich)
 
-- Anatomy Teaching: `react-body-highlighter` (eingebunden) oder `react-muscle-highlighter` (interaktiv)?
+- Anatomy Teaching: `react-body-highlighter` (Dashboard/Session) & `react-muscle-highlighter` (Detailed View) ✅ beides integriert.
 - GIFs pro Übung: lohnt `exercisedb-api` als lokaler Docker-Container?
 - Export-Format für Ausbildungsabgaben: Markdown → PDF via Pandoc? Oder direkt HTML-Print?
 
@@ -84,4 +84,4 @@ es hilft dir verstehen, was du deinen Klienten später erklären wirst.
 
 ---
 
-*Zuletzt aktualisiert: 2026-05-18*
+*Zuletzt aktualisiert: 2026-06-12*

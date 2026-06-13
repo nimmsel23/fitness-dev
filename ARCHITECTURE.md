@@ -1,6 +1,6 @@
 # fitness-dev — Architektur
 
-Stand: 2026-05-18
+Stand: 2026-06-12
 
 ---
 
@@ -11,7 +11,7 @@ React + Vite        :5902 (dev)     ~/fitness-dev/src/
 Node.js Server      :9100           ~/fitness-dev/server.mjs
 Fitness Agent KB    :9120           ~/fitness-dev/catalog/fitness_agent/server.py
 YAML Katalog        —               ~/fitness-dev/catalog/
-Session-Daten       —               ~/fitness-dev/data/
+Session-Daten       —               ~/.aos/fitness/
 ```
 
 ---
@@ -61,16 +61,17 @@ Node.js HTTP-Server, kein Framework.
 
 ```
 src/views/
-├─ Dashboard.jsx      — Überblick, heutiger Plan, Coverage-Summary
+├─ Dashboard.jsx      — Überblick, heutiger Plan, Coverage-Summary (react-body-highlighter)
 ├─ Session.jsx        — Workout-Logging (Block, Ort, Dauer, Übungen, Export)
 ├─ Journal.jsx        — Text-Notizen
-├─ Muscles.jsx        — Body-Map + Coverage-Analyse
+├─ Muscles.jsx        — Body-Map + Coverage-Analyse (react-muscle-highlighter)
 ├─ Learn.jsx          — Anatomy Teaching, Exercise Details
 └─ WeeklyReview.jsx   — Wochenreport
 
 src/components/
 ├─ ExerciseSearch.jsx      — Suche lokal + wger + yuhonas
-├─ BodyMap.jsx             — react-body-highlighter
+├─ BodyMap.jsx             — react-body-highlighter (Dashboard/Session)
+├─ DetailedMuscleMap.jsx   — react-muscle-highlighter (Muscles Tab)
 ├─ PlanBuilder.jsx         — Trainingsplanung
 ├─ HabitWidget.jsx         — HabitSync-Integration
 └─ ExerciseInsightModal.jsx — Anatomy Teaching Modal
@@ -176,11 +177,11 @@ anatomy_teaching:
 
 ---
 
-## BodyMap (react-body-highlighter) — Zwei Stufen
+## BodyMap (Visualisierung) — Zwei Bibliotheken
 
-**Stufe 1: Basis-Visualisierung — aktiv, fertig implementiert.**
+**Stufe 1: Dashboard & Session (react-body-highlighter)**
 
-`BodyMap.jsx` nutzt `react-body-highlighter` und rendert anterior + posterior Körpermodell.
+`BodyMap.jsx` nutzt `react-body-highlighter` und rendert anterior + posterior Körpermodell für eine schnelle Übersicht.
 Datenfluss:
 
 ```
@@ -195,24 +196,21 @@ react-body-highlighter <Model>  (anterior oder posterior)
 `WGER_TO_RBH` mappt wger-Muscle-IDs 1–16 direkt auf RBH-Muskelregionen.
 Primary-Muscles zählen doppelt (`score +2`), Secondary einfach (`+1`). `frequency` steuert die Einfärbungsintensität.
 
-Eingebunden in `Session.jsx` — zeigt ausschließlich Muskeln von Übungen mit `done: true`.
-Auch in `Muscles.jsx` über den `groupScores`-Pfad (Coverage-View, Legacy-Fallback).
+---
+
+**Stufe 2: Muscles View (react-muscle-highlighter)**
+
+`DetailedMuscleMap.jsx` nutzt `react-muscle-highlighter` für eine interaktive, hochauflösende Ansicht im Muscles-Tab.
+Vorteil: Klickbare Regionen, bessere Intensitätsstufen, front/back/side Ansichten.
+Datenfluss: Exercises → `muscleMapping.js` → RBH Slugs → Intensity Scale (1-4).
 
 ---
 
-**Stufe 2: Granulare Muskel-Visualisierung — noch nicht aktiv.**
+**Zukunft: Granulare Muskel-Visualisierung (Stufe 3)**
 
 `catalog/kb/muscles/body_highlighter_bridge.yml` (`enabled: false`) ist die Konfiguration für eine
 zukünftige Erweiterung: Mapping von granularen Katalog-Muskel-IDs (aus `muscles.yml`, 22 IDs wie
-`pectoralis_major`, `anterior_deltoid`) auf RBH-Regionen — statt der groben Gruppen-Strings.
-
-Sobald aktiviert: `muscle_coverage_rules.yml` liefert primary/secondary/stabilizer-Gewichtungen
-aus dem Katalog-YAML, statt aus wger-IDs oder Session-Strings. Vorteil: Anatomie-Präzision auf
-Einzelmuskel-Ebene, konsistent mit dem Anatomy-Teaching-Layer.
-
-**Was `enabled: false` bedeutet:** Der Code-Pfad existiert noch nicht. `body_highlighter_bridge.yml`
-ist eine Planungsdatei, kein Toggle. Aktivieren erfordert einen neuen Datenpfad in `BodyMap.jsx`
-und `server.mjs` (Coverage-Endpoint muss granulare Katalog-IDs zurückgeben).
+`pectoralis_major`, `anterior_deltoid`) auf RBH-Regionen.
 
 ---
 
