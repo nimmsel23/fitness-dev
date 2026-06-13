@@ -312,20 +312,27 @@ Endpoint: `GET /fitness/body?days=N` (von WeightChart.jsx genutzt, shared mit fu
 
 ## Deployment & Directory Evolution (Stand: 2026-06-13)
 
-Das Projekt wurde von einer verschachtelten Struktur (`pwa/` Unterordner) auf eine **Unified Root Structure** umgestellt. Die PWA-Sourcefiles (`src/`, `public/`, `index.html`) liegen nun direkt im Projekt-Root neben dem Node.js Backend.
+Das Projekt nutzt eine **Safe-Production-Pipeline**, um Entwicklung und Releases strikt zu trennen.
 
-### Auto-Deploy Mechanismen
+### Struktur
+*   **`~/fitness-dev`**: Source of Truth, Arbeits-Repository.
+*   **`~/fitness`**: Release-Vessel. Enthält nur die für den Firebase-Deploy notwendigen Configs und den Build-Output.
+*   **`dist-firebase/`**: Befindet sich in `~/fitness/`. Hier landet der Cloud-optimierte Build.
 
-1.  **GitHub Actions (`.github/workflows/deploy-pwa.yml`)**:
-    *   Triggert bei Pushes auf den `master`-Branch, sofern Dateien in `src/`, `public/` oder Konfigurationsdateien geändert wurden.
-    *   Führt `npm run build:firebase` aus und rollt das Ergebnis nach Firebase Hosting (`fitness-aos`) aus.
+### Deployment-Workflow (Lokal)
 
-2.  **Lokaler Git Hook (`.git/hooks/post-commit`)**:
-    *   Prüft nach jedem lokalen Commit, ob frontend-relevante Dateien im Root-Verzeichnis geändert wurden.
-    *   Führt bei Bedarf `npm run deploy` aus (automatischer Firebase-Upload vom Laptop).
+1.  **Vorbereitung**: `npm run build:firebase` (in `fitness-dev`) baut das Projekt direkt nach `~/fitness/dist-firebase/`.
+2.  **Testen (Preview)**: `npm run preview-firebase` erstellt einen temporären Firebase Hosting Link (Preview Channel). Ideal zum Testen am Handy vor dem Live-Gang.
+3.  **Live-Gang**: `npm run deploy-firebase` rollt den Build aus `~/fitness/dist-firebase/` live aus.
+
+### Automatisierung
+
+*   **Lokaler Git Hook (`.git/hooks/post-commit`)**: Trigget bei Frontend-Änderungen automatisch `npm run deploy-firebase`.
+*   **GitHub Actions (`.github/workflows/deploy-pwa.yml`)**: Führt den Deploy direkt aus dem Repository-Root aus (für CI/CD Unabhängigkeit).
 
 ### Build-Varianten (`package.json`)
 
-*   `npm run build`: Standard Vite-Build für die lokale Produktion.
-*   `npm run build:firebase`: Spezieller Build für die Cloud-Umgebung (`--mode firebase`), der `@db` auf Firestore-Module mappt.
-*   `npm run deploy-firebase`: Alias für den vollständigen Firebase-Zyklus (Build + Hosting Upload).
+*   `npm run build`: Lokaler Produktions-Build (für Desktop/Localhost).
+*   `npm run build:firebase`: Cloud-Build mit Firestore-Mapping, Output nach `../fitness/dist-firebase`.
+*   `npm run preview-firebase`: Build + Erstellung einer 1-Stunden-Preview-URL.
+*   `npm run deploy-firebase`: Build + Live-Release (Hosting + Firestore Rules/Indexes).

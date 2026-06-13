@@ -8,9 +8,9 @@
     "start": "node server.mjs",
     "ui:dev": "vite",
     "build": "vite build",
-    "build:firebase": "vite build --mode firebase",
-    "deploy-firebase": "npm run deploy:firebase",
-    "deploy:firebase": "npm run build:firebase && firebase deploy --only hosting",
+    "build:firebase": "vite build --mode firebase --outDir ../fitness/dist-firebase",
+    "preview-firebase": "npm run build:firebase && cd ../fitness && firebase hosting:channel:deploy preview --expires 1h",
+    "deploy-firebase": "npm run build:firebase && cd ../fitness && firebase deploy --only hosting,firestore:rules,firestore:indexes",
     "preview": "vite preview",
     "build:catalog": "python3 scripts/build-catalog.py"
   },
