@@ -2,16 +2,16 @@ import { api } from "./core";
 import { calculateExVolume } from "./utils";
 
 const MUSCLE_GROUPS = {
-  chest: ["pecs", "chest", "pectoralis", "brust"],
-  back: ["lats", "traps", "lower back", "back", "latissimus", "trapezius", "rhomboids", "rücken", "pull-up", "klimmzug", "rudern", "row"],
-  shoulders: ["shoulders", "delts", "deltoid", "schulter", "schultern", "overhead", "press"],
-  arms: ["biceps", "triceps", "forearms", "brachii", "bizeps", "trizeps", "arm", "arme", "curl", "extension"],
-  core: ["abs", "obliques", "core", "abdominis", "bauch"],
-  glutes: ["glutes", "gluteus", "po", "gesäß", "hip thrust"],
-  quads: ["quads", "quadriceps", "oberschenkel", "squat", "kniebeuge"],
-  hamstrings: ["hamstrings", "biceps femoris", "beinbeuger", "leg curl"],
-  calves: ["calves", "gastrocnemius", "waden", "calf"],
-  legs: ["legs", "squat", "deadlift", "lunge", "beine", "bein", "leg press"]
+  chest: ["pecs", "chest", "pectoralis", "brust", "100_chest", "101_pectoralis", "102_pectoralis", "103_pectoralis"],
+  back: ["lats", "traps", "lower back", "back", "latissimus", "trapezius", "rhomboids", "rücken", "pull-up", "klimmzug", "rudern", "row", "200_back", "201_latissimus", "202_trapezius", "203_trapezius", "204_trapezius", "205_rhomboids", "206_erector", "207_teres", "208_quadratus"],
+  shoulders: ["shoulders", "delts", "deltoid", "schulter", "schultern", "overhead", "press", "300_shoulders", "301_anterior_deltoid", "302_lateral_deltoid", "303_posterior_deltoid", "304_rotator"],
+  arms: ["biceps", "triceps", "forearms", "brachii", "bizeps", "trizeps", "arm", "arme", "curl", "extension", "400_arms", "401_biceps", "402_brachialis", "403_triceps", "404_brachioradialis", "405_forearm", "406_anconeus"],
+  core: ["abs", "obliques", "core", "abdominis", "bauch", "500_core", "501_rectus", "502_obliques", "503_transverse"],
+  glutes: ["glutes", "gluteus", "po", "gesäß", "hip thrust", "601_gluteus", "602_gluteus"],
+  quads: ["quads", "quadriceps", "oberschenkel", "squat", "kniebeuge", "603_quadriceps"],
+  hamstrings: ["hamstrings", "biceps femoris", "beinbeuger", "leg curl", "604_hamstrings"],
+  calves: ["calves", "gastrocnemius", "waden", "calf", "700_calves", "701_gastrocnemius", "702_soleus", "triceps_surae"],
+  legs: ["legs", "squat", "deadlift", "lunge", "beine", "bein", "leg press", "600_legs"]
 };
 
 const ACTIVITY_MUSCLE_MAPPING = {

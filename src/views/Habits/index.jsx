@@ -9,6 +9,7 @@ import { localToday } from "@utils";
 import HabitForm from "./HabitForm";
 import HabitItem from "./HabitItem";
 import HabitSidebar from "./HabitSidebar";
+import HabitJournalModal from "./HabitJournalModal";
 import HabitStats from "./HabitStats";
 import { getRollingDays } from "./utils";
 
@@ -26,6 +27,7 @@ export default function Habits() {
   const [journalText, setJournalText] = useState("");
   const [journalHistory, setJournalHistory] = useState([]);
   const [isJournalSaving, setIsJournalSaving] = useState(false);
+  const [journalModalOpen, setJournalModalOpen] = useState(false);
 
   const rollingDates = useMemo(() => getRollingDays(28), []);
   const recentDates = useMemo(() => getRollingDays(10), []);
@@ -258,7 +260,7 @@ export default function Habits() {
         getMotivationalMessage={getMotivationalMessage} 
       />
 
-      <HabitSidebar 
+      <HabitSidebar
         selectedHabitId={selectedHabitId}
         setSelectedHabitId={setSelectedHabitId}
         habits={habits}
@@ -266,11 +268,21 @@ export default function Habits() {
         selectedSidebarDate={selectedSidebarDate}
         setSelectedSidebarDate={setSelectedSidebarDate}
         journalText={journalText}
+        isJournalSaving={isJournalSaving}
+        onToggleSidebarDone={toggleSidebarDone}
+        journalHistory={journalHistory}
+        onOpenJournalModal={() => setJournalModalOpen(true)}
+      />
+
+      <HabitJournalModal
+        open={journalModalOpen}
+        onClose={() => setJournalModalOpen(false)}
+        habit={habits.find(h => h.uuid === selectedHabitId)}
+        date={selectedSidebarDate}
+        journalText={journalText}
         setJournalText={setJournalText}
         isJournalSaving={isJournalSaving}
         onSaveJournal={onSaveJournal}
-        onToggleSidebarDone={toggleSidebarDone}
-        journalHistory={journalHistory}
       />
 
       {selectedHabitId && (

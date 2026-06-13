@@ -1,4 +1,4 @@
-import { X, Calendar, Check, Save, History, Brain } from "lucide-react";
+import { X, Calendar, Check, Save, History, Brain, PenLine } from "lucide-react";
 import { ICON_COMPONENTS_MAP, getRollingDays } from "./utils";
 
 export default function HabitSidebar({ 
@@ -8,12 +8,11 @@ export default function HabitSidebar({
   rollingDates, 
   selectedSidebarDate, 
   setSelectedSidebarDate, 
-  journalText, 
-  setJournalText, 
-  isJournalSaving, 
-  onSaveJournal, 
+  journalText,
+  isJournalSaving,
   onToggleSidebarDone,
-  journalHistory
+  journalHistory,
+  onOpenJournalModal,
 }) {
   const selectedHabit = habits.find(h => h.uuid === selectedHabitId);
   if (!selectedHabit) return null;
@@ -79,27 +78,27 @@ export default function HabitSidebar({
                  </button>
               </div>
 
-              <div className="relative">
-                 <textarea
-                   value={journalText}
-                   onChange={(e) => setJournalText(e.target.value)}
-                   onBlur={() => onSaveJournal()}
-                   onKeyDown={(e) => {
-                     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                       e.preventDefault();
-                       onSaveJournal();
-                       e.target.blur();
-                     }
-                   }}
-                   placeholder="Daily Reflection..."
-                   className="w-full h-32 bg-[var(--bg2)] border border-[var(--line)] rounded-2xl p-4 text-xs font-bold focus:border-[var(--accent)] outline-none resize-none transition-all"
-                 />
-                 {isJournalSaving && (
-                   <div className="absolute top-3 right-3 animate-pulse">
-                     <Save size={14} className="text-[var(--accent)]" />
-                   </div>
-                   )}
-                   </div>
+              <button
+                onClick={() => onOpenJournalModal?.()}
+                className="w-full text-left bg-[var(--bg2)] border border-[var(--line)] rounded-2xl p-4 hover:border-[var(--accent)] transition-all group"
+              >
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--accent)]">
+                    <PenLine size={12} />
+                    Reflexion schreiben
+                  </div>
+                  {isJournalSaving && <Save size={12} className="text-[var(--accent)] animate-pulse" />}
+                </div>
+                {journalText ? (
+                  <p className="text-xs font-bold leading-relaxed text-[var(--ink)]/80 line-clamp-3 whitespace-pre-wrap">
+                    {journalText}
+                  </p>
+                ) : (
+                  <p className="text-xs font-bold leading-relaxed text-[var(--dim)] opacity-50 italic">
+                    Tippen, um den Ritualraum zu öffnen
+                  </p>
+                )}
+              </button>
 
                    {/* Current Coach Feedback */}
                    {(() => {
@@ -116,9 +115,6 @@ export default function HabitSidebar({
                    );
                    })()}
 
-                   <div className="flex items-center justify-between opacity-30">
-                 <span className="text-[9px] font-black uppercase tracking-tighter">Strg + Enter zum Speichern</span>
-              </div>
             </div>
 
             {/* History Section */}

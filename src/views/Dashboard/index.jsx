@@ -180,7 +180,7 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-8">
         {layout.map(id => {
           const meta = WIDGET_META[id];
           if (!meta) return null;

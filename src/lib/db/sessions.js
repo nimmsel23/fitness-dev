@@ -1,16 +1,33 @@
 import { api, localToday } from "./core";
 
-export async function getSession(date = localToday()) {
+export async function getSession(date = localToday(), id = null) {
   try {
-    const data = await api.get(`/session?date=${date}`);
+    const qs = id ? `?date=${date}&id=${encodeURIComponent(id)}` : `?date=${date}`;
+    const data = await api.get(`/session${qs}`);
     return data?.data || null;
   } catch {
     return null;
   }
 }
 
-export async function saveSession(date = localToday(), sessionData) {
-  await api.post(`/session?date=${date}`, sessionData || {});
+export async function saveSession(date = localToday(), sessionData, id = null) {
+  const qs = id ? `?date=${date}&id=${encodeURIComponent(id)}` : `?date=${date}`;
+  await api.post(`/session${qs}`, sessionData || {});
+  return { ok: true };
+}
+
+export async function listSessionsForDate(date = localToday()) {
+  try {
+    const data = await api.get(`/sessions?date=${date}`);
+    return data?.sessions || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function deleteSession(date = localToday(), id = null) {
+  const qs = id ? `?date=${date}&id=${encodeURIComponent(id)}` : `?date=${date}`;
+  await api.delete(`/session${qs}`);
   return { ok: true };
 }
 

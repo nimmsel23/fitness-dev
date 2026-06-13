@@ -130,18 +130,18 @@ function muscleToGroupId(muscleName) {
   const k = normMuscleKey(muscleName);
   if (!k) return null;
   const MAP = {
-    chest:      ["chest","pec","pecs","pectoralis","pectoralis major","pectoralis minor"],
-    back:       ["back","lat","lats","latissimus","latissimus dorsi","trapezius","traps","rhomboids","rhomboid","lower back","erector spinae","erector"],
-    shoulders:  ["shoulder","shoulders","delt","delts","deltoid","deltoids","anterior deltoid","posterior deltoid","lateral deltoid","rotator cuff"],
-    arms:       ["arm","arms","biceps","biceps brachii","triceps","triceps brachii","forearms","forearm","brachialis"],
-    core:       ["core","abs","abdominals","rectus abdominis","obliques","obliquus externus abdominis","oblique","transverse abdominis"],
-    glutes:     ["glutes","glute","gluteus maximus","gluteus medius","gluteus minimus"],
-    quads:      ["quads","quad","quadriceps","quadriceps femoris","vastus lateralis","vastus medialis","rectus femoris"],
-    hamstrings: ["hamstrings","hamstring","biceps femoris","semitendinosus","semimembranosus"],
-    calves:     ["calves","calf","gastrocnemius","soleus"],
+    chest:      ["chest","pec","pecs","pectoralis","pectoralis major","pectoralis minor","100_chest","101_pectoralis","102_pectoralis","103_pectoralis"],
+    back:       ["back","lat","lats","latissimus","latissimus dorsi","trapezius","traps","rhomboids","rhomboid","lower back","erector spinae","erector","200_back","201_latissimus","202_trapezius","203_trapezius","204_trapezius","205_rhomboids","206_erector_spinae","206_erector","207_teres","208_quadratus"],
+    shoulders:  ["shoulder","shoulders","delt","delts","deltoid","deltoids","anterior deltoid","posterior deltoid","lateral deltoid","rotator cuff","300_shoulders","301_anterior_deltoid","302_lateral_deltoid","303_posterior_deltoid","304_rotator"],
+    arms:       ["arm","arms","biceps","biceps brachii","triceps","triceps brachii","forearms","forearm","brachialis","400_arms","401_biceps","402_brachialis","403_triceps","404_brachioradialis","405_forearm","406_anconeus"],
+    core:       ["core","abs","abdominals","rectus abdominis","obliques","obliquus externus abdominis","oblique","transverse abdominis","500_core","501_rectus","502_obliques","503_transverse"],
+    glutes:     ["glutes","glute","gluteus maximus","gluteus medius","gluteus minimus","601_gluteus_maximus","601_gluteus","602_gluteus_medius","602_gluteus"],
+    quads:      ["quads","quad","quadriceps","quadriceps femoris","vastus lateralis","vastus medialis","rectus femoris","603_quadriceps"],
+    hamstrings: ["hamstrings","hamstring","biceps femoris","semitendinosus","semimembranosus","604_hamstrings"],
+    calves:     ["calves","calf","gastrocnemius","soleus","700_calves","701_gastrocnemius","702_soleus","triceps surae"],
   };
   for (const [id, keys] of Object.entries(MAP)) {
-    if (keys.includes(k)) return id;
+    if (keys.some(x => k.includes(x))) return id;
   }
   return null;
 }
@@ -548,25 +548,65 @@ app.get("/blocks", (c) => {
 });
 
 // ── Session ───────────────────────────────────────────────────────────────────
+// Multi-Session Schema:
+//   Filename: YYYY-MM-DD.json (legacy / Default-Session des Tages)
+//             YYYY-MM-DD__<sessionId>.json (zusätzliche Sessions am gleichen Tag)
+//   Query  ?id=<sessionId> wählt eine spezifische Session, sonst Default.
+function sessionFileName(date, id) {
+  return id ? `${date}__${id}.json` : `${date}.json`;
+}
+function parseSessionFile(fname) {
+  const base = fname.replace(/\.json$/, "");
+  const [date, id] = base.split("__");
+  return { date, id: id || null };
+}
+
 app.get("/session", (c) => {
   const uid  = c.req.query("uid") || c.req.header("X-User-UID") || "default";
   const date = c.req.query("date") || localToday();
-  const file = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions", `${date}.json`);
+  const id   = c.req.query("id") || null;
+  const file = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions", sessionFileName(date, id));
   const data = readJson(file);
   return c.json({ ok: true, data: data || null });
+});
+
+app.get("/sessions", (c) => {
+  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || "default";
+  const date = c.req.query("date") || localToday();
+  const dir  = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
+  if (!fs.existsSync(dir)) return c.json({ ok: true, sessions: [] });
+  const sessions = fs.readdirSync(dir)
+    .filter(f => f.endsWith(".json") && f.startsWith(date))
+    .map(f => {
+      const meta = parseSessionFile(f);
+      const data = readJson(path.join(dir, f)) || {};
+      return { id: meta.id, date: meta.date, block: data.block || null, saved_at: data.saved_at || null };
+    })
+    .sort((a, b) => String(a.saved_at).localeCompare(String(b.saved_at)));
+  return c.json({ ok: true, sessions });
 });
 
 app.post("/session", async (c) => {
   const uid     = c.req.header("X-User-UID") || "default";
   const date    = c.req.query("date") || localToday();
+  const id      = c.req.query("id") || null;
   const userDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   fs.mkdirSync(userDir, { recursive: true });
-  const file    = path.join(userDir, `${date}.json`);
+  const file    = path.join(userDir, sessionFileName(date, id));
   const data    = await c.req.json().catch(() => ({}));
-  const session = { ...data, date, saved_at: new Date().toISOString() };
+  const session = { ...data, date, session_id: id, saved_at: new Date().toISOString() };
   writeJson(file, session);
   syncSessionToDb(date, session);
   mirrorSession(date, session, uid);
+  return c.json({ ok: true, id });
+});
+
+app.delete("/session", (c) => {
+  const uid  = c.req.header("X-User-UID") || "default";
+  const date = c.req.query("date") || localToday();
+  const id   = c.req.query("id") || null;
+  const file = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions", sessionFileName(date, id));
+  if (fs.existsSync(file)) fs.unlinkSync(file);
   return c.json({ ok: true });
 });
 
@@ -576,7 +616,10 @@ app.get("/session/history", (c) => {
   const dir     = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   if (!fs.existsSync(dir)) return c.json({ ok: true, sessions: [] });
   const files   = fs.readdirSync(dir).filter(f => f.endsWith(".json")).sort().reverse().slice(0, limit);
-  const sessions = files.map(f => ({ date: f.replace(".json", ""), ...readJson(path.join(dir, f)) }));
+  const sessions = files.map(f => {
+    const meta = parseSessionFile(f);
+    return { date: meta.date, id: meta.id, ...readJson(path.join(dir, f)) };
+  });
   return c.json({ ok: true, sessions });
 });
 

@@ -9,6 +9,20 @@
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Fitness Centre</title>
+    <script>
+      (function() {
+        const theme = localStorage.getItem('fitness-theme') || 'nordic';
+        const mode = localStorage.getItem('fitness-theme-mode') || 'manual';
+        if (mode === 'manual') {
+          document.documentElement.setAttribute('data-theme', theme);
+        } else {
+          const hour = new Date().getHours();
+          const dark = localStorage.getItem('fitness-circ-dark') || 'nordic';
+          const light = localStorage.getItem('fitness-circ-light') || 'honey';
+          document.documentElement.setAttribute('data-theme', (hour >= 8 && hour < 20) ? light : dark);
+        }
+      })();
+    </script>
     <script src="/offline-queue.js"></script>
     <script type="module" src="/src/main.jsx"></script>
   </head>

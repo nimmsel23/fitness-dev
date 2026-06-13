@@ -1,7 +1,7 @@
 // fitness-dev Service Worker
 // v1: static cache + stale-while-revalidate reads + Background Sync für offline POSTs
 
-const CACHE = 'fitness-v3'
+const CACHE = 'fitness-v4'
 
 const STATIC = [
   '/',
@@ -16,8 +16,21 @@ const SWR_PREFIXES = [
   '/coverage',
   '/fitness/weekly',
   '/fitness/body',
+  '/fitness/plan',
+  '/fitness/inbox',
+  '/fitness/clients',
+  '/fitness/config',
+  '/fitness/muscles',
+  '/fitness/search',
+  '/fitness/exercises',
+  '/exercises/search',
+  '/exercises/by-group',
+  '/exercise',
+  '/journal',
+  '/habitsync',
   '/plan/today',
   '/blocks',
+  '/theme',
   '/health',
 ]
 
