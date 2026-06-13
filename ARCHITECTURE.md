@@ -328,4 +328,4 @@ Das Projekt wurde von einer verschachtelten Struktur (`pwa/` Unterordner) auf ei
 
 *   `npm run build`: Standard Vite-Build für die lokale Produktion.
 *   `npm run build:firebase`: Spezieller Build für die Cloud-Umgebung (`--mode firebase`), der `@db` auf Firestore-Module mappt.
-*   `npm run deploy`: Alias für den vollständigen Firebase-Zyklus (Build + Hosting Upload).
+*   `npm run deploy-firebase`: Alias für den vollständigen Firebase-Zyklus (Build + Hosting Upload).
