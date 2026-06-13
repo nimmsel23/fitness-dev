@@ -1,0 +1,42 @@
+name: '060'
+description: Expert details for Back Squat
+exercises:
+- exercise_id: '060'
+  id: '060'
+  german: Kniebeuge mit der Langhantel
+  category: legs
+  type: compound
+  movement_pattern: squat
+  equipment:
+  - barbell
+  - squat_rack
+  primary_muscles:
+  - quadriceps
+  - gluteus_maximus
+  secondary_muscles:
+  - hamstrings
+  - adductors
+  - erector_spinae
+  stabilizers:
+  - core
+  - gastrocnemius
+  variations:
+  - front_squat
+  - goblet_squat
+  coaching_notes:
+  - Brustkorb stolz halten, Rumpf fest anspannen (Valsalva-Manöver).
+  - Knie aktiv nach außen drücken, in einer Linie mit den Füßen.
+  - Tief gehen, bis die Hüfte mindestens auf Kniehöhe ist (Break Parallel).
+  common_errors:
+  - Fersen heben vom Boden ab (Gewichtsverlagerung nach vorne).
+  - Rücken rund werden lassen (Kollabieren des Oberkörpers).
+  - Knie fallen nach innen (Valgus-Stellung).
+  tags:
+  - legs
+  - squat
+  wger_muscle_ids:
+    primary:
+    - 10
+    secondary:
+    - 8
+    - 11

@@ -1,0 +1,44 @@
+name: '080'
+description: Expert details for Deadlift
+exercises:
+- exercise_id: '080'
+  id: '080'
+  german: Kreuzheben
+  category: legs
+  type: compound
+  movement_pattern: hinge
+  equipment:
+  - barbell
+  primary_muscles:
+  - erector_spinae
+  - gluteus_maximus
+  - hamstrings
+  secondary_muscles:
+  - quadriceps
+  - trapezius
+  - latissimus_dorsi
+  - forearms
+  stabilizers:
+  - core
+  - shoulders
+  variations:
+  - trap_bar_deadlift
+  - sumo_deadlift
+  coaching_notes:
+  - Die Stange während der gesamten Bewegung eng am Körper führen.
+  - Den Rumpf maximal anspannen (Bracing), bevor der Zug beginnt.
+  - Hüfte und Schultern steigen gleichzeitig an.
+  common_errors:
+  - Rücken rund machen (Katzenbuckel).
+  - Hüfte schießt zu früh nach oben (Stiff-Legged Deadlift ungewollt).
+  - Stange zu weit weg vom Schienbein.
+  tags:
+  - legs
+  - hinge
+  wger_muscle_ids:
+    primary:
+    - 16
+    - 8
+    secondary:
+    - 12
+    - 11

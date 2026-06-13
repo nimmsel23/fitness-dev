@@ -1,0 +1,38 @@
+name: '082'
+description: Expert details for Hip Thrust
+exercises:
+- exercise_id: '082'
+  id: '082'
+  german: Hip Thrust
+  category: legs
+  type: compound
+  movement_pattern: hip_extension
+  equipment:
+  - barbell
+  - bench
+  primary_muscles:
+  - gluteus_maximus
+  secondary_muscles:
+  - hamstrings
+  - adductors
+  stabilizers:
+  - core
+  - erector_spinae
+  variations:
+  - glute_bridge
+  coaching_notes:
+  - Am obersten Punkt das Gesäß maximal anspannen (Squeeze).
+  - Die Rippen unten halten, um ein Überstrecken des unteren Rückens zu 
+    vermeiden.
+  - Blick nach vorne richten, Kinn leicht zur Brust.
+  common_errors:
+  - Hohlkreuz im Lockout (mangelnde Beckenkippung).
+  - Zu wenig Hüftextension (keine volle ROM).
+  tags:
+  - legs
+  - posterior_chain
+  wger_muscle_ids:
+    primary:
+    - 8
+    secondary:
+    - 11

@@ -1,0 +1,38 @@
+name: '061'
+description: Expert details for Front Squat
+exercises:
+- exercise_id: '061'
+  id: '061'
+  german: Frontkniebeuge
+  category: legs
+  type: compound
+  movement_pattern: squat
+  equipment:
+  - barbell
+  - squat_rack
+  primary_muscles:
+  - quadriceps
+  secondary_muscles:
+  - gluteus_maximus
+  - core
+  - erector_spinae
+  stabilizers:
+  - upper_back
+  - anterior_deltoid
+  variations:
+  - back_squat
+  coaching_notes:
+  - Ellbogen während der gesamten Bewegung hoch halten (Front Rack Position).
+  - Sehr aufrechte Oberkörperposition beibehalten.
+  - Gewicht über dem Mittelfuß zentrieren.
+  common_errors:
+  - Ellbogen fallen lassen, wodurch die Stange nach vorne rollt.
+  - Oberkörper kippt nach vorne (wird zum Good Morning).
+  tags:
+  - legs
+  - squat
+  wger_muscle_ids:
+    primary:
+    - 10
+    secondary:
+    - 8

@@ -1,0 +1,33 @@
+name: '401'
+description: Expert details for Leg Extension
+exercises:
+- exercise_id: '401'
+  id: '401'
+  german: Beinstrecken
+  category: legs
+  type: isolation
+  movement_pattern: knee_extension
+  equipment:
+  - machine
+  primary_muscles:
+  - quadriceps
+  secondary_muscles: []
+  stabilizers:
+  - core
+  variations:
+  - single_leg_extension
+  coaching_notes:
+  - Oben kurz die Kontraktion halten (Squeeze).
+  - Die Abwärtsbewegung langsam und kontrolliert ausführen.
+  - Den Sitz so einstellen, dass das Kniegelenk auf einer Linie mit dem 
+    Drehpunkt der Maschine ist.
+  common_errors:
+  - Zu schnelles Hochreißen der Gewichte.
+  - Hüfte hebt vom Sitz ab (mangelnde Stabilisierung).
+  tags:
+  - legs
+  - quadriceps
+  wger_muscle_ids:
+    primary:
+    - 10
+    secondary: []

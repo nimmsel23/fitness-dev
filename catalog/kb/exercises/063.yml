@@ -1,0 +1,39 @@
+name: '063'
+description: Expert details for Bulgarian Split Squat
+exercises:
+- exercise_id: '063'
+  id: '063'
+  german: Bulgarian Split Squat
+  category: legs
+  type: compound
+  movement_pattern: lunge
+  equipment:
+  - dumbbells
+  - bench
+  primary_muscles:
+  - quadriceps
+  - gluteus_maximus
+  secondary_muscles:
+  - hamstrings
+  - adductors
+  stabilizers:
+  - core
+  - erector_spinae
+  variations:
+  - split_squat
+  coaching_notes:
+  - Das vordere Bein stabil belasten, Gewicht auf dem Mittelfuß/Ferse.
+  - Aufrecht und kontrolliert bleiben, kein übermäßiges Vorlehnen.
+  - Tief absenken, bis das hintere Knie fast den Boden berührt.
+  common_errors:
+  - Zu kurzer Stand (Kniebelastung vorn).
+  - Vorderes Knie fällt nach innen.
+  tags:
+  - legs
+  - unilateral
+  wger_muscle_ids:
+    primary:
+    - 10
+    - 8
+    secondary:
+    - 11

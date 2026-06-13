@@ -1,0 +1,35 @@
+name: '103'
+description: Expert details for Cable Fly
+exercises:
+- exercise_id: '103'
+  id: '103'
+  german: Kabel-Flys
+  category: chest
+  type: isolation
+  movement_pattern: horizontal_adduction
+  equipment:
+  - cable_machine
+  primary_muscles:
+  - pectoralis_major
+  secondary_muscles:
+  - anterior_deltoid
+  stabilizers:
+  - core
+  variations:
+  - dumbbell_fly
+  coaching_notes:
+  - Leichte Ellbogenbeugung während der gesamten Bewegung beibehalten.
+  - Am Ende der Bewegung die Brustmuskeln aktiv zusammenführen.
+  - Fokus auf die Dehnung in der Startposition.
+  common_errors:
+  - Zu viel Schwung aus dem Körper.
+  - Schultern übernehmen die Bewegung durch Vorrollen.
+  tags:
+  - chest
+  - isolation
+  wger_muscle_ids:
+    primary:
+    - 4
+    - 3
+    secondary:
+    - 2

@@ -38,12 +38,15 @@ GYM_VOCAB = {
 }
 
 
+from dataclasses import dataclass, field, asdict
+
 @dataclass
 class ExerciseRecord:
     exercise_id: str
     display_name: str
     source_file: str
     source: str = "expert"
+    categories: list[str] = field(default_factory=list) # The network: chest, push, quadriceps...
     german: str = ""
     movement_pattern: str = ""
     equipment: list[str] | None = None
@@ -55,7 +58,10 @@ class ExerciseRecord:
     coaching_notes: list[str] | None = None
     common_errors: list[str] | None = None
     tags: list[str] | None = None
+    gif_url: str | None = None
+    wger_id: int | None = None
     wger_muscle_ids: dict | None = None
+    anatomy: dict[str, Any] | None = None
 
 
 @dataclass
@@ -70,10 +76,91 @@ class ResolveResult:
 
 
 def build_exercise_index() -> list[ExerciseRecord]:
-    records: list[ExerciseRecord] = []
+    """Erstellt den konsolidierten Netzwerk-Index aller Übungen."""
+    index: dict[str, ExerciseRecord] = {}
+    
+    # 1. Alle Dateien laden und Netzwerk knüpfen
     for path, document in load_catalog_directory_yaml("exercises"):
-        records.extend(parse_exercise_document(path, document))
-    return records
+        if not isinstance(document, dict): continue
+        
+        ext = path.suffix # .yml (coaching) oder .yaml (anatomy)
+        filename = path.name
+        is_anatomy = ext == ".yaml"
+        
+        # Bestimme den Tier (Expert/Bulk)
+        source_tier = "bulk" if filename.startswith("unreviewed_") else ("inbox" if filename.startswith("inbox_") else "expert")
+        
+        # Bridge Node (z.B. chest, legs)
+        file_node = document.get("name") or path.stem
+        exercises = document.get("exercises", [])
+        if not isinstance(exercises, list): continue
+
+        for entry in exercises:
+            # A. ID-Mapping extrahieren
+            ex_id = None
+            entry_name = None
+            
+            if isinstance(entry, (str, int)):
+                ex_id = str(entry).zfill(3) if isinstance(entry, int) else str(entry)
+            elif isinstance(entry, dict):
+                ex_id = first_text(entry, "exercise_id", "id", "canonical_id")
+                entry_name = first_text(entry, "display_name", "name")
+                # Fallback für nummerierte Detail-Files
+                if not ex_id and path.stem.isdigit():
+                    ex_id = path.stem.zfill(3)
+            
+            if not ex_id: continue
+            if ex_id.isdigit(): ex_id = ex_id.zfill(3)
+
+            # Record im Netzwerk holen oder anlegen
+            if ex_id not in index:
+                index[ex_id] = ExerciseRecord(
+                    exercise_id=ex_id, 
+                    display_name=entry_name or ex_id, 
+                    source_file=filename, 
+                    source=source_tier
+                )
+            
+            rec = index[ex_id]
+
+            # Verknüpfung im Netzwerk (nur für Registry-Files, nicht für Detail-Files)
+            if file_node and not path.stem.isdigit() and not is_anatomy and not filename.startswith("unreviewed_"):
+                if file_node not in rec.categories:
+                    rec.categories.append(file_node)
+
+            # Daten-Merge
+            if is_anatomy:
+                # Anatomie (.yaml) merge
+                if not rec.anatomy or source_tier == "expert":
+                    rec.anatomy = entry
+                    if not rec.primary_muscles: rec.primary_muscles = list_of_text(entry.get("primary_muscles"))
+            else:
+                # Coaching / Registry (.yml) merge
+                if source_tier == "expert" or (source_tier == "inbox" and rec.source == "bulk") or rec.display_name == rec.exercise_id:
+                    if source_tier == "expert" or rec.source == "bulk":
+                        rec.source = source_tier
+                        rec.source_file = filename
+                    
+                    # Felder aktualisieren
+                    if entry_name: rec.display_name = entry_name
+                    
+                    for field_name in ["german", "movement_pattern", "wger_id", "gif_url"]:
+                        val = entry.get(field_name) or entry.get(field_name.replace("_", " "))
+                        if val: setattr(rec, field_name, val)
+
+                    
+                    # Listen mergen
+                    for list_field in ["equipment", "aliases", "primary_muscles", "secondary_muscles", "stabilizers", "variations", "coaching_notes", "common_errors", "tags"]:
+                        val = list_of_text(entry.get(list_field))
+                        if val:
+                            existing = getattr(rec, list_field) or []
+                            setattr(rec, list_field, sorted(list(set(existing + val))))
+                    
+                    if entry.get("wger_muscle_ids"):
+                        rec.wger_muscle_ids = entry["wger_muscle_ids"]
+
+    return list(index.values())
+
 
 
 def resolve_query(query: str) -> ResolveResult:
@@ -129,66 +216,8 @@ def load_alias_map() -> dict[str, str]:
     return result
 
 
-def parse_exercise_document(path: Path, document: Any) -> list[ExerciseRecord]:
-    if not isinstance(document, dict):
-        return []
-    exercises = document.get("exercises", [])
-    if not isinstance(exercises, list):
-        return []
-        
-    filename = path.name
-    if filename.startswith("unreviewed_"):
-        source_tier = "bulk"
-    elif filename.startswith("inbox_"):
-        source_tier = "inbox"
-    else:
-        source_tier = "expert"
-
-    records: list[ExerciseRecord] = []
-    for entry in exercises:
-        if not isinstance(entry, dict):
-            continue
-        exercise_id = first_text(entry, "exercise_id", "id", "canonical_id")
-        display_name = first_text(entry, "display_name", "name", "title") or exercise_id
-        if not exercise_id:
-            continue
-        german = first_text(entry, "german", "de", "german_name")
-        movement_pattern = first_text(entry, "movement_pattern")
-        equipment = list_of_text(entry.get("equipment"))
-        aliases = list_of_text(entry.get("aliases"))
-        primary_muscles = list_of_text(entry.get("primary_muscles"))
-        secondary_muscles = list_of_text(entry.get("secondary_muscles"))
-        stabilizers = list_of_text(entry.get("stabilizers"))
-        variations = list_of_text(entry.get("variations"))
-        coaching_notes = list_of_text(entry.get("coaching_notes"))
-        common_errors = list_of_text(entry.get("common_errors"))
-        tags = list_of_text(entry.get("tags"))
-        wger_muscle_ids = entry.get("wger_muscle_ids") or None
-        records.append(
-            ExerciseRecord(
-                exercise_id=exercise_id,
-                display_name=display_name,
-                source_file=path.name,
-                source=source_tier,
-                german=german,
-                movement_pattern=movement_pattern,
-                equipment=equipment,
-                aliases=aliases,
-                primary_muscles=primary_muscles,
-                secondary_muscles=secondary_muscles,
-                stabilizers=stabilizers,
-                variations=variations,
-                coaching_notes=coaching_notes,
-                common_errors=common_errors,
-                tags=tags,
-                wger_muscle_ids=wger_muscle_ids,
-            )
-        )
-    return records
-
-
-
 def find_exact_id(query: str, records: list[ExerciseRecord]) -> ExerciseRecord | None:
+
     query_text = query.strip()
     for record in records:
         if record.exercise_id == query_text:

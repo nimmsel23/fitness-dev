@@ -1,0 +1,19 @@
+name: wger_muscles
+description: Mapping of official wger muscle IDs to their names.
+muscles:
+  1: Biceps brachii
+  2: Anterior deltoid
+  3: Serratus anterior
+  4: Pectoralis major
+  5: Triceps brachii
+  6: Rectus abdominis
+  7: Gastrocnemius
+  8: Gluteus maximus
+  9: Trapezius
+  10: Quadriceps
+  11: Biceps femoris
+  12: Latissimus dorsi
+  13: Brachialis
+  14: Obliquus externus
+  15: Soleus
+  16: Erector spinae

@@ -27,7 +27,9 @@ def iter_catalog_yaml_files(relative_dir: str) -> list[Path]:
     directory = catalog_path(relative_dir)
     if not directory.exists():
         return []
-    return sorted(p for p in directory.glob("*.yml") if p.is_file())
+    # Unterstütze sowohl .yml (Exercises/Coaching) als auch .yaml (Anatomie)
+    files = list(directory.glob("*.yml")) + list(directory.glob("*.yaml"))
+    return sorted(files)
 
 
 def load_catalog_directory_yaml(relative_dir: str) -> list[tuple[Path, Any]]:

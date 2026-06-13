@@ -1,0 +1,6 @@
+name: triceps-surae
+description: Muscle Group Index for Calf (Triceps Surae) exercises.
+exercises:
+- exercise_id: calf_raise
+  display_name: Wadenheben
+  wger_muscle_ids: {primary: [7, 15], secondary: []}
