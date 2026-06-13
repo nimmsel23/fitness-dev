@@ -175,7 +175,7 @@ def dev(ctx: typer.Context) -> None:
 
 @app.command(context_settings=_ctx, help="catalog/fitness_agent CLI (audit|teach|resolve|log|history|report|plan|tui)")
 def agent(ctx: typer.Context) -> None:
-    os.execvp(sys.executable, [sys.executable, "-m", "catalog.fitness_agent"] + ctx.args)
+    passthrough(Path("fitness-agent"), ctx.args, "fitness-agent")
 
 @app.command(context_settings=_ctx, help="anatomy-kb kbctl :9200 (start|stop|status|health|logs|list|resolve)")
 def kb(ctx: typer.Context) -> None:
