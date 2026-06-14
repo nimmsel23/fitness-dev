@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Lock, GripVertical } from "lucide-react";
+import { NAV_ITEMS } from "../../constants/NavigationItems";
 import {
   getSession, getRecentSessions, getPlan,
   getMuscleCoverage, exportCsv, getAllExercises
@@ -28,7 +29,9 @@ const WIDGET_META = {
   weight:   { title: 'Gewicht',       span: 'md:col-span-2 xl:col-span-3', targetTab: null },
 };
 
-export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body', gender = 'male' }) {
+const HOME_NAV = NAV_ITEMS.filter(i => i.id !== 'dash' && i.id !== 'settings');
+
+export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body', gender = 'male', navMode = 'tabs', navigate }) {
   function onNavigate(target, date) {
     if (target === 'session') onOpenSession?.(date || null);
     else if (target === 'review') onOpenReview?.();
@@ -167,6 +170,24 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
 
   return (
     <div className="pb-32">
+      {/* Home-Menü Nav-Karten (nur auf Mobile, nur wenn navMode === 'home') */}
+      {navMode === 'home' && (
+        <nav className="lg:hidden grid grid-cols-3 gap-3 mb-6">
+          {HOME_NAV.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              onClick={() => navigate?.(id)}
+              className="card flex flex-col items-center gap-2.5 py-5 active:scale-95 transition-all hover:border-[var(--accent)]/40 hover:bg-[var(--accent)]/5 group"
+            >
+              <div className="w-10 h-10 rounded-2xl bg-[var(--bg2)] border border-[var(--line)] flex items-center justify-center group-hover:bg-[var(--accent)] group-hover:border-[var(--accent)] transition-all">
+                <Icon size={18} className="text-[var(--dim)] group-hover:text-black transition-colors" />
+              </div>
+              <span className="text-[8px] font-black uppercase tracking-widest text-[var(--dim)] group-hover:text-[var(--accent)] transition-colors">{label}</span>
+            </button>
+          ))}
+        </nav>
+      )}
+
       <DashboardHeader
         onExport={handleExport}
         isEditMode={isEditMode}

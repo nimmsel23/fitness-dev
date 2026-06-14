@@ -2,8 +2,8 @@ import { RefreshCw, Zap, Target, User, LayoutGrid, Clock, Moon, Sun, Save, Check
 import { useState, useEffect } from "react";
 import { api, isLocalMode } from "@db";
 
-export default function Settings({ 
-  hitMode, setHitMode, planMode, setPlanMode, 
+export default function Settings({
+  hitMode, setHitMode, planMode, setPlanMode,
   layoutScale, setLayoutScale,
   gender, setGender, split, setSplit,
   cycleLength, setCycleLength, defaultLocation, setDefaultLocation,
@@ -13,7 +13,8 @@ export default function Settings({
   dashboardHighlighter, setDashboardHighlighter,
   themeMode, setModeState, circLight, setCircLight, circDark, setCircDark,
   themes, theme, setThemeState, updateSettings,
-  sidebarPinned, setSidebarPinned
+  sidebarPinned, setSidebarPinned,
+  navMode, setNavMode
 }) {
   const [health, setHealth] = useState(null)
   const [wger, setWger] = useState(null)
@@ -117,6 +118,25 @@ export default function Settings({
                       className={`w-12 h-6 rounded-full transition-colors relative border ${sidebarPinned ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
                       <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${sidebarPinned ? 'left-7' : 'left-1'}`} />
                    </button>
+                </div>
+
+                {/* Mobile Navigation Mode */}
+                <div className="lg:hidden">
+                   <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-3 ml-1">Mobile Navigation</div>
+                   <div className="flex gap-1 p-1 bg-bg2 rounded-xl border border-line">
+                      {[
+                        { id: 'tabs', label: 'Tabs + Navbar' },
+                        { id: 'home', label: 'Home Menü' },
+                      ].map(({ id, label }) => (
+                        <button key={id} onClick={() => setNavMode(id)}
+                           className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${navMode === id ? 'bg-card shadow-md text-accent' : 'text-dim hover:text-ink'}`}>
+                           {label}
+                        </button>
+                      ))}
+                   </div>
+                   <div className="text-[9px] font-bold opacity-20 uppercase mt-2 ml-1">
+                     {navMode === 'home' ? 'Dashboard = Menü, keine Bottom-Bar' : 'Klassische Tab-Navigation'}
+                   </div>
                 </div>
                 <div>
                    <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1 mb-3">Theme Auswahl</div>

@@ -1,16 +1,32 @@
-import { Activity, Settings2 } from "lucide-react";
+import { Activity, Settings2, ChevronLeft } from "lucide-react";
 import { NAV_ITEMS } from "../../constants/NavigationItems";
 
-export default function MobileHeader({ navigate, tab }) {
+export default function MobileHeader({ navigate, tab, navMode }) {
   const current = NAV_ITEMS.find(i => i.id === tab);
   const Icon = current?.Icon;
+  const isHome = tab === 'dash';
 
   return (
     <header className="lg:hidden h-[60px] flex items-center justify-between px-5 bg-[var(--bg)]/95 backdrop-blur-xl border-b border-[var(--line)]/30 sticky top-0 z-40">
-      <div className="w-9 h-9 rounded-xl bg-[var(--accent)] flex items-center justify-center shadow-lg shadow-[var(--accent)]/25 shrink-0">
-        <Activity size={17} className="text-black stroke-[3]" />
-      </div>
 
+      {/* Left: logo (tabs mode) OR back-to-home (home mode, non-dash) OR home icon (home mode, on dash) */}
+      {navMode === 'home' && !isHome ? (
+        <button
+          onClick={() => navigate('dash')}
+          className="flex items-center gap-2 active:scale-90 transition-all"
+        >
+          <div className="w-9 h-9 rounded-xl bg-[var(--bg2)] border border-[var(--line)]/50 flex items-center justify-center">
+            <ChevronLeft size={18} className="text-[var(--dim)]" />
+          </div>
+          <span className="text-[9px] font-black uppercase tracking-widest text-[var(--dim)]">Home</span>
+        </button>
+      ) : (
+        <div className="w-9 h-9 rounded-xl bg-[var(--accent)] flex items-center justify-center shadow-lg shadow-[var(--accent)]/25 shrink-0">
+          <Activity size={17} className="text-black stroke-[3]" />
+        </div>
+      )}
+
+      {/* Center: current tab label */}
       <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
         {Icon && <Icon size={13} className="text-[var(--accent)] stroke-[2.5]" />}
         <span className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--ink)]">
@@ -18,6 +34,7 @@ export default function MobileHeader({ navigate, tab }) {
         </span>
       </div>
 
+      {/* Right: settings */}
       <button
         onClick={() => navigate('settings')}
         className="w-9 h-9 rounded-xl bg-[var(--bg2)] border border-[var(--line)]/50 flex items-center justify-center active:scale-90 transition-all shrink-0"

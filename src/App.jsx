@@ -61,6 +61,7 @@ export default function App() {
   const [showAdvanced, setShowAdvanced] = useState(() => localStorage.getItem('fitness-showAdvanced') === 'true');
   const [dashboardHighlighter, setDashboardHighlighter] = useState(() => localStorage.getItem('fitness-dashboardHighlighter') || 'body');
   const [sidebarPinned, setSidebarPinned] = useState(() => localStorage.getItem('fitness-sidebarPinned') !== 'false');
+  const [navMode, setNavMode] = useState(() => localStorage.getItem('fitness-navMode') || 'tabs');
 
   // Swipe Navigation — refs to avoid re-registering listeners on every touch event
   const touchStartRef = useRef(null);
@@ -136,6 +137,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem('fitness-showAdvanced', showAdvanced) }, [showAdvanced]);
   useEffect(() => { localStorage.setItem('fitness-dashboardHighlighter', dashboardHighlighter) }, [dashboardHighlighter]);
   useEffect(() => { localStorage.setItem('fitness-sidebarPinned', sidebarPinned) }, [sidebarPinned]);
+  useEffect(() => { localStorage.setItem('fitness-navMode', navMode) }, [navMode]);
 
   // Theme Logic from PWA
   useEffect(() => {
@@ -243,11 +245,11 @@ export default function App() {
         </Sidebar>
 
         <div className={`flex-1 transition-all duration-500 ease-in-out ${sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
-          <MobileHeader navigate={navigate} tab={tab} />
+          <MobileHeader navigate={navigate} tab={tab} navMode={navMode} />
 
           <main className="p-4 pb-28 sm:p-10 sm:pb-10 lg:p-16 max-w-[1600px] mx-auto">
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} />}
+                  {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} />}
                   {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}
                   {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} hitMode={hitMode} />}
                   {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} hitMode={hitMode} gender={gender} />}
@@ -271,12 +273,13 @@ export default function App() {
                        circDark={circDark} setCircDark={setCircDark}
                        themes={THEMES} theme={theme} setThemeState={setThemeState}
                        sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned}
+                       navMode={navMode} setNavMode={setNavMode}
                      />
                   )}
               </div>
             </main>
 
-            <MobileNav tab={tab} navigate={navigate} swipeHint={swipeHint} />
+            {navMode === 'tabs' && <MobileNav tab={tab} navigate={navigate} swipeHint={swipeHint} />}
           </div>
         </div>
       </ErrorBoundary>
