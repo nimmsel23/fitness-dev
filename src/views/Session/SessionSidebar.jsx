@@ -1,4 +1,4 @@
-import { Download, Zap, MapPin, Clock, Activity, Target, FileText } from 'lucide-react';
+import { Download, Zap, MapPin, Clock, Activity, Target, FileText, Info } from 'lucide-react';
 import SectionHeader from './SectionHeader';
 import { blockColor } from './utils';
 
