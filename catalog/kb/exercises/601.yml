@@ -10,12 +10,12 @@ exercises:
   equipment:
   - pull_up_bar
   primary_muscles:
-  - rectus_abdominis
+  - 501_rectus_abdominis
   secondary_muscles:
-  - obliques
+  - 502_obliques
   - iliopsoas
   stabilizers:
-  - latissimus_dorsi
+  - 201_latissimus_dorsi
   - forearms
   variations:
   - knee_raise

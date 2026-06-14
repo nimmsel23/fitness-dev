@@ -1,7 +1,7 @@
 name: chest_supported_row_lesson
 description: Anatomy teaching seed for chest supported row.
 lessons:
-  - exercise_id: chest_supported_row
+  - exercise_id: 043
     title: "Brustgestütztes Rudern - Rücken ohne unteren Rückenstress"
     region: back
     learning_goal:

@@ -1,7 +1,7 @@
 name: romanian_deadlift_lesson
-description: Anatomy teaching seed for romanian deadlift.
+description: Anatomy teaching seed for romanian 080.
 lessons:
-- exercise_id: romanian_deadlift
+- exercise_id: 081
   title: Romanian Deadlift - Hamstrings unter Spannung
   region: legs
   learning_goal:

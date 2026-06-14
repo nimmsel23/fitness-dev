@@ -10,17 +10,17 @@ exercises:
   equipment:
   - machine
   primary_muscles:
-  - quadriceps
+  - 603_quadriceps
   secondary_muscles: []
   stabilizers:
-  - core
+  - 500_core
   variations:
   - single_leg_extension
   coaching_notes:
   - Oben kurz die Kontraktion halten (Squeeze).
   - Die Abwärtsbewegung langsam und kontrolliert ausführen.
-  - Den Sitz so einstellen, dass das Kniegelenk auf einer Linie mit dem 
-    Drehpunkt der Maschine ist.
+  - Den Sitz so einstellen, dass das Kniegelenk auf einer Linie mit dem Drehpunkt
+    der Maschine ist.
   common_errors:
   - Zu schnelles Hochreißen der Gewichte.
   - Hüfte hebt vom Sitz ab (mangelnde Stabilisierung).

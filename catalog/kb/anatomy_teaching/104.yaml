@@ -1,7 +1,7 @@
 name: chest_lessons
 description: Anatomy teaching seeds for chest-focused exercises.
 lessons:
-  - exercise_id: dips_chest
+  - exercise_id: 104
     learning_goal:
       short: Brust vs Trizeps beim Chest Dip unterscheiden.
       detailed: Lern die Brust betonte Dips-Variante über Körperneigung, Schultergürtelkontrolle und sichere Tiefe zu coachen.
@@ -57,7 +57,7 @@ lessons:
     quiz:
       question: Was macht aus einem Dip eher einen Chest Dip?
       answer: Mehr Vorneigung, stabile Schulterblätter und kontrollierte Tiefe verschieben den Fokus zur Brust.
-  - exercise_id: pull_up
+  - exercise_id: 020
     learning_goal:
       short: Vertikalen Zug sauber coachen.
       detailed: Lern den Pull-Up über Schulterblattkontrolle, Ellenbogenzug und kontrollierte Tiefe zu erklären.
@@ -100,12 +100,12 @@ lessons:
         coaching_cue: Hals lang lassen.
     variations_teach:
       - assisted_pull_up
-      - chin_up
+      - 021
       - neutral_grip_pull_up
     quiz:
       question: Was ist das wichtigste Körpersignal beim Pull-Up?
       answer: Die Schulterblätter unten halten und den Zug kontrolliert aus dem Rücken starten.
-  - exercise_id: barbell_row
+  - exercise_id: 042
     learning_goal:
       short: Horizontalen Zug stabil erklären.
       detailed: Lern das Rudern mit fester Hüfte, stabilem Rumpf und sauberem Ellbogenweg zu coachen.
@@ -148,12 +148,12 @@ lessons:
         coaching_cue: Kein Wippen.
     variations_teach:
       - pendlay_row
-      - chest_supported_row
-      - t_bar_row
+      - 043
+      - 044
     quiz:
       question: Was ist das Ziel beim Barbell Row?
       answer: Ein stabiler horizontaler Zug aus Rücken und Armen ohne Schwung.
-  - exercise_id: face_pull
+  - exercise_id: 302
     learning_goal:
       short: Rear-Delt- und Schulterbalance coachen.
       detailed: Lern Face Pulls als Haltung, Schulterbalance und rear-delt-lastige Zugbewegung zu erklären.
@@ -202,7 +202,7 @@ lessons:
     quiz:
       question: Wofür sind Face Pulls besonders nützlich?
       answer: Für hintere Schulter, obere Rückenbalance und saubere Schulterposition.
-  - exercise_id: overhead_press
+  - exercise_id: 022
     learning_goal:
       short: Vertikales Drücken stabil coachen.
       detailed: Lern das Überkopfdrücken mit Rumpfspannung, gerader Stange und sauberer Schulterbewegung zu erklären.
@@ -245,13 +245,13 @@ lessons:
         correction: Kopf unter die Stange und vertikale Bahn halten.
         coaching_cue: Gerade nach oben.
     variations_teach:
-      - dumbbell_shoulder_press
+      - 023
       - push_press
       - landmine_press
     quiz:
       question: Was verhindert das Hohlkreuz beim Overhead Press am besten?
       answer: Ein fester Rumpf und bewusst unten gehaltene Rippen.
-  - exercise_id: lateral_raise
+  - exercise_id: 301
     learning_goal:
       short: Seitliche Schulter isolieren.
       detailed: Lern Seitheben als kontrollierte Abduktion mit kleiner Bahn und sauberem Schultergefühl zu coachen.
@@ -296,7 +296,7 @@ lessons:
     quiz:
       question: Wo soll das Seitheben enden?
       answer: Etwa auf Schulterhöhe, kontrolliert und ohne Schwung.
-  - exercise_id: barbell_curl
+  - exercise_id: 504
     learning_goal:
       short: Bizepscurl sauber erklären.
       detailed: Lern den Langhantelcurl als kontrollierte Ellenbogenflexion mit ruhigem Oberkörper zu coachen.
@@ -337,11 +337,11 @@ lessons:
     variations_teach:
       - ez_bar_curl
       - dumbbell_curl
-      - preacher_curl
+      - 507
     quiz:
       question: Was soll beim Curl möglichst ruhig bleiben?
       answer: Der Oberkörper und die Oberarme.
-  - exercise_id: front_squat
+  - exercise_id: 061
     learning_goal:
       short: Aufrechte Kniebeuge coachen.
       detailed: Lern die Front Squat als aufrechte Squat-Variante mit sauberer Rumpfspannung und Quad-Fokus zu erklären.
@@ -383,13 +383,13 @@ lessons:
         correction: Core-Spannung und bessere Lastverteilung.
         coaching_cue: Aufrecht bleiben.
     variations_teach:
-      - back_squat
+      - 060
       - goblet_squat
       - safety_bar_squat
     quiz:
       question: Was ist das Hauptmerkmal der Front Squat?
       answer: Eine aufrechte Position mit viel Rumpfspannung und starkem Quad-Fokus.
-  - exercise_id: romanian_deadlift
+  - exercise_id: 081
     learning_goal:
       short: Hinge sauber erklären.
       detailed: Lern den RDL als Hüftknick mit kontrollierter Hamstring-Dehnung und stabilem Rücken zu coachen.
@@ -438,7 +438,7 @@ lessons:
     quiz:
       question: Was ist der zentrale Bewegungsimpuls im RDL?
       answer: Die Hüfte schiebt nach hinten, nicht die Knie nach vorne.
-  - exercise_id: leg_press
+  - exercise_id: 062
     learning_goal:
       short: Maschinen-Kniebeuge erklären.
       detailed: Lern die Beinpresse als quad-lastige Kniebeugevariante mit stabiler Maschine und sauberem Becken zu coachen.

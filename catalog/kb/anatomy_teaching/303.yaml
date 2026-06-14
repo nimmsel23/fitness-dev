@@ -1,7 +1,7 @@
 name: rear_delt_fly_lesson
 description: Anatomy teaching seed for rear delt fly.
 lessons:
-  - exercise_id: rear_delt_fly
+  - exercise_id: 303
     title: "Rear Delt Fly - hintere Schulter isolieren"
     region: shoulders
     learning_goal:

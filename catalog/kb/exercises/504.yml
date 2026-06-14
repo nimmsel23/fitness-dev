@@ -10,13 +10,13 @@ exercises:
   equipment:
   - barbell
   primary_muscles:
-  - biceps_brachii
+  - 401_biceps_brachii
   secondary_muscles:
-  - brachialis
-  - brachioradialis
+  - 402_brachialis
+  - 404_brachioradialis
   stabilizers:
-  - core
-  - anterior_deltoid
+  - 500_core
+  - 301_anterior_deltoid
   variations:
   - ez_bar_curl
   coaching_notes:

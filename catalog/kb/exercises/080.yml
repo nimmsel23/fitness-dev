@@ -1,8 +1,8 @@
-name: '080'
+name: 080
 description: Expert details for Deadlift
 exercises:
-- exercise_id: '080'
-  id: '080'
+- exercise_id: 080
+  id: 080
   german: Kreuzheben
   category: legs
   type: compound
@@ -10,17 +10,17 @@ exercises:
   equipment:
   - barbell
   primary_muscles:
-  - erector_spinae
-  - gluteus_maximus
-  - hamstrings
+  - 206_erector_spinae
+  - 601_gluteus_maximus
+  - 604_hamstrings
   secondary_muscles:
-  - quadriceps
+  - 603_quadriceps
   - trapezius
-  - latissimus_dorsi
+  - 201_latissimus_dorsi
   - forearms
   stabilizers:
-  - core
-  - shoulders
+  - 500_core
+  - 300_shoulders
   variations:
   - trap_bar_deadlift
   - sumo_deadlift

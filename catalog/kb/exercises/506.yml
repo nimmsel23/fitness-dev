@@ -10,18 +10,17 @@ exercises:
   equipment:
   - dumbbells
   primary_muscles:
-  - brachioradialis
-  - brachialis
+  - 404_brachioradialis
+  - 402_brachialis
   secondary_muscles:
-  - biceps_brachii
+  - 401_biceps_brachii
   stabilizers:
-  - core
-  - anterior_deltoid
+  - 500_core
+  - 301_anterior_deltoid
   variations:
   - cross_body_hammer_curl
   coaching_notes:
-  - Neutralen Griff (Handflächen zueinander) während der gesamten Bewegung 
-    beibehalten.
+  - Neutralen Griff (Handflächen zueinander) während der gesamten Bewegung beibehalten.
   - Ohne Schwung aus dem Körper arbeiten.
   common_errors:
   - Schultern hochziehen.

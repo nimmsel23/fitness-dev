@@ -10,11 +10,11 @@ exercises:
   equipment:
   - dumbbells
   primary_muscles:
-  - triceps_brachii
+  - 403_triceps_brachii
   secondary_muscles: []
   stabilizers:
-  - core
-  - anconeus
+  - 500_core
+  - 406_anconeus
   variations:
   - cable_overhead_triceps_extension
   coaching_notes:

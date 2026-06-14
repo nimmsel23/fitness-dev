@@ -14,10 +14,10 @@ exercises:
   - dumbbell
   - barbell
   primary_muscles:
-  - pectoralis_major
+  - 101_pectoralis_major
   secondary_muscles:
-  - anterior_deltoid
-  - triceps_brachii
+  - 301_anterior_deltoid
+  - 403_triceps_brachii
   coaching_notes:
   - Stellen Sie die Sitzhöhe so ein, dass die Griffe auf Höhe der mittleren Brust
     liegen und die Schultern nicht hochgezogen werden.
@@ -47,3 +47,4 @@ exercises:
   - chest_press
   - machine_chest_press
   - pec_press
+  stabilizers: []

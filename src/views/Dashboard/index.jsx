@@ -20,12 +20,12 @@ const DEFAULT_LAYOUT = ['session', 'habits', 'heatmap', 'body', 'coverage', 'wei
 const LAYOUT_KEY = 'fitness-dashboard-layout';
 
 const WIDGET_META = {
-  session:  { title: 'Heute',         span: 'lg:col-span-2', targetTab: 'session' },
-  habits:   { title: 'Habits',        span: 'lg:col-span-1', targetTab: 'habits' },
-  heatmap:  { title: 'Aktivität',     span: 'lg:col-span-3', targetTab: 'review' },
-  body:     { title: 'Muskel-Status', span: 'lg:col-span-2', targetTab: 'learn' },
-  coverage: { title: 'Coverage',      span: 'lg:col-span-1', targetTab: 'learn' },
-  weight:   { title: 'Gewicht',       span: 'lg:col-span-3', targetTab: null },
+  session:  { title: 'Heute',         span: 'md:col-span-2 xl:col-span-2', targetTab: 'session' },
+  habits:   { title: 'Habits',        span: 'md:col-span-1 xl:col-span-1', targetTab: 'habits' },
+  heatmap:  { title: 'Aktivität',     span: 'md:col-span-2 xl:col-span-3', targetTab: 'review' },
+  body:     { title: 'Muskel-Status', span: 'md:col-span-2 xl:col-span-2', targetTab: 'learn' },
+  coverage: { title: 'Coverage',      span: 'md:col-span-1 xl:col-span-1', targetTab: 'learn' },
+  weight:   { title: 'Gewicht',       span: 'md:col-span-2 xl:col-span-3', targetTab: null },
 };
 
 export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body', gender = 'male' }) {

@@ -9,80 +9,80 @@ program_rules:
       slots:
         - name: main_chest_press
           choose_from:
-            - incline_dumbbell_press
-            - dips_chest
+            - 041
+            - 104
         - name: secondary_press
           choose_from:
-            - close_grip_bench_press
-            - dumbbell_shoulder_press
+            - 045
+            - 023
         - name: shoulder_press_or_raise
           choose_from:
-            - overhead_press
-            - lateral_raise
+            - 022
+            - 301
         - name: chest_isolation
           choose_from:
-            - cable_fly
+            - 103
             - pec_deck
         - name: triceps_isolation
           choose_from:
-            - cable_pushdown
-            - skull_crusher
+            - 502
+            - 503
     pull_day:
       slots:
         - name: vertical_pull
           choose_from:
-            - pull_up
-            - chin_up
-            - lat_pulldown
+            - 020
+            - 021
+            - 201
         - name: horizontal_pull
           choose_from:
-            - barbell_row
-            - chest_supported_row
-            - t_bar_row
+            - 042
+            - 043
+            - 044
         - name: secondary_row_or_pulldown
           choose_from:
-            - lat_pulldown
-            - chest_supported_row
-            - t_bar_row
+            - 201
+            - 043
+            - 044
         - name: rear_delt_or_face_pull
           choose_from:
-            - face_pull
-            - rear_delt_fly
+            - 302
+            - 303
         - name: biceps_movement
           choose_from:
-            - barbell_curl
-            - incline_dumbbell_curl
-            - hammer_curl
-            - preacher_curl
+            - 504
+            - 505
+            - 506
+            - 507
     legs_day:
       slots:
         - name: main_squat
           choose_from:
-            - front_squat
-            - back_squat
-            - leg_press
+            - 061
+            - 060
+            - 062
         - name: main_hinge
           choose_from:
-            - romanian_deadlift
-            - deadlift
-            - hip_thrust
+            - 081
+            - 080
+            - 082
         - name: unilateral_or_machine
           choose_from:
-            - bulgarian_split_squat
-            - lunge
-            - leg_press
+            - 063
+            - 064
+            - 062
         - name: hamstring_isolation
           choose_from:
-            - leg_curl
-            - hip_thrust
+            - 402
+            - 082
         - name: calves
           choose_from:
-            - calf_raise
+            - 701
         - name: core_optional
           choose_from:
-            - hanging_leg_raise
-            - cable_crunch
-            - ab_wheel
-            - plank
-            - pallof_press
-            - side_plank
+            - 601
+            - 602
+            - 603
+            - 604
+            - 605
+            - 606

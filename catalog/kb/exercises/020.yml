@@ -5,30 +5,28 @@ exercises:
   id: '020'
   wger_id: 821
   german: Klimmzug im Obergriff
-
   category: back
   type: compound
   movement_pattern: vertical_pull
   equipment:
   - pull_up_bar
   primary_muscles:
-  - latissimus_dorsi
-  - trapezius_lower
+  - 201_latissimus_dorsi
+  - 204_trapezius_lower
   secondary_muscles:
-  - biceps_brachii
-  - brachialis
-  - brachioradialis
-  - teres_major
+  - 401_biceps_brachii
+  - 402_brachialis
+  - 404_brachioradialis
+  - 207_teres_major
   stabilizers:
-  - core
-  - pectoralis_major
+  - 500_core
+  - 101_pectoralis_major
   variations:
   - assisted_pull_up
   coaching_notes:
   - Brust zur Stange ziehen, nicht nur das Kinn.
   - Kontrolliert absenken und volle Dehnung ausnutzen.
-  - Schulterblätter in der untersten Position aktiv nach unten ziehen (Scapula 
-    Pull).
+  - Schulterblätter in der untersten Position aktiv nach unten ziehen (Scapula Pull).
   common_errors:
   - Mit Schwung aus den Beinen arbeiten (Kipping).
   - Schultern zu den Ohren ziehen (mangelnde Scapula-Kontrolle).

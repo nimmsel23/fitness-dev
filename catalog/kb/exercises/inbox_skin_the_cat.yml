@@ -14,11 +14,11 @@ exercises:
   - pullup_bar
   primary_muscles:
   - deltoids
-  - rectus_abdominis
+  - 501_rectus_abdominis
   secondary_muscles:
-  - latissimus_dorsi
+  - 201_latissimus_dorsi
   - biceps
-  - obliques
+  - 502_obliques
   coaching_notes:
   - Beginne im aktiven Hang an einer Stange oder Ringen, die Schultern sind von den
     Ohren weggezogen.
@@ -49,3 +49,4 @@ exercises:
   aliases:
   - Shoulder Roll
   - Durchhang
+  stabilizers: []

@@ -1,7 +1,7 @@
 name: barbell_row_lesson
 description: Anatomy teaching seed for barbell row.
 lessons:
-  - exercise_id: barbell_row
+  - exercise_id: 042
     title: "Langhantelrudern - kräftiger horizontaler Zug"
     region: back
     learning_goal:

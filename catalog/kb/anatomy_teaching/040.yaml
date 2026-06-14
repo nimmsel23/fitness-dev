@@ -1,7 +1,7 @@
 name: bench_press_lesson
-description: Anatomy teaching seed for bench_press.
+description: Anatomy teaching seed for 040.
 lessons:
-- exercise_id: bench_press
+- exercise_id: 040
   title: Bankdrücken — Horizontales Drücken verstehen
   region: chest
   learning_goal:

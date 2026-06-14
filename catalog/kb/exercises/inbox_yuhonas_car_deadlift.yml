@@ -1,0 +1,10 @@
+exercises:
+- id: yuhonas_car_deadlift
+  name: Car Deadlift
+  display_name: Car Deadlift
+  category: strongman
+  movement_pattern: null
+  unreviewed: true
+  coaching_notes:
+  - Auto-generated expert draft based on usage demand.
+  common_errors_explained: {}

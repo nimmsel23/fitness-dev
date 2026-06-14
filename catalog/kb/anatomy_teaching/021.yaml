@@ -1,7 +1,7 @@
 name: chin_up_lesson
 description: Anatomy teaching seed for chin up.
 lessons:
-  - exercise_id: chin_up
+  - exercise_id: 021
     title: "Chin Up - Untergriffzug verstehen"
     region: back
     learning_goal:

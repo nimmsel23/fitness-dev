@@ -11,12 +11,12 @@ exercises:
   - dumbbells
   - incline_bench
   primary_muscles:
-  - biceps_brachii
+  - 401_biceps_brachii
   secondary_muscles:
-  - brachialis
-  - brachioradialis
+  - 402_brachialis
+  - 404_brachioradialis
   stabilizers:
-  - core
+  - 500_core
   variations:
   - dumbbell_curl
   coaching_notes:

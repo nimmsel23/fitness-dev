@@ -10,13 +10,13 @@ exercises:
   equipment:
   - barbell
   primary_muscles:
-  - triceps_brachii
-  - pectoralis_major
+  - 403_triceps_brachii
+  - 101_pectoralis_major
   secondary_muscles:
-  - anterior_deltoid
+  - 301_anterior_deltoid
   stabilizers:
-  - core
-  - rotator_cuff
+  - 500_core
+  - 304_rotator_cuff
   variations:
   - close_grip_dumbbell_press
   coaching_notes:

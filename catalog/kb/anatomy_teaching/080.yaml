@@ -1,7 +1,7 @@
 name: deadlift_lesson
-description: Anatomy teaching seed for deadlift.
+description: Anatomy teaching seed for 080.
 lessons:
-  - exercise_id: deadlift
+  - exercise_id: 080
     title: "Deadlift - Hüftstreckung und Ganzkörperkraft"
     region: legs
     learning_goal:
@@ -71,7 +71,7 @@ lessons:
         correction: "Beine und Hüfte gemeinsam starten."
         coaching_cue: "Stange und Hüfte zusammen."
     variations_teach:
-      - variation: "trap bar deadlift"
+      - variation: "trap bar 080"
         lesson: "Oft aufrechter und leichter zu coachen."
       - variation: "block pull"
         lesson: "Reduzierte Starttiefe für Technik und Belastungssteuerung."

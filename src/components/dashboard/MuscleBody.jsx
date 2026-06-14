@@ -21,14 +21,14 @@ export default function MuscleBody({ enrichedRecent, recentDays = 7, highlighter
     : { exercises: recentExercises, type: 'posterior', highlightedColors: colors, style: { maxWidth: 160 } };
 
   return (
-    <div className="card p-8 flex flex-col h-full">
-      <div className="flex items-center justify-between mb-6">
+    <div className="alpha-card p-10 flex flex-col h-full bg-gradient-to-br from-[var(--card)] to-[var(--bg)]">
+      <div className="flex items-center justify-between mb-8">
          <h3 className="label-caps !mb-0">Muskel-Status</h3>
-         <span className="text-[9px] font-black uppercase tracking-widest opacity-30">
+         <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30">
             {isMuscles ? 'detailed' : 'body'} · {recentDays} Tage
          </span>
       </div>
-      <div className="flex flex-1 justify-center items-center gap-12">
+      <div className="flex flex-1 justify-center items-center gap-16 scale-110 origin-center">
         <HighlighterFront {...frontProps} />
         <HighlighterBack {...backProps} />
       </div>

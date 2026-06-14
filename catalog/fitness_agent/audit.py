@@ -108,27 +108,27 @@ def run_anatomy_audit() -> AuditReport:
     missing_mvp: list[str] = []
 
     mvp_exercises = [
-        "incline_dumbbell_press",
-        "cable_fly",
-        "lateral_raise",
-        "overhead_triceps_extension",
-        "cable_pushdown",
-        "close_grip_bench_press",
-        "chin_up",
-        "chest_supported_row",
-        "barbell_row",
-        "rear_delt_fly",
-        "face_pull",
-        "hammer_curl",
-        "deadlift",
-        "romanian_deadlift",
-        "hip_thrust",
-        "leg_curl",
-        "calf_raise",
-        "lunge",
-        "dips_chest",
-        "pull_up",
-        "front_squat",
+        "041", # incline_dumbbell_press
+        "103", # cable_fly
+        "301", # lateral_raise
+        "501", # overhead_triceps_extension
+        "502", # cable_pushdown
+        "045", # close_grip_bench_press
+        "021", # chin_up
+        "043", # chest_supported_row
+        "042", # barbell_row
+        "303", # rear_delt_fly
+        "302", # face_pull
+        "506", # hammer_curl
+        "080", # deadlift
+        "081", # romanian_deadlift
+        "082", # hip_thrust
+        "402", # leg_curl
+        "701", # calf_raise
+        "064", # lunge
+        "104", # dips_chest
+        "020", # pull_up
+        "061", # front_squat
     ]
 
     for lesson in lessons:
@@ -158,7 +158,7 @@ def run_anatomy_audit() -> AuditReport:
 
 
 def audit_exercises() -> ExerciseAuditResult:
-    documents = load_exercises_documents()
+    exercise_index = build_exercise_index()
     seen_ids: set[str] = set()
     exercises_by_category: dict[str, int] = {}
     missing_required_fields: list[str] = []
@@ -170,55 +170,51 @@ def audit_exercises() -> ExerciseAuditResult:
     lines: list[AuditLine] = []
     samples: list[str] = []
 
-    known_categories = {"chest", "back", "shoulders", "arms", "legs", "core"}
+    known_categories = {
+        "chest", "back", "shoulders", "arms", "legs", "core", 
+        "quadriceps", "hamstrings", "triceps-surae", "none",
+        "bulk", "expert", "inbox"
+    }
+    
+    # Required for Expert Exercises
     required_fields = [
-        "exercise_id",
-        "id",
-        "name",
+        "display_name",
         "german",
-        "category",
-        "type",
         "movement_pattern",
         "equipment",
         "primary_muscles",
-        "secondary_muscles",
-        "stabilizers",
-        "variations",
         "coaching_notes",
         "common_errors",
-        "tags",
     ]
 
-    for source_file, document in documents:
-        exercises = document.get("exercises", []) if isinstance(document, dict) else []
-        if not isinstance(exercises, list):
-            continue
-        category = source_file.removesuffix(".yml")
-        exercises_by_category[category] = exercises_by_category.get(category, 0) + len(exercises)
-        for entry in exercises:
-            if not isinstance(entry, dict):
-                continue
-            exercise_id = str(entry.get("exercise_id", "")).strip()
-            if not exercise_id:
-                missing_required_fields.append(f"{source_file}.exercise_id")
-                continue
-            if exercise_id in seen_ids:
-                duplicate_ids.append(exercise_id)
-            seen_ids.add(exercise_id)
-            if category not in known_categories:
-                unknown_categories.append(f"{exercise_id}:{category}")
-            if not as_list(entry.get("primary_muscles")):
+    for record in exercise_index:
+        exercise_id = record.exercise_id
+        if exercise_id in seen_ids:
+            duplicate_ids.append(exercise_id)
+        seen_ids.add(exercise_id)
+        
+        # Count by source category/region
+        categories = record.categories if record.categories else ["none"]
+        for cat in categories:
+            exercises_by_category[cat] = exercises_by_category.get(cat, 0) + 1
+            if cat not in known_categories and not cat.isdigit():
+                unknown_categories.append(f"{exercise_id}:{cat}")
+
+        if record.source == "expert":
+            if not record.primary_muscles:
                 empty_primary_muscles.append(exercise_id)
-            if not as_list(entry.get("coaching_notes")):
+            if not record.coaching_notes:
                 empty_coaching_notes.append(exercise_id)
-            if not as_list(entry.get("common_errors")):
+            if not record.common_errors:
                 empty_common_errors.append(exercise_id)
-            samples.append(exercise_id)
+            
             for field in required_fields:
-                value = entry.get(field)
+                value = getattr(record, field)
                 if value in (None, "", []):
                     missing_required_fields.append(f"{exercise_id}.{field}")
-            lines.append(ok(f"{exercise_id} exercise valid"))
+        
+        samples.append(exercise_id)
+        lines.append(ok(f"{exercise_id} exercise valid"))
 
     return ExerciseAuditResult(
         total_exercises=len(seen_ids),

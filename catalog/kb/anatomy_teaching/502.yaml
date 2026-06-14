@@ -1,7 +1,7 @@
 name: cable_pushdown_lesson
 description: Anatomy teaching seed for cable pushdown.
 lessons:
-  - exercise_id: cable_pushdown
+  - exercise_id: 502
     title: "Cable Pushdown - saubere Ellbogenextension"
     region: arms
     learning_goal:

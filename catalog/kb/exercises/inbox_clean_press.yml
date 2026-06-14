@@ -13,16 +13,16 @@ exercises:
   - barbell
   - dumbbell
   primary_muscles:
-  - quadriceps
+  - 603_quadriceps
   - glutes
-  - shoulders
+  - 300_shoulders
   - trapezius
   secondary_muscles:
-  - hamstrings
-  - erector_spinae
-  - core
+  - 604_hamstrings
+  - 206_erector_spinae
+  - 500_core
   - triceps
-  - calves
+  - 700_calves
   coaching_notes:
   - Beginnen Sie mit der Langhantel auf dem Boden, die Füße hüftbreit auseinander
     und die Hände etwas breiter als schulterbreit am Griff.
@@ -57,3 +57,4 @@ exercises:
   aliases:
   - Clean & Press
   - Power Clean Press
+  stabilizers: []

@@ -5,3 +5,7 @@
 - **Dashboard Layout**: Edit-Modus (Pencil Icon) hinzugefügt, um Dashboard-Widgets via Pfeiltasten (Drag & Drop Alternative) anzuordnen.
 - **Navigation**: Horizontales Swipen für den Tab-Wechsel implementiert.
 - **Logik**: `coverageThreshold`-Einstellung eingefügt und rollierendes Fenster für die Muscle Coverage Analyse in `analysis.js` gefixt.
+fix: restore git auto-deploy for root-level PWA structure
+chore: rename deploy script to deploy-firebase
+feat: implement Safe Production Pipeline with separated release vessel
+docs: rename FIRESTORE.md to FIREBASE.md and update for Safe Production Pipeline

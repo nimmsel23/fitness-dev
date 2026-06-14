@@ -10,17 +10,16 @@ exercises:
   equipment:
   - barbell
   primary_muscles:
-  - triceps_brachii
+  - 403_triceps_brachii
   secondary_muscles: []
   stabilizers:
-  - core
-  - anconeus
+  - 500_core
+  - 406_anconeus
   variations:
   - dumbbell_skull_crusher
   coaching_notes:
   - Ellbogen schmal und stabil halten.
-  - Nur den Unterarm bewegen, Oberarm bleibt senkrecht (oder leicht nach hinten 
-    geneigt).
+  - Nur den Unterarm bewegen, Oberarm bleibt senkrecht (oder leicht nach hinten geneigt).
   common_errors:
   - Ellbogen nach außen ausstellen.
   - Zu tief in die Schultern fallen (Oberarm bewegt sich zu stark).

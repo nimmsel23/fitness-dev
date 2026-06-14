@@ -1,7 +1,7 @@
 name: overhead_triceps_extension_lesson
 description: Anatomy teaching seed for overhead triceps extension.
 lessons:
-  - exercise_id: overhead_triceps_extension
+  - exercise_id: 501
     title: "Overhead Triceps Extension - langer Trizepskopf verstehen"
     region: arms
     learning_goal:

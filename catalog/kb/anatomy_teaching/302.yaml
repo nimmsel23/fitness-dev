@@ -1,7 +1,7 @@
 name: face_pull_lesson
 description: Anatomy teaching seed for face pull.
 lessons:
-  - exercise_id: face_pull
+  - exercise_id: 302
     title: "Face Pull - Schulterbalance und Außenrotation"
     region: shoulders
     learning_goal:

@@ -3,7 +3,7 @@ import path from 'node:path'
 
 const AGENT_BASE = 'http://localhost:9120'
 
-async function fetchAgent(endpoint, options = {}) {
+async function fetchAgent(endpoint, options = {}, { silent = false } = {}) {
   try {
     const url = endpoint.startsWith('http') ? endpoint : `${AGENT_BASE}${endpoint}`
     const res = await fetch(url, {
@@ -12,7 +12,7 @@ async function fetchAgent(endpoint, options = {}) {
     })
     return res.ok ? res.json() : null
   } catch (err) {
-    console.error(`[fitness-runtime] agent fetch failed (${endpoint}):`, err.message)
+    if (!silent) console.error(`[fitness-runtime] agent fetch failed (${endpoint}):`, err.message)
     return null
   }
 }
@@ -36,10 +36,17 @@ export async function loadRuntimeSnapshot({ force = false } = {}) {
     return cachedSnapshot
   }
   lastSnapshotAttempt = now
-  const snapshot = await fetchAgent('/snapshot')
-  if (snapshot) {
-    cachedSnapshot = snapshot
-    return snapshot
+
+  // On first-ever load: retry up to 3× silently to handle agent startup lag
+  const isFirstLoad = !cachedSnapshot
+  const attempts = isFirstLoad ? 3 : 1
+  for (let i = 0; i < attempts; i++) {
+    if (i > 0) await new Promise(r => setTimeout(r, 2000))
+    const snapshot = await fetchAgent('/snapshot', {}, { silent: i < attempts - 1 })
+    if (snapshot) {
+      cachedSnapshot = snapshot
+      return snapshot
+    }
   }
   return cachedSnapshot || fallbackData
 }

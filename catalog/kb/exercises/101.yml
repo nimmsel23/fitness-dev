@@ -10,11 +10,11 @@ exercises:
   equipment:
   - cable_machine
   primary_muscles:
-  - pectoralis_major
+  - 101_pectoralis_major
   secondary_muscles:
-  - anterior_deltoid
+  - 301_anterior_deltoid
   stabilizers:
-  - core
+  - 500_core
   coaching_notes:
   - Griffe auf Schulterhöhe oder leicht darüber positionieren.
   - Mit leicht gebeugten Ellenbogen vor den Körper ziehen.

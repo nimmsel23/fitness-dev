@@ -1,8 +1,8 @@
-name: '081'
+name: 081
 description: Expert details for Romanian Deadlift
 exercises:
-- exercise_id: '081'
-  id: '081'
+- exercise_id: 081
+  id: 081
   german: Rumänisches Kreuzheben
   category: legs
   type: compound
@@ -10,13 +10,13 @@ exercises:
   equipment:
   - barbell
   primary_muscles:
-  - hamstrings
-  - gluteus_maximus
+  - 604_hamstrings
+  - 601_gluteus_maximus
   secondary_muscles:
-  - erector_spinae
-  - adductors
+  - 206_erector_spinae
+  - 605_adductors
   stabilizers:
-  - core
+  - 500_core
   - trapezius
   - forearms
   variations:

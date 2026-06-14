@@ -1,7 +1,7 @@
 name: cable_fly_lesson
 description: Anatomy teaching seed for cable fly.
 lessons:
-  - exercise_id: cable_fly
+  - exercise_id: 103
     title: "Cable Fly - horizontale Adduktion fühlen"
     region: chest
     learning_goal:

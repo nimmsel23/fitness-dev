@@ -16,7 +16,7 @@ exercises:
   primary_muscles:
   - triceps brachii
   secondary_muscles:
-  - anconeus
+  - 406_anconeus
   - deltoids
   coaching_notes:
   - Halte die Ellenbogen während der gesamten Bewegung eng und fixiert.
@@ -42,3 +42,4 @@ exercises:
   - Skullcrusher
   - Lying Triceps Extension
   - Trizepsdrücken liegend
+  stabilizers: []

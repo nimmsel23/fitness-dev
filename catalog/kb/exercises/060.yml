@@ -5,7 +5,6 @@ exercises:
   id: '060'
   wger_id: 615
   german: Kniebeuge mit der Langhantel
-
   category: legs
   type: compound
   movement_pattern: squat
@@ -13,17 +12,17 @@ exercises:
   - barbell
   - squat_rack
   primary_muscles:
-  - quadriceps
-  - gluteus_maximus
+  - 603_quadriceps
+  - 601_gluteus_maximus
   secondary_muscles:
-  - hamstrings
-  - adductors
-  - erector_spinae
+  - 604_hamstrings
+  - 605_adductors
+  - 206_erector_spinae
   stabilizers:
-  - core
-  - gastrocnemius
+  - 500_core
+  - 701_gastrocnemius
   variations:
-  - front_squat
+  - 49
   - goblet_squat
   coaching_notes:
   - Brustkorb stolz halten, Rumpf fest anspannen (Valsalva-Manöver).

@@ -11,19 +11,19 @@ exercises:
   - machine
   - dumbbells
   primary_muscles:
-  - gastrocnemius
-  - soleus
+  - 701_gastrocnemius
+  - 702_soleus
   secondary_muscles: []
   stabilizers:
-  - core
+  - 500_core
   variations:
   - standing_calf_raise
   - seated_calf_raise
   coaching_notes:
   - Volle Streckung nach oben und saubere Dehnung am untersten Punkt.
   - Den obersten Punkt kurz halten und bewusst anspannen.
-  - Knie leicht gebeugt (für Gastrocnemius-Fokus bei stehend) oder stärker 
-    gebeugt (für Soleus bei sitzend).
+  - Knie leicht gebeugt (für Gastrocnemius-Fokus bei stehend) oder stärker gebeugt
+    (für Soleus bei sitzend).
   common_errors:
   - Zu schnelles Federn (Achillessehne übernimmt die Arbeit).
   - ROM abkürzen (keine volle Dehnung oder Streckung).

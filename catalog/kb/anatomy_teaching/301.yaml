@@ -1,7 +1,7 @@
 name: lateral_raise_lesson
 description: Anatomy teaching seed for lateral raise.
 lessons:
-  - exercise_id: lateral_raise
+  - exercise_id: 301
     title: "Lateral Raise - seitliche Schulter isolieren"
     region: shoulders
     learning_goal:

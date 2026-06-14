@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { RefreshCw } from 'lucide-react'
 import Dashboard from './views/Dashboard/index.jsx'
 import Session from './views/Session/index.jsx'
@@ -55,60 +55,69 @@ export default function App() {
   const [sessionDraft, setSessionDraft] = useState(null)
   const [inspectorExercise, setInspectorExercise] = useState(null)
   const [layoutScale, setLayoutScale] = useState(() => parseInt(localStorage.getItem('fitness-layoutScale') || '100', 10));
+  const [swipeHint, setSwipeHint] = useState(null);
   const [recentDays, setRecentDays] = useState(() => parseInt(localStorage.getItem('fitness-recentDays') || '7', 10));
   const [coverageThreshold, setCoverageThreshold] = useState(() => parseFloat(localStorage.getItem('fitness-coverageThreshold') || '1.0'));
   const [showAdvanced, setShowAdvanced] = useState(() => localStorage.getItem('fitness-showAdvanced') === 'true');
   const [dashboardHighlighter, setDashboardHighlighter] = useState(() => localStorage.getItem('fitness-dashboardHighlighter') || 'body');
   const [sidebarPinned, setSidebarPinned] = useState(() => localStorage.getItem('fitness-sidebarPinned') !== 'false');
 
-  // Swipe Navigation Logic
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
-  const minSwipeDistance = 70;
+  // Swipe Navigation — refs to avoid re-registering listeners on every touch event
+  const touchStartRef = useRef(null);
+  const touchEndRef   = useRef(null);
+  const tabRef        = useRef(tab);
+  useEffect(() => { tabRef.current = tab; }, [tab]);
 
   useEffect(() => {
     document.documentElement.style.fontSize = `${layoutScale}%`;
   }, [layoutScale]);
 
   useEffect(() => {
-    const onTouchStart = (e) => {
-      setTouchEnd(null);
-      setTouchStart(e.targetTouches[0].clientX);
-    };
-    const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
-    const onTouchEnd = () => {
-      if (!touchStart || !touchEnd) return;
-      const distance = touchStart - touchEnd;
-      const isLeftSwipe = distance > minSwipeDistance;
-      const isRightSwipe = distance < -minSwipeDistance;
-      
-      if (isLeftSwipe || isRightSwipe) {
-        const items = NAV_ITEMS;
-        const currentIndex = items.findIndex(i => i.id === tab);
-        if (currentIndex === -1) return; // Not in main nav items (e.g. session/review)
+    const MIN_SWIPE  = 70;
+    const HINT_START = 30;
 
-        if (isLeftSwipe && currentIndex < items.length - 1) {
-          navigate(items[currentIndex + 1].id);
-        } else if (isRightSwipe && currentIndex > 0) {
-          navigate(items[currentIndex - 1].id);
-        }
-      }
+    const onTouchStart = (e) => {
+      touchEndRef.current   = null;
+      touchStartRef.current = e.targetTouches[0].clientX;
+    };
+
+    const onTouchMove = (e) => {
+      if (!touchStartRef.current) return;
+      touchEndRef.current = e.targetTouches[0].clientX;
+      const dist  = touchStartRef.current - touchEndRef.current;
+      const idx   = NAV_ITEMS.findIndex(i => i.id === tabRef.current);
+      if (idx === -1) return;
+      if      (dist >  HINT_START && idx < NAV_ITEMS.length - 1) setSwipeHint('left');
+      else if (dist < -HINT_START && idx > 0)                    setSwipeHint('right');
+      else                                                        setSwipeHint(null);
+    };
+
+    const onTouchEnd = () => {
+      setSwipeHint(null);
+      if (!touchStartRef.current || !touchEndRef.current) return;
+      const dist = touchStartRef.current - touchEndRef.current;
+      const idx  = NAV_ITEMS.findIndex(i => i.id === tabRef.current);
+      touchStartRef.current = null;
+      touchEndRef.current   = null;
+      if (idx === -1) return;
+      if      (dist >  MIN_SWIPE && idx < NAV_ITEMS.length - 1) setTab(NAV_ITEMS[idx + 1].id);
+      else if (dist < -MIN_SWIPE && idx > 0)                    setTab(NAV_ITEMS[idx - 1].id);
     };
 
     const main = document.querySelector('main');
     if (main) {
-      main.addEventListener('touchstart', onTouchStart);
-      main.addEventListener('touchmove', onTouchMove);
-      main.addEventListener('touchend', onTouchEnd);
+      main.addEventListener('touchstart', onTouchStart, { passive: true });
+      main.addEventListener('touchmove',  onTouchMove,  { passive: true });
+      main.addEventListener('touchend',   onTouchEnd);
     }
     return () => {
       if (main) {
         main.removeEventListener('touchstart', onTouchStart);
-        main.removeEventListener('touchmove', onTouchMove);
-        main.removeEventListener('touchend', onTouchEnd);
+        main.removeEventListener('touchmove',  onTouchMove);
+        main.removeEventListener('touchend',   onTouchEnd);
       }
     };
-  }, [touchStart, touchEnd, tab]);
+  }, []);
 
   // Persistence Effects
   useEffect(() => { localStorage.setItem('fitness-hitMode', hitMode) }, [hitMode]);
@@ -233,10 +242,10 @@ export default function App() {
           </button>
         </Sidebar>
 
-        <div className={`flex-1 transition-all duration-300 ${sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-20'}`}>
-          <MobileHeader navigate={navigate} tab={tab} sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned} />
+        <div className={`flex-1 transition-all duration-500 ease-in-out ${sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
+          <MobileHeader navigate={navigate} tab={tab} />
 
-          <main className="p-4 sm:p-8 lg:p-12 max-w-7xl mx-auto">
+          <main className="p-4 pb-28 sm:p-10 sm:pb-10 lg:p-16 max-w-[1600px] mx-auto">
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                   {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} />}
                   {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}
@@ -267,7 +276,7 @@ export default function App() {
               </div>
             </main>
 
-            <MobileNav tab={tab} navigate={navigate} />
+            <MobileNav tab={tab} navigate={navigate} swipeHint={swipeHint} />
           </div>
         </div>
       </ErrorBoundary>

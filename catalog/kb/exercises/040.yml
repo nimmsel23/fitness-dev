@@ -5,7 +5,6 @@ exercises:
   id: '040'
   wger_id: 73
   german: Bankdrücken
-
   category: chest
   type: compound
   movement_pattern: horizontal_press
@@ -13,16 +12,16 @@ exercises:
   - barbell
   - bench
   primary_muscles:
-  - pectoralis_major
+  - 101_pectoralis_major
   secondary_muscles:
-  - anterior_deltoid
-  - triceps_brachii
+  - 301_anterior_deltoid
+  - 403_triceps_brachii
   stabilizers:
-  - core
-  - rotator_cuff
+  - 500_core
+  - 304_rotator_cuff
   variations:
   - incline_barbell_press
-  - close_grip_bench_press
+  - 37
   - dumbbell_bench_press
   coaching_notes:
   - Schulterblätter zusammen und runter ziehen (Scapula Retraction).

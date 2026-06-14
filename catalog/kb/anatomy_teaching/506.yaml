@@ -1,7 +1,7 @@
 name: hammer_curl_lesson
 description: Anatomy teaching seed for hammer curl.
 lessons:
-  - exercise_id: hammer_curl
+  - exercise_id: 506
     title: "Hammer Curl - Brachialis und Armkraft"
     region: arms
     learning_goal:

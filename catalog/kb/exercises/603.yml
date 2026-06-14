@@ -8,17 +8,17 @@ exercises:
   type: compound
   movement_pattern: anti_extension
   equipment:
-  - ab_wheel
+  - 603
   primary_muscles:
-  - rectus_abdominis
+  - 501_rectus_abdominis
   - transvere_abdominis
   secondary_muscles:
-  - obliques
-  - latissimus_dorsi
-  - serratus_anterior
+  - 502_obliques
+  - 201_latissimus_dorsi
+  - 104_serratus_anterior
   stabilizers:
-  - anterior_deltoid
-  - triceps_brachii
+  - 301_anterior_deltoid
+  - 403_triceps_brachii
   variations:
   - rollout
   coaching_notes:

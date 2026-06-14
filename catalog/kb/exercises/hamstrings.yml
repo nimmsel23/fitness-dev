@@ -1,14 +1,14 @@
 name: hamstrings
 description: Muscle Group Index for Hamstrings and Posterior Chain exercises.
 exercises:
-- exercise_id: deadlift
+- exercise_id: 080
   display_name: Kreuzheben
   wger_muscle_ids: {primary: [11, 16], secondary: [8, 12]}
 
-- exercise_id: romanian_deadlift
+- exercise_id: 081
   display_name: Rumänisches Kreuzheben
   wger_muscle_ids: {primary: [11, 8], secondary: [16]}
 
-- exercise_id: leg_curl
+- exercise_id: 402
   display_name: Beinbeuger
   wger_muscle_ids: {primary: [11], secondary: [7]}

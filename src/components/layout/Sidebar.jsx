@@ -3,33 +3,33 @@ import { NAV_ITEMS } from "../../constants/NavigationItems";
 
 export default function Sidebar({ tab, navigate, pinned, setPinned, children }) {
   return (
-    <aside className={`hidden lg:flex flex-col bg-[var(--card)] border-r border-[var(--line)] fixed inset-y-0 z-50 transition-all duration-300 ${pinned ? 'w-[280px]' : 'w-20'}`}>
-      <div className={`p-6 flex flex-col h-full ${!pinned ? 'items-center' : ''}`}>
-        <div className="flex items-center gap-3 mb-10 relative">
-          <div className="w-10 h-10 shrink-0 rounded-xl bg-[var(--accent)] text-black flex items-center justify-center shadow-lg shadow-[var(--accent)]/30">
-            <Activity size={22} />
+    <aside className={`hidden lg:flex flex-col alpha-glass border-r border-[var(--line)] fixed inset-y-0 z-50 transition-all duration-500 ease-in-out ${pinned ? 'w-[280px]' : 'w-24'}`}>
+      <div className={`p-8 flex flex-col h-full ${!pinned ? 'items-center' : ''}`}>
+        <div className="flex items-center gap-4 mb-12 relative">
+          <div className="w-12 h-12 shrink-0 rounded-2xl bg-[var(--accent)] text-black flex items-center justify-center shadow-2xl shadow-[var(--accent)]/40 transition-transform hover:scale-105">
+            <Activity size={26} />
           </div>
           {pinned && (
-            <div className="animate-in fade-in slide-in-from-left-2 duration-300">
-              <h2 className="text-lg font-black tracking-tight text-[var(--ink)]">Fitness</h2>
-              <div className="text-[9px] font-black uppercase tracking-widest text-[var(--accent)] -mt-1">AlphaOS System</div>
+            <div className="animate-in fade-in slide-in-from-left-4 duration-500">
+              <h2 className="text-xl font-black tracking-tight text-[var(--ink)]">Fitness</h2>
+              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--accent)] -mt-1">AlphaOS System</div>
             </div>
           )}
           
           <button 
             onClick={() => setPinned(!pinned)}
-            className={`absolute -right-3 top-2 w-6 h-6 rounded-full bg-[var(--bg2)] border border-[var(--line)] flex items-center justify-center text-[var(--dim)] hover:text-[var(--accent)] transition-all z-10 ${!pinned ? 'right-auto' : ''}`}
+            className={`absolute -right-11 top-3 w-8 h-8 rounded-full bg-[var(--card)] border border-[var(--line)] flex items-center justify-center text-[var(--dim)] hover:text-[var(--accent)] transition-all z-10 shadow-lg hover:scale-110 active:scale-90 ${!pinned ? 'right-auto' : ''}`}
           >
-            {pinned ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+            {pinned ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
           </button>
         </div>
         
-        <nav className="space-y-1 flex-1">
+        <nav className="space-y-2 flex-1">
           {NAV_ITEMS.map(({ id, label, Icon }) => (
             <button key={id} onClick={() => navigate(id)} title={!pinned ? label : ''}
-              className={`w-full flex items-center transition-all ${pinned ? 'gap-4 px-4 py-3 rounded-2xl' : 'justify-center p-3 rounded-xl'} ${tab === id ? 'bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20 font-black' : 'text-[var(--dim)] hover:bg-white/5 font-bold'}`}>
-              <Icon size={18} className={tab === id ? 'stroke-[2.5]' : ''} />
-              {pinned && <span className="text-sm truncate animate-in fade-in slide-in-from-left-2 duration-300">{label}</span>}
+              className={`w-full flex items-center transition-all duration-300 ${pinned ? 'gap-4 px-5 py-4 rounded-2xl' : 'justify-center p-4 rounded-2xl'} ${tab === id ? 'bg-[var(--accent)] text-black shadow-xl shadow-[var(--accent)]/20 font-black scale-[1.02]' : 'text-[var(--dim)] hover:bg-white/5 font-bold hover:translate-x-1'}`}>
+              <Icon size={20} className={tab === id ? 'stroke-[3]' : ''} />
+              {pinned && <span className="text-sm truncate animate-in fade-in slide-in-from-left-4 duration-500">{label}</span>}
             </button>
           ))}
         </nav>

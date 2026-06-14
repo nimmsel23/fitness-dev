@@ -1,5 +1,5 @@
 lessons:
-  - exercise_id: ab_wheel
+  - exercise_id: 603
     title: "Ab Wheel - Anti-Extension verstehen"
     region: core
     learning_goal:
@@ -54,7 +54,7 @@ lessons:
       - question: "Was ist die Hauptlektion des Ab Wheel?"
         answer: "Der Rumpf muss Extension verhindern und die Linie stabil halten."
 
-  - exercise_id: barbell_curl
+  - exercise_id: 504
     title: "Barbell Curl - Ellenbogenflexion sauber lernen"
     region: arms
     learning_goal:
@@ -109,7 +109,7 @@ lessons:
       - question: "Was ist das Kernprinzip beim Barbell Curl?"
         answer: "Ellenbogenflexion ohne Schwung aus dem Oberkörper."
 
-  - exercise_id: bulgarian_split_squat
+  - exercise_id: 063
     title: "Bulgarian Split Squat - Einseitige Beinführung"
     region: legs
     learning_goal:
@@ -171,7 +171,7 @@ lessons:
       - question: "Was ist die Hauptlektion beim Bulgarian Split Squat?"
         answer: "Ein Bein trägt Last, während Hüfte und Knie stabil bleiben."
 
-  - exercise_id: cable_crunch
+  - exercise_id: 602
     title: "Cable Crunch - Rumpfflexion kontrollieren"
     region: core
     learning_goal:
@@ -226,7 +226,7 @@ lessons:
       - question: "Was lehrt Cable Crunch primär?"
         answer: "Kontrollierte Rumpfflexion mit Bauchspannung."
 
-  - exercise_id: dips_chest
+  - exercise_id: 104
     title: "Dips - Brustfokus und Schulterkontrolle"
     region: chest
     learning_goal:
@@ -288,7 +288,7 @@ lessons:
       - question: "Was verändert den Brustanteil bei Dips?"
         answer: "Der Vorneigungswinkel und die Schulterblattkontrolle."
 
-  - exercise_id: dumbbell_shoulder_press
+  - exercise_id: 023
     title: "Dumbbell Shoulder Press - Überkopfdrücken verstehen"
     region: shoulders
     learning_goal:
@@ -350,7 +350,7 @@ lessons:
       - question: "Was ist die Kernlektion beim Shoulder Press?"
         answer: "Vertikales Drücken braucht Schulterkraft und stabile Körpermitte."
 
-  - exercise_id: front_squat
+  - exercise_id: 061
     title: "Front Squat - Aufrechtes Kniebeugenmuster"
     region: legs
     learning_goal:
@@ -412,7 +412,7 @@ lessons:
       - question: "Was lehrt der Front Squat besonders?"
         answer: "Aufrechte Rumpfhaltung unter Last."
 
-  - exercise_id: hanging_leg_raise
+  - exercise_id: 601
     title: "Hanging Leg Raise - Rumpf und Hüftbeuger"
     region: core
     learning_goal:
@@ -474,7 +474,7 @@ lessons:
       - question: "Was ist die Hauptlektion beim Hanging Leg Raise?"
         answer: "Bauchspannung hält das Becken ruhig, während die Beine bewegen."
 
-  - exercise_id: incline_dumbbell_curl
+  - exercise_id: 505
     title: "Incline Dumbbell Curl - Bizeps in Länge"
     region: arms
     learning_goal:
@@ -529,7 +529,7 @@ lessons:
       - question: "Was macht den Incline Curl besonders?"
         answer: "Die gedehnte Startposition des Bizeps."
 
-  - exercise_id: lat_pulldown
+  - exercise_id: 201
     title: "Lat Pulldown - Vertikaler Zug für den Rücken"
     region: back
     learning_goal:
@@ -591,7 +591,7 @@ lessons:
       - question: "Was ist die Hauptlektion beim Lat Pulldown?"
         answer: "Vertikales Ziehen über den Rücken und die Lats."
 
-  - exercise_id: leg_extension
+  - exercise_id: 401
     title: "Leg Extension - Knie strecken isoliert"
     region: legs
     learning_goal:
@@ -646,7 +646,7 @@ lessons:
       - question: "Was trainiert Leg Extension primär?"
         answer: "Die kontrollierte Streckung im Knie."
 
-  - exercise_id: leg_press
+  - exercise_id: 062
     title: "Leg Press - Beinpressen als Squat-Ersatz"
     region: legs
     learning_goal:
@@ -708,7 +708,7 @@ lessons:
       - question: "Was ist der Vorteil der Leg Press?"
         answer: "Sie erlaubt schwere Beinarbeit mit weniger Rumpfanforderung."
 
-  - exercise_id: overhead_press
+  - exercise_id: 022
     title: "Overhead Press - Vertikaler Druck mit Stabilität"
     region: shoulders
     learning_goal:
@@ -770,7 +770,7 @@ lessons:
       - question: "Was ist die Kernlektion beim Overhead Press?"
         answer: "Vertikaler Druck braucht Schulterkraft und stabile Körpermitte."
 
-  - exercise_id: pallof_press
+  - exercise_id: 605
     title: "Pallof Press - Anti-Rotation lehren"
     region: core
     learning_goal:
@@ -880,7 +880,7 @@ lessons:
       - question: "Was macht den Pec Deck sinnvoll?"
         answer: "Er isoliert die Brust in einem geführten Bewegungsmuster."
 
-  - exercise_id: plank
+  - exercise_id: 604
     title: "Plank - Isometrische Rumpfstabilität"
     region: core
     learning_goal:
@@ -929,13 +929,13 @@ lessons:
         correction: "Kürzere Haltezeit und mehr Spannung."
         coaching_cue: "Bauch aktiv, Hüfte hoch."
     variations_teach:
-      - variation: "High plank"
+      - variation: "High 604"
         lesson: "Die Hände statt Unterarme erhöhen die Schulteranforderung."
     quiz:
       - question: "Was ist die Kernlektion der Plank?"
         answer: "Der Rumpf hält eine stabile, gerade Linie gegen Extension."
 
-  - exercise_id: preacher_curl
+  - exercise_id: 507
     title: "Preacher Curl - Bizeps mit fixiertem Oberarm"
     region: arms
     learning_goal:
@@ -990,7 +990,7 @@ lessons:
       - question: "Was macht den Preacher Curl besonders?"
         answer: "Er fixiert den Oberarm und isoliert die Ellenbogenflexion."
 
-  - exercise_id: side_plank
+  - exercise_id: 606
     title: "Side Plank - Seitliche Rumpfstabilität"
     region: core
     learning_goal:
@@ -1039,13 +1039,13 @@ lessons:
         correction: "Kürzere Haltezeit und bessere Spannung."
         coaching_cue: "Hüfte hoch."
     variations_teach:
-      - variation: "Weighted side plank"
+      - variation: "Weighted side 604"
         lesson: "Zusatzlast erhöht die Anti-Lateralflexion."
     quiz:
       - question: "Was ist die Hauptlektion der Side Plank?"
         answer: "Der Rumpf hält seitlich stabil und verhindert ein Absinken."
 
-  - exercise_id: skull_crusher
+  - exercise_id: 503
     title: "Skull Crusher - Ellbogenstreckung isoliert"
     region: arms
     learning_goal:
@@ -1100,7 +1100,7 @@ lessons:
       - question: "Was ist die Kernlektion beim Skull Crusher?"
         answer: "Der Trizeps streckt den Ellbogen mit ruhiger Schulter."
 
-  - exercise_id: t_bar_row
+  - exercise_id: 044
     title: "T-Bar Row - Horizontaler Zug mit Stabilität"
     region: back
     learning_goal:

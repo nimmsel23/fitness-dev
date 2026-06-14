@@ -15,10 +15,10 @@ exercises:
   - machine
   - cable
   primary_muscles:
-  - pectoralis_major
+  - 101_pectoralis_major
   secondary_muscles:
-  - anterior_deltoid
-  - triceps_brachii
+  - 301_anterior_deltoid
+  - 403_triceps_brachii
   coaching_notes:
   - Lege dich auf eine Flachbank oder setze dich an die entsprechende Maschine. Achte
     auf einen stabilen Stand der Füße auf dem Boden.
@@ -46,7 +46,8 @@ exercises:
   - push
   - upper_body
   aliases:
-  - bench_press
+  - 32
   - dumbbell_press
   - machine_chest_press
   - barbell_press
+  stabilizers: []

@@ -10,23 +10,22 @@ exercises:
   equipment:
   - dumbbells
   primary_muscles:
-  - posterior_deltoid
+  - 303_posterior_deltoid
   secondary_muscles:
-  - trapezius_middle
-  - rhomboids
+  - 203_trapezius_middle
+  - 205_rhomboids
   stabilizers:
-  - core
+  - 500_core
   variations:
   - cable_rear_delt_fly
   coaching_notes:
-  - Hintere Schulter aktiv isolieren, indem die Schulterblätter nicht zu stark 
-    zusammengezogen werden (Fokus auf Deltoid).
+  - Hintere Schulter aktiv isolieren, indem die Schulterblätter nicht zu stark zusammengezogen
+    werden (Fokus auf Deltoid).
   - Bewegung klein, präzise und kontrolliert ausführen.
   - Oberkörper stabil und parallel zum Boden (vorgebeugt).
   common_errors:
   - Zu viel Schwung aus dem Oberkörper.
-  - Den oberen Trapez die Arbeit übernehmen lassen durch Hochziehen der 
-    Schultern.
+  - Den oberen Trapez die Arbeit übernehmen lassen durch Hochziehen der Schultern.
   tags:
   - shoulders
   - rear_delt

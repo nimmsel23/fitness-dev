@@ -10,12 +10,12 @@ exercises:
   equipment:
   - dumbbells
   primary_muscles:
-  - lateral_deltoid
+  - 302_lateral_deltoid
   secondary_muscles:
-  - anterior_deltoid
-  - trapezius_upper
+  - 301_anterior_deltoid
+  - 202_trapezius_upper
   stabilizers:
-  - core
+  - 500_core
   variations:
   - cable_lateral_raise
   coaching_notes:

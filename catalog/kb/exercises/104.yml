@@ -10,13 +10,13 @@ exercises:
   equipment:
   - dip_bars
   primary_muscles:
-  - pectoralis_major
+  - 101_pectoralis_major
   secondary_muscles:
-  - triceps_brachii
-  - anterior_deltoid
+  - 403_triceps_brachii
+  - 301_anterior_deltoid
   stabilizers:
-  - core
-  - serratus_anterior
+  - 500_core
+  - 104_serratus_anterior
   variations:
   - assisted_dips
   coaching_notes:

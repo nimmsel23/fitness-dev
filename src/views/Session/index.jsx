@@ -289,40 +289,73 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
     const visibleHistory = historyList.filter(s => s.block || (s.exercises && s.exercises.length > 0) || s.activity).slice(0, historyLimit);
     
     return (
-      <div className="pb-32 max-w-2xl mx-auto px-4 mt-8 animate-in fade-in zoom-in-95 duration-300">
+      <div className="pb-32 max-w-2xl mx-auto px-4 mt-8 sm:mt-16 animate-in fade-in zoom-in-95 duration-500">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-black tracking-tight mb-4">Training Log</h1>
+          <p className="text-sm font-bold text-dim uppercase tracking-[0.3em]">Tracke deinen Fortschritt</p>
+        </div>
+
         <button 
           onClick={() => { setDate(localToday()); setIsLogging(true); }} 
-          className="w-full py-12 rounded-[32px] bg-accent/10 border-2 border-dashed border-accent/30 text-accent hover:bg-accent/20 hover:border-accent/50 transition-all flex flex-col items-center gap-3 group"
+          className="w-full py-20 rounded-[48px] bg-gradient-to-br from-accent/20 to-accent/5 border-2 border-dashed border-accent/40 text-accent hover:border-accent hover:from-accent/30 hover:to-accent/10 transition-all flex flex-col items-center gap-6 group shadow-2xl shadow-accent/5 active:scale-[0.98]"
         >
-          <Dumbbell size={40} className="group-hover:scale-110 transition-transform" />
-          <span className="font-black text-xl tracking-widest uppercase">+ NEW Workout</span>
+          <div className="w-20 h-20 rounded-[32px] bg-accent text-black flex items-center justify-center shadow-2xl shadow-accent/40 group-hover:scale-110 transition-transform duration-500">
+            <Plus size={40} strokeWidth={3} />
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <span className="font-black text-2xl tracking-[0.1em] uppercase">Neue Session</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Starte dein heutiges Workout</span>
+          </div>
         </button>
 
         {visibleHistory.length > 0 && (
-          <div className="mt-16 space-y-4">
-            <h2 className="text-[10px] font-black uppercase tracking-widest text-dim ml-2 opacity-50">Recent Logs</h2>
-            {visibleHistory.map(s => (
-              <div 
-                key={s.date} 
-                onClick={() => { setDate(s.date); setIsLogging(true); }} 
-                className="card p-5 cursor-pointer hover:border-accent/50 hover:bg-accent/5 transition-all flex items-center justify-between group"
-              >
-                <div>
-                  <div className="font-black text-sm text-ink group-hover:text-accent transition-colors">{s.block || s.trainingsart || 'Training'}</div>
-                  <div className="text-[10px] font-bold text-dim uppercase tracking-widest mt-1">
-                    {s.date} · {s.exercises?.length || 0} Übungen
+          <div className="mt-20 space-y-6">
+            <div className="flex items-center gap-4 px-2">
+              <div className="h-px bg-line flex-1 opacity-20" />
+              <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-dim opacity-60">Letzte Aktivitäten</h2>
+              <div className="h-px bg-line flex-1 opacity-20" />
+            </div>
+
+            <div className="grid grid-cols-1 gap-3">
+              {visibleHistory.map(s => (
+                <div 
+                  key={s.date} 
+                  onClick={() => { setDate(s.date); setIsLogging(true); }} 
+                  className="card p-6 cursor-pointer hover:border-accent/40 hover:bg-accent/5 transition-all flex items-center justify-between group rounded-[32px] border-line/50"
+                >
+                  <div className="flex items-center gap-5">
+                    <div className="w-12 h-12 rounded-2xl bg-bg2 flex flex-col items-center justify-center border border-line group-hover:border-accent/30 transition-colors">
+                      <span className="text-[10px] font-black uppercase text-accent">{new Date(s.date).toLocaleString('de-DE', { weekday: 'short' })}</span>
+                      <span className="text-xs font-black">{s.date.split('-')[2]}</span>
+                    </div>
+                    <div>
+                      <div className="font-black text-base text-ink group-hover:text-accent transition-colors">
+                        {s.block || s.trainingsart || 'Workout'}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] font-bold text-dim uppercase tracking-widest">
+                          {s.date}
+                        </span>
+                        <span className="w-1 h-1 rounded-full bg-dim/20" />
+                        <span className="text-[10px] font-bold text-dim uppercase tracking-widest">
+                          {s.exercises?.length || 0} Übungen
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-bg2 flex items-center justify-center text-dim opacity-0 group-hover:opacity-100 group-hover:text-accent group-hover:translate-x-1 transition-all">
+                    <ChevronRight size={20} />
                   </div>
                 </div>
-                <ChevronRight size={20} className="text-dim opacity-30 group-hover:opacity-100 group-hover:text-accent transition-all group-hover:translate-x-1" />
-              </div>
-            ))}
+              ))}
+            </div>
             
             {historyList.length > historyLimit && (
               <button 
                 onClick={() => setHistoryLimit(p => p + 10)} 
-                className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-dim hover:text-ink transition-colors"
+                className="w-full py-6 text-[10px] font-black uppercase tracking-[0.3em] text-dim hover:text-ink transition-colors"
               >
-                Mehr anzeigen ↓
+                Ältere Logs laden ↓
               </button>
             )}
           </div>

@@ -1,7 +1,7 @@
 name: lunge_lesson
-description: Anatomy teaching seed for lunge.
+description: Anatomy teaching seed for 064.
 lessons:
-- exercise_id: lunge
+- exercise_id: 064
   title: Lunge - Beinachse, Hüfte und Balance
   region: legs
   learning_goal:
@@ -9,7 +9,7 @@ lessons:
     detailed: Lern, wie Lunge Knie, Hüfte und Fuß zusammenbringt und warum Balance
       und Achse entscheidend sind.
   movement_pattern:
-    primary: lunge
+    primary: 064
     secondary:
     - unilateral_squat_pattern
   joint_actions:
@@ -71,9 +71,9 @@ lessons:
     correction: Schritt länger setzen.
     coaching_cue: Mehr Platz im Stand.
   variations_teach:
-  - variation: walking lunge
+  - variation: walking 064
     lesson: Dynamischer und koordinativ anspruchsvoller.
-  - variation: reverse lunge
+  - variation: reverse 064
     lesson: Oft knie-freundlicher und leichter zu kontrollieren.
   quiz:
   - question: Was lernt man am meisten aus der Lunge?
@@ -111,7 +111,7 @@ lessons:
   vault_tags:
   - beintraining
   - funktionell
-  - lunge
+  - 064
   - quadrizeps
   - unilateral
   common_errors_explained:

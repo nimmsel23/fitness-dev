@@ -10,15 +10,15 @@ exercises:
   equipment:
   - cable_machine
   primary_muscles:
-  - latissimus_dorsi
+  - 201_latissimus_dorsi
   secondary_muscles:
-  - biceps_brachii
-  - trapezius_lower
-  - teres_major
-  - posterior_deltoid
+  - 401_biceps_brachii
+  - 204_trapezius_lower
+  - 207_teres_major
+  - 303_posterior_deltoid
   stabilizers:
-  - core
-  - brachialis
+  - 500_core
+  - 402_brachialis
   variations:
   - neutral_grip_lat_pulldown
   coaching_notes:

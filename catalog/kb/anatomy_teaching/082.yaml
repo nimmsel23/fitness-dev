@@ -1,7 +1,7 @@
 name: hip_thrust_lesson
 description: Anatomy teaching seed for hip thrust.
 lessons:
-  - exercise_id: hip_thrust
+  - exercise_id: 082
     title: "Hip Thrust - Gesäß als Hauptmotor"
     region: legs
     learning_goal:

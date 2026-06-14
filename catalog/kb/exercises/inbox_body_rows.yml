@@ -14,14 +14,14 @@ exercises:
   - suspension_trainer
   - bar
   primary_muscles:
-  - latissimus_dorsi
-  - rhomboids
+  - 201_latissimus_dorsi
+  - 205_rhomboids
   - trapezius
   secondary_muscles:
   - biceps
   - posterior_deltoids
   - forearms
-  - core
+  - 500_core
   coaching_notes:
   - Halten Sie den gesamten Körper, insbesondere den Rumpf, während der gesamten Bewegung
     angespannt, um ein Durchhängen der Hüften zu vermeiden.
@@ -52,3 +52,4 @@ exercises:
   - Körperrudern
   - Schräges Rudern
   - Suspension Trainer Rows
+  stabilizers: []

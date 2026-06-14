@@ -11,11 +11,11 @@ exercises:
   - machine
   - preacher_bench
   primary_muscles:
-  - biceps_brachii
+  - 401_biceps_brachii
   secondary_muscles:
-  - brachialis
+  - 402_brachialis
   stabilizers:
-  - core
+  - 500_core
   variations:
   - ez_bar_preacher_curl
   coaching_notes:

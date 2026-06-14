@@ -10,17 +10,17 @@ exercises:
   equipment:
   - barbell
   primary_muscles:
-  - anterior_deltoid
-  - lateral_deltoid
+  - 301_anterior_deltoid
+  - 302_lateral_deltoid
   secondary_muscles:
-  - triceps_brachii
-  - trapezius_upper
+  - 403_triceps_brachii
+  - 202_trapezius_upper
   - pectoralis_major_clavicular_head
   stabilizers:
-  - core
-  - erector_spinae
+  - 500_core
+  - 206_erector_spinae
   variations:
-  - dumbbell_shoulder_press
+  - 19
   coaching_notes:
   - Rippen unten halten, kein übermäßiges Hohlkreuz.
   - Hantelstange in einer geraden Linie über den Kopf drücken.

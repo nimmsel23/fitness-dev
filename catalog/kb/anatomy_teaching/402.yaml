@@ -1,7 +1,7 @@
 name: leg_curl_lesson
 description: Anatomy teaching seed for leg curl.
 lessons:
-  - exercise_id: leg_curl
+  - exercise_id: 402
     title: "Leg Curl - Kniebeugung im hinteren Oberschenkel"
     region: legs
     learning_goal:

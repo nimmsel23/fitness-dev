@@ -1,7 +1,8 @@
-import { Dumbbell } from "lucide-react";
+import { useState } from "react";
+import { Dumbbell, Plus, Search } from "lucide-react";
 import SectionHeader from "./SectionHeader";
 import ExerciseItem from "./ExerciseItem";
-import ExerciseSearch from "../../components/ExerciseSearch";
+import ExerciseSearchOverlay from "../../components/ExerciseSearchOverlay";
 
 export default function ExerciseSection({
   exercises = [], hitMode, restHours, muscleRecovery = {},
@@ -9,6 +10,7 @@ export default function ExerciseSection({
   planMode, date, addEx, quickInput, setQuickInput, addQuick,
   prevMap = {}, onInspectExercise
 }) {
+  const [showSearch, setShowSearch] = useState(false);
   const safeExercises = Array.isArray(exercises) ? exercises : [];
 
   return (
@@ -44,23 +46,52 @@ export default function ExerciseSection({
           />
         ))}
         {safeExercises.length === 0 && (
-          <div className="card border-dashed flex flex-col items-center justify-center py-12 opacity-30 bg-bg2/30">
-            <Dumbbell size={32} className="mb-3" />
-            <p className="text-xs font-black uppercase tracking-widest">Keine Übungen geloggt</p>
+          <div className="card border-dashed flex flex-col items-center justify-center py-16 opacity-30 bg-bg2/30 rounded-[40px]">
+            <div className="w-16 h-16 rounded-full bg-line/10 flex items-center justify-center mb-4">
+              <Dumbbell size={32} />
+            </div>
+            <p className="text-xs font-black uppercase tracking-[0.2em]">Keine Übungen geloggt</p>
           </div>
         )}
       </div>
 
-      <div className="p-4 sm:p-6 rounded-3xl bg-bg2 border border-line shadow-inner mt-6 space-y-4">
-        <div className="label-caps !mb-0 font-black">Übung hinzufügen</div>
-        <ExerciseSearch onSelect={addEx} />
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 mt-8">
+        <button 
+          onClick={() => setShowSearch(true)}
+          className="flex items-center justify-between px-6 py-4 rounded-[24px] bg-accent text-black font-black uppercase tracking-widest text-[11px] shadow-xl shadow-accent/20 hover:scale-[1.02] active:scale-95 transition-all"
+        >
+          <div className="flex items-center gap-3">
+            <Plus size={18} />
+            <span>Übung hinzufügen</span>
+          </div>
+          <Search size={16} className="opacity-40" />
+        </button>
+
         <div className="flex gap-2">
-          <input type="text" value={quickInput} onChange={e => setQuickInput(e.target.value)}
+          <input 
+            type="text" 
+            value={quickInput} 
+            onChange={e => setQuickInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addQuick()}
-            placeholder="Quick (z.B. bench 3x8@80)" className="flex-1 p-3.5 rounded-2xl border text-sm font-mono bg-card border-line text-ink focus:border-accent outline-none shadow-sm min-w-0" />
-          <button onClick={addQuick} className="btn bg-orange/10 text-orange border border-orange/20 px-6 font-black shrink-0">+</button>
+            placeholder="Quick: bench 3x8@80" 
+            className="flex-1 p-4 rounded-[24px] border text-sm font-mono bg-card border-line text-ink focus:border-accent outline-none shadow-sm min-w-0" 
+          />
+          <button 
+            onClick={addQuick} 
+            className="w-14 h-14 rounded-[24px] bg-bg2 text-ink border border-line flex items-center justify-center font-black hover:bg-card active:scale-95 transition-all"
+          >
+            <Plus size={24} />
+          </button>
         </div>
       </div>
+
+      {showSearch && (
+        <ExerciseSearchOverlay 
+          onSelect={addEx} 
+          onClose={() => setShowSearch(false)} 
+          date={date}
+        />
+      )}
     </div>
   );
 }

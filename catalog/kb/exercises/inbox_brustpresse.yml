@@ -14,10 +14,10 @@ exercises:
   - dumbbell
   - barbell
   primary_muscles:
-  - pectoralis_major
+  - 101_pectoralis_major
   secondary_muscles:
-  - anterior_deltoid
-  - triceps_brachii
+  - 301_anterior_deltoid
+  - 403_triceps_brachii
   coaching_notes:
   - Halten Sie die Ellenbogen leicht angewinkelt, um die Schultern zu schonen.
   - Führen Sie die Bewegung kontrolliert und fließend aus, sowohl beim Hochdrücken
@@ -42,6 +42,7 @@ exercises:
   - pressing
   aliases:
   - chest_press
-  - bench_press
+  - 32
   - bankdrücken
   - machine_press
+  stabilizers: []

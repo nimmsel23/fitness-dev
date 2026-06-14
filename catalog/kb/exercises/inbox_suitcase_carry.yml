@@ -13,14 +13,14 @@ exercises:
   - dumbbell
   - kettlebell
   primary_muscles:
-  - obliques
-  - quadratus_lumborum
-  - erector_spinae
+  - 502_obliques
+  - 208_quadratus_lumborum
+  - 206_erector_spinae
   secondary_muscles:
   - forearms
   - trapezius
-  - gluteus_medius
-  - rectus_abdominis
+  - 602_gluteus_medius
+  - 501_rectus_abdominis
   coaching_notes:
   - Halte den Oberkörper während der gesamten Bewegung aufrecht und stabil. Widerstehe
     dem Drang, zur Seite des Gewichts zu kippen oder die Schulter hängen zu lassen.
@@ -41,3 +41,4 @@ exercises:
   aliases:
   - Single-Arm Carry
   - Unilateral Farmer's Walk
+  stabilizers: []

@@ -1,7 +1,7 @@
 name: close_grip_bench_press_lesson
 description: Anatomy teaching seed for close grip bench press.
 lessons:
-  - exercise_id: close_grip_bench_press
+  - exercise_id: 045
     title: "Enges Bankdrücken - Trizeps mit Brustbezug"
     region: arms
     learning_goal:

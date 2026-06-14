@@ -6,17 +6,17 @@ exercises:
   german: Ausfallschritt
   category: legs
   type: compound
-  movement_pattern: lunge
+  movement_pattern: 52
   equipment:
   - dumbbells
   primary_muscles:
-  - quadriceps
-  - gluteus_maximus
+  - 603_quadriceps
+  - 601_gluteus_maximus
   secondary_muscles:
-  - hamstrings
-  - adductors
+  - 604_hamstrings
+  - 605_adductors
   stabilizers:
-  - core
+  - 500_core
   variations:
   - walking_lunge
   coaching_notes:

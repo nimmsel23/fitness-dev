@@ -1,7 +1,7 @@
 name: calf_raise_lesson
 description: Anatomy teaching seed for calf raise.
 lessons:
-  - exercise_id: calf_raise
+  - exercise_id: 701
     title: "Calf Raise - Wadenfunktion und Fußkontrolle"
     region: legs
     learning_goal:

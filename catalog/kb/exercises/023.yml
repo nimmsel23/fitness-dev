@@ -10,15 +10,15 @@ exercises:
   equipment:
   - dumbbells
   primary_muscles:
-  - anterior_deltoid
-  - lateral_deltoid
+  - 301_anterior_deltoid
+  - 302_lateral_deltoid
   secondary_muscles:
-  - triceps_brachii
-  - trapezius_upper
+  - 403_triceps_brachii
+  - 202_trapezius_upper
   stabilizers:
-  - core
+  - 500_core
   variations:
-  - overhead_press
+  - 18
   coaching_notes:
   - Neutralen oder leicht ausgestellten Griff stabil halten.
   - Saubere Bahn nach oben, ohne die Hanteln oben zusammenzuschlagen.

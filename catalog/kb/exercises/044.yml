@@ -11,22 +11,22 @@ exercises:
   - machine
   - landmine
   primary_muscles:
-  - latissimus_dorsi
-  - trapezius_middle
-  - rhomboids
+  - 201_latissimus_dorsi
+  - 203_trapezius_middle
+  - 205_rhomboids
   secondary_muscles:
-  - biceps_brachii
-  - posterior_deltoid
-  - erector_spinae
+  - 401_biceps_brachii
+  - 303_posterior_deltoid
+  - 206_erector_spinae
   stabilizers:
-  - core
-  - gluteus_maximus
+  - 500_core
+  - 601_gluteus_maximus
   variations:
   - landmine_row
   coaching_notes:
   - Rumpf fest angespannt halten, Oberkörper bleibt stabil.
-  - Ellbogen nah am Körper führen für Lat-Fokus, etwas weiter ausgestellt für 
-    oberen Rücken.
+  - Ellbogen nah am Körper führen für Lat-Fokus, etwas weiter ausgestellt für oberen
+    Rücken.
   - Volle Kontraktion der Rückenmuskulatur am obersten Punkt.
   common_errors:
   - Oberkörper beim Hochziehen mit aufrichten (Schwung).

@@ -1,20 +1,65 @@
 import { NAV_ITEMS } from "../../constants/NavigationItems";
 
-export default function MobileNav({ tab, navigate }) {
+export default function MobileNav({ tab, navigate, swipeHint }) {
+  const currentIndex = NAV_ITEMS.findIndex(i => i.id === tab);
+  const swipeTargetId =
+    swipeHint === 'left'  ? NAV_ITEMS[currentIndex + 1]?.id :
+    swipeHint === 'right' ? NAV_ITEMS[currentIndex - 1]?.id : null;
+
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-24 bg-[var(--card)]/80 backdrop-blur-2xl border-t border-[var(--line)] px-4 flex items-center justify-around z-50 pb-4">
-      {NAV_ITEMS.map(({ id, label, Icon }) => {
-        const isActive = tab === id;
-        return (
-          <button key={id} onClick={() => navigate(id)}
-            className={`flex flex-col items-center justify-center gap-1.5 min-w-[72px] h-16 rounded-2xl transition-all duration-300 active:scale-90 ${isActive ? 'text-[var(--accent)] bg-[var(--accent)]/5' : 'text-[var(--dim)] opacity-40 hover:opacity-100'}`}>
-            <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20 scale-110' : ''}`}>
-              <Icon size={isActive ? 22 : 20} className={isActive ? 'stroke-[3]' : 'stroke-[2]'} />
-            </div>
-            <span className={`text-[8px] font-black uppercase tracking-[0.1em] transition-all ${isActive ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>{label}</span>
-          </button>
-        );
-      })}
+    <nav
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-50"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      {/* Swipe direction indicator — thin accent line at top */}
+      <div className={`absolute top-0 left-0 right-0 h-[2px] transition-all duration-200 ${
+        swipeHint === 'left'
+          ? 'bg-gradient-to-l from-[var(--accent)] via-[var(--accent)]/40 to-transparent opacity-80'
+          : swipeHint === 'right'
+            ? 'bg-gradient-to-r from-[var(--accent)] via-[var(--accent)]/40 to-transparent opacity-80'
+            : 'opacity-0'
+      }`} />
+
+      <div className="bg-[var(--card)]/90 backdrop-blur-2xl border-t border-[var(--line)]/40 px-2 pt-2 pb-3">
+        <div className="flex items-end justify-around">
+          {NAV_ITEMS.map(({ id, label, Icon }) => {
+            const isActive = tab === id;
+            const isSwipeTarget = id === swipeTargetId;
+
+            return (
+              <button
+                key={id}
+                onClick={() => navigate(id)}
+                className="flex flex-col items-center gap-[5px] px-1 active:scale-90 transition-transform duration-150 min-w-[40px]"
+              >
+                <div className={`flex items-center justify-center rounded-2xl transition-all duration-300 ${
+                  isActive
+                    ? 'bg-[var(--accent)] w-12 h-8 shadow-lg shadow-[var(--accent)]/30'
+                    : isSwipeTarget
+                      ? 'ring-1 ring-[var(--accent)]/60 bg-[var(--accent)]/10 w-10 h-8'
+                      : 'w-10 h-8'
+                }`}>
+                  <Icon
+                    size={isActive ? 17 : 19}
+                    className={
+                      isActive       ? 'text-black stroke-[2.5]' :
+                      isSwipeTarget  ? 'text-[var(--accent)] stroke-[2]' :
+                                       'text-[var(--dim)] stroke-[1.8]'
+                    }
+                  />
+                </div>
+                <span className={`text-[7.5px] font-black uppercase tracking-wide leading-none transition-all duration-300 ${
+                  isActive      ? 'text-[var(--accent)] opacity-100' :
+                  isSwipeTarget ? 'text-[var(--accent)]/70 opacity-100' :
+                                  'text-[var(--dim)] opacity-50'
+                }`}>
+                  {label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </nav>
   );
 }

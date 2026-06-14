@@ -10,11 +10,11 @@ exercises:
   equipment:
   - cable_machine
   primary_muscles:
-  - rectus_abdominis
+  - 501_rectus_abdominis
   secondary_muscles:
-  - obliques
+  - 502_obliques
   stabilizers:
-  - core
+  - 500_core
   variations:
   - kneeling_cable_crunch
   coaching_notes:

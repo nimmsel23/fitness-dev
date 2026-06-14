@@ -1,38 +1,59 @@
 import { useState } from "react";
-import { Save, ChevronLeft, ChevronRight } from "lucide-react";
+import { Save, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { blockColor, DAY_LABELS } from "./utils";
 
 export default function DateHeader({ 
   date, setDate, rollingDays, recentSessions, localToday, onSave, saving 
 }) {
   const todayIdx = rollingDays.findIndex(d => d === localToday);
-  const [offset, setOffset] = useState(todayIdx >= 0 ? Math.max(0, todayIdx - 9) : 0);
+  const [offset, setOffset] = useState(todayIdx >= 0 ? Math.max(0, todayIdx - 6) : 0);
   
-  const visibleDays = rollingDays.slice(offset, offset + 10);
+  const visibleDays = rollingDays.slice(offset, offset + 7);
   const canGoBack = offset > 0;
-  const canGoForward = offset + 10 < rollingDays.length;
+  const canGoForward = offset + 7 < rollingDays.length;
 
   return (
-    <div className="card mb-6 p-4">
-      <div className="flex items-center justify-between mb-4">
-        <div className="label-caps !mb-0 font-black text-[var(--dim)] hidden sm:block">Datum auswählen</div>
-        <div className="flex items-center gap-2 flex-1 sm:flex-none justify-between sm:justify-start">
-          <input type="date" value={date} max={localToday} onChange={e => setDate(e.target.value)}
-            className="px-3 py-2 rounded-xl border text-xs font-bold bg-bg2 border-line text-ink w-full sm:w-32 outline-none focus:border-accent" />
-          <button onClick={onSave} disabled={saving} className="btn btn-primary py-2 px-4 text-xs shadow-lg shadow-accent/20 flex items-center gap-2">
-            {saving ? '…' : <><Save size={14} /> <span className="hidden sm:inline">Save</span></>}
+    <div className="card mb-8 p-6 shadow-2xl rounded-[40px] border-line/40 bg-card/80 backdrop-blur-sm">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-accent/10 flex items-center justify-center text-accent">
+            <Calendar size={20} strokeWidth={3} />
+          </div>
+          <div>
+            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-dim/40 mb-1">Session Datum</h2>
+            <div className="text-sm font-black text-ink uppercase tracking-widest">{date}</div>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <div className="relative group hidden sm:block">
+            <input type="date" value={date} max={localToday} onChange={e => setDate(e.target.value)}
+              className="px-6 py-3 rounded-2xl border text-[11px] font-black uppercase tracking-widest bg-bg2 border-line text-ink w-44 outline-none focus:border-accent focus:bg-card transition-all" />
+          </div>
+          <button 
+            onClick={onSave} 
+            disabled={saving} 
+            className="w-12 h-12 sm:w-auto sm:px-8 rounded-2xl bg-accent text-black font-black uppercase tracking-[0.2em] text-[11px] shadow-xl shadow-accent/20 hover:scale-[1.05] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+          >
+            {saving ? (
+              <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+            ) : (
+              <><Save size={18} strokeWidth={3} /><span className="hidden sm:inline">Session Speichern</span></>
+            )}
           </button>
         </div>
       </div>
 
-      <div className="relative flex items-center">
-        {canGoBack && (
-          <button onClick={() => setOffset(Math.max(0, offset - 7))} className="absolute left-0 z-20 w-8 h-full bg-gradient-to-r from-card to-transparent flex items-center justify-start text-dim hover:text-accent">
-            <ChevronLeft size={20} className="-ml-1 bg-bg2 rounded-full border border-line" />
-          </button>
-        )}
+      <div className="relative flex items-center gap-2">
+        <button 
+          onClick={() => setOffset(Math.max(0, offset - 3))} 
+          disabled={!canGoBack}
+          className="w-10 h-10 rounded-xl bg-bg2 border border-line flex items-center justify-center text-dim hover:text-accent disabled:opacity-0 transition-all shrink-0"
+        >
+          <ChevronLeft size={20} />
+        </button>
 
-        <div className="flex gap-2 overflow-hidden w-full justify-between px-1">
+        <div className="flex-1 flex justify-between gap-2 px-1">
           {visibleDays.map((d) => {
             const sess = recentSessions[d];
             const done = !!(sess?.block || sess?.activity);
@@ -43,31 +64,46 @@ export default function DateHeader({
             const isToday = d === localToday;
 
             return (
-              <button key={d} onClick={() => setDate(d)}
-                className="flex flex-col items-center gap-2 group shrink-0 w-10">
-                <div className={`w-full aspect-square rounded-2xl flex items-center justify-center text-[11px] font-black transition-all border-2 relative ${isSelected ? 'border-accent shadow-xl shadow-accent/20 scale-110 z-10' : 'border-line/20'}`}
+              <button 
+                key={d} 
+                onClick={() => setDate(d)}
+                className="flex flex-col items-center gap-3 group relative flex-1 min-w-0"
+              >
+                <div 
+                  className={`w-full max-w-[50px] aspect-square rounded-[20px] flex items-center justify-center text-xs font-black transition-all border-2 relative ${
+                    isSelected 
+                    ? 'border-accent shadow-2xl shadow-accent/40 scale-110 z-10' 
+                    : 'border-line/10 hover:border-line-hover'
+                  }`}
                   style={{ 
-                    background: isSelected ? 'var(--accent)' : done ? (color + '15') : 'var(--bg2)',
+                    background: isSelected ? 'var(--accent)' : done ? (color + '20') : 'var(--bg2)',
                     color: isSelected ? '#000' : done ? color : 'var(--dim)'
-                  }}>
+                  }}
+                >
                   {done ? '✓' : d.split('-')[2]}
                   {isToday && !isSelected && (
-                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-accent rounded-full border-2 border-[var(--card)]" />
+                    <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-accent rounded-full border-[3px] border-card shadow-lg" />
                   )}
                 </div>
-                <div className="flex flex-col items-center gap-0.5">
-                  <span className={`text-[8px] font-black uppercase tracking-[0.1em] ${isSelected ? 'text-accent' : 'opacity-40'}`}>{dayName}</span>
-                </div>
+                <span className={`text-[9px] font-black uppercase tracking-[0.2em] transition-colors ${isSelected ? 'text-accent' : 'text-dim/30 group-hover:text-dim'}`}>
+                  {dayName}
+                </span>
+                
+                {isSelected && (
+                  <div className="absolute -bottom-2 w-1 h-1 rounded-full bg-accent animate-pulse" />
+                )}
               </button>
             )
           })}
         </div>
 
-        {canGoForward && (
-          <button onClick={() => setOffset(Math.min(rollingDays.length - 10, offset + 7))} className="absolute right-0 z-20 w-8 h-full bg-gradient-to-l from-card to-transparent flex items-center justify-end text-dim hover:text-accent">
-            <ChevronRight size={20} className="-mr-1 bg-bg2 rounded-full border border-line" />
-          </button>
-        )}
+        <button 
+          onClick={() => setOffset(Math.min(rollingDays.length - 7, offset + 3))} 
+          disabled={!canGoForward}
+          className="w-10 h-10 rounded-xl bg-bg2 border border-line flex items-center justify-center text-dim hover:text-accent disabled:opacity-0 transition-all shrink-0"
+        >
+          <ChevronRight size={20} />
+        </button>
       </div>
     </div>
   );

@@ -16,9 +16,9 @@ exercises:
   - deltoids
   - triceps
   secondary_muscles:
-  - quadriceps
+  - 603_quadriceps
   - glutes
-  - core
+  - 500_core
   - trapezius
   coaching_notes:
   - '**Ausgangsposition:** Beginne mit dem Gewicht (Langhantel oder Kurzhanteln) auf
@@ -62,9 +62,10 @@ exercises:
   - kraft
   - schultern
   - push_press
-  - overhead_press
+  - 18
   - power
   aliases:
   - Push Press
   - Power Press
   - Power Jerk (vereinfacht)
+  stabilizers: []

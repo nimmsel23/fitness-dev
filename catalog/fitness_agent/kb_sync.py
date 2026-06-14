@@ -60,7 +60,7 @@ def _flatten(doc: dict[str, Any]) -> dict[str, Any]:
 
 
 def sync_exercises(db_client: Any, dry_run: bool = False) -> dict[str, int]:
-    counts = {"ok": 0, "skip": 0, "error": 0}
+    counts = {"ok": 0, "skip": 0, "error": 0, "deleted": 0}
     col = db_client.collection("fitness").document("kb").collection("exercises")
 
     # 1. Aggregation phase: Collect and merge all exercises by ID
@@ -71,10 +71,11 @@ def sync_exercises(db_client: Any, dry_run: bool = False) -> dict[str, int]:
             continue
         for exercise in doc.get("exercises", []):
             ex_id = exercise.get("exercise_id") or exercise.get("id")
-            if not ex_id:
+            if ex_id is None:
                 counts["skip"] += 1
                 continue
             
+            ex_id = str(ex_id)
             if ex_id not in all_exercises:
                 all_exercises[ex_id] = exercise
             else:
@@ -85,7 +86,13 @@ def sync_exercises(db_client: Any, dry_run: bool = False) -> dict[str, int]:
                     if not old_val:
                         all_exercises[ex_id][key] = val
                     elif isinstance(val, list) and isinstance(old_val, list):
+                        # SPEZIAL: Bevorzuge Listen mit Präfix-IDs (z.B. '101_pectoralis')
+                        # Falls Längen gleich, gewinnt die Liste mit Präfixen.
+                        def has_prefix(l): return any(isinstance(x, str) and x[:1].isdigit() for x in l)
+                        
                         if len(val) > len(old_val):
+                            all_exercises[ex_id][key] = val
+                        elif len(val) == len(old_val) and has_prefix(val) and not has_prefix(old_val):
                             all_exercises[ex_id][key] = val
                     elif isinstance(val, str) and isinstance(old_val, str):
                         if len(val) > len(old_val):
@@ -120,6 +127,19 @@ def sync_exercises(db_client: Any, dry_run: bool = False) -> dict[str, int]:
     if batch_count > 0:
         batch.commit()
 
+    # 3. Cleanup phase: Delete orphaned documents
+    if not dry_run:
+        logger.info("Cleaning up orphans in exercises...")
+        remote_ids = {doc.id for doc in col.stream()}
+        orphans = remote_ids - set(all_exercises.keys())
+        if orphans:
+            logger.info(f"Deleting {len(orphans)} orphaned exercises...")
+            batch = db_client.batch()
+            for oid in orphans:
+                batch.delete(col.document(oid))
+                counts["deleted"] += 1
+            batch.commit()
+
     return counts
 
 
@@ -141,9 +161,11 @@ def sync_anatomy(db_client: Any, dry_run: bool = False) -> dict[str, int]:
 
     for lesson in tqdm(all_lessons, desc="Anatomy", unit="lesson"):
         ex_id = lesson.get("exercise_id")
-        if not ex_id:
+        if ex_id is None:
             counts["skip"] += 1
             continue
+        
+        ex_id = str(ex_id)
             
         if dry_run:
             counts["ok"] += 1

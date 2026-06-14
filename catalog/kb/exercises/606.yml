@@ -10,15 +10,15 @@ exercises:
   equipment:
   - bodyweight
   primary_muscles:
-  - obliques
-  - quadratus_lumborum
+  - 502_obliques
+  - 208_quadratus_lumborum
   secondary_muscles:
   - transvere_abdominis
-  - gluteus_medius
-  - lateral_deltoid
+  - 602_gluteus_medius
+  - 302_lateral_deltoid
   stabilizers:
-  - core
-  - serratus_anterior
+  - 500_core
+  - 104_serratus_anterior
   variations:
   - weighted_side_plank
   coaching_notes:

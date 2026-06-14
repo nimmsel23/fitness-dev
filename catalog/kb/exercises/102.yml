@@ -12,10 +12,10 @@ exercises:
   primary_muscles:
   - pectoralis_major_clavicular_head
   secondary_muscles:
-  - anterior_deltoid
-  - serratus_anterior
+  - 301_anterior_deltoid
+  - 104_serratus_anterior
   stabilizers:
-  - core
+  - 500_core
   coaching_notes:
   - Griffe an der untersten Position des Kabelzugs befestigen.
   - Hände von unten nach oben und leicht zusammen vor das Gesicht/Brust führen.

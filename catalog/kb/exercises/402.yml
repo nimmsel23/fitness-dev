@@ -10,11 +10,11 @@ exercises:
   equipment:
   - machine
   primary_muscles:
-  - hamstrings
+  - 604_hamstrings
   secondary_muscles:
-  - gastrocnemius
+  - 701_gastrocnemius
   stabilizers:
-  - core
+  - 500_core
   variations:
   - seated_leg_curl
   - standing_leg_curl

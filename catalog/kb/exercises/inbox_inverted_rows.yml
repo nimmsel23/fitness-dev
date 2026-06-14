@@ -13,14 +13,14 @@ exercises:
   - bodyweight
   - barbell
   primary_muscles:
-  - latissimus_dorsi
-  - rhomboids
+  - 201_latissimus_dorsi
+  - 205_rhomboids
   - trapezius
   - deltoid_posterior
   secondary_muscles:
-  - biceps_brachii
-  - forearm_flexors
-  - erector_spinae
+  - 401_biceps_brachii
+  - 405_forearm_flexors
+  - 206_erector_spinae
   - abdominals
   coaching_notes:
   - Halten Sie Ihren Körper von den Fersen bis zum Kopf in einer geraden Linie. Vermeiden
@@ -53,3 +53,4 @@ exercises:
   - Australian Pull-ups
   - Prone Rows
   - Bankrudern
+  stabilizers: []

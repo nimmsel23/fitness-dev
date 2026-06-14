@@ -1,26 +1,26 @@
 name: quadriceps
 description: Muscle Group Index for Quadriceps focused exercises.
 exercises:
-- exercise_id: back_squat
+- exercise_id: 060
   display_name: Kniebeuge mit der Langhantel
   wger_muscle_ids: {primary: [10], secondary: [8, 11]}
 
-- exercise_id: front_squat
+- exercise_id: 061
   display_name: Frontkniebeuge
   wger_muscle_ids: {primary: [10], secondary: [8]}
 
-- exercise_id: leg_press
+- exercise_id: 062
   display_name: Beinpresse
   wger_muscle_ids: {primary: [10], secondary: [8]}
 
-- exercise_id: leg_extension
+- exercise_id: 401
   display_name: Beinstrecken
   wger_muscle_ids: {primary: [10], secondary: []}
 
-- exercise_id: bulgarian_split_squat
+- exercise_id: 063
   display_name: Bulgarian Split Squat
   wger_muscle_ids: {primary: [10], secondary: [8, 11]}
 
-- exercise_id: lunge
+- exercise_id: 064
   display_name: Ausfallschritt
   wger_muscle_ids: {primary: [10], secondary: [8, 11]}

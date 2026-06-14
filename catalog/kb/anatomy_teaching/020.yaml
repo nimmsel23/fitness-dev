@@ -1,7 +1,7 @@
 name: pull_up_lesson
-description: Anatomy teaching seed for pull_up.
+description: Anatomy teaching seed for 020.
 lessons:
-- exercise_id: pull_up
+- exercise_id: 020
   title: Klimmzug — Lat-Mechanik und Scapula-Kontrolle
   region: back
   learning_goal:

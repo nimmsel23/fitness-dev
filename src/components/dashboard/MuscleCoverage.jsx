@@ -2,9 +2,9 @@ import { AlertCircle, TrendingUp } from "lucide-react";
 
 export default function MuscleCoverage({ coverage, recentDays = 7 }) {
   return (
-    <div className="card bg-accent/5 border-accent/20 p-8 h-full">
-      <div className="flex items-center gap-3 mb-8">
-        <TrendingUp size={20} className="text-accent" />
+    <div className="alpha-card p-10 h-full bg-accent/5 border-accent/20">
+      <div className="flex items-center gap-3 mb-10">
+        <TrendingUp size={22} className="text-accent" />
         <span className="label-caps !mb-0 text-sm">Coverage ({recentDays} Tage)</span>
       </div>
       {coverage === null ? (

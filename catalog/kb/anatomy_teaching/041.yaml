@@ -1,7 +1,7 @@
 name: incline_dumbbell_press_lesson
 description: Anatomy teaching seed for incline dumbbell press.
 lessons:
-  - exercise_id: incline_dumbbell_press
+  - exercise_id: 041
     title: "Incline Dumbbell Press - obere Brust verstehen"
     region: chest
     learning_goal:

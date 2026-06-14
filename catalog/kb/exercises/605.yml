@@ -11,20 +11,19 @@ exercises:
   - cable_machine
   - bands
   primary_muscles:
-  - obliques
+  - 502_obliques
   - transvere_abdominis
   secondary_muscles:
-  - rectus_abdominis
-  - anterior_deltoid
+  - 501_rectus_abdominis
+  - 301_anterior_deltoid
   stabilizers:
-  - core
-  - gluteus_medius
+  - 500_core
+  - 602_gluteus_medius
   variations:
   - band_pallof_press
   coaching_notes:
   - Stehen Sie seitlich zum Kabelzug und halten Sie das Gewicht vor der Brust.
-  - Drücken Sie das Gewicht langsam nach vorne und halten Sie der Rotation 
-    stand.
+  - Drücken Sie das Gewicht langsam nach vorne und halten Sie der Rotation stand.
   - Bleiben Sie im gesamten Oberkörper stabil und fest verwurzelt.
   common_errors:
   - Den Oberkörper zur Maschine hin verdrehen lassen.

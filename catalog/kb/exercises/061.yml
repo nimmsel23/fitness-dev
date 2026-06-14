@@ -11,16 +11,16 @@ exercises:
   - barbell
   - squat_rack
   primary_muscles:
-  - quadriceps
+  - 603_quadriceps
   secondary_muscles:
-  - gluteus_maximus
-  - core
-  - erector_spinae
+  - 601_gluteus_maximus
+  - 500_core
+  - 206_erector_spinae
   stabilizers:
   - upper_back
-  - anterior_deltoid
+  - 301_anterior_deltoid
   variations:
-  - back_squat
+  - 48
   coaching_notes:
   - Ellbogen während der gesamten Bewegung hoch halten (Front Rack Position).
   - Sehr aufrechte Oberkörperposition beibehalten.
