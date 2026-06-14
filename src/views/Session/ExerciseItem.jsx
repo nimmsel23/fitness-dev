@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getProgressTrend } from '@db';
 import { num } from './utils';
-import { TrendingUp, TrendingDown, Minus, Plus, Info, ChevronDown, ChevronUp, Clock, Target, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Plus, Info, X, ChevronDown, ChevronUp, Clock, Target, Activity } from 'lucide-react';
 
 export default function ExerciseItem({
   ex, i, hitMode, muscleRecovery = {}, updateEx, addSet, removeSet, removeEx, moveEx,
