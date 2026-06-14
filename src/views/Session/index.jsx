@@ -6,7 +6,7 @@ import {
 import { localToday } from '@utils';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
 
-import { Save, Zap, X, Dumbbell, ChevronRight } from 'lucide-react';
+import { Save, Zap, X, Dumbbell, ChevronRight, Plus } from 'lucide-react';
 import DateHeader from './DateHeader';
 import SessionSidebar from './SessionSidebar';
 import ExerciseSection from './ExerciseSection';
