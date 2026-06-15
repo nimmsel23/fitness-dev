@@ -24,283 +24,48 @@
    2. THEME DEFINITIONS: Fully Self-Contained Color Palettes
    ========================================================================== */
 
-/* --- Catppuccin Palettes (Official) --- */
-[data-theme="latte"] {
-  --bg: #eff1f5; --bg2: #e6e9ef; --panel: #dce0e8; --card: #ccd0da;
-  --card-hover: #bcc0cc; --line: #acb0be; --ink: #4c4f69; --muted: #6c6f85;
-  --dim: #8c8fa1; --accent: #1e66f5; --accent-glow: rgba(30,102,245,0.12);
-  --green: #40a02b; --red: #d20f39; --orange: #fe640b; --glass: rgba(239,241,245,0.88);
-}
-[data-theme="frappe"] {
-  --bg: #303446; --bg2: #292c3c; --panel: #232634; --card: #414559;
-  --card-hover: #51576d; --line: #626880; --ink: #c6d0f5; --muted: #a5adce;
-  --dim: #737994; --accent: #8caaee; --accent-glow: rgba(140,170,238,0.12);
-  --green: #a6d189; --red: #e78284; --orange: #ef9f76; --glass: rgba(48,52,70,0.88);
-}
-[data-theme="macchiato"] {
-  --bg: #24273a; --bg2: #1e2030; --panel: #181926; --card: #363a4f;
-  --card-hover: #494d64; --line: #5b6078; --ink: #cad3f5; --muted: #b8c0e0;
-  --dim: #6e738d; --accent: #8aadf4; --accent-glow: rgba(138,173,244,0.12);
-  --green: #a6da95; --red: #ed8796; --orange: #f5a97f; --glass: rgba(36,39,58,0.88);
-}
-[data-theme="mocha"] {
-  --bg: #1e1e2e; --bg2: #181825; --panel: #11111b; --card: #313244;
-  --card-hover: #45475a; --line: #585b70; --ink: #cdd6f4; --muted: #bac2de;
-  --dim: #6c7086; --accent: #89b4fa; --accent-glow: rgba(137,180,250,0.12);
-  --green: #a6e3a1; --red: #f38ba8; --orange: #fab387; --glass: rgba(30,30,46,0.88);
-}
+/* Dark Themes */
+@import "./styles/themes/nordic.css";
+@import "./styles/themes/nordic-darker.css";
+@import "./styles/themes/nordic-bluish.css";
+@import "./styles/themes/dracula.css";
+@import "./styles/themes/dracula-purple.css";
+@import "./styles/themes/midnight.css";
+@import "./styles/themes/matrix.css";
+@import "./styles/themes/forest.css";
+@import "./styles/themes/crimson.css";
+@import "./styles/themes/slate.css";
+@import "./styles/themes/zinc.css";
+@import "./styles/themes/frappe.css";
+@import "./styles/themes/macchiato.css";
+@import "./styles/themes/mocha.css";
+@import "./styles/themes/gruvbox.css";
+@import "./styles/themes/sweet.css";
+@import "./styles/themes/sweet-purple.css";
+@import "./styles/themes/sweet-mars.css";
+@import "./styles/themes/sweet-amber-blue.css";
+@import "./styles/themes/ant-dark.css";
+@import "./styles/themes/materia.css";
+@import "./styles/themes/solarized-dark.css";
+@import "./styles/themes/homunculus.css";
+@import "./styles/themes/nothing.css";
+@import "./styles/themes/arc-dark.css";
 
-/* --- Honey (Original) --- */
-[data-theme="honey"] {
-  --bg: #fdfaf0; --bg2: #f9f5e8; --panel: #f2ede0; --card: #ebe6d8;
-  --card-hover: #e4dfd0; --line: #ddd8c8; --ink: #5c554a; --muted: #8c8275;
-  --dim: #b8b0a1; --accent: #f59e0b; --accent-glow: rgba(245,158,11,0.12);
-  --green: #10b981; --red: #ef4444; --orange: #f97316; --glass: rgba(253,250,240,0.9);
-}
-
-/* --- Gruvbox (Dark) --- */
-[data-theme="gruvbox"] {
-  --bg: #282828; --bg2: #32302f; --panel: #1d2021; --card: #504945; --card-hover: #665c54; --line: #7c6f64;
-  --ink: #ebdbb2; --muted: #a89984; --dim: #928374; --accent: #fabd2f; --accent-glow: rgba(250,189,47,0.12);
-  --green: #b8bb26; --red: #fb4934; --orange: #fe8019; --glass: rgba(40,40,40,0.88);
-}
-
-/* --- Dracula (Dark) --- */
-[data-theme="dracula"] {
-  --bg: #1e1f29; --bg2: #282a36; --panel: #21222c; --card: #44475a; --card-hover: #4e5268; --line: #6272a4;
-  --ink: #f8f8f2; --muted: #6272a4; --dim: #44475a; --accent: #bd93f9; --accent-glow: rgba(189,147,249,0.13);
-  --green: #50fa7b; --red: #ff5555; --orange: #ffb86c; --glass: rgba(33,34,44,0.9);
-}
-[data-theme="dracula-purple"] {
-  --bg: #1a1526; --bg2: #221d33; --panel: #1e1930; --card: #2d2645; --card-hover: #38305a; --line: #4a3f6e;
-  --ink: #f8f8f2; --muted: #9580aa; --dim: #4a3f6e; --accent: #ff79c6; --accent-glow: rgba(255,121,198,0.13);
-  --green: #50fa7b; --red: #ff5555; --orange: #ffb86c; --glass: rgba(30,25,48,0.9);
-}
-
-/* --- Nordic (Dark) --- */
-[data-theme="nordic"] {
-  --bg: #2e3440; --bg2: #3b4252; --panel: #252c3a; --card: #3c4454; --card-hover: #464e62; --line: #505a6a;
-  --ink: #d8dee9; --muted: #8191ab; --dim: #4c566a; --accent: #88c0d0; --accent-glow: rgba(136,192,208,0.12);
-  --green: #a3be8c; --red: #bf616a; --orange: #d08770; --glass: rgba(37,44,58,0.88);
-}
-[data-theme="nordic-darker"] {
-  --bg: #2e3440; --bg2: #3b4252; --panel: #252c3a; --card: #3c4454; --card-hover: #464e62; --line: #505a6a;
-  --ink: #d8dee9; --muted: #8191ab; --dim: #4c566a; --accent: #88c0d0; --accent-glow: rgba(136,192,208,0.12);
-  --green: #a3be8c; --red: #bf616a; --orange: #d08770; --glass: rgba(37,44,58,0.88);
-}
-[data-theme="nordic-bluish"] {
-  --bg: #2e3440; --bg2: #3b4252; --panel: #252c3a; --card: #3c4454; --card-hover: #464e62; --line: #505a6a;
-  --ink: #d8dee9; --muted: #8191ab; --dim: #4c566a; --accent: #81a1c1; --accent-glow: rgba(129,161,193,0.12);
-  --green: #a3be8c; --red: #bf616a; --orange: #d08770; --glass: rgba(37,44,58,0.88);
-}
-
-/* --- Arc (Dark) --- */
-[data-theme="arc-dark"] {
-  --bg: #2f3445; --bg2: #383c4a; --panel: #252833; --card: #404552; --card-hover: #4b5263; --line: #5c6276;
-  --ink: #d3dae3; --muted: #a3a5ac; --dim: #707584; --accent: #5294e2; --accent-glow: rgba(82,148,226,0.12);
-  --green: #27ae60; --red: #da4453; --orange: #f67400; --glass: rgba(47,52,69,0.88);
-}
-
-/* --- Sweet (Dark) --- */
-[data-theme="sweet"] {
-  --bg: #101013; --bg2: #1c1c21; --panel: #2f3945; --card: #31363d; --card-hover: #404552; --line: #3a3f4b;
-  --ink: #d3d6e5; --muted: #666a73; --dim: #4a4e5a; --accent: #ff4081; --accent-glow: rgba(255,64,129,0.13);
-  --green: #71f79f; --red: #ed254e; --orange: #ff6a00; --glass: rgba(47,57,69,0.88);
-}
-[data-theme="sweet-purple"] {
-  --bg: #161925; --bg2: #18191e; --panel: #111318; --card: #1e2333; --card-hover: #252a3d; --line: #2e3450;
-  --ink: #c3c7d1; --muted: #666a73; --dim: #3c4258; --accent: #c50ed2; --accent-glow: rgba(197,14,210,0.13);
-  --green: #71f79f; --red: #ed254e; --orange: #ff6a00; --glass: rgba(17,19,24,0.9);
-}
-[data-theme="sweet-mars"] {
-  --bg: #2b1d1f; --bg2: #3d2b2d; --panel: #201517; --card: #5a3e42; --card-hover: #755257; --line: #8b6065;
-  --ink: #f0e6e6; --muted: #b8a0a3; --dim: #8b7577; --accent: #ff5f5f; --accent-glow: rgba(255,95,95,0.15);
-  --green: #22c55e; --red: #dc2626; --orange: #ea580c; --glass: rgba(43,29,31,0.88);
-}
-[data-theme="sweet-amber-blue"] {
-  --bg: #0f172a; --bg2: #1e293b; --panel: #020617; --card: #334155; --card-hover: #475569; --line: #64748b;
-  --ink: #f1f5f9; --muted: #94a3b8; --dim: #475569; --accent: #f59e0b; --accent-glow: rgba(245,158,11,0.15);
-  --green: #22c55e; --red: #ef4444; --orange: #f97316; --glass: rgba(15,23,42,0.88);
-}
-
-/* --- Ant (Dark) --- */
-[data-theme="ant-dark"] {
-  --bg: #222e32; --bg2: #1e2824; --panel: #192124; --card: #2a3a3e; --card-hover: #334448; --line: #3e5055;
-  --ink: #c3c7d1; --muted: #789090; --dim: #4a6066; --accent: #9bbfbf; --accent-glow: rgba(155,191,191,0.12);
-  --green: #b3e235; --red: #ff5d73; --orange: #f39c12; --glass: rgba(25,33,36,0.9);
-}
-
-/* --- Materia (Dark) --- */
-[data-theme="materia"] {
-  --bg: #1e1e1e; --bg2: #121212; --panel: #121212; --card: #2e2e2e; --card-hover: #3a3a3a; --line: #424242;
-  --ink: #ffffff; --muted: #888888; --dim: #4a4a4a; --accent: #8ab4f8; --accent-glow: rgba(138,180,248,0.12);
-  --green: #4caf50; --red: #f44336; --orange: #ff9800; --glass: rgba(18,18,18,0.92);
-}
-
-/* --- Solarized (Dark) --- */
-[data-theme="solarized-dark"] {
-  --bg: #002b36; --bg2: #073642; --panel: #001f27; --card: #073642; --card-hover: #0d4454; --line: #586e75;
-  --ink: #839496; --muted: #657b83; --dim: #586e75; --accent: #268bd2; --accent-glow: rgba(38,139,210,0.12);
-  --green: #859900; --red: #dc322f; --orange: #cb4b16; --glass: rgba(7,54,66,0.9);
-}
-
-/* --- Homunculus (Dark) --- */
-[data-theme="homunculus"] {
-  --bg: #18181b; --bg2: #242429; --panel: #121215; --card: #303035; --card-hover: #404048; --line: #50505a;
-  --ink: #d4d4d8; --muted: #94a3b8; --dim: #64748b; --accent: #a16262; --accent-glow: rgba(161,98,98,0.15);
-  --green: #6a9955; --red: #c04040; --orange: #d97706; --glass: rgba(24,24,27,0.88);
-}
-
-/* --- Nothing (Minimal Dark) --- */
-[data-theme="nothing"] {
-  --bg: #000000; --bg2: #050505; --panel: #0a0a0a; --card: #0f0f0f; --card-hover: #151515; --line: #202020;
-  --ink: #ffffff; --muted: #707070; --dim: #404040; --accent: #ffffff; --accent-glow: rgba(255,255,255,0.1);
-  --green: #00ff00; --red: #ff0000; --orange: #ff8000; --glass: rgba(0,0,0,0.95);
-}
-
-/* --- Light Themes --- */
-[data-theme="ant"] {
-  --bg: #f0f2f5; --bg2: #ffffff; --panel: #fafafa; --card: #ffffff; --card-hover: #f0f0f0; --line: #d9d9d9;
-  --ink: #000000; --muted: #8c8c8c; --dim: #bfbfbf; --accent: #1677ff; --accent-glow: rgba(22,119,255,0.12);
-  --green: #52c41a; --red: #ff4d4f; --orange: #faad14; --glass: rgba(255,255,255,0.88);
-}
-[data-theme="arc"] {
-  --bg: #ffffff; --bg2: #eff0f1; --panel: #e7e8eb; --card: #d3dae3; --card-hover: #c5cdd8; --line: #bdc3c7;
-  --ink: #5c6168; --muted: #a3a5ac; --dim: #bfc1c7; --accent: #5294e2; --accent-glow: rgba(82,148,226,0.12);
-  --green: #27ae60; --red: #da4453; --orange: #f67400; --glass: rgba(231,232,235,0.9);
-}
-[data-theme="solarized"] {
-  --bg: #fdf6e3; --bg2: #eee8d5; --panel: #e4ddc8; --card: #ddd6c0; --card-hover: #d3cbb5; --line: #c8c0aa;
-  --ink: #657b83; --muted: #839496; --dim: #93a1a1; --accent: #268bd2; --accent-glow: rgba(38,139,210,0.12);
-  --green: #859900; --red: #dc322f; --orange: #cb4b16; --glass: rgba(228,221,200,0.9);
-}
-[data-theme="alucard"] {
-  --bg: #fffbeb; --bg2: #f5f0d8; --panel: #ede6cc; --card: #e4dcc2; --card-hover: #d8cfb4; --line: #cfcfde;
-  --ink: #1f1f1f; --muted: #6c664b; --dim: #a09a80; --accent: #644ac9; --accent-glow: rgba(100,74,201,0.12);
-  --green: #14710a; --red: #cb3a2a; --orange: #a34d14; --glass: rgba(237,230,204,0.9);
-}
+/* Light Themes */
+@import "./styles/themes/honey.css";
+@import "./styles/themes/snow.css";
+@import "./styles/themes/rose.css";
+@import "./styles/themes/mint.css";
+@import "./styles/themes/cyan.css";
+@import "./styles/themes/gold.css";
+@import "./styles/themes/ant.css";
+@import "./styles/themes/arc.css";
+@import "./styles/themes/solarized.css";
+@import "./styles/themes/alucard.css";
+@import "./styles/themes/latte.css";
 
 /* ==========================================================================
    3. GLOBAL STYLES: Base element styling using the variables
-   ========================================================================== */
-
-*, *::before, *::after { box-sizing: border-box; }
-html { -webkit-tap-highlight-color: transparent; height: 100%; }
-body {
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
-  font-size: 14px;
-  line-height: 1.55;
-  background: var(--bg);
-  color: var(--ink);
-  margin: 0;
-  padding: 0;
-  -webkit-font-smoothing: antialiased;
-  min-height: 100%;
-}
-#root { display: flex; flex-direction: column; background: var(--bg); position: relative; min-height: 100vh; overflow-x: hidden; }
-
-/* Scrollbar Styles */
-::-webkit-scrollbar { width: var(--scrollbar-width); }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--accent); border-radius: var(--scrollbar-radius); } /* Changed to accent */
-
-/* Card & Panel Border Radii */
-.card { border-radius: var(--radius-md); }
-.panel { border-radius: var(--radius-lg); }
-
-/* Other global styles (header, forms, buttons etc.) - unchanged */
-header {
-  height: 60px;
-  display: flex;
-  align-items: center;
-}
-
-/* Mobile adjustments */
-@media (max-width: 480px) {
-  main {
-    padding: 16px 16px 100px;
-  }
-  .card {
-    padding: 20px;
-  }
-}
-/* Utilities */
-.label-caps {
-  font-size: 10px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  margin-bottom: 0.75rem;
-  opacity: 0.4;
-}
-
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-/* --- New Themes --- */
-[data-theme="midnight"] {
-  --bg: #090b10; --bg2: #0f121a; --panel: #05070a; --card: #151821; --card-hover: #1f2330; --line: #2d3345;
-  --ink: #f8fafc; --muted: #94a3b8; --dim: #64748b; --accent: #3b82f6; --accent-glow: rgba(59,130,246,0.12);
-  --green: #22c55e; --red: #ef4444; --orange: #f97316; --glass: rgba(9,11,16,0.9);
-}
-[data-theme="matrix"] {
-  --bg: #000000; --bg2: #050505; --panel: #000000; --card: #0d0d0d; --card-hover: #1a1a1a; --line: #1a1a1a;
-  --ink: #00ff41; --muted: #008f11; --dim: #004d0a; --accent: #00ff41; --accent-glow: rgba(0,255,65,0.15);
-  --green: #00ff41; --red: #ff0000; --orange: #ff8000; --glass: rgba(0,0,0,0.95);
-}
-[data-theme="forest"] {
-  --bg: #1a2f23; --bg2: #264635; --panel: #13241a; --card: #2d5a3f; --card-hover: #3d7a54; --line: #4a8f65;
-  --ink: #f0fdf4; --muted: #bbf7d0; --dim: #86efac; --accent: #4ade80; --accent-glow: rgba(74,222,128,0.12);
-  --green: #4ade80; --red: #f87171; --orange: #fb923c; --glass: rgba(26,47,35,0.9);
-}
-[data-theme="crimson"] {
-  --bg: #1a0f12; --bg2: #2d1b1f; --panel: #140b0e; --card: #45252b; --card-hover: #5d323a; --line: #7c444f;
-  --ink: #fff1f2; --muted: #fda4af; --dim: #fb7185; --accent: #f43f5e; --accent-glow: rgba(244,63,94,0.15);
-  --green: #4ade80; --red: #f43f5e; --orange: #fb923c; --glass: rgba(26,15,18,0.9);
-}
-[data-theme="slate"] {
-  --bg: #0f172a; --bg2: #1e293b; --panel: #020617; --card: #334155; --card-hover: #475569; --line: #64748b;
-  --ink: #f1f5f9; --muted: #94a3b8; --dim: #475569; --accent: #38bdf8; --accent-glow: rgba(56,189,248,0.15);
-  --green: #22c55e; --red: #ef4444; --orange: #f97316; --glass: rgba(15,23,42,0.9);
-}
-[data-theme="zinc"] {
-  --bg: #18181b; --bg2: #27272a; --panel: #09090b; --card: #3f3f46; --card-hover: #52525b; --line: #71717a;
-  --ink: #f4f4f5; --muted: #a1a1aa; --dim: #71717a; --accent: #a1a1aa; --accent-glow: rgba(161,161,170,0.1);
-  --green: #22c55e; --red: #ef4444; --orange: #f97316; --glass: rgba(24,24,27,0.9);
-}
-[data-theme="snow"] {
-  --bg: #ffffff; --bg2: #f8fafc; --panel: #f1f5f9; --card: #ffffff; --card-hover: #f1f5f9; --line: #e2e8f0;
-  --ink: #0f172a; --muted: #64748b; --dim: #94a3b8; --accent: #3b82f6; --accent-glow: rgba(59,130,246,0.1);
-  --green: #22c55e; --red: #ef4444; --orange: #f97316; --glass: rgba(255,255,255,0.9);
-}
-[data-theme="rose"] {
-  --bg: #fff1f2; --bg2: #ffe4e6; --panel: #fecdd3; --card: #ffffff; --card-hover: #fce7f3; --line: #fda4af;
-  --ink: #4c0519; --muted: #9f1239; --dim: #e11d48; --accent: #f43f5e; --accent-glow: rgba(244,63,94,0.1);
-  --green: #15803d; --red: #e11d48; --orange: #c2410c; --glass: rgba(255,241,242,0.9);
-}
-[data-theme="mint"] {
-  --bg: #f0fff4; --bg2: #dcfce7; --panel: #bbf7d0; --card: #ffffff; --card-hover: #f0fdf4; --line: #86efac;
-  --ink: #064e3b; --muted: #065f46; --dim: #10b981; --accent: #10b981; --accent-glow: rgba(16,185,129,0.1);
-  --green: #15803d; --red: #b91c1c; --orange: #c2410c; --glass: rgba(240,255,244,0.9);
-}
-[data-theme="cyan"] {
-  --bg: #ecfeff; --bg2: #cffafe; --panel: #a5f3fc; --card: #ffffff; --card-hover: #e0f2fe; --line: #67e8f9;
-  --ink: #164e63; --muted: #155e75; --dim: #0891b2; --accent: #06b6d4; --accent-glow: rgba(6,182,212,0.1);
-  --green: #15803d; --red: #b91c1c; --orange: #c2410c; --glass: rgba(236,254,255,0.9);
-}
-[data-theme="gold"] {
-  --bg: #fffbeb; --bg2: #fef3c7; --panel: #fde68a; --card: #ffffff; --card-hover: #fef9c3; --line: #fcd34d;
-  --ink: #78350f; --muted: #92400e; --dim: #d97706; --accent: #d97706; --accent-glow: rgba(217,119,6,0.1);
-  --green: #15803d; --red: #b91c1c; --orange: #c2410c; --glass: rgba(255,251,235,0.9);
-}
-
-/* ==========================================================================
-   4. ALPHA OS DESIGN SYSTEM: Premium UI Utilities
    ========================================================================== */
 
 .alpha-glass {
