@@ -1,0 +1,17 @@
+[data-theme="solarized"] {
+  --bg: #fdf6e3;
+  --bg2: #e4ddc8;
+  --panel: #eee8d5;
+  --card: #ddd6c0;
+  --card-hover: #d3cbb5;
+  --line: #c8c0aa;
+  --ink: #657b83;
+  --muted: #839496;
+  --dim: #93a1a1;
+  --accent: #268bd2;
+  --accent-glow: rgba(38, 139, 210, 0.12);
+  --green: #859900;
+  --red: #dc322f;
+  --orange: #cb4b16;
+  --glass: rgba(228, 221, 200, 0.9);
+}
