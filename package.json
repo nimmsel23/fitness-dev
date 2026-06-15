@@ -7,7 +7,8 @@
     "dev": "node scripts/dev-runner.mjs",
     "start": "node server.mjs",
     "ui:dev": "vite",
-    "build": "vite build",
+    "lint": "eslint src/ --ext .js,.jsx",
+    "build": "npm run lint && vite build",
     "build:firebase": "vite build --mode firebase --outDir ../fitness/dist-firebase",
     "preview-firebase": "npm run build:firebase && cd ../fitness && firebase hosting:channel:deploy preview --expires 1h",
     "deploy-firebase": "npm run build:firebase && cd ../fitness && firebase deploy --only hosting,firestore:rules,firestore:indexes",
@@ -30,8 +31,12 @@
     "recharts": "^3.8.1"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
+    "eslint": "^10.4.1",
+    "eslint-plugin-react": "^7.37.5",
+    "globals": "^17.6.0",
     "nodemon": "^3.1.10",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",

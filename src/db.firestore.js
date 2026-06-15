@@ -133,7 +133,6 @@ export async function getSession(date = todayISO()) {
   return {
     date,
     block: "",
-    exercises: [],
     effort: null,
     mood: "",
     notes: "",
