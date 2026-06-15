@@ -769,12 +769,13 @@ export function parseQuick(raw) {
   const setsMatch = raw.match(/(\d+)\s*[xX×]\s*(\d+)/);
   const weightMatch = raw.match(/@(\d+(?:\.\d+)?)/);
   const rpeMatch = raw.match(/rpe\s*(\d+(?:\.\d+)?)/i);
+  const count = setsMatch ? parseInt(setsMatch[1]) : 1;
+  const reps  = setsMatch ? setsMatch[2] : "10";
+  const weight = weightMatch ? weightMatch[1] : "";
   return {
     name,
-    sets:    setsMatch    ? setsMatch[1]    : "3",
-    reps:    setsMatch    ? setsMatch[2]    : "10",
-    weight:  weightMatch  ? weightMatch[1]  : "",
-    note:    rpeMatch     ? `RPE ${rpeMatch[1]}` : "",
+    setsArray: Array.from({ length: count }, () => ({ reps, weight })),
+    note: rpeMatch ? `RPE ${rpeMatch[1]}` : "",
     primaryMuscles: [], secondaryMuscles: [],
     done: true,
   };

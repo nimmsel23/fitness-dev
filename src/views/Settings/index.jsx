@@ -92,12 +92,12 @@ export default function Settings({
                 </div>
                 <div className="flex items-center justify-between pt-2">
                    <div>
-                      <div className="text-sm font-black text-ink">HIT Modus</div>
-                      <div className="text-[10px] font-bold opacity-30 uppercase">Recovery-basiertes Training</div>
+                      <div className="text-sm font-black text-ink">Volume Modus</div>
+                      <div className="text-[10px] font-bold opacity-30 uppercase">Satz / Wdh / Gewicht tracking</div>
                    </div>
                    <button onClick={() => { const next = !hitMode; setHitMode(next); updateSettings?.({hitMode: next}); }}
-                      className={`w-12 h-6 rounded-full transition-colors relative border ${hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
-                      <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${hitMode ? 'left-7' : 'left-1'}`} />
+                      className={`w-12 h-6 rounded-full transition-colors relative border ${!hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
+                      <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${!hitMode ? 'left-7' : 'left-1'}`} />
                    </button>
                 </div>
              </div>

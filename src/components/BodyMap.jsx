@@ -29,17 +29,73 @@ const GROUP_TO_RBH = {
 };
 
 const LABEL_TO_GROUP = {
+  // Generic English
   chest: 'chest', pec: 'chest', pecs: 'chest', pectoralis: 'chest', 'pectoralis major': 'chest',
-  back: 'back', lats: 'back', lat: 'back', latissimus: 'back', rhoboids: 'back', deadlift: 'back',
-  trapezius: 'trapezius', traps: 'trapezius', shrugs: 'trapezius', nacken: 'trapezius',
-  shoulder: 'shoulders', shoulders: 'shoulders', delt: 'shoulders', delts: 'shoulders', deltoid: 'shoulders',
-  arms: 'arms', arm: 'arms', biceps: 'arms', triceps: 'arms', forearm: 'arms', forearms: 'arms',
-  core: 'core', abs: 'core', abdominal: 'core',
+  'pectoralis minor': 'chest', 'serratus anterior': 'chest',
+  back: 'back', lats: 'back', lat: 'back', latissimus: 'back', 'latissimus dorsi': 'back',
+  rhomboids: 'back', 'erector spinae': 'back', 'teres major': 'back', deadlift: 'back',
+  trapezius: 'trapezius', traps: 'trapezius', 'trapezius upper': 'trapezius',
+  'trapezius middle': 'trapezius', 'trapezius lower': 'trapezius',
+  shoulder: 'shoulders', shoulders: 'shoulders', delt: 'shoulders', delts: 'shoulders',
+  deltoid: 'shoulders', 'anterior deltoid': 'shoulders', 'lateral deltoid': 'shoulders',
+  'posterior deltoid': 'shoulders', 'rotator cuff': 'shoulders',
+  arms: 'arms', arm: 'arms', biceps: 'arms', 'biceps brachii': 'arms',
+  brachialis: 'arms', triceps: 'arms', 'triceps brachii': 'arms',
+  forearm: 'arms', forearms: 'arms', brachioradialis: 'arms',
+  core: 'core', abs: 'core', abdominal: 'core', 'rectus abdominis': 'core',
+  obliques: 'core', 'transverse abdominis': 'core',
   glutes: 'glutes', glute: 'glutes', gluteus: 'glutes',
+  'gluteus maximus': 'glutes', 'gluteus medius': 'glutes',
   legs: 'legs', quads: 'quads', quad: 'quads', quadriceps: 'quads',
-  hamstrings: 'hamstrings', hamstring: 'hamstrings',
-  calves: 'calves', calf: 'calves', gastrocnemius: 'calves',
+  hamstrings: 'hamstrings', hamstring: 'hamstrings', adductors: 'legs',
+  calves: 'calves', calf: 'calves', gastrocnemius: 'calves', soleus: 'calves',
+  // German display_name / label_de
+  brust: 'chest', rücken: 'back', schultern: 'shoulders', schulter: 'shoulders',
+  arme: 'arms', bauch: 'core', gesäß: 'glutes', oberschenkel: 'legs', waden: 'calves',
+  nacken: 'trapezius', trapez: 'trapezius',
+  // Catalog numeric IDs (1xx=chest, 2xx=back, 3xx=shoulders, 4xx=arms, 5xx=core, 6xx=legs, 7xx=calves)
+  '100_chest': 'chest', '101_pectoralis_major': 'chest', '102_pectoralis_major_clavicular': 'chest',
+  '103_pectoralis_minor': 'chest', '104_serratus_anterior': 'chest',
+  '200_back': 'back', '201_latissimus_dorsi': 'back', '202_trapezius_upper': 'trapezius',
+  '203_trapezius_middle': 'trapezius', '204_trapezius_lower': 'trapezius',
+  '205_rhomboids': 'back', '206_erector_spinae': 'back', '207_teres_major': 'back',
+  '208_quadratus_lumborum': 'back',
+  '300_shoulders': 'shoulders', '301_anterior_deltoid': 'shoulders',
+  '302_lateral_deltoid': 'shoulders', '303_posterior_deltoid': 'shoulders',
+  '304_rotator_cuff': 'shoulders',
+  '400_arms': 'arms', '401_biceps_brachii': 'arms', '402_brachialis': 'arms',
+  '403_triceps_brachii': 'arms', '404_brachioradialis': 'arms',
+  '405_forearm_flexors': 'arms', '406_anconeus': 'arms',
+  '500_core': 'core', '501_rectus_abdominis': 'core', '502_obliques': 'core',
+  '503_transverse_abdominis': 'core',
+  '600_legs': 'legs', '601_gluteus_maximus': 'glutes', '602_gluteus_medius': 'glutes',
+  '603_quadriceps': 'quads', '604_hamstrings': 'hamstrings', '605_adductors': 'legs',
+  '700_calves': 'calves', '701_gastrocnemius': 'calves', '702_soleus': 'calves',
+  '703_tibialis_anterior': 'calves',
 };
+
+// Prefix fallback for unknown numeric IDs (e.g. future catalog additions)
+function resolveLabel(raw) {
+  const label = String(raw).toLowerCase().trim();
+  if (LABEL_TO_GROUP[label]) return LABEL_TO_GROUP[label];
+  const m = label.match(/^(\d+)_/);
+  if (m) {
+    const n = parseInt(m[1]);
+    if (n >= 100 && n < 200) return n >= 202 && n <= 204 ? 'trapezius' : 'chest';
+    if (n >= 200 && n < 300) return n >= 202 && n <= 204 ? 'trapezius' : 'back';
+    if (n >= 300 && n < 400) return 'shoulders';
+    if (n >= 400 && n < 500) return 'arms';
+    if (n >= 500 && n < 600) return 'core';
+    if (n >= 600 && n < 700) {
+      if (n <= 602) return 'glutes';
+      if (n === 603) return 'quads';
+      if (n === 604) return 'hamstrings';
+      return 'legs';
+    }
+    if (n >= 700 && n < 800) return 'calves';
+  }
+  return label;
+}
 
 function addScore(scores, muscle, amount) {
   if (!SUPPORTED_RBH_MUSCLES.has(muscle)) return;
@@ -65,12 +121,12 @@ export function exercisesToModelData(exercises) {
 
     if (sourcePrimary.length > 0 || sourceSecondary.length > 0) {
       for (const label of sourcePrimary) {
-        const group = LABEL_TO_GROUP[String(label).toLowerCase()] || String(label).toLowerCase();
+        const group = resolveLabel(label);
         const muscles = GROUP_TO_RBH[group];
         if (muscles) muscles.forEach(m => addScore(rbhScores, m, 2));
       }
       for (const label of sourceSecondary) {
-        const group = LABEL_TO_GROUP[String(label).toLowerCase()] || String(label).toLowerCase();
+        const group = resolveLabel(label);
         const muscles = GROUP_TO_RBH[group];
         if (muscles) muscles.forEach(m => addScore(rbhScores, m, 1));
       }

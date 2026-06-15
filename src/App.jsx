@@ -45,7 +45,7 @@ export default function App() {
   // Circadian: which dark + which light to use
   const [circDark,  setCircDark]  = useState(() => localStorage.getItem('fitness-circ-dark') || 'nordic');
   const [circLight, setCircLight] = useState(() => localStorage.getItem('fitness-circ-light') || 'honey');
-  const [hitMode, setHitMode] = useState(() => localStorage.getItem('fitness-hitMode') === 'true');
+  const [hitMode, setHitMode] = useState(() => localStorage.getItem('fitness-hitMode') !== 'false');
   const [planMode, setPlanMode] = useState(() => localStorage.getItem('fitness-planMode') === 'true');
   const [gender, setGender] = useState(() => localStorage.getItem('fitness-gender') || 'male');
   const [split, setSplit] = useState(() => localStorage.getItem('fitness-split') || 'PPL');
@@ -67,7 +67,9 @@ export default function App() {
   const touchStartRef = useRef(null);
   const touchEndRef   = useRef(null);
   const tabRef        = useRef(tab);
+  const navModeRef    = useRef(navMode);
   useEffect(() => { tabRef.current = tab; }, [tab]);
+  useEffect(() => { navModeRef.current = navMode; }, [navMode]);
 
   useEffect(() => {
     document.documentElement.style.fontSize = `${layoutScale}%`;
@@ -78,6 +80,7 @@ export default function App() {
     const HINT_START = 30;
 
     const onTouchStart = (e) => {
+      if (navModeRef.current !== 'tabs') return;
       touchEndRef.current   = null;
       touchStartRef.current = e.targetTouches[0].clientX;
     };
@@ -247,7 +250,7 @@ export default function App() {
         <div className={`flex-1 transition-all duration-500 ease-in-out ${sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
           <MobileHeader navigate={navigate} tab={tab} navMode={navMode} />
 
-          <main className="p-4 pb-28 sm:p-10 sm:pb-10 lg:p-16 max-w-[1600px] mx-auto">
+          <main className={`p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto ${navMode === 'tabs' ? 'pb-28' : 'pb-4'} sm:pb-10 lg:pb-16`}>
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                   {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} />}
                   {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}

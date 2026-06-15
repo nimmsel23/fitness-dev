@@ -131,3 +131,10 @@ export async function getMuscleCoverage(days = 7) {
 
   return bodyRegionScores;
 }
+
+export async function getCoverageGaps(days = 7) {
+  const hits = await getMuscleCoverage(days);
+  return Object.keys(MUSCLE_GROUPS)
+    .filter(g => (hits[g] || 0) < 1)
+    .map(g => ({ name: g, hits: hits[g] || 0 }));
+}
