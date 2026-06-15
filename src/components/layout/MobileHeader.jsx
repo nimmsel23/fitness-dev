@@ -9,22 +9,10 @@ export default function MobileHeader({ navigate, tab, navMode }) {
   return (
     <header className="lg:hidden h-[60px] flex items-center justify-between px-5 bg-[var(--bg)]/95 backdrop-blur-xl border-b border-[var(--line)]/30 sticky top-0 z-40">
 
-      {/* Left: logo (tabs mode) OR back-to-home (home mode, non-dash) OR home icon (home mode, on dash) */}
-      {navMode === 'home' && !isHome ? (
-        <button
-          onClick={() => navigate('dash')}
-          className="flex items-center gap-2 active:scale-90 transition-all"
-        >
-          <div className="w-9 h-9 rounded-xl bg-[var(--bg2)] border border-[var(--line)]/50 flex items-center justify-center">
-            <ChevronLeft size={18} className="text-[var(--dim)]" />
-          </div>
-          <span className="text-[9px] font-black uppercase tracking-widest text-[var(--dim)]">Home</span>
-        </button>
-      ) : (
-        <div className="w-9 h-9 rounded-xl bg-[var(--accent)] flex items-center justify-center shadow-lg shadow-[var(--accent)]/25 shrink-0">
-          <Activity size={17} className="text-black stroke-[3]" />
-        </div>
-      )}
+      {/* Left: App Logo/Icon */}
+      <div className="w-9 h-9 rounded-xl bg-[var(--accent)] flex items-center justify-center shadow-lg shadow-[var(--accent)]/25 shrink-0">
+        <Activity size={17} className="text-black stroke-[3]" />
+      </div>
 
       {/* Center: current tab label */}
       <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
@@ -34,13 +22,22 @@ export default function MobileHeader({ navigate, tab, navMode }) {
         </span>
       </div>
 
-      {/* Right: settings */}
-      <button
-        onClick={() => navigate('settings')}
-        className="w-9 h-9 rounded-xl bg-[var(--bg2)] border border-[var(--line)]/50 flex items-center justify-center active:scale-90 transition-all shrink-0"
-      >
-        <Settings2 size={17} className="text-[var(--dim)]" />
-      </button>
+      {/* Right: settings OR Close (if in home mode and not on dash) */}
+      {navMode === 'home' && !isHome ? (
+        <button
+          onClick={() => navigate('dash')}
+          className="w-9 h-9 rounded-xl bg-[var(--accent)] flex items-center justify-center active:scale-90 transition-all shrink-0 shadow-lg shadow-[var(--accent)]/20"
+        >
+          <ChevronLeft size={18} className="text-black rotate-[-90deg]" />
+        </button>
+      ) : (
+        <button
+          onClick={() => navigate('settings')}
+          className="w-9 h-9 rounded-xl bg-[var(--bg2)] border border-[var(--line)]/50 flex items-center justify-center active:scale-90 transition-all shrink-0"
+        >
+          <Settings2 size={17} className="text-[var(--dim)]" />
+        </button>
+      )}
     </header>
   );
 }

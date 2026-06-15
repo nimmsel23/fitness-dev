@@ -248,37 +248,77 @@ export default function App() {
         </Sidebar>
 
         <div className={`flex-1 transition-all duration-500 ease-in-out ${sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
-          <MobileHeader navigate={navigate} tab={tab} navMode={navMode} />
+          {/* Main Header - hidden on mobile when a sheet is open in home mode */}
+          <div className={navMode === 'home' && tab !== 'dash' ? 'hidden lg:block' : ''}>
+            <MobileHeader navigate={navigate} tab={tab} navMode={navMode} />
+          </div>
 
-          <main className={`p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto ${navMode === 'tabs' ? 'pb-28' : 'pb-4'} sm:pb-10 lg:pb-16`}>
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} />}
-                  {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}
-                  {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} hitMode={hitMode} />}
-                  {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} hitMode={hitMode} gender={gender} />}
-                  {tab === 'habits'   && <Habits />}
-                  {tab === 'journal'  && <Journal />}
-                  {tab === 'settings' && (
-                     <Settings
-                       hitMode={hitMode} setHitMode={setHitMode}
-                       planMode={planMode} setPlanMode={setPlanMode}
-                       layoutScale={layoutScale} setLayoutScale={setLayoutScale}
-                       recentDays={recentDays} setRecentDays={setRecentDays}
-                       coverageThreshold={coverageThreshold} setCoverageThreshold={setCoverageThreshold}
-                       showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}
-                       dashboardHighlighter={dashboardHighlighter} setDashboardHighlighter={setDashboardHighlighter}
-                       gender={gender} setGender={setGender}
-                       split={split} setSplit={setSplit}
-                       cycleLength={cycleLength} setCycleLength={setCycleLength}
-                       defaultLocation={defaultLocation} setDefaultLocation={setDefaultLocation}
-                       themeMode={themeMode} setModeState={setModeState}
-                       circLight={circLight} setCircLight={setCircLight}
-                       circDark={circDark} setCircDark={setCircDark}
-                       themes={THEMES} theme={theme} setThemeState={setThemeState}
-                       sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned}
-                       navMode={navMode} setNavMode={setNavMode}
-                     />
+          <main className={`relative ${navMode === 'tabs' ? 'pb-28' : 'pb-4'} sm:pb-10 lg:pb-16 min-h-screen overflow-x-hidden`}>
+              {/* Background Hub (Dashboard) - always mounted in home mode for speed/transitions */}
+              {navMode === 'home' && (
+                <div className={`transition-all duration-500 ease-in-out p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto ${tab !== 'dash' ? 'scale-[0.97] opacity-40 blur-sm pointer-events-none' : 'scale-100 opacity-100'}`}>
+                   <Dashboard 
+                     onOpenSession={openSession} 
+                     onInspectExercise={inspectExercise} 
+                     onOpenReview={() => navigate('review')} 
+                     recentDays={recentDays} 
+                     coverageThreshold={coverageThreshold} 
+                     dashboardHighlighter={dashboardHighlighter} 
+                     gender={gender} 
+                     navMode={navMode} 
+                     navigate={navigate} 
+                   />
+                </div>
+              )}
+
+              {/* Foreground Sheet (or normal Tab content) */}
+              <div className={`
+                ${navMode === 'home' ? 'fixed inset-0 z-50 transform transition-transform duration-500 ease-in-out' : 'p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto'}
+                ${navMode === 'home' && tab === 'dash' ? 'translate-y-full pointer-events-none' : 'translate-y-0'}
+              `}>
+                <div className={`${navMode === 'home' ? 'h-full bg-[var(--bg)] shadow-2xl overflow-y-auto' : ''}`}>
+                  {/* Sheet Header (only in home mode sheets) */}
+                  {navMode === 'home' && tab !== 'dash' && (
+                    <div className="sticky top-0 z-50 lg:hidden">
+                       <MobileHeader navigate={navigate} tab={tab} navMode={navMode} />
+                    </div>
                   )}
+
+                  <div className={`${navMode === 'home' && tab !== 'dash' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+                      {/* Only render non-dash tabs here in home mode, OR everything in tabs mode */}
+                      {(navMode === 'tabs' || tab !== 'dash') && (
+                        <>
+                          {tab === 'dash'     && navMode === 'tabs' && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} />}
+                          {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}
+                          {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} hitMode={hitMode} />}
+                          {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} hitMode={hitMode} gender={gender} />}
+                          {tab === 'habits'   && <Habits />}
+                          {tab === 'journal'  && <Journal />}
+                          {tab === 'settings' && (
+                             <Settings
+                               hitMode={hitMode} setHitMode={setHitMode}
+                               planMode={planMode} setPlanMode={setPlanMode}
+                               layoutScale={layoutScale} setLayoutScale={setLayoutScale}
+                               recentDays={recentDays} setRecentDays={setRecentDays}
+                               coverageThreshold={coverageThreshold} setCoverageThreshold={setCoverageThreshold}
+                               showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}
+                               dashboardHighlighter={dashboardHighlighter} setDashboardHighlighter={setDashboardHighlighter}
+                               gender={gender} setGender={setGender}
+                               split={split} setSplit={setSplit}
+                               cycleLength={cycleLength} setCycleLength={setCycleLength}
+                               defaultLocation={defaultLocation} setDefaultLocation={setDefaultLocation}
+                               themeMode={themeMode} setModeState={setModeState}
+                               circLight={circLight} setCircLight={setCircLight}
+                               circDark={circDark} setCircDark={setCircDark}
+                               themes={THEMES} theme={theme} setThemeState={setThemeState}
+                               sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned}
+                               navMode={navMode} setNavMode={setNavMode}
+                             />
+                          )}
+                        </>
+                      )}
+                  </div>
+                </div>
               </div>
             </main>
 
