@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getJournal, saveJournal, updateJournal, getHabits, getJournalHistory, getAllHabitJournalsHistory, getSessionHistory } from "@db";
+import { saveJournal, updateJournal, getHabits, getJournalHistory, getAllHabitJournalsHistory, getSessionHistory } from "@db";
 import { localToday } from "@utils";
 import { Book } from "lucide-react";
 
@@ -48,16 +48,41 @@ export default function Journal() {
       ];
 
       sessions.forEach(session => {
-        if (session.notes && session.notes.trim()) {
-          combined.push({
-            id: 'workout-note-' + session.date,
-            date: session.date,
-            text: session.notes,
-            type: 'workout',
-            block: session.block || 'Training',
-            time: session.saved_at?.seconds ? new Date(session.saved_at.seconds * 1000).toISOString() : `${session.date}T23:59:59`
-          });
-        }
+        const savedAt = session.saved_at?.seconds
+          ? new Date(session.saved_at.seconds * 1000).toISOString()
+          : (typeof session.saved_at === 'string' ? session.saved_at : `${session.date}T23:59:59`);
+        combined.push({
+          id: 'workout-' + session.date + '-' + (session.id || '0'),
+          date: session.date,
+          text: session.notes || '',
+          type: 'workout',
+          block: session.block || 'Training',
+          exercises: (session.exercises || []).filter(e => e.done),
+          effort: session.effort,
+          mood: session.mood,
+          time: savedAt
+        });
+      });
+
+      // Habit-Completions aus allHabits.records
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - limitCount);
+      const cutoffStr = cutoff.toISOString().slice(0, 10);
+      allHabits.forEach(habit => {
+        (habit.records || []).forEach(record => {
+          if (record.completion === 'DONE' && record.date >= cutoffStr) {
+            combined.push({
+              id: `habit-completion-${habit.uuid}-${record.date}`,
+              date: record.date,
+              type: 'habit-completion',
+              habitId: habit.uuid,
+              habitName: habit.name,
+              habitIcon: habit.icon,
+              text: '',
+              time: `${record.date}T12:00:00`
+            });
+          }
+        });
       });
 
       // Group by date
@@ -113,7 +138,7 @@ export default function Journal() {
         setEditingEntry(null);
         showToast("Aktualisiert ✓");
       } else {
-        const entry = await saveJournal(date, text);
+        await saveJournal(date, text);
         // Force full reload to get clean IDs and timeline
         setLimitCount(p => p + 1); // trigger reload
         showToast("Gespeichert ✓");
@@ -198,12 +223,11 @@ export default function Journal() {
         </div>
       )}
 
-      <JournalModal 
-        selectedEntry={selectedEntry} 
-        setSelectedEntry={setSelectedEntry} 
-        habits={habits} 
-        formatRelativeDate={formatRelativeDate} 
-        date={date} 
+      <JournalModal
+        selectedEntry={selectedEntry}
+        setSelectedEntry={setSelectedEntry}
+        habits={habits}
+        formatRelativeDate={formatRelativeDate}
       />
     </div>
   );
