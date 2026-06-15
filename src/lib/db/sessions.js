@@ -1,4 +1,5 @@
 import { api, localToday } from "./core";
+import { calculateExVolume, num } from "./utils";
 
 export async function getSession(date = localToday(), id = null) {
   try {
@@ -49,8 +50,35 @@ export async function getSessionHistory(n = 60) {
   return getRecentSessions(n);
 }
 
-export async function getProgressTrend(exerciseName) {
-  return { status: "neutral", change: 0 };
+export async function getProgressTrend(exerciseName, lastN = 4) {
+  const history = await getSessionHistory(lastN * 7);
+  const sessions = (Array.isArray(history) ? history.filter(Boolean) : [])
+    .map(s => ({ ...s, exercises: Array.isArray(s.exercises) ? s.exercises : [] }))
+    .filter(s => s.exercises.some(ex => ex.name === exerciseName))
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  if (sessions.length < 2) return { status: "neutral", message: "Nicht genug Daten" };
+
+  const values = sessions.map(s => {
+    const ex = s.exercises.find(e => e.name === exerciseName);
+    if (!ex) return null;
+    if (ex.isHIT) {
+      const w = ex.weight || ex.setsArray?.[0]?.weight;
+      return num(w);
+    }
+    return calculateExVolume(ex);
+  }).filter(v => v !== null && v > 0);
+
+  if (values.length < 2) return { status: "neutral", message: "Zu wenig Daten" };
+
+  const current = values[0];
+  const avgPrevious = values.slice(1, lastN).reduce((a, b) => a + b, 0) / Math.max(values.length - 1, 1);
+  if (avgPrevious === 0) return { status: "neutral" };
+
+  const pctChange = ((current - avgPrevious) / avgPrevious) * 100;
+  if (pctChange > 2)  return { status: "up",      change: pctChange.toFixed(1) };
+  if (pctChange < -2) return { status: "down",    change: pctChange.toFixed(1) };
+  return                   { status: "neutral", change: pctChange.toFixed(1) };
 }
 
 export async function getPlan() {
