@@ -1,0 +1,17 @@
+[data-theme="nothing"] {
+  --bg: #000000;
+  --bg2: #050505;
+  --panel: #0a0a0a;
+  --card: #0f0f0f;
+  --card-hover: #151515;
+  --line: #202020;
+  --ink: #ffffff;
+  --muted: #707070;
+  --dim: #404040;
+  --accent: #ffffff;
+  --accent-glow: rgba(255, 255, 255, 0.1);
+  --green: #00ff00;
+  --red: #ff0000;
+  --orange: #ff8000;
+  --glass: rgba(0, 0, 0, 0.95);
+}

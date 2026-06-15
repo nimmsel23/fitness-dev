@@ -1,0 +1,17 @@
+[data-theme="homunculus"] {
+  --bg: #18181b;
+  --bg2: #121215;
+  --panel: #242429;
+  --card: #303035;
+  --card-hover: #404048;
+  --line: #50505a;
+  --ink: #d4d4d8;
+  --muted: #94a3b8;
+  --dim: #64748b;
+  --accent: #a16262;
+  --accent-glow: rgba(161, 98, 98, 0.15);
+  --green: #6a9955;
+  --red: #c04040;
+  --orange: #d97706;
+  --glass: rgba(24, 24, 27, 0.88);
+}
