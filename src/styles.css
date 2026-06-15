@@ -1,29 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* ==========================================================================
-   1. ARCHITECTURE: Global Structural Variables
-   ========================================================================== */
-
-/*
- * :root contains NON-THEMATIC structural variables only.
- * Color definitions for themes start from `[data-theme="..."]` blocks.
- */
-:root {
-  /* Structural Variables - Using rem for layout scaling parity */
-  --radius-sm: 0.5rem;
-  --radius-md: 1rem;
-  --radius-lg: 1.5rem;
-  --scrollbar-width: 6px;
-  --scrollbar-radius: 3px;
-  --glass-border: rgba(255,255,255,0.05); /* Global glass border */
-}
-
-/* ==========================================================================
-   2. THEME DEFINITIONS: Fully Self-Contained Color Palettes
-   ========================================================================== */
-
 /* Dark Themes */
 @import "./styles/themes/nordic.css";
 @import "./styles/themes/nordic-darker.css";
@@ -63,6 +37,34 @@
 @import "./styles/themes/solarized.css";
 @import "./styles/themes/alucard.css";
 @import "./styles/themes/latte.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   1. ARCHITECTURE: Global Structural Variables
+   ========================================================================== */
+
+/*
+ * :root contains NON-THEMATIC structural variables only.
+ * Color definitions for themes start from `[data-theme="..."]` blocks.
+ */
+:root {
+  /* Structural Variables - Using rem for layout scaling parity */
+  --radius-sm: 0.5rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --scrollbar-width: 6px;
+  --scrollbar-radius: 3px;
+  --glass-border: rgba(255,255,255,0.05); /* Global glass border */
+}
+
+/* ==========================================================================
+   2. THEME DEFINITIONS: Fully Self-Contained Color Palettes
+   ========================================================================== */
+
+/* Themes are now imported at the top of the file to comply with CSS standards. */
 
 /* ==========================================================================
    3. GLOBAL STYLES: Base element styling using the variables
