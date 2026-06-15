@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Brain, CheckCircle, RotateCcw, ChevronRight } from "lucide-react";
+import { CheckCircle, RotateCcw, ChevronRight } from "lucide-react";
 import { api } from "../../api.js"; // Local API
 import { getAllExercises, getAnatomy, getMuscle } from "@db";
 
@@ -148,7 +148,7 @@ export default function Learn({ onInspectExercise, hitMode, gender }) {
 
   if (viewMode === 'quiz') {
      return (
-        <div className="pb-20 lg:pb-0 px-2 space-y-6">
+        <div className="pb-20 lg:pb-0 px-2">
            <ExplorerHeader viewMode={viewMode} setViewMode={setViewMode} />
            <QuizMode exercises={recent} onExit={() => setViewMode('library')} />
         </div>
@@ -157,7 +157,7 @@ export default function Learn({ onInspectExercise, hitMode, gender }) {
 
   if (viewMode === 'analysis') {
     return (
-      <div className="pb-20 lg:pb-0 px-2 space-y-6">
+      <div className="pb-20 lg:pb-0 px-2">
         <ExplorerHeader viewMode={viewMode} setViewMode={setViewMode} onStartQuiz={() => setViewMode('quiz')} hasRecent={recent.length > 0} />
         <Muscles hitMode={hitMode} gender={gender} />
       </div>

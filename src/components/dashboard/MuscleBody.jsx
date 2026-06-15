@@ -1,5 +1,8 @@
+import { useState, useEffect } from "react";
 import BodyMap from "../BodyMap";
 import DetailedMuscleMap from "../DetailedMuscleMap";
+import AnatomyDetailModal from "../AnatomyDetailModal";
+import { getMuscle } from "@db";
 
 export default function MuscleBody({ enrichedRecent, recentDays = 7, highlighterMode = 'body', gender = 'male' }) {
   const safeRecent = Array.isArray(enrichedRecent) ? enrichedRecent.filter(Boolean) : [];
@@ -8,17 +11,30 @@ export default function MuscleBody({ enrichedRecent, recentDays = 7, highlighter
     .filter(Boolean)
     .filter(e => e.done);
 
-  const isMuscles = highlighterMode === 'muscles';
-  const HighlighterFront = isMuscles ? DetailedMuscleMap : BodyMap;
-  const HighlighterBack  = isMuscles ? DetailedMuscleMap : BodyMap;
+  const [selectedMuscleId, setSelectedMuscleId] = useState(null);
+  const [muscleData, setMuscleData] = useState(null);
+  const [muscleLoading, setMuscleLoading] = useState(false);
 
+  useEffect(() => {
+    if (!selectedMuscleId) { setMuscleData(null); return; }
+    setMuscleLoading(true);
+    getMuscle(selectedMuscleId)
+      .then(d => setMuscleData(d || null))
+      .catch(() => setMuscleData(null))
+      .finally(() => setMuscleLoading(false));
+  }, [selectedMuscleId]);
+
+  const isMuscles = highlighterMode === 'muscles';
   const colors = ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6'];
   const frontProps = isMuscles
-    ? { exercises: recentExercises, gender, side: 'front', colors }
-    : { exercises: recentExercises, type: 'anterior', highlightedColors: colors, style: { maxWidth: 160 } };
+    ? { exercises: recentExercises, gender, side: 'front', colors, onGroupClick: setSelectedMuscleId }
+    : { exercises: recentExercises, type: 'anterior', highlightedColors: colors, style: { maxWidth: 160 }, onGroupClick: setSelectedMuscleId };
   const backProps = isMuscles
-    ? { exercises: recentExercises, gender, side: 'back', colors }
-    : { exercises: recentExercises, type: 'posterior', highlightedColors: colors, style: { maxWidth: 160 } };
+    ? { exercises: recentExercises, gender, side: 'back', colors, onGroupClick: setSelectedMuscleId }
+    : { exercises: recentExercises, type: 'posterior', highlightedColors: colors, style: { maxWidth: 160 }, onGroupClick: setSelectedMuscleId };
+
+  const HighlighterFront = isMuscles ? DetailedMuscleMap : BodyMap;
+  const HighlighterBack  = isMuscles ? DetailedMuscleMap : BodyMap;
 
   return (
     <div className="alpha-card p-10 flex flex-col h-full bg-gradient-to-br from-[var(--card)] to-[var(--bg)]">
@@ -32,6 +48,13 @@ export default function MuscleBody({ enrichedRecent, recentDays = 7, highlighter
         <HighlighterFront {...frontProps} />
         <HighlighterBack {...backProps} />
       </div>
+
+      <AnatomyDetailModal
+        muscleId={selectedMuscleId}
+        muscleData={muscleData}
+        loading={muscleLoading}
+        onClose={() => setSelectedMuscleId(null)}
+      />
     </div>
   );
 }

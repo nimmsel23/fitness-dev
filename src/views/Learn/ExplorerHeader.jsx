@@ -1,4 +1,4 @@
-import { Search, Brain, Activity } from "lucide-react";
+import { Search, Brain, Activity, Zap } from "lucide-react";
 
 export default function ExplorerHeader({ viewMode, setViewMode, onStartQuiz, hasRecent }) {
   return (
@@ -9,29 +9,29 @@ export default function ExplorerHeader({ viewMode, setViewMode, onStartQuiz, has
       </div>
 
       <div className="flex gap-1 p-1 bg-card rounded-2xl border border-line shadow-xl flex-wrap justify-end">
-        <button 
-          onClick={() => setViewMode('analysis')}
-          className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'analysis' ? 'bg-accent text-black shadow-lg shadow-accent/20' : 'text-dim hover:text-ink'}`}>
-          <Activity size={14} className={viewMode === 'analysis' ? 'stroke-[3]' : ''} />
-          <span className="hidden sm:inline">Muscles</span>
-        </button>
-        <button 
+        <button
           onClick={() => setViewMode('library')}
           className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'library' ? 'bg-accent text-black shadow-lg shadow-accent/20' : 'text-dim hover:text-ink'}`}>
           <Search size={14} className={viewMode === 'library' ? 'stroke-[3]' : ''} />
           <span className="hidden sm:inline">Übungen</span>
         </button>
-        <button 
+        <button
+          onClick={() => setViewMode('analysis')}
+          className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'analysis' ? 'bg-accent text-black shadow-lg shadow-accent/20' : 'text-dim hover:text-ink'}`}>
+          <Activity size={14} className={viewMode === 'analysis' ? 'stroke-[3]' : ''} />
+          <span className="hidden sm:inline">Analyse</span>
+        </button>
+        <button
           onClick={() => setViewMode('explorer')}
           className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'explorer' ? 'bg-accent text-black shadow-lg shadow-accent/20' : 'text-dim hover:text-ink'}`}>
           <Brain size={14} className={viewMode === 'explorer' ? 'stroke-[3]' : ''} />
           <span className="hidden sm:inline">Explorer</span>
         </button>
         {hasRecent && (
-          <button 
+          <button
             onClick={onStartQuiz}
             className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'quiz' ? 'bg-accent text-black shadow-lg shadow-accent/20' : 'text-accent bg-accent/10 border border-accent/20 hover:bg-accent/20'}`}>
-            <Brain size={14} className={viewMode === 'quiz' ? 'stroke-[3]' : ''} />
+            <Zap size={14} className={viewMode === 'quiz' ? 'stroke-[3]' : ''} />
             Quiz
           </button>
         )}

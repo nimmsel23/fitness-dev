@@ -1,4 +1,4 @@
-import { Brain, Star, Info, Target, Dumbbell, Video } from "lucide-react";
+import { Brain, Star, Info, Target, Video } from "lucide-react";
 
 export default function AnatDetail({ anatomy, ex, onBack, isEmbedded, loading }) {
   const name = ex?.display_name || ex?.name || "Übung wählen";

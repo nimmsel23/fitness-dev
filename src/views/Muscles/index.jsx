@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Brain, LayoutGrid, User } from "lucide-react";
 import { getSessionHistory, getAllExercises, getMuscle } from "@db";
 
 import MuscleHeader from "./MuscleHeader";
@@ -161,16 +160,17 @@ export default function Muscles({ hitMode, gender }) {
           <div className="lg:col-span-8 p-10 rounded-[40px] border flex justify-center gap-20 bg-card border-line shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent/5 to-transparent pointer-events-none" />
             {showDetailed ? (
-              <MuscleDetailedMap 
-                exercises={volExercises} 
-                gender={gender} 
+              <MuscleDetailedMap
+                exercises={volExercises}
+                gender={gender}
                 onGroupClick={setSelectedMuscleId}
               />
             ) : (
-              <MuscleBodyMap 
-                hitMode={hitMode} 
-                scores={hitAnalysis.scores} 
-                volExercises={volExercises} 
+              <MuscleBodyMap
+                hitMode={hitMode}
+                scores={hitAnalysis.scores}
+                volExercises={volExercises}
+                onGroupClick={setSelectedMuscleId}
               />
             )}
           </div>
