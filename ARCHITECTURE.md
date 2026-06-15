@@ -57,6 +57,42 @@ Node.js HTTP-Server, kein Framework.
 
 ---
 
+## Navigation-Architektur (Hub & Sheet System)
+
+Seit 2026-06-15 unterstützt die App zwei Navigationsmodi, konfiguriert über `navMode` (localStorage: `fitness-navMode`).
+
+### 1. Tabs-Modus (Klassisch)
+Standard-Tab-Navigation mit Bottom-Navbar auf Mobile. Einfacher Austausch der Views (Content Swap).
+
+### 2. Hub-Modus (Native Feel)
+Ein hierarchisches System, das für ein immersives App-Erlebnis optimiert ist.
+
+- **Background Hub (Dashboard)**: Das Dashboard bleibt permanent im Hintergrund gemountet. Beim Öffnen einer Sub-View wird es herangezoomt (`scale-98`), leicht unscharf (`blur-2px`) und transparent.
+- **Foreground Sheets**: Alle anderen Views (Session, Learn, etc.) öffnen sich als **Full-Screen Slide-up Sheets** von unten über das Dashboard.
+- **UX-Vorteile**: Kein Neuladen beim Rücksprung zum Dashboard (Instant State), mehr Platz durch Wegfall der Navbar, klare Fokusführung.
+- **Implementation**: Realisiert in `App.jsx` mittels CSS-Transitions (`cubic-bezier(0.32, 0.72, 0, 1)`) und bedingter Render-Logik.
+
+---
+
+## UI & Theme System
+
+### Modularisierung (src/styles/themes/)
+Die UI-Themes sind vollständig modularisiert. Jedes der 36+ Themes verfügt über eine eigene Datei im Verzeichnis `src/styles/themes/`.
+
+- **Engine**: `src/styles.css` importiert die Themes mittels `@import` am Dateianfang.
+- **Variablen-Struktur**: Alle Themes nutzen ein konsistentes Set an CSS-Variablen:
+  - `--bg`, `--bg2`, `--panel`: Tiefen-Ebenen der App.
+  - `--card`, `--card-hover`: Interaktive Elemente.
+  - `--accent`, `--accent-glow`: Branding und visuelle Highlights.
+  - `--glass`: Transparenz-Layer für Overlays.
+
+### AlphaOS Design Language
+- **Glassmorphism**: Starker Einsatz von Backdrop-Blur und subtilen Borders (`.alpha-glass`).
+- **High Density**: Fokus auf Informationsdichte ohne visuelle Überladung (JetBrains Mono für Daten).
+- **Native Motion**: Animationen folgen biologischen Beschleunigungskurven für ein wertiges Haptik-Gefühl.
+
+---
+
 ## Frontend (src/)
 
 ```

@@ -4,8 +4,9 @@
 Manages user preferences and system configuration. Unified aesthetics with environment-specific power.
 
 ## Features
-- **Theme System**: Full access to 15+ AlphaOS themes (Nordic, Dracula, Honey, etc.).
-- **Training Logic**: Toggle for `HIT Mode` (Recovery-focus) vs `Volume Mode`.
+- **Theme System**: Full access to 36+ AlphaOS themes (Nordic, Dracula, Honey, etc.), now fully modularized.
+- **Mobile Navigation**: Toggle between "Tabs" (classic bottom bar) and "Home Menü" (Hub & Sheet architecture).
+- **Training Logic**: Toggle for `Volume Mode` (Sets/Reps tracking) vs `HIT Mode`.
 - **Coach Intelligence (Local Only)**: 
     - Port checks for `fitness-dev` and `wger`.
     - Manual Firestore Sync trigger.
