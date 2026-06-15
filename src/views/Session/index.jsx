@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   getSession, saveSession, getSessionHistory,
-  parseQuick, getExercise, sendToInbox, api, getMuscle
+  parseQuick, getExercise, sendToInbox, getMuscle,
+  getCoverageGaps, getPlanSuggestion, exportFitnessData,
 } from '@db';
 import { localToday } from '@utils';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
@@ -170,8 +171,8 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
     }).catch(() => {});
     
     // Local Intelligence: Fetch Plan and Gaps
-    api.get(`/plan/today?date=${date}`).then(d => setHint(d?.suggestion || null)).catch(() => {});
-    api.get('/coverage/gaps?days=7').then(r => setGaps(r?.gaps || [])).catch(() => {});
+    getPlanSuggestion(date).then(setHint).catch(() => {});
+    getCoverageGaps(7).then(setGaps).catch(() => {});
   }, [date]);
 
   const doneExercises = useMemo(
@@ -274,15 +275,15 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
       await saveSession(date, sessData);
       showToast('Gespeichert ✓');
       // Update gaps after save
-      const r = await api.get('/coverage/gaps?days=7');
-      setGaps(r?.gaps || []);
+      const gaps = await getCoverageGaps(7);
+      setGaps(gaps);
     } catch { showToast('Fehler beim Speichern'); }
     finally { setSaving(false); }
   }
 
   async function exportObsidian() {
     try {
-      const result = await api.post('/fitness/export', {
+      const result = await exportFitnessData({
         kind: 'session',
         session: { date, block, exercises, effort, location, duration, notes },
         force: true,

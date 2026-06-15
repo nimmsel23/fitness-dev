@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { CheckCircle, RotateCcw, ChevronRight } from "lucide-react";
-import { api } from "../../api.js"; // Local API
-import { getAllExercises, getAnatomy, getMuscle } from "@db";
+import { getAllExercises, getAnatomy, getMuscle, getLatestSession } from "@db";
 
 import ExerciseLibrary from "./ExerciseLibrary";
 import AnatDetail from "./AnatDetail";
@@ -26,8 +25,8 @@ function QuizMode({ exercises, onExit }) {
         const id = ex.exercise_id || ex.id;
         if (!id) continue;
         try {
-          const data = await api.get(`/exercise/${encodeURIComponent(id)}/teaching`);
-          const prompts = data?.lesson?.quiz_prompts || data?.lesson?.quiz || [];
+          const lesson = await getAnatomy(id);
+          const prompts = lesson?.quiz_prompts || lesson?.quiz || [];
           for (const q of prompts) {
             if (q?.question) all.push({ exercise: ex.name || id, question: q.question, answer: q.answer || '' });
           }
@@ -122,9 +121,8 @@ export default function Learn({ onInspectExercise, hitMode, gender }) {
       .then(exs => { setExercises(exs); setLoading(false); })
       .catch(() => setLoading(false));
     
-    // Use local API directly for recent session logic to guarantee Quiz availability
-    api.get('/session/latest').then(d => {
-      setRecent(d?.session?.data?.exercises || []);
+    getLatestSession().then(s => {
+      setRecent(s?.exercises || []);
     }).catch(() => {});
   }, []);
 

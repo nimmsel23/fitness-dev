@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getWeeklyReport, api } from '@db';
+import { getWeeklyReport, exportFitnessData } from '@db';
 
 import ReviewHeader from './ReviewHeader';
 import ReviewOverview from './ReviewOverview';
@@ -28,7 +28,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, hitMode
 
   async function exportWeekly() {
     try {
-      const result = await api.post('/fitness/export', {
+      const result = await exportFitnessData({
         kind: 'weekly',
         week_selector: week,
         force: true,

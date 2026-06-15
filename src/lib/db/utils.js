@@ -45,6 +45,15 @@ export const num = (v) => {
   return Number.isFinite(n) ? n : null;
 };
 
+export async function exportFitnessData(payload) {
+  try {
+    const { api } = await import("./core");
+    return await api.post('/fitness/export', payload);
+  } catch {
+    return null;
+  }
+}
+
 export async function exportCsv(days = 14) {
   const { api } = await import("./core");
   const res = await api.get(`/export/csv?days=${days}`);

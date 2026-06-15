@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Search, X, History, Zap, Dumbbell, Star, Info, Plus } from 'lucide-react'
-import { searchExercises, getSessionHistory, api } from '@db'
+import { searchExercises, getSessionHistory, getPlanSuggestion } from '@db'
 
 const MUSCLE_COLORS = {
   'Biceps brachii':    '#a78bfa',
@@ -56,9 +56,9 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
     })
 
     // Load Program/Plan
-    api.get(`/plan/today?date=${date || new Date().toISOString().slice(0, 10)}`).then(d => {
-      if (d?.suggestion?.exercises) {
-        setProgram(d.suggestion.exercises.map(name => ({ name, isPlan: true })))
+    getPlanSuggestion(date).then(suggestion => {
+      if (suggestion?.exercises) {
+        setProgram(suggestion.exercises.map(name => ({ name, isPlan: true })))
       }
     })
 

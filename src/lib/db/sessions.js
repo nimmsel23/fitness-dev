@@ -90,6 +90,15 @@ export async function savePlan(plan) {
   return { ok: true };
 }
 
+export async function getPlanSuggestion(date) {
+  try {
+    const data = await api.get(`/plan/today?date=${date || localToday()}`);
+    return data?.suggestion || null;
+  } catch {
+    return null;
+  }
+}
+
 export function parseQuick(raw) {
   if (!raw?.trim()) return null
   const name = raw.replace(/[\d@x\s].*/i, '').trim() || raw.trim()

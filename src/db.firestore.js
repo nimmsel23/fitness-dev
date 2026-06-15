@@ -191,6 +191,9 @@ export async function savePlan(plan) {
   return { ok: true };
 }
 
+export async function getPlanSuggestion(_date) { return null; }
+export async function exportFitnessData(_payload) { return null; }
+
 // ── Journal (from pwa.bak/src/lib/db/journal.js) ─────────────────────────────
 
 export async function getJournal(date = todayISO()) {
