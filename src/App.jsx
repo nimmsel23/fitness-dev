@@ -256,7 +256,7 @@ export default function App() {
           <main className={`relative ${navMode === 'tabs' ? 'pb-28' : 'pb-4'} sm:pb-10 lg:pb-16 min-h-screen overflow-x-hidden`}>
               {/* Background Hub (Dashboard) - always mounted in home mode for speed/transitions */}
               {navMode === 'home' && (
-                <div className={`transition-all duration-500 ease-in-out p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto ${tab !== 'dash' ? 'scale-[0.97] opacity-40 blur-sm pointer-events-none' : 'scale-100 opacity-100'}`}>
+                <div className={`transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto ${tab !== 'dash' ? 'scale-[0.98] opacity-30 blur-[2px] pointer-events-none' : 'scale-100 opacity-100'}`}>
                    <Dashboard 
                      onOpenSession={openSession} 
                      onInspectExercise={inspectExercise} 
@@ -272,11 +272,18 @@ export default function App() {
               )}
 
               {/* Foreground Sheet (or normal Tab content) */}
-              <div className={`
-                ${navMode === 'home' ? 'fixed inset-0 z-50 transform transition-transform duration-500 ease-in-out' : 'p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto'}
-                ${navMode === 'home' && tab === 'dash' ? 'translate-y-full pointer-events-none' : 'translate-y-0'}
-              `}>
-                <div className={`${navMode === 'home' ? 'h-full bg-[var(--bg)] shadow-2xl overflow-y-auto' : ''}`}>
+              <div 
+                className={`
+                  ${navMode === 'home' ? 'fixed inset-0 z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]' : 'p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto'}
+                  ${navMode === 'home' && tab === 'dash' ? 'translate-y-full pointer-events-none' : 'translate-y-0'}
+                `}
+              >
+                <div className={`${navMode === 'home' ? 'h-full bg-[var(--bg)] shadow-[0_-20px_50px_rgba(0,0,0,0.3)] overflow-y-auto rounded-t-[40px] border-t border-[var(--line)]/30 relative' : ''}`}>
+                  {/* Sheet Pull Handle (Visual only for now) */}
+                  {navMode === 'home' && tab !== 'dash' && (
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1.5 rounded-full bg-[var(--line)]/40 z-[60] lg:hidden" />
+                  )}
+
                   {/* Sheet Header (only in home mode sheets) */}
                   {navMode === 'home' && tab !== 'dash' && (
                     <div className="sticky top-0 z-50 lg:hidden">
