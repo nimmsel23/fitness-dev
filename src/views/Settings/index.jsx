@@ -2,7 +2,6 @@ import { Zap, LayoutGrid, Sparkles, Settings2, ShieldAlert } from "lucide-react"
 import { useState, useEffect } from "react";
 import { api, isLocalMode } from "@db";
 import { DARK_THEMES, LIGHT_THEMES } from "../../constants/Themes";
-
 export default function Settings({
   hitMode, setHitMode, planMode, setPlanMode,
   layoutScale, setLayoutScale,
@@ -15,7 +14,9 @@ export default function Settings({
   themeMode, setModeState, circLight, setCircLight, circDark, setCircDark,
   themes, theme, setThemeState, updateSettings,
   sidebarPinned, setSidebarPinned,
-  navMode, setNavMode
+  navMode, setNavMode,
+  muscleLanguage, setMuscleLanguage,
+  swipeEnabled, setSwipeEnabled
 }) {
   const [health, setHealth] = useState(null)
   const [wger, setWger] = useState(null)
@@ -102,6 +103,37 @@ export default function Settings({
                       className={`w-12 h-6 rounded-full transition-colors relative border ${sidebarPinned ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
                       <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${sidebarPinned ? 'left-7' : 'left-1'}`} />
                    </button>
+                </div>
+
+                {/* Swipe Navigation Toggle */}
+                <div className="flex items-center justify-between">
+                   <div>
+                      <div className="text-sm font-black text-ink">Swipe-Navigation</div>
+                      <div className="text-[10px] font-bold opacity-30 uppercase">Tab-Wechsel per Wischgeste</div>
+                   </div>
+                   <button onClick={() => { setSwipeEnabled(!swipeEnabled); updateSettings?.({ swipeEnabled: !swipeEnabled }); }}
+                      className={`w-12 h-6 rounded-full transition-colors relative border ${swipeEnabled ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
+                      <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${swipeEnabled ? 'left-7' : 'left-1'}`} />
+                   </button>
+                </div>
+
+                {/* Muscle Language */}
+                <div className="flex items-center justify-between">
+                   <div>
+                      <div className="text-sm font-black text-ink">Muskel-Sprache</div>
+                      <div className="text-[10px] font-bold opacity-30 uppercase">Bezeichnungen (DE / EN)</div>
+                   </div>
+                   <div className="flex bg-bg2 p-1 rounded-xl border border-line">
+                      {[
+                        { id: 'de', label: 'DE' },
+                        { id: 'en', label: 'EN' },
+                      ].map(({ id, label }) => (
+                        <button key={id} onClick={() => { setMuscleLanguage(id); updateSettings?.({ muscleLanguage: id }); }}
+                           className={`px-3 py-1 text-[9px] font-black uppercase rounded-lg transition-all ${muscleLanguage === id ? 'bg-card shadow-sm text-accent' : 'text-dim hover:text-ink'}`}>
+                           {label}
+                        </button>
+                      ))}
+                   </div>
                 </div>
 
                 {/* Layout Scale */}
@@ -198,6 +230,23 @@ export default function Settings({
                          <button key={g} onClick={() => { setGender(g); updateSettings?.({gender: g}); }}
                             className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${gender === g ? 'bg-card shadow-md text-accent' : 'text-dim hover:text-ink'}`}>
                             {g === 'male' ? 'Male' : 'Female'}
+                         </button>
+                      ))}
+                   </div>
+                </div>
+
+                {/* Muscle Names Language */}
+                <div>
+                   <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-3 ml-1">Muskelbezeichnungen</div>
+                   <div className="flex gap-1 p-1 bg-bg2 rounded-xl border border-line">
+                      {[
+                        { id: 'de', label: 'Deutsch' },
+                        { id: 'lat', label: 'Latein' },
+                        { id: 'en', label: 'English' }
+                      ].map(l => (
+                         <button key={l.id} onClick={() => { setMuscleLanguage(l.id); updateSettings?.({muscleLanguage: l.id}); }}
+                            className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${muscleLanguage === l.id ? 'bg-card shadow-md text-accent' : 'text-dim hover:text-ink'}`}>
+                            {l.label}
                          </button>
                       ))}
                    </div>

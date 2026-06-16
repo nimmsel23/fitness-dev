@@ -101,7 +101,7 @@ function QuizMode({ exercises, onExit }) {
   );
 }
 
-export default function Learn({ onInspectExercise, hitMode, gender }) {
+export default function Learn({ onInspectExercise, hitMode, gender, muscleLanguage = 'de', taxonomy = null }) {
   const [exercises, setExercises] = useState([]);
   const [selected, setSelected]   = useState(null);
   const [viewMode, setViewMode]   = useState('library'); // 'library', 'explorer', or 'quiz'
@@ -227,6 +227,8 @@ export default function Learn({ onInspectExercise, hitMode, gender }) {
         muscleData={muscleData}
         loading={muscleLoading}
         onClose={() => setSelectedMuscleId(null)}
+        muscleLanguage={muscleLanguage}
+        taxonomy={taxonomy}
       />
     </div>
   );

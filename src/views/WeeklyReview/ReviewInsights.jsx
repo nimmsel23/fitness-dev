@@ -1,6 +1,7 @@
 import { Sparkles, AlertCircle } from 'lucide-react';
+import { translateMuscle } from '../../lib/translations';
 
-export default function ReviewInsights({ recommendations, missingRegions }) {
+export default function ReviewInsights({ recommendations, missingRegions, muscleLanguage = 'de', taxonomy = null }) {
   return (
     <section className="card mb-0 bg-accent/5 border-accent/20 shadow-xl p-8">
       <div className="label-caps !mb-6 flex items-center gap-2 text-accent">
@@ -24,7 +25,7 @@ export default function ReviewInsights({ recommendations, missingRegions }) {
                {missingRegions.map(region => (
                  <span key={region} className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border transition-all" 
                    style={{ background: 'rgba(239,68,68,0.05)', color: 'var(--red)', borderColor: 'rgba(239,68,68,0.2)' }}>
-                   {region}
+                   {translateMuscle(region, taxonomy, muscleLanguage)}
                  </span>
                ))}
              </div>

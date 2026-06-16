@@ -68,14 +68,28 @@ export default function App() {
   const [showAdvanced, setShowAdvanced] = useState(() => localStorage.getItem('fitness-showAdvanced') === 'true');
   const [dashboardHighlighter, setDashboardHighlighter] = useState(() => localStorage.getItem('fitness-dashboardHighlighter') || 'body');
   const [sidebarPinned, setSidebarPinned] = useState(() => localStorage.getItem('fitness-sidebarPinned') !== 'false');
+  const [swipeEnabled, setSwipeEnabled] = useState(() => localStorage.getItem('fitness-swipeEnabled') !== 'false');
+  const [muscleLanguage, setMuscleLanguage] = useState(() => localStorage.getItem('fitness-muscleLanguage') || 'de');
+  const [taxonomy, setTaxonomy] = useState(null);
+
+  useEffect(() => {
+    if (isLocalMode()) {
+      fetch('http://localhost:9100/fitness/muscles')
+        .then(r => r.json())
+        .then(data => setTaxonomy(data?.muscles || null))
+        .catch(() => {});
+    }
+  }, []);
 
   // Swipe Navigation — refs to avoid re-registering listeners on every touch event
   const touchStartRef = useRef(null);
   const touchEndRef   = useRef(null);
   const tabRef        = useRef(tab);
   const navModeRef    = useRef(navMode);
+  const swipeEnabledRef = useRef(swipeEnabled);
   useEffect(() => { tabRef.current = tab; }, [tab]);
   useEffect(() => { navModeRef.current = navMode; }, [navMode]);
+  useEffect(() => { swipeEnabledRef.current = swipeEnabled; }, [swipeEnabled]);
 
   useEffect(() => {
     document.documentElement.style.fontSize = `${layoutScale}%`;
@@ -86,10 +100,11 @@ export default function App() {
     const HINT_START = 30;
 
     const onTouchStart = (e) => {
-      if (navModeRef.current !== 'tabs') return;
+      if (!swipeEnabledRef.current || navModeRef.current !== 'tabs') return;
       touchEndRef.current   = null;
       touchStartRef.current = e.targetTouches[0].clientX;
     };
+
 
     const onTouchMove = (e) => {
       if (!touchStartRef.current) return;
@@ -130,6 +145,7 @@ export default function App() {
   }, []);
 
   // Persistence Effects
+  useEffect(() => { localStorage.setItem('fitness-muscleLanguage', muscleLanguage) }, [muscleLanguage]);
   useEffect(() => { localStorage.setItem('fitness-hitMode', hitMode) }, [hitMode]);
   useEffect(() => { localStorage.setItem('fitness-planMode', planMode) }, [planMode]);
   useEffect(() => { localStorage.setItem('fitness-gender', gender) }, [gender]);
@@ -260,8 +276,8 @@ export default function App() {
         </Sidebar>
 
         <div className={`flex-1 transition-all duration-500 ease-in-out ${sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
-          {/* Main Header - hidden on mobile when a sheet is open in home mode */}
-          <div className={navMode === 'home' && tab !== 'dash' ? 'hidden lg:block' : ''}>
+          {/* Main Header - hidden on mobile in home mode entirely */}
+          <div className={navMode === 'home' ? 'hidden lg:block' : ''}>
             <MobileHeader navigate={navigate} tab={tab} navMode={navMode} />
           </div>
 
@@ -295,10 +311,10 @@ export default function App() {
 
                   <div className={`${navMode === 'home' && tab !== 'gate' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
                       {/* Render content */}
-                      {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} />}
+                      {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
                       {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}
-                      {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} hitMode={hitMode} />}
-                      {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} hitMode={hitMode} gender={gender} />}
+                      {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} hitMode={hitMode} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
+                      {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} hitMode={hitMode} gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
                       {tab === 'habits'   && <Habits />}
                       {tab === 'journal'  && <Journal />}
                       {tab === 'coach'    && <Coach onInspectExercise={inspectExercise} />}
@@ -321,6 +337,8 @@ export default function App() {
                            themes={THEMES} theme={theme} setThemeState={setThemeState}
                            sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned}
                            navMode={navMode} setNavMode={setNavMode}
+                           muscleLanguage={muscleLanguage} setMuscleLanguage={setMuscleLanguage}
+                           swipeEnabled={swipeEnabled} setSwipeEnabled={setSwipeEnabled}
                          />
                       )}
                   </div>

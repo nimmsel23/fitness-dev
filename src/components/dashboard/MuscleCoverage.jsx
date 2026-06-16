@@ -1,6 +1,7 @@
 import { AlertCircle, TrendingUp } from "lucide-react";
+import { translateMuscle } from "../../lib/translations";
 
-export default function MuscleCoverage({ coverage, recentDays = 7 }) {
+export default function MuscleCoverage({ coverage, recentDays = 7, muscleLanguage = 'de', taxonomy = null }) {
   return (
     <div className="alpha-card p-10 h-full bg-accent/5 border-accent/20">
       <div className="flex items-center gap-3 mb-10">
@@ -20,7 +21,7 @@ export default function MuscleCoverage({ coverage, recentDays = 7 }) {
             <span key={g.name} className="text-[11px] font-black uppercase tracking-widest px-5 py-2.5 rounded-2xl flex items-center gap-2"
               style={{ background: 'var(--red)' + '15', color: 'var(--red)', border: '1px solid var(--red)30' }}>
               <AlertCircle size={14} />
-              {g.name}
+              {translateMuscle(g.name, taxonomy, muscleLanguage)}
             </span>
           ))}
         </div>

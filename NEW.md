@@ -17,3 +17,4 @@ fix: restore git auto-deploy for root-level PWA structure
 chore: rename deploy script to deploy-firebase
 feat: implement Safe Production Pipeline with separated release vessel
 docs: rename FIRESTORE.md to FIREBASE.md and update for Safe Production Pipeline
+- **Muscle Slug Support & L10n**: Frontend refactored to support numeric muscle IDs and user-selectable muscle name languages (DE/LAT/EN).

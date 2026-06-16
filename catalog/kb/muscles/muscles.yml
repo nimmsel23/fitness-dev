@@ -3,24 +3,34 @@ muscles:
   100_chest:
     display_name: Chest
     label_de: "Brust"
+    label_en: "Chest"
+    label_lat: "Thorax"
     body_region: chest_front
   101_pectoralis_major:
     display_name: Pectoralis Major
     label_de: "Großer Brustmuskel"
+    label_en: "Chest (Large)"
+    label_lat: "M. pectoralis major"
     body_region: chest_front
     wger_id: 4
   102_pectoralis_major_clavicular:
     display_name: Pectoralis Major (Clavicular)
     label_de: "Oberer Brustmuskel"
+    label_en: "Upper Chest"
+    label_lat: "M. pectoralis major (pars clavicularis)"
     body_region: chest_front
     wger_id: 4
   103_pectoralis_minor:
     display_name: Pectoralis Minor
     label_de: "Kleiner Brustmuskel"
+    label_en: "Chest (Small)"
+    label_lat: "M. pectoralis minor"
     body_region: chest_front
   104_serratus_anterior:
     display_name: Serratus Anterior
     label_de: "Vorderer Sägemuskel"
+    label_en: "Serratus"
+    label_lat: "M. serratus anterior"
     body_region: chest_front
     wger_id: 3
 
@@ -28,167 +38,237 @@ muscles:
   200_back:
     display_name: Back
     label_de: "Rücken"
+    label_en: "Back"
+    label_lat: "Dorsum"
     body_region: upper_back
   201_latissimus_dorsi:
     display_name: Latissimus Dorsi
     label_de: "Breiter Rückenmuskel"
+    label_en: "Lats"
+    label_lat: "M. latissimus dorsi"
     body_region: lats
     wger_id: 12
   202_trapezius_upper:
     display_name: Trapezius Upper
     label_de: "Oberer Trapez"
+    label_en: "Traps (Upper)"
+    label_lat: "M. trapezius (pars descendens)"
     body_region: neck
     wger_id: 9
   203_trapezius_middle:
     display_name: Trapezius Middle
     label_de: "Mittlerer Trapez"
+    label_en: "Traps (Middle)"
+    label_lat: "M. trapezius (pars transversa)"
     body_region: upper_back
     wger_id: 9
   204_trapezius_lower:
     display_name: Trapezius Lower
     label_de: "Unterer Trapez"
+    label_en: "Traps (Lower)"
+    label_lat: "M. trapezius (pars ascendens)"
     body_region: upper_back
     wger_id: 9
   205_rhomboids:
     display_name: Rhomboids
     label_de: "Rautenmuskeln"
+    label_en: "Rhomboids"
+    label_lat: "Mm. rhomboidei"
     body_region: upper_back
   206_erector_spinae:
     display_name: Erector Spinae
     label_de: "Rückenstrecker"
+    label_en: "Lower Back / Erector"
+    label_lat: "M. erector spinae"
     body_region: lower_back
     wger_id: 16
   207_teres_major:
     display_name: Teres Major
     label_de: "Großer Rundmuskel"
+    label_en: "Teres Major"
+    label_lat: "M. teres major"
     body_region: lats
   208_quadratus_lumborum:
     display_name: Quadratus Lumborum
     label_de: "Quadratischer Lendenmuskel"
+    label_en: "QL"
+    label_lat: "M. quadratus lumborum"
     body_region: lower_back
 
   # --- Schultern (Shoulders) ---
   300_shoulders:
     display_name: Shoulders
     label_de: "Schultern"
+    label_en: "Shoulders"
+    label_lat: "Deltoideus"
     body_region: shoulders_side
   301_anterior_deltoid:
     display_name: Anterior Deltoid
     label_de: "Vordere Schulter"
+    label_en: "Front Delts"
+    label_lat: "M. deltoideus (pars clavicularis)"
     body_region: shoulders_front
     wger_id: 2
   302_lateral_deltoid:
     display_name: Lateral Deltoid
     label_de: "Seitliche Schulter"
+    label_en: "Side Delts"
+    label_lat: "M. deltoideus (pars acromialis)"
     body_region: shoulders_side
   303_posterior_deltoid:
     display_name: Posterior Deltoid
     label_de: "Hintere Schulter"
+    label_en: "Rear Delts"
+    label_lat: "M. deltoideus (pars spinalis)"
     body_region: shoulders_back
     wger_id: 9 # wger uses 9 (traps) for some posterior deltoid exercises as fallback
   304_rotator_cuff:
     display_name: Rotator Cuff
     label_de: "Rotatorenmanschette"
+    label_en: "Rotator Cuff"
+    label_lat: "Rotatorenmanschette"
     body_region: shoulders_side
 
   # --- Arme (Arms) ---
   400_arms:
     display_name: Arms
     label_de: "Arme"
+    label_en: "Arms"
+    label_lat: "Membrum superius"
     body_region: upper_arm_front
   401_biceps_brachii:
     display_name: Biceps Brachii
     label_de: "Bizeps"
+    label_en: "Biceps"
+    label_lat: "M. biceps brachii"
     body_region: upper_arm_front
     wger_id: 1
   402_brachialis:
     display_name: Brachialis
     label_de: "Armbeuger"
+    label_en: "Brachialis"
+    label_lat: "M. brachialis"
     body_region: upper_arm_front
     wger_id: 13
   403_triceps_brachii:
     display_name: Triceps Brachii
     label_de: "Trizeps"
+    label_en: "Triceps"
+    label_lat: "M. triceps brachii"
     body_region: upper_arm_back
     wger_id: 5
   404_brachioradialis:
     display_name: Brachioradialis
     label_de: "Oberarmspeichenmuskel"
+    label_en: "Brachioradialis"
+    label_lat: "M. brachioradialis"
     body_region: forearms
   405_forearm_flexors:
     display_name: Forearm Flexors
     label_de: "Unterarmbeuger"
+    label_en: "Forearm Flexors"
+    label_lat: "Mm. flexores antebrachii"
     body_region: forearms
   406_anconeus:
     display_name: Anconeus
     label_de: "Knorrenmuskel"
+    label_en: "Anconeus"
+    label_lat: "M. anconeus"
     body_region: upper_arm_back
 
   # --- Bauch / Core ---
   500_core:
     display_name: Core
     label_de: "Kern / Bauch"
+    label_en: "Core"
+    label_lat: "Core"
     body_region: abdomen_front
   501_rectus_abdominis:
     display_name: Rectus Abdominis
     label_de: "Gerader Bauchmuskel"
+    label_en: "Abs"
+    label_lat: "M. rectus abdominis"
     body_region: abdomen_front
     wger_id: 6
   502_obliques:
     display_name: Obliques
     label_de: "Schräge Bauchmuskeln"
+    label_en: "Obliques"
+    label_lat: "Mm. obliqui abdominis"
     body_region: abdomen_front
     wger_id: 14
   503_transverse_abdominis:
     display_name: Transverse Abdominis
     label_de: "Querer Bauchmuskel"
+    label_en: "Deep Core"
+    label_lat: "M. transversus abdominis"
     body_region: abdomen_front
 
   # --- Beine & Gesäß (Lower Body) ---
   600_legs:
     display_name: Legs
     label_de: "Beine"
+    label_en: "Legs"
+    label_lat: "Membrum inferius"
     body_region: thigh_front
   601_gluteus_maximus:
     display_name: Gluteus Maximus
     label_de: "Großer Gesäßmuskel"
+    label_en: "Glutes"
+    label_lat: "M. gluteus maximus"
     body_region: glutes
     wger_id: 8
   602_gluteus_medius:
     display_name: Gluteus Medius
     label_de: "Mittlerer Gesäßmuskel"
+    label_en: "Side Glutes"
+    label_lat: "M. gluteus medius"
     body_region: glutes
   603_quadriceps:
     display_name: Quadriceps
     label_de: "Beinstrecker / Quadrizeps"
+    label_en: "Quads"
+    label_lat: "M. quadriceps femoris"
     body_region: thigh_front
     wger_id: 10
   604_hamstrings:
     display_name: Hamstrings
     label_de: "Beinbeuger"
+    label_en: "Hamstrings"
+    label_lat: "Mm. ischiocrurales"
     body_region: thigh_back
     wger_id: 11
   605_adductors:
     display_name: Adductors
     label_de: "Adduktoren"
+    label_en: "Adductors"
+    label_lat: "Mm. adductores"
     body_region: thigh_front
 
   # --- Waden & Schienbein ---
   700_calves:
     display_name: Calves
     label_de: "Waden"
+    label_en: "Calves"
+    label_lat: "Sura"
     body_region: calves
   701_gastrocnemius:
     display_name: Gastrocnemius
     label_de: "Zwillingswadenmuskel"
+    label_en: "Calves (Upper)"
+    label_lat: "M. gastrocnemius"
     body_region: calves
     wger_id: 7
   702_soleus:
     display_name: Soleus
     label_de: "Schollenmuskel"
+    label_en: "Calves (Lower)"
+    label_lat: "M. soleus"
     body_region: calves
     wger_id: 15
   703_tibialis_anterior:
     display_name: Tibialis Anterior
     label_de: "Vorderer Schienbeinmuskel"
+    label_en: "Tibialis"
+    label_lat: "M. tibialis anterior"
     body_region: shin_front

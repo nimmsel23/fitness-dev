@@ -2,8 +2,9 @@ import { X, Brain, Info, BookOpen, Search } from "lucide-react";
 import { getAllExercises } from "@db";
 import { useState, useEffect } from "react";
 import MuscleHighlightMap from "./MuscleHighlightMap";
+import { translateMuscle } from "../lib/translations";
 
-export default function MuscleDetailModal({ muscleId, muscleData, onClose, loading }) {
+export default function MuscleDetailModal({ muscleId, muscleData, onClose, loading, muscleLanguage = 'de', taxonomy = null }) {
   const [exercises, setExercises] = useState([]);
   const [exLoading, setExLoading] = useState(false);
 
@@ -31,8 +32,8 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
 
   if (!muscleId) return null;
 
-  const name = muscleData?.name_de || muscleData?.display_name || muscleId.charAt(0).toUpperCase() + muscleId.slice(1);
-  const latin = muscleData?.latin_name || muscleData?.latin;
+  const name = translateMuscle(muscleId, taxonomy, muscleLanguage);
+  const latin = taxonomy?.[muscleId]?.label_lat || muscleData?.latin_name || muscleData?.latin;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">

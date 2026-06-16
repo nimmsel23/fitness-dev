@@ -8,7 +8,7 @@ import ReviewMuscleImpact from './ReviewMuscleImpact';
 import ReviewSessionList from './ReviewSessionList';
 import ReviewTopExercises from './ReviewTopExercises';
 
-export default function WeeklyReview({ onOpenSession, onInspectExercise, hitMode = false }) {
+export default function WeeklyReview({ onOpenSession, onInspectExercise, hitMode = false, muscleLanguage = 'de' }) {
   const [week, setWeek] = useState('current');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -68,11 +68,12 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, hitMode
             <ReviewInsights 
               recommendations={data.recommendations} 
               missingRegions={missingRegions} 
+              muscleLanguage={muscleLanguage}
             />
           </div>
 
           <div className="lg:col-span-8 space-y-8">
-            <ReviewMuscleImpact regionEntries={regionEntries} />
+            <ReviewMuscleImpact regionEntries={regionEntries} muscleLanguage={muscleLanguage} />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <ReviewSessionList 

@@ -31,7 +31,7 @@ const WIDGET_META = {
 
 const HOME_NAV = NAV_ITEMS.filter(i => i.id !== 'dash' && i.id !== 'settings');
 
-export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body', gender = 'male', navMode = 'tabs', navigate }) {
+export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body', gender = 'male', navMode = 'tabs', navigate, muscleLanguage = 'de', taxonomy = null }) {
   function onNavigate(target, date) {
     if (target === 'session') onOpenSession?.(date || null);
     else if (target === 'review') onOpenReview?.();
@@ -163,7 +163,7 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
       case 'body':
         return <MuscleBody enrichedRecent={enrichedRecent} recentDays={recentDays} highlighterMode={dashboardHighlighter} gender={gender} />;
       case 'coverage':
-        return <MuscleCoverage coverage={coverage} recentDays={recentDays} />;
+        return <MuscleCoverage coverage={coverage} recentDays={recentDays} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />;
       case 'weight':
         return <WeightChart days={30} />;
       default: return null;

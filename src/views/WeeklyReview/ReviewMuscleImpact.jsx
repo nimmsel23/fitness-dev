@@ -1,6 +1,7 @@
 import { TrendingUp } from 'lucide-react';
+import { translateMuscle } from '../../lib/translations';
 
-export default function ReviewMuscleImpact({ regionEntries }) {
+export default function ReviewMuscleImpact({ regionEntries, muscleLanguage = 'de', taxonomy = null }) {
   return (
     <section className="card mb-0 shadow-lg border-line/50 p-8">
       <div className="label-caps !mb-8 flex items-center gap-2">
@@ -13,7 +14,9 @@ export default function ReviewMuscleImpact({ regionEntries }) {
           const pct = Math.min(100, (score / maxScore) * 100);
           return (
             <div key={name} className="flex flex-col p-5 rounded-2xl border bg-bg2 border-line hover:border-accent/40 transition-all group shadow-sm">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mb-3 group-hover:text-accent group-hover:opacity-100 transition-colors">{name}</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mb-3 group-hover:text-accent group-hover:opacity-100 transition-colors">
+                {translateMuscle(name, taxonomy, muscleLanguage)}
+              </span>
               <div className="flex items-end justify-between mt-auto">
                 <span className="text-2xl font-black text-ink">{Number(score).toFixed(1)}</span>
                 <div className="w-1.5 h-8 bg-line rounded-full overflow-hidden flex flex-col justify-end">
