@@ -4,8 +4,8 @@ import { num } from './utils';
 import { TrendingUp, TrendingDown, Minus, Plus, Info, X, ChevronDown, ChevronUp, Clock, Target, Activity } from 'lucide-react';
 
 export default function ExerciseItem({
-  ex, i, hitMode, muscleRecovery = {}, updateEx, addSet, removeSet, removeEx, moveEx,
-  isFirst, isLast, planMode, date, prev, onInspectExercise
+  ex, i, muscleRecovery = {}, updateEx, addSet, removeSet, removeEx, moveEx,
+  isFirst, isLast, date, prev, onInspectExercise
 }) {
   const [trend, setTrend] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
@@ -15,27 +15,9 @@ export default function ExerciseItem({
     if (ex.name) {
       getProgressTrend(ex.name).then(setTrend);
     }
-  }, [ex.name, ex.isHIT]);
-
-  const isImplicitHIT = !hitMode && ex.setsArray?.length === 1 && !ex.setsArray[0].reps;
-  const isActuallyHIT = ex.isHIT || hitMode || isImplicitHIT;
-
-  const currentVolume = (!isActuallyHIT && ex.setsArray)
-    ? ex.setsArray.reduce((sum, s) => sum + (num(s.reps) || 0) * (num(s.weight) || 0), 0)
-    : 0;
-
-  const prevVolume = (prev && prev.setsArray)
-    ? prev.setsArray.reduce((sum, s) => sum + (num(s.reps) || 0) * (num(s.weight) || 0), 0)
-    : (prev?.sets && prev?.reps && prev?.weight) ? (num(prev.sets) * num(prev.reps) * num(prev.weight)) : 0;
-
-  const volDiff = prevVolume > 0 ? ((currentVolume - prevVolume) / prevVolume) * 100 : 0;
+  }, [ex.name]);
 
   const handleRepsChange = (val, sIdx) => {
-    const v = String(val).toUpperCase();
-    if (v === 'H' || v === 'HIT') {
-      updateEx(i, 'isHIT', true);
-      return;
-    }
     updateEx(i, 'reps', val, sIdx);
   };
   
@@ -48,9 +30,7 @@ export default function ExerciseItem({
   }
 
   return (
-    <div className={`card relative mb-3 overflow-hidden transition-all duration-300 border-l-4 ${
-      planMode && isFuture && !ex.done ? 'border-orange' : 'border-accent'
-    } ${showDetails ? 'shadow-2xl ring-1 ring-accent/10' : 'shadow-sm'}`}>
+    <div className={`card relative mb-3 overflow-hidden transition-all duration-300 border-l-4 border-accent ${showDetails ? 'shadow-2xl ring-1 ring-accent/10' : 'shadow-sm'}`}>
       
       {/* Exercise Header */}
       <div className="p-4 sm:p-5">
@@ -69,12 +49,6 @@ export default function ExerciseItem({
                   ex.source === 'bulk' ? 'bg-bg2 text-dim/40 border-line' : 'bg-orange/5 text-orange/50 border-orange/10'
                 }`}>
                   {ex.source}
-                </span>
-              )}
-
-              {isActuallyHIT && (
-                <span className="text-[8px] font-black bg-orange text-black px-1.5 py-0.5 rounded uppercase tracking-[0.2em] shadow-sm">
-                  HIT
                 </span>
               )}
             </div>
@@ -136,60 +110,23 @@ export default function ExerciseItem({
                 </div>
               </div>
             </div>
-            
-            <div className="text-right">
-               <div className="text-[10px] font-black uppercase tracking-widest text-dim/40 mb-0.5">Diff</div>
-               <div className={`text-xs font-black ${volDiff > 0 ? 'text-green' : volDiff < 0 ? 'text-red' : 'text-dim'}`}>
-                  {volDiff > 0 ? '+' : ''}{Math.round(volDiff)}%
-               </div>
-            </div>
           </div>
         )}
       </div>
 
       {/* Input Section */}
       <div className="px-4 pb-4 sm:px-5 sm:pb-5">
-        {/* HIT View */}
-        {isActuallyHIT && ex.setsArray && (
-          <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1fr] items-center gap-4 bg-orange/5 p-4 rounded-3xl border border-orange/10">
-            <div className="flex flex-col gap-1.5">
-               <label className="text-[10px] font-black uppercase tracking-[0.2em] text-orange/60 ml-1 flex items-center gap-2">
-                 <Target size={12} /> Fokus
-               </label>
-               <div className="py-3 px-4 rounded-2xl bg-orange/10 border border-orange/20 text-orange font-black text-sm uppercase tracking-widest text-center shadow-inner">FAILURE</div>
-            </div>
-            <div className="hidden sm:block text-orange/30 font-black text-xl pt-4">@</div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-orange/60 ml-1">Gewicht</label>
-              <div className="relative">
-                <input 
-                  type="text" 
-                  inputMode="decimal" 
-                  placeholder="kg" 
-                  value={ex.setsArray[0]?.weight || ''} 
-                  onChange={e => updateEx(i, 'weight', e.target.value, 0)} 
-                  className="w-full text-center font-mono font-black py-3 px-4 rounded-2xl bg-card border border-orange/20 text-lg text-orange focus:border-orange focus:ring-4 focus:ring-orange/10 outline-none shadow-sm" 
-                />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-orange/30 font-black text-xs uppercase">kg</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Standard View */}
-        {!isActuallyHIT && ex.setsArray && (
+        {ex.setsArray && (
           <div className="space-y-2">
-              <div className="grid grid-cols-[1fr_auto_1fr_40px_1fr_32px] gap-2 px-2 mb-1">
+              <div className="grid grid-cols-[1fr_auto_1fr_32px] gap-2 px-2 mb-1">
                 <span className="text-[9px] font-black uppercase tracking-widest text-dim/40 text-center">Reps</span>
                 <span />
                 <span className="text-[9px] font-black uppercase tracking-widest text-dim/40 text-center">Weight</span>
                 <span />
-                <span className="text-[9px] font-black uppercase tracking-widest text-dim/40 text-center">Volume</span>
-                <span />
               </div>
 
               {ex.setsArray.map((set, sIdx) => (
-                  <div key={sIdx} className="grid grid-cols-[1fr_auto_1fr_40px_1fr_32px] items-center gap-2 animate-in slide-in-from-left-2 duration-200">
+                  <div key={sIdx} className="grid grid-cols-[1fr_auto_1fr_32px] items-center gap-2 animate-in slide-in-from-left-2 duration-200">
                       <input type="text" inputMode="numeric" placeholder="Reps" value={set.reps || ''} onChange={e => handleRepsChange(e.target.value, sIdx)} 
                         className="text-center font-mono font-black py-3 rounded-2xl bg-bg2 border border-line w-full text-sm focus:border-accent focus:ring-4 focus:ring-accent/5 outline-none transition-all" />
                       
@@ -199,12 +136,6 @@ export default function ExerciseItem({
                         <input type="text" inputMode="decimal" placeholder="kg" value={set.weight || ''} onChange={e => updateEx(i, 'weight', e.target.value, sIdx)} 
                           className="text-center font-mono font-black py-3 rounded-2xl bg-bg2 border border-line w-full text-sm focus:border-accent focus:ring-4 focus:ring-accent/5 outline-none transition-all" />
                         <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-black text-dim/20 uppercase">kg</span>
-                      </div>
-
-                      <div className="text-center font-black text-dim/20 text-[10px]">=</div>
-
-                      <div className="text-xs font-mono font-black text-accent/80 bg-accent/5 rounded-2xl py-3 px-1 text-center border border-accent/10 shadow-inner">
-                        { (num(set.reps) || 0) * (num(set.weight) || 0) }
                       </div>
 
                       <button onClick={() => removeSet(i, sIdx)} className="w-8 h-8 rounded-lg flex items-center justify-center text-dim/30 hover:text-red hover:bg-red/5 transition-all">
@@ -245,36 +176,8 @@ export default function ExerciseItem({
                {ex.done ? 'Erledigt' : 'Geplant'}
              </button>
           )}
-          
-          <button onClick={() => updateEx(i, 'isHIT', !ex.isHIT)}
-            className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-[10px] font-black border transition-all uppercase tracking-[0.2em] shadow-sm ${
-              ex.isHIT ? 'border-orange bg-orange/10 text-orange' : 'border-line bg-bg2 text-dim'
-            }`}>
-            HIT Modus
-          </button>
-          
-          {!isActuallyHIT && currentVolume > 0 && (
-            <div className="hidden sm:flex flex-col items-end justify-center px-4 border-l border-line/30">
-               <span className="text-[8px] font-black uppercase tracking-widest text-dim/40">Gesamtvolumen</span>
-               <span className="text-xs font-mono font-black text-accent">{Math.round(currentVolume).toLocaleString('de-AT')} kg</span>
-            </div>
-          )}
         </div>
       </div>
-
-      {/* Detail Toggle for Mobile Volume */}
-      {!isActuallyHIT && currentVolume > 0 && (
-        <div className="sm:hidden px-4 py-2 bg-accent/5 border-t border-accent/10 flex justify-between items-center">
-           <span className="text-[9px] font-black uppercase tracking-widest text-dim/60 flex items-center gap-1">
-             <Activity size={10} /> Vol: {Math.round(currentVolume).toLocaleString('de-AT')} kg
-           </span>
-           {volDiff !== 0 && (
-             <span className={`text-[9px] font-black ${volDiff > 0 ? 'text-green' : 'text-red'}`}>
-               {volDiff > 0 ? '↗' : '↘'} {Math.abs(Math.round(volDiff))}%
-             </span>
-           )}
-        </div>
-      )}
     </div>
   );
 }

@@ -77,7 +77,7 @@ function MuscleMapModal({ exercises, onClose }) {
   );
 }
 
-export default function Session({ initialDate, initialDraft, hitMode, planMode, onInspectExercise }) {
+export default function Session({ initialDate, initialDraft, onInspectExercise }) {
   const [date, setDate]           = useState(initialDate || localToday());
   const [block, setBlock]         = useState('');
   const [exercises, setExercises] = useState([]);
@@ -204,7 +204,7 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
       primaryMuscles: primary,
       secondaryMuscles: secondary,
       setsArray: [{reps: '', weight: ''}],
-      note: '', done: true, isHIT: false,
+      note: '', done: true,
       source: ex.source
     }]);
 
@@ -358,7 +358,6 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
 
           <ExerciseSection
             exercises={exercises}
-            hitMode={hitMode}
             restHours={restHours}
             muscleRecovery={recentSessions[date]?.muscle_recovery || {}}
             updateEx={updateEx}
@@ -366,7 +365,6 @@ export default function Session({ initialDate, initialDraft, hitMode, planMode, 
             removeSet={removeSet}
             removeEx={removeEx}
             moveEx={moveEx}
-            planMode={planMode}
             date={date}
             addEx={addEx}
             quickInput={quickInput}

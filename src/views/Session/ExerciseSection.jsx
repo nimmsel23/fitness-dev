@@ -5,7 +5,7 @@ import ExerciseItem from "./ExerciseItem";
 import ExerciseSearchOverlay from "../../components/ExerciseSearchOverlay";
 
 export default function ExerciseSection({
-  exercises = [], hitMode, restHours, muscleRecovery = {},
+  exercises = [], restHours, muscleRecovery = {},
   updateEx, addSet, removeSet, removeEx, moveEx,
   planMode, date, addEx, quickInput, setQuickInput, addQuick,
   prevMap = {}, onInspectExercise
@@ -30,7 +30,6 @@ export default function ExerciseSection({
             key={idx}
             ex={ex}
             i={idx}
-            hitMode={hitMode}
             muscleRecovery={muscleRecovery}
             updateEx={updateEx}
             addSet={addSet}

@@ -15,7 +15,6 @@ import { NAV_ITEMS, VALID_TABS } from './constants/NavigationItems.js'
 import { THEMES } from './constants/Themes.js'
 import Sidebar from './components/layout/Sidebar.jsx'
 import MobileNav from './components/layout/MobileNav.jsx'
-import MobileHeader from './components/layout/MobileHeader.jsx'
 import UserProfile from './components/common/UserProfile.jsx'
 import ErrorBoundary from './components/common/ErrorBoundary.jsx'
 
@@ -52,8 +51,6 @@ export default function App() {
   // Circadian: which dark + which light to use
   const [circDark,  setCircDark]  = useState(() => localStorage.getItem('fitness-circ-dark') || 'nordic');
   const [circLight, setCircLight] = useState(() => localStorage.getItem('fitness-circ-light') || 'honey');
-  const [hitMode, setHitMode] = useState(() => localStorage.getItem('fitness-hitMode') !== 'false');
-  const [planMode, setPlanMode] = useState(() => localStorage.getItem('fitness-planMode') === 'true');
   const [gender, setGender] = useState(() => localStorage.getItem('fitness-gender') || 'male');
   const [split, setSplit] = useState(() => localStorage.getItem('fitness-split') || 'PPL');
   const [cycleLength, setCycleLength] = useState(() => parseInt(localStorage.getItem('fitness-cycleLength') || '4', 10));
@@ -146,8 +143,6 @@ export default function App() {
 
   // Persistence Effects
   useEffect(() => { localStorage.setItem('fitness-muscleLanguage', muscleLanguage) }, [muscleLanguage]);
-  useEffect(() => { localStorage.setItem('fitness-hitMode', hitMode) }, [hitMode]);
-  useEffect(() => { localStorage.setItem('fitness-planMode', planMode) }, [planMode]);
   useEffect(() => { localStorage.setItem('fitness-gender', gender) }, [gender]);
   useEffect(() => { localStorage.setItem('fitness-split', split) }, [split]);
   useEffect(() => { localStorage.setItem('fitness-cycleLength', cycleLength) }, [cycleLength]);
@@ -276,11 +271,6 @@ export default function App() {
         </Sidebar>
 
         <div className={`flex-1 transition-all duration-500 ease-in-out ${sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
-          {/* Main Header - hidden on mobile in home mode entirely */}
-          <div className={navMode === 'home' ? 'hidden lg:block' : ''}>
-            <MobileHeader navigate={navigate} tab={tab} navMode={navMode} />
-          </div>
-
           <main className={`relative ${navMode === 'tabs' ? 'pb-28' : ''} sm:pb-10 lg:pb-16 min-h-[100dvh] overflow-x-hidden`}>
               {/* Background Gate - only mounted in home mode */}
               {navMode === 'home' && (
@@ -296,31 +286,18 @@ export default function App() {
                   ${navMode === 'home' && tab === 'gate' ? 'translate-y-full pointer-events-none' : 'translate-y-0'}
                 `}
               >
-                <div className={`${navMode === 'home' ? 'h-full bg-[var(--bg)] shadow-[0_-20px_50px_rgba(0,0,0,0.3)] overflow-y-auto rounded-t-[40px] border-t border-[var(--line)]/30 relative' : ''}`}>
-                  {/* Sheet Pull Handle (Visual only for now) */}
-                  {navMode === 'home' && tab !== 'gate' && (
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1.5 rounded-full bg-[var(--line)]/40 z-[60] lg:hidden" />
-                  )}
-
-                  {/* Sheet Header (only in home mode sheets) */}
-                  {navMode === 'home' && tab !== 'gate' && (
-                    <div className="sticky top-0 z-50 lg:hidden bg-[var(--bg)]/80 backdrop-blur-md border-b border-[var(--line)]/30 rounded-t-[40px] px-2 pt-4">
-                       <MobileHeader navigate={navigate} tab={tab} navMode={navMode} />
-                    </div>
-                  )}
-
+                <div className={`${navMode === 'home' ? 'h-full bg-[var(--bg)] shadow-[0_-20px_50px_rgba(0,0,0,0.3)] overflow-y-auto rounded-t-[40px] border-t border-[var(--line)]/30 relative pt-6' : ''}`}>
                   <div className={`${navMode === 'home' && tab !== 'gate' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
                       {/* Render content */}
                       {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
                       {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}
-                      {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} hitMode={hitMode} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
-                      {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} hitMode={hitMode} gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
+                      {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
+                      {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
                       {tab === 'habits'   && <Habits />}
                       {tab === 'journal'  && <Journal />}
                       {tab === 'coach'    && <Coach onInspectExercise={inspectExercise} />}
                       {tab === 'settings' && (
                          <Settings
-                           hitMode={hitMode} setHitMode={setHitMode}
                            planMode={planMode} setPlanMode={setPlanMode}
                            layoutScale={layoutScale} setLayoutScale={setLayoutScale}
                            recentDays={recentDays} setRecentDays={setRecentDays}

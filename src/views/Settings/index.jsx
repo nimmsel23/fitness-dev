@@ -1,9 +1,10 @@
-import { Zap, LayoutGrid, Sparkles, Settings2, ShieldAlert } from "lucide-react";
+import { Zap, LayoutGrid, Sparkles, Settings2, ShieldAlert, RefreshCw } from "lucide-react";
 import { useState, useEffect } from "react";
 import { api, isLocalMode } from "@db";
 import { DARK_THEMES, LIGHT_THEMES } from "../../constants/Themes";
+
 export default function Settings({
-  hitMode, setHitMode, planMode, setPlanMode,
+  hitMode, setHitMode,
   layoutScale, setLayoutScale,
   gender, setGender, split, setSplit,
   cycleLength, setCycleLength, defaultLocation, setDefaultLocation,
@@ -47,25 +48,16 @@ export default function Settings({
 
   return (
     <div className="space-y-8 pb-32 max-w-5xl mx-auto">
-       {/* 0. Header with Advanced Toggle */}
-       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-          <div>
-             <h2 className="text-3xl font-black text-ink">Settings</h2>
-             <p className="text-sm font-medium opacity-40">Konfiguriere dein AlphaOS Fitness Erlebnis.</p>
-          </div>
-          <button 
-             onClick={() => setShowAdvanced(!showAdvanced)}
-             className={`flex items-center gap-3 px-6 py-3 rounded-2xl border-2 transition-all font-black text-xs uppercase tracking-widest ${showAdvanced ? 'border-accent bg-accent/5 text-accent shadow-lg shadow-accent/5' : 'border-line bg-bg2 text-dim hover:text-ink'}`}
-          >
-             <Settings2 size={16} className={showAdvanced ? 'animate-pulse' : ''} />
-             {showAdvanced ? 'Advanced Mode: Ein' : 'Advanced Mode: Aus'}
-          </button>
+       {/* 0. Header (Simple) */}
+       <header className="mb-4 animate-in fade-in duration-700">
+          <h2 className="text-3xl font-black text-ink">Settings</h2>
+          <p className="text-sm font-medium opacity-40">Konfiguriere dein AlphaOS Fitness Erlebnis.</p>
        </header>
 
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           
           {/* 1. Appearance & UI */}
-          <section className="card p-8 space-y-10 border-t-4 border-t-[var(--accent)]">
+          <section className="card p-8 space-y-10 border-t-4 border-t-[var(--accent)] animate-in fade-in slide-in-from-left-4 duration-500">
              <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center">
                   <LayoutGrid size={20} className="text-[var(--accent)]" />
@@ -77,19 +69,16 @@ export default function Settings({
                 {/* Mobile Navigation Mode */}
                 <div className="lg:hidden">
                    <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-3 ml-1">Mobile Navigation</div>
-                   <div className="flex gap-1 p-1 bg-bg2 rounded-xl border border-line">
+                   <div className="flex gap-1 p-1 bg-[var(--bg2)] rounded-xl border border-[var(--line)]">
                       {[
                         { id: 'tabs', label: 'Tabs + Navbar' },
                         { id: 'home', label: 'Home Menü' },
                       ].map(({ id, label }) => (
                         <button key={id} onClick={() => setNavMode(id)}
-                           className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${navMode === id ? 'bg-card shadow-md text-accent' : 'text-dim hover:text-ink'}`}>
+                           className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${navMode === id ? 'bg-[var(--card)] shadow-md text-[var(--accent)]' : 'text-[var(--dim)] hover:text-[var(--ink)]'}`}>
                            {label}
                         </button>
                       ))}
-                   </div>
-                   <div className="text-[9px] font-bold opacity-20 uppercase mt-2 ml-1">
-                     {navMode === 'home' ? 'Dashboard = Menü, keine Bottom-Bar' : 'Klassische Tab-Navigation'}
                    </div>
                 </div>
 
@@ -100,7 +89,7 @@ export default function Settings({
                       <div className="text-[10px] font-bold opacity-30 uppercase">Permanent fixiert</div>
                    </div>
                    <button onClick={() => { setSidebarPinned(!sidebarPinned); updateSettings?.({ sidebarPinned: !sidebarPinned }); }}
-                      className={`w-12 h-6 rounded-full transition-colors relative border ${sidebarPinned ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
+                      className={`w-12 h-6 rounded-full transition-colors relative border ${sidebarPinned ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--bg2)] border-[var(--line)]'}`}>
                       <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${sidebarPinned ? 'left-7' : 'left-1'}`} />
                    </button>
                 </div>
@@ -112,34 +101,15 @@ export default function Settings({
                       <div className="text-[10px] font-bold opacity-30 uppercase">Tab-Wechsel per Wischgeste</div>
                    </div>
                    <button onClick={() => { setSwipeEnabled(!swipeEnabled); updateSettings?.({ swipeEnabled: !swipeEnabled }); }}
-                      className={`w-12 h-6 rounded-full transition-colors relative border ${swipeEnabled ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
+                      className={`w-12 h-6 rounded-full transition-colors relative border ${swipeEnabled ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--bg2)] border-[var(--line)]'}`}>
                       <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${swipeEnabled ? 'left-7' : 'left-1'}`} />
                    </button>
-                </div>
-
-                {/* Muscle Language */}
-                <div className="flex items-center justify-between">
-                   <div>
-                      <div className="text-sm font-black text-ink">Muskel-Sprache</div>
-                      <div className="text-[10px] font-bold opacity-30 uppercase">Bezeichnungen (DE / EN)</div>
-                   </div>
-                   <div className="flex bg-bg2 p-1 rounded-xl border border-line">
-                      {[
-                        { id: 'de', label: 'DE' },
-                        { id: 'en', label: 'EN' },
-                      ].map(({ id, label }) => (
-                        <button key={id} onClick={() => { setMuscleLanguage(id); updateSettings?.({ muscleLanguage: id }); }}
-                           className={`px-3 py-1 text-[9px] font-black uppercase rounded-lg transition-all ${muscleLanguage === id ? 'bg-card shadow-sm text-accent' : 'text-dim hover:text-ink'}`}>
-                           {label}
-                        </button>
-                      ))}
-                   </div>
                 </div>
 
                 {/* Layout Scale */}
                 <div className="space-y-4">
                    <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Layout Skalierung</div>
-                   <input type="range" min="70" max="150" step="5" value={layoutScale} onChange={(e) => setLayoutScale(parseInt(e.target.value))} className="w-full accent-accent h-1" />
+                   <input type="range" min="70" max="150" step="5" value={layoutScale} onChange={(e) => setLayoutScale(parseInt(e.target.value))} className="w-full accent-[var(--accent)] h-1" />
                    <div className="flex justify-between text-[10px] font-black opacity-30 uppercase">
                       <span>70%</span>
                       <span>{layoutScale}%</span>
@@ -152,7 +122,7 @@ export default function Settings({
                    <div className="flex items-center justify-between mb-4">
                       <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Theme System ({Object.keys(themes).length})</div>
                       <button onClick={() => setModeState(themeMode === 'circadian' ? 'manual' : 'circadian')} 
-                         className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase border transition-all ${themeMode === 'circadian' ? 'border-accent bg-accent/10 text-accent' : 'border-line text-dim hover:text-ink'}`}>
+                         className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase border transition-all ${themeMode === 'circadian' ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]' : 'border-[var(--line)] text-[var(--dim)] hover:text-[var(--ink)]'}`}>
                          Auto-Theme: {themeMode === 'circadian' ? 'Ein' : 'Aus'}
                       </button>
                    </div>
@@ -160,13 +130,13 @@ export default function Settings({
                    {themeMode === 'circadian' ? (
                       <div className="grid grid-cols-2 gap-4 animate-in fade-in duration-300 bg-[var(--bg2)] p-4 rounded-2xl border border-[var(--line)]">
                          <div>
-                            <div className="text-[9px] font-bold uppercase tracking-widest text-dim mb-2 ml-1">☀️ Tag (Light)</div>
+                            <div className="text-[9px] font-bold uppercase tracking-widest text-[var(--dim)] mb-2 ml-1">☀️ Tag (Light)</div>
                             <select value={circLight} onChange={e => setCircLight(e.target.value)} className="w-full bg-[var(--card)] border border-[var(--line)] rounded-lg px-2 py-2 text-[10px] font-black uppercase outline-none focus:border-[var(--accent)]">
                                {LIGHT_THEMES.filter(t => themes[t]).map(t => <option key={t} value={t}>{t}</option>)}
                             </select>
                          </div>
                          <div>
-                            <div className="text-[9px] font-bold uppercase tracking-widest text-dim mb-2 ml-1">🌙 Nacht (Dark)</div>
+                            <div className="text-[9px] font-bold uppercase tracking-widest text-[var(--dim)] mb-2 ml-1">🌙 Nacht (Dark)</div>
                             <select value={circDark} onChange={e => setCircDark(e.target.value)} className="w-full bg-[var(--card)] border border-[var(--line)] rounded-lg px-2 py-2 text-[10px] font-black uppercase outline-none focus:border-[var(--accent)]">
                                {DARK_THEMES.filter(t => themes[t]).map(t => <option key={t} value={t}>{t}</option>)}
                             </select>
@@ -176,7 +146,7 @@ export default function Settings({
                       <div className="space-y-4 animate-in fade-in duration-300">
                          {/* Dark Themes */}
                          <div>
-                           <div className="text-[9px] font-bold uppercase tracking-widest text-dim mb-2 ml-1">Dark Mode</div>
+                           <div className="text-[9px] font-bold uppercase tracking-widest text-[var(--dim)] mb-2 ml-1">Dark Mode</div>
                            <div className="flex flex-wrap gap-2">
                               {DARK_THEMES.filter(id => themes[id]).map(id => {
                                  const t = themes[id];
@@ -192,7 +162,7 @@ export default function Settings({
                          </div>
                          {/* Light Themes */}
                          <div>
-                           <div className="text-[9px] font-bold uppercase tracking-widest text-dim mb-2 ml-1">Light Mode</div>
+                           <div className="text-[9px] font-bold uppercase tracking-widest text-[var(--dim)] mb-2 ml-1">Light Mode</div>
                            <div className="flex flex-wrap gap-2">
                               {LIGHT_THEMES.filter(id => themes[id]).map(id => {
                                  const t = themes[id];
@@ -213,7 +183,7 @@ export default function Settings({
           </section>
 
           {/* 2. Training Preferences */}
-          <section className="card p-8 space-y-10 border-t-4 border-t-dim">
+          <section className="card p-8 space-y-10 border-t-4 border-t-[var(--dim)] animate-in fade-in slide-in-from-right-4 duration-500">
              <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[var(--bg2)] border border-[var(--line)] flex items-center justify-center">
                   <Zap size={20} className="text-[var(--dim)]" />
@@ -225,71 +195,31 @@ export default function Settings({
                 {/* Anatomy Model */}
                 <div>
                    <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-3 ml-1">Anatomie-Modell (Visualisierung)</div>
-                   <div className="flex gap-1 p-1 bg-bg2 rounded-xl border border-line">
+                   <div className="flex gap-1 p-1 bg-[var(--bg2)] rounded-xl border border-[var(--line)]">
                       {['male', 'female'].map(g => (
                          <button key={g} onClick={() => { setGender(g); updateSettings?.({gender: g}); }}
-                            className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${gender === g ? 'bg-card shadow-md text-accent' : 'text-dim hover:text-ink'}`}>
+                            className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${gender === g ? 'bg-[var(--card)] shadow-md text-[var(--accent)]' : 'text-[var(--dim)] hover:text-[var(--ink)]'}`}>
                             {g === 'male' ? 'Male' : 'Female'}
                          </button>
                       ))}
                    </div>
                 </div>
 
-                {/* Muscle Names Language */}
+                {/* Muscle Language */}
                 <div>
-                   <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-3 ml-1">Muskelbezeichnungen</div>
-                   <div className="flex gap-1 p-1 bg-bg2 rounded-xl border border-line">
+                   <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-3 ml-1">Muskel-Terminologie</div>
+                   <div className="flex gap-1 p-1 bg-[var(--bg2)] rounded-xl border border-[var(--line)]">
                       {[
                         { id: 'de', label: 'Deutsch' },
+                        { id: 'en', label: 'English' },
                         { id: 'lat', label: 'Latein' },
-                        { id: 'en', label: 'English' }
-                      ].map(l => (
-                         <button key={l.id} onClick={() => { setMuscleLanguage(l.id); updateSettings?.({muscleLanguage: l.id}); }}
-                            className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${muscleLanguage === l.id ? 'bg-card shadow-md text-accent' : 'text-dim hover:text-ink'}`}>
-                            {l.label}
-                         </button>
+                      ].map(({ id, label }) => (
+                        <button key={id} onClick={() => { setMuscleLanguage(id); updateSettings?.({ muscleLanguage: id }); }}
+                           className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${muscleLanguage === id ? 'bg-[var(--card)] shadow-md text-[var(--accent)]' : 'text-[var(--dim)] hover:text-[var(--ink)]'}`}>
+                           {label}
+                        </button>
                       ))}
                    </div>
-                </div>
-
-                {/* Dashboard Highlighter */}
-                <div className="flex items-center justify-between">
-                   <div>
-                      <div className="text-sm font-black text-ink">Highlighter Detailgrad</div>
-                      <div className="text-[10px] font-bold opacity-30 uppercase">Muskelkarte auf dem Dashboard</div>
-                   </div>
-                   <div className="flex bg-bg2 p-1 rounded-xl border border-line">
-                      {['body', 'muscles'].map(m => (
-                         <button key={m} onClick={() => setDashboardHighlighter(m)} 
-                            className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all ${dashboardHighlighter === m ? 'bg-card shadow-sm text-accent' : 'text-dim hover:text-ink'}`}>
-                            {m}
-                         </button>
-                      ))}
-                   </div>
-                </div>
-
-                {/* Tracking Mode */}
-                <div className="flex items-center justify-between pt-4 border-t border-[var(--line)]/50">
-                   <div>
-                      <div className="text-sm font-black text-ink">Volume Tracking Modus</div>
-                      <div className="text-[10px] font-bold opacity-30 uppercase">Satz / Wdh / Gewicht erfassen</div>
-                   </div>
-                   <button onClick={() => { const next = !hitMode; setHitMode(next); updateSettings?.({hitMode: next}); }}
-                      className={`w-12 h-6 rounded-full transition-colors relative border ${!hitMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
-                      <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${!hitMode ? 'left-7' : 'left-1'}`} />
-                   </button>
-                </div>
-
-                {/* Plan Mode */}
-                <div className="flex items-center justify-between">
-                   <div>
-                      <div className="text-sm font-black text-ink">Smart Plan Modus</div>
-                      <div className="text-[10px] font-bold opacity-30 uppercase">KI-gestützte Trainingsplanung</div>
-                   </div>
-                   <button onClick={() => setPlanMode(!planMode)} 
-                      className={`w-12 h-6 rounded-full transition-colors relative border ${planMode ? 'bg-accent border-accent' : 'bg-bg2 border-line'}`}>
-                      <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${planMode ? 'left-7' : 'left-1'}`} />
-                   </button>
                 </div>
 
                 {/* Sliders */}
@@ -297,19 +227,29 @@ export default function Settings({
                    <div>
                       <div className="flex items-center justify-between mb-3">
                          <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Analyse-Fenster (Recent)</div>
-                         <span className="text-[10px] font-black text-accent bg-[var(--accent)]/10 px-2 py-0.5 rounded-md">{recentDays} Tage</span>
+                         <span className="text-[10px] font-black text-[var(--accent)] bg-[var(--accent)]/10 px-2 py-0.5 rounded-md">{recentDays} Tage</span>
                       </div>
                       <input type="range" min="1" max="30" value={recentDays} onChange={(e) => setRecentDays(parseInt(e.target.value))} className="w-full accent-[var(--accent)] h-1" />
                    </div>
                    <div>
                       <div className="flex items-center justify-between mb-3">
                          <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Coverage Threshold</div>
-                         <span className="text-[10px] font-black text-accent bg-[var(--accent)]/10 px-2 py-0.5 rounded-md">{coverageThreshold} Sätze</span>
+                         <span className="text-[10px] font-black text-[var(--accent)] bg-[var(--accent)]/10 px-2 py-0.5 rounded-md">{coverageThreshold} Sätze</span>
                       </div>
                       <input type="range" min="0.5" max="10" step="0.5" value={coverageThreshold} onChange={(e) => setCoverageThreshold(parseFloat(e.target.value))} className="w-full accent-[var(--accent)] h-1" />
                    </div>
                 </div>
 
+                {/* Advanced Mode subtle trigger */}
+                <div className="pt-8 flex justify-center">
+                   <button 
+                      onClick={() => setShowAdvanced(!showAdvanced)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all font-black text-[9px] uppercase tracking-widest ${showAdvanced ? 'border-[var(--accent)] bg-[var(--accent)]/5 text-[var(--accent)] shadow-lg shadow-[var(--accent)]/5' : 'border-[var(--line)] bg-[var(--bg2)] text-[var(--dim)] hover:text-[var(--ink)]'}`}
+                   >
+                      <Settings2 size={12} className={showAdvanced ? 'animate-pulse' : ''} />
+                      {showAdvanced ? 'Advanced Mode: Ein' : 'Advanced Mode: Aus'}
+                   </button>
+                </div>
              </div>
           </section>
        </div>
@@ -322,17 +262,55 @@ export default function Settings({
                  <ShieldAlert size={20} className="text-red-500" />
                </div>
                <div>
-                  <h3 className="text-xl font-black text-ink">System & Cloud</h3>
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Entwickler-Werkzeuge</p>
+                  <h3 className="text-xl font-black text-ink">Advanced & Labor</h3>
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Experimentelle Funktionen & System</p>
                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+               
+               {/* Experimental Panel */}
+               <div className="bg-[var(--bg2)] p-6 rounded-3xl border border-[var(--line)]">
+                  <div className="flex items-center gap-3 mb-6">
+                     <Sparkles size={18} className="text-[var(--accent)]" />
+                     <h4 className="text-sm font-black text-ink uppercase tracking-widest">Labor</h4>
+                  </div>
+                  <div className="space-y-6">
+                     {/* Dashboard Highlighter */}
+                     <div className="flex items-center justify-between">
+                        <div>
+                           <div className="text-xs font-black text-ink">Highlighter Detail</div>
+                           <div className="text-[9px] font-bold opacity-30 uppercase text-[var(--dim)]">Dashboard Muskelkarte</div>
+                        </div>
+                        <div className="flex bg-[var(--bg)] p-1 rounded-xl border border-[var(--line)]">
+                           {['body', 'muscles'].map(m => (
+                              <button key={m} onClick={() => setDashboardHighlighter(m)} 
+                                 className={`px-3 py-1.5 text-[8px] font-black uppercase rounded-lg transition-all ${dashboardHighlighter === m ? 'bg-[var(--card)] shadow-sm text-[var(--accent)]' : 'text-[var(--dim)] hover:text-[var(--ink)]'}`}>
+                                 {m}
+                              </button>
+                           ))}
+                        </div>
+                     </div>
+
+                     {/* Sync Status Info */}
+                     <div className="flex items-center justify-between pt-4 border-t border-line/50">
+                        <div>
+                           <div className="text-xs font-black text-ink">Cloud Integration</div>
+                           <div className="text-[9px] font-bold opacity-30 uppercase text-[var(--dim)]">Firestore Sync Status</div>
+                        </div>
+                        {firestoreStatus?.ok 
+                           ? <span className="text-[9px] font-black uppercase bg-green-500/10 text-green-500 px-2 py-1 rounded-md border border-green-500/20">Online</span>
+                           : <span className="text-[9px] font-black uppercase bg-red-500/10 text-red-500 px-2 py-1 rounded-md border border-red-500/20">Offline</span>
+                        }
+                     </div>
+                     </div>
+                     </div>
+
                {/* Sync Panel */}
                {isLocalMode() && (
                   <div className="bg-[var(--bg2)] p-6 rounded-3xl border border-[var(--line)]">
                      <div className="flex items-center gap-3 mb-6">
-                        <Sparkles size={18} className={syncing ? 'animate-spin text-[var(--accent)]' : 'text-[var(--accent)]'} />
+                        <RefreshCw size={18} className={syncing ? 'animate-spin text-[var(--accent)]' : 'text-[var(--accent)]'} />
                         <h4 className="text-sm font-black text-ink uppercase tracking-widest">Firestore Sync</h4>
                      </div>
                      <div className="space-y-4">
@@ -353,8 +331,8 @@ export default function Settings({
                {/* Info Panel */}
                <div className="bg-[var(--bg2)] p-6 rounded-3xl border border-[var(--line)]">
                   <div className="flex items-center gap-3 mb-6">
-                     <Settings2 size={18} className="text-dim" />
-                     <h4 className="text-sm font-black text-ink uppercase tracking-widest text-dim">Diagnose</h4>
+                     <Settings2 size={18} className="text-[var(--dim)]" />
+                     <h4 className="text-sm font-black text-ink uppercase tracking-widest text-[var(--dim)]">Diagnose</h4>
                   </div>
                   <div className="space-y-3">
                      {[
