@@ -1,4 +1,6 @@
-export default function MuscleAnalysis({ hitMode, hitAnalysis, days, volExercises }) {
+import { translateMuscle } from "../../lib/translations";
+
+export default function MuscleAnalysis({ hitMode, hitAnalysis, days, volExercises, muscleLanguage = 'de', taxonomy = null }) {
   if (hitMode) {
     const { heavy, recovering, super: supercomp, ready } = hitAnalysis;
     return (
@@ -12,10 +14,10 @@ export default function MuscleAnalysis({ hitMode, hitAnalysis, days, volExercise
             Basierend auf der Zeit seit deinem letzten Training:
           </p>
           <div className="flex flex-col gap-4">
-            <StatusRow color="#ef4444" label="Stark belastet" count={heavy.length} />
-            <StatusRow color="#f59e0b" label="In Erholung" count={recovering.length} />
-            <StatusRow color="#22c55e" label="Superkompensiert" count={supercomp.length} />
-            <StatusRow color="#3b82f6" label="Leicht belastet / Bereit" count={ready.length} />
+            <StatusRow color="#ef4444" label="Stark belastet" items={heavy} taxonomy={taxonomy} lang={muscleLanguage} />
+            <StatusRow color="#f59e0b" label="In Erholung" items={recovering} taxonomy={taxonomy} lang={muscleLanguage} />
+            <StatusRow color="#22c55e" label="Superkompensiert" items={supercomp} taxonomy={taxonomy} lang={muscleLanguage} />
+            <StatusRow color="#3b82f6" label="Leicht belastet / Bereit" items={ready} taxonomy={taxonomy} lang={muscleLanguage} />
           </div>
         </div>
       </div>
@@ -47,14 +49,27 @@ export default function MuscleAnalysis({ hitMode, hitAnalysis, days, volExercise
   );
 }
 
-function StatusRow({ color, label, count }) {
+function StatusRow({ color, label, count, items = [], taxonomy, lang }) {
   return (
-    <div className="flex items-center justify-between group">
-      <div className="flex items-center gap-3 text-[11px]">
-        <div className="w-4 h-4 rounded-lg shadow-lg" style={{ background: color, boxShadow: `0 4px 12px ${color}33` }} />
-        <span className="font-black opacity-50 group-hover:opacity-100 transition-opacity uppercase tracking-tighter text-ink">{label}</span>
+    <div className="flex flex-col gap-2 group">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 text-[11px]">
+          <div className="w-4 h-4 rounded-lg shadow-lg" style={{ background: color, boxShadow: `0 4px 12px ${color}33` }} />
+          <span className="font-black opacity-50 group-hover:opacity-100 transition-opacity uppercase tracking-tighter text-ink">{label}</span>
+        </div>
+        {(count !== undefined || items.length > 0) && (
+          <span className="text-[11px] font-black text-ink">{count ?? items.length} Muskeln</span>
+        )}
       </div>
-      {count !== undefined && <span className="text-[11px] font-black text-ink">{count} Muskeln</span>}
+      {items.length > 0 && (
+        <div className="flex flex-wrap gap-1 ml-7">
+          {items.map(m => (
+            <span key={m} className="text-[9px] font-bold opacity-40 bg-bg2 px-1.5 py-0.5 rounded border border-line">
+              {translateMuscle(m, taxonomy, lang)}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

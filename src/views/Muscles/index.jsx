@@ -204,7 +204,7 @@ export default function Muscles({ hitMode, gender, muscleLanguage = 'de', taxono
           </div>
 
           <div className="lg:col-span-4 space-y-6">
-            <MuscleAnalysis hitMode={hitMode} hitAnalysis={hitAnalysis} days={days} volExercises={volExercises} />
+            <MuscleAnalysis hitMode={hitMode} hitAnalysis={hitAnalysis} days={days} volExercises={volExercises} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
             <MuscleInsights hitMode={hitMode} hitAnalysis={hitAnalysis} />
           </div>
         </div>

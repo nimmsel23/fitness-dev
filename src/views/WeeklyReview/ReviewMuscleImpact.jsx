@@ -1,5 +1,6 @@
 import { TrendingUp } from 'lucide-react';
 import { translateMuscle } from '../../lib/translations';
+import { getMuscleIcon } from '../../constants/MuscleIcons';
 
 export default function ReviewMuscleImpact({ regionEntries, muscleLanguage = 'de', taxonomy = null }) {
   return (
@@ -12,11 +13,15 @@ export default function ReviewMuscleImpact({ regionEntries, muscleLanguage = 'de
         {regionEntries.length > 0 ? regionEntries.map(([name, score]) => {
           const maxScore = Math.max(...regionEntries.map(e => e[1]), 5);
           const pct = Math.min(100, (score / maxScore) * 100);
+          const Icon = getMuscleIcon(name);
           return (
             <div key={name} className="flex flex-col p-5 rounded-2xl border bg-bg2 border-line hover:border-accent/40 transition-all group shadow-sm">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mb-3 group-hover:text-accent group-hover:opacity-100 transition-colors">
-                {translateMuscle(name, taxonomy, muscleLanguage)}
-              </span>
+              <div className="flex items-center gap-2 mb-3">
+                <Icon size={12} className="opacity-30 group-hover:text-accent group-hover:opacity-100 transition-all" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 group-hover:text-accent group-hover:opacity-100 transition-colors">
+                  {translateMuscle(name, taxonomy, muscleLanguage)}
+                </span>
+              </div>
               <div className="flex items-end justify-between mt-auto">
                 <span className="text-2xl font-black text-ink">{Number(score).toFixed(1)}</span>
                 <div className="w-1.5 h-8 bg-line rounded-full overflow-hidden flex flex-col justify-end">
