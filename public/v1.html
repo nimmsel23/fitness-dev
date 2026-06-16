@@ -182,14 +182,14 @@
       background: var(--accent-glow); }
 
     /* ── MUSCLE BODY MAP ── */
-    .bodymap-container { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-    .bodymap-svg { max-width: 280px; width: 100%; }
-    .bodymap-svg .muscle-zone { transition: fill 300ms, opacity 300ms; cursor: pointer; opacity: 0.35; }
-    .bodymap-svg .muscle-zone:hover { opacity: 0.85; }
-    .bodymap-svg .muscle-zone.hit-1 { opacity: 0.5; }
-    .bodymap-svg .muscle-zone.hit-2 { opacity: 0.65; }
-    .bodymap-svg .muscle-zone.hit-3 { opacity: 0.8; }
-    .bodymap-svg .muscle-zone.hit-4 { opacity: 0.95; }
+    .bodymap-container { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .bodymap-toggle { display: flex; gap: 4px; background: var(--bg2); border: 1px solid var(--line);
+      border-radius: var(--radius-sm); padding: 3px; }
+    .bodymap-toggle button { padding: 5px 14px; border-radius: calc(var(--radius-sm) - 2px);
+      border: none; background: none; color: var(--muted); font: 12px/1 var(--font); font-weight: 700;
+      cursor: pointer; transition: all 120ms; letter-spacing: 0.04em; text-transform: uppercase; }
+    .bodymap-toggle button.active { background: var(--accent); color: #062026; }
+    #bodymapChart { width: 100%; max-width: 280px; min-height: 380px; }
     .muscle-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px;
       background: var(--bg2); border: 1px solid var(--line); border-radius: var(--radius-sm);
       font-size: 12px; margin-bottom: 4px; }
@@ -478,8 +478,12 @@
           </select>
           <button class="btn btn-secondary btn-sm" id="refreshCoverage">Refresh</button>
         </div>
-        <div class="bodymap-container" id="bodymapBox">
-          <div class="loading muted">Lade Body Map…</div>
+        <div class="bodymap-container">
+          <div class="bodymap-toggle">
+            <button class="active" id="btnFront">Anterior</button>
+            <button id="btnBack">Posterior</button>
+          </div>
+          <div id="bodymapChart"></div>
         </div>
       </div>
       <div class="card">
@@ -521,6 +525,7 @@
 </div>
 <div class="toast" id="toast"></div>
 
+<script src="./lib/body-muscles.js"></script>
 <script type="module">
 // ── Core ──────────────────────────────────────────────────────────────────────
 const API = location.origin;
@@ -563,7 +568,10 @@ function switchView(name) {
   navItems.forEach(n => n.classList.toggle("active", n.dataset.view === name));
   $(".view-container").scrollTop = 0;
 }
-navItems.forEach(n => n.addEventListener("click", () => switchView(n.dataset.view)));
+navItems.forEach(n => n.addEventListener("click", () => {
+  switchView(n.dataset.view);
+  if (n.dataset.view === "muscles" && !_bodyChart) loadMuscleCoverage(Number($("#coverageDays").value));
+}));
 
 // ── Theme ──
 const THEMES = ["mocha","latte"];
@@ -1026,41 +1034,61 @@ $("#jSave").onclick = async () => {
 $("#jDate").onchange = e => loadJournal(e.target.value);
 
 // ═══════════════════════════════════════════════════════════════════════════
-// MUSCLE COVERAGE VIEW
+// MUSCLE COVERAGE VIEW — body-muscles (70+ Regionen)
 // ═══════════════════════════════════════════════════════════════════════════
 const MGROUP_COLORS = {
   chest:"#ef4444", back:"#3b82f6", shoulders:"#f59e0b", arms:"#a78bfa",
   core:"#22c55e", glutes:"#ec4899", quads:"#f97316", hamstrings:"#06b6d4", calves:"#8b5cf6",
 };
 
-function buildBodySvg() {
-  return `<svg class="bodymap-svg" viewBox="0 0 200 440" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M100 10 C115 10 125 20 125 35 C125 50 115 58 100 58 C85 58 75 50 75 35 C75 20 85 10 100 10Z" fill="var(--line)" opacity="0.3"/>
-    <rect x="92" y="58" width="16" height="14" rx="4" fill="var(--line)" opacity="0.2"/>
-    <path d="M68 72 L58 82 L52 130 L54 195 L72 210 L128 210 L146 195 L148 130 L142 82 L132 72Z" fill="var(--line)" opacity="0.15"/>
-    <path d="M72 210 L65 300 L60 380 L55 420 L80 420 L82 380 L88 300 L93 240" fill="var(--line)" opacity="0.12"/>
-    <path d="M128 210 L135 300 L140 380 L145 420 L120 420 L118 380 L112 300 L107 240" fill="var(--line)" opacity="0.12"/>
-    <ellipse class="muscle-zone" data-group="chest" cx="83" cy="100" rx="18" ry="16" fill="${MGROUP_COLORS.chest}"/>
-    <ellipse class="muscle-zone" data-group="chest" cx="117" cy="100" rx="18" ry="16" fill="${MGROUP_COLORS.chest}"/>
-    <ellipse class="muscle-zone" data-group="shoulders" cx="60" cy="82" rx="11" ry="14" fill="${MGROUP_COLORS.shoulders}"/>
-    <ellipse class="muscle-zone" data-group="shoulders" cx="140" cy="82" rx="11" ry="14" fill="${MGROUP_COLORS.shoulders}"/>
-    <ellipse class="muscle-zone" data-group="arms" cx="48" cy="120" rx="8" ry="22" fill="${MGROUP_COLORS.arms}" transform="rotate(-10 48 120)"/>
-    <ellipse class="muscle-zone" data-group="arms" cx="152" cy="120" rx="8" ry="22" fill="${MGROUP_COLORS.arms}" transform="rotate(10 152 120)"/>
-    <rect class="muscle-zone" data-group="core" x="82" y="120" width="36" height="50" rx="6" fill="${MGROUP_COLORS.core}"/>
-    <rect class="muscle-zone" data-group="back" x="70" y="82" width="10" height="40" rx="4" fill="${MGROUP_COLORS.back}"/>
-    <rect class="muscle-zone" data-group="back" x="120" y="82" width="10" height="40" rx="4" fill="${MGROUP_COLORS.back}"/>
-    <ellipse class="muscle-zone" data-group="glutes" cx="85" cy="210" rx="16" ry="12" fill="${MGROUP_COLORS.glutes}"/>
-    <ellipse class="muscle-zone" data-group="glutes" cx="115" cy="210" rx="16" ry="12" fill="${MGROUP_COLORS.glutes}"/>
-    <ellipse class="muscle-zone" data-group="quads" cx="82" cy="268" rx="14" ry="38" fill="${MGROUP_COLORS.quads}"/>
-    <ellipse class="muscle-zone" data-group="quads" cx="118" cy="268" rx="14" ry="38" fill="${MGROUP_COLORS.quads}"/>
-    <ellipse class="muscle-zone" data-group="hamstrings" cx="75" cy="275" rx="7" ry="32" fill="${MGROUP_COLORS.hamstrings}"/>
-    <ellipse class="muscle-zone" data-group="hamstrings" cx="125" cy="275" rx="7" ry="32" fill="${MGROUP_COLORS.hamstrings}"/>
-    <ellipse class="muscle-zone" data-group="calves" cx="72" cy="360" rx="10" ry="28" fill="${MGROUP_COLORS.calves}"/>
-    <ellipse class="muscle-zone" data-group="calves" cx="128" cy="360" rx="10" ry="28" fill="${MGROUP_COLORS.calves}"/>
-  </svg>`;
+// Mapping: interne Gruppen → body-muscles slugs (Auswahl der relevantesten)
+const GROUP_TO_SLUGS = {
+  chest:      ["pectoralis-major-left","pectoralis-major-right","pectoralis-minor-left","pectoralis-minor-right"],
+  back:       ["latissimus-dorsi-left","latissimus-dorsi-right","rhomboids","teres-major-left","teres-major-right","erector-spinae"],
+  shoulders:  ["anterior-deltoid-left","anterior-deltoid-right","lateral-deltoid-left","lateral-deltoid-right","posterior-deltoid-left","posterior-deltoid-right"],
+  arms:       ["biceps-brachii-left","biceps-brachii-right","triceps-brachii-long-left","triceps-brachii-long-right","brachialis-left","brachialis-right"],
+  core:       ["rectus-abdominis","external-oblique-left","external-oblique-right","transverse-abdominis"],
+  glutes:     ["gluteus-maximus-left","gluteus-maximus-right","gluteus-medius-left","gluteus-medius-right"],
+  quads:      ["rectus-femoris-left","rectus-femoris-right","vastus-lateralis-left","vastus-lateralis-right","vastus-medialis-left","vastus-medialis-right"],
+  hamstrings: ["biceps-femoris-left","biceps-femoris-right","semimembranosus-left","semimembranosus-right","semitendinosus-left","semitendinosus-right"],
+  calves:     ["gastrocnemius-left","gastrocnemius-right","soleus-left","soleus-right"],
+};
+
+let _bodyChart = null;
+let _bodyState = {};
+let _bodySide  = "FRONT";
+
+function initBodyChart() {
+  const el = $("#bodymapChart");
+  if (_bodyChart) { _bodyChart.destroy(); _bodyChart = null; }
+  _bodyChart = new BodyMuscles.BodyChart(el, {
+    view: _bodySide,
+    bodyState: _bodyState,
+    onMuscleClick(slug, name) {
+      // Gruppen-Zuordnung rückwärts
+      const group = Object.entries(GROUP_TO_SLUGS).find(([, slugs]) => slugs.includes(slug))?.[0];
+      showMusclePopup(group || slug, name);
+    },
+  });
 }
 
-async function showMusclePopup(groupId) {
+function applyBodyState() {
+  if (_bodyChart) _bodyChart.update({ view: _bodySide, bodyState: _bodyState });
+}
+
+// Front/Back Toggle
+$("#btnFront").onclick = () => {
+  _bodySide = "FRONT";
+  $("#btnFront").classList.add("active"); $("#btnBack").classList.remove("active");
+  applyBodyState();
+};
+$("#btnBack").onclick = () => {
+  _bodySide = "BACK";
+  $("#btnBack").classList.add("active"); $("#btnFront").classList.remove("active");
+  applyBodyState();
+};
+
+async function showMusclePopup(groupId, muscleName) {
   state.selectedMuscleGroup = groupId;
   updateMuscleFilterBadge();
   $$(".popup-overlay, .muscle-popup").forEach(el => el.remove());
@@ -1073,7 +1101,7 @@ async function showMusclePopup(groupId) {
 
   const popup = document.createElement("div");
   popup.className = "muscle-popup";
-  popup.innerHTML = `<button class="close-btn">×</button><h3>${groupId}</h3>`;
+  popup.innerHTML = `<button class="close-btn">×</button><h3>${muscleName || groupId}</h3>`;
   popup.querySelector(".close-btn").onclick = () => { overlay.remove(); popup.remove(); };
   overlay.onclick = () => { overlay.remove(); popup.remove(); };
 
@@ -1099,8 +1127,7 @@ async function showMusclePopup(groupId) {
 }
 
 async function loadMuscleCoverage(days = 7) {
-  const box = $("#bodymapBox");
-  box.innerHTML = buildBodySvg();
+  if (!_bodyChart) initBodyChart();
 
   try {
     const r = await api(`/coverage/detailed?days=${days}`);
@@ -1112,15 +1139,19 @@ async function loadMuscleCoverage(days = 7) {
       groupScores[g.id] = { score: total, avg: Math.round((total / Math.max(g.muscles.length,1)) * 10) / 10, muscles: g.muscles };
     }
 
-    box.querySelectorAll(".muscle-zone").forEach(zone => {
-      const gid = zone.dataset.group;
-      const gs  = groupScores[gid];
-      if (!gs) return;
-      const lvl = gs.avg >= 3 ? 4 : gs.avg >= 2 ? 3 : gs.avg >= 1 ? 2 : gs.avg > 0 ? 1 : 0;
-      if (lvl) zone.classList.add(`hit-${lvl}`);
-      zone.addEventListener("click", () => showMusclePopup(gid));
-    });
+    // Coverage → body-muscles intensity (0–10)
+    _bodyState = {};
+    for (const [group, slugs] of Object.entries(GROUP_TO_SLUGS)) {
+      const gs = groupScores[group];
+      if (!gs || gs.avg <= 0) continue;
+      const intensity = Math.min(10, Math.round(gs.avg * 2.5)); // avg 4 → intensity 10
+      for (const slug of slugs) {
+        _bodyState[slug] = { intensity, selected: false };
+      }
+    }
+    applyBodyState();
 
+    // Detail-Liste
     const detail = $("#muscleDetail");
     detail.innerHTML = "";
     for (const gid of ["chest","back","shoulders","arms","core","glutes","quads","hamstrings","calves"]) {
@@ -1138,7 +1169,10 @@ async function loadMuscleCoverage(days = 7) {
         detail.appendChild(row);
       }
     }
-  } catch { box.innerHTML += `<div class="muted text-sm">Fehler beim Laden</div>`; }
+  } catch (e) {
+    console.error(e);
+    if (!_bodyChart) initBodyChart(); // zeige leere Karte als Fallback
+  }
 }
 
 $("#coverageDays").onchange = () => loadMuscleCoverage(Number($("#coverageDays").value));
@@ -1150,7 +1184,6 @@ $("#refreshCoverage").onclick = () => loadMuscleCoverage(Number($("#coverageDays
 setupWgerSearch();
 renderMoods();
 await loadDashboard();
-loadMuscleCoverage(7);
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(() => {});
