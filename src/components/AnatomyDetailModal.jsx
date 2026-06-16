@@ -1,6 +1,7 @@
-import { X, Target, Brain, Info, BookOpen, Search } from "lucide-react";
+import { X, Brain, Info, BookOpen, Search } from "lucide-react";
 import { getAllExercises } from "@db";
 import { useState, useEffect } from "react";
+import MuscleHighlightMap from "./MuscleHighlightMap";
 
 export default function MuscleDetailModal({ muscleId, muscleData, onClose, loading }) {
   const [exercises, setExercises] = useState([]);
@@ -41,10 +42,8 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
       <div className="relative w-full max-w-2xl bg-[var(--card)] rounded-[32px] border border-[var(--line)] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
          {/* Modal Header */}
          <div className="p-6 border-b border-[var(--line)]/50 flex items-center justify-between bg-gradient-to-r from-[var(--card)] to-[var(--bg2)]">
-            <div className="flex items-center gap-3">
-               <div className="w-10 h-10 rounded-2xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
-                  <Target size={20} />
-               </div>
+            <div className="flex items-center gap-4">
+               <MuscleHighlightMap muscleId={muscleId} size={56} />
                <div>
                   <h3 className="text-sm font-black uppercase tracking-widest text-[var(--ink)]">
                     {name}
