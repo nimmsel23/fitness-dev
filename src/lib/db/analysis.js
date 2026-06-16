@@ -14,6 +14,21 @@ const MUSCLE_GROUPS = {
   legs: ["legs", "squat", "deadlift", "lunge", "beine", "bein", "leg press", "600_legs"]
 };
 
+export async function getDashboardAnalytics(days = 28) {
+  try {
+    const data = await api.get(`/fitness/analytics/dashboard?days=${days}`);
+    if (data?.data) return data.data;
+  } catch {}
+  
+  // Fallback to local calculation for backwards compatibility
+  const scores = await getMuscleCoverage(days);
+  return {
+    body_region_scores: scores,
+    total_volume: 0,
+    session_count: 0
+  };
+}
+
 const ACTIVITY_MUSCLE_MAPPING = {
   hiking: { muscles: ["legs", "quads", "calves", "glutes"] },
   running: { muscles: ["legs", "quads", "calves", "hamstrings", "glutes"] },

@@ -45,8 +45,8 @@ The architecture introduces a privileged administrative layer within the Firebas
 - [x] Implement Global Firestore Watcher (Prototype).
 - [x] Implement Hidden Chamber UI (Prototype).
 - [x] Migrate `anatomy-kb` to Firestore.
-- [ ] Port Biomechanical Auditor to Python Cloud Functions.
-- [ ] Implement Multi-User Dashboard Analytics in Cloud.
+- [x] Port Biomechanical Auditor to Python Cloud Functions.
+- [x] Implement Multi-User Dashboard Analytics in Cloud.
 
 ---
 *This document is the Root Authority for the Cloud Chamber migration.*

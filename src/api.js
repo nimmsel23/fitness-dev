@@ -6,4 +6,5 @@ export const getWeekDates = db.getWeekDates;
 export const parseQuick = db.parseQuick;
 export const downloadText = db.downloadText;
 export const calculateExVolume = db.calculateExVolume;
+export const getDashboardAnalytics = db.getDashboardAnalytics;
 export const getWeeklyReport = db.getWeeklyReport;

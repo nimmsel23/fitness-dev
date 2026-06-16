@@ -3,7 +3,7 @@ import { Lock, GripVertical } from "lucide-react";
 import { NAV_ITEMS } from "../../constants/NavigationItems";
 import {
   getSession, getRecentSessions, getPlan,
-  getMuscleCoverage, exportCsv, getAllExercises
+  getDashboardAnalytics, exportCsv, getAllExercises
 } from "@db";
 import { localToday } from "@utils";
 import HabitWidget from "../../components/HabitWidget.jsx";
@@ -70,7 +70,9 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
   useEffect(() => {
     getSession(today).then(setTodaySession).catch(() => setTodaySession({}));
     getPlan().then(setPlan).catch(() => setPlan(null));
-    getMuscleCoverage(recentDays).then(scores => {
+    
+    getDashboardAnalytics(recentDays).then(analytics => {
+       const scores = analytics?.body_region_scores || {};
        const allGroups = ["chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves", "legs"];
        const gaps = allGroups.filter(g => (scores[g] || 0) < coverageThreshold).map(g => ({ name: g }));
        setCoverage(gaps);
