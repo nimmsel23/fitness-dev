@@ -1,11 +1,13 @@
 """
 KB Sync — catalog/kb/ → Firestore fitness/kb/
 
-Optimiert mit WriteBatches für große Datenmengen.
+Optimiert mit WriteBatches und Hash-basierter Änderungserkennung.
 """
 from __future__ import annotations
 
 import os
+import hashlib
+import json
 from pathlib import Path
 from typing import Any
 
@@ -59,8 +61,14 @@ def _flatten(doc: dict[str, Any]) -> dict[str, Any]:
     return {k: _to_fs(v) for k, v in doc.items()}
 
 
+def _compute_hash(data: dict[str, Any]) -> str:
+    """Erzeugt einen stabilen MD5-Hash des Inhalts zur Änderungserkennung."""
+    encoded = json.dumps(data, sort_keys=True, ensure_ascii=False).encode('utf-8')
+    return hashlib.md5(encoded).hexdigest()
+
+
 def sync_exercises(db_client: Any, dry_run: bool = False) -> dict[str, int]:
-    counts = {"ok": 0, "skip": 0, "error": 0, "deleted": 0}
+    counts = {"ok": 0, "skip": 0, "error": 0, "deleted": 0, "unchanged": 0}
     col = db_client.collection("fitness").document("kb").collection("exercises")
 
     # 1. Aggregation phase: Collect and merge all exercises by ID
@@ -80,16 +88,12 @@ def sync_exercises(db_client: Any, dry_run: bool = False) -> dict[str, int]:
                 all_exercises[ex_id] = exercise
             else:
                 # Merge logic: Prefer non-empty and longer lists/strings
-                # This ensures detail files (richer) complement index entries
                 for key, val in exercise.items():
                     old_val = all_exercises[ex_id].get(key)
                     if not old_val:
                         all_exercises[ex_id][key] = val
                     elif isinstance(val, list) and isinstance(old_val, list):
-                        # SPEZIAL: Bevorzuge Listen mit Präfix-IDs (z.B. '101_pectoralis')
-                        # Falls Längen gleich, gewinnt die Liste mit Präfixen.
                         def has_prefix(l): return any(isinstance(x, str) and x[:1].isdigit() for x in l)
-                        
                         if len(val) > len(old_val):
                             all_exercises[ex_id][key] = val
                         elif len(val) == len(old_val) and has_prefix(val) and not has_prefix(old_val):
@@ -98,15 +102,30 @@ def sync_exercises(db_client: Any, dry_run: bool = False) -> dict[str, int]:
                         if len(val) > len(old_val):
                             all_exercises[ex_id][key] = val
                     elif isinstance(val, dict) and isinstance(old_val, dict):
-                        # Shallow merge for dicts (like wger_muscle_ids)
                         all_exercises[ex_id][key].update(val)
 
-    # 2. Sync phase: Write merged records to Firestore
+    # 2. Fetch current hashes from Firestore to detect changes
+    logger.info("Fetching remote state for change detection...")
+    remote_hashes = {}
+    for doc in col.select(['_hash']).stream():
+        h = doc.to_dict().get('_hash')
+        if h:
+            remote_hashes[doc.id] = h
+
+    # 3. Sync phase: Write merged records to Firestore
     batch = db_client.batch()
     batch_count = 0
 
     for ex_id, exercise in tqdm(all_exercises.items(), desc="Exercises", unit="ex"):
         payload = _flatten(exercise)
+        new_hash = _compute_hash(payload)
+        
+        if remote_hashes.get(ex_id) == new_hash:
+            counts["unchanged"] += 1
+            continue
+
+        payload['_hash'] = new_hash
+        
         if dry_run:
             counts["ok"] += 1
             continue

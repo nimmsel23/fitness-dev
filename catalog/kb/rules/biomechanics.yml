@@ -3,27 +3,27 @@
 
 movement_pattern_rules:
   horizontal_press:
-    required_primary: [pectoralis_major, chest]
+    required_primary: [101_pectoralis_major, 100_chest]
     description: "Horizontal pressing should target the chest."
   
   vertical_press:
-    required_primary: [anterior_deltoid, shoulders, deltoids]
+    required_primary: [301_anterior_deltoid, 300_shoulders, 300_deltoids]
     description: "Vertical pressing should target the shoulders."
     
   vertical_pull:
-    required_primary: [latissimus_dorsi, lats, back]
+    required_primary: [201_latissimus_dorsi, 201_lats, 200_back]
     description: "Vertical pulling should target the lats/back."
     
   horizontal_pull:
-    required_primary: [trapezius_middle, trapezius_lower, rhomboids, latissimus_dorsi, lats, back]
+    required_primary: [203_trapezius_middle, 204_trapezius_lower, 205_rhomboids, 201_latissimus_dorsi, 201_lats, 200_back]
     description: "Horizontal pulling (rows) should target the back (lats, trapezius, rhomboids)."
     
   squat:
-    required_primary: [quadriceps, quads, legs]
+    required_primary: [603_quadriceps, 603_quads, 600_legs]
     description: "Squat patterns should target the quadriceps."
     
   hinge:
-    required_primary: [gluteus_maximus, glutes, hamstrings, erector_spinae]
+    required_primary: [601_gluteus_maximus, 601_glutes, 604_hamstrings, 206_erector_spinae]
     description: "Hinge patterns (deadlifts) should target the posterior chain."
 
 isolation_rules:

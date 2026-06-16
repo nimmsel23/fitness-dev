@@ -42,10 +42,18 @@ Der `approve`-Befehl überführt Daten sicher von Tier 3 (Lab) in Tier 1 (Expert
 Die Cloud-Synchronisation folgt dem **Expert-Wins-Prinzip**:
 - **Aggregation**: Sammelt alle Datenquellen.
 - **Intelligenter Merge**: Bei ID-Kollisionen überschreiben Tier-1-Daten (Expert) immer die Tier-2-Daten (Wiki).
+- **Smart Sync**: Nutzt MD5-Hashing des Inhalts, um nur geänderte Dokumente an Firestore zu senden. Dies schont das Quota-Limit und beschleunigt den Prozess drastisch.
+- **Orphan Cleanup**: Löscht automatisch Dokumente in Firestore, die lokal nicht mehr existieren (z.B. nach ID-Umbenennungen).
 - **Output**: Ein konsolidierter Datensatz pro Übung in Firestore.
 
-## 5. Muskel-Normalisierung (`muscles.yml`)
-Zentraler Index aller Muskeln mit **wger-IDs**. Dies garantiert eine konsistente Berechnung der Muscle-Coverage über alle Übungen hinweg, unabhängig von der Datenquelle.
+## 5. Muskel-Normalisierung (`muscles.yml`) & ID-Konvention
+Zentraler Index aller Muskeln mit **wger-IDs**. 
+
+### ID-Konvention: Prefixed Slugs
+Seit Juni 2026 verwenden alle Muskel-IDs im Katalog das Format `XXX_slug` (z.B. `101_pectoralis_major`).
+- **Vorteil**: Vermeidung von Namenskollisionen bei regionalen Unterteilungen (z.B. verschiedene Köpfe eines Muskels).
+- **Vorteil**: Eindeutige Sortierung und schnellere Identifizierung im Code.
+- **Wichtig**: Der PWA-Frontend-Code muss diese IDs als "Canonical Slugs" behandeln und bei Bedarf (Icons, Übersetzungen) das Präfix ignorieren oder gezielt mappen.
 
 ---
 *Dieser proaktive Ansatz stellt sicher, dass der Katalog organisch mit den Bedürfnissen der Nutzer wächst, während das "Expert Brain" die volle biomechanische Kontrolle behält.*

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { saveJournal, updateJournal, getHabits, getJournalHistory, getAllHabitJournalsHistory, getSessionHistory } from "@db";
 import { localToday } from "@utils";
 import { Book } from "lucide-react";
+import { ICON_COMPONENTS_MAP } from "../Habits/utils";
 
 import JournalHeader from "./JournalHeader";
 import JournalForm from "./JournalForm";
@@ -176,27 +177,48 @@ export default function Journal() {
 
         <div className="space-y-12 mt-12">
           {timeline.length > 0 ? (
-            timeline.map((group) => (
+            timeline.map((group) => {
+              const habitJournalIds = new Set(group.entries.filter(e => e.type === 'habit').map(e => e.habitId));
+              const standaloneCompletions = group.entries.filter(e => e.type === 'habit-completion' && !habitJournalIds.has(e.habitId));
+              const mainEntries = group.entries.filter(e => e.type !== 'habit-completion');
+              return (
               <div key={group.date} className="relative">
-                <div className="sticky top-20 z-10 py-2 bg-[var(--bg)]/90 backdrop-blur-md mb-4 -mx-2 px-2 border-b border-[var(--line)]">
+                <div className="sticky top-20 z-10 py-2 bg-[var(--bg)]/90 backdrop-blur-md -mx-2 px-2 border-b border-[var(--line)]">
                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-accent">
                     {formatRelativeDate(group.date)}
                   </h3>
+                  {standaloneCompletions.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                      {standaloneCompletions.map(e => {
+                        const Icon = ICON_COMPONENTS_MAP[e.habitIcon] || ICON_COMPONENTS_MAP['Activity'];
+                        return (
+                          <span
+                            key={e.id}
+                            title={e.habitName}
+                            className="w-6 h-6 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)] cursor-default"
+                          >
+                            <Icon size={12} />
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-                <div className="relative pl-6 sm:pl-8 border-l border-[var(--line)] space-y-6">
-                  {group.entries.map((e, i) => (
-                    <JournalEntry 
-                      key={e.id || i} 
-                      e={e} 
-                      i={i} 
-                      habits={habits} 
-                      setSelectedEntry={setSelectedEntry} 
+                <div className="relative pl-6 sm:pl-8 border-l border-[var(--line)] space-y-6 mt-4">
+                  {mainEntries.map((e, i) => (
+                    <JournalEntry
+                      key={e.id || i}
+                      e={e}
+                      i={i}
+                      habits={habits}
+                      setSelectedEntry={setSelectedEntry}
                       onEdit={handleEdit}
                     />
                   ))}
                 </div>
               </div>
-            ))
+              );
+            })
           ) : (
             <div className="p-20 text-center rounded-[32px] border border-dashed border-[var(--line)] opacity-20">
               <Book size={48} className="mx-auto mb-4" />

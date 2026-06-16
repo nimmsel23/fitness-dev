@@ -1,6 +1,7 @@
 # fitness-dev TODO
 
 ## 🚨 High Priority (Bugs & Regressions)
+- [ ] **PWA Muscle Slug Support**: Refactor frontend (icons, translations, coverage) to handle new numeric-prefixed IDs (e.g. `101_pectoralis_major`).
 - [x] **Desktop Layout Regression**: Improved responsiveness (md/xl breakpoints) and sidebar spacing. ✅ (Applied fixes, verify on device).
 - [x] **Muscle Coverage Inconsistency**: Fixed mapping for internal IDs (e.g., 604_hamstrings) in both frontend and backend. ✅ (Applied fixes).
 - [x] **Theme Persistence**: Added inline script to index.html for immediate theme application. ✅ (Fixed FOUC and inconsistency).
