@@ -82,8 +82,10 @@ export async function getWeeklyReport(selector = "current") {
       const kbEx = kbMap.get(exName.toLowerCase());
       const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];
       const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
+      const stabilizers = kbEx?.stabilizers || ex.stabilizers || [];
       [...primary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; }));
       [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
+      [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.2; }));
     }
     totalVolume += sessVolume;
     sessions.push({ ...sess, total_volume: sessVolume, exercise_count: sess.exercises?.length || 0 });
@@ -124,8 +126,10 @@ export async function getMuscleCoverage(days = 7) {
       const kbEx = kbMap.get(exName.toLowerCase());
       const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];
       const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
+      const stabilizers = kbEx?.stabilizers || ex.stabilizers || [];
       [...primary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; }));
       [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
+      [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.2; }));
     }
   }
 

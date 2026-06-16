@@ -173,8 +173,10 @@ function computeCoverage(days) {
     for (const ex of (sess?.exercises || [])) {
       const pm = ex.primary_muscles || ex.primaryMuscles || [];
       const sm = ex.secondary_muscles || ex.secondaryMuscles || [];
+      const st = ex.stabilizers || [];
       for (const m of pm) { const id = muscleToGroupId(m) || normMuscleKey(m); if (id) hits[id] = (hits[id] || 0) + 1; }
       for (const m of sm) { const id = muscleToGroupId(m) || normMuscleKey(m); if (id) hits[id] = (hits[id] || 0) + 0.5; }
+      for (const m of st) { const id = muscleToGroupId(m) || normMuscleKey(m); if (id) hits[id] = (hits[id] || 0) + 0.2; }
     }
   }
   return hits;
@@ -204,8 +206,10 @@ function computeCoverageAnatomy(days) {
     for (const ex of (sess?.exercises || [])) {
       const pm = ex.primary_muscles || ex.primaryMuscles || [];
       const sm = ex.secondary_muscles || ex.secondaryMuscles || [];
+      const st = ex.stabilizers || [];
       for (const m of pm) hit(m, 1,   "primary");
       for (const m of sm) hit(m, 0.5, "secondary");
+      for (const m of st) hit(m, 0.2, "secondary");
     }
   }
   return Array.from(map.values()).sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
@@ -663,21 +667,14 @@ app.get("/journal/list", (c) => {
 
 // ── Coverage ──────────────────────────────────────────────────────────────────
 app.get("/coverage/detailed", (c) => {
-  const days  = Number(c.req.query("days") || 7);
-  const hits  = computeCoverage(days);
-  const GROUPS = {
-    chest: ["Chest"], back: ["Back"], shoulders: ["Shoulders"], arms: ["Arms"],
-    core: ["Core"], glutes: ["Glutes"], quads: ["Quads"], hamstrings: ["Hamstrings"], calves: ["Calves"],
-  };
-  const groups = Object.entries(GROUPS).map(([id, muscleNames]) => ({
-    id,
-    muscles: muscleNames.map(name => ({
-      name_en:      name,
-      primaryHits:  Math.round(hits[id] || 0),
-      secondaryHits:0,
-      totalScore:   hits[id] || 0,
-    })),
-  }));
+  const days    = Number(c.req.query("days") || 7);
+  const muscles = computeCoverageAnatomy(days);
+  const GROUP_ORDER = ["chest","back","shoulders","arms","core","glutes","quads","hamstrings","calves"];
+  const muscleMap = new Map(muscles.map(m => [normMuscleKey(m.name_en), m]));
+  const groups = GROUP_ORDER.map(id => {
+    const m = muscleMap.get(id) || { name_en: id, primaryHits: 0, secondaryHits: 0, totalScore: 0 };
+    return { id, muscles: [m] };
+  });
   return c.json({ ok: true, groups, muscles: groups.flatMap(g => g.muscles) });
 });
 
