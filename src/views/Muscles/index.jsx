@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getSessionHistory, getAllExercises, getMuscle } from "@db";
+import { translateMuscle } from "../../lib/translations";
 
 import MuscleHeader from "./MuscleHeader";
 import MuscleAnalysis from "./MuscleAnalysis";
@@ -17,7 +18,7 @@ const MUSCLE_GROUPS = [
 
 function getMuscleGroup(name) {
   const map = {
-    chest: "chest", pec: "chest",
+    chest: "chest", pec: "chest", pecs: "chest",
     back: "back", lats: "back", lat: "back", trapezius: "back",
     shoulder: "shoulders", shoulders: "shoulders", delts: "shoulders",
     arms: "arms", biceps: "arms", triceps: "arms", forearm: "arms",
@@ -25,12 +26,39 @@ function getMuscleGroup(name) {
     glutes: "glutes",
     quads: "quads",
     hamstrings: "hamstrings",
-    calves: "calves"
+    calves: "calves",
+    // Numeric slugs
+    "100_chest": "chest", "101_pectoralis_major": "chest", "102_pectoralis_major_clavicular": "chest",
+    "200_back": "back", "201_latissimus_dorsi": "back", "202_trapezius_upper": "back",
+    "300_shoulders": "shoulders", "301_anterior_deltoid": "shoulders",
+    "400_arms": "arms", "401_biceps_brachii": "arms", "403_triceps_brachii": "arms",
+    "500_core": "core", "501_rectus_abdominis": "core",
+    "600_legs": "quads", "601_gluteus_maximus": "glutes", "603_quadriceps": "quads", "604_hamstrings": "hamstrings",
+    "700_calves": "calves"
   };
-  return map[name?.toLowerCase()] || name?.toLowerCase();
+  const k = String(name || "").toLowerCase().trim();
+  if (map[k]) return map[k];
+  // Fallback for numeric prefix
+  const m = k.match(/^(\d+)_/);
+  if (m) {
+    const n = parseInt(m[1]);
+    if (n >= 100 && n < 200) return 'chest';
+    if (n >= 200 && n < 300) return 'back';
+    if (n >= 300 && n < 400) return 'shoulders';
+    if (n >= 400 && n < 500) return 'arms';
+    if (n >= 500 && n < 600) return 'core';
+    if (n >= 600 && n < 700) {
+      if (n <= 602) return 'glutes';
+      if (n === 603) return 'quads';
+      if (n === 604) return 'hamstrings';
+      return 'legs';
+    }
+    if (n >= 700 && n < 800) return 'calves';
+  }
+  return k;
 }
 
-export default function Muscles({ hitMode, gender }) {
+export default function Muscles({ hitMode, gender, muscleLanguage = 'de', taxonomy = null }) {
   const [days, setDays] = useState(7);
   const [loading, setLoading] = useState(true);
   const [volExercises, setVolExercises] = useState([]);
@@ -187,6 +215,8 @@ export default function Muscles({ hitMode, gender }) {
         muscleData={muscleData}
         loading={muscleLoading}
         onClose={() => setSelectedMuscleId(null)}
+        muscleLanguage={muscleLanguage}
+        taxonomy={taxonomy}
       />
     </div>
   );

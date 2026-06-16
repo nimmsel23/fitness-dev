@@ -1,5 +1,6 @@
-import { Sparkles, AlertCircle } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { translateMuscle } from '../../lib/translations';
+import { getMuscleIcon } from '../../constants/MuscleIcons';
 
 export default function ReviewInsights({ recommendations, missingRegions, muscleLanguage = 'de', taxonomy = null }) {
   return (
@@ -18,16 +19,20 @@ export default function ReviewInsights({ recommendations, missingRegions, muscle
         {missingRegions.length > 0 ? (
           <div className="pt-4 border-t border-accent/10">
              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-red mb-3 flex items-center gap-2">
-                <AlertCircle size={12} />
+                <Trophy size={12} />
                 Coverage Gaps
              </div>
              <div className="flex flex-wrap gap-2">
-               {missingRegions.map(region => (
-                 <span key={region} className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border transition-all" 
-                   style={{ background: 'rgba(239,68,68,0.05)', color: 'var(--red)', borderColor: 'rgba(239,68,68,0.2)' }}>
-                   {translateMuscle(region, taxonomy, muscleLanguage)}
-                 </span>
-               ))}
+               {missingRegions.map(region => {
+                 const Icon = getMuscleIcon(region);
+                 return (
+                   <span key={region} className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5" 
+                     style={{ background: 'rgba(239,68,68,0.05)', color: 'var(--red)', borderColor: 'rgba(239,68,68,0.2)' }}>
+                     <Icon size={12} />
+                     {translateMuscle(region, taxonomy, muscleLanguage)}
+                   </span>
+                 );
+               })}
              </div>
           </div>
         ) : (

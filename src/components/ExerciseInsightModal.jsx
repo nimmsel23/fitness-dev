@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Download, X, Copy, ChevronDown, ChevronUp } from 'lucide-react'
 import { downloadText, exportFitnessData } from '@db'
 import { buildExerciseCoachSheet, buildExerciseInsights } from '../lib/exerciseInsights.js'
+import { translateMuscle } from '../lib/translations.js'
 
-function MuscleAnatomySection({ muscleAnatomy }) {
+function MuscleAnatomySection({ muscleAnatomy, muscleLanguage = 'de', taxonomy = null }) {
   const [open, setOpen] = useState(false)
   const entries = Object.entries(muscleAnatomy || {})
   if (!entries.length) return null
@@ -23,7 +24,9 @@ function MuscleAnatomySection({ muscleAnatomy }) {
         <div className="px-4 pb-4 pt-1 grid gap-3 md:grid-cols-2" style={{ background: 'var(--card)' }}>
           {entries.map(([id, m]) => (
             <div key={id} className="p-3 rounded-xl space-y-1.5" style={{ background: 'var(--bg2)', border: '1px solid var(--line)' }}>
-              <div className="text-sm font-bold" style={{ color: 'var(--accent)' }}>{m.latin || id}</div>
+              <div className="text-sm font-bold" style={{ color: 'var(--accent)' }}>
+                {translateMuscle(id, taxonomy, muscleLanguage)}
+              </div>
               {m.origin && (
                 <div>
                   <span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Ursprung </span>
@@ -55,7 +58,7 @@ function MuscleAnatomySection({ muscleAnatomy }) {
   )
 }
 
-export default function ExerciseInsightModal({ exercise, onClose }) {
+export default function ExerciseInsightModal({ exercise, onClose, muscleLanguage = 'de', taxonomy = null }) {
   if (!exercise) return null
 
   const insight = buildExerciseInsights(exercise)
@@ -163,7 +166,9 @@ export default function ExerciseInsightModal({ exercise, onClose }) {
                   <div className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: 'var(--muted)' }}>Primaer</div>
                   <div className="flex flex-wrap gap-1.5">
                     {insight.primary.length ? insight.primary.map(m => (
-                      <span key={m} className="text-[11px] px-2 py-1 rounded-full" style={{ background: 'rgba(94,234,212,0.12)', color: 'var(--accent)' }}>{m}</span>
+                      <span key={m} className="text-[11px] px-2 py-1 rounded-full" style={{ background: 'rgba(94,234,212,0.12)', color: 'var(--accent)' }}>
+                        {translateMuscle(m, taxonomy, muscleLanguage)}
+                      </span>
                     )) : <span className="text-sm" style={{ color: 'var(--muted)' }}>n/a</span>}
                   </div>
                 </div>
@@ -171,7 +176,9 @@ export default function ExerciseInsightModal({ exercise, onClose }) {
                   <div className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: 'var(--muted)' }}>Sekundaer</div>
                   <div className="flex flex-wrap gap-1.5">
                     {insight.secondary.length ? insight.secondary.map(m => (
-                      <span key={m} className="text-[11px] px-2 py-1 rounded-full" style={{ background: 'var(--bg2)', color: 'var(--muted)' }}>{m}</span>
+                      <span key={m} className="text-[11px] px-2 py-1 rounded-full" style={{ background: 'var(--bg2)', color: 'var(--muted)' }}>
+                        {translateMuscle(m, taxonomy, muscleLanguage)}
+                      </span>
                     )) : <span className="text-sm" style={{ color: 'var(--muted)' }}>n/a</span>}
                   </div>
                 </div>
@@ -217,7 +224,7 @@ export default function ExerciseInsightModal({ exercise, onClose }) {
             <p className="text-sm leading-6" style={{ color: 'var(--ink)' }}>{insight.quiz[0]?.question}</p>
           </section>
 
-          <MuscleAnatomySection muscleAnatomy={exercise.lesson?.muscle_anatomy} />
+          <MuscleAnatomySection muscleAnatomy={exercise.lesson?.muscle_anatomy} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
 
           {!exercise.lesson && (
             <div className="text-center py-2 text-xs" style={{ color: 'var(--muted)' }}>

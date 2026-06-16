@@ -3,6 +3,7 @@ import { getAllExercises } from "@db";
 import { useState, useEffect } from "react";
 import MuscleHighlightMap from "./MuscleHighlightMap";
 import { translateMuscle } from "../lib/translations";
+import { getMuscleIcon } from "../constants/MuscleIcons";
 
 export default function MuscleDetailModal({ muscleId, muscleData, onClose, loading, muscleLanguage = 'de', taxonomy = null }) {
   const [exercises, setExercises] = useState([]);
@@ -34,6 +35,7 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
 
   const name = translateMuscle(muscleId, taxonomy, muscleLanguage);
   const latin = taxonomy?.[muscleId]?.label_lat || muscleData?.latin_name || muscleData?.latin;
+  const Icon = getMuscleIcon(muscleId);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
@@ -46,9 +48,12 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
             <div className="flex items-center gap-4">
                <MuscleHighlightMap muscleId={muscleId} size={56} />
                <div>
-                  <h3 className="text-sm font-black uppercase tracking-widest text-[var(--ink)]">
-                    {name}
-                  </h3>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon size={14} className="text-accent" />
+                    <h3 className="text-sm font-black uppercase tracking-widest text-[var(--ink)]">
+                      {name}
+                    </h3>
+                  </div>
                   {latin && (
                     <div className="text-[10px] font-bold opacity-30 uppercase tracking-widest italic">
                        {latin}

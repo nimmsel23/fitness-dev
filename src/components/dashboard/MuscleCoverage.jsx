@@ -1,5 +1,6 @@
-import { AlertCircle, TrendingUp } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { translateMuscle } from "../../lib/translations";
+import { getMuscleIcon } from "../../constants/MuscleIcons";
 
 export default function MuscleCoverage({ coverage, recentDays = 7, muscleLanguage = 'de', taxonomy = null }) {
   return (
@@ -17,13 +18,16 @@ export default function MuscleCoverage({ coverage, recentDays = 7, muscleLanguag
         </div>
       ) : (
         <div className="flex flex-wrap gap-3">
-          {coverage.map(g => (
-            <span key={g.name} className="text-[11px] font-black uppercase tracking-widest px-5 py-2.5 rounded-2xl flex items-center gap-2"
-              style={{ background: 'var(--red)' + '15', color: 'var(--red)', border: '1px solid var(--red)30' }}>
-              <AlertCircle size={14} />
-              {translateMuscle(g.name, taxonomy, muscleLanguage)}
-            </span>
-          ))}
+          {coverage.map(g => {
+            const Icon = getMuscleIcon(g.name);
+            return (
+              <span key={g.name} className="text-[11px] font-black uppercase tracking-widest px-5 py-2.5 rounded-2xl flex items-center gap-2"
+                style={{ background: 'var(--red)' + '15', color: 'var(--red)', border: '1px solid var(--red)30' }}>
+                <Icon size={14} />
+                {translateMuscle(g.name, taxonomy, muscleLanguage)}
+              </span>
+            );
+          })}
         </div>
       )}
     </div>

@@ -157,7 +157,7 @@ export default function Learn({ onInspectExercise, hitMode, gender, muscleLangua
     return (
       <div className="pb-20 lg:pb-0 px-2">
         <ExplorerHeader viewMode={viewMode} setViewMode={setViewMode} onStartQuiz={() => setViewMode('quiz')} hasRecent={recent.length > 0} />
-        <Muscles hitMode={hitMode} gender={gender} />
+        <Muscles hitMode={hitMode} gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
       </div>
     );
   }

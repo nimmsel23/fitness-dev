@@ -350,7 +350,7 @@ export default function App() {
           </div>
         </div>
       </ErrorBoundary>
-      <ExerciseInsightModal exercise={inspectorExercise} onClose={() => setInspectorExercise(null)} />
+      <ExerciseInsightModal exercise={inspectorExercise} onClose={() => setInspectorExercise(null)} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
     </>
   );
 }
