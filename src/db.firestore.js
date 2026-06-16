@@ -13,7 +13,7 @@
 
 import {
   collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc,
-  query, where, orderBy, limit, serverTimestamp, writeBatch,
+  query, where, orderBy, limit, serverTimestamp, writeBatch, collectionGroup
 } from "firebase/firestore";
 import {
   onAuthStateChanged,
@@ -555,6 +555,21 @@ export async function sendToInbox(exerciseData) {
 }
 
 // ── Analysis / Coverage / Weekly Report (from pwa.bak/src/lib/db/analysis.js) ─
+
+export async function getDashboardAnalytics(days = 28) {
+  try {
+    const snap = await getDoc(doc(db, "fitness", getUid(), "analytics", "dashboard"));
+    if (snap.exists()) {
+      const data = snap.data();
+      if (days <= 7 && data.rolling_7_days) return data.rolling_7_days;
+      if (days <= 14 && data.rolling_14_days) return data.rolling_14_days;
+      return data.rolling_28_days || null;
+    }
+  } catch (e) {
+    console.error("Failed to fetch dashboard analytics", e);
+  }
+  return null;
+}
 
 export const ACTIVITY_MUSCLE_MAPPING = {
   hiking:   { muscles: ["legs", "core", "glutes"],        impact: 1.0 },

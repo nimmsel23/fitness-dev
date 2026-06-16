@@ -40,8 +40,7 @@ export default function HabitWidget() {
         setErr('Habits nicht erreichbar')
         setHabits([])
       } finally {
-        if (!alive) return
-        setLoading(false)
+        if (alive) setLoading(false)
       }
     }
 
