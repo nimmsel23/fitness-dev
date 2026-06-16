@@ -1,4 +1,13 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "habitJournals",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "habitId", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "DESCENDING" }
+      ]
+    }
+  ],
   "fieldOverrides": []
 }
