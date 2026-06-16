@@ -7,9 +7,9 @@ import Learn from './views/Learn/index.jsx'
 import Habits from './views/Habits/index.jsx'
 import WeeklyReview from './views/WeeklyReview/index.jsx'
 import Settings from './views/Settings/index.jsx'
+import Coach from './views/Coach/index.jsx'
 import ExerciseInsightModal from './components/ExerciseInsightModal.jsx'
-import { api } from './api.js'
-import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode } from '@db'
+import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode, getAnatomy } from '@db'
 
 import { NAV_ITEMS, VALID_TABS } from './constants/NavigationItems.js'
 import { THEMES } from './constants/Themes.js'
@@ -189,9 +189,9 @@ export default function App() {
     const id = exercise.exercise_id || exercise.id
     if (!id || exercise.lesson) return
     try {
-      const data = await api.get(`/exercise/${encodeURIComponent(id)}/teaching`)
-      if (data?.ok && data.lesson)
-        setInspectorExercise(prev => prev ? { ...prev, lesson: data.lesson } : prev)
+      const lesson = await getAnatomy(id)
+      if (lesson)
+        setInspectorExercise(prev => prev ? { ...prev, lesson } : prev)
     } catch {}
   }
 
@@ -241,7 +241,13 @@ export default function App() {
       <ErrorBoundary>
         <div className="flex min-h-screen bg-[var(--bg)] text-[var(--ink)] font-sans transition-colors duration-500">
 
-        <Sidebar tab={tab} navigate={navigate} pinned={sidebarPinned} setPinned={setSidebarPinned}>
+        <Sidebar
+          tab={tab}
+          navigate={navigate}
+          pinned={sidebarPinned}
+          setPinned={setSidebarPinned}
+          user={user}
+        >
           <UserProfile user={user} subtitle={isLocalMode() ? `${user?.email || 'localhost'} · localhost` : (user?.email || '')} />
           {!isLocalMode() && (
             <button onClick={signOut} className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black uppercase tracking-widest text-[var(--red)] bg-[var(--red)]/5 border border-[var(--red)]/10 rounded-xl hover:bg-[var(--red)]/10 transition-all">
@@ -295,6 +301,7 @@ export default function App() {
                       {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} hitMode={hitMode} gender={gender} />}
                       {tab === 'habits'   && <Habits />}
                       {tab === 'journal'  && <Journal />}
+                      {tab === 'coach'    && <Coach onInspectExercise={inspectExercise} />}
                       {tab === 'settings' && (
                          <Settings
                            hitMode={hitMode} setHitMode={setHitMode}

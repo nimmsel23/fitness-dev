@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Check, BookOpen } from 'lucide-react'
-import { api, localToday } from '../api.js'
+import { getHabits, recordHabit, localToday } from '@db'
 import HabitJournalModal from './HabitJournalModal.jsx'
 
 function epochDayNow() {
@@ -32,9 +32,9 @@ export default function HabitWidget() {
       setLoading(true)
       setErr('')
       try {
-        const data = await api.get('/habitsync/habits')
+        const data = await getHabits()
         if (!alive) return
-        setHabits(Array.isArray(data) ? data : [])
+        setHabits(data)
       } catch (e) {
         if (!alive) return
         setErr('Habits nicht erreichbar')
@@ -62,7 +62,7 @@ export default function HabitWidget() {
     }))
 
     try {
-      await api.post(`/habitsync/record/${encodeURIComponent(uuid)}`, {})
+      await recordHabit(uuid)
     } catch {
       // Revert on failure.
       setHabits(prev => prev.map(h => {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
-import { api } from '../api.js'
+import { getBodyEntries } from '@db'
 
 function fmt(dateStr) {
   const [, m, d] = dateStr.split('-')
@@ -26,15 +26,13 @@ export default function WeightChart({ days = 30 }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api.get(`/fitness/body?days=${days}`)
-      .then(d => {
-        if (d?.ok) {
-          const data = (d.entries || [])
-            .filter(e => e.weight_kg)
-            .sort((a, b) => a.date > b.date ? 1 : -1)
-            .map(e => ({ ...e, label: fmt(e.date) }))
-          setEntries(data)
-        }
+    getBodyEntries(days)
+      .then(data => {
+        const filtered = (data || [])
+          .filter(e => e.weight_kg)
+          .sort((a, b) => a.date > b.date ? 1 : -1)
+          .map(e => ({ ...e, label: fmt(e.date) }))
+        setEntries(filtered)
       })
       .catch(() => {})
       .finally(() => setLoading(false))

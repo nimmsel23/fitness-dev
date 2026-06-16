@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CalendarDays, Download, RotateCw, Sparkles } from 'lucide-react'
-import { api } from '../api.js'
+import { getConfig, getPlanSuggestion, exportFitnessData } from '@db'
 
 const TEMPLATES = [
   { id: 'push_day', label: 'Push' },
@@ -31,7 +31,7 @@ export default function PlanBuilder({ onInspectExercise }) {
   const [exportState, setExportState] = useState('')
 
   useEffect(() => {
-    api.get('/fitness/config').then(d => {
+    getConfig().then(d => {
       if (d?.ok) setConfig(d)
     }).catch(() => {})
   }, [])
@@ -39,11 +39,7 @@ export default function PlanBuilder({ onInspectExercise }) {
   async function build() {
     setLoading(true)
     try {
-      const qs = new URLSearchParams()
-      if (template) qs.set('template', template)
-      if (goal) qs.set('goal', goal)
-      if (day) qs.set('day', day)
-      const data = await api.get(`/fitness/plan?${qs.toString()}`)
+      const data = await getPlanSuggestion({ template, goal, day })
       setPlan(data)
     } catch {
       setPlan(null)
@@ -56,7 +52,7 @@ export default function PlanBuilder({ onInspectExercise }) {
     if (!plan) return
     setExportState('exporting')
     try {
-      const result = await api.post('/fitness/export', {
+      const result = await exportFitnessData({
         kind: 'plan',
         plan,
         force: true,

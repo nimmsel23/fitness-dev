@@ -42,6 +42,47 @@ export async function getMuscle(muscleId) {
   try { return await api.get(`/fitness/muscles/${encodeURIComponent(muscleId)}`); } catch { return null; }
 }
 
-export async function sendToInbox() {
-  return { ok: false };
+export async function getConfig() {
+  try {
+    return await api.get("/fitness/config");
+  } catch {
+    return null;
+  }
+}
+
+export async function getInbox() {
+  try {
+    const data = await api.get("/fitness/inbox");
+    return data?.exercises || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getGlobalInbox() {
+  return getInbox();
+}
+
+export async function approveInbox(id) {
+  try {
+    return await api.post(`/fitness/inbox/${id}/approve`, {});
+  } catch {
+    return { ok: false };
+  }
+}
+
+export async function deleteInbox(id) {
+  try {
+    return await api.delete(`/fitness/inbox/${id}`);
+  } catch {
+    return { ok: false };
+  }
+}
+
+export async function sendToInbox(exerciseData) {
+  try {
+    return await api.post("/fitness/inbox", exerciseData);
+  } catch {
+    return { ok: false };
+  }
 }

@@ -90,10 +90,14 @@ export async function savePlan(plan) {
   return { ok: true };
 }
 
-export async function getPlanSuggestion(date) {
+export async function getPlanSuggestion(params) {
   try {
-    const data = await api.get(`/plan/today?date=${date || localToday()}`);
-    return data?.suggestion || null;
+    if (typeof params === 'string' || !params) {
+      const data = await api.get(`/plan/today?date=${params || localToday()}`);
+      return data?.suggestion || null;
+    }
+    const qs = new URLSearchParams(params).toString();
+    return await api.get(`/fitness/plan?${qs}`);
   } catch {
     return null;
   }

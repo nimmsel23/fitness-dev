@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Download, X, Copy, ChevronDown, ChevronUp } from 'lucide-react'
-import { api, downloadText } from '../api.js'
+import { downloadText, exportFitnessData } from '@db'
 import { buildExerciseCoachSheet, buildExerciseInsights } from '../lib/exerciseInsights.js'
 
 function MuscleAnatomySection({ muscleAnatomy }) {
@@ -71,7 +71,7 @@ export default function ExerciseInsightModal({ exercise, onClose }) {
       const payload = kind === 'lesson'
         ? { kind: 'exercise_lesson', exercise_id: exercise.exercise_id || exercise.id || exercise.name, mode: 'trainer', force: true }
         : { kind: 'exercise_sheet', query: exercise.exercise_id || exercise.id || exercise.name, force: true }
-      const result = await api.post('/fitness/export', payload)
+      const result = await exportFitnessData(payload)
       alert(result?.path ? `Exportiert: ${result.path}` : 'Exportiert')
     } catch {
       alert('Export fehlgeschlagen')

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Sparkles, CheckCircle2, Trash2, Info, AlertTriangle, ExternalLink } from "lucide-react";
-import { api } from "@db";
+import { getInbox, approveInbox, deleteInbox } from "@db";
 
 export default function Inbox({ onInspectExercise }) {
   const [exercises, setExercises] = useState([]);
@@ -14,8 +14,8 @@ export default function Inbox({ onInspectExercise }) {
   async function fetchInbox() {
     setLoading(true);
     try {
-      const data = await api.get("/fitness/inbox");
-      setExercises(data.exercises || []);
+      const data = await getInbox();
+      setExercises(Array.isArray(data) ? data : data.exercises || []);
     } catch (e) {
       console.error("Failed to fetch inbox:", e);
     } finally {
@@ -26,7 +26,7 @@ export default function Inbox({ onInspectExercise }) {
   async function handleApprove(fileId) {
     setActioning(fileId);
     try {
-      await api.post(`/fitness/inbox/${fileId}/approve`, {});
+      await approveInbox(fileId);
       setExercises(prev => prev.filter(ex => ex.file_id !== fileId));
     } catch (e) {
       alert("Fehler beim Freigeben");
@@ -39,7 +39,7 @@ export default function Inbox({ onInspectExercise }) {
     if (!confirm("Diese Übung wirklich löschen?")) return;
     setActioning(fileId);
     try {
-      await api.delete(`/fitness/inbox/${fileId}`);
+      await deleteInbox(fileId);
       setExercises(prev => prev.filter(ex => ex.file_id !== fileId));
     } catch (e) {
       alert("Fehler beim Löschen");

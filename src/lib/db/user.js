@@ -1,7 +1,8 @@
+import { api, localToday } from "./core";
+
 const LOCAL_KEYS = {
   settings: "fitness-local-settings",
   layout: "fitness-local-layout",
-  body: "fitness-local-body",
 };
 
 function readJSON(key, fallback) {
@@ -25,19 +26,22 @@ export async function getLayout() {
 export async function saveLayout(layout) { writeJSON(LOCAL_KEYS.layout, { layout }); return { ok: true }; }
 
 export async function getBodyEntry(date) {
-  const body = readJSON(LOCAL_KEYS.body, {});
-  return body[date] || null;
+  try {
+    const data = await api.get(`/fitness/body?days=365`);
+    return (data?.entries || []).find(e => e.date === date) || null;
+  } catch { return null; }
 }
+
 export async function saveBodyEntry(date, data) {
-  const body = readJSON(LOCAL_KEYS.body, {});
-  body[date] = { ...(body[date] || {}), ...data, date, saved_at: new Date().toISOString() };
-  writeJSON(LOCAL_KEYS.body, body);
-  return { ok: true };
+  try {
+    await api.post(`/fitness/body`, { ...data, date });
+    return { ok: true };
+  } catch { return { ok: false }; }
 }
+
 export async function getBodyEntries(days = 30) {
-  const body = readJSON(LOCAL_KEYS.body, {});
-  return Object.values(body)
-    .filter(Boolean)
-    .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")))
-    .slice(0, days);
+  try {
+    const data = await api.get(`/fitness/body?days=${days}`);
+    return data?.entries || [];
+  } catch { return []; }
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { LineChart, Line, ResponsiveContainer, YAxis } from 'recharts'
 import { Activity, Moon, Footprints, Heart, Scale } from 'lucide-react'
-import { api } from '../../api.js'
+import { getBodyEntries } from '@db'
 
 function fmt(dateStr) {
   const [, m, d] = dateStr.split('-')
@@ -13,14 +13,12 @@ export default function HealthWidget({ days = 14 }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api.get(`/fitness/body?days=${days}`)
-      .then(d => {
-        if (d?.ok) {
-          const data = (d.entries || [])
-            .sort((a, b) => a.date > b.date ? 1 : -1)
-            .map(e => ({ ...e, label: fmt(e.date) }))
-          setEntries(data)
-        }
+    getBodyEntries(days)
+      .then(data => {
+        const sorted = (data || [])
+          .sort((a, b) => a.date > b.date ? 1 : -1)
+          .map(e => ({ ...e, label: fmt(e.date) }))
+        setEntries(sorted)
       })
       .catch(() => {})
       .finally(() => setLoading(false))
