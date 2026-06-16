@@ -1,6 +1,7 @@
-import { RefreshCw, Zap, Target, User, LayoutGrid, Clock, Moon, Sun, Save, Check, Sparkles, Settings2, ChevronDown, ChevronRight } from "lucide-react";
+import { RefreshCw, Zap, Target, User, LayoutGrid, Clock, Moon, Sun, Save, Check, Sparkles, Settings2, ChevronDown, ChevronRight, Palette } from "lucide-react";
 import { useState, useEffect } from "react";
 import { api, isLocalMode } from "@db";
+import { DARK_THEMES, LIGHT_THEMES } from "../../constants/Themes";
 
 export default function Settings({
   hitMode, setHitMode, planMode, setPlanMode,
@@ -27,7 +28,8 @@ export default function Settings({
     biometry: false,
     design: false,
     experimental: true,
-    info: true
+    info: true,
+    themes: false
   });
 
   const toggle = (key) => setCollapsed(prev => ({ ...prev, [key]: !prev[key] }));
@@ -139,17 +141,46 @@ export default function Settings({
                    </div>
                 </div>
                 <div>
-                   <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1 mb-3">Theme Auswahl</div>
-                   <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
-                      {Object.entries(themes).slice(0, 12).map(([id, t]) => (
-                         <button key={id} onClick={() => { setThemeState(id); updateSettings?.({ theme: id, themeMode: 'manual' }); }}
-                            className={`shrink-0 w-10 h-10 rounded-xl border-2 transition-all ${theme === id ? 'border-accent scale-110 shadow-lg shadow-accent/20' : 'border-line hover:border-accent/40'}`} 
-                            style={{ background: t.bg }}
-                            title={id}
-                         >
-                            <div className="w-2 h-2 mx-auto rounded-full" style={{ background: t.accent }} />
-                         </button>
-                      ))}
+                   <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1 mb-3">Theme System ({Object.keys(themes).length} Themes)</div>
+                   
+                   <div className="space-y-4">
+                     {/* Dark Themes */}
+                     <div>
+                       <div className="text-[9px] font-bold uppercase tracking-widest text-dim mb-2 ml-1">Dark Mode</div>
+                       <div className="flex flex-wrap gap-2">
+                          {DARK_THEMES.filter(id => themes[id]).map(id => {
+                             const t = themes[id];
+                             return (
+                               <button key={id} onClick={() => { setThemeState(id); updateSettings?.({ theme: id, themeMode: 'manual' }); }}
+                                  className={`w-9 h-9 rounded-xl border-2 transition-all flex items-center justify-center ${theme === id ? 'border-accent scale-110 shadow-lg shadow-accent/20' : 'border-line hover:border-accent/40'}`} 
+                                  style={{ background: t.bg }}
+                                  title={id}
+                               >
+                                  <div className="w-2 h-2 rounded-full" style={{ background: t.accent }} />
+                               </button>
+                             );
+                          })}
+                       </div>
+                     </div>
+
+                     {/* Light Themes */}
+                     <div>
+                       <div className="text-[9px] font-bold uppercase tracking-widest text-dim mb-2 ml-1">Light Mode</div>
+                       <div className="flex flex-wrap gap-2">
+                          {LIGHT_THEMES.filter(id => themes[id]).map(id => {
+                             const t = themes[id];
+                             return (
+                               <button key={id} onClick={() => { setThemeState(id); updateSettings?.({ theme: id, themeMode: 'manual' }); }}
+                                  className={`w-9 h-9 rounded-xl border-2 transition-all flex items-center justify-center ${theme === id ? 'border-accent scale-110 shadow-lg shadow-accent/20' : 'border-line hover:border-accent/40'}`} 
+                                  style={{ background: t.bg }}
+                                  title={id}
+                               >
+                                  <div className="w-2 h-2 rounded-full" style={{ background: t.accent }} />
+                               </button>
+                             );
+                          })}
+                       </div>
+                     </div>
                    </div>
                 </div>
              </div>
