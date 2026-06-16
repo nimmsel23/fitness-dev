@@ -12,8 +12,8 @@
  */
 
 import {
-  collection, doc, addDoc, setDoc, getDoc, getDocs,
-  query, where, orderBy, limit, serverTimestamp,
+  collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc,
+  query, where, orderBy, limit, serverTimestamp, writeBatch,
 } from "firebase/firestore";
 import {
   onAuthStateChanged,
@@ -281,29 +281,28 @@ export async function getGlobalInbox() {
 
 export async function approveInbox(id, userId) {
   const targetUid = userId || getUid();
-  const ref = doc(db, "fitness", targetUid, "inbox", id);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return { ok: false };
-  
+  const inboxRef = doc(db, "fitness", targetUid, "inbox", id);
+  const snap = await getDoc(inboxRef);
+  if (!snap.exists()) return { ok: false, error: "not_found" };
+
   const data = snap.data();
   const exercise = data.enriched || data;
   const exId = exercise.exercise_id || exercise.id || id;
 
-  // 1. Move to Global KB
-  await setDoc(doc(db, "fitness", "kb", "exercises", exId), {
+  const batch = writeBatch(db);
+  batch.set(doc(db, "fitness", "kb", "exercises", exId), {
     ...exercise,
-    source: "community_approved",
+    source: "approved",
     approved_at: serverTimestamp(),
   });
+  batch.delete(inboxRef);
+  await batch.commit();
 
-  // 2. Mark as approved in user's inbox
-  await setDoc(ref, { status: "approved", approved_at: serverTimestamp() }, { merge: true });
-  
-  return { ok: true };
+  return { ok: true, id: exId };
 }
 
 export async function deleteInbox(id) {
-  // deleteDoc(doc(db, "fitness", getUid(), "inbox", id));
+  await deleteDoc(doc(db, "fitness", getUid(), "inbox", id));
   return { ok: true };
 }
 

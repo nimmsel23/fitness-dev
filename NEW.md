@@ -8,6 +8,11 @@
 - **Navigation**: Horizontales Swipen für den Tab-Wechsel implementiert.
 - **Logik**: `coverageThreshold`-Einstellung eingefügt und rollierendes Fenster für die Muscle Coverage Analyse in `analysis.js` gefixt.
 - **Catalog Sync**: Hash-basierter "Smart Sync" implementiert (MD5-Change-Detection) und Muskel-IDs auf konsistente numerische Präfixe (z.B. `101_pectoralis_major`) umgestellt.
+- **@db Contract**: Komplette Umstellung aller Views (Dashboard, Habits, Settings, etc.) auf den sauberen `@db` Contract, um direkte API-Bypasses zu entfernen und Cross-Platform (Local/Firebase) zu garantieren.
+- **Cloud Chamber Architecture**: Staging-Area (`cloud_chamber/`) aufgebaut für die Serverless-Transformation des Coach Brains. Enthält Firestore-Watchers, dokumentierte Schemas und Workflows.
+- **Anatomy-KB Migration**: 53 Lektionen und 40 Muskel-Definitionen aus dem Anatomy-KB Projekt erfolgreich nach Firestore synchronisiert.
+- **Hidden Chamber UI**: Neues Admin-Dashboard ("Coach") in der PWA implementiert, das eine zentrale Freigabe von KI-angereicherten Übungen aus allen User-Inboxes ermöglicht.
+- **Gemini Skills**: `fitness-agent` und `anatomy-agent` als offiziell installierte Gemini CLI Skills bereitgestellt, inkl. prozeduraler Anleitung für Biomechanik und Katalog-Workflows.
 fix: restore git auto-deploy for root-level PWA structure
 chore: rename deploy script to deploy-firebase
 feat: implement Safe Production Pipeline with separated release vessel

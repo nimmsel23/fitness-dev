@@ -59,13 +59,14 @@ A unified fitness ecosystem serving two primary roles:
 *   `/src`: Local development views and components (parity targets).
 *   `/firestore`: Python modules for sync, mirroring, and CLI operations.
 *   `/catalog/kb`: The local knowledge base for anatomy and exercises (YAML).
+*   `/catalog/fitness_agent`: The Python expert system. [See Subdirectory Instructions](./catalog/fitness_agent/GEMINI.md).
 *   `/arena`: Specialized muscle visualization/gamification module.
 
 ## 5. Development Workflow
 1.  **Edit PWA**: Implement features in `/pwa`.
 2.  **Sync Parity**: Update corresponding components in `/src` to maintain the local-development target.
 3.  **Deploy**: Use `npm run deploy --prefix pwa` for Firebase Hosting updates.
-4.  **Anatomy Parity**: When adding exercises, ensure deep anatomy is enriched in `~/anatomy-kb` and passes `./anatomy-agent audit all` before syncing to Firestore.
+4.  **Anatomy Parity**: When adding exercises, ensure deep anatomy is enriched in `~/anatomy-kb` and passes `./anatomy-agent audit all` before syncing to Firestore. Use the `anatomy-agent` skill for deep knowledge ingestion.
 5.  **Data Persistence**: Current strategy is repo-local storage for local development data.
 6.  **Automations**: Use `fitnessctl watch` to run the autonomous daemon that handles inbox enrichment and catalog-to-firestore synchronization.
 7.  **Document**: Update this `GEMINI.md` when architectural shifts occur.
