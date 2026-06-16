@@ -1,27 +1,12 @@
 import { NAV_ITEMS } from "../constants/NavigationItems.js";
-import { Activity } from "lucide-react";
 import { localToday } from "@utils";
 
 export default function AppGate({ navigate }) {
-  // We include 'dash' (Heute) in the Gate, but filter out 'settings' to place it separately or handle it via a smaller button.
-  // Actually, let's include all main NAV_ITEMS.
-  
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[var(--bg)] to-[var(--bg2)] text-[var(--ink)]">
       
-      {/* Brand Header */}
-      <div className="flex flex-col items-center gap-4 mb-16 animate-in fade-in slide-in-from-top-8 duration-700">
-        <div className="w-16 h-16 rounded-3xl bg-[var(--accent)] flex items-center justify-center shadow-2xl shadow-[var(--accent)]/30">
-          <Activity size={32} className="text-black stroke-[3]" />
-        </div>
-        <div className="text-center">
-          <h1 className="text-2xl font-black tracking-tight">AlphaOS</h1>
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--accent)] mt-1">Fitness Hub</p>
-        </div>
-      </div>
-
       {/* Navigation Grid */}
-      <nav className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-2xl animate-in fade-in zoom-in-95 duration-700 delay-150">
+      <nav className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-2xl animate-in fade-in zoom-in-95 duration-700">
         {NAV_ITEMS.map(({ id, label, Icon }) => (
           <button
             key={id}
@@ -45,8 +30,8 @@ export default function AppGate({ navigate }) {
         ))}
       </nav>
 
-      {/* Optional: Date / Subtitle footer */}
-      <div className="mt-16 text-[9px] font-black uppercase tracking-widest text-[var(--dim)] opacity-50 animate-in fade-in duration-1000 delay-300">
+      {/* Date / Subtitle footer */}
+      <div className="mt-16 text-[9px] font-black uppercase tracking-widest text-[var(--dim)] opacity-50 animate-in fade-in duration-1000 delay-150">
         {new Date().toLocaleDateString('de-DE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
       </div>
     </div>
