@@ -19,15 +19,22 @@ import MobileHeader from './components/layout/MobileHeader.jsx'
 import UserProfile from './components/common/UserProfile.jsx'
 import ErrorBoundary from './components/common/ErrorBoundary.jsx'
 
+import AppGate from './views/AppGate.jsx'
+
 const DAY_START = 8; // 8 AM
 const DAY_END   = 20; // 8 PM
 
 
 export default function App() {
+  const [navMode, setNavMode] = useState(() => localStorage.getItem('fitness-navMode') || 'tabs');
   const [tab, setTab]             = useState(() => {
      const hash = window.location.hash.replace(/^#\/?/, '');
-     return VALID_TABS.has(hash) ? hash : 'dash';
+     if (VALID_TABS.has(hash)) return hash;
+     // If no valid hash, default to 'gate' in home mode, else 'dash'
+     const initialNavMode = localStorage.getItem('fitness-navMode') || 'tabs';
+     return initialNavMode === 'home' ? 'gate' : 'dash';
   });
+
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authEmail, setAuthEmail] = useState('');
@@ -61,7 +68,6 @@ export default function App() {
   const [showAdvanced, setShowAdvanced] = useState(() => localStorage.getItem('fitness-showAdvanced') === 'true');
   const [dashboardHighlighter, setDashboardHighlighter] = useState(() => localStorage.getItem('fitness-dashboardHighlighter') || 'body');
   const [sidebarPinned, setSidebarPinned] = useState(() => localStorage.getItem('fitness-sidebarPinned') !== 'false');
-  const [navMode, setNavMode] = useState(() => localStorage.getItem('fitness-navMode') || 'tabs');
 
   // Swipe Navigation — refs to avoid re-registering listeners on every touch event
   const touchStartRef = useRef(null);
@@ -253,21 +259,11 @@ export default function App() {
             <MobileHeader navigate={navigate} tab={tab} navMode={navMode} />
           </div>
 
-          <main className={`relative ${navMode === 'tabs' ? 'pb-28' : 'pb-4'} sm:pb-10 lg:pb-16 min-h-screen overflow-x-hidden`}>
-              {/* Background Hub (Dashboard) - always mounted in home mode for speed/transitions */}
+          <main className={`relative ${navMode === 'tabs' ? 'pb-28' : ''} sm:pb-10 lg:pb-16 min-h-[100dvh] overflow-x-hidden`}>
+              {/* Background Gate - only mounted in home mode */}
               {navMode === 'home' && (
-                <div className={`transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto ${tab !== 'dash' ? 'scale-[0.98] opacity-30 blur-[2px] pointer-events-none' : 'scale-100 opacity-100'}`}>
-                   <Dashboard 
-                     onOpenSession={openSession} 
-                     onInspectExercise={inspectExercise} 
-                     onOpenReview={() => navigate('review')} 
-                     recentDays={recentDays} 
-                     coverageThreshold={coverageThreshold} 
-                     dashboardHighlighter={dashboardHighlighter} 
-                     gender={gender} 
-                     navMode={navMode} 
-                     navigate={navigate} 
-                   />
+                <div className={`transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] max-w-[1600px] mx-auto min-h-[100dvh] flex flex-col ${tab !== 'gate' ? 'scale-[0.98] opacity-30 blur-[2px] pointer-events-none' : 'scale-100 opacity-100'}`}>
+                   <AppGate navigate={navigate} />
                 </div>
               )}
 
@@ -275,54 +271,50 @@ export default function App() {
               <div 
                 className={`
                   ${navMode === 'home' ? 'fixed inset-0 z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]' : 'p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto'}
-                  ${navMode === 'home' && tab === 'dash' ? 'translate-y-full pointer-events-none' : 'translate-y-0'}
+                  ${navMode === 'home' && tab === 'gate' ? 'translate-y-full pointer-events-none' : 'translate-y-0'}
                 `}
               >
                 <div className={`${navMode === 'home' ? 'h-full bg-[var(--bg)] shadow-[0_-20px_50px_rgba(0,0,0,0.3)] overflow-y-auto rounded-t-[40px] border-t border-[var(--line)]/30 relative' : ''}`}>
                   {/* Sheet Pull Handle (Visual only for now) */}
-                  {navMode === 'home' && tab !== 'dash' && (
+                  {navMode === 'home' && tab !== 'gate' && (
                     <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1.5 rounded-full bg-[var(--line)]/40 z-[60] lg:hidden" />
                   )}
 
                   {/* Sheet Header (only in home mode sheets) */}
-                  {navMode === 'home' && tab !== 'dash' && (
-                    <div className="sticky top-0 z-50 lg:hidden">
+                  {navMode === 'home' && tab !== 'gate' && (
+                    <div className="sticky top-0 z-50 lg:hidden bg-[var(--bg)]/80 backdrop-blur-md border-b border-[var(--line)]/30 rounded-t-[40px] px-2 pt-4">
                        <MobileHeader navigate={navigate} tab={tab} navMode={navMode} />
                     </div>
                   )}
 
-                  <div className={`${navMode === 'home' && tab !== 'dash' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
-                      {/* Only render non-dash tabs here in home mode, OR everything in tabs mode */}
-                      {(navMode === 'tabs' || tab !== 'dash') && (
-                        <>
-                          {tab === 'dash'     && navMode === 'tabs' && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} />}
-                          {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}
-                          {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} hitMode={hitMode} />}
-                          {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} hitMode={hitMode} gender={gender} />}
-                          {tab === 'habits'   && <Habits />}
-                          {tab === 'journal'  && <Journal />}
-                          {tab === 'settings' && (
-                             <Settings
-                               hitMode={hitMode} setHitMode={setHitMode}
-                               planMode={planMode} setPlanMode={setPlanMode}
-                               layoutScale={layoutScale} setLayoutScale={setLayoutScale}
-                               recentDays={recentDays} setRecentDays={setRecentDays}
-                               coverageThreshold={coverageThreshold} setCoverageThreshold={setCoverageThreshold}
-                               showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}
-                               dashboardHighlighter={dashboardHighlighter} setDashboardHighlighter={setDashboardHighlighter}
-                               gender={gender} setGender={setGender}
-                               split={split} setSplit={setSplit}
-                               cycleLength={cycleLength} setCycleLength={setCycleLength}
-                               defaultLocation={defaultLocation} setDefaultLocation={setDefaultLocation}
-                               themeMode={themeMode} setModeState={setModeState}
-                               circLight={circLight} setCircLight={setCircLight}
-                               circDark={circDark} setCircDark={setCircDark}
-                               themes={THEMES} theme={theme} setThemeState={setThemeState}
-                               sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned}
-                               navMode={navMode} setNavMode={setNavMode}
-                             />
-                          )}
-                        </>
+                  <div className={`${navMode === 'home' && tab !== 'gate' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+                      {/* Render content */}
+                      {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} />}
+                      {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}
+                      {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} hitMode={hitMode} />}
+                      {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} hitMode={hitMode} gender={gender} />}
+                      {tab === 'habits'   && <Habits />}
+                      {tab === 'journal'  && <Journal />}
+                      {tab === 'settings' && (
+                         <Settings
+                           hitMode={hitMode} setHitMode={setHitMode}
+                           planMode={planMode} setPlanMode={setPlanMode}
+                           layoutScale={layoutScale} setLayoutScale={setLayoutScale}
+                           recentDays={recentDays} setRecentDays={setRecentDays}
+                           coverageThreshold={coverageThreshold} setCoverageThreshold={setCoverageThreshold}
+                           showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}
+                           dashboardHighlighter={dashboardHighlighter} setDashboardHighlighter={setDashboardHighlighter}
+                           gender={gender} setGender={setGender}
+                           split={split} setSplit={setSplit}
+                           cycleLength={cycleLength} setCycleLength={setCycleLength}
+                           defaultLocation={defaultLocation} setDefaultLocation={setDefaultLocation}
+                           themeMode={themeMode} setModeState={setModeState}
+                           circLight={circLight} setCircLight={setCircLight}
+                           circDark={circDark} setCircDark={setCircDark}
+                           themes={THEMES} theme={theme} setThemeState={setThemeState}
+                           sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned}
+                           navMode={navMode} setNavMode={setNavMode}
+                         />
                       )}
                   </div>
                 </div>

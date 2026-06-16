@@ -170,33 +170,6 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
 
   return (
     <div className="pb-32">
-      {/* Home-Menü Nav-Karten (Hub-Navigation) */}
-      {navMode === 'home' && (
-        <nav className="lg:hidden grid grid-cols-3 gap-3 mb-10 animate-in fade-in slide-in-from-top-4 duration-700 delay-150">
-          {HOME_NAV.map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              onClick={() => navigate?.(id)}
-              className="relative group p-4 rounded-[28px] bg-[var(--bg2)] border border-[var(--line)]/50 active:scale-90 transition-all overflow-hidden flex flex-col items-center gap-3 shadow-sm hover:shadow-xl hover:shadow-[var(--accent)]/5 hover:border-[var(--accent)]/30"
-            >
-              {/* Decorative Background Glow on Hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[var(--accent)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              
-              <div className="w-11 h-11 rounded-2xl bg-[var(--bg)] border border-[var(--line)] flex items-center justify-center group-hover:bg-[var(--accent)] group-hover:border-[var(--accent)] transition-all duration-300 shadow-inner">
-                <Icon size={19} className="text-[var(--dim)] group-hover:text-black transition-colors" />
-              </div>
-              
-              <div className="flex flex-col items-center gap-0.5">
-                <span className="text-[9px] font-black uppercase tracking-[0.15em] text-[var(--dim)] group-hover:text-[var(--ink)] transition-colors">
-                  {label}
-                </span>
-                <div className="h-0.5 w-0 group-hover:w-full bg-[var(--accent)] transition-all duration-500 rounded-full" />
-              </div>
-            </button>
-          ))}
-        </nav>
-      )}
-
       <DashboardHeader
         onExport={handleExport}
         isEditMode={isEditMode}
