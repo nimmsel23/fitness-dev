@@ -191,10 +191,67 @@ export async function savePlan(plan) {
   return { ok: true };
 }
 
-export async function getPlanSuggestion(params) {
-  // Firestore doesn't support the rule-based builder yet.
-  return null;
+// Mirrors catalog/kb/rules/program_rules.yml — update both when rules change.
+const PROGRAM_RULES = {
+  default_split: "full_body",
+  templates: {
+    push_day: { slots: [
+      { name: "main_chest_press",       choose_from: ["041","104"] },
+      { name: "secondary_press",        choose_from: ["045","023"] },
+      { name: "shoulder_press_or_raise",choose_from: ["022","301"] },
+      { name: "chest_isolation",        choose_from: ["103","pec_deck"] },
+      { name: "triceps_isolation",      choose_from: ["502","503"] },
+    ]},
+    pull_day: { slots: [
+      { name: "vertical_pull",          choose_from: ["020","021","201"] },
+      { name: "horizontal_pull",        choose_from: ["042","043","044"] },
+      { name: "secondary_row_or_pulldown", choose_from: ["201","043","044"] },
+      { name: "rear_delt_or_face_pull", choose_from: ["302","303"] },
+      { name: "biceps_movement",        choose_from: ["504","505","506","507"] },
+    ]},
+    legs_day: { slots: [
+      { name: "main_squat",             choose_from: ["061","060","062"] },
+      { name: "main_hinge",             choose_from: ["081","080","082"] },
+      { name: "unilateral_or_machine",  choose_from: ["063","064","062"] },
+      { name: "hamstring_isolation",    choose_from: ["402","082"] },
+      { name: "calves",                 choose_from: ["701"] },
+      { name: "core_optional",          choose_from: ["601","602","603","604","605","606"] },
+    ]},
+  },
+};
+
+export async function getPlanSuggestion({ template, goal, day } = {}) {
+  const templateName = template?.trim() || (day ? `${day.trim()}_day` : '') || PROGRAM_RULES.default_split;
+  const templateDef = PROGRAM_RULES.templates[templateName];
+  if (!templateDef) return null;
+
+  const exercises = await getAllExercises();
+  const byId = Object.fromEntries(exercises.map(e => [e.exercise_id || e.id, e]));
+  const exerciseIds = new Set(Object.keys(byId));
+
+  const selected = new Set();
+  const slots = templateDef.slots.map(slot => {
+    const available = slot.choose_from.filter(id => exerciseIds.has(id) && !selected.has(id));
+    const pick = available[0] || null;
+    if (pick) selected.add(pick);
+    return { name: slot.name, choose_from: slot.choose_from, selected_exercise: pick };
+  });
+
+  const resolvedExercises = [...selected].map(id => {
+    const ex = byId[id];
+    if (!ex) return null;
+    return {
+      ...ex,
+      id: ex.exercise_id || ex.id,
+      name: ex.display_name || ex.german || ex.name || id,
+      primaryMuscles: ex.primary_muscles || ex.primaryMuscles || [],
+      secondaryMuscles: ex.secondary_muscles || ex.secondaryMuscles || [],
+    };
+  }).filter(Boolean);
+
+  return { ok: true, template: templateName, goal: goal || null, slots, exercises: resolvedExercises };
 }
+
 export async function exportFitnessData(_payload) { return null; }
 
 export async function getConfig() { return { ok: true, source: "firestore" }; }
