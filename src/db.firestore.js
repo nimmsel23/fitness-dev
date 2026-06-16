@@ -191,8 +191,64 @@ export async function savePlan(plan) {
   return { ok: true };
 }
 
-export async function getPlanSuggestion(_date) { return null; }
+export async function getPlanSuggestion(params) {
+  // Firestore doesn't support the rule-based builder yet.
+  return null;
+}
 export async function exportFitnessData(_payload) { return null; }
+
+export async function getConfig() { return { ok: true, source: "firestore" }; }
+
+// ... (existing imports and helpers)
+
+export async function getInbox() {
+  const q = query(
+    collection(db, "fitness", getUid(), "inbox"),
+    where("status", "==", "pending"),
+    orderBy("received_at", "desc"),
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ file_id: d.id, ...d.data() }));
+}
+
+export async function getGlobalInbox() {
+  // requires a collectionGroup index for 'inbox' if filtered/ordered
+  const q = query(collectionGroup(db, "inbox"), where("status", "==", "ai_enriched"));
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ 
+    file_id: d.id, 
+    userId: d.reference.parent.parent.id, 
+    ...d.data() 
+  }));
+}
+
+export async function approveInbox(id, userId) {
+  const targetUid = userId || getUid();
+  const ref = doc(db, "fitness", targetUid, "inbox", id);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return { ok: false };
+  
+  const data = snap.data();
+  const exercise = data.enriched || data;
+  const exId = exercise.exercise_id || exercise.id || id;
+
+  // 1. Move to Global KB
+  await setDoc(doc(db, "fitness", "kb", "exercises", exId), {
+    ...exercise,
+    source: "community_approved",
+    approved_at: serverTimestamp(),
+  });
+
+  // 2. Mark as approved in user's inbox
+  await setDoc(ref, { status: "approved", approved_at: serverTimestamp() }, { merge: true });
+  
+  return { ok: true };
+}
+
+export async function deleteInbox(id) {
+  // deleteDoc(doc(db, "fitness", getUid(), "inbox", id));
+  return { ok: true };
+}
 
 // ── Journal (from pwa.bak/src/lib/db/journal.js) ─────────────────────────────
 
