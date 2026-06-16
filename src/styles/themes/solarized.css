@@ -1,7 +1,7 @@
 [data-theme="solarized"] {
   --bg: #fdf6e3;
-  --bg2: #e4ddc8;
-  --panel: #eee8d5;
+  --bg2: #eee8d5;
+  --panel: #e4ddc8;
   --card: #ddd6c0;
   --card-hover: #d3cbb5;
   --line: #c8c0aa;
@@ -14,4 +14,5 @@
   --red: #dc322f;
   --orange: #cb4b16;
   --glass: rgba(228, 221, 200, 0.9);
+  --glass-border: rgba(38, 139, 210, 0.1);
 }

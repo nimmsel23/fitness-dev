@@ -8,10 +8,11 @@
   --ink: #cdd6f4;
   --muted: #bac2de;
   --dim: #6c7086;
-  --accent: #89b4fa;
-  --accent-glow: rgba(137, 180, 250, 0.12);
+  --accent: #cba6f7;
+  --accent-glow: rgba(203, 166, 247, 0.12);
   --green: #a6e3a1;
   --red: #f38ba8;
   --orange: #fab387;
   --glass: rgba(30, 30, 46, 0.85);
+  --glass-border: rgba(203, 166, 247, 0.1);
 }

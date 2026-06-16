@@ -29,6 +29,7 @@
 @import "./styles/themes/honey.css";
 @import "./styles/themes/snow.css";
 @import "./styles/themes/rose.css";
+@import "./styles/themes/latte.css";
 @import "./styles/themes/mint.css";
 @import "./styles/themes/cyan.css";
 @import "./styles/themes/gold.css";
@@ -36,7 +37,6 @@
 @import "./styles/themes/arc.css";
 @import "./styles/themes/solarized.css";
 @import "./styles/themes/alucard.css";
-@import "./styles/themes/latte.css";
 
 @tailwind base;
 @tailwind components;
