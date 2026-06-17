@@ -1,7 +1,7 @@
 // fitness-dev Service Worker
 // v1: static cache + stale-while-revalidate reads + Background Sync für offline POSTs
 
-const CACHE = 'fitness-v6'
+const CACHE = 'fitness-v7'
 
 const STATIC = [
   '/',
@@ -116,6 +116,15 @@ self.addEventListener('fetch', e => {
     }
   })())
 
+})
+
+// Manueller Update-Trigger aus dem UI (Settings → App aktualisieren)
+self.addEventListener('message', e => {
+  if (!e.data) return
+  if (e.data.type === 'SKIP_WAITING') self.skipWaiting()
+  if (e.data.type === 'GET_VERSION' && e.source) {
+    e.source.postMessage({ type: 'VERSION', version: CACHE })
+  }
 })
 
 // Background Sync — flushed IDB-Queue wenn Connectivity zurückkommt

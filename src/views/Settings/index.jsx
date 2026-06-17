@@ -4,7 +4,7 @@ import { api, isLocalMode } from "@db";
 import { DARK_THEMES, LIGHT_THEMES } from "../../constants/Themes";
 
 export default function Settings({
-  hitMode, setHitMode,
+  planMode, setPlanMode,
   layoutScale, setLayoutScale,
   gender, setGender, split, setSplit,
   cycleLength, setCycleLength, defaultLocation, setDefaultLocation,
@@ -23,14 +23,59 @@ export default function Settings({
   const [wger, setWger] = useState(null)
   const [firestoreStatus, setFirestoreStatus] = useState(null)
   const [syncing, setSyncing] = useState(false)
+  const [swVersion, setSwVersion] = useState(null)
+  const [swUpdateAvailable, setSwUpdateAvailable] = useState(false)
+  const [swChecking, setSwChecking] = useState(false)
+
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return
+    const sw = navigator.serviceWorker
+    const askVersion = () => {
+      if (sw.controller) sw.controller.postMessage({ type: 'GET_VERSION' })
+    }
+    const onMsg = (e) => {
+      if (e.data?.type === 'VERSION') setSwVersion(e.data.version)
+    }
+    sw.addEventListener('message', onMsg)
+    askVersion()
+    const reg = window.__swRegistration
+    if (reg?.waiting) setSwUpdateAvailable(true)
+    const onUpdate = () => setSwUpdateAvailable(true)
+    window.addEventListener('sw-update-available', onUpdate)
+    return () => {
+      sw.removeEventListener('message', onMsg)
+      window.removeEventListener('sw-update-available', onUpdate)
+    }
+  }, [])
+
+  async function handleSwCheck() {
+    setSwChecking(true)
+    try {
+      const reg = window.__swRegistration || await navigator.serviceWorker?.getRegistration()
+      if (reg) await reg.update()
+      if (reg?.waiting) setSwUpdateAvailable(true)
+    } catch {}
+    setTimeout(() => setSwChecking(false), 600)
+  }
+
+  function handleSwApply() {
+    const reg = window.__swRegistration
+    if (reg?.waiting) {
+      reg.waiting.postMessage({ type: 'SKIP_WAITING' })
+    } else {
+      window.location.reload()
+    }
+  }
 
   useEffect(() => {
     if (!isLocalMode() || !api) return;
-    api.get('/health').then(setHealth).catch(() => setHealth({ ok: false }))
+    let alive = true;
+    api.get('/health').then(d => alive && setHealth(d)).catch(() => alive && setHealth({ ok: false }))
     fetch('http://localhost:8000/api/v2/language/?format=json')
-      .then(r => setWger(r.ok))
-      .catch(() => setWger(false))
-    api.get('/firestore/status').then(setFirestoreStatus).catch(() => setFirestoreStatus({ ok: false }))
+      .then(r => alive && setWger(r.ok))
+      .catch(() => alive && setWger(false))
+    api.get('/firestore/status').then(d => alive && setFirestoreStatus(d)).catch(() => alive && setFirestoreStatus({ ok: false }))
+    return () => { alive = false }
   }, [])
 
   async function handleSync() {
@@ -327,6 +372,34 @@ export default function Settings({
                      </div>
                   </div>
                )}
+
+               {/* App Update Panel */}
+               <div className="bg-[var(--bg2)] p-6 rounded-3xl border border-[var(--line)]">
+                  <div className="flex items-center gap-3 mb-6">
+                     <RefreshCw size={18} className={swChecking ? 'animate-spin text-[var(--accent)]' : 'text-[var(--accent)]'} />
+                     <h4 className="text-sm font-black text-ink uppercase tracking-widest">App Version</h4>
+                  </div>
+                  <div className="space-y-4">
+                     <div className="flex items-center justify-between bg-[var(--bg)] p-3 rounded-xl border border-[var(--line)]">
+                        <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Installiert</span>
+                        <span className="text-[10px] font-mono font-black text-[var(--accent)]">{swVersion || '—'}</span>
+                     </div>
+                     {swUpdateAvailable && (
+                        <div className="text-[10px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-xl text-center">
+                           Update bereit
+                        </div>
+                     )}
+                     {swUpdateAvailable ? (
+                        <button onClick={handleSwApply} className="w-full btn btn-primary py-4 text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[var(--accent)]/20">
+                           Jetzt aktualisieren & neu laden
+                        </button>
+                     ) : (
+                        <button onClick={handleSwCheck} disabled={swChecking} className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-[var(--dim)] bg-[var(--bg)] border border-[var(--line)] rounded-xl hover:text-[var(--ink)] hover:border-[var(--accent)]/40 transition-all">
+                           {swChecking ? 'Suche Update…' : 'Auf Update prüfen'}
+                        </button>
+                     )}
+                  </div>
+               </div>
 
                {/* Info Panel */}
                <div className="bg-[var(--bg2)] p-6 rounded-3xl border border-[var(--line)]">
