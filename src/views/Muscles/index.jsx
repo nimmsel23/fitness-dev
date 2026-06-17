@@ -38,7 +38,6 @@ function getMuscleGroup(name) {
   };
   const k = String(name || "").toLowerCase().trim();
   if (map[k]) return map[k];
-  // Fallback for numeric prefix
   const m = k.match(/^(\d+)_/);
   if (m) {
     const n = parseInt(m[1]);
@@ -58,10 +57,10 @@ function getMuscleGroup(name) {
   return k;
 }
 
-export default function Muscles({ hitMode, gender, muscleLanguage = 'de', taxonomy = null }) {
+export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null }) {
   const [days, setDays] = useState(7);
   const [loading, setLoading] = useState(true);
-  const [volExercises, setVolExercises] = useState([]);
+  const [recentExercises, setRecentExercises] = useState([]);
   const [hitAnalysis, setHitAnalysis] = useState({ heavy: [], recovering: [], super: [], ready: [], scores: {} });
   const [showDetailed, setShowDetailed] = useState(false);
   const [selectedMuscleId, setSelectedMuscleId] = useState(null);
@@ -92,10 +91,9 @@ export default function Muscles({ hitMode, gender, muscleLanguage = 'de', taxono
         kbMap.set((ex.display_name || ex.name).toLowerCase(), ex);
       });
 
-      // Volume Logic
-      const cutoffVol = new Date();
-      cutoffVol.setDate(cutoffVol.getDate() - days);
-      const cutoffStr = cutoffVol.toISOString().slice(0, 10);
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      const cutoffStr = cutoff.toISOString().slice(0, 10);
       
       const inRange = safeSessions
         .filter(s => s.date >= cutoffStr)
@@ -109,9 +107,8 @@ export default function Muscles({ hitMode, gender, muscleLanguage = 'de', taxono
             secondaryMuscles: kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || []
           };
         });
-      setVolExercises(inRange);
+      setRecentExercises(inRange);
 
-      // HIT Logic
       const now = new Date();
       const lastSeen = {};
       const sortedSessions = [...safeSessions].sort((a, b) => b.date.localeCompare(a.date));
@@ -121,7 +118,7 @@ export default function Muscles({ hitMode, gender, muscleLanguage = 'de', taxono
         const hoursAgo = (now - sessionDate) / (1000 * 60 * 60);
 
         if (s.activity) {
-           if (hoursAgo <= 72) {
+           if (hoursAgo <= 168) {
              const activeMuscles = s.activity.type === 'running' || s.activity.type === 'cycling' ? ['quads', 'calves', 'hamstrings', 'glutes'] :
                                    s.activity.type === 'swimming' ? ['back', 'shoulders', 'arms', 'core', 'quads'] :
                                    ['quads', 'calves'];
@@ -171,7 +168,6 @@ export default function Muscles({ hitMode, gender, muscleLanguage = 'de', taxono
   return (
     <div className="pb-32">
       <MuscleHeader 
-        hitMode={hitMode} 
         days={days} 
         setDays={setDays} 
         showDetailed={showDetailed} 
@@ -189,23 +185,21 @@ export default function Muscles({ hitMode, gender, muscleLanguage = 'de', taxono
             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent/5 to-transparent pointer-events-none" />
             {showDetailed ? (
               <MuscleDetailedMap
-                exercises={volExercises}
+                exercises={recentExercises}
                 gender={gender}
                 onGroupClick={setSelectedMuscleId}
               />
             ) : (
               <MuscleBodyMap
-                hitMode={hitMode}
                 scores={hitAnalysis.scores}
-                volExercises={volExercises}
                 onGroupClick={setSelectedMuscleId}
               />
             )}
           </div>
 
           <div className="lg:col-span-4 space-y-6">
-            <MuscleAnalysis hitMode={hitMode} hitAnalysis={hitAnalysis} days={days} volExercises={volExercises} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
-            <MuscleInsights hitMode={hitMode} hitAnalysis={hitAnalysis} />
+            <MuscleAnalysis hitAnalysis={hitAnalysis} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
+            <MuscleInsights hitAnalysis={hitAnalysis} />
           </div>
         </div>
       )}
