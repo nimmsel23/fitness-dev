@@ -3,7 +3,10 @@ wger_id: None
 latin: Musculus tibialis anterior
 name_en: Tibialis anterior
 is_front: true
-exercises: {}
+exercises:
+  wger_1225:
+    function_in_exercise: Stabilisiert den Standfuß durch aktive Fixierung der Sprunggelenksstellung
+      auf dem Untergrund.
 origin: Ursprung (Origo) — Laterale Kondyle (Condylus lateralis) der Tibia, obere
   zwei Drittel der lateralen Tibiafläche (Facies lateralis tibiae) und die angrenzende
   interossäre Membran (Membrana interossea cruris).

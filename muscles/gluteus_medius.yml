@@ -3,7 +3,10 @@ wger_id: None
 latin: Musculus gluteus medius
 name_en: Gluteus medius
 is_front: false
-exercises: {}
+exercises:
+  wger_1225:
+    function_in_exercise: Primärer Stabilisator des Beckens in der Frontalebene; verhindert
+      das Abkippen zur Seite des Spielbeins.
 origin: Außenfläche des Darmbeins (Os ilium) zwischen der Linea glutea anterior und
   der Linea glutea posterior.
 insertion: Laterale Fläche des großen Rollhügels (Trochanter major) des Oberschenkelknochens

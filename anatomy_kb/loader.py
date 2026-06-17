@@ -1,10 +1,10 @@
 """
 Lädt Exercise-Daten aus zwei Quellen und merged sie:
 
-  1. fitness-dev/catalog/kb/exercises/*.yml  — Base-Layer (name, category, muscle_roles, ...)
-  2. anatomy-kb/exercises/*.yml              — Anatomy-Layer (muscle_anatomy, quiz_prompts, ...)
+  1. fitness-dev/catalog/kb/exercises/*.yml       — Base-Layer (coaching, category, muscle_roles)
+  2. anatomy-kb/exercises/ → anatomy_teaching/*.yaml — Anatomy-Layer (Symlink, numerische IDs)
 
-Der Anatomy-Layer überschreibt/ergänzt den Base-Layer per exercise_id.
+Der Anatomy-Layer überschreibt/ergänzt den Base-Layer per exercise_id (Dateiname-Stem).
 """
 
 from pathlib import Path
@@ -61,8 +61,9 @@ def load_all() -> dict[str, dict]:
 
     base = _load_catalog_base()
 
-    for yml_file in sorted(_dir().glob("*.yml")):
-        exercise_id = yml_file.stem
+    anatomy_files = sorted(_dir().glob("*.yml")) + sorted(_dir().glob("*.yaml"))
+    for yml_file in anatomy_files:
+        exercise_id = str(yml_file.stem)
         try:
             anatomy = yaml.safe_load(yml_file.read_text(encoding="utf-8"))
             if not anatomy or not isinstance(anatomy, dict):
@@ -74,6 +75,7 @@ def load_all() -> dict[str, dict]:
 
     # Catalog-Übungen ohne anatomy-kb Datei trotzdem einschließen
     for ex_id, ex_data in base.items():
+        ex_id = str(ex_id)
         if ex_id not in _cache:
             _cache[ex_id] = ex_data
 
