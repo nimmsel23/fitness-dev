@@ -18,3 +18,5 @@ chore: rename deploy script to deploy-firebase
 feat: implement Safe Production Pipeline with separated release vessel
 docs: rename FIRESTORE.md to FIREBASE.md and update for Safe Production Pipeline
 - **Muscle Slug Support & L10n**: Frontend refactored to support numeric muscle IDs and user-selectable muscle name languages (DE/LAT/EN).
+chore: Reorganized documentation files into docs/ to clean up the repository root.
+refactor: Integrated AI Enricher into fitness-agent Python package and updated fitnessctl to use package entry points.

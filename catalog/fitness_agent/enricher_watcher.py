@@ -9,32 +9,29 @@ When a new entry is detected, it uses the Gemini API to generate:
 The result is saved to the local catalog.
 """
 
-import json
+from pathlib import Path
 import os
 import sys
+import json
 import time
-from pathlib import Path
 import urllib.request
 import urllib.parse
 from typing import Optional
 
 import yaml
-import typer
 from loguru import logger
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler, FileCreatedEvent
-from rich.console import Console
-from rich.panel import Panel
+from watchdog.events import FileSystemEventHandler
 
-app = typer.Typer(help="AI Exercise Enricher Watcher")
-console = Console()
+from .rich_utils import setup_logging
 
+# --- Configuration ---
 FITNESS_DIR = Path.home() / ".aos" / "fitness"
 USERS_DIR = FITNESS_DIR / "users"
 
-# Adjust this path based on where the script is run from
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-CATALOG_DIR = PROJECT_ROOT / "catalog"
+# Resolve catalog paths relative to this file's location in fitness_agent/
+PACKAGE_DIR = Path(__file__).resolve().parent
+CATALOG_DIR = PACKAGE_DIR.parent
 CATALOG_EXERCISES = CATALOG_DIR / "kb" / "exercises"
 MUSCLES_YML = CATALOG_DIR / "kb" / "muscles" / "muscles.yml"
 
@@ -171,12 +168,9 @@ def process_inbox_file(file_path: Path):
             file_path.unlink()
             
             # Automatically trigger KB Sync to Firestore
-            try:
-                import subprocess
-                subprocess.run([sys.executable, "-c", "import sys; sys.path.insert(0, 'catalog'); from fitness_agent.kb_sync import run_kb_sync; run_kb_sync()"], check=False)
-                logger.info("Auto-sync to Firestore triggered.")
-            except Exception as se:
-                logger.error(f"Auto-sync failed: {se}")
+            from .kb_sync import run_kb_sync
+            run_kb_sync()
+            logger.info("Auto-sync to Firestore triggered.")
         else:
             logger.warning(f"Failed to enrich {name}. Keeping in inbox.")
             
@@ -192,10 +186,8 @@ class InboxHandler(FileSystemEventHandler):
                 time.sleep(0.5)
                 process_inbox_file(path)
 
-@app.command()
-def watch():
+def run_enricher_watch():
     """Watch for new exercises in client inbox directories."""
-    from .rich_utils import setup_logging
     setup_logging()
     
     logger.info("Starting AI Enricher Watcher (Watchdog-powered)...")
@@ -222,5 +214,3 @@ def watch():
         observer.stop()
     observer.join()
 
-if __name__ == "__main__":
-    app()
