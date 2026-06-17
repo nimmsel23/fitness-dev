@@ -14,7 +14,7 @@ export const api = {
       return await res.json()
     } catch (e) {
       if (fromOffline) return null
-      throw new Error(`GET ${path} → invalid JSON`)
+      throw new Error(`GET ${path} → invalid JSON`, { cause: e })
     }
   },
   async post(path, data) {

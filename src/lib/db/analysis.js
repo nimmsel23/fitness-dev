@@ -1,5 +1,4 @@
 import { api } from "./core";
-import { calculateExVolume } from "./utils";
 
 const MUSCLE_GROUPS = {
   chest: ["pecs", "chest", "pectoralis", "brust", "100_chest", "101_pectoralis", "102_pectoralis", "103_pectoralis", "104_serratus"],
@@ -79,19 +78,15 @@ export async function getWeeklyReport(selector = "current") {
   kbExercises.forEach(ex => kbMap.set((ex.display_name || ex.name || ex.exercise_id).toLowerCase(), ex));
 
   const sessions = [];
-  let totalVolume = 0;
   const bodyRegionScores = {};
   const topExMap = {};
 
   for (const date of dates) {
     const sess = history.find(h => h.date === date);
     if (!sess) continue;
-    let sessVolume = 0;
     const sessGroupsCount = {};
     for (let ex of (sess.exercises || [])) {
       if (!ex.done) continue;
-      const vol = calculateExVolume(ex);
-      sessVolume += vol;
       const exName = ex.name || ex.exercise_id || "";
       if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
       const kbEx = kbMap.get(exName.toLowerCase());
@@ -102,15 +97,13 @@ export async function getWeeklyReport(selector = "current") {
       [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
       [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.2; }));
     }
-    totalVolume += sessVolume;
-    sessions.push({ ...sess, total_volume: sessVolume, exercise_count: sess.exercises?.length || 0 });
+    sessions.push({ ...sess, exercise_count: sess.exercises?.length || 0 });
   }
 
   const allGroups = ["chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves", "legs"];
   const gaps = allGroups.filter(g => (bodyRegionScores[g] || 0) < 1);
   return {
     ok: true,
-    total_volume: totalVolume,
     session_count: sessions.length,
     sessions: sessions.reverse(),
     body_region_scores: bodyRegionScores,

@@ -1,5 +1,5 @@
 import { api, localToday } from "./core";
-import { calculateExVolume, num } from "./utils";
+import { num } from "./utils";
 
 export async function getSession(date = localToday(), id = null) {
   try {
@@ -62,11 +62,13 @@ export async function getProgressTrend(exerciseName, lastN = 4) {
   const values = sessions.map(s => {
     const ex = s.exercises.find(e => e.name === exerciseName);
     if (!ex) return null;
-    if (ex.isHIT) {
-      const w = ex.weight || ex.setsArray?.[0]?.weight;
-      return num(w);
+    
+    // Trend is now always based on max weight
+    if (Array.isArray(ex.setsArray)) {
+      const weights = ex.setsArray.map(s => num(s.weight)).filter(w => w !== null);
+      return weights.length > 0 ? Math.max(...weights) : null;
     }
-    return calculateExVolume(ex);
+    return num(ex.weight);
   }).filter(v => v !== null && v > 0);
 
   if (values.length < 2) return { status: "neutral", message: "Zu wenig Daten" };
@@ -111,7 +113,7 @@ export function parseQuick(raw) {
   const rpeMatch = raw.match(/rpe\s*(\d+(?:\.\d+)?)/i)
 
   const count = setsMatch ? parseInt(setsMatch[1]) : 1
-  const reps = setsMatch ? setsMatch[2] : "10"
+  const reps = setsMatch ? setsMatch[2] : ""
   const weight = weightMatch ? weightMatch[1] : ""
   
   const setsArray = Array.from({ length: count }, () => ({
@@ -125,7 +127,6 @@ export function parseQuick(raw) {
     note: rpeMatch ? `RPE ${rpeMatch[1]}` : '',
     primaryMuscles: [],
     secondaryMuscles: [],
-    done: true,
-    isHIT: false
+    done: true
   }
 }

@@ -38,3 +38,4 @@ python -m catalog.fitness_agent kb-sync
 
 ### Hidden Chamber UI
 Access the new view in the PWA by navigating to `#coach` or clicking the Shield icon in the sidebar (if logged in as `alpha*`).
+nimmsel23@gmail.com is the default coach account.

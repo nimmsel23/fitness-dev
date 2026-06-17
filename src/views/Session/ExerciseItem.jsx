@@ -167,16 +167,6 @@ export default function ExerciseItem({
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          {planMode && isFuture && (
-             <button onClick={() => updateEx(i, 'done', !ex.done)}
-               className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl text-[10px] font-black border transition-all uppercase tracking-[0.2em] shadow-sm ${
-                 ex.done ? 'border-green bg-green/10 text-green' : 'border-line bg-bg2 text-dim'
-               }`}>
-               {ex.done ? 'Erledigt' : 'Geplant'}
-             </button>
-          )}
-        </div>
       </div>
     </div>
   );

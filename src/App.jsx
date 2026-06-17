@@ -298,7 +298,6 @@ export default function App() {
                       {tab === 'coach'    && <Coach onInspectExercise={inspectExercise} />}
                       {tab === 'settings' && (
                          <Settings
-                           planMode={planMode} setPlanMode={setPlanMode}
                            layoutScale={layoutScale} setLayoutScale={setLayoutScale}
                            recentDays={recentDays} setRecentDays={setRecentDays}
                            coverageThreshold={coverageThreshold} setCoverageThreshold={setCoverageThreshold}

@@ -39,29 +39,6 @@ def muscle_to_group_ids(muscle: str, exercise_name: str = "") -> list[str]:
             matches.add(group)
     return list(matches)
 
-def calculate_ex_volume(ex: dict) -> float:
-    if ex.get("isHIT"): return 0.0
-    sets_array = ex.get("setsArray")
-    
-    if isinstance(sets_array, list):
-        vol = 0.0
-        for s in sets_array:
-            try:
-                r = float(str(s.get("reps", "")).replace(',', '.'))
-                w = float(str(s.get("weight", "")).replace(',', '.'))
-                vol += (r * w)
-            except ValueError:
-                pass
-        return vol
-    
-    try:
-        s = float(ex.get("sets", 0))
-        r = float(ex.get("reps", 0))
-        w = float(ex.get("weight", 0))
-        return s * r * w
-    except ValueError:
-        return 0.0
-
 # --- Analytics Logic ---
 
 def rebuild_analytics_for_user(db: firestore.Client, uid: str):
@@ -80,9 +57,9 @@ def rebuild_analytics_for_user(db: firestore.Client, uid: str):
     # Prepare windows
     now = datetime.now()
     windows = {
-        "rolling_7_days": {"days": 7, "volume": 0.0, "sessions": 0, "exercises": 0, "scores": {group: 0.0 for group in MUSCLE_GROUPS}},
-        "rolling_14_days": {"days": 14, "volume": 0.0, "sessions": 0, "exercises": 0, "scores": {group: 0.0 for group in MUSCLE_GROUPS}},
-        "rolling_28_days": {"days": 28, "volume": 0.0, "sessions": 0, "exercises": 0, "scores": {group: 0.0 for group in MUSCLE_GROUPS}},
+        "rolling_7_days": {"days": 7, "sessions": 0, "exercises": 0, "scores": {group: 0.0 for group in MUSCLE_GROUPS}},
+        "rolling_14_days": {"days": 14, "sessions": 0, "exercises": 0, "scores": {group: 0.0 for group in MUSCLE_GROUPS}},
+        "rolling_28_days": {"days": 28, "sessions": 0, "exercises": 0, "scores": {group: 0.0 for group in MUSCLE_GROUPS}},
     }
     
     for doc in recent_sessions:
@@ -102,7 +79,6 @@ def rebuild_analytics_for_user(db: firestore.Client, uid: str):
                     if not ex.get("done"): continue
                     
                     w_data["exercises"] += 1
-                    w_data["volume"] += calculate_ex_volume(ex)
                     
                     ex_name = ex.get("name") or ex.get("exercise_id") or ""
                     
@@ -128,14 +104,13 @@ def rebuild_analytics_for_user(db: firestore.Client, uid: str):
     payload = {"last_updated": firestore.SERVER_TIMESTAMP}
     for w_name, w_data in windows.items():
         payload[w_name] = {
-            "total_volume": w_data["volume"],
             "session_count": w_data["sessions"],
             "exercise_count": w_data["exercises"],
             "body_region_scores": w_data["scores"]
         }
         
     analytics_ref.set(payload)
-    logger.info(f"Updated analytics for {uid}: 28d vol={windows['rolling_28_days']['volume']} kg")
+    logger.info(f"Updated analytics for {uid}: 28d sessions={windows['rolling_28_days']['sessions']}")
 
 def on_session_snapshot(col_snapshot: Any, changes: Any, read_time: Any):
     """Callback for Firestore collectionGroup listener on 'sessions'."""

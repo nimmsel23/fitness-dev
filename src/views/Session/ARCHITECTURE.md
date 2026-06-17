@@ -19,4 +19,4 @@ The core workout logging interface. Optimized for both rapid entry (Gym) and dee
 
 ## Data Format
 - Uses `setsArray: [{reps, weight}, ...]` for modern multi-set tracking.
-- Backward compatibility for flat `sets/reps` via `calculateExVolume`.
+- Trend analysis based on maximum weight lifted.

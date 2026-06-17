@@ -100,7 +100,7 @@ getBodyEntry, saveBodyEntry, getBodyEntries
 
 // Helpers (pure functions, identical in both)
 todayISO, localToday, getWeekDates,
-calculateExVolume, downloadText, num,
+downloadText, num,
 parseQuick, exportCsv
 ```
 

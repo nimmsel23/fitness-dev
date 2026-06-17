@@ -12,19 +12,6 @@ export function getWeekDates() {
   })
 }
 
-export function calculateExVolume(ex) {
-  if (ex.isHIT) return 0;
-  if (Array.isArray(ex.setsArray)) {
-    return ex.setsArray.reduce((acc, set) => {
-      const r = parseFloat(String(set.reps || "").replace(',', '.'));
-      const w = parseFloat(String(set.weight || "").replace(',', '.'));
-      return (Number.isFinite(r) && Number.isFinite(w)) ? acc + (r * w) : acc;
-    }, 0);
-  }
-  const s = parseFloat(ex.sets), r = parseFloat(ex.reps), w = parseFloat(ex.weight);
-  return (Number.isFinite(s) && Number.isFinite(r) && Number.isFinite(w)) ? s * r * w : 0;
-}
-
 export function downloadText(filename, text, mime = 'text/plain;charset=utf-8') {
   const blob = new Blob([text], { type: mime })
   const url = URL.createObjectURL(blob)

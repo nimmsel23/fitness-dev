@@ -1,19 +1,15 @@
 import { Brain } from "lucide-react";
 
-export default function MuscleInsights({ hitMode, hitAnalysis }) {
-  let insightText = "";
-  if (hitMode) {
-    const { heavy, recovering, super: supercomp } = hitAnalysis;
-    insightText = supercomp.length >= 3 
-      ? "Perfektes Zeitfenster! Viele Muskeln sind superkompensiert. Ein intensiver Reiz heute bringt maximalen Fortschritt."
-      : heavy.length >= 4 
-      ? "Dein Nervensystem und viele Muskeln sind stark belastet. Fokus auf Erholung, leichte Aktivität oder Mobility empfohlen."
-      : recovering.length >= 3
-      ? "Einige Muskeln sind noch in Erholung. Ein leichtes Pump-Training oder gezieltes Training anderer Gruppen ist optimal."
-      : "Du bist frisch und bereit. Such dir eine Fokus-Region aus und setze einen neuen Reiz!";
-  } else {
-    insightText = "Nutze diese Ansicht, um Coverage-Gaps zu identifizieren. Blaue oder graue Bereiche sollten im nächsten Training bevorzugt werden, um Dysbalancen zu vermeiden.";
-  }
+export default function MuscleInsights({ hitAnalysis }) {
+  const { heavy, recovering, super: supercomp } = hitAnalysis;
+  
+  const insightText = supercomp.length >= 3 
+    ? "Perfektes Zeitfenster! Viele Muskeln sind superkompensiert. Ein intensiver Reiz heute bringt maximalen Fortschritt."
+    : heavy.length >= 4 
+    ? "Dein Nervensystem und viele Muskeln sind stark belastet. Fokus auf Erholung, leichte Aktivität oder Mobility empfohlen."
+    : recovering.length >= 3
+    ? "Einige Muskeln sind noch in Erholung. Ein leichtes Pump-Training oder gezieltes Training anderer Gruppen ist optimal."
+    : "Du bist frisch und bereit. Such dir eine Fokus-Region aus und setze einen neuen Reiz!";
 
   return (
     <div className="card p-6 bg-accent/5 border-accent/10 shadow-lg border-dashed">

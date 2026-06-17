@@ -101,7 +101,7 @@ function QuizMode({ exercises, onExit }) {
   );
 }
 
-export default function Learn({ onInspectExercise, hitMode, gender, muscleLanguage = 'de', taxonomy = null }) {
+export default function Learn({ onInspectExercise, gender, muscleLanguage = 'de', taxonomy = null }) {
   const [exercises, setExercises] = useState([]);
   const [selected, setSelected]   = useState(null);
   const [viewMode, setViewMode]   = useState('library'); // 'library', 'explorer', or 'quiz'
@@ -157,7 +157,7 @@ export default function Learn({ onInspectExercise, hitMode, gender, muscleLangua
     return (
       <div className="pb-20 lg:pb-0 px-2">
         <ExplorerHeader viewMode={viewMode} setViewMode={setViewMode} onStartQuiz={() => setViewMode('quiz')} hasRecent={recent.length > 0} />
-        <Muscles hitMode={hitMode} gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
+        <Muscles gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
       </div>
     );
   }

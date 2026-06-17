@@ -46,19 +46,6 @@ export function getWeekDates() {
   });
 }
 
-export function calculateExVolume(ex) {
-  if (ex.isHIT) return 0;
-  if (Array.isArray(ex.setsArray)) {
-    return ex.setsArray.reduce((acc, set) => {
-      const r = parseFloat(String(set.reps || "").replace(',', '.'));
-      const w = parseFloat(String(set.weight || "").replace(',', '.'));
-      return (Number.isFinite(r) && Number.isFinite(w)) ? acc + (r * w) : acc;
-    }, 0);
-  }
-  const s = parseFloat(ex.sets), r = parseFloat(ex.reps), w = parseFloat(ex.weight);
-  return (Number.isFinite(s) && Number.isFinite(r) && Number.isFinite(w)) ? s * r * w : 0;
-}
-
 export function downloadText(filename, text, mime = 'text/plain;charset=utf-8') {
   const blob = new Blob([text], { type: mime });
   const url = URL.createObjectURL(blob);
@@ -708,22 +695,19 @@ export async function getWeeklyReport(selector = "current") {
   }).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
   const sessions = [];
-  let totalVolume = 0, entriesCount = 0;
+  let entriesCount = 0;
   const muscleScores = {}, bodyRegionScores = {}, topExMap = {};
 
   for (const date of dates) {
     const sess = await getSession(date);
     if (!sess) continue;
-    let sessVolume = 0, hasDoneExercises = false;
+    let hasDoneExercises = false;
     const sessGroupsCount = {};
 
     for (const ex of (Array.isArray(sess.exercises) ? sess.exercises : [])) {
       if (!ex.done) continue;
       const primary = ex.primaryMuscles || [], secondary = ex.secondaryMuscles || [], exName = ex.name || ex.exercise_id || "";
       hasDoneExercises = true; entriesCount++;
-      const s = parseFloat(ex.sets), r = parseFloat(ex.reps), w = parseFloat(ex.weight);
-      const vol = (isFinite(s) && isFinite(r) && isFinite(w)) ? s * r * w : 0;
-      sessVolume += vol;
       if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
       let hasMapped = false;
       [...primary, ...secondary].forEach(m => {
@@ -755,8 +739,7 @@ export async function getWeeklyReport(selector = "current") {
           muscleRecovery[gid] = Math.round((d1 - d2) / (1000 * 60 * 60));
         }
       }
-      totalVolume += sessVolume;
-      sessions.push({ ...sess, block: autoSplit, total_volume: sessVolume, exercise_count: sess.exercises?.length || 0, muscle_recovery: muscleRecovery });
+      sessions.push({ ...sess, block: autoSplit, exercise_count: sess.exercises?.length || 0, muscle_recovery: muscleRecovery });
     }
   }
 
@@ -764,7 +747,7 @@ export async function getWeeklyReport(selector = "current") {
   const gaps = allGroups.filter(g => (bodyRegionScores[g] || 0) < 1);
 
   return {
-    ok: true, week: selector, session_count: sessions.length, entries_count: entriesCount, total_volume: totalVolume,
+    ok: true, week: selector, session_count: sessions.length, entries_count: entriesCount,
     sessions, muscle_scores: muscleScores, body_region_scores: bodyRegionScores, missing_regions: gaps,
     top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ display_name: name, count })),
     recommendations: gaps.length > 0 ? [`Fokus auf: ${gaps.join(", ")}`] : ["Woche perfekt abgedeckt!"],
@@ -790,14 +773,12 @@ export async function getProgressTrend(exerciseName, lastN = 4) {
     const ex = s.exercises.find(e => e.name === exerciseName);
     if (!ex) return null;
 
-    if (ex.isHIT) {
-      // For HIT, trend is based on pure weight
-      const w = ex.weight || (ex.setsArray && ex.setsArray[0]?.weight);
-      return num(w);
-    } else {
-      // For standard, trend is based on total volume
-      return calculateExVolume(ex);
+    // Trend is now always based on max weight
+    if (Array.isArray(ex.setsArray)) {
+      const weights = ex.setsArray.map(s => num(s.weight)).filter(w => w !== null);
+      return weights.length > 0 ? Math.max(...weights) : null;
     }
+    return num(ex.weight);
   }).filter(v => v !== null && v > 0);
 
   if (values.length < 2) return { status: "neutral", message: "Zu wenig Daten" };
@@ -899,7 +880,7 @@ export function parseQuick(raw) {
   const weightMatch = raw.match(/@(\d+(?:\.\d+)?)/);
   const rpeMatch = raw.match(/rpe\s*(\d+(?:\.\d+)?)/i);
   const count = setsMatch ? parseInt(setsMatch[1]) : 1;
-  const reps  = setsMatch ? setsMatch[2] : "10";
+  const reps = setsMatch ? setsMatch[2] : "";
   const weight = weightMatch ? weightMatch[1] : "";
   return {
     name,

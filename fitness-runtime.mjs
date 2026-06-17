@@ -147,13 +147,6 @@ export function exportSessionMarkdown(session) {
     fs.mkdirSync(path.dirname(target), { recursive: true })
 
     const exercises = Array.isArray(session?.exercises) ? session.exercises : []
-    const totalVolume = exercises.reduce((sum, ex) => {
-      const sets = Number(ex.sets || 0)
-      const reps = Number(ex.reps || 0)
-      const weight = Number(ex.weight || 0)
-      return sum + (Number.isFinite(sets) && Number.isFinite(reps) && Number.isFinite(weight) ? sets * reps * weight : 0)
-    }, 0)
-
     const lines = [
       '---',
       'type: training-session',
@@ -166,7 +159,6 @@ export function exportSessionMarkdown(session) {
       `- Block: ${session?.block || 'n/a'}`,
       `- Effort: ${session?.effort ?? 'n/a'}`,
       `- Mood: ${session?.mood || 'n/a'}`,
-      `- Total volume: ${Math.round(totalVolume).toLocaleString('de-AT')} kg`,
       '',
       '## Exercises',
       '| Exercise | Sets | Reps | Weight | Note |',

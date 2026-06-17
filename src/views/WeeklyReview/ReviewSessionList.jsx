@@ -1,13 +1,7 @@
 import { Dumbbell } from 'lucide-react';
-import { formatVolume } from './utils';
+import { formatRecovery } from './utils';
 
-function formatRecovery(hrs) {
-  if (hrs >= 96) return 'FRESH';
-  if (hrs >= 48) return `${Math.round(hrs / 24)}d`;
-  return `${hrs}h`;
-}
-
-export default function ReviewSessionList({ sessions, onNavigate, hitMode }) {
+export default function ReviewSessionList({ sessions, onNavigate }) {
   return (
     <section className="card mb-0 shadow-lg border-line/50 p-8">
       <div className="label-caps !mb-6 flex items-center justify-between">
@@ -15,7 +9,6 @@ export default function ReviewSessionList({ sessions, onNavigate, hitMode }) {
            <Dumbbell size={16} className="text-accent" />
            Sessions im Detail
         </div>
-        {hitMode && <span className="text-[10px] text-accent font-black tracking-[0.2em] bg-accent/10 px-3 py-1 rounded-full">RECOVERY FOCUS</span>}
       </div>
       <div className="space-y-4">
         {(sessions || []).slice().reverse().map(session => {
@@ -39,11 +32,6 @@ export default function ReviewSessionList({ sessions, onNavigate, hitMode }) {
                 </div>
               </div>
               <div className="text-right flex flex-col items-end">
-                {!isActivity && !hitMode && (
-                   <div className="text-sm font-black text-accent mb-2 bg-accent/10 px-3 py-1 rounded-lg border border-accent/20">
-                      {formatVolume(session.total_volume)}
-                   </div>
-                )}
                 {session.muscle_recovery && Object.keys(session.muscle_recovery).length > 0 ? (
                   <div className="flex justify-end gap-1.5 flex-wrap max-w-[150px]">
                      {Object.entries(session.muscle_recovery).slice(0, 4).map(([m, hrs]) => {

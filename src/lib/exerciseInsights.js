@@ -282,13 +282,6 @@ export function buildExerciseCoachSheet(ex) {
 
 export function buildSessionCoachSheet(session) {
   const exercises = session?.exercises || []
-  const totalVolume = exercises.reduce((sum, ex) => {
-    const sets = Number(ex.sets || 0)
-    const reps = Number(ex.reps || 0)
-    const weight = Number(ex.weight || 0)
-    if (!Number.isFinite(sets) || !Number.isFinite(reps) || !Number.isFinite(weight)) return sum
-    return sum + (sets * reps * weight)
-  }, 0)
 
   const rows = exercises.map(ex => `| ${ex.done ? '☑' : '☐'} | ${ex.name || 'Uebung'} | ${ex.sets ?? ''} | ${ex.reps ?? ''} | ${ex.weight ?? ''} | ${ex.note || ''} |`)
 
@@ -304,7 +297,6 @@ export function buildSessionCoachSheet(session) {
     `- Block: ${session?.block || 'n/a'}`,
     `- Effort: ${session?.effort ?? 'n/a'}`,
     `- Mood: ${session?.mood || 'n/a'}`,
-    `- Total volume: ${Math.round(totalVolume).toLocaleString('de-AT')} kg`,
     ``,
     `## Exercises`,
     `| Done | Exercise | Sets | Reps | Weight | Note |`,

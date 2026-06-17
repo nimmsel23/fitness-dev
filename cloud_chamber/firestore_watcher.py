@@ -16,6 +16,7 @@ from firebase_admin import credentials, firestore
 from loguru import logger
 import urllib.request
 from typing import Any
+import yaml
 
 # --- Configuration & Auth ---
 
@@ -29,6 +30,58 @@ def load_gemini_key() -> str | None:
             if "=" in line and not line.startswith("#") and "GEMINI_API_KEY" in line:
                 return line.split("=", 1)[1].strip()
     return None
+
+# --- Biomechanical Auditing ---
+
+def load_biomechanical_rules() -> dict:
+    rule_path = Path(__file__).parent / "rules" / "biomechanics.yml"
+    try:
+        with open(rule_path, "r", encoding="utf-8") as f:
+            return yaml.safe_load(f) or {}
+    except Exception as e:
+        logger.error(f"Failed to load biomechanical rules: {e}")
+        return {}
+
+def audit_exercise(ex: dict, rules: dict) -> list[str]:
+    warnings = []
+    
+    mp_rules = rules.get("movement_pattern_rules", {})
+    iso_rules = rules.get("isolation_rules", {})
+    
+    # 1. Movement Pattern
+    mp = ex.get("movement_pattern")
+    if mp in mp_rules:
+        required = mp_rules[mp].get("required_primary", [])
+        primary = [str(m).lower().strip() for m in (ex.get("primary_muscles") or [])]
+        
+        # Check if at least one required muscle is in primary
+        # Muscle IDs might have prefixes, so we do substring matching for robustness
+        has_match = False
+        for req in required:
+            req_normalized = req.lower()
+            if any(req_normalized in p or p in req_normalized for p in primary):
+                has_match = True
+                break
+                
+        if not has_match and required:
+            warnings.append(f"Muster '{mp}' erwartet einen dieser primären Muskeln: {', '.join(required)}.")
+            
+    # 2. Isolation Guard
+    ex_type = ex.get("type", "unknown")
+    primary_count = len(ex.get("primary_muscles") or [])
+    if ex_type == "isolation":
+        max_p = iso_rules.get("max_primary_muscles", 2)
+        if primary_count > max_p:
+            warnings.append(f"Als 'isolation' markiert, hat aber {primary_count} primäre Muskeln (max {max_p}).")
+            
+    # 3. Contradictions
+    primary_set = set(ex.get("primary_muscles") or [])
+    secondary_set = set(ex.get("secondary_muscles") or [])
+    overlap = primary_set.intersection(secondary_set)
+    if overlap:
+        warnings.append(f"Muskeln sowohl primär als auch sekundär: {', '.join(overlap)}.")
+        
+    return warnings
 
 # --- AI Logic ---
 
@@ -77,6 +130,8 @@ def call_gemini(exercise_name: str, safe_name: str, api_key: str) -> dict | None
 
 def on_snapshot(col_snapshot: Any, changes: Any, read_time: Any):
     """Callback for Firestore collectionGroup listener."""
+    rules = load_biomechanical_rules()
+    
     for change in changes:
         if change.type.name == 'ADDED' or (change.type.name == 'MODIFIED' and change.document.to_dict().get('status') == 'pending'):
             doc = change.document
@@ -102,6 +157,12 @@ def on_snapshot(col_snapshot: Any, changes: Any, read_time: Any):
             if enriched:
                 # Add metadata
                 enriched['source'] = 'ai_enrichment'
+                
+                # Perform Biomechanical Audit
+                warnings = audit_exercise(enriched, rules)
+                if warnings:
+                    enriched['biomechanical_warnings'] = warnings
+                    logger.warning(f"Audit warnings for '{name}': {warnings}")
                 
                 doc.reference.update({
                     'enriched': enriched,

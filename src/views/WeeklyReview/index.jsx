@@ -8,7 +8,7 @@ import ReviewMuscleImpact from './ReviewMuscleImpact';
 import ReviewSessionList from './ReviewSessionList';
 import ReviewTopExercises from './ReviewTopExercises';
 
-export default function WeeklyReview({ onOpenSession, onInspectExercise, hitMode = false, muscleLanguage = 'de' }) {
+export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleLanguage = 'de' }) {
   const [week, setWeek] = useState('current');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -62,8 +62,6 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, hitMode
           <div className="lg:col-span-4 space-y-8">
             <ReviewOverview 
               sessionCount={data.session_count} 
-              totalVolume={data.total_volume} 
-              hitMode={hitMode} 
             />
             <ReviewInsights 
               recommendations={data.recommendations} 
@@ -79,7 +77,6 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, hitMode
               <ReviewSessionList 
                 sessions={data.sessions} 
                 onNavigate={onNavigate} 
-                hitMode={hitMode} 
               />
               <ReviewTopExercises 
                 topExercises={data.top_exercises}
