@@ -35,6 +35,16 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: 'dist',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            react: ['react', 'react-dom'],
+            charts: ['recharts'],
+            icons: ['lucide-react'],
+            bodymap: ['react-body-highlighter'],
+          },
+        },
+      },
     },
   }
 })
