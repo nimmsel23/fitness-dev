@@ -8,9 +8,14 @@ function apiFetch(url, opts) {
 export const api = {
   async get(path) {
     const res = await apiFetch(BASE + path, { cache: 'no-store' })
-    if (!res.ok && !res.headers?.get?.('X-Source')?.startsWith('offline'))
-      throw new Error(`GET ${path} → ${res.status}`)
-    return res.json()
+    const fromOffline = res.headers?.get?.('X-Source')?.startsWith('offline')
+    if (!res.ok && !fromOffline) throw new Error(`GET ${path} → ${res.status}`)
+    try {
+      return await res.json()
+    } catch (e) {
+      if (fromOffline) return null
+      throw new Error(`GET ${path} → invalid JSON`)
+    }
   },
   async post(path, data) {
     const res = await apiFetch(BASE + path, {
