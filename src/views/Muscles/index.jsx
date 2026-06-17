@@ -88,7 +88,7 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
       })) : [];
       const kbMap = new Map();
       kbExercises.forEach(ex => {
-        kbMap.set((ex.display_name || ex.name).toLowerCase(), ex);
+        kbMap.set((ex.display_name || ex.name || "").toLowerCase(), ex);
       });
 
       const cutoff = new Date();
