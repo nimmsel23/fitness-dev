@@ -1,4 +1,4 @@
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Trophy } from 'lucide-react';
 import { translateMuscle } from '../../lib/translations';
 import { getMuscleIcon } from '../../constants/MuscleIcons';
 

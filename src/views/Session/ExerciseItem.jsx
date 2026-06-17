@@ -9,8 +9,7 @@ export default function ExerciseItem({
 }) {
   const [trend, setTrend] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
-  const isFuture = new Date(date) > new Date();
-  
+
   useEffect(() => {
     if (ex.name) {
       getProgressTrend(ex.name).then(setTrend);
