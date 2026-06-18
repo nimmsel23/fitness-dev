@@ -8,6 +8,7 @@ import yaml
 import typer
 from typing_extensions import Annotated
 
+from .paths import DATA_DIR
 from .bootstrap import bootstrap as run_bootstrap
 from .audit import (
     run_anatomy_audit,
@@ -533,6 +534,68 @@ def kb_sync(
     except Exception as exc:
         console.print(f"[fail]FAIL:[/fail] {exc}")
         raise typer.Exit(code=1)
+
+
+@app.command(name="alias-add")
+def alias_add(
+    exercise_id: Annotated[str, typer.Argument(help="Exercise ID (z.B. 301)")],
+    aliases: Annotated[Optional[list[str]], typer.Argument(help="Aliases (optional, sonst Gemini/manuell)")] = None,
+):
+    """Alias(e) in Exercise-YAML schreiben — Gemini-Vorschlag oder manuelle Eingabe"""
+    from .watcher import load_gemini_key
+
+    yml_path = DATA_DIR / "exercises" / f"{exercise_id}.yml"
+    if not yml_path.exists():
+        console.print(f"[fail]FAIL:[/fail] {yml_path} nicht gefunden")
+        raise typer.Exit(code=1)
+
+    data = yaml.safe_load(yml_path.read_text())
+    exercises = data.get("exercises") or []
+    if not exercises:
+        console.print(f"[fail]FAIL:[/fail] Keine exercises-Liste in {yml_path.name}")
+        raise typer.Exit(code=1)
+    ex = exercises[0]
+    existing = ex.get("aliases") or []
+
+    if aliases:
+        proposed = aliases
+    else:
+        from .gemini import load_gemini_key, suggest_aliases
+        api_key = load_gemini_key()
+        if api_key:
+            console.print(f"[info]Gemini:[/info] Schlage Aliases vor für '{ex.get('german') or exercise_id}'...")
+            proposed = suggest_aliases(ex, api_key)
+            if proposed:
+                console.print(f"  Vorschläge: {proposed}")
+                raw = typer.prompt("Übernehmen? [Enter=ja, neue Liste kommagetrennt, 's'=skip]", default="")
+                if raw.strip().lower() == "s":
+                    console.print("Skip.")
+                    return
+                if raw.strip():
+                    proposed = [a.strip() for a in raw.split(",") if a.strip()]
+            else:
+                console.print("[warn]WARN:[/warn] Gemini fehlgeschlagen — manuelle Eingabe")
+                proposed = None
+        else:
+            console.print("[warn]WARN:[/warn] Kein GEMINI_API_KEY — manuelle Eingabe")
+            proposed = None
+
+        if proposed is None:
+            raw = typer.prompt("Aliases (kommagetrennt, 's'=skip)")
+            if raw.strip().lower() == "s":
+                console.print("Skip.")
+                return
+            proposed = [a.strip() for a in raw.split(",") if a.strip()]
+
+    backup = yml_path.with_suffix(".yml.bak")
+    backup.write_text(yml_path.read_text())
+
+    added = [a for a in proposed if a not in existing]
+    ex["aliases"] = existing + added
+    yml_path.write_text(yaml.dump(data, allow_unicode=True, sort_keys=False, default_flow_style=False))
+    console.print(f"[ok]OK:[/ok] {exercise_id} — aliases: {ex['aliases']}")
+    if added:
+        console.print(f"  Neu: {added}")
 
 
 def main():
