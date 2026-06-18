@@ -208,11 +208,13 @@ cmd_watch() {
 }
 
 cmd_push() {
+  local dry_run=""
+  [[ "${1:-}" == "dry-run" || "${1:-}" == "--dry-run" ]] && dry_run="--dry-run"
   if have_gum; then
-    gum spin --spinner dot --title "Pushing catalog → Firestore..." -- python3 -m fitness_agent push
+    gum spin --spinner dot --title "Pushing catalog → Firestore${dry_run:+ (dry-run)}..." -- python3 -m fitness_agent push $dry_run
   else
-    msg "Pushing catalog → Firestore..."
-    python3 -m fitness_agent push
+    msg "Pushing catalog → Firestore${dry_run:+ (dry-run)}..."
+    python3 -m fitness_agent push $dry_run
   fi
 }
 
@@ -314,7 +316,7 @@ case "${1:-help}" in
   logs)       cmd_logs ;;
   watch)      cmd_watch ;;
   tui)        shift; cmd_tui "${1:-dashboard}" ;;
-  push)    cmd_push ;;
+  push)    shift; cmd_push "$@" ;;
   catalog)    shift; cmd_catalog "$@" ;;
   session)    shift; cmd_session "$@" ;;
   journal)    shift; cmd_journal "$@" ;;
