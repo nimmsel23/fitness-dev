@@ -254,8 +254,7 @@ def sync_muscles(db_client: Any, dry_run: bool = False) -> dict[str, int]:
     return counts
 
 
-def sync_yuhonas_REMOVED(db_client: Any, dry_run: bool = False) -> dict[str, int]:
-    # yuhonas is now merged in build_exercise_index() → covered by sync_exercises()
+def sync_yuhonas(db_client: Any, dry_run: bool = False) -> dict[str, int]:
     counts = {"ok": 0, "skip": 0, "error": 0, "unchanged": 0}
     col = db_client.collection("fitness").document("kb").collection("exercises")
 
@@ -264,6 +263,7 @@ def sync_yuhonas_REMOVED(db_client: Any, dry_run: bool = False) -> dict[str, int
         logger.warning("catalog/yuhonas not found, skipping")
         return counts
 
+    # Load string_aliases from muscle_index.yml
     try:
         muscle_index = load_catalog_yaml("muscles/muscle_index.yml")
         string_aliases = muscle_index.get("string_aliases", {})
@@ -351,7 +351,11 @@ def run_kb_sync(dry_run: bool = False) -> None:
     mu = sync_muscles(db_client, dry_run=dry_run)
     logger.info(f"muscles: {mu}")
 
-    total_ok = ex["ok"] + an["ok"] + mu["ok"]
-    total_err = ex["error"] + an["error"] + mu["error"]
+    logger.info("=== KB Sync: yuhonas ===")
+    yu = sync_yuhonas(db_client, dry_run=dry_run)
+    logger.info(f"yuhonas: {yu}")
+
+    total_ok = ex["ok"] + an["ok"] + mu["ok"] + yu["ok"]
+    total_err = ex["error"] + an["error"] + mu["error"] + yu["error"]
     status = "OK" if total_err == 0 else "ERRORS"
     logger.info(f"=== Fertig: {total_ok} geschrieben, {total_err} Fehler — {status} ===")
