@@ -14,7 +14,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileCreatedEvent
 
 from .paths import DATA_DIR, runtime_root
-from .kb_sync import run_kb_sync
+from .firestore_push import run_kb_sync
 from .resolver import resolve_query, find_by_id, build_exercise_index
 from .rich_utils import setup_logging
 from .gemini import load_gemini_key, call_gemini
@@ -84,6 +84,7 @@ def process_inbox_file_virtual(ex_id: str, display_name: str, api_key: str, forc
 def save_inbox_draft(target_file: Path, data: dict, description: str):
     if "stabilizers" not in data: data["stabilizers"] = []
     if "variations" not in data: data["variations"] = []
+    data["source"] = "unreviewed"
     
     wrapper = {
         "name": target_file.stem,

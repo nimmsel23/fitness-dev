@@ -32,3 +32,11 @@ exercises:
     primary:
     - 2
     secondary: []
+  aliases:
+  - seitheben
+  - lateral raise
+  - side raise
+  - side lateral raise
+  - dumbbell lateral raise
+  - shoulder lateral raise
+  source: agent

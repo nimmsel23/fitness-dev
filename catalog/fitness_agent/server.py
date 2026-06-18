@@ -315,7 +315,7 @@ async def handle_inbox_queue(request: web.Request) -> web.Response:
     inbox_dir = runtime_root() / "users" / "default" / "inbox"
     inbox_dir.mkdir(parents=True, exist_ok=True)
     dest = inbox_dir / f"{safe_name}.json"
-    dest.write_text(json.dumps({"name": name}, ensure_ascii=False))
+    dest.write_text(json.dumps({"name": name, "source": "new"}, ensure_ascii=False))
     logger.info(f"Queued for enrichment: {name} → {dest}")
     return web.json_response({"ok": True})
 
@@ -416,7 +416,7 @@ async def handle_inbox_approve(request: web.Request) -> web.Response:
             
         # 4. Save Detail File
         detail_path = exercises_dir / f"{ex_id}.yml"
-        # If it was an inbox file, we move/cleanup
+        ex["source"] = "expert"
         detail_doc = {
             "exercise_id": ex_id,
             "description": f"Expert details for {ex_id}",
@@ -428,7 +428,7 @@ async def handle_inbox_approve(request: web.Request) -> web.Response:
         old_path.unlink()
         
         # 5. Trigger Sync
-        from .kb_sync import run_kb_sync
+        from .firestore_push import run_kb_sync
         try:
             run_kb_sync()
         except Exception as e:

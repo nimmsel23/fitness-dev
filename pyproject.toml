@@ -29,6 +29,7 @@ fitness-agent-server = "fitness_agent.server:main"
 include-package-data = true
 
 [tool.setuptools.packages.find]
+where = ["catalog"]
 include = ["fitness_agent*"]
 
 [tool.setuptools.package-data]

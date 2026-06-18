@@ -39,7 +39,7 @@ from .weekly import build_weekly_coverage
 from .tui import run_tui
 from .watcher import run_watcher
 from .importer import import_external_exercises
-from .kb_sync import run_kb_sync
+from .firestore_push import run_kb_sync
 from .rich_utils import (
     console,
     print_audit_report,
