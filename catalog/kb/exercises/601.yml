@@ -12,11 +12,11 @@ exercises:
   primary_muscles:
   - 501_rectus_abdominis
   secondary_muscles:
-  - 502_obliques
-  - iliopsoas
+  - 502_obliquus_externus
+  - 611_iliopsoas
   stabilizers:
   - 201_latissimus_dorsi
-  - forearms
+  - 405_forearm_flexors
   variations:
   - knee_raise
   coaching_notes:

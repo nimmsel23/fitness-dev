@@ -20,7 +20,7 @@ exercises:
   display_name: 90/90 Hamstring
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   equipment:
@@ -64,7 +64,7 @@ exercises:
   display_name: Adductor
   category: stretching
   primary_muscles:
-  - 605_adductors
+  - 610_adductors
   secondary_muscles: []
   equipment:
   - foam roll
@@ -78,7 +78,7 @@ exercises:
   display_name: Adductor/Groin
   category: stretching
   primary_muscles:
-  - 605_adductors
+  - 610_adductors
   secondary_muscles: []
   equipment: []
   tags:
@@ -94,7 +94,7 @@ exercises:
   - abdominals
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   equipment:
   - kettlebells
@@ -123,9 +123,9 @@ exercises:
   display_name: All Fours Quad Stretch
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - body only
   tags:
@@ -184,13 +184,13 @@ exercises:
   display_name: Alternate Leg Diagonal Bound
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment: []
   tags:
   - unreviewed
@@ -248,7 +248,7 @@ exercises:
   display_name: Alternating Hang Clean
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - biceps
   - 700_calves
@@ -425,8 +425,8 @@ exercises:
   - biceps
   - forearms
   - glutes
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - other
   tags:
@@ -442,14 +442,14 @@ exercises:
   - lower_back
   secondary_muscles:
   - abdominals
-  - 605_adductors
+  - 610_adductors
   - biceps
   - 700_calves
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - middle_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - other
@@ -467,9 +467,9 @@ exercises:
   secondary_muscles:
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - middle_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - other
@@ -500,12 +500,12 @@ exercises:
   display_name: Backward Drag
   category: strongman
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - other
@@ -535,8 +535,8 @@ exercises:
   primary_muscles:
   - 700_calves
   secondary_muscles:
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - other
   tags:
@@ -550,7 +550,7 @@ exercises:
   display_name: Ball Leg Curl
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - glutes
@@ -584,7 +584,7 @@ exercises:
   display_name: Band Good Morning
   category: powerlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - glutes
   - lower_back
@@ -600,7 +600,7 @@ exercises:
   display_name: Band Good Morning (Pull Through)
   category: powerlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - glutes
   - lower_back
@@ -616,7 +616,7 @@ exercises:
   display_name: Band Hip Adductions
   category: strength
   primary_muscles:
-  - 605_adductors
+  - 610_adductors
   secondary_muscles: []
   equipment:
   - bands
@@ -728,10 +728,10 @@ exercises:
   - 700_calves
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lats
   - middle_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - barbell
@@ -746,11 +746,11 @@ exercises:
   display_name: Barbell Full Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -768,7 +768,7 @@ exercises:
   - glutes
   secondary_muscles:
   - 700_calves
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -799,11 +799,11 @@ exercises:
   display_name: Barbell Hack Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - forearms
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -820,7 +820,7 @@ exercises:
   - glutes
   secondary_muscles:
   - 700_calves
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -865,11 +865,11 @@ exercises:
   display_name: Barbell Lunge
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -904,7 +904,7 @@ exercises:
   - abdominals
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lats
   - 300_shoulders
   equipment:
@@ -998,10 +998,10 @@ exercises:
   display_name: Barbell Side Split Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -1016,11 +1016,11 @@ exercises:
   display_name: Barbell Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -1034,11 +1034,11 @@ exercises:
   display_name: Barbell Squat To A Bench
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -1052,12 +1052,12 @@ exercises:
   display_name: Barbell Step Ups
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - barbell
   tags:
@@ -1071,11 +1071,11 @@ exercises:
   display_name: Barbell Walking Lunge
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -1105,11 +1105,11 @@ exercises:
   display_name: Bear Crawl Sled Drags
   category: strongman
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -1154,11 +1154,11 @@ exercises:
   display_name: Bench Jump
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -1222,11 +1222,11 @@ exercises:
   display_name: Bench Sprint
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -1406,9 +1406,9 @@ exercises:
   - abdominals
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   - triceps
   equipment:
@@ -1423,11 +1423,11 @@ exercises:
   display_name: Bicycling
   category: cardio
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -1440,11 +1440,11 @@ exercises:
   display_name: Bicycling, Stationary
   category: cardio
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -1539,10 +1539,10 @@ exercises:
   display_name: Bodyweight Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -1555,11 +1555,11 @@ exercises:
   display_name: Bodyweight Walking Lunge
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment: []
   tags:
   - unreviewed
@@ -1617,13 +1617,13 @@ exercises:
   display_name: Box Jump (Multiple Response)
   category: plyometrics
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - other
   tags:
@@ -1636,13 +1636,13 @@ exercises:
   display_name: Box Skip
   category: plyometrics
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - other
   tags:
@@ -1655,12 +1655,12 @@ exercises:
   display_name: Box Squat
   category: powerlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -1674,13 +1674,13 @@ exercises:
   display_name: Box Squat with Bands
   category: powerlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -1694,13 +1694,13 @@ exercises:
   display_name: Box Squat with Chains
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -1760,7 +1760,7 @@ exercises:
   primary_muscles:
   - glutes
   secondary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -1818,11 +1818,11 @@ exercises:
   display_name: Cable Deadlifts
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - cable
@@ -1851,7 +1851,7 @@ exercises:
   display_name: Cable Hip Adduction
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles: []
   equipment:
   - cable
@@ -2247,11 +2247,11 @@ exercises:
   display_name: Car Deadlift
   category: strongman
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - traps
   equipment:
@@ -2281,14 +2281,14 @@ exercises:
   display_name: Carioca Quick Step
   category: plyometrics
   primary_muscles:
-  - 605_adductors
+  - 610_adductors
   secondary_muscles:
   - abdominals
   - abductors
   - 700_calves
   - glutes
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment: []
   tags:
   - unreviewed
@@ -2362,9 +2362,9 @@ exercises:
   display_name: Chair Leg Extended Stretch
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
-  - 605_adductors
+  - 610_adductors
   equipment:
   - other
   tags:
@@ -2392,11 +2392,11 @@ exercises:
   display_name: Chair Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -2556,7 +2556,7 @@ exercises:
   secondary_muscles:
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - traps
   - triceps
@@ -2572,13 +2572,13 @@ exercises:
   display_name: Clean
   category: olympic weightlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - forearms
   - glutes
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   - traps
   equipment:
@@ -2593,13 +2593,13 @@ exercises:
   display_name: Clean Deadlift
   category: olympic weightlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - forearms
   - glutes
   - lower_back
   - middle_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - barbell
@@ -2614,11 +2614,11 @@ exercises:
   display_name: Clean Pull
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - traps
   equipment:
@@ -2653,9 +2653,9 @@ exercises:
   secondary_muscles:
   - abdominals
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   - triceps
   equipment:
@@ -2675,10 +2675,10 @@ exercises:
   - abdominals
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - middle_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   - traps
   - triceps
@@ -2694,11 +2694,11 @@ exercises:
   display_name: Clean from Blocks
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   - traps
   equipment:
@@ -2872,7 +2872,7 @@ exercises:
   display_name: Conan's Wheel
   category: strongman
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abdominals
   - biceps
@@ -2960,8 +2960,8 @@ exercises:
   - abdominals
   - abductors
   - glutes
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment: []
   tags:
   - unreviewed
@@ -3080,9 +3080,9 @@ exercises:
   secondary_muscles:
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - middle_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - barbell
@@ -3100,9 +3100,9 @@ exercises:
   secondary_muscles:
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - middle_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - barbell
@@ -3286,9 +3286,9 @@ exercises:
   secondary_muscles:
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - middle_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - barbell
@@ -3302,13 +3302,13 @@ exercises:
   display_name: Depth Jump Leap
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -3384,14 +3384,14 @@ exercises:
   display_name: Double Kettlebell Alternating Hang Clean
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - biceps
   - 700_calves
   - forearms
   - glutes
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - kettlebells
@@ -3409,7 +3409,7 @@ exercises:
   - 300_shoulders
   secondary_muscles:
   - 700_calves
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - triceps
   equipment:
   - kettlebells
@@ -3426,7 +3426,7 @@ exercises:
   - 300_shoulders
   secondary_muscles:
   - 700_calves
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - triceps
   equipment:
   - kettlebells
@@ -3443,8 +3443,8 @@ exercises:
   - 300_shoulders
   secondary_muscles:
   - glutes
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - kettlebells
   tags:
@@ -3460,7 +3460,7 @@ exercises:
   - abdominals
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   - triceps
   equipment:
@@ -3475,13 +3475,13 @@ exercises:
   display_name: Double Leg Butt Kick
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -3497,7 +3497,7 @@ exercises:
   - glutes
   secondary_muscles:
   - abdominals
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - exercise ball
   tags:
@@ -3607,13 +3607,13 @@ exercises:
   display_name: Dumbbell Clean
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - forearms
   - glutes
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   - traps
   equipment:
@@ -3695,11 +3695,11 @@ exercises:
   display_name: Dumbbell Lunges
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - dumbbell
   tags:
@@ -3853,11 +3853,11 @@ exercises:
   display_name: Dumbbell Rear Lunge
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - dumbbell
   tags:
@@ -3886,11 +3886,11 @@ exercises:
   display_name: Dumbbell Seated Box Jump
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - dumbbell
   tags:
@@ -3948,11 +3948,11 @@ exercises:
   display_name: Dumbbell Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - dumbbell
@@ -3967,11 +3967,11 @@ exercises:
   display_name: Dumbbell Squat To A Bench
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - dumbbell
@@ -3985,11 +3985,11 @@ exercises:
   display_name: Dumbbell Step Ups
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - dumbbell
   tags:
@@ -4117,10 +4117,10 @@ exercises:
   display_name: Elevated Back Lunge
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -4149,11 +4149,11 @@ exercises:
   display_name: Elliptical Trainer
   category: cardio
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -4252,13 +4252,13 @@ exercises:
   display_name: Fast Skipping
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -4342,7 +4342,7 @@ exercises:
   display_name: Floor Glute-Ham Raise
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - glutes
@@ -4391,7 +4391,7 @@ exercises:
   primary_muscles:
   - glutes
   secondary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -4423,8 +4423,8 @@ exercises:
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   - triceps
   equipment:
@@ -4439,12 +4439,12 @@ exercises:
   display_name: Frankenstein Squat
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abdominals
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -4458,11 +4458,11 @@ exercises:
   display_name: Freehand Jump Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -4475,11 +4475,11 @@ exercises:
   display_name: Frog Hops
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment: []
   tags:
   - unreviewed
@@ -4505,11 +4505,11 @@ exercises:
   display_name: Front Barbell Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -4522,11 +4522,11 @@ exercises:
   display_name: Front Barbell Squat To A Bench
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -4539,13 +4539,13 @@ exercises:
   display_name: Front Box Jump
   category: plyometrics
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - other
   tags:
@@ -4572,13 +4572,13 @@ exercises:
   display_name: Front Cone Hops (or hurdle hops)
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -4619,7 +4619,7 @@ exercises:
   display_name: Front Leg Raises
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles: []
   equipment:
   - body only
@@ -4665,11 +4665,11 @@ exercises:
   display_name: Front Squat (Clean Grip)
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abdominals
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -4683,7 +4683,7 @@ exercises:
   display_name: Front Squats With Two Kettlebells
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
@@ -4747,7 +4747,7 @@ exercises:
   display_name: Glute Ham Raise
   category: powerlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - glutes
@@ -4766,7 +4766,7 @@ exercises:
   primary_muscles:
   - glutes
   secondary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -4779,11 +4779,11 @@ exercises:
   display_name: Goblet Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   equipment:
   - kettlebells
@@ -4797,7 +4797,7 @@ exercises:
   display_name: Good Morning
   category: powerlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - abdominals
   - glutes
@@ -4814,7 +4814,7 @@ exercises:
   display_name: Good Morning off Pins
   category: powerlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - abdominals
   - glutes
@@ -4847,7 +4847,7 @@ exercises:
   display_name: Groin and Back Stretch
   category: stretching
   primary_muscles:
-  - 605_adductors
+  - 610_adductors
   secondary_muscles: []
   equipment: []
   tags:
@@ -4860,7 +4860,7 @@ exercises:
   display_name: Groiners
   category: stretching
   primary_muscles:
-  - 605_adductors
+  - 610_adductors
   secondary_muscles: []
   equipment:
   - body only
@@ -4874,11 +4874,11 @@ exercises:
   display_name: Hack Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -4921,7 +4921,7 @@ exercises:
   display_name: Hamstring-SMR
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles: []
   equipment:
   - foam roll
@@ -4935,7 +4935,7 @@ exercises:
   display_name: Hamstring Stretch
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles: []
   equipment: []
   tags:
@@ -4965,12 +4965,12 @@ exercises:
   display_name: Hang Clean
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - 300_shoulders
   - traps
@@ -4986,12 +4986,12 @@ exercises:
   display_name: Hang Clean - Below the Knees
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - 300_shoulders
   - traps
@@ -5007,14 +5007,14 @@ exercises:
   display_name: Hang Snatch
   category: olympic weightlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - abdominals
   - 700_calves
   - forearms
   - glutes
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   - traps
   equipment:
@@ -5029,14 +5029,14 @@ exercises:
   display_name: Hang Snatch - Below Knees
   category: olympic weightlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - abdominals
   - 700_calves
   - forearms
   - glutes
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   - traps
   equipment:
@@ -5051,7 +5051,7 @@ exercises:
   display_name: Hanging Bar Good Morning
   category: powerlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - abdominals
   - glutes
@@ -5083,12 +5083,12 @@ exercises:
   display_name: Heaving Snatch Balance
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abdominals
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   - triceps
   equipment:
@@ -5136,7 +5136,7 @@ exercises:
   primary_muscles:
   - abductors
   secondary_muscles:
-  - 605_adductors
+  - 610_adductors
   equipment:
   - body only
   tags:
@@ -5151,7 +5151,7 @@ exercises:
   primary_muscles:
   - glutes
   secondary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - bands
   tags:
@@ -5164,7 +5164,7 @@ exercises:
   display_name: Hip Flexion with Band
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles: []
   equipment:
   - bands
@@ -5181,7 +5181,7 @@ exercises:
   - glutes
   secondary_muscles:
   - 700_calves
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - bands
   tags:
@@ -5225,13 +5225,13 @@ exercises:
   display_name: Hurdle Hops
   category: plyometrics
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -5247,7 +5247,7 @@ exercises:
   - lower_back
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -5263,7 +5263,7 @@ exercises:
   - lower_back
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -5304,7 +5304,7 @@ exercises:
   display_name: Inchworm
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles: []
   equipment:
   - body only
@@ -5557,7 +5557,7 @@ exercises:
   display_name: Intermediate Groin Stretch
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles: []
   equipment:
   - other
@@ -5571,7 +5571,7 @@ exercises:
   display_name: Intermediate Hip Flexor and Quad Stretch
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles: []
   equipment:
   - other
@@ -5636,9 +5636,9 @@ exercises:
   secondary_muscles:
   - 100_chest
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - dumbbell
@@ -5652,7 +5652,7 @@ exercises:
   display_name: Iron Crosses (stretch)
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles: []
   equipment: []
   tags:
@@ -5775,11 +5775,11 @@ exercises:
   display_name: Jefferson Squats
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - traps
   equipment:
@@ -5797,8 +5797,8 @@ exercises:
   - 300_shoulders
   secondary_muscles:
   - glutes
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - triceps
   equipment:
   - barbell
@@ -5812,7 +5812,7 @@ exercises:
   display_name: Jerk Dip Squat
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abdominals
   - 700_calves
@@ -5828,10 +5828,10 @@ exercises:
   display_name: Jogging, Treadmill
   category: cardio
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -5851,9 +5851,9 @@ exercises:
   - 700_calves
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - middle_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   - traps
   equipment:
@@ -5884,12 +5884,12 @@ exercises:
   display_name: Kettlebell Dead Clean
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - glutes
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - kettlebells
@@ -5906,7 +5906,7 @@ exercises:
   primary_muscles:
   - abdominals
   secondary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   equipment:
   - kettlebells
@@ -5921,7 +5921,7 @@ exercises:
   display_name: Kettlebell Hang Clean
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - glutes
@@ -5941,7 +5941,7 @@ exercises:
   display_name: Kettlebell One-Legged Deadlift
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - glutes
   - lower_back
@@ -5960,7 +5960,7 @@ exercises:
   - abdominals
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   equipment:
   - kettlebells
@@ -5989,11 +5989,11 @@ exercises:
   display_name: Kettlebell Pistol Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   equipment:
   - kettlebells
@@ -6042,10 +6042,10 @@ exercises:
   primary_muscles:
   - traps
   secondary_muscles:
-  - 605_adductors
+  - 610_adductors
   - glutes
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   equipment:
   - kettlebells
@@ -6062,7 +6062,7 @@ exercises:
   primary_muscles:
   - 300_shoulders
   secondary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - triceps
   equipment:
   - kettlebells
@@ -6080,8 +6080,8 @@ exercises:
   - 300_shoulders
   secondary_muscles:
   - abdominals
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - triceps
   equipment:
   - kettlebells
@@ -6100,8 +6100,8 @@ exercises:
   secondary_muscles:
   - abdominals
   - 700_calves
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - triceps
   equipment:
   - kettlebells
@@ -6119,7 +6119,7 @@ exercises:
   - abdominals
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   - triceps
   equipment:
@@ -6174,8 +6174,8 @@ exercises:
   primary_muscles:
   - 700_calves
   secondary_muscles:
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - body only
   tags:
@@ -6202,13 +6202,13 @@ exercises:
   display_name: Knee Tuck Jump
   category: plyometrics
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - body only
   tags:
@@ -6292,9 +6292,9 @@ exercises:
   display_name: Kneeling Hip Flexor
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment: []
   tags:
   - unreviewed
@@ -6309,8 +6309,8 @@ exercises:
   - glutes
   secondary_muscles:
   - 700_calves
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - barbell
   tags:
@@ -6343,7 +6343,7 @@ exercises:
   - glutes
   secondary_muscles:
   - abdominals
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -6380,8 +6380,8 @@ exercises:
   - abdominals
   - 700_calves
   - 100_chest
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - triceps
   equipment:
   - barbell
@@ -6395,13 +6395,13 @@ exercises:
   display_name: Lateral Bound
   category: plyometrics
   primary_muscles:
-  - 605_adductors
+  - 610_adductors
   secondary_muscles:
   - abductors
   - 700_calves
   - glutes
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - body only
   tags:
@@ -6414,13 +6414,13 @@ exercises:
   display_name: Lateral Box Jump
   category: plyometrics
   primary_muscles:
-  - 605_adductors
+  - 610_adductors
   secondary_muscles:
   - abductors
   - 700_calves
   - glutes
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - other
   tags:
@@ -6433,13 +6433,13 @@ exercises:
   display_name: Lateral Cone Hops
   category: plyometrics
   primary_muscles:
-  - 605_adductors
+  - 610_adductors
   secondary_muscles:
   - abductors
   - 700_calves
   - glutes
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - other
   tags:
@@ -6496,7 +6496,7 @@ exercises:
   display_name: Leg-Up Hamstring Stretch
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles: []
   equipment: []
   tags:
@@ -6510,7 +6510,7 @@ exercises:
   display_name: Leg Extensions
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles: []
   equipment:
   - machine
@@ -6526,7 +6526,7 @@ exercises:
   primary_muscles:
   - glutes
   secondary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -6570,10 +6570,10 @@ exercises:
   display_name: Leverage Deadlift
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -6685,10 +6685,10 @@ exercises:
   display_name: Linear 3-Part Start Technique
   category: plyometrics
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment: []
   tags:
   - unreviewed
@@ -6700,11 +6700,11 @@ exercises:
   display_name: Linear Acceleration Wall Drill
   category: plyometrics
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - glutes
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment: []
   tags:
   - unreviewed
@@ -6716,11 +6716,11 @@ exercises:
   display_name: Linear Depth Jump
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -6738,10 +6738,10 @@ exercises:
   - abdominals
   - 100_chest
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - middle_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   - triceps
   equipment:
@@ -6774,7 +6774,7 @@ exercises:
   display_name: Looking At Ceiling
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles: []
   equipment: []
   tags:
@@ -6862,11 +6862,11 @@ exercises:
   display_name: Lunge Pass Through
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - glutes
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - kettlebells
   tags:
@@ -6879,11 +6879,11 @@ exercises:
   display_name: Lunge Sprint
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -6896,7 +6896,7 @@ exercises:
   display_name: Lying Bent Leg Groin
   category: stretching
   primary_muscles:
-  - 605_adductors
+  - 610_adductors
   secondary_muscles: []
   equipment:
   - other
@@ -7056,7 +7056,7 @@ exercises:
   display_name: Lying Hamstring
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   equipment:
@@ -7085,7 +7085,7 @@ exercises:
   display_name: Lying Leg Curls
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles: []
   equipment:
   - machine
@@ -7099,11 +7099,11 @@ exercises:
   display_name: Lying Machine Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -7131,7 +7131,7 @@ exercises:
   display_name: Lying Prone Quadriceps
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles: []
   equipment:
   - body only
@@ -7312,8 +7312,8 @@ exercises:
   - 300_shoulders
   secondary_muscles:
   - abdominals
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - medicine ball
   tags:
@@ -7388,10 +7388,10 @@ exercises:
   display_name: Mountain Climbers
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 100_chest
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   equipment: []
   tags:
@@ -7405,10 +7405,10 @@ exercises:
   display_name: Moving Claw Series
   category: plyometrics
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment: []
   tags:
   - unreviewed
@@ -7420,11 +7420,11 @@ exercises:
   display_name: Muscle Snatch
   category: olympic weightlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - glutes
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   - triceps
   equipment:
@@ -7461,11 +7461,11 @@ exercises:
   display_name: Narrow Stance Hack Squats
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -7478,11 +7478,11 @@ exercises:
   display_name: Narrow Stance Leg Press
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -7495,11 +7495,11 @@ exercises:
   display_name: Narrow Stance Squats
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -7513,7 +7513,7 @@ exercises:
   display_name: Natural Glute Ham Raise
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - glutes
@@ -7589,11 +7589,11 @@ exercises:
   display_name: Olympic Squat
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -7606,7 +7606,7 @@ exercises:
   display_name: On-Your-Back Quad Stretch
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles: []
   equipment:
   - other
@@ -7620,7 +7620,7 @@ exercises:
   display_name: On Your Side Quad Stretch
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles: []
   equipment: []
   tags:
@@ -7692,7 +7692,7 @@ exercises:
   display_name: One-Arm Kettlebell Clean
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - glutes
   - lower_back
@@ -7742,7 +7742,7 @@ exercises:
   - 300_shoulders
   secondary_muscles:
   - 700_calves
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - triceps
   equipment:
   - kettlebells
@@ -7789,7 +7789,7 @@ exercises:
   - 300_shoulders
   secondary_muscles:
   - 700_calves
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - triceps
   equipment:
   - kettlebells
@@ -7823,7 +7823,7 @@ exercises:
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - traps
   - triceps
@@ -7842,8 +7842,8 @@ exercises:
   - 300_shoulders
   secondary_muscles:
   - glutes
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - triceps
   equipment:
   - kettlebells
@@ -7859,8 +7859,8 @@ exercises:
   primary_muscles:
   - 300_shoulders
   secondary_muscles:
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - kettlebells
   tags:
@@ -7873,7 +7873,7 @@ exercises:
   display_name: One-Arm Kettlebell Swings
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - glutes
@@ -7923,12 +7923,12 @@ exercises:
   display_name: One-Arm Open Palm Kettlebell Clean
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - forearms
   - glutes
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   equipment:
   - kettlebells
@@ -7942,11 +7942,11 @@ exercises:
   display_name: One-Arm Overhead Kettlebell Squats
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   equipment:
   - kettlebells
@@ -7960,12 +7960,12 @@ exercises:
   display_name: One-Arm Side Deadlift
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abdominals
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - traps
   equipment:
@@ -7996,7 +7996,7 @@ exercises:
   primary_muscles:
   - glutes
   secondary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - cable
   tags:
@@ -8131,7 +8131,7 @@ exercises:
   display_name: One Half Locust
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abdominals
   - biceps
@@ -8164,7 +8164,7 @@ exercises:
   primary_muscles:
   - glutes
   secondary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment: []
   tags:
@@ -8177,11 +8177,11 @@ exercises:
   display_name: One Leg Barbell Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -8194,11 +8194,11 @@ exercises:
   display_name: Open Palm Kettlebell Clean
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - glutes
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   equipment:
   - kettlebells
@@ -8273,12 +8273,12 @@ exercises:
   display_name: Overhead Squat
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abdominals
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - 300_shoulders
   - triceps
@@ -8461,7 +8461,7 @@ exercises:
   primary_muscles:
   - glutes
   secondary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - exercise ball
   tags:
@@ -8535,7 +8535,7 @@ exercises:
   display_name: Platform Hamstring Slides
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - glutes
   equipment:
@@ -8550,12 +8550,12 @@ exercises:
   display_name: Plie Dumbbell Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abdominals
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - dumbbell
   tags:
@@ -8616,14 +8616,14 @@ exercises:
   display_name: Power Clean
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - forearms
   - glutes
   - lower_back
   - middle_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   - traps
   - triceps
@@ -8640,9 +8640,9 @@ exercises:
   display_name: Power Clean from Blocks
   category: olympic weightlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - barbell
   tags:
@@ -8655,12 +8655,12 @@ exercises:
   display_name: Power Jerk
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abdominals
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   - triceps
   equipment:
@@ -8689,12 +8689,12 @@ exercises:
   display_name: Power Snatch
   category: olympic weightlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - glutes
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   - traps
   - triceps
@@ -8710,12 +8710,12 @@ exercises:
   display_name: Power Snatch from Blocks
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - 300_shoulders
   - traps
@@ -8732,13 +8732,13 @@ exercises:
   display_name: Power Stairs
   category: strongman
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   - traps
   equipment:
@@ -8785,7 +8785,7 @@ exercises:
   display_name: Prone Manual Hamstring
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles: []
   equipment: []
   tags:
@@ -8798,12 +8798,12 @@ exercises:
   display_name: Prowler Sprint
   category: cardio
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - 100_chest
   - glutes
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   equipment:
   - other
@@ -8819,7 +8819,7 @@ exercises:
   primary_muscles:
   - glutes
   secondary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - cable
@@ -8918,7 +8918,7 @@ exercises:
   - 300_shoulders
   secondary_muscles:
   - 700_calves
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - triceps
   equipment:
   - barbell
@@ -8998,7 +8998,7 @@ exercises:
   display_name: Quad Stretch
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles: []
   equipment:
   - other
@@ -9012,7 +9012,7 @@ exercises:
   display_name: Quadriceps-SMR
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles: []
   equipment:
   - foam roll
@@ -9026,10 +9026,10 @@ exercises:
   display_name: Quick Leap
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -9062,8 +9062,8 @@ exercises:
   secondary_muscles:
   - forearms
   - glutes
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - barbell
@@ -9081,7 +9081,7 @@ exercises:
   secondary_muscles:
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - traps
   equipment:
   - barbell
@@ -9095,7 +9095,7 @@ exercises:
   display_name: Rear Leg Raises
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles: []
   equipment:
   - body only
@@ -9109,11 +9109,11 @@ exercises:
   display_name: Recumbent Bike
   category: cardio
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -9161,14 +9161,14 @@ exercises:
   display_name: Reverse Band Box Squat
   category: powerlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -9185,11 +9185,11 @@ exercises:
   - lower_back
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - barbell
   tags:
@@ -9202,12 +9202,12 @@ exercises:
   display_name: Reverse Band Power Squat
   category: powerlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -9221,15 +9221,15 @@ exercises:
   display_name: Reverse Band Sumo Deadlift
   category: powerlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - forearms
   - glutes
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - barbell
@@ -9363,7 +9363,7 @@ exercises:
   display_name: Reverse Hyperextension
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - glutes
@@ -9445,9 +9445,9 @@ exercises:
   - abdominals
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - other
@@ -9461,11 +9461,11 @@ exercises:
   display_name: Rickshaw Deadlift
   category: strongman
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - traps
   equipment:
@@ -9497,10 +9497,10 @@ exercises:
   display_name: Rocket Jump
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -9545,7 +9545,7 @@ exercises:
   display_name: Romanian Deadlift from Deficit
   category: olympic weightlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - forearms
   - glutes
@@ -9596,10 +9596,10 @@ exercises:
   display_name: Rope Jumping
   category: cardio
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -9643,12 +9643,12 @@ exercises:
   display_name: Rowing, Stationary
   category: cardio
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - biceps
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - middle_back
   equipment:
@@ -9663,7 +9663,7 @@ exercises:
   display_name: Runner's Stretch
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   equipment: []
@@ -9678,11 +9678,11 @@ exercises:
   display_name: Running, Treadmill
   category: cardio
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -9711,14 +9711,14 @@ exercises:
   display_name: Sandbag Load
   category: strongman
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abdominals
   - biceps
   - 700_calves
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - middle_back
   - 300_shoulders
@@ -9765,10 +9765,10 @@ exercises:
   display_name: Scissors Jump
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -9781,7 +9781,7 @@ exercises:
   display_name: Seated Band Hamstring Curl
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles: []
   equipment:
   - other
@@ -9931,7 +9931,7 @@ exercises:
   primary_muscles:
   - 700_calves
   secondary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment: []
   tags:
@@ -10044,7 +10044,7 @@ exercises:
   display_name: Seated Floor Hamstring Stretch
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   equipment: []
@@ -10075,7 +10075,7 @@ exercises:
   primary_muscles:
   - glutes
   secondary_muscles:
-  - 605_adductors
+  - 610_adductors
   equipment:
   - body only
   tags:
@@ -10103,7 +10103,7 @@ exercises:
   display_name: Seated Hamstring
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   equipment: []
@@ -10117,7 +10117,7 @@ exercises:
   display_name: Seated Hamstring and Calf Stretch
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   equipment:
@@ -10146,7 +10146,7 @@ exercises:
   display_name: Seated Leg Curl
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles: []
   equipment:
   - machine
@@ -10419,12 +10419,12 @@ exercises:
   display_name: Side Hop-Sprint
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -10480,7 +10480,7 @@ exercises:
   display_name: Side Leg Raises
   category: stretching
   primary_muscles:
-  - 605_adductors
+  - 610_adductors
   secondary_muscles: []
   equipment:
   - body only
@@ -10494,9 +10494,9 @@ exercises:
   display_name: Side Lying Groin Stretch
   category: stretching
   primary_muscles:
-  - 605_adductors
+  - 610_adductors
   secondary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment: []
   tags:
   - unreviewed
@@ -10522,11 +10522,11 @@ exercises:
   display_name: Side Standing Long Jump
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment: []
   tags:
   - unreviewed
@@ -10572,12 +10572,12 @@ exercises:
   display_name: Side to Side Box Shuffle
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -10637,11 +10637,11 @@ exercises:
   display_name: Single-Cone Sprint Drill
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -10654,10 +10654,10 @@ exercises:
   display_name: Single-Leg High Box Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -10670,12 +10670,12 @@ exercises:
   display_name: Single-Leg Hop Progression
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -10688,12 +10688,12 @@ exercises:
   display_name: Single-Leg Lateral Hop
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -10706,7 +10706,7 @@ exercises:
   display_name: Single-Leg Leg Extension
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles: []
   equipment:
   - machine
@@ -10720,12 +10720,12 @@ exercises:
   display_name: Single-Leg Stride Jump
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -10754,10 +10754,10 @@ exercises:
   display_name: Single Leg Butt Kick
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -10772,7 +10772,7 @@ exercises:
   primary_muscles:
   - glutes
   secondary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -10785,10 +10785,10 @@ exercises:
   display_name: Single Leg Push-off
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -10815,11 +10815,11 @@ exercises:
   display_name: Sit Squats
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment: []
   tags:
   - unreviewed
@@ -10832,13 +10832,13 @@ exercises:
   display_name: Skating
   category: cardio
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -10851,11 +10851,11 @@ exercises:
   display_name: Sled Drag - Harness
   category: strongman
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -10872,7 +10872,7 @@ exercises:
   secondary_muscles:
   - 700_calves
   - middle_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - other
   tags:
@@ -10900,12 +10900,12 @@ exercises:
   display_name: Sled Push
   category: strongman
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - 100_chest
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - triceps
   equipment:
   - other
@@ -11080,11 +11080,11 @@ exercises:
   display_name: Smith Machine Hang Power Clean
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - glutes
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   - traps
   equipment:
@@ -11130,11 +11130,11 @@ exercises:
   display_name: Smith Machine Leg Press
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -11178,11 +11178,11 @@ exercises:
   display_name: Smith Machine Pistol Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -11210,11 +11210,11 @@ exercises:
   display_name: Smith Machine Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - machine
@@ -11228,7 +11228,7 @@ exercises:
   display_name: Smith Machine Stiff-Legged Deadlift
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - glutes
   - lower_back
@@ -11261,11 +11261,11 @@ exercises:
   display_name: Smith Single-Leg Split Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -11279,11 +11279,11 @@ exercises:
   display_name: Snatch
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - biceps
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - 300_shoulders
   - traps
@@ -11300,11 +11300,11 @@ exercises:
   display_name: Snatch Balance
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   - triceps
   equipment:
@@ -11319,13 +11319,13 @@ exercises:
   display_name: Snatch Deadlift
   category: olympic weightlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - barbell
@@ -11339,12 +11339,12 @@ exercises:
   display_name: Snatch Pull
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - glutes
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - barbell
@@ -11375,12 +11375,12 @@ exercises:
   display_name: Snatch from Blocks
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - 300_shoulders
   - traps
@@ -11411,11 +11411,11 @@ exercises:
   display_name: Speed Box Squat
   category: powerlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -11428,11 +11428,11 @@ exercises:
   display_name: Speed Squats
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -11512,12 +11512,12 @@ exercises:
   display_name: Split Clean
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - 300_shoulders
   - traps
@@ -11533,10 +11533,10 @@ exercises:
   display_name: Split Jerk
   category: olympic weightlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   - triceps
   equipment:
@@ -11551,11 +11551,11 @@ exercises:
   display_name: Split Jump
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -11568,14 +11568,14 @@ exercises:
   display_name: Split Snatch
   category: olympic weightlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   - traps
   - triceps
@@ -11591,10 +11591,10 @@ exercises:
   display_name: Split Squat with Dumbbells
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - dumbbell
   tags:
@@ -11607,11 +11607,11 @@ exercises:
   display_name: Split Squats
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - glutes
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment: []
   tags:
   - unreviewed
@@ -11624,11 +11624,11 @@ exercises:
   display_name: Squat Jerk
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   - triceps
   equipment:
@@ -11644,12 +11644,12 @@ exercises:
   display_name: Squat with Bands
   category: powerlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -11663,12 +11663,12 @@ exercises:
   display_name: Squat with Chains
   category: powerlifting
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -11682,13 +11682,13 @@ exercises:
   display_name: Squat with Plate Movers
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -11701,11 +11701,11 @@ exercises:
   display_name: Squats - With Bands
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - bands
@@ -11719,11 +11719,11 @@ exercises:
   display_name: Stairmaster
   category: cardio
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -12019,7 +12019,7 @@ exercises:
   display_name: Standing Elevated Quad Stretch
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles: []
   equipment:
   - other
@@ -12049,7 +12049,7 @@ exercises:
   primary_muscles:
   - 700_calves
   secondary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment: []
   tags:
   - unreviewed
@@ -12061,7 +12061,7 @@ exercises:
   display_name: Standing Hamstring and Calf Stretch
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles: []
   equipment:
   - other
@@ -12078,7 +12078,7 @@ exercises:
   primary_muscles:
   - abductors
   secondary_muscles:
-  - 605_adductors
+  - 610_adductors
   equipment:
   - body only
   tags:
@@ -12091,7 +12091,7 @@ exercises:
   display_name: Standing Hip Flexors
   category: stretching
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles: []
   equipment: []
   tags:
@@ -12132,7 +12132,7 @@ exercises:
   display_name: Standing Leg Curl
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles: []
   equipment:
   - machine
@@ -12146,11 +12146,11 @@ exercises:
   display_name: Standing Long Jump
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -12370,7 +12370,7 @@ exercises:
   display_name: Standing Toe Touches
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   equipment: []
@@ -12414,11 +12414,11 @@ exercises:
   display_name: Star Jump
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 300_shoulders
   equipment:
   - body only
@@ -12434,8 +12434,8 @@ exercises:
   primary_muscles:
   - glutes
   secondary_muscles:
-  - 604_hamstrings
-  - 603_quadriceps
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment:
   - body only
   tags:
@@ -12448,11 +12448,11 @@ exercises:
   display_name: Step Mill
   category: cardio
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -12465,7 +12465,7 @@ exercises:
   display_name: Stiff-Legged Barbell Deadlift
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - glutes
   - lower_back
@@ -12481,7 +12481,7 @@ exercises:
   display_name: Stiff-Legged Dumbbell Deadlift
   category: strength
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - glutes
   - lower_back
@@ -12500,7 +12500,7 @@ exercises:
   - lower_back
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -12590,12 +12590,12 @@ exercises:
   display_name: Stride Jump Crossover
   category: plyometrics
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -12608,14 +12608,14 @@ exercises:
   display_name: Sumo Deadlift
   category: powerlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
-  - 605_adductors
+  - 610_adductors
   - forearms
   - glutes
   - lower_back
   - middle_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - barbell
@@ -12629,14 +12629,14 @@ exercises:
   display_name: Sumo Deadlift with Bands
   category: powerlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
-  - 605_adductors
+  - 610_adductors
   - forearms
   - glutes
   - lower_back
   - middle_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - barbell
@@ -12650,15 +12650,15 @@ exercises:
   display_name: Sumo Deadlift with Chains
   category: powerlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - forearms
   - glutes
   - lower_back
   - middle_back
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - traps
   equipment:
   - barbell
@@ -12675,7 +12675,7 @@ exercises:
   - lower_back
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - body only
   tags:
@@ -12804,13 +12804,13 @@ exercises:
   display_name: Suspended Split Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -12873,9 +12873,9 @@ exercises:
   display_name: The Straddle
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   equipment: []
   tags:
@@ -12903,10 +12903,10 @@ exercises:
   display_name: Thigh Adductor
   category: strength
   primary_muscles:
-  - 605_adductors
+  - 610_adductors
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -12919,13 +12919,13 @@ exercises:
   display_name: Tire Flip
   category: strongman
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - 100_chest
   - forearms
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - 300_shoulders
   - traps
@@ -12971,11 +12971,11 @@ exercises:
   display_name: Trail Running/Walking
   category: cardio
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment: []
   tags:
   - unreviewed
@@ -12987,10 +12987,10 @@ exercises:
   display_name: Trap Bar Deadlift
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -13137,7 +13137,7 @@ exercises:
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   - traps
   equipment:
@@ -13155,7 +13155,7 @@ exercises:
   - 300_shoulders
   secondary_muscles:
   - 700_calves
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - triceps
   equipment:
   - kettlebells
@@ -13217,7 +13217,7 @@ exercises:
   display_name: Upper Back-Leg Grab
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - lower_back
   - middle_back
@@ -13341,10 +13341,10 @@ exercises:
   display_name: Vertical Swing
   category: plyometrics
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - glutes
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   - 300_shoulders
   equipment:
   - dumbbell
@@ -13358,11 +13358,11 @@ exercises:
   display_name: Walking, Treadmill
   category: cardio
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - machine
   tags:
@@ -13378,7 +13378,7 @@ exercises:
   - lower_back
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - middle_back
   equipment:
   - exercise ball
@@ -13438,11 +13438,11 @@ exercises:
   display_name: Weighted Jump Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -13473,11 +13473,11 @@ exercises:
   display_name: Weighted Sissy Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:
@@ -13505,11 +13505,11 @@ exercises:
   display_name: Weighted Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - other
   tags:
@@ -13637,11 +13637,11 @@ exercises:
   display_name: Wide Stance Barbell Squat
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - barbell
@@ -13655,9 +13655,9 @@ exercises:
   display_name: Wide Stance Stiff Legs
   category: olympic weightlifting
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
-  - 605_adductors
+  - 610_adductors
   - glutes
   - lower_back
   equipment:
@@ -13690,7 +13690,7 @@ exercises:
   - abductors
   secondary_muscles:
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment: []
   tags:
@@ -13703,11 +13703,11 @@ exercises:
   display_name: World's Greatest Stretch
   category: stretching
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
   - 700_calves
   - glutes
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   equipment: []
   tags:
   - unreviewed
@@ -13765,14 +13765,14 @@ exercises:
   display_name: Yoke Walk
   category: strongman
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - abdominals
   - abductors
-  - 605_adductors
+  - 610_adductors
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - lower_back
   equipment:
   - other
@@ -13786,11 +13786,11 @@ exercises:
   display_name: Zercher Squats
   category: strength
   primary_muscles:
-  - 603_quadriceps
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
   secondary_muscles:
   - 700_calves
   - glutes
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   equipment:
   - barbell
   tags:

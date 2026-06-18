@@ -11,9 +11,9 @@ exercises:
   - 603
   primary_muscles:
   - 501_rectus_abdominis
-  - transvere_abdominis
+  - 504_transverse_abdominis
   secondary_muscles:
-  - 502_obliques
+  - 502_obliquus_externus
   - 201_latissimus_dorsi
   - 104_serratus_anterior
   stabilizers:

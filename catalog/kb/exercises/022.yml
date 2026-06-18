@@ -15,7 +15,7 @@ exercises:
   secondary_muscles:
   - 403_triceps_brachii
   - 202_trapezius_upper
-  - pectoralis_major_clavicular_head
+  - 102_pectoralis_major_clavicular
   stabilizers:
   - 500_core
   - 206_erector_spinae

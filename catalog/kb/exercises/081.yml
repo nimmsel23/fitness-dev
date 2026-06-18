@@ -10,15 +10,15 @@ exercises:
   equipment:
   - barbell
   primary_muscles:
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 601_gluteus_maximus
   secondary_muscles:
   - 206_erector_spinae
-  - 605_adductors
+  - 610_adductors
   stabilizers:
-  - 500_core
-  - trapezius
-  - forearms
+  - 504_transverse_abdominis
+  - 203_trapezius_middle
+  - 405_forearm_flexors
   variations:
   - dumbbell_rdl
   coaching_notes:

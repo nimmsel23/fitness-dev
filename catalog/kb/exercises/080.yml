@@ -12,15 +12,15 @@ exercises:
   primary_muscles:
   - 206_erector_spinae
   - 601_gluteus_maximus
-  - 604_hamstrings
+  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   secondary_muscles:
-  - 603_quadriceps
-  - trapezius
+  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
+  - 203_trapezius_middle
   - 201_latissimus_dorsi
-  - forearms
+  - 405_forearm_flexors
   stabilizers:
-  - 500_core
-  - 300_shoulders
+  - 504_transverse_abdominis
+  - 304_rotator_cuff
   variations:
   - trap_bar_deadlift
   - sumo_deadlift

@@ -11,7 +11,7 @@ exercises:
   - dumbbell
   - incline_bench
   primary_muscles:
-  - pectoralis_major_clavicular_head
+  - 102_pectoralis_major_clavicular
   - 301_anterior_deltoid
   secondary_muscles:
   - 403_triceps_brachii

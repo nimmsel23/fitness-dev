@@ -15,8 +15,7 @@ exercises:
   - 204_trapezius_lower
   secondary_muscles:
   - 302_lateral_deltoid
-  - infraspinatus
-  - teres_minor
+  - 304_rotator_cuff
   stabilizers:
   - 500_core
   - 401_biceps_brachii
