@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import urllib.request
 from pathlib import Path
 
@@ -140,3 +141,40 @@ def suggest_aliases(ex: dict, api_key: str) -> list[str] | None:
         return json.loads(text.strip())
     except Exception:
         return None
+
+
+def _cli_prompt(prompt: str, cmd: list[str]) -> list[str] | None:
+    try:
+        result = subprocess.run(
+            cmd,
+            input=prompt,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        text = result.stdout.strip()
+        start, end = text.find("["), text.rfind("]")
+        if start != -1 and end != -1:
+            return json.loads(text[start:end + 1])
+    except Exception as e:
+        logger.warning(f"{cmd[0]} fallback failed: {e}")
+    return None
+
+
+def suggest_aliases_cli(ex: dict) -> list[str] | None:
+    prompt = (
+        PROMPT_ALIASES.format(
+            name=ex.get("german") or ex.get("name") or ex.get("exercise_id", ""),
+            category=ex.get("category", ""),
+            type=ex.get("type", ""),
+        )
+        + "\nReturn ONLY the JSON array, nothing else."
+    )
+    for cmd in [
+        ["claude", "-p", prompt, "--output-format", "text"],
+        ["codex", "exec", prompt],
+    ]:
+        result = _cli_prompt(prompt, cmd)
+        if result:
+            return result
+    return None

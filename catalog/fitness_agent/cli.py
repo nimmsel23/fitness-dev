@@ -560,24 +560,26 @@ def alias_add(
     if aliases:
         proposed = aliases
     else:
-        from .gemini import load_gemini_key, suggest_aliases
+        from .gemini import load_gemini_key, suggest_aliases, suggest_aliases_cli
+        name = ex.get("german") or exercise_id
         api_key = load_gemini_key()
+        proposed = None
         if api_key:
-            console.print(f"[info]Gemini:[/info] Schlage Aliases vor für '{ex.get('german') or exercise_id}'...")
+            console.print(f"[info]Gemini:[/info] Schlage Aliases vor für '{name}'...")
             proposed = suggest_aliases(ex, api_key)
-            if proposed:
-                console.print(f"  Vorschläge: {proposed}")
-                raw = typer.prompt("Übernehmen? [Enter=ja, neue Liste kommagetrennt, 's'=skip]", default="")
-                if raw.strip().lower() == "s":
-                    console.print("Skip.")
-                    return
-                if raw.strip():
-                    proposed = [a.strip() for a in raw.split(",") if a.strip()]
-            else:
-                console.print("[warn]WARN:[/warn] Gemini fehlgeschlagen — manuelle Eingabe")
-                proposed = None
+        if proposed is None:
+            console.print(f"[info]CLI:[/info] Gemini nicht verfügbar — versuche Claude/Codex...")
+            proposed = suggest_aliases_cli(ex)
+        if proposed:
+            console.print(f"  Vorschläge: {proposed}")
+            raw = typer.prompt("Übernehmen? [Enter=ja, neue Liste kommagetrennt, 's'=skip]", default="")
+            if raw.strip().lower() == "s":
+                console.print("Skip.")
+                return
+            if raw.strip():
+                proposed = [a.strip() for a in raw.split(",") if a.strip()]
         else:
-            console.print("[warn]WARN:[/warn] Kein GEMINI_API_KEY — manuelle Eingabe")
+            console.print("[warn]WARN:[/warn] Kein AI-Vorschlag verfügbar — manuelle Eingabe")
             proposed = None
 
         if proposed is None:
