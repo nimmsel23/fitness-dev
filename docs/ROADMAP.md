@@ -41,7 +41,6 @@ Exercise Library (YAML Katalog)
 - [ ] Progression Tracking (Double Progression, Deload-Erkennung)
 - [ ] Weekly Review mit Volumen-Analyse pro Muskelgruppe
 - [ ] Obsidian Export pro Session (Anatomy Teaching integriert)
-- [ ] Volume Landmarks (MV/MEV/MAV/MRV pro Muskelgruppe) — Konzept aus MyFit/Liftosaur
 
 ### Phase 3 — Personaltrainer + Prävention
 - [ ] Client-Profile (individuelle Anamnese, Einschränkungen)
@@ -63,8 +62,6 @@ Siehe `HOT.md` — Open Source Repos, npm Module, Referenz-Apps.
 Highlights:
 - `wrkout/exercises.json` — 2500+ Übungen mit Medien (Public Domain)
 - `recharts` — Charts für Coverage/Progression (RadarChart, LineChart)
-- `Liftosaur` — beste Referenz-App (Mesozyklus, Volume Landmarks, Progressionslogik)
-- Volume Landmarks Konzept (MV/MEV/MAV/MRV) aus WhyAsh5114/MyFit
 
 ---
 
