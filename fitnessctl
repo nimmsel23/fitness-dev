@@ -34,7 +34,7 @@ usage() {
 | **dev** | Start API + Vite (foreground) |
 | **watch** | Start AI Enricher Watcher |
 | **tui** | Open fitness-agent TUI |
-| **firestore-push** | Push local catalog → Firestore |
+| **push** | Push local catalog → Firestore |
 | **session** | Show/List training sessions |
 | **journal** | Show/List journal entries |
 | **coverage** | Muscle coverage analysis |
@@ -54,7 +54,7 @@ fitnessctl — fitness-dev service control (API :${API_PORT}, UI :${UI_PORT})
   dev          Start API + Vite (foreground)
   watch        Start AI Enricher Watcher
   tui          Open fitness-agent TUI
-  firestore-push      Push local catalog → Firestore
+  push         Push local catalog → Firestore
   session      Show/List training sessions
   journal      Show/List journal entries
   coverage     Muscle coverage analysis
@@ -207,12 +207,12 @@ cmd_watch() {
   fi
 }
 
-cmd_firestore_push() {
+cmd_push() {
   if have_gum; then
-    gum spin --spinner dot --title "Pushing catalog → Firestore..." -- python3 -m fitness_agent firestore-push
+    gum spin --spinner dot --title "Pushing catalog → Firestore..." -- python3 -m fitness_agent push
   else
     msg "Pushing catalog → Firestore..."
-    python3 -m fitness_agent firestore-push
+    python3 -m fitness_agent push
   fi
 }
 
@@ -231,7 +231,7 @@ cmd_catalog() {
   case "$sub" in
     tui)      python3 -m fitness_agent tui "$@" ;;
     inbox)    python3 -m fitness_agent tui --screen inbox "$@" ;;
-    sync)     cmd_firestore_push ;;
+    sync)     cmd_push ;;
     audit)    python3 -m fitness_agent audit "${1:-all}" ;;
     *)        die "Unknown: catalog $sub (tui|inbox|sync|audit)" ;;
   esac
@@ -298,7 +298,7 @@ EOF
 
 # --- Interactive Main ---
 if [[ -z "${1:-}" ]] && have_gum; then
-  CHOICE=$(gum choose "status" "tui" "firestore-push" "start" "stop" "restart" "dev" "watch" "coverage" "gaps" "logs" "help" "exit")
+  CHOICE=$(gum choose "status" "tui" "push" "start" "stop" "restart" "dev" "watch" "coverage" "gaps" "logs" "help" "exit")
   [[ "$CHOICE" == "exit" ]] && exit 0
   set -- "$CHOICE"
 fi
@@ -314,7 +314,7 @@ case "${1:-help}" in
   logs)       cmd_logs ;;
   watch)      cmd_watch ;;
   tui)        shift; cmd_tui "${1:-dashboard}" ;;
-  firestore-push)    cmd_firestore_push ;;
+  push)    cmd_push ;;
   catalog)    shift; cmd_catalog "$@" ;;
   session)    shift; cmd_session "$@" ;;
   journal)    shift; cmd_journal "$@" ;;

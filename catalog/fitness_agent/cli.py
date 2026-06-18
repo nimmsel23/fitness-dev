@@ -524,7 +524,7 @@ def command_import():
         raise typer.Exit(code=1)
 
 
-@app.command(name="firestore-push")
+@app.command(name="push")
 def firestore_push(
     dry_run: Annotated[bool, typer.Option(help="Do not write to Firestore")] = False,
 ):
