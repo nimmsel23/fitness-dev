@@ -1,27 +1,40 @@
 name: chest
-description: Regional Index for Chest exercises.
+muscles:
+  - 101_pectoralis_major
+  - 102_pectoralis_major_clavicular
+  - 103_pectoralis_minor
+  - 104_serratus_anterior
 exercises:
   - id: "040"
     name: "Bankdrücken (LH)"
     primary_muscles: [101_pectoralis_major]
     secondary_muscles: [301_anterior_deltoid, 403_triceps_brachii]
+    wger_muscle_ids: {primary: [4], secondary: [2, 5]}
   - id: "041"
     name: "Schrägbankdrücken (KH)"
-    primary_muscles: [102_pectoralis_major_clavicular, 301_anterior_deltoid]
-    secondary_muscles: [403_triceps_brachii, 101_pectoralis_major, 104_serratus_anterior]
+    primary_muscles: [101_pectoralis_major]
+    secondary_muscles: [301_anterior_deltoid, 403_triceps_brachii]
+    emphasis: clavicular
+    wger_muscle_ids: {primary: [4], secondary: [2, 5]}
   - id: "101"
     name: "Kabelzug-Überkreuzen"
     primary_muscles: [101_pectoralis_major]
     secondary_muscles: [301_anterior_deltoid]
+    wger_muscle_ids: {primary: [4], secondary: [2]}
   - id: "102"
     name: "Kabel-Flys (von unten)"
-    primary_muscles: [102_pectoralis_major_clavicular]
+    primary_muscles: [101_pectoralis_major]
     secondary_muscles: [301_anterior_deltoid, 104_serratus_anterior]
+    emphasis: clavicular
+    wger_muscle_ids: {primary: [4], secondary: [2, 3]}
   - id: "103"
     name: "Kabel-Flys"
     primary_muscles: [101_pectoralis_major]
     secondary_muscles: [301_anterior_deltoid]
+    wger_muscle_ids: {primary: [4], secondary: [2]}
   - id: "104"
     name: "Dips (Brustfokus)"
     primary_muscles: [101_pectoralis_major]
     secondary_muscles: [403_triceps_brachii, 301_anterior_deltoid]
+    emphasis: sternal
+    wger_muscle_ids: {primary: [4], secondary: [5, 2]}

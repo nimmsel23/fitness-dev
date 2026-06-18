@@ -492,9 +492,17 @@ export async function searchExercises(query, limit = 12) {
   const q = String(query || "").trim();
   if (!q) return { ok: true, results: [], query: q, suggestions: [] };
   if (!_searchCache) _searchCache = await getAllExercises();
+  const stored = localStorage.getItem('fitness-sessionSources');
+  const sources = stored ? JSON.parse(stored) : { wger: true, yuhonas: true, coach: false };
+  const pool = _searchCache.filter(ex => {
+    const tags = ex.tags || [];
+    if (tags.includes('wger') || tags.includes('unreviewed')) return sources.wger !== false;
+    if (tags.includes('yuhonas')) return sources.yuhonas !== false;
+    return sources.coach === true;
+  });
   const qn = _normalize(q);
   const qTokens = qn.split(" ").filter(Boolean);
-  const scored = _searchCache.map(ex => {
+  const scored = pool.map(ex => {
     const hay = [ex.display_name, ex.german, ex.name, ex.exercise_id, ex.id, ...(ex.aliases || []), ...(ex.tags || [])].map(_normalize);
     let score = 0;
     if (hay.some(h => h === qn))         score = 100;

@@ -22,7 +22,10 @@ export async function searchExercises(query, limit = 12) {
   const q = String(query || "").trim();
   if (!q) return { ok: true, results: [], query: q, suggestions: [] };
   try {
-    const data = await api.get(`/fitness/search?q=${encodeURIComponent(q)}&limit=${limit}`);
+    const stored = localStorage.getItem('fitness-sessionSources');
+    const sources = stored ? JSON.parse(stored) : { wger: true, yuhonas: true, coach: false };
+    const active = Object.entries(sources).filter(([, v]) => v).map(([k]) => k).join(',') || 'wger';
+    const data = await api.get(`/fitness/search?q=${encodeURIComponent(q)}&limit=${limit}&sources=${active}`);
     return data || { ok: false, results: [], query: q };
   } catch {
     return { ok: false, results: [], query: q };

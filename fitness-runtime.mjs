@@ -81,8 +81,8 @@ function toFrontendExercise(ex, extra = {}) {
   }
 }
 
-export async function searchExercises(query, limit = 12) {
-  const result = await fetchAgent(`/search?q=${encodeURIComponent(query)}&limit=${limit}`)
+export async function searchExercises(query, limit = 12, sources = 'wger,yuhonas') {
+  const result = await fetchAgent(`/search?q=${encodeURIComponent(query)}&limit=${limit}&sources=${sources}`)
   if (result?.ok) {
     return {
       ok: true,

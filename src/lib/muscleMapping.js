@@ -29,7 +29,17 @@ export const RBH_SLUGS = {
   'quads': 'quadriceps', 'quadriceps': 'quadriceps', 'vastus lateralis': 'quadriceps',
   'hamstrings': 'hamstring', 'hamstring': 'hamstring', 'biceps femoris': 'hamstring',
   'calves': 'calves', 'gastrocnemius': 'calves', 'soleus': 'calves',
-  '600_legs': 'quadriceps', '601_gluteus_maximus': 'gluteal', '602_gluteus_medius': 'gluteal', '603_quadriceps': 'quadriceps', '604_hamstrings': 'hamstring', '700_calves': 'calves'
+  '600_legs': 'quadriceps', '601_gluteus_maximus': 'gluteal', '602_gluteus_medius': 'gluteal', '603_quadriceps': 'quadriceps', '604_hamstrings': 'hamstring', '700_calves': 'calves',
+  // Granulare Catalog IDs (Coach Catalog)
+  '603_rectus_femoris': 'quadriceps', '604_vastus_lateralis': 'quadriceps', '605_vastus_medialis': 'quadriceps', '606_vastus_intermedius': 'quadriceps',
+  '607_biceps_femoris': 'hamstring', '608_semitendinosus': 'hamstring', '609_semimembranosus': 'hamstring',
+  '610_adductors': 'adductors', '611_iliopsoas': 'hip-flexors', '612_gluteus_minimus': 'gluteal',
+  '502_obliquus_externus': 'obliques', '503_obliquus_internus': 'obliques', '504_transverse_abdominis': 'abs',
+  '102_pectoralis_major_clavicular': 'chest',
+  '305_supraspinatus': 'front-deltoids', '306_infraspinatus': 'back-deltoids', '307_teres_minor': 'back-deltoids', '308_subscapularis': 'front-deltoids',
+  '207_teres_major': 'latissimus', '208_quadratus_lumborum': 'lower-back',
+  '405_forearm_flexors': 'forearm', '406_anconeus': 'triceps', '407_forearm_extensors': 'forearm',
+  '701_gastrocnemius': 'calves', '702_soleus': 'calves', '703_tibialis_anterior': 'calves',
 };
 
 // Mapping for body-muscles library (IDs verified against dist/index.js)
@@ -79,6 +89,27 @@ export const BODY_MUSCLES_MAP = {
   '603_quadriceps': { view: 'FRONT', ids: ['quads-left','quads-right'] },
   '604_hamstrings': { view: 'BACK', ids: ['hamstrings-medial-left','hamstrings-lateral-left','hamstrings-medial-right','hamstrings-lateral-right'] },
   '700_calves': { view: 'BACK', ids: ['calves-gastroc-medial-left','calves-gastroc-lateral-left','calves-gastroc-medial-right','calves-gastroc-lateral-right','calves-soleus-left','calves-soleus-right'] },
+  // Granulare Catalog IDs (Coach Catalog)
+  '603_rectus_femoris': { view: 'FRONT', ids: ['quads-left','quads-right'] },
+  '604_vastus_lateralis': { view: 'FRONT', ids: ['quads-left','quads-right'] },
+  '605_vastus_medialis': { view: 'FRONT', ids: ['quads-left','quads-right'] },
+  '606_vastus_intermedius': { view: 'FRONT', ids: ['quads-left','quads-right'] },
+  '607_biceps_femoris': { view: 'BACK', ids: ['hamstrings-medial-left','hamstrings-lateral-left','hamstrings-medial-right','hamstrings-lateral-right'] },
+  '608_semitendinosus': { view: 'BACK', ids: ['hamstrings-medial-left','hamstrings-lateral-left','hamstrings-medial-right','hamstrings-lateral-right'] },
+  '609_semimembranosus': { view: 'BACK', ids: ['hamstrings-medial-left','hamstrings-lateral-left','hamstrings-medial-right','hamstrings-lateral-right'] },
+  '610_adductors': { view: 'FRONT', ids: ['adductors-left','adductors-right'] },
+  '611_iliopsoas': { view: 'FRONT', ids: ['hip-flexor-left','hip-flexor-right'] },
+  '612_gluteus_minimus': { view: 'BACK', ids: ['gluteus-maximus-left','gluteus-maximus-right'] },
+  '502_obliquus_externus': { view: 'FRONT', ids: ['obliques-left','obliques-right'] },
+  '503_obliquus_internus': { view: 'FRONT', ids: ['obliques-left','obliques-right'] },
+  '504_transverse_abdominis': { view: 'FRONT', ids: ['abs-upper-left','abs-upper-right','abs-lower-left','abs-lower-right'] },
+  '102_pectoralis_major_clavicular': { view: 'FRONT', ids: ['chest-upper-left','chest-upper-right'] },
+  '207_teres_major': { view: 'BACK', ids: ['lats-upper-left','lats-upper-right'] },
+  '208_quadratus_lumborum': { view: 'BACK', ids: ['lower-back-ql-left','lower-back-ql-right'] },
+  '405_forearm_flexors': { view: 'FRONT', ids: ['forearm-left','forearm-right'] },
+  '407_forearm_extensors': { view: 'BACK', ids: ['forearm-left','forearm-right'] },
+  '701_gastrocnemius': { view: 'BACK', ids: ['calves-gastroc-medial-left','calves-gastroc-lateral-left','calves-gastroc-medial-right','calves-gastroc-lateral-right'] },
+  '702_soleus': { view: 'BACK', ids: ['calves-soleus-left','calves-soleus-right'] },
 };
 
 // Legacy — flat slug map for BodyMusclesMap.jsx (AnatomyExplorer)
@@ -100,8 +131,10 @@ export const BODY_MUSCLES_SLUGS = {
   '600_legs': 'gluteus-maximus-left', '601_gluteus_maximus': 'gluteus-maximus-left',
   quads: 'quads-left', quadriceps: 'quads-left',
   '603_quadriceps': 'quads-left',
+  '603_rectus_femoris': 'quads-left', '604_vastus_lateralis': 'quads-left', '605_vastus_medialis': 'quads-left', '606_vastus_intermedius': 'quads-left',
   hamstrings: 'hamstrings-medial-left', hamstring: 'hamstrings-medial-left',
   '604_hamstrings': 'hamstrings-medial-left',
+  '607_biceps_femoris': 'hamstrings-medial-left', '608_semitendinosus': 'hamstrings-medial-left', '609_semimembranosus': 'hamstrings-medial-left',
   calves: 'calves-gastroc-medial-left', gastrocnemius: 'calves-gastroc-medial-left',
   '700_calves': 'calves-gastroc-medial-left',
 };

@@ -9,6 +9,7 @@ import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
 
 import { Save, Zap, X } from 'lucide-react';
 import AnatomyDetailModal from '../../components/AnatomyDetailModal.jsx';
+import TabSettingsModal from '../../components/TabSettingsModal.jsx';
 import DateHeader from './DateHeader';
 import SessionSidebar from './SessionSidebar';
 import ExerciseSection from './ExerciseSection';
@@ -95,8 +96,11 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
   const [recentSessions, setRecentSessions] = useState({});
   const [hint, setHint]           = useState(null);
   const [gaps, setGaps]           = useState([]);
-  const [showMap, setShowMap]     = useState(false);
-  
+  const [showMap, setShowMap]         = useState(false);
+  const [showTabSettings, setShowTabSettings] = useState(false);
+  const [sessionSources, setSessionSources] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('fitness-sessionSources') || '{}') } catch { return {} }
+  });
 
   const [prevMap, setPrevMap]       = useState({});
 
@@ -308,14 +312,15 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
 
   return (
     <div className="pb-32">
-      <DateHeader 
-        date={date} 
-        setDate={setDate} 
-        rollingDays={rollingDays} 
-        recentSessions={recentSessions} 
-        localToday={localToday()} 
-        onSave={save} 
-        saving={saving} 
+      <DateHeader
+        date={date}
+        setDate={setDate}
+        rollingDays={rollingDays}
+        recentSessions={recentSessions}
+        localToday={localToday()}
+        onSave={save}
+        saving={saving}
+        onOpenSettings={() => setShowTabSettings(true)}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8 px-2">
@@ -400,10 +405,54 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       </button>
 
       {showMap && (
-        <MuscleMapModal 
-          exercises={doneExercises} 
-          onClose={() => setShowMap(false)} 
+        <MuscleMapModal
+          exercises={doneExercises}
+          onClose={() => setShowMap(false)}
         />
+      )}
+
+      {showTabSettings && (
+        <TabSettingsModal title="Training · Einstellungen" onClose={() => setShowTabSettings(false)}>
+          <div className="space-y-4">
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-dim/50 mb-5">Übungsquellen</p>
+            {[
+              { key: 'wger', label: 'wger', desc: '~800 Übungen · Standard', experimental: false },
+              { key: 'yuhonas', label: 'yuhonas', desc: '~800 Übungen · Bilder & GIFs', experimental: false },
+              { key: 'coach', label: 'Coach Catalog', desc: 'Kuratiert · Anatomie-Detail', experimental: true },
+            ].map(({ key, label, desc, experimental }) => {
+              const defaults = { wger: true, yuhonas: true, coach: false };
+              const active = sessionSources[key] !== undefined ? sessionSources[key] : defaults[key];
+              return (
+                <button
+                  key={key}
+                  onClick={() => {
+                    const next = { ...{ wger: true, yuhonas: true, coach: false }, ...sessionSources, [key]: !active };
+                    setSessionSources(next);
+                    localStorage.setItem('fitness-sessionSources', JSON.stringify(next));
+                  }}
+                  className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left ${
+                    active ? 'border-accent/40 bg-accent/5' : 'border-line bg-bg2 opacity-60'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black text-ink">{label}</span>
+                      {experimental && (
+                        <span className="text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-orange/20 text-orange border border-orange/30">Lab</span>
+                      )}
+                    </div>
+                    <div className="text-[9px] font-bold text-dim/50 mt-0.5">{desc}</div>
+                  </div>
+                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                    active ? 'border-accent bg-accent' : 'border-line/50'
+                  }`}>
+                    {active && <div className="w-2 h-2 bg-black rounded-sm" />}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </TabSettingsModal>
       )}
     </div>
   );

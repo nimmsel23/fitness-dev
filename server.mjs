@@ -376,9 +376,10 @@ app.get("/fitness/config", (c) =>
 );
 
 app.get("/fitness/search", async (c) => {
-  const q     = c.req.query("q")     || "";
-  const limit = Math.min(Number(c.req.query("limit") || 12), 50);
-  return c.json(await searchExercises(q, limit));
+  const q       = c.req.query("q")       || "";
+  const limit   = Math.min(Number(c.req.query("limit") || 12), 50);
+  const sources = c.req.query("sources") || "wger,yuhonas";
+  return c.json(await searchExercises(q, limit, sources));
 });
 
 app.get("/fitness/exercises/all", (c) => {

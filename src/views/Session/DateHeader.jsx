@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Save, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { Save, ChevronLeft, ChevronRight, Calendar, Settings2 } from "lucide-react";
 import { blockColor, DAY_LABELS } from "./utils";
 
-export default function DateHeader({ 
-  date, setDate, rollingDays, recentSessions, localToday, onSave, saving 
+export default function DateHeader({
+  date, setDate, rollingDays, recentSessions, localToday, onSave, saving, onOpenSettings
 }) {
   const todayIdx = rollingDays.findIndex(d => d === localToday);
   const [offset, setOffset] = useState(todayIdx >= 0 ? Math.max(0, todayIdx - 6) : 0);
@@ -26,13 +26,21 @@ export default function DateHeader({
         </div>
         
         <div className="flex items-center gap-3">
+          {onOpenSettings && (
+            <button
+              onClick={onOpenSettings}
+              className="w-10 h-10 rounded-2xl bg-bg2 border border-line flex items-center justify-center text-dim hover:text-accent hover:border-accent/40 transition-all"
+            >
+              <Settings2 size={16} />
+            </button>
+          )}
           <div className="relative group hidden sm:block">
             <input type="date" value={date} max={localToday} onChange={e => setDate(e.target.value)}
               className="px-6 py-3 rounded-2xl border text-[11px] font-black uppercase tracking-widest bg-bg2 border-line text-ink w-44 outline-none focus:border-accent focus:bg-card transition-all" />
           </div>
-          <button 
-            onClick={onSave} 
-            disabled={saving} 
+          <button
+            onClick={onSave}
+            disabled={saving}
             className="w-12 h-12 sm:w-auto sm:px-8 rounded-2xl bg-accent text-black font-black uppercase tracking-[0.2em] text-[11px] shadow-xl shadow-accent/20 hover:scale-[1.05] active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
           >
             {saving ? (

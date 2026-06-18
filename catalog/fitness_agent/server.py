@@ -67,10 +67,20 @@ async def handle_exercise_detail(request: web.Request) -> web.Response:
 async def handle_search(request: web.Request) -> web.Response:
     query = request.query.get("q", "").strip()
     limit = int(request.query.get("limit", 15))
+    sources_param = request.query.get("sources", "wger,yuhonas")
+    active_sources = {s.strip() for s in sources_param.split(",")}
     if not query:
         return web.json_response({"ok": True, "results": [], "query": query})
 
-    records = build_exercise_index()
+    def source_allowed(rec) -> bool:
+        tags = set(rec.tags or [])
+        if "wger" in tags or "unreviewed" in tags:
+            return "wger" in active_sources
+        if "yuhonas" in tags:
+            return "yuhonas" in active_sources
+        return "coach" in active_sources
+
+    records = [r for r in build_exercise_index() if source_allowed(r)]
     qn = query.lower()
     q_tokens = qn.split()
 
