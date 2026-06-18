@@ -171,8 +171,8 @@ def suggest_aliases_cli(ex: dict) -> list[str] | None:
         + "\nReturn ONLY the JSON array, nothing else."
     )
     for cmd in [
-        ["claude", "-p", prompt, "--output-format", "text"],
         ["codex", "exec", prompt],
+        ["claude", "-p", prompt, "--output-format", "text"],
     ]:
         result = _cli_prompt(prompt, cmd)
         if result:
