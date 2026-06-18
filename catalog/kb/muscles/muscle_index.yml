@@ -1,4 +1,5 @@
 muscles:
+  # --- Leaf muscles (wger_id where available) ---
   401_biceps_brachii:              {wger_id: 1}
   301_anterior_deltoid:            {wger_id: 2}
   104_serratus_anterior:           {wger_id: 3}
@@ -46,6 +47,32 @@ muscles:
   611_iliopsoas:                   {}
   612_gluteus_minimus:             {}
   703_tibialis_anterior:           {}
+
+  # --- Group IDs (used by unreviewed wger/yuhonas exercises) ---
+  100_chest:
+    members: [101_pectoralis_major, 102_pectoralis_major_clavicular, 103_pectoralis_minor, 104_serratus_anterior]
+  200_back:
+    members: [201_latissimus_dorsi, 202_trapezius_upper, 203_trapezius_middle, 204_trapezius_lower, 205_rhomboids, 206_erector_spinae, 207_teres_major, 208_quadratus_lumborum]
+  300_shoulders:
+    members: [301_anterior_deltoid, 302_lateral_deltoid, 303_posterior_deltoid, 304_rotator_cuff]
+  400_arms:
+    members: [401_biceps_brachii, 402_brachialis, 403_triceps_brachii, 404_brachioradialis, 405_forearm_flexors, 406_anconeus, 407_forearm_extensors]
+  500_core:
+    members: [501_rectus_abdominis, 502_obliquus_externus, 503_obliquus_internus, 504_transverse_abdominis, 208_quadratus_lumborum]
+  600_legs:
+    members: [601_gluteus_maximus, 602_gluteus_medius, 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius, 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus, 610_adductors, 611_iliopsoas, 612_gluteus_minimus]
+  700_calves:
+    members: [701_gastrocnemius, 702_soleus, 703_tibialis_anterior]
+  603_quadriceps:
+    members: [603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius]
+  604_hamstrings:
+    members: [607_biceps_femoris, 608_semitendinosus, 609_semimembranosus]
+  605_adductors:
+    members: [610_adductors]
+  502_obliques:
+    members: [502_obliquus_externus, 503_obliquus_internus]
+  503_transverse_abdominis:
+    members: [504_transverse_abdominis]
 
 wger_groups:
   1:  [401_biceps_brachii]
