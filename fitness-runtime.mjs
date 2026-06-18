@@ -82,19 +82,20 @@ function toFrontendExercise(ex, extra = {}) {
 }
 
 export async function searchExercises(query, limit = 12) {
-  const result = await fetchAgent(`/resolve?q=${encodeURIComponent(query)}`)
-  if (result && result.matched && result.exercise) {
-    const enriched = toFrontendExercise(result.exercise, { lesson: result.lesson })
+  const result = await fetchAgent(`/search?q=${encodeURIComponent(query)}&limit=${limit}`)
+  if (result?.ok) {
     return {
       ok: true,
-      source: enriched.source,
       query,
-      results: [enriched],
-      suggestions: result.suggestions,
+      results: (result.results || []).map(ex => toFrontendExercise(ex)),
+      suggestions: (result.results || []).slice(0, 3).map(r => ({
+        canonical_id: r.exercise_id || r.id,
+        display_name: r.display_name,
+      })),
     }
   }
 
-  // Fallback to searching the cached snapshot — retry load if empty
+  // Fallback: cached snapshot mit includes
   let snapshot = cachedSnapshot
   if (!snapshot || !(snapshot.exercises?.length)) {
     snapshot = await loadRuntimeSnapshot({ force: true })
@@ -111,7 +112,7 @@ export async function searchExercises(query, limit = 12) {
 
   return {
     ok: true,
-    source: matches.length > 0 ? matches[0].source : 'none',
+    source: 'snapshot',
     query,
     results: matches,
     suggestions: matches.slice(0, 3).map(m => ({ canonical_id: m.id, display_name: m.name })),

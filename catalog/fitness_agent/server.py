@@ -63,6 +63,46 @@ async def handle_exercise_detail(request: web.Request) -> web.Response:
     return web.json_response(result)
 
 
+async def handle_search(request: web.Request) -> web.Response:
+    query = request.query.get("q", "").strip()
+    limit = int(request.query.get("limit", 15))
+    if not query:
+        return web.json_response({"ok": True, "results": [], "query": query})
+
+    records = build_exercise_index()
+    qn = query.lower()
+    q_tokens = qn.split()
+
+    def score(rec) -> int:
+        fields = [
+            rec.exercise_id or "",
+            rec.display_name or "",
+            rec.german or "",
+            *(rec.aliases or []),
+            *(rec.tags or []),
+        ]
+        hay = [f.lower() for f in fields if f]
+        if any(h == qn for h in hay):               return 100
+        if any(h.startswith(qn) for h in hay):      return 80
+        if any(qn in h for h in hay):               return 60
+        if len(q_tokens) > 1 and all(any(t in h for h in hay) for t in q_tokens): return 50
+        if any(any(t in h for h in hay) for t in q_tokens): return 20
+        return 0
+
+    scored = sorted(
+        ((s, r) for r in records if (s := score(r)) > 0),
+        key=lambda x: (-x[0], x[1].exercise_id),
+    )[:limit]
+
+    results = []
+    for _, rec in scored:
+        d = asdict(rec)
+        d["lesson"] = find_lesson(rec.exercise_id)
+        results.append(d)
+
+    return web.json_response({"ok": True, "query": query, "results": results})
+
+
 async def handle_resolve(request: web.Request) -> web.Response:
     query = request.query.get("q", "")
     if not query:
@@ -353,6 +393,7 @@ def create_app() -> web.Application:
         web.get("/", handle_index),
         web.get("/exercises", handle_exercises),
         web.get("/exercise/{id}", handle_exercise_detail),
+        web.get("/search", handle_search),
         web.get("/resolve", handle_resolve),
         web.get("/muscles", handle_muscles),
         web.get("/taxonomy", handle_taxonomy),
