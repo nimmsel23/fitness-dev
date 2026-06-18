@@ -859,7 +859,7 @@ def load_exercises_documents() -> list[tuple[str, dict[str, Any]]]:
 
 
 def load_muscle_taxonomy() -> dict[str, dict[str, Any]]:
-    document = load_catalog_yaml("muscles/muscles.yml")
+    document = load_catalog_yaml("muscles/muscle_index.yml")
     if not isinstance(document, dict):
         return {}
     muscles = document.get("muscles", {})

@@ -114,7 +114,7 @@ def resolve_muscle_id(raw: str, alias_map: dict[str, str]) -> str:
 
 
 def load_muscle_taxonomy() -> dict[str, dict[str, Any]]:
-    taxonomy = load_catalog_yaml("muscles/muscles.yml")
+    taxonomy = load_catalog_yaml("muscles/muscle_index.yml")
     if not isinstance(taxonomy, dict):
         return {}
     muscles = taxonomy.get("muscles", {})

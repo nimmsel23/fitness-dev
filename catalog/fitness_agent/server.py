@@ -133,7 +133,7 @@ async def handle_resolve(request: web.Request) -> web.Response:
 
 async def handle_muscles(request: web.Request) -> web.Response:
     try:
-        muscles = load_catalog_yaml("muscles/muscles.yml")
+        muscles = load_catalog_yaml("muscles/muscle_index.yml")
         return web.json_response(muscles)
     except Exception as e:
         return web.json_response({"error": str(e)}, status=500)
@@ -141,7 +141,7 @@ async def handle_muscles(request: web.Request) -> web.Response:
 
 async def handle_taxonomy(request: web.Request) -> web.Response:
     try:
-        taxonomy = load_catalog_yaml("muscles/muscles.yml")
+        taxonomy = load_catalog_yaml("muscles/muscle_index.yml")
         rules = load_catalog_yaml("muscles/muscle_coverage_rules.yml")
         bridge = load_catalog_yaml("muscles/body_highlighter_bridge.yml")
         return web.json_response({
@@ -169,7 +169,7 @@ async def handle_snapshot(request: web.Request) -> web.Response:
             "program_rules": unwrap(load_runtime_yaml("rules/program_rules.yml")),
             "progression_rules": unwrap(load_runtime_yaml("rules/progression_rules.yml")),
             "safety_rules": unwrap(load_runtime_yaml("rules/safety_rules.yml")),
-            "muscles": unwrap(load_runtime_yaml("muscles/muscles.yml")),
+            "muscles": unwrap(load_runtime_yaml("muscles/muscle_index.yml")),
             "muscle_coverage_rules": unwrap(load_runtime_yaml("muscles/muscle_coverage_rules.yml")),
             "body_highlighter_bridge": unwrap(load_runtime_yaml("muscles/body_highlighter_bridge.yml")),
             "wger_mapping": unwrap(load_runtime_yaml("maps/wger_mapping.yml")),
