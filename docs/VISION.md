@@ -106,4 +106,44 @@ Die App hat vier Hauptmodi:
 
 ---
 
+## Endgame-Stack
+
+```
+Exercise Library (YAML Katalog)
+  → Muscle Coverage (welche Muskeln, wie viel)
+    → Body Highlighter (visuell auf dem Körper)
+      → Anatomy Teaching (warum, Gelenkaktionen, Fehlerbilder)
+        → Workout Plan (Periodisierung, Progression)
+          → Training Log (Session-Daten, Pflichtaufgaben-Export)
+            → Obsidian (Wissensbase für Ausbildung + Coaching)
+```
+
+---
+
+## Phasen
+
+### Phase 1 — Fundament ✅
+- Session Logging, Pflichtaufgaben CSV Export, Muscle Coverage, Katalog-Struktur
+- Anatomy Teaching für Top 20 Übungen, Exercise Detail View
+
+### Phase 2 — Ausbildung (Fitnesstrainer-Module)
+- Trainingsplan-Builder (PPL, Upper/Lower)
+- Progression Tracking (Double Progression, Deload)
+- Weekly Review mit Volumen-Analyse
+- Obsidian Export pro Session
+- Volume Landmarks (MV/MEV/MAV/MRV) — Konzept aus MyFit/Liftosaur
+
+### Phase 3 — Personaltrainer + Prävention
+- Client-Profile (Anamnese, Einschränkungen)
+- Safety-Filter (Schulter, Knie, Rücken — safety_rules.yml)
+- Seniorentrainer-Modus, Gruppen-Trainingsplan
+
+### Phase 4 — Business
+- Client-Tracking, Klienten-Reporting (PDF/Markdown)
+- Anatomy Teaching als interaktives Lernmodul
+
+**Außerhalb des Scopes:** Rehabilitation (Physio), Ernährung (fuel-dev), Entspannung (relax-dev).
+
+---
+
 *Zuletzt aktualisiert: 2026-06-18*
