@@ -15,7 +15,7 @@ exercises:
   - 601_gluteus_maximus
   - 610_adductors
   stabilizers:
-  - 500_core
+  - 504_transverse_abdominis
   variations:
   - hack_squat
   - single_leg_press

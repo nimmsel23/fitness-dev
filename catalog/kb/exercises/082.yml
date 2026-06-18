@@ -16,7 +16,7 @@ exercises:
   - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
   - 610_adductors
   stabilizers:
-  - 500_core
+  - 504_transverse_abdominis
   - 206_erector_spinae
   variations:
   - glute_bridge

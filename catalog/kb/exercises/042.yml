@@ -18,7 +18,7 @@ exercises:
   - 303_posterior_deltoid
   - 206_erector_spinae
   stabilizers:
-  - 500_core
+  - 504_transverse_abdominis
   - 601_gluteus_maximus
   variations:
   - pendlay_row

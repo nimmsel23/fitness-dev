@@ -15,7 +15,7 @@ exercises:
   secondary_muscles:
   - 401_biceps_brachii
   stabilizers:
-  - 500_core
+  - 504_transverse_abdominis
   - 301_anterior_deltoid
   variations:
   - cross_body_hammer_curl
