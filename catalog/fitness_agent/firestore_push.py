@@ -258,7 +258,7 @@ def sync_yuhonas(db_client: Any, dry_run: bool = False) -> dict[str, int]:
     counts = {"ok": 0, "skip": 0, "error": 0, "unchanged": 0}
     col = db_client.collection("fitness").document("kb").collection("exercises")
 
-    yuhonas_dir = catalog_path("yuhonas")
+    yuhonas_dir = catalog_path("../yuhonas")
     if not yuhonas_dir.exists():
         logger.warning("catalog/yuhonas not found, skipping")
         return counts
