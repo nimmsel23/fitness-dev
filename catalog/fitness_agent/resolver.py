@@ -15,9 +15,8 @@ except ImportError:
 
 from .loader import load_catalog_directory_yaml, load_catalog_yaml
 
-# Smart Gym Vocabulary for Normalization
+# Equipment-Abkürzungen ↔ Vollformen
 GYM_VOCAB = {
-    # Abkürzungen ↔ Vollformen (bidirektional)
     "kh": "kurzhantel dumbbell",
     "kurzhantel": "kurzhantel kh dumbbell",
     "lh": "langhantel barbell",
@@ -27,13 +26,6 @@ GYM_VOCAB = {
     "dumbbell": "dumbbell kurzhantel kh",
     "bb": "barbell langhantel",
     "barbell": "barbell langhantel lh",
-    "chinup": "klimmzug chin-up",
-    "row": "rudern row",
-    "curl": "curls curl",
-    "squat": "kniebeuge squat",
-    "dl": "deadlift kreuzheben",
-    "bp": "benchpress bankdrücken",
-    "ohp": "overheadpress überkopfdrücken",
 }
 
 
