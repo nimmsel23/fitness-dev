@@ -628,7 +628,9 @@ app.get("/session/history", (c) => {
 });
 
 app.get("/session/latest", (c) => {
-  const dir   = path.join(DATA_DIR, "sessions");
+  const uid   = c.req.query("uid") || c.req.header("X-User-UID") || "default";
+  const dir   = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
+  if (!fs.existsSync(dir)) return c.json({ ok: false }, 404);
   const files = fs.readdirSync(dir).filter(f => f.endsWith(".json")).sort().reverse();
   if (!files.length) return c.json({ ok: false }, 404);
   const data  = readJson(path.join(dir, files[0]));
@@ -694,11 +696,13 @@ app.get("/coverage/gaps", (c) => {
 
 // ── Export CSV ────────────────────────────────────────────────────────────────
 app.get("/export/csv", (c) => {
+  const uid   = c.req.query("uid") || c.req.header("X-User-UID") || "default";
+  const sessDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   const days  = Math.min(365, Math.max(1, Number(c.req.query("days") || 14)));
   const dates = lastDates(days).reverse();
   const rows  = [["date","block","location","duration_min","exercise","hit","sets","reps","weight","note","effort"]];
   for (const date of dates) {
-    const sess     = readJson(path.join(DATA_DIR, "sessions", `${date}.json`));
+    const sess     = readJson(path.join(sessDir, `${date}.json`));
     const block    = sess?.block    || "";
     const effort   = sess?.effort   ?? "";
     const location = sess?.location || "";
@@ -725,7 +729,8 @@ app.get("/export/csv", (c) => {
 });
 
 app.get("/export/pflichtaufgabe", (c) => {
-  const dir   = path.join(DATA_DIR, "sessions");
+  const uid = c.req.query("uid") || c.req.header("X-User-UID") || "default";
+  const dir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   const files = fs.existsSync(dir)
     ? fs.readdirSync(dir).filter(f => f.endsWith(".json")).sort()
     : [];
@@ -795,6 +800,16 @@ app.post("/firestore/sync", async (c) => {
     }
   }
   return c.json({ ok: true, synced });
+});
+
+app.get("/v1", (c) => {
+  const abs = path.join(STATIC_DIR, "v1.html");
+  if (fs.existsSync(abs)) {
+    return new Response(fs.createReadStream(abs), {
+      headers: { "Content-Type": "text/html;charset=utf-8" },
+    });
+  }
+  return c.text("Not Found", 404);
 });
 
 // ── Static / SPA fallback ─────────────────────────────────────────────────────
