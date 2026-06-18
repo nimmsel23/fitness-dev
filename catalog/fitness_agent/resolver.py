@@ -286,8 +286,13 @@ def load_alias_map() -> dict[str, str]:
         return {}
     result: dict[str, str] = {}
     for alias, canonical_id in raw_aliases.items():
-        if isinstance(alias, str) and isinstance(canonical_id, str):
-            result[normalize_text(alias, smart=True)] = canonical_id
+        if not isinstance(alias, str):
+            continue
+        if isinstance(canonical_id, int):
+            canonical_id = str(canonical_id).zfill(3)
+        elif not isinstance(canonical_id, str):
+            continue
+        result[normalize_text(alias, smart=True)] = canonical_id
     return result
 
 
@@ -325,35 +330,38 @@ def find_fuzzy_match(normalized_query: str, records: list[ExerciseRecord]) -> tu
     if not records:
         return None, []
 
-    # Prepare candidates: map normalized text to records
+    # Kandidaten NICHT mit GYM_VOCAB expandieren — nur der Query wird expandiert.
+    # Sonst wird z.B. "Pin Squat" zu "pin kniebeuge squat" und matcht falsch besser.
     candidate_map: dict[str, ExerciseRecord] = {}
     for r in records:
         for text in candidate_texts(r):
-            norm = normalize_text(text, smart=True)
+            norm = normalize_text(text, smart=False)
             if norm not in candidate_map:
                 candidate_map[norm] = r
 
     choices = list(candidate_map.keys())
     
     if process and fuzz:
-        # Use Rapidfuzz extract for speed and better scoring
-        # token_set_ratio is good for "kh bankdrücken" vs "bankdrücken kurzhantel"
-        results = process.extract(normalized_query, choices, scorer=fuzz.token_set_ratio, limit=5)
-        
+        # token_set_ratio allein gibt 100 für jeden Kandidaten der den Query enthält
+        # (z.B. "squat" → "bulgarian split squat" = 100). Kombination mit token_sort_ratio
+        # als Tiebreaker bevorzugt kürzere, spezifischere Treffer.
+        def combined_score(q: str, c: str, **_) -> float:
+            return fuzz.token_set_ratio(q, c) * 0.65 + fuzz.token_sort_ratio(q, c) * 0.35
+
+        results = process.extract(normalized_query, choices, scorer=combined_score, limit=5)
+
         if not results:
             return None, []
 
         scored = [FuzzyMatch(record=candidate_map[res[0]], score=res[1]) for res in results]
-        # Expert-Vorrang: Bonus auf den Score, dann neu sortieren.
-        # Damit gewinnt 020 (Expert) gegen wger_475 (Bulk) wenn beide ~gleich gut matchen.
         for fm in scored:
             fm.score += SOURCE_SCORE_BONUS.get(fm.record.source, 0)
         scored.sort(key=lambda x: x.score, reverse=True)
         suggestions = suggestions_from_scored(scored)
 
         best = scored[0]
-        # Threshold for matching (gegen Original-Score ohne Bonus prüfen)
-        if best.score - SOURCE_SCORE_BONUS.get(best.record.source, 0) < 80:
+        raw_score = best.score - SOURCE_SCORE_BONUS.get(best.record.source, 0)
+        if raw_score < 75:
             return None, suggestions
 
         return best, suggestions

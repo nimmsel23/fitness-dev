@@ -1,48 +1,56 @@
 aliases:
-  kh schrägbank: 041
-  kurzhantel schrägbank: 041
-  klimmzug obergriff: 020
-  obergriff klimmzug: 020
-  dips brust: 104
-  kabel flys: 103
+  kh schrägbank: "041"
+  kurzhantel schrägbank: "041"
+  klimmzug obergriff: "020"
+  obergriff klimmzug: "020"
+  dips brust: "104"
+  kabel flys: "103"
   pec deck: pec_deck
-  uberkopfdrücken: 022
-  ueberkopfdruecken: 022
-  schulterdrücken kurzhantel: 023
-  seitheben: 301
-  face pull: 302
-  reverse fly: 303
-  overhead trizepsstrecken: 501
-  trizepsdrücken kabel: 502
-  french press: 503
-  enges bankdrücken: 045
-  klimmzug untergriff: 021
-  untergriff klimmzug: 021
-  latziehen: 201
-  latzug: 201
-  langhantelrudern: 042
-  brustgestutztes rudern: 043
-  t bar rudern: 044
-  facepull: 302
-  reverse fly pull day: 303
-  langhantelcurl: 504
-  schrägbankcurl: 505
-  hammercurl: 506
-  scott curl: 507
-  kniebeuge langhantel: 060
-  frontkniebeuge: 061
-  beinpresse: 062
-  beinstrecken: 401
-  kreuzheben: 080
-  rumänisches kreuzheben: 081
-  beinbeuger: 402
-  hip thrust: 082
-  bulgarian split squat: 063
-  ausfallschritt: 064
-  wadenheben: 701
-  hängendes beinheben: 601
-  kabel crunch: 602
-  ab wheel: 603
-  unterarmstütz: 604
-  pallof press: 605
-  seitstütz: 606
+  uberkopfdrücken: "022"
+  ueberkopfdruecken: "022"
+  schulterdrücken kurzhantel: "023"
+  seitheben: "301"
+  face pull: "302"
+  reverse fly: "303"
+  overhead trizepsstrecken: "501"
+  trizepsdrücken kabel: "502"
+  french press: "503"
+  enges bankdrücken: "045"
+  klimmzug untergriff: "021"
+  untergriff klimmzug: "021"
+  latziehen: "201"
+  latzug: "201"
+  langhantelrudern: "042"
+  brustgestutztes rudern: "043"
+  t bar rudern: "044"
+  facepull: "302"
+  reverse fly pull day: "303"
+  langhantelcurl: "504"
+  schrägbankcurl: "505"
+  hammercurl: "506"
+  scott curl: "507"
+  kniebeuge langhantel: "060"
+  frontkniebeuge: "061"
+  beinpresse: "062"
+  beinstrecken: "401"
+  kreuzheben: "080"
+  deadlift: "080"
+  rumänisches kreuzheben: "081"
+  beinbeuger: "402"
+  hip thrust: "082"
+  bulgarian split squat: "063"
+  ausfallschritt: "064"
+  wadenheben: "701"
+  hängendes beinheben: "601"
+  kabel crunch: "602"
+  ab wheel: "603"
+  unterarmstütz: "604"
+  pallof press: "605"
+  seitstütz: "606"
+  bank: "040"
+  bankdrücken: "040"
+  bench press: "040"
+  bench: "040"
+  kh bankdrücken: wger_75
+  dumbbell press: wger_75
+  kh press: wger_75

@@ -162,11 +162,11 @@ def process_inbox_file(file_path: Path, api_key: str | None):
     except Exception as e:
         logger.error(f"Failed to process {file_path}: {e}")
 
-def process_inbox_file_virtual(ex_id: str, display_name: str, api_key: str):
+def process_inbox_file_virtual(ex_id: str, display_name: str, api_key: str, force: bool = False):
     safe_name = ex_id.lower().replace(" ", "_")
     target_file = DATA_DIR / "exercises" / f"inbox_{safe_name}.yml"
-    
-    if target_file.exists():
+
+    if target_file.exists() and not force:
         return
 
     records = build_exercise_index()
