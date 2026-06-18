@@ -218,7 +218,12 @@ cmd_kb_sync() {
 
 cmd_tui() {
   local screen="${1:-dashboard}"
-  python3 -m fitness_agent tui --screen "$screen"
+  python3 -c "
+import sys
+sys.path.insert(0, '${ROOT}/catalog')
+from fitness_agent.app_tui import run_tui
+run_tui(initial_screen='${screen}')
+"
 }
 
 api_get() { curl -fsS --max-time 5 "${API_URL}$1" 2>&1 || die "Request failed: $1"; }
