@@ -175,6 +175,12 @@ muscles:
     label_en: "Anconeus"
     label_lat: "M. anconeus"
     body_region: upper_arm_back
+  407_forearm_extensors:
+    display_name: Forearm Extensors
+    label_de: "Unterarmstrecker"
+    label_en: "Forearm Extensors"
+    label_lat: "Mm. extensores antebrachii"
+    body_region: forearms
 
   # --- Bauch / Core ---
   500_core:

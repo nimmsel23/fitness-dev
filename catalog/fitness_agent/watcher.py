@@ -17,6 +17,7 @@ from .paths import DATA_DIR, runtime_root
 from .kb_sync import run_kb_sync
 from .resolver import resolve_query, find_by_id, build_exercise_index
 from .rich_utils import setup_logging
+from .coverage import load_muscle_taxonomy
 
 # --- Gemini API Logic ---
 
@@ -42,6 +43,9 @@ A user has logged a new, unknown exercise: "{exercise_name}"
 Return a JSON object with the following structure exactly. Do not include markdown formatting like ```json.
 Use German for display_name and coaching_notes.
 
+CRITICAL: You MUST only use the following muscle IDs for primary_muscles, secondary_muscles, and stabilizers:
+{muscle_list}
+
 {{
   "exercise_id": "{safe_name}",
   "id": "{safe_name}",
@@ -54,6 +58,7 @@ Use German for display_name and coaching_notes.
   "equipment": ["dumbbell", "barbell", "machine", "bodyweight", "cable"],
   "primary_muscles": ["muscle_id"],
   "secondary_muscles": ["muscle_id"],
+  "stabilizers": ["muscle_id"],
   "coaching_notes": ["Hinweis 1", "Hinweis 2"],
   "common_errors": ["Fehler 1"],
   "tags": ["tag1"],
@@ -64,6 +69,9 @@ Use German for display_name and coaching_notes.
 PROMPT_TEMPLATE_ENRICH = """
 You are an expert fitness coach and biomechanics expert.
 I have a basic exercise entry from a bulk import that needs professional "Expert Tier" enrichment.
+
+CRITICAL: You MUST only use the following muscle IDs for primary_muscles, secondary_muscles, and stabilizers:
+{muscle_list}
 
 Existing Data (Wiki Layer):
 {existing_json}
@@ -78,10 +86,24 @@ Return a JSON object with the full enriched structure. Do not include markdown f
 """
 
 def call_gemini(exercise_name: str, safe_name: str, api_key: str, existing_data: dict | None = None) -> dict | None:
+    import re
+    taxonomy = load_muscle_taxonomy()
+    muscle_list = ", ".join(
+        k for k in sorted(taxonomy.keys())
+        if not re.match(r'^\d00_', k)
+    )
+    
     if existing_data:
-        prompt = PROMPT_TEMPLATE_ENRICH.format(existing_json=json.dumps(existing_data, indent=2))
+        prompt = PROMPT_TEMPLATE_ENRICH.format(
+            existing_json=json.dumps(existing_data, indent=2),
+            muscle_list=muscle_list
+        )
     else:
-        prompt = PROMPT_TEMPLATE_NEW.format(exercise_name=exercise_name, safe_name=safe_name)
+        prompt = PROMPT_TEMPLATE_NEW.format(
+            exercise_name=exercise_name, 
+            safe_name=safe_name,
+            muscle_list=muscle_list
+        )
     
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
     
@@ -211,6 +233,11 @@ def run_watcher():
     users_dir = runtime_root() / "users"
     users_dir.mkdir(parents=True, exist_ok=True)
     
+    # Initial scan for existing inbox files
+    logger.info("Performing initial scan for pending inbox files...")
+    for json_file in users_dir.glob("**/inbox/*.json"):
+        process_inbox_file(json_file, api_key)
+
     observer = Observer()
     handler = InboxHandler(api_key)
     observer.schedule(handler, str(users_dir), recursive=True)

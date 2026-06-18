@@ -23,24 +23,21 @@ def calculate_coverage(exercise_query: str, sets: int, rpe: int) -> dict[str, An
         raise ValueError(f"Exercise not found: {resolution.canonical_id}")
 
     taxonomy = load_muscle_taxonomy()
+    alias_map = build_muscle_alias_map(taxonomy)
     bridge = load_body_highlighter_bridge()
     rules = load_coverage_rules()
     effort_factor = effort_factor_for_rpe(rpe, rules)
 
     muscle_scores: dict[str, float] = defaultdict(float)
-    add_role_scores(muscle_scores, exercise.primary_muscles or [], sets, ROLE_WEIGHTS["primary"], effort_factor)
-    add_role_scores(muscle_scores, exercise.secondary_muscles or [], sets, ROLE_WEIGHTS["secondary"], effort_factor)
-    add_role_scores(muscle_scores, exercise.stabilizers or [], sets, ROLE_WEIGHTS["stabilizer"], effort_factor)
+    add_role_scores(muscle_scores, exercise.primary_muscles or [], sets, ROLE_WEIGHTS["primary"], effort_factor, alias_map)
+    add_role_scores(muscle_scores, exercise.secondary_muscles or [], sets, ROLE_WEIGHTS["secondary"], effort_factor, alias_map)
+    add_role_scores(muscle_scores, exercise.stabilizers or [], sets, ROLE_WEIGHTS["stabilizer"], effort_factor, alias_map)
 
     body_region_scores: dict[str, float] = defaultdict(float)
     unmapped_muscles: list[str] = []
-    
-    # Pre-process taxonomy keys for normalized lookup if needed
-    # But better to just normalize the input muscle_id
-    
+
     for muscle_id, score in muscle_scores.items():
-        norm_id = normalize_muscle_id(muscle_id)
-        regions = muscle_regions(norm_id, taxonomy, bridge)
+        regions = muscle_regions(muscle_id, taxonomy, bridge)
         if regions:
             for region in regions:
                 body_region_scores[region] += score
@@ -67,25 +64,53 @@ def find_exercise(exercise_id: str):
     return None
 
 
-def add_role_scores(muscle_scores: dict[str, float], muscles: list[str], sets: int, role_weight: float, effort_factor: float) -> None:
+def add_role_scores(muscle_scores: dict[str, float], muscles: list[str], sets: int, role_weight: float, effort_factor: float, alias_map: dict[str, str] | None = None) -> None:
     for muscle_id in muscles:
-        norm_id = normalize_muscle_id(muscle_id)
-        muscle_scores[norm_id] += sets * role_weight * effort_factor
+        resolved = resolve_muscle_id(muscle_id, alias_map) if alias_map else normalize_muscle_id(muscle_id)
+        muscle_scores[resolved] += sets * role_weight * effort_factor
 
 
 def normalize_muscle_id(name: str) -> str:
     """Konvertiert Muskelnamen in eine kanonische ID (lowercase, snake_case)."""
     import re
     import unicodedata
-    
+
     if not name:
         return ""
-    
-    # Normalisierung analog zu resolver.py aber mit Underscores
+
     normalized = unicodedata.normalize("NFKD", name)
     stripped = "".join(char for char in normalized if not unicodedata.combining(char))
     collapsed = re.sub(r"[^a-zA-Z0-9]+", "_", stripped.casefold())
     return collapsed.strip("_")
+
+
+def build_muscle_alias_map(taxonomy: dict[str, dict[str, Any]]) -> dict[str, str]:
+    """Baut eine Map von plain/display Namen auf numbered taxonomy IDs.
+
+    Erlaubt Lookup von z.B. 'gluteus_maximus', 'Glutes', 'glutes' → '601_gluteus_maximus'.
+    """
+    import re
+    alias_map: dict[str, str] = {}
+    for muscle_id, data in taxonomy.items():
+        if re.match(r'^\d00_', muscle_id):
+            continue
+        alias_map[muscle_id] = muscle_id
+        suffix = re.sub(r'^\d+_', '', muscle_id)
+        if suffix:
+            alias_map[suffix] = muscle_id
+        for field in ("label_en", "label_de", "display_name"):
+            val = data.get(field, "")
+            if isinstance(val, str) and val:
+                norm = normalize_muscle_id(val)
+                if norm:
+                    alias_map.setdefault(norm, muscle_id)
+    return alias_map
+
+
+def resolve_muscle_id(raw: str, alias_map: dict[str, str]) -> str:
+    """Gibt die numbered taxonomy ID zurück, oder den normalisierten Rohwert wenn nicht gefunden."""
+    norm = normalize_muscle_id(raw)
+    return alias_map.get(norm, norm)
 
 
 def load_muscle_taxonomy() -> dict[str, dict[str, Any]]:

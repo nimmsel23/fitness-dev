@@ -36,7 +36,7 @@ from .wger import build_plan_wger_payload, map_wger as run_map_wger, wger_check
 from .resolver import resolve_query
 from .weekly import build_weekly_coverage
 from .tui import run_tui
-from .enricher_watcher import run_enricher_watch
+from .watcher import run_watcher
 from .importer import import_external_exercises
 from .kb_sync import run_kb_sync
 from .rich_utils import (
@@ -505,7 +505,7 @@ def preview(
 def watch():
     """Start the AI enricher watcher daemon"""
     try:
-        run_enricher_watch()
+        run_watcher()
     except KeyboardInterrupt:
         pass
     except Exception as exc:
