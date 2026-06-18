@@ -524,11 +524,11 @@ def command_import():
         raise typer.Exit(code=1)
 
 
-@app.command()
-def kb_sync(
+@app.command(name="firestore-push")
+def firestore_push(
     dry_run: Annotated[bool, typer.Option(help="Do not write to Firestore")] = False,
 ):
-    """Synchronize the local KB to Firestore"""
+    """Push local catalog KB → Firestore"""
     try:
         run_kb_sync(dry_run=dry_run)
     except Exception as exc:
