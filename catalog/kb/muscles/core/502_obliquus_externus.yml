@@ -1,0 +1,14 @@
+id: 502_obliquus_externus
+display_name: Obliquus Externus
+label_de: Äußerer schräger Bauchmuskel
+label_en: Obliques (Outer)
+label_lat: M. obliquus externus abdominis
+region: core
+body_region: abdomen_front
+wger_id: 14
+aliases: [obliques, obliquus]
+viz:
+  rbh: obliques
+  body_muscles:
+    view: FRONT
+    ids: [obliques-left, obliques-right]

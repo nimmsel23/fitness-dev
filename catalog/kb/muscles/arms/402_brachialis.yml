@@ -1,0 +1,14 @@
+id: 402_brachialis
+display_name: Brachialis
+label_de: Armbeuger
+label_en: Brachialis
+label_lat: M. brachialis
+region: arms
+body_region: upper_arm_front
+wger_id: 13
+aliases: [brachialis]
+viz:
+  rbh: biceps
+  body_muscles:
+    view: FRONT
+    ids: [biceps-left, biceps-right]

@@ -1,0 +1,15 @@
+id: 200_back
+display_name: Back
+label_de: Rücken
+label_en: Back
+label_lat: Dorsum
+body_region: upper_back
+muscles:
+  - 201_latissimus_dorsi
+  - 202_trapezius_upper
+  - 203_trapezius_middle
+  - 204_trapezius_lower
+  - 205_rhomboids
+  - 206_erector_spinae
+  - 207_teres_major
+  - 208_quadratus_lumborum

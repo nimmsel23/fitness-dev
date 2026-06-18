@@ -1,0 +1,14 @@
+id: 401_biceps_brachii
+display_name: Biceps Brachii
+label_de: Bizeps
+label_en: Biceps
+label_lat: M. biceps brachii
+region: arms
+body_region: upper_arm_front
+wger_id: 1
+aliases: [biceps]
+viz:
+  rbh: biceps
+  body_muscles:
+    view: FRONT
+    ids: [biceps-left, biceps-right]

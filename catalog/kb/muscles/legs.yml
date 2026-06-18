@@ -1,0 +1,19 @@
+id: 600_legs
+display_name: Legs
+label_de: Beine
+label_en: Legs
+label_lat: Membrum inferius
+body_region: thigh_front
+muscles:
+  - 601_gluteus_maximus
+  - 602_gluteus_medius
+  - 612_gluteus_minimus
+  - 603_rectus_femoris
+  - 604_vastus_lateralis
+  - 605_vastus_medialis
+  - 606_vastus_intermedius
+  - 607_biceps_femoris
+  - 608_semitendinosus
+  - 609_semimembranosus
+  - 610_adductors
+  - 611_iliopsoas

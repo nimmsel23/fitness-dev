@@ -1,0 +1,12 @@
+id: 307_teres_minor
+display_name: Teres Minor
+label_de: Kleiner Rundmuskel
+label_en: Teres Minor
+label_lat: M. teres minor
+region: shoulders
+body_region: shoulders_back
+wger_id: ~
+aliases: []
+viz:
+  rbh: back-deltoids
+  body_muscles: ~

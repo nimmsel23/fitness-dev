@@ -1,0 +1,11 @@
+id: 100_chest
+display_name: Chest
+label_de: Brust
+label_en: Chest
+label_lat: Thorax
+body_region: chest_front
+muscles:
+  - 101_pectoralis_major
+  - 102_pectoralis_major_clavicular
+  - 103_pectoralis_minor
+  - 104_serratus_anterior

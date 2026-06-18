@@ -1,0 +1,14 @@
+id: 400_arms
+display_name: Arms
+label_de: Arme
+label_en: Arms
+label_lat: Membrum superius
+body_region: upper_arm_front
+muscles:
+  - 401_biceps_brachii
+  - 402_brachialis
+  - 403_triceps_brachii
+  - 404_brachioradialis
+  - 405_forearm_flexors
+  - 406_anconeus
+  - 407_forearm_extensors

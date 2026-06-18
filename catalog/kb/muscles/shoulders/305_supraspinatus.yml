@@ -1,0 +1,12 @@
+id: 305_supraspinatus
+display_name: Supraspinatus
+label_de: Obergrätenmuskel
+label_en: Supraspinatus
+label_lat: M. supraspinatus
+region: shoulders
+body_region: shoulders_side
+wger_id: ~
+aliases: []
+viz:
+  rbh: front-deltoids
+  body_muscles: ~

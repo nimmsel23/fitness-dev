@@ -1,0 +1,14 @@
+id: 301_anterior_deltoid
+display_name: Anterior Deltoid
+label_de: Vordere Schulter
+label_en: Front Delts
+label_lat: M. deltoideus (pars clavicularis)
+region: shoulders
+body_region: shoulders_front
+wger_id: 2
+aliases: [front-deltoids]
+viz:
+  rbh: front-deltoids
+  body_muscles:
+    view: FRONT
+    ids: [shoulder-front-left, shoulder-front-right]

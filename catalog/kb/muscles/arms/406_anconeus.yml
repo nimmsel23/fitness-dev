@@ -1,0 +1,12 @@
+id: 406_anconeus
+display_name: Anconeus
+label_de: Knorrenmuskel
+label_en: Anconeus
+label_lat: M. anconeus
+region: arms
+body_region: upper_arm_back
+wger_id: ~
+aliases: []
+viz:
+  rbh: triceps
+  body_muscles: ~

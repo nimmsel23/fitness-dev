@@ -1,0 +1,14 @@
+id: 103_pectoralis_minor
+display_name: Pectoralis Minor
+label_de: Kleiner Brustmuskel
+label_en: Chest (Small)
+label_lat: M. pectoralis minor
+region: chest
+body_region: chest_front
+wger_id: ~
+aliases: []
+viz:
+  rbh: chest
+  body_muscles:
+    view: FRONT
+    ids: [chest-upper-left, chest-upper-right, chest-lower-left, chest-lower-right]

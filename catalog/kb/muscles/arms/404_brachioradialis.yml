@@ -1,0 +1,14 @@
+id: 404_brachioradialis
+display_name: Brachioradialis
+label_de: Oberarmspeichenmuskel
+label_en: Brachioradialis
+label_lat: M. brachioradialis
+region: arms
+body_region: forearms
+wger_id: ~
+aliases: [forearm, forearms]
+viz:
+  rbh: forearm
+  body_muscles:
+    view: FRONT
+    ids: [forearm-left, forearm-right]

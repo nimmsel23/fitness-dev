@@ -1,0 +1,11 @@
+id: 500_core
+display_name: Core
+label_de: Kern / Bauch
+label_en: Core
+label_lat: Core
+body_region: abdomen_front
+muscles:
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 504_transverse_abdominis

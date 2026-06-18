@@ -1,0 +1,14 @@
+id: 405_forearm_flexors
+display_name: Forearm Flexors
+label_de: Unterarmbeuger
+label_en: Forearm Flexors
+label_lat: Mm. flexores antebrachii
+region: arms
+body_region: forearms
+wger_id: ~
+aliases: []
+viz:
+  rbh: forearm
+  body_muscles:
+    view: FRONT
+    ids: [forearm-left, forearm-right]

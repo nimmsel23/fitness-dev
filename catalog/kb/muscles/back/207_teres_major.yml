@@ -1,0 +1,14 @@
+id: 207_teres_major
+display_name: Teres Major
+label_de: Großer Rundmuskel
+label_en: Teres Major
+label_lat: M. teres major
+region: back
+body_region: lats
+wger_id: ~
+aliases: []
+viz:
+  rbh: latissimus
+  body_muscles:
+    view: BACK
+    ids: [lats-upper-left, lats-upper-right]

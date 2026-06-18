@@ -1,0 +1,14 @@
+id: 606_vastus_intermedius
+display_name: Vastus Intermedius
+label_de: Mittlerer breiter Oberschenkelmuskel
+label_en: Quads (Middle)
+label_lat: M. vastus intermedius
+region: legs
+body_region: thigh_front
+wger_id: 10
+aliases: []
+viz:
+  rbh: quadriceps
+  body_muscles:
+    view: FRONT
+    ids: [quads-left, quads-right]

@@ -1,0 +1,14 @@
+id: 302_lateral_deltoid
+display_name: Lateral Deltoid
+label_de: Seitliche Schulter
+label_en: Side Delts
+label_lat: M. deltoideus (pars acromialis)
+region: shoulders
+body_region: shoulders_side
+wger_id: ~
+aliases: []
+viz:
+  rbh: front-deltoids
+  body_muscles:
+    view: FRONT
+    ids: [shoulder-side-left, shoulder-side-right]

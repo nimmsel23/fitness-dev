@@ -1,0 +1,14 @@
+id: 303_posterior_deltoid
+display_name: Posterior Deltoid
+label_de: Hintere Schulter
+label_en: Rear Delts
+label_lat: M. deltoideus (pars spinalis)
+region: shoulders
+body_region: shoulders_back
+wger_id: 9
+aliases: [rear-deltoids, back-deltoids]
+viz:
+  rbh: back-deltoids
+  body_muscles:
+    view: BACK
+    ids: [deltoid-rear-left, deltoid-rear-right]

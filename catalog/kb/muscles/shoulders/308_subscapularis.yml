@@ -1,0 +1,12 @@
+id: 308_subscapularis
+display_name: Subscapularis
+label_de: Unterschulterblattmuskel
+label_en: Subscapularis
+label_lat: M. subscapularis
+region: shoulders
+body_region: shoulders_front
+wger_id: ~
+aliases: []
+viz:
+  rbh: front-deltoids
+  body_muscles: ~

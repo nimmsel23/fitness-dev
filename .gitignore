@@ -12,3 +12,5 @@ firebase.config.js
 __pycache__/
 *.pyc
 catalog/fitness_agent/__pycache__/
+catalog/yuhonas
+catalog/kb/exercises/unreviewed_yuhonas.yml
