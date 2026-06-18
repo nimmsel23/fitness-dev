@@ -113,29 +113,47 @@ Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach
 
 ## Frontend (React + Vite)
 
-**src/views/** (jede View ist ein Unterverzeichnis mit `index.jsx` + Sub-Komponenten):
-- Dashboard/ — Überblick + heute's Plan + Activity-Heatmap
-- Session/ — Workout-Logging (mit Live-BodyMap für done exercises)
-- Journal/ — Text-Notizen
-- Muscles/ — Body-Map + Coverage-Analyse
-- Learn/ — Anatomie-Lehre (aus catalog/kb/anatomy_teaching/)
-- WeeklyReview/ — Wochenrückblick + Charts
-- Habits/ — HabitSync-Integration
-- Settings/ — User-Prefs (Theme, Split, HIT-Mode, Gym Mode)
-- Inbox/ — Neue Übungen prüfen + genehmigen (`/fitness/inbox`)
+**Tabs (NAV_ITEMS, `src/constants/NavigationItems.js`):**
+
+| Tab-ID | Label | View | Anmerkung |
+|--------|-------|------|-----------|
+| `dash` | Heute | `src/views/Dashboard/` | Standard-Einstieg |
+| `session` | Training | `src/views/Session/` | Workout-Logging mit Live-BodyMap |
+| `habits` | Habits | `src/views/Habits/` | HabitSync-Integration |
+| `journal` | Journal | `src/views/Journal/` | Text-Notizen |
+| `review` | Review | `src/views/WeeklyReview/` | Charts + Wochenrückblick |
+| `learn` | Lernen | `src/views/Learn/` | Anatomie-Lehre (catalog/kb) |
+| `settings` | Setup | `src/views/Settings/` | Themes, Split, Nav-Modus etc. |
+
+**Versteckte Views (nicht in Nav, per URL `#coach` erreichbar):**
+- `src/views/Coach/` — AI Coach Tab (`#coach`)
+- `src/views/AppGate.jsx` — Hub-Homescreen (nur in `navMode=home` als `#gate`)
+
+**Nicht verlinkte Views (Code vorhanden, kein aktiver Tab):**
+- `src/views/Inbox/` — Exercise-Inbox (Genehmigung neuer KB-Einträge)
+- `src/views/Muscles/` — Body-Map + Coverage-Analyse (war früher Tab, jetzt inaktiv)
 
 **src/components/**:
-- `layout/` — Sidebar, MobileNav, MobileHeader
+- `layout/` — Sidebar (Desktop), MobileNav (Bottom-Bar)
 - `common/` — ErrorBoundary, UserProfile
-- `dashboard/` — Dashboard-spezifische Komponenten (ActivityHeatmap, etc.)
-- ExerciseSearch.jsx, BodyMap.jsx, PlanBuilder.jsx, HabitWidget.jsx u.a. (flat, shared)
+- `dashboard/` — ActivityHeatmap, DashboardWidget, MuscleCoverage, SessionStatus u.a.
+- Flat (shared): ExerciseSearchOverlay, BodyMap, PlanBuilder, HabitWidget, ExerciseInsightModal, WeightChart, AnatomyDetailModal
 
-**src/lib/db/** — Dual DB-Layer:
-- `local/` — API-Layer für lokalen Node-Server (sessions, journal, habits, kb, ...)
-- `firebase/` — API-Layer für Firestore (gleiche Datei-Struktur)
-- `@db` Vite-Alias zeigt auf `src/db.local.js` (lokal) oder `src/db.firebase.js` (PWA-Build)
+**src/lib/db/** — Dual DB-Layer (flache Struktur, kein Local/Firebase Unterverzeichnis):
+- `core.js` — api helpers (fetch Wrapper), auth stubs (lokal), `isLocalMode()`, `watchAuth()`
+- `sessions.js` — getSession, saveSession, getRecentSessions, getProgressTrend, getPlan, getPlanSuggestion
+- `journal.js` — getJournal, saveJournal, getJournalHistory
+- `habits.js` — getHabits, recordHabit, unrecordHabit
+- `kb.js` — getExercise, getAllExercises, searchExercises, getAnatomy
+- `analysis.js` — getDashboardAnalytics, getMuscleCoverage, getWeeklyReport, getCoverageGaps
+- `user.js` — getSettings, saveSettings, getBodyEntry, getBodyEntries
+- `utils.js` — parseQuick, exportCsv
 
-Port 5902 (dev), Proxy zu Backend API-Routen.
+**`@db` Vite-Alias** (in `vite.config.js`):
+- Default-Build: `@db` → `src/db.js` (Barrel für src/lib/db/*.js, alle Calls → Node-Server :9100)
+- Firebase-Build (`--mode firebase`): `@db` → `src/db.firestore.js` (Single-File, direkte Firestore SDK)
+
+Port 5902 (dev), Proxy zu Backend API-Routen (:9100).
 
 **BodyMap in Session:** Zeigt nur Muskeln von Exercises mit `done: true`. Kein Preview, kein Plan — nur was bereits abgehakt ist.
 
@@ -144,8 +162,8 @@ Port 5902 (dev), Proxy zu Backend API-Routen.
 **Gym Mode**: `layoutScale` (50–150%) skaliert `document.documentElement.fontSize` — für große Gym-Displays.
 
 **Zwei Build-Modi:**
-- Default (lokal/Coach): `@db` → `src/db.local.js`, `__IS_COACH__ = true`
-- PWA (Firebase): `cd pwa && npm run build` — eigenes package.json, `@db` → `src/db.firebase.js`, nutzt `src/` via `@src` Alias
+- Default (lokal/Coach): `npm run build` → `@db` = `src/db.js` (lokal, kein Auth-Gate)
+- Firebase PWA: `npm run build:firebase` → `@db` = `src/db.firestore.js`, Output nach `~/fitness/dist-firebase/`
 
 ---
 
@@ -344,7 +362,7 @@ anatomy-kb/muscles/            — Muskel-Layer (origin, insertion, innervation)
 - ✅ Gmail-Pipeline (bin/fitness-mail, Fitbit-Daten)
 - ✅ Firestore Sync (`/firestore/status` + `/firestore/sync`, firebase-admin, Creds: `~/.env/firebase-fitness.json`)
 - ✅ PWA Offline-Unterstützung (SW + IndexedDB offline-queue)
-- ✅ pwa/ Unterpaket (Firebase PWA, eigenes package.json)
+- ✅ Firebase PWA: Sourcen direkt im Root, `npm run build:firebase` → `~/fitness/dist-firebase/` (pwa/ als pwa.bak/ archiviert)
 - ✅ anatomy-kb Integration (~/anatomy-kb, :9200)
 - ⏳ AI Agent Workflow (Gemini → anatomy_teaching YAML-Generierung)
 - ⏳ body_highlighter_bridge.yml enabled: true (granulare Muskel-Visualisierung)

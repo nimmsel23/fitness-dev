@@ -95,23 +95,40 @@ Die UI-Themes sind vollständig modularisiert. Jedes der 36+ Themes verfügt üb
 
 ## Frontend (src/)
 
+Zwei Navigationsmodi: `tabs` (Bottom-Nav) und `home` (Hub & Sheet System, Hub im Hintergrund).
+
 ```
-src/views/
-├─ Dashboard.jsx      — Überblick, heutiger Plan, Coverage-Summary (react-body-highlighter)
-├─ Session.jsx        — Workout-Logging (Block, Ort, Dauer, Übungen, Export)
-├─ Journal.jsx        — Text-Notizen
-├─ Muscles.jsx        — Body-Map + Coverage-Analyse (react-muscle-highlighter)
-├─ Learn.jsx          — Anatomy Teaching, Exercise Details
-└─ WeeklyReview.jsx   — Wochenreport
+src/views/                  — Jeder Tab ist ein Unterverzeichnis mit index.jsx
+├─ Dashboard/               — Überblick, heutiger Plan, Activity-Heatmap, Coverage
+├─ Session/                 — Workout-Logging (Block, Ort, Dauer, Übungen, BodyMap)
+├─ Habits/                  — Habit-Tracking (HabitSync-Integration)
+├─ Journal/                 — Text-Notizen mit Datum
+├─ WeeklyReview/            — Wochenreport, Charts, Muscle-Impact
+├─ Learn/                   — Anatomy Teaching + Exercise Library (catalog/kb)
+├─ Settings/                — Themes, Split, Nav-Modus, Layout, Sprache
+├─ Coach/                   — AI-Coach (nicht in NAV_ITEMS, via #coach)
+├─ AppGate.jsx              — Hub-Homescreen (nur navMode=home als #gate)
+├─ Inbox/                   — Exercise-Inbox (nicht in NAV_ITEMS, kein aktiver Tab)
+└─ Muscles/                 — Body-Map + Coverage (nicht in NAV_ITEMS, kein aktiver Tab)
 
 src/components/
-├─ ExerciseSearch.jsx      — Suche lokal + wger + yuhonas
-├─ BodyMap.jsx             — react-body-highlighter (Dashboard/Session)
-├─ DetailedMuscleMap.jsx   — react-muscle-highlighter (Muscles Tab)
-├─ PlanBuilder.jsx         — Trainingsplanung
-├─ HabitWidget.jsx         — HabitSync-Integration
-└─ ExerciseInsightModal.jsx — Anatomy Teaching Modal
+├─ layout/                  — Sidebar (Desktop-Pinned), MobileNav (Bottom-Bar)
+├─ common/                  — ErrorBoundary, UserProfile
+├─ dashboard/               — ActivityHeatmap, DashboardWidget, MuscleCoverage, etc.
+├─ BodyMap.jsx              — react-body-highlighter (Session, Dashboard)
+├─ MuscleHighlightMap.jsx   — react-muscle-highlighter (Muscles Tab)
+├─ ExerciseSearchOverlay.jsx — Suche lokal + wger + yuhonas
+├─ PlanBuilder.jsx          — Trainingsplanung
+├─ HabitWidget.jsx          — HabitSync-Integration
+└─ ExerciseInsightModal.jsx — Anatomy Teaching Modal (globaler State in App.jsx)
 ```
+
+**NAV_ITEMS** (Reihenfolge entspricht Swipe-Reihenfolge auf Mobile):
+`dash` → `session` → `habits` → `journal` → `review` → `learn` → `settings`
+
+**@db Alias (vite.config.js):**
+- Default: `src/db.js` (Barrel für `src/lib/db/*.js`, alle Calls → Node-Server :9100, `isLocalMode() = true`)
+- `--mode firebase`: `src/db.firestore.js` (Firestore SDK direkt, Auth-Gate, `isLocalMode() = false`)
 
 ---
 
