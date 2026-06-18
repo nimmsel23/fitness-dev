@@ -10,7 +10,8 @@ from aiohttp import web
 
 from .resolver import build_exercise_index, resolve_query, find_by_id
 from .loader import load_catalog_yaml, load_runtime_yaml
-from .paths import DATA_DIR, REPO_ROOT
+from loguru import logger
+from .paths import DATA_DIR, REPO_ROOT, runtime_root
 from .teaching import load_all_lessons, find_lesson
 from .planner import build_plan
 from .weekly import build_weekly_coverage, resolve_week_selector
@@ -240,6 +241,25 @@ async def handle_export(request: web.Request) -> web.Response:
         return web.json_response({"error": str(e)}, status=500)
 
 
+async def handle_inbox_queue(request: web.Request) -> web.Response:
+    try:
+        body = await request.json()
+    except Exception:
+        return web.json_response({"ok": False, "error": "invalid_json"}, status=400)
+
+    name = body.get("name", "").strip()
+    if not name:
+        return web.json_response({"ok": False, "error": "missing_name"}, status=400)
+
+    safe_name = "".join(c if c.isalnum() or c in "-_" else "_" for c in name.lower())
+    inbox_dir = runtime_root() / "users" / "default" / "inbox"
+    inbox_dir.mkdir(parents=True, exist_ok=True)
+    dest = inbox_dir / f"{safe_name}.json"
+    dest.write_text(json.dumps({"name": name}, ensure_ascii=False))
+    logger.info(f"Queued for enrichment: {name} → {dest}")
+    return web.json_response({"ok": True})
+
+
 async def handle_inbox_list(request: web.Request) -> web.Response:
     exercises_dir = DATA_DIR / "exercises"
     if not exercises_dir.exists():
@@ -402,6 +422,7 @@ def create_app() -> web.Application:
         web.post("/plan", handle_plan),
         web.get("/weekly", handle_weekly),
         web.post("/export/{kind}", handle_export),
+        web.post("/inbox/queue", handle_inbox_queue),
         web.get("/inbox", handle_inbox_list),
         web.post("/inbox/{id}/approve", handle_inbox_approve),
         web.delete("/inbox/{id}", handle_inbox_delete),

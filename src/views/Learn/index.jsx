@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { CheckCircle, RotateCcw, ChevronRight } from "lucide-react";
-import { getAllExercises, getAnatomy, getMuscle, getLatestSession } from "@db";
+import { getAllExercises, getAnatomy, getMuscle, getLatestSession, queueForEnrichment } from "@db";
 
 import ExerciseLibrary from "./ExerciseLibrary";
 import AnatDetail from "./AnatDetail";
@@ -174,6 +174,7 @@ export default function Learn({ onInspectExercise, gender, muscleLanguage = 'de'
               selected={selected}
               setSelected={(ex) => {
                  setSelected(ex);
+                 if (ex && ex.source !== 'expert') queueForEnrichment(ex)
                  if (onInspectExercise) onInspectExercise(ex);
               }}
               q={q}

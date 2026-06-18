@@ -180,3 +180,24 @@ export function exportSessionMarkdown(session) {
     return { error: err.message }
   }
 }
+
+export async function queueForEnrichment(ex) {
+  if (!ex || ex.source === 'expert') return
+  fetchAgent('/inbox/queue', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ exercise_id: ex.id || ex.exercise_id, name: ex.name || ex.display_name }),
+  }, { silent: true }).catch(() => {})
+}
+
+const FAV_KEY = 'fitness_favourites'
+export function getFavourites() {
+  try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]') } catch { return [] }
+}
+export function toggleFavourite(exerciseId) {
+  const favs = getFavourites()
+  const idx = favs.indexOf(exerciseId)
+  const next = idx >= 0 ? favs.filter(f => f !== exerciseId) : [...favs, exerciseId]
+  localStorage.setItem(FAV_KEY, JSON.stringify(next))
+  return next.includes(exerciseId)
+}

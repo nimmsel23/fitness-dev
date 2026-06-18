@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   getSession, saveSession, getSessionHistory,
-  parseQuick, getExercise, sendToInbox, getMuscle,
-  getCoverageGaps, getPlanSuggestion, exportFitnessData,
+  parseQuick, getExercise, getMuscle,
+  getCoverageGaps, getPlanSuggestion, exportFitnessData, queueForEnrichment,
 } from '@db';
 import { localToday } from '@utils';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
@@ -209,8 +209,9 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     }]);
 
 
-    if (ex.isNew) {
-      sendToInbox({ name: ex.name, source: 'search_add' });
+    // Queue für Enrichment falls nicht expert
+    if (ex.source !== 'expert') {
+      queueForEnrichment(ex)
     }
     
     showToast(`+ ${ex.display_name || ex.name}`);

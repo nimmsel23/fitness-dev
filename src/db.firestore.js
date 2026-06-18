@@ -890,3 +890,28 @@ export function parseQuick(raw) {
     done: true,
   };
 }
+
+export async function queueForEnrichment(ex) {
+  // In Firebase mode: Firestore inbox (already handled via sendToInbox for new exercises)
+  if (!ex || ex.source === 'expert') return
+  // fire-and-forget to local catalog server if available
+  try {
+    await fetch('http://localhost:9120/inbox/queue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ exercise_id: ex.id || ex.exercise_id, name: ex.name || ex.display_name }),
+    })
+  } catch {}
+}
+
+const FAV_KEY = 'fitness_favourites'
+export function getFavourites() {
+  try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]') } catch { return [] }
+}
+export function toggleFavourite(exerciseId) {
+  const favs = getFavourites()
+  const idx = favs.indexOf(exerciseId)
+  const next = idx >= 0 ? favs.filter(f => f !== exerciseId) : [...favs, exerciseId]
+  localStorage.setItem(FAV_KEY, JSON.stringify(next))
+  return next.includes(exerciseId)
+}

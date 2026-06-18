@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search, X, History, Zap, Dumbbell, Star, Info, Plus } from 'lucide-react'
-import { searchExercises, getSessionHistory, getPlanSuggestion } from '@db'
+import { Search, X, History, Zap, Dumbbell, BadgeCheck, Star, Plus } from 'lucide-react'
+import { searchExercises, getSessionHistory, getPlanSuggestion, toggleFavourite, getFavourites } from '@db'
 
 const MUSCLE_COLORS = {
   'Biceps brachii':    '#a78bfa',
@@ -27,9 +27,16 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
   const [recents, setRecents] = useState([])
   const [program, setProgram] = useState([])
   const [selectedIndex, setSelectedIndex] = useState(-1)
-  
+  const [favourites, setFavourites] = useState(() => getFavourites())
+
   const inputRef = useRef(null)
   const debounceRef = useRef(null)
+
+  function handleToggleFav(e, exerciseId) {
+    e.stopPropagation()
+    toggleFavourite(exerciseId)
+    setFavourites(getFavourites())
+  }
 
   useEffect(() => {
     // Focus input on mount
@@ -233,7 +240,13 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
                           <span className={`font-black text-base truncate ${selectedIndex === idx ? 'text-accent' : 'text-ink'}`}>
                             {ex.name}
                           </span>
-                          {ex.source === 'expert' && <Star size={12} className="text-accent fill-accent" />}
+                          {ex.source === 'expert' && <BadgeCheck size={14} className="text-blue-400" />}
+                          <button
+                            onClick={e => handleToggleFav(e, ex.id || ex.exercise_id)}
+                            className="ml-auto shrink-0 p-0.5 rounded-full hover:scale-110 transition-transform"
+                          >
+                            <Star size={14} className={favourites.includes(ex.id || ex.exercise_id) ? 'text-yellow-400 fill-yellow-400' : 'text-dim/30'} />
+                          </button>
                         </div>
                         
                         <div className="flex flex-wrap gap-1.5 mt-2">
