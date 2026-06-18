@@ -84,4 +84,26 @@ es hilft dir verstehen, was du deinen Klienten später erklären wirst.
 
 ---
 
-*Zuletzt aktualisiert: 2026-06-12*
+## Der Produktkern (aus APP_ROADMAP, Mai 2026)
+
+Vitaltrainer App ist keine Fitness-App im klassischen Sinn.
+
+Sie ist ein lokales Lern- und Coaching-System für Menschen, die Training verstehen, erklären und dokumentieren wollen.
+
+**Der Agent ist nicht das Produkt.**  
+**Der Agent ist der Motor.**
+
+Das Produkt ist der Workflow:
+
+> Trainieren → Verstehen → Coachen → Dokumentieren
+
+Die App hat vier Hauptmodi:
+
+- **Training Mode** — planen, ausführen, loggen
+- **Learning Mode** — Anatomie verstehen, Quiz, Lernfortschritt
+- **Coaching Mode** — Cues, Fehlerbilder, Coach Sheets, Klientensprache
+- **Review Mode** — Coverage, Wochenreport, Fortschritt, Lücken
+
+---
+
+*Zuletzt aktualisiert: 2026-06-18*
