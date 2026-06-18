@@ -321,6 +321,85 @@ cd ~/fitness-dev && python3 -m pytest catalog/tests/
 
 ---
 
+## fitness_agent: Kern-Logik
+
+**Mission:** Training als angewandte Anatomie — nicht nur „welche Muskeln trainiert diese Übung" sondern „welche Bewegung erklärt mir Anatomie praktisch am eigenen Körper". Das ist der didaktische Layer den wger, yuhonas und alle Open-Source-DBs nicht liefern.
+
+**Zwei Agenten-Rollen:**
+- `fitness-agent` → schreibt + erweitert Katalog (`catalog/`), erkennt Lücken, schreibt Tickets
+- `fitness-dev-coding-agent` → implementiert Tickets in Code, baut fitness-dev
+
+### Canonical Flow
+
+```
+User Input
+→ Alias Resolver        aliases.yml
+→ canonical exercise_id
+→ Custom YAML Lookup    catalog/kb/exercises/
+→ Muscle Taxonomy       muscles.yml
+→ Coverage Rules        muscle_coverage_rules.yml
+→ Program Rules         program_rules.yml
+→ Workout Generation
+→ wger Mapping          wger_mapping.yml
+→ Export / Logging
+→ History Update
+→ Progression
+```
+
+### Exercise Matching Hierarchie
+
+1. Exakte canonical ID
+2. `aliases.yml`
+3. Deutscher Name
+4. Englischer Name
+5. Fuzzy Matching
+6. wger lokal
+7. yuhonas
+
+Wenn unklar: 2–3 Treffer mit Confidence zurückgeben — nicht raten.
+
+### Coverage-Formel
+
+```
+coverage_score = sets × role_weight × effort_factor
+```
+
+| Role | Weight | RPE | Factor |
+|------|--------|-----|--------|
+| primary | 1.0 | 7 | 0.75 |
+| secondary | 0.5 | 8 | 0.90 |
+| stabilizer | 0.2 | 9 | 1.00 |
+| minor | 0.1 | 10 | 1.05 |
+
+### Übungsreihenfolge (generierte Pläne)
+
+1. Schwere Compound Lifts
+2. Sekundäre Compounds
+3. Maschinen / stabilere Hypertrophy-Arbeit
+4. Isolation
+5. Prehab / Core / Finisher
+
+### Agent-Prioritäten
+
+- Custom YAML gewinnt bei Trainingslogik — überschreibt wger bei Konflikt
+- Stable canonical IDs — nie durch wger-IDs ersetzen
+- Jede Übungswahl muss begründbar sein (Muskelgruppe, Bewegungsmuster, Ziel)
+- Progression über Novelty — nicht ständig neue Übungen einbauen
+- Unsichere Mappings als `inferred: true` markieren, nie stillschweigend speichern
+- Backup vor Writes auf user-owned YAMLs
+
+### Nicht erlaubt
+
+- Zufällige Übungsauswahl
+- wger blind vertrauen
+- Eigene canonical IDs löschen oder durch wger-IDs ersetzen
+- YAMLs ohne Backup überschreiben
+- Trainingshistorie verlieren
+- Muskelbeteiligung binär bewerten (Stabilizer ≠ Primary)
+- Schmerz ignorieren
+
+---
+
 ## anatomy-kb (verwandtes Repo: ~/anatomy-kb, :9200)
 
 Separates Projekt, aber direkt mit fitness-dev verknüpft. Muskel-Anatomie-Layer der Ausbildung.
