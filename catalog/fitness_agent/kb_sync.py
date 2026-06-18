@@ -254,6 +254,86 @@ def sync_muscles(db_client: Any, dry_run: bool = False) -> dict[str, int]:
     return counts
 
 
+def sync_yuhonas(db_client: Any, dry_run: bool = False) -> dict[str, int]:
+    counts = {"ok": 0, "skip": 0, "error": 0, "unchanged": 0}
+    col = db_client.collection("fitness").document("kb").collection("exercises")
+
+    yuhonas_dir = catalog_path("yuhonas")
+    if not yuhonas_dir.exists():
+        logger.warning("catalog/yuhonas not found, skipping")
+        return counts
+
+    # Load string_aliases from muscle_index.yml
+    try:
+        muscle_index = load_catalog_yaml("muscles/muscle_index.yml")
+        string_aliases = muscle_index.get("string_aliases", {})
+    except Exception:
+        string_aliases = {}
+
+    remote_hashes = {}
+    for doc in col.select(['_hash']).stream():
+        h = doc.to_dict().get('_hash')
+        if h:
+            remote_hashes[doc.id] = h
+
+    batch = db_client.batch()
+    batch_count = 0
+
+    for json_file in sorted(yuhonas_dir.glob("*.json")):
+        try:
+            raw = json.loads(json_file.read_text())
+        except Exception:
+            counts["skip"] += 1
+            continue
+
+        ex_id = f"yuhonas_{raw.get('id', json_file.stem)}"
+
+        def resolve_muscles(names: list) -> list:
+            return [string_aliases.get(m, m) for m in names]
+
+        payload = _flatten({
+            "exercise_id": ex_id,
+            "id": ex_id,
+            "display_name": raw.get("name", ""),
+            "source": "yuhonas",
+            "tags": ["yuhonas", "unreviewed"],
+            "category": raw.get("category", ""),
+            "equipment": [raw.get("equipment", "")] if raw.get("equipment") else [],
+            "primary_muscles": resolve_muscles(raw.get("primaryMuscles", [])),
+            "secondary_muscles": resolve_muscles(raw.get("secondaryMuscles", [])),
+            "instructions": raw.get("instructions", []),
+            "images": raw.get("images", []),
+        })
+
+        new_hash = _compute_hash(payload)
+        if remote_hashes.get(ex_id) == new_hash:
+            counts["unchanged"] += 1
+            continue
+
+        payload["_hash"] = new_hash
+
+        if dry_run:
+            counts["ok"] += 1
+            continue
+
+        try:
+            batch.set(col.document(ex_id), payload)
+            batch_count += 1
+            counts["ok"] += 1
+            if batch_count >= 400:
+                batch.commit()
+                batch = db_client.batch()
+                batch_count = 0
+        except Exception as exc:
+            logger.error(f"yuhonas/{ex_id}: {exc}")
+            counts["error"] += 1
+
+    if batch_count > 0:
+        batch.commit()
+
+    return counts
+
+
 def run_kb_sync(dry_run: bool = False) -> None:
     from .rich_utils import setup_logging
     setup_logging()
@@ -271,7 +351,11 @@ def run_kb_sync(dry_run: bool = False) -> None:
     mu = sync_muscles(db_client, dry_run=dry_run)
     logger.info(f"muscles: {mu}")
 
-    total_ok = ex["ok"] + an["ok"] + mu["ok"]
-    total_err = ex["error"] + an["error"] + mu["error"]
+    logger.info("=== KB Sync: yuhonas ===")
+    yu = sync_yuhonas(db_client, dry_run=dry_run)
+    logger.info(f"yuhonas: {yu}")
+
+    total_ok = ex["ok"] + an["ok"] + mu["ok"] + yu["ok"]
+    total_err = ex["error"] + an["error"] + mu["error"] + yu["error"]
     status = "OK" if total_err == 0 else "ERRORS"
     logger.info(f"=== Fertig: {total_ok} geschrieben, {total_err} Fehler — {status} ===")
