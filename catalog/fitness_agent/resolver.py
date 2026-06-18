@@ -15,19 +15,6 @@ except ImportError:
 
 from .loader import load_catalog_directory_yaml, load_catalog_yaml
 
-# Equipment-Abkürzungen ↔ Vollformen
-GYM_VOCAB = {
-    "kh": "kurzhantel dumbbell",
-    "kurzhantel": "kurzhantel kh dumbbell",
-    "lh": "langhantel barbell",
-    "langhantel": "langhantel lh barbell",
-    "sz": "sz-hantel sz-bar",
-    "db": "dumbbell kurzhantel",
-    "dumbbell": "dumbbell kurzhantel kh",
-    "bb": "barbell langhantel",
-    "barbell": "barbell langhantel lh",
-}
-
 
 @dataclass
 class ExerciseRecord:
