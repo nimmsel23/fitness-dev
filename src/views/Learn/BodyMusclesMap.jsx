@@ -1,6 +1,6 @@
 import { useEffect, useRef, useMemo } from 'react';
 import { BodyChart } from 'body-muscles';
-import { BODY_MUSCLES_SLUGS } from '../../lib/muscleMapping';
+import { useMuscleMap } from '../../lib/muscleMap';
 
 /**
  * React Wrapper for the framework-agnostic body-muscles library.
@@ -11,16 +11,18 @@ export default function BodyMusclesMap({
   onMuscleClick,
   exercises = [] 
 }) {
+  const muscleMap = useMuscleMap();
   const containerRef = useRef(null);
   const chartRef = useRef(null);
 
   // Calculate intensity based on exercises
   const highlightedMuscles = useMemo(() => {
+    const slugs = muscleMap?.body_muscles_slugs || {};
     const muscleHits = {};
     exercises.forEach(ex => {
       const muscles = [...(ex.primaryMuscles || []), ...(ex.secondaryMuscles || [])];
       muscles.forEach(m => {
-        const slug = BODY_MUSCLES_SLUGS[m.toLowerCase()];
+        const slug = slugs[m.toLowerCase()];
         if (slug) {
           muscleHits[slug] = (muscleHits[slug] || 0) + 1;
         }

@@ -1,0 +1,72 @@
+groups:
+  shoulders:
+    aliases: [shoulders, delts, deltoid]
+    viz:
+      rbh: front-deltoids
+      body_muscles:
+        view: FRONT
+        ids: [shoulder-front-left, shoulder-front-right, shoulder-side-left, shoulder-side-right]
+
+  glutes:
+    aliases: [glutes, gluteal, gluteus]
+    viz:
+      rbh: gluteal
+      body_muscles:
+        view: BACK
+        ids: [gluteus-maximus-left, gluteus-maximus-right, gluteus-medius-left, gluteus-medius-right]
+
+  quads:
+    aliases: [quads, quadriceps]
+    viz:
+      rbh: quadriceps
+      body_muscles:
+        view: FRONT
+        ids: [quads-left, quads-right]
+
+  hamstrings:
+    aliases: [hamstrings, hamstring]
+    viz:
+      rbh: hamstring
+      body_muscles:
+        view: BACK
+        ids: [hamstrings-medial-left, hamstrings-lateral-left, hamstrings-medial-right, hamstrings-lateral-right]
+
+  arms:
+    aliases: [arms]
+    viz:
+      rbh: biceps
+      body_muscles:
+        view: FRONT
+        ids: [biceps-left, biceps-right, forearm-left, forearm-right]
+
+  core:
+    aliases: [core]
+    viz:
+      rbh: abs
+      body_muscles:
+        view: FRONT
+        ids: [abs-upper-left, abs-upper-right, abs-lower-left, abs-lower-right, obliques-left, obliques-right]
+
+  back:
+    aliases: [back, upper-back]
+    viz:
+      rbh: upper-back
+      body_muscles:
+        view: BACK
+        ids: [lats-upper-left, lats-mid-left, lats-lower-left, lats-upper-right, lats-mid-right, lats-lower-right]
+
+  lower-back:
+    aliases: [lower-back]
+    viz:
+      rbh: lower-back
+      body_muscles:
+        view: BACK
+        ids: [lower-back-erectors-left, lower-back-erectors-right, lower-back-ql-left, lower-back-ql-right]
+
+  calves:
+    aliases: [calves]
+    viz:
+      rbh: calves
+      body_muscles:
+        view: BACK
+        ids: [calves-gastroc-medial-left, calves-gastroc-lateral-left, calves-gastroc-medial-right, calves-gastroc-lateral-right, calves-soleus-left, calves-soleus-right]

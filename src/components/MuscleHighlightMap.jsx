@@ -1,12 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { BodyChart } from 'body-muscles';
-import { BODY_MUSCLES_MAP } from '../lib/muscleMapping';
+import { useMuscleMap } from '../lib/muscleMap';
 
 export default function MuscleHighlightMap({ muscleId, size = 160 }) {
+  const muscleMap = useMuscleMap();
   const containerRef = useRef(null);
   const chartRef = useRef(null);
 
-  const entry = muscleId ? BODY_MUSCLES_MAP[muscleId.toLowerCase()] : null;
+  const entry = muscleId && muscleMap ? muscleMap.body_muscles[muscleId.toLowerCase()] : null;
 
   useEffect(() => {
     if (!containerRef.current || !entry) return;

@@ -139,15 +139,65 @@ async def handle_muscles(request: web.Request) -> web.Response:
         return web.json_response({"error": str(e)}, status=500)
 
 
+async def handle_muscles_viz(request: web.Request) -> web.Response:
+    try:
+        rbh: dict = {}
+        body_muscles: dict = {}
+
+        muscles_dir = DATA_DIR / "muscles"
+
+        # Individual muscle YAMLs in region subfolders
+        for yml in sorted(muscles_dir.glob("*/*.yml")):
+            data = load_yaml(yml)
+            if not data:
+                continue
+            muscle_id = data.get("id")
+            viz = data.get("viz")
+            if not viz or not muscle_id:
+                continue
+            rbh_slug = viz.get("rbh")
+            bm = viz.get("body_muscles")
+            keys = [muscle_id] + [a.lower() for a in (data.get("aliases") or [])]
+            for k in keys:
+                if rbh_slug:
+                    rbh[k] = rbh_slug
+                if bm and bm.get("ids"):
+                    body_muscles[k] = {"view": bm["view"], "ids": bm["ids"]}
+
+        # Multi-muscle group aliases from _groups.yml
+        groups_file = muscles_dir / "_groups.yml"
+        if groups_file.exists():
+            groups_data = load_yaml(groups_file)
+            for _name, g in (groups_data.get("groups") or {}).items():
+                viz = g.get("viz") or {}
+                rbh_slug = viz.get("rbh")
+                bm = viz.get("body_muscles")
+                keys = [a.lower() for a in (g.get("aliases") or [])]
+                for k in keys:
+                    if rbh_slug:
+                        rbh[k] = rbh_slug
+                    if bm and bm.get("ids"):
+                        body_muscles[k] = {"view": bm["view"], "ids": bm["ids"]}
+
+        body_muscles_slugs = {k: v["ids"][0] for k, v in body_muscles.items() if v.get("ids")}
+
+        return web.json_response({
+            "rbh": rbh,
+            "body_muscles": body_muscles,
+            "body_muscles_slugs": body_muscles_slugs,
+        })
+    except Exception as e:
+        logger.error(f"handle_muscles_viz: {e}")
+        return web.json_response({"error": str(e)}, status=500)
+
+
 async def handle_taxonomy(request: web.Request) -> web.Response:
     try:
         taxonomy = load_catalog_yaml("muscles/muscle_index.yml")
         rules = load_catalog_yaml("muscles/muscle_coverage_rules.yml")
-        bridge = load_catalog_yaml("muscles/body_highlighter_bridge.yml")
         return web.json_response({
             "muscles": taxonomy,
             "rules": rules,
-            "bridge": bridge
         })
     except Exception as e:
         return web.json_response({"error": str(e)}, status=500)
@@ -426,6 +476,7 @@ def create_app() -> web.Application:
         web.get("/search", handle_search),
         web.get("/resolve", handle_resolve),
         web.get("/muscles", handle_muscles),
+        web.get("/muscles/viz", handle_muscles_viz),
         web.get("/taxonomy", handle_taxonomy),
         web.get("/snapshot", handle_snapshot),
         web.get("/plan", handle_plan),
