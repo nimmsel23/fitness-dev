@@ -226,6 +226,17 @@ run_tui(initial_screen='${screen}')
 "
 }
 
+cmd_catalog() {
+  local sub="${1:-tui}"; shift || true
+  case "$sub" in
+    tui)      python3 -m fitness_agent tui "$@" ;;
+    inbox)    python3 -m fitness_agent tui --screen inbox "$@" ;;
+    sync)     cmd_kb_sync ;;
+    audit)    python3 -m fitness_agent audit "${1:-all}" ;;
+    *)        die "Unknown: catalog $sub (tui|inbox|sync|audit)" ;;
+  esac
+}
+
 api_get() { curl -fsS --max-time 5 "${API_URL}$1" 2>&1 || die "Request failed: $1"; }
 
 cmd_session() {
@@ -304,6 +315,7 @@ case "${1:-help}" in
   watch)      cmd_watch ;;
   tui)        shift; cmd_tui "${1:-dashboard}" ;;
   kb-sync)    cmd_kb_sync ;;
+  catalog)    shift; cmd_catalog "$@" ;;
   session)    shift; cmd_session "$@" ;;
   journal)    shift; cmd_journal "$@" ;;
   coverage)   shift; cmd_coverage "$@" ;;
