@@ -18,7 +18,7 @@ exercises:
   - 101_pectoralis_major
   - 104_serratus_anterior
   stabilizers:
-  - 504_transverse_abdominis
+  - 500_core
   - 304_rotator_cuff
   variations:
   - incline_barbell_press
