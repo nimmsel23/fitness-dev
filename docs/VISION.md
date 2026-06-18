@@ -131,7 +131,6 @@ Exercise Library (YAML Katalog)
 - Progression Tracking (Double Progression, Deload)
 - Weekly Review mit Volumen-Analyse
 - Obsidian Export pro Session
-- Volume Landmarks (MV/MEV/MAV/MRV) — Konzept aus MyFit/Liftosaur
 
 ### Phase 3 — Personaltrainer + Prävention
 - Client-Profile (Anamnese, Einschränkungen)
