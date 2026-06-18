@@ -74,6 +74,25 @@ muscles:
   503_transverse_abdominis:
     members: [504_transverse_abdominis]
 
+string_aliases:
+  abdominals:  500_core
+  abductors:   602_gluteus_medius
+  adductors:   610_adductors
+  biceps:      401_biceps_brachii
+  calves:      700_calves
+  chest:       100_chest
+  forearms:    405_forearm_flexors
+  glutes:      601_gluteus_maximus
+  hamstrings:  604_hamstrings
+  lats:        201_latissimus_dorsi
+  lower back:  206_erector_spinae
+  middle back: 200_back
+  neck:        202_trapezius_upper
+  quadriceps:  603_quadriceps
+  shoulders:   300_shoulders
+  traps:       202_trapezius_upper
+  triceps:     403_triceps_brachii
+
 wger_groups:
   1:  [401_biceps_brachii]
   2:  [301_anterior_deltoid]
