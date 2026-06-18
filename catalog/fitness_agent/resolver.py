@@ -13,7 +13,8 @@ except ImportError:
     fuzz = None
     process = None
 
-from .loader import load_catalog_directory_yaml, load_catalog_yaml
+import json
+from .loader import load_catalog_directory_yaml, load_catalog_yaml, catalog_path
 
 GYM_VOCAB = {
     "kh": "kurzhantel dumbbell",
@@ -48,6 +49,8 @@ class ExerciseRecord:
     tags: list[str] | None = None
     gif_url: str | None = None
     image_url: str | None = None
+    images: list[str] | None = None
+    instructions: list[str] | None = None
     wger_id: int | None = None
     wger_muscle_ids: dict | None = None
     anatomy: dict[str, Any] | None = None
@@ -212,6 +215,60 @@ def build_exercise_index() -> list[ExerciseRecord]:
                         wger_id=w_id,
                         gif_url=entry.get("gif_url")
                     )
+
+    # Durchlauf 3: Yuhonas (Bilder + Instructions mergen, oder neuer Fallback-Record)
+    yuhonas_dir = catalog_path("../yuhonas")
+    if yuhonas_dir.exists():
+        try:
+            muscle_index = load_catalog_yaml("muscles/muscle_index.yml")
+            string_aliases = muscle_index.get("string_aliases", {})
+        except Exception:
+            string_aliases = {}
+
+        def resolve_muscle_strings(names: list) -> list:
+            return [string_aliases.get(m, m) for m in (names or [])]
+
+        for json_file in sorted(yuhonas_dir.glob("*.json")):
+            try:
+                raw = json.loads(json_file.read_text())
+            except Exception:
+                continue
+
+            name = raw.get("name", "")
+            norm = normalize_text(name, smart=True)
+            target_id = by_name.get(norm)
+
+            images = raw.get("images") or []
+            instructions = raw.get("instructions") or []
+            primary = resolve_muscle_strings(raw.get("primaryMuscles", []))
+            secondary = resolve_muscle_strings(raw.get("secondaryMuscles", []))
+
+            if target_id and target_id in index:
+                rec = index[target_id]
+                if not rec.images and images:
+                    rec.images = images
+                if not rec.instructions and instructions:
+                    rec.instructions = instructions
+                if not rec.primary_muscles and primary:
+                    rec.primary_muscles = primary
+                if not rec.secondary_muscles and secondary:
+                    rec.secondary_muscles = secondary
+            else:
+                ex_id = f"yuhonas_{json_file.stem}"
+                if ex_id not in index:
+                    index[ex_id] = ExerciseRecord(
+                        exercise_id=ex_id,
+                        display_name=name,
+                        source_file=json_file.name,
+                        source="yuhonas",
+                        tags=["yuhonas", "unreviewed"],
+                        primary_muscles=primary,
+                        secondary_muscles=secondary,
+                        images=images,
+                        instructions=instructions,
+                        equipment=[raw.get("equipment")] if raw.get("equipment") else None,
+                    )
+                    by_name[norm] = ex_id
 
     # Expert-Vorrang: Expert > Inbox > Bulk. Stabile Sortierung bewahrt
     # die innere Reihenfolge je Tier. Alle Lookups iterieren über diese Liste,
