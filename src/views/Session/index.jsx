@@ -1,82 +1,20 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   getSession, saveSession, getSessionHistory,
-  parseQuick, getExercise, getMuscle,
+  parseQuick, getExercise,
   getCoverageGaps, getPlanSuggestion, exportFitnessData, queueForEnrichment,
 } from '@db';
 import { localToday } from '@utils';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
 
-import { Save, Zap, X } from 'lucide-react';
-import AnatomyDetailModal from '../../components/AnatomyDetailModal.jsx';
-import TabSettingsModal from '../../components/TabSettingsModal.jsx';
+import { Save, Zap } from 'lucide-react';
 import DateHeader from './DateHeader';
 import ExerciseSection from './ExerciseSection';
 import ActivitySection from './ActivitySection';
-import DetailedMuscleMap from '../../components/DetailedMuscleMap.jsx';
 import SidebarSheet from './SidebarSheet';
+import MuscleMapModal from './MuscleMapModal';
+import SourceSettingsModal from './SourceSettingsModal';
 import { getRollingDays } from './utils';
-
-function MuscleMapModal({ exercises, onClose }) {
-  const [selectedMuscleId, setSelectedMuscleId] = useState(null);
-  const [muscleData, setMuscleData] = useState(null);
-  const [muscleLoading, setMuscleLoading] = useState(false);
-
-  useEffect(() => {
-    if (!selectedMuscleId) { setMuscleData(null); return; }
-    setMuscleLoading(true);
-    getMuscle(selectedMuscleId)
-      .then(d => setMuscleData(d || null))
-      .catch(() => setMuscleData(null))
-      .finally(() => setMuscleLoading(false));
-  }, [selectedMuscleId]);
-
-  if (!exercises.length) return null;
-
-  return (
-    <>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
-
-        <div className="relative w-full max-w-lg bg-card border border-line rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-          <div className="p-8 border-b border-line/50 flex items-center justify-between">
-            <div>
-              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-accent mb-1">Anatomie-Check</h3>
-              <p className="text-[10px] font-bold opacity-30 uppercase tracking-widest">Muskel anklicken für Details</p>
-            </div>
-            <button onClick={onClose} className="w-10 h-10 rounded-2xl bg-bg2 flex items-center justify-center text-dim hover:text-ink transition-colors">
-              <X size={20} />
-            </button>
-          </div>
-
-          <div className="p-10 flex justify-center gap-16 bg-gradient-to-b from-card to-bg2">
-            <div className="flex flex-col items-center gap-4">
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-20">Anterior</span>
-              <DetailedMuscleMap exercises={exercises} side="front" style={{ width: '160px' }} onGroupClick={setSelectedMuscleId} />
-            </div>
-            <div className="flex flex-col items-center gap-4">
-              <span className="text-[10px] font-black uppercase tracking-widest opacity-20">Posterior</span>
-              <DetailedMuscleMap exercises={exercises} side="back" style={{ width: '160px' }} onGroupClick={setSelectedMuscleId} />
-            </div>
-          </div>
-
-          <div className="p-6 bg-bg2 border-t border-line/50 flex justify-center">
-            <button onClick={onClose} className="px-8 py-3 rounded-2xl bg-accent text-black text-[11px] font-black uppercase tracking-widest shadow-xl shadow-accent/20 active:scale-95 transition-all">
-              Schließen
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <AnatomyDetailModal
-        muscleId={selectedMuscleId}
-        muscleData={muscleData}
-        loading={muscleLoading}
-        onClose={() => setSelectedMuscleId(null)}
-      />
-    </>
-  );
-}
 
 export default function Session({ initialDate, initialDraft, onInspectExercise }) {
   const [date, setDate]           = useState(initialDate || localToday());
@@ -99,9 +37,6 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
   const [showMap, setShowMap]         = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
   const [showTabSettings, setShowTabSettings] = useState(false);
-  const [sessionSources, setSessionSources] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('fitness-sessionSources') || '{}') } catch { return {} }
-  });
 
   const [prevMap, setPrevMap]       = useState({});
 
@@ -415,47 +350,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       )}
 
       {showTabSettings && (
-        <TabSettingsModal title="Training · Einstellungen" onClose={() => setShowTabSettings(false)}>
-          <div className="space-y-4">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-dim/50 mb-5">Übungsquellen</p>
-            {[
-              { key: 'wger', label: 'wger', desc: '~800 Übungen · Standard', experimental: false },
-              { key: 'yuhonas', label: 'yuhonas', desc: '~800 Übungen · Bilder & GIFs', experimental: false },
-              { key: 'coach', label: 'Coach Catalog', desc: 'Kuratiert · Anatomie-Detail', experimental: true },
-            ].map(({ key, label, desc, experimental }) => {
-              const defaults = { wger: true, yuhonas: true, coach: false };
-              const active = sessionSources[key] !== undefined ? sessionSources[key] : defaults[key];
-              return (
-                <button
-                  key={key}
-                  onClick={() => {
-                    const next = { ...{ wger: true, yuhonas: true, coach: false }, ...sessionSources, [key]: !active };
-                    setSessionSources(next);
-                    localStorage.setItem('fitness-sessionSources', JSON.stringify(next));
-                  }}
-                  className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left ${
-                    active ? 'border-accent/40 bg-accent/5' : 'border-line bg-bg2 opacity-60'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black text-ink">{label}</span>
-                      {experimental && (
-                        <span className="text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-orange/20 text-orange border border-orange/30">Lab</span>
-                      )}
-                    </div>
-                    <div className="text-[9px] font-bold text-dim/50 mt-0.5">{desc}</div>
-                  </div>
-                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
-                    active ? 'border-accent bg-accent' : 'border-line/50'
-                  }`}>
-                    {active && <div className="w-2 h-2 bg-black rounded-sm" />}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </TabSettingsModal>
+        <SourceSettingsModal onClose={() => setShowTabSettings(false)} />
       )}
     </div>
   );
