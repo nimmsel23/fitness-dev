@@ -1,15 +1,23 @@
-import { Download, Zap, MapPin, Clock, Activity, Target, FileText, Info } from 'lucide-react';
+import { Download, Zap, MapPin, Clock, Activity, Target, FileText, Info, X } from 'lucide-react';
 import SectionHeader from './SectionHeader';
 import { blockColor } from './utils';
 
-export default function SessionSidebar({ 
-  location, setLocation, duration, setDuration, 
-  hasActivity, setHasActivity, block, setBlock, 
+export default function SessionSidebar({
+  location, setLocation, duration, setDuration,
+  hasActivity, setHasActivity, block, setBlock,
   effort, setEffort, notes, setNotes, onDownload,
-  onExportObsidian, onShowMap
+  onExportObsidian, onShowMap, onClose
 }) {
   return (
     <aside className="space-y-6">
+      {onClose && (
+        <div className="flex items-center justify-between px-6 pt-2 pb-4">
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-dim/40">Session Details</span>
+          <button onClick={onClose} className="w-8 h-8 rounded-xl bg-bg2 flex items-center justify-center text-dim hover:text-ink transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+      )}
       <section className="card p-6 shadow-xl border-line/50 rounded-[32px]">
         <div className="flex items-center gap-2 mb-6">
           <div className="w-8 h-8 rounded-xl bg-accent/10 flex items-center justify-center text-accent">

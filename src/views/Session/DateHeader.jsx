@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Save, ChevronLeft, ChevronRight, Calendar, Settings2 } from "lucide-react";
+import { Save, ChevronLeft, ChevronRight, Calendar, Settings2, SlidersHorizontal } from "lucide-react";
 import { blockColor, DAY_LABELS } from "./utils";
 
 export default function DateHeader({
-  date, setDate, rollingDays, recentSessions, localToday, onSave, saving, onOpenSettings
+  date, setDate, rollingDays, recentSessions, localToday, onSave, saving, onOpenSettings, onOpenSidebar
 }) {
   const todayIdx = rollingDays.findIndex(d => d === localToday);
   const [offset, setOffset] = useState(todayIdx >= 0 ? Math.max(0, todayIdx - 6) : 0);
@@ -26,6 +26,14 @@ export default function DateHeader({
         </div>
         
         <div className="flex items-center gap-3">
+          {onOpenSidebar && (
+            <button
+              onClick={onOpenSidebar}
+              className="w-10 h-10 rounded-2xl bg-bg2 border border-line flex items-center justify-center text-dim hover:text-accent hover:border-accent/40 transition-all"
+            >
+              <SlidersHorizontal size={16} />
+            </button>
+          )}
           {onOpenSettings && (
             <button
               onClick={onOpenSettings}

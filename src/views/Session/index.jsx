@@ -97,6 +97,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
   const [hint, setHint]           = useState(null);
   const [gaps, setGaps]           = useState([]);
   const [showMap, setShowMap]         = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
   const [showTabSettings, setShowTabSettings] = useState(false);
   const [sessionSources, setSessionSources] = useState(() => {
     try { return JSON.parse(localStorage.getItem('fitness-sessionSources') || '{}') } catch { return {} }
@@ -321,22 +322,22 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
         onSave={save}
         saving={saving}
         onOpenSettings={() => setShowTabSettings(true)}
+        onOpenSidebar={() => setShowSidebar(true)}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8 px-2">
-        <div className="order-1 lg:order-1 space-y-6">
-          <SessionSidebar 
-            location={location} setLocation={setLocation}
-            duration={duration} setDuration={setDuration}
-            hasActivity={hasActivity} setHasActivity={setHasActivity}
-            block={block} setBlock={setBlock}
-            effort={effort} setEffort={setEffort}
-            notes={notes} setNotes={setNotes}
-            onDownload={handleDownload}
-            onExportObsidian={exportObsidian}
-            onShowMap={() => setShowMap(true)}
-          />
-          
+      <div className="px-2">
+        <main className="space-y-8">
+          {/* Plan hint */}
+          {hint && (
+            <div className="p-4 rounded-3xl bg-accent/5 border border-accent/20 flex items-center gap-4 text-sm">
+              <Zap size={18} className="text-accent shrink-0" />
+              <div>
+                <span className="font-black text-accent uppercase tracking-widest mr-2">{hint.block}</span>
+                <span className="text-muted">{(hint.exercises || []).slice(0, 3).join(', ')}</span>
+              </div>
+            </div>
+          )}
+
           {/* Gap hints */}
           {gaps.length > 0 && (
             <div className="card p-6 border-red/20 bg-red/5">
@@ -345,19 +346,6 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
                 {gaps.map(g => (
                   <span key={g.name} className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border bg-red/10 text-red border-red/20">{g.name}</span>
                 ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <main className="space-y-8 order-2 lg:order-2">
-          {/* Plan hint */}
-          {hint && (
-            <div className="p-4 rounded-3xl bg-accent/5 border border-accent/20 flex items-center gap-4 text-sm">
-              <Zap size={18} className="text-accent shrink-0" />
-              <div>
-                <span className="font-black text-accent uppercase tracking-widest mr-2">{hint.block}</span>
-                <span className="text-muted">{(hint.exercises || []).slice(0, 3).join(', ')}</span>
               </div>
             </div>
           )}
@@ -380,7 +368,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
             onInspectExercise={onInspectExercise}
           />
 
-          <ActivitySection 
+          <ActivitySection
             hasActivity={hasActivity}
             setHasActivity={setHasActivity}
             activity={activity}
@@ -403,6 +391,30 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       >
         {saving ? <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" /> : <Save size={24} />}
       </button>
+
+      {showSidebar && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowSidebar(false)} />
+          <div className="relative w-full max-w-2xl bg-card border-t border-line rounded-t-[40px] shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto">
+            <div className="sticky top-0 bg-card pt-4 pb-2 flex justify-center z-10">
+              <div className="w-10 h-1 rounded-full bg-line" />
+            </div>
+            <SessionSidebar
+              location={location} setLocation={setLocation}
+              duration={duration} setDuration={setDuration}
+              hasActivity={hasActivity} setHasActivity={setHasActivity}
+              block={block} setBlock={setBlock}
+              effort={effort} setEffort={setEffort}
+              notes={notes} setNotes={setNotes}
+              onDownload={handleDownload}
+              onExportObsidian={exportObsidian}
+              onShowMap={() => { setShowSidebar(false); setShowMap(true); }}
+              onClose={() => setShowSidebar(false)}
+            />
+            <div className="h-8" />
+          </div>
+        </div>
+      )}
 
       {showMap && (
         <MuscleMapModal
