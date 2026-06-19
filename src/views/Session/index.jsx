@@ -11,10 +11,10 @@ import { Save, Zap, X } from 'lucide-react';
 import AnatomyDetailModal from '../../components/AnatomyDetailModal.jsx';
 import TabSettingsModal from '../../components/TabSettingsModal.jsx';
 import DateHeader from './DateHeader';
-import SessionSidebar from './SessionSidebar';
 import ExerciseSection from './ExerciseSection';
 import ActivitySection from './ActivitySection';
 import DetailedMuscleMap from '../../components/DetailedMuscleMap.jsx';
+import SidebarSheet from './SidebarSheet';
 import { getRollingDays } from './utils';
 
 function MuscleMapModal({ exercises, onClose }) {
@@ -393,27 +393,18 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       </button>
 
       {showSidebar && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-200">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowSidebar(false)} />
-          <div className="relative w-full max-w-2xl bg-card border-t border-line rounded-t-[40px] shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto">
-            <div className="sticky top-0 bg-card pt-4 pb-2 flex justify-center z-10">
-              <div className="w-10 h-1 rounded-full bg-line" />
-            </div>
-            <SessionSidebar
-              location={location} setLocation={setLocation}
-              duration={duration} setDuration={setDuration}
-              hasActivity={hasActivity} setHasActivity={setHasActivity}
-              block={block} setBlock={setBlock}
-              effort={effort} setEffort={setEffort}
-              notes={notes} setNotes={setNotes}
-              onDownload={handleDownload}
-              onExportObsidian={exportObsidian}
-              onShowMap={() => { setShowSidebar(false); setShowMap(true); }}
-              onClose={() => setShowSidebar(false)}
-            />
-            <div className="h-8" />
-          </div>
-        </div>
+        <SidebarSheet
+          onClose={() => setShowSidebar(false)}
+          onShowMap={() => { setShowSidebar(false); setShowMap(true); }}
+          location={location} setLocation={setLocation}
+          duration={duration} setDuration={setDuration}
+          hasActivity={hasActivity} setHasActivity={setHasActivity}
+          block={block} setBlock={setBlock}
+          effort={effort} setEffort={setEffort}
+          notes={notes} setNotes={setNotes}
+          onDownload={handleDownload}
+          onExportObsidian={exportObsidian}
+        />
       )}
 
       {showMap && (
