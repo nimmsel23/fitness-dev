@@ -1,0 +1,18 @@
+[data-theme="paper"] {
+  --bg: #f4efe6;
+  --bg2: #ece7dd;
+  --panel: #e4dfd4;
+  --card: #faf7f2;
+  --card-hover: #f0ebe0;
+  --line: #ccc5b8;
+  --ink: #2c2824;
+  --muted: #6b6560;
+  --dim: #9c9490;
+  --accent: #7c5c3a;
+  --accent-glow: rgba(124, 92, 58, 0.1);
+  --green: #4a7c59;
+  --red: #8b3a3a;
+  --orange: #a06030;
+  --glass: rgba(244, 239, 230, 0.9);
+  --glass-border: rgba(124, 92, 58, 0.08);
+}

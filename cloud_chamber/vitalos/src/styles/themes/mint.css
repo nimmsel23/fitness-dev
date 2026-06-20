@@ -1,0 +1,18 @@
+[data-theme="mint"] {
+  --bg: #f0fff4;
+  --bg2: #bbf7d0;
+  --panel: #dcfce7;
+  --card: #ffffff;
+  --card-hover: #f0fdf4;
+  --line: #86efac;
+  --ink: #064e3b;
+  --muted: #065f46;
+  --dim: #10b981;
+  --accent: #10b981;
+  --accent-glow: rgba(16, 185, 129, 0.1);
+  --green: #15803d;
+  --red: #b91c1c;
+  --orange: #c2410c;
+  --glass: rgba(240, 255, 244, 0.9);
+  --glass-border: rgba(16, 185, 129, 0.08);
+}

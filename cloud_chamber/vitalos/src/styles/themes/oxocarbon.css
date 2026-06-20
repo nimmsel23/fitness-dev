@@ -1,0 +1,18 @@
+[data-theme="oxocarbon"] {
+  --bg: #161616;
+  --bg2: #0f0f0f;
+  --panel: #1c1c1c;
+  --card: #262626;
+  --card-hover: #353535;
+  --line: #393939;
+  --ink: #f4f4f4;
+  --muted: #c6c6c6;
+  --dim: #8d8d8d;
+  --accent: #78a9ff;
+  --accent-glow: rgba(120, 169, 255, 0.12);
+  --green: #42be65;
+  --red: #fa4d56;
+  --orange: #ff832b;
+  --glass: rgba(22, 22, 22, 0.92);
+  --glass-border: rgba(120, 169, 255, 0.1);
+}

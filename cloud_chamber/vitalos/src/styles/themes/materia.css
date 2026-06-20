@@ -1,0 +1,18 @@
+[data-theme="materia"] {
+  --bg: #1e1e1e;
+  --bg2: #121212;
+  --panel: #121212;
+  --card: #2e2e2e;
+  --card-hover: #3a3a3a;
+  --line: #424242;
+  --ink: #ffffff;
+  --muted: #888888;
+  --dim: #4a4a4a;
+  --accent: #8ab4f8;
+  --accent-glow: rgba(138, 180, 248, 0.12);
+  --green: #4caf50;
+  --red: #f44336;
+  --orange: #ff9800;
+  --glass: rgba(18, 18, 18, 0.92);
+  --glass-border: rgba(138, 180, 248, 0.1);
+}

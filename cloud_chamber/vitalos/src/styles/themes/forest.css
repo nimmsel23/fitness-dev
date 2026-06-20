@@ -1,0 +1,18 @@
+[data-theme="forest"] {
+  --bg: #1a2f23;
+  --bg2: #13241a;
+  --panel: #264635;
+  --card: #2d5a3f;
+  --card-hover: #3d7a54;
+  --line: #4a8f65;
+  --ink: #f0fdf4;
+  --muted: #bbf7d0;
+  --dim: #4ade80;
+  --accent: #4ade80;
+  --accent-glow: rgba(74, 222, 128, 0.15);
+  --green: #4ade80;
+  --red: #f87171;
+  --orange: #fb923c;
+  --glass: rgba(26, 47, 35, 0.9);
+  --glass-border: rgba(74, 222, 128, 0.12);
+}

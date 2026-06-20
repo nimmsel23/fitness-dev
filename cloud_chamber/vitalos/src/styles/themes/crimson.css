@@ -1,0 +1,18 @@
+[data-theme="crimson"] {
+  --bg: #1a0f12;
+  --bg2: #120a0c;
+  --panel: #2d1b1f;
+  --card: #45252b;
+  --card-hover: #5d323a;
+  --line: #7c444f;
+  --ink: #fff1f2;
+  --muted: #fda4af;
+  --dim: #fb7185;
+  --accent: #f43f5e;
+  --accent-glow: rgba(244, 63, 94, 0.15);
+  --green: #4ade80;
+  --red: #f43f5e;
+  --orange: #fb923c;
+  --glass: rgba(26, 15, 18, 0.9);
+  --glass-border: rgba(244, 63, 94, 0.1);
+}

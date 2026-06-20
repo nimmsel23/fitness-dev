@@ -1,0 +1,18 @@
+[data-theme="nordic-bluish"] {
+  --bg: #2e3440;
+  --bg2: #242933;
+  --panel: #3b4252;
+  --card: #434c5e;
+  --card-hover: #4c566a;
+  --line: #5e81ac;
+  --ink: #eceff4;
+  --muted: #81a1c1;
+  --dim: #5e81ac;
+  --accent: #81a1c1;
+  --accent-glow: rgba(129, 161, 193, 0.12);
+  --green: #a3be8c;
+  --red: #bf616a;
+  --orange: #d08770;
+  --glass: rgba(46, 52, 64, 0.88);
+  --glass-border: rgba(129, 161, 193, 0.1);
+}
