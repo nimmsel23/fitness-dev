@@ -138,7 +138,6 @@ export async function getMuscleCoverage(days = 7) {
 
   for (const sess of sessionsInWindow) {
     for (let ex of (sess.exercises || [])) {
-      if (!ex.done) continue;
       const exName = ex.name || ex.exercise_id || "";
       const kbEx = kbMap.get(exName.toLowerCase());
       const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];

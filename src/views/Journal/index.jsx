@@ -58,7 +58,7 @@ export default function Journal() {
           text: session.notes || '',
           type: 'workout',
           block: session.block || 'Training',
-          exercises: (session.exercises || []).filter(e => e.done),
+          exercises: session.exercises || [],
           effort: session.effort,
           mood: session.mood,
           time: savedAt

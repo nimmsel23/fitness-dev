@@ -283,7 +283,7 @@ export function buildExerciseCoachSheet(ex) {
 export function buildSessionCoachSheet(session) {
   const exercises = session?.exercises || []
 
-  const rows = exercises.map(ex => `| ${ex.done ? '☑' : '☐'} | ${ex.name || 'Uebung'} | ${ex.sets ?? ''} | ${ex.reps ?? ''} | ${ex.weight ?? ''} | ${ex.note || ''} |`)
+  const rows = exercises.map(ex => `| ${ex.name || 'Uebung'} | ${ex.sets ?? ''} | ${ex.reps ?? ''} | ${ex.weight ?? ''} | ${ex.note || ''} |`)
 
   return [
     `---`,
