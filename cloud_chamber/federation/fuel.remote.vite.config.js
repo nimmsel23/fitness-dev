@@ -43,5 +43,6 @@ export default defineConfig({
     emptyOutDir: true,
     target: 'esnext',
     minify: false,
+    assetsDir: '',
   },
 })

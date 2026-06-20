@@ -2,15 +2,15 @@ import { useState, lazy, Suspense } from 'react'
 import VitalOSSidebar from './components/layout/VitalOSSidebar.jsx'
 import Hub from './views/Hub.jsx'
 
-const FuelApp       = lazy(() => import('fuel/FuelApp'))
-const JournalApp    = lazy(() => import('journal/JournalApp'))
-const LearnApp      = lazy(() => import('learn/LearnApp'))
-const FitnessShell  = lazy(() => import('./views/FitnessShell.jsx'))
+const FitnessShell = lazy(() => import('./views/FitnessShell.jsx'))
+const FuelShell    = lazy(() => import('./views/FuelShell.jsx'))
+const JournalShell = lazy(() => import('./views/JournalShell.jsx'))
+const LearnApp     = lazy(() => import('learn/LearnApp'))
 
 const LOADERS = {
   fitness: FitnessShell,
-  fuel:    FuelApp,
-  journal: JournalApp,
+  fuel:    FuelShell,
+  journal: JournalShell,
   learn:   LearnApp,
 }
 

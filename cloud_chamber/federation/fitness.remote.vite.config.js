@@ -1,14 +1,14 @@
 /**
- * learn-dev als Module Federation Remote
+ * fitness als Module Federation Remote
  *
  * Aus fitness-dev/ ausführen:
- *   npx vite build --config cloud_chamber/federation/learn.remote.vite.config.js
+ *   npx vite build --config cloud_chamber/federation/fitness.remote.vite.config.js
  *
- * Output: cloud_chamber/learn-dev/dist-federation/
+ * Output: cloud_chamber/fitness-dev/dist-federation/
  *
- * Dev (fitness-dev Backend läuft auf :9100):
- *   npx vite --config cloud_chamber/federation/learn.remote.vite.config.js
- *   → Remote Entry auf :9183
+ * Dev (fitness-dev Backend muss auf :9100 laufen):
+ *   npx vite --config cloud_chamber/federation/fitness.remote.vite.config.js
+ *   → Remote Entry auf :9185
  */
 
 import { defineConfig } from 'vite'
@@ -18,8 +18,8 @@ import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const FITNESS_ROOT = resolve(__dirname, '../..')
-const LEARN_ROOT   = resolve(__dirname, '../learn-dev')
+const FITNESS_ROOT  = resolve(__dirname, '../..')
+const FITNESS_DIST  = resolve(__dirname, '../fitness-dev/dist-federation')
 
 export default defineConfig(({ mode }) => {
   const isFirebase = mode === 'firebase'
@@ -27,18 +27,18 @@ export default defineConfig(({ mode }) => {
     root: FITNESS_ROOT,
     resolve: {
       alias: {
+        '@src':   resolve(FITNESS_ROOT, 'src'),
         '@db':    resolve(FITNESS_ROOT, isFirebase ? 'src/db.firestore.js' : 'src/db.js'),
         '@utils': resolve(FITNESS_ROOT, 'src/lib/utils.js'),
-        '@src':   resolve(FITNESS_ROOT, 'src'),
       },
     },
     plugins: [
       react(),
       federation({
-        name: 'learn',
+        name: 'fitness',
         filename: 'remoteEntry.js',
         exposes: {
-          './LearnApp': resolve(__dirname, 'LearnApp.jsx'),
+          './FitnessApp': resolve(__dirname, 'FitnessApp.jsx'),
         },
         shared: {
           react:          { singleton: true, requiredVersion: '^18.0.0' },
@@ -48,20 +48,23 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     build: {
-      outDir: resolve(LEARN_ROOT, 'dist-federation'),
+      outDir: FITNESS_DIST,
       emptyOutDir: true,
       target: 'esnext',
       minify: false,
       assetsDir: '',
+      rollupOptions: {
+        external: ['journal/JournalApp', 'fuel/FuelApp', 'learn/LearnApp'],
+      },
     },
     server: {
-      port: 9183,
+      port: 9185,
       proxy: {
-        '/exercises':  'http://127.0.0.1:9100',
-        '/coverage':   'http://127.0.0.1:9100',
-        '/fitness':    'http://127.0.0.1:9100',
-        '/session':    'http://127.0.0.1:9100',
-        '/health':     'http://127.0.0.1:9100',
+        '/fitness':  'http://127.0.0.1:9100',
+        '/exercise': 'http://127.0.0.1:9100',
+        '/session':  'http://127.0.0.1:9100',
+        '/coverage': 'http://127.0.0.1:9100',
+        '/health':   'http://127.0.0.1:9100',
       },
     },
   }
