@@ -1,4 +1,4 @@
-import { Activity, ChevronLeft, ChevronRight, Shield } from "lucide-react";
+import { Activity, ChevronLeft, ChevronRight, Shield, Sparkles } from "lucide-react";
 import { NAV_ITEMS } from "../../constants/NavigationItems";
 import { isLocalMode } from "@db";
 
@@ -43,9 +43,15 @@ export default function Sidebar({ tab, navigate, pinned, setPinned, children, us
             )
           })}
 
+          <button onClick={() => navigate('inbox')} title={!pinned ? 'Inbox' : ''}
+            className={`w-full flex items-center transition-all duration-300 mt-4 ${pinned ? 'gap-4 px-5 py-4 rounded-2xl' : 'justify-center p-4 rounded-2xl'} ${tab === 'inbox' ? 'bg-fit-accent text-black shadow-xl shadow-fit-accent/20 font-black scale-[1.02]' : 'text-fit-dim hover:bg-white/5 font-bold hover:translate-x-1'}`}>
+            <Sparkles size={20} className={tab === 'inbox' ? 'stroke-[3]' : ''} />
+            {pinned && <span className="text-sm truncate animate-in fade-in slide-in-from-left-4 duration-500">Inbox</span>}
+          </button>
+
           {(isLocalMode() || user?.email?.includes('alpha')) && (
             <button onClick={() => navigate('coach')} title={!pinned ? 'Coach' : ''}
-              className={`w-full flex items-center transition-all duration-300 mt-8 ${pinned ? 'gap-4 px-5 py-4 rounded-2xl' : 'justify-center p-4 rounded-2xl'} ${tab === 'coach' ? 'bg-red-500 text-white shadow-xl shadow-red-500/20 font-black scale-[1.02]' : 'text-fit-dim hover:bg-red-500/10 font-bold'}`}>
+              className={`w-full flex items-center transition-all duration-300 mt-2 ${pinned ? 'gap-4 px-5 py-4 rounded-2xl' : 'justify-center p-4 rounded-2xl'} ${tab === 'coach' ? 'bg-red-500 text-white shadow-xl shadow-red-500/20 font-black scale-[1.02]' : 'text-fit-dim hover:bg-red-500/10 font-bold'}`}>
               <Shield size={20} className={tab === 'coach' ? 'stroke-[3]' : ''} />
               {pinned && <span className="text-sm truncate animate-in fade-in slide-in-from-left-4 duration-500">Coach</span>}
             </button>

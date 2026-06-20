@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { Lock, GripVertical } from "lucide-react";
+import { Lock, GripVertical, Sparkles } from "lucide-react";
 import { NAV_ITEMS } from "../../constants/NavigationItems";
 import {
   getSession, getRecentSessions, getPlan,
-  getDashboardAnalytics, exportCsv, getAllExercises
+  getDashboardAnalytics, exportCsv, getAllExercises, getInbox
 } from "@db";
 import { localToday } from "@utils";
 import HabitWidget from "../../components/HabitWidget.jsx";
@@ -59,6 +59,7 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
   const [plan, setPlan] = useState(null);
   const [coverage, setCoverage] = useState(null);
   const [exportToast, setExportToast] = useState('');
+  const [inboxCount, setInboxCount] = useState(0);
 
   const today = localToday();
   const rollingDays = getRolling10Days();
@@ -70,6 +71,9 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
   useEffect(() => {
     getSession(today).then(setTodaySession).catch(() => setTodaySession({}));
     getPlan().then(setPlan).catch(() => setPlan(null));
+    getInbox().then(res => {
+      if (Array.isArray(res)) setInboxCount(res.length);
+    }).catch(() => {});
     
     getDashboardAnalytics(recentDays).then(analytics => {
        const scores = analytics?.body_region_scores || {};
@@ -125,18 +129,18 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
     }
   }
 
-  function onDragStart(e, id) {
+  const handleDragStart = (e, id) => {
     setDragId(id);
     e.dataTransfer.effectAllowed = 'move';
     try { e.dataTransfer.setData('text/plain', id); } catch {}
   }
-  function onDragOver(e, id) {
+  const handleDragOver = (e, id) => {
     if (!dragId || id === dragId) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     if (overId !== id) setOverId(id);
   }
-  function onDrop(e, targetId) {
+  const handleDrop = (e, targetId) => {
     e.preventDefault();
     const sourceId = dragId;
     setDragId(null); setOverId(null);
@@ -149,7 +153,7 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
     next.splice(to, 0, sourceId);
     setLayout(next);
   }
-  function onDragEnd() { setDragId(null); setOverId(null); }
+  const handleDragEnd = () => { setDragId(null); setOverId(null); }
   function resetLayout() { setLayout(DEFAULT_LAYOUT); }
 
   function renderInner(id) {
@@ -178,6 +182,23 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
         onToggleEdit={() => setIsEditMode(v => !v)}
         onResetLayout={resetLayout}
       />
+
+      {inboxCount > 0 && !isEditMode && (
+        <div 
+          onClick={() => navigate('inbox')}
+          className="mb-8 px-5 py-4 rounded-[24px] bg-fit-accent/15 border border-fit-accent/25 hover:border-fit-accent/40 transition-all cursor-pointer flex items-center justify-between text-fit-accent animate-in slide-in-from-top-4 duration-500 hover:scale-[1.01] active:scale-[0.99] group shadow-lg shadow-fit-accent/5"
+        >
+          <div className="flex items-center gap-3">
+            <Sparkles size={16} className="animate-pulse" />
+            <span className="text-xs font-black uppercase tracking-wider">
+              Du hast {inboxCount} neue {inboxCount === 1 ? 'Übung' : 'Übungen'} in deiner Inbox!
+            </span>
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest bg-fit-accent text-black px-3.5 py-1.5 rounded-xl group-hover:scale-105 transition-transform">
+            Anzeigen
+          </span>
+        </div>
+      )}
 
       {isEditMode && (
         <div className="mb-4 px-4 py-3 rounded-xl bg-fit-accent/5 border border-fit-accent/20 text-[11px] font-bold tracking-wide text-fit-accent flex items-center gap-2">
