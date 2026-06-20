@@ -61,6 +61,8 @@ export default function App() {
   const [inspectorExercise, setInspectorExercise] = useState(null)
   const [layoutScale, setLayoutScale] = useState(() => parseInt(localStorage.getItem('fitness-layoutScale') || '100', 10));
   const [swipeHint, setSwipeHint] = useState(null);
+  const [slideDirection, setSlideDirection] = useState('bottom');
+  const hasVibratedRef  = useRef(false);
   const [recentDays, setRecentDays] = useState(() => parseInt(localStorage.getItem('fitness-recentDays') || '7', 10));
   const [coverageThreshold, setCoverageThreshold] = useState(() => parseFloat(localStorage.getItem('fitness-coverageThreshold') || '1.0'));
   const [showAdvanced, setShowAdvanced] = useState(() => localStorage.getItem('fitness-showAdvanced') === 'true');
@@ -99,6 +101,12 @@ export default function App() {
     const mainEl = mainRef.current;
     if (!mainEl) return;
 
+    const triggerVibration = () => {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(10);
+      }
+    };
+
     const shouldIgnoreSwipe = (target) => {
       if (!target) return true;
       const isInteractive = target.closest('input, textarea, select, button, a, [role="button"], [data-no-swipe="true"]');
@@ -134,6 +142,7 @@ export default function App() {
         time: Date.now()
       };
       gestureTypeRef.current = 'none';
+      hasVibratedRef.current = false;
       setSwipeHint(null);
     };
 
@@ -165,8 +174,32 @@ export default function App() {
         }
 
         const HINT_START = 30;
+        const MIN_SWIPE = 75;
         const idx = NAV_ITEMS.findIndex(i => i.id === tabRef.current);
         if (idx === -1) return;
+
+        // Perform real-time visual page sliding with rubber-banding at boundaries
+        let translation = -deltaX;
+        const isAtLeftBoundary = deltaX < 0 && idx === 0;
+        const isAtRightBoundary = deltaX > 0 && idx === NAV_ITEMS.length - 1;
+        if (isAtLeftBoundary || isAtRightBoundary) {
+          translation = translation * 0.25; // 4x resistance
+        }
+        mainEl.style.transform = `translateX(${translation}px)`;
+        mainEl.style.transition = 'none';
+
+        // Trigger detent haptic tick when crossing switch threshold
+        const isFarEnough = Math.abs(deltaX) > MIN_SWIPE;
+        const canMoveLeft = deltaX > 0 && idx < NAV_ITEMS.length - 1;
+        const canMoveRight = deltaX < 0 && idx > 0;
+        if (isFarEnough && (canMoveLeft || canMoveRight)) {
+          if (!hasVibratedRef.current) {
+            triggerVibration();
+            hasVibratedRef.current = true;
+          }
+        } else {
+          hasVibratedRef.current = false;
+        }
 
         if      (deltaX >  HINT_START && idx < NAV_ITEMS.length - 1) setSwipeHint('left');
         else if (deltaX < -HINT_START && idx > 0)                    setSwipeHint('right');
@@ -182,10 +215,22 @@ export default function App() {
       gestureTypeRef.current = 'none';
       setSwipeHint(null);
 
-      if (!start || type !== 'swiping') return;
+      if (!start || type !== 'swiping') {
+        if (mainEl) {
+          mainEl.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
+          mainEl.style.transform = '';
+        }
+        return;
+      }
 
       const touch = e.changedTouches ? e.changedTouches[0] : null;
-      if (!touch) return;
+      if (!touch) {
+        if (mainEl) {
+          mainEl.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
+          mainEl.style.transform = '';
+        }
+        return;
+      }
 
       const deltaX = start.x - touch.clientX;
       const deltaY = start.y - touch.clientY;
@@ -194,16 +239,48 @@ export default function App() {
       const MIN_SWIPE = 75;
       const MAX_SWIPE_TIME = 300;
       const idx = NAV_ITEMS.findIndex(i => i.id === tabRef.current);
-      if (idx === -1) return;
+      if (idx === -1) {
+        if (mainEl) {
+          mainEl.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
+          mainEl.style.transform = '';
+        }
+        return;
+      }
 
       const isQuickFlick = duration < MAX_SWIPE_TIME && Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY) * 2;
       const isFarSwipe = Math.abs(deltaX) > MIN_SWIPE;
 
       if (isQuickFlick || isFarSwipe) {
         if (deltaX > 0 && idx < NAV_ITEMS.length - 1) {
+          if (!hasVibratedRef.current) {
+            triggerVibration();
+          }
+          if (mainEl) {
+            mainEl.style.transition = 'none';
+            mainEl.style.transform = '';
+          }
+          setSlideDirection('left');
           setTab(NAV_ITEMS[idx + 1].id);
         } else if (deltaX < 0 && idx > 0) {
+          if (!hasVibratedRef.current) {
+            triggerVibration();
+          }
+          if (mainEl) {
+            mainEl.style.transition = 'none';
+            mainEl.style.transform = '';
+          }
+          setSlideDirection('right');
           setTab(NAV_ITEMS[idx - 1].id);
+        } else {
+          if (mainEl) {
+            mainEl.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
+            mainEl.style.transform = '';
+          }
+        }
+      } else {
+        if (mainEl) {
+          mainEl.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
+          mainEl.style.transform = '';
         }
       }
     };
@@ -249,6 +326,18 @@ export default function App() {
     }
   }, [theme, themeMode, circLight, circDark]);
 
+  const navigateToTab = (newTabId) => {
+    if (newTabId === tab) return;
+    const oldIdx = NAV_ITEMS.findIndex(i => i.id === tab);
+    const newIdx = NAV_ITEMS.findIndex(i => i.id === newTabId);
+    if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
+      setSlideDirection(newIdx > oldIdx ? 'left' : 'right');
+    } else {
+      setSlideDirection('bottom');
+    }
+    setTab(newTabId);
+  };
+
   // Sync tab → URL hash
   useEffect(() => {
     if (window.location.hash.slice(1) !== tab) history.pushState(null, '', `#${tab}`)
@@ -257,15 +346,15 @@ export default function App() {
   useEffect(() => {
     const handlePopState = () => {
       const hash = window.location.hash.replace(/^#\/?/, '');
-      setTab(VALID_TABS.has(hash) ? hash : 'dash');
+      navigateToTab(VALID_TABS.has(hash) ? hash : 'dash');
     };
     window.addEventListener('popstate', handlePopState);
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, []);
+  }, [tab]);
 
-  function navigate(id) { setTab(id) }
+  function navigate(id) { navigateToTab(id) }
 
   function openSession(date, draft = null) {
     setSessionDate(date || null)
@@ -366,7 +455,7 @@ export default function App() {
                 `}
               >
                 <div className={`${navMode === 'home' ? 'h-full bg-[var(--bg)] shadow-[0_-20px_50px_rgba(0,0,0,0.3)] overflow-y-auto rounded-t-[40px] border-t border-[var(--line)]/30 relative pt-6' : ''}`}>
-                  <div className={`${navMode === 'home' && tab !== 'gate' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+                  <div key={tab} className={`${navMode === 'home' && tab !== 'gate' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in ${slideDirection === 'left' ? 'slide-in-from-right-8' : slideDirection === 'right' ? 'slide-in-from-left-8' : 'slide-in-from-bottom-4'} duration-500`}>
                       {/* Render content */}
                       {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
                       {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}
