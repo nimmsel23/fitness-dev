@@ -86,9 +86,9 @@ export async function getWeeklyReport(selector = "current") {
     if (!sess) continue;
     const sessGroupsCount = {};
     for (let ex of (sess.exercises || [])) {
-      if (!ex.done) continue;
       const exName = ex.name || ex.exercise_id || "";
-      if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
+      if (!exName) continue;
+      topExMap[exName] = (topExMap[exName] || 0) + 1;
       const kbEx = kbMap.get(exName.toLowerCase());
       const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];
       const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
@@ -108,7 +108,16 @@ export async function getWeeklyReport(selector = "current") {
     sessions: sessions.reverse(),
     body_region_scores: bodyRegionScores,
     missing_regions: gaps,
-    top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ display_name: name, count }))
+    top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => {
+      const kbEx = kbMap.get(name.toLowerCase());
+      return {
+        display_name: name,
+        count,
+        exercise_id: kbEx?.exercise_id || kbEx?.id || null,
+        primary_muscles: kbEx?.primary_muscles || kbEx?.primaryMuscles || [],
+        secondary_muscles: kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [],
+      };
+    })
   };
 }
 

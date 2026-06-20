@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getWeeklyReport, exportFitnessData } from '@db';
-import { BarChart3, Activity } from 'lucide-react';
+import { BarChart3, Activity, BookOpen } from 'lucide-react';
 
 import ReviewHeader from './ReviewHeader';
 import ReviewOverview from './ReviewOverview';
@@ -8,6 +8,7 @@ import ReviewInsights from './ReviewInsights';
 import ReviewMuscleImpact from './ReviewMuscleImpact';
 import ReviewSessionList from './ReviewSessionList';
 import ReviewTopExercises from './ReviewTopExercises';
+import ReviewAnatomyLayer from './ReviewAnatomyLayer';
 import Muscles from '../Muscles/index.jsx';
 
 export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleLanguage = 'de', taxonomy = null, gender = 'male' }) {
@@ -57,22 +58,24 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
 
       {/* Mode switcher */}
       <div className="flex gap-1 p-1 bg-card rounded-2xl border border-line shadow-sm w-fit">
-        <button
-          onClick={() => setViewMode('report')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'report' ? 'bg-accent text-black shadow-lg shadow-accent/20' : 'text-dim hover:text-ink'}`}
-        >
-          <BarChart3 size={14} /> Bericht
-        </button>
-        <button
-          onClick={() => setViewMode('muscles')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'muscles' ? 'bg-accent text-black shadow-lg shadow-accent/20' : 'text-dim hover:text-ink'}`}
-        >
-          <Activity size={14} /> Muskeln
-        </button>
+        {[
+          { id: 'report',   icon: <BarChart3 size={14} />, label: 'Bericht' },
+          { id: 'muscles',  icon: <Activity size={14} />,  label: 'Muskeln' },
+          { id: 'anatomy',  icon: <BookOpen size={14} />,  label: 'Anatomie' },
+        ].map(({ id, icon, label }) => (
+          <button key={id}
+            onClick={() => setViewMode(id)}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === id ? 'bg-accent text-black shadow-lg shadow-accent/20' : 'text-dim hover:text-ink'}`}
+          >
+            {icon} {label}
+          </button>
+        ))}
       </div>
 
       {viewMode === 'muscles' ? (
         <Muscles gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
+      ) : viewMode === 'anatomy' ? (
+        <ReviewAnatomyLayer topExercises={data?.top_exercises || []} />
       ) : loading ? (
         <div className="flex flex-col items-center justify-center py-32 opacity-30">
           <div className="spinner mb-6" />
