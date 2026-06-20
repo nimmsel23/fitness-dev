@@ -139,8 +139,9 @@ def _collect_dates(data_dir: Path) -> list[str]:
     return sorted(dates)
 
 
-def push_fuel(uid: str = UID) -> dict:
+def push_fuel(uid: str = UID, delay: float = 0.1) -> dict:
     """Alle lokalen Fuel-Daten → Firestore. Gibt Zusammenfassung zurück."""
+    import time
     data_dir = _data_dir(uid)
     dates = _collect_dates(data_dir)
     results: dict[str, Any] = {"dates": len(dates), "nutrition": {}, "supplements": {}}
@@ -152,6 +153,7 @@ def push_fuel(uid: str = UID) -> dict:
         except Exception as e:
             logger.error(f"  ✗ {d}: {e}")
             results.setdefault("errors", []).append(f"{d}: {e}")
+        time.sleep(delay)
     try:
         results["catalog"] = _push_catalog(uid, data_dir)
     except Exception as e:
