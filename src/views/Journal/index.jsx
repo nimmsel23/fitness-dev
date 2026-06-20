@@ -48,22 +48,30 @@ export default function Journal() {
         ...habitHistory
       ];
 
-      sessions.forEach(session => {
+            sessions.forEach(session => {
         const savedAt = session.saved_at?.seconds
           ? new Date(session.saved_at.seconds * 1000).toISOString()
           : (typeof session.saved_at === 'string' ? session.saved_at : `${session.date}T23:59:59`);
 
-        const isCardio = session.sessionMode === 'cardio' || (session.activity && !session.exercises?.length);
+        // Pure cardio: explicit mode, or legacy session with activity but no exercises
+        const doneExercises = (session.exercises || []).filter(e => e.done);
+        const isCardio = session.sessionMode === 'cardio'
+          || (!session.sessionMode && session.activity && !doneExercises.length);
+
+        // Strength session with a cardio finisher attached
+        const hasAddon = !isCardio && !!session.activity;
 
         combined.push({
           id: 'workout-' + session.date + '-' + (session.id || '0'),
           date: session.date,
-          text: isCardio ? (session.activity?.notes || session.notes || '') : (session.notes || ''),
+          text: session.notes || '',
           type: isCardio ? 'activity' : 'workout',
           block: session.block || (isCardio ? 'Ausdauer' : 'Training'),
           activityType: isCardio ? (session.activity?.type || 'running') : null,
           activityDuration: isCardio ? session.activity?.duration : null,
-          exercises: (session.exercises || []).filter(e => e.done),
+          addonType: hasAddon ? session.activity?.type : null,
+          addonDuration: hasAddon ? session.activity?.duration : null,
+          exercises: doneExercises,
           effort: session.effort,
           mood: session.mood,
           time: savedAt

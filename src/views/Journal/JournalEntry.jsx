@@ -1,7 +1,7 @@
 import { Target, Dumbbell, Clock, Brain, Edit, CheckCircle2, Activity } from "lucide-react";
 import { EFFORT_LABELS, timeStr } from './journalUtils';
 
-// Maps activity type to emoji — same set as ActivitySection
+// Maps activity type to emoji
 const ACTIVITY_EMOJI = {
   running:   '🏃',
   cycling:   '🚴',
@@ -157,6 +157,18 @@ export default function JournalEntry({ e, i, habits, setSelectedEntry, onEdit })
             <span className="text-[9px] font-black uppercase tracking-widest opacity-30">Anstrengung</span>
             <span className="text-[10px] font-black text-blue-400 bg-blue-500/8 border border-blue-500/15 px-2 py-0.5 rounded-md">
               {e.effort}/10 {EFFORT_LABELS[e.effort] ? `· ${EFFORT_LABELS[e.effort]}` : ''}
+            </span>
+          </div>
+        )}
+
+        {/* Workout: Activity-Finisher Badge */}
+        {isWorkout && e.addonType && (
+          <div className="mb-3 flex items-center gap-1.5">
+            <span className="text-[9px] font-black uppercase tracking-widest opacity-30">Finisher</span>
+            <span className="inline-flex items-center gap-1 text-[10px] font-black text-fit-orange bg-fit-orange/8 border border-fit-orange/20 px-2 py-0.5 rounded-md">
+              {ACTIVITY_EMOJI[e.addonType] || '⚡'}
+              {ACTIVITY_LABEL[e.addonType] || e.addonType}
+              {e.addonDuration ? ` · ${e.addonDuration}min` : ''}
             </span>
           </div>
         )}

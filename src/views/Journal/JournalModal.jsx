@@ -149,6 +149,22 @@ export default function JournalModal({ selectedEntry, setSelectedEntry, habits, 
             </div>
           )}
 
+          {/* Workout: Activity-Finisher */}
+          {isWorkout && selectedEntry.addonType && (
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-black uppercase tracking-widest opacity-30">Finisher</span>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-fit-orange/8 border border-fit-orange/20">
+                <span className="text-lg leading-none">
+                  {ACTIVITY_EMOJI[selectedEntry.addonType] || '⚡'}
+                </span>
+                <span className="text-sm font-black text-fit-orange">
+                  {ACTIVITY_LABEL[selectedEntry.addonType] || selectedEntry.addonType}
+                  {selectedEntry.addonDuration ? ` · ${selectedEntry.addonDuration} min` : ''}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Text / Notes */}
           {selectedEntry.text && (
             <p className="text-lg sm:text-xl font-medium leading-relaxed text-fit-ink/90 whitespace-pre-wrap selection:bg-fit-accent/30">

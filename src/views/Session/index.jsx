@@ -11,6 +11,7 @@ import { Save, Zap, Trash2, Dumbbell, Activity } from 'lucide-react';
 import DateHeader from './DateHeader';
 import ExerciseSection from './ExerciseSection';
 import ActivitySection from './ActivitySection';
+import ActivityAddon from './ActivityAddon';
 import SidebarSheet from './SidebarSheet';
 import MuscleMapModal from './MuscleMapModal';
 import SourceSettingsModal from './SourceSettingsModal';
@@ -37,6 +38,9 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
   const [quickInput, setQuickInput] = useState('');
   const [restHours, setRestHours]   = useState(null);
   const [activity, setActivity]   = useState({ type: 'running', duration: '', notes: '' });
+  // hasActivity: true when a cardio ADDON is attached to a strength session
+  // (different from sessionMode==='cardio' where activity IS the session)
+  const [hasActivity, setHasActivity] = useState(false);
   const [recentSessions, setRecentSessions] = useState({});
   const [hint, setHint]           = useState(null);
   const [gaps, setGaps]           = useState([]);
@@ -60,16 +64,20 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     setTrainingsart(d.trainingsart || '');
     if (d.sessionMode) {
       setSessionMode(d.sessionMode);
-    } else if (d.activity) {
-      // Backwards compat: old sessions with activity → cardio mode
+    } else if (d.activity && !(d.exercises?.length)) {
+      // Legacy: session has activity but no exercises → was pure cardio
       setSessionMode('cardio');
     } else {
       setSessionMode('strength');
     }
     if (d.activity) {
-      setActivity({ type: 'running', duration: '', notes: '', ...d.activity });
+      setActivity({ type: 'hiit', duration: '', notes: '', ...d.activity });
+      // In strength mode, activity is an addon → set hasActivity
+      if (d.sessionMode !== 'cardio') setHasActivity(true);
+      else setHasActivity(false);
     } else {
-      setActivity({ type: 'running', duration: '', notes: '' });
+      setActivity({ type: 'hiit', duration: '', notes: '' });
+      setHasActivity(false);
     }
   };
 
@@ -82,7 +90,8 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     setNotes('');
     setTrainingsart('');
     setSessionMode('strength');
-    setActivity({ type: 'running', duration: '', notes: '' });
+    setActivity({ type: 'hiit', duration: '', notes: '' });
+    setHasActivity(false);
   };
 
   const selectSession = (id) => {
@@ -261,7 +270,10 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     setSaving(true);
     try {
       const sessData = { block, exercises, effort, location, duration, notes, trainingsart, sessionMode };
+      // Cardio mode: activity is the whole session
+      // Strength mode: activity is an optional addon (only save if hasActivity)
       if (sessionMode === 'cardio') sessData.activity = activity;
+      else if (hasActivity && activity.duration) sessData.activity = activity;
       await saveSession(date, sessData, sessionId);
       showToast('Gespeichert ✓');
       const list = await listSessionsForDate(date);
@@ -490,6 +502,14 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
                 addQuick={addQuick}
                 prevMap={prevMap}
                 onInspectExercise={onInspectExercise}
+              />
+
+              {/* ── Activity-Finisher Anhang ── */}
+              <ActivityAddon
+                hasActivity={hasActivity}
+                setHasActivity={setHasActivity}
+                activity={activity}
+                setActivity={setActivity}
               />
             </>
           )}
