@@ -26,7 +26,7 @@ const STATIC_DIR = process.env.FITNESS_STATIC_DIR ? path.resolve(process.env.FIT
 const PORT = Number(process.env.PORT || 9100);
 const HOST = process.env.HOST || "127.0.0.1";
 const WGER_TOKEN = process.env.WGER_API_TOKEN || process.env.WGER_TOKEN || "92d9ea44fc0ac065e336e9ec443a196c40c68afe";
-const WGER_BASE  = process.env.WGER_BASE || "http://127.0.0.1:8000/api/v2";
+const WGER_BASE  = process.env.WGER_BASE || "http://127.0.0.1/api/v2";
 const BODY_DIR = path.join(DATA_DIR, "body");
 
 for (const d of ["sessions", "journal"]) fs.mkdirSync(path.join(DATA_DIR, d), { recursive: true });
