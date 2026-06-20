@@ -51,6 +51,14 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 5902,
+      watch: {
+        ignored: [
+          '**/dist/**',
+          '**/dist-*/**',
+          '**/.firebase/**',
+          '**/node_modules/**',
+        ],
+      },
       proxy: {
         '/exercises': BACKEND,
         '/session':   BACKEND,
