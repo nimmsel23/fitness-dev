@@ -74,6 +74,29 @@ export async function approveInbox(id) {
   }
 }
 
+const FAVS_KEY = 'fitness_favourites';
+
+export function getFavourites() {
+  try { return JSON.parse(localStorage.getItem(FAVS_KEY) || '[]'); } catch { return []; }
+}
+
+export function toggleFavourite(id) {
+  const favs = getFavourites();
+  const next = favs.includes(id) ? favs.filter(f => f !== id) : [...favs, id];
+  localStorage.setItem(FAVS_KEY, JSON.stringify(next));
+}
+
+export async function queueForEnrichment(ex) {
+  if (!ex || ex.source === 'expert') return;
+  try {
+    await fetch('http://localhost:9120/inbox/queue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ exercise_id: ex.id || ex.exercise_id, name: ex.name || ex.display_name }),
+    });
+  } catch {}
+}
+
 export async function deleteInbox(id) {
   try {
     return await api.delete(`/fitness/inbox/${id}`);

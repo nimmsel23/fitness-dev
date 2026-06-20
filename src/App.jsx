@@ -66,7 +66,7 @@ export default function App() {
   const [showAdvanced, setShowAdvanced] = useState(() => localStorage.getItem('fitness-showAdvanced') === 'true');
   const [dashboardHighlighter, setDashboardHighlighter] = useState(() => localStorage.getItem('fitness-dashboardHighlighter') || 'body');
   const [sidebarPinned, setSidebarPinned] = useState(() => localStorage.getItem('fitness-sidebarPinned') !== 'false');
-  const [swipeEnabled, setSwipeEnabled] = useState(() => localStorage.getItem('fitness-swipeEnabled') !== 'false');
+  const [swipeEnabled, setSwipeEnabled] = useState(() => localStorage.getItem('fitness-swipeEnabled') === 'true');
   const [muscleLanguage, setMuscleLanguage] = useState(() => localStorage.getItem('fitness-muscleLanguage') || 'de');
   const [taxonomy, setTaxonomy] = useState(null);
 
