@@ -231,12 +231,14 @@ async def handle_journal_get(req: web.Request) -> web.Response:
     return _json({"ok": True, "content": f.read_text(), "mtime": f.stat().st_mtime})
 
 async def handle_journal_post(req: web.Request) -> web.Response:
+    uid     = _uid(req)
     day     = req.rel_url.query.get("date", _today())
     body    = await req.json()
     content = body.get("content", "")
     JOUR_DIR.mkdir(parents=True, exist_ok=True)
     (JOUR_DIR / f"{day}.md").write_text(content)
-    await mirror_journal(day, {"text": content}, uid)
+    loop = asyncio.get_event_loop()
+    loop.run_in_executor(None, mirror_journal, day, {"text": content}, uid)
     return _json({"ok": True})
 
 async def handle_journal_list(req: web.Request) -> web.Response:
@@ -491,6 +493,165 @@ async def handle_clients(req: web.Request) -> web.Response:
     return _json({"ok": True, "clients": clients})
 
 # ═════════════════════════════════════════════════════════════════════════════
+# Coverage
+# ═════════════════════════════════════════════════════════════════════════════
+_ROLE_W = {"primary": 1.0, "secondary": 0.5, "stabilizer": 0.2}
+
+def _coverage_hits(uid: str, days: int) -> dict[str, float]:
+    sess_dir = SESS_ROOT / uid / "sessions"
+    hits: dict[str, float] = {}
+    today = date.today()
+    for i in range(days):
+        day = (today - timedelta(days=i)).isoformat()
+        sess = _read_json(sess_dir / f"{day}.json") if sess_dir.exists() else None
+        for ex in (sess or {}).get("exercises", []):
+            for m in ex.get("primaryMuscles") or ex.get("primary_muscles") or []:
+                k = cov_module.normalize_muscle_id(m)
+                hits[k] = hits.get(k, 0) + _ROLE_W["primary"]
+            for m in ex.get("secondaryMuscles") or ex.get("secondary_muscles") or []:
+                k = cov_module.normalize_muscle_id(m)
+                hits[k] = hits.get(k, 0) + _ROLE_W["secondary"]
+            for m in ex.get("stabilizers") or []:
+                k = cov_module.normalize_muscle_id(m)
+                hits[k] = hits.get(k, 0) + _ROLE_W["stabilizer"]
+    return hits
+
+async def handle_coverage_detailed(req: web.Request) -> web.Response:
+    uid  = _uid(req)
+    days = min(90, int(req.rel_url.query.get("days", 7)))
+    hits = _coverage_hits(uid, days)
+    taxonomy = cov_module.load_muscle_taxonomy()
+    result = []
+    for mid, score in sorted(hits.items(), key=lambda x: -x[1]):
+        info = taxonomy.get(mid, {})
+        result.append({
+            "id": mid,
+            "name_en": info.get("name_en", mid),
+            "name_de": info.get("name_de", mid),
+            "totalScore": round(score, 2),
+        })
+    return _json({"ok": True, "days": days, "muscles": result})
+
+async def handle_coverage_anatomy(req: web.Request) -> web.Response:
+    uid  = _uid(req)
+    days = min(90, int(req.rel_url.query.get("days", 7)))
+    sess_dir = SESS_ROOT / uid / "sessions"
+    today = date.today()
+    anatomy: dict[str, dict] = {}
+    for i in range(days):
+        day = (today - timedelta(days=i)).isoformat()
+        sess = _read_json(sess_dir / f"{day}.json") if sess_dir.exists() else None
+        for ex in (sess or {}).get("exercises", []):
+            for role, muscles in [
+                ("primary",   ex.get("primaryMuscles") or ex.get("primary_muscles") or []),
+                ("secondary", ex.get("secondaryMuscles") or ex.get("secondary_muscles") or []),
+                ("stabilizer", ex.get("stabilizers") or []),
+            ]:
+                w = _ROLE_W[role]
+                for m in muscles:
+                    k = cov_module.normalize_muscle_id(m)
+                    entry = anatomy.setdefault(k, {"name_en": m, "primaryHits": 0, "secondaryHits": 0, "totalScore": 0})
+                    if role == "primary":
+                        entry["primaryHits"] += w
+                    else:
+                        entry["secondaryHits"] += w
+                    entry["totalScore"] += w
+    out = sorted(anatomy.values(), key=lambda x: -x["totalScore"])
+    return _json({"ok": True, "days": days, "muscles": out})
+
+async def handle_coverage_gaps(req: web.Request) -> web.Response:
+    uid      = _uid(req)
+    days     = min(90, int(req.rel_url.query.get("days", 7)))
+    hits     = _coverage_hits(uid, days)
+    taxonomy = cov_module.load_muscle_taxonomy()
+    gaps = [
+        {"id": mid, "name_en": info.get("name_en", mid), "name_de": info.get("name_de", mid), "totalScore": 0}
+        for mid, info in taxonomy.items()
+        if hits.get(mid, 0) < 0.5
+    ]
+    return _json({"ok": True, "days": days, "gaps": gaps})
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Theme
+# ═════════════════════════════════════════════════════════════════════════════
+_THEME_FILE = RUNTIME / "theme.json"
+
+async def handle_theme_get(req: web.Request) -> web.Response:
+    return _json(_read_json(_THEME_FILE, {"theme": "mocha"}))
+
+async def handle_theme_post(req: web.Request) -> web.Response:
+    body = await req.json()
+    _write_json(_THEME_FILE, body)
+    return _json({"ok": True})
+
+# ═════════════════════════════════════════════════════════════════════════════
+# HabitSync (optional proxy → :6842, kein hard-fail wenn down)
+# ═════════════════════════════════════════════════════════════════════════════
+_HABITSYNC_BASE = "http://localhost:6842"
+_HABITSYNC_TIMEOUT = aiohttp.ClientTimeout(total=3)
+
+async def _habitsync_proxy(req: web.Request, path: str, method: str = "GET", body: bytes | None = None) -> web.Response:
+    url = f"{_HABITSYNC_BASE}{path}"
+    try:
+        async with aiohttp.ClientSession(timeout=_HABITSYNC_TIMEOUT) as client:
+            kwargs: dict = {}
+            if body:
+                kwargs["data"] = body
+                kwargs["headers"] = {"Content-Type": "application/json"}
+            async with client.request(method, url, **kwargs) as resp:
+                data = await resp.json()
+                return _json(data, resp.status)
+    except Exception:
+        return _json({"ok": False, "offline": True, "habits": []}, 503)
+
+async def handle_habitsync_list(req: web.Request) -> web.Response:
+    return await _habitsync_proxy(req, "/habitsync/habits")
+
+async def handle_habitsync_record(req: web.Request) -> web.Response:
+    uuid = req.match_info["uuid"]
+    body = await req.read()
+    return await _habitsync_proxy(req, f"/habitsync/record/{uuid}", "POST", body)
+
+async def handle_habitsync_add(req: web.Request) -> web.Response:
+    body = await req.read()
+    return await _habitsync_proxy(req, "/habitsync/add", "POST", body)
+
+async def handle_habitsync_delete(req: web.Request) -> web.Response:
+    uuid = req.match_info["uuid"]
+    return await _habitsync_proxy(req, f"/habitsync/delete/{uuid}", "DELETE")
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Firestore sync (bulk-push letzte 30 Sessions)
+# ═════════════════════════════════════════════════════════════════════════════
+async def handle_firestore_sync(req: web.Request) -> web.Response:
+    uid      = _uid(req)
+    sess_dir = SESS_ROOT / uid / "sessions"
+    if not sess_dir.exists():
+        return _json({"ok": True, "synced": 0})
+    files = sorted(sess_dir.glob("*.json"), reverse=True)[:30]
+    loop  = asyncio.get_event_loop()
+    count = 0
+    for f in files:
+        sess = _read_json(f)
+        if not sess:
+            continue
+        day, _ = _parse_session_fname(f.name)
+        await loop.run_in_executor(None, mirror_session, day, sess, uid)
+        count += 1
+    return _json({"ok": True, "synced": count})
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Static / SPA fallback
+# ═════════════════════════════════════════════════════════════════════════════
+_DIST_DIR = _ROOT / "dist"
+_INDEX_HTML = _DIST_DIR / "index.html"
+
+async def handle_spa_fallback(req: web.Request) -> web.Response:
+    if not _INDEX_HTML.exists():
+        return web.Response(text="No dist/ found — run npm run build", status=503)
+    return web.FileResponse(_INDEX_HTML)
+
+# ═════════════════════════════════════════════════════════════════════════════
 # App factory
 # ═════════════════════════════════════════════════════════════════════════════
 def create_app() -> web.Application:
@@ -540,12 +701,32 @@ def create_app() -> web.Application:
     app.router.add_route("POST",   "/fitness/inbox/{id}/approve",handle_inbox_approve)
     app.router.add_route("DELETE", "/fitness/inbox/{id}",        handle_inbox_delete)
 
+    # Coverage
+    app.router.add_route("GET",    "/coverage/detailed",         handle_coverage_detailed)
+    app.router.add_route("GET",    "/coverage/anatomy",          handle_coverage_anatomy)
+    app.router.add_route("GET",    "/coverage/gaps",             handle_coverage_gaps)
+
+    # Theme
+    app.router.add_route("GET",    "/theme",                     handle_theme_get)
+    app.router.add_route("POST",   "/theme",                     handle_theme_post)
+
+    # HabitSync (optional — 503 wenn :6842 down)
+    app.router.add_route("GET",    "/habitsync/habits",          handle_habitsync_list)
+    app.router.add_route("POST",   "/habitsync/record/{uuid}",   handle_habitsync_record)
+    app.router.add_route("POST",   "/habitsync/add",             handle_habitsync_add)
+    app.router.add_route("DELETE", "/habitsync/delete/{uuid}",   handle_habitsync_delete)
+
     # Firestore
-    app.router.add_route("GET",    "/firestore/status",
-                         lambda r: _json(firestore_status()))
+    app.router.add_route("GET",    "/firestore/status",          lambda r: _json(firestore_status()))
+    app.router.add_route("POST",   "/firestore/sync",            handle_firestore_sync)
 
     # Clients
     app.router.add_route("GET",    "/fitness/clients",           handle_clients)
+
+    # Static assets + SPA fallback (nur wenn dist/ vorhanden)
+    if _DIST_DIR.exists():
+        app.router.add_static("/assets", _DIST_DIR / "assets", show_index=False)
+    app.router.add_route("GET",    "/{path_info:.*}",            handle_spa_fallback)
 
     return app
 

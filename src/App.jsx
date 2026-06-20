@@ -2,11 +2,9 @@ import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { RefreshCw } from 'lucide-react'
 import Dashboard from './views/Dashboard/index.jsx'
 import Session from './views/Session/index.jsx'
-import Learn from './views/Learn/index.jsx'
-import Habits from './views/Habits/index.jsx'
-
 const JournalApp = lazy(() => import('journal/JournalApp'))
 const FuelApp    = lazy(() => import('fuel/FuelApp'))
+const LearnApp   = lazy(() => import('learn/LearnApp'))
 import WeeklyReview from './views/WeeklyReview/index.jsx'
 import Settings from './views/Settings/index.jsx'
 import Coach from './views/Coach/index.jsx'
@@ -373,8 +371,7 @@ export default function App() {
                       {tab === 'dash'     && <Dashboard user={user} onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
                       {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}
                       {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} />}
-                      {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
-                      {tab === 'habits'   && <Habits />}
+                      {tab === 'learn'    && <Suspense fallback={<div style={{ padding: 24, color: '#64748b', fontSize: 13 }}>Lernen lädt…</div>}><LearnApp /></Suspense>}
                       {tab === 'fuel'     && <Suspense fallback={<div style={{ padding: 24, color: '#64748b', fontSize: 13 }}>Fuel lädt…</div>}><FuelApp /></Suspense>}
                       {tab === 'journal'  && <Suspense fallback={<div style={{ padding: 24, color: '#64748b', fontSize: 13 }}>Journal lädt…</div>}><JournalApp /></Suspense>}
                       {tab === 'coach'    && (isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92') && <Coach onInspectExercise={inspectExercise} />}

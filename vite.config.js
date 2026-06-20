@@ -21,6 +21,7 @@ export default defineConfig(({ mode }) => {
         // Federation: lokale Auflösung für regulären Build (ohne Remote)
         'journal/JournalApp': resolve(__dirname, './cloud_chamber/federation/JournalApp.jsx'),
         'fuel/FuelApp':       resolve(__dirname, './cloud_chamber/federation/FuelApp.jsx'),
+        'learn/LearnApp':     resolve(__dirname, './cloud_chamber/federation/LearnApp.jsx'),
         // fuel-dev Internals
         '@fuel': resolve('/home/alpha/fuel-dev/src/client'),
       },
