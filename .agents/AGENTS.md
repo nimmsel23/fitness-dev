@@ -9,3 +9,6 @@ This document specifies rules and behavioral constraints for agentic assistants 
   ```bash
   git commit -am "<msg>" --author="Antigravity <antigravity@gemini.team>"
   ```
+
+## Worktree Workspace
+- **Use Worktree Workspace**: To avoid workspace and checkout conflicts with Claude Code or the user, the agent (Antigravity) must run all terminal commands and perform all file edits inside the Git worktree located at `/home/alpha/fitness-dev/.worktrees/antigravity` instead of `/home/alpha/fitness-dev`.
