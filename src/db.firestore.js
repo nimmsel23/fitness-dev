@@ -588,14 +588,33 @@ export async function getDashboardAnalytics(days = 28) {
     const snap = await getDoc(doc(db, "fitness", getUid(), "analytics", "dashboard"));
     if (snap.exists()) {
       const data = snap.data();
-      if (days <= 7 && data.rolling_7_days) return data.rolling_7_days;
-      if (days <= 14 && data.rolling_14_days) return data.rolling_14_days;
-      return data.rolling_28_days || null;
+      let res = null;
+      if (days <= 7 && data.rolling_7_days) res = data.rolling_7_days;
+      else if (days <= 14 && data.rolling_14_days) res = data.rolling_14_days;
+      else res = data.rolling_28_days || null;
+      
+      if (res) return res;
     }
   } catch (e) {
     console.error("Failed to fetch dashboard analytics", e);
   }
-  return null;
+  
+  // Fallback to local calculation for backwards compatibility
+  try {
+    const scores = await getMuscleCoverage(days);
+    return {
+      body_region_scores: scores,
+      total_volume: 0,
+      session_count: 0
+    };
+  } catch (err) {
+    console.error("Failed local analytics fallback", err);
+    return {
+      body_region_scores: {},
+      total_volume: 0,
+      session_count: 0
+    };
+  }
 }
 
 export const ACTIVITY_MUSCLE_MAPPING = {
@@ -700,98 +719,111 @@ function getWeekBounds(selector = "current") {
 }
 
 export async function getWeeklyReport(selector = "current") {
-  const dates = getWeekBounds(selector);
-  const [kbExercises, history] = await Promise.all([
-    getAllExercises(),
-    getSessionHistory(120),
-  ]);
-  const kbMap = new Map();
-  kbExercises.forEach(ex => kbMap.set((ex.display_name || ex.name || "").toLowerCase(), ex));
+  try {
+    const dates = getWeekBounds(selector);
+    const [kbExercises, history] = await Promise.all([
+      getAllExercises().catch(() => []),
+      getSessionHistory(120).catch(() => []),
+    ]);
+    const kbMap = new Map();
+    kbExercises.forEach(ex => kbMap.set((ex.display_name || ex.name || "").toLowerCase(), ex));
 
-  const safeHistory = Array.isArray(history)
-    ? history.filter(Boolean).map(s => ({
-        ...s,
-        exercises: Array.isArray(s.exercises) ? s.exercises : [],
-      }))
-    : [];
+    const safeHistory = Array.isArray(history)
+      ? history.filter(Boolean).map(s => ({
+          ...s,
+          exercises: Array.isArray(s.exercises) ? s.exercises : [],
+        }))
+      : [];
 
-  const historyWithMuscles = safeHistory.map(s => {
-    const groups = new Set();
-    for (const ex of (s.exercises || [])) {
-      if (!ex.done) continue;
-      const primary = ex.primaryMuscles || [];
-      const secondary = ex.secondaryMuscles || [];
-      const exName = ex.name || ex.exercise_id || "";
-      let hasMapped = false;
-      [...primary, ...secondary].forEach(m => {
-        muscleToGroupIds(m, exName).forEach(gid => { groups.add(gid); hasMapped = true; });
-      });
-      if (!hasMapped && exName) muscleToGroupIds("", exName).forEach(gid => groups.add(gid));
-    }
-    if (s.activity && ACTIVITY_MUSCLE_MAPPING[s.activity.type]) {
-      ACTIVITY_MUSCLE_MAPPING[s.activity.type].muscles.forEach(gid => groups.add(gid));
-    }
-    return { date: s.date, groups: [...groups] };
-  }).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
-
-  const sessions = [];
-  let entriesCount = 0;
-  const muscleScores = {}, bodyRegionScores = {}, topExMap = {};
-
-  for (const date of dates) {
-    const sess = await getSession(date);
-    if (!sess) continue;
-    let hasDoneExercises = false;
-    const sessGroupsCount = {};
-
-    for (const ex of (Array.isArray(sess.exercises) ? sess.exercises : [])) {
-      if (!ex.done) continue;
-      const primary = ex.primaryMuscles || [], secondary = ex.secondaryMuscles || [], exName = ex.name || ex.exercise_id || "";
-      hasDoneExercises = true; entriesCount++;
-      if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
-      let hasMapped = false;
-      [...primary, ...secondary].forEach(m => {
-        muscleToGroupIds(m, exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; hasMapped = true; });
-      });
-      for (const m of primary) {
-        muscleToGroupIds(m, exName).forEach(gid => { muscleScores[m] = (muscleScores[m] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; hasMapped = true; });
+    const historyWithMuscles = safeHistory.map(s => {
+      const groups = new Set();
+      for (const ex of (s.exercises || [])) {
+        if (!ex.done) continue;
+        const primary = ex.primaryMuscles || [];
+        const secondary = ex.secondaryMuscles || [];
+        const exName = ex.name || ex.exercise_id || "";
+        let hasMapped = false;
+        [...primary, ...secondary].forEach(m => {
+          muscleToGroupIds(m, exName).forEach(gid => { groups.add(gid); hasMapped = true; });
+        });
+        if (!hasMapped && exName) muscleToGroupIds("", exName).forEach(gid => groups.add(gid));
       }
-      for (const m of secondary) {
-        muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; hasMapped = true; });
+      if (s.activity && ACTIVITY_MUSCLE_MAPPING[s.activity.type]) {
+        ACTIVITY_MUSCLE_MAPPING[s.activity.type].muscles.forEach(gid => groups.add(gid));
       }
-      if (!hasMapped && exName) {
-        muscleToGroupIds("", exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; });
-      }
-    }
+      return { date: s.date, groups: [...groups] };
+    }).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
-    if (hasDoneExercises || sess.block || sess.activity) {
-      const sortedGroups = Object.entries(sessGroupsCount).sort((a, b) => b[1] - a[1]);
-      let autoSplit = sess.block || sess.trainingsart || "Training";
-      if (!sess.block && sortedGroups.length > 0) autoSplit = sortedGroups[0][0].charAt(0).toUpperCase() + sortedGroups[0][0].slice(1);
-      if (sess.activity && ACTIVITY_MUSCLE_MAPPING[sess.activity.type]) {
-        ACTIVITY_MUSCLE_MAPPING[sess.activity.type].muscles.forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; });
-      }
-      const muscleRecovery = {};
-      for (const gid of Object.keys(sessGroupsCount)) {
-        const lastSessionWithGroup = historyWithMuscles.find(h => h.date < date && h.groups.includes(gid));
-        if (lastSessionWithGroup) {
-          const d1 = new Date(date), d2 = new Date(lastSessionWithGroup.date);
-          muscleRecovery[gid] = Math.round((d1 - d2) / (1000 * 60 * 60));
+    const sessions = [];
+    let entriesCount = 0;
+    const muscleScores = {}, bodyRegionScores = {}, topExMap = {};
+
+    for (const date of dates) {
+      try {
+        const sess = await getSession(date);
+        if (!sess) continue;
+        let hasDoneExercises = false;
+        const sessGroupsCount = {};
+
+        for (const ex of (Array.isArray(sess.exercises) ? sess.exercises : [])) {
+          if (!ex.done) continue;
+          const primary = ex.primaryMuscles || [], secondary = ex.secondaryMuscles || [], exName = ex.name || ex.exercise_id || "";
+          hasDoneExercises = true; entriesCount++;
+          if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
+          let hasMapped = false;
+          [...primary, ...secondary].forEach(m => {
+            muscleToGroupIds(m, exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; hasMapped = true; });
+          });
+          for (const m of primary) {
+            muscleToGroupIds(m, exName).forEach(gid => { muscleScores[m] = (muscleScores[m] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; hasMapped = true; });
+          }
+          for (const m of secondary) {
+            muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; hasMapped = true; });
+          }
+          if (!hasMapped && exName) {
+            muscleToGroupIds("", exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; });
+          }
         }
+
+        if (hasDoneExercises || sess.block || sess.activity) {
+          const sortedGroups = Object.entries(sessGroupsCount).sort((a, b) => b[1] - a[1]);
+          let autoSplit = sess.block || sess.trainingsart || "Training";
+          if (!sess.block && sortedGroups.length > 0) autoSplit = sortedGroups[0][0].charAt(0).toUpperCase() + sortedGroups[0][0].slice(1);
+          if (sess.activity && ACTIVITY_MUSCLE_MAPPING[sess.activity.type]) {
+            ACTIVITY_MUSCLE_MAPPING[sess.activity.type].muscles.forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; });
+          }
+          const muscleRecovery = {};
+          for (const gid of Object.keys(sessGroupsCount)) {
+            const lastSessionWithGroup = historyWithMuscles.find(h => h.date < date && h.groups.includes(gid));
+            if (lastSessionWithGroup) {
+              const d1 = new Date(date), d2 = new Date(lastSessionWithGroup.date);
+              muscleRecovery[gid] = Math.round((d1 - d2) / (1000 * 60 * 60));
+            }
+          }
+          sessions.push({ ...sess, block: autoSplit, exercise_count: sess.exercises?.length || 0, muscle_recovery: muscleRecovery });
+        }
+      } catch (err) {
+        console.error(`Error processing date ${date} for weekly report`, err);
       }
-      sessions.push({ ...sess, block: autoSplit, exercise_count: sess.exercises?.length || 0, muscle_recovery: muscleRecovery });
     }
+
+    const allGroups = ["chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves", "legs"];
+    const gaps = allGroups.filter(g => (bodyRegionScores[g] || 0) < 1);
+
+    return {
+      ok: true, week: selector, session_count: sessions.length, entries_count: entriesCount,
+      sessions, muscle_scores: muscleScores, body_region_scores: bodyRegionScores, missing_regions: gaps,
+      top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ display_name: name, count })),
+      recommendations: gaps.length > 0 ? [`Fokus auf: ${gaps.join(", ")}`] : ["Woche perfekt abgedeckt!"],
+    };
+  } catch (e) {
+    console.error("Failed to build weekly report", e);
+    return {
+      ok: false, week: selector, session_count: 0, entries_count: 0,
+      sessions: [], muscle_scores: {}, body_region_scores: {}, missing_regions: [],
+      top_exercises: [], recommendations: ["Fehler beim Laden des Berichts"]
+    };
   }
-
-  const allGroups = ["chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves", "legs"];
-  const gaps = allGroups.filter(g => (bodyRegionScores[g] || 0) < 1);
-
-  return {
-    ok: true, week: selector, session_count: sessions.length, entries_count: entriesCount,
-    sessions, muscle_scores: muscleScores, body_region_scores: bodyRegionScores, missing_regions: gaps,
-    top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ display_name: name, count })),
-    recommendations: gaps.length > 0 ? [`Fokus auf: ${gaps.join(", ")}`] : ["Woche perfekt abgedeckt!"],
-  };
 }
 
 export async function getProgressTrend(exerciseName, lastN = 4) {
