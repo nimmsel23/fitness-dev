@@ -1,38 +1,13 @@
-// fitness-dev Service Worker
-// v1: static cache + stale-while-revalidate reads + Background Sync für offline POSTs
+// journal-dev Service Worker
+// stale-while-revalidate für /journal + /habitsync, Background Sync für offline POSTs
 
-const CACHE = 'fitness-v54'
+const CACHE = 'journal-v1'
+const DB_NAME = 'aos-offline-journal'
+const SYNC_TAG = 'journal-flush-queue'
 
-const STATIC = [
-  '/',
-  '/index.html',
-  '/offline-queue.js',
-  '/manifest.json',
-]
+const STATIC = ['/', '/index.html', '/offline-queue.js', '/manifest.json']
 
-// GET-Pfade die stale-while-revalidate bekommen
-const SWR_PREFIXES = [
-  '/session',
-  '/coverage',
-  '/fitness/weekly',
-  '/fitness/body',
-  '/fitness/plan',
-  '/fitness/inbox',
-  '/fitness/clients',
-  '/fitness/config',
-  '/fitness/muscles',
-  '/fitness/search',
-  '/fitness/exercises',
-  '/exercises/search',
-  '/exercises/by-group',
-  '/exercise',
-  '/journal',
-  '/habitsync',
-  '/plan/today',
-  '/blocks',
-  '/theme',
-  '/health',
-]
+const SWR_PREFIXES = ['/journal', '/habitsync', '/health']
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -58,41 +33,12 @@ self.addEventListener('fetch', e => {
 
   const path = url.pathname
 
-  // API reads → stale-while-revalidate
-  const isSWR = SWR_PREFIXES.some(p => path === p || path.startsWith(p + '?') || path.startsWith(p + '/'))
-  if (isSWR) {
-    e.respondWith((async () => {
-      const cache = await caches.open(CACHE)
-      const cached = await cache.match(req)
-      const netPromise = fetch(req)
-        .then(fresh => {
-          if (fresh?.ok) {
-            const copy = fresh.clone();
-            cache.put(req, copy);
-          }
-          return fresh
-        })
-        .catch(() => null)
-      if (cached) { netPromise; return cached }
-      const net = await netPromise
-      if (net) return net
-      return new Response(JSON.stringify({ ok: false, offline: true }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json', 'X-Source': 'sw-offline' },
-      })
-    })())
-    return
-  }
-
-  // Navigations → network-first, app-shell fallback
+  // Navigate → network-first + app-shell fallback
   if (req.mode === 'navigate') {
     e.respondWith(
       fetch(req)
         .then(r => {
-          if (r.ok) {
-            const copy = r.clone();
-            caches.open(CACHE).then(c => c.put('/index.html', copy));
-          }
+          if (r.ok) caches.open(CACHE).then(c => c.put('/index.html', r.clone()))
           return r
         })
         .catch(() => caches.match('/index.html'))
@@ -100,36 +46,42 @@ self.addEventListener('fetch', e => {
     return
   }
 
-  // Hashed Vite assets → cache-first, runtime fill
+  // API-Pfade → stale-while-revalidate
+  if (SWR_PREFIXES.some(p => path.startsWith(p))) {
+    e.respondWith((async () => {
+      const cached = await caches.match(req)
+      const fetchPromise = fetch(req).then(r => {
+        if (r.ok) caches.open(CACHE).then(c => c.put(req, r.clone()))
+        return r
+      }).catch(() => cached || new Response('{}', { headers: { 'Content-Type': 'application/json' } }))
+      return cached || fetchPromise
+    })())
+    return
+  }
+
+  // Hashed Vite-Assets → cache-first
   e.respondWith((async () => {
     const cached = await caches.match(req)
     if (cached) return cached
     try {
       const fresh = await fetch(req)
-      if (fresh.ok) {
-        const copy = fresh.clone();
-        caches.open(CACHE).then(c => c.put(req, copy));
-      }
+      if (fresh.ok) caches.open(CACHE).then(c => c.put(req, fresh.clone()))
       return fresh
     } catch {
       return caches.match('/index.html')
     }
   })())
-
 })
 
-// Manueller Update-Trigger aus dem UI (Settings → App aktualisieren)
 self.addEventListener('message', e => {
   if (!e.data) return
   if (e.data.type === 'SKIP_WAITING') self.skipWaiting()
-  if (e.data.type === 'GET_VERSION' && e.source) {
+  if (e.data.type === 'GET_VERSION' && e.source)
     e.source.postMessage({ type: 'VERSION', version: CACHE })
-  }
 })
 
-// Background Sync — flushed IDB-Queue wenn Connectivity zurückkommt
 self.addEventListener('sync', e => {
-  if (e.tag === 'fitness-flush-queue') e.waitUntil(flushFromSW())
+  if (e.tag === SYNC_TAG) e.waitUntil(flushFromSW())
 })
 
 async function flushFromSW() {
@@ -145,15 +97,13 @@ async function flushFromSW() {
       })
       if (!res.ok && res.status >= 500) break
       await idbDelete(db, 'queue', item.id)
-    } catch {
-      break // noch offline, nächster Sync-Event
-    }
+    } catch { break }
   }
 }
 
 function openIDB() {
   return new Promise((resolve, reject) => {
-    const r = indexedDB.open('aos-offline-fitness', 1)
+    const r = indexedDB.open(DB_NAME, 1)
     r.onupgradeneeded = e => {
       const db = e.target.result
       if (!db.objectStoreNames.contains('queue'))

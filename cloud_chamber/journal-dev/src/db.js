@@ -183,10 +183,19 @@ export async function getHabitJournalHistory(habitId) {
 }
 
 export async function saveHabitJournal(habitId, date, text) {
-  const journals = readHJ()
-  const items = (Array.isArray(journals[habitId]) ? journals[habitId] : []).filter(i => i.date !== date)
-  items.unshift({ date, text: String(text || '').trim(), updated_at: new Date().toISOString() })
-  journals[habitId] = items
-  writeHJ(journals)
-  return { ok: true }
+  const journals = readHJ();
+  const items = (Array.isArray(journals[habitId]) ? journals[habitId] : []).filter(i => i.date !== date);
+  items.unshift({ date, text: String(text || '').trim(), updated_at: new Date().toISOString() });
+  journals[habitId] = items;
+  writeHJ(journals);
+  // Mirror to Firestore via server endpoint (non-blocking)
+  try {
+    const payload = { habitId, date, text: String(text || '').trim() };
+    fetch(`${BASE}/habit_journal`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+  } catch {}
+  return { ok: true };
 }
