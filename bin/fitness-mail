@@ -84,12 +84,29 @@ def _read_body(day: str) -> dict:
     return {"date": day}
 
 
+def _push_body_to_server(day: str, data: dict) -> None:
+    """Fire-and-forget POST zu fitness-dev :9100 → triggert wger-Sync."""
+    import urllib.request
+    payload = json.dumps({**data, "date": day}).encode()
+    req = urllib.request.Request(
+        "http://localhost:9100/fitness/body",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        urllib.request.urlopen(req, timeout=3)
+    except Exception as e:
+        logger.debug("server push fehlgeschlagen (ignoriert): {}", e)
+
+
 def _write_body(day: str, data: dict) -> None:
     existing = _read_body(day)
     existing.update(data)
     existing["updated_at"] = datetime.now(timezone.utc).isoformat()
     _body_file(day).write_text(json.dumps(existing, indent=2))
     logger.info("body/{}.json updated: {}", day, list(data.keys()))
+    _push_body_to_server(day, existing)
 
 
 # ── Handlers ──────────────────────────────────────────────────────────────────

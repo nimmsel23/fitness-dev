@@ -7,10 +7,19 @@ import { serve } from "@hono/node-server";
 import yaml from "js-yaml";
 import Database from "better-sqlite3";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
-import { mirrorSession, mirrorJournal, getFirestoreStatus } from "./firestore-mirror.mjs";
+import { mirrorSession, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, readSessions, readSession, readHabits } from "./firestore-mirror.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_DIR   = path.join(os.homedir(), ".aos", "fitness");
+
+function resolveUid() {
+  if (process.env.FITNESS_UID) return process.env.FITNESS_UID;
+  const uidFile = path.join(os.homedir(), ".aos", "users", ".active-uid");
+  try { return fs.readFileSync(uidFile, "utf-8").trim(); } catch {}
+  return "59ole36uNpNwml5H6VDYCXyCME92";
+}
+
+const FITNESS_UID = resolveUid();
+const DATA_DIR   = path.join(os.homedir(), ".aos", "users", FITNESS_UID, "fitness");
 const PUBLIC_DIR = path.join(__dirname, "public");
 const DIST_DIR   = path.join(__dirname, "dist");
 const STATIC_DIR = process.env.FITNESS_STATIC_DIR ? path.resolve(process.env.FITNESS_STATIC_DIR) : (fs.existsSync(DIST_DIR) ? DIST_DIR : PUBLIC_DIR);
@@ -18,9 +27,7 @@ const PORT = Number(process.env.PORT || 9100);
 const HOST = process.env.HOST || "127.0.0.1";
 const WGER_TOKEN = process.env.WGER_API_TOKEN || process.env.WGER_TOKEN || "92d9ea44fc0ac065e336e9ec443a196c40c68afe";
 const WGER_BASE  = process.env.WGER_BASE || "http://127.0.0.1:8000/api/v2";
-const HABITSYNC_BASE = "http://localhost:6842";
-const HS_AUTH = "Basic Y29hY2g6Y29hY2gxMjM=";
-const BODY_DIR = path.join(os.homedir(), ".aos", "fitness", "body");
+const BODY_DIR = path.join(DATA_DIR, "body");
 
 for (const d of ["sessions", "journal"]) fs.mkdirSync(path.join(DATA_DIR, d), { recursive: true });
 
@@ -128,6 +135,20 @@ async function fetchWger(wgerPath, qs = "") {
   }
 }
 
+async function postWger(wgerPath, body) {
+  const url = `${WGER_BASE}${wgerPath}`;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { Authorization: `Token ${WGER_TOKEN}`, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(4000),
+    });
+    return res.ok ? res.json() : null;
+  } catch {
+    return null;
+  }
+}
 
 function normMuscleKey(s) {
   return String(s || "")
@@ -465,61 +486,67 @@ app.post("/fitness/export", async (c) => {
   }
 });
 
-// ── HabitSync proxy ───────────────────────────────────────────────────────────
+// ── Habits (Firestore-first, lokale definitions.json als Offline-Fallback) ────
+const LOCAL_HABITS_FILE = path.join(os.homedir(), ".aos", "journal", "habits", "definitions.json");
+const LOCAL_RECORDS_DIR = path.join(os.homedir(), ".aos", "journal", "habits", "records");
+
 app.get("/habitsync/habits", async (c) => {
+  const uid = c.req.header("X-User-UID") || FITNESS_UID;
+  const fsHabits = await readHabits(uid);
+  if (fsHabits) return c.json(fsHabits);
+  // Offline-Fallback: lokale definitions.json
   try {
-    const r = await fetch(`${HABITSYNC_BASE}/api/habit/list`, { headers: { Authorization: HS_AUTH } });
-    const text = await r.text();
-    return new Response(text, { status: r.ok ? 200 : 502, headers: { "Content-Type": "application/json;charset=utf-8" } });
-  } catch {
-    return c.json({ ok: false, error: "habitsync_unreachable" }, 502);
-  }
+    const defs = JSON.parse(fs.readFileSync(LOCAL_HABITS_FILE, "utf8")).filter(h => !h.deleted);
+    const date = localToday();
+    const recFile = path.join(LOCAL_RECORDS_DIR, `${date}.json`);
+    const records = fs.existsSync(recFile) ? JSON.parse(fs.readFileSync(recFile, "utf8")) : [];
+    const doneToday = new Set(records.map(r => r.uuid));
+    return c.json(defs.map(h => ({
+      ...h,
+      records: doneToday.has(h.uuid) ? [{ date, completion: "DONE" }] : [],
+    })));
+  } catch { return c.json([]); }
 });
 
 app.post("/habitsync/record/:uuid", async (c) => {
+  const uid  = c.req.header("X-User-UID") || FITNESS_UID;
   const uuid = c.req.param("uuid");
   if (!uuid) return c.json({ ok: false, error: "missing_uuid" }, 400);
-  try {
-    const r = await fetch(`${HABITSYNC_BASE}/api/record/${encodeURIComponent(uuid)}`, {
-      method: "POST",
-      headers: { Authorization: HS_AUTH, "Content-Type": "application/json" },
-    });
-    if (!r.ok) return c.json({ ok: false, error: "habitsync_error", status: r.status }, 502);
-    return c.json({ ok: true });
-  } catch {
-    return c.json({ ok: false, error: "habitsync_unreachable" }, 502);
+  // Firestore
+  const { mirrorHabitRecord } = await import("./firestore-mirror.mjs");
+  await mirrorHabitRecord?.(uid, uuid);
+  // Lokal
+  fs.mkdirSync(LOCAL_RECORDS_DIR, { recursive: true });
+  const date = localToday();
+  const recFile = path.join(LOCAL_RECORDS_DIR, `${date}.json`);
+  const records = fs.existsSync(recFile) ? JSON.parse(fs.readFileSync(recFile, "utf8")) : [];
+  if (!records.find(r => r.uuid === uuid)) {
+    records.push({ uuid, date, completion: "DONE", ts: new Date().toISOString() });
+    fs.writeFileSync(recFile, JSON.stringify(records, null, 2));
   }
+  return c.json({ ok: true });
 });
 
 app.post("/habitsync/add", async (c) => {
-  const { name } = await c.req.json().catch(() => ({}));
+  const { name, icon = "Activity" } = await c.req.json().catch(() => ({}));
   if (!name) return c.json({ ok: false, error: "missing_name" }, 400);
-  try {
-    const r = await fetch(`${HABITSYNC_BASE}/api/habit`, {
-      method: "POST",
-      headers: { Authorization: HS_AUTH, "Content-Type": "application/json" },
-      body: JSON.stringify({ name, unit: "boolean", targetValue: 1.0 })
-    });
-    if (!r.ok) return c.json({ ok: false, error: "habitsync_error", status: r.status }, 502);
-    return c.json({ ok: true });
-  } catch {
-    return c.json({ ok: false, error: "habitsync_unreachable" }, 502);
-  }
+  const { randomUUID } = await import("node:crypto");
+  const habit = { uuid: randomUUID(), name: name.trim(), icon, created_at: new Date().toISOString() };
+  const defs = fs.existsSync(LOCAL_HABITS_FILE) ? JSON.parse(fs.readFileSync(LOCAL_HABITS_FILE, "utf8")) : [];
+  defs.push(habit);
+  fs.mkdirSync(path.dirname(LOCAL_HABITS_FILE), { recursive: true });
+  fs.writeFileSync(LOCAL_HABITS_FILE, JSON.stringify(defs, null, 2));
+  return c.json({ ok: true, habit });
 });
 
-app.delete("/habitsync/delete/:uuid", async (c) => {
+app.delete("/habitsync/delete/:uuid", (c) => {
   const uuid = c.req.param("uuid");
   if (!uuid) return c.json({ ok: false, error: "missing_uuid" }, 400);
-  try {
-    const r = await fetch(`${HABITSYNC_BASE}/api/habit/${encodeURIComponent(uuid)}`, {
-      method: "DELETE",
-      headers: { Authorization: HS_AUTH },
-    });
-    if (!r.ok) return c.json({ ok: false, error: "habitsync_error", status: r.status }, 502);
-    return c.json({ ok: true });
-  } catch {
-    return c.json({ ok: false, error: "habitsync_unreachable" }, 502);
-  }
+  if (!fs.existsSync(LOCAL_HABITS_FILE)) return c.json({ ok: false, error: "no_habits" }, 404);
+  const defs = JSON.parse(fs.readFileSync(LOCAL_HABITS_FILE, "utf8"))
+    .map(h => h.uuid === uuid ? { ...h, deleted: true } : h);
+  fs.writeFileSync(LOCAL_HABITS_FILE, JSON.stringify(defs, null, 2));
+  return c.json({ ok: true });
 });
 app.get("/plan/today", (c) => {
   const date = c.req.query("date") || localToday();
@@ -651,16 +678,25 @@ app.get("/session/latest", (c) => {
 });
 
 // ── Journal ───────────────────────────────────────────────────────────────────
-app.get("/journal", (c) => {
+app.get("/journal", async (c) => {
+  const uid  = c.req.header("X-User-UID") || FITNESS_UID;
   const date = c.req.query("date") || localToday();
-  const sources = [
-    path.join(DATA_DIR, "journal", `${date}.md`),
-    path.join(os.homedir(), ".aos", "fuel", "journal", `${date}.md`),
-  ].filter(f => fs.existsSync(f));
-  if (!sources.length) return c.json({ ok: false }, 404);
-  const content = sources.map(f => fs.readFileSync(f, "utf8")).join("\n\n---\n\n");
-  const mtime   = sources.map(f => fs.statSync(f).mtime).reduce((a, b) => a > b ? a : b).toISOString().slice(0, 10);
-  return c.json({ ok: true, content, mtime });
+  // Firestore-first
+  const fsContent = await readJournalFull(uid, date);
+  if (fsContent) return c.json({ ok: true, content: fsContent, mtime: date, source: "firestore" });
+  // Offline-Fallback: lokale .md Dateien
+  const localDirs = [
+    { file: path.join(os.homedir(), ".aos", "fitness", "users", uid, "journal", `${date}.md`), label: null },
+    { file: path.join(DATA_DIR, "journal", `${date}.md`), label: null },
+    { file: path.join(os.homedir(), ".aos", "fuel", "users", uid, "nutrition_journal", `${date}.md`), label: "Fuel" },
+  ].filter(({ file }) => fs.existsSync(file));
+  if (!localDirs.length) return c.json({ ok: false }, 404);
+  const content = localDirs.map(({ file, label }) => {
+    const text = fs.readFileSync(file, "utf8");
+    return label ? `## ${label} – ${date}\n\n${text}` : text;
+  }).join("\n\n---\n\n");
+  const mtime = localDirs.map(({ file }) => fs.statSync(file).mtime).reduce((a, b) => a > b ? a : b).toISOString().slice(0, 10);
+  return c.json({ ok: true, content, mtime, source: "local" });
 });
 
 app.post("/journal", async (c) => {
@@ -673,14 +709,31 @@ app.post("/journal", async (c) => {
   return c.json({ ok: true });
 });
 
-app.get("/journal/list", (c) => {
-  const dir     = path.join(DATA_DIR, "journal");
-  const files   = fs.readdirSync(dir).filter(f => f.endsWith(".md")).sort().reverse().slice(0, 50);
-  const entries = files.map(f => ({
-    date:  f.replace(".md", ""),
-    mtime: fs.statSync(path.join(dir, f)).mtime.toISOString(),
-  }));
-  return c.json({ ok: true, entries });
+app.get("/journal/list", async (c) => {
+  const uid = c.req.header("X-User-UID") || FITNESS_UID;
+  const limitCount = Number(c.req.query("limit") || 50);
+  // Firestore-first
+  const fsEntries = await listJournals(uid, limitCount);
+  if (fsEntries) return c.json({ ok: true, entries: fsEntries, source: "firestore" });
+  // Offline-Fallback
+  const dirs = [
+    path.join(os.homedir(), ".aos", "fitness", "users", uid, "journal"),
+    path.join(DATA_DIR, "journal"),
+    path.join(os.homedir(), ".aos", "fuel", "users", uid, "nutrition_journal"),
+  ];
+  const seen = new Map();
+  for (const dir of dirs) {
+    if (!fs.existsSync(dir)) continue;
+    for (const f of fs.readdirSync(dir).filter(f => f.endsWith(".md"))) {
+      const date = f.replace(".md", "");
+      const mtime = fs.statSync(path.join(dir, f)).mtime.toISOString();
+      if (!seen.has(date) || mtime > seen.get(date)) seen.set(date, mtime);
+    }
+  }
+  const entries = [...seen.entries()]
+    .sort((a, b) => b[0].localeCompare(a[0])).slice(0, limitCount)
+    .map(([date, mtime]) => ({ date, mtime }));
+  return c.json({ ok: true, entries, source: "local" });
 });
 
 // ── Coverage ──────────────────────────────────────────────────────────────────
@@ -801,6 +854,9 @@ app.post("/fitness/body", async (c) => {
   const file     = path.join(BODY_DIR, `${day}.json`);
   const existing = readJson(file, { date: day });
   writeJson(file, { ...existing, ...payload, updated_at: new Date().toISOString() });
+  if (payload.weight_kg != null) {
+    postWger("/weightentry/", { date: day, weight: String(payload.weight_kg) });
+  }
   return c.json({ ok: true, day });
 });
 

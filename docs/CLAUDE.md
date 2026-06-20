@@ -67,10 +67,11 @@ Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach
 ## Backend
 
 **server.mjs** (Port 9100): **Hono**-Server (`@hono/node-server`)
-- API-Routen: `/session`, `/journal`, `/exercises/search`, `/coverage`, `/fitness/plan`, `/fitness/weekly`, `/fitness/export`
+- API-Routen: `/session`, `/journal`, `/exercises/search`, `/coverage`, `/fitness/plan`, `/fitness/weekly`, `/fitness/export`, `/fitness/body`
 - Static-Serving (dist/ oder public/) + SPA-Fallback
-- Proxies: wger (:8000 lokal), HabitSync (:6842)
+- Proxies: wger (lokal), HabitSync (:6842)
 - **Dual-write**: `POST /session` schreibt JSON-File + SQLite synchron
+- **wger Gewichtssync**: `POST /fitness/body` mit `weight_kg` → schreibt Body-JSON + pusht `POST /api/v2/weightentry/` zu wger (fire-and-forget). Token: `WGER_API_TOKEN` env oder Hardcode in Zeile 20. Base-URL: `WGER_BASE` env (Standard `:8000`, wger läuft auf `:80` wenn Override-Port nicht greift).
 
 **fitness-runtime.mjs** (Shared Runtime):
 - `searchExercises()` — lokale Katalog + wger + yuhonas Integration
@@ -240,6 +241,8 @@ Port 5902 (dev), Proxy zu Backend API-Routen (:9100).
 | `/fitness/weekly?week=2025-W45` | GET | Wochenreport (week: "current" oder "YYYY-Www") |
 | `/fitness/export` | POST | Session/Plan/Sheet/Lesson-Export |
 | `/theme` | GET/POST | UI-Theme-Pref |
+| `/fitness/body?days=30` | GET | Körpermessungen (Gewicht, BMI, Schritte, Schlaf, HR) der letzten N Tage |
+| `/fitness/body` | POST | Body-Eintrag speichern + wger-Gewichtssync (wenn `weight_kg` vorhanden) |
 | `/firestore/status` | GET | Firestore-Verbindungsstatus (`{ ok, project }`) |
 | `/firestore/sync` | POST | Letzte 30 Sessions → Firestore pushen |
 
