@@ -12,6 +12,7 @@
     "build:firebase": "vite build --mode firebase --outDir ../fitness/dist-firebase",
     "preview-firebase": "npm run build:firebase && cd ../fitness && firebase hosting:channel:deploy preview --expires 1h",
     "deploy-firebase": "npm run build:firebase && cd ../fitness && firebase deploy --only hosting,firestore:rules,firestore:indexes",
+    "deploy": "node scripts/deploy-runner.mjs",
     "preview": "vite preview",
     "build:catalog": "python3 scripts/build-catalog.py"
   },
