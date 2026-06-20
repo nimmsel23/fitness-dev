@@ -3,7 +3,7 @@ import SessionSidebar from './SessionSidebar';
 export default function SidebarSheet({
   onClose, onShowMap,
   location, setLocation, duration, setDuration,
-  hasActivity, setHasActivity, block, setBlock,
+  sessionMode, block, setBlock,
   effort, setEffort, notes, setNotes,
   onDownload, onExportObsidian,
 }) {
@@ -17,7 +17,7 @@ export default function SidebarSheet({
         <SessionSidebar
           location={location} setLocation={setLocation}
           duration={duration} setDuration={setDuration}
-          hasActivity={hasActivity} setHasActivity={setHasActivity}
+          sessionMode={sessionMode}
           block={block} setBlock={setBlock}
           effort={effort} setEffort={setEffort}
           notes={notes} setNotes={setNotes}

@@ -4,7 +4,7 @@ import { blockColor } from './utils';
 
 export default function SessionSidebar({
   location, setLocation, duration, setDuration,
-  hasActivity, setHasActivity, block, setBlock,
+  sessionMode, block, setBlock,
   effort, setEffort, notes, setNotes, onDownload,
   onExportObsidian, onShowMap, onClose
 }) {
@@ -46,19 +46,11 @@ export default function SessionSidebar({
             </div>
           </div>
           
-          <div className="pt-2">
-            <button onClick={() => setHasActivity(!hasActivity)} 
-              className={`w-full p-4 rounded-2xl border text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-sm flex items-center justify-center gap-3 ${
-                hasActivity ? 'border-fit-orange bg-fit-orange/5 text-fit-orange shadow-lg shadow-orange/10' : 'border-fit-line bg-fit-bg2 text-fit-dim'
-              }`}>
-              <Activity size={16} />
-              {hasActivity ? 'Activity aktiv' : 'Activity hinzufügen'}
-            </button>
-          </div>
         </div>
       </section>
 
-      <section className="card p-6 shadow-xl border-fit-line/50 rounded-[32px]">
+      {sessionMode !== 'cardio' && (
+        <section className="card p-6 shadow-xl border-fit-line/50 rounded-[32px]">
         <div className="flex items-center gap-2 mb-6">
           <div className="w-8 h-8 rounded-xl bg-fit-accent/10 flex items-center justify-center text-fit-accent">
             <Target size={16} strokeWidth={3} />
@@ -88,6 +80,7 @@ export default function SessionSidebar({
           })}
         </div>
       </section>
+      )}
 
       <section className="space-y-3">
         <button onClick={onShowMap} className="w-full p-6 rounded-[32px] border flex items-center justify-between bg-fit-card border-fit-line hover:border-accent/30 transition-all shadow-xl group overflow-hidden relative">

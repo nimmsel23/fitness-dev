@@ -7,7 +7,7 @@ import {
 import { localToday } from '@utils';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
 
-import { Save, Zap, Trash2 } from 'lucide-react';
+import { Save, Zap, Trash2, Dumbbell, Activity } from 'lucide-react';
 import DateHeader from './DateHeader';
 import ExerciseSection from './ExerciseSection';
 import ActivitySection from './ActivitySection';
@@ -16,8 +16,15 @@ import MuscleMapModal from './MuscleMapModal';
 import SourceSettingsModal from './SourceSettingsModal';
 import { getRollingDays } from './utils';
 
+// Session mode: 'strength' (Krafttraining) or 'cardio' (Ausdauer/Activity)
+const SESSION_MODES = [
+  { value: 'strength', label: 'Krafttraining', icon: Dumbbell, color: 'accent' },
+  { value: 'cardio',   label: 'Ausdauer',      icon: Activity,  color: 'orange' },
+];
+
 export default function Session({ initialDate, initialDraft, onInspectExercise }) {
   const [date, setDate]           = useState(initialDate || localToday());
+  const [sessionMode, setSessionMode] = useState('strength');
   const [block, setBlock]         = useState('');
   const [exercises, setExercises] = useState([]);
   const [effort, setEffort]       = useState(5);
@@ -29,8 +36,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
   const [toast, setToast]         = useState('');
   const [quickInput, setQuickInput] = useState('');
   const [restHours, setRestHours]   = useState(null);
-  const [hasActivity, setHasActivity] = useState(false);
-  const [activity, setActivity]   = useState({ type: 'hiking', duration: '', intensity: 5 });
+  const [activity, setActivity]   = useState({ type: 'running', duration: '', notes: '' });
   const [recentSessions, setRecentSessions] = useState({});
   const [hint, setHint]           = useState(null);
   const [gaps, setGaps]           = useState([]);
@@ -52,11 +58,18 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     setDuration(d.duration || '');
     setNotes(d.notes || '');
     setTrainingsart(d.trainingsart || '');
-    if (d.activity) {
-      setHasActivity(true);
-      setActivity(d.activity);
+    if (d.sessionMode) {
+      setSessionMode(d.sessionMode);
+    } else if (d.activity) {
+      // Backwards compat: old sessions with activity → cardio mode
+      setSessionMode('cardio');
     } else {
-      setHasActivity(false);
+      setSessionMode('strength');
+    }
+    if (d.activity) {
+      setActivity({ type: 'running', duration: '', notes: '', ...d.activity });
+    } else {
+      setActivity({ type: 'running', duration: '', notes: '' });
     }
   };
 
@@ -68,7 +81,8 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     setDuration('');
     setNotes('');
     setTrainingsart('');
-    setHasActivity(false);
+    setSessionMode('strength');
+    setActivity({ type: 'running', duration: '', notes: '' });
   };
 
   const selectSession = (id) => {
@@ -246,8 +260,8 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
   async function save() {
     setSaving(true);
     try {
-      const sessData = { block, exercises, effort, location, duration, notes, trainingsart };
-      if (hasActivity) sessData.activity = activity;
+      const sessData = { block, exercises, effort, location, duration, notes, trainingsart, sessionMode };
+      if (sessionMode === 'cardio') sessData.activity = activity;
       await saveSession(date, sessData, sessionId);
       showToast('Gespeichert ✓');
       const list = await listSessionsForDate(date);
@@ -408,53 +422,97 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
 
       <div className="px-2">
         <main className="space-y-8">
-          {/* Plan hint */}
-          {hint && (
-            <div className="p-4 rounded-3xl bg-fit-accent/5 border border-fit-accent/20 flex items-center gap-4 text-sm">
-              <Zap size={18} className="text-fit-accent shrink-0" />
-              <div>
-                <span className="font-black text-fit-accent uppercase tracking-widest mr-2">{hint.block}</span>
-                <span className="text-fit-muted">{(hint.exercises || []).slice(0, 3).join(', ')}</span>
+
+          {/* ── Mode Switcher ── */}
+          <div className="card p-2 shadow-xl rounded-[28px] border-fit-line/40 bg-fit-card/60 backdrop-blur-sm">
+            <div className="grid grid-cols-2 gap-1">
+              {SESSION_MODES.map(mode => {
+                const isActive = sessionMode === mode.value;
+                const Icon = mode.icon;
+                const isCardio = mode.value === 'cardio';
+                return (
+                  <button
+                    key={mode.value}
+                    onClick={() => setSessionMode(mode.value)}
+                    className={`flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-[22px] text-[11px] font-black uppercase tracking-[0.15em] transition-all duration-200 ${
+                      isActive
+                        ? isCardio
+                          ? 'bg-fit-orange text-black shadow-lg shadow-orange/30'
+                          : 'bg-fit-accent text-black shadow-lg shadow-accent/30'
+                        : 'text-fit-dim hover:text-fit-ink'
+                    }`}
+                  >
+                    <Icon size={15} strokeWidth={2.5} />
+                    {mode.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Strength Mode: Plan hint + Gap hints + Exercises ── */}
+          {sessionMode === 'strength' && (
+            <>
+              {hint && (
+                <div className="p-4 rounded-3xl bg-fit-accent/5 border border-fit-accent/20 flex items-center gap-4 text-sm">
+                  <Zap size={18} className="text-fit-accent shrink-0" />
+                  <div>
+                    <span className="font-black text-fit-accent uppercase tracking-widest mr-2">{hint.block}</span>
+                    <span className="text-fit-muted">{(hint.exercises || []).slice(0, 3).join(', ')}</span>
+                  </div>
+                </div>
+              )}
+
+              {gaps.length > 0 && (
+                <div className="card p-6 border-fit-red/20 bg-fit-red/5">
+                  <div className="text-[10px] font-black uppercase tracking-widest text-fit-red mb-4">Coverage-Lücken</div>
+                  <div className="flex flex-wrap gap-2">
+                    {gaps.map(g => (
+                      <span key={g.name} className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border bg-fit-red/10 text-fit-red border-fit-red/20">{g.name}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <ExerciseSection
+                exercises={exercises}
+                restHours={restHours}
+                muscleRecovery={recentSessions[date]?.muscle_recovery || {}}
+                updateEx={updateEx}
+                addSet={addSet}
+                removeSet={removeSet}
+                removeEx={removeEx}
+                moveEx={moveEx}
+                date={date}
+                addEx={addEx}
+                quickInput={quickInput}
+                setQuickInput={setQuickInput}
+                addQuick={addQuick}
+                prevMap={prevMap}
+                onInspectExercise={onInspectExercise}
+              />
+            </>
+          )}
+
+          {/* ── Cardio Mode: Activity Logger ── */}
+          {sessionMode === 'cardio' && (
+            <div className="card p-6 shadow-xl rounded-[30px] border-fit-orange/20 bg-fit-orange/5 animate-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-9 h-9 rounded-2xl bg-fit-orange/15 flex items-center justify-center text-fit-orange">
+                  <Activity size={18} strokeWidth={2.5} />
+                </div>
+                <div>
+                  <div className="text-[11px] font-black uppercase tracking-[0.2em] text-fit-orange">Ausdauer-Session</div>
+                  <div className="text-[10px] text-fit-dim/40 font-medium">Cardio · Endurance</div>
+                </div>
               </div>
+              <ActivitySection
+                activity={activity}
+                setActivity={setActivity}
+              />
             </div>
           )}
 
-          {/* Gap hints */}
-          {gaps.length > 0 && (
-            <div className="card p-6 border-fit-red/20 bg-fit-red/5">
-              <div className="text-[10px] font-black uppercase tracking-widest text-fit-red mb-4">Coverage-Lücken</div>
-              <div className="flex flex-wrap gap-2">
-                {gaps.map(g => (
-                  <span key={g.name} className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border bg-fit-red/10 text-fit-red border-fit-red/20">{g.name}</span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <ExerciseSection
-            exercises={exercises}
-            restHours={restHours}
-            muscleRecovery={recentSessions[date]?.muscle_recovery || {}}
-            updateEx={updateEx}
-            addSet={addSet}
-            removeSet={removeSet}
-            removeEx={removeEx}
-            moveEx={moveEx}
-            date={date}
-            addEx={addEx}
-            quickInput={quickInput}
-            setQuickInput={setQuickInput}
-            addQuick={addQuick}
-            prevMap={prevMap}
-            onInspectExercise={onInspectExercise}
-          />
-
-          <ActivitySection
-            hasActivity={hasActivity}
-            setHasActivity={setHasActivity}
-            activity={activity}
-            setActivity={setActivity}
-          />
         </main>
       </div>
 
@@ -479,7 +537,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
           onShowMap={() => { setShowSidebar(false); setShowMap(true); }}
           location={location} setLocation={setLocation}
           duration={duration} setDuration={setDuration}
-          hasActivity={hasActivity} setHasActivity={setHasActivity}
+          sessionMode={sessionMode}
           block={block} setBlock={setBlock}
           effort={effort} setEffort={setEffort}
           notes={notes} setNotes={setNotes}
