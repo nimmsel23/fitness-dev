@@ -24,6 +24,8 @@ export default defineConfig(({ mode }) => {
         // fuel-dev Internals
         '@fuel': resolve('/home/alpha/fuel-dev/src/client'),
       },
+      // Singleton-Dedup: fuel-dev hat eigene node_modules — Vite zwingt eine einzige Instanz
+      dedupe: ['react', 'react-dom', '@tanstack/react-query'],
     },
     server: {
       port: 5902,
