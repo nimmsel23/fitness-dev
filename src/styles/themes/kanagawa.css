@@ -1,0 +1,18 @@
+[data-theme="kanagawa"] {
+  --bg: #1f1f28;
+  --bg2: #16161d;
+  --panel: #2a2a37;
+  --card: #363646;
+  --card-hover: #44445a;
+  --line: #54546d;
+  --ink: #dcd7ba;
+  --muted: #c8c093;
+  --dim: #727169;
+  --accent: #e46876;
+  --accent-glow: rgba(228, 104, 118, 0.12);
+  --green: #76946a;
+  --red: #c34043;
+  --orange: #ffa066;
+  --glass: rgba(31, 31, 40, 0.9);
+  --glass-border: rgba(228, 104, 118, 0.1);
+}

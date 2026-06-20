@@ -1,0 +1,20 @@
+[Unit]
+Description=VitalOS Hub Server (fitness + fuel + relax)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/vitals
+ExecStart=/usr/bin/node /opt/vitals/server.mjs
+Restart=on-failure
+RestartSec=5
+
+# Ports der jeweiligen Backends (für zukünftigen API-Proxy)
+Environment=VITALS_PORT=6200
+Environment=VITALS_HOST=127.0.0.1
+Environment=VITALS_FITNESS_API=http://127.0.0.1:6100
+Environment=VITALS_FUEL_API=http://127.0.0.1:7000
+Environment=VITALS_RELAX_API=http://127.0.0.1:9123
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,14 @@
+{
+  "name": "vitals-server",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "VitalOS Hub Server — fitness + fuel + relax",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@hono/node-server": "*",
+    "hono": "*"
+  }
+}
