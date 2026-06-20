@@ -86,6 +86,49 @@ Jeder Eintrag hat einen klaren Reconnect-Pfad.
 
 ---
 
+---
+
+## 11. Push-Notifications — App-eigene Erinnerungen
+
+**Konzept:** PWA-Push-Notifications direkt aus der App, keine externe Infrastruktur nötig.
+
+### 11a. Automatische App-Erinnerungen (Prio 1)
+
+Geplante Benachrichtigungen die der User selbst konfiguriert:
+
+| Typ | Trigger | Beispiel |
+|-----|---------|---------|
+| Workout-Reminder | täglich zur konfigurierbaren Uhrzeit | "Hey, Zeit für dein Push-Training" |
+| Habit-Reminder | pro Habit konfigurierbar (Uhrzeit + Tage) | "Hey, Zeit für Habit: Meditation" |
+| Coverage-Alert | wenn Muskelgruppe X Tage nicht trainiert | "Beine seit 5 Tagen nicht trainiert" |
+| Rest-Day-Check | nach N Tagen ohne Session | "Alles ok? Letzte Session war vor 4 Tagen" |
+
+**Settings-Anbindung:** Neues Section in `Settings/` — Notification-Zeit (Timepicker), welche Typen aktiv, pro-Habit-Toggle in Habits-View.
+
+**Technischer Pfad:**
+```
+1. SW registriert sich mit VAPID: pushManager.subscribe()
+   → Endpoint wird in Firestore fitness/{uid}/profile/push_token gespeichert
+
+2. Firebase Scheduled Function (täglich, cron):
+   → liest user push_token + notification_settings
+   → prüft heutige Session / offene Habits / Coverage-Gaps
+   → sendet Web Push via pywebpush / firebase-admin messaging
+
+3. SW empfängt push-Event → showNotification()
+   → Klick öffnet jeweiligen Tab (#session / #habits / etc.)
+```
+
+**Fallback für lokal (kein Firebase):** SW-eigener `setTimeout` nach Seitenaufruf (nur solange Tab offen, kein echter Background-Push).
+
+### 11b. Coach2Klient Push (Prio 2)
+
+Coach schreibt Nachricht in `fitness/{uid}/inbox` → Firestore `onSnapshot` triggert Cloud Function → sendet Push an Klient.
+
+**Datenpfad:** Coach-Inbox-Approve → schreibt gleichzeitig in `fitness/{uid}/inbox` eine System-Nachricht → Push.
+
+---
+
 ## Sofort-Fixes (Build-Blocker)
 
 | # | Problem | Datei | Fix |
@@ -99,7 +142,8 @@ Jeder Eintrag hat einen klaren Reconnect-Pfad.
 | 6 | `taxonomy` nicht weitergegeben in WeeklyReview | 2 Zeilen |
 | 7 | `navigate`-Prop toter Slot in Dashboard | 1 Zeile |
 | 5 | `trainingsart` ohne UI-Input | Klein |
-| 1 | Inbox-View nicht erreichbar | Klein |
+| 11a | Push-Notifications: App-Erinnerungen (Workout, Habits, Coverage) | Mittel — SW + Firebase Function + Settings-UI |
+| 11b | Coach2Klient Push | Klein wenn 11a fertig |
 
 ## Niedrige Priorität / Klärungsbedarf
 
