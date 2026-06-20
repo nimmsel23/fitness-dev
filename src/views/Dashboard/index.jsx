@@ -232,10 +232,10 @@ export default function Dashboard({ user, onOpenSession, onOpenReview, recentDay
                 isOver ? 'ring-2 ring-accent rounded-[32px]' : '',
               ].filter(Boolean).join(' ')}
               draggable={isEditMode}
-              onDragStart={isEditMode ? (e) => onDragStart(e, id) : undefined}
-              onDragOver={isEditMode ? (e) => onDragOver(e, id) : undefined}
-              onDrop={isEditMode ? (e) => onDrop(e, id) : undefined}
-              onDragEnd={isEditMode ? onDragEnd : undefined}
+              onDragStart={isEditMode ? (e) => handleDragStart(e, id) : undefined}
+              onDragOver={isEditMode ? (e) => handleDragOver(e, id) : undefined}
+              onDrop={isEditMode ? (e) => handleDrop(e, id) : undefined}
+              onDragEnd={isEditMode ? handleDragEnd : undefined}
               style={isEditMode ? { cursor: 'grab' } : undefined}
             >
               {isEditMode && (
