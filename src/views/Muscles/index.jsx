@@ -57,8 +57,8 @@ function getMuscleGroup(name) {
   return k;
 }
 
-export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null }) {
-  const [days, setDays] = useState(7);
+export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null, recentDays = 7 }) {
+  const [days, setDays] = useState(recentDays);
   const [loading, setLoading] = useState(true);
   const [recentExercises, setRecentExercises] = useState([]);
   const [hitAnalysis, setHitAnalysis] = useState({ heavy: [], recovering: [], super: [], ready: [], scores: {} });
@@ -75,6 +75,10 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
       .catch(() => setMuscleData(null))
       .finally(() => setMuscleLoading(false));
   }, [selectedMuscleId]);
+
+  useEffect(() => {
+    setDays(recentDays);
+  }, [recentDays]);
 
   useEffect(() => {
     setLoading(true);

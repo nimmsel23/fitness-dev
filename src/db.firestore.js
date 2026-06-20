@@ -668,10 +668,10 @@ export async function getMuscleCoverage(days = 7) {
   return hits;
 }
 
-export async function getCoverageGaps(days = 7) {
+export async function getCoverageGaps(days = 7, threshold = 1.0) {
   const hits = await getMuscleCoverage(days);
   const all = Object.keys(MUSCLE_GROUPS);
-  return all.filter(g => (hits[g] || 0) < 1).map(g => ({ name: g, hits: hits[g] || 0 }));
+  return all.filter(g => (hits[g] || 0) < threshold).map(g => ({ name: g, hits: hits[g] || 0 }));
 }
 
 function getWeekBounds(selector = "current") {

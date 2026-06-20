@@ -16,7 +16,7 @@ import MuscleMapModal from './MuscleMapModal';
 import SourceSettingsModal from './SourceSettingsModal';
 import { getRollingDays } from './utils';
 
-export default function Session({ initialDate, initialDraft, onInspectExercise }) {
+export default function Session({ initialDate, initialDraft, onInspectExercise, recentDays = 7, coverageThreshold = 1.0 }) {
   const [date, setDate]           = useState(initialDate || localToday());
   const [block, setBlock]         = useState('');
   const [exercises, setExercises] = useState([]);
@@ -147,8 +147,8 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     
     // Local Intelligence: Fetch Plan and Gaps
     getPlanSuggestion(date).then(setHint).catch(() => {});
-    getCoverageGaps(7).then(setGaps).catch(() => {});
-  }, [date]);
+    getCoverageGaps(recentDays, coverageThreshold).then(setGaps).catch(() => {});
+  }, [date, recentDays, coverageThreshold]);
 
   const doneExercises = useMemo(
     () => exercises.filter(ex => ex.done),
@@ -253,7 +253,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       const list = await listSessionsForDate(date);
       setDaySessions(list);
       // Update gaps after save
-      const gaps = await getCoverageGaps(7);
+      const gaps = await getCoverageGaps(recentDays, coverageThreshold);
       setGaps(gaps);
     } catch { showToast('Fehler beim Speichern'); }
     finally { setSaving(false); }

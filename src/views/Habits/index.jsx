@@ -13,7 +13,7 @@ import HabitJournalModal from "./HabitJournalModal";
 import HabitStats from "./HabitStats";
 import { getRollingDays } from "./utils";
 
-export default function Habits() {
+export default function Habits({ cycleLength = 4 }) {
   const [habits, setHabits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newHabit, setNewHabit] = useState("");
@@ -29,7 +29,7 @@ export default function Habits() {
   const [isJournalSaving, setIsJournalSaving] = useState(false);
   const [journalModalOpen, setJournalModalOpen] = useState(false);
 
-  const rollingDates = useMemo(() => getRollingDays(28), []);
+  const rollingDates = useMemo(() => getRollingDays(cycleLength * 7), [cycleLength]);
   const recentDates = useMemo(() => getRollingDays(10), []);
 
   async function load() {

@@ -43,12 +43,12 @@ export default function HabitSidebar({
                 <div className="flex items-center justify-between mb-4">
                     <h4 className="text-xs font-bold uppercase tracking-widest opacity-70 text-fit-ink flex items-center gap-2">
                         <Calendar size={12} className="text-fit-dim" />
-                        Konsistenz (28 Tage)
+                        Konsistenz ({rollingDates.length} Tage)
                     </h4>
                     <span className="text-[10px] font-bold opacity-30 text-fit-dim">Konsistenz: {Math.round(selectedHabitConsistency)}%</span>
                 </div>
-                <div className="grid grid-cols-7 sm:grid-cols-14 lg:grid-cols-28 gap-1.5">
-                    {getRollingDays(28).map(d => {
+                <div className="grid grid-cols-7 gap-1.5">
+                    {rollingDates.map(d => {
                         const done = selectedHabit.records.some(r => r.date === d && r.completion === 'DONE');
                         const isSelectedDate = d === selectedSidebarDate;
                         return (

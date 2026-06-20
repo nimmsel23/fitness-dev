@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { RefreshCw } from 'lucide-react'
 import Dashboard from './views/Dashboard/index.jsx'
 import Session from './views/Session/index.jsx'
@@ -13,6 +13,9 @@ import ExerciseInsightModal from './components/ExerciseInsightModal.jsx'
 import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode, getAnatomy } from '@db'
 
 import { NAV_ITEMS, VALID_TABS } from './constants/NavigationItems.js'
+
+const FuelTab = lazy(() => import('../cloud_chamber/federation/FuelTab.jsx'));
+const JournalTab = lazy(() => import('../cloud_chamber/federation/JournalTab.jsx'));
 import { THEMES } from './constants/Themes.js'
 import Sidebar from './components/layout/Sidebar.jsx'
 import MobileNav from './components/layout/MobileNav.jsx'
@@ -369,11 +372,24 @@ export default function App() {
                   <div className={`${navMode === 'home' && tab !== 'gate' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
                       {/* Render content */}
                       {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
-                      {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} />}
-                      {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} />}
+                      {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} recentDays={recentDays} coverageThreshold={coverageThreshold} />}
+                      {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} />}
                       {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
-                      {tab === 'habits'   && <Habits />}
-                      {tab === 'journal'  && <Journal />}
+                      {tab === 'habits'   && (import.meta.env.VITE_FEDERATION === 'true' ? null : <Habits cycleLength={cycleLength} />)}
+                      {tab === 'journal'  && (
+                        import.meta.env.VITE_FEDERATION === 'true' ? (
+                          <Suspense fallback={<div className="p-10 text-center text-xs opacity-50 text-fit-dim uppercase font-black tracking-widest">Journal lädt…</div>}>
+                            <JournalTab />
+                          </Suspense>
+                        ) : (
+                          <Journal />
+                        )
+                      )}
+                      {tab === 'fuel'     && import.meta.env.VITE_FEDERATION === 'true' && (
+                        <Suspense fallback={<div className="p-10 text-center text-xs opacity-50 text-fit-dim uppercase font-black tracking-widest">Fuel lädt…</div>}>
+                          <FuelTab />
+                        </Suspense>
+                      )}
                       {tab === 'coach'    && isLocalMode() && <Coach onInspectExercise={inspectExercise} />}
                       {tab === 'inbox'    && <Inbox onInspectExercise={inspectExercise} />}
                       {tab === 'settings' && (

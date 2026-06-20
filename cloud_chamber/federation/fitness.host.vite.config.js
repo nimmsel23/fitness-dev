@@ -30,14 +30,17 @@ export default defineConfig({
       '@aliase': resolve(FITNESS_ROOT, 'catalog/kb/maps/aliases.yml'),
     },
   },
+  define: {
+    'import.meta.env.VITE_FEDERATION': '"true"',
+  },
   plugins: [
     react(),
     federation({
       name: 'fitness_host',
       remotes: {
-        // dev:  fuel-dev muss gebaut + auf :9000 serviert werden
+        // dev:  journal-dev muss gebaut + auf :9171 serviert werden
         // prod: durch Firebase Hosting URL ersetzen
-        fuel: 'http://localhost:9000/dist-federation/assets/remoteEntry.js',
+        journal: 'http://localhost:9171/dist-federation/assets/remoteEntry.js',
       },
       shared: {
         react:       { singleton: true, requiredVersion: '^18.0.0' },
