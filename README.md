@@ -41,6 +41,18 @@ Workout-Tracking PWA und CLI für Krafttraining — Pflichtaufgaben-Werkzeug der
 
 ---
 
+## Python Environment (uv)
+
+Dieses Projekt nutzt [uv](https://github.com/astral-sh/uv) für performantes Python-Paketmanagement.
+
+```bash
+uv sync                  # Virtual Environment erstellen & Abhängigkeiten installieren
+uv run fitness-agent     # CLI-Tool ausführen
+uv run ./fitnessctl      # Ecosystem Management (API, UI, Watcher)
+```
+
+---
+
 ## Commands
 
 ```bash

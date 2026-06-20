@@ -4,38 +4,31 @@
 @import "./styles/themes/nordic-bluish.css";
 @import "./styles/themes/dracula.css";
 @import "./styles/themes/dracula-purple.css";
+@import "./styles/themes/kanagawa.css";
+@import "./styles/themes/everforest.css";
+@import "./styles/themes/oxocarbon.css";
 @import "./styles/themes/midnight.css";
 @import "./styles/themes/matrix.css";
 @import "./styles/themes/forest.css";
 @import "./styles/themes/crimson.css";
-@import "./styles/themes/slate.css";
-@import "./styles/themes/zinc.css";
 @import "./styles/themes/frappe.css";
 @import "./styles/themes/macchiato.css";
 @import "./styles/themes/mocha.css";
 @import "./styles/themes/gruvbox.css";
-@import "./styles/themes/sweet.css";
-@import "./styles/themes/sweet-purple.css";
-@import "./styles/themes/sweet-mars.css";
-@import "./styles/themes/sweet-amber-blue.css";
+@import "./styles/themes/solarized-dark.css";
 @import "./styles/themes/ant-dark.css";
 @import "./styles/themes/materia.css";
-@import "./styles/themes/solarized-dark.css";
+@import "./styles/themes/arc-dark.css";
 @import "./styles/themes/homunculus.css";
 @import "./styles/themes/nothing.css";
-@import "./styles/themes/arc-dark.css";
 
 /* Light Themes */
 @import "./styles/themes/honey.css";
-@import "./styles/themes/snow.css";
-@import "./styles/themes/rose.css";
+@import "./styles/themes/paper.css";
 @import "./styles/themes/latte.css";
-@import "./styles/themes/mint.css";
-@import "./styles/themes/cyan.css";
-@import "./styles/themes/gold.css";
-@import "./styles/themes/ant.css";
-@import "./styles/themes/arc.css";
 @import "./styles/themes/solarized.css";
+@import "./styles/themes/arc.css";
+@import "./styles/themes/ant.css";
 @import "./styles/themes/alucard.css";
 
 @tailwind base;

@@ -80,11 +80,13 @@ export default function App() {
   }, []);
 
   // Swipe Navigation — refs to avoid re-registering listeners on every touch event
-  const touchStartRef = useRef(null);
-  const touchEndRef   = useRef(null);
-  const tabRef        = useRef(tab);
-  const navModeRef    = useRef(navMode);
+  const touchStartRef   = useRef(null);
+  const gestureTypeRef  = useRef('none');
+  const mainRef         = useRef(null);
+  const tabRef          = useRef(tab);
+  const navModeRef      = useRef(navMode);
   const swipeEnabledRef = useRef(swipeEnabled);
+
   useEffect(() => { tabRef.current = tab; }, [tab]);
   useEffect(() => { navModeRef.current = navMode; }, [navMode]);
   useEffect(() => { swipeEnabledRef.current = swipeEnabled; }, [swipeEnabled]);
@@ -94,53 +96,128 @@ export default function App() {
   }, [layoutScale]);
 
   useEffect(() => {
-    const MIN_SWIPE  = 70;
-    const HINT_START = 30;
+    const mainEl = mainRef.current;
+    if (!mainEl) return;
+
+    const shouldIgnoreSwipe = (target) => {
+      if (!target) return true;
+      const isInteractive = target.closest('input, textarea, select, button, a, [role="button"], [data-no-swipe="true"]');
+      if (isInteractive) return true;
+
+      let el = target;
+      while (el && el.nodeType === 1 && el !== document.body && el !== document.documentElement) {
+        if (el.classList && (el.classList.contains('overflow-x-auto') || el.classList.contains('overflow-x-scroll'))) {
+          if (el.scrollWidth > el.clientWidth) return true;
+        }
+        const style = window.getComputedStyle(el);
+        if (style.overflowX === 'auto' || style.overflowX === 'scroll') {
+          if (el.scrollWidth > el.clientWidth) return true;
+        }
+        el = el.parentElement;
+      }
+      return false;
+    };
 
     const onTouchStart = (e) => {
       if (!swipeEnabledRef.current || navModeRef.current !== 'tabs') return;
-      touchEndRef.current   = null;
-      touchStartRef.current = e.targetTouches[0].clientX;
-    };
 
+      const touch = e.touches[0];
+      if (shouldIgnoreSwipe(touch.target)) {
+        touchStartRef.current = null;
+        gestureTypeRef.current = 'scrolling';
+        return;
+      }
+
+      touchStartRef.current = {
+        x: touch.clientX,
+        y: touch.clientY,
+        time: Date.now()
+      };
+      gestureTypeRef.current = 'none';
+      setSwipeHint(null);
+    };
 
     const onTouchMove = (e) => {
-      if (!touchStartRef.current) return;
-      touchEndRef.current = e.targetTouches[0].clientX;
-      const dist  = touchStartRef.current - touchEndRef.current;
-      const idx   = NAV_ITEMS.findIndex(i => i.id === tabRef.current);
-      if (idx === -1) return;
-      if      (dist >  HINT_START && idx < NAV_ITEMS.length - 1) setSwipeHint('left');
-      else if (dist < -HINT_START && idx > 0)                    setSwipeHint('right');
-      else                                                        setSwipeHint(null);
-    };
+      if (!touchStartRef.current || gestureTypeRef.current === 'scrolling') return;
 
-    const onTouchEnd = () => {
-      setSwipeHint(null);
-      if (!touchStartRef.current || !touchEndRef.current) return;
-      const dist = touchStartRef.current - touchEndRef.current;
-      const idx  = NAV_ITEMS.findIndex(i => i.id === tabRef.current);
-      touchStartRef.current = null;
-      touchEndRef.current   = null;
-      if (idx === -1) return;
-      if      (dist >  MIN_SWIPE && idx < NAV_ITEMS.length - 1) setTab(NAV_ITEMS[idx + 1].id);
-      else if (dist < -MIN_SWIPE && idx > 0)                    setTab(NAV_ITEMS[idx - 1].id);
-    };
+      const touch = e.touches[0];
+      const deltaX = touchStartRef.current.x - touch.clientX;
+      const deltaY = touchStartRef.current.y - touch.clientY;
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
 
-    const main = document.querySelector('main');
-    if (main) {
-      main.addEventListener('touchstart', onTouchStart, { passive: true });
-      main.addEventListener('touchmove',  onTouchMove,  { passive: true });
-      main.addEventListener('touchend',   onTouchEnd);
-    }
-    return () => {
-      if (main) {
-        main.removeEventListener('touchstart', onTouchStart);
-        main.removeEventListener('touchmove',  onTouchMove);
-        main.removeEventListener('touchend',   onTouchEnd);
+      if (gestureTypeRef.current === 'none') {
+        if (absX > 10 || absY > 10) {
+          if (absX > absY * 1.5) {
+            gestureTypeRef.current = 'swiping';
+          } else {
+            gestureTypeRef.current = 'scrolling';
+            return;
+          }
+        } else {
+          return;
+        }
+      }
+
+      if (gestureTypeRef.current === 'swiping') {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+
+        const HINT_START = 30;
+        const idx = NAV_ITEMS.findIndex(i => i.id === tabRef.current);
+        if (idx === -1) return;
+
+        if      (deltaX >  HINT_START && idx < NAV_ITEMS.length - 1) setSwipeHint('left');
+        else if (deltaX < -HINT_START && idx > 0)                    setSwipeHint('right');
+        else                                                         setSwipeHint(null);
       }
     };
-  }, []);
+
+    const onTouchEnd = (e) => {
+      const start = touchStartRef.current;
+      const type = gestureTypeRef.current;
+
+      touchStartRef.current = null;
+      gestureTypeRef.current = 'none';
+      setSwipeHint(null);
+
+      if (!start || type !== 'swiping') return;
+
+      const touch = e.changedTouches ? e.changedTouches[0] : null;
+      if (!touch) return;
+
+      const deltaX = start.x - touch.clientX;
+      const deltaY = start.y - touch.clientY;
+      const duration = Date.now() - start.time;
+
+      const MIN_SWIPE = 75;
+      const MAX_SWIPE_TIME = 300;
+      const idx = NAV_ITEMS.findIndex(i => i.id === tabRef.current);
+      if (idx === -1) return;
+
+      const isQuickFlick = duration < MAX_SWIPE_TIME && Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY) * 2;
+      const isFarSwipe = Math.abs(deltaX) > MIN_SWIPE;
+
+      if (isQuickFlick || isFarSwipe) {
+        if (deltaX > 0 && idx < NAV_ITEMS.length - 1) {
+          setTab(NAV_ITEMS[idx + 1].id);
+        } else if (deltaX < 0 && idx > 0) {
+          setTab(NAV_ITEMS[idx - 1].id);
+        }
+      }
+    };
+
+    mainEl.addEventListener('touchstart', onTouchStart, { passive: false });
+    mainEl.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    mainEl.addEventListener('touchend',   onTouchEnd,   { passive: true });
+
+    return () => {
+      mainEl.removeEventListener('touchstart', onTouchStart);
+      mainEl.removeEventListener('touchmove',  onTouchMove);
+      mainEl.removeEventListener('touchend',   onTouchEnd);
+    };
+  }, [user, authLoading, swipeEnabled]);
 
   // Persistence Effects
   useEffect(() => { localStorage.setItem('fitness-muscleLanguage', muscleLanguage) }, [muscleLanguage]);
@@ -159,6 +236,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem('fitness-dashboardHighlighter', dashboardHighlighter) }, [dashboardHighlighter]);
   useEffect(() => { localStorage.setItem('fitness-sidebarPinned', sidebarPinned) }, [sidebarPinned]);
   useEffect(() => { localStorage.setItem('fitness-navMode', navMode) }, [navMode]);
+  useEffect(() => { localStorage.setItem('fitness-swipeEnabled', swipeEnabled) }, [swipeEnabled]);
 
   // Theme Logic from PWA
   useEffect(() => {
@@ -272,7 +350,7 @@ export default function App() {
         </Sidebar>
 
         <div className={`flex-1 transition-all duration-500 ease-in-out ${sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
-          <main className={`relative ${navMode === 'tabs' ? 'pb-28' : ''} sm:pb-10 lg:pb-16 min-h-[100dvh] overflow-x-hidden`}>
+          <main ref={mainRef} className={`relative ${navMode === 'tabs' ? 'pb-28' : ''} sm:pb-10 lg:pb-16 min-h-[100dvh] overflow-x-hidden`}>
               {/* Background Gate - only mounted in home mode */}
               {navMode === 'home' && (
                 <div className={`transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] max-w-[1600px] mx-auto min-h-[100dvh] flex flex-col ${tab !== 'gate' ? 'scale-[0.98] opacity-30 blur-[2px] pointer-events-none' : 'scale-100 opacity-100'}`}>

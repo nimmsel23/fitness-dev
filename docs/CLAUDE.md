@@ -157,7 +157,7 @@ Port 5902 (dev), Proxy zu Backend API-Routen (:9100).
 
 **BodyMap in Session:** Zeigt nur Muskeln von Exercises mit `done: true`. Kein Preview, kein Plan — nur was bereits abgehakt ist.
 
-**Swipe-Navigation** (Mobile): Links/Rechts wischen wechselt zwischen Views (minSwipeDistance: 70px).
+**Swipe-Navigation** (Mobile): Links/Rechts wischen wechselt zwischen Views (minSwipeDistance: 75px, mit jank-freiem vertikalen Scroll-Lock und intelligentem Ausschluss von horizontal scrollbaren oder interaktiven Elementen).
 
 **Gym Mode**: `layoutScale` (50–150%) skaliert `document.documentElement.fontSize` — für große Gym-Displays.
 

@@ -28,6 +28,7 @@ sys.path.insert(0, str(_ROOT / "anatomy-kb"))
 
 from catalog.fitness_agent.paths import runtime_root
 from catalog.fitness_agent.resolver import build_exercise_index, resolve_query, find_by_id, ExerciseRecord
+from firestore.mirror import mirror_session, mirror_journal, mirror_plan, get_status as firestore_status
 from catalog.fitness_agent.teaching import find_lesson
 import dataclasses
 from catalog.fitness_agent.planner import build_plan
@@ -162,6 +163,7 @@ async def handle_session_post(req: web.Request) -> web.Response:
     session = {**body, "date": day, "session_id": sid, "saved_at": datetime.utcnow().isoformat()}
     _write_json(_session_file(uid, day, sid), session)
     _sync_session_to_db(day, session)
+    await mirror_session(day, session, uid)
     return _json({"ok": True, "id": sid})
 
 async def handle_session_delete(req: web.Request) -> web.Response:
@@ -230,6 +232,7 @@ async def handle_journal_post(req: web.Request) -> web.Response:
     content = body.get("content", "")
     JOUR_DIR.mkdir(parents=True, exist_ok=True)
     (JOUR_DIR / f"{day}.md").write_text(content)
+    await mirror_journal(day, {"text": content}, uid)
     return _json({"ok": True})
 
 async def handle_journal_list(req: web.Request) -> web.Response:
@@ -532,6 +535,10 @@ def create_app() -> web.Application:
     app.router.add_route("GET",    "/fitness/inbox",             handle_inbox_list)
     app.router.add_route("POST",   "/fitness/inbox/{id}/approve",handle_inbox_approve)
     app.router.add_route("DELETE", "/fitness/inbox/{id}",        handle_inbox_delete)
+
+    # Firestore
+    app.router.add_route("GET",    "/firestore/status",
+                         lambda r: _json(firestore_status()))
 
     # Clients
     app.router.add_route("GET",    "/fitness/clients",           handle_clients)

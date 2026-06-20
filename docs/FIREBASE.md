@@ -61,7 +61,15 @@ fitness/
 
 ### Lokal → Firestore (automatisch)
 
-`firestore-mirror.mjs` (in `server.mjs`) spiegelt jeden `POST /session` und `POST /journal` Side-Effect-mäßig nach Firestore.
+**Node-Server** (`firestore-mirror.mjs`): spiegelt jeden `POST /session` und `POST /journal` fire-and-forget nach Firestore.
+
+**Python-Backend** (`firestore/mirror.py`): äquivalente Push-Funktionen für den Python-Server:
+- `mirror_session(date, session, uid)` → `fitness/{uid}/sessions/{date}`
+- `mirror_journal(date, entry, uid)` → `fitness/{uid}/journal/{date}`
+- `mirror_plan(plan, uid)` → `fitness/{uid}/plan/active`
+- `get_status()` → Verbindungsstatus
+
+Beide nutzen `~/.env/firebase-fitness.json` als Service-Account.
 
 ### Firestore → Lokal
 

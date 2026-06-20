@@ -50,7 +50,7 @@ export default function WeightChart({ days = 30 }) {
   const deltaColor = delta < 0 ? 'var(--green)' : delta > 0 ? 'var(--red)' : 'var(--muted)'
 
   return (
-    <div className="mb-4 p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+    <div data-no-swipe="true" className="mb-4 p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
           Gewicht

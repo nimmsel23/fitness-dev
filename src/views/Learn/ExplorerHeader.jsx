@@ -1,4 +1,4 @@
-import { Search, Brain, Activity, Zap } from "lucide-react";
+import { Search, Brain, Zap } from "lucide-react";
 
 export default function ExplorerHeader({ viewMode, setViewMode, onStartQuiz, hasRecent }) {
   return (
@@ -15,13 +15,7 @@ export default function ExplorerHeader({ viewMode, setViewMode, onStartQuiz, has
           <Search size={14} className={viewMode === 'library' ? 'stroke-[3]' : ''} />
           <span className="hidden sm:inline">Übungen</span>
         </button>
-        <button
-          onClick={() => setViewMode('analysis')}
-          className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'analysis' ? 'bg-accent text-black shadow-lg shadow-accent/20' : 'text-dim hover:text-ink'}`}>
-          <Activity size={14} className={viewMode === 'analysis' ? 'stroke-[3]' : ''} />
-          <span className="hidden sm:inline">Analyse</span>
-        </button>
-        <button
+<button
           onClick={() => setViewMode('explorer')}
           className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'explorer' ? 'bg-accent text-black shadow-lg shadow-accent/20' : 'text-dim hover:text-ink'}`}>
           <Brain size={14} className={viewMode === 'explorer' ? 'stroke-[3]' : ''} />

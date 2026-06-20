@@ -1,6 +1,12 @@
-"""on_snapshot Daemon: Firestore → ~/.aos/fitness/ (event-driven)
+"""Firestore Mirror — zwei Modi:
 
-python -m firestore.mirror
+1. on_snapshot Daemon (Pull, event-driven):
+   python -m firestore.mirror
+   Lauscht auf Firestore-Änderungen und schreibt lokal nach ~/.aos/fitness/.
+
+2. Push-Funktionen (fire-and-forget, für Python-Backend):
+   from firestore.mirror import mirror_session, mirror_journal, mirror_plan
+   Schreibt nach lokalem Save direkt nach Firestore, ohne zu blockieren.
 """
 
 import json
@@ -97,3 +103,55 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# ── Push (fire-and-forget, für Python-Backend) ────────────────────────────────
+
+import asyncio
+from datetime import datetime
+
+
+def _fire(coro) -> None:
+    """Startet Coroutine als Task wenn ein Event-Loop läuft, sonst skip."""
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(coro)
+    except RuntimeError:
+        pass
+
+
+async def _write(ref, data: dict) -> None:
+    try:
+        db = get_db()
+        db.document(ref).set(data)
+    except Exception as e:
+        logger.warning(f"firestore push fehler: {e}")
+
+
+async def mirror_session(date: str, session: dict, uid: str = "default") -> None:
+    _fire(_write(
+        f"fitness/{uid}/sessions/{date}",
+        {**session, "date": date, "saved_at": datetime.utcnow().isoformat()},
+    ))
+
+
+async def mirror_journal(date: str, entry: dict, uid: str = "default") -> None:
+    _fire(_write(
+        f"fitness/{uid}/journal/{date}",
+        {**entry, "date": date, "time": datetime.utcnow().isoformat()},
+    ))
+
+
+async def mirror_plan(plan: dict, uid: str = "default") -> None:
+    _fire(_write(
+        f"fitness/{uid}/plan/active",
+        {**plan, "updated_at": datetime.utcnow().isoformat()},
+    ))
+
+
+def get_status() -> dict:
+    try:
+        db = get_db()
+        return {"ok": True, "project": db._client.project}
+    except Exception:
+        return {"ok": False, "project": None}
