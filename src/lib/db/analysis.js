@@ -84,19 +84,20 @@ export async function getWeeklyReport(selector = "current") {
   for (const date of dates) {
     const sess = history.find(h => h.date === date);
     if (!sess) continue;
-    const sessGroupsCount = {};
+    const sessGroups = new Set();
     for (let ex of (sess.exercises || [])) {
       const exName = ex.name || ex.exercise_id || "";
       if (!exName) continue;
       topExMap[exName] = (topExMap[exName] || 0) + 1;
       const kbEx = kbMap.get(exName.toLowerCase());
-      const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];
-      const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
-      const stabilizers = kbEx?.stabilizers || ex.stabilizers || [];
-      [...primary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; }));
-      [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
-      [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.2; }));
+      const allMuscles = [
+        ...(kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || []),
+        ...(kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || []),
+        ...(kbEx?.stabilizers || ex.stabilizers || []),
+      ];
+      allMuscles.forEach(m => muscleToGroupIds(m, exName).forEach(gid => sessGroups.add(gid)));
     }
+    sessGroups.forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; });
     sessions.push({ ...sess, exercise_count: sess.exercises?.length || 0 });
   }
 
@@ -137,16 +138,18 @@ export async function getMuscleCoverage(days = 7) {
   const sessionsInWindow = history.filter(s => s.date && s.date >= cutoffDate);
 
   for (const sess of sessionsInWindow) {
+    const sessGroups = new Set();
     for (let ex of (sess.exercises || [])) {
       const exName = ex.name || ex.exercise_id || "";
       const kbEx = kbMap.get(exName.toLowerCase());
-      const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];
-      const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
-      const stabilizers = kbEx?.stabilizers || ex.stabilizers || [];
-      [...primary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; }));
-      [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
-      [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.2; }));
+      const allMuscles = [
+        ...(kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || []),
+        ...(kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || []),
+        ...(kbEx?.stabilizers || ex.stabilizers || []),
+      ];
+      allMuscles.forEach(m => muscleToGroupIds(m, exName).forEach(gid => sessGroups.add(gid)));
     }
+    sessGroups.forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; });
   }
 
   return bodyRegionScores;
