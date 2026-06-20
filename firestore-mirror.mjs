@@ -52,6 +52,11 @@ function fire(fn) {
   fn().catch((e) => console.warn(`[firestore-mirror] write fehler: ${e.message}`));
 }
 
+export async function getFirestoreStatus() {
+  const db = await getDb();
+  return { ok: db !== null, project: db !== null ? PROJECT : null };
+}
+
 export async function mirrorSession(date, session, uid = "default") {
   const db = await getDb();
   if (!db) return;
