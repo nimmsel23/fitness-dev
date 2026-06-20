@@ -374,7 +374,7 @@ export default function App() {
                       {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
                       {tab === 'habits'   && <Habits />}
                       {tab === 'journal'  && <Journal />}
-                      {tab === 'coach'    && isLocalMode() && <Coach onInspectExercise={inspectExercise} />}
+                      {tab === 'coach'    && (isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92') && <Coach onInspectExercise={inspectExercise} />}
                       {tab === 'inbox'    && <Inbox onInspectExercise={inspectExercise} />}
                       {tab === 'settings' && (
                          <Settings
