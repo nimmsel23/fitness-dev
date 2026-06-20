@@ -26,8 +26,11 @@ from loguru import logger
 # ── Sys-Path für lokale Pakete ────────────────────────────────────────────────
 _HERE = Path(__file__).resolve().parent
 _ROOT = _HERE.parent
+_FUEL_DEV = Path.home() / "fuel-dev"
 sys.path.insert(0, str(_ROOT))
 sys.path.insert(0, str(_ROOT / "anatomy-kb"))
+if _FUEL_DEV.exists():
+    sys.path.insert(0, str(_FUEL_DEV))
 
 from catalog.fitness_agent.paths import runtime_root
 from catalog.fitness_agent.resolver import build_exercise_index, resolve_query, find_by_id, ExerciseRecord
@@ -42,6 +45,12 @@ from catalog.fitness_agent import coverage as cov_module
 from anatomy_kb.muscle_handler import list_muscles, get_muscle
 from anatomy_kb.handlers import exercise as anatomy_exercise_handler
 from anatomy_kb.handlers import teaching as anatomy_teaching_handler
+
+try:
+    import fuel_firestore as _fuel_fs
+    _FUEL_FS_AVAILABLE = True
+except ImportError:
+    _FUEL_FS_AVAILABLE = False
 
 PORT      = int(os.environ.get("FITNESS_PORT", 9150))
 HOST      = os.environ.get("FITNESS_HOST", "127.0.0.1")
@@ -722,6 +731,11 @@ def create_app() -> web.Application:
 
     # Clients
     app.router.add_route("GET",    "/fitness/clients",           handle_clients)
+
+    # Fuel Firestore sync (optional — nur wenn fuel-dev vorhanden)
+    if _FUEL_FS_AVAILABLE:
+        _fuel_fs.register_routes(app)
+        logger.info("fuel-firestore routes eingebunden (/api/fuel-firestore/*)")
 
     # Static assets + SPA fallback (nur wenn dist/ vorhanden)
     if _DIST_DIR.exists():

@@ -8,27 +8,13 @@
  * und fuel-dev Remote ist erreichbar.
  */
 
-import React from 'react'
-
-const FuelApp = React.lazy(() => import('fuel/FuelApp'))
-
 export default function FuelTab() {
+  const src = import.meta.env.DEV ? 'http://localhost:9000' : 'https://fuel-vos.web.app'
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <React.Suspense fallback={
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#64748b',
-          fontSize: 13,
-        }}>
-          Fuel lädt…
-        </div>
-      }>
-        <FuelApp />
-      </React.Suspense>
-    </div>
+    <iframe
+      src={src}
+      style={{ flex: 1, border: 'none', width: '100%', height: '100%' }}
+      title="Fuel"
+    />
   )
 }
