@@ -23,7 +23,7 @@ const SESSION_MODES = [
   { value: 'cardio',   label: 'Ausdauer',      icon: Activity,  color: 'orange' },
 ];
 
-export default function Session({ initialDate, initialDraft, onInspectExercise }) {
+export default function Session({ initialDate, initialDraft, onInspectExercise, recentDays = 7, coverageThreshold = 1.0 }) {
   const [date, setDate]           = useState(initialDate || localToday());
   const [sessionMode, setSessionMode] = useState('strength');
   const [block, setBlock]         = useState('');
@@ -33,6 +33,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
   const [duration, setDuration]   = useState('');
   const [trainingsart, setTrainingsart] = useState('');
   const [notes, setNotes]         = useState('');
+  const [coachFeedback, setCoachFeedback] = useState('');
   const [saving, setSaving]       = useState(false);
   const [toast, setToast]         = useState('');
   const [quickInput, setQuickInput] = useState('');
@@ -65,6 +66,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     setLocation(d.location || '');
     setDuration(d.duration || '');
     setNotes(d.notes || '');
+    setCoachFeedback(d.coachFeedback || '');
     setTrainingsart(d.trainingsart || '');
     if (d.sessionMode) {
       setSessionMode(d.sessionMode);
@@ -92,6 +94,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     setLocation('');
     setDuration('');
     setNotes('');
+    setCoachFeedback('');
     setTrainingsart('');
     setSessionMode('strength');
     setActivity({ type: 'hiit', duration: '', notes: '' });
@@ -174,8 +177,8 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     
     // Local Intelligence: Fetch Plan and Gaps
     getPlanSuggestion(date).then(setHint).catch(() => {});
-    getCoverageGaps(7).then(setGaps).catch(() => {});
-  }, [date]);
+    getCoverageGaps(recentDays, coverageThreshold).then(setGaps).catch(() => {});
+  }, [date, recentDays, coverageThreshold]);
 
   const doneExercises = exercises;
 
@@ -286,7 +289,8 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       }
       const list = await listSessionsForDate(date);
       setDaySessions(list);
-      const gaps = await getCoverageGaps(7);
+      // Update gaps after save
+      const gaps = await getCoverageGaps(recentDays, coverageThreshold);
       setGaps(gaps);
     } catch { if (!silent) showToast('Fehler beim Speichern'); }
     finally { setSaving(false); }
@@ -596,6 +600,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
           notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
           onDownload={handleDownload}
           onExportObsidian={exportObsidian}
+          coachFeedback={coachFeedback}
         />
       )}
 

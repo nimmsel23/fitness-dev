@@ -620,9 +620,10 @@ class ClientsView(Static):
         lines.append(f"  {'─'*10}  {'── '*self.days} {'─'*12} {'─'*5}")
 
         for cl in self.clients:
-            uid      = cl["uid"]
-            alias    = cl["alias"]
-            is_self  = cl["is_self"]
+            name     = cl["name"]
+            slug     = cl["slug"]
+            has_data = cl.get("has_data", False)
+            crm_id   = cl.get("espocrm") or cl.get("crm_id")
             sessions_map: dict[str, list[dict]] = {}
             for s in cl["sessions"]:
                 sessions_map.setdefault(s["date"], []).append(s)
@@ -642,27 +643,29 @@ class ClientsView(Static):
                 elif has_cardio:
                     dots.append("[dark_orange]●[/] ")
                 else:
-                    # color by block
-                    block  = next((s.get("block","") for s in day_sessions if classify(s)!="cardio"), "")
-                    color  = block_color(block)
+                    block = next((s.get("block", "") for s in day_sessions if classify(s) != "cardio"), "")
+                    color = block_color(block)
                     dots.append(f"[{color}]●[/] ")
 
             streak_row = " ".join(d.strip() for d in dots)
 
-            last   = cl["last_date"]
-            total  = cl["total_count"]
-            marker = " [dim](ich)[/]" if is_self else ""
-            name_s = f"[bold]{alias}[/]{marker}" if is_self else f"[white]{alias}[/]"
+            last  = cl["last_date"]
+            total = cl["total_count"]
 
             # Last-date age color
             try:
-                age = (today - date.fromisoformat(last)).days
+                age    = (today - date.fromisoformat(last)).days
                 last_c = "green" if age < 3 else "yellow" if age < 7 else "dim red"
                 last_s = f"[{last_c}]{last}[/]"
             except Exception:
                 last_s = f"[dim]{last}[/]"
 
-            lines.append(f"  {name_s:<18}  {streak_row}  {last_s}  [dim]{total:>3}x[/]")
+            # Status suffix
+            no_data_s = "  [dim italic]kein lokaler Sync[/]" if not has_data else ""
+            crm_s     = f"  [dim]#{crm_id}[/]" if crm_id else ""
+
+            name_s = f"[bold bright_magenta]{name:<16}[/]"
+            lines.append(f"  {name_s}  {streak_row}  {last_s}  [dim]{total:>3}x[/]{crm_s}{no_data_s}")
 
             # Expand sessions of last 10 days inline (compact)
             for d in day_cols:

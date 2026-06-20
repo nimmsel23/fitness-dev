@@ -113,7 +113,7 @@ export default function JournalEntry({ e, i, habits, setSelectedEntry, onEdit })
           </p>
         )}
 
-        {isHabit && e.coachFeedback && (
+        {e.coachFeedback && (
           <div className="mt-6 p-4 rounded-2xl bg-[var(--accent)]/5 border-l-4 border-[var(--accent)]">
             <div className="flex items-center gap-2 mb-2">
               <Brain size={14} className="text-[var(--accent)]" />

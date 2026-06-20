@@ -26,7 +26,9 @@ export function useInbox({ global = false } = {}) {
   async function approve(fileId) {
     setActioning(fileId);
     try {
-      await approveInbox(fileId);
+      const ex = exercises.find(e => e.file_id === fileId);
+      const userId = ex?.userId || null;
+      await approveInbox(fileId, userId);
       setExercises(prev => prev.filter(ex => ex.file_id !== fileId));
       showToast('Freigegeben ✓');
     } catch {
@@ -39,7 +41,9 @@ export function useInbox({ global = false } = {}) {
   async function remove(fileId) {
     setActioning(fileId);
     try {
-      await deleteInbox(fileId);
+      const ex = exercises.find(e => e.file_id === fileId);
+      const userId = ex?.userId || null;
+      await deleteInbox(fileId, userId);
       setExercises(prev => prev.filter(ex => ex.file_id !== fileId));
       showToast('Gelöscht');
     } catch {

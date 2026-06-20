@@ -31,6 +31,9 @@ export default defineConfig({
       '@aliase': resolve(FITNESS_ROOT, 'catalog/kb/aliases.yml'),
     },
   },
+  define: {
+    'import.meta.env.VITE_FEDERATION': '"true"',
+  },
   plugins: [
     react(),
     federation({

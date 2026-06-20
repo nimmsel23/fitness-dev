@@ -5,7 +5,7 @@ export default function SidebarSheet({
   location, setLocation, duration, setDuration,
   sessionMode, block, setBlock,
   effort, setEffort, notes, setNotes,
-  onDownload, onExportObsidian,
+  onDownload, onExportObsidian, coachFeedback = ""
 }) {
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-200">
@@ -25,6 +25,7 @@ export default function SidebarSheet({
           onExportObsidian={onExportObsidian}
           onShowMap={onShowMap}
           onClose={onClose}
+          coachFeedback={coachFeedback}
         />
         <div className="h-8" />
       </div>

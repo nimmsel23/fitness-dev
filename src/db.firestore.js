@@ -12,7 +12,7 @@
  */
 
 import {
-  collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc,
+  collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc, updateDoc,
   query, where, orderBy, limit, serverTimestamp, writeBatch, collectionGroup
 } from "firebase/firestore";
 import {
@@ -80,8 +80,19 @@ export const api = { get: noopApi("get"), post: noopApi("post"), delete: noopApi
 let currentUid = null;
 
 export function watchAuth(callback) {
-  return onAuthStateChanged(auth, (user) => {
+  return onAuthStateChanged(auth, async (user) => {
     currentUid = user ? user.uid : null;
+    if (user) {
+      try {
+        await setDoc(doc(db, "fitness", user.uid, "profile", "metadata"), {
+          email: user.email || "",
+          displayName: user.displayName || "",
+          updated_at: serverTimestamp()
+        }, { merge: true });
+      } catch (e) {
+        console.error("Profile metadata sync error:", e);
+      }
+    }
     callback?.(user);
   });
 }
@@ -313,14 +324,27 @@ export async function approveInbox(id, userId) {
     source: "approved",
     approved_at: serverTimestamp(),
   });
-  batch.delete(inboxRef);
+  batch.update(inboxRef, {
+    status: "approved",
+    approved_at: serverTimestamp()
+  });
   await batch.commit();
 
   return { ok: true, id: exId };
 }
 
-export async function deleteInbox(id) {
-  await deleteDoc(doc(db, "fitness", getUid(), "inbox", id));
+export async function deleteInbox(id, userId) {
+  const targetUid = userId || getUid();
+  const inboxRef = doc(db, "fitness", targetUid, "inbox", id);
+  const snap = await getDoc(inboxRef);
+  if (snap.exists() && targetUid !== getUid()) {
+    await updateDoc(inboxRef, {
+      status: "rejected",
+      rejected_at: serverTimestamp()
+    });
+  } else {
+    await deleteDoc(inboxRef);
+  }
   return { ok: true };
 }
 
@@ -950,4 +974,60 @@ export function toggleFavourite(exerciseId) {
   const next = idx >= 0 ? favs.filter(f => f !== exerciseId) : [...favs, exerciseId]
   localStorage.setItem(FAV_KEY, JSON.stringify(next))
   return next.includes(exerciseId)
+}
+
+export async function getGlobalJournalFeed(limitCount = 50) {
+  const snap = await getDocs(collectionGroup(db, "sessions"));
+  const feed = [];
+  
+  for (const d of snap.docs) {
+    const data = d.data();
+    const userId = d.reference.parent.parent.id;
+    feed.push({
+      id: d.id,
+      userId,
+      path: d.reference.path,
+      date: data.date,
+      exercises: data.exercises || [],
+      effort: data.effort ?? null,
+      mood: data.mood || "",
+      notes: data.notes || "",
+      coachFeedback: data.coachFeedback || "",
+      time: data.saved_at?.toDate?.()?.toISOString() || data.date,
+      type: "workout"
+    });
+  }
+
+  feed.sort((a, b) => b.date.localeCompare(a.date));
+  return feed.slice(0, limitCount);
+}
+
+export async function getAllUserProfiles() {
+  try {
+    const snap = await getDocs(collectionGroup(db, "profile"));
+    const profiles = {};
+    snap.docs.forEach(d => {
+      const uid = d.reference.parent.parent.id;
+      profiles[uid] = d.data();
+    });
+    return profiles;
+  } catch {
+    return {};
+  }
+}
+
+export async function saveCoachFeedback(userId, entryId, type, text, habitId = null, date = null) {
+  if (type === 'habit_journal' || type === 'habit') {
+    const targetHabitId = habitId || entryId.split("__")[0];
+    const targetDate = date || entryId.split("__")[1];
+    const ref = doc(db, "fitness", userId, "habitJournals", `${targetHabitId}__${targetDate}`);
+    await setDoc(ref, { coachFeedback: String(text || "").trim(), updated_at: serverTimestamp() }, { merge: true });
+  } else if (type === 'workout' || type === 'session') {
+    const ref = doc(db, "fitness", userId, "sessions", entryId);
+    await setDoc(ref, { coachFeedback: String(text || "").trim(), updated_at: serverTimestamp() }, { merge: true });
+  } else {
+    const ref = doc(db, "fitness", userId, "journal", entryId);
+    await setDoc(ref, { coachFeedback: String(text || "").trim() }, { merge: true });
+  }
+  return { ok: true };
 }
