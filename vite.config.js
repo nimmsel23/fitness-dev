@@ -18,6 +18,11 @@ export default defineConfig(({ mode }) => {
         // Explizite Auflösung für symlinkte Views → cloud_chamber
         './views/Journal': resolve(__dirname, './cloud_chamber/journal-dev/src/views/Journal'),
         './views/Habits':  resolve(__dirname, './cloud_chamber/journal-dev/src/views/Habits'),
+        // Federation: lokale Auflösung für regulären Build (ohne Remote)
+        'journal/JournalApp': resolve(__dirname, './cloud_chamber/federation/JournalApp.jsx'),
+        'fuel/FuelApp':       resolve(__dirname, './cloud_chamber/federation/FuelApp.jsx'),
+        // fuel-dev Internals
+        '@fuel': resolve('/home/alpha/fuel-dev/src/client'),
       },
     },
     server: {

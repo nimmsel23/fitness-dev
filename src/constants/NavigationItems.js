@@ -1,8 +1,9 @@
-import { Activity, Dumbbell, BookOpen, Brain, BarChart3, Settings2 } from "lucide-react";
+import { Activity, Dumbbell, BookOpen, Brain, BarChart3, Settings2, Flame } from "lucide-react";
 
 export const NAV_ITEMS = [
   { id: 'dash',     label: 'Heute',    Icon: Activity },
   { id: 'session',  label: 'Training', Icon: Dumbbell },
+  { id: 'fuel',     label: 'Fuel',     Icon: Flame },
   { id: 'journal',  label: 'Journal',  Icon: BookOpen },
   { id: 'review',   label: 'Review',   Icon: BarChart3 },
   { id: 'learn',    label: 'Lernen',   Icon: Brain },
