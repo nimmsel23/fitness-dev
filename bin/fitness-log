@@ -1,0 +1,507 @@
+#!/usr/bin/env python3
+"""
+fitness-log — Direkter Dateizugriff auf Session-Logs (kein Server nötig).
+
+Datenpfad: ~/.aos/users/<uid>/fitness/sessions/*.json
+Fallback:  <repo>/data/sessions/*.json
+
+Subcommands:
+  fitness log ls [--days N]          Alle Sessions der letzten N Tage
+  fitness log show [DATE]            Detail-Ansicht (default: heute)
+  fitness log week                   Wochenübersicht letzte 7 Tage
+  fitness log history EXERCISE       Set-Verlauf (SQLite)
+  fitness log stats [--days N]       Aggregate (Split, Coverage, Cardio)
+  fitness log sync-status            Firestore ↔ lokal Sync-Status
+"""
+from __future__ import annotations
+
+import json
+import os
+import sqlite3
+import subprocess
+import sys
+from datetime import date, datetime, timedelta
+from pathlib import Path
+from typing import Optional
+
+import typer
+
+# ── Pfade ─────────────────────────────────────────────────────────────────────
+REPO_ROOT    = Path(__file__).resolve().parent.parent
+_uid_file    = Path.home() / ".aos" / "users" / ".active-uid"
+_UID         = _uid_file.read_text().strip() if _uid_file.exists() else None
+_AOS_DIR     = (Path.home() / ".aos" / "users" / _UID / "fitness") if _UID else None
+
+def _sessions_dir() -> Path:
+    """Prefer ~/.aos/users/<uid>/fitness/sessions, fall back to data/sessions."""
+    if _AOS_DIR and (_AOS_DIR / "sessions").exists():
+        return _AOS_DIR / "sessions"
+    return REPO_ROOT / "data" / "sessions"
+
+def _sqlite_db() -> Path:
+    return _sessions_dir() / "training_history.sqlite"
+
+# ── ANSI helpers ──────────────────────────────────────────────────────────────
+def _has_gum() -> bool:
+    import shutil
+    return bool(shutil.which("gum"))
+
+HAS_GUM = _has_gum()
+
+C = {
+    "reset":  "\033[0m",  "bold":   "\033[1m",  "dim":    "\033[2m",
+    "accent": "\033[38;5;212m", "orange": "\033[38;5;214m",
+    "blue":   "\033[38;5;75m",  "green":  "\033[38;5;114m",
+    "red":    "\033[38;5;203m", "yellow": "\033[38;5;221m",
+    "muted":  "\033[38;5;245m", "white":  "\033[38;5;255m",
+    "cyan":   "\033[38;5;86m",
+}
+
+def c(color: str, text: str) -> str:
+    return f"{C.get(color,'')}{text}{C['reset']}"
+
+def header(title: str) -> None:
+    if HAS_GUM:
+        subprocess.run(["gum", "style",
+            "--foreground=212", "--bold",
+            "--border=rounded", "--border-foreground=212",
+            "--padding=0 2", "--margin=0 0 1 0", title])
+    else:
+        w = max(len(title) + 4, 50)
+        print(f"\n{c('accent','┌' + '─'*w + '┐')}")
+        print(f"{c('accent','│')} {c('bold', title):<{w-1}}{c('accent','│')}")
+        print(f"{c('accent','└' + '─'*w + '┘')}")
+
+def gum_table(headers: list[str], rows: list[list[str]], widths: list[int]) -> None:
+    lines = [",".join(headers)] + [",".join(str(x) for x in r) for r in rows]
+    if HAS_GUM and rows:
+        subprocess.run(
+            ["gum", "table", "--print", "--separator=,",
+             f"--widths={','.join(map(str,widths))}"],
+            input="\n".join(lines), text=True)
+    else:
+        fmt = "  " + "  ".join(f"{{:<{w}}}" for w in widths)
+        print(c("muted", fmt.format(*[h[:w] for h, w in zip(headers, widths)])))
+        print(c("muted", "  " + "  ".join("─"*w for w in widths)))
+        for row in rows:
+            cells = [str(x)[:w] for x, w in zip(row, widths)]
+            print(fmt.format(*cells))
+
+# ── Domain constants ──────────────────────────────────────────────────────────
+ACTIVITY_EMOJI = {
+    "running":"🏃","cycling":"🚴","swimming":"🏊","hiking":"🥾",
+    "rowing":"🚣","climbing":"🧗","yoga":"🧘","stretching":"🤸",
+    "hiit":"⚡","walking":"🚶",
+}
+ACTIVITY_LABEL = {
+    "running":"Laufen","cycling":"Radfahren","swimming":"Schwimmen",
+    "hiking":"Wandern","rowing":"Rudern","climbing":"Klettern",
+    "yoga":"Yoga","stretching":"Stretching","hiit":"HIIT","walking":"Spazieren",
+}
+BLOCK_COLORS = {
+    "push":"accent","pull":"green","legs":"orange",
+    "upper":"blue","lower":"yellow","full":"yellow",
+}
+
+def block_color(block: str) -> str:
+    bl = (block or "").lower()
+    for k, color in BLOCK_COLORS.items():
+        if k in bl:
+            return color
+    return "accent"
+
+# ── Data layer ────────────────────────────────────────────────────────────────
+def _parse_date_from_stem(stem: str) -> str | None:
+    """Extract YYYY-MM-DD from stem like '2026-06-19' or '2026-06-19__xxx'."""
+    if len(stem) >= 10 and stem[:10].count("-") == 2:
+        return stem[:10]
+    return None
+
+def load_all_sessions(days: int = 90) -> list[dict]:
+    """Load all session JSONs from sessions dir, newest first."""
+    sdir = _sessions_dir()
+    cutoff = (date.today() - timedelta(days=days)).isoformat()
+    sessions = []
+    for f in sorted(sdir.glob("*.json"), reverse=True):
+        d = _parse_date_from_stem(f.stem)
+        if not d or d < cutoff:
+            continue
+        try:
+            s = json.loads(f.read_text())
+            s.setdefault("date", d)
+            s["_file"] = str(f)
+            sessions.append(s)
+        except Exception:
+            pass
+    # Sort newest first, deduplicate same-date entries (keep all — multi-session support)
+    sessions.sort(key=lambda s: (s["date"], s.get("_file","")), reverse=True)
+    return sessions
+
+def get_sessions_for_date(target: str) -> list[dict]:
+    sdir = _sessions_dir()
+    results = []
+    for f in sorted(sdir.glob(f"{target}*.json")):
+        try:
+            s = json.loads(f.read_text())
+            s.setdefault("date", target)
+            s["_file"] = str(f)
+            results.append(s)
+        except Exception:
+            pass
+    return results
+
+def sqlite_history(exercise: str, limit: int = 20) -> list[dict]:
+    db = _sqlite_db()
+    if not db.exists():
+        return []
+    try:
+        con = sqlite3.connect(str(db))
+        cur = con.execute(
+            "SELECT date, display_name, sets, reps, weight, rpe, notes "
+            "FROM training_history "
+            "WHERE lower(display_name) LIKE ? OR lower(exercise_id) LIKE ? "
+            "ORDER BY date DESC, id DESC LIMIT ?",
+            (f"%{exercise.lower()}%", f"%{exercise.lower()}%", limit))
+        cols = ["date","display_name","sets","reps","weight","rpe","notes"]
+        rows = [dict(zip(cols, r)) for r in cur.fetchall()]
+        con.close()
+        return rows
+    except Exception:
+        return []
+
+# ── Session classification ────────────────────────────────────────────────────
+def classify(s: dict) -> str:
+    """Return 'cardio', 'strength+addon', or 'strength'."""
+    mode = s.get("sessionMode")
+    act  = s.get("activity")
+    exs  = [e for e in (s.get("exercises") or []) if e.get("done")]
+    if mode == "cardio" or (act and not exs):
+        return "cardio"
+    if act and exs:
+        return "strength+addon"
+    return "strength"
+
+# ── Formatters ────────────────────────────────────────────────────────────────
+def fmt_date_label(d: str) -> str:
+    try:
+        dt = datetime.strptime(d, "%Y-%m-%d")
+        today = date.today().isoformat()
+        yesterday = (date.today() - timedelta(days=1)).isoformat()
+        if d == today:      return c("accent", f"Heute     ({d})")
+        if d == yesterday:  return c("muted",  f"Gestern   ({d})")
+        return c("muted", dt.strftime("%a %d.%m.%y"))
+    except Exception:
+        return d
+
+def one_line(s: dict) -> str:
+    d     = s.get("date","?")
+    kind  = classify(s)
+    act   = s.get("activity")
+    exs   = [e for e in (s.get("exercises") or []) if e.get("done")]
+    block = s.get("block","")
+    eff   = s.get("effort")
+    dur   = s.get("duration")
+    notes = (s.get("notes") or "")[:35]
+
+    date_s = fmt_date_label(d)
+
+    if kind == "cardio":
+        atype = act.get("type","?") if act else "?"
+        adur  = act.get("duration","") if act else ""
+        emoji = ACTIVITY_EMOJI.get(atype,"🏃")
+        label = ACTIVITY_LABEL.get(atype, atype)
+        dur_s = f" {c('muted', str(adur)+'min')}" if adur else ""
+        return f"  {date_s:<30}  {emoji} {c('orange',label)}{dur_s}"
+    else:
+        bc    = block_color(block)
+        tag   = f"[{block}]" if block else "[?]"
+        ex_s  = c("muted", f"{len(exs)} Ex")
+        eff_s = f"  RPE {c('yellow',str(eff))}" if eff else ""
+        dur_s = f"  {c('muted',str(dur)+'min')}" if dur else ""
+        note_s = f"  {c('dim',notes)}" if notes else ""
+        addon = ""
+        if kind == "strength+addon" and act:
+            atype = act.get("type","?")
+            adur  = act.get("duration","")
+            addon = f"  {c('orange', ACTIVITY_EMOJI.get(atype,'⚡')+('+'+str(adur)+'min' if adur else ''))}"
+        return f"  {date_s:<30}  {c(bc,tag):<16}  {ex_s}{eff_s}{dur_s}{addon}{note_s}"
+
+def render_detail(s: dict) -> None:
+    d     = s.get("date","?")
+    kind  = classify(s)
+    act   = s.get("activity")
+    exs   = [e for e in (s.get("exercises") or []) if e.get("done")]
+    block = s.get("block","")
+    eff   = s.get("effort")
+    dur   = s.get("duration")
+    loc   = s.get("location","")
+    notes = s.get("notes","")
+
+    try:
+        dt_label = datetime.strptime(d,"%Y-%m-%d").strftime("%A, %d. %B %Y")
+    except Exception:
+        dt_label = d
+
+    if kind == "cardio":
+        atype = act.get("type","?") if act else "?"
+        emoji = ACTIVITY_EMOJI.get(atype,"🏃")
+        label = ACTIVITY_LABEL.get(atype, atype)
+        header(f"{emoji}  {label}  —  {dt_label}")
+        adur = act.get("duration","") if act else ""
+        if adur:
+            print(f"\n  {c('orange','⏱')}  {c('white',str(adur))} {c('muted','Minuten')}")
+        if act and act.get("notes"):
+            print(f"\n  {c('muted',act['notes'])}")
+    else:
+        bc = block_color(block)
+        header(f"💪  {block or '?'}  —  {dt_label}")
+        meta = []
+        if eff:  meta.append(f"RPE {c('yellow',str(eff))}/10")
+        if dur:  meta.append(f"{c('muted',str(dur)+' min')}")
+        if loc:  meta.append(f"📍 {c('muted',loc)}")
+        if meta: print("  " + "  ·  ".join(meta))
+        if kind == "strength+addon" and act:
+            atype = act.get("type","?")
+            adur  = act.get("duration","")
+            emoji = ACTIVITY_EMOJI.get(atype,"⚡")
+            label = ACTIVITY_LABEL.get(atype, atype)
+            dur_s = f" · {adur}min" if adur else ""
+            print(f"  {c('orange','Finisher:')} {emoji} {c('orange',label+dur_s)}")
+        if notes:
+            print(f"\n  {c('muted',notes)}")
+        if exs:
+            print(f"\n  {c('muted','─'*52)}")
+            print(f"  {c('bold','Exercises')}  {c('muted',str(len(exs))+' done')}\n")
+            for ex in exs:
+                name   = ex.get("name","?")
+                note   = ex.get("note","")
+                pm     = ", ".join(ex.get("primaryMuscles") or [])
+                print(f"  {c('white','▸')} {c('bold',name)}  {c('muted',pm)}")
+                sets_arr = ex.get("setsArray") or []
+                has_data = any(st.get("reps") or st.get("weight") for st in sets_arr)
+                if has_data:
+                    for i, st in enumerate(sets_arr, 1):
+                        r = st.get("reps",""); w = st.get("weight","")
+                        parts = [f"{r} Wdh" if r else None, f"{w} kg" if w else None]
+                        parts = [p for p in parts if p]
+                        if parts:
+                            print(f"    {c('muted','Set '+str(i)+':')} {c('accent','  ·  '.join(parts))}")
+                if note:
+                    print(f"    {c('muted','↳ '+note)}")
+    print()
+
+# ── CLI ───────────────────────────────────────────────────────────────────────
+app = typer.Typer(
+    name="fitness-log",
+    help=__doc__,
+    no_args_is_help=True,
+    add_completion=False,
+)
+
+@app.command(name="ls", help="Sessions der letzten N Tage")
+def cmd_ls(
+    days: int  = typer.Option(14, "--days", "-d"),
+    all_: bool = typer.Option(False, "--all", "-a", help="Alle Sessions"),
+) -> None:
+    n = 9999 if all_ else days
+    sessions = load_all_sessions(n)
+    if not sessions:
+        print(c("muted","  Keine Sessions gefunden.")); raise typer.Exit()
+    sdir = _sessions_dir()
+    header(f"Sessions — letzte {'alle' if all_ else str(n)+' Tage'}  ({len(sessions)} Einträge)")
+    print(c("dim", f"  Quelle: {sdir}\n"))
+    for s in sessions:
+        print(one_line(s))
+    print()
+
+@app.command(name="show", help="Detail-Ansicht einer Session")
+def cmd_show(
+    date_arg: Optional[str] = typer.Argument(None, help="YYYY-MM-DD | heute | gestern"),
+    no_sets:  bool = typer.Option(False, "--no-sets"),
+) -> None:
+    today_s = date.today().isoformat()
+    yest_s  = (date.today()-timedelta(days=1)).isoformat()
+    target  = today_s if not date_arg or date_arg in ("heute","today") \
+              else yest_s if date_arg in ("gestern","yesterday") \
+              else date_arg
+    sessions = get_sessions_for_date(target)
+    if not sessions:
+        print(c("red",f"  Keine Session für {target} gefunden.")); raise typer.Exit(1)
+    if len(sessions) > 1:
+        print(c("accent",f"  {len(sessions)} Sessions am {target}:\n"))
+    for s in sessions:
+        render_detail(s)
+
+@app.command(name="week", help="Wochenübersicht letzte 7 Tage")
+def cmd_week() -> None:
+    all_sessions = load_all_sessions(7)
+    by_date: dict[str, list[dict]] = {}
+    for s in all_sessions:
+        by_date.setdefault(s["date"], []).append(s)
+    header("Woche — letzte 7 Tage")
+    today = date.today()
+    strength_count = cardio_count = total_ex = cardio_min = 0
+    for i in range(6, -1, -1):
+        d = (today - timedelta(days=i)).isoformat()
+        weekday = datetime.strptime(d,"%Y-%m-%d").strftime("%a %d.%m")
+        day_s = by_date.get(d, [])
+        if not day_s:
+            print(f"  {c('muted',weekday)}  {c('dim','·  Ruhetag')}")
+            continue
+        parts = []
+        for s in day_s:
+            kind = classify(s)
+            act  = s.get("activity")
+            exs  = [e for e in (s.get("exercises") or []) if e.get("done")]
+            if kind == "cardio":
+                atype = act.get("type","?") if act else "?"
+                emoji = ACTIVITY_EMOJI.get(atype,"🏃")
+                label = ACTIVITY_LABEL.get(atype,atype)
+                adur  = act.get("duration","") if act else ""
+                try: cardio_min += int(adur or 0)
+                except: pass
+                cardio_count += 1
+                parts.append(f"{emoji} {c('orange',label)}{(' '+c('muted',str(adur)+'min')) if adur else ''}")
+            else:
+                block = s.get("block","?")
+                bc    = block_color(block)
+                strength_count += 1
+                total_ex += len(exs)
+                addon = ""
+                if kind == "strength+addon" and act:
+                    atype = act.get("type","?")
+                    addon = f" {c('orange',ACTIVITY_EMOJI.get(atype,'⚡'))}"
+                exnames = ", ".join(e.get("name","?") for e in exs[:3])
+                ellipsis = "…" if len(exs)>3 else ""
+                parts.append(f"{c(bc,'●')} {c('bold',block)}  {c('muted',exnames+ellipsis)}{addon}")
+        print(f"  {c('muted',weekday)}  " + f"  {c('dim','|')}  ".join(parts))
+    print()
+    print(f"  {c('muted','Kraft:')} {c('white',str(strength_count)+'x')}  "
+          + f"{c('muted','Übungen:')} {c('white',str(total_ex))}  "
+          + f"{c('muted','Ausdauer:')} {c('orange',str(cardio_count)+'x')}"
+          + (f"  {c('muted',str(cardio_min)+'min')}" if cardio_min else ""))
+    print()
+
+@app.command(name="history", help="Übungs-Verlauf aus SQLite")
+def cmd_history(
+    exercise: str = typer.Argument(..., help="Name oder ID (Substring)"),
+    limit: int    = typer.Option(10, "--limit","-n"),
+) -> None:
+    rows = sqlite_history(exercise, limit)
+    if not rows:
+        print(c("muted",f"  Keine Daten für '{exercise}'.")); raise typer.Exit()
+    header(f"Verlauf — {rows[0]['display_name']}")
+    table_rows = []
+    for r in rows:
+        w = f"{r['weight']:.1f}kg" if r['weight'] else "—"
+        table_rows.append([r['date'], str(r['sets'] or "—"), str(r['reps'] or "—"),
+                           w, str(r['rpe'] or "—"), (r['notes'] or "")[:30]])
+    gum_table(["Datum","Sets","Wdh","Gewicht","RPE","Notiz"], table_rows, [12,5,5,10,5,32])
+    print()
+
+@app.command(name="stats", help="Aggregate-Statistiken")
+def cmd_stats(
+    days: int = typer.Option(28, "--days","-d"),
+) -> None:
+    sessions = load_all_sessions(days)
+    if not sessions:
+        print(c("muted","  Keine Sessions.")); raise typer.Exit()
+    header(f"Stats — letzte {days} Tage  ({len(sessions)} Sessions)")
+    strength = [s for s in sessions if classify(s) != "cardio"]
+    cardio   = [s for s in sessions if classify(s) == "cardio"]
+    total_ex = sum(len([e for e in (s.get("exercises") or []) if e.get("done")]) for s in strength)
+    cardio_min = 0
+    for s in cardio:
+        try: cardio_min += int((s.get("activity") or {}).get("duration") or 0)
+        except: pass
+    print(f"\n  {c('bold','Sessions')}")
+    print(f"  Kraft:    {c('accent',str(len(strength))+'x')}  ·  {c('muted',str(total_ex)+' Übungen gesamt')}")
+    print(f"  Ausdauer: {c('orange',str(len(cardio))+'x')}"
+          + (f"  ·  {c('muted',str(cardio_min)+' min gesamt')}" if cardio_min else ""))
+    # block distribution
+    block_dist: dict[str,int] = {}
+    muscle_freq: dict[str,int] = {}
+    for s in strength:
+        bl = (s.get("block") or "?").strip()
+        block_dist[bl] = block_dist.get(bl,0)+1
+        for ex in (s.get("exercises") or []):
+            if ex.get("done"):
+                for m in (ex.get("primaryMuscles") or []):
+                    muscle_freq[m] = muscle_freq.get(m,0)+1
+    cardio_dist: dict[str,int] = {}
+    for s in cardio:
+        atype = (s.get("activity") or {}).get("type","?")
+        cardio_dist[atype] = cardio_dist.get(atype,0)+1
+    if block_dist:
+        print(f"\n  {c('bold','Split')}")
+        for bl, cnt in sorted(block_dist.items(), key=lambda x:-x[1]):
+            bar = c(block_color(bl),"█"*cnt) + c("dim","░"*max(0,6-cnt))
+            print(f"  {c(block_color(bl),f'{bl:<12}')}  {bar}  {c('muted',str(cnt)+'x')}")
+    if cardio_dist:
+        print(f"\n  {c('bold','Ausdauer')}")
+        for atype, cnt in sorted(cardio_dist.items(), key=lambda x:-x[1]):
+            emoji = ACTIVITY_EMOJI.get(atype,"🏃")
+            label = ACTIVITY_LABEL.get(atype,atype)
+            print(f"  {emoji} {c('orange',f'{label:<14}')} {c('muted',str(cnt)+'x')}")
+    if muscle_freq:
+        print(f"\n  {c('bold','Muskel-Coverage')}")
+        for m, cnt in sorted(muscle_freq.items(), key=lambda x:-x[1])[:8]:
+            bar = c("accent","█"*min(cnt,10)) + c("dim","░"*max(0,10-cnt))
+            print(f"  {c('white',f'{m:<14}')}  {bar}  {c('muted',str(cnt)+'x')}")
+    print()
+
+@app.command(name="sync-status", help="Firestore ↔ lokal Sync-Status")
+def cmd_sync_status() -> None:
+    header("Firestore ↔ Lokal Sync")
+
+    # systemd service
+    r = subprocess.run(["systemctl","--user","show",
+        "fitness-firestore-mirror.service",
+        "--property=ActiveState,SubState,ExecMainStartTimestamp"],
+        capture_output=True, text=True)
+    props = dict(line.split("=",1) for line in r.stdout.strip().splitlines() if "=" in line)
+    state     = props.get("ActiveState","?")
+    sub       = props.get("SubState","?")
+    last_run  = props.get("ExecMainStartTimestamp","?")
+    state_c   = "green" if state == "active" else "red"
+    print(f"\n  {c('muted','Service:')}  {c(state_c, state+' ('+sub+')')}")
+    print(f"  {c('muted','Letzter Run:')} {c('white', last_run)}")
+
+    # local file counts
+    sdir = _sessions_dir()
+    json_files = list(sdir.glob("*.json"))
+    print(f"\n  {c('muted','Sessions-Pfad:')} {c('white',str(sdir))}")
+    print(f"  {c('muted','JSON-Dateien:')}  {c('accent',str(len(json_files)))}")
+
+    sqlite = _sqlite_db()
+    if sqlite.exists():
+        try:
+            con = sqlite3.connect(str(sqlite))
+            n = con.execute("SELECT COUNT(*) FROM training_history").fetchone()[0]
+            latest = con.execute("SELECT MAX(date) FROM training_history").fetchone()[0]
+            con.close()
+            print(f"  {c('muted','SQLite Sets:')}   {c('accent',str(n))}  {c('dim','(latest: '+str(latest)+')')}")
+        except Exception as e:
+            print(f"  {c('red','SQLite-Fehler:')} {e}")
+
+    # newest session date
+    if json_files:
+        newest = max(_parse_date_from_stem(f.stem) or "" for f in json_files if _parse_date_from_stem(f.stem))
+        today  = date.today().isoformat()
+        age    = (date.today() - date.fromisoformat(newest)).days if newest else "?"
+        age_c  = "green" if isinstance(age,int) and age < 2 else "yellow" if isinstance(age,int) and age < 7 else "red"
+        print(f"  {c('muted','Neueste Session:')} {c(age_c, newest)}  {c('dim',str(age)+' Tage alt')}")
+
+    # check if mirror daemon is really watching (process check)
+    rp = subprocess.run(["pgrep","-fa","mirror.py"], capture_output=True, text=True)
+    if rp.stdout.strip():
+        print(f"\n  {c('green','● Mirror-Daemon läuft')}  {c('dim',rp.stdout.strip()[:60])}")
+    else:
+        print(f"\n  {c('yellow','○ Mirror-Daemon nicht aktiv')}  {c('dim','(boot-only one-shot)')}")
+
+    # tip
+    print(f"\n  {c('dim','→ fitness sync  zum manuellen Pull/Push')}")
+    print()
+
+if __name__ == "__main__":
+    app()

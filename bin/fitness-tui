@@ -1,0 +1,456 @@
+#!/usr/bin/env python3
+"""
+fitness-tui — Rich TUI Dashboard für Session-Logs.
+
+Zeigt eine vollständige Übersicht:
+  - Heutiger Status / letzte Session
+  - 7-Tage Streak-Grid
+  - Session-Timeline (letzte 14 Tage)
+  - Sync-Status
+
+Keine Server-Verbindung nötig — direkter Dateizugriff.
+
+Usage:
+  fitness tui              → Full Dashboard (auto-refresh 30s)
+  fitness tui --once       → Einmalige Ausgabe, kein Live-Modus
+  fitness tui --days N     → Timeline für N Tage
+"""
+from __future__ import annotations
+
+import json
+import os
+import sqlite3
+import subprocess
+import sys
+import time
+from datetime import date, datetime, timedelta
+from pathlib import Path
+from typing import Optional
+
+import typer
+from rich import box
+from rich.align import Align
+from rich.columns import Columns
+from rich.console import Console
+from rich.layout import Layout
+from rich.live import Live
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
+from rich.rule import Rule
+
+# ── Pfade (shared logic with fitness-log) ─────────────────────────────────────
+_REPO      = Path(__file__).resolve().parent.parent
+_uid_file  = Path.home() / ".aos" / "users" / ".active-uid"
+_UID       = _uid_file.read_text().strip() if _uid_file.exists() else None
+_AOS_DIR   = (Path.home() / ".aos" / "users" / _UID / "fitness") if _UID else None
+
+def _sessions_dir() -> Path:
+    if _AOS_DIR and (_AOS_DIR / "sessions").exists():
+        return _AOS_DIR / "sessions"
+    return _REPO / "data" / "sessions"
+
+def _sqlite_db() -> Path:
+    return _sessions_dir() / "training_history.sqlite"
+
+# ── Domain ────────────────────────────────────────────────────────────────────
+ACTIVITY_EMOJI = {
+    "running":"🏃","cycling":"🚴","swimming":"🏊","hiking":"🥾",
+    "rowing":"🚣","climbing":"🧗","yoga":"🧘","stretching":"🤸",
+    "hiit":"⚡","walking":"🚶",
+}
+ACTIVITY_LABEL = {
+    "running":"Laufen","cycling":"Radfahren","swimming":"Schwimmen",
+    "hiking":"Wandern","rowing":"Rudern","climbing":"Klettern",
+    "yoga":"Yoga","stretching":"Stretching","hiit":"HIIT","walking":"Spazieren",
+}
+BLOCK_STYLE = {
+    "push":"bold magenta","pull":"bold green","legs":"bold dark_orange",
+    "upper":"bold cyan","lower":"bold yellow","full":"bold gold1",
+}
+WEEKDAYS_DE = ["Mo","Di","Mi","Do","Fr","Sa","So"]
+
+def block_style(block: str) -> str:
+    bl = (block or "").lower()
+    for k, s in BLOCK_STYLE.items():
+        if k in bl:
+            return s
+    return "bold bright_magenta"
+
+def _parse_date(stem: str) -> str | None:
+    if len(stem) >= 10 and stem[:10].count("-") == 2:
+        return stem[:10]
+    return None
+
+def classify(s: dict) -> str:
+    mode = s.get("sessionMode")
+    act  = s.get("activity")
+    exs  = [e for e in (s.get("exercises") or []) if e.get("done")]
+    if mode == "cardio" or (act and not exs):
+        return "cardio"
+    if act and exs:
+        return "strength+addon"
+    return "strength"
+
+# ── Data loading ──────────────────────────────────────────────────────────────
+def load_sessions(days: int = 30) -> list[dict]:
+    sdir   = _sessions_dir()
+    cutoff = (date.today() - timedelta(days=days)).isoformat()
+    out    = []
+    for f in sorted(sdir.glob("*.json"), reverse=True):
+        d = _parse_date(f.stem)
+        if not d or d < cutoff:
+            continue
+        try:
+            s = json.loads(f.read_text())
+            s.setdefault("date", d)
+            out.append(s)
+        except Exception:
+            pass
+    out.sort(key=lambda s: (s["date"], s.get("_file","")), reverse=True)
+    return out
+
+def sync_info() -> dict:
+    """Gather Firestore sync status info."""
+    r = subprocess.run(
+        ["systemctl","--user","show",
+         "fitness-firestore-mirror.service",
+         "--property=ActiveState,SubState,ExecMainStartTimestamp"],
+        capture_output=True, text=True)
+    props = dict(line.split("=",1) for line in r.stdout.strip().splitlines() if "=" in line)
+    daemon = subprocess.run(["pgrep","-fa","mirror.py"],
+                            capture_output=True, text=True).stdout.strip()
+    json_count = len(list(_sessions_dir().glob("*.json")))
+    db = _sqlite_db()
+    sqlite_count = 0
+    sqlite_latest = "?"
+    if db.exists():
+        try:
+            con = sqlite3.connect(str(db))
+            sqlite_count  = con.execute("SELECT COUNT(*) FROM training_history").fetchone()[0]
+            sqlite_latest = con.execute("SELECT MAX(date) FROM training_history").fetchone()[0] or "?"
+            con.close()
+        except Exception:
+            pass
+    return {
+        "state": props.get("ActiveState","?"),
+        "sub":   props.get("SubState","?"),
+        "last":  props.get("ExecMainStartTimestamp","?"),
+        "daemon_running": bool(daemon),
+        "json_count":     json_count,
+        "sqlite_count":   sqlite_count,
+        "sqlite_latest":  sqlite_latest,
+    }
+
+# ── Rich Renderers ────────────────────────────────────────────────────────────
+
+def make_header() -> Text:
+    now = datetime.now().strftime("%H:%M:%S")
+    t = Text()
+    t.append("  💪  AlphaOS Fitness ", style="bold bright_magenta")
+    t.append("─ Session Dashboard ─", style="dim white")
+    t.append(f"  {now}  ", style="dim cyan")
+    return t
+
+
+def make_today_panel(sessions: list[dict]) -> Panel:
+    today = date.today().isoformat()
+    today_sessions = [s for s in sessions if s.get("date") == today]
+
+    if not today_sessions:
+        # Check yesterday
+        yest = (date.today()-timedelta(days=1)).isoformat()
+        yest_sessions = [s for s in sessions if s.get("date") == yest]
+        if yest_sessions:
+            s = yest_sessions[0]
+            kind = classify(s)
+            t = Text()
+            t.append("Gestern  ", style="dim")
+            _append_session_summary(t, s, kind)
+            return Panel(t, title="[dim]Letzte Session[/dim]",
+                         border_style="dim", padding=(1,2))
+        t = Text("  Heute noch keine Session geloggt.", style="dim")
+        return Panel(t, title="[bright_magenta]Heute[/bright_magenta]",
+                     border_style="bright_magenta", padding=(1,2))
+
+    grid = Table.grid(padding=(0,2))
+    grid.add_column()
+    for s in today_sessions:
+        kind = classify(s)
+        t = Text()
+        _append_session_summary(t, s, kind)
+        grid.add_row(t)
+    return Panel(grid, title=f"[bright_magenta]Heute · {today}[/bright_magenta]",
+                 border_style="bright_magenta", padding=(1,2))
+
+
+def _append_session_summary(t: Text, s: dict, kind: str) -> None:
+    act   = s.get("activity")
+    exs   = [e for e in (s.get("exercises") or []) if e.get("done")]
+    block = s.get("block","")
+    eff   = s.get("effort")
+
+    if kind == "cardio":
+        atype = (act or {}).get("type","?")
+        adur  = (act or {}).get("duration","")
+        emoji = ACTIVITY_EMOJI.get(atype,"🏃")
+        label = ACTIVITY_LABEL.get(atype, atype)
+        t.append(f"{emoji}  ", style="")
+        t.append(f"{label}", style="bold dark_orange")
+        if adur:
+            t.append(f"  ·  {adur}min", style="dim")
+    else:
+        bs = block_style(block)
+        t.append("💪  ", style="")
+        t.append(f"{block or '?'}", style=bs)
+        if exs:
+            names = ", ".join(e.get("name","?") for e in exs[:4])
+            ellipsis = "…" if len(exs)>4 else ""
+            t.append(f"  ·  {names}{ellipsis}", style="dim")
+        if eff:
+            t.append(f"  ·  RPE {eff}", style="dim yellow")
+        if kind == "strength+addon" and act:
+            atype = act.get("type","?")
+            adur  = act.get("duration","")
+            emoji = ACTIVITY_EMOJI.get(atype,"⚡")
+            label = ACTIVITY_LABEL.get(atype,atype)
+            t.append(f"\n  ⚡ Finisher: {emoji} {label}", style="dark_orange")
+            if adur:
+                t.append(f" · {adur}min", style="dim dark_orange")
+
+
+def make_streak_panel(sessions: list[dict]) -> Panel:
+    """7-day grid with color-coded blocks."""
+    today  = date.today()
+    by_date: dict[str, list[dict]] = {}
+    for s in sessions:
+        by_date.setdefault(s["date"],[]).append(s)
+
+    grid = Table.grid(padding=(0,1))
+    for _ in range(7): grid.add_column(width=10, justify="center")
+
+    header_row, dot_row, label_row = [], [], []
+    for i in range(6,-1,-1):
+        d   = (today - timedelta(days=i)).isoformat()
+        wd  = WEEKDAYS_DE[(today-timedelta(days=i)).weekday()]
+        day_s = by_date.get(d,[])
+        is_today = d == today.isoformat()
+
+        wd_text = Text(wd, style="bold bright_magenta" if is_today else "dim")
+        header_row.append(wd_text)
+
+        if day_s:
+            kinds = [classify(s) for s in day_s]
+            if "cardio" in kinds and any(k!="cardio" for k in kinds):
+                dot = Text("◈", style="bold magenta")  # mixed day
+            elif all(k=="cardio" for k in kinds):
+                dot = Text("●", style="bold dark_orange")
+            else:
+                blocks = [s.get("block","") for s in day_s]
+                style  = block_style(blocks[0])
+                dot    = Text("●", style=style)
+            dot_row.append(dot)
+            # day number
+            day_num = (today-timedelta(days=i)).day
+            label_row.append(Text(str(day_num), style="dim"))
+        else:
+            dot_row.append(Text("·", style="dim"))
+            label_row.append(Text(str((today-timedelta(days=i)).day), style="dim"))
+
+    grid.add_row(*header_row)
+    grid.add_row(*dot_row)
+    grid.add_row(*label_row)
+
+    legend = Text()
+    legend.append("  ● Kraft ", style="bold bright_magenta")
+    legend.append("● Ausdauer ", style="dark_orange")
+    legend.append("◈ Beide  ", style="bold magenta")
+    legend.append("· Rest", style="dim")
+
+    content = Table.grid(padding=(0,0))
+    content.add_column()
+    content.add_row(Align.center(grid))
+    content.add_row(Text(" "))
+    content.add_row(Align.center(legend))
+
+    return Panel(content, title="[dim]Letzte 7 Tage[/dim]",
+                 border_style="dim", padding=(1,2))
+
+
+def make_timeline_table(sessions: list[dict], max_rows: int = 14) -> Table:
+    """Kompakte Timeline aller Sessions."""
+    t = Table(
+        box=box.SIMPLE_HEAD,
+        show_header=True,
+        header_style="dim",
+        padding=(0,1),
+        expand=True,
+    )
+    t.add_column("Datum",   style="dim",   width=11)
+    t.add_column("Typ",     width=5,  justify="center")
+    t.add_column("Block",   width=14)
+    t.add_column("Details", ratio=1)
+    t.add_column("Effort",  width=6,  justify="center")
+
+    seen_dates: set[str] = set()
+    count = 0
+    for s in sessions:
+        if count >= max_rows:
+            break
+        d     = s.get("date","?")
+        kind  = classify(s)
+        act   = s.get("activity")
+        exs   = [e for e in (s.get("exercises") or []) if e.get("done")]
+        block = s.get("block","")
+        eff   = s.get("effort")
+
+        is_today = d == date.today().isoformat()
+        date_fmt  = Text("Heute" if is_today else d)
+        date_fmt.stylize("bold bright_magenta" if is_today else
+                         "dim" if d in seen_dates else "white")
+        seen_dates.add(d)
+
+        if kind == "cardio":
+            atype  = (act or {}).get("type","?")
+            adur   = (act or {}).get("duration","")
+            emoji  = ACTIVITY_EMOJI.get(atype,"🏃")
+            label  = ACTIVITY_LABEL.get(atype,atype)
+            t.add_row(
+                date_fmt,
+                Text(emoji),
+                Text(label, style="dark_orange"),
+                Text(f"{adur}min" if adur else "—", style="dim"),
+                Text("—"),
+            )
+        else:
+            bs = block_style(block)
+            names = ", ".join(e.get("name","?") for e in exs[:3])
+            ellipsis = "…" if len(exs)>3 else ""
+            eff_text = Text(f"{eff}/10" if eff else "—",
+                            style="yellow" if eff else "dim")
+            addon = ""
+            if kind == "strength+addon" and act:
+                atype = act.get("type","?")
+                adur  = act.get("duration","")
+                emoji = ACTIVITY_EMOJI.get(atype,"⚡")
+                addon = f"  +{emoji}{adur+'min' if adur else ''}"
+            t.add_row(
+                date_fmt,
+                Text("💪"),
+                Text(block or "?", style=bs),
+                Text(names+ellipsis+addon, style="dim" if not addon else ""),
+                eff_text,
+            )
+        count += 1
+    return t
+
+
+def make_sync_panel(info: dict) -> Panel:
+    grid = Table.grid(padding=(0,1))
+    grid.add_column(width=20)
+    grid.add_column()
+
+    state = info["state"]
+    sub   = info["sub"]
+    state_style = "green" if state == "active" else "red"
+    grid.add_row(
+        Text("Service", style="dim"),
+        Text(f"{state} ({sub})", style=state_style),
+    )
+    grid.add_row(
+        Text("Letzter Run", style="dim"),
+        Text(info["last"][:19] if len(info["last"])>10 else info["last"], style="white"),
+    )
+    grid.add_row(
+        Text("Mirror-Daemon", style="dim"),
+        Text("● aktiv" if info["daemon_running"] else "○ inaktiv",
+             style="green" if info["daemon_running"] else "yellow"),
+    )
+    grid.add_row(Text(""), Text(""))
+    grid.add_row(
+        Text("JSON-Sessions", style="dim"),
+        Text(str(info["json_count"]), style="bright_magenta"),
+    )
+    grid.add_row(
+        Text("SQLite-Sets", style="dim"),
+        Text(f"{info['sqlite_count']}  (latest: {info['sqlite_latest']})", style="dim"),
+    )
+    return Panel(grid, title="[dim]Firestore ↔ Lokal[/dim]",
+                 border_style="dim", padding=(1,2))
+
+
+def build_dashboard(sessions: list[dict], sync: dict) -> Layout:
+    layout = Layout()
+    layout.split_column(
+        Layout(name="header",   size=3),
+        Layout(name="top",      size=9),
+        Layout(name="timeline", minimum_size=8),
+        Layout(name="footer",   size=3),
+    )
+    layout["top"].split_row(
+        Layout(name="today",  ratio=2),
+        Layout(name="streak", ratio=2),
+        Layout(name="sync",   ratio=1),
+    )
+    layout["header"].update(Panel(make_header(), border_style="bright_magenta", padding=(0,1)))
+    layout["today"].update(make_today_panel(sessions))
+    layout["streak"].update(make_streak_panel(sessions))
+    layout["sync"].update(make_sync_panel(sync))
+    timeline_table = make_timeline_table(sessions)
+    layout["timeline"].update(
+        Panel(timeline_table, title="[dim]Session-Timeline[/dim]",
+              border_style="dim", padding=(0,1)))
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    layout["footer"].update(
+        Panel(Text(f"  fitness tui  ·  {now}  ·  q beenden  ·  30s auto-refresh",
+                   style="dim"),
+              border_style="dim", padding=(0,0)))
+    return layout
+
+
+# ── CLI ───────────────────────────────────────────────────────────────────────
+app = typer.Typer(
+    name="fitness-tui",
+    help=__doc__,
+    no_args_is_help=False,
+    add_completion=False,
+    invoke_without_command=True,
+)
+
+console = Console()
+
+@app.callback(invoke_without_command=True)
+def main(
+    ctx: typer.Context,
+    once:    bool = typer.Option(False, "--once", help="Einmalige Ausgabe"),
+    days:    int  = typer.Option(28, "--days","-d", help="Tage für Timeline"),
+    refresh: int  = typer.Option(30, "--refresh","-r", help="Auto-Refresh in Sekunden"),
+) -> None:
+    if ctx.invoked_subcommand:
+        return
+
+    def render() -> Layout:
+        sessions = load_sessions(days)
+        sync     = sync_info()
+        return build_dashboard(sessions, sync)
+
+    if once:
+        console.print(render())
+        return
+
+    # Live-Modus mit auto-refresh
+    try:
+        with Live(render(), console=console, screen=True,
+                  auto_refresh=False, refresh_per_second=1) as live:
+            tick = 0
+            while True:
+                time.sleep(1)
+                tick += 1
+                if tick >= refresh:
+                    live.update(render())
+                    tick = 0
+    except KeyboardInterrupt:
+        pass
+
+if __name__ == "__main__":
+    app()

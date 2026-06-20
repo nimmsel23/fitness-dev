@@ -28,6 +28,8 @@ FITNESS_DEV  = Path(__file__).resolve().parent.parent
 ANATOMY_KB   = Path.home() / "anatomy-kb"
 KBCTL        = Path.home() / "fitness" / "bin" / "kbctl"
 FITNESS_MAIL = FITNESS_DEV / "bin" / "fitness-mail"
+FITNESS_LOG  = FITNESS_DEV / "bin" / "fitness-log"
+FITNESS_TUI  = FITNESS_DEV / "bin" / "fitness-tui"
 FS_SYNC      = FITNESS_DEV / "bin" / "firestore-sync"
 
 DEV_PORT = int(os.environ.get("FITNESS_PORT", 9100))
@@ -184,6 +186,14 @@ def kb(ctx: typer.Context) -> None:
 @app.command(context_settings=_ctx, help="Fitbit Gmail Pipeline (poll|parse|show)")
 def mail(ctx: typer.Context) -> None:
     passthrough(FITNESS_MAIL, ctx.args, "fitness-mail")
+
+@app.command(context_settings=_ctx, help="Session-Log direkt aus Dateien (ls|show|week|history|stats|sync-status) — kein Server nötig")
+def log(ctx: typer.Context) -> None:
+    passthrough(FITNESS_LOG, ctx.args, "fitness-log")
+
+@app.command(context_settings=_ctx, help="Rich TUI Dashboard (Live-Ansicht, kein Server) — [--once|--days N|--refresh N]")
+def tui(ctx: typer.Context) -> None:
+    passthrough(FITNESS_TUI, ctx.args, "fitness-tui")
 
 @app.command(help="Health-Check: fitness-dev :9100 + anatomy-kb :9200")
 def health() -> None:
