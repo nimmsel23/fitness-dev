@@ -7,7 +7,7 @@ import { serve } from "@hono/node-server";
 import yaml from "js-yaml";
 import Database from "better-sqlite3";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
-import { mirrorSession, mirrorJournal, getFirestoreStatus } from "./firestore-mirror.mjs";
+import { mirrorSession, mirrorJournal, mirrorHabitJournal, getFirestoreStatus } from "./firestore-mirror.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR   = path.join(os.homedir(), ".aos", "fitness");
@@ -680,6 +680,16 @@ app.post("/journal", async (c) => {
   const { content }   = await c.req.json().catch(() => ({}));
   fs.writeFileSync(file, content || "");
   mirrorJournal(date, { text: content || "" }, uid);
+  return c.json({ ok: true });
+});
+
+// ── Habit Journal Mirror ────────────────────────────────────────────────────────
+app.post("/habit_journal", async (c) => {
+  const uid = c.req.header("X-User-UID") || "default";
+  const { habitId, date, text } = await c.req.json().catch(() => ({}));
+  if (!habitId || !date) return c.json({ ok: false, error: "missing_params" }, 400);
+  // Mirror to Firestore (non-blocking)
+  mirrorHabitJournal(habitId, date, { text: String(text || "") }, uid);
   return c.json({ ok: true });
 });
 

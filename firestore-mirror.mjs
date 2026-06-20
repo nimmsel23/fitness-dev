@@ -77,9 +77,17 @@ export async function mirrorJournal(date, entry, uid = "default") {
   );
 }
 
-export async function getFirestoreStatus() {
+export async function getHabitJournals(uid = "default") {
   const db = await getDb();
-  return { ok: db !== null, project: db ? PROJECT : null };
+  if (!db) return [];
+  const col = db.collection("fitness").doc(uid).collection("habit_journals");
+  const snap = await col.get();
+  return snap.docs.map(d => {
+    const id = d.id; // habitId__date
+    const [habitId, date] = id.split("__");
+    const data = d.data();
+    return { habitId, date, ...data };
+  });
 }
 
 export async function mirrorPlan(plan, uid = "default") {
@@ -90,5 +98,23 @@ export async function mirrorPlan(plan, uid = "default") {
       ...plan,
       updated_at: new Date().toISOString(),
     })
+  );
+}
+
+// New: Mirror habit journal entries (memoirs)
+export async function mirrorHabitJournal(habitId, date, entry, uid = "default") {
+  const db = await getDb();
+  if (!db) return;
+  fire(() =>
+    db.collection("fitness")
+      .doc(uid)
+      .collection("habit_journals")
+      .doc(`${habitId}__${date}`)
+      .set({
+        habitId,
+        date,
+        ...entry,
+        saved_at: new Date().toISOString(),
+      })
   );
 }
