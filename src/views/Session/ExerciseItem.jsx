@@ -7,7 +7,7 @@ export default function ExerciseItem({
   isFirst, isLast, prev, onInspectExercise
 }) {
   const [trend, setTrend] = useState(null);
-  const [showDetails, setShowDetails] = useState(false);
+  const [showHistory, setShowDetails] = useState(false);
 
   useEffect(() => {
     if (ex.name) {
@@ -28,7 +28,7 @@ export default function ExerciseItem({
   }
 
   return (
-    <div className={`card relative mb-3 overflow-hidden transition-all duration-300 border-l-4 border-accent ${showDetails ? 'shadow-2xl ring-1 ring-accent/10' : 'shadow-sm'}`}>
+    <div className={`card relative mb-3 overflow-hidden transition-all duration-300 border-l-4 border-accent ${showHistory ? 'shadow-2xl ring-1 ring-accent/10' : 'shadow-sm'}`}>
       
       {/* Exercise Header */}
       <div className="p-4 sm:p-5">
@@ -93,7 +93,7 @@ export default function ExerciseItem({
         {/* Info Bar / Previous Stats */}
         {prev && (
           <>
-            <div className="mt-4 p-3 rounded-2xl bg-bg2/50 border border-line/50 flex items-center justify-between cursor-pointer select-none" onClick={() => setShowDetails(!showDetails)}>
+            <div className="mt-4 p-3 rounded-2xl bg-bg2/50 border border-line/50 flex items-center justify-between cursor-pointer select-none" onClick={() => setShowDetails(!showHistory)}>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-card flex items-center justify-center text-dim border border-line">
                   <History size={14} />
@@ -110,11 +110,11 @@ export default function ExerciseItem({
                 </div>
               </div>
               <div className="text-dim/30">
-                {showDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                {showHistory ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </div>
             </div>
 
-            {showDetails && (
+            {showHistory && (
               <div className="mt-2 mx-1 p-4 rounded-2xl bg-bg2/30 border border-line/30 space-y-2 animate-in slide-in-from-top-2 duration-200">
                 {prev.setsArray ? prev.setsArray.map((s, idx) => (
                   <div key={idx} className="flex items-center gap-3">
