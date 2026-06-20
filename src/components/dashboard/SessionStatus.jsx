@@ -61,7 +61,7 @@ export default function SessionStatus({ plan, todaySession, recent, today, onNav
               ) : (
                 <div className="flex flex-col">
                   <span className="text-3xl font-black text-ink">
-                    {todayExercises.filter(e => e.done).length}<span className="text-xl opacity-30 font-mono">/{todayExercises.length}</span>
+                    {todayExercises.length}
                   </span>
                   <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30">Übungen</span>
                 </div>
@@ -119,7 +119,7 @@ export default function SessionStatus({ plan, todaySession, recent, today, onNav
                         </div>
                       ) : (
                         <div className="text-[10px] font-black px-3 py-1.5 rounded-xl bg-bg2 text-muted uppercase tracking-widest border border-line">
-                          {Array.isArray(s.exercises) ? s.exercises.filter(e => e.done).length : 0} Ex
+                          {Array.isArray(s.exercises) ? s.exercises.length : 0} Ex
                         </div>
                       )}
                     </div>

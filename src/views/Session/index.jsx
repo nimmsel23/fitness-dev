@@ -150,10 +150,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     getCoverageGaps(7).then(setGaps).catch(() => {});
   }, [date]);
 
-  const doneExercises = useMemo(
-    () => exercises.filter(ex => ex.done),
-    [exercises]
-  )
+  const doneExercises = exercises;
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 2200); }
 
@@ -179,7 +176,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       primaryMuscles: primary,
       secondaryMuscles: secondary,
       setsArray: [{reps: '', weight: ''}],
-      note: '', done: true,
+      note: '',
       source: ex.source
     }]);
 

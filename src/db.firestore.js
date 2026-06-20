@@ -656,7 +656,6 @@ export async function getMuscleCoverage(days = 7) {
     const session = await getSession(date);
     if (!session) continue;
     for (const ex of (Array.isArray(session.exercises) ? session.exercises : [])) {
-      if (!ex.done) continue;
       const primary = ex.primaryMuscles || [];
       const secondary = ex.secondaryMuscles || [];
       const exName = ex.name || ex.exercise_id || "";
@@ -718,7 +717,6 @@ export async function getWeeklyReport(selector = "current") {
   const historyWithMuscles = safeHistory.map(s => {
     const groups = new Set();
     for (const ex of (s.exercises || [])) {
-      if (!ex.done) continue;
       const primary = ex.primaryMuscles || [];
       const secondary = ex.secondaryMuscles || [];
       const exName = ex.name || ex.exercise_id || "";
@@ -745,7 +743,6 @@ export async function getWeeklyReport(selector = "current") {
     const sessGroupsCount = {};
 
     for (const ex of (Array.isArray(sess.exercises) ? sess.exercises : [])) {
-      if (!ex.done) continue;
       const primary = ex.primaryMuscles || [], secondary = ex.secondaryMuscles || [], exName = ex.name || ex.exercise_id || "";
       hasDoneExercises = true; entriesCount++;
       if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
@@ -927,7 +924,7 @@ export function parseQuick(raw) {
     setsArray: Array.from({ length: count }, () => ({ reps, weight })),
     note: rpeMatch ? `RPE ${rpeMatch[1]}` : "",
     primaryMuscles: [], secondaryMuscles: [],
-    done: true,
+
   };
 }
 
