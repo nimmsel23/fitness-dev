@@ -6,11 +6,10 @@ Kein Server nötig — direkter Dateizugriff auf:
   ~/.aos/users/<uid>/fitness/sessions/*.json
 
 Keyboard:
-  1/2/3/4   → Tabs (Log · Woche · Stats · Sync)
+  1/2/3/4/5 → Tabs (Log · Woche · Stats · Sync · Clients)
   j / ↓     → nächste Session
   k / ↑     → vorherige Session
   Enter      → Detail-Panel öffnen/schließen
-  /          → Filter-Modus
   r          → Daten neu laden
   q / Ctrl+C → Beenden
 """
@@ -144,6 +143,65 @@ def sync_info() -> dict:
             if newest and newest != "?" else "?",
         "sdir": str(sdir),
     }
+
+# ── Client data ───────────────────────────────────────────────────────────────
+_USERS_ROOT = Path.home() / ".aos" / "users"
+_SKIP_DIRS  = {"default", "kb"}   # non-user dirs
+
+def _uid_alias(uid: str) -> str:
+    """Short readable alias: first 6 chars of UID."""
+    return uid[:6] + "…"
+
+def load_all_clients(days: int = 10) -> list[dict]:
+    """
+    Scan all ~/.aos/users/<uid>/fitness/sessions/ directories.
+    Returns a list of client dicts, each with:
+      uid, alias, sessions (list, newest first), last_date, session_count
+    Excludes the active UID (that's the coach / own log).
+    """
+    if not _USERS_ROOT.exists():
+        return []
+    cutoff = (date.today() - timedelta(days=days)).isoformat()
+    clients = []
+    for user_dir in sorted(_USERS_ROOT.iterdir()):
+        uid = user_dir.name
+        if uid in _SKIP_DIRS or uid.startswith("."):
+            continue
+        sdir = user_dir / "fitness" / "sessions"
+        if not sdir.exists():
+            continue
+        sessions = []
+        for f in sorted(sdir.glob("*.json"), reverse=True):
+            d = _parse_date(f.stem)
+            if not d:
+                continue
+            try:
+                s = json.loads(f.read_text())
+                s.setdefault("date", d)
+                s["_uid"]  = uid
+                s["_stem"] = f.stem
+                if d >= cutoff:
+                    sessions.append(s)
+            except Exception:
+                pass
+        # also grab last_date from all-time (even if outside window)
+        all_dates = sorted(
+            (d for f in sdir.glob("*.json") if (d := _parse_date(f.stem))),
+            reverse=True)
+        last_date    = all_dates[0] if all_dates else "—"
+        total_count  = len(all_dates)
+        sessions.sort(key=lambda s: (s["date"], s.get("_stem","")), reverse=True)
+        clients.append({
+            "uid":           uid,
+            "alias":         _uid_alias(uid),
+            "is_self":       uid == _UID,
+            "sessions":      sessions,   # last 10 days only
+            "last_date":     last_date,
+            "total_count":   total_count,
+        })
+    # Sort: most recent activity first
+    clients.sort(key=lambda c: c["last_date"], reverse=True)
+    return clients
 
 # ── Detail Modal ──────────────────────────────────────────────────────────────
 class DetailModal(ModalScreen):
@@ -489,6 +547,126 @@ class SyncView(Static):
             "  [dim]→ fitness sync   zum manuellen Pull/Push[/]",
         ])
 
+# ── Clients Tab ───────────────────────────────────────────────────────────────
+class ClientsView(Static):
+    DEFAULT_CSS = """
+    ClientsView {
+        padding: 1 2;
+        height: auto;
+    }
+    """
+
+    def __init__(self, clients: list[dict], days: int = 10) -> None:
+        super().__init__()
+        self.clients = clients
+        self.days    = days
+
+    def render(self) -> str:
+        if not self.clients:
+            return "[dim]  Keine Klienten gefunden.[/]"
+
+        today  = date.today()
+        cutoff = (today - timedelta(days=self.days)).isoformat()
+
+        # Build day-columns header
+        day_cols = [(today - timedelta(days=i)).isoformat() for i in range(self.days - 1, -1, -1)]
+        day_labels = " ".join(
+            f"[bold bright_magenta]{(today-timedelta(days=i)).strftime('%d')}[/]"
+            if (today-timedelta(days=i)).isoformat() == today.isoformat()
+            else f"[dim]{(today-timedelta(days=i)).strftime('%d')}[/]"
+            for i in range(self.days - 1, -1, -1)
+        )
+
+        lines: list[str] = []
+        lines.append(f"[bold]Klienten-Logs — letzte {self.days} Tage[/bold]\n")
+        # header row
+        wd_labels = " ".join(
+            f"{'[dim]':1}{(today-timedelta(days=i)).strftime('%a')[0:2]:2}[/]"
+            for i in range(self.days - 1, -1, -1)
+        )
+        lines.append(f"  {'Klient':<10}  {wd_labels}  {'Letztes':<12} {'Total':>5}")
+        lines.append(f"  {'─'*10}  {'── '*self.days} {'─'*12} {'─'*5}")
+
+        for cl in self.clients:
+            uid      = cl["uid"]
+            alias    = cl["alias"]
+            is_self  = cl["is_self"]
+            sessions_map: dict[str, list[dict]] = {}
+            for s in cl["sessions"]:
+                sessions_map.setdefault(s["date"], []).append(s)
+
+            # Streak dots per day
+            dots = []
+            for d in day_cols:
+                day_sessions = sessions_map.get(d, [])
+                if not day_sessions:
+                    dots.append("[dim]·[/] ")
+                    continue
+                kinds = [classify(s) for s in day_sessions]
+                has_strength = any(k != "cardio" for k in kinds)
+                has_cardio   = any(k == "cardio"  for k in kinds)
+                if has_strength and has_cardio:
+                    dots.append("[bold magenta]◈[/] ")
+                elif has_cardio:
+                    dots.append("[dark_orange]●[/] ")
+                else:
+                    # color by block
+                    block  = next((s.get("block","") for s in day_sessions if classify(s)!="cardio"), "")
+                    color  = block_color(block)
+                    dots.append(f"[{color}]●[/] ")
+
+            streak_row = " ".join(d.strip() for d in dots)
+
+            last   = cl["last_date"]
+            total  = cl["total_count"]
+            marker = " [dim](ich)[/]" if is_self else ""
+            name_s = f"[bold]{alias}[/]{marker}" if is_self else f"[white]{alias}[/]"
+
+            # Last-date age color
+            try:
+                age = (today - date.fromisoformat(last)).days
+                last_c = "green" if age < 3 else "yellow" if age < 7 else "dim red"
+                last_s = f"[{last_c}]{last}[/]"
+            except Exception:
+                last_s = f"[dim]{last}[/]"
+
+            lines.append(f"  {name_s:<18}  {streak_row}  {last_s}  [dim]{total:>3}x[/]")
+
+            # Expand sessions of last 10 days inline (compact)
+            for d in day_cols:
+                day_s = sessions_map.get(d, [])
+                for s in day_s:
+                    kind  = classify(s)
+                    act   = s.get("activity") or {}
+                    exs   = [e for e in (s.get("exercises") or []) if e.get("done")]
+                    block = s.get("block", "")
+                    eff   = s.get("effort")
+                    d_label = datetime.strptime(d, "%Y-%m-%d").strftime("%d.%m")
+
+                    if kind == "cardio":
+                        atype = act.get("type", "?")
+                        adur  = act.get("duration", "")
+                        emoji = ACTIVITY_EMOJI.get(atype, "🏃")
+                        label = ACTIVITY_LABEL.get(atype, atype)
+                        lines.append(
+                            f"    [dim]{d_label}[/]  {emoji} [dark_orange]{label}[/]"
+                            + (f" [dim]{adur}min[/]" if adur else ""))
+                    else:
+                        color = block_color(block)
+                        names = ", ".join(e.get("name","?") for e in exs[:3])
+                        addon = ""
+                        if kind == "strength+addon":
+                            atype = act.get("type", "?")
+                            addon = f"  [dark_orange]{ACTIVITY_EMOJI.get(atype,'⚡')}[/]"
+                        eff_s = f" [dim]RPE {eff}[/]" if eff else ""
+                        lines.append(
+                            f"    [dim]{d_label}[/]  [{color}]{block or '?'}[/]"
+                            + (f"  [dim]{names}[/]" if names else "")
+                            + eff_s + addon)
+            lines.append("")
+
+        return "\n".join(lines)
+
 # ── Main App ──────────────────────────────────────────────────────────────────
 class FitnessTUI(App):
     TITLE    = "AlphaOS Fitness"
@@ -522,16 +700,18 @@ class FitnessTUI(App):
     }
     """
     BINDINGS: ClassVar = [
-        Binding("1",       "show_tab('log')",    "Log",   show=True),
-        Binding("2",       "show_tab('woche')",  "Woche", show=True),
-        Binding("3",       "show_tab('stats')",  "Stats", show=True),
-        Binding("4",       "show_tab('sync')",   "Sync",  show=True),
-        Binding("r",       "reload",             "Reload"),
-        Binding("q",       "quit",               "Quit"),
+        Binding("1", "show_tab('log')",     "Log",     show=True),
+        Binding("2", "show_tab('woche')",   "Woche",   show=True),
+        Binding("3", "show_tab('stats')",   "Stats",   show=True),
+        Binding("4", "show_tab('sync')",    "Sync",    show=True),
+        Binding("5", "show_tab('clients')", "Clients", show=True),
+        Binding("r", "reload",              "Reload"),
+        Binding("q", "quit",               "Quit"),
     ]
 
     sessions: reactive[list[dict]] = reactive([], recompose=True)
     sync:     reactive[dict]       = reactive({})
+    clients:  reactive[list[dict]] = reactive([])
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -547,6 +727,9 @@ class FitnessTUI(App):
             with TabPane("🔄 Sync", id="sync"):
                 with ScrollableContainer():
                     yield SyncView(self.sync)
+            with TabPane("👥 Clients", id="clients"):
+                with ScrollableContainer():
+                    yield ClientsView(self.clients)
         yield Footer()
 
     def on_mount(self) -> None:
@@ -556,12 +739,13 @@ class FitnessTUI(App):
     def reload_data(self) -> None:
         sessions = load_sessions(60)
         info     = sync_info()
-        self.call_from_thread(self._apply_data, sessions, info)
+        clients  = load_all_clients(10)
+        self.call_from_thread(self._apply_data, sessions, info, clients)
 
-    def _apply_data(self, sessions: list[dict], info: dict) -> None:
+    def _apply_data(self, sessions: list[dict], info: dict, clients: list[dict]) -> None:
         self.sessions = sessions
         self.sync     = info
-        # Update child widgets
+        self.clients  = clients
         try:
             self.query_one(SessionTable).sessions = sessions
             self.query_one(WeekView).sessions     = sessions
@@ -570,6 +754,8 @@ class FitnessTUI(App):
             self.query_one(StatsView).refresh()
             self.query_one(SyncView).info         = info
             self.query_one(SyncView).refresh()
+            self.query_one(ClientsView).clients   = clients
+            self.query_one(ClientsView).refresh()
         except Exception:
             pass
 
