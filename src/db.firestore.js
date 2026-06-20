@@ -280,8 +280,7 @@ export async function getConfig() { return { ok: true, source: "firestore" }; }
 export async function getInbox() {
   const q = query(
     collection(db, "fitness", getUid(), "inbox"),
-    where("status", "==", "pending"),
-    orderBy("received_at", "desc"),
+    orderBy("received_at", "desc")
   );
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ file_id: d.id, ...d.data() }));

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Lock, GripVertical } from "lucide-react";
+import { Lock, GripVertical, Sparkles, Shield } from "lucide-react";
 import { NAV_ITEMS } from "../../constants/NavigationItems";
 import {
   getSession, getRecentSessions, getPlan,
@@ -31,7 +31,7 @@ const WIDGET_META = {
 
 const HOME_NAV = NAV_ITEMS.filter(i => i.id !== 'dash' && i.id !== 'settings');
 
-export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body', gender = 'male', navMode = 'tabs', navigate, muscleLanguage = 'de', taxonomy = null }) {
+export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body', gender = 'male', navMode = 'tabs', navigate, muscleLanguage = 'de', taxonomy = null, globalInboxCount = 0, inboxCount = 0 }) {
   function onNavigate(target, date) {
     if (target === 'session') onOpenSession?.(date || null);
     else if (target === 'review') onOpenReview?.();
@@ -178,6 +178,38 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
         onToggleEdit={() => setIsEditMode(v => !v)}
         onResetLayout={resetLayout}
       />
+
+      {globalInboxCount > 0 && !isEditMode ? (
+        <div 
+          onClick={() => navigate('coach')}
+          className="mb-8 px-5 py-4 rounded-[24px] bg-fit-red/15 border border-fit-red/25 hover:border-fit-red/40 transition-all cursor-pointer flex items-center justify-between text-fit-red animate-in slide-in-from-top-4 duration-500 hover:scale-[1.01] active:scale-[0.99] group shadow-lg shadow-fit-red/5"
+        >
+          <div className="flex items-center gap-3">
+            <Shield size={16} className="animate-pulse" />
+            <span className="text-xs font-black uppercase tracking-wider">
+              Es gibt {globalInboxCount} ausstehende {globalInboxCount === 1 ? 'Übungsanfrage' : 'Übungsanfragen'} zur Freigabe in der Coach-Verwaltung!
+            </span>
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest bg-fit-red text-black px-3.5 py-1.5 rounded-xl group-hover:scale-105 transition-transform">
+            Verwalten
+          </span>
+        </div>
+      ) : inboxCount > 0 && !isEditMode ? (
+        <div 
+          onClick={() => navigate('inbox')}
+          className="mb-8 px-5 py-4 rounded-[24px] bg-fit-accent/15 border border-fit-accent/25 hover:border-fit-accent/40 transition-all cursor-pointer flex items-center justify-between text-fit-accent animate-in slide-in-from-top-4 duration-500 hover:scale-[1.01] active:scale-[0.99] group shadow-lg shadow-fit-accent/5"
+        >
+          <div className="flex items-center gap-3">
+            <Sparkles size={16} className="animate-pulse" />
+            <span className="text-xs font-black uppercase tracking-wider">
+              Du hast {inboxCount} neue {inboxCount === 1 ? 'Übung' : 'Übungen'} in deiner Inbox!
+            </span>
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest bg-fit-accent text-black px-3.5 py-1.5 rounded-xl group-hover:scale-105 transition-transform">
+            Anzeigen
+          </span>
+        </div>
+      ) : null}
 
       {isEditMode && (
         <div className="mb-4 px-4 py-3 rounded-xl bg-fit-accent/5 border border-fit-accent/20 text-[11px] font-bold tracking-wide text-fit-accent flex items-center gap-2">
