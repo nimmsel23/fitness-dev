@@ -139,9 +139,26 @@ def _collect_dates(data_dir: Path) -> list[str]:
     return sorted(dates)
 
 
+def _quota_ok() -> bool:
+    """Schneller Ping — False wenn Quota erschöpft."""
+    try:
+        get_db().collection("_ping").document("quota_check").set(
+            {"t": datetime.utcnow().isoformat()}, timeout=5
+        )
+        return True
+    except Exception as e:
+        if "429" in str(e) or "Quota" in str(e):
+            return False
+        return True  # anderer Fehler → trotzdem versuchen
+
+
 def push_fuel(uid: str = UID, delay: float = 0.1) -> dict:
     """Alle lokalen Fuel-Daten → Firestore. Gibt Zusammenfassung zurück."""
     import time
+    if not _quota_ok():
+        logger.error("fuel push: Firestore Quota erschöpft — morgen nochmal (reset ~02:00 MESZ)")
+        return {"dates": 0, "error": "quota_exceeded"}
+
     data_dir = _data_dir(uid)
     dates = _collect_dates(data_dir)
     results: dict[str, Any] = {"dates": len(dates), "nutrition": {}, "supplements": {}}
@@ -151,14 +168,19 @@ def push_fuel(uid: str = UID, delay: float = 0.1) -> dict:
             results["supplements"][d] = _push_supplements(d, uid, data_dir)
             logger.info(f"  → {d}")
         except Exception as e:
+            if "429" in str(e) or "Quota" in str(e):
+                logger.error("Quota erschöpft — Push abgebrochen")
+                results["error"] = "quota_exceeded"
+                break
             logger.error(f"  ✗ {d}: {e}")
             results.setdefault("errors", []).append(f"{d}: {e}")
         time.sleep(delay)
-    try:
-        results["catalog"] = _push_catalog(uid, data_dir)
-    except Exception as e:
-        logger.error(f"  ✗ catalog: {e}")
-        results["catalog"] = f"Fehler: {e}"
+    if "error" not in results:
+        try:
+            results["catalog"] = _push_catalog(uid, data_dir)
+        except Exception as e:
+            logger.error(f"  ✗ catalog: {e}")
+            results["catalog"] = f"Fehler: {e}"
     return results
 
 
