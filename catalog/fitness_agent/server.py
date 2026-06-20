@@ -494,7 +494,7 @@ def create_app() -> web.Application:
 
 def main():
     app = create_app()
-    web.run_app(app, host="0.0.0.0", port=9120)
+    web.run_app(app, host="0.0.0.0", port=9130)
 
 
 if __name__ == "__main__":
