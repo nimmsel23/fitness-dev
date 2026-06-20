@@ -11,7 +11,7 @@ import ReviewTopExercises from './ReviewTopExercises';
 import ReviewAnatomyLayer from './ReviewAnatomyLayer';
 import Muscles from '../Muscles/index.jsx';
 
-export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleLanguage = 'de', taxonomy = null, gender = 'male' }) {
+export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleLanguage = 'de', taxonomy = null, gender = 'male', recentDays = 7 }) {
   const [week, setWeek]       = useState('current');
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(false);
@@ -73,7 +73,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
       </div>
 
       {viewMode === 'muscles' ? (
-        <Muscles gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
+        <Muscles gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} recentDays={recentDays} />
       ) : viewMode === 'anatomy' ? (
         <ReviewAnatomyLayer topExercises={data?.top_exercises || []} />
       ) : loading ? (

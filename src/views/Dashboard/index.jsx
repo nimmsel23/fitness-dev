@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Lock, GripVertical, Sparkles } from "lucide-react";
+import { Lock, GripVertical, Sparkles, Shield } from "lucide-react";
 import { NAV_ITEMS } from "../../constants/NavigationItems";
 import {
   getSession, getRecentSessions, getPlan,
@@ -192,7 +192,22 @@ export default function Dashboard({ user, onOpenSession, onOpenReview, recentDay
         onResetLayout={resetLayout}
       />
 
-      {inboxCount > 0 && !isEditMode && (
+      {globalInboxCount > 0 && !isEditMode ? (
+        <div 
+          onClick={() => navigate('coach')}
+          className="mb-8 px-5 py-4 rounded-[24px] bg-fit-red/15 border border-fit-red/25 hover:border-fit-red/40 transition-all cursor-pointer flex items-center justify-between text-fit-red animate-in slide-in-from-top-4 duration-500 hover:scale-[1.01] active:scale-[0.99] group shadow-lg shadow-fit-red/5"
+        >
+          <div className="flex items-center gap-3">
+            <Shield size={16} className="animate-pulse" />
+            <span className="text-xs font-black uppercase tracking-wider">
+              Es gibt {globalInboxCount} ausstehende {globalInboxCount === 1 ? 'Übungsanfrage' : 'Übungsanfragen'} zur Freigabe in der Coach-Verwaltung!
+            </span>
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest bg-fit-red text-black px-3.5 py-1.5 rounded-xl group-hover:scale-105 transition-transform">
+            Verwalten
+          </span>
+        </div>
+      ) : inboxCount > 0 && !isEditMode ? (
         <div 
           onClick={() => navigate('inbox')}
           className="mb-8 px-5 py-4 rounded-[24px] bg-fit-accent/15 border border-fit-accent/25 hover:border-fit-accent/40 transition-all cursor-pointer flex items-center justify-between text-fit-accent animate-in slide-in-from-top-4 duration-500 hover:scale-[1.01] active:scale-[0.99] group shadow-lg shadow-fit-accent/5"
@@ -207,7 +222,7 @@ export default function Dashboard({ user, onOpenSession, onOpenReview, recentDay
             Anzeigen
           </span>
         </div>
-      )}
+      ) : null}
 
       {isEditMode && (
         <div className="mb-4 px-4 py-3 rounded-xl bg-fit-accent/5 border border-fit-accent/20 text-[11px] font-bold tracking-wide text-fit-accent flex items-center gap-2">

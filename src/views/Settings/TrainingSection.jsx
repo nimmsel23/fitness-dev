@@ -13,8 +13,6 @@ export default function TrainingSection({
   swVersion, swUpdateAvailable, swChecking,
   onSwCheck, onSwApply,
 }) {
-  const [slidersOpen, setSlidersOpen] = useState(false);
-
   return (
     <section className="card p-8 space-y-10 border-t-4 border-t-fit-dim animate-in fade-in slide-in-from-right-4 duration-500">
        <div className="flex items-center gap-3">
@@ -89,48 +87,37 @@ export default function TrainingSection({
              </div>
           </div>
 
-          {/* Sliders — collapsible */}
-          <div className="border-t border-fit-line/50 pt-6">
-             <button
-                onClick={() => setSlidersOpen(!slidersOpen)}
-                className="flex items-center justify-between w-full"
-             >
-                <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Analyse & Zyklus</div>
-                <ChevronDown
-                   size={14}
-                   className={`text-fit-dim transition-transform duration-300 ${slidersOpen ? 'rotate-180' : ''}`}
-                />
-             </button>
+          {/* Sliders */}
+          <div className="border-t border-fit-line/50 pt-6 space-y-6">
+             <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1 mb-2">Analyse & Zyklus</div>
 
-             {slidersOpen && (
-                <div className="mt-6 space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
-                   <div>
-                      <div className="flex items-center justify-between mb-3">
-                         <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Zyklus-Länge</div>
-                         <span className="text-[10px] font-black text-fit-accent bg-fit-accent/10 px-2 py-0.5 rounded-md">{cycleLength} Wochen</span>
-                      </div>
-                      <input type="range" min="1" max="12" step="1" value={cycleLength} onChange={(e) => setCycleLength(parseInt(e.target.value))} className="w-full accent-[var(--accent)] h-1" />
-                      <div className="flex justify-between text-[10px] font-black opacity-30 uppercase mt-1">
-                         <span>1 W</span>
-                         <span>12 W</span>
-                      </div>
+             <div className="space-y-6">
+                <div>
+                   <div className="flex items-center justify-between mb-3">
+                      <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Zyklus-Länge</div>
+                      <span className="text-[10px] font-black text-fit-accent bg-fit-accent/10 px-2 py-0.5 rounded-md">{cycleLength} Wochen</span>
                    </div>
-                   <div>
-                      <div className="flex items-center justify-between mb-3">
-                         <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Analyse-Fenster (Recent)</div>
-                         <span className="text-[10px] font-black text-fit-accent bg-fit-accent/10 px-2 py-0.5 rounded-md">{recentDays} Tage</span>
-                      </div>
-                      <input type="range" min="1" max="30" value={recentDays} onChange={(e) => setRecentDays(parseInt(e.target.value))} className="w-full accent-[var(--accent)] h-1" />
-                   </div>
-                   <div>
-                      <div className="flex items-center justify-between mb-3">
-                         <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Coverage Threshold</div>
-                         <span className="text-[10px] font-black text-fit-accent bg-fit-accent/10 px-2 py-0.5 rounded-md">{coverageThreshold} Sätze</span>
-                      </div>
-                      <input type="range" min="0.5" max="10" step="0.5" value={coverageThreshold} onChange={(e) => setCoverageThreshold(parseFloat(e.target.value))} className="w-full accent-[var(--accent)] h-1" />
+                   <input type="range" min="1" max="12" step="1" value={cycleLength} onChange={(e) => setCycleLength(parseInt(e.target.value))} className="w-full accent-[var(--accent)] h-1" />
+                   <div className="flex justify-between text-[10px] font-black opacity-30 uppercase mt-1">
+                      <span>1 W</span>
+                      <span>12 W</span>
                    </div>
                 </div>
-             )}
+                <div>
+                   <div className="flex items-center justify-between mb-3">
+                      <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Analyse-Fenster (Recent)</div>
+                      <span className="text-[10px] font-black text-fit-accent bg-fit-accent/10 px-2 py-0.5 rounded-md">{recentDays} Tage</span>
+                   </div>
+                   <input type="range" min="1" max="30" value={recentDays} onChange={(e) => setRecentDays(parseInt(e.target.value))} className="w-full accent-[var(--accent)] h-1" />
+                </div>
+                <div>
+                   <div className="flex items-center justify-between mb-3">
+                      <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Coverage Threshold</div>
+                      <span className="text-[10px] font-black text-fit-accent bg-fit-accent/10 px-2 py-0.5 rounded-md">{coverageThreshold} Sätze</span>
+                   </div>
+                   <input type="range" min="0.5" max="10" step="0.5" value={coverageThreshold} onChange={(e) => setCoverageThreshold(parseFloat(e.target.value))} className="w-full accent-[var(--accent)] h-1" />
+                </div>
+             </div>
           </div>
 
           {/* App Version */}
