@@ -1,5 +1,9 @@
 # View Architecture: Habits (Gewohnheiten)
 
+> [!WARNING]
+> **CODE STATE: FROZEN / DEPRECATED (Option A)**
+> Future development of the Habits and Journal interfaces has been consolidated within the `cloud_chamber/journal-dev` micro-app structure. The local views under `fitness-dev/src/views/Habits/` are frozen and will eventually be removed once `journal-dev` is integrated as a Module Federation Remote.
+
 ## Purpose
 High-frequency tracking of non-workout behaviors (e.g., Hydration, Sleep, Creatine). Designed for friction-less "one-tap" completion.
 
