@@ -145,61 +145,93 @@ def sync_info() -> dict:
     }
 
 # ── Client data ───────────────────────────────────────────────────────────────
-_USERS_ROOT = Path.home() / ".aos" / "users"
-_SKIP_DIRS  = {"default", "kb"}   # non-user dirs
+_USERS_ROOT   = Path.home() / ".aos" / "users"
+_KLIENTEN_DIR = Path.home() / "Klienten"
+_SKIP_DIRS    = {"default", "kb", "_registry", "_entries", "_template", "_templates", "buchhaltung"}
 
-def _uid_alias(uid: str) -> str:
-    """Short readable alias: first 6 chars of UID."""
-    return uid[:6] + "…"
+def _slug_to_name(slug: str) -> str:
+    """'matthias-mayer' -> 'Matthias Mayer'"""
+    return " ".join(part.capitalize() for part in slug.replace("-", " ").replace("_", " ").split())
+
+def load_client_registry() -> dict[str, dict]:
+    """
+    Reads ~/Klienten/*/client.json and returns {firebase_uid: client_info}.
+    client_info keys: uid, name, slug, client_dir
+    """
+    registry: dict[str, dict] = {}
+    if not _KLIENTEN_DIR.exists():
+        return registry
+    for slug_dir in sorted(_KLIENTEN_DIR.iterdir()):
+        if not slug_dir.is_dir() or slug_dir.name in _SKIP_DIRS or slug_dir.name.startswith("_"):
+            continue
+        cfg = slug_dir / "client.json"
+        if not cfg.exists():
+            continue
+        try:
+            data = json.loads(cfg.read_text())
+        except Exception:
+            continue
+        uid = data.get("firebase_uid") or data.get("uid")
+        if not uid:
+            continue
+        name = data.get("name") or _slug_to_name(data.get("id", slug_dir.name))
+        registry[uid] = {
+            "uid":        uid,
+            "name":       name,
+            "slug":       data.get("id", slug_dir.name),
+            "client_dir": slug_dir,
+            "espocrm":    data.get("espocrm"),
+            "crm_id":     data.get("crm_id"),
+        }
+    return registry
 
 def load_all_clients(days: int = 10) -> list[dict]:
     """
-    Scan all ~/.aos/users/<uid>/fitness/sessions/ directories.
-    Returns a list of client dicts, each with:
-      uid, alias, sessions (list, newest first), last_date, session_count
-    Excludes the active UID (that's the coach / own log).
+    Loads sessions for all registered clients (from ~/Klienten/*/client.json).
+    Only UIDs with a client.json entry are shown — anonymous UIDs are skipped.
+    Own UID (coach) is excluded.
     """
     if not _USERS_ROOT.exists():
         return []
-    cutoff = (date.today() - timedelta(days=days)).isoformat()
-    clients = []
-    for user_dir in sorted(_USERS_ROOT.iterdir()):
-        uid = user_dir.name
-        if uid in _SKIP_DIRS or uid.startswith("."):
+    registry = load_client_registry()   # uid -> {name, slug, ...}
+    cutoff   = (date.today() - timedelta(days=days)).isoformat()
+    clients  = []
+
+    for uid, meta in registry.items():
+        if uid == _UID:   # skip self (coach)
             continue
-        sdir = user_dir / "fitness" / "sessions"
-        if not sdir.exists():
-            continue
+        sdir = _USERS_ROOT / uid / "fitness" / "sessions"
         sessions = []
-        for f in sorted(sdir.glob("*.json"), reverse=True):
-            d = _parse_date(f.stem)
-            if not d:
-                continue
-            try:
-                s = json.loads(f.read_text())
-                s.setdefault("date", d)
-                s["_uid"]  = uid
-                s["_stem"] = f.stem
-                if d >= cutoff:
+        all_dates: list[str] = []
+        if sdir.exists():
+            for f in sorted(sdir.glob("*.json"), reverse=True):
+                d = _parse_date(f.stem)
+                if not d:
+                    continue
+                all_dates.append(d)
+                if d < cutoff:
+                    continue
+                try:
+                    s = json.loads(f.read_text())
+                    s.setdefault("date", d)
+                    s["_uid"]  = uid
+                    s["_stem"] = f.stem
                     sessions.append(s)
-            except Exception:
-                pass
-        # also grab last_date from all-time (even if outside window)
-        all_dates = sorted(
-            (d for f in sdir.glob("*.json") if (d := _parse_date(f.stem))),
-            reverse=True)
-        last_date    = all_dates[0] if all_dates else "—"
-        total_count  = len(all_dates)
-        sessions.sort(key=lambda s: (s["date"], s.get("_stem","")), reverse=True)
+                except Exception:
+                    pass
+        all_dates.sort(reverse=True)
+        sessions.sort(key=lambda s: (s["date"], s.get("_stem", "")), reverse=True)
         clients.append({
-            "uid":           uid,
-            "alias":         _uid_alias(uid),
-            "is_self":       uid == _UID,
-            "sessions":      sessions,   # last 10 days only
-            "last_date":     last_date,
-            "total_count":   total_count,
+            "uid":         uid,
+            "name":        meta["name"],
+            "slug":        meta["slug"],
+            "espocrm":     meta.get("espocrm"),
+            "sessions":    sessions,
+            "last_date":   all_dates[0] if all_dates else "—",
+            "total_count": len(all_dates),
+            "has_data":    sdir.exists(),
         })
-    # Sort: most recent activity first
+
     clients.sort(key=lambda c: c["last_date"], reverse=True)
     return clients
 

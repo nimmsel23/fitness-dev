@@ -3,7 +3,7 @@ import { Lock, GripVertical, Sparkles } from "lucide-react";
 import { NAV_ITEMS } from "../../constants/NavigationItems";
 import {
   getSession, getRecentSessions, getPlan,
-  getDashboardAnalytics, exportCsv, getAllExercises, getInbox
+  getDashboardAnalytics, exportCsv, getAllExercises, getInbox, getGlobalInbox, isLocalMode
 } from "@db";
 import { localToday } from "@utils";
 import HabitWidget from "../../components/HabitWidget.jsx";
@@ -31,7 +31,7 @@ const WIDGET_META = {
 
 const HOME_NAV = NAV_ITEMS.filter(i => i.id !== 'dash' && i.id !== 'settings');
 
-export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body', gender = 'male', navMode = 'tabs', navigate, muscleLanguage = 'de', taxonomy = null }) {
+export default function Dashboard({ user, onOpenSession, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body', gender = 'male', navMode = 'tabs', navigate, muscleLanguage = 'de', taxonomy = null }) {
   function onNavigate(target, date) {
     if (target === 'session') onOpenSession?.(date || null);
     else if (target === 'review') onOpenReview?.();
@@ -60,6 +60,7 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
   const [coverage, setCoverage] = useState(null);
   const [exportToast, setExportToast] = useState('');
   const [inboxCount, setInboxCount] = useState(0);
+  const [globalInboxCount, setGlobalInboxCount] = useState(0);
 
   const today = localToday();
   const rollingDays = getRolling10Days();
@@ -71,6 +72,14 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
   useEffect(() => {
     getSession(today).then(setTodaySession).catch(() => setTodaySession({}));
     getPlan().then(setPlan).catch(() => setPlan(null));
+    
+    const isSuperUser = isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92';
+    if (isSuperUser) {
+      getGlobalInbox().then(res => {
+        if (Array.isArray(res)) setGlobalInboxCount(res.length);
+      }).catch(() => {});
+    }
+
     getInbox().then(res => {
       if (Array.isArray(res)) setInboxCount(res.length);
     }).catch(() => {});
