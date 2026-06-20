@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getProgressTrend } from '@db';
-import { TrendingUp, TrendingDown, Plus, Info, X, Clock, History } from 'lucide-react';
+import { TrendingUp, TrendingDown, Plus, Info, X, Clock, History, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function ExerciseItem({
   ex, i, muscleRecovery = {}, updateEx, addSet, removeSet, removeEx, moveEx,
@@ -92,23 +92,49 @@ export default function ExerciseItem({
 
         {/* Info Bar / Previous Stats */}
         {prev && (
-          <div className="mt-4 p-3 rounded-2xl bg-bg2/50 border border-line/50 flex items-center justify-between group cursor-help" onClick={() => setShowDetails(!showDetails)}>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl bg-card flex items-center justify-center text-dim border border-line">
-                <History size={14} />
-              </div>
-              <div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-dim/40 mb-0.5">Zuletzt ({prev.date})</div>
-                <div className="text-xs font-mono font-bold text-dim/80">
-                  {prev.setsArray ? (
-                    <span>{prev.setsArray.length}×{prev.setsArray[0].reps}@{prev.setsArray[0].weight}kg</span>
-                  ) : (
-                    <span>{prev.sets}×{prev.reps}{prev.weight ? `@${prev.weight}kg` : ''}</span>
-                  )}
+          <>
+            <div className="mt-4 p-3 rounded-2xl bg-bg2/50 border border-line/50 flex items-center justify-between cursor-pointer select-none" onClick={() => setShowDetails(!showDetails)}>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-card flex items-center justify-center text-dim border border-line">
+                  <History size={14} />
+                </div>
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-dim/40 mb-0.5">Zuletzt ({prev.date})</div>
+                  <div className="text-xs font-mono font-bold text-dim/80">
+                    {prev.setsArray ? (
+                      <span>{prev.setsArray.length}×{prev.setsArray[0].reps}@{prev.setsArray[0].weight}kg</span>
+                    ) : (
+                      <span>{prev.sets}×{prev.reps}{prev.weight ? `@${prev.weight}kg` : ''}</span>
+                    )}
+                  </div>
                 </div>
               </div>
+              <div className="text-dim/30">
+                {showDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              </div>
             </div>
-          </div>
+
+            {showDetails && (
+              <div className="mt-2 mx-1 p-4 rounded-2xl bg-bg2/30 border border-line/30 space-y-2 animate-in slide-in-from-top-2 duration-200">
+                {prev.setsArray ? prev.setsArray.map((s, idx) => (
+                  <div key={idx} className="flex items-center gap-3">
+                    <span className="text-[9px] font-black text-dim/30 uppercase w-6">S{idx + 1}</span>
+                    <span className="text-xs font-mono font-bold text-dim/70">{s.reps} reps @ {s.weight}kg</span>
+                  </div>
+                )) : (
+                  <div className="text-xs font-mono font-bold text-dim/70">
+                    {prev.sets}×{prev.reps}{prev.weight ? ` @ ${prev.weight}kg` : ''}
+                  </div>
+                )}
+                {trend && trend.status !== 'neutral' && (
+                  <div className="pt-2 border-t border-line/30 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-dim/40">
+                    {trend.status === 'up' ? <TrendingUp size={10} className="text-green" /> : <TrendingDown size={10} className="text-red" />}
+                    {trend.change}% zum Vorwert
+                  </div>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
 
