@@ -1,6 +1,5 @@
 import { X, Target, Dumbbell, Book, Brain, CheckCircle2 } from "lucide-react";
-
-const EFFORT_LABELS = ['', '', 'Sehr leicht', 'Leicht', 'Moderat', 'Etwas schwer', 'Schwer', 'Sehr schwer', 'Extrem', 'Maximal', 'All-Out'];
+import { EFFORT_LABELS } from './journalUtils';
 
 export default function JournalModal({ selectedEntry, setSelectedEntry, habits, formatRelativeDate }) {
   if (!selectedEntry) return null;
