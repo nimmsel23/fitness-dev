@@ -33,6 +33,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
   const [duration, setDuration]   = useState('');
   const [trainingsart, setTrainingsart] = useState('');
   const [notes, setNotes]         = useState('');
+  const [coachFeedback, setCoachFeedback] = useState('');
   const [saving, setSaving]       = useState(false);
   const [toast, setToast]         = useState('');
   const [quickInput, setQuickInput] = useState('');
@@ -65,6 +66,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
     setLocation(d.location || '');
     setDuration(d.duration || '');
     setNotes(d.notes || '');
+    setCoachFeedback(d.coachFeedback || '');
     setTrainingsart(d.trainingsart || '');
     if (d.sessionMode) {
       setSessionMode(d.sessionMode);
@@ -92,6 +94,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
     setLocation('');
     setDuration('');
     setNotes('');
+    setCoachFeedback('');
     setTrainingsart('');
     setSessionMode('strength');
     setActivity({ type: 'hiit', duration: '', notes: '' });
@@ -597,6 +600,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
           notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
           onDownload={handleDownload}
           onExportObsidian={exportObsidian}
+          coachFeedback={coachFeedback}
         />
       )}
 

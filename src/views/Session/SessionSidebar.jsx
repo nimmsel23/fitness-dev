@@ -1,4 +1,4 @@
-import { Download, Zap, MapPin, Clock, Activity, Target, FileText, Info, X } from 'lucide-react';
+import { Download, Zap, MapPin, Clock, Activity, Target, FileText, Info, X, Brain } from 'lucide-react';
 import SectionHeader from './SectionHeader';
 import { blockColor } from './utils';
 
@@ -6,7 +6,7 @@ export default function SessionSidebar({
   location, setLocation, duration, setDuration,
   sessionMode, block, setBlock,
   effort, setEffort, notes, setNotes, onDownload,
-  onExportObsidian, onShowMap, onClose
+  onExportObsidian, onShowMap, onClose, coachFeedback = ""
 }) {
   return (
     <aside className="space-y-6">
@@ -122,6 +122,18 @@ export default function SessionSidebar({
             <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={4} placeholder="Wie war der Fokus?"
               className="w-full p-4 rounded-2xl border text-sm font-medium bg-fit-bg2 border-fit-line text-fit-ink focus:border-accent focus:bg-card outline-none resize-none leading-relaxed transition-all" />
           </div>
+          
+          {coachFeedback && (
+            <div className="p-4 rounded-2xl bg-fit-accent/5 border border-fit-accent/25 relative overflow-hidden group">
+              <div className="flex items-center gap-2 mb-2">
+                <Brain size={14} className="text-fit-accent" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-fit-accent">Coach Feedback</span>
+              </div>
+              <p className="text-xs font-bold italic text-fit-ink/80 leading-relaxed">
+                "{coachFeedback}"
+              </p>
+            </div>
+          )}
         </div>
       </section>
 

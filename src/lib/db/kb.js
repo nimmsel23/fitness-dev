@@ -112,3 +112,7 @@ export async function sendToInbox(exerciseData) {
     return { ok: false };
   }
 }
+
+export async function getGlobalJournalFeed() { return []; }
+export async function getAllUserProfiles() { return {}; }
+export async function saveCoachFeedback() { return { ok: true }; }

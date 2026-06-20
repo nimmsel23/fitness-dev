@@ -266,6 +266,58 @@ def on_habit_journal_snapshot(col_snapshot: Any, changes: Any, read_time: Any):
                 # 2. Push notification to client mobile device
                 send_push_notification(user_id, "Neues Feedback vom Coach", f'"{feedback}"')
 
+def on_sessions_snapshot(col_snapshot: Any, changes: Any, read_time: Any):
+    """Callback to monitor coachFeedback updates on workouts (sessions) and notify clients."""
+    for change in changes:
+        doc = change.document
+        data = doc.to_dict()
+        path = doc.reference.path
+        feedback = data.get('coachFeedback', '').strip()
+        
+        if change.type.name == 'ADDED':
+            if feedback:
+                processed_feedbacks[path] = feedback
+            continue
+            
+        if change.type.name == 'MODIFIED':
+            if not feedback:
+                processed_feedbacks.pop(path, None)
+                continue
+                
+            old_feedback = processed_feedbacks.get(path)
+            if old_feedback == feedback:
+                continue
+                
+            processed_feedbacks[path] = feedback
+            
+            # Extract user_id from path: fitness/{uid}/sessions/{id}
+            parts = path.split('/')
+            if len(parts) >= 2:
+                user_id = parts[1]
+                date = data.get('date', 'Ausgewählter Tag')
+                
+                logger.info(f"New coach feedback for user {user_id} on workout: {feedback}")
+                
+                # 1. Create inbox notification document for the user
+                db = firestore.client()
+                notification_data = {
+                    'type': 'coach_feedback',
+                    'status': 'unread',
+                    'title': 'Neues Coach-Feedback 💬',
+                    'text': f'Dein Coach hat dein Workout vom {date} kommentiert: "{feedback}"',
+                    'received_at': firestore.SERVER_TIMESTAMP,
+                    'date': date
+                }
+                
+                try:
+                    db.collection('fitness').document(user_id).collection('inbox').add(notification_data)
+                    logger.info(f"Created inbox notification for user {user_id}")
+                except Exception as e:
+                    logger.error(f"Failed to create inbox notification: {e}")
+                
+                # 2. Push notification to client mobile device
+                send_push_notification(user_id, "Neues Feedback vom Coach", f'"{feedback}"')
+
 def main():
     """Initializes Firebase and starts the listener."""
     cred_path = Path.home() / ".env" / "firebase-fitness.json"
@@ -288,6 +340,11 @@ def main():
         logger.info("Monitoring all 'habitJournals' collections for coach feedback...")
         journals_query = db.collection_group('habitJournals')
         journals_query.on_snapshot(on_habit_journal_snapshot)
+
+        # Listen to collectionGroup 'sessions' for coach feedback updates
+        logger.info("Monitoring all 'sessions' collections for coach feedback...")
+        sessions_query = db.collection_group('sessions')
+        sessions_query.on_snapshot(on_sessions_snapshot)
 
         # Keep the thread alive
         while True:

@@ -97,8 +97,8 @@ export default function JournalModal({ selectedEntry, setSelectedEntry, habits, 
             </div>
           )}
 
-          {/* Habit: Coach Feedback */}
-          {isHabit && selectedEntry.coachFeedback && (
+          {/* Coach Feedback */}
+          {selectedEntry.coachFeedback && (
             <div className="p-6 rounded-[24px] bg-[var(--accent)]/5 border border-[var(--accent)]/20 relative overflow-hidden group">
               <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform duration-1000 text-[var(--accent)]">
                 <Brain size={120} />
