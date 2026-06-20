@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
-  getSession, saveSession, getSessionHistory, listSessionsForDate, deleteSession,
+  saveSession, getSessionHistory, listSessionsForDate, deleteSession,
   parseQuick, getExercise,
   getCoverageGaps, getPlanSuggestion, exportFitnessData, queueForEnrichment,
 } from '@db';
@@ -51,6 +51,10 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
   const [prevMap, setPrevMap]       = useState({});
   const [daySessions, setDaySessions] = useState([]);
   const [sessionId, setSessionId] = useState(null);
+  const [autoSaveLabel, setAutoSaveLabel] = useState('');
+
+  const autoSaveTimer = useRef(null);
+  const saveRef = useRef(null);
 
   const rollingDays = getRollingDays(30);
 
@@ -173,10 +177,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     getCoverageGaps(7).then(setGaps).catch(() => {});
   }, [date]);
 
-  const doneExercises = useMemo(
-    () => exercises.filter(ex => ex.done),
-    [exercises]
-  )
+  const doneExercises = exercises;
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 2200); }
 
@@ -202,26 +203,23 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       primaryMuscles: primary,
       secondaryMuscles: secondary,
       setsArray: [{reps: '', weight: ''}],
-      note: '', done: true,
+      note: '',
       source: ex.source
     }]);
 
-
-    // Queue für Enrichment falls nicht expert
-    if (ex.source !== 'expert') {
-      queueForEnrichment(ex)
-    }
-    
+    if (ex.source !== 'expert') queueForEnrichment(ex);
     showToast(`+ ${ex.display_name || ex.name}`);
+    scheduleAutoSave();
   }
 
   function addQuick() {
     if (!quickInput.trim()) return;
     const ex = parseQuick(quickInput);
-    if (ex) { 
+    if (ex) {
       setExercises(prev => [...prev, ex]);
       setQuickInput('');
-      showToast(`+ ${ex.name}`); 
+      showToast(`+ ${ex.name}`);
+      scheduleAutoSave();
     }
   }
 
@@ -235,6 +233,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       }
       return { ...ex, [field]: value };
     }));
+    scheduleAutoSave();
   }
 
   function addSet(i) {
@@ -242,6 +241,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       if (idx !== i) return ex;
       return { ...ex, setsArray: [...ex.setsArray, {reps: '', weight: ''}] };
     }));
+    scheduleAutoSave();
   }
 
   function removeSet(i, setIdx) {
@@ -249,6 +249,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       if (idx !== i || ex.setsArray.length <= 1) return ex;
       return { ...ex, setsArray: ex.setsArray.filter((_, sIdx) => sIdx !== setIdx) };
     }));
+    scheduleAutoSave();
   }
 
   function moveEx(i, direction) {
@@ -260,13 +261,15 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       next[i + direction] = temp;
       return next;
     });
+    scheduleAutoSave();
   }
 
   function removeEx(i) {
     setExercises(prev => prev.filter((_, idx) => idx !== i));
+    scheduleAutoSave();
   }
 
-  async function save() {
+  async function save(silent = false) {
     setSaving(true);
     try {
       const sessData = { block, exercises, effort, location, duration, notes, trainingsart, sessionMode };
@@ -275,14 +278,26 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       if (sessionMode === 'cardio') sessData.activity = activity;
       else if (hasActivity && activity.duration) sessData.activity = activity;
       await saveSession(date, sessData, sessionId);
-      showToast('Gespeichert ✓');
+      if (silent) {
+        setAutoSaveLabel('Auto ✓');
+        setTimeout(() => setAutoSaveLabel(''), 2000);
+      } else {
+        showToast('Gespeichert ✓');
+      }
       const list = await listSessionsForDate(date);
       setDaySessions(list);
-      // Update gaps after save
       const gaps = await getCoverageGaps(7);
       setGaps(gaps);
-    } catch { showToast('Fehler beim Speichern'); }
+    } catch { if (!silent) showToast('Fehler beim Speichern'); }
     finally { setSaving(false); }
+  }
+
+  // Always keep saveRef current so debounced auto-save uses fresh closures
+  saveRef.current = save;
+
+  function scheduleAutoSave() {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => saveRef.current(true), 2500);
   }
 
   async function handleDeleteSession() {
@@ -533,6 +548,17 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
             </div>
           )}
 
+          {/* Gap hints */}
+          {gaps.length > 0 && (
+            <div className="card p-6 border-fit-red/20 bg-fit-red/5">
+              <div className="text-[10px] font-black uppercase tracking-widest text-fit-red mb-4">Coverage-Lücken</div>
+              <div className="flex flex-wrap gap-2">
+                {gaps.map(g => (
+                  <span key={g.name} className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border bg-fit-red/10 text-fit-red border-fit-red/20">{g.name}</span>
+                ))}
+              </div>
+            </div>
+          )}
         </main>
       </div>
 
@@ -543,24 +569,31 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       )}
 
       {/* Floating Save Button for Mobile */}
-      <button 
-        onClick={save} 
-        disabled={saving}
-        className="lg:hidden fixed bottom-24 right-6 w-14 h-14 rounded-full bg-fit-accent text-black shadow-2xl shadow-accent/40 flex items-center justify-center z-40 active:scale-95 transition-all disabled:opacity-50"
-      >
-        {saving ? <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" /> : <Save size={24} />}
-      </button>
+      <div className="lg:hidden fixed bottom-24 right-6 z-40 flex flex-col items-end gap-1.5">
+        {autoSaveLabel && (
+          <span className="text-[9px] font-black uppercase tracking-widest text-fit-accent/60 animate-in fade-in duration-300">
+            {autoSaveLabel}
+          </span>
+        )}
+        <button
+          onClick={() => save()}
+          disabled={saving}
+          className="w-14 h-14 rounded-full bg-fit-accent text-black shadow-2xl shadow-accent/40 flex items-center justify-center active:scale-95 transition-all disabled:opacity-50"
+        >
+          {saving ? <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" /> : <Save size={24} />}
+        </button>
+      </div>
 
       {showSidebar && (
         <SidebarSheet
           onClose={() => setShowSidebar(false)}
           onShowMap={() => { setShowSidebar(false); setShowMap(true); }}
-          location={location} setLocation={setLocation}
-          duration={duration} setDuration={setDuration}
+          location={location} setLocation={v => { setLocation(v); scheduleAutoSave(); }}
+          duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
           sessionMode={sessionMode}
-          block={block} setBlock={setBlock}
-          effort={effort} setEffort={setEffort}
-          notes={notes} setNotes={setNotes}
+          block={block} setBlock={v => { setBlock(v); scheduleAutoSave(); }}
+          effort={effort} setEffort={v => { setEffort(v); scheduleAutoSave(); }}
+          notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
           onDownload={handleDownload}
           onExportObsidian={exportObsidian}
         />

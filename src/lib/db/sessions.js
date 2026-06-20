@@ -127,6 +127,5 @@ export function parseQuick(raw) {
     note: rpeMatch ? `RPE ${rpeMatch[1]}` : '',
     primaryMuscles: [],
     secondaryMuscles: [],
-    done: true
   }
 }

@@ -14,7 +14,7 @@ import { useApp } from '@fuel/store.js'
 import { TAB_CONFIG } from '@fuel/tabs/index.jsx'
 import TabContent from '@fuel/components/TabContent.jsx'
 import { useAppData } from '@fuel/hooks/useAppData.js'
-import '@fuel/styles.css'
+import '@fuel/styles.embedded.css'
 
 const qc = new QueryClient({
   defaultOptions: { queries: { staleTime: 60_000 } },

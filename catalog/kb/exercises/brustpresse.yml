@@ -1,5 +1,5 @@
-name: inbox_brustpresse
-description: AI generated base entry for Brustpresse
+exercise_id: brustpresse
+description: Expert details for brustpresse
 exercises:
 - exercise_id: brustpresse
   id: brustpresse
@@ -46,3 +46,4 @@ exercises:
   - bankdrücken
   - machine_press
   stabilizers: []
+  source: expert

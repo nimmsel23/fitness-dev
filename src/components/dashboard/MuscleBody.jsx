@@ -8,8 +8,7 @@ export default function MuscleBody({ enrichedRecent, recentDays = 7, highlighter
   const safeRecent = Array.isArray(enrichedRecent) ? enrichedRecent.filter(Boolean) : [];
   const recentExercises = safeRecent
     .flatMap(s => Array.isArray(s?.exercises) ? s.exercises : [])
-    .filter(Boolean)
-    .filter(e => e.done);
+    .filter(Boolean);
 
   const [selectedMuscleId, setSelectedMuscleId] = useState(null);
   const [muscleData, setMuscleData] = useState(null);

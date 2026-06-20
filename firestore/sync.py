@@ -1,12 +1,12 @@
-"""pull/push: Firestore ↔ ~/.aos/fitness/ (one-shot)"""
+"""pull/push: Firestore ↔ ~/.aos/users/<uid>/ (one-shot)"""
 
 import json
 from pathlib import Path
 
 from ._db import get_db, ts, UID
 
-FITNESS_DIR = Path.home() / ".aos" / "fitness"
-STATE_DIR   = FITNESS_DIR / "agent-state"
+USERS_DIR = Path.home() / ".aos" / "users"
+STATE_DIR = Path.home() / ".aos" / "fitness" / "agent-state"  # state bleibt kompatibel
 
 
 def _load_known(uid: str) -> set:
@@ -39,7 +39,7 @@ def pull() -> dict:
     # Iterate over all user documents in the fitness collection
     for user_ref in db.collection("fitness").list_documents():
         uid = user_ref.id
-        user_dir = FITNESS_DIR / "users" / uid
+        user_dir = USERS_DIR / uid / "fitness"
         sessions_dir = user_dir / "sessions"
         journal_dir = user_dir / "journal"
         inbox_dir = user_dir / "inbox"
@@ -111,7 +111,7 @@ def pull() -> dict:
             known.add(doc.id)
             total_journal += 1
 
-        # Pull Habit Journal
+        # Pull Habit Journal (Memoirs — auch ohne Text-Body ziehen)
         known_habits = _load_known_habits(uid)
         for doc in db.collection("fitness").document(uid).collection("habitJournals").stream():
             if doc.id in known_habits:
@@ -120,24 +120,57 @@ def pull() -> dict:
             date = data.get("date", "")
             text = data.get("text", "").strip()
             coach_feedback = data.get("coachFeedback", "").strip()
-            hid  = data.get("habitId", "")
+            hid   = data.get("habitId", "")
             hname = habit_names.get(hid, f"Habit:{hid}")
+            time  = (ts(data.get("recorded_at") or data.get("updated_at")) or "")[:16]
 
-            if not date or not text:
+            if not date:
                 continue
 
             md_file = journal_dir / f"{date}.md"
-            marker = f"<!-- fshid:{doc.id} -->"
+            marker  = f"<!-- fshid:{doc.id} -->"
             if md_file.exists() and marker in md_file.read_text():
                 known_habits.add(doc.id)
                 continue
 
             with md_file.open("a", encoding="utf-8") as fh:
-                fh.write(f"\n{marker}\n**Habit: {hname}**\n{text}\n")
+                fh.write(f"\n{marker}\n**Habit: {hname}**")
+                if time:
+                    fh.write(f" _{time}_")
+                fh.write(f"\n{text}\n" if text else "\n")
                 if coach_feedback:
                     fh.write(f"> **Coach Feedback:** {coach_feedback}\n")
             known_habits.add(doc.id)
             total_habit_journal += 1
+
+        # Pull Habit Records (Completions → Journal-Eintrag pro Tag)
+        state_file_hr = STATE_DIR / f"fsm-known-habit-records-{uid}.json"
+        known_records = set(json.loads(state_file_hr.read_text())) if state_file_hr.exists() else set()
+        for doc in db.collection("fitness").document(uid).collection("habitRecords").stream():
+            if doc.id in known_records:
+                continue
+            data  = doc.to_dict()
+            date  = data.get("date", "")
+            hid   = data.get("habitId", "")
+            hname = habit_names.get(hid, f"Habit:{hid}")
+            rec_at = (ts(data.get("recorded_at")) or "")[:16]
+            completion = data.get("completion", "DONE")
+            if not date:
+                continue
+            md_file = journal_dir / f"{date}.md"
+            marker  = f"<!-- fshr:{doc.id} -->"
+            if md_file.exists() and marker in md_file.read_text():
+                known_records.add(doc.id)
+                continue
+            with md_file.open("a", encoding="utf-8") as fh:
+                fh.write(f"\n{marker}\n**{hname}** {completion}")
+                if rec_at:
+                    fh.write(f" _{rec_at}_")
+                fh.write("\n")
+            known_records.add(doc.id)
+            total_habit_journal += 1
+        state_file_hr.parent.mkdir(parents=True, exist_ok=True)
+        state_file_hr.write_text(json.dumps(sorted(known_records), indent=2))
         
         # Pull Inbox
         for doc in db.collection("fitness").document(uid).collection("inbox").stream():

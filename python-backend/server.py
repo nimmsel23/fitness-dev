@@ -16,6 +16,9 @@ import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
+import asyncio
+
+import aiohttp
 import yaml
 from aiohttp import web
 from loguru import logger
@@ -163,7 +166,8 @@ async def handle_session_post(req: web.Request) -> web.Response:
     session = {**body, "date": day, "session_id": sid, "saved_at": datetime.utcnow().isoformat()}
     _write_json(_session_file(uid, day, sid), session)
     _sync_session_to_db(day, session)
-    await mirror_session(day, session, uid)
+    loop = asyncio.get_event_loop()
+    loop.run_in_executor(None, mirror_session, day, session, uid)
     return _json({"ok": True, "id": sid})
 
 async def handle_session_delete(req: web.Request) -> web.Response:

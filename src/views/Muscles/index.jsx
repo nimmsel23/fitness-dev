@@ -98,7 +98,6 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
       const inRange = safeSessions
         .filter(s => s.date >= cutoffStr)
         .flatMap(s => s.exercises || [])
-        .filter(ex => ex.done)
         .map(ex => {
           const kbEx = kbMap.get((ex.name || "").toLowerCase());
           return {
@@ -131,7 +130,7 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
              }
            }
         } else {
-           for (const ex of (s.exercises || []).filter(e => e.done)) {
+           for (const ex of (s.exercises || [])) {
              const kbEx = kbMap.get((ex.name || "").toLowerCase());
              const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];
              const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];

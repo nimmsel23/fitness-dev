@@ -1,5 +1,5 @@
-name: inbox_body_rows
-description: AI generated base entry for Body Rows
+exercise_id: body_rows
+description: Expert details for body_rows
 exercises:
 - exercise_id: body_rows
   id: body_rows
@@ -53,3 +53,4 @@ exercises:
   - Schräges Rudern
   - Suspension Trainer Rows
   stabilizers: []
+  source: expert

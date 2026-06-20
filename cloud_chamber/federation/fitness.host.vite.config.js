@@ -23,11 +23,12 @@ const BACKEND = 'http://localhost:9100'
 export default defineConfig({
   root: FITNESS_ROOT,
   resolve: {
+    preserveSymlinks: true,
     alias: {
       '@src':    resolve(FITNESS_ROOT, 'src'),
       '@db':     resolve(FITNESS_ROOT, 'src/db.js'),
       '@utils':  resolve(FITNESS_ROOT, 'src/lib/utils.js'),
-      '@aliase': resolve(FITNESS_ROOT, 'catalog/kb/maps/aliases.yml'),
+      '@aliase': resolve(FITNESS_ROOT, 'catalog/kb/aliases.yml'),
     },
   },
   plugins: [
@@ -35,9 +36,11 @@ export default defineConfig({
     federation({
       name: 'fitness_host',
       remotes: {
-        // dev:  fuel-dev muss gebaut + auf :9000 serviert werden
+        // dev:  Remote muss gebaut + auf jeweiligem Port serviert werden
         // prod: durch Firebase Hosting URL ersetzen
-        fuel: 'http://localhost:9000/dist-federation/assets/remoteEntry.js',
+        fuel:    'http://localhost:9000/dist-federation/assets/remoteEntry.js',
+        journal: 'http://localhost:9173/remoteEntry.js',
+        learn:   'http://localhost:9183/remoteEntry.js',
       },
       shared: {
         react:       { singleton: true, requiredVersion: '^18.0.0' },

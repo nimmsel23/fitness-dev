@@ -3,14 +3,17 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev":   "node server.mjs & npx vite --port 9171",
+    "dev": "node server.mjs & npx vite --port 9171",
     "server": "node server.mjs",
-    "ui":    "npx vite --port 9171",
+    "ui": "npx vite --port 9171",
     "build": "npx vite build",
+    "build:firebase": "npx vite build --mode firebase",
+    "deploy": "npm run build:firebase && firebase deploy --only hosting",
     "start": "node server.mjs"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.3",
+    "firebase": "^11.10.0",
     "hono": "^4.12.19",
     "lucide-react": "^0.453.0",
     "react": "^18.3.1",

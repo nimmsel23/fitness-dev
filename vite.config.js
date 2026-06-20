@@ -9,12 +9,23 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     resolve: {
+      preserveSymlinks: true,
       alias: {
         '@src':    resolve(__dirname, './src'),
         '@db':     resolve(__dirname, isFirebase ? './src/db.firestore.js' : './src/db.js'),
         '@utils':  resolve(__dirname, './src/lib/utils.js'),
-        '@aliase': resolve(__dirname, './catalog/kb/maps/aliases.yml'),
+        '@aliase': resolve(__dirname, './catalog/kb/aliases.yml'),
+        // Explizite Auflösung für symlinkte Views → cloud_chamber
+        './views/Journal': resolve(__dirname, './cloud_chamber/journal-dev/src/views/Journal'),
+        './views/Habits':  resolve(__dirname, './cloud_chamber/journal-dev/src/views/Habits'),
+        // Federation: lokale Auflösung für regulären Build (ohne Remote)
+        'journal/JournalApp': resolve(__dirname, './cloud_chamber/federation/JournalApp.jsx'),
+        'fuel/FuelApp':       resolve(__dirname, './cloud_chamber/federation/FuelApp.jsx'),
+        // fuel-dev Internals
+        '@fuel': resolve('/home/alpha/fuel-dev/src/client'),
       },
+      // Singleton-Dedup: fuel-dev hat eigene node_modules — Vite zwingt eine einzige Instanz
+      dedupe: ['react', 'react-dom', '@tanstack/react-query'],
     },
     server: {
       port: 5902,

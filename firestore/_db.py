@@ -5,7 +5,16 @@ from firebase_admin import credentials, firestore
 
 CRED_PATH = Path.home() / ".env" / "firebase-fitness.json"
 PROJECT   = os.getenv("FIREBASE_FITNESS_PROJECT", "fitness-aos")
-UID       = os.getenv("FITNESS_UID", "default")
+
+def _resolve_uid() -> str:
+    if v := os.getenv("FITNESS_UID"):
+        return v
+    uid_file = Path.home() / ".aos" / "users" / ".active-uid"
+    if uid_file.exists():
+        return uid_file.read_text().strip()
+    return "59ole36uNpNwml5H6VDYCXyCME92"
+
+UID = _resolve_uid()
 
 _db = None
 
