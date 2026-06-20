@@ -1,5 +1,5 @@
 import { Zap, ChevronRight, Dumbbell, Activity, Timer } from "lucide-react";
-import { getBlockColor as blockColor, ACTIVITY_LABELS, ACTIVITY_ICONS } from "../../constants/ActivityConstants";
+import { getBlockColor as blockColor, ACTIVITY_LABELS, ACTIVITY_ICONS, ACTIVITY_EMOJI } from "../../constants/ActivityConstants";
 
 export default function SessionStatus({ plan, todaySession, recent, today, onNavigate }) {
   const planExercises = Array.isArray(plan?.today?.exercises) ? plan.today.exercises : [];
@@ -43,11 +43,15 @@ export default function SessionStatus({ plan, todaySession, recent, today, onNav
       )}
 
       {/* Heutige Session Status */}
-      { (todayExercises.length > 0 || todaySession?.activity) ? (
+       { (todayExercises.length > 0 || todaySession?.activity || todaySession?.sessionMode === 'cardio') ? (
         <div className="alpha-card p-8 border-fit-accent/30 shadow-2xl shadow-accent/5">
           <div className="label-caps mb-8 flex items-center justify-between">
             <span>Aktuelle Session</span>
-            <span className="text-fit-accent font-black tracking-widest">{todaySession?.activity ? ACTIVITY_LABELS[todaySession.activity.type] : todaySession?.block}</span>
+            <span className="text-fit-accent font-black tracking-widest">
+              {(todaySession?.activity || todaySession?.sessionMode === 'cardio')
+                ? (ACTIVITY_LABELS[todaySession.activity?.type] || 'Ausdauer')
+                : todaySession?.block}
+            </span>
           </div>
           <div className="flex items-center justify-between">
             <div className="flex gap-10">
@@ -92,19 +96,25 @@ export default function SessionStatus({ plan, todaySession, recent, today, onNav
           <div className="flex flex-col gap-3">
             {recentSessions.filter(s => s?.date !== today).slice(0, 3).map((s, idx) => {
               if (!s) return null;
-              const isActivity = !!s.activity;
-              const ActivityIcon = isActivity ? (ACTIVITY_ICONS[s.activity.type] || Activity) : Dumbbell;
-              const label = isActivity ? ACTIVITY_LABELS[s.activity.type] : s.block;
-              const color = blockColor(s.block, s.activity);
+              const isActivity = s.sessionMode === 'cardio' || !!s.activity;
+              const actType = s.activity?.type;
+              const emoji = actType ? ACTIVITY_EMOJI[actType] : null;
+              const ActivityIcon = (!emoji && actType) ? (ACTIVITY_ICONS[actType] || Activity) : null;
+              const label = isActivity ? (ACTIVITY_LABELS[actType] || 'Ausdauer') : s.block;
+              const color = blockColor(s.block, s.activity, s.sessionMode);
 
               return (
                 <button key={s.date || idx} onClick={() => onNavigate?.("session", s.date)}
                   className="w-full text-left px-6 py-4 rounded-3xl bg-fit-card border border-fit-line cursor-pointer hover:border-accent/40 transition-all group hover:bg-accent/5">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110"
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 text-xl"
                         style={{ background: color + '15', color: color }}>
-                        <ActivityIcon size={22} />
+                        {isActivity && emoji
+                          ? emoji
+                          : isActivity && ActivityIcon
+                          ? <ActivityIcon size={22} />
+                          : <Dumbbell size={22} />}
                       </div>
                       <div>
                         <div className="text-[10px] font-black opacity-30 uppercase tracking-widest mb-1">{s.date}</div>

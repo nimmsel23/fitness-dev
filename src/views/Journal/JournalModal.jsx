@@ -1,13 +1,43 @@
 import { X, Target, Dumbbell, Book, Brain, CheckCircle2 } from "lucide-react";
 import { EFFORT_LABELS } from './journalUtils';
 
+const ACTIVITY_EMOJI = {
+  running:   '🏃',
+  cycling:   '🚴',
+  swimming:  '🏊',
+  hiking:    '🥾',
+  rowing:    '🚣',
+  climbing:  '🧗',
+  yoga:      '🧘',
+  stretching:'🤸',
+  hiit:      '⚡',
+  walking:   '🚶',
+};
+
+const ACTIVITY_LABEL = {
+  running:   'Laufen',
+  cycling:   'Radfahren',
+  swimming:  'Schwimmen',
+  hiking:    'Wandern',
+  rowing:    'Rudern',
+  climbing:  'Klettern',
+  yoga:      'Yoga',
+  stretching:'Stretching',
+  hiit:      'HIIT',
+  walking:   'Spazieren',
+};
+
 export default function JournalModal({ selectedEntry, setSelectedEntry, habits, formatRelativeDate }) {
   if (!selectedEntry) return null;
 
   const isHabit = selectedEntry.type === 'habit';
   const isWorkout = selectedEntry.type === 'workout';
+  const isActivity = selectedEntry.type === 'activity';
   const isHabitCompletion = selectedEntry.type === 'habit-completion';
   const habit = isHabit ? habits.find(h => h.uuid === selectedEntry.habitId) : null;
+
+  const activityEmoji = isActivity ? (ACTIVITY_EMOJI[selectedEntry.activityType] || '🏃') : null;
+  const activityLabel = isActivity ? (ACTIVITY_LABEL[selectedEntry.activityType] || selectedEntry.activityType || 'Ausdauer') : null;
 
   const timeDisplay = selectedEntry.time
     ? selectedEntry.time.slice(11, 16)
@@ -15,16 +45,26 @@ export default function JournalModal({ selectedEntry, setSelectedEntry, habits, 
     ? new Date(selectedEntry.updated_at.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : '';
 
-  const iconColor = isWorkout ? 'text-blue-500 bg-blue-500/10' : 'text-fit-accent bg-fit-accent/10';
+  const iconBg = isWorkout
+    ? 'text-blue-500 bg-blue-500/10'
+    : isActivity
+    ? 'text-fit-orange bg-fit-orange/10'
+    : 'text-fit-accent bg-fit-accent/10';
+
   const title = isHabit
     ? habit?.name
     : isWorkout
     ? selectedEntry.block
+    : isActivity
+    ? activityLabel
     : isHabitCompletion
     ? selectedEntry.habitName
     : 'Journal Eintrag';
+
   const subtitle = isWorkout
     ? 'Workout geloggt'
+    : isActivity
+    ? 'Ausdauer geloggt'
     : isHabitCompletion
     ? 'Habit abgeschlossen'
     : isHabit
@@ -39,8 +79,18 @@ export default function JournalModal({ selectedEntry, setSelectedEntry, habits, 
         {/* Header */}
         <div className="p-6 border-b border-fit-line/50 flex items-center justify-between bg-gradient-to-r from-fit-card to-fit-bg2">
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${iconColor}`}>
-              {isHabit ? <Target size={20} /> : isWorkout ? <Dumbbell size={20} /> : isHabitCompletion ? <CheckCircle2 size={20} /> : <Book size={20} />}
+            <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${iconBg}`}>
+              {isHabit ? (
+                <Target size={20} />
+              ) : isWorkout ? (
+                <Dumbbell size={20} />
+              ) : isActivity ? (
+                <span className="text-2xl leading-none">{activityEmoji}</span>
+              ) : isHabitCompletion ? (
+                <CheckCircle2 size={20} />
+              ) : (
+                <Book size={20} />
+              )}
             </div>
             <div>
               <h3 className="text-sm font-black uppercase tracking-widest text-fit-ink">{title}</h3>
@@ -56,6 +106,23 @@ export default function JournalModal({ selectedEntry, setSelectedEntry, habits, 
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-8 sm:p-10 space-y-8">
+
+          {/* Activity: Dauer + Sport-Info */}
+          {isActivity && (
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl bg-fit-orange/8 border border-fit-orange/20">
+                <span className="text-2xl leading-none">{activityEmoji}</span>
+                <span className="text-sm font-black text-fit-orange uppercase tracking-wider">{activityLabel}</span>
+              </div>
+              {selectedEntry.activityDuration && (
+                <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-fit-orange/8 border border-fit-orange/20">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-fit-orange/60">Dauer</span>
+                  <span className="text-sm font-black text-fit-orange">{selectedEntry.activityDuration} min</span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Workout: Übungsliste */}
           {isWorkout && selectedEntry.exercises?.length > 0 && (
             <div>

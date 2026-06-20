@@ -1,21 +1,56 @@
-import { Target, Dumbbell, Clock, Brain, Edit, CheckCircle2 } from "lucide-react";
+import { Target, Dumbbell, Clock, Brain, Edit, CheckCircle2, Activity } from "lucide-react";
 import { EFFORT_LABELS, timeStr } from './journalUtils';
+
+// Maps activity type to emoji — same set as ActivitySection
+const ACTIVITY_EMOJI = {
+  running:   '🏃',
+  cycling:   '🚴',
+  swimming:  '🏊',
+  hiking:    '🥾',
+  rowing:    '🚣',
+  climbing:  '🧗',
+  yoga:      '🧘',
+  stretching:'🤸',
+  hiit:      '⚡',
+  walking:   '🚶',
+};
+
+const ACTIVITY_LABEL = {
+  running:   'Laufen',
+  cycling:   'Radfahren',
+  swimming:  'Schwimmen',
+  hiking:    'Wandern',
+  rowing:    'Rudern',
+  climbing:  'Klettern',
+  yoga:      'Yoga',
+  stretching:'Stretching',
+  hiit:      'HIIT',
+  walking:   'Spazieren',
+};
 
 export default function JournalEntry({ e, i, habits, setSelectedEntry, onEdit }) {
   const isHabit = e.type === 'habit';
   const isWorkout = e.type === 'workout';
+  const isActivity = e.type === 'activity';
   const isHabitCompletion = e.type === 'habit-completion';
-  const isAuto = isHabit || isWorkout || isHabitCompletion;
+  const isAuto = isHabit || isWorkout || isActivity || isHabitCompletion;
   const habit = isHabit ? habits.find(h => h.uuid === e.habitId) : null;
+
+  const activityEmoji = isActivity ? (ACTIVITY_EMOJI[e.activityType] || '🏃') : null;
+  const activityLabel = isActivity ? (ACTIVITY_LABEL[e.activityType] || e.activityType || 'Ausdauer') : null;
 
   const bulletColor = isWorkout
     ? 'bg-blue-500'
+    : isActivity
+    ? 'bg-fit-orange'
     : (isHabit || isHabitCompletion)
     ? 'bg-fit-accent'
     : 'bg-fit-dim';
 
   const borderColor = isWorkout
     ? 'border-blue-500/15'
+    : isActivity
+    ? 'border-fit-orange/20'
     : isAuto
     ? 'border-fit-accent/10'
     : 'border-fit-line';
@@ -38,6 +73,16 @@ export default function JournalEntry({ e, i, habits, setSelectedEntry, onEdit })
               <div>
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500">{e.block}</span>
                 <div className="text-[8px] font-bold opacity-30 uppercase tracking-tighter -mt-0.5">Workout geloggt</div>
+              </div>
+            </div>
+          ) : isActivity ? (
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-fit-orange/10 flex items-center justify-center text-xl leading-none">
+                {activityEmoji}
+              </div>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-orange">{activityLabel}</span>
+                <div className="text-[8px] font-bold opacity-30 uppercase tracking-tighter -mt-0.5">Ausdauer geloggt</div>
               </div>
             </div>
           ) : isHabitCompletion ? (
@@ -84,6 +129,16 @@ export default function JournalEntry({ e, i, habits, setSelectedEntry, onEdit })
             )}
           </div>
         </div>
+
+        {/* Activity: Dauer-Badge */}
+        {isActivity && e.activityDuration && (
+          <div className="mb-3 flex items-center gap-2">
+            <span className="text-[9px] font-black uppercase tracking-widest opacity-30">Dauer</span>
+            <span className="text-[10px] font-black text-fit-orange bg-fit-orange/8 border border-fit-orange/20 px-2 py-0.5 rounded-md">
+              {e.activityDuration} min
+            </span>
+          </div>
+        )}
 
         {/* Workout: Übungsliste */}
         {isWorkout && e.exercises?.length > 0 && (

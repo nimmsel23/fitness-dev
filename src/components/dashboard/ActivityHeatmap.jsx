@@ -17,7 +17,7 @@ export default function ActivityHeatmap({ rollingDays, sessionByDate, today, onN
           const s = sessionByDate[date];
           const done = !!(s?.block || s?.activity);
           const isToday = date === today;
-          const color = done ? blockColor(s.block, s.activity) : null;
+          const color = done ? blockColor(s.block, s.activity, s.sessionMode) : null;
           const dayName = DAY_LABELS[new Date(date).getDay()];
           return (
             <div key={date} className="flex flex-col items-center gap-3 group">

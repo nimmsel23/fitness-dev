@@ -1,29 +1,76 @@
-import { Footprints, Bike, Waves, Activity } from "lucide-react";
+import { Footprints, Bike, Waves, Activity, Mountain, Anchor, Leaf, Zap } from "lucide-react";
 
 export const BLOCK_COLORS = {
-  push: "#f472b6", pull: "#34d399", legs: "#fb923c",
-  upper: "#38bdf8", lower: "#a78bfa", full: "#fbbf24",
-  hiking: "#48c87a", running: "#e05060", cycling: "#38bdf8", swimming: "#5294e2", yoga: "#bd93f9"
+  // Strength splits
+  push:       "#f472b6",
+  pull:       "#34d399",
+  legs:       "#fb923c",
+  upper:      "#38bdf8",
+  lower:      "#a78bfa",
+  full:       "#fbbf24",
+  // Cardio / Endurance — all use orange family to be visually distinct from strength
+  running:    "#f97316",  // orange
+  cycling:    "#fb923c",  // orange-400
+  swimming:   "#38bdf8",  // sky (water)
+  hiking:     "#4ade80",  // green (nature)
+  rowing:     "#22d3ee",  // cyan
+  climbing:   "#a78bfa",  // violet
+  yoga:       "#bd93f9",  // soft purple
+  stretching: "#e879f9",  // fuchsia
+  hiit:       "#ef4444",  // red (intensity)
+  walking:    "#86efac",  // soft green
 };
 
 export const ACTIVITY_LABELS = {
-  hiking: "Wandern",
-  running: "Laufen",
-  cycling: "Radfahren",
-  swimming: "Schwimmen",
-  yoga: "Yoga"
+  running:    "Laufen",
+  cycling:    "Radfahren",
+  swimming:   "Schwimmen",
+  hiking:     "Wandern",
+  rowing:     "Rudern",
+  climbing:   "Klettern",
+  yoga:       "Yoga",
+  stretching: "Stretching",
+  hiit:       "HIIT",
+  walking:    "Spazieren",
+};
+
+export const ACTIVITY_EMOJI = {
+  running:    "🏃",
+  cycling:    "🚴",
+  swimming:   "🏊",
+  hiking:     "🥾",
+  rowing:     "🚣",
+  climbing:   "🧗",
+  yoga:       "🧘",
+  stretching: "🤸",
+  hiit:       "⚡",
+  walking:    "🚶",
 };
 
 export const ACTIVITY_ICONS = {
-  hiking: Footprints,
-  running: Footprints,
-  cycling: Bike,
-  swimming: Waves,
-  yoga: Activity
+  running:    Footprints,
+  cycling:    Bike,
+  swimming:   Waves,
+  hiking:     Mountain,
+  rowing:     Anchor,
+  climbing:   Mountain,
+  yoga:       Leaf,
+  stretching: Activity,
+  hiit:       Zap,
+  walking:    Footprints,
 };
 
-export function getBlockColor(block, activity) {
+/**
+ * Returns a CSS color string for a given session.
+ * - If sessionMode === 'cardio', uses orange as a general cardio color
+ *   (or the specific activity-type color if available).
+ * - Falls back to block-name lookup for strength sessions.
+ */
+export function getBlockColor(block, activity, sessionMode) {
+  // Prefer specific activity-type color
   if (activity?.type && BLOCK_COLORS[activity.type]) return BLOCK_COLORS[activity.type];
+  // General cardio fallback (orange)
+  if (sessionMode === 'cardio') return "#f97316";
   if (!block) return "var(--accent)";
   for (const [key, color] of Object.entries(BLOCK_COLORS)) {
     if (block.toLowerCase().includes(key)) return color;
