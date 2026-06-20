@@ -8,7 +8,6 @@ import ExplorerHeader from "./ExplorerHeader";
 import AnatomyExplorer from "./AnatomyExplorer";
 import AnatomyDetailModal from "../../components/AnatomyDetailModal";
 import PlanBuilder from "../../components/PlanBuilder.jsx";
-import Muscles from "../Muscles/index.jsx";
 
 // QuizMode
 function QuizMode({ exercises, onExit }) {
@@ -101,7 +100,7 @@ function QuizMode({ exercises, onExit }) {
   );
 }
 
-export default function Learn({ onInspectExercise, gender, muscleLanguage = 'de', taxonomy = null }) {
+export default function Learn({ onInspectExercise, muscleLanguage = 'de', taxonomy = null }) {
   const [exercises, setExercises] = useState([]);
   const [selected, setSelected]   = useState(null);
   const [viewMode, setViewMode]   = useState('library'); // 'library', 'explorer', or 'quiz'
@@ -153,14 +152,6 @@ export default function Learn({ onInspectExercise, gender, muscleLanguage = 'de'
      );
   }
 
-  if (viewMode === 'analysis') {
-    return (
-      <div className="pb-20 lg:pb-0 px-2">
-        <ExplorerHeader viewMode={viewMode} setViewMode={setViewMode} onStartQuiz={() => setViewMode('quiz')} hasRecent={recent.length > 0} />
-        <Muscles gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
-      </div>
-    );
-  }
 
   return (
     <div className="pb-20 lg:pb-0 px-2">
