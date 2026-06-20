@@ -15,7 +15,7 @@
 - [ ] **Anatomy Teaching**: Expand deep anatomy content for all core exercises in the catalog.
 
 ## 🏗 Architectural / Tech Debt
-- [ ] **Multi-Session Schema**: Migrate to `sessions/{sessionId}` structure to support multiple workouts per day.
+- [x] **Multi-Session Schema**: Migrate to `sessions/{sessionId}` structure to support multiple workouts per day.
 - [ ] **Habit Tab Refactoring**: Refactor Habit Tab into a more encapsulated, app-like structure.
 - [x] **Local Data Migration**: Move `data/` from repo-local to `~/.aos/fitness/`. ✅ (Implemented in server and agent).
 

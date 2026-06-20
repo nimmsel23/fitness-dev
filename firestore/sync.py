@@ -61,8 +61,9 @@ def pull() -> dict:
 
         # Pull Sessions
         for doc in db.collection("fitness").document(uid).collection("sessions").stream():
-            date, data = doc.id, doc.to_dict()
-            local = sessions_dir / f"{date}.json"
+            doc_id, data = doc.id, doc.to_dict()
+            actual_date = data.get("date") or doc_id.split("__")[0]
+            local = sessions_dir / f"{doc_id}.json"
             if local.exists():
                 try:
                     local_data = json.loads(local.read_text())
@@ -80,8 +81,8 @@ def pull() -> dict:
             # Unify notes into journal markdown
             notes = data.get("notes", "").strip()
             if notes:
-                md_file = journal_dir / f"{date}.md"
-                marker = f"<!-- fssn:{doc.id} -->"
+                md_file = journal_dir / f"{actual_date}.md"
+                marker = f"<!-- fssn:{doc_id} -->"
                 if not (md_file.exists() and marker in md_file.read_text()):
                     block = data.get("block", "Training")
                     with md_file.open("a", encoding="utf-8") as fh:
@@ -170,17 +171,18 @@ def push() -> dict:
         # logger.info(f"Pushing sessions for user: {uid}")
 
         for f in sorted(sessions_dir.glob("*.json")):
-            date       = f.stem
+            doc_id     = f.stem
+            actual_date = doc_id.split("__")[0]
             local_data = json.loads(f.read_text())
             local_ts   = local_data.get("saved_at", "")
-            remote     = db.collection("fitness").document(uid).collection("sessions").document(date).get()
+            remote     = db.collection("fitness").document(uid).collection("sessions").document(doc_id).get()
             if remote.exists:
                 remote_ts = ts(remote.to_dict().get("saved_at"))
                 if remote_ts and local_ts and remote_ts >= local_ts:
                     skipped += 1
                     continue
-            db.collection("fitness").document(uid).collection("sessions").document(date).set(
-                {**local_data, "date": date}
+            db.collection("fitness").document(uid).collection("sessions").document(doc_id).set(
+                {**local_data, "date": actual_date}
             )
             pushed += 1
 

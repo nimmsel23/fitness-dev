@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
-  getSession, saveSession, getSessionHistory,
+  getSession, saveSession, getSessionHistory, listSessionsForDate, deleteSession,
   parseQuick, getExercise,
   getCoverageGaps, getPlanSuggestion, exportFitnessData, queueForEnrichment,
 } from '@db';
 import { localToday } from '@utils';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
 
-import { Save, Zap } from 'lucide-react';
+import { Save, Zap, Trash2 } from 'lucide-react';
 import DateHeader from './DateHeader';
 import ExerciseSection from './ExerciseSection';
 import ActivitySection from './ActivitySection';
@@ -39,8 +39,47 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
   const [showTabSettings, setShowTabSettings] = useState(false);
 
   const [prevMap, setPrevMap]       = useState({});
+  const [daySessions, setDaySessions] = useState([]);
+  const [sessionId, setSessionId] = useState(null);
 
   const rollingDays = getRollingDays(30);
+
+  const loadSessionData = (d) => {
+    setBlock(d.block || '');
+    setExercises(d.exercises || []);
+    setEffort(d.effort ?? 5);
+    setLocation(d.location || '');
+    setDuration(d.duration || '');
+    setNotes(d.notes || '');
+    setTrainingsart(d.trainingsart || '');
+    if (d.activity) {
+      setHasActivity(true);
+      setActivity(d.activity);
+    } else {
+      setHasActivity(false);
+    }
+  };
+
+  const resetSessionData = () => {
+    setBlock(initialDraft?.block || '');
+    setExercises(initialDraft?.exercises || []);
+    setEffort(5);
+    setLocation('');
+    setDuration('');
+    setNotes('');
+    setTrainingsart('');
+    setHasActivity(false);
+  };
+
+  const selectSession = (id) => {
+    setSessionId(id);
+    const d = daySessions.find(s => s.id === id);
+    if (d) {
+      loadSessionData(d);
+    } else {
+      resetSessionData();
+    }
+  };
 
   useEffect(() => {
     getSessionHistory(60).then(sessions => {
@@ -67,7 +106,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       
       setRecentSessions(sessByDate);
       setPrevMap(pMap);
-
+      
       if (block) {
         const lastSameBlock = sessions.find(s => s.date < date && (s.block === block || s.trainingsart === block));
         if (lastSameBlock) {
@@ -83,32 +122,28 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
   }, [block, date]);
 
   useEffect(() => {
-    getSession(date).then(d => {
-      if (d) {
-        setBlock(d.block || '');
-        setExercises(d.exercises || []);
-        setEffort(d.effort ?? 5);
-        setLocation(d.location || '');
-        setDuration(d.duration || '');
-        setNotes(d.notes || '');
-        setTrainingsart(d.trainingsart || '');
-        if (d.activity) {
-          setHasActivity(true);
-          setActivity(d.activity);
+    const listSessions = async () => {
+      try {
+        const list = await listSessionsForDate(date);
+        setDaySessions(list);
+        if (list.length > 0) {
+          const found = list.find(s => s.id === sessionId);
+          if (found) {
+            setSessionId(found.id);
+            loadSessionData(found);
+          } else {
+            setSessionId(list[0].id);
+            loadSessionData(list[0]);
+          }
         } else {
-          setHasActivity(false);
+          setSessionId(null);
+          resetSessionData();
         }
-      } else {
-        setBlock(initialDraft?.block || '');
-        setExercises(initialDraft?.exercises || []);
-        setEffort(5);
-        setLocation('');
-        setDuration('');
-        setNotes('');
-        setTrainingsart('');
-        setHasActivity(false);
+      } catch (e) {
+        console.error("Failed to load sessions for date", e);
       }
-    }).catch(() => {});
+    };
+    listSessions();
     
     // Local Intelligence: Fetch Plan and Gaps
     getPlanSuggestion(date).then(setHint).catch(() => {});
@@ -213,13 +248,49 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     try {
       const sessData = { block, exercises, effort, location, duration, notes, trainingsart };
       if (hasActivity) sessData.activity = activity;
-      await saveSession(date, sessData);
+      await saveSession(date, sessData, sessionId);
       showToast('Gespeichert ✓');
+      const list = await listSessionsForDate(date);
+      setDaySessions(list);
       // Update gaps after save
       const gaps = await getCoverageGaps(7);
       setGaps(gaps);
     } catch { showToast('Fehler beim Speichern'); }
     finally { setSaving(false); }
+  }
+
+  async function handleDeleteSession() {
+    if (!window.confirm("Dieses Workout wirklich löschen?")) return;
+    try {
+      await deleteSession(date, sessionId);
+      showToast('Gelöscht ✓');
+      const list = await listSessionsForDate(date);
+      setDaySessions(list);
+      if (list.length > 0) {
+        setSessionId(list[0].id);
+        loadSessionData(list[0]);
+      } else {
+        setSessionId(null);
+        resetSessionData();
+      }
+    } catch {
+      showToast('Fehler beim Löschen');
+    }
+  }
+
+  function handleNewSession() {
+    const newSuffix = String(Date.now());
+    setSessionId(newSuffix);
+    resetSessionData();
+    setDaySessions(prev => [
+      ...prev,
+      {
+        id: newSuffix,
+        block: 'Neues Workout',
+        exercises: [],
+        saved_at: new Date().toISOString()
+      }
+    ]);
   }
 
   async function exportObsidian() {
@@ -259,6 +330,81 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
         onOpenSettings={() => setShowTabSettings(true)}
         onOpenSidebar={() => setShowSidebar(true)}
       />
+
+      {/* Session Switcher Bar */}
+      <div className="px-2 mb-8">
+        <div className="card p-6 shadow-xl rounded-[30px] border-line/40 bg-card/60 backdrop-blur-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-dim/40 mr-2">Workouts:</div>
+            {daySessions.length === 0 ? (
+              <span className="text-[10px] font-black uppercase tracking-wider text-dim/60">Keine Workouts eingetragen</span>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {/* Default session */}
+                {(() => {
+                  const defaultSess = daySessions.find(s => s.id === null);
+                  const isSelected = sessionId === null;
+                  if (!defaultSess && daySessions.length > 0 && sessionId !== null) {
+                    // Let user also go back to null (default) if creating first suffix session
+                  }
+                  const label = defaultSess?.block || "Hauptsession";
+                  return (
+                    <button
+                      onClick={() => selectSession(null)}
+                      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all ${
+                        isSelected
+                          ? "bg-accent border-accent text-black shadow-lg shadow-accent/20"
+                          : "bg-bg2 border-line text-dim hover:border-line-hover"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })()}
+
+                {/* Suffix sessions */}
+                {daySessions
+                  .filter(s => s.id !== null)
+                  .map(s => {
+                    const isSelected = sessionId === s.id;
+                    const label = s.block || `Workout (${s.id.slice(-4)})`;
+                    return (
+                      <button
+                        key={s.id}
+                        onClick={() => selectSession(s.id)}
+                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all ${
+                          isSelected
+                            ? "bg-accent border-accent text-black shadow-lg shadow-accent/20"
+                            : "bg-bg2 border-line text-dim hover:border-line-hover"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              onClick={handleNewSession}
+              className="px-4 py-2 rounded-xl border border-dashed border-line text-dim hover:text-accent hover:border-accent/40 text-[10px] font-black uppercase tracking-wider transition-all"
+            >
+              + Neues Workout
+            </button>
+            {sessionId !== null && (
+              <button
+                onClick={handleDeleteSession}
+                className="px-4 py-2 rounded-xl border border-red/20 bg-red/5 text-red hover:bg-red/10 text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5"
+              >
+                <Trash2 size={12} />
+                Löschen
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
 
       <div className="px-2">
         <main className="space-y-8">
