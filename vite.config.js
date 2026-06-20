@@ -57,6 +57,8 @@ export default defineConfig(({ mode }) => {
           '**/dist-*/**',
           '**/.firebase/**',
           '**/node_modules/**',
+          '**/cloud_chamber/vitalos/**',
+          '**/cloud_chamber/fitness-dev/**',
         ],
       },
       proxy: {
