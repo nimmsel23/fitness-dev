@@ -468,7 +468,7 @@ app.post("/fitness/export", async (c) => {
 // ── HabitSync proxy ───────────────────────────────────────────────────────────
 app.get("/habitsync/habits", async (c) => {
   try {
-    const r    = await fetch(`${HABITSYNC_BASE}/api/habit/list`, { headers: { Authorization: HS_AUTH } });
+    const r = await fetch(`${HABITSYNC_BASE}/api/habit/list`, { headers: { Authorization: HS_AUTH } });
     const text = await r.text();
     return new Response(text, { status: r.ok ? 200 : 502, headers: { "Content-Type": "application/json;charset=utf-8" } });
   } catch {
@@ -653,10 +653,13 @@ app.get("/session/latest", (c) => {
 // ── Journal ───────────────────────────────────────────────────────────────────
 app.get("/journal", (c) => {
   const date = c.req.query("date") || localToday();
-  const file = path.join(DATA_DIR, "journal", `${date}.md`);
-  if (!fs.existsSync(file)) return c.json({ ok: false }, 404);
-  const content = fs.readFileSync(file, "utf8");
-  const mtime   = fs.statSync(file).mtime.toISOString().slice(0, 10);
+  const sources = [
+    path.join(DATA_DIR, "journal", `${date}.md`),
+    path.join(os.homedir(), ".aos", "fuel", "journal", `${date}.md`),
+  ].filter(f => fs.existsSync(f));
+  if (!sources.length) return c.json({ ok: false }, 404);
+  const content = sources.map(f => fs.readFileSync(f, "utf8")).join("\n\n---\n\n");
+  const mtime   = sources.map(f => fs.statSync(f).mtime).reduce((a, b) => a > b ? a : b).toISOString().slice(0, 10);
   return c.json({ ok: true, content, mtime });
 });
 
@@ -709,35 +712,48 @@ app.get("/coverage/gaps", (c) => {
 
 // ── Export CSV ────────────────────────────────────────────────────────────────
 app.get("/export/csv", (c) => {
-  const uid   = c.req.query("uid") || c.req.header("X-User-UID") || "default";
+  const uid     = c.req.query("uid") || c.req.header("X-User-UID") || "default";
   const sessDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
-  const days  = Math.min(365, Math.max(1, Number(c.req.query("days") || 14)));
-  const dates = lastDates(days).reverse();
-  const rows  = [["date","block","location","duration_min","exercise","hit","sets","reps","weight","note","effort"]];
+  const days    = Math.min(365, Math.max(1, Number(c.req.query("days") || 14)));
+  const mode    = c.req.query("mode") || "simple";
+  const dates   = lastDates(days).reverse();
+
+  const isDetailed = mode === "detailed";
+
+  const header = isDetailed
+    ? ["date","block","location","duration_min","exercise","sets_summary","weight_max_kg","note","effort"]
+    : ["date","block","exercise","note","effort"];
+
+  const rows = [header];
+
   for (const date of dates) {
     const sess     = readJson(path.join(sessDir, `${date}.json`));
     const block    = sess?.block    || "";
     const effort   = sess?.effort   ?? "";
     const location = sess?.location || "";
     const duration = sess?.duration || "";
+
     for (const ex of (sess?.exercises || [])) {
-      rows.push([
-        date,
-        escapeCsvValue(block),
-        escapeCsvValue(location),
-        String(duration),
-        escapeCsvValue(ex.name || ""),
-        ex.isHIT ? "1" : "",
-        ex.isHIT ? "" : String(ex.sets  ?? ""),
-        ex.isHIT ? "" : String(ex.reps  ?? ""),
-        String(ex.weight ?? ""),
-        escapeCsvValue(ex.note || ""),
-        String(effort),
-      ]);
+      const sets = ex.setsArray || [];
+      const setsSummary = sets.length
+        ? sets.map(s => [s.reps, s.weight ? `${s.weight}kg` : ''].filter(Boolean).join('@')).join(' / ')
+        : (ex.sets ? `${ex.sets}×${ex.reps ?? ''}` : '');
+      const weightMax = sets.length
+        ? Math.max(0, ...sets.map(s => parseFloat(s.weight) || 0)) || ""
+        : (ex.weight ?? "");
+
+      rows.push(isDetailed
+        ? [date, escapeCsvValue(block), escapeCsvValue(location), String(duration),
+           escapeCsvValue(ex.name || ""), escapeCsvValue(setsSummary), String(weightMax),
+           escapeCsvValue(ex.note || ""), String(effort)]
+        : [date, escapeCsvValue(block), escapeCsvValue(ex.name || ""),
+           escapeCsvValue(ex.note || ""), String(effort)]
+      );
     }
   }
+
   const csv      = rows.map(r => r.map(v => `"${v}"`).join(",")).join("\n") + "\n";
-  const filename = `fitness-${days}d-${localToday()}.csv`;
+  const filename = `fitness-${days}d-${mode}-${localToday()}.csv`;
   return c.json({ ok: true, filename, csv });
 });
 
