@@ -31,6 +31,21 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onInspec
               ? <span className="flex items-center gap-1 text-[9px] font-black px-2 py-0.5 bg-blue/10 text-blue rounded-full border border-blue/20 uppercase tracking-tighter"><Sparkles size={10} /> Proaktiv</span>
               : <span className="text-[9px] font-black px-2 py-0.5 bg-fit-green/10 text-fit-green rounded-full border border-fit-green/20 uppercase tracking-tighter">Klient</span>
           )}
+          {ex.status === 'pending' && (
+            <span className="text-[9px] font-black px-2 py-0.5 bg-fit-orange/15 text-fit-orange rounded-full border border-fit-orange/25 uppercase tracking-tighter animate-pulse">
+              Wartet auf KI-Anreicherung
+            </span>
+          )}
+          {ex.status === 'ai_enriched' && (
+            <span className="text-[9px] font-black px-2 py-0.5 bg-fit-accent/15 text-fit-accent rounded-full border border-fit-accent/25 uppercase tracking-tighter">
+              Wartet auf Freigabe
+            </span>
+          )}
+          {ex.status === 'failed_enrichment' && (
+            <span className="text-[9px] font-black px-2 py-0.5 bg-fit-red/15 text-fit-red rounded-full border border-fit-red/25 uppercase tracking-tighter">
+              KI-Fehler
+            </span>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-1.5 mb-3">
@@ -71,13 +86,15 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onInspec
         >
           <Trash2 size={18} />
         </button>
-        <button
-          onClick={() => onApprove(fileId)}
-          disabled={busy}
-          className="flex items-center gap-2 px-6 py-3 bg-fit-accent text-black rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg shadow-accent/20 hover:scale-105 transition-all active:scale-95 disabled:opacity-50"
-        >
-          {busy ? 'Warte…' : <><CheckCircle2 size={16} /> Freigeben</>}
-        </button>
+        {onApprove && (
+          <button
+            onClick={() => onApprove(fileId)}
+            disabled={busy}
+            className="flex items-center gap-2 px-6 py-3 bg-fit-accent text-black rounded-xl font-black uppercase text-[11px] tracking-widest shadow-lg shadow-accent/20 hover:scale-105 transition-all active:scale-95 disabled:opacity-50"
+          >
+            {busy ? 'Warte…' : <><CheckCircle2 size={16} /> Freigeben</>}
+          </button>
+        )}
       </div>
     </div>
   );

@@ -375,7 +375,7 @@ export default function App() {
                       {tab === 'fuel'     && <Suspense fallback={<div style={{ padding: 24, color: '#64748b', fontSize: 13 }}>Fuel lädt…</div>}><FuelApp /></Suspense>}
                       {tab === 'journal'  && <Suspense fallback={<div style={{ padding: 24, color: '#64748b', fontSize: 13 }}>Journal lädt…</div>}><JournalApp /></Suspense>}
                       {tab === 'coach'    && (isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92') && <Coach onInspectExercise={inspectExercise} />}
-                      {tab === 'inbox'    && <Inbox onInspectExercise={inspectExercise} />}
+                      {tab === 'inbox'    && <Inbox user={user} onInspectExercise={inspectExercise} />}
                       {tab === 'settings' && (
                          <Settings
                            layoutScale={layoutScale} setLayoutScale={setLayoutScale}

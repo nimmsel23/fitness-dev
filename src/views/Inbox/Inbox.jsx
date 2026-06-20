@@ -1,9 +1,11 @@
 import { CheckCircle2, Sparkles, Info } from 'lucide-react';
 import { useInbox } from './useInbox';
 import InboxCard from './InboxCard';
+import { isLocalMode } from '@db';
 
-export default function Inbox({ onInspectExercise }) {
+export default function Inbox({ user, onInspectExercise }) {
   const { exercises, loading, actioning, toast, approve, remove } = useInbox();
+  const isSuperUser = isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92';
 
   if (loading) return (
     <div className="flex items-center justify-center py-20">
@@ -37,7 +39,7 @@ export default function Inbox({ onInspectExercise }) {
               key={ex.file_id}
               ex={ex}
               actioning={actioning}
-              onApprove={approve}
+              onApprove={isSuperUser ? approve : null}
               onDelete={remove}
               onInspect={onInspectExercise}
             />
@@ -49,11 +51,22 @@ export default function Inbox({ onInspectExercise }) {
         <div className="flex items-start gap-4 text-blue">
           <Info size={20} className="shrink-0 mt-1" />
           <div>
-            <h4 className="text-sm font-black uppercase tracking-widest mb-2">Workflow Info</h4>
+            <h4 className="text-sm font-black uppercase tracking-widest mb-2">
+              {isSuperUser ? 'Workflow Info' : 'Mitteilungen'}
+            </h4>
             <p className="text-xs font-medium leading-relaxed opacity-80">
-              Übungen in dieser Liste wurden von Klienten angefragt und automatisch durch die KI angereichert.
-              Durch <strong>Freigeben</strong> wird die Übung dauerhaft in den Katalog aufgenommen.
-              Überprüfe die Biomechanik und Coaching-Notes vor der Freigabe.
+              {isSuperUser ? (
+                <>
+                  Übungen in dieser Liste wurden von Klienten angefragt und automatisch durch die KI angereichert.
+                  Durch <strong>Freigeben</strong> wird die Übung dauerhaft in den Katalog aufgenommen.
+                  Überprüfe die Biomechanik und Coaching-Notes vor der Freigabe.
+                </>
+              ) : (
+                <>
+                  Deine neu angefragten Übungen wurden durch die KI angereichert und warten auf die Freigabe durch deinen Coach.
+                  Sobald der Coach die Übung freigibt, steht sie dir im Katalog zur Verfügung.
+                </>
+              )}
             </p>
           </div>
         </div>

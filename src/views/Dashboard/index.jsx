@@ -123,7 +123,7 @@ export default function Dashboard({ user, onOpenSession, onOpenReview, recentDay
       }));
       setEnrichedRecent(enriched);
     });
-  }, [today, recentDays, coverageThreshold]);
+  }, [today, recentDays, coverageThreshold, user]);
 
   const sessionByDate = Object.fromEntries(recent.map(s => [s.date, s]));
 
