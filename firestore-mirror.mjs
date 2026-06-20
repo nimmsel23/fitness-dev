@@ -82,6 +82,134 @@ export async function getFirestoreStatus() {
   return { ok: db !== null, project: db ? PROJECT : null };
 }
 
+// ── Read Layer (Firestore → direkt, kein lokaler Sync nötig) ─────────────────
+
+export async function readJournal(uid, date) {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const snap = await db.collection("fitness").doc(uid).collection("journal")
+      .where("date", "==", date).limit(10).get();
+    if (snap.empty) return null;
+    const parts = snap.docs
+      .sort((a, b) => (a.data().time || "").localeCompare(b.data().time || ""))
+      .map(d => {
+        const { text, time } = d.data();
+        return `<!-- fsid:${d.id} -->\n**${(time || "").slice(0,16)}** ${text || ""}`;
+      });
+    return parts.join("\n\n");
+  } catch { return null; }
+}
+
+export async function listJournals(uid, limitCount = 50) {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const [journalSnap, habitSnap] = await Promise.all([
+      db.collection("fitness").doc(uid).collection("journal")
+        .orderBy("date", "desc").limit(limitCount).get(),
+      db.collection("fitness").doc(uid).collection("habitJournals")
+        .orderBy("date", "desc").limit(limitCount).get(),
+    ]);
+    const seen = new Map();
+    for (const d of [...journalSnap.docs, ...habitSnap.docs]) {
+      const date = d.data().date;
+      if (date && !seen.has(date)) seen.set(date, d.data().time || date);
+    }
+    return [...seen.entries()]
+      .sort((a, b) => b[0].localeCompare(a[0])).slice(0, limitCount)
+      .map(([date, mtime]) => ({ date, mtime }));
+  } catch { return null; }
+}
+
+export async function readJournalFull(uid, date) {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const [jSnap, hjSnap, hrSnap] = await Promise.all([
+      db.collection("fitness").doc(uid).collection("journal")
+        .where("date", "==", date).get(),
+      db.collection("fitness").doc(uid).collection("habitJournals")
+        .where("date", "==", date).get(),
+      db.collection("fitness").doc(uid).collection("habitRecords")
+        .where("date", "==", date).get(),
+    ]);
+    // Habit-Namen laden
+    const habitIds = new Set([
+      ...hjSnap.docs.map(d => d.data().habitId),
+      ...hrSnap.docs.map(d => d.data().habitId),
+    ]);
+    const habitNames = {};
+    await Promise.all([...habitIds].map(async hid => {
+      const h = await db.collection("fitness").doc(uid).collection("habits").doc(hid).get();
+      if (h.exists) habitNames[hid] = h.data().name || hid;
+    }));
+
+    const parts = [];
+    for (const d of jSnap.docs) {
+      const { text, time } = d.data();
+      if (text) parts.push(`<!-- fsid:${d.id} -->\n**${(time||"").slice(0,16)}** ${text}`);
+    }
+    for (const d of hjSnap.docs) {
+      const { text, habitId, coachFeedback } = d.data();
+      const name = habitNames[habitId] || habitId;
+      let block = `<!-- fshid:${d.id} -->\n**Habit: ${name}**\n${text || ""}`;
+      if (coachFeedback) block += `\n> **Coach Feedback:** ${coachFeedback}`;
+      parts.push(block);
+    }
+    for (const d of hrSnap.docs) {
+      const { habitId, completion, recorded_at } = d.data();
+      const name = habitNames[habitId] || habitId;
+      const time = recorded_at ? recorded_at.toDate().toISOString().slice(0,16) : "";
+      parts.push(`<!-- fshr:${d.id} -->\n**${name}** ${completion||"DONE"} _${time}_`);
+    }
+    return parts.length ? parts.join("\n\n") : null;
+  } catch { return null; }
+}
+
+export async function readSessions(uid, limitCount = 50) {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const snap = await db.collection("fitness").doc(uid).collection("sessions")
+      .orderBy("date", "desc").limit(limitCount).get();
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch { return null; }
+}
+
+export async function readSession(uid, date) {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const snap = await db.collection("fitness").doc(uid).collection("sessions")
+      .where("date", "==", date).limit(5).get();
+    if (snap.empty) return null;
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch { return null; }
+}
+
+export async function readHabits(uid) {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const [habitsSnap, recordsSnap] = await Promise.all([
+      db.collection("fitness").doc(uid).collection("habits").get(),
+      db.collection("fitness").doc(uid).collection("habitRecords")
+        .where("date", "==", new Date().toISOString().slice(0,10)).get(),
+    ]);
+    const doneToday = new Set(recordsSnap.docs.map(d => d.data().habitId));
+    return habitsSnap.docs
+      .map(d => ({ uuid: d.id, ...d.data() }))
+      .filter(h => !h.deleted)
+      .map(h => ({
+        ...h,
+        records: doneToday.has(h.uuid)
+          ? [{ date: new Date().toISOString().slice(0,10), completion: "DONE" }]
+          : [],
+      }));
+  } catch { return null; }
+}
+
 export async function mirrorPlan(plan, uid = "default") {
   const db = await getDb();
   if (!db) return;

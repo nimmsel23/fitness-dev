@@ -106,10 +106,7 @@ export function getUid() {
   return currentUid;
 }
 
-const BRIDGE_NOTIFY = "https://ideapad.tail7a15d6.ts.net/api/fitness/notify";
-export function pingBridge() {
-  fetch(BRIDGE_NOTIFY, { method: "POST" }).catch(() => {});
-}
+export function pingBridge() { /* noop — sync via firestore-daemon (on_snapshot) */ }
 
 // ── Sessions (from pwa.bak/src/lib/db/sessions.js) ───────────────────────────
 
