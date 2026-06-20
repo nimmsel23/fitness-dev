@@ -239,3 +239,41 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# ── Push-Stubs (fire-and-forget, für python-backend/server.py) ────────────────
+
+from datetime import datetime
+
+def mirror_session(date: str, session: dict, uid: str = UID) -> None:
+    try:
+        db = get_db()
+        out = {**session, "date": date, "saved_at": datetime.utcnow().isoformat()}
+        db.collection("fitness").document(uid).collection("sessions").document(date).set(out)
+    except Exception as e:
+        logger.warning(f"mirror_session fehler: {e}")
+
+def mirror_journal(date: str, entry: dict, uid: str = UID) -> None:
+    try:
+        db = get_db()
+        db.collection("fitness").document(uid).collection("journal").add(
+            {**entry, "date": date, "time": datetime.utcnow().isoformat()}
+        )
+    except Exception as e:
+        logger.warning(f"mirror_journal fehler: {e}")
+
+def mirror_plan(plan: dict, uid: str = UID) -> None:
+    try:
+        db = get_db()
+        db.collection("fitness").document(uid).collection("plan").document("active").set(
+            {**plan, "updated_at": datetime.utcnow().isoformat()}
+        )
+    except Exception as e:
+        logger.warning(f"mirror_plan fehler: {e}")
+
+def get_status() -> dict:
+    try:
+        db = get_db()
+        return {"ok": True, "project": db._client.project}
+    except Exception:
+        return {"ok": False, "project": None}

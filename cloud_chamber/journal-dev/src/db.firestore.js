@@ -15,7 +15,10 @@ import {
   collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc, query,
   orderBy, limit, where, serverTimestamp,
 } from "firebase/firestore";
-import { onAuthStateChanged, signInWithPopup, signOut as fbSignOut } from "firebase/auth";
+import {
+  onAuthStateChanged, signInWithRedirect, getRedirectResult,
+  signOut as fbSignOut,
+} from "firebase/auth";
 import { db, auth, googleProvider } from "./firebase.js";
 
 export { db, auth, googleProvider };
@@ -24,8 +27,18 @@ export { db, auth, googleProvider };
 
 export function isLocalMode() { return false; }
 export function getUid() { return auth.currentUser?.uid ?? null; }
-export function watchAuth(cb) { return onAuthStateChanged(auth, cb); }
-export async function signIn() { await signInWithPopup(auth, googleProvider); return { ok: true }; }
+
+export function watchAuth(cb) {
+  // Redirect-Result nach Rückkehr von Google abarbeiten
+  getRedirectResult(auth).catch(() => {});
+  return onAuthStateChanged(auth, cb);
+}
+
+export async function signIn() {
+  await signInWithRedirect(auth, googleProvider);
+  return { ok: true };
+}
+
 export async function signOut() { await fbSignOut(auth); return { ok: true }; }
 
 // ── Utils ─────────────────────────────────────────────────────────────────────

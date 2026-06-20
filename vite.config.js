@@ -9,11 +9,12 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     resolve: {
+      preserveSymlinks: true,
       alias: {
         '@src':    resolve(__dirname, './src'),
         '@db':     resolve(__dirname, isFirebase ? './src/db.firestore.js' : './src/db.js'),
         '@utils':  resolve(__dirname, './src/lib/utils.js'),
-        '@aliase': resolve(__dirname, './catalog/kb/maps/aliases.yml'),
+        '@aliase': resolve(__dirname, './catalog/kb/aliases.yml'),
       },
     },
     server: {
