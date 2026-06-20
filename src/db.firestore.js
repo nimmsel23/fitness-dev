@@ -113,29 +113,60 @@ export function pingBridge() {
 
 // ── Sessions (from pwa.bak/src/lib/db/sessions.js) ───────────────────────────
 
-export async function getSession(date = todayISO()) {
-  const snap = await getDoc(doc(db, "fitness", getUid(), "sessions", date));
+export async function getSession(date = todayISO(), id = null) {
+  const targetId = id ? `${date}__${id}` : date;
+  const snap = await getDoc(doc(db, "fitness", getUid(), "sessions", targetId));
   if (!snap.exists()) return { date, block: "", exercises: [], effort: null, mood: "", notes: "" };
   const data = snap.data() || {};
   return {
-    date,
+    date: data.date || date,
     block: "",
     effort: null,
     mood: "",
     notes: "",
     ...data,
+    id: id || null,
     exercises: Array.isArray(data.exercises) ? data.exercises : [],
   };
 }
 
-export async function saveSession(date = todayISO(), sessionData) {
-  await setDoc(doc(db, "fitness", getUid(), "sessions", date), {
+export async function saveSession(date = todayISO(), sessionData, id = null) {
+  const targetId = id ? `${date}__${id}` : date;
+  await setDoc(doc(db, "fitness", getUid(), "sessions", targetId), {
     ...sessionData,
     date,
+    session_id: id || null,
     saved_at: serverTimestamp(),
   });
   pingBridge();
+  return { ok: true, id };
+}
+
+export async function deleteSession(date = todayISO(), id = null) {
+  const targetId = id ? `${date}__${id}` : date;
+  await deleteDoc(doc(db, "fitness", getUid(), "sessions", targetId));
+  pingBridge();
   return { ok: true };
+}
+
+export async function listSessionsForDate(date = todayISO()) {
+  const q = query(
+    collection(db, "fitness", getUid(), "sessions"),
+    where("date", "==", date)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => {
+    const data = d.data() || {};
+    const suffix = d.id.includes("__") ? d.id.split("__")[1] : null;
+    return {
+      id: suffix,
+      date: data.date || date,
+      block: data.block || null,
+      saved_at: data.saved_at ? data.saved_at.toDate().toISOString() : null,
+      ...data,
+      exercises: Array.isArray(data.exercises) ? data.exercises : [],
+    };
+  }).sort((a, b) => String(a.saved_at).localeCompare(String(b.saved_at)));
 }
 
 export async function getRecentSessions(n = 10) {
@@ -148,8 +179,9 @@ export async function getRecentSessions(n = 10) {
   return snap.docs
     .map((d) => {
       const data = d.data() || {};
+      const suffix = d.id.includes("__") ? d.id.split("__")[1] : null;
       return {
-        id: d.id,
+        id: suffix,
         ...data,
         exercises: Array.isArray(data.exercises) ? data.exercises : [],
       };

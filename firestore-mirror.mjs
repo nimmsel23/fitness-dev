@@ -55,8 +55,9 @@ function fire(fn) {
 export async function mirrorSession(date, session, uid = "default") {
   const db = await getDb();
   if (!db) return;
+  const targetId = session.session_id ? `${date}__${session.session_id}` : date;
   fire(() =>
-    db.collection("fitness").doc(uid).collection("sessions").doc(date).set({
+    db.collection("fitness").doc(uid).collection("sessions").doc(targetId).set({
       ...session,
       date,
       saved_at: new Date().toISOString(),

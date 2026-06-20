@@ -31,6 +31,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS training_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date TEXT NOT NULL,
+    session_id TEXT,
     workout_id TEXT NOT NULL,
     exercise_id TEXT NOT NULL,
     display_name TEXT NOT NULL,
@@ -47,21 +48,32 @@ db.exec(`
     ON training_history(exercise_id, date DESC, id DESC);
 `);
 
-const stmtDeleteDate  = db.prepare("DELETE FROM training_history WHERE date = ?");
+try {
+  db.exec("ALTER TABLE training_history ADD COLUMN session_id TEXT");
+} catch (e) {
+  // Column already exists or table was just created with the column
+}
+
 const stmtInsertEntry = db.prepare(`
   INSERT INTO training_history
-    (date, workout_id, exercise_id, display_name, sets, reps, weight, rpe, done, notes, completion_status)
+    (date, session_id, workout_id, exercise_id, display_name, sets, reps, weight, rpe, done, notes, completion_status)
   VALUES
-    (@date, @workout_id, @exercise_id, @display_name, @sets, @reps, @weight, @rpe, @done, @notes, @completion_status)
+    (@date, @session_id, @workout_id, @exercise_id, @display_name, @sets, @reps, @weight, @rpe, @done, @notes, @completion_status)
 `);
 
 function syncSessionToDb(date, session) {
   const block = session.block || "";
+  const sessionId = session.session_id || null;
   db.transaction(() => {
-    stmtDeleteDate.run(date);
+    if (sessionId) {
+      db.prepare("DELETE FROM training_history WHERE date = ? AND session_id = ?").run(date, sessionId);
+    } else {
+      db.prepare("DELETE FROM training_history WHERE date = ? AND (session_id IS NULL OR session_id = '')").run(date);
+    }
     for (const ex of (session.exercises || [])) {
       stmtInsertEntry.run({
         date,
+        session_id:        sessionId,
         workout_id:        block,
         exercise_id:       ex.exercise_id || ex.id || "",
         display_name:      ex.name || ex.exercise_id || ex.id || "",
