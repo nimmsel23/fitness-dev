@@ -1,0 +1,111 @@
+# Disconnected Features
+
+Features die durch Refactoring ihren Anschluss verloren haben.
+Jeder Eintrag hat einen klaren Reconnect-Pfad.
+
+---
+
+## 1. Inbox-View — kein Tab, kein Zugang
+
+**Datei:** `src/views/Inbox/`
+**Problem:** View ist vollständig gebaut, wird in `App.jsx` nirgendwo gerendert. Kein Tab, kein URL-Fragment, kein Button der dorthin führt.
+**Reconnect:** In `App.jsx` ein Tab oder Hidden-Route auf `#inbox` analog zu `#coach` anlegen. `NAV_ITEMS` erweitern oder direkt als bedingtes Render neben Coach.
+
+---
+
+## 2. Muscles-View — Tab entfernt, Code bleibt
+
+**Datei:** `src/views/Muscles/`
+**Problem:** War früher ein aktiver Tab (`muscles`). Tab wurde aus der Navigation entfernt, View-Ordner mit 6 Komponenten blieb. `App.jsx` rendert ihn nicht mehr.
+**Reconnect:** Entweder als Tab reaktivieren (in `NAV_ITEMS` + `App.jsx`-Switch) oder bewusst archivieren.
+
+---
+
+## 3. getFavourites / toggleFavourite — fehlen in db.js
+
+**Datei:** `src/components/ExerciseSearchOverlay.jsx:3`
+**Problem:** `getFavourites` und `toggleFavourite` werden importiert und aktiv genutzt (State-Initialisierung Z.30, Toggle Z.37–38). In `src/lib/db/kb.js` sind diese Funktionen nicht exportiert → bricht den normalen Build (`npm run build`), nur Firebase-Build läuft durch weil `db.firestore.js` sie möglicherweise hat.
+**Reconnect:** Funktionen in `src/lib/db/kb.js` implementieren (localStorage-basiert reicht: `GET /fitness/favourites` oder einfach localStorage) und exportieren.
+
+---
+
+## 4. showDetails + ExerciseItem-Detailbereich
+
+**Datei:** `src/views/Session/ExerciseItem.jsx:10,95`
+**Problem:** `showDetails`-State existiert, `prev`-Bar ist klickbar (`onClick={() => setShowDetails(!showDetails)}`), aber kein Panel wird geöffnet — nur CSS-Shadow ändert sich. `ChevronDown/ChevronUp/Minus/Target/Activity` waren ursprünglich importiert für diesen Bereich.
+**Reconnect:** Entweder aufklappbaren Detail-Block unter der prev-Bar implementieren (Satz-History, Trend-Chart), oder `showDetails` + den onClick entfernen wenn das Feature nicht mehr gewünscht ist.
+
+---
+
+## 5. trainingsart — gespeichert, nie angezeigt
+
+**Datei:** `src/views/Session/index.jsx:26,72,94,214`
+**Problem:** `trainingsart` wird geladen, gesetzt, beim Save mitgeschrieben und sogar für die `restHours`-Berechnung genutzt (`s.trainingsart === block`). Aber es gibt kein UI-Element zum Setzen — User kann es nie eingeben.
+**Reconnect:** Input-Feld in `SessionSidebar` oder `SidebarSheet` ergänzen. Alternativ mit `block` zusammenlegen wenn es dasselbe abbildet.
+
+---
+
+## 6. taxonomy — App.jsx lädt, WeeklyReview ignoriert
+
+**Datei:** `src/views/WeeklyReview/index.jsx:66,74`
+**Problem:** `taxonomy` wird in `App.jsx` via `/fitness/muscles` geladen und an `WeeklyReview` übergeben. `WeeklyReview` nimmt `taxonomy` als Prop entgegen, gibt es aber **nicht** an `ReviewInsights` und `ReviewMuscleImpact` weiter — obwohl beide `taxonomy = null` in ihrer Prop-Signatur haben.
+**Reconnect:** In `WeeklyReview/index.jsx` `taxonomy={taxonomy}` an `ReviewInsights` und `ReviewMuscleImpact` übergeben.
+
+---
+
+## 7. navigate-Prop an Dashboard — empfangen, nie genutzt
+
+**Datei:** `src/views/Dashboard/index.jsx:34`
+**Problem:** `navigate` kommt als Prop rein, wird aber nie aufgerufen. Dashboard nutzt stattdessen `onNavigate` (lokales Callback-Wrapping). `navigate` ist toter Prop-Slot.
+**Reconnect:** Entweder `navigate` direkt verwenden und `onNavigate` entfernen, oder `navigate` aus der Prop-Signatur streichen.
+
+---
+
+## 8. HOME_NAV + Hub-Mode NavCards — deklariert, nie gerendert
+
+**Datei:** `src/views/Dashboard/index.jsx:32`
+**Problem:** `const HOME_NAV = NAV_ITEMS.filter(...)` ist deklariert aber wird im JSX nie verwendet. `ARCHITECTURE.md` beschreibt ein Hub-Mode-NavCards-Grid als Feature — das ist nicht implementiert.
+**Reconnect:** Entweder NavCards-Grid implementieren (wenn `navMode === 'home'` zeige Kacheln), oder `HOME_NAV` entfernen und `ARCHITECTURE.md` aktualisieren.
+
+---
+
+## 9. HealthWidget — vollständig gebaut, nie registriert
+
+**Datei:** `src/components/dashboard/HealthWidget.jsx`
+**Problem:** Vollständige Fitbit-Vitals-Komponente (Gewicht, Schlaf, Schritte, Ruhepuls + Mini-Chart). Nicht in `WIDGET_META` in `Dashboard/index.jsx` registriert → für den User unsichtbar.
+**Reconnect:** In `WIDGET_META` als Widget eintragen und Datenpfad (`/fitness/body/latest` o.ä.) anschließen.
+
+---
+
+## 10. MuscleStatus.jsx — toter Wrapper
+
+**Datei:** `src/components/dashboard/MuscleStatus.jsx`
+**Problem:** Alter Wrapper der `MuscleBody` + Coverage-Panel kombiniert. Wird nicht mehr in `Dashboard/index.jsx` verwendet — `body` und `coverage` sind jetzt getrennte Widgets. Coverage-Label ist hardkodiert auf "7 Tage".
+**Reconnect:** Entweder löschen oder als kombiniertes Widget in `WIDGET_META` reaktivieren.
+
+---
+
+## Sofort-Fixes (Build-Blocker)
+
+| # | Problem | Datei | Fix |
+|---|---------|-------|-----|
+| 3 | `getFavourites`/`toggleFavourite` fehlen in `db.js` | `kb.js` | Funktionen implementieren + exportieren |
+
+## Mittelfristig
+
+| # | Problem | Aufwand |
+|---|---------|---------|
+| 6 | `taxonomy` nicht weitergegeben in WeeklyReview | 2 Zeilen |
+| 7 | `navigate`-Prop toter Slot in Dashboard | 1 Zeile |
+| 5 | `trainingsart` ohne UI-Input | Klein |
+| 1 | Inbox-View nicht erreichbar | Klein |
+
+## Niedrige Priorität / Klärungsbedarf
+
+| # | Problem | Frage |
+|---|---------|-------|
+| 4 | `showDetails` ohne Panel | Feature gewünscht oder raus? |
+| 8 | `HOME_NAV` / Hub-Mode | Noch geplant? |
+| 2 | Muscles-View | Reaktivieren oder archivieren? |
+| 9 | HealthWidget | Fitbit-Pipeline aktiv? |
+| 10 | MuscleStatus.jsx | Löschen oder reaktivieren? |
