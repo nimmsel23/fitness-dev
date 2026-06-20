@@ -15,6 +15,9 @@ export default defineConfig(({ mode }) => {
         '@db':     resolve(__dirname, isFirebase ? './src/db.firestore.js' : './src/db.js'),
         '@utils':  resolve(__dirname, './src/lib/utils.js'),
         '@aliase': resolve(__dirname, './catalog/kb/aliases.yml'),
+        // Explizite Auflösung für symlinkte Views → cloud_chamber
+        './views/Journal': resolve(__dirname, './cloud_chamber/journal-dev/src/views/Journal'),
+        './views/Habits':  resolve(__dirname, './cloud_chamber/journal-dev/src/views/Habits'),
       },
     },
     server: {
