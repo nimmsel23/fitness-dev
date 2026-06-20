@@ -3,7 +3,7 @@ import { useInbox } from '../Inbox/useInbox';
 import InboxCard from '../Inbox/InboxCard';
 
 export default function Coach({ onInspectExercise }) {
-  const { exercises, loading, actioning, toast, approve, remove } = useInbox();
+  const { exercises, loading, actioning, toast, approve, remove } = useInbox({ global: true });
 
   if (loading) return (
     <div className="flex items-center justify-center py-20">

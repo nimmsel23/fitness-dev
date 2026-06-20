@@ -10,4 +10,4 @@ export const NAV_ITEMS = [
   { id: 'settings', label: 'Setup',    Icon: Settings2 },
 ];
 
-export const VALID_TABS = new Set([...NAV_ITEMS.map(item => item.id), 'coach']);
+export const VALID_TABS = new Set([...NAV_ITEMS.map(item => item.id), 'coach', 'inbox']);

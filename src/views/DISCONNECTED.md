@@ -5,11 +5,12 @@ Jeder Eintrag hat einen klaren Reconnect-Pfad.
 
 ---
 
-## 1. Inbox-View — kein Tab, kein Zugang
+## 1. Inbox-View — Benachrichtigungs- und Kommunikationsfeature ✅ verbunden
 
 **Datei:** `src/views/Inbox/`
-**Problem:** View ist vollständig gebaut, wird in `App.jsx` nirgendwo gerendert. Kein Tab, kein URL-Fragment, kein Button der dorthin führt.
-**Reconnect:** In `App.jsx` ein Tab oder Hidden-Route auf `#inbox` analog zu `#coach` anlegen. `NAV_ITEMS` erweitern oder direkt als bedingtes Render neben Coach.
+**Konzept:** Benachrichtigungskanal pro User. In Firebase: pro-User-Subcollection `fitness/{uid}/inbox`, privat. Potentiell: User-Coach-Kommunikation, KI-Enrichment-Freigaben, System-Nachrichten.
+**Status:** Erreichbar via `#inbox`. Coach-Inbox läuft via `getGlobalInbox()` (collectionGroup), nur lokal sichtbar.
+**Offen:** Kein Nav-Einstiegspunkt für User (kein Tab, kein Button). Ungelesen-Badge fehlt.
 
 ---
 

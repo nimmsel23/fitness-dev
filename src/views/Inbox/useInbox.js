@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getInbox, approveInbox, deleteInbox } from '@db';
+import { getInbox, getGlobalInbox, approveInbox, deleteInbox } from '@db';
 
-export function useInbox() {
+export function useInbox({ global = false } = {}) {
   const [exercises, setExercises] = useState([]);
   const [loading, setLoading]     = useState(true);
   const [actioning, setActioning] = useState(null);
@@ -12,14 +12,14 @@ export function useInbox() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getInbox();
+      const data = await (global ? getGlobalInbox() : getInbox());
       setExercises(Array.isArray(data) ? data : []);
     } catch {
       showToast('Inbox konnte nicht geladen werden');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [global]);
 
   useEffect(() => { load(); }, [load]);
 

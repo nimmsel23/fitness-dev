@@ -8,6 +8,7 @@ import Habits from './views/Habits/index.jsx'
 import WeeklyReview from './views/WeeklyReview/index.jsx'
 import Settings from './views/Settings/index.jsx'
 import Coach from './views/Coach/index.jsx'
+import Inbox from './views/Inbox/index.js'
 import ExerciseInsightModal from './components/ExerciseInsightModal.jsx'
 import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode, getAnatomy } from '@db'
 
@@ -295,7 +296,8 @@ export default function App() {
                       {tab === 'learn'    && <Learn onInspectExercise={inspectExercise} gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
                       {tab === 'habits'   && <Habits />}
                       {tab === 'journal'  && <Journal />}
-                      {tab === 'coach'    && <Coach onInspectExercise={inspectExercise} />}
+                      {tab === 'coach'    && isLocalMode() && <Coach onInspectExercise={inspectExercise} />}
+                      {tab === 'inbox'    && <Inbox onInspectExercise={inspectExercise} />}
                       {tab === 'settings' && (
                          <Settings
                            layoutScale={layoutScale} setLayoutScale={setLayoutScale}
