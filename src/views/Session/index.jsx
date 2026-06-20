@@ -333,11 +333,11 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
 
       {/* Session Switcher Bar */}
       <div className="px-2 mb-8">
-        <div className="card p-6 shadow-xl rounded-[30px] border-line/40 bg-card/60 backdrop-blur-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="card p-6 shadow-xl rounded-[30px] border-fit-line/40 bg-fit-card/60 backdrop-blur-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-dim/40 mr-2">Workouts:</div>
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mr-2">Workouts:</div>
             {daySessions.length === 0 ? (
-              <span className="text-[10px] font-black uppercase tracking-wider text-dim/60">Keine Workouts eingetragen</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-fit-dim/60">Keine Workouts eingetragen</span>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {/* Default session */}
@@ -353,8 +353,8 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
                       onClick={() => selectSession(null)}
                       className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all ${
                         isSelected
-                          ? "bg-accent border-accent text-black shadow-lg shadow-accent/20"
-                          : "bg-bg2 border-line text-dim hover:border-line-hover"
+                          ? "bg-fit-accent border-fit-accent text-black shadow-lg shadow-accent/20"
+                          : "bg-fit-bg2 border-fit-line text-fit-dim hover:border-line-hover"
                       }`}
                     >
                       {label}
@@ -374,8 +374,8 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
                         onClick={() => selectSession(s.id)}
                         className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all ${
                           isSelected
-                            ? "bg-accent border-accent text-black shadow-lg shadow-accent/20"
-                            : "bg-bg2 border-line text-dim hover:border-line-hover"
+                            ? "bg-fit-accent border-fit-accent text-black shadow-lg shadow-accent/20"
+                            : "bg-fit-bg2 border-fit-line text-fit-dim hover:border-line-hover"
                         }`}
                       >
                         {label}
@@ -389,14 +389,14 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
           <div className="flex items-center gap-2 self-end sm:self-auto">
             <button
               onClick={handleNewSession}
-              className="px-4 py-2 rounded-xl border border-dashed border-line text-dim hover:text-accent hover:border-accent/40 text-[10px] font-black uppercase tracking-wider transition-all"
+              className="px-4 py-2 rounded-xl border border-dashed border-fit-line text-fit-dim hover:text-accent hover:border-accent/40 text-[10px] font-black uppercase tracking-wider transition-all"
             >
               + Neues Workout
             </button>
             {sessionId !== null && (
               <button
                 onClick={handleDeleteSession}
-                className="px-4 py-2 rounded-xl border border-red/20 bg-red/5 text-red hover:bg-red/10 text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl border border-fit-red/20 bg-fit-red/5 text-fit-red hover:bg-red/10 text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5"
               >
                 <Trash2 size={12} />
                 Löschen
@@ -410,22 +410,22 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
         <main className="space-y-8">
           {/* Plan hint */}
           {hint && (
-            <div className="p-4 rounded-3xl bg-accent/5 border border-accent/20 flex items-center gap-4 text-sm">
-              <Zap size={18} className="text-accent shrink-0" />
+            <div className="p-4 rounded-3xl bg-fit-accent/5 border border-fit-accent/20 flex items-center gap-4 text-sm">
+              <Zap size={18} className="text-fit-accent shrink-0" />
               <div>
-                <span className="font-black text-accent uppercase tracking-widest mr-2">{hint.block}</span>
-                <span className="text-muted">{(hint.exercises || []).slice(0, 3).join(', ')}</span>
+                <span className="font-black text-fit-accent uppercase tracking-widest mr-2">{hint.block}</span>
+                <span className="text-fit-muted">{(hint.exercises || []).slice(0, 3).join(', ')}</span>
               </div>
             </div>
           )}
 
           {/* Gap hints */}
           {gaps.length > 0 && (
-            <div className="card p-6 border-red/20 bg-red/5">
-              <div className="text-[10px] font-black uppercase tracking-widest text-red mb-4">Coverage-Lücken</div>
+            <div className="card p-6 border-fit-red/20 bg-fit-red/5">
+              <div className="text-[10px] font-black uppercase tracking-widest text-fit-red mb-4">Coverage-Lücken</div>
               <div className="flex flex-wrap gap-2">
                 {gaps.map(g => (
-                  <span key={g.name} className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border bg-red/10 text-red border-red/20">{g.name}</span>
+                  <span key={g.name} className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border bg-fit-red/10 text-fit-red border-fit-red/20">{g.name}</span>
                 ))}
               </div>
             </div>
@@ -459,7 +459,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       </div>
 
       {toast && (
-        <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl text-sm font-bold shadow-2xl z-50 bg-card text-accent border border-line animate-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl text-sm font-bold shadow-2xl z-50 bg-fit-card text-fit-accent border border-fit-line animate-in slide-in-from-bottom-4 duration-300">
           {toast}
         </div>
       )}
@@ -468,7 +468,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       <button 
         onClick={save} 
         disabled={saving}
-        className="lg:hidden fixed bottom-24 right-6 w-14 h-14 rounded-full bg-accent text-black shadow-2xl shadow-accent/40 flex items-center justify-center z-40 active:scale-95 transition-all disabled:opacity-50"
+        className="lg:hidden fixed bottom-24 right-6 w-14 h-14 rounded-full bg-fit-accent text-black shadow-2xl shadow-accent/40 flex items-center justify-center z-40 active:scale-95 transition-all disabled:opacity-50"
       >
         {saving ? <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" /> : <Save size={24} />}
       </button>

@@ -163,15 +163,15 @@ export default function Habits() {
       <div className="mb-10 flex flex-col gap-6">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div className="flex-1">
-            <h1 className="text-3xl font-black text-[var(--ink)] mb-1">Deine Habits</h1>
+            <h1 className="text-3xl font-black text-fit-ink mb-1">Deine Habits</h1>
             <p className="text-xs font-bold opacity-30 uppercase tracking-[0.2em]">Konsistenz schlägt Intensität</p>
           </div>
-          <div className="flex items-center gap-4 bg-[var(--card)] border border-[var(--line)] px-4 py-2.5 rounded-2xl shadow-xl">
+          <div className="flex items-center gap-4 bg-fit-card border border-fit-line px-4 py-2.5 rounded-2xl shadow-xl">
              <div className="flex flex-col items-end">
                 <span className="text-[9px] font-black uppercase tracking-widest opacity-30">Gesamt-Score</span>
-                <span className="text-lg font-black text-[var(--accent)]">{Math.round(overallConsistency * 100)}%</span>
+                <span className="text-lg font-black text-fit-accent">{Math.round(overallConsistency * 100)}%</span>
              </div>
-             <div className="w-10 h-10 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
+             <div className="w-10 h-10 rounded-xl bg-fit-accent/10 flex items-center justify-center text-fit-accent">
                 <Star size={20} fill="currentColor" fillOpacity={0.2} />
              </div>
           </div>
@@ -192,8 +192,8 @@ export default function Habits() {
                 onClick={() => setSelectedDate(d)}
                 className={`flex-shrink-0 flex flex-col items-center min-w-[52px] py-3 rounded-2xl border transition-all
                   ${isSelected 
-                    ? 'bg-[var(--accent)] border-[var(--accent)] text-black shadow-lg shadow-[var(--accent)]/20 scale-105 z-10' 
-                    : 'bg-[var(--card)] border-[var(--line)] text-[var(--dim)] hover:border-[var(--accent)]/50'}`}
+                    ? 'bg-fit-accent border-fit-accent text-black shadow-lg shadow-fit-accent/20 scale-105 z-10' 
+                    : 'bg-fit-card border-fit-line text-fit-dim hover:border-fit-accent/50'}`}
               >
                 <span className={`text-[8px] font-black uppercase tracking-widest mb-1 ${isSelected ? 'opacity-70' : 'opacity-40'}`}>
                   {weekday}
@@ -202,15 +202,15 @@ export default function Habits() {
                   {dayNum}
                 </span>
                 {isToday && !isSelected && (
-                  <div className="w-1 h-1 rounded-full bg-[var(--accent)] mt-1" />
+                  <div className="w-1 h-1 rounded-full bg-fit-accent mt-1" />
                 )}
               </button>
             );
           })}
           
-          <div className="flex-shrink-0 pl-4 border-l border-[var(--line)]/30 flex items-center">
-             <div className="p-3 rounded-2xl bg-[var(--card)] border border-[var(--line)] text-[var(--ink)] text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                <CalendarDays size={14} className="text-[var(--dim)]" />
+          <div className="flex-shrink-0 pl-4 border-l border-fit-line/30 flex items-center">
+             <div className="p-3 rounded-2xl bg-fit-card border border-fit-line text-fit-ink text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                <CalendarDays size={14} className="text-fit-dim" />
                 {new Date(selectedDate).toLocaleDateString('de-DE', { month: 'short' })}
              </div>
           </div>
@@ -228,11 +228,11 @@ export default function Habits() {
           />
 
           <div className="space-y-3">
-            <div className="label-caps px-1 text-[var(--dim)]">Aktive Habits</div>
+            <div className="label-caps px-1 text-fit-dim">Aktive Habits</div>
             {habits.length === 0 && !loading && (
-              <div className="card p-12 text-center opacity-30 border-dashed bg-[var(--card)] border-[var(--line)]">
-                <Activity size={32} className="mx-auto mb-3 text-[var(--dim)]" />
-                <p className="text-xs font-bold uppercase tracking-widest text-[var(--dim)]">Noch keine Habits</p>
+              <div className="card p-12 text-center opacity-30 border-dashed bg-fit-card border-fit-line">
+                <Activity size={32} className="mx-auto mb-3 text-fit-dim" />
+                <p className="text-xs font-bold uppercase tracking-widest text-fit-dim">Noch keine Habits</p>
               </div>
             )}
             {habits.map(h => (

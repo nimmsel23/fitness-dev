@@ -4,16 +4,16 @@ import { getMuscleIcon } from "../../constants/MuscleIcons";
 
 export default function MuscleCoverage({ coverage, recentDays = 7, muscleLanguage = 'de', taxonomy = null }) {
   return (
-    <div className="alpha-card p-10 h-full bg-accent/5 border-accent/20">
+    <div className="alpha-card p-10 h-full bg-fit-accent/5 border-fit-accent/20">
       <div className="flex items-center gap-3 mb-10">
-        <TrendingUp size={22} className="text-accent" />
+        <TrendingUp size={22} className="text-fit-accent" />
         <span className="label-caps !mb-0 text-sm">Coverage ({recentDays} Tage)</span>
       </div>
       {coverage === null ? (
-        <div className="animate-pulse h-16 bg-bg2 rounded-2xl" />
+        <div className="animate-pulse h-16 bg-fit-bg2 rounded-2xl" />
       ) : coverage.length === 0 ? (
-        <div className="flex items-center gap-4 text-green">
-          <div className="w-12 h-12 rounded-full bg-green/10 flex items-center justify-center text-sm font-black">✓</div>
+        <div className="flex items-center gap-4 text-fit-green">
+          <div className="w-12 h-12 rounded-full bg-fit-green/10 flex items-center justify-center text-sm font-black">✓</div>
           <p className="text-sm font-bold">Alles abgedeckt</p>
         </div>
       ) : (

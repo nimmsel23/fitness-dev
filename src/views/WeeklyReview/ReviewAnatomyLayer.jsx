@@ -16,42 +16,42 @@ function ExerciseAnatomyCard({ ex }) {
     : ex.secondary_muscles?.slice(0, 2) || [];
 
   return (
-    <div className="card border-line/50 overflow-hidden">
+    <div className="card border-fit-line/50 overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full p-5 flex items-center justify-between gap-4 text-left hover:bg-bg2/50 transition-colors"
       >
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-sm font-black text-ink truncate">{ex.display_name}</span>
-            <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-accent/10 text-accent border border-accent/20">
+            <span className="text-sm font-black text-fit-ink truncate">{ex.display_name}</span>
+            <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md bg-fit-accent/10 text-fit-accent border border-fit-accent/20">
               {ex.count}×
             </span>
             {!lesson && ex.exercise_id && (
-              <span className="text-[9px] font-bold text-dim/30 uppercase tracking-widest">kein Teaching</span>
+              <span className="text-[9px] font-bold text-fit-dim/30 uppercase tracking-widest">kein Teaching</span>
             )}
           </div>
           <div className="flex gap-2 mt-1.5 flex-wrap">
             {muscles.map(m => (
-              <span key={m} className="text-[9px] font-bold text-dim/60 uppercase tracking-widest">{m}</span>
+              <span key={m} className="text-[9px] font-bold text-fit-dim/60 uppercase tracking-widest">{m}</span>
             ))}
           </div>
         </div>
         {lesson && (
-          <div className="text-dim/30 shrink-0">
+          <div className="text-fit-dim/30 shrink-0">
             {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </div>
         )}
       </button>
 
       {open && lesson && (
-        <div className="px-5 pb-5 space-y-4 border-t border-line/30 pt-4 animate-in slide-in-from-top-2 duration-200">
+        <div className="px-5 pb-5 space-y-4 border-t border-fit-line/30 pt-4 animate-in slide-in-from-top-2 duration-200">
           {lesson.joint_actions?.length > 0 && (
             <div>
-              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-dim/40 mb-2">Gelenkbewegungen</div>
+              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-2">Gelenkbewegungen</div>
               <div className="flex flex-wrap gap-2">
                 {lesson.joint_actions.map((a, i) => (
-                  <span key={i} className="text-[10px] font-bold px-3 py-1 rounded-lg bg-bg2 border border-line text-dim/80">{a}</span>
+                  <span key={i} className="text-[10px] font-bold px-3 py-1 rounded-lg bg-fit-bg2 border border-fit-line text-fit-dim/80">{a}</span>
                 ))}
               </div>
             </div>
@@ -59,10 +59,10 @@ function ExerciseAnatomyCard({ ex }) {
 
           {lesson.teaching_points?.length > 0 && (
             <div>
-              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-dim/40 mb-2">Teaching Points</div>
+              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-2">Teaching Points</div>
               <ul className="space-y-1.5">
                 {lesson.teaching_points.slice(0, 3).map((p, i) => (
-                  <li key={i} className="text-[11px] font-medium text-dim/80 leading-relaxed pl-3 border-l-2 border-accent/30">{p}</li>
+                  <li key={i} className="text-[11px] font-medium text-fit-dim/80 leading-relaxed pl-3 border-l-2 border-fit-accent/30">{p}</li>
                 ))}
               </ul>
             </div>
@@ -70,10 +70,10 @@ function ExerciseAnatomyCard({ ex }) {
 
           {lesson.common_errors?.length > 0 && (
             <div>
-              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-red/50 mb-2">Häufige Fehler</div>
+              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-fit-red/50 mb-2">Häufige Fehler</div>
               <ul className="space-y-1">
                 {lesson.common_errors.slice(0, 2).map((e, i) => (
-                  <li key={i} className="text-[11px] font-medium text-dim/60 leading-relaxed pl-3 border-l-2 border-red/20">{e}</li>
+                  <li key={i} className="text-[11px] font-medium text-fit-dim/60 leading-relaxed pl-3 border-l-2 border-fit-red/20">{e}</li>
                 ))}
               </ul>
             </div>
@@ -99,12 +99,12 @@ export default function ReviewAnatomyLayer({ topExercises = [] }) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-xl bg-accent/10 flex items-center justify-center text-accent">
+        <div className="w-8 h-8 rounded-xl bg-fit-accent/10 flex items-center justify-center text-fit-accent">
           <BookOpen size={16} />
         </div>
         <div>
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-accent">Anatomische Wochenbilanz</div>
-          <div className="text-[9px] font-bold text-dim/40 uppercase tracking-widest mt-0.5">Trainingswoche als angewandte Anatomie</div>
+          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-accent">Anatomische Wochenbilanz</div>
+          <div className="text-[9px] font-bold text-fit-dim/40 uppercase tracking-widest mt-0.5">Trainingswoche als angewandte Anatomie</div>
         </div>
       </div>
 
@@ -114,11 +114,11 @@ export default function ReviewAnatomyLayer({ topExercises = [] }) {
         ))}
         {withoutId.length > 0 && (
           <div className="pt-2">
-            <div className="text-[9px] font-black uppercase tracking-[0.2em] text-dim/30 mb-2 ml-1">Ohne KB-Eintrag</div>
+            <div className="text-[9px] font-black uppercase tracking-[0.2em] text-fit-dim/30 mb-2 ml-1">Ohne KB-Eintrag</div>
             <div className="flex flex-wrap gap-2">
               {withoutId.map(ex => (
-                <span key={ex.display_name} className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-bg2 border border-line text-dim/50">
-                  {ex.display_name} <span className="text-dim/30">{ex.count}×</span>
+                <span key={ex.display_name} className="text-[10px] font-bold px-3 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-dim/50">
+                  {ex.display_name} <span className="text-fit-dim/30">{ex.count}×</span>
                 </span>
               ))}
             </div>

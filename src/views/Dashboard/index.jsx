@@ -180,7 +180,7 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
       />
 
       {isEditMode && (
-        <div className="mb-4 px-4 py-3 rounded-xl bg-accent/5 border border-accent/20 text-[11px] font-bold tracking-wide text-accent flex items-center gap-2">
+        <div className="mb-4 px-4 py-3 rounded-xl bg-fit-accent/5 border border-fit-accent/20 text-[11px] font-bold tracking-wide text-fit-accent flex items-center gap-2">
           <GripVertical size={14} /> Widgets per Drag&Drop neu anordnen. „Fertig" speichert.
         </div>
       )}
@@ -209,7 +209,7 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
               style={isEditMode ? { cursor: 'grab' } : undefined}
             >
               {isEditMode && (
-                <div className="absolute top-3 right-3 z-20 flex items-center gap-2 px-2 py-1 rounded-lg bg-accent text-black text-[9px] font-black uppercase tracking-widest shadow-lg pointer-events-none">
+                <div className="absolute top-3 right-3 z-20 flex items-center gap-2 px-2 py-1 rounded-lg bg-fit-accent text-black text-[9px] font-black uppercase tracking-widest shadow-lg pointer-events-none">
                   <GripVertical size={12} /> {meta.title}
                 </div>
               )}
@@ -227,12 +227,12 @@ export default function Dashboard({ onOpenSession, onOpenReview, recentDays = 7,
       </div>
 
       {/* Hidden Chambers Access */}
-      <div className="mt-16 pt-8 border-t border-dashed border-[var(--line)] flex justify-center opacity-10 hover:opacity-100 transition-opacity duration-1000">
+      <div className="mt-16 pt-8 border-t border-dashed border-fit-line flex justify-center opacity-10 hover:opacity-100 transition-opacity duration-1000">
         <a
           href="https://ideapad.tail7a15d6.ts.net/workout/"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-mono tracking-widest text-[var(--muted)] hover:text-[var(--accent)] hover:bg-[var(--panel)] transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-mono tracking-widest text-fit-muted hover:text-fit-accent hover:bg-[var(--panel)] transition-all"
         >
           <Lock size={12} />
           SYSTEM::ACCESS_HIDDEN_CHAMBER::WORKOUT_FORGE

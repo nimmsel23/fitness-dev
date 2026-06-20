@@ -42,15 +42,15 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative w-full max-w-2xl bg-[var(--card)] rounded-[32px] border border-[var(--line)] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-2xl bg-fit-card rounded-[32px] border border-fit-line shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
          {/* Modal Header */}
-         <div className="p-6 border-b border-[var(--line)]/50 flex items-center justify-between bg-gradient-to-r from-[var(--card)] to-[var(--bg2)]">
+         <div className="p-6 border-b border-fit-line/50 flex items-center justify-between bg-gradient-to-r from-fit-card to-fit-bg2">
             <div className="flex items-center gap-4">
                <MuscleHighlightMap muscleId={muscleId} size={56} />
                <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <Icon size={14} className="text-accent" />
-                    <h3 className="text-sm font-black uppercase tracking-widest text-[var(--ink)]">
+                    <Icon size={14} className="text-fit-accent" />
+                    <h3 className="text-sm font-black uppercase tracking-widest text-fit-ink">
                       {name}
                     </h3>
                   </div>
@@ -61,7 +61,7 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
                   )}
                </div>
             </div>
-            <button onClick={onClose} className="p-3 rounded-2xl hover:bg-[var(--bg2)] text-[var(--dim)] transition-all">
+            <button onClick={onClose} className="p-3 rounded-2xl hover:bg-fit-bg2 text-fit-dim transition-all">
                <X size={24} />
             </button>
          </div>
@@ -78,57 +78,57 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
                  {/* Biomechanics Grid */}
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {muscleData.origin && (
-                      <div className="p-5 rounded-2xl border bg-bg2 border-line/50">
+                      <div className="p-5 rounded-2xl border bg-fit-bg2 border-fit-line/50">
                          <div className="label-caps !mb-3 flex items-center gap-2">
-                            <Info size={14} className="text-accent" />
+                            <Info size={14} className="text-fit-accent" />
                             Ursprung
                          </div>
-                         <p className="text-xs font-medium leading-relaxed text-ink/80 whitespace-pre-wrap">{muscleData.origin}</p>
+                         <p className="text-xs font-medium leading-relaxed text-fit-ink/80 whitespace-pre-wrap">{muscleData.origin}</p>
                       </div>
                     )}
                     {muscleData.insertion && (
-                      <div className="p-5 rounded-2xl border bg-bg2 border-line/50">
+                      <div className="p-5 rounded-2xl border bg-fit-bg2 border-fit-line/50">
                          <div className="label-caps !mb-3 flex items-center gap-2">
-                            <Info size={14} className="text-accent" />
+                            <Info size={14} className="text-fit-accent" />
                             Ansatz
                          </div>
-                         <p className="text-xs font-medium leading-relaxed text-ink/80 whitespace-pre-wrap">{muscleData.insertion}</p>
+                         <p className="text-xs font-medium leading-relaxed text-fit-ink/80 whitespace-pre-wrap">{muscleData.insertion}</p>
                       </div>
                     )}
                     {muscleData.innervation && (
-                      <div className="p-5 rounded-2xl border bg-bg2 border-line/50">
+                      <div className="p-5 rounded-2xl border bg-fit-bg2 border-fit-line/50">
                          <div className="label-caps !mb-3 flex items-center gap-2">
-                            <Brain size={14} className="text-accent" />
+                            <Brain size={14} className="text-fit-accent" />
                             Innervation
                          </div>
-                         <p className="text-xs font-medium leading-relaxed text-ink/80 whitespace-pre-wrap">{muscleData.innervation}</p>
+                         <p className="text-xs font-medium leading-relaxed text-fit-ink/80 whitespace-pre-wrap">{muscleData.innervation}</p>
                       </div>
                     )}
                     {muscleData.function && (
-                      <div className="p-5 rounded-2xl border bg-bg2 border-line/50">
+                      <div className="p-5 rounded-2xl border bg-fit-bg2 border-fit-line/50">
                          <div className="label-caps !mb-3 flex items-center gap-2">
-                            <BookOpen size={14} className="text-accent" />
+                            <BookOpen size={14} className="text-fit-accent" />
                             Funktion
                          </div>
-                         <p className="text-xs font-medium leading-relaxed text-ink/80 whitespace-pre-wrap">{muscleData.function}</p>
+                         <p className="text-xs font-medium leading-relaxed text-fit-ink/80 whitespace-pre-wrap">{muscleData.function}</p>
                       </div>
                     )}
                  </div>
 
                  {/* Exercises Section */}
-                 <div className="pt-6 border-t border-line/30">
+                 <div className="pt-6 border-t border-fit-line/30">
                     <div className="label-caps mb-4 flex items-center gap-2">
-                       <Search size={14} className="text-accent" />
+                       <Search size={14} className="text-fit-accent" />
                        Passende Übungen
                     </div>
                     {exLoading ? (
                        <div className="animate-pulse flex gap-2">
-                          {[1,2,3].map(i => <div key={i} className="h-8 w-24 bg-bg2 rounded-lg" />)}
+                          {[1,2,3].map(i => <div key={i} className="h-8 w-24 bg-fit-bg2 rounded-lg" />)}
                        </div>
                     ) : exercises.length > 0 ? (
                        <div className="flex flex-wrap gap-2">
                           {exercises.map(ex => (
-                             <span key={ex.exercise_id} className="px-3 py-1.5 rounded-xl bg-accent/10 border border-accent/20 text-accent text-[10px] font-black uppercase tracking-widest">
+                             <span key={ex.exercise_id} className="px-3 py-1.5 rounded-xl bg-fit-accent/10 border border-fit-accent/20 text-fit-accent text-[10px] font-black uppercase tracking-widest">
                                 {ex.display_name || ex.name}
                              </span>
                           ))}
@@ -139,15 +139,15 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
                  </div>
               </div>
             ) : (
-              <div className="p-12 text-center rounded-[32px] border border-dashed border-[var(--line)] opacity-20">
+              <div className="p-12 text-center rounded-[32px] border border-dashed border-fit-line opacity-20">
                 <p className="text-sm font-black uppercase tracking-widest">Keine detaillierten Anatomie-Daten verfügbar</p>
               </div>
             )}
          </div>
 
          {/* Modal Footer */}
-         <div className="p-6 border-t border-[var(--line)]/50 bg-[var(--bg2)]/50 flex justify-end">
-            <button onClick={onClose} className="btn bg-[var(--card)] border border-[var(--line)] text-[var(--ink)] px-8 py-2.5 text-[10px] font-black uppercase tracking-widest hover:border-[var(--accent)] transition-all">
+         <div className="p-6 border-t border-fit-line/50 bg-fit-bg2/50 flex justify-end">
+            <button onClick={onClose} className="btn bg-fit-card border border-fit-line text-fit-ink px-8 py-2.5 text-[10px] font-black uppercase tracking-widest hover:border-fit-accent transition-all">
                Schließen
             </button>
          </div>

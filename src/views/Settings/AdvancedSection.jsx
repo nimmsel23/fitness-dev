@@ -11,27 +11,27 @@ export default function AdvancedSection({
             <ShieldAlert size={20} className="text-red-500" />
           </div>
           <div>
-             <h3 className="text-xl font-black text-ink">Advanced & Labor</h3>
+             <h3 className="text-xl font-black text-fit-ink">Advanced & Labor</h3>
              <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Experimentelle Funktionen</p>
           </div>
        </div>
 
-       <div className="bg-[var(--bg2)] p-6 rounded-3xl border border-[var(--line)]">
+       <div className="bg-fit-bg2 p-6 rounded-3xl border border-fit-line">
           <div className="flex items-center gap-3 mb-6">
-             <Sparkles size={18} className="text-[var(--accent)]" />
-             <h4 className="text-sm font-black text-ink uppercase tracking-widest">Labor</h4>
+             <Sparkles size={18} className="text-fit-accent" />
+             <h4 className="text-sm font-black text-fit-ink uppercase tracking-widest">Labor</h4>
           </div>
           <div className="space-y-6">
              {/* Swipe Navigation */}
              <div className="flex items-center justify-between">
                 <div>
-                   <div className="text-xs font-black text-ink">Swipe-Navigation</div>
-                   <div className="text-[9px] font-bold opacity-30 uppercase text-[var(--dim)]">Tab-Wechsel per Wischgeste</div>
+                   <div className="text-xs font-black text-fit-ink">Swipe-Navigation</div>
+                   <div className="text-[9px] font-bold opacity-30 uppercase text-fit-dim">Tab-Wechsel per Wischgeste</div>
                 </div>
-                <div className="flex bg-[var(--bg)] p-1 rounded-xl border border-[var(--line)]">
+                <div className="flex bg-fit-bg p-1 rounded-xl border border-fit-line">
                    {[{ id: true, label: 'Ein' }, { id: false, label: 'Aus' }].map(({ id, label }) => (
                       <button key={label} onClick={() => setSwipeEnabled(id)}
-                         className={`px-3 py-1.5 text-[8px] font-black uppercase rounded-lg transition-all ${swipeEnabled === id ? 'bg-[var(--card)] shadow-sm text-[var(--accent)]' : 'text-[var(--dim)] hover:text-[var(--ink)]'}`}>
+                         className={`px-3 py-1.5 text-[8px] font-black uppercase rounded-lg transition-all ${swipeEnabled === id ? 'bg-fit-card shadow-sm text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}>
                          {label}
                       </button>
                    ))}
@@ -41,13 +41,13 @@ export default function AdvancedSection({
              {/* Dashboard Highlighter */}
              <div className="flex items-center justify-between">
                 <div>
-                   <div className="text-xs font-black text-ink">Highlighter Detail</div>
-                   <div className="text-[9px] font-bold opacity-30 uppercase text-[var(--dim)]">Dashboard Muskelkarte</div>
+                   <div className="text-xs font-black text-fit-ink">Highlighter Detail</div>
+                   <div className="text-[9px] font-bold opacity-30 uppercase text-fit-dim">Dashboard Muskelkarte</div>
                 </div>
-                <div className="flex bg-[var(--bg)] p-1 rounded-xl border border-[var(--line)]">
+                <div className="flex bg-fit-bg p-1 rounded-xl border border-fit-line">
                    {['body', 'muscles'].map(m => (
                       <button key={m} onClick={() => setDashboardHighlighter(m)}
-                         className={`px-3 py-1.5 text-[8px] font-black uppercase rounded-lg transition-all ${dashboardHighlighter === m ? 'bg-[var(--card)] shadow-sm text-[var(--accent)]' : 'text-[var(--dim)] hover:text-[var(--ink)]'}`}>
+                         className={`px-3 py-1.5 text-[8px] font-black uppercase rounded-lg transition-all ${dashboardHighlighter === m ? 'bg-fit-card shadow-sm text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}>
                          {m}
                       </button>
                    ))}

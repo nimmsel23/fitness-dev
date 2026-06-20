@@ -181,7 +181,7 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-8 p-10 rounded-[40px] border flex justify-center gap-20 bg-card border-line shadow-2xl relative overflow-hidden">
+          <div className="lg:col-span-8 p-10 rounded-[40px] border flex justify-center gap-20 bg-fit-card border-fit-line shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent/5 to-transparent pointer-events-none" />
             {showDetailed ? (
               <MuscleDetailedMap

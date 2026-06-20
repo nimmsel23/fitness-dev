@@ -3,10 +3,10 @@ import { formatRecovery } from './utils';
 
 export default function ReviewSessionList({ sessions, onNavigate }) {
   return (
-    <section className="card mb-0 shadow-lg border-line/50 p-8">
+    <section className="card mb-0 shadow-lg border-fit-line/50 p-8">
       <div className="label-caps !mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2">
-           <Dumbbell size={16} className="text-accent" />
+           <Dumbbell size={16} className="text-fit-accent" />
            Sessions im Detail
         </div>
       </div>
@@ -17,15 +17,15 @@ export default function ReviewSessionList({ sessions, onNavigate }) {
             <button
               key={`${session.date}`}
               onClick={() => onNavigate?.("session", session.date)}
-              className="w-full text-left p-5 rounded-2xl border bg-bg2 border-line hover:border-accent/50 hover:shadow-lg transition-all flex items-center justify-between group"
+              className="w-full text-left p-5 rounded-2xl border bg-fit-bg2 border-fit-line hover:border-accent/50 hover:shadow-lg transition-all flex items-center justify-between group"
             >
               <div className="flex items-center gap-5">
-                <div className="w-14 h-14 rounded-[18px] bg-card border border-line flex flex-col items-center justify-center shadow-inner group-hover:border-accent/40 transition-colors">
+                <div className="w-14 h-14 rounded-[18px] bg-fit-card border border-fit-line flex flex-col items-center justify-center shadow-inner group-hover:border-accent/40 transition-colors">
                   <span className="text-[9px] font-black opacity-40 leading-none uppercase tracking-widest">{session.date.split('-')[1]}</span>
-                  <span className="text-lg font-black text-ink leading-none mt-1">{session.date.split('-')[2]}</span>
+                  <span className="text-lg font-black text-fit-ink leading-none mt-1">{session.date.split('-')[2]}</span>
                 </div>
                 <div>
-                  <div className="text-base font-black text-ink group-hover:text-accent transition-colors">{session.block}</div>
+                  <div className="text-base font-black text-fit-ink group-hover:text-accent transition-colors">{session.block}</div>
                   <div className="text-[10px] font-bold opacity-40 uppercase tracking-[0.2em] mt-1">
                     {isActivity ? 'Activity Log' : `${session.exercise_count} Übungen`}
                   </div>
@@ -36,7 +36,7 @@ export default function ReviewSessionList({ sessions, onNavigate }) {
                   <div className="flex justify-end gap-1.5 flex-wrap max-w-[150px]">
                      {Object.entries(session.muscle_recovery).slice(0, 4).map(([m, hrs]) => {
                        const status = hrs < 24 ? 'active' : hrs < 48 ? 'recovering' : 'fresh';
-                       const colorMap = { active: 'bg-red/10 text-red border-red/20', recovering: 'bg-orange/10 text-orange border-orange/20', fresh: 'bg-green/10 text-green border-green/20' };
+                       const colorMap = { active: 'bg-fit-red/10 text-fit-red border-fit-red/20', recovering: 'bg-fit-orange/10 text-fit-orange border-fit-orange/20', fresh: 'bg-fit-green/10 text-fit-green border-fit-green/20' };
                        return (
                          <span key={m} className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md border ${colorMap[status]}`}>
                            {m.slice(0,4)} {formatRecovery(hrs)}
@@ -45,7 +45,7 @@ export default function ReviewSessionList({ sessions, onNavigate }) {
                      })}
                   </div>
                 ) : (
-                  <div className="text-[10px] font-black uppercase tracking-widest opacity-20 bg-bg2 px-3 py-1 rounded-lg border border-line">
+                  <div className="text-[10px] font-black uppercase tracking-widest opacity-20 bg-fit-bg2 px-3 py-1 rounded-lg border border-fit-line">
                     Base / No Prev
                   </div>
                 )}

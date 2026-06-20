@@ -75,7 +75,7 @@
 }
 
 .alpha-card {
-  @apply rounded-[32px] border border-[var(--line)] bg-[var(--card)] transition-all duration-300;
+  @apply rounded-[32px] border border-fit-line bg-fit-card transition-all duration-300;
 }
 
 .alpha-card:hover {

@@ -20,9 +20,9 @@ export default function ReviewTopExercises({ topExercises = [], onInspectExercis
   }
 
   return (
-    <section className="card mb-0 shadow-lg border-line/50 p-6">
+    <section className="card mb-0 shadow-lg border-fit-line/50 p-6">
       <div className="label-caps !mb-6 flex items-center gap-2">
-        <BarChart3 size={16} className="text-accent" />
+        <BarChart3 size={16} className="text-fit-accent" />
         Top Exercises
       </div>
       <div className="space-y-3">
@@ -30,10 +30,10 @@ export default function ReviewTopExercises({ topExercises = [], onInspectExercis
           <button
             key={ex.exercise_id || ex.display_name}
             onClick={() => openTopExercise(ex)}
-            className="w-full text-left p-4 rounded-2xl border bg-bg2 border-line hover:border-accent/50 transition-all flex items-center justify-between group"
+            className="w-full text-left p-4 rounded-2xl border bg-fit-bg2 border-fit-line hover:border-accent/50 transition-all flex items-center justify-between group"
           >
-            <span className="text-xs font-bold text-ink group-hover:text-accent truncate pr-4">{ex.display_name || ex.exercise_id}</span>
-            <span className="text-xs font-black text-accent bg-accent/10 px-2.5 py-1 rounded-lg border border-accent/20">{ex.count}x</span>
+            <span className="text-xs font-bold text-fit-ink group-hover:text-accent truncate pr-4">{ex.display_name || ex.exercise_id}</span>
+            <span className="text-xs font-black text-fit-accent bg-fit-accent/10 px-2.5 py-1 rounded-lg border border-fit-accent/20">{ex.count}x</span>
           </button>
         ))}
         {topExercises.length === 0 && (

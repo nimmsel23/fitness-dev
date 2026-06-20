@@ -12,12 +12,12 @@ export default function MuscleInsights({ hitAnalysis }) {
     : "Du bist frisch und bereit. Such dir eine Fokus-Region aus und setze einen neuen Reiz!";
 
   return (
-    <div className="card p-6 bg-accent/5 border-accent/10 shadow-lg border-dashed">
-      <h4 className="text-[10px] font-black text-accent uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+    <div className="card p-6 bg-fit-accent/5 border-fit-accent/10 shadow-lg border-dashed">
+      <h4 className="text-[10px] font-black text-fit-accent uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
         <Brain size={12} />
         Smart Insight
       </h4>
-      <p className="text-[11px] font-medium opacity-70 leading-relaxed text-ink/80">
+      <p className="text-[11px] font-medium opacity-70 leading-relaxed text-fit-ink/80">
         {insightText}
       </p>
     </div>

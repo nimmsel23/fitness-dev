@@ -25,13 +25,13 @@ export default function MuscleMapModal({ exercises, onClose }) {
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
         <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
 
-        <div className="relative w-full max-w-lg bg-card border border-line rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-          <div className="p-8 border-b border-line/50 flex items-center justify-between">
+        <div className="relative w-full max-w-lg bg-fit-card border border-fit-line rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="p-8 border-b border-fit-line/50 flex items-center justify-between">
             <div>
-              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-accent mb-1">Anatomie-Check</h3>
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-fit-accent mb-1">Anatomie-Check</h3>
               <p className="text-[10px] font-bold opacity-30 uppercase tracking-widest">Muskel anklicken für Details</p>
             </div>
-            <button onClick={onClose} className="w-10 h-10 rounded-2xl bg-bg2 flex items-center justify-center text-dim hover:text-ink transition-colors">
+            <button onClick={onClose} className="w-10 h-10 rounded-2xl bg-fit-bg2 flex items-center justify-center text-fit-dim hover:text-ink transition-colors">
               <X size={20} />
             </button>
           </div>
@@ -47,8 +47,8 @@ export default function MuscleMapModal({ exercises, onClose }) {
             </div>
           </div>
 
-          <div className="p-6 bg-bg2 border-t border-line/50 flex justify-center">
-            <button onClick={onClose} className="px-8 py-3 rounded-2xl bg-accent text-black text-[11px] font-black uppercase tracking-widest shadow-xl shadow-accent/20 active:scale-95 transition-all">
+          <div className="p-6 bg-fit-bg2 border-t border-fit-line/50 flex justify-center">
+            <button onClick={onClose} className="px-8 py-3 rounded-2xl bg-fit-accent text-black text-[11px] font-black uppercase tracking-widest shadow-xl shadow-accent/20 active:scale-95 transition-all">
               Schließen
             </button>
           </div>

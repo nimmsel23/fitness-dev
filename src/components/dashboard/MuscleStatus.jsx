@@ -8,16 +8,16 @@ export default function MuscleStatus({ enrichedRecent, coverage, recentDays = 7,
          <MuscleBody enrichedRecent={enrichedRecent} recentDays={recentDays} highlighterMode={highlighterMode} />
       </div>
 
-      <div className="lg:col-span-1 card bg-accent/5 border-accent/20 p-8">
+      <div className="lg:col-span-1 card bg-fit-accent/5 border-fit-accent/20 p-8">
           <div className="flex items-center gap-3 mb-8">
-            <TrendingUp size={20} className="text-accent" />
+            <TrendingUp size={20} className="text-fit-accent" />
             <span className="label-caps !mb-0 text-sm">Coverage (7 Tage)</span>
           </div>
           {coverage === null ? (
-            <div className="animate-pulse h-16 bg-bg2 rounded-2xl" />
+            <div className="animate-pulse h-16 bg-fit-bg2 rounded-2xl" />
           ) : coverage.length === 0 ? (
-            <div className="flex items-center gap-4 text-green">
-              <div className="w-12 h-12 rounded-full bg-green/10 flex items-center justify-center text-sm font-black">✓</div>
+            <div className="flex items-center gap-4 text-fit-green">
+              <div className="w-12 h-12 rounded-full bg-fit-green/10 flex items-center justify-center text-sm font-black">✓</div>
               <p className="text-sm font-bold">Alles abgedeckt</p>
             </div>
           ) : (

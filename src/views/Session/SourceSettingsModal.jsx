@@ -27,7 +27,7 @@ export default function SourceSettingsModal({ onClose }) {
   return (
     <TabSettingsModal title="Training · Einstellungen" onClose={onClose}>
       <div className="space-y-4">
-        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-dim/50 mb-5">Übungsquellen</p>
+        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-fit-dim/50 mb-5">Übungsquellen</p>
         {SOURCES.map(({ key, label, desc, experimental }) => {
           const active = isActive(key);
           return (
@@ -35,20 +35,20 @@ export default function SourceSettingsModal({ onClose }) {
               key={key}
               onClick={() => toggle(key)}
               className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left ${
-                active ? 'border-accent/40 bg-accent/5' : 'border-line bg-bg2 opacity-60'
+                active ? 'border-fit-accent/40 bg-fit-accent/5' : 'border-fit-line bg-fit-bg2 opacity-60'
               }`}
             >
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-ink">{label}</span>
+                  <span className="text-xs font-black text-fit-ink">{label}</span>
                   {experimental && (
-                    <span className="text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-orange/20 text-orange border border-orange/30">Lab</span>
+                    <span className="text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-fit-orange/20 text-fit-orange border border-fit-orange/30">Lab</span>
                   )}
                 </div>
-                <div className="text-[9px] font-bold text-dim/50 mt-0.5">{desc}</div>
+                <div className="text-[9px] font-bold text-fit-dim/50 mt-0.5">{desc}</div>
               </div>
               <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
-                active ? 'border-accent bg-accent' : 'border-line/50'
+                active ? 'border-fit-accent bg-fit-accent' : 'border-fit-line/50'
               }`}>
                 {active && <div className="w-2 h-2 bg-black rounded-sm" />}
               </div>

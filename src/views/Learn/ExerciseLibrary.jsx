@@ -9,12 +9,12 @@ export default function ExerciseLibrary({ exercises, selected, setSelected, q, s
 
   return (
     <div className="space-y-6">
-      <div className="p-4 rounded-2xl border bg-card border-line flex items-center gap-3 focus-within:border-accent transition-colors shadow-inner">
-        <Search size={18} className="text-dim" />
+      <div className="p-4 rounded-2xl border bg-fit-card border-fit-line flex items-center gap-3 focus-within:border-accent transition-colors shadow-inner">
+        <Search size={18} className="text-fit-dim" />
         <input
           value={q} onChange={e => setQ(e.target.value)}
           placeholder="Übung suchen…"
-          className="w-full bg-transparent border-none outline-none text-sm text-ink font-bold placeholder:opacity-30"
+          className="w-full bg-transparent border-none outline-none text-sm text-fit-ink font-bold placeholder:opacity-30"
         />
       </div>
 
@@ -26,7 +26,7 @@ export default function ExerciseLibrary({ exercises, selected, setSelected, q, s
               const found = safeExercises.find(e => e.exercise_id === ex.exercise_id || (e.display_name || e.name) === (ex.name || ex.exercise_id));
               return (
                 <button key={i} onClick={() => found && setSelected(found)}
-                  className={`px-4 py-2.5 rounded-xl border text-xs font-black transition-all ${selected?.exercise_id === found?.exercise_id ? 'bg-accent text-black border-accent shadow-lg shadow-accent/20' : 'bg-bg2 border-line text-muted hover:text-ink'}`}>
+                  className={`px-4 py-2.5 rounded-xl border text-xs font-black transition-all ${selected?.exercise_id === found?.exercise_id ? 'bg-fit-accent text-black border-fit-accent shadow-lg shadow-accent/20' : 'bg-fit-bg2 border-fit-line text-fit-muted hover:text-ink'}`}>
                   {ex.name || ex.exercise_id}
                 </button>
               );
@@ -47,22 +47,22 @@ export default function ExerciseLibrary({ exercises, selected, setSelected, q, s
               <div className="spinner" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="p-12 text-center border border-dashed border-line rounded-2xl opacity-30">
+            <div className="p-12 text-center border border-dashed border-fit-line rounded-2xl opacity-30">
                <Activity size={32} className="mx-auto mb-2" />
                <p className="text-xs font-black uppercase tracking-widest">Keine Übung gefunden</p>
             </div>
           ) : (
             filtered.slice(0, 80).map(ex => (
               <button key={ex.exercise_id} onClick={() => setSelected(ex)}
-                className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between group ${selected?.exercise_id === ex.exercise_id ? 'bg-accent/10 border-accent/40 shadow-md' : 'bg-card border-line hover:border-accent/30'}`}>
+                className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between group ${selected?.exercise_id === ex.exercise_id ? 'bg-fit-accent/10 border-fit-accent/40 shadow-md' : 'bg-fit-card border-fit-line hover:border-accent/30'}`}>
                 <div className="flex items-center gap-4">
                   {(ex.gif_url || ex.image_url) && (
-                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-line bg-bg2 shrink-0">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-fit-line bg-fit-bg2 shrink-0">
                       <img src={ex.gif_url || ex.image_url} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
                     </div>
                   )}
                   <div>
-                    <div className={`font-black text-sm transition-colors ${selected?.exercise_id === ex.exercise_id ? 'text-accent' : 'text-ink'}`}>
+                    <div className={`font-black text-sm transition-colors ${selected?.exercise_id === ex.exercise_id ? 'text-fit-accent' : 'text-fit-ink'}`}>
                       {ex.display_name || ex.name}
                     </div>
                     <div className="text-[10px] font-bold opacity-30 uppercase tracking-wider mt-1">
@@ -70,7 +70,7 @@ export default function ExerciseLibrary({ exercises, selected, setSelected, q, s
                     </div>
                   </div>
                 </div>
-                <ChevronRight size={16} className={`transition-all ${selected?.exercise_id === ex.exercise_id ? 'text-accent translate-x-1' : 'opacity-0 group-hover:opacity-100'}`} />
+                <ChevronRight size={16} className={`transition-all ${selected?.exercise_id === ex.exercise_id ? 'text-fit-accent translate-x-1' : 'opacity-0 group-hover:opacity-100'}`} />
               </button>
             ))
           )}

@@ -14,13 +14,13 @@ export default function MobileNav({ tab, navigate, swipeHint }) {
       {/* Swipe direction indicator — thin accent line at top */}
       <div className={`absolute top-0 left-0 right-0 h-[2px] transition-all duration-200 ${
         swipeHint === 'left'
-          ? 'bg-gradient-to-l from-[var(--accent)] via-[var(--accent)]/40 to-transparent opacity-80'
+          ? 'bg-gradient-to-l from-fit-accent via-[var(--accent)]/40 to-transparent opacity-80'
           : swipeHint === 'right'
-            ? 'bg-gradient-to-r from-[var(--accent)] via-[var(--accent)]/40 to-transparent opacity-80'
+            ? 'bg-gradient-to-r from-fit-accent via-[var(--accent)]/40 to-transparent opacity-80'
             : 'opacity-0'
       }`} />
 
-      <div className="bg-[var(--card)]/90 backdrop-blur-2xl border-t border-[var(--line)]/40 px-2 pt-2 pb-3">
+      <div className="bg-fit-card/90 backdrop-blur-2xl border-t border-fit-line/40 px-2 pt-2 pb-3">
         <div className="flex items-end justify-around">
           {NAV_ITEMS.map(({ id, label, Icon }) => {
             const isActive = tab === id;
@@ -34,24 +34,24 @@ export default function MobileNav({ tab, navigate, swipeHint }) {
               >
                 <div className={`flex items-center justify-center rounded-2xl transition-all duration-300 ${
                   isActive
-                    ? 'bg-[var(--accent)] w-12 h-8 shadow-lg shadow-[var(--accent)]/30'
+                    ? 'bg-fit-accent w-12 h-8 shadow-lg shadow-fit-accent/30'
                     : isSwipeTarget
-                      ? 'ring-1 ring-[var(--accent)]/60 bg-[var(--accent)]/10 w-10 h-8'
+                      ? 'ring-1 ring-fit-accent/60 bg-fit-accent/10 w-10 h-8'
                       : 'w-10 h-8'
                 }`}>
                   <Icon
                     size={isActive ? 17 : 19}
                     className={
                       isActive       ? 'text-black stroke-[2.5]' :
-                      isSwipeTarget  ? 'text-[var(--accent)] stroke-[2]' :
-                                       'text-[var(--dim)] stroke-[1.8]'
+                      isSwipeTarget  ? 'text-fit-accent stroke-[2]' :
+                                       'text-fit-dim stroke-[1.8]'
                     }
                   />
                 </div>
                 <span className={`text-[7.5px] font-black uppercase tracking-wide leading-none transition-all duration-300 ${
-                  isActive      ? 'text-[var(--accent)] opacity-100' :
-                  isSwipeTarget ? 'text-[var(--accent)]/70 opacity-100' :
-                                  'text-[var(--dim)] opacity-50'
+                  isActive      ? 'text-fit-accent opacity-100' :
+                  isSwipeTarget ? 'text-fit-accent/70 opacity-100' :
+                                  'text-fit-dim opacity-50'
                 }`}>
                   {label}
                 </span>

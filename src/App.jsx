@@ -297,29 +297,29 @@ export default function App() {
   }
 
   if (authLoading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
-      <div className="text-[var(--dim)] text-xs font-black uppercase tracking-widest">…</div>
+    <div className="min-h-screen flex items-center justify-center bg-fit-bg">
+      <div className="text-fit-dim text-xs font-black uppercase tracking-widest">…</div>
     </div>
   );
 
   if (!user) return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--bg)] text-[var(--ink)] p-6">
+    <div className="min-h-screen flex items-center justify-center bg-fit-bg text-fit-ink p-6">
       <div className="w-full max-w-sm card p-8 space-y-6">
         <div className="text-center">
           <h1 className="text-2xl font-black tracking-tight">AlphaOS Fitness</h1>
-          <p className="text-[var(--dim)] text-[10px] font-bold uppercase tracking-widest mt-2">Anmelden</p>
+          <p className="text-fit-dim text-[10px] font-bold uppercase tracking-widest mt-2">Anmelden</p>
         </div>
         <form onSubmit={handleAuthSubmit} className="space-y-3">
-          <input type="email"    placeholder="Email"    value={authEmail}    onChange={e => setAuthEmail(e.target.value)}    required className="w-full bg-[var(--bg2)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm font-bold focus:border-[var(--accent)] outline-none" />
-          <input type="password" placeholder="Passwort" value={authPassword} onChange={e => setAuthPassword(e.target.value)} required className="w-full bg-[var(--bg2)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm font-bold focus:border-[var(--accent)] outline-none" />
-          {authError && <p className="text-[var(--red)] text-[10px] font-bold uppercase text-center">{authError}</p>}
+          <input type="email"    placeholder="Email"    value={authEmail}    onChange={e => setAuthEmail(e.target.value)}    required className="w-full bg-fit-bg2 border border-fit-line rounded-xl px-4 py-3 text-sm font-bold focus:border-fit-accent outline-none" />
+          <input type="password" placeholder="Passwort" value={authPassword} onChange={e => setAuthPassword(e.target.value)} required className="w-full bg-fit-bg2 border border-fit-line rounded-xl px-4 py-3 text-sm font-bold focus:border-fit-accent outline-none" />
+          {authError && <p className="text-fit-red text-[10px] font-bold uppercase text-center">{authError}</p>}
           <button type="submit" className="w-full btn btn-primary py-3 font-black uppercase tracking-widest">
             {authRegistering ? 'Account erstellen' : 'Anmelden'}
           </button>
         </form>
-        <div className="flex items-center gap-3"><div className="h-px bg-[var(--line)] flex-1 opacity-50" /><span className="text-[9px] font-black uppercase text-[var(--dim)]">oder</span><div className="h-px bg-[var(--line)] flex-1 opacity-50" /></div>
+        <div className="flex items-center gap-3"><div className="h-px bg-fit-line flex-1 opacity-50" /><span className="text-[9px] font-black uppercase text-fit-dim">oder</span><div className="h-px bg-fit-line flex-1 opacity-50" /></div>
         <button onClick={signIn} className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white text-black rounded-xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-transform">Google Login</button>
-        <button onClick={() => setAuthRegistering(!authRegistering)} className="w-full text-[10px] font-black text-[var(--dim)] uppercase hover:text-[var(--accent)]">
+        <button onClick={() => setAuthRegistering(!authRegistering)} className="w-full text-[10px] font-black text-fit-dim uppercase hover:text-fit-accent">
           {authRegistering ? 'Bereits einen Account? Anmelden' : 'Neu hier? Account erstellen'}
         </button>
       </div>
@@ -329,7 +329,7 @@ export default function App() {
   return (
     <>
       <ErrorBoundary>
-        <div className="flex min-h-screen bg-[var(--bg)] text-[var(--ink)] font-sans transition-colors duration-500">
+        <div className="flex min-h-screen bg-fit-bg text-fit-ink font-sans transition-colors duration-500">
 
         <Sidebar
           tab={tab}
@@ -340,11 +340,11 @@ export default function App() {
         >
           <UserProfile user={user} subtitle={isLocalMode() ? `${user?.email || 'localhost'} · localhost` : (user?.email || '')} />
           {!isLocalMode() && (
-            <button onClick={signOut} className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black uppercase tracking-widest text-[var(--red)] bg-[var(--red)]/5 border border-[var(--red)]/10 rounded-xl hover:bg-[var(--red)]/10 transition-all">
+            <button onClick={signOut} className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black uppercase tracking-widest text-fit-red bg-fit-red/5 border border-fit-red/10 rounded-xl hover:bg-fit-red/10 transition-all">
               Logout
             </button>
           )}
-          <button onClick={() => window.location.reload()} className="w-full flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--dim)] bg-[var(--bg2)] rounded-xl hover:bg-white/5 transition-all">
+          <button onClick={() => window.location.reload()} className="w-full flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest text-fit-dim bg-fit-bg2 rounded-xl hover:bg-white/5 transition-all">
             <RefreshCw size={14} /> Refresh
           </button>
         </Sidebar>
@@ -365,7 +365,7 @@ export default function App() {
                   ${navMode === 'home' && tab === 'gate' ? 'translate-y-full pointer-events-none' : 'translate-y-0'}
                 `}
               >
-                <div className={`${navMode === 'home' ? 'h-full bg-[var(--bg)] shadow-[0_-20px_50px_rgba(0,0,0,0.3)] overflow-y-auto rounded-t-[40px] border-t border-[var(--line)]/30 relative pt-6' : ''}`}>
+                <div className={`${navMode === 'home' ? 'h-full bg-fit-bg shadow-[0_-20px_50px_rgba(0,0,0,0.3)] overflow-y-auto rounded-t-[40px] border-t border-fit-line/30 relative pt-6' : ''}`}>
                   <div className={`${navMode === 'home' && tab !== 'gate' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
                       {/* Render content */}
                       {tab === 'dash'     && <Dashboard onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}

@@ -42,18 +42,18 @@ export default function HabitJournalModal({
         className="absolute inset-0"
         onClick={() => { onSaveJournal(); onClose(); }}
       />
-      <div className="relative w-full max-w-3xl max-h-full bg-[var(--card)] rounded-3xl shadow-2xl border border-[var(--line)] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between px-8 py-6 border-b border-[var(--line)]/40">
+      <div className="relative w-full max-w-3xl max-h-full bg-fit-card rounded-3xl shadow-2xl border border-fit-line flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between px-8 py-6 border-b border-fit-line/40">
           <div className="flex items-center gap-3">
-            {Icon && <Icon size={28} className="text-[var(--ink)]" />}
+            {Icon && <Icon size={28} className="text-fit-ink" />}
             <div>
-              <h2 className="text-2xl font-black text-[var(--ink)] leading-tight">{habit.name}</h2>
+              <h2 className="text-2xl font-black text-fit-ink leading-tight">{habit.name}</h2>
               <div className="text-[10px] font-black uppercase tracking-widest opacity-40 mt-0.5">{date}</div>
             </div>
           </div>
           <button
             onClick={() => { onSaveJournal(); onClose(); }}
-            className="p-2 text-[var(--dim)] hover:text-[var(--red)] transition-all"
+            className="p-2 text-fit-dim hover:text-fit-red transition-all"
             aria-label="Schließen"
           >
             <X size={24} />
@@ -74,14 +74,14 @@ export default function HabitJournalModal({
               }
             }}
             placeholder=""
-            className="w-full min-h-[60vh] bg-transparent border-0 text-base font-medium leading-relaxed text-[var(--ink)] focus:outline-none resize-none"
+            className="w-full min-h-[60vh] bg-transparent border-0 text-base font-medium leading-relaxed text-fit-ink focus:outline-none resize-none"
           />
         </div>
 
-        <div className="flex items-center justify-between px-8 py-4 border-t border-[var(--line)]/40 text-[10px] font-black uppercase tracking-widest opacity-40">
+        <div className="flex items-center justify-between px-8 py-4 border-t border-fit-line/40 text-[10px] font-black uppercase tracking-widest opacity-40">
           <span>Esc · schließen + speichern</span>
           <div className="flex items-center gap-2">
-            {isJournalSaving && <Save size={12} className="text-[var(--accent)] animate-pulse" />}
+            {isJournalSaving && <Save size={12} className="text-fit-accent animate-pulse" />}
             <span>Strg + Enter · speichern</span>
           </div>
         </div>

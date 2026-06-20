@@ -183,8 +183,8 @@ export default function Journal() {
               const mainEntries = group.entries.filter(e => e.type !== 'habit-completion');
               return (
               <div key={group.date} className="relative">
-                <div className="sticky top-20 z-10 py-2 bg-[var(--bg)]/90 backdrop-blur-md -mx-2 px-2 border-b border-[var(--line)]">
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-accent">
+                <div className="sticky top-20 z-10 py-2 bg-fit-bg/90 backdrop-blur-md -mx-2 px-2 border-b border-fit-line">
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-fit-accent">
                     {formatRelativeDate(group.date)}
                   </h3>
                   {standaloneCompletions.length > 0 && (
@@ -195,7 +195,7 @@ export default function Journal() {
                           <span
                             key={e.id}
                             title={e.habitName}
-                            className="w-6 h-6 rounded-full bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)] cursor-default"
+                            className="w-6 h-6 rounded-full bg-fit-accent/10 border border-fit-accent/20 flex items-center justify-center text-fit-accent cursor-default"
                           >
                             <Icon size={12} />
                           </span>
@@ -204,7 +204,7 @@ export default function Journal() {
                     </div>
                   )}
                 </div>
-                <div className="relative pl-6 sm:pl-8 border-l border-[var(--line)] space-y-6 mt-4">
+                <div className="relative pl-6 sm:pl-8 border-l border-fit-line space-y-6 mt-4">
                   {mainEntries.map((e, i) => (
                     <JournalEntry
                       key={e.id || i}
@@ -220,7 +220,7 @@ export default function Journal() {
               );
             })
           ) : (
-            <div className="p-20 text-center rounded-[32px] border border-dashed border-[var(--line)] opacity-20">
+            <div className="p-20 text-center rounded-[32px] border border-dashed border-fit-line opacity-20">
               <Book size={48} className="mx-auto mb-4" />
               <p className="text-sm font-black uppercase tracking-widest">Keine Einträge gefunden</p>
             </div>
@@ -230,7 +230,7 @@ export default function Journal() {
              <div className="pt-8 flex justify-center">
                 <button 
                   onClick={() => setLimitCount(p => p + 30)} 
-                  className="px-8 py-3 rounded-2xl bg-bg2 border border-line text-[10px] font-black uppercase tracking-widest text-dim hover:text-ink hover:border-accent/30 transition-all"
+                  className="px-8 py-3 rounded-2xl bg-fit-bg2 border border-fit-line text-[10px] font-black uppercase tracking-widest text-fit-dim hover:text-ink hover:border-accent/30 transition-all"
                 >
                   Ältere Einträge laden ↓
                 </button>
@@ -240,7 +240,7 @@ export default function Journal() {
       </div>
 
       {toast && (
-        <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl text-sm font-bold shadow-2xl z-50 bg-card text-accent border border-line">
+        <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl text-sm font-bold shadow-2xl z-50 bg-fit-card text-fit-accent border border-fit-line">
           {toast}
         </div>
       )}

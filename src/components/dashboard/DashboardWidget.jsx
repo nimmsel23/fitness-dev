@@ -66,14 +66,14 @@ export default function DashboardWidget({
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setIsModalOpen(false)}>
           <div 
-            className="bg-[var(--card)] border border-[var(--line)] w-full max-w-2xl rounded-[32px] overflow-hidden shadow-2xl"
+            className="bg-fit-card border border-fit-line w-full max-w-2xl rounded-[32px] overflow-hidden shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
-            <div className="p-8 border-b border-[var(--line)] flex items-center justify-between">
-              <h3 className="text-xl font-black text-[var(--ink)]">{title || 'Widget Detail'}</h3>
+            <div className="p-8 border-b border-fit-line flex items-center justify-between">
+              <h3 className="text-xl font-black text-fit-ink">{title || 'Widget Detail'}</h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="w-10 h-10 rounded-full bg-[var(--bg2)] flex items-center justify-center text-[var(--dim)] hover:text-[var(--ink)]"
+                className="w-10 h-10 rounded-full bg-fit-bg2 flex items-center justify-center text-fit-dim hover:text-fit-ink"
               >
                 ✕
               </button>
@@ -83,7 +83,7 @@ export default function DashboardWidget({
               {children}
             </div>
 
-            <div className="p-6 bg-[var(--bg2)]/50 border-t border-[var(--line)] flex justify-end">
+            <div className="p-6 bg-fit-bg2/50 border-t border-fit-line flex justify-end">
               <button 
                 onClick={() => {
                   setIsModalOpen(false);

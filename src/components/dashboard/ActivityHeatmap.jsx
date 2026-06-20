@@ -4,10 +4,10 @@ import { DAY_LABELS } from "./utils";
 
 export default function ActivityHeatmap({ rollingDays, sessionByDate, today, onNavigate }) {
   return (
-    <div className="md:col-span-2 xl:col-span-3 alpha-card !p-10 shadow-2xl bg-gradient-to-br from-[var(--card)] to-[var(--bg2)]">
+    <div className="md:col-span-2 xl:col-span-3 alpha-card !p-10 shadow-2xl bg-gradient-to-br from-fit-card to-fit-bg2">
       <div className="flex items-center justify-between mb-10">
         <h3 className="label-caps !mb-0 flex items-center gap-3 text-sm">
-          <Activity size={18} className="text-accent" />
+          <Activity size={18} className="text-fit-accent" />
           Aktivität & Konsistenz
         </h3>
         <span className="text-[11px] font-black opacity-30 uppercase tracking-[0.2em]">Letzte 10 Tage</span>

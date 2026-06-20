@@ -115,12 +115,12 @@ export default function HabitWidget() {
               <div className="flex items-center gap-1.5">
                 <button 
                   onClick={() => setModalHabit(h)}
-                  className="p-2 rounded-xl border border-line hover:bg-bg2 transition-all text-dim hover:text-accent"
+                  className="p-2 rounded-xl border border-fit-line hover:bg-bg2 transition-all text-fit-dim hover:text-accent"
                 >
                   <BookOpen size={16} />
                 </button>
                 {done ? (
-                  <div className="flex items-center justify-center w-10 h-9 text-[var(--green)]">
+                  <div className="flex items-center justify-center w-10 h-9 text-fit-green">
                     <Check size={18} className="stroke-[3]" />
                   </div>
                 ) : (

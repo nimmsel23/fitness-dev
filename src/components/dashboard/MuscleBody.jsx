@@ -37,7 +37,7 @@ export default function MuscleBody({ enrichedRecent, recentDays = 7, highlighter
   const HighlighterBack  = isMuscles ? DetailedMuscleMap : BodyMap;
 
   return (
-    <div className="alpha-card p-10 flex flex-col h-full bg-gradient-to-br from-[var(--card)] to-[var(--bg)]">
+    <div className="alpha-card p-10 flex flex-col h-full bg-gradient-to-br from-fit-card to-fit-bg">
       <div className="flex items-center justify-between mb-8">
          <h3 className="label-caps !mb-0">Muskel-Status</h3>
          <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30">

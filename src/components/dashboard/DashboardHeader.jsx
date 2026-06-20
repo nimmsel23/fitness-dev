@@ -4,9 +4,9 @@ export default function DashboardHeader({ onExport, isEditMode, onToggleEdit, on
   return (
     <div className="mb-16 flex items-end justify-between px-2 gap-8 flex-wrap">
       <div className="animate-in fade-in slide-in-from-left-8 duration-700">
-        <h1 className="text-5xl lg:text-6xl font-black text-ink mb-3 tracking-tight">Willkommen zurück</h1>
+        <h1 className="text-5xl lg:text-6xl font-black text-fit-ink mb-3 tracking-tight">Willkommen zurück</h1>
         <div className="flex items-center gap-3">
-          <div className="h-1 w-12 bg-accent rounded-full" />
+          <div className="h-1 w-12 bg-fit-accent rounded-full" />
           <p className="text-[11px] font-black opacity-30 uppercase tracking-[0.4em]">Dein Fitness Ecosystem</p>
         </div>
       </div>

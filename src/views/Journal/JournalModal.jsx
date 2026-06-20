@@ -15,7 +15,7 @@ export default function JournalModal({ selectedEntry, setSelectedEntry, habits, 
     ? new Date(selectedEntry.updated_at.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : '';
 
-  const iconColor = isWorkout ? 'text-blue-500 bg-blue-500/10' : 'text-[var(--accent)] bg-[var(--accent)]/10';
+  const iconColor = isWorkout ? 'text-blue-500 bg-blue-500/10' : 'text-fit-accent bg-fit-accent/10';
   const title = isHabit
     ? habit?.name
     : isWorkout
@@ -35,21 +35,21 @@ export default function JournalModal({ selectedEntry, setSelectedEntry, habits, 
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedEntry(null)} />
 
-      <div className="relative w-full max-w-2xl bg-[var(--card)] rounded-[32px] border border-[var(--line)] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-2xl bg-fit-card rounded-[32px] border border-fit-line shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="p-6 border-b border-[var(--line)]/50 flex items-center justify-between bg-gradient-to-r from-[var(--card)] to-[var(--bg2)]">
+        <div className="p-6 border-b border-fit-line/50 flex items-center justify-between bg-gradient-to-r from-fit-card to-fit-bg2">
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${iconColor}`}>
               {isHabit ? <Target size={20} /> : isWorkout ? <Dumbbell size={20} /> : isHabitCompletion ? <CheckCircle2 size={20} /> : <Book size={20} />}
             </div>
             <div>
-              <h3 className="text-sm font-black uppercase tracking-widest text-[var(--ink)]">{title}</h3>
+              <h3 className="text-sm font-black uppercase tracking-widest text-fit-ink">{title}</h3>
               <div className="text-[10px] font-bold opacity-30 uppercase tracking-widest">
                 {formatRelativeDate(selectedEntry.date)}{timeDisplay ? ` · ${timeDisplay} Uhr` : ''} · {subtitle}
               </div>
             </div>
           </div>
-          <button onClick={() => setSelectedEntry(null)} className="p-3 rounded-2xl hover:bg-[var(--bg2)] text-[var(--dim)] transition-all">
+          <button onClick={() => setSelectedEntry(null)} className="p-3 rounded-2xl hover:bg-fit-bg2 text-fit-dim transition-all">
             <X size={24} />
           </button>
         </div>
@@ -84,14 +84,14 @@ export default function JournalModal({ selectedEntry, setSelectedEntry, habits, 
 
           {/* Text / Notes */}
           {selectedEntry.text && (
-            <p className="text-lg sm:text-xl font-medium leading-relaxed text-[var(--ink)]/90 whitespace-pre-wrap selection:bg-[var(--accent)]/30">
+            <p className="text-lg sm:text-xl font-medium leading-relaxed text-fit-ink/90 whitespace-pre-wrap selection:bg-fit-accent/30">
               {selectedEntry.text}
             </p>
           )}
 
           {/* Habit-Completion: leerer State */}
           {isHabitCompletion && !selectedEntry.text && (
-            <div className="flex items-center gap-3 text-[var(--accent)]">
+            <div className="flex items-center gap-3 text-fit-accent">
               <CheckCircle2 size={32} />
               <span className="text-base font-black uppercase tracking-widest">{selectedEntry.habitName} — Abgeschlossen</span>
             </div>
@@ -99,15 +99,15 @@ export default function JournalModal({ selectedEntry, setSelectedEntry, habits, 
 
           {/* Habit: Coach Feedback */}
           {isHabit && selectedEntry.coachFeedback && (
-            <div className="p-6 rounded-[24px] bg-[var(--accent)]/5 border border-[var(--accent)]/20 relative overflow-hidden group">
-              <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform duration-1000 text-[var(--accent)]">
+            <div className="p-6 rounded-[24px] bg-fit-accent/5 border border-fit-accent/20 relative overflow-hidden group">
+              <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:scale-110 transition-transform duration-1000 text-fit-accent">
                 <Brain size={120} />
               </div>
               <div className="flex items-center gap-2 mb-4">
-                <Brain size={18} className="text-[var(--accent)]" />
-                <span className="text-xs font-black uppercase tracking-[0.2em] text-[var(--accent)]">Coach Feedback</span>
+                <Brain size={18} className="text-fit-accent" />
+                <span className="text-xs font-black uppercase tracking-[0.2em] text-fit-accent">Coach Feedback</span>
               </div>
-              <p className="text-sm sm:text-base font-bold italic text-[var(--ink)]/80 leading-relaxed relative z-10">
+              <p className="text-sm sm:text-base font-bold italic text-fit-ink/80 leading-relaxed relative z-10">
                 "{selectedEntry.coachFeedback}"
               </p>
             </div>
@@ -115,8 +115,8 @@ export default function JournalModal({ selectedEntry, setSelectedEntry, habits, 
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-[var(--line)]/50 bg-[var(--bg2)]/50 flex justify-end">
-          <button onClick={() => setSelectedEntry(null)} className="btn bg-[var(--card)] border border-[var(--line)] text-[var(--ink)] px-8 py-2.5 text-[10px] font-black uppercase tracking-widest hover:border-[var(--accent)] transition-all">
+        <div className="p-6 border-t border-fit-line/50 bg-fit-bg2/50 flex justify-end">
+          <button onClick={() => setSelectedEntry(null)} className="btn bg-fit-card border border-fit-line text-fit-ink px-8 py-2.5 text-[10px] font-black uppercase tracking-widest hover:border-fit-accent transition-all">
             Schließen
           </button>
         </div>

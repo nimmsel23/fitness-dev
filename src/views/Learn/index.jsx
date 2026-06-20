@@ -84,13 +84,13 @@ export default function Learn({ onInspectExercise, muscleLanguage = 'de', taxono
             />
             
             {/* PlanBuilder integrated at the bottom of the library */}
-            <div className="mt-12 pt-8 border-t border-line/50">
+            <div className="mt-12 pt-8 border-t border-fit-line/50">
                <PlanBuilder onInspectExercise={onInspectExercise || setSelected} />
             </div>
           </div>
 
           <div className="hidden lg:block sticky top-6 h-fit">
-            <div className="card h-full min-h-[700px] border-accent/10 shadow-2xl p-8 bg-gradient-to-b from-card to-bg2 overflow-hidden relative">
+            <div className="card h-full min-h-[700px] border-fit-accent/10 shadow-2xl p-8 bg-gradient-to-b from-card to-bg2 overflow-hidden relative">
               <AnatDetail 
                   ex={selected} 
                   anatomy={anatomy}
@@ -111,7 +111,7 @@ export default function Learn({ onInspectExercise, muscleLanguage = 'de', taxono
 
       {/* Mobile Exercise Detail Overlay */}
       {selected && viewMode === 'library' && (
-        <div className="lg:hidden fixed inset-0 z-[100] bg-[var(--bg)] p-6 overflow-y-auto animate-in slide-in-from-bottom duration-300">
+        <div className="lg:hidden fixed inset-0 z-[100] bg-fit-bg p-6 overflow-y-auto animate-in slide-in-from-bottom duration-300">
           <AnatDetail 
             ex={selected} 
             anatomy={anatomy}
