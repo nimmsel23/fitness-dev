@@ -1,6 +1,6 @@
-import { CheckCircle2, Trash2, Info, AlertTriangle, Sparkles, User } from 'lucide-react';
+import { CheckCircle2, Trash2, Info, AlertTriangle, Sparkles, User, RefreshCw, MessageSquare, Brain } from 'lucide-react';
 
-export default function InboxCard({ ex, actioning, onApprove, onDelete, onInspect, showUserId = false }) {
+export default function InboxCard({ ex, actioning, onApprove, onDelete, onInspect, showUserId = false, asMessage = false }) {
   // Unterstützt beide Backend-Shapes: { exercises: [data] } und { enriched: data } und flach
   const data     = ex.exercises?.[0] || ex.enriched || ex;
   const fileId   = ex.file_id;
@@ -8,6 +8,86 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onInspec
   const warnings = data.biomechanical_warnings || [];
   const isProactive = ex.description?.toLowerCase().includes('proactively');
   const busy = actioning === fileId;
+
+  if (asMessage) {
+    let icon = <MessageSquare className="text-fit-dim" size={20} />;
+    let title = `Anfrage: ${data.display_name || data.name}`;
+    let body = "Deine Übungsanfrage wurde erfasst.";
+    let iconBg = "bg-fit-bg2";
+    let iconColor = "text-fit-dim";
+
+    if (ex.type === 'coach_feedback') {
+      icon = <Brain className="text-fit-accent animate-pulse" size={20} />;
+      title = ex.title || "Neues Coach-Feedback 💬";
+      body = ex.text || "Dein Coach hat einen Kommentar hinterlassen.";
+      iconBg = "bg-fit-accent/10";
+      iconColor = "text-fit-accent";
+    } else if (ex.status === 'pending') {
+      icon = <RefreshCw className="animate-spin text-fit-orange" size={20} />;
+      title = `Anfrage gesendet: ${data.display_name || data.name}`;
+      body = "Die Übungsanfrage wurde registriert. Die KI analysiert nun die biomechanischen Details...";
+      iconBg = "bg-fit-orange/10";
+      iconColor = "text-fit-orange";
+    } else if (ex.status === 'ai_enriched') {
+      icon = <Sparkles className="text-fit-accent animate-pulse" size={20} />;
+      title = `KI-Entwurf bereit: ${data.display_name || data.name}`;
+      body = "Die KI hat die Übung angereichert. Sie wartet nun auf die Freigabe durch den Coach.";
+      iconBg = "bg-fit-accent/10";
+      iconColor = "text-fit-accent";
+    } else if (ex.status === 'approved') {
+      icon = <CheckCircle2 className="text-fit-green" size={20} />;
+      title = `Übung freigegeben: ${data.display_name || data.name} 🎉`;
+      body = "Dein Coach hat die Übung freigegeben! Sie steht dir ab sofort im Katalog zur Verfügung.";
+      iconBg = "bg-fit-green/10";
+      iconColor = "text-fit-green";
+    } else if (ex.status === 'rejected') {
+      icon = <AlertTriangle className="text-fit-red" size={20} />;
+      title = `Anfrage abgelehnt: ${data.display_name || data.name}`;
+      body = "Der Coach hat die Übung nicht freigegeben. Bei Fragen wende dich direkt an deinen Coach.";
+      iconBg = "bg-fit-red/10";
+      iconColor = "text-fit-red";
+    }
+
+    return (
+      <div className="card p-5 flex items-center justify-between gap-4 hover:border-fit-line transition-all">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className={`w-10 h-10 shrink-0 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center`}>
+            {icon}
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-sm font-black text-fit-ink truncate">{title}</h4>
+            <p className="text-xs text-fit-dim mt-0.5 leading-relaxed truncate md:line-clamp-2 md:whitespace-normal">
+              {body}
+            </p>
+            {ex.received_at && (
+              <span className="text-[9px] font-bold uppercase tracking-wider text-fit-muted block mt-1">
+                {new Date(ex.received_at.seconds ? ex.received_at.seconds * 1000 : ex.received_at).toLocaleDateString('de-DE', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {ex.status === 'approved' && (
+            <button
+              onClick={() => onInspect?.(data)}
+              className="p-2.5 bg-fit-bg2 text-fit-dim hover:text-ink rounded-lg border border-fit-line transition-all active:scale-95"
+              title="Übung anzeigen"
+            >
+              <Info size={16} />
+            </button>
+          )}
+          <button
+            onClick={() => onDelete(fileId)}
+            disabled={busy}
+            className="p-2.5 bg-fit-red/5 text-fit-red hover:bg-red/10 rounded-lg border border-fit-red/10 transition-all active:scale-95 disabled:opacity-50"
+            title="Löschen"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="card p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-accent/30 transition-all">

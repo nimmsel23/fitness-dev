@@ -42,6 +42,7 @@ export default function Inbox({ user, onInspectExercise }) {
               onApprove={isSuperUser ? approve : null}
               onDelete={remove}
               onInspect={onInspectExercise}
+              asMessage
             />
           ))}
         </div>

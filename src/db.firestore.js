@@ -12,7 +12,7 @@
  */
 
 import {
-  collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc,
+  collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc, updateDoc,
   query, where, orderBy, limit, serverTimestamp, writeBatch, collectionGroup
 } from "firebase/firestore";
 import {
@@ -313,14 +313,27 @@ export async function approveInbox(id, userId) {
     source: "approved",
     approved_at: serverTimestamp(),
   });
-  batch.delete(inboxRef);
+  batch.update(inboxRef, {
+    status: "approved",
+    approved_at: serverTimestamp()
+  });
   await batch.commit();
 
   return { ok: true, id: exId };
 }
 
-export async function deleteInbox(id) {
-  await deleteDoc(doc(db, "fitness", getUid(), "inbox", id));
+export async function deleteInbox(id, userId) {
+  const targetUid = userId || getUid();
+  const inboxRef = doc(db, "fitness", targetUid, "inbox", id);
+  const snap = await getDoc(inboxRef);
+  if (snap.exists() && targetUid !== getUid()) {
+    await updateDoc(inboxRef, {
+      status: "rejected",
+      rejected_at: serverTimestamp()
+    });
+  } else {
+    await deleteDoc(inboxRef);
+  }
   return { ok: true };
 }
 
