@@ -1,0 +1,18 @@
+[data-theme="rose"] {
+  --bg: #fff1f2;
+  --bg2: #fecdd3;
+  --panel: #ffe4e6;
+  --card: #ffffff;
+  --card-hover: #fce7f3;
+  --line: #fda4af;
+  --ink: #4c0519;
+  --muted: #9f1239;
+  --dim: #e11d48;
+  --accent: #f43f5e;
+  --accent-glow: rgba(244, 63, 94, 0.1);
+  --green: #15803d;
+  --red: #e11d48;
+  --orange: #c2410c;
+  --glass: rgba(255, 241, 242, 0.9);
+  --glass-border: rgba(244, 63, 94, 0.08);
+}

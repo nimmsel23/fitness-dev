@@ -1,0 +1,18 @@
+[data-theme="gold"] {
+  --bg: #fffbeb;
+  --bg2: #fde68a;
+  --panel: #fef3c7;
+  --card: #ffffff;
+  --card-hover: #fef9c3;
+  --line: #fcd34d;
+  --ink: #78350f;
+  --muted: #92400e;
+  --dim: #d97706;
+  --accent: #d97706;
+  --accent-glow: rgba(217, 119, 6, 0.1);
+  --green: #15803d;
+  --red: #b91c1c;
+  --orange: #c2410c;
+  --glass: rgba(255, 251, 235, 0.9);
+  --glass-border: rgba(217, 119, 6, 0.08);
+}

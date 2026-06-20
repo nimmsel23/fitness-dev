@@ -1,0 +1,18 @@
+[data-theme="dracula-purple"] {
+  --bg: #1a1526;
+  --bg2: #1e1930;
+  --panel: #221d33;
+  --card: #2d2645;
+  --card-hover: #38305a;
+  --line: #4a3f6e;
+  --ink: #f8f8f2;
+  --muted: #9580aa;
+  --dim: #4a3f6e;
+  --accent: #ff79c6;
+  --accent-glow: rgba(255, 121, 198, 0.13);
+  --green: #50fa7b;
+  --red: #ff5555;
+  --orange: #ffb86c;
+  --glass: rgba(30, 25, 48, 0.9);
+  --glass-border: rgba(255, 121, 198, 0.12);
+}

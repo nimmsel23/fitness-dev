@@ -1,0 +1,18 @@
+[data-theme="macchiato"] {
+  --bg: #24273a;
+  --bg2: #181926;
+  --panel: #1e2030;
+  --card: #363a4f;
+  --card-hover: #494d64;
+  --line: #5b6078;
+  --ink: #cad3f5;
+  --muted: #b8c0e0;
+  --dim: #6e738d;
+  --accent: #8aadf4;
+  --accent-glow: rgba(138, 173, 244, 0.12);
+  --green: #a6da95;
+  --red: #ed8796;
+  --orange: #f5a97f;
+  --glass: rgba(36, 39, 58, 0.85);
+  --glass-border: rgba(138, 173, 244, 0.1);
+}
