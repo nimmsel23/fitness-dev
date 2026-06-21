@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "fitness-aos",
+    "site": "fitness-vos",
     "public": "dist-federation",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "headers": [

@@ -17,7 +17,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const FUEL_ROOT = resolve(__dirname, '../../../fuel-dev')
 
 export default defineConfig({
-  root: FUEL_ROOT,
+  root: __dirname,
   resolve: {
     alias: {
       '@fuel': resolve(FUEL_ROOT, 'src/client'),
@@ -44,5 +44,8 @@ export default defineConfig({
     target: 'esnext',
     minify: false,
     assetsDir: '',
+    rollupOptions: {
+      input: resolve(__dirname, 'index.html'),
+    },
   },
 })

@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => {
   const federationPlugin = isFirebase ? [federation({
     name: 'vitalos_host',
     remotes: {
-      fitness: 'https://fitness-aos.web.app/remoteEntry.js',
+      fitness: 'https://fitness-vos.web.app/remoteEntry.js',
       fuel:    'https://fuel-vos.web.app/remoteEntry.js',
       journal: 'https://journal-aos.web.app/remoteEntry.js',
       learn:   'https://learn-vos.web.app/remoteEntry.js',

@@ -24,7 +24,7 @@ const LEARN_ROOT   = resolve(__dirname, '../learn-dev')
 export default defineConfig(({ mode }) => {
   const isFirebase = mode === 'firebase'
   return {
-    root: FITNESS_ROOT,
+    root: __dirname,
     resolve: {
       alias: {
         '@db':    resolve(FITNESS_ROOT, isFirebase ? 'src/db.firestore.js' : 'src/db.js'),
@@ -53,6 +53,10 @@ export default defineConfig(({ mode }) => {
       target: 'esnext',
       minify: false,
       assetsDir: '',
+      rollupOptions: {
+        input: resolve(__dirname, 'index.html'),
+        external: ['journal/JournalApp', 'fuel/FuelApp', 'learn/LearnApp'],
+      },
     },
     server: {
       port: 9183,
