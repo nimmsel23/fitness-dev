@@ -1,11 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import federation from '@originjs/vite-plugin-federation'
+import tailwindcss from 'tailwindcss'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
-const __dirname  = dirname(fileURLToPath(import.meta.url))
-const FITNESS_ROOT = resolve(__dirname, '../..')
+const __dirname    = dirname(fileURLToPath(import.meta.url))
+const CC_ROOT      = resolve(__dirname, '..')       // cloud_chamber/
 const VITALOS_SRC  = resolve(__dirname, 'src')
 const FED_DIR      = resolve(__dirname, '../federation')
 const BACKEND      = 'http://localhost:9100'
@@ -36,7 +37,7 @@ export default defineConfig(({ mode }) => {
   })] : []
 
   return {
-    root: FITNESS_ROOT,
+    root: CC_ROOT,
     base: '/',
     plugins: [react(), ...federationPlugin],
     resolve: {
@@ -47,6 +48,11 @@ export default defineConfig(({ mode }) => {
         ...devAliases,
       },
       dedupe: ['react', 'react-dom'],
+    },
+    css: {
+      postcss: {
+        plugins: [tailwindcss({ config: resolve(__dirname, 'tailwind.config.cjs') })],
+      },
     },
     server: {
       port: 9190,

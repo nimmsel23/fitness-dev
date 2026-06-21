@@ -7,6 +7,7 @@
  * @db → src/db.js (:9100) oder src/db.firestore.js (--mode firebase)
  */
 
+import '../../src/styles.css'
 import { useState, useEffect } from 'react'
 import { Activity, Dumbbell, BarChart3, Brain, Settings2 } from 'lucide-react'
 import Dashboard    from '@src/views/Dashboard/index.jsx'

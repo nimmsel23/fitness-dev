@@ -7,7 +7,7 @@
     "server": "node server.mjs",
     "ui": "npx vite --port 9171",
     "build": "npx vite build",
-    "build:firebase": "npx vite build --mode firebase",
+    "build:firebase": "npx vite build --mode firebase && sed -i \"s/journal-v[0-9]*/journal-$(date +%s)/\" dist-firebase/sw.js 2>/dev/null || true",
     "deploy": "npm run build:firebase && firebase deploy --only hosting",
     "start": "node server.mjs"
   },

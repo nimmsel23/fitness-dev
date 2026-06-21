@@ -14,6 +14,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import federation from '@originjs/vite-plugin-federation'
+import tailwindcss from 'tailwindcss'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -24,7 +25,7 @@ const FITNESS_DIST  = resolve(__dirname, '../fitness-dev/dist-federation')
 export default defineConfig(({ mode }) => {
   const isFirebase = mode === 'firebase'
   return {
-    root: FITNESS_ROOT,
+    root: __dirname,
     resolve: {
       alias: {
         '@src':   resolve(FITNESS_ROOT, 'src'),
@@ -47,6 +48,11 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
+    css: {
+      postcss: {
+        plugins: [tailwindcss({ config: resolve(FITNESS_ROOT, 'tailwind.config.cjs') })],
+      },
+    },
     build: {
       outDir: FITNESS_DIST,
       emptyOutDir: true,
@@ -54,6 +60,7 @@ export default defineConfig(({ mode }) => {
       minify: false,
       assetsDir: '',
       rollupOptions: {
+        input: resolve(__dirname, 'index.html'),
         external: ['journal/JournalApp', 'fuel/FuelApp', 'learn/LearnApp'],
       },
     },
