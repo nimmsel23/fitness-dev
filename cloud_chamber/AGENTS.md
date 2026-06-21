@@ -12,6 +12,7 @@ Liegt physisch in `fitness-dev/cloud_chamber/` — ist aber **kein** Teil von fi
 | `journal-dev/` | Journal + Habits Micro-App | ✅ eingebunden (Alias in vite.config.js) | fitness-dev-coding-agent |
 | `learn-dev/` | Anatomie/Lern-App | ✅ eingebunden | fitness-dev-coding-agent |
 | `federation/` | Vite Module Federation Staging | ✅ eingebunden | fitness-dev-coding-agent |
+| `vos_deploy/` | Deployment TUI für alle VOS Firebase Sites | ❌ ignoriert (kein Vite-Source) | fitness-dev-coding-agent |
 | `vitalos/` | VitalOS Shell (separates Projekt) | ❌ ignoriert (`server.watch.ignored`) | **nicht hier** — eigenes Repo |
 | `fitness-dev/` | Federation Remote Deploy-Kontext (nur `dist-federation/` + `firebase.json`) | ❌ ignoriert (`server.watch.ignored`) | **nicht hier — nur Deploy, kein Source** |
 
@@ -55,6 +56,43 @@ Explizit ignoriert im File-Watcher:
 ```
 
 Neue Sub-Apps die **nicht** von Vite erfasst werden sollen → in `server.watch.ignored` eintragen.
+
+---
+
+## vos_deploy/ — Deployment TUI
+
+Zentrales Deploy-Tool für alle VOS Firebase Hosting Sites. Läuft als CLI/TUI
+direkt aus `cloud_chamber/vos_deploy/`, kein eigener Server.
+
+**Scope:** Nur Firebase Hosting Deploys — kein Node-Server-Restart, kein Systemd.
+
+### Bekannte Deploy-Targets (Stand 2026-06-21)
+
+| Firebase Site | Source | firebase.json | Zweck |
+|---------------|--------|---------------|-------|
+| `fitness-aos` | `~/fitness/dist-firebase/` | `~/fitness-dev/firebase.json` | fitness-dev PWA (Haupt-App) |
+| `fitness-vos` | `cloud_chamber/fitness-dev/dist-federation/` | `cloud_chamber/fitness-dev/firebase.json` | fitness-dev als Federation Remote (`remoteEntry.js`) |
+| `journal-aos` | `cloud_chamber/journal-dev/dist-firebase/` | (journal-dev intern) | Journal + Habits Micro-App |
+
+### Wissenswertes aus der aktuellen Session
+
+- `fitness-aos` Deploy wird **automatisch** via pre-commit Hook ausgelöst wenn
+  Vite-relevante Dateien geändert werden (`sw.js` Version bumped + `npm run build:firebase`).
+  Das TUI sollte das kennen und ggf. warnen / überspringen.
+- `fitness-vos` Deploy ist **manuell** — kein Hook, Build läuft separat mit `VITE_FEDERATION=true`.
+- Der Hook bumpt `sw.js` (fitness-v<N>) vor jedem Firebase Deploy — das TUI darf
+  diesen Schritt nicht doppeln.
+- Firebase Hosting Cache: `cloud_chamber/vitalos/.firebase/hosting.*.cache` — nicht
+  mit `fitness-aos` verwechseln, gehört zu einem anderen Projekt.
+- `--emptyOutDir` fehlt bei `build:firebase` wegen `outDir` außerhalb des Roots —
+  das ist bekannt und ok (kein Bug, kein Handlungsbedarf).
+
+### TUI-Empfehlungen
+
+- **gum** als TUI-Framework (Tooling-Standard im gesamten AOS/VOS Ecosystem)
+- Vor jedem Deploy: Build-Output prüfen (`dist-*/index.html` vorhanden?)
+- `gum confirm` vor destruktiven Schritten
+- Status-Übersicht: welche Sites sind deployed, wann zuletzt, welcher Build-Hash
 
 ---
 
