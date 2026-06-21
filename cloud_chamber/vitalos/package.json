@@ -1,0 +1,16 @@
+{
+  "name": "vitalos",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node ../../server.mjs & npx vite --config vite.config.js",
+    "build": "npx vite build --config vite.config.js",
+    "build:firebase": "npx vite build --mode firebase --config vite.config.js && cp dist-firebase/cloud_chamber/vitalos/index.html dist-firebase/index.html",
+    "deploy:shell": "npm run build:firebase && firebase deploy --only hosting",
+    "deploy:fitness": "npx vite build --config ../federation/fitness.remote.vite.config.js && firebase deploy --only hosting --config ../fitness-dev/firebase.json",
+    "deploy:fuel": "npx vite build --config ../federation/fuel.remote.vite.config.js && firebase deploy --only hosting --config ../federation/firebase.fuel.json",
+    "deploy:journal": "npx vite build --config ../federation/journal.remote.vite.config.js && firebase deploy --only hosting --config ../journal-dev/firebase.remote.json",
+    "deploy:learn": "npx vite build --config ../federation/learn.remote.vite.config.js && firebase deploy --only hosting --config ../learn-dev/firebase.remote.json",
+    "preview": "npx vite preview --config vite.config.js"
+  }
+}

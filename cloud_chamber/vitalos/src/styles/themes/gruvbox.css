@@ -1,0 +1,18 @@
+[data-theme="gruvbox"] {
+  --bg: #282828;
+  --bg2: #1d2021;
+  --panel: #32302f;
+  --card: #3c3836;
+  --card-hover: #504945;
+  --line: #665c54;
+  --ink: #ebdbb2;
+  --muted: #bdae93;
+  --dim: #928374;
+  --accent: #fabd2f;
+  --accent-glow: rgba(250, 189, 47, 0.12);
+  --green: #b8bb26;
+  --red: #fb4934;
+  --orange: #fe8019;
+  --glass: rgba(40, 40, 40, 0.88);
+  --glass-border: rgba(250, 189, 47, 0.1);
+}

@@ -52,6 +52,7 @@ export default defineConfig(({ mode }) => {
       emptyOutDir: true,
       target: 'esnext',
       minify: false,
+      assetsDir: '',
     },
     server: {
       port: 9183,

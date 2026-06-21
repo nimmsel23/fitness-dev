@@ -1,0 +1,18 @@
+[data-theme="zinc"] {
+  --bg: #18181b;
+  --bg2: #09090b;
+  --panel: #27272a;
+  --card: #3f3f46;
+  --card-hover: #52525b;
+  --line: #71717a;
+  --ink: #f4f4f5;
+  --muted: #a1a1aa;
+  --dim: #71717a;
+  --accent: #a1a1aa;
+  --accent-glow: rgba(161, 161, 170, 0.1);
+  --green: #22c55e;
+  --red: #ef4444;
+  --orange: #f97316;
+  --glass: rgba(24, 24, 27, 0.9);
+  --glass-border: rgba(161, 161, 170, 0.08);
+}

@@ -1,0 +1,18 @@
+[data-theme="honey"] {
+  --bg: #fdfaf0;
+  --bg2: #f4f1e6;
+  --panel: #ece8da;
+  --card: #fdfaf0;
+  --card-hover: #f4f0e2;
+  --line: #d8d2c0;
+  --ink: #3d3828;
+  --muted: #7a7260;
+  --dim: #a89e88;
+  --accent: #c87800;
+  --accent-glow: rgba(200, 120, 0, 0.1);
+  --green: #5a8a40;
+  --red: #aa3030;
+  --orange: #c87800;
+  --glass: rgba(253, 250, 240, 0.85);
+  --glass-border: rgba(200, 120, 0, 0.08);
+}

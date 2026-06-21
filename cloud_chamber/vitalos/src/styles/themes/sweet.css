@@ -1,0 +1,18 @@
+[data-theme="sweet"] {
+  --bg: #101013;
+  --bg2: #09090b;
+  --panel: #1c1c21;
+  --card: #31363d;
+  --card-hover: #404552;
+  --line: #3a3f4b;
+  --ink: #d3d6e5;
+  --muted: #666a73;
+  --dim: #4a4e5a;
+  --accent: #ff4081;
+  --accent-glow: rgba(255, 64, 129, 0.2);
+  --green: #71f79f;
+  --red: #ed254e;
+  --orange: #ff6a00;
+  --glass: rgba(16, 16, 19, 0.9);
+  --glass-border: rgba(255, 64, 129, 0.12);
+}

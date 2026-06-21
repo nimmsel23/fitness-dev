@@ -1,0 +1,18 @@
+[data-theme="nordic-darker"] {
+  --bg: #1d212a;
+  --bg2: #161920;
+  --panel: #2e3440;
+  --card: #3b4252;
+  --card-hover: #434c5e;
+  --line: #4c566a;
+  --ink: #d8dee9;
+  --muted: #8191ab;
+  --dim: #4c566a;
+  --accent: #88c0d0;
+  --accent-glow: rgba(136, 192, 208, 0.12);
+  --green: #a3be8c;
+  --red: #bf616a;
+  --orange: #d08770;
+  --glass: rgba(29, 33, 42, 0.88);
+  --glass-border: rgba(136, 192, 208, 0.08);
+}

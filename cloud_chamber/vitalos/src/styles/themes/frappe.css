@@ -1,0 +1,18 @@
+[data-theme="frappe"] {
+  --bg: #303446;
+  --bg2: #232634;
+  --panel: #292c3c;
+  --card: #414559;
+  --card-hover: #51576d;
+  --line: #626880;
+  --ink: #c6d0f5;
+  --muted: #a5adce;
+  --dim: #737994;
+  --accent: #81c8be;
+  --accent-glow: rgba(129, 200, 190, 0.12);
+  --green: #a6d189;
+  --red: #e78284;
+  --orange: #ef9f76;
+  --glass: rgba(48, 52, 70, 0.85);
+  --glass-border: rgba(129, 200, 190, 0.1);
+}
