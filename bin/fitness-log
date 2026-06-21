@@ -501,7 +501,51 @@ def cmd_sync_status() -> None:
 
     # tip
     print(f"\n  {c('dim','→ fitness sync  zum manuellen Pull/Push')}")
+
+    # ── Klienten-Registry ─────────────────────────────────────────────────────
+    klienten_dir = Path.home() / "Klienten"
+    users_root   = Path.home() / ".aos" / "users"
+    skip = {"default","kb","_registry","_entries","_template","_templates","buchhaltung"}
+    clients = []
+    if klienten_dir.exists():
+        for slug_dir in sorted(klienten_dir.iterdir()):
+            if not slug_dir.is_dir() or slug_dir.name in skip or slug_dir.name.startswith("_"):
+                continue
+            cfg = slug_dir / "client.json"
+            if not cfg.exists():
+                continue
+            try:
+                data = json.loads(cfg.read_text())
+                uid  = data.get("firebase_uid") or data.get("uid")
+                name = data.get("name") or " ".join(
+                    p.capitalize() for p in data.get("id", slug_dir.name).replace("-"," ").split())
+                if uid:
+                    clients.append((name, uid, slug_dir.name))
+            except Exception:
+                pass
+
+    if clients:
+        print(f"\n  {c('bold','Klienten-Registry')}  {c('muted', str(klienten_dir))}")
+        for name, uid, slug in clients:
+            client_sdir = users_root / uid / "fitness" / "sessions"
+            if client_sdir.exists():
+                n_files = len(list(client_sdir.glob("*.json")))
+                dates   = sorted(
+                    (f.stem[:10] for f in client_sdir.glob("*.json") if len(f.stem)>=10),
+                    reverse=True)
+                newest  = dates[0] if dates else "—"
+                try:
+                    age   = (date.today() - date.fromisoformat(newest)).days
+                    age_c = "green" if age < 3 else "yellow" if age < 7 else "red"
+                    age_s = c(age_c, newest) + c("dim", f" ({age}d)")
+                except Exception:
+                    age_s = c("muted", newest)
+                sync_s = c("green", f"✓ {n_files} Sessions") + "  " + age_s
+            else:
+                sync_s = c("yellow", "○ kein lokaler Sync")
+            print(f"  {c('white', f'{name:<18}')} {c('muted', uid[:12]+'…')}  {sync_s}")
     print()
+
 
 if __name__ == "__main__":
     app()
