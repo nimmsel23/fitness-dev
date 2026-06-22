@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
-import { Star, CalendarDays, Activity } from "lucide-react";
-import { 
-  getHabits, recordHabit, unrecordHabit, addHabit, deleteHabit, 
-  updateHabit, getHabitRecordsForDate, getHabitJournal, saveHabitJournal, getHabitJournalHistory 
+import { Star, CalendarDays, Activity, PenLine } from "lucide-react";
+import {
+  getHabits, recordHabit, unrecordHabit, addHabit, deleteHabit,
+  updateHabit, getHabitRecordsForDate, getHabitJournal, saveHabitJournal, getHabitJournalHistory
 } from "@db";
 import { localToday } from "@utils";
+import { ICON_COMPONENTS_MAP } from "./utils";
 
 import HabitForm from "./HabitForm";
 import HabitItem from "./HabitItem";
@@ -28,9 +29,21 @@ export default function Habits() {
   const [journalHistory, setJournalHistory] = useState([]);
   const [isJournalSaving, setIsJournalSaving] = useState(false);
   const [journalModalOpen, setJournalModalOpen] = useState(false);
+  const [memoirWrittenIds, setMemoirWrittenIds] = useState(new Set());
 
   const rollingDates = useMemo(() => getRollingDays(28), []);
   const recentDates = useMemo(() => getRollingDays(10), []);
+
+  const outstandingMemoirs = useMemo(
+    () => habits.filter(h => h.isDoneForSelectedDate && !memoirWrittenIds.has(h.uuid)),
+    [habits, memoirWrittenIds]
+  );
+
+  function handleOpenMemoir(habit) {
+    setSelectedHabitId(habit.uuid);
+    setSelectedSidebarDate(selectedDate);
+    setJournalModalOpen(true);
+  }
 
   async function load() {
     setLoading(true);
@@ -45,6 +58,12 @@ export default function Habits() {
           isDoneForSelectedDate: completedHabitIdsForSelectedDate.includes(h.uuid)
         }));
       setHabits(habitsWithStatus);
+
+      const doneHabits = habitsWithStatus.filter(h => h.isDoneForSelectedDate);
+      const journalChecks = await Promise.all(
+        doneHabits.map(h => getHabitJournal(h.uuid, selectedDate).then(j => ({ uuid: h.uuid, has: !!(j?.text?.trim()) })))
+      );
+      setMemoirWrittenIds(new Set(journalChecks.filter(x => x.has).map(x => x.uuid)));
     } finally {
       setLoading(false);
     }
@@ -104,6 +123,9 @@ export default function Habits() {
     try {
       await saveHabitJournal(selectedHabitId, selectedSidebarDate, textToSave);
       getHabitJournalHistory(selectedHabitId).then(setJournalHistory);
+      if (textToSave.trim()) {
+        setMemoirWrittenIds(prev => new Set([...prev, selectedHabitId]));
+      }
     } finally {
       setIsJournalSaving(false);
     }
@@ -217,15 +239,40 @@ export default function Habits() {
         </div>
       </div>
 
-      <div className="space-y-6">
-          <HabitForm 
-            newHabit={newHabit} 
-            setNewHabit={setNewHabit} 
-            selectedIcon={selectedIcon} 
-            setSelectedIcon={setSelectedIcon} 
-            onAdd={handleAdd} 
-            saving={saving} 
-          />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          {outstandingMemoirs.length > 0 && (
+            <div className="p-5 rounded-[24px] border border-[var(--accent)]/25 bg-[var(--accent)]/5 space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--accent)]">
+                  Offene Memoirs ({outstandingMemoirs.length})
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {outstandingMemoirs.map(h => {
+                  const Icon = ICON_COMPONENTS_MAP[h.icon] || ICON_COMPONENTS_MAP['Activity'];
+                  return (
+                    <button
+                      key={h.uuid}
+                      onClick={() => handleOpenMemoir(h)}
+                      className="flex items-center justify-between p-3 rounded-2xl bg-[var(--card)] border border-[var(--line)] hover:border-[var(--accent)] hover:shadow-lg transition-all text-left group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-7 h-7 rounded-xl bg-[var(--accent)]/10 flex items-center justify-center text-[var(--accent)]">
+                          <Icon size={14} />
+                        </div>
+                        <span className="text-xs font-black text-[var(--ink)]">{h.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-[var(--accent)] bg-[var(--accent)]/10 px-2 py-1 rounded-lg group-hover:bg-[var(--accent)] group-hover:text-black transition-all">
+                        <PenLine size={10} /> Schreiben
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-3">
             <div className="label-caps px-1 text-[var(--dim)]">Aktive Habits</div>
@@ -236,7 +283,7 @@ export default function Habits() {
               </div>
             )}
             {habits.map(h => (
-              <HabitItem 
+              <HabitItem
                 key={h.uuid}
                 h={h}
                 isSelected={selectedHabitId === h.uuid}
@@ -253,12 +300,23 @@ export default function Habits() {
               />
             ))}
           </div>
-      </div>
+        </div>
 
-      <HabitStats 
-        todayCompletionPercentage={todayCompletionPercentage} 
-        getMotivationalMessage={getMotivationalMessage} 
-      />
+        <div className="space-y-6">
+          <HabitForm
+            newHabit={newHabit}
+            setNewHabit={setNewHabit}
+            selectedIcon={selectedIcon}
+            setSelectedIcon={setSelectedIcon}
+            onAdd={handleAdd}
+            saving={saving}
+          />
+          <HabitStats
+            todayCompletionPercentage={todayCompletionPercentage}
+            getMotivationalMessage={getMotivationalMessage}
+          />
+        </div>
+      </div>
 
       <HabitSidebar
         selectedHabitId={selectedHabitId}
