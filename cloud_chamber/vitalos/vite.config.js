@@ -9,6 +9,7 @@ const CC_ROOT      = resolve(__dirname, '..')
 const VITALOS_SRC  = resolve(__dirname, 'src')
 const FED_DIR      = resolve(__dirname, '../federation')
 const JOURNAL_ROOT = resolve(__dirname, '../journal-vos')
+const LEARN_ROOT   = resolve(__dirname, '../learn-vos')
 const FUEL_ROOT    = resolve('/home/alpha/fuel-dev')
 const BACKEND      = 'http://localhost:9100'
 
@@ -34,6 +35,8 @@ export default defineConfig(({ mode }) => {
     'learn/LearnApp':     resolve(VITALOS_SRC, 'apps/LearnApp.jsx'),
     'fuel/FuelApp':       resolve(FED_DIR, 'FuelApp.jsx'),
     '@fuel':              resolve(FUEL_ROOT, 'src/client'),
+    '@journal-vos':       resolve(JOURNAL_ROOT, 'src'),
+    '@learn-vos':         resolve(LEARN_ROOT, 'src'),
   }
 
   const federationPlugin = []
