@@ -10,7 +10,7 @@ import UserProfile from './components/common/UserProfile.jsx'
 import ErrorBoundary from './components/common/ErrorBoundary.jsx'
 
 const FitnessApp  = lazy(() => import('./apps/FitnessApp.jsx'))
-const FuelApp     = lazy(() => import('fuel/FuelApp'))
+const FuelWrapper = lazy(() => import('./apps/FuelWrapper.jsx'))
 const JournalView = lazy(() => import('@journal-vos/views/Journal/index.jsx'))
 const HabitsView  = lazy(() => import('@journal-vos/views/Habits/index.jsx'))
 const LearnView   = lazy(() => import('./views/Learn/index.jsx'))
@@ -196,7 +196,7 @@ export default function App() {
           <main className="relative pb-28 sm:pb-10 lg:pb-0 min-h-[100dvh]">
             <Suspense fallback={<Loader label={NAV_ITEMS.find(i => i.id === tab)?.label || tab} />}>
               {tab === 'fitness'  && <FitnessApp  {...fitnessProps} />}
-              {tab === 'fuel'     && <FuelApp />}
+              {tab === 'fuel'     && <FuelWrapper user={user} />}
               {tab === 'journal'  && <div className="p-4 sm:p-8 lg:p-12 max-w-[1600px] mx-auto"><JournalView /></div>}
               {tab === 'habits'   && <div className="p-4 sm:p-8 lg:p-12 max-w-[1600px] mx-auto"><HabitsView /></div>}
               {tab === 'learn'    && <div className="p-4 sm:p-8 lg:p-12 max-w-[1600px] mx-auto"><LearnView /></div>}
