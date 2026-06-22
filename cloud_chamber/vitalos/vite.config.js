@@ -47,7 +47,7 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), journalDbPlugin(isFirebase), ...federationPlugin],
     resolve: {
       alias: aliases,
-      dedupe: ['react', 'react-dom'],
+      dedupe: ['react', 'react-dom', '@tanstack/react-query'],
     },
     css: {
       postcss: {
