@@ -202,7 +202,7 @@ export default function Journal() {
   };
 
   return (
-    <div className="pb-32 max-w-3xl mx-auto px-2">
+    <div className="pb-32 px-2 sm:px-4 lg:px-6">
       <JournalHeader
         date={date}
         setDate={setDate}
