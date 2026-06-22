@@ -4,17 +4,17 @@
 Wochenrückblick-Tab der Fitness-App: zeigt Report (Sessions, Muskelbelastung, Insights, Top-Übungen) für eine wählbare Woche, mit Export nach Obsidian.
 
 ## Komponenten
-| Datei | Zweck | Zeilen |
-|-------|-------|--------|
-| `index.jsx` | Container: State, Datenfetch, Layout-Grid, Export-Handler | 95 |
-| `ReviewHeader.jsx` | Titel, Wochen-Input (Freitext + "Aktuell"-Button), Export-Button, Toast | 48 |
-| `ReviewOverview.jsx` | Einzel-Kachel: Session-Count (nur dieser eine Wert) | 18 |
-| `ReviewInsights.jsx` | Recommendations-Liste + Coverage-Gap-Badges + Erfolgs-Banner | 49 |
-| `ReviewInsights.jsx.bak` | Identisch mit aktiver Version bis auf fehlendes `Trophy`-Import (Bug in Bak) | 49 |
-| `ReviewMuscleImpact.jsx` | Grid: Muskelregionen mit relativem Score und Balken-Visualisierung | 39 |
-| `ReviewSessionList.jsx` | Sessions chronologisch (reversed), klickbar → onNavigate, Recovery-Badges | 62 |
-| `ReviewTopExercises.jsx` | Top-6-Übungen, Klick → onInspectExercise (mit Prop-Normalisierung) | 45 |
-| `utils.js` | `formatRecovery(hrs)` — hrs zu `FRESH`/`2d`/`48h` | 5 |
+| Datei | Zweck |
+|-------|-------|
+| `index.jsx` | Container: State, View-Modi, Datenfetch, Export-Handler |
+| `ReviewHeader.jsx` | Titel, Wochen-Input (Freitext + "Aktuell"-Button), Export-Button, Toast |
+| `ReviewOverview.jsx` | Session-Count-Kachel |
+| `ReviewInsights.jsx` | Recommendations-Liste + Coverage-Gap-Badges + Erfolgs-Banner |
+| `ReviewMuscleImpact.jsx` | Muskelregionen mit relativem Score und Balken-Visualisierung |
+| `ReviewSessionList.jsx` | Sessions chronologisch (reversed), klickbar → onNavigate, Recovery-Badges |
+| `ReviewTopExercises.jsx` | Top-6-Übungen, Klick → onInspectExercise (mit Prop-Normalisierung) |
+| `ReviewAnatomyLayer.jsx` | Trainingswoche als angewandte Anatomie — Top-Übungen mit aufklappbaren Teaching-Karten |
+| `utils.js` | `formatRecovery(hrs)` — hrs zu `FRESH`/`2d`/`48h` |
 
 ## Datenfluss
 
@@ -27,6 +27,7 @@ Wochenrückblick-Tab der Fitness-App: zeigt Report (Sessions, Muskelbelastung, I
 - `data` (null | object) — komplettes Report-Objekt vom Server
 - `loading` (bool) — Spinner-Toggle
 - `toast` (string) — kurze Statusmeldung nach Export (Auto-Reset nach 2600ms)
+- `viewMode` (`'report'` | `'muscles'` | `'anatomy'`) — Mode-Switcher oben
 
 **Derived state (inline in index.jsx, keine eigenen State-Variablen):**
 - `regionEntries` — `Object.entries(data?.body_region_scores || {}).sort((a,b) => b[1] - a[1])` — sortierte Muskelscores, als Prop an ReviewMuscleImpact
@@ -67,11 +68,11 @@ index.jsx
 - **`missingRegions.length > 0` Branch**: zeigt Coverage-Gap-Badges; empty = Erfolgs-Banner (grün)
 - **Empty-States**: jede Subkomponente hat eigenen leeren Zustand (dashed border, uppercase text)
 - **Loading-State**: Spinner + Text, zentral im Container — keine Subkomponente ist für Loading zuständig
-- **`taxonomy` Prop in ReviewInsights + ReviewMuscleImpact**: wird übergeben aber nie von index.jsx geliefert — Default `null` muss erhalten bleiben, `translateMuscle` muss null-tolerant sein
+- **`taxonomy` Prop**: wird von index.jsx an ReviewInsights + ReviewMuscleImpact weitergegeben (taxonomy={taxonomy} — war früher fehlend, ist jetzt korrekt)
 
 ## Auffälligkeiten
 
-- **`taxonomy` Prop fehlt im Parent**: ReviewInsights und ReviewMuscleImpact akzeptieren `taxonomy = null`, aber index.jsx übergibt sie nie — `translateMuscle(region, null, muscleLanguage)` muss null als no-op behandeln; falls das mal geändert wird, bricht silent.
+- **View-Modi**: `'muscles'` bettet die Muscles-View direkt ein (`<Muscles gender={gender} ... />`), `'anatomy'` rendert `ReviewAnatomyLayer` mit `data.top_exercises`. Nur `'report'` macht den eigentlichen Weekly-Report-Fetch sinnvoll.
 - **`ReviewInsights.jsx.bak` im Repo**: Identische Datei mit einem Bug (fehlendes `Trophy`-Import aus `lucide-react` in der .bak). `.bak` sollte nicht im src-Ordner liegen.
 - **`maxScore` wird in jedem Map-Iteration neu berechnet** (ReviewMuscleImpact, Zeile 14): `Math.max(...regionEntries.map(e => e[1]), 5)` steht innerhalb des `regionEntries.map()`-Callbacks — O(n²). Kein Bug, aber unnötig.
 - **`ARCHITECTURE.md` ist veraltet**: utils.js laut ARCHITECTURE.md enthält `formatVolume` — tatsächlich enthält es `formatRecovery`. Kein Code-Bug, aber falsche Doku.

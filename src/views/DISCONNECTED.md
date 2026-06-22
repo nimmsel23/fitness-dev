@@ -5,12 +5,17 @@ Jeder Eintrag hat einen klaren Reconnect-Pfad.
 
 ---
 
-## 1. Inbox-View — Benachrichtigungs- und Kommunikationsfeature ✅ verbunden
+## 1. Inbox-View — Konzeptionell falsch implementiert ❌
 
-**Datei:** `src/views/Inbox/`
-**Konzept:** Benachrichtigungskanal pro User. In Firebase: pro-User-Subcollection `fitness/{uid}/inbox`, privat. Potentiell: User-Coach-Kommunikation, KI-Enrichment-Freigaben, System-Nachrichten.
-**Status:** Erreichbar via `#inbox`. Coach-Inbox läuft via `getGlobalInbox()` (collectionGroup), nur lokal sichtbar.
-**Offen:** Kein Nav-Einstiegspunkt für User (kein Tab, kein Button). Ungelesen-Badge fehlt.
+**Datei:** `src/views/Inbox/`, `src/views/Coach/`
+**Geplanter Scope:** Coach-Klient-System — Coach verwaltet Übungskatalog, Klient trainiert. Exercise-Freigabe ist Aufgabe des Coaches, nicht des Klienten.
+**Ist-Zustand:** Implementierung dreht das um — ein Klient soll Exercises "approven". Das ist falsch. Außerdem existiert keine pro-User-Firestore-Collection (`fitness/{uid}/inbox`) — die Datenstruktur für ein echtes Coach-Klient-System fehlt komplett.
+**Was fehlt für eine korrekte Implementierung:**
+- Firestore: `fitness/{uid}/` pro Klient-Account
+- Coach sieht alle Klienten-Daten via collectionGroup
+- Klient sieht nur eigene Daten
+- Exercise-Enrichment-Freigabe liegt beim Coach, nicht beim Klient
+**Reconnect:** Komplette Neukonzeption der Inbox im Coach-Klient-Kontext bevor irgendwas daran gebaut wird.
 
 ---
 

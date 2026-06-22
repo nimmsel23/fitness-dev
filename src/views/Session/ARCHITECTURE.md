@@ -1,22 +1,44 @@
-# View Architecture: Session (Logbuch) - V2 Modular
+# View Architecture: Session
 
-## Purpose
-The core workout logging interface. Optimized for both rapid entry (Gym) and deep analysis (Post-Workout/Coach).
+Workout-Journal für Kraft- und Ausdauertraining. Zwei Session-Modi, Multi-Session pro Tag, Autosave, lokale Intelligenz (prevMap, Coverage-Gaps, Plan-Hint).
 
-## Components
-- `index.jsx`: State owner for the session. Handles logic for "Super-Version" intelligence (Obsidian, Gaps, Plan-Hints).
-- `ExerciseSection.jsx`: Orchestrates the list of exercises and the `ExerciseSearch/QuickInput`.
-- `ExerciseItem.jsx`: Multi-set support (`setsArray`). Displays "Local Intelligence" (Previous performance + Muscle Tags).
-- `SessionSidebar.jsx`: Meta-data (Location, Duration) and specialized Exports (Obsidian Sync).
-- `ActivitySection.jsx`: Logging for non-strength activities (Cardio/Wandern).
-- `DateHeader.jsx`: Navigation between training days.
+## Komponenten
 
-## Intelligence Features (Local Super-Version)
-- **Obsidian Sync**: Direct export to local markdown vault.
-- **BodyMap**: Anterior/Posterior visualization of current session's impact.
-- **PrevMap Comparison**: Shows the exact weight/reps of the *last* time this exercise was performed.
-- **Gap Analysis**: Real-time feedback on muscle group coverage.
+- **`index.jsx`**: State-Owner — Session-Modi, Multi-Session, Autosave, alle Handler.
+- **`DateHeader.jsx`**: 7-Tage-Slider, Save-Button, Sidebar- und Settings-Trigger.
+- **`ExerciseSection.jsx`**: Übungsliste + QuickInput + ExerciseSearchOverlay.
+- **`ExerciseItem.jsx`**: Einzelübung — `setsArray` (multi-set), prevMap-Stats, Trend-Badge, Recovery.
+- **`ActivitySection.jsx`**: Cardio-Logger — im `cardio`-Mode die gesamte Session.
+- **`ActivityAddon.jsx`**: Optionaler Cardio-Anhang an eine Strength-Session.
+- **`SidebarSheet.jsx`**: Bottom-Sheet mit SessionSidebar (Block, Ort, Dauer, Effort, Notizen, Exports).
+- **`MuscleMapModal.jsx`**: Anterior/Posterior BodyMap aller Session-Exercises + Anatomie-Detail.
+- **`SourceSettingsModal.jsx`**: Übungsquellen-Toggle (wger/yuhonas/coach) via localStorage.
 
-## Data Format
-- Uses `setsArray: [{reps, weight}, ...]` for modern multi-set tracking.
-- Trend analysis based on maximum weight lifted.
+## Session-Modi
+
+- **`strength`**: Krafttraining — ExerciseSection + optionaler ActivityAddon-Anhang.
+- **`cardio`**: Ausdauer — nur ActivitySection, keine Exercises, keine Gap-Hints.
+
+## Multi-Session pro Tag
+
+Pro Tag können mehrere Sessions existieren. `id: null` = Hauptsession, `id: "<timestamp>"` = Suffix-Session. Switcher-Bar zeigt alle Sessions des Tages. "+ Neues Workout" legt eine neue Suffix-Session an.
+
+## Autosave
+
+Jede Änderung triggert `scheduleAutoSave()` — debounced 2500ms. `saveRef.current` hält immer die aktuelle `save`-Closure (stale-closure Workaround für setTimeout).
+
+## Datenformat
+
+```json
+{
+  "date": "2026-06-22",
+  "sessionMode": "strength",
+  "block": "Push",
+  "exercises": [{ "id": "...", "name": "...", "setsArray": [{"reps": "8", "weight": "80"}], "primaryMuscles": [...] }],
+  "effort": 8,
+  "location": "",
+  "duration": "",
+  "notes": "",
+  "activity": { "type": "hiit", "duration": "", "notes": "" }
+}
+```

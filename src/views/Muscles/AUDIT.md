@@ -32,7 +32,7 @@ Muskelabdeckungs- und Superkompensations-Analyse mit interaktiver Body-Map — w
   - `MuscleAnalysis` bekommt `hitAnalysis`, `muscleLanguage`, `taxonomy`
   - `MuscleInsights` bekommt `hitAnalysis`
   - `AnatomyDetailModal` bekommt `muscleId`, `muscleData`, `loading`, `onClose`, `muscleLanguage`, `taxonomy`
-- Props die `Muscles` von außen bekommt: `gender`, `muscleLanguage`, `taxonomy`
+- Props die `Muscles` von außen bekommt: `gender`, `muscleLanguage`, `taxonomy`, `recentDays` (initialisiert `days`-State + wird via useEffect synchronisiert)
 
 ## Inline-Code (Extraktionskandidaten)
 - `getMuscleGroup()` (Zeilen 19–58) — große Mapping-Funktion direkt in `index.jsx`. Sollte in `src/lib/muscleUtils.js` oder `src/lib/translations.js` ausgelagert werden; wird aktuell nur hier genutzt.
@@ -42,9 +42,9 @@ Muskelabdeckungs- und Superkompensations-Analyse mit interaktiver Body-Map — w
 
 ## Kernfeatures (müssen nach jedem Refactoring erhalten bleiben)
 - Zeitfenster-Filter: `days`-State schneidet Sessions nach Datum — `recentExercises` enthält nur Übungen innerhalb des Fensters, aber `hitAnalysis` verwendet alle 60 Sessions für `lastSeen`-Berechnung (bewusste Asymmetrie)
-- `done: true` Filter: nur abgehakte Übungen fließen in Analyse ein
+- Kein `done: true`-Filter: alle Exercises aus Sessions fließen in die Analyse ein (inkl. nicht abgehakter)
 - KB-Enrichment: Muskelzuordnung kommt primär aus `kbMap` (custom YAML), nicht aus Session-Daten — `kbEx?.primary_muscles || ex.primaryMuscles` Fallback-Kette
-- Cardio-Aktivitäts-Handling: `s.activity`-Branch (Zeilen 121–131) — Cardio-Sessions beeinflussen `lastSeen` für Beinmuskeln, aber nie als `strength` klassifiziert
+- Cardio-Aktivitäts-Handling: `s.activity`-Branch — Muskelzuordnung nach Activity-Typ: `running`/`cycling` → quads/calves/hamstrings/glutes, `swimming` → back/shoulders/arms/core/quads, sonst → quads/calves. Nie als `strength` klassifiziert
 - Strength-overrides-Cardio-Logik: ein `strength`-Eintrag unter 72h überschreibt `cardio` nicht (Zeile 127–129)
 - Zwei Map-Modi togglebar: `showDetailed` → `MuscleDetailedMap` (granulare Anatomie) vs `MuscleBodyMap` (Heatmap nach HIT-Score)
 - `AnatomyDetailModal` per Muskel-Klick in beiden Map-Modi öffenbar (gemeinsamer `setSelectedMuscleId`-Callback)
@@ -52,7 +52,7 @@ Muskelabdeckungs- und Superkompensations-Analyse mit interaktiver Body-Map — w
 - HIT-Kategorien nach Stunden-Schwellen: heavy (<72h), recovering (72–96h), supercomp (96–168h), ready (>168h oder cardio oder nie)
 
 ## Auffälligkeiten
-- `hitMode` wird in `ARCHITECTURE.md` erwähnt ("HIT vs Volume mode") — existiert nicht im aktuellen Code. ARCHITECTURE.md beschreibt einen älteren Stand.
+- `hitMode` existiert nicht im Code — war in alter ARCHITECTURE.md, wurde entfernt.
 - `days`-State beeinflusst `recentExercises` (Coverage-Visualisierung), hat aber keine Auswirkung auf `hitAnalysis` (benutzt immer alle 60 Sessions für `lastSeen`). Das ist vermutlich Absicht, aber verwirrend — ein User der auf "7d" wechselt erwartet womöglich auch eine frischere Recovory-Analyse.
 - `getMuscleGroup()` hat einen nicht vollständig abgedeckten Fall: Numeric slugs im Range 600–602 returnen `"glutes"`, 603 `"quads"`, 604 `"hamstrings"`, alles andere `"legs"` — `"legs"` ist aber kein gültiger Eintrag in `MUSCLE_GROUPS`, wird daher ignoriert.
 - `scores[m] = { score: 1 }` etc. — Scores sind immer fixe Integers (1–4), nie feiner aufgelöst. Das `BodyMap`-Rendering könnte mehr Granularität nutzen.

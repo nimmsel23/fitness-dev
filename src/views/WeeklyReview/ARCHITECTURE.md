@@ -11,7 +11,7 @@ This folder contains the modularized components for the Weekly Performance Revie
 - **`ReviewMuscleImpact.jsx`**: Visualizes relative muscle load using bar charts.
 - **`ReviewSessionList.jsx`**: A chronological list of sessions with date cards and recovery indicators.
 - **`ReviewTopExercises.jsx`**: Displays the most frequent exercises of the week with deep-dive inspection (Coaching Notes, Errors).
-- **`utils.js`**: Helper functions like `formatVolume`.
+- **`utils.js`**: Helper functions like `formatRecovery`.
 
 ## Intelligence Features (Local Super-Version)
 - **Obsidian Sync**: Direct export of the weekly report to the local markdown vault.

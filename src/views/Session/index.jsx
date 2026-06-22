@@ -552,17 +552,6 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
             </div>
           )}
 
-          {/* Gap hints */}
-          {gaps.length > 0 && (
-            <div className="card p-6 border-fit-red/20 bg-fit-red/5">
-              <div className="text-[10px] font-black uppercase tracking-widest text-fit-red mb-4">Coverage-Lücken</div>
-              <div className="flex flex-wrap gap-2">
-                {gaps.map(g => (
-                  <span key={g.name} className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border bg-fit-red/10 text-fit-red border-fit-red/20">{g.name}</span>
-                ))}
-              </div>
-            </div>
-          )}
         </main>
       </div>
 

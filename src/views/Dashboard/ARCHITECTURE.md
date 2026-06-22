@@ -1,30 +1,33 @@
 # View Architecture: Dashboard (Heute)
 
-## Purpose
-The primary "at-a-glance" entry point for the user. It provides a rolling overview of recent activity, muscle readiness/recovery, and habit streaks. In "Hub Mode", it serves as the central navigation menu for the mobile application.
+Zentraler Einstiegspunkt: heutige Session, Habit-Status, Aktivitätsheatmap, Muskelstatus, Coverage-Gaps und Gewichtsverlauf — mit drag-and-drop Widget-Layout.
 
-## Components
-- `index.jsx`: Orchestrates the layout (responsive grid) and data fetching for the current day. Includes the `HOME_NAV` grid for Hub-style navigation.
-- `DashboardHeader.jsx`: Greeting and quick stats.
-- `DashboardWidget.jsx`: Wrapper for widgets providing consistent glassmorphism and interactivity.
-- `MuscleBody.jsx`: Anterior/Posterior visualization (react-body-highlighter).
-- `ActivityHeatmap.jsx`: Rolling 10-day view of training frequency.
-- `SessionStatus.jsx`: Quick look at the current/latest session.
-- `WeightChart.jsx`: 30-day weight trend visualization.
+## Komponenten
 
-## Navigation Modes
-- **Tabs Mode (Default)**: Dashboard is the first tab in a standard bottom navbar.
-- **Hub Mode (navMode: 'home')**: The bottom navbar is removed on mobile. The Dashboard features a prominent 3-column grid of "Nav Cards" (premium glassmorphism tiles) that act as entry points to other views.
+- **`index.jsx`**: Orchestrierung — State, Datenfetching, Widget-Grid, Drag&Drop, Layout-Persistenz in localStorage.
+- **`DashboardHeader.jsx`**: Header mit Export-Button, Edit/Fertig/Reset-Buttons.
+- **`DashboardWidget.jsx`**: Wrapper für alle Widgets — Click-to-navigate, Doppelklick-Modal (Vollbild), Long-Press (Mobile), Drag-Handle im Edit-Mode.
+- **`SessionStatus.jsx`**: Plan-Vorschlag, heutige Session-Stats, Verlauf der letzten 3 Sessions.
+- **`ActivityHeatmap.jsx`**: Rollendes 10-Tage-Raster mit Block-Farben, klickbar auf Past-Sessions.
+- **`MuscleBody.jsx`**: Anterior/Posterior BodyMap (react-body-highlighter), klickbar → AnatomyDetailModal.
+- **`MuscleCoverage.jsx`**: Gap-Liste (Muskeln unter Threshold), mit Icon + Übersetzung.
+- **`WeightChart.jsx`**: Gewichtsverlauf 30 Tage (fetcht selbst).
+- **`HealthWidget.jsx`**: Fitbit-Vitals (Gewicht, Schlaf, Schritte, Ruhepuls) — **vorhanden, aber nicht im Widget-Grid registriert**.
+- **`MuscleStatus.jsx`**: Alter Wrapper (MuscleBody + Coverage kombiniert) — **nicht mehr verwendet**.
 
-## Hub UI Implementation
-- Nav Cards use `HOME_NAV` (filtered `NAV_ITEMS`).
-- Feature animated background glows, high-density icons, and hover-line effects.
-- Optimized for one-handed thumb navigation.
+## Datenfluss
 
-## Data Flow
-- Fetches data from `../../db.js` using `getRecentSessions`, `getHabits`, and `getWeeklyReport`.
-- Uses `getRolling10Days` for the activity visualization.
+- `getSession(today)` → heutige Session
+- `getPlan()` → Plan-Vorschlag in SessionStatus
+- `getDashboardAnalytics(recentDays)` → Coverage-Scores → Gap-Liste
+- `getRecentSessions(n)` → Heatmap + SessionStatus + KB-Enrichment
+- `getAllExercises()` → KB-Map für Muskel-Enrichment der Recent Sessions
 
-## Parity Note
-- Shared 1:1 with PWA via `@src` alias.
-- Consumes local `db.js` (API) or PWA `db.js` (Firestore) transparently.
+## Widget-Layout
+
+Reihenfolge wird in `localStorage` (`fitness-dashboard-layout`) persistiert. Drag&Drop nur im Edit-Mode aktiv. Reset-Button stellt Default-Reihenfolge wieder her.
+
+## Nav-Modi
+
+- **`tabs`** (Standard): Dashboard ist erster Tab in der Bottom-Nav.
+- **`home`**: AppGate als Hub-Startscreen, Dashboard öffnet sich als Sheet von unten. `HOME_NAV` ist im Code vorbereitet (`NAV_ITEMS` ohne `dash`/`settings`), aber das NavCards-Grid ist nicht implementiert.

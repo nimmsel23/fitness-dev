@@ -38,7 +38,7 @@ Konfigurationsansicht für Appearance, Training-Präferenzen, SW-Updates, Firest
 - `AppearanceSection` — bekommt alles Appearance-relevante (navMode, sidebarPinned, layoutScale, themeMode, circLight/Dark, themes/theme)
 - `TrainingSection` — bekommt Training-Prefs + SW-State + SW-Handler-Callbacks
 - `LocalDevSection` — bekommt firestoreStatus, syncing, onSync, health, wger
-- `AdvancedSection` — bekommt swipeEnabled, dashboardHighlighter, firestoreStatus (Status-only, kein Sync-Button)
+- `AdvancedSection` — bekommt swipeEnabled, dashboardHighlighter (kein firestoreStatus)
 
 ## Inline-Code (Extraktionskandidaten)
 
@@ -61,13 +61,12 @@ Konfigurationsansicht für Appearance, Training-Präferenzen, SW-Updates, Firest
 
 ## Auffälligkeiten
 
-- **`firestoreStatus` doppelt sichtbar**: In `LocalDevSection` (Sync + Status) UND in `AdvancedSection` (nur Status-Badge) — wenn `isLocalMode()` true und `showAdvanced` true, sieht der User den Firestore-Status zweimal auf derselben Seite.
 - **wger-Fetch direkt mit `fetch()`**, nicht über `api`-Helper — hardcoded `http://localhost:8000`. In anderen Builds/Umgebungen potentiell broken, aber durch `isLocalMode()`-Guard abgesichert.
 - **`swChecking` Reset per `setTimeout(..., 600)`** in `handleSwCheck` — kein Cleanup wenn Komponente vorher unmountet. Kleines Memory-Leak-Risiko.
 - **`layoutOpen` und `slidersOpen`** sind lokale Collapsible-States in AppearanceSection/TrainingSection — werden nicht persistiert, resetten bei Tab-Wechsel auf closed. Eventuell absichtlich, aber nach Refactoring leicht vergessen.
 - **`themes` Prop**: wird in `AppearanceSection` als Objekt genutzt (`Object.keys(themes).length`, `themes[id]`), aber nie in `index.jsx` selbst — kommt direkt vom App-Root durch.
 - **`navMode`-Toggle ist `lg:hidden`**: Die Mobile-Navigation-Sektion in AppearanceSection ist CSS-hidden auf Desktop. Ein Desktop-User sieht die Option nicht — kein Bug, aber unklar ob Absicht oder vergessen.
-- **`AdvancedSection` hat keinen Sync-Button** obwohl `firestoreStatus` übergeben wird — die Prop könnte dort komplett entfallen und der Status reicht aus.
+- **`AdvancedSection`** bekommt kein `firestoreStatus` — war früher so, ist behoben.
 - **Keine Error-States für Health/Wger**: `health?.ok` und `wger` zeigen `FAIL` auch wenn noch `null` (loading). Beim initialem Render sieht man kurz `FAIL` bevor die Fetch-Responses kommen — kein Loading-State.
 
 ## Status

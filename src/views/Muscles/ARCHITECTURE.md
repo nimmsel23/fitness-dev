@@ -1,22 +1,31 @@
 # Muscles Module Architecture
 
-This folder contains the modularized components for the Muscle Analysis and Supercompensation view.
+Muskelabdeckungs- und Superkompensations-Analyse mit interaktiver Body-Map. War früher aktiver Nav-Tab — aktuell nicht in der Navigation, aber vollständig implementiert und einbindbar.
 
-## Component Structure
+## Komponenten
 
-- **`index.jsx`**: Main container. Manages core state (days, loading, HIT vs Volume mode, detailed map toggle) and coordinates data fetching and analysis logic.
-- **`MuscleHeader.jsx`**: Displays the view title and provides controls for time range selection and map toggling.
-- **`MuscleBodyMap.jsx`**: Renders the standard front/back body heatmap using `BodyMap`.
-- **`MuscleDetailedMap.jsx`**: Renders the more granular anatomical map using `react-muscle-highlighter`.
-- **`MuscleAnalysis.jsx`**: Provides a textual breakdown of muscle status (HIT) or load intensity (Volume).
-- **`MuscleInsights.jsx`**: Offers smart coaching advice based on the calculated muscle states.
+- **`index.jsx`**: Haupt-Container — State (days, loading, showDetailed), HIT-Analyse-Logik, Datenfetch.
+- **`MuscleHeader.jsx`**: Zeitraum-Toggle (7/14/28d) + Map-Mode-Toggle (Standard / Detailliert).
+- **`MuscleBodyMap.jsx`**: Standard-Heatmap (Anterior + Posterior) via `BodyMap`-Komponente, coloriert nach HIT-Score.
+- **`MuscleDetailedMap.jsx`**: Granulare anatomische Karte via `DetailedMuscleMap`, mit Side- und Gender-Toggle (lokal verwaltet).
+- **`MuscleAnalysis.jsx`**: Textuelle Statusliste — Muskeln kategorisiert nach heavy / recovering / supercomp / ready.
+- **`MuscleInsights.jsx`**: Ein-Satz-Coaching-Hinweis basierend auf HIT-Analyse.
 
-## Data Flow
+## Datenfluss
 
-1.  **Analysis**: The `useEffect` in `index.jsx` performs complex calculations to determine muscle "last seen" times and cumulative volume.
-2.  **Visualization**: The results are passed down to map and analysis components for rendering.
-3.  **Modes**: The UI dynamically adapts based on whether `hitMode` is active.
+- `getSessionHistory(60)` → letzte 60 Sessions (Basis für `lastSeen`-Berechnung)
+- `getAllExercises()` → KB-Map für Muskel-Lookup (custom YAML überschreibt Session-Daten)
+- `getMuscle(selectedMuscleId)` → `AnatomyDetailModal` bei Muskel-Klick
 
-## Future Plans
-- **Anatomy Explorer**: Linking individual muscles to deep anatomical data (Origin, Insertion, Innervation).
-- **Exercise Integration**: Ability to click a muscle and see related exercises from the Knowledge Base.
+## HIT-Kategorien (nach Stunden seit letztem Training)
+
+| Kategorie | Schwelle |
+|-----------|----------|
+| heavy | < 72h |
+| recovering | 72–96h |
+| supercomp | 96–168h |
+| ready | > 168h, Cardio, oder nie |
+
+## Anatomy Explorer (implementiert)
+
+Muskel-Klick in beiden Map-Modi öffnet `AnatomyDetailModal` mit Ursprung, Ansatz, Innervation — via `getMuscle(id)`. Cardio-Aktivitäten beeinflussen `lastSeen` für Beinmuskeln, werden aber nie als `strength` klassifiziert.

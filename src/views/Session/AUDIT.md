@@ -1,55 +1,60 @@
 # Audit: Session
 
 ## Zweck
-Workout-Journal — Session-Logging mit Satz/Wdh/Gewicht, intelligenten Empfehlungen und Anatomie-Visualisierung.
+Workout-Journal — Session-Logging mit Satz/Wdh/Gewicht, Session-Modi, intelligenten Empfehlungen und Anatomie-Visualisierung.
 
 ## Komponenten
-| Datei | Zweck | Zeilen |
-|-------|-------|--------|
-| `index.jsx` | State-Owner, Datenfluss, Orchestrator | 357 |
-| `DateHeader.jsx` | Datum-Navigation (7-Tage-Slider), Save-Button, Sidebar-Trigger | 119 |
-| `ExerciseSection.jsx` | Übungsliste + QuickInput + Search-Trigger | 96 |
-| `ExerciseItem.jsx` | Einzelübung: Sets/Reps, Trend-Badge, prev-Stats, Recovery | 173 |
-| `ActivitySection.jsx` | Optionale Non-Strength-Activity (Wandern, Laufen etc.) | 33 |
-| `SessionSidebar.jsx` | Meta-Daten (Block, Ort, Dauer, Effort, Notizen, Exports) | 151 |
-| `SidebarSheet.jsx` | Bottom-Sheet Wrapper für SessionSidebar | 38 |
-| `MuscleMapModal.jsx` | Anterior/Posterior BodyMap + Anatomie-Detail-Chain | 65 |
-| `SourceSettingsModal.jsx` | Übungsquellen-Toggle (wger/yuhonas/coach) via localStorage | 57 |
-| `SectionHeader.jsx` | Wiederverwendbare Section-Überschrift | — |
-| `utils.js` | `getRollingDays`, `blockColor`, `DAY_LABELS`, `num` | — |
+| Datei | Zweck |
+|-------|-------|
+| `index.jsx` | State-Owner, Datenfluss, Orchestrator |
+| `DateHeader.jsx` | Datum-Navigation (7-Tage-Slider), Save-Button, Sidebar-Trigger |
+| `ExerciseSection.jsx` | Übungsliste + QuickInput + Search-Trigger |
+| `ExerciseItem.jsx` | Einzelübung: setsArray, Trend-Badge, prevMap-Stats, Recovery |
+| `ActivitySection.jsx` | Cardio-Logger (im Cardio-Mode die ganze Session) |
+| `ActivityAddon.jsx` | Optionaler Cardio-Anhang an eine Strength-Session |
+| `SessionSidebar.jsx` | Meta-Daten (Block, Ort, Dauer, Effort, Notizen, Exports) |
+| `SidebarSheet.jsx` | Bottom-Sheet Wrapper für SessionSidebar |
+| `MuscleMapModal.jsx` | Anterior/Posterior BodyMap + Anatomie-Detail-Chain |
+| `SourceSettingsModal.jsx` | Übungsquellen-Toggle (wger/yuhonas/coach) via localStorage |
+| `utils.js` | `getRollingDays`, `blockColor`, `DAY_LABELS` |
+
+## Session-Modi
+
+| Mode | Bedeutung |
+|------|-----------|
+| `strength` | Krafttraining — ExerciseSection + optionaler ActivityAddon |
+| `cardio` | Ausdauer — nur ActivitySection, keine Exercises |
+
+Umschaltbar per Mode-Switcher in der UI. Wird im Session-JSON als `sessionMode` gespeichert. Legacy-Sessions ohne `sessionMode` werden erkannt: hat eine Session `activity` aber keine Exercises → `cardio`.
+
+## Multi-Session pro Tag
+
+Pro Tag können mehrere Workouts existieren (`daySessions`-Array). Sessions haben entweder `id: null` (Hauptsession, Default) oder einen Suffix-String (Timestamp). Switcher-Bar oben zeigt alle Sessions des Tages als Buttons. "+ Neues Workout" legt eine Suffix-Session an.
+
+## Autosave
+
+Jede Änderung an Exercises, Block, Location etc. triggert `scheduleAutoSave()` — debounced 2500ms via `autoSaveTimer`. `saveRef.current` hält immer die aktuelle `save`-Closure (Workaround für stale-closure in setTimeout).
 
 ## Datenfluss
-- `getSession(date)` → Session laden
-- `saveSession(date, data)` → dual-write JSON + SQLite
+- `listSessionsForDate(date)` → alle Sessions des Tages laden
+- `saveSession(date, data, sessionId)` → dual-write JSON + SQLite
 - `getSessionHistory(60)` → prevMap + recentSessions aufbauen
-- `getCoverageGaps(7)` → Gap-Hints
+- `getCoverageGaps(recentDays, coverageThreshold)` → Gap-Hints (nur im Strength-Mode)
 - `getPlanSuggestion(date)` → Plan-Hint
 - `getExercise(id)` → Muskel-Enrichment beim Hinzufügen
-- `getProgressTrend(name)` → Trend-Badge (in ExerciseItem)
-- `getMuscle(id)` → Anatomie-Detail (in MuscleMapModal)
+- `queueForEnrichment(ex)` → fire-and-forget für non-expert Sources
 - `exportFitnessData()` → Obsidian-Sync
-- `queueForEnrichment(ex)` → Enrichment-Queue für non-expert Sources
 
 ## Kernfeatures (müssen nach jedem Refactoring erhalten bleiben)
-- **prevMap** — Previous-Stats (Datum + Sätze/Gewicht) unter jeder Übung
-- **restHours** — Stunden seit letztem gleichen Block-Training
+- **prevMap** — Previous-Stats (Datum + Sätze/Gewicht) unter jeder Übung, aus letzten 60 Sessions
+- **restHours** — Stunden seit letztem Training mit gleichem Block/trainingsart
 - **muscleRecovery** — Recovery-Hours pro Muskel im ExerciseItem
-- **getProgressTrend** — Trend-Badge (↑/↓ %) im ExerciseItem
-- **Gap-Hints** — rote Coverage-Lücken-Badges über Exercises
+- **Gap-Hints** — rote Coverage-Lücken-Badges, nur im Strength-Mode
 - **Plan-Hint** — Zap-Banner mit Vorschlag für heutigen Block
-- **doneExercises** — nur `done: true` Übungen im MuscleMapModal
-- **BodyMap** zeigt ausschließlich abgehakte Übungen (kein Preview)
-
-## Inline-Code (Extraktionskandidaten)
-- `buildSessionCoachSheet` kommt aus `lib/exerciseInsights.js` — passt, bleibt dort
-- `showDetails`-State in ExerciseItem existiert, steuert nur CSS-Shadow — kein UI expandiert davon (halbfertiger Detail-Bereich)
-- `trainingsart`-State in index.jsx gesetzt, nirgendwo gerendert
+- **Multi-Session** — mehrere Workouts pro Tag über daySessions + Switcher-Bar
+- **Autosave** — debounced 2500ms nach jeder Änderung
+- **BodyMap** — zeigt alle Exercises der Session (kein `done: true`-Filter)
 
 ## Auffälligkeiten
-- `showDetails` + `ChevronDown/ChevronUp/Minus/Target/Activity` Imports in ExerciseItem deuten auf eine entfernte Detail-Sektion hin — Nutzung fehlt, nicht die Imports
-- `trainingsart` wird geladen/gesetzt aber nie angezeigt — unklar ob Feature geplant oder vergessen
-- `date`-Prop wurde aus ExerciseItem entfernt (heute) — falls künftig nötig wieder hinzufügen
-- `num` aus utils.js war importiert aber ungenutzt (heute entfernt) — utils.js enthält `num`, Verwendungszweck unklar
-
-## Status
-**okay** — sauber modularisiert nach heutigem Refactoring. Zwei tote State-Variablen (`showDetails`-Logik, `trainingsart`) zur späteren Klärung.
+- `trainingsart` wird geladen/gesetzt/gespeichert aber hat kein UI-Eingabefeld — wird intern für `restHours`-Berechnung genutzt (`s.trainingsart === block`)
+- `coachFeedback` wird geladen und an SidebarSheet übergeben — unklar ob dort editierbar

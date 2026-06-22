@@ -1,29 +1,36 @@
 # Learn Module Architecture (Anatomy Explorer)
 
-This folder contains the modularized components for the exercise library and deep anatomical learning module.
+Interaktiver Lern-Tab: Übungsbibliothek, Anatomie-Teaching, Body-Map-Explorer und Anatomie-Quiz.
 
-## Component Structure
+## Komponenten
 
-- **`index.jsx`**: Main container. Manages core state (selected exercise, search query, loading states for both library and anatomy details).
-- **`ExerciseLibrary.jsx`**: Renders the searchable list of exercises, including "Recently Trained" quick-access buttons and result counting.
-- **`AnatDetail.jsx`**: The focused detail view for an exercise. Displays:
-    - Primary and Secondary muscle groups.
-    - Trainer explanations (client-friendly).
-    - Biomechanical data (Origin, Insertion, Function).
-    - Coaching notes.
-- **`ARCHITECTURE.md`**: This documentation.
+- **`index.jsx`**: Haupt-Container. State-Management, View-Router zwischen den vier Modi, Mobile-Overlay-Logik.
+- **`ExerciseLibrary.jsx`**: Suchfeld + "Zuletzt Trainiert"-Chips + scrollbare Übungsliste (max 80 Einträge).
+- **`AnatDetail.jsx`**: Detail-Panel für gewählte Übung — Muskelgruppen, Coaching Notes, Biomechanik. Desktop = sticky Sidebar, Mobile = Full-Screen-Overlay.
+- **`ExplorerHeader.jsx`**: Tab-Switcher zwischen den vier Modi. Quiz-Button nur sichtbar wenn `hasRecent === true`.
+- **`AnatomyExplorer.jsx`**: Interaktive Body-Map (Anterior/Posterior). Muskel-Klick öffnet `AnatomyDetailModal`.
+- **`BodyMusclesMap.jsx`**: React-Wrapper für `body-muscles`-Library (70+ Regionen, Intensity-Highlighting via `useMuscleMap()` Hook aus `src/lib/muscleMap.js`).
 
-## Data Flow
+## View-Modi
 
-1.  **Selection**: Clicking an exercise in `ExerciseLibrary` updates the `selected` state in `index.jsx`.
-2.  **Detail Fetching**: An effect in `index.jsx` detects the change and fetches deep anatomy data from `getAnatomy(id)`.
-    - **Local**: Calls `/exercise/:id/teaching` from the local Node server.
-    - **PWA**: Calls Firestore.
-3.  **Visualization**: Data is passed to `AnatDetail` for rendering.
+| Modi-ID | Inhalt |
+|---------|--------|
+| `library` | Suchbare Übungsliste + AnatDetail-Sidebar |
+| `explorer` | Interaktive Body-Map (AnatomyExplorer + BodyMusclesMap) |
+| `quiz` | Anatomie-Quiz basierend auf Übungen der letzten Session |
+| `analysis` | Muscles-View eingebettet (granulare Coverage-Analyse) |
 
-## Synergy with Anatomy-KB
-This module is the primary consumer of the biomechanical data managed in the `~/anatomy-kb` repository. Whenever the KB agent enriches a muscle or exercise, it propagates here via Firestore synchronization.
+## QuizMode
 
-## Future Plans
-- **Muscle-to-Exercise Navigation**: Clicking a muscle in the detail view should jump to a filtered list of all exercises targeting that specific muscle.
-- **Anatomical Diagrams**: Integrating SVG diagrams for origin/insertion points.
+Inline-Komponente in `index.jsx`. Läuft auf `recent` (Übungen der letzten Session), nicht auf dem Gesamtkatalog. Lädt `quiz_prompts`/`quiz`-Array via `getAnatomy()` für bis zu 8 Übungen.
+
+## Datenfluss
+
+1. Mount: `getAllExercises()` + `getLatestSession()` parallel
+2. Übung gewählt: `getAnatomy(exercise_id)` → `anatomy`-State → `AnatDetail`
+3. Nicht-Expert-Übung gewählt: `queueForEnrichment(ex)` fire-and-forget
+4. Muskel-Klick in Body-Map: `getMuscle(muscleId)` → `AnatomyDetailModal`
+
+## Synergy mit Anatomy-KB
+
+Primärer Consumer der biomechanischen Daten aus `~/anatomy-kb`. Teaching-YAMLs aus `catalog/kb/anatomy_teaching/` fließen via `/exercise/:id/teaching`-Endpoint in `AnatDetail`.

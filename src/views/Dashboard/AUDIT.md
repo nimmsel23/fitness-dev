@@ -26,12 +26,13 @@ Zentraler "at-a-glance" Einstiegspunkt: zeigt heutige Session, Habit-Status, Akt
 - `getSession(today)` → `todaySession`
 - `getPlan()` → `plan`
 - `getDashboardAnalytics(recentDays)` → `coverage` (body_region_scores → Gap-Liste)
-- `getRecentSessions(max(recentDays*2, 10))` → `recent`
-- `getAllExercises()` → KB-Enrichment der Recent Sessions → `enrichedRecent`
+- `getRecentSessions(max(recentDays*2, 10))` → `recent` + `enrichedRecent`
+- `getAllExercises()` → KB-Enrichment der Recent Sessions
+- `getInbox()` → `inboxCount` (User-Banner)
+- `getGlobalInbox()` → `globalInboxCount` (nur SuperUser/Coach)
 
 ### @db in Unterkomponenten
 - `getMuscle(muscleId)` in `MuscleBody.jsx` (on demand, beim Klick auf Muskel)
-- `getBodyEntries(days)` in `HealthWidget.jsx` (eigenständig, kein Prop)
 - `HabitWidget.jsx` fetcht selbst (kein Prop)
 - `WeightChart.jsx` fetcht selbst (kein Prop)
 
@@ -47,6 +48,8 @@ Zentraler "at-a-glance" Einstiegspunkt: zeigt heutige Session, Habit-Status, Akt
 | `enrichedRecent` | `array` | `Promise.all([sessions, kbExercises])` |
 | `plan` | `object\|null` | `getPlan()` |
 | `coverage` | `array\|null` | `getDashboardAnalytics()` |
+| `inboxCount` | `number` | `getInbox()` |
+| `globalInboxCount` | `number` | `getGlobalInbox()` — nur SuperUser |
 | `exportToast` | `string` | `handleExport()` |
 
 ### Props an Widgets
@@ -85,10 +88,23 @@ Zentraler "at-a-glance" Einstiegspunkt: zeigt heutige Session, Habit-Status, Akt
 - **`layoutRef`** (Zeile 53–54): `useRef(layout)` + `layoutRef.current = layout` als Workaround für Closure-Problem in `onDrop`. Korrekt aber undokumentiert — beim Refactoring leicht entfernt.
 - **`exportToast` Timeout ohne Cleanup**: Zwei `setTimeout` in `handleExport` ohne `clearTimeout`. Bei schnellem Doppelklick könnten beide Timeouts gleichzeitig feuern.
 - **`ActivityHeatmap.jsx` hat hardkodiertes Grid-Spanning** (Zeile 7: `md:col-span-2 xl:col-span-3`): Das Widget setzt seine eigene Spanning-Klasse, obwohl `WIDGET_META` das bereits definiert. Doppeltes Spanning → Konflikt wenn Klasse sich unterscheidet.
-- **`navigate`-Prop** (Zeile 34): Dashboard bekommt `navigate` als Prop, verwendet es aber nirgendwo. `onNavigate` ist intern definiert. Toter Prop.
+- **`navigate`-Prop wird genutzt** (Zeile 197, 212): In den Inbox/Coach-Banner-Click-Handlers (`navigate('coach')`, `navigate('inbox')`). Kein toter Prop — war falsch dokumentiert.
 - **`getDashboardAnalytics` vs. Coverage**: Die Funktion liefert `body_region_scores`, aber die Gap-Logik in `index.jsx` prüft gegen `coverageThreshold` (default 1.0). Ein Score von 0.0 und einer von 0.99 sind beide "Gap" — es gibt kein Feedback wie weit weg ein Muskel vom Threshold ist. `MuscleCoverage` zeigt nur die Gap-Namen, keine Scores.
-- **`ARCHITECTURE.md` ist veraltet**: Referenziert `getHabits` und `getWeeklyReport` als direkte `@db`-Calls im Dashboard — keiner von beiden wird in `index.jsx` aufgerufen.
+## Kernfeatures (müssen nach jedem Refactoring erhalten bleiben)
+
+- **Inbox/Coach-Banner**: Dashboard lädt `inboxCount` + `globalInboxCount` beim Mount. SuperUser sehen den roten Coach-Banner (globale Anfragen), normale User den blauen User-Banner. `navigate`-Prop wird für den Banner-Click genutzt.
+- **Layout-Persistenz**: Widget-Reihenfolge in `localStorage` — Fallback für unbekannte IDs via `known`/`missing` Merge-Logik.
+- **KB-Enrichment**: `primaryMuscles`/`secondaryMuscles` aus KB überschreiben Session-Daten. Lookup-Kette `kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles`.
+- **`layoutRef`-Workaround**: `useRef(layout)` + `layoutRef.current = layout` für stale-closure in `onDrop` — nicht entfernen.
+- **Draggable nur im Edit-Mode**: Verhindert versehentliches Verschieben.
+
+## Auffälligkeiten
+
+- **`HOME_NAV` ist toter Code**: deklariert, nie im JSX verwendet.
+- **`MuscleStatus.jsx` ist toter Code**: nicht mehr in `renderInner()` registriert.
+- **`HealthWidget.jsx` ist nicht registriert**: vollständig gebaut, aber nicht in `WIDGET_META`.
+- **Hidden-Chamber-Link**: Am Ende der View gibt es einen versteckten Link (opacity-10) zu einem externen Workout-Tool — hardcodierte Tailscale-URL, nicht für Docs geeignet.
+- **Hardcodierte SuperUser-Prüfung**: UID direkt im Code statt zentral konfiguriert — identisches Pattern wie in `App.jsx` und `Coach/`.
 
 ## Status
-
-**Okay** — Kernfunktionen (Session-Status, Heatmap, BodyMap, Coverage, Drag&Drop-Layout) funktionieren solide. Drei tote Dateien/Variablen (`MuscleStatus.jsx`, `HealthWidget.jsx`, `HOME_NAV`) und ein toter Prop (`navigate`) erhöhen die kognitive Last ohne Nutzen. `ARCHITECTURE.md` beschreibt einen Zustand der nicht mehr existiert (Hub-Mode-NavCards, direkte `getHabits`/`getWeeklyReport` Calls).
+**Okay** — Kernfunktionen funktionieren. Inbox-Banner-Feature war komplett undokumentiert. `navigate`-Prop war fälschlicherweise als tot markiert.
