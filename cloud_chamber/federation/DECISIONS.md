@@ -432,3 +432,94 @@ funktionieren ohne Änderungen weiter, nur das Backend dahinter ist ausgetauscht
 
 **Verworfen:** HabitSync als Dependency — widerspricht dem VOS Standalone-Prinzip
 (jede App hat eigenes Backend, keine externen Service-Abhängigkeiten).
+
+---
+
+## #014 VitalOS als cloud_chamber-Root + eigene SW/Manifest
+
+**Status:** ✅ Entschieden  
+**Datum:** 2026-06-21
+
+**Hintergrund:** VitalOS (ehemals `fitness-dev`-Shell mit `root: fitness-dev/`) wurde in
+`cloud_chamber/vitalos/` ausgelagert. Der Vite-Build braucht `root: cloud_chamber/`, damit
+Imports aus journal-dev/, federation/ etc. ohne Symlinks aufgelöst werden.
+
+**Entscheidungen:**
+- `root: cloud_chamber/` in `vitalos/vite.config.js`
+- `cloud_chamber/public/` → eigene Icons, SW (`vitalos-v*`), Manifest
+- SW-Version + Manifest-Version werden beim Build automatisch via `sed` auf Unix-Timestamp gesetzt —
+  kein manuelles Versioning, kein separater Hook
+- Icon: Dunkles Rechteck, "V"-Form mit Gradient (blau→violett) + EKG-Puls-Linie (SVG)
+- Tailwind-Bug-Workaround: `tailwindcss({ config: resolve(...) })` explizit im css.postcss Block,
+  weil Tailwind content-paths relativ zum CWD auflöst, nicht relativ zum Config-File
+
+**Verworfen:**
+- `fitness-v57` als SW für VitalOS — war fitness-dev's SW, nicht VitalOS-spezifisch
+- `publicDir` explizit setzen — Vite defaultet sauber auf `{root}/public/`
+
+---
+
+## #015 journal/fuel/learn direkt in VitalOS bundeln
+
+**Status:** ✅ Entschieden  
+**Datum:** 2026-06-21–22
+
+**Hintergrund:** Im Browser erschienen `Failed to resolve module specifier 'fuel/FuelApp'` und
+ähnliche Fehler auf fitness-vos.web.app, weil die Federation-Remotes nicht korrekt geladen
+wurden (falsche dist deployed, Site-Mismatch zwischen journal-vos ↔ journal-aos).
+
+**Problem mit Remote-Entries:**
+Der Browser muss zur Laufzeit `https://fuel-vos.web.app/remoteEntry.js` laden. Wenn der
+Build fehlerhaft deployed wurde, die remoteEntry.js fehlt, oder Cache-Probleme auftreten,
+erscheint ein weißer Screen ohne Fehlermeldung.
+
+**Lösung — Alias statt Remote:**
+```js
+// vitalos/vite.config.js — immer aktiv (nicht nur dev)
+'journal/JournalApp': resolve(FED_DIR, 'JournalApp.jsx'),
+'fuel/FuelApp':       resolve(FED_DIR, 'FuelApp.jsx'),
+'learn/LearnApp':     resolve(FED_DIR, 'LearnApp.jsx'),
+'@fuel':              resolve(FUEL_ROOT, 'src/client'),
+```
+
+Vite löst diese Specifier zur Build-Zeit auf → direkte Chunks im VitalOS-Bundle.
+Die `Suspense`-Wrapper in den Shell-Komponenten bleiben — sie laden jetzt lokale Chunks
+statt Remote-Module, was genauso funktioniert.
+
+**Ergebnis:**
+- `JournalApp-*.js` (49 kB), `FuelApp-*.js` (33 kB), `LearnApp-*.js` (64 kB) — alle direkt gebundelt
+- Kein remoteEntry.js für diese drei Apps notwendig
+- `journal-vos.web.app` und `fuel-vos.web.app` und `learn-vos.web.app` als Deploy-Targets
+  bleiben für standalone PWA-Builds erhalten (unabhängig von VitalOS)
+
+**@db Kontext-Resolver:** JournalApp.jsx importiert `@db` — in VitalOS würde das normalerweise
+auf vitalos' db.firestore.js zeigen. Custom Vite-Plugin `journalDbPlugin` fängt `@db`-Imports
+ab, die aus `/journal-dev/`-Dateien kommen, und leitet sie auf journal-dev's eigene db um.
+
+**Fitness bleibt Remote:** `fitness/FitnessApp` ist weiterhin ein Federation-Remote
+(`https://fitness-vos.web.app/remoteEntry.js`) — zu groß für direktes Bundling sinnvoll,
+und der fitness-remote Build funktioniert stabil.
+
+**Verworfen:**
+- iframe-Embed — keine React-Integration, kein shared State möglich
+- remoteEntry.js ohne iframe — war der ursprüngliche Ansatz, scheiterte an Site-Mismatch-Bugs
+- journal-standalone + journal-remote in selber dist — React-Bundling-Konflikt bei kombinierten Builds
+
+---
+
+## #016 journal-vos.web.app als neue Federation-Site
+
+**Status:** ✅ Entschieden  
+**Datum:** 2026-06-21
+
+**Hintergrund:** `journal-aos.web.app` war die standalone Journal-PWA. `deploy:journal` in
+vitalos/package.json hat irrtümlich eine stub-HTML der federation-Remote dort deployed.
+
+**Lösung:**
+- `journal-aos.web.app` bleibt standalone PWA (dist-firebase/)
+- `journal-vos.web.app` neue Site für Federation-Remote (dist-federation/) — `firebase.remote.json`
+- `journal-vos.web.app` wird nur gebaut wenn man tatsächlich das Remote nutzen will
+  (was nach ADR #015 nicht mehr der Fall ist für VitalOS)
+
+**Lernpunkt:** Zwei völlig verschiedene Build-Outputs (`dist-firebase/` vs. `dist-federation/`)
+dürfen nie auf dieselbe Firebase-Hosting-Site deployed werden.

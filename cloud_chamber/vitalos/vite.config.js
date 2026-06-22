@@ -6,29 +6,46 @@ import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname    = dirname(fileURLToPath(import.meta.url))
-const CC_ROOT      = resolve(__dirname, '..')       // cloud_chamber/
+const CC_ROOT      = resolve(__dirname, '..')
 const VITALOS_SRC  = resolve(__dirname, 'src')
 const FED_DIR      = resolve(__dirname, '../federation')
+const JOURNAL_ROOT = resolve(__dirname, '../journal-dev')
+const FUEL_ROOT    = resolve('/home/alpha/fuel-dev')
 const BACKEND      = 'http://localhost:9100'
+
+// Context-aware @db resolver: journal-dev files → journal db, rest → vitalos db
+function journalDbPlugin(isFirebase) {
+  const journalDb = resolve(JOURNAL_ROOT, isFirebase ? 'src/db.firestore.js' : 'src/db.js')
+  return {
+    name: 'journal-db-resolver',
+    resolveId(id, importer) {
+      if (id === '@db' && importer?.includes('/journal-dev/')) return journalDb
+    },
+  }
+}
 
 export default defineConfig(({ mode }) => {
   const isFirebase = mode === 'firebase'
 
-  const devAliases = isFirebase ? {} : {
-    'fitness/FitnessApp': resolve(FED_DIR, 'FitnessApp.jsx'),
-    'fuel/FuelApp':       resolve(FED_DIR, 'FuelApp.jsx'),
+  const aliases = {
+    '@src':   VITALOS_SRC,
+    '@db':    resolve(VITALOS_SRC, isFirebase ? 'db.firestore.js' : 'db.js'),
+    '@utils': resolve(VITALOS_SRC, 'lib/utils.js'),
+    // always bundled directly (no remote entry)
     'journal/JournalApp': resolve(FED_DIR, 'JournalApp.jsx'),
+    'fuel/FuelApp':       resolve(FED_DIR, 'FuelApp.jsx'),
     'learn/LearnApp':     resolve(FED_DIR, 'LearnApp.jsx'),
-    '@fuel':              resolve('/home/alpha/fuel-dev/src/client'),
+    '@fuel':              resolve(FUEL_ROOT, 'src/client'),
+    // dev-only: fitness still uses federation remote in prod
+    ...(!isFirebase && {
+      'fitness/FitnessApp': resolve(FED_DIR, 'FitnessApp.jsx'),
+    }),
   }
 
   const federationPlugin = isFirebase ? [federation({
     name: 'vitalos_host',
     remotes: {
       fitness: 'https://fitness-vos.web.app/remoteEntry.js',
-      fuel:    'https://fuel-vos.web.app/remoteEntry.js',
-      journal: 'https://journal-aos.web.app/remoteEntry.js',
-      learn:   'https://learn-vos.web.app/remoteEntry.js',
     },
     shared: {
       react:       { singleton: true, requiredVersion: '^18.0.0' },
@@ -39,14 +56,9 @@ export default defineConfig(({ mode }) => {
   return {
     root: CC_ROOT,
     base: '/',
-    plugins: [react(), ...federationPlugin],
+    plugins: [react(), journalDbPlugin(isFirebase), ...federationPlugin],
     resolve: {
-      alias: {
-        '@src':   VITALOS_SRC,
-        '@db':    resolve(VITALOS_SRC, isFirebase ? 'db.firestore.js' : 'db.js'),
-        '@utils': resolve(VITALOS_SRC, 'lib/utils.js'),
-        ...devAliases,
-      },
+      alias: aliases,
       dedupe: ['react', 'react-dom'],
     },
     css: {
@@ -71,9 +83,9 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      outDir:     resolve(__dirname, isFirebase ? 'dist-firebase' : 'dist'),
+      outDir:      resolve(__dirname, isFirebase ? 'dist-firebase' : 'dist'),
       emptyOutDir: true,
-      target:     'esnext',
+      target:      'esnext',
       rollupOptions: {
         input: resolve(__dirname, 'index.html'),
         ...(!isFirebase && {

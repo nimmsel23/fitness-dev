@@ -9,7 +9,7 @@
     "deploy:shell": "npm run build:firebase && firebase deploy --only hosting",
     "deploy:fitness": "npx vite build --config ../federation/fitness.remote.vite.config.js && firebase deploy --only hosting --project fitness-aos --config ../fitness-dev/firebase.json",
     "deploy:fuel": "npx vite build --config ../federation/fuel.remote.vite.config.js && firebase deploy --only hosting --project fitness-aos --config /home/alpha/fuel-dev/firebase.remote.json",
-    "deploy:journal": "cd ../journal-dev && npm run build:firebase && firebase deploy --only hosting --config firebase.json",
+    "deploy:journal": "npx vite build --config ../federation/journal.remote.vite.config.js && firebase deploy --only hosting --project fitness-aos --config ../journal-dev/firebase.remote.json",
     "deploy:learn": "npx vite build --config ../federation/learn.remote.vite.config.js && firebase deploy --only hosting --project fitness-aos --config ../learn-dev/firebase.remote.json",
     "preview": "npx vite preview --config vite.config.js"
   }

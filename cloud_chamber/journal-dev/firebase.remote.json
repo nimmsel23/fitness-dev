@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "journal-aos",
+    "site": "journal-vos",
     "public": "dist-federation",
     "ignore": ["firebase.remote.json", "**/.*", "**/node_modules/**"],
     "headers": [
