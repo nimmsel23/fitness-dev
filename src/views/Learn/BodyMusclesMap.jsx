@@ -1,36 +1,28 @@
 import { useEffect, useRef, useMemo } from 'react';
 import { BodyChart } from 'body-muscles';
-import { useMuscleMap } from '../../lib/muscleMap';
+import { BODY_MUSCLES_SLUGS } from '../../lib/muscleMapping';
 
-/**
- * React Wrapper for the framework-agnostic body-muscles library.
- * Provides deep anatomical visualization with 70+ regions.
- */
-export default function BodyMusclesMap({ 
-  side = 'front', 
+export default function BodyMusclesMap({
+  side = 'front',
   onMuscleClick,
-  exercises = [] 
+  exercises = []
 }) {
-  const muscleMap = useMuscleMap();
   const containerRef = useRef(null);
   const chartRef = useRef(null);
 
-  // Calculate intensity based on exercises
   const highlightedMuscles = useMemo(() => {
-    const slugs = muscleMap?.body_muscles_slugs || {};
     const muscleHits = {};
     exercises.forEach(ex => {
       const muscles = [...(ex.primaryMuscles || []), ...(ex.secondaryMuscles || [])];
       muscles.forEach(m => {
-        const slug = slugs[m.toLowerCase()];
-        if (slug) {
-          muscleHits[slug] = (muscleHits[slug] || 0) + 1;
-        }
+        const key = String(m || '').toLowerCase().trim();
+        const slug = BODY_MUSCLES_SLUGS[key] || BODY_MUSCLES_SLUGS[key.replace(/_/g, ' ')];
+        if (slug) muscleHits[slug] = (muscleHits[slug] || 0) + 1;
       });
     });
     return Object.entries(muscleHits).map(([slug, hits]) => ({
       slug,
-      intensity: Math.min(10, hits * 2) // scale to 0-10 for body-muscles
+      intensity: Math.min(10, hits * 2)
     }));
   }, [exercises]);
 

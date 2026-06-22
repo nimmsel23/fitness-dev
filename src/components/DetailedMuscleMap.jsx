@@ -1,15 +1,14 @@
 import Body from 'react-muscle-highlighter';
-import { useMuscleMap } from '../lib/muscleMap';
+import { RBH_SLUGS } from '../lib/muscleMapping';
 
 export default function DetailedMuscleMap({ exercises = [], style, colors, gender, side, onGroupClick }) {
-  const muscleMap = useMuscleMap();
-  const rbh = muscleMap?.rbh || {};
   const safeExercises = Array.isArray(exercises) ? exercises : [];
   const muscleHits = {};
   safeExercises.forEach(ex => {
     const muscles = [...(ex.primaryMuscles || []), ...(ex.secondaryMuscles || [])];
     muscles.forEach(m => {
-      const slug = rbh[m.toLowerCase()];
+      const key = String(m || '').toLowerCase().trim();
+      const slug = RBH_SLUGS[key] || RBH_SLUGS[key.replace(/_/g, ' ')];
       if (slug) {
         muscleHits[slug] = (muscleHits[slug] || 0) + 1;
       }

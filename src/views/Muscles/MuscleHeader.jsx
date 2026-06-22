@@ -26,7 +26,7 @@ export default function MuscleHeader({ days, setDays, showDetailed, setShowDetai
         
         <button onClick={() => setShowDetailed(!showDetailed)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-fit-card border border-fit-line text-[10px] font-black uppercase tracking-widest hover:border-accent hover:text-accent transition-all shadow-md">
           {showDetailed ? <LayoutGrid size={14}/> : <User size={14}/>}
-          {showDetailed ? 'Standard Map' : 'Anatomy Map'}
+          {showDetailed ? 'Standard Map' : 'Detail Map'}
         </button>
       </div>
     </div>

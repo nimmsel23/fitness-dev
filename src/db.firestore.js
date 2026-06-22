@@ -22,6 +22,7 @@ import {
 } from "firebase/auth";
 
 import { db, auth, googleProvider } from "./firebase.js";
+import { muscleToGroups } from "./lib/muscleMapping.js";
 
 export { db, auth, googleProvider };
 
@@ -150,6 +151,7 @@ export async function saveSession(date = todayISO(), sessionData, id = null) {
     saved_at: serverTimestamp(),
   });
   pingBridge();
+  updateAnalyticsDoc(); // fire-and-forget
   return { ok: true, id };
 }
 
@@ -613,12 +615,14 @@ export async function getDashboardAnalytics(days = 28) {
       const data = snap.data();
       if (days <= 7 && data.rolling_7_days) return data.rolling_7_days;
       if (days <= 14 && data.rolling_14_days) return data.rolling_14_days;
-      return data.rolling_28_days || null;
+      if (data.rolling_28_days) return data.rolling_28_days;
     }
   } catch (e) {
     console.error("Failed to fetch dashboard analytics", e);
   }
-  return null;
+  // Fallback: lokal aus Sessions berechnen
+  const scores = await getMuscleCoverage(days);
+  return { body_region_scores: scores };
 }
 
 export const ACTIVITY_MUSCLE_MAPPING = {
@@ -628,42 +632,10 @@ export const ACTIVITY_MUSCLE_MAPPING = {
   swimming: { muscles: ["back", "shoulders", "core"],     impact: 0.7 },
 };
 
-const MUSCLE_TAG_TO_GROUP = {
-  chest: "chest", pecs: "chest", pectoralis: "chest",
-  back: "back", lats: "back", rhomboids: "back",
-  shoulders: "shoulders", delts: "shoulders", deltoid: "shoulders",
-  biceps: "arms", triceps: "arms", forearms: "arms",
-  abs: "core", obliques: "core", core: "core", abdominis: "core",
-  glutes: "glutes", gluteus: "glutes",
-  quads: "quads", quadriceps: "quads",
-  hamstrings: "hamstrings", "biceps femoris": "hamstrings",
-  calves: "calves", gastrocnemius: "calves",
-  traps: "trapezius", trapezius: "trapezius",
-};
-
-export const MUSCLE_GROUPS = {
-  chest:      ["pecs", "chest", "pectoralis", "brust"],
-  back:       ["lats", "lower back", "back", "latissimus", "rhomboids", "rücken", "pull-up", "klimmzug", "rudern", "row"],
-  trapezius:  ["traps", "trapezius", "nacken", "shrugs"],
-  shoulders:  ["shoulders", "delts", "deltoid", "schulter", "schultern", "overhead", "press"],
-  arms:       ["biceps", "triceps", "forearms", "brachii", "bizeps", "trizeps", "arm", "arme", "curl", "extension"],
-  core:       ["abs", "obliques", "core", "abdominis", "bauch"],
-  glutes:     ["glutes", "gluteus", "po", "gesäß", "hip thrust", "squat", "kniebeuge"],
-  quads:      ["quads", "quadriceps", "oberschenkel", "squat", "kniebeuge"],
-  hamstrings: ["hamstrings", "biceps femoris", "beinbeuger", "leg curl", "kreuzheben", "good mornings", "rumänisches kreuzheben", "squat", "kniebeuge"],
-  calves:     ["calves", "gastrocnemius", "waden", "calf", "wadenheben", "stehendes wadenheben", "squat", "kniebeuge"],
-  legs:       ["legs", "squat", "deadlift", "lunge", "beine", "bein", "leg press", "kniebeuge"],
-};
+export const MUSCLE_GROUPS = ["chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves", "legs"];
 
 export function muscleToGroupIds(muscle, exerciseName = "") {
-  const m = String(muscle || "").toLowerCase().trim();
-  const name = String(exerciseName || "").toLowerCase();
-  const matches = new Set();
-  if (MUSCLE_TAG_TO_GROUP[m]) matches.add(MUSCLE_TAG_TO_GROUP[m]);
-  for (const [group, list] of Object.entries(MUSCLE_GROUPS)) {
-    if (list.some(x => m.includes(x) || (name && name.includes(x)))) matches.add(group);
-  }
-  return [...matches];
+  return muscleToGroups(muscle, exerciseName);
 }
 
 export async function getMuscleCoverage(days = 7) {
@@ -679,12 +651,13 @@ export async function getMuscleCoverage(days = 7) {
     const session = await getSession(date);
     if (!session) continue;
     for (const ex of (Array.isArray(session.exercises) ? session.exercises : [])) {
-      const primary = ex.primaryMuscles || [];
-      const secondary = ex.secondaryMuscles || [];
       const exName = ex.name || ex.exercise_id || "";
-      [...primary, ...secondary].forEach(m => {
-        muscleToGroupIds(m, exName).forEach(gid => hits[gid] = (hits[gid] || 0) + 1);
-      });
+      [...(ex.primaryMuscles || [])].forEach(m =>
+        muscleToGroups(m, exName).forEach(g => { hits[g] = (hits[g] || 0) + 1; })
+      );
+      [...(ex.secondaryMuscles || [])].forEach(m =>
+        muscleToGroups(m, exName).forEach(g => { hits[g] = (hits[g] || 0) + 0.5; })
+      );
     }
   }
   return hits;
@@ -692,8 +665,27 @@ export async function getMuscleCoverage(days = 7) {
 
 export async function getCoverageGaps(days = 7, threshold = 1.0) {
   const hits = await getMuscleCoverage(days);
-  const all = Object.keys(MUSCLE_GROUPS);
-  return all.filter(g => (hits[g] || 0) < threshold).map(g => ({ name: g, hits: hits[g] || 0 }));
+  return MUSCLE_GROUPS.filter(g => (hits[g] || 0) < threshold).map(g => ({ name: g, hits: hits[g] || 0 }));
+}
+
+async function updateAnalyticsDoc() {
+  try {
+    const [s7, s14, s28] = await Promise.all([
+      getMuscleCoverage(7),
+      getMuscleCoverage(14),
+      getMuscleCoverage(28),
+    ]);
+    await setDoc(
+      doc(db, "fitness", getUid(), "analytics", "dashboard"),
+      {
+        rolling_7_days:  { body_region_scores: s7,  updated_at: new Date().toISOString() },
+        rolling_14_days: { body_region_scores: s14, updated_at: new Date().toISOString() },
+        rolling_28_days: { body_region_scores: s28, updated_at: new Date().toISOString() },
+      }
+    );
+  } catch (e) {
+    console.warn("analytics update failed", e);
+  }
 }
 
 function getWeekBounds(selector = "current") {
