@@ -8,7 +8,7 @@ const __dirname    = dirname(fileURLToPath(import.meta.url))
 const CC_ROOT      = resolve(__dirname, '..')
 const VITALOS_SRC  = resolve(__dirname, 'src')
 const FED_DIR      = resolve(__dirname, '../federation')
-const JOURNAL_ROOT = resolve(__dirname, '../journal-dev')
+const JOURNAL_ROOT = resolve(__dirname, '../journal-vos')
 const FUEL_ROOT    = resolve('/home/alpha/fuel-dev')
 const BACKEND      = 'http://localhost:9100'
 
@@ -18,7 +18,7 @@ function journalDbPlugin(isFirebase) {
   return {
     name: 'journal-db-resolver',
     resolveId(id, importer) {
-      if (id === '@db' && importer?.includes('/journal-dev/')) return journalDb
+      if (id === '@db' && importer?.includes('/journal-vos/')) return journalDb
     },
   }
 }
@@ -28,13 +28,11 @@ export default defineConfig(({ mode }) => {
 
   const aliases = {
     '@src':   VITALOS_SRC,
-    '@db':    resolve(VITALOS_SRC, isFirebase ? 'db.firestore.js' : 'db.js'),
     '@utils': resolve(VITALOS_SRC, 'lib/utils.js'),
-    // always bundled directly (no remote entry)
-    'journal/JournalApp': resolve(FED_DIR, 'JournalApp.jsx'),
+    '@db':    resolve(VITALOS_SRC, isFirebase ? 'db.firestore.js' : 'db.js'),
+    'journal/JournalApp': resolve(VITALOS_SRC, 'apps/JournalApp.jsx'),
+    'learn/LearnApp':     resolve(VITALOS_SRC, 'apps/LearnApp.jsx'),
     'fuel/FuelApp':       resolve(FED_DIR, 'FuelApp.jsx'),
-    'learn/LearnApp':     resolve(FED_DIR, 'LearnApp.jsx'),
-    'fitness/FitnessApp': resolve(FED_DIR, 'FitnessApp.jsx'),
     '@fuel':              resolve(FUEL_ROOT, 'src/client'),
   }
 
