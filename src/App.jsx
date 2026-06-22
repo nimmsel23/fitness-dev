@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { RefreshCw } from 'lucide-react'
 import Dashboard from './views/Dashboard/index.jsx'
 import Session from './views/Session/index.jsx'
-const JournalApp = lazy(() => import('journal/JournalApp'))
-const FuelApp    = lazy(() => import('fuel/FuelApp'))
-const LearnApp   = lazy(() => import('learn/LearnApp'))
+import Journal from './views/Journal/index.jsx'
+import Learn   from './views/Learn/index.jsx'
 import WeeklyReview from './views/WeeklyReview/index.jsx'
 import Settings from './views/Settings/index.jsx'
 import Coach from './views/Coach/index.jsx'
@@ -14,8 +13,6 @@ import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode, getA
 
 import { NAV_ITEMS, VALID_TABS } from './constants/NavigationItems.js'
 
-const FuelTab = lazy(() => import('../cloud_chamber/federation/FuelTab.jsx'));
-const JournalTab = lazy(() => import('../cloud_chamber/federation/JournalTab.jsx'));
 import { THEMES } from './constants/Themes.js'
 import Sidebar from './components/layout/Sidebar.jsx'
 import MobileNav from './components/layout/MobileNav.jsx'
@@ -463,9 +460,8 @@ export default function App() {
                       {tab === 'dash'     && <Dashboard user={user} onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
                       {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} recentDays={recentDays} coverageThreshold={coverageThreshold} />}
                       {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} />}
-                      {tab === 'learn'    && <Suspense fallback={<div style={{ padding: 24, color: '#64748b', fontSize: 13 }}>Lernen lädt…</div>}><LearnApp /></Suspense>}
-                      {tab === 'fuel'     && <Suspense fallback={<div style={{ padding: 24, color: '#64748b', fontSize: 13 }}>Fuel lädt…</div>}><FuelApp /></Suspense>}
-                      {tab === 'journal'  && <Suspense fallback={<div style={{ padding: 24, color: '#64748b', fontSize: 13 }}>Journal lädt…</div>}><JournalApp /></Suspense>}
+                      {tab === 'learn'    && <Learn />}
+                      {tab === 'journal'  && <Journal />}
                       {tab === 'coach'    && (isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92') && <Coach onInspectExercise={inspectExercise} />}
                       {tab === 'inbox'    && <Inbox user={user} onInspectExercise={inspectExercise} />}
                       {tab === 'settings' && (
