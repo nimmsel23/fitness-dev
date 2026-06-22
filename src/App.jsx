@@ -3,6 +3,7 @@ import { RefreshCw } from 'lucide-react'
 import Dashboard from './views/Dashboard/index.jsx'
 import Session from './views/Session/index.jsx'
 import Journal from './views/Journal/index.jsx'
+import Habits  from './views/Habits/index.jsx'
 import Learn   from './views/Learn/index.jsx'
 import WeeklyReview from './views/WeeklyReview/index.jsx'
 import Settings from './views/Settings/index.jsx'
@@ -465,7 +466,8 @@ export default function App() {
                       {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} recentDays={recentDays} coverageThreshold={coverageThreshold} subTab={subTab} />}
                       {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} subTab={subTab} onSubNav={navigateSub} />}
                       {tab === 'learn'    && <Learn subTab={subTab} />}
-                      {tab === 'journal'  && <Journal subTab={subTab} />}
+                      {tab === 'journal'  && <Journal />}
+                      {tab === 'habits'   && <Habits />}
                       {tab === 'coach'    && (isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92') && <Coach onInspectExercise={inspectExercise} />}
                       {tab === 'inbox'    && <Inbox user={user} onInspectExercise={inspectExercise} />}
                       {tab === 'settings' && (

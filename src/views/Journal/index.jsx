@@ -8,7 +8,6 @@ import JournalHeader from "./JournalHeader";
 import JournalForm from "./JournalForm";
 import JournalEntry from "./JournalEntry";
 import JournalModal from "./JournalModal";
-import Habits from "../Habits/index.jsx";
 import HabitJournalModal from "../Habits/HabitJournalModal";
 
 function formatRelativeDate(dateStr) {
@@ -23,7 +22,7 @@ function formatRelativeDate(dateStr) {
   });
 }
 
-export default function Journal({ subTab = null }) {
+export default function Journal() {
   const [date, setDate]     = useState(localToday());
   const [text, setText]     = useState("");
   const [timeline, setTimeline] = useState([]); // Array of grouped entries by date
@@ -201,8 +200,6 @@ export default function Journal({ subTab = null }) {
     setText(entry.text);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  if (subTab === 'habits') return <Habits />;
 
   return (
     <div className="pb-32 max-w-3xl mx-auto px-2">

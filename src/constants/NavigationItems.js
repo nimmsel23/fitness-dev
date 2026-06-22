@@ -1,4 +1,4 @@
-import { Activity, Dumbbell, BookOpen, Brain, BarChart3, Settings2, Book, CheckSquare, CalendarDays, ClipboardList, History, LibraryBig, Microscope, HelpCircle, TrendingUp, Layers } from "lucide-react";
+import { Activity, Dumbbell, BookOpen, Brain, BarChart3, Settings2, CheckSquare, CalendarDays, ClipboardList, History, LibraryBig, Microscope, HelpCircle, TrendingUp, Layers } from "lucide-react";
 
 const baseItems = [
   { id: 'dash',     label: 'Heute',    Icon: Activity },
@@ -7,10 +7,8 @@ const baseItems = [
     { id: 'plan',    label: 'Plan',     Icon: ClipboardList },
     { id: 'history', label: 'History',  Icon: History },
   ]},
-  { id: 'journal',  label: 'Journal',  Icon: BookOpen,  sub: [
-    { id: 'entries', label: 'Einträge', Icon: Book },
-    { id: 'habits',  label: 'Habits',   Icon: CheckSquare },
-  ]},
+  { id: 'journal',  label: 'Journal',  Icon: BookOpen },
+  { id: 'habits',   label: 'Habits',   Icon: CheckSquare },
   { id: 'review',   label: 'Review',   Icon: BarChart3, sub: [
     { id: 'report',  label: 'Bericht',  Icon: TrendingUp },
     { id: 'muscles', label: 'Muskeln',  Icon: Layers },
