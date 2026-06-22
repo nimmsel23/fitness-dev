@@ -1,11 +1,25 @@
-import { Activity, Dumbbell, BookOpen, Brain, BarChart3, Settings2 } from "lucide-react";
+import { Activity, Dumbbell, BookOpen, Brain, BarChart3, Settings2, Book, CheckSquare, CalendarDays, ClipboardList, History, LibraryBig, Microscope, HelpCircle, TrendingUp, Layers } from "lucide-react";
 
 const baseItems = [
   { id: 'dash',     label: 'Heute',    Icon: Activity },
-  { id: 'session',  label: 'Training', Icon: Dumbbell },
-  { id: 'journal',  label: 'Journal',  Icon: BookOpen },
-  { id: 'review',   label: 'Review',   Icon: BarChart3 },
-  { id: 'learn',    label: 'Lernen',   Icon: Brain },
+  { id: 'session',  label: 'Training', Icon: Dumbbell,  sub: [
+    { id: 'today',   label: 'Heute',    Icon: CalendarDays },
+    { id: 'plan',    label: 'Plan',     Icon: ClipboardList },
+    { id: 'history', label: 'History',  Icon: History },
+  ]},
+  { id: 'journal',  label: 'Journal',  Icon: BookOpen,  sub: [
+    { id: 'entries', label: 'Einträge', Icon: Book },
+    { id: 'habits',  label: 'Habits',   Icon: CheckSquare },
+  ]},
+  { id: 'review',   label: 'Review',   Icon: BarChart3, sub: [
+    { id: 'report',  label: 'Bericht',  Icon: TrendingUp },
+    { id: 'muscles', label: 'Muskeln',  Icon: Layers },
+  ]},
+  { id: 'learn',    label: 'Lernen',   Icon: Brain,     sub: [
+    { id: 'exercises', label: 'Übungen',  Icon: LibraryBig },
+    { id: 'anatomy',   label: 'Anatomie', Icon: Microscope },
+    { id: 'quiz',      label: 'Quiz',     Icon: HelpCircle },
+  ]},
   { id: 'settings', label: 'Setup',    Icon: Settings2 },
 ];
 

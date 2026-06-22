@@ -30,10 +30,10 @@ export default function App() {
   const [tab, setTab]             = useState(() => {
      const hash = window.location.hash.replace(/^#\/?/, '');
      if (VALID_TABS.has(hash)) return hash;
-     // If no valid hash, default to 'gate' in home mode, else 'dash'
      const initialNavMode = localStorage.getItem('fitness-navMode') || 'tabs';
      return initialNavMode === 'home' ? 'gate' : 'dash';
   });
+  const [subTab, setSubTab] = useState(null);
 
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -335,8 +335,12 @@ export default function App() {
     } else {
       setSlideDirection('bottom');
     }
+    setSubTab(null);
     setTab(newTabId);
   };
+
+  function navigate(id) { navigateToTab(id) }
+  function navigateSub(id) { setSubTab(id) }
 
   // Sync tab → URL hash
   useEffect(() => {
@@ -353,8 +357,6 @@ export default function App() {
       window.removeEventListener('popstate', handlePopState);
     };
   }, [tab]);
-
-  function navigate(id) { navigateToTab(id) }
 
   function openSession(date, draft = null) {
     setSessionDate(date || null)
@@ -423,6 +425,8 @@ export default function App() {
         <Sidebar
           tab={tab}
           navigate={navigate}
+          subTab={subTab}
+          navigateSub={navigateSub}
           pinned={sidebarPinned}
           setPinned={setSidebarPinned}
           user={user}
@@ -458,10 +462,10 @@ export default function App() {
                   <div key={tab} className={`${navMode === 'home' && tab !== 'gate' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in ${slideDirection === 'left' ? 'slide-in-from-right-8' : slideDirection === 'right' ? 'slide-in-from-left-8' : 'slide-in-from-bottom-4'} duration-500`}>
                       {/* Render content */}
                       {tab === 'dash'     && <Dashboard user={user} onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
-                      {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} recentDays={recentDays} coverageThreshold={coverageThreshold} />}
-                      {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} />}
-                      {tab === 'learn'    && <Learn />}
-                      {tab === 'journal'  && <Journal />}
+                      {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} recentDays={recentDays} coverageThreshold={coverageThreshold} subTab={subTab} />}
+                      {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} subTab={subTab} onSubNav={navigateSub} />}
+                      {tab === 'learn'    && <Learn subTab={subTab} />}
+                      {tab === 'journal'  && <Journal subTab={subTab} />}
                       {tab === 'coach'    && (isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92') && <Coach onInspectExercise={inspectExercise} />}
                       {tab === 'inbox'    && <Inbox user={user} onInspectExercise={inspectExercise} />}
                       {tab === 'settings' && (
