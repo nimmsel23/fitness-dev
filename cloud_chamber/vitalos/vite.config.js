@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import federation from '@originjs/vite-plugin-federation'
 import tailwindcss from 'tailwindcss'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -35,23 +34,11 @@ export default defineConfig(({ mode }) => {
     'journal/JournalApp': resolve(FED_DIR, 'JournalApp.jsx'),
     'fuel/FuelApp':       resolve(FED_DIR, 'FuelApp.jsx'),
     'learn/LearnApp':     resolve(FED_DIR, 'LearnApp.jsx'),
+    'fitness/FitnessApp': resolve(FED_DIR, 'FitnessApp.jsx'),
     '@fuel':              resolve(FUEL_ROOT, 'src/client'),
-    // dev-only: fitness still uses federation remote in prod
-    ...(!isFirebase && {
-      'fitness/FitnessApp': resolve(FED_DIR, 'FitnessApp.jsx'),
-    }),
   }
 
-  const federationPlugin = isFirebase ? [federation({
-    name: 'vitalos_host',
-    remotes: {
-      fitness: 'https://fitness-vos.web.app/remoteEntry.js',
-    },
-    shared: {
-      react:       { singleton: true, requiredVersion: '^18.0.0' },
-      'react-dom': { singleton: true, requiredVersion: '^18.0.0' },
-    },
-  })] : []
+  const federationPlugin = []
 
   return {
     root: CC_ROOT,
