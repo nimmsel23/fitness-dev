@@ -24,7 +24,7 @@ export default function Sidebar({ tab, navigate, subTab, navigateSub, pinned, se
           </button>
         </div>
 
-        <nav className="space-y-1 flex-1 overflow-y-auto">
+        <nav className="space-y-1 flex-1">
           {NAV_ITEMS.map(({ id, label, Icon, sub }) => {
             const isActive = tab === id;
             return (
