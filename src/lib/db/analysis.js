@@ -75,7 +75,19 @@ export async function getWeeklyReport(selector = "current") {
   const kbExercises = exRes.exercises || [];
   const history = histRes.sessions || [];
   const kbMap = new Map();
-  kbExercises.forEach(ex => kbMap.set((ex.display_name || ex.name || ex.exercise_id).toLowerCase(), ex));
+  kbExercises.forEach(ex => kbMap.set((ex.display_name || ex.name || ex.exercise_id || "").toLowerCase(), ex));
+
+  // Pre-build muscle group index over full history for recovery calculation
+  const historyWithMuscles = history.map(s => {
+    const groups = new Set();
+    for (const ex of (s.exercises || [])) {
+      const exName = ex.name || ex.exercise_id || "";
+      const primary = ex.primaryMuscles || [];
+      const secondary = ex.secondaryMuscles || [];
+      [...primary, ...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => groups.add(gid)));
+    }
+    return { date: s.date, groups: [...groups] };
+  }).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   const sessions = [];
   const bodyRegionScores = {};
@@ -97,17 +109,39 @@ export async function getWeeklyReport(selector = "current") {
       [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
       [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.2; }));
     }
-    sessions.push({ ...sess, exercise_count: sess.exercises?.length || 0 });
+    if (sess.activity && ACTIVITY_MUSCLE_MAPPING[sess.activity.type]) {
+      ACTIVITY_MUSCLE_MAPPING[sess.activity.type].muscles.forEach(gid => {
+        sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
+        bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
+      });
+    }
+    const muscleRecovery = {};
+    for (const gid of Object.keys(sessGroupsCount)) {
+      const lastSess = historyWithMuscles.find(h => h.date < date && h.groups.includes(gid));
+      if (lastSess) {
+        const d1 = new Date(date), d2 = new Date(lastSess.date);
+        muscleRecovery[gid] = Math.round((d1 - d2) / (1000 * 60 * 60));
+      }
+    }
+    sessions.push({ ...sess, exercise_count: sess.exercises?.length || 0, muscle_recovery: muscleRecovery });
   }
 
   const allGroups = ["chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves", "legs"];
   const gaps = allGroups.filter(g => (bodyRegionScores[g] || 0) < 1);
+  const totalExercises = sessions.reduce((sum, s) => sum + (s.exercise_count || 0), 0);
+  const effortValues = sessions.map(s => s.effort).filter(e => e && Number(e) > 0);
+  const avgEffort = effortValues.length > 0 ? Math.round(effortValues.reduce((a, b) => a + Number(b), 0) / effortValues.length * 10) / 10 : null;
   return {
     ok: true,
     session_count: sessions.length,
-    sessions: sessions.reverse(),
+    total_exercises: totalExercises,
+    avg_effort: avgEffort,
+    sessions,
     body_region_scores: bodyRegionScores,
     missing_regions: gaps,
+    recommendations: gaps.length > 0
+      ? [`Fokus auf: ${gaps.join(", ")}`]
+      : ["Woche gut abgedeckt!"],
     top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => {
       const kbEx = kbMap.get(name.toLowerCase());
       return {

@@ -6,12 +6,12 @@
  *     view: lazy(() => import('../cloud_chamber/federation/JournalTab')) }
  *
  * Voraussetzung: fitness-dev wurde mit fitness.host.vite.config.js gebaut
- * und journal-dev Remote ist erreichbar (lokal: :9173, prod: journal-aos.web.app).
+ * und journal-vos Remote ist erreichbar (lokal: :9173, prod: journal-aos.web.app).
  */
 
 import React from 'react'
 
-const JournalApp = React.lazy(() => import.meta.env.VITE_FEDERATION === 'true' ? import('journal/JournalApp') : import('../journal-dev/src/App.jsx'))
+const JournalApp = React.lazy(() => import.meta.env.VITE_FEDERATION === 'true' ? import('journal/JournalApp') : import('../journal-vos/src/App.jsx'))
 
 export default function JournalTab() {
   return (

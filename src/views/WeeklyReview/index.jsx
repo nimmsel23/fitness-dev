@@ -86,6 +86,8 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
           <div className="lg:col-span-4 space-y-8">
             <ReviewOverview
               sessionCount={data.session_count}
+              totalExercises={data.total_exercises}
+              avgEffort={data.avg_effort}
             />
             <ReviewInsights
               recommendations={data.recommendations}

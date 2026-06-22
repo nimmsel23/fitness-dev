@@ -5,14 +5,14 @@
  * Kein Auth-Gate — host (fitness-dev) kümmert sich um Auth.
  * Kein createRoot — fitness-dev mounted diese Komponente in seinen React-Tree.
  *
- * @db Alias zeigt beim Remote-Build auf journal-dev/src/db.js (:9170)
- * oder journal-dev/src/db.firestore.js (--mode firebase).
+ * @db Alias zeigt beim Remote-Build auf journal-vos/src/db.js (:9170)
+ * oder journal-vos/src/db.firestore.js (--mode firebase).
  */
 
 import { useState } from 'react'
 import { BookOpen, CheckSquare } from 'lucide-react'
-import Journal from '../journal-dev/src/views/Journal/index.jsx'
-import Habits  from '../journal-dev/src/views/Habits/index.jsx'
+import Journal from '../journal-vos/src/views/Journal/index.jsx'
+import Habits  from '../journal-vos/src/views/Habits/index.jsx'
 
 const TABS = [
   { id: 'journal', label: 'Journal', Icon: BookOpen, View: Journal },

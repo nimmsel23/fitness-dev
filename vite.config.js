@@ -36,9 +36,9 @@ export default defineConfig(({ mode }) => {
         '@db':     resolve(__dirname, isFirebase ? './src/db.firestore.js' : './src/db.js'),
         '@utils':  resolve(__dirname, './src/lib/utils.js'),
         '@aliase': resolve(__dirname, './catalog/kb/aliases.yml'),
-        // Explizite Auflösung für symlinkte Views → cloud_chamber
-        './views/Journal': resolve(__dirname, './cloud_chamber/journal-dev/src/views/Journal'),
-        './views/Habits':  resolve(__dirname, './cloud_chamber/journal-dev/src/views/Habits'),
+        // Explizite Auflösung für Views → cloud_chamber/journal-vos
+        './views/Journal': resolve(__dirname, './cloud_chamber/journal-vos/src/views/Journal'),
+        './views/Habits':  resolve(__dirname, './cloud_chamber/journal-vos/src/views/Habits'),
         // Federation: lokale Auflösung für regulären Build (ohne Remote)
         'journal/JournalApp': resolve(__dirname, './cloud_chamber/federation/JournalApp.jsx'),
         'fuel/FuelApp':       resolve(__dirname, './cloud_chamber/federation/FuelApp.jsx'),

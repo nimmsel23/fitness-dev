@@ -3,6 +3,7 @@ import { translateMuscle } from '../../lib/translations';
 import { getMuscleIcon } from '../../constants/MuscleIcons';
 
 export default function ReviewMuscleImpact({ regionEntries, muscleLanguage = 'de', taxonomy = null }) {
+  const maxScore = Math.max(...regionEntries.map(e => e[1]), 5);
   return (
     <section className="card mb-0 shadow-lg border-fit-line/50 p-8">
       <div className="label-caps !mb-8 flex items-center gap-2">
@@ -11,7 +12,6 @@ export default function ReviewMuscleImpact({ regionEntries, muscleLanguage = 'de
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {regionEntries.length > 0 ? regionEntries.map(([name, score]) => {
-          const maxScore = Math.max(...regionEntries.map(e => e[1]), 5);
           const pct = Math.min(100, (score / maxScore) * 100);
           const Icon = getMuscleIcon(name);
           return (
