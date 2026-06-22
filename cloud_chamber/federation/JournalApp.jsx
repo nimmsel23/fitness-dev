@@ -11,8 +11,8 @@
 
 import { useState } from 'react'
 import { BookOpen, CheckSquare } from 'lucide-react'
-import Journal from '../journal-vos/src/views/Journal/index.jsx'
-import Habits  from '../journal-vos/src/views/Habits/index.jsx'
+import Journal from '../../src/views/Journal/index.jsx'
+import Habits  from '../../src/views/Habits/index.jsx'
 
 const TABS = [
   { id: 'journal', label: 'Journal', Icon: BookOpen, View: Journal },
