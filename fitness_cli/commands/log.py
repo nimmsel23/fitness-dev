@@ -335,6 +335,81 @@ def cmd_sync_status() -> None:
     print()
 
 
+# ── clients ───────────────────────────────────────────────────────────────────
+
+@app.command(name="clients", help="Alle Klienten-Sessions chronologisch ausgeben")
+def cmd_clients(
+    days: int  = typer.Option(90,  "--days", "-d", help="Fenster in Tagen (0 = alle)"),
+    all_: bool = typer.Option(False, "--all", "-a",  help="Gesamtes Archiv (ignoriert --days)"),
+) -> None:
+    registry = load_client_registry()
+    if not registry:
+        print(c("yellow", "  Keine Klienten in ~/Klienten/ gefunden."))
+        raise typer.Exit()
+
+    from ..paths import ACTIVE_UID
+    n_days = 9999 if all_ else days
+    cutoff = (date.today() - timedelta(days=n_days)).isoformat() if n_days < 9999 else "0000-00-00"
+
+    for uid, meta in registry.items():
+        name = meta["name"]
+        sdir = AOS_USERS / uid / "fitness" / "sessions"
+
+        print(f"\n{c('bold', '── ' + name + ' ' + '─' * max(0, 40 - len(name)))}")
+        print(c("muted", f"   uid: {uid[:16]}…   path: {sdir}"))
+
+        if not sdir.exists() or not list(sdir.glob("*.json")):
+            print(f"   {c('yellow', '○ Kein lokaler Sync — Firestore-Pull nötig')}")
+            continue
+
+        files = sorted(sdir.glob("*.json"), reverse=True)
+        shown = 0
+        for f in files:
+            d = f.stem[:10]
+            if len(d) < 10 or d < cutoff:
+                continue
+            try:
+                s = json.loads(f.read_text())
+            except Exception:
+                continue
+            s.setdefault("date", d)
+            s["_stem"] = f.stem
+
+            kind  = classify(s)
+            act   = s.get("activity") or {}
+            exs   = [e for e in (s.get("exercises") or []) if e.get("done")]
+            block = s.get("block", "")
+            eff   = s.get("effort")
+
+            date_s = c("dim", datetime.strptime(d, "%Y-%m-%d").strftime("%a %d.%m.%y"))
+            if kind == "cardio":
+                atype = act.get("type", "?")
+                adur  = act.get("duration", "")
+                emoji = ACTIVITY_EMOJI.get(atype, "🏃")
+                label = ACTIVITY_LABEL.get(atype, atype)
+                dur_s = c("dim", f"{adur}min") if adur else ""
+                print(f"   {date_s}   {emoji} {c('orange', label)}  {dur_s}")
+            else:
+                bc    = block_ansi_color(block)
+                names = ", ".join(e.get("name", "?") for e in exs[:4])
+                ell   = "…" if len(exs) > 4 else ""
+                eff_s = c("yellow", f"RPE {eff}") if eff else ""
+                addon = ""
+                if kind == "strength+addon":
+                    atype = act.get("type", "?")
+                    adur  = act.get("duration", "")
+                    addon = f"  {ACTIVITY_EMOJI.get(atype, '⚡')}{c('dim', '+' + str(adur) + 'min') if adur else ''}"
+                print(f"   {date_s}   {c(bc, '[' + (block or '?') + ']')}  "
+                      f"{c('dim', names + ell)}  {eff_s}{addon}")
+            shown += 1
+
+        if shown == 0:
+            window = f"letzten {n_days}d" if n_days < 9999 else "gesamt"
+            print(f"   {c('dim', 'Keine Sessions im Fenster (' + window + ')')}")
+
+    print()
+
+
 # ── Entry-Point ───────────────────────────────────────────────────────────────
 
 def main() -> None:
