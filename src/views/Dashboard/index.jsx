@@ -94,7 +94,7 @@ export default function Dashboard({ user, onOpenSession, onOpenReview, recentDay
     const cutoffDate = new Date(Date.now() - recentDays * 86400000).toISOString().slice(0, 10);
 
     Promise.all([
-      getRecentSessions(Math.max(recentDays * 2, 10)),
+      getRecentSessions(Math.max(recentDays * 2, 30)),
       getAllExercises()
     ]).then(([sessions, kbExercises]) => {
       const safeSessions = Array.isArray(sessions) ? sessions.filter(Boolean).map(s => ({
@@ -174,7 +174,7 @@ export default function Dashboard({ user, onOpenSession, onOpenReview, recentDay
       case 'heatmap':
         return <ActivityHeatmap rollingDays={rollingDays} sessionByDate={sessionByDate} today={today} onNavigate={onNavigate} />;
       case 'body':
-        return <MuscleBody enrichedRecent={enrichedRecent} recentDays={recentDays} highlighterMode={dashboardHighlighter} gender={gender} />;
+        return <MuscleBody allSessions={recent} enrichedRecent={enrichedRecent} recentDays={recentDays} highlighterMode={dashboardHighlighter} gender={gender} />;
       case 'coverage':
         return <MuscleCoverage coverage={coverage} recentDays={recentDays} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />;
       case 'weight':
