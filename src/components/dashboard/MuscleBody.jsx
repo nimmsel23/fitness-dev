@@ -42,15 +42,16 @@ const ACTIVITY_MUSCLES = {
 // Cardio: kürzeres Fenster (schnellere Erholung), kein Rot (kein Muskeltrauma)
 function superKompFreq(daysSince, isCardio = false) {
   if (isCardio) {
-    if (daysSince <= 1) return 2;   // gelb: kurze Erholung
-    if (daysSince <= 3) return 3;   // grün: bereit
-    if (daysSince <= 10) return 4;  // blau: noch aktiv
+    if (daysSince <= 1) return 1;   // rot: frisch
+    if (daysSince <= 4) return 2;   // gelb: Erholung
+    if (daysSince <= 10) return 3;  // grün: bereit
     return 0;
   }
-  if (daysSince <= 2) return 1;
-  if (daysSince <= 4) return 2;
-  if (daysSince <= 7) return 3;
-  if (daysSince <= 21) return 4;
+  // HIT: maximaler Reiz → langer Erholungszyklus
+  if (daysSince <= 3)  return 1;   // rot: Stark belastet
+  if (daysSince <= 7)  return 2;   // gelb: Erholung
+  if (daysSince <= 14) return 3;   // grün: Superkompensation — jetzt!
+  if (daysSince <= 21) return 4;   // blau: Fenster schließt sich
   return 0;
 }
 
@@ -83,10 +84,10 @@ function buildLastTrainedMap(sessions) {
 const SUPERKOMP_COLORS = ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6'];
 
 const LEGEND = [
-  { freq: 1, color: '#ef4444', label: '0–2 Tage', sub: 'Erholung' },
-  { freq: 2, color: '#f59e0b', label: '3–4 Tage', sub: 'fast bereit' },
-  { freq: 3, color: '#22c55e', label: '5–7 Tage', sub: 'Peak — jetzt!' },
-  { freq: 4, color: '#3b82f6', label: '8–21 Tage', sub: 'past Peak' },
+  { color: '#ef4444', label: '0–3 Tage',  sub: 'Stark belastet' },
+  { color: '#f59e0b', label: '3–7 Tage',  sub: 'Erholung' },
+  { color: '#22c55e', label: '7–14 Tage', sub: 'Superkompensation' },
+  { color: '#3b82f6', label: '14–21 Tage', sub: 'Fenster schließt sich' },
 ];
 
 export default function MuscleBody({ allSessions, enrichedRecent, recentDays = 7, highlighterMode = 'body', gender = 'male' }) {

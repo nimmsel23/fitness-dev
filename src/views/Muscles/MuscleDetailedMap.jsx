@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { User, MoveHorizontal, Search, Info } from "lucide-react";
+import { User, Info } from "lucide-react";
 import DetailedMuscleMap from "../../components/DetailedMuscleMap.jsx";
 
-export default function MuscleDetailedMap({ exercises, gender, onGroupClick }) {
+export default function MuscleDetailedMap({ scores, gender, onGroupClick }) {
   const [side, setSide] = useState("front");
   const [currentGender, setCurrentGender] = useState(gender || "male");
-  const colors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444'];
   
   function handlePress(slug) {
     if (onGroupClick) onGroupClick(slug);
@@ -40,12 +39,12 @@ export default function MuscleDetailedMap({ exercises, gender, onGroupClick }) {
 
        {/* Intensity Legend */}
        <div className="absolute bottom-0 left-0 z-20 bg-fit-card/80 backdrop-blur-md p-4 rounded-2xl border border-fit-line shadow-lg space-y-3">
-          <div className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40 mb-1">Intensität (Hits)</div>
+          <div className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40 mb-1">Superkompensation</div>
           <div className="flex flex-col gap-2">
-             <LegendRow color={colors[3]} label="6+" />
-             <LegendRow color={colors[2]} label="4-5" />
-             <LegendRow color={colors[1]} label="2-3" />
-             <LegendRow color={colors[0]} label="1" />
+             <LegendRow color="#ef4444" label="Stark belastet (0–3d)" />
+             <LegendRow color="#f59e0b" label="Erholung (3–7d)" />
+             <LegendRow color="#22c55e" label="Superkompensation (7–14d)" />
+             <LegendRow color="#3b82f6" label="Fenster schließt sich (14–21d)" />
           </div>
        </div>
 
@@ -57,11 +56,10 @@ export default function MuscleDetailedMap({ exercises, gender, onGroupClick }) {
 
        {/* The Actual Map */}
        <div className="flex-1 flex items-center justify-center p-4">
-          <DetailedMuscleMap 
-             exercises={exercises} 
-             gender={currentGender} 
+          <DetailedMuscleMap
+             groupScores={scores}
+             gender={currentGender}
              side={side}
-             colors={colors}
              onGroupClick={handlePress}
            />
        </div>

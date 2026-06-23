@@ -1,35 +1,13 @@
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef } from 'react';
 import { BodyChart } from 'body-muscles';
 import { BODY_MUSCLES_SLUGS } from '../../lib/muscleMapping';
 
-export default function BodyMusclesMap({
-  side = 'front',
-  onMuscleClick,
-  exercises = []
-}) {
+export default function BodyMusclesMap({ side = 'front', onMuscleClick, selectedExercise }) {
   const containerRef = useRef(null);
   const chartRef = useRef(null);
 
-  const highlightedMuscles = useMemo(() => {
-    const muscleHits = {};
-    exercises.forEach(ex => {
-      const muscles = [...(ex.primaryMuscles || []), ...(ex.secondaryMuscles || [])];
-      muscles.forEach(m => {
-        const key = String(m || '').toLowerCase().trim();
-        const slug = BODY_MUSCLES_SLUGS[key] || BODY_MUSCLES_SLUGS[key.replace(/_/g, ' ')];
-        if (slug) muscleHits[slug] = (muscleHits[slug] || 0) + 1;
-      });
-    });
-    return Object.entries(muscleHits).map(([slug, hits]) => ({
-      slug,
-      intensity: Math.min(10, hits * 2)
-    }));
-  }, [exercises]);
-
   useEffect(() => {
     if (!containerRef.current) return;
-
-    // Initialize the BodyChart
     chartRef.current = new BodyChart(containerRef.current, {
       view: side === 'front' ? 'FRONT' : 'BACK',
       bodyState: {},
@@ -38,28 +16,44 @@ export default function BodyMusclesMap({
         if (onMuscleClick) onMuscleClick(baseMuscle);
       }
     });
-
     return () => chartRef.current?.destroy();
-  }, []); // Run once on mount
+  }, []);
 
   useEffect(() => {
     chartRef.current?.update({ view: side === 'front' ? 'FRONT' : 'BACK' });
   }, [side]);
 
   useEffect(() => {
-    if (chartRef.current && highlightedMuscles) {
-      const newState = {};
-      highlightedMuscles.forEach(m => {
-         newState[m.slug] = { intensity: m.intensity || 5, selected: true };
+    if (!chartRef.current) return;
+
+    const bodyState = {};
+
+    if (selectedExercise) {
+      const primary   = selectedExercise.primaryMuscles   || selectedExercise.primary_muscles   || [];
+      const secondary = selectedExercise.secondaryMuscles || selectedExercise.secondary_muscles || [];
+
+      primary.forEach(m => {
+        const slug = BODY_MUSCLES_SLUGS[String(m).toLowerCase().trim()];
+        if (slug) bodyState[slug] = { intensity: 9, selected: true };
       });
-      chartRef.current.update({ bodyState: newState });
+      secondary.forEach(m => {
+        const slug = BODY_MUSCLES_SLUGS[String(m).toLowerCase().trim()];
+        if (slug && !bodyState[slug]) bodyState[slug] = { intensity: 4, selected: false };
+      });
     }
-  }, [highlightedMuscles]);
+
+    chartRef.current.update({ bodyState });
+  }, [selectedExercise]);
 
   return (
-    <div className="w-full flex items-center justify-center p-4 touch-pan-y">
-      <div 
-        ref={containerRef} 
+    <div className="w-full flex flex-col items-center justify-center p-4 touch-pan-y">
+      {!selectedExercise && (
+        <p className="text-[11px] font-bold opacity-30 uppercase tracking-widest mb-4">
+          Übung aus der Library wählen
+        </p>
+      )}
+      <div
+        ref={containerRef}
         className="w-full max-w-[400px] min-h-[500px] flex items-center justify-center"
         style={{ '--muscle-accent': 'var(--accent)', '--muscle-bg': 'var(--bg2)' }}
       />

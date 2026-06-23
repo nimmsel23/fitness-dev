@@ -9,9 +9,9 @@ import MuscleBodyMap from "./MuscleBodyMap";
 import MuscleInsights from "./MuscleInsights";
 import AnatomyDetailModal from "../../components/AnatomyDetailModal";
 
-const CAT_HEAVY = 72;
-const CAT_RECOVERING = 96;
-const CAT_SUPER = 168;
+const CAT_HEAVY     = 72;   // < 3 Tage: stark belastet
+const CAT_RECOVERING = 168;  // 3–7 Tage: Erholung
+const CAT_SUPER      = 336;  // 7–14 Tage: Superkompensation
 const MUSCLE_GROUPS = [
   "chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves"
 ];

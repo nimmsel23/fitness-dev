@@ -102,9 +102,9 @@ export default function Learn({ onInspectExercise, muscleLanguage = 'de', taxono
         </div>
       ) : (
         <div className="animate-in fade-in duration-300 max-w-5xl mx-auto">
-           <AnatomyExplorer 
-              exercises={exercises} 
-              onMuscleClick={setSelectedMuscleId} 
+           <AnatomyExplorer
+              selectedExercise={selected}
+              onMuscleClick={setSelectedMuscleId}
            />
         </div>
       )}
