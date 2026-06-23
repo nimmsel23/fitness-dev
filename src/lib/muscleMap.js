@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 
-const AGENT_BASE = 'http://localhost:9120';
+const AGENT_BASE = import.meta.env.MODE === 'firebase' ? null : 'http://localhost:9120';
+const EMPTY = { rbh: {}, body_muscles: {}, body_muscles_slugs: {} };
 
 let cache = null;
 let pending = null;
@@ -11,11 +12,16 @@ function notify() {
 }
 
 async function load() {
+  if (!AGENT_BASE) {
+    cache = EMPTY;
+    notify();
+    return;
+  }
   try {
     const res = await fetch(`${AGENT_BASE}/muscles/viz`);
-    cache = res.ok ? await res.json() : { rbh: {}, body_muscles: {}, body_muscles_slugs: {} };
+    cache = res.ok ? await res.json() : EMPTY;
   } catch {
-    cache = { rbh: {}, body_muscles: {}, body_muscles_slugs: {} };
+    cache = EMPTY;
   }
   notify();
 }
