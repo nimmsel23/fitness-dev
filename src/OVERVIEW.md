@@ -42,11 +42,16 @@ Rendert Sidebar (Desktop), MobileNav (Mobile), ExerciseInsightModal (global) und
 | `#inbox` | `Inbox/` | kein Einstiegspunkt für User, kein Badge |
 | `#gate` | `AppGate.jsx` | nur wenn `navMode=home` |
 
+### Aktive Sub-Views (kein Nav-Tab, aber eingebunden)
+
+| Ordner | Eingebunden in | Status |
+|--------|---------------|--------|
+| `Muscles/` | `WeeklyReview/` als Subtab `muscles` | ⚠️ AKTIV — NICHT als inaktiv markieren |
+
 ### Inaktive Views (Code vorhanden, nicht eingebunden)
 
 | Ordner | Status |
 |--------|--------|
-| `Muscles/` | War früher Tab, aus Nav entfernt. Code vollständig, kann reaktiviert werden. |
 | `Habits.bak2/` | Archiviert. Habits läuft jetzt als Federation-Remote. |
 | `Journal.bak2/` | Archiviert. Journal läuft jetzt als Federation-Remote. |
 
@@ -61,9 +66,9 @@ Rendert Sidebar (Desktop), MobileNav (Mobile), ExerciseInsightModal (global) und
 | `ExerciseInsightModal.jsx` | Globales Modal für Übungsdetails — wird von App.jsx gehalten, alle Views rufen `onInspectExercise()` auf |
 | `ExerciseSearchOverlay.jsx` | Vollbild-Suche (lokal + wger + yuhonas) mit Favoriten |
 | `AnatomyDetailModal.jsx` | Muskel-Detail-Modal (Ursprung, Ansatz, Innervation) — per Muskel-Klick in BodyMap |
-| `BodyMap.jsx` | Anterior/Posterior BodyMap via `react-body-highlighter` |
-| `DetailedMuscleMap.jsx` | Granulare anatomische Karte (70+ Regionen) via `body-muscles`-Library |
-| `MuscleHighlightMap.jsx` | Heatmap-Variante der DetailedMuscleMap |
+| `BodyMap.jsx` | Anterior/Posterior BodyMap via `react-body-highlighter` — Input: `[{ slug, muscles, frequency }]` |
+| `DetailedMuscleMap.jsx` | Granulare anatomische Karte (70+ Regionen) via `react-muscle-highlighter` — Input: `groupScores { [group]: { score, color } }` |
+| `MuscleHighlightMap.jsx` | Heatmap-Variante, nutzt `body-muscles` BodyChart — Input: `bodyState { [granularId]: { intensity, selected } }` |
 | `HabitWidget.jsx` | Habit-Übersicht (fetcht selbst, kein Prop-Drilling) |
 | `HabitJournalModal.jsx` | Modal für Habit-Notizen |
 | `PlanBuilder.jsx` | Trainingsplan-Generator-UI |

@@ -13,13 +13,18 @@ const LEARN_ROOT   = resolve(__dirname, '../learn-vos')
 const FUEL_ROOT    = resolve('/home/alpha/fuel-dev')
 const BACKEND      = 'http://localhost:9100'
 
-// Context-aware @db resolver: journal-dev files → journal db, rest → vitalos db
+// Context-aware @db resolver: journal+habits views → journal db, rest → vitalos db
+// Die Views kommen via Symlink aus fitness-dev/src/views/ (echter Pfad),
+// aber auch direkt aus journal-vos/src/ — beide Pfade abdecken.
 function journalDbPlugin(isFirebase) {
   const journalDb = resolve(JOURNAL_ROOT, isFirebase ? 'src/db.firestore.js' : 'src/db.js')
   return {
     name: 'journal-db-resolver',
     resolveId(id, importer) {
-      if (id === '@db' && importer?.includes('/journal-vos/')) return journalDb
+      if (id !== '@db' || !importer) return
+      if (importer.includes('/journal-vos/')) return journalDb
+      // Symlink-aufgelöste Pfade: src/views/Journal/ und src/views/Habits/
+      if (importer.includes('/src/views/Journal/') || importer.includes('/src/views/Habits/')) return journalDb
     },
   }
 }

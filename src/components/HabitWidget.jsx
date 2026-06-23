@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Check, BookOpen } from 'lucide-react'
-import { getHabits, recordHabit, localToday } from '@db'
-import HabitJournalModal from './HabitJournalModal.jsx'
+import { getHabits, recordHabit, localToday, getHabitJournal, saveHabitJournal } from '@db'
+import HabitJournalModal from '../views/Habits/HabitJournalModal.jsx'
 
 function epochDayNow() {
   return Math.floor(Date.now() / 86400000)
@@ -23,11 +23,13 @@ export default function HabitWidget() {
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState('')
   const [modalHabit, setModalHabit] = useState(null)
+  const [journalText, setJournalText] = useState('')
+  const [isJournalSaving, setIsJournalSaving] = useState(false)
   const todayEpochDay = useMemo(() => epochDayNow(), [])
+  const today = localToday()
 
   useEffect(() => {
     let alive = true
-
     async function load() {
       setLoading(true)
       setErr('')
@@ -35,7 +37,7 @@ export default function HabitWidget() {
         const data = await getHabits()
         if (!alive) return
         setHabits(data)
-      } catch (e) {
+      } catch {
         if (!alive) return
         setErr('Habits nicht erreichbar')
         setHabits([])
@@ -43,13 +45,28 @@ export default function HabitWidget() {
         if (alive) setLoading(false)
       }
     }
-
     load()
     return () => { alive = false }
   }, [])
 
+  async function openJournal(habit) {
+    setJournalText('')
+    setModalHabit(habit)
+    const j = await getHabitJournal(habit.uuid, today)
+    if (j?.text) setJournalText(j.text)
+  }
+
+  async function onSaveJournal() {
+    if (!modalHabit) return
+    setIsJournalSaving(true)
+    try {
+      await saveHabitJournal(modalHabit.uuid, today, journalText)
+    } finally {
+      setIsJournalSaving(false)
+    }
+  }
+
   async function checkIn(uuid) {
-    // Optimistic update: mark as DONE for today locally.
     setHabits(prev => prev.map(h => {
       if (h.uuid !== uuid) return h
       const records = Array.isArray(h.records) ? [...h.records] : []
@@ -59,11 +76,9 @@ export default function HabitWidget() {
       else records.push(nextRec)
       return { ...h, records }
     }))
-
     try {
       await recordHabit(uuid)
     } catch {
-      // Revert on failure.
       setHabits(prev => prev.map(h => {
         if (h.uuid !== uuid) return h
         const records = (h.records || []).filter(r => r.epochDay !== todayEpochDay)
@@ -80,13 +95,8 @@ export default function HabitWidget() {
         Habits (heute)
       </div>
 
-      {loading && (
-        <div className="text-sm" style={{ color: 'var(--dim)' }}>Lade…</div>
-      )}
-
-      {!loading && err && (
-        <div className="text-sm" style={{ color: 'var(--red)' }}>{err}</div>
-      )}
+      {loading && <div className="text-sm" style={{ color: 'var(--dim)' }}>Lade…</div>}
+      {!loading && err && <div className="text-sm" style={{ color: 'var(--red)' }}>{err}</div>}
 
       <div className="flex flex-col gap-2">
         {habits.map(h => {
@@ -113,14 +123,15 @@ export default function HabitWidget() {
               </div>
 
               <div className="flex items-center gap-1.5">
-                <button 
-                  onClick={() => setModalHabit(h)}
-                  className="p-2 rounded-xl border border-fit-line hover:bg-bg2 transition-all text-fit-dim hover:text-accent"
+                <button
+                  onClick={() => openJournal(h)}
+                  className="p-2 rounded-xl transition-all"
+                  style={{ border: '1px solid var(--line)', color: 'var(--dim)' }}
                 >
                   <BookOpen size={16} />
                 </button>
                 {done ? (
-                  <div className="flex items-center justify-center w-10 h-9 text-fit-green">
+                  <div className="flex items-center justify-center w-10 h-9" style={{ color: 'var(--green)' }}>
                     <Check size={18} className="stroke-[3]" />
                   </div>
                 ) : (
@@ -138,11 +149,15 @@ export default function HabitWidget() {
         })}
       </div>
 
-      <HabitJournalModal 
-        isOpen={!!modalHabit} 
+      <HabitJournalModal
+        open={!!modalHabit}
         onClose={() => setModalHabit(null)}
         habit={modalHabit}
-        date={localToday()}
+        date={today}
+        journalText={journalText}
+        setJournalText={setJournalText}
+        isJournalSaving={isJournalSaving}
+        onSaveJournal={onSaveJournal}
       />
     </div>
   )

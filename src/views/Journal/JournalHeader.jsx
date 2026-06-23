@@ -1,6 +1,6 @@
-import { ChevronLeft, ChevronRight, CalendarDays, Book } from "lucide-react";
+import { ChevronLeft, ChevronRight, Book, Settings2 } from "lucide-react";
 
-export default function JournalHeader({ date, setDate, localToday, formatRelativeDate }) {
+export default function JournalHeader({ date, setDate, localToday, formatRelativeDate, onOpenSettings }) {
   return (
     <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
       <div>
@@ -13,6 +13,15 @@ export default function JournalHeader({ date, setDate, localToday, formatRelativ
          </h1>
       </div>
       
+      <div className="flex items-center gap-2">
+        {onOpenSettings && (
+          <button
+            onClick={onOpenSettings}
+            className="w-10 h-10 rounded-2xl bg-[var(--card)] border border-[var(--line)] flex items-center justify-center text-[var(--dim)] hover:text-[var(--accent)] hover:border-[var(--accent)]/40 transition-all shadow-xl"
+          >
+            <Settings2 size={16} />
+          </button>
+        )}
       <div className="flex items-center gap-2 bg-[var(--card)] p-1.5 rounded-2xl border border-[var(--line)] shadow-xl">
         <button onClick={() => {
           const d = new Date(date);
@@ -36,6 +45,7 @@ export default function JournalHeader({ date, setDate, localToday, formatRelativ
           }} className="p-2.5 rounded-xl hover:bg-[var(--bg2)] text-[var(--dim)] transition-all disabled:opacity-10">
           <ChevronRight size={20} />
         </button>
+      </div>
       </div>
     </header>
   );

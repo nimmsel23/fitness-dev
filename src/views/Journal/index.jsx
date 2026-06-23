@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { saveJournal, updateJournal, getHabits, getJournalHistory, getAllHabitJournalsHistory, getSessionHistory, getHabitJournal, saveHabitJournal } from "@db";
 import { localToday } from "@utils";
 import { Book, PenLine } from "lucide-react";
+import JournalSettings from "./JournalSettings";
 import { ICON_COMPONENTS_MAP } from "../Habits/utils";
 import JournalHeader from "./JournalHeader";
 import JournalForm from "./JournalForm";
@@ -46,7 +47,16 @@ export default function Journal({ onOpenSession }) {
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [editingEntry, setEditingEntry] = useState(null);
   const [limitCount, setLimitCount] = useState(30);
-  const [colorActivities, setColorActivities] = useState(() => localStorage.getItem('journal_colorActivities') === 'true');
+  const [showSettings, setShowSettings] = useState(false);
+  const [journalSettings, setJournalSettings] = useState(() => ({
+    colorActivities: localStorage.getItem('journal_colorActivities') === 'true',
+  }));
+  const colorActivities = journalSettings.colorActivities;
+
+  function handleSettingChange(key, value) {
+    setJournalSettings(prev => ({ ...prev, [key]: value }));
+    localStorage.setItem(`journal_${key}`, value);
+  }
 
   const [journalModalOpen, setJournalModalOpen] = useState(false);
   const [selectedHabitForJournal, setSelectedHabitForJournal] = useState(null);
@@ -220,11 +230,12 @@ export default function Journal({ onOpenSession }) {
 
   return (
     <div className="pb-32 max-w-3xl mx-auto px-2">
-      <JournalHeader 
-        date={date} 
-        setDate={setDate} 
-        localToday={localToday()} 
-        formatRelativeDate={formatRelativeDate} 
+      <JournalHeader
+        date={date}
+        setDate={setDate}
+        localToday={localToday()}
+        formatRelativeDate={formatRelativeDate}
+        onOpenSettings={() => setShowSettings(true)}
       />
 
       <div className="space-y-12">
@@ -274,24 +285,7 @@ export default function Journal({ onOpenSession }) {
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-2 -mb-6 mt-6">
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={colorActivities}
-              onChange={e => {
-                setColorActivities(e.target.checked);
-                localStorage.setItem('journal_colorActivities', e.target.checked);
-              }}
-              className="w-3.5 h-3.5 accent-[var(--accent)]"
-            />
-            <span className="text-[9px] font-black uppercase tracking-widest opacity-40 hover:opacity-70 transition-opacity">
-              Ausdauer farbig
-            </span>
-          </label>
-        </div>
-
-        <div className="space-y-12 mt-12">
+<div className="space-y-12 mt-12">
           {timeline.length > 0 ? (
             timeline.map((group) => {
               const habitJournalIds = new Set(group.entries.filter(e => e.type === 'habit').map(e => e.habitId));
@@ -383,6 +377,14 @@ export default function Journal({ onOpenSession }) {
           setJournalText={setJournalText}
           isJournalSaving={isJournalSaving}
           onSaveJournal={onSaveJournal}
+        />
+      )}
+
+      {showSettings && (
+        <JournalSettings
+          settings={journalSettings}
+          onChange={handleSettingChange}
+          onClose={() => setShowSettings(false)}
         />
       )}
     </div>

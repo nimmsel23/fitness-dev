@@ -50,10 +50,30 @@ export function translateMuscleGroup(groupId, lang = 'de') {
   return GROUP_TRANSLATIONS[l]?.[groupId] || groupId;
 }
 
+// Maps numeric muscle slug prefix → group ID
+function numericSlugToGroup(id) {
+  const m = String(id).match(/^(\d+)/);
+  if (!m) return null;
+  const n = parseInt(m[1]);
+  if (n >= 100 && n < 200) return 'chest';
+  if (n >= 200 && n < 300) return 'back';
+  if (n >= 300 && n < 400) return 'shoulders';
+  if (n >= 400 && n < 500) return 'arms';
+  if (n >= 500 && n < 600) return 'core';
+  if (n >= 600 && n < 700) {
+    if (n <= 602) return 'glutes';
+    if (n === 603) return 'quads';
+    if (n === 604) return 'hamstrings';
+    return 'legs';
+  }
+  if (n >= 700 && n < 800) return 'calves';
+  return null;
+}
+
 export function translateMuscle(muscleId, taxonomy = null, lang = 'de') {
   if (!muscleId) return '';
-  
-  // 1. Check taxonomy if available
+
+  // 1. Taxonomy lookup (granular label)
   if (taxonomy && taxonomy[muscleId]) {
     const m = taxonomy[muscleId];
     if (lang === 'de' && m.label_de) return m.label_de;
@@ -62,12 +82,16 @@ export function translateMuscle(muscleId, taxonomy = null, lang = 'de') {
     return m.display_name || muscleId;
   }
 
-  // 2. Fallback for group IDs
+  // 2. Direct group ID (chest, back, …)
   if (GROUP_TRANSLATIONS.de[muscleId]) {
     return translateMuscleGroup(muscleId, lang);
   }
 
-  // 3. Fallback: cleaning up slugs
+  // 3. Numeric slug (201_latissimus_dorsi → back → "Rücken")
+  const group = numericSlugToGroup(muscleId);
+  if (group) return translateMuscleGroup(group, lang);
+
+  // 4. Last resort: prettify the slug
   return muscleId
     .replace(/^\d+_/, '')
     .split('_')
