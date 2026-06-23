@@ -1,9 +1,11 @@
 /**
  * ActivitySection — Dedicated Cardio/Endurance Logger
- * 
+ *
  * Used when sessionMode === 'cardio'. Replaces the old ExerciseSection entirely.
  * Activity types cover the main endurance/sport disciplines.
  */
+
+import { ACTIVITY_MUSCLE_DEFAULTS, MUSCLE_TARGET_GROUPS } from '../../constants/ActivityConstants';
 
 const ACTIVITY_TYPES = [
   { value: 'running',   label: 'Laufen',      icon: '🏃' },
@@ -18,8 +20,15 @@ const ACTIVITY_TYPES = [
   { value: 'walking',   label: 'Spazieren',   icon: '🚶' },
 ];
 
+const MUSCLE_TARGETS = [
+  { value: 'core',  label: 'Core' },
+  { value: 'legs',  label: 'Beine' },
+  { value: 'full',  label: 'Full Body' },
+];
+
 export default function ActivitySection({ activity, setActivity }) {
   const selected = ACTIVITY_TYPES.find(t => t.value === activity.type) || ACTIVITY_TYPES[0];
+  const activeTarget = activity.muscleTarget || ACTIVITY_MUSCLE_DEFAULTS[activity.type] || 'full';
 
   return (
     <div className="space-y-6">
@@ -34,7 +43,10 @@ export default function ActivitySection({ activity, setActivity }) {
             return (
               <button
                 key={t.value}
-                onClick={() => setActivity({ ...activity, type: t.value })}
+                onClick={() => {
+                  const target = ACTIVITY_MUSCLE_DEFAULTS[t.value] || 'full';
+                  setActivity({ ...activity, type: t.value, muscleTarget: target, muscles: MUSCLE_TARGET_GROUPS[target] });
+                }}
                 className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border transition-all ${
                   isActive
                     ? 'border-fit-orange bg-fit-orange/10 shadow-lg shadow-orange/10'
@@ -53,16 +65,33 @@ export default function ActivitySection({ activity, setActivity }) {
         </div>
       </div>
 
-      {/* Selected Activity Summary */}
-      <div className="flex items-center gap-3 p-4 rounded-2xl bg-fit-orange/5 border border-fit-orange/20">
-        <span className="text-3xl">{selected.icon}</span>
-        <div>
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-orange">
-            {selected.label}
+      {/* Selected Activity Summary + Muscle Target */}
+      <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-fit-orange/5 border border-fit-orange/20">
+        <div className="flex items-center gap-3">
+          <span className="text-3xl">{selected.icon}</span>
+          <div>
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-orange">
+              {selected.label}
+            </div>
+            <div className="text-[11px] text-fit-dim/40 font-medium mt-0.5">
+              Ausdauer · Cardio
+            </div>
           </div>
-          <div className="text-[11px] text-fit-dim/40 font-medium mt-0.5">
-            Ausdauer · Cardio
-          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {MUSCLE_TARGETS.map(t => (
+            <button
+              key={t.value}
+              onClick={() => setActivity({ ...activity, muscleTarget: t.value, muscles: MUSCLE_TARGET_GROUPS[t.value] })}
+              className={`px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wider transition-all ${
+                activeTarget === t.value
+                  ? 'border-fit-orange bg-fit-orange/15 text-fit-orange'
+                  : 'border-fit-line bg-fit-bg2 text-fit-dim hover:border-fit-orange/30'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
       </div>
 

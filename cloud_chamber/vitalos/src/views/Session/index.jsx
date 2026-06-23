@@ -23,7 +23,7 @@ const SESSION_MODES = [
   { value: 'cardio',   label: 'Ausdauer',      icon: Activity,  color: 'orange' },
 ];
 
-export default function Session({ initialDate, initialDraft, onInspectExercise }) {
+export default function Session({ initialDate, initialDraft, onInspectExercise, recentDays = 7, coverageThreshold = 1.0 }) {
   const [date, setDate]           = useState(initialDate || localToday());
   const [sessionMode, setSessionMode] = useState('strength');
   const [block, setBlock]         = useState('');
@@ -33,11 +33,12 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
   const [duration, setDuration]   = useState('');
   const [trainingsart, setTrainingsart] = useState('');
   const [notes, setNotes]         = useState('');
+  const [coachFeedback, setCoachFeedback] = useState('');
   const [saving, setSaving]       = useState(false);
   const [toast, setToast]         = useState('');
   const [quickInput, setQuickInput] = useState('');
   const [restHours, setRestHours]   = useState(null);
-  const [activity, setActivity]   = useState({ type: 'running', duration: '', notes: '' });
+  const [activity, setActivity]   = useState({ type: 'running', duration: '', notes: '', muscleTarget: 'legs', muscles: ['quads', 'hamstrings', 'glutes', 'calves'] });
   // hasActivity: true when a cardio ADDON is attached to a strength session
   // (different from sessionMode==='cardio' where activity IS the session)
   const [hasActivity, setHasActivity] = useState(false);
@@ -65,6 +66,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     setLocation(d.location || '');
     setDuration(d.duration || '');
     setNotes(d.notes || '');
+    setCoachFeedback(d.coachFeedback || '');
     setTrainingsart(d.trainingsart || '');
     if (d.sessionMode) {
       setSessionMode(d.sessionMode);
@@ -75,12 +77,12 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       setSessionMode('strength');
     }
     if (d.activity) {
-      setActivity({ type: 'hiit', duration: '', notes: '', ...d.activity });
+      setActivity({ type: 'hiit', duration: '', notes: '', muscleTarget: 'core', muscles: ['core'], ...d.activity });
       // In strength mode, activity is an addon → set hasActivity
       if (d.sessionMode !== 'cardio') setHasActivity(true);
       else setHasActivity(false);
     } else {
-      setActivity({ type: 'hiit', duration: '', notes: '' });
+      setActivity({ type: 'hiit', duration: '', notes: '', muscleTarget: 'core', muscles: ['core'] });
       setHasActivity(false);
     }
   };
@@ -92,9 +94,10 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     setLocation('');
     setDuration('');
     setNotes('');
+    setCoachFeedback('');
     setTrainingsart('');
     setSessionMode('strength');
-    setActivity({ type: 'hiit', duration: '', notes: '' });
+    setActivity({ type: 'hiit', duration: '', notes: '', muscleTarget: 'core', muscles: ['core'] });
     setHasActivity(false);
   };
 
@@ -174,8 +177,8 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
     
     // Local Intelligence: Fetch Plan and Gaps
     getPlanSuggestion(date).then(setHint).catch(() => {});
-    getCoverageGaps(7).then(setGaps).catch(() => {});
-  }, [date]);
+    getCoverageGaps(recentDays, coverageThreshold).then(setGaps).catch(() => {});
+  }, [date, recentDays, coverageThreshold]);
 
   const doneExercises = exercises;
 
@@ -286,7 +289,8 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
       }
       const list = await listSessionsForDate(date);
       setDaySessions(list);
-      const gaps = await getCoverageGaps(7);
+      // Update gaps after save
+      const gaps = await getCoverageGaps(recentDays, coverageThreshold);
       setGaps(gaps);
     } catch { if (!silent) showToast('Fehler beim Speichern'); }
     finally { setSaving(false); }
@@ -548,17 +552,6 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
             </div>
           )}
 
-          {/* Gap hints */}
-          {gaps.length > 0 && (
-            <div className="card p-6 border-fit-red/20 bg-fit-red/5">
-              <div className="text-[10px] font-black uppercase tracking-widest text-fit-red mb-4">Coverage-Lücken</div>
-              <div className="flex flex-wrap gap-2">
-                {gaps.map(g => (
-                  <span key={g.name} className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border bg-fit-red/10 text-fit-red border-fit-red/20">{g.name}</span>
-                ))}
-              </div>
-            </div>
-          )}
         </main>
       </div>
 
@@ -596,6 +589,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise }
           notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
           onDownload={handleDownload}
           onExportObsidian={exportObsidian}
+          coachFeedback={coachFeedback}
         />
       )}
 

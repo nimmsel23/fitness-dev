@@ -7,6 +7,13 @@
  */
 
 import { Plus, X } from 'lucide-react';
+import { ACTIVITY_MUSCLE_DEFAULTS, MUSCLE_TARGET_GROUPS } from '../../constants/ActivityConstants';
+
+const MUSCLE_TARGETS = [
+  { value: 'core',  label: 'Core' },
+  { value: 'legs',  label: 'Beine' },
+  { value: 'full',  label: 'Full Body' },
+];
 
 const ADDON_TYPES = [
   { value: 'hiit',      label: 'HIIT',        icon: '⚡' },
@@ -25,7 +32,10 @@ export default function ActivityAddon({ hasActivity, setHasActivity, activity, s
   if (!hasActivity) {
     return (
       <button
-        onClick={() => setHasActivity(true)}
+        onClick={() => {
+          setHasActivity(true);
+          setActivity({ type: 'hiit', duration: '', notes: '', muscleTarget: 'core', muscles: ['core'] });
+        }}
         className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-2xl border border-dashed border-fit-line text-fit-dim hover:border-fit-orange/40 hover:text-fit-orange hover:bg-fit-orange/5 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-200"
       >
         <Plus size={13} strokeWidth={3} />
@@ -68,7 +78,10 @@ export default function ActivityAddon({ hasActivity, setHasActivity, activity, s
             return (
               <button
                 key={t.value}
-                onClick={() => setActivity({ ...activity, type: t.value })}
+                onClick={() => {
+                  const target = ACTIVITY_MUSCLE_DEFAULTS[t.value] || 'full';
+                  setActivity({ ...activity, type: t.value, muscleTarget: target, muscles: MUSCLE_TARGET_GROUPS[target] });
+                }}
                 title={t.label}
                 className={`flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl border transition-all ${
                   isActive
@@ -82,6 +95,29 @@ export default function ActivityAddon({ hasActivity, setHasActivity, activity, s
                 }`}>
                   {t.label}
                 </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Muscle Target Switch */}
+      <div className="flex items-center gap-2">
+        <span className="text-[9px] font-black uppercase tracking-widest text-fit-dim/40 shrink-0">Ziel</span>
+        <div className="flex gap-1">
+          {MUSCLE_TARGETS.map(t => {
+            const isActive = (activity.muscleTarget || ACTIVITY_MUSCLE_DEFAULTS[activity.type] || 'full') === t.value;
+            return (
+              <button
+                key={t.value}
+                onClick={() => setActivity({ ...activity, muscleTarget: t.value, muscles: MUSCLE_TARGET_GROUPS[t.value] })}
+                className={`px-3 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wider transition-all ${
+                  isActive
+                    ? 'border-fit-orange bg-fit-orange/15 text-fit-orange'
+                    : 'border-fit-line bg-fit-bg2 text-fit-dim hover:border-fit-orange/30'
+                }`}
+              >
+                {t.label}
               </button>
             );
           })}
