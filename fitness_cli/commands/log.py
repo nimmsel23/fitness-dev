@@ -347,22 +347,36 @@ def cmd_clients(
         print(c("yellow", "  Keine Klienten in ~/Klienten/ gefunden."))
         raise typer.Exit()
 
-    from ..paths import ACTIVE_UID
     n_days = 9999 if all_ else days
     cutoff = (date.today() - timedelta(days=n_days)).isoformat() if n_days < 9999 else "0000-00-00"
 
-    for uid, meta in registry.items():
+    # deduplizieren: pro Client (slug) einmal ausgeben
+    seen_slugs: set[str] = set()
+    for meta in registry.values():
+        slug = meta["slug"]
+        if slug in seen_slugs:
+            continue
+        seen_slugs.add(slug)
+
         name = meta["name"]
-        sdir = AOS_USERS / uid / "fitness" / "sessions"
+        uids = meta.get("uids") or [meta["uid"]]
 
+        # Alle JSON-Files aus allen UIDs sammeln
+        all_files: list[Path] = []
+        for uid in uids:
+            sdir = AOS_USERS / uid / "fitness" / "sessions"
+            if sdir.exists():
+                all_files.extend(sdir.glob("*.json"))
+
+        uid_str = "  ".join(c("muted", u[:12] + "…") for u in uids)
         print(f"\n{c('bold', '── ' + name + ' ' + '─' * max(0, 40 - len(name)))}")
-        print(c("muted", f"   uid: {uid[:16]}…   path: {sdir}"))
+        print(f"   {uid_str}")
 
-        if not sdir.exists() or not list(sdir.glob("*.json")):
+        if not all_files:
             print(f"   {c('yellow', '○ Kein lokaler Sync — Firestore-Pull nötig')}")
             continue
 
-        files = sorted(sdir.glob("*.json"), reverse=True)
+        files = sorted(all_files, key=lambda f: f.stem, reverse=True)
         shown = 0
         for f in files:
             d = f.stem[:10]

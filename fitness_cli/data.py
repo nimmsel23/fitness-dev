@@ -154,18 +154,24 @@ def load_client_registry() -> dict[str, dict]:
             data = json.loads(cfg.read_text())
         except Exception:
             continue
-        uid = data.get("firebase_uid") or data.get("uid")
-        if not uid:
+        uids = list(data.get("firebase_uids") or [])
+        primary = data.get("firebase_uid") or data.get("uid")
+        if primary and primary not in uids:
+            uids.insert(0, primary)
+        if not uids:
             continue
         name = data.get("name") or slug_to_name(data.get("id", slug_dir.name))
-        registry[uid] = {
-            "uid":        uid,
+        meta = {
+            "uid":        uids[0],
+            "uids":       uids,
             "name":       name,
             "slug":       data.get("id", slug_dir.name),
             "client_dir": slug_dir,
             "espocrm":    data.get("espocrm"),
             "crm_id":     data.get("crm_id"),
         }
+        for uid in uids:
+            registry[uid] = meta
     return registry
 
 
