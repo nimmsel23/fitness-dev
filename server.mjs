@@ -4,10 +4,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import yaml from "js-yaml";
 import Database from "better-sqlite3";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
-import { mirrorSession, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, readSessions, readSession, readHabits } from "./firestore-mirror.mjs";
+import { mirrorSession, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, readHabits } from "./firestore-mirror.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -339,8 +338,6 @@ app.get("/exercise/:id/teaching", async (c) => {
 });
 
 // ── Inbox Management ─────────────────────────────────────────────────────────
-const EXERCISES_DIR = path.join(__dirname, "catalog", "kb", "exercises");
-
 app.get("/fitness/clients", (c) => {
   const usersDir = path.join(os.homedir(), ".aos", "fitness", "users");
   if (!fs.existsSync(usersDir)) return c.json({ ok: true, clients: [] });

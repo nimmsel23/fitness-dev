@@ -1,7 +1,7 @@
 import { Target, Dumbbell, Clock, Brain, Edit, CheckCircle2 } from "lucide-react";
 import { EFFORT_LABELS, timeStr } from "./journalUtils";
 
-export default function JournalEntry({ e, i, habits, setSelectedEntry, onEdit }) {
+export default function JournalEntry({ e, habits, setSelectedEntry, onEdit }) {
   const isHabit = e.type === 'habit';
   const isWorkout = e.type === 'workout';
   const isHabitCompletion = e.type === 'habit-completion';

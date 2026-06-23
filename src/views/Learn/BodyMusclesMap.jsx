@@ -33,7 +33,7 @@ export default function BodyMusclesMap({
     chartRef.current = new BodyChart(containerRef.current, {
       view: side === 'front' ? 'FRONT' : 'BACK',
       bodyState: {},
-      onMuscleClick: (id, name) => {
+      onMuscleClick: (id) => {
         const baseMuscle = id.split('-')[0];
         if (onMuscleClick) onMuscleClick(baseMuscle);
       }
