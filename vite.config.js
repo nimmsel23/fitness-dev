@@ -36,10 +36,6 @@ export default defineConfig(({ mode }) => {
         '@db':     resolve(__dirname, isFirebase ? './src/db.firestore.js' : './src/db.js'),
         '@utils':  resolve(__dirname, './src/lib/utils.js'),
         '@aliase': resolve(__dirname, './catalog/kb/aliases.yml'),
-        // Federation: lokale Auflösung für regulären Build (ohne Remote)
-        'journal/JournalApp': resolve(__dirname, './cloud_chamber/federation/JournalApp.jsx'),
-        'fuel/FuelApp':       resolve(__dirname, './cloud_chamber/federation/FuelApp.jsx'),
-        'learn/LearnApp':     resolve(__dirname, './cloud_chamber/federation/LearnApp.jsx'),
         // fuel-dev Internals
         '@fuel': resolve('/home/alpha/fuel-dev/src/client'),
       },
