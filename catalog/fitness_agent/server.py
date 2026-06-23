@@ -250,6 +250,124 @@ async def handle_plan(request: web.Request) -> web.Response:
         return web.json_response({"error": str(e)}, status=500)
 
 
+async def handle_coverage_detailed(request: web.Request) -> web.Response:
+    """Detaillierte Coverage-Berechnung: sets × role_weight × effort_factor pro Muskelgruppe.
+
+    Im Gegensatz zum JS-Layer: nutzt KB für granulare Muskeln + Stabilizers,
+    wertet sets und session-RPE aus statt nur Hit-Count.
+    """
+    from .coverage import (
+        ROLE_WEIGHTS, load_coverage_rules, load_muscle_taxonomy,
+        load_body_highlighter_bridge, add_role_scores, build_muscle_alias_map,
+        muscle_regions, effort_factor_for_rpe,
+    )
+    from collections import defaultdict
+    from datetime import date, timedelta
+
+    days = max(1, min(365, int(request.query.get("days", 7))))
+    rules = load_coverage_rules()
+    taxonomy = load_muscle_taxonomy()
+    bridge = load_body_highlighter_bridge()
+    alias_map = build_muscle_alias_map(taxonomy)
+
+    # KB-Index für exercise_id → (primary, secondary, stabilizers)
+    kb_index: dict[str, dict] = {}
+    for ex in build_exercise_index():
+        kb_index[ex.exercise_id] = {
+            "primary":    ex.primary_muscles or [],
+            "secondary":  ex.secondary_muscles or [],
+            "stabilizer": ex.stabilizers or [],
+        }
+
+    sessions_dir = runtime_root() / "sessions"
+    today = date.today()
+    cutoff = today - timedelta(days=days - 1)
+
+    region_scores: dict[str, float] = defaultdict(float)
+    muscle_scores: dict[str, float] = defaultdict(float)
+    per_day: list[dict] = []
+    sessions_found = 0
+
+    for i in range(days):
+        d = cutoff + timedelta(days=i)
+        f = sessions_dir / f"{d}.json"
+        if not f.exists():
+            continue
+        try:
+            session = json.loads(f.read_text())
+        except Exception:
+            continue
+
+        sessions_found += 1
+        rpe = session.get("effort") or 7
+        try:
+            rpe = int(rpe)
+        except (TypeError, ValueError):
+            rpe = 7
+        ef = effort_factor_for_rpe(rpe, rules)
+
+        day_scores: dict[str, float] = defaultdict(float)
+
+        for ex in session.get("exercises") or []:
+            if not ex.get("done", True):
+                continue
+
+            raw_sets = ex.get("sets", "")
+            try:
+                n_sets = max(1, int(str(raw_sets).strip()))
+            except (ValueError, TypeError):
+                n_sets = 1  # HIT oder leer → 1 Set
+
+            ex_id = ex.get("exercise_id") or ""
+            kb = kb_index.get(ex_id)
+
+            if kb:
+                primary    = kb["primary"]
+                secondary  = kb["secondary"]
+                stabilizer = kb["stabilizer"]
+            else:
+                # Fallback: Session-Daten (bereits normalisiert auf Gruppen-Ebene)
+                primary    = ex.get("primaryMuscles") or []
+                secondary  = ex.get("secondaryMuscles") or []
+                stabilizer = []
+
+            add_role_scores(muscle_scores, primary,    n_sets, ROLE_WEIGHTS["primary"],    ef, alias_map)
+            add_role_scores(muscle_scores, secondary,  n_sets, ROLE_WEIGHTS["secondary"],  ef, alias_map)
+            add_role_scores(muscle_scores, stabilizer, n_sets, ROLE_WEIGHTS["stabilizer"], ef, alias_map)
+            add_role_scores(day_scores,    primary,    n_sets, ROLE_WEIGHTS["primary"],    ef, alias_map)
+            add_role_scores(day_scores,    secondary,  n_sets, ROLE_WEIGHTS["secondary"],  ef, alias_map)
+            add_role_scores(day_scores,    stabilizer, n_sets, ROLE_WEIGHTS["stabilizer"], ef, alias_map)
+
+        # Muskel-IDs → Körperregionen
+        day_regions: dict[str, float] = defaultdict(float)
+        for m, score in day_scores.items():
+            for region in (muscle_regions(m, taxonomy, bridge) or [m]):
+                region_scores[region] += score
+                day_regions[region]   += score
+
+        per_day.append({
+            "date":           str(d),
+            "rpe":            rpe,
+            "effort_factor":  ef,
+            "region_scores":  dict(sorted(day_regions.items())),
+        })
+
+    GROUP_ORDER = ["chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves"]
+    groups = [
+        {"id": g, "score": round(region_scores.get(g, 0.0), 2)}
+        for g in GROUP_ORDER
+    ]
+
+    return web.json_response({
+        "ok":             True,
+        "days":           days,
+        "sessions_found": sessions_found,
+        "groups":         groups,
+        "muscle_scores":  {k: round(v, 3) for k, v in sorted(muscle_scores.items())},
+        "per_day":        per_day,
+    })
+
+
 async def handle_weekly(request: web.Request) -> web.Response:
     try:
         week_selector = request.query.get("week", "current")
@@ -481,6 +599,7 @@ def create_app() -> web.Application:
         web.get("/snapshot", handle_snapshot),
         web.get("/plan", handle_plan),
         web.post("/plan", handle_plan),
+        web.get("/coverage/detailed", handle_coverage_detailed),
         web.get("/weekly", handle_weekly),
         web.post("/export/{kind}", handle_export),
         web.post("/inbox/queue", handle_inbox_queue),

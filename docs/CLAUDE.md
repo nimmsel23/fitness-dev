@@ -236,7 +236,6 @@ Port 5902 (dev), Proxy zu Backend API-Routen (:9100).
 | `/session?date=YYYY-MM-DD` | GET/POST | Tageslog — POST macht dual-write (JSON + SQLite) |
 | `/session/history?limit=10` | GET | Letzte N Sessions |
 | `/exercises/search?q=...` | GET | Search lokal + wger + yuhonas |
-| `/coverage/detailed?days=7` | GET | Muscle-Coverage (letzte N Tage) |
 | `/fitness/plan?template=ppl&split=6` | GET | Trainingsplan-Generator |
 | `/fitness/weekly?week=2025-W45` | GET | Wochenreport (week: "current" oder "YYYY-Www") |
 | `/fitness/export` | POST | Session/Plan/Sheet/Lesson-Export |
@@ -295,7 +294,6 @@ cd ~/fitness-dev && python3 -m pytest catalog/tests/
 **Node/Frontend:** Kein strukturierter Test-Suite. Manuelle Tests über Web-UI:
 - Session-Logging auf `/session`-View testen
 - Exercise-Suche mit `/exercises/search` validieren
-- Coverage-Daten unter `/coverage/detailed` prüfen
 - Anatomy-Lehre im `/learn` oder `/session/exercise/:id` anzeigen
 
 ---

@@ -278,10 +278,52 @@ export async function getPlanSuggestion({ template, goal, day } = {}) {
       name: ex.display_name || ex.german || ex.name || id,
       primaryMuscles: ex.primary_muscles || ex.primaryMuscles || [],
       secondaryMuscles: ex.secondary_muscles || ex.secondaryMuscles || [],
+      stabilizers: ex.stabilizers || [],
     };
   }).filter(Boolean);
 
-  return { ok: true, template: templateName, goal: goal || null, slots, exercises: resolvedExercises };
+  const coverage_summary = buildCoverageSummary(resolvedExercises);
+
+  return { ok: true, template: templateName, goal: goal || null, slots, exercises: resolvedExercises, coverage_summary };
+}
+
+const ROLE_WEIGHTS = { primary: 1.0, secondary: 0.5, stabilizer: 0.2 };
+const EFFORT_FACTOR_RPE8 = 1.0;
+const DEFAULT_SETS = 1;
+const DEFAULT_RPE = 8;
+
+function buildCoverageSummary(exercises) {
+  const muscle_scores = {};
+  const body_region_scores = {};
+
+  for (const ex of exercises) {
+    const ef = EFFORT_FACTOR_RPE8;
+
+    const addScore = (muscles, weight) => {
+      for (const m of muscles) {
+        const key = m.toLowerCase().replace(/\s+/g, '_');
+        muscle_scores[key] = (muscle_scores[key] || 0) + DEFAULT_SETS * weight * ef;
+        body_region_scores[key] = (body_region_scores[key] || 0) + DEFAULT_SETS * weight * ef;
+      }
+    };
+
+    addScore(ex.primaryMuscles || [], ROLE_WEIGHTS.primary);
+    addScore(ex.secondaryMuscles || [], ROLE_WEIGHTS.secondary);
+    addScore(ex.stabilizers || [], ROLE_WEIGHTS.stabilizer);
+  }
+
+  const round2 = v => Math.round(v * 100) / 100;
+  const sortedMuscles = Object.fromEntries(Object.entries(muscle_scores).sort().map(([k, v]) => [k, round2(v)]));
+  const sortedRegions = Object.fromEntries(Object.entries(body_region_scores).sort().map(([k, v]) => [k, round2(v)]));
+
+  return {
+    sets: DEFAULT_SETS,
+    rpe: DEFAULT_RPE,
+    selected_exercises: exercises.map(ex => ({ exercise: ex.exercise_id || ex.id, sets: DEFAULT_SETS, rpe: DEFAULT_RPE })),
+    muscle_scores: sortedMuscles,
+    body_region_scores: sortedRegions,
+    unmapped_muscles: [],
+  };
 }
 
 export async function exportFitnessData(_payload) { return null; }

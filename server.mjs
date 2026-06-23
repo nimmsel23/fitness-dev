@@ -737,18 +737,6 @@ app.get("/journal/list", async (c) => {
 });
 
 // ── Coverage ──────────────────────────────────────────────────────────────────
-app.get("/coverage/detailed", (c) => {
-  const days    = Number(c.req.query("days") || 7);
-  const muscles = computeCoverageAnatomy(days);
-  const GROUP_ORDER = ["chest","back","shoulders","arms","core","glutes","quads","hamstrings","calves"];
-  const muscleMap = new Map(muscles.map(m => [normMuscleKey(m.name_en), m]));
-  const groups = GROUP_ORDER.map(id => {
-    const m = muscleMap.get(id) || { name_en: id, primaryHits: 0, secondaryHits: 0, totalScore: 0 };
-    return { id, muscles: [m] };
-  });
-  return c.json({ ok: true, groups, muscles: groups.flatMap(g => g.muscles) });
-});
-
 app.get("/coverage/anatomy", (c) => {
   const days    = Number(c.req.query("days") || 7);
   const muscles = computeCoverageAnatomy(days);

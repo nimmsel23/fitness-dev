@@ -1,7 +1,7 @@
 // fitness-dev Service Worker
 // v1: static cache + stale-while-revalidate reads + Background Sync für offline POSTs
 
-const CACHE = 'fitness-v72'
+const CACHE = 'fitness-v73'
 
 const STATIC = [
   '/',
