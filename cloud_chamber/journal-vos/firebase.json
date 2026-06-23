@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "journal-aos",
+    "site": "journal-vos",
     "public": "dist-firebase",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [

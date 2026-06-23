@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
   return {
     root: FITNESS_ROOT,
     base: '/',
+    publicDir: resolve(__dirname, 'public'),
     plugins: [react()],
 
     resolve: {
