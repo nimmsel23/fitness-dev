@@ -63,7 +63,7 @@ let cmdArgs
 
 if (mode === 'firebase') {
   cmd = 'npm'
-  cmdArgs = ['run', 'deploy-firebase']
+  cmdArgs = ['run', 'deploy:firebase']
 } else if (mode === 'local') {
   cmd = './deploy.sh'
   cmdArgs = []

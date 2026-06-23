@@ -16,7 +16,7 @@ import {
   orderBy, limit, where, serverTimestamp,
 } from "firebase/firestore";
 import {
-  onAuthStateChanged, signInWithRedirect, getRedirectResult,
+  onAuthStateChanged, signInWithPopup, getRedirectResult,
   signOut as fbSignOut,
 } from "firebase/auth";
 import { db, auth, googleProvider } from "./firebase.js";
@@ -35,7 +35,7 @@ export function watchAuth(cb) {
 }
 
 export async function signIn() {
-  await signInWithRedirect(auth, googleProvider);
+  await signInWithPopup(auth, googleProvider);
   return { ok: true };
 }
 
