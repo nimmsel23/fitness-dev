@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "cd ../.. && npx vite --config cloud_chamber/habit-vos/vite.config.js",
     "build": "cd ../.. && npx vite build --config cloud_chamber/habit-vos/vite.config.js",
-    "build:firebase": "cd ../.. && npx vite build --mode firebase --config cloud_chamber/habit-vos/vite.config.js",
+    "build:firebase": "cd ../.. && npx vite build --mode firebase --config cloud_chamber/habit-vos/vite.config.js && BUILD=$(date +%s) && sed -i \"s/habit-vos-v[0-9]*/habit-vos-$BUILD/\" cloud_chamber/habit-vos/dist-firebase/sw.js && sed -i \"s/\\\"version\\\": \\\"[0-9]*/\\\"version\\\": \\\"$BUILD/\" cloud_chamber/habit-vos/dist-firebase/manifest.json",
     "deploy": "npm run build:firebase && firebase deploy --only hosting --project fitness-aos",
     "preview": "cd ../.. && npx vite preview --config cloud_chamber/habit-vos/vite.config.js"
   }
