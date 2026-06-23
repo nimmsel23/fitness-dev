@@ -60,6 +60,27 @@ export const ACTIVITY_ICONS = {
   walking:    Footprints,
 };
 
+// Default muscle target per activity type — used in ActivityAddon + server coverage
+export const ACTIVITY_MUSCLE_DEFAULTS = {
+  hiit:       'core',
+  stretching: 'full',
+  yoga:       'full',
+  running:    'legs',
+  cycling:    'legs',
+  rowing:     'full',
+  walking:    'legs',
+  hiking:     'legs',
+  climbing:   'full',
+  swimming:   'full',
+};
+
+// Muscle groups per target key — mirrors server.mjs muscleToGroupId keys
+export const MUSCLE_TARGET_GROUPS = {
+  core:  ['core'],
+  legs:  ['quads', 'hamstrings', 'glutes', 'calves'],
+  full:  ['chest', 'back', 'shoulders', 'arms', 'core', 'quads', 'hamstrings', 'glutes'],
+};
+
 /**
  * Returns a CSS color string for a given session.
  * - If sessionMode === 'cardio', uses orange as a general cardio color

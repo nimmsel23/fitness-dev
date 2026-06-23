@@ -109,10 +109,12 @@ export async function getWeeklyReport(selector = "current") {
       [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
       [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.2; }));
     }
-    if (sess.activity && ACTIVITY_MUSCLE_MAPPING[sess.activity.type]) {
-      ACTIVITY_MUSCLE_MAPPING[sess.activity.type].muscles.forEach(gid => {
-        sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
-        bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
+    const actMuscles = sess.activity?.muscles
+      || (sess.activity?.type ? ACTIVITY_MUSCLE_MAPPING[sess.activity.type]?.muscles : null);
+    if (actMuscles) {
+      actMuscles.forEach(gid => {
+        sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 0.5;
+        bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5;
       });
     }
     const muscleRecovery = {};
@@ -180,6 +182,12 @@ export async function getMuscleCoverage(days = 7) {
       [...primary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; }));
       [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
       [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.2; }));
+    }
+    // Activity addon: muscles pre-resolved on save, fallback to old mapping for legacy sessions
+    const actMuscles = sess.activity?.muscles
+      || (sess.activity?.type ? ACTIVITY_MUSCLE_MAPPING[sess.activity.type]?.muscles : null);
+    if (actMuscles) {
+      actMuscles.forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; });
     }
   }
 

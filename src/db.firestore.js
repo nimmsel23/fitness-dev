@@ -712,6 +712,10 @@ export async function getMuscleCoverage(days = 7) {
         muscleToGroups(m, exName).forEach(g => { hits[g] = (hits[g] || 0) + 0.5; })
       );
     }
+    // Activity addon: muscles bereits beim Speichern aufgelöst
+    for (const m of (session.activity?.muscles || [])) {
+      hits[m] = (hits[m] || 0) + 0.5;
+    }
   }
   return hits;
 }

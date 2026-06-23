@@ -38,7 +38,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
   const [toast, setToast]         = useState('');
   const [quickInput, setQuickInput] = useState('');
   const [restHours, setRestHours]   = useState(null);
-  const [activity, setActivity]   = useState({ type: 'running', duration: '', notes: '' });
+  const [activity, setActivity]   = useState({ type: 'running', duration: '', notes: '', muscleTarget: 'legs', muscles: ['quads', 'hamstrings', 'glutes', 'calves'] });
   // hasActivity: true when a cardio ADDON is attached to a strength session
   // (different from sessionMode==='cardio' where activity IS the session)
   const [hasActivity, setHasActivity] = useState(false);
@@ -77,12 +77,12 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
       setSessionMode('strength');
     }
     if (d.activity) {
-      setActivity({ type: 'hiit', duration: '', notes: '', ...d.activity });
+      setActivity({ type: 'hiit', duration: '', notes: '', muscleTarget: 'core', muscles: ['core'], ...d.activity });
       // In strength mode, activity is an addon → set hasActivity
       if (d.sessionMode !== 'cardio') setHasActivity(true);
       else setHasActivity(false);
     } else {
-      setActivity({ type: 'hiit', duration: '', notes: '' });
+      setActivity({ type: 'hiit', duration: '', notes: '', muscleTarget: 'core', muscles: ['core'] });
       setHasActivity(false);
     }
   };
@@ -97,7 +97,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
     setCoachFeedback('');
     setTrainingsart('');
     setSessionMode('strength');
-    setActivity({ type: 'hiit', duration: '', notes: '' });
+    setActivity({ type: 'hiit', duration: '', notes: '', muscleTarget: 'core', muscles: ['core'] });
     setHasActivity(false);
   };
 

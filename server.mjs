@@ -210,6 +210,10 @@ function computeCoverage(days) {
       for (const m of sm) { const id = muscleToGroupId(m) || normMuscleKey(m); if (id) hits[id] = (hits[id] || 0) + 0.5; }
       for (const m of st) { const id = muscleToGroupId(m) || normMuscleKey(m); if (id) hits[id] = (hits[id] || 0) + 0.2; }
     }
+    // Activity addon: muscles bereits beim Speichern aufgelöst (activity.muscles[])
+    for (const m of (sess?.activity?.muscles || [])) {
+      hits[m] = (hits[m] || 0) + 0.5;
+    }
   }
   return hits;
 }
@@ -243,6 +247,7 @@ function computeCoverageAnatomy(days) {
       for (const m of sm) hit(m, 0.5, "secondary");
       for (const m of st) hit(m, 0.2, "secondary");
     }
+    for (const m of (sess?.activity?.muscles || [])) hit(m, 0.5, "secondary");
   }
   return Array.from(map.values()).sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
 }

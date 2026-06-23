@@ -41,11 +41,6 @@ export default function JournalForm({ text, setText, onSubmit, saving, editingEn
         </div>
       </div>
 
-      <div className="px-2 py-4 border-l-2 border-dashed border-[var(--line)] ml-4">
-         <p className="text-[11px] font-bold opacity-30 leading-relaxed italic text-[var(--dim)]">
-            "Worte sind die Brücke von der Erfahrung zur Erkenntnis."
-         </p>
-      </div>
     </div>
   );
 }

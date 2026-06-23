@@ -46,6 +46,7 @@ export default function Journal({ onOpenSession }) {
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [editingEntry, setEditingEntry] = useState(null);
   const [limitCount, setLimitCount] = useState(30);
+  const [colorActivities, setColorActivities] = useState(() => localStorage.getItem('journal_colorActivities') === 'true');
 
   const [journalModalOpen, setJournalModalOpen] = useState(false);
   const [selectedHabitForJournal, setSelectedHabitForJournal] = useState(null);
@@ -116,7 +117,7 @@ export default function Journal({ onOpenSession }) {
           id: 'workout-' + session.date + '-' + (session.id || '0'),
           date: session.date,
           text: session.notes || '',
-          type: 'workout',
+          type: activityType ? 'activity' : 'workout',
           block: label,
           activityType,
           exercises: session.exercises || [],
@@ -273,6 +274,23 @@ export default function Journal({ onOpenSession }) {
           </div>
         )}
 
+        <div className="flex items-center justify-end gap-2 -mb-6 mt-6">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={colorActivities}
+              onChange={e => {
+                setColorActivities(e.target.checked);
+                localStorage.setItem('journal_colorActivities', e.target.checked);
+              }}
+              className="w-3.5 h-3.5 accent-[var(--accent)]"
+            />
+            <span className="text-[9px] font-black uppercase tracking-widest opacity-40 hover:opacity-70 transition-opacity">
+              Ausdauer farbig
+            </span>
+          </label>
+        </div>
+
         <div className="space-y-12 mt-12">
           {timeline.length > 0 ? (
             timeline.map((group) => {
@@ -307,11 +325,11 @@ export default function Journal({ onOpenSession }) {
                     <JournalEntry
                       key={e.id || i}
                       e={e}
-                      i={i}
                       habits={habits}
                       setSelectedEntry={setSelectedEntry}
                       onEdit={handleEdit}
                       onOpenSession={onOpenSession}
+                      colorActivities={colorActivities}
                     />
                   ))}
                 </div>
@@ -349,6 +367,7 @@ export default function Journal({ onOpenSession }) {
         setSelectedEntry={setSelectedEntry}
         habits={habits}
         formatRelativeDate={formatRelativeDate}
+        colorActivities={colorActivities}
       />
 
       {journalModalOpen && (
