@@ -11,7 +11,6 @@
 import { Suspense } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useApp } from '@fuel/store.js'
-import { TAB_CONFIG } from '@fuel/tabs/index.jsx'
 import TabContent from '@fuel/components/TabContent.jsx'
 import { useAppData } from '@fuel/hooks/useAppData.js'
 import '@fuel/styles.embedded.css'
@@ -34,40 +33,6 @@ function FuelInner() {
 
   return (
     <div data-fuel-embedded style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <nav style={{
-        display: 'flex',
-        gap: 4,
-        padding: '6px 12px',
-        borderBottom: '1px solid #1e293b',
-        overflowX: 'auto',
-        flexShrink: 0,
-      }}>
-        {TAB_CONFIG.map(({ key, label, Icon }) => (
-          <button
-            key={key}
-            onClick={() => setActiveTab(key)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 5,
-              padding: '4px 10px',
-              borderRadius: 6,
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: 12,
-              fontWeight: 500,
-              whiteSpace: 'nowrap',
-              background: activeTab === key ? '#3b82f6' : 'transparent',
-              color: activeTab === key ? '#fff' : '#64748b',
-              transition: 'background 0.15s, color 0.15s',
-            }}
-          >
-            <Icon size={13} />
-            {label}
-          </button>
-        ))}
-      </nav>
-
       <div style={{ flex: 1, overflowY: 'auto' }}>
         <Suspense fallback={
           <div style={{ padding: 40, textAlign: 'center', color: '#64748b', fontSize: 13 }}>

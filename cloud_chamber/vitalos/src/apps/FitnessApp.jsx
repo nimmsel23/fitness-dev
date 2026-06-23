@@ -12,17 +12,11 @@ const SUB_NAV = [
   { id: 'review',  label: 'Review',   Icon: BarChart3 },
 ]
 
-export default function FitnessApp({ user, recentDays, coverageThreshold, gender, muscleLanguage, taxonomy, dashboardHighlighter }) {
-  const [tab, setTab] = useState('dash')
-  const [sessionDate, setSessionDate] = useState(null)
-  const [sessionDraft, setSessionDraft] = useState(null)
+export default function FitnessApp({ user, recentDays, coverageThreshold, gender, muscleLanguage, taxonomy, dashboardHighlighter, subTab, onSubTab, sessionDate, sessionDraft, onOpenSession }) {
   const [inspectorExercise, setInspectorExercise] = useState(null)
 
-  function openSession(date, draft = null) {
-    setSessionDate(date || null)
-    setSessionDraft(draft || null)
-    setTab('session')
-  }
+  const tab = subTab || 'dash'
+  const setTab = onSubTab || (() => {})
 
   async function inspectExercise(exercise) {
     if (!exercise) return
@@ -37,8 +31,8 @@ export default function FitnessApp({ user, recentDays, coverageThreshold, gender
 
   return (
     <div className="flex flex-col h-full">
-      {/* Sub-Nav */}
-      <nav className="flex gap-1 px-4 pt-3 pb-2 border-b border-fit-line shrink-0">
+      {/* Sub-Nav — nur auf Mobile/Tablet sichtbar, Desktop nutzt Sidebar */}
+      <nav className="lg:hidden flex gap-1 px-4 pt-3 pb-2 border-b border-fit-line shrink-0">
         {SUB_NAV.map(({ id, label, Icon }) => (
           <button
             key={id}
@@ -57,9 +51,9 @@ export default function FitnessApp({ user, recentDays, coverageThreshold, gender
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-12 max-w-[1600px] mx-auto w-full">
-        {tab === 'dash'    && <Dashboard user={user} onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => setTab('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
+        {tab === 'dash'    && <Dashboard user={user} onOpenSession={onOpenSession} onInspectExercise={inspectExercise} onOpenReview={() => setTab('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
         {tab === 'session' && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} recentDays={recentDays} coverageThreshold={coverageThreshold} />}
-        {tab === 'review'  && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} />}
+        {tab === 'review'  && <WeeklyReview onOpenSession={onOpenSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} />}
       </div>
 
       <ExerciseInsightModal exercise={inspectorExercise} onClose={() => setInspectorExercise(null)} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />

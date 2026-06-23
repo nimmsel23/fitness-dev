@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode } from '@db'
-import { NAV_ITEMS, VALID_TABS } from './constants/NavigationItems.js'
+import { NAV_ITEMS, VALID_TABS, SUB_NAV } from './constants/NavigationItems.js'
 import { THEMES } from './constants/Themes.js'
 import Settings from './views/Settings/index.jsx'
 import Sidebar from './components/layout/Sidebar.jsx'
@@ -29,6 +29,17 @@ export default function App() {
     const hash = window.location.hash.replace(/^#\/?/, '')
     return VALID_TABS.has(hash) ? hash : 'fitness'
   })
+  const [fitnessTab,    setFitnessTab]    = useState('dash')
+  const [fuelTab,       setFuelTab]       = useState('dashboard')
+  const [sessionDate,   setSessionDate]   = useState(null)
+  const [sessionDraft,  setSessionDraft]  = useState(null)
+
+  function openSession(date, draft = null) {
+    setSessionDate(date || null)
+    setSessionDraft(draft || null)
+    setFitnessTab('session')
+    setTab('fitness')
+  }
 
   const [user, setUser]           = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
@@ -153,6 +164,7 @@ export default function App() {
   )
 
   const settingsProps = {
+    user, signOut,
     layoutScale, setLayoutScale,
     recentDays, setRecentDays,
     coverageThreshold, setCoverageThreshold,
@@ -175,12 +187,17 @@ export default function App() {
   const fitnessProps = {
     user, recentDays, coverageThreshold,
     gender, muscleLanguage, taxonomy, dashboardHighlighter,
+    subTab: fitnessTab, onSubTab: setFitnessTab,
+    sessionDate, sessionDraft, onOpenSession: openSession,
   }
 
   return (
     <ErrorBoundary>
       <div className="flex min-h-screen bg-fit-bg text-fit-ink font-sans transition-colors duration-500">
-        <Sidebar tab={tab} navigate={navigate} pinned={sidebarPinned} setPinned={setSidebarPinned} user={user}>
+        <Sidebar tab={tab} navigate={navigate} pinned={sidebarPinned} setPinned={setSidebarPinned} user={user}
+          subNav={SUB_NAV[tab] || null}
+          subTab={tab === 'fitness' ? fitnessTab : tab === 'fuel' ? fuelTab : null}
+          onSubTab={tab === 'fitness' ? setFitnessTab : tab === 'fuel' ? setFuelTab : null}>
           <UserProfile user={user} subtitle={isLocalMode() ? `${user?.email || 'localhost'} · localhost` : (user?.email || '')} />
           {!isLocalMode() && (
             <button onClick={signOut} className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black uppercase tracking-widest text-fit-red bg-fit-red/5 border border-fit-red/10 rounded-xl hover:bg-fit-red/10 transition-all">
@@ -196,8 +213,8 @@ export default function App() {
           <main className="relative pb-28 sm:pb-10 lg:pb-0 min-h-[100dvh]">
             <Suspense fallback={<Loader label={NAV_ITEMS.find(i => i.id === tab)?.label || tab} />}>
               {tab === 'fitness'  && <FitnessApp  {...fitnessProps} />}
-              {tab === 'fuel'     && <FuelWrapper user={user} />}
-              {tab === 'journal'  && <div className="p-4 sm:p-8 lg:p-12 max-w-[1600px] mx-auto"><JournalView /></div>}
+              {tab === 'fuel'     && <FuelWrapper user={user} subTab={fuelTab} onSubTab={setFuelTab} />}
+              {tab === 'journal'  && <div className="p-4 sm:p-8 lg:p-12 max-w-[1600px] mx-auto"><JournalView onOpenSession={openSession} /></div>}
               {tab === 'habits'   && <div className="p-4 sm:p-8 lg:p-12 max-w-[1600px] mx-auto"><HabitsView /></div>}
               {tab === 'learn'    && <div className="p-4 sm:p-8 lg:p-12 max-w-[1600px] mx-auto"><LearnView /></div>}
               {tab === 'settings' && <div className="p-4 sm:p-8 lg:p-12 max-w-[1600px] mx-auto"><Settings {...settingsProps} /></div>}

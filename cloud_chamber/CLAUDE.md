@@ -1,109 +1,150 @@
-# cloud_chamber/ — VitalOS Staging Ground
+# cloud_chamber/ — VitalOS Shell
 
-Arbeitsbereich für die Vereinigung von fitness-dev + fuel-dev + zukünftigen VOS Micro-Apps.
-Kein bestehender Code außerhalb dieses Ordners wird hier verändert.
+VitalOS ist die unified PWA-Shell für alle VOS-Apps. Deployed auf `vitalos.web.app`.
+Firebase-Projekt: `fitness-aos`. Alle Apps teilen denselben Firestore.
 
 ---
 
-## Was hier lebt
+## Verzeichnisstruktur
 
 ```
 cloud_chamber/
-  federation/          — Vite Module Federation + unified Backend Planung
-  journal-dev/         — Journal + Habits Micro-App (Prototyp)
-  firestore_watcher.py — Firestore-Listener (bestehend)
-  analytics_watcher.py — Analytics-Listener (bestehend)
-  list_users.py        — Nutzer-Listing (bestehend)
-  set_admin.py         — Admin-Rechte setzen (bestehend)
+  vitalos/             — VitalOS Shell (React + Vite, deployed zu vitalos.web.app)
+  journal-vos/         — Journal + Habits Source (via @journal-vos Alias in vitalos)
+  learn-vos/           — Learn Source (via @learn-vos Alias in vitalos)
+  fitness-vos/         — Fitness Source (Referenz-Kopie aus fitness-dev/src)
+  habit-vos/           — Habits Source (eigenständige Kopie)
+  federation/          — Shims + Legacy Module Federation Experimente
+  vos_deploy/          — Python Deploy-Helfer (Firebase, Git)
+  public/              — Shared Assets (manifest.json, Icons)
   rules/               — Firestore Security Rules
-  docs/                — Cloud Chamber Dokumentation
+  docs/                — Architektur-Doku
+  firestore_watcher.py — Firestore Change Listener
+  analytics_watcher.py — Analytics Listener
+  list_users.py        — Nutzer-Listing
+  set_admin.py         — Admin-Rechte setzen
 ```
 
 ---
 
-## federation/
+## VitalOS Shell (`vitalos/`)
 
-Staging-Bereich für die VOS-Vereinigung. Vollständig dokumentiert, nichts am
-bestehenden Code verändert.
+### Navigation
 
-**Einstieg:** `federation/README.md`  
-**Architektur:** `federation/ARCHITECTURE.md` — Inventur beider Backends + VOS-Design  
-**Entscheidungen:** `federation/DECISIONS.md` — 12 ADRs, alle entschieden  
+Zwei Ebenen:
 
-### Ziel: Vite Module Federation (Stufe 2)
-fuel-dev als Remote, fitness-dev als Host. `FuelApp.jsx` als echter Tab-Embed.
+**Haupt-Nav** (immer sichtbar in Sidebar + MobileNav):
+
+| Tab | Inhalt |
+|-----|--------|
+| `fitness` | FitnessApp — eigene Sub-Nav: Heute / Training / Review |
+| `fuel` | FuelWrapper → FuelApp (fuel-dev Shim) — eigene Sub-Nav: Dashboard / Food / Kalender / Supps / Mikros |
+| `journal` | JournalView aus journal-vos |
+| `habits` | HabitsView aus journal-vos |
+| `learn` | LearnView aus learn-vos |
+| `settings` | VitalOS Settings |
+
+**Sub-Nav** (in Desktop-Sidebar wenn Sub-App aktiv):
+- Shell-Modus (journal/habits/learn/settings): fette Haupt-Nav, keine Sub-Nav
+- Sub-App-Modus (fitness/fuel): schmale Icon-Row als Haupt-Nav + fette Sub-Nav darunter
+
+### Build & Deploy
+
 ```bash
-bash federation/setup.sh   # @originjs/vite-plugin-federation installieren
-bash federation/build.sh   # Remote dann Host bauen
+cd cloud_chamber/vitalos
+
+npm run build           # Lokaler Build → dist/
+npm run build:firebase  # Firebase Build → dist-firebase/ (SW-Version + manifest bump)
+
+firebase deploy --only hosting:vitalos   # → vitalos.web.app
 ```
 
-### Zwischenschritt: /opt/vitals/ Hub (Stufe 1)
-Drei SPAs unter einem Port. Noch kein Tab-Embed.
-```bash
-bash federation/backend/build.sh all
-sudo bash federation/backend/deploy.sh
+### Zwei Build-Modi
+
+| Modus | `@db` Alias | Output |
+|-------|-------------|--------|
+| lokal (`npm run build`) | `src/db.js` (Node-Server :9100) | `dist/` |
+| firebase (`--mode firebase`) | `src/db.firestore.js` (Firestore SDK) | `dist-firebase/` |
+
+### Vite Alias-Architektur (`vite.config.js`)
+
 ```
+@src          → vitalos/src/
+@db           → vitalos/src/db.js  (oder db.firestore.js im firebase-mode)
+@utils        → vitalos/src/lib/utils.js
+@journal-vos  → journal-vos/src/
+@learn-vos    → learn-vos/src/
+@fuel         → fuel-dev/src/client/
+fuel/FuelApp  → federation/FuelApp.jsx  (Shim ohne SW-Registration)
+```
+
+**journalDbPlugin**: Intercepts `@db`-Imports aus `/journal-vos/`-Dateien → leitet auf
+`journal-vos/src/db.js` (oder `db.firestore.js`) um. Fitness-Context und Journal-Context
+bekommen so je eigenen DB-Adapter im selben Bundle.
+
+**dedupe**: `react`, `react-dom`, `@tanstack/react-query` — verhindert doppelte
+React-Instanzen wenn fuel-dev Components eingebunden werden.
+
+### State-Management
+
+Sub-Tab-State lebt in `App.jsx` und wird nach unten durchgereicht:
+
+```
+App.jsx
+  fitnessTab / setFitnessTab  → FitnessApp (subTab/onSubTab)
+  fuelTab / setFuelTab        → FuelWrapper (subTab/onSubTab) → Zustand-Store (@fuel/store.js)
+  SUB_NAV[tab]                → Sidebar (subNav/subTab/onSubTab)
+```
+
+FuelWrapper synct bidirektional: Sidebar-Klick → Zustand-Store, interne Fuel-Navigation → `onSubTab` zurück zu App.
+
+### Firebase Auth
+
+- Alle Apps teilen dieselbe Firebase-Instanz (`fitness-aos`)
+- `fuel-dev/src/client/lib/firebase.js`: `getApps().length > 0` → kein Re-Init
+- `FuelWrapper` wartet auf `getAuth().currentUser` bevor FuelApp gemounted wird
+- COOP-Header `same-origin-allow-popups` in `firebase.json` (Chrome-Warnung beim Popup-Close ist cosmetic)
+- Authorized Domains: vitalos.web.app, fitness-vos.web.app, fuel-vos.web.app, journal-vos.web.app
 
 ---
 
-## journal-dev/
+## Micro-App Sources
 
-Journal + Habits als eigenständige VOS Micro-App. Prototyp.
+### `journal-vos/src/views/`
+- `Journal/` — Tages-Journal (Markdown)
+- `Habits/` — Habit-Tracking mit Konsistenz-Grid, Journal-Modal, Coach-Feedback
+  - Mobile: HabitSidebar als Bottom Sheet (`max-h-[85dvh]`, slide von unten)
+  - Desktop: HabitSidebar als rechtes Panel (`sm:w-80 lg:w-96`)
 
-**Port:** 9170 (Backend), 9171 (Vite Dev-Server)  
-**Daten:** `~/.aos/journal/YYYY-MM-DD.md`  
-**Habits:** Nativ in `~/.aos/journal/habits/` (kein HabitSync, kein Docker — ADR #013)
-
-```bash
-cd cloud_chamber/journal-dev
-npm install
-npm run server   # Backend :9170
-npm run ui       # Frontend :9171
-# oder beides:
-npm run dev
-```
-
-**Komponenten:** Direkt aus fitness-dev/src/views/Journal/ + Habits/ kopiert.
-`src/db.js` implementiert dieselbe API wie fitness-dev's @db — Komponenten
-funktionieren ohne Änderungen.
-
-**Ziel:** Wird zu `~/journal-dev/` sobald reif für eigenständiges Repo.
+### `learn-vos/src/views/`
+- `Learn/` — Anatomie-Lehre aus `catalog/kb/anatomy_teaching/`
 
 ---
 
-## VOS Architektur (Kurzreferenz)
+## `federation/` — Shims
 
-### Systemgrenze (nicht verhandelbar)
-AlphaOS (Core4, Bridge, Door, Game) ≠ VitalOS (Fitness, Fuel, Relax, Journal).
-Gleiche Philosophie — null gemeinsame Abhängigkeiten.
+`federation/FuelApp.jsx` ist der aktive Shim für VitalOS:
+- Kein `createRoot`, kein `useRegisterSW`, kein eigenständiger Auth-Flow
+- Importiert fuel-dev Internals via `@fuel` Alias
+- Wraps in eigenen `QueryClientProvider` (fuel braucht keinen von VitalOS)
+- Alias in vite.config.js: `fuel/FuelApp` → `federation/FuelApp.jsx`
 
-### VOS Apps
+Die restlichen Dateien (`*.remote.vite.config.js`, `*.bak`) sind Legacy aus dem
+Module-Federation-Experiment. Nicht löschen, aber auch nicht aktiv nutzen.
 
-| App | Dev-Port | Prod-Port | Status |
-|-----|----------|-----------|--------|
-| fitness-dev | 9100 | 6100 | ✅ aktiv |
-| fuel-dev | 9000 | 7000 | ✅ aktiv |
-| relax-dev | 9123 | TBD | ✅ aktiv |
-| journal-dev | 9170+9171 | 6170 | ⏳ Prototyp hier |
-| unified-server | 9150 | 6150 | ⏳ geplant |
-| VitalHub | — | 6200 | ⏳ vorbereitet |
+---
 
-### Deployment-Stufenplan
-```
-Stufe 1: /opt/vitals/   — drei SPAs, ein Port (federation/backend/)
-Stufe 2: Module Fed.    — echter Tab-Embed (federation/)
-Stufe 3: Firebase       — Cloud-Deploy
-```
+## Systemgrenze (nicht verhandelbar)
 
-### Framework-Standard
-**Hono** für alle VOS-Backends. **React + Vite** für alle VOS-Frontends.
-`@db` Adapter-Pattern (VITE_DATA_LAYER=local|firebase|auto).
+AlphaOS (Core4, Bridge, Door, Game) ≠ VitalOS (Fitness, Fuel, Journal, Habits, Learn).
+Kein geteilter Code, keine gemeinsamen Ports, nur gemeinsame Philosophie.
 
 ---
 
 ## Arbeitsregeln
 
-- Nichts außerhalb von `cloud_chamber/` verändern
-- Jede Architektur-Entscheidung → `federation/DECISIONS.md` (ADR)
-- Neue Apps zuerst hier als Prototyp, dann eigenes Repo wenn reif
-- `dist-vitals/` und `dist-federation/` sind Build-Outputs, nicht committen
+- Änderungen an VOS-Views in `journal-vos/`, `learn-vos/` — nicht in `vitalos/src/` direkt
+- Fitness-Views leben in `vitalos/src/views/` (aus fitness-dev kopiert, weiterentwickelt hier)
+- `federation/FuelApp.jsx` ist der Canonical Fuel-Shim — bei fuel-dev Änderungen prüfen ob Shim noch passt
+- Firebase-Version muss in `fitness-dev/package.json` und `fuel-dev/package.json` übereinstimmen (aktuell: `^11`)
+- Build vor Deploy immer prüfen (`✓ built in Xs` ohne Fehler)

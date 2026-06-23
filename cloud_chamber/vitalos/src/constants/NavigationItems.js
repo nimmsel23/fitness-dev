@@ -1,4 +1,7 @@
-import { Dumbbell, Flame, BookOpen, CheckSquare, Brain, Settings2 } from 'lucide-react'
+import {
+  Dumbbell, Flame, BookOpen, CheckSquare, Brain, Settings2,
+  Activity, BarChart3, UtensilsCrossed, CalendarDays, Pill, Microscope,
+} from 'lucide-react'
 
 export const NAV_ITEMS = [
   { id: 'fitness',  label: 'Fitness', Icon: Dumbbell },
@@ -10,3 +13,18 @@ export const NAV_ITEMS = [
 ]
 
 export const VALID_TABS = new Set(NAV_ITEMS.map(i => i.id))
+
+export const SUB_NAV = {
+  fitness: [
+    { id: 'dash',    label: 'Heute',    Icon: Activity },
+    { id: 'session', label: 'Training', Icon: Dumbbell },
+    { id: 'review',  label: 'Review',   Icon: BarChart3 },
+  ],
+  fuel: [
+    { id: 'dashboard',   label: 'Dashboard', Icon: Flame },
+    { id: 'food',        label: 'Food',      Icon: UtensilsCrossed },
+    { id: 'calendar',    label: 'Kalender',  Icon: CalendarDays },
+    { id: 'supplements', label: 'Supps',     Icon: Pill },
+    { id: 'micros',      label: 'Mikros',    Icon: Microscope },
+  ],
+}

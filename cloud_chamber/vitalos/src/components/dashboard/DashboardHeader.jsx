@@ -2,15 +2,8 @@ import { Download, LayoutGrid, RotateCcw, Check } from "lucide-react";
 
 export default function DashboardHeader({ onExport, isEditMode, onToggleEdit, onResetLayout }) {
   return (
-    <div className="mb-16 flex items-end justify-between px-2 gap-8 flex-wrap">
-      <div className="animate-in fade-in slide-in-from-left-8 duration-700">
-        <h1 className="text-5xl lg:text-6xl font-black text-fit-ink mb-3 tracking-tight">Willkommen zurück</h1>
-        <div className="flex items-center gap-3">
-          <div className="h-1 w-12 bg-fit-accent rounded-full" />
-          <p className="text-[11px] font-black opacity-30 uppercase tracking-[0.4em]">Dein Fitness Ecosystem</p>
-        </div>
-      </div>
-      <div className="flex gap-4 flex-wrap animate-in fade-in slide-in-from-right-8 duration-700">
+    <div className="mb-8 flex items-center justify-end px-2 gap-4 flex-wrap">
+      <div className="flex gap-4 flex-wrap">
         {isEditMode && (
           <button onClick={onResetLayout} className="btn btn-secondary py-3 px-5 text-[11px] font-black uppercase tracking-widest" title="Layout zurücksetzen">
             <RotateCcw size={14} /> Reset

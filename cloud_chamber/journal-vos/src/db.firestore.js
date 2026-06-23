@@ -131,7 +131,29 @@ export async function updateJournal(id, text) {
   return { ok: true };
 }
 
-export async function getSessionHistory() { return []; }
+export async function getSessionHistory(n = 60) {
+  const uid = getUid();
+  if (!uid) return [];
+  const snap = await getDocs(query(
+    fitCol(uid, "sessions"),
+    orderBy("date", "desc"),
+    limit(n),
+  ));
+  return snap.docs.map(d => {
+    const data = d.data() || {};
+    return {
+      id: d.id,
+      date: data.date || d.id.split('__')[0],
+      block: data.block || null,
+      sessionMode: data.sessionMode || null,
+      activity: data.activity || null,
+      exercises: Array.isArray(data.exercises) ? data.exercises.filter(e => e.done) : [],
+      effort: data.effort || 0,
+      notes: data.notes || '',
+      saved_at: data.saved_at ? data.saved_at.toDate().toISOString() : null,
+    };
+  });
+}
 
 // ── Habit Journals ────────────────────────────────────────────────────────────
 

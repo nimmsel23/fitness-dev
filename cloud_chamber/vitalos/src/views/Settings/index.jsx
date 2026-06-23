@@ -4,8 +4,11 @@ import AppearanceSection from "./AppearanceSection";
 import TrainingSection from "./TrainingSection";
 import AdvancedSection from "./AdvancedSection";
 import LocalDevSection from "./LocalDevSection";
+import AccountSection from "./AccountSection";
+import FuelSection from "./FuelSection";
 
 export default function Settings({
+  user, signOut,
   layoutScale, setLayoutScale,
   gender, setGender,
   split, setSplit,
@@ -91,8 +94,10 @@ export default function Settings({
     <div className="space-y-8 pb-32 max-w-5xl mx-auto">
        <header className="mb-4 animate-in fade-in duration-700">
           <h2 className="text-3xl font-black text-fit-ink">Settings</h2>
-          <p className="text-sm font-medium opacity-40">Konfiguriere dein AlphaOS Fitness Erlebnis.</p>
+          <p className="text-sm font-medium opacity-40">VitalOS — Fitness, Ernährung, Journal</p>
        </header>
+
+       <AccountSection user={user} signOut={signOut} />
 
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <AppearanceSection
@@ -116,6 +121,7 @@ export default function Settings({
             swVersion={swVersion} swUpdateAvailable={swUpdateAvailable} swChecking={swChecking}
             onSwCheck={handleSwCheck} onSwApply={handleSwApply}
           />
+          <FuelSection />
        </div>
 
        {isLocalMode() && (
