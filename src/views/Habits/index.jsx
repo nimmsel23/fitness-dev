@@ -302,35 +302,63 @@ export default function Habits() {
           </div>
         </div>
 
+        {/* Rechte Spalte: Desktop zeigt Sidebar inline, sonst Form+Stats */}
         <div className="space-y-6">
-          <HabitForm
-            newHabit={newHabit}
-            setNewHabit={setNewHabit}
-            selectedIcon={selectedIcon}
-            setSelectedIcon={setSelectedIcon}
-            onAdd={handleAdd}
-            saving={saving}
-          />
-          <HabitStats
-            todayCompletionPercentage={todayCompletionPercentage}
-            getMotivationalMessage={getMotivationalMessage}
-          />
+          {selectedHabitId ? (
+            <div className="hidden lg:block">
+              <HabitSidebar
+                inline
+                selectedHabitId={selectedHabitId}
+                setSelectedHabitId={setSelectedHabitId}
+                habits={habits}
+                rollingDates={rollingDates}
+                selectedSidebarDate={selectedSidebarDate}
+                setSelectedSidebarDate={setSelectedSidebarDate}
+                journalText={journalText}
+                isJournalSaving={isJournalSaving}
+                onToggleSidebarDone={toggleSidebarDone}
+                journalHistory={journalHistory}
+                onOpenJournalModal={() => setJournalModalOpen(true)}
+              />
+            </div>
+          ) : (
+            <>
+              <HabitForm
+                newHabit={newHabit}
+                setNewHabit={setNewHabit}
+                selectedIcon={selectedIcon}
+                setSelectedIcon={setSelectedIcon}
+                onAdd={handleAdd}
+                saving={saving}
+              />
+              <HabitStats
+                todayCompletionPercentage={todayCompletionPercentage}
+                getMotivationalMessage={getMotivationalMessage}
+              />
+            </>
+          )}
         </div>
       </div>
 
-      <HabitSidebar
-        selectedHabitId={selectedHabitId}
-        setSelectedHabitId={setSelectedHabitId}
-        habits={habits}
-        rollingDates={rollingDates}
-        selectedSidebarDate={selectedSidebarDate}
-        setSelectedSidebarDate={setSelectedSidebarDate}
-        journalText={journalText}
-        isJournalSaving={isJournalSaving}
-        onToggleSidebarDone={toggleSidebarDone}
-        journalHistory={journalHistory}
-        onOpenJournalModal={() => setJournalModalOpen(true)}
-      />
+      {/* Mobile: klassisches Slide-in Overlay */}
+      <div className="lg:hidden">
+        <HabitSidebar
+          selectedHabitId={selectedHabitId}
+          setSelectedHabitId={setSelectedHabitId}
+          habits={habits}
+          rollingDates={rollingDates}
+          selectedSidebarDate={selectedSidebarDate}
+          setSelectedSidebarDate={setSelectedSidebarDate}
+          journalText={journalText}
+          isJournalSaving={isJournalSaving}
+          onToggleSidebarDone={toggleSidebarDone}
+          journalHistory={journalHistory}
+          onOpenJournalModal={() => setJournalModalOpen(true)}
+        />
+        {selectedHabitId && (
+          <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setSelectedHabitId(null)} />
+        )}
+      </div>
 
       <HabitJournalModal
         open={journalModalOpen}
@@ -342,10 +370,6 @@ export default function Habits() {
         isJournalSaving={isJournalSaving}
         onSaveJournal={onSaveJournal}
       />
-
-      {selectedHabitId && (
-        <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setSelectedHabitId(null)}></div>
-      )}
     </div>
   );
 }
