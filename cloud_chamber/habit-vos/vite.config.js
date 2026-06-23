@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
 
     resolve: {
       alias: {
-        '@db':    resolve(FITNESS_ROOT, isFirebase ? 'src/db.firestore.js' : 'src/db.js'),
+        '@db':    resolve(__dirname, isFirebase ? 'src/db.firestore.js' : 'src/db.js'),
         '@utils': resolve(FITNESS_ROOT, 'src/lib/utils.js'),
         '@src':   resolve(FITNESS_ROOT, 'src'),
       },
