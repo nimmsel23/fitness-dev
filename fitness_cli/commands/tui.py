@@ -19,6 +19,7 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 from typing import ClassVar
 
+from fitness_cli.commands import muscle_to_group, muscle_group_label
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -295,7 +296,13 @@ class StatsView(Static):
             for ex in (s.get("exercises") or []):
                 if ex.get("done"):
                     for m in (ex.get("primaryMuscles") or []):
-                        muscle_freq[m] = muscle_freq.get(m, 0) + 1
+                        group = muscle_to_group(m)
+                        if group:
+                            muscle_freq[group] = muscle_freq.get(group, 0) + 2
+                    for m in (ex.get("secondaryMuscles") or []):
+                        group = muscle_to_group(m)
+                        if group:
+                            muscle_freq[group] = muscle_freq.get(group, 0) + 1
 
         cardio_dist: dict[str, int] = {}
         for s in cardio:
@@ -329,9 +336,14 @@ class StatsView(Static):
 
         if muscle_freq:
             out.append("\n[bold]Muskel-Coverage[/bold]")
+            total = sum(muscle_freq.values())
+            mx = max(muscle_freq.values())
             for m, cnt in sorted(muscle_freq.items(), key=lambda x: -x[1])[:8]:
-                bar = "█" * min(cnt, 10) + "░" * max(0, 10 - cnt)
-                out.append(f"  [white]{m:<14}[/]  [bright_magenta]{bar}[/]  [dim]{cnt}x[/]")
+                label = muscle_group_label(m)
+                pct = round(cnt / total * 100)
+                filled = round(cnt / mx * 14)
+                bar = f"[bright_magenta]{'━' * filled}[/][dim]{'╌' * (14 - filled)}[/]"
+                out.append(f"  [white]{label:<14}[/]  {bar}  [dim]{pct}%[/]")
 
         return "\n".join(out)
 

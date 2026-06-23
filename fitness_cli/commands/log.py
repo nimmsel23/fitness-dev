@@ -21,6 +21,7 @@ from typing import Optional
 import typer
 
 from ..constants import ACTIVITY_EMOJI, ACTIVITY_LABEL, WEEKDAYS_DE, block_ansi_color
+from fitness_cli.commands import muscle_to_group, muscle_group_label
 from ..data import (
     classify,
     load_client_registry,
@@ -231,7 +232,13 @@ def cmd_stats(
         for ex in (s.get("exercises") or []):
             if ex.get("done"):
                 for m in (ex.get("primaryMuscles") or []):
-                    muscle_freq[m] = muscle_freq.get(m, 0) + 1
+                    group = muscle_to_group(m)
+                    if group:
+                        muscle_freq[group] = muscle_freq.get(group, 0) + 2
+                for m in (ex.get("secondaryMuscles") or []):
+                    group = muscle_to_group(m)
+                    if group:
+                        muscle_freq[group] = muscle_freq.get(group, 0) + 1
 
     cardio_dist: dict[str, int] = {}
     for s in cardio:
@@ -250,10 +257,11 @@ def cmd_stats(
 
     if block_dist:
         print(f"\n  {c('bold', 'Split')}")
-        max_cnt = max(block_dist.values())
+        mx = max(block_dist.values())
         for bl, cnt in sorted(block_dist.items(), key=lambda x: -x[1]):
-            bc  = block_ansi_color(bl)
-            bar = c(bc, "█" * cnt) + c("dim", "░" * max(0, max_cnt - cnt))
+            bc     = block_ansi_color(bl)
+            filled = round(cnt / mx * 12)
+            bar    = c(bc, "━" * filled) + c("dim", "╌" * (12 - filled))
             print(f"  {c(bc, f'{bl:<12}')}  {bar}  {c('muted', str(cnt) + 'x')}")
 
     if cardio_dist:
@@ -265,9 +273,14 @@ def cmd_stats(
 
     if muscle_freq:
         print(f"\n  {c('bold', 'Muskel-Coverage')}")
+        total = sum(muscle_freq.values())
+        mx    = max(muscle_freq.values())
         for m, cnt in sorted(muscle_freq.items(), key=lambda x: -x[1])[:8]:
-            bar = c("accent", "█" * min(cnt, 10)) + c("dim", "░" * max(0, 10 - cnt))
-            print(f"  {c('white', f'{m:<14}')}  {bar}  {c('muted', str(cnt) + 'x')}")
+            label  = muscle_group_label(m)
+            pct    = round(cnt / total * 100)
+            filled = round(cnt / mx * 14)
+            bar    = c("accent", "━" * filled) + c("dim", "╌" * (14 - filled))
+            print(f"  {c('white', f'{label:<14}')}  {bar}  {c('muted', str(pct) + '%')}")
     print()
 
 
