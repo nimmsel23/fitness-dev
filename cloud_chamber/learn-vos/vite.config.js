@@ -21,7 +21,7 @@ const BACKEND = 'http://localhost:9100'
 export default defineConfig(({ mode }) => {
   const isFirebase = mode === 'firebase'
   return {
-  root: FITNESS_ROOT,
+  root: __dirname,
   base: '/',
   publicDir: resolve(__dirname, 'public'),
   plugins: [react()],
@@ -45,9 +45,6 @@ export default defineConfig(({ mode }) => {
   build: {
     outDir: resolve(__dirname, isFirebase ? 'dist-firebase' : 'dist'),
     emptyOutDir: true,
-    rollupOptions: {
-      input: resolve(__dirname, 'index.html'),
-    },
   },
   }
 })

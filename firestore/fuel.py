@@ -93,6 +93,17 @@ def mirror_fuel_supplements(date: str, data: dict, uid: str = UID) -> None:
     except Exception as e:
         logger.warning(f"mirror_fuel_supplements fehler ({date}, {uid}): {e}")
 
+def mirror_fuel_catalog(data: dict, uid: str = UID, kind: str = "nutrition") -> None:
+    """kind: 'nutrition' | 'supplements'"""
+    try:
+        db = get_db()
+        col = "nutrition" if kind == "nutrition" else "supplements"
+        db.collection(col).document(uid).collection("meta").document("catalog").set(
+            {**data, "saved_at": datetime.utcnow().isoformat()}, merge=True
+        )
+    except Exception as e:
+        logger.warning(f"mirror_fuel_catalog fehler ({kind}, {uid}): {e}")
+
 
 # ── Bulk-Sync (für CLI push/pull) ─────────────────────────────────────────────
 

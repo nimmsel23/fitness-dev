@@ -23,6 +23,9 @@ export default defineConfig(({ mode }) => {
         '/habitsync': BACKEND,
         '/health':    BACKEND,
       },
+      watch: {
+        ignored: ['**/dist-firebase/**', '**/dist/**'],
+      },
     },
     build: {
       outDir:      isFirebase ? 'dist-firebase' : 'dist',

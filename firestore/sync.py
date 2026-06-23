@@ -36,9 +36,12 @@ def pull() -> dict:
     total_habit_journal = 0
     total_inbox = 0
 
+    _SKIP_UIDS = {"default", "kb", "_template"}
     # Iterate over all user documents in the fitness collection
     for user_ref in db.collection("fitness").list_documents():
         uid = user_ref.id
+        if uid in _SKIP_UIDS:
+            continue
         user_dir = USERS_DIR / uid / "fitness"
         sessions_dir = user_dir / "sessions"
         journal_dir = user_dir / "journal"
