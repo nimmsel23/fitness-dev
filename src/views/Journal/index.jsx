@@ -3,12 +3,26 @@ import { saveJournal, updateJournal, getHabits, getJournalHistory, getAllHabitJo
 import { localToday } from "@utils";
 import { Book, PenLine } from "lucide-react";
 import { ICON_COMPONENTS_MAP } from "../Habits/utils";
-
 import JournalHeader from "./JournalHeader";
 import JournalForm from "./JournalForm";
 import JournalEntry from "./JournalEntry";
 import JournalModal from "./JournalModal";
 import HabitJournalModal from "../Habits/HabitJournalModal";
+
+const ACTIVITY_LABELS = {
+  swimming: 'Schwimmen', running: 'Laufen', cycling: 'Radfahren',
+  hiking: 'Wandern', yoga: 'Yoga', climbing: 'Klettern',
+  rowing: 'Rudern', elliptical: 'Elliptical', walking: 'Gehen',
+};
+
+function sessionInfo(session) {
+  const isCardio = session.sessionMode === 'cardio' || !!session.activity;
+  if (isCardio) {
+    const type = typeof session.activity === 'string' ? session.activity : session.activity?.type;
+    return { label: ACTIVITY_LABELS[type] || 'Ausdauer', activityType: type || 'cardio' };
+  }
+  return { label: session.block || 'Krafttraining', activityType: null };
+}
 
 function formatRelativeDate(dateStr) {
   const today = localToday();
@@ -22,7 +36,7 @@ function formatRelativeDate(dateStr) {
   });
 }
 
-export default function Journal() {
+export default function Journal({ onOpenSession }) {
   const [date, setDate]     = useState(localToday());
   const [text, setText]     = useState("");
   const [timeline, setTimeline] = useState([]); // Array of grouped entries by date
@@ -97,13 +111,15 @@ export default function Journal() {
         const savedAt = session.saved_at?.seconds
           ? new Date(session.saved_at.seconds * 1000).toISOString()
           : (typeof session.saved_at === 'string' ? session.saved_at : `${session.date}T23:59:59`);
+        const { label, activityType } = sessionInfo(session);
         combined.push({
           id: 'workout-' + session.date + '-' + (session.id || '0'),
           date: session.date,
           text: session.notes || '',
           type: 'workout',
-          block: session.block || 'Training',
-          exercises: (session.exercises || []).filter(e => e.done),
+          block: label,
+          activityType,
+          exercises: session.exercises || [],
           effort: session.effort,
           mood: session.mood,
           time: savedAt
@@ -202,12 +218,12 @@ export default function Journal() {
   };
 
   return (
-    <div className="pb-32 px-2 sm:px-4 lg:px-6">
-      <JournalHeader
-        date={date}
-        setDate={setDate}
-        localToday={localToday()}
-        formatRelativeDate={formatRelativeDate}
+    <div className="pb-32 max-w-3xl mx-auto px-2">
+      <JournalHeader 
+        date={date} 
+        setDate={setDate} 
+        localToday={localToday()} 
+        formatRelativeDate={formatRelativeDate} 
       />
 
       <div className="space-y-12">
@@ -265,7 +281,7 @@ export default function Journal() {
               const mainEntries = group.entries.filter(e => e.type !== 'habit-completion');
               return (
               <div key={group.date} className="relative">
-                <div className="sticky top-20 z-10 py-2 bg-[var(--bg)]/90 backdrop-blur-md -mx-2 px-2 border-b border-[var(--line)]">
+                <div className="sticky top-0 z-10 py-2 bg-[var(--bg)]/90 backdrop-blur-md -mx-2 px-2 border-b border-[var(--line)]">
                   <h3 className="text-xs font-black uppercase tracking-[0.2em] text-accent">
                     {formatRelativeDate(group.date)}
                   </h3>
@@ -295,6 +311,7 @@ export default function Journal() {
                       habits={habits}
                       setSelectedEntry={setSelectedEntry}
                       onEdit={handleEdit}
+                      onOpenSession={onOpenSession}
                     />
                   ))}
                 </div>
