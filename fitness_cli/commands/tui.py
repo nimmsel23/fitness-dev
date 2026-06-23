@@ -503,13 +503,7 @@ class ClientsView(Static):
 class FitnessTUI(App):
     TITLE     = "AlphaOS Fitness"
     SUB_TITLE = "Session Dashboard"
-    CSS = """
-    Screen { background: $background; }
-    TabbedContent { height: 1fr; }
-    TabPane { padding: 0; height: 1fr; }
-    SessionTable { height: 1fr; }
-    ScrollableContainer { height: 1fr; }
-    """
+    CSS = "Screen { background: $background; }"
     BINDINGS: ClassVar = [
         Binding("1", "show_tab('log')",     "Log",     show=True),
         Binding("2", "show_tab('woche')",   "Woche",   show=True),
@@ -520,27 +514,31 @@ class FitnessTUI(App):
         Binding("q", "quit",                "Quit"),
     ]
 
+    def __init__(self) -> None:
+        super().__init__()
+        # Daten synchron laden — schnelle File-I/O, blockiert nicht spürbar
+        self._sessions = load_sessions(60)
+        self._info     = sync_info()
+        self._clients  = load_all_clients(10)
+
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
         with TabbedContent(initial="log"):
             with TabPane("📋 Log",     id="log"):
-                yield SessionTable([])
+                yield SessionTable(self._sessions)
             with TabPane("📅 Woche",   id="woche"):
                 with ScrollableContainer():
-                    yield WeekView([])
+                    yield WeekView(self._sessions)
             with TabPane("📊 Stats",   id="stats"):
                 with ScrollableContainer():
-                    yield StatsView([])
+                    yield StatsView(self._sessions)
             with TabPane("🔄 Sync",    id="sync"):
                 with ScrollableContainer():
-                    yield SyncView({})
+                    yield SyncView(self._info)
             with TabPane("👥 Clients", id="clients"):
                 with ScrollableContainer():
-                    yield ClientsView([])
+                    yield ClientsView(self._clients)
         yield Footer()
-
-    def on_mount(self) -> None:
-        self.action_reload()
 
     @work(thread=True)
     def action_reload(self) -> None:
@@ -550,25 +548,26 @@ class FitnessTUI(App):
         self.call_from_thread(self._apply, sessions, info, clients)
 
     def _apply(self, sessions: list[dict], info: dict, clients: list[dict]) -> None:
-        try:
-            self.query_one(SessionTable).update_sessions(sessions)
-            wv = self.query_one(WeekView)
-            wv.sessions = sessions; wv.refresh()
-            sv = self.query_one(StatsView)
-            sv.sessions = sessions; sv.refresh()
-            syn = self.query_one(SyncView)
-            syn.info = info; syn.refresh()
-            cv = self.query_one(ClientsView)
-            cv.clients = clients; cv.refresh()
-        except Exception:
-            pass
+        self._sessions = sessions
+        self._info     = info
+        self._clients  = clients
+        self.query_one(SessionTable).update_sessions(sessions)
+        wv = self.query_one(WeekView)
+        wv.sessions = sessions
+        wv.refresh(layout=True)
+        sv = self.query_one(StatsView)
+        sv.sessions = sessions
+        sv.refresh(layout=True)
+        syn = self.query_one(SyncView)
+        syn.info = info
+        syn.refresh(layout=True)
+        cv = self.query_one(ClientsView)
+        cv.clients = clients
+        cv.refresh(layout=True)
+        self.notify("Daten aktualisiert", severity="information", timeout=2)
 
     def action_show_tab(self, tab_id: str) -> None:
         self.query_one(TabbedContent).active = tab_id
-
-    def notify_reload(self) -> None:
-        self.notify("Daten werden neu geladen…", severity="information", timeout=2)
-        self.action_reload()
 
 
 # ── Entry-Point ───────────────────────────────────────────────────────────────
