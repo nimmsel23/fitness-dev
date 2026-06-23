@@ -378,7 +378,9 @@ def cmd_clients(
 
         files = sorted(all_files, key=lambda f: f.stem, reverse=True)
         shown = 0
-        for f in files:
+        from tqdm import tqdm as _tqdm
+        _iter = _tqdm(files, desc=f"  {name}", unit="sess", leave=False) if len(files) > 20 else files
+        for f in _iter:
             d = f.stem[:10]
             if len(d) < 10 or d < cutoff:
                 continue

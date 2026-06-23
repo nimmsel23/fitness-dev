@@ -29,6 +29,7 @@ def _save_known_habits(uid: str, ids: set):
 
 
 def pull() -> dict:
+    from tqdm import tqdm
     db = get_db()
     total_pulled = 0
     total_skipped = 0
@@ -37,11 +38,10 @@ def pull() -> dict:
     total_inbox = 0
 
     _SKIP_UIDS = {"default", "kb", "_template"}
-    # Iterate over all user documents in the fitness collection
-    for user_ref in db.collection("fitness").list_documents():
+    all_refs = [r for r in db.collection("fitness").list_documents()
+                if r.id not in _SKIP_UIDS]
+    for user_ref in tqdm(all_refs, desc="Pull users", unit="user"):
         uid = user_ref.id
-        if uid in _SKIP_UIDS:
-            continue
         user_dir = USERS_DIR / uid / "fitness"
         sessions_dir = user_dir / "sessions"
         journal_dir = user_dir / "journal"
@@ -63,7 +63,8 @@ def pull() -> dict:
             pass
 
         # Pull Sessions
-        for doc in db.collection("fitness").document(uid).collection("sessions").stream():
+        session_docs = list(db.collection("fitness").document(uid).collection("sessions").stream())
+        for doc in tqdm(session_docs, desc=f"  {uid[:8]} sessions", unit="sess", leave=False):
             doc_id, data = doc.id, doc.to_dict()
             actual_date = data.get("date") or doc_id.split("__")[0]
             local = sessions_dir / f"{doc_id}.json"
