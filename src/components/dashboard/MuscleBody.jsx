@@ -104,6 +104,7 @@ export default function MuscleBody({ allSessions, enrichedRecent, recentDays = 7
   }, [selectedMuscleId]);
 
   // Superkompensations-Scores aus Session-History
+  // score = freq (1–4), color = direkter Hex-Wert für react-muscle-highlighter
   const groupScores = useMemo(() => {
     const sessions = allSessions || enrichedRecent || [];
     const lastTrained = buildLastTrainedMap(sessions);
@@ -112,25 +113,20 @@ export default function MuscleBody({ allSessions, enrichedRecent, recentDays = 7
     for (const [group, { date, isCardio }] of Object.entries(lastTrained)) {
       const daysSince = Math.round((new Date(today) - new Date(date)) / 86400000);
       const freq = superKompFreq(daysSince, isCardio);
-      if (freq > 0) scores[group] = { score: freq };
+      if (freq > 0) scores[group] = { score: freq, color: SUPERKOMP_COLORS[freq - 1] };
     }
     return scores;
   }, [allSessions, enrichedRecent]);
 
   const isMuscles = highlighterMode === 'muscles';
-  const safeRecent = Array.isArray(enrichedRecent) ? enrichedRecent.filter(Boolean) : [];
-  const recentExercises = safeRecent
-    .flatMap(s => (s?.exercises || []).filter(ex => ex.done !== false))
-    .filter(Boolean);
-
   const sharedProps = { onGroupClick: setSelectedMuscleId };
 
   const frontProps = isMuscles
-    ? { exercises: recentExercises, gender, side: 'front', colors: SUPERKOMP_COLORS, ...sharedProps }
+    ? { groupScores, gender, side: 'front', ...sharedProps }
     : { groupScores, highlightedColors: SUPERKOMP_COLORS, style: { maxWidth: 160 }, ...sharedProps };
 
   const backProps = isMuscles
-    ? { exercises: recentExercises, gender, side: 'back', colors: SUPERKOMP_COLORS, ...sharedProps }
+    ? { groupScores, gender, side: 'back', ...sharedProps }
     : { groupScores, highlightedColors: SUPERKOMP_COLORS, style: { maxWidth: 160 }, ...sharedProps };
 
   const HighlighterFront = isMuscles ? DetailedMuscleMap : BodyMap;

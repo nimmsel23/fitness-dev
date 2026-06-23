@@ -1,40 +1,38 @@
 import Body from 'react-muscle-highlighter';
-import { RBH_SLUGS } from '../lib/muscleMapping';
 
-export default function DetailedMuscleMap({ exercises = [], style, colors, gender, side, onGroupClick }) {
-  const safeExercises = Array.isArray(exercises) ? exercises : [];
-  const muscleHits = {};
-  safeExercises.forEach(ex => {
-    const muscles = [...(ex.primaryMuscles || []), ...(ex.secondaryMuscles || [])];
-    muscles.forEach(m => {
-      const key = String(m || '').toLowerCase().trim();
-      const slug = RBH_SLUGS[key] || RBH_SLUGS[key.replace(/_/g, ' ')];
-      if (slug) {
-        muscleHits[slug] = (muscleHits[slug] || 0) + 1;
-      }
-    });
+const GROUP_TO_RMH = {
+  chest:      ['chest'],
+  back:       ['upper-back', 'lower-back'],
+  shoulders:  ['deltoids'],
+  arms:       ['biceps', 'triceps', 'forearm'],
+  core:       ['abs', 'obliques'],
+  glutes:     ['gluteal'],
+  quads:      ['quadriceps'],
+  hamstrings: ['hamstring'],
+  calves:     ['calves'],
+};
+
+// groupScores: { chest: { score: 3, color: '#22c55e' }, ... }
+// color wird direkt übergeben — kein intensity-Index nötig
+function groupScoresToData(groupScores) {
+  return Object.entries(groupScores).flatMap(([group, { color }]) => {
+    return (GROUP_TO_RMH[group] || []).map(slug => ({ slug, color }));
   });
+}
 
-  // 2. Convert to react-muscle-highlighter format with intensity scale (1-4)
-  const data = Object.entries(muscleHits).map(([slug, hits]) => {
-    // Basic scaling: 1 hit = intensity 1, 2-3 = 2, 4-5 = 3, 6+ = 4
-    const intensity = hits >= 6 ? 4 : hits >= 4 ? 3 : hits >= 2 ? 2 : 1;
-    return { slug, intensity };
-  });
-
-  function handlePress(part) {
-    if (onGroupClick) onGroupClick(part.slug);
-  }
+export default function DetailedMuscleMap({ groupScores, style, gender, side, onGroupClick }) {
+  const data = groupScores ? groupScoresToData(groupScores) : [];
 
   return (
-    <div style={{...style, display: 'flex', justifyContent: 'center' }}>
-        <Body 
-            data={data} 
-            colors={colors || ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444']}
-            gender={gender || 'male'}
-            side={side || 'front'}
-            onBodyPartPress={handlePress}
-        />
+    <div style={{ ...style, display: 'flex', justifyContent: 'center' }}>
+      <Body
+        data={data}
+        gender={gender || 'male'}
+        side={side || 'front'}
+        defaultFill="var(--line)"
+        border="none"
+        onBodyPartPress={part => onGroupClick?.(part.slug)}
+      />
     </div>
   );
 }
