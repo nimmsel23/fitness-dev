@@ -681,17 +681,22 @@ export function muscleToGroupIds(muscle, exerciseName = "") {
 }
 
 export async function getMuscleCoverage(days = 7) {
-  const dates = [];
   const today = new Date();
-  for (let i = 0; i < days; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    dates.push(d.toISOString().slice(0, 10));
-  }
+  const startDate = new Date();
+  startDate.setDate(today.getDate() - (days - 1));
+  const startStr = startDate.toISOString().slice(0, 10);
+  const todayStr = today.toISOString().slice(0, 10);
+
+  const q = query(
+    collection(db, "fitness", getUid(), "sessions"),
+    where("date", ">=", startStr),
+    where("date", "<=", todayStr),
+  );
+  const snap = await getDocs(q);
+
   const hits = {};
-  for (const date of dates) {
-    const session = await getSession(date);
-    if (!session) continue;
+  for (const d of snap.docs) {
+    const session = d.data();
     for (const ex of (Array.isArray(session.exercises) ? session.exercises : [])) {
       const exName = ex.name || ex.exercise_id || "";
       [...(ex.primaryMuscles || [])].forEach(m =>
