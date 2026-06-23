@@ -80,18 +80,24 @@ export const api = { get: noopApi("get"), post: noopApi("post"), delete: noopApi
 
 let currentUid = null;
 
+let _lastProfileKey = null;
+
 export function watchAuth(callback) {
   return onAuthStateChanged(auth, async (user) => {
     currentUid = user ? user.uid : null;
     if (user) {
-      try {
-        await setDoc(doc(db, "fitness", user.uid, "profile", "metadata"), {
-          email: user.email || "",
-          displayName: user.displayName || "",
-          updated_at: serverTimestamp()
-        }, { merge: true });
-      } catch (e) {
-        console.error("Profile metadata sync error:", e);
+      const profileKey = `${user.uid}:${user.email}:${user.displayName}`;
+      if (profileKey !== _lastProfileKey) {
+        _lastProfileKey = profileKey;
+        try {
+          await setDoc(doc(db, "fitness", user.uid, "profile", "metadata"), {
+            email: user.email || "",
+            displayName: user.displayName || "",
+            updated_at: serverTimestamp()
+          }, { merge: true });
+        } catch (e) {
+          console.error("Profile metadata sync error:", e);
+        }
       }
     }
     callback?.(user);
@@ -650,14 +656,14 @@ export async function sendToInbox(exerciseData) {
 
 // ── Analysis / Coverage / Weekly Report (from pwa.bak/src/lib/db/analysis.js) ─
 
-export async function getDashboardAnalytics(days = 28) {
+export async function getDashboardAnalytics(days = 21) {
   try {
     const snap = await getDoc(doc(db, "fitness", getUid(), "analytics", "dashboard"));
     if (snap.exists()) {
       const data = snap.data();
       if (days <= 7 && data.rolling_7_days) return data.rolling_7_days;
       if (days <= 14 && data.rolling_14_days) return data.rolling_14_days;
-      if (data.rolling_28_days) return data.rolling_28_days;
+      if (data.rolling_21_days) return data.rolling_21_days;
     }
   } catch (e) {
     console.error("Failed to fetch dashboard analytics", e);
@@ -717,17 +723,17 @@ export async function getCoverageGaps(days = 7, threshold = 1.0) {
 
 async function updateAnalyticsDoc() {
   try {
-    const [s7, s14, s28] = await Promise.all([
+    const [s7, s14, s21] = await Promise.all([
       getMuscleCoverage(7),
       getMuscleCoverage(14),
-      getMuscleCoverage(28),
+      getMuscleCoverage(21),
     ]);
     await setDoc(
       doc(db, "fitness", getUid(), "analytics", "dashboard"),
       {
         rolling_7_days:  { body_region_scores: s7,  updated_at: new Date().toISOString() },
         rolling_14_days: { body_region_scores: s14, updated_at: new Date().toISOString() },
-        rolling_28_days: { body_region_scores: s28, updated_at: new Date().toISOString() },
+        rolling_21_days: { body_region_scores: s21, updated_at: new Date().toISOString() },
       }
     );
   } catch (e) {
