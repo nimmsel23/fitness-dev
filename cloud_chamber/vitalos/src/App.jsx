@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { RefreshCw } from 'lucide-react'
-import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode } from '@db'
+import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode, auth } from '@db'
 import { VALID_TABS, SUB_NAV } from './shell/NavigationItems.js'
 import { THEMES } from '@constants/Themes.js'
 import Settings from '@view/settings/index.jsx'
@@ -62,7 +62,15 @@ export default function App() {
   const [authError, setAuthError]     = useState('')
   const [authRegistering, setAuthRegistering] = useState(false)
 
-  useEffect(() => watchAuth(u => { setUser(u); setAuthLoading(false) }), [])
+  useEffect(() => {
+    if (isLocalMode()) { setAuthLoading(false); return }
+    // authStateReady() wartet bis Firebase die Session aus IndexedDB geladen hat —
+    // verhindert Login-Screen-Flash bei jedem Reload
+    auth.authStateReady().then(() => {
+      setAuthLoading(false)
+      watchAuth(u => setUser(u))
+    })
+  }, [])
 
   // Settings state
   const [theme, setThemeState]    = useState(() => localStorage.getItem('vitalos-theme') || 'nordic')
