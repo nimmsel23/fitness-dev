@@ -51,7 +51,7 @@ export default function FitnessApp({ user, recentDays, coverageThreshold, gender
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-12 max-w-[1600px] mx-auto w-full">
-        {tab === 'dash'    && <Dashboard user={user} onOpenSession={onOpenSession} onInspectExercise={inspectExercise} onOpenReview={() => setTab('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
+        {tab === 'dash'    && <Dashboard user={user} onOpenSession={onOpenSession} onInspectExercise={inspectExercise} onOpenReview={() => setTab('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} navigate={setTab} />}
         {tab === 'session' && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} recentDays={recentDays} coverageThreshold={coverageThreshold} />}
         {tab === 'review'  && <WeeklyReview onOpenSession={onOpenSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} />}
       </div>

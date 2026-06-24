@@ -1,1 +1,1 @@
-../../../src/components/ExerciseSearchOverlay.jsx
+../../../../src/components/ExerciseSearchOverlay.jsx

@@ -1,1 +1,1 @@
-../../../src/components/ExerciseInsightModal.jsx
+../../../../src/components/ExerciseInsightModal.jsx

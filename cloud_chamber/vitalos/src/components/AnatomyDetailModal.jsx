@@ -1,1 +1,1 @@
-../../../src/components/AnatomyDetailModal.jsx
+../../../../src/components/AnatomyDetailModal.jsx

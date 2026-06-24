@@ -1,1 +1,1 @@
-../../../../src/lib/db/core.js
+../../../../../src/lib/db/core.js

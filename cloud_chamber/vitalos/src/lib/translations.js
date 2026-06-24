@@ -1,1 +1,1 @@
-../../../src/lib/translations.js
+../../../../src/lib/translations.js

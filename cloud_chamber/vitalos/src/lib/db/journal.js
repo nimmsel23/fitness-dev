@@ -1,1 +1,1 @@
-../../../../src/lib/db/journal.js
+../../../../../src/lib/db/journal.js

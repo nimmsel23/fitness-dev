@@ -1,1 +1,1 @@
-../../../src/components/TabSettingsModal.jsx
+../../../../src/components/TabSettingsModal.jsx

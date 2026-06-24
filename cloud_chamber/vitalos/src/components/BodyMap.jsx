@@ -1,1 +1,1 @@
-../../../src/components/BodyMap.jsx
+../../../../src/components/BodyMap.jsx

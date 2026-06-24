@@ -1,1 +1,1 @@
-../../../src/components/DetailedMuscleMap.jsx
+../../../../src/components/DetailedMuscleMap.jsx
