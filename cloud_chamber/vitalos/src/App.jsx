@@ -1,16 +1,16 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode } from '@db'
-import { NAV_ITEMS, VALID_TABS, SUB_NAV } from './constants/NavigationItems.js'
+import { VALID_TABS, SUB_NAV } from './shell/NavigationItems.js'
 import { THEMES } from './constants/Themes.js'
 import Settings from '@view/settings/index.jsx'
 import Sidebar from './shell/layout/Sidebar.jsx'
-import MobileNav from './shell/layout/MobileNav.jsx'
+import MobileShell from './shell/layout/MobileShell.jsx'
 import UserProfile from './components/common/UserProfile.jsx'
 import ErrorBoundary from './components/common/ErrorBoundary.jsx'
 
-const FitnessApp  = lazy(() => import('./apps/FitnessApp.jsx'))
-const FuelWrapper = lazy(() => import('./apps/FuelWrapper.jsx'))
+const FitnessApp  = lazy(() => import('./shell/apps/FitnessApp.jsx'))
+const FuelWrapper = lazy(() => import('./shell/apps/FuelWrapper.jsx'))
 const JournalView = lazy(() => import('@view/journal/index.jsx'))
 const HabitsView  = lazy(() => import('@view/habits/index.jsx'))
 const LearnView   = lazy(() => import('@view/learn/index.jsx'))
@@ -23,6 +23,20 @@ const Loader = ({ label }) => (
     {label}…
   </div>
 )
+
+function Views({ tab, fitnessProps, fuelTab, setFuelTab, user, settingsProps, openSession, compact }) {
+  const p = compact ? 'p-4' : 'p-4 sm:p-8 lg:p-12'
+  return (
+    <Suspense fallback={<Loader label={tab} />}>
+      {tab === 'fitness'  && <FitnessApp  {...fitnessProps} />}
+      {tab === 'fuel'     && <FuelWrapper user={user} subTab={fuelTab} onSubTab={setFuelTab} />}
+      {tab === 'journal'  && <div className={`${p} max-w-[1600px] mx-auto`}><JournalView onOpenSession={openSession} /></div>}
+      {tab === 'habits'   && <div className={`${p} max-w-[1600px] mx-auto`}><HabitsView /></div>}
+      {tab === 'learn'    && <div className={`${p} max-w-[1600px] mx-auto`}><LearnView /></div>}
+      {tab === 'settings' && <div className={`${p} max-w-[1600px] mx-auto`}><Settings {...settingsProps} /></div>}
+    </Suspense>
+  )
+}
 
 export default function App() {
   const [tab, setTab] = useState(() => {
@@ -67,6 +81,8 @@ export default function App() {
   const [sidebarPinned, setSidebarPinned] = useState(() => localStorage.getItem('vitalos-sidebarPinned') !== 'false')
   const [muscleLanguage, setMuscleLanguage] = useState(() => localStorage.getItem('vitalos-muscleLanguage') || 'de')
   const [swipeEnabled, setSwipeEnabled]     = useState(() => localStorage.getItem('vitalos-swipeEnabled') === 'true')
+  const [mobileLayout, setMobileLayoutState] = useState(() => localStorage.getItem('vitalos-mobileLayout') || 'classic')
+  const setMobileLayout = v => { setMobileLayoutState(v); localStorage.setItem('vitalos-mobileLayout', v) }
   const [taxonomy, setTaxonomy] = useState(null)
 
   useEffect(() => {
@@ -182,6 +198,7 @@ export default function App() {
     navMode: 'tabs', setNavMode: () => {},
     muscleLanguage, setMuscleLanguage,
     swipeEnabled, setSwipeEnabled,
+    mobileLayout, setMobileLayout,
   }
 
   const fitnessProps = {
@@ -210,17 +227,20 @@ export default function App() {
         </Sidebar>
 
         <div className={`flex-1 transition-all duration-500 ease-in-out ${sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
-          <main className="relative pb-28 sm:pb-10 lg:pb-0 min-h-[100dvh]">
-            <Suspense fallback={<Loader label={NAV_ITEMS.find(i => i.id === tab)?.label || tab} />}>
-              {tab === 'fitness'  && <FitnessApp  {...fitnessProps} />}
-              {tab === 'fuel'     && <FuelWrapper user={user} subTab={fuelTab} onSubTab={setFuelTab} />}
-              {tab === 'journal'  && <div className="p-4 sm:p-8 lg:p-12 max-w-[1600px] mx-auto"><JournalView onOpenSession={openSession} /></div>}
-              {tab === 'habits'   && <div className="p-4 sm:p-8 lg:p-12 max-w-[1600px] mx-auto"><HabitsView /></div>}
-              {tab === 'learn'    && <div className="p-4 sm:p-8 lg:p-12 max-w-[1600px] mx-auto"><LearnView /></div>}
-              {tab === 'settings' && <div className="p-4 sm:p-8 lg:p-12 max-w-[1600px] mx-auto"><Settings {...settingsProps} /></div>}
-            </Suspense>
-          </main>
-          <MobileNav tab={tab} navigate={navigate} />
+          {mobileLayout === 'fuel' ? (
+            <MobileShell tab={tab} navigate={navigate} mobileLayout="fuel">
+              <Views tab={tab} fitnessProps={fitnessProps} fuelTab={fuelTab} setFuelTab={setFuelTab}
+                user={user} settingsProps={settingsProps} openSession={openSession} compact />
+            </MobileShell>
+          ) : (
+            <>
+              <main className="relative pb-28 sm:pb-10 lg:pb-0 min-h-[100dvh]">
+                <Views tab={tab} fitnessProps={fitnessProps} fuelTab={fuelTab} setFuelTab={setFuelTab}
+                  user={user} settingsProps={settingsProps} openSession={openSession} />
+              </main>
+              <MobileShell tab={tab} navigate={navigate} mobileLayout="classic" />
+            </>
+          )}
         </div>
       </div>
     </ErrorBoundary>

@@ -24,6 +24,7 @@ export default function Settings({
   navMode, setNavMode,
   muscleLanguage, setMuscleLanguage,
   swipeEnabled, setSwipeEnabled,
+  mobileLayout, setMobileLayout,
 }) {
   const [health, setHealth] = useState(null)
   const [wger, setWger] = useState(null)
@@ -136,6 +137,7 @@ export default function Settings({
          <AdvancedSection
            swipeEnabled={swipeEnabled} setSwipeEnabled={setSwipeEnabled}
            dashboardHighlighter={dashboardHighlighter} setDashboardHighlighter={setDashboardHighlighter}
+           mobileLayout={mobileLayout} setMobileLayout={setMobileLayout}
          />
        )}
     </div>

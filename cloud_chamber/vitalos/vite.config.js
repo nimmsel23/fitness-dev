@@ -34,9 +34,13 @@ export default defineConfig(({ mode }) => {
   const isFirebase = mode === 'firebase'
 
   const aliases = {
-    '@src':   VITALOS_SRC,
-    '@utils': resolve(VITALOS_SRC, 'lib/utils.js'),
-    '@db':    resolve(VITALOS_SRC, isFirebase ? 'db.firestore.js' : 'db.js'),
+    '@src':        VITALOS_SRC,
+    '@shell':      resolve(VITALOS_SRC, 'shell'),
+    '@components': resolve(VITALOS_SRC, 'components'),
+    '@lib':        resolve(VITALOS_SRC, 'lib'),
+    '@constants':  resolve(FITNESS_SRC, 'constants'),
+    '@utils':      resolve(VITALOS_SRC, 'lib/utils.js'),
+    '@db':         resolve(VITALOS_SRC, isFirebase ? 'db.firestore.js' : 'db.js'),
 
     // ── Tab Sources (eine Zeile = ein Tab, Herkunft sofort sichtbar) ───────────
     '@view/dashboard':  resolve(VITALOS_SRC, 'views/Dashboard'),           // vitalos

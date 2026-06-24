@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { VOS_APPS } from '../../constants/VitalOSApps.js'
+import { VOS_APPS } from '../VitalOSApps.js'
 
 export default function VitalOSSidebar({ app, navigate, pinned, setPinned }) {
   return (

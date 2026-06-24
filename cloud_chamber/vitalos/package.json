@@ -12,5 +12,8 @@
     "deploy:journal": "npx vite build --config ../federation/journal.remote.vite.config.js && firebase deploy --only hosting --project fitness-aos --config ../journal-dev/firebase.remote.json",
     "deploy:learn": "npx vite build --config ../federation/learn.remote.vite.config.js && firebase deploy --only hosting --project fitness-aos --config ../learn-dev/firebase.remote.json",
     "preview": "npx vite preview --config vite.config.js"
+  },
+  "dependencies": {
+    "framer-motion": "^12.40.0"
   }
 }

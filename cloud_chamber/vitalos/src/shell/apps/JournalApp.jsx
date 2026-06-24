@@ -1,22 +1,11 @@
-/**
- * JournalApp — exposed von journal-dev als Module Federation Remote.
- *
- * Wird von journal.remote.vite.config.js als './JournalApp' exposed.
- * Kein Auth-Gate — host (fitness-dev) kümmert sich um Auth.
- * Kein createRoot — fitness-dev mounted diese Komponente in seinen React-Tree.
- *
- * @db Alias zeigt beim Remote-Build auf journal-vos/src/db.js (:9170)
- * oder journal-vos/src/db.firestore.js (--mode firebase).
- */
-
 import { useState } from 'react'
 import { BookOpen, CheckSquare } from 'lucide-react'
-import Journal from '../../src/views/Journal/index.jsx'
-import Habits  from '../../src/views/Habits/index.jsx'
+import Journal from '@view/journal/index.jsx'
+import Habits  from '@view/habits/index.jsx'
 
 const TABS = [
   { id: 'journal', label: 'Journal', Icon: BookOpen, View: Journal },
-  { id: 'habits',  label: 'Habits',  Icon: CheckSquare, View: Habits  },
+  { id: 'habits',  label: 'Habits',  Icon: CheckSquare, View: Habits },
 ]
 
 export default function JournalApp() {

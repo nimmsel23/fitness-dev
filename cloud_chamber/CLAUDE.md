@@ -118,6 +118,21 @@ App.jsx
 
 FuelWrapper synct bidirektional: Sidebar-Klick → Zustand-Store, interne Fuel-Navigation → `onSubTab` zurück zu App.
 
+### Mobile Layout System
+
+Zwei Mobile-Layouts, umschaltbar via Settings → Advanced → Mobile Layout (gespeichert in `localStorage`):
+
+| Layout | Komponente | Beschreibung |
+|--------|-----------|--------------|
+| `classic` | `MobileNav.jsx` | Bottom-Bar Navigation (bisheriges Layout) |
+| `fuel` | `FuelMobileLayout.jsx` | Glassmorphism Header + horizontale Pill-Tabs in Thumb-Zone + AnimatePresence |
+
+**`src/shell/layout/MobileShell.jsx`** — Switcher-Component. Rendert je nach `mobileLayout`-Prop entweder `FuelMobileLayout` oder `MobileNav`. Modular: beide Layouts bleiben parallel erhalten.
+
+**`FuelMobileLayout`** — Inspiration: fuel-dev Frontend. Der Header-Card schiebt die Pill-Tabs ergonomisch in den Daumen-Bereich. `framer-motion` für Tab-Transitions (`AnimatePresence mode="wait"`).
+
+**`Views`** (in `App.jsx`) — internes Helper-Component das View-Rendering für beide Layout-Pfade dedupliziert. `compact`-Prop reduziert Padding im Fuel-Layout.
+
 ### Firebase Auth
 
 - Alle Apps teilen dieselbe Firebase-Instanz (`fitness-aos`)

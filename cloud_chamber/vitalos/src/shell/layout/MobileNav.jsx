@@ -1,4 +1,4 @@
-import { NAV_ITEMS } from "../../constants/NavigationItems";
+import { NAV_ITEMS } from '@shell/NavigationItems';
 
 export default function MobileNav({ tab, navigate, swipeHint }) {
   const currentIndex = NAV_ITEMS.findIndex(i => i.id === tab);

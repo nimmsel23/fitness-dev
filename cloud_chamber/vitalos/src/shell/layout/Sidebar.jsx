@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, Shield, Zap } from "lucide-react";
-import { NAV_ITEMS } from "../../constants/NavigationItems";
+import { NAV_ITEMS } from '@shell/NavigationItems';
 import { isLocalMode } from "@db";
 
 export default function Sidebar({ tab, navigate, pinned, setPinned, children, user, subNav, subTab, onSubTab }) {

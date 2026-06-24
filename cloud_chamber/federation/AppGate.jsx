@@ -1,4 +1,4 @@
-import { NAV_ITEMS } from "../constants/NavigationItems.js";
+import { NAV_ITEMS } from '@shell/NavigationItems.js';
 import { localToday } from "@utils";
 
 export default function AppGate({ navigate }) {

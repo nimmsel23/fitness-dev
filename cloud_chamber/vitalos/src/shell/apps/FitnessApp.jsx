@@ -3,7 +3,7 @@ import { Activity, Dumbbell, BarChart3 } from 'lucide-react'
 import Dashboard from '@view/dashboard/index.jsx'
 import Session from '@view/session/index.jsx'
 import WeeklyReview from '@view/review/index.jsx'
-import ExerciseInsightModal from '../components/ExerciseInsightModal.jsx'
+import ExerciseInsightModal from '@components/ExerciseInsightModal.jsx'
 import { getAnatomy } from '@db'
 
 const SUB_NAV = [

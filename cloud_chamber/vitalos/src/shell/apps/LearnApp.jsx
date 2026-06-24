@@ -1,4 +1,4 @@
-import Learn from '../views/Learn/index.jsx'
+import Learn from '@view/learn/index.jsx'
 
 export default function LearnApp() {
   return (

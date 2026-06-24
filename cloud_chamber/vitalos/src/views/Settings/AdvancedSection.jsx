@@ -3,6 +3,7 @@ import { Sparkles, ShieldAlert } from "lucide-react";
 export default function AdvancedSection({
   swipeEnabled, setSwipeEnabled,
   dashboardHighlighter, setDashboardHighlighter,
+  mobileLayout, setMobileLayout,
 }) {
   return (
     <section className="card p-8 mt-8 border-dashed border-red-500/20 bg-red-500/5 animate-in fade-in slide-in-from-bottom-8 duration-500">
@@ -32,6 +33,22 @@ export default function AdvancedSection({
                    {[{ id: true, label: 'Ein' }, { id: false, label: 'Aus' }].map(({ id, label }) => (
                       <button key={label} onClick={() => setSwipeEnabled(id)}
                          className={`px-3 py-1.5 text-[8px] font-black uppercase rounded-lg transition-all ${swipeEnabled === id ? 'bg-fit-card shadow-sm text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}>
+                         {label}
+                      </button>
+                   ))}
+                </div>
+             </div>
+
+             {/* Mobile Layout */}
+             <div className="flex items-center justify-between">
+                <div>
+                   <div className="text-xs font-black text-fit-ink">Mobile Layout</div>
+                   <div className="text-[9px] font-bold opacity-30 uppercase text-fit-dim">Fuel-Style Header + Pill-Tabs</div>
+                </div>
+                <div className="flex bg-fit-bg p-1 rounded-xl border border-fit-line">
+                   {[{ id: 'classic', label: 'Classic' }, { id: 'fuel', label: 'Fuel' }].map(({ id, label }) => (
+                      <button key={id} onClick={() => setMobileLayout?.(id)}
+                         className={`px-3 py-1.5 text-[8px] font-black uppercase rounded-lg transition-all ${mobileLayout === id ? 'bg-fit-card shadow-sm text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}>
                          {label}
                       </button>
                    ))}
