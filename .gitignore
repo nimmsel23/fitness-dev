@@ -15,3 +15,4 @@ catalog/fitness_agent/__pycache__/
 catalog/yuhonas
 catalog/kb/exercises/unreviewed_yuhonas.yml
 .worktrees/
+dist-versions/
