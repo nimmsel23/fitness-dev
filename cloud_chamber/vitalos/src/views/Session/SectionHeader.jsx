@@ -1,1 +1,0 @@
-../../../../../src/views/Session/SectionHeader.jsx

@@ -72,11 +72,31 @@ firebase deploy --only hosting:vitalos   # → vitalos.web.app
 @src          → vitalos/src/
 @db           → vitalos/src/db.js  (oder db.firestore.js im firebase-mode)
 @utils        → vitalos/src/lib/utils.js
-@journal-vos  → journal-vos/src/
-@learn-vos    → learn-vos/src/
 @fuel         → fuel-dev/src/client/
 fuel/FuelApp  → federation/FuelApp.jsx  (Shim ohne SW-Registration)
+@journal-vos  → journal-vos/src/           (Legacy — wird durch @view/* ersetzt)
+@learn-vos    → learn-vos/src/             (Legacy — wird durch @view/* ersetzt)
 ```
+
+**Tab-Source-Aliases** (eine Zeile = ein Tab, Herkunft sofort sichtbar):
+
+```
+@view/dashboard  → vitalos/src/views/Dashboard/          vitalos-spezifisch
+@view/session    → fitness-dev/src/views/Session/         fitness-dev SSOT
+@view/review     → vitalos/src/views/WeeklyReview/        vitalos-spezifisch
+@view/muscles    → vitalos/src/views/Muscles/             vitalos-spezifisch
+@view/learn      → fitness-dev/src/views/Learn/           fitness-dev SSOT
+@view/journal    → journal-vos/src/views/Journal/         journal-vos → fitness-dev symlink
+@view/habits     → journal-vos/src/views/Habits/          journal-vos → fitness-dev symlink
+@view/settings   → vitalos/src/views/Settings/            vitalos-spezifisch
+@view/coach      → vitalos/src/views/Coach/               vitalos-spezifisch
+```
+
+**Regel:** Neue Tabs bekommen einen `@view/<name>` Alias. Herkunft (vitalos vs. fitness-dev vs. journal-vos) im Kommentar.
+
+**src/shell/** — vitalos-spezifische Shell-Komponenten (Sidebar, VitalOSSidebar). Nicht aus fitness-dev.
+
+**src/components/, src/lib/** — Symlinks auf fitness-dev/src/. Wenn ein Component für vitalos angepasst werden muss: in `src/shell/components/` legen, Import anpassen, Symlink bleibt für alle anderen.
 
 **journalDbPlugin**: Intercepts `@db`-Imports aus `/journal-vos/`-Dateien → leitet auf
 `journal-vos/src/db.js` (oder `db.firestore.js`) um. Fitness-Context und Journal-Context

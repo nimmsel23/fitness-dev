@@ -1,1 +1,0 @@
-../../../../../src/views/Session/SourceSettingsModal.jsx

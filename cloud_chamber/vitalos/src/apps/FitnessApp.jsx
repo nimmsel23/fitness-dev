@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Activity, Dumbbell, BarChart3 } from 'lucide-react'
-import Dashboard from '../views/Dashboard/index.jsx'
-import Session from '../views/Session/index.jsx'
-import WeeklyReview from '../views/WeeklyReview/index.jsx'
+import Dashboard from '@view/dashboard/index.jsx'
+import Session from '@view/session/index.jsx'
+import WeeklyReview from '@view/review/index.jsx'
 import ExerciseInsightModal from '../components/ExerciseInsightModal.jsx'
 import { getAnatomy } from '@db'
 

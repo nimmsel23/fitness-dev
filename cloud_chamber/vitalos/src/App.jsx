@@ -3,7 +3,7 @@ import { RefreshCw } from 'lucide-react'
 import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode } from '@db'
 import { NAV_ITEMS, VALID_TABS, SUB_NAV } from './constants/NavigationItems.js'
 import { THEMES } from './constants/Themes.js'
-import Settings from './views/Settings/index.jsx'
+import Settings from '@view/settings/index.jsx'
 import Sidebar from './shell/layout/Sidebar.jsx'
 import MobileNav from './components/layout/MobileNav.jsx'
 import UserProfile from './components/common/UserProfile.jsx'
@@ -11,9 +11,9 @@ import ErrorBoundary from './components/common/ErrorBoundary.jsx'
 
 const FitnessApp  = lazy(() => import('./apps/FitnessApp.jsx'))
 const FuelWrapper = lazy(() => import('./apps/FuelWrapper.jsx'))
-const JournalView = lazy(() => import('@journal-vos/views/Journal/index.jsx'))
-const HabitsView  = lazy(() => import('@journal-vos/views/Habits/index.jsx'))
-const LearnView   = lazy(() => import('./views/Learn/index.jsx'))
+const JournalView = lazy(() => import('@view/journal/index.jsx'))
+const HabitsView  = lazy(() => import('@view/habits/index.jsx'))
+const LearnView   = lazy(() => import('@view/learn/index.jsx'))
 
 const DAY_START = 8
 const DAY_END   = 20

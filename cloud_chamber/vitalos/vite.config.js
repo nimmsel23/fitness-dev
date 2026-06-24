@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url'
 const __dirname    = dirname(fileURLToPath(import.meta.url))
 const CC_ROOT      = resolve(__dirname, '..')
 const VITALOS_SRC  = resolve(__dirname, 'src')
+const FITNESS_SRC  = resolve(CC_ROOT, '../src')          // fitness-dev/src (SSOT)
 const FED_DIR      = resolve(__dirname, '../federation')
 const JOURNAL_ROOT = resolve(__dirname, '../journal-vos')
 const LEARN_ROOT   = resolve(__dirname, '../learn-vos')
@@ -36,6 +37,18 @@ export default defineConfig(({ mode }) => {
     '@src':   VITALOS_SRC,
     '@utils': resolve(VITALOS_SRC, 'lib/utils.js'),
     '@db':    resolve(VITALOS_SRC, isFirebase ? 'db.firestore.js' : 'db.js'),
+
+    // ── Tab Sources (eine Zeile = ein Tab, Herkunft sofort sichtbar) ───────────
+    '@view/dashboard':  resolve(VITALOS_SRC, 'views/Dashboard'),          // vitalos
+    '@view/session':    resolve(FITNESS_SRC,  'views/Session'),            // fitness-dev
+    '@view/review':     resolve(VITALOS_SRC,  'views/WeeklyReview'),       // vitalos
+    '@view/muscles':    resolve(VITALOS_SRC,  'views/Muscles'),            // vitalos
+    '@view/learn':      resolve(FITNESS_SRC,  'views/Learn'),              // fitness-dev
+    '@view/journal':    resolve(JOURNAL_ROOT, 'src/views/Journal'),        // journal-vos → fitness-dev symlink
+    '@view/habits':     resolve(JOURNAL_ROOT, 'src/views/Habits'),         // journal-vos → fitness-dev symlink
+    '@view/settings':   resolve(VITALOS_SRC,  'views/Settings'),           // vitalos
+    '@view/coach':      resolve(VITALOS_SRC,  'views/Coach'),              // vitalos
+
     'journal/JournalApp': resolve(VITALOS_SRC, 'apps/JournalApp.jsx'),
     'learn/LearnApp':     resolve(VITALOS_SRC, 'apps/LearnApp.jsx'),
     'fuel/FuelApp':       resolve(FED_DIR, 'FuelApp.jsx'),
