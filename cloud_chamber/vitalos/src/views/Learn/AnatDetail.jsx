@@ -1,0 +1,1 @@
+../../../../../src/views/Learn/AnatDetail.jsx

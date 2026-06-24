@@ -164,6 +164,7 @@ export default function App() {
   )
 
   const settingsProps = {
+    user, signOut,
     layoutScale, setLayoutScale,
     recentDays, setRecentDays,
     coverageThreshold, setCoverageThreshold,

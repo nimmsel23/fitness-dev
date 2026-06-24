@@ -4,7 +4,7 @@ import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode } fro
 import { NAV_ITEMS, VALID_TABS, SUB_NAV } from './constants/NavigationItems.js'
 import { THEMES } from './constants/Themes.js'
 import Settings from './views/Settings/index.jsx'
-import Sidebar from './components/layout/Sidebar.jsx'
+import Sidebar from './shell/layout/Sidebar.jsx'
 import MobileNav from './components/layout/MobileNav.jsx'
 import UserProfile from './components/common/UserProfile.jsx'
 import ErrorBoundary from './components/common/ErrorBoundary.jsx'
