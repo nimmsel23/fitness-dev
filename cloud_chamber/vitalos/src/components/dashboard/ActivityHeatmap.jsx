@@ -1,5 +1,5 @@
-import { Activity } from "lucide-react";
-import { getBlockColor as blockColor } from "../../constants/ActivityConstants";
+import { Activity, ChevronRight } from "lucide-react";
+import { getBlockColor as blockColor, ACTIVITY_LABELS } from "../../constants/ActivityConstants";
 import { DAY_LABELS } from "./utils";
 
 export default function ActivityHeatmap({ rollingDays, sessionByDate, today, onNavigate }) {

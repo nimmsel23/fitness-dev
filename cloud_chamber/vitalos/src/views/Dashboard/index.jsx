@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Lock, GripVertical } from "lucide-react";
-import { NAV_ITEMS } from "../../constants/NavigationItems";
+import { NAV_ITEMS } from '@shell/NavigationItems';
 import {
   getSession, getRecentSessions, getPlan,
   getDashboardAnalytics, exportCsv, getAllExercises, getGlobalInbox, isLocalMode
