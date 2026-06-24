@@ -1,13 +1,8 @@
-import { Activity, ChevronRight } from "lucide-react";
-import { getBlockColor as blockColor, ACTIVITY_LABELS } from "../../constants/ActivityConstants";
+import { Activity } from "lucide-react";
+import { getBlockColor as blockColor } from "../../constants/ActivityConstants";
 import { DAY_LABELS } from "./utils";
 
 export default function ActivityHeatmap({ rollingDays, sessionByDate, today, onNavigate }) {
-  const recentList = Object.entries(sessionByDate)
-    .filter(([, s]) => s?.block || s?.activity)
-    .sort(([a], [b]) => b.localeCompare(a))
-    .slice(0, 5);
-
   return (
     <div className="md:col-span-2 xl:col-span-3 alpha-card !p-10 shadow-2xl bg-gradient-to-br from-fit-card to-fit-bg2">
       <div className="flex items-center justify-between mb-10">
@@ -45,37 +40,6 @@ export default function ActivityHeatmap({ rollingDays, sessionByDate, today, onN
           );
         })}
       </div>
-
-      {recentList.length > 0 && (
-        <div className="mt-10 pt-8 border-t border-fit-line/30">
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-4">Verlauf</div>
-          <div className="space-y-2">
-            {recentList.map(([date, s]) => {
-              const color = blockColor(s.block, s.activity, s.sessionMode);
-              const label = s.block || ACTIVITY_LABELS[s.activity?.type] || '—';
-              const exCount = s.exercises?.length || 0;
-              return (
-                <button
-                  key={date}
-                  onClick={() => onNavigate?.("session", date)}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-fit-bg2/60 hover:bg-fit-bg2 border border-transparent hover:border-fit-line/40 transition-all group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-2 h-2 rounded-full shrink-0" style={{ background: color || 'var(--accent)' }} />
-                    <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: color || 'var(--accent)' }}>{label}</span>
-                    <span className="text-[10px] text-fit-dim/50 font-mono">{date}</span>
-                  </div>
-                  <div className="flex items-center gap-4 text-fit-dim">
-                    {exCount > 0 && <span className="text-[10px] font-black opacity-50">{exCount} Übg.</span>}
-                    {s.effort && <span className="text-[10px] font-black opacity-50">E{s.effort}</span>}
-                    <ChevronRight size={14} className="opacity-0 group-hover:opacity-60 transition-opacity" />
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -7,7 +7,7 @@ import {
 import { localToday } from '@utils';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
 
-import { Save, Zap, Trash2, Dumbbell, Activity, ChevronRight, History } from 'lucide-react';
+import { Save, Zap, Trash2, Dumbbell, Activity, History, Timer } from 'lucide-react';
 import DateHeader from './DateHeader';
 import ExerciseSection from './ExerciseSection';
 import ActivitySection from './ActivitySection';
@@ -16,7 +16,7 @@ import SidebarSheet from './SidebarSheet';
 import MuscleMapModal from './MuscleMapModal';
 import SourceSettingsModal from './SourceSettingsModal';
 import { getRollingDays, blockColor } from './utils';
-import { ACTIVITY_LABELS } from '../../constants/ActivityConstants';
+import { ACTIVITY_LABELS, ACTIVITY_ICONS, ACTIVITY_EMOJI } from '../../constants/ActivityConstants';
 
 // Session mode: 'strength' (Krafttraining) or 'cardio' (Ausdauer/Activity)
 const SESSION_MODES = [
@@ -24,7 +24,7 @@ const SESSION_MODES = [
   { value: 'cardio',   label: 'Ausdauer',      icon: Activity,  color: 'orange' },
 ];
 
-export default function Session({ initialDate, initialDraft, onInspectExercise, recentDays = 7, coverageThreshold = 1.0 }) {
+export default function Session({ initialDate, initialDraft, onInspectExercise, recentDays = 7, coverageThreshold = 1.0, subTab }) {
   const [date, setDate]           = useState(initialDate || localToday());
   const [sessionMode, setSessionMode] = useState('strength');
   const [block, setBlock]         = useState('');
@@ -54,7 +54,6 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
   const [daySessions, setDaySessions] = useState([]);
   const [sessionId, setSessionId] = useState(null);
   const [autoSaveLabel, setAutoSaveLabel] = useState('');
-  const [viewMode, setViewMode] = useState('heute');
 
   const autoSaveTimer = useRef(null);
   const saveRef = useRef(null);
@@ -364,6 +363,61 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
     URL.revokeObjectURL(url);
   }
 
+  if (subTab === 'history') {
+    const historySessions = Object.entries(recentSessions)
+      .sort(([a], [b]) => b.localeCompare(a))
+      .filter(([, s]) => s?.exercises?.length > 0 || s?.activity);
+    return (
+      <div className="pb-32">
+        {historySessions.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-32 opacity-30">
+            <History size={40} className="mb-4" />
+            <p className="text-[11px] font-black uppercase tracking-[0.3em]">Noch keine Sessions</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {historySessions.map(([d, s], idx) => {
+              const isActivity = s.sessionMode === 'cardio' || !!s.activity;
+              const actType = s.activity?.type;
+              const emoji = actType ? ACTIVITY_EMOJI[actType] : null;
+              const ActivityIcon = (!emoji && actType) ? (ACTIVITY_ICONS[actType] || Activity) : null;
+              const label = isActivity ? (ACTIVITY_LABELS[actType] || 'Ausdauer') : s.block;
+              const color = blockColor(s.block, s.activity, s.sessionMode);
+              return (
+                <button key={d || idx} onClick={() => setDate(d)}
+                  className="w-full text-left px-6 py-4 rounded-3xl bg-fit-card border border-fit-line hover:border-accent/40 transition-all group hover:bg-accent/5">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 text-xl"
+                        style={{ background: color + '15', color }}>
+                        {isActivity && emoji ? emoji : isActivity && ActivityIcon ? <ActivityIcon size={22} /> : <Dumbbell size={22} />}
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-black opacity-30 uppercase tracking-widest mb-1">{d}</div>
+                        <div className="text-md font-black text-fit-ink group-hover:text-accent transition-colors">{label}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      {isActivity ? (
+                        <div className="flex items-center gap-1.5 text-[11px] font-black text-fit-muted">
+                          <Timer size={12} className="opacity-30" />{s.activity?.duration}m
+                        </div>
+                      ) : (
+                        <div className="text-[10px] font-black px-3 py-1.5 rounded-xl bg-fit-bg2 text-fit-muted uppercase tracking-widest border border-fit-line">
+                          {Array.isArray(s.exercises) ? s.exercises.length : 0} Ex
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="pb-32">
       <DateHeader
@@ -378,78 +432,8 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
         onOpenSidebar={() => setShowSidebar(true)}
       />
 
-      {/* View Mode Switcher */}
-      <div className="px-2 mb-4">
-        <div className="inline-flex gap-1 bg-fit-bg2 p-1 rounded-2xl border border-fit-line">
-          <button
-            onClick={() => setViewMode('heute')}
-            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'heute' ? 'bg-fit-accent text-black shadow-lg' : 'text-fit-dim hover:text-fit-ink'}`}
-          >
-            <Dumbbell size={12} />
-            Heute
-          </button>
-          <button
-            onClick={() => setViewMode('verlauf')}
-            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'verlauf' ? 'bg-fit-accent text-black shadow-lg' : 'text-fit-dim hover:text-fit-ink'}`}
-          >
-            <History size={12} />
-            Verlauf
-          </button>
-        </div>
-      </div>
-
-      {/* Verlauf */}
-      {viewMode === 'verlauf' && (
-        <div className="px-2 space-y-2 mb-8">
-          {Object.entries(recentSessions)
-            .sort(([a], [b]) => b.localeCompare(a))
-            .filter(([, s]) => s?.exercises?.length > 0 || s?.activity)
-            .map(([d, s]) => {
-              const color = blockColor(s.block, s.activity);
-              const label = s.block || ACTIVITY_LABELS[s.activity?.type] || '—';
-              return (
-                <button
-                  key={d}
-                  onClick={() => { setDate(d); setViewMode('heute'); }}
-                  className="w-full text-left card p-5 hover:border-fit-accent/30 transition-all group flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color || 'var(--accent)' }} />
-                    <div>
-                      <div className="font-black text-fit-ink text-sm" style={{ color: color || 'inherit' }}>{label}</div>
-                      <div className="text-[10px] font-mono text-fit-dim/50 mt-0.5">{d}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 text-fit-dim">
-                    {s.exercises?.length > 0 && (
-                      <div className="text-right">
-                        <div className="text-base font-black text-fit-ink">{s.exercises.length}</div>
-                        <div className="text-[9px] uppercase tracking-widest opacity-40">Übungen</div>
-                      </div>
-                    )}
-                    {s.effort && (
-                      <div className="text-right">
-                        <div className="text-base font-black text-fit-ink">{s.effort}</div>
-                        <div className="text-[9px] uppercase tracking-widest opacity-40">Effort</div>
-                      </div>
-                    )}
-                    <ChevronRight size={16} className="opacity-0 group-hover:opacity-60 transition-opacity" />
-                  </div>
-                </button>
-              );
-            })
-          }
-          {Object.values(recentSessions).filter(s => s?.exercises?.length > 0 || s?.activity).length === 0 && (
-            <div className="card p-10 text-center opacity-30 border-dashed">
-              <History size={32} className="mx-auto mb-3" />
-              <p className="text-[11px] font-black uppercase tracking-[0.3em]">Noch kein Verlauf</p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Session Switcher Bar + Content — nur im Heute-Modus */}
-      {viewMode === 'heute' && <><div className="px-2 mb-8">
+      {/* Session Switcher Bar */}
+      <div className="px-2 mb-8">
         <div className="card p-6 shadow-xl rounded-[30px] border-fit-line/40 bg-fit-card/60 backdrop-blur-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mr-2">Workouts:</div>
@@ -626,7 +610,6 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
 
         </main>
       </div>
-      </>}
 
       {toast && (
         <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl text-sm font-bold shadow-2xl z-50 bg-fit-card text-fit-accent border border-fit-line animate-in slide-in-from-bottom-4 duration-300">
