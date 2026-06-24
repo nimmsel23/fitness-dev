@@ -17,7 +17,7 @@ import {
 } from "firebase/firestore";
 import {
   onAuthStateChanged,
-  signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+  signInWithRedirect, getRedirectResult, signInWithEmailAndPassword, createUserWithEmailAndPassword,
   signOut as fbSignOut, updateProfile,
 } from "firebase/auth";
 
@@ -87,7 +87,11 @@ export function watchAuth(callback) {
 }
 
 export async function signIn() {
-  await signInWithPopup(auth, googleProvider);
+  await signInWithRedirect(auth, googleProvider);
+}
+
+export async function handleRedirectResult() {
+  return getRedirectResult(auth);
 }
 
 export async function signInEmail(email, password) {
