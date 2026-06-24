@@ -19,9 +19,6 @@ export default function MobileShell({ tab, navigate, mobileLayout, swipeHint, ch
     )
   }
 
-  return (
-    <>
-      <MobileNav tab={tab} navigate={navigate} swipeHint={swipeHint} />
-    </>
-  )
+  // Classic: Content kommt von App.jsx main, wir rendern nur die Bottom-Nav
+  return <MobileNav tab={tab} navigate={navigate} swipeHint={swipeHint} />
 }

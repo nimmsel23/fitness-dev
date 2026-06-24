@@ -2,15 +2,15 @@ import { useState, useEffect, lazy, Suspense } from 'react'
 import { RefreshCw } from 'lucide-react'
 import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode } from '@db'
 import { VALID_TABS, SUB_NAV } from './shell/NavigationItems.js'
-import { THEMES } from './constants/Themes.js'
+import { THEMES } from '@constants/Themes.js'
 import Settings from '@view/settings/index.jsx'
 import Sidebar from './shell/layout/Sidebar.jsx'
 import MobileShell from './shell/layout/MobileShell.jsx'
 import UserProfile from './components/common/UserProfile.jsx'
 import ErrorBoundary from './components/common/ErrorBoundary.jsx'
 
-const FitnessApp  = lazy(() => import('./shell/apps/FitnessApp.jsx'))
-const FuelWrapper = lazy(() => import('./shell/apps/FuelWrapper.jsx'))
+const FitnessApp  = lazy(() => import('./shell/FitnessApp.jsx'))
+const FuelWrapper = lazy(() => import('./shell/FuelWrapper.jsx'))
 const JournalView = lazy(() => import('@view/journal/index.jsx'))
 const HabitsView  = lazy(() => import('@view/habits/index.jsx'))
 const LearnView   = lazy(() => import('@view/learn/index.jsx'))
@@ -228,10 +228,18 @@ export default function App() {
 
         <div className={`flex-1 transition-all duration-500 ease-in-out ${sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
           {mobileLayout === 'fuel' ? (
-            <MobileShell tab={tab} navigate={navigate} mobileLayout="fuel">
-              <Views tab={tab} fitnessProps={fitnessProps} fuelTab={fuelTab} setFuelTab={setFuelTab}
-                user={user} settingsProps={settingsProps} openSession={openSession} compact />
-            </MobileShell>
+            <>
+              {/* Desktop: klassisches Layout */}
+              <main className="hidden lg:block relative min-h-[100dvh]">
+                <Views tab={tab} fitnessProps={fitnessProps} fuelTab={fuelTab} setFuelTab={setFuelTab}
+                  user={user} settingsProps={settingsProps} openSession={openSession} />
+              </main>
+              {/* Mobile: Fuel-Layout */}
+              <MobileShell tab={tab} navigate={navigate} mobileLayout="fuel">
+                <Views tab={tab} fitnessProps={fitnessProps} fuelTab={fuelTab} setFuelTab={setFuelTab}
+                  user={user} settingsProps={settingsProps} openSession={openSession} compact />
+              </MobileShell>
+            </>
           ) : (
             <>
               <main className="relative pb-28 sm:pb-10 lg:pb-0 min-h-[100dvh]">
