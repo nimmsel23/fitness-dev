@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { RefreshCw } from 'lucide-react'
-import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode, handleRedirectResult } from '@db'
+import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode } from '@db'
 import { VALID_TABS, SUB_NAV } from './shell/NavigationItems.js'
 import { THEMES } from '@constants/Themes.js'
 import Settings from '@view/settings/index.jsx'
@@ -62,7 +62,6 @@ export default function App() {
   const [authError, setAuthError]     = useState('')
   const [authRegistering, setAuthRegistering] = useState(false)
 
-  useEffect(() => { if (!isLocalMode()) handleRedirectResult() }, [])
   useEffect(() => watchAuth(u => { setUser(u); setAuthLoading(false) }), [])
 
   // Settings state
