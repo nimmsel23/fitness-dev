@@ -14,7 +14,7 @@
     "ui:dev": "vite",
     "lint": "eslint src/ --ext .js,.jsx",
     "build": "npm run lint && vite build && node scripts/snapshot.mjs dist",
-    "build:firebase": "vite build --mode firebase --outDir dist-firebase && node scripts/snapshot.mjs dist-firebase",
+    "build:firebase": "node scripts/bump-sw.mjs && vite build --mode firebase --outDir dist-firebase && node scripts/snapshot.mjs dist-firebase",
     "preview:firebase": "firebase hosting:channel:deploy preview --expires 1h",
     "deploy:firebase": "firebase deploy --only hosting,firestore:rules,firestore:indexes",
     "deploy": "node scripts/deploy-runner.mjs",
