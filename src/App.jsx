@@ -460,6 +460,17 @@ export default function App() {
                 `}
               >
                 <div className={`${navMode === 'home' ? 'h-full bg-[var(--bg)] shadow-[0_-20px_50px_rgba(0,0,0,0.3)] overflow-y-auto rounded-t-[40px] border-t border-[var(--line)]/30 relative pt-6' : ''}`}>
+                  {/* Back-to-Gate handle (only in home mode, when not on gate) */}
+                  {navMode === 'home' && tab !== 'gate' && (
+                    <button
+                      onClick={() => navigate('gate')}
+                      aria-label="Zurück zum Menü"
+                      className="sticky top-0 z-30 mx-auto flex flex-col items-center gap-1 pt-2 pb-3 w-full bg-gradient-to-b from-[var(--bg)] via-[var(--bg)] to-transparent active:opacity-60 transition-opacity"
+                    >
+                      <div className="w-10 h-1.5 rounded-full bg-fit-line" />
+                      <span className="text-[9px] font-black uppercase tracking-widest text-fit-dim opacity-60">Menü</span>
+                    </button>
+                  )}
                   <div key={tab} className={`${navMode === 'home' && tab !== 'gate' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in ${slideDirection === 'left' ? 'slide-in-from-right-8' : slideDirection === 'right' ? 'slide-in-from-left-8' : 'slide-in-from-bottom-4'} duration-500`}>
                       {/* Render content */}
                       {tab === 'dash'     && <Dashboard user={user} onOpenSession={openSession} onInspectExercise={inspectExercise} onOpenReview={() => navigate('review')} recentDays={recentDays} coverageThreshold={coverageThreshold} dashboardHighlighter={dashboardHighlighter} gender={gender} navMode={navMode} navigate={navigate} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
@@ -469,9 +480,10 @@ export default function App() {
                       {tab === 'journal'  && <Journal />}
                       {tab === 'habits'   && <Habits />}
                       {tab === 'coach'    && (isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92') && <Coach onInspectExercise={inspectExercise} />}
-                      {tab === 'inbox'    && <Inbox user={user} onInspectExercise={inspectExercise} />}
+                      {tab === 'inbox'    && <Inbox />}
                       {tab === 'settings' && (
                          <Settings
+                           user={user}
                            layoutScale={layoutScale} setLayoutScale={setLayoutScale}
                            recentDays={recentDays} setRecentDays={setRecentDays}
                            coverageThreshold={coverageThreshold} setCoverageThreshold={setCoverageThreshold}

@@ -1,5 +1,4 @@
 import { Sparkles, ShieldAlert, UserCircle, LayoutGrid } from "lucide-react";
-import SegmentedControl from "./SegmentedControl";
 
 function formatJoinDate(ts) {
   if (!ts) return '—';
@@ -13,6 +12,7 @@ function formatJoinDate(ts) {
 export default function AdvancedSection({
   swipeEnabled, setSwipeEnabled,
   dashboardHighlighter, setDashboardHighlighter,
+  mobileLayout, setMobileLayout,
   navMode, setNavMode,
   sidebarPinned, setSidebarPinned,
   layoutScale, setLayoutScale,
@@ -53,6 +53,22 @@ export default function AdvancedSection({
                 </div>
              </div>
 
+             {/* Mobile Layout */}
+             <div className="flex items-center justify-between">
+                <div>
+                   <div className="text-xs font-black text-fit-ink">Mobile Layout</div>
+                   <div className="text-[9px] font-bold opacity-30 uppercase text-fit-dim">Fuel-Style Header + Pill-Tabs</div>
+                </div>
+                <div className="flex bg-fit-bg p-1 rounded-xl border border-fit-line">
+                   {[{ id: 'classic', label: 'Classic' }, { id: 'fuel', label: 'Fuel' }].map(({ id, label }) => (
+                      <button key={id} onClick={() => setMobileLayout?.(id)}
+                         className={`px-3 py-1.5 text-[8px] font-black uppercase rounded-lg transition-all ${mobileLayout === id ? 'bg-fit-card shadow-sm text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}>
+                         {label}
+                      </button>
+                   ))}
+                </div>
+             </div>
+
              {/* Dashboard Highlighter */}
              <div className="flex items-center justify-between">
                 <div>
@@ -79,29 +95,32 @@ export default function AdvancedSection({
              <h4 className="text-sm font-black text-fit-ink uppercase tracking-widest">Layout & Navigation</h4>
           </div>
 
-          <SegmentedControl
-            label="Navigation Modus"
-            options={[
-              { id: 'tabs', label: 'Tabs + Navbar' },
-              { id: 'home', label: 'Home Menü' },
-            ]}
-            value={navMode}
-            onChange={setNavMode}
-          />
+          <div>
+             <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-3 ml-1">Navigation Modus</div>
+             <div className="flex gap-1 p-1 bg-fit-bg rounded-xl border border-fit-line">
+                {[
+                  { id: 'tabs', label: 'Tabs + Navbar' },
+                  { id: 'home', label: 'Home Menü' },
+                ].map(({ id, label }) => (
+                   <button key={id} onClick={() => setNavMode(id)}
+                      className={`flex-1 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${navMode === id ? 'bg-fit-card shadow-md text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}>
+                      {label}
+                   </button>
+                ))}
+             </div>
+          </div>
 
-          {/* Desktop Sidebar Toggle */}
           <div className="hidden lg:flex items-center justify-between">
              <div>
                 <div className="text-sm font-black text-fit-ink">Desktop Sidebar</div>
                 <div className="text-[10px] font-bold opacity-30 uppercase">Permanent fixiert</div>
              </div>
              <button onClick={() => setSidebarPinned(!sidebarPinned)}
-                className={`w-12 h-6 rounded-full transition-colors relative border ${sidebarPinned ? 'bg-fit-accent border-fit-accent' : 'bg-fit-bg2 border-fit-line'}`}>
+                className={`w-12 h-6 rounded-full transition-colors relative border ${sidebarPinned ? 'bg-fit-accent border-fit-accent' : 'bg-fit-bg border-fit-line'}`}>
                 <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${sidebarPinned ? 'left-7' : 'left-1'}`} />
              </button>
           </div>
 
-          {/* Layout Scale */}
           <div className="space-y-3">
              <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Layout Skalierung</div>
              <input type="range" min="70" max="150" step="5" value={layoutScale} onChange={(e) => setLayoutScale(parseInt(e.target.value))} className="w-full accent-[var(--accent)] h-1" />
@@ -112,30 +131,31 @@ export default function AdvancedSection({
              </div>
           </div>
 
-          <SegmentedControl
-            label="Muskel-Terminologie"
-            options={[
-              { id: 'de', label: 'Deutsch' },
-              { id: 'en', label: 'English' },
-              { id: 'lat', label: 'Latein' },
-            ]}
-            value={muscleLanguage}
-            onChange={setMuscleLanguage}
-          />
+          <div>
+             <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-3 ml-1">Muskel-Terminologie</div>
+             <div className="flex gap-1 p-1 bg-fit-bg rounded-xl border border-fit-line">
+                {[
+                  { id: 'de', label: 'Deutsch' },
+                  { id: 'en', label: 'English' },
+                  { id: 'lat', label: 'Latein' },
+                ].map(({ id, label }) => (
+                   <button key={id} onClick={() => setMuscleLanguage(id)}
+                      className={`flex-1 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${muscleLanguage === id ? 'bg-fit-card shadow-md text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}>
+                      {label}
+                   </button>
+                ))}
+             </div>
+          </div>
        </div>
 
-       {/* User Auth */}
+       {/* User Auth Details */}
        {user && (
           <div className="mt-6 bg-fit-bg2 p-6 rounded-3xl border border-fit-line">
              <div className="flex items-center gap-3 mb-6">
                 <UserCircle size={18} className="text-fit-accent" />
-                <h4 className="text-sm font-black text-fit-ink uppercase tracking-widest">Account</h4>
+                <h4 className="text-sm font-black text-fit-ink uppercase tracking-widest">Account Details</h4>
              </div>
              <div className="space-y-3 text-[11px] font-mono">
-                <div className="flex items-center justify-between bg-fit-bg p-3 rounded-xl border border-fit-line">
-                   <span className="opacity-40 uppercase tracking-widest text-[10px] font-black">E-Mail</span>
-                   <span className="font-black text-fit-ink truncate max-w-[60%]">{user.email || '—'}</span>
-                </div>
                 <div className="flex items-center justify-between bg-fit-bg p-3 rounded-xl border border-fit-line">
                    <span className="opacity-40 uppercase tracking-widest text-[10px] font-black">UID</span>
                    <span className="font-black text-fit-accent truncate max-w-[60%]" title={user.uid}>{user.uid || '—'}</span>
@@ -148,6 +168,12 @@ export default function AdvancedSection({
                    <div className="flex items-center justify-between bg-fit-bg p-3 rounded-xl border border-fit-line">
                       <span className="opacity-40 uppercase tracking-widest text-[10px] font-black">Letzter Login</span>
                       <span className="font-black text-fit-dim">{formatJoinDate(user.metadata.lastSignInTime)}</span>
+                   </div>
+                )}
+                {user.providerData?.[0]?.providerId && (
+                   <div className="flex items-center justify-between bg-fit-bg p-3 rounded-xl border border-fit-line">
+                      <span className="opacity-40 uppercase tracking-widest text-[10px] font-black">Provider</span>
+                      <span className="font-black text-fit-dim">{user.providerData[0].providerId}</span>
                    </div>
                 )}
              </div>

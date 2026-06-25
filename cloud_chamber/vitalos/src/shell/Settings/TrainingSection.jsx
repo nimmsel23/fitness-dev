@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Zap, RefreshCw, ChevronDown } from "lucide-react";
-import SegmentedControl from "./SegmentedControl";
+import { Zap, Settings2, RefreshCw, ChevronDown } from "lucide-react";
 
 export default function TrainingSection({
   split, setSplit,
@@ -9,6 +8,7 @@ export default function TrainingSection({
   cycleLength, setCycleLength,
   recentDays, setRecentDays,
   coverageThreshold, setCoverageThreshold,
+  showAdvanced, setShowAdvanced,
   swVersion, swUpdateAvailable, swChecking,
   onSwCheck, onSwApply,
 }) {
@@ -24,50 +24,68 @@ export default function TrainingSection({
        </div>
 
        <div className="space-y-8">
-          <SegmentedControl
-            label="Training Split"
-            options={[
-              { id: 'PPL', label: 'PPL' },
-              { id: 'Upper/Lower', label: 'Upper/Lower' },
-              { id: 'Full Body', label: 'Full Body' },
-            ]}
-            value={split}
-            onChange={setSplit}
-          />
+          {/* Training Split */}
+          <div>
+             <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-3 ml-1">Training Split</div>
+             <div className="flex gap-1 p-1 bg-fit-bg2 rounded-xl border border-fit-line">
+                {[
+                  { id: 'PPL', label: 'PPL' },
+                  { id: 'Upper/Lower', label: 'Upper/Lower' },
+                  { id: 'Full Body', label: 'Full Body' },
+                ].map(({ id, label }) => (
+                  <button key={id} onClick={() => setSplit(id)}
+                     className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${split === id ? 'bg-fit-card shadow-md text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}>
+                     {label}
+                  </button>
+                ))}
+             </div>
+          </div>
 
-          <SegmentedControl
-            label="Anatomie-Modell (Visualisierung)"
-            options={[
-              { id: 'male', label: 'Male' },
-              { id: 'female', label: 'Female' },
-            ]}
-            value={gender}
-            onChange={setGender}
-          />
+          {/* Anatomy Model */}
+          <div>
+             <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-3 ml-1">Anatomie-Modell (Visualisierung)</div>
+             <div className="flex gap-1 p-1 bg-fit-bg2 rounded-xl border border-fit-line">
+                {['male', 'female'].map(g => (
+                   <button key={g} onClick={() => setGender(g)}
+                      className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${gender === g ? 'bg-fit-card shadow-md text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}>
+                      {g === 'male' ? 'Male' : 'Female'}
+                   </button>
+                ))}
+             </div>
+          </div>
 
-          <SegmentedControl
-            label="Standard Standort"
-            options={[
-              { id: 'Home', label: 'Home' },
-              { id: 'Gym', label: 'Gym' },
-              { id: 'Outdoor', label: 'Outdoor' },
-            ]}
-            value={defaultLocation}
-            onChange={setDefaultLocation}
-          />
+          {/* Default Location */}
+          <div>
+             <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-3 ml-1">Standard Standort</div>
+             <div className="flex gap-1 p-1 bg-fit-bg2 rounded-xl border border-fit-line">
+                {[
+                  { id: 'Home', label: 'Home' },
+                  { id: 'Gym', label: 'Gym' },
+                  { id: 'Outdoor', label: 'Outdoor' },
+                ].map(({ id, label }) => (
+                  <button key={id} onClick={() => setDefaultLocation(id)}
+                     className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${defaultLocation === id ? 'bg-fit-card shadow-md text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}>
+                     {label}
+                  </button>
+                ))}
+             </div>
+          </div>
 
-          {/* Analyse & Zyklus (collapsible) */}
+          {/* Sliders — collapsible */}
           <div className="border-t border-fit-line/50 pt-6">
              <button
-                onClick={() => setSlidersOpen(o => !o)}
-                className="w-full flex items-center justify-between mb-4 group"
+                onClick={() => setSlidersOpen(!slidersOpen)}
+                className="flex items-center justify-between w-full"
              >
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-30 group-hover:opacity-60 transition-opacity ml-1">Analyse & Zyklus</span>
-                <ChevronDown size={14} className={`text-fit-dim transition-transform ${slidersOpen ? 'rotate-180' : ''}`} />
+                <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Analyse & Zyklus</div>
+                <ChevronDown
+                   size={14}
+                   className={`text-fit-dim transition-transform duration-300 ${slidersOpen ? 'rotate-180' : ''}`}
+                />
              </button>
 
              {slidersOpen && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="mt-6 space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
                    <div>
                       <div className="flex items-center justify-between mb-3">
                          <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Zyklus-Länge</div>
@@ -123,6 +141,17 @@ export default function TrainingSection({
                    </button>
                 )}
              </div>
+          </div>
+
+          {/* Advanced Mode trigger */}
+          <div className="pt-4 flex justify-center">
+             <button
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all font-black text-[9px] uppercase tracking-widest ${showAdvanced ? 'border-fit-accent bg-fit-accent/5 text-fit-accent shadow-lg shadow-fit-accent/5' : 'border-fit-line bg-fit-bg2 text-fit-dim hover:text-fit-ink'}`}
+             >
+                <Settings2 size={12} className={showAdvanced ? 'animate-pulse' : ''} />
+                {showAdvanced ? 'Advanced Mode: Ein' : 'Advanced Mode: Aus'}
+             </button>
           </div>
        </div>
     </section>

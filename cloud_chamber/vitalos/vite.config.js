@@ -8,7 +8,6 @@ const __dirname    = dirname(fileURLToPath(import.meta.url))
 const CC_ROOT      = resolve(__dirname, '..')
 const VITALOS_SRC  = resolve(__dirname, 'src')
 const FITNESS_SRC  = resolve(CC_ROOT, '../src')          // fitness-dev/src (SSOT)
-const FED_DIR      = resolve(__dirname, '../federation')
 const JOURNAL_ROOT = resolve(__dirname, '../journal-vos')
 const LEARN_ROOT   = resolve(__dirname, '../learn-vos')
 const FUEL_ROOT    = resolve('/home/alpha/fuel-dev')
@@ -43,20 +42,22 @@ export default defineConfig(({ mode }) => {
     '@db':         resolve(VITALOS_SRC, isFirebase ? 'db.firestore.js' : 'db.js'),
 
     // ── Tab Sources (eine Zeile = ein Tab, Herkunft sofort sichtbar) ───────────
-    '@view/dashboard':  resolve(VITALOS_SRC, 'views/Dashboard'),           // vitalos
+    '@view/dashboard':  resolve(VITALOS_SRC,  'shell/Dashboard.jsx'),        // vitalos-spezifisch
     '@view/session':    resolve(FITNESS_SRC,  'views/Session'),            // fitness-dev
-    '@view/review':     resolve(VITALOS_SRC,  'views/WeeklyReview'),       // vitalos
-    '@view/muscles':    resolve(VITALOS_SRC,  'views/Muscles'),            // vitalos
+    '@view/review':     resolve(FITNESS_SRC,   'views/WeeklyReview'),       // fitness-dev
+    '@view/muscles':    resolve(FITNESS_SRC,   'views/Muscles'),            // fitness-dev
     '@view/learn':      resolve(FITNESS_SRC,  'views/Learn'),              // fitness-dev
-    '@view/journal':    resolve(JOURNAL_ROOT, 'src/views/Journal'),        // journal-vos → fitness-dev symlink
-    '@view/habits':     resolve(JOURNAL_ROOT, 'src/views/Habits'),         // journal-vos → fitness-dev symlink
-    '@view/settings':   resolve(VITALOS_SRC,  'views/Settings'),           // vitalos
-    '@view/coach':      resolve(VITALOS_SRC,  'views/Coach'),              // vitalos
+    '@view/journal':    resolve(FITNESS_SRC,  'views/Journal'),             // fitness-dev direkt
+    '@view/habits':     resolve(FITNESS_SRC,  'views/Habits'),              // fitness-dev direkt
+    '@view/settings':   resolve(VITALOS_SRC,  'shell/Settings'),           // vitalos-spezifisch
+    '@view/plan':       resolve(FITNESS_SRC,   'views/Plan'),               // fitness-dev
+    '@view/coach':      resolve(FITNESS_SRC,   'views/Coach'),              // fitness-dev
 
     'journal/JournalApp': resolve(VITALOS_SRC, 'apps/JournalApp.jsx'),
     'learn/LearnApp':     resolve(VITALOS_SRC, 'apps/LearnApp.jsx'),
-    'fuel/FuelApp':       resolve(FED_DIR, 'FuelApp.jsx'),
+    'fuel/FuelApp':       resolve(VITALOS_SRC, 'shell/FuelApp.jsx'),
     '@fuel':              resolve(FUEL_ROOT, 'src/client'),
+    '@fuel-shared':       resolve(FUEL_ROOT, 'src/shared'),
     '@journal-vos':       resolve(JOURNAL_ROOT, 'src'),
     '@learn-vos':         resolve(LEARN_ROOT, 'src'),
   }

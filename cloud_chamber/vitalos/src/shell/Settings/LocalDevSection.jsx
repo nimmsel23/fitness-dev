@@ -43,17 +43,17 @@ export default function LocalDevSection({
           <div className="bg-fit-bg2 p-6 rounded-3xl border border-fit-line">
              <div className="flex items-center gap-3 mb-6">
                 <Settings2 size={18} className="text-fit-dim" />
-                <h4 className="text-sm font-black uppercase tracking-widest text-fit-dim">Diagnose</h4>
+                <h4 className="text-sm font-black text-fit-ink uppercase tracking-widest text-fit-dim">Diagnose</h4>
              </div>
              <div className="space-y-3">
                 {[
-                  ['Node API (Local)', health == null ? '…' : (health?.ok ? 'OK' : 'FAIL')],
-                  ['wger (Docker)', wger == null ? '…' : (wger ? 'OK' : 'FAIL')],
+                  ['Node API (Local)', health?.ok ? 'OK' : 'FAIL'],
+                  ['wger (Docker)', wger ? 'OK' : 'FAIL'],
                   ['Storage Path', '~/.aos/fitness/']
                 ].map(([l, v]) => (
                    <div key={l} className="flex items-center justify-between text-[11px] font-mono bg-fit-bg p-3 rounded-xl border border-fit-line">
                       <span className="opacity-40">{l}</span>
-                      <span className={`font-black ${v === 'FAIL' ? 'text-red-500' : v === '…' ? 'text-fit-dim' : 'text-fit-accent'}`}>{v}</span>
+                      <span className={`font-black ${v === 'FAIL' ? 'text-red-500' : 'text-fit-accent'}`}>{v}</span>
                    </div>
                 ))}
              </div>

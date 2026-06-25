@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Activity, Dumbbell, BarChart3, History, Timer } from 'lucide-react'
-import Dashboard from '@view/dashboard/index.jsx'
+import { Activity, Dumbbell, BarChart3, History, Timer, ChevronRight, ClipboardList } from 'lucide-react'
+import Dashboard from './Dashboard.jsx'
+import PlanView from '@view/plan/index.jsx'
 import Session from '@view/session/index.jsx'
 import WeeklyReview from '@view/review/index.jsx'
 import ExerciseInsightModal from '@components/ExerciseInsightModal.jsx'
@@ -10,8 +11,9 @@ import { getBlockColor as blockColor, ACTIVITY_LABELS, ACTIVITY_ICONS, ACTIVITY_
 const SUB_NAV = [
   { id: 'dash',    label: 'Heute',    Icon: Activity },
   { id: 'session', label: 'Training', Icon: Dumbbell },
-  { id: 'verlauf', label: 'Verlauf',  Icon: History  },
   { id: 'review',  label: 'Review',   Icon: BarChart3 },
+  { id: 'verlauf', label: 'Verlauf',  Icon: History  },
+  { id: 'plan',    label: 'Plan',     Icon: ClipboardList },
 ]
 
 export default function FitnessApp({ user, recentDays, coverageThreshold, gender, muscleLanguage, taxonomy, dashboardHighlighter, subTab, onSubTab, sessionDate, sessionDraft, onOpenSession }) {
@@ -92,7 +94,7 @@ export default function FitnessApp({ user, recentDays, coverageThreshold, gender
                             <div className="text-md font-black text-fit-ink group-hover:text-accent transition-colors">{label}</div>
                           </div>
                         </div>
-                        <div className="text-right">
+                        <div className="flex items-center gap-3">
                           {isActivity ? (
                             <div className="flex items-center gap-1.5 text-[11px] font-black text-fit-muted">
                               <Timer size={12} className="opacity-30" />{s.activity?.duration}m
@@ -102,6 +104,7 @@ export default function FitnessApp({ user, recentDays, coverageThreshold, gender
                               {Array.isArray(s.exercises) ? s.exercises.length : 0} Ex
                             </div>
                           )}
+                          <ChevronRight size={16} className="text-fit-dim/30 group-hover:text-fit-accent transition-colors" />
                         </div>
                       </div>
                     </button>
@@ -112,6 +115,7 @@ export default function FitnessApp({ user, recentDays, coverageThreshold, gender
           </div>
         )}
         {tab === 'review'  && <WeeklyReview onOpenSession={onOpenSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} />}
+        {tab === 'plan' && <PlanView />}
       </div>
 
       <ExerciseInsightModal exercise={inspectorExercise} onClose={() => setInspectorExercise(null)} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
