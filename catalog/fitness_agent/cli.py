@@ -39,7 +39,7 @@ from .weekly import build_weekly_coverage
 from .tui import run_tui
 from .watcher import run_watcher
 from .importer import import_external_exercises
-from .firestore_push import run_kb_sync
+from .firestore_push import run_kb_sync, push_changed_exercises
 from .rich_utils import (
     console,
     print_audit_report,
@@ -531,6 +531,25 @@ def firestore_push(
     """Push local catalog KB → Firestore"""
     try:
         run_kb_sync(dry_run=dry_run)
+    except Exception as exc:
+        console.print(f"[fail]FAIL:[/fail] {exc}")
+        raise typer.Exit(code=1)
+
+
+@app.command(name="push-changed")
+def firestore_push_changed(
+    since: Annotated[str, typer.Option(help="Git-Ref (default: HEAD~1)")] = "HEAD~1",
+    until: Annotated[str, typer.Option(help="Git-Ref (default: HEAD)")] = "HEAD",
+    dry_run: Annotated[bool, typer.Option(help="Do not write to Firestore")] = False,
+):
+    """Pusht nur die in einem Git-Range geänderten Exercise-IDs.
+
+    Quota-schonende Alternative zu `push` für kleine Catalog-Patches.
+    Default: letzter Commit (HEAD~1..HEAD).
+    """
+    try:
+        result = push_changed_exercises(since_ref=since, until_ref=until, dry_run=dry_run)
+        console.print(f"[ok]✓[/ok] {result}")
     except Exception as exc:
         console.print(f"[fail]FAIL:[/fail] {exc}")
         raise typer.Exit(code=1)

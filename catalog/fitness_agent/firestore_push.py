@@ -162,6 +162,89 @@ def sync_exercises(db_client: Any, dry_run: bool = False) -> dict[str, int]:
     return counts
 
 
+def push_changed_exercises(
+    since_ref: str = "HEAD~1",
+    until_ref: str = "HEAD",
+    dry_run: bool = False,
+    extra_paths: list[str] | None = None,
+) -> dict[str, int]:
+    """Pushed nur die in einem Git-Range geänderten exercise-IDs nach Firestore.
+
+    Quota-schonend bei kleinen Catalog-Patches — kein Bulk-Hash-Vergleich
+    nötig, kein Risiko alles neu zu schreiben wenn `_hash` fehlt.
+
+    `extra_paths` erlaubt zusätzlich konkrete Dateinamen (ohne Pfad) anzugeben,
+    z.B. wenn ungetrackte Änderungen mit rein sollen.
+    """
+    import subprocess
+    from pathlib import Path as _P
+
+    repo_root = _P(__file__).resolve().parents[2]
+
+    # 1. Geänderte exercise-YAMLs im Range bestimmen
+    proc = subprocess.run(
+        ["git", "diff", "--name-only", f"{since_ref}", f"{until_ref}", "--", "catalog/kb/exercises/"],
+        capture_output=True, text=True, cwd=repo_root, check=True,
+    )
+    changed_files = {_P(p).name for p in proc.stdout.strip().splitlines() if p.endswith(".yml")}
+    for extra in (extra_paths or []):
+        changed_files.add(_P(extra).name)
+
+    counts = {"changed_files": len(changed_files), "ok": 0, "skip": 0, "error": 0}
+    if not changed_files:
+        logger.info("Keine Exercise-YAMLs im Range geändert.")
+        return counts
+
+    logger.info(f"Geänderte Files: {sorted(changed_files)}")
+
+    # 2. Exercises aus den betroffenen Files sammeln
+    targets: dict[str, dict[str, Any]] = {}
+    for path, doc in load_catalog_directory_yaml("exercises"):
+        if path.name not in changed_files:
+            continue
+        if not isinstance(doc, dict):
+            continue
+        for exercise in doc.get("exercises", []):
+            ex_id = exercise.get("exercise_id") or exercise.get("id")
+            if ex_id is None:
+                counts["skip"] += 1
+                continue
+            targets[str(ex_id)] = exercise
+
+    logger.info(f"Zu pushende Exercises: {len(targets)}")
+
+    if dry_run:
+        for ex_id in sorted(targets):
+            logger.info(f"DRY {ex_id}")
+        counts["ok"] = len(targets)
+        return counts
+
+    # 3. Gezielter Batch-Write (Firestore-Limit: 500/batch)
+    db_client = _init_firebase()
+    col = db_client.collection("fitness").document("kb").collection("exercises")
+    batch = db_client.batch()
+    batch_count = 0
+    for ex_id, exercise in targets.items():
+        payload = _flatten(exercise)
+        payload["_hash"] = _compute_hash({k: v for k, v in payload.items() if k != "_hash"})
+        try:
+            batch.set(col.document(ex_id), payload)
+            batch_count += 1
+            counts["ok"] += 1
+            if batch_count >= 450:
+                batch.commit()
+                batch = db_client.batch()
+                batch_count = 0
+        except Exception as exc:
+            counts["error"] += 1
+            logger.error(f"exercises/{ex_id}: {exc}")
+    if batch_count > 0:
+        batch.commit()
+
+    logger.info(f"✓ {counts['ok']} Exercises in Firestore aktualisiert.")
+    return counts
+
+
 def sync_anatomy(db_client: Any, dry_run: bool = False) -> dict[str, int]:
     counts = {"ok": 0, "skip": 0, "error": 0}
     col = db_client.collection("fitness").document("kb").collection("anatomy")
