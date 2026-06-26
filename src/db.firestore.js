@@ -258,7 +258,33 @@ const PROGRAM_RULES = {
   },
 };
 
-export async function getPlanSuggestion({ template, goal, day } = {}) {
+// Tagesplan-Hint für die Session-Ansicht (Firestore-Variante).
+// Stimmt mit der Node-API `/plan/today` überein: { day, block, exercises: [name] }.
+const DOW_FALLBACK = {
+  Mo: { block: "Push",      exercises: ["Incline Dumbbell Press", "Dips", "Lateral Raise", "Cable Fly", "Triceps Extension"] },
+  Di: { block: "Pull",      exercises: ["Pull-Up", "Row", "Lat Pulldown", "Face Pull", "Biceps Curl"] },
+  Mi: { block: "Legs",      exercises: ["Squat", "Romanian Deadlift", "Lunge", "Leg Curl", "Calf Raise"] },
+  Do: { block: "Upper",     exercises: ["Bench Press", "Row", "Overhead Press", "Pulldown", "Curl"] },
+  Fr: { block: "Lower",     exercises: ["Deadlift", "Split Squat", "Hip Thrust", "Leg Curl", "Calf Raise"] },
+  Sa: { block: "Full Body", exercises: ["Squat", "Press", "Row", "Hinge", "Carry"] },
+  So: { block: "Recovery",  exercises: ["Mobility", "Walk", "Core Breathing"] },
+};
+
+function dowSuggestionForDate(dateStr) {
+  const safe = (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateStr))
+    ? dateStr
+    : new Date().toISOString().slice(0, 10);
+  const dow = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"][new Date(safe + "T12:00:00").getDay()];
+  const f = DOW_FALLBACK[dow] || DOW_FALLBACK.So;
+  return { day: dow, block: f.block, exercises: f.exercises };
+}
+
+export async function getPlanSuggestion(arg) {
+  // Session-View ruft mit Date-String — gleiche Signatur wie lokale Version.
+  if (typeof arg === 'string' || arg == null) {
+    return dowSuggestionForDate(arg);
+  }
+  const { template, goal, day } = arg;
   const templateName = template?.trim() || (day ? `${day.trim()}_day` : '') || PROGRAM_RULES.default_split;
   const templateDef = PROGRAM_RULES.templates[templateName];
   if (!templateDef) return null;

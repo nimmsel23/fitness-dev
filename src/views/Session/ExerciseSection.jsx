@@ -6,7 +6,7 @@ import ExerciseSearchOverlay from "../../components/ExerciseSearchOverlay";
 
 export default function ExerciseSection({
   exercises = [], restHours, muscleRecovery = {},
-  updateEx, addSet, removeSet, removeEx, moveEx,
+  updateEx, addSet, removeSet, removeEx, replaceSets, moveEx,
   planMode, date, addEx, quickInput, setQuickInput, addQuick,
   prevMap = {}, onInspectExercise
 }) {
@@ -35,6 +35,7 @@ export default function ExerciseSection({
             addSet={addSet}
             removeSet={removeSet}
             removeEx={removeEx}
+            replaceSets={replaceSets}
             moveEx={moveEx}
             isFirst={idx === 0}
             isLast={idx === safeExercises.length - 1}

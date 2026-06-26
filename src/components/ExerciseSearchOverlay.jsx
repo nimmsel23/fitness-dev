@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { Search, X, History, Zap, Dumbbell, BadgeCheck, Star, Plus } from 'lucide-react'
 import { searchExercises, getSessionHistory, getPlanSuggestion, toggleFavourite, getFavourites } from '@db'
+import {
+  loadLanguageFilter, filterByLanguage, LANG_STORAGE_KEY,
+} from '../lib/exerciseLanguage.js'
 
 const MUSCLE_COLORS = {
   'Biceps brachii':    '#a78bfa',
@@ -28,6 +31,16 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
   const [program, setProgram] = useState([])
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const [favourites, setFavourites] = useState(() => getFavourites())
+  const [langFilter, setLangFilter] = useState(() => loadLanguageFilter())
+
+  // Hot-reload, wenn Settings im Modal geändert werden
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (!e.key || e.key === LANG_STORAGE_KEY) setLangFilter(loadLanguageFilter())
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
 
   const inputRef = useRef(null)
   const debounceRef = useRef(null)
@@ -86,13 +99,14 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
     debounceRef.current = setTimeout(async () => {
       setLoading(true)
       try {
-        const data = await searchExercises(query, 15)
-        setResults(data?.results || [])
-        setSelectedIndex(data?.results?.length > 0 ? 0 : -1)
+        const data = await searchExercises(query, 25)
+        const filtered = filterByLanguage(data?.results || [], langFilter)
+        setResults(filtered)
+        setSelectedIndex(filtered.length > 0 ? 0 : -1)
       } catch { /* silent */ }
       finally { setLoading(false) }
     }, 250)
-  }, [query])
+  }, [query, langFilter])
 
   const handleKeyDown = (e) => {
     if (results.length === 0) return
@@ -143,7 +157,7 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
               </button>
             )}
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="w-12 h-12 rounded-2xl bg-fit-bg2 flex items-center justify-center text-fit-dim hover:text-ink hover:bg-card transition-all border border-fit-line"
           >

@@ -243,7 +243,16 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
   function addSet(i) {
     setExercises(prev => prev.map((ex, idx) => {
       if (idx !== i) return ex;
-      return { ...ex, setsArray: [...ex.setsArray, {reps: '', weight: ''}] };
+      const last = ex.setsArray[ex.setsArray.length - 1] || {};
+      return { ...ex, setsArray: [...ex.setsArray, { reps: last.reps || '', weight: last.weight || '' }] };
+    }));
+    scheduleAutoSave();
+  }
+
+  function replaceSets(i, newSets) {
+    setExercises(prev => prev.map((ex, idx) => {
+      if (idx !== i) return ex;
+      return { ...ex, setsArray: newSets };
     }));
     scheduleAutoSave();
   }
@@ -594,6 +603,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
                 addSet={addSet}
                 removeSet={removeSet}
                 removeEx={removeEx}
+                replaceSets={replaceSets}
                 moveEx={moveEx}
                 date={date}
                 addEx={addEx}
