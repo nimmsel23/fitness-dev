@@ -640,12 +640,35 @@ app.post("/session", async (c) => {
   fs.mkdirSync(userDir, { recursive: true });
   const file    = path.join(userDir, sessionFileName(date, id));
   const data    = await c.req.json().catch(() => ({}));
-  const session = { ...data, date, session_id: id, saved_at: new Date().toISOString() };
+  const session = freezeSnapshot({ ...data, date, session_id: id, saved_at: new Date().toISOString() });
   writeJson(file, session);
   syncSessionToDb(date, session);
   mirrorSession(date, session, uid);
   return c.json({ ok: true, id });
 });
+
+/**
+ * Snapshot-Härtung: stellt sicher dass jede Session self-contained ist.
+ * Inline-Felder (name, primaryMuscles, secondaryMuscles, exercise_id_at_log) sind
+ * der "frozen" Ground Truth — Analyse-Code soll diese bevorzugen und KB nur
+ * als Fallback nutzen. Diese Funktion markiert die Session explizit als
+ * snapshot_version 1 und warnt wenn Exercise-Slots fehlen.
+ */
+function freezeSnapshot(session) {
+  const exercises = (session.exercises || []).map(ex => ({
+    ...ex,
+    name: ex.name || ex.exercise_id || ex.id || "Unknown",
+    exercise_id_at_log: ex.exercise_id || ex.id || null,
+    primaryMuscles: Array.isArray(ex.primaryMuscles) ? ex.primaryMuscles : [],
+    secondaryMuscles: Array.isArray(ex.secondaryMuscles) ? ex.secondaryMuscles : [],
+  }));
+  for (const ex of exercises) {
+    if (!ex.primaryMuscles.length && !ex.secondaryMuscles.length) {
+      console.warn(`[snapshot] ${session.date} ${ex.name}: keine Muskel-Daten — Coverage wird fehlen`);
+    }
+  }
+  return { ...session, exercises, snapshot_version: 1 };
+}
 
 app.delete("/session", (c) => {
   const uid  = c.req.header("X-User-UID") || "default";

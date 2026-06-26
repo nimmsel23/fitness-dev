@@ -134,8 +134,9 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
            }
         } else {
            for (const ex of (s.exercises || [])) {
+             // Snapshot-First: inline-Werte gewinnen, KB nur Fallback (s. analysis.js).
              const kbEx = kbMap.get((ex.name || "").toLowerCase());
-             const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];
+             const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
              const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
              
              for (const m of [...primary, ...secondary]) {

@@ -95,10 +95,12 @@ export async function getWeeklyReport(selector = "current") {
       const exName = ex.name || ex.exercise_id || "";
       if (!exName) continue;
       topExMap[exName] = (topExMap[exName] || 0) + 1;
+      // Snapshot-First: inline-Werte aus dem Log gewinnen. KB nur Fallback,
+      // damit gelöschte/umbenannte Katalog-Einträge keine alten Sessions kaputtmachen.
       const kbEx = kbMap.get(exName.toLowerCase());
-      const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];
-      const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
-      const stabilizers = kbEx?.stabilizers || ex.stabilizers || [];
+      const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
+      const secondary = (ex.secondaryMuscles?.length ? ex.secondaryMuscles : null) || kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [];
+      const stabilizers = (ex.stabilizers?.length ? ex.stabilizers : null) || kbEx?.stabilizers || [];
       [...primary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; }));
       [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
       [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.2; }));
@@ -169,10 +171,12 @@ export async function getMuscleCoverage(days = 7) {
   for (const sess of sessionsInWindow) {
     for (let ex of (sess.exercises || [])) {
       const exName = ex.name || ex.exercise_id || "";
+      // Snapshot-First: inline-Werte aus dem Log gewinnen. KB nur Fallback,
+      // damit gelöschte/umbenannte Katalog-Einträge keine alten Sessions kaputtmachen.
       const kbEx = kbMap.get(exName.toLowerCase());
-      const primary = kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [];
-      const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
-      const stabilizers = kbEx?.stabilizers || ex.stabilizers || [];
+      const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
+      const secondary = (ex.secondaryMuscles?.length ? ex.secondaryMuscles : null) || kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [];
+      const stabilizers = (ex.stabilizers?.length ? ex.stabilizers : null) || kbEx?.stabilizers || [];
       [...primary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; }));
       [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
       [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.2; }));
