@@ -219,13 +219,22 @@ cmd_push() {
 }
 
 cmd_pull() {
-  if have_gum; then
-    gum spin --spinner dot --title "Pulling sessions ← Firestore..." -- \
-      curl -fsS --max-time 30 -X POST "${API_URL}/firestore/pull" -o /tmp/fitness-pull.json
-  else
-    msg "Pulling sessions ← Firestore..."
-    curl -fsS --max-time 30 -X POST "${API_URL}/firestore/pull" -o /tmp/fitness-pull.json || die "Pull failed"
+  local uid="${FITNESS_UID:-${1:-}}"
+  if [[ -z "$uid" ]]; then
+    # Auto-detect: nimm Ordner mit den meisten Sessions (kein default/kb)
+    uid=$(for d in "$HOME/.aos/fitness/users"/*/sessions/; do
+      [[ -d "$d" ]] || continue
+      u=$(basename "$(dirname "$d")")
+      [[ "$u" == "default" || "$u" == "kb" ]] && continue
+      n=$(ls "$d"*.json 2>/dev/null | wc -l)
+      echo "$n $u"
+    done | sort -rn | head -1 | awk '{print $2}')
   fi
+  [[ -n "$uid" ]] || die "Keine uid gefunden — setze FITNESS_UID oder gib als Argument"
+  msg "Pulling sessions ← Firestore (uid=$uid)..."
+  curl -fsS --max-time 30 -X POST "${API_URL}/firestore/pull" \
+       -H "X-User-UID: $uid" \
+       -o /tmp/fitness-pull.json || die "Pull failed"
   python3 - <<'EOF'
 import json
 with open("/tmp/fitness-pull.json") as f:

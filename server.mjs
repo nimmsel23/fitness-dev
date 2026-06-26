@@ -882,14 +882,20 @@ app.post("/theme", async (c) => { writeJson(themeFile, await c.req.json().catch(
 app.get("/firestore/status", async (c) => c.json(await getFirestoreStatus()));
 
 app.post("/firestore/pull", async (c) => {
-  const uid = c.req.header("X-User-UID") || "default";
+  const uid = c.req.query("uid") || c.req.header("X-User-UID");
+  if (!uid || uid === "default") {
+    return c.json({
+      ok: false,
+      error: "uid Pflicht (kein default). Übergib via ?uid=... oder X-User-UID Header. Verfügbare uids siehe ~/.aos/fitness/users/",
+    }, 400);
+  }
   const status = await getFirestoreStatus();
   if (!status.ok) return c.json({ ok: false, error: "Firestore nicht verbunden" }, 503);
 
   const docs = await pullAllSessions(uid);
   if (!docs) return c.json({ ok: false, error: "Pull fehlgeschlagen" }, 500);
 
-  const sessDir = path.join(DATA_DIR, "sessions");
+  const sessDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   fs.mkdirSync(sessDir, { recursive: true });
 
   let pulled = 0, skipped = 0, conflicts = 0;

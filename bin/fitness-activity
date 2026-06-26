@@ -1,0 +1,182 @@
+#!/usr/bin/env python3
+"""
+fitness-activity — Cardio/Activity per CLI loggen
+
+Schreibt direkt an POST :9100/session mit dem korrekten Session-Format
+(activity-Objekt statt exercises-Array). Brust/Rücken bei Schwimmen,
+Core/Legs/Full bei HIIT — analog zum Frontend.
+
+Auto-uid: nimmt den Ordner mit den meisten Sessions aus
+~/.aos/fitness/users/, sofern $FITNESS_UID nicht gesetzt ist.
+
+  fitness-activity log swimming --duration 20 --style breast
+  fitness-activity log running --duration 45 --notes "Donauinsel"
+  fitness-activity log hiit --duration 15 --target core
+  fitness-activity log walking --duration 30
+"""
+from __future__ import annotations
+
+import json
+import os
+import sys
+import urllib.request
+import urllib.error
+from datetime import date
+from pathlib import Path
+
+import typer
+
+API = os.environ.get("FITNESS_API", "http://127.0.0.1:9100")
+USERS_DIR = Path.home() / ".aos" / "fitness" / "users"
+
+ACTIVITY_TYPES = [
+    "running", "cycling", "swimming", "hiking", "rowing",
+    "climbing", "yoga", "stretching", "hiit", "walking",
+]
+
+# Synchron mit src/constants/ActivityConstants.js
+ACTIVITY_MUSCLE_GROUPS = {
+    "swimming":   ["chest", "shoulders", "arms", "core", "quads", "hamstrings"],
+    "running":    ["quads", "hamstrings", "calves", "glutes"],
+    "cycling":    ["quads", "hamstrings", "calves", "glutes"],
+    "hiking":     ["quads", "hamstrings", "calves", "glutes", "core"],
+    "walking":    ["quads", "calves", "glutes"],
+    "rowing":     ["back", "shoulders", "arms", "quads", "hamstrings", "core"],
+    "yoga":       ["core", "shoulders", "back"],
+    "stretching": ["core", "back", "hamstrings"],
+    "climbing":   ["back", "shoulders", "arms", "core", "quads"],
+    "hiit":       ["core", "quads", "shoulders"],
+}
+SWIM_STYLE_MUSCLES = {
+    "breast": ["chest", "shoulders", "arms", "core", "quads", "hamstrings"],
+    "back":   ["back", "shoulders", "arms", "core", "quads"],
+}
+HIIT_TARGETS = {
+    "core": ["core"],
+    "legs": ["quads", "hamstrings", "glutes", "calves"],
+    "full": ["chest", "back", "shoulders", "arms", "core", "quads", "hamstrings", "glutes"],
+}
+
+
+def detect_uid() -> str:
+    env = os.environ.get("FITNESS_UID")
+    if env:
+        return env
+    if not USERS_DIR.exists():
+        raise typer.BadParameter(f"{USERS_DIR} fehlt — keine uid-Dirs vorhanden")
+    candidates = []
+    for d in USERS_DIR.iterdir():
+        if not d.is_dir() or d.name in ("default", "kb"):
+            continue
+        sessions = list((d / "sessions").glob("*.json")) if (d / "sessions").exists() else []
+        candidates.append((d.name, len(sessions)))
+    if not candidates:
+        raise typer.BadParameter("Keine echte uid gefunden in ~/.aos/fitness/users/")
+    candidates.sort(key=lambda x: -x[1])
+    return candidates[0][0]
+
+
+def post_session(uid: str, day: str, payload: dict) -> dict:
+    url = f"{API}/session?date={day}"
+    req = urllib.request.Request(
+        url,
+        method="POST",
+        data=json.dumps(payload).encode(),
+        headers={"Content-Type": "application/json", "X-User-UID": uid},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=5) as r:
+            return json.loads(r.read())
+    except urllib.error.URLError as e:
+        raise typer.Exit(f"Server nicht erreichbar ({API}): {e}")
+
+
+app = typer.Typer(no_args_is_help=True, add_completion=False)
+
+
+@app.command()
+def log(
+    activity: str = typer.Argument(..., help=f"Activity-Typ: {', '.join(ACTIVITY_TYPES)}"),
+    duration: int = typer.Option(..., "--duration", "-d", help="Dauer in Minuten"),
+    style: str = typer.Option(None, "--style", "-s", help="Nur swimming: breast|back"),
+    target: str = typer.Option(None, "--target", "-t", help="Nur hiit: core|legs|full"),
+    notes: str = typer.Option("", "--notes", "-n", help="Freitext"),
+    intensity: int = typer.Option(None, "--intensity", "-i", min=1, max=10, help="RPE 1–10"),
+    day: str = typer.Option(None, "--date", help="YYYY-MM-DD (Default heute)"),
+    uid: str = typer.Option(None, "--uid", help="Override (sonst auto/env)"),
+    dry_run: bool = typer.Option(False, "--dry-run"),
+):
+    """Eine Cardio/Activity-Session loggen."""
+    if activity not in ACTIVITY_TYPES:
+        raise typer.BadParameter(f"Unbekannt: {activity}. Erlaubt: {', '.join(ACTIVITY_TYPES)}")
+
+    activity_obj = {"type": activity, "duration": str(duration), "notes": notes}
+
+    if activity == "swimming":
+        s = style or "breast"
+        if s not in SWIM_STYLE_MUSCLES:
+            raise typer.BadParameter("style muss breast oder back sein")
+        activity_obj["swimStyle"] = s
+        activity_obj["muscles"] = SWIM_STYLE_MUSCLES[s]
+    elif activity == "hiit":
+        t = target or "core"
+        if t not in HIIT_TARGETS:
+            raise typer.BadParameter("target muss core, legs oder full sein")
+        activity_obj["muscleTarget"] = t
+        activity_obj["muscles"] = HIIT_TARGETS[t]
+    else:
+        activity_obj["muscles"] = ACTIVITY_MUSCLE_GROUPS[activity]
+
+    if intensity is not None:
+        activity_obj["intensity"] = intensity
+
+    payload = {
+        "block": "",
+        "activity": activity_obj,
+        "exercises": [],
+        "effort": intensity,
+        "mood": "",
+        "notes": notes,
+    }
+
+    real_uid = uid or detect_uid()
+    target_day = day or date.today().isoformat()
+
+    print(f"→ {target_day}  uid={real_uid}")
+    print(json.dumps(activity_obj, indent=2, ensure_ascii=False))
+
+    if dry_run:
+        print("(dry-run, nichts gesendet)")
+        return
+
+    r = post_session(real_uid, target_day, payload)
+    if r.get("ok"):
+        print(f"✅ geloggt → {API}/session?date={target_day}")
+    else:
+        print(f"❌ {r}")
+        sys.exit(1)
+
+
+@app.command()
+def types():
+    """Verfügbare Activity-Typen auflisten."""
+    for t in ACTIVITY_TYPES:
+        muscles = ACTIVITY_MUSCLE_GROUPS.get(t, [])
+        print(f"  {t:12} → {', '.join(muscles)}")
+    print(f"\n  swimming --style breast → {', '.join(SWIM_STYLE_MUSCLES['breast'])}")
+    print(f"  swimming --style back   → {', '.join(SWIM_STYLE_MUSCLES['back'])}")
+    print(f"\n  hiit --target core → {', '.join(HIIT_TARGETS['core'])}")
+    print(f"  hiit --target legs → {', '.join(HIIT_TARGETS['legs'])}")
+    print(f"  hiit --target full → {', '.join(HIIT_TARGETS['full'])}")
+
+
+@app.command()
+def whoami():
+    """Aktuell verwendete uid + Pfad anzeigen."""
+    uid = detect_uid()
+    print(f"uid:  {uid}")
+    print(f"path: {USERS_DIR / uid / 'sessions'}")
+
+
+if __name__ == "__main__":
+    app()

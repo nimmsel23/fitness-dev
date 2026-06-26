@@ -30,6 +30,7 @@ KBCTL        = Path.home() / "fitness" / "bin" / "kbctl"
 FITNESS_MAIL = FITNESS_DEV / "bin" / "fitness-mail"
 FITNESS_LOG  = FITNESS_DEV / "bin" / "fitness-log"
 FITNESS_TUI  = FITNESS_DEV / "bin" / "fitness-tui"
+FITNESS_ACTIVITY = FITNESS_DEV / "bin" / "fitness-activity"
 FS_SYNC      = FITNESS_DEV / "bin" / "firestore-sync"
 
 DEV_PORT = int(os.environ.get("FITNESS_PORT", 9100))
@@ -194,6 +195,10 @@ def log(ctx: typer.Context) -> None:
 @app.command(context_settings=_ctx, help="Rich TUI Dashboard (Live-Ansicht, kein Server) — [--once|--days N|--refresh N]")
 def tui(ctx: typer.Context) -> None:
     passthrough(FITNESS_TUI, ctx.args, "fitness-tui")
+
+@app.command(context_settings=_ctx, help="Cardio/Activity loggen (log|types|whoami) — z.B. fitness activity log swimming -d 20 -s breast")
+def activity(ctx: typer.Context) -> None:
+    passthrough(FITNESS_ACTIVITY, ctx.args, "fitness-activity")
 
 @app.command(help="Health-Check: fitness-dev :9100 + anatomy-kb :9200")
 def health() -> None:
