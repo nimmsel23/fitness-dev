@@ -77,7 +77,10 @@ export default function App() {
   const [themeMode, setModeState] = useState(() => localStorage.getItem('vitalos-theme-mode') || 'manual')
   const [circDark,  setCircDark]  = useState(() => localStorage.getItem('vitalos-circ-dark') || 'nordic')
   const [circLight, setCircLight] = useState(() => localStorage.getItem('vitalos-circ-light') || 'honey')
-  const [gender, setGender]       = useState(() => localStorage.getItem('vitalos-gender') || 'male')
+  const [gender, setGender]       = useState(() => localStorage.getItem('vitalos-gender') || 'm')
+  const [age, setAge]             = useState(() => parseInt(localStorage.getItem('vitalos-age') || '30', 10))
+  const [heightCm, setHeightCm]   = useState(() => parseInt(localStorage.getItem('vitalos-height') || '175', 10))
+  const [weightKg, setWeightKg]   = useState(() => parseFloat(localStorage.getItem('vitalos-weight') || '80'))
   const [split, setSplit]         = useState(() => localStorage.getItem('vitalos-split') || 'PPL')
   const [cycleLength, setCycleLength] = useState(() => parseInt(localStorage.getItem('vitalos-cycleLength') || '4', 10))
   const [defaultLocation, setDefaultLocation] = useState(() => localStorage.getItem('vitalos-defaultLocation') || 'Home')
@@ -119,6 +122,9 @@ export default function App() {
   useEffect(() => { localStorage.setItem('vitalos-circ-dark', circDark) }, [circDark])
   useEffect(() => { localStorage.setItem('vitalos-circ-light', circLight) }, [circLight])
   useEffect(() => { localStorage.setItem('vitalos-gender', gender) }, [gender])
+  useEffect(() => { localStorage.setItem('vitalos-age', age) }, [age])
+  useEffect(() => { localStorage.setItem('vitalos-height', heightCm) }, [heightCm])
+  useEffect(() => { localStorage.setItem('vitalos-weight', weightKg) }, [weightKg])
   useEffect(() => { localStorage.setItem('vitalos-split', split) }, [split])
   useEffect(() => { localStorage.setItem('vitalos-cycleLength', cycleLength) }, [cycleLength])
   useEffect(() => { localStorage.setItem('vitalos-defaultLocation', defaultLocation) }, [defaultLocation])
@@ -195,6 +201,9 @@ export default function App() {
     showAdvanced, setShowAdvanced,
     dashboardHighlighter, setDashboardHighlighter,
     gender, setGender,
+    age, setAge,
+    heightCm, setHeightCm,
+    weightKg, setWeightKg,
     split, setSplit,
     cycleLength, setCycleLength,
     defaultLocation, setDefaultLocation,
@@ -223,7 +232,7 @@ export default function App() {
           subNav={SUB_NAV[tab] || null}
           subTab={tab === 'fitness' ? fitnessTab : tab === 'fuel' ? fuelTab : null}
           onSubTab={tab === 'fitness' ? setFitnessTab : tab === 'fuel' ? setFuelTab : null}>
-          <UserProfile user={user} subtitle={isLocalMode() ? `${user?.email || 'localhost'} · localhost` : (user?.email || '')} />
+          <UserProfile user={user} subtitle={isLocalMode() ? `${user?.email || 'localhost'} · localhost` : (user?.email || '')} onOpenSettings={() => navigate('settings')} />
           {!isLocalMode() && (
             <button onClick={signOut} className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black uppercase tracking-widest text-fit-red bg-fit-red/5 border border-fit-red/10 rounded-xl hover:bg-fit-red/10 transition-all">
               Logout

@@ -5,12 +5,16 @@ import TrainingSection from "./TrainingSection";
 import AdvancedSection from "./AdvancedSection";
 import LocalDevSection from "./LocalDevSection";
 import AccountSection from "./AccountSection";
+import ProfileSection from "./ProfileSection";
 import FuelSection from "./FuelSection";
 
 export default function Settings({
   user, signOut,
   layoutScale, setLayoutScale,
   gender, setGender,
+  age, setAge,
+  heightCm, setHeightCm,
+  weightKg, setWeightKg,
   split, setSplit,
   cycleLength, setCycleLength,
   defaultLocation, setDefaultLocation,
@@ -99,6 +103,13 @@ export default function Settings({
        </header>
 
        <AccountSection user={user} signOut={signOut} />
+
+       <ProfileSection
+         gender={gender} setGender={setGender}
+         age={age} setAge={setAge}
+         heightCm={heightCm} setHeightCm={setHeightCm}
+         weightKg={weightKg} setWeightKg={setWeightKg}
+       />
 
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <AppearanceSection
