@@ -250,12 +250,10 @@ export default function ExerciseItem({
                 </div>
               )}
 
-              <div className="grid grid-cols-[1fr_22px_auto_1fr_22px_28px] gap-1.5 px-2 mb-1">
+              <div className="grid grid-cols-[1fr_auto_1fr_28px] gap-1.5 px-2 mb-1">
                 <span className="text-[9px] font-black uppercase tracking-widest text-fit-dim/40 text-center">Reps</span>
                 <span />
-                <span />
                 <span className="text-[9px] font-black uppercase tracking-widest text-fit-dim/40 text-center">Weight</span>
-                <span />
                 <span />
               </div>
 
@@ -263,65 +261,64 @@ export default function ExerciseItem({
                 const flashReps = flashSet?.idx === sIdx && flashSet?.field === 'reps';
                 const flashWeight = flashSet?.idx === sIdx && flashSet?.field === 'weight';
                 return (
-                  <div key={sIdx} className="grid grid-cols-[1fr_22px_auto_1fr_22px_28px] items-center gap-1.5 animate-in slide-in-from-left-2 duration-200">
-                      <div className="relative">
+                  <div key={sIdx} className="grid grid-cols-[1fr_auto_1fr_28px] items-center gap-1.5 animate-in slide-in-from-left-2 duration-200">
+
+                    {/* Reps: Pfeile links/rechts im Feld */}
+                    <div className="relative">
+                      <button type="button" onClick={() => stepReps(sIdx, -1)} aria-label="Reps -1"
+                        className="absolute left-0 top-0 bottom-0 w-11 rounded-l-2xl flex items-center justify-center text-fit-dim/40 hover:text-fit-accent hover:bg-fit-accent/8 active:bg-accent/15 active:text-accent transition-all z-10">
+                        <ChevronDown size={18} />
+                      </button>
                       <input
                         type="text"
                         inputMode="numeric"
-                        placeholder={sIdx === 0 ? 'Reps · z.B. 5x5' : 'Reps'}
+                        placeholder={sIdx === 0 ? '5x5' : 'Reps'}
                         value={set.reps || ''}
                         onChange={e => handleRepsChange(e.target.value, sIdx)}
                         onBlur={e => tryExpandReps(e.target.value, sIdx)}
                         onKeyDown={e => { if (e.key === 'Enter') { if (tryExpandReps(e.target.value, sIdx)) e.target.blur(); } }}
-                        className={`text-center font-mono font-black py-3 rounded-2xl bg-fit-bg2 border w-full text-sm focus:border-accent focus:ring-4 focus:ring-accent/5 outline-none transition-all ${
+                        className={`text-center font-mono font-black py-3 px-11 rounded-2xl bg-fit-bg2 border w-full text-sm focus:border-accent focus:ring-4 focus:ring-accent/5 outline-none transition-all ${
                           flashReps ? 'border-fit-accent ring-4 ring-accent/20' : 'border-fit-line'
                         }`}
                       />
+                      <button type="button" onClick={() => stepReps(sIdx, +1)} aria-label="Reps +1"
+                        className="absolute right-0 top-0 bottom-0 w-11 rounded-r-2xl flex items-center justify-center text-fit-dim/40 hover:text-fit-accent hover:bg-fit-accent/8 active:bg-accent/15 active:text-accent transition-all z-10">
+                        <ChevronUp size={18} />
+                      </button>
                       {flashReps && flashSet?.delta != null && (
                         <span className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-md bg-fit-accent text-black text-[8px] font-black uppercase tracking-widest animate-in fade-in slide-in-from-bottom-1 duration-150">
                           {flashSet.delta > 0 ? `+${flashSet.delta}` : flashSet.delta}
                         </span>
                       )}
-                      </div>
-                      <div className="flex flex-col gap-0.5">
-                        <button type="button" onClick={() => stepReps(sIdx, +1)} aria-label="Reps +1"
-                          className="h-[22px] rounded-md bg-fit-bg2 border border-fit-line text-fit-dim active:bg-accent/10 active:text-accent flex items-center justify-center">
-                          <ChevronUp size={12} />
-                        </button>
-                        <button type="button" onClick={() => stepReps(sIdx, -1)} aria-label="Reps -1"
-                          className="h-[22px] rounded-md bg-fit-bg2 border border-fit-line text-fit-dim active:bg-accent/10 active:text-accent flex items-center justify-center">
-                          <ChevronDown size={12} />
-                        </button>
-                      </div>
+                    </div>
 
-                      <span className="text-fit-dim/30 font-black text-xs italic px-0.5">@</span>
+                    <span className="text-fit-dim/30 font-black text-xs italic px-0.5">@</span>
 
-                      <div className="relative">
-                        <input type="text" inputMode="decimal" placeholder="kg" value={set.weight || ''} onChange={e => updateEx(i, 'weight', e.target.value, sIdx)}
-                          className={`text-center font-mono font-black py-3 rounded-2xl bg-fit-bg2 border w-full text-sm focus:border-accent focus:ring-4 focus:ring-accent/5 outline-none transition-all ${
-                            flashWeight ? 'border-fit-accent ring-4 ring-accent/20' : 'border-fit-line'
-                          }`} />
-                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-black text-fit-dim/20 uppercase">kg</span>
-                        {flashWeight && flashSet?.delta != null && (
-                          <span className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-md bg-fit-accent text-black text-[8px] font-black uppercase tracking-widest animate-in fade-in slide-in-from-bottom-1 duration-150">
-                            {flashSet.delta > 0 ? `+${flashSet.delta}` : flashSet.delta}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-col gap-0.5">
-                        <button type="button" onClick={() => stepWeight(sIdx, +2.5)} aria-label="Gewicht +2.5"
-                          className="h-[22px] rounded-md bg-fit-bg2 border border-fit-line text-fit-dim active:bg-accent/10 active:text-accent flex items-center justify-center">
-                          <ChevronUp size={12} />
-                        </button>
-                        <button type="button" onClick={() => stepWeight(sIdx, -2.5)} aria-label="Gewicht -2.5"
-                          className="h-[22px] rounded-md bg-fit-bg2 border border-fit-line text-fit-dim active:bg-accent/10 active:text-accent flex items-center justify-center">
-                          <ChevronDown size={12} />
-                        </button>
-                      </div>
-
-                      <button onClick={() => removeSet(i, sIdx)} className="w-7 h-7 rounded-lg flex items-center justify-center text-fit-dim/30 hover:text-red hover:bg-red/5 transition-all">
-                        <X size={14} />
+                    {/* Weight: Pfeile links/rechts im Feld */}
+                    <div className="relative">
+                      <button type="button" onClick={() => stepWeight(sIdx, -2.5)} aria-label="Gewicht -2.5"
+                        className="absolute left-0 top-0 bottom-0 w-11 rounded-l-2xl flex items-center justify-center text-fit-dim/40 hover:text-fit-accent hover:bg-fit-accent/8 active:bg-accent/15 active:text-accent transition-all z-10">
+                        <ChevronDown size={18} />
                       </button>
+                      <input type="text" inputMode="decimal" placeholder="kg" value={set.weight || ''}
+                        onChange={e => updateEx(i, 'weight', e.target.value, sIdx)}
+                        className={`text-center font-mono font-black py-3 px-11 rounded-2xl bg-fit-bg2 border w-full text-sm focus:border-accent focus:ring-4 focus:ring-accent/5 outline-none transition-all ${
+                          flashWeight ? 'border-fit-accent ring-4 ring-accent/20' : 'border-fit-line'
+                        }`} />
+                      <button type="button" onClick={() => stepWeight(sIdx, +2.5)} aria-label="Gewicht +2.5"
+                        className="absolute right-0 top-0 bottom-0 w-11 rounded-r-2xl flex items-center justify-center text-fit-dim/40 hover:text-fit-accent hover:bg-fit-accent/8 active:bg-accent/15 active:text-accent transition-all z-10">
+                        <ChevronUp size={18} />
+                      </button>
+                      {flashWeight && flashSet?.delta != null && (
+                        <span className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-md bg-fit-accent text-black text-[8px] font-black uppercase tracking-widest animate-in fade-in slide-in-from-bottom-1 duration-150">
+                          {flashSet.delta > 0 ? `+${flashSet.delta}` : flashSet.delta}
+                        </span>
+                      )}
+                    </div>
+
+                    <button onClick={() => removeSet(i, sIdx)} className="w-7 h-7 rounded-lg flex items-center justify-center text-fit-dim/30 hover:text-red hover:bg-red/5 transition-all">
+                      <X size={14} />
+                    </button>
                   </div>
                 );
               })}
