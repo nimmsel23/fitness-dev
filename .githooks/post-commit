@@ -22,9 +22,9 @@ RELEVANT=$(echo "$CHANGED_FILES" | grep -Ev "$SKIP" || true)
 TRIGGER_PATTERN="^(src/|public/|index.html|vite.config.js|package.json|firebase.json|firestore.rules|firestore.indexes.json)"
 
 if echo "$RELEVANT" | grep -E "$TRIGGER_PATTERN" > /dev/null; then
-  echo "🔍 fitness-dev changes detected. Running deploy-firebase..."
-  
-  npm run deploy-firebase
+  echo "🔍 fitness-dev changes detected. Running build:firebase + deploy:firebase..."
+
+  npm run build:firebase && npm run deploy:firebase
   
   if [ $? -eq 0 ]; then
     echo "✅ Deploy successful."

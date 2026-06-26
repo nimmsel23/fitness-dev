@@ -5,7 +5,12 @@
  * Activity types cover the main endurance/sport disciplines.
  */
 
-import { ACTIVITY_MUSCLE_DEFAULTS, MUSCLE_TARGET_GROUPS } from '../../constants/ActivityConstants';
+import {
+  ACTIVITY_MUSCLE_DEFAULTS,
+  ACTIVITY_MUSCLE_GROUPS,
+  MUSCLE_TARGET_GROUPS,
+  SWIM_STYLE_MUSCLES,
+} from '../../constants/ActivityConstants';
 
 const ACTIVITY_TYPES = [
   { value: 'running',   label: 'Laufen',      icon: '🏃' },
@@ -26,9 +31,26 @@ const MUSCLE_TARGETS = [
   { value: 'full',  label: 'Full Body' },
 ];
 
+const SWIM_STYLES = [
+  { value: 'breast', label: 'Brust' },
+  { value: 'back',   label: 'Rücken' },
+];
+
+function musclesForActivity(type, { muscleTarget, swimStyle } = {}) {
+  if (type === 'hiit') {
+    const t = muscleTarget || ACTIVITY_MUSCLE_DEFAULTS.hiit;
+    return MUSCLE_TARGET_GROUPS[t] || MUSCLE_TARGET_GROUPS.full;
+  }
+  if (type === 'swimming') {
+    return SWIM_STYLE_MUSCLES[swimStyle || 'breast'];
+  }
+  return ACTIVITY_MUSCLE_GROUPS[type] || MUSCLE_TARGET_GROUPS.full;
+}
+
 export default function ActivitySection({ activity, setActivity }) {
   const selected = ACTIVITY_TYPES.find(t => t.value === activity.type) || ACTIVITY_TYPES[0];
   const activeTarget = activity.muscleTarget || ACTIVITY_MUSCLE_DEFAULTS[activity.type] || 'full';
+  const activeSwimStyle = activity.swimStyle || 'breast';
 
   return (
     <div className="space-y-6">
@@ -45,7 +67,9 @@ export default function ActivitySection({ activity, setActivity }) {
                 key={t.value}
                 onClick={() => {
                   const target = ACTIVITY_MUSCLE_DEFAULTS[t.value] || 'full';
-                  setActivity({ ...activity, type: t.value, muscleTarget: target, muscles: MUSCLE_TARGET_GROUPS[target] });
+                  const next = { ...activity, type: t.value, muscleTarget: target };
+                  next.muscles = musclesForActivity(t.value, next);
+                  setActivity(next);
                 }}
                 className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border transition-all ${
                   isActive
@@ -78,21 +102,48 @@ export default function ActivitySection({ activity, setActivity }) {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          {MUSCLE_TARGETS.map(t => (
-            <button
-              key={t.value}
-              onClick={() => setActivity({ ...activity, muscleTarget: t.value, muscles: MUSCLE_TARGET_GROUPS[t.value] })}
-              className={`px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wider transition-all ${
-                activeTarget === t.value
-                  ? 'border-fit-orange bg-fit-orange/15 text-fit-orange'
-                  : 'border-fit-line bg-fit-bg2 text-fit-dim hover:border-fit-orange/30'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        {activity.type === 'hiit' && (
+          <div className="flex items-center gap-1.5">
+            {MUSCLE_TARGETS.map(t => (
+              <button
+                key={t.value}
+                onClick={() => {
+                  const next = { ...activity, muscleTarget: t.value };
+                  next.muscles = musclesForActivity('hiit', next);
+                  setActivity(next);
+                }}
+                className={`px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wider transition-all ${
+                  activeTarget === t.value
+                    ? 'border-fit-orange bg-fit-orange/15 text-fit-orange'
+                    : 'border-fit-line bg-fit-bg2 text-fit-dim hover:border-fit-orange/30'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
+        {activity.type === 'swimming' && (
+          <div className="flex items-center gap-1.5">
+            {SWIM_STYLES.map(s => (
+              <button
+                key={s.value}
+                onClick={() => {
+                  const next = { ...activity, swimStyle: s.value };
+                  next.muscles = musclesForActivity('swimming', next);
+                  setActivity(next);
+                }}
+                className={`px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wider transition-all ${
+                  activeSwimStyle === s.value
+                    ? 'border-fit-orange bg-fit-orange/15 text-fit-orange'
+                    : 'border-fit-line bg-fit-bg2 text-fit-dim hover:border-fit-orange/30'
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Duration */}

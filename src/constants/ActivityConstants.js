@@ -85,7 +85,7 @@ export const MUSCLE_TARGET_GROUPS = {
 // Wird von MuscleBody (Dashboard), Muscles-View und analysis.js (Coverage) genutzt.
 // Swimming = Brustschwimmen (Pec-Zug + Froschkick) — nicht Kraul.
 export const ACTIVITY_MUSCLE_GROUPS = {
-  swimming:   ["chest", "shoulders", "arms", "core", "quads", "hamstrings"],
+  swimming:   ["chest", "shoulders", "arms", "core", "quads", "hamstrings"], // Default = Brustschwimmen
   running:    ["quads", "hamstrings", "calves", "glutes"],
   cycling:    ["quads", "hamstrings", "calves", "glutes"],
   hiking:     ["quads", "hamstrings", "calves", "glutes", "core"],
@@ -96,6 +96,12 @@ export const ACTIVITY_MUSCLE_GROUPS = {
   climbing:   ["back", "shoulders", "arms", "core", "quads"],
   hiit:       ["core", "quads", "shoulders"],
   boxing:     ["shoulders", "arms", "core", "quads"],
+};
+
+// Schwimmstil-Varianten — überschreiben das swimming-Default je nach Stil.
+export const SWIM_STYLE_MUSCLES = {
+  breast: ["chest", "shoulders", "arms", "core", "quads", "hamstrings"], // Brustschwimmen
+  back:   ["back", "shoulders", "arms", "core", "quads"],                // Rückenschwimmen
 };
 
 /**
