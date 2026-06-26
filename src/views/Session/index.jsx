@@ -7,7 +7,7 @@ import {
 import { localToday } from '@utils';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
 
-import { Save, Zap, Trash2, Dumbbell, Activity, History, Timer } from 'lucide-react';
+import { Save, Zap, Trash2, Dumbbell, Activity, History, Timer, ChevronRight } from 'lucide-react';
 import DateHeader from './DateHeader';
 import ExerciseSection from './ExerciseSection';
 import ActivitySection from './ActivitySection';
@@ -55,7 +55,6 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
   const [sessionId, setSessionId] = useState(null);
   const [autoSaveLabel, setAutoSaveLabel] = useState('');
 
-  const autoSaveTimer = useRef(null);
   const saveRef = useRef(null);
 
   const rollingDays = getRollingDays(30);
@@ -213,7 +212,8 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
 
     if (ex.source !== 'expert') queueForEnrichment(ex);
     showToast(`+ ${ex.display_name || ex.name}`);
-    scheduleAutoSave();
+    // Übung hinzufügen → sofort persistieren (nicht warten bis Tab-Hide)
+    setTimeout(() => { saveRef.current(true); setDirty(false); }, 0);
   }
 
   function addQuick() {
@@ -223,7 +223,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
       setExercises(prev => [...prev, ex]);
       setQuickInput('');
       showToast(`+ ${ex.name}`);
-      scheduleAutoSave();
+      setTimeout(() => { saveRef.current(true); setDirty(false); }, 0);
     }
   }
 
@@ -274,36 +274,60 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
   }
 
   async function save(silent = false) {
-    setSaving(true);
+    // Auto-saves laufen lautlos im Hintergrund — der Save-Button-Spinner ist
+    // nur für manuelle Klicks. Sonst bleibt er bei jeder Tastatureingabe an
+    // und wirkt wie ein permanenter Lade-Zustand.
+    if (!silent) setSaving(true);
     try {
       const sessData = { block, exercises, effort, location, duration, notes, trainingsart, sessionMode };
       // Cardio mode: activity is the whole session
       // Strength mode: activity is an optional addon (only save if hasActivity)
       if (sessionMode === 'cardio') sessData.activity = activity;
       else if (hasActivity && activity.duration) sessData.activity = activity;
+      setAutoSaveLabel(silent ? 'Auto…' : 'Speichert…');
       await saveSession(date, sessData, sessionId);
+      setDirty(false);
       if (silent) {
         setAutoSaveLabel('Auto ✓');
         setTimeout(() => setAutoSaveLabel(''), 2000);
       } else {
+        setAutoSaveLabel('');
         showToast('Gespeichert ✓');
       }
-      const list = await listSessionsForDate(date);
-      setDaySessions(list);
-      // Update gaps after save
-      const gaps = await getCoverageGaps(recentDays, coverageThreshold);
-      setGaps(gaps);
-    } catch { if (!silent) showToast('Fehler beim Speichern'); }
-    finally { setSaving(false); }
+    } catch { if (!silent) showToast('Fehler beim Speichern'); setAutoSaveLabel(''); }
+    finally { if (!silent) setSaving(false); }
+
+    // Reload nach Save — out of try, damit ein hängender Firestore-Read
+    // (listSessionsForDate / getCoverageGaps) den Save-Button nicht blockiert.
+    listSessionsForDate(date).then(setDaySessions).catch(() => {});
+    getCoverageGaps(recentDays, coverageThreshold).then(setGaps).catch(() => {});
   }
 
   // Always keep saveRef current so debounced auto-save uses fresh closures
   saveRef.current = save;
 
+  // Dirty-State: True wenn Änderungen ungespeichert sind. Auto-Save schreibt
+  // nur einmal pro Tab-Hide / Page-Unload statt nach jedem Tastendruck —
+  // schont Firestore-Quota (Free-Tier 20k Writes/Tag).
+  const [dirty, setDirty] = useState(false);
+
   function scheduleAutoSave() {
-    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
-    autoSaveTimer.current = setTimeout(() => saveRef.current(true), 2500);
+    setDirty(true);
   }
+
+  // Save beim Tab-Wechsel / Tab-Hide
+  useEffect(() => {
+    function flush() {
+      if (dirty) { saveRef.current(true); setDirty(false); }
+    }
+    const onVisibility = () => { if (document.visibilityState === 'hidden') flush(); };
+    window.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', flush);
+    return () => {
+      window.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', flush);
+    };
+  }, [dirty]);
 
   async function handleDeleteSession() {
     if (!window.confirm("Dieses Workout wirklich löschen?")) return;
@@ -397,7 +421,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
                         <div className="text-md font-black text-fit-ink group-hover:text-accent transition-colors">{label}</div>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="flex items-center gap-3">
                       {isActivity ? (
                         <div className="flex items-center gap-1.5 text-[11px] font-black text-fit-muted">
                           <Timer size={12} className="opacity-30" />{s.activity?.duration}m
@@ -407,6 +431,7 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
                           {Array.isArray(s.exercises) ? s.exercises.length : 0} Ex
                         </div>
                       )}
+                      <ChevronRight size={16} className="text-fit-dim/30 group-hover:text-fit-accent transition-colors" />
                     </div>
                   </div>
                 </button>
@@ -619,11 +644,15 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
 
       {/* Floating Save Button for Mobile */}
       <div className="lg:hidden fixed bottom-24 right-6 z-40 flex flex-col items-end gap-1.5">
-        {autoSaveLabel && (
+        {autoSaveLabel ? (
           <span className="text-[9px] font-black uppercase tracking-widest text-fit-accent/60 animate-in fade-in duration-300">
             {autoSaveLabel}
           </span>
-        )}
+        ) : dirty ? (
+          <span className="text-[9px] font-black uppercase tracking-widest text-fit-red/70 animate-in fade-in duration-300">
+            Ungespeichert
+          </span>
+        ) : null}
         <button
           onClick={() => save()}
           disabled={saving}
