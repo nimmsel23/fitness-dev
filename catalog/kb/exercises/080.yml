@@ -12,9 +12,14 @@ exercises:
   primary_muscles:
   - 206_erector_spinae
   - 601_gluteus_maximus
-  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 607_biceps_femoris
+  - 608_semitendinosus
+  - 609_semimembranosus
   secondary_muscles:
-  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
+  - 603_rectus_femoris
+  - 604_vastus_lateralis
+  - 605_vastus_medialis
+  - 606_vastus_intermedius
   - 203_trapezius_middle
   - 201_latissimus_dorsi
   - 405_forearm_flexors

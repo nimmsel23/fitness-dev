@@ -14,7 +14,10 @@ exercises:
   - 501_rectus_abdominis
   secondary_muscles:
   - 502_obliquus_externus
-  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
+  - 603_rectus_femoris
+  - 604_vastus_lateralis
+  - 605_vastus_medialis
+  - 606_vastus_intermedius
   - 104_serratus_anterior
   stabilizers:
   - 301_anterior_deltoid

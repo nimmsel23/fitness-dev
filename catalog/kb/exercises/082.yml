@@ -13,7 +13,9 @@ exercises:
   primary_muscles:
   - 601_gluteus_maximus
   secondary_muscles:
-  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 607_biceps_femoris
+  - 608_semitendinosus
+  - 609_semimembranosus
   - 610_adductors
   stabilizers:
   - 500_core

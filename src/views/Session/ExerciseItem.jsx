@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getProgressTrend } from '@db';
 import { TrendingUp, TrendingDown, Plus, Info, X, Clock, History, ChevronDown, ChevronUp } from 'lucide-react';
-import { formatMuscleDetail, loadMuscleDetail, MUSCLE_DETAIL_KEY } from '../../lib/translations.js';
+import { formatMuscleDetail, loadMuscleDetail, MUSCLE_DETAIL_KEY, splitMuscleEntries } from '../../lib/translations.js';
 
 const NXM_PATTERN = /^\s*(\d{1,2})\s*[xX×*]\s*(\d{1,3})\s*$/;
 
@@ -132,12 +132,15 @@ export default function ExerciseItem({
               {/* Primary Muscle Badges */}
               <div className="flex gap-1.5 flex-wrap">
                 {(() => {
-                  const raw = (ex.primaryMuscles || []).slice(0, 2);
+                  // Splittet Komma-Joints (Legacy-Session-Daten) → einzelne Muskeln,
+                  // dann kanonisiert + formatiert + dedupliziert.
+                  const raw = splitMuscleEntries(ex.primaryMuscles || []);
                   const seen = new Set();
                   const labels = [];
                   for (const m of raw) {
                     const label = formatMuscle(m);
                     if (label && !seen.has(label)) { seen.add(label); labels.push(label); }
+                    if (labels.length >= 2) break;
                   }
                   return labels.map(label => (
                     <span key={label} className={`text-[9px] font-bold text-fit-dim/60 ${muscleDetail === 'catalog' ? 'font-mono normal-case' : 'uppercase tracking-widest'}`}>{label}</span>

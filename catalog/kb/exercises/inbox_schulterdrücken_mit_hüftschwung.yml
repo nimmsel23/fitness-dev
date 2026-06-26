@@ -16,7 +16,10 @@ exercises:
   - deltoids
   - triceps
   secondary_muscles:
-  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
+  - 603_rectus_femoris
+  - 604_vastus_lateralis
+  - 605_vastus_medialis
+  - 606_vastus_intermedius
   - glutes
   - 500_core
   - trapezius

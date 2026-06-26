@@ -10,7 +10,9 @@ exercises:
   equipment:
   - machine
   primary_muscles:
-  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 607_biceps_femoris
+  - 608_semitendinosus
+  - 609_semimembranosus
   secondary_muscles:
   - 701_gastrocnemius
   stabilizers:

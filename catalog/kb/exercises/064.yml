@@ -10,10 +10,15 @@ exercises:
   equipment:
   - dumbbells
   primary_muscles:
-  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
+  - 603_rectus_femoris
+  - 604_vastus_lateralis
+  - 605_vastus_medialis
+  - 606_vastus_intermedius
   - 601_gluteus_maximus
   secondary_muscles:
-  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 607_biceps_femoris
+  - 608_semitendinosus
+  - 609_semimembranosus
   - 610_adductors
   stabilizers:
   - 500_core

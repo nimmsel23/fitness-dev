@@ -11,7 +11,10 @@ exercises:
   - barbell
   - squat_rack
   primary_muscles:
-  - 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius
+  - 603_rectus_femoris
+  - 604_vastus_lateralis
+  - 605_vastus_medialis
+  - 606_vastus_intermedius
   secondary_muscles:
   - 601_gluteus_maximus
   - 504_transverse_abdominis

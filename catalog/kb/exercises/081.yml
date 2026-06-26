@@ -10,7 +10,9 @@ exercises:
   equipment:
   - barbell
   primary_muscles:
-  - 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus
+  - 607_biceps_femoris
+  - 608_semitendinosus
+  - 609_semimembranosus
   - 601_gluteus_maximus
   secondary_muscles:
   - 206_erector_spinae
