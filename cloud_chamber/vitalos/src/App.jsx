@@ -11,9 +11,9 @@ import ErrorBoundary from './components/common/ErrorBoundary.jsx'
 
 const FitnessApp  = lazy(() => import('./shell/FitnessApp.jsx'))
 const FuelWrapper = lazy(() => import('./shell/FuelWrapper.jsx'))
-const JournalView = lazy(() => import('@view/journal/index.jsx'))
-const HabitsView  = lazy(() => import('@view/habits/index.jsx'))
-const LearnView   = lazy(() => import('@view/learn/index.jsx'))
+const JournalApp  = lazy(() => import('./shell/JournalApp.jsx'))
+const HabitsApp   = lazy(() => import('./shell/HabitsApp.jsx'))
+const LearnApp    = lazy(() => import('./shell/LearnApp.jsx'))
 
 const DAY_START = 8
 const DAY_END   = 20
@@ -24,15 +24,15 @@ const Loader = ({ label }) => (
   </div>
 )
 
-function Views({ tab, fitnessProps, fuelTab, setFuelTab, user, settingsProps, openSession, compact }) {
+function Views({ tab, fitnessProps, fuelTab, setFuelTab, user, settingsProps, openSession, compact, muscleLanguage, taxonomy }) {
   const p = compact ? 'p-4' : 'p-4 sm:p-8 lg:p-12'
   return (
     <Suspense fallback={<Loader label={tab} />}>
       {tab === 'fitness'  && <FitnessApp  {...fitnessProps} />}
       {tab === 'fuel'     && <FuelWrapper user={user} subTab={fuelTab} onSubTab={setFuelTab} />}
-      {tab === 'journal'  && <div className={`${p} max-w-[1600px] mx-auto`}><JournalView onOpenSession={openSession} /></div>}
-      {tab === 'habits'   && <div className={`${p} max-w-[1600px] mx-auto`}><HabitsView /></div>}
-      {tab === 'learn'    && <div className={`${p} max-w-[1600px] mx-auto`}><LearnView /></div>}
+      {tab === 'journal'  && <JournalApp onOpenSession={openSession} />}
+      {tab === 'habits'   && <HabitsApp />}
+      {tab === 'learn'    && <LearnApp muscleLanguage={muscleLanguage} taxonomy={taxonomy} />}
       {tab === 'settings' && <div className={`${p} max-w-[1600px] mx-auto`}><Settings {...settingsProps} /></div>}
     </Suspense>
   )
@@ -239,19 +239,19 @@ export default function App() {
             <>
               {/* Desktop: klassisches Layout */}
               <main className="hidden lg:block relative min-h-[100dvh]">
-                <Views tab={tab} fitnessProps={fitnessProps} fuelTab={fuelTab} setFuelTab={setFuelTab}
+                <Views tab={tab} fitnessProps={fitnessProps} fuelTab={fuelTab} setFuelTab={setFuelTab} muscleLanguage={muscleLanguage} taxonomy={taxonomy}
                   user={user} settingsProps={settingsProps} openSession={openSession} />
               </main>
               {/* Mobile: Fuel-Layout */}
               <MobileShell tab={tab} navigate={navigate} mobileLayout="fuel">
-                <Views tab={tab} fitnessProps={fitnessProps} fuelTab={fuelTab} setFuelTab={setFuelTab}
+                <Views tab={tab} fitnessProps={fitnessProps} fuelTab={fuelTab} setFuelTab={setFuelTab} muscleLanguage={muscleLanguage} taxonomy={taxonomy}
                   user={user} settingsProps={settingsProps} openSession={openSession} compact />
               </MobileShell>
             </>
           ) : (
             <>
               <main className="relative pb-28 sm:pb-10 lg:pb-0 min-h-[100dvh]">
-                <Views tab={tab} fitnessProps={fitnessProps} fuelTab={fuelTab} setFuelTab={setFuelTab}
+                <Views tab={tab} fitnessProps={fitnessProps} fuelTab={fuelTab} setFuelTab={setFuelTab} muscleLanguage={muscleLanguage} taxonomy={taxonomy}
                   user={user} settingsProps={settingsProps} openSession={openSession} />
               </main>
               <MobileShell tab={tab} navigate={navigate} mobileLayout="classic" />
