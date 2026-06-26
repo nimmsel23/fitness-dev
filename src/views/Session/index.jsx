@@ -419,43 +419,50 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
     const DAY_SHORT = ['So','Mo','Di','Mi','Do','Fr','Sa'];
     const MON_SHORT = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
 
-    // Last 14 days full + older session-only entries
-    const recentRange = Array.from({ length: 14 }, (_, i) => {
-      const d = new Date(today_ + 'T12:00:00');
-      d.setDate(d.getDate() - i);
-      return d.toISOString().slice(0, 10);
+    // Build 10 calendar weeks (newest first), Mon–Sun per week
+    const todayObj = new Date(today_ + 'T12:00:00');
+    const dow0 = todayObj.getDay();
+    const thisMonday = new Date(todayObj);
+    thisMonday.setDate(todayObj.getDate() - (dow0 === 0 ? 6 : dow0 - 1));
+    thisMonday.setHours(0, 0, 0, 0);
+
+    const weekGroups = Array.from({ length: 10 }, (_, w) => {
+      const monday = new Date(thisMonday);
+      monday.setDate(thisMonday.getDate() - w * 7);
+      // Mon–Sun, filter out future days, newest first
+      const allDays = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        return d.toISOString().slice(0, 10);
+      }).filter(d => d <= today_).reverse();
+
+      const hasSessions = allDays.some(d => recentSessions[d]?.exercises?.length > 0 || recentSessions[d]?.activity);
+
+      // Streak: days to show = all days between first and last session of the week
+      // (rest days in between are included; days after last session are hidden unless current week)
+      let visibleDays;
+      if (w === 0) {
+        // Current week: always show all days up to today (drop targets for today/yesterday)
+        visibleDays = allDays;
+      } else if (hasSessions) {
+        const sessionDays = allDays.filter(d => recentSessions[d]?.exercises?.length > 0 || recentSessions[d]?.activity);
+        const oldest = sessionDays[sessionDays.length - 1];
+        const newest = sessionDays[0];
+        // Include all days in the streak window (oldest..newest within week)
+        visibleDays = allDays.filter(d => d >= oldest && d <= newest);
+      } else {
+        visibleDays = []; // empty week: no day rows
+      }
+
+      // KW label
+      const jan4 = new Date(monday.getFullYear(), 0, 4);
+      const kw = Math.max(1, Math.floor(((monday - jan4) / 86400000 + jan4.getDay() + 1) / 7));
+      const label = w === 0 ? 'Diese Woche' : w === 1 ? 'Letzte Woche' : `KW ${kw} · ${monday.getFullYear()}`;
+
+      return { label, kw, allDays, visibleDays, hasSessions };
     });
-    const cutoff = recentRange[recentRange.length - 1];
-    const olderEntries = Object.entries(recentSessions)
-      .filter(([d, s]) => d < cutoff && (s?.exercises?.length > 0 || s?.activity))
-      .sort(([a], [b]) => b.localeCompare(a));
 
-    const hasAnything = recentRange.some(d => recentSessions[d]?.exercises?.length > 0 || recentSessions[d]?.activity) || olderEntries.length > 0;
-
-    function weekLabel(dateStr) {
-      const d = new Date(dateStr + 'T12:00:00');
-      const t = new Date(today_ + 'T12:00:00');
-      const dow = t.getDay();
-      const thisMonday = new Date(t);
-      thisMonday.setDate(t.getDate() - (dow === 0 ? 6 : dow - 1));
-      thisMonday.setHours(0,0,0,0);
-      const lastMonday = new Date(thisMonday);
-      lastMonday.setDate(thisMonday.getDate() - 7);
-      if (d >= thisMonday) return 'Diese Woche';
-      if (d >= lastMonday) return 'Letzte Woche';
-      const jan4 = new Date(d.getFullYear(), 0, 4);
-      const kw = Math.max(1, Math.floor(((d - jan4) / 86400000 + jan4.getDay() + 1) / 7));
-      return `KW ${kw} · ${d.getFullYear()}`;
-    }
-
-    const weekGroups = [];
-    for (const d of recentRange) {
-      const wl = weekLabel(d);
-      if (!weekGroups.length || weekGroups[weekGroups.length - 1].label !== wl)
-        weekGroups.push({ label: wl, days: [d] });
-      else
-        weekGroups[weekGroups.length - 1].days.push(d);
-    }
+    const hasAnything = weekGroups.some(wg => wg.hasSessions);
 
     const renderSessionCard = (d, s) => {
       const isActivity = s.sessionMode === 'cardio' || !!s.activity;
@@ -571,22 +578,25 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
           <div>
             {weekGroups.map(wg => (
               <div key={wg.label} className="mb-1">
-                <div className="text-[9px] font-black uppercase tracking-[0.3em] text-fit-dim/30 px-2 pt-4 pb-1">{wg.label}</div>
-                <div className="relative">
-                  <div className="absolute left-[67px] top-0 bottom-0 w-px bg-fit-line/30 z-0" />
-                  {wg.days.map(d => renderDayRow(d, true))}
+                <div className="flex items-center gap-3 px-2 pt-4 pb-1">
+                  <div className="text-[9px] font-black uppercase tracking-[0.3em] text-fit-dim/30">{wg.label}</div>
+                  {!wg.hasSessions && (
+                    <div className="text-[8px] font-bold text-fit-dim/20 uppercase tracking-widest italic">Keine Session</div>
+                  )}
+                  {wg.hasSessions && (
+                    <div className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-fit-bg2 text-fit-dim/30 border border-fit-line/30 uppercase tracking-widest">
+                      {wg.allDays.filter(d => recentSessions[d]?.exercises?.length > 0 || recentSessions[d]?.activity).length}×
+                    </div>
+                  )}
                 </div>
+                {wg.visibleDays.length > 0 && (
+                  <div className="relative">
+                    <div className="absolute left-[67px] top-0 bottom-0 w-px bg-fit-line/30 z-0" />
+                    {wg.visibleDays.map(d => renderDayRow(d, true))}
+                  </div>
+                )}
               </div>
             ))}
-            {olderEntries.length > 0 && (
-              <div className="mt-2">
-                <div className="text-[9px] font-black uppercase tracking-[0.3em] text-fit-dim/30 px-2 pt-4 pb-1">Älter</div>
-                <div className="relative">
-                  <div className="absolute left-[67px] top-0 bottom-0 w-px bg-fit-line/30 z-0" />
-                  {olderEntries.map(([d]) => renderDayRow(d, false))}
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>
