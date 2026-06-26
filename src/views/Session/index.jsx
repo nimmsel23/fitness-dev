@@ -7,7 +7,7 @@ import {
 import { localToday } from '@utils';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
 
-import { Save, Zap, Trash2, Dumbbell, Activity, History, Timer, ChevronRight } from 'lucide-react';
+import { Save, Zap, Trash2, Dumbbell, Activity, History, Timer, ChevronRight, Calendar, Check, X as XIcon } from 'lucide-react';
 import DateHeader from './DateHeader';
 import ExerciseSection from './ExerciseSection';
 import ActivitySection from './ActivitySection';
@@ -24,7 +24,7 @@ const SESSION_MODES = [
   { value: 'cardio',   label: 'Ausdauer',      icon: Activity,  color: 'orange' },
 ];
 
-export default function Session({ initialDate, initialDraft, onInspectExercise, recentDays = 7, coverageThreshold = 1.0, subTab }) {
+export default function Session({ initialDate, initialDraft, onInspectExercise, onOpenSession, recentDays = 7, coverageThreshold = 1.0, subTab }) {
   const [date, setDate]           = useState(initialDate || localToday());
   const [sessionMode, setSessionMode] = useState('strength');
   const [block, setBlock]         = useState('');
@@ -52,6 +52,9 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
 
   const [prevMap, setPrevMap]       = useState({});
   const [daySessions, setDaySessions] = useState([]);
+  const [reDateEntry, setReDateEntry]   = useState(null);  // { d, value } while picker is open
+  const [draggedDate, setDraggedDate]   = useState(null);
+  const [dragOverDate, setDragOverDate] = useState(null);
   const [sessionId, setSessionId] = useState(null);
   const [autoSaveLabel, setAutoSaveLabel] = useState('');
 
@@ -396,56 +399,194 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
     URL.revokeObjectURL(url);
   }
 
+  async function moveSessionToDate(oldDate, newDate) {
+    if (!newDate || newDate === oldDate) { setReDateEntry(null); return; }
+    const sess = recentSessions[oldDate];
+    if (!sess) return;
+    await saveSession(newDate, { ...sess, date: newDate });
+    await deleteSession(oldDate);
+    setRecentSessions(prev => {
+      const next = { ...prev, [newDate]: { ...sess, date: newDate } };
+      delete next[oldDate];
+      return next;
+    });
+    setReDateEntry(null);
+    showToast(`Verschoben → ${newDate}`);
+  }
+
   if (subTab === 'history') {
-    const historySessions = Object.entries(recentSessions)
-      .sort(([a], [b]) => b.localeCompare(a))
-      .filter(([, s]) => s?.exercises?.length > 0 || s?.activity);
+    const today_ = localToday();
+    const DAY_SHORT = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+    const MON_SHORT = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+
+    // Last 14 days full + older session-only entries
+    const recentRange = Array.from({ length: 14 }, (_, i) => {
+      const d = new Date(today_ + 'T12:00:00');
+      d.setDate(d.getDate() - i);
+      return d.toISOString().slice(0, 10);
+    });
+    const cutoff = recentRange[recentRange.length - 1];
+    const olderEntries = Object.entries(recentSessions)
+      .filter(([d, s]) => d < cutoff && (s?.exercises?.length > 0 || s?.activity))
+      .sort(([a], [b]) => b.localeCompare(a));
+
+    const hasAnything = recentRange.some(d => recentSessions[d]?.exercises?.length > 0 || recentSessions[d]?.activity) || olderEntries.length > 0;
+
+    function weekLabel(dateStr) {
+      const d = new Date(dateStr + 'T12:00:00');
+      const t = new Date(today_ + 'T12:00:00');
+      const dow = t.getDay();
+      const thisMonday = new Date(t);
+      thisMonday.setDate(t.getDate() - (dow === 0 ? 6 : dow - 1));
+      thisMonday.setHours(0,0,0,0);
+      const lastMonday = new Date(thisMonday);
+      lastMonday.setDate(thisMonday.getDate() - 7);
+      if (d >= thisMonday) return 'Diese Woche';
+      if (d >= lastMonday) return 'Letzte Woche';
+      const jan4 = new Date(d.getFullYear(), 0, 4);
+      const kw = Math.max(1, Math.floor(((d - jan4) / 86400000 + jan4.getDay() + 1) / 7));
+      return `KW ${kw} · ${d.getFullYear()}`;
+    }
+
+    const weekGroups = [];
+    for (const d of recentRange) {
+      const wl = weekLabel(d);
+      if (!weekGroups.length || weekGroups[weekGroups.length - 1].label !== wl)
+        weekGroups.push({ label: wl, days: [d] });
+      else
+        weekGroups[weekGroups.length - 1].days.push(d);
+    }
+
+    const renderSessionCard = (d, s) => {
+      const isActivity = s.sessionMode === 'cardio' || !!s.activity;
+      const actType = s.activity?.type;
+      const emoji = actType ? ACTIVITY_EMOJI[actType] : null;
+      const ActivityIcon = (!emoji && actType) ? (ACTIVITY_ICONS[actType] || Activity) : null;
+      const label = isActivity ? (ACTIVITY_LABELS[actType] || 'Ausdauer') : s.block;
+      const color = blockColor(s.block, s.activity, s.sessionMode);
+      const isReDate = reDateEntry?.d === d;
+      const isDragging = draggedDate === d;
+      return (
+        <div className={`rounded-2xl bg-fit-card border border-fit-line overflow-hidden transition-all ${isDragging ? 'opacity-30 scale-95' : ''}`}
+          draggable onDragStart={e => { setDraggedDate(d); e.dataTransfer.effectAllowed = 'move'; }}
+          onDragEnd={() => { setDraggedDate(null); setDragOverDate(null); }}>
+          <div className="flex items-center gap-2 px-3 py-3">
+            <div className="text-fit-dim/20 cursor-grab active:cursor-grabbing select-none text-lg leading-none shrink-0 px-0.5" title="Ziehen um Datum zu verschieben">⠿</div>
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center text-sm shrink-0"
+              style={{ background: color + '15', color }}>
+              {isActivity && emoji ? emoji : isActivity && ActivityIcon ? <ActivityIcon size={15} /> : <Dumbbell size={15} />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-black text-fit-ink truncate">{label || <span className="text-fit-dim/30 italic">–</span>}</div>
+              {isActivity
+                ? <div className="text-[9px] font-bold text-fit-dim/40 flex items-center gap-1"><Timer size={9} />{s.activity?.duration}m</div>
+                : <div className="text-[9px] font-bold text-fit-dim/40">{Array.isArray(s.exercises) ? s.exercises.length : 0} Übungen</div>}
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <button onClick={e => { e.stopPropagation(); setReDateEntry(isReDate ? null : { d, value: d }); }}
+                className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${isReDate ? 'bg-fit-accent text-black' : 'text-fit-dim/30 hover:text-fit-accent hover:bg-fit-accent/10'}`}
+                title="Datum verschieben">
+                <Calendar size={12} />
+              </button>
+              <button onClick={() => onOpenSession ? onOpenSession(d) : setDate(d)}
+                className="flex items-center gap-1 px-2 py-1.5 rounded-lg bg-fit-accent text-black text-[8px] font-black uppercase tracking-[0.15em] hover:scale-105 active:scale-95 transition-all"
+                title="Im Session-Editor öffnen">
+                <ChevronRight size={11} strokeWidth={3} />
+                <span className="hidden sm:inline">Edit</span>
+              </button>
+            </div>
+          </div>
+          {isReDate && (
+            <div className="px-3 pb-3 flex items-center gap-2 border-t border-fit-line/30 pt-2.5 animate-in slide-in-from-top-1 duration-150">
+              <span className="text-[8px] font-black uppercase tracking-widest text-fit-dim/40 shrink-0">→</span>
+              <input type="date" value={reDateEntry.value} max={localToday()}
+                onChange={e => setReDateEntry({ d, value: e.target.value })}
+                onKeyDown={e => { if (e.key === 'Enter') moveSessionToDate(d, reDateEntry.value); if (e.key === 'Escape') setReDateEntry(null); }}
+                className="flex-1 px-2 py-1 rounded-lg border border-fit-accent/40 bg-fit-bg2 text-[10px] font-black text-fit-ink outline-none focus:border-accent"
+                autoFocus />
+              <button onClick={() => moveSessionToDate(d, reDateEntry.value)}
+                className="w-7 h-7 rounded-lg bg-fit-accent text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
+                <Check size={12} strokeWidth={3} />
+              </button>
+              <button onClick={() => setReDateEntry(null)}
+                className="w-7 h-7 rounded-lg bg-fit-bg2 border border-fit-line text-fit-dim flex items-center justify-center">
+                <XIcon size={12} />
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    const renderDayRow = (d, showEmpty) => {
+      const s = recentSessions[d];
+      const hasSession = s?.exercises?.length > 0 || s?.activity;
+      if (!hasSession && !showEmpty) return null;
+      const isToday = d === today_;
+      const dateObj = new Date(d + 'T12:00:00');
+      const dayName = DAY_SHORT[dateObj.getDay()];
+      const dayNum = dateObj.getDate();
+      const mon = MON_SHORT[dateObj.getMonth()];
+      const isDropTarget = !!draggedDate && draggedDate !== d && !hasSession;
+      const isDragOver = dragOverDate === d && isDropTarget;
+      const dotColor = hasSession ? blockColor(s?.block, s?.activity, s?.sessionMode) : null;
+
+      return (
+        <div key={d} className={`flex items-start transition-all ${isDragOver ? 'scale-[1.01]' : ''}`}
+          onDragOver={isDropTarget ? e => { e.preventDefault(); setDragOverDate(d); } : undefined}
+          onDragLeave={isDropTarget ? () => setDragOverDate(prev => prev === d ? null : prev) : undefined}
+          onDrop={isDropTarget ? e => { e.preventDefault(); setDragOverDate(null); moveSessionToDate(draggedDate, d); setDraggedDate(null); } : undefined}>
+          {/* Date sidebar */}
+          <div className="w-14 text-right pr-3 shrink-0 pt-2.5">
+            <div className="text-[8px] font-black uppercase text-fit-dim/25">{dayName}</div>
+            <div className={`text-[13px] font-black leading-tight ${isToday ? 'text-fit-accent' : 'text-fit-dim/50'}`}>{dayNum}</div>
+            {!hasSession && <div className="text-[7px] font-bold text-fit-dim/20 uppercase">{mon}</div>}
+          </div>
+          {/* Node */}
+          <div className="w-6 flex flex-col items-center shrink-0 mt-[13px]">
+            <div className={`w-3 h-3 rounded-full border-2 z-10 relative transition-all ${
+              hasSession ? 'scale-100' : isDropTarget ? 'border-fit-accent/50 bg-fit-accent/20 scale-125' : 'border-fit-line/40 bg-fit-bg scale-75 opacity-40'
+            }`} style={dotColor ? { borderColor: dotColor, background: dotColor + '30' } : {}} />
+          </div>
+          {/* Content */}
+          <div className="flex-1 pl-2 pb-3 min-w-0">
+            {hasSession ? renderSessionCard(d, s) : (
+              <div className={`h-9 rounded-xl border transition-all flex items-center justify-center ${isDropTarget ? 'border-dashed border-fit-accent/40 bg-fit-accent/5' : 'border-transparent'}`}>
+                {isDragOver && <span className="text-[8px] font-black uppercase tracking-[0.2em] text-fit-accent animate-pulse">Hierher verschieben</span>}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
     return (
       <div className="pb-32">
-        {historySessions.length === 0 ? (
+        {!hasAnything ? (
           <div className="flex flex-col items-center justify-center py-32 opacity-30">
             <History size={40} className="mb-4" />
             <p className="text-[11px] font-black uppercase tracking-[0.3em]">Noch keine Sessions</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
-            {historySessions.map(([d, s], idx) => {
-              const isActivity = s.sessionMode === 'cardio' || !!s.activity;
-              const actType = s.activity?.type;
-              const emoji = actType ? ACTIVITY_EMOJI[actType] : null;
-              const ActivityIcon = (!emoji && actType) ? (ACTIVITY_ICONS[actType] || Activity) : null;
-              const label = isActivity ? (ACTIVITY_LABELS[actType] || 'Ausdauer') : s.block;
-              const color = blockColor(s.block, s.activity, s.sessionMode);
-              return (
-                <button key={d || idx} onClick={() => setDate(d)}
-                  className="w-full text-left px-6 py-4 rounded-3xl bg-fit-card border border-fit-line hover:border-accent/40 transition-all group hover:bg-accent/5">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 text-xl"
-                        style={{ background: color + '15', color }}>
-                        {isActivity && emoji ? emoji : isActivity && ActivityIcon ? <ActivityIcon size={22} /> : <Dumbbell size={22} />}
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-black opacity-30 uppercase tracking-widest mb-1">{d}</div>
-                        <div className="text-md font-black text-fit-ink group-hover:text-accent transition-colors">{label}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      {isActivity ? (
-                        <div className="flex items-center gap-1.5 text-[11px] font-black text-fit-muted">
-                          <Timer size={12} className="opacity-30" />{s.activity?.duration}m
-                        </div>
-                      ) : (
-                        <div className="text-[10px] font-black px-3 py-1.5 rounded-xl bg-fit-bg2 text-fit-muted uppercase tracking-widest border border-fit-line">
-                          {Array.isArray(s.exercises) ? s.exercises.length : 0} Ex
-                        </div>
-                      )}
-                      <ChevronRight size={16} className="text-fit-dim/30 group-hover:text-fit-accent transition-colors" />
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
+          <div>
+            {weekGroups.map(wg => (
+              <div key={wg.label} className="mb-1">
+                <div className="text-[9px] font-black uppercase tracking-[0.3em] text-fit-dim/30 px-2 pt-4 pb-1">{wg.label}</div>
+                <div className="relative">
+                  <div className="absolute left-[67px] top-0 bottom-0 w-px bg-fit-line/30 z-0" />
+                  {wg.days.map(d => renderDayRow(d, true))}
+                </div>
+              </div>
+            ))}
+            {olderEntries.length > 0 && (
+              <div className="mt-2">
+                <div className="text-[9px] font-black uppercase tracking-[0.3em] text-fit-dim/30 px-2 pt-4 pb-1">Älter</div>
+                <div className="relative">
+                  <div className="absolute left-[67px] top-0 bottom-0 w-px bg-fit-line/30 z-0" />
+                  {olderEntries.map(([d]) => renderDayRow(d, false))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
