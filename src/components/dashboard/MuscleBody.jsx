@@ -3,6 +3,7 @@ import BodyMap from "../BodyMap";
 import DetailedMuscleMap from "../DetailedMuscleMap";
 import AnatomyDetailModal from "../AnatomyDetailModal";
 import { getMuscle } from "@db";
+import { ACTIVITY_MUSCLE_GROUPS } from "../../constants/ActivityConstants";
 
 // Normalisiert Session-Muskelnamen auf interne Gruppen-IDs
 function toGroup(m) {
@@ -21,22 +22,7 @@ function toGroup(m) {
   return MAP[g] || null;
 }
 
-const ACTIVITY_MUSCLES = {
-  // Brustschwimmen: Pec-Zug, Schultern, Arme, Core, Froschkick
-  swimming:  ["chest", "shoulders", "arms", "core", "quads", "hamstrings"],
-  // Laufen: Gluteus trägt wesentlich zur Propulsion bei
-  running:   ["quads", "hamstrings", "calves", "glutes"],
-  // Radfahren: Glutes + Hamstrings beim Aufwärtszug (Klickpedale)
-  cycling:   ["quads", "hamstrings", "calves", "glutes"],
-  // Wandern: ähnlich Laufen + Core für Balance
-  hiking:    ["quads", "hamstrings", "calves", "glutes", "core"],
-  // Rudern: Drive = Beine, Finish = Rücken + Arme, Shoulders überall
-  rowing:    ["back", "shoulders", "arms", "quads", "hamstrings", "core"],
-  // Yoga: Core + Schultern (Stütz), Rücken (Extensionen)
-  yoga:      ["core", "shoulders", "back"],
-  // Boxen: Schultern, Arme, Core-Rotation, Quads (Footwork)
-  boxing:    ["shoulders", "arms", "core", "quads"],
-};
+const ACTIVITY_MUSCLES = ACTIVITY_MUSCLE_GROUPS;
 
 // Tage seit letztem Training → Superkompensationsphase
 // Cardio: kürzeres Fenster (schnellere Erholung), kein Rot (kein Muskeltrauma)

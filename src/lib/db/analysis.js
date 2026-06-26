@@ -1,4 +1,5 @@
 import { api } from "./core";
+import { ACTIVITY_MUSCLE_GROUPS } from "../../constants/ActivityConstants";
 
 const MUSCLE_GROUPS = {
   chest: ["pecs", "chest", "pectoralis", "brust", "100_chest", "101_pectoralis", "102_pectoralis", "103_pectoralis", "104_serratus"],
@@ -27,13 +28,6 @@ export async function getDashboardAnalytics(days = 28) {
     session_count: 0
   };
 }
-
-const ACTIVITY_MUSCLE_MAPPING = {
-  hiking: { muscles: ["legs", "quads", "calves", "glutes"] },
-  running: { muscles: ["legs", "quads", "calves", "hamstrings", "glutes"] },
-  cycling: { muscles: ["legs", "quads", "calves", "glutes"] },
-  swimming: { muscles: ["back", "shoulders", "arms", "core", "legs"] }
-};
 
 function muscleToGroupIds(muscle, exerciseName = "") {
   const m = muscle.toLowerCase();
@@ -110,7 +104,7 @@ export async function getWeeklyReport(selector = "current") {
       [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.2; }));
     }
     const actMuscles = sess.activity?.muscles
-      || (sess.activity?.type ? ACTIVITY_MUSCLE_MAPPING[sess.activity.type]?.muscles : null);
+      || (sess.activity?.type ? ACTIVITY_MUSCLE_GROUPS[sess.activity.type] : null);
     if (actMuscles) {
       actMuscles.forEach(gid => {
         sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 0.5;
@@ -185,7 +179,7 @@ export async function getMuscleCoverage(days = 7) {
     }
     // Activity addon: muscles pre-resolved on save, fallback to old mapping for legacy sessions
     const actMuscles = sess.activity?.muscles
-      || (sess.activity?.type ? ACTIVITY_MUSCLE_MAPPING[sess.activity.type]?.muscles : null);
+      || (sess.activity?.type ? ACTIVITY_MUSCLE_GROUPS[sess.activity.type] : null);
     if (actMuscles) {
       actMuscles.forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; });
     }

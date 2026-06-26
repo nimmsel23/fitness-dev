@@ -81,6 +81,23 @@ export const MUSCLE_TARGET_GROUPS = {
   full:  ['chest', 'back', 'shoulders', 'arms', 'core', 'quads', 'hamstrings', 'glutes'],
 };
 
+// Single source of truth: welche Muskelgruppen jede Cardio-/Activity-Art trifft.
+// Wird von MuscleBody (Dashboard), Muscles-View und analysis.js (Coverage) genutzt.
+// Swimming = Brustschwimmen (Pec-Zug + Froschkick) — nicht Kraul.
+export const ACTIVITY_MUSCLE_GROUPS = {
+  swimming:   ["chest", "shoulders", "arms", "core", "quads", "hamstrings"],
+  running:    ["quads", "hamstrings", "calves", "glutes"],
+  cycling:    ["quads", "hamstrings", "calves", "glutes"],
+  hiking:     ["quads", "hamstrings", "calves", "glutes", "core"],
+  walking:    ["quads", "calves", "glutes"],
+  rowing:     ["back", "shoulders", "arms", "quads", "hamstrings", "core"],
+  yoga:       ["core", "shoulders", "back"],
+  stretching: ["core", "back", "hamstrings"],
+  climbing:   ["back", "shoulders", "arms", "core", "quads"],
+  hiit:       ["core", "quads", "shoulders"],
+  boxing:     ["shoulders", "arms", "core", "quads"],
+};
+
 /**
  * Returns a CSS color string for a given session.
  * - If sessionMode === 'cardio', uses orange as a general cardio color

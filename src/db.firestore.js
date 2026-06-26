@@ -673,12 +673,14 @@ export async function getDashboardAnalytics(days = 21) {
   return { body_region_scores: scores };
 }
 
-export const ACTIVITY_MUSCLE_MAPPING = {
-  hiking:   { muscles: ["legs", "core", "glutes"],        impact: 1.0 },
-  running:  { muscles: ["quads", "hamstrings", "calves"], impact: 1.0 },
-  cycling:  { muscles: ["quads", "calves"],               impact: 0.8 },
-  swimming: { muscles: ["back", "shoulders", "core"],     impact: 0.7 },
-};
+import { ACTIVITY_MUSCLE_GROUPS } from "./constants/ActivityConstants";
+
+// Adapter auf zentrales Mapping (siehe ActivityConstants.js). Impact bleibt lokal,
+// da nur dieser Firebase-Build damit rechnet.
+const ACTIVITY_IMPACT = { hiking: 1.0, running: 1.0, cycling: 0.8, swimming: 0.7 };
+export const ACTIVITY_MUSCLE_MAPPING = Object.fromEntries(
+  Object.entries(ACTIVITY_MUSCLE_GROUPS).map(([k, muscles]) => [k, { muscles, impact: ACTIVITY_IMPACT[k] ?? 1.0 }])
+);
 
 export const MUSCLE_GROUPS = ["chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves", "legs"];
 

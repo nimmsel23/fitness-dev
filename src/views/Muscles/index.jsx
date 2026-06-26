@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getSessionHistory, getAllExercises, getMuscle } from "@db";
 import { translateMuscle } from "../../lib/translations";
+import { ACTIVITY_MUSCLE_GROUPS } from "../../constants/ActivityConstants";
 
 import MuscleHeader from "./MuscleHeader";
 import MuscleAnalysis from "./MuscleAnalysis";
@@ -122,9 +123,7 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
 
         if (s.activity) {
            if (hoursAgo <= 168) {
-             const activeMuscles = s.activity.type === 'running' || s.activity.type === 'cycling' ? ['quads', 'calves', 'hamstrings', 'glutes'] :
-                                   s.activity.type === 'swimming' ? ['back', 'shoulders', 'arms', 'core', 'quads'] :
-                                   ['quads', 'calves'];
+             const activeMuscles = ACTIVITY_MUSCLE_GROUPS[s.activity.type] || ['quads', 'calves'];
              for (const m of activeMuscles) {
                if (!lastSeen[m] || lastSeen[m].hours > hoursAgo) {
                  if (!lastSeen[m] || lastSeen[m].type !== 'strength' || lastSeen[m].hours > 72) {
