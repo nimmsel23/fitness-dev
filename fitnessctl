@@ -218,6 +218,26 @@ cmd_push() {
   fi
 }
 
+cmd_pull() {
+  if have_gum; then
+    gum spin --spinner dot --title "Pulling sessions ← Firestore..." -- \
+      curl -fsS --max-time 30 -X POST "${API_URL}/firestore/pull" -o /tmp/fitness-pull.json
+  else
+    msg "Pulling sessions ← Firestore..."
+    curl -fsS --max-time 30 -X POST "${API_URL}/firestore/pull" -o /tmp/fitness-pull.json || die "Pull failed"
+  fi
+  python3 - <<'EOF'
+import json
+with open("/tmp/fitness-pull.json") as f:
+    r = json.load(f)
+if not r.get("ok"):
+    print(f"❌ {r.get('error', 'unknown error')}"); exit(1)
+print(f"✅ pulled {r['pulled']} · skipped {r['skipped']} · conflicts {r['conflicts']}")
+if r.get("conflict_dates"):
+    print(f"   Konflikt-Dates (manuell prüfen): {', '.join(r['conflict_dates'])}")
+EOF
+}
+
 cmd_tui() {
   local screen="${1:-dashboard}"
   python3 -c "
@@ -317,6 +337,7 @@ case "${1:-help}" in
   watch)      cmd_watch ;;
   tui)        shift; cmd_tui "${1:-dashboard}" ;;
   push)    shift; cmd_push "$@" ;;
+  pull)    shift; cmd_pull "$@" ;;
   catalog)    shift; cmd_catalog "$@" ;;
   session)    shift; cmd_session "$@" ;;
   journal)    shift; cmd_journal "$@" ;;

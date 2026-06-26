@@ -190,6 +190,28 @@ export async function readSessions(uid, limitCount = 50) {
   } catch { return null; }
 }
 
+/**
+ * Pull ALL sessions for uid from Firestore — keine Limit-Heuristik, da
+ * Sessions selten und Dokumente klein sind. Liefert rohes Array.
+ * Konsumenten entscheiden Konflikt-Strategie (saved_at-Vergleich).
+ */
+export async function pullAllSessions(uid = "default") {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const snap = await db.collection("fitness").doc(uid).collection("sessions").get();
+    return snap.docs.map(d => {
+      const data = d.data();
+      // doc-id ist entweder "YYYY-MM-DD" oder "YYYY-MM-DD__<session_id>"
+      const docDate = (data.date) || d.id.split("__")[0];
+      return { docId: d.id, date: docDate, data };
+    });
+  } catch (e) {
+    console.warn(`[firestore-mirror] pullAllSessions fehler: ${e.message}`);
+    return null;
+  }
+}
+
 export async function readSession(uid, date) {
   const db = await getDb();
   if (!db) return null;

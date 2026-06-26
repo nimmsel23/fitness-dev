@@ -6,7 +6,7 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import Database from "better-sqlite3";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
-import { mirrorSession, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, readHabits } from "./firestore-mirror.mjs";
+import { mirrorSession, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, readHabits, pullAllSessions } from "./firestore-mirror.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -857,6 +857,44 @@ app.post("/theme", async (c) => { writeJson(themeFile, await c.req.json().catch(
 
 // ── Firestore ─────────────────────────────────────────────────────────────────
 app.get("/firestore/status", async (c) => c.json(await getFirestoreStatus()));
+
+app.post("/firestore/pull", async (c) => {
+  const uid = c.req.header("X-User-UID") || "default";
+  const status = await getFirestoreStatus();
+  if (!status.ok) return c.json({ ok: false, error: "Firestore nicht verbunden" }, 503);
+
+  const docs = await pullAllSessions(uid);
+  if (!docs) return c.json({ ok: false, error: "Pull fehlgeschlagen" }, 500);
+
+  const sessDir = path.join(DATA_DIR, "sessions");
+  fs.mkdirSync(sessDir, { recursive: true });
+
+  let pulled = 0, skipped = 0, conflicts = 0;
+  const conflictDates = [];
+
+  for (const { date, data } of docs) {
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { skipped++; continue; }
+    const localPath = path.join(sessDir, `${date}.json`);
+    const local = readJson(localPath);
+    const cloudTs = data.saved_at || "";
+    const localTs = local?.saved_at || "";
+
+    // Strategie: kein Lokal → schreiben. Sonst nur wenn cloud strikt neuer ist.
+    if (local && localTs && cloudTs && localTs >= cloudTs) { skipped++; continue; }
+    if (local && (!cloudTs || !localTs)) {
+      // Mehrdeutig — überspringen + melden statt blind überschreiben
+      conflicts++; conflictDates.push(date); continue;
+    }
+
+    writeJson(localPath, data);
+    try { syncSessionToDb(date, data); } catch (e) {
+      console.warn(`[pull] SQLite-Sync fehler für ${date}: ${e.message}`);
+    }
+    pulled++;
+  }
+
+  return c.json({ ok: true, pulled, skipped, conflicts, conflict_dates: conflictDates });
+});
 
 app.post("/firestore/sync", async (c) => {
   const uid = c.req.header("X-User-UID") || "default";
