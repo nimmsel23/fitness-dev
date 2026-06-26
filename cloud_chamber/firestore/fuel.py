@@ -150,48 +150,114 @@ def _collect_dates(data_dir: Path) -> list[str]:
     return sorted(dates)
 
 
-def _quota_ok() -> bool:
-    """Schneller Ping — False wenn Quota erschöpft."""
+_BATCH_LIMIT = 400  # Firestore: 500 ops/batch hard limit
+
+
+def _mtime_ms(p: Path) -> int:
     try:
-        get_db().collection("_ping").document("quota_check").set(
-            {"t": datetime.utcnow().isoformat()}, timeout=5
-        )
-        return True
-    except Exception as e:
-        if "429" in str(e) or "Quota" in str(e):
-            return False
-        return True  # anderer Fehler → trotzdem versuchen
+        return int(p.stat().st_mtime * 1000)
+    except FileNotFoundError:
+        return 0
 
 
-def push_fuel(uid: str = UID, delay: float = 0.1) -> dict:
-    """Alle lokalen Fuel-Daten → Firestore. Gibt Zusammenfassung zurück."""
-    import time
-    if not _quota_ok():
-        logger.error("fuel push: Firestore Quota erschöpft — morgen nochmal (reset ~02:00 MESZ)")
-        return {"dates": 0, "error": "quota_exceeded"}
+def _content_hash(obj: Any) -> str:
+    import hashlib
+    return hashlib.sha1(
+        json.dumps(obj, sort_keys=True, ensure_ascii=False).encode()
+    ).hexdigest()[:12]
 
+
+def push_fuel(uid: str = UID) -> dict:
+    """Alle lokalen Fuel-Daten → Firestore. Batched + idempotent (mtime/hash skip).
+
+    Kein _quota_ok-Probe-Write mehr: erster echter Batch-Commit zeigt's selbst.
+    """
+    from google.api_core.exceptions import ResourceExhausted
+
+    db = get_db()
     data_dir = _data_dir(uid)
     dates = _collect_dates(data_dir)
-    results: dict[str, Any] = {"dates": len(dates), "nutrition": {}, "supplements": {}}
-    for d in dates:
-        try:
-            results["nutrition"][d] = _push_nutrition(d, uid, data_dir)
-            results["supplements"][d] = _push_supplements(d, uid, data_dir)
-            logger.info(f"  → {d}")
-        except Exception as e:
-            if "429" in str(e) or "Quota" in str(e):
-                logger.error("Quota erschöpft — Push abgebrochen")
-                results["error"] = "quota_exceeded"
-                break
-            logger.error(f"  ✗ {d}: {e}")
-            results.setdefault("errors", []).append(f"{d}: {e}")
-        time.sleep(delay)
-    if "error" not in results:
-        try:
-            results["catalog"] = _push_catalog(uid, data_dir)
-        except Exception as e:
-            logger.error(f"  ✗ catalog: {e}")
-            results["catalog"] = f"Fehler: {e}"
+    results: dict[str, Any] = {"dates": len(dates), "written": 0, "skipped": 0}
+
+    batch = db.batch()
+    ops = 0
+
+    def commit_batch():
+        nonlocal batch, ops
+        if ops == 0:
+            return
+        batch.commit()
+        batch = db.batch()
+        ops = 0
+
+    def queue_set(ref, payload):
+        nonlocal ops
+        batch.set(ref, payload, merge=True)
+        ops += 1
+        results["written"] += 1
+        if ops >= _BATCH_LIMIT:
+            commit_batch()
+
+    def remote_meta(ref) -> dict:
+        snap = ref.get()
+        return snap.to_dict() if snap.exists else {}
+
+    try:
+        for d in dates:
+            # Nutrition
+            np = _nutrition_path(d, data_dir)
+            if np.exists():
+                mtime = _mtime_ms(np)
+                ref = db.collection("nutrition").document(uid).collection("logs").document(d)
+                if remote_meta(ref).get("_local_mtime", 0) >= mtime:
+                    results["skipped"] += 1
+                else:
+                    data = _read_json(np, None)
+                    if data:
+                        queue_set(ref, {**data, "date": d, "_local_mtime": mtime,
+                                        "saved_at": datetime.utcnow().isoformat()})
+
+            # Supplements
+            sp = _supplements_path(d, data_dir)
+            if sp.exists():
+                mtime = _mtime_ms(sp)
+                ref = db.collection("supplements").document(uid).collection("logs").document(d)
+                if remote_meta(ref).get("_local_mtime", 0) >= mtime:
+                    results["skipped"] += 1
+                else:
+                    data = _read_json(sp, None)
+                    if data:
+                        queue_set(ref, {**data, "date": d, "_local_mtime": mtime,
+                                        "saved_at": datetime.utcnow().isoformat()})
+
+        # Supplements Catalog (Hash-Idempotenz, kein read+merge+write mehr)
+        cat_path = _supplements_catalog_path(data_dir)
+        if cat_path.exists():
+            local = _read_json(cat_path, {"items": []})
+            items = local.get("items", [])
+            if items:
+                ref = db.collection("supplements").document(uid).collection("meta").document("catalog")
+                new_hash = _content_hash(items)
+                if remote_meta(ref).get("_content_hash") == new_hash:
+                    results["skipped"] += 1
+                else:
+                    queue_set(ref, {"items": items, "_content_hash": new_hash,
+                                    "saved_at": datetime.utcnow().isoformat()})
+
+        commit_batch()
+        logger.success(f"fuel push uid={uid}: {results['written']} writes, {results['skipped']} skipped")
+
+    except ResourceExhausted:
+        logger.error("Quota erschöpft — Push abgebrochen (reset ~09:00 lokal)")
+        results["error"] = "quota_exceeded"
+    except Exception as e:
+        if "429" in str(e) or "Quota" in str(e):
+            logger.error("Quota erschöpft — Push abgebrochen")
+            results["error"] = "quota_exceeded"
+        else:
+            logger.error(f"Push-Fehler: {e}")
+            results["error"] = str(e)
+
     return results
 
 
@@ -211,6 +277,6 @@ def pull_fuel(uid: str = UID) -> dict:
 
     doc = db.collection("supplements").document(uid).collection("meta").document("catalog").get()
     if doc.exists:
-        _write_json(_supplements_catalog_path(data_dir), doc.to_dict())
+        _write_json(_supplements_catalog_path(data_dir), _strip_meta(doc.to_dict()))
 
     return count
