@@ -549,6 +549,10 @@ Referenz-Implementierung: `~/aos-dev/bin/bridge-devctl menu`
 
 | Dispatcher | Typ | Funktion |
 |---|---|---|
-| `fitnessctl` | bash | Fitness-Dev-Controller (Server starten, Deploy, Status) |
+| `fitness-devctl` | python3 | **Server-Controller** (start/stop/restart/status/logs/deploy → /opt) — **bevorzugter Einstieg für alles Servermässige** |
+| `~/fitness/bin/fitness` | python3 | **Terminal-facing dispatcher** im PATH (dev/agent/kb/sync/status) |
+| `fitnessctl` | bash | Legacy domain CLI (catalog, sessions, coverage, gaps, search) |
 
-Kandidaten für Python-Migration: `fitnessctl` ist bash — bei nächster größerer Erweiterung auf `typer` + `loguru` portieren.
+`fitness-devctl` = reiner Service-Controller + Deploy. Neues Skript mit Serverlogik → hierher.
+`~/fitness/bin/fitness` = Day-to-day Domain-CLI. Neue fachliche Sub-Commands → hierher (typer).
+`fitnessctl` (bash) ist legacy — wird langfristig durch `fitness` + `fitness-devctl` abgelöst.
