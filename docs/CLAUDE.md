@@ -132,7 +132,11 @@ Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach
 
 **Nicht verlinkte Views (Code vorhanden, kein aktiver Tab):**
 - `src/views/Inbox/` — Exercise-Inbox (Genehmigung neuer KB-Einträge)
-- `src/views/Muscles/` — Body-Map + Coverage-Analyse (war früher Tab, jetzt inaktiv)
+
+**Aktive Sub-Views (kein eigener Haupt-Tab, aber eingebunden):**
+- `src/views/Muscles/` — Superkompensations-Analyse + Body-Map (AKTIV als Subtab `muscles` in WeeklyReview).
+  ⚠️ NIEMALS als "inaktiv" markieren — bewusst nicht als Haupt-Tab, aber aktives Main-Feature.
+  Eigene Sub-Komponenten: MuscleAnalysis, MuscleBodyMap, MuscleDetailedMap, MuscleInsights, MuscleHeader.
 
 **src/components/**:
 - `layout/` — Sidebar (Desktop), MobileNav (Bottom-Bar)
@@ -157,6 +161,29 @@ Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach
 Port 5902 (dev), Proxy zu Backend API-Routen (:9100).
 
 **BodyMap in Session:** Zeigt nur Muskeln von Exercises mit `done: true`. Kein Preview, kein Plan — nur was bereits abgehakt ist.
+
+## Drei Body-Highlighter (NICHT verwechseln)
+
+| Bibliothek | Komponente | Datenformat | Verwendet in |
+|------------|------------|-------------|--------------|
+| `react-body-highlighter` | `BodyMap.jsx` | `[{ slug, muscles: [slug], frequency: 1–4 }]` | Dashboard MuscleBody, Muscles/MuscleBodyMap |
+| `react-muscle-highlighter` | `DetailedMuscleMap.jsx` | `[{ slug, color: '#hex' }]` | Dashboard MuscleBody, Muscles/MuscleDetailedMap |
+| `body-muscles` BodyChart | `BodyMusclesMap.jsx` | `{ [granularId]: { intensity: 0–10, selected: bool } }` | Learn/Explorer |
+
+**groupScores** ist das interne Format zwischen DB-Layer und Komponenten:
+`{ [groupName]: { score: 1–4, color: '#hex' } }` — score für RBH frequency, color für react-muscle-highlighter direkt.
+
+## Superkompensation — korrekte HIT-Zeitfenster
+
+| Phase | Zeitfenster | score | color |
+|-------|-------------|-------|-------|
+| Stark belastet | 0–3 Tage | 1 | `#ef4444` |
+| Erholung | 3–7 Tage | 2 | `#f59e0b` |
+| Superkompensation (Peak) | 7–14 Tage | 3 | `#22c55e` |
+| Fenster schließt sich | 14–21 Tage | 4 | `#3b82f6` |
+
+Cardio: kürzer (≤1d→1, ≤4d→2, ≤10d→3, kein Blau). Kraft überschreibt Cardio am selben Tag.
+Implementiert in: `buildLastTrainedMap()` + `superKompFreq()` in `src/components/dashboard/MuscleBody.jsx`
 
 **Swipe-Navigation** (Mobile): Links/Rechts wischen wechselt zwischen Views (minSwipeDistance: 75px, mit jank-freiem vertikalen Scroll-Lock und intelligentem Ausschluss von horizontal scrollbaren oder interaktiven Elementen).
 
@@ -281,6 +308,36 @@ Port 5902 (dev), Proxy zu Backend API-Routen (:9100).
 **Muscle-Normalisierung**: wger → internal IDs (chest, back, shoulders, arms, core, glutes, quads, hamstrings, calves)
 
 **Response Pattern**: `{ ok: true, data: {...} }` oder `{ ok: false, error: "..." }`
+
+---
+
+## fitness_cli/ — Python CLI & TUI Package
+
+Direkter Dateizugriff auf Session-JSONs — kein Server nötig.
+
+```
+fitness_cli/
+├── __init__.py          — Package-Root
+├── __main__.py          — python -m fitness_cli [log|tui]
+├── paths.py             — Pfad-Konstanten (~/.aos/fitness/sessions/ etc.)
+├── constants.py         — Aktivitäts-Typen, Trainingsblock-Labels, Farben
+├── data.py              — load_sessions(), sync_info(), load_all_clients()
+├── render.py            — ANSI/gum Render-Helfer (für fitness-log)
+└── commands/
+    ├── __init__.py      — muscle_to_group(), muscle_group_label() (Normalisierung)
+    ├── log.py           — Typer CLI: ls / show / week / stats / history / sync-status
+    └── tui.py           — Textual TUI: FitnessTUI (5 Tabs: Log, Woche, Stats, Sync, Clients)
+```
+
+**Binaries in `bin/`:**
+
+| Befehl | Entry-Point | Funktion |
+|--------|-------------|---------|
+| `fitness-tui` | `fitness_cli.commands.tui:main` | Interaktive Textual TUI |
+| `fitness-log` | `fitness_cli.commands.log` | Typer CLI (ls/show/stats/…) |
+| `fitness` | `bin/fitness` | Top-Level Dispatcher (dev/prod Server-Steuerung) |
+
+**Muscle-Normalisierung** (`commands/__init__.py`): `muscle_to_group(name)` mappt rohe Session-Muskelnamen (`"201_latissimus_dorsi"`, `"Back"`, `"back"`) auf kanonische Gruppen (`"back"`) via Präfix-Range. `muscle_group_label(group)` gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
 
 ---
 
@@ -481,3 +538,17 @@ anatomy-kb/muscles/            — Muskel-Layer (origin, insertion, innervation)
 ### HTTP-Endpoint-Status (server.py :9120)
 
 Alle Endpoints bis auf `POST /export/{kind}` und `POST /inbox/{id}/approve` sind fehlerfrei. Die beiden sind durch obige Bugs betroffen.
+
+---
+
+## Dispatcher
+
+Jedes neue Skript/Tool in diesem Repo gehört als Option in den zentralen Dispatcher — nicht als loses Standalone-Script.
+Bei Bash vs. Python: Python bevorzugen. Deps: `typer` + `loguru` + `gum`-Fallback für TUI.
+Referenz-Implementierung: `~/aos-dev/bin/bridge-devctl menu`
+
+| Dispatcher | Typ | Funktion |
+|---|---|---|
+| `fitnessctl` | bash | Fitness-Dev-Controller (Server starten, Deploy, Status) |
+
+Kandidaten für Python-Migration: `fitnessctl` ist bash — bei nächster größerer Erweiterung auf `typer` + `loguru` portieren.
