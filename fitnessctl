@@ -1,358 +1,276 @@
-#!/usr/bin/env bash
-# fitnessctl — manage fitness-dev server (API :9100, UI :5902)
-set -euo pipefail
+#!/usr/bin/env python3
+"""
+fitnessctl — Fitness Centre Unified CLI (typer, autocompletion-ready)
 
-ROOT="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
-API_PORT="${FITNESS_API_PORT:-9100}"
-UI_PORT="${FITNESS_UI_PORT:-5902}"
-HOST="${FITNESS_HOST:-127.0.0.1}"
-API_URL="http://${HOST}:${API_PORT}"
+Server commands (delegated from fitness-devctl):
+  status, start, stop, restart, enable, disable, health, logs, dev, build, deploy
 
-PYTHONPATH="${ROOT}/catalog"
-export PYTHONPATH
+Domain commands:
+  tui, watch, push, pull, catalog, session, journal, coverage, gaps, search
+"""
 
-have_gum() { command -v gum >/dev/null 2>&1; }
-msg()  { have_gum && gum style --foreground 10 "  ✓ $*" || printf '\033[1;32m  %s\033[0m\n' "$*"; }
-warn() { have_gum && gum style --foreground 11 "  ! $*" >&2 || printf '\033[1;33m  %s\033[0m\n' "$*" >&2; }
-err()  { have_gum && gum style --foreground 9 --bold "  ✗ $*" >&2 || printf '\033[1;31m  %s\033[0m\n' "$*" >&2; }
-die()  { err "$*"; exit 1; }
-
-FA="python3 -m fitness_agent"
-
-usage() {
-  if have_gum; then
-    gum format <<EOF
-# fitnessctl
-## Fitness Ecosystem Management
-
-| Command | Description |
-| :--- | :--- |
-| **start** | Start API + Agent server (background) |
-| **stop** | Stop all servers |
-| **restart** | Restart all servers |
-| **status** | Show running status |
-| **dev** | Start API + Vite (foreground) |
-| **watch** | Start AI Enricher Watcher |
-| **tui** | Open fitness-agent TUI |
-| **push** | Push local catalog → Firestore |
-| **session** | Show/List training sessions |
-| **journal** | Show/List journal entries |
-| **coverage** | Muscle coverage analysis |
-| **gaps** | Show undertrained muscles |
-| **search** | Search exercises |
-| **logs** | Tail API log |
-| **build** | Vite production build |
-EOF
-  else
-    cat <<EOF
-fitnessctl — fitness-dev service control (API :${API_PORT}, UI :${UI_PORT})
-
-  start        Start API + Agent server (background)
-  stop         Stop all servers
-  restart      Restart all servers
-  status       Show running status
-  dev          Start API + Vite (foreground)
-  watch        Start AI Enricher Watcher
-  tui          Open fitness-agent TUI
-  push         Push local catalog → Firestore
-  session      Show/List training sessions
-  journal      Show/List journal entries
-  coverage     Muscle coverage analysis
-  gaps         Show undertrained muscles
-  search       Search exercises
-  logs         Tail API log
-  build        Vite production build
-EOF
-  fi
-}
-
-PIDFILE="/tmp/fitness-dev.pid"
-AGENT_PIDFILE="/tmp/fitness-agent.pid"
-LOGFILE="/tmp/fitness-dev.log"
-AGENT_LOGFILE="/tmp/fitness-agent.log"
-
-cmd_start() {
-  if have_gum; then
-    gum spin --spinner pulse --title "Starting Fitness Services..." -- sleep 0.2
-  fi
-
-  # Start Agent Server (:9120)
-  if [[ -f "$AGENT_PIDFILE" ]] && kill -0 "$(cat "$AGENT_PIDFILE")" 2>/dev/null; then
-    warn "Agent already running (PID $(cat "$AGENT_PIDFILE"))"
-  else
-    nohup python3 -m fitness_agent server >"$AGENT_LOGFILE" 2>&1 &
-    echo $! >"$AGENT_PIDFILE"
-    sleep 0.5
-    msg "Agent started (PID $(cat "$AGENT_PIDFILE"), :9120)"
-  fi
-
-  # Start API Server (:9100)
-  if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
-    warn "API already running (PID $(cat "$PIDFILE"))"; return
-  fi
-  cd "$ROOT"
-  nohup node server.mjs >"$LOGFILE" 2>&1 &
-  echo $! >"$PIDFILE"
-  sleep 0.5
-  if kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
-    msg "API started (PID $(cat "$PIDFILE"), :${API_PORT})"
-  else
-    die "Failed to start API — check $LOGFILE"
-  fi
-}
-
-cmd_stop() {
-  if have_gum; then
-    gum spin --spinner pulse --title "Stopping Fitness Services..." -- sleep 0.2
-  fi
-
-  # Stop API Server
-  if [[ -f "$PIDFILE" ]]; then
-    local pid; pid="$(cat "$PIDFILE")"
-    if kill -0 "$pid" 2>/dev/null; then
-      kill "$pid" && rm -f "$PIDFILE"
-      msg "API stopped (PID $pid)"
-    else
-      rm -f "$PIDFILE"; warn "API was not running"
-    fi
-  fi
-
-  # Stop Agent Server
-  if [[ -f "$AGENT_PIDFILE" ]]; then
-    local apid; apid="$(cat "$AGENT_PIDFILE")"
-    if kill -0 "$apid" 2>/dev/null; then
-      kill "$apid" && rm -f "$AGENT_PIDFILE"
-      msg "Agent stopped (PID $apid)"
-    else
-      rm -f "$AGENT_PIDFILE"; warn "Agent was not running"
-    fi
-  fi
-
-  # Stop AI Watcher
-  local watch_pidfile="/tmp/fitness-enricher.pid"
-  if [[ -f "$watch_pidfile" ]]; then
-    local wpid; wpid="$(cat "$watch_pidfile")"
-    if kill -0 "$wpid" 2>/dev/null; then
-      kill "$wpid" && rm -f "$watch_pidfile"
-      msg "Watcher stopped (PID $wpid)"
-    else
-      rm -f "$watch_pidfile"; warn "Watcher was not running"
-    fi
-  fi
-}
-
-cmd_status() {
-  local api_ok=false ui_ok=false watch_ok=false agent_ok=false
-  curl -fsS --max-time 2 "${API_URL}/health" >/dev/null 2>&1 && api_ok=true
-  curl -fsS --max-time 2 "http://localhost:${UI_PORT}" >/dev/null 2>&1 && ui_ok=true
-  curl -fsS --max-time 2 "http://${HOST}:9120/" >/dev/null 2>&1 && agent_ok=true
-
-  local watch_pidfile="/tmp/fitness-enricher.pid"
-  [[ -f "$watch_pidfile" ]] && kill -0 "$(cat "$watch_pidfile")" 2>/dev/null && watch_ok=true
-
-  if have_gum; then
-    {
-      echo "SERVICE,PORT,STATUS"
-      echo "fitness-api,${API_PORT},$($api_ok && echo '✓ up' || echo '✗ down')"
-      echo "fitness-agent,9120,$($agent_ok && echo '✓ up' || echo '✗ down')"
-      echo "fitness-ui,${UI_PORT},$($ui_ok && echo '✓ up' || echo '✗ down')"
-      echo "ai-enricher,-,$($watch_ok && echo '✓ active' || echo '✗ inactive')"
-    } | gum table --print --separator=","
-  else
-    printf "  %-14s :%-6s %s\n" "fitness-api"   "$API_PORT" "$($api_ok && echo 'up' || echo 'down')"
-    printf "  %-14s :%-6s %s\n" "fitness-agent" "9120"      "$($agent_ok && echo 'up' || echo 'down')"
-    printf "  %-14s :%-6s %s\n" "fitness-ui"    "$UI_PORT"  "$($ui_ok  && echo 'up' || echo 'down')"
-    printf "  %-14s :%-6s %s\n" "ai-enricher"   "-"         "$($watch_ok && echo 'active' || echo 'inactive')"
-  fi
-}
-
-cmd_health() {
-  local res; res=$(curl -fsS --max-time 3 "${API_URL}/health" 2>&1) || die "API not reachable at ${API_URL}"
-  msg "$res"
-}
-
-cmd_dev() {
-  msg "Starting API + Vite (Ctrl+C to stop)"
-  cd "$ROOT" && npm run dev
-}
-
-cmd_build() {
-  msg "Building Vite → dist/"
-  cd "$ROOT" && npm run build
-}
-
-cmd_logs() {
-  [[ -f "$LOGFILE" ]] || die "No log at $LOGFILE"
-  tail -f "$LOGFILE"
-}
-
-cmd_watch() {
-  local watch_pidfile="/tmp/fitness-enricher.pid"
-  local watch_logfile="/tmp/fitness-enricher.log"
-
-  if [[ -f "$watch_pidfile" ]] && kill -0 "$(cat "$watch_pidfile")" 2>/dev/null; then
-    warn "Watcher already running (PID $(cat "$watch_pidfile"))"; return
-  fi
-  cd "$ROOT"
-  if have_gum; then
-    gum spin --spinner pulse --title "Starting AI Watcher..." -- sleep 0.2
-  fi
-  nohup python3 -m fitness_agent watch >"$watch_logfile" 2>&1 &
-  echo $! >"$watch_pidfile"
-  sleep 0.5
-  if kill -0 "$(cat "$watch_pidfile")" 2>/dev/null; then
-    msg "Watcher started (PID $(cat "$watch_pidfile"))"
-  else
-    die "Failed to start watcher — check $watch_logfile"
-  fi
-}
-
-cmd_push() {
-  local dry_run=""
-  [[ "${1:-}" == "dry-run" || "${1:-}" == "--dry-run" ]] && dry_run="--dry-run"
-  if have_gum; then
-    gum spin --spinner dot --title "Pushing catalog → Firestore${dry_run:+ (dry-run)}..." -- python3 -m fitness_agent push $dry_run
-  else
-    msg "Pushing catalog → Firestore${dry_run:+ (dry-run)}..."
-    python3 -m fitness_agent push $dry_run
-  fi
-}
-
-cmd_pull() {
-  local uid="${FITNESS_UID:-${1:-}}"
-  if [[ -z "$uid" ]]; then
-    # Auto-detect: nimm Ordner mit den meisten Sessions (kein default/kb)
-    uid=$(for d in "$HOME/.aos/fitness/users"/*/sessions/; do
-      [[ -d "$d" ]] || continue
-      u=$(basename "$(dirname "$d")")
-      [[ "$u" == "default" || "$u" == "kb" ]] && continue
-      n=$(ls "$d"*.json 2>/dev/null | wc -l)
-      echo "$n $u"
-    done | sort -rn | head -1 | awk '{print $2}')
-  fi
-  [[ -n "$uid" ]] || die "Keine uid gefunden — setze FITNESS_UID oder gib als Argument"
-  msg "Pulling sessions ← Firestore (uid=$uid)..."
-  curl -fsS --max-time 30 -X POST "${API_URL}/firestore/pull" \
-       -H "X-User-UID: $uid" \
-       -o /tmp/fitness-pull.json || die "Pull failed"
-  python3 - <<'EOF'
+import importlib.util
 import json
-with open("/tmp/fitness-pull.json") as f:
-    r = json.load(f)
-if not r.get("ok"):
-    print(f"❌ {r.get('error', 'unknown error')}"); exit(1)
-print(f"✅ pulled {r['pulled']} · skipped {r['skipped']} · conflicts {r['conflicts']}")
-if r.get("conflict_dates"):
-    print(f"   Konflikt-Dates (manuell prüfen): {', '.join(r['conflict_dates'])}")
-EOF
-}
-
-cmd_tui() {
-  local screen="${1:-dashboard}"
-  python3 -c "
+import os
+import subprocess
 import sys
-sys.path.insert(0, '${ROOT}/catalog')
-from fitness_agent.app_tui import run_tui
-run_tui(initial_screen='${screen}')
-"
-}
+import urllib.parse
+import urllib.request
+from pathlib import Path
+from typing import Optional
 
-cmd_catalog() {
-  local sub="${1:-tui}"; shift || true
-  case "$sub" in
-    tui)      python3 -m fitness_agent tui "$@" ;;
-    inbox)    python3 -m fitness_agent tui --screen inbox "$@" ;;
-    sync)     cmd_push ;;
-    audit)    python3 -m fitness_agent audit "${1:-all}" ;;
-    *)        die "Unknown: catalog $sub (tui|inbox|sync|audit)" ;;
-  esac
-}
+import typer
+from wasabi import Printer
 
-api_get() { curl -fsS --max-time 5 "${API_URL}$1" 2>&1 || die "Request failed: $1"; }
+msg = Printer()
 
-cmd_session() {
-  local sub="${1:-today}"; shift || true
-  case "$sub" in
-    today)  api_get "/session?date=$(date +%Y-%m-%d)" | python3 -m json.tool ;;
-    get)    [[ -n "${1:-}" ]] || die "Usage: session get DATE"; api_get "/session?date=$1" | python3 -m json.tool ;;
-    list)   api_get "/session/history?limit=${1:-10}" | python3 -m json.tool ;;
-    *)      die "Unknown: session $sub" ;;
-  esac
-}
+# ── Bootstrap ────────────────────────────────────────────────────────────────
 
-cmd_journal() {
-  local sub="${1:-today}"; shift || true
-  case "$sub" in
-    today)  api_get "/journal?date=$(date +%Y-%m-%d)" | python3 -m json.tool ;;
-    get)    [[ -n "${1:-}" ]] || die "Usage: journal get DATE"; api_get "/journal?date=$1" | python3 -m json.tool ;;
-    list)   api_get "/journal/list" | python3 -m json.tool ;;
-    *)      die "Unknown: journal $sub" ;;
-  esac
-}
+DEV_DIR = Path(__file__).resolve().parent
+CATALOG_DIR = DEV_DIR / "catalog"
 
-cmd_coverage() {
-  local days="${1:-7}"
-  api_get "/coverage/detailed?days=${days}" | python3 - <<'EOF'
-import sys, json
-d = json.load(sys.stdin)
-for g in d.get('groups', []):
-    score = sum(m['totalScore'] for m in g['muscles'])
-    bar = '█' * int(score * 2)
-    print(f'  {g["id"]:12s} {score:5.1f}  {bar}')
-EOF
-}
+# Ensure fitness_agent is importable
+if str(CATALOG_DIR) not in sys.path:
+    sys.path.insert(0, str(CATALOG_DIR))
 
-cmd_gaps() {
-  local days="${1:-7}"
-  api_get "/coverage/gaps?days=${days}" | python3 - <<'EOF'
-import sys, json
-d = json.load(sys.stdin)
-gaps = d.get('gaps', [])
-if not gaps:
-    print('  No gaps')
-else:
-    [print(f'  {g["name"]:14s} ({g["hits"]} hits)') for g in gaps]
-EOF
-}
+NODE_PORT = os.getenv("FITNESS_NODE_PORT", "9100")
+NODE_URL = f"http://127.0.0.1:{NODE_PORT}"
 
-cmd_search() {
-  [[ -n "${1:-}" ]] || die "Usage: search QUERY"
-  local query; query=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote('$*'))")
-  api_get "/exercises/search?q=${query}" | python3 - <<'EOF'
-import sys, json
-d = json.load(sys.stdin)
-for r in d.get('results', []):
-    muscles = ' '.join(r.get('primaryMuscles', []))
-    print(f'  {r["name"]:30s} {muscles}')
-EOF
-}
+app = typer.Typer(help="Fitness Centre — Service Control + Domain CLI", no_args_is_help=True)
 
-# --- Interactive Main ---
-if [[ -z "${1:-}" ]] && have_gum; then
-  CHOICE=$(gum choose "status" "tui" "push" "start" "stop" "restart" "dev" "watch" "coverage" "gaps" "logs" "help" "exit")
-  [[ "$CHOICE" == "exit" ]] && exit 0
-  set -- "$CHOICE"
-fi
+# ── Merge fitness-devctl commands ─────────────────────────────────────────────
 
-case "${1:-help}" in
-  start)      cmd_start ;;
-  stop)       cmd_stop ;;
-  restart)    cmd_stop; sleep 0.3; cmd_start ;;
-  status)     cmd_status ;;
-  health)     cmd_health ;;
-  dev)        cmd_dev ;;
-  build)      cmd_build ;;
-  logs)       cmd_logs ;;
-  watch)      cmd_watch ;;
-  tui)        shift; cmd_tui "${1:-dashboard}" ;;
-  push)    shift; cmd_push "$@" ;;
-  pull)    shift; cmd_pull "$@" ;;
-  catalog)    shift; cmd_catalog "$@" ;;
-  session)    shift; cmd_session "$@" ;;
-  journal)    shift; cmd_journal "$@" ;;
-  coverage)   shift; cmd_coverage "$@" ;;
-  gaps)       shift; cmd_gaps "$@" ;;
-  search)     shift; cmd_search "$@" ;;
-  help|-h|--help) usage ;;
-  *) die "Unknown command: ${1}. Run 'fitnessctl help'" ;;
-esac
+def _load_devctl() -> Optional[object]:
+    devctl_path = DEV_DIR / "fitness-devctl"
+    if not devctl_path.exists():
+        return None
+    try:
+        from importlib.machinery import SourceFileLoader
+        loader = SourceFileLoader("fitness_devctl", str(devctl_path))
+        mod = loader.load_module()
+        return mod
+    except Exception as e:
+        msg.warn(f"Could not load fitness-devctl: {e}")
+        return None
+
+_devctl = _load_devctl()
+if _devctl and hasattr(_devctl, "app"):
+    for cmd_info in _devctl.app.registered_commands:
+        app.registered_commands.append(cmd_info)
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _api_get(path: str) -> dict:
+    url = f"{NODE_URL}{path}"
+    try:
+        with urllib.request.urlopen(url, timeout=5) as r:
+            return json.loads(r.read())
+    except Exception as e:
+        msg.fail(f"API request failed ({url}): {e}")
+        raise typer.Exit(1)
+
+def _run(*cmd: str, cwd: Path = DEV_DIR, **kwargs) -> int:
+    return subprocess.run(list(cmd), cwd=cwd, **kwargs).returncode
+
+# ── Domain Commands ───────────────────────────────────────────────────────────
+
+@app.command()
+def tui(screen: str = typer.Argument("dashboard", help="Initial screen")):
+    """Open fitness-agent TUI."""
+    from fitness_agent.app_tui import run_tui
+    run_tui(initial_screen=screen)
+
+
+@app.command()
+def watch():
+    """Start AI Enricher Watcher (background)."""
+    pidfile = Path("/tmp/fitness-enricher.pid")
+    logfile = Path("/tmp/fitness-enricher.log")
+
+    if pidfile.exists():
+        try:
+            pid = int(pidfile.read_text().strip())
+            os.kill(pid, 0)
+            msg.warn(f"Watcher already running (PID {pid})")
+            return
+        except (ProcessLookupError, ValueError):
+            pidfile.unlink(missing_ok=True)
+
+    import shlex
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "fitness_agent", "watch"],
+        cwd=DEV_DIR,
+        env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)},
+        stdout=open(logfile, "a"),
+        stderr=subprocess.STDOUT,
+        start_new_session=True,
+    )
+    pidfile.write_text(str(proc.pid))
+    msg.good(f"Watcher started (PID {proc.pid}, log: {logfile})")
+
+
+@app.command()
+def push(dry_run: bool = typer.Option(False, "--dry-run")):
+    """Push local catalog → Firestore."""
+    args = [sys.executable, "-m", "fitness_agent", "push"]
+    if dry_run:
+        args.append("--dry-run")
+    env = {**os.environ, "PYTHONPATH": str(CATALOG_DIR)}
+
+    try:
+        subprocess.run(
+            ["gum", "spin", "--spinner", "dot",
+             f"--title=Pushing catalog → Firestore{'  (dry-run)' if dry_run else ''}...",
+             "--"] + args,
+            cwd=DEV_DIR, env=env,
+        )
+    except FileNotFoundError:
+        subprocess.run(args, cwd=DEV_DIR, env=env)
+
+
+@app.command()
+def pull(uid: Optional[str] = typer.Argument(None, help="Firestore user UID (auto-detected if omitted)")):
+    """Pull sessions ← Firestore."""
+    if not uid:
+        uid = os.getenv("FITNESS_UID")
+    if not uid:
+        base = Path.home() / ".aos" / "fitness" / "users"
+        best, best_n = None, -1
+        for d in base.glob("*/sessions/"):
+            name = d.parent.name
+            if name in ("default", "kb"):
+                continue
+            n = len(list(d.glob("*.json")))
+            if n > best_n:
+                best, best_n = name, n
+        uid = best
+    if not uid:
+        msg.fail("No uid found — set FITNESS_UID or pass as argument")
+        raise typer.Exit(1)
+
+    msg.info(f"Pulling sessions ← Firestore (uid={uid})...")
+    out = Path("/tmp/fitness-pull.json")
+    r = subprocess.run(
+        ["curl", "-fsS", "--max-time", "30", "-X", "POST",
+         f"{NODE_URL}/firestore/pull", "-H", f"X-User-UID: {uid}", "-o", str(out)],
+    )
+    if r.returncode != 0:
+        msg.fail("Pull request failed")
+        raise typer.Exit(1)
+    result = json.loads(out.read_text())
+    if not result.get("ok"):
+        msg.fail(result.get("error", "unknown error"))
+        raise typer.Exit(1)
+    msg.good(f"pulled {result['pulled']} · skipped {result['skipped']} · conflicts {result['conflicts']}")
+    if result.get("conflict_dates"):
+        msg.warn(f"Conflicts (check manually): {', '.join(result['conflict_dates'])}")
+
+
+catalog_app = typer.Typer(help="Catalog management (tui / inbox / sync / audit)")
+app.add_typer(catalog_app, name="catalog")
+
+@catalog_app.command("tui")
+def catalog_tui():
+    """Open catalog TUI."""
+    subprocess.run([sys.executable, "-m", "fitness_agent", "tui"],
+                   cwd=DEV_DIR, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
+
+@catalog_app.command("inbox")
+def catalog_inbox():
+    """Open catalog inbox."""
+    subprocess.run([sys.executable, "-m", "fitness_agent", "tui", "--screen", "inbox"],
+                   cwd=DEV_DIR, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
+
+@catalog_app.command("sync")
+def catalog_sync():
+    """Sync catalog → Firestore (alias for push)."""
+    subprocess.run([sys.executable, "-m", "fitness_agent", "push"],
+                   cwd=DEV_DIR, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
+
+@catalog_app.command("audit")
+def catalog_audit(topic: str = typer.Argument("all")):
+    """Audit catalog quality."""
+    subprocess.run([sys.executable, "-m", "fitness_agent", "audit", topic],
+                   cwd=DEV_DIR, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
+
+
+session_app = typer.Typer(help="Training session queries")
+app.add_typer(session_app, name="session")
+
+@session_app.command("today")
+def session_today():
+    """Show today's session."""
+    from datetime import date
+    data = _api_get(f"/session?date={date.today()}")
+    print(json.dumps(data, indent=2, ensure_ascii=False))
+
+@session_app.command("get")
+def session_get(date: str = typer.Argument(..., help="YYYY-MM-DD")):
+    """Show session for a specific date."""
+    data = _api_get(f"/session?date={date}")
+    print(json.dumps(data, indent=2, ensure_ascii=False))
+
+@session_app.command("list")
+def session_list(limit: int = typer.Option(10, "-n")):
+    """List recent sessions."""
+    data = _api_get(f"/session/history?limit={limit}")
+    print(json.dumps(data, indent=2, ensure_ascii=False))
+
+
+journal_app = typer.Typer(help="Journal queries")
+app.add_typer(journal_app, name="journal")
+
+@journal_app.command("today")
+def journal_today():
+    """Show today's journal entry."""
+    from datetime import date
+    data = _api_get(f"/journal?date={date.today()}")
+    print(json.dumps(data, indent=2, ensure_ascii=False))
+
+@journal_app.command("get")
+def journal_get(date: str = typer.Argument(..., help="YYYY-MM-DD")):
+    """Show journal entry for a specific date."""
+    data = _api_get(f"/journal?date={date}")
+    print(json.dumps(data, indent=2, ensure_ascii=False))
+
+@journal_app.command("list")
+def journal_list():
+    """List journal entries."""
+    data = _api_get("/journal/list")
+    print(json.dumps(data, indent=2, ensure_ascii=False))
+
+
+@app.command()
+def coverage(days: int = typer.Option(7, "-d", help="Days to look back")):
+    """Muscle coverage analysis."""
+    data = _api_get(f"/coverage/detailed?days={days}")
+    for g in data.get("groups", []):
+        score = sum(m["totalScore"] for m in g["muscles"])
+        bar = "█" * int(score * 2)
+        print(f"  {g['id']:12s} {score:5.1f}  {bar}")
+
+
+@app.command()
+def gaps(days: int = typer.Option(7, "-d", help="Days to look back")):
+    """Show undertrained muscles."""
+    data = _api_get(f"/coverage/gaps?days={days}")
+    result = data.get("gaps", [])
+    if not result:
+        msg.good("No gaps")
+    else:
+        for g in result:
+            print(f"  {g['name']:14s} ({g['hits']} hits)")
+
+
+@app.command()
+def search(query: str = typer.Argument(..., help="Exercise search query")):
+    """Search exercises."""
+    q = urllib.parse.quote(query)
+    data = _api_get(f"/exercises/search?q={q}")
+    for r in data.get("results", []):
+        muscles = " ".join(r.get("primaryMuscles", []))
+        print(f"  {r['name']:30s} {muscles}")
+
+
+if __name__ == "__main__":
+    app()
