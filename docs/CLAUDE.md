@@ -550,9 +550,25 @@ Referenz-Implementierung: `~/aos-dev/bin/bridge-devctl menu`
 | Dispatcher | Typ | Funktion |
 |---|---|---|
 | `fitness-devctl` | python3 | **Server-Controller** (start/stop/restart/status/logs/deploy → /opt) — **bevorzugter Einstieg für alles Servermässige** |
-| `~/fitness/bin/fitness` | python3 | **Terminal-facing dispatcher** im PATH (dev/agent/kb/sync/status) |
+| `~/fitness/bin/fitness` | python3 | **Terminal-facing dispatcher** im PATH (session/journal/coverage/gaps/search/stats) |
 | `fitnessctl` | bash | Legacy domain CLI (catalog, sessions, coverage, gaps, search) |
 
 `fitness-devctl` = reiner Service-Controller + Deploy. Neues Skript mit Serverlogik → hierher.
-`~/fitness/bin/fitness` = Day-to-day Domain-CLI. Neue fachliche Sub-Commands → hierher (typer).
+`~/fitness/bin/fitness` = Day-to-day Domain-CLI. Liest direkt aus `~/.aos/fitness/sessions/` — kein laufender Server nötig. Neue fachliche Sub-Commands → hierher (typer).
 `fitnessctl` (bash) ist legacy — wird langfristig durch `fitness` + `fitness-devctl` abgelöst.
+
+### HTTP-Fallback-Modul
+
+`fitness_cli/http.py` — sauberes Python-Modul (`import fitness_cli.http as _http`).
+Wird von `bin/fitness` via `_try_http()` aufgerufen wenn direkte Datei-Lese fehlschlägt.
+Ziel: Node-Server `:9100` (env: `FITNESS_NODE_PORT`).
+
+```python
+from fitness_cli import http as _http
+_http.session_today()        # GET /session?date=today
+_http.session_get(date)      # GET /session?date=YYYY-MM-DD
+_http.session_list(limit)    # GET /session/history?limit=N
+_http.coverage(days)         # GET /coverage?days=N
+_http.gaps(days)             # GET /coverage/gaps?days=N
+_http.search(query)          # GET /exercises/search?q=...
+```
