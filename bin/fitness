@@ -1,14 +1,26 @@
 #!/usr/bin/env python3
 """
-fitness — Top-Level Dispatcher für alle Fitness-Subcommands.
+fitness — Domain CLI für alle Fitness-Subcommands.
 
-  fitness dev   <cmd>    DEV-Server :9100 (aos-fitness-dev.service)
   fitness agent <cmd>    catalog/fitness_agent CLI
   fitness kb    <cmd>    anatomy-kb kbctl (:9200)
-  fitness sync  [what]   KB-Sync + Firestore-Sync
   fitness mail  <cmd>    Fitbit Gmail Pipeline
+  fitness log   <cmd>    Session-Log aus Dateien (kein Server)
+  fitness tui            Textual TUI Dashboard
+  fitness activity <cmd> Cardio/Activity loggen
+  fitness sync  [what]   KB-Sync + Firestore-Sync
   fitness health         /health aller Services
   fitness status         systemd-Units Übersicht
+  fitness coverage       Muskelabdeckung
+  fitness gaps           Unterbeanspruchte Muskeln
+  fitness search <q>     Übungssuche
+  fitness session <sub>  Session queries (today|get|list)
+  fitness journal <sub>  Journal queries (today|get|list)
+  fitness push           Catalog → Firestore
+  fitness pull [uid]     Sessions ← Firestore
+  fitness watch          AI Enricher Watcher starten
+
+Server/Service-Control → use: fitnessctl
 """
 from __future__ import annotations
 
@@ -18,13 +30,20 @@ import shutil
 import subprocess
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
+from typing import Optional
 
 import typer
 
 # ── Pfade ──────────────────────────────────────────────────────────────────────
 FITNESS_DEV  = Path(__file__).resolve().parent.parent
+CATALOG_DIR  = FITNESS_DEV / "catalog"
+
+for _p in (str(FITNESS_DEV), str(CATALOG_DIR)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 ANATOMY_KB   = Path.home() / "anatomy-kb"
 KBCTL        = Path.home() / "fitness" / "bin" / "kbctl"
 FITNESS_MAIL = FITNESS_DEV / "bin" / "fitness-mail"
@@ -154,27 +173,7 @@ app = typer.Typer(
     help=__doc__,
     invoke_without_command=True,
     no_args_is_help=True,
-    add_completion=False,
 )
-
-@app.command(context_settings=_ctx, help="DEV-Server :9100 — systemctl user (start|stop|restart|status|logs)")
-def dev(ctx: typer.Context) -> None:
-    args = ctx.args
-    cmd  = args[0] if args else "status"
-    if cmd in ("start", "stop", "restart"):
-        r = systemctl(cmd, "aos-fitness-dev.service")
-        gum_log("info" if r.returncode == 0 else "error",
-                f"aos-fitness-dev.service {cmd} — {'ok' if r.returncode == 0 else 'fehlgeschlagen'}")
-    elif cmd == "status":
-        subprocess.run(["systemctl", "--user", "status", "aos-fitness-dev.service"])
-    elif cmd == "logs":
-        os.execvp("journalctl", ["journalctl", "--user", "-u", "aos-fitness-dev.service", "-f", "--no-hostname"])
-    elif cmd == "health":
-        status = _ping(DEV_PORT)
-        gum_log("info" if status == "ok" else "error", f"fitness-dev :{DEV_PORT} — {status}")
-    else:
-        gum_log("error", f"Unbekannt: {cmd}  (start|stop|restart|status|logs|health)")
-        raise SystemExit(1)
 
 @app.command(context_settings=_ctx, help="catalog/fitness_agent CLI (audit|teach|resolve|log|history|report|plan|tui)")
 def agent(ctx: typer.Context) -> None:
@@ -213,6 +212,244 @@ def sync(
     what: str = typer.Argument("all", help="kb | firestore | all"),
 ) -> None:
     cmd_sync(what)
+
+# ── Backend helpers (direct first, HTTP fallback) ─────────────────────────────
+
+def _sessions_dir() -> Path:
+    from fitness_cli.paths import sessions_dir
+    return sessions_dir()
+
+def _journal_dir() -> Path:
+    from fitness_cli.paths import sessions_dir
+    base = sessions_dir().parent
+    return base / "journal"
+
+def _try_http(fn_name: str, *args, **kwargs):
+    """HTTP-Fallback via fitness_cli.http."""
+    from fitness_cli.http import api_get  # noqa: F401 (triggers import check)
+    import fitness_cli.http as _http
+    return getattr(_http, fn_name)(*args, **kwargs)
+
+# ── Domain Commands ────────────────────────────────────────────────────────────
+
+@app.command()
+def coverage(days: int = typer.Option(7, "-d", help="Tage zurückblicken")) -> None:
+    """Muskelabdeckung der letzten N Tage (direkt via fitness_agent, HTTP-Fallback)."""
+    try:
+        from fitness_agent.coverage import get_coverage_summary
+        data = get_coverage_summary(days=days)
+        for g in data.get("groups", []):
+            score = sum(m["totalScore"] for m in g["muscles"])
+            bar = "█" * int(score * 2)
+            print(f"  {g['id']:12s} {score:5.1f}  {bar}")
+    except Exception:
+        data = _try_http("coverage", days)
+        for g in data.get("groups", []):
+            score = sum(m["totalScore"] for m in g["muscles"])
+            bar = "█" * int(score * 2)
+            print(f"  {g['id']:12s} {score:5.1f}  {bar}")
+
+
+@app.command()
+def gaps(days: int = typer.Option(7, "-d", help="Tage zurückblicken")) -> None:
+    """Unterbeanspruchte Muskeln (direkt via fitness_agent, HTTP-Fallback)."""
+    try:
+        from fitness_agent.coverage import get_coverage_gaps
+        result = get_coverage_gaps(days=days).get("gaps", [])
+    except Exception:
+        result = _try_http("gaps", days).get("gaps", [])
+    if not result:
+        gum_log("info", "Keine Gaps")
+    else:
+        for g in result:
+            print(f"  {g['name']:14s} ({g['hits']} hits)")
+
+
+@app.command()
+def search(query: str = typer.Argument(..., help="Suchbegriff")) -> None:
+    """Übungssuche (direkt via fitness_agent Resolver, HTTP-Fallback)."""
+    try:
+        from fitness_agent.resolver import search_exercises
+        results = search_exercises(query)
+    except Exception:
+        results = _try_http("search", query).get("results", [])
+    for r in results:
+        muscles = " ".join(r.get("primaryMuscles", []))
+        print(f"  {r['name']:30s} {muscles}")
+
+
+@app.command()
+def push(dry_run: bool = typer.Option(False, "--dry-run")) -> None:
+    """Catalog → Firestore pushen."""
+    args = [sys.executable, "-m", "fitness_agent", "push"]
+    if dry_run:
+        args.append("--dry-run")
+    env = {**os.environ, "PYTHONPATH": str(CATALOG_DIR)}
+    try:
+        subprocess.run(
+            ["gum", "spin", "--spinner", "dot",
+             f"--title=Pushing catalog → Firestore{'  (dry-run)' if dry_run else ''}...",
+             "--"] + args,
+            cwd=FITNESS_DEV, env=env,
+        )
+    except FileNotFoundError:
+        subprocess.run(args, cwd=FITNESS_DEV, env=env)
+
+
+@app.command()
+def pull(uid: Optional[str] = typer.Argument(None, help="Firestore UID (auto-detect wenn leer)")) -> None:
+    """Sessions ← Firestore pullen."""
+    if not uid:
+        uid = os.getenv("FITNESS_UID")
+    if not uid:
+        base = Path.home() / ".aos" / "fitness" / "users"
+        best, best_n = None, -1
+        for d in base.glob("*/sessions/"):
+            name = d.parent.name
+            if name in ("default", "kb"):
+                continue
+            n = len(list(d.glob("*.json")))
+            if n > best_n:
+                best, best_n = name, n
+        uid = best
+    if not uid:
+        gum_log("error", "Keine uid — FITNESS_UID setzen oder als Argument übergeben")
+        raise SystemExit(1)
+    gum_log("info", f"Pull ← Firestore (uid={uid})...")
+    out = Path("/tmp/fitness-pull.json")
+    r = subprocess.run([
+        "curl", "-fsS", "--max-time", "30", "-X", "POST",
+        f"http://127.0.0.1:{DEV_PORT}/firestore/pull",
+        "-H", f"X-User-UID: {uid}", "-o", str(out),
+    ])
+    if r.returncode != 0:
+        gum_log("error", "Pull request fehlgeschlagen")
+        raise SystemExit(1)
+    result = json.loads(out.read_text())
+    if not result.get("ok"):
+        gum_log("error", result.get("error", "unknown"))
+        raise SystemExit(1)
+    gum_log("info", f"pulled {result['pulled']} · skipped {result['skipped']} · conflicts {result['conflicts']}")
+    if result.get("conflict_dates"):
+        gum_log("warn", f"Konflikte: {', '.join(result['conflict_dates'])}")
+
+
+@app.command()
+def watch() -> None:
+    """AI Enricher Watcher im Hintergrund starten."""
+    pidfile = Path("/tmp/fitness-enricher.pid")
+    logfile = Path("/tmp/fitness-enricher.log")
+    if pidfile.exists():
+        try:
+            pid = int(pidfile.read_text().strip())
+            os.kill(pid, 0)
+            gum_log("warn", f"Watcher läuft bereits (PID {pid})")
+            return
+        except (ProcessLookupError, ValueError):
+            pidfile.unlink(missing_ok=True)
+    proc = subprocess.Popen(
+        [sys.executable, "-m", "fitness_agent", "watch"],
+        cwd=FITNESS_DEV,
+        env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)},
+        stdout=open(logfile, "a"),
+        stderr=subprocess.STDOUT,
+        start_new_session=True,
+    )
+    pidfile.write_text(str(proc.pid))
+    gum_log("info", f"Watcher gestartet (PID {proc.pid}, log: {logfile})")
+
+
+# Session sub-app
+session_app = typer.Typer(help="Session queries (today | get DATE | list)")
+app.add_typer(session_app, name="session")
+
+def _read_session(date_str: str) -> dict:
+    f = _sessions_dir() / f"{date_str}.json"
+    if f.exists():
+        return json.loads(f.read_text())
+    return _try_http("session_get", date_str)
+
+@session_app.command("today")
+def session_today() -> None:
+    """Heutige Session direkt aus Datei."""
+    from datetime import date
+    print(json.dumps(_read_session(str(date.today())), indent=2, ensure_ascii=False))
+
+@session_app.command("get")
+def session_get(date: str = typer.Argument(..., help="YYYY-MM-DD")) -> None:
+    """Session für ein Datum direkt aus Datei."""
+    print(json.dumps(_read_session(date), indent=2, ensure_ascii=False))
+
+@session_app.command("list")
+def session_list(limit: int = typer.Option(10, "-n")) -> None:
+    """Letzte N Sessions direkt aus Dateien."""
+    files = sorted(_sessions_dir().glob("*.json"), reverse=True)[:limit]
+    sessions = [json.loads(f.read_text()) for f in files] if files else _try_http("session_list", limit)
+    print(json.dumps(sessions, indent=2, ensure_ascii=False))
+
+
+# Journal sub-app
+journal_app = typer.Typer(help="Journal queries (today | get DATE | list)")
+app.add_typer(journal_app, name="journal")
+
+def _read_journal(date_str: str) -> dict:
+    f = _journal_dir() / f"{date_str}.md"
+    if f.exists():
+        return {"date": date_str, "content": f.read_text()}
+    return _try_http("journal_get", date_str)
+
+@journal_app.command("today")
+def journal_today() -> None:
+    """Heutiger Journal-Eintrag direkt aus Datei."""
+    from datetime import date
+    data = _read_journal(str(date.today()))
+    print(data.get("content", json.dumps(data, indent=2, ensure_ascii=False)))
+
+@journal_app.command("get")
+def journal_get(date: str = typer.Argument(..., help="YYYY-MM-DD")) -> None:
+    """Journal-Eintrag für ein Datum direkt aus Datei."""
+    data = _read_journal(date)
+    print(data.get("content", json.dumps(data, indent=2, ensure_ascii=False)))
+
+@journal_app.command("list")
+def journal_list() -> None:
+    """Journal-Einträge aus Dateien auflisten."""
+    files = sorted(_journal_dir().glob("*.md"), reverse=True)
+    if files:
+        for f in files:
+            print(f"  {f.stem}")
+    else:
+        print(json.dumps(_try_http("journal_list"), indent=2, ensure_ascii=False))
+
+
+# Catalog sub-app
+catalog_app = typer.Typer(help="Catalog management (tui | inbox | sync | audit)")
+app.add_typer(catalog_app, name="catalog")
+
+@catalog_app.command("tui")
+def catalog_tui() -> None:
+    """Catalog TUI öffnen."""
+    subprocess.run([sys.executable, "-m", "fitness_agent", "tui"],
+                   cwd=FITNESS_DEV, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
+
+@catalog_app.command("inbox")
+def catalog_inbox() -> None:
+    """Catalog Inbox öffnen."""
+    subprocess.run([sys.executable, "-m", "fitness_agent", "tui", "--screen", "inbox"],
+                   cwd=FITNESS_DEV, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
+
+@catalog_app.command("sync")
+def catalog_sync() -> None:
+    """Catalog → Firestore (alias für push)."""
+    subprocess.run([sys.executable, "-m", "fitness_agent", "push"],
+                   cwd=FITNESS_DEV, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
+
+@catalog_app.command("audit")
+def catalog_audit(topic: str = typer.Argument("all")) -> None:
+    """Catalog-Qualität prüfen."""
+    subprocess.run([sys.executable, "-m", "fitness_agent", "audit", topic],
+                   cwd=FITNESS_DEV, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
+
 
 # ── Entry ──────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":

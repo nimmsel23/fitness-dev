@@ -1,21 +1,16 @@
 #!/usr/bin/env python3
 """
-fitnessctl — Fitness Centre Unified CLI (typer, autocompletion-ready)
+fitnessctl — Fitness Centre Server Controller (typer, autocompletion-ready)
 
-Server commands (delegated from fitness-devctl):
+Wraps fitness-devctl commands:
   status, start, stop, restart, enable, disable, health, logs, dev, build, deploy
 
-Domain commands:
-  tui, watch, push, pull, catalog, session, journal, coverage, gaps, search
+Domain commands (catalog, sessions, coverage etc.) → use: fitness
 """
 
 import importlib.util
-import json
 import os
-import subprocess
 import sys
-import urllib.parse
-import urllib.request
 from pathlib import Path
 from typing import Optional
 
@@ -24,19 +19,9 @@ from wasabi import Printer
 
 msg = Printer()
 
-# ── Bootstrap ────────────────────────────────────────────────────────────────
-
 DEV_DIR = Path(__file__).resolve().parent
-CATALOG_DIR = DEV_DIR / "catalog"
 
-# Ensure fitness_agent is importable
-if str(CATALOG_DIR) not in sys.path:
-    sys.path.insert(0, str(CATALOG_DIR))
-
-NODE_PORT = os.getenv("FITNESS_NODE_PORT", "9100")
-NODE_URL = f"http://127.0.0.1:{NODE_PORT}"
-
-app = typer.Typer(help="Fitness Centre — Service Control + Domain CLI", no_args_is_help=True)
+app = typer.Typer(help="Fitness Centre Server Controller", no_args_is_help=True)
 
 # ── Merge fitness-devctl commands ─────────────────────────────────────────────
 
@@ -57,220 +42,6 @@ _devctl = _load_devctl()
 if _devctl and hasattr(_devctl, "app"):
     for cmd_info in _devctl.app.registered_commands:
         app.registered_commands.append(cmd_info)
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
-def _api_get(path: str) -> dict:
-    url = f"{NODE_URL}{path}"
-    try:
-        with urllib.request.urlopen(url, timeout=5) as r:
-            return json.loads(r.read())
-    except Exception as e:
-        msg.fail(f"API request failed ({url}): {e}")
-        raise typer.Exit(1)
-
-def _run(*cmd: str, cwd: Path = DEV_DIR, **kwargs) -> int:
-    return subprocess.run(list(cmd), cwd=cwd, **kwargs).returncode
-
-# ── Domain Commands ───────────────────────────────────────────────────────────
-
-@app.command()
-def tui(screen: str = typer.Argument("dashboard", help="Initial screen")):
-    """Open fitness-agent TUI."""
-    from fitness_agent.app_tui import run_tui
-    run_tui(initial_screen=screen)
-
-
-@app.command()
-def watch():
-    """Start AI Enricher Watcher (background)."""
-    pidfile = Path("/tmp/fitness-enricher.pid")
-    logfile = Path("/tmp/fitness-enricher.log")
-
-    if pidfile.exists():
-        try:
-            pid = int(pidfile.read_text().strip())
-            os.kill(pid, 0)
-            msg.warn(f"Watcher already running (PID {pid})")
-            return
-        except (ProcessLookupError, ValueError):
-            pidfile.unlink(missing_ok=True)
-
-    import shlex
-    proc = subprocess.Popen(
-        [sys.executable, "-m", "fitness_agent", "watch"],
-        cwd=DEV_DIR,
-        env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)},
-        stdout=open(logfile, "a"),
-        stderr=subprocess.STDOUT,
-        start_new_session=True,
-    )
-    pidfile.write_text(str(proc.pid))
-    msg.good(f"Watcher started (PID {proc.pid}, log: {logfile})")
-
-
-@app.command()
-def push(dry_run: bool = typer.Option(False, "--dry-run")):
-    """Push local catalog → Firestore."""
-    args = [sys.executable, "-m", "fitness_agent", "push"]
-    if dry_run:
-        args.append("--dry-run")
-    env = {**os.environ, "PYTHONPATH": str(CATALOG_DIR)}
-
-    try:
-        subprocess.run(
-            ["gum", "spin", "--spinner", "dot",
-             f"--title=Pushing catalog → Firestore{'  (dry-run)' if dry_run else ''}...",
-             "--"] + args,
-            cwd=DEV_DIR, env=env,
-        )
-    except FileNotFoundError:
-        subprocess.run(args, cwd=DEV_DIR, env=env)
-
-
-@app.command()
-def pull(uid: Optional[str] = typer.Argument(None, help="Firestore user UID (auto-detected if omitted)")):
-    """Pull sessions ← Firestore."""
-    if not uid:
-        uid = os.getenv("FITNESS_UID")
-    if not uid:
-        base = Path.home() / ".aos" / "fitness" / "users"
-        best, best_n = None, -1
-        for d in base.glob("*/sessions/"):
-            name = d.parent.name
-            if name in ("default", "kb"):
-                continue
-            n = len(list(d.glob("*.json")))
-            if n > best_n:
-                best, best_n = name, n
-        uid = best
-    if not uid:
-        msg.fail("No uid found — set FITNESS_UID or pass as argument")
-        raise typer.Exit(1)
-
-    msg.info(f"Pulling sessions ← Firestore (uid={uid})...")
-    out = Path("/tmp/fitness-pull.json")
-    r = subprocess.run(
-        ["curl", "-fsS", "--max-time", "30", "-X", "POST",
-         f"{NODE_URL}/firestore/pull", "-H", f"X-User-UID: {uid}", "-o", str(out)],
-    )
-    if r.returncode != 0:
-        msg.fail("Pull request failed")
-        raise typer.Exit(1)
-    result = json.loads(out.read_text())
-    if not result.get("ok"):
-        msg.fail(result.get("error", "unknown error"))
-        raise typer.Exit(1)
-    msg.good(f"pulled {result['pulled']} · skipped {result['skipped']} · conflicts {result['conflicts']}")
-    if result.get("conflict_dates"):
-        msg.warn(f"Conflicts (check manually): {', '.join(result['conflict_dates'])}")
-
-
-catalog_app = typer.Typer(help="Catalog management (tui / inbox / sync / audit)")
-app.add_typer(catalog_app, name="catalog")
-
-@catalog_app.command("tui")
-def catalog_tui():
-    """Open catalog TUI."""
-    subprocess.run([sys.executable, "-m", "fitness_agent", "tui"],
-                   cwd=DEV_DIR, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
-
-@catalog_app.command("inbox")
-def catalog_inbox():
-    """Open catalog inbox."""
-    subprocess.run([sys.executable, "-m", "fitness_agent", "tui", "--screen", "inbox"],
-                   cwd=DEV_DIR, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
-
-@catalog_app.command("sync")
-def catalog_sync():
-    """Sync catalog → Firestore (alias for push)."""
-    subprocess.run([sys.executable, "-m", "fitness_agent", "push"],
-                   cwd=DEV_DIR, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
-
-@catalog_app.command("audit")
-def catalog_audit(topic: str = typer.Argument("all")):
-    """Audit catalog quality."""
-    subprocess.run([sys.executable, "-m", "fitness_agent", "audit", topic],
-                   cwd=DEV_DIR, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
-
-
-session_app = typer.Typer(help="Training session queries")
-app.add_typer(session_app, name="session")
-
-@session_app.command("today")
-def session_today():
-    """Show today's session."""
-    from datetime import date
-    data = _api_get(f"/session?date={date.today()}")
-    print(json.dumps(data, indent=2, ensure_ascii=False))
-
-@session_app.command("get")
-def session_get(date: str = typer.Argument(..., help="YYYY-MM-DD")):
-    """Show session for a specific date."""
-    data = _api_get(f"/session?date={date}")
-    print(json.dumps(data, indent=2, ensure_ascii=False))
-
-@session_app.command("list")
-def session_list(limit: int = typer.Option(10, "-n")):
-    """List recent sessions."""
-    data = _api_get(f"/session/history?limit={limit}")
-    print(json.dumps(data, indent=2, ensure_ascii=False))
-
-
-journal_app = typer.Typer(help="Journal queries")
-app.add_typer(journal_app, name="journal")
-
-@journal_app.command("today")
-def journal_today():
-    """Show today's journal entry."""
-    from datetime import date
-    data = _api_get(f"/journal?date={date.today()}")
-    print(json.dumps(data, indent=2, ensure_ascii=False))
-
-@journal_app.command("get")
-def journal_get(date: str = typer.Argument(..., help="YYYY-MM-DD")):
-    """Show journal entry for a specific date."""
-    data = _api_get(f"/journal?date={date}")
-    print(json.dumps(data, indent=2, ensure_ascii=False))
-
-@journal_app.command("list")
-def journal_list():
-    """List journal entries."""
-    data = _api_get("/journal/list")
-    print(json.dumps(data, indent=2, ensure_ascii=False))
-
-
-@app.command()
-def coverage(days: int = typer.Option(7, "-d", help="Days to look back")):
-    """Muscle coverage analysis."""
-    data = _api_get(f"/coverage/detailed?days={days}")
-    for g in data.get("groups", []):
-        score = sum(m["totalScore"] for m in g["muscles"])
-        bar = "█" * int(score * 2)
-        print(f"  {g['id']:12s} {score:5.1f}  {bar}")
-
-
-@app.command()
-def gaps(days: int = typer.Option(7, "-d", help="Days to look back")):
-    """Show undertrained muscles."""
-    data = _api_get(f"/coverage/gaps?days={days}")
-    result = data.get("gaps", [])
-    if not result:
-        msg.good("No gaps")
-    else:
-        for g in result:
-            print(f"  {g['name']:14s} ({g['hits']} hits)")
-
-
-@app.command()
-def search(query: str = typer.Argument(..., help="Exercise search query")):
-    """Search exercises."""
-    q = urllib.parse.quote(query)
-    data = _api_get(f"/exercises/search?q={q}")
-    for r in data.get("results", []):
-        muscles = " ".join(r.get("primaryMuscles", []))
-        print(f"  {r['name']:30s} {muscles}")
-
 
 if __name__ == "__main__":
     app()
