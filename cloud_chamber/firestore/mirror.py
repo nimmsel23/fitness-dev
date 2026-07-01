@@ -61,6 +61,15 @@ def on_session(col_snapshot, changes, read_time):
         out = {k: (ts(v) if hasattr(v, "isoformat") else v) for k, v in data.items()}
         local.write_text(json.dumps(out, indent=2, ensure_ascii=False))
         logger.success(f"session ← {doc_id}")
+        # sync_gateway: Firestore-Pfad → SQLite (Python-only write, kein server.mjs beteiligt)
+        day = doc_id.split("__")[0]
+        sid = doc_id.split("__")[1] if "__" in doc_id else None
+        try:
+            from fitness_agent.sync_gateway import sync_session as _gw_sync
+            n = _gw_sync(day, out, session_id=sid)
+            logger.debug(f"sync_gateway ← {doc_id}  {n} rows")
+        except Exception as exc:
+            logger.warning(f"sync_gateway {doc_id}: {exc}")
 
 
 # ── Journal ───────────────────────────────────────────────────────────────────

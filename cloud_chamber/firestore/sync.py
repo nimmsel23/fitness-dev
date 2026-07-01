@@ -81,6 +81,13 @@ def pull() -> dict:
             out = {k: (ts(v) if hasattr(v, "isoformat") else v) for k, v in data.items()}
             local.write_text(json.dumps(out, indent=2, ensure_ascii=False))
             total_pulled += 1
+            day = doc_id.split("__")[0]
+            sid = doc_id.split("__")[1] if "__" in doc_id else None
+            try:
+                from fitness_agent.sync_gateway import sync_session as _gw_sync
+                _gw_sync(day, out, session_id=sid)
+            except Exception as exc:
+                pass  # SQLite-Sync optional, JSON ist SOT
 
             # Unify notes into journal markdown
             notes = data.get("notes", "").strip()
