@@ -5,7 +5,7 @@ from datetime import date, datetime, timedelta
 from typing import Any
 import re
 
-from .coverage import calculate_coverage, load_body_highlighter_bridge, load_muscle_taxonomy
+from .coverage import calculate_coverage, load_muscle_region_index, load_muscle_taxonomy
 from .history import read_history_range
 
 
@@ -90,11 +90,8 @@ def all_body_regions() -> set[str]:
         if isinstance(region, str) and region.strip():
             regions.add(region.strip())
 
-    bridge = load_body_highlighter_bridge()
-    for region_list in bridge.values():
-        for region in region_list:
-            if isinstance(region, str) and region.strip():
-                regions.add(region.strip())
+    for region in load_muscle_region_index().values():
+        regions.add(region)
     return regions
 
 

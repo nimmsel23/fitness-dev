@@ -221,7 +221,7 @@ async def handle_snapshot(request: web.Request) -> web.Response:
             "safety_rules": unwrap(load_runtime_yaml("rules/safety_rules.yml")),
             "muscles": unwrap(load_runtime_yaml("muscles/muscle_index.yml")),
             "muscle_coverage_rules": unwrap(load_runtime_yaml("rules/muscle_coverage_rules.yml")),
-            "body_highlighter_bridge": unwrap(load_runtime_yaml("muscles/body_highlighter_bridge.yml")),
+            "wger_catalog_index": unwrap(load_runtime_yaml("registry/wger_catalog_index.yml")),
             "wger_mapping": unwrap(load_runtime_yaml("maps/wger_mapping.yml")),
             "external_db_mapping": unwrap(load_runtime_yaml("maps/external_db_mapping.yml")),
             "exercises": [asdict(r) for r in build_exercise_index()],
@@ -258,7 +258,7 @@ async def handle_coverage_detailed(request: web.Request) -> web.Response:
     """
     from .coverage import (
         ROLE_WEIGHTS, load_coverage_rules, load_muscle_taxonomy,
-        load_body_highlighter_bridge, add_role_scores, build_muscle_alias_map,
+        load_muscle_region_index, add_role_scores, build_muscle_alias_map,
         muscle_regions, effort_factor_for_rpe,
     )
     from collections import defaultdict
@@ -267,7 +267,7 @@ async def handle_coverage_detailed(request: web.Request) -> web.Response:
     days = max(1, min(365, int(request.query.get("days", 7))))
     rules = load_coverage_rules()
     taxonomy = load_muscle_taxonomy()
-    bridge = load_body_highlighter_bridge()
+    region_index = load_muscle_region_index()
     alias_map = build_muscle_alias_map(taxonomy)
 
     # KB-Index für exercise_id → (primary, secondary, stabilizers)
@@ -341,7 +341,7 @@ async def handle_coverage_detailed(request: web.Request) -> web.Response:
         # Muskel-IDs → Körperregionen
         day_regions: dict[str, float] = defaultdict(float)
         for m, score in day_scores.items():
-            for region in (muscle_regions(m, taxonomy, bridge) or [m]):
+            for region in (muscle_regions(m, region_index) or [m]):
                 region_scores[region] += score
                 day_regions[region]   += score
 
