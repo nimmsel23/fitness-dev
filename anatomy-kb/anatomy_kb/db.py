@@ -19,12 +19,10 @@ from typing import Any
 
 import yaml
 
+from anatomy_kb.config import ANATOMY_KB_ROOT, CATALOG_EXERCISES, ANATOMY_TEACHING
+
 DB_PATH = Path.home() / ".aos" / "fitness" / "anatomy.sqlite"
-ROOT = Path(__file__).parent.parent
-MUSCLES_DIR = ROOT / "muscles"
-FITNESS_DEV = ROOT.parent / "fitness-dev"
-CATALOG_EXERCISES = FITNESS_DEV / "catalog" / "kb" / "exercises"
-ANATOMY_TEACHING = FITNESS_DEV / "catalog" / "kb" / "anatomy_teaching"
+MUSCLES_DIR = ANATOMY_KB_ROOT / "muscles"
 SCORES_FILE = Path.home() / ".aos" / "fitness" / "anatomy-scores.json"
 TRAINING_DB = Path.home() / ".aos" / "fitness" / "sessions" / "training_history.sqlite"
 

@@ -1,21 +1,26 @@
 """
-Firestore Handler — anatomy-kb → Firestore fitness-aos
+Firestore Handler — anatomy-kb Enrichment → Firestore fitness-aos
+
+Verantwortlich nur für anatomy-kb eigene Daten:
+  muscles/*.yml       → fitness/kb/muscles/
+  anatomy_teaching/   → fitness/kb/anatomy/
+  catalog-index.json  → fitness/kb/index/catalog
+
+Exercises-Sync: Nicht hier — das ist fitness_agent/firestore_push.py
 
 Endpoints:
-  POST /api/firestore/sync                    alles
-  POST /api/firestore/sync/exercises          exercises aus fitness-dev catalog
-  POST /api/firestore/sync/muscles            muscles/*.yml → fitness/kb/muscles/
-  POST /api/firestore/sync/anatomy            anatomy_teaching/*.yml → fitness/kb/anatomy/
-  GET  /api/firestore/status                  letzter Sync-Status
+  POST /api/firestore/sync               muscles + anatomy + index
+  POST /api/firestore/sync/muscles       muscles/*.yml
+  POST /api/firestore/sync/anatomy       anatomy_teaching/*.yml
+  POST /api/firestore/sync/index         catalog-index.json
+  GET  /api/firestore/status             letzter Sync-Status
 
 ?dry=1 für Dry-Run.
-Credentials: ~/.env/firebase-fitness.json
 """
 from __future__ import annotations
 
 import asyncio
 import json
-import os
 from datetime import datetime
 from pathlib import Path
 
@@ -23,272 +28,166 @@ import yaml
 from aiohttp import web
 from loguru import logger
 
-CRED_PATH = Path.home() / ".env" / "firebase-fitness.json"
-FITNESS_DEV = Path(__file__).parent.parent.parent / "fitness-dev"
-CATALOG_EXERCISES = FITNESS_DEV / "catalog" / "kb" / "exercises"
-ANATOMY_TEACHING = FITNESS_DEV / "catalog" / "kb" / "anatomy_teaching"
-MUSCLES_DIR = Path(__file__).parent.parent / "muscles"
+from anatomy_kb.config import ANATOMY_KB_ROOT, ANATOMY_TEACHING
 
+MUSCLES_DIR = ANATOMY_KB_ROOT / "muscles"
 _last: dict = {}
 
 
-def _init_firebase():
-    import firebase_admin
-    from firebase_admin import credentials, firestore as fs
-    if firebase_admin._apps:
-        return fs.client()
-    cred_file = Path(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", str(CRED_PATH)))
-    if not cred_file.exists():
-        raise FileNotFoundError(f"Service Account fehlt: {cred_file}")
-    firebase_admin.initialize_app(credentials.Certificate(str(cred_file)), {"projectId": "fitness-aos"})
-    return fs.client()
-
-
-def _sync_exercises(db, dry_run: bool = False) -> dict:
-    """fitness-dev/catalog/kb/exercises/*.yml → Firestore fitness/kb/exercises/{id}
-    
-    Smart Merge Protection: Expert wins.
-    Priorität beim Schreiben: unreviewed_* (Bulk) -> inbox_* (Inbox) -> Expert Files.
-    """
-    counts = {"ok": 0, "skip": 0, "error": 0}
-    col = db.collection("fitness").document("kb").collection("exercises")
-    
-    # Dateien nach Tier-Priorität sortieren
-    all_ymls = sorted(CATALOG_EXERCISES.glob("*.yml"))
-    
-    bulk = [f for f in all_ymls if f.name.startswith("unreviewed_")]
-    inbox = [f for f in all_ymls if f.name.startswith("inbox_")]
-    expert = [f for f in all_ymls if f not in bulk and f not in inbox]
-    
-    # Reihenfolge: Bulk -> Inbox -> Expert (Expert gewinnt, da es zuletzt schreibt)
-    sorted_files = bulk + inbox + expert
-    
-    for yml in sorted_files:
-        try:
-            doc = yaml.safe_load(yml.read_text(encoding="utf-8"))
-        except Exception:
-            counts["skip"] += 1
-            continue
-        if not isinstance(doc, dict):
-            counts["skip"] += 1
-            continue
-        for ex in doc.get("exercises", []):
-            ex_id = ex.get("exercise_id") or ex.get("id")
-            if not ex_id:
-                counts["skip"] += 1
-                continue
-            
-            # Tier-Tag hinzufügen für Transparenz im Firestore (optional, aber hilfreich)
-            if yml.name.startswith("unreviewed_"):
-                ex["tier"] = "wiki"
-            elif yml.name.startswith("inbox_"):
-                ex["tier"] = "inbox"
-            else:
-                ex["tier"] = "expert"
-
-            if dry_run:
-                logger.info(f"[dry] exercises/{ex_id} ({ex['tier']})")
-                counts["ok"] += 1
-                continue
-            try:
-                col.document(ex_id).set({k: v for k, v in ex.items() if v is not None})
-                logger.info(f"exercises/{ex_id} ({ex['tier']})")
-                counts["ok"] += 1
-            except Exception as exc:
-                logger.error(f"exercises/{ex_id}: {exc}")
-                counts["error"] += 1
-    return counts
+def _get_db():
+    from firestore_kb import get_db
+    return get_db()
 
 
 def _sync_muscles(db, dry_run: bool = False) -> dict:
-    """anatomy-kb/muscles/*.yml → Firestore fitness/kb/muscles/{muscle_id} AND fitness/kb/muscles/{rbh_slug}"""
-    from .muscle_store import load_index
+    """anatomy-kb/muscles/*.yml → Firestore fitness/kb/muscles/
+
+    Schreibt je Muskel zwei Dokumente:
+      1. Nach canonical muscle_id (pectoralis_major)
+      2. Nach rbh_slug (chest, chest-left, chest-right) für BodyMap-Lookups
+    """
+    from anatomy_kb.muscle_store import load_index
+    from firestore_kb import batch_write
+
     index = load_index()
-    
-    counts = {"ok": 0, "skip": 0, "error": 0}
     col = db.collection("fitness").document("kb").collection("muscles")
-    
-    # Store data by slug for merging
+    counts = {"ok": 0, "skip": 0, "error": 0}
     slug_docs: dict[str, dict] = {}
-    
+
+    # Pass 1: canonical muscle_id Dokumente + slug-Daten sammeln
+    muscle_records = []
     for yml in sorted(MUSCLES_DIR.glob("*.yml")):
         try:
             doc = yaml.safe_load(yml.read_text(encoding="utf-8"))
         except Exception:
             counts["skip"] += 1
             continue
-        if not isinstance(doc, dict):
+        if not isinstance(doc, dict) or not doc.get("origin"):
             counts["skip"] += 1
             continue
+
         muscle_id = doc.get("muscle_id", yml.stem)
         meta = index.get(muscle_id, {})
-        
-        if not doc.get("origin"):
-            counts["skip"] += 1
-            continue
-            
-        # Enrich with index metadata
         sync_doc = {**doc}
         for field in ["rbh_slugs", "name_de", "name_en", "latin", "wger_id", "is_front"]:
-            if field in meta and (not sync_doc.get(field) or sync_doc.get(field) == ""):
+            if field in meta and not sync_doc.get(field):
                 sync_doc[field] = meta[field]
-        
-        # 1. Sync by canonical muscle_id
-        if dry_run:
-            logger.info(f"[dry] muscles/{muscle_id}")
-            counts["ok"] += 1
-        else:
-            try:
-                col.document(muscle_id).set({k: v for k, v in sync_doc.items() if v is not None})
-                counts["ok"] += 1
-            except Exception as exc:
-                logger.error(f"muscles/{muscle_id}: {exc}")
-                counts["error"] += 1
 
-        # 2. Collect for slug-based sync
-        base_slugs = sync_doc.get("rbh_slugs") or []
-        
-        # Expand base slugs to include -left and -right variants
-        expanded_slugs = []
-        for s in base_slugs:
-            expanded_slugs.append(s)
-            expanded_slugs.append(f"{s}-left")
-            expanded_slugs.append(f"{s}-right")
-            
-        for slug in expanded_slugs:
+        muscle_records.append((muscle_id, sync_doc))
+
+        # Slug-Dokumente aufbauen
+        for slug in _expand_slugs(sync_doc.get("rbh_slugs") or []):
             if slug not in slug_docs:
-                slug_docs[slug] = {
-                    "display_name": sync_doc.get("name_de") or sync_doc.get("name_en") or slug.replace("-left", "").replace("-right", "").replace("-", " ").title(),
-                    "name_de": sync_doc.get("name_de"),
-                    "name_en": sync_doc.get("name_en"),
-                    "latin_name": sync_doc.get("latin"),
-                    "origin": sync_doc.get("origin"),
-                    "insertion": sync_doc.get("insertion"),
-                    "innervation": sync_doc.get("innervation"),
-                    "function": sync_doc.get("function"),
-                    "is_slug_group": True,
-                    "muscles": [muscle_id]
-                }
+                slug_docs[slug] = _make_slug_doc(slug, muscle_id, sync_doc)
             else:
-                # Merge logic for groups (e.g. chest = pectoralis + serratus)
-                existing = slug_docs[slug]
-                if muscle_id not in existing["muscles"]:
-                    existing["muscles"].append(muscle_id)
-                for field in ["origin", "insertion", "innervation", "function"]:
-                    if sync_doc.get(field) and sync_doc[field] not in existing[field]:
-                        existing[field] += f"\n\n---\n\n{sync_doc[field]}"
-                for field in ["name_de", "name_en", "latin_name"]:
-                    val = sync_doc.get(field if field != "latin_name" else "latin")
-                    if val and val not in (existing.get(field) or ""):
-                        existing[field] = f"{existing.get(field) or ''} / {val}".strip(" / ")
+                _merge_slug_doc(slug_docs[slug], muscle_id, sync_doc)
 
-    # 3. Sync slug-based documents
-    for slug, data in slug_docs.items():
-        if dry_run:
-            logger.info(f"[dry] muscles/slug:{slug}")
-            counts["ok"] += 1
-        else:
-            try:
-                col.document(slug).set(data)
-                logger.info(f"muscles/slug:{slug}")
-                counts["ok"] += 1
-            except Exception as exc:
-                logger.error(f"muscles/slug:{slug}: {exc}")
-                counts["error"] += 1
-                
+    r = batch_write(db, col, iter(muscle_records), dry_run=dry_run, use_hash=False)
+    counts["ok"] += r["ok"]
+    counts["error"] += r["error"]
+
+    # Pass 2: slug-basierte Dokumente
+    r2 = batch_write(db, col, slug_docs.items(), dry_run=dry_run, use_hash=False)
+    counts["ok"] += r2["ok"]
+    counts["error"] += r2["error"]
+
     return counts
+
+
+def _expand_slugs(base_slugs: list[str]) -> list[str]:
+    result = []
+    for s in base_slugs:
+        result += [s, f"{s}-left", f"{s}-right"]
+    return result
+
+
+def _make_slug_doc(slug: str, muscle_id: str, doc: dict) -> dict:
+    display = (doc.get("name_de") or doc.get("name_en")
+               or slug.replace("-left", "").replace("-right", "").replace("-", " ").title())
+    return {
+        "display_name": display,
+        "name_de": doc.get("name_de"),
+        "name_en": doc.get("name_en"),
+        "latin_name": doc.get("latin"),
+        "origin": doc.get("origin"),
+        "insertion": doc.get("insertion"),
+        "innervation": doc.get("innervation"),
+        "function": doc.get("function"),
+        "is_slug_group": True,
+        "muscles": [muscle_id],
+    }
+
+
+def _merge_slug_doc(existing: dict, muscle_id: str, doc: dict) -> None:
+    if muscle_id not in existing["muscles"]:
+        existing["muscles"].append(muscle_id)
+    for field in ["origin", "insertion", "innervation", "function"]:
+        if doc.get(field) and doc[field] not in (existing.get(field) or ""):
+            existing[field] = f"{existing.get(field) or ''}\n\n---\n\n{doc[field]}"
+    for field in ["name_de", "name_en"]:
+        val = doc.get(field)
+        if val and val not in (existing.get(field) or ""):
+            existing[field] = f"{existing.get(field) or ''} / {val}".strip(" / ")
+    if doc.get("latin") and doc["latin"] not in (existing.get("latin_name") or ""):
+        existing["latin_name"] = f"{existing.get('latin_name') or ''} / {doc['latin']}".strip(" / ")
 
 
 def _sync_anatomy(db, dry_run: bool = False) -> dict:
-    """fitness-dev/catalog/kb/anatomy_teaching/*.yml → Firestore fitness/kb/anatomy/{exercise_id}"""
-    counts = {"ok": 0, "skip": 0, "error": 0}
+    """catalog/kb/anatomy_teaching/*.yml → Firestore fitness/kb/anatomy/{exercise_id}"""
+    from firestore_kb import batch_write
+
     col = db.collection("fitness").document("kb").collection("anatomy")
-    for yml in sorted(ANATOMY_TEACHING.glob("*.yml")):
-        try:
-            doc = yaml.safe_load(yml.read_text(encoding="utf-8"))
-        except Exception:
-            counts["skip"] += 1
-            continue
-        if not isinstance(doc, dict):
-            counts["skip"] += 1
-            continue
 
-        # lessons-Format: mehrere exercises pro File
-        if "lessons" in doc:
-            for lesson in doc.get("lessons", []):
-                ex_id = lesson.get("exercise_id")
-                if not ex_id:
-                    counts["skip"] += 1
-                    continue
-                if dry_run:
-                    logger.info(f"[dry] anatomy/{ex_id}")
-                    counts["ok"] += 1
-                    continue
-                try:
-                    col.document(ex_id).set(lesson)
-                    logger.info(f"anatomy/{ex_id}")
-                    counts["ok"] += 1
-                except Exception as exc:
-                    logger.error(f"anatomy/{ex_id}: {exc}")
-                    counts["error"] += 1
-        else:
-            ex_id = doc.get("exercise_id", yml.stem)
-            if dry_run:
-                logger.info(f"[dry] anatomy/{ex_id}")
-                counts["ok"] += 1
-                continue
+    def _records():
+        for yml in sorted(ANATOMY_TEACHING.glob("*.yml")):
             try:
-                col.document(ex_id).set(doc)
-                logger.info(f"anatomy/{ex_id}")
-                counts["ok"] += 1
-            except Exception as exc:
-                logger.error(f"anatomy/{ex_id}: {exc}")
-                counts["error"] += 1
-    return counts
+                doc = yaml.safe_load(yml.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            if not isinstance(doc, dict):
+                continue
+            lessons = doc.get("lessons") or ([doc] if "exercise_id" in doc else [])
+            for lesson in lessons:
+                ex_id = str(lesson.get("exercise_id") or "")
+                if ex_id:
+                    yield ex_id, lesson
 
-
-def _run_sync(dry_run: bool = False) -> dict:
-    db = _init_firebase()
-    return {
-        "exercises": _sync_exercises(db, dry_run=dry_run),
-        "muscles":   _sync_muscles(db, dry_run=dry_run),
-        "anatomy":   _sync_anatomy(db, dry_run=dry_run),
-        "index":     _sync_index(db, dry_run=dry_run),
-    }
+    return batch_write(db, col, _records(), dry_run=dry_run, use_hash=False)
 
 
 def _sync_index(db, dry_run: bool = False) -> dict:
     """catalog-index.json → Firestore fitness/kb/index/catalog"""
-    from pathlib import Path
-    import json
-    
-    index_file = Path(__file__).parent.parent / "catalog-index.json"
+    index_file = ANATOMY_KB_ROOT / "catalog-index.json"
     counts = {"ok": 0, "skip": 0, "error": 0}
-    
     if not index_file.exists():
         logger.error(f"Index-Datei nicht gefunden: {index_file}")
         counts["error"] += 1
         return counts
-        
     try:
         data = json.loads(index_file.read_text(encoding="utf-8"))
         col = db.collection("fitness").document("kb").collection("index")
-        
         if dry_run:
             logger.info(f"[dry] index/catalog (v{data.get('version')})")
-            counts["ok"] += 1
         else:
             col.document("catalog").set(data)
             logger.info(f"index/catalog (v{data.get('version')})")
-            counts["ok"] += 1
+        counts["ok"] += 1
     except Exception as exc:
         logger.error(f"index/catalog: {exc}")
         counts["error"] += 1
-        
     return counts
 
 
-# --- HTTP Helpers ---
+def _run_sync(dry_run: bool = False) -> dict:
+    db = _get_db()
+    return {
+        "muscles": _sync_muscles(db, dry_run),
+        "anatomy": _sync_anatomy(db, dry_run),
+        "index":   _sync_index(db, dry_run),
+    }
+
+
+# ── HTTP helpers ──────────────────────────────────────────────────────────────
 
 def _dry(req: web.Request) -> bool:
     return req.rel_url.query.get("dry") == "1"
@@ -300,13 +199,13 @@ def _err(msg: str, status: int = 500) -> web.Response:
     return web.Response(text=json.dumps({"error": msg}), content_type="application/json", status=status)
 
 
-# --- Endpoints ---
+# ── Endpoints ─────────────────────────────────────────────────────────────────
 
 async def sync_all(request: web.Request) -> web.Response:
     dry = _dry(request)
     logger.info(f"firestore sync all dry={dry}")
     try:
-        result = await asyncio.get_event_loop().run_in_executor(None, lambda: _run_sync(dry_run=dry))
+        result = await asyncio.get_event_loop().run_in_executor(None, lambda: _run_sync(dry))
         _last.update({"at": datetime.now().isoformat(), "status": "ok", "dry": dry, **result})
         return _ok({"ok": True, "dry": dry, "at": _last["at"], **result})
     except Exception as exc:
@@ -315,22 +214,11 @@ async def sync_all(request: web.Request) -> web.Response:
         return _err(str(exc))
 
 
-async def sync_exercises_handler(request: web.Request) -> web.Response:
-    dry = _dry(request)
-    try:
-        db = await asyncio.get_event_loop().run_in_executor(None, _init_firebase)
-        counts = await asyncio.get_event_loop().run_in_executor(None, lambda: _sync_exercises(db, dry_run=dry))
-        return _ok({"ok": True, "counts": counts, "dry": dry})
-    except Exception as exc:
-        logger.error(exc)
-        return _err(str(exc))
-
-
 async def sync_muscles_handler(request: web.Request) -> web.Response:
     dry = _dry(request)
     try:
-        db = await asyncio.get_event_loop().run_in_executor(None, _init_firebase)
-        counts = await asyncio.get_event_loop().run_in_executor(None, lambda: _sync_muscles(db, dry_run=dry))
+        db = await asyncio.get_event_loop().run_in_executor(None, _get_db)
+        counts = await asyncio.get_event_loop().run_in_executor(None, lambda: _sync_muscles(db, dry))
         return _ok({"ok": True, "counts": counts, "dry": dry})
     except Exception as exc:
         logger.error(exc)
@@ -340,8 +228,8 @@ async def sync_muscles_handler(request: web.Request) -> web.Response:
 async def sync_anatomy_handler(request: web.Request) -> web.Response:
     dry = _dry(request)
     try:
-        db = await asyncio.get_event_loop().run_in_executor(None, _init_firebase)
-        counts = await asyncio.get_event_loop().run_in_executor(None, lambda: _sync_anatomy(db, dry_run=dry))
+        db = await asyncio.get_event_loop().run_in_executor(None, _get_db)
+        counts = await asyncio.get_event_loop().run_in_executor(None, lambda: _sync_anatomy(db, dry))
         return _ok({"ok": True, "counts": counts, "dry": dry})
     except Exception as exc:
         logger.error(exc)
@@ -351,12 +239,17 @@ async def sync_anatomy_handler(request: web.Request) -> web.Response:
 async def sync_index_handler(request: web.Request) -> web.Response:
     dry = _dry(request)
     try:
-        db = await asyncio.get_event_loop().run_in_executor(None, _init_firebase)
-        counts = await asyncio.get_event_loop().run_in_executor(None, lambda: _sync_index(db, dry_run=dry))
+        db = await asyncio.get_event_loop().run_in_executor(None, _get_db)
+        counts = await asyncio.get_event_loop().run_in_executor(None, lambda: _sync_index(db, dry))
         return _ok({"ok": True, "counts": counts, "dry": dry})
     except Exception as exc:
         logger.error(exc)
         return _err(str(exc))
+
+
+async def sync_exercises_handler(request: web.Request) -> web.Response:
+    """Exercises-Sync ist Sache des fitness-agent — hier nur Redirect-Hinweis."""
+    return _err("Exercises-Sync: fitness-agent kb-sync oder POST /api/firestore/sync/exercises via fitness_agent", status=501)
 
 
 async def status(request: web.Request) -> web.Response:

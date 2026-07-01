@@ -42,8 +42,9 @@ anatomy-kb/
 - `fitness_agent.teaching` — Anatomy Lessons
 - `fitness_agent.planner` — Plan-Generator
 
-**Pfad:** `server.py` erwartet `fitness-dev` als Geschwister-Verzeichnis von `anatomy-kb`.
-`FITNESS_DEV = Path(__file__).resolve().parent.parent / "fitness-dev" / "catalog"`
+**Pfad:** Wird via `anatomy_kb/config.py` aufgelöst — erkennt automatisch Subtree-Layout
+(`fitness-dev/anatomy-kb/`) und Legacy-Sibling-Layout (`~/anatomy-kb/` neben `~/fitness-dev/`).
+Override via `ANATOMY_KB_FITNESS_DEV=/pfad/zu/fitness-dev`.
 
 ---
 

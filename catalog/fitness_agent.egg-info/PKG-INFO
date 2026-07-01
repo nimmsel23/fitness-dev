@@ -5,6 +5,9 @@ Summary: Local fitness agent foundation CLI
 Requires-Python: >=3.11
 Requires-Dist: PyYAML>=6.0
 Requires-Dist: aiohttp>=3.9.0
+Requires-Dist: fastapi>=0.115.0
+Requires-Dist: uvicorn[standard]>=0.30.0
+Requires-Dist: httpx>=0.27.0
 Requires-Dist: rich>=13.0.0
 Requires-Dist: loguru>=0.7.0
 Requires-Dist: watchdog>=3.0.0

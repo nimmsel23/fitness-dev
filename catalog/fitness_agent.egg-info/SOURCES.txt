@@ -1,8 +1,9 @@
 README.md
 pyproject.toml
+catalog/firestore_kb/__init__.py
 catalog/fitness_agent/__init__.py
 catalog/fitness_agent/__main__.py
-catalog/fitness_agent/audit.py
+catalog/fitness_agent/app_tui.py
 catalog/fitness_agent/auditor.py
 catalog/fitness_agent/bootstrap.py
 catalog/fitness_agent/cli.py
@@ -30,6 +31,7 @@ catalog/fitness_agent/tui.py
 catalog/fitness_agent/watcher.py
 catalog/fitness_agent/weekly.py
 catalog/fitness_agent/wger.py
+catalog/fitness_agent/wger_index.py
 catalog/fitness_agent/yaml_utils.py
 catalog/fitness_agent.egg-info/PKG-INFO
 catalog/fitness_agent.egg-info/SOURCES.txt
@@ -37,3 +39,14 @@ catalog/fitness_agent.egg-info/dependency_links.txt
 catalog/fitness_agent.egg-info/entry_points.txt
 catalog/fitness_agent.egg-info/requires.txt
 catalog/fitness_agent.egg-info/top_level.txt
+catalog/fitness_agent/audit/__init__.py
+catalog/fitness_agent/audit/aliases.py
+catalog/fitness_agent/audit/anatomy.py
+catalog/fitness_agent/audit/biomechanics.py
+catalog/fitness_agent/audit/coverage.py
+catalog/fitness_agent/audit/exercises.py
+catalog/fitness_agent/audit/loaders.py
+catalog/fitness_agent/audit/report.py
+catalog/fitness_agent/audit/runner.py
+catalog/fitness_agent/audit/types.py
+catalog/fitness_agent/audit/utils.py

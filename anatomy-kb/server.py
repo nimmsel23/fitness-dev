@@ -20,15 +20,25 @@ from anatomy_kb import handlers
 from anatomy_kb import firestore_handler as fs
 from anatomy_kb import muscle_handler as mh
 from anatomy_kb import db_handler as dbh
+from anatomy_kb.config import CATALOG_DIR
 
-FITNESS_DEV = Path(__file__).resolve().parent.parent / "fitness-dev" / "catalog"
-sys.path.insert(0, str(FITNESS_DEV))
+_agent_available = False
+cov_module = plan_module = res_module = teach_module = runtime_root = None
 
-from fitness_agent import coverage as cov_module
-from fitness_agent import planner as plan_module
-from fitness_agent import resolver as res_module
-from fitness_agent import teaching as teach_module
-from fitness_agent.paths import runtime_root
+if CATALOG_DIR and CATALOG_DIR.exists():
+    sys.path.insert(0, str(CATALOG_DIR.parent))  # fitness-dev/ (für firestore/)
+    sys.path.insert(0, str(CATALOG_DIR))          # catalog/ (für fitness_agent)
+    try:
+        from fitness_agent import coverage as cov_module
+        from fitness_agent import planner as plan_module
+        from fitness_agent import resolver as res_module
+        from fitness_agent import teaching as teach_module
+        from fitness_agent.paths import runtime_root
+        _agent_available = True
+    except ImportError as e:
+        logger.warning(f"fitness_agent nicht verfügbar — Agent-Features deaktiviert ({e})")
+else:
+    logger.warning("fitness-dev/catalog nicht gefunden — anatomy-kb läuft ohne Agent-Features")
 
 PORT = 9200
 PUBLIC = Path(__file__).resolve().parent / "public"

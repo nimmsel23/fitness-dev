@@ -76,7 +76,7 @@ def push_changed_exercises(
     extra_paths: list[str] | None = None,
 ) -> dict[str, int]:
     """Nur git-diff geänderte Exercises pushen — quota-schonend."""
-    repo_root = Path(__file__).resolve().parents[2]
+    repo_root = Path(__file__).resolve().parents[1]  # fitness_agent/ → fitness-dev/
     proc = subprocess.run(
         ["git", "diff", "--name-only", since_ref, until_ref, "--", "catalog/kb/exercises/"],
         capture_output=True, text=True, cwd=repo_root, check=True,

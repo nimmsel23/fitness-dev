@@ -44,8 +44,8 @@ CATALOG_DIR  = FITNESS_DEV / "catalog"
 for _p in (str(FITNESS_DEV), str(CATALOG_DIR)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
-ANATOMY_KB   = Path.home() / "anatomy-kb"
-KBCTL        = Path.home() / "fitness" / "bin" / "kbctl"
+ANATOMY_KB   = FITNESS_DEV / "anatomy-kb"
+KBCTL        = FITNESS_DEV / "anatomy-kb" / "kbctl"
 FITNESS_MAIL = FITNESS_DEV / "bin" / "fitness-mail"
 FITNESS_LOG  = FITNESS_DEV / "bin" / "fitness-log"
 FITNESS_TUI  = FITNESS_DEV / "bin" / "fitness-tui"

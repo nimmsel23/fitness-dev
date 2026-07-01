@@ -10,13 +10,15 @@ def _resolve_data_dir() -> Path:
     override = os.environ.get("FITNESS_AGENT_KB", "").strip()
     if override:
         return Path(override).expanduser()
-    # Source-Installation: catalog/fitness_agent/ → catalog/kb/
-    candidate = PACKAGE_ROOT.parent / "kb"
+    # fitness_agent/ liegt im Root von fitness-dev → fitness-dev/catalog/kb/
+    candidate = PACKAGE_ROOT.parent / "catalog" / "kb"
     if candidate.exists():
         return candidate
-    # Fallback für uv tool install: ~/fitness-dev/catalog/kb/
-    fallback = Path.home() / "fitness-dev" / "catalog" / "kb"
-    return fallback
+    # Fallback: Legacy-Position innerhalb catalog/
+    fallback = PACKAGE_ROOT.parent / "kb"
+    if fallback.exists():
+        return fallback
+    return candidate  # Pfad zurückgeben auch wenn nicht vorhanden (klarerer Fehler)
 
 DATA_DIR = _resolve_data_dir()
 
