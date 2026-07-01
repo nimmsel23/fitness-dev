@@ -10,6 +10,9 @@ requires-python = ">=3.11"
 dependencies = [
   "PyYAML>=6.0",
   "aiohttp>=3.9.0",
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.30.0",
+  "httpx>=0.27.0",
   "rich>=13.0.0",
   "loguru>=0.7.0",
   "watchdog>=3.0.0",
@@ -30,7 +33,7 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["catalog"]
-include = ["fitness_agent*"]
+include = ["fitness_agent*", "firestore*"]
 
 [tool.setuptools.package-data]
 fitness_agent = ["py.typed"]
