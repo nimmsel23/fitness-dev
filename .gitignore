@@ -16,3 +16,8 @@ catalog/yuhonas
 catalog/kb/exercises/unreviewed_yuhonas.yml
 .worktrees/
 dist-versions/
+build/
+*.egg-info/
+.venv/
+catalog/.venv/
+uv.lock

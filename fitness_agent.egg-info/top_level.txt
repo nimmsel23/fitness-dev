@@ -1,4 +1,0 @@
-db
-firestore_kb
-fitness_agent
-fitness_cli
