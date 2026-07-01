@@ -222,7 +222,8 @@ try:
         try:
             resp = await _httpx_client.get(url, headers={"Authorization": f"Token {WGER_TOKEN}"})
             return resp.json() if resp.is_success else {}
-        except Exception:
+        except Exception as exc:
+            logger.warning(f"wger GET {path}: {exc}")
             return {}
 
     async def _wger_post(path: str, body: dict) -> dict | None:
@@ -233,7 +234,8 @@ try:
         try:
             resp = await _httpx_client.post(url, json=body, headers={"Authorization": f"Token {WGER_TOKEN}", "Content-Type": "application/json"})
             return resp.json() if resp.is_success else None
-        except Exception:
+        except Exception as exc:
+            logger.warning(f"wger POST {path}: {exc}")
             return None
 
     _HTTPX_AVAILABLE = True
@@ -257,6 +259,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
+async def _startup():
+    logger.info(f"fitness-dev Python Backend :{PORT}")
+    logger.info(f"runtime  {RUNTIME}")
+    logger.info(f"db       {engine.url}")
+    logger.info(f"anatomy_kb {'ok' if _ANATOMY_KB_AVAILABLE else 'nicht geladen'}")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Health
@@ -298,9 +307,11 @@ async def session_post(request: Request, date_: str = Query(None, alias="date"),
     day  = date_ or _today()
     body = await request.json()
     session = _freeze_snapshot({**body, "date": day, "session_id": id, "saved_at": datetime.utcnow().isoformat()})
+    n_ex = len(session.get("exercises", []))
     _write_json(_session_file(uid, day, id), session)
     _sync_session_to_db(day, session, id)
     asyncio.get_event_loop().run_in_executor(None, mirror_session, day, session, uid)
+    logger.info(f"session saved  {uid}/{day}  block={session.get('block','')}  exercises={n_ex}")
     return {"ok": True, "id": id}
 
 @app.delete("/session")
@@ -310,6 +321,7 @@ def session_delete(request: Request, date_: str = Query(None, alias="date"), id:
     f   = _session_file(uid, day, id)
     if f.exists():
         f.unlink()
+        logger.info(f"session deleted  {uid}/{day}")
     return {"ok": True}
 
 @app.get("/sessions")
@@ -358,6 +370,7 @@ def session_delete_by_date(date_path: str, request: Request, id: str | None = No
     f   = _session_file(uid, date_path, id)
     if f.exists():
         f.unlink()
+        logger.info(f"session deleted  {uid}/{date_path}")
     return {"ok": True}
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -380,6 +393,7 @@ async def journal_post(request: Request, date_: str = Query(None, alias="date"))
     JOUR_DIR.mkdir(parents=True, exist_ok=True)
     (JOUR_DIR / f"{day}.md").write_text(content)
     asyncio.get_event_loop().run_in_executor(None, mirror_journal, day, {"text": content}, uid)
+    logger.info(f"journal saved  {uid}/{day}  {len(content)}ch")
     return {"ok": True}
 
 @app.get("/journal/list")
@@ -410,8 +424,10 @@ async def body_post(request: Request):
     existing = _read_json(f, {"date": day})
     _write_json(f, {**existing, **payload, "updated_at": datetime.utcnow().isoformat()})
     if payload.get("weight_kg") is not None:
-        asyncio.get_event_loop().run_in_executor(None, lambda: None)  # fire-and-forget via httpx below
         asyncio.create_task(_wger_post("/weightentry/", {"date": day, "weight": str(payload["weight_kg"])}))
+        logger.info(f"body saved  {day}  weight={payload['weight_kg']}kg  → wger sync")
+    else:
+        logger.info(f"body saved  {day}")
     return {"ok": True, "day": day}
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -485,20 +501,19 @@ def exercise_teaching(id: str):
 @app.get("/fitness/muscles")
 async def muscles_list(request: Request):
     if _ANATOMY_KB_AVAILABLE:
-        # anatomy_kb handlers expect aiohttp Request — call the data layer directly
         try:
             from anatomy_kb.muscle_handler import load_muscles
-            data = load_muscles()
-            return data
-        except Exception:
-            pass
-    # Fallback: catalog fitness_agent muscles YAML
+            return load_muscles()
+        except Exception as exc:
+            logger.warning(f"anatomy_kb.load_muscles fehlgeschlagen, Fallback: {exc}")
     try:
         from fitness_agent.loader import load_catalog_yaml
         muscles = load_catalog_yaml("muscles/muscle_index.yml")
+        logger.debug("muscles_list: catalog_yaml fallback")
         return muscles
-    except Exception as e:
-        raise HTTPException(502, detail=str(e))
+    except Exception as exc:
+        logger.error(f"muscles_list: {exc}")
+        raise HTTPException(502, detail=str(exc))
 
 @app.get("/fitness/muscles/viz")
 def muscles_viz():
@@ -529,8 +544,9 @@ def muscles_viz():
                     body_muscles[k] = {"view": bm["view"], "ids": bm["ids"]}
         body_muscles_slugs = {k: v["ids"][0] for k, v in body_muscles.items() if v.get("ids")}
         return {"rbh": rbh, "body_muscles": body_muscles, "body_muscles_slugs": body_muscles_slugs}
-    except Exception as e:
-        raise HTTPException(500, detail=str(e))
+    except Exception as exc:
+        logger.error(f"muscles_viz: {exc}")
+        raise HTTPException(500, detail=str(exc))
 
 @app.get("/fitness/muscles/{id}")
 async def muscle_detail(id: str):
@@ -541,8 +557,8 @@ async def muscle_detail(id: str):
             muscle = (data.get("muscles") or {}).get(id)
             if muscle:
                 return muscle
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning(f"muscle_detail {id}: {exc}")
     raise HTTPException(404, detail="not_found")
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -600,16 +616,18 @@ async def fitness_plan(request: Request, template: str = "", split: str = "", da
     try:
         result = build_plan(params)
         return {"ok": True, "plan": _record_to_dict(result) if dataclasses.is_dataclass(result) else result}
-    except Exception as e:
-        raise HTTPException(500, detail=str(e))
+    except Exception as exc:
+        logger.error(f"fitness_plan: {exc}")
+        raise HTTPException(500, detail=str(exc))
 
 @app.get("/fitness/weekly")
 def fitness_weekly(week: str = "current"):
     try:
         result = build_weekly_coverage(resolve_week_selector(week))
         return {"ok": True, **result}
-    except Exception as e:
-        raise HTTPException(500, detail=str(e))
+    except Exception as exc:
+        logger.error(f"fitness_weekly {week}: {exc}")
+        raise HTTPException(500, detail=str(exc))
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Coverage
@@ -687,8 +705,8 @@ def inbox_list():
         try:
             data = yaml.safe_load(f.read_text()) or {}
             items.append({"id": f.stem, "file": f.name, **data})
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning(f"inbox_list {f.name}: {exc}")
     return {"ok": True, "items": items}
 
 @app.post("/fitness/inbox/queue")
@@ -883,8 +901,8 @@ def habitsync_habits():
                 {**h, "records": [{"date": today, "completion": "DONE"}] if h["uuid"] in done_today else []}
                 for h in defs
             ]
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning(f"habitsync_habits: {exc}")
     return []
 
 @app.post("/habitsync/record/{uuid_}")
@@ -943,6 +961,7 @@ def fs_sync(request: Request):
         day, _ = _parse_session_fname(f.name)
         mirror_session(day, sess, uid)
         count += 1
+    logger.info(f"firestore/sync  {uid}  {count} sessions")
     return {"ok": True, "synced": count}
 
 @app.post("/firestore/pull")
@@ -959,9 +978,11 @@ def fs_pull(request: Request):
     sess_dir.mkdir(parents=True, exist_ok=True)
     try:
         result = firestore_pull()
+        logger.info(f"firestore/pull  {uid}  {result}")
         return {"ok": True, **result}
-    except Exception as e:
-        raise HTTPException(500, detail=str(e))
+    except Exception as exc:
+        logger.error(f"firestore/pull {uid}: {exc}")
+        raise HTTPException(500, detail=str(exc))
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Fitness config (snapshot der katalog-Daten)
@@ -970,7 +991,8 @@ def fs_pull(request: Request):
 def fitness_config():
     try:
         config = _read_json(_HERE / "catalog" / "config.yml") or {}
-    except Exception:
+    except Exception as exc:
+        logger.warning(f"fitness_config: {exc}")
         config = {}
     return {"ok": True, "config": config, "source": "local_yaml"}
 

@@ -66,15 +66,22 @@ Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach
 
 ## Backend
 
-**server.py** (Port 9150): **FastAPI/uvicorn** — Prod/Tailscale Backend (parallel zu server.mjs)
-- Läuft NEBEN server.mjs, ist KEIN Ersatz. server.mjs bleibt der Vite-Proxy-Target (:9100).
+**Server-Rollen auf einen Blick:**
+
+| Datei | Port | Typ | Rolle |
+|-------|------|-----|-------|
+| `server.mjs` | 9100 | Node/Hono | **DEV-Server** — Vite-Proxy-Target, Frontend-Dev |
+| `server.py` | 9150 | Python/FastAPI | **Prod-Backend** — Tailscale-Funnel, Direktimports |
+| `catalog/fitness_agent/server.py` | 9120 | Python/aiohttp | **Agent-API** — wird archiviert sobald server.py verifiziert |
+
+**server.py** (Port 9150): **FastAPI/uvicorn** — Prod/Tailscale Backend
 - Direktimports aus `fitness_agent` + `anatomy_kb` — kein HTTP-Proxy zu :9120
 - Alle API-Routen: sessions, journal, body, exercises, coverage, plan, weekly, exports, firestore, habitsync
 - Port: `FITNESS_PYTHON_PORT` env (default 9150)
 - Starten: `python3 server.py serve` oder via `fitness-devctl start --no-node`
 - Service: `fitness-python-backend.service`
 
-**server.mjs** (Port 9100): **Hono**-Server (`@hono/node-server`)
+**server.mjs** (Port 9100): **Hono**-Server (`@hono/node-server`) — DEV-Server
 - API-Routen: `/session`, `/journal`, `/exercises/search`, `/coverage`, `/fitness/plan`, `/fitness/weekly`, `/fitness/export`, `/fitness/body`
 - Static-Serving (dist/ oder public/) + SPA-Fallback
 - Proxies: wger (lokal), HabitSync (:6842)
@@ -117,6 +124,7 @@ Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach
 - Creds: `~/.env/firebase-fitness.json` (Service Account), Projekt: `fitness-aos`
 - Dual-write bei `POST /session` + `POST /journal` (fire-and-forget)
 - `/firestore/status` → Verbindungsstatus; `/firestore/sync` → letzte 30 Sessions pushen
+- `firestore-sync.mjs` wurde entfernt (war Node-Bridge zu Python, nicht mehr nötig)
 
 ---
 
@@ -325,6 +333,19 @@ Implementiert in: `buildLastTrainedMap()` + `superKompFreq()` in `src/components
 
 ---
 
+## Python Packages (pyproject.toml)
+
+Alle vier Packages sind in `pyproject.toml` (`where=["."]`) registriert und via `uv tool install` global verfügbar:
+
+| Package | Zweck |
+|---------|-------|
+| `fitness_agent` | Katalog-Tools + Agent-API (Kern-Paket) |
+| `fitness_cli` | Terminal CLI + TUI (kein Server nötig) |
+| `db` | SQLAlchemy ORM-Layer (models, schemas, SessionLocal) |
+| `firestore_kb` | KB-Sync catalog/kb/ → Firestore (Symlink → catalog/firestore_kb/) |
+
+---
+
 ## fitness_cli/ — Python CLI & TUI Package
 
 Direkter Dateizugriff auf Session-JSONs — kein Server nötig.
@@ -498,9 +519,10 @@ anatomy-kb/muscles/            — Muskel-Layer (origin, insertion, innervation)
 
 ## Status
 
-- ✅ Backend + API (Node.js, Port 9100) — server.mjs, Frontend-Dev-Server (Vite proxy target)
-- ✅ Python Backend (FastAPI, Port 9150) — server.py, Prod/Tailscale Backend, parallel zu server.mjs
+- ✅ DEV-Server (Node.js, Port 9100) — server.mjs, Hono, Vite-Proxy-Target
+- ✅ Python Prod-Backend (FastAPI, Port 9150) — server.py, Tailscale-Funnel
 - ✅ fitness_agent Server (:9120, aiohttp) — wird archiviert sobald server.py verifiziert
+- ✅ python-backend/ archiviert (archive/python-backend/) — abgelöst durch server.py
 - ✅ Frontend Views (Dashboard, Session, Journal, Muscles, Learn, Weekly, Habits, Settings, Inbox)
 - ✅ Swipe-Navigation + Gym Mode (layout scaling)
 - ✅ Shared src/ für lokal + PWA (via @src Alias)
@@ -528,11 +550,11 @@ anatomy-kb/muscles/            — Muskel-Layer (origin, insertion, innervation)
 
 ### Kritische Bugs (sofort fixen)
 
-**server.py** — `import yaml` fehlt (wird in `handle_inbox_approve` auf Zeile ~289 genutzt). Crash beim `/inbox/{id}/approve` Endpoint. Außerdem `from loguru import logger` fehlt in server.py (verwendet auf Zeilen ~309, ~314).
+**catalog/fitness_agent/server.py** (:9120) — `import yaml` fehlt (wird in `handle_inbox_approve` auf Zeile ~289 genutzt). Crash beim `/inbox/{id}/approve` Endpoint. Außerdem `from loguru import logger` fehlt (verwendet auf Zeilen ~309, ~314).
 
 **kb_sync.py** — `log_err()` ist undefiniert (Zeile ~178). Sollte `logger.error()` sein. Crash beim KB-Sync.
 
-**server.py `handle_export`** — `data['query']`, `data['plan']` etc. ohne `.get()` → `KeyError` wenn Client-Body unvollständig. Alle `data[key]`-Zugriffe auf `data.get(key)` umstellen.
+**catalog/fitness_agent/server.py `handle_export`** — `data['query']`, `data['plan']` etc. ohne `.get()` → `KeyError` wenn Client-Body unvollständig. Alle `data[key]`-Zugriffe auf `data.get(key)` umstellen.
 
 ### Duplikationen (medium, aufräumen)
 
@@ -550,7 +572,7 @@ anatomy-kb/muscles/            — Muskel-Layer (origin, insertion, innervation)
 - Lokaler Import in `watcher.py` in while-Schleife (Zeile ~232): Anti-Pattern, funktioniert aber.
 - `history.py` hat keinen `UNIQUE`-Constraint auf `training_history` — parallele Schreiber könnten Duplikate erzeugen. `INSERT OR IGNORE` prüfen.
 
-### HTTP-Endpoint-Status (server.py :9120)
+### HTTP-Endpoint-Status (catalog/fitness_agent/server.py :9120)
 
 Alle Endpoints bis auf `POST /export/{kind}` und `POST /inbox/{id}/approve` sind fehlerfrei. Die beiden sind durch obige Bugs betroffen.
 
