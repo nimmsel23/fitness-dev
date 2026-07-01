@@ -194,7 +194,7 @@ async def handle_muscles_viz(request: web.Request) -> web.Response:
 async def handle_taxonomy(request: web.Request) -> web.Response:
     try:
         taxonomy = load_catalog_yaml("muscles/muscle_index.yml")
-        rules = load_catalog_yaml("muscles/muscle_coverage_rules.yml")
+        rules = load_catalog_yaml("rules/muscle_coverage_rules.yml")
         return web.json_response({
             "muscles": taxonomy,
             "rules": rules,
@@ -220,7 +220,7 @@ async def handle_snapshot(request: web.Request) -> web.Response:
             "progression_rules": unwrap(load_runtime_yaml("rules/progression_rules.yml")),
             "safety_rules": unwrap(load_runtime_yaml("rules/safety_rules.yml")),
             "muscles": unwrap(load_runtime_yaml("muscles/muscle_index.yml")),
-            "muscle_coverage_rules": unwrap(load_runtime_yaml("muscles/muscle_coverage_rules.yml")),
+            "muscle_coverage_rules": unwrap(load_runtime_yaml("rules/muscle_coverage_rules.yml")),
             "body_highlighter_bridge": unwrap(load_runtime_yaml("muscles/body_highlighter_bridge.yml")),
             "wger_mapping": unwrap(load_runtime_yaml("maps/wger_mapping.yml")),
             "external_db_mapping": unwrap(load_runtime_yaml("maps/external_db_mapping.yml")),

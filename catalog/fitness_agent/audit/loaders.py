@@ -40,7 +40,7 @@ def load_aliases_document() -> dict[str, Any] | None:
 def load_body_regions() -> set[str] | None:
     """Gibt die gültigen Body-Regionen aus den {region}.yml Index-Dateien zurück."""
     region_dir = catalog_path("muscles")
-    skip = {"muscle_index", "muscle_coverage_rules"}
+    skip = {"muscle_index"}
     regions: set[str] = set()
     for yml_file in region_dir.glob("*.yml"):
         if yml_file.name.startswith("_") or yml_file.stem in skip:

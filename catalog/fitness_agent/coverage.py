@@ -128,7 +128,7 @@ def load_muscle_taxonomy() -> dict[str, dict[str, Any]]:
 
 
 def load_coverage_rules() -> dict[str, Any]:
-    rules = load_catalog_yaml("muscles/muscle_coverage_rules.yml")
+    rules = load_catalog_yaml("rules/muscle_coverage_rules.yml")
     if isinstance(rules, dict):
         return rules.get("coverage_rules", rules) if isinstance(rules.get("coverage_rules", rules), dict) else {}
     return {}
@@ -143,9 +143,7 @@ def load_muscle_region_index() -> dict[str, str]:
     region_dir = catalog_path("muscles")
     result: dict[str, str] = {}
     for yml_file in sorted(region_dir.glob("*.yml")):
-        if yml_file.name.startswith("_") or yml_file.stem in (
-            "muscle_index", "muscle_coverage_rules"
-        ):
+        if yml_file.name.startswith("_") or yml_file.stem in ("muscle_index",):
             continue
         try:
             doc = load_catalog_yaml(f"muscles/{yml_file.name}")
