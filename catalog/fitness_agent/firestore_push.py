@@ -14,7 +14,7 @@ from typing import Any
 from loguru import logger
 from tqdm import tqdm
 
-from firestore import get_db, flatten, compute_hash, fetch_hashes, batch_write
+from firestore_kb import get_db, flatten, compute_hash, fetch_hashes, batch_write
 from .loader import catalog_path, load_catalog_directory_yaml, load_catalog_yaml
 
 

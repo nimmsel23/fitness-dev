@@ -33,7 +33,7 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["catalog"]
-include = ["fitness_agent*", "firestore*"]
+include = ["fitness_agent*", "firestore_kb*"]
 
 [tool.setuptools.package-data]
 fitness_agent = ["py.typed"]
