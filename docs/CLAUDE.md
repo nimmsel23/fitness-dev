@@ -60,7 +60,7 @@ teach_exercise()        → UI kann Anatomie-Layer zeigen
 ```
 
 **CLI-Einstieg:** `python3 -m catalog.fitness_agent <command>`
-Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach-sheet`, `map-wger`, `tui`
+Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach-sheet`, `map-wger`, `export-wger-index`, `tui`
 
 ---
 
@@ -210,10 +210,16 @@ Implementiert in: `buildLastTrainedMap()` + `superKompFreq()` in `src/components
 │  │  ├─ aliases.yml               — Freie Eingaben → canonical_id
 │  │  ├─ wger_mapping.yml          — custom_id ↔ wger_id
 │  │  └─ external_db_mapping.yml   — custom_id ↔ yuhonas_id
+│  ├─ registry/
+│  │  ├─ wger_exercises_id.yml     — wger_id → wger_name (824 Einträge, Rohdaten)
+│  │  ├─ wger_muscles.yml          — wger muscle_id → catalog muscle group
+│  │  └─ wger_catalog_index.yml    — wger_id → catalog_id (Merge-Kontrakt, auto-generated)
+│  │                                 Nur kuratierte Exercises (nicht unreviewed_*).
+│  │                                 Regenerieren: fitness-agent export-wger-index
 │  ├─ muscles/
 │  │  ├─ muscles.yml               — Muskel-Taxonomie
 │  │  ├─ muscle_coverage_rules.yml — Gewichtungen (primary/secondary/stabilizer)
-│  │  └─ body_highlighter_bridge.yml — Muskeln → visuelle Körperregionen (enabled: false)
+│  │  └─ body_highlighter_bridge.yml — ENTFERNT (body_region direkt in Muskel-YAMLs)
 │  └─ rules/
 │     ├─ program_rules.yml
 │     ├─ progression_rules.yml
