@@ -1,0 +1,16 @@
+# Auto-generated: wger exercise_id → local catalog_id
+# Source: kb/exercises/**/*.yml  (wger_id fields)
+# Regenerate: fitness-agent export-wger-index
+
+'73':
+  catalog_id: '040'
+  display_name: Bankdrücken
+  wger_name: Bankdrücken LH
+'615':
+  catalog_id: '060'
+  display_name: Kniebeuge mit der Langhantel
+  wger_name: Kniebeuge
+'821':
+  catalog_id: '020'
+  display_name: Klimmzug im Obergriff
+  wger_name: Klimmzug an Leiste

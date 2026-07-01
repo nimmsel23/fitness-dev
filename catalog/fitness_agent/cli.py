@@ -34,6 +34,7 @@ from .preview import preview_file, render_markdown
 from .planner import build_plan
 from .teaching import teach_exercise
 from .wger import build_plan_wger_payload, map_wger as run_map_wger, wger_check
+from .wger_index import export_wger_index as run_export_wger_index
 from .resolver import resolve_query
 from .weekly import build_weekly_coverage
 from .tui import run_tui
@@ -500,6 +501,27 @@ def preview(
         console.print(result.message)
     else:
         console.print(path.read_text(encoding="utf-8"), end="")
+
+
+@app.command(name="export-wger-index")
+def export_wger_index(
+    show_unmapped: Annotated[bool, typer.Option(help="Show unmapped wger IDs")] = False,
+):
+    """Build wger_id → catalog_id index (kb/registry/wger_catalog_index.yml)"""
+    try:
+        index, unmapped = run_export_wger_index()
+        console.print(f"[ok]OK[/ok] Wrote wger_catalog_index.yml — {len(index)} mapped exercises")
+        if show_unmapped:
+            console.print(f"\n[warn]Unmapped wger IDs:[/warn] {len(unmapped)} (in registry, not in catalog)")
+            for entry in unmapped[:20]:
+                console.print(f"  {entry['wger_id']:>5}  {entry['wger_name']}")
+            if len(unmapped) > 20:
+                console.print(f"  ... and {len(unmapped) - 20} more")
+        else:
+            console.print(f"[warn]Unmapped:[/warn] {len(unmapped)} wger IDs without catalog entry (use --show-unmapped to list)")
+    except Exception as exc:
+        console.print(f"[fail]FAIL:[/fail] {exc}")
+        raise typer.Exit(code=1)
 
 
 @app.command()

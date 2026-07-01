@@ -135,7 +135,11 @@ def load_coverage_rules() -> dict[str, Any]:
 
 
 def load_body_highlighter_bridge() -> dict[str, list[str]]:
-    bridge = load_catalog_yaml("muscles/body_highlighter_bridge.yml")
+    # Bridge file is optional — body_region is already present in individual muscle YAMLs
+    try:
+        bridge = load_catalog_yaml("muscles/body_highlighter_bridge.yml")
+    except FileNotFoundError:
+        return {}
     if not isinstance(bridge, dict):
         return {}
     raw_bridge = bridge.get("bridge", bridge)
