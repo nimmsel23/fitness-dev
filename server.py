@@ -1,15 +1,15 @@
 """
 fitness-dev FastAPI server — Prod/Tailscale Backend
-Port: 9150 (läuft parallel zu server.mjs :9100, ist kein Ersatz)
+Port: 9150
+
+Server-Rollen:
+  server.mjs (DEV)   :9100  Hono + Vite-Proxy-Target, Node.js Dev-Server
+  server.py (dieses) :9150  Python Prod-Backend, Tailscale-Funnel
+  fitness_agent/server.py   :9120  aiohttp Agent-API (wird archiviert sobald verifiziert)
 
 Rolle:
 - Prod-Backend (Tailscale-Funnel, /opt/fitness) + lokale Coach-API
 - Direktimports aus fitness_agent + anatomy_kb (kein HTTP-Proxy)
-- server.mjs (:9100) bleibt unverändert als Frontend-Dev-Server (Vite proxy target)
-
-Geplant zu archivieren (NACHDEM dieser Server läuft und verifiziert ist):
-- python-backend/server.py (aiohttp, Basis für diesen Server)
-- catalog/fitness_agent/server.py (aiohttp, :9120, Endpoints wandern hierher)
 """
 from __future__ import annotations
 

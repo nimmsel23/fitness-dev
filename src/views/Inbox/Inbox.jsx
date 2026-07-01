@@ -1,83 +1,97 @@
-import { CheckCircle2, Sparkles, Info } from 'lucide-react';
-import { useInbox } from './useInbox';
-import InboxCard from './InboxCard';
-import { isLocalMode } from '@db';
+import { Bell, MessageSquare, CheckCircle2, Sparkles, Dumbbell, Clock } from 'lucide-react';
 
-export default function Inbox({ user, onInspectExercise }) {
-  const { exercises, loading, actioning, toast, approve, remove } = useInbox();
-  const isSuperUser = isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92';
+const ROADMAP = [
+  {
+    id: 'coach_comments',
+    icon: MessageSquare,
+    label: 'Coach-Kommentare',
+    description: 'Feedback deines Coaches auf Journal-Einträge und Sessions — direkt hier, ohne App-Wechsel.',
+    status: 'next',
+    color: 'text-fit-accent',
+    bg: 'bg-fit-accent/10 border-fit-accent/20',
+  },
+  {
+    id: 'approved_exercises',
+    icon: Dumbbell,
+    label: 'Freigegebene Übungen',
+    description: 'Wenn der Coach eine neue Übung für dich freigibt, erscheint sie hier — inkl. Anatomie-Details.',
+    status: 'next',
+    color: 'text-fit-green',
+    bg: 'bg-fit-green/10 border-fit-green/20',
+  },
+  {
+    id: 'direct_messages',
+    icon: MessageSquare,
+    label: 'Direktnachrichten',
+    description: 'Persönliche Nachrichten vom Coach — Motivations-Push, Plan-Anpassungen, Hinweise.',
+    status: 'planned',
+    color: 'text-purple-400',
+    bg: 'bg-purple-400/10 border-purple-400/20',
+  },
+  {
+    id: 'milestones',
+    icon: Sparkles,
+    label: 'Meilensteine & Erfolge',
+    description: 'Automatische Benachrichtigungen wenn du Superkompensations-Fenster triffst, Streak-Records etc.',
+    status: 'planned',
+    color: 'text-yellow-400',
+    bg: 'bg-yellow-400/10 border-yellow-400/20',
+  },
+];
 
-  if (loading) return (
-    <div className="flex items-center justify-center py-20">
-      <div className="w-6 h-6 border-2 border-fit-accent/30 border-t-fit-accent rounded-full animate-spin" />
-    </div>
-  );
+const STATUS_LABEL = {
+  next: { label: 'Als nächstes', dot: 'bg-fit-accent' },
+  planned: { label: 'Geplant', dot: 'bg-fit-dim' },
+};
 
+export default function Inbox() {
   return (
-    <div className="space-y-8 pb-20">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
-        <div>
-          <h1 className="text-3xl font-black text-fit-ink mb-1">Exercise Inbox</h1>
-          <p className="text-xs font-bold opacity-30 uppercase tracking-[0.2em]">KI-angereicherte Neuanfragen</p>
+    <div className="space-y-10 pb-24">
+      <header className="px-1">
+        <div className="flex items-center gap-3 mb-2">
+          <Bell size={28} className="text-fit-accent" />
+          <h1 className="text-3xl font-black text-fit-ink">Mitteilungen</h1>
         </div>
-        <div className="flex items-center gap-3 bg-fit-accent/10 px-4 py-2 rounded-xl border border-fit-accent/20">
-          <Sparkles size={16} className="text-fit-accent" />
-          <span className="text-[10px] font-black uppercase text-fit-accent">{exercises.length} Ausstehend</span>
-        </div>
+        <p className="text-xs font-bold opacity-30 uppercase tracking-[0.2em]">Dein persönlicher Benachrichtigungs-Feed</p>
       </header>
 
-      {exercises.length === 0 ? (
-        <div className="card py-20 flex flex-col items-center justify-center text-center opacity-30 border-dashed">
-          <CheckCircle2 size={48} className="mb-4 text-fit-green" />
-          <h3 className="text-lg font-black">Alle Anfragen bearbeitet</h3>
-          <p className="text-xs font-bold uppercase tracking-widest mt-1">Keine neuen Übungen in der Inbox</p>
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {exercises.map(ex => (
-            <InboxCard
-              key={ex.file_id}
-              ex={ex}
-              actioning={actioning}
-              onApprove={isSuperUser ? approve : null}
-              onDelete={remove}
-              onInspect={onInspectExercise}
-              asMessage
-            />
-          ))}
-        </div>
-      )}
+      {/* Empty state */}
+      <div className="card py-16 flex flex-col items-center justify-center text-center border-dashed opacity-40">
+        <CheckCircle2 size={44} className="mb-4 text-fit-green" />
+        <h3 className="text-lg font-black">Alles auf dem neuesten Stand</h3>
+        <p className="text-xs font-bold uppercase tracking-widest mt-1 opacity-60">Keine neuen Mitteilungen</p>
+      </div>
 
-      <section className="mt-12 p-8 rounded-3xl bg-blue/5 border border-blue/10">
-        <div className="flex items-start gap-4 text-blue">
-          <Info size={20} className="shrink-0 mt-1" />
-          <div>
-            <h4 className="text-sm font-black uppercase tracking-widest mb-2">
-              {isSuperUser ? 'Workflow Info' : 'Mitteilungen'}
-            </h4>
-            <p className="text-xs font-medium leading-relaxed opacity-80">
-              {isSuperUser ? (
-                <>
-                  Übungen in dieser Liste wurden von Klienten angefragt und automatisch durch die KI angereichert.
-                  Durch <strong>Freigeben</strong> wird die Übung dauerhaft in den Katalog aufgenommen.
-                  Überprüfe die Biomechanik und Coaching-Notes vor der Freigabe.
-                </>
-              ) : (
-                <>
-                  Deine neu angefragten Übungen wurden durch die KI angereichert und warten auf die Freigabe durch deinen Coach.
-                  Sobald der Coach die Übung freigibt, steht sie dir im Katalog zur Verfügung.
-                </>
-              )}
-            </p>
-          </div>
+      {/* Roadmap */}
+      <section>
+        <div className="flex items-center gap-2 mb-5 px-1">
+          <Clock size={14} className="text-fit-dim" />
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim">Was hier bald erscheint</span>
+        </div>
+        <div className="grid gap-4">
+          {ROADMAP.map(item => {
+            const Icon = item.icon;
+            const s = STATUS_LABEL[item.status];
+            return (
+              <div key={item.id} className={`rounded-2xl border p-5 flex items-start gap-4 ${item.bg}`}>
+                <div className={`mt-0.5 shrink-0 ${item.color}`}>
+                  <Icon size={20} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm font-black text-fit-ink">{item.label}</span>
+                    <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest opacity-50">
+                      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+                      {s.label}
+                    </span>
+                  </div>
+                  <p className="text-xs font-medium leading-relaxed opacity-60">{item.description}</p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
-
-      {toast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl text-sm font-bold shadow-2xl z-50 bg-fit-card text-fit-accent border border-fit-line animate-in slide-in-from-bottom-4 duration-300">
-          {toast}
-        </div>
-      )}
     </div>
   );
 }

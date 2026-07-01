@@ -27,6 +27,16 @@ module.exports = {
           green: 'var(--green)',
           red:   'var(--red)',
           orange:'var(--orange)',
+        },
+        forge: {
+          bg:     'var(--card)',
+          panel:  'var(--bg2)',
+          border: 'var(--line)',
+          ink:    'var(--ink)',
+          muted:  'var(--muted)',
+          accent: 'var(--accent)',
+          red:    'var(--red)',
+          green:  'var(--green)',
         }
       },
       fontFamily: {

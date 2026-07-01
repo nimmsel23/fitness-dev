@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { Lock, GripVertical, Sparkles, Shield } from "lucide-react";
+import { Lock, GripVertical, Shield } from "lucide-react";
 import { NAV_ITEMS } from "../../constants/NavigationItems";
 import {
   getSession, getRecentSessions, getPlan,
-  getDashboardAnalytics, exportCsv, getAllExercises, getInbox, getGlobalInbox, isLocalMode
+  getDashboardAnalytics, exportCsv, getAllExercises, getGlobalInbox, isLocalMode
 } from "@db";
 import { localToday } from "@utils";
 import HabitWidget from "../../components/HabitWidget.jsx";
@@ -59,7 +59,6 @@ export default function Dashboard({ user, onOpenSession, onOpenReview, recentDay
   const [plan, setPlan] = useState(null);
   const [coverage, setCoverage] = useState(null);
   const [exportToast, setExportToast] = useState('');
-  const [inboxCount, setInboxCount] = useState(0);
   const [globalInboxCount, setGlobalInboxCount] = useState(0);
 
   const today = localToday();
@@ -79,10 +78,6 @@ export default function Dashboard({ user, onOpenSession, onOpenReview, recentDay
         if (Array.isArray(res)) setGlobalInboxCount(res.length);
       }).catch(() => {});
     }
-
-    getInbox().then(res => {
-      if (Array.isArray(res)) setInboxCount(res.length);
-    }).catch(() => {});
     
     getDashboardAnalytics(recentDays).then(analytics => {
        const scores = analytics?.body_region_scores || {};
@@ -205,21 +200,6 @@ export default function Dashboard({ user, onOpenSession, onOpenReview, recentDay
           </div>
           <span className="text-[10px] font-black uppercase tracking-widest bg-fit-red text-black px-3.5 py-1.5 rounded-xl group-hover:scale-105 transition-transform">
             Verwalten
-          </span>
-        </div>
-      ) : inboxCount > 0 && !isEditMode ? (
-        <div 
-          onClick={() => navigate('inbox')}
-          className="mb-8 px-5 py-4 rounded-[24px] bg-fit-accent/15 border border-fit-accent/25 hover:border-fit-accent/40 transition-all cursor-pointer flex items-center justify-between text-fit-accent animate-in slide-in-from-top-4 duration-500 hover:scale-[1.01] active:scale-[0.99] group shadow-lg shadow-fit-accent/5"
-        >
-          <div className="flex items-center gap-3">
-            <Sparkles size={16} className="animate-pulse" />
-            <span className="text-xs font-black uppercase tracking-wider">
-              Du hast {inboxCount} neue {inboxCount === 1 ? 'Übung' : 'Übungen'} in deiner Inbox!
-            </span>
-          </div>
-          <span className="text-[10px] font-black uppercase tracking-widest bg-fit-accent text-black px-3.5 py-1.5 rounded-xl group-hover:scale-105 transition-transform">
-            Anzeigen
           </span>
         </div>
       ) : null}

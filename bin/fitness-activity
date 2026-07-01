@@ -2,60 +2,51 @@
 """
 fitness-activity — Cardio/Activity per CLI loggen
 
-Schreibt direkt an POST :9100/session mit dem korrekten Session-Format
-(activity-Objekt statt exercises-Array). Brust/Rücken bei Schwimmen,
-Core/Legs/Full bei HIIT — analog zum Frontend.
+Activity-Konfig liegt deklarativ in catalog/kb/activities.yml.
+POST geht an :9100/session (das macht JSON + SQLite + Firestore-Mirror).
 
-Auto-uid: nimmt den Ordner mit den meisten Sessions aus
-~/.aos/fitness/users/, sofern $FITNESS_UID nicht gesetzt ist.
-
-  fitness-activity log swimming --duration 20 --style breast
-  fitness-activity log running --duration 45 --notes "Donauinsel"
-  fitness-activity log hiit --duration 15 --target core
-  fitness-activity log walking --duration 30
+Beispiele:
+  fitness activity log swimming -d 20 -s breast -n "Donauinsel"
+  fitness activity log running  -d 45 -i 7
+  fitness activity log hiit     -d 15 -t core
+  fitness activity types
+  fitness activity whoami
+  fitness activity recent --days 14
 """
 from __future__ import annotations
 
 import json
 import os
 import sys
-import urllib.request
 import urllib.error
-from datetime import date
+import urllib.request
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
+import pandas as pd
 import typer
+import yaml
+from loguru import logger
+from rich.console import Console
+from rich.table import Table
+
+# ── Setup ─────────────────────────────────────────────────────────────────────
+logger.remove()
+logger.add(sys.stderr, format="<level>{level: <7}</level> {message}", level="INFO")
+
+console = Console()
 
 API = os.environ.get("FITNESS_API", "http://127.0.0.1:9100")
 USERS_DIR = Path.home() / ".aos" / "fitness" / "users"
+CONFIG = Path(__file__).resolve().parent.parent / "catalog" / "kb" / "activities.yml"
 
-ACTIVITY_TYPES = [
-    "running", "cycling", "swimming", "hiking", "rowing",
-    "climbing", "yoga", "stretching", "hiit", "walking",
-]
 
-# Synchron mit src/constants/ActivityConstants.js
-ACTIVITY_MUSCLE_GROUPS = {
-    "swimming":   ["chest", "shoulders", "arms", "core", "quads", "hamstrings"],
-    "running":    ["quads", "hamstrings", "calves", "glutes"],
-    "cycling":    ["quads", "hamstrings", "calves", "glutes"],
-    "hiking":     ["quads", "hamstrings", "calves", "glutes", "core"],
-    "walking":    ["quads", "calves", "glutes"],
-    "rowing":     ["back", "shoulders", "arms", "quads", "hamstrings", "core"],
-    "yoga":       ["core", "shoulders", "back"],
-    "stretching": ["core", "back", "hamstrings"],
-    "climbing":   ["back", "shoulders", "arms", "core", "quads"],
-    "hiit":       ["core", "quads", "shoulders"],
-}
-SWIM_STYLE_MUSCLES = {
-    "breast": ["chest", "shoulders", "arms", "core", "quads", "hamstrings"],
-    "back":   ["back", "shoulders", "arms", "core", "quads"],
-}
-HIIT_TARGETS = {
-    "core": ["core"],
-    "legs": ["quads", "hamstrings", "glutes", "calves"],
-    "full": ["chest", "back", "shoulders", "arms", "core", "quads", "hamstrings", "glutes"],
-}
+def load_activities() -> dict:
+    if not CONFIG.exists():
+        logger.error(f"Activity-Config fehlt: {CONFIG}")
+        raise typer.Exit(1)
+    with CONFIG.open() as f:
+        return yaml.safe_load(f)
 
 
 def detect_uid() -> str:
@@ -68,18 +59,18 @@ def detect_uid() -> str:
     for d in USERS_DIR.iterdir():
         if not d.is_dir() or d.name in ("default", "kb"):
             continue
-        sessions = list((d / "sessions").glob("*.json")) if (d / "sessions").exists() else []
-        candidates.append((d.name, len(sessions)))
+        sess = d / "sessions"
+        n = len(list(sess.glob("*.json"))) if sess.exists() else 0
+        candidates.append((d.name, n))
     if not candidates:
-        raise typer.BadParameter("Keine echte uid gefunden in ~/.aos/fitness/users/")
+        raise typer.BadParameter("Keine uid in ~/.aos/fitness/users/ gefunden")
     candidates.sort(key=lambda x: -x[1])
     return candidates[0][0]
 
 
 def post_session(uid: str, day: str, payload: dict) -> dict:
-    url = f"{API}/session?date={day}"
     req = urllib.request.Request(
-        url,
+        f"{API}/session?date={day}",
         method="POST",
         data=json.dumps(payload).encode(),
         headers={"Content-Type": "application/json", "X-User-UID": uid},
@@ -88,44 +79,50 @@ def post_session(uid: str, day: str, payload: dict) -> dict:
         with urllib.request.urlopen(req, timeout=5) as r:
             return json.loads(r.read())
     except urllib.error.URLError as e:
-        raise typer.Exit(f"Server nicht erreichbar ({API}): {e}")
+        logger.error(f"Server nicht erreichbar ({API}): {e}")
+        raise typer.Exit(1)
 
 
+# ── Commands ──────────────────────────────────────────────────────────────────
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
 
 @app.command()
 def log(
-    activity: str = typer.Argument(..., help=f"Activity-Typ: {', '.join(ACTIVITY_TYPES)}"),
-    duration: int = typer.Option(..., "--duration", "-d", help="Dauer in Minuten"),
-    style: str = typer.Option(None, "--style", "-s", help="Nur swimming: breast|back"),
-    target: str = typer.Option(None, "--target", "-t", help="Nur hiit: core|legs|full"),
-    notes: str = typer.Option("", "--notes", "-n", help="Freitext"),
-    intensity: int = typer.Option(None, "--intensity", "-i", min=1, max=10, help="RPE 1–10"),
+    activity: str = typer.Argument(..., help="Activity-Typ (siehe `types`)"),
+    duration: int = typer.Option(..., "--duration", "-d", help="Minuten"),
+    style: str = typer.Option(None, "--style", "-s", help="swimming: breast|back"),
+    target: str = typer.Option(None, "--target", "-t", help="hiit: core|legs|full"),
+    notes: str = typer.Option("", "--notes", "-n"),
+    intensity: int = typer.Option(None, "--intensity", "-i", min=1, max=10),
     day: str = typer.Option(None, "--date", help="YYYY-MM-DD (Default heute)"),
-    uid: str = typer.Option(None, "--uid", help="Override (sonst auto/env)"),
+    uid_override: str = typer.Option(None, "--uid"),
     dry_run: bool = typer.Option(False, "--dry-run"),
 ):
     """Eine Cardio/Activity-Session loggen."""
-    if activity not in ACTIVITY_TYPES:
-        raise typer.BadParameter(f"Unbekannt: {activity}. Erlaubt: {', '.join(ACTIVITY_TYPES)}")
+    cfg = load_activities()
+    if activity not in cfg:
+        logger.error(f"Unbekannt: {activity}. Verfügbar: {', '.join(cfg.keys())}")
+        raise typer.Exit(1)
 
+    spec = cfg[activity]
     activity_obj = {"type": activity, "duration": str(duration), "notes": notes}
 
-    if activity == "swimming":
-        s = style or "breast"
-        if s not in SWIM_STYLE_MUSCLES:
-            raise typer.BadParameter("style muss breast oder back sein")
-        activity_obj["swimStyle"] = s
-        activity_obj["muscles"] = SWIM_STYLE_MUSCLES[s]
-    elif activity == "hiit":
-        t = target or "core"
-        if t not in HIIT_TARGETS:
-            raise typer.BadParameter("target muss core, legs oder full sein")
-        activity_obj["muscleTarget"] = t
-        activity_obj["muscles"] = HIIT_TARGETS[t]
+    variant_field = spec.get("variant_field")
+    if variant_field:
+        chosen = style if variant_field == "swimStyle" else target
+        variants = spec.get("variants", {})
+        if chosen and chosen not in variants:
+            logger.error(f"{variant_field}={chosen} ungültig. Erlaubt: {', '.join(variants)}")
+            raise typer.Exit(1)
+        if not chosen:
+            # Default = erste Variante
+            chosen = next(iter(variants))
+            logger.info(f"{variant_field} nicht gesetzt → Default: {chosen}")
+        activity_obj[variant_field] = chosen
+        activity_obj["muscles"] = variants[chosen]["muscles"]
     else:
-        activity_obj["muscles"] = ACTIVITY_MUSCLE_GROUPS[activity]
+        activity_obj["muscles"] = spec["muscles"]
 
     if intensity is not None:
         activity_obj["intensity"] = intensity
@@ -139,43 +136,130 @@ def log(
         "notes": notes,
     }
 
-    real_uid = uid or detect_uid()
+    uid = uid_override or detect_uid()
     target_day = day or date.today().isoformat()
 
-    print(f"→ {target_day}  uid={real_uid}")
-    print(json.dumps(activity_obj, indent=2, ensure_ascii=False))
+    console.print(f"[dim]→ {target_day}  uid={uid}[/dim]")
+    console.print_json(data=activity_obj)
 
     if dry_run:
-        print("(dry-run, nichts gesendet)")
+        logger.info("(dry-run, nichts gesendet)")
         return
 
-    r = post_session(real_uid, target_day, payload)
+    r = post_session(uid, target_day, payload)
     if r.get("ok"):
-        print(f"✅ geloggt → {API}/session?date={target_day}")
+        logger.success(f"geloggt → {target_day} ({spec.get('emoji','')} {spec['label']})")
     else:
-        print(f"❌ {r}")
-        sys.exit(1)
+        logger.error(f"Server-Fehler: {r}")
+        raise typer.Exit(1)
 
 
 @app.command()
 def types():
-    """Verfügbare Activity-Typen auflisten."""
-    for t in ACTIVITY_TYPES:
-        muscles = ACTIVITY_MUSCLE_GROUPS.get(t, [])
-        print(f"  {t:12} → {', '.join(muscles)}")
-    print(f"\n  swimming --style breast → {', '.join(SWIM_STYLE_MUSCLES['breast'])}")
-    print(f"  swimming --style back   → {', '.join(SWIM_STYLE_MUSCLES['back'])}")
-    print(f"\n  hiit --target core → {', '.join(HIIT_TARGETS['core'])}")
-    print(f"  hiit --target legs → {', '.join(HIIT_TARGETS['legs'])}")
-    print(f"  hiit --target full → {', '.join(HIIT_TARGETS['full'])}")
+    """Übersicht aller Activity-Typen + Muskel-Default."""
+    cfg = load_activities()
+    table = Table(title="Activity → Muskeln (catalog/kb/activities.yml)", show_lines=False)
+    table.add_column("Type", style="cyan")
+    table.add_column("Label")
+    table.add_column("Default-Muskeln", style="green")
+    table.add_column("Varianten", style="yellow")
+    for key, spec in cfg.items():
+        variants = spec.get("variants", {})
+        var_str = "  ·  ".join(f"{k}: {','.join(v['muscles'])}" for k, v in variants.items())
+        table.add_row(
+            f"{spec.get('emoji','')} {key}",
+            spec["label"],
+            ", ".join(spec["muscles"]),
+            var_str or "—",
+        )
+    console.print(table)
 
 
 @app.command()
 def whoami():
-    """Aktuell verwendete uid + Pfad anzeigen."""
+    """Erkannte uid + Session-Pfad."""
     uid = detect_uid()
-    print(f"uid:  {uid}")
-    print(f"path: {USERS_DIR / uid / 'sessions'}")
+    sess = USERS_DIR / uid / "sessions"
+    n = len(list(sess.glob("*.json"))) if sess.exists() else 0
+    console.print(f"[bold cyan]uid:[/bold cyan]      {uid}")
+    console.print(f"[bold cyan]path:[/bold cyan]     {sess}")
+    console.print(f"[bold cyan]sessions:[/bold cyan] {n}")
+
+
+@app.command()
+def recent(
+    days: int = typer.Option(14, "--days", "-d"),
+    uid_override: str = typer.Option(None, "--uid"),
+):
+    """Letzte N Tage als pandas-Tabelle (Activities + Strength gemischt)."""
+    uid = uid_override or detect_uid()
+    sess = USERS_DIR / uid / "sessions"
+    cutoff = (date.today() - timedelta(days=days)).isoformat()
+    rows = []
+    for f in sorted(sess.glob("*.json")):
+        stem = f.stem.split("__")[0]
+        if stem < cutoff:
+            continue
+        try:
+            d = json.loads(f.read_text())
+        except Exception:
+            continue
+        a = d.get("activity") or {}
+        rows.append({
+            "date": stem,
+            "kind": a.get("type") or d.get("block") or "?",
+            "variant": a.get("swimStyle") or a.get("muscleTarget") or "",
+            "min": a.get("duration") or "",
+            "rpe": d.get("effort") or a.get("intensity") or "",
+            "muscles": ",".join(a.get("muscles", [])) if a else "",
+            "exercises": len(d.get("exercises") or []),
+            "notes": (d.get("notes") or a.get("notes") or "")[:30],
+        })
+    if not rows:
+        logger.warning(f"Keine Sessions in den letzten {days} Tagen unter {uid}")
+        return
+    df = pd.DataFrame(rows).sort_values("date", ascending=False)
+    console.print(f"[bold]{len(df)} Sessions · letzten {days} Tage · uid={uid}[/bold]")
+    console.print(df.to_string(index=False))
+
+
+@app.command()
+def stats(
+    days: int = typer.Option(30, "--days", "-d"),
+    uid_override: str = typer.Option(None, "--uid"),
+):
+    """Activity-Aggregat pro Typ (Anzahl, Minuten, Stil-Aufteilung)."""
+    uid = uid_override or detect_uid()
+    sess = USERS_DIR / uid / "sessions"
+    cutoff = (date.today() - timedelta(days=days)).isoformat()
+    rows = []
+    for f in sorted(sess.glob("*.json")):
+        stem = f.stem.split("__")[0]
+        if stem < cutoff:
+            continue
+        try:
+            d = json.loads(f.read_text())
+        except Exception:
+            continue
+        a = d.get("activity")
+        if not a:
+            continue
+        rows.append({
+            "type": a.get("type", "?"),
+            "variant": a.get("swimStyle") or a.get("muscleTarget") or "—",
+            "minutes": int(a.get("duration") or 0),
+        })
+    if not rows:
+        logger.warning(f"Keine Activity-Sessions in den letzten {days} Tagen")
+        return
+    df = pd.DataFrame(rows)
+    agg = df.groupby(["type", "variant"]).agg(
+        sessions=("minutes", "count"),
+        total_min=("minutes", "sum"),
+        avg_min=("minutes", "mean"),
+    ).round(1).reset_index()
+    console.print(f"[bold]Activity-Aggregat · letzten {days} Tage · uid={uid}[/bold]")
+    console.print(agg.to_string(index=False))
 
 
 if __name__ == "__main__":

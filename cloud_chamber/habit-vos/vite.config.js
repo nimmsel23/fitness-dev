@@ -3,9 +3,9 @@ import react from '@vitejs/plugin-react'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const FITNESS_ROOT = resolve(__dirname, '../..')
-const BACKEND = 'http://localhost:9100'
+const __dirname  = dirname(fileURLToPath(import.meta.url))
+const HABITS_DEV = resolve('/home/alpha/habits-dev')
+const BACKEND    = 'http://localhost:9100'
 
 export default defineConfig(({ mode }) => {
   const isFirebase = mode === 'firebase'
@@ -16,10 +16,10 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
 
     resolve: {
+      preserveSymlinks: true,
       alias: {
         '@db':    resolve(__dirname, 'src/db.firestore.js'),
-        '@utils': resolve(FITNESS_ROOT, 'src/lib/utils.js'),
-        '@src':   resolve(FITNESS_ROOT, 'src'),
+        '@utils': resolve(HABITS_DEV, 'src/lib/core.js'),
       },
     },
     server: {

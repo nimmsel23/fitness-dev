@@ -1,4 +1,4 @@
-import { Activity, ChevronLeft, ChevronRight, Shield, Sparkles } from "lucide-react";
+import { Activity, ChevronLeft, ChevronRight, Shield, Bell } from "lucide-react";
 import { NAV_ITEMS } from "../../constants/NavigationItems";
 import { isLocalMode } from "@db";
 
@@ -59,10 +59,10 @@ export default function Sidebar({ tab, navigate, subTab, navigateSub, pinned, se
             );
           })}
 
-          <button onClick={() => navigate('inbox')} title={!pinned ? 'Inbox' : ''}
+          <button onClick={() => navigate('inbox')} title={!pinned ? 'Mitteilungen' : ''}
             className={`w-full flex items-center transition-all duration-300 mt-4 ${pinned ? 'gap-4 px-5 py-3.5 rounded-2xl' : 'justify-center p-4 rounded-2xl'} ${tab === 'inbox' ? 'bg-fit-accent text-black shadow-xl shadow-fit-accent/20 font-black scale-[1.02]' : 'text-fit-dim hover:bg-white/5 font-bold hover:translate-x-1'}`}>
-            <Sparkles size={20} className={tab === 'inbox' ? 'stroke-[3]' : ''} />
-            {pinned && <span className="text-sm truncate animate-in fade-in slide-in-from-left-4 duration-500">Inbox</span>}
+            <Bell size={20} className={tab === 'inbox' ? 'stroke-[3]' : ''} />
+            {pinned && <span className="text-sm truncate animate-in fade-in slide-in-from-left-4 duration-500">Mitteilungen</span>}
           </button>
 
           {(isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92') && (

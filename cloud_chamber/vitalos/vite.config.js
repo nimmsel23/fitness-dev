@@ -7,23 +7,23 @@ import { fileURLToPath } from 'url'
 const __dirname    = dirname(fileURLToPath(import.meta.url))
 const CC_ROOT      = resolve(__dirname, '..')
 const VITALOS_SRC  = resolve(__dirname, 'src')
-const FITNESS_SRC  = resolve(CC_ROOT, '../src')          // fitness-dev/src (SSOT)
-const JOURNAL_ROOT = resolve(__dirname, '../journal-vos')
-const LEARN_ROOT   = resolve(__dirname, '../learn-vos')
+const FITNESS_SRC  = resolve(CC_ROOT, '../src')          // fitness-dev/src
 const FUEL_ROOT    = resolve('/home/alpha/fuel-dev')
+const JOURNAL_DEV  = resolve('/home/alpha/journal-dev')  // journal-dev (Owner: Journal views)
+const HABITS_DEV   = resolve('/home/alpha/habits-dev')   // habits-dev  (Owner: Habits views)
+const LEARN_DEV    = resolve('/home/alpha/learn-dev')    // learn-dev   (Owner: Learn views)
+const JOURNAL_ROOT = resolve(__dirname, '../journal-vos') // Legacy @journal-vos alias
+const LEARN_ROOT   = resolve(__dirname, '../learn-vos')   // Legacy @learn-vos alias
 const BACKEND      = 'http://localhost:9100'
 
-// Context-aware @db resolver: journal+habits views → journal db, rest → vitalos db
-// Die Views kommen via Symlink aus fitness-dev/src/views/ (echter Pfad),
-// aber auch direkt aus journal-vos/src/ — beide Pfade abdecken.
+// Context-aware @db resolver: journal+habits views → journal-dev db, rest → vitalos db
 function journalDbPlugin(isFirebase) {
-  const journalDb = resolve(JOURNAL_ROOT, isFirebase ? 'src/db.firestore.js' : 'src/db.js')
+  const journalDb = resolve(JOURNAL_DEV, isFirebase ? 'src/db.js' : 'src/db.js')
   return {
     name: 'journal-db-resolver',
     resolveId(id, importer) {
       if (id !== '@db' || !importer) return
-      if (importer.includes('/journal-vos/')) return journalDb
-      // Symlink-aufgelöste Pfade: src/views/Journal/ und src/views/Habits/
+      if (importer.includes('/journal-dev/') || importer.includes('/habits-dev/')) return journalDb
       if (importer.includes('/src/views/Journal/') || importer.includes('/src/views/Habits/')) return journalDb
     },
   }
@@ -40,18 +40,22 @@ export default defineConfig(({ mode }) => {
     '@constants':  resolve(FITNESS_SRC, 'constants'),
     '@utils':      resolve(VITALOS_SRC, 'lib/utils.js'),
     '@db':         resolve(VITALOS_SRC, isFirebase ? 'db.firestore.js' : 'db.js'),
+    '@habits':     HABITS_DEV,
+    '@journal':    JOURNAL_DEV,
+    '@learn':      LEARN_DEV,
+    '@fitness':    resolve(FITNESS_SRC, '..'),
 
     // ── Tab Sources (eine Zeile = ein Tab, Herkunft sofort sichtbar) ───────────
-    '@view/dashboard':  resolve(VITALOS_SRC,  'shell/Dashboard.jsx'),        // vitalos-spezifisch
-    '@view/session':    resolve(FITNESS_SRC,  'views/Session'),            // fitness-dev
-    '@view/review':     resolve(FITNESS_SRC,   'views/WeeklyReview'),       // fitness-dev
-    '@view/muscles':    resolve(FITNESS_SRC,   'views/Muscles'),            // fitness-dev
-    '@view/learn':      resolve(FITNESS_SRC,  'views/Learn'),              // fitness-dev
-    '@view/journal':    resolve(FITNESS_SRC,  'views/Journal'),             // fitness-dev direkt
-    '@view/habits':     resolve(FITNESS_SRC,  'views/Habits'),              // fitness-dev direkt
-    '@view/settings':   resolve(VITALOS_SRC,  'shell/Settings'),           // vitalos-spezifisch
-    '@view/plan':       resolve(FITNESS_SRC,   'views/Plan'),               // fitness-dev
-    '@view/coach':      resolve(FITNESS_SRC,   'views/Coach'),              // fitness-dev
+    '@view/dashboard':  resolve(VITALOS_SRC,         'shell/Dashboard.jsx'),  // vitalos-spezifisch
+    '@view/session':    resolve(FITNESS_SRC,          'views/Session'),        // fitness-dev
+    '@view/review':     resolve(FITNESS_SRC,          'views/WeeklyReview'),   // fitness-dev
+    '@view/muscles':    resolve(FITNESS_SRC,          'views/Muscles'),        // fitness-dev
+    '@view/learn':      resolve(LEARN_DEV,            'src/views/Learn'),      // learn-dev
+    '@view/journal':    resolve(JOURNAL_DEV,          'src/views/Journal'),    // journal-dev
+    '@view/habits':     resolve(HABITS_DEV,           'src/views/Habits'),     // habits-dev
+    '@view/settings':   resolve(VITALOS_SRC,          'shell/Settings'),       // vitalos-spezifisch
+    '@view/plan':       resolve(FITNESS_SRC,          'views/Plan'),           // fitness-dev
+    '@view/coach':      resolve(FITNESS_SRC,          'views/Coach'),          // fitness-dev
 
     'journal/JournalApp': resolve(VITALOS_SRC, 'apps/JournalApp.jsx'),
     'learn/LearnApp':     resolve(VITALOS_SRC, 'apps/LearnApp.jsx'),

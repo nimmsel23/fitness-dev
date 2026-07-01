@@ -89,57 +89,6 @@ export default function SessionStatus({ plan, todaySession, recent, today, onNav
         </div>
       )}
 
-      {/* Letzte Sessions */}
-      {recentSessions.filter(s => s?.date !== today).length > 0 && (
-        <div className="space-y-4">
-          <h3 className="label-caps px-2">Verlauf</h3>
-          <div className="flex flex-col gap-3">
-            {recentSessions.filter(s => s?.date !== today).slice(0, 3).map((s, idx) => {
-              if (!s) return null;
-              const isActivity = s.sessionMode === 'cardio' || !!s.activity;
-              const actType = s.activity?.type;
-              const emoji = actType ? ACTIVITY_EMOJI[actType] : null;
-              const ActivityIcon = (!emoji && actType) ? (ACTIVITY_ICONS[actType] || Activity) : null;
-              const label = isActivity ? (ACTIVITY_LABELS[actType] || 'Ausdauer') : s.block;
-              const color = blockColor(s.block, s.activity, s.sessionMode);
-
-              return (
-                <button key={s.date || idx} onClick={() => onNavigate?.("session", s.date)}
-                  className="w-full text-left px-6 py-4 rounded-3xl bg-fit-card border border-fit-line cursor-pointer hover:border-accent/40 transition-all group hover:bg-accent/5">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 text-xl"
-                        style={{ background: color + '15', color: color }}>
-                        {isActivity && emoji
-                          ? emoji
-                          : isActivity && ActivityIcon
-                          ? <ActivityIcon size={22} />
-                          : <Dumbbell size={22} />}
-                      </div>
-                      <div>
-                        <div className="text-[10px] font-black opacity-30 uppercase tracking-widest mb-1">{s.date}</div>
-                        <div className="text-md font-black text-fit-ink group-hover:text-accent transition-colors">{label}</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      {isActivity ? (
-                        <div className="flex items-center gap-1.5 text-[11px] font-black text-fit-muted">
-                          <Timer size={12} className="opacity-30" />
-                          {s.activity.duration}m
-                        </div>
-                      ) : (
-                        <div className="text-[10px] font-black px-3 py-1.5 rounded-xl bg-fit-bg2 text-fit-muted uppercase tracking-widest border border-fit-line">
-                          {Array.isArray(s.exercises) ? s.exercises.length : 0} Ex
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

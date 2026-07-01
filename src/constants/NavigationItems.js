@@ -26,5 +26,5 @@ export const NAV_ITEMS = baseItems;
 export const VALID_TABS = new Set([
   ...baseItems.map(item => item.id),
   'coach',
-  'inbox'
+  'inbox',
 ]);

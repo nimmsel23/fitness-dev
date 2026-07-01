@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { CheckSquare, LogIn, Loader } from 'lucide-react'
 import { watchAuth, signIn, isLocalMode } from '@db'
-import Habits from '@src/views/Habits/index.jsx'
+import Habits from './views/Habits/index.jsx'
 
 export default function App() {
   const [user, setUser]     = useState(undefined)

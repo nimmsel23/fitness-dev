@@ -56,3 +56,10 @@ export async function signIn()                  { return { ok: true }; }
 export async function signInEmail(email, pw)    { return { ok: true }; }
 export async function signUpEmail(email, pw, n) { return { ok: true }; }
 export async function signOut()                 { return { ok: true }; }
+
+// Stubs mit Firebase-Parity — App.jsx + Plan/api.js erwarten auth + db Exports
+export const auth = {
+  currentUser: { displayName: "Local Host", email: "localhost", photoURL: null, uid: "local" },
+  authStateReady: async () => {},
+};
+export const db = null;

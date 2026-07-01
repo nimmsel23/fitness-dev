@@ -66,6 +66,14 @@ Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach
 
 ## Backend
 
+**server.py** (Port 9150): **FastAPI/uvicorn** — Prod/Tailscale Backend (parallel zu server.mjs)
+- Läuft NEBEN server.mjs, ist KEIN Ersatz. server.mjs bleibt der Vite-Proxy-Target (:9100).
+- Direktimports aus `fitness_agent` + `anatomy_kb` — kein HTTP-Proxy zu :9120
+- Alle API-Routen: sessions, journal, body, exercises, coverage, plan, weekly, exports, firestore, habitsync
+- Port: `FITNESS_PYTHON_PORT` env (default 9150)
+- Starten: `python3 server.py serve` oder via `fitness-devctl start --no-node`
+- Service: `fitness-python-backend.service`
+
 **server.mjs** (Port 9100): **Hono**-Server (`@hono/node-server`)
 - API-Routen: `/session`, `/journal`, `/exercises/search`, `/coverage`, `/fitness/plan`, `/fitness/weekly`, `/fitness/export`, `/fitness/body`
 - Static-Serving (dist/ oder public/) + SPA-Fallback
@@ -490,8 +498,9 @@ anatomy-kb/muscles/            — Muskel-Layer (origin, insertion, innervation)
 
 ## Status
 
-- ✅ Backend + API (Node.js, Port 9100)
-- ✅ fitness_agent Server (:9120, aiohttp)
+- ✅ Backend + API (Node.js, Port 9100) — server.mjs, Frontend-Dev-Server (Vite proxy target)
+- ✅ Python Backend (FastAPI, Port 9150) — server.py, Prod/Tailscale Backend, parallel zu server.mjs
+- ✅ fitness_agent Server (:9120, aiohttp) — wird archiviert sobald server.py verifiziert
 - ✅ Frontend Views (Dashboard, Session, Journal, Muscles, Learn, Weekly, Habits, Settings, Inbox)
 - ✅ Swipe-Navigation + Gym Mode (layout scaling)
 - ✅ Shared src/ für lokal + PWA (via @src Alias)

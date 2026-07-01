@@ -1,0 +1,3 @@
+[console_scripts]
+fitness-agent = fitness_agent.cli:main
+fitness-agent-server = fitness_agent.server:main

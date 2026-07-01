@@ -1,1 +1,1 @@
-../../../../../src/lib/db/habits.js
+export * from '@habits/src/lib/db/habits.js';

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { GraduationCap, LogIn, Loader } from 'lucide-react'
 import { watchAuth, signIn, isLocalMode } from '@db'
-import Learn from '@src/views/Learn/index.jsx'
+import Learn from './views/Learn/index.jsx'
 
 export default function App() {
   const [user, setUser]       = useState(undefined)

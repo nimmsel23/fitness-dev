@@ -68,9 +68,37 @@ Systemd (user-scope):
 
 **Rolle:** Frontend-Dev-Server. Bleibt als Vite-Proxy-Target. Wird langfristig durch server.py abgelöst.
 
-**Dual-write:** `POST /session` schreibt JSON-File + SQLite synchron (better-sqlite3).
+**Session-Write-Flow:**
+```
+Frontend POST /session
+  → server.mjs schreibt JSON-File (~/.aos/fitness/users/{uid}/sessions/YYYY-MM-DD.json)
+  → better-sqlite3 synchron (lokaler Fallback, läuft immer)
+  → notifyPythonSync() fire-and-forget → POST :9150/internal/sync/session
+      → sync_gateway.sync_session() → SQLAlchemy ORM → training_history.sqlite
+```
+
+JSON-File = Source of Truth. SQLite = strukturierte, querybare Kopie für Analyse.
 
 **Proxies:** wger (:8000), HabitSync (:6842)
+
+---
+
+## Python-Packages (Root-Level)
+
+| Package | Pfad | Rolle |
+|---------|------|-------|
+| `fitness_agent/` | `~/fitness-dev/fitness_agent/` | KB Tool-Set: resolver, planner, coverage, weekly, obsidian, sync_gateway |
+| `firestore_kb/` | `~/fitness-dev/firestore_kb/` | Shared Firestore-Primitives: batch_write, fetch_hashes, compute_hash |
+| `firestore/` | `~/fitness-dev/firestore/` | User-Data Mirror: mirror_session, mirror_journal, pull, push |
+| `fitness_cli/` | `~/fitness-dev/fitness_cli/` | CLI + TUI: fitness-log, fitness-tui (liest direkt aus JSON, kein Server nötig) |
+| `db/` | `~/fitness-dev/db/` | SQLAlchemy: engine, SessionLocal, Base, models.py, schemas.py |
+
+**`fitness_agent/sync_gateway.py`** — Session → SQLite Brücke:
+- `sync_session(day, session)` — von server.py `_sync_session_to_db()` und `POST /internal/sync/session` genutzt
+- `sync_from_file(path)` — einzelnes JSON-File einlesen
+- `sync_directory(dir)` — Bulk-Sync aller vorhandenen Sessions
+- CLI: `python -m fitness_agent.sync_gateway watch` — Watchdog-Filewatcher (synct on-write)
+- CLI: `python -m fitness_agent.sync_gateway bulk` — einmalige Synchronisation aller JSON-Files
 
 ---
 
@@ -78,8 +106,6 @@ Systemd (user-scope):
 
 ```
 catalog/
-├── fitness_agent/          Python Tool-Set (resolver, planner, coverage, weekly, obsidian, …)
-├── firestore_kb/           Shared Firestore-Primitives für KB-Sync (batch_write, fetch_hashes, …)
 ├── kb/
 │   ├── exercises/          Exercise-YAMLs (canonical IDs)
 │   ├── anatomy_teaching/   Anatomie-YAMLs (Ursprung, Ansatz, Innervation)
@@ -122,16 +148,32 @@ anatomy-kb/
 
 ## Daten (`~/.aos/fitness/`)
 
-| Pfad | Inhalt | Schreiber |
-|------|--------|-----------|
-| `sessions/YYYY-MM-DD.json` | Session-Logs | server.py · server.mjs |
-| `sessions/training_history.sqlite` | SQLite Mirror | server.py (SQLAlchemy) · server.mjs (better-sqlite3) |
+| Pfad | Inhalt | Schreiber (SOT) |
+|------|--------|-----------------|
+| `users/{uid}/sessions/YYYY-MM-DD.json` | Session-Logs | server.mjs (JSON-SOT) |
+| `users/{uid}/sessions/training_history.sqlite` | Querybare Session-Kopie | `sync_gateway` via SQLAlchemy |
 | `journal/YYYY-MM-DD.md` | Text-Notizen | server.py |
 | `body/YYYY-MM-DD.json` | Körpermessungen | server.py |
 | `plan.json` | Aktiver Trainingsplan | server.py |
 | `theme.json` | UI-Theme-Präferenz | server.py |
-| `users/{uid}/sessions/` | Multi-User Sessions | server.py |
-| `sessions/training_history.sqlite` | SQL Mirror | SQLAlchemy (server.py) |
+
+**training_history.sqlite Schema** (verwaltet via Alembic):
+```sql
+-- Jede Exercise-Zeile einer Session als eigene Row
+date | session_id | workout_id (block) | exercise_id | display_name
+sets | reps | weight | rpe | done | notes | completion_status
+```
+
+**Wofür die SQLite nützlich ist** (JSON-Parsing entfällt):
+```sql
+-- Progression einer Übung über Zeit
+SELECT date, weight, reps FROM training_history
+WHERE exercise_id = 'barbell_bench' AND done = 1 ORDER BY date;
+
+-- Volumen pro Trainingsblock
+SELECT workout_id, COUNT(*) as exercises, SUM(sets * reps) as total_reps
+FROM training_history WHERE done = 1 GROUP BY workout_id;
+```
 
 ---
 
@@ -180,8 +222,8 @@ yuhonas (free-exercise-db)   — Bilder, Varianten, alternative Namen
 
 | Was | Wo | Status |
 |-----|----|--------|
-| SQLAlchemy ORM | `db/models.py` + `server.py` | in Arbeit |
-| Alembic Migrations | `alembic/` | in Arbeit |
+| Firestore on_snapshot → SQLite | `firestore/` + `sync_gateway` | geplant (siehe unten) |
 | Bridge-Handler `/fitness-backend` | `~/aos-dev/handlers/fitness.py` | geplant |
 | Tailscale Funnel | root → Bridge :9080 | reset, neu einzurichten |
 | fitness_agent/server.py archivieren | `archive/` | nach server.py Verifikation |
+| Pydantic response_model auf alle Endpoints | `server.py` | teilweise (health, session, coverage) |
