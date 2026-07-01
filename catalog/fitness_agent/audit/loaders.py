@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..loader import load_catalog_yaml, load_catalog_directory_yaml
-from ..coverage import load_body_highlighter_bridge
+from ..loader import load_catalog_yaml, load_catalog_directory_yaml, catalog_path
 from ..teaching import parse_lesson_document
 
 
@@ -39,26 +38,12 @@ def load_aliases_document() -> dict[str, Any] | None:
 
 
 def load_body_regions() -> set[str] | None:
-    """Gibt None zurück wenn body_highlighter_bridge nicht existiert oder deaktiviert ist."""
-    try:
-        document = load_catalog_yaml("muscles/body_highlighter_bridge.yml")
-    except FileNotFoundError:
-        return None
-    if isinstance(document, dict):
-        bridge_section = document.get("bridge", {})
-        if isinstance(bridge_section, dict) and not bridge_section.get("enabled", False):
-            return None
-    bridge = load_body_highlighter_bridge()
+    """Gibt die gültigen Body-Regionen aus den {region}.yml Index-Dateien zurück."""
+    region_dir = catalog_path("muscles")
+    skip = {"muscle_index", "muscle_coverage_rules"}
     regions: set[str] = set()
-    for value in bridge.values():
-        if isinstance(value, list):
-            for item in value:
-                if isinstance(item, str) and item.strip():
-                    regions.add(item.strip())
-    if isinstance(document, dict):
-        bridge_section = document.get("bridge", {})
-        if isinstance(bridge_section, dict):
-            for item in bridge_section.get("body_regions", []):
-                if isinstance(item, str) and item.strip():
-                    regions.add(item.strip())
-    return regions
+    for yml_file in region_dir.glob("*.yml"):
+        if yml_file.name.startswith("_") or yml_file.stem in skip:
+            continue
+        regions.add(yml_file.stem)
+    return regions if regions else None

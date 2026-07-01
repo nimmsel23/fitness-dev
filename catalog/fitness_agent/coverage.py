@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
-from .loader import load_catalog_yaml
+from .loader import load_catalog_yaml, iter_catalog_yaml_files, catalog_path
 from .resolver import build_exercise_index, resolve_query
 
 ROLE_WEIGHTS = {
@@ -24,7 +24,7 @@ def calculate_coverage(exercise_query: str, sets: int, rpe: int) -> dict[str, An
 
     taxonomy = load_muscle_taxonomy()
     alias_map = build_muscle_alias_map(taxonomy)
-    bridge = load_body_highlighter_bridge()
+    region_index = load_muscle_region_index()
     rules = load_coverage_rules()
     effort_factor = effort_factor_for_rpe(rpe, rules)
 
@@ -37,7 +37,7 @@ def calculate_coverage(exercise_query: str, sets: int, rpe: int) -> dict[str, An
     unmapped_muscles: list[str] = []
 
     for muscle_id, score in muscle_scores.items():
-        regions = muscle_regions(muscle_id, taxonomy, bridge)
+        regions = muscle_regions(muscle_id, region_index)
         if regions:
             for region in regions:
                 body_region_scores[region] += score
@@ -134,30 +134,29 @@ def load_coverage_rules() -> dict[str, Any]:
     return {}
 
 
-def load_body_highlighter_bridge() -> dict[str, list[str]]:
-    # Bridge file is optional — body_region is already present in individual muscle YAMLs
-    try:
-        bridge = load_catalog_yaml("muscles/body_highlighter_bridge.yml")
-    except FileNotFoundError:
-        return {}
-    if not isinstance(bridge, dict):
-        return {}
-    raw_bridge = bridge.get("bridge", bridge)
-    if not isinstance(raw_bridge, dict):
-        return {}
-    mapping = raw_bridge.get("muscle_to_region", {})
-    if not isinstance(mapping, dict):
-        return {}
-    result: dict[str, list[str]] = {}
-    for muscle_id, region in mapping.items():
-        if not isinstance(muscle_id, str):
+def load_muscle_region_index() -> dict[str, str]:
+    """Baut muscle_id → region_name aus den {region}.yml Index-Dateien.
+
+    chest.yml / arms.yml / back.yml etc. sind der kanonische Index — der
+    Dateiname ist die Region, die muscles-Liste der Inhalt.
+    """
+    region_dir = catalog_path("muscles")
+    result: dict[str, str] = {}
+    for yml_file in sorted(region_dir.glob("*.yml")):
+        if yml_file.name.startswith("_") or yml_file.stem in (
+            "muscle_index", "muscle_coverage_rules"
+        ):
             continue
-        if isinstance(region, str) and region.strip():
-            result[muscle_id] = [region.strip()]
-        elif isinstance(region, list):
-            regions = [item.strip() for item in region if isinstance(item, str) and item.strip()]
-            if regions:
-                result[muscle_id] = regions
+        try:
+            doc = load_catalog_yaml(f"muscles/{yml_file.name}")
+        except Exception:
+            continue
+        if not isinstance(doc, dict):
+            continue
+        region_name = yml_file.stem  # "arms", "chest", "back", ...
+        for muscle_id in doc.get("muscles", []):
+            if isinstance(muscle_id, str):
+                result[muscle_id] = region_name
     return result
 
 
@@ -174,13 +173,6 @@ def effort_factor_for_rpe(rpe: int, rules: dict[str, Any]) -> float:
     return float(default_factor) if isinstance(default_factor, (int, float)) else 1.0
 
 
-def muscle_regions(muscle_id: str, taxonomy: dict[str, dict[str, Any]], bridge: dict[str, list[str]]) -> list[str]:
-    if muscle_id in bridge:
-        return bridge[muscle_id]
-    muscle = taxonomy.get(muscle_id)
-    if not muscle:
-        return []
-    region = muscle.get("body_region")
-    if isinstance(region, str) and region.strip():
-        return [region.strip()]
-    return []
+def muscle_regions(muscle_id: str, region_index: dict[str, str]) -> list[str]:
+    region = region_index.get(muscle_id)
+    return [region] if region else []

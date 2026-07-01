@@ -36,16 +36,9 @@ def extract_region_values(value: Any) -> list[str]:
     return regions
 
 
-def muscle_regions(muscle_id: str, taxonomy: dict[str, dict[str, Any]], bridge: dict[str, list[str]]) -> list[str]:
-    if muscle_id in bridge:
-        return bridge[muscle_id]
-    muscle = taxonomy.get(muscle_id)
-    if not muscle:
-        return []
-    region = muscle.get("body_region")
-    if isinstance(region, str) and region.strip():
-        return [region.strip()]
-    return []
+def muscle_regions(muscle_id: str, region_index: dict[str, str]) -> list[str]:
+    region = region_index.get(muscle_id)
+    return [region] if region else []
 
 
 def count_aliases_per_exercise(raw_aliases: dict[Any, Any], exercise_ids: set[str]) -> dict[str, int]:

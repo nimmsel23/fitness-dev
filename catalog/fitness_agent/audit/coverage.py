@@ -3,7 +3,7 @@ from __future__ import annotations
 from ..coverage import (
     calculate_coverage,
     load_coverage_rules,
-    load_body_highlighter_bridge,
+    load_muscle_region_index,
     load_muscle_taxonomy,
     normalize_muscle_id,
 )
@@ -17,7 +17,7 @@ def run_coverage_audit() -> AuditReport:
     lines: list[AuditLine] = []
     exercise_index = build_exercise_index()
     taxonomy = load_muscle_taxonomy()
-    bridge = load_body_highlighter_bridge()
+    region_index = load_muscle_region_index()
     rules = load_coverage_rules()
 
     role_weights = rules.get("role_weights", {})
@@ -48,19 +48,19 @@ def run_coverage_audit() -> AuditReport:
             norm_id = normalize_muscle_id(muscle)
             if norm_id not in taxonomy:
                 exercise_failures.append(f"{exercise.exercise_id} unknown primary muscle: {muscle}")
-            elif not muscle_regions(norm_id, taxonomy, bridge):
+            elif not muscle_regions(norm_id, region_index):
                 exercise_failures.append(f"{exercise.exercise_id} primary muscle has no body region: {muscle}")
         for muscle in (exercise.secondary_muscles or []):
             norm_id = normalize_muscle_id(muscle)
             if norm_id not in taxonomy:
                 exercise_failures.append(f"{exercise.exercise_id} unknown secondary muscle: {muscle}")
-            elif not muscle_regions(norm_id, taxonomy, bridge):
+            elif not muscle_regions(norm_id, region_index):
                 exercise_failures.append(f"{exercise.exercise_id} secondary muscle has no body region: {muscle}")
         for muscle in (exercise.stabilizers or []):
             norm_id = normalize_muscle_id(muscle)
             if norm_id not in taxonomy:
                 exercise_failures.append(f"{exercise.exercise_id} unknown stabilizer: {muscle}")
-            elif not muscle_regions(norm_id, taxonomy, bridge):
+            elif not muscle_regions(norm_id, region_index):
                 exercise_failures.append(f"{exercise.exercise_id} stabilizer has no body region: {muscle}")
 
         try:
@@ -73,7 +73,7 @@ def run_coverage_audit() -> AuditReport:
             zero_coverage.append(exercise.exercise_id)
 
         for muscle_id, score in sample["muscle_scores"].items():
-            if score > 0 and muscle_id in taxonomy and not muscle_regions(muscle_id, taxonomy, bridge):
+            if score > 0 and muscle_id in taxonomy and not muscle_regions(muscle_id, region_index):
                 exercise_failures.append(f"{exercise.exercise_id} muscle has no body region: {muscle_id}")
 
         if body_regions is not None:
@@ -98,7 +98,7 @@ def run_coverage_audit() -> AuditReport:
 def audit_coverage() -> CoverageAuditResult:
     exercise_index = build_exercise_index()
     taxonomy = load_muscle_taxonomy()
-    bridge = load_body_highlighter_bridge()
+    region_index = load_muscle_region_index()
     rules = load_coverage_rules()
     body_regions = load_body_regions()
 
@@ -150,7 +150,7 @@ def audit_coverage() -> CoverageAuditResult:
             region
             for exercise in exercise_index
             for muscle in (exercise.primary_muscles or []) + (exercise.secondary_muscles or []) + (exercise.stabilizers or [])
-            for region in muscle_regions(normalize_muscle_id(muscle), taxonomy, bridge)
+            for region in muscle_regions(normalize_muscle_id(muscle), region_index)
             if body_regions is not None and region not in body_regions
         }
     )
