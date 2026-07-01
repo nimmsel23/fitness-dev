@@ -45,10 +45,18 @@ if _FUEL_DEV.exists():
 # ── DB Layer (SQLAlchemy + Alembic) ──────────────────────────────────────────
 from db import SessionLocal, engine, Base
 from db.models import TrainingHistory
+from db.schemas import (
+    HealthResponse, SessionResponse, SessionHistoryResponse,
+    JournalResponse, BodyResponse,
+    ExerciseSearchResponse,
+    CoverageDetailedResponse, CoverageAnatomyResponse, CoverageGapsResponse,
+    MusclesResponse, SyncRequest, SyncResponse,
+)
 import sqlalchemy as sa
 
 # ── fitness_agent imports ─────────────────────────────────────────────────────
 from fitness_agent.paths import runtime_root
+from fitness_agent.sync_gateway import sync_session as _gw_sync
 from fitness_agent.resolver import build_exercise_index, resolve_query, find_by_id
 from fitness_agent.teaching import find_lesson
 from fitness_agent.planner import build_plan
@@ -151,38 +159,7 @@ def _last_dates(n: int) -> list[str]:
     return [(today - timedelta(days=i)).isoformat() for i in range(n - 1, -1, -1)]
 
 def _sync_session_to_db(day: str, session: dict, session_id: str | None = None) -> None:
-    block = session.get("block", "")
-    sid   = session_id or session.get("session_id")
-    with SessionLocal() as db:
-        # Vorherige Einträge für diesen Tag/Session löschen (idempotent)
-        if sid:
-            db.execute(sa.delete(TrainingHistory).where(
-                TrainingHistory.date == day,
-                TrainingHistory.session_id == sid,
-            ))
-        else:
-            db.execute(sa.delete(TrainingHistory).where(
-                TrainingHistory.date == day,
-                sa.or_(TrainingHistory.session_id.is_(None), TrainingHistory.session_id == ""),
-            ))
-        db.add_all([
-            TrainingHistory(
-                date              = day,
-                session_id        = sid,
-                workout_id        = block,
-                exercise_id       = ex.get("exercise_id") or ex.get("id", ""),
-                display_name      = ex.get("name") or ex.get("exercise_id") or ex.get("id", ""),
-                sets              = int(ex.get("sets") or 0),
-                reps              = int(ex.get("reps") or 0),
-                weight            = float(ex.get("weight") or 0),
-                rpe               = int(ex.get("rpe") or 0),
-                done              = 1 if ex.get("done") else 0,
-                notes             = ex.get("note", ""),
-                completion_status = "completed" if ex.get("done") else "pending",
-            )
-            for ex in session.get("exercises", [])
-        ])
-        db.commit()
+    _gw_sync(day, session, session_id=session_id)
 
 def _freeze_snapshot(session: dict) -> dict:
     """Stellt sicher dass jede Session self-contained ist (snapshot_version=1)."""
@@ -268,7 +245,11 @@ except ImportError:
 # ══════════════════════════════════════════════════════════════════════════════
 # App
 # ══════════════════════════════════════════════════════════════════════════════
-app = FastAPI(title="fitness-dev", version="2.0.0")
+app = FastAPI(
+    title="fitness-dev Python Backend",
+    version="2.0.0",
+    description="Prod/Tailscale Backend + lokaler SQLite-Layer. server.mjs (:9100) bleibt Frontend-Dev-Server.",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -280,19 +261,36 @@ app.add_middleware(
 # ══════════════════════════════════════════════════════════════════════════════
 # Health
 # ══════════════════════════════════════════════════════════════════════════════
-@app.get("/health")
+@app.get("/health", response_model=HealthResponse)
 def health():
-    return {"ok": True, "port": PORT, "runtime": str(RUNTIME)}
+    return HealthResponse(ok=True, port=PORT, runtime=str(RUNTIME))
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Internal Sync — von server.mjs aufgerufen (fire-and-forget)
+# ══════════════════════════════════════════════════════════════════════════════
+@app.post("/internal/sync/session", response_model=SyncResponse)
+async def internal_sync_session(body: SyncRequest):
+    """
+    server.mjs ruft diesen Endpoint nach jedem POST /session auf.
+    Python ist damit der einzige SQLite-Schreiber (via SQLAlchemy/sync_gateway).
+    Idempotent — kann beliebig oft aufgerufen werden.
+    """
+    try:
+        n = _gw_sync(body.date, body.session, session_id=body.session_id)
+        return SyncResponse(ok=True, synced=n, date=body.date)
+    except Exception as exc:
+        logger.error(f"internal_sync_session {body.date}: {exc}")
+        raise HTTPException(500, detail=str(exc))
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Sessions
 # ══════════════════════════════════════════════════════════════════════════════
-@app.get("/session")
+@app.get("/session", response_model=SessionResponse)
 def session_get(request: Request, date_: str = Query(None, alias="date"), id: str | None = None):
     uid  = _uid_from_request(request)
     day  = date_ or _today()
     data = _read_json(_session_file(uid, day, id))
-    return {"ok": True, "data": data}
+    return SessionResponse(ok=True, session=data, date=day)
 
 @app.post("/session")
 async def session_post(request: Request, date_: str = Query(None, alias="date"), id: str | None = None):
@@ -616,7 +614,7 @@ def fitness_weekly(week: str = "current"):
 # ══════════════════════════════════════════════════════════════════════════════
 # Coverage
 # ══════════════════════════════════════════════════════════════════════════════
-@app.get("/coverage/detailed")
+@app.get("/coverage/detailed", response_model=CoverageDetailedResponse)
 def coverage_detailed(request: Request, days: int = Query(7, le=90, ge=1)):
     uid  = _uid_from_request(request)
     hits = _coverage_hits(uid, days)
@@ -632,7 +630,7 @@ def coverage_detailed(request: Request, days: int = Query(7, le=90, ge=1)):
         })
     return {"ok": True, "days": days, "muscles": result}
 
-@app.get("/coverage/anatomy")
+@app.get("/coverage/anatomy", response_model=CoverageAnatomyResponse)
 def coverage_anatomy(request: Request, days: int = Query(7, le=90, ge=1)):
     uid      = _uid_from_request(request)
     sess_dir = SESS_ROOT / uid / "sessions"
@@ -665,7 +663,7 @@ def coverage_anatomy(request: Request, days: int = Query(7, le=90, ge=1)):
     out = pivot[["muscle", "name_en", "primaryHits", "secondaryHits", "totalScore"]].rename(columns={"muscle": "id"}).to_dict("records")
     return {"ok": True, "days": days, "muscles": out}
 
-@app.get("/coverage/gaps")
+@app.get("/coverage/gaps", response_model=CoverageGapsResponse)
 def coverage_gaps(request: Request, days: int = Query(7, le=90, ge=1)):
     uid      = _uid_from_request(request)
     hits     = _coverage_hits(uid, days)

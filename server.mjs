@@ -22,8 +22,10 @@ const DATA_DIR   = path.join(os.homedir(), ".aos", "users", FITNESS_UID, "fitnes
 const PUBLIC_DIR = path.join(__dirname, "public");
 const DIST_DIR   = path.join(__dirname, "dist");
 const STATIC_DIR = process.env.FITNESS_STATIC_DIR ? path.resolve(process.env.FITNESS_STATIC_DIR) : (fs.existsSync(DIST_DIR) ? DIST_DIR : PUBLIC_DIR);
-const PORT = Number(process.env.PORT || 9100);
-const HOST = process.env.HOST || "127.0.0.1";
+const PORT       = Number(process.env.PORT || 9100);
+const HOST       = process.env.HOST || "127.0.0.1";
+const PYTHON_PORT = Number(process.env.FITNESS_PYTHON_PORT || 9150);
+const PYTHON_BASE = `http://127.0.0.1:${PYTHON_PORT}`;
 const WGER_TOKEN = process.env.WGER_API_TOKEN || process.env.WGER_TOKEN || "92d9ea44fc0ac065e336e9ec443a196c40c68afe";
 const WGER_BASE  = process.env.WGER_BASE || "http://127.0.0.1/api/v2";
 const BODY_DIR = path.join(DATA_DIR, "body");
@@ -93,6 +95,20 @@ function syncSessionToDb(date, session) {
       });
     }
   })();
+}
+
+// ── Python sync_gateway — fire-and-forget nach Session-Write ─────────────────
+async function notifyPythonSync(date, session, uid = "default", sessionId = null) {
+  try {
+    await fetch(`${PYTHON_BASE}/internal/sync/session`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, session, uid, session_id: sessionId }),
+      signal: AbortSignal.timeout(3000),
+    });
+  } catch {
+    // fire-and-forget — Python-Backend nicht zwingend erreichbar
+  }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -642,7 +658,8 @@ app.post("/session", async (c) => {
   const data    = await c.req.json().catch(() => ({}));
   const session = freezeSnapshot({ ...data, date, session_id: id, saved_at: new Date().toISOString() });
   writeJson(file, session);
-  syncSessionToDb(date, session);
+  syncSessionToDb(date, session);          // better-sqlite3 (lokal, synchron)
+  notifyPythonSync(date, session, uid, id); // SQLAlchemy via Python (async, fire-and-forget)
   mirrorSession(date, session, uid);
   return c.json({ ok: true, id });
 });

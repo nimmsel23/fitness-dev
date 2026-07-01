@@ -6,19 +6,37 @@ from pathlib import Path
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
 
+
+def _load_env(path: Path) -> None:
+    if not path.exists():
+        return
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, val = line.partition("=")
+        key = key.strip()
+        if key and key not in os.environ:
+            os.environ[key] = val.strip()
+
+
+_load_env(Path.home() / "fitness" / ".env")
+
 def _resolve_data_dir() -> Path:
     override = os.environ.get("FITNESS_AGENT_KB", "").strip()
     if override:
         return Path(override).expanduser()
-    # fitness_agent/ liegt im Root von fitness-dev → fitness-dev/catalog/kb/
+    # Source-Install: fitness_agent/ ist Geschwister von catalog/ → catalog/kb/
     candidate = PACKAGE_ROOT.parent / "catalog" / "kb"
     if candidate.exists():
         return candidate
-    # Fallback: Legacy-Position innerhalb catalog/
-    fallback = PACKAGE_ROOT.parent / "kb"
-    if fallback.exists():
-        return fallback
-    return candidate  # Pfad zurückgeben auch wenn nicht vorhanden (klarerer Fehler)
+    # Legacy: fitness_agent/ liegt innerhalb catalog/ → catalog/kb/
+    legacy = PACKAGE_ROOT.parent / "kb"
+    if legacy.exists():
+        return legacy
+    # uv tool install: kb liegt in ~/fitness-dev/catalog/kb/
+    fallback = Path.home() / "fitness-dev" / "catalog" / "kb"
+    return fallback
 
 DATA_DIR = _resolve_data_dir()
 

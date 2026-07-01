@@ -32,7 +32,7 @@ fitness-agent-server = "fitness_agent.server:main"
 include-package-data = true
 
 [tool.setuptools.packages.find]
-where = ["catalog"]
+where = ["."]
 include = ["fitness_agent*", "firestore_kb*"]
 
 [tool.setuptools.package-data]
