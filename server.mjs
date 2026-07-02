@@ -349,7 +349,7 @@ app.get("/exercises/by-group", async (c) => {
 app.get("/exercise/:id/teaching", async (c) => {
   const id = c.req.param("id");
   try {
-    const res = await fetch(`http://localhost:9120/exercise/${id}`);
+    const res = await fetch(`${PYTHON_BASE}/exercise/${id}`);
     const data = await res.json();
     if (!data || !data.lesson) return c.json({ ok: false, error: "no_lesson" }, 404);
     return c.json({ ok: true, lesson: data.lesson });
@@ -454,7 +454,7 @@ app.get("/fitness/exercises/all", (c) => {
 
 app.get("/fitness/muscles", async (c) => {
   try {
-    const res = await fetch("http://localhost:9120/muscles");
+    const res = await fetch(`${PYTHON_BASE}/fitness/muscles`);
     return c.json(await res.json());
   } catch (err) {
     return c.json({ ok: false, error: "agent_unreachable" }, 502);
@@ -464,7 +464,7 @@ app.get("/fitness/muscles", async (c) => {
 app.get("/fitness/muscles/:id", async (c) => {
   const id = c.req.param("id");
   try {
-    const res = await fetch("http://localhost:9120/muscles");
+    const res = await fetch(`${PYTHON_BASE}/fitness/muscles`);
     const data = await res.json();
     const muscle = data.muscles?.[id];
     if (!muscle) return c.json({ ok: false, error: "not_found" }, 404);
