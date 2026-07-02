@@ -15,7 +15,7 @@
     "lint": "eslint src/ --ext .js,.jsx",
     "build": "npm run lint && vite build && node scripts/snapshot.mjs dist",
     "build:preview": "vite build --mode firebase --outDir dist-firebase && node scripts/snapshot.mjs dist-firebase && firebase hosting:channel:deploy preview --expires 24h",
-    "build:firebase": "node scripts/check-prevent-prod-deploy.mjs && node scripts/bump-sw.mjs && vite build --mode firebase --outDir dist-firebase && node scripts/snapshot.mjs dist-firebase && firebase deploy --only hosting,firestore:rules,firestore:indexes",
+    "build:firebase": "node scripts/check-prevent-prod-deploy.mjs && node scripts/bump-sw.mjs && vite build --mode firebase --outDir dist-firebase && node scripts/snapshot.mjs dist-firebase",
     "preview:firebase": "firebase hosting:channel:deploy preview --expires 1h",
     "deploy:firebase": "node scripts/check-prevent-prod-deploy.mjs && firebase deploy --only hosting,firestore:rules,firestore:indexes",
     "deploy": "node scripts/deploy-runner.mjs",
