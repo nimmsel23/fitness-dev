@@ -73,8 +73,12 @@ export default defineConfig(({ mode }) => {
     base: '/',
     plugins: [react(), journalDbPlugin(isFirebase), ...federationPlugin],
     resolve: {
-      alias: aliases,
-      dedupe: ['react', 'react-dom', '@tanstack/react-query'],
+      alias: {
+        ...aliases,
+        // habits-dev / journal-dev haben kein eigenes node_modules → aus fitness-dev auflösen
+        'lucide-react': resolve('/home/alpha/fitness-dev/node_modules/lucide-react'),
+      },
+      dedupe: ['react', 'react-dom', '@tanstack/react-query', 'lucide-react'],
     },
     css: {
       postcss: {

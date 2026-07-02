@@ -63,6 +63,12 @@
    3. GLOBAL STYLES: Base element styling using the variables
    ========================================================================== */
 
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+}
+
 .alpha-glass {
   background: var(--glass);
   backdrop-filter: blur(24px);

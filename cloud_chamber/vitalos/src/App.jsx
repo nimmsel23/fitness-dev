@@ -227,7 +227,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="flex min-h-screen bg-fit-bg text-fit-ink font-sans transition-colors duration-500">
+      <div className="flex min-h-screen overflow-x-hidden w-full bg-fit-bg text-fit-ink font-sans transition-colors duration-500">
         <Sidebar tab={tab} navigate={navigate} pinned={sidebarPinned} setPinned={setSidebarPinned} user={user}
           subNav={SUB_NAV[tab] || null}
           subTab={tab === 'fitness' ? fitnessTab : tab === 'fuel' ? fuelTab : null}
@@ -243,7 +243,7 @@ export default function App() {
           </button>
         </Sidebar>
 
-        <div className={`flex-1 transition-all duration-500 ease-in-out ${sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
+        <div className={`flex-1 min-w-0 transition-all duration-500 ease-in-out ${sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
           {mobileLayout === 'fuel' ? (
             <>
               {/* Desktop: klassisches Layout */}
