@@ -385,33 +385,48 @@ app.get("/fitness/clients", (c) => {
 
 app.get("/fitness/inbox", async (c) => {
   try {
-    const res = await fetch("http://localhost:9120/inbox");
+    const res = await fetch(`${PYTHON_BASE}/fitness/inbox`);
     const data = await res.json();
     return c.json(data);
   } catch (err) {
-    return c.json({ ok: false, error: "agent_unreachable" }, 502);
+    return c.json({ ok: false, error: "python_unreachable" }, 502);
+  }
+});
+
+app.post("/fitness/inbox/queue", async (c) => {
+  try {
+    const body = await c.req.json();
+    const res = await fetch(`${PYTHON_BASE}/fitness/inbox/queue`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    return c.json(data, res.status);
+  } catch (err) {
+    return c.json({ ok: false, error: "python_unreachable" }, 502);
   }
 });
 
 app.post("/fitness/inbox/:id/approve", async (c) => {
   const id = c.req.param("id");
   try {
-    const res = await fetch(`http://localhost:9120/inbox/${id}/approve`, { method: "POST" });
+    const res = await fetch(`${PYTHON_BASE}/fitness/inbox/${id}/approve`, { method: "POST" });
     const data = await res.json();
     return c.json(data, res.status);
   } catch (err) {
-    return c.json({ ok: false, error: "agent_unreachable" }, 502);
+    return c.json({ ok: false, error: "python_unreachable" }, 502);
   }
 });
 
 app.delete("/fitness/inbox/:id", async (c) => {
   const id = c.req.param("id");
   try {
-    const res = await fetch(`http://localhost:9120/inbox/${id}`, { method: "DELETE" });
+    const res = await fetch(`${PYTHON_BASE}/fitness/inbox/${id}`, { method: "DELETE" });
     const data = await res.json();
     return c.json(data, res.status);
   } catch (err) {
-    return c.json({ ok: false, error: "agent_unreachable" }, 502);
+    return c.json({ ok: false, error: "python_unreachable" }, 502);
   }
 });
 

@@ -1,1 +1,1 @@
-export * from '@journal/src/lib/db/journal.js';
+export * from '@journal/lib/db/journal.js';

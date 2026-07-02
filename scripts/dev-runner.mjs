@@ -1,5 +1,6 @@
 // Starts both the API server and Vite in parallel for dev mode.
 import { spawn } from 'child_process'
+import { createConnection } from 'net'
 
 function run(cmd, args, env = {}) {
   const p = spawn(cmd, args, {
@@ -11,9 +12,29 @@ function run(cmd, args, env = {}) {
   return p
 }
 
-const agent = run('python3', ['-m', 'fitness_agent.server'], { PYTHONPATH: 'catalog' })
-const api   = run('node', ['node_modules/.bin/nodemon', '--watch', 'server.mjs', '--ext', 'mjs', '--signal', 'SIGTERM', 'server.mjs'])
-const vite  = run('node', ['node_modules/.bin/vite'], { VITE_API_BASE: '' })
+function portInUse(port) {
+  return new Promise(resolve => {
+    const c = createConnection({ port, host: '127.0.0.1' })
+    c.on('connect', () => { c.destroy(); resolve(true) })
+    c.on('error',   () => resolve(false))
+  })
+}
 
-process.on('SIGTERM', () => { agent.kill(); api.kill(); vite.kill() })
-process.on('SIGINT',  () => { agent.kill(); api.kill(); vite.kill() })
+const API_PORT = Number(process.env.FITNESS_NODE_PORT || 9100)
+
+const alreadyRunning = await portInUse(API_PORT)
+
+// fitness_agent/server.py (:9120) — Legacy, wird archiviert
+// PYTHONPATH=. damit fitness_agent/ am Repo-Root gefunden wird (nicht mehr in catalog/)
+const agent = run('python3', ['-m', 'fitness_agent.server'], { PYTHONPATH: '.' })
+
+if (alreadyRunning) {
+  console.log(`[dev-runner] server.mjs already running on :${API_PORT} — skipping nodemon`)
+} else {
+  run('node', ['node_modules/.bin/nodemon', '--watch', 'server.mjs', '--ext', 'mjs', '--signal', 'SIGTERM', 'server.mjs'])
+}
+
+const vite = run('node', ['node_modules/.bin/vite'], { VITE_API_BASE: '' })
+
+process.on('SIGTERM', () => { agent?.kill(); vite.kill() })
+process.on('SIGINT',  () => { agent?.kill(); vite.kill() })
