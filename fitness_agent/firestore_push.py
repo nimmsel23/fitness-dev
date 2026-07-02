@@ -129,7 +129,7 @@ def sync_anatomy(db: Any, dry_run: bool = False) -> dict[str, int]:
                     yield ex_id, lesson
 
     return batch_write(db, col, tqdm(_records(), desc="Anatomy", unit="lesson"),
-                       dry_run=dry_run, use_hash=False)
+                       dry_run=dry_run, use_hash=True)
 
 
 def sync_muscles(db: Any, dry_run: bool = False) -> dict[str, int]:
@@ -148,7 +148,7 @@ def sync_muscles(db: Any, dry_run: bool = False) -> dict[str, int]:
                 yield muscle_id, {**data, "muscle_id": muscle_id}
 
     return batch_write(db, col, tqdm(_records(), desc="Muscles", unit="muscle"),
-                       dry_run=dry_run, use_hash=False)
+                       dry_run=dry_run, use_hash=True)
 
 
 def sync_yuhonas(db: Any, dry_run: bool = False) -> dict[str, int]:

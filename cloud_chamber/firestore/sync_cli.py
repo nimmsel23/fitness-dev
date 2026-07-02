@@ -5,12 +5,9 @@ import time
 from pathlib import Path
 
 from loguru import logger
-from wasabi import Printer
 
 from . import pull, push
 from .fuel import pull_fuel, push_fuel, FUEL_DATA_DIR
-
-msg = Printer()
 
 logger.remove()
 logger.add(sys.stderr, format="<green>{time:HH:mm:ss}</green> | <level>{message}</level>", level="INFO")
@@ -19,7 +16,7 @@ logger.add(sys.stderr, format="<green>{time:HH:mm:ss}</green> | <level>{message}
 def _do_pull() -> None:
     r = pull()
     rf = pull_fuel()
-    msg.good(
+    logger.success(
         f"pull — fitness: sessions {r['sessions']} · journal {r['journal']} · inbox {r['inbox']} "
         f"| fuel: nutrition {rf['nutrition']} · supplements {rf['supplements']}"
     )
@@ -27,15 +24,15 @@ def _do_pull() -> None:
 
 def _do_push() -> None:
     r = push()
-    msg.good(f"push — fitness sessions {r['sessions']}")
+    logger.success(f"push — fitness sessions {r['sessions']}")
 
 
 def _do_push_fuel(uid: str | None = None) -> None:
     from ._db import UID
     rf = push_fuel(uid or UID)
-    msg.good(f"push fuel — {rf.get('written', 0)} writes · {rf.get('skipped', 0)} skipped")
+    logger.success(f"push fuel — {rf.get('written', 0)} writes · {rf.get('skipped', 0)} skipped")
     if rf.get("error"):
-        msg.warn(f"push fuel error: {rf['error']}")
+        logger.warning(f"push fuel error: {rf['error']}")
 
 
 def _watch_fuel(uid: str | None = None) -> None:
@@ -72,11 +69,11 @@ def _watch_fuel(uid: str | None = None) -> None:
             active.append(str(d))
 
     if not active:
-        msg.warn(f"Keine Watch-Verzeichnisse gefunden unter {FUEL_DATA_DIR}")
+        logger.warning(f"Keine Watch-Verzeichnisse gefunden unter {FUEL_DATA_DIR}")
         return
 
     observer.start()
-    msg.info(f"Watchdog aktiv — beobachte: {', '.join(active)}")
+    logger.info(f"Watchdog aktiv — beobachte: {', '.join(active)}")
     try:
         while True:
             time.sleep(1)
@@ -90,21 +87,21 @@ def main():
     uid = next((a for a in sys.argv[2:] if not a.startswith("--")), None)
 
     if cmd == "pull":
-        with msg.loading("Pulling from Firestore..."):
-            _do_pull()
+        logger.info("Pulling from Firestore...")
+        _do_pull()
     elif cmd == "push":
-        with msg.loading("Pushing to Firestore..."):
-            _do_push()
-            _do_push_fuel(uid)
+        logger.info("Pushing to Firestore...")
+        _do_push()
+        _do_push_fuel(uid)
     elif cmd == "sync":
-        with msg.loading("Syncing Firestore..."):
-            _do_pull()
-            _do_push()
-            _do_push_fuel(uid)
+        logger.info("Syncing Firestore...")
+        _do_pull()
+        _do_push()
+        _do_push_fuel(uid)
     elif cmd == "watch":
         _watch_fuel(uid)
     else:
-        msg.fail(f"Unbekannter Befehl: {cmd}  (pull|push|sync|watch)")
+        logger.error(f"Unbekannter Befehl: {cmd}  (pull|push|sync|watch)")
         sys.exit(1)
 
 
