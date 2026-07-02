@@ -1,6 +1,6 @@
 # Firebase — AlphaOS Fitness
 
-Stand: 2026-06-13
+Stand: 2026-07-02
 
 Firebase-Projekt: **fitness-aos** (GCP, eur3)
 PWA: **https://fitness-aos.web.app**
@@ -8,12 +8,12 @@ Single-User: `uid = "default"`
 
 ---
 
-## Architektur & Struktur
+## Architektur & Struktur (Safe-Production-Pipeline)
 
-Das Projekt nutzt eine **Safe-Production-Pipeline** zur Trennung von Entwicklung und Release.
+Um ein versehentliches Überschreiben der Produktion oder SW-Cache-Verschmutzung zu verhindern, gilt folgende Struktur:
 
-*   **`~/fitness-dev`**: Arbeits-Repository. Enthält Sourcecode (`src/`), Konfigurationen und lokale Datenbanken.
-*   **`~/fitness`**: Release-Vessel. Dient als staging area für den Firebase-Deploy. Enthält den Build-Output in `dist-firebase/`.
+*   **`~/fitness-dev`**: Entwicklungs-Workspace. Alle Test-Deployments erfolgen hier ausschließlich über Vorschaukanäle (`npm run build:preview`). Direkte Produktions-Deploys sind hier über einen Safety-Lock blockiert.
+*   **`~/fitness`**: Release-Vessel. Enthält symbolische Links auf den Build-Output (`dist-firebase/`) und die Konfigurationen aus `fitness-dev`. Der echte Produktions-Deploy wird ausschließlich von hier aus gestartet.
 
 ---
 
