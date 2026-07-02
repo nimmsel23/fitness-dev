@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """fitness-mail — Fitbit Gmail → ~/.aos/fitness/body/
 
 poll  : IMAP-Poller (für Systemd-Timer)
@@ -470,4 +469,8 @@ def show(days: int = typer.Option(14, help="Letzte N Tage anzeigen")) -> None:
 
 
 if __name__ == "__main__":
+    app()
+
+
+def main() -> None:
     app()

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 fitness — Domain CLI für alle Fitness-Subcommands.
 
@@ -46,11 +45,6 @@ for _p in (str(FITNESS_DEV), str(CATALOG_DIR)):
         sys.path.insert(0, _p)
 ANATOMY_KB   = FITNESS_DEV / "anatomy-kb"
 KBCTL        = FITNESS_DEV / "anatomy-kb" / "kbctl"
-FITNESS_MAIL = FITNESS_DEV / "bin" / "fitness-mail"
-FITNESS_LOG  = FITNESS_DEV / "bin" / "fitness-log"
-FITNESS_TUI  = FITNESS_DEV / "bin" / "fitness-tui"
-FITNESS_ACTIVITY = FITNESS_DEV / "bin" / "fitness-activity"
-FS_SYNC      = FITNESS_DEV / "bin" / "firestore-sync"
 
 DEV_PORT = int(os.environ.get("FITNESS_PORT", 9100))
 KB_PORT  = int(os.environ.get("ANATOMY_KB_PORT", 9200))
@@ -87,11 +81,13 @@ def gum_log(level: str, msg: str) -> None:
         print(f"{colors.get(level, '')}{msg}\033[0m", file=dest)
 
 # ── Pass-through ───────────────────────────────────────────────────────────────
-def passthrough(binary: Path, args: list[str], label: str) -> None:
-    if not binary.exists():
-        gum_log("error", f"{label} nicht gefunden: {binary}")
+def passthrough(binary: Path | str, args: list[str], label: str) -> None:
+    import shutil
+    resolved = shutil.which(str(binary)) or (str(binary) if Path(str(binary)).exists() else None)
+    if not resolved:
+        gum_log("error", f"{label} nicht gefunden")
         raise SystemExit(1)
-    os.execv(str(binary), [str(binary)] + args)
+    os.execv(resolved, [resolved] + args)
 
 # ── Systemd-Helpers ────────────────────────────────────────────────────────────
 def systemctl(*args: str) -> subprocess.CompletedProcess:
@@ -160,10 +156,12 @@ def cmd_sync(what: str) -> None:
 
     if run_fs:
         gum_log("info", "Firestore-Sync: catalog → Firestore")
-        if FS_SYNC.exists():
-            subprocess.run([str(FS_SYNC)])
+        import shutil
+        fs_sync = shutil.which("firestore-sync")
+        if fs_sync:
+            subprocess.run([fs_sync])
         else:
-            gum_log("warn", f"firestore-sync nicht gefunden: {FS_SYNC}")
+            gum_log("warn", "firestore-sync nicht gefunden")
 
 # ── Typer App ──────────────────────────────────────────────────────────────────
 _ctx = {"allow_extra_args": True, "ignore_unknown_options": True}
@@ -185,19 +183,19 @@ def kb(ctx: typer.Context) -> None:
 
 @app.command(context_settings=_ctx, help="Fitbit Gmail Pipeline (poll|parse|show)")
 def mail(ctx: typer.Context) -> None:
-    passthrough(FITNESS_MAIL, ctx.args, "fitness-mail")
+    passthrough("fitness-mail", ctx.args, "fitness-mail")
 
 @app.command(context_settings=_ctx, help="Session-Log direkt aus Dateien (ls|show|week|history|stats|sync-status) — kein Server nötig")
 def log(ctx: typer.Context) -> None:
-    passthrough(FITNESS_LOG, ctx.args, "fitness-log")
+    passthrough("fitness-log", ctx.args, "fitness-log")
 
 @app.command(context_settings=_ctx, help="Rich TUI Dashboard (Live-Ansicht, kein Server) — [--once|--days N|--refresh N]")
 def tui(ctx: typer.Context) -> None:
-    passthrough(FITNESS_TUI, ctx.args, "fitness-tui")
+    passthrough("fitness-tui", ctx.args, "fitness-tui")
 
 @app.command(context_settings=_ctx, help="Cardio/Activity loggen (log|types|whoami) — z.B. fitness activity log swimming -d 20 -s breast")
 def activity(ctx: typer.Context) -> None:
-    passthrough(FITNESS_ACTIVITY, ctx.args, "fitness-activity")
+    passthrough("fitness-activity", ctx.args, "fitness-activity")
 
 @app.command(help="Health-Check: fitness-dev :9100 + anatomy-kb :9200")
 def health() -> None:
@@ -453,4 +451,8 @@ def catalog_audit(topic: str = typer.Argument("all")) -> None:
 
 # ── Entry ──────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
+    app()
+
+
+def main() -> None:
     app()

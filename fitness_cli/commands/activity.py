@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 fitness-activity — Cardio/Activity per CLI loggen
 
@@ -263,4 +262,8 @@ def stats(
 
 
 if __name__ == "__main__":
+    app()
+
+
+def main() -> None:
     app()

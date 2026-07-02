@@ -25,7 +25,13 @@ dependencies = [
 ]
 
 [project.scripts]
-fitness-agent = "fitness_agent.cli:main"
+fitness              = "fitness_cli.cli:main"
+fitness-log          = "fitness_cli.commands.log:main"
+fitness-tui          = "fitness_cli.commands.tui:main"
+fitness-activity     = "fitness_cli.commands.activity:main"
+fitness-mail         = "fitness_cli.commands.mail:main"
+firestore-sync       = "firestore.sync_cli:main"
+fitness-agent        = "fitness_agent.cli:main"
 fitness-agent-server = "fitness_agent.server:main"
 
 [tool.setuptools]
