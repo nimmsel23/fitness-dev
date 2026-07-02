@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   deploy:
@@ -44,3 +45,13 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json \
             npx firebase-tools@latest deploy --only hosting,firestore:rules,firestore:indexes \
             --project fitness-aos --non-interactive
+
+      - name: Create Issue on Failure
+        if: failure()
+        run: |
+          gh issue create \
+            --title "❌ Deployment Failed on master" \
+            --body $'### ❌ Deployment Failed\n\nA push to the `master` branch failed to deploy.\n\n**Details:**\n* **Workflow Run:** [View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\n* **Commit:** `${{ github.sha }}` by @${{ github.actor }}\n* **Branch:** `${{ github.ref_name }}`\n\nPlease inspect the runner logs for details.' \
+            --label "bug"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
