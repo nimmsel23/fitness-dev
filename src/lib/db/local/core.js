@@ -35,10 +35,7 @@ export const api = {
   }
 }
 
-export function localToday() {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
-}
+export { localToday } from '../shared/utils';
 
 export function getUid() { return "local"; }
 export function isLocalMode() { return true; }

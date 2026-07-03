@@ -33,7 +33,7 @@ export default defineConfig(({ mode }) => {
       preserveSymlinks: true,
       alias: {
         '@src':                resolve(__dirname, './src'),
-        '@db':                 resolve(__dirname, isFirebase ? './src/db.firestore.js' : './src/db.js'),
+        '@db':                 resolve(__dirname, isFirebase ? './src/lib/db/index.firestore.js' : './src/lib/db/index.js'),
         '@utils':              resolve(__dirname, './src/lib/utils.js'),
         '@aliase':             resolve(__dirname, './catalog/kb/aliases.yml'),
         '@fitness/components': resolve(__dirname, './src/components'),
