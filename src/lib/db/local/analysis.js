@@ -1,5 +1,6 @@
 import { api } from "./core";
-import { ACTIVITY_MUSCLE_GROUPS } from "../../constants/ActivityConstants";
+import { muscleToGroups } from "../../muscleMapping";
+import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants";
 
 const MUSCLE_GROUPS = {
   chest: ["pecs", "chest", "pectoralis", "brust", "100_chest", "101_pectoralis", "102_pectoralis", "103_pectoralis", "104_serratus"],
