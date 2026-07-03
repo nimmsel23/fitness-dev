@@ -32,13 +32,15 @@ export default defineConfig(({ mode }) => {
     resolve: {
       preserveSymlinks: true,
       alias: {
-        '@src':    resolve(__dirname, './src'),
-        '@db':     resolve(__dirname, isFirebase ? './src/db.firestore.js' : './src/db.js'),
-        '@utils':  resolve(__dirname, './src/lib/utils.js'),
-        '@aliase': resolve(__dirname, './catalog/kb/aliases.yml'),
-        '@fuel':    resolve('/home/alpha/fuel-dev/src/client'),
-        '@habits':  resolve('/home/alpha/habits-dev/src'),
-        '@journal': resolve('/home/alpha/journal-dev/src'),
+        '@src':               resolve(__dirname, './src'),
+        '@db':                resolve(__dirname, isFirebase ? './src/db.firestore.js' : './src/db.js'),
+        '@utils':             resolve(__dirname, './src/lib/utils.js'),
+        '@aliase':            resolve(__dirname, './catalog/kb/aliases.yml'),
+        '@fitness/components': resolve(__dirname, './src/components'),
+        '@fitness/constants':  resolve(__dirname, './src/constants'),
+        '@fuel':              resolve('/home/alpha/fuel-dev/src/client'),
+        '@habits':            resolve('/home/alpha/habits-dev/src'),
+        '@journal':           resolve('/home/alpha/journal-dev/src'),
       },
       // Singleton-Dedup: fuel-dev hat eigene node_modules — Vite zwingt eine einzige Instanz
       dedupe: ['react', 'react-dom', '@tanstack/react-query'],
