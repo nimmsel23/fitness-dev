@@ -21,3 +21,6 @@ build/
 .venv/
 catalog/.venv/
 uv.lock
+
+dist-firebase/
+dist-federation/
