@@ -4,12 +4,14 @@
  * Dieses Skript ruft täglich die Journal-Einträge und Sessions aller Klienten aus Firestore ab, 
  * fasst sie über die Gemini API zusammen und sendet dir das Briefing per Telegram.
  * 
- * VORAUSSETZUNGEN (Einfach in die Projekteigenschaften / Script Properties eintragen):
- * 1. FIREBASE_PRIVATE_KEY: Aus deiner firebase-fitness.json (Der exakte String inkl. \n)
- * 2. FIREBASE_CLIENT_EMAIL: Aus deiner firebase-fitness.json
- * 3. GEMINI_API_KEY: Dein Google Gemini API Key
- * 4. TELEGRAM_BOT_TOKEN: Dein Telegram Bot Token
- * 5. TELEGRAM_CHAT_ID: Deine Chat-ID
+ * AUTH: Das Skript hängt am GCP-Projekt fitness-aos (842575255284) und
+ * authentifiziert sich via ScriptApp.getOAuthToken() als Projekt-Owner
+ * gegen Firestore — kein Service-Account-Key in den Properties nötig.
+ *
+ * VORAUSSETZUNGEN (Script Properties):
+ * 1. GEMINI_API_KEY: Dein Google Gemini API Key
+ * 2. TELEGRAM_BOT_TOKEN: Dein Telegram Bot Token
+ * 3. TELEGRAM_CHAT_ID: Chat-IDs, kommasepariert
  */
 
 const PROJECT_ID = 'fitness-aos';
@@ -18,8 +20,8 @@ function runDailyBriefing() {
   const props = PropertiesService.getScriptProperties();
   const dateStr = getYesterdayString();
   
-  // 1. Hole Daten aus Firestore
-  const token = getFirestoreAccessToken(props);
+  // 1. Hole Daten aus Firestore (OAuth-Token des Skript-Owners, Scope: datastore)
+  const token = ScriptApp.getOAuthToken();
   const journals = fetchCollectionGroup(token, 'journal', dateStr);
   const sessions = fetchCollectionGroup(token, 'sessions', dateStr);
   
@@ -148,35 +150,13 @@ function sendTelegramMessage(props, text) {
   });
 }
 
-/** 
- * JWT & OAuth für Firestore (Ohne externe Libraries)
+/**
+ * Einmalig ausführen nach der Umstellung auf OAuth:
+ * löscht die obsoleten Service-Account-Secrets aus den Script Properties.
  */
-function getFirestoreAccessToken(props) {
-  const clientEmail = props.getProperty('FIREBASE_CLIENT_EMAIL');
-  const privateKey = props.getProperty('FIREBASE_PRIVATE_KEY').replace(/\\n/g, '\n');
-  
-  const header = Utilities.base64EncodeWebSafe(JSON.stringify({ alg: "RS256", typ: "JWT" })).replace(/=+$/, '');
-  const now = Math.floor(Date.now() / 1000);
-  
-  const claimSet = JSON.stringify({
-    iss: clientEmail,
-    scope: "https://www.googleapis.com/auth/datastore",
-    aud: "https://oauth2.googleapis.com/token",
-    exp: now + 3600,
-    iat: now
-  });
-  const body = Utilities.base64EncodeWebSafe(claimSet).replace(/=+$/, '');
-  const signatureInput = header + "." + body;
-  
-  const signature = Utilities.computeRsaSha256Signature(signatureInput, privateKey);
-  const jwt = signatureInput + "." + Utilities.base64EncodeWebSafe(signature).replace(/=+$/, '');
-  
-  const res = UrlFetchApp.fetch("https://oauth2.googleapis.com/token", {
-    method: "post",
-    payload: { grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: jwt },
-    muteHttpExceptions: true
-  });
-  
-  const authData = JSON.parse(res.getContentText());
-  return authData.access_token;
+function cleanupOldSecrets() {
+  const props = PropertiesService.getScriptProperties();
+  props.deleteProperty('FIREBASE_PRIVATE_KEY');
+  props.deleteProperty('FIREBASE_CLIENT_EMAIL');
+  console.log('FIREBASE_PRIVATE_KEY und FIREBASE_CLIENT_EMAIL entfernt.');
 }
