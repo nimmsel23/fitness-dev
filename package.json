@@ -20,7 +20,10 @@
     "deploy:firebase": "node scripts/check-prevent-prod-deploy.mjs && firebase deploy --only hosting",
     "deploy": "node scripts/deploy-runner.mjs",
     "preview": "vite preview",
-    "build:catalog": "python3 scripts/build-catalog.py"
+    "build:catalog": "python3 scripts/build-catalog.py",
+    "deploy:preview": "npm run build:firebase && firebase hosting:channel:deploy preview --expires 24h",
+    "deploy:prev": "npm run build:firebase && firebase hosting:channel:deploy preview --expires 24h",
+    "build:prev": "npm run build:firebase && firebase hosting:channel:deploy preview --expires 24h"
   },
   "dependencies": {
     "@hono/node-server": "^2.0.3",
