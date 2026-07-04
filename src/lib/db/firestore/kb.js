@@ -14,7 +14,7 @@ import { getUid, pingBridge } from "./core.js";
 import { getSession, getSessionHistory } from "./sessions.js";
 import { updateAnalyticsDoc } from "./analysis.js";
 
-import { muscleToGroups } from "../../lib/muscleMapping.js";
+import { muscleToGroups } from "../../muscleMapping.js";
 
 export async function getExercise(exerciseId) {
   const snap = await getDoc(doc(db, "fitness", "kb", "exercises", exerciseId));
