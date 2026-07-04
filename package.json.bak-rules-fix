@@ -17,7 +17,7 @@
     "build:preview": "vite build --mode firebase --outDir dist-firebase && node scripts/snapshot.mjs dist-firebase && firebase hosting:channel:deploy preview --expires 24h",
     "build:firebase": "node scripts/check-prevent-prod-deploy.mjs && node scripts/bump-sw.mjs && vite build --mode firebase --outDir dist-firebase && node scripts/snapshot.mjs dist-firebase",
     "preview:firebase": "firebase hosting:channel:deploy preview --expires 1h",
-    "deploy:firebase": "node scripts/check-prevent-prod-deploy.mjs && firebase deploy --only hosting",
+    "deploy:firebase": "node scripts/check-prevent-prod-deploy.mjs && firebase deploy --only hosting,firestore:rules,firestore:indexes",
     "deploy": "node scripts/deploy-runner.mjs",
     "preview": "vite preview",
     "build:catalog": "python3 scripts/build-catalog.py"
@@ -42,11 +42,11 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
+    "@eslint/js": "^10.0.1",
     "@originjs/vite-plugin-federation": "^1.4.1",
     "@vitejs/plugin-react": "^4.3.2",
     "autoprefixer": "^10.4.20",
-    "eslint": "^9.39.4",
+    "eslint": "^10.4.1",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^17.6.0",
     "nodemon": "^3.1.10",
