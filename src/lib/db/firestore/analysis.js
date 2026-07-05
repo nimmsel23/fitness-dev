@@ -15,7 +15,7 @@ import { getAllExercises } from "./kb.js";
 import { getSession, getSessionHistory } from "./sessions.js";
 
 export { updateAnalyticsDoc };
-import { muscleToGroups } from "../../lib/muscleMapping.js";
+import { muscleToGroups } from "../../muscleMapping.js";
 
 export async function getDashboardAnalytics(days = 21) {
   try {

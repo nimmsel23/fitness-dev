@@ -16,3 +16,10 @@ This document specifies rules and behavioral constraints for agentic assistants 
 ## Worktree Workspace
 - **Use Worktree Workspace**: To avoid workspace and checkout conflicts with Claude Code or the user, the agent (Antigravity) must run all terminal commands and perform all file edits inside the Git worktree located at `/home/alpha/fitness-dev/.worktrees/antigravity` instead of `/home/alpha/fitness-dev`.
   - **Verification**: Always verify that the `Cwd` parameter on terminal commands and `TargetFile` paths in file-edit tools point inside the `/home/alpha/fitness-dev/.worktrees/antigravity` directory tree.
+
+## VitalOS Submodule Sync Workflow
+When developing features in the VitalOS ecosystem (which uses Git Submodules for its micro-frontends like `fitness-dev`, `fuel-dev`, etc.), follow this exact sync procedure when finalizing a feature:
+1. **Develop locally**: Do your work in the respective worktree (e.g., `/home/alpha/fitness-dev`) on the `dev` branch.
+2. **Commit and Push (Worktree)**: Commit your changes and push the `dev` branch to origin.
+3. **Merge to Master (Submodule)**: Change directory to the actual submodule inside the parent repo (e.g., `/home/alpha/vitalos/fitness-dev`), checkout `master`, merge the `dev` branch via fast-forward (`git merge origin/dev`), and push `master`.
+4. **Update Parent Repo**: Change directory to the parent repo (`/home/alpha/vitalos`), run `git add <submodule-name>`, commit the updated pointer (`chore(submodules): update <submodule> pointer`), and push `master` to trigger the build/deploy hook.

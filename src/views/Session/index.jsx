@@ -15,6 +15,7 @@ import ActivityAddon from './ActivityAddon';
 import SidebarSheet from './SidebarSheet';
 import MuscleMapModal from './MuscleMapModal';
 import SourceSettingsModal from './SourceSettingsModal';
+import PlanView from '../Plan/index.jsx';
 import { getRollingDays, blockColor } from './utils';
 import { ACTIVITY_LABELS, ACTIVITY_ICONS, ACTIVITY_EMOJI } from '../../constants/ActivityConstants';
 
@@ -412,6 +413,10 @@ export default function Session({ initialDate, initialDraft, onInspectExercise, 
     });
     setReDateEntry(null);
     showToast(`Verschoben → ${newDate}`);
+  }
+
+  if (subTab === 'plan') {
+    return <PlanView />;
   }
 
   if (subTab === 'history') {
