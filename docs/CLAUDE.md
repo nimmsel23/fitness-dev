@@ -493,9 +493,9 @@ coverage_score = sets × role_weight × effort_factor
 
 ---
 
-## anatomy-kb (verwandtes Repo: ~/anatomy-kb, :9200)
+## anatomy-kb (Git Subtree: anatomy-kb/, :9200)
 
-Separates Projekt, aber direkt mit fitness-dev verknüpft. Muskel-Anatomie-Layer der Ausbildung.
+Ehemaliges separates Projekt, jetzt als Git Subtree direkt in fitness-dev integriert. Muskel-Anatomie-Layer der Ausbildung.
 
 ```
 anatomy-kb/muscles/*.yml       — Ein File pro Muskel (origin, insertion, innervation, function)
@@ -537,7 +537,7 @@ anatomy-kb/muscles/            — Muskel-Layer (origin, insertion, innervation)
 - ✅ Firestore Sync (`/firestore/status` + `/firestore/sync`, firebase-admin, Creds: `~/.env/firebase-fitness.json`)
 - ✅ PWA Offline-Unterstützung (SW + IndexedDB offline-queue)
 - ✅ Firebase PWA: Sourcen direkt im Root, `npm run build:firebase` → `~/fitness/dist-firebase/` (pwa/ als pwa.bak/ archiviert)
-- ✅ anatomy-kb Integration (~/anatomy-kb, :9200)
+- ✅ anatomy-kb Integration (als Git Subtree integriert, :9200)
 - ⏳ AI Agent Workflow (Gemini → anatomy_teaching YAML-Generierung)
 - ⏳ body_highlighter_bridge.yml enabled: true (granulare Muskel-Visualisierung)
 - ⏳ Coverage-Granularität (primary/secondary/stabilizer)

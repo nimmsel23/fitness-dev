@@ -24,10 +24,7 @@ export default function ProfileSection({ user }) {
       await setDoc(doc(db, "users", user.uid), {
         displayName: displayName,
         email: user.email,
-        gender: gender,        // Diese Props musst du der ProfileSection noch übergeben
-        weight: weight,        // (Falls du schon States dafür hast)
-      height: height,
-      updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString()
       }, { merge: true });
 
       setSaved(true);

@@ -11,6 +11,7 @@ import Coach from './views/Coach/index.jsx'
 import Inbox from './views/Inbox/index.js'
 import ExerciseInsightModal from './components/ExerciseInsightModal.jsx'
 import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode, getAnatomy } from '@db'
+import { getFirestore, doc, getDoc } from 'firebase/firestore'
 
 import { NAV_ITEMS, VALID_TABS } from './constants/NavigationItems.js'
 
@@ -47,6 +48,32 @@ export default function App() {
     setUser(u);
     setAuthLoading(false);
   }), []);
+
+  useEffect(() => {
+    async function fetchUserProfile() {
+      // Wenn kein User eingeloggt ist oder wir lokal arbeiten, überspringen
+      if (!user || !user.uid || isLocalMode()) return;
+
+      try {
+        const db = getFirestore();
+        const docSnap = await getDoc(doc(db, "users", user.uid));
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+
+          // Hydration: Überschreibe den App-State mit den Cloud-Daten
+          if (data.gender) setGender(data.gender);
+          if (data.split) setSplit(data.split);
+          if (data.cycleLength) setCycleLength(data.cycleLength);
+          if (data.defaultLocation) setDefaultLocation(data.defaultLocation);
+        }
+      } catch (err) {
+        console.error("Fehler beim Laden des Profils:", err);
+      }
+    }
+
+    fetchUserProfile();
+  }, [user]); // Der Hook triggert automatisch, sobald 'user' gesetzt wird
 
   const [theme, setThemeState]    = useState(() => localStorage.getItem('fitness-theme') || 'nordic');
   const [themeMode, setModeState] = useState(() => localStorage.getItem('fitness-theme-mode') || 'manual');

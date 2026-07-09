@@ -46,10 +46,12 @@ def pull() -> dict:
         sessions_dir = user_dir / "sessions"
         journal_dir = user_dir / "journal"
         inbox_dir = user_dir / "inbox"
+        workouts_dir = user_dir / "workouts"
         
         sessions_dir.mkdir(parents=True, exist_ok=True)
         journal_dir.mkdir(parents=True, exist_ok=True)
         inbox_dir.mkdir(parents=True, exist_ok=True)
+        workouts_dir.mkdir(parents=True, exist_ok=True)
 
         # logger.info(f"Syncing user: {uid}")
 
@@ -192,6 +194,28 @@ def pull() -> dict:
                 out = {k: (ts(v) if hasattr(v, "isoformat") else v) for k, v in data.items()}
                 local.write_text(json.dumps(out, indent=2, ensure_ascii=False))
                 total_inbox += 1
+
+        # Pull Workouts (WorkoutForge)
+        for doc in db.collection("fitness").document(uid).collection("wf_workouts").stream():
+            w_data = doc.to_dict()
+            w_id = doc.id
+            exercises = []
+            try:
+                for edoc in db.collection("fitness").document(uid).collection("wf_workouts").document(w_id).collection("exercises").stream():
+                    ex_data = edoc.to_dict()
+                    ex_data["id"] = edoc.id
+                    exercises.append(ex_data)
+            except Exception:
+                pass
+            
+            # Sort exercises by order
+            exercises.sort(key=lambda x: x.get("order", 0))
+            w_data["id"] = w_id
+            w_data["exercises"] = exercises
+            
+            local = workouts_dir / f"{w_id}.json"
+            out = {k: (ts(v) if hasattr(v, "isoformat") else v) for k, v in w_data.items()}
+            local.write_text(json.dumps(out, indent=2, ensure_ascii=False))
 
         _save_known(uid, known)
         _save_known_habits(uid, known_habits)

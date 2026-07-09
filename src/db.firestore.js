@@ -215,6 +215,13 @@ export async function getLatestSession() {
 
 export async function getSessionHistory(n = 60) { return getRecentSessions(n); }
 
+// Stub — diese Datei kennt keine Fuel/Nutrition-Daten (eigenes Repo, eigenes
+// Firestore-Layer). journal-dev's Standalone-vite.config.cjs zeigt @db
+// hierher; JournalVosView.jsx ruft getMealsHistory() unbedingt auf — ohne
+// diesen Stub bricht der Import hart. Echte Implementierung: vitalos'
+// src/cloud/db.firestore.js.
+export async function getMealsHistory(_limit) { return []; }
+
 export async function getPlan() {
   const snap = await getDoc(doc(db, "fitness", getUid(), "plan"));
   if (!snap.exists()) return null;
@@ -1107,4 +1114,33 @@ export async function saveCoachFeedback(userId, entryId, type, text, habitId = n
     await setDoc(ref, { coachFeedback: String(text || "").trim() }, { merge: true });
   }
   return { ok: true };
+}
+
+
+// ── User Profile (Hydration & Meta-Data) ───────────────────────────────────
+
+export async function getUserProfile(uid) {
+  if (!uid) return null;
+  try {
+    // Nutzt deinen bestehenden Pfad aus watchAuth
+    const snap = await getDoc(doc(db, "fitness", uid, "profile", "metadata"));
+    return snap.exists() ? snap.data() : null;
+  } catch (error) {
+    console.error("Fehler beim Laden des Profils:", error);
+    return null;
+  }
+}
+
+export async function updateUserProfile(uid, data) {
+  if (!uid) return false;
+  try {
+    await setDoc(doc(db, "fitness", uid, "profile", "metadata"), {
+      ...data,
+      updated_at: serverTimestamp()
+    }, { merge: true });
+    return true;
+  } catch (error) {
+    console.error("Fehler beim Speichern des Profils:", error);
+    return false;
+  }
 }
