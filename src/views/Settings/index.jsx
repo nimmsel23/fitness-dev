@@ -5,6 +5,7 @@ import AppearanceSection from "./AppearanceSection";
 import TrainingSection from "./TrainingSection";
 import AdvancedSection from "./AdvancedSection";
 import LocalDevSection from "./LocalDevSection";
+import ProfileSection from "./ProfileSection";
 
 export default function Settings({
   user,
@@ -96,59 +97,63 @@ export default function Settings({
 
   return (
     <div className="space-y-8 pb-32 max-w-5xl mx-auto">
-       <header className="mb-4 animate-in fade-in duration-700">
-          <h2 className="text-3xl font-black text-fit-ink">Settings</h2>
-          <p className="text-sm font-medium opacity-40">Konfiguriere dein AlphaOS Fitness Erlebnis.</p>
-       </header>
+    <header className="mb-4 animate-in fade-in duration-700">
+    <h2 className="text-3xl font-black text-fit-ink">Settings</h2>
+    <p className="text-sm font-medium opacity-40">Konfiguriere dein AlphaOS Fitness Erlebnis.</p>
+    </header>
 
-       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <AppearanceSection
-            themeMode={themeMode} setModeState={setModeState}
-            circLight={circLight} setCircLight={setCircLight}
-            circDark={circDark} setCircDark={setCircDark}
-            themes={themes} theme={theme} setThemeState={setThemeState}
-          />
-          <TrainingSection
-            split={split} setSplit={setSplit}
-            gender={gender} setGender={setGender}
-            defaultLocation={defaultLocation} setDefaultLocation={setDefaultLocation}
-            cycleLength={cycleLength} setCycleLength={setCycleLength}
-            recentDays={recentDays} setRecentDays={setRecentDays}
-            coverageThreshold={coverageThreshold} setCoverageThreshold={setCoverageThreshold}
-            swVersion={swVersion} swUpdateAvailable={swUpdateAvailable} swChecking={swChecking}
-            onSwCheck={handleSwCheck} onSwApply={handleSwApply}
-          />
-       </div>
+    {/* HIER KOMMT DIE NEUE PROFIL-SEKTION HIN */}
+    <ProfileSection user={user} />
 
-       {isLocalMode() && (
-         <LocalDevSection
-           firestoreStatus={firestoreStatus}
-           syncing={syncing} onSync={handleSync}
-           health={health} wger={wger}
-         />
-       )}
+    {/* DAS BESTEHENDE GRID FÜR APPEARANCE UND TRAINING */}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <AppearanceSection
+    themeMode={themeMode} setModeState={setModeState}
+    circLight={circLight} setCircLight={setCircLight}
+    circDark={circDark} setCircDark={setCircDark}
+    themes={themes} theme={theme} setThemeState={setThemeState}
+    />
+    <TrainingSection
+    split={split} setSplit={setSplit}
+    gender={gender} setGender={setGender}
+    defaultLocation={defaultLocation} setDefaultLocation={setDefaultLocation}
+    cycleLength={cycleLength} setCycleLength={setCycleLength}
+    recentDays={recentDays} setRecentDays={setRecentDays}
+    coverageThreshold={coverageThreshold} setCoverageThreshold={setCoverageThreshold}
+    swVersion={swVersion} swUpdateAvailable={swUpdateAvailable} swChecking={swChecking}
+    onSwCheck={handleSwCheck} onSwApply={handleSwApply}
+    />
+    </div>
 
-       <div className="flex justify-center pt-2">
-          <button
-             onClick={() => setShowAdvanced(!showAdvanced)}
-             className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all font-black text-[9px] uppercase tracking-widest ${showAdvanced ? 'border-fit-accent bg-fit-accent/5 text-fit-accent shadow-lg shadow-fit-accent/5' : 'border-fit-line bg-fit-bg2 text-fit-dim hover:text-fit-ink'}`}
-          >
-             <Settings2 size={12} className={showAdvanced ? 'animate-pulse' : ''} />
-             {showAdvanced ? 'Advanced Mode: Ein' : 'Advanced Mode: Aus'}
-          </button>
-       </div>
+    {isLocalMode() && (
+      <LocalDevSection
+      firestoreStatus={firestoreStatus}
+      syncing={syncing} onSync={handleSync}
+      health={health} wger={wger}
+      />
+    )}
 
-       {showAdvanced && (
-         <AdvancedSection
-           swipeEnabled={swipeEnabled} setSwipeEnabled={setSwipeEnabled}
-           dashboardHighlighter={dashboardHighlighter} setDashboardHighlighter={setDashboardHighlighter}
-           navMode={navMode} setNavMode={setNavMode}
-           sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned}
-           layoutScale={layoutScale} setLayoutScale={setLayoutScale}
-           muscleLanguage={muscleLanguage} setMuscleLanguage={setMuscleLanguage}
-           user={user}
-         />
-       )}
+    <div className="flex justify-center pt-2">
+    <button
+    onClick={() => setShowAdvanced(!showAdvanced)}
+    className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all font-black text-[9px] uppercase tracking-widest ${showAdvanced ? 'border-fit-accent bg-fit-accent/5 text-fit-accent shadow-lg shadow-fit-accent/5' : 'border-fit-line bg-fit-bg2 text-fit-dim hover:text-fit-ink'}`}
+    >
+    <Settings2 size={12} className={showAdvanced ? 'animate-pulse' : ''} />
+    {showAdvanced ? 'Advanced Mode: Ein' : 'Advanced Mode: Aus'}
+    </button>
+    </div>
+
+    {showAdvanced && (
+      <AdvancedSection
+      swipeEnabled={swipeEnabled} setSwipeEnabled={setSwipeEnabled}
+      dashboardHighlighter={dashboardHighlighter} setDashboardHighlighter={setDashboardHighlighter}
+      navMode={navMode} setNavMode={setNavMode}
+      sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned}
+      layoutScale={layoutScale} setLayoutScale={setLayoutScale}
+      muscleLanguage={muscleLanguage} setMuscleLanguage={setMuscleLanguage}
+      user={user}
+      />
+    )}
     </div>
   );
 }

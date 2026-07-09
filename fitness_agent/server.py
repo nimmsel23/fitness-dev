@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 from dataclasses import asdict
@@ -584,9 +585,22 @@ async def cors_middleware(request: web.Request, handler: Any) -> web.StreamRespo
     return response
 
 
+async def _start_push_scheduler(app: web.Application) -> None:
+    from .push import run_daily_scheduler
+    app["push_task"] = asyncio.create_task(run_daily_scheduler())
+
+
+async def _stop_push_scheduler(app: web.Application) -> None:
+    task = app.get("push_task")
+    if task:
+        task.cancel()
+
+
 def create_app() -> web.Application:
     app = web.Application(middlewares=[cors_middleware])
-    
+    app.on_startup.append(_start_push_scheduler)
+    app.on_cleanup.append(_stop_push_scheduler)
+
     app.add_routes([
         web.get("/", handle_index),
         web.get("/exercises", handle_exercises),
