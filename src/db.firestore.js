@@ -1115,3 +1115,32 @@ export async function saveCoachFeedback(userId, entryId, type, text, habitId = n
   }
   return { ok: true };
 }
+
+
+// ── User Profile (Hydration & Meta-Data) ───────────────────────────────────
+
+export async function getUserProfile(uid) {
+  if (!uid) return null;
+  try {
+    // Nutzt deinen bestehenden Pfad aus watchAuth
+    const snap = await getDoc(doc(db, "fitness", uid, "profile", "metadata"));
+    return snap.exists() ? snap.data() : null;
+  } catch (error) {
+    console.error("Fehler beim Laden des Profils:", error);
+    return null;
+  }
+}
+
+export async function updateUserProfile(uid, data) {
+  if (!uid) return false;
+  try {
+    await setDoc(doc(db, "fitness", uid, "profile", "metadata"), {
+      ...data,
+      updated_at: serverTimestamp()
+    }, { merge: true });
+    return true;
+  } catch (error) {
+    console.error("Fehler beim Speichern des Profils:", error);
+    return false;
+  }
+}
