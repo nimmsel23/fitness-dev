@@ -1,28 +1,65 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import yaml from 'js-yaml'
 
-const AGENT_BASE = 'http://localhost:9120'
+// fitness_agent/server.py (aiohttp, :9120/:9130) ist archiviert (siehe archive/fitness_agent_server.py).
+// Katalog-Daten kommen direkt von der Platte, dynamische Endpunkte (plan/weekly/export/inbox)
+// werden an den laufenden FastAPI-Prod-Server weitergereicht.
+const PYTHON_PORT = Number(process.env.FITNESS_PYTHON_PORT || 9150)
+const PYTHON_BASE = `http://127.0.0.1:${PYTHON_PORT}`
 
-async function fetchAgent(endpoint, options = {}, { silent = false } = {}) {
+const CATALOG_JSON = path.join(process.env.HOME, '.aos', 'fitness', 'workouts', 'catalog.json')
+const CONFIG_YML = path.join(process.env.HOME, 'fitness-dev', 'catalog', 'config.yml')
+const WGER_MAPPING_YML = path.join(process.env.HOME, 'fitness-dev', 'catalog', 'kb', 'wger_mapping.yml')
+
+// Single-key top-level dicts (e.g. { wger_mapping: { mappings: {...} } }) → unwrap to the inner dict
+function unwrapSingleKey(section) {
+  if (section && typeof section === 'object' && !Array.isArray(section)) {
+    const keys = Object.keys(section)
+    if (keys.length === 1 && section[keys[0]] && typeof section[keys[0]] === 'object') {
+      return section[keys[0]]
+    }
+  }
+  return section
+}
+
+async function fetchPython(endpoint, options = {}, { silent = false } = {}) {
   try {
-    const url = endpoint.startsWith('http') ? endpoint : `${AGENT_BASE}${endpoint}`
-    const res = await fetch(url, {
+    const res = await fetch(`${PYTHON_BASE}${endpoint}`, {
       ...options,
       headers: { 'Content-Type': 'application/json', ...options.headers },
     })
     return res.ok ? res.json() : null
   } catch (err) {
-    if (!silent) console.error(`[fitness-runtime] agent fetch failed (${endpoint}):`, err.message)
+    if (!silent) console.error(`[fitness-runtime] python backend fetch failed (${endpoint}):`, err.message)
     return null
   }
 }
 
-// Minimal placeholder data while agent is loading or if it fails
+function readYaml(filePath) {
+  try {
+    return yaml.load(fs.readFileSync(filePath, 'utf8')) || {}
+  } catch (err) {
+    console.error(`[fitness-runtime] readYaml failed (${filePath}):`, err.message)
+    return {}
+  }
+}
+
+function readCatalogJson() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(CATALOG_JSON, 'utf8'))
+    return { exercises: raw.exercises || [] }
+  } catch (err) {
+    console.error(`[fitness-runtime] readCatalogJson failed (${CATALOG_JSON}):`, err.message)
+    return { exercises: [] }
+  }
+}
+
+// Minimal placeholder data while nothing has loaded yet
 const fallbackData = {
   config: {},
   exercises: [],
-  lessons: [],
-  muscles: {},
+  wgerMapping: {},
 }
 
 let cachedSnapshot = null
@@ -37,18 +74,13 @@ export async function loadRuntimeSnapshot({ force = false } = {}) {
   }
   lastSnapshotAttempt = now
 
-  // On first-ever load: retry up to 3× silently to handle agent startup lag
-  const isFirstLoad = !cachedSnapshot
-  const attempts = isFirstLoad ? 3 : 1
-  for (let i = 0; i < attempts; i++) {
-    if (i > 0) await new Promise(r => setTimeout(r, 2000))
-    const snapshot = await fetchAgent('/snapshot', {}, { silent: i < attempts - 1 })
-    if (snapshot) {
-      cachedSnapshot = snapshot
-      return snapshot
-    }
+  const { exercises } = readCatalogJson()
+  cachedSnapshot = {
+    config: readYaml(CONFIG_YML),
+    wgerMapping: unwrapSingleKey(readYaml(WGER_MAPPING_YML)),
+    exercises,
   }
-  return cachedSnapshot || fallbackData
+  return cachedSnapshot
 }
 
 // Lazy proxy — re-reads cachedSnapshot on every property access so callers
@@ -72,7 +104,7 @@ function toFrontendExercise(ex, extra = {}) {
   return {
     ...ex,
     id: ex.exercise_id || ex.id,
-    name: ex.display_name || ex.german || ex.name || ex.exercise_id,
+    name: ex.display_name || ex.name_de || ex.name || ex.exercise_id,
     displayName: ex.display_name || ex.name,
     primaryMuscles: ex.primary_muscles || ex.primaryMuscles || [],
     secondaryMuscles: ex.secondary_muscles || ex.secondaryMuscles || [],
@@ -81,21 +113,7 @@ function toFrontendExercise(ex, extra = {}) {
   }
 }
 
-export async function searchExercises(query, limit = 12, sources = 'wger,yuhonas') {
-  const result = await fetchAgent(`/search?q=${encodeURIComponent(query)}&limit=${limit}&sources=${sources}`)
-  if (result?.ok) {
-    return {
-      ok: true,
-      query,
-      results: (result.results || []).map(ex => toFrontendExercise(ex)),
-      suggestions: (result.results || []).slice(0, 3).map(r => ({
-        canonical_id: r.exercise_id || r.id,
-        display_name: r.display_name,
-      })),
-    }
-  }
-
-  // Fallback: cached snapshot mit includes
+export async function searchExercises(query, limit = 12) {
   let snapshot = cachedSnapshot
   if (!snapshot || !(snapshot.exercises?.length)) {
     snapshot = await loadRuntimeSnapshot({ force: true })
@@ -103,9 +121,9 @@ export async function searchExercises(query, limit = 12, sources = 'wger,yuhonas
   const normalized = query.toLowerCase()
   const matches = (snapshot?.exercises || [])
     .filter(ex =>
-      (ex.exercise_id || '').includes(normalized) ||
+      (ex.id || ex.exercise_id || '').toLowerCase().includes(normalized) ||
       (ex.display_name || '').toLowerCase().includes(normalized) ||
-      (ex.german || '').toLowerCase().includes(normalized)
+      (ex.name_de || '').toLowerCase().includes(normalized)
     )
     .slice(0, limit)
     .map(ex => toFrontendExercise(ex))
@@ -122,15 +140,15 @@ export async function searchExercises(query, limit = 12, sources = 'wger,yuhonas
 
 export async function buildPlan(options = {}) {
   const query = new URLSearchParams(options).toString()
-  return fetchAgent(`/plan?${query}`)
+  return fetchPython(`/fitness/plan?${query}`)
 }
 
 export async function getWeeklySummary(weekSelector = 'current') {
-  return fetchAgent(`/weekly?week=${weekSelector}`)
+  return fetchPython(`/fitness/weekly?week=${weekSelector}`)
 }
 
 export async function exportWithPython(kind, payload = {}) {
-  return fetchAgent(`/export/${kind}`, {
+  return fetchPython(`/fitness/export/${kind}`, {
     method: 'POST',
     body: JSON.stringify(payload),
   })
@@ -143,7 +161,7 @@ export function exportSessionMarkdown(session) {
   const date = session?.date || new Date().toISOString().slice(0, 10)
   const noteName = `Sessions/${date}`
   const target = path.join(targetDir, `${noteName}.md`)
-  
+
   try {
     fs.mkdirSync(path.dirname(target), { recursive: true })
 
@@ -183,7 +201,7 @@ export function exportSessionMarkdown(session) {
 
 export async function queueForEnrichment(ex) {
   if (!ex || ex.source === 'expert') return
-  fetchAgent('/inbox/queue', {
+  fetchPython('/fitness/inbox/queue', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ exercise_id: ex.id || ex.exercise_id, name: ex.name || ex.display_name }),

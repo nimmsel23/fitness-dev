@@ -24,10 +24,6 @@ const API_PORT = Number(process.env.FITNESS_NODE_PORT || 9100)
 
 const alreadyRunning = await portInUse(API_PORT)
 
-// fitness_agent/server.py (:9120) — Legacy, wird archiviert
-// PYTHONPATH=. damit fitness_agent/ am Repo-Root gefunden wird (nicht mehr in catalog/)
-const agent = run('python3', ['-m', 'fitness_agent.server'], { PYTHONPATH: '.' })
-
 if (alreadyRunning) {
   console.log(`[dev-runner] server.mjs already running on :${API_PORT} — skipping nodemon`)
 } else {
@@ -36,5 +32,5 @@ if (alreadyRunning) {
 
 const vite = run('node', ['node_modules/.bin/vite'], { VITE_API_BASE: '' })
 
-process.on('SIGTERM', () => { agent?.kill(); vite.kill() })
-process.on('SIGINT',  () => { agent?.kill(); vite.kill() })
+process.on('SIGTERM', () => { vite.kill() })
+process.on('SIGINT',  () => { vite.kill() })

@@ -9,7 +9,6 @@ description = "Local fitness agent foundation CLI"
 requires-python = ">=3.11"
 dependencies = [
   "PyYAML>=6.0",
-  "aiohttp>=3.9.0",
   "fastapi>=0.115.0",
   "uvicorn[standard]>=0.30.0",
   "httpx>=0.27.0",
@@ -32,7 +31,6 @@ fitness-activity     = "fitness_cli.commands.activity:main"
 fitness-mail         = "fitness_cli.commands.mail:main"
 firestore-sync       = "firestore.sync_cli:main"
 fitness-agent        = "fitness_agent.cli:main"
-fitness-agent-server = "fitness_agent.server:main"
 
 [tool.setuptools]
 include-package-data = true
