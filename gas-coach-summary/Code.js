@@ -23,6 +23,53 @@ function runWeeklyBriefing()    { generateBriefing('weekly'); }
 function runMonthlyBriefing()   { generateBriefing('monthly'); }
 function runQuarterlyBriefing() { generateBriefing('quarterly'); }
 
+/**
+ * Registriert alle zeitgesteuerten Trigger in Google Apps Script automatisch.
+ * Diese Funktion muss einmalig manuell im Editor ausgeführt werden.
+ */
+function setupAllTriggers() {
+  const triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(t => ScriptApp.deleteTrigger(t));
+
+  // 1. Tägliches Briefing um 6:00 Uhr morgens (für "gestern")
+  ScriptApp.newTrigger('runDailyBriefing')
+    .timeBased()
+    .everyDays(1)
+    .atHour(6)
+    .create();
+
+  // 2. Wöchentliches Briefing jeden Montag um 7:00 Uhr morgens
+  ScriptApp.newTrigger('runWeeklyBriefing')
+    .timeBased()
+    .onWeekDay(ScriptApp.WeekDay.MONDAY)
+    .atHour(7)
+    .create();
+
+  // 3. Monatliches Briefing am 1. jedes Monats um 8:00 Uhr morgens
+  ScriptApp.newTrigger('runMonthlyBriefing')
+    .timeBased()
+    .onMonthDay(1)
+    .atHour(8)
+    .create();
+
+  // 4. Quartals-Briefing am 1. des Monats um 9:00 Uhr morgens (wird über Trigger gefiltert)
+  ScriptApp.newTrigger('runQuarterlyBriefingTrigger')
+    .timeBased()
+    .onMonthDay(1)
+    .atHour(9)
+    .create();
+}
+
+/**
+ * Filtert das monatliche Triggern, damit das Quartals-Briefing nur alle 3 Monate läuft.
+ */
+function runQuarterlyBriefingTrigger() {
+  const month = new Date().getMonth(); // 0-indexed (Jan=0, Apr=3, Jul=6, Oct=9)
+  if (month === 0 || month === 3 || month === 6 || month === 9) {
+    runQuarterlyBriefing();
+  }
+}
+
 // === KERN-FUNKTION ===
 
 function generateBriefing(timeframe) {
