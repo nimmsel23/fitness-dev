@@ -19,46 +19,9 @@ const PROJECT_ID = 'fitness-aos';
 // === TRIGGER-FUNKTIONEN (Für die Automatisierung) ===
 
 function runDailyBriefing()     { generateBriefing('daily'); }
-function runWeeklyBriefing()    { generateBriefing('weekly'); }
+function runWeeklyReport()      { generateBriefing('weekly'); } // Wöchentlicher Report (Nutzt wöchentliches Briefing)
 function runMonthlyBriefing()   { generateBriefing('monthly'); }
 function runQuarterlyBriefing() { generateBriefing('quarterly'); }
-
-/**
- * Registriert alle zeitgesteuerten Trigger in Google Apps Script automatisch.
- * Diese Funktion muss einmalig manuell im Editor ausgeführt werden.
- */
-function setupAllTriggers() {
-  const triggers = ScriptApp.getProjectTriggers();
-  triggers.forEach(t => ScriptApp.deleteTrigger(t));
-
-  // 1. Tägliches Briefing um 6:00 Uhr morgens (für "gestern")
-  ScriptApp.newTrigger('runDailyBriefing')
-    .timeBased()
-    .everyDays(1)
-    .atHour(6)
-    .create();
-
-  // 2. Wöchentliches Briefing jeden Montag um 7:00 Uhr morgens
-  ScriptApp.newTrigger('runWeeklyBriefing')
-    .timeBased()
-    .onWeekDay(ScriptApp.WeekDay.MONDAY)
-    .atHour(7)
-    .create();
-
-  // 3. Monatliches Briefing am 1. jedes Monats um 8:00 Uhr morgens
-  ScriptApp.newTrigger('runMonthlyBriefing')
-    .timeBased()
-    .onMonthDay(1)
-    .atHour(8)
-    .create();
-
-  // 4. Quartals-Briefing am 1. des Monats um 9:00 Uhr morgens (wird über Trigger gefiltert)
-  ScriptApp.newTrigger('runQuarterlyBriefingTrigger')
-    .timeBased()
-    .onMonthDay(1)
-    .atHour(9)
-    .create();
-}
 
 /**
  * Filtert das monatliche Triggern, damit das Quartals-Briefing nur alle 3 Monate läuft.
@@ -68,6 +31,140 @@ function runQuarterlyBriefingTrigger() {
   if (month === 0 || month === 3 || month === 6 || month === 9) {
     runQuarterlyBriefing();
   }
+}
+
+/**
+ * Täglich 10:00 — Fuel/Nutrition-Abdeckung: wer hat heute geloggt, wer nicht?
+ */
+function runNutritionCheck() {
+  const props = PropertiesService.getScriptProperties();
+  const token = ScriptApp.getOAuthToken();
+  const today = getDateString(0);
+
+  const mealLogs = fetchCollectionGroupByCollection(token, 'nutrition', today);
+  const userMap = fetchUserMap(token);
+
+  if (mealLogs.length === 0) {
+    sendTelegramMessage(props, `🥗 <b>Fuel-Check ${today}</b>\n\nNoch keine Ernährungsdaten heute.`);
+    return;
+  }
+
+  // User UIDs zu Namen mappen
+  mealLogs.forEach(log => log._userName = userMap[log._userId] || log._userId);
+
+  const prompt = `
+    Analysiere diese Ernährungs-Logs vom ${today} und erstelle eine kurze Zusammenfassung für den Coach.
+    WICHTIGE REGEL:
+    VERWENDE KEIN MARKDOWN! Keine Sternchen (*), keine Rauten (#). Nutze für Fettgedrucktes ausschließlich HTML-Tags (<b>Text</b>) und für Listen normale Bindestriche (-).
+    
+    Inhalt:
+    - Wer hat gut getankt (Kalorien, Makros)?
+    - Wer fehlt noch / hat sehr wenig geloggt?
+    - Auffälligkeiten?
+    
+    Sei direkt, max 5 Zeilen, mit Emojis.
+    
+    DATEN:
+    ${JSON.stringify(mealLogs, null, 2)}
+  `;
+
+  const check = callGeminiAPI(props.getProperty('GEMINI_API_KEY'), prompt);
+  sendTelegramMessage(props, `🥗 <b>Fuel-Check ${today}</b>\n\n${check}`);
+}
+
+/**
+ * Täglich 08:05 — Mood-Trend-Alarm: wer hatte 3+ Tage Mood < 6?
+ */
+function runMoodTrendAlert() {
+  const props = PropertiesService.getScriptProperties();
+  const token = ScriptApp.getOAuthToken();
+  const today = getDateString(0);
+  const threeDaysAgo = getDateString(-3);
+
+  const sessions = fetchCollectionGroupRange(token, 'sessions', threeDaysAgo, today);
+  const userMap = fetchUserMap(token);
+
+  // Filtere Klienten mit durchgehend niedrigem Mood
+  const userMoods = {};
+  sessions.forEach(s => {
+    const u = s._userId;
+    const mood = parseInt(s.mood, 10);
+    if (!isNaN(mood)) {
+      if (!userMoods[u]) userMoods[u] = [];
+      userMoods[u].push({ date: s.date, mood });
+    }
+  });
+
+  const alerts = Object.entries(userMoods)
+    .filter(([_, moods]) => moods.length >= 2 && moods.every(m => m.mood < 6))
+    .map(([uid, moods]) => ({ 
+      uid, 
+      name: userMap[uid] || uid, 
+      moods 
+    }));
+
+  if (alerts.length === 0) return; // Alles gut, kein Ping nötig
+
+  const prompt = `
+    Folgende Klienten zeigen einen anhaltend niedrigen Mood-Score (letzte 3 Tage, alle Werte < 6):
+    ${JSON.stringify(alerts, null, 2)}
+    
+    WICHTIGE REGEL:
+    VERWENDE KEIN MARKDOWN! Keine Sternchen (*), keine Rauten (#). Nutze für Fettgedrucktes ausschließlich HTML-Tags (<b>Text</b>) und für Listen normale Bindestriche (-).
+    
+    Formuliere eine kurze, empathische Coach-Warnung für mich (den Coach) auf Deutsch:
+    - Wer ist betroffen? (Nutze Klarnamen)
+    - Empfehlung (proaktiv ansprechen? Check-in einplanen?)
+    Max 3–4 Sätze, direkt, kein Floskeln.
+  `;
+
+  const alert = callGeminiAPI(props.getProperty('GEMINI_API_KEY'), prompt);
+  sendTelegramMessage(props, `🔴 <b>Mood-Alarm</b>\n\n${alert}`);
+}
+
+/**
+ * Täglich 20:00 — Erinnerung: wer hat HEUTE noch gar nichts geloggt?
+ */
+function runMissingLogAlert() {
+  const props = PropertiesService.getScriptProperties();
+  const token = ScriptApp.getOAuthToken();
+  const today = getDateString(0);
+
+  // Wer hat heute irgendwas geloggt
+  const journalsToday  = fetchCollectionGroupRange(token, 'journal', today, today);
+  const sessionsToday  = fetchCollectionGroupRange(token, 'sessions', today, today);
+  const userMap = fetchUserMap(token);
+
+  const activeUsers = new Set([
+    ...journalsToday.map(e => e._userId),
+    ...sessionsToday.map(e => e._userId),
+  ]);
+
+  // Alle bekannten User aus den letzten 7 Tagen holen
+  const weekAgo = getDateString(-7);
+  const recentSessions = fetchCollectionGroupRange(token, 'sessions', weekAgo, today);
+  const allKnownUsers  = new Set(recentSessions.map(s => s._userId));
+
+  // Auch alle registrierten User aus dem Profil-Mapping hinzufügen
+  Object.keys(userMap).forEach(uid => allKnownUsers.add(uid));
+
+  const silent = [...allKnownUsers].filter(u => !activeUsers.has(u));
+
+  if (silent.length === 0) {
+    sendTelegramMessage(props, `✅ <b>Log-Check ${today}</b>\n\nAlle aktiven Klienten haben heute geloggt.`);
+    return;
+  }
+
+  const msg = `📭 <b>Log-Check ${today}</b>\n\nNoch keine Aktivität heute:\n${silent.map(u => `- ${userMap[u] || u}`).join('\n')}\n\n<i>Evtl. Erinnerung schicken?</i>`;
+  sendTelegramMessage(props, msg);
+}
+
+/**
+ * Manuell — Test-Ping
+ */
+function sendTestMessage() {
+  const props = PropertiesService.getScriptProperties();
+  sendTelegramMessage(props, '✅ <b>VitalOS Coach Bot</b> ist aktiv und verbunden!');
 }
 
 // === KERN-FUNKTION ===
@@ -198,72 +295,85 @@ function fetchCollectionGroupRange(token, collectionId, startDate, endDate) {
     }
   };
 
-  const response = UrlFetchApp.fetch(url, {
+  return runFirestoreQuery(token, url, payload);
+}
+
+function fetchCollectionGroupByCollection(token, rootCollection, date) {
+  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`;
+  const payload = {
+    structuredQuery: {
+      from: [{ collectionId: 'logs', allDescendants: true }],
+      where: {
+        fieldFilter: {
+          field: { fieldPath: 'date' },
+          op: 'EQUAL',
+          value: { stringValue: date }
+        }
+      },
+      limit: 200
+    }
+  };
+  const allLogs = runFirestoreQuery(token, url, payload);
+  return allLogs.filter(log => log._source === rootCollection);
+}
+
+function runFirestoreQuery(token, url, payload) {
+  const res = UrlFetchApp.fetch(url, {
     method: 'post',
     contentType: 'application/json',
     headers: { 'Authorization': `Bearer ${token}` },
     payload: JSON.stringify(payload),
     muteHttpExceptions: true
   });
-  
-  if (response.getResponseCode() !== 200) {
-    console.error(`Fehler bei ${collectionId}: ${response.getContentText()}`);
+
+  if (res.getResponseCode() !== 200) {
+    console.error(`Firestore Fehler: ${res.getContentText()}`);
     return [];
   }
 
-  const result = JSON.parse(response.getContentText());
-  return result
-    .filter(r => r.document)
-    .map(r => {
-      const doc = r.document;
-      const path = doc.name.split('/');
-      const userId = path[path.indexOf('documents') + 2];
-      
-      let parsedFields = { _userId: userId };
-      for (const [key, val] of Object.entries(doc.fields)) {
-        parsedFields[key] = val.stringValue || val.integerValue || val.booleanValue || JSON.stringify(val);
-      }
-      return parsedFields;
-    });
+  const responseText = res.getContentText().trim();
+  if (!responseText || responseText === "[]") return [];
+
+  try {
+    const results = JSON.parse(responseText);
+    return results
+      .filter(r => r.document)
+      .map(r => {
+        const doc = r.document;
+        const docPath = doc.name.split('/');
+        const typeIndex = docPath.indexOf('documents') + 1;
+        const type = docPath[typeIndex];
+        const userId = docPath[typeIndex + 1];
+        
+        const parsed = { _userId: userId, _source: type };
+        const fields = doc.fields || {};
+        for (const [key, val] of Object.entries(fields)) {
+          parsed[key] = val.stringValue ?? val.integerValue ?? val.doubleValue ?? val.booleanValue ?? val.timestampValue ?? JSON.stringify(val);
+        }
+        return parsed;
+      });
+  } catch (e) {
+    console.error("Fehler beim Parsen der Firestore-Antwort:", e);
+    return [];
+  }
 }
 
 function fetchUserMap(token) {
-  // Nutzt eine Collection Group Query, um alle "profile"-Collections zu finden
   const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`;
-  
   const payload = {
     structuredQuery: {
       from: [{ collectionId: "profile", allDescendants: true }]
     }
   };
 
-  const response = UrlFetchApp.fetch(url, {
-    method: 'post',
-    contentType: 'application/json',
-    headers: { 'Authorization': `Bearer ${token}` },
-    payload: JSON.stringify(payload),
-    muteHttpExceptions: true
-  });
-  
+  const docs = runFirestoreQuery(token, url, payload);
   const map = {};
-  if (response.getResponseCode() !== 200) return map;
-  
-  const result = JSON.parse(response.getContentText());
-  
-  result.forEach(r => {
-    if (!r.document) return;
-    const doc = r.document;
-    
-    // Pfad-Beispiel: projects/.../databases/(default)/documents/fitness/{uid}/profile/metadata
-    const pathParts = doc.name.split('/');
-    const userId = pathParts[pathParts.indexOf('fitness') + 1]; 
-    
-    const name = (doc.fields.displayName && doc.fields.displayName.stringValue) 
-              || (doc.fields.name && doc.fields.name.stringValue);
-              
-    if (name) map[userId] = name;
+  docs.forEach(doc => {
+    const name = doc.displayName || doc.name;
+    if (name) {
+      map[doc._userId] = name;
+    }
   });
-  
   return map;
 }
 
@@ -272,7 +382,7 @@ function callGeminiAPI(apiKey, prompt) {
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
     systemInstruction: { parts: [{ text: "Du bist ein präziser, analytischer Coach." }] },
-    generationConfig: { temperature: 0.2 } // Niedrige Temperatur = präzisere, analytischere Antworten
+    generationConfig: { temperature: 0.2 }
   };
   
   const res = UrlFetchApp.fetch(url, {
@@ -310,4 +420,70 @@ function sendTelegramMessage(props, text) {
       console.error(`Telegram Fehler für ID ${chatId}: ${res.getContentText()}`);
     }
   });
+}
+
+function getDateString(offsetDays) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  return Utilities.formatDate(d, 'Europe/Vienna', 'yyyy-MM-dd');
+}
+
+// ═══════════════════════════════════════════════════════
+//  SETUP — Trigger automatisch anlegen
+// ═══════════════════════════════════════════════════════
+
+function setupAllTriggers() {
+  // Alte Trigger löschen
+  ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
+
+  // 1. Tägliches Briefing um 6:00 Uhr morgens (für "gestern")
+  ScriptApp.newTrigger('runDailyBriefing')
+    .timeBased()
+    .everyDays(1)
+    .atHour(6)
+    .create();
+
+  // 2. Mood-Trend-Alert täglich um 8:00 Uhr morgens
+  ScriptApp.newTrigger('runMoodTrendAlert')
+    .timeBased()
+    .everyDays(1)
+    .atHour(8)
+    .create();
+
+  // 3. Nutrition-Check täglich um 10:00 Uhr morgens
+  ScriptApp.newTrigger('runNutritionCheck')
+    .timeBased()
+    .everyDays(1)
+    .atHour(10)
+    .create();
+
+  // 4. Missing-Log-Check täglich um 20:00 Uhr abends
+  ScriptApp.newTrigger('runMissingLogAlert')
+    .timeBased()
+    .everyDays(1)
+    .atHour(20)
+    .create();
+
+  // 5. Wöchentliches Briefing jeden Montag um 7:00 Uhr morgens
+  ScriptApp.newTrigger('runWeeklyReport')
+    .timeBased()
+    .onWeekDay(ScriptApp.WeekDay.MONDAY)
+    .atHour(7)
+    .create();
+
+  // 6. Monatliches Briefing am 1. jedes Monats um 8:00 Uhr morgens
+  ScriptApp.newTrigger('runMonthlyBriefing')
+    .timeBased()
+    .onMonthDay(1)
+    .atHour(8)
+    .create();
+
+  // 7. Quartals-Briefing am 1. des Monats um 9:00 Uhr morgens (wird über Trigger gefiltert)
+  ScriptApp.newTrigger('runQuarterlyBriefingTrigger')
+    .timeBased()
+    .onMonthDay(1)
+    .atHour(9)
+    .create();
+
+  console.log('✅ Alle zeitgesteuerten Trigger erfolgreich eingerichtet.');
 }
