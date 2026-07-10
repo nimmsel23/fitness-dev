@@ -301,7 +301,8 @@ function fetchCollectionGroupByCollection(token, rootCollection, date) {
       limit: 200
     }
   };
-  return runFirestoreQuery(token, url, payload);
+  const allLogs = runFirestoreQuery(token, url, payload);
+  return allLogs.filter(log => log._source === rootCollection);
 }
 
 function runFirestoreQuery(token, url, payload) {
@@ -322,8 +323,10 @@ function runFirestoreQuery(token, url, payload) {
     .filter(r => r.document)
     .map(r => {
       const docPath = r.document.name.split('/');
-      const userId = docPath[docPath.indexOf('documents') + 2];
-      const parsed = { _userId: userId };
+      const typeIndex = docPath.indexOf('documents') + 1;
+      const type = docPath[typeIndex];
+      const userId = docPath[typeIndex + 1];
+      const parsed = { _userId: userId, _source: type };
       Object.entries(r.document.fields || {}).forEach(([k, v]) => {
         parsed[k] = v.stringValue ?? v.integerValue ?? v.doubleValue ?? v.booleanValue ?? v.timestampValue ?? JSON.stringify(v);
       });
