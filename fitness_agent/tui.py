@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import sys
 import yaml
+import os
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -202,11 +204,15 @@ def _inbox_detail(f: Path) -> str:
         ))
 
     console.print()
-    _nav(**{"a": "Approve → expert", "d": "Löschen", "b": "zurück"})
-    choice = Prompt.ask("  [bold]>[/bold]", choices=["a", "d", "b"], default="b")
+    _nav(**{"a": "Approve → expert", "e": "Bearbeiten", "d": "Löschen", "b": "zurück"})
+    choice = Prompt.ask("  [bold]>[/bold]", choices=["a", "e", "d", "b"], default="b")
 
     if choice == "a":
         _approve(f, ex)
+    elif choice == "e":
+        editor = os.environ.get("EDITOR", "nano")
+        subprocess.call([editor, str(f)])
+        return _inbox_detail(f)
     elif choice == "d":
         if Confirm.ask(f"  [red]Wirklich löschen: {f.name}?[/red]"):
             f.unlink()
