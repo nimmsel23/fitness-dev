@@ -38,6 +38,8 @@ function generateBriefing(timeframe) {
   const userMap = fetchUserMap(token);
   journals.forEach(j => j._userName = userMap[j._userId] || j._userId);
   sessions.forEach(s => s._userName = userMap[s._userId] || s._userId);
+
+  const expectedClients = Object.entries(userMap).map(([id, name]) => ({ id, name }));
   
   if (journals.length === 0 && sessions.length === 0) {
     sendTelegramMessage(props, `ℹ️ <b>Keine Logs</b> im Zeitraum ${dates.startStr} bis ${dates.endStr} (${timeframe}) gefunden.`);
@@ -47,6 +49,8 @@ function generateBriefing(timeframe) {
   // 2. Erstelle einen KI-Prompt
   const rawData = `
     Zeitraum: ${dates.startStr} bis ${dates.endStr} (${timeframe})
+    Erwartete Klienten (Datenbank-Profile):
+    ${JSON.stringify(expectedClients, null, 2)}
     
     Journal-Einträge:
     ${JSON.stringify(journals, null, 2)}
@@ -64,7 +68,8 @@ function generateBriefing(timeframe) {
     1. Wir tracken High-Level-Protokolle, keinen "Sets, Reps und Weights"-Kleinkram. 
     2. Da dies ein ${timeframe}-Review ist, suche nach langfristigen Trends, nicht nur nach tagesaktuellen Schwankungen.
     3. Wer war durchgehend konsistent? Wer hatte mehrere Ausfälle (z.B. gehäuft schlechter Schlaf, fehlende Sessions)?
-    4. VERWENDE KEIN MARKDOWN! Keine Sternchen (*), keine Rauten (#). Nutze für Fettgedrucktes ausschließlich HTML-Tags (<b>Text</b>) und für Listen normale Bindestriche (-).
+    4. Nutze die Liste der "Erwarteten Klienten", um unter "Fehlende Logs" präzise alle Klienten aufzulisten, für die in den Rohdaten KEIN Journal- und KEIN Session-Eintrag vorliegt. Nutze immer deren Klarnamen.
+    5. VERWENDE KEIN MARKDOWN! Keine Sternchen (*), keine Rauten (#). Nutze für Fettgedrucktes ausschließlich HTML-Tags (<b>Text</b>) und für Listen normale Bindestriche (-).
     
     Erstelle eine kompakte Telegram-Zusammenfassung exakt in diesem HTML-Format:
     
@@ -72,13 +77,13 @@ function generateBriefing(timeframe) {
     [2-3 Sätze zum Gesamttrend der eingegangenen Logs im gesamten Zeitraum]
     
     <b>🟢 Konsistent (On Track)</b>
-    - [Klient]: [Kurzer Grund, warum es gut lief]
+    - [Name des Klienten]: [Kurzer Grund, warum es gut lief]
     
     <b>🟡 Feedback & Check-in Bedarf</b>
-    - [Klient]: [Erkannte Muster/Probleme über den Zeitraum & Grund für Eingreifen]
+    - [Name des Klienten]: [Erkannte Muster/Probleme über den Zeitraum & Grund für Eingreifen]
     
     <b>🔴 Fehlende Logs (Follow-up)</b>
-    - [Klient]
+    - [Name des Klienten]
     
     Rohdaten:
     ${rawData}

@@ -16,13 +16,8 @@ A unified fitness ecosystem serving two primary roles:
 *   **Aesthetics**: "AlphaOS" design language—Glassmorphism, high density, JetBrains Mono for data, and consistent 15+ themes (Nordic, Dracula, etc.).
 *   **Desktop Mode**: Fixed sidebar navigation (`lg` breakpoint), responsive 3-column dashboard, and side-by-side split views for learning/journaling.
 
-### Backend & Sync (`/firestore`, `server.mjs`, `catalog/`)
-*   **Local Server**: Hono-based Node.js server for local development and local tool integration.
-*   **Fitness Agent Daemon**: Autonomous expert system (`catalog/fitness_agent/watcher.py`) with three proactive cycles:
-    1.  **Inbox Watcher**: Real-time AI-enrichment of new user requests.
-    2.  **Demand-Driven Refinement**: Hourly analysis of user logs (28-day window) to auto-draft expert versions of popular "Wiki-tier" exercises.
-    3.  **Continuous Auditing**: Bi-hourly biomechanical consistency checks against `rules/biomechanics.yml`.
-*   **Multi-User Sync**: Python-based engine (`firestore/sync.py`) that bridges Firestore and local storage.
+### Backend (`server.mjs`)
+*   **Local Server**: Hono-based Node.js server (`server.mjs`) used strictly for local development and local tool integration. In production (Firebase build), the frontend communicates directly with Firestore and no intermediate backend is used.
 
 ### Integration Points
 *   **3-Tier Exercise Catalog**: 
@@ -57,9 +52,7 @@ A unified fitness ecosystem serving two primary roles:
 ## 4. Repository Structure
 *   `/pwa`: The Firebase-deployed React application.
 *   `/src`: Local development views and components (parity targets).
-*   `/firestore`: Python modules for sync, mirroring, and CLI operations.
 *   `/catalog/kb`: The local knowledge base for anatomy and exercises (YAML).
-*   `/catalog/fitness_agent`: The Python expert system. [See Subdirectory Instructions](./catalog/fitness_agent/GEMINI.md).
 *   `/arena`: Specialized muscle visualization/gamification module.
 
 ## 5. Development Workflow
@@ -67,9 +60,8 @@ A unified fitness ecosystem serving two primary roles:
 2.  **Sync Parity**: Update corresponding components in `/src` to maintain the local-development target.
 3.  **Deploy**: Use `npm run deploy --prefix pwa` for Firebase Hosting updates.
 4.  **Anatomy Parity**: When adding exercises, ensure deep anatomy is enriched in `~/anatomy-kb` and passes `./anatomy-agent audit all` before syncing to Firestore. Use the `anatomy-agent` skill for deep knowledge ingestion.
-5.  **Data Persistence**: Current strategy is repo-local storage for local development data.
-6.  **Automations**: Use `fitnessctl watch` to run the autonomous daemon that handles inbox enrichment and catalog-to-firestore synchronization.
-7.  **Document**: Update this `GEMINI.md` when architectural shifts occur.
+5.  **Data Persistence**: Local dev uses `server.mjs` (SQLite/JSON). Prod uses direct Firebase SDK access.
+6.  **Document**: Update this `GEMINI.md` when architectural shifts occur.
 
 ## 6. Future Roadmap & Experiments
 *   **Anatomy Learning**: Integrating `body-muscles` (70+ regions) into the `Learn` view for deep anatomical education and interaction.
