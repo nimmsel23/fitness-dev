@@ -45,3 +45,18 @@ export async function getBodyEntries(days = 30) {
     return data?.entries || [];
   } catch { return []; }
 }
+
+export async function getUserProfile(uid) {
+  try {
+    const raw = localStorage.getItem(`fitness-profile-${uid}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+export async function updateUserProfile(uid, data) {
+  try {
+    const current = await getUserProfile(uid) || {};
+    localStorage.setItem(`fitness-profile-${uid}`, JSON.stringify({ ...current, ...data, updated_at: new Date().toISOString() }));
+    return true;
+  } catch { return false; }
+}

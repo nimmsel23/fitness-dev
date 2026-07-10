@@ -105,27 +105,4 @@ export async function getPlanSuggestion(params) {
   }
 }
 
-export function parseQuick(raw) {
-  if (!raw?.trim()) return null
-  const name = raw.replace(/[\d@x\s].*/i, '').trim() || raw.trim()
-  const setsMatch = raw.match(/(\d+)\s*[xX×]\s*(\d+)/)
-  const weightMatch = raw.match(/@(\d+(?:\.\d+)?)/)
-  const rpeMatch = raw.match(/rpe\s*(\d+(?:\.\d+)?)/i)
-
-  const count = setsMatch ? parseInt(setsMatch[1]) : 1
-  const reps = setsMatch ? setsMatch[2] : ""
-  const weight = weightMatch ? weightMatch[1] : ""
-  
-  const setsArray = Array.from({ length: count }, () => ({
-    reps,
-    weight
-  }))
-
-  return {
-    name,
-    setsArray,
-    note: rpeMatch ? `RPE ${rpeMatch[1]}` : '',
-    primaryMuscles: [],
-    secondaryMuscles: [],
-  }
-}
+export { parseQuick } from "../shared/parse.js";

@@ -1,20 +1,17 @@
+/**
+ * firestore/journal.js — Journal and HabitJournal CRUD for Firestore.
+ */
+
 import {
-  collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc, updateDoc,
-  query, where, orderBy, limit, serverTimestamp, writeBatch, collectionGroup
+  collection, doc, addDoc, setDoc, getDoc, getDocs,
+  query, where, orderBy, limit, serverTimestamp,
 } from "firebase/firestore";
-import {
-  onAuthStateChanged,
-  signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  signOut as fbSignOut, updateProfile,
-} from "firebase/auth";
 
-import { db, auth, googleProvider } from "../../../firebase.js";
-import { getWeekDates, downloadText, num, todayISO, localToday } from "../shared/utils.js";
-import { getUid, pingBridge } from "./core.js";
-import { getAllExercises } from "./kb.js";
-import { getSession, getSessionHistory } from "./sessions.js";
-import { updateAnalyticsDoc } from "./analysis.js";
+import { db } from "../../../firebase.js";
+import { todayISO } from "../shared/utils.js";
+import { getUid } from "./core.js";
 
+// ── Journal ───────────────────────────────────────────────────────────────────
 
 export async function getJournal(date = todayISO()) {
   try {
@@ -26,7 +23,10 @@ export async function getJournal(date = todayISO()) {
     const snap = await getDocs(q);
     return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
   } catch {
-    const q = query(collection(db, "fitness", getUid(), "journal"), where("date", "==", date));
+    const q = query(
+      collection(db, "fitness", getUid(), "journal"),
+      where("date", "==", date)
+    );
     const snap = await getDocs(q);
     return snap.docs
       .map((d) => ({ id: d.id, ...d.data() }))
@@ -61,8 +61,12 @@ export async function updateJournal(id, text) {
   return { ok: true };
 }
 
+// ── HabitJournal ──────────────────────────────────────────────────────────────
+
 export async function getHabitJournal(habitId, date) {
-  const snap = await getDoc(doc(db, "fitness", getUid(), "habitJournals", `${habitId}_${date}`));
+  const snap = await getDoc(
+    doc(db, "fitness", getUid(), "habitJournals", `${habitId}_${date}`)
+  );
   return snap.exists() ? snap.data() : null;
 }
 
@@ -74,7 +78,7 @@ export async function getHabitJournalHistory(habitId) {
     limit(20),
   );
   const snap = await getDocs(q);
-  return snap.docs.map(d => d.data());
+  return snap.docs.map((d) => d.data());
 }
 
 export async function getAllHabitJournalsHistory(limitCount = 50) {
@@ -84,7 +88,7 @@ export async function getAllHabitJournalsHistory(limitCount = 50) {
     limit(limitCount)
   );
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data(), type: "habit" }));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data(), type: "habit" }));
 }
 
 export async function getAllHabitJournalsForDate(date) {
@@ -93,7 +97,7 @@ export async function getAllHabitJournalsForDate(date) {
     where("date", "==", date),
   );
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data(), type: "habit" }));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data(), type: "habit" }));
 }
 
 export async function saveHabitJournal(habitId, date, text) {
@@ -106,4 +110,3 @@ export async function saveHabitJournal(habitId, date, text) {
   }, { merge: true });
   return { ok: true };
 }
-

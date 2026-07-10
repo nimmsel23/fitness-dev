@@ -1,6 +1,9 @@
+/**
+ * firestore/core.js — Firebase init, auth, and base helpers.
+ */
+
 import {
-  collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc, updateDoc,
-  query, where, orderBy, limit, serverTimestamp, writeBatch, collectionGroup
+  doc, setDoc, serverTimestamp,
 } from "firebase/firestore";
 import {
   onAuthStateChanged,
@@ -9,27 +12,22 @@ import {
 } from "firebase/auth";
 
 import { db, auth, googleProvider } from "../../../firebase.js";
-import { getWeekDates, downloadText, num, todayISO, localToday } from "../shared/utils.js";
-import { getAllExercises } from "./kb.js";
-import { getSession, getSessionHistory } from "./sessions.js";
-import { updateAnalyticsDoc } from "./analysis.js";
+
+export { db, auth, googleProvider };
 
 export function isLocalMode() { return false; }
 
-// ── api compat shim — Views that bypass @db and call api directly will
-//    hit this no-op in firebase builds. Console warning helps track them.
+// ── api compat shim ───────────────────────────────────────────────────────────
+// Views that bypass @db and call api directly hit this no-op in firebase builds.
 const noopApi = (verb) => async () => {
   console.warn(`[db.firestore] api.${verb}() called — view bypasses @db contract`);
   return null;
 };
 export const api = { get: noopApi("get"), post: noopApi("post"), delete: noopApi("delete") };
 
-
-export { db, auth, googleProvider };
-
+// ── Auth ──────────────────────────────────────────────────────────────────────
 
 let currentUid = null;
-
 let _lastProfileKey = null;
 
 export function watchAuth(callback) {
@@ -43,7 +41,7 @@ export function watchAuth(callback) {
           await setDoc(doc(db, "fitness", user.uid, "profile", "metadata"), {
             email: user.email || "",
             displayName: user.displayName || "",
-            updated_at: serverTimestamp()
+            updated_at: serverTimestamp(),
           }, { merge: true });
         } catch (e) {
           console.error("Profile metadata sync error:", e);
@@ -78,4 +76,3 @@ const BRIDGE_NOTIFY = "https://ideapad.tail7a15d6.ts.net/api/fitness/notify";
 export function pingBridge() {
   fetch(BRIDGE_NOTIFY, { method: "POST" }).catch(() => {});
 }
-

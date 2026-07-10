@@ -1,19 +1,19 @@
+/**
+ * firestore/sessions.js — Session, Plan, and Inbox CRUD for Firestore.
+ */
+
 import {
   collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc, updateDoc,
-  query, where, orderBy, limit, serverTimestamp, writeBatch, collectionGroup
+  query, where, orderBy, limit, serverTimestamp, writeBatch, collectionGroup,
 } from "firebase/firestore";
-import {
-  onAuthStateChanged,
-  signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  signOut as fbSignOut, updateProfile,
-} from "firebase/auth";
 
-import { db, auth, googleProvider } from "../../../firebase.js";
-import { getWeekDates, downloadText, num, todayISO, localToday } from "../shared/utils.js";
+import { db } from "../../../firebase.js";
+import { todayISO } from "../shared/utils.js";
 import { getUid, pingBridge } from "./core.js";
 import { getAllExercises } from "./kb.js";
 import { updateAnalyticsDoc } from "./analysis.js";
 
+// ── Sessions ──────────────────────────────────────────────────────────────────
 
 export async function getSession(date = todayISO(), id = null) {
   const targetId = id ? `${date}__${id}` : date;
@@ -99,6 +99,11 @@ export async function getLatestSession() {
 
 export async function getSessionHistory(n = 60) { return getRecentSessions(n); }
 
+// Stub — Fuel/Nutrition lives in a separate repo/Firestore layer.
+export async function getMealsHistory(_limit) { return []; }
+
+// ── Plan ──────────────────────────────────────────────────────────────────────
+
 export async function getPlan() {
   const snap = await getDoc(doc(db, "fitness", getUid(), "plan"));
   if (!snap.exists()) return null;
@@ -118,135 +123,115 @@ const PROGRAM_RULES = {
   default_split: "full_body",
   templates: {
     push_day: { slots: [
-      { name: "main_chest_press",       choose_from: ["041","104"] },
-      { name: "secondary_press",        choose_from: ["045","023"] },
-      { name: "shoulder_press_or_raise",choose_from: ["022","301"] },
-      { name: "chest_isolation",        choose_from: ["103","pec_deck"] },
-      { name: "triceps_isolation",      choose_from: ["502","503"] },
+      { name: "main_chest_press",        choose_from: ["041","104"] },
+      { name: "secondary_press",         choose_from: ["045","023"] },
+      { name: "shoulder_press_or_raise", choose_from: ["022","301"] },
+      { name: "chest_isolation",         choose_from: ["103","pec_deck"] },
+      { name: "triceps_isolation",       choose_from: ["502","503"] },
     ]},
     pull_day: { slots: [
-      { name: "vertical_pull",          choose_from: ["020","021","201"] },
-      { name: "horizontal_pull",        choose_from: ["042","043","044"] },
-      { name: "secondary_row_or_pulldown", choose_from: ["201","043","044"] },
-      { name: "rear_delt_or_face_pull", choose_from: ["302","303"] },
-      { name: "biceps_movement",        choose_from: ["504","505","506","507"] },
+      { name: "vertical_pull",              choose_from: ["020","021","201"] },
+      { name: "horizontal_pull",            choose_from: ["042","043","044"] },
+      { name: "secondary_row_or_pulldown",  choose_from: ["201","043","044"] },
+      { name: "rear_delt_or_face_pull",     choose_from: ["302","303"] },
+      { name: "biceps_movement",            choose_from: ["504","505","506","507"] },
     ]},
     legs_day: { slots: [
-      { name: "main_squat",             choose_from: ["061","060","062"] },
-      { name: "main_hinge",             choose_from: ["081","080","082"] },
-      { name: "unilateral_or_machine",  choose_from: ["063","064","062"] },
-      { name: "hamstring_isolation",    choose_from: ["402","082"] },
-      { name: "calves",                 choose_from: ["701"] },
-      { name: "core_optional",          choose_from: ["601","602","603","604","605","606"] },
+      { name: "main_squat",         choose_from: ["061","060","062"] },
+      { name: "main_hinge",         choose_from: ["081","080","082"] },
+      { name: "unilateral_or_machine", choose_from: ["063","064","062"] },
+      { name: "hamstring_isolation", choose_from: ["402","082"] },
+      { name: "calves",             choose_from: ["701"] },
+      { name: "core_optional",      choose_from: ["601","602","603","604","605","606"] },
     ]},
   },
 };
 
-// Tagesplan-Hint für die Session-Ansicht (Firestore-Variante).
-// Stimmt mit der Node-API `/plan/today` überein: { day, block, exercises: [name] }.
 const DOW_FALLBACK = {
-  Mo: { block: "Push",      exercises: ["Incline Dumbbell Press", "Dips", "Lateral Raise", "Cable Fly", "Triceps Extension"] },
-  Di: { block: "Pull",      exercises: ["Pull-Up", "Row", "Lat Pulldown", "Face Pull", "Biceps Curl"] },
-  Mi: { block: "Legs",      exercises: ["Squat", "Romanian Deadlift", "Lunge", "Leg Curl", "Calf Raise"] },
-  Do: { block: "Upper",     exercises: ["Bench Press", "Row", "Overhead Press", "Pulldown", "Curl"] },
-  Fr: { block: "Lower",     exercises: ["Deadlift", "Split Squat", "Hip Thrust", "Leg Curl", "Calf Raise"] },
-  Sa: { block: "Full Body", exercises: ["Squat", "Press", "Row", "Hinge", "Carry"] },
-  So: { block: "Recovery",  exercises: ["Mobility", "Walk", "Core Breathing"] },
+  Mo: { block: "Push",      exercises: ["Incline Dumbbell Press","Dips","Lateral Raise","Cable Fly","Triceps Extension"] },
+  Di: { block: "Pull",      exercises: ["Pull-Up","Row","Lat Pulldown","Face Pull","Biceps Curl"] },
+  Mi: { block: "Legs",      exercises: ["Squat","Romanian Deadlift","Lunge","Leg Curl","Calf Raise"] },
+  Do: { block: "Upper",     exercises: ["Bench Press","Row","Overhead Press","Pulldown","Curl"] },
+  Fr: { block: "Lower",     exercises: ["Deadlift","Split Squat","Hip Thrust","Leg Curl","Calf Raise"] },
+  Sa: { block: "Full Body", exercises: ["Squat","Press","Row","Hinge","Carry"] },
+  So: { block: "Recovery",  exercises: ["Mobility","Walk","Core Breathing"] },
 };
 
 function dowSuggestionForDate(dateStr) {
-  const safe = (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateStr))
+  const safe = (typeof dateStr === "string" && /^\d{4}-\d{2}-\d{2}/.test(dateStr))
     ? dateStr
     : new Date().toISOString().slice(0, 10);
-  const dow = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"][new Date(safe + "T12:00:00").getDay()];
+  const dow = ["So","Mo","Di","Mi","Do","Fr","Sa"][new Date(safe + "T12:00:00").getDay()];
   const f = DOW_FALLBACK[dow] || DOW_FALLBACK.So;
   return { day: dow, block: f.block, exercises: f.exercises };
 }
 
 export async function getPlanSuggestion(arg) {
-  // Session-View ruft mit Date-String — gleiche Signatur wie lokale Version.
-  if (typeof arg === 'string' || arg == null) {
+  if (typeof arg === "string" || arg == null) {
     return dowSuggestionForDate(arg);
   }
   const { template, goal, day } = arg;
-  const templateName = template?.trim() || (day ? `${day.trim()}_day` : '') || PROGRAM_RULES.default_split;
+  const templateName = template?.trim() || (day ? `${day.trim()}_day` : "") || PROGRAM_RULES.default_split;
   const templateDef = PROGRAM_RULES.templates[templateName];
   if (!templateDef) return null;
 
   const exercises = await getAllExercises();
-  const byId = Object.fromEntries(exercises.map(e => [e.exercise_id || e.id, e]));
+  const byId = Object.fromEntries(exercises.map((e) => [e.exercise_id || e.id, e]));
   const exerciseIds = new Set(Object.keys(byId));
 
   const selected = new Set();
-  const slots = templateDef.slots.map(slot => {
-    const available = slot.choose_from.filter(id => exerciseIds.has(id) && !selected.has(id));
+  const slots = templateDef.slots.map((slot) => {
+    const available = slot.choose_from.filter((id) => exerciseIds.has(id) && !selected.has(id));
     const pick = available[0] || null;
     if (pick) selected.add(pick);
     return { name: slot.name, choose_from: slot.choose_from, selected_exercise: pick };
   });
 
-  const resolvedExercises = [...selected].map(id => {
+  const ROLE_WEIGHTS = { primary: 1.0, secondary: 0.5, stabilizer: 0.2 };
+  const DEFAULT_SETS = 1;
+  const DEFAULT_RPE = 8;
+
+  const resolvedExercises = [...selected].map((id) => {
     const ex = byId[id];
     if (!ex) return null;
     return {
       ...ex,
       id: ex.exercise_id || ex.id,
       name: ex.display_name || ex.german || ex.name || id,
-      primaryMuscles: ex.primary_muscles || ex.primaryMuscles || [],
+      primaryMuscles:   ex.primary_muscles   || ex.primaryMuscles   || [],
       secondaryMuscles: ex.secondary_muscles || ex.secondaryMuscles || [],
       stabilizers: ex.stabilizers || [],
     };
   }).filter(Boolean);
 
-  const coverage_summary = buildCoverageSummary(resolvedExercises);
-
-  return { ok: true, template: templateName, goal: goal || null, slots, exercises: resolvedExercises, coverage_summary };
-}
-
-const ROLE_WEIGHTS = { primary: 1.0, secondary: 0.5, stabilizer: 0.2 };
-const EFFORT_FACTOR_RPE8 = 1.0;
-const DEFAULT_SETS = 1;
-const DEFAULT_RPE = 8;
-
-function buildCoverageSummary(exercises) {
   const muscle_scores = {};
   const body_region_scores = {};
-
-  for (const ex of exercises) {
-    const ef = EFFORT_FACTOR_RPE8;
-
+  for (const ex of resolvedExercises) {
     const addScore = (muscles, weight) => {
       for (const m of muscles) {
-        const key = m.toLowerCase().replace(/\s+/g, '_');
-        muscle_scores[key] = (muscle_scores[key] || 0) + DEFAULT_SETS * weight * ef;
-        body_region_scores[key] = (body_region_scores[key] || 0) + DEFAULT_SETS * weight * ef;
+        const key = m.toLowerCase().replace(/\s+/g, "_");
+        muscle_scores[key] = (muscle_scores[key] || 0) + DEFAULT_SETS * weight;
+        body_region_scores[key] = (body_region_scores[key] || 0) + DEFAULT_SETS * weight;
       }
     };
-
     addScore(ex.primaryMuscles || [], ROLE_WEIGHTS.primary);
     addScore(ex.secondaryMuscles || [], ROLE_WEIGHTS.secondary);
     addScore(ex.stabilizers || [], ROLE_WEIGHTS.stabilizer);
   }
 
-  const round2 = v => Math.round(v * 100) / 100;
-  const sortedMuscles = Object.fromEntries(Object.entries(muscle_scores).sort().map(([k, v]) => [k, round2(v)]));
-  const sortedRegions = Object.fromEntries(Object.entries(body_region_scores).sort().map(([k, v]) => [k, round2(v)]));
-
-  return {
-    sets: DEFAULT_SETS,
-    rpe: DEFAULT_RPE,
-    selected_exercises: exercises.map(ex => ({ exercise: ex.exercise_id || ex.id, sets: DEFAULT_SETS, rpe: DEFAULT_RPE })),
-    muscle_scores: sortedMuscles,
-    body_region_scores: sortedRegions,
+  const round2 = (v) => Math.round(v * 100) / 100;
+  const coverage_summary = {
+    sets: DEFAULT_SETS, rpe: DEFAULT_RPE,
+    selected_exercises: resolvedExercises.map((ex) => ({ exercise: ex.exercise_id || ex.id, sets: DEFAULT_SETS, rpe: DEFAULT_RPE })),
+    muscle_scores: Object.fromEntries(Object.entries(muscle_scores).sort().map(([k, v]) => [k, round2(v)])),
+    body_region_scores: Object.fromEntries(Object.entries(body_region_scores).sort().map(([k, v]) => [k, round2(v)])),
     unmapped_muscles: [],
   };
+
+  return { ok: true, template: templateName, goal: goal || null, slots, exercises: resolvedExercises, coverage_summary };
 }
 
-export async function exportFitnessData(_payload) { return null; }
-
-export async function getConfig() { return { ok: true, source: "firestore" }; }
-
-// ... (existing imports and helpers)
+// ── Inbox ─────────────────────────────────────────────────────────────────────
 
 export async function getInbox() {
   const q = query(
@@ -254,17 +239,16 @@ export async function getInbox() {
     orderBy("received_at", "desc")
   );
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ file_id: d.id, ...d.data() }));
+  return snap.docs.map((d) => ({ file_id: d.id, ...d.data() }));
 }
 
 export async function getGlobalInbox() {
-  // requires a collectionGroup index for 'inbox' if filtered/ordered
   const q = query(collectionGroup(db, "inbox"), where("status", "==", "ai_enriched"));
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ 
-    file_id: d.id, 
-    userId: d.reference.parent.parent.id, 
-    ...d.data() 
+  return snap.docs.map((d) => ({
+    file_id: d.id,
+    userId: d.reference.parent.parent.id,
+    ...d.data(),
   }));
 }
 
@@ -284,10 +268,7 @@ export async function approveInbox(id, userId) {
     source: "approved",
     approved_at: serverTimestamp(),
   });
-  batch.update(inboxRef, {
-    status: "approved",
-    approved_at: serverTimestamp()
-  });
+  batch.update(inboxRef, { status: "approved", approved_at: serverTimestamp() });
   await batch.commit();
 
   return { ok: true, id: exId };
@@ -298,13 +279,14 @@ export async function deleteInbox(id, userId) {
   const inboxRef = doc(db, "fitness", targetUid, "inbox", id);
   const snap = await getDoc(inboxRef);
   if (snap.exists() && targetUid !== getUid()) {
-    await updateDoc(inboxRef, {
-      status: "rejected",
-      rejected_at: serverTimestamp()
-    });
+    await updateDoc(inboxRef, { status: "rejected", rejected_at: serverTimestamp() });
   } else {
     await deleteDoc(inboxRef);
   }
   return { ok: true };
 }
 
+// ── Misc ──────────────────────────────────────────────────────────────────────
+
+export async function exportFitnessData(_payload) { return null; }
+export async function getConfig() { return { ok: true, source: "firestore" }; }

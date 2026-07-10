@@ -122,7 +122,7 @@ def run_build(source_dir: Path, output_file: Path):
 @app.command()
 def build(
     source_dir: Optional[Path] = typer.Option(
-        Path.home() / ".fitness-agent" / "exercises",
+        Path.home() / "fitness" / "catalog" / "kb" / "exercises",
         help="Directory containing exercise YAML files"
     ),
     output_file: Optional[Path] = typer.Option(

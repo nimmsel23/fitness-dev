@@ -1,8 +1,17 @@
-export * from "./local/core";
-export * from "./local/sessions";
-export * from "./local/journal";
-export * from "./local/habits";
-export * from "./local/kb";
-export * from "./local/analysis";
-export * from "./local/user";
-export * from "./local/utils";
+// Local (API) build barrel — re-exports all modular local/* + shared/* symbols.
+// Vite alias: '@db' → this file in default (non-firebase) builds.
+
+export * from "./local/core.js";
+export * from "./local/sessions.js";
+export * from "./local/journal.js";
+export * from "./local/habits.js";
+export * from "./local/kb.js";
+export * from "./local/analysis.js";
+export * from "./local/user.js";
+export * from "./local/utils.js";
+
+// Shared utilities always available in both modes
+export * from "./shared/utils.js";
+export * from "./shared/muscle.js";
+export * from "./shared/parse.js";
+export * from "./shared/favourites.js";
