@@ -52,21 +52,7 @@ function runNutritionCheck() {
   // User UIDs zu Namen mappen
   mealLogs.forEach(log => log._userName = userMap[log._userId] || log._userId);
 
-  const prompt = `
-    Analysiere diese Ernährungs-Logs vom ${today} und erstelle eine kurze Zusammenfassung für den Coach.
-    WICHTIGE REGEL:
-    VERWENDE KEIN MARKDOWN! Keine Sternchen (*), keine Rauten (#). Nutze für Fettgedrucktes ausschließlich HTML-Tags (<b>Text</b>) und für Listen normale Bindestriche (-).
-    
-    Inhalt:
-    - Wer hat gut getankt (Kalorien, Makros)?
-    - Wer fehlt noch / hat sehr wenig geloggt?
-    - Auffälligkeiten?
-    
-    Sei direkt, max 5 Zeilen, mit Emojis.
-    
-    DATEN:
-    ${JSON.stringify(mealLogs, null, 2)}
-  `;
+  const prompt = getNutritionPrompt(today, mealLogs);
 
   const check = callGeminiAPI(props.getProperty('GEMINI_API_KEY'), prompt);
   sendTelegramMessage(props, `🥗 <b>Fuel-Check ${today}</b>\n\n${check}`);
@@ -105,18 +91,7 @@ function runMoodTrendAlert() {
 
   if (alerts.length === 0) return; // Alles gut, kein Ping nötig
 
-  const prompt = `
-    Folgende Klienten zeigen einen anhaltend niedrigen Mood-Score (letzte 3 Tage, alle Werte < 6):
-    ${JSON.stringify(alerts, null, 2)}
-    
-    WICHTIGE REGEL:
-    VERWENDE KEIN MARKDOWN! Keine Sternchen (*), keine Rauten (#). Nutze für Fettgedrucktes ausschließlich HTML-Tags (<b>Text</b>) und für Listen normale Bindestriche (-).
-    
-    Formuliere eine kurze, empathische Coach-Warnung für mich (den Coach) auf Deutsch:
-    - Wer ist betroffen? (Nutze Klarnamen)
-    - Empfehlung (proaktiv ansprechen? Check-in einplanen?)
-    Max 3–4 Sätze, direkt, kein Floskeln.
-  `;
+  const prompt = getMoodPrompt(alerts);
 
   const alert = callGeminiAPI(props.getProperty('GEMINI_API_KEY'), prompt);
   sendTelegramMessage(props, `🔴 <b>Mood-Alarm</b>\n\n${alert}`);
@@ -191,47 +166,7 @@ function generateBriefing(timeframe) {
   }
 
   // 2. Erstelle einen KI-Prompt
-  const rawData = `
-    Zeitraum: ${dates.startStr} bis ${dates.endStr} (${timeframe})
-    Erwartete Klienten (Datenbank-Profile):
-    ${JSON.stringify(expectedClients, null, 2)}
-    
-    Journal-Einträge:
-    ${JSON.stringify(journals, null, 2)}
-    
-    Training/Sessions:
-    ${JSON.stringify(sessions, null, 2)}
-  `;
-
-  // Dynamischer Prompt, der sich an den Zeitraum anpasst
-  const prompt = `
-    Du bist das analytische Backend für ein professionelles Client-Management-System. 
-    Analysiere die Klienten-Logs für den Zeitraum: ${timeframe.toUpperCase()} (${dates.startStr} bis ${dates.endStr}).
-    
-    WICHTIGE REGELN:
-    1. Wir tracken High-Level-Protokolle, keinen "Sets, Reps und Weights"-Kleinkram. 
-    2. Da dies ein ${timeframe}-Review ist, suche nach langfristigen Trends, nicht nur nach tagesaktuellen Schwankungen.
-    3. Wer war durchgehend konsistent? Wer hatte mehrere Ausfälle (z.B. gehäuft schlechter Schlaf, fehlende Sessions)?
-    4. Nutze die Liste der "Erwarteten Klienten", um unter "Fehlende Logs" präzise alle Klienten aufzulisten, für die in den Rohdaten KEIN Journal- und KEIN Session-Eintrag vorliegt. Nutze immer deren Klarnamen.
-    5. VERWENDE KEIN MARKDOWN! Keine Sternchen (*), keine Rauten (#). Nutze für Fettgedrucktes ausschließlich HTML-Tags (<b>Text</b>) und für Listen normale Bindestriche (-).
-    
-    Erstelle eine kompakte Telegram-Zusammenfassung exakt in diesem HTML-Format:
-    
-    <b>🎯 ${timeframe.toUpperCase()} Review (${dates.startStr} bis ${dates.endStr})</b>
-    [2-3 Sätze zum Gesamttrend der eingegangenen Logs im gesamten Zeitraum]
-    
-    <b>🟢 Konsistent (On Track)</b>
-    - [Name des Klienten]: [Kurzer Grund, warum es gut lief]
-    
-    <b>🟡 Feedback & Check-in Bedarf</b>
-    - [Name des Klienten]: [Erkannte Muster/Probleme über den Zeitraum & Grund für Eingreifen]
-    
-    <b>🔴 Fehlende Logs (Follow-up)</b>
-    - [Name des Klienten]
-    
-    Rohdaten:
-    ${rawData}
-  `;
+  const prompt = getBriefingPrompt(timeframe, dates.startStr, dates.endStr, expectedClients, journals, sessions);
 
   // 3. KI-Zusammenfassung generieren
   const briefing = callGeminiAPI(props.getProperty('GEMINI_API_KEY'), prompt);
