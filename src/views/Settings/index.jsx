@@ -7,24 +7,26 @@ import AdvancedSection from "./AdvancedSection";
 import LocalDevSection from "./LocalDevSection";
 import ProfileSection from "./ProfileSection";
 
-export default function Settings({
-  user,
-  layoutScale, setLayoutScale,
-  gender, setGender,
-  split, setSplit,
-  cycleLength, setCycleLength,
-  defaultLocation, setDefaultLocation,
-  recentDays, setRecentDays,
-  coverageThreshold, setCoverageThreshold,
-  showAdvanced, setShowAdvanced,
-  dashboardHighlighter, setDashboardHighlighter,
-  themeMode, setModeState, circLight, setCircLight, circDark, setCircDark,
-  themes, theme, setThemeState,
-  sidebarPinned, setSidebarPinned,
-  navMode, setNavMode,
-  muscleLanguage, setMuscleLanguage,
-  swipeEnabled, setSwipeEnabled,
-}) {
+import { useUser } from "../../contexts/UserContext";
+import { useSettings } from "../../contexts/SettingsContext";
+import { THEMES } from "../../constants/Themes";
+
+export default function Settings() {
+  const { user, gender, setGender, split, setSplit, cycleLength, setCycleLength, defaultLocation, setDefaultLocation } = useUser();
+  const {
+    layoutScale, setLayoutScale,
+    recentDays, setRecentDays,
+    coverageThreshold, setCoverageThreshold,
+    showAdvanced, setShowAdvanced,
+    dashboardHighlighter, setDashboardHighlighter,
+    themeMode, setModeState, circLight, setCircLight, circDark, setCircDark,
+    theme, setThemeState,
+    navMode, setNavMode,
+    sidebarPinned, setSidebarPinned,
+    muscleLanguage, setMuscleLanguage,
+    swipeEnabled, setSwipeEnabled
+  } = useSettings();
+
   const [health, setHealth] = useState(null)
   const [wger, setWger] = useState(null)
   const [firestoreStatus, setFirestoreStatus] = useState(null)
@@ -68,7 +70,6 @@ export default function Settings({
 
   useEffect(() => {
     if (!isLocalMode()) {
-      // Im Firebase-Build läuft die App direkt auf Firestore — Status implizit "verbunden"
       setFirestoreStatus({ ok: true, project: 'fitness-aos', source: 'native' })
       return
     }
@@ -97,63 +98,61 @@ export default function Settings({
 
   return (
     <div className="space-y-8 pb-32 max-w-5xl mx-auto">
-    <header className="mb-4 animate-in fade-in duration-700">
-    <h2 className="text-3xl font-black text-fit-ink">Settings</h2>
-    <p className="text-sm font-medium opacity-40">Konfiguriere dein AlphaOS Fitness Erlebnis.</p>
-    </header>
+      <header className="mb-4 animate-in fade-in duration-700">
+        <h2 className="text-3xl font-black text-fit-ink">Settings</h2>
+        <p className="text-sm font-medium opacity-40">Konfiguriere dein AlphaOS Fitness Erlebnis.</p>
+      </header>
 
-    {/* HIER KOMMT DIE NEUE PROFIL-SEKTION HIN */}
-    <ProfileSection user={user} />
+      <ProfileSection />
 
-    {/* DAS BESTEHENDE GRID FÜR APPEARANCE UND TRAINING */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    <AppearanceSection
-    themeMode={themeMode} setModeState={setModeState}
-    circLight={circLight} setCircLight={setCircLight}
-    circDark={circDark} setCircDark={setCircDark}
-    themes={themes} theme={theme} setThemeState={setThemeState}
-    />
-    <TrainingSection
-    split={split} setSplit={setSplit}
-    gender={gender} setGender={setGender}
-    defaultLocation={defaultLocation} setDefaultLocation={setDefaultLocation}
-    cycleLength={cycleLength} setCycleLength={setCycleLength}
-    recentDays={recentDays} setRecentDays={setRecentDays}
-    coverageThreshold={coverageThreshold} setCoverageThreshold={setCoverageThreshold}
-    swVersion={swVersion} swUpdateAvailable={swUpdateAvailable} swChecking={swChecking}
-    onSwCheck={handleSwCheck} onSwApply={handleSwApply}
-    />
-    </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <AppearanceSection
+          themeMode={themeMode} setModeState={setModeState}
+          circLight={circLight} setCircLight={setCircLight}
+          circDark={circDark} setCircDark={setCircDark}
+          themes={THEMES} theme={theme} setThemeState={setThemeState}
+        />
+        <TrainingSection
+          split={split} setSplit={setSplit}
+          gender={gender} setGender={setGender}
+          defaultLocation={defaultLocation} setDefaultLocation={setDefaultLocation}
+          cycleLength={cycleLength} setCycleLength={setCycleLength}
+          recentDays={recentDays} setRecentDays={setRecentDays}
+          coverageThreshold={coverageThreshold} setCoverageThreshold={setCoverageThreshold}
+          swVersion={swVersion} swUpdateAvailable={swUpdateAvailable} swChecking={swChecking}
+          onSwCheck={handleSwCheck} onSwApply={handleSwApply}
+        />
+      </div>
 
-    {isLocalMode() && (
-      <LocalDevSection
-      firestoreStatus={firestoreStatus}
-      syncing={syncing} onSync={handleSync}
-      health={health} wger={wger}
-      />
-    )}
+      {isLocalMode() && (
+        <LocalDevSection
+          firestoreStatus={firestoreStatus}
+          syncing={syncing} onSync={handleSync}
+          health={health} wger={wger}
+        />
+      )}
 
-    <div className="flex justify-center pt-2">
-    <button
-    onClick={() => setShowAdvanced(!showAdvanced)}
-    className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all font-black text-[9px] uppercase tracking-widest ${showAdvanced ? 'border-fit-accent bg-fit-accent/5 text-fit-accent shadow-lg shadow-fit-accent/5' : 'border-fit-line bg-fit-bg2 text-fit-dim hover:text-fit-ink'}`}
-    >
-    <Settings2 size={12} className={showAdvanced ? 'animate-pulse' : ''} />
-    {showAdvanced ? 'Advanced Mode: Ein' : 'Advanced Mode: Aus'}
-    </button>
-    </div>
+      <div className="flex justify-center pt-2">
+        <button
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all font-black text-[9px] uppercase tracking-widest ${showAdvanced ? 'border-fit-accent bg-fit-accent/5 text-fit-accent shadow-lg shadow-fit-accent/5' : 'border-fit-line bg-fit-bg2 text-fit-dim hover:text-fit-ink'}`}
+        >
+          <Settings2 size={12} className={showAdvanced ? 'animate-pulse' : ''} />
+          {showAdvanced ? 'Advanced Mode: Ein' : 'Advanced Mode: Aus'}
+        </button>
+      </div>
 
-    {showAdvanced && (
-      <AdvancedSection
-      swipeEnabled={swipeEnabled} setSwipeEnabled={setSwipeEnabled}
-      dashboardHighlighter={dashboardHighlighter} setDashboardHighlighter={setDashboardHighlighter}
-      navMode={navMode} setNavMode={setNavMode}
-      sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned}
-      layoutScale={layoutScale} setLayoutScale={setLayoutScale}
-      muscleLanguage={muscleLanguage} setMuscleLanguage={setMuscleLanguage}
-      user={user}
-      />
-    )}
+      {showAdvanced && (
+        <AdvancedSection
+          swipeEnabled={swipeEnabled} setSwipeEnabled={setSwipeEnabled}
+          dashboardHighlighter={dashboardHighlighter} setDashboardHighlighter={setDashboardHighlighter}
+          navMode={navMode} setNavMode={setNavMode}
+          sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned}
+          layoutScale={layoutScale} setLayoutScale={setLayoutScale}
+          muscleLanguage={muscleLanguage} setMuscleLanguage={setMuscleLanguage}
+          user={user}
+        />
+      )}
     </div>
   );
 }

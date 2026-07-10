@@ -10,12 +10,10 @@ import Settings from './views/Settings/index.jsx'
 import Coach from './views/Coach/index.jsx'
 import Inbox from './views/Inbox/index.js'
 import ExerciseInsightModal from './components/ExerciseInsightModal.jsx'
-import { watchAuth, signIn, signInEmail, signUpEmail, signOut, isLocalMode, getAnatomy } from '@db'
-import { getFirestore, doc, getDoc } from 'firebase/firestore'
+import { isLocalMode, getAnatomy } from '@db'
 
 import { NAV_ITEMS, VALID_TABS } from './constants/NavigationItems.js'
 
-import { THEMES } from './constants/Themes.js'
 import Sidebar from './components/layout/Sidebar.jsx'
 import MobileNav from './components/layout/MobileNav.jsx'
 import UserProfile from './components/common/UserProfile.jsx'
@@ -23,12 +21,27 @@ import ErrorBoundary from './components/common/ErrorBoundary.jsx'
 
 import AppGate from './views/AppGate.jsx'
 
-const DAY_START = 8; // 8 AM
-const DAY_END   = 20; // 8 PM
-
+import { useUser } from './contexts/UserContext'
+import { useSettings } from './contexts/SettingsContext'
+import { useSwipeNavigation } from './hooks/useSwipeNavigation'
 
 export default function App() {
-  const [navMode, setNavMode] = useState(() => localStorage.getItem('fitness-navMode') || 'tabs');
+  const {
+    user, authLoading,
+    gender, split, cycleLength, defaultLocation,
+    signIn, signInEmail, signUpEmail, signOut
+  } = useUser();
+
+  const {
+    theme, setThemeState, themeMode, setModeState,
+    circDark, setCircDark, circLight, setCircLight,
+    layoutScale, setLayoutScale, recentDays, setRecentDays,
+    coverageThreshold, setCoverageThreshold, showAdvanced, setShowAdvanced,
+    dashboardHighlighter, setDashboardHighlighter, sidebarPinned, setSidebarPinned,
+    swipeEnabled, setSwipeEnabled, muscleLanguage, setMuscleLanguage,
+    navMode, setNavMode
+  } = useSettings();
+
   const [tab, setTab]             = useState(() => {
      const hash = window.location.hash.replace(/^#\/?/, '');
      if (VALID_TABS.has(hash)) return hash;
@@ -37,68 +50,19 @@ export default function App() {
   });
   const [subTab, setSubTab] = useState(null);
 
-  const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [authRegistering, setAuthRegistering] = useState(false);
 
-  useEffect(() => watchAuth((u) => {
-    setUser(u);
-    setAuthLoading(false);
-  }), []);
-
-  useEffect(() => {
-    async function fetchUserProfile() {
-      // Wenn kein User eingeloggt ist oder wir lokal arbeiten, überspringen
-      if (!user || !user.uid || isLocalMode()) return;
-
-      try {
-        const db = getFirestore();
-        const docSnap = await getDoc(doc(db, "users", user.uid));
-
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-
-          // Hydration: Überschreibe den App-State mit den Cloud-Daten
-          if (data.gender) setGender(data.gender);
-          if (data.split) setSplit(data.split);
-          if (data.cycleLength) setCycleLength(data.cycleLength);
-          if (data.defaultLocation) setDefaultLocation(data.defaultLocation);
-        }
-      } catch (err) {
-        console.error("Fehler beim Laden des Profils:", err);
-      }
-    }
-
-    fetchUserProfile();
-  }, [user]); // Der Hook triggert automatisch, sobald 'user' gesetzt wird
-
-  const [theme, setThemeState]    = useState(() => localStorage.getItem('fitness-theme') || 'nordic');
-  const [themeMode, setModeState] = useState(() => localStorage.getItem('fitness-theme-mode') || 'manual');
-  // Circadian: which dark + which light to use
-  const [circDark,  setCircDark]  = useState(() => localStorage.getItem('fitness-circ-dark') || 'nordic');
-  const [circLight, setCircLight] = useState(() => localStorage.getItem('fitness-circ-light') || 'honey');
-  const [gender, setGender] = useState(() => localStorage.getItem('fitness-gender') || 'male');
-  const [split, setSplit] = useState(() => localStorage.getItem('fitness-split') || 'PPL');
-  const [cycleLength, setCycleLength] = useState(() => parseInt(localStorage.getItem('fitness-cycleLength') || '4', 10));
-  const [defaultLocation, setDefaultLocation] = useState(() => localStorage.getItem('fitness-defaultLocation') || 'Home');
   const [sessionDate, setSessionDate]   = useState(null)
   const [sessionDraft, setSessionDraft] = useState(null)
   const [inspectorExercise, setInspectorExercise] = useState(null)
-  const [layoutScale, setLayoutScale] = useState(() => parseInt(localStorage.getItem('fitness-layoutScale') || '100', 10));
-  const [swipeHint, setSwipeHint] = useState(null);
-  const [slideDirection, setSlideDirection] = useState('bottom');
-  const hasVibratedRef  = useRef(false);
-  const [recentDays, setRecentDays] = useState(() => parseInt(localStorage.getItem('fitness-recentDays') || '7', 10));
-  const [coverageThreshold, setCoverageThreshold] = useState(() => parseFloat(localStorage.getItem('fitness-coverageThreshold') || '1.0'));
-  const [showAdvanced, setShowAdvanced] = useState(() => localStorage.getItem('fitness-showAdvanced') === 'true');
-  const [dashboardHighlighter, setDashboardHighlighter] = useState(() => localStorage.getItem('fitness-dashboardHighlighter') || 'body');
-  const [sidebarPinned, setSidebarPinned] = useState(() => localStorage.getItem('fitness-sidebarPinned') !== 'false');
-  const [swipeEnabled, setSwipeEnabled] = useState(() => localStorage.getItem('fitness-swipeEnabled') === 'true');
-  const [muscleLanguage, setMuscleLanguage] = useState(() => localStorage.getItem('fitness-muscleLanguage') || 'de');
   const [taxonomy, setTaxonomy] = useState(null);
+
+  const { mainRef, swipeHint, slideDirection, setSlideDirection } = useSwipeNavigation({
+    navMode, tab, swipeEnabled, setTab, NAV_ITEMS
+  });
 
   useEffect(() => {
     if (isLocalMode()) {
@@ -108,251 +72,6 @@ export default function App() {
         .catch(() => {});
     }
   }, []);
-
-  // Swipe Navigation — refs to avoid re-registering listeners on every touch event
-  const touchStartRef   = useRef(null);
-  const gestureTypeRef  = useRef('none');
-  const mainRef         = useRef(null);
-  const tabRef          = useRef(tab);
-  const navModeRef      = useRef(navMode);
-  const swipeEnabledRef = useRef(swipeEnabled);
-
-  useEffect(() => { tabRef.current = tab; }, [tab]);
-  useEffect(() => { navModeRef.current = navMode; }, [navMode]);
-  useEffect(() => { swipeEnabledRef.current = swipeEnabled; }, [swipeEnabled]);
-
-  useEffect(() => {
-    document.documentElement.style.fontSize = `${layoutScale}%`;
-  }, [layoutScale]);
-
-  useEffect(() => {
-    const mainEl = mainRef.current;
-    if (!mainEl) return;
-
-    const triggerVibration = () => {
-      if (typeof navigator !== 'undefined' && navigator.vibrate) {
-        navigator.vibrate(10);
-      }
-    };
-
-    const shouldIgnoreSwipe = (target) => {
-      if (!target) return true;
-      const isInteractive = target.closest('input, textarea, select, button, a, [role="button"], [data-no-swipe="true"]');
-      if (isInteractive) return true;
-
-      let el = target;
-      while (el && el.nodeType === 1 && el !== document.body && el !== document.documentElement) {
-        if (el.classList && (el.classList.contains('overflow-x-auto') || el.classList.contains('overflow-x-scroll'))) {
-          if (el.scrollWidth > el.clientWidth) return true;
-        }
-        const style = window.getComputedStyle(el);
-        if (style.overflowX === 'auto' || style.overflowX === 'scroll') {
-          if (el.scrollWidth > el.clientWidth) return true;
-        }
-        el = el.parentElement;
-      }
-      return false;
-    };
-
-    const onTouchStart = (e) => {
-      if (!swipeEnabledRef.current || navModeRef.current !== 'tabs') return;
-
-      const touch = e.touches[0];
-      if (shouldIgnoreSwipe(touch.target)) {
-        touchStartRef.current = null;
-        gestureTypeRef.current = 'scrolling';
-        return;
-      }
-
-      touchStartRef.current = {
-        x: touch.clientX,
-        y: touch.clientY,
-        time: Date.now()
-      };
-      gestureTypeRef.current = 'none';
-      hasVibratedRef.current = false;
-      setSwipeHint(null);
-    };
-
-    const onTouchMove = (e) => {
-      if (!touchStartRef.current || gestureTypeRef.current === 'scrolling') return;
-
-      const touch = e.touches[0];
-      const deltaX = touchStartRef.current.x - touch.clientX;
-      const deltaY = touchStartRef.current.y - touch.clientY;
-      const absX = Math.abs(deltaX);
-      const absY = Math.abs(deltaY);
-
-      if (gestureTypeRef.current === 'none') {
-        if (absX > 10 || absY > 10) {
-          if (absX > absY * 1.5) {
-            gestureTypeRef.current = 'swiping';
-          } else {
-            gestureTypeRef.current = 'scrolling';
-            return;
-          }
-        } else {
-          return;
-        }
-      }
-
-      if (gestureTypeRef.current === 'swiping') {
-        if (e.cancelable) {
-          e.preventDefault();
-        }
-
-        const HINT_START = 30;
-        const MIN_SWIPE = 75;
-        const idx = NAV_ITEMS.findIndex(i => i.id === tabRef.current);
-        if (idx === -1) return;
-
-        // Perform real-time visual page sliding with rubber-banding at boundaries
-        let translation = -deltaX;
-        const isAtLeftBoundary = deltaX < 0 && idx === 0;
-        const isAtRightBoundary = deltaX > 0 && idx === NAV_ITEMS.length - 1;
-        if (isAtLeftBoundary || isAtRightBoundary) {
-          translation = translation * 0.25; // 4x resistance
-        }
-        mainEl.style.transform = `translateX(${translation}px)`;
-        mainEl.style.transition = 'none';
-
-        // Trigger detent haptic tick when crossing switch threshold
-        const isFarEnough = Math.abs(deltaX) > MIN_SWIPE;
-        const canMoveLeft = deltaX > 0 && idx < NAV_ITEMS.length - 1;
-        const canMoveRight = deltaX < 0 && idx > 0;
-        if (isFarEnough && (canMoveLeft || canMoveRight)) {
-          if (!hasVibratedRef.current) {
-            triggerVibration();
-            hasVibratedRef.current = true;
-          }
-        } else {
-          hasVibratedRef.current = false;
-        }
-
-        if      (deltaX >  HINT_START && idx < NAV_ITEMS.length - 1) setSwipeHint('left');
-        else if (deltaX < -HINT_START && idx > 0)                    setSwipeHint('right');
-        else                                                         setSwipeHint(null);
-      }
-    };
-
-    const onTouchEnd = (e) => {
-      const start = touchStartRef.current;
-      const type = gestureTypeRef.current;
-
-      touchStartRef.current = null;
-      gestureTypeRef.current = 'none';
-      setSwipeHint(null);
-
-      if (!start || type !== 'swiping') {
-        if (mainEl) {
-          mainEl.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
-          mainEl.style.transform = '';
-        }
-        return;
-      }
-
-      const touch = e.changedTouches ? e.changedTouches[0] : null;
-      if (!touch) {
-        if (mainEl) {
-          mainEl.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
-          mainEl.style.transform = '';
-        }
-        return;
-      }
-
-      const deltaX = start.x - touch.clientX;
-      const deltaY = start.y - touch.clientY;
-      const duration = Date.now() - start.time;
-
-      const MIN_SWIPE = 75;
-      const MAX_SWIPE_TIME = 300;
-      const idx = NAV_ITEMS.findIndex(i => i.id === tabRef.current);
-      if (idx === -1) {
-        if (mainEl) {
-          mainEl.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
-          mainEl.style.transform = '';
-        }
-        return;
-      }
-
-      const isQuickFlick = duration < MAX_SWIPE_TIME && Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY) * 2;
-      const isFarSwipe = Math.abs(deltaX) > MIN_SWIPE;
-
-      if (isQuickFlick || isFarSwipe) {
-        if (deltaX > 0 && idx < NAV_ITEMS.length - 1) {
-          if (!hasVibratedRef.current) {
-            triggerVibration();
-          }
-          if (mainEl) {
-            mainEl.style.transition = 'none';
-            mainEl.style.transform = '';
-          }
-          setSlideDirection('left');
-          setTab(NAV_ITEMS[idx + 1].id);
-        } else if (deltaX < 0 && idx > 0) {
-          if (!hasVibratedRef.current) {
-            triggerVibration();
-          }
-          if (mainEl) {
-            mainEl.style.transition = 'none';
-            mainEl.style.transform = '';
-          }
-          setSlideDirection('right');
-          setTab(NAV_ITEMS[idx - 1].id);
-        } else {
-          if (mainEl) {
-            mainEl.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
-            mainEl.style.transform = '';
-          }
-        }
-      } else {
-        if (mainEl) {
-          mainEl.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
-          mainEl.style.transform = '';
-        }
-      }
-    };
-
-    mainEl.addEventListener('touchstart', onTouchStart, { passive: false });
-    mainEl.addEventListener('touchmove',  onTouchMove,  { passive: false });
-    mainEl.addEventListener('touchend',   onTouchEnd,   { passive: true });
-
-    return () => {
-      mainEl.removeEventListener('touchstart', onTouchStart);
-      mainEl.removeEventListener('touchmove',  onTouchMove);
-      mainEl.removeEventListener('touchend',   onTouchEnd);
-    };
-  }, [user, authLoading, swipeEnabled]);
-
-  // Persistence Effects
-  useEffect(() => { localStorage.setItem('fitness-muscleLanguage', muscleLanguage) }, [muscleLanguage]);
-  useEffect(() => { localStorage.setItem('fitness-gender', gender) }, [gender]);
-  useEffect(() => { localStorage.setItem('fitness-split', split) }, [split]);
-  useEffect(() => { localStorage.setItem('fitness-cycleLength', cycleLength) }, [cycleLength]);
-  useEffect(() => { localStorage.setItem('fitness-defaultLocation', defaultLocation) }, [defaultLocation]);
-  useEffect(() => { localStorage.setItem('fitness-theme', theme) }, [theme]);
-  useEffect(() => { localStorage.setItem('fitness-theme-mode', themeMode) }, [themeMode]);
-  useEffect(() => { localStorage.setItem('fitness-circ-dark', circDark) }, [circDark]);
-  useEffect(() => { localStorage.setItem('fitness-circ-light', circLight) }, [circLight]);
-  useEffect(() => { localStorage.setItem('fitness-layoutScale', layoutScale) }, [layoutScale]);
-  useEffect(() => { localStorage.setItem('fitness-recentDays', recentDays) }, [recentDays]);
-  useEffect(() => { localStorage.setItem('fitness-coverageThreshold', coverageThreshold) }, [coverageThreshold]);
-  useEffect(() => { localStorage.setItem('fitness-showAdvanced', showAdvanced) }, [showAdvanced]);
-  useEffect(() => { localStorage.setItem('fitness-dashboardHighlighter', dashboardHighlighter) }, [dashboardHighlighter]);
-  useEffect(() => { localStorage.setItem('fitness-sidebarPinned', sidebarPinned) }, [sidebarPinned]);
-  useEffect(() => { localStorage.setItem('fitness-navMode', navMode) }, [navMode]);
-  useEffect(() => { localStorage.setItem('fitness-swipeEnabled', swipeEnabled) }, [swipeEnabled]);
-
-  // Theme Logic from PWA
-  useEffect(() => {
-    if (themeMode === 'manual') {
-      document.documentElement.setAttribute('data-theme', theme);
-    } else {
-      const hour = new Date().getHours();
-      const current = (hour >= DAY_START && hour < DAY_END) ? circLight : circDark;
-      document.documentElement.setAttribute('data-theme', current);
-    }
-  }, [theme, themeMode, circLight, circDark]);
 
   const navigateToTab = (newTabId) => {
     if (newTabId === tab) return;
@@ -448,7 +167,7 @@ export default function App() {
   return (
     <>
       <ErrorBoundary>
-        <div className="flex min-h-screen bg-fit-bg text-fit-ink font-sans transition-colors duration-500">
+        <div className="app-shell flex min-h-screen overflow-x-hidden w-full bg-fit-bg text-fit-ink font-sans transition-colors duration-500">
 
         <Sidebar
           tab={tab}
@@ -508,28 +227,7 @@ export default function App() {
                       {tab === 'habits'   && <Habits />}
                       {tab === 'coach'    && (isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92') && <Coach onInspectExercise={inspectExercise} />}
                       {tab === 'inbox'    && <Inbox />}
-                      {tab === 'settings' && (
-                         <Settings
-                           user={user}
-                           layoutScale={layoutScale} setLayoutScale={setLayoutScale}
-                           recentDays={recentDays} setRecentDays={setRecentDays}
-                           coverageThreshold={coverageThreshold} setCoverageThreshold={setCoverageThreshold}
-                           showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}
-                           dashboardHighlighter={dashboardHighlighter} setDashboardHighlighter={setDashboardHighlighter}
-                           gender={gender} setGender={setGender}
-                           split={split} setSplit={setSplit}
-                           cycleLength={cycleLength} setCycleLength={setCycleLength}
-                           defaultLocation={defaultLocation} setDefaultLocation={setDefaultLocation}
-                           themeMode={themeMode} setModeState={setModeState}
-                           circLight={circLight} setCircLight={setCircLight}
-                           circDark={circDark} setCircDark={setCircDark}
-                           themes={THEMES} theme={theme} setThemeState={setThemeState}
-                           sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned}
-                           navMode={navMode} setNavMode={setNavMode}
-                           muscleLanguage={muscleLanguage} setMuscleLanguage={setMuscleLanguage}
-                           swipeEnabled={swipeEnabled} setSwipeEnabled={setSwipeEnabled}
-                         />
-                      )}
+                      {tab === 'settings' && <Settings />}
                   </div>
                 </div>
               </div>
@@ -543,4 +241,3 @@ export default function App() {
     </>
   );
 }
-
