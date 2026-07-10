@@ -9,7 +9,7 @@ Stand: 2026-06-12
 ```
 React + Vite        :5902 (dev)     ~/fitness-dev/src/
 Node.js Server      :9100           ~/fitness-dev/server.mjs
-Fitness Agent KB    :9120           ~/fitness-dev/catalog/fitness_agent/server.py
+Fitness Agent API   :9150           ~/fitness-dev/fitness_agent/api.py
 YAML Katalog        —               ~/fitness-dev/catalog/
 Session-Daten       —               ~/.aos/fitness/
 ```

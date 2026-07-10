@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import csv
 import dataclasses
+from contextlib import asynccontextmanager
 import io
 import json
 import os
@@ -24,6 +25,7 @@ import uuid
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
+from typing_extensions import Annotated
 
 import pandas as pd
 import yaml
@@ -35,7 +37,7 @@ from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
 # ── Sys-Path für lokale Pakete ────────────────────────────────────────────────
-_HERE = Path(__file__).resolve().parent
+_HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_HERE))  # db/, firestore/, fitness_cli/, fitness_agent/, firestore_kb/
 
 _FUEL_DEV = Path.home() / "fuel-dev"
@@ -245,12 +247,24 @@ except ImportError:
     async def _wger_post(path: str, body: dict) -> dict | None: return None
 
 # ══════════════════════════════════════════════════════════════════════════════
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info(f"fitness-dev Python Backend :{PORT}")
+    logger.info(f"runtime  {RUNTIME}")
+    logger.info(f"db       {engine.url}")
+    logger.info(f"anatomy_kb {'ok' if _ANATOMY_KB_AVAILABLE else 'nicht geladen'}")
+    yield
+    # Shutdown logic (close HTTPX client if initialized)
+    if _HTTPX_AVAILABLE and _httpx_client is not None:
+        await _httpx_client.aclose()
+
 # App
 # ══════════════════════════════════════════════════════════════════════════════
 app = FastAPI(
     title="fitness-dev Python Backend",
     version="2.0.0",
     description="Prod/Tailscale Backend + lokaler SQLite-Layer. server.mjs (:9100) bleibt Frontend-Dev-Server.",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -259,13 +273,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.on_event("startup")
-async def _startup():
-    logger.info(f"fitness-dev Python Backend :{PORT}")
-    logger.info(f"runtime  {RUNTIME}")
-    logger.info(f"db       {engine.url}")
-    logger.info(f"anatomy_kb {'ok' if _ANATOMY_KB_AVAILABLE else 'nicht geladen'}")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Health
@@ -1022,24 +1029,27 @@ async def spa_fallback(path: str):
 # ══════════════════════════════════════════════════════════════════════════════
 # Entry point
 # ══════════════════════════════════════════════════════════════════════════════
-if __name__ == "__main__":
-    import typer
+import typer
 
-    cli = typer.Typer(add_completion=False)
+cli = typer.Typer(add_completion=False)
 
-    @cli.command()
-    def serve(
-        port: int = typer.Option(PORT, "--port", "-p"),
-        host: str = typer.Option(HOST, "--host"),
-        reload: bool = typer.Option(False, "--reload"),
-    ):
-        logger.info(f"fitness-dev FastAPI :{port}")
-        uvicorn.run(
-            "server:app",
-            host=host,
-            port=port,
-            reload=reload,
-            app_dir=str(_HERE),
-        )
+@cli.command()
+def serve(
+    port: Annotated[int, typer.Option("--port", "-p", help="Port to bind")] = PORT,
+    host: Annotated[str, typer.Option("--host", help="Host address to bind")] = HOST,
+    reload: Annotated[bool, typer.Option("--reload", help="Enable uvicorn auto-reload")] = False,
+):
+    logger.info(f"fitness-dev FastAPI :{port}")
+    uvicorn.run(
+        "fitness_agent.api:app",
+        host=host,
+        port=port,
+        reload=reload,
+        app_dir=str(_HERE),
+    )
 
+def main():
     cli()
+
+if __name__ == "__main__":
+    main()

@@ -71,14 +71,13 @@ Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach
 | Datei | Port | Typ | Rolle |
 |-------|------|-----|-------|
 | `server.mjs` | 9100 | Node/Hono | **DEV-Server** — Vite-Proxy-Target, Frontend-Dev |
-| `server.py` | 9150 | Python/FastAPI | **Prod-Backend** — Tailscale-Funnel, Direktimports |
-| `catalog/fitness_agent/server.py` | 9120 | Python/aiohttp | **Agent-API** — wird archiviert sobald server.py verifiziert |
+| `fitness_agent/api.py` | 9150 | Python/FastAPI | **Prod-Backend** — Tailscale-Funnel, Direktimports |
 
-**server.py** (Port 9150): **FastAPI/uvicorn** — Prod/Tailscale Backend
-- Direktimports aus `fitness_agent` + `anatomy_kb` — kein HTTP-Proxy zu :9120
+**fitness_agent/api.py** (Port 9150): **FastAPI/uvicorn** — Prod/Tailscale Backend
+- Direktimports aus `fitness_agent` + `anatomy_kb`
 - Alle API-Routen: sessions, journal, body, exercises, coverage, plan, weekly, exports, firestore, habitsync
 - Port: `FITNESS_PYTHON_PORT` env (default 9150)
-- Starten: `python3 server.py serve` oder via `fitness-devctl start --no-node`
+- Starten: `python3 -m fitness_agent.api serve` or `fitness-agent-api serve` or via `fitness-devctl start --no-node`
 - Service: `fitness-python-backend.service`
 
 **server.mjs** (Port 9100): **Hono**-Server (`@hono/node-server`) — DEV-Server
