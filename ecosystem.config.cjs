@@ -11,14 +11,12 @@ module.exports = {
     {
       name: 'fitness-agent-server',
       script: 'uv',
-      args: 'run python -m fitness_agent.server',
-      cwd: 'catalog',
+      args: 'run python -m fitness_agent.api serve',
     },
     {
       name: 'fitness-agent-watcher',
       script: 'uv',
       args: 'run python -m fitness_agent.cli watch',
-      cwd: 'catalog',
     }
 
   ]

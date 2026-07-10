@@ -1,27 +1,34 @@
 [build-system]
-requires = ["setuptools>=68"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "fitness-agent"
 version = "0.1.0"
 description = "Local fitness agent foundation CLI"
+authors = [
+    { name = "Alpha OS team" }
+]
+readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-  "PyYAML>=6.0",
-  "fastapi>=0.115.0",
-  "uvicorn[standard]>=0.30.0",
-  "httpx>=0.27.0",
-  "rich>=13.0.0",
-  "loguru>=0.7.0",
-  "watchdog>=3.0.0",
-  "typer>=0.9.0",
-  "tqdm>=4.66.0",
-  "halo>=0.0.31",
-  "typing_extensions>=4.0.0",
-  "firebase-admin>=6.0.0",
-  "rapidfuzz>=3.14.5",
-  "textual>=0.58.0",
+    "PyYAML>=6.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "httpx>=0.27.0",
+    "rich>=13.0.0",
+    "loguru>=0.7.0",
+    "watchdog>=3.0.0",
+    "typer>=0.9.0",
+    "tqdm>=4.66.0",
+    "halo>=0.0.31",
+    "typing-extensions>=4.0.0",
+    "firebase-admin>=6.0.0",
+    "rapidfuzz>=3.14.5",
+    "textual>=0.58.0",
+    "pandas>=2.0.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.11.0",
 ]
 
 [project.scripts]
@@ -32,13 +39,13 @@ fitness-activity     = "fitness_cli.commands.activity:main"
 fitness-mail         = "fitness_cli.commands.mail:main"
 firestore-sync       = "firestore.sync_cli:main"
 fitness-agent        = "fitness_agent.cli:main"
+fitness-agent-api    = "fitness_agent.api:main"
 
-[tool.setuptools]
-include-package-data = true
-
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["fitness_agent*", "firestore_kb*", "fitness_cli*", "db*"]
-
-[tool.setuptools.package-data]
-fitness_agent = ["py.typed"]
+[tool.poetry]
+packages = [
+    { include = "fitness_agent" },
+    { include = "firestore_kb" },
+    { include = "firestore" },
+    { include = "fitness_cli" },
+    { include = "db" },
+]

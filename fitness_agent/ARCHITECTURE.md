@@ -2,14 +2,14 @@
 
 ## Überblick
 
-Python-Paket unter `catalog/fitness_agent/`. Läuft als HTTP-Server (:9120) und CLI.
+Python-Paket unter `fitness_agent/`. Läuft als FastAPI HTTP-Server (:9150) und CLI.
 Node-Server (`server.mjs`, :9100) ruft via HTTP auf — fällt der Agent aus, gibt der Node-Server Fallback-Daten zurück.
 
 ```
-fitness_agent (:9120)
-    ├── HTTP API      → Node-Server (:9100) + Frontend
-    ├── CLI           → direkte Catalog-Pflege
-    └── Watcher       → Inbox-Verzeichnis, Gemini-Enrichment on-the-fly
+fitness_agent (:9150)
+    ├── HTTP API      → FastAPI (api.py)
+    ├── CLI           → direkte Catalog-Pflege (cli.py)
+    └── Watcher       → Inbox-Verzeichnis, Gemini-Enrichment on-the-fly (watcher.py)
 ```
 
 ---
@@ -18,7 +18,7 @@ fitness_agent (:9120)
 
 | Modul | Aufgabe |
 |-------|---------|
-| `server.py` | aiohttp HTTP-Server, alle Endpoints |
+| `api.py` | FastAPI HTTP-Server, alle Endpoints |
 | `cli.py` | typer CLI-Dispatcher |
 | `gemini.py` | Gemini API + Claude/Codex Fallback (AI-Enrichment) |
 | `watcher.py` | Filesystem-Watcher, Inbox-Processing |
