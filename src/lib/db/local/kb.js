@@ -74,17 +74,8 @@ export async function approveInbox(id) {
   }
 }
 
-const FAVS_KEY = 'fitness_favourites';
-
-export function getFavourites() {
-  try { return JSON.parse(localStorage.getItem(FAVS_KEY) || '[]'); } catch { return []; }
-}
-
-export function toggleFavourite(id) {
-  const favs = getFavourites();
-  const next = favs.includes(id) ? favs.filter(f => f !== id) : [...favs, id];
-  localStorage.setItem(FAVS_KEY, JSON.stringify(next));
-}
+export { getFavourites, toggleFavourite } from "../shared/favourites.js";
+export { parseQuick } from "../shared/parse.js";
 
 export async function queueForEnrichment(ex) {
   if (!ex || ex.source === 'expert') return;

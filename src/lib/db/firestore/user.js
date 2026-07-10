@@ -1,20 +1,16 @@
+/**
+ * firestore/user.js — User settings, layout, body entries, and profile for Firestore.
+ */
+
 import {
-  collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc, updateDoc,
-  query, where, orderBy, limit, serverTimestamp, writeBatch, collectionGroup
+  collection, doc, setDoc, getDoc, getDocs,
+  query, orderBy, limit, serverTimestamp,
 } from "firebase/firestore";
-import {
-  onAuthStateChanged,
-  signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  signOut as fbSignOut, updateProfile,
-} from "firebase/auth";
 
-import { db, auth, googleProvider } from "../../../firebase.js";
-import { getWeekDates, downloadText, num, todayISO, localToday } from "../shared/utils.js";
-import { getUid, pingBridge } from "./core.js";
-import { getAllExercises } from "./kb.js";
-import { getSession, getSessionHistory } from "./sessions.js";
-import { updateAnalyticsDoc } from "./analysis.js";
+import { db } from "../../../firebase.js";
+import { getUid } from "./core.js";
 
+// ── Settings ──────────────────────────────────────────────────────────────────
 
 export async function getSettings() {
   const snap = await getDoc(doc(db, "fitness", getUid(), "settings", "general"));
@@ -30,6 +26,8 @@ export async function saveSettings(settings) {
   return { ok: true };
 }
 
+// ── Layout ────────────────────────────────────────────────────────────────────
+
 export async function getLayout() {
   const snap = await getDoc(doc(db, "fitness", getUid(), "settings", "layout"));
   if (!snap.exists()) return null;
@@ -43,6 +41,8 @@ export async function saveLayout(layout) {
   });
   return { ok: true };
 }
+
+// ── Body entries ──────────────────────────────────────────────────────────────
 
 export async function getBodyEntry(date) {
   const snap = await getDoc(doc(db, "fitness", getUid(), "body", date));
@@ -66,6 +66,32 @@ export async function getBodyEntries(days = 30) {
     limit(days),
   );
   const snap = await getDocs(q);
-  return snap.docs.map(d => d.data());
+  return snap.docs.map((d) => d.data());
 }
 
+// ── User profile ──────────────────────────────────────────────────────────────
+
+export async function getUserProfile(uid) {
+  if (!uid) return null;
+  try {
+    const snap = await getDoc(doc(db, "fitness", uid, "profile", "metadata"));
+    return snap.exists() ? snap.data() : null;
+  } catch (error) {
+    console.error("Fehler beim Laden des Profils:", error);
+    return null;
+  }
+}
+
+export async function updateUserProfile(uid, data) {
+  if (!uid) return false;
+  try {
+    await setDoc(doc(db, "fitness", uid, "profile", "metadata"), {
+      ...data,
+      updated_at: serverTimestamp(),
+    }, { merge: true });
+    return true;
+  } catch (error) {
+    console.error("Fehler beim Speichern des Profils:", error);
+    return false;
+  }
+}

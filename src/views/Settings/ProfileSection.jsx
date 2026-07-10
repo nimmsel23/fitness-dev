@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { User, Save, Check } from "lucide-react";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import { updateUserProfile } from "@db";
 
 export default function ProfileSection({ user }) {
   // Lokaler State für das Eingabefeld
@@ -17,15 +17,12 @@ export default function ProfileSection({ user }) {
   async function handleSave() {
     if (!user || !user.uid) return;
     setSaving(true);
-    const db = getFirestore();
 
     try {
-      // Alles in EINEM zentralen Profil-Dokument speichern
-      await setDoc(doc(db, "users", user.uid), {
-        displayName: displayName,
+      await updateUserProfile(user.uid, {
+        displayName,
         email: user.email,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
+      });
 
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
