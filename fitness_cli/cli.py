@@ -189,7 +189,7 @@ def mail(ctx: typer.Context) -> None:
 def log(ctx: typer.Context) -> None:
     passthrough("fitness-log", ctx.args, "fitness-log")
 
-@app.command(context_settings=_ctx, help="Rich TUI Dashboard (Live-Ansicht, kein Server) — [--once|--days N|--refresh N]")
+@app.command(context_settings=_ctx, help="Textual TUI Dashboard (Log/Woche/Stats/Sync/Clients, kein Server)")
 def tui(ctx: typer.Context) -> None:
     passthrough("fitness-tui", ctx.args, "fitness-tui")
 
