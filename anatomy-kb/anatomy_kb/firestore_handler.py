@@ -6,7 +6,7 @@ Verantwortlich nur für anatomy-kb eigene Daten:
   anatomy_teaching/   → fitness/kb/anatomy/
   catalog-index.json  → fitness/kb/index/catalog
 
-Exercises-Sync: Nicht hier — das ist fitness_agent/firestore_push.py
+Exercises-Sync: Nicht hier — das ist catalog/firestore_push.py
 
 Endpoints:
   POST /api/firestore/sync               muscles + anatomy + index
@@ -249,7 +249,7 @@ async def sync_index_handler(request: web.Request) -> web.Response:
 
 async def sync_exercises_handler(request: web.Request) -> web.Response:
     """Exercises-Sync ist Sache des fitness-agent — hier nur Redirect-Hinweis."""
-    return _err("Exercises-Sync: fitness-agent kb-sync oder POST /api/firestore/sync/exercises via fitness_agent", status=501)
+    return _err("Exercises-Sync: fitness-agent kb-sync oder POST /api/firestore/sync/exercises via catalog", status=501)
 
 
 async def status(request: web.Request) -> web.Response:

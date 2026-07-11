@@ -8,9 +8,9 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from fitness_agent.bootstrap import bootstrap
-from fitness_agent.cli import main
-from fitness_agent.teaching import find_lesson, load_chest_lessons, teach_exercise
+from catalog.bootstrap import bootstrap
+from catalog.cli import main
+from catalog.agent.teaching import find_lesson, load_chest_lessons, teach_exercise
 
 
 class TeachingTest(unittest.TestCase):

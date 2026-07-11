@@ -67,5 +67,5 @@ A unified fitness ecosystem serving two primary roles:
 *   **Anatomy Learning**: Integrating `body-muscles` (70+ regions) into the `Learn` view for deep anatomical education and interaction.
 
 ## 7. Document History
-*   2026-06-12: Fixed bugs in `fitness_agent/server.py` and `kb_sync.py`. Updated documentation to reflect `react-muscle-highlighter` integration and finalized `data/` directory location.
+*   2026-06-12: Fixed bugs in `catalog/server.py` and `kb_sync.py`. Updated documentation to reflect `react-muscle-highlighter` integration and finalized `data/` directory location.
 *   2026-05-28: Integrated `react-muscle-highlighter` in `Muscles` tab (detailed view) with toggle support. Retained `react-body-highlighter` for dashboard.

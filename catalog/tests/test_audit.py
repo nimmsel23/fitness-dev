@@ -10,10 +10,10 @@ from unittest import mock
 
 import yaml
 
-from fitness_agent.audit import run_anatomy_audit
-from fitness_agent.bootstrap import bootstrap
-from fitness_agent.cli import main
-from fitness_agent.coverage import calculate_coverage
+from catalog.core.audit import run_anatomy_audit
+from catalog.bootstrap import bootstrap
+from catalog.cli import main
+from catalog.coverage import calculate_coverage
 
 
 class AnatomyAuditTest(unittest.TestCase):
@@ -221,7 +221,7 @@ class AnatomyAuditTest(unittest.TestCase):
         self.assertGreater(report.fail_count, 0)
         self.assertTrue(any("unknown body region" in line.message for line in report.lines))
 
-    def test_audit_respects_fitness_agent_home(self) -> None:
+    def test_audit_respects_catalog_home(self) -> None:
         self.assertEqual(Path(self.env["FITNESS_AGENT_HOME"]), self.home / ".fitness-agent")
         buffer = io.StringIO()
         with contextlib.redirect_stdout(buffer):
@@ -403,7 +403,7 @@ class AliasesAuditTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("exercise ids without any alias", output)
 
-    def test_command_respects_fitness_agent_home(self) -> None:
+    def test_command_respects_catalog_home(self) -> None:
         self.assertEqual(Path(self.home / ".fitness-agent"), Path(self.env["FITNESS_AGENT_HOME"]))
         buffer = io.StringIO()
         with contextlib.redirect_stdout(buffer):

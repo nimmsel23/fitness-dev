@@ -2,7 +2,7 @@
 fitness python-backend — unified aiohttp server
 Port: 9150 (dev), ersetzt langfristig :9100 + :9120
 
-Importiert fitness_agent + anatomy_kb direkt als Python-Module.
+Importiert catalog + anatomy_kb direkt als Python-Module.
 Kein wger zur Laufzeit — wger ist Katalogpflege-Werkzeug, nicht Request-Backend.
 """
 from __future__ import annotations
@@ -32,15 +32,15 @@ sys.path.insert(0, str(_ROOT / "anatomy-kb"))
 if _FUEL_DEV.exists():
     sys.path.insert(0, str(_FUEL_DEV))
 
-from catalog.fitness_agent.paths import runtime_root
-from catalog.fitness_agent.resolver import build_exercise_index, resolve_query, find_by_id, ExerciseRecord
+from catalog.catalog.paths import runtime_root
+from catalog.catalog.resolver import build_exercise_index, resolve_query, find_by_id, ExerciseRecord
 from firestore.mirror import mirror_session, mirror_journal, mirror_plan, get_status as firestore_status
-from catalog.fitness_agent.teaching import find_lesson
+from catalog.catalog.teaching import find_lesson
 import dataclasses
-from catalog.fitness_agent.planner import build_plan
-from catalog.fitness_agent.weekly import build_weekly_coverage, resolve_week_selector
-from catalog.fitness_agent.history import ensure_history_db, log_training_entry, read_history
-from catalog.fitness_agent import coverage as cov_module
+from catalog.catalog.planner import build_plan
+from catalog.catalog.weekly import build_weekly_coverage, resolve_week_selector
+from catalog.catalog.history import ensure_history_db, log_training_entry, read_history
+from catalog.catalog import coverage as cov_module
 
 from anatomy_kb.muscle_handler import list_muscles, get_muscle
 from anatomy_kb.handlers import exercise as anatomy_exercise_handler
@@ -332,7 +332,7 @@ async def handle_export_pflichtaufgabe(req: web.Request) -> web.Response:
     return _json({"ok": True, "filename": f"trainingsprotokoll-{_today()}.csv", "csv": buf.getvalue(), "count": len(files)})
 
 # ═════════════════════════════════════════════════════════════════════════════
-# Exercises (via fitness_agent)
+# Exercises (via catalog)
 # ═════════════════════════════════════════════════════════════════════════════
 _exercise_index: list | None = None
 

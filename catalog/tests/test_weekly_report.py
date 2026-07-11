@@ -12,11 +12,11 @@ from unittest import mock
 
 import yaml
 
-from fitness_agent.bootstrap import bootstrap
-from fitness_agent.cli import main
-from fitness_agent.obsidian import load_runtime_config
-from fitness_agent.history import log_training_entry
-from fitness_agent.weekly import build_weekly_coverage, iso_week_bounds
+from catalog.bootstrap import bootstrap
+from catalog.cli import main
+from catalog.agent.obsidian import load_runtime_config
+from catalog.history import log_training_entry
+from catalog.weekly import build_weekly_coverage, iso_week_bounds
 
 
 class WeeklyReportTest(unittest.TestCase):
@@ -45,7 +45,7 @@ class WeeklyReportTest(unittest.TestCase):
 
     def test_weekly_aggregation_from_sample_logs(self) -> None:
         week_label, fixed_today = self._seed_logs_for_current_week()
-        with mock.patch("fitness_agent.weekly.datetime") as mocked_datetime:
+        with mock.patch("catalog.weekly.datetime") as mocked_datetime:
             mocked_datetime.now.return_value.date.return_value = date.fromisoformat(fixed_today)
             summary = build_weekly_coverage("current")
 
@@ -64,7 +64,7 @@ class WeeklyReportTest(unittest.TestCase):
         day_2 = (date.fromisoformat(week["date_from"]) + timedelta(days=1)).isoformat()
         log_training_entry("front_squat", sets=3, reps=8, weight=60, rpe=8, date=day_1)
         log_training_entry("leg_curl", sets=2, reps=10, weight=35, rpe=8, date=day_2)
-        with mock.patch("fitness_agent.weekly.datetime") as mocked_datetime:
+        with mock.patch("catalog.weekly.datetime") as mocked_datetime:
             mocked_datetime.now.return_value.date.return_value = fixed_today
             summary = build_weekly_coverage("current")
 
@@ -73,7 +73,7 @@ class WeeklyReportTest(unittest.TestCase):
 
     def test_report_output(self) -> None:
         week_label, _ = self._seed_logs_for_current_week()
-        with mock.patch("fitness_agent.weekly.datetime") as mocked_datetime:
+        with mock.patch("catalog.weekly.datetime") as mocked_datetime:
             mocked_datetime.now.return_value.date.return_value = date(2026, 5, 9)
             buffer = io.StringIO()
             with redirect_stdout(buffer):
@@ -86,7 +86,7 @@ class WeeklyReportTest(unittest.TestCase):
 
     def test_optional_markdown_export(self) -> None:
         week_label, _ = self._seed_logs_for_current_week()
-        with mock.patch("fitness_agent.weekly.datetime") as mocked_datetime:
+        with mock.patch("catalog.weekly.datetime") as mocked_datetime:
             mocked_datetime.now.return_value.date.return_value = date(2026, 5, 9)
             buffer = io.StringIO()
             with redirect_stdout(buffer):

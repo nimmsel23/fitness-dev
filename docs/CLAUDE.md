@@ -20,14 +20,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Node.js Backend + React Frontend. Logging, Visualisierung, Export.
 Wird von **fitness-dev-coding-agent** gebaut.
 
-### 2. catalog/fitness_agent/ — Python Tool-Set + HTTP-Server (:9120)
+### 2. catalog/catalog/ — Python Tool-Set + HTTP-Server (:9120)
 Python-Paket das Claude oder Gemini als Tool nutzen um den Katalog zu erweitern.
 **Läuft auch als eigenständiger HTTP-Server (:9120)** — `fitness-runtime.mjs` ruft ihn via HTTP auf.
 
 ```
 AI Agent (Claude / Gemini)
     ↓ ruft auf
-catalog/fitness_agent/           Python Tool-Set + HTTP-Server (:9120)
+catalog/catalog/           Python Tool-Set + HTTP-Server (:9120)
     ├── resolve_query()          Exercise-Name → canonical_id
     ├── teach_exercise()         Anatomie-Lesson aus YAML rendern
     ├── log_training_entry()     Eintrag in SQLite schreiben
@@ -41,7 +41,7 @@ catalog/kb/exercises/*.yml         Exercise-Definitionen
 ~/.aos/fitness/sessions/training_history.sqlite
 ```
 
-Server starten: `PYTHONPATH=catalog python3 -m fitness_agent.server` (Port 9120)
+Server starten: `PYTHONPATH=catalog python3 -m catalog.server` (Port 9120)
 Fällt der Agent aus, gibt `fitness-runtime.mjs` Fallback-Daten zurück.
 
 **Wozu:** wger liefert Übungsname + grobe Muskelgruppe. Was fehlt:
@@ -59,7 +59,7 @@ audit again             → validiert Struktur
 teach_exercise()        → UI kann Anatomie-Layer zeigen
 ```
 
-**CLI-Einstieg:** `python3 -m catalog.fitness_agent <command>`
+**CLI-Einstieg:** `python3 -m catalog.catalog <command>`
 Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach-sheet`, `map-wger`, `export-wger-index`, `tui`
 
 ---
@@ -71,13 +71,13 @@ Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach
 | Datei | Port | Typ | Rolle |
 |-------|------|-----|-------|
 | `server.mjs` | 9100 | Node/Hono | **DEV-Server** — Vite-Proxy-Target, Frontend-Dev |
-| `fitness_agent/api.py` | 9150 | Python/FastAPI | **Prod-Backend** — Tailscale-Funnel, Direktimports |
+| `catalog/api.py` | 9150 | Python/FastAPI | **Prod-Backend** — Tailscale-Funnel, Direktimports |
 
-**fitness_agent/api.py** (Port 9150): **FastAPI/uvicorn** — Prod/Tailscale Backend
-- Direktimports aus `fitness_agent` + `anatomy_kb`
+**catalog/api.py** (Port 9150): **FastAPI/uvicorn** — Prod/Tailscale Backend
+- Direktimports aus `catalog` + `anatomy_kb`
 - Alle API-Routen: sessions, journal, body, exercises, coverage, plan, weekly, exports, firestore, habitsync
 - Port: `FITNESS_PYTHON_PORT` env (default 9150)
-- Starten: `python3 -m fitness_agent.api serve` or `fitness-agent-api serve` or via `fitness-devctl start --no-node`
+- Starten: `python3 -m catalog.api serve` or `fitness-agent-api serve` or via `fitness-devctl start --no-node`
 - Service: `fitness-python-backend.service`
 
 **server.mjs** (Port 9100): **Hono**-Server (`@hono/node-server`) — DEV-Server
@@ -95,11 +95,11 @@ Befehle: `audit`, `resolve`, `teach`, `log`, `history`, `report`, `plan`, `coach
 
 **Daten**: `~/.aos/fitness/`
 - `sessions/YYYY-MM-DD.json` — Session-Logs (SOT für Node-Server)
-- `sessions/training_history.sqlite` — SQLite Mirror (SOT für fitness_agent Python-Tools)
+- `sessions/training_history.sqlite` — SQLite Mirror (SOT für catalog Python-Tools)
 - `journal/YYYY-MM-DD.md` — Text-Notizen
 - `body/YYYY-MM-DD.json` — Körpermessungen (Fitbit-Pipeline)
 - `plan.json` — Aktiver Trainingsplan
-- `agent-state/` — fitness_agent Runtime-State (Symlink: catalog/state)
+- `agent-state/` — catalog Runtime-State (Symlink: catalog/state)
 
 ---
 
@@ -239,7 +239,7 @@ Implementiert in: `buildLastTrainedMap()` + `superKompFreq()` in `src/components
 │     ├─ program_rules.yml
 │     ├─ progression_rules.yml
 │     └─ safety_rules.yml
-├─ fitness_agent/                  — Python Tool-Set + Server (siehe oben)
+├─ catalog/                  — Python Tool-Set + Server (siehe oben)
 └─ tests/                          — Pytest-Suite (resolver, coverage, planner, teaching, weekly)
 ```
 
@@ -265,7 +265,7 @@ Implementiert in: `buildLastTrainedMap()` + `superKompFreq()` in `src/components
 | `npm run ui:dev` | Nur Vite DevServer (Port 5902) |
 | `npm run build` | Production-Build in `dist/` |
 | `npm run build:catalog` | Katalog → ~/.aos/fitness/workouts/catalog.json |
-| `./fitnessctl start` | API (:9100) + fitness_agent (:9120) starten |
+| `./fitnessctl start` | API (:9100) + catalog (:9120) starten |
 | `./fitnessctl status` | Status-Übersicht aller Services (gum-Tabelle) |
 | `./fitnessctl kb-sync` | catalog/kb → Firestore pushen |
 | `./fitnessctl session today` | Heutige Session anzeigen |
@@ -338,7 +338,7 @@ Alle vier Packages sind in `pyproject.toml` (`where=["."]`) registriert und via 
 
 | Package | Zweck |
 |---------|-------|
-| `fitness_agent` | Katalog-Tools + Agent-API (Kern-Paket) |
+| `catalog` | Katalog-Tools + Agent-API (Kern-Paket) |
 | `fitness_cli` | Terminal CLI + TUI (kein Server nötig) |
 | `db` | SQLAlchemy ORM-Layer (models, schemas, SessionLocal) |
 | `firestore_kb` | KB-Sync catalog/kb/ → Firestore (Symlink → catalog/firestore_kb/) |
@@ -377,7 +377,7 @@ fitness_cli/
 
 ## Testing
 
-**Python (catalog/fitness_agent):** Pytest-Suite in `catalog/tests/` — deckt resolver, coverage, planner, teaching, weekly, obsidian, wger ab.
+**Python (catalog/catalog):** Pytest-Suite in `catalog/tests/` — deckt resolver, coverage, planner, teaching, weekly, obsidian, wger ab.
 ```bash
 cd ~/fitness-dev && python3 -m pytest catalog/tests/
 ```
@@ -404,7 +404,7 @@ cd ~/fitness-dev && python3 -m pytest catalog/tests/
 
 1. **Ausbildung läuft** — User macht Fitnesstrainer-Module, Pflichtaufgaben
 2. **User loggt Sessions** — über Session-View, dual-write in JSON + SQLite
-3. **AI Agent erweitert Katalog** — nutzt catalog/fitness_agent/ Tools:
+3. **AI Agent erweitert Katalog** — nutzt catalog/catalog/ Tools:
    - `audit anatomy` → findet fehlende Übungen
    - Gemini generiert YAML → catalog/kb/anatomy_teaching/
    - `map-wger` → verknüpft Übungen mit wger-IDs
@@ -413,7 +413,7 @@ cd ~/fitness-dev && python3 -m pytest catalog/tests/
 
 ---
 
-## fitness_agent: Kern-Logik
+## catalog: Kern-Logik
 
 **Mission:** Training als angewandte Anatomie — nicht nur „welche Muskeln trainiert diese Übung" sondern „welche Bewegung erklärt mir Anatomie praktisch am eigenen Körper". Das ist der didaktische Layer den wger, yuhonas und alle Open-Source-DBs nicht liefern.
 
@@ -520,7 +520,7 @@ anatomy-kb/muscles/            — Muskel-Layer (origin, insertion, innervation)
 
 - ✅ DEV-Server (Node.js, Port 9100) — server.mjs, Hono, Vite-Proxy-Target
 - ✅ Python Prod-Backend (FastAPI, Port 9150) — server.py, Tailscale-Funnel
-- ✅ fitness_agent Server (:9120, aiohttp) — wird archiviert sobald server.py verifiziert
+- ✅ catalog Server (:9120, aiohttp) — wird archiviert sobald server.py verifiziert
 - ✅ python-backend/ archiviert (archive/python-backend/) — abgelöst durch server.py
 - ✅ Frontend Views (Dashboard, Session, Journal, Muscles, Learn, Weekly, Habits, Settings, Inbox)
 - ✅ Swipe-Navigation + Gym Mode (layout scaling)
@@ -545,15 +545,15 @@ anatomy-kb/muscles/            — Muskel-Layer (origin, insertion, innervation)
 
 ---
 
-## Code-Review 2026-06-07: catalog/fitness_agent
+## Code-Review 2026-06-07: catalog/catalog
 
 ### Kritische Bugs (sofort fixen)
 
-**catalog/fitness_agent/server.py** (:9120) — `import yaml` fehlt (wird in `handle_inbox_approve` auf Zeile ~289 genutzt). Crash beim `/inbox/{id}/approve` Endpoint. Außerdem `from loguru import logger` fehlt (verwendet auf Zeilen ~309, ~314).
+**catalog/catalog/server.py** (:9120) — `import yaml` fehlt (wird in `handle_inbox_approve` auf Zeile ~289 genutzt). Crash beim `/inbox/{id}/approve` Endpoint. Außerdem `from loguru import logger` fehlt (verwendet auf Zeilen ~309, ~314).
 
 **kb_sync.py** — `log_err()` ist undefiniert (Zeile ~178). Sollte `logger.error()` sein. Crash beim KB-Sync.
 
-**catalog/fitness_agent/server.py `handle_export`** — `data['query']`, `data['plan']` etc. ohne `.get()` → `KeyError` wenn Client-Body unvollständig. Alle `data[key]`-Zugriffe auf `data.get(key)` umstellen.
+**catalog/catalog/server.py `handle_export`** — `data['query']`, `data['plan']` etc. ohne `.get()` → `KeyError` wenn Client-Body unvollständig. Alle `data[key]`-Zugriffe auf `data.get(key)` umstellen.
 
 ### Duplikationen (medium, aufräumen)
 
@@ -571,7 +571,7 @@ anatomy-kb/muscles/            — Muskel-Layer (origin, insertion, innervation)
 - Lokaler Import in `watcher.py` in while-Schleife (Zeile ~232): Anti-Pattern, funktioniert aber.
 - `history.py` hat keinen `UNIQUE`-Constraint auf `training_history` — parallele Schreiber könnten Duplikate erzeugen. `INSERT OR IGNORE` prüfen.
 
-### HTTP-Endpoint-Status (catalog/fitness_agent/server.py :9120)
+### HTTP-Endpoint-Status (catalog/catalog/server.py :9120)
 
 Alle Endpoints bis auf `POST /export/{kind}` und `POST /inbox/{id}/approve` sind fehlerfrei. Die beiden sind durch obige Bugs betroffen.
 

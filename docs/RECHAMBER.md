@@ -33,7 +33,7 @@ python cloud_chamber/firestore_watcher.py
 ### Seeding Data
 To migrate your local YAML catalog to Firestore, use the existing sync tool:
 ```bash
-python -m catalog.fitness_agent kb-sync
+python -m catalog.catalog kb-sync
 ```
 
 ### Hidden Chamber UI

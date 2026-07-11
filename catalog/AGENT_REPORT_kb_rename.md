@@ -38,6 +38,6 @@ catalog/kb/
 
 **Prüfen mit:**
 ```bash
-python3 -m catalog.fitness_agent audit anatomy
-python3 -m catalog.fitness_agent audit exercises
+python3 -m catalog.catalog audit anatomy
+python3 -m catalog.catalog audit exercises
 ```

@@ -7,8 +7,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from fitness_agent.bootstrap import bootstrap
-from fitness_agent.obsidian import export_coverage_note, export_exercise_note
+from catalog.bootstrap import bootstrap
+from catalog.agent.obsidian import export_coverage_note, export_exercise_note
 
 
 class ObsidianExportTest(unittest.TestCase):
