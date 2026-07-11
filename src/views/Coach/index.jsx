@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { CheckCircle2, Sparkles, Brain, MessageSquare, Check, Dumbbell } from 'lucide-react';
 import { useInbox } from '../Inbox/useInbox';
 import InboxCard from '../Inbox/InboxCard';
+import CatalogBrowser from './CatalogBrowser';
 import { getGlobalJournalFeed, getAllUserProfiles, saveCoachFeedback } from '@db';
 
 export default function Coach({ onInspectExercise }) {
   const { exercises, loading, actioning, toast, approve, remove } = useInbox({ global: true });
   
-  const [activeSubTab, setActiveSubTab] = useState('exercises'); // 'exercises' | 'journals'
+  const [activeSubTab, setActiveSubTab] = useState('exercises'); // 'exercises' | 'journals' | 'catalog'
   const [journals, setJournals] = useState([]);
   const [loadingJournals, setLoadingJournals] = useState(false);
   const [userProfiles, setUserProfiles] = useState({});
@@ -98,6 +99,12 @@ export default function Coach({ onInspectExercise }) {
         >
           Klienten-Workouts
         </button>
+        <button
+          onClick={() => setActiveSubTab('catalog')}
+          className={`pb-2.5 text-xs font-black uppercase tracking-widest transition-all border-b-2 flex items-center gap-1 ${activeSubTab === 'catalog' ? 'border-fit-accent text-fit-ink' : 'border-transparent text-fit-dim hover:text-fit-ink'}`}
+        >
+          <Dumbbell size={14} className="mb-0.5" /> Katalog Browser
+        </button>
       </div>
 
       {activeSubTab === 'exercises' ? (
@@ -122,6 +129,8 @@ export default function Coach({ onInspectExercise }) {
             ))}
           </div>
         )
+      ) : activeSubTab === 'catalog' ? (
+        <CatalogBrowser />
       ) : (
         /* Klienten Workouts Feed View */
         loadingJournals ? (
