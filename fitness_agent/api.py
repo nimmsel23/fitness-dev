@@ -1,15 +1,20 @@
 """
-fitness-dev FastAPI server — Prod/Tailscale Backend
-Port: 9150
+=============================================================================
+  CATALOG API BACKEND (fitness_agent/api.py)
+=============================================================================
+  FastAPI server — Prod/Tailscale Backend & Local Catalog API
+  Port: 9150
 
-Server-Rollen:
-  server.mjs (DEV)   :9100  Hono + Vite-Proxy-Target, Node.js Dev-Server
-  server.py (dieses) :9150  Python Prod-Backend, Tailscale-Funnel
-  fitness_agent/server.py   :9120  aiohttp Agent-API (wird archiviert sobald verifiziert)
+  Server-Rollen:
+    server.mjs (DEV)   :9100  Hono + Vite-Proxy-Target, Node.js Dev-Server
+    api.py     (dieses):9150  Python Prod-Backend & EIGENTLICHES CATALOG API BACKEND
+    fitness_agent/server.py   :9120  aiohttp Agent-API (wird archiviert sobald verifiziert)
 
-Rolle:
-- Prod-Backend (Tailscale-Funnel, /opt/fitness) + lokale Coach-API
-- Direktimports aus fitness_agent + anatomy_kb (kein HTTP-Proxy)
+  Rolle:
+  - Prod-Backend (Tailscale-Funnel, /opt/fitness) + lokale Coach-API
+  - Dies ist das exklusive Backend für Catalog Enhancements & Inbox Approvals!
+  - Direktimports aus fitness_agent + anatomy_kb (kein HTTP-Proxy)
+=============================================================================
 """
 from __future__ import annotations
 
