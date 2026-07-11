@@ -6,32 +6,28 @@ import {
   getDashboardAnalytics, exportCsv, getAllExercises, getGlobalInbox, isLocalMode
 } from "@db";
 import { localToday } from "@utils";
-import HabitWidget from "../../components/HabitWidget.jsx";
 import WeightChart from "../../components/WeightChart.jsx";
 
-import DashboardHeader from "@src/components/dashboard/DashboardHeader";
-import ActivityHeatmap from "@src/components/dashboard/ActivityHeatmap";
-import MuscleBody from "@src/components/dashboard/MuscleBody";
-import MuscleCoverage from "@src/components/dashboard/MuscleCoverage";
-import SessionStatus from "@src/components/dashboard/SessionStatus";
-import DashboardWidget from "@src/components/dashboard/DashboardWidget";
-import { getRolling10Days } from "@src/components/dashboard/utils";
+import DashboardHeader from "./DashboardHeader";
+import ActivityHeatmap from "./ActivityHeatmap";
+import MuscleBody from "./MuscleBody";
+import MuscleCoverage from "./MuscleCoverage";
+import SessionStatus from "./SessionStatus";
+import DashboardWidget from "./DashboardWidget";
+import { getRolling10Days } from "./utils";
 
-const DEFAULT_LAYOUT = ['session', 'habits', 'heatmap', 'body', 'coverage', 'weight'];
+const DEFAULT_LAYOUT = ['session', 'heatmap', 'body', 'coverage', 'weight'];
 const LAYOUT_KEY = 'fitness-dashboard-layout';
 
 const WIDGET_META = {
   session:  { title: 'Heute',         span: 'md:col-span-2 xl:col-span-2', targetTab: 'session' },
-  habits:   { title: 'Habits',        span: 'md:col-span-1 xl:col-span-1', targetTab: 'habits' },
   heatmap:  { title: 'Aktivität',     span: 'md:col-span-2 xl:col-span-3', targetTab: 'review' },
   body:     { title: 'Muskel-Status', span: 'md:col-span-2 xl:col-span-2', targetTab: 'learn' },
   coverage: { title: 'Coverage',      span: 'md:col-span-1 xl:col-span-1', targetTab: 'learn' },
   weight:   { title: 'Gewicht',       span: 'md:col-span-2 xl:col-span-3', targetTab: null },
 };
 
-const HOME_NAV = NAV_ITEMS.filter(i => i.id !== 'dash' && i.id !== 'settings');
-
-export default function Dashboard({ user, onOpenSession, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body', gender = 'male', navMode = 'tabs', navigate, muscleLanguage = 'de', taxonomy = null }) {
+export default function Dashboard({ user, onOpenSession, onOpenReview, recentDays = 7, coverageThreshold = 1.0, dashboardHighlighter = 'body', gender = 'male', navigate, muscleLanguage = 'de', taxonomy = null }) {
   function onNavigate(target, date) {
     if (target === 'session') onOpenSession?.(date || null);
     else if (target === 'review') onOpenReview?.();
@@ -164,8 +160,6 @@ export default function Dashboard({ user, onOpenSession, onOpenReview, recentDay
     switch (id) {
       case 'session':
         return <SessionStatus plan={plan} todaySession={todaySession} recent={recent} today={today} onNavigate={onNavigate} />;
-      case 'habits':
-        return <HabitWidget onNavigate={onNavigate} />;
       case 'heatmap':
         return <ActivityHeatmap rollingDays={rollingDays} sessionByDate={sessionByDate} today={today} onNavigate={onNavigate} />;
       case 'body':
