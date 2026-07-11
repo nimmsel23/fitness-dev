@@ -61,8 +61,8 @@ npm run ui:dev       # Nur Vite DevServer
 npm run build        # Production-Build → dist/
 npm run build:catalog  # Katalog → ~/.aos/fitness/workouts/catalog.json
 
-python -m catalog.fitness_agent audit       # Katalog-Qualität prüfen
-python -m catalog.fitness_agent kb-sync     # catalog/kb → Firestore
+python -m catalog.catalog audit       # Katalog-Qualität prüfen
+python -m catalog.catalog kb-sync     # catalog/kb → Firestore
 bin/firestore-sync pull                     # Firestore → ~/.aos/fitness/
 ```
 

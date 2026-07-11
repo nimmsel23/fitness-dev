@@ -2,9 +2,9 @@
 HTTP-Handler für die anatomy-kb Knowledge API.
 
 Jeder Handler ist zustandslos:
-  request → fitness_agent function → JSON response
+  request → catalog function → JSON response
 
-fitness_agent wird via server.py injiziert (kein direkter Import hier),
+catalog wird via server.py injiziert (kein direkter Import hier),
 damit die Handler auch ohne laufenden Server testbar bleiben.
 """
 
@@ -16,10 +16,10 @@ from typing import TYPE_CHECKING
 from aiohttp import web
 
 if TYPE_CHECKING:
-    from fitness_agent import coverage as cov_module
-    from fitness_agent import planner as plan_module
-    from fitness_agent import resolver as res_module
-    from fitness_agent import teaching as teach_module
+    from catalog import coverage as cov_module
+    from catalog import planner as plan_module
+    from catalog import resolver as res_module
+    from catalog import teaching as teach_module
 
 
 def ok(data) -> web.Response:

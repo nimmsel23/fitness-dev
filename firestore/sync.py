@@ -86,7 +86,7 @@ def pull() -> dict:
             day = doc_id.split("__")[0]
             sid = doc_id.split("__")[1] if "__" in doc_id else None
             try:
-                from fitness_agent.sync_gateway import sync_session as _gw_sync
+                from catalog.api.sync_gateway import sync_session as _gw_sync
                 _gw_sync(day, out, session_id=sid)
             except Exception as exc:
                 pass  # SQLite-Sync optional, JSON ist SOT

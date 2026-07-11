@@ -32,20 +32,19 @@ dependencies = [
 ]
 
 [project.scripts]
-fitness              = "fitness_cli.cli:main"
-fitness-log          = "fitness_cli.commands.log:main"
-fitness-tui          = "fitness_cli.commands.tui:main"
-fitness-activity     = "fitness_cli.commands.activity:main"
-fitness-mail         = "fitness_cli.commands.mail:main"
+fitness              = "fitness.cli:main"
+fitness-log          = "fitness.commands.log:main"
+fitness-tui          = "fitness.commands.tui:main"
+fitness-activity     = "fitness.commands.activity:main"
+fitness-mail         = "fitness.commands.mail:main"
 firestore-sync       = "firestore.sync_cli:main"
-fitness-agent        = "fitness_agent.cli:main"
-fitness-agent-api    = "fitness_agent.api:main"
+fitness-catalog      = "fitness.catalog.cli:main"
+fitness-catalog-api  = "fitness.catalog.api.api:main"
 
 [tool.poetry]
 packages = [
-    { include = "fitness_agent" },
     { include = "firestore_kb" },
     { include = "firestore" },
-    { include = "fitness_cli" },
+    { include = "fitness" },
     { include = "db" },
 ]

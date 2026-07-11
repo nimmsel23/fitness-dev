@@ -1,6 +1,6 @@
 # Report: Muscle Coverage & Recovery Logic (Firebase PWA)
 
-Dieses Dokument analysiert die aktuelle Implementierung der Muskel-Coverage und Ruhezeit-Berechnung in der Fitness PWA. Es dient als Grundlage für die Anpassung des lokalen `kb-enricher` im `fitness_agent`.
+Dieses Dokument analysiert die aktuelle Implementierung der Muskel-Coverage und Ruhezeit-Berechnung in der Fitness PWA. Es dient als Grundlage für die Anpassung des lokalen `kb-enricher` im `catalog`.
 
 ## 1. Datenfluss & Datenquellen (Pipeline)
 
@@ -50,7 +50,7 @@ Diese Funktion prüft sowohl den **Muskel-Tag** als auch den **Übungs-Namen** g
 2.  **Namens-Abhängigkeit:** Die Fallback-Logik verlässt sich stark auf den Namen. Wenn eine Übung in der KB falsch benannt ist (z.B. "Deadlift" ohne "Legs" Keyword), schlägt das Mapping fehl.
 3.  **Score-Akkumulation:** Die Gewichtung (2 für Primär, 1 für Sekundär) in der `BodyMap` ist rein visuell und wird in der Gap-Analyse (`db.js`) bisher nicht identisch abgebildet (dort zählt jeder Treffer als 1).
 
-## 5. Empfehlung für kb-enricher / fitness_agent
+## 5. Empfehlung für kb-enricher / catalog
 
 Um die PWA stabil zu machen, sollte der `kb-enricher`:
 1.  **Zentrales Mapping exportieren:** Ideal wäre eine `mapping.json` in der KB, die von der PWA geladen wird, anstatt hardcodierte JS-Konstanten zu nutzen.
@@ -58,4 +58,4 @@ Um die PWA stabil zu machen, sollte der `kb-enricher`:
 3.  **Split-Inferenz:** Die automatische Split-Erkennung in `db.js` könnte verbessert werden, wenn die KB bereits "Split-Vorschläge" für Übungskombinationen mitliefert.
 
 ---
-*Erstellt am 25. Mai 2026 für die Weiterentwicklung des fitness_agent.*
+*Erstellt am 25. Mai 2026 für die Weiterentwicklung des catalog.*
