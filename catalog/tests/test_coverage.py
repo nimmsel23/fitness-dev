@@ -8,8 +8,8 @@ from unittest import mock
 
 import yaml
 
-from fitness_agent.bootstrap import bootstrap
-from fitness_agent.coverage import calculate_coverage
+from catalog.bootstrap import bootstrap
+from catalog.coverage import calculate_coverage
 
 
 class CoverageTest(unittest.TestCase):

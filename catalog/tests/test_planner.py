@@ -6,8 +6,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from fitness_agent.bootstrap import bootstrap
-from fitness_agent.planner import build_plan
+from catalog.bootstrap import bootstrap
+from catalog.planner import build_plan
 
 
 class PlannerTest(unittest.TestCase):

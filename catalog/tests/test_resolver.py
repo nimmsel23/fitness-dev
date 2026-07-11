@@ -6,8 +6,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from fitness_agent.bootstrap import bootstrap
-from fitness_agent.resolver import resolve_query
+from catalog.bootstrap import bootstrap
+from catalog.core.resolver import resolve_query
 
 
 class ResolverTest(unittest.TestCase):

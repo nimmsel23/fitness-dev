@@ -88,7 +88,7 @@ fuel-dev:
 **Framework:** Hono (`@hono/node-server`)  
 **Port:** 9100 (dev), 6100 (prod `/opt/fitness/`)  
 **Datei:** `~/fitness-dev/server.mjs`  
-**Python Sidecar:** fitness_agent `:9120` (`catalog/fitness_agent/server.py`)
+**Python Sidecar:** catalog `:9120` (`catalog/catalog/server.py`)
 
 **Datenpfade:**
 ```
@@ -98,7 +98,7 @@ fuel-dev:
   journal/YYYY-MM-DD.md         — Text-Notizen
   body/YYYY-MM-DD.json          — Körpermessungen
   plan.json                     — Aktiver Trainingsplan
-  agent-state/                  — fitness_agent State
+  agent-state/                  — catalog State
 ~/fitness-dev/catalog/kb/       — YAML Knowledge Base
   exercises/*.yml               — Exercise-Definitionen
   anatomy_teaching/*.yml        — Anatomie-Lehr-Layer
@@ -156,7 +156,7 @@ POST /firestore/sync
 **Externe Abhängigkeiten:**
 - wger lokal `:8000` — Exercise Master Data
 - yuhonas (free-exercise-db) — Bilder + Varianten
-- fitness_agent Python `:9120` — Catalog-Operationen
+- catalog Python `:9120` — Catalog-Operationen
 - Firebase Admin SDK — Firestore Sync (Creds: `~/.env/firebase-fitness.json`)
 - HabitSync `:6842` — Proxy
 
@@ -253,11 +253,11 @@ Server zieht beim Start Daten von Firestore via Bridge-Ping (fire-and-forget, 5s
 |--------|-------------|----------|-----------|
 | Datenformat | JSON Files + SQLite | JSON Files + SQLite | ✅ `~/.aos/` Basis |
 | YAML Catalogs | `catalog/kb/` | `catalogs/` | ✅ YAML als SOT |
-| Gemini | via Python fitness_agent | direkt in Node (gemini.mjs) | ✅ gleicher Key |
+| Gemini | via Python catalog | direkt in Node (gemini.mjs) | ✅ gleicher Key |
 | wger | vollständig integriert | nur Search | teilweise |
 | Firebase | firebase-admin (sync) | Bridge-Ping (sync) | ✅ Firestore als Cloud-Layer |
 | Auth | kein Auth-Gate (lokal) | kein Auth-Gate (lokal) | ✅ lokal = kein Auth |
-| Zod Validation | fitness_agent (Python) | Fastify-Routen | verschieden |
+| Zod Validation | catalog (Python) | Fastify-Routen | verschieden |
 | Framework | Hono | Fastify | verschieden |
 | Port-Konvention | 9100/6100 | 9000/7000 | beide in AOS-Range |
 
@@ -330,7 +330,7 @@ src/lib/db/
 
 ### 3.6 Python Sidecar
 
-`fitness_agent` (:9120) bleibt als eigenständiger Sidecar bestehen.
+`catalog` (:9120) bleibt als eigenständiger Sidecar bestehen.
 Der unified-server proxied `/agent/*` oder ruft ihn intern auf.
 Kein Merge in Node — Python bleibt für AI-intensive Catalog-Operationen.
 
@@ -369,7 +369,7 @@ Von **fitness-dev:**
 - Exercise-Catalog (YAML KB) mit Alias-Resolver
 - Anatomy-Teaching Layer (catalog/kb/anatomy_teaching/)
 - coverage_score Berechnung (primary/secondary/stabilizer)
-- Python fitness_agent Sidecar Architektur
+- Python catalog Sidecar Architektur
 - Dual-Write Session (JSON + SQLite synchron)
 - wger vollständige Integration (nicht nur Search)
 - yuhonas Integration

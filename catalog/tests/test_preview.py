@@ -7,8 +7,8 @@ from contextlib import redirect_stdout
 from pathlib import Path
 from unittest import mock
 
-from fitness_agent.cli import main
-from fitness_agent.preview import preview_file, render_markdown
+from catalog.cli import main
+from catalog.preview import preview_file, render_markdown
 
 
 class PreviewTest(unittest.TestCase):
@@ -17,8 +17,8 @@ class PreviewTest(unittest.TestCase):
             path = Path(tempdir) / "sample.md"
             path.write_text("# Sample\n", encoding="utf-8")
 
-            with mock.patch("fitness_agent.preview.shutil.which", return_value="/usr/bin/glow"):
-                with mock.patch("fitness_agent.preview.subprocess.run") as run_mock:
+            with mock.patch("catalog.preview.shutil.which", return_value="/usr/bin/glow"):
+                with mock.patch("catalog.preview.subprocess.run") as run_mock:
                     result = preview_file(path, require_tty=False)
 
             self.assertTrue(result.used_glow)
@@ -27,10 +27,10 @@ class PreviewTest(unittest.TestCase):
     def test_render_markdown_uses_glow_by_default_when_tty_is_available(self) -> None:
         markdown = "# Sample\n\nBody\n"
 
-        with mock.patch("fitness_agent.preview.shutil.which", return_value="/usr/bin/glow"):
-            with mock.patch("fitness_agent.preview.sys.stdin.isatty", return_value=True):
-                with mock.patch("fitness_agent.preview.sys.stdout.isatty", return_value=True):
-                    with mock.patch("fitness_agent.preview.subprocess.run") as run_mock:
+        with mock.patch("catalog.preview.shutil.which", return_value="/usr/bin/glow"):
+            with mock.patch("catalog.preview.sys.stdin.isatty", return_value=True):
+                with mock.patch("catalog.preview.sys.stdout.isatty", return_value=True):
+                    with mock.patch("catalog.preview.subprocess.run") as run_mock:
                         result = render_markdown(markdown)
 
         self.assertTrue(result.used_glow)
@@ -42,7 +42,7 @@ class PreviewTest(unittest.TestCase):
             path.write_text("# Sample\n\nBody\n", encoding="utf-8")
 
             buffer = io.StringIO()
-            with mock.patch("fitness_agent.preview.shutil.which", return_value=None):
+            with mock.patch("catalog.preview.shutil.which", return_value=None):
                 with redirect_stdout(buffer):
                     code = main(["preview", "--file", str(path)])
 

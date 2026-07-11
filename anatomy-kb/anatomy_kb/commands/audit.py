@@ -1,4 +1,4 @@
-"""audit command — runs fitness_agent audit."""
+"""audit command — runs catalog audit."""
 import subprocess
 import sys
 
@@ -19,7 +19,7 @@ def command(
     """
     [bold]Katalog-Integrität prüfen[/bold]
 
-    Führt den fitness_agent Audit für Anatomy-Teaching und Exercise-Definitionen aus.
+    Führt den catalog Audit für Anatomy-Teaching und Exercise-Definitionen aus.
     Gibt eine strukturierte Übersicht mit OK / WARN / FAIL.
 
     \b
@@ -86,7 +86,7 @@ def command(
         console.print(Rule(f"[bold cyan]audit: {t}[/bold cyan]", style="dim"))
 
         result = subprocess.run(
-            [sys.executable, "-m", "catalog.fitness_agent", "audit", t],
+            [sys.executable, "-m", "catalog.catalog", "audit", t],
             capture_output=True, text=True, cwd=str(FITNESS_DEV),
         )
         raw_output = result.stdout + result.stderr

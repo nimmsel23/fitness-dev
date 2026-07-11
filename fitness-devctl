@@ -225,7 +225,7 @@ def dev():
 
 @app.command()
 def pydev():
-    """Stop the systemd Python backend and run fitness_agent.api --reload in foreground (Ctrl+C to restart the service)."""
+    """Stop the systemd Python backend and run catalog.api --reload in foreground (Ctrl+C to restart the service)."""
     was_active = _service_active(PYTHON_SERVICE)
     if was_active:
         msg.info(f"Stopping {PYTHON_SERVICE} (port {PYTHON_PORT} freed for foreground reload)...")
@@ -234,7 +234,7 @@ def pydev():
     msg.divider("Foreground Python Reload Mode (Ctrl+C to stop)")
     try:
         subprocess.run(
-            [sys.executable, "-m", "fitness_agent.api", "serve", "--port", PYTHON_PORT, "--reload"],
+            [sys.executable, "-m", "catalog.api", "serve", "--port", PYTHON_PORT, "--reload"],
             cwd=DEV_DIR,
         )
     except KeyboardInterrupt:

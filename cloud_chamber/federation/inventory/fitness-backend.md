@@ -1,7 +1,7 @@
 # Inventur: fitness-dev Backend
 
 > Stand: 2026-06-20  
-> Quelle: `~/fitness-dev/server.mjs` + `catalog/fitness_agent/`  
+> Quelle: `~/fitness-dev/server.mjs` + `catalog/catalog/`  
 > Zweck: Vollständige Erfassung aller Assets die in den unified-server überführt werden müssen.
 
 ---
@@ -38,7 +38,7 @@ THEME_FILE   = ~/.aos/fitness/theme.json
 | GET | `/exercises/search?q=&source=` | Search: lokal + wger + yuhonas |
 | GET | `/exercises/by-group` | Exercises gruppiert nach Muskelgruppe |
 | GET | `/exercise/:id/teaching` | Anatomie-Lesson aus anatomy_teaching YAML |
-| GET | `/fitness/plan?template=&split=` | Plan-Generator via fitness_agent |
+| GET | `/fitness/plan?template=&split=` | Plan-Generator via catalog |
 | GET | `/fitness/weekly?week=` | Wochenreport via Python weekly.py |
 | POST | `/fitness/export` | Export: session/plan/sheet/lesson |
 | GET | `/fitness/body?date=` | Körper-Messungen |
@@ -77,11 +77,11 @@ THEME_FILE   = ~/.aos/fitness/theme.json
 | GET | `/firestore/status` | Firebase-Verbindungsstatus |
 | POST | `/firestore/sync` | Letzte 30 Sessions → Firestore |
 
-## Python Sidecar: fitness_agent (:9120)
+## Python Sidecar: catalog (:9120)
 
 Eigenständiger aiohttp-Server. Server.mjs proxied bestimmte Calls dorthin.
 
-**Datei:** `catalog/fitness_agent/server.py`
+**Datei:** `catalog/catalog/server.py`
 
 | Endpoint | Methode | Funktion |
 |----------|---------|---------|
@@ -129,7 +129,7 @@ catalog/kb/
 |--------------|------|-------|
 | wger lokal | :8000 | Exercise Master Data (vollständig) |
 | yuhonas (free-exercise-db) | statisch | Bilder + Varianten |
-| fitness_agent Python | :9120 | Catalog-Operationen, AI-Layer |
+| catalog Python | :9120 | Catalog-Operationen, AI-Layer |
 | HabitSync | :6842 | Habit-Tracking Proxy |
 | firebase-admin | — | Firestore Sync (Creds: `~/.env/firebase-fitness.json`) |
 

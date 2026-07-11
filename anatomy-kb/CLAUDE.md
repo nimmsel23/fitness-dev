@@ -14,7 +14,7 @@ anatomy-kb/
 ├── server.py                  — aiohttp Server :9200 (Routing-Layer)
 ├── daemon.py                  — Hintergrunddienst (refine + firestore sync)
 ├── anatomy_kb/
-│   ├── handlers.py            — HTTP-Handler (zustandslos, ruft fitness_agent auf)
+│   ├── handlers.py            — HTTP-Handler (zustandslos, ruft catalog auf)
 │   ├── loader.py              — YAML-Loader (merged catalog/kb + anatomy-kb/exercises)
 │   ├── models.py              — Dataclasses (Exercise, MuscleRoles)
 │   ├── db.py                  — anatomy.sqlite Schema + Sync-Logik
@@ -36,11 +36,11 @@ anatomy-kb/
 
 ## Integration mit fitness-dev
 
-`server.py` injiziert `fitness_agent`-Module via `sys.path.insert` und `app["modules"]`:
-- `fitness_agent.resolver` — Exercise-Index + Fuzzy-Resolver
-- `fitness_agent.coverage` — Coverage-Berechnung
-- `fitness_agent.teaching` — Anatomy Lessons
-- `fitness_agent.planner` — Plan-Generator
+`server.py` injiziert `catalog`-Module via `sys.path.insert` und `app["modules"]`:
+- `catalog.resolver` — Exercise-Index + Fuzzy-Resolver
+- `catalog.coverage` — Coverage-Berechnung
+- `catalog.teaching` — Anatomy Lessons
+- `catalog.planner` — Plan-Generator
 
 **Pfad:** Wird via `anatomy_kb/config.py` aufgelöst — erkennt automatisch Subtree-Layout
 (`fitness-dev/anatomy-kb/`) und Legacy-Sibling-Layout (`~/anatomy-kb/` neben `~/fitness-dev/`).
@@ -114,12 +114,12 @@ anatomy-agent db sync                 # SQLite befüllen
 
 ### Architektur-Befund
 
-Architektur ist konsistent und sauber. `server.py` als reiner Routing-Layer, Business-Logik in `handlers.py` / `fitness_agent`-Modulen via Dependency-Injection — testbar. Modul-Trennung (`db.py` vs `db_handler.py`, `muscle_store.py` vs `muscle_handler.py`) ist korrekt.
+Architektur ist konsistent und sauber. `server.py` als reiner Routing-Layer, Business-Logik in `handlers.py` / `catalog`-Modulen via Dependency-Injection — testbar. Modul-Trennung (`db.py` vs `db_handler.py`, `muscle_store.py` vs `muscle_handler.py`) ist korrekt.
 
 ### Potenzielle Probleme
 
 **server.py Zeile 24–28: Fragiler `sys.path.insert`-Hack**
-`server.py` fügt `fitness-dev/catalog` via `sys.path.insert` ein. Bricht wenn `anatomy-kb` und `fitness-dev` nicht Geschwister-Verzeichnisse sind. Kein `try/except` falls `fitness_agent` fehlt → Import-Fehler beim Start ohne hilfreiche Meldung.
+`server.py` fügt `fitness-dev/catalog` via `sys.path.insert` ein. Bricht wenn `anatomy-kb` und `fitness-dev` nicht Geschwister-Verzeichnisse sind. Kein `try/except` falls `catalog` fehlt → Import-Fehler beim Start ohne hilfreiche Meldung.
 
 **`handlers.py` ruft `build_exercise_index()` mehrfach auf**
 `/health`, `GET /api/exercises`, `GET /api/exercise/{id}` bauen je einen frischen Index. `resolver.build_exercise_index()` hat kein Cache. Bei vielen Übungen messbar. Fix: Cache in `resolver.py` oder Index einmalig beim App-Start bauen.

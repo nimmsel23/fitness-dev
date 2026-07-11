@@ -76,8 +76,8 @@ export default function ExerciseCard({
 
   const stepWeight = (sIdx, delta) => {
     const raw = String(ex.setsArray?.[sIdx]?.weight || '').replace(',', '.');
-    const next = Math.max(0, Math.round((parseFloat(raw) || 0 + delta) * 100) / 100);
-    updateEx(i, 'weight', Number.isInteger(next) ? String(next) : String(next), sIdx);
+    const next = Math.max(0, Math.round(((parseFloat(raw) || 0) + delta) * 100) / 100);
+    updateEx(i, 'weight', String(next), sIdx);
     flash(sIdx, 'weight', delta);
   };
 
