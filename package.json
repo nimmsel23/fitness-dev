@@ -18,6 +18,7 @@
     "build:firebase": "node scripts/bump-sw.mjs && vite build --mode firebase --outDir dist-firebase && node scripts/snapshot.mjs dist-firebase",
     "preview:firebase": "firebase hosting:channel:deploy preview --expires 1h",
     "deploy:firebase": "firebase deploy --only hosting",
+    "firebase": "npm run build:firebase && npm run deploy:firebase",
     "deploy": "node scripts/deploy-runner.mjs",
     "preview": "vite preview",
     "build:catalog": "python3 scripts/build-catalog.py",
