@@ -33,3 +33,10 @@ The settings panel has been split into dedicated, self-contained sub-sections:
 * **AppearanceSection:** Handles themes (dark/light lists), Circadian settings, layout scaling, and gender selection.
 * **TrainingSection:** Allows setting split preferences, cycle lengths, location defaults, and dashboard highlighter mode (`body` vs. `react-muscle-highlighter`).
 * **LocalDevSection:** Exposes local server endpoints and sync configurations for advanced debugging.
+
+---
+
+# AlphaOS Fitness Ecosystem — Bugfix: Touch-Stepper Weight Precedence (2026-07-11)
+
+Fixed a precedence bug in `ExerciseCard.jsx` where clicking on step buttons (`+2.5` / `-2.5`) for weights did not register when the weight field already had a value. Added parentheses around `parseFloat(raw) || 0` so `delta` is correctly added.
+
