@@ -234,7 +234,7 @@ def _try_http(fn_name: str, *args, **kwargs):
 def coverage(days: int = typer.Option(7, "-d", help="Tage zurückblicken")) -> None:
     """Muskelabdeckung der letzten N Tage (direkt via catalog, HTTP-Fallback)."""
     try:
-        from catalog.coverage import get_coverage_summary
+        from fitness.catalog.coverage import get_coverage_summary
         data = get_coverage_summary(days=days)
         for g in data.get("groups", []):
             score = sum(m["totalScore"] for m in g["muscles"])
@@ -252,7 +252,7 @@ def coverage(days: int = typer.Option(7, "-d", help="Tage zurückblicken")) -> N
 def gaps(days: int = typer.Option(7, "-d", help="Tage zurückblicken")) -> None:
     """Unterbeanspruchte Muskeln (direkt via catalog, HTTP-Fallback)."""
     try:
-        from catalog.coverage import get_coverage_gaps
+        from fitness.catalog.coverage import get_coverage_gaps
         result = get_coverage_gaps(days=days).get("gaps", [])
     except Exception:
         result = _try_http("gaps", days).get("gaps", [])
@@ -267,7 +267,7 @@ def gaps(days: int = typer.Option(7, "-d", help="Tage zurückblicken")) -> None:
 def search(query: str = typer.Argument(..., help="Suchbegriff")) -> None:
     """Übungssuche (direkt via catalog Resolver, HTTP-Fallback)."""
     try:
-        from catalog.core.resolver import search_exercises
+        from fitness.catalog.core.resolver import search_exercises
         results = search_exercises(query)
     except Exception:
         results = _try_http("search", query).get("results", [])

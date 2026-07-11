@@ -38,12 +38,11 @@ fitness-tui          = "fitness.commands.tui:main"
 fitness-activity     = "fitness.commands.activity:main"
 fitness-mail         = "fitness.commands.mail:main"
 firestore-sync       = "firestore.sync_cli:main"
-catalog              = "catalog.cli:main"
-catalog-api          = "catalog.api.api:main"
+fitness-catalog      = "fitness.catalog.cli:main"
+fitness-catalog-api  = "fitness.catalog.api.api:main"
 
 [tool.poetry]
 packages = [
-    { include = "catalog" },
     { include = "firestore_kb" },
     { include = "firestore" },
     { include = "fitness" },
