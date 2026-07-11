@@ -24,3 +24,4 @@ uv.lock
 
 dist-firebase/
 dist-federation/
+bin/firestore-sync
