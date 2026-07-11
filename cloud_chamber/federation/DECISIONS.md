@@ -160,12 +160,12 @@ nicht unterstützt (für unseren Use Case irrelevant).
 
 ---
 
-## #005 Python fitness_agent: Bleibt Sidecar
+## #005 Python catalog: Bleibt Sidecar
 
 **Status:** ✅ Entschieden  
 **Datum:** 2026-06-20
 
-**Frage:** Wird fitness_agent in Node.js neu geschrieben oder bleibt er Python?
+**Frage:** Wird catalog in Node.js neu geschrieben oder bleibt er Python?
 
 **Entscheidung:** Bleibt Python-Sidecar auf :9120.
 
@@ -175,7 +175,7 @@ nicht unterstützt (für unseren Use Case irrelevant).
 - Catalog-Audit-Logik ist umfangreich und bereits getestet (pytest-Suite)
 - Neu schreiben bringt keinen Mehrwert
 
-**Unified-Server Verhalten:** Proxied `/agent/*` → fitness_agent `:9120`
+**Unified-Server Verhalten:** Proxied `/agent/*` → catalog `:9120`
 oder ruft ihn intern via HTTP auf. Keine direkte Integration.
 
 ---
@@ -196,7 +196,7 @@ Backends bleiben während der Migration parallel erreichbar.
 | **unified-server** | **9150** | **6150** | neu, ersetzt 9100+9000 langfristig |
 | journal-dev | 9170 | 6170 | Journal + Habits (→ ADR #010) |
 | VitalHub | — | 6200 | statisch, nur Serving (→ ADR #008) |
-| fitness_agent | 9120 | — | Python Sidecar, nur localhost |
+| catalog | 9120 | — | Python Sidecar, nur localhost |
 | HabitSync | 6842 | 6842 | Docker, bestehend |
 
 **Begründung 9150/6150:**
@@ -217,8 +217,8 @@ Backends bleiben während der Migration parallel erreichbar.
 |----------|-----|-----------|
 | Makro-Schätzung aus Freitext | Node (`gemini.mjs`) | Echtzeit, <2s erwartet |
 | Supplement-Schätzung | Node (`gemini.mjs`) | Echtzeit |
-| Anatomy-YAML Enrichment | Python (fitness_agent) | Darf langsam sein, braucht pandas/PyYAML |
-| Catalog-Audit + Gap-Finding | Python (fitness_agent) | Batch, nicht Echtzeit |
+| Anatomy-YAML Enrichment | Python (catalog) | Darf langsam sein, braucht pandas/PyYAML |
+| Catalog-Audit + Gap-Finding | Python (catalog) | Batch, nicht Echtzeit |
 
 **Konsequenz:** `gemini.mjs` aus fuel-dev wird 1:1 in unified-server übernommen.
 Python-Sidecar bleibt für Catalog-Operationen (ADR #005 bestätigt).

@@ -7,7 +7,7 @@
 
 ## Was sich geändert hat
 
-Der fitness_agent liest YAMLs jetzt **direkt aus `catalog/data/`** — kein Bootstrap-Copy mehr.
+Der catalog liest YAMLs jetzt **direkt aus `catalog/data/`** — kein Bootstrap-Copy mehr.
 
 ### Vorher
 ```
@@ -36,8 +36,8 @@ catalog/data/anatomy_teaching/<exercise_id>.yml  →  sofort live, kein bootstra
 
 **Prüfen ob deine YAML korrekt ist:**
 ```bash
-python3 -m catalog.fitness_agent audit anatomy
-python3 -m catalog.fitness_agent teach <exercise_id>
+python3 -m catalog.catalog audit anatomy
+python3 -m catalog.catalog teach <exercise_id>
 ```
 
 ---
@@ -63,6 +63,6 @@ python3 -m catalog.fitness_agent teach <exercise_id>
 
 ## Relevanter Code
 
-- `catalog/fitness_agent/loader.py` — `load_catalog_yaml()`, `load_catalog_directory_yaml()`
-- `catalog/fitness_agent/paths.py` — `DATA_DIR = REPO_ROOT / "data"`
-- `catalog/fitness_agent/teaching.py` — liest aus `anatomy_teaching/`
+- `catalog/catalog/loader.py` — `load_catalog_yaml()`, `load_catalog_directory_yaml()`
+- `catalog/catalog/paths.py` — `DATA_DIR = REPO_ROOT / "data"`
+- `catalog/catalog/teaching.py` — liest aus `anatomy_teaching/`

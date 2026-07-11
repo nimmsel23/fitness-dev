@@ -3,7 +3,7 @@ anatomy-kb — Knowledge API Server  :9200
 
 Routing-Layer. Businesslogik liegt in:
   anatomy_kb/handlers.py   — HTTP-Handler
-  fitness-dev/catalog/     — fitness_agent Intelligence Layer
+  fitness-dev/catalog/     — catalog Intelligence Layer
 
 Starten:
   python3 server.py
@@ -27,16 +27,16 @@ cov_module = plan_module = res_module = teach_module = runtime_root = None
 
 if CATALOG_DIR and CATALOG_DIR.exists():
     sys.path.insert(0, str(CATALOG_DIR.parent))  # fitness-dev/ (für firestore/)
-    sys.path.insert(0, str(CATALOG_DIR))          # catalog/ (für fitness_agent)
+    sys.path.insert(0, str(CATALOG_DIR))          # catalog/ (für catalog)
     try:
-        from fitness_agent import coverage as cov_module
-        from fitness_agent import planner as plan_module
-        from fitness_agent import resolver as res_module
-        from fitness_agent import teaching as teach_module
-        from fitness_agent.paths import runtime_root
+        from catalog import coverage as cov_module
+        from catalog import planner as plan_module
+        from catalog import resolver as res_module
+        from catalog import teaching as teach_module
+        from catalog.core.paths import runtime_root
         _agent_available = True
     except ImportError as e:
-        logger.warning(f"fitness_agent nicht verfügbar — Agent-Features deaktiviert ({e})")
+        logger.warning(f"catalog nicht verfügbar — Agent-Features deaktiviert ({e})")
 else:
     logger.warning("fitness-dev/catalog nicht gefunden — anatomy-kb läuft ohne Agent-Features")
 

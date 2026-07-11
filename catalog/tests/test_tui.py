@@ -7,11 +7,11 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from fitness_agent.bootstrap import bootstrap
-from fitness_agent.cli import build_parser
-from fitness_agent.history import read_history
-from fitness_agent.obsidian import load_runtime_config
-from fitness_agent.tui import (
+from catalog.bootstrap import bootstrap
+from catalog.cli import build_parser
+from catalog.history import read_history
+from catalog.agent.obsidian import load_runtime_config
+from catalog.tui import (
     TuiState,
     browser_selected_record,
     build_screen_model,
@@ -114,11 +114,11 @@ class TuiTest(unittest.TestCase):
         state = TuiState(active_screen="preview", preview_source_screen="coach")
         stdscr = mock.Mock()
 
-        with mock.patch("fitness_agent.tui.shutil.which", return_value="/usr/bin/glow"):
-            with mock.patch("fitness_agent.tui.curses.def_prog_mode") as def_mock:
-                with mock.patch("fitness_agent.tui.curses.endwin") as end_mock:
-                    with mock.patch("fitness_agent.tui.curses.reset_prog_mode") as reset_mock:
-                        with mock.patch("fitness_agent.tui.preview_file") as preview_mock:
+        with mock.patch("catalog.tui.shutil.which", return_value="/usr/bin/glow"):
+            with mock.patch("catalog.tui.curses.def_prog_mode") as def_mock:
+                with mock.patch("catalog.tui.curses.endwin") as end_mock:
+                    with mock.patch("catalog.tui.curses.reset_prog_mode") as reset_mock:
+                        with mock.patch("catalog.tui.preview_file") as preview_mock:
                             preview_mock.return_value.used_glow = True
                             preview_mock.return_value.message = "Previewed sample.md with glow."
                             result = handle_preview_action(stdscr, state)
@@ -133,7 +133,7 @@ class TuiTest(unittest.TestCase):
     def test_preview_screen_handles_missing_glow_gracefully(self) -> None:
         state = TuiState(active_screen="preview", preview_source_screen="coach")
 
-        with mock.patch("fitness_agent.tui.shutil.which", return_value=None):
+        with mock.patch("catalog.tui.shutil.which", return_value=None):
             result = handle_preview_action(mock.Mock(), state)
 
         self.assertIn("glow is not installed", result.message)

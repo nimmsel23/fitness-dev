@@ -29,7 +29,7 @@ fitness-agent/
 ├── ROADMAP.md
 ├── pyproject.toml
 ├── .gitignore
-├── fitness_agent/
+├── catalog/
 │   ├── __init__.py
 │   ├── cli.py
 │   ├── config.py
@@ -224,19 +224,19 @@ Output should be a clear terminal report with OK/WARN/FAIL.
 Für Codex wäre das die erste technische Richtung:
 
 ```text
-fitness_agent/config.py
+catalog/config.py
 → Pfade, Config laden, Defaults
 
-fitness_agent/bootstrap.py
+catalog/bootstrap.py
 → ~/.fitness-agent anlegen, Seed-Daten kopieren
 
-fitness_agent/doctor.py
+catalog/doctor.py
 → Checks
 
-fitness_agent/loader.py
+catalog/loader.py
 → YAML sicher laden
 
-fitness_agent/cli.py
+catalog/cli.py
 → Typer CLI oder argparse
 ```
 

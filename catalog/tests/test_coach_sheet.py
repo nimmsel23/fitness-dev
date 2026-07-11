@@ -9,10 +9,10 @@ from contextlib import redirect_stdout
 from pathlib import Path
 from unittest import mock
 
-from fitness_agent.bootstrap import bootstrap
-from fitness_agent.cli import main
-from fitness_agent.coach_sheet import build_coach_sheet, render_coach_sheet_markdown
-from fitness_agent.obsidian import export_coach_sheet_note, load_runtime_config
+from catalog.bootstrap import bootstrap
+from catalog.cli import main
+from catalog.coach_sheet import build_coach_sheet, render_coach_sheet_markdown
+from catalog.agent.obsidian import export_coach_sheet_note, load_runtime_config
 
 
 class CoachSheetTest(unittest.TestCase):

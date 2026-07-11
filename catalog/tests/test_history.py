@@ -8,9 +8,9 @@ from pathlib import Path
 from contextlib import closing
 from unittest import mock
 
-from fitness_agent.bootstrap import bootstrap
-from fitness_agent.cli import main
-from fitness_agent.history import ensure_history_db, history_db_path, log_training_entry, progress_hint, read_history
+from catalog.bootstrap import bootstrap
+from catalog.cli import main
+from catalog.history import ensure_history_db, history_db_path, log_training_entry, progress_hint, read_history
 
 
 class HistoryTest(unittest.TestCase):

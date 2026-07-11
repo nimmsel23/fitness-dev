@@ -7,9 +7,9 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from fitness_agent.bootstrap import bootstrap
-from fitness_agent.obsidian import export_plan_note, load_runtime_config
-from fitness_agent.planner import build_plan
+from catalog.bootstrap import bootstrap
+from catalog.agent.obsidian import export_plan_note, load_runtime_config
+from catalog.planner import build_plan
 
 
 class PlanObsidianExportTest(unittest.TestCase):

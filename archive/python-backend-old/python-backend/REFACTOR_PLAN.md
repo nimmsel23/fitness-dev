@@ -27,7 +27,7 @@ Das Problem: `server.mjs` versucht beide Welten zu bedienen und hat dabei Verant
        └── Proxy → :9120 (muscles, inbox, teaching)  ← Durchleitung ohne Mehrwert
        └── muscleToGroupId, computeCoverage* (KB-Logik in Node)  ← Duplikat
 
-:9120  fitness_agent/server.py (aiohttp)
+:9120  catalog/server.py (aiohttp)
        └── /exercises, /exercise/{id}, /resolve
        └── /muscles, /taxonomy, /snapshot
        └── /plan, /weekly
@@ -40,16 +40,16 @@ Das Problem: `server.mjs` versucht beide Welten zu bedienen und hat dabei Verant
        └── /api/resolve, /api/plan/generate
        └── /api/firestore/sync/* (Firestore-Sync)
        └── /api/db/sync, /api/db/status, /api/db/query
-       └── importiert fitness_agent direkt als Python-Modul
+       └── importiert catalog direkt als Python-Modul
 ```
 
-`anatomy-kb/server.py` importiert `fitness_agent` bereits als internes Modul — d.h. `:9200` hat `:9120` konzeptionell schon absorbiert. `:9120` läuft trotzdem noch parallel.
+`anatomy-kb/server.py` importiert `catalog` bereits als internes Modul — d.h. `:9200` hat `:9120` konzeptionell schon absorbiert. `:9120` läuft trotzdem noch parallel.
 
 ---
 
 ## wger — kein Teil dieses Servers
 
-wger ist der **Ursprung** der Katalogdaten — einmaliger Import, keine laufende Abhängigkeit. Die `fitness_agent`-Pipeline hat die wger-Daten bereits verarbeitet, normalisiert und in den Katalog (lokal) und Firestore (Cloud) geschrieben. Danach ist wger aus dem Bild.
+wger ist der **Ursprung** der Katalogdaten — einmaliger Import, keine laufende Abhängigkeit. Die `catalog`-Pipeline hat die wger-Daten bereits verarbeitet, normalisiert und in den Katalog (lokal) und Firestore (Cloud) geschrieben. Danach ist wger aus dem Bild.
 
 `server.mjs` hat fälschlicherweise einen Live-Proxy zu wger als Exercise-Fallback eingebaut. Der war nie nötig — die Daten sind bereits im Katalog. Im Python-Backend existiert kein wger-Proxy.
 
@@ -86,13 +86,13 @@ wger ist der **Ursprung** der Katalogdaten — einmaliger Import, keine laufende
 
 ### Phase 1 — Inbox + Weekly nach :9200 portieren
 `anatomy-kb/server.py` bekommt die fehlenden Routen:
-- `GET/POST/DELETE /api/inbox/*` — Handler aus `fitness_agent/server.py` übernehmen
+- `GET/POST/DELETE /api/inbox/*` — Handler aus `catalog/server.py` übernehmen
 - `GET /api/weekly` — analog
 
 **Datei:** `anatomy-kb/anatomy_kb/inbox_handler.py` (neu)
 **Einbinden in:** `anatomy-kb/server.py` → `create_app()`
 
-Parallel: `fitness_agent/server.py` bleibt unverändert (kein Breaking Change).
+Parallel: `catalog/server.py` bleibt unverändert (kein Breaking Change).
 
 ### Phase 2 — server.mjs Proxy auf :9200 umlenken
 In `server.mjs` die 5 Proxy-Calls von `:9120` → `:9200` umstellen:
@@ -127,8 +127,8 @@ sobald Coverage-Endpoints auf `:9200` delegieren:
 
 **Voraussetzung:** `:9200` bietet äquivalente Coverage-Endpoints (teilweise schon vorhanden via `/api/exercise/{id}/coverage`).
 
-### Phase 5 — fitness_agent/server.py deaktivieren
-Sobald Phase 1+2 verifiziert: `fitness_agent/server.py` aus systemd-Unit entfernen, Port `:9120` freigeben.
+### Phase 5 — catalog/server.py deaktivieren
+Sobald Phase 1+2 verifiziert: `catalog/server.py` aus systemd-Unit entfernen, Port `:9120` freigeben.
 
 ---
 
@@ -138,7 +138,7 @@ Sobald Phase 1+2 verifiziert: `fitness_agent/server.py` aus systemd-Unit entfern
 - Firestore-Mirror-Logik (`firestore-mirror.mjs`) — bleibt in Node
 - `fitness-runtime.mjs` — bleibt (wird von `server.mjs` für Plan-Logik genutzt)
 - SQLite dual-write (`syncSessionToDb`) — bleibt in Node
-- `fitness_agent` Python-Paket (Katalog-CLI, Audit, Enricher) — wird nicht angefasst, nur `server.py` davon
+- `catalog` Python-Paket (Katalog-CLI, Audit, Enricher) — wird nicht angefasst, nur `server.py` davon
 
 ---
 
