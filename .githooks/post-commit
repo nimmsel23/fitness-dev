@@ -1,36 +1,7 @@
 #!/bin/bash
-# post-commit hook: Auto build and deploy to Firebase ONLY if relevant frontend files changed
-
-# Only run on master branch
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ "$CURRENT_BRANCH" != "master" ]; then
-  echo "ℹ️ Not on 'master' branch ($CURRENT_BRANCH). Skipping auto-deploy."
-  exit 0
-fi
-
-# Ensure we are in the project root
-cd "$(git rev-parse --show-toplevel)"
-
-# Get list of changed files in the last commit
-CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)
-
-# cloud_chamber/ und Doku-Dateien nie als Trigger werten
-SKIP='^cloud_chamber/|\.(md|txt|bak|bak2)$'
-RELEVANT=$(echo "$CHANGED_FILES" | grep -Ev "$SKIP" || true)
-
-# Define what triggers a fitness-dev deploy
-TRIGGER_PATTERN="^(src/|public/|index.html|vite.config.js|package.json|firebase.json|firestore.rules|firestore.indexes.json)"
-
-if echo "$RELEVANT" | grep -E "$TRIGGER_PATTERN" > /dev/null; then
-  echo "🔍 fitness-dev changes detected. Running build:firebase + deploy:firebase..."
-
-  export GIT_HOOK_DEPLOY=true
-  npm run build:firebase && npm run deploy:firebase
-  
-  if [ $? -eq 0 ]; then
-    echo "✅ Deploy successful."
-  else
-    echo "❌ Deploy failed."
-    exit 1
-  fi
-fi
+# Retired (2026-07-12): Auto-deploy moved to pre-push (see .githooks/pre-push).
+# Deploying on every commit to master was premature for multi-commit local
+# work; pre-push only ships once you actually push. Kept as a no-op stub
+# instead of deleting so a stale core.hooksPath doesn't silently resurrect
+# the old double-deploy behavior.
+exit 0
