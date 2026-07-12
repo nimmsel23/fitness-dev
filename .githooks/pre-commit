@@ -3,14 +3,42 @@
 # Generisch: findet ein "<prefix>-v<N>"-Pattern in public/sw.js und inkrementiert N.
 # Trigger: src/, public/, index.html, vite.config.*, package.json
 
-# Only run on master branch
+cd "$(git rev-parse --show-toplevel)"
+
+# --- View-Docs-Reminder (branch-unabhängig, non-blocking) ---------------
+# Siehe src/views/AGENTS.md. War früher ein loser, nicht-versionierter Hook
+# in .git/hooks/ — seit 2026-07-12 hier mitversioniert, damit core.hooksPath
+# ihn nicht mehr stillschweigend abschaltet.
+staged_all="$(git diff --cached --name-only)"
+if [ -n "$staged_all" ]; then
+  views="$(echo "$staged_all" | grep -oE '^src/views/[A-Za-z]+/' | sort -u)"
+  flagged=""
+  while IFS= read -r view; do
+    [ -z "$view" ] && continue
+    code_changed=$(echo "$staged_all" | grep -E "^${view}[A-Za-z0-9_.-]*\.(jsx|js)$")
+    docs_changed=$(echo "$staged_all" | grep -E "^${view}(ARCHITECTURE|AUDIT)\.md$")
+    if [ -n "$code_changed" ] && [ -z "$docs_changed" ]; then
+      flagged="${flagged}${view}\n"
+    fi
+  done <<< "$views"
+
+  if [ -n "$flagged" ]; then
+    msg="View-Code geändert, aber ARCHITECTURE.md/AUDIT.md nicht mit im Commit:\n$(echo -e "$flagged")\nPrüfen ob Doku-Update nötig war (siehe src/views/AGENTS.md). Nur Reminder, kein Block."
+    if command -v gum >/dev/null 2>&1; then
+      gum log --level warn "$msg"
+    else
+      echo -e "\n⚠️  $msg\n" >&2
+    fi
+  fi
+fi
+
+# --- SW/Manifest-Bump (nur master) ---------------------------------------
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [ "$CURRENT_BRANCH" != "master" ]; then
   exit 0
 fi
 
 set -e
-cd "$(git rev-parse --show-toplevel)"
 
 STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
 [ -z "$STAGED" ] && exit 0
@@ -53,3 +81,17 @@ NEXT=$((CUR + 1))
 sed -i "s/${PREFIX}-v${CUR}/${PREFIX}-v${NEXT}/" "$SW"
 git add "$SW"
 echo "🔢 sw.js: ${PREFIX}-v${CUR} → ${PREFIX}-v${NEXT}"
+
+MANIFEST="public/manifest.json"
+if [ -f "$MANIFEST" ] && command -v node >/dev/null 2>&1; then
+  node -e "
+    const fs = require('fs');
+    const p = '$MANIFEST';
+    const data = JSON.parse(fs.readFileSync(p, 'utf8'));
+    const prev = data.version || '0';
+    data.version = '$NEXT';
+    fs.writeFileSync(p, JSON.stringify(data, null, 2) + '\n');
+    console.log('🔢 manifest.json: version ' + prev + ' → $NEXT');
+  "
+  git add "$MANIFEST"
+fi
