@@ -7,7 +7,11 @@
 
 cd "$(git rev-parse --show-toplevel)"
 
-SKIP='^cloud_chamber/|\.(md|txt|bak|bak2)$'
+# public/sw.js + public/manifest.json + dist-firebase/ sind Build-Output des
+# vorherigen Laufs (bump-sw.mjs, vite build) — nie selbst ein Deploy-Grund,
+# sonst triggert der Hook sich bei jedem Push auf sich selbst (endlose
+# Bump-Spirale ohne echten Inhalt).
+SKIP='^cloud_chamber/|\.(md|txt|bak|bak2)$|^public/sw\.js$|^public/manifest\.json$|^dist-firebase/'
 TRIGGER='^(src/|public/|index.html$|vite.config.(js|ts|mjs)$|package.json$|firebase.json$|firestore.rules$|firestore.indexes.json$)'
 
 should_deploy=false
