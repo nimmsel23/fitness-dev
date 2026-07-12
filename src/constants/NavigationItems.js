@@ -1,7 +1,6 @@
-import { Activity, Dumbbell, BookOpen, Brain, BarChart3, Settings2, CheckSquare, CalendarDays, ClipboardList, History, LibraryBig, Microscope, HelpCircle, TrendingUp, Layers } from "lucide-react";
+import { Dumbbell, BookOpen, Brain, BarChart3, Settings2, CheckSquare, CalendarDays, ClipboardList, History, LibraryBig, Microscope, HelpCircle, TrendingUp, Layers } from "lucide-react";
 
 const baseItems = [
-  { id: 'dash',     label: 'Heute',    Icon: Activity },
   { id: 'session',  label: 'Training', Icon: Dumbbell,  sub: [
     { id: 'today',   label: 'Heute',    Icon: CalendarDays },
     { id: 'plan',    label: 'Plan',     Icon: ClipboardList },
