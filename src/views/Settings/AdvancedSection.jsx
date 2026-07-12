@@ -12,7 +12,6 @@ function formatJoinDate(ts) {
 
 export default function AdvancedSection({
   swipeEnabled, setSwipeEnabled,
-  dashboardHighlighter, setDashboardHighlighter,
   navMode, setNavMode,
   sidebarPinned, setSidebarPinned,
   layoutScale, setLayoutScale,
@@ -48,22 +47,6 @@ export default function AdvancedSection({
                       <button key={label} onClick={() => setSwipeEnabled(id)}
                          className={`px-3 py-1.5 text-[8px] font-black uppercase rounded-lg transition-all ${swipeEnabled === id ? 'bg-fit-card shadow-sm text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}>
                          {label}
-                      </button>
-                   ))}
-                </div>
-             </div>
-
-             {/* Dashboard Highlighter */}
-             <div className="flex items-center justify-between">
-                <div>
-                   <div className="text-xs font-black text-fit-ink">Highlighter Detail</div>
-                   <div className="text-[9px] font-bold opacity-30 uppercase text-fit-dim">Dashboard Muskelkarte</div>
-                </div>
-                <div className="flex bg-fit-bg p-1 rounded-xl border border-fit-line">
-                   {['body', 'muscles'].map(m => (
-                      <button key={m} onClick={() => setDashboardHighlighter(m)}
-                         className={`px-3 py-1.5 text-[8px] font-black uppercase rounded-lg transition-all ${dashboardHighlighter === m ? 'bg-fit-card shadow-sm text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}>
-                         {m}
                       </button>
                    ))}
                 </div>

@@ -36,7 +36,7 @@ export default function App() {
     circDark, setCircDark, circLight, setCircLight,
     layoutScale, setLayoutScale, recentDays, setRecentDays,
     coverageThreshold, setCoverageThreshold, showAdvanced, setShowAdvanced,
-    dashboardHighlighter, setDashboardHighlighter, sidebarPinned, setSidebarPinned,
+    sidebarPinned, setSidebarPinned,
     swipeEnabled, setSwipeEnabled, muscleLanguage, setMuscleLanguage,
     navMode, setNavMode
   } = useSettings();

@@ -14,7 +14,6 @@ export function SettingsProvider({ children }) {
   const [recentDays, setRecentDays] = useState(() => parseInt(localStorage.getItem('fitness-recentDays') || '7', 10));
   const [coverageThreshold, setCoverageThreshold] = useState(() => parseFloat(localStorage.getItem('fitness-coverageThreshold') || '1.0'));
   const [showAdvanced, setShowAdvanced] = useState(() => localStorage.getItem('fitness-showAdvanced') === 'true');
-  const [dashboardHighlighter, setDashboardHighlighter] = useState(() => localStorage.getItem('fitness-dashboardHighlighter') || 'body');
   const [sidebarPinned, setSidebarPinned] = useState(() => localStorage.getItem('fitness-sidebarPinned') !== 'false');
   const [swipeEnabled, setSwipeEnabled] = useState(() => localStorage.getItem('fitness-swipeEnabled') === 'true');
   const [muscleLanguage, setMuscleLanguage] = useState(() => localStorage.getItem('fitness-muscleLanguage') || 'de');
@@ -29,7 +28,6 @@ export function SettingsProvider({ children }) {
   useEffect(() => { localStorage.setItem('fitness-recentDays', recentDays) }, [recentDays]);
   useEffect(() => { localStorage.setItem('fitness-coverageThreshold', coverageThreshold) }, [coverageThreshold]);
   useEffect(() => { localStorage.setItem('fitness-showAdvanced', showAdvanced) }, [showAdvanced]);
-  useEffect(() => { localStorage.setItem('fitness-dashboardHighlighter', dashboardHighlighter) }, [dashboardHighlighter]);
   useEffect(() => { localStorage.setItem('fitness-sidebarPinned', sidebarPinned) }, [sidebarPinned]);
   useEffect(() => { localStorage.setItem('fitness-swipeEnabled', swipeEnabled) }, [swipeEnabled]);
   useEffect(() => { localStorage.setItem('fitness-muscleLanguage', muscleLanguage) }, [muscleLanguage]);
@@ -53,7 +51,7 @@ export function SettingsProvider({ children }) {
     circDark, setCircDark, circLight, setCircLight,
     layoutScale, setLayoutScale, recentDays, setRecentDays,
     coverageThreshold, setCoverageThreshold, showAdvanced, setShowAdvanced,
-    dashboardHighlighter, setDashboardHighlighter, sidebarPinned, setSidebarPinned,
+    sidebarPinned, setSidebarPinned,
     swipeEnabled, setSwipeEnabled, muscleLanguage, setMuscleLanguage,
     navMode, setNavMode
   };

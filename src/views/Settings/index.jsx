@@ -18,7 +18,6 @@ export default function Settings() {
     recentDays, setRecentDays,
     coverageThreshold, setCoverageThreshold,
     showAdvanced, setShowAdvanced,
-    dashboardHighlighter, setDashboardHighlighter,
     themeMode, setModeState, circLight, setCircLight, circDark, setCircDark,
     theme, setThemeState,
     navMode, setNavMode,
@@ -145,7 +144,6 @@ export default function Settings() {
       {showAdvanced && (
         <AdvancedSection
           swipeEnabled={swipeEnabled} setSwipeEnabled={setSwipeEnabled}
-          dashboardHighlighter={dashboardHighlighter} setDashboardHighlighter={setDashboardHighlighter}
           navMode={navMode} setNavMode={setNavMode}
           sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned}
           layoutScale={layoutScale} setLayoutScale={setLayoutScale}
