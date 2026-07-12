@@ -32,13 +32,13 @@ Konfigurationsansicht für Appearance, Training-Präferenzen, SW-Updates, Firest
 - `swChecking` — `bool`
 
 **Props die index.jsx von außen bekommt (alle geliftet, kein eigener Persist):**
-`layoutScale/setLayoutScale`, `gender/setGender`, `split/setSplit`, `cycleLength/setCycleLength`, `defaultLocation/setDefaultLocation`, `recentDays/setRecentDays`, `coverageThreshold/setCoverageThreshold`, `showAdvanced/setShowAdvanced`, `dashboardHighlighter/setDashboardHighlighter`, `themeMode/setModeState`, `circLight/setCircLight`, `circDark/setCircDark`, `themes/theme/setThemeState`, `sidebarPinned/setSidebarPinned`, `navMode/setNavMode`, `muscleLanguage/setMuscleLanguage`, `swipeEnabled/setSwipeEnabled`
+`layoutScale/setLayoutScale`, `gender/setGender`, `split/setSplit`, `cycleLength/setCycleLength`, `defaultLocation/setDefaultLocation`, `recentDays/setRecentDays`, `coverageThreshold/setCoverageThreshold`, `showAdvanced/setShowAdvanced`, `themeMode/setModeState`, `circLight/setCircLight`, `circDark/setCircDark`, `themes/theme/setThemeState`, `sidebarPinned/setSidebarPinned`, `navMode/setNavMode`, `muscleLanguage/setMuscleLanguage`, `swipeEnabled/setSwipeEnabled`
 
 **Props-Weitergabe:**
 - `AppearanceSection` — bekommt alles Appearance-relevante (navMode, sidebarPinned, layoutScale, themeMode, circLight/Dark, themes/theme)
 - `TrainingSection` — bekommt Training-Prefs + SW-State + SW-Handler-Callbacks
 - `LocalDevSection` — bekommt firestoreStatus, syncing, onSync, health, wger
-- `AdvancedSection` — bekommt swipeEnabled, dashboardHighlighter (kein firestoreStatus)
+- `AdvancedSection` — bekommt swipeEnabled (kein firestoreStatus). `dashboardHighlighter` wurde 2026-07-12 entfernt (Dashboard-Tab ist nach vitalos umgezogen, dort eigene State-Verwaltung).
 
 ## Inline-Code (Extraktionskandidaten)
 
