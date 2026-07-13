@@ -347,7 +347,19 @@ def sessions_list(request: Request, date_: str = Query(None, alias="date")):
     for f in sorted(d.glob(f"{day}*.json")):
         meta_day, meta_sid = _parse_session_fname(f.name)
         data = _read_json(f, {})
-        sessions.append({"id": meta_sid, "date": meta_day, "block": data.get("block"), "saved_at": data.get("saved_at")})
+        # Volle Session zurückgeben — Contract wie firestore/sessions.js listSessionsForDate.
+        # useSession lädt daraus den Editor-State; meta-only führte dazu, dass gespeicherte
+        # Sessions leer geladen und beim nächsten Save leer überschrieben wurden.
+        entry = dict(data)
+        entry.update({
+            "id": meta_sid,
+            "date": meta_day,
+            "block": data.get("block"),
+            "saved_at": data.get("saved_at"),
+        })
+        if not isinstance(entry.get("exercises"), list):
+            entry["exercises"] = []
+        sessions.append(entry)
     return {"ok": True, "sessions": sessions}
 
 @app.get("/session/history")

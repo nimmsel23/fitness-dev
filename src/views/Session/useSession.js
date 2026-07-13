@@ -52,7 +52,21 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   const [dragOverDate, setDragOverDate] = useState(null);
 
   const saveRef = useRef(null);
+  const dirtyRef = useRef(false);
+  const dateRef = useRef(null);
   const rollingDays = getRollingDays(30);
+
+  // Ungespeicherte Änderungen sichern, bevor der Editor-State neu geladen wird
+  // (Datumswechsel, Session-Wechsel, neues Workout, Unmount). save() liest den
+  // State der aktuellen Closure — muss also VOR setDate/loadSessionData laufen.
+  function flushDirty() {
+    if (dirtyRef.current) { saveRef.current?.(true); setDirty(false); }
+  }
+
+  function changeDate(d) {
+    flushDirty();
+    setDate(d);
+  }
 
   // ── Load / Reset ─────────────────────────────────────────────
   const loadSessionData = (d) => {
@@ -96,6 +110,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   };
 
   const selectSession = (id) => {
+    flushDirty();
     setSessionId(id);
     const d = daySessions.find(s => s.id === id);
     if (d) loadSessionData(d);
@@ -268,38 +283,57 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     } finally {
       if (!silent) setSaving(false);
     }
-    listSessionsForDate(date).then(setDaySessions).catch(() => {});
+    // Nur übernehmen, wenn der User nicht inzwischen das Datum gewechselt hat —
+    // sonst überschreibt der Nachlauf eines Flush-Saves die frische Tagesliste.
+    const savedDate = date;
+    listSessionsForDate(savedDate).then(list => {
+      if (dateRef.current === savedDate) setDaySessions(list);
+    }).catch(() => {});
     getCoverageGaps(recentDays, coverageThreshold).then(setGaps).catch(() => {});
   }
 
   saveRef.current = save;
+  dirtyRef.current = dirty;
+  dateRef.current = date;
 
-  // Flush on tab-hide / page-unload
+  // Flush on tab-hide / page-unload / unmount (Haupt-Tab-Wechsel)
   useEffect(() => {
-    function flush() { if (dirty) { saveRef.current?.(true); setDirty(false); } }
+    function flush() { if (dirtyRef.current) { saveRef.current?.(true); setDirty(false); } }
     const onVisibility = () => { if (document.visibilityState === 'hidden') flush(); };
     window.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('pagehide', flush);
     return () => {
       window.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pagehide', flush);
+      flush();
     };
-  }, [dirty]);
+  }, []);
 
   // ── Delete session ────────────────────────────────────────────
   async function handleDeleteSession() {
     if (!window.confirm('Dieses Workout wirklich löschen?')) return;
     try {
       await deleteSession(date, sessionId);
+      // Dirty-Flag löschen, sonst würde der nächste Flush (Tab-/Datumswechsel)
+      // die gerade gelöschte Session als leere Datei wieder anlegen.
+      setDirty(false);
       showToast('Gelöscht ✓');
       const list = await listSessionsForDate(date);
       setDaySessions(list);
+      // DateStrip-Indikator aktualisieren: ohne Refresh bliebe der ✓-Haken stehen.
+      setRecentSessions(prev => {
+        const next = { ...prev };
+        if (list.length > 0) next[date] = list[0];
+        else delete next[date];
+        return next;
+      });
       if (list.length > 0) { setSessionId(list[0].id); loadSessionData(list[0]); }
       else { setSessionId(null); resetSessionData(); }
     } catch { showToast('Fehler beim Löschen'); }
   }
 
   function handleNewSession() {
+    flushDirty();
     const newSuffix = String(Date.now());
     setSessionId(newSuffix);
     resetSessionData();
@@ -341,7 +375,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
 
   return {
     // State
-    date, setDate,
+    date, setDate: changeDate,
     sessionMode, setSessionMode,
     block, setBlock,
     exercises,
