@@ -8,7 +8,7 @@ arena/dist/data/
 .env.*.local
 firebase.config.js
 .DS_Store
-*.bak
+*.bak*
 __pycache__/
 *.pyc
 catalog/fitness_agent/__pycache__/
@@ -21,7 +21,6 @@ build/
 .venv/
 catalog/.venv/
 uv.lock
-
 dist-firebase/
 dist-federation/
 bin/firestore-sync
