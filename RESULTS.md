@@ -1,3 +1,33 @@
+# Session-Tab: Hauptsession löschbar (Klienten-Request Matthias-Mayer, 2026-07-13)
+
+Klient WM4bg (Matthias-Mayer) fragte, ob man eine Session löschen kann — im UI war der
+Papierkorb-Button auf Suffix-Sessions beschränkt (`sessionId !== null`), die Hauptsession
+des Tages (der Normalfall bei Klienten) war nicht löschbar.
+
+* **`SessionSwitcher.jsx`**: Lösch-Button erscheint jetzt für jede Session der Tagesliste
+  (`daySessions.some(s => s.id === sessionId)`) — auch die Hauptsession. Backend/DB-Layer
+  konnten das immer schon (`deleteSession(date, null)`).
+* **`useSession.js` `handleDeleteSession`**: `setDirty(false)` nach dem Löschen — sonst hätte
+  der neue Dirty-Flush (Tab-/Datumswechsel) die gelöschte Session als leere Datei wieder
+  angelegt. Plus `recentSessions`-Refresh, damit der ✓-Haken im DateStrip verschwindet.
+* Beide Builds verifiziert (dist_2026-07-13T00-04-53, dist-firebase_2026-07-13T00-05-02).
+  Firebase-Deploy für Matthias steht aus (`npm run firebase` bzw. deploy:firebase).
+
+---
+
+# Session-Tab: Datenverlust-Bug gefixt (2026-07-12)
+
+**Root Cause:** `GET /sessions` lieferte seit der Multi-Session-Einführung (7e08bed, 2026-06-20) nur Metadaten (`id, date, block, saved_at`) — `useSession` lädt daraus aber den kompletten Editor-State. Im lokalen Build (dev + /opt-Prod) wurden gespeicherte Sessions dadurch **leer geladen** und beim nächsten Save/Auto-Flush **leer überschrieben** (Beleg: `2026-06-12.json` Strength-Session mit 0 Exercises). Nur der Firebase-Build war korrekt, weil dessen `listSessionsForDate` volle Firestore-Dokumente liefert.
+
+* **`server.mjs` `/sessions`**: Gibt jetzt volle Session-Objekte zurück (`{...data, id, date, exercises: []-normalisiert}`) — Contract angeglichen an `src/lib/db/firestore/sessions.js`. Live verifiziert (Wegwerf-Instanz :9177): `sessionMode`, `activity`, `effort`, `exercises` sind dabei.
+* **`fitness/catalog/api/api.py` `/sessions`**: Identischer Fix im Python-Backend.
+* **`useSession.js` Dirty-Flush**: `flushDirty()` sichert ungespeicherte Änderungen jetzt VOR Datumswechsel (`changeDate` ersetzt `setDate` im Hook-Return), Session-Pill-Wechsel (`selectSession`), neuem Workout (`handleNewSession`) und beim Unmount (Haupt-Tab-Wechsel). Vorher gingen dirty Edits dabei kommentarlos verloren. Zusätzlich Race-Guard: der `listSessionsForDate`-Nachlauf in `save()` schreibt `daySessions` nur noch, wenn das Datum noch aktuell ist (`dateRef`).
+* **`src/lib/db/local/habits.js`**: Cross-Repo-Import `@habits/lib/db/habits.js` war tot (habits-dev hat den DB-Layer nach `src/.archive/` verschoben → fitness-dev-Build komplett kaputt). Inhalt der archivierten Datei direkt übernommen — fitness-dev besitzt seinen lokalen Habits-DB-Layer jetzt selbst, keine Cross-Repo-DB-Abhängigkeit mehr.
+
+**Offen:** `moveSessionToDate` (Verlauf-Drag&Drop) kann weiterhin die Hauptsession des Zieldatums überschreiben und lässt bei Multi-Session-Tagen Suffix-Sessions als Waisen zurück. Doku (`AUDIT.md`/`ARCHITECTURE.md`) beschreibt noch DateHeader/ExerciseSection/2500ms-Debounce — veraltet. Prod-Deploy nach /opt noch nicht gemacht (User-Bestätigung nötig).
+
+---
+
 # AlphaOS Fitness Ecosystem — Multi-Session Schema (2026-06-20)
 
 We have successfully migrated the training session storage and UI to support multiple workouts per day (using unique session suffixes, e.g., `sessions/{date}__{id}`).

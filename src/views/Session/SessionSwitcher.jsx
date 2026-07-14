@@ -77,7 +77,10 @@ export default function SessionSwitcher({ daySessions, sessionId, selectSession,
           <Plus size={11} strokeWidth={3} />
           Neu
         </button>
-        {sessionId !== null && (
+        {/* Löschen für jede Session in der Tagesliste — auch die Hauptsession (id null).
+            Vorher war der Button auf sessionId !== null beschränkt, d.h. die Haupt-
+            session (der Normalfall bei Klienten) war im UI gar nicht löschbar. */}
+        {daySessions.some(s => s.id === sessionId) && (
           <button
             onClick={onDelete}
             className="w-7 h-7 rounded-lg flex items-center justify-center text-fit-red/40 hover:text-fit-red hover:bg-fit-red/10 transition-all"

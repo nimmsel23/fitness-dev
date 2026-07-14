@@ -657,7 +657,17 @@ app.get("/sessions", (c) => {
     .map(f => {
       const meta = parseSessionFile(f);
       const data = readJson(path.join(dir, f)) || {};
-      return { id: meta.id, date: meta.date, block: data.block || null, saved_at: data.saved_at || null };
+      // Volle Session zurückgeben — Contract wie firestore/sessions.js listSessionsForDate.
+      // useSession lädt daraus den Editor-State; meta-only führte dazu, dass gespeicherte
+      // Sessions leer geladen und beim nächsten Save leer überschrieben wurden.
+      return {
+        ...data,
+        id: meta.id,
+        date: meta.date,
+        block: data.block || null,
+        saved_at: data.saved_at || null,
+        exercises: Array.isArray(data.exercises) ? data.exercises : [],
+      };
     })
     .sort((a, b) => String(a.saved_at).localeCompare(String(b.saved_at)));
   return c.json({ ok: true, sessions });
