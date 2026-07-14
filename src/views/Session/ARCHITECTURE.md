@@ -4,10 +4,15 @@ Workout-Journal für Kraft- und Ausdauertraining. Zwei Session-Modi, Multi-Sessi
 
 ## Komponenten
 
-- **`index.jsx`**: State-Owner — Session-Modi, Multi-Session, Autosave, alle Handler.
-- **`DateHeader.jsx`**: 7-Tage-Slider, Save-Button, Sidebar- und Settings-Trigger.
-- **`ExerciseSection.jsx`**: Übungsliste + QuickInput + ExerciseSearchOverlay.
-- **`ExerciseItem.jsx`**: Einzelübung — `setsArray` (multi-set), prevMap-Stats, Trend-Badge, Recovery.
+- **`index.jsx`**: Thin Sub-Tab-Router — editor (default) / history / plan.
+- **`useSession.js`**: State-Owner — Session-Modi, Multi-Session, Autosave/Flush, alle Handler.
+- **`SessionEditor.jsx`**: Editor-Assembly — DateStrip + SessionSwitcher + ExerciseList/ActivitySection.
+- **`SessionHistory.jsx`**: Verlauf-SubTab — Timeline, Drag&Drop-Umdatierung.
+- **`DateStrip.jsx`**: 7-Tage-Slider, Save-Button, Sidebar- und Settings-Trigger.
+- **`SessionSwitcher.jsx`**: Multi-Session-Pills + Neu/Löschen (Löschen für jede Session der Tagesliste, auch die Hauptsession).
+- **`ModeSwitcher.jsx`**: strength/cardio Umschalter.
+- **`ExerciseList.jsx`**: Übungsliste + QuickInput + ExerciseSearchOverlay + Hint/Gap-Banner.
+- **`ExerciseCard.jsx`**: Einzelübung — `setsArray` (multi-set), NxM-Expansion, Drop-Set, prevMap-Stats, Trend-Badge, Recovery.
 - **`ActivitySection.jsx`**: Cardio-Logger — im `cardio`-Mode die gesamte Session.
 - **`ActivityAddon.jsx`**: Optionaler Cardio-Anhang an eine Strength-Session.
 - **`SidebarSheet.jsx`**: Bottom-Sheet mit SessionSidebar (Block, Ort, Dauer, Effort, Notizen, Exports).
@@ -21,11 +26,11 @@ Workout-Journal für Kraft- und Ausdauertraining. Zwei Session-Modi, Multi-Sessi
 
 ## Multi-Session pro Tag
 
-Pro Tag können mehrere Sessions existieren. `id: null` = Hauptsession, `id: "<timestamp>"` = Suffix-Session. Switcher-Bar zeigt alle Sessions des Tages. "+ Neues Workout" legt eine neue Suffix-Session an.
+Pro Tag können mehrere Sessions existieren. `id: null` = Hauptsession, `id: "<timestamp>"` = Suffix-Session. Switcher-Bar zeigt alle Sessions des Tages. "+ Neues Workout" legt eine neue Suffix-Session an. Löschen ist für jede Session der Tagesliste möglich — auch die Hauptsession (seit 2026-07, Klienten-Request).
 
 ## Autosave
 
-Jede Änderung triggert `scheduleAutoSave()` — debounced 2500ms. `saveRef.current` hält immer die aktuelle `save`-Closure (stale-closure Workaround für setTimeout).
+Kein Zeit-Debounce mehr (seit 2026-07). `scheduleAutoSave()` setzt nur das `dirty`-Flag. Gespeichert wird an semantischen Commit-Punkten: sofort bei `addEx`/`addQuick`, sonst via `flushDirty()` bei Tab-Hide/`pagehide`, Unmount (Haupt-Tab-Wechsel), Datumswechsel, Session-Wechsel und neuem Workout. `saveRef`/`dirtyRef`/`dateRef` halten die aktuellen Closures (stale-closure Workaround); der `dateRef`-Guard verhindert, dass der `listSessionsForDate`-Nachlauf eines Flush-Saves nach Datumswechsel die frische Tagesliste überschreibt.
 
 ## Datenformat
 

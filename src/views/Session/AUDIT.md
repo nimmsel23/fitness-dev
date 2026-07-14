@@ -6,10 +6,15 @@ Workout-Journal — Session-Logging mit Satz/Wdh/Gewicht, Session-Modi, intellig
 ## Komponenten
 | Datei | Zweck |
 |-------|-------|
-| `index.jsx` | State-Owner, Datenfluss, Orchestrator |
-| `DateHeader.jsx` | Datum-Navigation (7-Tage-Slider), Save-Button, Sidebar-Trigger |
-| `ExerciseSection.jsx` | Übungsliste + QuickInput + Search-Trigger |
-| `ExerciseItem.jsx` | Einzelübung: setsArray, Trend-Badge, prevMap-Stats, Recovery |
+| `index.jsx` | Thin Sub-Tab-Router: editor (default) / history / plan |
+| `useSession.js` | State-Owner, alle Handler, Autosave/Flush, Datenfluss |
+| `SessionEditor.jsx` | Editor-Assembly: DateStrip + Switcher + ExerciseList/ActivitySection |
+| `SessionHistory.jsx` | Verlauf-SubTab: Timeline, Drag&Drop-Umdatierung |
+| `DateStrip.jsx` | Datum-Navigation (7-Tage-Slider), Save-Button, Sidebar/Settings-Trigger |
+| `SessionSwitcher.jsx` | Multi-Session-Pills + Neu/Löschen (Löschen für jede Session der Tagesliste, auch Hauptsession) |
+| `ModeSwitcher.jsx` | strength/cardio Umschalter |
+| `ExerciseList.jsx` | Übungsliste + QuickInput + Search-Trigger + Hint/Gap-Banner |
+| `ExerciseCard.jsx` | Einzelübung: setsArray, NxM-Expansion, Drop-Set, Trend, prevMap, Recovery |
 | `ActivitySection.jsx` | Cardio-Logger (im Cardio-Mode die ganze Session) |
 | `ActivityAddon.jsx` | Optionaler Cardio-Anhang an eine Strength-Session |
 | `SessionSidebar.jsx` | Meta-Daten (Block, Ort, Dauer, Effort, Notizen, Exports) |
@@ -29,14 +34,14 @@ Umschaltbar per Mode-Switcher in der UI. Wird im Session-JSON als `sessionMode` 
 
 ## Multi-Session pro Tag
 
-Pro Tag können mehrere Workouts existieren (`daySessions`-Array). Sessions haben entweder `id: null` (Hauptsession, Default) oder einen Suffix-String (Timestamp). Switcher-Bar oben zeigt alle Sessions des Tages als Buttons. "+ Neues Workout" legt eine Suffix-Session an.
+Pro Tag können mehrere Workouts existieren (`daySessions`-Array). Sessions haben entweder `id: null` (Hauptsession, Default) oder einen Suffix-String (Timestamp). Switcher-Bar oben zeigt alle Sessions des Tages als Buttons. "+ Neues Workout" legt eine Suffix-Session an. Löschen ist für jede Session der Tagesliste möglich — auch die Hauptsession (seit 2026-07-13, Klienten-Request).
 
-## Autosave
+## Autosave / Dirty-Flush
 
-Jede Änderung an Exercises, Block, Location etc. triggert `scheduleAutoSave()` — debounced 2500ms via `autoSaveTimer`. `saveRef.current` hält immer die aktuelle `save`-Closure (Workaround für stale-closure in setTimeout).
+Kein Zeit-Debounce mehr. `scheduleAutoSave()` setzt nur das `dirty`-Flag; gespeichert wird an semantischen Commit-Punkten: sofort bei `addEx`/`addQuick`, sonst via `flushDirty()` bei Tab-Hide/`pagehide`, Unmount (Haupt-Tab-Wechsel), Datumswechsel, Session-Wechsel und neuem Workout. `saveRef`/`dirtyRef`/`dateRef` halten die aktuellen Closures (stale-closure Workaround); der `dateRef`-Guard verhindert, dass der `listSessionsForDate`-Nachlauf eines Flush-Saves nach Datumswechsel die frische Tagesliste überschreibt.
 
 ## Datenfluss
-- `listSessionsForDate(date)` → alle Sessions des Tages laden
+- `listSessionsForDate(date)` → alle Sessions des Tages laden — liefert **volle** Session-Objekte (Contract identisch in local `/sessions` + Firestore; meta-only war der Datenverlust-Bug bis 2026-07-12)
 - `saveSession(date, data, sessionId)` → dual-write JSON + SQLite
 - `getSessionHistory(60)` → prevMap + recentSessions aufbauen
 - `getCoverageGaps(recentDays, coverageThreshold)` → Gap-Hints (nur im Strength-Mode)
@@ -52,7 +57,7 @@ Jede Änderung an Exercises, Block, Location etc. triggert `scheduleAutoSave()` 
 - **Gap-Hints** — rote Coverage-Lücken-Badges, nur im Strength-Mode
 - **Plan-Hint** — Zap-Banner mit Vorschlag für heutigen Block
 - **Multi-Session** — mehrere Workouts pro Tag über daySessions + Switcher-Bar
-- **Autosave** — debounced 2500ms nach jeder Änderung
+- **Autosave** — Save an Commit-Punkten (addEx/addQuick) + Dirty-Flush bei Tab-Hide, Unmount, Datums-/Session-Wechsel
 - **BodyMap** — zeigt alle Exercises der Session (kein `done: true`-Filter)
 
 ## Auffälligkeiten
