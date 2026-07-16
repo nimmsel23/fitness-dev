@@ -80,7 +80,7 @@ export default function Coach({ onInspectExercise }) {
         <div className="flex items-center gap-3 bg-fit-accent/10 px-4 py-2 rounded-xl border border-fit-accent/20">
           <Sparkles size={16} className="text-fit-accent" />
           <span className="text-[10px] font-black uppercase text-fit-accent">
-            {activeSubTab === 'exercises' ? `${exercises.length} Tasks` : `${journals.length} Feed Items`}
+            {activeSubTab === 'exercises' ? `${exercises.length} Tasks` : activeSubTab === 'journals' ? `${journals.length} Feed Items` : 'Katalog'}
           </span>
         </div>
       </header>
@@ -149,7 +149,6 @@ export default function Coach({ onInspectExercise }) {
               const profile = userProfiles[item.userId] || {};
               const clientName = profile.displayName || profile.email || item.userId;
               const isWorkout = item.type === 'workout';
-              const isHabit = item.type === 'habit_journal';
               
               return (
                 <div key={item.id} className="card p-6 hover:border-fit-accent/25 transition-all space-y-4">

@@ -1,9 +1,46 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Single-user, kein Auth — für Prod absichern
-    match /{document=**} {
-      allow read, write: if true;
+
+    // ── Coach UID ────────────────────────────────────────────────────────────
+    // Hardcoded alpha/coach account — can read all user data via collectionGroup.
+    function isCoach() {
+      return request.auth != null && request.auth.uid == '59ole36uNpNwml5H6VDYCXyCME92';
+    }
+
+    // ── Own data ─────────────────────────────────────────────────────────────
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // ── Global KB (read-only for all authenticated users) ────────────────────
+    match /fitness/kb/{document=**} {
+      allow read:  if request.auth != null;
+      allow write: if isCoach();
+    }
+
+    // ── Per-user data ─────────────────────────────────────────────────────────
+    match /fitness/{uid}/{document=**} {
+      // User reads/writes their own data; coach reads all
+      allow read:  if isOwner(uid) || isCoach();
+      allow write: if isOwner(uid) || isCoach();
+    }
+
+    // ── collectionGroup queries (Coach-only: global feed + inbox sweep) ───────
+    // Firestore requires explicit collectionGroup rules for cross-user queries.
+    match /{path=**}/sessions/{sessionId} {
+      allow read: if isCoach() || (request.auth != null && resource.data.userId == request.auth.uid);
+    }
+    match /{path=**}/inbox/{itemId} {
+      allow read:  if isCoach() || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow write: if isCoach() || (request.auth != null && resource.data.userId == request.auth.uid);
+    }
+    match /{path=**}/profile/{doc} {
+      allow read: if isCoach() || (request.auth != null);
+    }
+    match /{path=**}/habitJournals/{doc} {
+      allow read:  if isCoach() || (request.auth != null && resource.data.userId == request.auth.uid);
+      allow write: if isCoach() || (request.auth != null && resource.data.userId == request.auth.uid);
     }
   }
 }
