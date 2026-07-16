@@ -7,6 +7,7 @@ export default function CatalogBrowser() {
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedExercise, setSelectedExercise] = useState(null);
 
   // Einfacher Debounce
   useEffect(() => {
@@ -52,8 +53,9 @@ export default function CatalogBrowser() {
           <ul className="divide-y divide-fit-line/20">
             {results.map((ex) => (
               <li 
-                key={ex.exercise_id || ex.id} 
+                key={ex.exercise_id || ex.id}
                 className="p-3 hover:bg-fit-bg transition-colors cursor-pointer group"
+                onClick={() => setSelectedExercise(ex)}
               >
                 <div className="text-sm font-bold text-fit-ink truncate group-hover:text-fit-accent">
                   {ex.display_name || ex.name}
@@ -74,13 +76,22 @@ export default function CatalogBrowser() {
 
       {/* Main Content: Exercise Grid / Enhancer */}
       <div className="flex-1 p-6 overflow-y-auto relative bg-fit-bg">
-        <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-50">
-          <Dumbbell className="w-12 h-12 text-fit-dim" />
-          <h3 className="text-xl font-black text-fit-dim">Katalog Enhancer</h3>
-          <p className="text-xs max-w-sm leading-relaxed">
-            Wähle links eine Übung aus, um sie detailliert zu bearbeiten (Biomechanik, Heatmap, API-Metadaten).
-          </p>
-        </div>
+        {selectedExercise ? (
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold text-fit-ink">{selectedExercise.display_name || selectedExercise.name}</h2>
+            <p className="text-sm text-fit-muted">Source: {selectedExercise.source || 'wger'}</p>
+            <p className="text-sm text-fit-muted">Primary muscles: {(selectedExercise.primary_muscles || []).join(', ')}</p>
+            {/* Add more detail components (biomechanics, heatmap) here later */}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-50">
+            <Dumbbell className="w-12 h-12 text-fit-dim" />
+            <h3 className="text-xl font-black text-fit-dim">Katalog Enhancer</h3>
+            <p className="text-xs max-w-sm leading-relaxed">
+              Wähle links eine Übung aus, um sie detailliert zu bearbeiten (Biomechanik, Heatmap, API-Metadaten).
+            </p>
+          </div>
+        )}
       </div>
 
     </div>
