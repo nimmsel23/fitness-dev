@@ -13,7 +13,7 @@ export default function Sidebar({ tab, navigate, subTab, navigateSub, pinned, se
           {pinned && (
             <div className="animate-in fade-in slide-in-from-left-4 duration-500">
               <h2 className="text-xl font-black tracking-tight text-fit-ink">Fitness</h2>
-              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-accent -mt-1">AlphaOS System</div>
+              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-accent -mt-1">VitalOS System</div>
             </div>
           )}
           <button
