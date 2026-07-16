@@ -149,6 +149,7 @@ export default function Coach({ onInspectExercise }) {
               const profile = userProfiles[item.userId] || {};
               const clientName = profile.displayName || profile.email || item.userId;
               const isWorkout = item.type === 'workout';
+              const isHabit = item.type === 'habit_journal';
               
               return (
                 <div key={item.id} className="card p-6 hover:border-fit-accent/25 transition-all space-y-4">
