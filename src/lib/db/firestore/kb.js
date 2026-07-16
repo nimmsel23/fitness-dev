@@ -43,7 +43,7 @@ export async function searchExercises(query, limit = 12) {
   if (!_searchCache) _searchCache = await getAllExercises();
 
   const stored = localStorage.getItem("fitness-sessionSources");
-  const sources = stored ? JSON.parse(stored) : { wger: true, yuhonas: true, coach: false };
+  const sources = stored ? JSON.parse(stored) : { wger: true, yuhonas: true, coach: true };
   const pool = _searchCache.filter((ex) => {
     const tags = ex.tags || [];
     if (tags.includes("wger") || tags.includes("unreviewed")) return sources.wger !== false;

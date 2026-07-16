@@ -19,9 +19,94 @@ const PROJECT_ID = 'fitness-aos';
 // === TRIGGER-FUNKTIONEN (Für die Automatisierung) ===
 
 function runDailyBriefing()     { generateBriefing('daily'); }
-function runWeeklyReport()      { generateBriefing('weekly'); } // Wöchentlicher Report (Nutzt wöchentliches Briefing)
+function runWeeklyReport()      { generateBriefing('weekly'); }
 function runMonthlyBriefing()   { generateBriefing('monthly'); }
 function runQuarterlyBriefing() { generateBriefing('quarterly'); }
+
+/**
+ * Täglich 09:00 — Schlaf-Qualitäts-Check für alle Klienten.
+ */
+function runSleepCheck() {
+  const props = PropertiesService.getScriptProperties();
+  const token = ScriptApp.getOAuthToken();
+  const today = getDateString(0);
+
+  const sleepLogs = fetchCollectionGroupRange(token, 'sleep', today, today);
+  const userMap   = fetchUserMap(token);
+  if (sleepLogs.length === 0) return;
+  sleepLogs.forEach(l => l._userName = userMap[l._userId] || l._userId);
+
+  const summary = callGeminiAPI(props.getProperty('GEMINI_API_KEY'), getSleepPrompt(today, sleepLogs));
+  sendTelegramMessage(props, summary);
+}
+
+/**
+ * Montags 07:30 — Training-Load-Check für die abgelaufene Woche.
+ */
+function runTrainingLoadCheck() {
+  const props = PropertiesService.getScriptProperties();
+  const token = ScriptApp.getOAuthToken();
+  const { startStr, endStr } = getDateRange('weekly');
+
+  const sessions = fetchCollectionGroupRange(token, 'sessions', startStr, endStr);
+  const userMap  = fetchUserMap(token);
+  if (sessions.length === 0) return;
+  sessions.forEach(s => s._userName = userMap[s._userId] || s._userId);
+
+  const summary = callGeminiAPI(props.getProperty('GEMINI_API_KEY'), getTrainingLoadPrompt(startStr, endStr, sessions));
+  sendTelegramMessage(props, summary);
+}
+
+/**
+ * Montags 08:00 — Körperzusammensetzungs-Trend (wöchentlich).
+ */
+function runBodyCompositionCheck() {
+  const props = PropertiesService.getScriptProperties();
+  const token = ScriptApp.getOAuthToken();
+  const { startStr, endStr } = getDateRange('weekly');
+
+  const bodyLogs = fetchCollectionGroupRange(token, 'body', startStr, endStr);
+  const userMap  = fetchUserMap(token);
+  if (bodyLogs.length === 0) return;
+  bodyLogs.forEach(l => l._userName = userMap[l._userId] || l._userId);
+
+  const summary = callGeminiAPI(props.getProperty('GEMINI_API_KEY'), getBodyCompositionPrompt(startStr, endStr, bodyLogs));
+  sendTelegramMessage(props, summary);
+}
+
+/**
+ * Täglich 21:00 — Habit-Streak-Update.
+ */
+function runHabitStreakCheck() {
+  const props = PropertiesService.getScriptProperties();
+  const token = ScriptApp.getOAuthToken();
+  const today = getDateString(0);
+
+  const habitData = fetchCollectionGroupRange(token, 'habits', getDateString(-30), today);
+  const userMap   = fetchUserMap(token);
+  if (habitData.length === 0) return;
+  habitData.forEach(h => h._userName = userMap[h._userId] || h._userId);
+
+  const summary = callGeminiAPI(props.getProperty('GEMINI_API_KEY'), getHabitStreakPrompt(today, habitData));
+  sendTelegramMessage(props, summary);
+}
+
+/**
+ * Täglich 19:00 — Milestone- und PR-Erkennung.
+ */
+function runMilestoneCheck() {
+  const props = PropertiesService.getScriptProperties();
+  const token = ScriptApp.getOAuthToken();
+  const { startStr, endStr } = getDateRange('weekly');
+
+  const sessions = fetchCollectionGroupRange(token, 'sessions', startStr, endStr);
+  const userMap  = fetchUserMap(token);
+  if (sessions.length === 0) return;
+  sessions.forEach(s => s._userName = userMap[s._userId] || s._userId);
+
+  const summary = callGeminiAPI(props.getProperty('GEMINI_API_KEY'), getMilestonePrompt(sessions));
+  if (summary && summary.trim()) sendTelegramMessage(props, summary);
+}
 
 /**
  * Filtert das monatliche Triggern, damit das Quartals-Briefing nur alle 3 Monate läuft.
@@ -373,52 +458,51 @@ function setupAllTriggers() {
 
   // 1. Tägliches Briefing um 6:00 Uhr morgens (für "gestern")
   ScriptApp.newTrigger('runDailyBriefing')
-    .timeBased()
-    .everyDays(1)
-    .atHour(6)
-    .create();
+    .timeBased().everyDays(1).atHour(6).create();
 
-  // 2. Mood-Trend-Alert täglich um 8:00 Uhr morgens
+  // 2. Mood-Trend-Alert täglich um 8:05 Uhr morgens
   ScriptApp.newTrigger('runMoodTrendAlert')
-    .timeBased()
-    .everyDays(1)
-    .atHour(8)
-    .create();
+    .timeBased().everyDays(1).atHour(8).create();
 
-  // 3. Nutrition-Check täglich um 10:00 Uhr morgens
+  // 3. Schlaf-Check täglich um 9:00 Uhr morgens
+  ScriptApp.newTrigger('runSleepCheck')
+    .timeBased().everyDays(1).atHour(9).create();
+
+  // 4. Nutrition-Check täglich um 10:00 Uhr morgens
   ScriptApp.newTrigger('runNutritionCheck')
-    .timeBased()
-    .everyDays(1)
-    .atHour(10)
-    .create();
+    .timeBased().everyDays(1).atHour(10).create();
 
-  // 4. Missing-Log-Check täglich um 20:00 Uhr abends
+  // 5. Milestone/PR-Check täglich um 19:00 Uhr abends
+  ScriptApp.newTrigger('runMilestoneCheck')
+    .timeBased().everyDays(1).atHour(19).create();
+
+  // 6. Missing-Log-Check täglich um 20:00 Uhr abends
   ScriptApp.newTrigger('runMissingLogAlert')
-    .timeBased()
-    .everyDays(1)
-    .atHour(20)
-    .create();
+    .timeBased().everyDays(1).atHour(20).create();
 
-  // 5. Wöchentliches Briefing jeden Montag um 7:00 Uhr morgens
+  // 7. Habit-Streak-Check täglich um 21:00 Uhr abends
+  ScriptApp.newTrigger('runHabitStreakCheck')
+    .timeBased().everyDays(1).atHour(21).create();
+
+  // 8. Training-Load-Check jeden Montag um 7:30 Uhr morgens
+  ScriptApp.newTrigger('runTrainingLoadCheck')
+    .timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(7).create();
+
+  // 9. Wöchentliches Briefing jeden Montag um 7:00 Uhr morgens
   ScriptApp.newTrigger('runWeeklyReport')
-    .timeBased()
-    .onWeekDay(ScriptApp.WeekDay.MONDAY)
-    .atHour(7)
-    .create();
+    .timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(7).create();
 
-  // 6. Monatliches Briefing am 1. jedes Monats um 8:00 Uhr morgens
+  // 10. Body-Composition-Check jeden Montag um 8:00 Uhr morgens
+  ScriptApp.newTrigger('runBodyCompositionCheck')
+    .timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(8).create();
+
+  // 11. Monatliches Briefing am 1. jedes Monats um 8:00 Uhr morgens
   ScriptApp.newTrigger('runMonthlyBriefing')
-    .timeBased()
-    .onMonthDay(1)
-    .atHour(8)
-    .create();
+    .timeBased().onMonthDay(1).atHour(8).create();
 
-  // 7. Quartals-Briefing am 1. des Monats um 9:00 Uhr morgens (wird über Trigger gefiltert)
+  // 12. Quartals-Briefing am 1. des Monats um 9:00 Uhr morgens (gefiltert)
   ScriptApp.newTrigger('runQuarterlyBriefingTrigger')
-    .timeBased()
-    .onMonthDay(1)
-    .atHour(9)
-    .create();
+    .timeBased().onMonthDay(1).atHour(9).create();
 
   console.log('✅ Alle zeitgesteuerten Trigger erfolgreich eingerichtet.');
 }
