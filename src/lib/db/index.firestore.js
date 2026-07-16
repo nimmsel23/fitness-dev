@@ -15,3 +15,6 @@ export * from "./shared/utils.js";
 export * from "./shared/muscle.js";
 export * from "./shared/parse.js";
 export * from "./shared/favourites.js";
+
+// Fuel Stub/Proxy - fitness-dev has no direct fuel implementation in its db layer
+export { getMealsHistory } from "@fuel/lib/db/firestore/index.js";
