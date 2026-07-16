@@ -18,3 +18,4 @@ export * from "./shared/favourites.js";
 
 // Fuel Stub - local mode has no direct access to fuel server db
 export async function getMealsHistory(_limit) { return []; }
+export async function getNutritionJournalHistory(_limit) { return []; }
