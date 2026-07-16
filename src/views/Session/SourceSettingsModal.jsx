@@ -14,7 +14,7 @@ const SOURCES = [
   { key: 'yuhonas', label: 'yuhonas',       desc: '~800 Übungen · Bilder & GIFs',  experimental: false },
   { key: 'coach',   label: 'Coach Catalog', desc: 'Kuratiert · Anatomie-Detail',   experimental: true  },
 ];
-const DEFAULTS = { wger: true, yuhonas: true, coach: false };
+const DEFAULTS = { wger: true, yuhonas: true, coach: true };
 const STORAGE_KEY = 'fitness-sessionSources';
 
 export default function SourceSettingsModal({ onClose }) {
