@@ -144,7 +144,7 @@ export default function App() {
     <div className="min-h-screen flex items-center justify-center bg-fit-bg text-fit-ink p-6">
       <div className="w-full max-w-sm card p-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-black tracking-tight">AlphaOS Fitness</h1>
+          <h1 className="text-2xl font-black tracking-tight">VitalOS Fitness</h1>
           <p className="text-fit-dim text-[10px] font-bold uppercase tracking-widest mt-2">Anmelden</p>
         </div>
         <form onSubmit={handleAuthSubmit} className="space-y-3">

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Dumbbell, Search, Filter, Loader2 } from 'lucide-react';
 import { searchExercises } from '@db';
-import { useDebounce } from '@src/hooks/useDebounce'; // Or standard setTimeout if missing
 
 export default function CatalogBrowser() {
   const [searchQuery, setSearchQuery] = useState('');
