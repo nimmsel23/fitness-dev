@@ -430,6 +430,80 @@ app.delete("/fitness/inbox/:id", async (c) => {
   }
 });
 
+// ── Coach Feed (alle Klienten-Workouts) ──────────────────────────────────────
+app.get("/fitness/coach/feed", (c) => {
+  const usersDir = path.join(os.homedir(), ".aos", "fitness", "users");
+  const limit = Number(c.req.query("limit") || 100);
+  if (!fs.existsSync(usersDir)) return c.json({ ok: true, feed: [] });
+
+  const uids = fs.readdirSync(usersDir).filter(d =>
+    fs.statSync(path.join(usersDir, d)).isDirectory() && !["default", "kb"].includes(d)
+  );
+
+  const feed = [];
+  for (const uid of uids) {
+    const sessDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
+    if (!fs.existsSync(sessDir)) continue;
+    const files = fs.readdirSync(sessDir).filter(f => f.endsWith(".json") && !f.includes("history"));
+    for (const f of files) {
+      const data = readJson(path.join(sessDir, f));
+      if (!data) continue;
+      const date = f.replace(".json", "");
+      feed.push({
+        id: `${uid}__${date}`,
+        userId: uid,
+        date: data.date || date,
+        exercises: data.exercises || [],
+        effort: data.effort ?? null,
+        mood: data.mood || "",
+        notes: data.notes || "",
+        coachFeedback: data.coachFeedback || "",
+        type: "workout",
+      });
+    }
+  }
+
+  feed.sort((a, b) => b.date.localeCompare(a.date));
+  return c.json({ ok: true, feed: feed.slice(0, limit) });
+});
+
+app.get("/fitness/coach/profiles", (c) => {
+  const usersDir = path.join(os.homedir(), ".aos", "fitness", "users");
+  if (!fs.existsSync(usersDir)) return c.json({ ok: true, profiles: {} });
+
+  const uids = fs.readdirSync(usersDir).filter(d =>
+    fs.statSync(path.join(usersDir, d)).isDirectory() && !["default", "kb"].includes(d)
+  );
+
+  const profiles = {};
+  for (const uid of uids) {
+    const sessDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
+    let displayName = uid.slice(0, 8);
+    if (fs.existsSync(sessDir)) {
+      const files = fs.readdirSync(sessDir).filter(f => f.endsWith(".json")).sort().reverse();
+      if (files.length) {
+        const lastSess = readJson(path.join(sessDir, files[0]));
+        if (lastSess?.user_name) displayName = lastSess.user_name;
+        else if (lastSess?.user_email) displayName = lastSess.user_email;
+      }
+    }
+    profiles[uid] = { displayName, uid };
+  }
+  return c.json({ ok: true, profiles });
+});
+
+app.post("/fitness/coach/feedback", async (c) => {
+  const { userId, sessionId, text } = await c.req.json().catch(() => ({}));
+  if (!userId || !sessionId || !text) return c.json({ ok: false, error: "missing fields" }, 400);
+
+  const sessFile = path.join(os.homedir(), ".aos", "fitness", "users", userId, "sessions", `${sessionId.replace(`${userId}__`, "")}.json`);
+  if (!fs.existsSync(sessFile)) return c.json({ ok: false, error: "session not found" }, 404);
+
+  const data = readJson(sessFile, {});
+  writeJson(sessFile, { ...data, coachFeedback: text, feedbackAt: new Date().toISOString() });
+  return c.json({ ok: true });
+});
+
 // ── Fitness config / search / plan / weekly / export ─────────────────────────
 app.get("/fitness/config", (c) =>
   c.json({

@@ -66,9 +66,9 @@ export async function getGlobalInbox() {
   return getInbox();
 }
 
-export async function approveInbox(id) {
+export async function approveInbox(id, userId) {
   try {
-    return await api.post(`/fitness/inbox/${id}/approve`, {});
+    return await api.post(`/fitness/inbox/${id}/approve`, userId ? { userId } : {});
   } catch {
     return { ok: false };
   }
@@ -104,6 +104,31 @@ export async function sendToInbox(exerciseData) {
   }
 }
 
-export async function getGlobalJournalFeed() { return []; }
-export async function getAllUserProfiles() { return {}; }
-export async function saveCoachFeedback() { return { ok: true }; }
+// ── Coach-only: globaler Feed aller Klienten-Workouts ─────────────────────────
+
+export async function getGlobalJournalFeed(limitCount = 100) {
+  try {
+    const data = await api.get(`/fitness/coach/feed?limit=${limitCount}`);
+    return data?.feed || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getAllUserProfiles() {
+  try {
+    const data = await api.get('/fitness/coach/profiles');
+    return data?.profiles || {};
+  } catch {
+    return {};
+  }
+}
+
+export async function saveCoachFeedback(userId, sessionId, type, text) {
+  try {
+    return await api.post('/fitness/coach/feedback', { userId, sessionId, text });
+  } catch {
+    return { ok: false };
+  }
+}
+
