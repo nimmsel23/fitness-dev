@@ -143,16 +143,11 @@ def cmd_sync(what: str) -> None:
 
     if run_kb:
         gum_log("info", "KB-Sync: anatomy-kb → catalog/kb/anatomy_teaching/")
-        kb_sync = FITNESS_DEV / "catalog" / "catalog" / "kb_sync.py"
-        if kb_sync.exists():
-            r = subprocess.run(
-                [sys.executable, "-m", "catalog.catalog", "kb-sync"],
-                cwd=FITNESS_DEV,
-            )
-            if r.returncode != 0:
-                gum_log("warn", "KB-Sync mit Fehler abgeschlossen")
-        else:
-            gum_log("warn", f"kb_sync nicht gefunden: {kb_sync}")
+        try:
+            from fitness.catalog.api.firestore_push import run_kb_sync
+            run_kb_sync(dry_run=False)
+        except Exception as exc:
+            gum_log("warn", f"KB-Sync mit Fehler abgeschlossen: {exc}")
 
     if run_fs:
         gum_log("info", "Firestore-Sync: catalog → Firestore")

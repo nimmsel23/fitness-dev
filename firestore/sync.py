@@ -6,7 +6,8 @@ from pathlib import Path
 from ._db import get_db, ts, UID
 
 USERS_DIR = Path.home() / ".aos" / "users"
-STATE_DIR = Path.home() / ".aos" / "fitness" / "agent-state"  # state bleibt kompatibel
+FITNESS_DIR = Path.home() / ".aos" / "fitness"
+STATE_DIR = FITNESS_DIR / "agent-state"  # state bleibt kompatibel
 
 
 def _load_known(uid: str) -> set:
