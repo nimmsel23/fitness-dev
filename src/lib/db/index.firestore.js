@@ -16,5 +16,9 @@ export * from "./shared/muscle.js";
 export * from "./shared/parse.js";
 export * from "./shared/favourites.js";
 
-// Fuel Stub/Proxy - fitness-dev has no direct fuel implementation in its db layer
-export { getMealsHistory, getNutritionNotesHistory, getSupplementsHistory } from "@fuel/lib/db/firestore/index.js";
+// Kein Fuel-Proxy hier: dieser Barrel wird auch von Repos importiert, die
+// keine @fuel-Abhängigkeit haben (learn-dev). Konsumenten, die den
+// eingebetteten Journal-Tab rendern und daher Fuel-Daten brauchen
+// (fitness-devs eigener App-Build, habits-dev, journal-dev), holen sich
+// getMealsHistory/getNutritionNotesHistory/getSupplementsHistory explizit
+// selbst aus @fuel — siehe index.firestore.app.js.
