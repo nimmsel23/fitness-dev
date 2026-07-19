@@ -109,14 +109,16 @@ export async function sendToInbox(exerciseData) {
 
 // ── Enrichment queue ──────────────────────────────────────────────────────────
 
+// Vormals ein fetch() gegen http://localhost:9120 — unerreichbar für eine
+// deployte PWA, schlug im Firebase-Modus immer still fehl (try/catch{}).
+// Neue, unbekannte Übungen landeten dadurch nie im Coach-Inbox-Feed.
+// sendToInbox() schreibt in dieselbe Firestore-Collection, die getInbox()/
+// getGlobalInbox() (firestore/sessions.js) lesen.
 export async function queueForEnrichment(ex) {
   if (!ex || ex.source === "expert") return;
-  // fire-and-forget to local catalog server if available
-  try {
-    await fetch("http://localhost:9120/inbox/queue", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ exercise_id: ex.id || ex.exercise_id, name: ex.name || ex.display_name }),
-    });
-  } catch {}
+  await sendToInbox({
+    exercise_id: ex.id || ex.exercise_id || null,
+    name: ex.name || ex.display_name,
+    status: "pending_review",
+  });
 }

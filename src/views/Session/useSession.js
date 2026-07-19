@@ -17,6 +17,14 @@ import { getRollingDays } from './utils';
 
 const DEFAULT_ACTIVITY = { type: 'hiit', duration: '', notes: '', muscleTarget: 'core', muscles: ['core'] };
 
+function slugify(name) {
+  return String(name || 'exercise')
+    .toLowerCase()
+    .normalize('NFKD').replace(/[̀-ͯ]/g, '') // Umlaute/Akzente entfernen
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '') || 'exercise';
+}
+
 export function useSession({ initialDate, initialDraft, recentDays = 7, coverageThreshold = 1.0 }) {
   const [date, setDate]             = useState(initialDate || localToday());
   const [sessionMode, setSessionMode] = useState('strength');
@@ -176,26 +184,31 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   async function addEx(ex) {
     let primary = ex.primaryMuscles || ex.primary_muscles || [];
     let secondary = ex.secondaryMuscles || ex.secondary_muscles || [];
-    if (primary.length === 0 && secondary.length === 0) {
+    if (primary.length === 0 && secondary.length === 0 && !ex.isNew) {
       try {
         const kbEx = await getExercise(ex.id || ex.name);
         if (kbEx) {
           primary = kbEx.primaryMuscles || kbEx.primary_muscles || [];
-          secondary = kbEx.secondaryMuscles || kbEx.secondary_muscles || [];
+          secondary = kbEx.secondaryMuscles || kbEx.secondaryMuscles || [];
         }
       } catch (e) { console.warn('Could not fetch KB data:', e); }
     }
+    const displayName = ex.display_name || ex.name;
+    // Firestore lehnt undefined-Feldwerte ab (setDoc crasht sonst still im
+    // Auto-Save) — bei manuell hinzugefügten, noch nicht im Katalog
+    // geführten Übungen (isNew) fehlt id/exercise_id, daher slug-Fallback.
+    const id = ex.id || ex.exercise_id || `inbox_${slugify(displayName)}`;
     setExercises(prev => [...prev, {
-      id: ex.id || ex.exercise_id,
-      name: ex.display_name || ex.name,
+      id,
+      name: displayName,
       primaryMuscles: primary,
       secondaryMuscles: secondary,
       setsArray: [{ reps: '', weight: '' }],
       note: '',
-      source: ex.source,
+      source: ex.source || (ex.isNew ? 'inbox' : 'unknown'),
     }]);
-    if (ex.source !== 'expert') queueForEnrichment(ex);
-    showToast(`+ ${ex.display_name || ex.name}`);
+    if (ex.source !== 'expert') queueForEnrichment({ ...ex, id, name: displayName });
+    showToast(`+ ${displayName}`);
     setTimeout(() => { saveRef.current?.(true); setDirty(false); }, 0);
   }
 
@@ -292,7 +305,11 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
         setAutoSaveLabel('');
         showToast('Gespeichert ✓');
       }
-    } catch {
+    } catch (e) {
+      // Silent Auto-Saves zeigten bislang gar keine Fehlermeldung — ein
+      // fehlgeschlagener Save (z.B. Firestore-Constraint-Fehler) verschwand
+      // komplett unbemerkt. Wenigstens in der Konsole sichtbar machen.
+      console.error('Session-Save fehlgeschlagen:', e);
       if (!silent) showToast('Fehler beim Speichern');
       setAutoSaveLabel('');
     } finally {

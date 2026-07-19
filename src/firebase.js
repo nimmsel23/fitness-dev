@@ -10,6 +10,10 @@ export const db = alreadyInit
   ? getFirestore(app)
   : initializeFirestore(app, {
       localCache: persistentLocalCache({ tabManager: persistentSingleTabManager() }),
+      // Ohne dieses Flag wirft setDoc() bei jedem undefined-Feldwert (z.B. eine
+      // Übung ohne aufgelöste catalog-id) — Auto-Save fängt das im silent-Modus
+      // ab und zeigt keinen Fehler, wodurch ganze Session-Saves lautlos verpuffen.
+      ignoreUndefinedProperties: true,
     });
 
 export const auth = getAuth(app);
