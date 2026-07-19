@@ -6,7 +6,6 @@ arena/dist/data/
 *.log
 .env
 .env.*.local
-firebase.config.js
 .DS_Store
 *.bak*
 __pycache__/
