@@ -130,7 +130,7 @@ export default function Coach({ onInspectExercise }) {
           </div>
         )
       ) : activeSubTab === 'catalog' ? (
-        <CatalogBrowser />
+        <CatalogBrowser onInspectExercise={onInspectExercise} />
       ) : (
         /* Klienten Workouts Feed View */
         loadingJournals ? (

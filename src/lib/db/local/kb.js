@@ -18,6 +18,15 @@ export async function getAllExercises() {
   }
 }
 
+export async function saveExercise(exerciseId, data) {
+  const exId = exerciseId || data.exercise_id || data.id;
+  try {
+    return await api.post(`/fitness/exercises/${exId}`, data);
+  } catch {
+    return { ok: false };
+  }
+}
+
 export async function searchExercises(query, limit = 12) {
   const q = String(query || "").trim();
   if (!q) return { ok: true, results: [], query: q, suggestions: [] };

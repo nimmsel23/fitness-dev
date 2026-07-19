@@ -1,27 +1,18 @@
 # View Architecture: Coach
 
-Versteckte Admin-Ansicht für Coach-seitige Exercise-Freigabe. Nicht in der Nav — erreichbar per `#coach`, nur für lokale Instanz / alpha-User (Guard in `App.jsx`).
+Command Center für Coach-seitige Exercise-Freigabe, Klienten-Journal-Feed und Katalog-Enhancer. Erreichbar im Coach-Tab oder per `#coach` für den Coach Superuser (`isCoach()`).
 
 ## Komponenten
 
-- **`index.jsx`**: Einzige Datei. Lädt globale Inbox, rendert Approve-Liste mit Optimistic UI.
+- **`index.jsx`**: Haupt-View mit Sub-Tab Navigation:
+  1. `Übungsanfragen` (`InboxCard` / `useInbox`)
+  2. `Klienten-Workouts` (Global Feed aller Workouts, Journals und Habit-Journals mit Coach-Feedback)
+  3. `Katalog Browser` (`CatalogBrowser.jsx`)
+- **`CatalogBrowser.jsx`**: Interaktiver Katalog-Enhancer zum Suchen, Analysieren (Anatomie-Cues, Biomechanik, Muskelgruppen) und Bearbeiten/Speichern von Übungen in Firestore (`fitness/kb/exercises`).
 
-## Zugang (App.jsx)
+## Datenfluss (Firebase / Firestore)
 
-Guard in `App.jsx`: Tab nur sichtbar für lokale Instanz (`isLocalMode()`) oder bestimmte User-Accounts. Kein öffentlicher Zugang.
-
-## Datenfluss
-
-- `getGlobalInbox()` → `GET /fitness/inbox` → Liste ausstehender Exercise-Kandidaten
-- `approveInbox(fileId, userId)` → `POST /fitness/inbox/:id/approve`
-- Optimistic UI: nach Approve wird Item sofort per `.filter()` aus State entfernt, kein Re-Fetch
-
-## Bekannte Schwachstellen
-
-- `getGlobalInbox()` ist identisch mit `getInbox()` — kein echtes Mehrmandanten-Backend dahinter
-- `approveInbox(fileId, userId)` übergibt `userId`, aber `kb.js` ignoriert ihn (nur ein Parameter) — userId erreicht das Backend nie
-- Strukturell fast identisch mit `Inbox.jsx` — Duplikation
-
-## Kontext: Coach-Klient-System
-
-Diese View ist ein Platzhalter für das geplante Coach-Klient-System. Der aktuelle Stand (keine pro-User-Firestore-Collection, kein echtes Mehrmandanten-Routing) macht eine vollständige Implementierung noch nicht möglich. Siehe `DISCONNECTED.md` #1.
+- **Inbox**: `getGlobalInbox()` (in `firestore/sessions.js`) fragt `collectionGroup(db, "inbox")` ab und lädt alle ausstehenden Übungsanfragen (`pending_review`, `ai_enriched`), filtert `approved`/`rejected` raus.
+- **Klienten-Feed**: `getGlobalJournalFeed()` (in `firestore/utils.js`) lädt per `collectionGroup` Daten aus `sessions`, `journal` und `habitJournals`. `getAllUserProfiles()` löst Namen/Metadaten über `profile` und `settings` Subcollections auf.
+- **Feedback**: `saveCoachFeedback()` speichert Kommentare direkt in der entsprechenden Klienten-Dokument-Referenz.
+- **Katalog**: `searchExercises()`, `getAnatomy()`, `saveExercise()` arbeiten direkt mit `fitness/kb/exercises` und `fitness/kb/anatomy`.
