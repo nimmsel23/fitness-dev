@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { getMuscle } from '@db';
 import { X } from 'lucide-react';
 import AnatomyDetailModal from '../../components/AnatomyDetailModal.jsx';
@@ -20,7 +21,7 @@ export default function MuscleMapModal({ exercises, onClose }) {
 
   if (!exercises.length) return null;
 
-  return (
+  return createPortal(
     <>
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
         <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
@@ -61,6 +62,7 @@ export default function MuscleMapModal({ exercises, onClose }) {
         loading={muscleLoading}
         onClose={() => setSelectedMuscleId(null)}
       />
-    </>
+    </>,
+    document.body
   );
 }

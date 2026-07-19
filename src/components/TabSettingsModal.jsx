@@ -1,7 +1,8 @@
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 export default function TabSettingsModal({ title, onClose, children }) {
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
       <div className="relative w-full max-w-sm bg-fit-card border border-fit-line rounded-[32px] shadow-2xl animate-in zoom-in-95 duration-200">
@@ -18,6 +19,7 @@ export default function TabSettingsModal({ title, onClose, children }) {
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

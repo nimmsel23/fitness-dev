@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Download, X, Copy, ChevronDown, ChevronUp } from 'lucide-react'
 import { downloadText, exportFitnessData } from '@db'
 import { buildExerciseCoachSheet, buildExerciseInsights } from '../lib/exerciseInsights.js'
@@ -86,7 +87,7 @@ export default function ExerciseInsightModal({ exercise, onClose, muscleLanguage
     downloadText(`${name || 'exercise'}-coach-sheet.md`, buildExerciseCoachSheet(exercise), 'text/markdown;charset=utf-8')
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.68)' }} onClick={onClose} />
       <div className="absolute inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full md:w-[min(860px,92vw)] max-h-[92vh] overflow-hidden rounded-t-3xl md:rounded-3xl shadow-2xl"
@@ -233,6 +234,7 @@ export default function ExerciseInsightModal({ exercise, onClose, muscleLanguage
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

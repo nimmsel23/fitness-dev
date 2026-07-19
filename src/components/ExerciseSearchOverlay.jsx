@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { Search, X, History, Zap, Dumbbell, BadgeCheck, Star, Plus } from 'lucide-react'
 import { searchExercises, getSessionHistory, getPlanSuggestion, toggleFavourite, getFavourites } from '@db'
 import {
@@ -127,7 +128,7 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
     onClose()
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[200] flex flex-col bg-fit-bg/95 backdrop-blur-xl animate-in fade-in duration-200">
       {/* Header / Search Bar */}
       <div className="p-4 border-b border-fit-line/50 bg-fit-card/50 sticky top-0 z-10">
@@ -309,6 +310,7 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
 
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
