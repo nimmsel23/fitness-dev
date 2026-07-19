@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
-import { User2, Save, Check } from 'lucide-react';
+import { User2, Save, Check, LogOut } from 'lucide-react';
 import { useUser } from '../../contexts/UserContext';
-import { updateUserProfile } from '@db';
+import { updateUserProfile, isLocalMode } from '@db';
 
 const inputCls = "w-full bg-fit-bg2 border border-fit-line rounded-xl px-4 py-3 text-sm font-bold text-fit-ink focus:border-fit-accent outline-none transition-colors";
 
 export default function ProfileSection() {
-  const { 
-    user, 
-    gender, setGender, 
-    age, setAge, 
-    heightCm, setHeightCm, 
-    weightKg, setWeightKg 
+  const {
+    user,
+    gender, setGender,
+    age, setAge,
+    heightCm, setHeightCm,
+    weightKg, setWeightKg,
+    signOut,
   } = useUser();
 
   const [displayName, setDisplayName] = useState("");
@@ -46,14 +47,26 @@ export default function ProfileSection() {
 
   return (
     <section className="card p-8 space-y-6 border-t-4 border-t-fit-accent animate-in fade-in slide-in-from-top-4 duration-500">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-fit-accent/10 flex items-center justify-center">
-          <User2 size={20} className="text-fit-accent" />
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-fit-accent/10 flex items-center justify-center shrink-0">
+            <User2 size={20} className="text-fit-accent" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-xl font-black text-fit-ink">Körperprofil</h3>
+            <div className="text-[10px] font-black uppercase tracking-widest text-fit-dim truncate">{user.email}</div>
+          </div>
         </div>
-        <div>
-          <h3 className="text-xl font-black text-fit-ink">Körperprofil</h3>
-          <div className="text-[10px] font-black uppercase tracking-widest text-fit-dim">{user.email}</div>
-        </div>
+        {!isLocalMode() && (
+          <button
+            onClick={() => { if (window.confirm('Wirklich abmelden?')) signOut(); }}
+            className="flex items-center gap-1.5 shrink-0 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-fit-red bg-fit-red/5 border border-fit-red/10 rounded-xl hover:bg-fit-red/10 transition-all"
+            title="Abmelden"
+          >
+            <LogOut size={13} />
+            <span className="hidden sm:inline">Abmelden</span>
+          </button>
+        )}
       </div>
 
       <div>

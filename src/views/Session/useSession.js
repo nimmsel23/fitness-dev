@@ -54,12 +54,14 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   const saveRef = useRef(null);
   const dirtyRef = useRef(false);
   const dateRef = useRef(null);
+  const autoSaveTimerRef = useRef(null);
   const rollingDays = getRollingDays(30);
 
   // Ungespeicherte Änderungen sichern, bevor der Editor-State neu geladen wird
   // (Datumswechsel, Session-Wechsel, neues Workout, Unmount). save() liest den
   // State der aktuellen Closure — muss also VOR setDate/loadSessionData laufen.
   function flushDirty() {
+    if (autoSaveTimerRef.current) { clearTimeout(autoSaveTimerRef.current); autoSaveTimerRef.current = null; }
     if (dirtyRef.current) { saveRef.current?.(true); setDirty(false); }
   }
 
@@ -258,7 +260,20 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     scheduleAutoSave();
   }
 
-  function scheduleAutoSave() { setDirty(true); }
+  // Debounced Save: reine dirty=true-Markierung hat bislang NICHT automatisch
+  // gespeichert — echte Saves liefen nur bei Tab-Wechsel/Datumswechsel/Unmount.
+  // Wird die PWA im Hintergrund vom OS gekillt (Handy, Bildschirm aus beim
+  // Training), ohne dass diese Events sauber feuern, gingen Änderungen (Sets,
+  // Removes) verloren. Jetzt: 1.5s nach der letzten Änderung wird tatsächlich
+  // gespeichert, unabhängig von Tab-Lifecycle-Events.
+  function scheduleAutoSave() {
+    setDirty(true);
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      autoSaveTimerRef.current = null;
+      if (dirtyRef.current) { saveRef.current?.(true); setDirty(false); }
+    }, 1500);
+  }
 
   // ── Save ──────────────────────────────────────────────────────
   async function save(silent = false) {
@@ -298,7 +313,10 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
 
   // Flush on tab-hide / page-unload / unmount (Haupt-Tab-Wechsel)
   useEffect(() => {
-    function flush() { if (dirtyRef.current) { saveRef.current?.(true); setDirty(false); } }
+    function flush() {
+      if (autoSaveTimerRef.current) { clearTimeout(autoSaveTimerRef.current); autoSaveTimerRef.current = null; }
+      if (dirtyRef.current) { saveRef.current?.(true); setDirty(false); }
+    }
     const onVisibility = () => { if (document.visibilityState === 'hidden') flush(); };
     window.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('pagehide', flush);
