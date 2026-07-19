@@ -10,6 +10,7 @@ const GROUP_TO_RMH = {
   quads:      ['quadriceps'],
   hamstrings: ['hamstring'],
   calves:     ['calves'],
+  legs:       ['quadriceps', 'hamstring'],
 };
 
 // groupScores: { chest: { score: 3, color: '#22c55e' }, ... }

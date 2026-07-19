@@ -82,6 +82,9 @@ export async function getMuscleCoverage(days = 7) {
       [...(ex.secondaryMuscles || [])].forEach((m) =>
         muscleToGroupIds(m, exName).forEach((g) => { hits[g] = (hits[g] || 0) + 0.5; })
       );
+      [...(ex.stabilizers || [])].forEach((m) =>
+        muscleToGroupIds(m, exName).forEach((g) => { hits[g] = (hits[g] || 0) + 0.2; })
+      );
     }
     for (const m of (session.activity?.muscles || [])) {
       hits[m] = (hits[m] || 0) + 0.5;
@@ -164,19 +167,22 @@ export async function getWeeklyReport(selector = "current") {
     const sessGroupsCount = {};
 
     for (const ex of (Array.isArray(sess.exercises) ? sess.exercises : [])) {
-      const primary = ex.primaryMuscles || [], secondary = ex.secondaryMuscles || [];
+      const primary = ex.primaryMuscles || [], secondary = ex.secondaryMuscles || [], stabilizers = ex.stabilizers || [];
       const exName = ex.name || ex.exercise_id || "";
       hasDoneExercises = true; entriesCount++;
       if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
       let hasMapped = false;
-      [...primary, ...secondary].forEach((m) => {
+      [...primary, ...secondary, ...stabilizers].forEach((m) => {
         muscleToGroupIds(m, exName).forEach((gid) => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; hasMapped = true; });
       });
       for (const m of primary) {
         muscleToGroupIds(m, exName).forEach((gid) => { muscleScores[m] = (muscleScores[m] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; hasMapped = true; });
       }
       for (const m of secondary) {
-        muscleToGroupIds(m, exName).forEach((gid) => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; hasMapped = true; });
+        muscleToGroupIds(m, exName).forEach((gid) => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; hasMapped = true; });
+      }
+      for (const m of stabilizers) {
+        muscleToGroupIds(m, exName).forEach((gid) => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.2; hasMapped = true; });
       }
       if (!hasMapped && exName) {
         muscleToGroupIds("", exName).forEach((gid) => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; });

@@ -13,6 +13,15 @@ import AnatomyDetailModal from "../../components/AnatomyDetailModal";
 const CAT_HEAVY     = 72;   // < 3 Tage: stark belastet
 const CAT_RECOVERING = 168;  // 3–7 Tage: Erholung
 const CAT_SUPER      = 336;  // 7–14 Tage: Superkompensation
+
+// Cardio: kürzeres Zeitfenster als Kraft (siehe CLAUDE.md) — kein "Fenster schließt sich"-Tier
+const CARDIO_HEAVY      = 24;   // ≤ 1 Tag
+const CARDIO_RECOVERING = 96;   // ≤ 4 Tage
+const CARDIO_SUPER      = 240;  // ≤ 10 Tage
+
+// score → Farbe, identisch zu hitColors in MuscleBodyMap.jsx (index = score-1)
+const SCORE_COLORS = { 1: '#3b82f6', 2: '#22c55e', 3: '#f59e0b', 4: '#ef4444' };
+
 const MUSCLE_GROUPS = [
   "chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves"
 ];
@@ -154,15 +163,29 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
       const heavy = [], recovering = [], supercomp = [], ready = [], scores = {};
       for (const m of MUSCLE_GROUPS) {
         const last = lastSeen[m];
-        if (!last || last.type === 'cardio' || last.hours > CAT_SUPER) {
-          ready.push(m); scores[m] = { score: 1 }; 
+        let score;
+        if (!last) {
+          score = 1;
+        } else if (last.type === 'cardio') {
+          // Cardio verfällt schneller als Kraft (kürzere Zeitfenster)
+          if (last.hours > CARDIO_SUPER) score = 1;
+          else if (last.hours > CARDIO_RECOVERING) score = 2;
+          else if (last.hours > CARDIO_HEAVY) score = 3;
+          else score = 4;
+        } else if (last.hours > CAT_SUPER) {
+          score = 1;
         } else if (last.hours > CAT_RECOVERING) {
-          supercomp.push(m); scores[m] = { score: 2 }; 
+          score = 2;
         } else if (last.hours > CAT_HEAVY) {
-          recovering.push(m); scores[m] = { score: 3 }; 
+          score = 3;
         } else {
-          heavy.push(m); scores[m] = { score: 4 }; 
+          score = 4;
         }
+        scores[m] = { score, color: SCORE_COLORS[score] };
+        if (score === 1) ready.push(m);
+        else if (score === 2) supercomp.push(m);
+        else if (score === 3) recovering.push(m);
+        else heavy.push(m);
       }
       setHitAnalysis({ heavy, recovering, super: supercomp, ready, scores, lastSeen });
     }).catch(e => console.error(e)).finally(() => setLoading(false));

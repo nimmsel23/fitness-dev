@@ -1,5 +1,4 @@
 import { api } from "./core";
-import { muscleToGroups } from "../../muscleMapping";
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants";
 
 const MUSCLE_GROUPS = {
