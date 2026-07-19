@@ -55,20 +55,64 @@ export function muscleIdToGroup(muscleId) {
   return slug ? (SLUG_TO_GROUP[slug] || null) : null;
 }
 
-// Muscle ID → all matching coverage groups (falls back to substring matching)
+// 100er-Range Fallback für numerische IDs ohne expliziten RBH_SLUGS-Eintrag
+// (deckt die *00er-Systematik ab, auch wenn eine konkrete Sub-ID hier fehlt)
+function numericRangeGroup(id) {
+  const m = String(id || '').match(/^(\d+)_/);
+  if (!m) return null;
+  const n = parseInt(m[1], 10);
+  if (n >= 100 && n < 200) return 'chest';
+  if (n >= 200 && n < 300) return 'back';
+  if (n >= 300 && n < 400) return 'shoulders';
+  if (n >= 400 && n < 500) return 'arms';
+  if (n >= 500 && n < 600) return 'core';
+  if (n >= 600 && n < 700) {
+    if (n <= 602) return 'glutes';
+    if (n === 603) return 'quads';
+    if (n === 604) return 'hamstrings';
+    return 'legs';
+  }
+  if (n >= 700 && n < 800) return 'calves';
+  return null;
+}
+
+// Letzter Fallback: Keywords aus dem Übungsnamen (wenn keine Muskel-ID vorliegt)
+const NAME_HINTS = {
+  chest:      ['brust', 'bench'],
+  back:       ['rücken', 'lat', 'pull-up', 'pullup', 'klimmzug', 'rudern', ' row', 'kreuzheben'],
+  shoulders:  ['schulter', 'overhead', 'seitheben'],
+  arms:       ['curl', 'extension', 'bizeps', 'trizeps'],
+  core:       ['bauch', 'crunch', 'plank'],
+  glutes:     ['hip thrust', 'gesäß', 'po-training'],
+  quads:      ['squat', 'kniebeuge', 'leg press', 'beinpresse'],
+  hamstrings: ['leg curl', 'beinbeuger'],
+  calves:     ['wadenheben', 'calf raise'],
+  legs:       ['beine', 'bein ', 'deadlift', 'lunge', 'ausfallschritt'],
+};
+
+// Muscle ID → all matching coverage groups (falls back to substring/range/name matching)
 export function muscleToGroups(muscleId, exerciseName = '') {
   const direct = muscleIdToGroup(muscleId);
   if (direct) return [direct];
 
-  // Substring fallback for unknown IDs
   const m = String(muscleId || '').toLowerCase();
   const name = String(exerciseName || '').toLowerCase();
+
+  // Substring fallback for unknown IDs
   const matches = new Set();
   for (const [id, slug] of Object.entries(RBH_SLUGS)) {
     if (id.length > 3 && (m.includes(id) || name.includes(id))) {
       const g = SLUG_TO_GROUP[slug];
       if (g) matches.add(g);
     }
+  }
+  if (matches.size > 0) return [...matches];
+
+  const range = numericRangeGroup(m);
+  if (range) return [range];
+
+  for (const [group, keywords] of Object.entries(NAME_HINTS)) {
+    if (keywords.some(k => m.includes(k) || name.includes(k))) matches.add(group);
   }
   return [...matches];
 }

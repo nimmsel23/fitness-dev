@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getSessionHistory, getAllExercises, getMuscle } from "@db";
-import { translateMuscle } from "../../lib/translations";
 import { ACTIVITY_MUSCLE_GROUPS } from "../../constants/ActivityConstants";
+import { muscleToGroups } from "../../lib/muscleMapping";
 
 import MuscleHeader from "./MuscleHeader";
 import MuscleAnalysis from "./MuscleAnalysis";
@@ -26,45 +26,10 @@ const MUSCLE_GROUPS = [
   "chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves"
 ];
 
+// Delegiert an die zentrale Muskel→Gruppe-Zuordnung (src/lib/muscleMapping.js) —
+// vormals eine eigene, dritte Kopie dieser Tabelle.
 function getMuscleGroup(name) {
-  const map = {
-    chest: "chest", pec: "chest", pecs: "chest",
-    back: "back", lats: "back", lat: "back", trapezius: "back",
-    shoulder: "shoulders", shoulders: "shoulders", delts: "shoulders",
-    arms: "arms", biceps: "arms", triceps: "arms", forearm: "arms",
-    core: "core", abs: "core",
-    glutes: "glutes",
-    quads: "quads",
-    hamstrings: "hamstrings",
-    calves: "calves",
-    // Numeric slugs
-    "100_chest": "chest", "101_pectoralis_major": "chest", "102_pectoralis_major_clavicular": "chest",
-    "200_back": "back", "201_latissimus_dorsi": "back", "202_trapezius_upper": "back",
-    "300_shoulders": "shoulders", "301_anterior_deltoid": "shoulders",
-    "400_arms": "arms", "401_biceps_brachii": "arms", "403_triceps_brachii": "arms",
-    "500_core": "core", "501_rectus_abdominis": "core",
-    "600_legs": "quads", "601_gluteus_maximus": "glutes", "603_quadriceps": "quads", "604_hamstrings": "hamstrings",
-    "700_calves": "calves"
-  };
-  const k = String(name || "").toLowerCase().trim();
-  if (map[k]) return map[k];
-  const m = k.match(/^(\d+)_/);
-  if (m) {
-    const n = parseInt(m[1]);
-    if (n >= 100 && n < 200) return 'chest';
-    if (n >= 200 && n < 300) return 'back';
-    if (n >= 300 && n < 400) return 'shoulders';
-    if (n >= 400 && n < 500) return 'arms';
-    if (n >= 500 && n < 600) return 'core';
-    if (n >= 600 && n < 700) {
-      if (n <= 602) return 'glutes';
-      if (n === 603) return 'quads';
-      if (n === 604) return 'hamstrings';
-      return 'legs';
-    }
-    if (n >= 700 && n < 800) return 'calves';
-  }
-  return k;
+  return muscleToGroups(name)[0] || String(name || "").toLowerCase().trim();
 }
 
 export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null, recentDays = 7 }) {

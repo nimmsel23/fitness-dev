@@ -1,18 +1,6 @@
 import { api } from "./core";
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants";
-
-const MUSCLE_GROUPS = {
-  chest: ["pecs", "chest", "pectoralis", "brust", "100_chest", "101_pectoralis", "102_pectoralis", "103_pectoralis", "104_serratus"],
-  back: ["lats", "traps", "lower back", "back", "latissimus", "trapezius", "rhomboids", "rücken", "pull-up", "klimmzug", "rudern", "row", "200_back", "201_latissimus", "202_trapezius", "203_trapezius", "204_trapezius", "205_rhomboids", "206_erector", "207_teres", "208_quadratus"],
-  shoulders: ["shoulders", "delts", "deltoid", "schulter", "schultern", "overhead", "press", "300_shoulders", "301_anterior_deltoid", "302_lateral_deltoid", "303_posterior_deltoid", "304_rotator"],
-  arms: ["biceps", "triceps", "forearms", "brachii", "bizeps", "trizeps", "arm", "arme", "curl", "extension", "400_arms", "401_biceps", "402_brachialis", "403_triceps", "404_brachioradialis", "405_forearm", "406_anconeus"],
-  core: ["abs", "obliques", "core", "abdominis", "bauch", "500_core", "501_rectus", "502_obliques", "503_transverse"],
-  glutes: ["glutes", "gluteus", "po", "gesäß", "hip thrust", "601_gluteus", "602_gluteus"],
-  quads: ["quads", "quadriceps", "oberschenkel", "squat", "kniebeuge", "603_quadriceps"],
-  hamstrings: ["hamstrings", "biceps femoris", "beinbeuger", "leg curl", "604_hamstrings"],
-  calves: ["calves", "gastrocnemius", "waden", "calf", "700_calves", "701_gastrocnemius", "702_soleus", "triceps_surae"],
-  legs: ["legs", "squat", "deadlift", "lunge", "beine", "bein", "leg press", "600_legs", "605_adductors"]
-};
+import { MUSCLE_GROUPS, muscleToGroupIds } from "../shared/muscle";
 
 export async function getDashboardAnalytics(days = 28) {
   try {
@@ -27,18 +15,6 @@ export async function getDashboardAnalytics(days = 28) {
     total_volume: 0,
     session_count: 0
   };
-}
-
-function muscleToGroupIds(muscle, exerciseName = "") {
-  const m = muscle.toLowerCase();
-  const name = exerciseName.toLowerCase();
-  const matches = new Set();
-  for (const [group, list] of Object.entries(MUSCLE_GROUPS)) {
-    if (list.some(x => m.includes(x) || (name && name.includes(x)))) {
-      matches.add(group);
-    }
-  }
-  return Array.from(matches);
 }
 
 function getWeekBounds(selector = "current") {
@@ -194,7 +170,7 @@ export async function getMuscleCoverage(days = 7) {
 
 export async function getCoverageGaps(days = 7, threshold = 1.0) {
   const hits = await getMuscleCoverage(days);
-  return Object.keys(MUSCLE_GROUPS)
+  return MUSCLE_GROUPS
     .filter(g => (hits[g] || 0) < threshold)
     .map(g => ({ name: g, hits: hits[g] || 0 }));
 }
