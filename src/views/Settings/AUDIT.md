@@ -9,7 +9,8 @@ Konfigurationsansicht für Appearance, Training-Präferenzen, SW-Updates, Firest
 |-------|-------|--------|
 | `index.jsx` | Orchestrierung: hält SW-State + Firestore-State, fetcht Health/Wger/Firestore beim Mount, rendert Sections | 138 |
 | `AppearanceSection.jsx` | Theme-Picker (manual/circadian), Layout-Scale-Slider, NavMode (tabs/home), Sidebar-Toggle | 146 |
-| `TrainingSection.jsx` | Split/Gender/Location/MuscleLanguage-Picker, Analyse-Sliders (collapsible), SW-Update-Panel, Advanced-Toggle | 177 |
+| `TrainingSection.jsx` | Split/Gender/Location/MuscleLanguage-Picker, Analyse-Sliders (collapsible) | 131 |
+| `UpdateSection.jsx` | App-Version Anzeige, SW-Update-Prüfung ("Auf Update prüfen") & Reload-Button | 45 |
 | `AdvancedSection.jsx` | Swipe-Navigation, Dashboard-Highlighter-Modus, Firestore-Status-Badge | 73 |
 | `LocalDevSection.jsx` | Firestore-Sync-Button, Node-API/wger/Storage-Diagnose — nur sichtbar wenn `isLocalMode()` | 64 |
 
