@@ -90,7 +90,11 @@ export default function DateStrip({
         <div className="flex-1 flex justify-between gap-1">
           {visible.map(d => {
             const sess = recentSessions[d];
-            const hasSess = !!(sess?.block || sess?.activity);
+            // block/activity allein reichen nicht: eine Session mit geloggten
+            // Übungen aber ohne gesetzten Block-Namen (z.B. Kraft+Ausdauer am
+            // selben Tag, activity ohne duration nie gespeichert) zeigte sonst
+            // fälschlich keinen Haken, obwohl echte Daten vorliegen.
+            const hasSess = !!(sess?.block || sess?.activity || sess?.exercises?.length > 0);
             const isSelected = d === date;
             const isToday = d === today;
             const color = hasSess ? blockColor(sess?.block, sess?.activity, sess?.sessionMode) : null;
