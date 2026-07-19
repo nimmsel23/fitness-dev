@@ -4,7 +4,7 @@
  */
 
 import {
-  collection, doc, addDoc, getDoc, getDocs,
+  collection, doc, addDoc, setDoc, getDoc, getDocs,
   serverTimestamp,
 } from "firebase/firestore";
 
@@ -24,6 +24,17 @@ export async function getExercise(exerciseId) {
 export async function getAllExercises() {
   const snap = await getDocs(collection(db, "fitness", "kb", "exercises"));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function saveExercise(exerciseId, data) {
+  const exId = exerciseId || data.exercise_id || data.id;
+  if (!exId) return { ok: false, error: "missing_id" };
+  await setDoc(doc(db, "fitness", "kb", "exercises", exId), {
+    ...data,
+    updated_at: serverTimestamp(),
+  }, { merge: true });
+  _searchCache = null;
+  return { ok: true, id: exId };
 }
 
 // Client-side fuzzy search — Firestore has no full-text index.

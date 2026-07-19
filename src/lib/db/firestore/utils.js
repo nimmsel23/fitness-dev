@@ -40,41 +40,108 @@ export async function exportCsv(days = 14) {
 // ── Global coach / multi-user views ──────────────────────────────────────────
 
 export async function getGlobalJournalFeed(limitCount = 50) {
-  const snap = await getDocs(collectionGroup(db, "sessions"));
   const feed = [];
-  for (const d of snap.docs) {
-    const data = d.data();
-    const userId = d.reference.parent.parent.id;
-    feed.push({
-      id: d.id,
-      userId,
-      path: d.reference.path,
-      date: data.date,
-      exercises: data.exercises || [],
-      effort: data.effort ?? null,
-      mood: data.mood || "",
-      notes: data.notes || "",
-      coachFeedback: data.coachFeedback || "",
-      time: data.saved_at?.toDate?.()?.toISOString() || data.date,
-      type: "workout",
-    });
+
+  // 1. Workout Sessions
+  try {
+    const snap = await getDocs(collectionGroup(db, "sessions"));
+    for (const d of snap.docs) {
+      const data = d.data();
+      const userId = d.reference.parent?.parent?.id || "unknown";
+      feed.push({
+        id: d.id,
+        userId,
+        path: d.reference.path,
+        date: data.date || "Unbekannt",
+        exercises: data.exercises || [],
+        effort: data.effort ?? null,
+        mood: data.mood || "",
+        notes: data.notes || "",
+        coachFeedback: data.coachFeedback || "",
+        time: data.saved_at?.toDate?.()?.toISOString() || data.date || "",
+        type: "workout",
+      });
+    }
+  } catch (e) {
+    console.error("Error in getGlobalJournalFeed sessions:", e);
   }
-  feed.sort((a, b) => b.date.localeCompare(a.date));
+
+  // 2. Daily Journal Entries
+  try {
+    const journalSnap = await getDocs(collectionGroup(db, "journal"));
+    for (const d of journalSnap.docs) {
+      const data = d.data();
+      const userId = d.reference.parent?.parent?.id || "unknown";
+      feed.push({
+        id: d.id,
+        userId,
+        path: d.reference.path,
+        date: data.date || "Unbekannt",
+        notes: data.text || "",
+        tags: data.tags || [],
+        coachFeedback: data.coachFeedback || "",
+        time: data.time || data.date || "",
+        type: "journal",
+      });
+    }
+  } catch (e) {
+    console.error("Error in getGlobalJournalFeed journal:", e);
+  }
+
+  // 3. Habit Journal Entries
+  try {
+    const habitSnap = await getDocs(collectionGroup(db, "habitJournals"));
+    for (const d of habitSnap.docs) {
+      const data = d.data();
+      const userId = d.reference.parent?.parent?.id || "unknown";
+      feed.push({
+        id: d.id,
+        userId,
+        path: d.reference.path,
+        habitId: data.habitId || null,
+        date: data.date || "Unbekannt",
+        notes: data.text || "",
+        coachFeedback: data.coachFeedback || "",
+        time: data.date || "",
+        type: "habit_journal",
+      });
+    }
+  } catch (e) {
+    console.error("Error in getGlobalJournalFeed habitJournals:", e);
+  }
+
+  feed.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
   return feed.slice(0, limitCount);
 }
 
 export async function getAllUserProfiles() {
+  const profiles = {};
+
   try {
     const snap = await getDocs(collectionGroup(db, "profile"));
-    const profiles = {};
     snap.docs.forEach((d) => {
-      const uid = d.reference.parent.parent.id;
-      profiles[uid] = d.data();
+      const uid = d.reference.parent?.parent?.id;
+      if (uid) profiles[uid] = { ...profiles[uid], ...d.data() };
     });
-    return profiles;
-  } catch {
-    return {};
-  }
+  } catch {}
+
+  try {
+    const snapSettings = await getDocs(collectionGroup(db, "settings"));
+    snapSettings.docs.forEach((d) => {
+      const uid = d.reference.parent?.parent?.id;
+      if (uid) {
+        const data = d.data();
+        profiles[uid] = {
+          displayName: data.displayName || data.name || profiles[uid]?.displayName || profiles[uid]?.email || uid,
+          email: data.email || profiles[uid]?.email || "",
+          ...profiles[uid],
+          ...data,
+        };
+      }
+    });
+  } catch {}
+
+  return profiles;
 }
 
 export async function saveCoachFeedback(userId, entryId, type, text, habitId = null, date = null) {
