@@ -39,11 +39,11 @@ export default function MuscleMapModal({ exercises, onClose }) {
           <div className="p-10 flex justify-center gap-16 bg-gradient-to-b from-card to-bg2">
             <div className="flex flex-col items-center gap-4">
               <span className="text-[10px] font-black uppercase tracking-widest opacity-20">Anterior</span>
-              <DetailedMuscleMap exercises={exercises} side="front" style={{ width: '160px' }} onGroupClick={setSelectedMuscleId} />
+              <DetailedMuscleMap exercises={exercises} side="front" style={{ width: '180px' }} onGroupClick={setSelectedMuscleId} />
             </div>
             <div className="flex flex-col items-center gap-4">
               <span className="text-[10px] font-black uppercase tracking-widest opacity-20">Posterior</span>
-              <DetailedMuscleMap exercises={exercises} side="back" style={{ width: '160px' }} onGroupClick={setSelectedMuscleId} />
+              <DetailedMuscleMap exercises={exercises} side="back" style={{ width: '180px' }} onGroupClick={setSelectedMuscleId} />
             </div>
           </div>
 

@@ -10,7 +10,7 @@ export default function MuscleBodyMap({ scores, onGroupClick }) {
         <BodyMap
           groupScores={scores}
           highlightedColors={hitColors}
-          style={{ maxWidth: 220 }}
+          style={{ maxWidth: 300 }}
           onGroupClick={onGroupClick}
         />
       </div>
@@ -20,7 +20,7 @@ export default function MuscleBodyMap({ scores, onGroupClick }) {
           groupScores={scores}
           type="posterior"
           highlightedColors={hitColors}
-          style={{ maxWidth: 220 }}
+          style={{ maxWidth: 300 }}
           onGroupClick={onGroupClick}
         />
       </div>
