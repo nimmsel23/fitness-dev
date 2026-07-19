@@ -243,7 +243,16 @@ export async function getInbox() {
 }
 
 export async function getGlobalInbox() {
-  const q = query(collectionGroup(db, "inbox"), where("status", "==", "ai_enriched"));
+  // Vormals where("status", "==", "ai_enriched") — es gibt aber keine Pipeline,
+  // die Firestore-Inbox-Einträge je auf diesen Status hebt (das Gemini/Vertex-
+  // Enrichment läuft nur gegen lokale catalog/kb/-YAMLs, nie gegen Firestore).
+  // Neue Übungen (queueForEnrichment → sendToInbox, status: "pending_review")
+  // blieben dadurch für den Coach für immer unsichtbar. Jetzt: alles außer
+  // bereits abgeschlossener Einträge zeigen.
+  const q = query(
+    collectionGroup(db, "inbox"),
+    where("status", "not-in", ["approved", "rejected"])
+  );
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({
     file_id: d.id,
