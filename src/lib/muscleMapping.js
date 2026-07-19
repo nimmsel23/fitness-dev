@@ -118,10 +118,12 @@ export function muscleToGroups(muscleId, exerciseName = '') {
 }
 
 // Group → array of RBH slugs (for react-body-highlighter, group-level highlighting)
+// "trapezius" war früher ein eigener Key hier — aber keine Muskel wird je der
+// Gruppe "trapezius" zugeordnet (SLUG_TO_GROUP mappt traps → "back"), der Key
+// wurde nie erreicht. Traps-Übungen zündeten dadurch nie den RBH-Highlighter.
 export const GROUP_TO_RBH = {
   chest:      ['chest'],
-  back:       ['upper-back', 'lower-back'],
-  trapezius:  ['trapezius'],
+  back:       ['upper-back', 'lower-back', 'trapezius'],
   shoulders:  ['front-deltoids', 'back-deltoids'],
   arms:       ['biceps', 'triceps', 'forearm'],
   core:       ['abs', 'obliques'],
