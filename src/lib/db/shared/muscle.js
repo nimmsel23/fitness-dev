@@ -12,6 +12,17 @@ export const MUSCLE_GROUPS = [
   "glutes", "quads", "hamstrings", "calves", "legs",
 ];
 
+/**
+ * MUSCLE_GROUPS ohne "legs" — für Coverage-Lücken-Reports.
+ * "legs" ist eine Sammelgruppe (Fallback in muscleMapping.js, wenn eine
+ * Übung keine granularen Muskel-IDs hat) und überschneidet sich inhaltlich
+ * mit quads/hamstrings/glutes. Als eigene Lücke gemeldet führte sie zu
+ * irreführenden False-Positives (z.B. "Legs" trotz frisch trainierter
+ * Waden via Kreuzheben/Frontkniebeuge). Bleibt für Mapping/Highlighter
+ * weiterhin Teil von MUSCLE_GROUPS.
+ */
+export const GAP_REPORT_GROUPS = MUSCLE_GROUPS.filter((g) => g !== "legs");
+
 /** Impact factor per activity type when computing coverage scores. */
 const ACTIVITY_IMPACT = { hiking: 1.0, running: 1.0, cycling: 0.8, swimming: 0.7 };
 

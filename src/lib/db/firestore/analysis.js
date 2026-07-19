@@ -9,7 +9,7 @@ import {
 
 import { db } from "../../../firebase.js";
 import { num, todayISO } from "../shared/utils.js";
-import { MUSCLE_GROUPS, ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds } from "../shared/muscle.js";
+import { MUSCLE_GROUPS, GAP_REPORT_GROUPS, ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds } from "../shared/muscle.js";
 import { getUid } from "./core.js";
 import { getAllExercises } from "./kb.js";
 import { getSession, getSessionHistory } from "./sessions.js";
@@ -95,7 +95,7 @@ export async function getMuscleCoverage(days = 7) {
 
 export async function getCoverageGaps(days = 7, threshold = 1.0) {
   const hits = await getMuscleCoverage(days);
-  return MUSCLE_GROUPS.filter((g) => (hits[g] || 0) < threshold).map((g) => ({ name: g, hits: hits[g] || 0 }));
+  return GAP_REPORT_GROUPS.filter((g) => (hits[g] || 0) < threshold).map((g) => ({ name: g, hits: hits[g] || 0 }));
 }
 
 // ── Weekly report ─────────────────────────────────────────────────────────────
