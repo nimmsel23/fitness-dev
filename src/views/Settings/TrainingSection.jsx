@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, RefreshCw, ChevronDown } from "lucide-react";
+import { Zap, ChevronDown } from "lucide-react";
 import SegmentedControl from "./SegmentedControl";
 
 export default function TrainingSection({
@@ -9,8 +9,6 @@ export default function TrainingSection({
   cycleLength, setCycleLength,
   recentDays, setRecentDays,
   coverageThreshold, setCoverageThreshold,
-  swVersion, swUpdateAvailable, swChecking,
-  onSwCheck, onSwApply,
 }) {
   const [slidersOpen, setSlidersOpen] = useState(false);
 
@@ -95,34 +93,6 @@ export default function TrainingSection({
                    </div>
                 </div>
              )}
-          </div>
-
-          {/* App Version */}
-          <div className="pt-4 border-t border-fit-line/50">
-             <div className="bg-fit-bg2 p-4 rounded-2xl border border-fit-line space-y-3">
-                <div className="flex items-center gap-2 mb-1">
-                   <RefreshCw size={14} className={swChecking ? 'animate-spin text-fit-accent' : 'text-fit-dim'} />
-                   <span className="text-[10px] font-black uppercase tracking-widest opacity-40">App Version</span>
-                </div>
-                <div className="flex items-center justify-between bg-fit-bg p-3 rounded-xl border border-fit-line">
-                   <span className="text-[10px] font-black uppercase tracking-widest opacity-40">Installiert</span>
-                   <span className="text-[10px] font-mono font-black text-fit-accent">{swVersion || '—'}</span>
-                </div>
-                {swUpdateAvailable && (
-                   <div className="text-[10px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-xl text-center">
-                      Update bereit
-                   </div>
-                )}
-                {swUpdateAvailable ? (
-                   <button onClick={onSwApply} className="w-full btn btn-primary py-3 text-[10px] font-black uppercase tracking-widest">
-                      Jetzt aktualisieren & neu laden
-                   </button>
-                ) : (
-                   <button onClick={onSwCheck} disabled={swChecking} className="w-full py-3 text-[10px] font-black uppercase tracking-widest text-fit-dim bg-fit-bg border border-fit-line rounded-xl hover:text-fit-ink hover:border-fit-accent/40 transition-all">
-                      {swChecking ? 'Suche Update…' : 'Auf Update prüfen'}
-                   </button>
-                )}
-             </div>
           </div>
        </div>
     </section>
