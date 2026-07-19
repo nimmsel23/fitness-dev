@@ -3,6 +3,7 @@ import { Settings2 } from "lucide-react";
 import { api, isLocalMode } from "@db";
 import AppearanceSection from "./AppearanceSection";
 import TrainingSection from "./TrainingSection";
+import UpdateSection from "./UpdateSection";
 import AdvancedSection from "./AdvancedSection";
 import LocalDevSection from "./LocalDevSection";
 import ProfileSection from "./ProfileSection";
@@ -33,6 +34,8 @@ export default function Settings() {
   const [swVersion, setSwVersion] = useState(null)
   const [swUpdateAvailable, setSwUpdateAvailable] = useState(false)
   const [swChecking, setSwChecking] = useState(false)
+  const [swCheckResult, setSwCheckResult] = useState(null)
+  const [swLastChecked, setSwLastChecked] = useState(null)
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
@@ -53,11 +56,23 @@ export default function Settings() {
 
   async function handleSwCheck() {
     setSwChecking(true)
+    setSwCheckResult(null)
     try {
       const reg = window.__swRegistration || await navigator.serviceWorker?.getRegistration()
-      if (reg) await reg.update()
-      if (reg?.waiting) setSwUpdateAvailable(true)
-    } catch {}
+      if (reg) {
+        await reg.update()
+        if (reg.waiting) {
+          setSwUpdateAvailable(true)
+        } else {
+          setSwCheckResult('up-to-date')
+          setSwLastChecked(new Date())
+        }
+      } else {
+        setSwCheckResult('error')
+      }
+    } catch {
+      setSwCheckResult('error')
+    }
     setTimeout(() => setSwChecking(false), 600)
   }
 
@@ -118,10 +133,18 @@ export default function Settings() {
           cycleLength={cycleLength} setCycleLength={setCycleLength}
           recentDays={recentDays} setRecentDays={setRecentDays}
           coverageThreshold={coverageThreshold} setCoverageThreshold={setCoverageThreshold}
-          swVersion={swVersion} swUpdateAvailable={swUpdateAvailable} swChecking={swChecking}
-          onSwCheck={handleSwCheck} onSwApply={handleSwApply}
         />
       </div>
+
+      <UpdateSection
+        swVersion={swVersion}
+        swUpdateAvailable={swUpdateAvailable}
+        swChecking={swChecking}
+        swCheckResult={swCheckResult}
+        swLastChecked={swLastChecked}
+        onSwCheck={handleSwCheck}
+        onSwApply={handleSwApply}
+      />
 
       {isLocalMode() && (
         <LocalDevSection
