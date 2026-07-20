@@ -608,3 +608,16 @@ _http.coverage(days)         # GET /coverage?days=N
 _http.gaps(days)             # GET /coverage/gaps?days=N
 _http.search(query)          # GET /exercises/search?q=...
 ```
+
+---
+
+## Git Status (2026-07-20)
+
+**Lokales Repo:**
+- **dev branch** — aktiver Entwicklungs-Branch (2026-07-20: TUI Import-Fix gepusht)
+- **master branch** — Produktions-Branch (gemergt von dev, 2 Commits ahead von origin/master)
+
+**vitalos Meta-Repo:**
+- ⚠️ **fitness-app Submodul-Pointer beschädigt** — detached HEAD, geänderte Dateien (public/manifest.json, public/sw.js)
+- Status: 2 Commits ahead von origin/master
+- Notwendig: Submodul-Pointer aktualisieren oder Abhängigkeiten klären
