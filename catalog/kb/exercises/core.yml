@@ -1,0 +1,31 @@
+name: core
+muscles:
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 504_transverse_abdominis
+exercises:
+  - id: "601"
+    name: "Hängendes Beinheben"
+    primary_muscles: [501_rectus_abdominis]
+    secondary_muscles: [502_obliquus_externus]
+  - id: "602"
+    name: "Kabel-Crunch"
+    primary_muscles: [501_rectus_abdominis]
+    secondary_muscles: [502_obliquus_externus]
+  - id: "603"
+    name: "Ab Wheel"
+    primary_muscles: [501_rectus_abdominis, 504_transverse_abdominis]
+    secondary_muscles: [502_obliquus_externus, 201_latissimus_dorsi, 104_serratus_anterior]
+  - id: "604"
+    name: "Unterarmstütz"
+    primary_muscles: [504_transverse_abdominis, 501_rectus_abdominis]
+    secondary_muscles: [502_obliquus_externus, 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius, 104_serratus_anterior]
+  - id: "605"
+    name: "Pallof Press"
+    primary_muscles: [502_obliquus_externus, 504_transverse_abdominis]
+    secondary_muscles: [501_rectus_abdominis, 301_anterior_deltoid]
+  - id: "606"
+    name: "Seitstütz"
+    primary_muscles: [502_obliquus_externus, 208_quadratus_lumborum]
+    secondary_muscles: [504_transverse_abdominis, 602_gluteus_medius, 302_lateral_deltoid]

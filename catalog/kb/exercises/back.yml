@@ -1,0 +1,35 @@
+name: back
+muscles:
+  - 201_latissimus_dorsi
+  - 202_trapezius_upper
+  - 203_trapezius_middle
+  - 204_trapezius_lower
+  - 205_rhomboids
+  - 206_erector_spinae
+  - 207_teres_major
+  - 208_quadratus_lumborum
+exercises:
+  - id: "020"
+    name: "Klimmzug (Obergriff)"
+    primary_muscles: [201_latissimus_dorsi, 204_trapezius_lower]
+    secondary_muscles: [401_biceps_brachii, 402_brachialis, 404_brachioradialis, 207_teres_major]
+  - id: "021"
+    name: "Klimmzug (Untergriff)"
+    primary_muscles: [201_latissimus_dorsi, 401_biceps_brachii]
+    secondary_muscles: [204_trapezius_lower, 402_brachialis, 207_teres_major]
+  - id: "042"
+    name: "Langhantelrudern"
+    primary_muscles: [201_latissimus_dorsi, 203_trapezius_middle, 205_rhomboids]
+    secondary_muscles: [401_biceps_brachii, 303_posterior_deltoid, 206_erector_spinae]
+  - id: "043"
+    name: "Brustgestütztes Rudern"
+    primary_muscles: [203_trapezius_middle, 205_rhomboids, 201_latissimus_dorsi]
+    secondary_muscles: [401_biceps_brachii, 303_posterior_deltoid]
+  - id: "044"
+    name: "T-Bar-Rudern"
+    primary_muscles: [201_latissimus_dorsi, 203_trapezius_middle, 205_rhomboids]
+    secondary_muscles: [401_biceps_brachii, 303_posterior_deltoid, 206_erector_spinae]
+  - id: "201"
+    name: "Latzug"
+    primary_muscles: [201_latissimus_dorsi]
+    secondary_muscles: [401_biceps_brachii, 204_trapezius_lower, 207_teres_major, 303_posterior_deltoid]
