@@ -24,6 +24,7 @@ def calculate_coverage(exercise_query: str, sets: int, rpe: int) -> dict[str, An
 
     taxonomy = load_muscle_taxonomy()
     alias_map = build_muscle_alias_map(taxonomy)
+    parent_map = build_muscle_parent_map(taxonomy)
     region_index = load_muscle_region_index()
     rules = load_coverage_rules()
     effort_factor = effort_factor_for_rpe(rpe, rules)
@@ -33,6 +34,9 @@ def calculate_coverage(exercise_query: str, sets: int, rpe: int) -> dict[str, An
     add_role_scores(muscle_scores, exercise.secondary_muscles or [], sets, ROLE_WEIGHTS["secondary"], effort_factor, alias_map)
     add_role_scores(muscle_scores, exercise.stabilizers or [], sets, ROLE_WEIGHTS["stabilizer"], effort_factor, alias_map)
 
+    # body_region_scores bleibt strikt auf den rohen (nicht hochgerechneten)
+    # muscle_scores aufgebaut - sonst würde ein Sub-Kopf, dessen Score zum
+    # Parent hochgerechnet wird, dieselbe Region zweimal befeuern.
     body_region_scores: dict[str, float] = defaultdict(float)
     unmapped_muscles: list[str] = []
 
@@ -44,6 +48,8 @@ def calculate_coverage(exercise_query: str, sets: int, rpe: int) -> dict[str, An
         else:
             unmapped_muscles.append(muscle_id)
 
+    muscle_scores_with_parents = rollup_parent_scores(muscle_scores, parent_map)
+
     return {
         "exercise_query": exercise_query,
         "exercise_id": exercise.exercise_id,
@@ -52,6 +58,7 @@ def calculate_coverage(exercise_query: str, sets: int, rpe: int) -> dict[str, An
         "rpe": rpe,
         "effort_factor": effort_factor,
         "muscle_scores": dict(sorted(muscle_scores.items())),
+        "muscle_scores_with_parents": dict(sorted(muscle_scores_with_parents.items())),
         "body_region_scores": dict(sorted(body_region_scores.items())),
         "unmapped_muscles": sorted(unmapped_muscles),
     }
@@ -111,6 +118,37 @@ def resolve_muscle_id(raw: str, alias_map: dict[str, str]) -> str:
     """Gibt die numbered taxonomy ID zurück, oder den normalisierten Rohwert wenn nicht gefunden."""
     norm = normalize_muscle_id(raw)
     return alias_map.get(norm, norm)
+
+
+def build_muscle_parent_map(taxonomy: dict[str, dict[str, Any]]) -> dict[str, str]:
+    """Baut muscle_id → parent_id aus dem `parent:`-Feld der Taxonomie.
+
+    Nur echte anatomische Unterköpfe (z.B. 102_pectoralis_major_clavicular →
+    101_pectoralis_major) tragen dieses Feld.
+    """
+    return {
+        muscle_id: data["parent"]
+        for muscle_id, data in taxonomy.items()
+        if isinstance(data, dict) and data.get("parent")
+    }
+
+
+def rollup_parent_scores(muscle_scores: dict[str, float], parent_map: dict[str, str]) -> dict[str, float]:
+    """Rechnet Sub-Kopf-Scores zusätzlich auf ihre Eltern-Muskeln hoch.
+
+    Gibt ein NEUES Dict zurück (mutiert `muscle_scores` nicht) - so bleibt
+    body_region_scores unangetastet und es kann keine Doppelzählung auf
+    Region-Ebene entstehen.
+    """
+    rolled: dict[str, float] = defaultdict(float, muscle_scores)
+    for muscle_id, score in muscle_scores.items():
+        seen = {muscle_id}
+        parent = parent_map.get(muscle_id)
+        while parent and parent not in seen:
+            rolled[parent] += score
+            seen.add(parent)
+            parent = parent_map.get(parent)
+    return dict(rolled)
 
 
 def load_muscle_taxonomy() -> dict[str, dict[str, Any]]:
