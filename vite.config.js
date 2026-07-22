@@ -2,8 +2,20 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import federation from '@originjs/vite-plugin-federation'
 import { resolve } from 'path'
+import { existsSync } from 'fs'
 
 const BACKEND = 'http://localhost:9100'
+
+// Sibling-Repos existieren unter zwei Namen, je nach Checkout-Kontext:
+// ~/<name>-dev (Home-Root, dev-Branch-Arbeitskopie) oder
+// ~/vitalos/<name>-app (vitalos-Submodule, master-Branch, "habit-app" ist Singular).
+// Diese Datei ist in beiden Checkouts identisch (gleiches Repo) — ein hartcodierter
+// Pfad kann nur in einem der beiden Kontexte stimmen. Deshalb zur Build-Zeit prüfen,
+// welches Sibling tatsächlich existiert, statt es fest zu verdrahten.
+function siblingDir(devName, appName) {
+  const appPath = resolve(__dirname, '..', appName)
+  return existsSync(appPath) ? appPath : resolve(__dirname, '..', devName)
+}
 
 export default defineConfig(({ mode }) => {
   const isFirebase = mode === 'firebase'
@@ -40,9 +52,9 @@ export default defineConfig(({ mode }) => {
         '@fitness/constants':  resolve(__dirname, './src/constants'),
         '@fitness':            resolve(__dirname, './src'),
         '@components':         resolve(__dirname, './src/components'),
-        '@fuel':               resolve(__dirname, '../fuel-dev/src/client'),
-        '@habits':             resolve(__dirname, '../habits-dev/src'),
-        '@journal':            resolve(__dirname, '../journal-dev/src'),
+        '@fuel':               resolve(siblingDir('fuel-dev', 'fuel-app'), 'src/client'),
+        '@habits':             resolve(siblingDir('habits-dev', 'habit-app'), 'src'),
+        '@journal':            resolve(siblingDir('journal-dev', 'journal-app'), 'src'),
         '@learn':              resolve(__dirname, '../learn-dev/src'),
       },
       // Singleton-Dedup: fuel-dev hat eigene node_modules — Vite zwingt eine einzige Instanz
