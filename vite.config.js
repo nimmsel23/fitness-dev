@@ -40,9 +40,9 @@ export default defineConfig(({ mode }) => {
         '@fitness/constants':  resolve(__dirname, './src/constants'),
         '@fitness':            resolve(__dirname, './src'),
         '@components':         resolve(__dirname, './src/components'),
-        '@fuel':               resolve(__dirname, '../fuel-app/src/client'),
-        '@habits':             resolve(__dirname, '../habit-app/src'),
-        '@journal':            resolve(__dirname, '../journal-app/src'),
+        '@fuel':               resolve(__dirname, '../fuel-dev/src/client'),
+        '@habits':             resolve(__dirname, '../habits-dev/src'),
+        '@journal':            resolve(__dirname, '../journal-dev/src'),
         '@learn':              resolve(__dirname, '../learn-dev/src'),
       },
       // Singleton-Dedup: fuel-dev hat eigene node_modules — Vite zwingt eine einzige Instanz
