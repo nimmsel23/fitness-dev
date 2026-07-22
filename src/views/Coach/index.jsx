@@ -66,9 +66,11 @@ export default function Coach({ onInspectExercise }) {
     }
   }
 
-  const journalClients = Object.entries(userProfiles)
-    .filter(([uid]) => journals.some(j => j.userId === uid))
-    .map(([uid, profile]) => ({ uid, name: profile.displayName || profile.email || uid }))
+  const journalClients = [...new Set(journals.map(j => j.userId).filter(Boolean))]
+    .map(uid => {
+      const profile = userProfiles[uid] || {};
+      return { uid, name: profile.displayName || profile.email || uid };
+    })
     .sort((a, b) => a.name.localeCompare(b.name));
 
   const filteredJournals = journals.filter(j =>
