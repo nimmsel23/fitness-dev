@@ -12,7 +12,7 @@ import { num, todayISO } from "../shared/utils.js";
 import { MUSCLE_GROUPS, GAP_REPORT_GROUPS, ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds } from "../shared/muscle.js";
 import { getUid } from "./core.js";
 import { getAllExercises } from "./kb.js";
-import { getSession, getSessionHistory } from "./sessions.js";
+import { getSessionHistory, listSessionsForDate } from "./sessions.js";
 
 export { MUSCLE_GROUPS, ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds };
 
@@ -160,9 +160,17 @@ export async function getWeeklyReport(selector = "current") {
   let entriesCount = 0;
   const muscleScores = {}, bodyRegionScores = {}, topExMap = {};
 
+  // listSessionsForDate() statt getSession(date): getSession() lädt per exakter
+  // Dokument-ID (nur der reine Datumsstring). Sessions, die über "Neues Workout"
+  // angelegt wurden, haben aber eine "date__<timestamp>"-Dokument-ID (Mehrfach-
+  // Sessions pro Tag) — getSession(date) fand solche Docs nie, wodurch komplette
+  // Trainingstage (inkl. aller Muskelgruppen) aus dem Weekly Report verschwanden.
+  // listSessionsForDate() nutzt eine Query auf das "date"-Feld und findet alle
+  // Sessions eines Tages, unabhängig von der Dokument-ID.
   for (const date of dates) {
-    const sess = await getSession(date);
-    if (!sess) continue;
+    const daySessions = await listSessionsForDate(date);
+
+    for (const sess of daySessions) {
     let hasDoneExercises = false;
     const sessGroupsCount = {};
 
@@ -208,6 +216,7 @@ export async function getWeeklyReport(selector = "current") {
         }
       }
       sessions.push({ ...sess, block: autoSplit, exercise_count: sess.exercises?.length || 0, muscle_recovery: muscleRecovery });
+    }
     }
   }
 
