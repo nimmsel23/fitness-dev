@@ -243,6 +243,40 @@ Muskel-Hierarchie (`parent`-Feld, siehe oben), sowie generell alles rund um
 `fitness/catalog/kb/exercises/` und `fitness/catalog/kb/muscles/`. Nicht
 gegenseitig ins jeweils andere Themenfeld vorgreifen, außer explizit abgestimmt.
 
+**Bug C — Root Cause gefunden + Import-Logik gefixt (2026-07-22, Fable 5):**
+wgers eigene Muskeltaxonomie (`fitness/catalog/kb/registry/wger_muscles.yml`) hat
+für die gesamte Schulter nur **eine** ID: `2 = "Anterior deltoid"`. Es gibt dort
+keine separate Rear-/Lateral-Delt-ID. wger selbst taggt deshalb jede
+Schulterübung — Front Raise genauso wie Rear Delt Fly — mit ID 2.
+`fitness/catalog/importer.py` (`get_norm_muscles()`, bulk-Import aus lokalem
+wger `:8000`) übernahm diese ID 1:1 über die `wger_id → norm_id`-Reverse-Lookup-
+Tabelle, ohne den Übungsnamen zu berücksichtigen → jede importierte
+Schulterübung landete zwangsläufig auf `301_anterior_deltoid`, nie auf
+`303_posterior_deltoid` oder `302_lateral_deltoid` (letztere hat ohnehin
+`wger_id: ~`, ist also über diesen Pfad gar nicht erreichbar). Betraf ~23
+Einträge in `unreviewed_wger.yml` (u.a. `wger_822 Cable Rear Delt Fly`,
+`wger_828 Incline Bench Reverse Fly`, `wger_1555 Shoulder External Rotation
+(Cable)`, diverse Seitheben/Lateral-Raise-Varianten).
+**Fix:** `reclassify_deltoid_muscles()` in `importer.py` — Keyword-Heuristik
+(EN+DE: rear/reverse/posterior/face pull/external rotation/vorgebeugt →
+posterior; lateral raise/side raise/seitheben/upright row → lateral) reklas-
+sifiziert `301_anterior_deltoid` in `primary`/`secondary` nach dem
+wger-Lookup, aber vor dem Schreiben der unreviewed-YAML. Bewusst **nur**
+Code-Fix, **keine** rückwirkende Korrektur der bestehenden
+`unreviewed_wger.yml` — die Einträge sind laut User-Vorgabe als unreviewed
+korrekt gekennzeichnet und laufen ohnehin durch Inbox/Gemini-Review (Bug A),
+ein nachträglicher Bulk-Patch würde diesen Review-Pfad umgehen. Der Fix greift
+beim nächsten `import_external_exercises()`-Lauf. Echte Front-Delt-Übungen
+(Frontheben, Schulterdrücken, Incline Press — dort ist anterior_deltoid als
+Sekundärmuskel fachlich korrekt) bleiben unverändert, da der Guard nur greift
+wenn `301_anterior_deltoid` bereits im Muskel-Set steht und dann per Keyword
+umklassifiziert — kein falscher Eingriff bei Übungen ohne Deltoid-Beteiligung.
+Bestehende Pytest-Fehlschläge (`test_resolver.py`, `test_coverage.py`,
+`test_audit.py`, `test_planner.py` — 16 insgesamt) sind vorbestehend
+(verifiziert via `git stash`), unabhängig von diesem Fix, vermutlich Folge der
+canonical-ID-Umstellung (`041` statt `incline_dumbbell_press` etc.) aus Commit
+`0875e37` — noch nicht untersucht, separates Ticket wert.
+
 ---
 
 ## Architektur: Zwei Schichten
