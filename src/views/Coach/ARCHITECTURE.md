@@ -6,7 +6,7 @@ Command Center für Coach-seitige Exercise-Freigabe, Klienten-Journal-Feed und K
 
 - **`index.jsx`**: Haupt-View mit Sub-Tab Navigation:
   1. `Übungsanfragen` (`InboxCard` / `useInbox`)
-  2. `Klienten-Workouts` (Global Feed aller Workouts, Journals und Habit-Journals mit Coach-Feedback)
+  2. `Klienten-Workouts` (Global Feed aller Workouts, Journals und Habit-Journals mit Coach-Feedback; clientseitiger Filter nach Klient + Typ, seit 2026-07-22)
   3. `Katalog Browser` (`CatalogBrowser.jsx`)
 - **`CatalogBrowser.jsx`**: Interaktiver Katalog-Enhancer zum Suchen, Analysieren (Anatomie-Cues, Biomechanik, Muskelgruppen) und Bearbeiten/Speichern von Übungen in Firestore (`fitness/kb/exercises`).
 
