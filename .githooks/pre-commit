@@ -1,8 +1,4 @@
 #!/bin/bash
-# Auto-bump Service-Worker-Cache-Version wenn Frontend-Files staged sind.
-# Generisch: findet ein "<prefix>-v<N>"-Pattern in public/sw.js und inkrementiert N.
-# Trigger: src/, public/, index.html, vite.config.*, package.json
-
 cd "$(git rev-parse --show-toplevel)"
 
 # --- View-Docs-Reminder (branch-unabhängig, non-blocking) ---------------
@@ -32,66 +28,8 @@ if [ -n "$staged_all" ]; then
   fi
 fi
 
-# --- SW/Manifest-Bump (nur master) ---------------------------------------
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ "$CURRENT_BRANCH" != "master" ]; then
-  exit 0
-fi
-
-set -e
-
-STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
-[ -z "$STAGED" ] && exit 0
-
-# cloud_chamber/ und Doku-Dateien nie als Trigger werten
-SKIP='^cloud_chamber/|\.(md|txt|bak|bak2)$'
-RELEVANT=$(echo "$STAGED" | grep -Ev "$SKIP" || true)
-[ -z "$RELEVANT" ] && exit 0
-
-TRIGGER='^(src/|public/|index.html$|vite.config.(js|ts|mjs)$|package.json$)'
-echo "$RELEVANT" | grep -Eq "$TRIGGER" || exit 0
-
-SW="public/sw.js"
-[ -f "$SW" ] || exit 0
-
-# Pattern: identifier-v<N> direkt nach CACHE-Konstanten-Zuweisung
-CUR_LINE=$(grep -nE "CACHE[[:space:]]*=[[:space:]]*['\"][a-zA-Z0-9_-]+-v[0-9]+['\"]" "$SW" | head -1)
-[ -z "$CUR_LINE" ] && { echo "⚠️  CACHE-Konstante in $SW nicht erkannt — skip."; exit 0; }
-
-CUR_TAG=$(echo "$CUR_LINE" | grep -oE "[a-zA-Z0-9_-]+-v[0-9]+" | head -1)
-PREFIX=$(echo "$CUR_TAG" | sed -E 's/-v[0-9]+$//')
-CUR=$(echo "$CUR_TAG" | grep -oE "[0-9]+$")
-
-# Wenn sw.js manuell hochgezählt wurde → skip
-if echo "$STAGED" | grep -qx "$SW"; then
-  HEAD_TAG=$(git show "HEAD:$SW" 2>/dev/null | grep -oE "${PREFIX}-v[0-9]+" | head -1 || true)
-  if [ -n "$HEAD_TAG" ]; then
-    HEAD_N=$(echo "$HEAD_TAG" | grep -oE "[0-9]+$" || true)
-    if [ -n "$HEAD_N" ] && [ "$CUR" != "$HEAD_N" ]; then
-      echo "ℹ️  sw.js bereits manuell auf ${CUR_TAG} gebumpt — skip."
-      exit 0
-    fi
-  else
-    # sw.js ist neu (kein HEAD-Eintrag) → keine Auto-Bump nötig, in Commit drin lassen
-    exit 0
-  fi
-fi
-
-NEXT=$((CUR + 1))
-sed -i "s/${PREFIX}-v${CUR}/${PREFIX}-v${NEXT}/" "$SW"
-git add "$SW"
-echo "🔢 sw.js: ${PREFIX}-v${CUR} → ${PREFIX}-v${NEXT}"
-
-MANIFEST="public/manifest.json"
-if [ -f "$MANIFEST" ] && command -v node >/dev/null 2>&1; then
-  node -e "
-    const fs = require('fs');
-    const p = '$MANIFEST';
-    const data = JSON.parse(fs.readFileSync(p, 'utf8'));
-    const prev = data.version || '0';
-    data.version = '$NEXT';
-    fs.writeFileSync(p, JSON.stringify(data, null, 2) + '\n');
-    console.log('🔢 manifest.json: version ' + prev + ' → $NEXT');
-  "
-  git add "$MANIFEST"
-fi
+# SW/Manifest-Bump (früher hier, nur master) wurde entfernt (2026-07-22) —
+# Cache-Versionierung läuft jetzt per Zeitstempel post-build in
+# dist-firebase (scripts/stamp-sw.mjs), analog zu fuel-dev. public/sw.js
+# und public/manifest.json bleiben als getrackte Quelle unverändert
+# (Platzhalter fitness-v0 / version "0"), kein Bump-Commit mehr nötig.
