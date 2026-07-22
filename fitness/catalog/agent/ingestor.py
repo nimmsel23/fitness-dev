@@ -3,13 +3,12 @@ from __future__ import annotations
 import json
 import sqlite3
 from contextlib import closing
-from pathlib import Path
 from typing import Any
 
 from fitness.catalog.core.paths import runtime_root
 from fitness.catalog.history import ensure_history_db, log_training_entry
 from fitness.catalog.core.resolver import resolve_query
-from fitness.catalog.core.loader import load_catalog_directory_yaml
+from fitness.catalog.core.loader import load_catalog_directory_yaml, catalog_path
 
 def ingest_all_sessions():
     users_dir = runtime_root() / "users"
@@ -91,7 +90,7 @@ def get_top_unreviewed_exercises(limit: int = 5, days: int = 28) -> list[tuple[s
     for ex_id, count in usage:
         if ex_id in unreviewed_ids:
             # Also check if it's already in the inbox (inbox_{ex_id}.yml)
-            inbox_file = Path(f"catalog/kb/exercises/inbox_{ex_id}.yml")
+            inbox_file = catalog_path(f"exercises/inbox_{ex_id}.yml")
             if not inbox_file.exists():
                 results.append((ex_id, count))
                 if len(results) >= limit:

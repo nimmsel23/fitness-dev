@@ -76,9 +76,10 @@ def push_changed_exercises(
     extra_paths: list[str] | None = None,
 ) -> dict[str, int]:
     """Nur git-diff geänderte Exercises pushen — quota-schonend."""
-    repo_root = Path(__file__).resolve().parents[1]  # catalog/ → fitness-dev/
+    # fitness/catalog/api/ → fitness/catalog/ → fitness/ → fitness-dev/ (Repo-Root)
+    repo_root = Path(__file__).resolve().parents[3]
     proc = subprocess.run(
-        ["git", "diff", "--name-only", since_ref, until_ref, "--", "catalog/kb/exercises/"],
+        ["git", "diff", "--name-only", since_ref, until_ref, "--", "fitness/catalog/kb/exercises/"],
         capture_output=True, text=True, cwd=repo_root, check=True,
     )
     changed_files = {Path(p).name for p in proc.stdout.strip().splitlines() if p.endswith(".yml")}

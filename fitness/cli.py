@@ -1,7 +1,7 @@
 """
 fitness — Domain CLI für alle Fitness-Subcommands.
 
-  fitness agent <cmd>    catalog/catalog CLI
+  fitness agent <cmd>    fitness.catalog CLI (fitness-catalog)
   fitness kb    <cmd>    anatomy-kb kbctl (:9200)
   fitness mail  <cmd>    Fitbit Gmail Pipeline
   fitness log   <cmd>    Session-Log aus Dateien (kein Server)
@@ -168,9 +168,9 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
-@app.command(context_settings=_ctx, help="catalog/catalog CLI (audit|teach|resolve|log|history|report|plan|tui)")
+@app.command(context_settings=_ctx, help="fitness.catalog CLI (audit|teach|resolve|log|history|report|plan|tui)")
 def agent(ctx: typer.Context) -> None:
-    passthrough(Path("fitness-agent"), ctx.args, "fitness-agent")
+    passthrough(Path("fitness-catalog"), ctx.args, "fitness-catalog")
 
 @app.command(context_settings=_ctx, help="anatomy-kb kbctl :9200 (start|stop|status|health|logs|list|resolve)")
 def kb(ctx: typer.Context) -> None:
