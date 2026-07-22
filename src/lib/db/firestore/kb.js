@@ -107,8 +107,10 @@ export async function getMuscle(muscleId) {
 
 export async function sendToInbox(exerciseData) {
   try {
-    const ref = await addDoc(collection(db, "fitness", getUid(), "inbox"), {
+    const uid = getUid();
+    const ref = await addDoc(collection(db, "fitness", uid, "inbox"), {
       ...exerciseData,
+      userId: uid,
       received_at: serverTimestamp(),
     });
     return { ok: true, id: ref.id };
