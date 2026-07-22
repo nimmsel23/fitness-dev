@@ -15,6 +15,8 @@ export default function Coach({ onInspectExercise }) {
   const [submittingComment, setSubmittingComment] = useState(null);
   const [commentsText, setCommentsText] = useState({});
   const [toastMessage, setToastMessage] = useState('');
+  const [filterUserId, setFilterUserId] = useState('all');
+  const [filterType, setFilterType] = useState('all'); // 'all' | 'workout' | 'habit_journal'
 
   const triggerToast = (msg) => {
     setToastMessage(msg);
@@ -64,6 +66,16 @@ export default function Coach({ onInspectExercise }) {
     }
   }
 
+  const journalClients = Object.entries(userProfiles)
+    .filter(([uid]) => journals.some(j => j.userId === uid))
+    .map(([uid, profile]) => ({ uid, name: profile.displayName || profile.email || uid }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const filteredJournals = journals.filter(j =>
+    (filterUserId === 'all' || j.userId === filterUserId) &&
+    (filterType === 'all' || j.type === filterType)
+  );
+
   if (loading) return (
     <div className="flex items-center justify-center py-20">
       <div className="w-6 h-6 border-2 border-fit-accent/30 border-t-fit-accent rounded-full animate-spin" />
@@ -80,7 +92,7 @@ export default function Coach({ onInspectExercise }) {
         <div className="flex items-center gap-3 bg-fit-accent/10 px-4 py-2 rounded-xl border border-fit-accent/20">
           <Sparkles size={16} className="text-fit-accent" />
           <span className="text-[10px] font-black uppercase text-fit-accent">
-            {activeSubTab === 'exercises' ? `${exercises.length} Tasks` : activeSubTab === 'journals' ? `${journals.length} Feed Items` : 'Katalog'}
+            {activeSubTab === 'exercises' ? `${exercises.length} Tasks` : activeSubTab === 'journals' ? `${filteredJournals.length}/${journals.length} Feed Items` : 'Katalog'}
           </span>
         </div>
       </header>
@@ -145,7 +157,54 @@ export default function Coach({ onInspectExercise }) {
           </div>
         ) : (
           <div className="space-y-6 animate-in fade-in duration-300">
-            {journals.map(item => {
+            {/* Filter-Leiste */}
+            <div className="flex flex-wrap items-center gap-3">
+              <select
+                value={filterUserId}
+                onChange={(e) => setFilterUserId(e.target.value)}
+                className="bg-fit-bg2 border border-fit-line/60 rounded-xl px-3 py-2 text-xs font-bold text-fit-ink outline-none focus:border-fit-accent"
+              >
+                <option value="all">Alle Klienten ({journals.length})</option>
+                {journalClients.map(c => (
+                  <option key={c.uid} value={c.uid}>
+                    {c.name} ({journals.filter(j => j.userId === c.uid).length})
+                  </option>
+                ))}
+              </select>
+
+              <div className="flex gap-1 p-1 bg-fit-bg2 rounded-xl border border-fit-line/40">
+                {[
+                  { id: 'all', label: 'Alle' },
+                  { id: 'workout', label: 'Workouts' },
+                  { id: 'habit_journal', label: 'Habits' },
+                ].map(f => (
+                  <button
+                    key={f.id}
+                    onClick={() => setFilterType(f.id)}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${filterType === f.id ? 'bg-fit-accent text-black' : 'text-fit-dim hover:text-fit-ink'}`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+
+              {(filterUserId !== 'all' || filterType !== 'all') && (
+                <button
+                  onClick={() => { setFilterUserId('all'); setFilterType('all'); }}
+                  className="text-[10px] font-black uppercase text-fit-dim hover:text-fit-accent tracking-wider"
+                >
+                  Filter zurücksetzen
+                </button>
+              )}
+            </div>
+
+            {filteredJournals.length === 0 && (
+              <div className="card py-12 flex flex-col items-center justify-center text-center opacity-30 border-dashed">
+                <p className="text-xs font-bold uppercase tracking-widest">Keine Treffer für diesen Filter</p>
+              </div>
+            )}
+
+            {filteredJournals.map(item => {
               const profile = userProfiles[item.userId] || {};
               const clientName = profile.displayName || profile.email || item.userId;
               const isWorkout = item.type === 'workout';
