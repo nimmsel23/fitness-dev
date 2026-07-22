@@ -211,12 +211,21 @@ face pull|external rotation', name)` gegen `primary_muscles`/`secondary_muscles`
 ist im Session-Verlauf dokumentiert, nicht als Datei abgelegt — bei Bedarf
 neu schreiben, dauert nur Sekunden.
 
+**Coach-UID verifiziert, kein Bug:** Kurz vermutet, dass `firestore.rules:8`
+(`isCoach()`) und `App.jsx:228` unterschiedliche UIDs hartcodieren könnten — beide
+nutzen aber denselben String `59ole36uNpNwml5H6VDYCXyCME92`. Per
+`firebase_admin.auth.get_user()` verifiziert: diese UID gehört zu
+`nimmsel23@gmail.com` (dem echten Coach-Account des Users). Kein Mismatch, false
+lead — **erledigt, nicht weiter verfolgen.** (Die `email.includes('alpha')`-
+Fallback-Bedingung in `App.jsx:228` ist für diesen Account ohnehin irrelevant, da
+die echte E-Mail kein "alpha" enthält — nur die exakte UID-Bedingung greift, und
+die ist korrekt.)
+
 **Gesamtbild, wie es sich nach dieser Recherche darstellt:** Der Coach-Tab war aus
-mindestens drei unabhängigen Gründen leer (Bug A für Klienten-Workouts/
+mindestens zwei unabhängigen Gründen leer (Bug A für Klienten-Workouts/
 Übungsanfragen; vermutlich fehlender/veralteter KB-Sync für Katalog Browser, noch
-nicht verifiziert; plus die eingangs vermutete, aber vom User als "kein Thema"
-abgetane Coach-UID-Frage in `firestore.rules`/`App.jsx:228`, nicht abschließend
-geklärt). Das Review-Tab-Problem (Bug B) war komplett unabhängig davon und hätte
+nicht verifiziert — die Coach-UID war es nachweislich nicht). Das Review-Tab-Problem
+(Bug B) war komplett unabhängig davon und hätte
 mit reinem Code-Lesen ohne echten Datenabgleich vermutlich falsch diagnostiziert
 werden können (die Muskel-Mapping-Funktion selbst ist tatsächlich sauber — der
 Fehler lag zwei Ebenen darüber, im Session-Retrieval). **Lektion:** Bei
@@ -226,9 +235,9 @@ Code-Ferndiagnose.
 
 **Aufgabenteilung ab 2026-07-22 (User-Vorgabe):** Claude übernimmt ab hier die
 **Coach View** mit ihren 3 Sub-Tabs (Übungsanfragen/Inbox, Klienten-Workouts/Client
-Feed, Katalog Browser) — offene Punkte dazu: Katalog-Browser-Leerlauf verifizieren
-(KB-Sync-Stand prüfen), Coach-UID-Frage in `firestore.rules`/`App.jsx:228`
-klären. **Fable 5 übernimmt die Exercise-/Muscle-Logik** — d.h. Bug C (systemische
+Feed, Katalog Browser) — offener Punkt dazu: Katalog-Browser-Leerlauf verifizieren
+(KB-Sync-Stand prüfen; Coach-UID ist bereits geklärt, s.o., kein offener Punkt
+mehr). **Fable 5 übernimmt die Exercise-/Muscle-Logik** — d.h. Bug C (systemische
 `301_anterior_deltoid`-Fehlzuordnung im wger-Bulk-Import), die fehlende
 Muskel-Hierarchie (`parent`-Feld, siehe oben), sowie generell alles rund um
 `fitness/catalog/kb/exercises/` und `fitness/catalog/kb/muscles/`. Nicht
