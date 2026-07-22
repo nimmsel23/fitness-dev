@@ -6,7 +6,7 @@ label_lat: M. pectoralis major
 region: chest
 body_region: chest_front
 wger_id: 4
-aliases: [chest, pecs, pectoralis, pectoralis major]
+aliases: [chest, brust, pecs, pectoralis, pectoralis major, großer brustmuskel]
 viz:
   rbh: chest
   body_muscles:

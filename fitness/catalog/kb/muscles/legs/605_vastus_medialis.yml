@@ -6,7 +6,7 @@ label_lat: M. vastus medialis
 region: legs
 body_region: thigh_front
 wger_id: 10
-aliases: []
+aliases: [vastus medialis, innerer breiter oberschenkelmuskel, quadriceps, quadrizeps, quads]
 viz:
   rbh: quadriceps
   body_muscles:

@@ -6,7 +6,7 @@ label_lat: M. gluteus minimus
 region: legs
 body_region: glutes
 wger_id: ~
-aliases: []
+aliases: [gluteus minimus, kleiner gesäßmuskel, abductors, abduktoren]
 viz:
   rbh: gluteal
   body_muscles:

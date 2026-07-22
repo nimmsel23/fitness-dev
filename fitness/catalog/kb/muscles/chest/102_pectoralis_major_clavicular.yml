@@ -6,7 +6,7 @@ label_lat: M. pectoralis major (pars clavicularis)
 region: chest
 body_region: chest_front
 wger_id: 4
-aliases: []
+aliases: [pectoralis major, brust, chest, obere brust, oberer brustmuskel, clavicular head, upper chest]
 viz:
   rbh: chest
   body_muscles:

@@ -1,0 +1,10 @@
+id: 601_glutes
+display_name: Glutes
+label_de: Gesäßmuskulatur
+label_en: Glutes
+label_lat: Mm. glutei
+body_region: glutes
+muscles:
+  - 601_gluteus_maximus
+  - 602_gluteus_medius
+  - 612_gluteus_minimus

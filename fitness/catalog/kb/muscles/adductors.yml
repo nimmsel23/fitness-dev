@@ -1,0 +1,8 @@
+id: 610_adductors
+display_name: Adductors
+label_de: Adduktoren
+label_en: Adductors
+label_lat: Mm. adductores
+body_region: thigh_inner
+muscles:
+  - 610_adductors

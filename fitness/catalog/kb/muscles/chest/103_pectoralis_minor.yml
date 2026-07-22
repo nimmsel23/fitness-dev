@@ -6,7 +6,7 @@ label_lat: M. pectoralis minor
 region: chest
 body_region: chest_front
 wger_id: ~
-aliases: []
+aliases: [kleiner brustmuskel, pectoralis minor, brust, chest]
 viz:
   rbh: chest
   body_muscles:

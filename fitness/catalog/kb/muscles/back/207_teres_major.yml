@@ -6,7 +6,7 @@ label_lat: M. teres major
 region: back
 body_region: lats
 wger_id: ~
-aliases: []
+aliases: [teres major, großer rundmuskel, lats, latissimus]
 viz:
   rbh: latissimus
   body_muscles:

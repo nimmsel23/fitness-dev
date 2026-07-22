@@ -1,0 +1,9 @@
+id: 602_abductors
+display_name: Abductors
+label_de: Abduktoren
+label_en: Hip Abductors
+label_lat: Mm. abductores
+body_region: glutes
+muscles:
+  - 602_gluteus_medius
+  - 612_gluteus_minimus

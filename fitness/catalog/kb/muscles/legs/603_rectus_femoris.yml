@@ -6,7 +6,7 @@ label_lat: M. rectus femoris
 region: legs
 body_region: thigh_front
 wger_id: 10
-aliases: []
+aliases: [rectus femoris, gerader oberschenkelmuskel, quadriceps, quadrizeps, quads]
 viz:
   rbh: quadriceps
   body_muscles:

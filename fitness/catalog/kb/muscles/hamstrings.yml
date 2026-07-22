@@ -1,0 +1,10 @@
+id: 604_hamstrings
+display_name: Hamstrings
+label_de: Ischiocrurale Muskulatur
+label_en: Hamstrings
+label_lat: Mm. ischiocrurales
+body_region: thigh_back
+muscles:
+  - 607_biceps_femoris
+  - 608_semitendinosus
+  - 609_semimembranosus

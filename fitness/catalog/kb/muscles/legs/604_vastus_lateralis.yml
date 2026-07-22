@@ -6,7 +6,7 @@ label_lat: M. vastus lateralis
 region: legs
 body_region: thigh_front
 wger_id: 10
-aliases: [vastus lateralis]
+aliases: [vastus lateralis, äußerer breiter oberschenkelmuskel, quadriceps, quadrizeps, quads]
 viz:
   rbh: quadriceps
   body_muscles:

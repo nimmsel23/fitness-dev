@@ -6,7 +6,7 @@ label_lat: M. semimembranosus
 region: legs
 body_region: thigh_back
 wger_id: 11
-aliases: []
+aliases: [semimembranosus, halbmembranöser muskel, hamstrings, beinbeuger, hintere oberschenkelmuskulatur]
 viz:
   rbh: hamstring
   body_muscles:

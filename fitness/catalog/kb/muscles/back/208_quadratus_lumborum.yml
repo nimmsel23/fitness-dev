@@ -6,7 +6,7 @@ label_lat: M. quadratus lumborum
 region: back
 body_region: lower_back
 wger_id: ~
-aliases: []
+aliases: [quadratus lumborum, quadratischer lendenmuskel, unterer rücken, lower back]
 viz:
   rbh: lower-back
   body_muscles:

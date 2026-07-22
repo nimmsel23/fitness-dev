@@ -1,0 +1,8 @@
+id: 208_quadratus_lumborum
+display_name: Quadratus Lumborum
+label_de: Quadratischer Lendenmuskel
+label_en: Quadratus Lumborum
+label_lat: M. quadratus lumborum
+body_region: lower_back
+muscles:
+  - 208_quadratus_lumborum

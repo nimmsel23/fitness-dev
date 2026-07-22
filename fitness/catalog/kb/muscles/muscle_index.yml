@@ -73,24 +73,33 @@ muscles:
     members: [502_obliquus_externus, 503_obliquus_internus]
   503_transverse_abdominis:
     members: [504_transverse_abdominis]
+  201_lats:
+    members: [201_latissimus_dorsi, 207_teres_major]
+  202_trapezius:
+    members: [202_trapezius_upper, 203_trapezius_middle, 204_trapezius_lower]
+  601_glutes:
+    members: [601_gluteus_maximus, 602_gluteus_medius, 612_gluteus_minimus]
+  602_abductors:
+    members: [602_gluteus_medius, 612_gluteus_minimus]
 
 string_aliases:
   abdominals:  500_core
-  abductors:   602_gluteus_medius
+  abductors:   602_abductors
   adductors:   610_adductors
   biceps:      401_biceps_brachii
   calves:      700_calves
   chest:       100_chest
   forearms:    405_forearm_flexors
-  glutes:      601_gluteus_maximus
+  glutes:      601_glutes
   hamstrings:  604_hamstrings
-  lats:        201_latissimus_dorsi
+  lats:        201_lats
   lower back:  206_erector_spinae
   middle back: 200_back
   neck:        202_trapezius_upper
   quadriceps:  603_quadriceps
   shoulders:   300_shoulders
-  traps:       202_trapezius_upper
+  traps:       202_trapezius
+  trapezius:   202_trapezius
   triceps:     403_triceps_brachii
 
 wger_groups:

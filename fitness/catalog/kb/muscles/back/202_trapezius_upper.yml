@@ -6,7 +6,7 @@ label_lat: M. trapezius (pars descendens)
 region: back
 body_region: neck
 wger_id: 9
-aliases: [traps, trapezius]
+aliases: [traps, trapezius, schultergürtel, shoulder girdle, oberer rücken, upper back]
 viz:
   rbh: traps
   body_muscles:
