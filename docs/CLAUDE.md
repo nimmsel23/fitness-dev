@@ -60,26 +60,20 @@ verweisen (z.B. `@aliase`-Vite-Alias in `vite.config.js` zeigt aktuell noch auf
 `./catalog/kb/aliases.yml` — dead path, gehört auf `./fitness/catalog/kb/aliases.yml`
 korrigiert).
 
-**Muskel-Hierarchie fehlt strukturell:** Es gibt kein `parent`/`part_of`-Feld in den
-Muskel-YAMLs (`fitness/catalog/kb/muscles/**/*.yml`). Sub-Köpfe wie
-`102_pectoralis_major_clavicular` (Teil von `101_pectoralis_major`) oder
-`202/203/204_trapezius_upper/middle/lower` + `303_posterior_deltoid` (alle Teil des
-Trapezius/Deltoideus-Komplexes) teilen sich implizit nur dieselbe `wger_id` — das ist
-das einzige vorhandene Hierarchie-Signal, wird aber in `fitness/catalog/coverage.py`
-(`add_role_scores`, `muscle_regions`) nicht ausgewertet. Aktuell müssen Exercise-YAMLs
-redundant sowohl den Sub-Kopf als auch den Eltern-Muskel in `primary_muscles` listen,
-damit Coverage-Scoring korrekt zählt (siehe Fix in `041.yml`/`102.yml`, Commit
-`2429925` — Symptom war: Incline-Press/Low-to-High-Cable-Fly zählten nicht als
-Chest-Primary, weil nur der Clavicular-Kopf gelistet war). **Sauberer wäre:** ein
-`parent:`-Feld in den Muskel-YAMLs + Coverage-Logik, die Sub-Kopf-Scores automatisch
-zum Parent hochrechnet, statt jede Exercise-Datei manuell zu duplizieren.
-`wger_id` als gruppierendes Signal funktioniert nur für die grobe RBH-Body-Map-Ebene
-(react-body-highlighter, siehe "Drei Body-Highlighter" weiter unten) — bei feineren
-Unterscheidungen reicht wger's Taxonomie nicht mehr aus (z.B. innerhalb der
-Rotatorenmanschette hat wger keine eigene ID, die Supraspinatus/Infraspinatus/Teres
-minor/Subscapularis trennt — alle vier haben `wger_id: ~`). Für DetailedMuscleMap/
-BodyMusclesMap (granularere Highlighter) braucht es also zusätzlich ein explizites
-Parent-Feld, `wger_id` allein trägt nicht bis dorthin.
+**Muskel-Hierarchie — behoben von Fable 5 (2026-07-22, nach dieser Notiz hier):**
+Es gab kein `parent`/`part_of`-Feld in den Muskel-YAMLs, Sub-Köpfe wie
+`102_pectoralis_major_clavicular` mussten redundant zusätzlich zum Eltern-Muskel in
+`primary_muscles` gelistet werden (Workaround-Fix in `041.yml`/`102.yml`, Commit
+`2429925`). Fable 5 hat die saubere Lösung implementiert: `parent:`-Feld in der
+Muskel-Taxonomie + `build_muscle_parent_map()`/`rollup_parent_scores()` in
+`fitness/catalog/coverage.py`, neues Ergebnisfeld `muscle_scores_with_parents`
+(additiv, mutiert `muscle_scores`/`body_region_scores` nicht — kein Doppelzählen auf
+Region-Ebene). Die manuelle Doppel-Listung in `041.yml`/`102.yml` wurde daraufhin
+wieder entfernt (redundant, hätte sonst in `muscle_scores_with_parents` doppelt
+gezählt). **Für granularere Highlighter (DetailedMuscleMap/BodyMusclesMap) bleibt
+relevant:** `wger_id` als Signal reicht nur für die grobe RBH-Ebene — z.B. hat die
+Rotatorenmanschette (Supraspinatus/Infraspinatus/Teres minor/Subscapularis) keine
+eigene wger_id (`wger_id: ~` bei allen vieren), das neue `parent:`-Feld deckt das ab.
 
 **Firestore-Inbox-Bug gefixt (Commit `4647717`):** `firestore.rules` verlangt für
 Inbox-Writes von Nicht-Coach-Usern `resource.data.userId == request.auth.uid`,
