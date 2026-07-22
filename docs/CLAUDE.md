@@ -14,6 +14,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## Arbeitshinweise für Claude Code (dauerhaft gültig)
+
+- `CLAUDE.md` ist Symlink → `docs/CLAUDE.md`. Direktes Schreiben scheitert
+  ("Refusing to write through symlink") — immer `docs/CLAUDE.md` editieren.
+- Live-KB-Pfad ist `fitness/catalog/kb/` (186 Dateien), NICHT `catalog/kb/`
+  (verwaister Alt-Baum aus Commit `0875e37`, 79 Dateien, tot seit 2026-07-11).
+- Firestore-Bugs live debuggen statt aus Code raten: `firebase-admin`
+  Python-SDK + Credentials unter `~/.env/firebase-fitness.json`
+  (`firebase_admin.initialize_app(credentials.Certificate(...))`,
+  dann `db.collection_group(...)` / `db.collection(...).stream()`).
+- `~/vitalos/fitness-app` ist ein Git-**Worktree** von `~/fitness-dev`
+  (`git worktree list` zeigt alle) — kein separater Clone. Ein Branch kann
+  nicht in zwei Worktrees gleichzeitig ausgecheckt sein; dort meist mit
+  `git checkout <commit-hash>` (detached) statt `git checkout master` arbeiten.
+- Pytest-Suite (`fitness/catalog/tests/`) hat ~59 vorbestehende,
+  umgebungsbedingte Fehler (tmp-dir-Isolation). Vor Rückschlüssen auf eigene
+  Änderungen: `git stash` + Tests erneut laufen lassen, Zahl vergleichen.
+- Firebase v9-modulares SDK (`import ... from "firebase/firestore"`):
+  `QueryDocumentSnapshot.ref`, nicht `.reference` (das ist die alte
+  v8/Namespaced-API und im v9-Import immer `undefined`).
+- Nach `git push`: `gh run list --limit 5` / `gh run view <id> --log-failed`
+  prüfen — Post-Push-Hook triggert automatisch Build+Deploy.
+
+---
+
 ## ⚠️ Session-Erkenntnisse 2026-07-22 (für Fable 5 / nächste Session)
 
 **Wichtig:** Die Abschnitte weiter unten ("catalog/catalog/", "Katalog: ~/fitness-dev/catalog/")
