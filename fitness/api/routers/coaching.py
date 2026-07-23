@@ -342,10 +342,7 @@ def export_pflichtaufgabe(request: Request):
     csv_str = pd.DataFrame(records).to_csv(index=False)
     return {"ok": True, "filename": f"trainingsprotokoll-pflichtaufgabe-{_today()}.csv", "csv": csv_str, "count": len(records)}
 
-@router.post("/fitness/export/{kind}")
-async def fitness_export(kind: str, request: Request):
-    """Export session / plan / weekly / exercise_sheet / exercise_lesson → Obsidian/PDF."""
-    data = await request.json()
+async def _run_export(kind: str, data: dict) -> dict:
     try:
         from fitness.catalog.agent.obsidian import (
             export_coach_sheet_note, export_teach_note,
@@ -353,6 +350,8 @@ async def fitness_export(kind: str, request: Request):
         )
     except ImportError as e:
         raise HTTPException(500, detail=f"obsidian module not available: {e}")
+
+    import json
 
     if kind == "session":
         session = data.get("session") or data
@@ -387,3 +386,18 @@ async def fitness_export(kind: str, request: Request):
         return {"ok": True, "kind": kind, **result}
 
     raise HTTPException(400, detail="unknown_export_kind")
+
+@router.post("/fitness/export/{kind}")
+async def fitness_export(kind: str, request: Request):
+    """Export session / plan / weekly / exercise_sheet / exercise_lesson → Obsidian/PDF."""
+    data = await request.json()
+    return await _run_export(kind, data)
+
+@router.post("/fitness/export")
+async def fitness_export_legacy(request: Request):
+    """Legacy export endpoint where 'kind' is passed in the JSON body."""
+    data = await request.json()
+    kind = str(data.get("kind") or "").strip()
+    if not kind:
+        raise HTTPException(400, detail="missing_kind")
+    return await _run_export(kind, data)
