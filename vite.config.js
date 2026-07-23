@@ -4,7 +4,7 @@ import federation from '@originjs/vite-plugin-federation'
 import { resolve } from 'path'
 import { existsSync } from 'fs'
 
-const BACKEND = 'http://localhost:9100'
+const BACKEND = 'http://localhost:9150'
 
 // Sibling-Repos existieren unter zwei Namen, je nach Checkout-Kontext:
 // ~/<name>-dev (Home-Root, dev-Branch-Arbeitskopie) oder

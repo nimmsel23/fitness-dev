@@ -40,7 +40,8 @@ fitness-activity     = "fitness.commands.activity:main"
 fitness-mail         = "fitness.commands.mail:main"
 firestore-sync       = "firestore.sync_cli:main"
 fitness-catalog      = "fitness.catalog.cli:main"
-fitness-catalog-api  = "fitness.catalog.api.api:main"
+fitness-catalog-api  = "fitness.api.main:main"
+fitness-api          = "fitness.api.main:main"
 
 [tool.poetry]
 packages = [
