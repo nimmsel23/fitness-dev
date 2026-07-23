@@ -80,6 +80,48 @@ async def exercises_search(request: Request, q: str = "", limit: int = 12):
         
     return {"ok": True, "results": []}
 
+@router.get("/fitness/search")
+async def fitness_search(request: Request, q: str = "", limit: int = 12, sources: str = "wger,yuhonas"):
+    return await exercises_search(request, q, limit)
+
+@router.get("/exercises/by-group")
+async def exercises_by_group(group: str = ""):
+    if not group:
+        return {"ok": True, "exercises": []}
+    
+    normalized = group.lower().replace(" ", "_")
+    idx = _get_index()
+    local = []
+    for ex in idx:
+        primary = [str(x).lower() for x in (ex.primary_muscles or [])]
+        secondary = [str(x).lower() for x in (ex.secondary_muscles or [])]
+        tags = [str(x).lower() for x in (ex.tags or [])]
+        haystack = primary + secondary + tags + [str(ex.category or "").lower()]
+        if group.lower() in haystack or normalized in haystack:
+            local.append({
+                "id": ex.exercise_id,
+                "name_en": ex.display_name or ex.exercise_id,
+                "relevance": "primary"
+            })
+            
+    if local:
+        return {"ok": True, "exercises": local}
+        
+    # wger Fallback
+    data = await _wger_get("/exerciseinfo/", f"limit=20&muscles__name_en__icontains={group}&language=2")
+    exercises = []
+    for e in data.get("results") or []:
+        trans = next((t for t in e.get("translations", []) if t.get("language") == 2), {})
+        name = trans.get("name") or e.get("name") or ""
+        if name:
+            exercises.append({
+                "id": e.get("uuid") or str(e.get("id")),
+                "name_en": name,
+                "relevance": "primary",
+                "source": "wger"
+            })
+    return {"ok": True, "exercises": exercises}
+
 @router.get("/fitness/exercises/all")
 def exercises_all():
     idx = _get_index()

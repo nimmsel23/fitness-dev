@@ -2,14 +2,14 @@ import uvicorn
 import typer
 from typing_extensions import Annotated
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from loguru import logger
 
 from fitness.api.config import (
-    PORT, HOST, RUNTIME, _DIST_DIR, _INDEX_HTML, close_httpx_client, Base, engine
+    PORT, HOST, RUNTIME, _DIST_DIR, close_httpx_client, Base, engine
 )
 from fitness.api.routers.sessions import router as sessions_router
 from fitness.api.routers.journal import router as journal_router
@@ -46,16 +46,32 @@ app.include_router(exercises_router)
 app.include_router(coaching_router)
 app.include_router(system_router)
 
-# ── Static / SPA-Fallback — must be registered last ───────────────────────────
-if (_DIST_DIR / "assets").exists():
-    app.mount("/assets", StaticFiles(directory=str(_DIST_DIR / "assets")), name="assets")
+# ── Dynamic Static/SPA Setup (Vite /dist or fallback to /public) ──────────────
+_PUBLIC_DIR = _DIST_DIR.parent / "public"
+_STATIC_DIR = _DIST_DIR if (_DIST_DIR / "index.html").exists() else _PUBLIC_DIR
+_INDEX_HTML = _STATIC_DIR / "index.html"
+
+logger.info(f"serving static files from: {_STATIC_DIR}")
+
+if (_STATIC_DIR / "assets").exists():
+    app.mount("/assets", StaticFiles(directory=str(_STATIC_DIR / "assets")), name="assets")
+if (_STATIC_DIR / "lib").exists():
+    app.mount("/lib", StaticFiles(directory=str(_STATIC_DIR / "lib")), name="lib")
+
+@app.get("/v1")
+def serve_v1():
+    v1_file = _STATIC_DIR / "v1.html"
+    if v1_file.exists():
+        from fastapi.responses import FileResponse
+        return FileResponse(str(v1_file))
+    raise HTTPException(status_code=404, detail="Not Found")
 
 @app.get("/{path:path}")
 async def spa_fallback(path: str):
     if not _INDEX_HTML.exists():
-        return JSONResponse({"error": "No dist/ found — run npm run build"}, status_code=503)
+        return JSONResponse({"error": "No index.html found. Please check dist/ or public/"}, status_code=503)
     from fastapi.responses import FileResponse
-    candidate = _DIST_DIR / path
+    candidate = _STATIC_DIR / path
     if candidate.exists() and candidate.is_file():
         return FileResponse(str(candidate))
     return FileResponse(str(_INDEX_HTML))
