@@ -58,6 +58,7 @@ from db.schemas import (
     ExerciseSearchResponse,
     CoverageDetailedResponse, CoverageAnatomyResponse, CoverageGapsResponse,
     MusclesResponse, SyncRequest, SyncResponse,
+    CoachFeedResponse, CoachProfilesResponse, CoachFeedbackRequest,
 )
 import sqlalchemy as sa
 
@@ -781,6 +782,101 @@ def clients():
                     name = last["user_name"]
         result.append({"uid": uid_dir.name, "name": name})
     return {"ok": True, "clients": result}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Coach Feed & Profiles
+# ══════════════════════════════════════════════════════════════════════════════
+@app.get("/fitness/coach/feed", response_model=CoachFeedResponse)
+def coach_feed(limit: int = 100):
+    if not SESS_ROOT.exists():
+        return {"ok": True, "feed": []}
+    
+    uids = [
+        d.name for d in SESS_ROOT.iterdir()
+        if d.is_dir() and d.name not in ("default", "kb")
+    ]
+    
+    feed = []
+    for uid in uids:
+        sess_dir = SESS_ROOT / uid / "sessions"
+        if not sess_dir.exists():
+            continue
+        
+        for f in sess_dir.glob("*.json"):
+            if "history" in f.name:
+                continue
+            
+            data = _read_json(f)
+            if not data:
+                continue
+            
+            date_str = f.name.replace(".json", "")
+            day = date_str.split("__")[0]
+            
+            feed.append({
+                "id": f"{uid}__{date_str}",
+                "userId": uid,
+                "date": data.get("date") or day,
+                "exercises": data.get("exercises") or [],
+                "effort": data.get("effort"),
+                "mood": data.get("mood") or "",
+                "notes": data.get("notes") or "",
+                "coachFeedback": data.get("coachFeedback") or "",
+                "type": "workout"
+            })
+            
+    feed.sort(key=lambda x: x["date"], reverse=True)
+    return {"ok": True, "feed": feed[:limit]}
+
+
+@app.get("/fitness/coach/profiles", response_model=CoachProfilesResponse)
+def coach_profiles():
+    if not SESS_ROOT.exists():
+        return {"ok": True, "profiles": {}}
+    
+    uids = [
+        d.name for d in SESS_ROOT.iterdir()
+        if d.is_dir() and d.name not in ("default", "kb")
+    ]
+    
+    profiles = {}
+    for uid in uids:
+        sess_dir = SESS_ROOT / uid / "sessions"
+        display_name = uid[:8]
+        if sess_dir.exists():
+            files = sorted(sess_dir.glob("*.json"), reverse=True)
+            if files:
+                last_sess = _read_json(files[0])
+                if last_sess:
+                    if last_sess.get("user_name"):
+                        display_name = last_sess["user_name"]
+                    elif last_sess.get("user_email"):
+                        display_name = last_sess["user_email"]
+        profiles[uid] = {"displayName": display_name, "uid": uid}
+        
+    return {"ok": True, "profiles": profiles}
+
+
+@app.post("/fitness/coach/feedback")
+def coach_feedback(body: CoachFeedbackRequest):
+    clean_session_id = body.sessionId.replace(f"{body.userId}__", "")
+    sess_file = SESS_ROOT / body.userId / "sessions" / f"{clean_session_id}.json"
+    
+    if not sess_file.exists():
+        raise HTTPException(status_code=404, detail="session not found")
+        
+    data = _read_json(sess_file, {})
+    data["coachFeedback"] = body.text
+    data["feedbackAt"] = datetime.utcnow().isoformat() + "Z"
+    _write_json(sess_file, data)
+    
+    # Mirror feedback to Firestore in background
+    day = clean_session_id.split("__")[0]
+    asyncio.get_event_loop().run_in_executor(None, mirror_session, day, data, body.userId)
+    
+    return {"ok": True}
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Theme

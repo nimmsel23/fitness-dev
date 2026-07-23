@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import federation from '@originjs/vite-plugin-federation'
 import { resolve } from 'path'
 
-const BACKEND = 'http://localhost:9100'
+const BACKEND = 'http://localhost:9150'
 
 export default defineConfig(({ mode }) => {
   const isFirebase = mode === 'firebase'
