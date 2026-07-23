@@ -189,3 +189,41 @@ class SyncResponse(BaseModel):
     ok: bool
     synced: int = 0
     date: str = ""
+
+
+# ── Coach ─────────────────────────────────────────────────────────────────────
+
+class CoachFeedItem(BaseModel):
+    id: str
+    userId: str
+    date: str
+    exercises: list[dict[str, Any]] = Field(default_factory=list)
+    effort: Any = None
+    mood: str = ""
+    notes: str = ""
+    coachFeedback: str = ""
+    type: str = "workout"
+
+    model_config = {"extra": "allow"}
+
+
+class CoachFeedResponse(BaseModel):
+    ok: bool
+    feed: list[CoachFeedItem]
+
+
+class CoachProfile(BaseModel):
+    displayName: str
+    uid: str
+
+
+class CoachProfilesResponse(BaseModel):
+    ok: bool
+    profiles: dict[str, CoachProfile]
+
+
+class CoachFeedbackRequest(BaseModel):
+    userId: str
+    sessionId: str
+    text: str
+
