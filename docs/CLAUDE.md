@@ -70,14 +70,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   anatomy-agent-Lauf). Vor größeren Eingriffen `git status`/`git log -3`
   prüfen — unerwartete `M`-Dateien können von einer anderen, gerade aktiven
   Session stammen, nicht von einem selbst. Nicht reflexartig reverten.
-- Automatisiertes Exercise-Enrichment (Gemini) läuft nur, wenn
-  `fitness enrich-watch` (→ `fitness/catalog/api/watcher.py`, kein Autostart/
-  systemd bisher) aktiv läuft. Beobachtet `~/.aos/fitness/users/*/inbox/*.json`.
+- Exercise-Enrichment (Gemini) läuft seit 2026-07-23 als `fitness-enricher.service`
+  (systemd --user, `python3 -m catalog watch` → `fitness/catalog/api/watcher.py`,
+  enabled+started). Beobachtet `runtime_root()/users/*/inbox/*.json`
+  (= `~/.aos/fitness/users/*/inbox/`). `~/.aos/users/<uid>/fitness` ist NUR
+  ein Symlink auf `~/.aos/fitness/users/<uid>` — beide Pfade sind dieselben
+  Daten. **Gotcha:** `Path.glob("**/...")` folgt in Python 3.13+ standardmäßig
+  keinen Symlinks — ein Scan über den `~/.aos/users/`-Pfad mit `**` findet
+  deshalb nichts, über den physischen `runtime_root()/users`-Pfad schon.
   Firestore-`pending_review`-Inbox-Einträge (aus `queueForEnrichment()` im
   PWA/Firestore-Modus) landen dort erst nach einem Pull — `firestore.sync.pull()`
   schreibt die Firestore-`inbox`-Collection genau in dieses Verzeichnis.
-  Lokaler Modus (`src/lib/db/local/kb.js::queueForEnrichment`) POSTet dagegen
-  an den archivierten `:9120`-Server und scheitert dort komplett still.
+  Nach erfolgreicher Anreicherung schreibt der Watcher jetzt zusätzlich
+  `status: 'ai_enriched'` + das `enriched`-Feld ins ursprüngliche
+  `fitness/{uid}/inbox/{doc_id}`-Dokument zurück (vorher blieb die
+  Coach-Inbox-UI für immer beim `pending_review`-Platzhaltertext hängen,
+  selbst nach erfolgtem Enrichment — `approveInbox()` erwartete das
+  `enriched`-Feld bereits, bekam es nur nie).
+  Lokaler Modus (`src/lib/db/local/kb.js::queueForEnrichment`) nutzt jetzt
+  den echten `/fitness/inbox/queue`-Endpoint (vorher: toter `:9120`-Server,
+  scheiterte komplett still) — schreibt aber weiterhin nach
+  `fitness/catalog/kb/inbox/*.yml`, NICHT in das vom Watcher beobachtete
+  Verzeichnis. Vier verschiedene Inbox-Ablageorte insgesamt im Code,
+  Konsolidierung noch offen.
+- Gemini-Fallstricke in `fitness/catalog/agent/gemini.py`: (1) API-Key aus
+  `.env`-Dateien/Shell-Env kann Anführungszeichen enthalten
+  (`GEMINI_API_KEY="..."` → wörtlich mit Quotes übernommen ohne Strip) →
+  "API key not valid". (2) `gemini-2.0-flash` hat auf manchen Keys Kontingent
+  0 (`RESOURCE_EXHAUSTED`, nicht freigeschaltet) — `gemini-2.5-flash` (AlphaOS-
+  Konvention, `~/.env/gemini.env: GEMINI_MODEL`) ist der richtige Default.
 - Firebase v9-modulares SDK (`import ... from "firebase/firestore"`):
   `QueryDocumentSnapshot.ref`, nicht `.reference` (das ist die alte
   v8/Namespaced-API und im v9-Import immer `undefined`).
@@ -603,7 +624,8 @@ Implementiert in: `buildLastTrainedMap()` + `superKompFreq()` in `src/components
 | `fitnessctl dev status` / `fitnessctl prod status` | Service-Status Dev bzw. Prod |
 | `fitness sync kb\|pull\|pull-uid\|push\|watch\|all` | KB-Sync + Firestore-Sync (`fitness/commands/sync.py`) |
 | `fitness catalog` | Katalog-TUI (Dashboard/Inbox-Review "Neuzugänge"/Browser/Plan/Lesson/History) |
-| `fitness enrich-watch` | Gemini-Enrichment-Daemon starten (kein Autostart/systemd bisher!) |
+| `fitness enrich-watch` | Gemini-Enrichment-Daemon im Vordergrund/Ad-hoc starten (läuft normalerweise als `fitness-enricher.service`) |
+| `systemctl --user status fitness-enricher.service` | Status des dauerhaften Enrichment-Watchers |
 | `fitness session today` | Heutige Session anzeigen |
 | `fitness coverage -d DAYS` | Muskelabdeckung der letzten N Tage |
 | `cd pwa && npm run dev` | Firebase PWA Dev-Server |
