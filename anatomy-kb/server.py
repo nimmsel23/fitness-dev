@@ -219,11 +219,11 @@ async def sync_all(dry: bool = False):
 
 @app.post("/api/firestore/sync/exercises")
 async def sync_exercises_handler(dry: bool = False):
-    from firestore_kb import push_catalog
+    from fitness.catalog.api.firestore_push import sync_exercises
     try:
         loop = asyncio.get_running_loop()
         db = await loop.run_in_executor(None, fs._get_db)
-        result = await loop.run_in_executor(None, lambda: push_catalog(db, dry_run=dry))
+        result = await loop.run_in_executor(None, lambda: sync_exercises(db, dry_run=dry))
         return {"ok": True, "dry": dry, **result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

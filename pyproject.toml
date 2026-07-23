@@ -47,7 +47,6 @@ anatomy-agent        = "anatomy_kb.cli:main"
 
 [tool.poetry]
 packages = [
-    { include = "firestore_kb" },
     { include = "firestore" },
     { include = "fitness" },
     { include = "db" },

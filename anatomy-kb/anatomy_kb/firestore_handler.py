@@ -34,7 +34,7 @@ _last: dict = {}
 
 
 def _get_db():
-    from firestore_kb import get_db
+    from firestore.kb import get_db
     return get_db()
 
 
@@ -46,7 +46,7 @@ def _sync_muscles(db, dry_run: bool = False) -> dict:
       2. Nach rbh_slug (chest, chest-left, chest-right) für BodyMap-Lookups
     """
     from anatomy_kb.muscle_store import load_index
-    from firestore_kb import batch_write
+    from firestore.kb import batch_write
 
     index = load_index()
     col = db.collection("fitness").document("kb").collection("muscles")
@@ -133,7 +133,7 @@ def _merge_slug_doc(existing: dict, muscle_id: str, doc: dict) -> None:
 
 def _sync_anatomy(db, dry_run: bool = False) -> dict:
     """catalog/kb/anatomy_teaching/*.yml → Firestore fitness/kb/anatomy/{exercise_id}"""
-    from firestore_kb import batch_write
+    from firestore.kb import batch_write
 
     col = db.collection("fitness").document("kb").collection("anatomy")
 
