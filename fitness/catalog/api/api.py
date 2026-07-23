@@ -1154,11 +1154,11 @@ def serve(
 ):
     logger.info(f"fitness-dev FastAPI :{port}")
     uvicorn.run(
-        "catalog.api:app",
+        "fitness.catalog.api.api:app",
         host=host,
         port=port,
         reload=reload,
-        app_dir=str(_HERE),
+        app_dir=str(_HERE.parent.parent),
     )
 
 def main():
