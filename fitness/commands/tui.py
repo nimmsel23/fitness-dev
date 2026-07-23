@@ -19,7 +19,7 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 from typing import ClassVar
 
-from fitness_cli.commands import muscle_to_group, muscle_group_label
+from fitness.commands import muscle_to_group, muscle_group_label
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding

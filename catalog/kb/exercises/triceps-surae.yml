@@ -1,0 +1,11 @@
+name: triceps-surae
+description: Muscle Group Index for Calf (Triceps Surae) exercises.
+muscles:
+  - 701_gastrocnemius
+  - 702_soleus
+exercises:
+  - id: "701"
+    name: "Wadenheben"
+    primary_muscles: [701_gastrocnemius, 702_soleus]
+    secondary_muscles: []
+    wger_muscle_ids: {primary: [7, 15], secondary: []}

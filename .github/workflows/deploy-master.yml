@@ -27,9 +27,9 @@ jobs:
           git submodule sync
           git submodule update --init --recursive
 
-      - name: fitness-dev auf den ausgelösten Commit setzen
+      - name: fitness-app auf den ausgelösten Commit setzen
         run: |
-          cd fitness-dev
+          cd fitness-app
           SHA="${{ github.sha }}"
           git fetch origin "$SHA"
           git checkout "$SHA"
@@ -45,15 +45,15 @@ jobs:
       - name: Firebase config bereitstellen
         run: |
           if [ -n "$FIREBASE_CONFIG" ]; then
-            echo "$FIREBASE_CONFIG" > fitness-dev/firebase.config.js
-          elif [ ! -f fitness-dev/firebase.config.js ]; then
-            cp firebase.config.js fitness-dev/firebase.config.js
+            echo "$FIREBASE_CONFIG" > fitness-app/firebase.config.js
+          elif [ ! -f fitness-app/firebase.config.js ]; then
+            cp firebase.config.js fitness-app/firebase.config.js
           fi
         env:
           FIREBASE_CONFIG: ${{ secrets.FIREBASE_CONFIG }}
 
       - name: Build Fitness (Live)
-        run: npm run build:firebase --workspace=fitness-dev
+        run: npm run build:firebase --workspace=fitness-app
 
       - name: Deploy Live
         id: firebase_deploy
@@ -62,7 +62,7 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_FITNESS_AOS || secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: fitness-aos
-          entryPoint: fitness-dev
+          entryPoint: fitness-app
           channelId: live
 
       - name: Telegram-Benachrichtigung senden

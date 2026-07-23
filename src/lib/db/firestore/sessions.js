@@ -248,7 +248,7 @@ export async function getGlobalInbox() {
     return snap.docs
       .map((d) => ({
         file_id: d.id,
-        userId: d.reference.parent?.parent?.id || null,
+        userId: d.ref.parent?.parent?.id || null,
         ...d.data(),
       }))
       .filter((item) => item.status !== "approved" && item.status !== "rejected");

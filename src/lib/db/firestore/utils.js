@@ -47,11 +47,11 @@ export async function getGlobalJournalFeed(limitCount = 50) {
     const snap = await getDocs(collectionGroup(db, "sessions"));
     for (const d of snap.docs) {
       const data = d.data();
-      const userId = d.reference.parent?.parent?.id || "unknown";
+      const userId = d.ref.parent?.parent?.id || "unknown";
       feed.push({
         id: d.id,
         userId,
-        path: d.reference.path,
+        path: d.ref.path,
         date: data.date || "Unbekannt",
         exercises: data.exercises || [],
         effort: data.effort ?? null,
@@ -71,11 +71,11 @@ export async function getGlobalJournalFeed(limitCount = 50) {
     const journalSnap = await getDocs(collectionGroup(db, "journal"));
     for (const d of journalSnap.docs) {
       const data = d.data();
-      const userId = d.reference.parent?.parent?.id || "unknown";
+      const userId = d.ref.parent?.parent?.id || "unknown";
       feed.push({
         id: d.id,
         userId,
-        path: d.reference.path,
+        path: d.ref.path,
         date: data.date || "Unbekannt",
         notes: data.text || "",
         tags: data.tags || [],
@@ -93,11 +93,11 @@ export async function getGlobalJournalFeed(limitCount = 50) {
     const habitSnap = await getDocs(collectionGroup(db, "habitJournals"));
     for (const d of habitSnap.docs) {
       const data = d.data();
-      const userId = d.reference.parent?.parent?.id || "unknown";
+      const userId = d.ref.parent?.parent?.id || "unknown";
       feed.push({
         id: d.id,
         userId,
-        path: d.reference.path,
+        path: d.ref.path,
         habitId: data.habitId || null,
         date: data.date || "Unbekannt",
         notes: data.text || "",
@@ -120,7 +120,7 @@ export async function getAllUserProfiles() {
   try {
     const snap = await getDocs(collectionGroup(db, "profile"));
     snap.docs.forEach((d) => {
-      const uid = d.reference.parent?.parent?.id;
+      const uid = d.ref.parent?.parent?.id;
       if (uid) profiles[uid] = { ...profiles[uid], ...d.data() };
     });
   } catch {}
@@ -128,7 +128,7 @@ export async function getAllUserProfiles() {
   try {
     const snapSettings = await getDocs(collectionGroup(db, "settings"));
     snapSettings.docs.forEach((d) => {
-      const uid = d.reference.parent?.parent?.id;
+      const uid = d.ref.parent?.parent?.id;
       if (uid) {
         const data = d.data();
         profiles[uid] = {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { User, Copy, X, Settings2 } from "lucide-react";
 import { useSettings } from "@fuel/store.js";
 
@@ -42,7 +43,7 @@ export default function UserProfile({ user, subtitle, onOpenSettings }) {
         </div>
       </div>
 
-      {isOpen && (
+      {isOpen && createPortal(
         <div
           className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4"
           onClick={() => setIsOpen(false)}
@@ -135,7 +136,8 @@ export default function UserProfile({ user, subtitle, onOpenSettings }) {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

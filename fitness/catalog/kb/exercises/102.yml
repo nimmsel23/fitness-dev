@@ -10,6 +10,7 @@ exercises:
   equipment:
   - cable_machine
   primary_muscles:
+  - 101_pectoralis_major
   - 102_pectoralis_major_clavicular
   secondary_muscles:
   - 301_anterior_deltoid

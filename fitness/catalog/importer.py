@@ -29,6 +29,26 @@ WGER_CATEGORY_MAP = {
     13: "shoulders",
 }
 
+# wger's own muscle taxonomy has a single deltoid entry (id 2, "Anterior deltoid")
+# and no separate posterior/lateral deltoid ID. Every shoulder exercise - front
+# raise or rear delt fly alike - gets tagged with id 2, so a plain wger_id lookup
+# always resolves to 301_anterior_deltoid. Reclassify using name keywords instead.
+DELTOID_REASSIGNMENT = [
+    (re.compile(r"rear|reverse|posterior|face.?pull|external rotation|au(ss|ß)enrotation|"
+                r"hintere schulter|rotator ?cuff|vorgebeugt", re.I), "303_posterior_deltoid"),
+    (re.compile(r"lateral raise|side raise|seitheben|upright row", re.I), "302_lateral_deltoid"),
+]
+
+
+def reclassify_deltoid_muscles(muscle_ids: list[str], *name_variants: str) -> list[str]:
+    if "301_anterior_deltoid" not in muscle_ids:
+        return muscle_ids
+    names = " ".join(n for n in name_variants if n)
+    for pattern, replacement in DELTOID_REASSIGNMENT:
+        if pattern.search(names):
+            return [replacement if m == "301_anterior_deltoid" else m for m in muscle_ids]
+    return muscle_ids
+
 def fetch_json(url: str, headers: dict[str, str] | None = None) -> Any:
     req = urllib.request.Request(url, headers=headers or {})
     with urllib.request.urlopen(req) as response:
@@ -87,7 +107,15 @@ def import_external_exercises():
                 
                 primary = get_norm_muscles(item.get("muscles", []))
                 secondary = get_norm_muscles(item.get("muscles_secondary", []))
-                
+
+                name_variants = (
+                    display_name,
+                    (de or {}).get("name", ""),
+                    (en or {}).get("name", ""),
+                )
+                primary = reclassify_deltoid_muscles(primary, *name_variants)
+                secondary = reclassify_deltoid_muscles(secondary, *name_variants)
+
                 category_id = item.get("category", {}).get("id")
                 category = WGER_CATEGORY_MAP.get(category_id, "other")
                 

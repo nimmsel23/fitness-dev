@@ -1,6 +1,7 @@
 import { X, Brain, Info, BookOpen, Search } from "lucide-react";
 import { getAllExercises } from "@db";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import MuscleHighlightMap from "./MuscleHighlightMap";
 import { translateMuscle } from "../lib/translations";
 import { getMuscleIcon } from "../constants/MuscleIcons";
@@ -37,7 +38,7 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
   const latin = taxonomy?.[muscleId]?.label_lat || muscleData?.latin_name || muscleData?.latin;
   const Icon = getMuscleIcon(muscleId);
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -152,6 +153,7 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
             </button>
          </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

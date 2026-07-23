@@ -14,6 +14,290 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## Arbeitshinweise für Claude Code (dauerhaft gültig)
+
+- `CLAUDE.md` ist Symlink → `docs/CLAUDE.md`. Direktes Schreiben scheitert
+  ("Refusing to write through symlink") — immer `docs/CLAUDE.md` editieren.
+- Live-KB-Pfad ist `fitness/catalog/kb/` (186 Dateien), NICHT `catalog/kb/`
+  (verwaister Alt-Baum aus Commit `0875e37`, 79 Dateien, tot seit 2026-07-11).
+- Firestore-Bugs live debuggen statt aus Code raten: `firebase-admin`
+  Python-SDK + Credentials unter `~/.env/firebase-fitness.json`
+  (`firebase_admin.initialize_app(credentials.Certificate(...))`,
+  dann `db.collection_group(...)` / `db.collection(...).stream()`).
+- `~/vitalos/fitness-app` ist ein Git-**Worktree** von `~/fitness-dev`
+  (`git worktree list` zeigt alle) — kein separater Clone. Ein Branch kann
+  nicht in zwei Worktrees gleichzeitig ausgecheckt sein; dort meist mit
+  `git checkout <commit-hash>` (detached) statt `git checkout master` arbeiten.
+- Pytest-Suite (`fitness/catalog/tests/`) hat ~59 vorbestehende,
+  umgebungsbedingte Fehler (tmp-dir-Isolation). Vor Rückschlüssen auf eigene
+  Änderungen: `git stash` + Tests erneut laufen lassen, Zahl vergleichen.
+- Firebase v9-modulares SDK (`import ... from "firebase/firestore"`):
+  `QueryDocumentSnapshot.ref`, nicht `.reference` (das ist die alte
+  v8/Namespaced-API und im v9-Import immer `undefined`).
+- Nach `git push`: `gh run list --limit 5` / `gh run view <id> --log-failed`
+  prüfen — Post-Push-Hook triggert automatisch Build+Deploy.
+
+---
+
+## ⚠️ Session-Erkenntnisse 2026-07-22 (für Fable 5 / nächste Session)
+
+**Wichtig:** Die Abschnitte weiter unten ("catalog/catalog/", "Katalog: ~/fitness-dev/catalog/")
+beschreiben noch die **alte** Package-Struktur. Seit Commit `0875e37` ("refactor: merge
+catalog into fitness package", 2026-07-11) ist das Python-Paket nach `fitness/catalog/`
+umgezogen. `pyproject.toml` registriert nur noch `fitness` als Package (kein `catalog`
+mehr) mit den Scripts `fitness-catalog` (`fitness.catalog.cli:main`) und
+`fitness-catalog-api` (`fitness.catalog.api.api:main`). `fitness/catalog/core/paths.py`
+löst `DATA_DIR` relativ zum Package auf → **`fitness/catalog/kb/` ist der live geladene
+KB-Pfad**, nicht `catalog/kb/`.
+
+**Offenes Problem — verwaister Alt-Baum:** `catalog/kb/` (Top-Level, 79 Dateien) ist beim
+Merge-Commit als Kopie zurückgeblieben und wird seitdem nicht mehr gepflegt/gelesen
+(Reste der kaputten `pectoralis_major_clavicular_head`-ID ohne Nummer, die dort noch
+existiert). `fitness/catalog/kb/` (186 Dateien) ist die einzig aktive Kopie. Der alte
+Baum sollte gelöscht werden — noch nicht erledigt, User hat zugestimmt (2026-07-22).
+Vor dem Löschen: sicherstellen, dass keine Skripte/Docs noch hart auf `catalog/kb/`
+verweisen (z.B. `@aliase`-Vite-Alias in `vite.config.js` zeigt aktuell noch auf
+`./catalog/kb/aliases.yml` — dead path, gehört auf `./fitness/catalog/kb/aliases.yml`
+korrigiert).
+
+**Muskel-Hierarchie — behoben von Fable 5 (2026-07-22, nach dieser Notiz hier):**
+Es gab kein `parent`/`part_of`-Feld in den Muskel-YAMLs, Sub-Köpfe wie
+`102_pectoralis_major_clavicular` mussten redundant zusätzlich zum Eltern-Muskel in
+`primary_muscles` gelistet werden (Workaround-Fix in `041.yml`/`102.yml`, Commit
+`2429925`). Fable 5 hat die saubere Lösung implementiert: `parent:`-Feld in der
+Muskel-Taxonomie + `build_muscle_parent_map()`/`rollup_parent_scores()` in
+`fitness/catalog/coverage.py`, neues Ergebnisfeld `muscle_scores_with_parents`
+(additiv, mutiert `muscle_scores`/`body_region_scores` nicht — kein Doppelzählen auf
+Region-Ebene). Die manuelle Doppel-Listung in `041.yml`/`102.yml` wurde daraufhin
+wieder entfernt (redundant, hätte sonst in `muscle_scores_with_parents` doppelt
+gezählt). **Für granularere Highlighter (DetailedMuscleMap/BodyMusclesMap) bleibt
+relevant:** `wger_id` als Signal reicht nur für die grobe RBH-Ebene — z.B. hat die
+Rotatorenmanschette (Supraspinatus/Infraspinatus/Teres minor/Subscapularis) keine
+eigene wger_id (`wger_id: ~` bei allen vieren), das neue `parent:`-Feld deckt das ab.
+
+**Firestore-Inbox-Bug gefixt (Commit `4647717`):** `firestore.rules` verlangt für
+Inbox-Writes von Nicht-Coach-Usern `resource.data.userId == request.auth.uid`,
+`sendToInbox()` in `src/lib/db/firestore/kb.js` schrieb das Feld aber nie mit →
+Permission-Denied, verschluckt im try/catch. Erklärt warum Klienten-Inbox-Einträge
+nie im Coach-Tab ankamen.
+
+**Coach-Tab in der Firebase-App weiterhin leer (Stand 2026-07-22, nach Deploy
+verifiziert):** Alle drei Sub-Tabs (Katalog Browser, Klienten-Workouts,
+Übungsanfragen) zeigen keine Ergebnisse, obwohl der Tab selbst sichtbar ist (Tab wird
+laut User komplett ausgeblendet, wenn der eingeloggte User nicht der Coach ist — die
+Sichtbarkeit ist also kein Firestore-Rules-Thema, sondern rein frontend-seitig
+gegatet). Frontend-Gate in `src/App.jsx:228`:
+`isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92'`
+— drei Bedingungen, von denen nur die dritte (exakte UID) auch in `firestore.rules:8`
+(`isCoach()`) geprüft wird. Nicht abschließend verifiziert, aber ein möglicher Grund
+für "Tab sichtbar, aber alle Reads leer": Tab wird über die `email.includes('alpha')`-
+Bedingung sichtbar, während die tatsächliche UID nicht mit der in `firestore.rules`
+hartcodierten übereinstimmt → alle `collectionGroup`-Reads sehen dann nur eigene
+Dokumente. Bitte in der Firebase Console direkt gegenprüfen, nicht neu spekulieren.
+Zweiter, unabhängiger Verdacht: Katalog Browser braucht keine Coach-Rechte
+(`fitness/kb/exercises` ist für alle authentifizierten User lesbar) — falls trotzdem
+leer, wahrscheinlich wurde die `fitness/kb/`-Collection nie oder nicht aktuell nach
+Firestore synced (Sync-Skript: `fitness/catalog/api/firestore_push.py`, liest korrekt
+aus `fitness/catalog/kb/`). Prüfen ob/wann der Sync zuletzt lief.
+
+**Cross-Repo-Symlink-Pattern (`src/views/Journal`, `src/views/Habits`,
+`src/views/Learn`):** Diese drei (und nur diese drei) sind Symlinks auf
+Sibling-Repos (`journal-dev`, `habits-dev`, `learn-dev`), weil `src/App.jsx` sie
+per **relativem Import** einbindet (`./views/Journal/index.jsx`), was eine physische
+Datei verlangt. Fuel wird dagegen rein über den `@fuel`-Vite-Alias eingebunden
+(kein Symlink nötig) — ebenso wie `vitalos` und `fuel-dev` selbst `@journal`/`@habits`
+als reine Alias-Imports auflösen, ohne Symlinks. Geplante Umstellung (noch nicht
+umgesetzt): `App.jsx` auf `@journal`/`@habits`/`@learn`-Aliase umstellen + Symlinks
+entfernen, dabei `tailwind.config.cjs`-`content`-Array um die externen Sibling-Pfade
+erweitern (wie `fuel-dev/tailwind.config.cjs` es vormacht), damit weiterhin fitness-devs
+**eigenes** Theme greift.
+
+**Bekannt, nicht behoben:** `Habits`/`Journal`-Views (in `habits-dev`/`journal-dev`)
+nutzen an vielen Stellen hartcodierte Fuel-Branding-Klassen (`text-orange-400`,
+`bg-orange-400`, `bg-slate-900` — Standard-Tailwind-Klassen, kein Custom-Theme-Token)
+statt fitness-devs `fit-*`/CSS-Variablen-Tokens. Das ist unabhängig vom
+Symlink-vs-Alias-Thema und muss in `habits-dev`/`journal-dev` selbst gefixt werden.
+
+**Vorsicht bei Cross-Repo-Pfaden generell — und was `-dev` vs. `-app` eigentlich
+bedeutet (User-Klarstellung 2026-07-22):** `~/fitness-dev`, `~/journal-dev`,
+`~/habits-dev`, `~/fuel-dev` sind die **dev-Branch-Arbeitskopien im Home-Root** —
+für lokale Einzel-Entwicklung. `~/vitalos/fitness-app`, `~/vitalos/journal-app`,
+`~/vitalos/habit-app` (Achtung: Singular "habit-app", nicht "habits-app"),
+`~/vitalos/fuel-app` sind **dasselbe Repo** (gleicher `origin`), aber als
+**master-Branch-Submodule** in `~/vitalos/` gecheckt out — **das ist der einzige
+Ort, von dem aus tatsächlich gebaut/deployed wird.** Die `-app`-Namen markieren
+absichtlich diesen Unterschied (Deploy-Artefakt vs. Dev-Checkout), keine
+Inkonsistenz. **Konsequenz:** Ein hartcodierter Cross-Repo-Pfad in einer Datei,
+die aus `~/vitalos` heraus gebaut wird (z.B. `fuel-dev/src/client/lib/db/index.js`,
+welches `export * from "../../../../../fitness-app/..."` nutzt), soll `-app`
+bleiben — das direkt auf `-dev` zurückzudrehen bricht den echten Deploy, auch wenn
+es lokales Testen aus `~/fuel-dev` heraus "repariert". **Ausnahme:** `fitness-dev`
+hat einen **eigenen, separaten** Firebase-Deploy (`npm run build:firebase` →
+eigenes Firebase-Projekt, läuft direkt aus `~/fitness-dev`, nicht über `~/vitalos`)
+— für `fitness-dev/vite.config.js` ist deshalb eine **dynamische** Auflösung
+(`siblingDir()`-Helper, `fs.existsSync`-Check, bevorzugt `-app`, fällt auf `-dev`
+zurück) implementiert, die in beiden Kontexten korrekt ist. Bei jedem
+Cross-Repo-Pfad zuerst klären: Läuft der Build, der diese Datei tatsächlich lädt,
+aus `~/vitalos` oder eigenständig aus dem Home-Root-Checkout? Erst dann patchen.
+
+---
+
+## Live-Firestore-Recherche 2026-07-22 (Methode + Befunde)
+
+Ab hier wurde nicht mehr nur Code gelesen, sondern **live gegen die produktive
+Firestore-DB** recherchiert, weil zwei Bug-Hypothesen (Coach-Tab leer, Brust fehlt
+in "Relative Muskelbelastung") sich am Code allein nicht mehr sauber verifizieren
+ließen — Vermutung ("könnte an X liegen") wurde durch echten Datenabgleich ersetzt.
+
+**Technik — Firestore direkt abfragen:** Service-Account-Credentials liegen unter
+`~/.env/firebase-fitness.json` (siehe CLAUDE.md-Abschnitt "Firestore Sync"). Damit
+lässt sich mit dem `firebase-admin`-Python-Paket (bereits installiert) jederzeit
+direkt gegen die Prod-DB query'en, ohne Browser/DevTools:
+
+```python
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+cred = credentials.Certificate('/home/alpha/.env/firebase-fitness.json')
+firebase_admin.initialize_app(cred)
+db = firestore.client()
+
+# collection_group durchsucht die Subcollection über ALLE User hinweg
+docs = db.collection_group('sessions').where('date', '==', '2026-07-20').get()
+for d in docs:
+    print(d.reference.path, d.to_dict())
+```
+
+**Diese Technik unbedingt weiter nutzen**, bevor man bei Firestore-Bugs auf
+Verdacht patcht — sie deckte zwei Bugs auf, die aus reinem Code-Lesen nicht
+zweifelsfrei hervorgingen:
+
+**Bug A — `doc.reference` statt `doc.ref` (v8- vs. v9-SDK-API):** Browser-Konsole
+zeigte den echten Produktionsfehler `TypeError: Cannot read properties of
+undefined (reading 'parent')` in `getGlobalInbox()`. Der Quellcode nutzte überall
+`d.reference.parent?.parent?.id` — `.reference` ist die **v8/Namespaced-API**,
+im tatsächlich verwendeten **v9-modularen SDK** (`import { ... } from
+"firebase/firestore"`) heißt die Property auf einem `QueryDocumentSnapshot` **`.ref`**,
+nicht `.reference`. `d.reference` war deshalb immer `undefined`, und `d.reference.parent`
+crashte sofort — die Optional-Chaining (`?.`) davor konnte nichts retten, weil sie
+erst *nach* dem ersten (nicht abgesicherten) `.reference`-Zugriff ansetzt. Betraf
+`getGlobalInbox()` (sessions.js) sowie `getGlobalJournalFeed()` und
+`getAllUserProfiles()` (utils.js) — insgesamt 9 Fundstellen, alle ersetzt.
+Fix: Commit `c46c713`.
+
+**Bug B — `getSession(date)` vs. `listSessionsForDate(date)`:** Ausgangspunkt war
+die Beobachtung, dass "Brust" im Review-Tab unter "Relative Muskelbelastung"
+fehlte, obwohl der User am Montag (2 Tage zuvor) nachweislich Incline Bench Press
+trainiert hatte und der Muscles-Tab (Superkompensation) das auch korrekt zeigte.
+Live-Firestore-Query auf `collection_group('sessions').where('date','==','2026-07-20')`
+fand das reale Dokument unter dem Pfad
+`fitness/59ole36uNpNwml5H6VDYCXyCME92/sessions/2026-07-20__1784567246187` — **mit
+Zeitstempel-Suffix in der Dokument-ID**, nicht unter dem reinen Datumsstring. Grund:
+`useSession.js:372` (`handleNewSession()`) vergibt bei **jeder** neuen Session
+`String(Date.now())` als Suffix — das ist der Standardfall, nicht nur bei echten
+Mehrfach-Sessions pro Tag. `getWeeklyReport()` in `firestore/analysis.js` rief aber
+`getSession(date)` auf, was **exakt** auf die Dokument-ID `date` (ohne Suffix)
+matched (`getDoc(doc(db, "fitness", uid, "sessions", date))`) — fand das Dokument
+nie, `getSession` fiel auf den leeren Stub `{ exercises: [] }` zurück. Betraf nicht
+nur "Brust", sondern **den kompletten Trainingstag** (auch die zweite Übung dieser
+Session, "Shoulder External Rotation (Cable)", fehlte). `listSessionsForDate(date)`
+(genutzt vom Session-Tab selbst) macht stattdessen eine Firestore-**Query** auf das
+`date`-**Feld** (`where("date","==",date)`) statt auf die Dokument-ID — funktioniert
+unabhängig vom Suffix. Fix: `getWeeklyReport()`-Schleife auf `listSessionsForDate()`
+umgestellt, gegen echte Daten verifiziert (Query fand das Dokument, direkter Lookup
+nicht). Commit `c46c713`. **Prüfenswert für Fable 5:** ob `getMuscleCoverage()` oder
+andere Firestore-Funktionen denselben `getSession(date)`-Direktlookup ohne
+Suffix-Berücksichtigung verwenden — noch nicht systematisch durchsucht.
+
+**Bug C (bestätigt, nicht gefixt) — systemische Muskel-Fehlzuordnung im
+unreviewten wger-Import:** Auf Anfrage systematisch gescannt: 18 Exercises in
+`fitness/catalog/kb/exercises/unreviewed_wger.yml`, deren Name auf hintere
+Schulter/Außenrotation hindeutet ("rear", "reverse", "posterior", "face pull",
+"external rotation"), aber `301_anterior_deltoid` als primären oder einzigen
+Muskel tragen, während `303_posterior_deltoid` komplett fehlt (u.a. `wger_822
+cable rear delt fly`, `wger_1555 shoulder external rotation (cable)` — letzteres
+exakt die zweite Übung aus der oben untersuchten Montags-Session des Users).
+**Wichtig:** Alle 18 Treffer liegen in `unreviewed_wger.yml` (Bulk-Tier) — laut
+User-Vorgabe dürfen unreviewte Exercises fachlich falsch sein, das ist Teil des
+Inbox/Gemini-Enrichment-Workflows (`queueForEnrichment()` in `useSession.js:210`,
+nur getriggert wenn `ex.source !== 'expert'`). Der eigentliche Hebel ist **nicht**,
+diese 18 Einträge einzeln zu patchen (umgeht die Inbox-Logik), sondern
+sicherzustellen, dass jede geloggte unreviewte Übung zuverlässig einen
+Inbox-Eintrag erzeugt — siehe Bug A/Firestore-Inbox-Fix (Commit `4647717`, User
+`userId`-Feld). Scan-Skript (Python, `fitness/catalog/kb/exercises/`, alle
+`.yml` außer `unreviewed_*` durchsuchen, `re.search(r'rear|reverse|posterior|
+face pull|external rotation', name)` gegen `primary_muscles`/`secondary_muscles`)
+ist im Session-Verlauf dokumentiert, nicht als Datei abgelegt — bei Bedarf
+neu schreiben, dauert nur Sekunden.
+
+**Coach-UID verifiziert, kein Bug:** Kurz vermutet, dass `firestore.rules:8`
+(`isCoach()`) und `App.jsx:228` unterschiedliche UIDs hartcodieren könnten — beide
+nutzen aber denselben String `59ole36uNpNwml5H6VDYCXyCME92`. Per
+`firebase_admin.auth.get_user()` verifiziert: diese UID gehört zu
+`nimmsel23@gmail.com` (dem echten Coach-Account des Users). Kein Mismatch, false
+lead — **erledigt, nicht weiter verfolgen.** (Die `email.includes('alpha')`-
+Fallback-Bedingung in `App.jsx:228` ist für diesen Account ohnehin irrelevant, da
+die echte E-Mail kein "alpha" enthält — nur die exakte UID-Bedingung greift, und
+die ist korrekt.)
+
+**Gesamtbild, wie es sich nach dieser Recherche darstellt:** Der Coach-Tab war aus
+mindestens zwei unabhängigen Gründen leer (Bug A für Klienten-Workouts/
+Übungsanfragen; vermutlich fehlender/veralteter KB-Sync für Katalog Browser, noch
+nicht verifiziert — die Coach-UID war es nachweislich nicht). Das Review-Tab-Problem
+(Bug B) war komplett unabhängig davon und hätte
+mit reinem Code-Lesen ohne echten Datenabgleich vermutlich falsch diagnostiziert
+werden können (die Muskel-Mapping-Funktion selbst ist tatsächlich sauber — der
+Fehler lag zwei Ebenen darüber, im Session-Retrieval). **Lektion:** Bei
+Firestore-Bugs, wo die Datenform selbst unklar ist (Dokument-IDs, tatsächlich
+gespeicherte Feldwerte), lohnt sich die Live-Query fast immer schneller als
+Code-Ferndiagnose.
+
+**Aufgabenteilung ab 2026-07-22 (User-Vorgabe):** Claude übernimmt ab hier die
+**Coach View** mit ihren 3 Sub-Tabs (Übungsanfragen/Inbox, Klienten-Workouts/Client
+Feed, Katalog Browser) — offener Punkt dazu: Katalog-Browser-Leerlauf verifizieren
+(KB-Sync-Stand prüfen; Coach-UID ist bereits geklärt, s.o., kein offener Punkt
+mehr). **Fable 5 übernimmt die Exercise-/Muscle-Logik** — d.h. Bug C (systemische
+`301_anterior_deltoid`-Fehlzuordnung im wger-Bulk-Import), die fehlende
+Muskel-Hierarchie (`parent`-Feld, siehe oben), sowie generell alles rund um
+`fitness/catalog/kb/exercises/` und `fitness/catalog/kb/muscles/`. Nicht
+gegenseitig ins jeweils andere Themenfeld vorgreifen, außer explizit abgestimmt.
+
+**Bug C — Root Cause gefunden + Import-Logik gefixt (2026-07-22, Fable 5):**
+wgers eigene Muskeltaxonomie (`fitness/catalog/kb/registry/wger_muscles.yml`) hat
+für die gesamte Schulter nur **eine** ID: `2 = "Anterior deltoid"`. Es gibt dort
+keine separate Rear-/Lateral-Delt-ID. wger selbst taggt deshalb jede
+Schulterübung — Front Raise genauso wie Rear Delt Fly — mit ID 2.
+`fitness/catalog/importer.py` (`get_norm_muscles()`, bulk-Import aus lokalem
+wger `:8000`) übernahm diese ID 1:1 über die `wger_id → norm_id`-Reverse-Lookup-
+Tabelle, ohne den Übungsnamen zu berücksichtigen → jede importierte
+Schulterübung landete zwangsläufig auf `301_anterior_deltoid`, nie auf
+`303_posterior_deltoid` oder `302_lateral_deltoid` (letztere hat ohnehin
+`wger_id: ~`, ist also über diesen Pfad gar nicht erreichbar). Betraf ~23
+Einträge in `unreviewed_wger.yml` (u.a. `wger_822 Cable Rear Delt Fly`,
+`wger_828 Incline Bench Reverse Fly`, `wger_1555 Shoulder External Rotation
+(Cable)`, diverse Seitheben/Lateral-Raise-Varianten).
+**Fix:** `reclassify_deltoid_muscles()` in `importer.py` — Keyword-Heuristik
+(EN+DE: rear/reverse/posterior/face pull/external rotation/vorgebeugt →
+posterior; lateral raise/side raise/seitheben/upright row → lateral) reklas-
+sifiziert `301_anterior_deltoid` in `primary`/`secondary` nach dem
+wger-Lookup, aber vor dem Schreiben der unreviewed-YAML. Bewusst **nur**
+Code-Fix, **keine** rückwirkende Korrektur der bestehenden
+`unreviewed_wger.yml` — die Einträge sind laut User-Vorgabe als unreviewed
+korrekt gekennzeichnet und laufen ohnehin durch Inbox/Gemini-Review (Bug A),
+ein nachträglicher Bulk-Patch würde diesen Review-Pfad umgehen. Der Fix greift
+beim nächsten `import_external_exercises()`-Lauf. Echte Front-Delt-Übungen
+(Frontheben, Schulterdrücken, Incline Press — dort ist anterior_deltoid als
+Sekundärmuskel fachlich korrekt) bleiben unverändert, da der Guard nur greift
+wenn `301_anterior_deltoid` bereits im Muskel-Set steht und dann per Keyword
+umklassifiziert — kein falscher Eingriff bei Übungen ohne Deltoid-Beteiligung.
+Bestehende Pytest-Fehlschläge (`test_resolver.py`, `test_coverage.py`,
+`test_audit.py`, `test_planner.py` — 16 insgesamt) sind vorbestehend
+(verifiziert via `git stash`), unabhängig von diesem Fix, vermutlich Folge der
+canonical-ID-Umstellung (`041` statt `incline_dumbbell_press` etc.) aus Commit
+`0875e37` — noch nicht untersucht, separates Ticket wert.
+
+---
+
 ## Architektur: Zwei Schichten
 
 ### 1. fitness-dev (dieses Repo) — der Tempel
@@ -608,3 +892,16 @@ _http.coverage(days)         # GET /coverage?days=N
 _http.gaps(days)             # GET /coverage/gaps?days=N
 _http.search(query)          # GET /exercises/search?q=...
 ```
+
+---
+
+## Git Status (2026-07-20)
+
+**Lokales Repo:**
+- **dev branch** — aktiver Entwicklungs-Branch (2026-07-20: TUI Import-Fix gepusht)
+- **master branch** — Produktions-Branch (gemergt von dev, 2 Commits ahead von origin/master)
+
+**vitalos Meta-Repo:**
+- ⚠️ **fitness-app Submodul-Pointer beschädigt** — detached HEAD, geänderte Dateien (public/manifest.json, public/sw.js)
+- Status: 2 Commits ahead von origin/master
+- Notwendig: Submodul-Pointer aktualisieren oder Abhängigkeiten klären

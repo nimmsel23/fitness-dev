@@ -1,6 +1,6 @@
 import { api } from "./core";
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants";
-import { MUSCLE_GROUPS, muscleToGroupIds } from "../shared/muscle";
+import { GAP_REPORT_GROUPS, muscleToGroupIds } from "../shared/muscle";
 
 export async function getDashboardAnalytics(days = 28) {
   try {
@@ -170,7 +170,7 @@ export async function getMuscleCoverage(days = 7) {
 
 export async function getCoverageGaps(days = 7, threshold = 1.0) {
   const hits = await getMuscleCoverage(days);
-  return MUSCLE_GROUPS
+  return GAP_REPORT_GROUPS
     .filter(g => (hits[g] || 0) < threshold)
     .map(g => ({ name: g, hits: hits[g] || 0 }));
 }

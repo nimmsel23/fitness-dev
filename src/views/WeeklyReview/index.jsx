@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { getWeeklyReport, exportFitnessData } from '@db';
-import { BarChart3, Activity } from 'lucide-react';
+import { getWeeklyReport, exportFitnessData, getRecentSessions } from '@db';
+import { BarChart3, Activity, History } from 'lucide-react';
 
 import ReviewHeader from './ReviewHeader';
 import ReviewOverview from './ReviewOverview';
@@ -8,6 +8,7 @@ import ReviewInsights from './ReviewInsights';
 import ReviewMuscleImpact from './ReviewMuscleImpact';
 import ReviewSessionList from './ReviewSessionList';
 import ReviewTopExercises from './ReviewTopExercises';
+import ReviewHistory from './ReviewHistory.jsx';
 import Muscles from '../Muscles/index.jsx';
 
 export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleLanguage = 'de', taxonomy = null, gender = 'male', recentDays = 7, subTab = null, onSubNav }) {
@@ -15,7 +16,15 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast]     = useState('');
-  const viewMode = subTab === 'muscles' ? 'muscles' : 'report';
+  const [historySessions, setHistorySessions] = useState([]);
+  const viewMode = subTab === 'muscles' ? 'muscles' : subTab === 'verlauf' ? 'verlauf' : 'report';
+
+  useEffect(() => {
+    if (viewMode !== 'verlauf') return;
+    getRecentSessions(60)
+      .then(s => setHistorySessions(Array.isArray(s) ? s.filter(x => x?.exercises?.length > 0 || x?.activity) : []))
+      .catch(() => setHistorySessions([]));
+  }, [viewMode]);
 
   function onNavigate(tab, date) {
     if (tab === 'session') onOpenSession?.(date || null);
@@ -60,6 +69,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
         {[
           { id: 'report',  icon: <BarChart3 size={14} />, label: 'Bericht' },
           { id: 'muscles', icon: <Activity size={14} />,  label: 'Muskeln' },
+          { id: 'verlauf', icon: <History size={14} />,   label: 'Verlauf' },
         ].map(({ id, icon, label }) => (
           <button key={id}
             onClick={() => onSubNav?.(id)}
@@ -72,6 +82,8 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
 
       {viewMode === 'muscles' ? (
         <Muscles gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} recentDays={recentDays} />
+      ) : viewMode === 'verlauf' ? (
+        <ReviewHistory sessions={historySessions} onOpenSession={onOpenSession} />
       ) : loading ? (
         <div className="flex flex-col items-center justify-center py-32 opacity-30">
           <div className="spinner mb-6" />
