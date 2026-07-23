@@ -36,6 +36,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   v8/Namespaced-API und im v9-Import immer `undefined`).
 - Nach `git push`: `gh run list --limit 5` / `gh run view <id> --log-failed`
   prüfen — Post-Push-Hook triggert automatisch Build+Deploy.
+- **Alembic verwaltet `training_history` nur teilweise** — `fitness/catalog/history.py`
+  ist ein zweiter, aktiv genutzter Schreiber mit eigenem Alt-Schema (Raw-`sqlite3`,
+  nicht SQLAlchemy). Siehe [[Alembic / SQLAlchemy — Schema-Drift]] weiter unten,
+  bevor an `training_history` oder an Migrationen gearbeitet wird.
 
 ---
 
@@ -905,3 +909,45 @@ _http.search(query)          # GET /exercises/search?q=...
 - ⚠️ **fitness-app Submodul-Pointer beschädigt** — detached HEAD, geänderte Dateien (public/manifest.json, public/sw.js)
 - Status: 2 Commits ahead von origin/master
 - Notwendig: Submodul-Pointer aktualisieren oder Abhängigkeiten klären
+
+---
+
+## Alembic / SQLAlchemy — konsolidiert (Fix 2026-07-23)
+
+**Ursprünglicher Befund (verifiziert 2026-07-23, Vormittag):** Zwei konkurrierende
+Schema-Definitionen für `training_history` — SQLAlchemy/Alembic (`db/models.py`,
+Stand `session_id`, kein `pain`, verwendet von `sync_gateway.py`) vs. ein zweiter,
+aktiv genutzter Raw-`sqlite3`-Pfad in `fitness/catalog/history.py` mit hardcodiertem
+Vor-Migrations-Schema (`pain`-Spalte, kein `session_id`). Live gegen die Prod-DB
+bestätigt: `read_history()`/`read_history_range()` crashten mit
+`sqlite3.OperationalError: no such column: pain`.
+
+**Fix, noch am selben Tag umgesetzt:** `history.py` komplett auf SQLAlchemy/ORM
+umgestellt — kein Raw-SQL mehr im ganzen Repo für diese Tabelle. `pain` war aber
+kein totes Feld (aktiv genutzt: CLI `--pain`-Option in `cli.py`, TUI-State +
+"Use caution"-Hinweis in `progress_hint()`) — auf User-Entscheidung wieder ins
+ORM-Model aufgenommen statt gestrichen: neue Migration
+`alembic/versions/c5d9a0897e46_re_add_pain_column.py` (`d90af757a7b1` →
+`c5d9a0897e46`), gegen die Live-DB gefahren (Backup vorher unter
+`~/.aos/fitness/sessions/training_history.sqlite.bak.*`). Die Migration räumt
+nebenbei den verwaisten Alt-Index `idx_training_history_exercise_date` weg (Relikt
+aus dem alten Raw-SQL-Pfad, redundant zu `idx_th_exercise_date`).
+
+**Jetzt einheitlich — eine Schema-Quelle, zwei Schreiber:**
+- `db/models.py` (`TrainingHistory`) ist die einzige Model-Definition, Alembic
+  versioniert jede Änderung daran (`alembic revision --autogenerate` + `upgrade head`).
+- `fitness/catalog/api/sync_gateway.py` (Session-JSON → SQLite, von `server.mjs`
+  angestoßen) und `fitness/catalog/history.py` (CLI/TUI/`weekly.py`-Pfad) nutzen
+  beide dasselbe ORM-Model — kein Raw-`CREATE TABLE`/`SELECT` mehr.
+- **Ein bewusster Unterschied bleibt:** `history.py` baut sich pro Aufruf eine
+  eigene Engine über `db.resolve_db_path()` (live aufgelöst, respektiert
+  `HOME`/`FITNESS_RUNTIME` zum Aufrufzeitpunkt), statt die beim Prozessstart einmalig
+  gebundene `db.engine`/`db.SessionLocal` zu importieren. Grund: Tests patchen
+  `HOME` pro Testfall für Isolation — mit der gecachten Prozess-Engine trafen alle
+  Testfälle nach dem ersten dieselbe (längst wieder gelöschte) Tempdir-Datei
+  (`sqlite3.OperationalError: attempt to write a readonly database`). Für
+  `sync_gateway.py`/`api.py` (ein Prozess, HOME ändert sich nie zur Laufzeit) bleibt
+  die gecachte `db.engine` weiterhin korrekt und unverändert.
+- Verifiziert: Pytest-Suite zeigt nach dem Umbau exakt dieselben 59 vorbestehenden
+  Fehler wie vorher (`git stash`-Vergleich) — keine Regression. Live-Read gegen die
+  Prod-DB (`read_history_range()`) funktioniert wieder.

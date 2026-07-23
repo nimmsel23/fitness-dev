@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-import sqlite3
-from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from fitness.catalog.core.paths import runtime_root
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
 from fitness.catalog.core.resolver import resolve_query
-
-
-DB_FILENAME = "training_history.sqlite"
 
 
 @dataclass
@@ -23,40 +20,30 @@ class TrainingLogResult:
 
 
 def history_db_path() -> Path:
-    return Path.home() / ".aos" / "fitness" / "sessions" / DB_FILENAME
+    """Live auflösen (nicht die Prozess-weit gecachte `db.DB_PATH`) — respektiert
+    HOME/FITNESS_RUNTIME zum Aufrufzeitpunkt, wichtig für Test-Isolation."""
+    from db import resolve_db_path
+    return resolve_db_path()
+
+
+def _session_factory():
+    """Engine an den *aktuellen* history_db_path() gebunden — Schema/Model bleiben
+    Alembic-verwaltet (db/models.py), nur die Pfadauflösung ist hier bewusst nicht
+    prozessweit gecacht wie in db/__init__.py."""
+    from db import Base
+    from db.models import TrainingHistory
+
+    db_path = history_db_path()
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
+    Base.metadata.create_all(engine)
+    return sessionmaker(bind=engine, autocommit=False, autoflush=False), TrainingHistory
 
 
 def ensure_history_db() -> Path:
-    db_path = history_db_path()
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    with closing(sqlite3.connect(db_path)) as connection:
-        connection.execute(
-            """
-            CREATE TABLE IF NOT EXISTS training_history (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                date TEXT NOT NULL,
-                workout_id TEXT NOT NULL,
-                exercise_id TEXT NOT NULL,
-                display_name TEXT NOT NULL,
-                sets INTEGER NOT NULL,
-                reps INTEGER NOT NULL,
-                weight REAL NOT NULL,
-                rpe INTEGER NOT NULL,
-                done INTEGER NOT NULL DEFAULT 0,
-                notes TEXT NOT NULL DEFAULT '',
-                pain TEXT NOT NULL DEFAULT '',
-                completion_status TEXT NOT NULL DEFAULT 'completed'
-            )
-            """
-        )
-        columns = {row[1] for row in connection.execute("PRAGMA table_info(training_history)").fetchall()}
-        if "done" not in columns:
-            connection.execute("ALTER TABLE training_history ADD COLUMN done INTEGER NOT NULL DEFAULT 0")
-        connection.execute(
-            "CREATE INDEX IF NOT EXISTS idx_training_history_exercise_date ON training_history(exercise_id, date DESC, id DESC)"
-        )
-        connection.commit()
-    return db_path
+    """Legt fehlende Tabellen an (Schema selbst ist Alembic-verwaltet, siehe db/models.py)."""
+    _session_factory()
+    return history_db_path()
 
 
 def log_training_entry(
@@ -78,40 +65,53 @@ def log_training_entry(
         raise ValueError(f"Unknown exercise: {exercise_query}")
 
     display_name = resolution.display_name or resolution.canonical_id
-    db_path = ensure_history_db()
+    SessionLocal, TrainingHistory = _session_factory()
     entry_date = date or datetime.now().date().isoformat()
     entry_workout_id = workout_id or datetime.now().strftime("workout-%Y%m%dT%H%M%S")
 
-    with closing(sqlite3.connect(db_path)) as connection:
-        cursor = connection.execute(
-            """
-            INSERT INTO training_history (
-                date, workout_id, exercise_id, display_name, sets, reps, weight, rpe, done, notes, pain, completion_status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                entry_date,
-                entry_workout_id,
-                resolution.canonical_id,
-                display_name,
-                sets,
-                reps,
-                weight,
-                rpe,
-                1 if done else 0,
-                notes or "",
-                pain or "",
-                completion_status or "completed",
-            ),
+    with SessionLocal() as session:
+        row = TrainingHistory(
+            date=entry_date,
+            workout_id=entry_workout_id,
+            exercise_id=resolution.canonical_id,
+            display_name=display_name,
+            sets=sets,
+            reps=reps,
+            weight=weight,
+            rpe=rpe,
+            done=1 if done else 0,
+            notes=notes or "",
+            pain=pain or "",
+            completion_status=completion_status or "completed",
         )
-        connection.commit()
+        session.add(row)
+        session.commit()
+        session.refresh(row)
+        row_id = row.id
 
     return TrainingLogResult(
         exercise_id=resolution.canonical_id,
         display_name=display_name,
         workout_id=entry_workout_id,
-        row_id=int(cursor.lastrowid),
+        row_id=int(row_id),
     )
+
+
+def _row_to_dict(row: Any) -> dict[str, Any]:
+    return {
+        "date": row.date,
+        "workout_id": row.workout_id,
+        "exercise_id": row.exercise_id,
+        "display_name": row.display_name,
+        "sets": row.sets,
+        "reps": row.reps,
+        "weight": row.weight,
+        "rpe": row.rpe,
+        "done": row.done,
+        "notes": row.notes,
+        "pain": row.pain,
+        "completion_status": row.completion_status,
+    }
 
 
 def read_history(exercise_query: str, limit: int = 10) -> list[dict[str, Any]]:
@@ -119,36 +119,30 @@ def read_history(exercise_query: str, limit: int = 10) -> list[dict[str, Any]]:
     if not resolution.matched or not resolution.canonical_id:
         raise ValueError(f"Unknown exercise: {exercise_query}")
 
-    db_path = ensure_history_db()
-    with closing(sqlite3.connect(db_path)) as connection:
-        connection.row_factory = sqlite3.Row
-        rows = connection.execute(
-            """
-            SELECT date, workout_id, exercise_id, display_name, sets, reps, weight, rpe, done, notes, pain, completion_status
-            FROM training_history
-            WHERE exercise_id = ?
-            ORDER BY date DESC, id DESC
-            LIMIT ?
-            """,
-            (resolution.canonical_id, limit),
-        ).fetchall()
-    return [dict(row) for row in rows]
+    SessionLocal, TrainingHistory = _session_factory()
+
+    with SessionLocal() as session:
+        rows = (
+            session.query(TrainingHistory)
+            .filter(TrainingHistory.exercise_id == resolution.canonical_id)
+            .order_by(TrainingHistory.date.desc(), TrainingHistory.id.desc())
+            .limit(limit)
+            .all()
+        )
+        return [_row_to_dict(row) for row in rows]
 
 
 def read_history_range(date_from: str, date_to: str) -> list[dict[str, Any]]:
-    db_path = ensure_history_db()
-    with closing(sqlite3.connect(db_path)) as connection:
-        connection.row_factory = sqlite3.Row
-        rows = connection.execute(
-            """
-            SELECT date, workout_id, exercise_id, display_name, sets, reps, weight, rpe, done, notes, pain, completion_status
-            FROM training_history
-            WHERE date BETWEEN ? AND ?
-            ORDER BY date DESC, id DESC
-            """,
-            (date_from, date_to),
-        ).fetchall()
-    return [dict(row) for row in rows]
+    SessionLocal, TrainingHistory = _session_factory()
+
+    with SessionLocal() as session:
+        rows = (
+            session.query(TrainingHistory)
+            .filter(TrainingHistory.date >= date_from, TrainingHistory.date <= date_to)
+            .order_by(TrainingHistory.date.desc(), TrainingHistory.id.desc())
+            .all()
+        )
+        return [_row_to_dict(row) for row in rows]
 
 
 def progress_hint(exercise_query: str) -> dict[str, Any]:

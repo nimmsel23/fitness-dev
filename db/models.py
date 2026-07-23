@@ -24,6 +24,7 @@ class TrainingHistory(Base):
     rpe               : Mapped[int]   = mapped_column(Integer, nullable=False, default=0)
     done              : Mapped[int]   = mapped_column(Integer, nullable=False, default=0)
     notes             : Mapped[str]   = mapped_column(Text,    nullable=False, default="")
+    pain              : Mapped[str]   = mapped_column(Text,    nullable=False, default="")
     completion_status : Mapped[str]   = mapped_column(String,  nullable=False, default="completed")
 
     __table_args__ = (

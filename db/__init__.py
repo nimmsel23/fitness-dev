@@ -13,8 +13,19 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-_RUNTIME = Path(os.environ.get("FITNESS_RUNTIME", Path.home() / ".aos" / "fitness"))
-DB_PATH  = _RUNTIME / "sessions" / "training_history.sqlite"
+def resolve_db_path() -> Path:
+    """Live auflösen (nicht cachen) — respektiert FITNESS_RUNTIME/HOME zum Aufrufzeitpunkt.
+
+    Wichtig für Tests, die HOME per os.environ patchen: `DB_PATH` unten ist beim
+    Modul-Import einmalig fixiert (Prod-Engine bindet sich einmal pro Prozess),
+    Aufrufer die pfad-sensitiv bleiben müssen (siehe fitness/catalog/history.py)
+    rufen stattdessen diese Funktion frisch auf.
+    """
+    runtime = Path(os.environ.get("FITNESS_RUNTIME", Path.home() / ".aos" / "fitness"))
+    return runtime / "sessions" / "training_history.sqlite"
+
+
+DB_PATH = resolve_db_path()
 DB_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 engine = create_engine(
