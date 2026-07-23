@@ -29,6 +29,8 @@ from loguru import logger
 from rich.console import Console
 from rich.table import Table
 
+from . import muscle_to_group
+
 # ── Setup ─────────────────────────────────────────────────────────────────────
 logger.remove()
 logger.add(sys.stderr, format="<level>{level: <7}</level> {message}", level="INFO")
@@ -204,13 +206,26 @@ def recent(
         except Exception:
             continue
         a = d.get("activity") or {}
+        if a.get("muscles"):
+            muscles = ",".join(a["muscles"])
+        else:
+            # Kraft-Session ohne activity-Objekt: Muskelgruppen aus den
+            # primaryMuscles der geloggten Exercises zusammenziehen, statt
+            # (wie bisher) leer zu bleiben nur weil kein Cardio-Feld existiert.
+            groups: list[str] = []
+            for ex in d.get("exercises") or []:
+                for m in ex.get("primaryMuscles") or []:
+                    group = muscle_to_group(m)
+                    if group and group not in groups:
+                        groups.append(group)
+            muscles = ",".join(groups)
         rows.append({
             "date": stem,
             "kind": a.get("type") or d.get("block") or "?",
             "variant": a.get("swimStyle") or a.get("muscleTarget") or "",
             "min": a.get("duration") or "",
             "rpe": d.get("effort") or a.get("intensity") or "",
-            "muscles": ",".join(a.get("muscles", [])) if a else "",
+            "muscles": muscles,
             "exercises": len(d.get("exercises") or []),
             "notes": (d.get("notes") or a.get("notes") or "")[:30],
         })
