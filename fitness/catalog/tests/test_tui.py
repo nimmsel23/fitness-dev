@@ -7,11 +7,13 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from typer.testing import CliRunner
+
 from fitness.catalog.bootstrap import bootstrap
-from fitness.catalog.cli import build_parser
+from fitness.catalog.cli import app as catalog_app
 from fitness.catalog.history import read_history
 from fitness.catalog.agent.obsidian import load_runtime_config
-from fitness.catalog.tui import (
+from fitness.catalog.app_tui import (
     TuiState,
     browser_selected_record,
     build_screen_model,
@@ -38,9 +40,11 @@ class TuiTest(unittest.TestCase):
         self.tempdir.cleanup()
 
     def test_parser_exposes_tui_command(self) -> None:
-        args = build_parser().parse_args(["tui"])
-        self.assertEqual(args.command, "tui")
-        self.assertEqual(args.screen, "dashboard")
+        runner = CliRunner()
+        with mock.patch("fitness.catalog.cli.run_tui") as run_tui_mock:
+            result = runner.invoke(catalog_app, ["tui"])
+        self.assertEqual(result.exit_code, 0)
+        run_tui_mock.assert_called_once_with(initial_screen="dashboard")
 
     def test_browser_screen_resolves_alias(self) -> None:
         state = TuiState(active_screen="browser", browser_query="kh schrägbank")
@@ -114,11 +118,11 @@ class TuiTest(unittest.TestCase):
         state = TuiState(active_screen="preview", preview_source_screen="coach")
         stdscr = mock.Mock()
 
-        with mock.patch("catalog.tui.shutil.which", return_value="/usr/bin/glow"):
-            with mock.patch("catalog.tui.curses.def_prog_mode") as def_mock:
-                with mock.patch("catalog.tui.curses.endwin") as end_mock:
-                    with mock.patch("catalog.tui.curses.reset_prog_mode") as reset_mock:
-                        with mock.patch("catalog.tui.preview_file") as preview_mock:
+        with mock.patch("fitness.catalog.app_tui.shutil.which", return_value="/usr/bin/glow"):
+            with mock.patch("fitness.catalog.app_tui.curses.def_prog_mode") as def_mock:
+                with mock.patch("fitness.catalog.app_tui.curses.endwin") as end_mock:
+                    with mock.patch("fitness.catalog.app_tui.curses.reset_prog_mode") as reset_mock:
+                        with mock.patch("fitness.catalog.app_tui.preview_file") as preview_mock:
                             preview_mock.return_value.used_glow = True
                             preview_mock.return_value.message = "Previewed sample.md with glow."
                             result = handle_preview_action(stdscr, state)
@@ -133,7 +137,7 @@ class TuiTest(unittest.TestCase):
     def test_preview_screen_handles_missing_glow_gracefully(self) -> None:
         state = TuiState(active_screen="preview", preview_source_screen="coach")
 
-        with mock.patch("catalog.tui.shutil.which", return_value=None):
+        with mock.patch("fitness.catalog.app_tui.shutil.which", return_value=None):
             result = handle_preview_action(mock.Mock(), state)
 
         self.assertIn("glow is not installed", result.message)

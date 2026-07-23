@@ -1,0 +1,138 @@
+"""fitness-sync — KB-Sync + Firestore-Sync, an einem Ort statt in cli.py verstreut.
+
+  fitness-sync kb       [--dry-run]  Katalog (Exercises/Anatomy/Muscles/Yuhonas) → Firestore
+  fitness-sync pull                   Firestore → lokal (Sessions/Journal/Inbox/Habits + Fuel),
+                                       für den eigenen Operator-UID (firestore._db.UID)
+  fitness-sync pull-uid  <UID>        Sessions eines EINZELNEN Users ← Firestore, via die
+                                       laufende Node-API (Coach-Anwendungsfall: Klienten-Daten
+                                       ziehen ohne den eigenen UID zu wechseln)
+  fitness-sync push  [UID]            Lokal → Firestore (Sessions + Fuel)
+  fitness-sync watch [UID]            Fuel-Watchdog (blockierend, Ctrl+C zum Beenden)
+  fitness-sync all   [--dry-run]      kb + pull + push nacheinander
+
+Vorher lag das als ein einziger, unauffindbarer "sync"-Befehl in fitness/cli.py,
+der KB-Sync und Firestore-Sync über einen Subprocess-Aufruf eines separat
+installierten Binaries zusammenklebte — mit falschem Kommentar, ohne Zugriff
+auf pull/watch, und mit verschluckten Fehlern. Hier ruft jeder Unterbefehl die
+zugrundeliegende Funktion direkt auf (kein Subprocess, keine verschluckten
+Exceptions), analog zu fitness-mail/fitness-activity/fitness-tui.
+"""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+from pathlib import Path
+from typing import Optional
+
+import typer
+from loguru import logger
+
+app = typer.Typer(add_completion=False, no_args_is_help=True)
+
+DEV_PORT = int(os.environ.get("FITNESS_PORT", 9100))
+
+
+@app.command("kb")
+def sync_kb(dry_run: bool = typer.Option(False, "--dry-run", help="Nicht wirklich schreiben")) -> None:
+    """Katalog (Exercises/Anatomy/Muscles/Yuhonas) → Firestore."""
+    from fitness.catalog.api.firestore_push import run_kb_sync
+    run_kb_sync(dry_run=dry_run)
+
+
+@app.command("pull")
+def sync_pull() -> None:
+    """Firestore → lokal: Sessions, Journal, Inbox, Habits + Fuel-Nutrition/Supplements."""
+    from firestore.sync import pull
+    from firestore.fuel import pull_fuel
+
+    r = pull()
+    rf = pull_fuel()
+    logger.success(
+        f"pull — sessions {r['sessions']} · journal {r['journal']} · inbox {r['inbox']} "
+        f"| fuel: nutrition {rf['nutrition']} · supplements {rf['supplements']}"
+    )
+
+
+@app.command("pull-uid")
+def sync_pull_uid(
+    uid: Optional[str] = typer.Argument(None, help="Firestore UID (auto-detect wenn leer)"),
+) -> None:
+    """Sessions eines einzelnen Users ← Firestore, via die laufende Node-API (:9100).
+
+    Anders als "pull" (SDK-Direktzugriff, immer der eigene UID) ruft das den
+    /firestore/pull-Endpoint der Node-API auf — für den Coach-Anwendungsfall,
+    gezielt die Daten eines bestimmten Klienten zu ziehen, ohne den eigenen
+    aktiven UID umzustellen. Braucht einen laufenden Node-Server (fitnessctl dev).
+    """
+    if not uid:
+        uid = os.getenv("FITNESS_UID")
+    if not uid:
+        base = Path.home() / ".aos" / "fitness" / "users"
+        best, best_n = None, -1
+        for d in base.glob("*/sessions/"):
+            name = d.parent.name
+            if name in ("default", "kb"):
+                continue
+            n = len(list(d.glob("*.json")))
+            if n > best_n:
+                best, best_n = name, n
+        uid = best
+    if not uid:
+        logger.error("Keine uid — FITNESS_UID setzen oder als Argument übergeben")
+        raise typer.Exit(1)
+
+    logger.info(f"Pull ← Firestore (uid={uid})...")
+    out = Path("/tmp/fitness-pull.json")
+    r = subprocess.run([
+        "curl", "-fsS", "--max-time", "30", "-X", "POST",
+        f"http://127.0.0.1:{DEV_PORT}/firestore/pull",
+        "-H", f"X-User-UID: {uid}", "-o", str(out),
+    ])
+    if r.returncode != 0:
+        logger.error("Pull request fehlgeschlagen")
+        raise typer.Exit(1)
+    result = json.loads(out.read_text())
+    if not result.get("ok"):
+        logger.error(result.get("error", "unknown"))
+        raise typer.Exit(1)
+    logger.success(f"pulled {result['pulled']} · skipped {result['skipped']} · conflicts {result['conflicts']}")
+    if result.get("conflict_dates"):
+        logger.warning(f"Konflikte: {', '.join(result['conflict_dates'])}")
+
+
+@app.command("push")
+def sync_push(uid: Optional[str] = typer.Argument(None, help="Firestore UID (Default: firestore._db.UID)")) -> None:
+    """Lokal → Firestore: Sessions + Fuel."""
+    from firestore.sync import push
+    from firestore.fuel import push_fuel
+    from firestore._db import UID
+
+    r = push()
+    rf = push_fuel(uid or UID)
+    logger.success(f"push — sessions {r['sessions']} | fuel {rf.get('written', 0)} writes · {rf.get('skipped', 0)} skipped")
+    if rf.get("error"):
+        logger.warning(f"push fuel error: {rf['error']}")
+
+
+@app.command("watch")
+def sync_watch(uid: Optional[str] = typer.Argument(None, help="Firestore UID (Default: firestore._db.UID)")) -> None:
+    """Fuel-Watchdog: lokale Nutrition/Supplements-Änderungen → Firestore (blockierend)."""
+    from firestore.sync_cli import _watch_fuel
+    _watch_fuel(uid)
+
+
+@app.command("all")
+def sync_all(dry_run: bool = typer.Option(False, "--dry-run", help="KB-Sync nicht wirklich schreiben")) -> None:
+    """KB-Sync + Firestore Pull + Push nacheinander."""
+    sync_kb(dry_run=dry_run)
+    sync_pull()
+    sync_push()
+
+
+if __name__ == "__main__":
+    app()
+
+
+def main() -> None:
+    app()

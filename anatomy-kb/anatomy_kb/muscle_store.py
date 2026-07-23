@@ -46,7 +46,7 @@ def load_muscle(muscle_id: str) -> Optional[dict]:
 def save_muscle(muscle_id: str, data: dict) -> Path:
     MUSCLES_DIR.mkdir(exist_ok=True)
     yml = MUSCLES_DIR / f"{muscle_id}.yml"
-    yml.write_text(yaml.dump(data, allow_unicode=True, default_flow_style=False, sort_keys=False))
+    yml.write_text(yaml.dump(data, allow_unicode=True, default_flow_style=False, sort_keys=False), encoding="utf-8")
     return yml
 
 
@@ -150,7 +150,7 @@ def push_to_teaching(exercise_id: str, teaching_dir: Path, extra: dict | None = 
         if extra:
             doc.update(extra)
 
-    teaching_file.write_text(yaml.dump(doc, allow_unicode=True, default_flow_style=False, sort_keys=False))
+    teaching_file.write_text(yaml.dump(doc, allow_unicode=True, default_flow_style=False, sort_keys=False), encoding="utf-8")
     return teaching_file
 
 

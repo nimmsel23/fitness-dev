@@ -1,5 +1,5 @@
 """
-fitness_cli.data — Daten-Lade- und Klassifikationslogik.
+fitness.data — Daten-Lade- und Klassifikationslogik.
 
 Alle Funktionen greifen direkt auf Dateien zu — kein Server nötig.
 """
@@ -55,13 +55,13 @@ def classify(session: dict) -> str:
 
 # ── Session-Loading ───────────────────────────────────────────────────────────
 
-def load_sessions(days: int = 60) -> list[dict]:
+def load_sessions(days: int = 60, uid: str | None = None) -> list[dict]:
     """
     Lädt alle Session-JSONs der letzten N Tage aus sessions_dir().
     Gibt eine Liste zurück, neueste zuerst.
     Mehrere Dateien pro Tag (Multi-Session) werden alle geladen.
     """
-    sdir   = sessions_dir()
+    sdir   = sessions_dir(uid)
     cutoff = (date.today() - timedelta(days=days)).isoformat()
     out: list[dict] = []
 
@@ -82,9 +82,9 @@ def load_sessions(days: int = 60) -> list[dict]:
     return out
 
 
-def load_sessions_for_date(target_date: str) -> list[dict]:
+def load_sessions_for_date(target_date: str, uid: str | None = None) -> list[dict]:
     """Lädt alle Sessions für ein bestimmtes Datum (Multi-Session-Support)."""
-    sdir = sessions_dir()
+    sdir = sessions_dir(uid)
     results: list[dict] = []
     for f in sorted(sdir.glob(f"{target_date}*.json")):
         try:
@@ -99,12 +99,12 @@ def load_sessions_for_date(target_date: str) -> list[dict]:
 
 # ── SQLite ────────────────────────────────────────────────────────────────────
 
-def sqlite_exercise_history(exercise: str, limit: int = 20) -> list[dict]:
+def sqlite_exercise_history(exercise: str, limit: int = 20, uid: str | None = None) -> list[dict]:
     """
     Sucht nach einem Übungsnamen oder einer ID in training_history.sqlite
     und gibt den Set-Verlauf zurück (neueste zuerst).
     """
-    db = sqlite_db()
+    db = sqlite_db(uid)
     if not db.exists():
         return []
     try:
@@ -236,7 +236,7 @@ def load_all_clients(days: int = 10) -> list[dict]:
 
 # ── Firestore Sync-Info ───────────────────────────────────────────────────────
 
-def sync_info() -> dict:
+def sync_info(uid: str | None = None) -> dict:
     """
     Liest den systemd-Status des Firestore-Mirror-Service und gibt
     einen Status-Dict zurück.
@@ -257,11 +257,11 @@ def sync_info() -> dict:
         ["pgrep", "-fa", "mirror.py"], capture_output=True, text=True
     ).stdout.strip()
 
-    sdir       = sessions_dir()
+    sdir       = sessions_dir(uid)
     json_files = list(sdir.glob("*.json"))
     json_count = len(json_files)
 
-    db = sqlite_db()
+    db = sqlite_db(uid)
     sqlite_n, sqlite_latest = 0, "?"
     if db.exists():
         try:

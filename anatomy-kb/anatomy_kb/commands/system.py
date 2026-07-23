@@ -57,7 +57,11 @@ def doctor_command():
 
     check("exercises_dir", EXERCISES_DIR.exists(), str(EXERCISES_DIR))
 
-    yml_files = list(EXERCISES_DIR.glob("*.yml")) if EXERCISES_DIR.exists() else []
+    yml_files = []
+    if EXERCISES_DIR and EXERCISES_DIR.exists():
+        yml_files.extend(EXERCISES_DIR.glob("*.yml"))
+        yml_files.extend(EXERCISES_DIR.glob("*.yaml"))
+    yml_files = sorted(list(set(yml_files)))
     check("exercises yml", len(yml_files) > 0, f"{len(yml_files)} Dateien")
 
     parse_errors = []

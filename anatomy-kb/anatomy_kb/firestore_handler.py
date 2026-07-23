@@ -25,7 +25,6 @@ from datetime import datetime
 from pathlib import Path
 
 import yaml
-from aiohttp import web
 from loguru import logger
 
 from anatomy_kb.config import ANATOMY_KB_ROOT, ANATOMY_TEACHING
@@ -187,70 +186,5 @@ def _run_sync(dry_run: bool = False) -> dict:
     }
 
 
-# ── HTTP helpers ──────────────────────────────────────────────────────────────
+# End of file - web handlers removed in favor of FastAPI server.py
 
-def _dry(req: web.Request) -> bool:
-    return req.rel_url.query.get("dry") == "1"
-
-def _ok(data) -> web.Response:
-    return web.Response(text=json.dumps(data, ensure_ascii=False), content_type="application/json")
-
-def _err(msg: str, status: int = 500) -> web.Response:
-    return web.Response(text=json.dumps({"error": msg}), content_type="application/json", status=status)
-
-
-# ── Endpoints ─────────────────────────────────────────────────────────────────
-
-async def sync_all(request: web.Request) -> web.Response:
-    dry = _dry(request)
-    logger.info(f"firestore sync all dry={dry}")
-    try:
-        result = await asyncio.get_event_loop().run_in_executor(None, lambda: _run_sync(dry))
-        _last.update({"at": datetime.now().isoformat(), "status": "ok", "dry": dry, **result})
-        return _ok({"ok": True, "dry": dry, "at": _last["at"], **result})
-    except Exception as exc:
-        logger.error(exc)
-        _last.update({"at": datetime.now().isoformat(), "status": "error", "error": str(exc)})
-        return _err(str(exc))
-
-
-async def sync_muscles_handler(request: web.Request) -> web.Response:
-    dry = _dry(request)
-    try:
-        db = await asyncio.get_event_loop().run_in_executor(None, _get_db)
-        counts = await asyncio.get_event_loop().run_in_executor(None, lambda: _sync_muscles(db, dry))
-        return _ok({"ok": True, "counts": counts, "dry": dry})
-    except Exception as exc:
-        logger.error(exc)
-        return _err(str(exc))
-
-
-async def sync_anatomy_handler(request: web.Request) -> web.Response:
-    dry = _dry(request)
-    try:
-        db = await asyncio.get_event_loop().run_in_executor(None, _get_db)
-        counts = await asyncio.get_event_loop().run_in_executor(None, lambda: _sync_anatomy(db, dry))
-        return _ok({"ok": True, "counts": counts, "dry": dry})
-    except Exception as exc:
-        logger.error(exc)
-        return _err(str(exc))
-
-
-async def sync_index_handler(request: web.Request) -> web.Response:
-    dry = _dry(request)
-    try:
-        db = await asyncio.get_event_loop().run_in_executor(None, _get_db)
-        counts = await asyncio.get_event_loop().run_in_executor(None, lambda: _sync_index(db, dry))
-        return _ok({"ok": True, "counts": counts, "dry": dry})
-    except Exception as exc:
-        logger.error(exc)
-        return _err(str(exc))
-
-
-async def sync_exercises_handler(request: web.Request) -> web.Response:
-    """Exercises-Sync ist Sache des fitness-agent — hier nur Redirect-Hinweis."""
-    return _err("Exercises-Sync: fitness-agent kb-sync oder POST /api/firestore/sync/exercises via catalog", status=501)
-
-
-async def status(request: web.Request) -> web.Response:
-    return _ok({"ok": True, "last_sync": _last or None})

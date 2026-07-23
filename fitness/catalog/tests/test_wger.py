@@ -128,7 +128,7 @@ class WgerPlanExportTest(unittest.TestCase):
             seen_headers.append(dict(request.headers))
             return FakeResponse({"results": []}, status=200)
 
-        with mock.patch("catalog.wger.urlopen", side_effect=fake_urlopen):
+        with mock.patch("fitness.catalog.core.wger.urlopen", side_effect=fake_urlopen):
             report = wger_check()
 
         self.assertFalse(report.has_failures)
@@ -143,7 +143,7 @@ class WgerPlanExportTest(unittest.TestCase):
                 return FakeResponse({"results": []}, status=200)
             return FakeResponse({"results": [{"id": 101, "name": "Schrägbankdrücken mit Kurzhanteln"}]}, status=200)
 
-        with mock.patch("catalog.wger.urlopen", side_effect=fake_urlopen):
+        with mock.patch("fitness.catalog.core.wger.urlopen", side_effect=fake_urlopen):
             result = map_wger("incline_dumbbell_press", write=False)
 
         self.assertEqual(result.exercise_id, "incline_dumbbell_press")
@@ -160,7 +160,7 @@ class WgerPlanExportTest(unittest.TestCase):
                 return FakeResponse({"results": []}, status=200)
             return FakeResponse({"results": [{"id": 101, "name": "Schrägbankdrücken mit Kurzhanteln"}]}, status=200)
 
-        with mock.patch("catalog.wger.urlopen", side_effect=fake_urlopen):
+        with mock.patch("fitness.catalog.core.wger.urlopen", side_effect=fake_urlopen):
             result = map_wger("incline_dumbbell_press", write=True)
 
         mapping_path = self.home / ".fitness-agent" / "maps" / "wger_mapping.yml"
@@ -181,7 +181,7 @@ class WgerPlanExportTest(unittest.TestCase):
             return FakeResponse({"results": [{"id": 101, "name": "Schrägbankdrücken mit Kurzhanteln"}]}, status=200)
 
         buffer = io.StringIO()
-        with mock.patch("catalog.wger.urlopen", side_effect=fake_urlopen), mock.patch("sys.stdout", buffer):
+        with mock.patch("fitness.catalog.core.wger.urlopen", side_effect=fake_urlopen), mock.patch("sys.stdout", buffer):
             code = main(["map-wger", "--exercise", "incline_dumbbell_press"])
 
         self.assertEqual(code, 0)

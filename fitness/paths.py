@@ -1,5 +1,5 @@
 """
-fitness_cli.paths — Alle Pfad-Konstanten und -Auflösungen.
+fitness.paths — Alle Pfad-Konstanten und -Auflösungen.
 
 Zentralisiert: UID-Erkennung, sessions_dir, sqlite_db, Klienten-Root.
 """
@@ -16,14 +16,19 @@ ACTIVE_UID = _uid_file.read_text().strip() if _uid_file.exists() else None
 AOS_USERS  = Path.home() / ".aos" / "users"
 _AOS_FITNESS = (AOS_USERS / ACTIVE_UID / "fitness") if ACTIVE_UID else None
 
-def sessions_dir() -> Path:
+import os
+
+def sessions_dir(uid: str | None = None) -> Path:
     """Primär: ~/.aos/users/<uid>/fitness/sessions/  Fallback: <repo>/data/sessions/"""
-    if _AOS_FITNESS and (_AOS_FITNESS / "sessions").exists():
-        return _AOS_FITNESS / "sessions"
+    target_uid = uid or os.getenv("FITNESS_UID") or os.getenv("AOS_UID") or ACTIVE_UID
+    if target_uid:
+        aos_fitness = AOS_USERS / target_uid / "fitness"
+        if (aos_fitness / "sessions").exists():
+            return aos_fitness / "sessions"
     return REPO_ROOT / "data" / "sessions"
 
-def sqlite_db() -> Path:
-    return sessions_dir() / "training_history.sqlite"
+def sqlite_db(uid: str | None = None) -> Path:
+    return sessions_dir(uid) / "training_history.sqlite"
 
 # ── Klienten ──────────────────────────────────────────────────────────────────
 KLIENTEN_DIR  = Path.home() / "Klienten"

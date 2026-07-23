@@ -22,7 +22,7 @@ const DATA_DIR   = path.join(os.homedir(), ".aos", "users", FITNESS_UID, "fitnes
 const PUBLIC_DIR = path.join(__dirname, "public");
 const DIST_DIR   = path.join(__dirname, "dist");
 const STATIC_DIR = process.env.FITNESS_STATIC_DIR ? path.resolve(process.env.FITNESS_STATIC_DIR) : (fs.existsSync(DIST_DIR) ? DIST_DIR : PUBLIC_DIR);
-const PORT       = Number(process.env.PORT || 9100);
+const PORT       = Number(process.env.PORT || (process.env.NODE_ENV === 'production' ? 6100 : 9100));
 const HOST       = process.env.HOST || "127.0.0.1";
 const PYTHON_PORT = Number(process.env.FITNESS_PYTHON_PORT || 9150);
 const PYTHON_BASE = `http://127.0.0.1:${PYTHON_PORT}`;

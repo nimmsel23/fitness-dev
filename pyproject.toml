@@ -30,6 +30,7 @@ dependencies = [
     "pandas>=2.0.0",
     "sqlalchemy>=2.0.0",
     "alembic>=1.11.0",
+    "aiohttp>=3.9.0",
 ]
 
 [project.scripts]
@@ -38,9 +39,11 @@ fitness-log          = "fitness.commands.log:main"
 fitness-tui          = "fitness.commands.tui:main"
 fitness-activity     = "fitness.commands.activity:main"
 fitness-mail         = "fitness.commands.mail:main"
+fitness-sync         = "fitness.commands.sync:main"
 firestore-sync       = "firestore.sync_cli:main"
 fitness-catalog      = "fitness.catalog.cli:main"
 fitness-catalog-api  = "fitness.catalog.api.api:main"
+anatomy-agent        = "anatomy_kb.cli:main"
 
 [tool.poetry]
 packages = [
@@ -48,4 +51,5 @@ packages = [
     { include = "firestore" },
     { include = "fitness" },
     { include = "db" },
+    { include = "anatomy_kb", from = "anatomy-kb" },
 ]
