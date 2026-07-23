@@ -12,6 +12,9 @@ Domain commands (catalog, sessions, coverage etc.) → use: fitness
 """
 
 from pathlib import Path
+# Optional[X] heißt "entweder ein X, oder None" — nutzen wir als Rückgabetyp
+# von _load_module(), weil das Laden fehlschlagen kann (Datei fehlt, Syntax-
+# fehler etc.) und wir dann bewusst None statt eines Moduls zurückgeben.
 from typing import Optional
 
 import typer
@@ -19,31 +22,65 @@ from wasabi import Printer
 
 msg = Printer()
 
+# __file__ ist der Pfad dieser Datei selbst; .resolve() macht daraus einen
+# absoluten Pfad, .parent nimmt den Ordner statt der Datei — also den Ordner,
+# in dem fitnessctl, fitness-devctl und fitness-prodctl nebeneinander liegen.
 DEV_DIR = Path(__file__).resolve().parent
 
+# no_args_is_help=True: "fitnessctl" ganz ohne Argument zeigt die Hilfe,
+# statt stillschweigend nichts zu tun.
 app = typer.Typer(help="Fitness Centre Server Controller", no_args_is_help=True)
 
 
-def _load_module(name: str, filename: str) -> Optional[object]:
+def _load_module(name: str, filename: str):
+    """Lädt ein anderes Python-Skript aus diesem Ordner als Modul nach — obwohl
+    es keine .py-Endung hat und deshalb nicht per normalem "import" gefunden würde.
+
+    Hintergrund: fitness-devctl und fitness-prodctl sind bewusst ausführbare
+    CLI-Skripte ohne .py-Endung (man ruft sie direkt als "./fitness-devctl
+    status" auf). Python kann trotzdem ihren Code laden — SourceFileLoader
+    liest die Datei wie gewöhnlichen Python-Quellcode ein und macht daraus
+    ein Modul-Objekt, dessen Inhalte (hier vor allem: die Variable "app",
+    der typer-Unterbefehlsbaum) wir danach ganz normal ansprechen können.
+    """
     path = DEV_DIR / filename
     if not path.exists():
+        # Kein Absturz, wenn eine der beiden Dateien mal fehlt (z.B. während
+        # eines Umbaus) — fitnessctl bleibt dann nutzbar, nur ohne diesen
+        # Teilbereich. Siehe die if-Checks weiter unten.
         return None
     try:
+        # Lokaler Import: SourceFileLoader wird nur hier gebraucht, deshalb
+        # erst innerhalb der Funktion importiert statt ganz oben im File.
         from importlib.machinery import SourceFileLoader
         return SourceFileLoader(name, str(path)).load_module()
     except Exception as e:
+        # Ein möglichst breites "except Exception" ist hier bewusst gewählt:
+        # egal was beim Laden schiefgeht (Syntaxfehler, fehlender Import in
+        # der Zieldatei etc.), fitnessctl soll trotzdem starten können und
+        # nur eine Warnung zeigen statt komplett abzustürzen.
         msg.warn(f"Could not load {filename}: {e}")
         return None
 
 
+# Beide Sub-Skripte laden. _devctl/_prodctl sind danach entweder die
+# geladenen Module oder None (falls das Laden fehlschlug).
 _devctl = _load_module("fitness_devctl", "fitness-devctl")
 _prodctl = _load_module("fitness_prodctl", "fitness-prodctl")
 
+# app.add_typer(...) hängt den kompletten Unterbefehlsbaum eines anderen
+# typer.Typer()-Objekts unter einem neuen Namen in dieses App-Objekt ein.
+# Aus "fitness-devctl status" (direkt aufgerufen) wird dadurch
+# "fitnessctl dev status" (über den Dispatcher aufgerufen) — der Code in
+# fitness-devctl bleibt dabei komplett unverändert, es wird nur zusätzlich
+# unter einem Präfix erreichbar gemacht.
 if _devctl and hasattr(_devctl, "app"):
     app.add_typer(_devctl.app, name="dev", help="Dev-Stack (Node :9100, Python :9150, --user-scope)")
 
 if _prodctl and hasattr(_prodctl, "app"):
     app.add_typer(_prodctl.app, name="prod", help="Prod-Stack (Node :6100 system-scope, Python :9150 user-scope)")
 
+# Nur beim direkten Aufruf ausführen (python3 fitnessctl ...), nicht wenn
+# diese Datei selbst irgendwo als Modul importiert würde.
 if __name__ == "__main__":
     app()

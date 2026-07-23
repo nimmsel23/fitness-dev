@@ -10,21 +10,44 @@ fitness-devctl (Dev-Stack, --user-scope, aos-fitness-dev.service etc.):
 Deploy: ./deploy.sh (baut in ~/fitness-dev, rsynct nach /opt/fitness, restartet fitness.service)
 """
 
+# subprocess: Python-Standardbibliothek zum Starten anderer Programme (hier:
+# journalctl, systemctl, sudo, bash) und Einsammeln von deren Exit-Code/Output.
 import subprocess
+# Path: objektorientierter Ersatz für rohe String-Pfade (z.B. "/opt/fitness/x").
+# __file__ ist der Pfad dieses Skripts selbst — daraus leiten wir den Ordner ab,
+# in dem deploy.sh liegen muss.
 from pathlib import Path
 
+# typer: baut aus normalen Python-Funktionen automatisch ein CLI mit
+# --help, Argumenten, Optionen und Tab-Completion. Jede @app.command()-
+# Funktion weiter unten wird dadurch zu einem Unterbefehl wie
+# "fitness-prodctl status".
 import typer
+# wasabi.Printer: kleine Helper-Klasse für farbige Terminal-Ausgaben
+# (msg.good = grün "✔", msg.fail = rot "✘", msg.info = blau "ℹ").
 from wasabi import Printer
 
 msg = Printer()
 
+# no_args_is_help=True: wird das Skript ganz ohne Unterbefehl aufgerufen
+# (nur "fitness-prodctl"), zeigt es die Hilfe statt nichts zu tun.
 app = typer.Typer(help="Fitness Prod Controller", no_args_is_help=True)
 
+# .resolve() macht aus einem relativen Pfad einen absoluten, .parent nimmt
+# den Ordner statt der Datei selbst → Verzeichnis, in dem dieses Skript liegt.
 DEV_DIR = Path(__file__).resolve().parent
 
+# Namen der systemd-Units, die wir steuern. Als Konstanten oben definiert,
+# damit man sie an einer einzigen Stelle ändern kann, statt sie im Code
+# verstreut als Strings zu wiederholen.
 NODE_SERVICE = "fitness.service"          # system-scope, sudo nötig für restart/stop
 PYTHON_SERVICE = "fitness-python-backend.service"  # user-scope
 
+# Ein Dict als simples Lookup: Kommandozeilen-Kürzel ("node"/"python") →
+# (echter systemd-Unit-Name, ob es ein "system"- oder "--user"-Service ist).
+# system-scope-Units (wie fitness.service) gehören root/systemd global und
+# brauchen sudo zum Starten/Stoppen; --user-scope-Units laufen unter dem
+# eigenen Login und brauchen kein sudo.
 SERVICES = {
     "node": (NODE_SERVICE, True),      # (unit, is_system_scope)
     "python": (PYTHON_SERVICE, False),
@@ -32,29 +55,62 @@ SERVICES = {
 
 
 def _journalctl_base(unit: str, system_scope: bool) -> list[str]:
+    """Baut die Basis-Kommandozeile für journalctl (die Log-Anzeige von systemd).
+
+    Wir bauen hier bewusst eine *Liste* von Strings ("journalctl", "-u", ...)
+    statt eines einzigen Kommando-Strings — subprocess.run() erwartet das so
+    und vermeidet damit Shell-Escaping-Probleme (z.B. wenn ein Unit-Name mal
+    Leerzeichen oder Sonderzeichen enthalten würde).
+    """
     cmd = ["journalctl", "-u", unit]
     if not system_scope:
+        # --user-Units brauchen das --user-Flag, sonst sucht journalctl in
+        # den System-weiten Logs statt in denen des eigenen Nutzers.
         cmd.insert(1, "--user")
     return cmd
 
 
 def _systemctl(action: str, unit: str, system_scope: bool) -> int:
+    """Führt systemctl <action> <unit> aus (z.B. "restart fitness.service").
+
+    Gibt den Exit-Code des Unterprozesses zurück (0 = Erfolg, alles andere
+    = Fehler) — Aufrufer können damit entscheiden, ob sie eine Fehlermeldung
+    zeigen sollen.
+    """
+    # Für system-scope-Units stellen wir "sudo" voran, weil normale Nutzer
+    # /etc/systemd/system/-Units nicht starten/stoppen dürfen.
     cmd = (["sudo"] if system_scope else []) + ["systemctl"]
     if not system_scope:
         cmd.append("--user")
     cmd += [action, unit]
+    # subprocess.run() startet den Befehl, wartet auf sein Ende und gibt ein
+    # CompletedProcess-Objekt zurück; .returncode ist dessen Exit-Status.
     return subprocess.run(cmd).returncode
 
 
+# Der @app.command()-Dekorator registriert die Funktion darunter als
+# Unterbefehl bei typer. Der Funktionsname wird automatisch zum Befehlsnamen
+# ("status" → "fitness-prodctl status"), der Docstring wird zum --help-Text.
 @app.command()
 def status():
     """Status beider Prod-Services (gum-Tabelle falls verfügbar, sonst Klartext)."""
+    # SERVICES.items() liefert (key, value)-Paare aus dem Dict oben, hier
+    # also z.B. ("node", ("fitness.service", True)). Das Auspacken direkt
+    # in der for-Zeile ("for name, (unit, system_scope) in ...") nennt man
+    # Tuple-Unpacking — spart eine Zeile gegenüber "pair = ...; name = pair[0]".
     for name, (unit, system_scope) in SERVICES.items():
         cmd = ["systemctl"]
         if not system_scope:
             cmd.append("--user")
         cmd += ["is-active", unit]
+        # capture_output=True fängt stdout/stderr des Unterprozesses ein,
+        # statt sie direkt ins Terminal durchzureichen — wir wollen den Text
+        # ja selbst auswerten. text=True gibt uns dabei normale Python-
+        # Strings zurück statt roher bytes.
         result = subprocess.run(cmd, capture_output=True, text=True)
+        # .strip() entfernt das Zeilenumbruch-Zeichen, das systemctl anhängt.
+        # "or 'unknown'" ist ein kurzer Fallback: ist stdout leer (z.B. weil
+        # der Befehl fehlschlug), zeigen wir "unknown" statt eines leeren Strings.
         state = result.stdout.strip() or "unknown"
         if state == "active":
             msg.good(f"{name} ({unit}): {state}")
@@ -64,22 +120,39 @@ def status():
 
 @app.command()
 def logs(
+    # typer.Argument(...) macht "service" zu einem Positions-Argument
+    # (fitness-prodctl logs python), mit "node" als Default, falls man es
+    # weglässt. Der help-Text hier erscheint automatisch in --help.
     service: str = typer.Argument("node", help="Which service: node | python"),
+    # typer.Option(True, "-f/--no-follow", ...) erzeugt ein Bool-Flag-Paar:
+    # -f (oder --follow) setzt follow=True, --no-follow setzt follow=False.
+    # Ohne Angabe gilt der Default True.
     follow: bool = typer.Option(True, "-f/--no-follow", help="Follow log output"),
     lines: int = typer.Option(50, "-n", help="Number of lines when not following"),
 ):
     """Live-Logs des Prod-Services (journalctl -f)."""
+    # .get() statt [] direkt: gibt bei unbekanntem Key None zurück statt
+    # eine Exception zu werfen — wir wollen selbst entscheiden, wie der
+    # Fehlerfall aussieht (hier: eigene Fehlermeldung + sauberer Exit).
     entry = SERVICES.get(service)
     if not entry:
         msg.fail(f"Unknown service '{service}'. Use: node | python")
+        # typer.Exit(1) beendet das Skript mit Exit-Code 1 (= Fehler für die
+        # Shell), analog zu sys.exit(1), aber typer-freundlich verpackt.
         raise typer.Exit(1)
     unit, system_scope = entry
 
     cmd = _journalctl_base(unit, system_scope)
     if follow:
+        # -f = "follow", journalctl bleibt offen und zeigt neue Zeilen live
+        # (wie "tail -f"). --no-pager verhindert, dass die Ausgabe in einen
+        # Pager wie "less" umgeleitet wird.
         cmd += ["-f", "--no-pager"]
     else:
         cmd += ["-n", str(lines), "--no-pager"]
+    # Kein capture_output hier: wir WOLLEN, dass journalctl direkt ins
+    # Terminal des Users schreibt (live mitlesen), nicht dass wir den Text
+    # erst einsammeln und selbst wieder ausgeben.
     subprocess.run(cmd)
 
 
@@ -113,5 +186,9 @@ def deploy():
     subprocess.run(["bash", str(deploy_script)], cwd=DEV_DIR)
 
 
+# Dieser if-Block läuft nur, wenn das Skript direkt ausgeführt wird
+# (python3 fitness-prodctl ...) — nicht, wenn es (wie in fitnessctl) als
+# Modul importiert wird. app() startet dann typer, das die Kommandozeilen-
+# Argumente parst und die passende @app.command()-Funktion aufruft.
 if __name__ == "__main__":
     app()

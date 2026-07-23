@@ -45,6 +45,7 @@ for _p in (str(FITNESS_DEV), str(CATALOG_DIR)):
         sys.path.insert(0, _p)
 ANATOMY_KB   = FITNESS_DEV / "anatomy-kb"
 KBCTL        = FITNESS_DEV / "anatomy-kb" / "kbctl"
+FITNESSCTL   = FITNESS_DEV / "fitnessctl"
 
 DEV_PORT = int(os.environ.get("FITNESS_PORT", 9100))
 KB_PORT  = int(os.environ.get("ANATOMY_KB_PORT", 9200))
@@ -175,6 +176,21 @@ def agent(ctx: typer.Context) -> None:
 @app.command(context_settings=_ctx, help="anatomy-kb kbctl :9200 (start|stop|status|health|logs|list|resolve)")
 def kb(ctx: typer.Context) -> None:
     passthrough(KBCTL, ctx.args, "kbctl")
+
+# Server-/Service-Control gehört NICHT hierher (siehe Docstring oben:
+# "Server/Service-Control → use: fitnessctl") — "fitness" bleibt die reine
+# Domain-CLI (Sessions, Coverage, Katalog...). Damit man trotzdem nicht
+# zwischen zwei Kommandos wechseln muss, reichen "prod"/"dev" hier nur
+# durch: ctx.args sind alle Wörter NACH "prod"/"dev" (z.B. bei
+# "fitness prod logs node" ist ctx.args == ["logs", "node"]), die hängen
+# wir einfach vor fitnessctl dran und übergeben das 1:1 weiter.
+@app.command(context_settings=_ctx, help="Prod-Stack Control (status|logs|restart|deploy) — Passthrough zu: fitnessctl prod")
+def prod(ctx: typer.Context) -> None:
+    passthrough(FITNESSCTL, ["prod"] + ctx.args, "fitnessctl prod")
+
+@app.command(context_settings=_ctx, help="Dev-Stack Control (status|start|stop|restart|logs|deploy|...) — Passthrough zu: fitnessctl dev")
+def dev(ctx: typer.Context) -> None:
+    passthrough(FITNESSCTL, ["dev"] + ctx.args, "fitnessctl dev")
 
 @app.command(context_settings=_ctx, help="Fitbit Gmail Pipeline (poll|parse|show)")
 def mail(ctx: typer.Context) -> None:
