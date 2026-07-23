@@ -2,15 +2,15 @@
 """
 fitnessctl — Fitness Centre Server Controller (typer, autocompletion-ready)
 
-Wraps fitness-devctl commands:
-  status, start, stop, restart, enable, disable, health, logs, dev, build, deploy
+Top-Level-Dispatcher, steuert Dev- und Prod-Stack getrennt an:
+  fitnessctl dev   <cmd>   → fitness-devctl   (Dev-Stack, --user-scope: aos-fitness-dev.service,
+                              fitness-python-backend.service)
+  fitnessctl prod  <cmd>   → fitness-prodctl  (Prod-Stack, system-scope fitness.service :6100,
+                              user-scope fitness-python-backend.service :9150)
 
 Domain commands (catalog, sessions, coverage etc.) → use: fitness
 """
 
-import importlib.util
-import os
-import sys
 from pathlib import Path
 from typing import Optional
 
@@ -23,25 +23,27 @@ DEV_DIR = Path(__file__).resolve().parent
 
 app = typer.Typer(help="Fitness Centre Server Controller", no_args_is_help=True)
 
-# ── Merge fitness-devctl commands ─────────────────────────────────────────────
 
-def _load_devctl() -> Optional[object]:
-    devctl_path = DEV_DIR / "fitness-devctl"
-    if not devctl_path.exists():
+def _load_module(name: str, filename: str) -> Optional[object]:
+    path = DEV_DIR / filename
+    if not path.exists():
         return None
     try:
         from importlib.machinery import SourceFileLoader
-        loader = SourceFileLoader("fitness_devctl", str(devctl_path))
-        mod = loader.load_module()
-        return mod
+        return SourceFileLoader(name, str(path)).load_module()
     except Exception as e:
-        msg.warn(f"Could not load fitness-devctl: {e}")
+        msg.warn(f"Could not load {filename}: {e}")
         return None
 
-_devctl = _load_devctl()
+
+_devctl = _load_module("fitness_devctl", "fitness-devctl")
+_prodctl = _load_module("fitness_prodctl", "fitness-prodctl")
+
 if _devctl and hasattr(_devctl, "app"):
-    for cmd_info in _devctl.app.registered_commands:
-        app.registered_commands.append(cmd_info)
+    app.add_typer(_devctl.app, name="dev", help="Dev-Stack (Node :9100, Python :9150, --user-scope)")
+
+if _prodctl and hasattr(_prodctl, "app"):
+    app.add_typer(_prodctl.app, name="prod", help="Prod-Stack (Node :6100 system-scope, Python :9150 user-scope)")
 
 if __name__ == "__main__":
     app()

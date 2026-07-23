@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+"""
+fitness-prodctl — Fitness Prod Controller (system-scope services)
+
+Kontrolliert die tatsächlich laufenden Prod-Services, getrennt von
+fitness-devctl (Dev-Stack, --user-scope, aos-fitness-dev.service etc.):
+  - fitness.service              :6100  system-scope, /opt/fitness/server.mjs (sudo für restart/stop)
+  - fitness-python-backend.service :9150 user-scope, WorkingDirectory ~/fitness-dev (FastAPI/uvicorn)
+
+Deploy: ./deploy.sh (baut in ~/fitness-dev, rsynct nach /opt/fitness, restartet fitness.service)
+"""
+
+import subprocess
+from pathlib import Path
+
+import typer
+from wasabi import Printer
+
+msg = Printer()
+
+app = typer.Typer(help="Fitness Prod Controller", no_args_is_help=True)
+
+DEV_DIR = Path(__file__).resolve().parent
+
+NODE_SERVICE = "fitness.service"          # system-scope, sudo nötig für restart/stop
+PYTHON_SERVICE = "fitness-python-backend.service"  # user-scope
+
+SERVICES = {
+    "node": (NODE_SERVICE, True),      # (unit, is_system_scope)
+    "python": (PYTHON_SERVICE, False),
+}
+
+
+def _journalctl_base(unit: str, system_scope: bool) -> list[str]:
+    cmd = ["journalctl", "-u", unit]
+    if not system_scope:
+        cmd.insert(1, "--user")
+    return cmd
+
+
+def _systemctl(action: str, unit: str, system_scope: bool) -> int:
+    cmd = (["sudo"] if system_scope else []) + ["systemctl"]
+    if not system_scope:
+        cmd.append("--user")
+    cmd += [action, unit]
+    return subprocess.run(cmd).returncode
+
+
+@app.command()
+def status():
+    """Status beider Prod-Services (gum-Tabelle falls verfügbar, sonst Klartext)."""
+    for name, (unit, system_scope) in SERVICES.items():
+        cmd = ["systemctl"]
+        if not system_scope:
+            cmd.append("--user")
+        cmd += ["is-active", unit]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        state = result.stdout.strip() or "unknown"
+        if state == "active":
+            msg.good(f"{name} ({unit}): {state}")
+        else:
+            msg.fail(f"{name} ({unit}): {state}")
+
+
+@app.command()
+def logs(
+    service: str = typer.Argument("node", help="Which service: node | python"),
+    follow: bool = typer.Option(True, "-f/--no-follow", help="Follow log output"),
+    lines: int = typer.Option(50, "-n", help="Number of lines when not following"),
+):
+    """Live-Logs des Prod-Services (journalctl -f)."""
+    entry = SERVICES.get(service)
+    if not entry:
+        msg.fail(f"Unknown service '{service}'. Use: node | python")
+        raise typer.Exit(1)
+    unit, system_scope = entry
+
+    cmd = _journalctl_base(unit, system_scope)
+    if follow:
+        cmd += ["-f", "--no-pager"]
+    else:
+        cmd += ["-n", str(lines), "--no-pager"]
+    subprocess.run(cmd)
+
+
+@app.command()
+def restart(
+    service: str = typer.Argument("node", help="Which service: node | python"),
+):
+    """Restartet einen Prod-Service (Node braucht sudo)."""
+    entry = SERVICES.get(service)
+    if not entry:
+        msg.fail(f"Unknown service '{service}'. Use: node | python")
+        raise typer.Exit(1)
+    unit, system_scope = entry
+
+    msg.info(f"Restarting {unit}" + (" (sudo)" if system_scope else ""))
+    rc = _systemctl("restart", unit, system_scope)
+    if rc == 0:
+        msg.good(f"{unit} restarted")
+    else:
+        msg.fail(f"{unit} restart failed (exit {rc})")
+        raise typer.Exit(rc)
+
+
+@app.command()
+def deploy():
+    """Führt ./deploy.sh aus (Build in SOURCE, rsync + restart fitness.service, braucht sudo)."""
+    deploy_script = DEV_DIR / "deploy.sh"
+    if not deploy_script.exists():
+        msg.fail(f"deploy.sh not found in {DEV_DIR}")
+        raise typer.Exit(1)
+    subprocess.run(["bash", str(deploy_script)], cwd=DEV_DIR)
+
+
+if __name__ == "__main__":
+    app()
