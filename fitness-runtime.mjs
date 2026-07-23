@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import yaml from 'js-yaml'
 
 // fitness_agent/server.py (aiohttp, :9120/:9130) ist archiviert (siehe archive/fitness_agent_server.py).
@@ -8,9 +9,13 @@ import yaml from 'js-yaml'
 const PYTHON_PORT = Number(process.env.FITNESS_PYTHON_PORT || 9150)
 const PYTHON_BASE = `http://127.0.0.1:${PYTHON_PORT}`
 
+// Relativ zu diesem File auflösen, nicht zu $HOME/fitness-dev — sonst zeigt
+// der Pfad in /opt/fitness (Prod-Deploy) auf den dev-Checkout statt auf die
+// eigenen, mitgelieferten Dateien.
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const CATALOG_JSON = path.join(process.env.HOME, '.aos', 'fitness', 'workouts', 'catalog.json')
-const CONFIG_YML = path.join(process.env.HOME, 'fitness-dev', 'catalog', 'config.yml')
-const WGER_MAPPING_YML = path.join(process.env.HOME, 'fitness-dev', 'catalog', 'kb', 'wger_mapping.yml')
+const CONFIG_YML = path.join(__dirname, 'fitness', 'catalog', 'config.yml')
+const WGER_MAPPING_YML = path.join(__dirname, 'fitness', 'catalog', 'kb', 'wger_mapping.yml')
 
 // Single-key top-level dicts (e.g. { wger_mapping: { mappings: {...} } }) → unwrap to the inner dict
 function unwrapSingleKey(section) {
