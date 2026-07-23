@@ -88,11 +88,20 @@ export { parseQuick } from "../shared/parse.js";
 
 export async function queueForEnrichment(ex) {
   if (!ex || ex.source === 'expert') return;
+  // Vormals ein fetch() gegen http://localhost:9120 — der archivierte
+  // aiohttp-catalog-Server, längst durch das FastAPI-Prod-Backend (:9150,
+  // hinter server.mjs :9100 geproxied) abgelöst. Schlug immer still fehl
+  // (try{}catch{}), Übungen wurden im lokalen Modus nie fürs Enrichment
+  // vorgemerkt. /fitness/inbox/queue ist der reale, laufende Endpoint dafür
+  // (fitness/api/routers/exercises.py) — über api.post statt hartcodierter
+  // toter URL. Hinweis: Der Endpoint schreibt aktuell nach
+  // fitness/catalog/kb/inbox/*.yml, NICHT in das vom Enrichment-Watcher
+  // beobachtete ~/.aos/fitness/users/<uid>/inbox/*.json — dieser Bruch ist
+  // separat als offene Aufgabe dokumentiert, hier nur der :9120-Dead-Link-Bug.
   try {
-    await fetch('http://localhost:9120/inbox/queue', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ exercise_id: ex.id || ex.exercise_id, name: ex.name || ex.display_name }),
+    await api.post("/fitness/inbox/queue", {
+      exercise_id: ex.id || ex.exercise_id,
+      name: ex.name || ex.display_name,
     });
   } catch {}
 }
