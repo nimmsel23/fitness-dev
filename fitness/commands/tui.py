@@ -1,5 +1,5 @@
 """
-fitness_cli.commands.tui — Interaktive Textual TUI App (fitness tui).
+fitness.commands.tui — Interaktive Textual TUI App (fitness tui).
 
 Direkter Dateizugriff — kein Server nötig.
 

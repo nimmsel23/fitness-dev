@@ -43,7 +43,7 @@ from loguru import logger
 
 # ── Sys-Path für lokale Pakete ────────────────────────────────────────────────
 _HERE = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(_HERE))  # db/, firestore/, fitness_cli/, catalog/, firestore_kb/
+sys.path.insert(0, str(_HERE))  # db/, firestore/, fitness/, catalog/, firestore_kb/
 
 _FUEL_DEV = Path.home() / "fuel-dev"
 if _FUEL_DEV.exists():

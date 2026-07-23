@@ -1,5 +1,5 @@
 """
-fitness_cli.commands.log — Typer CLI App (fitness log).
+fitness.commands.log — Typer CLI App (fitness log).
 
 Direkter Dateizugriff auf Session-JSONs — kein Server nötig.
 
@@ -21,7 +21,7 @@ from typing import Optional
 import typer
 
 from ..constants import ACTIVITY_EMOJI, ACTIVITY_LABEL, WEEKDAYS_DE, block_ansi_color
-from fitness_cli.commands import muscle_to_group, muscle_group_label
+from . import muscle_to_group, muscle_group_label
 from ..data import (
     classify,
     load_client_registry,

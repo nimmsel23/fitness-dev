@@ -1,5 +1,5 @@
 """
-fitness_cli.render — ANSI/gum Render-Helfer für das CLI (fitness-log).
+fitness.render — ANSI/gum Render-Helfer für das CLI (fitness-log).
 
 Kein Rich/Textual — reines ANSI für schnelle Terminal-Ausgaben.
 """
@@ -10,7 +10,7 @@ from datetime import date, datetime, timedelta
 
 from .constants import ACTIVITY_EMOJI, ACTIVITY_LABEL, block_ansi_color
 from .data import classify
-from fitness_cli.commands import muscle_to_group, muscle_group_label
+from .commands import muscle_to_group, muscle_group_label
 
 # ── ANSI-Farbpalette ──────────────────────────────────────────────────────────
 _C: dict[str, str] = {
