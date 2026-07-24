@@ -5,3 +5,10 @@ muscles:
   - 103_pectoralis_major_sternal
   - 104_pectoralis_minor
   - 105_serratus_anterior
+exercises:
+  - "040"
+  - "041"
+  - "101"
+  - "102"
+  - "103"
+  - "104"
