@@ -108,6 +108,7 @@ export default function App() {
   function openSession(date, draft = null) {
     setSessionDate(date || null)
     setSessionDraft(draft || null)
+    setSubTab(null)
     navigate('session')
   }
 

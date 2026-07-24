@@ -56,7 +56,7 @@ def fetch_json(url: str, headers: dict[str, str] | None = None) -> Any:
 
 def import_external_exercises():
     logger.info("Starting bulk import from external sources...")
-    
+
     existing_exercises = build_exercise_index()
     existing_ids = {ex.exercise_id for ex in existing_exercises}
     
@@ -76,80 +76,31 @@ def import_external_exercises():
         return sorted(list(set(res)))
 
     # 1. Import from wger
-    unreviewed_wger = []
-    try:
-        logger.info("Fetching exercises from local wger API in batches...")
-        offset = 0
-        limit = 100
-        while True:
-            url = f"{WGER_API_BASE}/exerciseinfo/?limit={limit}&offset={offset}"
-            headers = {"Authorization": f"Token {WGER_TOKEN}", "Accept": "application/json"}
-            data = fetch_json(url, headers)
-            
-            results = data.get("results", [])
-            if not results:
-                break
-                
-            for item in results:
-                translations = item.get("translations", [])
-                de = next((t for t in translations if t.get("language") == 1), None)
-                en = next((t for t in translations if t.get("language") == 2), None)
-                
-                display_name = (de or en or {}).get("name", "")
-                if not display_name:
-                    continue
-                    
-                safe_id = f"wger_{item.get('id')}"
-                
-                res = resolve_query(display_name)
-                if res.matched and res.confidence == "high":
-                    continue
-                
-                primary = get_norm_muscles(item.get("muscles", []))
-                secondary = get_norm_muscles(item.get("muscles_secondary", []))
-
-                name_variants = (
-                    display_name,
-                    (de or {}).get("name", ""),
-                    (en or {}).get("name", ""),
-                )
-                primary = reclassify_deltoid_muscles(primary, *name_variants)
-                secondary = reclassify_deltoid_muscles(secondary, *name_variants)
-
-                category_id = item.get("category", {}).get("id")
-                category = WGER_CATEGORY_MAP.get(category_id, "other")
-                
-                description = (de or en or {}).get("description", "")
-                clean_desc = re.sub('<[^<]+?>', '', description).strip()
-                
-                ex = {
-                    "exercise_id": safe_id,
-                    "display_name": display_name,
-                    "german": de.get("name") if de else display_name,
-                    "category": category,
-                    "primary_muscles": primary,
-                    "secondary_muscles": secondary,
-                    "equipment": [e.get("name").lower() for e in item.get("equipment", [])],
-                    "coaching_notes": [clean_desc] if clean_desc else [],
-                    "tags": ["unreviewed", "wger"],
-                    "wger_id": item.get("id"),
-                    "wger_muscle_ids": {
-                        "primary": [m.get("id") for m in item.get("muscles", [])],
-                        "secondary": [m.get("id") for m in item.get("muscles_secondary", [])]
-                    }
-                }
-                unreviewed_wger.append(ex)
-            
-            logger.info(f"Processed {offset + len(results)}/{data.get('count', '?')} wger exercises...")
-            offset += limit
-            if offset >= data.get("count", 0):
-                break
-                
-        logger.info(f"Prepared {len(unreviewed_wger)} unreviewed exercises from wger.")
-    except Exception as e:
-        logger.error(f"wger import failed: {e}")
+    # Deaktiviert (User-Vorgabe 2026-07-24): wger bleibt vorerst lokal, kein
+    # Bulk-Fetch mehr. unreviewed_wger.yml bleibt dadurch unverändert stehen -
+    # alles was geloggt wird, geht stattdessen über yuhonas -> Inbox -> Expert.
+    unreviewed_wger: list[dict] = []
+    logger.info("wger-Import deaktiviert (User-Vorgabe) - kein Fetch gegen die lokale wger-API.")
 
     # 2. Import from yuhonas
+    # yuhonas nutzt eine eigene, flache Muskel-Vokabel (17 Wörter: "chest",
+    # "lats", "lower back", ...) - keine kanonischen taxonomy-IDs. muscle_index.yml
+    # hat dafür bereits einen string_aliases-Block (genau diese 17 Wörter ->
+    # kanonische Gruppen-ID, z.B. "biceps" -> "401_biceps_brachii"). Vorher wurde
+    # hier nur normalize_muscle_id() (reines Slugify) genutzt und roh gespeichert
+    # ("chest" statt "100_chest") - derselbe Fehlertyp wie body_rows.yml.
+    raw_taxonomy_doc = load_catalog_yaml("muscles/muscle_index.yml") or {}
+    string_aliases = raw_taxonomy_doc.get("string_aliases", {}) if isinstance(raw_taxonomy_doc, dict) else {}
+    yuhonas_muscle_map = {normalize_muscle_id(k): v for k, v in string_aliases.items()}
+
+    def resolve_yuhonas_muscle(name: str) -> str:
+        slug = normalize_muscle_id(name)
+        canonical = yuhonas_muscle_map.get(slug)
+        if not canonical:
+            logger.warning(f"yuhonas: unbekannter Muskel-Alias '{name}' (slug={slug}), roh übernommen.")
+            return slug
+        return canonical
+
     unreviewed_yuhonas = []
     yuhonas_path = Path.home() / "fitness/free-exercise-db/dist/exercises.json"
     if yuhonas_path.exists():
@@ -157,27 +108,27 @@ def import_external_exercises():
         try:
             with yuhonas_path.open("r", encoding="utf-8") as f:
                 data = json.load(f)
-                
+
             for item in tqdm(data, desc="yuhonas import", unit="ex"):
                 display_name = item.get("name")
                 if not display_name:
                     continue
-                    
+
                 res = resolve_query(display_name)
                 if res.matched and res.confidence == "high":
                     continue
-                    
+
                 safe_id = f"yuhonas_{item.get('id').lower().replace(' ', '_')}"
-                
-                primary = [normalize_muscle_id(m) for m in item.get("primaryMuscles", [])]
-                secondary = [normalize_muscle_id(m) for m in item.get("secondaryMuscles", [])]
-                
+
+                primary = sorted(set(resolve_yuhonas_muscle(m) for m in item.get("primaryMuscles", [])))
+                secondary = sorted(set(resolve_yuhonas_muscle(m) for m in item.get("secondaryMuscles", [])))
+
                 wger_primary = []
                 for m in primary:
                     m_data = taxonomy.get(m)
                     if m_data and "wger_id" in m_data:
                         wger_primary.append(int(m_data["wger_id"]))
-                
+
                 wger_secondary = []
                 for m in secondary:
                     m_data = taxonomy.get(m)
