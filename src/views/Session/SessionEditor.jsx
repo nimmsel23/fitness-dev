@@ -6,7 +6,8 @@
  * No inline history, no inline plan — those are separate sub-tabs.
  */
 
-import { Save } from 'lucide-react';
+import { useState } from 'react';
+import { Save, ChevronDown } from 'lucide-react';
 import DateStrip from './DateStrip';
 import ModeSwitcher from './ModeSwitcher';
 import SessionSwitcher from './SessionSwitcher';
@@ -14,8 +15,12 @@ import ExerciseList from './ExerciseList';
 import ActivitySection from './ActivitySection';
 import ActivityAddon from './ActivityAddon';
 import SidebarSheet from './SidebarSheet';
-import MuscleMapModal from './MuscleMapModal';
+import SessionSidebar from './SessionSidebar';
+import AnatomyInline from './AnatomyInline';
 import SourceSettingsModal from './SourceSettingsModal';
+
+const scrollToAnatomyCheck = () =>
+  document.getElementById('anatomy-check')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
 export default function SessionEditor({
   // State from useSession
@@ -37,7 +42,6 @@ export default function SessionEditor({
   hint, gaps,
   prevMap,
   daySessions, sessionId,
-  showMap, setShowMap,
   showSidebar, setShowSidebar,
   showTabSettings, setShowTabSettings,
   rollingDays,
@@ -48,6 +52,8 @@ export default function SessionEditor({
   exportObsidian, handleDownload, scheduleAutoSave,
   onInspectExercise,
 }) {
+  const [showInlineDetails, setShowInlineDetails] = useState(false);
+
   return (
     <div className="pb-36">
       {/* Sticky date strip */}
@@ -151,6 +157,37 @@ export default function SessionEditor({
             <ActivitySection activity={activity} setActivity={v => { setActivity(v); scheduleAutoSave(); }} />
           </div>
         )}
+
+        {/* Anatomie-Check — inline statt Modal */}
+        <AnatomyInline exercises={exercises} />
+
+        {/* Weitere Details — versteckt, klappt Sidebar-Inhalte inline auf */}
+        <div>
+          <button
+            onClick={() => setShowInlineDetails(v => !v)}
+            className="w-full flex items-center justify-between px-5 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all"
+            style={{ background: 'var(--card)', border: '1px solid var(--line)', color: 'var(--dim)' }}
+          >
+            <span>Weitere Details</span>
+            <ChevronDown size={14} style={{ transform: showInlineDetails ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+          </button>
+          {showInlineDetails && (
+            <div className="mt-3 animate-in slide-in-from-top-2 duration-200">
+              <SessionSidebar
+                location={location} setLocation={v => { setLocation(v); scheduleAutoSave(); }}
+                duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
+                sessionMode={sessionMode}
+                block={block} setBlock={v => { setBlock(v); scheduleAutoSave(); }}
+                effort={effort} setEffort={v => { setEffort(v); scheduleAutoSave(); }}
+                notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
+                onDownload={handleDownload}
+                onExportObsidian={exportObsidian}
+                onShowMap={scrollToAnatomyCheck}
+                coachFeedback={coachFeedback}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Toast */}
@@ -199,7 +236,7 @@ export default function SessionEditor({
       {showSidebar && (
         <SidebarSheet
           onClose={() => setShowSidebar(false)}
-          onShowMap={() => { setShowSidebar(false); setShowMap(true); }}
+          onShowMap={() => { setShowSidebar(false); scrollToAnatomyCheck(); }}
           location={location} setLocation={v => { setLocation(v); scheduleAutoSave(); }}
           duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
           sessionMode={sessionMode}
@@ -209,13 +246,6 @@ export default function SessionEditor({
           onDownload={handleDownload}
           onExportObsidian={exportObsidian}
           coachFeedback={coachFeedback}
-        />
-      )}
-
-      {showMap && (
-        <MuscleMapModal
-          exercises={exercises}
-          onClose={() => setShowMap(false)}
         />
       )}
 
