@@ -68,6 +68,9 @@ def load_all() -> dict[str, dict]:
             anatomy = yaml.safe_load(yml_file.read_text(encoding="utf-8"))
             if not anatomy or not isinstance(anatomy, dict):
                 continue
+            if "lessons" in anatomy and isinstance(anatomy["lessons"], list):
+                matching_lesson = next((l for l in anatomy["lessons"] if l.get("exercise_id") == exercise_id), {})
+                anatomy = {**anatomy, **matching_lesson}
             merged = {**base.get(exercise_id, {}), **anatomy}
             _cache[exercise_id] = merged
         except yaml.YAMLError as e:

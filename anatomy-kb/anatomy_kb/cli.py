@@ -5,7 +5,7 @@ import typer
 # Import commands from the subpackage
 # Assuming we are inside the anatomy_kb package
 from .commands import (
-    serve, browse, teach, learn, enrich, ingest, audit, system, flashcard, db_cmd, firestore, index_cmd, approve, refine
+    serve, browse, teach, learn, enrich, ingest, audit, system, flashcard, db_cmd, firestore, index_cmd, approve, refine, service
 )
 
 app = typer.Typer(
@@ -33,6 +33,9 @@ app.command("reload")(system.reload_command)
 app.command("doctor")(system.doctor_command)
 app.command("approve")(approve.command)
 app.command("refine")(refine.command)
+
+app.add_typer(service.server_app, name="server")
+app.add_typer(service.daemon_app, name="daemon")
 
 def main():
     app()

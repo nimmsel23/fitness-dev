@@ -450,7 +450,7 @@ exercises:
   primary_muscles:
   - 501_rectus_abdominis
   secondary_muscles:
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment:
   - gym mat
   tags:
@@ -525,7 +525,7 @@ exercises:
   primary_muscles:
   - 201_latissimus_dorsi
   - 101_pectoralis_major
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   secondary_muscles: []
   equipment:
   - dumbbell
@@ -1059,7 +1059,7 @@ exercises:
   secondary_muscles:
   - 502_obliquus_externus
   - 501_rectus_abdominis
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment: []
   tags:
   - unreviewed
@@ -1511,7 +1511,7 @@ exercises:
   primary_muscles:
   - 501_rectus_abdominis
   secondary_muscles:
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment: []
   tags:
   - unreviewed
@@ -1538,7 +1538,7 @@ exercises:
   primary_muscles:
   - 501_rectus_abdominis
   secondary_muscles:
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment:
   - gym mat
   tags:
@@ -2703,12 +2703,12 @@ exercises:
   - 301_anterior_deltoid
   - 601_gluteus_maximus
   - 502_obliquus_externus
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   secondary_muscles:
   - 301_anterior_deltoid
   - 601_gluteus_maximus
   - 502_obliquus_externus
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment:
   - dumbbell
   tags:
@@ -2738,7 +2738,7 @@ exercises:
   secondary_muscles:
   - 301_anterior_deltoid
   - 402_brachialis
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   - trapezius
   equipment: []
   tags:
@@ -2840,7 +2840,7 @@ exercises:
   secondary_muscles:
   - 601_gluteus_maximus
   - 501_rectus_abdominis
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   - trapezius
   equipment:
   - none (bodyweight exercise)
@@ -3008,7 +3008,7 @@ exercises:
   - 201_latissimus_dorsi
   - 502_obliquus_externus
   - 501_rectus_abdominis
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   secondary_muscles: []
   equipment:
   - kettlebell
@@ -3869,7 +3869,7 @@ exercises:
   primary_muscles:
   - 301_anterior_deltoid
   - 601_gluteus_maximus
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   - trapezius
   secondary_muscles:
   - 201_latissimus_dorsi
@@ -4107,7 +4107,7 @@ exercises:
   category: back
   primary_muscles:
   - 201_latissimus_dorsi
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   secondary_muscles: []
   equipment: []
   tags:
@@ -4336,7 +4336,7 @@ exercises:
   - 502_obliquus_externus
   - quadriceps_femoris
   - 501_rectus_abdominis
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   - 702_soleus
   - trapezius
   secondary_muscles: []
@@ -4533,7 +4533,7 @@ exercises:
   primary_muscles:
   - 401_biceps_brachii
   - 201_latissimus_dorsi
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   secondary_muscles: []
   equipment: []
   tags:
@@ -4623,7 +4623,7 @@ exercises:
   category: back
   primary_muscles:
   - 201_latissimus_dorsi
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   secondary_muscles: []
   equipment: []
   tags:
@@ -5322,7 +5322,7 @@ exercises:
   - 301_anterior_deltoid
   - 101_pectoralis_major
   secondary_muscles:
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   - 403_triceps_brachii
   equipment:
   - none (bodyweight exercise)
@@ -5627,7 +5627,7 @@ exercises:
   category: back
   primary_muscles:
   - 502_obliquus_externus
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   - 403_triceps_brachii
   secondary_muscles: []
   equipment:
@@ -5800,7 +5800,7 @@ exercises:
   - 701_gastrocnemius
   - 101_pectoralis_major
   - 501_rectus_abdominis
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   - 702_soleus
   - 403_triceps_brachii
   secondary_muscles:
@@ -6321,7 +6321,7 @@ exercises:
   - 502_obliquus_externus
   - 101_pectoralis_major
   - quadriceps_femoris
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment:
   - none (bodyweight exercise)
   tags:
@@ -6604,7 +6604,7 @@ exercises:
   - 501_rectus_abdominis
   secondary_muscles:
   - 502_obliquus_externus
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment:
   - none (bodyweight exercise)
   tags:
@@ -6808,7 +6808,7 @@ exercises:
   primary_muscles:
   - 502_obliquus_externus
   - 501_rectus_abdominis
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   secondary_muscles:
   - 301_anterior_deltoid
   - 101_pectoralis_major
@@ -7811,7 +7811,7 @@ exercises:
   - 403_triceps_brachii
   secondary_muscles:
   - 401_biceps_brachii
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment: []
   tags:
   - unreviewed
@@ -9281,7 +9281,7 @@ exercises:
   - quadriceps_femoris
   secondary_muscles:
   - 502_obliquus_externus
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   - trapezius
   equipment:
   - bench
@@ -9356,7 +9356,7 @@ exercises:
   primary_muscles:
   - 301_anterior_deltoid
   - 201_latissimus_dorsi
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   - trapezius
   secondary_muscles:
   - 502_obliquus_externus
@@ -9607,7 +9607,7 @@ exercises:
   category: back
   primary_muscles:
   - 201_latissimus_dorsi
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   secondary_muscles: []
   equipment:
   - bench
@@ -10020,7 +10020,7 @@ exercises:
   - 403_triceps_brachii
   secondary_muscles:
   - 201_latissimus_dorsi
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment:
   - none (bodyweight exercise)
   tags:
@@ -10236,7 +10236,7 @@ exercises:
   secondary_muscles:
   - 301_anterior_deltoid
   - 402_brachialis
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   - trapezius
   equipment: []
   tags:
@@ -10787,7 +10787,7 @@ exercises:
   - 201_latissimus_dorsi
   - 101_pectoralis_major
   - quadriceps_femoris
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment:
   - none (bodyweight exercise)
   tags:
@@ -10803,7 +10803,7 @@ exercises:
   - 201_latissimus_dorsi
   - 101_pectoralis_major
   - 501_rectus_abdominis
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   secondary_muscles:
   - quadriceps_femoris
   - 403_triceps_brachii
@@ -11032,7 +11032,7 @@ exercises:
   - 301_anterior_deltoid
   secondary_muscles:
   - 201_latissimus_dorsi
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment: []
   tags:
   - unreviewed
@@ -11299,7 +11299,7 @@ exercises:
   - 402_brachialis
   - 502_obliquus_externus
   - 501_rectus_abdominis
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment:
   - pull-up bar
   tags:
@@ -11360,7 +11360,7 @@ exercises:
   - 301_anterior_deltoid
   - 401_biceps_brachii
   - 501_rectus_abdominis
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment:
   - resistance band
   tags:
@@ -11390,7 +11390,7 @@ exercises:
   primary_muscles:
   - 301_anterior_deltoid
   - 501_rectus_abdominis
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   secondary_muscles:
   - 502_obliquus_externus
   - 101_pectoralis_major
@@ -11439,7 +11439,7 @@ exercises:
   - 301_anterior_deltoid
   - 401_biceps_brachii
   - 501_rectus_abdominis
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment:
   - resistance band
   tags:
@@ -11569,7 +11569,7 @@ exercises:
   - 501_rectus_abdominis
   secondary_muscles:
   - 502_obliquus_externus
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment:
   - gym mat
   tags:
@@ -11920,7 +11920,7 @@ exercises:
   - 501_rectus_abdominis
   secondary_muscles:
   - 502_obliquus_externus
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   equipment:
   - none (bodyweight exercise)
   tags:

@@ -33,14 +33,20 @@ service cloud.firestore {
     }
     match /{path=**}/inbox/{itemId} {
       allow read:  if isCoach() || (request.auth != null && resource.data.userId == request.auth.uid);
-      allow write: if isCoach() || (request.auth != null && resource.data.userId == request.auth.uid);
+      // Users always write inbox via direct path /fitness/{uid}/inbox (covered by per-user rule).
+      // CollectionGroup writes are coach-only (approve/reject).
+      allow write: if isCoach();
     }
     match /{path=**}/profile/{doc} {
-      allow read: if isCoach() || (request.auth != null);
+      // User reads own profile via /fitness/{uid}/... (per-user rule above).
+      // CollectionGroup access is coach-only — no leaking profiles across users.
+      allow read: if isCoach();
     }
     match /{path=**}/habitJournals/{doc} {
       allow read:  if isCoach() || (request.auth != null && resource.data.userId == request.auth.uid);
-      allow write: if isCoach() || (request.auth != null && resource.data.userId == request.auth.uid);
+      // request.resource.data = incoming document (works on create + update).
+      // resource.data = existing document (fails on create — document doesn't exist yet).
+      allow write: if isCoach() || (request.auth != null && request.resource.data.userId == request.auth.uid);
     }
   }
 }

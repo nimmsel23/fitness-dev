@@ -1,13 +1,14 @@
 """
 fitness — Domain CLI für alle Fitness-Subcommands.
 
-  fitness agent <cmd>    fitness.catalog CLI (fitness-catalog)
+  fitness agent <cmd>    fitness.catalog CLI (fitness-catalog) — audit|teach|push|watch|...
+  fitness catalog        Catalog-TUI (Rich-Prompt, tui.py) — Dashboard/Inbox (Neuzugänge)/Browser/Plan/Lesson/History
+  fitness tui            Session-Dashboard-TUI (Textual, fitness-tui) — hat NICHTS mit dem Katalog zu tun
   fitness kb    <cmd>    anatomy-kb kbctl (:9200)
   fitness mail  <cmd>    Fitbit Gmail Pipeline
   fitness log   <cmd>    Session-Log aus Dateien (kein Server)
-  fitness tui            Textual TUI Dashboard
   fitness activity <cmd> Cardio/Activity loggen
-  fitness sync  [what]   KB-Sync + Firestore-Sync
+  fitness sync  <cmd>    KB-Sync + Firestore-Sync (kb|pull|push|watch|all) → fitness-sync
   fitness health         /health aller Services
   fitness status         systemd-Units Übersicht
   fitness coverage       Muskelabdeckung
@@ -15,9 +16,7 @@ fitness — Domain CLI für alle Fitness-Subcommands.
   fitness search <q>     Übungssuche
   fitness session <sub>  Session queries (today|get|list)
   fitness journal <sub>  Journal queries (today|get|list)
-  fitness push           Catalog → Firestore
-  fitness pull [uid]     Sessions ← Firestore
-  fitness watch          AI Enricher Watcher starten
+  fitness enrich-watch   AI Enricher Watcher als Hintergrund-Daemon starten
 
 Server/Service-Control → use: fitnessctl
 """
@@ -38,13 +37,17 @@ import typer
 
 # ── Pfade ──────────────────────────────────────────────────────────────────────
 FITNESS_DEV  = Path(__file__).resolve().parent.parent
-CATALOG_DIR  = FITNESS_DEV / "catalog"
 
-for _p in (str(FITNESS_DEV), str(CATALOG_DIR)):
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
+if str(FITNESS_DEV) not in sys.path:
+    sys.path.insert(0, str(FITNESS_DEV))
 ANATOMY_KB   = FITNESS_DEV / "anatomy-kb"
 KBCTL        = FITNESS_DEV / "anatomy-kb" / "kbctl"
+FITNESSCTL   = FITNESS_DEV / "fitnessctl"
+
+# "catalog" ist ein Symlink auf fitness/catalog (repo-root, siehe ./catalog).
+# "-m catalog <cmd>" braucht dafür kein extra PYTHONPATH mehr — Python legt bei
+# "-m" automatisch das aktuelle Arbeitsverzeichnis auf sys.path, und FITNESS_DEV
+# (wo der Symlink liegt) ist ohnehin das cwd aller subprocess-Aufrufe unten.
 
 DEV_PORT = int(os.environ.get("FITNESS_PORT", 9100))
 KB_PORT  = int(os.environ.get("ANATOMY_KB_PORT", 9200))
@@ -136,28 +139,6 @@ def cmd_status() -> None:
     gum_header("fitness — systemd")
     gum_table(["SERVICE", "UNIT", "STATUS"], rows, [28, 36, 10])
 
-# ── Sync ───────────────────────────────────────────────────────────────────────
-def cmd_sync(what: str) -> None:
-    run_kb = what in ("kb", "all", "")
-    run_fs = what in ("firestore", "fs", "all", "")
-
-    if run_kb:
-        gum_log("info", "KB-Sync: anatomy-kb → catalog/kb/anatomy_teaching/")
-        try:
-            from fitness.catalog.api.firestore_push import run_kb_sync
-            run_kb_sync(dry_run=False)
-        except Exception as exc:
-            gum_log("warn", f"KB-Sync mit Fehler abgeschlossen: {exc}")
-
-    if run_fs:
-        gum_log("info", "Firestore-Sync: catalog → Firestore")
-        import shutil
-        fs_sync = shutil.which("firestore-sync")
-        if fs_sync:
-            subprocess.run([fs_sync])
-        else:
-            gum_log("warn", "firestore-sync nicht gefunden")
-
 # ── Typer App ──────────────────────────────────────────────────────────────────
 _ctx = {"allow_extra_args": True, "ignore_unknown_options": True}
 
@@ -168,13 +149,35 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
-@app.command(context_settings=_ctx, help="fitness.catalog CLI (audit|teach|resolve|log|history|report|plan|tui)")
+@app.command(context_settings=_ctx, help="fitness.catalog CLI (audit|teach|resolve|log|history|report|plan|...) — für alles außer der TUI selbst, siehe: fitness catalog")
 def agent(ctx: typer.Context) -> None:
     passthrough(Path("fitness-catalog"), ctx.args, "fitness-catalog")
+
+@app.command(help="Catalog-TUI direkt öffnen — Dashboard/Inbox (Neuzugänge review)/Browser/Plan/Lesson/History. Für die andere (Session-Dashboard-)TUI: fitness tui")
+def catalog(
+    screen: str = typer.Option("dashboard", "--screen", help="Start-Screen (dashboard|inbox|browser|plan|lesson|history)"),
+) -> None:
+    from fitness.catalog.tui import run_tui
+    run_tui(initial_screen=screen)
 
 @app.command(context_settings=_ctx, help="anatomy-kb kbctl :9200 (start|stop|status|health|logs|list|resolve)")
 def kb(ctx: typer.Context) -> None:
     passthrough(KBCTL, ctx.args, "kbctl")
+
+# Server-/Service-Control gehört NICHT hierher (siehe Docstring oben:
+# "Server/Service-Control → use: fitnessctl") — "fitness" bleibt die reine
+# Domain-CLI (Sessions, Coverage, Katalog...). Damit man trotzdem nicht
+# zwischen zwei Kommandos wechseln muss, reichen "prod"/"dev" hier nur
+# durch: ctx.args sind alle Wörter NACH "prod"/"dev" (z.B. bei
+# "fitness prod logs node" ist ctx.args == ["logs", "node"]), die hängen
+# wir einfach vor fitnessctl dran und übergeben das 1:1 weiter.
+@app.command(context_settings=_ctx, help="Prod-Stack Control (status|logs|restart|deploy) — Passthrough zu: fitnessctl prod")
+def prod(ctx: typer.Context) -> None:
+    passthrough(FITNESSCTL, ["prod"] + ctx.args, "fitnessctl prod")
+
+@app.command(context_settings=_ctx, help="Dev-Stack Control (status|start|stop|restart|logs|deploy|...) — Passthrough zu: fitnessctl dev")
+def dev(ctx: typer.Context) -> None:
+    passthrough(FITNESSCTL, ["dev"] + ctx.args, "fitnessctl dev")
 
 @app.command(context_settings=_ctx, help="Fitbit Gmail Pipeline (poll|parse|show)")
 def mail(ctx: typer.Context) -> None:
@@ -192,6 +195,10 @@ def tui(ctx: typer.Context) -> None:
 def activity(ctx: typer.Context) -> None:
     passthrough("fitness-activity", ctx.args, "fitness-activity")
 
+@app.command(context_settings=_ctx, help="KB-Sync + Firestore-Sync (kb|pull|push|watch|all) — siehe fitness/commands/sync.py")
+def sync(ctx: typer.Context) -> None:
+    passthrough("fitness-sync", ctx.args, "fitness-sync")
+
 @app.command(help="Health-Check: fitness-dev :9100 + anatomy-kb :9200")
 def health() -> None:
     cmd_health()
@@ -200,27 +207,21 @@ def health() -> None:
 def status() -> None:
     cmd_status()
 
-@app.command(help="KB-Sync + Firestore-Sync  [kb|firestore|all]")
-def sync(
-    what: str = typer.Argument("all", help="kb | firestore | all"),
-) -> None:
-    cmd_sync(what)
-
 # ── Backend helpers (direct first, HTTP fallback) ─────────────────────────────
 
 def _sessions_dir() -> Path:
-    from fitness_cli.paths import sessions_dir
+    from fitness.paths import sessions_dir
     return sessions_dir()
 
 def _journal_dir() -> Path:
-    from fitness_cli.paths import sessions_dir
+    from fitness.paths import sessions_dir
     base = sessions_dir().parent
     return base / "journal"
 
 def _try_http(fn_name: str, *args, **kwargs):
-    """HTTP-Fallback via fitness_cli.http."""
-    from fitness_cli.http import api_get  # noqa: F401 (triggers import check)
-    import fitness_cli.http as _http
+    """HTTP-Fallback via fitness.http."""
+    from fitness.http import api_get  # noqa: F401 (triggers import check)
+    import fitness.http as _http
     return getattr(_http, fn_name)(*args, **kwargs)
 
 # ── Domain Commands ────────────────────────────────────────────────────────────
@@ -271,65 +272,14 @@ def search(query: str = typer.Argument(..., help="Suchbegriff")) -> None:
         print(f"  {r['name']:30s} {muscles}")
 
 
-@app.command()
-def push(dry_run: bool = typer.Option(False, "--dry-run")) -> None:
-    """Catalog → Firestore pushen."""
-    args = [sys.executable, "-m", "catalog", "push"]
-    if dry_run:
-        args.append("--dry-run")
-    env = {**os.environ, "PYTHONPATH": str(CATALOG_DIR)}
-    try:
-        subprocess.run(
-            ["gum", "spin", "--spinner", "dot",
-             f"--title=Pushing catalog → Firestore{'  (dry-run)' if dry_run else ''}...",
-             "--"] + args,
-            cwd=FITNESS_DEV, env=env,
-        )
-    except FileNotFoundError:
-        subprocess.run(args, cwd=FITNESS_DEV, env=env)
+@app.command("enrich-watch")
+def enrich_watch() -> None:
+    """AI Enricher Watcher (fitness.catalog.cli watch) als Hintergrund-Daemon starten.
 
-
-@app.command()
-def pull(uid: Optional[str] = typer.Argument(None, help="Firestore UID (auto-detect wenn leer)")) -> None:
-    """Sessions ← Firestore pullen."""
-    if not uid:
-        uid = os.getenv("FITNESS_UID")
-    if not uid:
-        base = Path.home() / ".aos" / "fitness" / "users"
-        best, best_n = None, -1
-        for d in base.glob("*/sessions/"):
-            name = d.parent.name
-            if name in ("default", "kb"):
-                continue
-            n = len(list(d.glob("*.json")))
-            if n > best_n:
-                best, best_n = name, n
-        uid = best
-    if not uid:
-        gum_log("error", "Keine uid — FITNESS_UID setzen oder als Argument übergeben")
-        raise SystemExit(1)
-    gum_log("info", f"Pull ← Firestore (uid={uid})...")
-    out = Path("/tmp/fitness-pull.json")
-    r = subprocess.run([
-        "curl", "-fsS", "--max-time", "30", "-X", "POST",
-        f"http://127.0.0.1:{DEV_PORT}/firestore/pull",
-        "-H", f"X-User-UID: {uid}", "-o", str(out),
-    ])
-    if r.returncode != 0:
-        gum_log("error", "Pull request fehlgeschlagen")
-        raise SystemExit(1)
-    result = json.loads(out.read_text())
-    if not result.get("ok"):
-        gum_log("error", result.get("error", "unknown"))
-        raise SystemExit(1)
-    gum_log("info", f"pulled {result['pulled']} · skipped {result['skipped']} · conflicts {result['conflicts']}")
-    if result.get("conflict_dates"):
-        gum_log("warn", f"Konflikte: {', '.join(result['conflict_dates'])}")
-
-
-@app.command()
-def watch() -> None:
-    """AI Enricher Watcher im Hintergrund starten."""
+    Anders als "fitness agent watch" (Vordergrund, blockierend) läuft das hier
+    als Popen im Hintergrund mit Pidfile-Tracking — für Systemd-freies
+    "starten und weitermachen".
+    """
     pidfile = Path("/tmp/fitness-enricher.pid")
     logfile = Path("/tmp/fitness-enricher.log")
     if pidfile.exists():
@@ -343,7 +293,6 @@ def watch() -> None:
     proc = subprocess.Popen(
         [sys.executable, "-m", "catalog", "watch"],
         cwd=FITNESS_DEV,
-        env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)},
         stdout=open(logfile, "a"),
         stderr=subprocess.STDOUT,
         start_new_session=True,
@@ -415,34 +364,13 @@ def journal_list() -> None:
         print(json.dumps(_try_http("journal_list"), indent=2, ensure_ascii=False))
 
 
-# Catalog sub-app
-catalog_app = typer.Typer(help="Catalog management (tui | inbox | sync | audit)")
-app.add_typer(catalog_app, name="catalog")
-
-@catalog_app.command("tui")
-def catalog_tui() -> None:
-    """Catalog TUI öffnen."""
-    subprocess.run([sys.executable, "-m", "catalog", "tui"],
-                   cwd=FITNESS_DEV, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
-
-@catalog_app.command("inbox")
-def catalog_inbox() -> None:
-    """Catalog Inbox öffnen."""
-    subprocess.run([sys.executable, "-m", "catalog", "tui", "--screen", "inbox"],
-                   cwd=FITNESS_DEV, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
-
-@catalog_app.command("sync")
-def catalog_sync() -> None:
-    """Catalog → Firestore (alias für push)."""
-    subprocess.run([sys.executable, "-m", "catalog", "push"],
-                   cwd=FITNESS_DEV, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
-
-@catalog_app.command("audit")
-def catalog_audit(topic: str = typer.Argument("all")) -> None:
-    """Catalog-Qualität prüfen."""
-    subprocess.run([sys.executable, "-m", "catalog", "audit", topic],
-                   cwd=FITNESS_DEV, env={**os.environ, "PYTHONPATH": str(CATALOG_DIR)})
-
+# Kein eigenes "catalog"-Sub-Typer mehr hier: tui/inbox/sync/audit waren ein
+# 1:1-Duplikat von "fitness agent <cmd>" (das bereits korrekt über das
+# installierte fitness-catalog-Binary auf fitness.catalog.cli zeigt) — und
+# zusätzlich kaputt, weil "-m catalog" auf ein totes Top-Level-Package zielte.
+# Siehe "fitness agent tui" / "fitness agent tui --screen inbox" /
+# "fitness agent audit" / "fitness agent push" als die jetzt einzigen,
+# funktionierenden Entry-Points dafür.
 
 # ── Entry ──────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":

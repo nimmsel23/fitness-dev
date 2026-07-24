@@ -1,5 +1,5 @@
 """
-fitness_cli.commands.tui — Interaktive Textual TUI App (fitness tui).
+fitness.commands.tui — Interaktive Textual TUI App (fitness tui).
 
 Direkter Dateizugriff — kein Server nötig.
 
@@ -28,6 +28,7 @@ from textual.screen import ModalScreen
 from textual.widgets import (
     DataTable, Footer, Header, Label,
     Static, TabbedContent, TabPane,
+    ListView, ListItem,
 )
 
 from ..constants import (
@@ -56,7 +57,7 @@ class DetailModal(ModalScreen):
     .de { color: $text; margin-left: 2; }
     .ds { color: $primary-lighten-2; margin-left: 4; }
     .df { color: $warning; margin-top: 1; }
-    .dn { color: $text-muted; font-style: italic; margin-top: 1; }
+    .dn { color: $text-muted; text-style: italic; margin-top: 1; }
     .dc { color: $text-muted; margin-top: 2; text-align: right; }
     """
 
@@ -127,6 +128,67 @@ class DetailModal(ModalScreen):
         with Container():
             for cls, text in lines:
                 yield Label(text, classes=cls)
+
+
+# ── User-Switch-Modal ─────────────────────────────────────────────────────────
+
+class SwitchUserModal(ModalScreen):
+    BINDINGS = [Binding("escape", "dismiss", "Abbrechen")]
+    CSS = """
+    SwitchUserModal { align: center middle; }
+    SwitchUserModal > Container {
+        width: 50; max-height: 80%;
+        background: $surface; border: round $primary; padding: 1 2;
+    }
+    .title { color: $primary; text-style: bold; margin-bottom: 1; }
+    ListView {
+        background: transparent;
+        border: none;
+    }
+    ListItem {
+        padding: 0 1;
+    }
+    ListItem:focus {
+        background: $accent;
+        color: $text;
+    }
+    .dc { color: $text-muted; margin-top: 2; text-align: right; }
+    """
+
+    def __init__(self, current_uid: str | None, on_select: callable) -> None:
+        super().__init__()
+        self.current_uid = current_uid
+        self.on_select = on_select
+
+    def compose(self) -> ComposeResult:
+        from ..data import load_client_registry
+        from ..paths import ACTIVE_UID
+        
+        # Build options list
+        options = []
+        # Add Coach
+        options.append((ACTIVE_UID, "Coach (Daniel)"))
+        
+        # Add other clients
+        registry = load_client_registry()
+        for uid, meta in registry.items():
+            if uid != ACTIVE_UID:
+                options.append((uid, meta["name"]))
+                
+        with Container():
+            yield Label("User wechseln", classes="title")
+            items = []
+            for uid, name in options:
+                marker = "● " if uid == self.current_uid else "  "
+                item = ListItem(Label(f"{marker}{name}"))
+                item.user_uid = uid
+                items.append(item)
+            yield ListView(*items)
+            yield Label("[Esc / Abbrechen]", classes="dc")
+
+    def on_list_view_selected(self, event: ListView.Selected) -> None:
+        self.on_select(event.item.user_uid)
+        self.dismiss()
 
 
 # ── Tab: Log ──────────────────────────────────────────────────────────────────
@@ -523,14 +585,17 @@ class FitnessTUI(App):
         Binding("4", "show_tab('sync')",    "Sync",    show=True),
         Binding("5", "show_tab('clients')", "Clients", show=True),
         Binding("r", "reload",              "Reload"),
+        Binding("u", "switch_user",         "User wechseln", show=True),
         Binding("q", "quit",                "Quit"),
     ]
 
     def __init__(self) -> None:
         super().__init__()
+        from ..paths import ACTIVE_UID
+        self.current_uid = ACTIVE_UID
         # Daten synchron laden — schnelle File-I/O, blockiert nicht spürbar
-        self._sessions = load_sessions(60)
-        self._info     = sync_info()
+        self._sessions = load_sessions(60, uid=self.current_uid)
+        self._info     = sync_info(uid=self.current_uid)
         self._clients  = load_all_clients(10)
 
     def compose(self) -> ComposeResult:
@@ -554,8 +619,8 @@ class FitnessTUI(App):
 
     @work(thread=True)
     def action_reload(self) -> None:
-        sessions = load_sessions(60)
-        info     = sync_info()
+        sessions = load_sessions(60, uid=self.current_uid)
+        info     = sync_info(uid=self.current_uid)
         clients  = load_all_clients(10)
         self.call_from_thread(self._apply, sessions, info, clients)
 
@@ -580,6 +645,21 @@ class FitnessTUI(App):
 
     def action_show_tab(self, tab_id: str) -> None:
         self.query_one(TabbedContent).active = tab_id
+
+    def action_switch_user(self) -> None:
+        def on_select(uid: str) -> None:
+            self.current_uid = uid
+            from ..data import load_client_registry
+            from ..paths import ACTIVE_UID
+            if uid == ACTIVE_UID:
+                self.sub_title = "Session Dashboard (Coach)"
+            else:
+                registry = load_client_registry()
+                name = registry.get(uid, {}).get("name", "Klient")
+                self.sub_title = f"Session Dashboard ({name})"
+            self.action_reload()
+
+        self.push_screen(SwitchUserModal(self.current_uid, on_select))
 
 
 # ── Entry-Point ───────────────────────────────────────────────────────────────

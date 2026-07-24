@@ -43,7 +43,7 @@ def pull() -> dict:
                 if r.id not in _SKIP_UIDS]
     for user_ref in tqdm(all_refs, desc="Pull users", unit="user"):
         uid = user_ref.id
-        user_dir = USERS_DIR / uid / "fitness"
+        user_dir = (USERS_DIR / uid / "fitness").resolve()
         sessions_dir = user_dir / "sessions"
         journal_dir = user_dir / "journal"
         inbox_dir = user_dir / "inbox"

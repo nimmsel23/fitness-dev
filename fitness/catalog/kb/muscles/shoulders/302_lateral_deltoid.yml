@@ -6,7 +6,7 @@ label_lat: M. deltoideus (pars acromialis)
 region: shoulders
 body_region: shoulders_side
 wger_id: ~
-aliases: []
+aliases: [lateral deltoid, seitliche schulter, side delts, seitheben, side raise]
 viz:
   rbh: front-deltoids
   body_muscles:

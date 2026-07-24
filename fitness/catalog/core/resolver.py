@@ -96,6 +96,13 @@ def build_exercise_index() -> list[ExerciseRecord]:
         
         exercises = document.get("exercises", [])
         if not isinstance(exercises, list): continue
+        # Datei-Name als Netzwerk-Kategorie ergibt nur bei echten Gruppen-Dateien
+        # Sinn (chest.yml/back.yml mit mehreren Exercises) - Einzelexercise-Dateien
+        # (brustpresse.yml, body_rows.yml, alle inbox_*.yml) tragen ihre Kategorie
+        # schon korrekt im per-entry `category:`-Feld, ihr Dateiname ist kein
+        # Gruppen-Label. Aktuell hat kein inbox_*.yml mehr als 1 Exercise, dieser
+        # Check schließt sie also implizit mit ein, ohne den Filename zu hardcoden.
+        is_grouping_file = len(exercises) > 1
 
         for entry in exercises:
             ex_id = None
@@ -138,7 +145,10 @@ def build_exercise_index() -> list[ExerciseRecord]:
                     for a in aliases: by_name[normalize_text(a, smart=True)] = ex_id
 
             # Netzwerk-Verknüpfung (Brücke)
-            if file_node and not path.stem.isdigit() and not is_anatomy:
+            # Inbox-Dateien tragen als `name:` nur ihren eigenen Dateinamen
+            # (z.B. "inbox_brustpresse_") - das ist kein echtes Kategorie-Label
+            # wie bei chest.yml/back.yml, sondern nur ein generierter Datei-Identifier.
+            if file_node and not path.stem.isdigit() and not is_anatomy and is_grouping_file:
                 if file_node not in rec.categories:
                     rec.categories.append(file_node)
 
@@ -285,8 +295,9 @@ def build_exercise_index() -> list[ExerciseRecord]:
 SOURCE_SCORE_BONUS = {"expert": 10, "inbox": 5, "bulk": 0}
 
 
-def resolve_query(query: str) -> ResolveResult:
-    records = build_exercise_index()
+def resolve_query(query: str, records: list[ExerciseRecord] | None = None) -> ResolveResult:
+    if records is None:
+        records = build_exercise_index()
     normalized_query = normalize_text(query, smart=True)
     alias_map = load_alias_map()
 

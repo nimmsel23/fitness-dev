@@ -1,19 +1,18 @@
 from __future__ import annotations
 
-import io
 import os
 import shutil
 import tempfile
 import unittest
-from contextlib import redirect_stdout
 from datetime import date, timedelta
 from pathlib import Path
 from unittest import mock
 
 import yaml
+from typer.testing import CliRunner
 
 from fitness.catalog.bootstrap import bootstrap
-from fitness.catalog.cli import main
+from fitness.catalog.cli import app as catalog_app
 from fitness.catalog.agent.obsidian import load_runtime_config
 from fitness.catalog.history import log_training_entry
 from fitness.catalog.weekly import build_weekly_coverage, iso_week_bounds
@@ -45,7 +44,7 @@ class WeeklyReportTest(unittest.TestCase):
 
     def test_weekly_aggregation_from_sample_logs(self) -> None:
         week_label, fixed_today = self._seed_logs_for_current_week()
-        with mock.patch("catalog.weekly.datetime") as mocked_datetime:
+        with mock.patch("fitness.catalog.weekly.datetime") as mocked_datetime:
             mocked_datetime.now.return_value.date.return_value = date.fromisoformat(fixed_today)
             summary = build_weekly_coverage("current")
 
@@ -64,7 +63,7 @@ class WeeklyReportTest(unittest.TestCase):
         day_2 = (date.fromisoformat(week["date_from"]) + timedelta(days=1)).isoformat()
         log_training_entry("front_squat", sets=3, reps=8, weight=60, rpe=8, date=day_1)
         log_training_entry("leg_curl", sets=2, reps=10, weight=35, rpe=8, date=day_2)
-        with mock.patch("catalog.weekly.datetime") as mocked_datetime:
+        with mock.patch("fitness.catalog.weekly.datetime") as mocked_datetime:
             mocked_datetime.now.return_value.date.return_value = fixed_today
             summary = build_weekly_coverage("current")
 
@@ -73,27 +72,25 @@ class WeeklyReportTest(unittest.TestCase):
 
     def test_report_output(self) -> None:
         week_label, _ = self._seed_logs_for_current_week()
-        with mock.patch("catalog.weekly.datetime") as mocked_datetime:
+        with mock.patch("fitness.catalog.weekly.datetime") as mocked_datetime:
             mocked_datetime.now.return_value.date.return_value = date(2026, 5, 9)
-            buffer = io.StringIO()
-            with redirect_stdout(buffer):
-                exit_code = main(["report", "--week", "current"])
+            runner = CliRunner()
+            result = runner.invoke(catalog_app, ["report", "--week", "current"])
 
-        self.assertEqual(exit_code, 0)
-        payload = yaml.safe_load(buffer.getvalue())
+        self.assertEqual(result.exit_code, 0)
+        payload = yaml.safe_load(result.stdout)
         self.assertEqual(payload["weekly_coverage"]["week"], week_label)
         self.assertIn("recommendations", payload["weekly_coverage"])
 
     def test_optional_markdown_export(self) -> None:
         week_label, _ = self._seed_logs_for_current_week()
-        with mock.patch("catalog.weekly.datetime") as mocked_datetime:
+        with mock.patch("fitness.catalog.weekly.datetime") as mocked_datetime:
             mocked_datetime.now.return_value.date.return_value = date(2026, 5, 9)
-            buffer = io.StringIO()
-            with redirect_stdout(buffer):
-                exit_code = main(["report", "--week", "current", "--export", "obsidian"])
+            runner = CliRunner()
+            result = runner.invoke(catalog_app, ["report", "--week", "current", "--export", "obsidian"])
 
-        self.assertEqual(exit_code, 0)
-        payload = yaml.safe_load(buffer.getvalue())
+        self.assertEqual(result.exit_code, 0)
+        payload = yaml.safe_load(result.stdout)
         self.assertEqual(payload["weekly_coverage"]["week"], week_label)
         export_root = Path(load_runtime_config()["obsidian"]["export_path"]).expanduser()
         export_path = export_root / "Reports" / "Weekly" / f"{week_label}.md"

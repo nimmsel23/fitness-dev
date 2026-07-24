@@ -1,5 +1,5 @@
 """
-fitness_cli.constants — Domänen-Konstanten für Aktivitäten und Trainingsblöcke.
+fitness.constants — Domänen-Konstanten für Aktivitäten und Trainingsblöcke.
 """
 from __future__ import annotations
 

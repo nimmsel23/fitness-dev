@@ -71,22 +71,38 @@ Example: ["seitheben", "lateral raise", "side raise"]
 """
 
 
+def _unquote(v: str) -> str:
+    # .env-Werte (Datei ODER bereits exportierte Shell-Umgebung) landen hier
+    # teils mit umschließenden Anführungszeichen ("...") — die gehören nicht
+    # zum Wert selbst, sonst schickt man sie als Teil des API-Keys mit
+    # (→ Gemini: "API key not valid").
+    v = v.strip()
+    if len(v) >= 2 and v[0] == v[-1] and v[0] in ("'", '"'):
+        v = v[1:-1]
+    return v
+
+
 def load_gemini_key() -> str | None:
     key = os.environ.get("GEMINI_API_KEY")
     if key:
-        return key
+        return _unquote(key)
     env_path = Path.home() / ".env" / "fitness.env"
     if env_path.exists():
         for line in env_path.read_text().splitlines():
             if "=" in line and not line.startswith("#"):
                 k, v = line.split("=", 1)
                 if k.strip() == "GEMINI_API_KEY":
-                    return v.strip()
+                    return _unquote(v)
     return None
 
 
 def _call(prompt: str, api_key: str, timeout: int = 30) -> str | None:
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    # gemini-2.0-flash hat auf dem konfigurierten API-Key Kontingent 0
+    # (RESOURCE_EXHAUSTED, nicht freigeschaltet) — gemini-2.5-flash ist das
+    # laut AlphaOS-Konvention (~/.env/gemini.env: GEMINI_MODEL) eigentlich
+    # vorgesehene Modell und funktioniert mit demselben Key.
+    model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
     payload = {"contents": [{"parts": [{"text": prompt}]}]}
     req = urllib.request.Request(
         url,

@@ -1,4 +1,4 @@
-"""fitness_cli.commands — Typer- und Textual-Entry-Points."""
+"""fitness.commands — Typer- und Textual-Entry-Points."""
 import re as _re
 
 _CANONICAL = {"chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves"}

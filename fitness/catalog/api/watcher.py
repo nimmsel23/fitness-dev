@@ -19,8 +19,58 @@ from fitness.catalog.core.resolver import resolve_query, find_by_id, build_exerc
 from fitness.catalog.core.rich_utils import setup_logging
 from fitness.catalog.agent.gemini import load_gemini_key, call_gemini
 
+# runtime_root()/users (= ~/.aos/fitness/users) ist physisch identisch mit
+# ~/.aos/users/<uid>/fitness — Letzteres ist nur ein Symlink auf Ersteres
+# (~/.aos/users/<uid>/fitness -> ~/.aos/fitness/users/<uid>). Beide Bäume
+# sind also dieselben Daten, firestore.sync.pull()'s inbox-Writes landen
+# hier zwangsläufig mit. ABER: Path.glob("**/...") folgt in Python 3.13+
+# standardmäßig KEINEN Symlinks — ein Scan über den Symlink-Pfad mit "**"
+# findet deshalb nichts, ein Scan über den physischen Pfad (hier) schon.
 
 # --- Processing Logic ---
+
+def _firestore_inbox_ref(file_path: Path):
+    """Leitet (uid, doc_id) aus dem lokal gepullten Dateipfad ab.
+
+    firestore.sync.pull() legt Firestore-inbox-Docs lokal als
+    <runtime_root()>/users/<uid>/inbox/<doc_id>_<name>.json ab (doc_id = die
+    echte Firestore-Dokument-ID, siehe firestore/sync.py — dort über den
+    ~/.aos/users/<uid>/fitness-Symlink geschrieben, physisch aber hier).
+    Kein Zugriff nötig, wenn die Datei aus einer anderen Quelle stammt (z.B.
+    dem lokalen /fitness/inbox/queue-Endpoint) — dann geben wir einfach
+    (None, None) zurück und der Aufrufer überspringt das Zurückschreiben.
+    """
+    try:
+        uid = file_path.parent.parent.name
+        doc_id, sep, _rest = file_path.stem.partition("_")
+        if not sep:
+            return None, None
+        return uid, doc_id
+    except Exception:
+        return None, None
+
+
+def _write_back_to_firestore_inbox(uid: str | None, doc_id: str | None, enriched_data: dict) -> None:
+    """Aktualisiert das ursprüngliche fitness/{uid}/inbox/{doc_id}-Dokument
+    auf status: 'ai_enriched' + die angereicherten Daten — sonst zeigt die
+    Coach-Inbox-UI (InboxCard.jsx) für immer nur den pending_review-
+    Platzhaltertext, obwohl die Anreicherung längst passiert ist. Best-effort:
+    ein Firestore-Fehler hier darf den bereits erfolgreich geschriebenen
+    lokalen KB-Draft nicht rückgängig machen.
+    """
+    if not uid or not doc_id:
+        return
+    try:
+        from firestore.kb import get_db
+        db = get_db()
+        ref = db.collection("fitness").document(uid).collection("inbox").document(doc_id)
+        if not ref.get().exists:
+            return
+        ref.update({"status": "ai_enriched", "enriched": enriched_data})
+        logger.success(f"Firestore-Inbox aktualisiert: fitness/{uid}/inbox/{doc_id} → ai_enriched")
+    except Exception as e:
+        logger.warning(f"Firestore-Inbox-Rückschreiben fehlgeschlagen ({uid}/{doc_id}): {e}")
+
 
 def process_inbox_file(file_path: Path, api_key: str | None):
     try:
@@ -44,13 +94,15 @@ def process_inbox_file(file_path: Path, api_key: str | None):
             return
 
         logger.info(f"Enriching NEW exercise: {name}")
-        
+
         enriched_data = None
         if api_key:
             enriched_data = call_gemini(name, safe_name, api_key)
-        
+
         if enriched_data:
             save_inbox_draft(target_file, enriched_data, f"AI generated base entry for {name}")
+            uid, doc_id = _firestore_inbox_ref(file_path)
+            _write_back_to_firestore_inbox(uid, doc_id, enriched_data)
             file_path.unlink()
     except Exception as e:
         logger.error(f"Failed to process {file_path}: {e}")

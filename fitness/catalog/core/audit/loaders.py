@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from fitness.catalog.core.loader import load_catalog_yaml, load_catalog_directory_yaml, catalog_path
+from fitness.catalog.core.yaml_utils import load_yaml
 from fitness.catalog.agent.teaching import parse_lesson_document
 
 
@@ -38,12 +39,18 @@ def load_aliases_document() -> dict[str, Any] | None:
 
 
 def load_body_regions() -> set[str] | None:
-    """Gibt die gültigen Body-Regionen aus den {region}.yml Index-Dateien zurück."""
+    """Gibt die gültigen Body-Regionen zurück, gesammelt aus dem body_region-Feld
+    aller muscles/**/*.yml (Gruppen-Files + feinere Overrides in Unterordnern)."""
     region_dir = catalog_path("muscles")
     skip = {"muscle_index"}
     regions: set[str] = set()
-    for yml_file in region_dir.glob("*.yml"):
+    for yml_file in region_dir.rglob("*.yml"):
         if yml_file.name.startswith("_") or yml_file.stem in skip:
             continue
-        regions.add(yml_file.stem)
+        document = load_yaml(yml_file)
+        if not isinstance(document, dict):
+            continue
+        body_region = document.get("body_region")
+        if isinstance(body_region, str) and body_region.strip():
+            regions.add(body_region.strip())
     return regions if regions else None

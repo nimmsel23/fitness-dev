@@ -18,8 +18,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `CLAUDE.md` ist Symlink → `docs/CLAUDE.md`. Direktes Schreiben scheitert
   ("Refusing to write through symlink") — immer `docs/CLAUDE.md` editieren.
-- Live-KB-Pfad ist `fitness/catalog/kb/` (186 Dateien), NICHT `catalog/kb/`
-  (verwaister Alt-Baum aus Commit `0875e37`, 79 Dateien, tot seit 2026-07-11).
+- Live-KB-Pfad ist `fitness/catalog/kb/`. `catalog` ist seit 23.07. ein Symlink
+  darauf (`catalog -> fitness/catalog`) — kein separater Alt-Baum mehr, beide
+  Pfade sind identisch.
+- `fitness_cli` ist KEIN eigenes Package, sondern Symlink auf `fitness`
+  (`fitness_cli -> fitness`) — `fitness_cli/constants.py` == `fitness/constants.py`,
+  eine Ebene über `fitness/catalog/`.
+- CLI-Binary heißt `fitness-catalog` (uv-Tool unter
+  `~/.local/share/uv/tools/fitness-agent/bin/`), NICHT `fitness-agent` — die
+  Skill-Doku ist hier veraltet. Domain-Dispatcher `fitness agent <cmd>` ruft
+  dieselbe CLI auf. `fitness-catalog doctor` für schnellen Health-Check,
+  `fitness-catalog audit anatomy|exercises|coverage` (Topic angeben!) —
+  `audit` ohne Topic/mit "all" hängt (>30s, vermutlich wger-Netzwerkaufruf),
+  nicht mit langem Timeout erneut versuchen ohne das zu verifizieren.
+- `body_region:`-Feld in `kb/muscles/**/*.yml` ist die kanonische
+  Regions-Taxonomie für ALLE Body-Highlighter (RBH grob/RMH fein/body-muscles
+  extrem fein) + jeden App-Teil — Gruppen-Files (`chest.yml`) setzen einen
+  Default, einzelne Muskel-Files in Unterordnern (`chest/101_*.yml`) können ihn
+  feiner überschreiben. `core/audit/loaders.py::load_body_regions()` las bis
+  2026-07-23 fälschlich Dateinamen statt dieses Feldes und nur Top-Level (nicht
+  rekursiv) — gefixt, `rglob` + `body_region`-Feld lesen. Frontend hat trotzdem
+  noch hartcodierte Parallel-Mappings (`src/lib/muscleMapping.js` RBH_SLUGS/
+  SLUG_TO_GROUP, `DetailedMuscleMap.jsx` GROUP_TO_RMH) statt aus der KB zu lesen
+  — Architektur-Schuld, noch nicht aufgelöst.
 - Firestore-Bugs live debuggen statt aus Code raten: `firebase-admin`
   Python-SDK + Credentials unter `~/.env/firebase-fitness.json`
   (`firebase_admin.initialize_app(credentials.Certificate(...))`,
@@ -28,9 +49,56 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   (`git worktree list` zeigt alle) — kein separater Clone. Ein Branch kann
   nicht in zwei Worktrees gleichzeitig ausgecheckt sein; dort meist mit
   `git checkout <commit-hash>` (detached) statt `git checkout master` arbeiten.
-- Pytest-Suite (`fitness/catalog/tests/`) hat ~59 vorbestehende,
-  umgebungsbedingte Fehler (tmp-dir-Isolation). Vor Rückschlüssen auf eigene
-  Änderungen: `git stash` + Tests erneut laufen lassen, Zahl vergleichen.
+- Pytest-Suite (`fitness/catalog/tests/`) hat ~60 vorbestehende Fehler aus
+  mehreren unabhängigen Ursachen (nicht nur tmp-dir-Isolation!): u.a. `main(argv)`-
+  Testcalls gegen die inzwischen parameterlose typer-`main()` (test_wger.py,
+  test_weekly_report.py, test_preview.py), canonical-ID-Drift (`incline_dumbbell_press`
+  statt `041`), und `mock.patch("catalog.X...")`-Strings die durch den
+  `catalog`-Symlink ein anderes Modul-Objekt patchen als `fitness.catalog.X`
+  tatsächlich importiert (dual-module-identity — Patch wirkt dann einfach nicht).
+  Vor Rückschlüssen auf eigene Änderungen: **kein `git stash`** nutzen (siehe
+  Gotcha unten) — stattdessen `git worktree add` oder gezielt einzelne
+  Testdateien vergleichen.
+- **`git stash` ist in diesem Repo riskant**, seit `catalog`/`fitness_cli`
+  Symlinks sind: `git stash -u` kann bei Symlinks im Baum silent fehlschlagen
+  ("... is beyond a symbolic link"), ein danach ausgeführtes `git stash pop`
+  poppt dann einen ALTEN, unrelated Stash-Eintrag statt nichts zu tun — mischt
+  fremde WIP in den eigenen Baum. Nach jedem `git stash`: `git stash list`
+  davor/danach vergleichen, nicht blind vom Erfolg ausgehen.
+- **Mehrere Claude-Sessions laufen oft parallel** an diesem Repo (`ps aux |
+  grep claude` zeigt typischerweise 2-3 Prozesse, z.B. ein separater
+  anatomy-agent-Lauf). Vor größeren Eingriffen `git status`/`git log -3`
+  prüfen — unerwartete `M`-Dateien können von einer anderen, gerade aktiven
+  Session stammen, nicht von einem selbst. Nicht reflexartig reverten.
+- Exercise-Enrichment (Gemini) läuft seit 2026-07-23 als `fitness-enricher.service`
+  (systemd --user, `python3 -m catalog watch` → `fitness/catalog/api/watcher.py`,
+  enabled+started). Beobachtet `runtime_root()/users/*/inbox/*.json`
+  (= `~/.aos/fitness/users/*/inbox/`). `~/.aos/users/<uid>/fitness` ist NUR
+  ein Symlink auf `~/.aos/fitness/users/<uid>` — beide Pfade sind dieselben
+  Daten. **Gotcha:** `Path.glob("**/...")` folgt in Python 3.13+ standardmäßig
+  keinen Symlinks — ein Scan über den `~/.aos/users/`-Pfad mit `**` findet
+  deshalb nichts, über den physischen `runtime_root()/users`-Pfad schon.
+  Firestore-`pending_review`-Inbox-Einträge (aus `queueForEnrichment()` im
+  PWA/Firestore-Modus) landen dort erst nach einem Pull — `firestore.sync.pull()`
+  schreibt die Firestore-`inbox`-Collection genau in dieses Verzeichnis.
+  Nach erfolgreicher Anreicherung schreibt der Watcher jetzt zusätzlich
+  `status: 'ai_enriched'` + das `enriched`-Feld ins ursprüngliche
+  `fitness/{uid}/inbox/{doc_id}`-Dokument zurück (vorher blieb die
+  Coach-Inbox-UI für immer beim `pending_review`-Platzhaltertext hängen,
+  selbst nach erfolgtem Enrichment — `approveInbox()` erwartete das
+  `enriched`-Feld bereits, bekam es nur nie).
+  Lokaler Modus (`src/lib/db/local/kb.js::queueForEnrichment`) nutzt jetzt
+  den echten `/fitness/inbox/queue`-Endpoint (vorher: toter `:9120`-Server,
+  scheiterte komplett still) — schreibt aber weiterhin nach
+  `fitness/catalog/kb/inbox/*.yml`, NICHT in das vom Watcher beobachtete
+  Verzeichnis. Vier verschiedene Inbox-Ablageorte insgesamt im Code,
+  Konsolidierung noch offen.
+- Gemini-Fallstricke in `fitness/catalog/agent/gemini.py`: (1) API-Key aus
+  `.env`-Dateien/Shell-Env kann Anführungszeichen enthalten
+  (`GEMINI_API_KEY="..."` → wörtlich mit Quotes übernommen ohne Strip) →
+  "API key not valid". (2) `gemini-2.0-flash` hat auf manchen Keys Kontingent
+  0 (`RESOURCE_EXHAUSTED`, nicht freigeschaltet) — `gemini-2.5-flash` (AlphaOS-
+  Konvention, `~/.env/gemini.env: GEMINI_MODEL`) ist der richtige Default.
 - Firebase v9-modulares SDK (`import ... from "firebase/firestore"`):
   `QueryDocumentSnapshot.ref`, nicht `.reference` (das ist die alte
   v8/Namespaced-API und im v9-Import immer `undefined`).
@@ -553,11 +621,13 @@ Implementiert in: `buildLastTrainedMap()` + `superKompFreq()` in `src/components
 | `npm run ui:dev` | Nur Vite DevServer (Port 5902) |
 | `npm run build` | Production-Build in `dist/` |
 | `npm run build:catalog` | Katalog → ~/.aos/fitness/workouts/catalog.json |
-| `./fitnessctl start` | API (:9100) + catalog (:9120) starten |
-| `./fitnessctl status` | Status-Übersicht aller Services (gum-Tabelle) |
-| `./fitnessctl kb-sync` | catalog/kb → Firestore pushen |
-| `./fitnessctl session today` | Heutige Session anzeigen |
-| `./fitnessctl coverage [DAYS]` | Muskelabdeckung der letzten N Tage |
+| `fitnessctl dev status` / `fitnessctl prod status` | Service-Status Dev bzw. Prod |
+| `fitness sync kb\|pull\|pull-uid\|push\|watch\|all` | KB-Sync + Firestore-Sync (`fitness/commands/sync.py`) |
+| `fitness catalog` | Katalog-TUI (Dashboard/Inbox-Review "Neuzugänge"/Browser/Plan/Lesson/History) |
+| `fitness enrich-watch` | Gemini-Enrichment-Daemon im Vordergrund/Ad-hoc starten (läuft normalerweise als `fitness-enricher.service`) |
+| `systemctl --user status fitness-enricher.service` | Status des dauerhaften Enrichment-Watchers |
+| `fitness session today` | Heutige Session anzeigen |
+| `fitness coverage -d DAYS` | Muskelabdeckung der letzten N Tage |
 | `cd pwa && npm run dev` | Firebase PWA Dev-Server |
 | `cd pwa && npm run deploy` | Firebase PWA bauen + deployen |
 
@@ -635,6 +705,13 @@ Alle vier Packages sind in `pyproject.toml` (`where=["."]`) registriert und via 
 
 ## fitness_cli/ — Python CLI & TUI Package
 
+> **Veraltet:** Das Package heißt seit dem `0875e37`-Merge `fitness/`
+> (`fitness/paths.py`, `fitness/commands/log.py` etc.), nicht mehr
+> `fitness_cli/` als eigener Ordner. `fitness_cli` existiert nur noch als
+> Symlink → `fitness/` (Kompat-Netz für übersehene Altimports). Neue Imports:
+> `fitness.X`, nicht `fitness_cli.X`. Struktur unten inhaltlich noch aktuell,
+> nur der Root-Pfad-Name ist falsch.
+
 Direkter Dateizugriff auf Session-JSONs — kein Server nötig.
 
 ```
@@ -655,9 +732,10 @@ fitness_cli/
 
 | Befehl | Entry-Point | Funktion |
 |--------|-------------|---------|
-| `fitness-tui` | `fitness_cli.commands.tui:main` | Interaktive Textual TUI |
-| `fitness-log` | `fitness_cli.commands.log` | Typer CLI (ls/show/stats/…) |
-| `fitness` | `bin/fitness` | Top-Level Dispatcher (dev/prod Server-Steuerung) |
+| `fitness-tui` | `fitness.commands.tui:main` | Interaktive Textual TUI (Session-Dashboard, NICHT der Katalog) |
+| `fitness-log` | `fitness.commands.log:main` | Typer CLI (ls/show/stats/…) |
+| `fitness-sync` | `fitness.commands.sync:main` | KB-Sync + Firestore-Sync (kb/pull/pull-uid/push/watch/all) |
+| `fitness` | `fitness.cli:main` | Domain-CLI-Dispatcher (session/journal/coverage/sync/catalog/…), reicht `prod`/`dev` an `fitnessctl` durch |
 
 **Muscle-Normalisierung** (`commands/__init__.py`): `muscle_to_group(name)` mappt rohe Session-Muskelnamen (`"201_latissimus_dorsi"`, `"Back"`, `"back"`) auf kanonische Gruppen (`"back"`) via Präfix-Range. `muscle_group_label(group)` gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
 
@@ -873,22 +951,23 @@ Referenz-Implementierung: `~/aos-dev/bin/bridge-devctl menu`
 
 | Dispatcher | Typ | Funktion |
 |---|---|---|
-| `fitness-devctl` | python3 | **Server-Controller** (start/stop/restart/status/logs/deploy → /opt) — **bevorzugter Einstieg für alles Servermässige** |
-| `~/fitness/bin/fitness` | python3 | **Terminal-facing dispatcher** im PATH (session/journal/coverage/gaps/search/stats) |
-| `fitnessctl` | bash | Legacy domain CLI (catalog, sessions, coverage, gaps, search) |
+| `fitness-devctl` | python3 | **Dev-Server-Controller** (--user-scope: aos-fitness-dev.service, fitness-python-backend.service) |
+| `fitness-prodctl` | python3 | **Prod-Controller** (fitness.service, system-scope :6100, sudo für restart/stop) |
+| `~/fitness/bin/fitness` | python3 | **Terminal-facing dispatcher** im PATH (session/journal/coverage/gaps/search/sync/catalog) |
+| `fitnessctl` | python3 | Reiner Top-Level-Router, kein eigenes CLI mehr: `fitnessctl dev <cmd>` → fitness-devctl, `fitnessctl prod <cmd>` → fitness-prodctl |
 
-`fitness-devctl` = reiner Service-Controller + Deploy. Neues Skript mit Serverlogik → hierher.
-`~/fitness/bin/fitness` = Day-to-day Domain-CLI. Liest direkt aus `~/.aos/fitness/sessions/` — kein laufender Server nötig. Neue fachliche Sub-Commands → hierher (typer).
-`fitnessctl` (bash) ist legacy — wird langfristig durch `fitness` + `fitness-devctl` abgelöst.
+`fitness-devctl`/`fitness-prodctl` = reine Service-Controller + Deploy, getrennt nach Dev/Prod. Neues Skript mit Serverlogik → dorthin (nicht in `fitness/cli.py` — die bleibt reine Domain-CLI).
+`~/fitness/bin/fitness` = Day-to-day Domain-CLI. Liest direkt aus `~/.aos/fitness/sessions/` — kein laufender Server nötig. Neue fachliche Sub-Commands → hierher (typer), aber als eigenes Modul unter `fitness/commands/*.py` + `[project.scripts]`-Entry-Point (Muster: `mail.py`/`activity.py`/`sync.py`), NICHT als Inline-Funktion in `cli.py` — genau das war bei `sync` das Problem (unauffindbar, kaum wartbar).
+`fitness prod <cmd>` / `fitness dev <cmd>` reichen 1:1 an `fitnessctl prod`/`fitnessctl dev` durch (os.execv), damit Server-Control auch über den gewohnten `fitness`-Einstieg erreichbar ist, ohne die Logik zu duplizieren.
 
 ### HTTP-Fallback-Modul
 
-`fitness_cli/http.py` — sauberes Python-Modul (`import fitness_cli.http as _http`).
-Wird von `bin/fitness` via `_try_http()` aufgerufen wenn direkte Datei-Lese fehlschlägt.
+`fitness/http.py` — sauberes Python-Modul (`import fitness.http as _http`).
+Wird von `fitness/cli.py` via `_try_http()` aufgerufen wenn direkte Datei-Lese fehlschlägt.
 Ziel: Node-Server `:9100` (env: `FITNESS_NODE_PORT`).
 
 ```python
-from fitness_cli import http as _http
+from fitness import http as _http
 _http.session_today()        # GET /session?date=today
 _http.session_get(date)      # GET /session?date=YYYY-MM-DD
 _http.session_list(limit)    # GET /session/history?limit=N

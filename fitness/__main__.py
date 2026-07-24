@@ -1,9 +1,9 @@
 """
-fitness_cli — python -m fitness_cli [log|tui] ...
+fitness — python -m fitness [log|tui] ...
 
 Kurzform-Dispatcher:
-  python -m fitness_cli log ls
-  python -m fitness_cli tui
+  python -m fitness log ls
+  python -m fitness tui
 """
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import sys
 
 def main() -> None:
     if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help"):
-        print("Usage: python -m fitness_cli [log|tui] [args...]")
+        print("Usage: python -m fitness [log|tui] [args...]")
         print("\nSubcommands:")
         print("  log   — Session-Log CLI (ls|show|week|history|stats|sync-status)")
         print("  tui   — Interaktives Textual Dashboard")
@@ -20,10 +20,10 @@ def main() -> None:
 
     cmd = sys.argv.pop(1)
     if cmd == "log":
-        from fitness_cli.commands.log import main as log_main
+        from fitness.commands.log import main as log_main
         log_main()
     elif cmd == "tui":
-        from fitness_cli.commands.tui import main as tui_main
+        from fitness.commands.tui import main as tui_main
         tui_main()
     else:
         print(f"Unbekannter Befehl: {cmd}  (log|tui)", file=sys.stderr)

@@ -8,7 +8,7 @@ import typer
 from anatomy_kb.config import ANATOMY_KB_ROOT, FITNESS_DEV, CATALOG_EXERCISES, ANATOMY_TEACHING as ANATOMY_TEACHING_DIR
 
 ROOT = ANATOMY_KB_ROOT  # Alias für Backward-Compat (serve.py etc.)
-EXERCISES_DIR = ANATOMY_KB_ROOT / "exercises"
+EXERCISES_DIR = ANATOMY_TEACHING_DIR
 SERVER_PORT = 9200
 
 from anatomy_kb import loader, display as _display
