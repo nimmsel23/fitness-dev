@@ -2,7 +2,8 @@ name: chest
 muscles:
   - 101_pectoralis_major
   - 102_pectoralis_major_clavicular
-  - 103_pectoralis_minor
+  - 103_pectoralis_major_sternal
+  - 104_pectoralis_minor
   - 105_serratus_anterior
 exercises:
   - id: "040"
@@ -12,7 +13,7 @@ exercises:
     wger_muscle_ids: {primary: [4], secondary: [2, 5]}
   - id: "041"
     name: "Schrägbankdrücken (KH)"
-    primary_muscles: [101_pectoralis_major]
+    primary_muscles: [101_pectoralis_major, 102_pectoralis_major_clavicular]
     secondary_muscles: [301_anterior_deltoid, 403_triceps_brachii]
     emphasis: clavicular
     wger_muscle_ids: {primary: [4], secondary: [2, 5]}
@@ -34,7 +35,7 @@ exercises:
     wger_muscle_ids: {primary: [4], secondary: [2]}
   - id: "104"
     name: "Dips (Brustfokus)"
-    primary_muscles: [101_pectoralis_major]
+    primary_muscles: [101_pectoralis_major, 103_pectoralis_major_sternal, 104_pectoralis_minor]
     secondary_muscles: [403_triceps_brachii, 301_anterior_deltoid]
     emphasis: sternal
     wger_muscle_ids: {primary: [4], secondary: [5, 2]}
