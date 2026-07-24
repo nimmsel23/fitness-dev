@@ -40,17 +40,10 @@ DEV_DIR = Path(__file__).resolve().parent
 # Namen der systemd-Units, die wir steuern. Als Konstanten oben definiert,
 # damit man sie an einer einzigen Stelle ändern kann, statt sie im Code
 # verstreut als Strings zu wiederholen.
-NODE_SERVICE = "fitness.service"          # system-scope, sudo nötig für restart/stop
-PYTHON_SERVICE = "fitness-python-backend.service"  # user-scope
-
-# Ein Dict als simples Lookup: Kommandozeilen-Kürzel ("node"/"python") →
-# (echter systemd-Unit-Name, ob es ein "system"- oder "--user"-Service ist).
-# system-scope-Units (wie fitness.service) gehören root/systemd global und
-# brauchen sudo zum Starten/Stoppen; --user-scope-Units laufen unter dem
-# eigenen Login und brauchen kein sudo.
+NODE_SERVICE = "fitness.service"          # system-scope, sudo
 SERVICES = {
-    "node": (NODE_SERVICE, True),      # (unit, is_system_scope)
-    "python": (PYTHON_SERVICE, False),
+    "api": (NODE_SERVICE, True),          # (unit, is_system_scope)
+    "node": (NODE_SERVICE, True),         # Alias for legacy compatibility
 }
 
 
@@ -120,25 +113,14 @@ def status():
 
 @app.command()
 def logs(
-    # typer.Argument(...) macht "service" zu einem Positions-Argument
-    # (fitness-prodctl logs python), mit "node" als Default, falls man es
-    # weglässt. Der help-Text hier erscheint automatisch in --help.
-    service: str = typer.Argument("node", help="Which service: node | python"),
-    # typer.Option(True, "-f/--no-follow", ...) erzeugt ein Bool-Flag-Paar:
-    # -f (oder --follow) setzt follow=True, --no-follow setzt follow=False.
-    # Ohne Angabe gilt der Default True.
+    service: str = typer.Argument("api", help="Which service: api | node"),
     follow: bool = typer.Option(True, "-f/--no-follow", help="Follow log output"),
     lines: int = typer.Option(50, "-n", help="Number of lines when not following"),
 ):
     """Live-Logs des Prod-Services (journalctl -f)."""
-    # .get() statt [] direkt: gibt bei unbekanntem Key None zurück statt
-    # eine Exception zu werfen — wir wollen selbst entscheiden, wie der
-    # Fehlerfall aussieht (hier: eigene Fehlermeldung + sauberer Exit).
     entry = SERVICES.get(service)
     if not entry:
-        msg.fail(f"Unknown service '{service}'. Use: node | python")
-        # typer.Exit(1) beendet das Skript mit Exit-Code 1 (= Fehler für die
-        # Shell), analog zu sys.exit(1), aber typer-freundlich verpackt.
+        msg.fail(f"Unknown service '{service}'. Use: api | node")
         raise typer.Exit(1)
     unit, system_scope = entry
 
@@ -158,12 +140,12 @@ def logs(
 
 @app.command()
 def restart(
-    service: str = typer.Argument("node", help="Which service: node | python"),
+    service: str = typer.Argument("api", help="Which service: api | node"),
 ):
-    """Restartet einen Prod-Service (Node braucht sudo)."""
+    """Restartet einen Prod-Service (API braucht sudo)."""
     entry = SERVICES.get(service)
     if not entry:
-        msg.fail(f"Unknown service '{service}'. Use: node | python")
+        msg.fail(f"Unknown service '{service}'. Use: api | node")
         raise typer.Exit(1)
     unit, system_scope = entry
 
