@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-import io
 import tempfile
 import unittest
-from contextlib import redirect_stdout
 from pathlib import Path
 from unittest import mock
 
-from fitness.catalog.cli import main
+from typer.testing import CliRunner
+
+from fitness.catalog.cli import app as catalog_app
 from fitness.catalog.preview import preview_file, render_markdown
 
 
@@ -41,13 +41,12 @@ class PreviewTest(unittest.TestCase):
             path = Path(tempdir) / "sample.md"
             path.write_text("# Sample\n\nBody\n", encoding="utf-8")
 
-            buffer = io.StringIO()
             with mock.patch("fitness.catalog.preview.shutil.which", return_value=None):
-                with redirect_stdout(buffer):
-                    code = main(["preview", "--file", str(path)])
+                runner = CliRunner()
+                result = runner.invoke(catalog_app, ["preview", "--file", str(path)])
 
-        self.assertEqual(code, 0)
-        output = buffer.getvalue()
+        self.assertEqual(result.exit_code, 0)
+        output = result.stdout
         self.assertIn("# Sample", output)
         self.assertIn("Body", output)
 

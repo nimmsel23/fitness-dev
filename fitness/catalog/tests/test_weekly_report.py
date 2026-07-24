@@ -1,19 +1,18 @@
 from __future__ import annotations
 
-import io
 import os
 import shutil
 import tempfile
 import unittest
-from contextlib import redirect_stdout
 from datetime import date, timedelta
 from pathlib import Path
 from unittest import mock
 
 import yaml
+from typer.testing import CliRunner
 
 from fitness.catalog.bootstrap import bootstrap
-from fitness.catalog.cli import main
+from fitness.catalog.cli import app as catalog_app
 from fitness.catalog.agent.obsidian import load_runtime_config
 from fitness.catalog.history import log_training_entry
 from fitness.catalog.weekly import build_weekly_coverage, iso_week_bounds
@@ -75,12 +74,11 @@ class WeeklyReportTest(unittest.TestCase):
         week_label, _ = self._seed_logs_for_current_week()
         with mock.patch("fitness.catalog.weekly.datetime") as mocked_datetime:
             mocked_datetime.now.return_value.date.return_value = date(2026, 5, 9)
-            buffer = io.StringIO()
-            with redirect_stdout(buffer):
-                exit_code = main(["report", "--week", "current"])
+            runner = CliRunner()
+            result = runner.invoke(catalog_app, ["report", "--week", "current"])
 
-        self.assertEqual(exit_code, 0)
-        payload = yaml.safe_load(buffer.getvalue())
+        self.assertEqual(result.exit_code, 0)
+        payload = yaml.safe_load(result.stdout)
         self.assertEqual(payload["weekly_coverage"]["week"], week_label)
         self.assertIn("recommendations", payload["weekly_coverage"])
 
@@ -88,12 +86,11 @@ class WeeklyReportTest(unittest.TestCase):
         week_label, _ = self._seed_logs_for_current_week()
         with mock.patch("fitness.catalog.weekly.datetime") as mocked_datetime:
             mocked_datetime.now.return_value.date.return_value = date(2026, 5, 9)
-            buffer = io.StringIO()
-            with redirect_stdout(buffer):
-                exit_code = main(["report", "--week", "current", "--export", "obsidian"])
+            runner = CliRunner()
+            result = runner.invoke(catalog_app, ["report", "--week", "current", "--export", "obsidian"])
 
-        self.assertEqual(exit_code, 0)
-        payload = yaml.safe_load(buffer.getvalue())
+        self.assertEqual(result.exit_code, 0)
+        payload = yaml.safe_load(result.stdout)
         self.assertEqual(payload["weekly_coverage"]["week"], week_label)
         export_root = Path(load_runtime_config()["obsidian"]["export_path"]).expanduser()
         export_path = export_root / "Reports" / "Weekly" / f"{week_label}.md"
