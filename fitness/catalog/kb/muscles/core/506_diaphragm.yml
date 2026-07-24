@@ -1,0 +1,13 @@
+id: 506_diaphragm
+display_name: Diaphragm
+label_de: Zwerchfell
+label_en: Diaphragm
+label_lat: Diaphragma
+region: core
+body_region: abdomen_front
+wger_id: ~
+aliases: [zwerchfell, diaphragm, diaphragma]
+viz:
+  rbh: abs
+  # Kein body_muscles-Eintrag: Zwerchfell liegt intern (Atem-/Druckregulation),
+  # auf keiner Oberflächen-Anatomie-Karte separat abgrenzbar.

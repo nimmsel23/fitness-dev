@@ -11,7 +11,7 @@ from rich.table import Table
 from rich.theme import Theme
 
 if TYPE_CHECKING:
-    from fitness.catalog.core.audit import AuditBundle, AuditReport, ExerciseAuditResult
+    from fitness.catalog.core.audit import AuditBundle, AuditReport, ExerciseAuditResult, DemandAuditResult
     from fitness.catalog.bootstrap import BootstrapEvent
     from fitness.catalog.core.doctor import DoctorReport
 
@@ -155,6 +155,35 @@ def print_exercise_audit(result: ExerciseAuditResult, status: str) -> None:
         console.print(Panel(f"[fail]Status: {status}[/fail]", expand=False))
     else:
         console.print(Panel(f"[ok]Status: {status}[/ok]", expand=False))
+
+
+def print_demand_audit(result: "DemandAuditResult") -> None:
+    print_header("Fitness Agent Demand Audit")
+
+    if result.error:
+        console.print(f"[fail]Firestore-Zugriff fehlgeschlagen:[/fail] {result.error}")
+        console.print(Panel("[fail]Status: DEMAND_AUDIT_FAILED[/fail]", expand=False))
+        return
+
+    console.print(f"Unreviewte Exercises im Katalog: {result.total_unreviewed}")
+    console.print(f"Geloggte Sets ueber alle User (gesamt): {result.total_logged_users_sessions}")
+    console.print()
+
+    table = Table(box=None, show_header=True)
+    table.add_column("Logs", justify="right", width=6)
+    table.add_column("Exercise ID")
+    table.add_column("Name")
+    table.add_column("Source", width=10)
+
+    for entry in result.entries:
+        table.add_row(str(entry.log_count), entry.exercise_id, entry.display_name, entry.source)
+
+    console.print(table)
+
+    if not result.entries:
+        console.print(Panel("[ok]Status: NO_DEMAND_FOUND[/ok]", expand=False))
+    else:
+        console.print(Panel(f"[ok]Status: {len(result.entries)} Kandidaten fuer Review[/ok]", expand=False))
 
 
 def setup_logging(level: str = "INFO") -> None:

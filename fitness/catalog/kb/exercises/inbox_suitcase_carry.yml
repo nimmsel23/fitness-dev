@@ -14,11 +14,11 @@ exercises:
   - kettlebell
   primary_muscles:
   - 502_obliquus_externus
-  - 208_quadratus_lumborum
+  - 505_quadratus_lumborum
   - 206_erector_spinae
   secondary_muscles:
-  - forearms
-  - trapezius
+  - 405_forearm_flexors
+  - 202_trapezius
   - 602_gluteus_medius
   - 501_rectus_abdominis
   coaching_notes:

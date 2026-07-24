@@ -18,6 +18,7 @@ from .biomechanics import audit_exercise_record, run_biomechanical_audit, write_
 from .report import render_audit_report, write_audit_report, write_audit_report_path
 from .runner import audit_all, run_all_audits
 from .loaders import load_all_anatomy_lessons, load_legacy_lesson_ids, load_aliases_document, load_body_regions
+from .demand import DemandEntry, DemandAuditResult, run_demand_audit
 
 __all__ = [
     "AuditLine", "AuditReport", "ExerciseAuditResult", "AliasAuditResult",
@@ -31,4 +32,5 @@ __all__ = [
     "render_audit_report", "write_audit_report", "write_audit_report_path",
     "audit_all", "run_all_audits",
     "load_all_anatomy_lessons", "load_legacy_lesson_ids", "load_aliases_document", "load_body_regions",
+    "DemandEntry", "DemandAuditResult", "run_demand_audit",
 ]

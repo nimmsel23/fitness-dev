@@ -17,6 +17,7 @@ from fitness.catalog.core.audit import (
     audit_exercises,
     run_all_audits,
     status_for_exercises,
+    run_demand_audit,
 )
 from fitness.catalog.coach_sheet import build_coach_sheet, render_coach_sheet_markdown
 from fitness.catalog.coverage import calculate_coverage as run_calculate_coverage
@@ -47,6 +48,7 @@ from fitness.catalog.core.rich_utils import (
     print_bootstrap_report,
     print_doctor_report,
     print_exercise_audit,
+    print_demand_audit,
 )
 
 app = typer.Typer(help="AlphaOS Fitness Agent CLI", add_completion=False)
@@ -112,6 +114,11 @@ def audit(
         status = status_for_exercises(result)
         print_exercise_audit(result, status)
         if status == "FAIL":
+            raise typer.Exit(code=1)
+    elif topic == "demand":
+        result = run_demand_audit()
+        print_demand_audit(result)
+        if result.error:
             raise typer.Exit(code=1)
     elif topic == "all":
         sys.exit(run_all_audits())
