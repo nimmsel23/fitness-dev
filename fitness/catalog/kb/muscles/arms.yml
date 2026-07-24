@@ -8,6 +8,9 @@ muscles:
   - 401_biceps_brachii
   - 402_brachialis
   - 403_triceps_brachii
+  - 403a_triceps_long_head
+  - 403b_triceps_lateral_head
+  - 403c_triceps_medial_head
   - 404_brachioradialis
   - 405_forearm_flexors
   - 406_anconeus

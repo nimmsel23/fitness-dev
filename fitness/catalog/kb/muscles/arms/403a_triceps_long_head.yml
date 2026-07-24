@@ -1,0 +1,14 @@
+id: 403a_triceps_long_head
+display_name: Triceps Brachii (Long Head)
+label_de: Trizeps (Langer Kopf)
+label_en: Triceps (Long Head)
+label_lat: M. triceps brachii (caput longum)
+region: arms
+body_region: upper_arm_back
+wger_id: 5
+aliases: [triceps long head, langer kopf]
+viz:
+  rbh: triceps
+  body_muscles:
+    view: BACK
+    ids: [triceps-long-left, triceps-long-right]
