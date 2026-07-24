@@ -16,11 +16,11 @@ exercises:
   primary_muscles:
   - 201_latissimus_dorsi
   - 205_rhomboids
-  - trapezius
+  - 203_trapezius_middle
   secondary_muscles:
-  - biceps
-  - posterior_deltoids
-  - forearms
+  - 401_biceps_brachii
+  - 303_posterior_deltoid
+  - 404_brachioradialis
   - 500_core
   coaching_notes:
   - Halten Sie den gesamten Körper, insbesondere den Rumpf, während der gesamten Bewegung

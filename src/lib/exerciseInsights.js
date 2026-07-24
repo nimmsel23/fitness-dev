@@ -120,7 +120,7 @@ function inferMovement(ex) {
     }
   }
 
-  if (has('curl', 'biceps')) {
+  if (has('curl', 'biceps', 'bizeps')) {
     return {
       title: 'Armbeugung',
       pattern: 'Ellenbogenflexion mit stabiler Schulterposition',
@@ -132,6 +132,114 @@ function inferMovement(ex) {
         { error: 'Schwung aus dem Oberkoerper', reason: 'Zu viel Last oder zu wenig Kontrolle', fix: 'Satzgewicht reduzieren und Tempo straffen' },
       ],
       quiz: 'Warum bleibt der Ellbogen beim Curl moeglichst ruhig?'
+    }
+  }
+
+  if (has('extension', 'trizeps', 'triceps', 'pushdown', 'kickback', 'skullcrusher', 'french press')) {
+    return {
+      title: 'Armstreckung',
+      pattern: 'Ellenbogenextension gegen Widerstand',
+      lesson: 'Trizeps streckt den Ellenbogen, waehrend Schulter und Oberarm die Ausgangsposition halten.',
+      jointActions: ['Ellenbogen: Extension', 'Schulter: Stabilisierung', 'Handgelenk: neutrale Fuehrung'],
+      feel: 'Der Oberarm bleibt fixiert, nur der Unterarm bewegt sich kontrolliert nach unten und oben.',
+      cues: ['Oberarm ruhig halten', 'Ellbogen nicht ueberstrecken', 'Tempo im Rueckweg bewusst bremsen'],
+      errors: [
+        { error: 'Oberarm wandert mit', reason: 'Zu viel Last oder fehlende Fixierung', fix: 'Gewicht reduzieren und Oberarm bewusst am Koerper/Kopf fixieren' },
+      ],
+      quiz: 'Warum bleibt der Oberarm bei Trizeps-Extensions fixiert?'
+    }
+  }
+
+  if (has('lateral raise', 'seitheben', 'front raise', 'frontheben', 'rear delt', 'reverse fly', 'face pull', 'delt fly', 'y-raise', 'arm raises')) {
+    return {
+      title: 'Schulter-Isolation',
+      pattern: 'Abduktion oder Rotation im Schultergelenk',
+      lesson: 'Die Deltamuskulatur hebt oder rotiert den Arm im Schultergelenk, waehrend Scapula und Rumpf die Ausgangsstellung sichern.',
+      jointActions: ['Schulter: Abduktion, Flexion oder horizontale Extension', 'Scapula: Stabilisierung', 'Ellenbogen: leicht gebeugt fixiert'],
+      feel: 'Der Impuls kommt aus der Schulter, nicht aus Schwung von Huefte oder Ruecken.',
+      cues: ['Kein Schwung aus dem Koerper', 'Schultern unten lassen', 'Leichte Ellbogenbeugung halten'],
+      errors: [
+        { error: 'Schwung durch Koerperrotation', reason: 'Last ist fuer die reine Schulterarbeit zu hoch', fix: 'Gewicht reduzieren und Tempo kontrollieren' },
+        { error: 'Trapezius uebernimmt', reason: 'Schulter zieht bei zu viel Last nach oben', fix: 'Schulterblatt tief und stabil halten' },
+      ],
+      quiz: 'Warum uebernimmt bei Seitheben schnell der Trapezius?'
+    }
+  }
+
+  if (has('shrug', 'schulterheben')) {
+    return {
+      title: 'Schultergürtel-Elevation',
+      pattern: 'Scapula-Elevation',
+      lesson: 'Der obere Trapezius hebt den Schultergueretl direkt nach oben, ohne Rotation im Ellenbogen oder Schulterhauptgelenk.',
+      jointActions: ['Scapula: Elevation', 'Schulter: minimale Bewegung', 'Wirbelsaeule: neutral stabilisiert'],
+      feel: 'Die Schultern ziehen senkrecht Richtung Ohren und senken sich wieder kontrolliert.',
+      cues: ['Keine Rollbewegung', 'Nacken lang lassen', 'Oben kurz halten'],
+      errors: [
+        { error: 'Schultern rollen nach vorne/hinten', reason: 'Bewegung wird statt rein vertikal kreisend ausgefuehrt', fix: 'Bewegung auf reine Elevation ohne Rotation reduzieren' },
+      ],
+      quiz: 'Welcher Muskel hebt beim Shrug den Schultergueretl?'
+    }
+  }
+
+  if (has('calf raise', 'wadenheben', 'calf')) {
+    return {
+      title: 'Sprunggelenk-Streckung',
+      pattern: 'Plantarflexion im Sprunggelenk',
+      lesson: 'Wadenmuskulatur (Gastrocnemius/Soleus) hebt die Ferse durch Plantarflexion, Rumpf und Bein bleiben stabil.',
+      jointActions: ['Sprunggelenk: Plantarflexion', 'Knie: je nach Variante gestreckt oder gebeugt', 'Huefte: Stabilisierung'],
+      feel: 'Der Druck kommt aus dem Vorfuss, die Ferse hebt kontrolliert bis zur vollen Streckung.',
+      cues: ['Volle Bewegungsamplitude nutzen', 'Kontrolliert absenken', 'Kein Wippen aus dem Knie'],
+      errors: [
+        { error: 'Nur kleine Teilbewegung', reason: 'Last zu hoch fuer sauberen Bewegungsradius', fix: 'Last reduzieren und volle Amplitude fahren' },
+      ],
+      quiz: 'Welche zwei Muskeln bilden die Wade?'
+    }
+  }
+
+  if (has('crunch', 'sit-up', 'sit up', 'plank', 'plank', 'core', 'bauch', 'rollout', 'ab wheel', 'draw-in', 'hollow', 'dead bug', 'russian twist')) {
+    return {
+      title: 'Rumpfstabilisation',
+      pattern: 'Flexion, Rotation oder isometrische Stabilisierung des Rumpfes',
+      lesson: 'Die Bauchmuskulatur beugt die Wirbelsaeule oder haelt sie isometrisch gegen Kippmomente stabil.',
+      jointActions: ['Wirbelsaeule: Flexion oder isometrische Stabilisierung', 'Becken: neutrale Kontrolle', 'Huefte: je nach Variante beteiligt'],
+      feel: 'Die Spannung kommt aus der Bauchmitte, der untere Ruecken bleibt ruhig am Boden oder in Linie.',
+      cues: ['Rippen Richtung Becken ziehen', 'Kein Zug am Nacken', 'Atmung nicht anhalten'],
+      errors: [
+        { error: 'Zug am Nacken statt Bauchspannung', reason: 'Bauchmuskulatur wird umgangen', fix: 'Haende locker halten, Bewegung aus dem Rumpf einleiten' },
+        { error: 'Hohlkreuz unter Last', reason: 'Rumpfstabilitaet fehlt', fix: 'Bewegungsradius verkleinern und Becken neutral fixieren' },
+      ],
+      quiz: 'Warum sollte beim Crunch kein Zug am Nacken entstehen?'
+    }
+  }
+
+  if (has('rotation', 'external rotation', 'internal rotation', 'rotator cuff', 'aussenrotation', 'innenrotation')) {
+    return {
+      title: 'Rotatorenmanschette / Gelenkrotation',
+      pattern: 'Innen- oder Aussenrotation im Schultergelenk',
+      lesson: 'Die kleinen Rotatorenmanschetten-Muskeln (u.a. Infraspinatus, Teres minor, Subscapularis) zentrieren den Oberarmkopf und drehen ihn kontrolliert.',
+      jointActions: ['Schulter: Innen- oder Aussenrotation', 'Ellenbogen: meist 90° fixiert', 'Scapula: Stabilisierung'],
+      feel: 'Die Bewegung bleibt klein und praezise, der Oberarm liegt ruhig am Koerper an.',
+      cues: ['Ellbogen am Koerper fixieren', 'Leichtes Gewicht, saubere Bahn', 'Kein Schwung aus der Schulter'],
+      errors: [
+        { error: 'Oberarm loest sich vom Koerper', reason: 'Last zu hoch fuer die kleinen Stabilisatoren', fix: 'Gewicht deutlich reduzieren' },
+      ],
+      quiz: 'Warum arbeitet man bei Rotatorenmanschetten-Uebungen mit sehr leichtem Gewicht?'
+    }
+  }
+
+  const primary = cleanList(ex?.primaryMuscles)
+  if (primary.length) {
+    return {
+      title: 'Isolations- oder Zusatzuebung',
+      pattern: `Gezielte Beanspruchung von ${primary.slice(0, 2).join(', ')}`,
+      lesson: `Diese Uebung beansprucht gezielt ${primary.join(', ')}${cleanList(ex?.secondaryMuscles).length ? ` (unterstuetzt von ${cleanList(ex.secondaryMuscles).slice(0, 2).join(', ')})` : ''} — Fokus liegt auf sauberer, isolierter Ausfuehrung statt auf einem grossen Kraftdreikampf-Bewegungsmuster.`,
+      jointActions: ['Bewegung isoliert auf den Zielmuskel fokussiert', 'Nachbargelenke stabilisieren mit'],
+      feel: `Die Spannung sollte klar in ${primary[0]} spuerbar sein, nicht in Ausweichmuskulatur.`,
+      cues: ['Zielmuskel bewusst anspannen', 'Kontrolliertes Tempo', 'Volle Bewegungsamplitude nutzen'],
+      errors: [
+        { error: 'Ausweichbewegung uebernimmt', reason: 'Last zu hoch fuer saubere Isolation', fix: 'Gewicht reduzieren und Zielmuskel bewusst fuehren' },
+      ],
+      quiz: `Woran merkst du, dass ${primary[0]} bei dieser Uebung wirklich arbeitet?`
     }
   }
 

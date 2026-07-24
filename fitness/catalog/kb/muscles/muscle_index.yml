@@ -3,10 +3,10 @@ muscles:
   401_biceps_brachii:              {wger_id: 1}
   301_anterior_deltoid:            {wger_id: 2}
   105_serratus_anterior:           {wger_id: 3}
-  101_pectoralis_major:            {wger_id: 4, members: [102_pectoralis_major_clavicular]}
-  403_triceps_brachii:             {wger_id: 5}
+  101_pectoralis_major:            {wger_id: 4, members: [102_pectoralis_major_clavicular, 103_pectoralis_major_sternal]}
+  403_triceps_brachii:             {wger_id: 5, members: [403a_triceps_long_head, 403b_triceps_lateral_head, 403c_triceps_medial_head]}
   501_rectus_abdominis:            {wger_id: 6}
-  701_gastrocnemius:               {wger_id: 7}
+  701_gastrocnemius:               {wger_id: 7, members: [701a_gastrocnemius_medial, 701b_gastrocnemius_lateral]}
   601_gluteus_maximus:             {wger_id: 8}
   202_trapezius_upper:             {wger_id: 9}
   203_trapezius_middle:            {wger_id: 9}
@@ -26,7 +26,8 @@ muscles:
   206_erector_spinae:              {wger_id: 16}
 
   102_pectoralis_major_clavicular: {parent: 101_pectoralis_major}
-  103_pectoralis_minor:            {}
+  103_pectoralis_major_sternal:    {parent: 101_pectoralis_major}
+  104_pectoralis_minor:            {}
   205_rhomboids:                   {}
   207_teres_major:                 {}
   208_quadratus_lumborum:          {}
@@ -36,6 +37,11 @@ muscles:
   306_infraspinatus:               {parent: 304_rotator_cuff}
   307_teres_minor:                 {parent: 304_rotator_cuff}
   308_subscapularis:               {parent: 304_rotator_cuff}
+  403a_triceps_long_head:          {parent: 403_triceps_brachii}
+  403b_triceps_lateral_head:       {parent: 403_triceps_brachii}
+  403c_triceps_medial_head:        {parent: 403_triceps_brachii}
+  701a_gastrocnemius_medial:       {parent: 701_gastrocnemius}
+  701b_gastrocnemius_lateral:      {parent: 701_gastrocnemius}
   404_brachioradialis:             {}
   405_forearm_flexors:             {}
   406_anconeus:                    {}
@@ -50,19 +56,19 @@ muscles:
 
   # --- Group IDs (used by unreviewed wger/yuhonas exercises) ---
   100_chest:
-    members: [101_pectoralis_major, 102_pectoralis_major_clavicular, 103_pectoralis_minor, 105_serratus_anterior]
+    members: [101_pectoralis_major, 102_pectoralis_major_clavicular, 103_pectoralis_major_sternal, 104_pectoralis_minor, 105_serratus_anterior]
   200_back:
     members: [201_latissimus_dorsi, 202_trapezius_upper, 203_trapezius_middle, 204_trapezius_lower, 205_rhomboids, 206_erector_spinae, 207_teres_major, 208_quadratus_lumborum]
   300_shoulders:
     members: [301_anterior_deltoid, 302_lateral_deltoid, 303_posterior_deltoid, 304_rotator_cuff]
   400_arms:
-    members: [401_biceps_brachii, 402_brachialis, 403_triceps_brachii, 404_brachioradialis, 405_forearm_flexors, 406_anconeus, 407_forearm_extensors]
+    members: [401_biceps_brachii, 402_brachialis, 403_triceps_brachii, 403a_triceps_long_head, 403b_triceps_lateral_head, 403c_triceps_medial_head, 404_brachioradialis, 405_forearm_flexors, 406_anconeus, 407_forearm_extensors]
   500_core:
     members: [501_rectus_abdominis, 502_obliquus_externus, 503_obliquus_internus, 504_transverse_abdominis, 208_quadratus_lumborum]
   600_legs:
     members: [601_gluteus_maximus, 602_gluteus_medius, 603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius, 607_biceps_femoris, 608_semitendinosus, 609_semimembranosus, 610_adductors, 611_iliopsoas, 612_gluteus_minimus]
   700_calves:
-    members: [701_gastrocnemius, 702_soleus, 703_tibialis_anterior]
+    members: [701_gastrocnemius, 701a_gastrocnemius_medial, 701b_gastrocnemius_lateral, 702_soleus, 703_tibialis_anterior]
   603_quadriceps:
     members: [603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius]
   604_hamstrings:
@@ -106,10 +112,10 @@ wger_groups:
   1:  [401_biceps_brachii]
   2:  [301_anterior_deltoid]
   3:  [105_serratus_anterior]
-  4:  [101_pectoralis_major, 102_pectoralis_major_clavicular]
-  5:  [403_triceps_brachii]
+  4:  [101_pectoralis_major, 102_pectoralis_major_clavicular, 103_pectoralis_major_sternal]
+  5:  [403_triceps_brachii, 403a_triceps_long_head, 403b_triceps_lateral_head, 403c_triceps_medial_head]
   6:  [501_rectus_abdominis]
-  7:  [701_gastrocnemius]
+  7:  [701_gastrocnemius, 701a_gastrocnemius_medial, 701b_gastrocnemius_lateral]
   8:  [601_gluteus_maximus]
   9:  [202_trapezius_upper, 203_trapezius_middle, 204_trapezius_lower, 303_posterior_deltoid]
   10: [603_rectus_femoris, 604_vastus_lateralis, 605_vastus_medialis, 606_vastus_intermedius]

@@ -13,8 +13,8 @@ exercises:
   primary_muscles:
   - 101_pectoralis_major
   - 102_pectoralis_major_clavicular
-  - 301_anterior_deltoid
   secondary_muscles:
+  - 301_anterior_deltoid
   - 403_triceps_brachii
   - 105_serratus_anterior
   stabilizers:

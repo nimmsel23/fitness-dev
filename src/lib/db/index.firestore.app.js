@@ -8,3 +8,4 @@
 
 export * from "./index.firestore.js";
 export { getMealsHistory, getNutritionNotesHistory, getSupplementsHistory } from "@fuel/lib/db/firestore/index.js";
+export { getRelaxSessionHistory } from "@relax/lib/db/firestore/sessions.js";

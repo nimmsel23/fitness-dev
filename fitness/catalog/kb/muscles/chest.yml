@@ -7,5 +7,6 @@ body_region: chest_front
 muscles:
   - 101_pectoralis_major
   - 102_pectoralis_major_clavicular
-  - 103_pectoralis_minor
+  - 103_pectoralis_major_sternal
+  - 104_pectoralis_minor
   - 105_serratus_anterior
