@@ -2,6 +2,17 @@
 
 This document specifies rules and behavioral constraints for agentic assistants operating in this repository.
 
+## Firestore Rules — Deploy Policy
+- **SSOT:** `~/vitalos/firestore.rules` ist die einzige Source of Truth für alle Firestore-Rules des `fitness-aos` Projekts.
+- **Niemals** einen `firestore`-Block zu `fitness-dev/firebase.json` hinzufügen.
+- **Niemals** `firebase deploy --only firestore:rules` aus `fitness-dev` ausführen.
+- Rules-Änderungen immer in `~/vitalos/firestore.rules` vornehmen und von dort deployen.
+
+## Git Automation Policy
+- **Auto-Commit**: After completing code changes, commit automatically without waiting for explicit instruction.
+- **Never Auto-Push**: Never run `git push` automatically. Only push when the user explicitly asks (e.g., "push", "pushe").
+- **Never Auto-Merge**: Never trigger the VitalOS submodule merge workflow automatically. Only execute it on explicit instruction.
+
 ## Git & Branching Workflow
 - **Work in Branches**: Always perform tasks and feature development on a dedicated Git branch (e.g., `agent/<feature-name>`) instead of making edits directly on `master` or `main`.
 - **Merge Preparation**: Prepare branches cleanly for user review, so the user can easily merge them without conflicts.

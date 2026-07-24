@@ -1,4 +1,5 @@
 {
+  "_note": "Firestore rules SSOT = ~/vitalos/firestore.rules — NEVER add a firestore block here or deploy rules from fitness-dev. Only vitalos deploys rules.",
   "hosting": {
     "site": "fitness-aos",
     "public": "dist-firebase",
