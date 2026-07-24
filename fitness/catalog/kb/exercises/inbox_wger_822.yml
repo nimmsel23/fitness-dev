@@ -1,0 +1,61 @@
+name: inbox_wger_822
+description: 'Proactively generated expert draft for: Cable Rear Delt Fly'
+exercises:
+- exercise_id: wger_822
+  display_name: Cable Rear Delt Fly
+  category: Shoulders
+  primary_muscles:
+  - 303_posterior_deltoid
+  secondary_muscles:
+  - 205_rhomboids
+  - 203_trapezius_middle
+  - 204_trapezius_lower
+  - 304_rotator_cuff
+  stabilizers:
+  - 206_erector_spinae
+  - 501_rectus_abdominis
+  - 502_obliques
+  - 503_transverse_abdominis
+  - 601_glutes
+  equipment:
+  - Cable Machine
+  movement_pattern: Horizontal Abduction
+  coaching_notes:
+    de:
+    - '**Ausgangsposition:** Stellen Sie die Kabelrollen auf Schulterhöhe ein. Fassen
+      Sie die Griffe mit überkreuzten Armen (rechter Griff mit linker Hand, linker
+      Griff mit rechter Hand). Stellen Sie sich mit leicht gebeugten Knien, schulterbreit
+      auseinanderstehenden Füßen und aufrechtem Oberkörper mittig vor die Maschine.'
+    - '**Ausführung:** Beginnen Sie mit gestreckten Armen vor der Brust. Ziehen Sie
+      die Griffe kontrolliert nach hinten und außen, während Sie die Arme nur leicht
+      im Ellbogen beugen. Konzentrieren Sie sich darauf, die Kontraktion in den hinteren
+      Schultermuskeln zu spüren, als wollten Sie Ihre Schulterblätter zusammenführen,
+      ohne sie tatsächlich zu berühren. Führen Sie die Bewegung langsam und kontrolliert
+      aus, sowohl beim Ziehen als auch beim Zurückführen in die Ausgangsposition.'
+    - '**Fokus:** Stellen Sie sich vor, Sie würden mit Ihren Ellbogen einen weiten
+      Bogen nach hinten ziehen. Vermeiden Sie jeglichen Schwung und konzentrieren
+      Sie sich auf eine bewusste Muskelkontraktion der hinteren Schulter.'
+    - '**Atmung:** Atmen Sie während der Ziehbewegung aus und beim Zurückführen der
+      Arme ein.'
+  common_errors:
+    de:
+    - '**Zu viel Gewicht:** Die Verwendung von zu viel Gewicht führt dazu, dass andere
+      Muskeln (z.B. Latissimus oder Bizeps) die Bewegung dominieren und die gezielte
+      Stimulation der hinteren Schulter verloren geht.'
+    - '**Schultern hochziehen:** Wenn die Schultern während der Bewegung zu den Ohren
+      gezogen werden, wird primär der obere Trapezius beansprucht anstatt der hinteren
+      Deltamuskeln. Halten Sie die Schultern stets tief und entspannt.'
+    - '**Arme zu stark beugen:** Eine zu starke Beugung der Arme (über einen leichten
+      Winkel hinaus) verwandelt die Übung in ein Rudern, was den Bizeps und Latissimus
+      stärker involviert. Behalten Sie einen konstanten, leichten Winkel im Ellbogen
+      bei.'
+    - '**Schwung nutzen:** Die Bewegung sollte immer kontrolliert und ohne Schwung
+      erfolgen. Schwung reduziert die effektive Muskelspannung und erhöht das Verletzungsrisiko.'
+    - '**Runder Rücken:** Ein runder Rücken während der Übung kann die Wirbelsäule
+      belasten. Achten Sie auf eine stolze Brust und einen geraden Rücken während
+      der gesamten Ausführung.'
+    - '**Unvollständiger Bewegungsbereich:** Die Arme nicht weit genug nach hinten
+      zu führen, reduziert die Effektivität der Übung für die hintere Schultermuskulatur.'
+  wger_id: null
+  variations: []
+  source: unreviewed

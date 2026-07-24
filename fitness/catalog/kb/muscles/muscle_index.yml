@@ -2,7 +2,7 @@ muscles:
   # --- Leaf muscles (wger_id where available) ---
   401_biceps_brachii:              {wger_id: 1}
   301_anterior_deltoid:            {wger_id: 2}
-  104_serratus_anterior:           {wger_id: 3}
+  105_serratus_anterior:           {wger_id: 3}
   101_pectoralis_major:            {wger_id: 4, members: [102_pectoralis_major_clavicular]}
   403_triceps_brachii:             {wger_id: 5}
   501_rectus_abdominis:            {wger_id: 6}
@@ -50,7 +50,7 @@ muscles:
 
   # --- Group IDs (used by unreviewed wger/yuhonas exercises) ---
   100_chest:
-    members: [101_pectoralis_major, 102_pectoralis_major_clavicular, 103_pectoralis_minor, 104_serratus_anterior]
+    members: [101_pectoralis_major, 102_pectoralis_major_clavicular, 103_pectoralis_minor, 105_serratus_anterior]
   200_back:
     members: [201_latissimus_dorsi, 202_trapezius_upper, 203_trapezius_middle, 204_trapezius_lower, 205_rhomboids, 206_erector_spinae, 207_teres_major, 208_quadratus_lumborum]
   300_shoulders:
@@ -105,7 +105,7 @@ string_aliases:
 wger_groups:
   1:  [401_biceps_brachii]
   2:  [301_anterior_deltoid]
-  3:  [104_serratus_anterior]
+  3:  [105_serratus_anterior]
   4:  [101_pectoralis_major, 102_pectoralis_major_clavicular]
   5:  [403_triceps_brachii]
   6:  [501_rectus_abdominis]

@@ -3,7 +3,7 @@ muscles:
   - 101_pectoralis_major
   - 102_pectoralis_major_clavicular
   - 103_pectoralis_minor
-  - 104_serratus_anterior
+  - 105_serratus_anterior
 exercises:
   - id: "040"
     name: "Bankdrücken (LH)"
@@ -24,7 +24,7 @@ exercises:
   - id: "102"
     name: "Kabel-Flys (von unten)"
     primary_muscles: [101_pectoralis_major]
-    secondary_muscles: [301_anterior_deltoid, 104_serratus_anterior]
+    secondary_muscles: [301_anterior_deltoid, 105_serratus_anterior]
     emphasis: clavicular
     wger_muscle_ids: {primary: [4], secondary: [2, 3]}
   - id: "103"

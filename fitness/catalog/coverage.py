@@ -13,20 +13,33 @@ ROLE_WEIGHTS = {
 }
 
 
-def calculate_coverage(exercise_query: str, sets: int, rpe: int) -> dict[str, Any]:
-    resolution = resolve_query(exercise_query)
+def calculate_coverage(
+    exercise_query: str,
+    sets: int,
+    rpe: int,
+    records: list | None = None,
+    taxonomy: dict | None = None,
+    region_index: dict | None = None,
+    rules: dict | None = None,
+) -> dict[str, Any]:
+    if records is None:
+        records = build_exercise_index()
+    resolution = resolve_query(exercise_query, records=records)
     if not resolution.matched or not resolution.canonical_id:
         raise ValueError(f"Unknown exercise: {exercise_query}")
 
-    exercise = find_exercise(resolution.canonical_id)
+    exercise = find_exercise(resolution.canonical_id, records=records)
     if exercise is None:
         raise ValueError(f"Exercise not found: {resolution.canonical_id}")
 
-    taxonomy = load_muscle_taxonomy()
+    if taxonomy is None:
+        taxonomy = load_muscle_taxonomy()
     alias_map = build_muscle_alias_map(taxonomy)
     parent_map = build_muscle_parent_map(taxonomy)
-    region_index = load_muscle_region_index()
-    rules = load_coverage_rules()
+    if region_index is None:
+        region_index = load_muscle_region_index()
+    if rules is None:
+        rules = load_coverage_rules()
     effort_factor = effort_factor_for_rpe(rpe, rules)
 
     muscle_scores: dict[str, float] = defaultdict(float)
@@ -64,8 +77,8 @@ def calculate_coverage(exercise_query: str, sets: int, rpe: int) -> dict[str, An
     }
 
 
-def find_exercise(exercise_id: str):
-    for record in build_exercise_index():
+def find_exercise(exercise_id: str, records: list | None = None):
+    for record in (records if records is not None else build_exercise_index()):
         if record.exercise_id == exercise_id:
             return record
     return None

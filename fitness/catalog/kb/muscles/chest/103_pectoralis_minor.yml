@@ -9,6 +9,7 @@ wger_id: ~
 aliases: [kleiner brustmuskel, pectoralis minor, brust, chest]
 viz:
   rbh: chest
-  body_muscles:
-    view: FRONT
-    ids: [chest-upper-left, chest-upper-right, chest-lower-left, chest-lower-right]
+  # Kein body_muscles-Eintrag: Pectoralis minor liegt tief unter dem großen
+  # Brustmuskel (101/102) und hat auf der Oberflächen-Anatomie-Karte keine
+  # eigene sichtbare Region - eine Zuordnung zu chest-upper/-lower würde
+  # suggerieren, er wäre oberflächlich abgrenzbar.

@@ -18,7 +18,7 @@ exercises:
   - 604_vastus_lateralis
   - 605_vastus_medialis
   - 606_vastus_intermedius
-  - 104_serratus_anterior
+  - 105_serratus_anterior
   stabilizers:
   - 301_anterior_deltoid
   - 101_pectoralis_major

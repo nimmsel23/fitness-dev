@@ -64,7 +64,10 @@ def run_coverage_audit() -> AuditReport:
                 exercise_failures.append(f"{exercise.exercise_id} stabilizer has no body region: {muscle}")
 
         try:
-            sample = calculate_coverage(exercise.exercise_id, 1, 8)
+            sample = calculate_coverage(
+                exercise.exercise_id, 1, 8,
+                records=exercise_index, taxonomy=taxonomy, region_index=region_index, rules=rules,
+            )
         except Exception as exc:
             lines.append(fail(f"{exercise.exercise_id} sample coverage crashed: {exc}"))
             continue
@@ -133,7 +136,10 @@ def audit_coverage() -> CoverageAuditResult:
         if any(normalize_muscle_id(muscle) not in taxonomy for muscle in (exercise.stabilizers or [])):
             exercises_with_unmapped_stabilizers.append(exercise.exercise_id)
         try:
-            sample = calculate_coverage(exercise.exercise_id, 1, 8)
+            sample = calculate_coverage(
+                exercise.exercise_id, 1, 8,
+                records=exercise_index, taxonomy=taxonomy, region_index=region_index, rules=rules,
+            )
         except Exception as exc:
             lines.append(fail(f"{exercise.exercise_id} sample coverage crashed: {exc}"))
             continue

@@ -19,12 +19,12 @@ exercises:
   - id: "603"
     name: "Ab Wheel"
     primary_muscles: [501_rectus_abdominis, 504_transverse_abdominis]
-    secondary_muscles: [502_obliquus_externus, 201_latissimus_dorsi, 104_serratus_anterior]
+    secondary_muscles: [502_obliquus_externus, 201_latissimus_dorsi, 105_serratus_anterior]
     wger_muscle_ids: {primary: [6], secondary: [12, 3]}
   - id: "604"
     name: "Unterarmstütz"
     primary_muscles: [504_transverse_abdominis, 501_rectus_abdominis]
-    secondary_muscles: [502_obliquus_externus, 503_obliquus_internus, 104_serratus_anterior]
+    secondary_muscles: [502_obliquus_externus, 503_obliquus_internus, 105_serratus_anterior]
     wger_muscle_ids: {primary: [6], secondary: [14, 3]}
   - id: "605"
     name: "Pallof Press"
