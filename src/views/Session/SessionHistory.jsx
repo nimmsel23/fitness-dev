@@ -79,12 +79,14 @@ export default function SessionHistory({
   };
 
   const renderSessionCard = (d, s) => {
-    const isActivity = s.sessionMode === 'cardio' || !!s.activity;
+    const hasExercises = Array.isArray(s.exercises) && s.exercises.length > 0;
+    const isActivity = !hasExercises && (s.sessionMode === 'cardio' || !!s.activity);
+    const hasFinisher = hasExercises && !!s.activity;
     const actType = s.activity?.type;
     const emoji = actType ? ACTIVITY_EMOJI[actType] : null;
     const ActivityIconComp = (!emoji && actType) ? (ACTIVITY_ICONS[actType] || Activity) : null;
     const label = isActivity ? (ACTIVITY_LABELS[actType] || 'Ausdauer') : s.block;
-    const color = blockColor(s.block, s.activity, s.sessionMode);
+    const color = blockColor(s.block, isActivity ? s.activity : null, s.sessionMode);
     const isReDate = reDateEntry?.d === d;
     const isDragging = draggedDate === d;
 
@@ -124,10 +126,22 @@ export default function SessionHistory({
           {/* Info */}
           <div className="flex-1 min-w-0">
             <div
-              className="text-sm font-black truncate"
+              className="text-sm font-black truncate flex items-center gap-1.5"
               style={{ color: 'var(--ink)' }}
             >
-              {label || <span style={{ color: 'var(--dim)', fontStyle: 'italic', opacity: 0.4 }}>–</span>}
+              <span className="truncate">
+                {label || <span style={{ color: 'var(--dim)', fontStyle: 'italic', opacity: 0.4 }}>–</span>}
+              </span>
+              {hasFinisher && (
+                <span
+                  className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shrink-0 flex items-center gap-0.5"
+                  style={{ background: 'var(--accent)' + '20', color: 'var(--accent)' }}
+                  title="Activity Finisher"
+                >
+                  {emoji ? <span>{emoji}</span> : ActivityIconComp ? <ActivityIconComp size={9} /> : null}
+                  {ACTIVITY_LABELS[actType] || 'Finisher'}
+                </span>
+              )}
             </div>
             {isActivity ? (
               <div
@@ -139,10 +153,16 @@ export default function SessionHistory({
               </div>
             ) : (
               <div
-                className="text-[9px] font-bold"
+                className="text-[9px] font-bold flex items-center gap-1.5"
                 style={{ color: 'var(--dim)', opacity: 0.4 }}
               >
-                {Array.isArray(s.exercises) ? s.exercises.length : 0} Übungen
+                <span>{Array.isArray(s.exercises) ? s.exercises.length : 0} Übungen</span>
+                {hasFinisher && s.activity?.duration && (
+                  <span className="flex items-center gap-0.5">
+                    <Timer size={8} />
+                    {s.activity.duration}min
+                  </span>
+                )}
               </div>
             )}
           </div>

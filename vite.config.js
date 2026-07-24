@@ -55,6 +55,7 @@ export default defineConfig(({ mode }) => {
         '@fuel':               resolve(siblingDir('fuel-dev', 'fuel-app'), 'src/client'),
         '@habits':             resolve(siblingDir('habits-dev', 'habit-app'), 'src'),
         '@journal':            resolve(siblingDir('journal-dev', 'journal-app'), 'src'),
+        '@relax':              resolve(siblingDir('relax-dev', 'relax-app'), 'src'),
         '@learn':              resolve(__dirname, '../learn-dev/src'),
       },
       // Singleton-Dedup: fuel-dev hat eigene node_modules — Vite zwingt eine einzige Instanz

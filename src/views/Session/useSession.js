@@ -133,7 +133,17 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
       const sessByDate = {};
       const pMap = {};
       sessions.forEach(s => {
-        sessByDate[s.date] = s;
+        const existing = sessByDate[s.date];
+        if (existing) {
+          // mehrere Docs am selben Tag (z.B. Legs + HIIT-Finisher) mergen statt überschreiben
+          sessByDate[s.date] = {
+            ...existing,
+            exercises: [...(existing.exercises || []), ...(s.exercises || [])],
+            activity: existing.activity || s.activity,
+          };
+        } else {
+          sessByDate[s.date] = s;
+        }
         if (s.date !== date) {
           (s.exercises || []).forEach(ex => {
             if (ex.name && !pMap[ex.name]) {
