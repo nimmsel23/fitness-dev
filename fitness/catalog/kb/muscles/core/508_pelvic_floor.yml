@@ -1,0 +1,13 @@
+id: 508_pelvic_floor
+display_name: Pelvic Floor
+label_de: Beckenboden
+label_en: Pelvic Floor
+label_lat: Diaphragma pelvis
+region: core
+body_region: abdomen_front
+wger_id: ~
+aliases: [beckenboden, pelvic floor]
+viz:
+  rbh: abs
+  # Kein body_muscles-Eintrag: Beckenboden liegt intern, auf keiner
+  # Oberflächen-Anatomie-Karte separat abgrenzbar.

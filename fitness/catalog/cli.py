@@ -6,6 +6,7 @@ from pathlib import Path
 
 import yaml
 import typer
+from rich.panel import Panel
 from typing_extensions import Annotated
 
 from fitness.catalog.core.paths import DATA_DIR
@@ -17,6 +18,7 @@ from fitness.catalog.core.audit import (
     audit_exercises,
     run_all_audits,
     status_for_exercises,
+    run_demand_audit,
 )
 from fitness.catalog.coach_sheet import build_coach_sheet, render_coach_sheet_markdown
 from fitness.catalog.coverage import calculate_coverage as run_calculate_coverage
@@ -47,6 +49,7 @@ from fitness.catalog.core.rich_utils import (
     print_bootstrap_report,
     print_doctor_report,
     print_exercise_audit,
+    print_demand_audit,
 )
 
 app = typer.Typer(help="AlphaOS Fitness Agent CLI", add_completion=False)
@@ -75,6 +78,9 @@ def audit(
     topic: Annotated[
         str, typer.Argument(help="Audit topic")
     ] = "all", # Defaulting to all for ease of use
+    enrich: Annotated[
+        int, typer.Option(help="Nur bei topic=demand: Top-N Kandidaten direkt an Gemini schicken (Inbox-Draft erzeugen)")
+    ] = 0,
 ):
     """Run deterministic audits"""
     if topic == "anatomy":
@@ -113,6 +119,27 @@ def audit(
         print_exercise_audit(result, status)
         if status == "FAIL":
             raise typer.Exit(code=1)
+    elif topic == "demand":
+        result = run_demand_audit()
+        print_demand_audit(result)
+        if result.error:
+            raise typer.Exit(code=1)
+        if enrich > 0 and result.entries:
+            from fitness.catalog.agent.gemini import load_gemini_key
+            from fitness.catalog.api.watcher import process_inbox_file_virtual
+
+            api_key = load_gemini_key()
+            if not api_key:
+                console.print("[fail]FAIL:[/fail] Kein Gemini-API-Key gefunden (~/.env/gemini.env)")
+                raise typer.Exit(code=1)
+
+            for entry in result.entries[:enrich]:
+                console.print(f"[dim]Enriche {entry.exercise_id} ({entry.display_name})...[/dim]")
+                try:
+                    process_inbox_file_virtual(entry.exercise_id, entry.display_name, api_key)
+                except Exception as exc:
+                    console.print(f"[fail]FAIL[/fail] {entry.exercise_id}: {exc}")
+            console.print(Panel(f"[ok]{min(enrich, len(result.entries))} Kandidaten an Gemini geschickt — Inbox prüfen.[/ok]", expand=False))
     elif topic == "all":
         sys.exit(run_all_audits())
     else:

@@ -4,4 +4,11 @@ muscles:
   - 502_obliquus_externus
   - 503_obliquus_internus
   - 504_transverse_abdominis
-  - 208_quadratus_lumborum
+  - 505_quadratus_lumborum
+exercises:
+  - "601"
+  - "602"
+  - "603"
+  - "604"
+  - "605"
+  - "606"

@@ -1,9 +1,9 @@
-id: 208_quadratus_lumborum
+id: 505_quadratus_lumborum
 display_name: Quadratus Lumborum
 label_de: Quadratischer Lendenmuskel
 label_en: QL
 label_lat: M. quadratus lumborum
-region: back
+region: core
 body_region: lower_back
 wger_id: ~
 aliases: [quadratus lumborum, quadratischer lendenmuskel, unterer rücken, lower back]

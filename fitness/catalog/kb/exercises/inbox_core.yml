@@ -16,7 +16,7 @@ exercises:
   - 502_obliques
   - 504_transverse_abdominis
   - 206_erector_spinae
-  - 208_quadratus_lumborum
+  - 505_quadratus_lumborum
   secondary_muscles:
   - 611_iliopsoas
   - 601_glutes
