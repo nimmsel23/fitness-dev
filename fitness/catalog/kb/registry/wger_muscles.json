@@ -1,22 +1,18 @@
 {
-  "name": "wger_muscles",
-  "description": "Mapping of official wger muscle IDs to their names.",
-  "muscles": {
-    "1": "Biceps brachii",
-    "2": "Anterior deltoid",
-    "3": "Serratus anterior",
-    "4": "Pectoralis major",
-    "5": "Triceps brachii",
-    "6": "Rectus abdominis",
-    "7": "Gastrocnemius",
-    "8": "Gluteus maximus",
-    "9": "Trapezius",
-    "10": "Quadriceps",
-    "11": "Biceps femoris",
-    "12": "Latissimus dorsi",
-    "13": "Brachialis",
-    "14": "Obliquus externus",
-    "15": "Soleus",
-    "16": "Erector spinae"
-  }
+  "1": "bizeps",
+  "2": "shoulders",
+  "3": "serratus_anterior",
+  "4": "pectoralis_major",
+  "5": "triceps_brachii",
+  "6": "rectus_abdominis",
+  "7": "gastrocnemius",
+  "8": "glutes",
+  "9": "trapezius",
+  "10": "quadriceps",
+  "11": "hamstrings",
+  "12": "lats",
+  "13": "brachialis",
+  "14": "obliquus_externus",
+  "15": "soleus",
+  "16": "erector_spinae"
 }
