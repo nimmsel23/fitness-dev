@@ -41,6 +41,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   noch hartcodierte Parallel-Mappings (`src/lib/muscleMapping.js` RBH_SLUGS/
   SLUG_TO_GROUP, `DetailedMuscleMap.jsx` GROUP_TO_RMH) statt aus der KB zu lesen
   — Architektur-Schuld, noch nicht aufgelöst.
+- **`exercises:`-Listen in Region-Dateien (`kb/exercises/chest.yml` etc.) NUR als reine ID-Strings**,
+  nie als volle Objekte mit `primary_muscles`/`secondary_muscles`: `resolver.py::build_exercise_index()`
+  merged Muskel-Felder aus mehreren Quellen für dieselbe `exercise_id` per **Set-Union**, nicht Override
+  (Zeilen ~168-172) — bei einem Objekt-Eintrag in der Region-Datei UND einer eigenen nummerierten Datei
+  (`041.yml`) kann dieselbe Muskel-ID gleichzeitig in `primary_muscles` UND `secondary_muscles` landen.
+  Die nummerierten Dateien sind die alleinige Quelle für Muskel-Rollen; Region-Dateien tragen nur
+  `name`/`muscles:` (Gruppenliste) + `exercises: ["040", "041", ...]` (reine Referenzliste für `categories`).
+- **yuhonas/wger liefern flache Muskel-Namen** (`chest`, `lats`, `lower back`, ...), keine kanonischen IDs.
+  `muscle_index.yml::string_aliases` löst genau diese 17 Wörter zu kanonischen Gruppen-IDs auf — beim
+  Import/Enrichment IMMER darüber auflösen, nie `normalize_muscle_id()` (reines Slugify) roh übernehmen.
+- Nach mehreren Edits an `kb/**/*.yml` in einer Session: `find fitness/catalog/kb -name "*.bak" -delete` —
+  Edits erzeugen wiederholt Backup-Dateien, die vor jedem Commit aufzuräumen sind.
+- **Mehrere Claude-Sessions laufen praktisch immer parallel** an diesem Repo (`ps aux | grep claude`
+  zeigt üblicherweise 5+ Prozesse). Vor dem Anfassen von `kb/exercises/inbox_*.yml` oder ähnlich
+  gemeinsam genutzten Dateien: `git log --oneline -5 -- <pfad>` prüfen — ein frischer Commit von
+  einer anderen Session ist kein Fehler und sollte nicht überschrieben werden.
+- `~/fitness/free-exercise-db` ist ein reiner Git-Klon von `github.com/yuhonas/free-exercise-db`
+  (kein eigener Code drin) — falls Dateien fehlen (z.B. `dist/exercises.json`), ist ein frischer Klon
+  in ein Temp-Verzeichnis + gezieltes Kopieren der fehlenden Datei risikofrei; `git checkout -- .` im
+  Original-Ordner wird vom Auto-Mode-Classifier als Bypass-Versuch geblockt, wenn parallel ein
+  `AOS_GIT_ALLOW_DISCARD`-artiges Env-Var probiert wird — nicht versuchen, stattdessen User fragen
+  oder den Fresh-Clone-Weg nehmen.
+- Der lokale wger-Server (`:8000`) kann trotz laufendem Gunicorn-Prozess auf **jedem** Pfad 404 liefern
+  (`/`, `/api/v2/...`, `/django-admin/`) — offener Port ≠ funktionierende App. Vor Debugging von
+  `importer.py`-wger-Fehlern erst `curl -s -o /dev/null -w "%{http_code}\n" "http://127.0.0.1:8000/"`
+  prüfen, nicht direkt von einer API-Ursache ausgehen.
+- `fitness-catalog audit demand [--enrich N]` (neu): kreuzt reale Nutzung (Firestore `collection_group
+  ("sessions")` über alle User) gegen unreviewte Katalog-Einträge (`source in bulk/inbox/yuhonas`) und
+  zeigt die am häufigsten geloggten, noch nicht kuratierten Übungen. `--enrich N` schickt die Top-N
+  direkt an Gemini (`process_inbox_file_virtual()`, idempotent — überspringt existierende Inbox-Drafts).
 - Firestore-Bugs live debuggen statt aus Code raten: `firebase-admin`
   Python-SDK + Credentials unter `~/.env/firebase-fitness.json`
   (`firebase_admin.initialize_app(credentials.Certificate(...))`,
@@ -70,6 +100,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   anatomy-agent-Lauf). Vor größeren Eingriffen `git status`/`git log -3`
   prüfen — unerwartete `M`-Dateien können von einer anderen, gerade aktiven
   Session stammen, nicht von einem selbst. Nicht reflexartig reverten.
+  **Kann auch fremde Commits erzeugen:** eine parallele Session/der
+  Enrichment-Watcher hat einmal eigene Working-Tree-Änderungen (inkl. eines
+  frisch bearbeiteten Frontend-Files) in einen eigenen Commit mit falscher
+  Attribution ("Gemini-Enrichment-Watcher") gebündelt, bevor die eigentliche
+  Session selbst committen konnte. Vor eigenem `git add`/`git commit`: `git
+  log -1`/`git diff origin/<branch> HEAD` prüfen, ob die eigene Änderung
+  vielleicht schon (mit-)committed wurde — nicht blind erneut committen.
+- **Geplanter Exercises-Rebuild (Stand 2026-07-24):** Der Großteil von
+  `fitness/catalog/kb/exercises/` (v.a. `unreviewed_*`/`inbox_*`) gilt laut
+  User als Dev-Test-Material und soll absehbar gelöscht + mit neuem Schema
+  neu importiert werden. Vor Einzel-Fixes/Enrichment an bestehenden
+  Exercise-Einträgen erst gegenprüfen, ob das noch relevant ist statt Zeit in
+  Daten zu stecken, die bald ersetzt werden. Parallel arbeitet eine zweite
+  Claude-Instanz analog an `kb/muscles/` — beide Bereiche sind laut User
+  überschneidungsfrei.
 - Exercise-Enrichment (Gemini) läuft seit 2026-07-23 als `fitness-enricher.service`
   (systemd --user, `python3 -m catalog watch` → `fitness/catalog/api/watcher.py`,
   enabled+started). Beobachtet `runtime_root()/users/*/inbox/*.json`

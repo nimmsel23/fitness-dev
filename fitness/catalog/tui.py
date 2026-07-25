@@ -204,14 +204,17 @@ def _inbox_detail(f: Path) -> str:
         ))
 
     console.print()
-    _nav(**{"a": "Approve → expert", "e": "Bearbeiten", "d": "Löschen", "b": "zurück"})
-    choice = Prompt.ask("  [bold]>[/bold]", choices=["a", "e", "d", "b"], default="b")
+    _nav(**{"a": "Approve → expert", "e": "Bearbeiten", "r": "Neu anreichern (Gemini)", "d": "Löschen", "b": "zurück"})
+    choice = Prompt.ask("  [bold]>[/bold]", choices=["a", "e", "r", "d", "b"], default="b")
 
     if choice == "a":
         _approve(f, ex)
     elif choice == "e":
         editor = os.environ.get("EDITOR", "nano")
         subprocess.call([editor, str(f)])
+        return _inbox_detail(f)
+    elif choice == "r":
+        _reenrich(f, ex, name)
         return _inbox_detail(f)
     elif choice == "d":
         if Confirm.ask(f"  [red]Wirklich löschen: {f.name}?[/red]"):
@@ -220,6 +223,51 @@ def _inbox_detail(f: Path) -> str:
             _pause()
 
     return "inbox"
+
+
+def _reenrich(f: Path, ex: dict, name: str) -> None:
+    """Jagt einen bestehenden Inbox-Draft nochmal frisch durch Gemini —
+    für Alt-Einträge aus einer frueheren Import-Aera, deren Schema/Qualitaet
+    nicht mehr zum aktuellen Approve-Pfad passt. Ueberschreibt den Draft
+    in-place, macht vorher ein Backup.
+    """
+    from fitness.catalog.agent.gemini import load_gemini_key, call_gemini
+
+    api_key = load_gemini_key()
+    if not api_key:
+        console.print("  [red]GEMINI_API_KEY fehlt — kann nicht neu anreichern.[/red]")
+        _pause()
+        return
+
+    if not Confirm.ask(f"  [yellow]Bestehenden Draft ueberschreiben und neu anreichern: {name}?[/yellow]"):
+        return
+
+    ex_id = ex.get("exercise_id") or ex.get("id") or f.stem.replace("inbox_", "")
+    safe_name = str(ex_id).lower().replace(" ", "_")
+
+    console.print("  [dim]Frage Gemini an…[/dim]")
+    enriched = call_gemini(name, safe_name, api_key, existing_data=ex)
+
+    if not enriched:
+        console.print("  [red]Gemini-Anreicherung fehlgeschlagen — Draft unveraendert.[/red]")
+        _pause()
+        return
+
+    f.with_suffix(".yml.bak").write_text(f.read_text())
+
+    if "stabilizers" not in enriched: enriched["stabilizers"] = []
+    if "variations" not in enriched: enriched["variations"] = []
+    enriched["source"] = "unreviewed"
+
+    wrapper = {
+        "name": f.stem,
+        "description": f"Neu angereichert (manueller Re-Enrich) fuer: {name}",
+        "exercises": [enriched],
+    }
+    f.write_text(yaml.dump(wrapper, allow_unicode=True, sort_keys=False))
+
+    console.print(f"  [green]✓ Neu angereichert: {f.name}[/green]")
+    _pause()
 
 
 def _approve(f: Path, ex: dict) -> None:
@@ -242,9 +290,10 @@ def _approve(f: Path, ex: dict) -> None:
     if detail_path.exists():
         detail_path.with_suffix(".yml.bak").write_text(detail_path.read_text())
 
+    display_name = ex.get("display_name") or ex.get("german") or ex.get("name") or ex_id
     detail_doc = {
         "exercise_id": ex_id,
-        "description": f"Expert details for {ex_id}",
+        "description": f"Expert details for {display_name}",
         "exercises": [ex],
     }
     detail_path.write_text(
