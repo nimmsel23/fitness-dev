@@ -6,8 +6,16 @@ Lauscht auf Änderungen in:
   fitness/<uid>/habits/
   fitness/<uid>/habitJournals/
   fitness/<uid>/habitRecords/
+  fitness/<uid>/inbox/            — Coach-Inbox (Exercise-Review-Drafts)
+  nutrition/<uid>/logs/           — Fuel-Nährwert-Logs
+  supplements/<uid>/logs/         — Fuel-Supplement-Logs
+  supplements/<uid>/meta/catalog  — Fuel-Supplement-Katalog
 
-Schreibt lokal nach ~/.aos/users/<uid>/fitness/
+Schreibt lokal nach ~/.aos/users/<uid>/fitness/ (Inbox landet zusätzlich
+physisch unter runtime_root()/users/<uid>/inbox/, siehe fitness/catalog/
+api/watcher.py — beide Pfade sind derselbe Ort, ~/.aos/users/<uid>/fitness
+ist nur ein Symlink darauf) bzw. via firestore.fuel-Pfadhelfer nach
+~/.aos/fuel/.
 """
 
 import json
@@ -19,6 +27,7 @@ from rich.console import Console
 from rich.logging import RichHandler
 
 from ._db import get_db, ts, UID
+from .fuel import _data_dir, _nutrition_path, _supplements_path, _supplements_catalog_path, _strip_meta, _write_json
 
 def _user_dir() -> Path:
     uid_file = Path.home() / ".aos" / "users" / ".active-uid"
@@ -29,6 +38,7 @@ USER_DIR   = _user_dir()
 SESSIONS   = USER_DIR / "sessions"
 JOURNAL    = USER_DIR / "journal"
 HABITS_DIR = USER_DIR / "habits"
+INBOX_DIR  = USER_DIR / "inbox"
 STATE_DIR  = Path.home() / ".aos" / "fitness" / "agent-state"
 STATE_FILE = STATE_DIR / "fsm-known-journal.json"
 
@@ -220,6 +230,56 @@ def on_habit_journals(col_snapshot, changes, read_time):
         logger.success(f"habit_journal ← {date} {habit_id} {text[:40]}")
 
 
+# ── Inbox (Coach-Review-Drafts) ───────────────────────────────────────────────
+
+def on_inbox(col_snapshot, changes, read_time):
+    for change in changes:
+        if change.type.name != "ADDED":
+            continue
+        doc_id, data = change.document.id, change.document.to_dict()
+        name = str(data.get("name", "unknown")).replace(" ", "_")
+        INBOX_DIR.mkdir(parents=True, exist_ok=True)
+        local = INBOX_DIR / f"{doc_id}_{name}.json"
+        if local.exists():
+            continue
+        out = {k: (ts(v) if hasattr(v, "isoformat") else v) for k, v in data.items()}
+        local.write_text(json.dumps(out, indent=2, ensure_ascii=False))
+        logger.success(f"inbox ← {name} ({doc_id})")
+
+
+# ── Fuel (Nutrition / Supplements) ────────────────────────────────────────────
+
+def on_nutrition(col_snapshot, changes, read_time):
+    data_dir = _data_dir(UID)
+    for change in changes:
+        if change.type.name not in ("ADDED", "MODIFIED"):
+            continue
+        doc_id, data = change.document.id, change.document.to_dict()
+        _write_json(_nutrition_path(doc_id, data_dir), _strip_meta(data))
+        logger.success(f"nutrition ← {doc_id}")
+
+
+def on_supplements(col_snapshot, changes, read_time):
+    data_dir = _data_dir(UID)
+    for change in changes:
+        if change.type.name not in ("ADDED", "MODIFIED"):
+            continue
+        doc_id, data = change.document.id, change.document.to_dict()
+        _write_json(_supplements_path(doc_id, data_dir), _strip_meta(data))
+        logger.success(f"supplements ← {doc_id}")
+
+
+def on_supplements_catalog(doc_snapshot, changes, read_time):
+    if not doc_snapshot:
+        return
+    data_dir = _data_dir(UID)
+    doc = doc_snapshot[0]
+    if not doc.exists:
+        return
+    _write_json(_supplements_catalog_path(data_dir), _strip_meta(doc.to_dict()))
+    logger.success("supplements catalog ← updated")
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -236,9 +296,14 @@ def main():
         ref.collection("habits").on_snapshot(on_habits),
         ref.collection("habitRecords").on_snapshot(on_habit_records),
         ref.collection("habitJournals").on_snapshot(on_habit_journals),
+        ref.collection("inbox").on_snapshot(on_inbox),
+        db.collection("nutrition").document(UID).collection("logs").on_snapshot(on_nutrition),
+        db.collection("supplements").document(UID).collection("logs").on_snapshot(on_supplements),
+        db.collection("supplements").document(UID).collection("meta").document("catalog").on_snapshot(on_supplements_catalog),
     ]
-    logger.info(f"Listening → fitness/{UID}/ [sessions|journal|habits|habitRecords|habitJournals]")
-    logger.info(f"Mirror → {USER_DIR}")
+    logger.info(f"Listening → fitness/{UID}/ [sessions|journal|habits|habitRecords|habitJournals|inbox]")
+    logger.info(f"Listening → nutrition/{UID}/logs, supplements/{UID}/logs+meta")
+    logger.info(f"Mirror → {USER_DIR} (+ {_data_dir(UID)} für Fuel)")
     try:
         threading.Event().wait()
     except KeyboardInterrupt:
