@@ -1,0 +1,76 @@
+name: inbox_clean_snatch
+description: 'Proactively generated expert draft for: Clean Snatch'
+exercises:
+- exercise_id: clean_snatch
+  id: clean_snatch
+  name: Clean Snatch
+  display_name: Reißen
+  german: Reißen
+  english: Snatch
+  category: legs
+  type: compound
+  movement_pattern: vertical_pull
+  equipment:
+  - barbell
+  primary_muscles:
+  - 601_quadriceps_femoris
+  - 603_gluteus_maximus
+  - 206_erector_spinae
+  - 202_trapezius_upper
+  - 701_gastrocnemius
+  - 702_soleus
+  secondary_muscles:
+  - 301_anterior_deltoid
+  - 604_biceps_femoris
+  - 201_latissimus_dorsi
+  - 402_biceps_brachii
+  - 607_iliopsoas
+  stabilizers:
+  - 304_rotator_cuff
+  - 302_lateral_deltoid
+  - 303_posterior_deltoid
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 504_transverse_abdominis
+  - 507_multifidus
+  - 508_pelvic_floor
+  - 608_gluteus_medius
+  - 609_gluteus_minimus
+  - 205_rhomboids
+  - 405_forearm_flexors
+  - 406_forearm_extensors
+  coaching_notes:
+  - 'Die Kraft kommt aus den Beinen: Explosives Triple-Extension (Fußgelenke, Knie,
+    Hüfte) ist der Ursprung der Bewegung'
+  - Den Rücken neutral halten von der Ausgangsposition bis zur Abzugsposition – leichte
+    Lordose, keine Kyphose
+  - Aktiv unter die Stange fahren und in einer stabilen Überkopfposition fangen, nicht
+    passiv fallen
+  - Die Fersen dürfen beim Abzug und Fangen leicht abheben – das ist biomechanisch
+    korrekt für maximale Explosivität
+  - Maximale Hüft- und Kniebeugung beim Fangen reduziert Verletzungsrisiko und ermöglicht
+    schwerere Lasten zu bewältigen
+  common_errors:
+  - 'Zu frühe Kniebeugung: Die Knie sollten erst nach vollständiger Triple-Extension
+    initiieren'
+  - Rücken krümmt sich in der Ausgangsposition – reduziert Kraftübertragung und erhöht
+    Verletzungsrisiko
+  - Zu langsames aktives Fahren unter die Stange – verliert Timing und Kraft durch
+    schlechte Koordination
+  - Passive Hände beim Fangen statt aktiv zu greifen – führt zu schlechter Stabilisierung
+    und Kontrollverlust
+  tags:
+  - olympic_lift
+  - explosive
+  - power
+  - full_body
+  - strength
+  - weightlifting
+  - posterior_chain
+  aliases:
+  - Olympic Snatch
+  - Power Snatch
+  - Full Snatch
+  variations: []
+  source: unreviewed

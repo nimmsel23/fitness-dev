@@ -30,7 +30,7 @@ def load_legacy_lesson_ids() -> set[str]:
 
 def load_aliases_document() -> dict[str, Any] | None:
     try:
-        aliases = load_catalog_yaml("maps/aliases.yml")
+        aliases = load_catalog_yaml("registry/aliases.yml")
     except FileNotFoundError:
         return None
     if not isinstance(aliases, dict):

@@ -6,7 +6,7 @@ import CatalogBrowser from './CatalogBrowser';
 import { getGlobalJournalFeed, getAllUserProfiles, saveCoachFeedback } from '@db';
 
 export default function Coach({ onInspectExercise }) {
-  const { exercises, loading, actioning, toast, approve, remove } = useInbox({ global: true });
+  const { exercises, loading, actioning, toast, approve, remove, reenrich } = useInbox({ global: true });
   
   const [activeSubTab, setActiveSubTab] = useState('exercises'); // 'exercises' | 'journals' | 'catalog'
   const [journals, setJournals] = useState([]);
@@ -137,6 +137,7 @@ export default function Coach({ onInspectExercise }) {
                 actioning={actioning}
                 onApprove={approve}
                 onDelete={remove}
+                onReenrich={reenrich}
                 onInspect={onInspectExercise}
                 showUserId
               />

@@ -86,10 +86,12 @@ def screen_dashboard() -> str:
     except Exception as exc:
         console.print(f"[red]Index-Fehler: {exc}[/red]")
 
-    # Inbox status
-    exercises_dir = DATA_DIR / "exercises"
-    unreviewed = list(exercises_dir.glob("inbox_*.yml"))
-    pending_jsons = list((runtime_root() / "users" / "default" / "inbox").glob("*.json"))
+    # Inbox status — scannt exercises/, exercises/inbox/ UND inbox/ (Fallback,
+    # falls irgendein Schreiber weiterhin an einen anderen Ort abgelegt hat)
+    unreviewed = _find_inbox_files()
+    # Pro-User-Runtime-Inbox (~/.aos/fitness/users/<uid>/inbox/*.json) - vorher
+    # hartcodiert auf einen einzigen User ("default"), jetzt ueber alle User.
+    pending_jsons = list((runtime_root() / "users").glob("*/inbox/*.json"))
 
     if unreviewed or pending_jsons:
         t2 = Table(box=box.SIMPLE, show_header=False, title="Inbox", title_style="bold yellow")
@@ -112,9 +114,23 @@ def screen_dashboard() -> str:
 
 # ─── Inbox ─────────────────────────────────────────────────────────────────
 
+def _inbox_dirs() -> list[Path]:
+    """Kandidaten-Ordner fuer Inbox-Drafts, in dieser Reihenfolge geprueft:
+    kb/exercises/, kb/exercises/inbox/, kb/inbox/ — mehrere Schreiber im
+    Code haben ueber Zeit an unterschiedliche Orte geschrieben, hier robust
+    alle drei abdecken statt sich auf einen einzigen zu verlassen."""
+    return [DATA_DIR / "exercises", DATA_DIR / "exercises" / "inbox", DATA_DIR / "inbox"]
+
+
+def _find_inbox_files() -> list[Path]:
+    files: list[Path] = []
+    for d in _inbox_dirs():
+        files.extend(d.glob("inbox_*.yml"))
+    return files
+
+
 def screen_inbox() -> str:
-    exercises_dir = DATA_DIR / "exercises"
-    files = sorted(exercises_dir.glob("inbox_*.yml"))
+    files = sorted(_find_inbox_files())
 
     _header("Inbox", f"{len(files)} unreviewed")
 
@@ -204,14 +220,20 @@ def _inbox_detail(f: Path) -> str:
         ))
 
     console.print()
-    _nav(**{"a": "Approve → expert", "e": "Bearbeiten", "d": "Löschen", "b": "zurück"})
-    choice = Prompt.ask("  [bold]>[/bold]", choices=["a", "e", "d", "b"], default="b")
+    _nav(**{"a": "Approve → expert", "e": "Bearbeiten", "r": "Neu anreichern (Gemini)", "f": "Feedback geben", "d": "Löschen", "b": "zurück"})
+    choice = Prompt.ask("  [bold]>[/bold]", choices=["a", "e", "r", "f", "d", "b"], default="b")
 
     if choice == "a":
         _approve(f, ex)
     elif choice == "e":
         editor = os.environ.get("EDITOR", "nano")
         subprocess.call([editor, str(f)])
+        return _inbox_detail(f)
+    elif choice == "r":
+        _reenrich(f, ex, name)
+        return _inbox_detail(f)
+    elif choice == "f":
+        _feedback_reenrich(f, ex, name)
         return _inbox_detail(f)
     elif choice == "d":
         if Confirm.ask(f"  [red]Wirklich löschen: {f.name}?[/red]"):
@@ -222,37 +244,59 @@ def _inbox_detail(f: Path) -> str:
     return "inbox"
 
 
-def _approve(f: Path, ex: dict) -> None:
-    ex_id = ex.get("exercise_id") or ex.get("id")
-    if not ex_id:
-        console.print("  [red]Fehler: keine exercise_id[/red]")
+def _reenrich(f: Path, ex: dict, name: str, feedback: str | None = None) -> None:
+    """Jagt einen bestehenden Inbox-Draft nochmal frisch durch Gemini (+ Haiku-
+    Gegenpruefung) — Interactive-Wrapper um reenrich_inbox_entry() aus
+    agent/inbox_actions.py (dort liegt die geteilte Logik mit der CLI).
+    """
+    from fitness.catalog.agent.inbox_actions import reenrich_inbox_entry
+
+    prompt_label = "Mit Feedback neu anreichern" if feedback else "Bestehenden Draft ueberschreiben und neu anreichern"
+    if not Confirm.ask(f"  [yellow]{prompt_label}: {name}?[/yellow]"):
+        return
+
+    console.print("  [dim]Frage Gemini an…[/dim]")
+    try:
+        result = reenrich_inbox_entry(f, ex, name, feedback=feedback)
+    except RuntimeError as exc:
+        console.print(f"  [red]{exc} — Draft unveraendert.[/red]")
         _pause()
         return
 
-    if ex_id.startswith("inbox_"):
-        ex_id = ex_id.replace("inbox_", "")
-        ex["exercise_id"] = ex_id
-        ex["id"] = ex_id
+    if result["haiku_applied"]:
+        console.print("  [green]✓ Haiku-Review angewendet[/green]")
+    else:
+        console.print("  [dim]Haiku-Review nicht verfuegbar — behalte Gemini-Ergebnis[/dim]")
 
-    ex["source"] = "expert"
+    console.print(f"  [green]✓ Neu angereichert: {f.name}[/green]")
+    _pause()
 
-    exercises_dir = DATA_DIR / "exercises"
-    detail_path = exercises_dir / f"{ex_id}.yml"
 
-    if detail_path.exists():
-        detail_path.with_suffix(".yml.bak").write_text(detail_path.read_text())
+def _feedback_reenrich(f: Path, ex: dict, name: str) -> None:
+    """Fragt den Coach nach freiem Text-Feedback zum Draft (z.B. "bequem und
+    Polster passen mir nicht") und schickt es direkt an Gemini, statt die
+    Formulierung manuell im Editor zu aendern.
+    """
+    console.print()
+    feedback = Prompt.ask("  [bold]Was stoert dich am aktuellen Entwurf?[/bold]")
+    if not feedback.strip():
+        console.print("  [dim]Kein Feedback eingegeben — abgebrochen.[/dim]")
+        _pause()
+        return
+    _reenrich(f, ex, name, feedback=feedback.strip())
 
-    detail_doc = {
-        "exercise_id": ex_id,
-        "description": f"Expert details for {ex_id}",
-        "exercises": [ex],
-    }
-    detail_path.write_text(
-        yaml.dump(detail_doc, allow_unicode=True, sort_keys=False, default_flow_style=False)
-    )
-    f.unlink()
 
-    console.print(f"  [green]✓ Approved → {detail_path.name}[/green]")
+def _approve(f: Path, ex: dict) -> None:
+    from fitness.catalog.agent.inbox_actions import approve_inbox_entry
+
+    try:
+        ex_id = approve_inbox_entry(f, ex)
+    except ValueError as exc:
+        console.print(f"  [red]Fehler: {exc}[/red]")
+        _pause()
+        return
+
+    console.print(f"  [green]✓ Approved → {ex_id}.yml[/green]")
     _pause()
 
 

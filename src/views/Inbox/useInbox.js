@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getInbox, getGlobalInbox, approveInbox, deleteInbox } from '@db';
+import { getInbox, getGlobalInbox, approveInbox, deleteInbox, reenrichInbox } from '@db';
 
 export function useInbox({ global = false } = {}) {
   const [exercises, setExercises] = useState([]);
@@ -38,6 +38,25 @@ export function useInbox({ global = false } = {}) {
     }
   }
 
+  async function reenrich(fileId) {
+    setActioning(fileId);
+    try {
+      const ex = exercises.find(e => e.file_id === fileId);
+      const userId = ex?.userId || null;
+      const result = await reenrichInbox(fileId, userId, ex);
+      if (result?.ok) {
+        showToast('Neu angereichert ✓');
+        await load();
+      } else {
+        showToast('Anreicherung fehlgeschlagen');
+      }
+    } catch {
+      showToast('Anreicherung fehlgeschlagen');
+    } finally {
+      setActioning(null);
+    }
+  }
+
   async function remove(fileId) {
     setActioning(fileId);
     try {
@@ -53,5 +72,5 @@ export function useInbox({ global = false } = {}) {
     }
   }
 
-  return { exercises, loading, actioning, toast, approve, remove };
+  return { exercises, loading, actioning, toast, approve, remove, reenrich };
 }

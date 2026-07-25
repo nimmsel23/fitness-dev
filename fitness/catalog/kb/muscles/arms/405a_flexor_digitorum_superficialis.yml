@@ -1,0 +1,14 @@
+id: 405a_flexor_digitorum_superficialis
+display_name: Flexor Digitorum Superficialis
+label_de: Oberflächlicher Fingerbeuger
+label_en: Flexor Digitorum Superficialis
+label_lat: M. flexor digitorum superficialis
+region: arms
+body_region: forearms
+wger_id: ~
+aliases: [flexor digitorum superficialis]
+viz:
+  rbh: forearm
+  body_muscles:
+    view: FRONT
+    ids: [forearm-left, forearm-right]

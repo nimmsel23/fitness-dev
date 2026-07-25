@@ -1,0 +1,14 @@
+id: 602c_adductor_brevis
+display_name: Adductor Brevis
+label_de: Kurzer Adduktorenmuskel
+label_en: Adductor Brevis
+label_lat: M. adductor brevis
+region: legs
+body_region: thigh_front
+wger_id: ~
+aliases: [adductor brevis]
+viz:
+  rbh: adductors
+  body_muscles:
+    view: FRONT
+    ids: [adductors-left, adductors-right]

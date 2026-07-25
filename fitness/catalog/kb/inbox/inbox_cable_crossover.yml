@@ -1,0 +1,45 @@
+name: inbox_cable_crossover
+description: 'Proactively generated expert draft for: Kabelzug-Ueberkreuzen'
+exercises:
+- exercise_id: cable_crossover
+  id: cable_crossover
+  name: Cable Crossover
+  display_name: Kabelzug-Überkreuzung
+  german: Kabelzug-Überkreuzung
+  english: Cable Crossover
+  category: chest
+  type: isolation
+  movement_pattern: horizontal_adduction
+  equipment:
+  - cable
+  primary_muscles:
+  - 101_pectoralis_major
+  secondary_muscles:
+  - 301_anterior_deltoid
+  stabilizers:
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  coaching_notes:
+  - Arme während der gesamten Bewegung leicht gebeugt halten, nicht vollständig strecken
+  - Langsam und kontrolliert zusammenführen, Peak-Kontraktion 1-2 Sekunden halten
+  - Kein Schwung mit dem Oberkörper — reine Adduktionsbewegung aus den Armen
+  - 'Für unteren Brustbereich: Griffe von oben nach unten führen'
+  - 'Für mittleren Brustbereich: Griffe in mittlerer Höhe positionieren'
+  - 'Für oberen Brustbereich: Griffe von unten nach oben führen'
+  - Aufrecht bleiben, nicht nach vorne lehnen
+  common_errors:
+  - Zu schnell oder mit Oberkörper-Schwung arbeiten statt kontrolliert
+  - Arme am äußersten Punkt vollständig strecken (sollten leicht gebeugt bleiben)
+  - Zu schwer laden und dadurch Bewegungsqualität verlieren
+  - Nach vorne lehnen oder Rumpf-Rotation verwenden
+  tags:
+  - chest_isolation
+  - fly_pattern
+  - cable_exercise
+  - horizontal_adduction
+  - pec_contraction
+  aliases:
+  - Kabelzug Überkreuzung
+  - Überkreuzung
+  variations: []
+  source: unreviewed

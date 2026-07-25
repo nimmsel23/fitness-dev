@@ -6,7 +6,5 @@ label_lat: Sura
 body_region: calves
 muscles:
   - 701_gastrocnemius
-  - 701a_gastrocnemius_medial
-  - 701b_gastrocnemius_lateral
   - 702_soleus
   - 703_tibialis_anterior

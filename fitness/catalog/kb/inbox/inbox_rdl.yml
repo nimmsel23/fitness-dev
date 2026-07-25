@@ -1,0 +1,63 @@
+name: inbox_rdl
+description: 'Proactively generated expert draft for: RDL'
+exercises:
+- exercise_id: rdl
+  id: rdl
+  name: RDL
+  display_name: Rumänisches Kreuzheben
+  german: Rumänisches Kreuzheben
+  english: Romanian Deadlift
+  category: legs
+  type: compound
+  movement_pattern: hip_hinge_pull
+  equipment:
+  - barbell
+  - dumbbell
+  - kettlebell
+  - cable
+  primary_muscles:
+  - 604_biceps_femoris
+  - 605_semitendinosus
+  - 606_semimembranosus
+  - 206_erector_spinae
+  secondary_muscles:
+  - 603_gluteus_maximus
+  - 202_trapezius_upper
+  - 205_rhomboids
+  stabilizers:
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 504_transverse_abdominis
+  - 507_multifidus
+  coaching_notes:
+  - Halten Sie den Rücken gerade mit neutraler Wirbelsäule während der gesamten Bewegung
+  - Dies ist ein Hüft-Scharnier-Bewegungsmuster — die Bewegung erfolgt primär in der
+    Hüfte, nicht im Knie
+  - Leichte Kniebeugen (15–20°) sind normal und unterstützen die Technik
+  - Kontrollierte exzentrische Phase beim Absenken für maximale Hamstring- und untere
+    Rücken-Aktivierung
+  - Das Gewicht darf nicht zu schwer sein — RDL benötigt weniger Last als konventionelles
+    Kreuzheben
+  - Deutliche Dehnung der Hamstrings in der untersten Position anstreben
+  - Hüften nach vorne treiben um zur Ausgangsposition zurückzukehren
+  - Ausgezeichnete Übung für Hüftmobilität und Gesundheit der hinteren Muskelkette
+  common_errors:
+  - Unterer Rücken-Rundung statt stabiler Wirbelsäule
+  - Zu viel Kniebeugen — verwandelt RDL in konventionelles Kreuzheben
+  - Zu hohes Gewicht, das die Form beeinträchtigt
+  - Zu geringer Bewegungsumfang — Hamstring-Dehnung nicht ausgenutzt
+  - Schultern nach vorne gezogen statt Brust oben halten
+  tags:
+  - hip-hinge
+  - posterior-chain
+  - deadlift-variant
+  - lower-back
+  - hamstring-focus
+  - strength
+  - hypertrophy
+  - mobility
+  aliases:
+  - Romanian DL
+  variations: []
+  source: unreviewed

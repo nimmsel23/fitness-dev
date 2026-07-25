@@ -1,0 +1,14 @@
+id: 606_semimembranosus
+display_name: Semimembranosus
+label_de: Halbmembranöser Muskel
+label_en: Hamstrings (Deep)
+label_lat: M. semimembranosus
+region: legs
+body_region: thigh_back
+wger_id: 11
+aliases: [semimembranosus, halbmembranöser muskel, hamstrings, beinbeuger, hintere oberschenkelmuskulatur]
+viz:
+  rbh: hamstring
+  body_muscles:
+    view: BACK
+    ids: [hamstrings-medial-left, hamstrings-lateral-left, hamstrings-medial-right, hamstrings-lateral-right]

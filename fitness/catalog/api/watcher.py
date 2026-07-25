@@ -81,7 +81,7 @@ def process_inbox_file(file_path: Path, api_key: str | None):
             return
 
         safe_name = name.lower().replace(" ", "_")
-        target_file = DATA_DIR / "exercises" / f"inbox_{safe_name}.yml"
+        target_file = DATA_DIR / "inbox" / f"inbox_{safe_name}.yml"
 
         if target_file.exists():
             file_path.unlink()
@@ -107,31 +107,43 @@ def process_inbox_file(file_path: Path, api_key: str | None):
     except Exception as e:
         logger.error(f"Failed to process {file_path}: {e}")
 
-def process_inbox_file_virtual(ex_id: str, display_name: str, api_key: str, force: bool = False):
+def process_inbox_file_virtual(
+    ex_id: str,
+    display_name: str,
+    api_key: str,
+    force: bool = False,
+    feedback: str | None = None,
+    current_data: dict | None = None,
+):
     safe_name = ex_id.lower().replace(" ", "_")
-    target_file = DATA_DIR / "exercises" / f"inbox_{safe_name}.yml"
+    target_file = DATA_DIR / "inbox" / f"inbox_{safe_name}.yml"
 
     if target_file.exists() and not force:
         return
 
-    records = build_exercise_index()
-    record = find_by_id(ex_id, records)
-    existing_data = None
-    if record:
-        existing_data = {
-            "exercise_id": record.exercise_id,
-            "display_name": record.display_name,
-            "category": record.category if hasattr(record, "category") else None,
-            "primary_muscles": record.primary_muscles,
-            "equipment": record.equipment,
-            "wger_id": record.wger_muscle_ids.get("wger_id") if record.wger_muscle_ids else None
-        }
+    existing_data = current_data
+    if existing_data is None:
+        records = build_exercise_index()
+        record = find_by_id(ex_id, records)
+        if record:
+            existing_data = {
+                "exercise_id": record.exercise_id,
+                "display_name": record.display_name,
+                "category": record.category if hasattr(record, "category") else None,
+                "primary_muscles": record.primary_muscles,
+                "equipment": record.equipment,
+                "wger_id": record.wger_muscle_ids.get("wger_id") if record.wger_muscle_ids else None
+            }
 
-    logger.info(f"Proactive Expert-Enrichment for: {display_name} (using Wiki context)")
-    enriched_data = call_gemini(display_name, safe_name, api_key, existing_data=existing_data)
-    
+    if feedback:
+        logger.info(f"Feedback-Reenrichment for: {display_name} — \"{feedback}\"")
+    else:
+        logger.info(f"Proactive Expert-Enrichment for: {display_name} (using Wiki context)")
+    enriched_data = call_gemini(display_name, safe_name, api_key, existing_data=existing_data, feedback=feedback)
+
     if enriched_data:
-        save_inbox_draft(target_file, enriched_data, f"Proactively generated expert draft for: {display_name}")
+        description = f"Reenriched (Coach-Feedback) for: {display_name}" if feedback else f"Proactively generated expert draft for: {display_name}"
+        save_inbox_draft(target_file, enriched_data, description)
 
 def save_inbox_draft(target_file: Path, data: dict, description: str):
     if "stabilizers" not in data: data["stabilizers"] = []

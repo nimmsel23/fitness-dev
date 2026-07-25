@@ -27,11 +27,18 @@ BODY_DIR  = RUNTIME / "body"
 JOUR_DIR  = RUNTIME / "journal"
 INBOX_DIR = _HERE.parent / "catalog" / "kb" / "inbox"
 
-WGER_TOKEN = os.environ.get("WGER_API_TOKEN", os.environ.get("WGER_TOKEN", "92d9ea44fc0ac065e336e9ec443a196c40c68afe"))
-WGER_BASE  = os.environ.get("WGER_BASE", "http://127.0.0.1/api/v2")
+WGER_TOKEN = os.environ.get("WGER_API_TOKEN", os.environ.get("WGER_TOKEN", ""))
+WGER_BASE  = os.environ.get("WGER_BASE", "")
 
-_DIST_DIR   = _HERE.parent.parent / "dist"
+# ── Frontend Dist Directories ──────────────────────────────────────────────────
+# 1. Main Fitness SPA Build (served at root / and hash routes like /#coach)
+_DIST_DIR = _HERE.parent.parent / "dist"
 _INDEX_HTML = _DIST_DIR / "index.html"
+
+# 2. Standalone Catalog-UI Build (served explicitly at /catalog-ui)
+_CATALOG_DIST_DIR = _HERE.parent / "catalog" / "dist"
+_CATALOG_INDEX_HTML = _CATALOG_DIST_DIR / "index.html"
+
 
 # Local habits fallback
 LOCAL_HABITS_FILE = Path.home() / ".aos" / "journal" / "habits" / "definitions.json"

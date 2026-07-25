@@ -1,0 +1,52 @@
+name: inbox_french_press
+description: 'Proactively generated expert draft for: French Press'
+exercises:
+- exercise_id: french_press
+  id: french_press
+  name: French Press
+  display_name: Französisches Drücken
+  german: Französisches Drücken
+  english: French Press
+  category: arms
+  type: isolation
+  movement_pattern: elbow_extension
+  equipment:
+  - dumbbell
+  - barbell
+  - cable
+  primary_muscles:
+  - 401_triceps_brachii
+  secondary_muscles:
+  - 407_anconeus
+  stabilizers:
+  - 304_rotator_cuff
+  coaching_notes:
+  - Arme sollten während der gesamten Bewegung senkrecht zum Boden bleiben. Nur die
+    Ellbogen beugen sich, keine Schulterbewegung.
+  - Ellbogen eng beieinander halten. Ein breiter Stand führt zu schlechterer Isolation
+    und überlasten die Schultergelenke.
+  - 'Vollständigen Bewegungsbereich nutzen: von der vollen Streckung bis zur kontrollierten
+    Beugung hinter dem Kopf.'
+  - Bei der Absenkung einatmen, bei der Streckung ausatmen.
+  - Mit moderatem Gewicht beginnen – diese Übung erfordert gute Kontrolle und Stabilität
+    im Ellbogengelenk.
+  common_errors:
+  - Ellbogen bewegen sich auseinander statt stabil beieinander zu bleiben
+  - Schulterbewegung statt isolierter Ellbogenstreckung – führt zu Kraftverlust
+  - Zu schweres Gewicht, das zu Schwungbewegungen und Rumpfausgleich führt
+  - Unvollständiger Bewegungsbereich – nicht bis zur vollständigen Streckung
+  - Kopf wird passiv nach hinten bewegt statt aktiv neutral zu bleiben
+  tags:
+  - triceps
+  - isolation
+  - arms
+  - elbow_extension
+  - free_weight
+  - dumbbell
+  - lying
+  aliases:
+  - Skull Crushers
+  - Lying Triceps Extension
+  - Trizeps-Drücken
+  variations: []
+  source: unreviewed

@@ -1,0 +1,18 @@
+id: 602_adductors
+display_name: Adductors
+label_de: Adduktoren
+label_en: Adductors
+label_lat: Mm. adductores
+region: legs
+body_region: thigh_front
+wger_id: ~
+aliases: []
+muscles:
+  - 602a_adductor_magnus
+  - 602b_adductor_longus
+  - 602c_adductor_brevis
+viz:
+  rbh: adductors
+  body_muscles:
+    view: FRONT
+    ids: [adductors-left, adductors-right]

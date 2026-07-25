@@ -43,6 +43,10 @@ export default function App() {
   } = useSettings();
 
   const [tab, setTab]             = useState(() => {
+     // /catalog-ui ist ein Deep-Link direkt in den Coach-Tab -> Katalog-Browser,
+     // damit dieser ohne Klick durch die Nav erreichbar ist (siehe Coach/index.jsx
+     // fuer den passenden Sub-Tab-Check).
+     if (window.location.pathname === '/catalog-ui') return 'coach';
      const hash = window.location.hash.replace(/^#\/?/, '');
      if (VALID_TABS.has(hash)) return hash;
      const initialNavMode = localStorage.getItem('fitness-navMode') || 'tabs';

@@ -1,0 +1,14 @@
+id: 405b_flexor_carpi_ulnaris
+display_name: Flexor Carpi Ulnaris
+label_de: Ellenseitiger Handbeuger
+label_en: Flexor Carpi Ulnaris
+label_lat: M. flexor carpi ulnaris
+region: arms
+body_region: forearms
+wger_id: ~
+aliases: [flexor carpi ulnaris]
+viz:
+  rbh: forearm
+  body_muscles:
+    view: FRONT
+    ids: [forearm-left, forearm-right]

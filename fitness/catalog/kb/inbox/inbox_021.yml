@@ -1,0 +1,63 @@
+name: inbox_021
+description: 'Proactively generated expert draft for: Klimmzug (Untergriff)'
+exercises:
+- exercise_id: '021'
+  id: '021'
+  name: Klimmzug (Untergriff)
+  display_name: Klimmzug (Untergriff)
+  german: Klimmzug (Untergriff)
+  english: Chin-Up
+  category: back
+  type: compound
+  movement_pattern: vertical_pull
+  equipment:
+  - bodyweight
+  - pull-up bar
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 402_biceps_brachii
+  secondary_muscles:
+  - 403_brachialis
+  - 205_rhomboids
+  - 202_trapezius_upper
+  - 301_anterior_deltoid
+  stabilizers:
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 203_trapezius_middle
+  coaching_notes:
+  - Der Untergriff betont die Bizeps-Muskulatur deutlich stärker als der klassische
+    Obergriff-Klimmzug
+  - 'Optimal: schulterweit Griffbreite für maximale Hebel-Mechanik und Bizeps-Aktivierung'
+  - 'Vollständiger ROM ist essentiell: Kinn über die Stange in der obersten Position,
+    volle Ellenbogenstreckung unten'
+  - 'In der Ausgangsposition: aktive Schulterdepression vor dem Hochziehen; beim Hochziehen
+    Schulterblatt nach hinten-oben bewegen'
+  - Diese Variante ist anfängerfreundlicher als Obergriff-Klimmzüge und eine gute
+    Progressionsbrücke zum vollen Pull-up
+  - 'Körperspannung halten: kein Schwung aus Hüfte oder Beinen – reine Arm- und Rückenmuskeln-Arbeit'
+  - 'Bei Anfängern: negative Klimmzüge trainieren (von oben springen, langsam senken)
+    als Progressionsschritt'
+  common_errors:
+  - 'Unvollständiges ROM: nur halbe Bewegungen statt Kinn über die Stange oben und
+    volle Streckung unten'
+  - Zu viel Schwung aus Körper und Beinen statt kontrolierter Zugbewegung
+  - Schultern nicht richtig deprimiert in der Ausgangsposition
+  - Zu breiter Griff – Untergriff funktioniert besser mit schulterweit bis schulterbreite
+    Griffbreite
+  - Fehlende Körperspannung und unkontrollierter Abstieg (Abstoßen statt Senken)
+  tags:
+  - back
+  - arms
+  - vertical_pull
+  - calisthenics
+  - compound
+  - strength
+  aliases:
+  - Underhand Pull-Up
+  - Underhand Grip Pull-Up
+  - Supinated Grip Pull-Up
+  - Reversed Grip Pullup
+  - Negative Grip Pullup
+  variations: []
+  source: unreviewed

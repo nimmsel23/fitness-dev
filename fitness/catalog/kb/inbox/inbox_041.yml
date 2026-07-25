@@ -1,0 +1,61 @@
+name: inbox_041
+description: 'Proactively generated expert draft for: Schrägbankdrücken (KH)'
+exercises:
+- exercise_id: '041'
+  id: '041'
+  name: Schrägbankdrücken (KH)
+  display_name: Schrägbankdrücken (Kurzhantel)
+  german: Schrägbankdrücken (Kurzhantel)
+  english: Incline Dumbbell Press
+  category: chest
+  type: compound
+  movement_pattern: horizontal_press
+  equipment:
+  - dumbbell
+  primary_muscles:
+  - 102_pectoralis_major_clavicular
+  - 301_anterior_deltoid
+  - 401_triceps_brachii
+  secondary_muscles:
+  - 105_serratus_anterior
+  stabilizers:
+  - 304_rotator_cuff
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  coaching_notes:
+  - Stellen Sie die Schrägbank auf einen Winkel von 30-45 Grad ein. Ein höherer Winkel
+    beansprucht die vordere Schulter stärker.
+  - Legen Sie sich mit dem Rücken fest auf die Bank. Ihre Füße sollten flach auf dem
+    Boden stehen für Stabilität.
+  - Fassen Sie die Kurzhanteln im neutralen oder Obergriff und positionieren Sie sie
+    seitlich Ihrer Brust, die Handflächen zeigen nach vorne oder zueinander (Hammergriff).
+  - Drücken Sie die Hanteln explosiv nach oben, bis Ihre Arme fast gestreckt sind.
+    Vermeiden Sie ein vollständiges Durchstrecken der Ellenbogen.
+  - Führen Sie die Hanteln kontrolliert und langsam wieder nach unten, bis sich Ihre
+    Ellenbogen knapp unterhalb Ihrer Schultern befinden und Sie eine Dehnung in der
+    Brust spüren.
+  - Achten Sie auf eine stabile Rumpfspannung während der gesamten Bewegung und vermeiden
+    Sie ein zu starkes Hohlkreuz.
+  - Ziehen Sie die Schulterblätter leicht zusammen und nach unten, um die Brustmuskulatur
+    optimal zu isolieren.
+  common_errors:
+  - Zu hohes Gewicht, was zu unkontrollierter Bewegung und Kompensationen führt.
+  - Zu steiler Bankwinkel, der die vordere Schultermuskulatur übermäßig beansprucht.
+  - Fehlende Kontrolle in der exzentrischen Phase (Absenken der Hanteln), wodurch
+    das Potential des Muskelwachstums reduziert wird.
+  - Übermäßiges Hohlkreuz, was die Lendenwirbelsäule belasten kann.
+  - Vollständiges Durchstrecken der Ellenbogen am oberen Punkt, was die Gelenke unnötig
+    belastet.
+  tags:
+  - brust
+  - kurzhantel
+  - schrägbank
+  - drücken
+  - oberkörper
+  aliases:
+  - Incline DB Press
+  - Dumbbell Incline Press
+  - Incline Dumbbell Chest Press
+  - Schrägbankdrücken Kurzhantel
+  variations: []
+  source: unreviewed

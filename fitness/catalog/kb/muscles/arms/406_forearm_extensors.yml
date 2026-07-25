@@ -1,0 +1,19 @@
+id: 406_forearm_extensors
+display_name: Forearm Extensors
+label_de: Unterarmstrecker
+label_en: Forearm Extensors
+label_lat: Mm. extensores antebrachii
+region: arms
+body_region: forearms
+wger_id: ~
+aliases: []
+muscles:
+  - 406a_extensor_digitorum
+  - 406b_extensor_carpi_radialis_longus
+  - 406c_extensor_carpi_radialis_brevis
+  - 406d_extensor_carpi_ulnaris
+viz:
+  rbh: forearm
+  body_muscles:
+    view: BACK
+    ids: [forearm-left, forearm-right]

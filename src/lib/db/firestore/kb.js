@@ -4,13 +4,11 @@
  */
 
 import {
-  collection, doc, addDoc, setDoc, getDoc, getDocs,
+  collection, doc, setDoc, getDoc, getDocs,
   serverTimestamp,
 } from "firebase/firestore";
 
 import { db } from "../../../firebase.js";
-import { muscleToGroups } from "../../muscleMapping.js";
-import { getUid } from "./core.js";
 export { getFavourites, toggleFavourite } from "../shared/favourites.js";
 
 // ── Exercises ─────────────────────────────────────────────────────────────────
@@ -103,35 +101,5 @@ export async function getMuscle(muscleId) {
   return snap.data();
 }
 
-// ── Inbox (KB-side) ───────────────────────────────────────────────────────────
-
-export async function sendToInbox(exerciseData) {
-  try {
-    const uid = getUid();
-    const ref = await addDoc(collection(db, "fitness", uid, "inbox"), {
-      ...exerciseData,
-      userId: uid,
-      received_at: serverTimestamp(),
-    });
-    return { ok: true, id: ref.id };
-  } catch (e) {
-    console.error("Inbox Firestore push failed:", e);
-    return { ok: false };
-  }
-}
-
-// ── Enrichment queue ──────────────────────────────────────────────────────────
-
-// Vormals ein fetch() gegen http://localhost:9120 — unerreichbar für eine
-// deployte PWA, schlug im Firebase-Modus immer still fehl (try/catch{}).
-// Neue, unbekannte Übungen landeten dadurch nie im Coach-Inbox-Feed.
-// sendToInbox() schreibt in dieselbe Firestore-Collection, die getInbox()/
-// getGlobalInbox() (firestore/sessions.js) lesen.
-export async function queueForEnrichment(ex) {
-  if (!ex || ex.source === "expert") return;
-  await sendToInbox({
-    exercise_id: ex.id || ex.exercise_id || null,
-    name: ex.name || ex.display_name,
-    status: "pending_review",
-  });
-}
+// Inbox-Funktionen (sendToInbox, queueForEnrichment, getInbox, approveInbox,
+// reenrichInbox, ...) leben jetzt in ./inbox.js — siehe index.firestore.js-Barrel.

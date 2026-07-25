@@ -212,7 +212,7 @@ def load_wger_section(config: dict[str, Any]) -> dict[str, Any]:
 
 def get_wger_mapping(exercise_id: str) -> dict[str, Any]:
     try:
-        document = load_catalog_yaml("maps/wger_mapping.yml")
+        document = load_catalog_yaml("registry/wger_mapping.yml")
     except FileNotFoundError:
         return {}
     if not isinstance(document, dict):
@@ -351,14 +351,14 @@ def join_api_url(base_url: str, path: str) -> str:
 
 
 def write_wger_mapping(exercise_id: str, selected_match: WgerMatch) -> Path:
-    mapping_path = catalog_path("maps/wger_mapping.yml")
+    mapping_path = catalog_path("registry/wger_mapping.yml")
     if mapping_path.exists():
         backup_existing(mapping_path)
 
     document = {}
     if mapping_path.exists():
         try:
-            loaded = load_catalog_yaml("maps/wger_mapping.yml")
+            loaded = load_catalog_yaml("registry/wger_mapping.yml")
             if isinstance(loaded, dict):
                 document = loaded
         except Exception:

@@ -1,0 +1,81 @@
+muscles:
+  # --- Leaf muscles (wger_id where available) ---
+  402_biceps_brachii:              {wger_id: 1}
+  301_anterior_deltoid:            {wger_id: 2}
+  105_serratus_anterior:           {wger_id: 3}
+  101_pectoralis_major:            {wger_id: 4}
+  401_triceps_brachii:             {wger_id: 5}
+  501_rectus_abdominis:            {wger_id: 6}
+  701_gastrocnemius:               {wger_id: 7}
+  603_gluteus_maximus:             {wger_id: 8}
+  202_trapezius_upper:             {wger_id: 9}
+  203_trapezius_middle:            {wger_id: 9}
+  204_trapezius_lower:             {wger_id: 9}
+  303_posterior_deltoid:           {wger_id: 9}
+  601_quadriceps_femoris:          {wger_id: 10}
+  604_biceps_femoris:              {wger_id: 11}
+  605_semitendinosus:              {wger_id: 11}
+  606_semimembranosus:             {wger_id: 11}
+  201_latissimus_dorsi:            {wger_id: 12}
+  403_brachialis:                  {wger_id: 13}
+  502_obliquus_externus:           {wger_id: 14}
+  503_obliquus_internus:           {wger_id: 14}
+  702_soleus:                      {wger_id: 15}
+  206_erector_spinae:              {wger_id: 16}
+
+  104_pectoralis_minor:            {}
+  205_rhomboids:                   {}
+  207_teres_major:                 {}
+  505_quadratus_lumborum:          {}
+  506_diaphragm:                   {}
+  507_multifidus:                  {}
+  508_pelvic_floor:                {}
+  302_lateral_deltoid:             {}
+  304_rotator_cuff:                {}
+  404_brachioradialis:             {}
+  405_forearm_flexors:             {}
+  406_forearm_extensors:           {}
+  407_anconeus:                    {}
+  504_transverse_abdominis:        {}
+  608_gluteus_medius:              {}
+  609_gluteus_minimus:             {}
+  607_iliopsoas:                   {}
+  602_adductors:                   {}
+  703_tibialis_anterior:           {}
+
+string_aliases:
+  abdominals:  500_abs
+  abductors:   abductors
+  adductors:   602_adductors
+  biceps:      402_biceps_brachii
+  calves:      700_calves
+  chest:       100_chest
+  forearms:    405_forearm_flexors
+  glutes:      glutes
+  hamstrings:  hamstrings
+  lats:        201_latissimus_dorsi
+  lower back:  206_erector_spinae
+  middle back: 200_back
+  neck:        202_trapezius_upper
+  quadriceps:  601_quadriceps_femoris
+  shoulders:   300_shoulders
+  traps:       202_trapezius
+  triceps:     401_triceps_brachii
+
+wger_groups:
+  1:  [402_biceps_brachii]
+  2:  [301_anterior_deltoid]
+  3:  [105_serratus_anterior]
+  4:  [101_pectoralis_major, 102_pectoralis_major_clavicular, 103_pectoralis_major_sternal]
+  5:  [401_triceps_brachii, 401a_triceps_long_head, 401b_triceps_lateral_head, 401c_triceps_medial_head]
+  6:  [501_rectus_abdominis]
+  7:  [701_gastrocnemius, 701a_gastrocnemius_medial, 701b_gastrocnemius_lateral]
+  8:  [603_gluteus_maximus]
+  9:  [202_trapezius_upper, 203_trapezius_middle, 204_trapezius_lower, 303_posterior_deltoid]
+  10: [601a_rectus_femoris, 601b_vastus_lateralis, 601c_vastus_medialis, 601d_vastus_intermedius]
+  11: [604_biceps_femoris, 605_semitendinosus, 606_semimembranosus]
+  12: [201_latissimus_dorsi]
+  13: [403_brachialis]
+  14: [502_obliquus_externus, 503_obliquus_internus]
+  15: [702_soleus]
+  16: [206_erector_spinae]

@@ -303,7 +303,19 @@ function inferRegionLabels(ex) {
   return labels
 }
 
-export function buildExerciseInsights(ex) {
+export function buildExerciseInsights(rawEx) {
+  // KB-/Coach-Sheet-Records liefern snake_case (primary_muscles, display_name -
+  // aus core/resolver.py::ExerciseRecord), Session-Eintraege camelCase
+  // (primaryMuscles, displayName - aus dem Firestore-Session-Schema). Ohne
+  // diese Normalisierung liefen alle primaryMuscles-Zugriffe fuer frisch
+  // enrichte KB-Exercises leer, und die UI fiel immer auf den generischen
+  // "Ganzkoerper"-Fallback zurueck, obwohl echte Muskeldaten vorlagen.
+  const ex = {
+    ...rawEx,
+    primaryMuscles: rawEx?.primaryMuscles || rawEx?.primary_muscles,
+    secondaryMuscles: rawEx?.secondaryMuscles || rawEx?.secondary_muscles,
+    displayName: rawEx?.displayName || rawEx?.display_name,
+  }
   const primary = cleanList(ex?.primaryMuscles)
   const secondary = cleanList(ex?.secondaryMuscles)
   const lesson = unwrapLesson(ex)

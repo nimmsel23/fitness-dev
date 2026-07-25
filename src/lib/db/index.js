@@ -6,6 +6,8 @@ export * from "./local/sessions.js";
 export * from "./local/journal.js";
 export * from "./local/habits.js";
 export * from "./local/kb.js";
+export * from "./local/inbox.js";
+export * from "./local/coach.js";
 export * from "./local/analysis.js";
 export * from "./local/user.js";
 export * from "./local/utils.js";

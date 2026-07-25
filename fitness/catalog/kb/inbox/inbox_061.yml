@@ -1,0 +1,66 @@
+name: inbox_061
+description: 'Proactively generated expert draft for: Frontkniebeuge'
+exercises:
+- exercise_id: '061'
+  id: '061'
+  name: Frontkniebeuge
+  display_name: Frontkniebeuge
+  german: Frontkniebeuge
+  category: legs
+  type: compound
+  movement_pattern: squat
+  equipment:
+  - barbell
+  - dumbbell
+  - kettlebell
+  primary_muscles:
+  - 601_quadriceps_femoris
+  - 603_gluteus_maximus
+  secondary_muscles:
+  - 602_adductors
+  - 604_biceps_femoris
+  - 605_semitendinosus
+  - 606_semimembranosus
+  - 701_gastrocnemius
+  - 702_soleus
+  stabilizers:
+  - 206_erector_spinae
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 504_transverse_abdominis
+  - 202_trapezius_upper
+  - 203_trapezius_middle
+  - 301_anterior_deltoid
+  - 508_pelvic_floor
+  coaching_notes:
+  - Halten Sie den Oberkörper aufrecht und die Brust angehoben, um die neutrale Wirbelsäulenposition
+    zu bewahren.
+  - Die Ellbogen sollten während der gesamten Bewegung hoch und nach vorne zeigen,
+    um die Langhantel stabil auf den Schultern zu halten.
+  - Streben Sie eine volle Kniebeuge an, bei der die Hüften unterhalb der Knie sinken,
+    solange Sie eine gute Form beibehalten können.
+  - Die Knie sollten über den Zehen ausgerichtet bleiben und nicht nach innen fallen
+    (Valgusstellung).
+  - Atmen Sie tief ein, bevor Sie in die Hocke gehen, und spannen Sie Ihre Bauchmuskeln
+    an, um die Rumpfstabilität zu erhöhen.
+  common_errors:
+  - Das Fallenlassen der Ellbogen, was dazu führt, dass das Gewicht nach vorne verlagert
+    wird und der Oberkörper nach vorne kippt.
+  - Ein runder Rücken (Kyphose) im unteren Bereich der Kniebeuge, was die Wirbelsäule
+    belastet.
+  - Das Anheben der Fersen vom Boden, was die Stabilität verringert und die Belastung
+    auf die Knie erhöht.
+  - Ein zu frühes Anheben der Hüften aus dem unteren Punkt der Kniebeuge, wodurch
+    die Bewegung zu einem 'Good Morning' wird.
+  tags:
+  - squat
+  - compound
+  - legs
+  - strength
+  - quadriceps-focused
+  - core-stability
+  aliases:
+  - Front Squat
+  - Barbell Front Squat
+  variations: []
+  source: unreviewed

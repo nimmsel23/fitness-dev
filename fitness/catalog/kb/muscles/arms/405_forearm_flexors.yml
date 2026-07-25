@@ -7,6 +7,11 @@ region: arms
 body_region: forearms
 wger_id: ~
 aliases: []
+muscles:
+  - 405a_flexor_digitorum_superficialis
+  - 405b_flexor_carpi_ulnaris
+  - 405c_flexor_carpi_radialis
+  - 405d_palmaris_longus
 viz:
   rbh: forearm
   body_muscles:

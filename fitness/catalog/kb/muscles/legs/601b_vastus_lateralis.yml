@@ -1,0 +1,14 @@
+id: 601b_vastus_lateralis
+display_name: Vastus Lateralis
+label_de: Äußerer breiter Oberschenkelmuskel
+label_en: Quads (Outer)
+label_lat: M. vastus lateralis
+region: legs
+body_region: thigh_front
+wger_id: 10
+aliases: [vastus lateralis, äußerer breiter oberschenkelmuskel, quadriceps, quadrizeps, quads]
+viz:
+  rbh: quadriceps
+  body_muscles:
+    view: FRONT
+    ids: [quads-left, quads-right]

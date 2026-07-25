@@ -1,0 +1,14 @@
+id: 604_biceps_femoris
+display_name: Biceps Femoris
+label_de: Zweiköpfiger Oberschenkelmuskel
+label_en: Hamstrings (Outer)
+label_lat: M. biceps femoris
+region: legs
+body_region: thigh_back
+wger_id: 11
+aliases: [biceps femoris, zweiköpfiger oberschenkelmuskel, hamstrings, beinbeuger, hintere oberschenkelmuskulatur]
+viz:
+  rbh: hamstring
+  body_muscles:
+    view: BACK
+    ids: [hamstrings-medial-left, hamstrings-lateral-left, hamstrings-medial-right, hamstrings-lateral-right]

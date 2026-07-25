@@ -22,6 +22,7 @@ def _load_env(path: Path) -> None:
 
 
 _load_env(Path.home() / "fitness" / ".env")
+_load_env(Path.home() / ".env" / "fitness.env")
 
 def _resolve_data_dir() -> Path:
     override = os.environ.get("FITNESS_AGENT_KB", "").strip()
