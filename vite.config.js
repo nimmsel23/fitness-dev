@@ -46,6 +46,7 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@src':                resolve(__dirname, './src'),
         '@db':                 resolve(__dirname, isFirebase ? './src/lib/db/index.firestore.app.js' : './src/lib/db/index.js'),
+        '@fitness-db':         resolve(__dirname, './src/lib/db'),
         '@utils':              resolve(__dirname, './src/lib/utils.js'),
         '@aliase':             resolve(__dirname, './fitness/catalog/kb/aliases.yml'),
         '@fitness/components': resolve(__dirname, './src/components'),
@@ -54,7 +55,9 @@ export default defineConfig(({ mode }) => {
         '@components':         resolve(__dirname, './src/components'),
         '@fuel':               resolve(siblingDir('fuel-dev', 'fuel-app'), 'src/client'),
         '@habits':             resolve(siblingDir('habits-dev', 'habit-app'), 'src'),
+        '@habits-db':          resolve(siblingDir('habits-dev', 'habit-app'), 'src/db'),
         '@journal':            resolve(siblingDir('journal-dev', 'journal-app'), 'src'),
+        '@journal-db':         resolve(siblingDir('journal-dev', 'journal-app'), 'src/db/index.js'),
         '@relax':              resolve(siblingDir('relax-dev', 'relax-app'), 'src'),
         '@learn':              resolve(__dirname, '../learn-dev/src'),
       },
