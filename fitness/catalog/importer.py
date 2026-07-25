@@ -15,8 +15,8 @@ from fitness.catalog.core.loader import DATA_DIR, load_catalog_yaml
 from fitness.catalog.core.resolver import build_exercise_index, resolve_query, normalize_text
 from fitness.catalog.coverage import normalize_muscle_id, load_muscle_taxonomy
 
-WGER_API_BASE = "http://127.0.0.1:8000/api/v2"
-WGER_TOKEN = "92d9ea44fc0ac065e336e9ec443a196c40c68afe"
+WGER_API_BASE = os.environ.get("WGER_API_BASE", "http://127.0.0.1/api/v2")
+WGER_TOKEN = os.environ.get("WGER_API_TOKEN", "")
 
 WGER_CATEGORY_MAP = {
     10: "core", # Abs
@@ -60,7 +60,7 @@ def fetch_json(url: str, headers: dict[str, str] | None = None) -> Any:
 # Arbeitsgebiet des Muscles-Agenten) verifiziert kollisionsfrei sein — sonst
 # landen wieder falsche Muskel-IDs in primary_muscles (siehe unten,
 # get_norm_muscles()-Fix). Auf True setzen erst nach expliziter Freigabe.
-WGER_BULK_IMPORT_ENABLED = False
+WGER_BULK_IMPORT_ENABLED = True
 
 
 def import_external_exercises():
