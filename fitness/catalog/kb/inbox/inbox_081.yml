@@ -1,0 +1,64 @@
+name: inbox_081
+description: 'Proactively generated expert draft for: Rumänisches Kreuzheben'
+exercises:
+- exercise_id: 081
+  id: 081
+  name: Rumänisches Kreuzheben
+  display_name: Rumänisches Kreuzheben
+  german: Rumänisches Kreuzheben
+  english: Romanian Deadlift
+  category: legs
+  type: compound
+  movement_pattern: hip_hinge
+  equipment:
+  - barbell
+  - dumbbell
+  primary_muscles:
+  - 604_biceps_femoris
+  - 605_semitendinosus
+  - 606_semimembranosus
+  - 603_gluteus_maximus
+  secondary_muscles:
+  - 206_erector_spinae
+  - 602_adductors
+  stabilizers:
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 504_transverse_abdominis
+  - 202_trapezius_upper
+  - 405_forearm_flexors
+  coaching_notes:
+  - 'Fokus auf die Hüftbewegung: Leite die Abwärtsbewegung ein, indem du die Hüfte
+    nach hinten schiebst.'
+  - Halte eine leichte Beugung in den Knien, aber die Bewegung sollte hauptsächlich
+    aus der Hüfte kommen, nicht aus den Knien (kein Kniebeugen).
+  - Halte die Langhantel oder Kurzhanteln nah am Körper und den Rücken während der
+    gesamten Bewegung gerade.
+  - Spüre die Dehnung in den hinteren Oberschenkelmuskeln (Hamstrings) in der unteren
+    Position.
+  - Die Abwärtsbewegung sollte kontrolliert sein. Gehe nur so weit, wie du die Neutralposition
+    deines Rückens beibehalten kannst.
+  - Spannung im Core aufrechterhalten, um den Rumpf zu stabilisieren und den unteren
+    Rücken zu schützen.
+  common_errors:
+  - 'Rundrücken: Das Nachgeben des unteren Rückens führt zu einer schlechten Form
+    und erhöhtem Verletzungsrisiko.'
+  - 'Zu starkes Beugen der Knie: Dies verwandelt die Übung in ein Kreuzheben oder
+    eine Art Kniebeuge und reduziert die Beanspruchung der Hamstrings.'
+  - 'Stange zu weit vom Körper entfernt: Dies erhöht die Hebelwirkung auf den unteren
+    Rücken und macht die Übung ineffizienter und potenziell gefährlicher.'
+  - 'Überstreckung des Rückens am oberen Punkt: Vermeide eine Hyper-Extension der
+    Wirbelsäule, konzentriere dich auf die Hüftextension.'
+  - 'Verlust der Kontrolle in der Abwärtsbewegung: Eine unkontrollierte Bewegung reduziert
+    die Effektivität und erhöht das Verletzungsrisiko.'
+  tags:
+  - deadlift
+  - hip_hinge
+  - posterior_chain
+  - hamstrings
+  - glutes
+  aliases:
+  - RDL
+  - Kreuzheben auf rumänische Art
+  variations: []
+  source: unreviewed

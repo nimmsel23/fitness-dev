@@ -1,0 +1,48 @@
+name: inbox_cable_lateral_raise
+description: 'Proactively generated expert draft for: Seitheben am Seilzug'
+exercises:
+- exercise_id: cable_lateral_raise
+  id: cable_lateral_raise
+  name: Seitheben am Seilzug
+  display_name: Seitheben am Seilzug
+  german: Seitheben am Seilzug
+  english: Cable Lateral Raise
+  category: shoulders
+  type: isolation
+  movement_pattern: lateral_abduction
+  equipment:
+  - cable
+  primary_muscles:
+  - 302_lateral_deltoid
+  secondary_muscles:
+  - 301_anterior_deltoid
+  - 202_trapezius_upper
+  stabilizers:
+  - 304_rotator_cuff
+  coaching_notes:
+  - Leichte Beugung in den Ellbogen halten (ca. 15-20°) - die Arme sind nicht vollständig
+    gestreckt und nicht geknickt
+  - Ellbogen führen die Bewegung an - Handgelenke bleiben neutral, als ob man Wasser
+    aus den Gläsern gießen würde
+  - Kabel auf Schulterhöhe oder darunter positionieren für optimale Hebelwirkung
+  - Spitzenkontraktion oben kurz halten (1 Sekunde), dann kontrolliert absenken
+  - Gewicht nicht swingen - reine Schulterkraft ohne Oberkörperschwung
+  - Höhe nicht über Schulterhöhe hinaus heben - dies belastet das Rotatorenmanschette
+    unnötig
+  common_errors:
+  - Zu schweres Gewicht führt zu Nackentraktion statt Deltoid-Aktivierung
+  - Mit dem Oberkörper nach hinten lehnen oder schwingen
+  - Ellbogen unter Handgelenk-Höhe - dies ändert den Bewegungsvektor
+  - Zu schnelle, unkontrollierte Bewegungen ohne Spannung
+  - Arme über Schulterhöhe hinaus heben und die Rotatorenmanschette überlasten
+  tags:
+  - isolation
+  - lateral_deltoid
+  - shoulder_width
+  - cable_machine
+  - hit_suitable
+  aliases:
+  - Kabel-Seitheben
+  - Cable Lateral Raise (Seilzug)
+  variations: []
+  source: unreviewed
