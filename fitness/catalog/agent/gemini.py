@@ -22,6 +22,15 @@ Use German for display_name and coaching_notes.
 CRITICAL: You MUST only use the following muscle IDs for primary_muscles, secondary_muscles, and stabilizers:
 {muscle_list}
 
+CRITICAL: When the exercise's angle/mechanics clearly emphasize one specific
+head/part of a muscle (e.g. incline press -> clavicular/upper pec head,
+decline press -> sternal/lower pec head), you MUST use that specific child
+muscle ID (e.g. "102_pectoralis_major_clavicular") instead of the generic
+parent ID (e.g. "101_pectoralis_major"). The taxonomy automatically rolls
+child scores up to their parent for coarse views, so being specific here
+never loses information - it only adds precision. Only use the parent ID
+when no single part is emphasized more than the others.
+
 {{
   "exercise_id": "{safe_name}",
   "id": "{safe_name}",
@@ -48,6 +57,15 @@ I have a basic exercise entry from a bulk import that needs professional "Expert
 
 CRITICAL: You MUST only use the following muscle IDs for primary_muscles, secondary_muscles, and stabilizers:
 {muscle_list}
+
+CRITICAL: When the exercise's angle/mechanics clearly emphasize one specific
+head/part of a muscle (e.g. incline press -> clavicular/upper pec head,
+decline press -> sternal/lower pec head), you MUST use that specific child
+muscle ID (e.g. "102_pectoralis_major_clavicular") instead of the generic
+parent ID (e.g. "101_pectoralis_major"). The taxonomy automatically rolls
+child scores up to their parent for coarse views, so being specific here
+never loses information - it only adds precision. Only use the parent ID
+when no single part is emphasized more than the others.
 
 Existing Data (Wiki Layer):
 {existing_json}
