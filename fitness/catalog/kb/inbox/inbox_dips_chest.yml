@@ -1,0 +1,50 @@
+name: inbox_dips_chest
+description: 'Proactively generated expert draft for: Dips'
+exercises:
+- exercise_id: dips_chest
+  id: dips_chest
+  name: Dips
+  display_name: Brust-Dips
+  german: Brust-Dips
+  category: chest|shoulders|arms
+  type: compound
+  movement_pattern: vertical_press
+  equipment:
+  - bodyweight
+  primary_muscles:
+  - 103_pectoralis_major_sternal
+  - 401_triceps_brachii
+  - 301_anterior_deltoid
+  secondary_muscles:
+  - 104_pectoralis_minor
+  - 105_serratus_anterior
+  stabilizers:
+  - 304_rotator_cuff
+  - 501_rectus_abdominis
+  - 203_trapezius_middle
+  - 205_rhomboids
+  coaching_notes:
+  - Um die Brustmuskulatur zu betonen, lehne den Oberkörper deutlich nach vorne und
+    halte die Ellbogen leicht ausgestellt.
+  - Senke dich kontrolliert ab, bis die Schultern unterhalb der Ellbogen sind, um
+    einen vollen Bewegungsumfang zu erreichen, aber nur solange es schmerzfrei ist.
+  - Drücke dich kraftvoll nach oben, um in die Ausgangsposition zurückzukehren. Vermeide
+    es, die Schultern am oberen Punkt zu den Ohren hochzuziehen.
+  - Spanne deine Bauchmuskeln an, um den Rumpf stabil zu halten und ein Schwingen
+    zu vermeiden.
+  common_errors:
+  - Nicht tief genug absenken, wodurch der Bewegungsumfang und die Muskelaktivierung
+    begrenzt werden.
+  - Die Ellbogen zu eng am Körper halten, was die Betonung stärker auf den Trizeps
+    verlagert.
+  - Die Schultern nach vorne rundet oder in eine ungünstige Position bringt, was zu
+    Verletzungen führen kann.
+  - Schwung durch Schwingen des Körpers holen, anstatt die Muskeln arbeiten zu lassen.
+  tags:
+  - drücken
+  - körpergewicht
+  - oberkörper
+  aliases:
+  - Barrenstütz
+  variations: []
+  source: unreviewed

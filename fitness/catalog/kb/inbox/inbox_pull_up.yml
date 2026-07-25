@@ -1,0 +1,58 @@
+name: inbox_pull_up
+description: 'Proactively generated expert draft for: Klimmzüge'
+exercises:
+- exercise_id: pull_up
+  id: pull_up
+  name: Klimmzüge
+  display_name: Klimmzüge
+  german: Klimmzüge
+  category: back|arms
+  type: compound
+  movement_pattern: vertical_pull
+  equipment:
+  - bodyweight
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 402_biceps_brachii
+  - 403_brachialis
+  - 207_teres_major
+  secondary_muscles:
+  - 205_rhomboids
+  - 203_trapezius_middle
+  - 204_trapezius_lower
+  - 303_posterior_deltoid
+  - 404_brachioradialis
+  - 405_forearm_flexors
+  stabilizers:
+  - 501_rectus_abdominis
+  - 504_transverse_abdominis
+  - 304_rotator_cuff
+  - 105_serratus_anterior
+  - 206_erector_spinae
+  coaching_notes:
+  - Führen Sie die Bewegung über den vollen Bewegungsumfang aus, bis Ihr Kinn über
+    die Stange reicht und die Arme unten fast vollständig gestreckt sind.
+  - Konzentrieren Sie sich darauf, die Schulterblätter nach unten und hinten zu ziehen
+    (Skapuladepression und -retraktion), um den Latissimus optimal zu aktivieren.
+  - Halten Sie den Rumpf während der gesamten Bewegung stabil und vermeiden Sie Schwung.
+  - Variationen des Griffes (eng, weit, Obergriff, Untergriff) können unterschiedliche
+    Muskelgruppen und deren Betonung beeinflussen.
+  common_errors:
+  - Unvollständiger Bewegungsumfang (z.B. Kinn erreicht nicht die Stange oder Arme
+    werden nicht vollständig gestreckt).
+  - Verwendung von Schwung ('Kipping'), um die Bewegung zu erleichtern, statt aus
+    reiner Muskelkraft zu arbeiten.
+  - Die Schultern werden nach oben gezogen (Shrugging) oder rollen nach vorne, anstatt
+    die Schulterblätter nach unten zu ziehen.
+  - Verlust der Rumpfspannung, was zu einem unkontrollierten Schwingen des Körpers
+    führt.
+  tags:
+  - back_strength
+  - upper_body
+  - grip_strength
+  - calisthenics
+  aliases:
+  - Pull-ups
+  - Klimmzug
+  variations: []
+  source: unreviewed

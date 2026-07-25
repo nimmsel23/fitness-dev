@@ -17,7 +17,17 @@ You are an expert fitness coach and biomechanics expert.
 A user has logged a new, unknown exercise: "{exercise_name}"
 
 Return a JSON object with the following structure exactly. Do not include markdown formatting like ```json.
-Use German for display_name and coaching_notes.
+Use German for coaching_notes.
+
+CRITICAL: "german" and "english" are BOTH MANDATORY, independent fields - not
+one primary name with the other as an afterthought/alias. Fill both with the
+real, commonly-used name in that language (not a literal translation if a
+different term is actually used by lifters in that language). "display_name"
+mirrors "german" by convention (UI default), but "english" MUST still be
+filled with the correct, distinct English term - this is what prevents
+search from wrongly matching an unrelated exercise when a user searches in
+English (e.g. "Jefferson Curl" must never resolve to "Barbell Curl" just
+because no proper English field existed to disambiguate against).
 
 CRITICAL: You MUST only use the following muscle IDs for primary_muscles, secondary_muscles, and stabilizers:
 {muscle_list}
@@ -37,6 +47,7 @@ when no single part is emphasized more than the others.
   "name": "{exercise_name}",
   "display_name": "German Name",
   "german": "German Name",
+  "english": "English Name",
   "category": "chest|back|shoulders|arms|core|legs|cardio",
   "type": "compound|isolation",
   "movement_pattern": "e.g. horizontal_press, vertical_pull",
@@ -54,6 +65,15 @@ when no single part is emphasized more than the others.
 PROMPT_EXERCISE_ENRICH = """
 You are an expert fitness coach and biomechanics expert.
 I have a basic exercise entry from a bulk import that needs professional "Expert Tier" enrichment.
+
+CRITICAL: "german" and "english" are BOTH MANDATORY, independent fields - not
+one primary name with the other as an afterthought/alias. Fill both with the
+real, commonly-used name in that language (not a literal translation if a
+different term is actually used by lifters in that language). "display_name"
+mirrors "german" by convention (UI default), but "english" MUST still be
+filled with the correct, distinct English term - this is what prevents
+search from wrongly matching an unrelated exercise when a user searches in
+English.
 
 CRITICAL: You MUST only use the following muscle IDs for primary_muscles, secondary_muscles, and stabilizers:
 {muscle_list}

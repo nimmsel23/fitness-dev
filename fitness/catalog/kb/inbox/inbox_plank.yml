@@ -1,0 +1,59 @@
+name: inbox_plank
+description: 'Proactively generated expert draft for: Core HIIT Workout'
+exercises:
+- exercise_id: core_hiit_workout
+  id: core_hiit_workout
+  name: Core HIIT Workout
+  display_name: Rumpf-HIIT-Training
+  german: Rumpf-HIIT-Training
+  category: core|cardio
+  type: compound
+  movement_pattern: trunk_flexion, trunk_rotation, trunk_stability
+  equipment:
+  - bodyweight
+  primary_muscles:
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 504_transverse_abdominis
+  secondary_muscles:
+  - 206_erector_spinae
+  - 607_iliopsoas
+  - 505_quadratus_lumborum
+  stabilizers:
+  - 105_serratus_anterior
+  - 301_anterior_deltoid
+  - 401_triceps_brachii
+  - 603_gluteus_maximus
+  - 507_multifidus
+  - 508_pelvic_floor
+  coaching_notes:
+  - Konzentrieren Sie sich auf die saubere Ausführung jeder Übung, um maximale Effektivität
+    und Verletzungsprävention zu gewährleisten.
+  - Halten Sie den Rumpf während aller Übungen aktiv angespannt und vermeiden Sie
+    ein Durchhängen des unteren Rückens.
+  - 'Achten Sie auf eine bewusste Atmung: Ausatmen bei Anstrengung, Einatmen beim
+    Entspannen.'
+  - Passen Sie die Intensität und die Auswahl der Übungen Ihrem aktuellen Fitnesslevel
+    an, um Überlastung zu vermeiden und kontinuierlichen Fortschritt zu erzielen.
+  common_errors:
+  - Vernachlässigung der Form zugunsten der Geschwindigkeit, was die Effektivität
+    reduziert und das Verletzungsrisiko erhöht.
+  - Ein Hohlkreuz oder Durchhängen des Bauches während stabilisierender Übungen wie
+    Planks.
+  - Unkontrollierte, ruckartige Bewegungen, insbesondere bei Rotationsübungen.
+  - Nur die oberflächlichen Bauchmuskeln zu trainieren und die tiefere Rumpfmuskulatur
+    zu ignorieren.
+  tags:
+  - core
+  - hiit
+  - abs
+  - stability
+  - bodyweight_workout
+  - trunk
+  aliases:
+  - Ab-HIIT-Training
+  - Intensives Rumpftraining
+  - Bauchmuskel-HIIT
+  variations: []
+  source: unreviewed

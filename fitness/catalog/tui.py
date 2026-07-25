@@ -86,10 +86,12 @@ def screen_dashboard() -> str:
     except Exception as exc:
         console.print(f"[red]Index-Fehler: {exc}[/red]")
 
-    # Inbox status
-    exercises_dir = DATA_DIR / "exercises"
-    unreviewed = list(exercises_dir.glob("inbox_*.yml"))
-    pending_jsons = list((runtime_root() / "users" / "default" / "inbox").glob("*.json"))
+    # Inbox status — scannt exercises/, exercises/inbox/ UND inbox/ (Fallback,
+    # falls irgendein Schreiber weiterhin an einen anderen Ort abgelegt hat)
+    unreviewed = _find_inbox_files()
+    # Pro-User-Runtime-Inbox (~/.aos/fitness/users/<uid>/inbox/*.json) - vorher
+    # hartcodiert auf einen einzigen User ("default"), jetzt ueber alle User.
+    pending_jsons = list((runtime_root() / "users").glob("*/inbox/*.json"))
 
     if unreviewed or pending_jsons:
         t2 = Table(box=box.SIMPLE, show_header=False, title="Inbox", title_style="bold yellow")
@@ -112,9 +114,23 @@ def screen_dashboard() -> str:
 
 # ─── Inbox ─────────────────────────────────────────────────────────────────
 
+def _inbox_dirs() -> list[Path]:
+    """Kandidaten-Ordner fuer Inbox-Drafts, in dieser Reihenfolge geprueft:
+    kb/exercises/, kb/exercises/inbox/, kb/inbox/ — mehrere Schreiber im
+    Code haben ueber Zeit an unterschiedliche Orte geschrieben, hier robust
+    alle drei abdecken statt sich auf einen einzigen zu verlassen."""
+    return [DATA_DIR / "exercises", DATA_DIR / "exercises" / "inbox", DATA_DIR / "inbox"]
+
+
+def _find_inbox_files() -> list[Path]:
+    files: list[Path] = []
+    for d in _inbox_dirs():
+        files.extend(d.glob("inbox_*.yml"))
+    return files
+
+
 def screen_inbox() -> str:
-    exercises_dir = DATA_DIR / "exercises"
-    files = sorted(exercises_dir.glob("inbox_*.yml"))
+    files = sorted(_find_inbox_files())
 
     _header("Inbox", f"{len(files)} unreviewed")
 

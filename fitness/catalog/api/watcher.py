@@ -81,7 +81,7 @@ def process_inbox_file(file_path: Path, api_key: str | None):
             return
 
         safe_name = name.lower().replace(" ", "_")
-        target_file = DATA_DIR / "exercises" / f"inbox_{safe_name}.yml"
+        target_file = DATA_DIR / "inbox" / f"inbox_{safe_name}.yml"
 
         if target_file.exists():
             file_path.unlink()
@@ -116,7 +116,7 @@ def process_inbox_file_virtual(
     current_data: dict | None = None,
 ):
     safe_name = ex_id.lower().replace(" ", "_")
-    target_file = DATA_DIR / "exercises" / f"inbox_{safe_name}.yml"
+    target_file = DATA_DIR / "inbox" / f"inbox_{safe_name}.yml"
 
     if target_file.exists() and not force:
         return

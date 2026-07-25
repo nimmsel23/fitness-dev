@@ -37,6 +37,7 @@ class ExerciseRecord:
     source: str = "expert"
     categories: list[str] = field(default_factory=list) # Bridge Network: chest, push, legs...
     german: str = ""
+    english: str = ""
     movement_pattern: str = ""
     equipment: list[str] | None = None
     aliases: list[str] | None = None
@@ -75,7 +76,10 @@ def build_exercise_index() -> list[ExerciseRecord]:
     by_name: dict[str, str] = {} # normalized_name -> target_canonical_id
     
     # In zwei Durchläufen laden: 1. Expert/Inbox (Katalog-Gerüst), 2. Bulk (Anreicherung/Fallback)
-    all_docs = load_catalog_directory_yaml("exercises")
+    # kb/inbox/ zusaetzlich zu kb/exercises/ scannen - Inbox-Drafts (inbox_*.yml)
+    # sollen aus exercises/ raus, sonst verschwinden sie hier aus dem Index
+    # (Suche/Demand-Audit sehen sie sonst nie).
+    all_docs = load_catalog_directory_yaml("exercises") + load_catalog_directory_yaml("inbox")
     expert_docs = []
     bulk_docs = []
     
@@ -136,10 +140,12 @@ def build_exercise_index() -> list[ExerciseRecord]:
             if entry_name: 
                 by_name[normalize_text(entry_name, smart=True)] = ex_id
             
-            # Auch deutsche Namen und Aliase indexieren
+            # Auch deutsche/englische Namen und Aliase indexieren
             if isinstance(entry, dict):
                 german = first_text(entry, "german", "de")
                 if german: by_name[normalize_text(german, smart=True)] = ex_id
+                english = first_text(entry, "english", "en")
+                if english: by_name[normalize_text(english, smart=True)] = ex_id
                 aliases = list_of_text(entry.get("aliases"))
                 if aliases:
                     for a in aliases: by_name[normalize_text(a, smart=True)] = ex_id
@@ -160,7 +166,7 @@ def build_exercise_index() -> list[ExerciseRecord]:
             else:
                 if entry_name: rec.display_name = entry_name
                 # Basis-Felder
-                for f in ["german", "movement_pattern", "wger_id", "gif_url", "image_url"]:
+                for f in ["german", "english", "movement_pattern", "wger_id", "gif_url", "image_url"]:
                     val = entry.get(f) if isinstance(entry, dict) else None
                     if val: setattr(rec, f, val)
                 
@@ -183,7 +189,8 @@ def build_exercise_index() -> list[ExerciseRecord]:
             w_id = entry.get("wger_id")
             name = first_text(entry, "display_name", "name")
             german = first_text(entry, "german", "de")
-            
+            english = first_text(entry, "english", "en")
+
             target_id = None
             # 1. Matching über wger_id
             if w_id and int(w_id) in by_wger:
@@ -192,15 +199,19 @@ def build_exercise_index() -> list[ExerciseRecord]:
             else:
                 norm_name = normalize_text(name, smart=True) if name else None
                 norm_german = normalize_text(german, smart=True) if german else None
+                norm_english = normalize_text(english, smart=True) if english else None
                 if norm_name and norm_name in by_name:
                     target_id = by_name[norm_name]
                 elif norm_german and norm_german in by_name:
                     target_id = by_name[norm_german]
-            
+                elif norm_english and norm_english in by_name:
+                    target_id = by_name[norm_english]
+
             if target_id:
                 # Merge in Expert Record (nur anreichern, was fehlt)
                 rec = index[target_id]
                 if not rec.german and german: rec.german = german
+                if not rec.english and english: rec.english = english
                 if not rec.gif_url and entry.get("gif_url"): rec.gif_url = entry["gif_url"]
                 # Muskeln anreichern falls Expert-Record noch keine hat
                 if not rec.primary_muscles:
