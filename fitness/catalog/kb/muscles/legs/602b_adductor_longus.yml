@@ -1,0 +1,14 @@
+id: 602b_adductor_longus
+display_name: Adductor Longus
+label_de: Langer Adduktorenmuskel
+label_en: Adductor Longus
+label_lat: M. adductor longus
+region: legs
+body_region: thigh_front
+wger_id: ~
+aliases: [adductor longus]
+viz:
+  rbh: adductors
+  body_muscles:
+    view: FRONT
+    ids: [adductors-left, adductors-right]
