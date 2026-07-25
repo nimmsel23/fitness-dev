@@ -77,19 +77,19 @@ muscles:
 
 string_aliases:
   abdominals:  500_abs
-  abductors:   608_gluteus_medius
+  abductors:   abductors
   adductors:   602_adductors
   biceps:      402_biceps_brachii
   calves:      700_calves
   chest:       100_chest
   forearms:    405_forearm_flexors
-  glutes:      603_gluteus_maximus
-  hamstrings:  604_biceps_femoris
+  glutes:      glutes
+  hamstrings:  hamstrings
   lats:        201_latissimus_dorsi
   lower back:  206_erector_spinae
   middle back: 200_back
   neck:        202_trapezius_upper
-  quadriceps:  601_quadriceps
+  quadriceps:  601_quadriceps_femoris
   shoulders:   300_shoulders
   traps:       202_trapezius
   triceps:     401_triceps_brachii

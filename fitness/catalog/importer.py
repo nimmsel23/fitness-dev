@@ -178,22 +178,15 @@ def import_external_exercises():
 
     # 2. Import from yuhonas
     # yuhonas nutzt eine eigene, flache Muskel-Vokabel (17 Wörter: "chest",
-    # "lats", "lower back", ...) - keine kanonischen taxonomy-IDs. muscle_index.yml
-    # hat dafür bereits einen string_aliases-Block (genau diese 17 Wörter ->
-    # kanonische Gruppen-ID, z.B. "biceps" -> "401_biceps_brachii"). Vorher wurde
-    # hier nur normalize_muscle_id() (reines Slugify) genutzt und roh gespeichert
-    # ("chest" statt "100_chest") - derselbe Fehlertyp wie body_rows.yml.
-    raw_taxonomy_doc = load_catalog_yaml("muscle_index.yml") or {}
-    string_aliases = raw_taxonomy_doc.get("string_aliases", {}) if isinstance(raw_taxonomy_doc, dict) else {}
-    yuhonas_muscle_map = {normalize_muscle_id(k): v for k, v in string_aliases.items()}
-
+    # "lats", "lower back", ...) - keine kanonischen taxonomy-IDs. Frueher wurde
+    # hier ueber string_aliases (muscle_index.yml) auf canonical IDs uebersetzt -
+    # unnoetiger Aufwand fuer unreviewte Bulk-Importe, deren Muskelangaben ohnehin
+    # erst durchs Gemini-Enrichment (fitness-agent/anatomy-agent) fachlich korrekt
+    # werden. Die Aufloesung passiert stattdessen erst beim Firestore-Push
+    # (api/firestore_push.py::_resolve, nutzt denselben string_aliases-Block) -
+    # rohe Woerter hier einfach normalisiert (slugify) uebernehmen.
     def resolve_yuhonas_muscle(name: str) -> str:
-        slug = normalize_muscle_id(name)
-        canonical = yuhonas_muscle_map.get(slug)
-        if not canonical:
-            logger.warning(f"yuhonas: unbekannter Muskel-Alias '{name}' (slug={slug}), roh übernommen.")
-            return slug
-        return canonical
+        return normalize_muscle_id(name)
 
     unreviewed_yuhonas = []
     yuhonas_path = Path.home() / "fitness/free-exercise-db/dist/exercises.json"
