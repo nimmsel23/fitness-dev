@@ -67,5 +67,7 @@ A unified fitness ecosystem serving two primary roles:
 *   **Anatomy Learning**: Integrating `body-muscles` (70+ regions) into the `Learn` view for deep anatomical education and interaction.
 
 ## 7. Document History
+*   2026-07-25: Enabled Dual-Frontend serving in FastAPI backend (`fitness/api/main.py`), serving the main SPA at `/` and the isolated `catalog-ui` at `/catalog-ui`. Refactored catalog `aliases.py` auditor to directly audit `german`, `english`, and `aliases` fields from index `ExerciseRecord`s.
 *   2026-06-12: Fixed bugs in `catalog/server.py` and `kb_sync.py`. Updated documentation to reflect `react-muscle-highlighter` integration and finalized `data/` directory location.
 *   2026-05-28: Integrated `react-muscle-highlighter` in `Muscles` tab (detailed view) with toggle support. Retained `react-body-highlighter` for dashboard.
+
