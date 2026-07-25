@@ -22,6 +22,7 @@ import json
 import threading
 from pathlib import Path
 
+import yaml
 from loguru import logger
 from rich.console import Console
 from rich.logging import RichHandler
@@ -247,6 +248,67 @@ def on_inbox(col_snapshot, changes, read_time):
         logger.success(f"inbox ← {name} ({doc_id})")
 
 
+# ── KB Exercises (Coach-Approvals aus dem Firebase-Inbox-Tab) ────────────────
+#
+# approveInbox() (src/lib/db/firestore/inbox.js) schreibt bei Approval NUR nach
+# Firestore: fitness/kb/exercises/{exId} (source: "approved") +
+# fitness/{uid}/inbox/{id}.status = "approved". Ohne diesen Listener bleibt der
+# lokale Katalog (fitness/catalog/kb/) davon komplett unberührt — der nächste
+# "fitness sync kb"-Push (One-Way lokal→Firestore) würde die approved Version
+# sogar wieder mit dem alten unreviewten Stand überschreiben. Dieser Listener
+# schließt den Kreis event-getrieben (on_snapshot, kein Polling):
+#   1. approved Exercise → lokale Sammel-Datei kb/exercises/approved_from_firebase.yml
+#   2. zugehöriger kb/inbox/inbox_*.yml-Draft wird lokal gelöscht (reviewt, fertig)
+
+from fitness.catalog.core.paths import DATA_DIR as _CATALOG_DATA_DIR
+
+_APPROVED_FILE = _CATALOG_DATA_DIR / "exercises" / "approved_from_firebase.yml"
+
+
+def _slugify(name: str) -> str:
+    return str(name or "").lower().replace(" ", "_")
+
+
+def _remove_inbox_draft(exercise_id: str, display_name: str) -> None:
+    inbox_dir = _CATALOG_DATA_DIR / "inbox"
+    if not inbox_dir.exists():
+        return
+    candidates = {f"inbox_{_slugify(exercise_id)}.yml", f"inbox_{_slugify(display_name)}.yml"}
+    for f in inbox_dir.glob("inbox_*.yml"):
+        if f.name in candidates:
+            f.unlink()
+            logger.info(f"inbox draft entfernt (approved): {f.name}")
+
+
+def on_kb_exercises(col_snapshot, changes, read_time):
+    for change in changes:
+        if change.type.name not in ("ADDED", "MODIFIED"):
+            continue
+        data = change.document.to_dict()
+        if data.get("source") != "approved":
+            continue
+        ex_id = data.get("exercise_id") or data.get("id") or change.document.id
+        display_name = data.get("display_name") or data.get("name") or ex_id
+
+        _APPROVED_FILE.parent.mkdir(parents=True, exist_ok=True)
+        doc = yaml.safe_load(_APPROVED_FILE.read_text(encoding="utf-8")) if _APPROVED_FILE.exists() else None
+        if not isinstance(doc, dict):
+            doc = {"name": "approved_from_firebase", "description": "Coach-approved via Firebase Inbox", "exercises": []}
+        exercises = doc.setdefault("exercises", [])
+        clean = {k: v for k, v in data.items() if not hasattr(v, "isoformat")}
+        for i, existing in enumerate(exercises):
+            if (existing.get("exercise_id") or existing.get("id")) == ex_id:
+                exercises[i] = clean
+                break
+        else:
+            exercises.append(clean)
+        with _APPROVED_FILE.open("w", encoding="utf-8") as fh:
+            yaml.safe_dump(doc, fh, allow_unicode=True, sort_keys=False)
+
+        _remove_inbox_draft(ex_id, display_name)
+        logger.success(f"kb exercise ← approved: {display_name} ({ex_id})")
+
+
 # ── Fuel (Nutrition / Supplements) ────────────────────────────────────────────
 
 def on_nutrition(col_snapshot, changes, read_time):
@@ -297,11 +359,13 @@ def main():
         ref.collection("habitRecords").on_snapshot(on_habit_records),
         ref.collection("habitJournals").on_snapshot(on_habit_journals),
         ref.collection("inbox").on_snapshot(on_inbox),
+        db.collection("fitness").document("kb").collection("exercises").on_snapshot(on_kb_exercises),
         db.collection("nutrition").document(UID).collection("logs").on_snapshot(on_nutrition),
         db.collection("supplements").document(UID).collection("logs").on_snapshot(on_supplements),
         db.collection("supplements").document(UID).collection("meta").document("catalog").on_snapshot(on_supplements_catalog),
     ]
     logger.info(f"Listening → fitness/{UID}/ [sessions|journal|habits|habitRecords|habitJournals|inbox]")
+    logger.info("Listening → fitness/kb/exercises [approved]")
     logger.info(f"Listening → nutrition/{UID}/logs, supplements/{UID}/logs+meta")
     logger.info(f"Mirror → {USER_DIR} (+ {_data_dir(UID)} für Fuel)")
     try:
