@@ -1,8 +1,8 @@
-id: 500_core
-display_name: Core
-label_de: Kern / Bauch
-label_en: Core
-label_lat: Core
+id: 500_abs
+display_name: Abs
+label_de: Bauch
+label_en: Abs
+label_lat: Abdomen
 body_region: abdomen_front
 muscles:
   - 501_rectus_abdominis

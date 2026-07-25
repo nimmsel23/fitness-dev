@@ -1,0 +1,14 @@
+id: 405d_palmaris_longus
+display_name: Palmaris Longus
+label_de: Langer Hohlhandmuskel
+label_en: Palmaris Longus
+label_lat: M. palmaris longus
+region: arms
+body_region: forearms
+wger_id: ~
+aliases: [palmaris longus]
+viz:
+  rbh: forearm
+  body_muscles:
+    view: FRONT
+    ids: [forearm-left, forearm-right]
