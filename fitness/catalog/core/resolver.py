@@ -334,7 +334,7 @@ def resolve_query(query: str, records: list[ExerciseRecord] | None = None) -> Re
 
 def load_alias_map() -> dict[str, str]:
     try:
-        aliases = load_catalog_yaml("maps/aliases.yml")
+        aliases = load_catalog_yaml("registry/aliases.yml")
     except FileNotFoundError:
         return {}
     if not isinstance(aliases, dict):
