@@ -9,7 +9,8 @@ from fastapi.responses import JSONResponse
 from loguru import logger
 
 from fitness.api.config import (
-    PORT, HOST, RUNTIME, _DIST_DIR, close_httpx_client, Base, engine
+    PORT, HOST, RUNTIME, _DIST_DIR, _CATALOG_DIST_DIR, _CATALOG_INDEX_HTML,
+    close_httpx_client, Base, engine
 )
 from fitness.api.routers.sessions import router as sessions_router
 from fitness.api.routers.journal import router as journal_router
@@ -39,19 +40,58 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register routers
+# Register API routers
 app.include_router(sessions_router)
 app.include_router(journal_router)
 app.include_router(exercises_router)
 app.include_router(coaching_router)
 app.include_router(system_router)
 
-# ── Dynamic Static/SPA Setup (Vite /dist or fallback to /public) ──────────────
+# ═══════════════════════════════════════════════════════════════════════════════
+# DUAL FRONTEND ROUTING SYSTEM (Multi-SPA Architecture)
+# ═══════════════════════════════════════════════════════════════════════════════
+# In FastAPI werden HTTP-Routen strikt in der Reihenfolge ausgewertet, in der
+# sie registriert werden.
+#
+# Hier servieren wir 2 verschiedene Frontends über denselben Port (9150):
+# 1. Standalone Catalog-UI (/catalog-ui) -> Serviert aus fitness/catalog/dist
+# 2. Main Fitness SPA (/, /#coach, etc.) -> Catch-all Fallback aus dist/
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# ── 1. Standalone Catalog UI Handler (/catalog-ui) ────────────────────────────
+if _CATALOG_DIST_DIR.exists():
+    logger.info(f"catalog-ui available at /catalog-ui -> {_CATALOG_DIST_DIR}")
+    
+    # Mount für Assets der Catalog-UI (z.B. JS/CSS Bündel in /catalog-ui/assets/...)
+    if (_CATALOG_DIST_DIR / "assets").exists():
+        app.mount("/catalog-ui/assets", StaticFiles(directory=str(_CATALOG_DIST_DIR / "assets")), name="catalog-ui-assets")
+
+    from fastapi.responses import FileResponse
+
+    @app.get("/catalog-ui")
+    @app.get("/catalog-ui/{subpath:path}")
+    async def serve_catalog_ui(subpath: str = ""):
+        """
+        Liefert direkt die isolierte Catalog-UI zurück.
+        Statische Dateien (z.B. favicon, icons) innerhalb von catalog/dist/ werden direkt geliefert,
+        ansonsten schlägt das Fallback auf catalog/dist/index.html an.
+        """
+        if not _CATALOG_INDEX_HTML.exists():
+            return JSONResponse({"error": "Catalog UI index.html not found"}, status_code=404)
+        
+        if subpath:
+            candidate = _CATALOG_DIST_DIR / subpath
+            if candidate.exists() and candidate.is_file():
+                return FileResponse(str(candidate))
+                
+        return FileResponse(str(_CATALOG_INDEX_HTML))
+
+# ── 2. Main Fitness SPA Setup (Vite /dist or fallback to /public) ─────────────
 _PUBLIC_DIR = _DIST_DIR.parent / "public"
 _STATIC_DIR = _DIST_DIR if (_DIST_DIR / "index.html").exists() else _PUBLIC_DIR
 _INDEX_HTML = _STATIC_DIR / "index.html"
 
-logger.info(f"serving static files from: {_STATIC_DIR}")
+logger.info(f"serving main SPA static files from: {_STATIC_DIR}")
 
 if (_STATIC_DIR / "assets").exists():
     app.mount("/assets", StaticFiles(directory=str(_STATIC_DIR / "assets")), name="assets")
@@ -66,6 +106,10 @@ def serve_v1():
         return FileResponse(str(v1_file))
     raise HTTPException(status_code=404, detail="Not Found")
 
+# ── 3. Main SPA Catch-All Fallback ───────────────────────────────────────────
+# Dieser Handler muss ganz am Ende stehen! Er fängt alle Pfade ab, die nicht von
+# den API-Routern oder /catalog-ui bedient wurden, und gibt index.html der Haupt-App
+# für clientseitiges (Hash-)Routing zurück.
 @app.get("/{path:path}")
 async def spa_fallback(path: str):
     if not _INDEX_HTML.exists():
@@ -75,6 +119,7 @@ async def spa_fallback(path: str):
     if candidate.exists() and candidate.is_file():
         return FileResponse(str(candidate))
     return FileResponse(str(_INDEX_HTML))
+
 
 # ── CLI Runner ────────────────────────────────────────────────────────────────
 cli = typer.Typer(add_completion=False)
