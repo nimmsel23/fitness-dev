@@ -1,6 +1,6 @@
 import { CheckCircle2, Trash2, Info, AlertTriangle, Sparkles, User, RefreshCw, MessageSquare, Brain } from 'lucide-react';
 
-export default function InboxCard({ ex, actioning, onApprove, onDelete, onInspect, showUserId = false, asMessage = false }) {
+export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenrich, onInspect, showUserId = false, asMessage = false }) {
   // Unterstützt beide Backend-Shapes: { exercises: [data] } und { enriched: data } und flach
   const data     = ex.exercises?.[0] || ex.enriched || ex;
   const fileId   = ex.file_id;
@@ -166,6 +166,16 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onInspec
         >
           <Trash2 size={18} />
         </button>
+        {onReenrich && (
+          <button
+            onClick={() => onReenrich(fileId)}
+            disabled={busy}
+            className="p-3 bg-fit-bg2 text-fit-dim hover:text-fit-accent rounded-xl border border-fit-line transition-all active:scale-95 disabled:opacity-50"
+            title="Neu anreichern (Gemini)"
+          >
+            <RefreshCw size={18} className={busy ? 'animate-spin' : ''} />
+          </button>
+        )}
         {onApprove && (
           <button
             onClick={() => onApprove(fileId)}

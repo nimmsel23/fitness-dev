@@ -62,91 +62,11 @@ export async function getConfig() {
   }
 }
 
-export async function getInbox() {
-  try {
-    const data = await api.get("/fitness/inbox");
-    return data?.exercises || [];
-  } catch {
-    return [];
-  }
-}
-
-export async function getGlobalInbox() {
-  return getInbox();
-}
-
-export async function approveInbox(id, userId) {
-  try {
-    return await api.post(`/fitness/inbox/${id}/approve`, userId ? { userId } : {});
-  } catch {
-    return { ok: false };
-  }
-}
-
 export { getFavourites, toggleFavourite } from "../shared/favourites.js";
 export { parseQuick } from "../shared/parse.js";
 
-export async function queueForEnrichment(ex) {
-  if (!ex || ex.source === 'expert') return;
-  // Vormals ein fetch() gegen http://localhost:9120 — der archivierte
-  // aiohttp-catalog-Server, längst durch das FastAPI-Prod-Backend (:9150,
-  // hinter server.mjs :9100 geproxied) abgelöst. Schlug immer still fehl
-  // (try{}catch{}), Übungen wurden im lokalen Modus nie fürs Enrichment
-  // vorgemerkt. /fitness/inbox/queue ist der reale, laufende Endpoint dafür
-  // (fitness/api/routers/exercises.py) — über api.post statt hartcodierter
-  // toter URL. Hinweis: Der Endpoint schreibt aktuell nach
-  // fitness/catalog/kb/inbox/*.yml, NICHT in das vom Enrichment-Watcher
-  // beobachtete ~/.aos/fitness/users/<uid>/inbox/*.json — dieser Bruch ist
-  // separat als offene Aufgabe dokumentiert, hier nur der :9120-Dead-Link-Bug.
-  try {
-    await api.post("/fitness/inbox/queue", {
-      exercise_id: ex.id || ex.exercise_id,
-      name: ex.name || ex.display_name,
-    });
-  } catch {}
-}
-
-export async function deleteInbox(id) {
-  try {
-    return await api.delete(`/fitness/inbox/${id}`);
-  } catch {
-    return { ok: false };
-  }
-}
-
-export async function sendToInbox(exerciseData) {
-  try {
-    return await api.post("/fitness/inbox", exerciseData);
-  } catch {
-    return { ok: false };
-  }
-}
-
-// ── Coach-only: globaler Feed aller Klienten-Workouts ─────────────────────────
-
-export async function getGlobalJournalFeed(limitCount = 100) {
-  try {
-    const data = await api.get(`/fitness/coach/feed?limit=${limitCount}`);
-    return data?.feed || [];
-  } catch {
-    return [];
-  }
-}
-
-export async function getAllUserProfiles() {
-  try {
-    const data = await api.get('/fitness/coach/profiles');
-    return data?.profiles || {};
-  } catch {
-    return {};
-  }
-}
-
-export async function saveCoachFeedback(userId, sessionId, type, text) {
-  try {
-    return await api.post('/fitness/coach/feedback', { userId, sessionId, text });
-  } catch {
-    return { ok: false };
-  }
-}
+// Inbox-Funktionen (getInbox, approveInbox, reenrichInbox, sendToInbox,
+// queueForEnrichment, ...) leben jetzt in ./inbox.js — siehe index.js-Barrel.
+// Coach-Feed-Funktionen (getGlobalJournalFeed, getAllUserProfiles,
+// saveCoachFeedback) leben jetzt in ./coach.js.
 

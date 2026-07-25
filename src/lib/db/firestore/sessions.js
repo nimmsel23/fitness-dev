@@ -1,10 +1,11 @@
 /**
- * firestore/sessions.js — Session, Plan, and Inbox CRUD for Firestore.
+ * firestore/sessions.js — Session and Plan CRUD for Firestore.
+ * Inbox-CRUD lebt in ./inbox.js.
  */
 
 import {
-  collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc, updateDoc,
-  query, where, orderBy, limit, serverTimestamp, writeBatch, collectionGroup,
+  collection, doc, setDoc, getDoc, getDocs, deleteDoc,
+  query, where, orderBy, limit, serverTimestamp,
 } from "firebase/firestore";
 
 import { db } from "../../../firebase.js";
@@ -231,66 +232,8 @@ export async function getPlanSuggestion(arg) {
   return { ok: true, template: templateName, goal: goal || null, slots, exercises: resolvedExercises, coverage_summary };
 }
 
-// ── Inbox ─────────────────────────────────────────────────────────────────────
-
-export async function getInbox() {
-  const q = query(
-    collection(db, "fitness", getUid(), "inbox"),
-    orderBy("received_at", "desc")
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ file_id: d.id, ...d.data() }));
-}
-
-export async function getGlobalInbox() {
-  try {
-    const snap = await getDocs(collectionGroup(db, "inbox"));
-    return snap.docs
-      .map((d) => ({
-        file_id: d.id,
-        userId: d.ref.parent?.parent?.id || null,
-        ...d.data(),
-      }))
-      .filter((item) => item.status !== "approved" && item.status !== "rejected");
-  } catch (e) {
-    console.error("getGlobalInbox error:", e);
-    return [];
-  }
-}
-
-export async function approveInbox(id, userId) {
-  const targetUid = userId || getUid();
-  const inboxRef = doc(db, "fitness", targetUid, "inbox", id);
-  const snap = await getDoc(inboxRef);
-  if (!snap.exists()) return { ok: false, error: "not_found" };
-
-  const data = snap.data();
-  const exercise = data.enriched || data;
-  const exId = exercise.exercise_id || exercise.id || id;
-
-  const batch = writeBatch(db);
-  batch.set(doc(db, "fitness", "kb", "exercises", exId), {
-    ...exercise,
-    source: "approved",
-    approved_at: serverTimestamp(),
-  });
-  batch.update(inboxRef, { status: "approved", approved_at: serverTimestamp() });
-  await batch.commit();
-
-  return { ok: true, id: exId };
-}
-
-export async function deleteInbox(id, userId) {
-  const targetUid = userId || getUid();
-  const inboxRef = doc(db, "fitness", targetUid, "inbox", id);
-  const snap = await getDoc(inboxRef);
-  if (snap.exists() && targetUid !== getUid()) {
-    await updateDoc(inboxRef, { status: "rejected", rejected_at: serverTimestamp() });
-  } else {
-    await deleteDoc(inboxRef);
-  }
-  return { ok: true };
-}
+// Inbox-Funktionen (getInbox, getGlobalInbox, approveInbox, reenrichInbox,
+// deleteInbox, sendToInbox, queueForEnrichment) leben jetzt in ./inbox.js.
 
 // ── Misc ──────────────────────────────────────────────────────────────────────
 

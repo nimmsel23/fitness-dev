@@ -72,7 +72,8 @@ export function getUid() {
   return currentUid;
 }
 
-const BRIDGE_NOTIFY = "https://ideapad.tail7a15d6.ts.net/api/fitness/notify";
+export const BRIDGE_API_BASE = "https://ideapad.tail7a15d6.ts.net/api/fitness";
+const BRIDGE_NOTIFY = `${BRIDGE_API_BASE}/notify`;
 export function pingBridge() {
   fetch(BRIDGE_NOTIFY, { method: "POST" }).catch(() => {});
 }

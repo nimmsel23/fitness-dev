@@ -256,3 +256,46 @@ def inbox_delete(id: str):
     if f.exists():
         f.unlink()
     return {"ok": True}
+
+@router.post("/fitness/inbox/{id}/reenrich")
+async def inbox_reenrich(id: str, request: Request):
+    """Jagt einen bestehenden Inbox-Eintrag (lokal oder Firestore-Draft aus
+    einer frueheren Import-Aera) frisch durch Gemini. Ueberschreibt den
+    KB-Draft in kb/exercises/inbox_*.yml per force=True (normaler Watcher-Pfad
+    ueberspringt sonst, sobald der Draft schon existiert). Bei uid+doc_id im
+    Body wird zusaetzlich das Firestore-Inbox-Dokument aktualisiert, damit die
+    Coach-UI (Firebase-Modus) den neuen Stand sieht.
+    """
+    from fitness.catalog.agent.gemini import load_gemini_key
+    from fitness.catalog.api.watcher import process_inbox_file_virtual, _write_back_to_firestore_inbox
+    from fitness.catalog.core.resolver import resolve_query
+
+    body = await request.json()
+    display_name = body.get("display_name") or body.get("name") or id
+    exercise_id = body.get("exercise_id") or body.get("id")
+    uid = body.get("uid")
+    doc_id = body.get("doc_id")
+
+    if not exercise_id:
+        resolution = resolve_query(display_name)
+        exercise_id = resolution.canonical_id if resolution.matched else display_name
+
+    api_key = load_gemini_key()
+    if not api_key:
+        raise HTTPException(503, detail="gemini_key_missing")
+
+    process_inbox_file_virtual(exercise_id, display_name, api_key, force=True)
+
+    safe_name = str(exercise_id).lower().replace(" ", "_")
+    from fitness.catalog.core.paths import DATA_DIR
+    draft_path = DATA_DIR / "exercises" / f"inbox_{safe_name}.yml"
+    if not draft_path.exists():
+        raise HTTPException(502, detail="gemini_enrichment_failed")
+
+    enriched_doc = yaml.safe_load(draft_path.read_text()) or {}
+    enriched_data = (enriched_doc.get("exercises") or [{}])[0]
+
+    if uid and doc_id:
+        _write_back_to_firestore_inbox(uid, doc_id, enriched_data)
+
+    return {"ok": True, "id": id, "exercise_id": exercise_id, "enriched": enriched_data}
