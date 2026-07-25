@@ -54,33 +54,127 @@ def fetch_json(url: str, headers: dict[str, str] | None = None) -> Any:
     with urllib.request.urlopen(req) as response:
         return json.loads(response.read().decode("utf-8"))
 
+# Wiederhergestellt (User-Vorgabe 2026-07-25) aus dem Diff von Commit 6be284f
+# ("wger-Bulk-Import deaktivieren"), NICHT scharfgeschaltet: bevor der
+# Import laufen darf, muss die Muskel-Taxonomie (muscle_index.yml, paralleles
+# Arbeitsgebiet des Muscles-Agenten) verifiziert kollisionsfrei sein — sonst
+# landen wieder falsche Muskel-IDs in primary_muscles (siehe unten,
+# get_norm_muscles()-Fix). Auf True setzen erst nach expliziter Freigabe.
+WGER_BULK_IMPORT_ENABLED = False
+
+
 def import_external_exercises():
     logger.info("Starting bulk import from external sources...")
 
     existing_exercises = build_exercise_index()
     existing_ids = {ex.exercise_id for ex in existing_exercises}
-    
+
     # Load taxonomy for wger_id mapping
     taxonomy = load_muscle_taxonomy()
-    wger_id_to_norm = {}
-    for norm_id, data in taxonomy.items():
-        if isinstance(data, dict) and "wger_id" in data:
-            wger_id_to_norm[int(data["wger_id"])] = norm_id
+
+    # wger's eigene Muskel-Taxonomie ist grober als unsere (z.B. wger_id 10
+    # deckt alle vier Quadrizeps-Köpfe ab, wger_id 9 sowohl Trapezius
+    # oben/mitte/unten ALS AUCH den hinteren Deltamuskel). Ein naiver
+    # {wger_id: EIN norm_id}-Dict wuerde bei jeder Mehrfachzuordnung
+    # stillschweigend nur die zuletzt eingelesene ID behalten (z.B. nur
+    # 606_vastus_intermedius statt aller vier Quad-Koepfe) — genau der Bug,
+    # der einmal zu "Front Squat: primary_muscles nur Gluteus" gefuehrt hat.
+    # wger_groups in muscle_index.yml ist die von der Muskel-Taxonomie
+    # gepflegte, autoritative wger_id -> [alle passenden canonical IDs]
+    # Liste — die muss hier verwendet werden, nicht taxonomy neu ableiten.
+    raw_taxonomy_doc_for_wger = load_catalog_yaml("muscles/muscle_index.yml") or {}
+    wger_groups = raw_taxonomy_doc_for_wger.get("wger_groups", {}) if isinstance(raw_taxonomy_doc_for_wger, dict) else {}
+    wger_id_to_norms: dict[int, list[str]] = {
+        int(k): v for k, v in wger_groups.items() if isinstance(v, list)
+    }
 
     def get_norm_muscles(wger_muscles: list[dict[str, Any]]) -> list[str]:
-        res = []
+        res: list[str] = []
         for m in wger_muscles:
             w_id = m.get("id")
-            if w_id in wger_id_to_norm:
-                res.append(wger_id_to_norm[w_id])
-        return sorted(list(set(res)))
+            res.extend(wger_id_to_norms.get(w_id, []))
+        return sorted(set(res))
 
     # 1. Import from wger
-    # Deaktiviert (User-Vorgabe 2026-07-24): wger bleibt vorerst lokal, kein
-    # Bulk-Fetch mehr. unreviewed_wger.yml bleibt dadurch unverändert stehen -
-    # alles was geloggt wird, geht stattdessen über yuhonas -> Inbox -> Expert.
     unreviewed_wger: list[dict] = []
-    logger.info("wger-Import deaktiviert (User-Vorgabe) - kein Fetch gegen die lokale wger-API.")
+    if not WGER_BULK_IMPORT_ENABLED:
+        logger.info(
+            "wger-Import deaktiviert (WGER_BULK_IMPORT_ENABLED=False) — wartet auf "
+            "Freigabe der Muskel-Taxonomie-Kollisionsfreiheit. unreviewed_wger.yml "
+            "bleibt unveraendert stehen."
+        )
+    else:
+        try:
+            logger.info("Fetching exercises from local wger API in batches...")
+            offset = 0
+            limit = 100
+            while True:
+                url = f"{WGER_API_BASE}/exerciseinfo/?limit={limit}&offset={offset}"
+                headers = {"Authorization": f"Token {WGER_TOKEN}", "Accept": "application/json"}
+                data = fetch_json(url, headers)
+
+                results = data.get("results", [])
+                if not results:
+                    break
+
+                for item in results:
+                    translations = item.get("translations", [])
+                    de = next((t for t in translations if t.get("language") == 1), None)
+                    en = next((t for t in translations if t.get("language") == 2), None)
+
+                    display_name = (de or en or {}).get("name", "")
+                    if not display_name:
+                        continue
+
+                    safe_id = f"wger_{item.get('id')}"
+
+                    res = resolve_query(display_name)
+                    if res.matched and res.confidence == "high":
+                        continue
+
+                    primary = get_norm_muscles(item.get("muscles", []))
+                    secondary = get_norm_muscles(item.get("muscles_secondary", []))
+
+                    name_variants = (
+                        display_name,
+                        (de or {}).get("name", ""),
+                        (en or {}).get("name", ""),
+                    )
+                    primary = reclassify_deltoid_muscles(primary, *name_variants)
+                    secondary = reclassify_deltoid_muscles(secondary, *name_variants)
+
+                    category_id = item.get("category", {}).get("id")
+                    category = WGER_CATEGORY_MAP.get(category_id, "other")
+
+                    description = (de or en or {}).get("description", "")
+                    clean_desc = re.sub('<[^<]+?>', '', description).strip()
+
+                    ex = {
+                        "exercise_id": safe_id,
+                        "display_name": display_name,
+                        "german": de.get("name") if de else display_name,
+                        "category": category,
+                        "primary_muscles": primary,
+                        "secondary_muscles": secondary,
+                        "equipment": [e.get("name").lower() for e in item.get("equipment", [])],
+                        "coaching_notes": [clean_desc] if clean_desc else [],
+                        "tags": ["unreviewed", "wger"],
+                        "wger_id": item.get("id"),
+                        "wger_muscle_ids": {
+                            "primary": [m.get("id") for m in item.get("muscles", [])],
+                            "secondary": [m.get("id") for m in item.get("muscles_secondary", [])]
+                        }
+                    }
+                    unreviewed_wger.append(ex)
+
+                logger.info(f"Processed {offset + len(results)}/{data.get('count', '?')} wger exercises...")
+                offset += limit
+                if offset >= data.get("count", 0):
+                    break
+
+            logger.info(f"Prepared {len(unreviewed_wger)} unreviewed exercises from wger.")
+        except Exception as e:
+            logger.error(f"wger import failed: {e}")
 
     # 2. Import from yuhonas
     # yuhonas nutzt eine eigene, flache Muskel-Vokabel (17 Wörter: "chest",
