@@ -189,6 +189,23 @@ def normalize_enriched_fields(data: dict) -> dict:
     return data
 
 
+def _call_haiku_cli(prompt: str, timeout: int = 90) -> str | None:
+    """Wie _call(), aber via `claude -p --model haiku` statt Gemini-HTTP-API.
+    Nutzt denselben Prompt-Text 1:1 - Fallback fuer Gemini-Ausfaelle (429/
+    Kontingent), nicht der primaere Pfad."""
+    try:
+        result = subprocess.run(
+            ["claude", "-p", prompt, "--model", "haiku", "--output-format", "text"],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        return result.stdout.strip() or None
+    except Exception as e:
+        logger.warning(f"Haiku-CLI-Fallback fehlgeschlagen: {e}")
+        return None
+
+
 def call_gemini(
     exercise_name: str,
     safe_name: str,
@@ -215,7 +232,13 @@ def call_gemini(
 
     text = _call(prompt, api_key)
     if not text:
-        return None
+        # Gemini-Fehler (inkl. HTTP 429 Rate-Limit) - best-effort Fallback auf
+        # Claude Haiku via CLI, gleicher Prompt. Verhindert dass ein Batch-Lauf
+        # komplett stoppt, nur weil das Gemini-Kontingent kurzzeitig erschoepft ist.
+        logger.warning("Gemini-Call fehlgeschlagen, versuche Haiku-Fallback...")
+        text = _call_haiku_cli(prompt)
+        if not text:
+            return None
     try:
         parsed = json.loads(text.replace("```json", "").replace("```", "").strip())
         return normalize_enriched_fields(parsed)

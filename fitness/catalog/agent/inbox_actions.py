@@ -16,11 +16,19 @@ from fitness.catalog.agent.gemini import load_gemini_key, call_gemini, review_wi
 
 
 def inbox_dir() -> Path:
+    """kb/inbox/ - alleinige Ablage fuer unreviewte Drafts (inbox_*.yml)."""
+    return DATA_DIR / "inbox"
+
+
+def exercises_dir() -> Path:
+    """kb/exercises/ - Ziel fuer approvte/canonical Exercise-Dateien."""
     return DATA_DIR / "exercises"
 
 
 def list_inbox_files() -> list[Path]:
-    return sorted(inbox_dir().glob("inbox_*.yml"))
+    # Fallback auf kb/exercises/ falls dort noch (alte) Drafts liegen, siehe
+    # tui.py::_find_inbox_files() fuer denselben Grund.
+    return sorted(list(inbox_dir().glob("inbox_*.yml")) + list(exercises_dir().glob("inbox_*.yml")))
 
 
 def load_inbox_entry(file_id: str) -> tuple[Path, dict[str, Any]]:
@@ -30,7 +38,9 @@ def load_inbox_entry(file_id: str) -> tuple[Path, dict[str, Any]]:
     stem = file_id[:-4] if file_id.endswith(".yml") else file_id
     f = inbox_dir() / f"{stem}.yml"
     if not f.exists():
-        raise FileNotFoundError(f"Inbox-Datei nicht gefunden: {f.name}")
+        f = exercises_dir() / f"{stem}.yml"
+    if not f.exists():
+        raise FileNotFoundError(f"Inbox-Datei nicht gefunden: {stem}.yml")
     doc = load_yaml(f)
     exercises = doc.get("exercises") or [{}]
     ex = exercises[0]
@@ -58,7 +68,7 @@ def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
 
     ex["source"] = "expert"
 
-    detail_path = inbox_dir() / f"{ex_id}.yml"
+    detail_path = exercises_dir() / f"{ex_id}.yml"
     if detail_path.exists():
         detail_path.with_suffix(".yml.bak").write_text(detail_path.read_text())
 

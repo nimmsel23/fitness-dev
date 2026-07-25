@@ -153,6 +153,51 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   ist ein zweiter, aktiv genutzter Schreiber mit eigenem Alt-Schema (Raw-`sqlite3`,
   nicht SQLAlchemy). Siehe [[Alembic / SQLAlchemy — Schema-Drift]] weiter unten,
   bevor an `training_history` oder an Migrationen gearbeitet wird.
+- **wger lokal läuft NICHT auf :8000** (trotz `docker port docker-web-1` zeigt
+  `8000/tcp` ohne Host-Mapping) — der tatsächliche Host-Zugang läuft über
+  `docker-nginx-1` auf Port **80** (`http://127.0.0.1/api/v2/...`). `docker ps
+  --format "table {{.Names}}\t{{.Ports}}"` zeigt das Mapping. ⚠️ `docker-nginx-1`
+  bindet auf `0.0.0.0:80` (alle Interfaces), nicht nur `127.0.0.1` — sollte in
+  der wger-`docker-compose.yml` (außerhalb dieses Repos) auf `127.0.0.1:80`
+  eingeschränkt werden, noch nicht gefixt.
+- **`kb/maps/` existiert nicht** — nie existiert. `aliases.yml` und
+  `wger_mapping.yml` liegen in `kb/registry/`. `load_catalog_yaml("maps/...")`
+  scheiterte an vier Stellen (`core/resolver.py`, `core/wger.py` ×2,
+  `core/audit/loaders.py`) still (`except FileNotFoundError: return {}`) —
+  kein Crash, aber Exercise-Namensauflösung/wger-Mapping liefen jahrelang
+  gegen ein leeres Dict. Bei neuen `load_catalog_yaml()`-Aufrufen: Pfad immer
+  gegen `ls kb/` verifizieren, nicht vom Funktionsnamen/Kommentar ausgehen.
+- **Inbox-Ablage konsolidiert (2026-07-25): `kb/inbox/` ist die alleinige
+  Ablage** für unreviewte Drafts (`inbox_*.yml`), `kb/exercises/` nur noch für
+  reviewte/canonical Einträge. Vier Konsumenten müssen synchron bleiben, wenn
+  sich das nochmal ändert: `watcher.py` (schreibt), `fitness/api/config.py::
+  INBOX_DIR` (liest, lokale Coach-UI via `GET /fitness/inbox`), `core/resolver
+  .py::build_exercise_index()` (muss `kb/inbox/` mitscannen, sonst
+  verschwinden Drafts aus Suche/Demand-Audit), `tui.py` (scannt zur Sicherheit
+  3 Kandidaten-Pfade als Fallback). Getrennt davon: die **Firestore**-Coach-
+  Inbox (`fitness/{uid}/inbox`-Collection, `collectionGroup("inbox")`) ist ein
+  komplett anderes System für den Firebase-Build — beide existieren parallel,
+  je nach Build-Modus (`localhost` = lokale API, Firebase-Deploy = Firestore).
+- **Muskel-Taxonomie 2026-07-25 komplett umnummeriert** (nach Muskelgröße pro
+  100er-Region, nicht mehr Import-Reihenfolge) — z.B. `601_quadriceps_femoris`
+  (Barrel) statt vorher kollidierender `603_quadriceps`. `coverage.py::
+  resolve_muscle_id()` hat seitdem einen **Zahl-Präfix-Fallback**: findet er
+  keinen Exact-Match, probiert er den reinen Nummern-Präfix (z.B.
+  `"601_quadriceps"` → `"601"` → matched `601_quadriceps_femoris`). Nummer
+  bleibt stabiler Anker, Namensteil darf sich ändern, ohne alle Referenzen zu
+  brechen. `kb/exercises/` (86 Alt-Dateien, geprägt vom allerersten Import)
+  wurde bei diesem Umbau komplett nach `exercises_archive_pre_rebuild/`
+  archiviert und mit frischem `WGER_BULK_IMPORT_ENABLED=True`-Lauf (844 wger +
+  873 yuhonas) neu importiert — nur 5 der 68 zunächst wiederhergestellten
+  Alt-Dateien hatten echten Nutzungsbezug (Firestore `collection_group
+  ("sessions")`-Abgleich), Rest wieder archiviert.
+- **`fitness/catalog/core/paths.py` lädt beim Modul-Import automatisch zwei
+  `.env`-Dateien** (`~/fitness/.env` UND `~/.env/fitness.env`, letztere für
+  Secrets nach AlphaOS-Konvention) — jedes Modul, das `core.paths` importiert
+  (direkt oder transitiv, z.B. `fitness/api/config.py`), hat diese Variablen
+  automatisch in `os.environ`. Keine hartcodierten Fallback-Secrets mehr in
+  `config.py`/`importer.py` einbauen (`WGER_TOKEN`, `WGER_BASE`,
+  `WGER_API_TOKEN`, `WGER_API_BASE` liegen jetzt ausschließlich dort).
 
 ---
 

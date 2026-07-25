@@ -30,7 +30,7 @@ INBOX_DIR = _HERE.parent / "catalog" / "kb" / "inbox"
 WGER_TOKEN = os.environ.get("WGER_API_TOKEN", os.environ.get("WGER_TOKEN", ""))
 WGER_BASE  = os.environ.get("WGER_BASE", "")
 
-_DIST_DIR   = _HERE.parent.parent / "dist"
+_DIST_DIR   = _HERE.parent / "catalog" / "dist"
 _INDEX_HTML = _DIST_DIR / "index.html"
 
 # Local habits fallback
