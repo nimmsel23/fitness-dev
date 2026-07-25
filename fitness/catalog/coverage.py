@@ -115,9 +115,15 @@ def build_muscle_alias_map(taxonomy: dict[str, dict[str, Any]]) -> dict[str, str
         if re.match(r'^\d00_', muscle_id):
             continue
         alias_map[muscle_id] = muscle_id
-        suffix = re.sub(r'^\d+_', '', muscle_id)
+        suffix = re.sub(r'^\d+[a-z]?_', '', muscle_id)
         if suffix:
             alias_map[suffix] = muscle_id
+        # Reine Zahl-Praefix-ID (z.B. "601" oder "601a") -> volle ID. Damit bleibt
+        # jede Referenz gueltig, die nur die Nummer kennt, auch wenn sich der
+        # Namensteil aendert (z.B. 601_quadriceps -> 601_quadriceps_femoris).
+        prefix_match = re.match(r'^(\d+[a-z]?)_', muscle_id)
+        if prefix_match:
+            alias_map.setdefault(prefix_match.group(1), muscle_id)
         for field in ("label_en", "label_de", "display_name"):
             val = data.get(field, "")
             if isinstance(val, str) and val:
@@ -128,9 +134,20 @@ def build_muscle_alias_map(taxonomy: dict[str, dict[str, Any]]) -> dict[str, str
 
 
 def resolve_muscle_id(raw: str, alias_map: dict[str, str]) -> str:
-    """Gibt die numbered taxonomy ID zurück, oder den normalisierten Rohwert wenn nicht gefunden."""
+    """Gibt die numbered taxonomy ID zurueck, oder den normalisierten Rohwert wenn nicht gefunden.
+
+    Faellt bei fehlendem Exact-Match auf den reinen Zahl-Praefix zurueck (z.B.
+    "601_quadriceps" -> "601"), damit veraltete Namensteile in alten Referenzen
+    trotzdem auf die aktuelle ID aufloesen, solange die Nummer stimmt.
+    """
+    import re
     norm = normalize_muscle_id(raw)
-    return alias_map.get(norm, norm)
+    if norm in alias_map:
+        return alias_map[norm]
+    prefix_match = re.match(r'^(\d+[a-z]?)_', norm)
+    if prefix_match and prefix_match.group(1) in alias_map:
+        return alias_map[prefix_match.group(1)]
+    return norm
 
 
 def build_muscle_parent_map(taxonomy: dict[str, dict[str, Any]]) -> dict[str, str]:

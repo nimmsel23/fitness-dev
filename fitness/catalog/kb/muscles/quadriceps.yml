@@ -1,14 +1,4 @@
 id: 601_quadriceps
-display_name: Quadriceps
-label_de: Quadrizeps
-label_en: Quadriceps
-label_lat: M. quadriceps femoris
-body_region: thigh_front
-muscles:
-  - 601a_rectus_femoris
-  - 601b_vastus_lateralis
-  - 601c_vastus_medialis
-  - 601d_vastus_intermedius
 exercises:
   - '060'
   - '061'

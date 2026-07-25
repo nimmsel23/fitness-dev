@@ -34,8 +34,8 @@ muscles:
   304_rotator_cuff:                {}
   404_brachioradialis:             {}
   405_forearm_flexors:             {}
-  406_anconeus:                    {}
-  407_forearm_extensors:           {}
+  406_forearm_extensors:           {}
+  407_anconeus:                    {}
   504_transverse_abdominis:        {}
   608_gluteus_medius:              {}
   609_gluteus_minimus:             {}
@@ -45,19 +45,19 @@ muscles:
 
   # --- Group IDs (used by unreviewed wger/yuhonas exercises) ---
   100_chest:
-    members: [101_pectoralis_major, 102_pectoralis_major_clavicular, 103_pectoralis_major_sternal, 104_pectoralis_minor, 105_serratus_anterior]
+    members: [101_pectoralis_major, 104_pectoralis_minor, 105_serratus_anterior]
   200_back:
-    members: [201_latissimus_dorsi, 202_trapezius_upper, 203_trapezius_middle, 204_trapezius_lower, 205_rhomboids, 206_erector_spinae, 207_teres_major]
+    members: [201_latissimus_dorsi, 202_trapezius, 205_rhomboids, 206_erector_spinae, 207_teres_major]
   300_shoulders:
     members: [301_anterior_deltoid, 302_lateral_deltoid, 303_posterior_deltoid, 304_rotator_cuff]
   400_arms:
-    members: [401_triceps_brachii, 401a_triceps_long_head, 401b_triceps_lateral_head, 401c_triceps_medial_head, 402_biceps_brachii, 403_brachialis, 404_brachioradialis, 405_forearm_flexors, 405a_flexor_digitorum_superficialis, 405b_flexor_carpi_ulnaris, 405c_flexor_carpi_radialis, 405d_palmaris_longus, 406_forearm_extensors, 406a_extensor_digitorum, 406b_extensor_carpi_radialis_longus, 406c_extensor_carpi_radialis_brevis, 406d_extensor_carpi_ulnaris, 407_anconeus]
+    members: [401_triceps_brachii, 402_biceps_brachii, 403_brachialis, 404_brachioradialis, 405_forearm_flexors, 406_forearm_extensors, 407_anconeus]
   500_abs:
     members: [501_rectus_abdominis, 502_obliquus_externus, 503_obliquus_internus, 504_transverse_abdominis, 505_quadratus_lumborum, 506_diaphragm, 507_multifidus, 508_pelvic_floor]
   600_legs:
-    members: [601a_rectus_femoris, 601b_vastus_lateralis, 601c_vastus_medialis, 601d_vastus_intermedius, 602_adductors, 602a_adductor_magnus, 602b_adductor_longus, 602c_adductor_brevis, 603_gluteus_maximus, 604_biceps_femoris, 605_semitendinosus, 606_semimembranosus, 607_iliopsoas, 608_gluteus_medius, 609_gluteus_minimus]
+    members: [601_quadriceps, 602_adductors, 603_gluteus_maximus, 604_biceps_femoris, 607_iliopsoas, 608_gluteus_medius, 609_gluteus_minimus]
   700_calves:
-    members: [701_gastrocnemius, 701a_gastrocnemius_medial, 701b_gastrocnemius_lateral, 702_soleus, 703_tibialis_anterior]
+    members: [701_gastrocnemius, 702_soleus, 703_tibialis_anterior]
   601_quadriceps:
     members: [601a_rectus_femoris, 601b_vastus_lateralis, 601c_vastus_medialis, 601d_vastus_intermedius]
   hamstrings:
@@ -77,22 +77,21 @@ muscles:
 
 string_aliases:
   abdominals:  500_abs
-  abductors:   abductors
+  abductors:   608_gluteus_medius
   adductors:   602_adductors
   biceps:      402_biceps_brachii
   calves:      700_calves
   chest:       100_chest
   forearms:    405_forearm_flexors
-  glutes:      glutes
-  hamstrings:  hamstrings
-  lats:        lats
+  glutes:      603_gluteus_maximus
+  hamstrings:  604_biceps_femoris
+  lats:        201_latissimus_dorsi
   lower back:  206_erector_spinae
   middle back: 200_back
   neck:        202_trapezius_upper
   quadriceps:  601_quadriceps
   shoulders:   300_shoulders
-  traps:       trapezius
-  trapezius:   trapezius
+  traps:       202_trapezius
   triceps:     401_triceps_brachii
 
 wger_groups:
