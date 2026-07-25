@@ -12,7 +12,7 @@ muscles:
   203_trapezius_middle:            {wger_id: 9}
   204_trapezius_lower:             {wger_id: 9}
   303_posterior_deltoid:           {wger_id: 9}
-  601_quadriceps:                  {wger_id: 10}
+  601_quadriceps_femoris:          {wger_id: 10}
   604_biceps_femoris:              {wger_id: 11}
   605_semitendinosus:              {wger_id: 11}
   606_semimembranosus:             {wger_id: 11}
@@ -42,38 +42,6 @@ muscles:
   607_iliopsoas:                   {}
   602_adductors:                   {}
   703_tibialis_anterior:           {}
-
-  # --- Group IDs (used by unreviewed wger/yuhonas exercises) ---
-  100_chest:
-    members: [101_pectoralis_major, 104_pectoralis_minor, 105_serratus_anterior]
-  200_back:
-    members: [201_latissimus_dorsi, 202_trapezius, 205_rhomboids, 206_erector_spinae, 207_teres_major]
-  300_shoulders:
-    members: [301_anterior_deltoid, 302_lateral_deltoid, 303_posterior_deltoid, 304_rotator_cuff]
-  400_arms:
-    members: [401_triceps_brachii, 402_biceps_brachii, 403_brachialis, 404_brachioradialis, 405_forearm_flexors, 406_forearm_extensors, 407_anconeus]
-  500_abs:
-    members: [501_rectus_abdominis, 502_obliquus_externus, 503_obliquus_internus, 504_transverse_abdominis, 505_quadratus_lumborum, 506_diaphragm, 507_multifidus, 508_pelvic_floor]
-  600_legs:
-    members: [601_quadriceps, 602_adductors, 603_gluteus_maximus, 604_biceps_femoris, 607_iliopsoas, 608_gluteus_medius, 609_gluteus_minimus]
-  700_calves:
-    members: [701_gastrocnemius, 702_soleus, 703_tibialis_anterior]
-  601_quadriceps:
-    members: [601a_rectus_femoris, 601b_vastus_lateralis, 601c_vastus_medialis, 601d_vastus_intermedius]
-  hamstrings:
-    members: [604_biceps_femoris, 605_semitendinosus, 606_semimembranosus]
-  obliques:
-    members: [502_obliquus_externus, 503_obliquus_internus]
-  transverse_abdominis:
-    members: [504_transverse_abdominis]
-  lats:
-    members: [201_latissimus_dorsi, 207_teres_major]
-  trapezius:
-    members: [202_trapezius_upper, 203_trapezius_middle, 204_trapezius_lower]
-  glutes:
-    members: [603_gluteus_maximus, 608_gluteus_medius, 609_gluteus_minimus]
-  abductors:
-    members: [608_gluteus_medius, 609_gluteus_minimus]
 
 string_aliases:
   abdominals:  500_abs

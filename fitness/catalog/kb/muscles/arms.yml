@@ -6,20 +6,9 @@ label_lat: Membrum superius
 body_region: upper_arm_front
 muscles:
   - 401_triceps_brachii
-  - 401a_triceps_long_head
-  - 401b_triceps_lateral_head
-  - 401c_triceps_medial_head
   - 402_biceps_brachii
   - 403_brachialis
   - 404_brachioradialis
   - 405_forearm_flexors
-  - 405a_flexor_digitorum_superficialis
-  - 405b_flexor_carpi_ulnaris
-  - 405c_flexor_carpi_radialis
-  - 405d_palmaris_longus
   - 406_forearm_extensors
-  - 406a_extensor_digitorum
-  - 406b_extensor_carpi_radialis_longus
-  - 406c_extensor_carpi_radialis_brevis
-  - 406d_extensor_carpi_ulnaris
   - 407_anconeus

@@ -5,14 +5,8 @@ label_en: Legs
 label_lat: Membrum inferius
 body_region: thigh_front
 muscles:
-  - 601a_rectus_femoris
-  - 601b_vastus_lateralis
-  - 601c_vastus_medialis
-  - 601d_vastus_intermedius
+  - 601_quadriceps_femoris
   - 602_adductors
-  - 602a_adductor_magnus
-  - 602b_adductor_longus
-  - 602c_adductor_brevis
   - 603_gluteus_maximus
   - 604_biceps_femoris
   - 605_semitendinosus
