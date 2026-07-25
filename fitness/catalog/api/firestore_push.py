@@ -137,7 +137,7 @@ def sync_muscles(db: Any, dry_run: bool = False) -> dict[str, int]:
     col = db.collection("fitness").document("kb").collection("muscles")
 
     try:
-        taxonomy = load_catalog_yaml("muscles/muscle_index.yml")
+        taxonomy = load_catalog_yaml("muscle_index.yml")
         muscles = taxonomy.get("muscles", {}) if isinstance(taxonomy, dict) else {}
     except Exception as exc:
         logger.error(f"muscle_index.yml: {exc}")
@@ -160,7 +160,7 @@ def sync_yuhonas(db: Any, dry_run: bool = False) -> dict[str, int]:
         return {"ok": 0, "unchanged": 0, "error": 0}
 
     try:
-        muscle_index = load_catalog_yaml("muscles/muscle_index.yml")
+        muscle_index = load_catalog_yaml("muscle_index.yml")
         string_aliases = muscle_index.get("string_aliases", {}) if isinstance(muscle_index, dict) else {}
     except Exception:
         string_aliases = {}

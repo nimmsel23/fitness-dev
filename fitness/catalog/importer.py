@@ -82,7 +82,7 @@ def import_external_exercises():
     # wger_groups in muscle_index.yml ist die von der Muskel-Taxonomie
     # gepflegte, autoritative wger_id -> [alle passenden canonical IDs]
     # Liste — die muss hier verwendet werden, nicht taxonomy neu ableiten.
-    raw_taxonomy_doc_for_wger = load_catalog_yaml("muscles/muscle_index.yml") or {}
+    raw_taxonomy_doc_for_wger = load_catalog_yaml("muscle_index.yml") or {}
     wger_groups = raw_taxonomy_doc_for_wger.get("wger_groups", {}) if isinstance(raw_taxonomy_doc_for_wger, dict) else {}
     wger_id_to_norms: dict[int, list[str]] = {
         int(k): v for k, v in wger_groups.items() if isinstance(v, list)
@@ -183,7 +183,7 @@ def import_external_exercises():
     # kanonische Gruppen-ID, z.B. "biceps" -> "401_biceps_brachii"). Vorher wurde
     # hier nur normalize_muscle_id() (reines Slugify) genutzt und roh gespeichert
     # ("chest" statt "100_chest") - derselbe Fehlertyp wie body_rows.yml.
-    raw_taxonomy_doc = load_catalog_yaml("muscles/muscle_index.yml") or {}
+    raw_taxonomy_doc = load_catalog_yaml("muscle_index.yml") or {}
     string_aliases = raw_taxonomy_doc.get("string_aliases", {}) if isinstance(raw_taxonomy_doc, dict) else {}
     yuhonas_muscle_map = {normalize_muscle_id(k): v for k, v in string_aliases.items()}
 

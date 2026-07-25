@@ -230,7 +230,7 @@ def build_exercise_index() -> list[ExerciseRecord]:
     yuhonas_dir = catalog_path("../yuhonas")
     if yuhonas_dir.exists():
         try:
-            muscle_index = load_catalog_yaml("muscles/muscle_index.yml")
+            muscle_index = load_catalog_yaml("muscle_index.yml")
             string_aliases = muscle_index.get("string_aliases", {})
         except Exception:
             string_aliases = {}
