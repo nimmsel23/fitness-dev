@@ -229,57 +229,28 @@ def _inbox_detail(f: Path) -> str:
 
 
 def _reenrich(f: Path, ex: dict, name: str, feedback: str | None = None) -> None:
-    """Jagt einen bestehenden Inbox-Draft nochmal frisch durch Gemini —
-    für Alt-Einträge aus einer frueheren Import-Aera, deren Schema/Qualitaet
-    nicht mehr zum aktuellen Approve-Pfad passt. Ueberschreibt den Draft
-    in-place, macht vorher ein Backup. Optional mit Coach-Feedback (freier
-    Text), das Gemini zwingend bei der Neufassung beruecksichtigen muss
-    (z.B. kritisierte Formulierungen wie "bequem"/"Polster" vermeiden).
+    """Jagt einen bestehenden Inbox-Draft nochmal frisch durch Gemini (+ Haiku-
+    Gegenpruefung) — Interactive-Wrapper um reenrich_inbox_entry() aus
+    agent/inbox_actions.py (dort liegt die geteilte Logik mit der CLI).
     """
-    from fitness.catalog.agent.gemini import load_gemini_key, call_gemini, review_with_haiku
-
-    api_key = load_gemini_key()
-    if not api_key:
-        console.print("  [red]GEMINI_API_KEY fehlt — kann nicht neu anreichern.[/red]")
-        _pause()
-        return
+    from fitness.catalog.agent.inbox_actions import reenrich_inbox_entry
 
     prompt_label = "Mit Feedback neu anreichern" if feedback else "Bestehenden Draft ueberschreiben und neu anreichern"
     if not Confirm.ask(f"  [yellow]{prompt_label}: {name}?[/yellow]"):
         return
 
-    ex_id = ex.get("exercise_id") or ex.get("id") or f.stem.replace("inbox_", "")
-    safe_name = str(ex_id).lower().replace(" ", "_")
-
     console.print("  [dim]Frage Gemini an…[/dim]")
-    enriched = call_gemini(name, safe_name, api_key, existing_data=ex, feedback=feedback)
-
-    if not enriched:
-        console.print("  [red]Gemini-Anreicherung fehlgeschlagen — Draft unveraendert.[/red]")
+    try:
+        result = reenrich_inbox_entry(f, ex, name, feedback=feedback)
+    except RuntimeError as exc:
+        console.print(f"  [red]{exc} — Draft unveraendert.[/red]")
         _pause()
         return
 
-    console.print("  [dim]Lasse Haiku gegenpruefen…[/dim]")
-    reviewed = review_with_haiku(enriched, feedback=feedback)
-    if reviewed:
-        enriched = reviewed
+    if result["haiku_applied"]:
         console.print("  [green]✓ Haiku-Review angewendet[/green]")
     else:
         console.print("  [dim]Haiku-Review nicht verfuegbar — behalte Gemini-Ergebnis[/dim]")
-
-    f.with_suffix(".yml.bak").write_text(f.read_text())
-
-    if "stabilizers" not in enriched: enriched["stabilizers"] = []
-    if "variations" not in enriched: enriched["variations"] = []
-    enriched["source"] = "unreviewed"
-
-    description = f"Reenriched (Coach-Feedback) fuer: {name}" if feedback else f"Neu angereichert (manueller Re-Enrich) fuer: {name}"
-    wrapper = {
-        "name": f.stem,
-        "description": description,
-        "exercises": [enriched],
-    }
-    f.write_text(yaml.dump(wrapper, allow_unicode=True, sort_keys=False))
 
     console.print(f"  [green]✓ Neu angereichert: {f.name}[/green]")
     _pause()
@@ -300,37 +271,16 @@ def _feedback_reenrich(f: Path, ex: dict, name: str) -> None:
 
 
 def _approve(f: Path, ex: dict) -> None:
-    ex_id = ex.get("exercise_id") or ex.get("id")
-    if not ex_id:
-        console.print("  [red]Fehler: keine exercise_id[/red]")
+    from fitness.catalog.agent.inbox_actions import approve_inbox_entry
+
+    try:
+        ex_id = approve_inbox_entry(f, ex)
+    except ValueError as exc:
+        console.print(f"  [red]Fehler: {exc}[/red]")
         _pause()
         return
 
-    if ex_id.startswith("inbox_"):
-        ex_id = ex_id.replace("inbox_", "")
-        ex["exercise_id"] = ex_id
-        ex["id"] = ex_id
-
-    ex["source"] = "expert"
-
-    exercises_dir = DATA_DIR / "exercises"
-    detail_path = exercises_dir / f"{ex_id}.yml"
-
-    if detail_path.exists():
-        detail_path.with_suffix(".yml.bak").write_text(detail_path.read_text())
-
-    display_name = ex.get("display_name") or ex.get("german") or ex.get("name") or ex_id
-    detail_doc = {
-        "exercise_id": ex_id,
-        "description": f"Expert details for {display_name}",
-        "exercises": [ex],
-    }
-    detail_path.write_text(
-        yaml.dump(detail_doc, allow_unicode=True, sort_keys=False, default_flow_style=False)
-    )
-    f.unlink()
-
-    console.print(f"  [green]✓ Approved → {detail_path.name}[/green]")
+    console.print(f"  [green]✓ Approved → {ex_id}.yml[/green]")
     _pause()
 
 

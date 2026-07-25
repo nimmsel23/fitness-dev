@@ -668,6 +668,112 @@ def alias_add(
         console.print(f"  Neu: {added}")
 
 
+
+# ─── Inbox (nicht-interaktiv, gleiche Logik wie `tui.py` Inbox-Screen) ──────
+
+inbox_app = typer.Typer(help="Inbox-Review ohne TUI — für Skripte/CI/Automation")
+app.add_typer(inbox_app, name="inbox")
+
+
+@inbox_app.command(name="list")
+def inbox_list():
+    """Listet alle unreviewten Inbox-Drafts (kb/exercises/inbox_*.yml)"""
+    from fitness.catalog.agent.inbox_actions import list_inbox_files
+
+    files = list_inbox_files()
+    if not files:
+        console.print("[ok]Inbox leer.[/ok]")
+        return
+    for f in files:
+        try:
+            doc = yaml.safe_load(f.read_text())
+            ex = (doc.get("exercises") or [{}])[0]
+            name = ex.get("display_name") or ex.get("german") or ex.get("name") or ""
+        except Exception:
+            name = "[fail]Ladefehler[/fail]"
+        console.print(f"  {f.stem:35}  {name}")
+
+
+@inbox_app.command(name="show")
+def inbox_show(
+    file_id: Annotated[str, typer.Argument(help="z.B. inbox_wger_851")],
+):
+    """Zeigt einen Inbox-Draft vollständig (YAML) an"""
+    from fitness.catalog.agent.inbox_actions import load_inbox_entry
+
+    try:
+        f, ex = load_inbox_entry(file_id)
+    except (FileNotFoundError, ValueError) as exc:
+        console.print(f"[fail]FAIL:[/fail] {exc}")
+        raise typer.Exit(code=1)
+    console.print(yaml.dump(ex, allow_unicode=True, sort_keys=False))
+
+
+@inbox_app.command(name="approve")
+def inbox_approve_cmd(
+    file_id: Annotated[str, typer.Argument(help="z.B. inbox_wger_851")],
+):
+    """Approved einen Inbox-Draft -> Expert-Tier ({exercise_id}.yml)"""
+    from fitness.catalog.agent.inbox_actions import load_inbox_entry, approve_inbox_entry
+
+    try:
+        f, ex = load_inbox_entry(file_id)
+        ex_id = approve_inbox_entry(f, ex)
+    except (FileNotFoundError, ValueError) as exc:
+        console.print(f"[fail]FAIL:[/fail] {exc}")
+        raise typer.Exit(code=1)
+    console.print(f"[ok]✓ Approved -> {ex_id}.yml[/ok]")
+
+
+@inbox_app.command(name="reenrich")
+def inbox_reenrich_cmd(
+    file_id: Annotated[str, typer.Argument(help="z.B. inbox_wger_851")],
+    feedback: Annotated[Optional[str], typer.Option("--feedback", "-f", help='Freitext-Kritik, z.B. "bequem und Polster passen nicht"')] = None,
+    no_haiku: Annotated[bool, typer.Option("--no-haiku", help="Haiku-Gegenpruefung ueberspringen")] = False,
+):
+    """Jagt einen Inbox-Draft frisch durch Gemini (+ optional Haiku-Review)"""
+    from fitness.catalog.agent.inbox_actions import load_inbox_entry, display_name_of, reenrich_inbox_entry
+
+    try:
+        f, ex = load_inbox_entry(file_id)
+    except (FileNotFoundError, ValueError) as exc:
+        console.print(f"[fail]FAIL:[/fail] {exc}")
+        raise typer.Exit(code=1)
+
+    name = display_name_of(ex, file_id)
+    console.print(f"[info]Frage Gemini an fuer '{name}'...[/info]")
+    try:
+        result = reenrich_inbox_entry(f, ex, name, feedback=feedback, use_haiku_review=not no_haiku)
+    except RuntimeError as exc:
+        console.print(f"[fail]FAIL:[/fail] {exc}")
+        raise typer.Exit(code=1)
+
+    if not no_haiku:
+        console.print("[ok]✓ Haiku-Review angewendet[/ok]" if result["haiku_applied"] else "[warn]Haiku-Review nicht verfuegbar — Gemini-Ergebnis behalten[/warn]")
+    console.print(f"[ok]✓ Neu angereichert:[/ok] {f.name}")
+
+
+@inbox_app.command(name="delete")
+def inbox_delete_cmd(
+    file_id: Annotated[str, typer.Argument(help="z.B. inbox_wger_851")],
+    yes: Annotated[bool, typer.Option("--yes", "-y", help="Ohne Rückfrage löschen")] = False,
+):
+    """Löscht einen Inbox-Draft"""
+    from fitness.catalog.agent.inbox_actions import load_inbox_entry, delete_inbox_entry
+
+    try:
+        f, ex = load_inbox_entry(file_id)
+    except (FileNotFoundError, ValueError) as exc:
+        console.print(f"[fail]FAIL:[/fail] {exc}")
+        raise typer.Exit(code=1)
+
+    if not yes and not typer.confirm(f"Wirklich löschen: {f.name}?"):
+        console.print("Abgebrochen.")
+        return
+    delete_inbox_entry(f)
+    console.print(f"[ok]✓ Gelöscht:[/ok] {f.name}")
+
+
 def main():
     app()
 
