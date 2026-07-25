@@ -51,15 +51,27 @@ CRITICAL: You MUST only use the following muscle IDs for primary_muscles, second
 
 Existing Data (Wiki Layer):
 {existing_json}
-
+{feedback_section}
 Your task:
 1. Keep the exercise_id and wger_id.
 2. Verify and refine the category and muscles.
 3. Generate HIGH-QUALITY coaching_notes and common_errors in GERMAN.
 4. Ensure the biomechanical movement_pattern is correct.
+{feedback_instruction}
 
 Return a JSON object with the full enriched structure. Do not include markdown formatting like ```json.
 """
+
+PROMPT_FEEDBACK_SECTION = """
+Coach Feedback zum vorherigen Entwurf (WICHTIG, unbedingt beachten):
+"{feedback}"
+"""
+
+PROMPT_FEEDBACK_INSTRUCTION = (
+    "5. Berücksichtige das Coach-Feedback oben zwingend — insbesondere kritisierte "
+    "Formulierungen/Wortwahl NICHT wiederverwenden, sondern durch praezise, "
+    "fachlich korrekte Alternativen ersetzen."
+)
 
 PROMPT_ALIASES = """
 You are a fitness terminology expert.
@@ -118,7 +130,13 @@ def _call(prompt: str, api_key: str, timeout: int = 30) -> str | None:
         return None
 
 
-def call_gemini(exercise_name: str, safe_name: str, api_key: str, existing_data: dict | None = None) -> dict | None:
+def call_gemini(
+    exercise_name: str,
+    safe_name: str,
+    api_key: str,
+    existing_data: dict | None = None,
+    feedback: str | None = None,
+) -> dict | None:
     taxonomy = load_muscle_taxonomy()
     muscle_list = ", ".join(k for k in sorted(taxonomy.keys()) if not re.match(r'^\d00_', k))
 
@@ -126,6 +144,8 @@ def call_gemini(exercise_name: str, safe_name: str, api_key: str, existing_data:
         prompt = PROMPT_EXERCISE_ENRICH.format(
             existing_json=json.dumps(existing_data, indent=2),
             muscle_list=muscle_list,
+            feedback_section=PROMPT_FEEDBACK_SECTION.format(feedback=feedback) if feedback else "",
+            feedback_instruction=PROMPT_FEEDBACK_INSTRUCTION if feedback else "",
         )
     else:
         prompt = PROMPT_EXERCISE_NEW.format(

@@ -204,8 +204,8 @@ def _inbox_detail(f: Path) -> str:
         ))
 
     console.print()
-    _nav(**{"a": "Approve → expert", "e": "Bearbeiten", "r": "Neu anreichern (Gemini)", "d": "Löschen", "b": "zurück"})
-    choice = Prompt.ask("  [bold]>[/bold]", choices=["a", "e", "r", "d", "b"], default="b")
+    _nav(**{"a": "Approve → expert", "e": "Bearbeiten", "r": "Neu anreichern (Gemini)", "f": "Feedback geben", "d": "Löschen", "b": "zurück"})
+    choice = Prompt.ask("  [bold]>[/bold]", choices=["a", "e", "r", "f", "d", "b"], default="b")
 
     if choice == "a":
         _approve(f, ex)
@@ -216,6 +216,9 @@ def _inbox_detail(f: Path) -> str:
     elif choice == "r":
         _reenrich(f, ex, name)
         return _inbox_detail(f)
+    elif choice == "f":
+        _feedback_reenrich(f, ex, name)
+        return _inbox_detail(f)
     elif choice == "d":
         if Confirm.ask(f"  [red]Wirklich löschen: {f.name}?[/red]"):
             f.unlink()
@@ -225,11 +228,13 @@ def _inbox_detail(f: Path) -> str:
     return "inbox"
 
 
-def _reenrich(f: Path, ex: dict, name: str) -> None:
+def _reenrich(f: Path, ex: dict, name: str, feedback: str | None = None) -> None:
     """Jagt einen bestehenden Inbox-Draft nochmal frisch durch Gemini —
     für Alt-Einträge aus einer frueheren Import-Aera, deren Schema/Qualitaet
     nicht mehr zum aktuellen Approve-Pfad passt. Ueberschreibt den Draft
-    in-place, macht vorher ein Backup.
+    in-place, macht vorher ein Backup. Optional mit Coach-Feedback (freier
+    Text), das Gemini zwingend bei der Neufassung beruecksichtigen muss
+    (z.B. kritisierte Formulierungen wie "bequem"/"Polster" vermeiden).
     """
     from fitness.catalog.agent.gemini import load_gemini_key, call_gemini
 
@@ -239,14 +244,15 @@ def _reenrich(f: Path, ex: dict, name: str) -> None:
         _pause()
         return
 
-    if not Confirm.ask(f"  [yellow]Bestehenden Draft ueberschreiben und neu anreichern: {name}?[/yellow]"):
+    prompt_label = "Mit Feedback neu anreichern" if feedback else "Bestehenden Draft ueberschreiben und neu anreichern"
+    if not Confirm.ask(f"  [yellow]{prompt_label}: {name}?[/yellow]"):
         return
 
     ex_id = ex.get("exercise_id") or ex.get("id") or f.stem.replace("inbox_", "")
     safe_name = str(ex_id).lower().replace(" ", "_")
 
     console.print("  [dim]Frage Gemini an…[/dim]")
-    enriched = call_gemini(name, safe_name, api_key, existing_data=ex)
+    enriched = call_gemini(name, safe_name, api_key, existing_data=ex, feedback=feedback)
 
     if not enriched:
         console.print("  [red]Gemini-Anreicherung fehlgeschlagen — Draft unveraendert.[/red]")
@@ -259,15 +265,30 @@ def _reenrich(f: Path, ex: dict, name: str) -> None:
     if "variations" not in enriched: enriched["variations"] = []
     enriched["source"] = "unreviewed"
 
+    description = f"Reenriched (Coach-Feedback) fuer: {name}" if feedback else f"Neu angereichert (manueller Re-Enrich) fuer: {name}"
     wrapper = {
         "name": f.stem,
-        "description": f"Neu angereichert (manueller Re-Enrich) fuer: {name}",
+        "description": description,
         "exercises": [enriched],
     }
     f.write_text(yaml.dump(wrapper, allow_unicode=True, sort_keys=False))
 
     console.print(f"  [green]✓ Neu angereichert: {f.name}[/green]")
     _pause()
+
+
+def _feedback_reenrich(f: Path, ex: dict, name: str) -> None:
+    """Fragt den Coach nach freiem Text-Feedback zum Draft (z.B. "bequem und
+    Polster passen mir nicht") und schickt es direkt an Gemini, statt die
+    Formulierung manuell im Editor zu aendern.
+    """
+    console.print()
+    feedback = Prompt.ask("  [bold]Was stoert dich am aktuellen Entwurf?[/bold]")
+    if not feedback.strip():
+        console.print("  [dim]Kein Feedback eingegeben — abgebrochen.[/dim]")
+        _pause()
+        return
+    _reenrich(f, ex, name, feedback=feedback.strip())
 
 
 def _approve(f: Path, ex: dict) -> None:
