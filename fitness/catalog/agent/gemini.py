@@ -197,6 +197,54 @@ def _cli_prompt(prompt: str, cmd: list[str]) -> list[str] | None:
     return None
 
 
+PROMPT_HAIKU_REVIEW = """
+Du bist ein zweiter, unabhaengiger Reviewer fuer einen KI-generierten Fitness-Uebungs-Eintrag.
+Ein anderes Modell (Gemini) hat gerade folgenden Entwurf erzeugt:
+
+{enriched_json}
+{feedback_section}
+Pruefe streng:
+1. Wurde jegliches Coach-Feedback oben WIRKLICH vollstaendig umgesetzt (keine kritisierten Woerter/Formulierungen mehr enthalten)?
+2. Sind coaching_notes/common_errors frei von Redundanz und fachlich praezise?
+3. Sind primary_muscles/secondary_muscles/stabilizers plausibel fuer diese Uebung?
+
+Gib das KOMPLETTE, ggf. korrigierte JSON-Objekt zurueck (gleiche Struktur wie oben).
+Falls alles bereits korrekt ist, gib es unveraendert zurueck.
+Antworte NUR mit dem JSON-Objekt, keine Erklaerung, kein Markdown.
+"""
+
+
+def review_with_haiku(enriched_data: dict, feedback: str | None = None, timeout: int = 45) -> dict | None:
+    """Best-effort zweite Meinung durch ein anderes Modell (Claude Haiku via
+    `claude -p`), bevor ein Gemini-Draft gespeichert wird. Rein additiv: bei
+    jedem Fehler (CLI fehlt, Timeout, kein valides JSON) wird None
+    zurueckgegeben — der Aufrufer faellt dann auf den reinen Gemini-Output
+    zurueck, nichts bricht.
+    """
+    prompt = PROMPT_HAIKU_REVIEW.format(
+        enriched_json=json.dumps(enriched_data, indent=2, ensure_ascii=False),
+        feedback_section=(
+            f'\nCoach-Feedback zum urspruenglichen Entwurf: "{feedback}"\n' if feedback else ""
+        ),
+    )
+    try:
+        result = subprocess.run(
+            ["claude", "-p", prompt, "--model", "haiku", "--output-format", "text"],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        text = result.stdout.strip()
+        start, end = text.find("{"), text.rfind("}")
+        if start == -1 or end == -1:
+            logger.warning("Haiku-Review: keine JSON-Antwort erhalten, behalte Gemini-Output")
+            return None
+        return json.loads(text[start:end + 1])
+    except Exception as e:
+        logger.warning(f"Haiku-Review fehlgeschlagen ({e}), behalte Gemini-Output")
+        return None
+
+
 def suggest_aliases_cli(ex: dict) -> list[str] | None:
     prompt = (
         PROMPT_ALIASES.format(

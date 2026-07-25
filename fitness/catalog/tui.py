@@ -236,7 +236,7 @@ def _reenrich(f: Path, ex: dict, name: str, feedback: str | None = None) -> None
     Text), das Gemini zwingend bei der Neufassung beruecksichtigen muss
     (z.B. kritisierte Formulierungen wie "bequem"/"Polster" vermeiden).
     """
-    from fitness.catalog.agent.gemini import load_gemini_key, call_gemini
+    from fitness.catalog.agent.gemini import load_gemini_key, call_gemini, review_with_haiku
 
     api_key = load_gemini_key()
     if not api_key:
@@ -258,6 +258,14 @@ def _reenrich(f: Path, ex: dict, name: str, feedback: str | None = None) -> None
         console.print("  [red]Gemini-Anreicherung fehlgeschlagen — Draft unveraendert.[/red]")
         _pause()
         return
+
+    console.print("  [dim]Lasse Haiku gegenpruefen…[/dim]")
+    reviewed = review_with_haiku(enriched, feedback=feedback)
+    if reviewed:
+        enriched = reviewed
+        console.print("  [green]✓ Haiku-Review angewendet[/green]")
+    else:
+        console.print("  [dim]Haiku-Review nicht verfuegbar — behalte Gemini-Ergebnis[/dim]")
 
     f.with_suffix(".yml.bak").write_text(f.read_text())
 
