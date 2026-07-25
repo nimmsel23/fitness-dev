@@ -218,7 +218,7 @@ def call_gemini(
 
     if existing_data:
         prompt = PROMPT_EXERCISE_ENRICH.format(
-            existing_json=json.dumps(existing_data, indent=2),
+            existing_json=json.dumps(existing_data, indent=2, ensure_ascii=False),
             muscle_list=muscle_list,
             feedback_section=PROMPT_FEEDBACK_SECTION.format(feedback=feedback) if feedback else "",
             feedback_instruction=PROMPT_FEEDBACK_INSTRUCTION if feedback else "",

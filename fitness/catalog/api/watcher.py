@@ -74,7 +74,7 @@ def _write_back_to_firestore_inbox(uid: str | None, doc_id: str | None, enriched
 
 def process_inbox_file(file_path: Path, api_key: str | None):
     try:
-        data = json.loads(file_path.read_text())
+        data = json.loads(file_path.read_text(encoding="utf-8"))
         name = data.get("name")
         if not name:
             file_path.unlink()

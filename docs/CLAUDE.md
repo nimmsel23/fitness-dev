@@ -1120,3 +1120,63 @@ aus dem alten Raw-SQL-Pfad, redundant zu `idx_th_exercise_date`).
 - Verifiziert: Pytest-Suite zeigt nach dem Umbau exakt dieselben 59 vorbestehenden
   Fehler wie vorher (`git stash`-Vergleich) — keine Regression. Live-Read gegen die
   Prod-DB (`read_history_range()`) funktioniert wieder.
+
+---
+
+## Coach-Inbox ↔ Firestore: bidirektionaler Kreislauf (2026-07-25)
+
+**Ausgangslage:** Coach-Tab "Übungsanfragen" in der Firebase-App zeigte dauerhaft
+keine Einträge. Live-Firestore-Check (`collection_group("inbox")`) bestätigte:
+0 Dokumente insgesamt — kein Rules-Problem (Rules identisch/korrekt in lokaler
+Kopie und deployter SSOT `~/vitalos/firestore.rules`), sondern schlicht: seit
+Einführung von `queueForEnrichment()`/`sendToInbox()` (Commit `aeddd0c`,
+2026-07-22) hatte niemand über die Firebase-PWA eine neue/unreviewte Übung
+geloggt — alte Sessions (Nov 2025) haben kein `source`-Feld, stammen von vor
+dem Feature. Kein Bug, sondern fehlende reale Nutzung.
+
+**Einmaliger Bootstrap:** Die 39 lokalen Drafts aus `fitness/catalog/kb/inbox/*.yml`
+(via `audit demand --enrich` generiert) wurden per Ad-hoc-Skript nach
+`fitness/{COACH_UID}/inbox/{doc_id}` gepusht (`status: ai_enriched`,
+`enriched: <exercise-dict>`, `userId: COACH_UID`) — kein permanenter CLI-Befehl,
+bei Bedarf neu schreiben (dauert Sekunden, Firestore-Client via
+`~/.env/firebase-fitness.json`).
+
+**Der eigentliche Lücke — Approval-Rückkanal fehlte komplett:**
+`approveInbox()` (`src/lib/db/firestore/inbox.js`) schrieb bei Klick auf
+"Approve" im Coach-Tab NUR nach Firestore (`fitness/kb/exercises/{exId}`,
+`source: "approved"` + `fitness/{uid}/inbox/{id}.status = "approved"`). Der
+lokale Katalog (`fitness/catalog/kb/`) bekam das nie mit — ein späterer
+`fitness sync kb`-Push (reiner One-Way lokal→Firestore) hätte die approved
+Version sogar wieder mit dem alten unreviewten Stand überschrieben.
+
+**Fix — Firestore-eigenes Realtime-Push nutzen, kein Tailscale-Funnel/Polling
+nötig:** `firestore/mirror.py` läuft bereits als Daemon
+(`fitness-firestore-daemon.service`, `on_snapshot`-basiert) und hält eine
+dauerhafte Verbindung zu Firestore offen — Google pusht Änderungen serverseitig,
+das ist der "Ping"-Mechanismus, kein Polling und keine Notwendigkeit für einen
+Tailscale-Funnel-Callback (Funnel wird in diesem Repo nur für
+`reenrichInbox()` genutzt, weil das serverseitig Gemini mit API-Key braucht).
+Neuer Listener `on_kb_exercises` auf `fitness/kb/exercises`: bei
+`ADDED`/`MODIFIED` mit `source == "approved"` wird die Übung nach
+`kb/exercises/approved_from_firebase.yml` gemergt (per `exercise_id`, keine
+Duplikate) und der zugehörige `kb/inbox/inbox_*.yml`-Draft lokal gelöscht.
+`iter_catalog_yaml_files()` (`core/loader.py`) globbt beim nächsten
+`fitness sync kb`-Push das ganze `kb/exercises/`-Verzeichnis — nimmt die neue
+Sammel-Datei automatisch mit, kein weiterer Wire-up nötig.
+
+**Vollständiger Kreislauf jetzt (beide Richtungen event-getrieben, ein
+Daemon-Prozess):**
+1. PWA-User loggt unreviewte Übung → `sendToInbox()` → Firestore
+   `fitness/{uid}/inbox` → `on_inbox`-Listener (bereits vorher vorhanden) →
+   lokal nach `~/.aos/users/<uid>/fitness/inbox/*.json` → `fitness-enricher
+   .service` (`watcher.py`) verarbeitet + schreibt Enrichment-Status zurück
+   nach Firestore.
+2. Coach approved im Coach-Tab → Firestore `fitness/kb/exercises/{id}` →
+   `on_kb_exercises`-Listener (neu) → lokal
+   `kb/exercises/approved_from_firebase.yml` + Inbox-Draft aufgeräumt.
+
+Verifiziert per simuliertem Firestore-Change-Event (kein Live-Write in Prod-DB,
+das wurde vom Auto-Mode-Classifier zurecht als unangeforderte Mutation
+geblockt) — Logik bestätigt funktionsfähig. Daemon neu gestartet
+(2026-07-25 20:47), Log bestätigt `Listening → fitness/kb/exercises [approved]`,
+keine Fehler.
