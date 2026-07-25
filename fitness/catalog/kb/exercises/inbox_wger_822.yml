@@ -1,5 +1,5 @@
 name: inbox_wger_822
-description: 'Proactively generated expert draft for: Cable Rear Delt Fly'
+description: 'Neu angereichert (manueller Re-Enrich) fuer: Cable Rear Delt Fly'
 exercises:
 - exercise_id: wger_822
   display_name: Cable Rear Delt Fly
@@ -21,41 +21,62 @@ exercises:
   - Cable Machine
   movement_pattern: Horizontal Abduction
   coaching_notes:
-    de:
-    - '**Ausgangsposition:** Stellen Sie die Kabelrollen auf Schulterhöhe ein. Fassen
-      Sie die Griffe mit überkreuzten Armen (rechter Griff mit linker Hand, linker
-      Griff mit rechter Hand). Stellen Sie sich mit leicht gebeugten Knien, schulterbreit
-      auseinanderstehenden Füßen und aufrechtem Oberkörper mittig vor die Maschine.'
-    - '**Ausführung:** Beginnen Sie mit gestreckten Armen vor der Brust. Ziehen Sie
-      die Griffe kontrolliert nach hinten und außen, während Sie die Arme nur leicht
-      im Ellbogen beugen. Konzentrieren Sie sich darauf, die Kontraktion in den hinteren
-      Schultermuskeln zu spüren, als wollten Sie Ihre Schulterblätter zusammenführen,
-      ohne sie tatsächlich zu berühren. Führen Sie die Bewegung langsam und kontrolliert
-      aus, sowohl beim Ziehen als auch beim Zurückführen in die Ausgangsposition.'
-    - '**Fokus:** Stellen Sie sich vor, Sie würden mit Ihren Ellbogen einen weiten
-      Bogen nach hinten ziehen. Vermeiden Sie jeglichen Schwung und konzentrieren
-      Sie sich auf eine bewusste Muskelkontraktion der hinteren Schulter.'
-    - '**Atmung:** Atmen Sie während der Ziehbewegung aus und beim Zurückführen der
-      Arme ein.'
+  - '**Ausgangsposition:** Stellen Sie die Kabelrollen auf Schulterhöhe ein. Fassen
+    Sie die Griffe mit überkreuzten Armen (rechter Griff mit linker Hand, linker Griff
+    mit rechter Hand). Stellen Sie sich mittig vor die Maschine mit einem schulterbreiten
+    Stand, leicht gebeugten Knien und einem aufrechten Oberkörper. Leichte Vorneigung
+    aus der Hüfte, um die Zuglinie zu optimieren. Spannen Sie Ihre Rumpfmuskulatur
+    fest an und ziehen Sie die Schultern bewusst nach unten und hinten, um den oberen
+    Trapezius zu entlasten.'
+  - '**Ausführung:** Beginnen Sie mit gestreckten Armen vor der Brust, wobei ein leichter,
+    konstanter Winkel im Ellbogen beibehalten wird. Initiieren Sie die Bewegung durch
+    eine Kontraktion der hinteren Schultermuskulatur und ziehen Sie die Griffe kontrolliert
+    nach hinten und außen. Stellen Sie sich vor, Sie würden mit Ihren Ellbogen einen
+    weiten Bogen ziehen, um die Schulterblätter in Richtung Wirbelsäule zu bewegen,
+    ohne sie tatsächlich zu berühren. Konzentrieren Sie sich auf eine maximale Kontraktion
+    der hinteren Deltamuskeln am Endpunkt der Bewegung. Führen Sie die Griffe langsam
+    und unter Spannung in die Ausgangsposition zurück, um die exzentrische Phase optimal
+    zu nutzen.'
+  - '**Fokus & Biomechanische Cues:** Der Fokus liegt auf der bewussten Aktivierung
+    des Posterior Deltoids. Vermeiden Sie es, die Bewegung aus dem Latissimus (Rücken)
+    oder den Bizeps (Arme) zu generieren. Denken Sie daran, dass die Schulterblätter
+    aktiv retrahiert werden, um die volle Kontraktion der hinteren Schulter zu ermöglichen.
+    Ein stabiler Rumpf ist essenziell, um unerwünschte Rotation oder Kompensationen
+    zu verhindern.'
+  - '**Atmung:** Atmen Sie während der konzentrischen (Zieh-)Phase aus und während
+    der exzentrischen (Rückführ-)Phase ein.'
   common_errors:
-    de:
-    - '**Zu viel Gewicht:** Die Verwendung von zu viel Gewicht führt dazu, dass andere
-      Muskeln (z.B. Latissimus oder Bizeps) die Bewegung dominieren und die gezielte
-      Stimulation der hinteren Schulter verloren geht.'
-    - '**Schultern hochziehen:** Wenn die Schultern während der Bewegung zu den Ohren
-      gezogen werden, wird primär der obere Trapezius beansprucht anstatt der hinteren
-      Deltamuskeln. Halten Sie die Schultern stets tief und entspannt.'
-    - '**Arme zu stark beugen:** Eine zu starke Beugung der Arme (über einen leichten
-      Winkel hinaus) verwandelt die Übung in ein Rudern, was den Bizeps und Latissimus
-      stärker involviert. Behalten Sie einen konstanten, leichten Winkel im Ellbogen
-      bei.'
-    - '**Schwung nutzen:** Die Bewegung sollte immer kontrolliert und ohne Schwung
-      erfolgen. Schwung reduziert die effektive Muskelspannung und erhöht das Verletzungsrisiko.'
-    - '**Runder Rücken:** Ein runder Rücken während der Übung kann die Wirbelsäule
-      belasten. Achten Sie auf eine stolze Brust und einen geraden Rücken während
-      der gesamten Ausführung.'
-    - '**Unvollständiger Bewegungsbereich:** Die Arme nicht weit genug nach hinten
-      zu führen, reduziert die Effektivität der Übung für die hintere Schultermuskulatur.'
+  - '**Zu viel Gewicht:** Die Verwendung von zu hohem Gewicht führt dazu, dass die
+    Bewegung durch den Latissimus, Bizeps oder oberen Trapezius dominiert wird. Dies
+    reduziert die Isolation und Effektivität für die hinteren Schultermuskeln erheblich
+    und erhöht das Verletzungsrisiko. *Korrektur: Reduzieren Sie das Gewicht und konzentrieren
+    Sie sich auf eine präzise Form und die bewusste Muskel-Geist-Verbindung.*'
+  - '**Schultern hochziehen (Shrugging):** Wenn die Schultern während der Bewegung
+    zu den Ohren gezogen werden, überlastet dies den oberen Trapezius und nimmt die
+    Spannung von der hinteren Schulter. *Korrektur: Halten Sie die Schultern aktiv
+    tief und stabil. Stellen Sie sich vor, Sie würden Ihre Schulterblätter in die
+    Hosentaschen ziehen.*'
+  - '**Arme zu stark beugen / Ruderbewegung:** Eine übermäßige Beugung der Arme (über
+    einen leichten, konstanten Winkel hinaus) verwandelt die Übung in ein Rudern,
+    was den Bizeps und Latissimus primär beansprucht. *Korrektur: Behalten Sie während
+    der gesamten Bewegung einen konstanten, leichten Winkel im Ellbogen bei, um die
+    Isolation der hinteren Schulter zu gewährleisten. Denken Sie an ''weite Ellbogen''.*'
+  - '**Schwungnutzung:** Das Verwenden von Schwung aus dem Körper oder Rücken reduziert
+    die effektive Time Under Tension für die Zielmuskulatur und erhöht das Risiko
+    von Verletzungen, insbesondere der Lendenwirbelsäule. *Korrektur: Führen Sie die
+    Bewegung bewusst und kontrolliert aus, ohne jeglichen Schwung. Fokus liegt auf
+    der Muskelkontraktion, nicht auf der Geschwindigkeit.*'
+  - '**Rundrücken oder Überstreckung:** Eine gebeugte (Rundrücken) oder überstreckte
+    (Hohlkreuz) Wirbelsäule während der Ausführung kann die Bandscheiben unnötig belasten
+    und die Rumpfspannung kompromittieren. *Korrektur: Halten Sie den Rumpf während
+    der gesamten Übung stabil und den Rücken in einer neutralen Position. Die Vorneigung
+    sollte aus der Hüfte kommen, nicht aus dem Rücken.*'
+  - '**Unvollständiger Bewegungsbereich:** Das Nicht-Ausführen der vollständigen Kontraktion
+    (Arme nicht weit genug nach hinten ziehen) oder das zu frühe Ablassen des Widerstands
+    reduziert die Effektivität der Übung. *Korrektur: Ziehen Sie die Griffe so weit
+    wie möglich nach hinten und außen, um eine maximale Kontraktion der hinteren Deltamuskeln
+    zu erreichen. Lassen Sie die Griffe kontrolliert bis kurz vor die Ausgangsposition
+    zurück, um die Spannung aufrechtzuerhalten.*'
   wger_id: null
   variations: []
   source: unreviewed

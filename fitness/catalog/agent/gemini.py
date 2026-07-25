@@ -59,6 +59,10 @@ Your task:
 4. Ensure the biomechanical movement_pattern is correct.
 {feedback_instruction}
 
+IMPORTANT: "coaching_notes" and "common_errors" MUST be a flat JSON array of
+strings (e.g. ["Hinweis 1", "Hinweis 2"]). NEVER nest them under a language
+key like {{"de": [...]}} — the German text goes directly into the array items.
+
 Return a JSON object with the full enriched structure. Do not include markdown formatting like ```json.
 """
 
@@ -130,6 +134,23 @@ def _call(prompt: str, api_key: str, timeout: int = 30) -> str | None:
         return None
 
 
+_LIST_FIELDS_MAY_NEST_BY_LANG = ("coaching_notes", "common_errors", "cues", "feel_cues", "variations")
+
+
+def normalize_enriched_fields(data: dict) -> dict:
+    """Modelle (Gemini wie Haiku) liefern coaching_notes/common_errors manchmal
+    als {"de": [...]} statt als flache Liste, trotz expliziter Anweisung im
+    Prompt — flacht das defensiv ab, statt kaputte "de"-Einzeltexte in die
+    KB zu schreiben (sichtbar z.B. als "• de" in der TUI-Anzeige).
+    """
+    for field in _LIST_FIELDS_MAY_NEST_BY_LANG:
+        val = data.get(field)
+        if isinstance(val, dict):
+            flat = val.get("de") or val.get("en") or next(iter(val.values()), None)
+            data[field] = flat if isinstance(flat, list) else ([] if flat is None else [str(flat)])
+    return data
+
+
 def call_gemini(
     exercise_name: str,
     safe_name: str,
@@ -158,7 +179,8 @@ def call_gemini(
     if not text:
         return None
     try:
-        return json.loads(text.replace("```json", "").replace("```", "").strip())
+        parsed = json.loads(text.replace("```json", "").replace("```", "").strip())
+        return normalize_enriched_fields(parsed)
     except Exception as e:
         logger.error(f"Gemini response parse failed: {e}")
         return None
@@ -209,12 +231,14 @@ Pruefe streng:
 3. Sind primary_muscles/secondary_muscles/stabilizers plausibel fuer diese Uebung?
 
 Gib das KOMPLETTE, ggf. korrigierte JSON-Objekt zurueck (gleiche Struktur wie oben).
+"coaching_notes" und "common_errors" MUESSEN dabei flache JSON-Arrays aus Strings
+bleiben/werden — NIEMALS unter einem Sprachschluessel wie {{"de": [...]}} verschachteln.
 Falls alles bereits korrekt ist, gib es unveraendert zurueck.
 Antworte NUR mit dem JSON-Objekt, keine Erklaerung, kein Markdown.
 """
 
 
-def review_with_haiku(enriched_data: dict, feedback: str | None = None, timeout: int = 45) -> dict | None:
+def review_with_haiku(enriched_data: dict, feedback: str | None = None, timeout: int = 90) -> dict | None:
     """Best-effort zweite Meinung durch ein anderes Modell (Claude Haiku via
     `claude -p`), bevor ein Gemini-Draft gespeichert wird. Rein additiv: bei
     jedem Fehler (CLI fehlt, Timeout, kein valides JSON) wird None
@@ -239,7 +263,7 @@ def review_with_haiku(enriched_data: dict, feedback: str | None = None, timeout:
         if start == -1 or end == -1:
             logger.warning("Haiku-Review: keine JSON-Antwort erhalten, behalte Gemini-Output")
             return None
-        return json.loads(text[start:end + 1])
+        return normalize_enriched_fields(json.loads(text[start:end + 1]))
     except Exception as e:
         logger.warning(f"Haiku-Review fehlgeschlagen ({e}), behalte Gemini-Output")
         return None
