@@ -3,12 +3,9 @@ display_name: Extensor Carpi Ulnaris
 label_de: Ellenseitiger Handstrecker
 label_en: Extensor Carpi Ulnaris
 label_lat: M. extensor carpi ulnaris
-region: arms
-body_region: forearms
 wger_id: ~
 aliases: [extensor carpi ulnaris]
 viz:
-  rbh: forearm
   body_muscles:
     view: BACK
     ids: [forearm-left, forearm-right]

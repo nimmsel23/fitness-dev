@@ -50,16 +50,24 @@ export async function getAnatomy(exerciseId) {
   }
 }
 
+import { setKBMuscles } from "../shared/muscle.js";
+
+export async function getAllMuscles() {
+  try {
+    const data = await api.get("/fitness/muscles/all");
+    const list = Array.isArray(data) ? data : (data?.muscles || []);
+    setKBMuscles(list);
+    return list;
+  } catch {
+    return [];
+  }
+}
+
 export async function getMuscle(muscleId) {
   try { return await api.get(`/fitness/muscles/${encodeURIComponent(muscleId)}`); } catch { return null; }
 }
 
-// Live rbh/body_muscles-Slug-Mapping, direkt aus kb/muscles/*/*.yml (viz-Feld).
-// Ersetzt die früher in muscleMapping.js hartcodierte, bei jeder Katalog-
-// Umnummerierung veraltende ID-Tabelle.
-export async function getMuscleVizMap() {
-  try { return await api.get("/fitness/muscles/viz"); } catch { return null; }
-}
+// Local KB Functions
 
 export async function getConfig() {
   try {

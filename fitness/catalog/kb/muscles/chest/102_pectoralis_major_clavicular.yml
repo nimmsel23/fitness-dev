@@ -3,12 +3,9 @@ display_name: Pectoralis Major (Clavicular)
 label_de: Oberer Brustmuskel
 label_en: Upper Chest
 label_lat: M. pectoralis major (pars clavicularis)
-region: chest
-body_region: chest_front
 wger_id: 4
 aliases: [pectoralis major, brust, chest, obere brust, oberer brustmuskel, clavicular head, upper chest]
 viz:
-  rbh: chest
   body_muscles:
     view: FRONT
     ids: [chest-upper-left, chest-upper-right]

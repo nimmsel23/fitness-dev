@@ -3,12 +3,9 @@ display_name: Soleus
 label_de: Schollenmuskel
 label_en: Calves (Lower)
 label_lat: M. soleus
-region: calves
-body_region: calves
 wger_id: 15
 aliases: [soleus]
 viz:
-  rbh: calves
   body_muscles:
     view: BACK
     ids: [calves-soleus-left, calves-soleus-right]

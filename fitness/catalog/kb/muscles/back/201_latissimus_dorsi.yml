@@ -3,12 +3,9 @@ display_name: Latissimus Dorsi
 label_de: Breiter Rückenmuskel
 label_en: Lats
 label_lat: M. latissimus dorsi
-region: back
-body_region: lats
 wger_id: 12
 aliases: [lats, latissimus, back]
 viz:
-  rbh: latissimus
   body_muscles:
     view: BACK
     ids: [lats-upper-left, lats-mid-left, lats-lower-left, lats-upper-right, lats-mid-right, lats-lower-right]

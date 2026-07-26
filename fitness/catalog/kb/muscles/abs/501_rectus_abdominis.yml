@@ -3,12 +3,9 @@ display_name: Rectus Abdominis
 label_de: Gerader Bauchmuskel
 label_en: Abs
 label_lat: M. rectus abdominis
-region: core
-body_region: abdomen_front
 wger_id: 6
 aliases: [abs, rectus abdominis]
 viz:
-  rbh: abs
   body_muscles:
     view: FRONT
     ids: [abs-upper-left, abs-upper-right, abs-lower-left, abs-lower-right]

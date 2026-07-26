@@ -3,12 +3,9 @@ display_name: Tibialis Anterior
 label_de: Vorderer Schienbeinmuskel
 label_en: Tibialis
 label_lat: M. tibialis anterior
-region: calves
-body_region: shin_front
 wger_id: ~
 aliases: []
 viz:
-  rbh: calves
   body_muscles:
     view: FRONT
     ids: [tibialis-anterior-left, tibialis-anterior-right]

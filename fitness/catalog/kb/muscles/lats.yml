@@ -3,7 +3,6 @@ display_name: Lats
 label_de: Breiter Rückenmuskel (Gruppe)
 label_en: Lats
 label_lat: M. latissimus dorsi (Gruppe)
-body_region: lats
 muscles:
   - 201_latissimus_dorsi
   - 207_teres_major

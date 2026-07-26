@@ -3,10 +3,7 @@ display_name: Rhomboids
 label_de: Rautenmuskeln
 label_en: Rhomboids
 label_lat: Mm. rhomboidei
-region: back
-body_region: upper_back
 wger_id: ~
 aliases: [rhomboids, rautenmuskeln, schultergürtel, shoulder girdle, oberer rücken, upper back]
 viz:
-  rbh: rhomboids
   body_muscles: ~

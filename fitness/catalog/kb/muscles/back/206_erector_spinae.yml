@@ -3,12 +3,9 @@ display_name: Erector Spinae
 label_de: Rückenstrecker
 label_en: Lower Back / Erector
 label_lat: M. erector spinae
-region: back
-body_region: lower_back
 wger_id: 16
 aliases: [erector spinae, lumbar, lower-back]
 viz:
-  rbh: lower-back
   body_muscles:
     view: BACK
     ids: [lower-back-erectors-left, lower-back-erectors-right, lower-back-ql-left, lower-back-ql-right]

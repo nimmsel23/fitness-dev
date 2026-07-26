@@ -3,7 +3,7 @@ display_name: Shoulders
 label_de: Schultern
 label_en: Shoulders
 label_lat: Deltoideus
-body_region: shoulders_side
+highlight_ids: [shoulder-front-left, shoulder-front-right, shoulder-side-left, shoulder-side-right]
 muscles:
   - 301_anterior_deltoid
   - 302_lateral_deltoid

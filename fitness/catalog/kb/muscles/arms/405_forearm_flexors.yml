@@ -3,8 +3,6 @@ display_name: Forearm Flexors
 label_de: Unterarmbeuger
 label_en: Forearm Flexors
 label_lat: Mm. flexores antebrachii
-region: arms
-body_region: forearms
 wger_id: ~
 aliases: []
 muscles:
@@ -13,7 +11,6 @@ muscles:
   - 405c_flexor_carpi_radialis
   - 405d_palmaris_longus
 viz:
-  rbh: forearm
   body_muscles:
     view: FRONT
     ids: [forearm-left, forearm-right]

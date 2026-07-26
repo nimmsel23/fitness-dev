@@ -3,6 +3,5 @@ display_name: Iliopsoas
 label_de: Hüftbeuger
 label_en: Iliopsoas
 label_lat: M. iliopsoas
-body_region: hip_flexors
 muscles:
   - 607_iliopsoas

@@ -3,12 +3,9 @@ display_name: Gluteus Maximus
 label_de: Großer Gesäßmuskel
 label_en: Glutes
 label_lat: M. gluteus maximus
-region: legs
-body_region: glutes
 wger_id: 8
 aliases: [gluteus maximus]
 viz:
-  rbh: gluteal
   body_muscles:
     view: BACK
     ids: [gluteus-maximus-left, gluteus-maximus-right]

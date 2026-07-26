@@ -3,12 +3,9 @@ display_name: Iliopsoas
 label_de: Hüftbeuger
 label_en: Hip Flexor
 label_lat: M. iliopsoas
-region: legs
-body_region: thigh_front
 wger_id: ~
 aliases: []
 viz:
-  rbh: hip-flexors
   body_muscles:
     view: FRONT
     ids: [hip-flexor-left, hip-flexor-right]

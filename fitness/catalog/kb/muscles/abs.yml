@@ -3,7 +3,7 @@ display_name: Abs
 label_de: Bauch
 label_en: Abs
 label_lat: Abdomen
-body_region: abdomen_front
+highlight_ids: [abs-upper-left, abs-upper-right, abs-lower-left, abs-lower-right, obliques-left, obliques-right]
 muscles:
   - 501_rectus_abdominis
   - 502_obliquus_externus

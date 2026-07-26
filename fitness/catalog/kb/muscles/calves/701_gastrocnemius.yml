@@ -3,12 +3,9 @@ display_name: Gastrocnemius
 label_de: Zwillingswadenmuskel
 label_en: Calves (Upper)
 label_lat: M. gastrocnemius
-region: calves
-body_region: calves
 wger_id: 7
 aliases: [calves, gastrocnemius]
 viz:
-  rbh: calves
   body_muscles:
     view: BACK
     ids: [calves-gastroc-medial-left, calves-gastroc-lateral-left, calves-gastroc-medial-right, calves-gastroc-lateral-right]
