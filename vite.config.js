@@ -79,8 +79,14 @@ export default defineConfig(async ({ mode }) => {
         '@fitness':            resolve(__dirname, './src'),
         '@components':         resolve(__dirname, './src/components'),
       },
-      // Singleton-Dedup: fuel-dev hat eigene node_modules — Vite zwingt eine einzige Instanz
-      dedupe: ['react', 'react-dom', '@tanstack/react-query'],
+      // Singleton-Dedup: fuel-dev hat eigene node_modules — Vite zwingt eine einzige Instanz.
+      // firebase: habit-app pinnt intern ^12.15.0 (eigene node_modules), Rest des
+      // Workspace inkl. fitness-app selbst ^11.10.0 — ohne dedupe landen zwei
+      // Firebase-App-Instanzen im selben Bundle (@habits wird per Alias direkt
+      // eingebunden), getAuth() greift dann auf eine Instanz, in der
+      // initializeApp() nie lief -> "Component auth has not been registered yet"
+      // (Whitescreen auf fitness-aos.web.app).
+      dedupe: ['react', 'react-dom', '@tanstack/react-query', 'firebase', 'firebase/app', 'firebase/auth', 'firebase/firestore'],
     },
     server: {
       port: 5902,
