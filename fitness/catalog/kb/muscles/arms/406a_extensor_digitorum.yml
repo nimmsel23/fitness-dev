@@ -3,12 +3,9 @@ display_name: Extensor Digitorum
 label_de: Fingerstrecker
 label_en: Extensor Digitorum
 label_lat: M. extensor digitorum
-region: arms
-body_region: forearms
 wger_id: ~
 aliases: [extensor digitorum]
 viz:
-  rbh: forearm
   body_muscles:
     view: BACK
     ids: [forearm-left, forearm-right]

@@ -1,11 +1,6 @@
 /**
  * shared/muscle.js — Muscle-group constants & mapping helpers.
- * Used by both local/analysis.js and firestore/analysis.js.
- *
- * Coverage-Bucket = die Region (z.B. "back", "chest") — für Klienten
- * verständlich, keine Einzelmuskelnamen im Coverage/Review-Tab. Die Region
- * kommt live aus der KB (`region:`-Feld jeder Muskel-Datei), keine
- * hartcodierte Tabelle. Details bleiben Sache des Learn-Tabs.
+ * Source of Truth: Reads regions and muscle-mappings directly from the loaded KB.
  */
 
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants.js";
@@ -13,10 +8,6 @@ import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants.js"
 /** Impact factor per activity type when computing coverage scores. */
 const ACTIVITY_IMPACT = { hiking: 1.0, running: 1.0, cycling: 0.8, swimming: 0.7 };
 
-/**
- * Maps an activity-type key → { muscles: string[], impact: number }.
- * Built from ActivityConstants so there is a single source of truth.
- */
 export const ACTIVITY_MUSCLE_MAPPING = Object.fromEntries(
   Object.entries(ACTIVITY_MUSCLE_GROUPS).map(([k, muscles]) => [
     k,
@@ -24,29 +15,51 @@ export const ACTIVITY_MUSCLE_MAPPING = Object.fromEntries(
   ])
 );
 
-let _vizMap = null;
+// Map aller aus der KB geladenen Muskeln & Regionen
+let _kbMuscles = new Map();
+let _kbRegions = new Map();
 
-export function primeMuscleViz(viz) {
-  if (viz && typeof viz === "object") _vizMap = viz;
+/**
+ * Befüllt die Muskeln & Regionen direkt aus den KB-Dokumenten.
+ */
+export function setKBMuscles(musclesList) {
+  _kbMuscles.clear();
+  _kbRegions.clear();
+  for (const m of Array.isArray(musclesList) ? musclesList : []) {
+    const id = String(m.id || m.muscle_id || "");
+    if (!id) continue;
+    _kbMuscles.set(id, m);
+
+    // Haupt-Regionen-Dokumente aus der KB (z.B. chest.yml, back.yml, shoulders.yml)
+    if (m.highlight_ids || m.muscles || m.is_region || !m.region) {
+      const regionId = m.region || id;
+      _kbRegions.set(regionId, m.label_de || m.display_name || regionId);
+    }
+  }
 }
 
-export function hasMuscleViz() {
-  return _vizMap != null;
-}
-
-/** Alle aktuell bekannten Regionen + Anzeigename (für Gap-Report-Labels). */
+/** Gibt alle in der KB deklarierten Regionen mit Label zurück. */
 export function getMuscleGroups() {
-  const labels = _vizMap?.region_labels || {};
-  return Object.keys(labels).map((id) => ({ id, label: labels[id] || id }));
+  return Array.from(_kbRegions.entries()).map(([id, label]) => ({ id, label }));
 }
 
-/** Region einer Muskel-ID (z.B. "chest", "back"), live aus der KB. */
+/**
+ * Liest die Region einer Muskel-ID direkt aus den KB-Daten.
+ */
 export function muscleToRegion(muscle) {
   const id = String(muscle || "").trim();
-  return (id && _vizMap?.region?.[id]) || null;
+  if (!id) return null;
+
+  // 1. Ist bereits selbst eine KB-Region
+  if (_kbRegions.has(id)) return id;
+
+  // 2. Direkt aus dem KB-Muskel-Dokument lesen
+  const doc = _kbMuscles.get(id);
+  if (doc?.region) return doc.region;
+
+  return id;
 }
 
-/** Coverage-Bucket einer Muskel-ID: ihre Region, live aus der KB. */
 export function muscleToGroupIds(muscle) {
   const region = muscleToRegion(muscle);
   return region ? [region] : [];

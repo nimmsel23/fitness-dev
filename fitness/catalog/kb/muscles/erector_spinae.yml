@@ -3,6 +3,5 @@ display_name: Erector Spinae
 label_de: Rückenstrecker
 label_en: Erector Spinae
 label_lat: M. erector spinae
-body_region: lower_back
 muscles:
   - 206_erector_spinae

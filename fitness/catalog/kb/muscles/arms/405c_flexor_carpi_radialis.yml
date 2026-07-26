@@ -3,12 +3,9 @@ display_name: Flexor Carpi Radialis
 label_de: Speichenseitiger Handbeuger
 label_en: Flexor Carpi Radialis
 label_lat: M. flexor carpi radialis
-region: arms
-body_region: forearms
 wger_id: ~
 aliases: [flexor carpi radialis]
 viz:
-  rbh: forearm
   body_muscles:
     view: FRONT
     ids: [forearm-left, forearm-right]

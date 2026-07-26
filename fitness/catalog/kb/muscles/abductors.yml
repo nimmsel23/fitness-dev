@@ -3,7 +3,6 @@ display_name: Abductors
 label_de: Abduktoren
 label_en: Hip Abductors
 label_lat: Mm. abductores
-body_region: glutes
 muscles:
   - 608_gluteus_medius
   - 609_gluteus_minimus

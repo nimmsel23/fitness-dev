@@ -3,8 +3,6 @@ display_name: Rotator Cuff
 label_de: Rotatorenmanschette
 label_en: Rotator Cuff
 label_lat: Rotatorenmanschette
-region: shoulders
-body_region: shoulders_side
 wger_id: ~
 aliases: [rotatorenmanschette, rotator cuff, RM]
 viz: ~

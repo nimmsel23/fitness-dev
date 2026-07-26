@@ -3,7 +3,7 @@ display_name: Calves
 label_de: Waden
 label_en: Calves
 label_lat: Sura
-body_region: calves
+highlight_ids: [calves-gastroc-medial-left, calves-gastroc-lateral-left, calves-gastroc-medial-right, calves-gastroc-lateral-right, calves-soleus-left, calves-soleus-right]
 muscles:
   - 701_gastrocnemius
   - 702_soleus

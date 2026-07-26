@@ -11,20 +11,13 @@ import { db } from "../../../firebase.js";
 import { num, todayISO } from "../shared/utils.js";
 import {
   ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds,
-  getMuscleGroups, primeMuscleViz, hasMuscleViz,
+  getMuscleGroups,
 } from "../shared/muscle.js";
 import { getUid } from "./core.js";
-import { getAllExercises, getMuscleVizMap } from "./kb.js";
+import { getAllExercises } from "./kb.js";
 import { getSessionHistory, listSessionsForDate } from "./sessions.js";
 
 export { ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds };
-
-let _vizLoadPromise = null;
-async function ensureMuscleVizLoaded() {
-  if (hasMuscleViz()) return;
-  if (!_vizLoadPromise) _vizLoadPromise = getMuscleVizMap().then((viz) => primeMuscleViz(viz));
-  await _vizLoadPromise;
-}
 
 // ── Analytics cache doc ───────────────────────────────────────────────────────
 
@@ -68,7 +61,6 @@ export async function getDashboardAnalytics(days = 21) {
 // ── Muscle coverage ───────────────────────────────────────────────────────────
 
 export async function getMuscleCoverage(days = 7) {
-  await ensureMuscleVizLoaded();
   const today = new Date();
   const startDate = new Date();
   startDate.setDate(today.getDate() - (days - 1));
@@ -139,7 +131,6 @@ function getWeekBounds(selector = "current") {
 }
 
 export async function getWeeklyReport(selector = "current") {
-  await ensureMuscleVizLoaded();
   const dates = getWeekBounds(selector);
   const [kbExercises, history] = await Promise.all([
     getAllExercises(),

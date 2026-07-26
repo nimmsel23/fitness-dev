@@ -3,12 +3,9 @@ display_name: Extensor Carpi Radialis Brevis
 label_de: Kurzer speichenseitiger Handstrecker
 label_en: Extensor Carpi Radialis Brevis
 label_lat: M. extensor carpi radialis brevis
-region: arms
-body_region: forearms
 wger_id: ~
 aliases: [extensor carpi radialis brevis]
 viz:
-  rbh: forearm
   body_muscles:
     view: BACK
     ids: [forearm-left, forearm-right]

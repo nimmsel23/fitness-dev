@@ -3,7 +3,6 @@ display_name: Trapezius
 label_de: Trapezmuskel
 label_en: Trapezius
 label_lat: M. trapezius
-body_region: upper_back
 muscles:
   - 202_trapezius_upper
   - 203_trapezius_middle

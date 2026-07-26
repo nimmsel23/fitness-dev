@@ -39,18 +39,17 @@ def load_aliases_document() -> dict[str, Any] | None:
 
 
 def load_body_regions() -> set[str] | None:
-    """Gibt die gültigen Body-Regionen zurück, gesammelt aus dem body_region-Feld
-    aller muscles/**/*.yml (Gruppen-Files + feinere Overrides in Unterordnern)."""
+    """Gibt die gültigen Body-Regionen zurück, gesammelt aus den Unterordnern & Region-Files unter muscles/."""
     region_dir = catalog_path("muscles")
     skip = {"muscle_index"}
     regions: set[str] = set()
     for yml_file in region_dir.rglob("*.yml"):
         if yml_file.name.startswith("_") or yml_file.stem in skip:
             continue
-        document = load_yaml(yml_file)
-        if not isinstance(document, dict):
-            continue
-        body_region = document.get("body_region")
-        if isinstance(body_region, str) and body_region.strip():
-            regions.add(body_region.strip())
+        # Wenn im Unterordner -> Ordnername ist die Region (z.B. chest, arms)
+        if yml_file.parent != region_dir:
+            regions.add(yml_file.parent.name)
+        else:
+            # Top-Level Regionen-File
+            regions.add(yml_file.stem)
     return regions if regions else None

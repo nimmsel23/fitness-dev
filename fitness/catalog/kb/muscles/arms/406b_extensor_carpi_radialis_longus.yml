@@ -3,12 +3,9 @@ display_name: Extensor Carpi Radialis Longus
 label_de: Langer speichenseitiger Handstrecker
 label_en: Extensor Carpi Radialis Longus
 label_lat: M. extensor carpi radialis longus
-region: arms
-body_region: forearms
 wger_id: ~
 aliases: [extensor carpi radialis longus]
 viz:
-  rbh: forearm
   body_muscles:
     view: BACK
     ids: [forearm-left, forearm-right]

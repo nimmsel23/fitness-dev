@@ -3,12 +3,9 @@ display_name: Serratus Anterior
 label_de: Vorderer Sägemuskel
 label_en: Serratus
 label_lat: M. serratus anterior
-region: chest
-body_region: chest_front
 wger_id: 3
 aliases: [serratus]
 viz:
-  rbh: serratus-anterior
   body_muscles:
     view: FRONT
     ids: [serratus-anterior-left, serratus-anterior-right]

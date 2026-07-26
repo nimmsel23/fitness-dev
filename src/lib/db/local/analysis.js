@@ -1,14 +1,6 @@
 import { api } from "./core";
-import { getMuscleVizMap } from "./kb";
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants";
-import { muscleToGroupIds, primeMuscleViz, hasMuscleViz, getMuscleGroups } from "../shared/muscle";
-
-let _vizLoadPromise = null;
-async function ensureMuscleVizLoaded() {
-  if (hasMuscleViz()) return;
-  if (!_vizLoadPromise) _vizLoadPromise = getMuscleVizMap().then((viz) => primeMuscleViz(viz));
-  await _vizLoadPromise;
-}
+import { muscleToGroupIds, getMuscleGroups } from "../shared/muscle";
 
 export async function getDashboardAnalytics(days = 28) {
   try {
@@ -44,7 +36,6 @@ function getWeekBounds(selector = "current") {
 }
 
 export async function getWeeklyReport(selector = "current") {
-  await ensureMuscleVizLoaded();
   const dates = getWeekBounds(selector);
   const [exRes, histRes] = await Promise.all([
     api.get('/fitness/exercises/all').catch(() => ({ exercises: [] })),
@@ -139,7 +130,6 @@ export async function getWeeklyReport(selector = "current") {
 }
 
 export async function getMuscleCoverage(days = 7) {
-  await ensureMuscleVizLoaded();
   const cutoffDate = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
   const [exRes, histRes] = await Promise.all([
     api.get('/fitness/exercises/all').catch(() => ({ exercises: [] })),
