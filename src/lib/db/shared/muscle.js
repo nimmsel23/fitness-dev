@@ -1,6 +1,7 @@
 /**
  * shared/muscle.js — Muscle-group constants & mapping helpers.
- * Source of Truth: Reads regions and muscle-mappings directly from the loaded KB.
+ * Source of Truth: Evaluates top-level KB region files (quadriceps.yml, hamstrings.yml, etc.)
+ * and maps muscle IDs via their declared `muscles: [...]` lists.
  */
 
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants.js";
@@ -15,47 +16,66 @@ export const ACTIVITY_MUSCLE_MAPPING = Object.fromEntries(
   ])
 );
 
-// Map aller aus der KB geladenen Muskeln & Regionen
-let _kbMuscles = new Map();
-let _kbRegions = new Map();
+// In-Memory Speicher für KB-Regionen und die direkte Muskel-zu-Regionen Map
+let _kbRegions = new Map(); // regionId -> label
+let _muscleToRegionMap = new Map(); // muscleId -> regionId
 
 /**
- * Befüllt die Muskeln & Regionen direkt aus den KB-Dokumenten.
+ * Registriert alle aus der KB geladenen Muskel-Dokumente.
+ * Liest die `muscles: [...]` Listen aus den Regionen-Dateien (quadriceps.yml, chest.yml, etc.)
+ * und verknüpft jeden Unter-Muskel direkt mit seiner Region.
  */
 export function setKBMuscles(musclesList) {
-  _kbMuscles.clear();
   _kbRegions.clear();
-  for (const m of Array.isArray(musclesList) ? musclesList : []) {
-    const id = String(m.id || m.muscle_id || "");
-    if (!id) continue;
-    _kbMuscles.set(id, m);
+  _muscleToRegionMap.clear();
 
-    // Haupt-Regionen-Dokumente aus der KB (z.B. chest.yml, back.yml, shoulders.yml)
-    if (m.highlight_ids || m.muscles || m.is_region || !m.region) {
-      const regionId = m.region || id;
-      _kbRegions.set(regionId, m.label_de || m.display_name || regionId);
+  const docs = Array.isArray(musclesList) ? musclesList : [];
+
+  // Pass 1: Regionen-Dokumente identifizieren (Dateien mit `muscles: [...]` Liste oder `highlight_ids`)
+  for (const doc of docs) {
+    const id = String(doc.id || doc.muscle_id || "");
+    if (!id) continue;
+
+    // Wenn das Dokument eine `muscles` Liste oder `highlight_ids` hat, ist es eine Regionen-Datei
+    if (Array.isArray(doc.muscles) || doc.highlight_ids) {
+      const regionId = doc.region || id;
+      const label = doc.label_de || doc.display_name || regionId;
+      _kbRegions.set(regionId, label);
+
+      // Alle in der `muscles:` Liste deklarierten Muskel-IDs dieser Region zuweisen
+      if (Array.isArray(doc.muscles)) {
+        for (const subMuscleId of doc.muscles) {
+          _muscleToRegionMap.set(String(subMuscleId), regionId);
+        }
+      }
+    }
+
+    // Wenn im Muskel-Dokument selbst eine `region` steht
+    if (doc.region) {
+      _muscleToRegionMap.set(id, doc.region);
     }
   }
 }
 
-/** Gibt alle in der KB deklarierten Regionen mit Label zurück. */
+/** Gibt alle registrierten Regionen (aus quadriceps.yml, hamstrings.yml, chest.yml etc.) zurück. */
 export function getMuscleGroups() {
   return Array.from(_kbRegions.entries()).map(([id, label]) => ({ id, label }));
 }
 
 /**
- * Liest die Region einer Muskel-ID direkt aus den KB-Daten.
+ * Liest die Region einer Muskel-ID direkt aus dem KB-Mapping (aus muscles: [...] in *.yml).
  */
 export function muscleToRegion(muscle) {
   const id = String(muscle || "").trim();
   if (!id) return null;
 
-  // 1. Ist bereits selbst eine KB-Region
+  // 1. Ist selbst eine Region
   if (_kbRegions.has(id)) return id;
 
-  // 2. Direkt aus dem KB-Muskel-Dokument lesen
-  const doc = _kbMuscles.get(id);
-  if (doc?.region) return doc.region;
+  // 2. Aus dem KB-Mapping lesen (abgeleitet aus `muscles: [...]` in den *.yml Dateien)
+  if (_muscleToRegionMap.has(id)) {
+    return _muscleToRegionMap.get(id);
+  }
 
   return id;
 }

@@ -1,0 +1,7 @@
+id: lower_back
+display_name: Lower Back
+label_de: Unterer Rücken
+label_en: Lower Back
+label_lat: M. erector spinae
+muscles:
+  - 206_erector_spinae

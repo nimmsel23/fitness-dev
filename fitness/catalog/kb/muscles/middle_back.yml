@@ -1,0 +1,8 @@
+id: middle_back
+display_name: Middle Back
+label_de: Mittlerer Rücken
+label_en: Middle Back
+label_lat: M. latissimus dorsi
+muscles:
+  - 201_latissimus_dorsi
+  - 207_teres_major
