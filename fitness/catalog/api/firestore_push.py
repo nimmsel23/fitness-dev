@@ -23,12 +23,17 @@ from fitness.catalog.core.yaml_utils import load_yaml
 def sync_exercises(db: Any, dry_run: bool = False) -> dict[str, int]:
     col = db.collection("fitness").document("kb").collection("exercises")
 
+    exercise_docs = load_catalog_directory_yaml("exercises")
+    reviewed_refs = _reviewed_external_refs(exercise_docs)
+
     # Alle exercises aggregieren + mergen (Expert gewinnt bei Konflikt)
     all_exercises: dict[str, dict[str, Any]] = {}
-    for _path, doc in load_catalog_directory_yaml("exercises"):
+    for path, doc in exercise_docs:
         if not isinstance(doc, dict):
             continue
         for exercise in doc.get("exercises", []):
+            if path.name.startswith("unreviewed_") and _is_superseded_external_exercise(exercise, reviewed_refs):
+                continue
             ex_id = str(exercise.get("exercise_id") or exercise.get("id") or "")
             if not ex_id:
                 continue
@@ -53,6 +58,60 @@ def sync_exercises(db: Any, dry_run: bool = False) -> dict[str, int]:
             logger.info(f"{len(orphans)} verwaiste Exercises gelöscht")
 
     return counts
+
+
+def _reviewed_external_refs(exercise_docs: list[tuple[Path, Any]]) -> dict[str, set[str]]:
+    refs: dict[str, set[str]] = {
+        "wger": set(),
+        "yuhonas": set(),
+        "names": set(),
+    }
+    for path, doc in exercise_docs:
+        if path.name.startswith("unreviewed_") or not isinstance(doc, dict):
+            continue
+        for exercise in doc.get("exercises", []):
+            if not isinstance(exercise, dict):
+                continue
+            wger_id = exercise.get("wger_id")
+            if wger_id:
+                refs["wger"].add(str(wger_id))
+            external_ids = exercise.get("external_ids") or {}
+            if isinstance(external_ids, dict):
+                for value in _as_text_list(external_ids.get("wger")):
+                    refs["wger"].add(value)
+                for value in _as_text_list(external_ids.get("yuhonas")):
+                    refs["yuhonas"].add(value)
+            for value in _as_text_list(exercise.get("search_aliases")):
+                refs["names"].add(_norm_text(value))
+    return refs
+
+
+def _is_superseded_external_exercise(exercise: Any, refs: dict[str, set[str]]) -> bool:
+    if not isinstance(exercise, dict):
+        return False
+    wger_id = exercise.get("wger_id")
+    if wger_id and str(wger_id) in refs["wger"]:
+        return True
+    yuhonas_id = exercise.get("yuhonas_id")
+    if yuhonas_id and str(yuhonas_id) in refs["yuhonas"]:
+        return True
+    for key in ("display_name", "german", "english", "name", "exercise_id", "id"):
+        value = exercise.get(key)
+        if isinstance(value, str) and _norm_text(value) in refs["names"]:
+            return True
+    return False
+
+
+def _as_text_list(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return [str(item) for item in value if str(item)]
+    if value:
+        return [str(value)]
+    return []
+
+
+def _norm_text(value: str) -> str:
+    return value.strip().casefold().replace("-", " ").replace("_", " ")
 
 
 def _merge_exercise(base: dict, incoming: dict) -> None:
@@ -200,6 +259,8 @@ def sync_yuhonas(db: Any, dry_run: bool = False) -> dict[str, int]:
     except Exception:
         string_aliases = {}
 
+    reviewed_refs = _reviewed_external_refs(load_catalog_directory_yaml("exercises"))
+
     def _resolve(names: list) -> list:
         return [string_aliases.get(m, m) for m in names]
 
@@ -208,6 +269,9 @@ def sync_yuhonas(db: Any, dry_run: bool = False) -> dict[str, int]:
             try:
                 raw = json.loads(json_file.read_text())
             except Exception:
+                continue
+            raw_id = str(raw.get("id") or json_file.stem)
+            if raw_id in reviewed_refs["yuhonas"] or _norm_text(raw.get("name", "")) in reviewed_refs["names"]:
                 continue
             ex_id = f"yuhonas_{raw.get('id', json_file.stem)}"
             yield ex_id, {

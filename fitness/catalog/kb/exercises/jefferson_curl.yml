@@ -1,0 +1,48 @@
+name: jefferson_curl
+description: Expert details for Jefferson Curl.
+exercises:
+- exercise_id: jefferson_curl
+  id: jefferson_curl
+  name: Jefferson Curl
+  display_name: Jefferson Curl
+  german: Jefferson Curl
+  english: Jefferson Curl
+  category: lower_back
+  type: isolation
+  movement_pattern: loaded_spinal_flexion
+  equipment:
+  - bodyweight
+  - barbell
+  - dumbbell
+  - kettlebell
+  primary_muscles:
+  - lower_back
+  - hamstrings
+  secondary_muscles:
+  - glutes
+  stabilizers:
+  - abs
+  coaching_notes:
+  - Langsam und maximal kontrolliert ausführen; das ist Mobilitäts- und Kontrollarbeit, kein Ego-Lift.
+  - Starte mit neutralem Kopf und rolle Wirbel für Wirbel nach vorne ab.
+  - Halte die Last nah am Körper und gehe nur bis zur kontrollierbaren Dehngrenze.
+  - Rolle auch auf dem Rückweg segmental auf, statt aus Hüfte oder Schwung hochzureißen.
+  common_errors:
+  - Zu schnell abrollen und passive Endrange erzwingen.
+  - Schmerz, Kribbeln oder Nervenzug ignorieren.
+  - Mit steifem Rücken aus der Hüfte klappen statt segmental zu flektieren.
+  - Zu früh Zusatzgewicht nutzen, bevor unbelastete Kontrolle vorhanden ist.
+  tags:
+  - expert
+  - mobility
+  - flexibility
+  - stretching
+  - spinal_flexion
+  - bodyweight
+  - progressive_stretch
+  - lower_back
+  - loaded_spinal_flexion
+  aliases:
+  - Spine Curl
+  variations: []
+  source: expert

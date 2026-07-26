@@ -28,6 +28,12 @@ GYM_VOCAB = {
     "barbell": "barbell langhantel lh",
 }
 
+GENERIC_FUZZY_TOKENS = {
+    "barbell", "bb", "bodyweight", "cable", "curl", "db", "dumbbell", "extension",
+    "fly", "hantel", "kh", "kurzhantel", "langhantel", "lh", "machine", "press",
+    "pull", "push", "raise", "row", "squat", "sz", "zug",
+}
+
 
 @dataclass
 class ExerciseRecord:
@@ -48,6 +54,8 @@ class ExerciseRecord:
     coaching_notes: list[str] | None = None
     common_errors: list[str] | None = None
     tags: list[str] | None = None
+    search_aliases: list[str] | None = None
+    external_ids: dict[str, Any] | None = None
     gif_url: str | None = None
     image_url: str | None = None
     images: list[str] | None = None
@@ -149,6 +157,9 @@ def build_exercise_index() -> list[ExerciseRecord]:
                 aliases = list_of_text(entry.get("aliases"))
                 if aliases:
                     for a in aliases: by_name[normalize_text(a, smart=True)] = ex_id
+                search_aliases = list_of_text(entry.get("search_aliases"))
+                if search_aliases:
+                    for a in search_aliases: by_name[normalize_text(a, smart=True)] = ex_id
 
             # Netzwerk-Verknüpfung (Brücke)
             # Inbox-Dateien tragen als `name:` nur ihren eigenen Dateinamen
@@ -166,12 +177,12 @@ def build_exercise_index() -> list[ExerciseRecord]:
             else:
                 if entry_name: rec.display_name = entry_name
                 # Basis-Felder
-                for f in ["german", "english", "movement_pattern", "wger_id", "gif_url", "image_url"]:
+                for f in ["german", "english", "movement_pattern", "wger_id", "gif_url", "image_url", "external_ids"]:
                     val = entry.get(f) if isinstance(entry, dict) else None
                     if val: setattr(rec, f, val)
                 
                 # Listen-Felder
-                for lf in ["equipment", "aliases", "primary_muscles", "secondary_muscles", "stabilizers", "variations", "coaching_notes", "common_errors", "tags"]:
+                for lf in ["equipment", "aliases", "search_aliases", "primary_muscles", "secondary_muscles", "stabilizers", "variations", "coaching_notes", "common_errors", "tags"]:
                     val = list_of_text(entry.get(lf)) if isinstance(entry, dict) else None
                     if val:
                         existing = getattr(rec, lf) or []
@@ -422,7 +433,17 @@ def find_fuzzy_match(normalized_query: str, records: list[ExerciseRecord]) -> tu
         if not results:
             return None, []
 
-        scored = [FuzzyMatch(record=candidate_map[res[0]], score=res[1]) for res in results]
+        scored = [
+            FuzzyMatch(record=candidate_map[res[0]], score=res[1])
+            for res in results
+            if fuzzy_candidate_allowed(normalized_query, res[0])
+        ]
+        if not scored:
+            suggestions = suggestions_from_scored([
+                FuzzyMatch(record=candidate_map[res[0]], score=res[1])
+                for res in results
+            ])
+            return None, suggestions
         for fm in scored:
             fm.score += SOURCE_SCORE_BONUS.get(fm.record.source, 0)
         scored.sort(key=lambda x: x.score, reverse=True)
@@ -439,6 +460,8 @@ def find_fuzzy_match(normalized_query: str, records: list[ExerciseRecord]) -> tu
         from difflib import SequenceMatcher
         scored_fallback: list[FuzzyMatch] = []
         for norm, record in candidate_map.items():
+            if not fuzzy_candidate_allowed(normalized_query, norm):
+                continue
             score = SequenceMatcher(None, normalized_query, norm).ratio() * 100
             scored_fallback.append(FuzzyMatch(record=record, score=score))
         
@@ -475,6 +498,15 @@ def suggestions_from_scored(scored: list[FuzzyMatch], limit: int = 3) -> list[di
     return unique_suggestions
 
 
+def fuzzy_candidate_allowed(normalized_query: str, normalized_candidate: str) -> bool:
+    query_tokens = set(normalized_query.split())
+    candidate_tokens = set(normalized_candidate.split())
+    meaningful_query_tokens = query_tokens - GENERIC_FUZZY_TOKENS
+    if len(query_tokens) <= 1 or not meaningful_query_tokens:
+        return True
+    return bool(meaningful_query_tokens & candidate_tokens)
+
+
 
 def matched_result(query: str, record: ExerciseRecord, source: str, confidence: str, suggestions: list[dict[str, str]]) -> ResolveResult:
     return ResolveResult(
@@ -492,8 +524,12 @@ def candidate_texts(record: ExerciseRecord) -> list[str]:
     texts = [record.exercise_id, record.display_name]
     if record.german:
         texts.append(record.german)
+    if record.english:
+        texts.append(record.english)
     if record.aliases:
         texts.extend(record.aliases)
+    if record.search_aliases:
+        texts.extend(record.search_aliases)
     return texts
 
 

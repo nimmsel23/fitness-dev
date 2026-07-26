@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import re
 from contextlib import closing
 from typing import Any
 
@@ -72,11 +73,11 @@ def get_top_unreviewed_exercises(limit: int = 5, days: int = 28) -> list[tuple[s
     
     # 1. Get usage counts within the time window
     with closing(sqlite3.connect(db_path)) as conn:
-        usage = conn.execute(
-            f"SELECT exercise_id, COUNT(*) as count FROM training_history "
+        rows = conn.execute(
+            f"SELECT exercise_id, display_name, COUNT(*) as count FROM training_history "
             f"WHERE date >= date('now', '-{days} days') "
             "AND (done = 1 OR sets > 0 OR reps > 0 OR weight > 0 OR rpe > 0) "
-            f"GROUP BY exercise_id ORDER BY count DESC"
+            f"GROUP BY exercise_id, display_name ORDER BY count DESC"
         ).fetchall()
     
     # 2. Filter for unreviewed exercises and those not already in the inbox
@@ -88,8 +89,12 @@ def get_top_unreviewed_exercises(limit: int = 5, days: int = 28) -> list[tuple[s
                 unreviewed_ids.add(ex.get("exercise_id") or ex.get("id"))
     
     results = []
-    for ex_id, count in usage:
-        if ex_id in unreviewed_ids:
+    for raw_ex_id, display_name, count in rows:
+        candidates = history_exercise_candidates(raw_ex_id, display_name)
+        if not candidates:
+            continue
+        ex_id = next((candidate for candidate in candidates if candidate in unreviewed_ids), "")
+        if ex_id:
             # Also check if it's already in the inbox (inbox_{ex_id}.yml)
             inbox_file = catalog_path(f"inbox/inbox_{ex_id}.yml")
             if not inbox_file.exists():
@@ -97,3 +102,27 @@ def get_top_unreviewed_exercises(limit: int = 5, days: int = 28) -> list[tuple[s
                 if len(results) >= limit:
                     break
     return results
+
+
+def history_exercise_candidates(exercise_id: str | None, display_name: str | None) -> list[str]:
+    candidates: list[str] = []
+    for value in (exercise_id, display_name):
+        if value:
+            candidates.append(str(value))
+            candidates.append(slugify_exercise_name(str(value)))
+    for value in list(candidates):
+        if value.startswith("inbox_"):
+            candidates.append(value.removeprefix("inbox_"))
+    seen: set[str] = set()
+    unique: list[str] = []
+    for value in candidates:
+        if value and value not in seen:
+            seen.add(value)
+            unique.append(value)
+    return unique
+
+
+def slugify_exercise_name(value: str | None) -> str:
+    text = (value or "").strip().casefold()
+    text = re.sub(r"[^a-z0-9]+", "_", text)
+    return text.strip("_")

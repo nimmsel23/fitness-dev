@@ -1,0 +1,67 @@
+name: '401'
+description: Expert details for Leg Extension / Beinstrecken.
+exercises:
+- exercise_id: '401'
+  id: '401'
+  name: Beinstrecken
+  display_name: Beinstrecken
+  german: Beinstrecken
+  english: Leg Extension
+  category: legs
+  type: isolation
+  movement_pattern: knee_extension
+  equipment:
+  - machine
+  primary_muscles:
+  - 601_quadriceps_femoris
+  secondary_muscles: []
+  stabilizers:
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  emphasis_muscles:
+  - 601c_vastus_medialis
+  coaching_notes:
+  - Richte Kniegelenk und Drehachse der Maschine sauber aus, bevor du Last auflegst.
+  - Strecke kontrolliert bis kurz vor harte Hyperextension und halte oben kurz aktive Quadrizepsspannung.
+  - Führe die exzentrische Phase langsam zurück, statt das Gewicht in den Stack fallen zu lassen.
+  - Halte Hüfte und Rücken fest am Sitz; Bewegung kommt aus dem Knie, nicht aus Schwung oder Hüftheben.
+  common_errors:
+  - Zu viel Gewicht und dadurch Schwung statt sauberer Knieextension.
+  - Unvollständige ROM, besonders fehlende kontrollierte Endstreckung.
+  - Knie kippen nach innen oder außen, statt in Linie mit Hüfte und Fuß zu bleiben.
+  - Hüfte hebt vom Sitz ab und nimmt Spannung aus dem Quadrizeps.
+  tags:
+  - expert
+  - legs
+  - quadriceps
+  - isolation
+  - machine
+  - knee_extension
+  aliases:
+  - Beinstrecker
+  - Leg Extension
+  - Leg Extension Machine
+  - Kniestrecker
+  - Quadriceps Extension
+  search_aliases:
+  - leg_extension
+  - leg_extension_machine
+  - quadriceps_extension
+  - knee_extension
+  - wger_851
+  - yuhonas_leg_extensions
+  - Leg_Extensions
+  external_ids:
+    wger:
+    - 851
+    yuhonas:
+    - Leg_Extensions
+  wger_id: 851
+  variations:
+  - single_leg_extension
+  - unilateral_leg_extension
+  wger_muscle_ids:
+    primary:
+    - 10
+    secondary: []
+  source: expert

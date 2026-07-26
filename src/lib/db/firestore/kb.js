@@ -53,8 +53,10 @@ export async function searchExercises(query, limit = 12) {
 
   const stored = localStorage.getItem("fitness-sessionSources");
   const sources = stored ? JSON.parse(stored) : { wger: true, yuhonas: true, coach: true };
+  const superseded = _buildSupersededExternalRefs(_searchCache);
   const pool = _searchCache.filter((ex) => {
     const tags = ex.tags || [];
+    if (_isSupersededExternalExercise(ex, superseded)) return false;
     if (tags.includes("wger") || tags.includes("unreviewed")) return sources.wger !== false;
     if (tags.includes("yuhonas")) return sources.yuhonas !== false;
     return sources.coach === true;
@@ -63,7 +65,8 @@ export async function searchExercises(query, limit = 12) {
   const qn = _normalize(q);
   const qTokens = qn.split(" ").filter(Boolean);
   const scored = pool.map((ex) => {
-    const hay = [ex.display_name, ex.german, ex.name, ex.exercise_id, ex.id, ...(ex.aliases || []), ...(ex.tags || [])].map(_normalize);
+    if (ex.merged_into || ex.superseded_by) return { ex, score: 0 };
+    const hay = [ex.display_name, ex.german, ex.name, ex.exercise_id, ex.id, ...(ex.aliases || []), ...(ex.search_aliases || []), ...(ex.tags || [])].map(_normalize);
     let score = 0;
     if (hay.some((h) => h === qn))                                                    score = 100;
     else if (hay.some((h) => h.startsWith(qn)))                                       score = 80;
@@ -85,6 +88,33 @@ export async function searchExercises(query, limit = 12) {
     ok: true, source: "firestore", query: q, results,
     suggestions: results.slice(0, 3).map((r) => ({ canonical_id: r.id, display_name: r.name })),
   };
+}
+
+function _isExpert(ex) {
+  const tags = ex.tags || [];
+  return ex.source === "expert" || tags.includes("expert");
+}
+
+function _buildSupersededExternalRefs(exercises) {
+  const refs = { wger: new Set(), yuhonas: new Set(), names: new Set() };
+  for (const ex of exercises || []) {
+    if (!_isExpert(ex)) continue;
+    if (ex.wger_id) refs.wger.add(String(ex.wger_id));
+    const external = ex.external_ids || {};
+    for (const id of external.wger || []) refs.wger.add(String(id));
+    for (const id of external.yuhonas || []) refs.yuhonas.add(String(id));
+    for (const name of ex.search_aliases || []) refs.names.add(_normalize(name));
+  }
+  return refs;
+}
+
+function _isSupersededExternalExercise(ex, refs) {
+  if (_isExpert(ex)) return false;
+  if (ex.merged_into || ex.superseded_by) return true;
+  if (ex.wger_id && refs.wger.has(String(ex.wger_id))) return true;
+  if (ex.yuhonas_id && refs.yuhonas.has(String(ex.yuhonas_id))) return true;
+  const hay = [ex.display_name, ex.german, ex.english, ex.name, ex.exercise_id, ex.id].map(_normalize);
+  return hay.some((item) => item && refs.names.has(item));
 }
 
 // ── Anatomy & Muscles ─────────────────────────────────────────────────────────

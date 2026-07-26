@@ -1,0 +1,81 @@
+name: '061'
+description: Expert details for Front Squat / Frontkniebeuge.
+exercises:
+- exercise_id: '061'
+  id: '061'
+  name: Frontkniebeuge
+  display_name: Frontkniebeuge
+  german: Frontkniebeuge
+  english: Front Squat
+  category: legs
+  type: compound
+  movement_pattern: squat
+  equipment:
+  - barbell
+  - squat_rack
+  primary_muscles:
+  - 601_quadriceps_femoris
+  secondary_muscles:
+  - 603_gluteus_maximus
+  - 602_adductors
+  - 604_biceps_femoris
+  - 605_semitendinosus
+  - 606_semimembranosus
+  stabilizers:
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  - 206_erector_spinae
+  - 203_trapezius_middle
+  - 204_trapezius_lower
+  - 205_rhomboids
+  - 301_anterior_deltoid
+  - 608_gluteus_medius
+  - 609_gluteus_minimus
+  - 701_gastrocnemius
+  - 702_soleus
+  coaching_notes:
+  - Ellbogen bleiben hoch; sobald sie fallen, rollt die Stange nach vorne und der Squat kippt.
+  - Aufrechter Torso, Knie kontrolliert nach vorne und über die Zehen führen.
+  - Druck über Mittelfuß/Ganzfuß halten, Fersen bleiben am Boden.
+  - Bracing vor jeder Wiederholung setzen; Bauchspannung hält die Front-Rack-Position stabil.
+  - Tiefe nur so weit, wie Sprunggelenk, Hüfte und Rückenposition sauber bleiben.
+  common_errors:
+  - Ellbogen fallen lassen und dadurch in eine Good-Morning-Position kippen.
+  - Knie kollabieren nach innen statt über den Zehen zu laufen.
+  - Fersen heben ab, weil Sprunggelenk-Dorsiflexion oder Lastposition fehlen.
+  - Untere Position rebounden, ohne Rumpfspannung und Kniekontrolle zu halten.
+  tags:
+  - expert
+  - legs
+  - squat
+  - compound
+  - quad_dominant
+  - strength
+  - front_rack
+  aliases:
+  - Front Squat
+  - Barbell Front Squat
+  - Frontbeuge
+  - Frontbeugen
+  - Front-Kniebeuge
+  - Vordere Kniebeuge
+  search_aliases:
+  - front_squat
+  - Front Kniebeuge
+  - wger_257
+  external_ids:
+    wger:
+    - 257
+  wger_id: 257
+  variations:
+  - goblet_squat
+  - cross_grip_front_squat
+  - dumbbell_front_squat
+  - double_kettlebell_front_squat
+  wger_muscle_ids:
+    primary:
+    - 10
+    secondary:
+    - 8
+    - 6
+  source: expert

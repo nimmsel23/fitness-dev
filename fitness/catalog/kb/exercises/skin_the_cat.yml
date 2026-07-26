@@ -1,0 +1,90 @@
+exercise_id: skin_the_cat
+description: Expert details for Skin the Cat
+exercises:
+- exercise_id: skin_the_cat
+  id: skin_the_cat
+  name: Skin the Cat
+  display_name: Skin the Cat
+  german: Skin the Cat
+  english: Skin the Cat
+  category: shoulders
+  type: compound
+  movement_pattern: gymnastic_rotation
+  equipment:
+  - bodyweight
+  - pull_up_bar
+  - rings
+  primary_muscles:
+  - 301_anterior_deltoid
+  - 303_posterior_deltoid
+  - 304_rotator_cuff
+  - 201_latissimus_dorsi
+  - 501_rectus_abdominis
+  - 504_transverse_abdominis
+  secondary_muscles:
+  - 402_biceps_brachii
+  - 403_brachialis
+  - 405_forearm_flexors
+  - 203_trapezius_middle
+  - 204_trapezius_lower
+  - 205_rhomboids
+  stabilizers:
+  - 206_erector_spinae
+  - 608_gluteus_medius
+  - 609_gluteus_minimus
+  - 603_gluteus_maximus
+  - 604_biceps_femoris
+  - 605_semitendinosus
+  - 606_semimembranosus
+  coaching_notes:
+  - Starte im aktiven Hang mit leicht retrahierten und deprimierten Schultern, um
+    die Schulterkapsel zu schützen und Stabilität aufzubauen. Vermeide ein passives
+    Durchhängen.
+  - Leite die Bewegung aus dem Core ein, indem du die Knie zur Brust ziehst (Tuck)
+    und diese kontrolliert zwischen den Armen hindurchführst. Der Bauch muss aktiv
+    gespannt bleiben.
+  - Halte die Arme während der gesamten Rotation gestreckt, aber nicht durchgedrückt,
+    um Gelenkstress zu vermeiden und die Spannung auf den Schultern zu halten.
+  - Rolle langsam und kontrolliert in den German Hang; spüre die Dehnung in der vorderen
+    Schulter und Brust, aber erzwinge keine Position, die Schmerzen verursacht. Die
+    Bewegung sollte exzentrisch abgebremst werden.
+  - Die Tiefe des German Hangs wird durch deine Schultermobilität und -kraft bestimmt.
+    Anfänger sollten eine weniger tiefe Position einnehmen und die volle Extension
+    schrittweise aufbauen.
+  - 'Achte auf eine aktive Körperhaltung: Die gesamte Muskulatur, von den Fingerspitzen
+    bis zu den Zehen, sollte unter Spannung stehen, um die Kontrolle zu maximieren
+    und unerwünschtes Pendeln zu verhindern.'
+  common_errors:
+  - '**Passives Fallen in den German Hang**: Die Bewegung sollte durch exzentrische
+    Kraft der Schultern, des Latissimus und des Core kontrolliert abgebremst werden,
+    nicht durch Schwerkraft.'
+  - '**Unzureichende Core-Kontrolle**: Ein schlaffer Rumpf führt zu einem unkontrollierten
+    Kippen des Beckens und einer ineffizienten Bewegungsausführung. Dies kann auch
+    zu einer unnötigen Belastung des unteren Rückens führen.'
+  - '**Durchhängende Schultern im aktiven Hang**: Wenn die Schultern passiv in die
+    Ohren gezogen werden, steigt das Risiko für Gelenkverletzungen. Immer aktiv aus
+    den Schultern drücken und die Scapula deprimiert halten.'
+  - '**Zu frühes Erzwingen der vollen Bewegungsfreiheit**: Fehlende Schulter-Extension
+    und -Rotation kann zu einer Überdehnung der vorderen Schulterkapsel oder zu Bizepssehnenproblemen
+    führen. Die Dehnung sollte schrittweise und schmerzfrei erfolgen.'
+  - '**Kompensieren durch Armbeugung**: Wenn die Schulterkraft oder -mobilität nicht
+    ausreicht, wird oft versucht, die Bewegung durch Beugen der Arme zu erleichtern,
+    was die Zielmuskulatur entlastet und die Entwicklung der Schulterkraft behindert.'
+  tags:
+  - calisthenics
+  - gymnastics
+  - mobility
+  - shoulder_mobility
+  - bodyweight
+  - core_strength
+  aliases:
+  - Skin The Cat
+  - Skin-the-Cat
+  - German Hang Roll
+  - Schulterdurchzug
+  search_aliases:
+  - skin_the_cat
+  variations:
+  - tuck_skin_the_cat
+  - ring_skin_the_cat
+  source: expert

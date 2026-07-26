@@ -46,6 +46,7 @@ async def exercises_search(request: Request, q: str = "", limit: int = 12):
             ex.display_name or "",
             ex.german or "",
             *(ex.aliases or []),
+            *(getattr(ex, "search_aliases", None) or []),
             *(ex.tags or []),
         ]
         if any(qn in f.lower() for f in fields if f):

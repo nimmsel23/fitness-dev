@@ -6,6 +6,7 @@ zwischen TUI und CLI, kein Drift zwischen beiden Wegen).
 from __future__ import annotations
 
 from pathlib import Path
+import re
 from typing import Any
 
 import yaml
@@ -53,6 +54,95 @@ def display_name_of(ex: dict[str, Any], fallback: str) -> str:
     return ex.get("display_name") or ex.get("german") or ex.get("name") or fallback
 
 
+def _append_unique(target: list[Any], values: list[Any]) -> None:
+    seen = {str(item) for item in target if item is not None}
+    for value in values:
+        if value is None or value == "":
+            continue
+        key = str(value)
+        if key in seen:
+            continue
+        target.append(value)
+        seen.add(key)
+
+
+def _as_list(value: Any) -> list[Any]:
+    if isinstance(value, list):
+        return value
+    if value is None or value == "":
+        return []
+    return [value]
+
+
+def _infer_source_refs(f: Path, ex: dict[str, Any]) -> tuple[list[int], list[str], list[str]]:
+    """Preserve external source identity when a draft becomes an expert entry.
+
+    The coach-facing exercise keeps its clean local ID/name. Raw source IDs stay
+    in hidden search/merge fields so Firestore/search can suppress duplicate
+    wger/yuhonas imports without exposing their names in the UI.
+    """
+    wger_ids: list[int] = []
+    yuhonas_ids: list[str] = []
+    search_aliases: list[str] = []
+
+    candidates = [f.stem, ex.get("exercise_id"), ex.get("id")]
+    for value in candidates:
+        text = str(value or "")
+        match = re.fullmatch(r"(?:inbox_)?wger_(\d+)", text)
+        if match:
+            wger_ids.append(int(match.group(1)))
+            search_aliases.append(f"wger_{match.group(1)}")
+        if text.startswith("yuhonas_"):
+            search_aliases.append(text)
+        if text.startswith("inbox_yuhonas_"):
+            search_aliases.append(text.removeprefix("inbox_"))
+
+    existing_wger_id = ex.get("wger_id")
+    if existing_wger_id:
+        try:
+            wger_ids.append(int(existing_wger_id))
+            search_aliases.append(f"wger_{int(existing_wger_id)}")
+        except (TypeError, ValueError):
+            pass
+
+    for value in _as_list(ex.get("yuhonas_id")):
+        yuhonas_ids.append(str(value))
+        search_aliases.append(str(value))
+
+    for key in ("display_name", "german", "english", "name"):
+        value = ex.get(key)
+        if isinstance(value, str) and value:
+            search_aliases.append(value)
+
+    return wger_ids, yuhonas_ids, search_aliases
+
+
+def _merge_source_refs(f: Path, ex: dict[str, Any]) -> None:
+    wger_ids, yuhonas_ids, inferred_aliases = _infer_source_refs(f, ex)
+
+    if wger_ids and not ex.get("wger_id"):
+        ex["wger_id"] = wger_ids[0]
+
+    external_ids = ex.get("external_ids")
+    if not isinstance(external_ids, dict):
+        external_ids = {}
+    if wger_ids:
+        wger_values = _as_list(external_ids.get("wger"))
+        _append_unique(wger_values, wger_ids)
+        external_ids["wger"] = wger_values
+    if yuhonas_ids:
+        yuhonas_values = _as_list(external_ids.get("yuhonas"))
+        _append_unique(yuhonas_values, yuhonas_ids)
+        external_ids["yuhonas"] = yuhonas_values
+    if external_ids:
+        ex["external_ids"] = external_ids
+
+    search_aliases = _as_list(ex.get("search_aliases"))
+    _append_unique(search_aliases, inferred_aliases)
+    if search_aliases:
+        ex["search_aliases"] = search_aliases
+
+
 def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
     """Approved einen Inbox-Draft -> `{ex_id}.yml` (Expert-Tier). Gibt die
     finale exercise_id zurueck. Wirft ValueError wenn keine exercise_id da ist.
@@ -67,6 +157,7 @@ def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
         ex["id"] = ex_id
 
     ex["source"] = "expert"
+    _merge_source_refs(f, ex)
 
     detail_path = exercises_dir() / f"{ex_id}.yml"
     if detail_path.exists():
