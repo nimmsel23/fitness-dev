@@ -17,9 +17,32 @@ function siblingDir(devName, appName) {
   return existsSync(appPath) ? appPath : resolve(__dirname, '..', devName)
 }
 
-export default defineConfig(({ mode }) => {
+// SSOT für Cross-App-Aliase (@habits, @journal, @fuel, @relax, @learn + deren
+// -db-Varianten) ist @vos/cross-app-aliases (~/vitalos/packages/cross-app-aliases) —
+// nur erreichbar, wenn dieses Repo als vitalos-Submodule genestet ist (npm
+// Workspace-Symlink). Standalone-Checkout (~/fitness-dev ohne vitalos-Parent)
+// fällt auf die alte siblingDir()-Auflösung zurück.
+async function resolveCrossAppAliases() {
+  try {
+    const { crossAppAliases } = await import('@vos/cross-app-aliases')
+    return crossAppAliases()
+  } catch {
+    return {
+      '@fuel':       resolve(siblingDir('fuel-dev', 'fuel-app'), 'src/client'),
+      '@habits':     resolve(siblingDir('habits-dev', 'habit-app'), 'src'),
+      '@habits-db':  resolve(siblingDir('habits-dev', 'habit-app'), 'src/db'),
+      '@journal':    resolve(siblingDir('journal-dev', 'journal-app'), 'src'),
+      '@journal-db': resolve(siblingDir('journal-dev', 'journal-app'), 'src/db/index.js'),
+      '@relax':      resolve(siblingDir('relax-dev', 'relax-app'), 'src'),
+      '@learn':      resolve(__dirname, '../learn-dev/src'),
+    }
+  }
+}
+
+export default defineConfig(async ({ mode }) => {
   const isFirebase = mode === 'firebase'
   const isFederation = process.env.VITE_FEDERATION === 'true' || isFirebase
+  const crossAppAliases = await resolveCrossAppAliases()
 
   return {
     define: {
@@ -44,6 +67,8 @@ export default defineConfig(({ mode }) => {
     resolve: {
       preserveSymlinks: true,
       alias: {
+        ...crossAppAliases,
+
         '@src':                resolve(__dirname, './src'),
         '@db':                 resolve(__dirname, isFirebase ? './src/lib/db/index.firestore.app.js' : './src/lib/db/index.js'),
         '@fitness-db':         resolve(__dirname, './src/lib/db'),
@@ -53,13 +78,6 @@ export default defineConfig(({ mode }) => {
         '@fitness/constants':  resolve(__dirname, './src/constants'),
         '@fitness':            resolve(__dirname, './src'),
         '@components':         resolve(__dirname, './src/components'),
-        '@fuel':               resolve(siblingDir('fuel-dev', 'fuel-app'), 'src/client'),
-        '@habits':             resolve(siblingDir('habits-dev', 'habit-app'), 'src'),
-        '@habits-db':          resolve(siblingDir('habits-dev', 'habit-app'), 'src/db'),
-        '@journal':            resolve(siblingDir('journal-dev', 'journal-app'), 'src'),
-        '@journal-db':         resolve(siblingDir('journal-dev', 'journal-app'), 'src/db/index.js'),
-        '@relax':              resolve(siblingDir('relax-dev', 'relax-app'), 'src'),
-        '@learn':              resolve(__dirname, '../learn-dev/src'),
       },
       // Singleton-Dedup: fuel-dev hat eigene node_modules — Vite zwingt eine einzige Instanz
       dedupe: ['react', 'react-dom', '@tanstack/react-query'],
