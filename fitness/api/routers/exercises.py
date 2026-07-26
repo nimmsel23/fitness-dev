@@ -179,27 +179,59 @@ def muscles_viz():
         from fitness.catalog.core.yaml_utils import load_yaml
         from fitness.catalog.core.paths import DATA_DIR as _FA_DATA
 
-        rbh: dict = {}
+        taxonomy = load_catalog_yaml("muscle_index.yml") or {}
+        index_muscles = taxonomy.get("muscles", {}) if isinstance(taxonomy, dict) else {}
+
+        wger: dict = {}
+        for muscle_id, info in index_muscles.items():
+            if not isinstance(info, dict):
+                continue
+            wger_id = info.get("wger_id")
+            if wger_id:
+                wger[muscle_id] = wger_id
+
+        # Region je Muskel (für grobe Aktivitäts-/Cardio-Zuordnung, wo keine
+        # Einzelmuskel-Daten vorliegen): rein aus den Top-Level-Regionsdateien
+        # (kb/muscles/*.yml, z.B. back.yml) und deren `muscles:`-Liste abgeleitet
+        # — kein manuell gepflegtes Wort→Muskel-Mapping.
+        region: dict = {}
+        for yml in sorted(_FA_DATA.glob("muscles/*.yml")):
+            data = load_yaml(yml)
+            if not isinstance(data, dict):
+                continue
+            rid = data.get("id", "")
+            word = rid.split("_", 1)[1] if "_" in rid else rid
+            for member in data.get("muscles") or []:
+                region[member] = word
+
+        # Coverage-Gruppe = die Muskel-ID selbst (die Detail-Files existieren
+        # genau dafür) — labels liefert dazu den Anzeigenamen. wger_id bleibt
+        # reines Catalog-Detail (wger-Import/-Abgleich), keine Gruppierung im
+        # Code.
         body_muscles: dict = {}
+        wger_to_rbh: dict = {}
+        labels: dict = {}
         muscles_dir = _FA_DATA / "muscles"
         for yml in sorted(muscles_dir.glob("*/*.yml")):
             data = load_yaml(yml)
             if not data:
                 continue
             muscle_id = data.get("id")
-            viz = data.get("viz")
-            if not viz or not muscle_id:
+            if not muscle_id:
                 continue
-            rbh_slug = viz.get("rbh")
+            viz = data.get("viz") or {}
             bm = viz.get("body_muscles")
-            keys = [muscle_id] + [a.lower() for a in (data.get("aliases") or [])]
-            for k in keys:
-                if rbh_slug:
-                    rbh[k] = rbh_slug
-                if bm and bm.get("ids"):
-                    body_muscles[k] = {"view": bm["view"], "ids": bm["ids"]}
+            if bm and bm.get("ids"):
+                body_muscles[muscle_id] = {"view": bm["view"], "ids": bm["ids"]}
+            labels[muscle_id] = data.get("label_de") or data.get("display_name") or muscle_id
+            wger_id = wger.get(muscle_id)
+            if wger_id is not None and wger_id not in wger_to_rbh and viz.get("rbh"):
+                wger_to_rbh[wger_id] = viz["rbh"]
         body_muscles_slugs = {k: v["ids"][0] for k, v in body_muscles.items() if v.get("ids")}
-        return {"rbh": rbh, "body_muscles": body_muscles, "body_muscles_slugs": body_muscles_slugs}
+        return {
+            "wger": wger, "labels": labels, "region": region, "wger_to_rbh": wger_to_rbh,
+            "body_muscles": body_muscles, "body_muscles_slugs": body_muscles_slugs,
+        }
     except Exception as exc:
         logger.error(f"muscles_viz: {exc}")
         raise HTTPException(500, detail=str(exc))

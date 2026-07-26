@@ -11,7 +11,7 @@ import ReviewTopExercises from './ReviewTopExercises';
 import ReviewHistory from './ReviewHistory.jsx';
 import Muscles from '../Muscles/index.jsx';
 
-export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleLanguage = 'de', taxonomy = null, gender = 'male', recentDays = 7, subTab = null, onSubNav }) {
+export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleLanguage = 'de', taxonomy = null, gender = 'male', recentDays = 10, subTab = null, onSubNav }) {
   const [week, setWeek]       = useState('current');
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(false);

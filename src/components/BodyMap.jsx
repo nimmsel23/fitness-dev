@@ -1,38 +1,37 @@
-import Model from 'react-body-highlighter';
-import { GROUP_TO_RBH, WGER_TO_RBH, SUPPORTED_RBH_MUSCLES, muscleToGroups } from '../lib/muscleMapping';
+import Model, { MuscleType } from 'react-body-highlighter';
+import { primeMuscleViz, hasMuscleViz, getMuscleVizMap } from '@db';
 
-export { WGER_TO_RBH };
+// Vom Package selbst exportierte gültige Slugs — nicht abgetippt.
+const SUPPORTED_RBH_MUSCLES = new Set(Object.values(MuscleType));
+
+let _vizMap = null;
+let _vizLoadStarted = false;
+function ensureVizLoading() {
+  if (_vizLoadStarted || hasMuscleViz()) return;
+  _vizLoadStarted = true;
+  getMuscleVizMap().then((viz) => { _vizMap = viz; primeMuscleViz(viz); });
+}
+
+// region["101_pectoralis_major"] === "chest" — dasselbe Wort, das RBH selbst
+// als Slug nutzt. Kein separates Mapping, direkte Wiederverwendung.
+function muscleIdToRbh(muscleId) {
+  return _vizMap?.region?.[muscleId] || null;
+}
 
 function addScore(scores, muscle, amount) {
   if (!SUPPORTED_RBH_MUSCLES.has(muscle)) return;
   scores[muscle] = (scores[muscle] || 0) + amount;
 }
 
-function groupsToRbh(label, exName) {
-  return muscleToGroups(label, exName).flatMap(g => GROUP_TO_RBH[g] || []);
-}
-
 export function exercisesToModelData(exercises) {
+  ensureVizLoading();
   const rbhScores = {};
   for (const ex of Array.isArray(exercises) ? exercises : []) {
     const primary = Array.isArray(ex?.primaryMuscles) ? ex.primaryMuscles : Array.isArray(ex?.primary_muscles) ? ex.primary_muscles : [];
     const secondary = Array.isArray(ex?.secondaryMuscles) ? ex.secondaryMuscles : Array.isArray(ex?.secondary_muscles) ? ex.secondary_muscles : [];
-    const exName = (ex?.name || '').toLowerCase();
 
-    const sourcePrimary = primary.length > 0 || secondary.length > 0
-      ? primary
-      : muscleToGroups('', exName); // name-based fallback wenn keine Muskeln
-
-    for (const label of sourcePrimary) {
-      groupsToRbh(label, exName).forEach(m => addScore(rbhScores, m, 2));
-    }
-    for (const label of secondary) {
-      groupsToRbh(label, exName).forEach(m => addScore(rbhScores, m, 1));
-    }
-
-    // wger ID Fallback
-    (ex?.wger_muscle_ids?.primary || []).forEach(id => { const m = WGER_TO_RBH[id]; if (m) addScore(rbhScores, m, 2); });
-    (ex?.wger_muscle_ids?.secondary || []).forEach(id => { const m = WGER_TO_RBH[id]; if (m) addScore(rbhScores, m, 1); });
+    primary.forEach((id) => { const m = muscleIdToRbh(id); if (m) addScore(rbhScores, m, 2); });
+    secondary.forEach((id) => { const m = muscleIdToRbh(id); if (m) addScore(rbhScores, m, 1); });
   }
 
   return Object.entries(rbhScores).map(([muscle, score]) => ({
@@ -42,31 +41,17 @@ export function exercisesToModelData(exercises) {
   }));
 }
 
+// groupScores: { [regionWord]: { score, color } }
 function groupScoresToModelData(groupScores) {
-  return Object.entries(groupScores || {}).flatMap(([groupId, gs]) => {
-    const muscles = GROUP_TO_RBH[groupId];
-    if (!muscles || !gs?.score) return [];
-    const safeMuscles = muscles.filter(m => SUPPORTED_RBH_MUSCLES.has(m));
-    if (safeMuscles.length === 0) return [];
-    return [{ name: groupId, muscles: safeMuscles, frequency: Math.ceil(gs.score) }];
+  return Object.entries(groupScores || {}).flatMap(([region, gs]) => {
+    if (!gs?.score || !SUPPORTED_RBH_MUSCLES.has(region)) return [];
+    return [{ name: region, muscles: [region], frequency: Math.ceil(gs.score) }];
   });
 }
 
-function rbhMuscleToGroup(muscle) {
-  for (const [group, muscles] of Object.entries(GROUP_TO_RBH)) {
-    if (muscles.includes(muscle)) return group;
-  }
-  return null;
-}
-
 export default function BodyMap({ exercises, groupScores = {}, onGroupClick, type = 'anterior', style, highlightedColors }) {
+  ensureVizLoading();
   const data = exercises ? exercisesToModelData(exercises) : groupScoresToModelData(groupScores);
-
-  function handleClick(stats) {
-    if (!onGroupClick || !stats?.muscle) return;
-    const group = rbhMuscleToGroup(stats.muscle);
-    if (group) onGroupClick(group);
-  }
 
   return (
     <Model
@@ -74,7 +59,7 @@ export default function BodyMap({ exercises, groupScores = {}, onGroupClick, typ
       data={data}
       highlightedColors={highlightedColors || ['#1e3a5f', '#1d6fa5', '#1a9fd4', '#22c55e']}
       bodyColor="var(--line)"
-      onClick={handleClick}
+      onClick={(stats) => stats?.muscle && onGroupClick?.(stats.muscle)}
       style={{ maxWidth: '140px', cursor: onGroupClick ? 'pointer' : 'default', ...style }}
     />
   );

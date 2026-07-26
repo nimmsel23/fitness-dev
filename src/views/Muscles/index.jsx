@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { getSessionHistory, getAllExercises, getMuscle } from "@db";
+import { getSessionHistory, getAllExercises, getMuscle, muscleToRegion } from "@db";
 import { ACTIVITY_MUSCLE_GROUPS } from "../../constants/ActivityConstants";
-import { muscleToGroups } from "../../lib/muscleMapping";
 
 import MuscleHeader from "./MuscleHeader";
 import MuscleAnalysis from "./MuscleAnalysis";
@@ -22,17 +21,16 @@ const CARDIO_SUPER      = 240;  // ≤ 10 Tage
 // score → Farbe, identisch zu hitColors in MuscleBodyMap.jsx (index = score-1)
 const SCORE_COLORS = { 1: '#3b82f6', 2: '#22c55e', 3: '#f59e0b', 4: '#ef4444' };
 
-const MUSCLE_GROUPS = [
-  "chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves"
-];
+// Kraft-Übungen: region-Wort direkt aus der KB (region["101_..."] === "chest"),
+// dasselbe Wort, das ACTIVITY_MUSCLE_GROUPS für Cardio schon verwendet — beide
+// Quellen laufen dadurch im selben lastSeen-Dict zusammen, ohne eigene Tabelle.
+const MUSCLE_GROUPS = [...new Set(Object.values(ACTIVITY_MUSCLE_GROUPS).flat())];
 
-// Delegiert an die zentrale Muskel→Gruppe-Zuordnung (src/lib/muscleMapping.js) —
-// vormals eine eigene, dritte Kopie dieser Tabelle.
-function getMuscleGroup(name) {
-  return muscleToGroups(name)[0] || String(name || "").toLowerCase().trim();
+function getMuscleGroup(muscleId) {
+  return muscleToRegion(muscleId);
 }
 
-export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null, recentDays = 7 }) {
+export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null, recentDays = 10 }) {
   const [days, setDays] = useState(recentDays);
   const [loading, setLoading] = useState(true);
   const [recentExercises, setRecentExercises] = useState([]);

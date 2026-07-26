@@ -1,12 +1,21 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BodyChart } from 'body-muscles';
-import { BODY_MUSCLES_MAP } from '../lib/muscleMapping';
+import { getMuscleVizMap } from '@db';
 
 export default function MuscleHighlightMap({ muscleId, size = 160 }) {
   const containerRef = useRef(null);
   const chartRef = useRef(null);
+  const [entry, setEntry] = useState(null);
 
-  const entry = muscleId ? BODY_MUSCLES_MAP[muscleId.toLowerCase()] : null;
+  useEffect(() => {
+    let cancelled = false;
+    if (!muscleId) { setEntry(null); return; }
+    getMuscleVizMap().then((viz) => {
+      if (cancelled) return;
+      setEntry(viz?.body_muscles?.[muscleId] || null);
+    });
+    return () => { cancelled = true; };
+  }, [muscleId]);
 
   useEffect(() => {
     if (!containerRef.current || !entry) return;
@@ -20,7 +29,7 @@ export default function MuscleHighlightMap({ muscleId, size = 160 }) {
     });
 
     return () => { chartRef.current?.destroy(); chartRef.current = null; };
-  }, [muscleId]);
+  }, [entry]);
 
   if (!entry) return null;
 
