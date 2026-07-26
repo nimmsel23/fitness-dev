@@ -9,12 +9,22 @@ import {
 
 import { db } from "../../../firebase.js";
 import { num, todayISO } from "../shared/utils.js";
-import { MUSCLE_GROUPS, GAP_REPORT_GROUPS, ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds } from "../shared/muscle.js";
+import {
+  ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds,
+  getMuscleGroups, primeMuscleViz, hasMuscleViz,
+} from "../shared/muscle.js";
 import { getUid } from "./core.js";
-import { getAllExercises } from "./kb.js";
+import { getAllExercises, getMuscleVizMap } from "./kb.js";
 import { getSessionHistory, listSessionsForDate } from "./sessions.js";
 
-export { MUSCLE_GROUPS, ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds };
+export { ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds };
+
+let _vizLoadPromise = null;
+async function ensureMuscleVizLoaded() {
+  if (hasMuscleViz()) return;
+  if (!_vizLoadPromise) _vizLoadPromise = getMuscleVizMap().then((viz) => primeMuscleViz(viz));
+  await _vizLoadPromise;
+}
 
 // ── Analytics cache doc ───────────────────────────────────────────────────────
 
@@ -58,6 +68,7 @@ export async function getDashboardAnalytics(days = 21) {
 // ── Muscle coverage ───────────────────────────────────────────────────────────
 
 export async function getMuscleCoverage(days = 7) {
+  await ensureMuscleVizLoaded();
   const today = new Date();
   const startDate = new Date();
   startDate.setDate(today.getDate() - (days - 1));
@@ -80,14 +91,14 @@ export async function getMuscleCoverage(days = 7) {
         muscleToGroupIds(m, exName).forEach((g) => { hits[g] = (hits[g] || 0) + 1; })
       );
       [...(ex.secondaryMuscles || [])].forEach((m) =>
-        muscleToGroupIds(m, exName).forEach((g) => { hits[g] = (hits[g] || 0) + 0.5; })
+        muscleToGroupIds(m, exName).forEach((g) => { hits[g] = (hits[g] || 0) + 0.7; })
       );
       [...(ex.stabilizers || [])].forEach((m) =>
-        muscleToGroupIds(m, exName).forEach((g) => { hits[g] = (hits[g] || 0) + 0.2; })
+        muscleToGroupIds(m, exName).forEach((g) => { hits[g] = (hits[g] || 0) + 0.4; })
       );
     }
-    for (const m of (session.activity?.muscles || [])) {
-      hits[m] = (hits[m] || 0) + 0.5;
+    for (const region of (session.activity?.muscles || [])) {
+      hits[region] = (hits[region] || 0) + 0.5;
     }
   }
   return hits;
@@ -95,7 +106,9 @@ export async function getMuscleCoverage(days = 7) {
 
 export async function getCoverageGaps(days = 7, threshold = 1.0) {
   const hits = await getMuscleCoverage(days);
-  return GAP_REPORT_GROUPS.filter((g) => (hits[g] || 0) < threshold).map((g) => ({ name: g, hits: hits[g] || 0 }));
+  return getMuscleGroups()
+    .filter((g) => (hits[g.id] || 0) < threshold)
+    .map((g) => ({ name: g.label, id: g.id, hits: hits[g.id] || 0 }));
 }
 
 // ── Weekly report ─────────────────────────────────────────────────────────────
@@ -126,6 +139,7 @@ function getWeekBounds(selector = "current") {
 }
 
 export async function getWeeklyReport(selector = "current") {
+  await ensureMuscleVizLoaded();
   const dates = getWeekBounds(selector);
   const [kbExercises, history] = await Promise.all([
     getAllExercises(),
@@ -187,10 +201,10 @@ export async function getWeeklyReport(selector = "current") {
         muscleToGroupIds(m, exName).forEach((gid) => { muscleScores[m] = (muscleScores[m] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; hasMapped = true; });
       }
       for (const m of secondary) {
-        muscleToGroupIds(m, exName).forEach((gid) => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; hasMapped = true; });
+        muscleToGroupIds(m, exName).forEach((gid) => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.7; hasMapped = true; });
       }
       for (const m of stabilizers) {
-        muscleToGroupIds(m, exName).forEach((gid) => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.2; hasMapped = true; });
+        muscleToGroupIds(m, exName).forEach((gid) => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.4; hasMapped = true; });
       }
       if (!hasMapped && exName) {
         muscleToGroupIds("", exName).forEach((gid) => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; });
@@ -220,7 +234,7 @@ export async function getWeeklyReport(selector = "current") {
     }
   }
 
-  const allGroups = MUSCLE_GROUPS;
+  const allGroups = getMuscleGroups().map((g) => g.id);
   const gaps = allGroups.filter((g) => (bodyRegionScores[g] || 0) < 1);
 
   return {

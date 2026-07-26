@@ -1,6 +1,14 @@
 import { api } from "./core";
+import { getMuscleVizMap } from "./kb";
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants";
-import { GAP_REPORT_GROUPS, muscleToGroupIds } from "../shared/muscle";
+import { muscleToGroupIds, primeMuscleViz, hasMuscleViz, getMuscleGroups } from "../shared/muscle";
+
+let _vizLoadPromise = null;
+async function ensureMuscleVizLoaded() {
+  if (hasMuscleViz()) return;
+  if (!_vizLoadPromise) _vizLoadPromise = getMuscleVizMap().then((viz) => primeMuscleViz(viz));
+  await _vizLoadPromise;
+}
 
 export async function getDashboardAnalytics(days = 28) {
   try {
@@ -36,6 +44,7 @@ function getWeekBounds(selector = "current") {
 }
 
 export async function getWeeklyReport(selector = "current") {
+  await ensureMuscleVizLoaded();
   const dates = getWeekBounds(selector);
   const [exRes, histRes] = await Promise.all([
     api.get('/fitness/exercises/all').catch(() => ({ exercises: [] })),
@@ -78,13 +87,13 @@ export async function getWeeklyReport(selector = "current") {
       const secondary = (ex.secondaryMuscles?.length ? ex.secondaryMuscles : null) || kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [];
       const stabilizers = (ex.stabilizers?.length ? ex.stabilizers : null) || kbEx?.stabilizers || [];
       [...primary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; }));
-      [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
-      [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.2; }));
+      [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.7; }));
+      [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.4; }));
     }
-    const actMuscles = sess.activity?.muscles
+    const actRegions = sess.activity?.muscles
       || (sess.activity?.type ? ACTIVITY_MUSCLE_GROUPS[sess.activity.type] : null);
-    if (actMuscles) {
-      actMuscles.forEach(gid => {
+    if (actRegions) {
+      actRegions.forEach(gid => {
         sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 0.5;
         bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5;
       });
@@ -100,7 +109,7 @@ export async function getWeeklyReport(selector = "current") {
     sessions.push({ ...sess, exercise_count: sess.exercises?.length || 0, muscle_recovery: muscleRecovery });
   }
 
-  const allGroups = ["chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves", "legs"];
+  const allGroups = getMuscleGroups().map(g => g.id);
   const gaps = allGroups.filter(g => (bodyRegionScores[g] || 0) < 1);
   const totalExercises = sessions.reduce((sum, s) => sum + (s.exercise_count || 0), 0);
   const effortValues = sessions.map(s => s.effort).filter(e => e && Number(e) > 0);
@@ -130,6 +139,7 @@ export async function getWeeklyReport(selector = "current") {
 }
 
 export async function getMuscleCoverage(days = 7) {
+  await ensureMuscleVizLoaded();
   const cutoffDate = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
   const [exRes, histRes] = await Promise.all([
     api.get('/fitness/exercises/all').catch(() => ({ exercises: [] })),
@@ -154,14 +164,14 @@ export async function getMuscleCoverage(days = 7) {
       const secondary = (ex.secondaryMuscles?.length ? ex.secondaryMuscles : null) || kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [];
       const stabilizers = (ex.stabilizers?.length ? ex.stabilizers : null) || kbEx?.stabilizers || [];
       [...primary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; }));
-      [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
-      [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.2; }));
+      [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.7; }));
+      [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.4; }));
     }
     // Activity addon: muscles pre-resolved on save, fallback to old mapping for legacy sessions
-    const actMuscles = sess.activity?.muscles
+    const actRegions = sess.activity?.muscles
       || (sess.activity?.type ? ACTIVITY_MUSCLE_GROUPS[sess.activity.type] : null);
-    if (actMuscles) {
-      actMuscles.forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; });
+    if (actRegions) {
+      actRegions.forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; });
     }
   }
 
@@ -170,7 +180,7 @@ export async function getMuscleCoverage(days = 7) {
 
 export async function getCoverageGaps(days = 7, threshold = 1.0) {
   const hits = await getMuscleCoverage(days);
-  return GAP_REPORT_GROUPS
-    .filter(g => (hits[g] || 0) < threshold)
-    .map(g => ({ name: g, hits: hits[g] || 0 }));
+  return getMuscleGroups()
+    .filter(g => (hits[g.id] || 0) < threshold)
+    .map(g => ({ name: g.label, id: g.id, hits: hits[g.id] || 0 }));
 }

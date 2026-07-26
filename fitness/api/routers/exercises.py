@@ -179,27 +179,66 @@ def muscles_viz():
         from fitness.catalog.core.yaml_utils import load_yaml
         from fitness.catalog.core.paths import DATA_DIR as _FA_DATA
 
-        rbh: dict = {}
+        taxonomy = load_catalog_yaml("muscle_index.yml") or {}
+        index_muscles = taxonomy.get("muscles", {}) if isinstance(taxonomy, dict) else {}
+
+        wger: dict = {}
+        for muscle_id, info in index_muscles.items():
+            if not isinstance(info, dict):
+                continue
+            wger_id = info.get("wger_id")
+            if wger_id:
+                wger[muscle_id] = wger_id
+
+        # Region je Muskel, für Coverage/Review (keine Einzelmuskelnamen im
+        # Frontend — Details bleiben Sache des Learn-Tabs). Alle Top-Level-
+        # Regionsdateien (kb/muscles/*.yml) fließen ein, sortiert nach
+        # aufsteigender Mitgliederzahl: kleine, spezifische Dateien
+        # (lats.yml, trapezius.yml, erector_spinae.yml, hamstrings.yml, ...)
+        # zuerst, große Sammel-Dateien (back.yml, legs.yml, arms.yml) zuletzt
+        # als Fallback für alles, was keine spezifischere Datei schon
+        # zugeordnet hat. Kein hartcodiertes Ranking — die Reihenfolge ergibt
+        # sich rein aus der Struktur der Dateien selbst.
+        region_files = []
+        for yml in _FA_DATA.glob("muscles/*.yml"):
+            data = load_yaml(yml)
+            if isinstance(data, dict) and data.get("muscles"):
+                region_files.append(data)
+        region_files.sort(key=lambda d: len(d["muscles"]))
+
+        region: dict = {}
+        region_labels: dict = {}
+        for data in region_files:
+            rid = data.get("id", "")
+            word = rid.split("_", 1)[1] if "_" in rid else rid
+            if not word:
+                continue
+            region_labels.setdefault(word, data.get("label_de") or data.get("display_name") or word)
+            for member in data["muscles"]:
+                region.setdefault(member, word)
+
+        # Einzelmuskel-Daten bleiben fürs Learn-Tab + body-muscles-Highlighter
+        # (der einzige, der pro Muskel links/rechts-Segmente braucht).
         body_muscles: dict = {}
+        labels: dict = {}
         muscles_dir = _FA_DATA / "muscles"
         for yml in sorted(muscles_dir.glob("*/*.yml")):
             data = load_yaml(yml)
             if not data:
                 continue
             muscle_id = data.get("id")
-            viz = data.get("viz")
-            if not viz or not muscle_id:
+            if not muscle_id:
                 continue
-            rbh_slug = viz.get("rbh")
+            viz = data.get("viz") or {}
             bm = viz.get("body_muscles")
-            keys = [muscle_id] + [a.lower() for a in (data.get("aliases") or [])]
-            for k in keys:
-                if rbh_slug:
-                    rbh[k] = rbh_slug
-                if bm and bm.get("ids"):
-                    body_muscles[k] = {"view": bm["view"], "ids": bm["ids"]}
+            if bm and bm.get("ids"):
+                body_muscles[muscle_id] = {"view": bm["view"], "ids": bm["ids"]}
+            labels[muscle_id] = data.get("label_de") or data.get("display_name") or muscle_id
         body_muscles_slugs = {k: v["ids"][0] for k, v in body_muscles.items() if v.get("ids")}
-        return {"rbh": rbh, "body_muscles": body_muscles, "body_muscles_slugs": body_muscles_slugs}
+        return {
+            "wger": wger, "labels": labels, "region": region, "region_labels": region_labels,
+            "body_muscles": body_muscles, "body_muscles_slugs": body_muscles_slugs,
+        }
     except Exception as exc:
         logger.error(f"muscles_viz: {exc}")
         raise HTTPException(500, detail=str(exc))

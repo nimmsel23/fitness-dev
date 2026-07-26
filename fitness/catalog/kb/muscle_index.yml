@@ -4,15 +4,26 @@ muscles:
   301_anterior_deltoid:            {wger_id: 2}
   105_serratus_anterior:           {wger_id: 3}
   101_pectoralis_major:            {wger_id: 4}
+  102_pectoralis_major_clavicular: {wger_id: 4, parent: 101_pectoralis_major}
+  103_pectoralis_major_sternal:    {wger_id: 4, parent: 101_pectoralis_major}
   401_triceps_brachii:             {wger_id: 5}
+  401a_triceps_long_head:          {wger_id: 5, parent: 401_triceps_brachii}
+  401b_triceps_lateral_head:       {wger_id: 5, parent: 401_triceps_brachii}
+  401c_triceps_medial_head:        {wger_id: 5, parent: 401_triceps_brachii}
   501_rectus_abdominis:            {wger_id: 6}
   701_gastrocnemius:               {wger_id: 7}
+  701a_gastrocnemius_medial:       {wger_id: 7, parent: 701_gastrocnemius}
+  701b_gastrocnemius_lateral:      {wger_id: 7, parent: 701_gastrocnemius}
   603_gluteus_maximus:             {wger_id: 8}
   202_trapezius_upper:             {wger_id: 9}
   203_trapezius_middle:            {wger_id: 9}
   204_trapezius_lower:             {wger_id: 9}
   303_posterior_deltoid:           {wger_id: 9}
   601_quadriceps_femoris:          {wger_id: 10}
+  601a_rectus_femoris:             {wger_id: 10, parent: 601_quadriceps_femoris}
+  601b_vastus_lateralis:           {wger_id: 10, parent: 601_quadriceps_femoris}
+  601c_vastus_medialis:            {wger_id: 10, parent: 601_quadriceps_femoris}
+  601d_vastus_intermedius:         {wger_id: 10, parent: 601_quadriceps_femoris}
   604_biceps_femoris:              {wger_id: 11}
   605_semitendinosus:              {wger_id: 11}
   606_semimembranosus:             {wger_id: 11}

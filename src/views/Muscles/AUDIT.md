@@ -35,7 +35,7 @@ Muskelabdeckungs- und Superkompensations-Analyse mit interaktiver Body-Map — w
 - Props die `Muscles` von außen bekommt: `gender`, `muscleLanguage`, `taxonomy`, `recentDays` (initialisiert `days`-State + wird via useEffect synchronisiert)
 
 ## Inline-Code (Extraktionskandidaten)
-- `getMuscleGroup()` (Zeilen 19–58) — große Mapping-Funktion direkt in `index.jsx`. Sollte in `src/lib/muscleUtils.js` oder `src/lib/translations.js` ausgelagert werden; wird aktuell nur hier genutzt.
+- `getMuscleGroup()` (2026-07-26 stark verkleinert) — delegiert nur noch an `muscleToRegion()` (`@db` → `src/lib/db/shared/muscle.js`), das Regionswort live aus der KB (`kb/muscles/*.yml`) ableitet. Vorher eine eigene, hartcodierte Numeric-Range-Tabelle mit Bug (siehe unten, jetzt gefixt) — Teil der `muscleMapping.js`-Ablösung, siehe `src/components/HIGHLIGHTERS.md`.
 - `StatusRow` (Zeilen 26–49 in `MuscleAnalysis.jsx`) — ist bereits lokal definiert, würde als eigenständige Datei wenig Mehrwert bieten, ist aber ein Kandidat wenn `MuscleAnalysis` wächst.
 - `LegendRow` (Zeilen 72–79 in `MuscleDetailedMap.jsx`) — kleines Inline-Subcomponent, ok wo es ist.
 - Die komplette HIT-Analyse-Logik in `useEffect` (Zeilen 79–165 in `index.jsx`) ist sehr dicht — Kandidat für Custom Hook `useHitAnalysis(days)`.
@@ -54,7 +54,7 @@ Muskelabdeckungs- und Superkompensations-Analyse mit interaktiver Body-Map — w
 ## Auffälligkeiten
 - `hitMode` existiert nicht im Code — war in alter ARCHITECTURE.md, wurde entfernt.
 - `days`-State beeinflusst `recentExercises` (Coverage-Visualisierung), hat aber keine Auswirkung auf `hitAnalysis` (benutzt immer alle 60 Sessions für `lastSeen`). Das ist vermutlich Absicht, aber verwirrend — ein User der auf "7d" wechselt erwartet womöglich auch eine frischere Recovory-Analyse.
-- `getMuscleGroup()` hat einen nicht vollständig abgedeckten Fall: Numeric slugs im Range 600–602 returnen `"glutes"`, 603 `"quads"`, 604 `"hamstrings"`, alles andere `"legs"` — `"legs"` ist aber kein gültiger Eintrag in `MUSCLE_GROUPS`, wird daher ignoriert.
+- ~~`getMuscleGroup()` hat einen nicht vollständig abgedeckten Fall...~~ — behoben (2026-07-26): `getMuscleGroup()` nutzt jetzt `muscleToRegion()`, keine eigene Numeric-Range-Logik mehr. `MUSCLE_GROUPS` ist jetzt dynamisch aus `ACTIVITY_MUSCLE_GROUPS` abgeleitet statt hartcodierter Wortliste.
 - `scores[m] = { score: 1 }` etc. — Scores sind immer fixe Integers (1–4), nie feiner aufgelöst. Das `BodyMap`-Rendering könnte mehr Granularität nutzen.
 - `index.jsx.bak` liegt im Ordner — sollte entfernt werden (kein `.gitignore`-Eintrag dafür prüfen).
 - `muscleLanguage` und `taxonomy` Props werden von außen übergeben — unklar ob der Parent (`App.jsx`) diese tatsächlich befüllt oder ob Defaults immer greifen.

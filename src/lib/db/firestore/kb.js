@@ -101,5 +101,38 @@ export async function getMuscle(muscleId) {
   return snap.data();
 }
 
+// Live rbh/body_muscles-Slug-Mapping aus der fitness/kb/muscles-Collection
+// (viz-Feld, gepusht von firestore_push.py::sync_muscles). Ersetzt die früher
+// in muscleMapping.js hartcodierte, bei jeder Katalog-Umnummerierung
+// veraltende ID-Tabelle.
+let _vizCache = null;
+
+export async function getMuscleVizMap() {
+  if (_vizCache) return _vizCache;
+  const snap = await getDocs(collection(db, "fitness", "kb", "muscles"));
+  const body_muscles = {};
+  const body_muscles_slugs = {};
+  const wger = {};
+  const labels = {};
+  const region = {};
+  const region_labels = {};
+  snap.docs.forEach((d) => {
+    const data = d.data();
+    labels[d.id] = data.label_de || data.display_name || d.id;
+    if (data?.wger_id) wger[d.id] = data.wger_id;
+    if (data?.region) {
+      region[d.id] = data.region;
+      if (!region_labels[data.region]) region_labels[data.region] = data.region;
+    }
+    const viz = data?.viz;
+    if (viz?.body_muscles?.ids?.length) {
+      body_muscles[d.id] = viz.body_muscles;
+      body_muscles_slugs[d.id] = viz.body_muscles.ids[0];
+    }
+  });
+  _vizCache = { wger, labels, region, region_labels, body_muscles, body_muscles_slugs };
+  return _vizCache;
+}
+
 // Inbox-Funktionen (sendToInbox, queueForEnrichment, getInbox, approveInbox,
 // reenrichInbox, ...) leben jetzt in ./inbox.js — siehe index.firestore.js-Barrel.

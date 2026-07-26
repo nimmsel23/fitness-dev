@@ -1,27 +1,14 @@
 /**
  * shared/muscle.js — Muscle-group constants & mapping helpers.
  * Used by both local/analysis.js and firestore/analysis.js.
+ *
+ * Coverage-Bucket = die Region (z.B. "back", "chest") — für Klienten
+ * verständlich, keine Einzelmuskelnamen im Coverage/Review-Tab. Die Region
+ * kommt live aus der KB (`region:`-Feld jeder Muskel-Datei), keine
+ * hartcodierte Tabelle. Details bleiben Sache des Learn-Tabs.
  */
 
-import { muscleToGroups } from "../../muscleMapping.js";
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants.js";
-
-/** Canonical list of body-region group IDs. */
-export const MUSCLE_GROUPS = [
-  "chest", "back", "shoulders", "arms", "core",
-  "glutes", "quads", "hamstrings", "calves", "legs",
-];
-
-/**
- * MUSCLE_GROUPS ohne "legs" — für Coverage-Lücken-Reports.
- * "legs" ist eine Sammelgruppe (Fallback in muscleMapping.js, wenn eine
- * Übung keine granularen Muskel-IDs hat) und überschneidet sich inhaltlich
- * mit quads/hamstrings/glutes. Als eigene Lücke gemeldet führte sie zu
- * irreführenden False-Positives (z.B. "Legs" trotz frisch trainierter
- * Waden via Kreuzheben/Frontkniebeuge). Bleibt für Mapping/Highlighter
- * weiterhin Teil von MUSCLE_GROUPS.
- */
-export const GAP_REPORT_GROUPS = MUSCLE_GROUPS.filter((g) => g !== "legs");
 
 /** Impact factor per activity type when computing coverage scores. */
 const ACTIVITY_IMPACT = { hiking: 1.0, running: 1.0, cycling: 0.8, swimming: 0.7 };
@@ -37,10 +24,30 @@ export const ACTIVITY_MUSCLE_MAPPING = Object.fromEntries(
   ])
 );
 
-/**
- * Maps a raw muscle name + optional exercise name → array of group IDs.
- * Delegates to the canonical muscleMapping utility.
- */
-export function muscleToGroupIds(muscle, exerciseName = "") {
-  return muscleToGroups(muscle, exerciseName);
+let _vizMap = null;
+
+export function primeMuscleViz(viz) {
+  if (viz && typeof viz === "object") _vizMap = viz;
+}
+
+export function hasMuscleViz() {
+  return _vizMap != null;
+}
+
+/** Alle aktuell bekannten Regionen + Anzeigename (für Gap-Report-Labels). */
+export function getMuscleGroups() {
+  const labels = _vizMap?.region_labels || {};
+  return Object.keys(labels).map((id) => ({ id, label: labels[id] || id }));
+}
+
+/** Region einer Muskel-ID (z.B. "chest", "back"), live aus der KB. */
+export function muscleToRegion(muscle) {
+  const id = String(muscle || "").trim();
+  return (id && _vizMap?.region?.[id]) || null;
+}
+
+/** Coverage-Bucket einer Muskel-ID: ihre Region, live aus der KB. */
+export function muscleToGroupIds(muscle) {
+  const region = muscleToRegion(muscle);
+  return region ? [region] : [];
 }
