@@ -59,8 +59,11 @@ Die Highlighter (oben) brauchen grobe Regionswörter. Die Coverage-Lücken-Anzei
 braucht das Gegenteil: maximale Präzision, keine Reduktion. Deshalb ist die
 Coverage-Gruppe dort **die Muskel-ID selbst** (`muscleToGroupIds()` in
 `src/lib/db/shared/muscle.js` gibt einfach `[muscleId]` zurück) — kein
-`wger_id`, kein Regionswort. `wger_id` ist reines Catalog-Detail für den
-Python-Import/-Abgleich mit wger, nie eine Gruppierung im Frontend.
+`wger_id`, kein Regionswort. Die durchnummerierten Einzelmuskel-IDs sind die
+eigentliche Masse/das Detail des Katalogs; die Nummern genügen laut
+Katalog-Design als Gruppierung. `wger_id` (1-16) ist umgekehrt das grobe
+Makro/Skelett für den Python-Import/-Abgleich mit wger — nicht die
+Gruppierungs-Ebene fürs Frontend.
 
 Cardio-Aktivitäten (`ACTIVITY_MUSCLE_GROUPS`) kennen nur grobe Regionswörter
 (keine Einzelmuskel-Daten möglich). Damit sie trotzdem in dieselbe

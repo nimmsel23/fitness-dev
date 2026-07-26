@@ -2,10 +2,13 @@
  * shared/muscle.js — Muscle-group constants & mapping helpers.
  * Used by both local/analysis.js and firestore/analysis.js.
  *
- * Coverage-Gruppe = die Muskel-ID selbst (z.B. "206_erector_spinae") — dafür
- * gibt es die Detail-Muskel-Files, keine Reduktion auf wger_id oder Region.
- * wger_id ist reines Catalog-Detail (wger-Import/-Abgleich in Python), nie
- * eine Gruppierung im Frontend-Code.
+ * Coverage-Gruppe = die Muskel-ID selbst (z.B. "206_erector_spinae") — die
+ * durchnummerierten Einzelmuskel-IDs sind die eigentliche Masse/das Detail
+ * des Katalogs, die Nummern genügen laut Katalog-Design als Gruppierung.
+ * wger_id (1-16) ist umgekehrt das grobe Makro/Skelett des Katalogs — gedacht
+ * für grobe App-Funktionen, die ohne Einzelmuskel-Detail auskommen. Für die
+ * Coverage-Lücken (maximale Präzision) ist das die falsche Ebene, keine
+ * Reduktion darauf.
  */
 
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants.js";
