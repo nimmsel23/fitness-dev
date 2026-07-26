@@ -38,9 +38,9 @@ Top-Level-Regionsdateien.
 
 ```
 {
-  "wger": { "101_pectoralis_major": 4, ... },       // Catalog-Detail (wger-Abgleich), NICHT fürs Grouping
-  "region": { "101_pectoralis_major": "chest", ... },// RBH/RMH-Grundlage
-  "wger_to_rbh": { "4": "chest", ... },              // für Übungen mit nur wger_muscle_ids, ohne Katalog-ID
+  "wger": { "101_pectoralis_major": 4, ... },        // Catalog-Makro (wger-Abgleich), NICHT fürs Grouping
+  "region": { "101_pectoralis_major": "chest", ... },// Coverage-Bucket + RBH/RMH-Grundlage
+  "region_labels": { "chest": "Brust", ... },
   "labels": { "101_pectoralis_major": "Großer Brustmuskel", ... },
   "body_muscles": { "101_pectoralis_major": { view, ids: [...] } },
   "body_muscles_slugs": { "101_pectoralis_major": "chest-upper-left" }
@@ -49,27 +49,30 @@ Top-Level-Regionsdateien.
 
 Lokal: `fitness/api/routers/exercises.py::muscles_viz()` liest `kb/muscles/*.yml`
 + `kb/muscles/*/*.yml` direkt. Firebase: `src/lib/db/firestore/kb.js::getMuscleVizMap()`
-liest die Firestore-Collection `fitness/kb/muscles` (gepusht von
-`firestore_push.py::sync_muscles()`, Quelle: `muscle_index.yml`). Beide Wege
-geben dasselbe Shape zurück, konsumiert wird es über `@db`, nie direkt fest verdrahtet.
+liest die Firestore-Collection `fitness/kb/muscles`. Beide geben dasselbe Shape
+zurück, konsumiert wird es über `@db`, nie direkt fest verdrahtet.
 
-## Coverage-Gruppe (Review-Tab "Coverage-Lücken") ist etwas ANDERES
+## Coverage-Bucket (Review-Tab "Coverage-Lücken") = Region, keine Einzelmuskeln
 
-Die Highlighter (oben) brauchen grobe Regionswörter. Die Coverage-Lücken-Anzeige
-braucht das Gegenteil: maximale Präzision, keine Reduktion. Deshalb ist die
-Coverage-Gruppe dort **die Muskel-ID selbst** (`muscleToGroupIds()` in
-`src/lib/db/shared/muscle.js` gibt einfach `[muscleId]` zurück) — kein
-`wger_id`, kein Regionswort. Die durchnummerierten Einzelmuskel-IDs sind die
-eigentliche Masse/das Detail des Katalogs; die Nummern genügen laut
-Katalog-Design als Gruppierung. `wger_id` (1-16) ist umgekehrt das grobe
-Makro/Skelett für den Python-Import/-Abgleich mit wger — nicht die
-Gruppierungs-Ebene fürs Frontend.
+Für Klienten muss verständlich bleiben, was das Frontend zeigt — deshalb
+taucht im Coverage/Review-Tab kein einzelner Muskelname auf, nur die Region
+(`muscleToRegion(muscleId)` in `src/lib/db/shared/muscle.js`,
+`muscleToGroupIds()` der Array-Wrapper darum). `wger_id` ist dabei nie die
+Gruppierungs-Ebene — das ist reines Catalog-Makro/-Skelett für den
+wger-Abgleich.
 
-Cardio-Aktivitäten (`ACTIVITY_MUSCLE_GROUPS`) kennen nur grobe Regionswörter
-(keine Einzelmuskel-Daten möglich). Damit sie trotzdem in dieselbe
-muskel-ID-genaue Coverage-Zählung einfließen, expandiert
-`regionToGroupIds(word)` das Regionswort zurück auf alle Muskel-IDs dieser
-Region (reiner Lookup im schon geladenen `region`-Dict, keine eigene Tabelle).
+Die Region kommt aus allen Top-Level-Regionsdateien (`kb/muscles/*.yml`),
+sortiert nach aufsteigender Mitgliederzahl (`GET /fitness/muscles/viz` in
+`fitness/api/routers/exercises.py`): kleine, spezifische Dateien
+(`lats.yml`, `trapezius.yml`, `erector_spinae.yml`, `hamstrings.yml`, ...)
+zuerst, große Sammel-Dateien (`back.yml`, `legs.yml`, `arms.yml`) zuletzt als
+Fallback. So bleibt z.B. der Rückenstrecker eine eigene Region
+(`erector_spinae`) statt in einem pauschalen "back" zu verschwinden — ohne
+hartcodiertes Ranking, rein aus der Struktur der Dateien.
+
+Cardio-Aktivitäten (`ACTIVITY_MUSCLE_GROUPS`) kennen von Haus aus nur das
+grobe Regionswort — das ist bereits dieselbe Sprache wie `muscleToRegion()`,
+keine Übersetzung nötig.
 
 ## Regel für zukünftige Änderungen
 

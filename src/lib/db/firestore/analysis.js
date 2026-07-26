@@ -10,7 +10,7 @@ import {
 import { db } from "../../../firebase.js";
 import { num, todayISO } from "../shared/utils.js";
 import {
-  ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds, regionToGroupIds,
+  ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds,
   getMuscleGroups, primeMuscleViz, hasMuscleViz,
 } from "../shared/muscle.js";
 import { getUid } from "./core.js";
@@ -98,7 +98,7 @@ export async function getMuscleCoverage(days = 7) {
       );
     }
     for (const region of (session.activity?.muscles || [])) {
-      regionToGroupIds(region).forEach((g) => { hits[g] = (hits[g] || 0) + 0.5; });
+      hits[region] = (hits[region] || 0) + 0.5;
     }
   }
   return hits;
@@ -165,7 +165,7 @@ export async function getWeeklyReport(selector = "current") {
       if (!hasMapped && exName) muscleToGroupIds("", exName).forEach((gid) => groups.add(gid));
     }
     if (s.activity && ACTIVITY_MUSCLE_MAPPING[s.activity.type]) {
-      ACTIVITY_MUSCLE_MAPPING[s.activity.type].muscles.flatMap(regionToGroupIds).forEach((gid) => groups.add(gid));
+      ACTIVITY_MUSCLE_MAPPING[s.activity.type].muscles.forEach((gid) => groups.add(gid));
     }
     return { date: s.date, groups: [...groups] };
   }).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
@@ -216,7 +216,7 @@ export async function getWeeklyReport(selector = "current") {
       let autoSplit = sess.block || sess.trainingsart || "Training";
       if (!sess.block && sortedGroups.length > 0) autoSplit = sortedGroups[0][0].charAt(0).toUpperCase() + sortedGroups[0][0].slice(1);
       if (sess.activity && ACTIVITY_MUSCLE_MAPPING[sess.activity.type]) {
-        ACTIVITY_MUSCLE_MAPPING[sess.activity.type].muscles.flatMap(regionToGroupIds).forEach((gid) => {
+        ACTIVITY_MUSCLE_MAPPING[sess.activity.type].muscles.forEach((gid) => {
           sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
           bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
         });

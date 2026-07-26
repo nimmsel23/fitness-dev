@@ -190,26 +190,36 @@ def muscles_viz():
             if wger_id:
                 wger[muscle_id] = wger_id
 
-        # Region je Muskel (für grobe Aktivitäts-/Cardio-Zuordnung, wo keine
-        # Einzelmuskel-Daten vorliegen): rein aus den Top-Level-Regionsdateien
-        # (kb/muscles/*.yml, z.B. back.yml) und deren `muscles:`-Liste abgeleitet
-        # — kein manuell gepflegtes Wort→Muskel-Mapping.
-        region: dict = {}
-        for yml in sorted(_FA_DATA.glob("muscles/*.yml")):
+        # Region je Muskel, für Coverage/Review (keine Einzelmuskelnamen im
+        # Frontend — Details bleiben Sache des Learn-Tabs). Alle Top-Level-
+        # Regionsdateien (kb/muscles/*.yml) fließen ein, sortiert nach
+        # aufsteigender Mitgliederzahl: kleine, spezifische Dateien
+        # (lats.yml, trapezius.yml, erector_spinae.yml, hamstrings.yml, ...)
+        # zuerst, große Sammel-Dateien (back.yml, legs.yml, arms.yml) zuletzt
+        # als Fallback für alles, was keine spezifischere Datei schon
+        # zugeordnet hat. Kein hartcodiertes Ranking — die Reihenfolge ergibt
+        # sich rein aus der Struktur der Dateien selbst.
+        region_files = []
+        for yml in _FA_DATA.glob("muscles/*.yml"):
             data = load_yaml(yml)
-            if not isinstance(data, dict):
-                continue
+            if isinstance(data, dict) and data.get("muscles"):
+                region_files.append(data)
+        region_files.sort(key=lambda d: len(d["muscles"]))
+
+        region: dict = {}
+        region_labels: dict = {}
+        for data in region_files:
             rid = data.get("id", "")
             word = rid.split("_", 1)[1] if "_" in rid else rid
-            for member in data.get("muscles") or []:
-                region[member] = word
+            if not word:
+                continue
+            region_labels.setdefault(word, data.get("label_de") or data.get("display_name") or word)
+            for member in data["muscles"]:
+                region.setdefault(member, word)
 
-        # Coverage-Gruppe = die Muskel-ID selbst (die Detail-Files existieren
-        # genau dafür) — labels liefert dazu den Anzeigenamen. wger_id bleibt
-        # reines Catalog-Detail (wger-Import/-Abgleich), keine Gruppierung im
-        # Code.
+        # Einzelmuskel-Daten bleiben fürs Learn-Tab + body-muscles-Highlighter
+        # (der einzige, der pro Muskel links/rechts-Segmente braucht).
         body_muscles: dict = {}
-        wger_to_rbh: dict = {}
         labels: dict = {}
         muscles_dir = _FA_DATA / "muscles"
         for yml in sorted(muscles_dir.glob("*/*.yml")):
@@ -224,12 +234,9 @@ def muscles_viz():
             if bm and bm.get("ids"):
                 body_muscles[muscle_id] = {"view": bm["view"], "ids": bm["ids"]}
             labels[muscle_id] = data.get("label_de") or data.get("display_name") or muscle_id
-            wger_id = wger.get(muscle_id)
-            if wger_id is not None and wger_id not in wger_to_rbh and viz.get("rbh"):
-                wger_to_rbh[wger_id] = viz["rbh"]
         body_muscles_slugs = {k: v["ids"][0] for k, v in body_muscles.items() if v.get("ids")}
         return {
-            "wger": wger, "labels": labels, "region": region, "wger_to_rbh": wger_to_rbh,
+            "wger": wger, "labels": labels, "region": region, "region_labels": region_labels,
             "body_muscles": body_muscles, "body_muscles_slugs": body_muscles_slugs,
         }
     except Exception as exc:

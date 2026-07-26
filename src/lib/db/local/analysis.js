@@ -1,7 +1,7 @@
 import { api } from "./core";
 import { getMuscleVizMap } from "./kb";
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants";
-import { muscleToGroupIds, primeMuscleViz, hasMuscleViz, getMuscleGroups, regionToGroupIds } from "../shared/muscle";
+import { muscleToGroupIds, primeMuscleViz, hasMuscleViz, getMuscleGroups } from "../shared/muscle";
 
 let _vizLoadPromise = null;
 async function ensureMuscleVizLoaded() {
@@ -93,7 +93,7 @@ export async function getWeeklyReport(selector = "current") {
     const actRegions = sess.activity?.muscles
       || (sess.activity?.type ? ACTIVITY_MUSCLE_GROUPS[sess.activity.type] : null);
     if (actRegions) {
-      actRegions.flatMap(regionToGroupIds).forEach(gid => {
+      actRegions.forEach(gid => {
         sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 0.5;
         bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5;
       });
@@ -171,7 +171,7 @@ export async function getMuscleCoverage(days = 7) {
     const actRegions = sess.activity?.muscles
       || (sess.activity?.type ? ACTIVITY_MUSCLE_GROUPS[sess.activity.type] : null);
     if (actRegions) {
-      actRegions.flatMap(regionToGroupIds).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; });
+      actRegions.forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; });
     }
   }
 

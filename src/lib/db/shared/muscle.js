@@ -2,13 +2,10 @@
  * shared/muscle.js — Muscle-group constants & mapping helpers.
  * Used by both local/analysis.js and firestore/analysis.js.
  *
- * Coverage-Gruppe = die Muskel-ID selbst (z.B. "206_erector_spinae") — die
- * durchnummerierten Einzelmuskel-IDs sind die eigentliche Masse/das Detail
- * des Katalogs, die Nummern genügen laut Katalog-Design als Gruppierung.
- * wger_id (1-16) ist umgekehrt das grobe Makro/Skelett des Katalogs — gedacht
- * für grobe App-Funktionen, die ohne Einzelmuskel-Detail auskommen. Für die
- * Coverage-Lücken (maximale Präzision) ist das die falsche Ebene, keine
- * Reduktion darauf.
+ * Coverage-Bucket = die Region (z.B. "back", "chest") — für Klienten
+ * verständlich, keine Einzelmuskelnamen im Coverage/Review-Tab. Die Region
+ * kommt live aus der KB (`region:`-Feld jeder Muskel-Datei), keine
+ * hartcodierte Tabelle. Details bleiben Sache des Learn-Tabs.
  */
 
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants.js";
@@ -37,39 +34,20 @@ export function hasMuscleViz() {
   return _vizMap != null;
 }
 
-/** Alle aktuell bekannten Muskel-IDs + Anzeigename (für Gap-Report-Labels). */
+/** Alle aktuell bekannten Regionen + Anzeigename (für Gap-Report-Labels). */
 export function getMuscleGroups() {
-  const labels = _vizMap?.labels || {};
+  const labels = _vizMap?.region_labels || {};
   return Object.keys(labels).map((id) => ({ id, label: labels[id] || id }));
 }
 
-/** Coverage-Gruppe einer Muskel-ID: die ID selbst, keine Reduktion. */
-export function muscleToGroupIds(muscle) {
-  const id = String(muscle || "").trim();
-  return id ? [id] : [];
-}
-
-/**
- * Region-Wort einer Muskel-ID (z.B. "chest", "back") — aus den Top-Level-
- * Regionsdateien (kb/muscles/*.yml) abgeleitet, live geladen. Dasselbe Wort
- * wie ACTIVITY_MUSCLE_GROUPS.
- */
+/** Region einer Muskel-ID (z.B. "chest", "back"), live aus der KB. */
 export function muscleToRegion(muscle) {
   const id = String(muscle || "").trim();
   return (id && _vizMap?.region?.[id]) || null;
 }
 
-/**
- * Region-Wort (aus ACTIVITY_MUSCLE_GROUPS) -> alle Muskel-IDs dieser Region.
- * Verbindet Cardio-Aktivitäten (kennen nur das grobe Wort) mit der
- * muskel-ID-genauen Coverage-Gruppierung — reiner Lookup im schon geladenen
- * region-Dict, keine eigene Tabelle.
- */
-export function regionToGroupIds(region) {
-  const regionMap = _vizMap?.region || {};
-  const ids = [];
-  for (const [muscleId, r] of Object.entries(regionMap)) {
-    if (r === region) ids.push(muscleId);
-  }
-  return ids;
+/** Coverage-Bucket einer Muskel-ID: ihre Region, live aus der KB. */
+export function muscleToGroupIds(muscle) {
+  const region = muscleToRegion(muscle);
+  return region ? [region] : [];
 }
