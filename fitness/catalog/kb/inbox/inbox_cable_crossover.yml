@@ -13,12 +13,11 @@ exercises:
   equipment:
   - cable
   primary_muscles:
-  - 101_pectoralis_major
+  - chest
   secondary_muscles:
-  - 301_anterior_deltoid
+  - shoulders
   stabilizers:
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
+  - abs
   coaching_notes:
   - Arme während der gesamten Bewegung leicht gebeugt halten, nicht vollständig strecken
   - Langsam und kontrolliert zusammenführen, Peak-Kontraktion 1-2 Sekunden halten
@@ -38,6 +37,8 @@ exercises:
   - cable_exercise
   - horizontal_adduction
   - pec_contraction
+  - chest
+  - unreviewed
   aliases:
   - Kabelzug Überkreuzung
   - Überkreuzung

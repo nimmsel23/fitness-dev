@@ -13,22 +13,16 @@ exercises:
   equipment:
   - machine
   primary_muscles:
-  - 604_biceps_femoris
-  - 605_semitendinosus
-  - 606_semimembranosus
+  - hamstrings
   secondary_muscles:
-  - 701_gastrocnemius
-  stabilizers:
-  - 501_rectus_abdominis
-  - 603_gluteus_maximus
+  - calves
+  stabilizers: []
   coaching_notes:
-  - 'Volle Bewegungsamplitude: Von vollständiger Streckung bis zur maximalen Kniebeugung
-    arbeiten'
+  - 'Volle Bewegungsamplitude: Von vollständiger Streckung bis zur maximalen Kniebeugung arbeiten'
   - 'Kontrollierte Bewegung: Gewicht nicht mit Schwung bewegen, besonders in der exzentrischen
     Phase (Streckung) 2–3 Sekunden halten'
   - 'Hüften am Gerät halten: Keine Hüfthebung oder Kompensation durch Rumpfbewegung'
-  - 'Spannung halten: Am Umkehrpunkt (maximale Flexion) eine Sekunde Peak-Kontraktion
-    anstreben'
+  - 'Spannung halten: Am Umkehrpunkt (maximale Flexion) eine Sekunde Peak-Kontraktion anstreben'
   - 'Atem: Bei Flexion ausatmen, bei Streckung einatmen'
   common_errors:
   - Momentum und Schwung statt kontrollierte Bewegung
@@ -42,6 +36,9 @@ exercises:
   - machine
   - HIT-freundlich
   - untere_körperhälfte
+  - legs
+  - knee_flexion
+  - unreviewed
   aliases:
   - Lying Leg Curl
   - Machine Leg Curl

@@ -6,41 +6,38 @@ exercises:
   name: Klimmzug (Untergriff)
   display_name: Klimmzug (Untergriff)
   german: Klimmzug (Untergriff)
-  english: Chin-Up
+  english: Chin-up
   category: back
   type: compound
   movement_pattern: vertical_pull
   equipment:
   - bodyweight
-  - pull-up bar
+  - pull-up_bar
   primary_muscles:
-  - 201_latissimus_dorsi
-  - 402_biceps_brachii
+  - middle_back
+  - bizeps
   secondary_muscles:
-  - 403_brachialis
-  - 205_rhomboids
-  - 202_trapezius_upper
-  - 301_anterior_deltoid
+  - upper_back
+  - arms
+  - rhomboids
   stabilizers:
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
-  - 203_trapezius_middle
+  - abs
+  - shoulders
   coaching_notes:
-  - Der Untergriff betont die Bizeps-Muskulatur deutlich stärker als der klassische
-    Obergriff-Klimmzug
+  - Der Untergriff betont die Bizeps-Muskulatur deutlich stärker als der klassische Obergriff-Klimmzug
   - 'Optimal: schulterweit Griffbreite für maximale Hebel-Mechanik und Bizeps-Aktivierung'
-  - 'Vollständiger ROM ist essentiell: Kinn über die Stange in der obersten Position,
-    volle Ellenbogenstreckung unten'
+  - 'Vollständiger ROM ist essentiell: Kinn über die Stange in der obersten Position, volle
+    Ellenbogenstreckung unten'
   - 'In der Ausgangsposition: aktive Schulterdepression vor dem Hochziehen; beim Hochziehen
     Schulterblatt nach hinten-oben bewegen'
-  - Diese Variante ist anfängerfreundlicher als Obergriff-Klimmzüge und eine gute
-    Progressionsbrücke zum vollen Pull-up
+  - Diese Variante ist anfängerfreundlicher als Obergriff-Klimmzüge und eine gute Progressionsbrücke
+    zum vollen Pull-up
   - 'Körperspannung halten: kein Schwung aus Hüfte oder Beinen – reine Arm- und Rückenmuskeln-Arbeit'
-  - 'Bei Anfängern: negative Klimmzüge trainieren (von oben springen, langsam senken)
-    als Progressionsschritt'
+  - 'Bei Anfängern: negative Klimmzüge trainieren (von oben springen, langsam senken) als
+    Progressionsschritt'
   common_errors:
-  - 'Unvollständiges ROM: nur halbe Bewegungen statt Kinn über die Stange oben und
-    volle Streckung unten'
+  - 'Unvollständiges ROM: nur halbe Bewegungen statt Kinn über die Stange oben und volle Streckung
+    unten'
   - Zu viel Schwung aus Körper und Beinen statt kontrolierter Zugbewegung
   - Schultern nicht richtig deprimiert in der Ausgangsposition
   - Zu breiter Griff – Untergriff funktioniert besser mit schulterweit bis schulterbreite
@@ -53,11 +50,16 @@ exercises:
   - calisthenics
   - compound
   - strength
+  - unreviewed
   aliases:
   - Underhand Pull-Up
   - Underhand Grip Pull-Up
   - Supinated Grip Pull-Up
   - Reversed Grip Pullup
   - Negative Grip Pullup
+  - Klimmzug im Untergriff
+  - Untergriff Klimmzug
+  - Supinated Pull-up
+  - Chin-up
   variations: []
   source: unreviewed

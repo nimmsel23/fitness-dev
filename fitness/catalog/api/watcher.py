@@ -95,9 +95,7 @@ def process_inbox_file(file_path: Path, api_key: str | None):
 
         logger.info(f"Enriching NEW exercise: {name}")
 
-        enriched_data = None
-        if api_key:
-            enriched_data = call_gemini(name, safe_name, api_key)
+        enriched_data = call_gemini(name, safe_name, api_key)
 
         if enriched_data:
             save_inbox_draft(target_file, enriched_data, f"AI generated base entry for {name}")
@@ -110,7 +108,7 @@ def process_inbox_file(file_path: Path, api_key: str | None):
 def process_inbox_file_virtual(
     ex_id: str,
     display_name: str,
-    api_key: str,
+    api_key: str | None,
     force: bool = False,
     feedback: str | None = None,
     current_data: dict | None = None,
@@ -216,13 +214,12 @@ def run_watcher():
                     if ingested:
                         logger.info(f"Ingested {ingested} new training entries.")
                     
-                    if api_key:
-                        top_unreviewed = get_top_unreviewed_exercises(limit=3)
-                        for ex_id, count in top_unreviewed:
-                            logger.info(f"Proactively refining popular unreviewed exercise: {ex_id} (used {count} times)")
-                            res = resolve_query(ex_id)
-                            if res.matched:
-                                process_inbox_file_virtual(res.canonical_id, res.display_name, api_key)
+                    top_unreviewed = get_top_unreviewed_exercises(limit=3)
+                    for ex_id, count in top_unreviewed:
+                        logger.info(f"Proactively refining popular unreviewed exercise: {ex_id} (used {count} times)")
+                        res = resolve_query(ex_id)
+                        if res.matched:
+                            process_inbox_file_virtual(res.canonical_id, res.display_name, api_key)
                     
                     last_ingest = now
                 except Exception as e:

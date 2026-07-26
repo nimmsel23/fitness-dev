@@ -1,41 +1,33 @@
 name: inbox_cable_row_close_grip
-description: 'Proactively generated expert draft for: Sitzendes Rudern enger Griff
-  Kabelzug'
+description: 'Proactively generated expert draft for: Sitzendes Rudern enger Griff Kabelzug'
 exercises:
 - exercise_id: cable_row_close_grip
   id: cable_row_close_grip
   name: Sitzendes Rudern enger Griff Kabelzug
   display_name: Sitzendes Rudern enger Griff Kabelzug
   german: Sitzendes Rudern enger Griff Kabelzug
-  english: Seated Cable Row Close Grip
+  english: Close-Grip Seated Cable Row
   category: back
   type: compound
   movement_pattern: horizontal_pull
   equipment:
   - cable
   primary_muscles:
-  - 201_latissimus_dorsi
-  - 205_rhomboids
-  - 203_trapezius_middle
+  - middle_back
+  - upper_back
   secondary_muscles:
-  - 402_biceps_brachii
-  - 207_teres_major
-  - 202_trapezius_upper
-  - 404_brachioradialis
-  - 405_forearm_flexors
+  - bizeps
+  - arms
+  - rhomboids
   stabilizers:
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
-  - 603_gluteus_maximus
-  - 206_erector_spinae
-  - 304_rotator_cuff
+  - abs
+  - lower_back
   coaching_notes:
-  - Ellbogen nah am Körper halten, nicht abspreizen — der enge Griff betont diese
-    Bewegungslinie
-  - Brust gegen die Lehne drücken und stabiler Position halten, nicht mit Rücken nach
-    hinten lehnen
-  - Volle Scapular-Retraktion am Ende erreichen — Schulterblätter zusammenziehn, nicht
-    nur Arme beugen
+  - Ellbogen nah am Körper halten, nicht abspreizen — der enge Griff betont diese Bewegungslinie
+  - Brust gegen die Lehne drücken und stabiler Position halten, nicht mit Rücken nach hinten
+    lehnen
+  - Volle Scapular-Retraktion am Ende erreichen — Schulterblätter zusammenziehn, nicht nur
+    Arme beugen
   - Enger Griff verschiebt Fokus von Lats auf Rhomboide und mittleren Trapezius
   - Langsam und kontrolliert zur Ausgangsposition zurück, Spannung halten
   common_errors:
@@ -51,6 +43,7 @@ exercises:
   - scapular_retraction
   - seated
   - cable
+  - unreviewed
   aliases:
   - Seated Narrow Grip Cable Row
   - Close Grip Seated Row Cable

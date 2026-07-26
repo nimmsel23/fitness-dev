@@ -6,46 +6,45 @@ exercises:
   name: Inner-X-Cable-Cross
   display_name: Kabelzug über Kreuz (Brust)
   german: Kabelzug über Kreuz (Brust)
-  english: Cable Crossover
+  english: Cross-Body Cable Crossover
   category: chest
   type: isolation
   movement_pattern: horizontal_adduction
   equipment:
   - cable
   primary_muscles:
-  - 103_pectoralis_major_sternal
+  - chest
   secondary_muscles:
-  - 301_anterior_deltoid
+  - shoulders
   stabilizers:
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
-  - 206_erector_spinae
-  - 105_serratus_anterior
+  - abs
   coaching_notes:
-  - Stellen Sie sich in die Mitte der Kabelzugmaschine, fassen Sie die Griffe und
-    nehmen Sie einen leichten Ausfallschritt nach vorne ein, um die Stabilität zu
-    erhöhen.
-  - Lehnen Sie den Oberkörper leicht nach vorne, halten Sie die Arme leicht gebeugt
-    und die Ellbogen fixiert.
-  - Führen Sie die Griffe vor Ihrem Körper zusammen, überkreuzen Sie sie, wenn möglich,
-    um eine maximale Kontraktion der Brustmuskulatur zu erreichen.
+  - Stellen Sie sich in die Mitte der Kabelzugmaschine, fassen Sie die Griffe und nehmen Sie
+    einen leichten Ausfallschritt nach vorne ein, um die Stabilität zu erhöhen.
+  - Lehnen Sie den Oberkörper leicht nach vorne, halten Sie die Arme leicht gebeugt und die
+    Ellbogen fixiert.
+  - Führen Sie die Griffe vor Ihrem Körper zusammen, überkreuzen Sie sie, wenn möglich, um
+    eine maximale Kontraktion der Brustmuskulatur zu erreichen.
   - Konzentrieren Sie sich darauf, die Brustmuskeln am Ende der Bewegung aktiv zusammenzuziehen
     und einen starken Peak-Contraction zu spüren.
-  - Lassen Sie die Arme kontrolliert und langsam in die Ausgangsposition zurückkehren,
-    um eine gute Dehnung in der Brust zu spüren.
+  - Lassen Sie die Arme kontrolliert und langsam in die Ausgangsposition zurückkehren, um
+    eine gute Dehnung in der Brust zu spüren.
   common_errors:
-  - Verwendung von zu viel Gewicht, was zu einer übermäßigen Beugung der Ellbogen
-    und dem Einsatz der Trizeps- oder Schultermuskulatur anstelle der Brust führt.
+  - Verwendung von zu viel Gewicht, was zu einer übermäßigen Beugung der Ellbogen und dem
+    Einsatz der Trizeps- oder Schultermuskulatur anstelle der Brust führt.
   - Verlust der Kontrolle während der exzentrischen Phase (Rückweg), wodurch das Potenzial
     für Muskelwachstum reduziert wird.
-  - Rundung des oberen Rückens oder übermäßiges Schwung holen, anstatt die Bewegung
-    aus der Brust zu steuern.
-  - Unzureichender Bewegungsbereich, insbesondere kein vollständiges Zusammenführen
-    der Griffe oder keine volle Dehnung in der Ausgangsposition.
+  - Rundung des oberen Rückens oder übermäßiges Schwung holen, anstatt die Bewegung aus der
+    Brust zu steuern.
+  - Unzureichender Bewegungsbereich, insbesondere kein vollständiges Zusammenführen der Griffe
+    oder keine volle Dehnung in der Ausgangsposition.
   tags:
   - chest_isolation
   - cable_workout
   - muscle_building
+  - chest
+  - horizontal_adduction
+  - unreviewed
   aliases:
   - Kabelzug
   - Cable Fly

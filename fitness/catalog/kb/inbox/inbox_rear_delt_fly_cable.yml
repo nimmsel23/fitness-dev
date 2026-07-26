@@ -6,36 +6,32 @@ exercises:
   name: Vorgebeugte Kabel Rear Delt Flys
   display_name: Vorgebeugte Kabel Rear Delt Flys
   german: Vorgebeugte Kabel Rear Delt Flys
-  english: Bent-Over Cable Rear Delt Fly
+  english: Cable Rear Delt Fly
   category: shoulders
   type: isolation
   movement_pattern: horizontal_abduction
   equipment:
   - cable
   primary_muscles:
-  - 303_posterior_deltoid
+  - shoulders
   secondary_muscles:
-  - 203_trapezius_middle
-  - 204_trapezius_lower
-  - 206_erector_spinae
+  - upper_back
+  - rhomboids
   stabilizers:
-  - 501_rectus_abdominis
-  - 304_rotator_cuff
+  - abs
   coaching_notes:
-  - Oberkörper mindestens 45° nach vorne beugen — das optimiert den Hebelarm auf den
-    hinteren Deltoid.
+  - Oberkörper mindestens 45° nach vorne beugen — das optimiert den Hebelarm auf den hinteren
+    Deltoid.
   - Ellbogen leicht gebeugt halten (ca. 10–15°) und diese Position durchgehend beibehalten.
   - Mit den hinteren Delts ziehen, nicht mit den Unterarmen — Fokus auf Schulterbewegung.
   - Arme bis etwa Schulterhöhe heben; nicht höher hinaus.
   - Am obersten Punkt kurz halten und den hinteren Deltoid bewusst anspannen.
   - Volle Dehnung am unteren Punkt — aber nicht mit Schwung, sondern kontrolliert.
   - Gewicht moderat wählen um Kontrolle zu garantieren; Form > Gewicht.
-  - Die Vornbeuge engagiert auch Rumpf und Hamstrings — diese Stabilität nutzen, nicht
-    verlieren.
+  - Die Vornbeuge engagiert auch Rumpf und Hamstrings — diese Stabilität nutzen, nicht verlieren.
   common_errors:
   - Zu viel Schwung/Momentum statt kontrollierter Bewegung — führt zu schlechter Muskelaktivation.
-  - Ellbogen zu stark gebeugt oder zu stark gestreckt — sollten konstant leicht bent
-    sein.
+  - Ellbogen zu stark gebeugt oder zu stark gestreckt — sollten konstant leicht bent sein.
   - Oberarme zu tief hängen lassen — sollten nie unter Schulterhöhe gehen.
   - Mit Unterarmen/Händen ziehen statt mit Schultergelenk — reduziert Deltoid-Belastung.
   - Zu viel Gewicht, das zur Kompensation mit Rumpf führt — Form leiden lassen.
@@ -48,6 +44,9 @@ exercises:
   - posterior_chain
   - cable_machine
   - hypertrophy
+  - shoulders
+  - horizontal_abduction
+  - unreviewed
   aliases:
   - Kabel Rear Delt Fly vorgebeugt
   - Incline Cable Fly

@@ -13,19 +13,16 @@ exercises:
   equipment:
   - cable
   primary_muscles:
-  - 304_rotator_cuff
-  secondary_muscles:
-  - 303_posterior_deltoid
+  - shoulders
+  secondary_muscles: []
   stabilizers:
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
-  - 203_trapezius_middle
-  - 205_rhomboids
+  - upper_back
+  - abs
   coaching_notes:
   - Stellen Sie sich seitlich zum Kabelzugturm, der Griff auf Ellenbogenhöhe.
   - Halten Sie den Oberarm eng am Körper und beugen Sie den Ellenbogen auf 90 Grad.
-  - Rotieren Sie den Unterarm langsam nach außen, weg vom Körper, während der Oberarm
-    stabil bleibt.
+  - Rotieren Sie den Unterarm langsam nach außen, weg vom Körper, während der Oberarm stabil
+    bleibt.
   - Führen Sie die Bewegung kontrolliert zurück in die Ausgangsposition.
   - Konzentrieren Sie sich auf die Muskelkontraktion der Rotatorenmanschette und vermeiden
     Sie Schwung.
@@ -40,6 +37,9 @@ exercises:
   - rehabilitation
   - prehab
   - athletic_performance
+  - shoulders
+  - shoulder_external_rotation
+  - unreviewed
   aliases:
   - Cable Rotator Cuff
   - Shoulder External Rotation

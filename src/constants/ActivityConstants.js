@@ -77,31 +77,31 @@ export const ACTIVITY_MUSCLE_DEFAULTS = {
 // Muscle groups per target key — mirrors server.mjs muscleToGroupId keys
 export const MUSCLE_TARGET_GROUPS = {
   core:  ['core'],
-  legs:  ['quads', 'hamstrings', 'glutes', 'calves'],
-  full:  ['chest', 'back', 'shoulders', 'arms', 'core', 'quads', 'hamstrings', 'glutes'],
+  legs:  ['quadriceps', 'hamstrings', 'glutes', 'calves'],
+  full:  ['chest', 'back', 'shoulders', 'arms', 'core', 'quadriceps', 'hamstrings', 'glutes'],
 };
 
 // Single source of truth: welche Muskelgruppen jede Cardio-/Activity-Art trifft.
 // Wird von MuscleBody (Dashboard), Muscles-View und analysis.js (Coverage) genutzt.
 // Swimming = Brustschwimmen (Pec-Zug + Froschkick) — nicht Kraul.
 export const ACTIVITY_MUSCLE_GROUPS = {
-  swimming:   ["chest", "shoulders", "arms", "core", "quads", "hamstrings"], // Default = Brustschwimmen
-  running:    ["quads", "hamstrings", "calves", "glutes"],
-  cycling:    ["quads", "hamstrings", "calves", "glutes"],
-  hiking:     ["quads", "hamstrings", "calves", "glutes", "core"],
-  walking:    ["quads", "calves", "glutes"],
-  rowing:     ["back", "shoulders", "arms", "quads", "hamstrings", "core"],
+  swimming:   ["chest", "shoulders", "arms", "core", "quadriceps", "hamstrings"], // Default = Brustschwimmen
+  running:    ["quadriceps", "hamstrings", "calves", "glutes"],
+  cycling:    ["quadriceps", "hamstrings", "calves", "glutes"],
+  hiking:     ["quadriceps", "hamstrings", "calves", "glutes", "core"],
+  walking:    ["quadriceps", "calves", "glutes"],
+  rowing:     ["back", "shoulders", "arms", "quadriceps", "hamstrings", "core"],
   yoga:       ["core", "shoulders", "back"],
   stretching: ["core", "back", "hamstrings"],
-  climbing:   ["back", "shoulders", "arms", "core", "quads"],
-  hiit:       ["core", "quads", "shoulders"],
-  boxing:     ["shoulders", "arms", "core", "quads"],
+  climbing:   ["back", "shoulders", "arms", "core", "quadriceps"],
+  hiit:       ["core", "quadriceps", "shoulders"],
+  boxing:     ["shoulders", "arms", "core", "quadriceps"],
 };
 
 // Schwimmstil-Varianten — überschreiben das swimming-Default je nach Stil.
 export const SWIM_STYLE_MUSCLES = {
-  breast: ["chest", "shoulders", "arms", "core", "quads", "hamstrings"], // Brustschwimmen
-  back:   ["back", "shoulders", "arms", "core", "quads"],                // Rückenschwimmen
+  breast: ["chest", "shoulders", "arms", "core", "quadriceps", "hamstrings"], // Brustschwimmen
+  back:   ["back", "shoulders", "arms", "core", "quadriceps"],                // Rückenschwimmen
 };
 
 /**

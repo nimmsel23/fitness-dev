@@ -13,19 +13,14 @@ exercises:
   equipment:
   - machine
   primary_muscles:
-  - 601_quadriceps_femoris
-  secondary_muscles:
-  - 607_iliopsoas
-  stabilizers:
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
+  - quadriceps
+  secondary_muscles: []
+  stabilizers: []
   coaching_notes:
-  - Kontrollierte Bewegung ohne Schwung – die Streckung sollte flüssig und langsam
-    erfolgen
+  - Kontrollierte Bewegung ohne Schwung – die Streckung sollte flüssig und langsam erfolgen
   - Vollständige Streckung im obersten Punkt erreichen, ohne das Knie zu hyperextendieren
   - Gewicht bewusst wählen – zu schwer reduziert Kontrolle und Isolationswirkung
-  - Knie sollten immer in Linie mit den Hüften bleiben; nicht nach innen oder außen
-    drehen
+  - Knie sollten immer in Linie mit den Hüften bleiben; nicht nach innen oder außen drehen
   - Negative (Rückwärts-)Phase verlangsamen – das ist der wichtigste Teil für Muskelaufbau
   - Fersen auf der Fußstütze halten; nicht mit den Zehen drücken
   common_errors:
@@ -41,6 +36,9 @@ exercises:
   - quadriceps
   - single_joint
   - hypertrophy
+  - legs
+  - knee_extension
+  - unreviewed
   aliases:
   - Leg Extension Machine
   - Kniestrecker

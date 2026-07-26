@@ -9,7 +9,7 @@ import Settings from './views/Settings/index.jsx'
 import Coach from './views/Coach/index.jsx'
 import Inbox from './views/Inbox/index.js'
 import ExerciseInsightModal from './components/ExerciseInsightModal.jsx'
-import { isLocalMode, getAnatomy } from '@db'
+import { isLocalMode, getAnatomy, getAllMuscles } from '@db'
 
 import { NAV_ITEMS, VALID_TABS } from './constants/NavigationItems.js'
 
@@ -67,6 +67,11 @@ export default function App() {
   const { mainRef, swipeHint, slideDirection, setSlideDirection } = useSwipeNavigation({
     navMode, tab, swipeEnabled, setTab, NAV_ITEMS
   });
+
+  useEffect(() => {
+    if (!user) return;
+    getAllMuscles().catch(() => {});
+  }, [user]);
 
   useEffect(() => {
     if (isLocalMode()) {

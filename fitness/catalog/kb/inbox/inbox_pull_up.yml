@@ -6,53 +6,53 @@ exercises:
   name: Klimmzüge
   display_name: Klimmzüge
   german: Klimmzüge
-  category: back|arms
+  category: back
   type: compound
   movement_pattern: vertical_pull
   equipment:
   - bodyweight
+  - pull-up_bar
   primary_muscles:
-  - 201_latissimus_dorsi
-  - 402_biceps_brachii
-  - 403_brachialis
-  - 207_teres_major
+  - middle_back
+  - upper_back
   secondary_muscles:
-  - 205_rhomboids
-  - 203_trapezius_middle
-  - 204_trapezius_lower
-  - 303_posterior_deltoid
-  - 404_brachioradialis
-  - 405_forearm_flexors
+  - bizeps
+  - arms
+  - rhomboids
   stabilizers:
-  - 501_rectus_abdominis
-  - 504_transverse_abdominis
-  - 304_rotator_cuff
-  - 105_serratus_anterior
-  - 206_erector_spinae
+  - abs
+  - shoulders
   coaching_notes:
-  - Führen Sie die Bewegung über den vollen Bewegungsumfang aus, bis Ihr Kinn über
-    die Stange reicht und die Arme unten fast vollständig gestreckt sind.
-  - Konzentrieren Sie sich darauf, die Schulterblätter nach unten und hinten zu ziehen
-    (Skapuladepression und -retraktion), um den Latissimus optimal zu aktivieren.
+  - Führen Sie die Bewegung über den vollen Bewegungsumfang aus, bis Ihr Kinn über die Stange
+    reicht und die Arme unten fast vollständig gestreckt sind.
+  - Konzentrieren Sie sich darauf, die Schulterblätter nach unten und hinten zu ziehen (Skapuladepression
+    und -retraktion), um den Latissimus optimal zu aktivieren.
   - Halten Sie den Rumpf während der gesamten Bewegung stabil und vermeiden Sie Schwung.
-  - Variationen des Griffes (eng, weit, Obergriff, Untergriff) können unterschiedliche
-    Muskelgruppen und deren Betonung beeinflussen.
+  - Variationen des Griffes (eng, weit, Obergriff, Untergriff) können unterschiedliche Muskelgruppen
+    und deren Betonung beeinflussen.
   common_errors:
-  - Unvollständiger Bewegungsumfang (z.B. Kinn erreicht nicht die Stange oder Arme
-    werden nicht vollständig gestreckt).
-  - Verwendung von Schwung ('Kipping'), um die Bewegung zu erleichtern, statt aus
-    reiner Muskelkraft zu arbeiten.
-  - Die Schultern werden nach oben gezogen (Shrugging) oder rollen nach vorne, anstatt
-    die Schulterblätter nach unten zu ziehen.
-  - Verlust der Rumpfspannung, was zu einem unkontrollierten Schwingen des Körpers
-    führt.
+  - Unvollständiger Bewegungsumfang (z.B. Kinn erreicht nicht die Stange oder Arme werden
+    nicht vollständig gestreckt).
+  - Verwendung von Schwung ('Kipping'), um die Bewegung zu erleichtern, statt aus reiner Muskelkraft
+    zu arbeiten.
+  - Die Schultern werden nach oben gezogen (Shrugging) oder rollen nach vorne, anstatt die
+    Schulterblätter nach unten zu ziehen.
+  - Verlust der Rumpfspannung, was zu einem unkontrollierten Schwingen des Körpers führt.
   tags:
   - back_strength
   - upper_body
   - grip_strength
   - calisthenics
+  - back
+  - vertical_pull
+  - unreviewed
   aliases:
   - Pull-ups
   - Klimmzug
+  - Klimmzug im Obergriff
+  - Obergriff Klimmzug
+  - Pull-up
+  - Pull Up
   variations: []
   source: unreviewed
+  english: Pull-up

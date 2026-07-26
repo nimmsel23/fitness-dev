@@ -14,26 +14,22 @@ exercises:
   - dumbbell
   - barbell
   primary_muscles:
-  - 301_anterior_deltoid
+  - shoulders
+  - arms
   secondary_muscles:
-  - 401_triceps_brachii
-  - 302_lateral_deltoid
-  - 603_gluteus_maximus
-  - 604_biceps_femoris
+  - quadriceps
+  - glutes
   stabilizers:
-  - 206_erector_spinae
-  - 504_transverse_abdominis
-  - 505_quadratus_lumborum
-  - 304_rotator_cuff
-  - 501_rectus_abdominis
+  - abs
+  - lower_back
   coaching_notes:
   - Der Hüftschwung erzeugt Momentum aus den Beinen - dies ist eine Power-Bewegung
-  - Tiefe Kniebeugen vor dem Drücken sind essentiell, um die Kraft aus den Quadrizeps
-    und Glutes zu nutzen
+  - Tiefe Kniebeugen vor dem Drücken sind essentiell, um die Kraft aus den Quadrizeps und
+    Glutes zu nutzen
   - Starke Kernspannung während der gesamten Bewegung bewahren, kein Hohlkreuz
   - Die Arme sollten die Bewegung vollständig ausbremsen, nicht nur leiten
-  - Diese Variante ist ideal für Kraftentwicklung, aber der reguläre Schulterdruck
-    trainiert die Schultermuskulatur isolierter
+  - Diese Variante ist ideal für Kraftentwicklung, aber der reguläre Schulterdruck trainiert
+    die Schultermuskulatur isolierter
   common_errors:
   - Zu viel Rückenbiegung in der Lendenwirbelsäule - Kern anspannen
   - Knie nicht ausreichend nutzen - der Schwung sollte aus einer echten Kniebeugen-Position
@@ -47,6 +43,9 @@ exercises:
   - compound
   - momentum
   - hip_drive
+  - shoulders
+  - vertical_press
+  - unreviewed
   aliases:
   - Stoß-Drücken
   - Power Press

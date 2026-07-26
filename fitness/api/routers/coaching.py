@@ -173,9 +173,9 @@ def blocks():
     defaults = [
         {"id": "push",  "label": "Push",  "muscle_groups": ["chest", "shoulders", "arms"]},
         {"id": "pull",  "label": "Pull",  "muscle_groups": ["back", "arms"]},
-        {"id": "legs",  "label": "Legs",  "muscle_groups": ["quads", "hamstrings", "glutes", "calves"]},
+        {"id": "legs",  "label": "Legs",  "muscle_groups": ["quadriceps", "hamstrings", "glutes", "calves"]},
         {"id": "upper", "label": "Upper", "muscle_groups": ["chest", "back", "shoulders", "arms"]},
-        {"id": "lower", "label": "Lower", "muscle_groups": ["quads", "hamstrings", "glutes", "calves"]},
+        {"id": "lower", "label": "Lower", "muscle_groups": ["quadriceps", "hamstrings", "glutes", "calves"]},
     ]
     plan = _read_json(RUNTIME / "plan.json")
     for unit in (plan or {}).get("einheiten", []):

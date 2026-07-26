@@ -11,10 +11,12 @@ const GROUP_TRANSLATIONS = {
     arms: 'Arme',
     core: 'Bauch',
     glutes: 'Gesäß',
-    quads: 'Beinstrecker',
+    quadriceps: 'Quadrizeps',
     hamstrings: 'Beinbeuger',
     calves: 'Waden',
     legs: 'Beine',
+    adductors: 'Adduktoren',
+    abductors: 'Abduktoren',
     trapezius: 'Nacken',
   },
   en: {
@@ -24,10 +26,12 @@ const GROUP_TRANSLATIONS = {
     arms: 'Arms',
     core: 'Core',
     glutes: 'Glutes',
-    quads: 'Quads',
+    quadriceps: 'Quadriceps',
     hamstrings: 'Hamstrings',
     calves: 'Calves',
     legs: 'Legs',
+    adductors: 'Adductors',
+    abductors: 'Hip Abductors',
     trapezius: 'Traps',
   },
   lat: {
@@ -37,10 +41,12 @@ const GROUP_TRANSLATIONS = {
     arms: 'Membrum sup.',
     core: 'Core',
     glutes: 'Gluteus',
-    quads: 'Quadriceps',
+    quadriceps: 'Quadriceps',
     hamstrings: 'Ischiocrurale',
     calves: 'Sura',
     legs: 'Membrum inf.',
+    adductors: 'Mm. adductores',
+    abductors: 'Mm. abductores',
     trapezius: 'Trapezius',
   }
 };
@@ -61,9 +67,10 @@ function numericSlugToGroup(id) {
   if (n >= 400 && n < 500) return 'arms';
   if (n >= 500 && n < 600) return 'core';
   if (n >= 600 && n < 700) {
-    if (n <= 602) return 'glutes';
-    if (n === 603) return 'quads';
-    if (n === 604) return 'hamstrings';
+    if (n === 601) return 'quadriceps';
+    if (n === 602) return 'adductors';
+    if (n === 603 || n === 608 || n === 609) return 'glutes';
+    if (n >= 604 && n <= 606) return 'hamstrings';
     return 'legs';
   }
   if (n >= 700 && n < 800) return 'calves';
@@ -77,53 +84,53 @@ function numericSlugToGroup(id) {
 const STRING_ALIASES = {
   // Aus muscle_index.yml -- 1:1
   'abdominals':  '500_core',
-  'abductors':   '602_gluteus_medius',
-  'adductors':   '610_adductors',
-  'biceps':      '401_biceps_brachii',
+  'abductors':   'abductors',
+  'adductors':   '602_adductors',
+  'biceps':      '402_biceps_brachii',
   'calves':      '700_calves',
   'chest':       '100_chest',
   'forearms':    '405_forearm_flexors',
-  'glutes':      '601_gluteus_maximus',
-  'hamstrings':  '604_hamstrings',
+  'glutes':      'glutes',
+  'hamstrings':  'hamstrings',
   'lats':        '201_latissimus_dorsi',
   'lower back':  '206_erector_spinae',
   'middle back': '200_back',
   'neck':        '202_trapezius_upper',
-  'quadriceps':  '603_quadriceps',
+  'quadriceps':  '601_quadriceps_femoris',
   'shoulders':   '300_shoulders',
   'traps':       '202_trapezius_upper',
-  'triceps':     '403_triceps_brachii',
+  'triceps':     '401_triceps_brachii',
   // Ergänzungen für bare snake_case / Volltext aus wger/yuhonas (KB hat sie nicht)
-  'biceps brachii':       '401_biceps_brachii',
-  'biceps femoris':       '607_biceps_femoris',
-  'brachialis':           '402_brachialis',
+  'biceps brachii':       '402_biceps_brachii',
+  'biceps femoris':       '604_biceps_femoris',
+  'brachialis':           '403_brachialis',
   'brachioradialis':      '404_brachioradialis',
   'erector spinae':       '206_erector_spinae',
   'forearm flexors':      '405_forearm_flexors',
   'gastrocnemius':        '701_gastrocnemius',
-  'gluteus maximus':      '601_gluteus_maximus',
-  'gluteus medius':       '602_gluteus_medius',
-  'iliopsoas':            '611_iliopsoas',
+  'gluteus maximus':      '603_gluteus_maximus',
+  'gluteus medius':       '608_gluteus_medius',
+  'iliopsoas':            '607_iliopsoas',
   'latissimus dorsi':     '201_latissimus_dorsi',
   'obliques':             '502_obliquus_externus',
   'obliquus externus':    '502_obliquus_externus',
   'pectoralis major':     '101_pectoralis_major',
-  'quadriceps femoris':   '603_rectus_femoris',
+  'quadriceps femoris':   '601_quadriceps_femoris',
   'quadratus lumborum':   '208_quadratus_lumborum',
   'rectus abdominis':     '501_rectus_abdominis',
-  'rectus femoris':       '603_rectus_femoris',
+  'rectus femoris':       '601a_rectus_femoris',
   'rhomboids':            '205_rhomboids',
   'rotator cuff':         '304_rotator_cuff',
-  'semitendinosus':       '608_semitendinosus',
-  'semimembranosus':      '609_semimembranosus',
-  'serratus anterior':    '104_serratus_anterior',
+  'semitendinosus':       '605_semitendinosus',
+  'semimembranosus':      '606_semimembranosus',
+  'serratus anterior':    '105_serratus_anterior',
   'soleus':               '702_soleus',
   'teres major':          '207_teres_major',
   'transverse abdominis': '504_transverse_abdominis',
-  'triceps brachii':      '403_triceps_brachii',
-  'vastus lateralis':     '604_vastus_lateralis',
-  'vastus medialis':      '605_vastus_medialis',
-  'vastus intermedius':   '606_vastus_intermedius',
+  'triceps brachii':      '401_triceps_brachii',
+  'vastus lateralis':     '601b_vastus_lateralis',
+  'vastus medialis':      '601c_vastus_medialis',
+  'vastus intermedius':   '601d_vastus_intermedius',
   'anterior deltoid':     '301_anterior_deltoid',
   'lateral deltoid':      '302_lateral_deltoid',
   'posterior deltoid':    '303_posterior_deltoid',
@@ -138,7 +145,6 @@ const STRING_ALIASES = {
   'abs':           '500_core',
   'shoulder':      '300_shoulders',
   'forearm':       '405_forearm_flexors',
-  'quads':         '603_rectus_femoris',
   'arms':          '400_arms',
   'back':          '200_back',
   'legs':          '600_legs',
@@ -180,9 +186,9 @@ const NAME_TO_GROUP = {
   // glutes / hips
   'glutes': 'glutes', 'gluteus maximus': 'glutes', 'gluteus medius': 'glutes', 'gluteus minimus': 'glutes',
   'abductors': 'glutes', 'adductors': 'glutes', 'iliopsoas': 'glutes',
-  // quads / hams / calves
-  'quads': 'quads', 'quadriceps': 'quads', 'quadriceps femoris': 'quads',
-  'rectus femoris': 'quads', 'vastus lateralis': 'quads', 'vastus medialis': 'quads', 'vastus intermedius': 'quads',
+  // quadriceps / hams / calves
+  'quadriceps': 'quadriceps', 'quadriceps femoris': 'quadriceps',
+  'rectus femoris': 'quadriceps', 'vastus lateralis': 'quadriceps', 'vastus medialis': 'quadriceps', 'vastus intermedius': 'quadriceps',
   'hamstrings': 'hamstrings', 'biceps femoris': 'hamstrings',
   'semitendinosus': 'hamstrings', 'semimembranosus': 'hamstrings',
   'calves': 'calves', 'gastrocnemius': 'calves', 'soleus': 'calves',
@@ -234,7 +240,7 @@ function nameToGroup(raw) {
 }
 
 // Konvertiert beliebige Roh-Form (snake_case bare, Title-Case mit Space, plain)
-// in eine kanonische ID mit Nummer-Präfix (z.B. "601_gluteus_maximus").
+// in eine kanonische ID mit Nummer-Präfix (z.B. "603_gluteus_maximus").
 // Gibt den Roh-Wert zurück wenn kein Alias bekannt — bricht also nichts.
 export function canonicalMuscleId(raw) {
   if (!raw) return '';
@@ -254,8 +260,8 @@ function prettify(raw) {
     .join(' ');
 }
 
-// Komma-gejointe Strings (KB-Bug in einigen YAMLs: "603_rectus_femoris, 604_vastus_…")
-// werden hier am Konsum-Punkt aufgesplittet. Akzeptiert auch Slash + Semikolon.
+// Komma-gejointe Strings aus unsauberen YAMLs werden hier am Konsum-Punkt
+// aufgesplittet. Akzeptiert auch Slash + Semikolon.
 export function splitMuscleEntries(list) {
   if (!Array.isArray(list)) return [];
   const out = [];

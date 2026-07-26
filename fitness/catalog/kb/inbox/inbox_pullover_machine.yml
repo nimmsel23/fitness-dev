@@ -7,22 +7,18 @@ exercises:
   display_name: Pullover-Maschine
   german: Pullover-Maschine
   english: Pullover Machine
-  category: chest
+  category: back
   type: isolation
-  movement_pattern: horizontal_pull
+  movement_pattern: shoulder_extension
   equipment:
   - machine
   primary_muscles:
-  - 101_pectoralis_major
+  - middle_back
   secondary_muscles:
-  - 201_latissimus_dorsi
-  - 105_serratus_anterior
-  - 207_teres_major
+  - chest
+  - shoulders
   stabilizers:
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
-  - 202_trapezius_upper
-  - 304_rotator_cuff
+  - abs
   coaching_notes:
   - Kontrollierte Bewegung durchführen, keine ruckartigen Züge oder Schwungbewegungen
   - In der Ausgangsposition die Arme vollständig oder nahezu vollständig strecken
@@ -43,6 +39,9 @@ exercises:
   - horizontal-pull
   - hypertrophy
   - warm-up
+  - back
+  - shoulder_extension
+  - unreviewed
   aliases:
   - Machine Pullover
   - Brustmaschine-Pullover

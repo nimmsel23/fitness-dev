@@ -15,21 +15,20 @@ exercises:
   - barbell
   - cable
   primary_muscles:
-  - 401_triceps_brachii
-  secondary_muscles:
-  - 407_anconeus
+  - arms
+  secondary_muscles: []
   stabilizers:
-  - 304_rotator_cuff
+  - shoulders
   coaching_notes:
-  - Arme sollten während der gesamten Bewegung senkrecht zum Boden bleiben. Nur die
-    Ellbogen beugen sich, keine Schulterbewegung.
-  - Ellbogen eng beieinander halten. Ein breiter Stand führt zu schlechterer Isolation
-    und überlasten die Schultergelenke.
+  - Arme sollten während der gesamten Bewegung senkrecht zum Boden bleiben. Nur die Ellbogen
+    beugen sich, keine Schulterbewegung.
+  - Ellbogen eng beieinander halten. Ein breiter Stand führt zu schlechterer Isolation und
+    überlasten die Schultergelenke.
   - 'Vollständigen Bewegungsbereich nutzen: von der vollen Streckung bis zur kontrollierten
     Beugung hinter dem Kopf.'
   - Bei der Absenkung einatmen, bei der Streckung ausatmen.
-  - Mit moderatem Gewicht beginnen – diese Übung erfordert gute Kontrolle und Stabilität
-    im Ellbogengelenk.
+  - Mit moderatem Gewicht beginnen – diese Übung erfordert gute Kontrolle und Stabilität im
+    Ellbogengelenk.
   common_errors:
   - Ellbogen bewegen sich auseinander statt stabil beieinander zu bleiben
   - Schulterbewegung statt isolierter Ellbogenstreckung – führt zu Kraftverlust
@@ -44,6 +43,7 @@ exercises:
   - free_weight
   - dumbbell
   - lying
+  - unreviewed
   aliases:
   - Skull Crushers
   - Lying Triceps Extension

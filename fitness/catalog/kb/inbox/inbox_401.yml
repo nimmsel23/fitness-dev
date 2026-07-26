@@ -13,13 +13,11 @@ exercises:
   equipment:
   - machine
   primary_muscles:
-  - 601_quadriceps_femoris
+  - quadriceps
   secondary_muscles: []
-  stabilizers:
-  - 602_adductors
+  stabilizers: []
   coaching_notes:
-  - 'Volle Bewegungsamplitude nutzen: von maximaler Kniebeugung bis zur vollständigen
-    Streckung'
+  - 'Volle Bewegungsamplitude nutzen: von maximaler Kniebeugung bis zur vollständigen Streckung'
   - Oben 1-2 Sekunden statisch halten und den Quadriceps maximal kontrahieren
   - Langsam und kontrolliert arbeiten, besonders in der exzentrischen (abwärts) Phase
   - Knie nicht überextendieren oder nach außen drehen – gerade Bewegungslinie
@@ -37,6 +35,8 @@ exercises:
   - quad_isolation
   - knee_extension
   - hypertrophy
+  - legs
+  - unreviewed
   aliases:
   - leg_extension_machine
   - quadriceps_extension

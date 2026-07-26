@@ -75,6 +75,7 @@ def get_top_unreviewed_exercises(limit: int = 5, days: int = 28) -> list[tuple[s
         usage = conn.execute(
             f"SELECT exercise_id, COUNT(*) as count FROM training_history "
             f"WHERE date >= date('now', '-{days} days') "
+            "AND (done = 1 OR sets > 0 OR reps > 0 OR weight > 0 OR rpe > 0) "
             f"GROUP BY exercise_id ORDER BY count DESC"
         ).fetchall()
     
@@ -90,7 +91,7 @@ def get_top_unreviewed_exercises(limit: int = 5, days: int = 28) -> list[tuple[s
     for ex_id, count in usage:
         if ex_id in unreviewed_ids:
             # Also check if it's already in the inbox (inbox_{ex_id}.yml)
-            inbox_file = catalog_path(f"exercises/inbox_{ex_id}.yml")
+            inbox_file = catalog_path(f"inbox/inbox_{ex_id}.yml")
             if not inbox_file.exists():
                 results.append((ex_id, count))
                 if len(results) >= limit:

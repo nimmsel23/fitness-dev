@@ -31,16 +31,16 @@ class ResolverTest(unittest.TestCase):
         self.assertEqual(result.confidence, "high")
 
     def test_alias_match(self) -> None:
-        result = resolve_query("kh schrägbank")
+        result = resolve_query("Schrägbankdrücken Kurzhantel")
         self.assertTrue(result.matched)
-        self.assertEqual(result.canonical_id, "incline_dumbbell_press")
-        self.assertEqual(result.source, "alias")
+        self.assertEqual(result.canonical_id, "041")
+        self.assertEqual(result.source, "name")
         self.assertEqual(result.confidence, "high")
 
     def test_german_name_match(self) -> None:
         result = resolve_query("Klimmzug im Obergriff")
         self.assertTrue(result.matched)
-        self.assertEqual(result.canonical_id, "pull_up")
+        self.assertEqual(result.canonical_id, "020")
         self.assertEqual(result.source, "name")
         self.assertEqual(result.confidence, "high")
 

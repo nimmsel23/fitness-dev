@@ -9,18 +9,15 @@ exercises:
   english: High-to-Low Cable Crossover
   category: chest
   type: isolation
-  movement_pattern: horizontal_adduction
+  movement_pattern: decline_horizontal_adduction
   equipment:
   - cable
   primary_muscles:
-  - 101_pectoralis_major
+  - chest
   secondary_muscles:
-  - 301_anterior_deltoid
-  - 304_rotator_cuff
+  - shoulders
   stabilizers:
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
-  - 202_trapezius_upper
+  - abs
   coaching_notes:
   - Arme in leichter Beugung halten (ca. 15–20° Flexion), nicht völlig gestreckt
   - Die Bewegung aus der Brust initiieren — nicht aus den Schultern
@@ -40,6 +37,9 @@ exercises:
   - cable-work
   - horizontal-adduction
   - finisher
+  - chest
+  - decline_horizontal_adduction
+  - unreviewed
   aliases:
   - high-low cable fly
   - cable cross-over high to low

@@ -16,10 +16,14 @@ In vorherigen Iterationen hatten KI-Agenten eine Vielzahl an doppelten, veraltet
 
 ## 2. Grundprinzip: Der Katalog deklariert sich selbst (Source of Truth)
 
-Jede Info liegt **exakt an einer Stelle** im Verzeichnis `fitness/catalog/kb/muscles/`:
+Jede Info liegt **exakt an einer Stelle** im Verzeichnis `fitness/catalog/kb/muscles/`.
+Wichtig: Der Katalog hat zwei Ebenen, und die App muss diese Ebenen getrennt
+lesen.
 
 ### A. Top-Level Regionen-Dateien (`kb/muscles/*.yml`)
-Dateien wie `quadriceps.yml`, `upper_back.yml`, `middle_back.yml`, `lower_back.yml`, `chest.yml`, `shoulders.yml`, `calves.yml`, etc. deklarieren die Regionen:
+Dateien wie `chest.yml`, `shoulders.yml`, `calves.yml`, `hamstrings.yml`,
+`upper_back.yml`, `middle_back.yml`, `lower_back.yml`, etc. deklarieren die
+groben App-Regionen/Buckets:
 ```yaml
 id: quadriceps
 display_name: Quadriceps
@@ -34,9 +38,25 @@ muscles:
 ```
 - **`muscles: [...]`**: Die Liste aller zugehörigen Muskel-IDs.
 - **`legs.yml` & `back.yml`**: Dienen als bewusste Fallback-Buckets für allgemeine Übungen.
+- **Bucket-Prezedenz:** kleine/spezifische Buckets gewinnen vor großen
+  Sammel-Buckets. Beispiel: `quadriceps.yml` gewinnt vor `legs.yml`,
+  `bizeps.yml` gewinnt vor `arms.yml`. Sammeldateien bleiben nur Fallback für
+  Muskeln ohne spezifischeren Top-Level-Bucket.
+- **Öffentliche Dokument-ID:** der Dateiname ohne Endung, z. B. `chest` aus
+  `chest.yml`. Ein internes `id: 100_chest` darf diese Bucket-ID nicht
+  ersetzen.
 
 ### B. Unter-Muskel-Dateien (`kb/muscles/<region>/<id>.yml`)
 Einzelmuskel-Dateien enthalten nur noch ihre kanonischen Kerndaten (`id`, `display_name`, `label_de`, `wger_id`, `aliases`, `viz`). Keine redundanten `region:` oder `body_region:` Felder mehr.
+Die `region` wird beim Sync aus dem Ordnernamen abgeleitet, z. B.
+`kb/muscles/chest/101_pectoralis_major.yml` -> `region: chest`.
+
+### C. Firestore/API-Contract
+Beide Ebenen werden vollständig exportiert. Top-Level-Dateien werden als
+`kb_level: region` gepusht, Unterordner-Dateien als `kb_level: muscle`.
+Dadurch überschreibt `bizeps.yml` nicht mehr
+`arms/402_biceps_brachii.yml`, obwohl beide historisch dasselbe `id:`-Feld
+tragen können.
 
 ---
 
@@ -44,7 +64,7 @@ Einzelmuskel-Dateien enthalten nur noch ihre kanonischen Kerndaten (`id`, `displ
 
 ```mermaid
 graph TD
-    A["KB YAMLs (kb/muscles/*.yml)"] -->|1:1 Sync via firestore_push.py| B["Firestore (fitness/kb/muscles)"]
+    A["KB YAMLs (kb/muscles/*.yml + */*.yml)"] -->|1:1 Sync via firestore_push.py| B["Firestore (fitness/kb/muscles)"]
     B -->|getAllMuscles() beim App-Start| C["shared/muscle.js (setKBMuscles)"]
     C --> D["_kbRegions & _muscleToRegionMap"]
     D --> E["muscleToRegion(id)"]

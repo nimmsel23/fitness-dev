@@ -9,29 +9,23 @@ exercises:
   english: Front Squat
   category: legs
   type: compound
-  movement_pattern: vertical_squat
+  movement_pattern: squat
   equipment:
   - barbell
   - dumbbell
   primary_muscles:
-  - 601_quadriceps_femoris
-  - 603_gluteus_maximus
+  - quadriceps
   secondary_muscles:
-  - 602_adductors
-  - 206_erector_spinae
-  - 607_iliopsoas
+  - glutes
+  - adductors
+  - hamstrings
   stabilizers:
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
-  - 503_obliquus_internus
-  - 504_transverse_abdominis
-  - 505_quadratus_lumborum
-  - 202_trapezius_upper
-  - 205_rhomboids
-  - 304_rotator_cuff
+  - abs
+  - lower_back
+  - upper_back
+  - calves
   coaching_notes:
-  - Oberkörper aufrecht halten, die Stange ruht auf den vorderen Deltamuskeln und
-    Schlüsselbeinen
+  - Oberkörper aufrecht halten, die Stange ruht auf den vorderen Deltamuskeln und Schlüsselbeinen
   - Knie fahren nach vorne über die Zehen in einer geraden Linie – kein Valgus-Einknicken
   - Tiefe unter Kontrolle erreichen, kein Ruck aus der untersten Position
   - Enge Fußstellung, etwa hüftbreit, Gewicht im Vorfuß verteilt
@@ -49,6 +43,9 @@ exercises:
   - strength
   - hypertrophy
   - leg_press
+  - legs
+  - squat
+  - unreviewed
   aliases:
   - Frontbeuge
   - Front-Kniebeuge

@@ -2,6 +2,10 @@
 
 Dieses Dokument beschreibt die Architektur der Exercise-Datenbank, den Indexing-Mechanismus und den proaktiven Expert-Daemon.
 
+Der konkrete Inbox -> AI-Enrichment -> Coach-Review -> Expert-Approval Flow ist in
+[`EXERCISE_CATALOG_FLOW.md`](EXERCISE_CATALOG_FLOW.md) festgelegt. Diese Flow-Regel
+gewinnt gegen ad-hoc Reparaturen an `unreviewed_*` oder Inbox-Drafts.
+
 ## 1. Multi-Tier Datenstruktur (The 3-Tier Model)
 Um Skalierbarkeit ohne Qualitätsverlust zu garantieren, nutzt das System drei Ebenen:
 

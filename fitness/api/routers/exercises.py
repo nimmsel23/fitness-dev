@@ -13,6 +13,7 @@ from db.schemas import ExerciseSearchResponse, MusclesResponse
 # ── catalog imports ─────────────────────────────────────────────────────
 from fitness.catalog.core.resolver import resolve_query, find_by_id
 from fitness.catalog.agent.teaching import find_lesson
+from fitness.catalog.core.muscles import iter_muscle_documents
 
 # ── Optional anatomy_kb ───────────────────────────────────────────────────────
 import sys
@@ -172,12 +173,18 @@ async def muscles_list():
         logger.error(f"muscles_list: {exc}")
         raise HTTPException(502, detail=str(exc))
 
+@router.get("/fitness/muscles/all")
+def muscles_all():
+    try:
+        return {"ok": True, "muscles": [doc for _doc_id, doc in iter_muscle_documents()]}
+    except Exception as exc:
+        logger.error(f"muscles_all: {exc}")
+        raise HTTPException(500, detail=str(exc))
+
 @router.get("/fitness/muscles/viz")
 def muscles_viz():
     try:
         from fitness.catalog.core.loader import load_catalog_yaml
-        from fitness.catalog.core.yaml_utils import load_yaml
-        from fitness.catalog.core.paths import DATA_DIR as _FA_DATA
 
         taxonomy = load_catalog_yaml("muscle_index.yml") or {}
         index_muscles = taxonomy.get("muscles", {}) if isinstance(taxonomy, dict) else {}
@@ -199,18 +206,16 @@ def muscles_viz():
         # als Fallback für alles, was keine spezifischere Datei schon
         # zugeordnet hat. Kein hartcodiertes Ranking — die Reihenfolge ergibt
         # sich rein aus der Struktur der Dateien selbst.
-        region_files = []
-        for yml in _FA_DATA.glob("muscles/*.yml"):
-            data = load_yaml(yml)
-            if isinstance(data, dict) and data.get("muscles"):
-                region_files.append(data)
+        region_files = [
+            data for _doc_id, data in iter_muscle_documents()
+            if data.get("kb_level") == "region" and isinstance(data.get("muscles"), list)
+        ]
         region_files.sort(key=lambda d: len(d["muscles"]))
 
         region: dict = {}
         region_labels: dict = {}
         for data in region_files:
-            rid = data.get("id", "")
-            word = rid.split("_", 1)[1] if "_" in rid else rid
+            word = data.get("region") or data.get("doc_id") or data.get("id", "")
             if not word:
                 continue
             region_labels.setdefault(word, data.get("label_de") or data.get("display_name") or word)
@@ -221,10 +226,8 @@ def muscles_viz():
         # (der einzige, der pro Muskel links/rechts-Segmente braucht).
         body_muscles: dict = {}
         labels: dict = {}
-        muscles_dir = _FA_DATA / "muscles"
-        for yml in sorted(muscles_dir.glob("*/*.yml")):
-            data = load_yaml(yml)
-            if not data:
+        for _doc_id, data in iter_muscle_documents():
+            if data.get("kb_level") != "muscle":
                 continue
             muscle_id = data.get("id")
             if not muscle_id:
@@ -254,6 +257,12 @@ async def muscle_detail_anatomy(id: str):
                 return muscle
         except Exception as exc:
             logger.warning(f"muscle_detail {id}: {exc}")
+    try:
+        for doc_id, data in iter_muscle_documents():
+            if id in {doc_id, data.get("id"), data.get("catalog_id")}:
+                return data
+    except Exception as exc:
+        logger.warning(f"catalog muscle_detail {id}: {exc}")
     raise HTTPException(404, detail="not_found")
 
 @router.get("/fitness/inbox")
@@ -299,11 +308,12 @@ def inbox_delete(id: str):
 @router.post("/fitness/inbox/{id}/reenrich")
 async def inbox_reenrich(id: str, request: Request):
     """Jagt einen bestehenden Inbox-Eintrag (lokal oder Firestore-Draft aus
-    einer frueheren Import-Aera) frisch durch Gemini. Ueberschreibt den
-    KB-Draft in kb/exercises/inbox_*.yml per force=True (normaler Watcher-Pfad
-    ueberspringt sonst, sobald der Draft schon existiert). Bei uid+doc_id im
-    Body wird zusaetzlich das Firestore-Inbox-Dokument aktualisiert, damit die
-    Coach-UI (Firebase-Modus) den neuen Stand sieht.
+    einer frueheren Import-Aera) frisch durch die AI-Provider-Kette
+    Gemini -> Haiku -> Codex. Ueberschreibt den KB-Draft in kb/inbox/*.yml per
+    force=True (normaler Watcher-Pfad ueberspringt sonst, sobald der Draft
+    schon existiert). Bei uid+doc_id im Body wird zusaetzlich das
+    Firestore-Inbox-Dokument aktualisiert, damit die Coach-UI (Firebase-Modus)
+    den neuen Stand sieht.
     """
     from fitness.catalog.agent.gemini import load_gemini_key
     from fitness.catalog.api.watcher import process_inbox_file_virtual, _write_back_to_firestore_inbox
@@ -320,14 +330,12 @@ async def inbox_reenrich(id: str, request: Request):
         exercise_id = resolution.canonical_id if resolution.matched else display_name
 
     api_key = load_gemini_key()
-    if not api_key:
-        raise HTTPException(503, detail="gemini_key_missing")
 
     process_inbox_file_virtual(exercise_id, display_name, api_key, force=True)
 
     safe_name = str(exercise_id).lower().replace(" ", "_")
     from fitness.catalog.core.paths import DATA_DIR
-    draft_path = DATA_DIR / "exercises" / f"inbox_{safe_name}.yml"
+    draft_path = DATA_DIR / "inbox" / f"inbox_{safe_name}.yml"
     if not draft_path.exists():
         raise HTTPException(502, detail="gemini_enrichment_failed")
 

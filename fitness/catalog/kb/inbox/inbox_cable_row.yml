@@ -1,29 +1,26 @@
 name: inbox_cable_row
 description: 'Proactively generated expert draft for: Rudern'
 exercises:
-- exercise_id: barbell_row
-  id: barbell_row
-  name: Rudern
-  display_name: Rudern
-  german: Langhantel-Rudern
-  english: Barbell Row
+- exercise_id: cable_row
+  id: cable_row
+  name: Rudern am Kabelzug
+  display_name: Rudern am Kabelzug
+  german: Rudern am Kabelzug
+  english: Cable Row
   category: back
   type: compound
   movement_pattern: horizontal_pull
   equipment:
-  - barbell
+  - cable
   primary_muscles:
-  - 201_latissimus_dorsi
-  - 202_trapezius_upper
-  - 203_trapezius_middle
+  - middle_back
+  - upper_back
   secondary_muscles:
-  - 206_erector_spinae
-  - 207_teres_major
-  - 401_triceps_brachii
+  - bizeps
+  - arms
   stabilizers:
-  - 501_rectus_abdominis
-  - 505_quadratus_lumborum
-  - 205_rhomboids
+  - abs
+  - lower_back
   coaching_notes:
   - Oberkörper minimal nach vorne neigen (etwa 45°), Knie leicht gebeugt
   - Langhantel dicht am Körper halten, nicht weggebeugt
@@ -43,9 +40,11 @@ exercises:
   - horizontal_pull
   - barbell
   - strength
+  - unreviewed
   aliases:
-  - Bent-Over Row
-  - Kreuzheben-Rudern
-  - Barbell Bent-Over Row
+  - Cable Row
+  - Seated Cable Row
+  - Rudern am Kabelzug
+  - Kabelrudern
   variations: []
   source: unreviewed

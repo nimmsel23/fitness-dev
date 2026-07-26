@@ -13,48 +13,44 @@ exercises:
   equipment:
   - machine
   primary_muscles:
-  - 302_lateral_deltoid
-  secondary_muscles:
-  - 202_trapezius_upper
-  - 304_rotator_cuff
+  - shoulders
+  secondary_muscles: []
   stabilizers:
-  - 206_erector_spinae
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
+  - abs
   coaching_notes:
-  - Stellen Sie sich oder setzen Sie sich korrekt in die Maschine, sodass die Polster
-    auf Höhe Ihrer Ellbogen oder Unterarme liegen.
-  - Halten Sie Ihren Rumpf stabil und den Rücken gerade, idealerweise mit leichtem
-    Kontakt zur Rückenlehne.
-  - Heben Sie die Arme kontrolliert seitlich nach oben, indem Sie die Kraft aus den
-    Schultern (seitlicher Deltamuskel) holen.
-  - Stellen Sie sich vor, Sie schütten Wasser aus zwei Kannen seitlich aus – Ihre
-    Ellbogen sollten dabei leicht gebeugt und die Hände tiefer als die Ellbogen sein.
-  - Führen Sie die Bewegung nur bis etwa Schulterhöhe aus, um unnötige Belastung der
-    Nackenmuskulatur zu vermeiden.
+  - Stellen Sie sich oder setzen Sie sich korrekt in die Maschine, sodass die Polster auf
+    Höhe Ihrer Ellbogen oder Unterarme liegen.
+  - Halten Sie Ihren Rumpf stabil und den Rücken gerade, idealerweise mit leichtem Kontakt
+    zur Rückenlehne.
+  - Heben Sie die Arme kontrolliert seitlich nach oben, indem Sie die Kraft aus den Schultern
+    (seitlicher Deltamuskel) holen.
+  - Stellen Sie sich vor, Sie schütten Wasser aus zwei Kannen seitlich aus – Ihre Ellbogen
+    sollten dabei leicht gebeugt und die Hände tiefer als die Ellbogen sein.
+  - Führen Sie die Bewegung nur bis etwa Schulterhöhe aus, um unnötige Belastung der Nackenmuskulatur
+    zu vermeiden.
   - Lassen Sie das Gewicht langsam und kontrolliert in die Ausgangsposition zurückkehren,
     widerstehen Sie dem Zug des Gewichts.
   common_errors:
-  - 'Schwung holen: Vermeiden Sie es, mit dem Oberkörper Schwung zu holen, um das
-    Gewicht nach oben zu bewegen. Die Bewegung sollte ausschließlich aus den Schultern
-    kommen.'
-  - 'Schultern hochziehen (Shrugs): Achten Sie darauf, dass Ihre Schultern während
-    der gesamten Übung unten bleiben und nicht in Richtung Ohren gezogen werden. Dies
-    würde den oberen Trapezius überbeanspruchen.'
+  - 'Schwung holen: Vermeiden Sie es, mit dem Oberkörper Schwung zu holen, um das Gewicht
+    nach oben zu bewegen. Die Bewegung sollte ausschließlich aus den Schultern kommen.'
+  - 'Schultern hochziehen (Shrugs): Achten Sie darauf, dass Ihre Schultern während der gesamten
+    Übung unten bleiben und nicht in Richtung Ohren gezogen werden. Dies würde den oberen
+    Trapezius überbeanspruchen.'
   - 'Zu viel Gewicht: Wenn das Gewicht zu schwer ist, leidet die Form, und Sie riskieren,
-    andere Muskeln einzusetzen oder die Gelenke zu überlasten. Wählen Sie ein Gewicht,
-    das Ihnen eine saubere Ausführung erlaubt.'
-  - 'Ellbogen durchstrecken: Halten Sie Ihre Ellbogen während der gesamten Bewegung
-    leicht gebeugt, um die Gelenke zu schonen und die Spannung auf den Deltamuskel
-    zu halten.'
-  - 'Bewegung zu hoch: Ein Anheben der Arme weit über Schulterhöhe hinaus kann die
-    Gelenke belasten und verlagert die Arbeit auf den Trapezius statt den seitlichen
-    Deltamuskel.'
+    andere Muskeln einzusetzen oder die Gelenke zu überlasten. Wählen Sie ein Gewicht, das
+    Ihnen eine saubere Ausführung erlaubt.'
+  - 'Ellbogen durchstrecken: Halten Sie Ihre Ellbogen während der gesamten Bewegung leicht
+    gebeugt, um die Gelenke zu schonen und die Spannung auf den Deltamuskel zu halten.'
+  - 'Bewegung zu hoch: Ein Anheben der Arme weit über Schulterhöhe hinaus kann die Gelenke
+    belasten und verlagert die Arbeit auf den Trapezius statt den seitlichen Deltamuskel.'
   tags:
   - shoulder_isolation
   - deltoid
   - machine_exercise
   - lateral_deltoid
+  - shoulders
+  - shoulder_abduction
+  - unreviewed
   aliases:
   - Maschinelles Seitheben
   - Lateral Raise Machine

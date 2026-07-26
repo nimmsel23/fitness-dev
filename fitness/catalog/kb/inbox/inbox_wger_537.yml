@@ -2,69 +2,72 @@ name: inbox_wger_537
 description: 'Proactively generated expert draft for: Schrägbankdrücken KH'
 exercises:
 - exercise_id: wger_537
-  display_name: Schrägbankdrücken KH
-  category: Krafttraining
+  display_name: Schraegbankdruecken KH
+  category: chest
   primary_muscles:
-  - 102_pectoralis_major_clavicular
-  - 301_anterior_deltoid
-  - 401_triceps_brachii
+  - chest
   secondary_muscles:
-  - 103_pectoralis_major_sternal
-  - 105_serratus_anterior
-  - 304_rotator_cuff
-  - 202_trapezius_upper
-  - 203_trapezius_middle
-  - 205_rhomboids
+  - shoulders
+  - arms
   stabilizers:
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
-  - 504_transverse_abdominis
-  - 405_forearm_flexors
-  - 406_forearm_extensors
-  equipment: Hanteln
+  - abs
+  - upper_back
+  equipment:
+  - dumbbell
   wger_id: null
-  movement_pattern: Drücken - Oberkörper (Schräg)
+  movement_pattern: horizontal_press
   coaching_notes:
-  - 'Winkel der Bank: Stellen Sie die Schrägbank auf einen Winkel von 30-45 Grad ein.
-    Ein zu steiler Winkel verlagert den Fokus zu stark auf die Schultern, ein zu flacher
-    Winkel reduziert die Betonung der oberen Brust.'
+  - 'Winkel der Bank: Stellen Sie die Schrägbank auf einen Winkel von 30-45 Grad ein. Ein
+    zu steiler Winkel verlagert den Fokus zu stark auf die Schultern, ein zu flacher Winkel
+    reduziert die Betonung der oberen Brust.'
   - 'Scapula-Retraktion und Depression: Ziehen Sie vor Beginn der Bewegung Ihre Schulterblätter
-    aktiv zusammen und nach unten. Halten Sie diese Position stabil, um die Brust
-    zu isolieren und die Schultern zu schützen.'
-  - 'Ellenbogenposition: Führen Sie die Hanteln so ab, dass die Ellenbogen in der
-    unteren Position leicht unterhalb der Banklinie liegen und etwas nach innen zeigen,
-    etwa in einem 45-60 Grad Winkel zum Oberkörper. Vermeiden Sie ein zu weites Abspreizen
-    der Ellenbogen, um die Schultergelenke zu entlasten.'
-  - 'Kontrollierte Bewegung: Senken Sie die Hanteln langsam und kontrolliert ab, bis
-    ein leichter Stretch in der Brust spürbar ist. Drücken Sie die Hanteln dann explosiv,
-    aber immer noch kontrolliert nach oben.'
-  - 'Voller Bewegungsumfang (ROM): Nutzen Sie den vollen Bewegungsspielraum. Führen
-    Sie die Hanteln fast zusammen über der Brust, aber ohne sie oben anzuschlagen.
-    Senken Sie sie tief genug ab, um die Brustmuskulatur vollständig zu dehnen.'
-  - 'Atemtechnik: Atmen Sie beim Absenken der Hanteln tief ein und beim Hochdrücken
-    kräftig aus. Dies unterstützt die Stabilität und Kraftentfaltung.'
-  - 'Handgelenksposition: Halten Sie Ihre Handgelenke während der gesamten Bewegung
-    stabil und gerade, um eine Überlastung zu vermeiden. Die Hanteln sollten über
-    dem Handgelenk liegen.'
+    aktiv zusammen und nach unten. Halten Sie diese Position stabil, um die Brust zu isolieren
+    und die Schultern zu schützen.'
+  - 'Ellenbogenposition: Führen Sie die Hanteln so ab, dass die Ellenbogen in der unteren
+    Position leicht unterhalb der Banklinie liegen und etwas nach innen zeigen, etwa in einem
+    45-60 Grad Winkel zum Oberkörper. Vermeiden Sie ein zu weites Abspreizen der Ellenbogen,
+    um die Schultergelenke zu entlasten.'
+  - 'Kontrollierte Bewegung: Senken Sie die Hanteln langsam und kontrolliert ab, bis ein leichter
+    Stretch in der Brust spürbar ist. Drücken Sie die Hanteln dann explosiv, aber immer noch
+    kontrolliert nach oben.'
+  - 'Voller Bewegungsumfang (ROM): Nutzen Sie den vollen Bewegungsspielraum. Führen Sie die
+    Hanteln fast zusammen über der Brust, aber ohne sie oben anzuschlagen. Senken Sie sie
+    tief genug ab, um die Brustmuskulatur vollständig zu dehnen.'
+  - 'Atemtechnik: Atmen Sie beim Absenken der Hanteln tief ein und beim Hochdrücken kräftig
+    aus. Dies unterstützt die Stabilität und Kraftentfaltung.'
+  - 'Handgelenksposition: Halten Sie Ihre Handgelenke während der gesamten Bewegung stabil
+    und gerade, um eine Überlastung zu vermeiden. Die Hanteln sollten über dem Handgelenk
+    liegen.'
   common_errors:
-  - 'Zu steiler Bankwinkel: Wenn der Winkel zu hoch ist (über 45 Grad), wird die vordere
-    Schultermuskulatur übermäßig beansprucht, während die obere Brust weniger Stimulation
-    erhält.'
+  - 'Zu steiler Bankwinkel: Wenn der Winkel zu hoch ist (über 45 Grad), wird die vordere Schultermuskulatur
+    übermäßig beansprucht, während die obere Brust weniger Stimulation erhält.'
   - 'Schultern hochziehen: Das Hochziehen der Schultern zu den Ohren während der Bewegung
     nimmt die Spannung von der Brust und kann zu Schulter- und Nackenbeschwerden führen.'
-  - 'Ellenbogen zu weit abgespreizt: Wenn die Ellenbogen zu weit vom Körper abgespreizt
-    werden, erhöht dies den Stress auf die Schultergelenke und kann langfristig zu
-    Verletzungen führen.'
-  - 'Unkontrolliertes Absenken: Ein schnelles, unkontrolliertes Absenken der Hanteln
-    erhöht das Verletzungsrisiko für die Schulter und Brust und reduziert die effektive
-    Muskelbeanspruchung.'
-  - 'Geringer Bewegungsumfang: Das Auslassen des vollen Bewegungsumfangs (nicht tief
-    genug absinken oder nicht ganz nach oben drücken) schränkt die Aktivierung der
-    Muskulatur ein und minimiert den Trainingsreiz.'
-  - 'Hohlkreuzbildung: Das Überstrecken des unteren Rückens (Hohlkreuz) während des
-    Drückens kann zu Rückenschmerzen führen. Achten Sie auf eine stabile Rumpfspannung
-    und halten Sie den unteren Rücken leicht auf der Bank fixiert.'
+  - 'Ellenbogen zu weit abgespreizt: Wenn die Ellenbogen zu weit vom Körper abgespreizt werden,
+    erhöht dies den Stress auf die Schultergelenke und kann langfristig zu Verletzungen führen.'
+  - 'Unkontrolliertes Absenken: Ein schnelles, unkontrolliertes Absenken der Hanteln erhöht
+    das Verletzungsrisiko für die Schulter und Brust und reduziert die effektive Muskelbeanspruchung.'
+  - 'Geringer Bewegungsumfang: Das Auslassen des vollen Bewegungsumfangs (nicht tief genug
+    absinken oder nicht ganz nach oben drücken) schränkt die Aktivierung der Muskulatur ein
+    und minimiert den Trainingsreiz.'
+  - 'Hohlkreuzbildung: Das Überstrecken des unteren Rückens (Hohlkreuz) während des Drückens
+    kann zu Rückenschmerzen führen. Achten Sie auf eine stabile Rumpfspannung und halten Sie
+    den unteren Rücken leicht auf der Bank fixiert.'
   - 'Hanteln oben anschlagen: Das Zusammenstoßen der Hanteln am oberen Punkt der Bewegung
     kann zu einem Verlust der Muskelspannung führen und unnötige Gelenkbelastung verursachen.'
   variations: []
   source: unreviewed
+  id: wger_537
+  name: Schraegbankdruecken KH
+  german: Schraegbankdruecken KH
+  english: Incline Dumbbell Press
+  type: compound
+  tags:
+  - chest
+  - dumbbell
+  - incline_press
+  - unreviewed
+  aliases:
+  - Incline Dumbbell Press
+  - Incline DB Press
+  - Schraegbankdruecken Kurzhantel

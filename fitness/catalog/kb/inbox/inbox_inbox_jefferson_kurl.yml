@@ -1,35 +1,35 @@
 name: inbox_inbox_jefferson_kurl
 description: 'Proactively generated expert draft for: Jefferson-Kurl'
 exercises:
-- exercise_id: inbox_jefferson_kurl
-  id: inbox_jefferson_kurl
-  name: Jefferson-Kurl
-  display_name: Jefferson-Kurl
-  german: Jefferson-Kurl
+- exercise_id: jefferson_curl
+  id: jefferson_curl
+  name: Jefferson Curl
+  display_name: Jefferson Curl
+  german: Jefferson Curl
   english: Jefferson Curl
-  category: core
+  category: lower_back
   type: isolation
-  movement_pattern: spinal_flexion
+  movement_pattern: loaded_spinal_flexion
   equipment:
   - bodyweight
+  - barbell
+  - dumbbell
+  - kettlebell
   primary_muscles:
-  - 206_erector_spinae
+  - lower_back
+  - hamstrings
   secondary_muscles:
-  - 501_rectus_abdominis
-  - 507_multifidus
+  - glutes
   stabilizers:
-  - 504_transverse_abdominis
-  - 505_quadratus_lumborum
+  - abs
   coaching_notes:
-  - Langsam und maximal kontrolliert ausführen – dies ist eine Mobilitätsübung, keine
-    Kraftarbeit
-  - Mit neutralem Kopf starten, dann Wirbel für Wirbel nach vorne abrollen – nicht
-    in Schwung kommen
+  - Langsam und maximal kontrolliert ausführen – dies ist eine Mobilitätsübung, keine Kraftarbeit
+  - Mit neutralem Kopf starten, dann Wirbel für Wirbel nach vorne abrollen – nicht in Schwung
+    kommen
   - In der untersten Position kurz halten und intensive Dehnung in der hinteren Wirbelsäule
     spüren
   - 'Rückweg genauso langsam: von unten nach oben aufrollen, Wirbel für Wirbel stabilisieren'
-  - Bis zur persönlichen Grenze gehen, aber niemals in Schmerz oder extreme Dehnung
-    erzwingen
+  - Bis zur persönlichen Grenze gehen, aber niemals in Schmerz oder extreme Dehnung erzwingen
   common_errors:
   - Zu schnell abrollen und die kontrollierte Spannung verlieren
   - Mit Schwung arbeiten statt mit reiner Bewegungskontrolle
@@ -43,6 +43,9 @@ exercises:
   - spinal_flexion
   - bodyweight
   - progressive_stretch
+  - lower_back
+  - loaded_spinal_flexion
+  - unreviewed
   aliases:
   - Jefferson Curl
   - Spine Curl

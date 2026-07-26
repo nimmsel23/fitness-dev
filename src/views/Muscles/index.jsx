@@ -95,7 +95,7 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
 
         if (s.activity) {
            if (hoursAgo <= 168) {
-             const activeMuscles = ACTIVITY_MUSCLE_GROUPS[s.activity.type] || ['quads', 'calves'];
+             const activeMuscles = ACTIVITY_MUSCLE_GROUPS[s.activity.type] || ['quadriceps', 'calves'];
              for (const m of activeMuscles) {
                if (!lastSeen[m] || lastSeen[m].hours > hoursAgo) {
                  if (!lastSeen[m] || lastSeen[m].type !== 'strength' || lastSeen[m].hours > 72) {

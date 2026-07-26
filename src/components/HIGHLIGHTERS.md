@@ -5,8 +5,9 @@ austauschbar (unterschiedliche Slug-Vokabulare, unterschiedliche Granularität)
 und wurden bis 2026-07-26 über eine hartcodierte, bei jeder Katalog-Umnummerierung
 veraltende ID→Slug-Tabelle (`src/lib/muscleMapping.js`) bedient — diese Datei
 ist gelöscht und darf nicht wiederkommen. Jede neue Zuordnung MUSS live aus der
-KB abgeleitet werden (Endpoint `GET /fitness/muscles/viz`, Firestore-Collection
-`fitness/kb/muscles`), nie als literale Tabelle im Code stehen.
+KB abgeleitet werden (`getAllMuscles()` aus `@db`, gespeist von
+`GET /fitness/muscles/all` lokal bzw. `fitness/kb/muscles` in Firestore), nie
+als literale Tabelle im Code stehen.
 
 ## Die drei Libraries
 
@@ -34,7 +35,7 @@ mehrere Segmente pro Muskel kennt (`viz.body_muscles.ids`, z.B.
 individuellen Dateien unter `kb/muscles/<region>/<id>.yml`, nicht in den
 Top-Level-Regionsdateien.
 
-## Live-Endpoint: `GET /fitness/muscles/viz`
+## Live-Datenvertrag: `getAllMuscles()`
 
 ```
 {
@@ -47,10 +48,11 @@ Top-Level-Regionsdateien.
 }
 ```
 
-Lokal: `fitness/api/routers/exercises.py::muscles_viz()` liest `kb/muscles/*.yml`
-+ `kb/muscles/*/*.yml` direkt. Firebase: `src/lib/db/firestore/kb.js::getMuscleVizMap()`
-liest die Firestore-Collection `fitness/kb/muscles`. Beide geben dasselbe Shape
-zurück, konsumiert wird es über `@db`, nie direkt fest verdrahtet.
+Lokal: `fitness/api/routers/exercises.py::muscles_all()` liest
+`kb/muscles/*.yml` + `kb/muscles/*/*.yml` direkt. Firebase:
+`src/lib/db/firestore/kb.js::getAllMuscles()` liest die Firestore-Collection
+`fitness/kb/muscles`. Beide geben beide KB-Ebenen zurück: Top-Level-Dateien
+als `kb_level: region`, Unterordner-Dateien als `kb_level: muscle`.
 
 ## Coverage-Bucket (Review-Tab "Coverage-Lücken") = Region, keine Einzelmuskeln
 
@@ -62,13 +64,12 @@ Gruppierungs-Ebene — das ist reines Catalog-Makro/-Skelett für den
 wger-Abgleich.
 
 Die Region kommt aus allen Top-Level-Regionsdateien (`kb/muscles/*.yml`),
-sortiert nach aufsteigender Mitgliederzahl (`GET /fitness/muscles/viz` in
-`fitness/api/routers/exercises.py`): kleine, spezifische Dateien
-(`lats.yml`, `trapezius.yml`, `erector_spinae.yml`, `hamstrings.yml`, ...)
+sortiert nach aufsteigender Mitgliederzahl: kleine, spezifische Dateien
+(`quadriceps.yml`, `bizeps.yml`, `hamstrings.yml`, `upper_back.yml`, ...)
 zuerst, große Sammel-Dateien (`back.yml`, `legs.yml`, `arms.yml`) zuletzt als
-Fallback. So bleibt z.B. der Rückenstrecker eine eigene Region
-(`erector_spinae`) statt in einem pauschalen "back" zu verschwinden — ohne
-hartcodiertes Ranking, rein aus der Struktur der Dateien.
+Fallback. So bleibt z.B. der Quadrizeps in `quadriceps` statt in einem
+pauschalen `legs` zu verschwinden — ohne hartcodiertes Ranking, rein aus der
+Struktur der Dateien.
 
 Cardio-Aktivitäten (`ACTIVITY_MUSCLE_GROUPS`) kennen von Haus aus nur das
 grobe Regionswort — das ist bereits dieselbe Sprache wie `muscleToRegion()`,

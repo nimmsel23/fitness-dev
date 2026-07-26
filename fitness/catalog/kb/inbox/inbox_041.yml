@@ -13,27 +13,24 @@ exercises:
   equipment:
   - dumbbell
   primary_muscles:
-  - 102_pectoralis_major_clavicular
-  - 301_anterior_deltoid
-  - 401_triceps_brachii
+  - chest
   secondary_muscles:
-  - 105_serratus_anterior
+  - shoulders
+  - arms
   stabilizers:
-  - 304_rotator_cuff
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
+  - abs
+  - upper_back
   coaching_notes:
-  - Stellen Sie die Schrägbank auf einen Winkel von 30-45 Grad ein. Ein höherer Winkel
-    beansprucht die vordere Schulter stärker.
-  - Legen Sie sich mit dem Rücken fest auf die Bank. Ihre Füße sollten flach auf dem
-    Boden stehen für Stabilität.
-  - Fassen Sie die Kurzhanteln im neutralen oder Obergriff und positionieren Sie sie
-    seitlich Ihrer Brust, die Handflächen zeigen nach vorne oder zueinander (Hammergriff).
-  - Drücken Sie die Hanteln explosiv nach oben, bis Ihre Arme fast gestreckt sind.
-    Vermeiden Sie ein vollständiges Durchstrecken der Ellenbogen.
-  - Führen Sie die Hanteln kontrolliert und langsam wieder nach unten, bis sich Ihre
-    Ellenbogen knapp unterhalb Ihrer Schultern befinden und Sie eine Dehnung in der
-    Brust spüren.
+  - Stellen Sie die Schrägbank auf einen Winkel von 30-45 Grad ein. Ein höherer Winkel beansprucht
+    die vordere Schulter stärker.
+  - Legen Sie sich mit dem Rücken fest auf die Bank. Ihre Füße sollten flach auf dem Boden
+    stehen für Stabilität.
+  - Fassen Sie die Kurzhanteln im neutralen oder Obergriff und positionieren Sie sie seitlich
+    Ihrer Brust, die Handflächen zeigen nach vorne oder zueinander (Hammergriff).
+  - Drücken Sie die Hanteln explosiv nach oben, bis Ihre Arme fast gestreckt sind. Vermeiden
+    Sie ein vollständiges Durchstrecken der Ellenbogen.
+  - Führen Sie die Hanteln kontrolliert und langsam wieder nach unten, bis sich Ihre Ellenbogen
+    knapp unterhalb Ihrer Schultern befinden und Sie eine Dehnung in der Brust spüren.
   - Achten Sie auf eine stabile Rumpfspannung während der gesamten Bewegung und vermeiden
     Sie ein zu starkes Hohlkreuz.
   - Ziehen Sie die Schulterblätter leicht zusammen und nach unten, um die Brustmuskulatur
@@ -41,17 +38,19 @@ exercises:
   common_errors:
   - Zu hohes Gewicht, was zu unkontrollierter Bewegung und Kompensationen führt.
   - Zu steiler Bankwinkel, der die vordere Schultermuskulatur übermäßig beansprucht.
-  - Fehlende Kontrolle in der exzentrischen Phase (Absenken der Hanteln), wodurch
-    das Potential des Muskelwachstums reduziert wird.
+  - Fehlende Kontrolle in der exzentrischen Phase (Absenken der Hanteln), wodurch das Potential
+    des Muskelwachstums reduziert wird.
   - Übermäßiges Hohlkreuz, was die Lendenwirbelsäule belasten kann.
-  - Vollständiges Durchstrecken der Ellenbogen am oberen Punkt, was die Gelenke unnötig
-    belastet.
+  - Vollständiges Durchstrecken der Ellenbogen am oberen Punkt, was die Gelenke unnötig belastet.
   tags:
   - brust
   - kurzhantel
   - schrägbank
   - drücken
   - oberkörper
+  - chest
+  - horizontal_press
+  - unreviewed
   aliases:
   - Incline DB Press
   - Dumbbell Incline Press

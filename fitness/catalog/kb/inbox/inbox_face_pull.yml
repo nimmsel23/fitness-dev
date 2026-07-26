@@ -12,37 +12,35 @@ exercises:
   equipment:
   - cable
   primary_muscles:
-  - 303_posterior_deltoid
-  - 203_trapezius_middle
-  - 205_rhomboids
+  - shoulders
+  - upper_back
   secondary_muscles:
-  - 304_rotator_cuff
-  - 302_lateral_deltoid
-  - 402_biceps_brachii
+  - rhomboids
   stabilizers:
-  - 206_erector_spinae
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
+  - abs
   coaching_notes:
   - Stellen Sie das Kabel so ein, dass es sich auf Schulter- oder Kopfhöhe befindet.
-  - Fassen Sie das Seil mit einem Oberhandgriff und ziehen Sie es in Richtung Ihres
-    Gesichts.
+  - Fassen Sie das Seil mit einem Oberhandgriff und ziehen Sie es in Richtung Ihres Gesichts.
   - Konzentrieren Sie sich darauf, die Schulterblätter zusammenzuziehen und die Schultern
     nach außen zu rotieren.
   - Halten Sie die Ellbogen hoch und nach außen, über dem Handgelenk, um die Zielmuskulatur
     optimal zu aktivieren.
   common_errors:
   - Zu viel Gewicht verwenden, was zu Schwung führt und die Form beeinträchtigt.
-  - Die Ellbogen zu tief halten, wodurch der Fokus von den hinteren Schultern und
-    dem oberen Rücken abweicht.
+  - Die Ellbogen zu tief halten, wodurch der Fokus von den hinteren Schultern und dem oberen
+    Rücken abweicht.
   - Den Rücken übermäßig runden oder überstrecken; halten Sie den Oberkörper stabil.
   tags:
   - schultern
   - rücken
   - haltung
   - rotatorenmanschette
+  - shoulders
+  - horizontal_pull
+  - unreviewed
   aliases:
   - kabelzug zum gesicht
   - rope face pull
   variations: []
   source: unreviewed
+  english: Face Pull

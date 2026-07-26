@@ -99,7 +99,7 @@ import { setKBMuscles } from "../shared/muscle.js";
 
 export async function getAllMuscles() {
   const snap = await getDocs(collection(db, "fitness", "kb", "muscles"));
-  const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+  const docs = snap.docs.map((d) => ({ ...d.data(), doc_id: d.id, id: d.data().id || d.id }));
   setKBMuscles(docs);
   return docs;
 }

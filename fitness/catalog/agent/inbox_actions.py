@@ -104,8 +104,6 @@ def reenrich_inbox_entry(
     Rueckgabe: {"enriched": dict, "haiku_applied": bool}
     """
     api_key = load_gemini_key()
-    if not api_key:
-        raise RuntimeError("GEMINI_API_KEY fehlt")
 
     ex_id = ex.get("exercise_id") or ex.get("id") or f.stem.replace("inbox_", "")
     safe_name = str(ex_id).lower().replace(" ", "_")
