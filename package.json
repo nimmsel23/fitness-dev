@@ -21,6 +21,8 @@
     "deploy:firebase": "firebase deploy --only hosting",
     "firebase": "npm run build:firebase && npm run deploy:firebase",
     "deploy": "node scripts/deploy-runner.mjs",
+    "deploy:local": "./deploy.sh staging",
+    "deploy:prod": "./deploy.sh prod",
     "preview": "vite preview",
     "build:catalog": "python3 scripts/build-catalog.py",
     "deploy:preview": "npm run build:firebase && node scripts/deploy-preview.mjs",

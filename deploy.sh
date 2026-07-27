@@ -4,6 +4,27 @@ set -euo pipefail
 
 # Default to staging target
 TARGET="${1:-staging}"
+BUILD_BEFORE_DEPLOY=false
+
+shift_count=0
+if [[ $# -gt 0 ]]; then
+  shift_count=1
+fi
+if [[ $shift_count -gt 0 ]]; then
+  shift
+fi
+
+for arg in "$@"; do
+  case "$arg" in
+    --build-yes)
+      BUILD_BEFORE_DEPLOY=true
+      ;;
+    *)
+      printf '\033[1;31m%s\033[0m\n' "Invalid argument '$arg'. Supported: --build-yes" >&2
+      exit 1
+      ;;
+  esac
+done
 
 if [[ "$TARGET" == "prod" ]]; then
   DEST="/opt/fitness"
@@ -38,8 +59,6 @@ elif [[ "$TARGET" == "prod" ]]; then
   fi
 fi
 
-[[ -f "$SOURCE/package.json" ]] || die "Deployment source '$SOURCE' is not a fitness checkout"
-
 msg() { printf '\033[1;32m%s\033[0m\n' "$*"; }
 warn() { printf '\033[1;33m%s\033[0m\n' "$*" >&2; }
 die() { printf '\033[1;31m%s\033[0m\n' "$*" >&2; exit 1; }
@@ -52,17 +71,29 @@ run_cmd() {
   fi
 }
 
+[[ -f "$SOURCE/package.json" ]] || die "Deployment source '$SOURCE' is not a fitness checkout"
+
 msg "🚀 Starting Fitness Deployment to $TARGET ($DEST)"
 msg "📍 Using source checkout $SOURCE"
 
-# 1. Build in SOURCE first — cross-repo alias bundling
-msg "🔨 Building UI in $SOURCE"
-(
-  cd "$SOURCE"
-  npm run build > /dev/null
-)
+if $BUILD_BEFORE_DEPLOY; then
+  msg "🔨 Building UI in $SOURCE"
+  (
+    cd "$SOURCE"
+    npm run build > /dev/null
+  )
+elif [[ ! -d "$SOURCE/dist" ]]; then
+  warn "⚠️ No dist/ directory found in $SOURCE. Deploy will use the current checkout state without building."
+else
+  dist_mtime=$(stat -c '%y' "$SOURCE/dist" 2>/dev/null | cut -d'.' -f1 || true)
+  if [[ -n "$dist_mtime" ]]; then
+    warn "⚠️ Deploying existing dist/ from $dist_mtime (no build was run)."
+  else
+    warn "⚠️ Deploying existing dist/ without rebuild (timestamp unavailable)."
+  fi
+fi
 
-# 2. Versioned Backup
+# 1. Versioned Backup
 timestamp=$(date +%Y%m%d_%H%M%S)
 backup_path="$BACKUP_DIR/fitness_$timestamp"
 
@@ -72,7 +103,7 @@ if [[ -d "$DEST" ]]; then
   run_cmd cp -a "$DEST" "$backup_path"
 fi
 
-# 3. Sync to target directory
+# 2. Sync to target directory
 if [[ ! -d "$DEST" ]]; then
   msg "📂 Creating target directory $DEST"
   run_cmd mkdir -p "$DEST"
@@ -128,7 +159,7 @@ else
     "$SOURCE/" "$DEST/"
 fi
 
-# 4. Finalize Python Environment — Create .venv and install dependencies via uv
+# 3. Finalize Python Environment — Create .venv and install dependencies via uv
 msg "📦 Setting up Python virtual environment in $DEST"
 (
   cd "$DEST"
@@ -142,7 +173,7 @@ msg "📦 Setting up Python virtual environment in $DEST"
   fi
 )
 
-# 5. Restart Service
+# 4. Restart Service
 if $USE_SUDO; then
   if systemctl list-unit-files "$SERVICE" >/dev/null 2>&1; then
     msg "🔄 Restarting system-scope $SERVICE (sudo)"
