@@ -5,6 +5,7 @@ zwischen TUI und CLI, kein Drift zwischen beiden Wegen).
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 import re
 from typing import Any
@@ -24,6 +25,15 @@ def inbox_dir() -> Path:
 def exercises_dir() -> Path:
     """kb/exercises/ - Ziel fuer approvte/canonical Exercise-Dateien."""
     return DATA_DIR / "exercises"
+
+
+def tombstones_path() -> Path:
+    """Registry fuer bewusst verworfene Inbox-Drafts.
+
+    Firestore/Runtime-Pulls koennen alte Inbox-JSONs erneut liefern. Der
+    Tombstone verhindert, dass daraus wieder ein lokaler Review-Draft entsteht.
+    """
+    return DATA_DIR / "registry" / "inbox_tombstones.yml"
 
 
 def list_inbox_files() -> list[Path]:
@@ -52,6 +62,10 @@ def load_inbox_entry(file_id: str) -> tuple[Path, dict[str, Any]]:
 
 def display_name_of(ex: dict[str, Any], fallback: str) -> str:
     return ex.get("display_name") or ex.get("german") or ex.get("name") or fallback
+
+
+def _norm_key(value: Any) -> str:
+    return str(value or "").strip().casefold().replace("-", "_").replace(" ", "_")
 
 
 def _append_unique(target: list[Any], values: list[Any]) -> None:
@@ -117,6 +131,106 @@ def _infer_source_refs(f: Path, ex: dict[str, Any]) -> tuple[list[int], list[str
     return wger_ids, yuhonas_ids, search_aliases
 
 
+def _tombstone_keys(file_id: str | None, ex: dict[str, Any] | None = None) -> list[str]:
+    ex = ex or {}
+    keys: list[str] = []
+
+    for value in (file_id, ex.get("exercise_id"), ex.get("id")):
+        text = str(value or "")
+        if not text:
+            continue
+        keys.append(_norm_key(text))
+        if text.startswith("inbox_"):
+            keys.append(_norm_key(text.removeprefix("inbox_")))
+        match = re.fullmatch(r"(?:inbox_)?wger_(\d+)", text)
+        if match:
+            keys.append(f"wger:{match.group(1)}")
+
+    wger_id = ex.get("wger_id")
+    if wger_id:
+        keys.append(f"wger:{wger_id}")
+
+    yuhonas_id = ex.get("yuhonas_id")
+    for value in _as_list(yuhonas_id):
+        keys.append(f"yuhonas:{_norm_key(value)}")
+        keys.append(_norm_key(value))
+
+    for key in ("display_name", "german", "english", "name"):
+        value = ex.get(key)
+        if isinstance(value, str) and value:
+            keys.append(f"name:{_norm_key(value)}")
+
+    unique: list[str] = []
+    seen: set[str] = set()
+    for key in keys:
+        if key and key not in seen:
+            seen.add(key)
+            unique.append(key)
+    return unique
+
+
+def _load_tombstones() -> dict[str, Any]:
+    path = tombstones_path()
+    if not path.exists():
+        return {"version": 1, "tombstones": []}
+    doc = load_yaml(path)
+    if not isinstance(doc, dict):
+        return {"version": 1, "tombstones": []}
+    tombstones = doc.get("tombstones")
+    if not isinstance(tombstones, list):
+        doc["tombstones"] = []
+    if "version" not in doc:
+        doc["version"] = 1
+    return doc
+
+
+def write_inbox_tombstone(
+    file_id: str | Path,
+    ex: dict[str, Any] | None = None,
+    reason: str = "deleted_inbox",
+) -> None:
+    stem = file_id.stem if isinstance(file_id, Path) else str(file_id).removesuffix(".yml")
+    keys = _tombstone_keys(stem, ex)
+    if not keys:
+        return
+
+    doc = _load_tombstones()
+    tombstones = doc["tombstones"]
+    existing_keys: set[str] = set()
+    for entry in tombstones:
+        if isinstance(entry, dict):
+            existing_keys.update(str(key) for key in entry.get("keys", []) if key)
+    if any(key in existing_keys for key in keys):
+        return
+
+    tombstones.append({
+        "id": stem,
+        "exercise_id": (ex or {}).get("exercise_id") or (ex or {}).get("id"),
+        "display_name": display_name_of(ex or {}, stem),
+        "reason": reason,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "keys": keys,
+    })
+
+    path = tombstones_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(yaml.dump(doc, allow_unicode=True, sort_keys=False), encoding="utf-8")
+
+
+def is_inbox_tombstoned(file_id: str | Path, ex: dict[str, Any] | None = None) -> bool:
+    stem = file_id.stem if isinstance(file_id, Path) else str(file_id).removesuffix(".yml")
+    keys = set(_tombstone_keys(stem, ex))
+    if not keys:
+        return False
+    doc = _load_tombstones()
+    for entry in doc.get("tombstones", []):
+        if not isinstance(entry, dict):
+            continue
+        if keys.intersection(str(key) for key in entry.get("keys", []) if key):
+            return True
+    return False
+
+
 def _merge_source_refs(f: Path, ex: dict[str, Any]) -> None:
     wger_ids, yuhonas_ids, inferred_aliases = _infer_source_refs(f, ex)
 
@@ -176,7 +290,8 @@ def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
     return ex_id
 
 
-def delete_inbox_entry(f: Path) -> None:
+def delete_inbox_entry(f: Path, ex: dict[str, Any] | None = None) -> None:
+    write_inbox_tombstone(f, ex, reason="deleted_inbox")
     f.unlink()
 
 

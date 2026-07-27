@@ -1,5 +1,5 @@
-name: inbox_schulterdruecken_mit_hueftschwung
-description: 'Proactively generated expert draft for: Schulterdruecken mit Hueftschwung'
+exercise_id: schulterdruecken_mit_hueftschwung
+description: Expert details for Schulterdruecken mit Hüftschwung
 exercises:
 - exercise_id: schulterdruecken_mit_hueftschwung
   id: schulterdruecken_mit_hueftschwung
@@ -24,12 +24,12 @@ exercises:
   - lower_back
   coaching_notes:
   - Der Hüftschwung erzeugt Momentum aus den Beinen - dies ist eine Power-Bewegung
-  - Tiefe Kniebeugen vor dem Drücken sind essentiell, um die Kraft aus den Quadrizeps und
-    Glutes zu nutzen
+  - Tiefe Kniebeugen vor dem Drücken sind essentiell, um die Kraft aus den Quadrizeps
+    und Glutes zu nutzen
   - Starke Kernspannung während der gesamten Bewegung bewahren, kein Hohlkreuz
   - Die Arme sollten die Bewegung vollständig ausbremsen, nicht nur leiten
-  - Diese Variante ist ideal für Kraftentwicklung, aber der reguläre Schulterdruck trainiert
-    die Schultermuskulatur isolierter
+  - Diese Variante ist ideal für Kraftentwicklung, aber der reguläre Schulterdruck
+    trainiert die Schultermuskulatur isolierter
   common_errors:
   - Zu viel Rückenbiegung in der Lendenwirbelsäule - Kern anspannen
   - Knie nicht ausreichend nutzen - der Schwung sollte aus einer echten Kniebeugen-Position
@@ -51,4 +51,7 @@ exercises:
   - Power Press
   - Hip Drive Press
   variations: []
-  source: unreviewed
+  source: expert
+  search_aliases:
+  - Schulterdruecken mit Hüftschwung
+  - Push Press

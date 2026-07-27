@@ -1,5 +1,5 @@
-name: inbox_reissen_und_umsetzen
-description: 'Proactively generated expert draft for: Reissen und Umsetzen'
+exercise_id: reissen_und_umsetzen
+description: Expert details for Reissen und Umsetzen
 exercises:
 - exercise_id: reissen_und_umsetzen
   id: reissen_und_umsetzen
@@ -25,24 +25,25 @@ exercises:
   stabilizers:
   - abs
   coaching_notes:
-  - 'Zweiphasige Bewegung: Clean (Reissen) vom Boden zur Schulter in einer flüssigen Zugbewegung,
-    Dip in die Knie, dann Jerk (Umsetzen) mit Beinarbeit explosiv über den Kopf stoßen'
-  - Der Power muss aus den Beinen kommen - Hüft- und Bein-Extension sind der Motor für beide
-    Phasen
-  - 'Beim Jerk: Schnelle Beinarbeit (Split oder Power Position) um unter das Gewicht zu gehen,
-    nicht das Gewicht nach oben zu drücken'
+  - 'Zweiphasige Bewegung: Clean (Reissen) vom Boden zur Schulter in einer flüssigen
+    Zugbewegung, Dip in die Knie, dann Jerk (Umsetzen) mit Beinarbeit explosiv über
+    den Kopf stoßen'
+  - Der Power muss aus den Beinen kommen - Hüft- und Bein-Extension sind der Motor
+    für beide Phasen
+  - 'Beim Jerk: Schnelle Beinarbeit (Split oder Power Position) um unter das Gewicht
+    zu gehen, nicht das Gewicht nach oben zu drücken'
   - Full-Body-Stabilität erforderlich - Core muss rigide gegen Scherkräfte stabilisieren,
     besonders in der Overhead-Position
-  - Nur für geüpfte Lifter geeignet - Olympisches Gewichtheben erfordert extensive Technik-Schulung
-    und progressives Ladungstraining
+  - Nur für geüpfte Lifter geeignet - Olympisches Gewichtheben erfordert extensive
+    Technik-Schulung und progressives Ladungstraining
   common_errors:
   - Zu langsamer/zu niedriger Pull - Clean muss explosiv sein, nicht graduel
-  - Unzureichende Beinarbeit beim Jerk - versuchen, das Gewicht nur mit Armen zu stoßen statt
-    unter das Gewicht zu gehen
+  - Unzureichende Beinarbeit beim Jerk - versuchen, das Gewicht nur mit Armen zu stoßen
+    statt unter das Gewicht zu gehen
   - Rumpf-Stabilität verlieren in der Overhead-Position - resuliert in Shoulder-Impingement
     oder Verletzung
-  - Unausreichende Mobility - eingeschränkete Schulter-/Hüft-Mobilität verhindert sichere
-    Position
+  - Unausreichende Mobility - eingeschränkete Schulter-/Hüft-Mobilität verhindert
+    sichere Position
   - Zu schweres Gewicht für Technik-Level - verursacht form-Breakdown und Verletzungsrisiko
   tags:
   - olympic_lifting
@@ -58,4 +59,7 @@ exercises:
   - clean_and_jerk
   - C&J
   variations: []
-  source: unreviewed
+  source: expert
+  search_aliases:
+  - Reissen und Umsetzen
+  - Clean and Snatch

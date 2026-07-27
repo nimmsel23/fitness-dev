@@ -1,5 +1,5 @@
-name: inbox_pullover_machine
-description: 'Proactively generated expert draft for: Pullover Machine'
+exercise_id: pullover_machine
+description: Expert details for Pullover-Maschine
 exercises:
 - exercise_id: pullover_machine
   id: pullover_machine
@@ -46,4 +46,7 @@ exercises:
   - Machine Pullover
   - Brustmaschine-Pullover
   variations: []
-  source: unreviewed
+  source: expert
+  search_aliases:
+  - Pullover-Maschine
+  - Pullover Machine

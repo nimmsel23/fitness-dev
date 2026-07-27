@@ -1,5 +1,5 @@
-name: inbox_cable_crossover
-description: 'Proactively generated expert draft for: Kabelzug-Ueberkreuzen'
+exercise_id: cable_crossover
+description: Expert details for Kabelzug-Überkreuzung
 exercises:
 - exercise_id: cable_crossover
   id: cable_crossover
@@ -43,4 +43,7 @@ exercises:
   - Kabelzug Überkreuzung
   - Überkreuzung
   variations: []
-  source: unreviewed
+  source: expert
+  search_aliases:
+  - Kabelzug-Überkreuzung
+  - Cable Crossover

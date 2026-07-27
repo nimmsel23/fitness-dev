@@ -7,7 +7,11 @@ from unittest import mock
 
 import yaml
 
-from fitness.catalog.agent.inbox_actions import approve_inbox_entry
+from fitness.catalog.agent.inbox_actions import (
+    approve_inbox_entry,
+    delete_inbox_entry,
+    is_inbox_tombstoned,
+)
 
 
 class InboxActionsTest(unittest.TestCase):
@@ -62,6 +66,28 @@ class InboxActionsTest(unittest.TestCase):
             self.assertEqual(approved["external_ids"]["yuhonas"], ["Pullups"])
             self.assertIn("yuhonas_pullups", approved["search_aliases"])
             self.assertIn("Pullups", approved["search_aliases"])
+
+    def test_delete_writes_tombstone(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            inbox = root / "inbox"
+            registry = root / "registry"
+            inbox.mkdir()
+            registry.mkdir()
+            draft = inbox / "inbox_wger_1257.yml"
+            draft.write_text("name: inbox_wger_1257\nexercises: []\n", encoding="utf-8")
+            ex = {
+                "exercise_id": "wger_1257",
+                "display_name": "Stehende Bizepsdehnung",
+            }
+
+            with mock.patch("fitness.catalog.agent.inbox_actions.DATA_DIR", root):
+                delete_inbox_entry(draft, ex)
+                self.assertTrue(is_inbox_tombstoned("inbox_wger_1257", ex))
+                self.assertTrue(is_inbox_tombstoned("wger_1257", ex))
+
+            self.assertFalse(draft.exists())
+            self.assertTrue((registry / "inbox_tombstones.yml").exists())
 
 
 if __name__ == "__main__":

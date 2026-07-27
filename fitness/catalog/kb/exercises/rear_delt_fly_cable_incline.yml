@@ -1,5 +1,5 @@
-name: inbox_rear_delt_fly_cable
-description: 'Proactively generated expert draft for: Vorgeneigte Rear Delt Flys Kabelzug'
+exercise_id: rear_delt_fly_cable_incline
+description: Expert details for Vorgebeugte Kabel Rear Delt Flys
 exercises:
 - exercise_id: rear_delt_fly_cable_incline
   id: rear_delt_fly_cable_incline
@@ -20,18 +20,20 @@ exercises:
   stabilizers:
   - abs
   coaching_notes:
-  - Oberkörper mindestens 45° nach vorne beugen — das optimiert den Hebelarm auf den hinteren
-    Deltoid.
+  - Oberkörper mindestens 45° nach vorne beugen — das optimiert den Hebelarm auf den
+    hinteren Deltoid.
   - Ellbogen leicht gebeugt halten (ca. 10–15°) und diese Position durchgehend beibehalten.
   - Mit den hinteren Delts ziehen, nicht mit den Unterarmen — Fokus auf Schulterbewegung.
   - Arme bis etwa Schulterhöhe heben; nicht höher hinaus.
   - Am obersten Punkt kurz halten und den hinteren Deltoid bewusst anspannen.
   - Volle Dehnung am unteren Punkt — aber nicht mit Schwung, sondern kontrolliert.
   - Gewicht moderat wählen um Kontrolle zu garantieren; Form > Gewicht.
-  - Die Vornbeuge engagiert auch Rumpf und Hamstrings — diese Stabilität nutzen, nicht verlieren.
+  - Die Vornbeuge engagiert auch Rumpf und Hamstrings — diese Stabilität nutzen, nicht
+    verlieren.
   common_errors:
   - Zu viel Schwung/Momentum statt kontrollierter Bewegung — führt zu schlechter Muskelaktivation.
-  - Ellbogen zu stark gebeugt oder zu stark gestreckt — sollten konstant leicht bent sein.
+  - Ellbogen zu stark gebeugt oder zu stark gestreckt — sollten konstant leicht bent
+    sein.
   - Oberarme zu tief hängen lassen — sollten nie unter Schulterhöhe gehen.
   - Mit Unterarmen/Händen ziehen statt mit Schultergelenk — reduziert Deltoid-Belastung.
   - Zu viel Gewicht, das zur Kompensation mit Rumpf führt — Form leiden lassen.
@@ -52,4 +54,7 @@ exercises:
   - Incline Cable Fly
   - Bent-Over Fly Cable
   variations: []
-  source: unreviewed
+  source: expert
+  search_aliases:
+  - Vorgebeugte Kabel Rear Delt Flys
+  - Cable Rear Delt Fly

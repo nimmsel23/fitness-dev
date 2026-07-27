@@ -1,5 +1,5 @@
-name: inbox_cable_row
-description: 'Proactively generated expert draft for: Rudern'
+exercise_id: cable_row
+description: Expert details for Rudern am Kabelzug
 exercises:
 - exercise_id: cable_row
   id: cable_row
@@ -47,4 +47,7 @@ exercises:
   - Rudern am Kabelzug
   - Kabelrudern
   variations: []
-  source: unreviewed
+  source: expert
+  search_aliases:
+  - Rudern am Kabelzug
+  - Cable Row

@@ -1,5 +1,5 @@
-name: inbox_cable_row_close_grip
-description: 'Proactively generated expert draft for: Sitzendes Rudern enger Griff Kabelzug'
+exercise_id: cable_row_close_grip
+description: Expert details for Sitzendes Rudern enger Griff Kabelzug
 exercises:
 - exercise_id: cable_row_close_grip
   id: cable_row_close_grip
@@ -23,11 +23,12 @@ exercises:
   - abs
   - lower_back
   coaching_notes:
-  - Ellbogen nah am Körper halten, nicht abspreizen — der enge Griff betont diese Bewegungslinie
-  - Brust gegen die Lehne drücken und stabiler Position halten, nicht mit Rücken nach hinten
-    lehnen
-  - Volle Scapular-Retraktion am Ende erreichen — Schulterblätter zusammenziehn, nicht nur
-    Arme beugen
+  - Ellbogen nah am Körper halten, nicht abspreizen — der enge Griff betont diese
+    Bewegungslinie
+  - Brust gegen die Lehne drücken und stabiler Position halten, nicht mit Rücken nach
+    hinten lehnen
+  - Volle Scapular-Retraktion am Ende erreichen — Schulterblätter zusammenziehn, nicht
+    nur Arme beugen
   - Enger Griff verschiebt Fokus von Lats auf Rhomboide und mittleren Trapezius
   - Langsam und kontrolliert zur Ausgangsposition zurück, Spannung halten
   common_errors:
@@ -49,4 +50,7 @@ exercises:
   - Close Grip Seated Row Cable
   - Enges Kabel-Rudern sitzend
   variations: []
-  source: unreviewed
+  source: expert
+  search_aliases:
+  - Sitzendes Rudern enger Griff Kabelzug
+  - Close-Grip Seated Cable Row

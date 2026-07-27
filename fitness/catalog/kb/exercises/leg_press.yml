@@ -1,5 +1,5 @@
-name: inbox_leg_press
-description: 'Proactively generated expert draft for: Beinpresse'
+exercise_id: leg_press
+description: Expert details for Beinpresse
 exercises:
 - exercise_id: leg_press
   id: leg_press
@@ -22,22 +22,23 @@ exercises:
   - abs
   - lower_back
   coaching_notes:
-  - Rücken während der gesamten Bewegung gegen die Lehne gedrückt halten – verhindert Instabilität
-    und reduziert Rückenbelastung
-  - 'Volle Bewegungsamplitude nutzen: oben knapp vor Durchstreckung halten, unten mindestens
-    90° Kniebeugung erreichen'
-  - Knie müssen sich in einer geraden Linie mit Fersen bewegen – nicht nach innen (Valgus)
-    oder außen drehen
-  - Füße schulterbreit positionieren und flach auf der Plattform – verstärkt Stabilität und
-    Aktivierung
+  - Rücken während der gesamten Bewegung gegen die Lehne gedrückt halten – verhindert
+    Instabilität und reduziert Rückenbelastung
+  - 'Volle Bewegungsamplitude nutzen: oben knapp vor Durchstreckung halten, unten
+    mindestens 90° Kniebeugung erreichen'
+  - Knie müssen sich in einer geraden Linie mit Fersen bewegen – nicht nach innen
+    (Valgus) oder außen drehen
+  - Füße schulterbreit positionieren und flach auf der Plattform – verstärkt Stabilität
+    und Aktivierung
   - Mit kontrolliertem Tempo arbeiten – langsam senken (2–3 Sekunden), explosiv drücken
   - Hüftgelenk vollständig öffnen beim Drücken – fördert maximale Gesäß- und Quadrizeps-Aktivierung
   common_errors:
   - Rücken von der Lehne abheben – erzeugt Lumbalstress und Kraftverlust
   - Knie einknicken (Valgus) – beschädigt Kniegelenke, nicht in dieser Position trainieren
-  - Unzureichende Tiefe – halbe Bewegungen aktivieren Muskeln weniger und führen zu Dysbalancen
-  - Knie über Zehen hinaus drücken – normales Knieverhalten, kein Problem wenn Gewicht in
-    Fersen bleibt
+  - Unzureichende Tiefe – halbe Bewegungen aktivieren Muskeln weniger und führen zu
+    Dysbalancen
+  - Knie über Zehen hinaus drücken – normales Knieverhalten, kein Problem wenn Gewicht
+    in Fersen bleibt
   - Zu schweres Gewicht mit schlechter Form und Hüftanteil – Qualität vor Quantität
   tags:
   - machine
@@ -55,4 +56,7 @@ exercises:
   - Machine Leg Press
   - Plate-Loaded Leg Press
   variations: []
-  source: unreviewed
+  source: expert
+  search_aliases:
+  - Beinpresse
+  - Leg Press

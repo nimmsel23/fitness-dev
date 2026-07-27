@@ -1,5 +1,5 @@
-name: inbox_cable_crossover_high_to_low
-description: 'Proactively generated expert draft for: High-To-Low Cable Cross'
+exercise_id: cable_crossover_high_to_low
+description: Expert details for Kabelzug Überkreuzung oben-unten
 exercises:
 - exercise_id: cable_crossover_high_to_low
   id: cable_crossover_high_to_low
@@ -45,4 +45,8 @@ exercises:
   - cable cross-over high to low
   - cable pec crossover
   variations: []
-  source: unreviewed
+  source: expert
+  search_aliases:
+  - Kabelzug Überkreuzung oben-unten
+  - High-to-Low Cable Crossover
+  - High-To-Low Cable Cross

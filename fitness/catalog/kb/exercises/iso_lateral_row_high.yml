@@ -1,5 +1,5 @@
-name: inbox_iso_lateral_row
-description: 'Proactively generated expert draft for: High Iso Lateral Row Machine'
+exercise_id: iso_lateral_row_high
+description: Expert details for Iso-Lateral Rudermaschine (High)
 exercises:
 - exercise_id: iso_lateral_row_high
   id: iso_lateral_row_high
@@ -21,7 +21,8 @@ exercises:
   stabilizers:
   - abs
   coaching_notes:
-  - Schulterblatt-Retraktion initieren, nicht mit den Armen reißen - Rücken-Fokus bewahren
+  - Schulterblatt-Retraktion initieren, nicht mit den Armen reißen - Rücken-Fokus
+    bewahren
   - Am Ende der Bewegung 1-2 Sekunden isometrisch halten für maximale Kontraktion
   - Horizontale Zugbahn nutzen - Brust leicht nach vorne, oberen Rücken involvieren
   - Unilateral trainieren fördert Muskelbalance und stabilisiert die Wirbelsäule
@@ -44,4 +45,9 @@ exercises:
   - Single-Arm Horizontal Row Machine
   - Hammer Strength Iso-Lateral Row
   variations: []
-  source: unreviewed
+  source: expert
+  search_aliases:
+  - Iso-Lateral Rudermaschine (High)
+  - Iso-Lateral Rudermaschine
+  - Iso-Lateral High Row
+  - High Iso Lateral Row Machine

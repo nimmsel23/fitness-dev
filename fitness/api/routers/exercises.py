@@ -303,7 +303,11 @@ def inbox_approve(id: str):
 def inbox_delete(id: str):
     f = INBOX_DIR / f"{id}.yml"
     if f.exists():
-        f.unlink()
+        data = yaml.safe_load(f.read_text()) or {}
+        exercises = data.get("exercises") if isinstance(data, dict) else None
+        ex = exercises[0] if isinstance(exercises, list) and exercises else data
+        from fitness.catalog.agent.inbox_actions import delete_inbox_entry
+        delete_inbox_entry(f, ex if isinstance(ex, dict) else None)
     return {"ok": True}
 
 @router.post("/fitness/inbox/{id}/reenrich")
