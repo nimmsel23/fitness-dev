@@ -47,16 +47,33 @@ export async function getPushSettings() {
   if (!snap.exists()) {
     return {
       enabled: false,
+      tokens: [],
       types: {},
       reminderTime: "18:00",
     };
   }
-  return snap.data();
+  const data = snap.data() || {};
+  const tokens = Array.from(new Set([
+    ...(Array.isArray(data.tokens) ? data.tokens : []),
+    ...(data.token ? [data.token] : []),
+  ].filter(Boolean)));
+  return {
+    enabled: false,
+    types: {},
+    reminderTime: "18:00",
+    ...data,
+    token: tokens[0] || data.token || null,
+    tokens,
+  };
 }
 
 export async function savePushSettings(settings) {
   await setDoc(doc(db, "fitness", getUid(), "settings", "push"), {
     ...settings,
+    tokens: Array.from(new Set([
+      ...(Array.isArray(settings?.tokens) ? settings.tokens : []),
+      ...(settings?.token ? [settings.token] : []),
+    ].filter(Boolean))),
     updated_at: serverTimestamp(),
   });
   return { ok: true };
