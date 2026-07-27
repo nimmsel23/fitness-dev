@@ -62,11 +62,15 @@ exercises:
   - Kabel-Seitheben
   - Cable Lateral Raise (Seilzug)
   - Side Lateral Raise (Cable)
+  - Seitheben am Kabel, Einarmig
+  - One Arm Cable Lateral Raise
   search_aliases:
   - wger_1556
+  - wger_349
   external_ids:
     wger:
     - 1556
+    - 349
   wger_id: 1556
   wger_muscle_ids:
     primary:

@@ -11,6 +11,8 @@ from fitness.catalog.agent.inbox_actions import (
     approve_inbox_entry,
     delete_inbox_entry,
     is_inbox_tombstoned,
+    list_inbox_tombstones,
+    restore_inbox_tombstone,
 )
 
 
@@ -88,6 +90,51 @@ class InboxActionsTest(unittest.TestCase):
 
             self.assertFalse(draft.exists())
             self.assertTrue((registry / "inbox_tombstones.yml").exists())
+
+    def test_restore_tombstone_recreates_inbox_draft_from_unreviewed_source(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            inbox = root / "inbox"
+            exercises = root / "exercises"
+            registry = root / "registry"
+            inbox.mkdir()
+            exercises.mkdir()
+            registry.mkdir()
+            (exercises / "unreviewed_wger.yml").write_text(
+                yaml.dump({
+                    "exercises": [{
+                        "exercise_id": "wger_206",
+                        "display_name": "Ausfallschritte im Gehen",
+                        "primary_muscles": ["601_quadriceps_femoris"],
+                        "wger_id": 206,
+                    }]
+                }, allow_unicode=True),
+                encoding="utf-8",
+            )
+            (registry / "inbox_tombstones.yml").write_text(
+                yaml.dump({
+                    "version": 1,
+                    "tombstones": [{
+                        "id": "inbox_wger_206",
+                        "exercise_id": "wger_206",
+                        "display_name": "Ausfallschritte im Gehen",
+                        "reason": "deleted_inbox",
+                        "keys": ["inbox_wger_206", "wger_206", "wger:206"],
+                    }],
+                }, allow_unicode=True),
+                encoding="utf-8",
+            )
+
+            with mock.patch("fitness.catalog.agent.inbox_actions.DATA_DIR", root):
+                restored = restore_inbox_tombstone("inbox_wger_206")
+                self.assertEqual(restored, inbox / "inbox_wger_206.yml")
+                self.assertEqual(list_inbox_tombstones(), [])
+
+            doc = yaml.safe_load((inbox / "inbox_wger_206.yml").read_text(encoding="utf-8"))
+            ex = doc["exercises"][0]
+            self.assertEqual(ex["exercise_id"], "wger_206")
+            self.assertEqual(ex["source"], "unreviewed")
+            self.assertEqual(doc["graveyard_entry"]["id"], "inbox_wger_206")
 
 
 if __name__ == "__main__":

@@ -774,6 +774,38 @@ def inbox_delete_cmd(
     console.print(f"[ok]✓ Gelöscht:[/ok] {f.name}")
 
 
+@inbox_app.command(name="graveyard")
+def inbox_graveyard_cmd():
+    """Listet verworfene Inbox-Drafts (Tombstones)"""
+    from fitness.catalog.agent.inbox_actions import list_inbox_tombstones
+
+    entries = list_inbox_tombstones()
+    if not entries:
+        console.print("[ok]Graveyard leer.[/ok]")
+        return
+    for entry in entries:
+        console.print(
+            f"  {str(entry.get('id') or ''):35}  "
+            f"{entry.get('display_name') or entry.get('exercise_id') or ''}  "
+            f"[dim]{entry.get('created_at') or ''}[/dim]"
+        )
+
+
+@inbox_app.command(name="restore")
+def inbox_restore_cmd(
+    tombstone_id: Annotated[str, typer.Argument(help="z.B. inbox_wger_206")],
+):
+    """Stellt einen Graveyard-Eintrag als Inbox-Draft wieder her"""
+    from fitness.catalog.agent.inbox_actions import restore_inbox_tombstone
+
+    try:
+        restored = restore_inbox_tombstone(tombstone_id)
+    except (FileNotFoundError, FileExistsError, ValueError) as exc:
+        console.print(f"[fail]FAIL:[/fail] {exc}")
+        raise typer.Exit(code=1)
+    console.print(f"[ok]✓ Restored -> {restored.name}[/ok]")
+
+
 def main():
     app()
 

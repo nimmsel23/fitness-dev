@@ -4,6 +4,7 @@ Fitness Agent TUI — Rich-basierte interaktive Terminal-UI
 from __future__ import annotations
 
 import sys
+import json
 import yaml
 import os
 import subprocess
@@ -209,9 +210,9 @@ def screen_inbox() -> str:
     if not files:
         console.print(Panel("[green]Inbox leer — nichts zu reviewen.[/green]", border_style="dim"))
         console.print()
-        _nav(**{"b": "zurück"})
-        Prompt.ask("  [bold]>[/bold]", choices=["b"], default="b")
-        return "dashboard"
+        _nav(**{"g": "Graveyard", "b": "zurück"})
+        choice = Prompt.ask("  [bold]>[/bold]", choices=["g", "b"], default="b")
+        return "graveyard" if choice == "g" else "dashboard"
 
     t = Table(box=box.SIMPLE, show_header=True, header_style="bold")
     t.add_column("#", style="dim", width=4)
@@ -244,13 +245,15 @@ def screen_inbox() -> str:
 
     console.print(t)
     console.print()
-    _nav(**{f"1–{len(items)}": "Detail öffnen", "b": "zurück"})
+    _nav(**{f"1–{len(items)}": "Detail öffnen", "g": "Graveyard", "b": "zurück"})
 
-    choices = [str(i) for i in range(1, len(items) + 1)] + ["b"]
+    choices = [str(i) for i in range(1, len(items) + 1)] + ["g", "b"]
     choice = Prompt.ask("  [bold]>[/bold]", choices=choices, default="b")
 
     if choice == "b":
         return "dashboard"
+    if choice == "g":
+        return "graveyard"
 
     return _inbox_detail(files[int(choice) - 1])
 
@@ -333,8 +336,8 @@ def _inbox_detail(f: Path) -> str:
         ))
 
     console.print()
-    _nav(**{"a": "Approve → expert", "e": "Bearbeiten", "r": "Neu anreichern (Gemini)", "f": "Feedback geben", "d": "Löschen", "b": "zurück"})
-    choice = Prompt.ask("  [bold]>[/bold]", choices=["a", "e", "r", "f", "d", "b"], default="b")
+    _nav(**{"a": "Approve → expert", "e": "Bearbeiten", "r": "Neu anreichern (Gemini)", "f": "Feedback geben", "c": "Agent Chat", "d": "Löschen", "b": "zurück"})
+    choice = Prompt.ask("  [bold]>[/bold]", choices=["a", "e", "r", "f", "c", "d", "b"], default="b")
 
     if choice == "a":
         _approve(f, ex)
@@ -347,6 +350,9 @@ def _inbox_detail(f: Path) -> str:
         return _inbox_detail(f)
     elif choice == "f":
         _feedback_reenrich(f, ex, name)
+        return _inbox_detail(f)
+    elif choice == "c":
+        _exercise_agent_chat(context_title=f"Inbox Draft {f.stem}", source=str(f), exercise=ex)
         return _inbox_detail(f)
     elif choice == "d":
         if Confirm.ask(f"  [red]Wirklich löschen: {f.name}?[/red]"):
@@ -412,6 +418,149 @@ def _approve(f: Path, ex: dict) -> None:
 
     console.print(f"  [green]✓ Approved → {ex_id}.yml[/green]")
     _pause()
+
+
+def _exercise_agent_chat(*, context_title: str, source: str, exercise: Any) -> None:
+    from fitness.catalog.agent.chat import call_exercise_agent_chat, exercise_to_chat_dict
+
+    history: list[tuple[str, str]] = []
+    ex_doc = exercise_to_chat_dict(exercise)
+    while True:
+        _header("Agent Chat", context_title)
+        if history:
+            for question, answer in history[-4:]:
+                console.print(Panel(Text(question), title="Coach", border_style="green dim"))
+                console.print(Panel(Text(answer), title="Agent", border_style="cyan dim"))
+        console.print("[dim]Leer, q oder b beendet den Chat. Der Chat speichert nichts.[/dim]")
+        try:
+            question = Prompt.ask("  [bold]Frage[/bold]", default="")
+        except (EOFError, KeyboardInterrupt):
+            return
+        if not question.strip() or question.strip().casefold() in {"q", "b", "back", "zurück", "zurueck"}:
+            return
+        console.print("  [dim]Frage lokalen Agenten an...[/dim]")
+        try:
+            result = call_exercise_agent_chat(
+                context_title=context_title,
+                source=source,
+                exercise=ex_doc,
+                question=question.strip(),
+                history=history,
+            )
+        except RuntimeError as exc:
+            console.print(f"  [red]{exc}[/red]")
+            _pause()
+            return
+        history.append((question.strip(), result.response))
+        console.print(Panel(Text(result.response), title=f"Agent ({result.provider})", border_style="cyan"))
+        _pause()
+
+
+# ─── Graveyard ─────────────────────────────────────────────────────────────
+
+def _graveyard_runtime_hits(entry: dict[str, Any]) -> list[str]:
+    keys = {str(entry.get("exercise_id") or "")}
+    keys.update(str(key).removeprefix("wger:") for key in entry.get("keys", []) or [])
+    keys = {key for key in keys if key and not key.startswith("name:")}
+    hits: list[str] = []
+
+    users_dir = runtime_root() / "users"
+    if not users_dir.exists():
+        return hits
+    for session_file in users_dir.glob("*/sessions/*.json"):
+        try:
+            data = json.loads(session_file.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        for ex in data.get("exercises", []) or []:
+            if not isinstance(ex, dict):
+                continue
+            ex_id = str(ex.get("id") or ex.get("exercise_id") or "")
+            if ex_id in keys:
+                user_id = session_file.parent.parent.name
+                hits.append(f"{session_file.stem} / {user_id[:8]} / {ex.get('name') or ex_id}")
+                break
+    return hits
+
+
+def screen_graveyard() -> str:
+    from fitness.catalog.agent.inbox_actions import list_inbox_tombstones
+
+    entries = list_inbox_tombstones()
+    _header("Graveyard", f"{len(entries)} tombstoned")
+
+    if not entries:
+        console.print(Panel("[green]Graveyard leer — keine verworfenen Inbox-Drafts.[/green]", border_style="dim"))
+        console.print()
+        _nav(**{"b": "zurück"})
+        Prompt.ask("  [bold]>[/bold]", choices=["b"], default="b")
+        return "dashboard"
+
+    t = Table(box=box.SIMPLE, show_header=True, header_style="bold")
+    t.add_column("#", style="dim", width=4)
+    t.add_column("ID", style="cyan", no_wrap=True)
+    t.add_column("Name")
+    t.add_column("Datum", style="dim")
+    t.add_column("Runtime", justify="right", style="yellow")
+    t.add_column("Grund", style="dim")
+
+    for i, entry in enumerate(entries, 1):
+        hits = _graveyard_runtime_hits(entry)
+        t.add_row(
+            str(i),
+            str(entry.get("id") or ""),
+            str(entry.get("display_name") or entry.get("exercise_id") or ""),
+            _fmt_dt(str(entry.get("created_at") or "")),
+            str(len(hits)),
+            str(entry.get("reason") or ""),
+        )
+
+    console.print(t)
+    console.print()
+    _nav(**{f"1–{len(entries)}": "Detail öffnen", "b": "zurück"})
+    choices = [str(i) for i in range(1, len(entries) + 1)] + ["b"]
+    choice = Prompt.ask("  [bold]>[/bold]", choices=choices, default="b")
+    if choice == "b":
+        return "dashboard"
+    return _graveyard_detail(entries[int(choice) - 1])
+
+
+def _graveyard_detail(entry: dict[str, Any]) -> str:
+    _header("Graveyard Detail", str(entry.get("id") or ""))
+
+    lines = [
+        f"[dim]{'id':22}[/dim] [bold]{entry.get('id') or ''}[/bold]",
+        f"[dim]{'exercise_id':22}[/dim] {entry.get('exercise_id') or ''}",
+        f"[dim]{'display_name':22}[/dim] {entry.get('display_name') or ''}",
+        f"[dim]{'reason':22}[/dim] {entry.get('reason') or ''}",
+        f"[dim]{'created_at':22}[/dim] {_fmt_dt(str(entry.get('created_at') or ''))}",
+    ]
+    console.print(Panel("\n".join(lines), title="Tombstone", border_style="red dim"))
+
+    keys = entry.get("keys") or []
+    if keys:
+        console.print(Panel("\n".join(f"• {key}" for key in keys), title="Suppression Keys", border_style="yellow dim"))
+
+    hits = _graveyard_runtime_hits(entry)
+    if hits:
+        console.print(Panel("\n".join(f"• {hit}" for hit in hits), title="Runtime Session Hits", border_style="green dim"))
+    else:
+        console.print(Panel("[dim]Keine Runtime-Session-Hits gefunden.[/dim]", title="Runtime Session Hits", border_style="dim"))
+
+    console.print()
+    _nav(**{"r": "Restore → Inbox", "b": "zurück"})
+    choice = Prompt.ask("  [bold]>[/bold]", choices=["r", "b"], default="b")
+    if choice == "r":
+        from fitness.catalog.agent.inbox_actions import restore_inbox_tombstone
+        if Confirm.ask(f"  [yellow]Tombstone wieder in Inbox herstellen: {entry.get('id')}?[/yellow]"):
+            try:
+                target = restore_inbox_tombstone(str(entry.get("id") or ""))
+            except Exception as exc:
+                console.print(f"  [red]Restore fehlgeschlagen: {exc}[/red]")
+            else:
+                console.print(f"  [green]✓ Wiederhergestellt: {target.name}[/green]")
+            _pause()
+    return "graveyard"
 
 
 # ─── Browser ───────────────────────────────────────────────────────────────
@@ -491,7 +640,14 @@ def _browser_detail(ex: Any) -> None:
     if errors:
         console.print(Panel("\n".join(f"• {error}" for error in errors), title="Common Errors", border_style="red dim"))
 
-    _pause()
+    _nav(**{"c": "Agent Chat", "b": "zurück"})
+    choice = Prompt.ask("  [bold]>[/bold]", choices=["c", "b"], default="b")
+    if choice == "c":
+        _exercise_agent_chat(
+            context_title=f"Catalog Exercise {getattr(ex, 'exercise_id', '')}",
+            source=str(getattr(ex, "source_file", "")),
+            exercise=ex,
+        )
 
 
 # ─── Plan ──────────────────────────────────────────────────────────────────
@@ -605,6 +761,7 @@ def screen_history() -> str:
 _SCREENS = {
     "dashboard": screen_dashboard,
     "inbox": screen_inbox,
+    "graveyard": screen_graveyard,
     "browser": screen_browser,
     "plan": screen_plan,
     "lesson": screen_lesson,

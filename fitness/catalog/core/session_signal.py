@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+import re
 
 
 def _positive_number(value: Any) -> bool:
@@ -20,6 +21,9 @@ def exercise_has_training_signal(exercise: dict[str, Any]) -> bool:
     if bool(exercise.get("done")):
         return True
 
+    if _note_has_training_signal(exercise.get("note") or exercise.get("notes")):
+        return True
+
     for key in ("sets", "reps", "weight", "rpe"):
         if _positive_number(exercise.get(key)):
             return True
@@ -34,3 +38,12 @@ def exercise_has_training_signal(exercise: dict[str, Any]) -> bool:
                     return True
 
     return False
+
+
+def _note_has_training_signal(value: Any) -> bool:
+    text = str(value or "").strip().casefold()
+    if not text:
+        return False
+    return bool(
+        re.search(r"\b\d+(?:[.,]\d+)?\s*(?:kg|kilo|x|wdh|rep|reps|wiederholung)", text)
+    )

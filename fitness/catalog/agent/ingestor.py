@@ -92,7 +92,36 @@ def training_values(exercise: dict[str, Any]) -> dict[str, Any]:
         if rpe == 0:
             rpe = max((_int_value(item.get("rpe")) for item in active_sets), default=0)
 
+    note_values = _values_from_note(exercise.get("note") or exercise.get("notes"))
+    if note_values:
+        if sets == 0:
+            sets = note_values["sets"]
+        if reps == 0:
+            reps = note_values["reps"]
+        if weight == 0:
+            weight = note_values["weight"]
+
     return {"sets": sets, "reps": reps, "weight": weight, "rpe": rpe}
+
+
+def _values_from_note(value: Any) -> dict[str, Any] | None:
+    text = str(value or "").casefold()
+    if not text:
+        return None
+
+    weight = 0.0
+    reps = 0
+    kg_match = re.search(r"(\d+(?:[.,]\d+)?)\s*(?:kg|kilo)", text)
+    if kg_match:
+        weight = _float_value(kg_match.group(1).replace(",", "."))
+
+    rep_match = re.search(r"(?:ca\.?\s*)?(\d+)\s*(?:x|wdh|rep|reps|wiederholung)", text)
+    if rep_match:
+        reps = _int_value(rep_match.group(1))
+
+    if weight <= 0 and reps <= 0:
+        return None
+    return {"sets": 1, "reps": reps, "weight": weight}
 
 
 def _int_value(value: Any) -> int:

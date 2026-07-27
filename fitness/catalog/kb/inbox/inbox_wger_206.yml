@@ -1,0 +1,50 @@
+name: inbox_wger_206
+description: 'Restored from graveyard: Ausfallschritte im Gehen'
+restored_at: '2026-07-27T05:22:27.854531+00:00'
+graveyard_entry:
+  id: inbox_wger_206
+  exercise_id: wger_206
+  display_name: Ausfallschritte im Gehen
+  reason: deleted_inbox
+  created_at: '2026-07-27T03:54:55.740306+00:00'
+  keys:
+  - inbox_wger_206
+  - wger_206
+  - wger:206
+  - name:ausfallschritte_im_gehen
+  - name:walking_lunges
+exercises:
+- exercise_id: wger_206
+  display_name: Ausfallschritte im Gehen
+  german: Ausfallschritte im Gehen
+  category: legs
+  primary_muscles:
+  - 601a_rectus_femoris
+  - 601b_vastus_lateralis
+  - 601c_vastus_medialis
+  - 601d_vastus_intermedius
+  secondary_muscles:
+  - 603_gluteus_maximus
+  equipment:
+  - dumbbell
+  coaching_notes:
+  - 'Ausgangsposition: Stelle dich hüftbreit hin, die Hände entweder in der Hüfte
+    oder mit Kurzhanteln seitlich am Körper.
+
+    Der Schritt: Mache mit deinem rechten Bein einen weiten Schritt nach vorne.
+
+    Die Abwärtsbewegung: Senke deine Hüfte, bis beide Knie etwa im 90-Grad-Winkel
+    gebeugt sind.
+
+    Der Übergang: Drücke dich über die vordere Ferse nach oben und führe den hinteren
+    Fuß direkt nach vorne in den nächsten Ausfallschritt.'
+  tags:
+  - unreviewed
+  - wger
+  wger_id: 206
+  wger_muscle_ids:
+    primary:
+    - 10
+    secondary:
+    - 8
+  source: unreviewed
