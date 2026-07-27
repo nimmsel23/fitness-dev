@@ -22,7 +22,23 @@ else
   exit 1
 fi
 
-SOURCE="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
+DEV_SOURCE="${HOME}/fitness-dev"
+STAGING_SOURCE="${HOME}/fitness"
+
+if [[ "$TARGET" == "staging" ]]; then
+  SOURCE="$SCRIPT_DIR"
+  if [[ "$SCRIPT_DIR" != "$DEV_SOURCE" && -f "$DEV_SOURCE/package.json" ]]; then
+    SOURCE="$DEV_SOURCE"
+  fi
+elif [[ "$TARGET" == "prod" ]]; then
+  SOURCE="$SCRIPT_DIR"
+  if [[ "$SCRIPT_DIR" != "$STAGING_SOURCE" && -f "$STAGING_SOURCE/package.json" ]]; then
+    SOURCE="$STAGING_SOURCE"
+  fi
+fi
+
+[[ -f "$SOURCE/package.json" ]] || die "Deployment source '$SOURCE' is not a fitness checkout"
 
 msg() { printf '\033[1;32m%s\033[0m\n' "$*"; }
 warn() { printf '\033[1;33m%s\033[0m\n' "$*" >&2; }
@@ -37,6 +53,7 @@ run_cmd() {
 }
 
 msg "🚀 Starting Fitness Deployment to $TARGET ($DEST)"
+msg "📍 Using source checkout $SOURCE"
 
 # 1. Build in SOURCE first — cross-repo alias bundling
 msg "🔨 Building UI in $SOURCE"

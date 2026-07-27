@@ -7,6 +7,8 @@ import UpdateSection from "./UpdateSection";
 import AdvancedSection from "./AdvancedSection";
 import LocalDevSection from "./LocalDevSection";
 import ProfileSection from "./ProfileSection";
+import NotificationsSection from "./NotificationsSection";
+
 
 import { useUser } from "../../contexts/UserContext";
 import { useSettings } from "../../contexts/SettingsContext";
@@ -136,7 +138,10 @@ export default function Settings() {
         />
       </div>
 
+      {!isLocalMode() && <NotificationsSection user={user} />}
+
       <UpdateSection
+
         swVersion={swVersion}
         swUpdateAvailable={swUpdateAvailable}
         swChecking={swChecking}

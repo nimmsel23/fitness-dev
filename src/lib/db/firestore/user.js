@@ -42,6 +42,26 @@ export async function saveLayout(layout) {
   return { ok: true };
 }
 
+export async function getPushSettings() {
+  const snap = await getDoc(doc(db, "fitness", getUid(), "settings", "push"));
+  if (!snap.exists()) {
+    return {
+      enabled: false,
+      types: {},
+      reminderTime: "18:00",
+    };
+  }
+  return snap.data();
+}
+
+export async function savePushSettings(settings) {
+  await setDoc(doc(db, "fitness", getUid(), "settings", "push"), {
+    ...settings,
+    updated_at: serverTimestamp(),
+  });
+  return { ok: true };
+}
+
 // ── Body entries ──────────────────────────────────────────────────────────────
 
 export async function getBodyEntry(date) {

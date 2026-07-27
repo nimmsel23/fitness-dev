@@ -27,3 +27,5 @@ catalog/.venv/
 dist-versions/
 build/
 bin/firestore-sync
+serviceAccountKey.json
+

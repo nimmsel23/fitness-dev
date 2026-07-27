@@ -73,6 +73,8 @@ export default defineConfig(async ({ mode }) => {
         '@db':                 resolve(__dirname, isFirebase ? './src/lib/db/index.firestore.app.js' : './src/lib/db/index.js'),
         '@fitness-db':         resolve(__dirname, './src/lib/db'),
         '@utils':              resolve(__dirname, './src/lib/utils.js'),
+        '@cloud/firebase.js':  resolve(__dirname, './src/firebase.js'),
+        '@firebase-config':    resolve(__dirname, './firebase.config.js'),
         '@aliase':             resolve(__dirname, './fitness/catalog/kb/aliases.yml'),
         '@fitness/components': resolve(__dirname, './src/components'),
         '@fitness/constants':  resolve(__dirname, './src/constants'),
