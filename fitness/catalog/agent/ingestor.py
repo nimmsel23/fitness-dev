@@ -4,12 +4,14 @@ import json
 import sqlite3
 import re
 from contextlib import closing
+from pathlib import Path
 from typing import Any
 
 from fitness.catalog.core.paths import runtime_root
 from fitness.catalog.history import ensure_history_db, log_training_entry
 from fitness.catalog.core.resolver import resolve_query
 from fitness.catalog.core.loader import load_catalog_directory_yaml, catalog_path
+from fitness.catalog.core.session_signal import exercise_has_training_signal
 
 def ingest_all_sessions():
     users_dir = runtime_root() / "users"
@@ -38,17 +40,26 @@ def ingest_all_sessions():
                 date = session_file.stem
                 exercises = session_data.get("exercises", [])
                 
+                workout_id = stable_workout_id(uid_dir.name, session_data, date)
                 for ex in exercises:
+                    if not isinstance(ex, dict) or not exercise_has_training_signal(ex):
+                        continue
+                    exercise_query = ex.get("name") or ex.get("id")
+                    if not exercise_query:
+                        continue
+                    resolution = resolve_query(exercise_query)
+                    canonical_id = resolution.canonical_id if resolution.matched else ex.get("id")
+                    values = training_values(ex)
                     # Ingest each exercise entry
                     # Check if already exists
-                    if not is_already_ingested(db_path, date, ex.get("id"), session_data.get("block")):
+                    if canonical_id and not is_already_ingested(db_path, date, canonical_id, workout_id):
                         log_training_entry(
-                            exercise_query=ex.get("name") or ex.get("id"),
-                            sets=int(ex.get("sets", 0)),
-                            reps=int(ex.get("reps", 0)),
-                            weight=float(ex.get("weight", 0)),
-                            rpe=int(ex.get("rpe", 0)),
-                            workout_id=session_data.get("block", "Session"),
+                            exercise_query=exercise_query,
+                            sets=values["sets"],
+                            reps=values["reps"],
+                            weight=values["weight"],
+                            rpe=values["rpe"],
+                            workout_id=workout_id,
                             date=date,
                             done=bool(ex.get("done", False))
                         )
@@ -56,6 +67,47 @@ def ingest_all_sessions():
             except Exception:
                 continue
     return processed_count
+
+
+def stable_workout_id(user_id: str, session_data: dict[str, Any], date: str) -> str:
+    raw = session_data.get("block") or session_data.get("session_id") or date
+    return f"{user_id}:{raw}"
+
+
+def training_values(exercise: dict[str, Any]) -> dict[str, Any]:
+    sets = _int_value(exercise.get("sets"))
+    reps = _int_value(exercise.get("reps"))
+    weight = _float_value(exercise.get("weight"))
+    rpe = _int_value(exercise.get("rpe"))
+
+    sets_array = exercise.get("setsArray")
+    if isinstance(sets_array, list):
+        active_sets = [item for item in sets_array if isinstance(item, dict) and exercise_has_training_signal({"setsArray": [item]})]
+        if active_sets and sets == 0:
+            sets = len(active_sets)
+        if reps == 0:
+            reps = max((_int_value(item.get("reps")) for item in active_sets), default=0)
+        if weight == 0:
+            weight = max((_float_value(item.get("weight")) for item in active_sets), default=0.0)
+        if rpe == 0:
+            rpe = max((_int_value(item.get("rpe")) for item in active_sets), default=0)
+
+    return {"sets": sets, "reps": reps, "weight": weight, "rpe": rpe}
+
+
+def _int_value(value: Any) -> int:
+    try:
+        return int(float(value or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _float_value(value: Any) -> float:
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
 
 def is_already_ingested(db_path: Path, date: str, exercise_id: str, workout_id: str) -> bool:
     with closing(sqlite3.connect(db_path)) as conn:
