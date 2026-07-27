@@ -10,11 +10,64 @@ from fitness.api.config import (
 )
 from db.schemas import SessionResponse, SyncRequest, SyncResponse
 from firestore.mirror import mirror_session
+from fitness.catalog.core.session_signal import exercise_has_training_signal
 
 router = APIRouter()
 
 def _today() -> str:
     return date.today().isoformat()
+
+
+def _performed_exercises(session: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        ex for ex in (session.get("exercises") or [])
+        if isinstance(ex, dict) and exercise_has_training_signal(ex)
+    ]
+
+
+def _is_activity_only(session: dict[str, Any]) -> bool:
+    return bool(session.get("activity")) and not _performed_exercises(session)
+
+
+def _merge_activity_addon(base: dict[str, Any], incoming: dict[str, Any], source_id: str | None) -> dict[str, Any]:
+    activity = incoming.get("activity")
+    if not isinstance(activity, dict) or not activity:
+        return base
+
+    merged = dict(base)
+    activity_entry = dict(activity)
+    if source_id:
+        activity_entry.setdefault("_source_id", source_id)
+
+    addons = [
+        dict(a) for a in (merged.get("activityAddons") or [])
+        if isinstance(a, dict)
+    ]
+    if merged.get("activity") and all(a != merged["activity"] for a in addons):
+        addons.insert(0, dict(merged["activity"]))
+
+    signature = (
+        activity_entry.get("type"),
+        activity_entry.get("duration"),
+        activity_entry.get("notes"),
+        activity_entry.get("swimStyle"),
+        activity_entry.get("muscleTarget"),
+    )
+    if not any((
+        a.get("type"),
+        a.get("duration"),
+        a.get("notes"),
+        a.get("swimStyle"),
+        a.get("muscleTarget"),
+    ) == signature for a in addons):
+        addons.append(activity_entry)
+
+    merged["activityAddons"] = addons
+    merged.setdefault("activity", addons[0])
+    if not _performed_exercises(merged):
+        merged["sessionMode"] = "cardio"
+        merged["activity"] = addons[0]
+    return merged
 
 @router.get("/session", response_model=SessionResponse)
 def session_get(request: Request, date_: str = Query(None, alias="date"), id: str | None = None):
@@ -28,6 +81,27 @@ async def session_post(request: Request, date_: str = Query(None, alias="date"),
     uid  = _uid_from_request(request)
     day  = date_ or _today()
     body = await request.json()
+
+    if _is_activity_only(body):
+        canonical = _session_file(uid, day, None)
+        existing = _read_json(canonical, {}) if canonical.exists() else {}
+        base = existing if isinstance(existing, dict) and existing else {**body, "exercises": []}
+        session = _freeze_snapshot({
+            **_merge_activity_addon(base, body, id),
+            "date": day,
+            "session_id": None,
+            "saved_at": datetime.utcnow().isoformat(),
+        })
+        _write_json(canonical, session)
+        if id:
+            sidecar = _session_file(uid, day, id)
+            if sidecar.exists():
+                sidecar.unlink()
+        _sync_session_to_db(day, session, None)
+        asyncio.get_event_loop().run_in_executor(None, mirror_session, day, session, uid)
+        logger.info(f"session activity merged  {uid}/{day}  activity={body.get('activity', {}).get('type','')}")
+        return {"ok": True, "id": None, "merged": True}
+
     session = _freeze_snapshot({**body, "date": day, "session_id": id, "saved_at": datetime.utcnow().isoformat()})
     n_ex = len(session.get("exercises", []))
     _write_json(_session_file(uid, day, id), session)

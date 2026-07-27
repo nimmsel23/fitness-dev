@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Optional
 
 import typer
+import yaml
 from loguru import logger
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
@@ -122,6 +123,18 @@ def sync_push(
     logger.success(f"push — {dry}{mode}sessions {r['sessions']} · skipped {r['sessions_skipped']} | fuel uid={fuel_uid} {rf.get('written', 0)} writes · {rf.get('skipped', 0)} skipped")
     if rf.get("error"):
         logger.warning(f"push fuel error: {rf['error']}")
+
+
+@app.command("prune-activity-sidecars")
+def sync_prune_activity_sidecars(
+    uid: Optional[str] = typer.Argument(None, help="Firestore UID (leer = alle lokalen Runtime-User)"),
+    apply: bool = typer.Option(False, "--apply", help="Remote date__id Activity-Sidecars wirklich löschen. Default ist dry-run."),
+) -> None:
+    """Löscht remote reine Cardio-Sidecars, wenn ein kanonisches Tagesdokument existiert."""
+    from firestore.sync import prune_activity_sidecars
+
+    result = prune_activity_sidecars(uid=uid, dry_run=not apply)
+    print(yaml.safe_dump(result, sort_keys=False, allow_unicode=True).rstrip())
 
 
 @app.command("watch")

@@ -24,10 +24,14 @@ from ..constants import ACTIVITY_EMOJI, ACTIVITY_LABEL, WEEKDAYS_DE, block_ansi_
 from . import muscle_to_group, muscle_group_label
 from ..data import (
     classify,
+    activity_minutes,
     load_client_registry,
     load_sessions,
-    load_sessions_for_date,
+    load_training_days,
+    load_training_day_for_date,
     performed_exercises,
+    rollup_training_days,
+    session_activities,
     sqlite_exercise_history,
     sync_info,
 )
@@ -50,13 +54,13 @@ def cmd_ls(
     all_: bool = typer.Option(False, "--all", "-a", help="Alle gespeicherten Sessions"),
 ) -> None:
     n = 9999 if all_ else days
-    sessions = load_sessions(n)
+    sessions = load_training_days(n)
     if not sessions:
         print(c("muted", "  Keine Sessions gefunden."))
         raise typer.Exit()
 
     sdir = sessions_dir()
-    header(f"Sessions — {'alle' if all_ else f'letzte {n} Tage'}  ({len(sessions)} Einträge)")
+    header(f"Trainingstage — {'alle' if all_ else f'letzte {n} Tage'}  ({len(sessions)} Tage)")
     print(c("dim", f"  Quelle: {sdir}\n"))
     for s in sessions:
         print(one_line(s))
@@ -81,13 +85,13 @@ def cmd_show(
     else:
         target = date_arg
 
-    sessions = load_sessions_for_date(target)
+    sessions = load_training_day_for_date(target)
     if not sessions:
         print(c("red", f"  Keine Session für {target} gefunden."))
         raise typer.Exit(1)
 
     if len(sessions) > 1:
-        print(c("accent", f"  {len(sessions)} Sessions am {target}:\n"))
+        print(c("accent", f"  {len(sessions)} Trainingstag am {target}:\n"))
     for s in sessions:
         render_detail(s)
 
@@ -96,7 +100,7 @@ def cmd_show(
 
 @app.command(name="week", help="Wochenübersicht letzte 7 Tage")
 def cmd_week() -> None:
-    all_sessions = load_sessions(7)
+    all_sessions = load_training_days(7)
     by_date: dict[str, list[dict]] = {}
     for s in all_sessions:
         by_date.setdefault(s["date"], []).append(s)
@@ -117,7 +121,8 @@ def cmd_week() -> None:
         parts = []
         for s in day_s:
             kind  = classify(s)
-            act   = s.get("activity") or {}
+            acts  = session_activities(s)
+            act   = acts[0] if acts else (s.get("activity") or {})
             exs   = performed_exercises(s)
             block = s.get("block", "")
 
@@ -125,14 +130,15 @@ def cmd_week() -> None:
                 atype = act.get("type", "?")
                 emoji = ACTIVITY_EMOJI.get(atype, "🏃")
                 label = ACTIVITY_LABEL.get(atype, atype)
-                adur  = act.get("duration", "")
-                try:
-                    cardio_min += int(adur or 0)
-                except (ValueError, TypeError):
-                    pass
+                adur  = activity_minutes(s)
+                cardio_min += adur
                 cardio_count += 1
+                labels = " + ".join(
+                    f"{ACTIVITY_EMOJI.get(a.get('type', '?'), '🏃')} {ACTIVITY_LABEL.get(a.get('type', '?'), a.get('type', '?'))}"
+                    for a in acts or [act]
+                )
                 parts.append(
-                    f"{emoji} {c('orange', label)}"
+                    f"{c('orange', labels or (emoji + ' ' + label))}"
                     + (f" {c('muted', str(adur) + 'min')}" if adur else "")
                 )
             else:
@@ -141,9 +147,9 @@ def cmd_week() -> None:
                 total_ex += len(exs)
                 addon = ""
                 if kind == "strength+addon":
-                    atype = act.get("type", "?")
-                    emoji = ACTIVITY_EMOJI.get(atype, "⚡")
-                    addon = f" {c('orange', emoji)}"
+                    total = activity_minutes(s)
+                    icons = "".join(ACTIVITY_EMOJI.get(a.get("type", "?"), "⚡") for a in acts)
+                    addon = f" {c('orange', icons or '⚡')}" + (f"{c('muted', '+' + str(total) + 'min')}" if total else "")
                 exnames  = ", ".join(e.get("name", "?") for e in exs[:3])
                 ellipsis = "…" if len(exs) > 3 else ""
                 parts.append(
@@ -205,12 +211,12 @@ def cmd_history(
 def cmd_stats(
     days: int = typer.Option(28, "--days", "-d", help="Zeitraum in Tagen"),
 ) -> None:
-    sessions = load_sessions(days)
+    sessions = load_training_days(days)
     if not sessions:
         print(c("muted", "  Keine Sessions."))
         raise typer.Exit()
 
-    header(f"Stats — letzte {days} Tage  ({len(sessions)} Sessions)")
+    header(f"Stats — letzte {days} Tage  ({len(sessions)} Trainingstage)")
 
     strength = [s for s in sessions if classify(s) != "cardio"]
     cardio   = [s for s in sessions if classify(s) == "cardio"]
@@ -221,8 +227,8 @@ def cmd_stats(
     cardio_min = 0
     for s in cardio:
         try:
-            cardio_min += int((s.get("activity") or {}).get("duration") or 0)
-        except (ValueError, TypeError):
+            cardio_min += activity_minutes(s)
+        except Exception:
             pass
 
     block_dist: dict[str, int] = {}
@@ -243,16 +249,17 @@ def cmd_stats(
 
     cardio_dist: dict[str, int] = {}
     for s in cardio:
-        atype = (s.get("activity") or {}).get("type", "?")
-        cardio_dist[atype] = cardio_dist.get(atype, 0) + 1
+        for act in session_activities(s):
+            atype = act.get("type", "?")
+            cardio_dist[atype] = cardio_dist.get(atype, 0) + 1
 
     print(f"\n  {c('bold', 'Sessions')}")
     print(
-        f"  Kraft:    {c('accent', str(len(strength)) + 'x')}"
+        f"  Krafttage: {c('accent', str(len(strength)) + 'x')}"
         f"  ·  {c('muted', str(total_ex) + ' Übungen gesamt')}"
     )
     print(
-        f"  Ausdauer: {c('orange', str(len(cardio)) + 'x')}"
+        f"  Cardio-Tage: {c('orange', str(len(cardio)) + 'x')}"
         + (f"  ·  {c('muted', str(cardio_min) + ' min gesamt')}" if cardio_min else "")
     )
 
@@ -328,7 +335,7 @@ def cmd_sync_status() -> None:
             sdir = AOS_USERS / uid / "fitness" / "sessions"
             if sdir.exists():
                 files  = list(sdir.glob("*.json"))
-                n      = len(files)
+                n      = len({f.stem[:10] for f in files if len(f.stem) >= 10})
                 dates  = sorted((f.stem[:10] for f in files if len(f.stem) >= 10), reverse=True)
                 newest = dates[0] if dates else "—"
                 try:
@@ -390,11 +397,8 @@ def cmd_clients(
             print(f"   {c('yellow', '○ Kein lokaler Sync — Firestore-Pull nötig')}")
             continue
 
-        files = sorted(all_files, key=lambda f: f.stem, reverse=True)
-        shown = 0
-        from tqdm import tqdm as _tqdm
-        _iter = _tqdm(files, desc=f"  {name}", unit="sess", leave=False) if len(files) > 20 else files
-        for f in _iter:
+        raw_sessions = []
+        for f in all_files:
             d = f.stem[:10]
             if len(d) < 10 or d < cutoff:
                 continue
@@ -404,9 +408,17 @@ def cmd_clients(
                 continue
             s.setdefault("date", d)
             s["_stem"] = f.stem
+            raw_sessions.append(s)
+        sessions = rollup_training_days(raw_sessions)
+        shown = 0
+        from tqdm import tqdm as _tqdm
+        _iter = _tqdm(sessions, desc=f"  {name}", unit="day", leave=False) if len(sessions) > 20 else sessions
+        for s in _iter:
+            d = s.get("date", "")
 
             kind  = classify(s)
-            act   = s.get("activity") or {}
+            acts  = session_activities(s)
+            act   = acts[0] if acts else (s.get("activity") or {})
             exs   = performed_exercises(s)
             block = s.get("block", "")
             eff   = s.get("effort")
@@ -414,11 +426,14 @@ def cmd_clients(
             date_s = c("dim", datetime.strptime(d, "%Y-%m-%d").strftime("%a %d.%m.%y"))
             if kind == "cardio":
                 atype = act.get("type", "?")
-                adur  = act.get("duration", "")
+                adur  = activity_minutes(s)
                 emoji = ACTIVITY_EMOJI.get(atype, "🏃")
-                label = ACTIVITY_LABEL.get(atype, atype)
+                label = " + ".join(
+                    f"{ACTIVITY_EMOJI.get(a.get('type', '?'), '🏃')} {ACTIVITY_LABEL.get(a.get('type', '?'), a.get('type', '?'))}"
+                    for a in acts or [act]
+                ) or ACTIVITY_LABEL.get(atype, atype)
                 dur_s = c("dim", f"{adur}min") if adur else ""
-                print(f"   {date_s}   {emoji} {c('orange', label)}  {dur_s}")
+                print(f"   {date_s}   {c('orange', label)}  {dur_s}")
             else:
                 bc    = block_ansi_color(block)
                 names = ", ".join(e.get("name", "?") for e in exs[:4])
@@ -426,9 +441,9 @@ def cmd_clients(
                 eff_s = c("yellow", f"RPE {eff}") if eff else ""
                 addon = ""
                 if kind == "strength+addon":
-                    atype = act.get("type", "?")
-                    adur  = act.get("duration", "")
-                    addon = f"  {ACTIVITY_EMOJI.get(atype, '⚡')}{c('dim', '+' + str(adur) + 'min') if adur else ''}"
+                    adur  = activity_minutes(s)
+                    icons = "".join(ACTIVITY_EMOJI.get(a.get("type", "?"), "⚡") for a in acts)
+                    addon = f"  {icons or '⚡'}{c('dim', '+' + str(adur) + 'min') if adur else ''}"
                 print(f"   {date_s}   {c(bc, '[' + (block or '?') + ']')}  "
                       f"{c('dim', names + ell)}  {eff_s}{addon}")
             shown += 1

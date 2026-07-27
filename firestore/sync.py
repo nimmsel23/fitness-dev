@@ -3,8 +3,10 @@
 import json
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from ._db import get_db, ts, UID
+from fitness.catalog.core.session_signal import exercise_has_training_signal
 
 USERS_DIR = Path.home() / ".aos" / "users"
 FITNESS_DIR = Path.home() / ".aos" / "fitness"
@@ -261,3 +263,48 @@ def push(uid: str | None = None, *, force: bool = False, dry_run: bool = False) 
             pushed += 1
 
     return {"sessions": pushed, "sessions_skipped": skipped, "dry_run": dry_run, "force": force}
+
+
+def _has_training_signal(session: dict[str, Any]) -> bool:
+    return any(
+        isinstance(exercise, dict) and exercise_has_training_signal(exercise)
+        for exercise in (session.get("exercises") or [])
+    )
+
+
+def _is_activity_sidecar(doc_id: str, data: dict[str, Any]) -> bool:
+    return "__" in doc_id and bool(data.get("activity")) and not _has_training_signal(data)
+
+
+def prune_activity_sidecars(uid: str | None = None, *, dry_run: bool = True) -> dict[str, Any]:
+    """Delete remote date__id docs that are pure activity add-ons, not main sessions."""
+    db = get_db()
+    users_dir = FITNESS_DIR / "users"
+    local_uids = [uid] if uid else []
+    if not local_uids and users_dir.exists():
+        local_uids = [
+            p.name for p in sorted(users_dir.iterdir())
+            if p.is_dir() and p.name not in ("default", "kb", "_template")
+        ]
+    if not local_uids:
+        local_uids = [UID]
+
+    targets: list[dict[str, str]] = []
+    for user_id in local_uids:
+        col = db.collection("fitness").document(user_id).collection("sessions")
+        canonical_ids = {
+            doc.id for doc in col.stream()
+            if "__" not in doc.id
+        }
+        for doc in col.stream():
+            data = doc.to_dict() or {}
+            if not _is_activity_sidecar(doc.id, data):
+                continue
+            day = doc.id.split("__", 1)[0]
+            if day not in canonical_ids:
+                continue
+            targets.append({"uid": user_id, "doc_id": doc.id, "date": day})
+            if not dry_run:
+                doc.reference.delete()
+
+    return {"dry_run": dry_run, "deleted": 0 if dry_run else len(targets), "targets": targets}

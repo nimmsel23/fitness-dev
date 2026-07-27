@@ -13,7 +13,12 @@ from fitness.runtime.sqlite_history import (
     find_history_backfill_patches,
     update_history_row,
 )
-from fitness.runtime.user_data import dataclass_payload, iter_session_signals, list_runtime_users
+from fitness.runtime.user_data import (
+    dataclass_payload,
+    iter_session_signals,
+    list_runtime_users,
+    merge_day_activities,
+)
 
 app = typer.Typer(help="Runtime user-data CRUD: Sessions/History prüfen und gezielt patchen")
 console = Console()
@@ -67,6 +72,27 @@ def backfill_history(
     if apply:
         payload["applied"] = apply_history_patches(patches)
     console.print(yaml.safe_dump(payload, sort_keys=False, allow_unicode=True).rstrip())
+
+
+@app.command(name="merge-day-activities")
+def merge_day_activities_cmd(
+    uid: Annotated[Optional[str], typer.Option(help="Runtime user id / Firebase uid")] = None,
+    date_from: Annotated[Optional[str], typer.Option(help="ISO date lower bound")] = None,
+    date_to: Annotated[Optional[str], typer.Option(help="ISO date upper bound")] = None,
+    apply: Annotated[bool, typer.Option("--apply", help="Write canonical day JSONs and delete activity-only sidecars. Default is dry-run.")] = False,
+):
+    """Fasst Cardio-Sidecars desselben Datums in ein Tagesdokument zusammen."""
+    plans = merge_day_activities(
+        user_id=uid,
+        date_from=date_from,
+        date_to=date_to,
+        apply=apply,
+    )
+    console.print(yaml.safe_dump({
+        "dry_run": not apply,
+        "merge_count": len(plans),
+        "plans": dataclass_payload(plans),
+    }, sort_keys=False, allow_unicode=True).rstrip())
 
 
 @app.command(name="history-update")

@@ -16,6 +16,55 @@ import { updateAnalyticsDoc } from "./analysis.js";
 
 // ── Sessions ──────────────────────────────────────────────────────────────────
 
+function hasTrainingSignal(ex) {
+  if (!ex || typeof ex !== "object") return false;
+  if (ex.done) return true;
+  if (Number(ex.sets) > 0 || Number(ex.reps) > 0 || Number(ex.weight) > 0) return true;
+  if (Array.isArray(ex.setsArray)) {
+    return ex.setsArray.some(s => Number(s?.reps) > 0 || Number(s?.weight) > 0);
+  }
+  return false;
+}
+
+function isActivityOnly(sessionData) {
+  const exercises = Array.isArray(sessionData?.exercises) ? sessionData.exercises : [];
+  return !!sessionData?.activity && !exercises.some(hasTrainingSignal);
+}
+
+function sameActivity(a, b) {
+  return String(a?.type || "") === String(b?.type || "")
+    && String(a?.duration || "") === String(b?.duration || "")
+    && String(a?.notes || "") === String(b?.notes || "")
+    && String(a?.swimStyle || "") === String(b?.swimStyle || "")
+    && String(a?.muscleTarget || "") === String(b?.muscleTarget || "");
+}
+
+function mergeActivityAddon(base, incoming, sourceId = null) {
+  const activity = incoming?.activity;
+  if (!activity) return base || {};
+  const merged = { ...(base || {}) };
+  const entry = { ...activity };
+  if (sourceId) entry._source_id = sourceId;
+
+  const addons = Array.isArray(merged.activityAddons)
+    ? merged.activityAddons.filter(Boolean).map(a => ({ ...a }))
+    : [];
+  if (merged.activity && !addons.some(a => sameActivity(a, merged.activity))) {
+    addons.unshift({ ...merged.activity });
+  }
+  if (!addons.some(a => sameActivity(a, entry))) addons.push(entry);
+
+  merged.activityAddons = addons;
+  if (!merged.activity) merged.activity = addons[0];
+  const exercises = Array.isArray(merged.exercises) ? merged.exercises : [];
+  if (!exercises.some(hasTrainingSignal)) {
+    merged.sessionMode = "cardio";
+    merged.exercises = exercises;
+    merged.activity = addons[0];
+  }
+  return merged;
+}
+
 export async function getSession(date = todayISO(), id = null) {
   const targetId = id ? `${date}__${id}` : date;
   const snap = await getDoc(doc(db, "fitness", getUid(), "sessions", targetId));
@@ -34,6 +83,27 @@ export async function getSession(date = todayISO(), id = null) {
 }
 
 export async function saveSession(date = todayISO(), sessionData, id = null) {
+  if (isActivityOnly(sessionData)) {
+    const canonicalRef = doc(db, "fitness", getUid(), "sessions", date);
+    const canonicalSnap = await getDoc(canonicalRef);
+    const base = canonicalSnap.exists()
+      ? canonicalSnap.data() || {}
+      : { ...sessionData, exercises: [] };
+    const merged = mergeActivityAddon(base, sessionData, id);
+    await setDoc(canonicalRef, {
+      ...merged,
+      date,
+      session_id: null,
+      saved_at: serverTimestamp(),
+    });
+    if (id) {
+      await deleteDoc(doc(db, "fitness", getUid(), "sessions", `${date}__${id}`));
+    }
+    pingBridge();
+    updateAnalyticsDoc();
+    return { ok: true, id: null, merged: true };
+  }
+
   const targetId = id ? `${date}__${id}` : date;
   await setDoc(doc(db, "fitness", getUid(), "sessions", targetId), {
     ...sessionData,

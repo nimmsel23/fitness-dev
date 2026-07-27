@@ -9,7 +9,7 @@ import subprocess
 from datetime import date, datetime, timedelta
 
 from .constants import ACTIVITY_EMOJI, ACTIVITY_LABEL, block_ansi_color
-from .data import classify, performed_exercises
+from .data import activity_minutes, classify, performed_exercises, session_activities
 from .commands import muscle_to_group, muscle_group_label
 
 # ── ANSI-Farbpalette ──────────────────────────────────────────────────────────
@@ -103,7 +103,8 @@ def one_line(session: dict) -> str:
     """Rendert eine Session als kompakte Einzeiler-Zusammenfassung."""
     d     = session.get("date", "?")
     kind  = classify(session)
-    act   = session.get("activity") or {}
+    acts  = session_activities(session)
+    act   = acts[0] if acts else (session.get("activity") or {})
     exs   = performed_exercises(session)
     block = session.get("block", "")
     eff   = session.get("effort")
@@ -113,12 +114,14 @@ def one_line(session: dict) -> str:
     date_s = fmt_date(d)
 
     if kind == "cardio":
-        atype = act.get("type", "?")
-        adur  = act.get("duration", "")
-        emoji = ACTIVITY_EMOJI.get(atype, "🏃")
-        label = ACTIVITY_LABEL.get(atype, atype)
-        dur_s = f" {c('muted', str(adur) + 'min')}" if adur else ""
-        return f"  {date_s:<30}  {emoji} {c('orange', label)}{dur_s}"
+        labels = []
+        for entry in acts or [act]:
+            atype = entry.get("type", "?")
+            emoji = ACTIVITY_EMOJI.get(atype, "🏃")
+            labels.append(f"{emoji} {ACTIVITY_LABEL.get(atype, atype)}")
+        total = activity_minutes(session)
+        dur_s = f" {c('muted', str(total) + 'min')}" if total else ""
+        return f"  {date_s:<30}  {c('orange', ' + '.join(labels))}{dur_s}"
     else:
         bc    = block_ansi_color(block)
         tag   = f"[{block}]" if block else "[?]"
@@ -128,10 +131,9 @@ def one_line(session: dict) -> str:
         note_s = f"  {c('dim', notes)}" if notes else ""
         addon = ""
         if kind == "strength+addon":
-            atype = act.get("type", "?")
-            adur  = act.get("duration", "")
-            emoji = ACTIVITY_EMOJI.get(atype, "⚡")
-            addon = f"  {c('orange', emoji + ('+' + str(adur) + 'min' if adur else ''))}"
+            total = activity_minutes(session)
+            label = " + ".join(ACTIVITY_EMOJI.get(a.get("type", "?"), "⚡") for a in acts) or "⚡"
+            addon = f"  {c('orange', label + ('+' + str(total) + 'min' if total else ''))}"
         return (
             f"  {date_s:<30}  {c(bc, tag):<16}  {ex_s}"
             f"{eff_s}{dur_s}{addon}{note_s}"
@@ -144,7 +146,8 @@ def render_detail(session: dict) -> None:
     """Gibt die vollständige Detail-Ansicht einer Session aus."""
     d     = session.get("date", "?")
     kind  = classify(session)
-    act   = session.get("activity") or {}
+    acts  = session_activities(session)
+    act   = acts[0] if acts else (session.get("activity") or {})
     exs   = performed_exercises(session)
     block = session.get("block", "")
     eff   = session.get("effort")
@@ -158,15 +161,17 @@ def render_detail(session: dict) -> None:
         dt_label = d
 
     if kind == "cardio":
-        atype = act.get("type", "?")
-        emoji = ACTIVITY_EMOJI.get(atype, "🏃")
-        label = ACTIVITY_LABEL.get(atype, atype)
-        header(f"{emoji}  {label}  —  {dt_label}")
-        adur = act.get("duration", "")
-        if adur:
-            print(f"\n  {c('orange', '⏱')}  {c('white', str(adur))} {c('muted', 'Minuten')}")
-        if act.get("notes"):
-            print(f"\n  {c('muted', act['notes'])}")
+        label = " + ".join(
+            f"{ACTIVITY_EMOJI.get(a.get('type', '?'), '🏃')} {ACTIVITY_LABEL.get(a.get('type', '?'), a.get('type', '?'))}"
+            for a in acts or [act]
+        )
+        header(f"{label}  —  {dt_label}")
+        total = activity_minutes(session)
+        if total:
+            print(f"\n  {c('orange', '⏱')}  {c('white', str(total))} {c('muted', 'Minuten gesamt')}")
+        for entry in acts or [act]:
+            if entry.get("notes"):
+                print(f"\n  {c('muted', entry['notes'])}")
     else:
         bc = block_ansi_color(block)
         header(f"💪  {block or '?'}  —  {dt_label}")
@@ -177,12 +182,13 @@ def render_detail(session: dict) -> None:
         if meta:
             print("  " + "  ·  ".join(meta))
         if kind == "strength+addon":
-            atype = act.get("type", "?")
-            adur  = act.get("duration", "")
-            emoji = ACTIVITY_EMOJI.get(atype, "⚡")
-            label = ACTIVITY_LABEL.get(atype, atype)
-            dur_s = f" · {adur}min" if adur else ""
-            print(f"  {c('orange', 'Finisher:')} {emoji} {c('orange', label + dur_s)}")
+            for entry in acts:
+                atype = entry.get("type", "?")
+                adur  = entry.get("duration", "")
+                emoji = ACTIVITY_EMOJI.get(atype, "⚡")
+                label = ACTIVITY_LABEL.get(atype, atype)
+                dur_s = f" · {adur}min" if adur else ""
+                print(f"  {c('orange', 'Add-on:')} {emoji} {c('orange', label + dur_s)}")
         if notes:
             print(f"\n  {c('muted', notes)}")
         if exs:
