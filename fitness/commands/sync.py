@@ -113,12 +113,13 @@ def sync_push(
     from firestore._db import UID
 
     r = push(uid=uid, force=force, dry_run=dry_run)
+    fuel_uid = uid or UID
     rf = {"written": 0, "skipped": 0}
     if not dry_run:
-        rf = push_fuel(uid or UID)
+        rf = push_fuel(fuel_uid)
     mode = "force " if force else ""
     dry = "dry-run " if dry_run else ""
-    logger.success(f"push — {dry}{mode}sessions {r['sessions']} · skipped {r['sessions_skipped']} | fuel {rf.get('written', 0)} writes · {rf.get('skipped', 0)} skipped")
+    logger.success(f"push — {dry}{mode}sessions {r['sessions']} · skipped {r['sessions_skipped']} | fuel uid={fuel_uid} {rf.get('written', 0)} writes · {rf.get('skipped', 0)} skipped")
     if rf.get("error"):
         logger.warning(f"push fuel error: {rf['error']}")
 
