@@ -270,7 +270,9 @@ def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
         ex["exercise_id"] = ex_id
         ex["id"] = ex_id
 
+    approved_at = datetime.now(timezone.utc).isoformat()
     ex["source"] = "expert"
+    ex["approved_at"] = approved_at
     _merge_source_refs(f, ex)
 
     detail_path = exercises_dir() / f"{ex_id}.yml"
@@ -281,6 +283,7 @@ def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
     detail_doc = {
         "exercise_id": ex_id,
         "description": f"Expert details for {display_name}",
+        "approved_at": approved_at,
         "exercises": [ex],
     }
     detail_path.write_text(
@@ -329,13 +332,15 @@ def reenrich_inbox_entry(
 
     if "stabilizers" not in enriched: enriched["stabilizers"] = []
     if "variations" not in enriched: enriched["variations"] = []
+    enriched_at = datetime.now(timezone.utc).isoformat()
     enriched["source"] = "unreviewed"
+    enriched["enriched_at"] = enriched_at
 
     description = (
         f"Reenriched (Coach-Feedback) fuer: {name}" if feedback
         else f"Neu angereichert (manueller Re-Enrich) fuer: {name}"
     )
-    wrapper = {"name": f.stem, "description": description, "exercises": [enriched]}
+    wrapper = {"name": f.stem, "description": description, "enriched_at": enriched_at, "exercises": [enriched]}
     f.write_text(yaml.dump(wrapper, allow_unicode=True, sort_keys=False))
 
     return {"enriched": enriched, "haiku_applied": haiku_applied}

@@ -7,6 +7,7 @@ import sys
 import yaml
 import os
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -129,6 +130,77 @@ def _find_inbox_files() -> list[Path]:
     return files
 
 
+def _fmt_dt(value: str | None) -> str:
+    if not value:
+        return ""
+    text = str(value)
+    if "." in text:
+        text = text.split(".", 1)[0]
+    return text.replace("T", " ").replace("+00:00", "Z")
+
+
+def _file_mtime(f: Path) -> str:
+    try:
+        return datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc).astimezone().isoformat(timespec="seconds")
+    except OSError:
+        return ""
+
+
+def _metadata_value(doc: dict, ex: dict, key: str) -> str:
+    return str(ex.get(key) or doc.get(key) or "")
+
+
+def _source_ref_summary(ex: dict) -> str:
+    refs: list[str] = []
+    if ex.get("wger_id"):
+        refs.append(f"wger:{ex['wger_id']}")
+    if ex.get("yuhonas_id"):
+        refs.append(f"yuhonas:{ex['yuhonas_id']}")
+    external = ex.get("external_ids")
+    if isinstance(external, dict):
+        for source, values in external.items():
+            if isinstance(values, list):
+                refs.extend(f"{source}:{value}" for value in values)
+            elif values:
+                refs.append(f"{source}:{values}")
+    return ", ".join(str(ref) for ref in refs)
+
+
+def _role_counts(ex: dict) -> str:
+    return " / ".join(
+        f"{label}:{len(ex.get(field) or [])}"
+        for label, field in [
+            ("P", "primary_muscles"),
+            ("S", "secondary_muscles"),
+            ("Stab", "stabilizers"),
+        ]
+    )
+
+
+def _review_flags(f: Path, doc: dict, ex: dict) -> list[str]:
+    flags: list[str] = []
+    ex_id = str(ex.get("exercise_id") or ex.get("id") or f.stem)
+    if ex_id.startswith(("wger_", "yuhonas_")):
+        flags.append("raw external id")
+    muscles = [
+        str(item)
+        for field in ("primary_muscles", "secondary_muscles", "stabilizers")
+        for item in (ex.get(field) or [])
+    ]
+    bucket_like = [m for m in muscles if m and not m[:1].isdigit()]
+    if bucket_like:
+        flags.append("bucket muscles")
+    if "Proactively generated" in str(doc.get("description") or ""):
+        flags.append("proactive draft")
+    try:
+        from fitness.catalog.agent.inbox_actions import is_inbox_tombstoned
+        if is_inbox_tombstoned(f, ex):
+            flags.append("tombstoned")
+    except Exception:
+        pass
+    return flags
+
+
 def screen_inbox() -> str:
     files = sorted(_find_inbox_files())
 
@@ -145,7 +217,10 @@ def screen_inbox() -> str:
     t.add_column("#", style="dim", width=4)
     t.add_column("Datei", style="cyan", no_wrap=True)
     t.add_column("Name")
+    t.add_column("Alter", style="dim")
+    t.add_column("Quelle", style="dim")
     t.add_column("Muskeln", style="dim")
+    t.add_column("Flags", style="yellow")
 
     items: list[tuple[Path, str]] = []
     for i, f in enumerate(files, 1):
@@ -154,12 +229,18 @@ def screen_inbox() -> str:
             ex = (doc.get("exercises") or [{}])[0]
             name = ex.get("display_name") or ex.get("german") or ex.get("name") or ""
             muscles = ", ".join((ex.get("primary_muscles") or [])[:3])
+            created = _metadata_value(doc, ex, "enriched_at") or _metadata_value(doc, ex, "generated_at") or _file_mtime(f)
+            source = _source_ref_summary(ex) or str(ex.get("source") or "")
+            flags = ", ".join(_review_flags(f, doc, ex))
         except Exception:
             name = ""
             muscles = ""
+            created = ""
+            source = ""
+            flags = "load error"
         label = f.stem.replace("inbox_", "").replace("_", " ")
         items.append((f, label))
-        t.add_row(str(i), f.stem, name or label, muscles)
+        t.add_row(str(i), f.stem, name or label, _fmt_dt(created), source, muscles, flags)
 
     console.print(t)
     console.print()
@@ -191,7 +272,30 @@ def _inbox_detail(f: Path) -> str:
     scalar_fields = ["exercise_id", "category", "type", "movement_pattern", "source"]
     list_fields = ["equipment", "primary_muscles", "secondary_muscles", "stabilizers"]
 
-    lines = []
+    meta_lines = [
+        f"[dim]{'file':22}[/dim] {f}",
+        f"[dim]{'file_mtime':22}[/dim] {_fmt_dt(_file_mtime(f))}",
+    ]
+    for key in ["generated_at", "enriched_at", "approved_at", "queued_at"]:
+        val = _metadata_value(doc, ex, key)
+        if val:
+            meta_lines.append(f"[dim]{key:22}[/dim] {_fmt_dt(val)}")
+    source_refs = _source_ref_summary(ex)
+    if source_refs:
+        meta_lines.append(f"[dim]{'source_refs':22}[/dim] {source_refs}")
+    flags = _review_flags(f, doc, ex)
+    if flags:
+        meta_lines.append(f"[dim]{'review_flags':22}[/dim] [yellow]{', '.join(flags)}[/yellow]")
+    if doc.get("description"):
+        meta_lines.append(f"[dim]{'description':22}[/dim] {doc['description']}")
+
+    console.print(Panel(
+        "\n".join(meta_lines),
+        title="Draft Metadata",
+        border_style="yellow dim" if flags else "dim",
+    ))
+
+    lines = [f"[dim]{'role_counts':22}[/dim] {_role_counts(ex)}"]
     for field in scalar_fields:
         val = ex.get(field)
         if val:
@@ -206,6 +310,15 @@ def _inbox_detail(f: Path) -> str:
         title=f"[bold cyan]{name}[/bold cyan]",
         border_style="cyan",
     ))
+
+    for field, title in [("aliases", "Aliases"), ("search_aliases", "Search Aliases")]:
+        val = ex.get(field)
+        if val and isinstance(val, list):
+            console.print(Panel(
+                "\n".join(f"• {item}" for item in val),
+                title=title,
+                border_style="magenta dim" if field == "search_aliases" else "blue dim",
+            ))
 
     if ex.get("coaching_notes"):
         console.print(Panel(
@@ -237,7 +350,8 @@ def _inbox_detail(f: Path) -> str:
         return _inbox_detail(f)
     elif choice == "d":
         if Confirm.ask(f"  [red]Wirklich löschen: {f.name}?[/red]"):
-            f.unlink()
+            from fitness.catalog.agent.inbox_actions import delete_inbox_entry
+            delete_inbox_entry(f, ex)
             console.print(f"  [green]✓ Gelöscht[/green]")
             _pause()
 

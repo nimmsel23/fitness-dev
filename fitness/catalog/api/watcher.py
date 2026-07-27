@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 import urllib.request
 import urllib.parse
@@ -156,11 +157,15 @@ def process_inbox_file_virtual(
 def save_inbox_draft(target_file: Path, data: dict, description: str):
     if "stabilizers" not in data: data["stabilizers"] = []
     if "variations" not in data: data["variations"] = []
+    enriched_at = datetime.now(timezone.utc).isoformat()
     data["source"] = "unreviewed"
+    data["enriched_at"] = enriched_at
     
     wrapper = {
         "name": target_file.stem,
         "description": description,
+        "generated_at": enriched_at,
+        "enriched_at": enriched_at,
         "exercises": [data]
     }
     
