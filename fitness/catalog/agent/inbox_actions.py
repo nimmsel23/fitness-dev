@@ -14,7 +14,7 @@ import yaml
 
 from fitness.catalog.core.paths import DATA_DIR
 from fitness.catalog.core.yaml_utils import load_yaml
-from fitness.catalog.agent.gemini import load_gemini_key, call_gemini, review_with_haiku
+from fitness.catalog.agent.gemini import load_gemini_key, call_gemini, review_with_haiku, review_with_codex
 
 
 def inbox_dir() -> Path:
@@ -392,11 +392,11 @@ def reenrich_inbox_entry(
     use_haiku_review: bool = True,
 ) -> dict[str, Any]:
     """Jagt einen bestehenden Inbox-Draft frisch durch Gemini (optional mit
-    Coach-Feedback), laesst Haiku als zweite Meinung gegenpruefen (best-effort,
-    siehe review_with_haiku()), und schreibt den Draft ueberschreibend
+    Coach-Feedback), laesst Haiku/Codex als zweite Meinung gegenpruefen
+    (best-effort), und schreibt den Draft ueberschreibend
     zurueck (Backup vorher). Wirft RuntimeError bei Konfigurations-/API-Fehlern.
 
-    Rueckgabe: {"enriched": dict, "haiku_applied": bool}
+    Rueckgabe: {"enriched": dict, "haiku_applied": bool, "review_provider": str | None}
     """
     api_key = load_gemini_key()
 
@@ -407,12 +407,17 @@ def reenrich_inbox_entry(
     if not enriched:
         raise RuntimeError("Gemini-Anreicherung fehlgeschlagen")
 
-    haiku_applied = False
+    review_provider = None
     if use_haiku_review:
         reviewed = review_with_haiku(enriched, feedback=feedback)
         if reviewed:
             enriched = reviewed
-            haiku_applied = True
+            review_provider = "haiku"
+        else:
+            reviewed = review_with_codex(enriched, feedback=feedback)
+            if reviewed:
+                enriched = reviewed
+                review_provider = "codex"
 
     f.with_suffix(".yml.bak").write_text(f.read_text())
 
@@ -429,4 +434,8 @@ def reenrich_inbox_entry(
     wrapper = {"name": f.stem, "description": description, "enriched_at": enriched_at, "exercises": [enriched]}
     f.write_text(yaml.dump(wrapper, allow_unicode=True, sort_keys=False))
 
-    return {"enriched": enriched, "haiku_applied": haiku_applied}
+    return {
+        "enriched": enriched,
+        "haiku_applied": review_provider == "haiku",
+        "review_provider": review_provider,
+    }

@@ -383,10 +383,11 @@ def _reenrich(f: Path, ex: dict, name: str, feedback: str | None = None) -> None
         _pause()
         return
 
-    if result["haiku_applied"]:
-        console.print("  [green]✓ Haiku-Review angewendet[/green]")
+    review_provider = result.get("review_provider")
+    if review_provider:
+        console.print(f"  [green]✓ {str(review_provider).capitalize()}-Review angewendet[/green]")
     else:
-        console.print("  [dim]Haiku-Review nicht verfuegbar — behalte Gemini-Ergebnis[/dim]")
+        console.print("  [dim]Haiku/Codex-Review nicht verfuegbar — behalte Gemini-Ergebnis[/dim]")
 
     console.print(f"  [green]✓ Neu angereichert: {f.name}[/green]")
     _pause()

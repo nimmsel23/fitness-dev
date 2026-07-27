@@ -12,6 +12,7 @@ from fitness.catalog.agent.inbox_actions import (
     delete_inbox_entry,
     is_inbox_tombstoned,
     list_inbox_tombstones,
+    reenrich_inbox_entry,
     restore_inbox_tombstone,
 )
 
@@ -135,6 +136,49 @@ class InboxActionsTest(unittest.TestCase):
             self.assertEqual(ex["exercise_id"], "wger_206")
             self.assertEqual(ex["source"], "unreviewed")
             self.assertEqual(doc["graveyard_entry"]["id"], "inbox_wger_206")
+
+    def test_reenrich_uses_codex_review_when_haiku_unavailable(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            draft = Path(tmp) / "inbox_wger_206.yml"
+            draft.write_text(
+                yaml.dump({
+                    "name": "inbox_wger_206",
+                    "exercises": [{
+                        "exercise_id": "wger_206",
+                        "display_name": "Ausfallschritte im Gehen",
+                    }],
+                }, allow_unicode=True),
+                encoding="utf-8",
+            )
+            ex = {
+                "exercise_id": "wger_206",
+                "display_name": "Ausfallschritte im Gehen",
+            }
+            gemini_result = {
+                "exercise_id": "wger_206",
+                "display_name": "Ausfallschritte im Gehen",
+                "primary_muscles": ["quadriceps"],
+            }
+            codex_result = {
+                "exercise_id": "wger_206",
+                "display_name": "Ausfallschritte im Gehen",
+                "primary_muscles": ["601_quadriceps_femoris"],
+            }
+
+            with (
+                mock.patch("fitness.catalog.agent.inbox_actions.load_gemini_key", return_value="key"),
+                mock.patch("fitness.catalog.agent.inbox_actions.call_gemini", return_value=gemini_result),
+                mock.patch("fitness.catalog.agent.inbox_actions.review_with_haiku", return_value=None),
+                mock.patch("fitness.catalog.agent.inbox_actions.review_with_codex", return_value=codex_result),
+            ):
+                result = reenrich_inbox_entry(draft, ex, "Ausfallschritte im Gehen")
+
+            self.assertEqual(result["review_provider"], "codex")
+            self.assertFalse(result["haiku_applied"])
+            doc = yaml.safe_load(draft.read_text(encoding="utf-8"))
+            restored = doc["exercises"][0]
+            self.assertEqual(restored["primary_muscles"], ["601_quadriceps_femoris"])
+            self.assertEqual(restored["source"], "unreviewed")
 
 
 if __name__ == "__main__":

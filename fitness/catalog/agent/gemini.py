@@ -249,6 +249,39 @@ def _call_codex_cli(prompt: str, timeout: int = 120) -> str | None:
         return None
 
 
+def _call_codex_review_cli(prompt: str, timeout: int = 120) -> str | None:
+    """Codex reviewer fallback for cases where Gemini succeeded but Haiku cannot
+    provide the second-pass JSON review."""
+    model = os.environ.get("FITNESS_CODEX_REVIEW_MODEL", "gpt-5-mini")
+    codex_prompt = (
+        prompt
+        + "\n\nReturn ONLY the reviewed JSON object. Do not edit files. Do not run tools. "
+        "This is a second-pass review of a Gemini draft for later coach approval."
+    )
+    try:
+        result = subprocess.run(
+            [
+                "codex",
+                "exec",
+                "-m",
+                model,
+                "--sandbox",
+                "read-only",
+                "--skip-git-repo-check",
+                "--ephemeral",
+                "-",
+            ],
+            input=codex_prompt,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        return result.stdout.strip() or None
+    except Exception as e:
+        logger.warning(f"Codex-Review-Fallback fehlgeschlagen: {e}")
+        return None
+
+
 def _muscle_prompt_vocab() -> tuple[str, str, set[str]]:
     buckets: list[str] = []
     details: list[str] = []
@@ -408,6 +441,29 @@ def review_with_haiku(enriched_data: dict, feedback: str | None = None, timeout:
         return normalize_enriched_fields(json.loads(text[start:end + 1]))
     except Exception as e:
         logger.warning(f"Haiku-Review fehlgeschlagen ({e}), behalte Gemini-Output")
+        return None
+
+
+def review_with_codex(enriched_data: dict, feedback: str | None = None, timeout: int = 120) -> dict | None:
+    """Best-effort second-pass review via local Codex CLI. This is used when
+    Haiku is unavailable, for example due to weekly limits."""
+    prompt = PROMPT_HAIKU_REVIEW.format(
+        enriched_json=json.dumps(enriched_data, indent=2, ensure_ascii=False),
+        feedback_section=(
+            f'\nCoach-Feedback zum urspruenglichen Entwurf: "{feedback}"\n' if feedback else ""
+        ),
+    )
+    text = _call_codex_review_cli(prompt, timeout=timeout)
+    if not text:
+        return None
+    start, end = text.find("{"), text.rfind("}")
+    if start == -1 or end == -1:
+        logger.warning("Codex-Review: keine JSON-Antwort erhalten, behalte Gemini-Output")
+        return None
+    try:
+        return normalize_enriched_fields(json.loads(text[start:end + 1]))
+    except Exception as e:
+        logger.warning(f"Codex-Review JSON extraction failed: {e}")
         return None
 
 
