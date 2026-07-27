@@ -15,6 +15,7 @@ from .paths import (
     ACTIVE_UID, AOS_USERS, KLIENTEN_DIR, KLIENTEN_SKIP,
     sessions_dir, sqlite_db,
 )
+from fitness.catalog.core.session_signal import exercise_has_training_signal
 
 
 # ── Hilfsfunktionen ───────────────────────────────────────────────────────────
@@ -28,6 +29,15 @@ def parse_date_stem(stem: str) -> str | None:
 
 # ── Session-Klassifikation ────────────────────────────────────────────────────
 
+def performed_exercises(session: dict) -> list[dict]:
+    """Return exercises that look actually trained, not empty search templates."""
+    out: list[dict] = []
+    for exercise in session.get("exercises") or []:
+        if isinstance(exercise, dict) and exercise_has_training_signal(exercise):
+            out.append(exercise)
+    return out
+
+
 def classify(session: dict) -> str:
     """
     Klassifiziert eine Session in einen von drei Typen:
@@ -37,19 +47,22 @@ def classify(session: dict) -> str:
     'strength'       — Reine Kraft-Session
 
     Logik:
+      - echte Exercise-Signale + activity → strength+addon
+      - echte Exercise-Signale            → strength
       - sessionMode == 'cardio'           → cardio
-      - activity vorhanden + keine done exercises → cardio (legacy)
-      - activity + done exercises          → strength+addon
+      - activity vorhanden                → cardio (legacy)
       - sonst                              → strength
     """
     mode = session.get("sessionMode")
     act  = session.get("activity")
-    exs  = [e for e in (session.get("exercises") or []) if e.get("done")]
+    exs  = performed_exercises(session)
 
-    if mode == "cardio" or (act and not exs):
-        return "cardio"
     if act and exs:
         return "strength+addon"
+    if exs:
+        return "strength"
+    if mode == "cardio" or act:
+        return "cardio"
     return "strength"
 
 

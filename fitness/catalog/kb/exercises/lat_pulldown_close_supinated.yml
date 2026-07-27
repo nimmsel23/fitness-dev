@@ -6,9 +6,15 @@ exercises:
   name: Close-Grip Latpulldown supiniert
   display_name: Enger, supinierter Latzug
   german: Enger, supinierter Latzug
-  category: back
+  category: pull
   type: compound
-  movement_pattern: vertical_pull
+  movements:
+  - vertical
+  - shoulder_adduction
+  - elbow_flexion
+  - scapular_depression
+  - close_grip
+  - supinated_grip
   equipment:
   - machine
   - cable

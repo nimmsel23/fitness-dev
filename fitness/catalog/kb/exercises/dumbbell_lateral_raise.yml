@@ -7,9 +7,11 @@ exercises:
   display_name: Seitheben mit Kurzhanteln
   german: Seitheben mit Kurzhanteln
   english: Dumbbell Lateral Raise
-  category: shoulders
+  category: push
   type: isolation
-  movement_pattern: shoulder_abduction
+  movements:
+  - shoulder_abduction
+  - scapular_control
   equipment:
   - dumbbell
   primary_muscles:

@@ -7,9 +7,13 @@ exercises:
   display_name: Rumänisches Kreuzheben
   german: Rumänisches Kreuzheben
   english: Romanian Deadlift
-  category: legs
+  category: pull
   type: compound
-  movement_pattern: hip_hinge
+  movements:
+  - hip_hinge
+  - hip_extension
+  - hamstring_lengthening
+  - spinal_anti_flexion
   equipment:
   - barbell
   - dumbbell

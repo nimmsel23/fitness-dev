@@ -51,6 +51,7 @@ from fitness.catalog.core.rich_utils import (
     print_exercise_audit,
     print_demand_audit,
 )
+from fitness.runtime.cli import app as runtime_user_data_app
 
 app = typer.Typer(help="AlphaOS Fitness Agent CLI", add_completion=False)
 
@@ -723,6 +724,7 @@ def alias_add(
 inbox_app = typer.Typer(help="Inbox-Review ohne TUI — für Skripte/CI/Automation")
 app.add_typer(inbox_app, name="inbox")
 
+app.add_typer(runtime_user_data_app, name="user-data")
 
 @inbox_app.command(name="list")
 def inbox_list():

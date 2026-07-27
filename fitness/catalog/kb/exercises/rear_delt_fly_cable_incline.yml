@@ -7,9 +7,12 @@ exercises:
   display_name: Vorgebeugte Kabel Rear Delt Flys
   german: Vorgebeugte Kabel Rear Delt Flys
   english: Cable Rear Delt Fly
-  category: shoulders
+  category: pull
   type: isolation
-  movement_pattern: horizontal_abduction
+  movements:
+  - horizontal_abduction
+  - shoulder_external_rotation
+  - scapular_retraction
   equipment:
   - cable
   primary_muscles:

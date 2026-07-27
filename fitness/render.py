@@ -9,7 +9,7 @@ import subprocess
 from datetime import date, datetime, timedelta
 
 from .constants import ACTIVITY_EMOJI, ACTIVITY_LABEL, block_ansi_color
-from .data import classify
+from .data import classify, performed_exercises
 from .commands import muscle_to_group, muscle_group_label
 
 # ── ANSI-Farbpalette ──────────────────────────────────────────────────────────
@@ -104,7 +104,7 @@ def one_line(session: dict) -> str:
     d     = session.get("date", "?")
     kind  = classify(session)
     act   = session.get("activity") or {}
-    exs   = [e for e in (session.get("exercises") or []) if e.get("done")]
+    exs   = performed_exercises(session)
     block = session.get("block", "")
     eff   = session.get("effort")
     dur   = session.get("duration")
@@ -145,7 +145,7 @@ def render_detail(session: dict) -> None:
     d     = session.get("date", "?")
     kind  = classify(session)
     act   = session.get("activity") or {}
-    exs   = [e for e in (session.get("exercises") or []) if e.get("done")]
+    exs   = performed_exercises(session)
     block = session.get("block", "")
     eff   = session.get("effort")
     dur   = session.get("duration")

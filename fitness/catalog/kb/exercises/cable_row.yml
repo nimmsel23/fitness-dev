@@ -7,9 +7,13 @@ exercises:
   display_name: Rudern am Kabelzug
   german: Rudern am Kabelzug
   english: Cable Row
-  category: back
+  category: pull
   type: compound
-  movement_pattern: horizontal_pull
+  movements:
+  - horizontal
+  - shoulder_extension
+  - scapular_retraction
+  - elbow_flexion
   equipment:
   - cable
   primary_muscles:

@@ -1,46 +1,90 @@
 name: inbox_wger_206
-description: 'Restored from graveyard: Ausfallschritte im Gehen'
-restored_at: '2026-07-27T05:22:27.854531+00:00'
-graveyard_entry:
-  id: inbox_wger_206
-  exercise_id: wger_206
-  display_name: Ausfallschritte im Gehen
-  reason: deleted_inbox
-  created_at: '2026-07-27T03:54:55.740306+00:00'
-  keys:
-  - inbox_wger_206
-  - wger_206
-  - wger:206
-  - name:ausfallschritte_im_gehen
-  - name:walking_lunges
+description: 'Neu angereichert (manueller Re-Enrich) fuer: Ausfallschritte im Gehen'
+enriched_at: '2026-07-27T05:29:22.454281+00:00'
 exercises:
 - exercise_id: wger_206
   display_name: Ausfallschritte im Gehen
   german: Ausfallschritte im Gehen
-  category: legs
+  english: Walking Lunges
+  category: lunge
   primary_muscles:
-  - 601a_rectus_femoris
-  - 601b_vastus_lateralis
-  - 601c_vastus_medialis
-  - 601d_vastus_intermedius
-  secondary_muscles:
+  - 601_quadriceps_femoris
   - 603_gluteus_maximus
+  secondary_muscles:
+  - hamstrings
+  - 608_gluteus_medius
+  - 602_adductors
+  stabilizers:
+  - 206_erector_spinae
+  - 501_rectus_abdominis
+  - 701_gastrocnemius
   equipment:
   - dumbbell
   coaching_notes:
-  - 'Ausgangsposition: Stelle dich hüftbreit hin, die Hände entweder in der Hüfte
-    oder mit Kurzhanteln seitlich am Körper.
-
-    Der Schritt: Mache mit deinem rechten Bein einen weiten Schritt nach vorne.
-
-    Die Abwärtsbewegung: Senke deine Hüfte, bis beide Knie etwa im 90-Grad-Winkel
-    gebeugt sind.
-
-    Der Übergang: Drücke dich über die vordere Ferse nach oben und führe den hinteren
-    Fuß direkt nach vorne in den nächsten Ausfallschritt.'
+  - '**Ausgangsposition:** Stelle dich aufrecht und schulterbreit hin, der Blick ist
+    nach vorne gerichtet. Halte in jeder Hand eine Kurzhantel seitlich am Körper,
+    die Handflächen zeigen zum Körper. Dein Rumpf ist angespannt, die Schultern leicht
+    zurückgezogen und der Rücken gerade.'
+  - '**Der Schritt:** Mache mit einem Bein einen langen, kontrollierten Schritt nach
+    vorne. Achte darauf, dass deine Füße weiterhin etwa hüftbreit bleiben, um eine
+    stabile Basis zu gewährleisten. Setze den vorderen Fuß sanft mit der Ferse zuerst
+    auf, rolle dann zum Mittelfuß ab.'
+  - '**Die Abwärtsbewegung:** Senke deine Hüfte kontrolliert, bis das Knie des hinteren
+    Beins fast den Boden berührt. Beide Knie sollten dabei einen Winkel von etwa 90
+    Grad bilden. Das vordere Knie bleibt direkt über dem Fußgelenk und sollte nicht
+    über die Zehenspitzen hinausragen. Das Schienbein des vorderen Beins ist möglichst
+    senkrecht. Halte den Oberkörper während der gesamten Bewegung aufrecht und stabil,
+    ohne nach vorne oder hinten zu lehnen.'
+  - '**Der Übergang (Aufwärts- und Vorwärtsbewegung):** Drücke dich kraftvoll über
+    die Ferse des vorderen Fußes nach oben und nach vorne. Führe dabei das hintere
+    Bein direkt in den nächsten Ausfallschritt nach vorne. Dies schafft eine flüssige,
+    durchgehende Gehbewegung. Halte die Rumpfspannung während der gesamten Bewegung
+    aufrecht, um Stabilität zu gewährleisten.'
+  - '**Atmung:** Atme während der Abwärtsbewegung kontrolliert ein und kräftig aus,
+    wenn du dich über die Ferse nach oben und vorne drückst.'
+  - '**Fokus:** Konzentriere dich auf eine langsame, kontrollierte Bewegung und die
+    bewusste Aktivierung der Gesäß- und Oberschenkelmuskulatur. Vermeide Schwung.'
+  common_errors:
+  - '**Vorderes Knie schiebt über die Zehenspitzen:** Dies übt unnötigen Druck auf
+    das Kniegelenk aus. Achte darauf, das Schienbein des vorderen Beins vertikal zu
+    halten und das Knie über dem Fußgelenk zu lassen. Das Erreichen dieser Position
+    erfordert oft einen längeren Schritt.'
+  - '**Einknicken des Knies (Knievalgus):** Das vordere Knie knickt nach innen (Richtung
+    Mittellinie) ein. Dies deutet auf eine Schwäche der Hüftabduktoren (Gluteus medius/minimus)
+    hin und erhöht das Verletzungsrisiko. Achte darauf, das Knie aktiv nach außen
+    zu drücken, um es in einer Linie mit den Zehen zu halten.'
+  - '**Rumpf neigt sich zu stark nach vorne oder hinten:** Ein nach vorne geneigter
+    Oberkörper nimmt die Spannung von den Gesäßmuskeln und verlagert sie auf den unteren
+    Rücken. Ein zu stark nach hinten gelehnter Rumpf destabilisiert die Bewegung.
+    Halte den Oberkörper während der gesamten Bewegung aufrecht und stabil, indem
+    du den Rumpf fest anspannst.'
+  - '**Unzureichende Tiefe:** Wenn der Ausfallschritt nicht tief genug ausgeführt
+    wird (hinteres Knie weit vom Boden entfernt), wird das volle Bewegungsausmaß und
+    die optimale Muskelaktivierung nicht erreicht. Senke dich so weit ab, dass das
+    hintere Knie fast den Boden berührt und beide Knie einen 90-Grad-Winkel bilden.'
+  - '**Verlust des Gleichgewichts:** Wackelige Bewegung oder vollständiger Verlust
+    des Gleichgewichts. Konzentriere dich auf einen festen Blickpunkt vor dir und
+    spanne den Rumpf fest an, um die Stabilität zu verbessern. Kleinere Schritte zu
+    Beginn können helfen, das Gleichgewicht zu finden.'
+  - '**Abdrücken von den Zehen des vorderen Fußes:** Anstatt sich primär über die
+    Ferse abzudrücken, wird der vordere Fuß zu sehr über die Zehen belastet. Dies
+    beansprucht die Quadrizeps übermäßig und aktiviert die Gesäßmuskulatur weniger.
+    Drücke primär durch die Ferse des vorderen Fußes, um die Gesäßmuskeln optimal
+    zu nutzen.'
+  - '**Zu schnelle Ausführung/Schwung:** Die Bewegung wird zu schnell und unkontrolliert
+    mit Schwung ausgeführt. Dies reduziert die effektive Muskelspannung und den Trainingseffekt.
+    Führe die Ausfallschritte bewusst und kontrolliert aus, um die Muskulatur maximal
+    zu fordern.'
+  movements:
+  - gait
+  - knee_flexion_extension
+  - hip_extension
+  - balance_control
   tags:
-  - unreviewed
   - wger
+  - compound
+  - unilateral
+  - walking_lunge
   wger_id: 206
   wger_muscle_ids:
     primary:
@@ -48,3 +92,5 @@ exercises:
     secondary:
     - 8
   source: unreviewed
+  variations: []
+  enriched_at: '2026-07-27T05:29:22.454281+00:00'

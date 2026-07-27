@@ -7,9 +7,13 @@ exercises:
   display_name: Frontkniebeuge
   german: Frontkniebeuge
   english: Front Squat
-  category: legs
+  category: squat
   type: compound
-  movement_pattern: squat
+  movements:
+  - knee_flexion_extension
+  - hip_extension
+  - ankle_dorsiflexion
+  - front_rack_bracing
   equipment:
   - barbell
   - squat_rack

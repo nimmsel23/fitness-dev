@@ -7,9 +7,11 @@ exercises:
   display_name: Seitheben am Seilzug
   german: Seitheben am Seilzug
   english: Cable Lateral Raise
-  category: shoulders
+  category: push
   type: isolation
-  movement_pattern: shoulder_abduction
+  movements:
+  - shoulder_abduction
+  - scapular_control
   equipment:
   - cable
   primary_muscles:

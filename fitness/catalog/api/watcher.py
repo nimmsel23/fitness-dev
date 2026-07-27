@@ -197,6 +197,14 @@ from fitness.catalog.core.auditor import write_biomechanical_report
 def run_watcher():
     setup_logging()
     logger.info("Starting fitness-agent watcher daemon...")
+    ingest_sessions_enabled = os.getenv("FITNESS_WATCHER_INGEST_SESSIONS", "").strip() == "1"
+    proactive_refiner_enabled = os.getenv("FITNESS_WATCHER_PROACTIVE_REFINER", "").strip() == "1"
+    analytics_interval_seconds = int(os.getenv("FITNESS_WATCHER_ANALYTICS_INTERVAL_SECONDS", "36000"))
+    if not ingest_sessions_enabled:
+        logger.info("Session ingestion disabled (set FITNESS_WATCHER_INGEST_SESSIONS=1 to enable).")
+    if not proactive_refiner_enabled:
+        logger.info("Proactive refiner disabled (set FITNESS_WATCHER_PROACTIVE_REFINER=1 to enable).")
+    logger.info(f"Optional analytics interval: {analytics_interval_seconds}s.")
     api_key = load_gemini_key()
     if not api_key:
         logger.warning("GEMINI_API_KEY not found. Automated enrichment disabled.")
@@ -221,24 +229,28 @@ def run_watcher():
         while True:
             now = time.time()
             
-            # Periodically ingest sessions and proactively refine popular exercises
-            if now - last_ingest > 3600: # Every hour
-                logger.info("Running session ingestion and proactive refinement check...")
+            # Optional background analytics. Disabled by default: the inbox watcher
+            # must not invent history rows or phantom exercise drafts.
+            if now - last_ingest > analytics_interval_seconds:
                 try:
-                    ingested = ingest_all_sessions()
-                    if ingested:
-                        logger.info(f"Ingested {ingested} new training entries.")
-                    
-                    top_unreviewed = get_top_unreviewed_exercises(limit=3)
-                    for ex_id, count in top_unreviewed:
-                        logger.info(f"Proactively refining popular unreviewed exercise: {ex_id} (used {count} times)")
-                        res = resolve_query(ex_id)
-                        if res.matched:
-                            process_inbox_file_virtual(res.canonical_id, res.display_name, api_key)
-                    
+                    if ingest_sessions_enabled:
+                        logger.info("Running session ingestion check...")
+                        ingested = ingest_all_sessions()
+                        if ingested:
+                            logger.info(f"Ingested {ingested} new training entries.")
+
+                    if proactive_refiner_enabled:
+                        logger.info("Running proactive refinement check...")
+                        top_unreviewed = get_top_unreviewed_exercises(limit=3)
+                        for ex_id, count in top_unreviewed:
+                            logger.info(f"Proactively refining popular unreviewed exercise: {ex_id} (used {count} times)")
+                            res = resolve_query(ex_id)
+                            if res.matched:
+                                process_inbox_file_virtual(res.canonical_id, res.display_name, api_key)
+
                     last_ingest = now
                 except Exception as e:
-                    logger.error(f"Periodic ingest/refinement failed: {e}")
+                    logger.error(f"Periodic optional analytics failed: {e}")
 
             # Periodically run Biomechanical Auditor
             if now - last_audit > 7200: # Every 2 hours

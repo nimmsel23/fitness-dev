@@ -35,6 +35,14 @@ current catalog vocabulary. Prefer coarse bucket names for coach-review and
 coverage-level drafts. Use fine anatomical IDs only when the exercise clearly
 needs anatomy-learning detail.
 
+CRITICAL: "category" is the single Primal Movement Pattern bucket for the
+exercise: push, pull, squat, lunge, gait, twist, or carry. Do NOT use body
+regions such as chest, back, legs, shoulders, arms, or core as category. Do
+NOT use horizontal/vertical variants as category; those are movement details.
+Joint actions and details such as horizontal, vertical, knee_flexion,
+hip_extension, shoulder_abduction, gait, or balance_control belong in
+"movements" as a list, not in category.
+
 Allowed coarse muscle buckets:
 {muscle_bucket_list}
 
@@ -53,9 +61,9 @@ intentionally the anatomical detail being captured.
   "display_name": "German Name",
   "german": "German Name",
   "english": "English Name",
-  "category": "chest|back|shoulders|arms|core|legs|cardio",
+  "category": "single_primal_movement_pattern",
   "type": "compound|isolation",
-  "movement_pattern": "e.g. horizontal_press, vertical_pull",
+  "movements": ["joint_or_movement_detail"],
   "equipment": ["dumbbell", "barbell", "machine", "bodyweight", "cable"],
   "primary_muscles": ["muscle_bucket_or_fine_id"],
   "secondary_muscles": ["muscle_bucket_or_fine_id"],
@@ -85,6 +93,14 @@ current catalog vocabulary. Prefer coarse bucket names for coach-review and
 coverage-level drafts. Use fine anatomical IDs only when the exercise clearly
 needs anatomy-learning detail.
 
+CRITICAL: "category" is the single Primal Movement Pattern bucket for the
+exercise: push, pull, squat, lunge, gait, twist, or carry. Do NOT use body
+regions such as chest, back, legs, shoulders, arms, or core as category. Do
+NOT use horizontal/vertical variants as category; those are movement details.
+Joint actions and details such as horizontal, vertical, knee_flexion,
+hip_extension, shoulder_abduction, gait, or balance_control belong in
+"movements" as a list, not in category.
+
 Allowed coarse muscle buckets:
 {muscle_bucket_list}
 
@@ -101,9 +117,9 @@ Existing Data (Wiki Layer):
 {feedback_section}
 Your task:
 1. Keep the exercise_id and wger_id.
-2. Verify and refine the category and muscles.
+2. Verify and refine category as the Primal Movement Pattern bucket, plus the muscles.
 3. Generate HIGH-QUALITY coaching_notes and common_errors in GERMAN.
-4. Ensure the biomechanical movement_pattern is correct.
+4. Ensure biomechanical movement details are captured in movements as a list.
 {feedback_instruction}
 
 IMPORTANT: "coaching_notes" and "common_errors" MUST be a flat JSON array of

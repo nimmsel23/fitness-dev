@@ -7,9 +7,14 @@ exercises:
   display_name: Klimmzug im Untergriff
   german: Klimmzug im Untergriff
   english: Chin-Up
-  category: back
+  category: pull
   type: compound
-  movement_pattern: vertical_pull
+  movements:
+  - vertical
+  - shoulder_extension
+  - elbow_flexion
+  - scapular_depression
+  - supinated_grip
   equipment:
   - bodyweight
   - pull_up_bar

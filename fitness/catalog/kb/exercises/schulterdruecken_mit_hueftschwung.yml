@@ -7,9 +7,14 @@ exercises:
   display_name: Schulterdruecken mit Hüftschwung
   german: Schulterdruecken mit Hüftschwung
   english: Push Press
-  category: shoulders
+  category: push
   type: compound
-  movement_pattern: vertical_press
+  movements:
+  - vertical
+  - elbow_extension
+  - shoulder_flexion
+  - hip_extension
+  - knee_extension
   equipment:
   - dumbbell
   - barbell

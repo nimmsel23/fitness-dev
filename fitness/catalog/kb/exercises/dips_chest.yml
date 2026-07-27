@@ -6,9 +6,12 @@ exercises:
   name: Dips
   display_name: Brust-Dips
   german: Brust-Dips
-  category: chest
+  category: push
   type: compound
-  movement_pattern: vertical_press
+  movements:
+  - vertical
+  - shoulder_extension_flexion
+  - elbow_extension
   equipment:
   - bodyweight
   primary_muscles:

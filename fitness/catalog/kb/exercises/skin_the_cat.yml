@@ -7,9 +7,13 @@ exercises:
   display_name: Skin the Cat
   german: Skin the Cat
   english: Skin the Cat
-  category: shoulders
+  category: pull
   type: compound
-  movement_pattern: gymnastic_rotation
+  movements:
+  - gymnastic_rotation
+  - shoulder_extension
+  - scapular_control
+  - inversion
   equipment:
   - bodyweight
   - pull_up_bar

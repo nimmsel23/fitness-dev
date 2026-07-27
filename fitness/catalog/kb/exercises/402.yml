@@ -7,9 +7,11 @@ exercises:
   display_name: Beinbeuger
   german: Beinbeuger
   english: Leg Curl
-  category: legs
+  category: pull
   type: isolation
-  movement_pattern: knee_flexion
+  movements:
+  - knee_flexion
+  - open_chain
   equipment:
   - machine
   primary_muscles:

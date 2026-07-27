@@ -7,9 +7,13 @@ exercises:
   display_name: Schrägbankdrücken mit Kurzhanteln
   german: Schrägbankdrücken mit Kurzhanteln
   english: Incline Dumbbell Press
-  category: chest
+  category: push
   type: compound
-  movement_pattern: horizontal_press_incline
+  movements:
+  - incline
+  - horizontal_press
+  - shoulder_horizontal_adduction
+  - elbow_extension
   equipment:
   - dumbbell
   - incline_bench

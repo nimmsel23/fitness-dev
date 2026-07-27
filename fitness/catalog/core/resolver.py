@@ -42,9 +42,11 @@ class ExerciseRecord:
     source_file: str
     source: str = "expert"
     categories: list[str] = field(default_factory=list) # Bridge Network: chest, push, legs...
+    category: str = ""
     german: str = ""
     english: str = ""
     movement_pattern: str = ""
+    movements: list[str] | None = None
     equipment: list[str] | None = None
     aliases: list[str] | None = None
     primary_muscles: list[str] | None = None
@@ -177,12 +179,12 @@ def build_exercise_index() -> list[ExerciseRecord]:
             else:
                 if entry_name: rec.display_name = entry_name
                 # Basis-Felder
-                for f in ["german", "english", "movement_pattern", "wger_id", "gif_url", "image_url", "external_ids"]:
+                for f in ["category", "german", "english", "movement_pattern", "wger_id", "gif_url", "image_url", "external_ids"]:
                     val = entry.get(f) if isinstance(entry, dict) else None
                     if val: setattr(rec, f, val)
                 
                 # Listen-Felder
-                for lf in ["equipment", "aliases", "search_aliases", "primary_muscles", "secondary_muscles", "stabilizers", "variations", "coaching_notes", "common_errors", "tags"]:
+                for lf in ["equipment", "aliases", "search_aliases", "movements", "primary_muscles", "secondary_muscles", "stabilizers", "variations", "coaching_notes", "common_errors", "tags"]:
                     val = list_of_text(entry.get(lf)) if isinstance(entry, dict) else None
                     if val:
                         existing = getattr(rec, lf) or []

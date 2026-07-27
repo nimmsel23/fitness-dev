@@ -7,9 +7,12 @@ exercises:
   display_name: Schulterblatt-Aktivierung
   german: Schulterblatt-Aktivierung
   english: Scapula Priming
-  category: shoulders
+  category: pull
   type: isolation
-  movement_pattern: scapular_control
+  movements:
+  - scapular_control
+  - scapular_retraction
+  - scapular_depression
   equipment:
   - bodyweight
   - resistance_band

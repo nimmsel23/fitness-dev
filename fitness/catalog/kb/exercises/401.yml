@@ -7,9 +7,11 @@ exercises:
   display_name: Beinstrecken
   german: Beinstrecken
   english: Leg Extension
-  category: legs
+  category: squat
   type: isolation
-  movement_pattern: knee_extension
+  movements:
+  - knee_extension
+  - open_chain
   equipment:
   - machine
   primary_muscles:

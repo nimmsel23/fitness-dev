@@ -7,9 +7,12 @@ exercises:
   display_name: Kabelzug über Kreuz (Brust)
   german: Kabelzug über Kreuz (Brust)
   english: Cross-Body Cable Crossover
-  category: chest
+  category: push
   type: isolation
-  movement_pattern: horizontal_adduction
+  movements:
+  - horizontal_adduction
+  - cable
+  - peak_contraction
   equipment:
   - cable
   primary_muscles:

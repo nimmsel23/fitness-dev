@@ -7,9 +7,14 @@ exercises:
   display_name: Reißen
   german: Reißen
   english: Snatch
-  category: legs
+  category: pull
   type: compound
-  movement_pattern: olympic_pull
+  movements:
+  - olympic_pull
+  - triple_extension
+  - hip_extension
+  - knee_extension
+  - overhead_catch
   equipment:
   - barbell
   primary_muscles:

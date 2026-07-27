@@ -7,9 +7,12 @@ exercises:
   display_name: Seithebemaschine
   german: Maschinelles Seitheben
   english: Machine Lateral Raise
-  category: shoulders
+  category: push
   type: isolation
-  movement_pattern: shoulder_abduction
+  movements:
+  - shoulder_abduction
+  - machine_guided
+  - scapular_control
   equipment:
   - machine
   primary_muscles:

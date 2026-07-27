@@ -273,7 +273,7 @@ def _inbox_detail(f: Path) -> str:
 
     # Main fields
     scalar_fields = ["exercise_id", "category", "type", "movement_pattern", "source"]
-    list_fields = ["equipment", "primary_muscles", "secondary_muscles", "stabilizers"]
+    list_fields = ["equipment", "movements", "primary_muscles", "secondary_muscles", "stabilizers"]
 
     meta_lines = [
         f"[dim]{'file':22}[/dim] {f}",
@@ -625,7 +625,9 @@ def _browser_detail(ex: Any) -> None:
         f"[dim]{'source_file':22}[/dim] {getattr(ex, 'source_file', '')}",
         f"[dim]{'german':22}[/dim] {getattr(ex, 'german', '')}",
         f"[dim]{'english':22}[/dim] {getattr(ex, 'english', '')}",
+        f"[dim]{'category':22}[/dim] {getattr(ex, 'category', '')}",
         f"[dim]{'movement_pattern':22}[/dim] {getattr(ex, 'movement_pattern', '')}",
+        f"[dim]{'movements':22}[/dim] {', '.join(getattr(ex, 'movements', []) or [])}",
         f"[dim]{'equipment':22}[/dim] {', '.join(getattr(ex, 'equipment', []) or [])}",
         f"[dim]{'primary_muscles':22}[/dim] {', '.join(getattr(ex, 'primary_muscles', []) or [])}",
         f"[dim]{'secondary_muscles':22}[/dim] {', '.join(getattr(ex, 'secondary_muscles', []) or [])}",

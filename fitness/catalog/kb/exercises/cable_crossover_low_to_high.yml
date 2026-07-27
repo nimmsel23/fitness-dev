@@ -7,9 +7,12 @@ exercises:
   display_name: Kabelzug von unten nach oben
   german: Kabelzug von unten nach oben
   english: Low-to-High Cable Crossover
-  category: chest
+  category: push
   type: isolation
-  movement_pattern: incline_horizontal_adduction
+  movements:
+  - incline
+  - horizontal_adduction
+  - shoulder_flexion
   equipment:
   - cable
   primary_muscles:

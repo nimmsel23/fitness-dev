@@ -7,9 +7,12 @@ exercises:
   display_name: Jefferson Curl
   german: Jefferson Curl
   english: Jefferson Curl
-  category: lower_back
+  category: pull
   type: isolation
-  movement_pattern: loaded_spinal_flexion
+  movements:
+  - loaded_spinal_flexion
+  - hip_hinge
+  - hamstring_lengthening
   equipment:
   - bodyweight
   - barbell
