@@ -12,7 +12,9 @@ dist-federation/
 *.bak*
 .venv/
 __pycache__/
-*.pyc
+**/__pycache__/
+*.py[cod]
+*$py.class
 *.egg-info/
 uv.lock
 
@@ -28,4 +30,3 @@ dist-versions/
 build/
 bin/firestore-sync
 serviceAccountKey.json
-
