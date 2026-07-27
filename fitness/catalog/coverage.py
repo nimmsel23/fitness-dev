@@ -4,6 +4,7 @@ from collections import defaultdict
 from typing import Any
 
 from fitness.catalog.core.loader import load_catalog_yaml, iter_catalog_yaml_files, catalog_path
+from fitness.catalog.core.muscles import iter_muscle_documents
 from fitness.catalog.core.resolver import build_exercise_index, resolve_query
 
 ROLE_WEIGHTS = {
@@ -203,14 +204,17 @@ def rollup_parent_scores(muscle_scores: dict[str, float], parent_map: dict[str, 
 def load_muscle_taxonomy() -> dict[str, dict[str, Any]]:
     taxonomy = load_catalog_yaml("muscle_index.yml")
     if not isinstance(taxonomy, dict):
-        return {}
+        taxonomy = {}
     muscles = taxonomy.get("muscles", {})
     if not isinstance(muscles, dict):
-        return {}
+        muscles = {}
     result: dict[str, dict[str, Any]] = {}
     for muscle_id, data in muscles.items():
         if isinstance(muscle_id, str) and isinstance(data, dict):
             result[muscle_id] = data
+    for muscle_id, data in iter_muscle_documents(index=result):
+        existing = result.get(muscle_id, {})
+        result[muscle_id] = {**data, **existing}
     return result
 
 
@@ -258,6 +262,19 @@ def load_muscle_region_index() -> dict[str, str]:
         for muscle_id in doc.get("muscles", []):
             if isinstance(muscle_id, str):
                 result.setdefault(muscle_id, region_name)
+
+    for yml_file in sorted(region_dir.rglob("*.yml")):
+        if yml_file.parent == region_dir or yml_file.name.startswith("_"):
+            continue
+        try:
+            doc = load_catalog_yaml(f"muscles/{yml_file.parent.name}/{yml_file.name}")
+        except Exception:
+            continue
+        if not isinstance(doc, dict):
+            continue
+        muscle_id = str(doc.get("id") or yml_file.stem).strip()
+        if muscle_id:
+            result.setdefault(muscle_id, yml_file.parent.name)
 
     return result
 

@@ -7,9 +7,13 @@ exercises:
   display_name: Kreuzheben
   german: Kreuzheben
   english: Deadlift
-  category: legs
+  category: pull
   type: compound
-  movement_pattern: hip_hinge
+  movements:
+  - hip_hinge
+  - hip_extension
+  - knee_extension
+  - spinal_anti_flexion
   equipment:
   - barbell
   primary_muscles:

@@ -1,0 +1,38 @@
+name: inbox_yuhonas_side_leg_raises
+description: 'Restored from graveyard: Seitliches Beinheben'
+restored_at: '2026-07-27T05:22:30.174183+00:00'
+graveyard_entry:
+  id: inbox_yuhonas_side_leg_raises
+  exercise_id: yuhonas_side_leg_raises
+  display_name: Seitliches Beinheben
+  reason: deleted_inbox
+  created_at: '2026-07-27T03:54:56.472149+00:00'
+  keys:
+  - inbox_yuhonas_side_leg_raises
+  - yuhonas_side_leg_raises
+  - name:seitliches_beinheben
+  - name:side_leg_raises
+exercises:
+- exercise_id: yuhonas_side_leg_raises
+  display_name: Side Leg Raises
+  category: stretching
+  primary_muscles:
+  - adductors
+  secondary_muscles: []
+  equipment:
+  - body only
+  coaching_notes:
+  - Stand next to a chair, which you may hold onto as a support. Stand on one leg.
+    This will be your starting position.
+  - Keeping your leg straight, raise it as far out to the side as possible, and swing
+    it back down, allowing it to cross the opposite leg.
+  - Repeat this swinging motion 5-10 times, increasing the range of motion as you
+    do so.
+  tags:
+  - unreviewed
+  - yuhonas
+  yuhonas_id: Side_Leg_Raises
+  wger_muscle_ids:
+    primary: []
+    secondary: []
+  source: unreviewed

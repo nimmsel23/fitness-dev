@@ -11,7 +11,7 @@ from fitness.catalog.core.paths import runtime_root
 from fitness.catalog.history import ensure_history_db, log_training_entry
 from fitness.catalog.core.resolver import resolve_query
 from fitness.catalog.core.loader import load_catalog_directory_yaml, catalog_path
-from fitness.catalog.core.session_signal import exercise_has_training_signal
+from fitness.catalog.core.session_signal import exercise_has_training_signal, training_values
 
 def ingest_all_sessions():
     users_dir = runtime_root() / "users"
@@ -72,41 +72,6 @@ def ingest_all_sessions():
 def stable_workout_id(user_id: str, session_data: dict[str, Any], date: str) -> str:
     raw = session_data.get("block") or session_data.get("session_id") or date
     return f"{user_id}:{raw}"
-
-
-def training_values(exercise: dict[str, Any]) -> dict[str, Any]:
-    sets = _int_value(exercise.get("sets"))
-    reps = _int_value(exercise.get("reps"))
-    weight = _float_value(exercise.get("weight"))
-    rpe = _int_value(exercise.get("rpe"))
-
-    sets_array = exercise.get("setsArray")
-    if isinstance(sets_array, list):
-        active_sets = [item for item in sets_array if isinstance(item, dict) and exercise_has_training_signal({"setsArray": [item]})]
-        if active_sets and sets == 0:
-            sets = len(active_sets)
-        if reps == 0:
-            reps = max((_int_value(item.get("reps")) for item in active_sets), default=0)
-        if weight == 0:
-            weight = max((_float_value(item.get("weight")) for item in active_sets), default=0.0)
-        if rpe == 0:
-            rpe = max((_int_value(item.get("rpe")) for item in active_sets), default=0)
-
-    return {"sets": sets, "reps": reps, "weight": weight, "rpe": rpe}
-
-
-def _int_value(value: Any) -> int:
-    try:
-        return int(float(value or 0))
-    except (TypeError, ValueError):
-        return 0
-
-
-def _float_value(value: Any) -> float:
-    try:
-        return float(value or 0)
-    except (TypeError, ValueError):
-        return 0.0
 
 
 def is_already_ingested(db_path: Path, date: str, exercise_id: str, workout_id: str) -> bool:

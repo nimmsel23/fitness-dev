@@ -23,7 +23,7 @@ def audit_exercises() -> ExerciseAuditResult:
         "bulk", "expert", "inbox"
     }
     required_fields = [
-        "display_name", "german", "movement_pattern", "equipment",
+        "display_name", "german", "category", "equipment",
         "primary_muscles", "coaching_notes", "common_errors",
     ]
 

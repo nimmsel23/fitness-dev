@@ -7,9 +7,14 @@ exercises:
   display_name: Iso-Lateral Rudermaschine (High)
   german: Iso-Lateral Rudermaschine
   english: Iso-Lateral High Row
-  category: back
+  category: pull
   type: compound
-  movement_pattern: horizontal_pull
+  movements:
+  - horizontal
+  - shoulder_extension
+  - scapular_retraction
+  - elbow_flexion
+  - iso_lateral
   equipment:
   - machine
   primary_muscles:

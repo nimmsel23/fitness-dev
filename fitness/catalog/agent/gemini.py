@@ -35,6 +35,14 @@ current catalog vocabulary. Prefer coarse bucket names for coach-review and
 coverage-level drafts. Use fine anatomical IDs only when the exercise clearly
 needs anatomy-learning detail.
 
+CRITICAL: "category" is the single Primal Movement Pattern bucket for the
+exercise: push, pull, squat, lunge, gait, twist, or carry. Do NOT use body
+regions such as chest, back, legs, shoulders, arms, or core as category. Do
+NOT use horizontal/vertical variants as category; those are movement details.
+Joint actions and details such as horizontal, vertical, knee_flexion,
+hip_extension, shoulder_abduction, gait, or balance_control belong in
+"movements" as a list, not in category.
+
 Allowed coarse muscle buckets:
 {muscle_bucket_list}
 
@@ -53,9 +61,9 @@ intentionally the anatomical detail being captured.
   "display_name": "German Name",
   "german": "German Name",
   "english": "English Name",
-  "category": "chest|back|shoulders|arms|core|legs|cardio",
+  "category": "single_primal_movement_pattern",
   "type": "compound|isolation",
-  "movement_pattern": "e.g. horizontal_press, vertical_pull",
+  "movements": ["joint_or_movement_detail"],
   "equipment": ["dumbbell", "barbell", "machine", "bodyweight", "cable"],
   "primary_muscles": ["muscle_bucket_or_fine_id"],
   "secondary_muscles": ["muscle_bucket_or_fine_id"],
@@ -85,6 +93,14 @@ current catalog vocabulary. Prefer coarse bucket names for coach-review and
 coverage-level drafts. Use fine anatomical IDs only when the exercise clearly
 needs anatomy-learning detail.
 
+CRITICAL: "category" is the single Primal Movement Pattern bucket for the
+exercise: push, pull, squat, lunge, gait, twist, or carry. Do NOT use body
+regions such as chest, back, legs, shoulders, arms, or core as category. Do
+NOT use horizontal/vertical variants as category; those are movement details.
+Joint actions and details such as horizontal, vertical, knee_flexion,
+hip_extension, shoulder_abduction, gait, or balance_control belong in
+"movements" as a list, not in category.
+
 Allowed coarse muscle buckets:
 {muscle_bucket_list}
 
@@ -101,9 +117,9 @@ Existing Data (Wiki Layer):
 {feedback_section}
 Your task:
 1. Keep the exercise_id and wger_id.
-2. Verify and refine the category and muscles.
+2. Verify and refine category as the Primal Movement Pattern bucket, plus the muscles.
 3. Generate HIGH-QUALITY coaching_notes and common_errors in GERMAN.
-4. Ensure the biomechanical movement_pattern is correct.
+4. Ensure biomechanical movement details are captured in movements as a list.
 {feedback_instruction}
 
 IMPORTANT: "coaching_notes" and "common_errors" MUST be a flat JSON array of
@@ -246,6 +262,39 @@ def _call_codex_cli(prompt: str, timeout: int = 120) -> str | None:
         return result.stdout.strip() or None
     except Exception as e:
         logger.warning(f"Codex-CLI-Fallback fehlgeschlagen: {e}")
+        return None
+
+
+def _call_codex_review_cli(prompt: str, timeout: int = 120) -> str | None:
+    """Codex reviewer fallback for cases where Gemini succeeded but Haiku cannot
+    provide the second-pass JSON review."""
+    model = os.environ.get("FITNESS_CODEX_REVIEW_MODEL", "gpt-5-mini")
+    codex_prompt = (
+        prompt
+        + "\n\nReturn ONLY the reviewed JSON object. Do not edit files. Do not run tools. "
+        "This is a second-pass review of a Gemini draft for later coach approval."
+    )
+    try:
+        result = subprocess.run(
+            [
+                "codex",
+                "exec",
+                "-m",
+                model,
+                "--sandbox",
+                "read-only",
+                "--skip-git-repo-check",
+                "--ephemeral",
+                "-",
+            ],
+            input=codex_prompt,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        return result.stdout.strip() or None
+    except Exception as e:
+        logger.warning(f"Codex-Review-Fallback fehlgeschlagen: {e}")
         return None
 
 
@@ -408,6 +457,29 @@ def review_with_haiku(enriched_data: dict, feedback: str | None = None, timeout:
         return normalize_enriched_fields(json.loads(text[start:end + 1]))
     except Exception as e:
         logger.warning(f"Haiku-Review fehlgeschlagen ({e}), behalte Gemini-Output")
+        return None
+
+
+def review_with_codex(enriched_data: dict, feedback: str | None = None, timeout: int = 120) -> dict | None:
+    """Best-effort second-pass review via local Codex CLI. This is used when
+    Haiku is unavailable, for example due to weekly limits."""
+    prompt = PROMPT_HAIKU_REVIEW.format(
+        enriched_json=json.dumps(enriched_data, indent=2, ensure_ascii=False),
+        feedback_section=(
+            f'\nCoach-Feedback zum urspruenglichen Entwurf: "{feedback}"\n' if feedback else ""
+        ),
+    )
+    text = _call_codex_review_cli(prompt, timeout=timeout)
+    if not text:
+        return None
+    start, end = text.find("{"), text.rfind("}")
+    if start == -1 or end == -1:
+        logger.warning("Codex-Review: keine JSON-Antwort erhalten, behalte Gemini-Output")
+        return None
+    try:
+        return normalize_enriched_fields(json.loads(text[start:end + 1]))
+    except Exception as e:
+        logger.warning(f"Codex-Review JSON extraction failed: {e}")
         return None
 
 

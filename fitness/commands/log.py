@@ -27,6 +27,7 @@ from ..data import (
     load_client_registry,
     load_sessions,
     load_sessions_for_date,
+    performed_exercises,
     sqlite_exercise_history,
     sync_info,
 )
@@ -117,7 +118,7 @@ def cmd_week() -> None:
         for s in day_s:
             kind  = classify(s)
             act   = s.get("activity") or {}
-            exs   = [e for e in (s.get("exercises") or []) if e.get("done")]
+            exs   = performed_exercises(s)
             block = s.get("block", "")
 
             if kind == "cardio":
@@ -214,7 +215,7 @@ def cmd_stats(
     strength = [s for s in sessions if classify(s) != "cardio"]
     cardio   = [s for s in sessions if classify(s) == "cardio"]
     total_ex = sum(
-        len([e for e in (s.get("exercises") or []) if e.get("done")])
+        len(performed_exercises(s))
         for s in strength
     )
     cardio_min = 0
@@ -406,7 +407,7 @@ def cmd_clients(
 
             kind  = classify(s)
             act   = s.get("activity") or {}
-            exs   = [e for e in (s.get("exercises") or []) if e.get("done")]
+            exs   = performed_exercises(s)
             block = s.get("block", "")
             eff   = s.get("effort")
 

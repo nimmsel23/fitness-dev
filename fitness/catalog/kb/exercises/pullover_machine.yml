@@ -7,9 +7,11 @@ exercises:
   display_name: Pullover-Maschine
   german: Pullover-Maschine
   english: Pullover Machine
-  category: back
+  category: pull
   type: isolation
-  movement_pattern: shoulder_extension
+  movements:
+  - shoulder_extension
+  - machine_guided
   equipment:
   - machine
   primary_muscles:

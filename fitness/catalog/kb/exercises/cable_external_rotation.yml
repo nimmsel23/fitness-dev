@@ -7,9 +7,12 @@ exercises:
   display_name: Außenrotation am Kabelzug
   german: Außenrotation am Kabelzug
   english: Cable External Rotation
-  category: shoulders
+  category: pull
   type: isolation
-  movement_pattern: shoulder_external_rotation
+  movements:
+  - shoulder_external_rotation
+  - scapular_control
+  - rotator_cuff
   equipment:
   - cable
   primary_muscles:

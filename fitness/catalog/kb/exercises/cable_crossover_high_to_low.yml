@@ -7,9 +7,12 @@ exercises:
   display_name: Kabelzug Überkreuzung oben-unten
   german: Kabelzug Überkreuzung oben-unten
   english: High-to-Low Cable Crossover
-  category: chest
+  category: push
   type: isolation
-  movement_pattern: decline_horizontal_adduction
+  movements:
+  - decline
+  - horizontal_adduction
+  - shoulder_adduction
   equipment:
   - cable
   primary_muscles:

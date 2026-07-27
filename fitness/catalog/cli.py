@@ -51,6 +51,7 @@ from fitness.catalog.core.rich_utils import (
     print_exercise_audit,
     print_demand_audit,
 )
+from fitness.runtime.cli import app as runtime_user_data_app
 
 app = typer.Typer(help="AlphaOS Fitness Agent CLI", add_completion=False)
 
@@ -399,9 +400,58 @@ def coach_sheet(
 @app.command()
 def tui(
     screen: Annotated[str, typer.Option(help="Initial screen")] = "dashboard",
+    graveyard: Annotated[bool, typer.Option("--graveyard", "-g", help="Direkt im Inbox-Graveyard starten")] = False,
 ):
     """Launch the Vitaltrainer TUI"""
+    if graveyard:
+        screen = "graveyard"
     run_tui(initial_screen=screen)
+
+
+graveyard_app = typer.Typer(help="Inbox-Graveyard ohne TUI")
+app.add_typer(graveyard_app, name="graveyard")
+
+
+def _print_graveyard_entries() -> None:
+    from fitness.catalog.agent.inbox_actions import list_inbox_tombstones
+
+    entries = list_inbox_tombstones()
+    if not entries:
+        console.print("[ok]Graveyard leer.[/ok]")
+        return
+    for entry in entries:
+        console.print(
+            f"  {str(entry.get('id') or ''):35}  "
+            f"{entry.get('display_name') or entry.get('exercise_id') or ''}  "
+            f"[dim]{entry.get('created_at') or ''}[/dim]"
+        )
+
+
+@graveyard_app.command(name="list")
+def graveyard_list_cmd():
+    """Listet verworfene Inbox-Drafts (Tombstones)"""
+    _print_graveyard_entries()
+
+
+@graveyard_app.command(name="restore")
+def graveyard_restore_cmd(
+    tombstone_id: Annotated[str, typer.Argument(help="z.B. inbox_wger_206")],
+):
+    """Stellt einen Graveyard-Eintrag als Inbox-Draft wieder her"""
+    from fitness.catalog.agent.inbox_actions import restore_inbox_tombstone
+
+    try:
+        restored = restore_inbox_tombstone(tombstone_id)
+    except (FileNotFoundError, FileExistsError, ValueError) as exc:
+        console.print(f"[fail]FAIL:[/fail] {exc}")
+        raise typer.Exit(code=1)
+    console.print(f"[ok]✓ Restored -> {restored.name}[/ok]")
+
+
+@graveyard_app.command(name="tui")
+def graveyard_tui_cmd():
+    """Startet die TUI direkt im Inbox-Graveyard"""
+    run_tui(initial_screen="graveyard")
 
 
 @app.command(name="wger-check")
@@ -674,6 +724,7 @@ def alias_add(
 inbox_app = typer.Typer(help="Inbox-Review ohne TUI — für Skripte/CI/Automation")
 app.add_typer(inbox_app, name="inbox")
 
+app.add_typer(runtime_user_data_app, name="user-data")
 
 @inbox_app.command(name="list")
 def inbox_list():
@@ -749,7 +800,11 @@ def inbox_reenrich_cmd(
         raise typer.Exit(code=1)
 
     if not no_haiku:
-        console.print("[ok]✓ Haiku-Review angewendet[/ok]" if result["haiku_applied"] else "[warn]Haiku-Review nicht verfuegbar — Gemini-Ergebnis behalten[/warn]")
+        review_provider = result.get("review_provider")
+        if review_provider:
+            console.print(f"[ok]✓ {str(review_provider).capitalize()}-Review angewendet[/ok]")
+        else:
+            console.print("[warn]Haiku/Codex-Review nicht verfuegbar — Gemini-Ergebnis behalten[/warn]")
     console.print(f"[ok]✓ Neu angereichert:[/ok] {f.name}")
 
 
@@ -772,6 +827,27 @@ def inbox_delete_cmd(
         return
     delete_inbox_entry(f, ex)
     console.print(f"[ok]✓ Gelöscht:[/ok] {f.name}")
+
+
+@inbox_app.command(name="graveyard")
+def inbox_graveyard_cmd():
+    """Listet verworfene Inbox-Drafts (Tombstones)"""
+    _print_graveyard_entries()
+
+
+@inbox_app.command(name="restore")
+def inbox_restore_cmd(
+    tombstone_id: Annotated[str, typer.Argument(help="z.B. inbox_wger_206")],
+):
+    """Stellt einen Graveyard-Eintrag als Inbox-Draft wieder her"""
+    from fitness.catalog.agent.inbox_actions import restore_inbox_tombstone
+
+    try:
+        restored = restore_inbox_tombstone(tombstone_id)
+    except (FileNotFoundError, FileExistsError, ValueError) as exc:
+        console.print(f"[fail]FAIL:[/fail] {exc}")
+        raise typer.Exit(code=1)
+    console.print(f"[ok]✓ Restored -> {restored.name}[/ok]")
 
 
 def main():

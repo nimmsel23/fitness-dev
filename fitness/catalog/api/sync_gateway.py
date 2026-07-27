@@ -21,10 +21,13 @@ from typing import Any
 
 from loguru import logger
 
+from fitness.catalog.core.session_signal import exercise_has_training_signal, training_values
+
 
 def _get_session_local():
-    """Lazy import — db/ muss im sys.path liegen (tut es wenn server.py gestartet)."""
-    from db import SessionLocal
+    """Lazy import with live DB path resolution for runtime/test isolation."""
+    from fitness.catalog.history import _session_factory
+    SessionLocal, _ = _session_factory()
     return SessionLocal
 
 
@@ -54,23 +57,27 @@ def sync_session(day: str, session: dict[str, Any], session_id: str | None = Non
                 sa.or_(TrainingHistory.session_id.is_(None), TrainingHistory.session_id == ""),
             ))
 
-        rows = [
-            TrainingHistory(
-                date              = day,
-                session_id        = sid,
-                workout_id        = block,
-                exercise_id       = ex.get("exercise_id") or ex.get("id", ""),
-                display_name      = ex.get("name") or ex.get("exercise_id") or ex.get("id", ""),
-                sets              = int(ex.get("sets") or 0),
-                reps              = int(ex.get("reps") or 0),
-                weight            = float(ex.get("weight") or 0),
-                rpe               = int(ex.get("rpe") or 0),
-                done              = 1 if ex.get("done") else 0,
-                notes             = ex.get("note", ""),
-                completion_status = "completed" if ex.get("done") else "pending",
+        rows = []
+        for ex in session.get("exercises", []):
+            if not isinstance(ex, dict) or not exercise_has_training_signal(ex):
+                continue
+            values = training_values(ex)
+            rows.append(
+                TrainingHistory(
+                    date              = day,
+                    session_id        = sid,
+                    workout_id        = block or day,
+                    exercise_id       = ex.get("exercise_id") or ex.get("id", ""),
+                    display_name      = ex.get("name") or ex.get("exercise_id") or ex.get("id", ""),
+                    sets              = values["sets"],
+                    reps              = values["reps"],
+                    weight            = values["weight"],
+                    rpe               = values["rpe"],
+                    done              = 1 if ex.get("done") else 0,
+                    notes             = ex.get("note") or ex.get("notes") or "",
+                    completion_status = "completed" if ex.get("done") else "pending",
+                )
             )
-            for ex in session.get("exercises", [])
-        ]
         db.add_all(rows)
         db.commit()
 

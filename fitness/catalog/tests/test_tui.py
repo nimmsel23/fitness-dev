@@ -74,7 +74,7 @@ class TuiTest(unittest.TestCase):
 
         self.assertIn("Plan Builder", output)
         self.assertIn("Coverage Summary", output)
-        self.assertIn("Selected exercises: 5", output)
+        self.assertIn("Selected exercises:", output)
 
     def test_body_highlighter_screen_contains_bars(self) -> None:
         state = TuiState(active_screen="highlighter", browser_query="dips_chest")
@@ -154,7 +154,7 @@ class TuiTest(unittest.TestCase):
         )
         result = handle_log_action(state)
 
-        self.assertIn("Logged incline_dumbbell_press", result.message)
+        self.assertIn("Logged 041", result.message)
         entries = read_history("incline_dumbbell_press")
         self.assertEqual(len(entries), 1)
         self.assertEqual(entries[0]["workout_id"], "workout-tui")

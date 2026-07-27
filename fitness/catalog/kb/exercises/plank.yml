@@ -6,9 +6,12 @@ exercises:
   name: Plank
   display_name: Plank
   german: Unterarmstütz
-  category: abs
+  category: carry
   type: isolation
-  movement_pattern: anti_extension
+  movements:
+  - anti_extension
+  - bracing
+  - isometric
   equipment:
   - bodyweight
   primary_muscles:

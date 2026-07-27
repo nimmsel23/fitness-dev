@@ -341,6 +341,15 @@ Important architecture:
 - wger is an optional local backend, not the semantic source of truth
 - Custom YAML files are the coach brain
 
+Runtime user-data operations:
+- Use `fitness user-data users` to identify local runtime users.
+- Use `fitness user-data session-signals --uid <uid>` to inspect parsed session JSON signals.
+- Use `fitness user-data backfill-history --uid <uid> -e <exercise_id>` for dry-run history repair.
+- Add `--apply` only after the dry-run patch list is reviewed.
+- `history-update` and `history-delete` operate by SQLite row id and are also dry-run unless `--apply` is present.
+- Backfill defaults to all-zero history rows only; do not use `--allow-nonzero` without explicit user instruction.
+- `fitness-enricher.service` is an inbox enrichment watcher. It must not write history rows or proactive drafts by default; enable those paths only via `FITNESS_WATCHER_INGEST_SESSIONS=1` / `FITNESS_WATCHER_PROACTIVE_REFINER=1`. Optional analytics interval defaults to 10h (`FITNESS_WATCHER_ANALYTICS_INTERVAL_SECONDS=36000`).
+
 First implementation task:
 Create a minimal Python CLI with:
 1. `fitness-agent bootstrap`

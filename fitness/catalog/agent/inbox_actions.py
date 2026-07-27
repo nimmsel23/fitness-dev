@@ -14,7 +14,7 @@ import yaml
 
 from fitness.catalog.core.paths import DATA_DIR
 from fitness.catalog.core.yaml_utils import load_yaml
-from fitness.catalog.agent.gemini import load_gemini_key, call_gemini, review_with_haiku
+from fitness.catalog.agent.gemini import load_gemini_key, call_gemini, review_with_haiku, review_with_codex
 
 
 def inbox_dir() -> Path:
@@ -184,6 +184,94 @@ def _load_tombstones() -> dict[str, Any]:
     return doc
 
 
+def _write_tombstones(doc: dict[str, Any]) -> None:
+    path = tombstones_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(yaml.dump(doc, allow_unicode=True, sort_keys=False), encoding="utf-8")
+
+
+def list_inbox_tombstones() -> list[dict[str, Any]]:
+    doc = _load_tombstones()
+    return [entry for entry in doc.get("tombstones", []) if isinstance(entry, dict)]
+
+
+def find_inbox_tombstone(tombstone_id: str) -> dict[str, Any]:
+    key = _norm_key(tombstone_id)
+    for entry in list_inbox_tombstones():
+        candidates = [
+            entry.get("id"),
+            entry.get("exercise_id"),
+            *(entry.get("keys") or []),
+        ]
+        if any(_norm_key(candidate) == key for candidate in candidates if candidate):
+            return entry
+    raise FileNotFoundError(f"Graveyard-Eintrag nicht gefunden: {tombstone_id}")
+
+
+def remove_inbox_tombstone(tombstone_id: str) -> dict[str, Any]:
+    target = find_inbox_tombstone(tombstone_id)
+    doc = _load_tombstones()
+    doc["tombstones"] = [
+        entry for entry in doc.get("tombstones", [])
+        if not isinstance(entry, dict) or entry.get("id") != target.get("id")
+    ]
+    _write_tombstones(doc)
+    return target
+
+
+def _source_exercise_for_tombstone(entry: dict[str, Any]) -> dict[str, Any] | None:
+    exercise_id = entry.get("exercise_id")
+    if not exercise_id:
+        return None
+    for source_file in ("unreviewed_wger.yml", "unreviewed_yuhonas.yml"):
+        path = exercises_dir() / source_file
+        if not path.exists():
+            continue
+        doc = load_yaml(path)
+        for ex in doc.get("exercises", []) or []:
+            if isinstance(ex, dict) and str(ex.get("exercise_id")) == str(exercise_id):
+                return dict(ex)
+    return None
+
+
+def restore_inbox_tombstone(tombstone_id: str) -> Path:
+    """Stellt einen Graveyard-Eintrag als Inbox-Draft wieder her und entfernt
+    danach den Tombstone. Wenn die Bulk-Quelle nicht mehr vorhanden ist, wird ein
+    minimaler Draft aus dem Tombstone erzeugt, damit der Coach ihn reviewen kann.
+    """
+    entry = find_inbox_tombstone(tombstone_id)
+    stem = str(entry.get("id") or f"inbox_{entry.get('exercise_id')}")
+    if not stem.startswith("inbox_"):
+        stem = f"inbox_{stem}"
+    target = inbox_dir() / f"{stem}.yml"
+    if target.exists():
+        raise FileExistsError(f"Inbox-Datei existiert bereits: {target.name}")
+
+    ex = _source_exercise_for_tombstone(entry)
+    if ex is None:
+        ex = {
+            "exercise_id": entry.get("exercise_id") or stem.removeprefix("inbox_"),
+            "display_name": entry.get("display_name") or stem,
+            "source": "unreviewed",
+            "primary_muscles": [],
+            "secondary_muscles": [],
+            "stabilizers": [],
+        }
+    ex["source"] = "unreviewed"
+
+    wrapper = {
+        "name": stem,
+        "description": f"Restored from graveyard: {entry.get('display_name') or stem}",
+        "restored_at": datetime.now(timezone.utc).isoformat(),
+        "graveyard_entry": entry,
+        "exercises": [ex],
+    }
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(yaml.dump(wrapper, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    remove_inbox_tombstone(stem)
+    return target
+
+
 def write_inbox_tombstone(
     file_id: str | Path,
     ex: dict[str, Any] | None = None,
@@ -212,9 +300,7 @@ def write_inbox_tombstone(
         "keys": keys,
     })
 
-    path = tombstones_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(yaml.dump(doc, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    _write_tombstones(doc)
 
 
 def is_inbox_tombstoned(file_id: str | Path, ex: dict[str, Any] | None = None) -> bool:
@@ -270,7 +356,9 @@ def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
         ex["exercise_id"] = ex_id
         ex["id"] = ex_id
 
+    approved_at = datetime.now(timezone.utc).isoformat()
     ex["source"] = "expert"
+    ex["approved_at"] = approved_at
     _merge_source_refs(f, ex)
 
     detail_path = exercises_dir() / f"{ex_id}.yml"
@@ -281,6 +369,7 @@ def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
     detail_doc = {
         "exercise_id": ex_id,
         "description": f"Expert details for {display_name}",
+        "approved_at": approved_at,
         "exercises": [ex],
     }
     detail_path.write_text(
@@ -303,11 +392,11 @@ def reenrich_inbox_entry(
     use_haiku_review: bool = True,
 ) -> dict[str, Any]:
     """Jagt einen bestehenden Inbox-Draft frisch durch Gemini (optional mit
-    Coach-Feedback), laesst Haiku als zweite Meinung gegenpruefen (best-effort,
-    siehe review_with_haiku()), und schreibt den Draft ueberschreibend
+    Coach-Feedback), laesst Haiku/Codex als zweite Meinung gegenpruefen
+    (best-effort), und schreibt den Draft ueberschreibend
     zurueck (Backup vorher). Wirft RuntimeError bei Konfigurations-/API-Fehlern.
 
-    Rueckgabe: {"enriched": dict, "haiku_applied": bool}
+    Rueckgabe: {"enriched": dict, "haiku_applied": bool, "review_provider": str | None}
     """
     api_key = load_gemini_key()
 
@@ -318,24 +407,35 @@ def reenrich_inbox_entry(
     if not enriched:
         raise RuntimeError("Gemini-Anreicherung fehlgeschlagen")
 
-    haiku_applied = False
+    review_provider = None
     if use_haiku_review:
         reviewed = review_with_haiku(enriched, feedback=feedback)
         if reviewed:
             enriched = reviewed
-            haiku_applied = True
+            review_provider = "haiku"
+        else:
+            reviewed = review_with_codex(enriched, feedback=feedback)
+            if reviewed:
+                enriched = reviewed
+                review_provider = "codex"
 
     f.with_suffix(".yml.bak").write_text(f.read_text())
 
     if "stabilizers" not in enriched: enriched["stabilizers"] = []
     if "variations" not in enriched: enriched["variations"] = []
+    enriched_at = datetime.now(timezone.utc).isoformat()
     enriched["source"] = "unreviewed"
+    enriched["enriched_at"] = enriched_at
 
     description = (
         f"Reenriched (Coach-Feedback) fuer: {name}" if feedback
         else f"Neu angereichert (manueller Re-Enrich) fuer: {name}"
     )
-    wrapper = {"name": f.stem, "description": description, "exercises": [enriched]}
+    wrapper = {"name": f.stem, "description": description, "enriched_at": enriched_at, "exercises": [enriched]}
     f.write_text(yaml.dump(wrapper, allow_unicode=True, sort_keys=False))
 
-    return {"enriched": enriched, "haiku_applied": haiku_applied}
+    return {
+        "enriched": enriched,
+        "haiku_applied": review_provider == "haiku",
+        "review_provider": review_provider,
+    }

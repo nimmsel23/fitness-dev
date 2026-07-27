@@ -1,0 +1,37 @@
+name: inbox_wger_926
+description: 'Restored from graveyard: Butterfly an der Maschine'
+restored_at: '2026-07-27T05:22:26.773817+00:00'
+graveyard_entry:
+  id: inbox_wger_926
+  exercise_id: wger_926
+  display_name: Butterfly an der Maschine
+  reason: deleted_inbox
+  created_at: '2026-07-26T21:20:51.770620+00:00'
+  keys:
+  - inbox_wger_926
+  - wger_926
+  - wger:926
+  - name:butterfly_an_der_maschine
+  - name:machine_chest_fly
+exercises:
+- exercise_id: wger_926
+  display_name: Machine chest fly
+  german: Machine chest fly
+  category: chest
+  primary_muscles:
+  - 101_pectoralis_major
+  - 102_pectoralis_major_clavicular
+  - 103_pectoralis_major_sternal
+  secondary_muscles: []
+  equipment: []
+  coaching_notes:
+  - seated machine, straight back, slow exercise
+  tags:
+  - unreviewed
+  - wger
+  wger_id: 926
+  wger_muscle_ids:
+    primary:
+    - 4
+    secondary: []
+  source: unreviewed

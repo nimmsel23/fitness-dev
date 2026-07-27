@@ -7,9 +7,13 @@ exercises:
   display_name: Klimmzug im Obergriff
   german: Klimmzug im Obergriff
   english: Pull-Up
-  category: back
+  category: pull
   type: compound
-  movement_pattern: vertical_pull
+  movements:
+  - vertical
+  - shoulder_adduction
+  - elbow_flexion
+  - scapular_depression
   equipment:
   - bodyweight
   - pull_up_bar

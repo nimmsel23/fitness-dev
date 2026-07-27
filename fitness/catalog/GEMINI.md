@@ -18,7 +18,15 @@ This directory contains the Python-based expert system for the AlphaOS Fitness e
 
 ### 3. Data Flow
 - **Local Expert**: The `watcher.py` process monitors user input and performs AI enrichment via Gemini.
+- **Watcher boundaries**: Inbox enrichment can run live, but session ingestion and proactive refinement must not run unless explicitly enabled with `FITNESS_WATCHER_INGEST_SESSIONS=1` / `FITNESS_WATCHER_PROACTIVE_REFINER=1`. Optional analytics checks run at most every 10h by default (`FITNESS_WATCHER_ANALYTICS_INTERVAL_SECONDS=36000`).
 - **Expert-Wins**: Local "Expert Tier" data always takes precedence over "Bulk Layer" data during sync.
+- **Runtime User-Data CRUD Hammer**: Use `fitness user-data ...` for runtime user/session/history work. It is dry-run by default; any SQLite write requires `--apply`. `fitness-catalog user-data ...` exists only as a compatibility alias.
+  - `fitness user-data users`: list runtime users and counts.
+  - `fitness user-data session-signals --uid <uid> [-e <exercise_id>]`: inspect parsed session JSON signals.
+  - `fitness user-data backfill-history --uid <uid> [-e <exercise_id>] [--apply]`: repair empty history rows from session JSON notes/setsArray.
+  - `fitness user-data history-update <row_id> ... --apply`: patch one training_history row.
+  - `fitness user-data history-delete <row_id> --apply`: delete one training_history row.
+  - Do not patch non-empty rows unless explicitly asked; default backfill only touches all-zero rows.
 
 ## Architecture
 

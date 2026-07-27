@@ -7,9 +7,14 @@ exercises:
   display_name: Sitzendes Rudern enger Griff Kabelzug
   german: Sitzendes Rudern enger Griff Kabelzug
   english: Close-Grip Seated Cable Row
-  category: back
+  category: pull
   type: compound
-  movement_pattern: horizontal_pull
+  movements:
+  - horizontal
+  - shoulder_extension
+  - scapular_retraction
+  - elbow_flexion
+  - close_grip
   equipment:
   - cable
   primary_muscles:

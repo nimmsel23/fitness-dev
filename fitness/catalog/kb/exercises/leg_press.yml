@@ -7,9 +7,12 @@ exercises:
   display_name: Beinpresse
   german: Beinpresse
   english: Leg Press
-  category: legs
+  category: squat
   type: compound
-  movement_pattern: leg_press
+  movements:
+  - knee_flexion_extension
+  - hip_extension
+  - machine_guided
   equipment:
   - machine
   primary_muscles:

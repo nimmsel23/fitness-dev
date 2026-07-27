@@ -22,7 +22,9 @@ def audit_exercise_record(ex: Any, mp_rules: dict[str, Any], iso_rules: dict[str
             return obj.get(key, default)
         return getattr(obj, key, default)
 
-    mp = get_val(ex, "movement_pattern")
+    category = get_val(ex, "category")
+    legacy_pattern = get_val(ex, "movement_pattern")
+    mp = category if category in mp_rules else legacy_pattern
     if mp in mp_rules:
         rule = mp_rules[mp]
         required = rule.get("required_primary", [])
@@ -57,7 +59,7 @@ def run_biomechanical_audit() -> list[str]:
     if not rules:
         return ["WARN: Biomechanical rules file missing."]
 
-    mp_rules = rules.get("movement_pattern_rules", {})
+    mp_rules = rules.get("primal_movement_rules") or rules.get("movement_pattern_rules", {})
     iso_rules = rules.get("isolation_rules", {})
     warnings = []
 

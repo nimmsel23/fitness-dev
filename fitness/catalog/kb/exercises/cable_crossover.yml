@@ -7,9 +7,12 @@ exercises:
   display_name: Kabelzug-Überkreuzung
   german: Kabelzug-Überkreuzung
   english: Cable Crossover
-  category: chest
+  category: push
   type: isolation
-  movement_pattern: horizontal_adduction
+  movements:
+  - horizontal_adduction
+  - cable
+  - shoulder_horizontal_adduction
   equipment:
   - cable
   primary_muscles:

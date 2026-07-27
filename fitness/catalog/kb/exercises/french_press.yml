@@ -7,9 +7,11 @@ exercises:
   display_name: Französisches Drücken
   german: Französisches Drücken
   english: French Press
-  category: arms
+  category: push
   type: isolation
-  movement_pattern: elbow_extension
+  movements:
+  - elbow_extension
+  - overhead
   equipment:
   - dumbbell
   - barbell

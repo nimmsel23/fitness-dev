@@ -14,6 +14,10 @@
   catalog_id: '061'
   display_name: Frontkniebeuge
   wger_name: Front Kniebeuge
+'348':
+  catalog_id: dumbbell_lateral_raise
+  display_name: Seitheben mit Kurzhanteln
+  wger_name: Seitheben KH
 '364':
   catalog_id: '402'
   display_name: Beinbeuger

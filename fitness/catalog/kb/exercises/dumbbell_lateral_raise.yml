@@ -1,0 +1,66 @@
+exercise_id: dumbbell_lateral_raise
+description: Expert details for Seitheben mit Kurzhanteln
+exercises:
+- exercise_id: dumbbell_lateral_raise
+  id: dumbbell_lateral_raise
+  name: Seitheben mit Kurzhanteln
+  display_name: Seitheben mit Kurzhanteln
+  german: Seitheben mit Kurzhanteln
+  english: Dumbbell Lateral Raise
+  category: push
+  type: isolation
+  movements:
+  - shoulder_abduction
+  - scapular_control
+  equipment:
+  - dumbbell
+  primary_muscles:
+  - 302_lateral_deltoid
+  secondary_muscles:
+  - 305_supraspinatus
+  - 202_trapezius_upper
+  stabilizers:
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  - 206_erector_spinae
+  coaching_notes:
+  - Stehe stabil mit leicht gebeugten Knien und fixiere den Rumpf, damit die Bewegung
+    nicht aus Schwung oder Oberkoerperpendeln entsteht.
+  - Fuehre die Hanteln seitlich in der Skapularebene nach oben, die Ellbogen bleiben
+    leicht gebeugt und fuehren die Bewegung.
+  - Hebe nur bis etwa Schulterhoehe. Hoeher wird der obere Trapezius dominant und
+    die Schulterposition oft unguenstiger.
+  - Halte Handgelenke neutral bis minimal oberhalb der Ellbogen. Vermeide bewusstes
+    "Wasser-ausgiessen" mit starker Innenrotation.
+  - Senke die Hanteln langsam und kontrolliert ab, statt sie in die Ausgangsposition
+    fallen zu lassen.
+  common_errors:
+  - Zu hohe Last, wodurch Schwung, Ruecklage oder Schulterzucken die Zielmuskulatur
+    uebernehmen.
+  - Hochziehen der Schultern Richtung Ohren, wodurch der obere Trapezius statt der
+    seitliche Deltoid dominiert.
+  - Komplett gestreckte Ellbogen oder abknickende Handgelenke, was Hebel und Gelenkbelastung
+    unguenstig veraendert.
+  - Arme deutlich ueber Schulterhoehe heben und dadurch Spannung vom lateralen Deltoid
+    verlieren.
+  tags:
+  - isolation
+  - dumbbell
+  - shoulders
+  - shoulder_abduction
+  - lateral_deltoid
+  aliases:
+  - Kurzhantel-Seitheben
+  - Seitheben KH
+  - KH Seitheben
+  - Dumbbell Side Lateral Raise
+  - Side Lateral Raise
+  search_aliases:
+  - wger_348
+  external_ids:
+    wger:
+    - 348
+  wger_id: 348
+  variations: []
+  source: expert

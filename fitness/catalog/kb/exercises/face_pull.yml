@@ -6,9 +6,13 @@ exercises:
   name: Face Pulls
   display_name: Face Pulls
   german: Face Pulls
-  category: shoulders
+  category: pull
   type: compound
-  movement_pattern: horizontal_pull
+  movements:
+  - horizontal
+  - shoulder_external_rotation
+  - scapular_retraction
+  - elbow_flexion
   equipment:
   - cable
   primary_muscles:
