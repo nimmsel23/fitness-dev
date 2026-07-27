@@ -19,7 +19,7 @@ export const MUSCLE_ICONS = {
   arms:       Dumbbell,
   core:       Target,
   glutes:     Activity,
-  quads:      ArrowDownCircle,
+  quadriceps: ArrowDownCircle,
   hamstrings: Circle,
   calves:     Focus,
   legs:       Trophy,

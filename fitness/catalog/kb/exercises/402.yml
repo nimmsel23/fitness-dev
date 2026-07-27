@@ -1,0 +1,62 @@
+name: '402'
+description: Expert details for Leg Curl / Beinbeuger.
+exercises:
+- exercise_id: '402'
+  id: '402'
+  name: Beinbeuger
+  display_name: Beinbeuger
+  german: Beinbeuger
+  english: Leg Curl
+  category: legs
+  type: isolation
+  movement_pattern: knee_flexion
+  equipment:
+  - machine
+  primary_muscles:
+  - 604_biceps_femoris
+  - 605_semitendinosus
+  - 606_semimembranosus
+  secondary_muscles:
+  - 701_gastrocnemius
+  stabilizers:
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  coaching_notes:
+  - Stelle das Polster so ein, dass das Kniegelenk frei beugen kann und die Last nicht am Sprunggelenk hebelt.
+  - Halte Hüfte und Becken fest am Polster; wenn die Hüfte abhebt, ist der Satz technisch vorbei.
+  - Beuge kontrolliert bis zur aktiven Peak-Kontraktion und senke langsam in die Dehnung zurück.
+  - Nutze Dorsalflexion neutral bis leicht aktiv, wenn du den Hamstring-Fokus halten willst.
+  common_errors:
+  - Schwung aus Hüfte oder Rücken statt kontrollierter Kniebeugung.
+  - Gewicht abwerfen und die exzentrische Dehnphase verlieren.
+  - Zu wenig ROM oder fehlende Peak-Kontraktion.
+  - Wadenkrampf durch zu starkes Zehenspitzenziehen oder schlecht eingestellte Rolle.
+  tags:
+  - expert
+  - legs
+  - hamstrings
+  - isolation
+  - machine
+  - knee_flexion
+  aliases:
+  - Leg Curl
+  - Machine Leg Curl
+  - Hamstring Curl
+  - Liegender Beinbeuger
+  search_aliases:
+  - leg_curl
+  - wger_364
+  external_ids:
+    wger:
+    - 364
+  wger_id: 364
+  variations:
+  - lying_leg_curl
+  - seated_leg_curl
+  - standing_leg_curl
+  - single_leg_curl
+  wger_muscle_ids:
+    primary:
+    - 11
+    secondary: []
+  source: expert

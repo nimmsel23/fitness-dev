@@ -1,0 +1,53 @@
+exercise_id: cable_row
+description: Expert details for Rudern am Kabelzug
+exercises:
+- exercise_id: cable_row
+  id: cable_row
+  name: Rudern am Kabelzug
+  display_name: Rudern am Kabelzug
+  german: Rudern am Kabelzug
+  english: Cable Row
+  category: back
+  type: compound
+  movement_pattern: horizontal_pull
+  equipment:
+  - cable
+  primary_muscles:
+  - middle_back
+  - upper_back
+  secondary_muscles:
+  - bizeps
+  - arms
+  stabilizers:
+  - abs
+  - lower_back
+  coaching_notes:
+  - Oberkörper minimal nach vorne neigen (etwa 45°), Knie leicht gebeugt
+  - Langhantel dicht am Körper halten, nicht weggebeugt
+  - An der Oberseite pausieren und Schulterblattsqueeze durchführen
+  - Keine übermäßige Lumbalflexion – Rückenstrecker neutral halten
+  - Ellbogen dicht am Körper, nicht weit abspreizen
+  - Kontrolle in der Bewegung, kein Reißen oder exzessives Momentum
+  common_errors:
+  - Rücken zu sehr gerundet oder übermäßig gewölbt
+  - Langhantel vom Körper weg während des Zugs
+  - Zu schnelle Wiederholungen ohne Muskelkontrolle
+  - Gewicht zu schwer, Kompensation durch Rückenstrecker statt Lat
+  - Schulterblatt nicht vollständig retraktion
+  tags:
+  - back
+  - compound
+  - horizontal_pull
+  - barbell
+  - strength
+  - unreviewed
+  aliases:
+  - Cable Row
+  - Seated Cable Row
+  - Rudern am Kabelzug
+  - Kabelrudern
+  variations: []
+  source: expert
+  search_aliases:
+  - Rudern am Kabelzug
+  - Cable Row

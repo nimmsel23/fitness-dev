@@ -84,4 +84,3 @@ export { parseQuick } from "../shared/parse.js";
 // queueForEnrichment, ...) leben jetzt in ./inbox.js — siehe index.js-Barrel.
 // Coach-Feed-Funktionen (getGlobalJournalFeed, getAllUserProfiles,
 // saveCoachFeedback) leben jetzt in ./coach.js.
-

@@ -1,0 +1,56 @@
+exercise_id: cable_row_close_grip
+description: Expert details for Sitzendes Rudern enger Griff Kabelzug
+exercises:
+- exercise_id: cable_row_close_grip
+  id: cable_row_close_grip
+  name: Sitzendes Rudern enger Griff Kabelzug
+  display_name: Sitzendes Rudern enger Griff Kabelzug
+  german: Sitzendes Rudern enger Griff Kabelzug
+  english: Close-Grip Seated Cable Row
+  category: back
+  type: compound
+  movement_pattern: horizontal_pull
+  equipment:
+  - cable
+  primary_muscles:
+  - middle_back
+  - upper_back
+  secondary_muscles:
+  - bizeps
+  - arms
+  - rhomboids
+  stabilizers:
+  - abs
+  - lower_back
+  coaching_notes:
+  - Ellbogen nah am Körper halten, nicht abspreizen — der enge Griff betont diese
+    Bewegungslinie
+  - Brust gegen die Lehne drücken und stabiler Position halten, nicht mit Rücken nach
+    hinten lehnen
+  - Volle Scapular-Retraktion am Ende erreichen — Schulterblätter zusammenziehn, nicht
+    nur Arme beugen
+  - Enger Griff verschiebt Fokus von Lats auf Rhomboide und mittleren Trapezius
+  - Langsam und kontrolliert zur Ausgangsposition zurück, Spannung halten
+  common_errors:
+  - Mit dem Rücken nach hinten lehnen statt kontrolliert sitzend zu bleiben
+  - Ellbogen zu weit abspreizen — verstößt gegen die Griff-Definition
+  - Schultern hochziehen statt Scapula aktiv zu retrahieren
+  - Zu viel Gewicht → nur kurze, unkontrollierte Bewegungsausschläge
+  - Nicht die volle Range of Motion ausnutzen
+  tags:
+  - rowing
+  - horizontal_pull
+  - back
+  - scapular_retraction
+  - seated
+  - cable
+  - unreviewed
+  aliases:
+  - Seated Narrow Grip Cable Row
+  - Close Grip Seated Row Cable
+  - Enges Kabel-Rudern sitzend
+  variations: []
+  source: expert
+  search_aliases:
+  - Sitzendes Rudern enger Griff Kabelzug
+  - Close-Grip Seated Cable Row

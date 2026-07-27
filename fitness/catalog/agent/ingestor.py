@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import re
 from contextlib import closing
+from pathlib import Path
 from typing import Any
 
 from fitness.catalog.core.paths import runtime_root
 from fitness.catalog.history import ensure_history_db, log_training_entry
 from fitness.catalog.core.resolver import resolve_query
 from fitness.catalog.core.loader import load_catalog_directory_yaml, catalog_path
+from fitness.catalog.core.session_signal import exercise_has_training_signal
 
 def ingest_all_sessions():
     users_dir = runtime_root() / "users"
@@ -37,17 +40,26 @@ def ingest_all_sessions():
                 date = session_file.stem
                 exercises = session_data.get("exercises", [])
                 
+                workout_id = stable_workout_id(uid_dir.name, session_data, date)
                 for ex in exercises:
+                    if not isinstance(ex, dict) or not exercise_has_training_signal(ex):
+                        continue
+                    exercise_query = ex.get("name") or ex.get("id")
+                    if not exercise_query:
+                        continue
+                    resolution = resolve_query(exercise_query)
+                    canonical_id = resolution.canonical_id if resolution.matched else ex.get("id")
+                    values = training_values(ex)
                     # Ingest each exercise entry
                     # Check if already exists
-                    if not is_already_ingested(db_path, date, ex.get("id"), session_data.get("block")):
+                    if canonical_id and not is_already_ingested(db_path, date, canonical_id, workout_id):
                         log_training_entry(
-                            exercise_query=ex.get("name") or ex.get("id"),
-                            sets=int(ex.get("sets", 0)),
-                            reps=int(ex.get("reps", 0)),
-                            weight=float(ex.get("weight", 0)),
-                            rpe=int(ex.get("rpe", 0)),
-                            workout_id=session_data.get("block", "Session"),
+                            exercise_query=exercise_query,
+                            sets=values["sets"],
+                            reps=values["reps"],
+                            weight=values["weight"],
+                            rpe=values["rpe"],
+                            workout_id=workout_id,
                             date=date,
                             done=bool(ex.get("done", False))
                         )
@@ -55,6 +67,47 @@ def ingest_all_sessions():
             except Exception:
                 continue
     return processed_count
+
+
+def stable_workout_id(user_id: str, session_data: dict[str, Any], date: str) -> str:
+    raw = session_data.get("block") or session_data.get("session_id") or date
+    return f"{user_id}:{raw}"
+
+
+def training_values(exercise: dict[str, Any]) -> dict[str, Any]:
+    sets = _int_value(exercise.get("sets"))
+    reps = _int_value(exercise.get("reps"))
+    weight = _float_value(exercise.get("weight"))
+    rpe = _int_value(exercise.get("rpe"))
+
+    sets_array = exercise.get("setsArray")
+    if isinstance(sets_array, list):
+        active_sets = [item for item in sets_array if isinstance(item, dict) and exercise_has_training_signal({"setsArray": [item]})]
+        if active_sets and sets == 0:
+            sets = len(active_sets)
+        if reps == 0:
+            reps = max((_int_value(item.get("reps")) for item in active_sets), default=0)
+        if weight == 0:
+            weight = max((_float_value(item.get("weight")) for item in active_sets), default=0.0)
+        if rpe == 0:
+            rpe = max((_int_value(item.get("rpe")) for item in active_sets), default=0)
+
+    return {"sets": sets, "reps": reps, "weight": weight, "rpe": rpe}
+
+
+def _int_value(value: Any) -> int:
+    try:
+        return int(float(value or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _float_value(value: Any) -> float:
+    try:
+        return float(value or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
 
 def is_already_ingested(db_path: Path, date: str, exercise_id: str, workout_id: str) -> bool:
     with closing(sqlite3.connect(db_path)) as conn:
@@ -72,10 +125,11 @@ def get_top_unreviewed_exercises(limit: int = 5, days: int = 28) -> list[tuple[s
     
     # 1. Get usage counts within the time window
     with closing(sqlite3.connect(db_path)) as conn:
-        usage = conn.execute(
-            f"SELECT exercise_id, COUNT(*) as count FROM training_history "
+        rows = conn.execute(
+            f"SELECT exercise_id, display_name, COUNT(*) as count FROM training_history "
             f"WHERE date >= date('now', '-{days} days') "
-            f"GROUP BY exercise_id ORDER BY count DESC"
+            "AND (done = 1 OR sets > 0 OR reps > 0 OR weight > 0 OR rpe > 0) "
+            f"GROUP BY exercise_id, display_name ORDER BY count DESC"
         ).fetchall()
     
     # 2. Filter for unreviewed exercises and those not already in the inbox
@@ -87,12 +141,40 @@ def get_top_unreviewed_exercises(limit: int = 5, days: int = 28) -> list[tuple[s
                 unreviewed_ids.add(ex.get("exercise_id") or ex.get("id"))
     
     results = []
-    for ex_id, count in usage:
-        if ex_id in unreviewed_ids:
+    for raw_ex_id, display_name, count in rows:
+        candidates = history_exercise_candidates(raw_ex_id, display_name)
+        if not candidates:
+            continue
+        ex_id = next((candidate for candidate in candidates if candidate in unreviewed_ids), "")
+        if ex_id:
             # Also check if it's already in the inbox (inbox_{ex_id}.yml)
-            inbox_file = catalog_path(f"exercises/inbox_{ex_id}.yml")
+            inbox_file = catalog_path(f"inbox/inbox_{ex_id}.yml")
             if not inbox_file.exists():
                 results.append((ex_id, count))
                 if len(results) >= limit:
                     break
     return results
+
+
+def history_exercise_candidates(exercise_id: str | None, display_name: str | None) -> list[str]:
+    candidates: list[str] = []
+    for value in (exercise_id, display_name):
+        if value:
+            candidates.append(str(value))
+            candidates.append(slugify_exercise_name(str(value)))
+    for value in list(candidates):
+        if value.startswith("inbox_"):
+            candidates.append(value.removeprefix("inbox_"))
+    seen: set[str] = set()
+    unique: list[str] = []
+    for value in candidates:
+        if value and value not in seen:
+            seen.add(value)
+            unique.append(value)
+    return unique
+
+
+def slugify_exercise_name(value: str | None) -> str:
+    text = (value or "").strip().casefold()
+    text = re.sub(r"[^a-z0-9]+", "_", text)
+    return text.strip("_")

@@ -9,6 +9,7 @@ from pathlib import Path
 from loguru import logger
 
 from fitness.catalog.coverage import load_muscle_taxonomy
+from fitness.catalog.core.muscles import iter_muscle_documents
 
 import re
 
@@ -29,17 +30,21 @@ search from wrongly matching an unrelated exercise when a user searches in
 English (e.g. "Jefferson Curl" must never resolve to "Barbell Curl" just
 because no proper English field existed to disambiguate against).
 
-CRITICAL: You MUST only use the following muscle IDs for primary_muscles, secondary_muscles, and stabilizers:
-{muscle_list}
+CRITICAL: primary_muscles, secondary_muscles, and stabilizers must use the
+current catalog vocabulary. Prefer coarse bucket names for coach-review and
+coverage-level drafts. Use fine anatomical IDs only when the exercise clearly
+needs anatomy-learning detail.
 
-CRITICAL: When the exercise's angle/mechanics clearly emphasize one specific
-head/part of a muscle (e.g. incline press -> clavicular/upper pec head,
-decline press -> sternal/lower pec head), you MUST use that specific child
-muscle ID (e.g. "102_pectoralis_major_clavicular") instead of the generic
-parent ID (e.g. "101_pectoralis_major"). The taxonomy automatically rolls
-child scores up to their parent for coarse views, so being specific here
-never loses information - it only adds precision. Only use the parent ID
-when no single part is emphasized more than the others.
+Allowed coarse muscle buckets:
+{muscle_bucket_list}
+
+Allowed fine anatomical IDs:
+{muscle_detail_list}
+
+Do NOT use legacy aliases such as "quads" or stale numbered slugs. Examples:
+use "quadriceps" for broad quad work, not "quads"; use "chest" for broad chest
+pressing, or "102_pectoralis_major_clavicular" only when the incline angle is
+intentionally the anatomical detail being captured.
 
 {{
   "exercise_id": "{safe_name}",
@@ -52,9 +57,9 @@ when no single part is emphasized more than the others.
   "type": "compound|isolation",
   "movement_pattern": "e.g. horizontal_press, vertical_pull",
   "equipment": ["dumbbell", "barbell", "machine", "bodyweight", "cable"],
-  "primary_muscles": ["muscle_id"],
-  "secondary_muscles": ["muscle_id"],
-  "stabilizers": ["muscle_id"],
+  "primary_muscles": ["muscle_bucket_or_fine_id"],
+  "secondary_muscles": ["muscle_bucket_or_fine_id"],
+  "stabilizers": ["muscle_bucket_or_fine_id"],
   "coaching_notes": ["Hinweis 1", "Hinweis 2"],
   "common_errors": ["Fehler 1"],
   "tags": ["tag1"],
@@ -75,17 +80,21 @@ filled with the correct, distinct English term - this is what prevents
 search from wrongly matching an unrelated exercise when a user searches in
 English.
 
-CRITICAL: You MUST only use the following muscle IDs for primary_muscles, secondary_muscles, and stabilizers:
-{muscle_list}
+CRITICAL: primary_muscles, secondary_muscles, and stabilizers must use the
+current catalog vocabulary. Prefer coarse bucket names for coach-review and
+coverage-level drafts. Use fine anatomical IDs only when the exercise clearly
+needs anatomy-learning detail.
 
-CRITICAL: When the exercise's angle/mechanics clearly emphasize one specific
-head/part of a muscle (e.g. incline press -> clavicular/upper pec head,
-decline press -> sternal/lower pec head), you MUST use that specific child
-muscle ID (e.g. "102_pectoralis_major_clavicular") instead of the generic
-parent ID (e.g. "101_pectoralis_major"). The taxonomy automatically rolls
-child scores up to their parent for coarse views, so being specific here
-never loses information - it only adds precision. Only use the parent ID
-when no single part is emphasized more than the others.
+Allowed coarse muscle buckets:
+{muscle_bucket_list}
+
+Allowed fine anatomical IDs:
+{muscle_detail_list}
+
+Do NOT use legacy aliases such as "quads" or stale numbered slugs. Examples:
+use "quadriceps" for broad quad work, not "quads"; use "chest" for broad chest
+pressing, or "102_pectoralis_major_clavicular" only when the incline angle is
+intentionally the anatomical detail being captured.
 
 Existing Data (Wiki Layer):
 {existing_json}
@@ -172,6 +181,18 @@ def _call(prompt: str, api_key: str, timeout: int = 30) -> str | None:
         return None
 
 
+def _extract_json_object(text: str) -> dict | None:
+    try:
+        stripped = text.replace("```json", "").replace("```", "").strip()
+        start, end = stripped.find("{"), stripped.rfind("}")
+        if start == -1 or end == -1:
+            return None
+        return normalize_enriched_fields(json.loads(stripped[start:end + 1]))
+    except Exception as e:
+        logger.warning(f"JSON extraction failed: {e}")
+        return None
+
+
 _LIST_FIELDS_MAY_NEST_BY_LANG = ("coaching_notes", "common_errors", "cues", "feel_cues", "variations")
 
 
@@ -206,20 +227,74 @@ def _call_haiku_cli(prompt: str, timeout: int = 90) -> str | None:
         return None
 
 
+def _call_codex_cli(prompt: str, timeout: int = 120) -> str | None:
+    """Best-effort local Codex fallback. It must only return JSON text and must
+    not edit the repository; this is an enrichment provider, not an approver."""
+    codex_prompt = (
+        prompt
+        + "\n\nReturn ONLY the JSON object. Do not edit files. Do not run tools. "
+        "This is a draft for later coach review, not an approval."
+    )
+    try:
+        result = subprocess.run(
+            ["codex", "exec", "--sandbox", "read-only", "--skip-git-repo-check", "-"],
+            input=codex_prompt,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        return result.stdout.strip() or None
+    except Exception as e:
+        logger.warning(f"Codex-CLI-Fallback fehlgeschlagen: {e}")
+        return None
+
+
+def _muscle_prompt_vocab() -> tuple[str, str, set[str]]:
+    buckets: list[str] = []
+    details: list[str] = []
+    try:
+        for doc_id, doc in iter_muscle_documents():
+            if doc.get("kb_level") == "region":
+                buckets.append(doc_id)
+            elif doc.get("kb_level") == "muscle":
+                details.append(doc_id)
+    except Exception as e:
+        logger.warning(f"Muscle vocabulary from KB failed, falling back to taxonomy: {e}")
+
+    if not details:
+        taxonomy = load_muscle_taxonomy()
+        details = [k for k in sorted(taxonomy.keys()) if not re.match(r'^\d00_', k)]
+
+    allowed = set(buckets) | set(details)
+    return ", ".join(sorted(set(buckets))), ", ".join(sorted(set(details))), allowed
+
+
+def _warn_unknown_muscles(data: dict, allowed: set[str]) -> None:
+    if not allowed:
+        return
+    for field in ("primary_muscles", "secondary_muscles", "stabilizers"):
+        values = data.get(field)
+        if not isinstance(values, list):
+            continue
+        unknown = [str(v) for v in values if str(v) not in allowed]
+        if unknown:
+            logger.warning(f"AI enrichment produced unknown {field}: {unknown}")
+
+
 def call_gemini(
     exercise_name: str,
     safe_name: str,
-    api_key: str,
+    api_key: str | None,
     existing_data: dict | None = None,
     feedback: str | None = None,
 ) -> dict | None:
-    taxonomy = load_muscle_taxonomy()
-    muscle_list = ", ".join(k for k in sorted(taxonomy.keys()) if not re.match(r'^\d00_', k))
+    muscle_bucket_list, muscle_detail_list, allowed_muscles = _muscle_prompt_vocab()
 
     if existing_data:
         prompt = PROMPT_EXERCISE_ENRICH.format(
             existing_json=json.dumps(existing_data, indent=2, ensure_ascii=False),
-            muscle_list=muscle_list,
+            muscle_bucket_list=muscle_bucket_list,
+            muscle_detail_list=muscle_detail_list,
             feedback_section=PROMPT_FEEDBACK_SECTION.format(feedback=feedback) if feedback else "",
             feedback_instruction=PROMPT_FEEDBACK_INSTRUCTION if feedback else "",
         )
@@ -227,24 +302,30 @@ def call_gemini(
         prompt = PROMPT_EXERCISE_NEW.format(
             exercise_name=exercise_name,
             safe_name=safe_name,
-            muscle_list=muscle_list,
+            muscle_bucket_list=muscle_bucket_list,
+            muscle_detail_list=muscle_detail_list,
         )
 
-    text = _call(prompt, api_key)
+    text = _call(prompt, api_key) if api_key else None
     if not text:
-        # Gemini-Fehler (inkl. HTTP 429 Rate-Limit) - best-effort Fallback auf
-        # Claude Haiku via CLI, gleicher Prompt. Verhindert dass ein Batch-Lauf
-        # komplett stoppt, nur weil das Gemini-Kontingent kurzzeitig erschoepft ist.
-        logger.warning("Gemini-Call fehlgeschlagen, versuche Haiku-Fallback...")
+        # Gemini fehlt/fehlerhaft (inkl. HTTP 429 Rate-Limit) - best-effort
+        # Fallback auf Claude Haiku via CLI, gleicher Prompt. Verhindert dass
+        # ein Batch-Lauf komplett stoppt, nur weil ein Provider fehlt.
+        logger.warning("Gemini nicht verfuegbar/fehlgeschlagen, versuche Haiku-Fallback...")
         text = _call_haiku_cli(prompt)
         if not text:
+            logger.warning("Haiku-Fallback fehlgeschlagen, versuche Codex-Fallback...")
+            text = _call_codex_cli(prompt)
+        if not text:
             return None
-    try:
-        parsed = json.loads(text.replace("```json", "").replace("```", "").strip())
-        return normalize_enriched_fields(parsed)
-    except Exception as e:
-        logger.error(f"Gemini response parse failed: {e}")
-        return None
+    parsed = _extract_json_object(text)
+    if parsed:
+        _warn_unknown_muscles(parsed, allowed_muscles)
+        return parsed
+    logger.error("AI enrichment response parse failed")
+    if text and "Gemini" not in text:
+        logger.debug(text[:1000])
+    return None
 
 
 def suggest_aliases(ex: dict, api_key: str) -> list[str] | None:
@@ -340,7 +421,7 @@ def suggest_aliases_cli(ex: dict) -> list[str] | None:
         + "\nReturn ONLY the JSON array, nothing else."
     )
     for cmd in [
-        ["codex", "exec", prompt],
+        ["codex", "exec", "--sandbox", "read-only", "--skip-git-repo-check", "-"],
         ["claude", "-p", prompt, "--output-format", "text"],
     ]:
         result = _cli_prompt(prompt, cmd)

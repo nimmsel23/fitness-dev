@@ -316,7 +316,8 @@ def screen_browser() -> str:
         q = normalize_text(query)
         results = [ex for ex in idx if any(q in normalize_text(t) for t in candidate_texts(ex))]
 
-        if not results:
+        displayed = results[:25]
+        if not displayed:
             console.print(f"  [yellow]Keine Treffer für '{query}'[/yellow]")
         else:
             t = Table(box=box.SIMPLE, show_header=True, header_style="bold")
@@ -326,13 +327,22 @@ def screen_browser() -> str:
             t.add_column("Source", style="dim")
             t.add_column("Primary", style="dim")
 
-            for i, ex in enumerate(results[:25], 1):
+            for i, ex in enumerate(displayed, 1):
                 muscles = ", ".join((ex.primary_muscles or [])[:2])
                 t.add_row(str(i), ex.exercise_id, ex.display_name or "", ex.source or "", muscles)
 
             console.print(t)
             if len(results) > 25:
                 console.print(f"  [dim]... {len(results) - 25} weitere[/dim]")
+
+            console.print()
+            _nav(**{f"1–{len(displayed)}": "Detail öffnen", "s": "neue Suche", "b": "zurück"})
+            choices = [str(i) for i in range(1, len(displayed) + 1)] + ["s", "b"]
+            choice = Prompt.ask("  [bold]>[/bold]", choices=choices, default="b")
+            if choice.isdigit():
+                _browser_detail(displayed[int(choice) - 1])
+                return "browser"
+            return "browser" if choice == "s" else "dashboard"
     except Exception as exc:
         console.print(f"  [red]Fehler: {exc}[/red]")
 
@@ -340,6 +350,34 @@ def screen_browser() -> str:
     _nav(**{"s": "neue Suche", "b": "zurück"})
     choice = Prompt.ask("  [bold]>[/bold]", choices=["s", "b"], default="b")
     return "browser" if choice == "s" else "dashboard"
+
+
+def _browser_detail(ex: Any) -> None:
+    _header("Browser Detail", getattr(ex, "exercise_id", ""))
+    lines = [
+        f"[dim]{'exercise_id':22}[/dim] [bold]{getattr(ex, 'exercise_id', '')}[/bold]",
+        f"[dim]{'display_name':22}[/dim] {getattr(ex, 'display_name', '')}",
+        f"[dim]{'source':22}[/dim] {getattr(ex, 'source', '')}",
+        f"[dim]{'source_file':22}[/dim] {getattr(ex, 'source_file', '')}",
+        f"[dim]{'german':22}[/dim] {getattr(ex, 'german', '')}",
+        f"[dim]{'english':22}[/dim] {getattr(ex, 'english', '')}",
+        f"[dim]{'movement_pattern':22}[/dim] {getattr(ex, 'movement_pattern', '')}",
+        f"[dim]{'equipment':22}[/dim] {', '.join(getattr(ex, 'equipment', []) or [])}",
+        f"[dim]{'primary_muscles':22}[/dim] {', '.join(getattr(ex, 'primary_muscles', []) or [])}",
+        f"[dim]{'secondary_muscles':22}[/dim] {', '.join(getattr(ex, 'secondary_muscles', []) or [])}",
+        f"[dim]{'stabilizers':22}[/dim] {', '.join(getattr(ex, 'stabilizers', []) or [])}",
+    ]
+    console.print(Panel("\n".join(lines), title=getattr(ex, "display_name", "") or "Exercise", border_style="cyan"))
+
+    notes = getattr(ex, "coaching_notes", []) or []
+    if notes:
+        console.print(Panel("\n".join(f"• {note}" for note in notes), title="Coaching Notes", border_style="green dim"))
+
+    errors = getattr(ex, "common_errors", []) or []
+    if errors:
+        console.print(Panel("\n".join(f"• {error}" for error in errors), title="Common Errors", border_style="red dim"))
+
+    _pause()
 
 
 # ─── Plan ──────────────────────────────────────────────────────────────────

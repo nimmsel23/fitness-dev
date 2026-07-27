@@ -4,6 +4,7 @@ from collections import Counter
 from dataclasses import dataclass, field
 
 from fitness.catalog.core.resolver import build_exercise_index
+from fitness.catalog.core.session_signal import exercise_has_training_signal
 
 UNREVIEWED_SOURCES = {"bulk", "inbox", "yuhonas"}
 
@@ -33,6 +34,8 @@ def _count_logged_exercises() -> Counter:
     for doc in db.collection_group("sessions").stream():
         data = doc.to_dict() or {}
         for ex in data.get("exercises", []) or []:
+            if not isinstance(ex, dict) or not exercise_has_training_signal(ex):
+                continue
             ex_id = ex.get("exercise_id") or ex.get("id")
             if ex_id:
                 counts[ex_id] += 1

@@ -34,18 +34,19 @@ def calculate_coverage(
 
     if taxonomy is None:
         taxonomy = load_muscle_taxonomy()
-    alias_map = build_muscle_alias_map(taxonomy)
-    parent_map = build_muscle_parent_map(taxonomy)
     if region_index is None:
         region_index = load_muscle_region_index()
+    alias_map = build_muscle_alias_map(taxonomy)
+    parent_map = build_muscle_parent_map(taxonomy)
     if rules is None:
         rules = load_coverage_rules()
     effort_factor = effort_factor_for_rpe(rpe, rules)
 
     muscle_scores: dict[str, float] = defaultdict(float)
-    add_role_scores(muscle_scores, exercise.primary_muscles or [], sets, ROLE_WEIGHTS["primary"], effort_factor, alias_map)
-    add_role_scores(muscle_scores, exercise.secondary_muscles or [], sets, ROLE_WEIGHTS["secondary"], effort_factor, alias_map)
-    add_role_scores(muscle_scores, exercise.stabilizers or [], sets, ROLE_WEIGHTS["stabilizer"], effort_factor, alias_map)
+    detail_muscle_scores: dict[str, float] = defaultdict(float)
+    add_role_scores(muscle_scores, detail_muscle_scores, exercise.primary_muscles or [], sets, ROLE_WEIGHTS["primary"], effort_factor, alias_map, region_index, parent_map)
+    add_role_scores(muscle_scores, detail_muscle_scores, exercise.secondary_muscles or [], sets, ROLE_WEIGHTS["secondary"], effort_factor, alias_map, region_index, parent_map)
+    add_role_scores(muscle_scores, detail_muscle_scores, exercise.stabilizers or [], sets, ROLE_WEIGHTS["stabilizer"], effort_factor, alias_map, region_index, parent_map)
 
     # body_region_scores bleibt strikt auf den rohen (nicht hochgerechneten)
     # muscle_scores aufgebaut - sonst würde ein Sub-Kopf, dessen Score zum
@@ -61,7 +62,7 @@ def calculate_coverage(
         else:
             unmapped_muscles.append(muscle_id)
 
-    muscle_scores_with_parents = rollup_parent_scores(muscle_scores, parent_map)
+    muscle_scores_with_parents = rollup_parent_scores(detail_muscle_scores, parent_map)
 
     return {
         "exercise_query": exercise_query,
@@ -71,6 +72,7 @@ def calculate_coverage(
         "rpe": rpe,
         "effort_factor": effort_factor,
         "muscle_scores": dict(sorted(muscle_scores.items())),
+        "detail_muscle_scores": dict(sorted(detail_muscle_scores.items())),
         "muscle_scores_with_parents": dict(sorted(muscle_scores_with_parents.items())),
         "body_region_scores": dict(sorted(body_region_scores.items())),
         "unmapped_muscles": sorted(unmapped_muscles),
@@ -84,10 +86,27 @@ def find_exercise(exercise_id: str, records: list | None = None):
     return None
 
 
-def add_role_scores(muscle_scores: dict[str, float], muscles: list[str], sets: int, role_weight: float, effort_factor: float, alias_map: dict[str, str] | None = None) -> None:
+def add_role_scores(
+    muscle_scores: dict[str, float],
+    detail_muscle_scores: dict[str, float],
+    muscles: list[str],
+    sets: int,
+    role_weight: float,
+    effort_factor: float,
+    alias_map: dict[str, str] | None = None,
+    region_index: dict[str, str] | None = None,
+    parent_map: dict[str, str] | None = None,
+) -> None:
     for muscle_id in muscles:
-        resolved = resolve_muscle_id(muscle_id, alias_map) if alias_map else normalize_muscle_id(muscle_id)
-        muscle_scores[resolved] += sets * role_weight * effort_factor
+        norm = normalize_muscle_id(muscle_id)
+        if region_index and region_index.get(norm) == norm:
+            resolved = norm
+        else:
+            resolved = resolve_muscle_id(norm, alias_map) if alias_map else norm
+        score_key = parent_map.get(resolved, resolved) if parent_map else resolved
+        score = sets * role_weight * effort_factor
+        muscle_scores[score_key] += score
+        detail_muscle_scores[resolved] += score
 
 
 def normalize_muscle_id(name: str) -> str:
@@ -107,7 +126,7 @@ def normalize_muscle_id(name: str) -> str:
 def build_muscle_alias_map(taxonomy: dict[str, dict[str, Any]]) -> dict[str, str]:
     """Baut eine Map von plain/display Namen auf numbered taxonomy IDs.
 
-    Erlaubt Lookup von z.B. 'gluteus_maximus', 'Glutes', 'glutes' → '601_gluteus_maximus'.
+    Erlaubt Lookup von z.B. 'gluteus_maximus', 'Glutes', 'glutes' -> '603_gluteus_maximus'.
     """
     import re
     alias_map: dict[str, str] = {}
@@ -118,9 +137,9 @@ def build_muscle_alias_map(taxonomy: dict[str, dict[str, Any]]) -> dict[str, str
         suffix = re.sub(r'^\d+[a-z]?_', '', muscle_id)
         if suffix:
             alias_map[suffix] = muscle_id
-        # Reine Zahl-Praefix-ID (z.B. "601" oder "601a") -> volle ID. Damit bleibt
-        # jede Referenz gueltig, die nur die Nummer kennt, auch wenn sich der
-        # Namensteil aendert (z.B. 601_quadriceps -> 601_quadriceps_femoris).
+        # Reine Zahl-Praefix-ID (z.B. "601" oder "601a") -> volle ID. Vollstaendige
+        # Legacy-Slugs duerfen NICHT per Praefix auf neue Muskeln fallen, sonst
+        # wuerde ein alter Slug stillschweigend auf eine neue falsche ID zeigen.
         prefix_match = re.match(r'^(\d+[a-z]?)_', muscle_id)
         if prefix_match:
             alias_map.setdefault(prefix_match.group(1), muscle_id)
@@ -136,17 +155,17 @@ def build_muscle_alias_map(taxonomy: dict[str, dict[str, Any]]) -> dict[str, str
 def resolve_muscle_id(raw: str, alias_map: dict[str, str]) -> str:
     """Gibt die numbered taxonomy ID zurueck, oder den normalisierten Rohwert wenn nicht gefunden.
 
-    Faellt bei fehlendem Exact-Match auf den reinen Zahl-Praefix zurueck (z.B.
-    "601_quadriceps" -> "601"), damit veraltete Namensteile in alten Referenzen
-    trotzdem auf die aktuelle ID aufloesen, solange die Nummer stimmt.
+    Faellt nur bei reinen Nummern-IDs (z.B. "601" oder "601a") auf die
+    vollstaendige aktuelle ID zurueck. Vollstaendige Legacy-Slugs bleiben
+    unmapped, damit falsche Altlogs nicht stillschweigend falsch einsortiert
+    werden.
     """
     import re
     norm = normalize_muscle_id(raw)
     if norm in alias_map:
         return alias_map[norm]
-    prefix_match = re.match(r'^(\d+[a-z]?)_', norm)
-    if prefix_match and prefix_match.group(1) in alias_map:
-        return alias_map[prefix_match.group(1)]
+    if re.match(r'^\d+[a-z]?$', norm) and norm in alias_map:
+        return alias_map[norm]
     return norm
 
 
@@ -210,6 +229,13 @@ def load_muscle_region_index() -> dict[str, str]:
     """
     region_dir = catalog_path("muscles")
     result: dict[str, str] = {}
+    region_docs: list[tuple[str, dict[str, Any]]] = []
+
+    def bucket_rank(item: tuple[str, dict[str, Any]]) -> tuple[int, int]:
+        _, doc = item
+        catalog_id = str(doc.get("id") or "")
+        return (1 if catalog_id.startswith(("100_", "200_", "300_", "400_", "500_", "600_", "700_")) else 0, len(doc.get("muscles", [])))
+
     for yml_file in sorted(region_dir.glob("*.yml")):
         if yml_file.name.startswith("_") or yml_file.stem in ("muscle_index",):
             continue
@@ -219,10 +245,20 @@ def load_muscle_region_index() -> dict[str, str]:
             continue
         if not isinstance(doc, dict):
             continue
-        region_name = yml_file.stem  # "arms", "chest", "back", ...
+        muscles = doc.get("muscles")
+        if isinstance(muscles, list):
+            region_docs.append((yml_file.stem, doc))
+
+    # Kleine/spezifische Buckets gewinnen vor Sammel-Buckets. `legs.yml` oder
+    # `arms.yml` bleiben dadurch Fallbacks, ohne `quadriceps.yml`/`bizeps.yml`
+    # wieder zu überstimmen.
+    region_docs.sort(key=bucket_rank)
+    for region_name, doc in region_docs:
+        result.setdefault(region_name, region_name)
         for muscle_id in doc.get("muscles", []):
             if isinstance(muscle_id, str):
-                result[muscle_id] = region_name
+                result.setdefault(muscle_id, region_name)
+
     return result
 
 

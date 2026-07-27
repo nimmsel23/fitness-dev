@@ -1,110 +1,88 @@
 from __future__ import annotations
 
-import os
-import tempfile
 import unittest
-from pathlib import Path
-from unittest import mock
 
-import yaml
-
-from fitness.catalog.bootstrap import bootstrap
-from fitness.catalog.coverage import calculate_coverage
+from fitness.catalog.coverage import (
+    build_muscle_alias_map,
+    calculate_coverage,
+    load_muscle_region_index,
+    load_muscle_taxonomy,
+    resolve_muscle_id,
+)
+from fitness.catalog.core.resolver import ExerciseRecord
 
 
 class CoverageTest(unittest.TestCase):
-    def setUp(self) -> None:
-        self.tempdir = tempfile.TemporaryDirectory()
-        self.home = Path(self.tempdir.name)
-        self.patcher = mock.patch.dict(os.environ, {"HOME": str(self.home)}, clear=False)
-        self.patcher.start()
-        bootstrap()
+    def test_fine_muscles_roll_up_to_specific_buckets(self) -> None:
+        records = [
+            ExerciseRecord(
+                exercise_id="front_squat_test",
+                display_name="Front Squat Test",
+                source_file="test.yml",
+                primary_muscles=["601_quadriceps_femoris", "603_gluteus_maximus"],
+                secondary_muscles=["604_biceps_femoris", "701_gastrocnemius"],
+                stabilizers=["206_erector_spinae"],
+            )
+        ]
 
-    def tearDown(self) -> None:
-        self.patcher.stop()
-        self.tempdir.cleanup()
+        result = calculate_coverage("front_squat_test", 3, 8, records=records)
 
-    def test_primary_muscle_score(self) -> None:
-        result = calculate_coverage("incline_dumbbell_press", 3, 8)
-        self.assertEqual(result["muscle_scores"]["chest"], 3.0)
+        self.assertEqual(result["body_region_scores"]["quadriceps"], 3.0)
+        self.assertEqual(result["body_region_scores"]["glutes"], 3.0)
+        self.assertEqual(result["body_region_scores"]["hamstrings"], 1.5)
+        self.assertEqual(result["body_region_scores"]["calves"], 1.5)
+        self.assertAlmostEqual(result["body_region_scores"]["lower_back"], 0.6)
+        self.assertEqual(result["unmapped_muscles"], [])
 
-    def test_secondary_muscle_score(self) -> None:
-        result = calculate_coverage("incline_dumbbell_press", 3, 8)
-        self.assertEqual(result["muscle_scores"]["shoulders"], 1.5)
+    def test_bucket_names_count_as_regions(self) -> None:
+        records = [
+            ExerciseRecord(
+                exercise_id="bucket_squat_test",
+                display_name="Bucket Squat Test",
+                source_file="test.yml",
+                primary_muscles=["quadriceps"],
+                secondary_muscles=["glutes", "hamstrings", "adductors"],
+                stabilizers=["calves"],
+            )
+        ]
 
-    def test_stabilizer_muscle_score(self) -> None:
-        result = calculate_coverage("incline_dumbbell_press", 3, 8)
-        self.assertAlmostEqual(result["muscle_scores"]["core"], 0.6)
+        result = calculate_coverage("bucket_squat_test", 2, 8, records=records)
 
-    def test_body_region_mapping(self) -> None:
-        result = calculate_coverage("incline_dumbbell_press", 3, 8)
-        self.assertAlmostEqual(result["body_region_scores"]["torso"], 3.6)
-        self.assertEqual(result["body_region_scores"]["upper_body"], 1.5)
+        self.assertEqual(result["muscle_scores"]["quadriceps"], 2.0)
+        self.assertEqual(result["body_region_scores"]["quadriceps"], 2.0)
+        self.assertEqual(result["body_region_scores"]["glutes"], 1.0)
+        self.assertEqual(result["body_region_scores"]["hamstrings"], 1.0)
+        self.assertEqual(result["muscle_scores"]["adductors"], 1.0)
+        self.assertEqual(result["body_region_scores"]["adductors"], 1.0)
+        self.assertAlmostEqual(result["body_region_scores"]["calves"], 0.4)
+        self.assertEqual(result["unmapped_muscles"], [])
+
+    def test_current_id_mapping_and_legacy_slug_safety(self) -> None:
+        region_index = load_muscle_region_index()
+        alias_map = build_muscle_alias_map(load_muscle_taxonomy())
+
+        self.assertEqual(region_index["601_quadriceps_femoris"], "quadriceps")
+        self.assertEqual(region_index["601a_rectus_femoris"], "quadriceps")
+        self.assertEqual(region_index["603_gluteus_maximus"], "glutes")
+        self.assertEqual(region_index["604_biceps_femoris"], "hamstrings")
+        self.assertEqual(region_index["701_gastrocnemius"], "calves")
+        self.assertEqual(resolve_muscle_id("601", alias_map), "601_quadriceps_femoris")
+        self.assertEqual(resolve_muscle_id("603_rectus_femoris", alias_map), "603_rectus_femoris")
 
     def test_unmapped_muscle_handling(self) -> None:
-        exercise_file = self.home / ".fitness-agent" / "exercises" / "mystery.yml"
-        exercise_file.write_text(
-            yaml.safe_dump(
-                {
-                    "name": "mystery",
-                    "exercises": [
-                        {
-                            "exercise_id": "mystery_push",
-                            "display_name": "Mystery Push",
-                            "primary_muscles": ["mystery_muscle"],
-                        }
-                    ],
-                },
-                sort_keys=False,
-                allow_unicode=True,
-            ),
-            encoding="utf-8",
-        )
-        result = calculate_coverage("mystery_push", 2, 8)
+        records = [
+            ExerciseRecord(
+                exercise_id="mystery_push",
+                display_name="Mystery Push",
+                source_file="test.yml",
+                primary_muscles=["mystery_muscle"],
+            )
+        ]
+
+        result = calculate_coverage("mystery_push", 2, 8, records=records)
+
         self.assertEqual(result["muscle_scores"]["mystery_muscle"], 2.0)
         self.assertEqual(result["unmapped_muscles"], ["mystery_muscle"])
-
-    def test_multiple_body_regions_from_bridge(self) -> None:
-        bridge_file = self.home / ".fitness-agent" / "muscles" / "body_highlighter_bridge.yml"
-        bridge_file.write_text(
-            yaml.safe_dump(
-                {
-                    "bridge": {
-                        "enabled": True,
-                        "source": "local_yaml",
-                        "muscle_to_region": {
-                            "mystery_muscle": ["chest_front", "upper_arm_back"],
-                        },
-                    }
-                },
-                sort_keys=False,
-                allow_unicode=True,
-            ),
-            encoding="utf-8",
-        )
-        exercise_file = self.home / ".fitness-agent" / "exercises" / "bridge_test.yml"
-        exercise_file.write_text(
-            yaml.safe_dump(
-                {
-                    "name": "bridge_test",
-                    "exercises": [
-                        {
-                            "exercise_id": "bridge_push",
-                            "display_name": "Bridge Push",
-                            "primary_muscles": ["mystery_muscle"],
-                        }
-                    ],
-                },
-                sort_keys=False,
-                allow_unicode=True,
-            ),
-            encoding="utf-8",
-        )
-        result = calculate_coverage("bridge_push", 2, 8)
-        self.assertEqual(result["muscle_scores"]["mystery_muscle"], 2.0)
-        self.assertEqual(result["body_region_scores"]["chest_front"], 2.0)
-        self.assertEqual(result["body_region_scores"]["upper_arm_back"], 2.0)
-        self.assertEqual(result["unmapped_muscles"], [])
 
 
 if __name__ == "__main__":

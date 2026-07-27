@@ -1,0 +1,84 @@
+name: '021'
+description: Expert details for Chin-Up / Klimmzug im Untergriff.
+exercises:
+- exercise_id: '021'
+  id: '021'
+  name: Klimmzug im Untergriff
+  display_name: Klimmzug im Untergriff
+  german: Klimmzug im Untergriff
+  english: Chin-Up
+  category: back
+  type: compound
+  movement_pattern: vertical_pull
+  equipment:
+  - bodyweight
+  - pull_up_bar
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 402_biceps_brachii
+  - 403_brachialis
+  secondary_muscles:
+  - 207_teres_major
+  - 204_trapezius_lower
+  - 203_trapezius_middle
+  - 205_rhomboids
+  - 404_brachioradialis
+  stabilizers:
+  - 501_rectus_abdominis
+  - 504_transverse_abdominis
+  - 206_erector_spinae
+  - 304_rotator_cuff
+  - 405_forearm_flexors
+  coaching_notes:
+  - Greife schulterbreit bis leicht enger im Untergriff; Handflächen zeigen zu dir.
+  - Starte aus aktivem Hang mit Schulterdepression, nicht aus passiv hochgezogenen Schultern.
+  - Ziehe Ellenbogen nach unten und leicht nach hinten, bis das Kinn sauber über die Stange kommt.
+  - Senke kontrolliert bis zur vollen Streckung, ohne unten Spannung komplett zu verlieren.
+  - Halte Rippen und Becken stabil, damit der Zug nicht in Schwung oder Hohlkreuz kippt.
+  common_errors:
+  - Schwung aus Hüfte oder Beinen statt kontrolliertem vertikalem Zug.
+  - Nur das Kinn nach vorne schieben, statt Brust und Rücken aktiv Richtung Stange zu bewegen.
+  - Zu breiter Untergriff, wodurch Handgelenk und Ellenbogen unnötig belastet werden.
+  - Halbe Wiederholungen unten oder oben, wodurch Lat- und Bizepsreiz verloren gehen.
+  tags:
+  - expert
+  - back
+  - arms
+  - biceps
+  - bodyweight
+  - vertical_pull
+  - compound
+  aliases:
+  - Klimmzug (Untergriff)
+  - Klimmzüge im Untergriff
+  - Klimmzug Untergriff
+  - Untergriff Klimmzug
+  - Chin-up
+  - Chin-Up
+  - Chin Up
+  - Chin Ups
+  - Underhand Pull-Up
+  - Underhand Grip Pull-Up
+  - Supinated Grip Pull-Up
+  - Supinated Pull-up
+  - Reverse Grip Pull Up
+  search_aliases:
+  - chin_up
+  - yuhonas_chin-up
+  - Chin-Up
+  - wger_152
+  external_ids:
+    wger:
+    - 152
+    yuhonas:
+    - Chin-Up
+  wger_id: 152
+  variations:
+  - assisted_chin_up
+  - weighted_chin_up
+  - close_grip_chin_up
+  - negative_chin_up
+  wger_muscle_ids:
+    primary: []
+    secondary: []
+  source: expert

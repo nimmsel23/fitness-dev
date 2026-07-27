@@ -1,0 +1,72 @@
+name: '081'
+description: Expert details for Romanian Deadlift / Rumänisches Kreuzheben.
+exercises:
+- exercise_id: '081'
+  id: '081'
+  name: Rumänisches Kreuzheben
+  display_name: Rumänisches Kreuzheben
+  german: Rumänisches Kreuzheben
+  english: Romanian Deadlift
+  category: legs
+  type: compound
+  movement_pattern: hip_hinge
+  equipment:
+  - barbell
+  - dumbbell
+  primary_muscles:
+  - 604_biceps_femoris
+  - 605_semitendinosus
+  - 606_semimembranosus
+  - 603_gluteus_maximus
+  secondary_muscles:
+  - 206_erector_spinae
+  - 602_adductors
+  stabilizers:
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  - 201_latissimus_dorsi
+  - 203_trapezius_middle
+  - 204_trapezius_lower
+  - 405_forearm_flexors
+  - 608_gluteus_medius
+  - 609_gluteus_minimus
+  coaching_notes:
+  - Hüfte nach hinten schieben; Knie bleiben leicht gebeugt, aber der Fokus bleibt auf dem Hüftscharnier.
+  - Hantel nah am Körper führen und die Hamstring-Dehnung kontrolliert suchen.
+  - Nur so tief gehen, wie die neutrale Rückenposition gehalten werden kann.
+  - Auf dem Rückweg Hüfte nach vorne bringen, ohne oben ins Hohlkreuz zu überstrecken.
+  common_errors:
+  - Zu viel Kniebeugung, wodurch die Übung zum normalen Kreuzheben wird.
+  - Rücken rundet am unteren Punkt, weil die ROM erzwungen wird.
+  - Hantel driftet nach vorne und zieht unnötig am unteren Rücken.
+  - Zu schwer laden und dadurch die exzentrische Kontrolle verlieren.
+  tags:
+  - expert
+  - legs
+  - hip_hinge
+  - posterior_chain
+  - hamstrings
+  - glutes
+  aliases:
+  - Romanian Deadlift
+  - RDL
+  - Romanian DL
+  - Kreuzheben auf rumänische Art
+  search_aliases:
+  - rdl
+  - wger_507
+  external_ids:
+    wger:
+    - 507
+  wger_id: 507
+  variations:
+  - dumbbell_rdl
+  - single_leg_rdl
+  - barbell_rdl
+  wger_muscle_ids:
+    primary:
+    - 11
+    - 8
+    secondary:
+    - 16
+  source: expert

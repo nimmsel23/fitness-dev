@@ -1,0 +1,81 @@
+name: '041'
+description: Expert details for Incline Dumbbell Press / Schrägbankdrücken mit Kurzhanteln.
+exercises:
+- exercise_id: '041'
+  id: '041'
+  name: Schrägbankdrücken mit Kurzhanteln
+  display_name: Schrägbankdrücken mit Kurzhanteln
+  german: Schrägbankdrücken mit Kurzhanteln
+  english: Incline Dumbbell Press
+  category: chest
+  type: compound
+  movement_pattern: horizontal_press_incline
+  equipment:
+  - dumbbell
+  - incline_bench
+  primary_muscles:
+  - 102_pectoralis_major_clavicular
+  - 101_pectoralis_major
+  secondary_muscles:
+  - 301_anterior_deltoid
+  - 401_triceps_brachii
+  - 105_serratus_anterior
+  stabilizers:
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  - 203_trapezius_middle
+  - 204_trapezius_lower
+  coaching_notes:
+  - Stelle die Bank auf etwa 30-45 Grad ein; je steiler der Winkel, desto mehr übernimmt die vordere Schulter.
+  - Ziehe die Schulterblätter vor dem ersten Rep nach hinten und unten und halte die Brust aktiv.
+  - Senke die Kurzhanteln kontrolliert bis knapp neben die obere Brust, ohne die Schulter nach vorne kippen zu lassen.
+  - Drücke in einer leicht bogenförmigen Linie nach oben und stoppe kurz vor dem harten Ellenbogen-Lockout.
+  - Halte Füße, Gesäß und oberen Rücken stabil aufgesetzt; ein extremes Hohlkreuz verfälscht den Reiz.
+  common_errors:
+  - Zu steiler Bankwinkel, wodurch aus der Übung fast Schulterdrücken wird.
+  - Schultern am unteren Punkt nach vorne rollen lassen.
+  - Hanteln unkontrolliert fallen lassen oder oben gegeneinander schlagen.
+  - Ellenbogen zu weit nach außen spreizen und dadurch die Schulter unnötig stressen.
+  tags:
+  - expert
+  - chest
+  - dumbbell
+  - incline_press
+  - compound
+  - upper_chest
+  aliases:
+  - Schrägbankdrücken (KH)
+  - Schrägbankdrücken (Kurzhantel)
+  - Schrägbankdrücken Kurzhantel
+  - Kurzhantelschrägbankdrücken
+  - KH-Schrägbankdrücken
+  - Incline Dumbbell Press
+  - Incline DB Press
+  - Dumbbell Incline Press
+  - Incline Dumbbell Chest Press
+  search_aliases:
+  - incline_dumbbell_press
+  - Schraegbankdruecken KH
+  - Schraegbankdruecken Kurzhantel
+  - wger_537
+  - yuhonas_incline_dumbbell_press
+  - Incline_Dumbbell_Press
+  external_ids:
+    wger:
+    - 537
+    yuhonas:
+    - Incline_Dumbbell_Press
+  wger_id: 537
+  variations:
+  - low_incline_dumbbell_press
+  - incline_barbell_press
+  - incline_machine_press
+  - neutral_grip_incline_dumbbell_press
+  wger_muscle_ids:
+    primary:
+    - 4
+    secondary:
+    - 2
+    - 5
+  source: expert

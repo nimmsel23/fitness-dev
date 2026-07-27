@@ -1,0 +1,58 @@
+exercise_id: scapula_priming
+description: Expert details for Schulterblatt-Aktivierung
+exercises:
+- exercise_id: scapula_priming
+  id: scapula_priming
+  name: Scapula Priming
+  display_name: Schulterblatt-Aktivierung
+  german: Schulterblatt-Aktivierung
+  english: Scapula Priming
+  category: shoulders
+  type: isolation
+  movement_pattern: scapular_control
+  equipment:
+  - bodyweight
+  - resistance_band
+  primary_muscles:
+  - upper_back
+  - rhomboids
+  - shoulders
+  secondary_muscles:
+  - chest
+  - middle_back
+  stabilizers:
+  - abs
+  - lower_back
+  coaching_notes:
+  - Fokussieren Sie sich auf die bewusste Bewegung und Aktivierung Ihrer Schulterblattmuskulatur.
+  - Führen Sie die Bewegungen langsam und kontrolliert aus, um die Muskel-Gehirn-Verbindung
+    zu stärken.
+  - 'Praktizieren Sie verschiedene Schulterblattbewegungen: Protraktion (nach vorne
+    schieben), Retraktion (nach hinten ziehen), Elevation (hochziehen), Depression
+    (runterdrücken) und Rotation (auf- und abwärts).'
+  - Halten Sie den Rumpf stabil und vermeiden Sie Ausweichbewegungen aus der Wirbelsäule
+    oder den Armen.
+  common_errors:
+  - Bewegung hauptsächlich aus den Armen oder der Wirbelsäule statt aus den Schulterblättern.
+  - Verkrampfung oder zu starkes Hochziehen der Schultern (Überaktivität des oberen
+    Trapezius).
+  - Zu schnelle oder ruckartige Ausführung, ohne Fokus auf die zielgerichtete Muskelaktivierung.
+  tags:
+  - mobility
+  - warmup
+  - rehab
+  - prehab
+  - shoulder_health
+  - posture
+  - shoulders
+  - scapular_control
+  - unreviewed
+  aliases:
+  - Scapular Activation
+  - Shoulder Blade Mobility Drills
+  - Schulterblatt-Mobilisation
+  variations: []
+  source: expert
+  search_aliases:
+  - Schulterblatt-Aktivierung
+  - Scapula Priming

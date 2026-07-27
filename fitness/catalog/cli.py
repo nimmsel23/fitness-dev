@@ -770,7 +770,7 @@ def inbox_delete_cmd(
     if not yes and not typer.confirm(f"Wirklich löschen: {f.name}?"):
         console.print("Abgebrochen.")
         return
-    delete_inbox_entry(f)
+    delete_inbox_entry(f, ex)
     console.print(f"[ok]✓ Gelöscht:[/ok] {f.name}")
 
 

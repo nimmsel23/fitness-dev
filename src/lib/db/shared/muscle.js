@@ -20,6 +20,16 @@ export const ACTIVITY_MUSCLE_MAPPING = Object.fromEntries(
 let _kbRegions = new Map(); // regionId -> label
 let _muscleToRegionMap = new Map(); // muscleId -> regionId
 
+function regionIdFromDoc(doc) {
+  const id = String(doc.region || doc.doc_id || doc.id || doc.muscle_id || "").trim();
+  return id.includes("_") && /^\d/.test(id) ? id.split("_").slice(1).join("_") : id;
+}
+
+function bucketRank(doc) {
+  const catalogId = String(doc.catalog_id || doc.id || "").trim();
+  return /^\d00_/.test(catalogId) ? 1 : 0;
+}
+
 /**
  * Registriert alle aus der KB geladenen Muskel-Dokumente.
  * Liest die `muscles: [...]` Listen aus den Regionen-Dateien (quadriceps.yml, chest.yml, etc.)
@@ -30,29 +40,30 @@ export function setKBMuscles(musclesList) {
   _muscleToRegionMap.clear();
 
   const docs = Array.isArray(musclesList) ? musclesList : [];
+  const regionDocs = docs
+    .filter((doc) => Array.isArray(doc?.muscles) && (doc.kb_level === "region" || !doc.region || doc.region === doc.doc_id))
+    .sort((a, b) => bucketRank(a) - bucketRank(b) || (a.muscles?.length || 0) - (b.muscles?.length || 0));
 
-  // Pass 1: Regionen-Dokumente identifizieren (Dateien mit `muscles: [...]` Liste oder `highlight_ids`)
-  for (const doc of docs) {
-    const id = String(doc.id || doc.muscle_id || "");
-    if (!id) continue;
-
-    // Wenn das Dokument eine `muscles` Liste oder `highlight_ids` hat, ist es eine Regionen-Datei
-    if (Array.isArray(doc.muscles) || doc.highlight_ids) {
-      const regionId = doc.region || id;
-      const label = doc.label_de || doc.display_name || regionId;
-      _kbRegions.set(regionId, label);
-
-      // Alle in der `muscles:` Liste deklarierten Muskel-IDs dieser Region zuweisen
-      if (Array.isArray(doc.muscles)) {
-        for (const subMuscleId of doc.muscles) {
-          _muscleToRegionMap.set(String(subMuscleId), regionId);
-        }
+  for (const doc of regionDocs) {
+    const regionId = regionIdFromDoc(doc);
+    if (!regionId) continue;
+    const label = doc.label_de || doc.display_name || regionId;
+    _kbRegions.set(regionId, label);
+    for (const subMuscleId of doc.muscles) {
+      const muscleId = String(subMuscleId);
+      if (!_muscleToRegionMap.has(muscleId)) {
+        _muscleToRegionMap.set(muscleId, regionId);
       }
     }
+  }
 
-    // Wenn im Muskel-Dokument selbst eine `region` steht
-    if (doc.region) {
-      _muscleToRegionMap.set(id, doc.region);
+  // Detail-Dateien liefern nur Fallback über ihren Ordner, falls eine neue
+  // Detail-ID noch nicht in einer Top-Level-Region eingetragen wurde.
+  for (const doc of docs) {
+    const id = String(doc.id || doc.muscle_id || "").trim();
+    const region = String(doc.region || "").trim();
+    if (id && region && doc.kb_level === "muscle" && !_muscleToRegionMap.has(id)) {
+      _muscleToRegionMap.set(id, region);
     }
   }
 }

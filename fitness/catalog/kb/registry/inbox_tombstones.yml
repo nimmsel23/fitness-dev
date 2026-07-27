@@ -1,0 +1,67 @@
+version: 1
+tombstones:
+- id: inbox_wger_1084
+  exercise_id: wger_1084
+  display_name: Kurzhantel-Bodendrücken
+  reason: deleted_inbox
+  created_at: '2026-07-26T21:20:49.597439+00:00'
+  keys:
+  - inbox_wger_1084
+  - wger_1084
+  - wger:1084
+  - name:kurzhantel_bodendrücken
+  - name:dumbbell_floor_press
+- id: inbox_wger_1257
+  exercise_id: wger_1257
+  display_name: Stehende Bizepsdehnung
+  reason: deleted_inbox
+  created_at: '2026-07-26T21:20:50.309456+00:00'
+  keys:
+  - inbox_wger_1257
+  - wger_1257
+  - wger:1257
+  - name:stehende_bizepsdehnung
+  - name:standing_biceps_stretch
+- id: inbox_wger_1507
+  exercise_id: wger_1507
+  display_name: Liegestütz mit Klatschen
+  reason: deleted_inbox
+  created_at: '2026-07-26T21:20:51.043753+00:00'
+  keys:
+  - inbox_wger_1507
+  - wger_1507
+  - wger:1507
+  - name:liegestütz_mit_klatschen
+  - name:clapping_push_up
+- id: inbox_wger_926
+  exercise_id: wger_926
+  display_name: Butterfly an der Maschine
+  reason: deleted_inbox
+  created_at: '2026-07-26T21:20:51.770620+00:00'
+  keys:
+  - inbox_wger_926
+  - wger_926
+  - wger:926
+  - name:butterfly_an_der_maschine
+  - name:machine_chest_fly
+- id: inbox_wger_206
+  exercise_id: wger_206
+  display_name: Ausfallschritte im Gehen
+  reason: deleted_inbox
+  created_at: '2026-07-27T03:54:55.740306+00:00'
+  keys:
+  - inbox_wger_206
+  - wger_206
+  - wger:206
+  - name:ausfallschritte_im_gehen
+  - name:walking_lunges
+- id: inbox_yuhonas_side_leg_raises
+  exercise_id: yuhonas_side_leg_raises
+  display_name: Seitliches Beinheben
+  reason: deleted_inbox
+  created_at: '2026-07-27T03:54:56.472149+00:00'
+  keys:
+  - inbox_yuhonas_side_leg_raises
+  - yuhonas_side_leg_raises
+  - name:seitliches_beinheben
+  - name:side_leg_raises

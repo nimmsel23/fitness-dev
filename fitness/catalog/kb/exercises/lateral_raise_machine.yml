@@ -1,0 +1,91 @@
+exercise_id: lateral_raise_machine
+description: Expert details for Seithebemaschine
+exercises:
+- exercise_id: lateral_raise_machine
+  id: lateral_raise_machine
+  name: Seithebemaschine
+  display_name: Seithebemaschine
+  german: Maschinelles Seitheben
+  english: Machine Lateral Raise
+  category: shoulders
+  type: isolation
+  movement_pattern: shoulder_abduction
+  equipment:
+  - machine
+  primary_muscles:
+  - 302_lateral_deltoid
+  secondary_muscles:
+  - 301_anterior_deltoid
+  stabilizers:
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  - 206_erector_spinae
+  coaching_notes:
+  - Setzen Sie sich stabil in die Maschine. Richten Sie die Drehachse der Maschine
+    präzise auf Ihr Schultergelenk aus. Die Polster sollten an Ihren Unterarmen oder
+    Ellbogen anliegen, um eine direkte Kraftübertragung zu gewährleisten.
+  - Halten Sie Ihren Oberkörper während der gesamten Bewegung stabil und den Rücken
+    gerade, idealerweise mit leichtem Kontakt zur Rückenlehne. Spannen Sie die Bauch-
+    und untere Rückenmuskulatur leicht an, um eine feste Basis zu schaffen.
+  - Fassen Sie die Griffe fest und heben Sie die Arme kontrolliert und gleichmäßig
+    seitlich nach oben, indem Sie die Kraft bewusst aus den seitlichen Deltamuskeln
+    beziehen.
+  - Halten Sie die Ellbogen leicht gebeugt und fixiert. Die Handgelenke sollten in
+    einer neutralen Position verbleiben, tendenziell auf gleicher Höhe oder leicht
+    über den Ellbogen. Dies fördert eine neutrale oder leicht externe Rotation im
+    Schultergelenk und maximiert die Aktivierung des lateralen Deltamuskels.
+  - Führen Sie die Bewegung nur bis etwa Schulterhöhe aus. Eine höhere Bewegung aktiviert
+    primär den oberen Trapezius und kann das Schultergelenk unnötig belasten.
+  - Halten Sie die maximale Kontraktion am höchsten Punkt kurz. Senken Sie das Gewicht
+    dann langsam und kontrolliert ab, widerstehen Sie dem Zug des Gewichts bewusst,
+    bis die Arme wieder in der Ausgangsposition sind.
+  - Atmen Sie beim Anheben der Arme aus und beim kontrollierten Absenken des Gewichts
+    ein.
+  common_errors:
+  - 'Schwung holen: Das Bewegen des Gewichts durch Schwungholen mit dem Oberkörper
+    reduziert die Isolation des seitlichen Deltamuskels und erhöht das Verletzungsrisiko.
+    Nutzen Sie ausschließlich die Kraft der Schultermuskulatur.'
+  - 'Schultern hochziehen (Shrugging): Vermeiden Sie es, die Schultern während der
+    Bewegung nach oben in Richtung Ohren zu ziehen. Dies überlastet den oberen Trapezius
+    und mindert die Effektivität für den seitlichen Deltamuskel.'
+  - 'Zu viel Gewicht: Ein zu hohes Gewicht führt zu einer unsauberen Ausführung, ineffektiver
+    Muskelstimulation und einem erhöhten Risiko für Schulter- und Nackenverletzungen.
+    Wählen Sie ein Gewicht, das eine kontrollierte Ausführung ermöglicht.'
+  - 'Ellbogen durchstrecken: Halten Sie die Ellbogen immer leicht gebeugt, um die
+    Gelenke zu schützen und eine konstante Spannung auf dem Zielmuskel zu halten.'
+  - 'Bewegung über Schulterhöhe hinaus: Das Anheben der Arme weit über Schulterhöhe
+    hinaus verschiebt die Belastung vom seitlichen Deltamuskels auf den oberen Trapezius
+    und erhöht unnötig den Stress auf das Schultergelenk.'
+  - 'Interne Rotation der Schulter ("Wasser ausgießen"): Vermeiden Sie es, die Handgelenke
+    während der Aufwärtsbewegung unter die Ellbogen zu drehen. Dies fördert eine interne
+    Rotation im Schultergelenk, was zu Gelenkstress führen und die Aktivierung des
+    lateralen Deltamuskels reduzieren kann. Halten Sie die Handgelenke neutral oder
+    leicht über den Ellbogen.'
+  - 'Kontrollverlust in der Abwärtsbewegung: Das schnelle oder unkontrollierte Absinken
+    des Gewichts reduziert die wichtige exzentrische Phase der Muskelkontraktion,
+    die entscheidend für Muskelwachstum und Kraftentwicklung ist.'
+  tags:
+  - shoulder_isolation
+  - deltoid
+  - machine_exercise
+  - lateral_deltoid
+  - shoulders
+  - shoulder_abduction
+  - expert_reviewed
+  aliases:
+  - Maschinelles Seitheben
+  - Lateral Raise Machine
+  - Seitheben an der Maschine
+  - Machine Side Lateral Raises
+  search_aliases:
+  - wger_1570
+  external_ids:
+    wger:
+    - 1570
+  wger_id: 1570
+  wger_muscle_ids:
+    primary:
+    - 2
+    secondary: []
+  variations: []
+  source: expert

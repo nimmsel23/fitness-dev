@@ -1,0 +1,52 @@
+exercise_id: pullover_machine
+description: Expert details for Pullover-Maschine
+exercises:
+- exercise_id: pullover_machine
+  id: pullover_machine
+  name: Pullover Machine
+  display_name: Pullover-Maschine
+  german: Pullover-Maschine
+  english: Pullover Machine
+  category: back
+  type: isolation
+  movement_pattern: shoulder_extension
+  equipment:
+  - machine
+  primary_muscles:
+  - middle_back
+  secondary_muscles:
+  - chest
+  - shoulders
+  stabilizers:
+  - abs
+  coaching_notes:
+  - Kontrollierte Bewegung durchführen, keine ruckartigen Züge oder Schwungbewegungen
+  - In der Ausgangsposition die Arme vollständig oder nahezu vollständig strecken
+  - Ellbogen leicht gebeugt halten – weder vollständig durchgestreckt noch stark gebeugt
+  - Am unteren Punkt der Bewegung eine intensive Brustkontraktion anstreben
+  - Die komplette Bewegungsamplitude ausnutzen für optimale Muskelaktivation
+  - Vor schweren Sätzen ausgiebig aufwärmen, um die Schulter zu mobilisieren
+  common_errors:
+  - Zu schnelle oder unkontrollierte Bewegungen mit erhöhtem Verletzungsrisiko
+  - Ellbogen zu weit nach außen positionieren – sollten nah am Körper sein
+  - Mit zu viel Gewicht arbeiten und die Bewegung mit Schwung ausführen
+  - Unvollständige Bewegungsamplitude, die die Effektivität mindert
+  - Nacken und Schultern anspannen statt die Bewegung sauber auszuführen
+  tags:
+  - isolation
+  - chest
+  - machine
+  - horizontal-pull
+  - hypertrophy
+  - warm-up
+  - back
+  - shoulder_extension
+  - unreviewed
+  aliases:
+  - Machine Pullover
+  - Brustmaschine-Pullover
+  variations: []
+  source: expert
+  search_aliases:
+  - Pullover-Maschine
+  - Pullover Machine

@@ -1,0 +1,74 @@
+name: '080'
+description: Expert details for Deadlift / Kreuzheben.
+exercises:
+- exercise_id: '080'
+  id: '080'
+  name: Kreuzheben
+  display_name: Kreuzheben
+  german: Kreuzheben
+  english: Deadlift
+  category: legs
+  type: compound
+  movement_pattern: hip_hinge
+  equipment:
+  - barbell
+  primary_muscles:
+  - 603_gluteus_maximus
+  - 604_biceps_femoris
+  - 605_semitendinosus
+  - 606_semimembranosus
+  - 206_erector_spinae
+  secondary_muscles:
+  - 601_quadriceps_femoris
+  - 201_latissimus_dorsi
+  - 203_trapezius_middle
+  - 204_trapezius_lower
+  - 405_forearm_flexors
+  stabilizers:
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  - 205_rhomboids
+  - 608_gluteus_medius
+  - 609_gluteus_minimus
+  - 701_gastrocnemius
+  coaching_notes:
+  - Stange über dem Mittelfuß starten und während des gesamten Zugs eng am Körper führen.
+  - Vor dem Abheben Bracing setzen und die Lat-Spannung aktiv aufbauen.
+  - Hüfte und Schultern steigen gemeinsam; die Bewegung ist kein ungewollter Stiff-Leg-Deadlift.
+  - Den Boden wegdrücken, dann Hüfte durchstrecken; oben nicht in Hyperextension lehnen.
+  common_errors:
+  - Rücken rund machen, bevor die Stange den Boden verlässt.
+  - Hüfte schießt zuerst hoch und der Zug wird zum Rückenheben.
+  - Stange driftet vom Schienbein weg und vergrößert den Hebelarm.
+  - Lockout durch Zurücklehnen statt saubere Hüftstreckung.
+  tags:
+  - expert
+  - legs
+  - hip_hinge
+  - posterior_chain
+  - compound
+  - strength
+  - powerlifting
+  aliases:
+  - Deadlift
+  - Deadlifts
+  search_aliases:
+  - deadlift
+  - wger_184
+  external_ids:
+    wger:
+    - 184
+  wger_id: 184
+  variations:
+  - sumo_deadlift
+  - trap_bar_deadlift
+  - deficit_deadlift
+  - kettlebell_deadlift
+  wger_muscle_ids:
+    primary:
+    - 16
+    - 8
+    secondary:
+    - 12
+    - 11
+  source: expert

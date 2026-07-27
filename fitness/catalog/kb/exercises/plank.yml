@@ -1,0 +1,59 @@
+exercise_id: plank
+description: Expert details for Plank
+exercises:
+- exercise_id: plank
+  id: plank
+  name: Plank
+  display_name: Plank
+  german: Unterarmstütz
+  category: abs
+  type: isolation
+  movement_pattern: anti_extension
+  equipment:
+  - bodyweight
+  primary_muscles:
+  - abs
+  secondary_muscles:
+  - glutes
+  - lower_back
+  stabilizers:
+  - shoulders
+  coaching_notes:
+  - Konzentrieren Sie sich auf die saubere Ausführung jeder Übung, um maximale Effektivität
+    und Verletzungsprävention zu gewährleisten.
+  - Halten Sie den Rumpf während aller Übungen aktiv angespannt und vermeiden Sie
+    ein Durchhängen des unteren Rückens.
+  - 'Achten Sie auf eine bewusste Atmung: Ausatmen bei Anstrengung, Einatmen beim
+    Entspannen.'
+  - Passen Sie die Intensität und die Auswahl der Übungen Ihrem aktuellen Fitnesslevel
+    an, um Überlastung zu vermeiden und kontinuierlichen Fortschritt zu erzielen.
+  common_errors:
+  - Vernachlässigung der Form zugunsten der Geschwindigkeit, was die Effektivität
+    reduziert und das Verletzungsrisiko erhöht.
+  - Ein Hohlkreuz oder Durchhängen des Bauches während stabilisierender Übungen wie
+    Planks.
+  - Unkontrollierte, ruckartige Bewegungen, insbesondere bei Rotationsübungen.
+  - Nur die oberflächlichen Bauchmuskeln zu trainieren und die tiefere Rumpfmuskulatur
+    zu ignorieren.
+  tags:
+  - core
+  - hiit
+  - abs
+  - stability
+  - bodyweight_workout
+  - trunk
+  - anti_extension
+  - unreviewed
+  aliases:
+  - Ab-HIIT-Training
+  - Intensives Rumpftraining
+  - Bauchmuskel-HIIT
+  - Unterarmstütz
+  - Front Plank
+  - Core HIIT Workout
+  variations: []
+  source: expert
+  english: Plank
+  search_aliases:
+  - Plank
+  - Unterarmstütz

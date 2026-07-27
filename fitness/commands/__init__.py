@@ -1,36 +1,53 @@
 """fitness.commands — Typer- und Textual-Entry-Points."""
-import re as _re
+from functools import lru_cache
 
-_CANONICAL = {"chest", "back", "shoulders", "arms", "core", "glutes", "quads", "hamstrings", "calves"}
+from fitness.catalog.coverage import (
+    build_muscle_alias_map,
+    load_muscle_region_index,
+    load_muscle_taxonomy,
+    normalize_muscle_id,
+    resolve_muscle_id,
+)
+from fitness.catalog.core.muscles import iter_muscle_documents
 
-_LABELS_DE = {
-    "chest": "Brust", "back": "Rücken", "shoulders": "Schultern", "arms": "Arme",
-    "core": "Bauch", "glutes": "Gesäß", "quads": "Beinstrecker",
-    "hamstrings": "Beinbeuger", "calves": "Waden",
-}
+
+@lru_cache(maxsize=1)
+def _muscle_group_context() -> tuple[set[str], dict[str, str], dict[str, str], dict[str, str]]:
+    region_index = load_muscle_region_index()
+    taxonomy = load_muscle_taxonomy()
+    alias_map = build_muscle_alias_map(taxonomy)
+    labels_de: dict[str, str] = {}
+    try:
+        for doc_id, doc in iter_muscle_documents():
+            if doc.get("kb_level") != "region":
+                continue
+            label = doc.get("label_de") or doc.get("display_name") or doc.get("label_en")
+            if isinstance(label, str) and label:
+                labels_de[doc_id] = label
+    except Exception:
+        labels_de = {}
+    return set(region_index.values()), region_index, alias_map, labels_de
 
 
 def muscle_to_group(name: str) -> str | None:
-    """Numerische Slug oder Gruppenname → kanonische Gruppe."""
+    """Muskel-ID, Alias oder Gruppenname -> kanonische KB-Region."""
     if not name:
         return None
-    key = name.lower().strip().replace(" ", "_")
-    if key in _CANONICAL:
+    groups, region_index, alias_map, _ = _muscle_group_context()
+    key = normalize_muscle_id(name)
+    if key in groups:
         return key
-    m = _re.match(r'^(\d+)', key)
-    if m:
-        n = int(m.group(1))
-        if 100 <= n < 200: return "chest"
-        if 200 <= n < 300: return "back"
-        if 300 <= n < 400: return "shoulders"
-        if 400 <= n < 500: return "arms"
-        if 500 <= n < 600: return "core"
-        if 600 <= n < 700: return "glutes" if n <= 602 else ("quads" if n == 603 else "hamstrings")
-        if 700 <= n < 800: return "calves"
+    resolved = resolve_muscle_id(key, alias_map)
+    if resolved in groups:
+        return resolved
+    if resolved in region_index:
+        return region_index[resolved]
     return None
 
 
 def muscle_group_label(group: str, lang: str = "de") -> str:
+    group_key = normalize_muscle_id(group)
     if lang == "de":
-        return _LABELS_DE.get(group, group.capitalize())
-    return group.capitalize()
+        _, _, _, labels_de = _muscle_group_context()
+        return labels_de.get(group_key, group_key.capitalize())
+    return group_key.capitalize()

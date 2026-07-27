@@ -14,6 +14,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileCreatedEvent
 
 from fitness.catalog.core.paths import DATA_DIR, runtime_root
+from fitness.catalog.agent.inbox_actions import is_inbox_tombstoned
 from fitness.catalog.api.firestore_push import run_kb_sync
 from fitness.catalog.core.resolver import resolve_query, find_by_id, build_exercise_index
 from fitness.catalog.core.rich_utils import setup_logging
@@ -82,6 +83,12 @@ def process_inbox_file(file_path: Path, api_key: str | None):
 
         safe_name = name.lower().replace(" ", "_")
         target_file = DATA_DIR / "inbox" / f"inbox_{safe_name}.yml"
+        tombstone_data = {"exercise_id": safe_name, "display_name": name, "name": name}
+
+        if is_inbox_tombstoned(target_file.stem, tombstone_data):
+            logger.info(f"Exercise inbox tombstoned, skipping: {name}")
+            file_path.unlink()
+            return
 
         if target_file.exists():
             file_path.unlink()
@@ -95,9 +102,7 @@ def process_inbox_file(file_path: Path, api_key: str | None):
 
         logger.info(f"Enriching NEW exercise: {name}")
 
-        enriched_data = None
-        if api_key:
-            enriched_data = call_gemini(name, safe_name, api_key)
+        enriched_data = call_gemini(name, safe_name, api_key)
 
         if enriched_data:
             save_inbox_draft(target_file, enriched_data, f"AI generated base entry for {name}")
@@ -110,7 +115,7 @@ def process_inbox_file(file_path: Path, api_key: str | None):
 def process_inbox_file_virtual(
     ex_id: str,
     display_name: str,
-    api_key: str,
+    api_key: str | None,
     force: bool = False,
     feedback: str | None = None,
     current_data: dict | None = None,
@@ -119,6 +124,9 @@ def process_inbox_file_virtual(
     target_file = DATA_DIR / "inbox" / f"inbox_{safe_name}.yml"
 
     if target_file.exists() and not force:
+        return
+    if not force and is_inbox_tombstoned(target_file.stem, {"exercise_id": ex_id, "display_name": display_name}):
+        logger.info(f"Exercise inbox tombstoned, skipping proactive draft: {display_name}")
         return
 
     existing_data = current_data
@@ -216,13 +224,12 @@ def run_watcher():
                     if ingested:
                         logger.info(f"Ingested {ingested} new training entries.")
                     
-                    if api_key:
-                        top_unreviewed = get_top_unreviewed_exercises(limit=3)
-                        for ex_id, count in top_unreviewed:
-                            logger.info(f"Proactively refining popular unreviewed exercise: {ex_id} (used {count} times)")
-                            res = resolve_query(ex_id)
-                            if res.matched:
-                                process_inbox_file_virtual(res.canonical_id, res.display_name, api_key)
+                    top_unreviewed = get_top_unreviewed_exercises(limit=3)
+                    for ex_id, count in top_unreviewed:
+                        logger.info(f"Proactively refining popular unreviewed exercise: {ex_id} (used {count} times)")
+                        res = resolve_query(ex_id)
+                        if res.matched:
+                            process_inbox_file_virtual(res.canonical_id, res.display_name, api_key)
                     
                     last_ingest = now
                 except Exception as e:

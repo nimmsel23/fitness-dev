@@ -1,0 +1,52 @@
+exercise_id: cable_external_rotation
+description: Expert details for Außenrotation am Kabelzug
+exercises:
+- exercise_id: cable_external_rotation
+  id: cable_external_rotation
+  name: External Cable Rotations
+  display_name: Außenrotation am Kabelzug
+  german: Außenrotation am Kabelzug
+  english: Cable External Rotation
+  category: shoulders
+  type: isolation
+  movement_pattern: shoulder_external_rotation
+  equipment:
+  - cable
+  primary_muscles:
+  - shoulders
+  secondary_muscles: []
+  stabilizers:
+  - upper_back
+  - abs
+  coaching_notes:
+  - Stellen Sie sich seitlich zum Kabelzugturm, der Griff auf Ellenbogenhöhe.
+  - Halten Sie den Oberarm eng am Körper und beugen Sie den Ellenbogen auf 90 Grad.
+  - Rotieren Sie den Unterarm langsam nach außen, weg vom Körper, während der Oberarm
+    stabil bleibt.
+  - Führen Sie die Bewegung kontrolliert zurück in die Ausgangsposition.
+  - Konzentrieren Sie sich auf die Muskelkontraktion der Rotatorenmanschette und vermeiden
+    Sie Schwung.
+  common_errors:
+  - Verwendung von zu viel Gewicht, was zu Kompensationsbewegungen führt.
+  - Den Ellenbogen vom Körper wegbewegen oder den Oberarm mitschwingen lassen.
+  - Schnelle, unkontrollierte Bewegungen, besonders in der exzentrischen Phase.
+  - Mit dem Oberkörper mitrotieren anstatt nur aus der Schulter.
+  tags:
+  - rotator_cuff
+  - shoulder_health
+  - rehabilitation
+  - prehab
+  - athletic_performance
+  - shoulders
+  - shoulder_external_rotation
+  - unreviewed
+  aliases:
+  - Cable Rotator Cuff
+  - Shoulder External Rotation
+  - Cable Shoulder External Rotation
+  variations: []
+  source: expert
+  search_aliases:
+  - Außenrotation am Kabelzug
+  - Cable External Rotation
+  - External Cable Rotations

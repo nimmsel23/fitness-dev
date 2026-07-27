@@ -1,0 +1,84 @@
+name: '020'
+description: Expert details for Pull-Up / Klimmzug im Obergriff.
+exercises:
+- exercise_id: '020'
+  id: '020'
+  name: Klimmzug im Obergriff
+  display_name: Klimmzug im Obergriff
+  german: Klimmzug im Obergriff
+  english: Pull-Up
+  category: back
+  type: compound
+  movement_pattern: vertical_pull
+  equipment:
+  - bodyweight
+  - pull_up_bar
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 207_teres_major
+  - 204_trapezius_lower
+  secondary_muscles:
+  - 402_biceps_brachii
+  - 403_brachialis
+  - 404_brachioradialis
+  - 203_trapezius_middle
+  - 205_rhomboids
+  stabilizers:
+  - 501_rectus_abdominis
+  - 504_transverse_abdominis
+  - 206_erector_spinae
+  - 304_rotator_cuff
+  coaching_notes:
+  - Starte im aktiven Hang mit langem Körper und zieh die Schulterblätter zuerst nach unten.
+  - Zieh die Ellenbogen Richtung Hüfte, nicht nur das Kinn irgendwie über die Stange.
+  - Nutze volle ROM: unten kontrolliert strecken, oben Brust Richtung Stange.
+  - Halte Rippen und Becken stabil, damit der Zug nicht in Schwung oder Hohlkreuz kippt.
+  - Obergriff verschiebt den Fokus stärker auf Latissimus/oberen Rücken und etwas weg vom Bizeps im Vergleich zum Chin-Up.
+  common_errors:
+  - Kipping oder Beinschwung statt kontrollierter vertikaler Zug.
+  - Schultern zu den Ohren ziehen und ohne Scapula-Depression starten.
+  - Halbe Wiederholungen unten oder oben, wodurch Lat-Stretch und Abschluss fehlen.
+  - Kopf nach vorne schieben, statt Brust und Rückenarbeit zur Stange zu bringen.
+  tags:
+  - expert
+  - back
+  - pull
+  - bodyweight
+  - calisthenics
+  - vertical_pull
+  - grip_strength
+  aliases:
+  - Klimmzug
+  - Klimmzüge
+  - Klimmzug Obergriff
+  - Klimmzug im Obergriff
+  - Obergriff Klimmzug
+  - Pull-up
+  - Pull-up (Overhand Grip)
+  - Pull Up
+  - Pull Ups
+  - Pull-Up
+  - Pull-Ups
+  - Standard Pull-up
+  - Pronated Pull-up
+  search_aliases:
+  - Pullups
+  - yuhonas_pullups
+  - Klimmzug an Leiste
+  external_ids:
+    wger:
+    - 821
+    yuhonas:
+    - Pullups
+  wger_id: 821
+  variations:
+  - assisted_pull_up
+  - band_assisted_pull_up
+  - weighted_pull_up
+  - wide_grip_pull_up
+  - neutral_grip_pull_up
+  - scapular_pull_up
+  wger_muscle_ids:
+    primary: []
+    secondary: []
+  source: expert

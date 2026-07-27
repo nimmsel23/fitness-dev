@@ -1,0 +1,50 @@
+exercise_id: face_pull
+description: Expert details for Face Pulls
+exercises:
+- exercise_id: face_pull
+  id: face_pull
+  name: Face Pulls
+  display_name: Face Pulls
+  german: Face Pulls
+  category: shoulders
+  type: compound
+  movement_pattern: horizontal_pull
+  equipment:
+  - cable
+  primary_muscles:
+  - shoulders
+  - upper_back
+  secondary_muscles:
+  - rhomboids
+  stabilizers:
+  - abs
+  coaching_notes:
+  - Stellen Sie das Kabel so ein, dass es sich auf Schulter- oder Kopfhöhe befindet.
+  - Fassen Sie das Seil mit einem Oberhandgriff und ziehen Sie es in Richtung Ihres
+    Gesichts.
+  - Konzentrieren Sie sich darauf, die Schulterblätter zusammenzuziehen und die Schultern
+    nach außen zu rotieren.
+  - Halten Sie die Ellbogen hoch und nach außen, über dem Handgelenk, um die Zielmuskulatur
+    optimal zu aktivieren.
+  common_errors:
+  - Zu viel Gewicht verwenden, was zu Schwung führt und die Form beeinträchtigt.
+  - Die Ellbogen zu tief halten, wodurch der Fokus von den hinteren Schultern und
+    dem oberen Rücken abweicht.
+  - Den Rücken übermäßig runden oder überstrecken; halten Sie den Oberkörper stabil.
+  tags:
+  - schultern
+  - rücken
+  - haltung
+  - rotatorenmanschette
+  - shoulders
+  - horizontal_pull
+  - unreviewed
+  aliases:
+  - kabelzug zum gesicht
+  - rope face pull
+  variations: []
+  source: expert
+  english: Face Pull
+  search_aliases:
+  - Face Pulls
+  - Face Pull
