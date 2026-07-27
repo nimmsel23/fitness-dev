@@ -1,6 +1,7 @@
 """pull/push: Firestore ↔ ~/.aos/users/<uid>/ (one-shot)"""
 
 import json
+from datetime import datetime
 from pathlib import Path
 
 from ._db import get_db, ts, UID
@@ -224,14 +225,15 @@ def pull() -> dict:
     return {"sessions": total_pulled, "skipped": total_skipped, "journal": total_journal, "habit_journal": total_habit_journal, "inbox": total_inbox}
 
 
-def push() -> dict:
-    db = get_db()
+def push(uid: str | None = None, *, force: bool = False, dry_run: bool = False) -> dict:
+    db = None if dry_run and force else get_db()
     pushed = skipped = 0
     users_dir = FITNESS_DIR / "users"
     if not users_dir.exists():
         return {"sessions": 0, "sessions_skipped": 0}
 
-    for user_folder in users_dir.iterdir():
+    user_folders = [users_dir / uid] if uid else sorted(users_dir.iterdir())
+    for user_folder in user_folders:
         if not user_folder.is_dir(): continue
         uid = user_folder.name
         sessions_dir = user_folder / "sessions"
@@ -244,15 +246,18 @@ def push() -> dict:
             actual_date = doc_id.split("__")[0]
             local_data = json.loads(f.read_text())
             local_ts   = local_data.get("saved_at", "")
-            remote     = db.collection("fitness").document(uid).collection("sessions").document(doc_id).get()
-            if remote.exists:
+            ref = None if db is None else db.collection("fitness").document(uid).collection("sessions").document(doc_id)
+            remote = None if ref is None else ref.get()
+            if remote and remote.exists and not force:
                 remote_ts = ts(remote.to_dict().get("saved_at"))
                 if remote_ts and local_ts and remote_ts >= local_ts:
                     skipped += 1
                     continue
-            db.collection("fitness").document(uid).collection("sessions").document(doc_id).set(
-                {**local_data, "date": actual_date}
-            )
+            if not dry_run:
+                payload = {**local_data, "date": actual_date}
+                if force:
+                    payload["saved_at"] = datetime.utcnow().isoformat()
+                ref.set(payload)
             pushed += 1
 
-    return {"sessions": pushed, "sessions_skipped": skipped}
+    return {"sessions": pushed, "sessions_skipped": skipped, "dry_run": dry_run, "force": force}
