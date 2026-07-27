@@ -1,5 +1,5 @@
 import { Bell, BellOff, BellRing } from 'lucide-react'
-import { usePushNotifications } from '../../../hooks/usePushNotifications.js'
+import { usePushNotifications } from '../../hooks/usePushNotifications.js'
 
 const TYPE_LABELS = {
   workout: 'Workout-Reminder',

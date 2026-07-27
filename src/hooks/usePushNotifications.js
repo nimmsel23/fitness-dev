@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { isLocalMode, getPushSettings, savePushSettings } from '@db'
-import { getMessagingIfSupported } from '../firebase.js'
+import { getMessagingIfSupported } from '@cloud/firebase.js'
 import { getToken } from 'firebase/messaging'
+import { VAPID_KEY } from '@firebase-config'
 
-const VAPID_KEY = "BLO5LBXVHXR4HS5sHyHLwl5n3iXURypO3ZSCh4Ser-itoQTmO3bhnawqEWP913PzBx31cHExbkuodvIqLjPzvd0"
 const PUSH_SW_URL = '/firebase-messaging-sw.js'
 const PUSH_SW_SCOPE = '/firebase-push/'
 

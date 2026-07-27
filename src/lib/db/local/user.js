@@ -3,6 +3,7 @@ import { api, localToday } from "./core";
 const LOCAL_KEYS = {
   settings: "fitness-local-settings",
   layout: "fitness-local-layout",
+  push: "fitness-local-push-settings",
 };
 
 function readJSON(key, fallback) {
@@ -24,6 +25,19 @@ export async function getLayout() {
   return layout?.layout || null;
 }
 export async function saveLayout(layout) { writeJSON(LOCAL_KEYS.layout, { layout }); return { ok: true }; }
+
+export async function getPushSettings() {
+  return readJSON(LOCAL_KEYS.push, {
+    enabled: false,
+    types: {},
+    reminderTime: "18:00",
+  });
+}
+
+export async function savePushSettings(settings) {
+  writeJSON(LOCAL_KEYS.push, settings);
+  return { ok: true };
+}
 
 export async function getBodyEntry(date) {
   try {
