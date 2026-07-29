@@ -135,11 +135,20 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
       sessions.forEach(s => {
         const existing = sessByDate[s.date];
         if (existing) {
-          // mehrere Docs am selben Tag (z.B. Legs + HIIT-Finisher) mergen statt überschreiben
+          // Mehrere Docs am selben Tag (z.B. Legs + HIIT-Finisher im selben Doc
+          // gespeichert, aber historisch auf zwei Docs verteilt) mergen statt
+          // überschreiben. Eine explizit als eigene Cardio-Session geloggte
+          // zweite Session (sessionMode === 'cardio', z.B. ein separat
+          // geloggter Spaziergang) ist aber KEIN Finisher der ersten Session —
+          // deren activity darf nicht als Finisher-Badge übernommen werden.
+          const mainDoc = (existing.exercises?.length > 0) ? existing
+            : (s.exercises?.length > 0) ? s : existing;
+          const otherDoc = mainDoc === existing ? s : existing;
+          const finisherActivity = otherDoc.sessionMode !== 'cardio' ? otherDoc.activity : null;
           sessByDate[s.date] = {
-            ...existing,
+            ...mainDoc,
             exercises: [...(existing.exercises || []), ...(s.exercises || [])],
-            activity: existing.activity || s.activity,
+            activity: mainDoc.activity || finisherActivity,
           };
         } else {
           sessByDate[s.date] = s;
