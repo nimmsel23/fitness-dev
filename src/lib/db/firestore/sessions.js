@@ -66,7 +66,7 @@ export async function listSessionsForDate(date = todayISO()) {
       id: suffix,
       date: data.date || date,
       block: data.block || null,
-      saved_at: data.saved_at ? data.saved_at.toDate().toISOString() : null,
+      saved_at: data.saved_at?.toDate?.()?.toISOString() || data.saved_at || null,
       ...data,
       exercises: Array.isArray(data.exercises) ? data.exercises : [],
     };
