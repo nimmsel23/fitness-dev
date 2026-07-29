@@ -1981,7 +1981,7 @@ exercises:
   german: Außenrotation am Kabelzug
   category: shoulders
   primary_muscles:
-  - 303_posterior_deltoid
+  - 304_rotator_cuff
   secondary_muscles: []
   equipment: []
   coaching_notes:
@@ -10042,7 +10042,7 @@ exercises:
   german: Außenrotation der Schulter mit Kurzhantel
   category: shoulders
   primary_muscles:
-  - 303_posterior_deltoid
+  - 304_rotator_cuff
   - 403_brachialis
   secondary_muscles:
   - 202_trapezius_upper
@@ -18427,7 +18427,7 @@ exercises:
   german: Außenrotation der Schulter am Kabelzug
   category: shoulders
   primary_muscles:
-  - 303_posterior_deltoid
+  - 304_rotator_cuff
   secondary_muscles: []
   equipment: []
   coaching_notes:
@@ -20399,7 +20399,7 @@ exercises:
   german: Innenrotation der Schulter am Kabelzug
   category: shoulders
   primary_muscles:
-  - 301_anterior_deltoid
+  - 304_rotator_cuff
   secondary_muscles: []
   equipment: []
   coaching_notes:
