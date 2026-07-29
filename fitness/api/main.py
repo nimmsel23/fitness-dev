@@ -159,6 +159,41 @@ def serve(
         app_dir=str(_DIST_DIR.parent),
     )
 
+@cli.command()
+def status(
+    port: Annotated[int, typer.Option("--port", "-p", help="Port des laufenden Servers")] = PORT,
+):
+    """Health-Check gegen den laufenden fitness-python-backend-Prozess + Firestore-Verbindung."""
+    import httpx
+    from rich.console import Console
+    from rich.table import Table
+
+    console = Console()
+    table = Table(title=f"fitness-python-backend :{port}")
+    table.add_column("Check")
+    table.add_column("Status")
+
+    try:
+        r = httpx.get(f"http://127.0.0.1:{port}/health", timeout=2.0)
+        r.raise_for_status()
+        data = r.json()
+        table.add_row("API /health", f"[green]ok[/green] (runtime={data.get('runtime')})")
+    except Exception as e:
+        table.add_row("API /health", f"[red]nicht erreichbar[/red] ({e})")
+
+    try:
+        from firestore.mirror import get_status as firestore_status
+        fs = firestore_status()
+        if fs.get("ok"):
+            table.add_row("Firestore-Watcher", f"[green]ok[/green] (project={fs.get('project')})")
+        else:
+            table.add_row("Firestore-Watcher", "[yellow]keine Verbindung (Creds fehlen?)[/yellow]")
+    except Exception as e:
+        table.add_row("Firestore-Watcher", f"[red]Fehler[/red] ({e})")
+
+    console.print(table)
+
+
 def main():
     Base.metadata.create_all(engine)
     cli()
