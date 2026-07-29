@@ -20,6 +20,24 @@ export const ACTIVITY_MUSCLE_MAPPING = Object.fromEntries(
 let _kbRegions = new Map(); // regionId -> label
 let _muscleToRegionMap = new Map(); // muscleId -> regionId
 
+// Freitext-Fallback: Sessions/Suchresultate speichern primaryMuscles/
+// secondaryMuscles teils als lesbare Gruppennamen ("Quads", "Shoulders")
+// statt kanonischer KB-IDs. Ohne diese Normalisierung landet so ein Eintrag
+// unverändert als "Region" (siehe muscleToRegion()-Fallback unten) — ein Key,
+// den keine Coverage-Abfrage kennt — und die Muskelgruppe erscheint
+// fälschlich als "nicht trainiert", obwohl Sessions dafür existieren.
+const FREE_TEXT_MUSCLE_ALIASES = {
+  chest: "chest", pec: "chest", pectoralis: "chest",
+  back: "back", lat: "back", lats: "back", latissimus: "back", trap: "back", traps: "back", rhomboid: "back",
+  shoulders: "shoulders", shoulder: "shoulders", delt: "shoulders", delts: "shoulders", deltoid: "shoulders",
+  arms: "arms", arm: "arms", bicep: "arms", biceps: "arms", tricep: "arms", triceps: "arms", forearm: "arms",
+  core: "core", abs: "core", ab: "core", obliques: "core",
+  glutes: "glutes", glute: "glutes", gluteal: "glutes", gluteus: "glutes",
+  quadriceps: "quadriceps", quad: "quadriceps", quads: "quadriceps", legs: "quadriceps", leg: "quadriceps",
+  hamstrings: "hamstrings", hamstring: "hamstrings",
+  calves: "calves", calf: "calves", gastrocnemius: "calves",
+};
+
 function regionIdFromDoc(doc) {
   const id = String(doc.region || doc.doc_id || doc.id || doc.muscle_id || "").trim();
   return id.includes("_") && /^\d/.test(id) ? id.split("_").slice(1).join("_") : id;
@@ -87,6 +105,11 @@ export function muscleToRegion(muscle) {
   if (_muscleToRegionMap.has(id)) {
     return _muscleToRegionMap.get(id);
   }
+
+  // 3. Freitext-Fallback (nur wenn die aufgelöste Region tatsächlich aus der
+  // KB registriert ist — sonst wie bisher unverändert zurückgeben).
+  const alias = FREE_TEXT_MUSCLE_ALIASES[id.toLowerCase()];
+  if (alias && _kbRegions.has(alias)) return alias;
 
   return id;
 }
