@@ -130,24 +130,44 @@ export function muscleToGroupIds(muscle) {
 }
 
 // Agonist/Antagonist-Paare, bei denen ein starkes Ungleichgewicht im
-// Trainingsvolumen (basierend auf muscle_scores, primary-Treffer pro
-// canonical ID) auf einseitiges Training hindeutet — z.B. vordere Schulter
+// Trainingsvolumen auf einseitiges Training hindeutet — z.B. vordere Schulter
 // (Front-/Bankdrücken-lastig) vs. hintere Schulter (Rear Delt/Face Pull),
 // eine häufige Ursache für Rundschulter-Haltung.
 const MUSCLE_BALANCE_PAIRS = [
-  { a: "301_anterior_deltoid", b: "303_posterior_deltoid", labelA: "vordere Schulter", labelB: "hintere Schulter" },
+  {
+    a: "301_anterior_deltoid", b: "303_posterior_deltoid",
+    labelA: "vordere Schulter", labelB: "hintere Schulter",
+    // Fallback für Übungen, die im KB nur generisch als "shoulders"/"304_rotator_cuff"
+    // getaggt sind (nicht mit der spezifischen Delt-Kopf-ID) — ohne diesen
+    // Namens-Abgleich fallen z.B. "Vorgebeugte Kabel Rear Delt Flys" (primary:
+    // ["shoulders"]) komplett aus der Zählung, was ein falsches Ungleichgewicht
+    // vortäuscht (siehe importer.py::DELTOID_REASSIGNMENT, gleiche Heuristik).
+    nameFallbackA: /front raise|frontheben|shoulder press|overhead press|schulterdr(ü|ue)cken/i,
+    nameFallbackB: /rear|reverse|posterior|face.?pull|vorgebeugt|rückwärt|hintere schulter/i,
+  },
 ];
 
 /**
- * Vergleicht muscle_scores-Paare und meldet ein deutliches Ungleichgewicht
- * (>= 1.5x und mindestens 1 Punkt Differenz, um Rauschen bei kleinen Zahlen
- * zu vermeiden).
+ * Vergleicht Agonist/Antagonist-Paare über alle Übungen einer Periode und
+ * meldet ein deutliches Ungleichgewicht (>= 1.5x und mindestens 1 Punkt
+ * Differenz, um Rauschen bei kleinen Zahlen zu vermeiden).
+ * @param {Array<{name?: string, primaryMuscles?: string[]}>} exercises
  */
-export function buildMuscleBalanceInsights(muscleScores) {
+export function buildMuscleBalanceInsights(exercises) {
   const insights = [];
-  for (const { a, b, labelA, labelB } of MUSCLE_BALANCE_PAIRS) {
-    const scoreA = muscleScores[a] || 0;
-    const scoreB = muscleScores[b] || 0;
+  const list = Array.isArray(exercises) ? exercises : [];
+
+  for (const { a, b, labelA, labelB, nameFallbackA, nameFallbackB } of MUSCLE_BALANCE_PAIRS) {
+    let scoreA = 0, scoreB = 0;
+    for (const ex of list) {
+      const primary = ex?.primaryMuscles || [];
+      const name = ex?.name || ex?.exercise_id || "";
+      if (primary.includes(a)) { scoreA += 1; continue; }
+      if (primary.includes(b)) { scoreB += 1; continue; }
+      // Generisch getaggte Übung (z.B. "shoulders") — über den Namen zuordnen.
+      if (nameFallbackB?.test(name)) scoreB += 1;
+      else if (nameFallbackA?.test(name)) scoreA += 1;
+    }
     if (scoreA === 0 && scoreB === 0) continue;
     if (scoreA >= scoreB * 1.5 && scoreA - scoreB >= 1) {
       insights.push(`${labelA} wird deutlich mehr trainiert als ${labelB} (${scoreA.toFixed(1)} vs. ${scoreB.toFixed(1)}) — Rear Delt/Face Pull ergänzen.`);

@@ -166,6 +166,7 @@ export async function getWeeklyReport(selector = "current") {
   const sessions = [];
   let entriesCount = 0;
   const muscleScores = {}, bodyRegionScores = {}, topExMap = {};
+  const allExercises = [];
 
   // listSessionsForDate() statt getSession(date): getSession() lädt per exakter
   // Dokument-ID (nur der reine Datumsstring). Sessions, die über "Neues Workout"
@@ -186,6 +187,7 @@ export async function getWeeklyReport(selector = "current") {
       const exName = ex.name || ex.exercise_id || "";
       hasDoneExercises = true; entriesCount++;
       if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
+      allExercises.push({ name: exName, primaryMuscles: primary });
       let hasMapped = false;
       [...primary, ...secondary, ...stabilizers].forEach((m) => {
         muscleToGroupIds(m, exName).forEach((gid) => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; hasMapped = true; });
@@ -242,7 +244,7 @@ export async function getWeeklyReport(selector = "current") {
     top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ display_name: name, count })),
     recommendations: [
       ...(gaps.length > 0 ? [`Fokus auf: ${gaps.join(", ")}`] : ["Woche perfekt abgedeckt!"]),
-      ...buildMuscleBalanceInsights(muscleScores),
+      ...buildMuscleBalanceInsights(allExercises),
     ],
   };
 }

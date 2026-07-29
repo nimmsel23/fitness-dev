@@ -63,6 +63,7 @@ export async function getWeeklyReport(selector = "current") {
   const bodyRegionScores = {};
   const muscleScores = {};
   const topExMap = {};
+  const allExercises = [];
 
   for (const date of dates) {
     const sess = history.find(h => h.date === date);
@@ -78,6 +79,7 @@ export async function getWeeklyReport(selector = "current") {
       const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
       const secondary = (ex.secondaryMuscles?.length ? ex.secondaryMuscles : null) || kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [];
       const stabilizers = (ex.stabilizers?.length ? ex.stabilizers : null) || kbEx?.stabilizers || [];
+      allExercises.push({ name: exName, primaryMuscles: primary });
       [...primary].forEach(m => {
         muscleScores[m] = (muscleScores[m] || 0) + 1;
         muscleToGroupIds(m, exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; });
@@ -120,7 +122,7 @@ export async function getWeeklyReport(selector = "current") {
     missing_regions: gaps,
     recommendations: [
       ...(gaps.length > 0 ? [`Fokus auf: ${gaps.join(", ")}`] : ["Woche gut abgedeckt!"]),
-      ...buildMuscleBalanceInsights(muscleScores),
+      ...buildMuscleBalanceInsights(allExercises),
     ],
     top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => {
       const kbEx = kbMap.get(name.toLowerCase());
