@@ -38,9 +38,19 @@ const FREE_TEXT_MUSCLE_ALIASES = {
   calves: "calves", calf: "calves", gastrocnemius: "calves",
 };
 
+// Regions deren KB-Dateiname von der App-weiten Sammelgruppen-Konvention
+// abweicht (siehe MuscleBody.jsx::toGroup(), ACTIVITY_MUSCLE_GROUPS): die
+// KB-Region-Datei heißt "abs" (500_abs.yml), aber "core" ist überall sonst
+// die Sammelgruppe für Bauch/Rumpf (analog zu "back"/"legs" als Sammelgruppen
+// für ihre jeweiligen Sub-Regionen). Ohne diese Umbenennung landen HIIT-
+// Core-Finisher (ACTIVITY_MUSCLE_GROUPS.hiit enthält "core") in einem
+// separaten, nie mit der KB-Region verschmolzenen Bucket.
+const REGION_ID_ALIASES = { abs: "core" };
+
 function regionIdFromDoc(doc) {
   const id = String(doc.region || doc.doc_id || doc.id || doc.muscle_id || "").trim();
-  return id.includes("_") && /^\d/.test(id) ? id.split("_").slice(1).join("_") : id;
+  const stripped = id.includes("_") && /^\d/.test(id) ? id.split("_").slice(1).join("_") : id;
+  return REGION_ID_ALIASES[stripped] || stripped;
 }
 
 function bucketRank(doc) {

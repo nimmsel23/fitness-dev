@@ -84,10 +84,10 @@ export async function getWeeklyReport(selector = "current") {
     const actRegions = sess.activity?.muscles
       || (sess.activity?.type ? ACTIVITY_MUSCLE_GROUPS[sess.activity.type] : null);
     if (actRegions) {
-      actRegions.forEach(gid => {
+      actRegions.forEach(m => muscleToGroupIds(m).forEach(gid => {
         sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 0.5;
         bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5;
-      });
+      }));
     }
     const muscleRecovery = {};
     for (const gid of Object.keys(sessGroupsCount)) {
@@ -161,7 +161,7 @@ export async function getMuscleCoverage(days = 7) {
     const actRegions = sess.activity?.muscles
       || (sess.activity?.type ? ACTIVITY_MUSCLE_GROUPS[sess.activity.type] : null);
     if (actRegions) {
-      actRegions.forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; });
+      actRegions.forEach(m => muscleToGroupIds(m).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
     }
   }
 

@@ -118,6 +118,8 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
               <ReviewSessionList
                 sessions={data.sessions}
                 onNavigate={onNavigate}
+                muscleLanguage={muscleLanguage}
+                taxonomy={taxonomy}
               />
               <ReviewTopExercises
                 topExercises={data.top_exercises}
