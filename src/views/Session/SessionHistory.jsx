@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { History, Timer, Calendar, ChevronRight, Check, X as XIcon, Dumbbell, Activity } from 'lucide-react';
 import { localToday } from '@utils';
 import { blockColor } from './utils';
-import { ACTIVITY_LABELS, ACTIVITY_ICONS, ACTIVITY_EMOJI } from '../../constants/ActivityConstants';
+import { ACTIVITY_LABELS, ACTIVITY_ICONS, ACTIVITY_EMOJI, classifySession } from '../../constants/ActivityConstants';
 
 const DAY_SHORT = ['So','Mo','Di','Mi','Do','Fr','Sa'];
 const MON_SHORT = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
@@ -79,13 +79,9 @@ export default function SessionHistory({
   };
 
   const renderSessionCard = (d, s) => {
-    const hasExercises = Array.isArray(s.exercises) && s.exercises.length > 0;
-    const isActivity = !hasExercises && (s.sessionMode === 'cardio' || !!s.activity);
-    const hasFinisher = hasExercises && !!s.activity;
-    const actType = s.activity?.type;
+    const { isActivity, hasFinisher, actType, label } = classifySession(s);
     const emoji = actType ? ACTIVITY_EMOJI[actType] : null;
     const ActivityIconComp = (!emoji && actType) ? (ACTIVITY_ICONS[actType] || Activity) : null;
-    const label = isActivity ? (ACTIVITY_LABELS[actType] || 'Ausdauer') : s.block;
     const color = blockColor(s.block, isActivity ? s.activity : null, s.sessionMode);
     const isReDate = reDateEntry?.d === d;
     const isDragging = draggedDate === d;

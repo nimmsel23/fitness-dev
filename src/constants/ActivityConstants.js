@@ -105,6 +105,22 @@ export const SWIM_STYLE_MUSCLES = {
 };
 
 /**
+ * Single source of truth for deriving a session's primary type + label.
+ * A session with exercises (strength) stays primary even when an activity
+ * finisher (e.g. HIIT/cardio) is attached — the finisher is reported
+ * separately via hasFinisher, never as a label override.
+ * Used by SessionHistory (Session tab) and ReviewHistory (WeeklyReview → Verlauf).
+ */
+export function classifySession(session) {
+  const hasExercises = Array.isArray(session?.exercises) && session.exercises.length > 0;
+  const isActivity = !hasExercises && (session?.sessionMode === 'cardio' || !!session?.activity);
+  const hasFinisher = hasExercises && !!session?.activity;
+  const actType = session?.activity?.type;
+  const label = isActivity ? (ACTIVITY_LABELS[actType] || 'Ausdauer') : session?.block;
+  return { hasExercises, isActivity, hasFinisher, actType, label };
+}
+
+/**
  * Returns a CSS color string for a given session.
  * - If sessionMode === 'cardio', uses orange as a general cardio color
  *   (or the specific activity-type color if available).
