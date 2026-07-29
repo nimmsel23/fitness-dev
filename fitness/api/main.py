@@ -23,7 +23,27 @@ async def lifespan(app: FastAPI):
     logger.info(f"fitness-dev Modular FastAPI Server :{PORT}")
     logger.info(f"runtime  {RUNTIME}")
     logger.info(f"db       {engine.url}")
+
+    # Firestore on_snapshot-Watchers (vormals eigenständiger
+    # fitness-firestore-daemon.service / firestore.mirror CLI) laufen jetzt
+    # eingebettet im ohnehin dauerhaft laufenden API-Prozess mit — ein
+    # Prozess weniger, kein separates systemd-Unit nötig. Firebase-Creds
+    # fehlen im Dev-Alltag oft (kein .env/firebase-fitness.json) — dann
+    # bewusst überspringen statt den ganzen API-Server crashen zu lassen.
+    watchers = []
+    try:
+        from firestore.mirror import start_watchers
+        watchers = start_watchers()
+    except Exception as e:
+        logger.warning(f"Firestore-Watchers nicht gestartet: {e}")
+
     yield
+
+    for w in watchers:
+        try:
+            w.unsubscribe()
+        except Exception:
+            pass
     await close_httpx_client()
 
 app = FastAPI(

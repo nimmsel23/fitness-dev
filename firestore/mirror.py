@@ -344,12 +344,13 @@ def on_supplements_catalog(doc_snapshot, changes, read_time):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
-def main():
-    logger.remove()
-    logger.add(
-        RichHandler(console=console, rich_tracebacks=True),
-        format="{message}", level="INFO",
-    )
+def start_watchers() -> list:
+    """Registriert alle on_snapshot-Listener und gibt die Watcher-Handles
+    zurück (zum späteren .unsubscribe()). Kein Logging-Setup, kein
+    blockierendes Warten — eingebettet nutzbar in einem bereits laufenden
+    Prozess (z.B. FastAPI-lifespan), der seinen eigenen Event-Loop hat.
+    Die eigentliche CLI (main()) baut logger + blockierendes Warten selbst
+    darum herum."""
     db  = get_db()
     ref = db.collection("fitness").document(UID)
     watchers = [
@@ -368,6 +369,16 @@ def main():
     logger.info("Listening → fitness/kb/exercises [approved]")
     logger.info(f"Listening → nutrition/{UID}/logs, supplements/{UID}/logs+meta")
     logger.info(f"Mirror → {USER_DIR} (+ {_data_dir(UID)} für Fuel)")
+    return watchers
+
+
+def main():
+    logger.remove()
+    logger.add(
+        RichHandler(console=console, rich_tracebacks=True),
+        format="{message}", level="INFO",
+    )
+    watchers = start_watchers()
     try:
         threading.Event().wait()
     except KeyboardInterrupt:
