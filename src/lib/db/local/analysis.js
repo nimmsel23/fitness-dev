@@ -65,6 +65,17 @@ export async function getWeeklyReport(selector = "current") {
   const topExMap = {};
   const allExercises = [];
 
+  // "Top Exercises" bewusst über die volle Historie (bis zu 120 Sessions),
+  // nicht nur die aktuelle Wochen-/Periodenauswahl (dates) — sonst zeigt der
+  // Report bei kurzen Perioden nur 1-2 Sessions und wirkt wie "es zählt nur
+  // das letzte Workout", obwohl deutlich mehr Trainingsdaten vorliegen.
+  for (const s of history) {
+    for (const ex of (s.exercises || [])) {
+      const exName = ex.name || ex.exercise_id || "";
+      if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
+    }
+  }
+
   for (const date of dates) {
     const sess = history.find(h => h.date === date);
     if (!sess) continue;
@@ -72,7 +83,6 @@ export async function getWeeklyReport(selector = "current") {
     for (let ex of (sess.exercises || [])) {
       const exName = ex.name || ex.exercise_id || "";
       if (!exName) continue;
-      topExMap[exName] = (topExMap[exName] || 0) + 1;
       // Snapshot-First: inline-Werte aus dem Log gewinnen. KB nur Fallback,
       // damit gelöschte/umbenannte Katalog-Einträge keine alten Sessions kaputtmachen.
       const kbEx = kbMap.get(exName.toLowerCase());

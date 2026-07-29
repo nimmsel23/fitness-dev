@@ -168,6 +168,17 @@ export async function getWeeklyReport(selector = "current") {
   const muscleScores = {}, bodyRegionScores = {}, topExMap = {};
   const allExercises = [];
 
+  // "Top Exercises" bewusst über die volle Historie (bis zu 120 Sessions),
+  // nicht nur die aktuelle Wochen-/Periodenauswahl (dates) — sonst zeigt der
+  // Report bei kurzen Perioden nur 1-2 Sessions und wirkt wie "es zählt nur
+  // das letzte Workout", obwohl deutlich mehr Trainingsdaten vorliegen.
+  for (const s of safeHistory) {
+    for (const ex of (s.exercises || [])) {
+      const exName = ex.name || ex.exercise_id || "";
+      if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
+    }
+  }
+
   // listSessionsForDate() statt getSession(date): getSession() lädt per exakter
   // Dokument-ID (nur der reine Datumsstring). Sessions, die über "Neues Workout"
   // angelegt wurden, haben aber eine "date__<timestamp>"-Dokument-ID (Mehrfach-
@@ -186,7 +197,6 @@ export async function getWeeklyReport(selector = "current") {
       const primary = ex.primaryMuscles || [], secondary = ex.secondaryMuscles || [], stabilizers = ex.stabilizers || [];
       const exName = ex.name || ex.exercise_id || "";
       hasDoneExercises = true; entriesCount++;
-      if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
       allExercises.push({ name: exName, primaryMuscles: primary });
       let hasMapped = false;
       [...primary, ...secondary, ...stabilizers].forEach((m) => {
