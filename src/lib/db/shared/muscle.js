@@ -128,3 +128,32 @@ export function muscleToGroupIds(muscle) {
   const region = muscleToRegion(muscle);
   return region ? [region] : [];
 }
+
+// Agonist/Antagonist-Paare, bei denen ein starkes Ungleichgewicht im
+// Trainingsvolumen (basierend auf muscle_scores, primary-Treffer pro
+// canonical ID) auf einseitiges Training hindeutet — z.B. vordere Schulter
+// (Front-/Bankdrücken-lastig) vs. hintere Schulter (Rear Delt/Face Pull),
+// eine häufige Ursache für Rundschulter-Haltung.
+const MUSCLE_BALANCE_PAIRS = [
+  { a: "301_anterior_deltoid", b: "303_posterior_deltoid", labelA: "vordere Schulter", labelB: "hintere Schulter" },
+];
+
+/**
+ * Vergleicht muscle_scores-Paare und meldet ein deutliches Ungleichgewicht
+ * (>= 1.5x und mindestens 1 Punkt Differenz, um Rauschen bei kleinen Zahlen
+ * zu vermeiden).
+ */
+export function buildMuscleBalanceInsights(muscleScores) {
+  const insights = [];
+  for (const { a, b, labelA, labelB } of MUSCLE_BALANCE_PAIRS) {
+    const scoreA = muscleScores[a] || 0;
+    const scoreB = muscleScores[b] || 0;
+    if (scoreA === 0 && scoreB === 0) continue;
+    if (scoreA >= scoreB * 1.5 && scoreA - scoreB >= 1) {
+      insights.push(`${labelA} wird deutlich mehr trainiert als ${labelB} (${scoreA.toFixed(1)} vs. ${scoreB.toFixed(1)}) — Rear Delt/Face Pull ergänzen.`);
+    } else if (scoreB >= scoreA * 1.5 && scoreB - scoreA >= 1) {
+      insights.push(`${labelB} wird deutlich mehr trainiert als ${labelA} (${scoreB.toFixed(1)} vs. ${scoreA.toFixed(1)}).`);
+    }
+  }
+  return insights;
+}

@@ -11,7 +11,7 @@ import { db } from "../../../firebase.js";
 import { num, todayISO } from "../shared/utils.js";
 import {
   ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds,
-  getMuscleGroups,
+  getMuscleGroups, buildMuscleBalanceInsights,
 } from "../shared/muscle.js";
 import { getUid } from "./core.js";
 import { getAllExercises } from "./kb.js";
@@ -232,11 +232,18 @@ export async function getWeeklyReport(selector = "current") {
   const allGroups = getMuscleGroups().map((g) => g.id);
   const gaps = allGroups.filter((g) => (bodyRegionScores[g] || 0) < 1);
 
+  const efforts = sessions.map((s) => s.effort).filter((e) => typeof e === "number");
+  const avgEffort = efforts.length > 0 ? Math.round((efforts.reduce((a, b) => a + b, 0) / efforts.length) * 10) / 10 : null;
+
   return {
     ok: true, week: selector, session_count: sessions.length, entries_count: entriesCount,
+    total_exercises: entriesCount, avg_effort: avgEffort,
     sessions, muscle_scores: muscleScores, body_region_scores: bodyRegionScores, missing_regions: gaps,
     top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ display_name: name, count })),
-    recommendations: gaps.length > 0 ? [`Fokus auf: ${gaps.join(", ")}`] : ["Woche perfekt abgedeckt!"],
+    recommendations: [
+      ...(gaps.length > 0 ? [`Fokus auf: ${gaps.join(", ")}`] : ["Woche perfekt abgedeckt!"]),
+      ...buildMuscleBalanceInsights(muscleScores),
+    ],
   };
 }
 

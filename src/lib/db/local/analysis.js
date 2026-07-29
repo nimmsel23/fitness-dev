@@ -1,6 +1,6 @@
 import { api } from "./core";
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants";
-import { muscleToGroupIds, getMuscleGroups } from "../shared/muscle";
+import { muscleToGroupIds, getMuscleGroups, buildMuscleBalanceInsights } from "../shared/muscle";
 
 export async function getDashboardAnalytics(days = 28) {
   try {
@@ -61,6 +61,7 @@ export async function getWeeklyReport(selector = "current") {
 
   const sessions = [];
   const bodyRegionScores = {};
+  const muscleScores = {};
   const topExMap = {};
 
   for (const date of dates) {
@@ -77,7 +78,10 @@ export async function getWeeklyReport(selector = "current") {
       const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
       const secondary = (ex.secondaryMuscles?.length ? ex.secondaryMuscles : null) || kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [];
       const stabilizers = (ex.stabilizers?.length ? ex.stabilizers : null) || kbEx?.stabilizers || [];
-      [...primary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; }));
+      [...primary].forEach(m => {
+        muscleScores[m] = (muscleScores[m] || 0) + 1;
+        muscleToGroupIds(m, exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; });
+      });
       [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.7; }));
       [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.4; }));
     }
@@ -111,11 +115,13 @@ export async function getWeeklyReport(selector = "current") {
     total_exercises: totalExercises,
     avg_effort: avgEffort,
     sessions,
+    muscle_scores: muscleScores,
     body_region_scores: bodyRegionScores,
     missing_regions: gaps,
-    recommendations: gaps.length > 0
-      ? [`Fokus auf: ${gaps.join(", ")}`]
-      : ["Woche gut abgedeckt!"],
+    recommendations: [
+      ...(gaps.length > 0 ? [`Fokus auf: ${gaps.join(", ")}`] : ["Woche gut abgedeckt!"]),
+      ...buildMuscleBalanceInsights(muscleScores),
+    ],
     top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => {
       const kbEx = kbMap.get(name.toLowerCase());
       return {
