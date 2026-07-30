@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getWeeklyReport, exportFitnessData, getRecentSessions } from '@db';
-import { BarChart3, Activity, History } from 'lucide-react';
+import { BarChart3, Activity, History, Zap } from 'lucide-react';
 
 import ReviewHeader from './ReviewHeader';
 import ReviewOverview from './ReviewOverview';
@@ -9,6 +9,7 @@ import ReviewMuscleImpact from './ReviewMuscleImpact';
 import ReviewSessionList from './ReviewSessionList';
 import ReviewTopExercises from './ReviewTopExercises';
 import ReviewHistory from './ReviewHistory.jsx';
+import ReviewReadinessMatrix from './ReviewReadinessMatrix.jsx';
 import Muscles from '../Muscles/index.jsx';
 
 export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleLanguage = 'de', taxonomy = null, gender = 'male', recentDays = 10, subTab = null, onSubNav }) {
@@ -17,7 +18,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
   const [loading, setLoading] = useState(false);
   const [toast, setToast]     = useState('');
   const [historySessions, setHistorySessions] = useState([]);
-  const viewMode = subTab === 'muscles' ? 'muscles' : subTab === 'verlauf' ? 'verlauf' : 'report';
+  const viewMode = subTab === 'muscles' ? 'muscles' : subTab === 'verlauf' ? 'verlauf' : subTab === 'readiness' ? 'readiness' : 'report';
 
   useEffect(() => {
     if (viewMode !== 'verlauf') return;
@@ -67,9 +68,10 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
       {/* Mode switcher */}
       <div className="flex gap-1 p-1 bg-fit-card rounded-2xl border border-fit-line shadow-sm w-fit">
         {[
-          { id: 'report',  icon: <BarChart3 size={14} />, label: 'Bericht' },
-          { id: 'muscles', icon: <Activity size={14} />,  label: 'Muskeln' },
-          { id: 'verlauf', icon: <History size={14} />,   label: 'Verlauf' },
+          { id: 'report',    icon: <BarChart3 size={14} />, label: 'Bericht' },
+          { id: 'muscles',   icon: <Activity size={14} />,  label: 'Muskeln' },
+          { id: 'readiness', icon: <Zap size={14} />,       label: 'Readiness' },
+          { id: 'verlauf',   icon: <History size={14} />,   label: 'Verlauf' },
         ].map(({ id, icon, label }) => (
           <button key={id}
             onClick={() => onSubNav?.(id)}
@@ -82,6 +84,8 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
 
       {viewMode === 'muscles' ? (
         <Muscles gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} recentDays={recentDays} />
+      ) : viewMode === 'readiness' ? (
+        <ReviewReadinessMatrix taxonomy={taxonomy} muscleLanguage={muscleLanguage} />
       ) : viewMode === 'verlauf' ? (
         <ReviewHistory sessions={historySessions} onOpenSession={onOpenSession} />
       ) : loading ? (
