@@ -411,9 +411,7 @@ def cmd_clients(
             raw_sessions.append(s)
         sessions = rollup_training_days(raw_sessions)
         shown = 0
-        from tqdm import tqdm as _tqdm
-        _iter = _tqdm(sessions, desc=f"  {name}", unit="day", leave=False) if len(sessions) > 20 else sessions
-        for s in _iter:
+        for s in sessions:
             d = s.get("date", "")
 
             kind  = classify(s)
