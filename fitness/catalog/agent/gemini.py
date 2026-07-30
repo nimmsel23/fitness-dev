@@ -36,6 +36,9 @@ CRITICAL: You MUST only use the following muscle IDs for primary_muscles, second
   "secondary_muscles": ["muscle_id"],
   "stabilizers": ["muscle_id"],
   "coaching_notes": ["Hinweis 1", "Hinweis 2"],
+  "original_description": null,
+  "wger_id": null,
+  "yuhonas_id": null,
   "common_errors": ["Fehler 1"],
   "tags": ["tag1"],
   "aliases": []
@@ -49,11 +52,11 @@ I have a basic exercise entry from a bulk import that needs professional "Expert
 CRITICAL: You MUST only use the following muscle IDs for primary_muscles, secondary_muscles, and stabilizers:
 {muscle_list}
 
-Existing Data (Wiki Layer):
+Existing Data (Wiki Layer / Original Source):
 {existing_json}
 
 Your task:
-1. Keep the exercise_id and wger_id.
+1. Keep the exercise_id, wger_id, yuhonas_id, and original_description. If original_description is present in Existing Data, preserve it EXACTLY and DO NOT overwrite or delete it.
 2. Verify and refine the category and muscles.
 3. Generate HIGH-QUALITY coaching_notes and common_errors in GERMAN.
 4. Ensure the biomechanical movement_pattern is correct.

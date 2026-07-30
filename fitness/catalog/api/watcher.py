@@ -69,10 +69,13 @@ def process_inbox_file_virtual(ex_id: str, display_name: str, api_key: str, forc
         existing_data = {
             "exercise_id": record.exercise_id,
             "display_name": record.display_name,
-            "category": record.category if hasattr(record, "category") else None,
+            "category": getattr(record, "category", None),
             "primary_muscles": record.primary_muscles,
+            "secondary_muscles": record.secondary_muscles,
             "equipment": record.equipment,
-            "wger_id": record.wger_muscle_ids.get("wger_id") if record.wger_muscle_ids else None
+            "wger_id": getattr(record, "wger_id", None) or (record.wger_muscle_ids.get("wger_id") if record.wger_muscle_ids else None),
+            "yuhonas_id": getattr(record, "yuhonas_id", None),
+            "original_description": getattr(record, "original_description", None) or getattr(record, "instructions", None),
         }
 
     logger.info(f"Proactive Expert-Enrichment for: {display_name} (using Wiki context)")

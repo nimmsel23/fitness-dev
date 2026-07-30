@@ -18,16 +18,22 @@ ANATOMY_KB_ROOT = Path(__file__).resolve().parent.parent
 def get_fitness_dev() -> Path | None:
     if env := os.environ.get("ANATOMY_KB_FITNESS_DEV"):
         p = Path(env)
+        if (p / "fitness" / "catalog" / "kb").exists():
+            return p
         if (p / "catalog" / "kb").exists():
             return p
 
     # Subtree layout: anatomy-kb/ is direct child of fitness-dev/
     candidate = ANATOMY_KB_ROOT.parent
+    if (candidate / "fitness" / "catalog" / "kb").exists():
+        return candidate
     if (candidate / "catalog" / "kb").exists():
         return candidate
 
     # Legacy sibling layout: ~/anatomy-kb/ next to ~/fitness-dev/
     candidate = ANATOMY_KB_ROOT.parent / "fitness-dev"
+    if (candidate / "fitness" / "catalog" / "kb").exists():
+        return candidate
     if (candidate / "catalog" / "kb").exists():
         return candidate
 
@@ -35,6 +41,14 @@ def get_fitness_dev() -> Path | None:
 
 
 FITNESS_DEV = get_fitness_dev()
-CATALOG_DIR = FITNESS_DEV / "catalog" if FITNESS_DEV else None
-CATALOG_EXERCISES = FITNESS_DEV / "catalog" / "kb" / "exercises" if FITNESS_DEV else None
-ANATOMY_TEACHING = FITNESS_DEV / "catalog" / "kb" / "anatomy_teaching" if FITNESS_DEV else None
+if FITNESS_DEV:
+    if (FITNESS_DEV / "fitness" / "catalog" / "kb").exists():
+        CATALOG_DIR = FITNESS_DEV / "fitness" / "catalog"
+    else:
+        CATALOG_DIR = FITNESS_DEV / "catalog"
+else:
+    CATALOG_DIR = None
+
+CATALOG_EXERCISES = CATALOG_DIR / "kb" / "exercises" if CATALOG_DIR else None
+ANATOMY_TEACHING = CATALOG_DIR / "kb" / "anatomy_teaching" if CATALOG_DIR else None
+

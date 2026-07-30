@@ -52,6 +52,8 @@ class ExerciseRecord:
     images: list[str] | None = None
     instructions: list[str] | None = None
     wger_id: int | None = None
+    yuhonas_id: str | None = None
+    original_description: str | list[str] | None = None
     wger_muscle_ids: dict | None = None
     anatomy: dict[str, Any] | None = None
 
@@ -150,7 +152,7 @@ def build_exercise_index() -> list[ExerciseRecord]:
             else:
                 if entry_name: rec.display_name = entry_name
                 # Basis-Felder
-                for f in ["german", "movement_pattern", "wger_id", "gif_url", "image_url"]:
+                for f in ["german", "movement_pattern", "wger_id", "yuhonas_id", "original_description", "gif_url", "image_url"]:
                     val = entry.get(f) if isinstance(entry, dict) else None
                     if val: setattr(rec, f, val)
                 
@@ -173,6 +175,7 @@ def build_exercise_index() -> list[ExerciseRecord]:
             w_id = entry.get("wger_id")
             name = first_text(entry, "display_name", "name")
             german = first_text(entry, "german", "de")
+            orig_desc = entry.get("original_description") or (entry.get("coaching_notes")[0] if isinstance(entry.get("coaching_notes"), list) and entry.get("coaching_notes") else None)
             
             target_id = None
             # 1. Matching über wger_id
@@ -192,6 +195,8 @@ def build_exercise_index() -> list[ExerciseRecord]:
                 rec = index[target_id]
                 if not rec.german and german: rec.german = german
                 if not rec.gif_url and entry.get("gif_url"): rec.gif_url = entry["gif_url"]
+                if not rec.original_description and orig_desc: rec.original_description = orig_desc
+                if not rec.wger_id and w_id: rec.wger_id = int(w_id)
                 # Muskeln anreichern falls Expert-Record noch keine hat
                 if not rec.primary_muscles:
                     rec.primary_muscles = list_of_text(entry.get("primary_muscles"))
@@ -212,7 +217,8 @@ def build_exercise_index() -> list[ExerciseRecord]:
                         german=german,
                         primary_muscles=list_of_text(entry.get("primary_muscles")),
                         secondary_muscles=list_of_text(entry.get("secondary_muscles")),
-                        wger_id=w_id,
+                        wger_id=int(w_id) if w_id else None,
+                        original_description=orig_desc,
                         gif_url=entry.get("gif_url")
                     )
 
@@ -242,13 +248,17 @@ def build_exercise_index() -> list[ExerciseRecord]:
             instructions = raw.get("instructions") or []
             primary = resolve_muscle_strings(raw.get("primaryMuscles", []))
             secondary = resolve_muscle_strings(raw.get("secondaryMuscles", []))
+            y_id = raw.get("id") or json_file.stem
 
             if target_id and target_id in index:
                 rec = index[target_id]
+                rec.yuhonas_id = y_id
                 if not rec.images and images:
                     rec.images = images
                 if not rec.instructions and instructions:
                     rec.instructions = instructions
+                if not rec.original_description and instructions:
+                    rec.original_description = instructions
                 if not rec.primary_muscles and primary:
                     rec.primary_muscles = primary
                 if not rec.secondary_muscles and secondary:
@@ -266,6 +276,8 @@ def build_exercise_index() -> list[ExerciseRecord]:
                         secondary_muscles=secondary,
                         images=images,
                         instructions=instructions,
+                        yuhonas_id=y_id,
+                        original_description=instructions,
                         equipment=[raw.get("equipment")] if raw.get("equipment") else None,
                     )
                     by_name[norm] = ex_id
