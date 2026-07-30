@@ -100,12 +100,17 @@ function syncSessionToDb(date, session) {
 // ── Python sync_gateway — fire-and-forget nach Session-Write ─────────────────
 async function notifyPythonSync(date, session, uid = "default", sessionId = null) {
   try {
-    await fetch(`${PYTHON_BASE}/internal/sync/session`, {
+    const res = await fetch(`${PYTHON_BASE}/internal/sync/session`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ date, session, uid, session_id: sessionId }),
       signal: AbortSignal.timeout(3000),
     });
+    // Body IMMER konsumieren, sonst race zwischen AbortSignal.timeout()-Cleanup
+    // und undicis interner Stream-Close-Logik → ERR_INVALID_STATE crashed den
+    // ganzen Prozess (unhandled, außerhalb dieses try/catch). Body-Inhalt hier
+    // irrelevant, nur das Draining zählt.
+    await res.text().catch(() => {});
   } catch {
     // fire-and-forget — Python-Backend nicht zwingend erreichbar
   }
@@ -144,7 +149,9 @@ async function fetchWger(wgerPath, qs = "") {
       headers: { Authorization: `Token ${WGER_TOKEN}` },
       signal: AbortSignal.timeout(4000),
     });
-    return res.ok ? res.json() : {};
+    if (res.ok) return res.json();
+    await res.text().catch(() => {}); // Body draining, siehe notifyPythonSync
+    return {};
   } catch {
     return {};
   }
@@ -159,7 +166,9 @@ async function postWger(wgerPath, body) {
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(4000),
     });
-    return res.ok ? res.json() : null;
+    if (res.ok) return res.json();
+    await res.text().catch(() => {}); // Body draining, siehe notifyPythonSync
+    return null;
   } catch {
     return null;
   }
