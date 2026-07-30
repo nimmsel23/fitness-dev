@@ -26,8 +26,6 @@ const PORT       = Number(process.env.PORT || (process.env.NODE_ENV === 'product
 const HOST       = process.env.HOST || "127.0.0.1";
 const PYTHON_PORT = Number(process.env.FITNESS_PYTHON_PORT || 9150);
 const PYTHON_BASE = `http://127.0.0.1:${PYTHON_PORT}`;
-const WGER_TOKEN = process.env.WGER_API_TOKEN || process.env.WGER_TOKEN || "92d9ea44fc0ac065e336e9ec443a196c40c68afe";
-const WGER_BASE  = process.env.WGER_BASE || "http://127.0.0.1/api/v2";
 const BODY_DIR = path.join(DATA_DIR, "body");
 
 for (const d of ["sessions", "journal"]) fs.mkdirSync(path.join(DATA_DIR, d), { recursive: true });
@@ -142,36 +140,20 @@ function escapeCsvValue(v) {
   return String(v ?? "").replaceAll('"', '""');
 }
 
-async function fetchWger(wgerPath, qs = "") {
-  const url = `${WGER_BASE}${wgerPath}?format=json${qs ? "&" + qs : ""}`;
-  try {
-    const res = await fetch(url, {
-      headers: { Authorization: `Token ${WGER_TOKEN}` },
-      signal: AbortSignal.timeout(4000),
-    });
-    if (res.ok) return res.json();
-    await res.text().catch(() => {}); // Body draining, siehe notifyPythonSync
-    return {};
-  } catch {
-    return {};
-  }
+// wger-client.mjs wird erst per dynamic import() geladen, wenn der erste
+// echte Fallback-Aufruf nötig ist (lokaler Katalog liefert nichts) — kein
+// Boot-Ping, kein Token im Hauptmodul. wger ist meist offline, das Modul
+// hat dafür einen eigenen Cooldown (siehe wger-client.mjs).
+let _wgerClient = null;
+async function wgerClient() {
+  if (!_wgerClient) _wgerClient = await import("./wger-client.mjs");
+  return _wgerClient;
 }
-
+async function fetchWger(wgerPath, qs = "") {
+  return (await wgerClient()).fetchWger(wgerPath, qs);
+}
 async function postWger(wgerPath, body) {
-  const url = `${WGER_BASE}${wgerPath}`;
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { Authorization: `Token ${WGER_TOKEN}`, "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(4000),
-    });
-    if (res.ok) return res.json();
-    await res.text().catch(() => {}); // Body draining, siehe notifyPythonSync
-    return null;
-  } catch {
-    return null;
-  }
+  return (await wgerClient()).postWger(wgerPath, body);
 }
 
 function normMuscleKey(s) {
