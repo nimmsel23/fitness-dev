@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { spawn } from "node:child_process";
 
 // Nur importiert, wenn server.mjs den ersten echten wger-Fallback braucht
 // (Katalog-Suche ohne lokalen Treffer) — kein Boot-Ping, keine Secrets im
@@ -26,20 +27,48 @@ function wgerToken() {
   return process.env.WGER_API_TOKEN || process.env.WGER_TOKEN || null;
 }
 
-// wger ist meist offline (lokaler Docker-Stack läuft nicht durchgehend) —
-// nach einem fehlgeschlagenen Call für COOLDOWN_MS keine weiteren Versuche,
-// sonst wartet jede Suchanfrage einzeln die vollen 4s Timeout aus.
+// wger läuft on-demand (wger-stack.service, kein Autostart, siehe
+// ~/.dotfiles/config/systemd/user/wger-stack.service) — bei Nichterreichbarkeit
+// wird der Stack im Hintergrund angestoßen, aber nicht auf ihn gewartet (Boot
+// inkl. Postgres-Migrations dauert deutlich länger als ein Request-Timeout).
+// Nach einem fehlgeschlagenen Call für COOLDOWN_MS keine weiteren Versuche,
+// sonst wartet jede Suchanfrage einzeln die vollen 4s Timeout aus UND spawnt
+// wiederholt systemctl.
 const COOLDOWN_MS = 30_000;
 let downSince = 0;
+
+const STATE_FILE = path.join(os.homedir(), ".aos", "fitness", "agent-state", "wger-last-used");
 
 function isCoolingDown() {
   return downSince && Date.now() - downSince < COOLDOWN_MS;
 }
+
+function triggerStackStart() {
+  // fire-and-forget, kein await — der aktuelle Request bekommt trotzdem den
+  // leeren Fallback, erst der NÄCHSTE Call (nach Cooldown) findet den Stack
+  // ggf. schon hochgefahren vor.
+  try {
+    spawn("systemctl", ["--user", "start", "wger-stack.service"], {
+      detached: true, stdio: "ignore",
+    }).unref();
+  } catch {
+    // systemctl fehlt (Nicht-Linux-Dev-Umgebung o.ä.) — einfach weiter im Fallback
+  }
+}
+
 function markDown() {
   downSince = Date.now();
+  triggerStackStart();
 }
+
 function markUp() {
   downSince = 0;
+  try {
+    fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
+    fs.writeFileSync(STATE_FILE, String(Math.floor(Date.now() / 1000)));
+  } catch {
+    // Idle-Check läuft dann halt nicht — kein Grund den Call scheitern zu lassen
+  }
 }
 
 export async function fetchWger(wgerPath, qs = "") {
