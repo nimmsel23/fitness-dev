@@ -1,19 +1,19 @@
-name: '603'
-description: Expert details for Ab Wheel
+name: inbox_ab_wheel
+description: Draft details for Ab Wheel
 exercises:
-- exercise_id: '603'
-  id: '603'
+- exercise_id: inbox_ab_wheel
+  id: inbox_ab_wheel
   german: Ab Wheel
   category: core
   type: compound
   movement_pattern: anti_extension
   equipment:
-  - 603
+  - ab_wheel
   primary_muscles:
   - 501_rectus_abdominis
-  - transvere_abdominis
+  - 504_transverse_abdominis
   secondary_muscles:
-  - 502_obliques
+  - 502_obliquus_externus
   - 201_latissimus_dorsi
   - 104_serratus_anterior
   stabilizers:

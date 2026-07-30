@@ -13,10 +13,6 @@ exercises:
     name: "Kabel-Crunch"
     primary_muscles: [501_rectus_abdominis]
     secondary_muscles: [502_obliquus_externus]
-  - id: "603"
-    name: "Ab Wheel"
-    primary_muscles: [501_rectus_abdominis, 504_transverse_abdominis]
-    secondary_muscles: [502_obliquus_externus, 201_latissimus_dorsi, 104_serratus_anterior]
   - id: "604"
     name: "Unterarmstütz"
     primary_muscles: [504_transverse_abdominis, 501_rectus_abdominis]

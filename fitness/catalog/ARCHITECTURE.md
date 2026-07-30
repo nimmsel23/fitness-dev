@@ -40,6 +40,15 @@ catalog (:9150)
 
 ---
 
+## 3-Tier Catalog Architektur (Exercise Hierarchy)
+
+Der Übungskatalog gliedert sich strikt in 3 Stufen (Tiers):
+- **Tier 1 (Expert / Approved):** `<id>.yml` (z. B. `041.yml`, `080.yml`). Manuell auditiert, biomechanisch verifiziert und in Regionen-Indizes (`chest.yml`, `core.yml` etc.) eingetragen. Höchste Auflösungs-Priorität (`rank: 0`, `score_bonus: +10`).
+- **Tier 2 (Inbox / Drafts):** `inbox_*.yml` (z. B. `inbox_ab_wheel.yml`). KI-generierte Entwürfe oder Staging-Bereich für ungesichtete Übungen. Mittlere Priorität (`rank: 1`, `score_bonus: +5`). Werden nach Review via `/inbox/{id}/approve` zu Tier 1 befördert.
+- **Tier 3 (Bulk / Unreviewed):** `unreviewed_wger.yml`, `unreviewed_yuhonas.yml` (1850+ Rohübungen). Niedrigste Priorität (`rank: 2`, `score_bonus: +0`).
+
+---
+
 ## KB-Struktur (`catalog/kb/`)
 
 ```
