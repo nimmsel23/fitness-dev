@@ -294,14 +294,28 @@ def pydev():
             msg.good(f"{PYTHON_SERVICE} back up")
 
 
+CATALOG_UI_DIR = DEV_DIR / "catalog-ui"
+
 @app.command()
 def build(
     firebase: bool = typer.Option(False, "--firebase", help="Build Firebase/cloud variant"),
+    catalog_ui: bool = typer.Option(
+        True, help="catalog-ui (eigenes Vite-Projekt, gebaut nach fitness/catalog/dist/, "
+                    "served vom Python-Backend unter /catalog-ui) mitbauen"
+    ),
 ):
-    """Run Vite production build."""
+    """Run Vite production build. Baut standardmäßig auch catalog-ui mit — sonst bleibt
+    /catalog-ui auf dem letzten manuellen Build-Stand stehen, ohne dass das auffällt."""
     script = "build:firebase" if firebase else "build"
     msg.info(f"Running: npm run {script}")
     subprocess.run(["npm", "run", script], cwd=DEV_DIR)
+
+    if catalog_ui:
+        if not CATALOG_UI_DIR.exists():
+            msg.warn(f"catalog-ui/ nicht gefunden unter {CATALOG_UI_DIR} — übersprungen")
+            return
+        msg.info(f"Running: npm run build (catalog-ui, → fitness/catalog/dist/)")
+        subprocess.run(["npm", "run", "build"], cwd=CATALOG_UI_DIR)
 
 
 @app.command()
