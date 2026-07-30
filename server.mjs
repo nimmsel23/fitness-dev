@@ -286,7 +286,7 @@ app.get("/exercises/search", async (c) => {
   const results = (data.results || []).map(e => {
     const trans = (e.translations || []).find(t => t.language === 2) || (e.translations || [])[0] || {};
     return {
-      id:               e.uuid || String(e.id),
+      id:               `wger_${e.id}`, // Präfix + numerische ID, muss zu importer.py (safe_id = f"wger_{item.id}") passen
       name:             trans.name || "",
       category:         e.category?.name || "",
       primaryMuscles:   (e.muscles           || []).map(m => m.name_en || m.name).filter(Boolean),
@@ -331,7 +331,7 @@ app.get("/exercises/by-group", async (c) => {
   }
   const exercises = (data.results || []).map(e => {
     const trans = (e.translations || []).find(t => t.language === 2) || (e.translations || [])[0] || {};
-    return { id: e.uuid || String(e.id), name_en: trans.name || "", relevance: "primary", source: "wger" };
+    return { id: `wger_${e.id}`, name_en: trans.name || "", relevance: "primary", source: "wger" };
   }).filter(e => e.name_en);
   return c.json({ ok: true, exercises });
 });

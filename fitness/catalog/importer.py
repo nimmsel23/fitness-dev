@@ -158,6 +158,7 @@ def import_external_exercises():
                         "secondary_muscles": secondary,
                         "equipment": [e.get("name").lower() for e in item.get("equipment", [])],
                         "coaching_notes": [clean_desc] if clean_desc else [],
+                        "original_description": clean_desc,
                         "tags": ["unreviewed", "wger"],
                         "wger_id": item.get("id"),
                         "wger_muscle_ids": {
@@ -230,6 +231,7 @@ def import_external_exercises():
                     "secondary_muscles": secondary,
                     "equipment": [item.get("equipment")] if item.get("equipment") else [],
                     "coaching_notes": item.get("instructions", []),
+                    "original_description": item.get("instructions", []),
                     "tags": ["unreviewed", "yuhonas"],
                     "yuhonas_id": item.get("id"),
                     "wger_muscle_ids": {
