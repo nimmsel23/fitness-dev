@@ -68,9 +68,19 @@ export function setKBMuscles(musclesList) {
   }
 }
 
-/** Gibt alle registrierten Regionen (aus quadriceps.yml, hamstrings.yml, chest.yml etc.) zurück. */
+/**
+ * Gibt nur die Regionen zurück, die tatsächlich mindestens einen Muskel
+ * "gewinnen" (siehe muscleToRegion()-Sortierung: kleine, spezifische Buckets
+ * zuerst, große x00-Sammel-Dateien als Fallback zuletzt — first-come-wins in
+ * _muscleToRegionMap). Sonst würden Sammel-Dateien wie back.yml/legs.yml
+ * IMMER als eigene Coverage-Region neben ihren spezifischeren Sub-Buckets
+ * auftauchen, obwohl sie laut HIGHLIGHTERS.md nur Fallback sein sollen.
+ */
 export function getMuscleGroups() {
-  return Array.from(_kbRegions.entries()).map(([id, label]) => ({ id, label }));
+  const winningIds = new Set(_muscleToRegionMap.values());
+  return Array.from(_kbRegions.entries())
+    .filter(([id]) => winningIds.has(id))
+    .map(([id, label]) => ({ id, label }));
 }
 
 /**

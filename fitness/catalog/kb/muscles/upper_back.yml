@@ -2,9 +2,12 @@ id: upper_back
 display_name: Upper Back
 label_de: Oberer Rücken
 label_en: Upper Back
-label_lat: M. trapezius et rhomboidii
+label_lat: Cingulum pectorale
+aliases: [schultergürtel, shoulder girdle, upper traps, oberer trapez]
 muscles:
   - 202_trapezius_upper
   - 203_trapezius_middle
   - 204_trapezius_lower
   - 205_rhomboids
+  - 303_posterior_deltoid
+  - 304_rotator_cuff

@@ -3,5 +3,6 @@ display_name: Rhomboids
 label_de: Rautenmuskeln
 label_en: Rhomboids
 label_lat: Mm. rhomboidei
+aliases: [rhomboid, rhomboids, rautenmuskel, rautenmuskeln]
 muscles:
   - 205_rhomboids

@@ -2,7 +2,8 @@ id: hamstrings
 display_name: Hamstrings
 label_de: Ischiocrurale Muskulatur
 label_en: Hamstrings
-label_lat: Mm. ischiocrurales
+label_lat: Compartimentum femoris posterius
+aliases: [hams, hamstring, hamstrings, ischios, beinbeuger, oberschenkel hinten]
 muscles:
   - 604_biceps_femoris
   - 605_semitendinosus
