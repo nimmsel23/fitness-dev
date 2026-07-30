@@ -109,12 +109,11 @@ def _probe(label: str, unit: str, url: str) -> dict:
 def _render_stack_table(rows: list[dict]) -> None:
     table = Table(title="Fitness Dev Stack")
     table.add_column("Service", no_wrap=True)
-    table.add_column("Unit", no_wrap=True)
-    table.add_column("Active")
-    table.add_column("Boot")
-    table.add_column("PID")
-    table.add_column("Uptime")
-    table.add_column("Health")
+    table.add_column("Active", no_wrap=True)
+    table.add_column("Boot", no_wrap=True)
+    table.add_column("PID", no_wrap=True, justify="right")
+    table.add_column("Uptime", no_wrap=True, justify="right")
+    table.add_column("Health", no_wrap=True)
     for r in rows:
         active_s = "[green]up[/green]" if r["active"] else "[red]down[/red]"
         boot_s = "[green]enabled[/green]" if r["enabled"] else "[yellow]disabled[/yellow]"
@@ -122,10 +121,10 @@ def _render_stack_table(rows: list[dict]) -> None:
             health_s = f"[green]ok[/green] {r['latency']}ms"
         else:
             health_s = "[red]unreachable[/red]"
-        table.add_row(r["label"], r["unit"], active_s, boot_s, str(r["pid"] or "-"), r["uptime"], health_s)
+        table.add_row(r["label"], active_s, boot_s, str(r["pid"] or "-"), r["uptime"], health_s)
     console.print(table)
     for r in rows:
-        console.print(f"  {r['label']}: {r['url']}", style="dim")
+        console.print(f"  {r['label']} ({r['unit']}): {r['url']}", style="dim")
 
 def _stack_rows(node: bool, python: bool) -> list[dict]:
     rows = []
