@@ -423,17 +423,7 @@ function InboxTab({ showToast }) {
               </div>
             </div>
 
-            {selectedItem.coaching_notes && (
-              <div className="border-t border-white/5 pt-4">
-                <h4 className="text-[10px] font-mono uppercase tracking-wider text-muted font-bold mb-1.5">Coaching Notes</h4>
-                <ul className="list-disc pl-4 space-y-1 text-xs text-text/70 font-mono leading-relaxed">
-                  {Array.isArray(selectedItem.coaching_notes) 
-                    ? selectedItem.coaching_notes.map((n, idx) => <li key={idx}>{n}</li>)
-                    : <li>{String(selectedItem.coaching_notes)}</li>
-                  }
-                </ul>
-              </div>
-            )}
+            <DescriptionTabViewer item={selectedItem} />
 
             <div className="border-t border-white/5 pt-4">
               <h4 className="text-[10px] font-mono uppercase tracking-wider text-muted font-bold mb-1">Rohdaten (YAML/JSON)</h4>
@@ -609,11 +599,15 @@ function BrowserTab({ selectedExId, setSelectedExId, showToast }) {
 
               <div className="space-y-3 bg-white/5 p-4 rounded-xl border border-white/10 text-xs">
                 <Field label="ID" value={detail.id || detail.canonical_id} />
+                <Field label="wger ID" value={detail.wger_id ? `#${detail.wger_id}` : null} />
+                <Field label="yuhonas ID" value={detail.yuhonas_id || null} />
                 <Field label="Pattern" value={detail.movement_pattern || '—'} />
                 <Field label="Ausrüstung" value={Array.isArray(detail.equipment) ? detail.equipment.join(', ') : detail.equipment} />
                 <Field label="Primär Muskeln" value={Array.isArray(detail.primaryMuscles || detail.primary_muscles) ? (detail.primaryMuscles || detail.primary_muscles).join(', ') : ''} />
                 <Field label="Sekundär Muskeln" value={Array.isArray(detail.secondaryMuscles || detail.secondary_muscles) ? (detail.secondaryMuscles || detail.secondary_muscles).join(', ') : ''} />
               </div>
+
+              <DescriptionTabViewer item={detail} />
 
               {/* Action Buttons for Export */}
               <div className="grid grid-cols-2 gap-2 border-t border-white/5 pt-4">
@@ -1145,6 +1139,108 @@ function CoverageTab() {
           )
         )}
       </div>
+    </div>
+  );
+}
+
+function DescriptionTabViewer({ item }) {
+  const [activeTab, setActiveTab] = useState('ai');
+  if (!item) return null;
+
+  const origDesc = item.original_description || item.instructions;
+  const hasOriginal = Boolean(origDesc || item.wger_id || item.yuhonas_id);
+
+  return (
+    <div className="border-t border-white/5 pt-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
+          <button
+            type="button"
+            onClick={() => setActiveTab('ai')}
+            className={`px-3 py-1 rounded-lg text-[11px] font-mono font-bold transition-all ${
+              activeTab === 'ai'
+                ? 'bg-primary/20 text-primary border border-primary/30 shadow'
+                : 'text-muted hover:text-text'
+            }`}
+          >
+            KI / Expert Notes
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('original')}
+            className={`px-3 py-1 rounded-lg text-[11px] font-mono font-bold transition-all flex items-center gap-1.5 ${
+              activeTab === 'original'
+                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow'
+                : 'text-muted hover:text-text'
+            }`}
+          >
+            Original (wger / yuhonas)
+            {hasOriginal && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />}
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'ai' ? (
+        <div className="space-y-3 font-mono text-xs text-text/80 leading-relaxed">
+          {item.coaching_notes ? (
+            <div>
+              <h5 className="text-[10px] font-mono uppercase tracking-wider text-muted font-bold mb-1">Coaching Cues</h5>
+              <ul className="list-disc pl-4 space-y-1">
+                {Array.isArray(item.coaching_notes)
+                  ? item.coaching_notes.map((n, idx) => <li key={idx}>{n}</li>)
+                  : <li>{String(item.coaching_notes)}</li>
+                }
+              </ul>
+            </div>
+          ) : (
+            <p className="text-muted text-xs font-mono">Keine KI/Expert Coaching Notes vorhanden.</p>
+          )}
+
+          {item.common_errors && item.common_errors.length > 0 && (
+            <div className="pt-2 border-t border-white/5">
+              <h5 className="text-[10px] font-mono uppercase tracking-wider text-rose-400/80 font-bold mb-1">Typische Fehler</h5>
+              <ul className="list-disc pl-4 space-y-1 text-rose-300/80">
+                {Array.isArray(item.common_errors)
+                  ? item.common_errors.map((e, idx) => <li key={idx}>{e}</li>)
+                  : <li>{String(item.common_errors)}</li>
+                }
+              </ul>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-3 font-mono text-xs text-text/80 leading-relaxed bg-black/30 p-3.5 rounded-xl border border-white/10">
+          <div className="flex flex-wrap gap-2 mb-2">
+            {item.wger_id && (
+              <span className="px-2 py-0.5 rounded bg-blue-500/20 border border-blue-500/30 text-blue-400 text-[10px] font-mono font-bold">
+                wger ID: #{item.wger_id}
+              </span>
+            )}
+            {item.yuhonas_id && (
+              <span className="px-2 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-bold">
+                yuhonas ID: {item.yuhonas_id}
+              </span>
+            )}
+          </div>
+
+          {origDesc ? (
+            <div>
+              <h5 className="text-[10px] font-mono uppercase tracking-wider text-amber-400/80 font-bold mb-1.5">Original Beschreibung / Instructions</h5>
+              {Array.isArray(origDesc) ? (
+                <ol className="list-decimal pl-4 space-y-1.5 text-text/90">
+                  {origDesc.map((step, idx) => (
+                    <li key={idx}>{step}</li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="whitespace-pre-wrap text-text/90">{String(origDesc)}</p>
+              )}
+            </div>
+          ) : (
+            <p className="text-muted text-xs font-mono">Keine original Beschreibung für dieses Format gespeichert.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

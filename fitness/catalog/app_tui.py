@@ -761,6 +761,7 @@ def summarize_exercise_record(record: Any) -> list[str]:
         f"Variations: {format_list(getattr(record, 'variations', []) or [])}",
         f"Coaching notes (KI/Expert): {format_list(getattr(record, 'coaching_notes', []) or [])}",
         f"Original Description (wger/yuhonas): {orig_desc_str}",
+        f"Geloggt von (UID): {getattr(record, 'logged_by_uid', None) or '—'}",
         f"Common errors: {format_list(getattr(record, 'common_errors', []) or [])}",
         f"Tags: {format_list(getattr(record, 'tags', []) or [])}",
     ]

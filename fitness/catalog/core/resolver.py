@@ -67,6 +67,7 @@ class ExerciseRecord:
     anatomy: dict[str, Any] | None = None
     yuhonas_id: str | None = None
     original_description: str | list[str] | None = None
+    logged_by_uid: str | None = None
 
 
 @dataclass
@@ -181,7 +182,7 @@ def build_exercise_index() -> list[ExerciseRecord]:
             else:
                 if entry_name: rec.display_name = entry_name
                 # Basis-Felder
-                for f in ["category", "german", "english", "movement_pattern", "wger_id", "gif_url", "image_url", "external_ids", "yuhonas_id", "original_description"]:
+                for f in ["category", "german", "english", "movement_pattern", "wger_id", "gif_url", "image_url", "external_ids", "yuhonas_id", "original_description", "logged_by_uid"]:
                     val = entry.get(f) if isinstance(entry, dict) else None
                     if val: setattr(rec, f, val)
                 

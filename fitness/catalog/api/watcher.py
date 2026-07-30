@@ -106,8 +106,10 @@ def process_inbox_file(file_path: Path, api_key: str | None):
         enriched_data = call_gemini(name, safe_name, api_key)
 
         if enriched_data:
-            save_inbox_draft(target_file, enriched_data, f"AI generated base entry for {name}")
             uid, doc_id = _firestore_inbox_ref(file_path)
+            if uid:
+                enriched_data["logged_by_uid"] = uid
+            save_inbox_draft(target_file, enriched_data, f"AI generated base entry for {name}")
             _write_back_to_firestore_inbox(uid, doc_id, enriched_data)
             file_path.unlink()
     except Exception as e:
