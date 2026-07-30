@@ -55,15 +55,41 @@ def classify(session: dict) -> str:
     """
     mode = session.get("sessionMode")
     act  = session.get("activity")
+    acts = session_activities(session)
     exs  = performed_exercises(session)
 
-    if act and exs:
+    if (act or acts) and exs:
         return "strength+addon"
     if exs:
         return "strength"
-    if mode == "cardio" or act:
+    if mode == "cardio" or act or acts:
         return "cardio"
     return "strength"
+
+
+def session_activities(session: dict) -> list[dict]:
+    """Return activity add-ons for a displayed training day/session."""
+    entries = session.get("_activity_addons") or session.get("activityAddons")
+    if isinstance(entries, list):
+        return [a for a in entries if isinstance(a, dict)]
+    act = session.get("activity")
+    return [act] if isinstance(act, dict) and act else []
+
+
+def activity_minutes(session: dict) -> int:
+    """Sum activity duration minutes for cardio/add-on display."""
+    total = 0
+    for act in session_activities(session):
+        try:
+            total += int(act.get("duration") or 0)
+        except (TypeError, ValueError):
+            pass
+    return total
+
+
+def _same_activity(left: dict, right: dict) -> bool:
+    keys = ("type", "duration", "notes", "swimStyle", "muscleTarget")
+    return tuple(str(left.get(k, "")) for k in keys) == tuple(str(right.get(k, "")) for k in keys)
 
 
 # ── Session-Loading ───────────────────────────────────────────────────────────
@@ -95,6 +121,64 @@ def load_sessions(days: int = 60, uid: str | None = None) -> list[dict]:
     return out
 
 
+def rollup_training_days(sessions: list[dict]) -> list[dict]:
+    """
+    Fasst mehrere Session-JSONs desselben Datums zu einem Trainingstag zusammen.
+
+    Pro Tag gibt es genau eine Hauptsession:
+      - Kraft gewinnt gegen reine Cardio-/Activity-Sessions.
+      - Bei mehreren Kraftdateien gewinnt die mit den meisten echten Exercises.
+      - Cardio-only-Tage bleiben eine Hauptzeile mit mehreren Activity-Add-ons.
+
+    Die Rohsessions bleiben in _day_sessions erhalten; Anzeige/Stats verwenden
+    die gerollte Session.
+    """
+    by_date: dict[str, list[dict]] = {}
+    for session in sessions:
+        d = session.get("date")
+        if d:
+            by_date.setdefault(d, []).append(session)
+
+    rolled: list[dict] = []
+    for d, day_sessions in by_date.items():
+        ordered = sorted(day_sessions, key=lambda s: s.get("_stem", s.get("date", "")))
+
+        def rank(session: dict) -> tuple[int, int, int, str]:
+            is_strength = 1 if classify(session) != "cardio" else 0
+            stem = session.get("_stem", "")
+            canonical = 1 if stem == d else 0
+            return (is_strength, len(performed_exercises(session)), canonical, stem)
+
+        main = max(ordered, key=rank)
+        out = dict(main)
+        out["_day_sessions"] = ordered
+        out["_session_count"] = len(ordered)
+        out["_is_training_day"] = True
+
+        activities: list[dict] = []
+        for session in ordered:
+            for act in session_activities(session):
+                item = dict(act)
+                item.setdefault("_source_stem", session.get("_stem", ""))
+                if not any(_same_activity(existing, item) for existing in activities):
+                    activities.append(item)
+        if activities:
+            out["_activity_addons"] = activities
+            out["activityAddons"] = activities
+            if not isinstance(out.get("activity"), dict) or not out.get("activity"):
+                out["activity"] = activities[0]
+
+        rolled.append(out)
+
+    rolled.sort(key=lambda s: (s["date"], s.get("_stem", "")), reverse=True)
+    return rolled
+
+
+def load_training_days(days: int = 60, uid: str | None = None) -> list[dict]:
+    """Lädt Sessions als Trainingstage: ein Datum ergibt genau eine Hauptzeile."""
+    return rollup_training_days(load_sessions(days, uid=uid))
+
+
 def load_sessions_for_date(target_date: str, uid: str | None = None) -> list[dict]:
     """Lädt alle Sessions für ein bestimmtes Datum (Multi-Session-Support)."""
     sdir = sessions_dir(uid)
@@ -108,6 +192,11 @@ def load_sessions_for_date(target_date: str, uid: str | None = None) -> list[dic
         except Exception:
             pass
     return results
+
+
+def load_training_day_for_date(target_date: str, uid: str | None = None) -> list[dict]:
+    """Lädt die Tagesansicht für ein Datum als eine Hauptsession mit Add-ons."""
+    return rollup_training_days(load_sessions_for_date(target_date, uid=uid))
 
 
 # ── SQLite ────────────────────────────────────────────────────────────────────
@@ -229,6 +318,7 @@ def load_all_clients(days: int = 10) -> list[dict]:
                     pass
 
         all_dates.sort(reverse=True)
+        sessions = rollup_training_days(sessions)
         sessions.sort(key=lambda s: (s["date"], s.get("_stem", "")), reverse=True)
 
         clients.append({
@@ -239,7 +329,7 @@ def load_all_clients(days: int = 10) -> list[dict]:
             "crm_id":      meta.get("crm_id"),
             "sessions":    sessions,
             "last_date":   all_dates[0] if all_dates else "—",
-            "total_count": len(all_dates),
+            "total_count": len(set(all_dates)),
             "has_data":    sdir.exists(),
         })
 

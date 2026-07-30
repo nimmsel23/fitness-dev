@@ -36,10 +36,12 @@ from ..constants import (
     block_rich_style, block_ansi_color,
 )
 from ..data import (
+    activity_minutes,
     classify,
     load_all_clients,
-    load_sessions,
+    load_training_days,
     performed_exercises,
+    session_activities,
     sync_info,
 )
 
@@ -69,7 +71,8 @@ class DetailModal(ModalScreen):
     def compose(self) -> ComposeResult:
         s     = self.session
         kind  = classify(s)
-        act   = s.get("activity") or {}
+        acts  = session_activities(s)
+        act   = acts[0] if acts else (s.get("activity") or {})
         exs   = performed_exercises(s)
         block = s.get("block", "")
         eff   = s.get("effort")
@@ -85,13 +88,14 @@ class DetailModal(ModalScreen):
         lines: list[tuple[str, str]] = []
 
         if kind == "cardio":
-            atype = act.get("type", "?")
-            emoji = ACTIVITY_EMOJI.get(atype, "🏃")
-            label = ACTIVITY_LABEL.get(atype, atype)
-            adur  = act.get("duration", "")
-            lines.append(("dt", f"{emoji}  {label}  —  {dt_s}"))
+            label = " + ".join(
+                f"{ACTIVITY_EMOJI.get(a.get('type', '?'), '🏃')} {ACTIVITY_LABEL.get(a.get('type', '?'), a.get('type', '?'))}"
+                for a in acts or [act]
+            )
+            adur = activity_minutes(s)
+            lines.append(("dt", f"{label}  —  {dt_s}"))
             if adur:
-                lines.append(("dm", f"⏱  {adur} Minuten"))
+                lines.append(("dm", f"⏱  {adur} Minuten gesamt"))
         else:
             style = block_rich_style(block)
             lines.append(("dt", f"💪  {block or '?'}  —  {dt_s}"))
@@ -101,13 +105,14 @@ class DetailModal(ModalScreen):
             if loc:  meta.append(f"📍 {loc}")
             if meta: lines.append(("dm", "  ·  ".join(meta)))
             if kind == "strength+addon":
-                atype = act.get("type", "?")
-                adur  = act.get("duration", "")
-                emoji = ACTIVITY_EMOJI.get(atype, "⚡")
-                label = ACTIVITY_LABEL.get(atype, atype)
-                lines.append(("df",
-                    f"⚡ Finisher: {emoji} {label}"
-                    + (f" · {adur}min" if adur else "")))
+                for entry in acts:
+                    atype = entry.get("type", "?")
+                    adur  = entry.get("duration", "")
+                    emoji = ACTIVITY_EMOJI.get(atype, "⚡")
+                    label = ACTIVITY_LABEL.get(atype, atype)
+                    lines.append(("df",
+                        f"⚡ Add-on: {emoji} {label}"
+                        + (f" · {adur}min" if adur else "")))
             if exs:
                 lines.append(("dm", f"\n{'─'*42}\n{len(exs)} Exercises:\n"))
                 for ex in exs:
@@ -213,7 +218,8 @@ class SessionTable(Static):
     def _add_row(table: DataTable, s: dict) -> None:
         d     = s.get("date", "?")
         kind  = classify(s)
-        act   = s.get("activity") or {}
+        acts  = session_activities(s)
+        act   = acts[0] if acts else (s.get("activity") or {})
         exs   = performed_exercises(s)
         block = s.get("block", "")
         eff   = s.get("effort")
@@ -228,12 +234,13 @@ class SessionTable(Static):
         )
 
         if kind == "cardio":
-            atype = act.get("type", "?")
-            adur  = act.get("duration", "")
-            emoji = ACTIVITY_EMOJI.get(atype, "🏃")
-            label = ACTIVITY_LABEL.get(atype, atype)
+            adur  = activity_minutes(s)
+            label = " + ".join(
+                f"{ACTIVITY_EMOJI.get(a.get('type', '?'), '🏃')} {ACTIVITY_LABEL.get(a.get('type', '?'), a.get('type', '?'))}"
+                for a in acts or [act]
+            )
             table.add_row(
-                date_s, emoji,
+                date_s, "🏃",
                 f"[dark_orange]{label}[/]",
                 f"[dim]{adur}min[/]" if adur else "—",
                 "—",
@@ -245,10 +252,9 @@ class SessionTable(Static):
             ellipsis = "…" if len(exs) > 3 else ""
             addon = ""
             if kind == "strength+addon":
-                atype = act.get("type", "?")
-                adur  = act.get("duration", "")
-                emoji = ACTIVITY_EMOJI.get(atype, "⚡")
-                addon = f"  [dark_orange]{emoji}{'+' + str(adur) + 'min' if adur else ''}[/]"
+                adur = activity_minutes(s)
+                icons = "".join(ACTIVITY_EMOJI.get(a.get("type", "?"), "⚡") for a in acts)
+                addon = f"  [dark_orange]{icons or '⚡'}{'+' + str(adur) + 'min' if adur else ''}[/]"
             table.add_row(
                 date_s, "💪",
                 f"[{style}]{block or '?'}[/]",
@@ -304,15 +310,17 @@ class WeekView(Static):
             parts = []
             for s in day_s:
                 kind = classify(s)
-                act  = s.get("activity") or {}
+                acts = session_activities(s)
+                act  = acts[0] if acts else (s.get("activity") or {})
                 exs  = performed_exercises(s)
                 if kind == "cardio":
-                    atype = act.get("type", "?")
-                    adur  = act.get("duration", "")
-                    emoji = ACTIVITY_EMOJI.get(atype, "🏃")
-                    label = ACTIVITY_LABEL.get(atype, atype)
+                    adur  = activity_minutes(s)
+                    label = " + ".join(
+                        f"{ACTIVITY_EMOJI.get(a.get('type', '?'), '🏃')} {ACTIVITY_LABEL.get(a.get('type', '?'), a.get('type', '?'))}"
+                        for a in acts or [act]
+                    )
                     parts.append(
-                        f"{emoji} [dark_orange]{label}[/]"
+                        f"[dark_orange]{label}[/]"
                         + (f" [dim]{adur}min[/]" if adur else "")
                     )
                 else:
@@ -321,10 +329,9 @@ class WeekView(Static):
                     names = ", ".join(e.get("name", "?") for e in exs[:3])
                     addon = ""
                     if kind == "strength+addon":
-                        atype = act.get("type", "?")
-                        adur = act.get("duration", "")
-                        emoji = ACTIVITY_EMOJI.get(atype, "⚡")
-                        addon = f"  [dark_orange]{emoji}{'+' + str(adur) + 'min' if adur else ''}[/]"
+                        adur = activity_minutes(s)
+                        icons = "".join(ACTIVITY_EMOJI.get(a.get("type", "?"), "⚡") for a in acts)
+                        addon = f"  [dark_orange]{icons or '⚡'}{'+' + str(adur) + 'min' if adur else ''}[/]"
                     parts.append(f"[{style}]● {block}[/]  [dim]{names}[/]{addon}")
             lines.append(f"  {prefix}  " + "  [dim]│[/]  ".join(parts))
         return "\n".join(lines)
@@ -348,10 +355,7 @@ class StatsView(Static):
         )
         cardio_min = 0
         for s in cardio:
-            try:
-                cardio_min += int((s.get("activity") or {}).get("duration") or 0)
-            except (ValueError, TypeError):
-                pass
+            cardio_min += activity_minutes(s)
 
         block_dist: dict[str, int] = {}
         muscle_freq: dict[str, int] = {}
@@ -371,8 +375,9 @@ class StatsView(Static):
 
         cardio_dist: dict[str, int] = {}
         for s in cardio:
-            atype = (s.get("activity") or {}).get("type", "?")
-            cardio_dist[atype] = cardio_dist.get(atype, 0) + 1
+            for act in session_activities(s):
+                atype = act.get("type", "?")
+                cardio_dist[atype] = cardio_dist.get(atype, 0) + 1
 
         out = ["[bold]Sessions[/bold]"]
         out.append(
@@ -380,7 +385,7 @@ class StatsView(Static):
             f"  ·  [dim]{total_ex} Übungen gesamt[/]"
         )
         out.append(
-            f"  Ausdauer: [dark_orange]{len(cardio)}x[/]"
+            f"  Cardio-Tage: [dark_orange]{len(cardio)}x[/]"
             + (f"  ·  [dim]{cardio_min} min[/]" if cardio_min else "")
         )
 
@@ -543,18 +548,20 @@ class ClientsView(Static):
             for d in day_cols:
                 for s in sess_map.get(d, []):
                     kind  = classify(s)
-                    act   = s.get("activity") or {}
+                    acts  = session_activities(s)
+                    act   = acts[0] if acts else (s.get("activity") or {})
                     exs   = performed_exercises(s)
                     block = s.get("block", "")
                     eff   = s.get("effort")
                     dl    = datetime.strptime(d, "%Y-%m-%d").strftime("%d.%m")
                     if kind == "cardio":
-                        atype = act.get("type", "?")
-                        adur  = act.get("duration", "")
-                        emoji = ACTIVITY_EMOJI.get(atype, "🏃")
-                        label = ACTIVITY_LABEL.get(atype, atype)
+                        adur  = activity_minutes(s)
+                        label = " + ".join(
+                            f"{ACTIVITY_EMOJI.get(a.get('type', '?'), '🏃')} {ACTIVITY_LABEL.get(a.get('type', '?'), a.get('type', '?'))}"
+                            for a in acts or [act]
+                        )
                         lines.append(
-                            f"    [dim]{dl}[/]  {emoji} [dark_orange]{label}[/]"
+                            f"    [dim]{dl}[/]  [dark_orange]{label}[/]"
                             + (f" [dim]{adur}min[/]" if adur else "")
                         )
                     else:
@@ -562,10 +569,9 @@ class ClientsView(Static):
                         names = ", ".join(e.get("name", "?") for e in exs[:3])
                         addon = ""
                         if kind == "strength+addon":
-                            atype = act.get("type", "?")
-                            adur = act.get("duration", "")
-                            emoji = ACTIVITY_EMOJI.get(atype, "⚡")
-                            addon = f"  [dark_orange]{emoji}{'+' + str(adur) + 'min' if adur else ''}[/]"
+                            adur = activity_minutes(s)
+                            icons = "".join(ACTIVITY_EMOJI.get(a.get("type", "?"), "⚡") for a in acts)
+                            addon = f"  [dark_orange]{icons or '⚡'}{'+' + str(adur) + 'min' if adur else ''}[/]"
                         eff_s = f" [dim]RPE {eff}[/]" if eff else ""
                         lines.append(
                             f"    [dim]{dl}[/]  [{style}]{block or '?'}[/]"
@@ -599,7 +605,7 @@ class FitnessTUI(App):
         from ..paths import ACTIVE_UID
         self.current_uid = ACTIVE_UID
         # Daten synchron laden — schnelle File-I/O, blockiert nicht spürbar
-        self._sessions = load_sessions(60, uid=self.current_uid)
+        self._sessions = load_training_days(60, uid=self.current_uid)
         self._info     = sync_info(uid=self.current_uid)
         self._clients  = load_all_clients(10)
 
@@ -624,7 +630,7 @@ class FitnessTUI(App):
 
     @work(thread=True)
     def action_reload(self) -> None:
-        sessions = load_sessions(60, uid=self.current_uid)
+        sessions = load_training_days(60, uid=self.current_uid)
         info     = sync_info(uid=self.current_uid)
         clients  = load_all_clients(10)
         self.call_from_thread(self._apply, sessions, info, clients)

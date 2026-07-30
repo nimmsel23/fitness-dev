@@ -397,6 +397,52 @@ def coach_sheet(
         raise typer.Exit(code=1)
 
 
+@app.command(name="add-exercise")
+def add_exercise(
+    name: Annotated[str, typer.Argument(help="Exercise Name (z.B. 'Kabel-Crossover' oder ID)")],
+    force: Annotated[bool, typer.Option(help="Overwrite existing inbox draft")] = False,
+):
+    """Fügt ein neues Exercise über die Gemini AI-Pipeline hinzu (bewahrt Original-Beschreibungen)"""
+    from fitness.catalog.agent.gemini import load_gemini_key
+    from fitness.catalog.api.watcher import process_inbox_file_virtual
+
+    api_key = load_gemini_key()
+    if not api_key:
+        console.print("[fail]FAIL:[/fail] GEMINI_API_KEY nicht gefunden in Environment oder ~/.env/fitness.env")
+        raise typer.Exit(code=1)
+
+    safe_id = name.lower().replace(" ", "_")
+    console.print(f"[info]Gemini-Pipeline:[/info] Erstelle/enricher Katalog-Datei für '{name}'...")
+    process_inbox_file_virtual(safe_id, name, api_key, force=force)
+    console.print(f"[ok]OK:[/ok] Inbox-Draft für '{name}' erfolgreich erstellt (Original & KI-Notes verknüpft).")
+
+
+@app.command(name="enrich")
+def enrich_exercise(
+    exercise_id: Annotated[str, typer.Argument(help="Exercise ID (z.B. '022' oder 'wger_31')")],
+    force: Annotated[bool, typer.Option(help="Force re-enrichment")] = True,
+):
+    """Enriched eine bestehende Übung mit der Gemini AI Pipeline"""
+    from fitness.catalog.agent.gemini import load_gemini_key
+    from fitness.catalog.api.watcher import process_inbox_file_virtual
+    from fitness.catalog.core.resolver import find_by_id, build_exercise_index
+
+    api_key = load_gemini_key()
+    if not api_key:
+        console.print("[fail]FAIL:[/fail] GEMINI_API_KEY nicht gefunden")
+        raise typer.Exit(code=1)
+
+    records = build_exercise_index()
+    record = find_by_id(exercise_id, records)
+    if not record:
+        console.print(f"[fail]FAIL:[/fail] Exercise '{exercise_id}' nicht im Index gefunden.")
+        raise typer.Exit(code=1)
+
+    console.print(f"[info]Gemini-Pipeline:[/info] Re-Enriching '{record.display_name}' ({exercise_id})...")
+    process_inbox_file_virtual(exercise_id, record.display_name, api_key, force=force)
+    console.print(f"[ok]OK:[/ok] Draft für '{record.display_name}' in fitness/catalog/kb/inbox/ generiert.")
+
+
 @app.command()
 def tui(
     screen: Annotated[str, typer.Option(help="Initial screen")] = "dashboard",

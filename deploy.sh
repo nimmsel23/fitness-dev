@@ -47,6 +47,10 @@ SCRIPT_DIR="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
 DEV_SOURCE="${HOME}/fitness-dev"
 STAGING_SOURCE="${HOME}/fitness"
 
+msg() { printf '\033[1;32m%s\033[0m\n' "$*"; }
+warn() { printf '\033[1;33m%s\033[0m\n' "$*" >&2; }
+die() { printf '\033[1;31m%s\033[0m\n' "$*" >&2; exit 1; }
+
 if [[ "$TARGET" == "staging" ]]; then
   SOURCE="$SCRIPT_DIR"
   if [[ "$SCRIPT_DIR" != "$DEV_SOURCE" && -f "$DEV_SOURCE/package.json" ]]; then
@@ -59,9 +63,7 @@ elif [[ "$TARGET" == "prod" ]]; then
   fi
 fi
 
-msg() { printf '\033[1;32m%s\033[0m\n' "$*"; }
-warn() { printf '\033[1;33m%s\033[0m\n' "$*" >&2; }
-die() { printf '\033[1;31m%s\033[0m\n' "$*" >&2; exit 1; }
+[[ -f "$SOURCE/package.json" ]] || die "Deployment source '$SOURCE' is not a fitness checkout"
 
 run_cmd() {
   if $USE_SUDO; then

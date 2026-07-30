@@ -740,8 +740,16 @@ def summarize_weekly_coverage(weekly_result: Any, *, include_details: bool = Fal
 def summarize_exercise_record(record: Any) -> list[str]:
     if record is None:
         return ["No exercise found."]
+    orig_desc = getattr(record, 'original_description', None) or getattr(record, 'instructions', None)
+    if isinstance(orig_desc, list):
+        orig_desc_str = " | ".join(orig_desc)
+    else:
+        orig_desc_str = str(orig_desc) if orig_desc else "—"
+
     return [
         f"Canonical ID: {record.exercise_id}",
+        f"wger ID: {getattr(record, 'wger_id', None) or '—'}",
+        f"yuhonas ID: {getattr(record, 'yuhonas_id', None) or '—'}",
         f"German: {getattr(record, 'german', '')}",
         f"Display name: {record.display_name}",
         f"Category: {record.source_file.removesuffix('.yml')}",
@@ -751,7 +759,9 @@ def summarize_exercise_record(record: Any) -> list[str]:
         f"Secondary muscles: {format_list(getattr(record, 'secondary_muscles', []) or [])}",
         f"Stabilizers: {format_list(getattr(record, 'stabilizers', []) or [])}",
         f"Variations: {format_list(getattr(record, 'variations', []) or [])}",
-        f"Coaching notes: {format_list(getattr(record, 'coaching_notes', []) or [])}",
+        f"Coaching notes (KI/Expert): {format_list(getattr(record, 'coaching_notes', []) or [])}",
+        f"Original Description (wger/yuhonas): {orig_desc_str}",
+        f"Geloggt von (UID): {getattr(record, 'logged_by_uid', None) or '—'}",
         f"Common errors: {format_list(getattr(record, 'common_errors', []) or [])}",
         f"Tags: {format_list(getattr(record, 'tags', []) or [])}",
     ]

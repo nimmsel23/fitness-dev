@@ -54,7 +54,7 @@ def _write_json(path: Path, data: Any) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2))
 
 def _strip_meta(obj: dict) -> dict:
-    return {k: v for k, v in obj.items() if k not in ("updated_at", "_firestore_updated")}
+    return {k: v for k, v in obj.items() if k not in ("updated_at", "_firestore_updated", "_local_mtime", "_content_hash", "saved_at")}
 
 def _merge_by_id(a: list[dict], b: list[dict]) -> list[dict]:
     by_id: dict[str, dict] = {}
@@ -163,8 +163,21 @@ def _mtime_ms(p: Path) -> int:
 def _content_hash(obj: Any) -> str:
     import hashlib
     return hashlib.sha1(
-        json.dumps(obj, sort_keys=True, ensure_ascii=False).encode()
+        json.dumps(_strip_meta(obj) if isinstance(obj, dict) else obj, sort_keys=True, ensure_ascii=False).encode()
     ).hexdigest()[:12]
+
+def _hash_matches(stored: Any, computed: str) -> bool:
+    if not stored:
+        return False
+    stored_s = str(stored)
+    return stored_s == computed or stored_s.startswith(computed) or computed.startswith(stored_s)
+
+def _is_same_content(remote: dict, local: dict) -> bool:
+    remote_hash = remote.get("_content_hash")
+    local_hash = _content_hash(local)
+    if _hash_matches(remote_hash, local_hash):
+        return True
+    return _content_hash(remote) == local_hash
 
 
 def push_fuel(uid: str = UID) -> dict:
@@ -209,26 +222,32 @@ def push_fuel(uid: str = UID) -> dict:
             if np.exists():
                 mtime = _mtime_ms(np)
                 ref = db.collection("nutrition").document(uid).collection("logs").document(d)
-                if remote_meta(ref).get("_local_mtime", 0) >= mtime:
+                remote = remote_meta(ref)
+                data = _read_json(np, None)
+                if data and _is_same_content(remote, data):
                     results["skipped"] += 1
-                else:
-                    data = _read_json(np, None)
-                    if data:
-                        queue_set(ref, {**data, "date": d, "_local_mtime": mtime,
-                                        "saved_at": datetime.utcnow().isoformat()})
+                elif data and remote.get("_local_mtime", 0) >= mtime:
+                    results["skipped"] += 1
+                elif data:
+                    queue_set(ref, {**data, "date": d, "_local_mtime": mtime,
+                                    "_content_hash": _content_hash(data),
+                                    "saved_at": datetime.utcnow().isoformat()})
 
             # Supplements
             sp = _supplements_path(d, data_dir)
             if sp.exists():
                 mtime = _mtime_ms(sp)
                 ref = db.collection("supplements").document(uid).collection("logs").document(d)
-                if remote_meta(ref).get("_local_mtime", 0) >= mtime:
+                remote = remote_meta(ref)
+                data = _read_json(sp, None)
+                if data and _is_same_content(remote, data):
                     results["skipped"] += 1
-                else:
-                    data = _read_json(sp, None)
-                    if data:
-                        queue_set(ref, {**data, "date": d, "_local_mtime": mtime,
-                                        "saved_at": datetime.utcnow().isoformat()})
+                elif data and remote.get("_local_mtime", 0) >= mtime:
+                    results["skipped"] += 1
+                elif data:
+                    queue_set(ref, {**data, "date": d, "_local_mtime": mtime,
+                                    "_content_hash": _content_hash(data),
+                                    "saved_at": datetime.utcnow().isoformat()})
 
         # Supplements Catalog (Hash-Idempotenz, kein read+merge+write mehr)
         cat_path = _supplements_catalog_path(data_dir)
@@ -238,7 +257,7 @@ def push_fuel(uid: str = UID) -> dict:
             if items:
                 ref = db.collection("supplements").document(uid).collection("meta").document("catalog")
                 new_hash = _content_hash(items)
-                if remote_meta(ref).get("_content_hash") == new_hash:
+                if _hash_matches(remote_meta(ref).get("_content_hash"), new_hash):
                     results["skipped"] += 1
                 else:
                     queue_set(ref, {"items": items, "_content_hash": new_hash,

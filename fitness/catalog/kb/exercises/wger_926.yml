@@ -1,0 +1,72 @@
+exercise_id: wger_926
+description: Expert details for Butterfly an der Maschine
+approved_at: '2026-07-28T06:03:36.274707+00:00'
+exercises:
+- exercise_id: wger_926
+  display_name: Butterfly an der Maschine
+  german: Butterfly an der Maschine
+  english: Machine Chest Fly
+  category: push
+  primary_muscles:
+  - 101_pectoralis_major
+  secondary_muscles:
+  - 301_anterior_deltoid
+  stabilizers:
+  - abs
+  - shoulders
+  equipment:
+  - Machine
+  movements:
+  - shoulder_adduction
+  - horizontal_adduction
+  - scapular_protraction
+  - scapular_retraction
+  - joint_isolation
+  coaching_notes:
+  - Stellen Sie die Maschine so ein, dass Ihre Schultern auf Höhe der Drehachse liegen
+    und Ihre Füße flach auf dem Boden stehen.
+  - Halten Sie Ihren Rücken während der gesamten Übung fest an der Rückenlehne.
+  - Fassen Sie die Griffe mit einem leichten Griff, die Ellenbogen sind leicht gebeugt
+    und bleiben in dieser Position fixiert.
+  - Atmen Sie aus und führen Sie die Griffe kontrolliert vor Ihrer Brust zusammen,
+    während Sie Ihre Brustmuskulatur bewusst anspannen.
+  - Halten Sie die Kontraktion einen Moment und führen Sie die Griffe dann langsam
+    und kontrolliert zurück in die Ausgangsposition, um eine gute Dehnung in der Brust
+    zu spüren.
+  - Vermeiden Sie es, die Griffe am Ende der Bewegung zu überkreuzen, um die Spannung
+    in den Brustmuskeln zu halten.
+  - Führen Sie die Bewegung flüssig und ohne Schwung aus, um die Zielmuskulatur optimal
+    zu isolieren.
+  common_errors:
+  - '**Zu hohes Gewicht:** Führt oft dazu, dass andere Muskeln (z.B. Schultern oder
+    Arme) die Arbeit übernehmen oder der Rücken von der Lehne abhebt.'
+  - '**Ellenbogen durchgedrückt:** Dies belastet die Ellenbogengelenke unnötig und
+    kann zu Verletzungen führen; die Ellenbogen sollten immer leicht gebeugt bleiben.'
+  - '**Schultern hochgezogen (Shrugging):** Aktiviert den oberen Trapezius anstatt
+    der Brust und kann zu Nacken- oder Schulterschmerzen führen.'
+  - '**Kurzer Bewegungsumfang:** Wenn die Bewegung zu früh gestoppt wird, wird die
+    Brustmuskulatur nicht vollständig gedehnt und kontrahiert.'
+  - '**Ruckartige Bewegungen:** Verringert die effektive Muskelspannung und erhöht
+    das Verletzungsrisiko, insbesondere an den Schultern.'
+  - '**Hüfte von der Bank abgehoben:** Ein Verlust der stabilen Position, der die
+    Effektivität der Übung reduziert und den unteren Rücken unnötig belastet.'
+  tags:
+  - unreviewed
+  - wger
+  - expert_tier_enrichment
+  wger_id: 926
+  wger_muscle_ids:
+    primary:
+    - 4
+    secondary: []
+  source: expert
+  variations: []
+  enriched_at: '2026-07-28T06:01:48.874486+00:00'
+  approved_at: '2026-07-28T06:03:36.274707+00:00'
+  external_ids:
+    wger:
+    - 926
+  search_aliases:
+  - wger_926
+  - Butterfly an der Maschine
+  - Machine Chest Fly

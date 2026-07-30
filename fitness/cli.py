@@ -104,7 +104,7 @@ def unit_active(unit: str) -> str:
 
 # ── Health ─────────────────────────────────────────────────────────────────────
 SERVICES = [
-    (DEV_PORT, "fitness-dev (Node)", "aos-fitness-dev.service"),
+    (DEV_PORT, "fitness-dev (Node)", "fitness-dev.service"),
     (KB_PORT,  "anatomy-kb (aiohttp)", None),
 ]
 
@@ -131,7 +131,7 @@ def cmd_health() -> None:
 
 def cmd_status() -> None:
     units = [
-        ("aos-fitness-dev.service",          "DEV Node :9100"),
+        ("fitness-dev.service",          "DEV Node :9100"),
         ("fitness-firestore-mirror.service", "Firestore Mirror"),
         ("fitness-mail.timer",               "Fitbit Mail Timer"),
     ]

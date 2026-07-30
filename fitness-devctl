@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 fitness-devctl — Fitness Centre Stack Control
-Controls: Node API (:9100, aos-fitness-dev.service) + Python Backend (:9150, fitness-python-backend.service)
+Controls: Node API (:9100, fitness-dev.service) + Python Backend (:9150, fitness-python-backend.service)
 Deploy: ~/fitness-dev → /opt/fitness (fitness.service, system scope, sudo)
 
 Terminal-facing dispatcher: ~/fitness/bin/fitness (domain CLI, catalog, sessions, coverage etc.)
@@ -16,17 +16,21 @@ from pathlib import Path
 from typing import Optional
 import urllib.request
 
+import psutil
 import typer
 from wasabi import Printer
+from rich.console import Console
+from rich.table import Table
 
 msg = Printer()
+console = Console()
 
 app = typer.Typer(help="Fitness Centre Stack Control", no_args_is_help=True)
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
 DEV_DIR = Path(__file__).resolve().parent
-NODE_SERVICE = os.getenv("FITNESS_NODE_SERVICE", "aos-fitness-dev.service")
+NODE_SERVICE = os.getenv("FITNESS_NODE_SERVICE", "fitness-dev.service")
 PYTHON_SERVICE = os.getenv("FITNESS_PYTHON_SERVICE", "fitness-python-backend.service")
 NODE_PORT = os.getenv("FITNESS_NODE_PORT", "9100")
 PYTHON_PORT = os.getenv("FITNESS_PYTHON_PORT", "9150")
@@ -37,12 +41,14 @@ LOGFILE_PYTHON = Path("/tmp/fitness-python.log")
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _http_ok(url: str, timeout: float = 2.0) -> bool:
+def _http_ok(url: str, timeout: float = 2.0) -> tuple[bool, Optional[int]]:
+    """Health-Check + Latenz in ms (None wenn nicht erreichbar)."""
+    t0 = time.monotonic()
     try:
         urllib.request.urlopen(url, timeout=timeout)
-        return True
+        return True, int((time.monotonic() - t0) * 1000)
     except Exception:
-        return False
+        return False, None
 
 def _service_active(unit: str) -> bool:
     r = subprocess.run(
@@ -62,29 +68,78 @@ def _ctl(unit: str, *args: str) -> int:
     r = subprocess.run(["systemctl", "--user", *args, unit])
     return r.returncode
 
-def _label(ok: bool, yes: str = "up", no: str = "down") -> str:
-    return yes if ok else no
+def _main_pid(unit: str) -> Optional[int]:
+    r = subprocess.run(
+        ["systemctl", "--user", "show", unit, "-p", "MainPID"],
+        capture_output=True, text=True,
+    )
+    try:
+        pid = int(r.stdout.strip().split("=", 1)[1])
+        return pid or None
+    except Exception:
+        return None
+
+def _uptime(pid: Optional[int]) -> str:
+    if not pid:
+        return "-"
+    try:
+        secs = int(time.time() - psutil.Process(pid).create_time())
+    except Exception:
+        return "-"
+    if secs < 60:
+        return f"{secs}s"
+    mins, s = divmod(secs, 60)
+    if mins < 60:
+        return f"{mins}m{s}s"
+    hrs, m = divmod(mins, 60)
+    return f"{hrs}h{m}m"
+
+def _probe(label: str, unit: str, url: str) -> dict:
+    active = _service_active(unit)
+    enabled = _service_enabled(unit)
+    pid = _main_pid(unit) if active else None
+    health_ok, latency = _http_ok(url)
+    return {
+        "label": label, "unit": unit, "url": url,
+        "active": active, "enabled": enabled,
+        "pid": pid, "uptime": _uptime(pid),
+        "health": health_ok, "latency": latency,
+    }
+
+def _render_stack_table(rows: list[dict]) -> None:
+    table = Table(title="Fitness Dev Stack")
+    table.add_column("Service", no_wrap=True)
+    table.add_column("Active", no_wrap=True)
+    table.add_column("Boot", no_wrap=True)
+    table.add_column("PID", no_wrap=True, justify="right")
+    table.add_column("Uptime", no_wrap=True, justify="right")
+    table.add_column("Health", no_wrap=True)
+    for r in rows:
+        active_s = "[green]up[/green]" if r["active"] else "[red]down[/red]"
+        boot_s = "[green]enabled[/green]" if r["enabled"] else "[yellow]disabled[/yellow]"
+        if r["health"]:
+            health_s = f"[green]ok[/green] {r['latency']}ms"
+        else:
+            health_s = "[red]unreachable[/red]"
+        table.add_row(r["label"], active_s, boot_s, str(r["pid"] or "-"), r["uptime"], health_s)
+    console.print(table)
+    for r in rows:
+        console.print(f"  {r['label']} ({r['unit']}): {r['url']}", style="dim")
+
+def _stack_rows(node: bool, python: bool) -> list[dict]:
+    rows = []
+    if node:
+        rows.append(_probe("Node API", NODE_SERVICE, NODE_URL))
+    if python:
+        rows.append(_probe("Python Backend", PYTHON_SERVICE, PYTHON_URL))
+    return rows
 
 # ── Commands ──────────────────────────────────────────────────────────────────
 
 @app.command()
 def status():
     """Show service + health status for all fitness-dev services."""
-    node_active = _service_active(NODE_SERVICE)
-    node_enabled = _service_enabled(NODE_SERVICE)
-    node_health = _http_ok(NODE_URL)
-    py_active = _service_active(PYTHON_SERVICE)
-    py_enabled = _service_enabled(PYTHON_SERVICE)
-    py_health = _http_ok(PYTHON_URL)
-
-    msg.divider("Fitness Dev Stack")
-    print(f"  {'Service':<30} {'Active':<10} {'Boot':<10} {'Health'}")
-    print(f"  {'-'*60}")
-    print(f"  {NODE_SERVICE:<30} {_label(node_active):<10} {_label(node_enabled,'enabled','disabled'):<10} {_label(node_health)}")
-    print(f"  {PYTHON_SERVICE:<30} {_label(py_active):<10} {_label(py_enabled,'enabled','disabled'):<10} {_label(py_health)}")
-    print()
-    print(f"  Node API:    {NODE_URL}")
-    print(f"  Python Backend: {PYTHON_URL}")
+    _render_stack_table(_stack_rows(node=True, python=True))
 
 
 @app.command()
@@ -94,23 +149,17 @@ def start(
 ):
     """Start fitness-dev services via systemd."""
     if node:
-        msg.info(f"Starting {NODE_SERVICE}...")
         rc = _ctl(NODE_SERVICE, "start")
-        if rc == 0:
-            msg.good(f"{NODE_SERVICE} started")
-        else:
-            msg.fail(f"Failed to start {NODE_SERVICE}")
-
+        if rc != 0:
+            msg.fail(f"systemctl start {NODE_SERVICE} exited {rc}")
     if python:
-        msg.info(f"Starting {PYTHON_SERVICE}...")
         rc = _ctl(PYTHON_SERVICE, "start")
-        if rc == 0:
-            msg.good(f"{PYTHON_SERVICE} started")
-        else:
-            msg.fail(f"Failed to start {PYTHON_SERVICE}")
+        if rc != 0:
+            msg.fail(f"systemctl start {PYTHON_SERVICE} exited {rc}")
 
     time.sleep(1)
     _wait_healthy(NODE_URL if node else None, PYTHON_URL if python else None)
+    _render_stack_table(_stack_rows(node, python))
 
 
 @app.command()
@@ -121,10 +170,9 @@ def stop(
     """Stop fitness-dev services."""
     if node:
         _ctl(NODE_SERVICE, "stop")
-        msg.good(f"{NODE_SERVICE} stopped")
     if python:
         _ctl(PYTHON_SERVICE, "stop")
-        msg.good(f"{PYTHON_SERVICE} stopped")
+    _render_stack_table(_stack_rows(node, python))
 
 
 @app.command()
@@ -135,12 +183,11 @@ def restart(
     """Restart fitness-dev services."""
     if node:
         _ctl(NODE_SERVICE, "restart")
-        msg.good(f"{NODE_SERVICE} restarted")
     if python:
         _ctl(PYTHON_SERVICE, "restart")
-        msg.good(f"{PYTHON_SERVICE} restarted")
     time.sleep(1)
     _wait_healthy(NODE_URL if node else None, PYTHON_URL if python else None)
+    _render_stack_table(_stack_rows(node, python))
 
 
 @app.command()
@@ -174,14 +221,14 @@ def disable(
 @app.command()
 def health():
     """Quick HTTP health check for both backends."""
-    node_ok = _http_ok(NODE_URL)
-    python_ok = _http_ok(PYTHON_URL)
+    node_ok, node_ms = _http_ok(NODE_URL)
+    python_ok, python_ms = _http_ok(PYTHON_URL)
     if node_ok:
-        msg.good(f"Node API online ({NODE_URL})")
+        msg.good(f"Node API online ({NODE_URL}, {node_ms}ms)")
     else:
         msg.fail(f"Node API offline ({NODE_URL})")
     if python_ok:
-        msg.good(f"Python Backend online ({PYTHON_URL})")
+        msg.good(f"Python Backend online ({PYTHON_URL}, {python_ms}ms)")
     else:
         msg.fail(f"Python Backend offline ({PYTHON_URL})")
     if not (node_ok and python_ok):
@@ -247,14 +294,28 @@ def pydev():
             msg.good(f"{PYTHON_SERVICE} back up")
 
 
+CATALOG_UI_DIR = DEV_DIR / "catalog-ui"
+
 @app.command()
 def build(
     firebase: bool = typer.Option(False, "--firebase", help="Build Firebase/cloud variant"),
+    catalog_ui: bool = typer.Option(
+        True, help="catalog-ui (eigenes Vite-Projekt, gebaut nach fitness/catalog/dist/, "
+                    "served vom Python-Backend unter /catalog-ui) mitbauen"
+    ),
 ):
-    """Run Vite production build."""
+    """Run Vite production build. Baut standardmäßig auch catalog-ui mit — sonst bleibt
+    /catalog-ui auf dem letzten manuellen Build-Stand stehen, ohne dass das auffällt."""
     script = "build:firebase" if firebase else "build"
     msg.info(f"Running: npm run {script}")
     subprocess.run(["npm", "run", script], cwd=DEV_DIR)
+
+    if catalog_ui:
+        if not CATALOG_UI_DIR.exists():
+            msg.warn(f"catalog-ui/ nicht gefunden unter {CATALOG_UI_DIR} — übersprungen")
+            return
+        msg.info(f"Running: npm run build (catalog-ui, → fitness/catalog/dist/)")
+        subprocess.run(["npm", "run", "build"], cwd=CATALOG_UI_DIR)
 
 
 @app.command()
@@ -330,13 +391,12 @@ def deploy(
 
 def _wait_healthy(node_url: Optional[str], python_url: Optional[str], timeout: int = 10):
     for _ in range(timeout):
-        node_ok = not node_url or _http_ok(node_url)
-        py_ok = not python_url or _http_ok(python_url)
+        node_ok = not node_url or _http_ok(node_url)[0]
+        py_ok = not python_url or _http_ok(python_url)[0]
         if node_ok and py_ok:
-            msg.good("All services healthy")
             return
         time.sleep(1)
-    msg.warn(f"Services not healthy after {timeout}s — check logs")
+    msg.warn(f"Services not healthy after {timeout}s — check logs (fitness-devctl logs node|python)")
 
 
 if __name__ == "__main__":

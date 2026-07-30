@@ -26,8 +26,6 @@ const PORT       = Number(process.env.PORT || (process.env.NODE_ENV === 'product
 const HOST       = process.env.HOST || "127.0.0.1";
 const PYTHON_PORT = Number(process.env.FITNESS_PYTHON_PORT || 9150);
 const PYTHON_BASE = `http://127.0.0.1:${PYTHON_PORT}`;
-const WGER_TOKEN = process.env.WGER_API_TOKEN || process.env.WGER_TOKEN || "92d9ea44fc0ac065e336e9ec443a196c40c68afe";
-const WGER_BASE  = process.env.WGER_BASE || "http://127.0.0.1/api/v2";
 const BODY_DIR = path.join(DATA_DIR, "body");
 
 for (const d of ["sessions", "journal"]) fs.mkdirSync(path.join(DATA_DIR, d), { recursive: true });
@@ -100,12 +98,17 @@ function syncSessionToDb(date, session) {
 // ── Python sync_gateway — fire-and-forget nach Session-Write ─────────────────
 async function notifyPythonSync(date, session, uid = "default", sessionId = null) {
   try {
-    await fetch(`${PYTHON_BASE}/internal/sync/session`, {
+    const res = await fetch(`${PYTHON_BASE}/internal/sync/session`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ date, session, uid, session_id: sessionId }),
       signal: AbortSignal.timeout(3000),
     });
+    // Body IMMER konsumieren, sonst race zwischen AbortSignal.timeout()-Cleanup
+    // und undicis interner Stream-Close-Logik → ERR_INVALID_STATE crashed den
+    // ganzen Prozess (unhandled, außerhalb dieses try/catch). Body-Inhalt hier
+    // irrelevant, nur das Draining zählt.
+    await res.text().catch(() => {});
   } catch {
     // fire-and-forget — Python-Backend nicht zwingend erreichbar
   }
@@ -137,32 +140,20 @@ function escapeCsvValue(v) {
   return String(v ?? "").replaceAll('"', '""');
 }
 
-async function fetchWger(wgerPath, qs = "") {
-  const url = `${WGER_BASE}${wgerPath}?format=json${qs ? "&" + qs : ""}`;
-  try {
-    const res = await fetch(url, {
-      headers: { Authorization: `Token ${WGER_TOKEN}` },
-      signal: AbortSignal.timeout(4000),
-    });
-    return res.ok ? res.json() : {};
-  } catch {
-    return {};
-  }
+// wger-client.mjs wird erst per dynamic import() geladen, wenn der erste
+// echte Fallback-Aufruf nötig ist (lokaler Katalog liefert nichts) — kein
+// Boot-Ping, kein Token im Hauptmodul. wger ist meist offline, das Modul
+// hat dafür einen eigenen Cooldown (siehe wger-client.mjs).
+let _wgerClient = null;
+async function wgerClient() {
+  if (!_wgerClient) _wgerClient = await import("./wger-client.mjs");
+  return _wgerClient;
 }
-
+async function fetchWger(wgerPath, qs = "") {
+  return (await wgerClient()).fetchWger(wgerPath, qs);
+}
 async function postWger(wgerPath, body) {
-  const url = `${WGER_BASE}${wgerPath}`;
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { Authorization: `Token ${WGER_TOKEN}`, "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(4000),
-    });
-    return res.ok ? res.json() : null;
-  } catch {
-    return null;
-  }
+  return (await wgerClient()).postWger(wgerPath, body);
 }
 
 function normMuscleKey(s) {
@@ -295,7 +286,7 @@ app.get("/exercises/search", async (c) => {
   const results = (data.results || []).map(e => {
     const trans = (e.translations || []).find(t => t.language === 2) || (e.translations || [])[0] || {};
     return {
-      id:               e.uuid || String(e.id),
+      id:               `wger_${e.id}`, // Präfix + numerische ID, muss zu importer.py (safe_id = f"wger_{item.id}") passen
       name:             trans.name || "",
       category:         e.category?.name || "",
       primaryMuscles:   (e.muscles           || []).map(m => m.name_en || m.name).filter(Boolean),
@@ -340,7 +331,7 @@ app.get("/exercises/by-group", async (c) => {
   }
   const exercises = (data.results || []).map(e => {
     const trans = (e.translations || []).find(t => t.language === 2) || (e.translations || [])[0] || {};
-    return { id: e.uuid || String(e.id), name_en: trans.name || "", relevance: "primary", source: "wger" };
+    return { id: `wger_${e.id}`, name_en: trans.name || "", relevance: "primary", source: "wger" };
   }).filter(e => e.name_en);
   return c.json({ ok: true, exercises });
 });

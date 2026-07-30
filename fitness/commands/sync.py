@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import Optional
 
 import typer
+import yaml
 from loguru import logger
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
@@ -102,17 +103,38 @@ def sync_pull_uid(
 
 
 @app.command("push")
-def sync_push(uid: Optional[str] = typer.Argument(None, help="Firestore UID (Default: firestore._db.UID)")) -> None:
+def sync_push(
+    uid: Optional[str] = typer.Argument(None, help="Firestore UID (leer = alle lokalen Runtime-User)"),
+    force: bool = typer.Option(False, "--force", help="Remote sessions auch dann überschreiben, wenn Firestore saved_at neuer/gleich ist"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Nur zählen, nicht schreiben"),
+) -> None:
     """Lokal → Firestore: Sessions + Fuel."""
     from firestore.sync import push
     from firestore.fuel import push_fuel
     from firestore._db import UID
 
-    r = push()
-    rf = push_fuel(uid or UID)
-    logger.success(f"push — sessions {r['sessions']} | fuel {rf.get('written', 0)} writes · {rf.get('skipped', 0)} skipped")
+    r = push(uid=uid, force=force, dry_run=dry_run)
+    fuel_uid = uid or UID
+    rf = {"written": 0, "skipped": 0}
+    if not dry_run:
+        rf = push_fuel(fuel_uid)
+    mode = "force " if force else ""
+    dry = "dry-run " if dry_run else ""
+    logger.success(f"push — {dry}{mode}sessions {r['sessions']} · skipped {r['sessions_skipped']} | fuel uid={fuel_uid} {rf.get('written', 0)} writes · {rf.get('skipped', 0)} skipped")
     if rf.get("error"):
         logger.warning(f"push fuel error: {rf['error']}")
+
+
+@app.command("prune-activity-sidecars")
+def sync_prune_activity_sidecars(
+    uid: Optional[str] = typer.Argument(None, help="Firestore UID (leer = alle lokalen Runtime-User)"),
+    apply: bool = typer.Option(False, "--apply", help="Remote date__id Activity-Sidecars wirklich löschen. Default ist dry-run."),
+) -> None:
+    """Löscht remote reine Cardio-Sidecars, wenn ein kanonisches Tagesdokument existiert."""
+    from firestore.sync import prune_activity_sidecars
+
+    result = prune_activity_sidecars(uid=uid, dry_run=not apply)
+    print(yaml.safe_dump(result, sort_keys=False, allow_unicode=True).rstrip())
 
 
 @app.command("watch")

@@ -1,17 +1,6 @@
-name: inbox_yuhonas_side_leg_raises
-description: 'Restored from graveyard: Seitliches Beinheben'
-restored_at: '2026-07-27T05:22:30.174183+00:00'
-graveyard_entry:
-  id: inbox_yuhonas_side_leg_raises
-  exercise_id: yuhonas_side_leg_raises
-  display_name: Seitliches Beinheben
-  reason: deleted_inbox
-  created_at: '2026-07-27T03:54:56.472149+00:00'
-  keys:
-  - inbox_yuhonas_side_leg_raises
-  - yuhonas_side_leg_raises
-  - name:seitliches_beinheben
-  - name:side_leg_raises
+exercise_id: yuhonas_side_leg_raises
+description: Expert details for Side Leg Raises
+approved_at: '2026-07-28T06:00:25.263872+00:00'
 exercises:
 - exercise_id: yuhonas_side_leg_raises
   display_name: Side Leg Raises
@@ -35,4 +24,12 @@ exercises:
   wger_muscle_ids:
     primary: []
     secondary: []
-  source: unreviewed
+  source: expert
+  approved_at: '2026-07-28T06:00:25.263872+00:00'
+  external_ids:
+    yuhonas:
+    - Side_Leg_Raises
+  search_aliases:
+  - yuhonas_side_leg_raises
+  - Side_Leg_Raises
+  - Side Leg Raises

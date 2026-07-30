@@ -65,6 +65,9 @@ class ExerciseRecord:
     wger_id: int | None = None
     wger_muscle_ids: dict | None = None
     anatomy: dict[str, Any] | None = None
+    yuhonas_id: str | None = None
+    original_description: str | list[str] | None = None
+    logged_by_uid: str | None = None
 
 
 @dataclass
@@ -179,7 +182,7 @@ def build_exercise_index() -> list[ExerciseRecord]:
             else:
                 if entry_name: rec.display_name = entry_name
                 # Basis-Felder
-                for f in ["category", "german", "english", "movement_pattern", "wger_id", "gif_url", "image_url", "external_ids"]:
+                for f in ["category", "german", "english", "movement_pattern", "wger_id", "gif_url", "image_url", "external_ids", "yuhonas_id", "original_description", "logged_by_uid"]:
                     val = entry.get(f) if isinstance(entry, dict) else None
                     if val: setattr(rec, f, val)
                 
@@ -223,6 +226,7 @@ def build_exercise_index() -> list[ExerciseRecord]:
             if target_id:
                 # Merge in Expert Record (nur anreichern, was fehlt)
                 rec = index[target_id]
+                if not rec.wger_id and w_id: rec.wger_id = w_id
                 if not rec.german and german: rec.german = german
                 if not rec.english and english: rec.english = english
                 if not rec.gif_url and entry.get("gif_url"): rec.gif_url = entry["gif_url"]
@@ -279,6 +283,8 @@ def build_exercise_index() -> list[ExerciseRecord]:
 
             if target_id and target_id in index:
                 rec = index[target_id]
+                if not rec.yuhonas_id:
+                    rec.yuhonas_id = json_file.stem
                 if not rec.images and images:
                     rec.images = images
                 if not rec.instructions and instructions:
@@ -296,6 +302,7 @@ def build_exercise_index() -> list[ExerciseRecord]:
                         source_file=json_file.name,
                         source="yuhonas",
                         tags=["yuhonas", "unreviewed"],
+                        yuhonas_id=json_file.stem,
                         primary_muscles=primary,
                         secondary_muscles=secondary,
                         images=images,
@@ -391,6 +398,28 @@ def find_by_id(exercise_id: str, records: list[ExerciseRecord]) -> ExerciseRecor
     for record in records:
         if record.exercise_id == exercise_id:
             return record
+
+    # Alias-Auflösung: Nach einem Bulk-Merge in build_exercise_index() (Durchlauf
+    # 2/3) existiert "wger_312"/"yuhonas_xyz" NICHT mehr als eigener Index-Key —
+    # die Daten sind in den Tier-1-Record gemergt, nur wger_id/yuhonas_id zeigen
+    # noch dorthin. Ohne das hier landet z.B. eine Session, die einen Bulk-Treffer
+    # vor dessen Approval geloggt hat, nach dem Approve ins Leere (find_by_id
+    # findet nichts mehr), statt auf den jetzt kuratierten Tier-1-Eintrag zu zeigen.
+    if exercise_id.startswith("wger_"):
+        try:
+            w_id = int(exercise_id.removeprefix("wger_"))
+        except ValueError:
+            w_id = None
+        if w_id is not None:
+            for record in records:
+                if record.wger_id == w_id:
+                    return record
+    elif exercise_id.startswith("yuhonas_"):
+        y_id = exercise_id.removeprefix("yuhonas_")
+        for record in records:
+            if record.yuhonas_id == y_id:
+                return record
+
     return None
 
 

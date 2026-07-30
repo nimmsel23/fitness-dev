@@ -24,16 +24,18 @@ async def lifespan(app: FastAPI):
     logger.info(f"runtime  {RUNTIME}")
     logger.info(f"db       {engine.url}")
 
-    # Firestore on_snapshot-Watchers (vormals eigenständiger
-    # fitness-firestore-daemon.service / firestore.mirror CLI) laufen jetzt
-    # eingebettet im ohnehin dauerhaft laufenden API-Prozess mit — ein
-    # Prozess weniger, kein separates systemd-Unit nötig. Firebase-Creds
-    # fehlen im Dev-Alltag oft (kein .env/firebase-fitness.json) — dann
-    # bewusst überspringen statt den ganzen API-Server crashen zu lassen.
+    # Firestore on_snapshot-Watchers: NUR Katalog-Belange (Inbox-Drafts +
+    # approved kb/exercises) laufen eingebettet im Catalog-API-Prozess mit.
+    # User-Data-Sync (Sessions/Journal/Habits/Nutrition/Supplements) läuft
+    # bewusst NICHT hier, sondern separat im fitness-firestore-daemon.service
+    # (firestore.mirror.start_userdata_watchers) — Trennung 2026-07-30,
+    # Catalog-UI soll keine User-Data synchronisieren. Firebase-Creds fehlen
+    # im Dev-Alltag oft (kein .env/firebase-fitness.json) — dann bewusst
+    # überspringen statt den ganzen API-Server crashen zu lassen.
     watchers = []
     try:
-        from firestore.mirror import start_watchers
-        watchers = start_watchers()
+        from firestore.mirror import start_catalog_watchers
+        watchers = start_catalog_watchers()
     except Exception as e:
         logger.warning(f"Firestore-Watchers nicht gestartet: {e}")
 
