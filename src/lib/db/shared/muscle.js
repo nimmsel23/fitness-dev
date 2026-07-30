@@ -47,8 +47,16 @@ export function setKBMuscles(musclesList) {
   for (const doc of regionDocs) {
     const regionId = regionIdFromDoc(doc);
     if (!regionId) continue;
-    const label = doc.label_de || doc.display_name || regionId;
-    _kbRegions.set(regionId, label);
+    // Nur die x00-Top-Level-Gruppen (100_chest, 200_back, ...) sind echte
+    // Coverage-Regionen. Alles andere mit einer eigenen muscles:-Liste
+    // (rhomboids.yml, upper_back.yml, hamstrings.yml, ...) ist eine reine
+    // Index/Registry-Ebene (aus den 16 yuhonas-Pseudo-Gruppen) — die soll
+    // weiter unten muscleId -> regionId auflösen helfen, aber nicht selbst
+    // als eigenständige Region in getMuscleGroups()/Coverage Gaps auftauchen.
+    if (bucketRank(doc) === 1) {
+      const label = doc.label_de || doc.display_name || regionId;
+      _kbRegions.set(regionId, label);
+    }
     for (const subMuscleId of doc.muscles) {
       const muscleId = String(subMuscleId);
       if (!_muscleToRegionMap.has(muscleId)) {
