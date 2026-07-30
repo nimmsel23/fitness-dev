@@ -1,8 +1,25 @@
 name: approved_from_firebase
 description: Coach-approved via Firebase Inbox
 exercises:
-- exercise_id: '020'
-  name: Klimmzug (Obergriff)
+- equipment:
+  - bodyweight
+  german: Klimmzug (Obergriff)
+  variations: []
+  exercise_id: '020'
+  id: '020'
+  category: back
+  aliases:
+  - Pull-up (Overhand Grip)
+  - Standard Pull-up
+  type: compound
+  secondary_muscles:
+  - 402_biceps_brachii
+  - 403_brachialis
+  - 404_brachioradialis
+  - 303_posterior_deltoid
+  - 205_rhomboids
+  - 203_trapezius_middle
+  - 204_trapezius_lower
   stabilizers:
   - 304_rotator_cuff
   - 206_erector_spinae
@@ -11,7 +28,14 @@ exercises:
   - 504_transverse_abdominis
   - 405_forearm_flexors
   - 105_serratus_anterior
-  display_name: Klimmzug (Obergriff)
+  common_errors:
+  - Unvollständiger Bewegungsumfang (nicht ganz nach oben ziehen oder nicht ganz nach
+    unten ablassen).
+  - Schwungholen (Kipping) statt einer kontrollierten Muskelkontraktion.
+  - Die Schultern hochziehen statt sie nach unten zu depressen und zu retrahieren
+    (Shrugging).
+  - Den Kopf überstrecken oder nach vorne schieben.
+  name: Klimmzug (Obergriff)
   primary_muscles:
   - 201_latissimus_dorsi
   - 207_teres_major
@@ -25,29 +49,9 @@ exercises:
   - Der Obergriff beansprucht den Latissimus dorsi stärker und den Bizeps etwas weniger
     als der Untergriff.
   - Halte den Körper während der gesamten Bewegung stabil und vermeide ein Schwingen.
-  german: Klimmzug (Obergriff)
-  movement_pattern: vertical_pull
-  category: back
   source: approved
-  aliases:
-  - Pull-up (Overhand Grip)
-  - Standard Pull-up
-  common_errors:
-  - Unvollständiger Bewegungsumfang (nicht ganz nach oben ziehen oder nicht ganz nach
-    unten ablassen).
-  - Schwungholen (Kipping) statt einer kontrollierten Muskelkontraktion.
-  - Die Schultern hochziehen statt sie nach unten zu depressen und zu retrahieren
-    (Shrugging).
-  - Den Kopf überstrecken oder nach vorne schieben.
-  secondary_muscles:
-  - 402_biceps_brachii
-  - 403_brachialis
-  - 404_brachioradialis
-  - 303_posterior_deltoid
-  - 205_rhomboids
-  - 203_trapezius_middle
-  - 204_trapezius_lower
-  type: compound
+  display_name: Klimmzug (Obergriff)
+  movement_pattern: vertical_pull
   tags:
   - pull
   - back
@@ -56,7 +60,3 @@ exercises:
   - upper_body
   - compound
   - strength
-  variations: []
-  id: '020'
-  equipment:
-  - bodyweight
