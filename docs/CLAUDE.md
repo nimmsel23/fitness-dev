@@ -1041,7 +1041,7 @@ Referenz-Implementierung: `~/aos-dev/bin/bridge-devctl menu`
 
 | Dispatcher | Typ | Funktion |
 |---|---|---|
-| `fitness-devctl` | python3 | **Dev-Server-Controller** (--user-scope: aos-fitness-dev.service, fitness-python-backend.service) |
+| `fitness-devctl` | python3 | **Dev-Server-Controller** (--user-scope: fitness-dev.service, fitness-python-backend.service) |
 | `fitness-prodctl` | python3 | **Prod-Controller** (fitness.service, system-scope :6100, sudo für restart/stop) |
 | `~/fitness/bin/fitness` | python3 | **Terminal-facing dispatcher** im PATH (session/journal/coverage/gaps/search/sync/catalog) |
 | `fitnessctl` | python3 | Reiner Top-Level-Router, kein eigenes CLI mehr: `fitnessctl dev <cmd>` → fitness-devctl, `fitnessctl prod <cmd>` → fitness-prodctl |
