@@ -1,0 +1,103 @@
+exercise_id: wger_206
+description: Expert details for Ausfallschritte im Gehen
+approved_at: '2026-07-28T06:06:43.073658+00:00'
+exercises:
+- exercise_id: wger_206
+  display_name: Ausfallschritte im Gehen
+  german: Ausfallschritte im Gehen
+  english: Walking Lunges
+  category: lunge
+  primary_muscles:
+  - 601_quadriceps_femoris
+  - 603_gluteus_maximus
+  secondary_muscles:
+  - hamstrings
+  - 608_gluteus_medius
+  - 602_adductors
+  stabilizers:
+  - 206_erector_spinae
+  - 501_rectus_abdominis
+  - calves
+  equipment: []
+  coaching_notes:
+  - '**Vorbereitung:** Beginne in aufrechter Standposition, die Füße hüftbreit auseinander.
+    Spanne den Rumpf fest an, ziehe die Schultern leicht zurück und halte den Rücken
+    gerade. Der Blick ist nach vorne gerichtet. Die Arme können locker hängen oder
+    in die Hüften gestemmt werden.'
+  - '**Schrittausführung:** Mache einen kontrollierten, ausreichend langen Schritt
+    nach vorne. Setze den vorderen Fuß sanft mit der Ferse auf und rolle dann zum
+    Mittelfuß ab. Achte darauf, dass die Füße weiterhin etwa hüftbreit bleiben, um
+    die Stabilität zu gewährleisten.'
+  - '**Absenkphase:** Senke die Hüfte kontrolliert, bis das Knie des hinteren Beins
+    fast den Boden berührt. Beide Knie sollten dabei einen Winkel von etwa 90 Grad
+    bilden. Das vordere Knie bleibt präzise über dem Fußgelenk und sollte nicht über
+    die Zehenspitzen hinausragen. Das Schienbein des vorderen Beins ist möglichst
+    senkrecht. Halte den Oberkörper während der gesamten Abwärtsbewegung aufrecht
+    und stabil durch konstante Rumpfspannung.'
+  - '**Aufrichten und Weitergehen:** Drücke dich kraftvoll über die Ferse des vorderen
+    Fußes nach oben und gleichzeitig nach vorne. Führe dabei das hintere Bein flüssig
+    nach vorne, um nahtlos in den nächsten Ausfallschritt überzugehen. Dies erzeugt
+    eine kontinuierliche, dynamische Gehbewegung.'
+  - '**Atmung:** Atme während der Absenkphase kontrolliert ein und kräftig aus, wenn
+    du dich nach oben und vorne drückst.'
+  - '**Fokus:** Konzentriere dich auf eine langsame, präzise Bewegungsausführung und
+    die bewusste Kontraktion der Gesäß- und Oberschenkelmuskulatur. Vermeide ruckartige
+    Bewegungen und halte die Rumpfspannung während der gesamten Übung aufrecht.'
+  - '**Intensitätssteigerung:** Um die Schwierigkeit zu erhöhen, können Kurzhanteln
+    in den Händen, eine Kettlebell im Goblet-Stil oder eine Langhantel auf den Schultern
+    verwendet werden.'
+  common_errors:
+  - '**Vorderes Knie zu weit vorne:** Das vordere Knie schiebt über die Zehenspitzen,
+    was die Kniegelenke übermäßig belastet. Achte darauf, das Schienbein des vorderen
+    Beins so vertikal wie möglich zu halten und das Knie über dem Fußgelenk zu belassen.
+    Ein längerer Schritt kann diese Position erleichtern.'
+  - '**Knie fällt nach innen (Valgusstellung):** Wenn das vordere Knie nach innen
+    zur Mittellinie einknickt, deutet dies auf eine Schwäche der Hüftabduktoren hin
+    und erhöht das Verletzungsrisiko. Drücke das Knie aktiv nach außen, sodass es
+    in einer Linie mit den Zehenspitzen bleibt.'
+  - '**Fehlende Rumpfstabilität:** Ein zu stark nach vorne geneigter oder nach hinten
+    gelehnter Oberkörper reduziert die gezielte Belastung der Beinmuskulatur und kann
+    den unteren Rücken überlasten. Halte den Oberkörper während der gesamten Bewegung
+    aufrecht und stabil, indem du die Rumpfmuskulatur fest anspannst.'
+  - '**Unzureichende Bewegungstiefe:** Ein zu flacher Ausfallschritt schränkt den
+    Bewegungsumfang ein und mindert die optimale Muskelaktivierung. Senke die Hüfte
+    so weit ab, dass das Knie des hinteren Beins fast den Boden berührt und beide
+    Knie einen annähernd 90-Grad-Winkel bilden.'
+  - '**Verlust des Gleichgewichts:** Wackelige Bewegungen oder ein kompletter Kontrollverlust.
+    Fixiere einen festen Punkt vor dir und spanne den Rumpf fest an, um die Stabilität
+    zu verbessern. Kleinere Schritte oder eine leicht breitere Schrittbreite können
+    anfänglich hilfreich sein.'
+  - '**Abdrücken von den Zehen des vorderen Fußes:** Das primäre Abstoßen von den
+    Zehen des vorderen Fußes überbetont die Quadrizeps und reduziert die Aktivierung
+    der Gesäßmuskulatur. Drücke primär durch die Ferse des vorderen Fußes, um die
+    Gesäßmuskeln optimal einzusetzen.'
+  - '**Zu schnelle oder unkontrollierte Ausführung:** Eine schnelle Bewegung mit Schwung
+    reduziert die effektive Muskelspannung und den Trainingseffekt. Führe die Ausfallschritte
+    bewusst und kontrolliert aus, um die Muskulatur maximal zu fordern.'
+  movements:
+  - gait
+  - knee_flexion_extension
+  - hip_extension
+  - balance_control
+  tags:
+  - wger
+  - compound
+  - unilateral
+  - walking_lunge
+  wger_id: 206
+  wger_muscle_ids:
+    primary:
+    - 10
+    secondary:
+    - 8
+  source: expert
+  variations: []
+  enriched_at: '2026-07-28T06:05:45.708185+00:00'
+  approved_at: '2026-07-28T06:06:43.073658+00:00'
+  external_ids:
+    wger:
+    - 206
+  search_aliases:
+  - wger_206
+  - Ausfallschritte im Gehen
+  - Walking Lunges

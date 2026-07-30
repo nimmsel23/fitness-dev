@@ -23,7 +23,29 @@ async def lifespan(app: FastAPI):
     logger.info(f"fitness-dev Modular FastAPI Server :{PORT}")
     logger.info(f"runtime  {RUNTIME}")
     logger.info(f"db       {engine.url}")
+
+    # Firestore on_snapshot-Watchers: NUR Katalog-Belange (Inbox-Drafts +
+    # approved kb/exercises) laufen eingebettet im Catalog-API-Prozess mit.
+    # User-Data-Sync (Sessions/Journal/Habits/Nutrition/Supplements) läuft
+    # bewusst NICHT hier, sondern separat im fitness-firestore-daemon.service
+    # (firestore.mirror.start_userdata_watchers) — Trennung 2026-07-30,
+    # Catalog-UI soll keine User-Data synchronisieren. Firebase-Creds fehlen
+    # im Dev-Alltag oft (kein .env/firebase-fitness.json) — dann bewusst
+    # überspringen statt den ganzen API-Server crashen zu lassen.
+    watchers = []
+    try:
+        from firestore.mirror import start_catalog_watchers
+        watchers = start_catalog_watchers()
+    except Exception as e:
+        logger.warning(f"Firestore-Watchers nicht gestartet: {e}")
+
     yield
+
+    for w in watchers:
+        try:
+            w.unsubscribe()
+        except Exception:
+            pass
     await close_httpx_client()
 
 app = FastAPI(
@@ -138,6 +160,41 @@ def serve(
         reload=reload,
         app_dir=str(_DIST_DIR.parent),
     )
+
+@cli.command()
+def status(
+    port: Annotated[int, typer.Option("--port", "-p", help="Port des laufenden Servers")] = PORT,
+):
+    """Health-Check gegen den laufenden fitness-python-backend-Prozess + Firestore-Verbindung."""
+    import httpx
+    from rich.console import Console
+    from rich.table import Table
+
+    console = Console()
+    table = Table(title=f"fitness-python-backend :{port}")
+    table.add_column("Check")
+    table.add_column("Status")
+
+    try:
+        r = httpx.get(f"http://127.0.0.1:{port}/health", timeout=2.0)
+        r.raise_for_status()
+        data = r.json()
+        table.add_row("API /health", f"[green]ok[/green] (runtime={data.get('runtime')})")
+    except Exception as e:
+        table.add_row("API /health", f"[red]nicht erreichbar[/red] ({e})")
+
+    try:
+        from firestore.mirror import get_status as firestore_status
+        fs = firestore_status()
+        if fs.get("ok"):
+            table.add_row("Firestore-Watcher", f"[green]ok[/green] (project={fs.get('project')})")
+        else:
+            table.add_row("Firestore-Watcher", "[yellow]keine Verbindung (Creds fehlen?)[/yellow]")
+    except Exception as e:
+        table.add_row("Firestore-Watcher", f"[red]Fehler[/red] ({e})")
+
+    console.print(table)
+
 
 def main():
     Base.metadata.create_all(engine)

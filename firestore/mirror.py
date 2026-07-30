@@ -344,13 +344,29 @@ def on_supplements_catalog(doc_snapshot, changes, read_time):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
-def start_watchers() -> list:
-    """Registriert alle on_snapshot-Listener und gibt die Watcher-Handles
-    zurück (zum späteren .unsubscribe()). Kein Logging-Setup, kein
-    blockierendes Warten — eingebettet nutzbar in einem bereits laufenden
-    Prozess (z.B. FastAPI-lifespan), der seinen eigenen Event-Loop hat.
-    Die eigentliche CLI (main()) baut logger + blockierendes Warten selbst
-    darum herum."""
+def start_catalog_watchers() -> list:
+    """Nur Katalog-Belange: Inbox-Drafts (Coach-Review) + approved
+    kb/exercises (Rückweg nach Approval). Für den Katalog-Prozess (:9150,
+    fitness/api/main.py lifespan) — bewusst KEIN User-Data-Sync (Sessions/
+    Journal/Habits/Nutrition/Supplements), das ist nicht Aufgabe der
+    Catalog-UI. Kein Logging-Setup, kein blockierendes Warten — eingebettet
+    nutzbar in einem bereits laufenden Prozess mit eigenem Event-Loop."""
+    db  = get_db()
+    ref = db.collection("fitness").document(UID)
+    watchers = [
+        ref.collection("inbox").on_snapshot(on_inbox),
+        db.collection("fitness").document("kb").collection("exercises").on_snapshot(on_kb_exercises),
+    ]
+    logger.info(f"Listening → fitness/{UID}/inbox")
+    logger.info("Listening → fitness/kb/exercises [approved]")
+    return watchers
+
+
+def start_userdata_watchers() -> list:
+    """Sessions/Journal/Habits/Nutrition/Supplements — reiner User-Data-Sync,
+    läuft im eigenständigen fitness-firestore-daemon.service, NICHT mehr im
+    Katalog-Prozess (:9150). Trennung 2026-07-30: Catalog-UI soll keine
+    User-Data synchronisieren, das ist Aufgabe der Fitness-App-Seite."""
     db  = get_db()
     ref = db.collection("fitness").document(UID)
     watchers = [
@@ -359,14 +375,11 @@ def start_watchers() -> list:
         ref.collection("habits").on_snapshot(on_habits),
         ref.collection("habitRecords").on_snapshot(on_habit_records),
         ref.collection("habitJournals").on_snapshot(on_habit_journals),
-        ref.collection("inbox").on_snapshot(on_inbox),
-        db.collection("fitness").document("kb").collection("exercises").on_snapshot(on_kb_exercises),
         db.collection("nutrition").document(UID).collection("logs").on_snapshot(on_nutrition),
         db.collection("supplements").document(UID).collection("logs").on_snapshot(on_supplements),
         db.collection("supplements").document(UID).collection("meta").document("catalog").on_snapshot(on_supplements_catalog),
     ]
-    logger.info(f"Listening → fitness/{UID}/ [sessions|journal|habits|habitRecords|habitJournals|inbox]")
-    logger.info("Listening → fitness/kb/exercises [approved]")
+    logger.info(f"Listening → fitness/{UID}/ [sessions|journal|habits|habitRecords|habitJournals]")
     logger.info(f"Listening → nutrition/{UID}/logs, supplements/{UID}/logs+meta")
     logger.info(f"Mirror → {USER_DIR} (+ {_data_dir(UID)} für Fuel)")
     return watchers
@@ -378,7 +391,7 @@ def main():
         RichHandler(console=console, rich_tracebacks=True),
         format="{message}", level="INFO",
     )
-    watchers = start_watchers()
+    watchers = start_userdata_watchers()
     try:
         threading.Event().wait()
     except KeyboardInterrupt:

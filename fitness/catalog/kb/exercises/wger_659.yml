@@ -1,5 +1,6 @@
-name: inbox_wger_659
-description: 'Proactively generated expert draft for: Trizeps Seildrücken'
+exercise_id: wger_659
+description: Expert details for Trizeps Seildrücken
+approved_at: '2026-07-28T06:01:06.387369+00:00'
 exercises:
 - exercise_id: wger_659
   display_name: Trizeps Seildrücken
@@ -42,6 +43,14 @@ exercises:
     verhindert.
   - Die Aufwärtsbewegung zu schnell ausführen, wodurch das Training der exzentrischen
     Muskelphase vernachlässigt wird und das Verletzungsrisiko steigt.
-  wger_id: null
+  wger_id: 659
   variations: []
-  source: unreviewed
+  source: expert
+  approved_at: '2026-07-28T06:01:06.387369+00:00'
+  external_ids:
+    wger:
+    - 659
+  search_aliases:
+  - wger_659
+  - Trizeps Seildrücken
+  - Rope Triceps Pushdown
