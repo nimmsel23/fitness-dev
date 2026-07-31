@@ -1,9 +1,6 @@
-id: 600_legs
-display_name: Legs
 label_de: Beine
 label_en: Legs
 label_lat: Membrum inferius
-highlight_ids: [quads-left, quads-right, hamstrings-medial-left, hamstrings-lateral-left, hamstrings-medial-right, hamstrings-lateral-right]
 muscles:
   - 601_quadriceps_femoris
   - 602_adductors

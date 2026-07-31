@@ -1,0 +1,6 @@
+label_de: Vorderer Sägemuskel
+label_en: Serratus Anterior
+label_lat: M. serratus anterior
+aliases: [serratus, serratus anterior, sägemuskel, boxer muscle]
+muscles:
+  - 105_serratus_anterior

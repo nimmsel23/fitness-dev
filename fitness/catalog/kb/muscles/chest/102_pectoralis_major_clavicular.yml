@@ -4,7 +4,9 @@ label_de: Oberer Brustmuskel
 label_en: Upper Chest
 label_lat: M. pectoralis major (pars clavicularis)
 wger_id: 4
-aliases: [pectoralis major, brust, chest, obere brust, oberer brustmuskel, clavicular head, upper chest]
+parent: 101_pectoralis_major
+aliases: [obere brust, oberer brustmuskel, clavicular head, upper chest]
+exercises: [041]
 viz:
   body_muscles:
     view: FRONT

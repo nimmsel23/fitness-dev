@@ -1,9 +1,6 @@
-id: 300_shoulders
-display_name: Shoulders
-label_de: Schultern
-label_en: Shoulders
-label_lat: Deltoideus
-highlight_ids: [shoulder-front-left, shoulder-front-right, shoulder-side-left, shoulder-side-right]
+label_de: Schulterkomplex
+label_en: Shoulder Complex
+label_lat: Musculi articulationis humeri
 muscles:
   - 301_anterior_deltoid
   - 302_lateral_deltoid

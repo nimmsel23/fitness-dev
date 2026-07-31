@@ -1,9 +1,6 @@
-id: 200_back
-display_name: Back
 label_de: Rücken
 label_en: Back
 label_lat: Dorsum
-highlight_ids: [lats-upper-left, lats-mid-left, lats-lower-left, lats-upper-right, lats-mid-right, lats-lower-right]
 muscles:
   - 201_latissimus_dorsi
   - 202_trapezius_upper
