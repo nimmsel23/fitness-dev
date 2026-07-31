@@ -19,6 +19,7 @@ import UserProfile from './components/common/UserProfile.jsx'
 import ErrorBoundary from './components/common/ErrorBoundary.jsx'
 import PwaUpdateBanner from './components/common/PwaUpdateBanner.jsx'
 import { IosInstallHint } from './components/IosInstallHint.jsx'
+import { InstallPromptHandler } from './components/InstallPromptHandler.jsx'
 
 import AppGate from './views/AppGate.jsx'
 
@@ -177,6 +178,7 @@ export default function App() {
 
   return (
     <>
+      <InstallPromptHandler />
       <IosInstallHint />
       <PwaUpdateBanner />
       <ErrorBoundary>
