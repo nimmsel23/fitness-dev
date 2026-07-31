@@ -18,6 +18,7 @@ import MobileNav from './components/layout/MobileNav.jsx'
 import UserProfile from './components/common/UserProfile.jsx'
 import ErrorBoundary from './components/common/ErrorBoundary.jsx'
 import PwaUpdateBanner from './components/common/PwaUpdateBanner.jsx'
+import { IosInstallHint } from './components/IosInstallHint.jsx'
 
 import AppGate from './views/AppGate.jsx'
 
@@ -176,6 +177,7 @@ export default function App() {
 
   return (
     <>
+      <IosInstallHint />
       <PwaUpdateBanner />
       <ErrorBoundary>
         <div className="app-shell flex min-h-screen overflow-x-hidden w-full bg-fit-bg text-fit-ink font-sans transition-colors duration-500">

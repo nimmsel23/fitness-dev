@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle2, Sparkles, Brain, MessageSquare, Check, Dumbbell } from 'lucide-react';
+import { CheckCircle2, Sparkles, Brain, MessageSquare, Check, Dumbbell, Layers } from 'lucide-react';
 import { useInbox } from '../Inbox/useInbox';
 import InboxCard from '../Inbox/InboxCard';
 import CatalogBrowser from './CatalogBrowser';
+import AssignPlan from './AssignPlan';
 import { getGlobalJournalFeed, getAllUserProfiles, saveCoachFeedback } from '@db';
 
 export default function Coach({ onInspectExercise }) {
   const { exercises, loading, actioning, toast, approve, remove, reenrich } = useInbox({ global: true });
   
-  const [activeSubTab, setActiveSubTab] = useState('exercises'); // 'exercises' | 'journals' | 'catalog'
+  const [activeSubTab, setActiveSubTab] = useState('exercises'); // 'exercises' | 'journals' | 'catalog' | 'plans'
   const [journals, setJournals] = useState([]);
   const [loadingJournals, setLoadingJournals] = useState(false);
   const [userProfiles, setUserProfiles] = useState({});
@@ -119,6 +120,12 @@ export default function Coach({ onInspectExercise }) {
         >
           <Dumbbell size={14} className="mb-0.5" /> Katalog Browser
         </button>
+        <button
+          onClick={() => setActiveSubTab('plans')}
+          className={`pb-2.5 text-xs font-black uppercase tracking-widest transition-all border-b-2 flex items-center gap-1 ${activeSubTab === 'plans' ? 'border-fit-accent text-fit-ink' : 'border-transparent text-fit-dim hover:text-fit-ink'}`}
+        >
+          <Layers size={14} className="mb-0.5" /> Trainingspläne
+        </button>
       </div>
 
       {activeSubTab === 'exercises' ? (
@@ -146,6 +153,8 @@ export default function Coach({ onInspectExercise }) {
         )
       ) : activeSubTab === 'catalog' ? (
         <CatalogBrowser onInspectExercise={onInspectExercise} />
+      ) : activeSubTab === 'plans' ? (
+        <AssignPlan />
       ) : (
         /* Klienten Workouts Feed View */
         loadingJournals ? (

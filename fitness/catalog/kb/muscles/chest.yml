@@ -1,9 +1,6 @@
-id: 100_chest
-display_name: Chest
 label_de: Brust
 label_en: Chest
 label_lat: Thorax
-highlight_ids: [chest-upper-left, chest-upper-right, chest-lower-left, chest-lower-right]
 muscles:
   - 101_pectoralis_major
   - 102_pectoralis_major_clavicular

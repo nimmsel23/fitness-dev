@@ -1,17 +1,45 @@
 name: approved_from_firebase
 description: Coach-approved via Firebase Inbox
 exercises:
-- equipment:
+- movement_pattern: vertical_pull
+  equipment:
   - bodyweight
-  german: Klimmzug (Obergriff)
-  variations: []
+  - pull_up_bar
+  german: Klimmzug im Obergriff
+  variations:
+  - assisted_pull_up
+  - band_assisted_pull_up
+  - weighted_pull_up
+  - wide_grip_pull_up
+  - neutral_grip_pull_up
+  - scapular_pull_up
+  source: approved
   exercise_id: '020'
   id: '020'
-  category: back
+  category: pull
+  wger_muscle_ids:
+    secondary: []
+    primary: []
   aliases:
+  - Klimmzug
+  - Klimmzüge
+  - Klimmzug Obergriff
+  - Klimmzug im Obergriff
+  - Obergriff Klimmzug
+  - Pull-up
   - Pull-up (Overhand Grip)
+  - Pull Up
+  - Pull Ups
+  - Pull-Up
+  - Pull-Ups
   - Standard Pull-up
-  type: compound
+  - Pronated Pull-up
+  english: Pull-Up
+  external_ids:
+    yuhonas:
+    - Pullups
+    wger:
+    - 821
   secondary_muscles:
   - 402_biceps_brachii
   - 403_brachialis
@@ -20,6 +48,10 @@ exercises:
   - 205_rhomboids
   - 203_trapezius_middle
   - 204_trapezius_lower
+  search_aliases:
+  - Pullups
+  - yuhonas_pullups
+  - Klimmzug an Leiste
   stabilizers:
   - 304_rotator_cuff
   - 206_erector_spinae
@@ -28,35 +60,39 @@ exercises:
   - 504_transverse_abdominis
   - 405_forearm_flexors
   - 105_serratus_anterior
+  type: compound
   common_errors:
-  - Unvollständiger Bewegungsumfang (nicht ganz nach oben ziehen oder nicht ganz nach
-    unten ablassen).
-  - Schwungholen (Kipping) statt einer kontrollierten Muskelkontraktion.
-  - Die Schultern hochziehen statt sie nach unten zu depressen und zu retrahieren
-    (Shrugging).
-  - Den Kopf überstrecken oder nach vorne schieben.
-  name: Klimmzug (Obergriff)
+  - Kipping oder Beinschwung statt kontrollierter vertikaler Zug.
+  - Schultern zu den Ohren ziehen und ohne Scapula-Depression starten.
+  - Halbe Wiederholungen unten oder oben, wodurch Lat-Stretch und Abschluss fehlen.
+  - Kopf nach vorne schieben, statt Brust und Rückenarbeit zur Stange zu bringen.
+  name: Klimmzug im Obergriff
   primary_muscles:
   - 201_latissimus_dorsi
   - 207_teres_major
+  - 204_trapezius_lower
   coaching_notes:
-  - Beginne mit ausgestreckten Armen und greife die Stange etwas breiter als schulterbreit
-    mit Obergriff (Handflächen zeigen von dir weg).
-  - Ziehe dich nach oben, indem du deine Schulterblätter nach unten und hinten ziehst
-    und deinen Rücken aktivierst, bis dein Kinn über der Stange ist.
-  - Kontrolliere die Abwärtsbewegung, bis deine Arme wieder vollständig gestreckt
-    sind. Vermeide Schwung.
-  - Der Obergriff beansprucht den Latissimus dorsi stärker und den Bizeps etwas weniger
-    als der Untergriff.
-  - Halte den Körper während der gesamten Bewegung stabil und vermeide ein Schwingen.
-  source: approved
-  display_name: Klimmzug (Obergriff)
-  movement_pattern: vertical_pull
+  - Starte im aktiven Hang mit langem Körper und zieh die Schulterblätter zuerst nach
+    unten.
+  - Zieh die Ellenbogen Richtung Hüfte, nicht nur das Kinn irgendwie über die Stange.
+  - Nutze volle ROM: unten kontrolliert strecken, oben Brust Richtung Stange.
+  - Halte Rippen und Becken stabil, damit der Zug nicht in Schwung oder Hohlkreuz
+    kippt.
+  - Obergriff verschiebt den Fokus stärker auf Latissimus/oberen Rücken und etwas
+    weg vom Bizeps im Vergleich zum Chin-Up.
+  _hash: 1f54c532ed9f8df13d9afb6851cbe9ac
+  movements:
+  - vertical
+  - shoulder_adduction
+  - elbow_flexion
+  - scapular_depression
+  display_name: Klimmzug im Obergriff
+  wger_id: 821
   tags:
-  - pull
+  - expert
   - back
+  - pull
   - bodyweight
+  - calisthenics
+  - vertical_pull
   - grip_strength
-  - upper_body
-  - compound
-  - strength

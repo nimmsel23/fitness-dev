@@ -1,9 +1,7 @@
-id: quadriceps
-display_name: Quadriceps
 label_de: Quadrizeps
 label_en: Quadriceps
-label_lat: M. quadriceps femoris
-highlight_ids: [quads-left, quads-right]
+label_lat: Compartimentum femoris anterius
+aliases: [quad, quads, quadriceps, quadrizeps, oberschenkel vorne, front thigh]
 muscles:
   - 601_quadriceps_femoris
   - 601a_rectus_femoris

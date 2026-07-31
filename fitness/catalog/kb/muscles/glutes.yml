@@ -1,9 +1,7 @@
-id: glutes
-display_name: Glutes
 label_de: Gesäßmuskulatur
 label_en: Glutes
-label_lat: Mm. glutei
-highlight_ids: [gluteus-maximus-left, gluteus-maximus-right, gluteus-medius-left, gluteus-medius-right]
+label_lat: Regio glutealis
+aliases: [glute, glutes, booty, po, gesäß, hintern]
 muscles:
   - 603_gluteus_maximus
   - 608_gluteus_medius

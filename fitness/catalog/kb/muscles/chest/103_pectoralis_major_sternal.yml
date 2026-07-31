@@ -4,7 +4,8 @@ label_de: Unterer/Sternaler Brustmuskel
 label_en: Lower Chest (Sternocostal)
 label_lat: M. pectoralis major (pars sternocostalis)
 wger_id: 4
-aliases: [pectoralis major, brust, chest, untere brust, unterer brustmuskel, sternal head, sternocostal head, lower chest]
+parent: 101_pectoralis_major
+aliases: [untere brust, unterer brustmuskel, sternal head, sternocostal head, lower chest]
 viz:
   body_muscles:
     view: FRONT
