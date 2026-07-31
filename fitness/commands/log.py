@@ -387,6 +387,36 @@ def _journal_preview(text: str, width: int = 90) -> str:
     return preview
 
 
+def _firestore_journal_texts(uid: str, cutoff: str) -> dict[str, list[str]]:
+    """Live-Query gegen fitness/{uid}/journal in Firestore -- unabhaengig vom
+    fitness-firestore-daemon.service, der nur EINEN UID (den eigenen) live
+    beobachtet. Klienten-Journal-Eintraege, die noch nie lokal gepullt wurden
+    (kein `fitness sync pull-uid` gelaufen), tauchen sonst nirgends auf.
+    Habits werden hier nie erfasst, da die Firestore-Collection "journal"
+    (fsid-Marker) von "habitJournals" (fshid-Marker) getrennt ist.
+    """
+    try:
+        from firestore._db import get_db
+    except Exception:
+        return {}
+    try:
+        db = get_db()
+        from google.cloud.firestore_v1.base_query import FieldFilter
+        docs = db.collection("fitness").document(uid).collection("journal").where(filter=FieldFilter("date", ">=", cutoff)).stream()
+    except Exception:
+        return {}
+
+    out: dict[str, list[str]] = {}
+    for doc in docs:
+        data = doc.to_dict() or {}
+        d = str(data.get("date") or "")
+        text = str(data.get("text") or "").strip()
+        if not d or not text:
+            continue
+        out.setdefault(d, []).append(text)
+    return out
+
+
 def _journal_dirs_for_uid(uid: str) -> list[Path]:
     """Alle Ordner namens 'journal' unter ~/.aos/users/<uid>/ -- egal aus welcher Domain.
 
@@ -409,9 +439,12 @@ def _journal_dirs_for_uid(uid: str) -> list[Path]:
 
 @app.command(name="clients", help="Alle Klienten-Sessions chronologisch ausgeben")
 def cmd_clients(
+    name_filter: Optional[str] = typer.Argument(
+        None, help="Nur dieser Klient (Name oder Slug, z.B. matthias-mayer) — case-insensitive Teilstring"
+    ),
     days: int  = typer.Option(90,  "--days", "-d", help="Fenster in Tagen (0 = alle)"),
     all_: bool = typer.Option(False, "--all", "-a",  help="Gesamtes Archiv (ignoriert --days)"),
-    journal: bool = typer.Option(False, "--journal", "-j", help="Journal-Freitext passend zum Datum mit einsortieren (keine Habits)"),
+    journal: bool = typer.Option(False, "--journal", "-j", help="Journal-Freitext passend zum Datum mit einsortieren (keine Habits); fragt zusaetzlich live Firestore ab, falls noch nicht lokal gepullt"),
 ) -> None:
     registry = load_client_registry()
     if not registry:
@@ -421,13 +454,20 @@ def cmd_clients(
     n_days = 9999 if all_ else days
     cutoff = (date.today() - timedelta(days=n_days)).isoformat() if n_days < 9999 else "0000-00-00"
 
+    needle = name_filter.strip().lower() if name_filter else None
+
     # deduplizieren: pro Client (slug) einmal ausgeben
     seen_slugs: set[str] = set()
+    matched_any = False
     for meta in registry.values():
         slug = meta["slug"]
         if slug in seen_slugs:
             continue
         seen_slugs.add(slug)
+
+        if needle and needle not in slug.lower() and needle not in meta["name"].lower():
+            continue
+        matched_any = True
 
         name = meta["name"]
         uids = meta.get("uids") or [meta["uid"]]
@@ -462,14 +502,26 @@ def cmd_clients(
         sessions = rollup_training_days(raw_sessions)
         session_by_date = {s.get("date", ""): s for s in sessions}
 
-        journal_by_date: dict[str, Path] = {}
+        journal_by_date: dict[str, str] = {}
         if journal:
             for uid in uids:
                 for jdir in _journal_dirs_for_uid(uid):
                     for f in jdir.glob("*.md"):
                         d = f.stem[:10]
-                        if len(d) == 10 and cutoff <= d and d not in journal_by_date:
-                            journal_by_date[d] = f
+                        if len(d) != 10 or d < cutoff:
+                            continue
+                        preview = _journal_preview(f.read_text(encoding="utf-8"))
+                        if preview:
+                            journal_by_date[d] = preview
+
+            for uid in uids:
+                for d, texts in _firestore_journal_texts(uid, cutoff).items():
+                    existing = journal_by_date.get(d, "")
+                    for text in texts:
+                        if text not in existing:
+                            existing = f"{existing} / {text}" if existing else text
+                    if existing:
+                        journal_by_date[d] = existing
 
         all_dates = sorted(set(session_by_date) | set(journal_by_date), reverse=True)
         shown = 0
@@ -511,19 +563,21 @@ def cmd_clients(
                           f"{c('dim', ex_names + ell)}  {eff_s}{addon}")
                 shown += 1
 
-            jf = journal_by_date.get(d)
-            if jf is not None:
-                preview = _journal_preview(jf.read_text(encoding="utf-8"))
-                if preview:
-                    if s is None:
-                        print(f"   {date_s}   {c('cyan', '📓')} {c('white', preview)}")
-                    else:
-                        print(f"      {c('dim', '↳ 📓')} {c('dim', preview)}")
+            preview = journal_by_date.get(d)
+            if preview:
+                if s is None:
+                    print(f"   {date_s}   {c('cyan', '📓')} {c('white', preview)}")
+                else:
+                    print(f"      {c('dim', '↳ 📓')} {c('dim', preview)}")
                     shown += 1
 
         if shown == 0:
             window = f"letzten {n_days}d" if n_days < 9999 else "gesamt"
             print(f"   {c('dim', 'Keine Sessions im Fenster (' + window + ')')}")
+
+    if needle and not matched_any:
+        print(c("red", f"  Kein Klient gefunden fuer '{name_filter}'."))
+        raise typer.Exit(1)
 
     print()
 
