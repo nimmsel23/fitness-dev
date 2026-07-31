@@ -22,6 +22,22 @@ except ImportError:
 router = APIRouter()
 _THEME_FILE = RUNTIME / "theme.json"
 
+@router.post("/fitness/note-backfill")
+def note_backfill(uid: str | None = None, apply: bool = False):
+    """On-demand: Haiku liest Session-JSONs mit leerem reps/weight oder fehlendem block
+    und schlaegt Korrekturen aus den geloggten Fakten vor; bei apply=True schreibt der
+    Backend-Prozess selbst (mit .bak-Backup), Haiku editiert nichts direkt."""
+    from fitness.runtime.note_backfill import fix_sessions, find_suspect_default_effort
+
+    results = fix_sessions(user_id=uid, apply=apply)
+    suspects = find_suspect_default_effort(user_id=uid)
+    return {
+        "dry_run": not apply,
+        "session_count": len(results),
+        "sessions": [r.__dict__ for r in results],
+        "suspect_default_effort": suspects,
+    }
+
 def _today() -> str:
     return date.today().isoformat()
 

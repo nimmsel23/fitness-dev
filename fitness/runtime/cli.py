@@ -19,6 +19,10 @@ from fitness.runtime.user_data import (
     list_runtime_users,
     merge_day_activities,
 )
+from fitness.runtime.note_backfill import (
+    fix_sessions,
+    find_suspect_default_effort,
+)
 
 app = typer.Typer(help="Runtime user-data CRUD: Sessions/History prüfen und gezielt patchen")
 console = Console()
@@ -93,6 +97,25 @@ def merge_day_activities_cmd(
         "merge_count": len(plans),
         "plans": dataclass_payload(plans),
     }, sort_keys=False, allow_unicode=True).rstrip())
+
+
+@app.command(name="fix-notes")
+def fix_notes(
+    uid: Annotated[Optional[str], typer.Option(help="Runtime user id / Firebase uid; alle User wenn leer")] = None,
+    apply: Annotated[bool, typer.Option("--apply", help="Write patches to session JSON. Default is dry-run.")] = False,
+):
+    """Laesst Haiku Session-Dateien mit leeren reps/weight oder fehlendem `block` direkt lesen
+    (+ im --apply-Fall editieren) und aus den geloggten Fakten der Session selbst vervollstaendigen.
+    Flaggt zusaetzlich Sessions mit vermutlich nie gesetztem RPE-Default (kein Auto-Fix, nur Hinweis)."""
+    results = fix_sessions(user_id=uid, apply=apply)
+    suspects = find_suspect_default_effort(user_id=uid)
+    payload = {
+        "dry_run": not apply,
+        "session_count": len(results),
+        "sessions": dataclass_payload(results),
+        "suspect_default_effort": suspects,
+    }
+    console.print(yaml.safe_dump(payload, sort_keys=False, allow_unicode=True).rstrip())
 
 
 @app.command(name="history-update")
