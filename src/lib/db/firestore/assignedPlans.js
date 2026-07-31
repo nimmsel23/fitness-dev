@@ -1,4 +1,4 @@
-import { db } from '../../../cloud/firebase.js'
+import { db } from '../../../firebase.js'
 import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, arrayUnion } from 'firebase/firestore'
 
 // Get all plans assigned to current user (as client)
