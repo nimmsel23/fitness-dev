@@ -5,10 +5,30 @@ import path from 'path'
 
 const args = process.argv.slice(2)
 
-let mode = 'firebase' // Default
+// Fitness lebt in 3 physisch getrennten Checkouts mit unterschiedlichem
+// Deploy-Ziel — Firebase läuft NUR über fitness-app (vitalos-Submodul), nie
+// über fitness-dev oder fitness (Staging). "npm run deploy" ohne Argumente
+// muss deshalb je nach cwd auf ein anderes Default-Ziel zeigen, sonst landet
+// man versehentlich im (hier falschen) Firebase-Flow, der interaktiv auf
+// die Firebase-CLI wartet und wie ein Hang aussieht.
+const DEV_SOURCE     = `${process.env.HOME}/fitness-dev`
+const STAGING_SOURCE = `${process.env.HOME}/fitness`
+
+let mode = 'firebase' // Default (gilt für fitness-app / alles außerhalb der beiden Pfade unten)
+let targetFromCwd = null
+
+const cwdNow = process.cwd()
+if (cwdNow === STAGING_SOURCE) {
+  mode = 'local'
+  targetFromCwd = 'prod'
+} else if (cwdNow === DEV_SOURCE) {
+  mode = 'local'
+  targetFromCwd = 'staging'
+}
 
 // Parse arguments (both flags and positional arguments)
 let modeFromArgs = null
+let targetFromArgs = null
 for (let i = 0; i < args.length; i++) {
   const arg = args[i]
   if (arg === '--mode' && i + 1 < args.length) {
@@ -18,6 +38,8 @@ for (let i = 0; i < args.length; i++) {
     modeFromArgs = arg.split('=')[1]
   } else if (arg === 'firebase' || arg === 'local' || arg === 'desktop') {
     modeFromArgs = arg
+  } else if (arg === 'staging' || arg === 'prod') {
+    targetFromArgs = arg
   }
 }
 
@@ -35,6 +57,8 @@ if (modeFromArgs) {
 if (mode === 'desktop') {
   mode = 'local'
 }
+
+const target = targetFromArgs || targetFromCwd || 'staging'
 
 // Check if running inside a git worktree, and isolate firebase files
 const currentDir = process.cwd()
@@ -56,7 +80,7 @@ if (currentDir.includes('/.worktrees/')) {
   }
 }
 
-console.log(`🚀 Starting deployment in mode: ${mode}`)
+console.log(`🚀 Starting deployment in mode: ${mode}${mode === 'local' ? ` (target: ${target})` : ''}`)
 
 let cmd
 let cmdArgs
@@ -66,7 +90,7 @@ if (mode === 'firebase') {
   cmdArgs = ['run', 'deploy:firebase']
 } else if (mode === 'local') {
   cmd = './deploy.sh'
-  cmdArgs = []
+  cmdArgs = [target]
 } else {
   console.error(`❌ Unknown deployment mode: ${mode}`)
   console.error(`Supported modes: 'firebase' (default), 'local' (or 'desktop')`)

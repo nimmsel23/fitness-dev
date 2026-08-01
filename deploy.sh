@@ -55,12 +55,19 @@ run_cmd() {
 msg "🚀 Starting Fitness Deployment to $TARGET ($DEST)"
 msg "📍 Using source checkout $SOURCE"
 
-# 1. Build in SOURCE first — cross-repo alias bundling
-msg "🔨 Building UI in $SOURCE"
-(
-  cd "$SOURCE"
-  npm run build > /dev/null
-)
+# 1. Build in SOURCE first — cross-repo alias bundling.
+# Ausnahme: Prod-Deploy aus dem Staging-Checkout (SOURCE == STAGING_SOURCE) —
+# der Stand in $SOURCE/dist wurde bereits beim vorherigen staging-Deploy
+# gebaut. Kein erneuter Build nötig, nur übernehmen und weiterreichen an prod.
+if [[ "$TARGET" == "prod" && "$SOURCE" == "$STAGING_SOURCE" && -d "$SOURCE/dist" ]]; then
+  msg "⏭️  Build übersprungen — nutze bereits vorhandenes $SOURCE/dist (aus dem staging-Deploy)"
+else
+  msg "🔨 Building UI in $SOURCE"
+  (
+    cd "$SOURCE"
+    npm run build > /dev/null
+  )
+fi
 
 # 2. Versioned Backup
 timestamp=$(date +%Y%m%d_%H%M%S)
