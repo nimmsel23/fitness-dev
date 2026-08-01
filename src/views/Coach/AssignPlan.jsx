@@ -1,35 +1,48 @@
 import { useState, useEffect } from 'react'
-import { Dumbbell, ArrowRight, Check } from 'lucide-react'
+import { Dumbbell, Sparkles, Send } from 'lucide-react'
 import { useUser } from '../../contexts/UserContext'
-import { getCoachAssignedPlans, assignPlanToClient, getClientPlanProgress } from '@db'
+import {
+  getAllUserProfiles,
+  getCoachAssignedPlans,
+  assignPlanToClient,
+  getClientPlanProgress,
+  getPlanSuggestion,
+} from '@db'
+
+const TEMPLATES = [
+  { id: 'push_day', label: 'Push' },
+  { id: 'pull_day', label: 'Pull' },
+  { id: 'legs_day', label: 'Legs' },
+  { id: 'full_body', label: 'Full Body' },
+]
 
 export default function AssignPlan() {
   const { user } = useUser()
-  const [clients, setClients] = useState([])
-  const [selectedClient, setSelectedClient] = useState(null)
-  const [clientPlans, setClientPlans] = useState([])
+  const [profiles, setProfiles] = useState({})
+  const [selectedClient, setSelectedClient] = useState('')
   const [assignedPlans, setAssignedPlans] = useState([])
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState({})
 
-  // In a real app, this would fetch from a client list
-  // For now, we'll need the client UID to be provided
-  useEffect(() => {
-    // TODO: Fetch list of assigned clients from coach profile or Firestore
-    // For now, provide a way to input client UID
-  }, [user?.uid])
+  const [template, setTemplate] = useState('full_body')
+  const [builtPlan, setBuiltPlan] = useState(null)
+  const [building, setBuilding] = useState(false)
+  const [pushing, setPushing] = useState(false)
+  const [pushState, setPushState] = useState('')
 
-  async function handleClientSelect(clientUid) {
-    if (!user?.uid) return
+  useEffect(() => {
+    getAllUserProfiles().then(setProfiles).catch(() => setProfiles({}))
+  }, [])
+
+  async function loadClientPlans(clientUid) {
+    if (!user?.uid || !clientUid) return
     setSelectedClient(clientUid)
     setLoading(true)
 
     try {
-      // Get plans assigned by this coach to this client
       const assigned = await getCoachAssignedPlans(user.uid, clientUid)
       setAssignedPlans(assigned)
 
-      // Fetch progress for each plan
       const progressData = {}
       for (const plan of assigned) {
         const p = await getClientPlanProgress(clientUid, plan.id)
@@ -43,21 +56,38 @@ export default function AssignPlan() {
     }
   }
 
-  async function handleAssignPlan(planId) {
-    if (!selectedClient || !user?.uid) return
+  async function buildPlan() {
+    setBuilding(true)
+    try {
+      const data = await getPlanSuggestion({ template, goal: 'hypertrophy' })
+      setBuiltPlan(data)
+    } catch {
+      setBuiltPlan(null)
+    } finally {
+      setBuilding(false)
+    }
+  }
+
+  async function pushPlan() {
+    if (!selectedClient || !user?.uid || !builtPlan) return
+    setPushing(true)
+    setPushState('')
 
     try {
-      const success = await assignPlanToClient(user.uid, selectedClient, planId)
+      const success = await assignPlanToClient(user.uid, selectedClient, builtPlan)
       if (success) {
-        // Reload plans
-        await handleClientSelect(selectedClient)
-        alert('Plan assigned successfully!')
+        setPushState('Plan zugewiesen')
+        setBuiltPlan(null)
+        await loadClientPlans(selectedClient)
       } else {
-        alert('Error assigning plan')
+        setPushState('Fehler beim Zuweisen')
       }
     } catch (error) {
       console.error('Error assigning plan:', error)
-      alert('Error assigning plan')
+      setPushState('Fehler beim Zuweisen')
+    } finally {
+      setPushing(false)
+      setTimeout(() => setPushState(''), 2600)
     }
   }
 
@@ -72,25 +102,71 @@ export default function AssignPlan() {
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-fit-dim uppercase mb-2">
-              Klienten-UID eingeben
+              Klient auswählen
             </label>
-            <input
-              type="text"
-              placeholder="z.B. 59ole36uNpNwml5H6VDYCXyCME92"
-              value={selectedClient || ''}
-              onChange={(e) => setSelectedClient(e.target.value)}
+            <select
+              value={selectedClient}
+              onChange={(e) => loadClientPlans(e.target.value)}
               className="w-full bg-fit-bg border border-fit-line rounded-lg px-4 py-2 text-sm font-bold text-fit-ink focus:border-fit-accent outline-none"
-            />
-            <button
-              onClick={() => handleClientSelect(selectedClient)}
-              disabled={!selectedClient}
-              className="mt-3 w-full btn btn-primary py-2 text-xs font-bold uppercase"
             >
-              Pläne laden
-            </button>
+              <option value="">Klient wählen…</option>
+              {Object.values(profiles).map(p => (
+                <option key={p.uid} value={p.uid}>{p.displayName}</option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
+
+      {selectedClient && (
+        <div className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 p-6">
+          <h3 className="text-sm font-bold text-fit-ink mb-4 flex items-center gap-2">
+            <Sparkles size={16} className="text-fit-accent" />
+            Neuen Plan bauen + zuweisen
+          </h3>
+
+          <div className="flex flex-wrap gap-2 mb-4">
+            {TEMPLATES.map(t => (
+              <button
+                key={t.id}
+                onClick={() => setTemplate(t.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase transition-colors ${
+                  template === t.id
+                    ? 'bg-fit-accent text-black'
+                    : 'bg-fit-bg border border-fit-line text-fit-dim hover:text-fit-ink'
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={buildPlan}
+            disabled={building}
+            className="w-full btn btn-primary py-2 text-xs font-bold uppercase mb-3"
+          >
+            {building ? 'Baue Plan…' : 'Plan bauen'}
+          </button>
+
+          {builtPlan && (
+            <div className="rounded-lg bg-fit-bg border border-fit-line/50 p-4 mb-3">
+              <p className="text-xs text-fit-dim mb-2">
+                {builtPlan.exercises?.length || 0} Übungen · {template}
+              </p>
+              <button
+                onClick={pushPlan}
+                disabled={pushing}
+                className="w-full btn btn-primary py-2 text-xs font-bold uppercase flex items-center justify-center gap-2"
+              >
+                <Send size={14} />
+                {pushing ? 'Wird zugewiesen…' : 'An Klient pushen'}
+              </button>
+              {pushState && <p className="text-xs text-fit-dim mt-2 text-center">{pushState}</p>}
+            </div>
+          )}
+        </div>
+      )}
 
       {selectedClient && (
         <div className="space-y-4">

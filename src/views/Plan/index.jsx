@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import WorkoutList from './WorkoutList.jsx'
 import WorkoutBuilder from './WorkoutBuilder.jsx'
+import AssignedPlans from './AssignedPlans.jsx'
 
 export default function PlanView() {
   const [route, setRoute] = useState({ view: 'list' })
@@ -8,10 +9,13 @@ export default function PlanView() {
   return (
     <div className="max-w-2xl mx-auto">
       {route.view === 'list' && (
-        <WorkoutList
-          onOpen={(id) => setRoute({ view: 'builder', workoutId: id })}
-          onSettings={() => {}}
-        />
+        <>
+          <AssignedPlans />
+          <WorkoutList
+            onOpen={(id) => setRoute({ view: 'builder', workoutId: id })}
+            onSettings={() => {}}
+          />
+        </>
       )}
       {route.view === 'builder' && (
         <WorkoutBuilder

@@ -495,6 +495,106 @@ app.post("/fitness/coach/feedback", async (c) => {
   return c.json({ ok: true });
 });
 
+// ── Coach-AssignedPlans (lokal, ~/.aos/fitness/users/<uid>/plans/) ───────────
+// Kein Firestore-Only-Stub mehr: Coach baut lokal einen Plan (z.B. via
+// /fitness/plan) und pusht ihn hier direkt in den User-Ordner des Klienten.
+function clientPlansDir(uid) {
+  return path.join(os.homedir(), ".aos", "fitness", "users", uid, "plans");
+}
+
+app.get("/fitness/coach/plans/:clientUid", (c) => {
+  const clientUid = c.req.param("clientUid");
+  const coachUid  = c.req.query("coachUid") || "";
+  const dir = clientPlansDir(clientUid);
+  if (!fs.existsSync(dir)) return c.json({ ok: true, plans: [] });
+  const plans = fs.readdirSync(dir)
+    .filter(f => f.endsWith(".json"))
+    .map(f => readJson(path.join(dir, f)))
+    .filter(p => p && (!coachUid || p.createdBy === coachUid));
+  return c.json({ ok: true, plans });
+});
+
+app.post("/fitness/coach/plans/:clientUid", async (c) => {
+  const clientUid = c.req.param("clientUid");
+  const body = await c.req.json().catch(() => ({}));
+  const { coachUid, plan } = body;
+  if (!coachUid || !plan) return c.json({ ok: false, error: "missing fields" }, 400);
+
+  const dir = clientPlansDir(clientUid);
+  fs.mkdirSync(dir, { recursive: true });
+  const id = plan.id || `plan_${Date.now()}`;
+  const record = {
+    ...plan,
+    id,
+    createdBy: coachUid,
+    assignedTo: clientUid,
+    assignedAt: new Date().toISOString(),
+  };
+  writeJson(path.join(dir, `${id}.json`), record);
+  return c.json({ ok: true, plan: record });
+});
+
+app.get("/fitness/coach/plans/:clientUid/:planId/progress", (c) => {
+  const clientUid = c.req.param("clientUid");
+  const planId    = c.req.param("planId");
+  const plan = readJson(path.join(clientPlansDir(clientUid), `${planId}.json`));
+  if (!plan) return c.json({ ok: true, progress: null });
+
+  const today = c.req.query("date") || localToday();
+  const completion = readJson(path.join(clientPlansDir(clientUid), planId, "completions", `${today}.json`));
+  const exercises  = plan.exercises || [];
+  const doneCount  = completion?.doneExerciseIds?.length || 0;
+
+  return c.json({
+    ok: true,
+    progress: {
+      planId,
+      planName: plan.name || "Unnamed Plan",
+      totalExercises: exercises.length,
+      doneExercises: doneCount,
+      completionPercentage: exercises.length > 0 ? Math.round((doneCount / exercises.length) * 100) : 0,
+      lastUpdate: completion?.completedAt || null,
+    },
+  });
+});
+
+// Klienten-Seite: eigene zugewiesene Pläne lesen + Completions togglen.
+app.get("/fitness/plans/assigned", (c) => {
+  const uid = c.req.query("uid") || c.req.header("X-User-UID") || "default";
+  const dir = clientPlansDir(uid);
+  if (!fs.existsSync(dir)) return c.json({ ok: true, plans: [] });
+  const plans = fs.readdirSync(dir)
+    .filter(f => f.endsWith(".json"))
+    .map(f => readJson(path.join(dir, f)))
+    .filter(Boolean);
+  return c.json({ ok: true, plans });
+});
+
+app.post("/fitness/plans/:planId/completions", async (c) => {
+  const planId = c.req.param("planId");
+  const uid    = c.req.query("uid") || c.req.header("X-User-UID") || "default";
+  const body   = await c.req.json().catch(() => ({}));
+  const date   = body.date || localToday();
+
+  const dir  = path.join(clientPlansDir(uid), planId, "completions");
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, `${date}.json`);
+  const current = readJson(file) || { date, doneExerciseIds: [] };
+  const doneSet = new Set(current.doneExerciseIds || []);
+
+  if (Array.isArray(body.doneExerciseIds)) {
+    doneSet.clear();
+    body.doneExerciseIds.forEach(id => doneSet.add(id));
+  } else if (body.exerciseId) {
+    if (doneSet.has(body.exerciseId)) doneSet.delete(body.exerciseId);
+    else doneSet.add(body.exerciseId);
+  }
+
+  const record = { date, doneExerciseIds: [...doneSet], completedAt: new Date().toISOString() };
+  writeJson(file, record);
+  return c.json({ ok: true, completion: record });
+});
+
 // ── Fitness config / search / plan / weekly / export ─────────────────────────
 app.get("/fitness/config", (c) =>
   c.json({
