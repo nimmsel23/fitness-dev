@@ -6,13 +6,15 @@ Versteckte Admin-Ansicht ("Hidden Chamber") für Coach-seitige Verwaltung — ni
 ## Komponenten
 | Datei | Zweck | Zeilen |
 |-------|-------|--------|
-| `index.jsx` | 3 Sub-Tabs (Übungsanfragen/Klienten-Workouts/Katalog Browser), lädt Journal-Feed + User-Profiles | 353 |
+| `index.jsx` | 4 Sub-Tabs (Übungsanfragen/Klienten-Workouts/Katalog Browser/Plan-Zuweisung), lädt Journal-Feed + User-Profiles | 365 |
 | `CatalogBrowser.jsx` | Vierter faktischer Bereich, eingebettet als 3. Sub-Tab: Übungssuche + Enhancer-Editor | 278 |
+| `AssignPlan.jsx` | 4. Sub-Tab: Klient wählen, Plan bauen + an Klient pushen, zugewiesene Pläne + Fortschritt anzeigen | 235 |
 
 ## Sub-Tabs
 1. **Übungsanfragen** (`activeSubTab === 'exercises'`) — nutzt `useInbox({ global: true })` (Hook aus `../Inbox/useInbox`, geteilt mit `Inbox.jsx`) + `InboxCard`-Komponente. Approve/Delete direkt aus dem Hook, keine eigene Logik hier.
 2. **Klienten-Workouts** (`activeSubTab === 'journals'`) — `getGlobalJournalFeed()` (collectionGroup über sessions/journal/habitJournals, max. 50 Items) + `getAllUserProfiles()` für Klarnamen. Seit 2026-07-22: Filter-Leiste (Dropdown nach Klient, Toggle nach Typ Workout/Habit, Reset-Button) — vorher ungefiltert und bei vielen Klienten unübersichtlich.
 3. **Katalog Browser** (`activeSubTab === 'catalog'`) — eigene Komponente `CatalogBrowser.jsx`, nutzt `searchExercises()` (liefert bei leerem Query bewusst `[]` — "erst tippen, dann suchen" ist Absicht, kein Bug), `getAnatomy()`, `saveExercise()`.
+4. **Plan-Zuweisung** (`activeSubTab === 'plans'`) — eigene Komponente `AssignPlan.jsx`. Bis 2026-08-01 reine Stub-Funktionen (`getCoachAssignedPlans`/`assignPlanToClient`/`getClientPlanProgress` in `src/lib/db/index.js` gaben immer `[]`/`false`/`null` zurück, ohne Backend-Anbindung); jetzt echte Implementierung in `src/lib/db/{local,firestore}/assignedPlans.js`. Klienten-Auswahl per Dropdown aus `getAllUserProfiles()` (vorher: manuelle UID-Texteingabe).
 
 ## Datenfluss
 - Inbox: `useInbox({ global: true })` → `getGlobalInbox()`/`getInbox()` (Firestore `collectionGroup(db, "inbox")`, siehe `firestore/sessions.js`) → State im Hook, nicht hier
@@ -20,6 +22,7 @@ Versteckte Admin-Ansicht ("Hidden Chamber") für Coach-seitige Verwaltung — ni
 - `filteredJournals` (Memo-freies `.filter()` bei jedem Render) — abgeleitet aus `journals` + `filterUserId` + `filterType`, kein eigener Fetch
 - `saveCoachFeedback(userId, sessionId, type, text, habitId, date)` — Kommentar-Funktion, schreibt Feedback + Push-Notify (laut UI-Toast-Text)
 - Catalog: eigenständiger State/Datenfluss komplett in `CatalogBrowser.jsx`, siehe dort
+- Plan-Zuweisung: `getPlanSuggestion()` baut einen Plan (Template-Auswahl, ruft `/fitness/plan` bzw. Firestore-Pendant), `assignPlanToClient(coachUid, clientUid, plan)` schreibt ihn direkt in den Klienten-Datenraum (Firestore `wf_workouts` oder lokal `~/.aos/fitness/users/<uid>/plans/`), `getCoachAssignedPlans()` + `getClientPlanProgress()` laden die Liste + Tages-Fortschritt zurück. Eigenständiger State/Datenfluss komplett in `AssignPlan.jsx`.
 
 ## Kernfeatures (müssen nach jedem Refactoring erhalten bleiben)
 - Journal-Feed: `coachFeedback` wird beim Laden in `commentsText` vorbefüllt, damit bestehende Kommentare beim erneuten Öffnen sichtbar sind
@@ -37,4 +40,4 @@ Versteckte Admin-Ansicht ("Hidden Chamber") für Coach-seitige Verwaltung — ni
 - Inbox-Writes von Nicht-Coach-Usern schlugen an `firestore.rules` fehl (fehlendes `userId`-Feld) — Klienten-Einträge kamen nie an. Fix: Commit `4647717`.
 
 ## Status
-Funktioniert (Stand 2026-07-22, nach den o.g. Fixes live verifiziert: Übungsanfragen zeigen Daten). Katalog-Browser- und Klienten-Workouts-Sub-Tab in derselben Session ebenfalls verifiziert bzw. um Filter ergänzt.
+Funktioniert (Stand 2026-07-22, nach den o.g. Fixes live verifiziert: Übungsanfragen zeigen Daten). Katalog-Browser- und Klienten-Workouts-Sub-Tab in derselben Session ebenfalls verifiziert bzw. um Filter ergänzt. Plan-Zuweisung (2026-08-01) per Build-Check verifiziert (Lint + `npm run build` sauber), nicht live gegen Prod-Firestore getestet — siehe `~/.claude/projects/-home-alpha-vitalos--git-modules-fitness-dev/memory/project_coach_assigned_plans_vs_klienten_dev.md` für den vollen Architektur-Kontext (klienten-dev/klienten-python als älteres Parallelsystem, VitalOS als geplante Coach-Shell).
