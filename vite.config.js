@@ -45,6 +45,10 @@ export default defineConfig(async ({ mode }) => {
   const crossAppAliases = await resolveCrossAppAliases()
 
   return {
+    // Relativ statt absolut — sonst lösen Assets unter einem Funnel-Pfad-
+    // Präfix (z.B. /fitness-dev/) fälschlich zur Domain-Wurzel auf (404 →
+    // Whitescreen). Core4/Door/Game/Fuel haben denselben Fix schon.
+    base: './',
     define: {
       'import.meta.env.VITE_FEDERATION': JSON.stringify(isFederation ? 'true' : 'false'),
     },

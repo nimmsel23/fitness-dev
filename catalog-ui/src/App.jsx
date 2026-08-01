@@ -7,9 +7,19 @@ import {
 import Model from 'react-body-highlighter';
 import './index.css';
 
-// Same-origin in Prod (api.py served dist/), Vite-Proxy in Dev — kein Prefix nötig.
+// Same-origin in Prod (api.py served dist/) und lokal (Vite-Proxy) — kein Prefix nötig.
+// Hinter dem Tailscale Funnel liegt die UI unter /fitness-catalog/ (das Backend
+// schreibt diesen Pfad intern auf /catalog-ui/ um), API-Routen liegen auf dem
+// Backend aber an der Wurzel — absolute Pfade wie /health träfen dort sonst wieder
+// den /catalog-ui-Catchall. /fitness-api/ ist die separate, unrewrittene Funnel-
+// Route direkt auf denselben Backend-Root (:9150) — dorthin umleiten, wenn wir
+// unter dem /fitness-catalog-Mount laufen.
+const API_BASE = window.location.pathname.startsWith('/fitness-catalog')
+  ? '/fitness-api'
+  : '';
+
 async function api(path, opts = {}) {
-  const res = await fetch(path, {
+  const res = await fetch(`${API_BASE}${path}`, {
     headers: { 'Content-Type': 'application/json' },
     ...opts,
   });

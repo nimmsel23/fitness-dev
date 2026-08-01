@@ -358,10 +358,93 @@ def cmd_sync_status() -> None:
 
 # ── clients ───────────────────────────────────────────────────────────────────
 
+import re as _re
+
+_JOURNAL_BLOCK_RE = _re.compile(r"<!--\s*(\w+):([^>]*?)\s*-->\s*(.*?)(?=<!--|\Z)", _re.DOTALL)
+_JOURNAL_HABIT_MARKERS = {"fshr", "fshid"}  # alles Habit-bezogene -- gehoert nicht ins Journal, auch mit Freitext nicht
+
+
+def _parse_journal_blocks(text: str) -> list[tuple[str, str]]:
+    blocks = []
+    for m in _JOURNAL_BLOCK_RE.finditer(text):
+        marker, _id, content = m.group(1), m.group(2), m.group(3).strip()
+        if content:
+            blocks.append((marker, content))
+    if not blocks and text.strip():
+        blocks.append(("?", text.strip()))
+    return blocks
+
+
+def _journal_preview(text: str, width: int = 90) -> str:
+    """Preview-Text fuer eine Journal-Zeile; nur echter Freitext, Habit-Sync-Zeilen werden nie gezeigt."""
+    blocks = _parse_journal_blocks(text)
+    content_blocks = [content for marker, content in blocks if marker not in _JOURNAL_HABIT_MARKERS]
+    if not content_blocks:
+        return ""
+    preview = " / ".join(content_blocks).replace("\n", " ")
+    if len(preview) > width:
+        preview = preview[:width] + "…"
+    return preview
+
+
+def _firestore_journal_texts(uid: str, cutoff: str) -> dict[str, list[str]]:
+    """Live-Query gegen fitness/{uid}/journal in Firestore -- unabhaengig vom
+    fitness-firestore-daemon.service, der nur EINEN UID (den eigenen) live
+    beobachtet. Klienten-Journal-Eintraege, die noch nie lokal gepullt wurden
+    (kein `fitness sync pull-uid` gelaufen), tauchen sonst nirgends auf.
+    Habits werden hier nie erfasst, da die Firestore-Collection "journal"
+    (fsid-Marker) von "habitJournals" (fshid-Marker) getrennt ist.
+    """
+    try:
+        from firestore._db import get_db
+    except Exception:
+        return {}
+    try:
+        db = get_db()
+        from google.cloud.firestore_v1.base_query import FieldFilter
+        docs = db.collection("fitness").document(uid).collection("journal").where(filter=FieldFilter("date", ">=", cutoff)).stream()
+    except Exception:
+        return {}
+
+    out: dict[str, list[str]] = {}
+    for doc in docs:
+        data = doc.to_dict() or {}
+        d = str(data.get("date") or "")
+        text = str(data.get("text") or "").strip()
+        if not d or not text:
+            continue
+        out.setdefault(d, []).append(text)
+    return out
+
+
+def _journal_dirs_for_uid(uid: str) -> list[Path]:
+    """Alle Ordner namens 'journal' unter ~/.aos/users/<uid>/ -- egal aus welcher Domain.
+
+    Rekursion manuell statt Path.glob("**/...", recurse_symlinks=True): dieser
+    Kwarg gibt es erst ab Python 3.13, das installierte fitness-agent uv-tool
+    laeuft aber auf 3.11 -- os.walk(followlinks=True) ist versionsunabhaengig
+    und loest ~/.aos/users/<uid>/fitness (ein Symlink) trotzdem auf.
+    """
+    import os
+
+    user_root = AOS_USERS / uid
+    if not user_root.exists():
+        return []
+    found: list[Path] = []
+    for root, dirnames, _files in os.walk(user_root, followlinks=True):
+        if Path(root).name == "journal":
+            found.append(Path(root))
+    return found
+
+
 @app.command(name="clients", help="Alle Klienten-Sessions chronologisch ausgeben")
 def cmd_clients(
+    name_filter: Optional[str] = typer.Argument(
+        None, help="Nur dieser Klient (Name oder Slug, z.B. matthias-mayer) — case-insensitive Teilstring"
+    ),
     days: int  = typer.Option(90,  "--days", "-d", help="Fenster in Tagen (0 = alle)"),
     all_: bool = typer.Option(False, "--all", "-a",  help="Gesamtes Archiv (ignoriert --days)"),
+    journal: bool = typer.Option(False, "--journal", "-j", help="Journal-Freitext passend zum Datum mit einsortieren (keine Habits); fragt zusaetzlich live Firestore ab, falls noch nicht lokal gepullt"),
 ) -> None:
     registry = load_client_registry()
     if not registry:
@@ -371,13 +454,20 @@ def cmd_clients(
     n_days = 9999 if all_ else days
     cutoff = (date.today() - timedelta(days=n_days)).isoformat() if n_days < 9999 else "0000-00-00"
 
+    needle = name_filter.strip().lower() if name_filter else None
+
     # deduplizieren: pro Client (slug) einmal ausgeben
     seen_slugs: set[str] = set()
+    matched_any = False
     for meta in registry.values():
         slug = meta["slug"]
         if slug in seen_slugs:
             continue
         seen_slugs.add(slug)
+
+        if needle and needle not in slug.lower() and needle not in meta["name"].lower():
+            continue
+        matched_any = True
 
         name = meta["name"]
         uids = meta.get("uids") or [meta["uid"]]
@@ -410,45 +500,84 @@ def cmd_clients(
             s["_stem"] = f.stem
             raw_sessions.append(s)
         sessions = rollup_training_days(raw_sessions)
+        session_by_date = {s.get("date", ""): s for s in sessions}
+
+        journal_by_date: dict[str, str] = {}
+        if journal:
+            for uid in uids:
+                for jdir in _journal_dirs_for_uid(uid):
+                    for f in jdir.glob("*.md"):
+                        d = f.stem[:10]
+                        if len(d) != 10 or d < cutoff:
+                            continue
+                        preview = _journal_preview(f.read_text(encoding="utf-8"))
+                        if preview:
+                            journal_by_date[d] = preview
+
+            for uid in uids:
+                for d, texts in _firestore_journal_texts(uid, cutoff).items():
+                    existing = journal_by_date.get(d, "")
+                    for text in texts:
+                        if text not in existing:
+                            existing = f"{existing} / {text}" if existing else text
+                    if existing:
+                        journal_by_date[d] = existing
+
+        all_dates = sorted(set(session_by_date) | set(journal_by_date), reverse=True)
         shown = 0
-        for s in sessions:
-            d = s.get("date", "")
+        for d in all_dates:
+            try:
+                date_s = c("dim", datetime.strptime(d, "%Y-%m-%d").strftime("%a %d.%m.%y"))
+            except ValueError:
+                date_s = c("dim", d)
 
-            kind  = classify(s)
-            acts  = session_activities(s)
-            act   = acts[0] if acts else (s.get("activity") or {})
-            exs   = performed_exercises(s)
-            block = s.get("block", "")
-            eff   = s.get("effort")
+            s = session_by_date.get(d)
+            if s is not None:
+                kind  = classify(s)
+                acts  = session_activities(s)
+                act   = acts[0] if acts else (s.get("activity") or {})
+                exs   = performed_exercises(s)
+                block = s.get("block", "")
+                eff   = s.get("effort")
 
-            date_s = c("dim", datetime.strptime(d, "%Y-%m-%d").strftime("%a %d.%m.%y"))
-            if kind == "cardio":
-                atype = act.get("type", "?")
-                adur  = activity_minutes(s)
-                emoji = ACTIVITY_EMOJI.get(atype, "🏃")
-                label = " + ".join(
-                    f"{ACTIVITY_EMOJI.get(a.get('type', '?'), '🏃')} {ACTIVITY_LABEL.get(a.get('type', '?'), a.get('type', '?'))}"
-                    for a in acts or [act]
-                ) or ACTIVITY_LABEL.get(atype, atype)
-                dur_s = c("dim", f"{adur}min") if adur else ""
-                print(f"   {date_s}   {c('orange', label)}  {dur_s}")
-            else:
-                bc    = block_ansi_color(block)
-                names = ", ".join(e.get("name", "?") for e in exs[:4])
-                ell   = "…" if len(exs) > 4 else ""
-                eff_s = c("yellow", f"RPE {eff}") if eff else ""
-                addon = ""
-                if kind == "strength+addon":
+                if kind == "cardio":
+                    atype = act.get("type", "?")
                     adur  = activity_minutes(s)
-                    icons = "".join(ACTIVITY_EMOJI.get(a.get("type", "?"), "⚡") for a in acts)
-                    addon = f"  {icons or '⚡'}{c('dim', '+' + str(adur) + 'min') if adur else ''}"
-                print(f"   {date_s}   {c(bc, '[' + (block or '?') + ']')}  "
-                      f"{c('dim', names + ell)}  {eff_s}{addon}")
-            shown += 1
+                    label = " + ".join(
+                        f"{ACTIVITY_EMOJI.get(a.get('type', '?'), '🏃')} {ACTIVITY_LABEL.get(a.get('type', '?'), a.get('type', '?'))}"
+                        for a in acts or [act]
+                    ) or ACTIVITY_LABEL.get(atype, atype)
+                    dur_s = c("dim", f"{adur}min") if adur else ""
+                    print(f"   {date_s}   {c('orange', label)}  {dur_s}")
+                else:
+                    bc    = block_ansi_color(block)
+                    ex_names = ", ".join(e.get("name", "?") for e in exs[:4])
+                    ell   = "…" if len(exs) > 4 else ""
+                    eff_s = c("yellow", f"RPE {eff}") if eff else ""
+                    addon = ""
+                    if kind == "strength+addon":
+                        adur  = activity_minutes(s)
+                        icons = "".join(ACTIVITY_EMOJI.get(a.get("type", "?"), "⚡") for a in acts)
+                        addon = f"  {icons or '⚡'}{c('dim', '+' + str(adur) + 'min') if adur else ''}"
+                    print(f"   {date_s}   {c(bc, '[' + (block or '?') + ']')}  "
+                          f"{c('dim', ex_names + ell)}  {eff_s}{addon}")
+                shown += 1
+
+            preview = journal_by_date.get(d)
+            if preview:
+                if s is None:
+                    print(f"   {date_s}   {c('cyan', '📓')} {c('white', preview)}")
+                else:
+                    print(f"      {c('dim', '↳ 📓')} {c('dim', preview)}")
+                    shown += 1
 
         if shown == 0:
             window = f"letzten {n_days}d" if n_days < 9999 else "gesamt"
             print(f"   {c('dim', 'Keine Sessions im Fenster (' + window + ')')}")
+
+    if needle and not matched_any:
+        print(c("red", f"  Kein Klient gefunden fuer '{name_filter}'."))
+        raise typer.Exit(1)
 
     print()
 
