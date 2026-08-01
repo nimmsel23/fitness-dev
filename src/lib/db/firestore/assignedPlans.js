@@ -1,5 +1,5 @@
 import { db } from '../../../firebase.js'
-import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc, arrayUnion } from 'firebase/firestore'
+import { doc, getDoc, setDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore'
 
 // Get all plans assigned to current user (as client)
 export async function getAssignedPlans(clientUid) {
@@ -31,15 +31,30 @@ export async function getCoachAssignedPlans(coachUid, clientUid) {
   }
 }
 
-// Assign a plan to a client (coach action)
-export async function assignPlanToClient(coachUid, clientUid, planId) {
+// Assign a plan to a client (coach action). `plan` is either an existing
+// planId (legacy — updates an already-existing wf_workouts doc) or a full
+// plan object (coach built it locally and pushes it as a new doc).
+export async function assignPlanToClient(coachUid, clientUid, plan) {
   try {
+    if (typeof plan === 'string') {
+      const planRef = doc(db, 'fitness', clientUid, 'wf_workouts', plan)
+      await updateDoc(planRef, {
+        createdBy: coachUid,
+        assignedTo: clientUid,
+        assignedAt: new Date().toISOString(),
+      })
+      return true
+    }
+
+    const { id, ...rest } = plan || {}
+    const planId = id || doc(collection(db, 'fitness', clientUid, 'wf_workouts')).id
     const planRef = doc(db, 'fitness', clientUid, 'wf_workouts', planId)
-    await updateDoc(planRef, {
+    await setDoc(planRef, {
+      ...rest,
       createdBy: coachUid,
       assignedTo: clientUid,
       assignedAt: new Date().toISOString(),
-    })
+    }, { merge: true })
     return true
   } catch (error) {
     console.error('Error assigning plan:', error)

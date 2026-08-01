@@ -8,6 +8,7 @@ export * from "./local/habits.js";
 export * from "./local/kb.js";
 export * from "./local/inbox.js";
 export * from "./local/coach.js";
+export * from "./local/assignedPlans.js";
 export * from "./local/analysis.js";
 export * from "./local/user.js";
 export * from "./local/utils.js";
@@ -21,8 +22,3 @@ export * from "./shared/favourites.js";
 // Fuel Stub - local mode has no direct access to fuel server db
 export async function getMealsHistory(_limit) { return []; }
 export async function getSupplementsHistory(_limit) { return []; }
-
-// Coach-AssignedPlans Stub - Firestore-only Feature (kein lokaler Backend-Endpoint)
-export async function getCoachAssignedPlans(_coachUid, _clientUid) { return []; }
-export async function assignPlanToClient(_coachUid, _clientUid, _planId) { return false; }
-export async function getClientPlanProgress(_clientUid, _planId) { return null; }
