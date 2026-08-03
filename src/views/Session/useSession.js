@@ -25,8 +25,8 @@ function slugify(name) {
     .replace(/^_+|_+$/g, '') || 'exercise';
 }
 
-export function useSession({ initialDate, initialDraft, recentDays = 7, coverageThreshold = 1.0 }) {
-  const [date, setDate]             = useState(initialDate || localToday());
+export function useSession({ initialDate, initialDraft, recentDays = 7, coverageThreshold = 1.0, onDateChange = null }) {
+  const [date, setDateState]        = useState(initialDate || localToday());
   const [sessionMode, setSessionMode] = useState('strength');
   const [block, setBlock]           = useState('');
   const [exercises, setExercises]   = useState([]);
@@ -75,8 +75,13 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
 
   function changeDate(d) {
     flushDirty();
-    setDate(d);
+    setDateState(d);
+    onDateChange?.(d);
   }
+
+  useEffect(() => {
+    if (initialDate && initialDate !== date) setDateState(initialDate);
+  }, [initialDate, date]);
 
   // ── Load / Reset ─────────────────────────────────────────────
   const loadSessionData = (d) => {

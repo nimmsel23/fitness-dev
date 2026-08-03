@@ -13,9 +13,9 @@ import PlanView from '../Plan/index.jsx';
 
 export default function Session({
   initialDate, initialDraft, onInspectExercise, onOpenSession,
-  recentDays = 7, coverageThreshold = 1.0, subTab,
+  recentDays = 7, coverageThreshold = 1.0, subTab, onDateChange,
 }) {
-  const session = useSession({ initialDate, initialDraft, recentDays, coverageThreshold });
+  const session = useSession({ initialDate, initialDraft, recentDays, coverageThreshold, onDateChange });
 
   if (subTab === 'plan') {
     return <PlanView />;
