@@ -48,4 +48,4 @@ export const THEMES = {
   alucard:            { bg: '#fffbeb', accent: '#644ac9' },
 };
 
-export const VALID_TABS = new Set(['dash', 'session', 'habits', 'journal', 'review', 'learn', 'settings', 'coach', 'gate']);
+export const VALID_TABS = new Set(['dash', 'session', 'review', 'learn', 'settings', 'coach', 'gate']);

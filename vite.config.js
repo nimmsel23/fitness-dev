@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import federation from '@originjs/vite-plugin-federation'
 import { resolve } from 'path'
 import { existsSync } from 'fs'
 
@@ -17,8 +16,8 @@ function siblingDir(devName, appName) {
   return existsSync(appPath) ? appPath : resolve(__dirname, '..', devName)
 }
 
-// SSOT für Cross-App-Aliase (@habits, @journal, @fuel, @relax, @learn + deren
-// -db-Varianten) ist @vos/cross-app-aliases (~/vitalos/packages/cross-app-aliases) —
+// SSOT für Cross-App-Aliase (@fuel, @relax, @learn + interne Cross-DB-Exports)
+// ist @vos/cross-app-aliases (~/vitalos/packages/cross-app-aliases) —
 // nur erreichbar, wenn dieses Repo als vitalos-Submodule genestet ist (npm
 // Workspace-Symlink). Standalone-Checkout (~/fitness-dev ohne vitalos-Parent)
 // fällt auf die alte siblingDir()-Auflösung zurück.
@@ -29,10 +28,6 @@ async function resolveCrossAppAliases() {
   } catch {
     return {
       '@fuel':       resolve(siblingDir('fuel-dev', 'fuel-app'), 'src/client'),
-      '@habits':     resolve(siblingDir('habits-dev', 'habit-app'), 'src'),
-      '@habits-db':  resolve(siblingDir('habits-dev', 'habit-app'), 'src/db'),
-      '@journal':    resolve(siblingDir('journal-dev', 'journal-app'), 'src'),
-      '@journal-db': resolve(siblingDir('journal-dev', 'journal-app'), 'src/db/index.js'),
       '@relax':      resolve(siblingDir('relax-dev', 'relax-app'), 'src'),
       '@learn':      resolve(__dirname, '../learn-dev/src'),
     }
@@ -41,7 +36,6 @@ async function resolveCrossAppAliases() {
 
 export default defineConfig(async ({ mode }) => {
   const isFirebase = mode === 'firebase'
-  const isFederation = process.env.VITE_FEDERATION === 'true' || isFirebase
   const crossAppAliases = await resolveCrossAppAliases()
 
   return {
@@ -49,25 +43,7 @@ export default defineConfig(async ({ mode }) => {
     // Präfix (z.B. /fitness-dev/) fälschlich zur Domain-Wurzel auf (404 →
     // Whitescreen). Core4/Door/Game/Fuel haben denselben Fix schon.
     base: './',
-    define: {
-      'import.meta.env.VITE_FEDERATION': JSON.stringify(isFederation ? 'true' : 'false'),
-    },
-    plugins: [
-      react(),
-      isFederation && federation({
-        name: 'fitness_host',
-        remotes: {
-          journal: isFirebase
-            ? 'https://journal-aos.web.app/assets/remoteEntry.js'
-            : 'http://localhost:9171/dist-federation/assets/remoteEntry.js',
-        },
-        shared: {
-          react:       { singleton: true, requiredVersion: '^18.0.0' },
-          'react-dom': { singleton: true, requiredVersion: '^18.0.0' },
-          'lucide-react': { singleton: true },
-        },
-      }),
-    ].filter(Boolean),
+    plugins: [react()],
     resolve: {
       preserveSymlinks: true,
       alias: {
@@ -85,13 +61,8 @@ export default defineConfig(async ({ mode }) => {
         '@fitness':            resolve(__dirname, './src'),
         '@components':         resolve(__dirname, './src/components'),
       },
-      // Singleton-Dedup: fuel-dev hat eigene node_modules — Vite zwingt eine einzige Instanz.
-      // firebase: habit-app pinnt intern ^12.15.0 (eigene node_modules), Rest des
-      // Workspace inkl. fitness-app selbst ^11.10.0 — ohne dedupe landen zwei
-      // Firebase-App-Instanzen im selben Bundle (@habits wird per Alias direkt
-      // eingebunden), getAuth() greift dann auf eine Instanz, in der
-      // initializeApp() nie lief -> "Component auth has not been registered yet"
-      // (Whitescreen auf fitness-aos.web.app).
+      // Singleton-Dedup: sibling apps bringen eigene node_modules mit — Vite
+      // muss React/Firebase trotzdem als Einzelinstanz auflösen.
       dedupe: ['react', 'react-dom', '@tanstack/react-query', 'firebase', 'firebase/app', 'firebase/auth', 'firebase/firestore'],
     },
     server: {
@@ -123,10 +94,10 @@ export default defineConfig(async ({ mode }) => {
     },
     build: {
       outDir: 'dist',
-      target: isFederation ? 'esnext' : 'modules',
+      target: 'modules',
       rollupOptions: {
         output: {
-          manualChunks: isFederation ? undefined : {
+          manualChunks: {
             react: ['react', 'react-dom'],
             charts: ['recharts'],
             icons: ['lucide-react'],

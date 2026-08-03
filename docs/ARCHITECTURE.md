@@ -124,7 +124,7 @@ src/components/
 ```
 
 **NAV_ITEMS** (Reihenfolge entspricht Swipe-Reihenfolge auf Mobile):
-`dash` → `session` → `habits` → `journal` → `review` → `learn` → `settings`
+`session` → `review` → `learn` → `settings`
 
 **@db Alias (vite.config.js):**
 - Default: `src/db.js` (Barrel für `src/lib/db/*.js`, alle Calls → Node-Server :9100, `isLocalMode() = true`)
