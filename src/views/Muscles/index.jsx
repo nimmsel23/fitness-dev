@@ -42,7 +42,7 @@ function getMuscleGroup(muscleId) {
   return muscleToRegion(muscleId);
 }
 
-export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null, recentDays = 10 }) {
+export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null, recentDays = 10, onInspectExercise = null }) {
   const [days, setDays] = useState(recentDays);
   const [loading, setLoading] = useState(true);
   const [recentExercises, setRecentExercises] = useState([]);
@@ -212,6 +212,7 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
         onClose={() => setSelectedMuscleId(null)}
         muscleLanguage={muscleLanguage}
         taxonomy={taxonomy}
+        onInspectExercise={onInspectExercise}
       />
     </div>
   );

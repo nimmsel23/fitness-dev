@@ -388,7 +388,7 @@ const RBH_SLUG_BY_WORD = {
   chest: 'chest', calves: 'calves', quadriceps: 'quadriceps',
   glutes: 'gluteal', hamstrings: 'hamstring', forearms: 'forearm',
   abs: 'abs', obliques: 'obliques', biceps: 'biceps', triceps: 'triceps',
-  trapezius: 'trapezius',
+  trapezius: 'trapezius', upper_back: 'upper-back', abductors: 'abductors',
 };
 
 export function muscleToRbhSlug(raw) {
@@ -427,6 +427,7 @@ const RMH_SLUG_BY_WORD = {
   glutes: 'gluteal', hamstrings: 'hamstring', forearms: 'forearm',
   abs: 'abs', obliques: 'obliques', biceps: 'biceps', triceps: 'triceps',
   trapezius: 'trapezius', shoulders: 'deltoids', adductors: 'adductors',
+  upper_back: 'upper-back',
 };
 
 export function muscleToRmhSlug(raw) {

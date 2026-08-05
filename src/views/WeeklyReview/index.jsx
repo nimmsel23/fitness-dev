@@ -89,7 +89,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
       </div>
 
       {viewMode === 'muscles' ? (
-        <Muscles gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} recentDays={recentDays} />
+        <Muscles gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} recentDays={recentDays} onInspectExercise={onInspectExercise} />
       ) : viewMode === 'readiness' ? (
         <ReviewReadinessMatrix taxonomy={taxonomy} muscleLanguage={muscleLanguage} />
       ) : viewMode === 'verlauf' ? (
