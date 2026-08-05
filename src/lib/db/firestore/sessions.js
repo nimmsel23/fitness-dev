@@ -168,7 +168,29 @@ export async function getLatestSession() {
   return sessions.length > 0 ? sessions[0] : null;
 }
 
-export async function getSessionHistory(n = 60) { return getRecentSessions(n); }
+export async function getSessionHistory(days = 90) {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutoffISO = cutoff.toISOString().slice(0, 10);
+
+  const q = query(
+    collection(db, "fitness", getUid(), "sessions"),
+    where("date", ">=", cutoffISO),
+    orderBy("date", "desc"),
+  );
+  const snap = await getDocs(q);
+  return snap.docs
+    .map((d) => {
+      const data = d.data() || {};
+      const suffix = d.id.includes("__") ? d.id.split("__")[1] : null;
+      return {
+        id: suffix,
+        ...data,
+        exercises: Array.isArray(data.exercises) ? data.exercises : [],
+      };
+    })
+    .filter(Boolean);
+}
 
 // Stub — Fuel/Nutrition lives in a separate repo/Firestore layer.
 export async function getMealsHistory(_limit) { return []; }
