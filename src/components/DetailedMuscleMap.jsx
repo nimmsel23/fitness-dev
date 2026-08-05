@@ -1,9 +1,19 @@
 import Body from 'react-muscle-highlighter';
-import { muscleToRegion } from '../lib/db/shared/muscle.js';
+import { muscleToRmhSlug } from '../lib/translations.js';
 
-// groupScores: { [region]: { score: 3, color: '#22c55e' }, ... }
+// groupScores: { [muscleIdOrWord]: { score, color } } — mehrere Keys können
+// auf denselben RMH-Slug rollen (z.B. einzelne Trapezius-Köpfe → "trapezius").
+// Nach Ziel-Slug aggregieren (niedrigster Score = frischest trainiert
+// gewinnt), sonst überschreiben sich Duplikate zufällig statt sinnvoll.
 function groupScoresToData(groupScores) {
-  return Object.entries(groupScores).map(([slug, { color }]) => ({ slug, color }));
+  const bySlug = {};
+  for (const [region, gs] of Object.entries(groupScores || {})) {
+    if (!gs?.score) continue;
+    const slug = muscleToRmhSlug(region);
+    if (!slug) continue;
+    if (!bySlug[slug] || gs.score < bySlug[slug].score) bySlug[slug] = { score: gs.score, color: gs.color };
+  }
+  return Object.entries(bySlug).map(([slug, { color }]) => ({ slug, color }));
 }
 
 const DONE_COLOR = '#22c55e';
@@ -14,8 +24,8 @@ function exercisesToData(exercises) {
     const primary = ex?.primaryMuscles || ex?.primary_muscles || [];
     const secondary = ex?.secondaryMuscles || ex?.secondary_muscles || [];
     for (const m of [...primary, ...secondary]) {
-      const region = muscleToRegion(m);
-      if (region) slugs.add(region);
+      const slug = muscleToRmhSlug(m);
+      if (slug) slugs.add(slug);
     }
   }
   return [...slugs].map(slug => ({ slug, color: DONE_COLOR }));

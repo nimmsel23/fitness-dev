@@ -18,6 +18,15 @@ const GROUP_TRANSLATIONS = {
     adductors: 'Adduktoren',
     abductors: 'Abduktoren',
     trapezius: 'Nacken',
+    upper_back: 'Oberer Rücken',
+    middle_back: 'Mittlerer Rücken',
+    lower_back: 'Unterer Rücken',
+    rhomboids: 'Rautenmuskeln',
+    serratus_anterior: 'Vorderer Sägemuskel',
+    biceps: 'Bizeps',
+    triceps: 'Trizeps',
+    forearms: 'Unterarme',
+    abs: 'Bauch',
   },
   en: {
     chest: 'Chest',
@@ -33,6 +42,15 @@ const GROUP_TRANSLATIONS = {
     adductors: 'Adductors',
     abductors: 'Hip Abductors',
     trapezius: 'Traps',
+    upper_back: 'Upper Back',
+    middle_back: 'Middle Back',
+    lower_back: 'Lower Back',
+    rhomboids: 'Rhomboids',
+    serratus_anterior: 'Serratus Anterior',
+    biceps: 'Biceps',
+    triceps: 'Triceps',
+    forearms: 'Forearms',
+    abs: 'Abs',
   },
   lat: {
     chest: 'Thorax',
@@ -48,6 +66,15 @@ const GROUP_TRANSLATIONS = {
     adductors: 'Mm. adductores',
     abductors: 'Mm. abductores',
     trapezius: 'Trapezius',
+    upper_back: 'Cingulum membri sup.',
+    middle_back: 'Regio infrascapularis',
+    lower_back: 'Regio lumbalis',
+    rhomboids: 'Mm. rhomboidei',
+    serratus_anterior: 'M. serratus anterior',
+    biceps: 'Regio brachii anterior',
+    triceps: 'Regio brachii posterior',
+    forearms: 'Antebrachium',
+    abs: 'Abdomen',
   }
 };
 
@@ -327,6 +354,87 @@ export function loadMuscleDetail() {
 
 export function saveMuscleDetail(value) {
   localStorage.setItem(MUSCLE_DETAIL_KEY, value);
+}
+
+// react-body-highlighter (RBH) hat sein eigenes, teils feineres/anders
+// benanntes Slug-Vokabular (getrennte front-/back-deltoids, upper-/
+// lower-back statt "back", aber z.B. kein "lats"/"rotator cuff"). Eigene,
+// numerische-ID-basierte Auflösung statt Wiederverwendung von
+// numericSlugToGroup() (das ist für Anzeige-Zwecke gröber, back/shoulders/
+// arms/core werden dort nicht weiter gesplittet). Muskeln ohne sauberes
+// RBH-Äquivalent (rhomboids, rotator cuff, lats, teres major, tibialis, ...)
+// bleiben unaufgelöst (null) — ehrlich statt erfunden (siehe HIGHLIGHTERS.md).
+const RBH_SLUG_BY_NUMERIC_ID = {
+  100: 'chest', 101: 'chest', 102: 'chest', 103: 'chest', 104: 'chest', 105: 'chest',
+  202: 'trapezius', 203: 'trapezius', 204: 'trapezius',
+  206: 'lower-back',
+  301: 'front-deltoids', 303: 'back-deltoids',
+  401: 'triceps',
+  402: 'biceps', 403: 'biceps',
+  404: 'forearm', 405: 'forearm', 406: 'forearm', 407: 'forearm',
+  501: 'abs', 504: 'abs', 506: 'abs', 507: 'abs', 508: 'abs',
+  502: 'obliques', 503: 'obliques',
+  601: 'quadriceps',
+  602: 'adductor',
+  603: 'gluteal', 608: 'gluteal', 609: 'gluteal',
+  604: 'hamstring', 605: 'hamstring', 606: 'hamstring',
+  701: 'calves', 702: 'calves',
+};
+
+// Region-/Gruppen-Wörter (z.B. aus muscleToRegion()), die 1:1 oder mit
+// simpler Singular/Plural-Korrektur bereits einem gültigen RBH-Slug
+// entsprechen.
+const RBH_SLUG_BY_WORD = {
+  chest: 'chest', calves: 'calves', quadriceps: 'quadriceps',
+  glutes: 'gluteal', hamstrings: 'hamstring', forearms: 'forearm',
+  abs: 'abs', obliques: 'obliques', biceps: 'biceps', triceps: 'triceps',
+  trapezius: 'trapezius',
+};
+
+export function muscleToRbhSlug(raw) {
+  if (!raw) return null;
+  const canonical = canonicalMuscleId(raw);
+  const m = String(canonical).match(/^(\d+)/);
+  if (m && RBH_SLUG_BY_NUMERIC_ID[Number(m[1])]) return RBH_SLUG_BY_NUMERIC_ID[Number(m[1])];
+  return RBH_SLUG_BY_WORD[canonical] || null;
+}
+
+// react-muscle-highlighter (RMH) — eigenes, drittes Slug-Vokabular (siehe
+// HIGHLIGHTERS.md): kein front-/back-deltoids-Split (nur "deltoids"), dafür
+// zusätzlich ankles/feet/knees/tibialis, die weder RBH noch die App-Gruppen
+// kennen. Gleiches Prinzip wie muscleToRbhSlug(): numerische ID zuerst,
+// Region-Wort als Fallback, kein Treffer → null (ehrlich statt erfunden).
+const RMH_SLUG_BY_NUMERIC_ID = {
+  100: 'chest', 101: 'chest', 102: 'chest', 103: 'chest', 104: 'chest', 105: 'chest',
+  202: 'trapezius', 203: 'trapezius', 204: 'trapezius',
+  206: 'lower-back',
+  301: 'deltoids', 302: 'deltoids', 303: 'deltoids',
+  401: 'triceps',
+  402: 'biceps', 403: 'biceps',
+  404: 'forearm', 405: 'forearm', 406: 'forearm', 407: 'forearm',
+  501: 'abs', 504: 'abs', 506: 'abs', 507: 'abs', 508: 'abs',
+  502: 'obliques', 503: 'obliques',
+  601: 'quadriceps',
+  602: 'adductors',
+  603: 'gluteal', 608: 'gluteal', 609: 'gluteal',
+  604: 'hamstring', 605: 'hamstring', 606: 'hamstring',
+  701: 'calves', 702: 'calves',
+  703: 'tibialis',
+};
+
+const RMH_SLUG_BY_WORD = {
+  chest: 'chest', calves: 'calves', quadriceps: 'quadriceps',
+  glutes: 'gluteal', hamstrings: 'hamstring', forearms: 'forearm',
+  abs: 'abs', obliques: 'obliques', biceps: 'biceps', triceps: 'triceps',
+  trapezius: 'trapezius', shoulders: 'deltoids', adductors: 'adductors',
+};
+
+export function muscleToRmhSlug(raw) {
+  if (!raw) return null;
+  const canonical = canonicalMuscleId(raw);
+  const m = String(canonical).match(/^(\d+)/);
+  if (m && RMH_SLUG_BY_NUMERIC_ID[Number(m[1])]) return RMH_SLUG_BY_NUMERIC_ID[Number(m[1])];
+  return RMH_SLUG_BY_WORD[canonical] || null;
 }
 
 export function translateMuscle(muscleId, taxonomy = null, lang = 'de') {

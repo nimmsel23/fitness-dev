@@ -1,12 +1,10 @@
-import Model, { MuscleType } from 'react-body-highlighter';
-import { muscleToRegion } from '../lib/db/shared/muscle.js';
-
-// Vom Package selbst exportierte gültige Slugs — nicht abgetippt.
-const SUPPORTED_RBH_MUSCLES = new Set(Object.values(MuscleType));
+import Model from 'react-body-highlighter';
+import { muscleToRbhSlug } from '../lib/translations.js';
 
 function addScore(scores, muscle, amount) {
-  if (!SUPPORTED_RBH_MUSCLES.has(muscle)) return;
-  scores[muscle] = (scores[muscle] || 0) + amount;
+  const slug = muscleToRbhSlug(muscle);
+  if (!slug) return;
+  scores[slug] = (scores[slug] || 0) + amount;
 }
 
 export function exercisesToModelData(exercises) {
@@ -15,8 +13,8 @@ export function exercisesToModelData(exercises) {
     const primary = Array.isArray(ex?.primaryMuscles) ? ex.primaryMuscles : Array.isArray(ex?.primary_muscles) ? ex.primary_muscles : [];
     const secondary = Array.isArray(ex?.secondaryMuscles) ? ex.secondaryMuscles : Array.isArray(ex?.secondary_muscles) ? ex.secondary_muscles : [];
 
-    primary.forEach((id) => { const m = muscleToRegion(id); if (m) addScore(rbhScores, m, 2); });
-    secondary.forEach((id) => { const m = muscleToRegion(id); if (m) addScore(rbhScores, m, 1); });
+    primary.forEach((id) => addScore(rbhScores, id, 2));
+    secondary.forEach((id) => addScore(rbhScores, id, 1));
   }
 
   return Object.entries(rbhScores).map(([muscle, score]) => ({
@@ -26,12 +24,26 @@ export function exercisesToModelData(exercises) {
   }));
 }
 
-// groupScores: { [regionWord]: { score, color } }
+// groupScores: { [muscleIdOrWord]: { score, color } } — Keys können jetzt
+// Einzelmuskel-IDs sein (z.B. "603_gluteus_maximus" und "608_gluteus_medius"
+// getrennt), die beide auf denselben RBH-Slug ("gluteal") rollen. Deshalb
+// erst nach Ziel-Slug aggregieren (niedrigster Score = frischest trainiert
+// gewinnt), statt 1:1 pro Input-Key einen Eintrag zu erzeugen — sonst
+// bekäme react-body-highlighter zwei Einträge für denselben Slug und der
+// zuletzt iterierte (nicht der frischeste) würde zufällig gewinnen.
 function groupScoresToModelData(groupScores) {
-  return Object.entries(groupScores || {}).flatMap(([region, gs]) => {
-    if (!gs?.score || !SUPPORTED_RBH_MUSCLES.has(region)) return [];
-    return [{ name: region, muscles: [region], frequency: Math.ceil(gs.score) }];
-  });
+  const bySlug = {};
+  for (const [region, gs] of Object.entries(groupScores || {})) {
+    if (!gs?.score) continue;
+    const slug = muscleToRbhSlug(region);
+    if (!slug) continue;
+    if (!bySlug[slug] || gs.score < bySlug[slug]) bySlug[slug] = gs.score;
+  }
+  return Object.entries(bySlug).map(([slug, score]) => ({
+    name: slug,
+    muscles: [slug],
+    frequency: Math.ceil(score),
+  }));
 }
 
 export default function BodyMap({ exercises, groupScores = {}, onGroupClick, type = 'anterior', style, highlightedColors }) {
