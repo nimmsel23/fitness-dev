@@ -39,22 +39,22 @@ export default function MuscleHeatmap({ exercises }) {
   const sorted = Object.entries(heat).sort((a, b) => b[1] - a[1]);
 
   return (
-    <div className="rounded-2xl bg-forge-panel border border-forge-border p-4">
+    <div className="rounded-2xl bg-fit-bg2 border border-fit-line p-4">
       <div className="flex items-center justify-between mb-3">
-        <div className="text-xs font-bold uppercase tracking-widest text-forge-muted">
+        <div className="text-xs font-bold uppercase tracking-widest text-fit-muted">
           Muskel-Verteilung
         </div>
-        <div className="flex gap-1 bg-forge-bg rounded-lg p-0.5">
+        <div className="flex gap-1 bg-fit-card rounded-lg p-0.5">
           <button
             onClick={() => setView("body")}
-            className={`p-1.5 rounded-md transition-colors ${view === "body" ? "bg-forge-panel text-forge-accent" : "text-forge-muted hover:text-forge-ink"}`}
+            className={`p-1.5 rounded-md transition-colors ${view === "body" ? "bg-fit-bg2 text-fit-accent" : "text-fit-muted hover:text-fit-ink"}`}
             title="Körperansicht"
           >
             <User size={13} />
           </button>
           <button
             onClick={() => setView("bars")}
-            className={`p-1.5 rounded-md transition-colors ${view === "bars" ? "bg-forge-panel text-forge-accent" : "text-forge-muted hover:text-forge-ink"}`}
+            className={`p-1.5 rounded-md transition-colors ${view === "bars" ? "bg-fit-bg2 text-fit-accent" : "text-fit-muted hover:text-fit-ink"}`}
             title="Balkendiagramm"
           >
             <BarChart2 size={13} />
@@ -73,14 +73,14 @@ export default function MuscleHeatmap({ exercises }) {
             const color = muskelColor(muscle);
             return (
               <div key={muscle} className="flex items-center gap-2">
-                <div className="w-28 text-xs text-right text-forge-muted flex-shrink-0">{muskelDe(muscle)}</div>
-                <div className="flex-1 h-2 rounded-full bg-forge-bg overflow-hidden">
+                <div className="w-28 text-xs text-right text-fit-muted flex-shrink-0">{muskelDe(muscle)}</div>
+                <div className="flex-1 h-2 rounded-full bg-fit-card overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{ width: `${pct}%`, background: color }}
                   />
                 </div>
-                <div className="w-8 text-xs font-mono text-forge-muted text-right">{pct}%</div>
+                <div className="w-8 text-xs font-mono text-fit-muted text-right">{pct}%</div>
               </div>
             );
           })}
