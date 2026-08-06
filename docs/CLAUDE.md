@@ -130,7 +130,7 @@ um den Katalog zu erweitern), kein eigenständiges Backend. Details:
 | `cd pwa && npm run dev` | Firebase PWA Dev-Server |
 | `cd pwa && npm run deploy` | Firebase PWA bauen + deployen |
 
-Weitere Dispatcher (fitness-devctl/fitness-prodctl/fitnessctl): `../fitness/catalog/CLAUDE.md`.
+Weitere Dispatcher (fitness-devctl/fitness-prodctl/fitnessctl): `../fitness/CLAUDE.md`.
 
 ---
 

@@ -1,7 +1,8 @@
 # CLAUDE.md — fitness-app/src
 
 React + Vite Frontend. Übergeordneter Kontext: `../CLAUDE.md` (Repo-Root),
-Python-Backend-Details: `../fitness/catalog/CLAUDE.md`.
+Python-Backend-Details: `../fitness/CLAUDE.md` (API/Dispatcher) und
+`../fitness/catalog/CLAUDE.md` (KB/Katalog-Tool-Set).
 
 ---
 
