@@ -247,7 +247,7 @@ def push(uid: str | None = None, *, force: bool = False, dry_run: bool = False) 
             doc_id     = f.stem
             actual_date = doc_id.split("__")[0]
             local_data = json.loads(f.read_text())
-            local_ts   = local_data.get("saved_at", "")
+            local_ts   = ts(local_data.get("saved_at"))
             ref = None if db is None else db.collection("fitness").document(uid).collection("sessions").document(doc_id)
             remote = None if ref is None else ref.get()
             if remote and remote.exists and not force:

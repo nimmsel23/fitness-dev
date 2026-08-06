@@ -58,9 +58,27 @@ def _save_known(path: Path, ids: set):
 
 def on_session(col_snapshot, changes, read_time):
     for change in changes:
+        doc_id = change.document.id
+        if change.type.name == "REMOVED":
+            # saveSession() (src/lib/db/firestore/sessions.js) löscht einen
+            # date__id-Activity-Sidecar remote, sobald er in den kanonischen
+            # Tag gemerged wurde. Ohne diesen Zweig blieb die lokale Kopie für
+            # immer als Waise liegen — hier wird sie ← Firestore mitgelöscht.
+            local = SESSIONS / f"{doc_id}.json"
+            if local.exists():
+                local.unlink()
+                logger.info(f"session ← {doc_id} entfernt (remote gelöscht)")
+            day = doc_id.split("__")[0]
+            sid = doc_id.split("__")[1] if "__" in doc_id else None
+            try:
+                from catalog.api.sync_gateway import remove_session as _gw_remove
+                _gw_remove(day, sid)
+            except Exception as exc:
+                logger.warning(f"sync_gateway remove {doc_id}: {exc}")
+            continue
         if change.type.name not in ("ADDED", "MODIFIED"):
             continue
-        doc_id, data = change.document.id, change.document.to_dict()
+        data = change.document.to_dict()
         SESSIONS.mkdir(parents=True, exist_ok=True)
         local = SESSIONS / f"{doc_id}.json"
         if local.exists() and change.type.name == "MODIFIED":
