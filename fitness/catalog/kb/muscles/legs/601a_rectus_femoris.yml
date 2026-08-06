@@ -4,7 +4,8 @@ label_de: Gerader Oberschenkelmuskel
 label_en: Quads (Rectus)
 label_lat: M. rectus femoris
 wger_id: 10
-aliases: [rectus femoris, gerader oberschenkelmuskel, quadriceps, quadrizeps, quads]
+parent: 601_quadriceps_femoris
+aliases: [rectus femoris, gerader oberschenkelmuskel]
 viz:
   body_muscles:
     view: FRONT

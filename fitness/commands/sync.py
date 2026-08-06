@@ -263,10 +263,6 @@ def sync_add_client(
     )
 
 
-if __name__ == "__main__":
-    app()
-
-
 @app.command("list-users")
 def sync_list_users(
     unregistered_only: bool = typer.Option(False, "--new", "-n", help="Nur UIDs anzeigen die noch NICHT in ~/Klienten sind"),
@@ -361,3 +357,7 @@ def sync_list_users(
 
 def main() -> None:
     app()
+
+
+if __name__ == "__main__":
+    main()

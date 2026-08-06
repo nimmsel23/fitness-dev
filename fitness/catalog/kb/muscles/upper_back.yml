@@ -1,7 +1,7 @@
 label_de: Oberer Rücken
 label_en: Upper Back
 label_lat: Cingulum membri superioris
-aliases: [schultergürtel, shoulder girdle, upper traps, oberer trapez]
+aliases: [schultergürtel, shoulder girdle, upper traps, oberer trapez, oberer rücken, upper back, trapezius, traps]
 muscles:
   - 202_trapezius_upper
   - 203_trapezius_middle

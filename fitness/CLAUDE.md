@@ -30,7 +30,7 @@ fitness/api/
 ```
 
 - Port: `FITNESS_PYTHON_PORT` env (default 9150)
-- Starten: `python3 -m fitness.api.main` / `fitness-agent-api serve` / `fitness-devctl start --no-node`
+- Starten: `python3 -m fitness.api.main` / `fitness-api` (uv-Tool-Entry-Point, siehe `pyproject.toml`) / `fitness-devctl start --no-node`
 - Service: `fitness-python-backend.service`
 - **Firestore-Watcher-Trennung (seit 2026-07-30):** Nur Katalog-Belange
   (Inbox-Drafts + approved `kb/exercises`) laufen eingebettet im API-Prozess

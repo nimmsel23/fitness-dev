@@ -23,6 +23,12 @@ def build_weekly_coverage(week_selector: str = "current") -> dict[str, Any]:
 
     for entry in entries:
         coverage = calculate_entry_coverage(entry)
+        # muscle_scores ist bereits auf Eltern-Muskeln hochgerechnet
+        # (add_role_scores() in coverage.py wendet parent_map direkt beim
+        # Score-Eintrag an) — 601a_rectus_femoris zählt hier automatisch auf
+        # 601_quadriceps_femoris. Granulare Kopf-Ebene bleibt separat in
+        # detail_muscle_scores verfügbar, für die Wochenübersicht aber nicht
+        # gebraucht (kein Vermischen der beiden Ebenen in einem Feld).
         for muscle_id, score in coverage["muscle_scores"].items():
             muscle_scores[muscle_id] += score
         for region, score in coverage["body_region_scores"].items():

@@ -4,7 +4,7 @@ label_de: Unterer Trapezmuskel
 label_en: Traps (Lower)
 label_lat: M. trapezius (pars ascendens)
 wger_id: 9
-aliases: [traps, trapezius, schultergürtel, shoulder girdle, oberer rücken, upper back]
+aliases: [lower trapezius, unterer trapezmuskel, trapezius lower]
 viz:
   body_muscles:
     view: BACK

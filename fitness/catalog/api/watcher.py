@@ -68,10 +68,23 @@ def _write_back_to_firestore_inbox(uid: str | None, doc_id: str | None, enriched
         ref = db.collection("fitness").document(uid).collection("inbox").document(doc_id)
         if not ref.get().exists:
             return
-        ref.update({"status": "ai_enriched", "enriched": enriched_data})
-        logger.success(f"Firestore-Inbox aktualisiert: fitness/{uid}/inbox/{doc_id} → ai_enriched")
+        status = enriched_data.get("status", "ai_enriched")
+        ref.update({"status": status, "enriched": enriched_data})
+        logger.success(f"Firestore-Inbox aktualisiert: fitness/{uid}/inbox/{doc_id} → {status}")
     except Exception as e:
         logger.warning(f"Firestore-Inbox-Rückschreiben fehlgeschlagen ({uid}/{doc_id}): {e}")
+
+
+def _load_existing_draft_exercise(target_file: Path) -> dict | None:
+    """Liest das erste Exercise-Objekt aus einem bereits vorhandenen
+    kb/inbox/inbox_*.yml-Draft — für den Firestore-Write-back, wenn ein
+    anderer (frueherer) Submitter dieselbe Uebung schon enrichten liess."""
+    try:
+        wrapper = yaml.safe_load(target_file.read_text(encoding="utf-8")) or {}
+        exercises = wrapper.get("exercises") or []
+        return exercises[0] if exercises else None
+    except Exception:
+        return None
 
 
 def process_inbox_file(file_path: Path, api_key: str | None):
@@ -85,19 +98,35 @@ def process_inbox_file(file_path: Path, api_key: str | None):
         safe_name = name.lower().replace(" ", "_")
         target_file = DATA_DIR / "inbox" / f"inbox_{safe_name}.yml"
         tombstone_data = {"exercise_id": safe_name, "display_name": name, "name": name}
+        uid, doc_id = _firestore_inbox_ref(file_path)
 
+        # Die drei folgenden "schon erledigt"-Fälle müssen den Firestore-
+        # Ursprungseintrag trotzdem aktualisieren — sonst bleibt er für immer
+        # auf pending_review stehen, obwohl die Übung längst enrichted/
+        # abgelehnt/bekannt ist (Bug: früher wurde hier nur file_path.unlink()
+        # + return gemacht, kein Write-back).
         if is_inbox_tombstoned(target_file.stem, tombstone_data):
             logger.info(f"Exercise inbox tombstoned, skipping: {name}")
+            _write_back_to_firestore_inbox(uid, doc_id, {"status": "rejected", "reason": "tombstoned"})
             file_path.unlink()
             return
 
         if target_file.exists():
+            logger.info(f"Draft bereits vorhanden, verlinke Firestore-Eintrag: {name}")
+            existing = _load_existing_draft_exercise(target_file)
+            if existing:
+                _write_back_to_firestore_inbox(uid, doc_id, existing)
             file_path.unlink()
             return
 
         resolution = resolve_query(name)
         if resolution.matched and resolution.confidence == "high":
             logger.info(f"Exercise already in catalog ({resolution.canonical_id}), skipping: {name}")
+            _write_back_to_firestore_inbox(uid, doc_id, {
+                "status": "resolved",
+                "resolved_exercise_id": resolution.canonical_id,
+                "resolved_display_name": getattr(resolution, "display_name", resolution.canonical_id),
+            })
             file_path.unlink()
             return
 

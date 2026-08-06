@@ -39,7 +39,6 @@ USER_DIR   = _user_dir()
 SESSIONS   = USER_DIR / "sessions"
 JOURNAL    = USER_DIR / "journal"
 HABITS_DIR = USER_DIR / "habits"
-INBOX_DIR  = USER_DIR / "inbox"
 STATE_DIR  = Path.home() / ".aos" / "fitness" / "agent-state"
 STATE_FILE = STATE_DIR / "fsm-known-journal.json"
 
@@ -232,20 +231,29 @@ def on_habit_journals(col_snapshot, changes, read_time):
 
 
 # ── Inbox (Coach-Review-Drafts) ───────────────────────────────────────────────
-
+#
+# Muss collectionGroup-weit lauschen, NICHT nur auf fitness/{UID}/inbox (die
+# eigene Coach-UID): Klienten (z.B. Simon, Matthias) legen ihre Inbox-Einträge
+# unter ihrer EIGENEN uid an (src/lib/db/firestore/inbox.js::sendToInbox()).
+# Mit dem alten Single-UID-Scope wurden Klienten-Einträge nie lokal gespiegelt
+# → nie vom Gemini-Watcher (fitness/catalog/api/watcher.py) enrichted → blieben
+# für immer als nackter pending_review-Stub in der Firebase-Coach-Inbox stehen,
+# obwohl der lokale Modus (eigene UID) enrichten Content zeigte.
 def on_inbox(col_snapshot, changes, read_time):
     for change in changes:
         if change.type.name != "ADDED":
             continue
         doc_id, data = change.document.id, change.document.to_dict()
+        uid = change.document.reference.parent.parent.id
         name = str(data.get("name", "unknown")).replace(" ", "_")
-        INBOX_DIR.mkdir(parents=True, exist_ok=True)
-        local = INBOX_DIR / f"{doc_id}_{name}.json"
+        inbox_dir = Path.home() / ".aos" / "users" / uid / "fitness" / "inbox"
+        inbox_dir.mkdir(parents=True, exist_ok=True)
+        local = inbox_dir / f"{doc_id}_{name}.json"
         if local.exists():
             continue
         out = {k: (ts(v) if hasattr(v, "isoformat") else v) for k, v in data.items()}
         local.write_text(json.dumps(out, indent=2, ensure_ascii=False))
-        logger.success(f"inbox ← {name} ({doc_id})")
+        logger.success(f"inbox ← {name} ({doc_id}) uid={uid}")
 
 
 # ── KB Exercises (Coach-Approvals aus dem Firebase-Inbox-Tab) ────────────────
@@ -351,13 +359,12 @@ def start_catalog_watchers() -> list:
     Journal/Habits/Nutrition/Supplements), das ist nicht Aufgabe der
     Catalog-UI. Kein Logging-Setup, kein blockierendes Warten — eingebettet
     nutzbar in einem bereits laufenden Prozess mit eigenem Event-Loop."""
-    db  = get_db()
-    ref = db.collection("fitness").document(UID)
+    db = get_db()
     watchers = [
-        ref.collection("inbox").on_snapshot(on_inbox),
+        db.collection_group("inbox").on_snapshot(on_inbox),
         db.collection("fitness").document("kb").collection("exercises").on_snapshot(on_kb_exercises),
     ]
-    logger.info(f"Listening → fitness/{UID}/inbox")
+    logger.info("Listening → fitness/*/inbox [alle User, collectionGroup]")
     logger.info("Listening → fitness/kb/exercises [approved]")
     return watchers
 

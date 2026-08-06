@@ -1,6 +1,7 @@
 label_de: Brust
 label_en: Chest
 label_lat: Thorax
+aliases: [chest, brust, pecs, pectoralis]
 muscles:
   - 101_pectoralis_major
   - 102_pectoralis_major_clavicular

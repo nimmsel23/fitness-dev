@@ -4,7 +4,7 @@ label_de: Kleiner Brustmuskel
 label_en: Chest (Small)
 label_lat: M. pectoralis minor
 wger_id: ~
-aliases: [kleiner brustmuskel, pectoralis minor, brust, chest]
+aliases: [kleiner brustmuskel, pectoralis minor]
 viz:
   # Kein body_muscles-Eintrag: Pectoralis minor liegt tief unter dem großen
   # Brustmuskel (101/102) und hat auf der Oberflächen-Anatomie-Karte keine

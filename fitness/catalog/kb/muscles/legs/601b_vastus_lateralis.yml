@@ -4,7 +4,8 @@ label_de: Äußerer breiter Oberschenkelmuskel
 label_en: Quads (Outer)
 label_lat: M. vastus lateralis
 wger_id: 10
-aliases: [vastus lateralis, äußerer breiter oberschenkelmuskel, quadriceps, quadrizeps, quads]
+parent: 601_quadriceps_femoris
+aliases: [vastus lateralis, äußerer breiter oberschenkelmuskel]
 viz:
   body_muscles:
     view: FRONT
