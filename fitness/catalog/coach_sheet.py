@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from fitness.catalog.core.resolver import build_exercise_index, resolve_query
+from fitness.catalog.core.muscles import iter_muscle_documents
 from fitness.catalog.agent.teaching import find_lesson
 
 
@@ -54,9 +55,9 @@ def render_coach_sheet_markdown(sheet: dict[str, Any]) -> str:
     lines.append(f"- Equipment: {format_list(sheet['equipment'])}")
     lines.append("")
     lines.append("## Zielmuskeln")
-    lines.append(f"- Primär: {format_list(sheet['primary_muscles'])}")
-    lines.append(f"- Sekundär: {format_list(sheet['secondary_muscles'])}")
-    lines.append(f"- Stabilisatoren: {format_list(sheet['stabilizers'])}")
+    lines.append(f"- Primär: {format_muscle_list(sheet['primary_muscles'])}")
+    lines.append(f"- Sekundär: {format_muscle_list(sheet['secondary_muscles'])}")
+    lines.append(f"- Stabilisatoren: {format_muscle_list(sheet['stabilizers'])}")
     lines.append("")
     lines.append("## Coaching Points")
     for item in sheet["coaching_notes"]:
@@ -137,10 +138,37 @@ def as_lines(value: Any) -> list[str]:
     return [str(item) for item in value if str(item).strip()]
 
 
+_MUSCLE_LABEL_CACHE: dict[str, str] | None = None
+
+
+def _muscle_label_index() -> dict[str, str]:
+    """Muskel-ID → konkreter deutscher Name (label_de), NICHT die grobe
+    Region — z.B. "201_latissimus_dorsi" -> "Breiter Rückenmuskel", nicht
+    "Rücken". Vorher stand im Coach-Sheet-Fließtext die rohe canonical ID."""
+    global _MUSCLE_LABEL_CACHE
+    if _MUSCLE_LABEL_CACHE is None:
+        _MUSCLE_LABEL_CACHE = {}
+        for doc_id, doc in iter_muscle_documents():
+            label = doc.get("label_de") or doc.get("display_name")
+            if label:
+                _MUSCLE_LABEL_CACHE[doc_id] = str(label)
+    return _MUSCLE_LABEL_CACHE
+
+
+def muscle_label(muscle_id: str) -> str:
+    return _muscle_label_index().get(muscle_id, muscle_id)
+
+
 def format_list(values: list[Any]) -> str:
     if not values:
         return "[]"
     return ", ".join(str(value) for value in values)
+
+
+def format_muscle_list(values: list[Any]) -> str:
+    if not values:
+        return "[]"
+    return ", ".join(muscle_label(str(value)) for value in values)
 
 
 def stringify(value: Any) -> str:

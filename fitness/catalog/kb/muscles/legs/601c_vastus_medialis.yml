@@ -4,7 +4,8 @@ label_de: Innerer breiter Oberschenkelmuskel
 label_en: Quads (Inner)
 label_lat: M. vastus medialis
 wger_id: 10
-aliases: [vastus medialis, innerer breiter oberschenkelmuskel, quadriceps, quadrizeps, quads]
+parent: 601_quadriceps_femoris
+aliases: [vastus medialis, innerer breiter oberschenkelmuskel]
 viz:
   body_muscles:
     view: FRONT

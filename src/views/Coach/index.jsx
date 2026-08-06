@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle2, Sparkles, Brain, MessageSquare, Check, Dumbbell, Layers } from 'lucide-react';
+import { CheckCircle2, Sparkles, Brain, MessageSquare, Check, Dumbbell, Layers, Users } from 'lucide-react';
 import { useInbox } from '../Inbox/useInbox';
 import InboxCard from '../Inbox/InboxCard';
 import CatalogBrowser from './CatalogBrowser';
 import AssignPlan from './AssignPlan';
+import ClientManagement from './ClientManagement';
 import { getGlobalJournalFeed, getAllUserProfiles, saveCoachFeedback } from '@db';
 
 export default function Coach({ onInspectExercise }) {
@@ -126,6 +127,12 @@ export default function Coach({ onInspectExercise }) {
         >
           <Layers size={14} className="mb-0.5" /> Trainingspläne
         </button>
+        <button
+          onClick={() => setActiveSubTab('clients')}
+          className={`pb-2.5 text-xs font-black uppercase tracking-widest transition-all border-b-2 flex items-center gap-1 ${activeSubTab === 'clients' ? 'border-fit-accent text-fit-ink' : 'border-transparent text-fit-dim hover:text-fit-ink'}`}
+        >
+          <Users size={14} className="mb-0.5" /> Klienten
+        </button>
       </div>
 
       {activeSubTab === 'exercises' ? (
@@ -155,6 +162,8 @@ export default function Coach({ onInspectExercise }) {
         <CatalogBrowser onInspectExercise={onInspectExercise} />
       ) : activeSubTab === 'plans' ? (
         <AssignPlan />
+      ) : activeSubTab === 'clients' ? (
+        <ClientManagement />
       ) : (
         /* Klienten Workouts Feed View */
         loadingJournals ? (

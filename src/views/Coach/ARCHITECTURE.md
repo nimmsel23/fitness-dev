@@ -9,8 +9,10 @@ Command Center für Coach-seitige Exercise-Freigabe, Klienten-Journal-Feed und K
   2. `Klienten-Workouts` (Global Feed aller Workouts, Journals und Habit-Journals mit Coach-Feedback; clientseitiger Filter nach Klient + Typ, seit 2026-07-22)
   3. `Katalog Browser` (`CatalogBrowser.jsx`)
   4. `Plan-Zuweisung` (`AssignPlan.jsx`, seit 2026-08-01 mit echter Backend-Anbindung statt Stub)
+  5. `Klienten` (`ClientManagement.jsx`, seit 2026-08-06) — Status pro User (Klient/Freund·Test)
 - **`CatalogBrowser.jsx`**: Interaktiver Katalog-Enhancer zum Suchen, Analysieren (Anatomie-Cues, Biomechanik, Muskelgruppen) und Bearbeiten/Speichern von Übungen in Firestore (`fitness/kb/exercises`).
 - **`AssignPlan.jsx`**: Coach wählt einen Klienten (Dropdown aus `getAllUserProfiles()`), baut einen Plan (`getPlanSuggestion()`, Template-Auswahl) und pusht ihn direkt an den Klienten (`assignPlanToClient()`). Zeigt darunter bereits zugewiesene Pläne dieses Coaches an diesen Klienten inkl. Tages-Fortschritt (`getClientPlanProgress()`).
+- **`ClientManagement.jsx`**: Listet alle User aus `getAllUserProfiles()`, pro User ein Klient/Freund-Toggle. Status landet in `fitness/{uid}/profile/metadata` via `updateUserProfile()` (Firestore) bzw. `localStorage` (lokal) — rein informativ, keine Firestore-Rule/Filter hängt daran.
 
 ## Datenfluss (Firebase / Firestore)
 

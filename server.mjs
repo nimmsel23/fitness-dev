@@ -458,16 +458,45 @@ app.get("/fitness/coach/feed", (c) => {
   return c.json({ ok: true, feed: feed.slice(0, limit) });
 });
 
+// uid -> { name, slug } aus ~/Klienten/*/client.json (firebase_uid / firebase_uids).
+// Das ist die eigentliche SOT für Klientennamen (siehe fitness-sync add-client) —
+// vorher riet /fitness/coach/profiles nur aus der letzten Session oder zeigte
+// die rohe UID an, obwohl der Klient hier längst mit echtem Namen registriert ist.
+function loadKlientenRegistry() {
+  const dir = path.join(os.homedir(), "Klienten");
+  const registry = {};
+  if (!fs.existsSync(dir)) return registry;
+  for (const slug of fs.readdirSync(dir)) {
+    const cfgPath = path.join(dir, slug, "client.json");
+    if (!fs.existsSync(cfgPath)) continue;
+    const cfg = readJson(cfgPath);
+    if (!cfg) continue;
+    const uids = new Set(cfg.firebase_uids || []);
+    if (cfg.firebase_uid) uids.add(cfg.firebase_uid);
+    for (const uid of uids) {
+      if (uid) registry[uid] = { name: cfg.name, slug };
+    }
+  }
+  return registry;
+}
+
 app.get("/fitness/coach/profiles", (c) => {
   const usersDir = path.join(os.homedir(), ".aos", "fitness", "users");
-  if (!fs.existsSync(usersDir)) return c.json({ ok: true, profiles: {} });
+  const klienten = loadKlientenRegistry();
+  const profiles = {};
+
+  for (const [uid, meta] of Object.entries(klienten)) {
+    profiles[uid] = { displayName: meta.name, uid, slug: meta.slug };
+  }
+
+  if (!fs.existsSync(usersDir)) return c.json({ ok: true, profiles });
 
   const uids = fs.readdirSync(usersDir).filter(d =>
     fs.statSync(path.join(usersDir, d)).isDirectory() && !["default", "kb"].includes(d)
   );
 
-  const profiles = {};
   for (const uid of uids) {
+    if (profiles[uid]) continue; // Klienten-Registry hat Vorrang
     const sessDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
     let displayName = uid.slice(0, 8);
     if (fs.existsSync(sessDir)) {

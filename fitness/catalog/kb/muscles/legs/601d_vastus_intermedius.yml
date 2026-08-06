@@ -4,7 +4,8 @@ label_de: Mittlerer breiter Oberschenkelmuskel
 label_en: Quads (Middle)
 label_lat: M. vastus intermedius
 wger_id: 10
-aliases: [vastus intermedius, mittlerer breiter oberschenkelmuskel, quadriceps, quadrizeps, quads]
+parent: 601_quadriceps_femoris
+aliases: [vastus intermedius, mittlerer breiter oberschenkelmuskel]
 viz:
   body_muscles:
     view: FRONT
