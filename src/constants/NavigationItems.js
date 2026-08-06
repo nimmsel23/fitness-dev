@@ -1,4 +1,4 @@
-import { Dumbbell, Brain, BarChart3, Settings2, CalendarDays, ClipboardList, History, LibraryBig, Microscope, HelpCircle, TrendingUp, Layers, Zap } from "lucide-react";
+import { Dumbbell, Brain, BarChart3, Settings2, CalendarDays, ClipboardList, History, LibraryBig, Microscope, HelpCircle, Layers, Zap } from "lucide-react";
 
 const baseItems = [
   { id: 'session',  label: 'Training', Icon: Dumbbell,  sub: [
@@ -6,10 +6,16 @@ const baseItems = [
     { id: 'plan',    label: 'Plan',     Icon: ClipboardList },
     { id: 'history', label: 'History',  Icon: History },
   ]},
-  { id: 'review',   label: 'Review',   Icon: BarChart3, sub: [
-    { id: 'report',    label: 'Bericht',   Icon: TrendingUp },
+  // 'Bericht' ist bewusst KEIN eigener Sub-Eintrag: das ist der Review-Tab
+  // selbst (Default-Ansicht beim Klick auf "Review"), keine gleichrangige
+  // Nebenansicht wie Muskeln/Readiness/Verlauf — die sind innerhalb von
+  // WeeklyReview verschachtelt und werden hier als Sprungmarken angeboten.
+  // noDefaultSub: fehlender subTab markiert keinen der sub-Einträge als aktiv
+  // (anders als z.B. bei 'session', wo subTab=null == sub[0]/"Heute").
+  { id: 'review',   label: 'Review',   Icon: BarChart3, noDefaultSub: true, sub: [
     { id: 'muscles',   label: 'Muskeln',   Icon: Layers },
     { id: 'readiness', label: 'Readiness', Icon: Zap },
+    { id: 'verlauf',   label: 'Verlauf',   Icon: History },
   ]},
   { id: 'learn',    label: 'Lernen',   Icon: Brain,     sub: [
     { id: 'exercises', label: 'Übungen',  Icon: LibraryBig },
