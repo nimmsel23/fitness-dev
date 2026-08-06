@@ -220,8 +220,27 @@ def sync_add_client(
         logger.success(f"Klient angelegt: {cfg_path}")
 
     # ── Lokales Sessions-Verzeichnis vorbereiten ──────────────────────────────
-    sess_dir = Path.home() / ".aos" / "users" / uid / "fitness" / "sessions"
-    sess_dir.mkdir(parents=True, exist_ok=True)
+    # ~/.aos/fitness/users/<uid>/ ist die physische Quelle (Node-API +
+    # Python-Watcher schreiben dorthin) — ~/.aos/users/<uid>/fitness muss ein
+    # Symlink darauf sein, sonst driften Node- und Python-Reads auseinander
+    # (siehe fitness/catalog/api/watcher.py:25).
+    from fitness.catalog.core.paths import runtime_root
+
+    real_dir = runtime_root() / "users" / uid
+    (real_dir / "sessions").mkdir(parents=True, exist_ok=True)
+
+    link_path = Path.home() / ".aos" / "users" / uid / "fitness"
+    link_path.parent.mkdir(parents=True, exist_ok=True)
+    if link_path.is_symlink():
+        if link_path.resolve() != real_dir.resolve():
+            logger.warning(f"{link_path} zeigt auf falsches Ziel — bitte manuell prüfen")
+    elif link_path.exists():
+        logger.warning(f"{link_path} existiert bereits als echtes Verzeichnis (kein Symlink) — bitte manuell mergen")
+    else:
+        link_path.symlink_to(real_dir, target_is_directory=True)
+        logger.info(f"Symlink angelegt: {link_path} -> {real_dir}")
+
+    sess_dir = real_dir / "sessions"
     logger.info(f"Sessions-Dir: {sess_dir}")
 
     # ── Firestore Pull ────────────────────────────────────────────────────────
