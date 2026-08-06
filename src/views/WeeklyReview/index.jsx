@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getWeeklyReport, exportFitnessData, getRecentSessions } from '@db';
-import { BarChart3, Activity, History, Zap } from 'lucide-react';
+import { BarChart3, Activity, History, Zap, Dumbbell } from 'lucide-react';
 
 import ReviewHeader from './ReviewHeader';
 import ReviewOverview from './ReviewOverview';
@@ -9,8 +9,11 @@ import ReviewMuscleImpact from './ReviewMuscleImpact';
 import ReviewSessionList from './ReviewSessionList';
 import ReviewTopExercises from './ReviewTopExercises';
 import ReviewHistory from './ReviewHistory.jsx';
-import ReviewReadinessMatrix from './ReviewReadinessMatrix.jsx';
+import ReviewReadiness from './ReviewReadiness.jsx';
+import ReviewStrengthMatrix from './ReviewStrengthMatrix.jsx';
 import Muscles from '../Muscles/index.jsx';
+
+const SUB_TABS = ['muscles', 'verlauf', 'readiness', 'strength'];
 
 export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleLanguage = 'de', taxonomy = null, gender = 'male', recentDays = 10, subTab = null, onSubNav }) {
   const [week, setWeek]       = useState('current');
@@ -18,7 +21,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
   const [loading, setLoading] = useState(false);
   const [toast, setToast]     = useState('');
   const [historySessions, setHistorySessions] = useState([]);
-  const viewMode = subTab === 'muscles' ? 'muscles' : subTab === 'verlauf' ? 'verlauf' : subTab === 'readiness' ? 'readiness' : 'report';
+  const viewMode = SUB_TABS.includes(subTab) ? subTab : 'report';
 
   useEffect(() => {
     if (viewMode !== 'verlauf') return;
@@ -77,6 +80,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
           { id: 'report',    icon: <BarChart3 size={14} />, label: 'Bericht' },
           { id: 'muscles',   icon: <Activity size={14} />,  label: 'Muskeln' },
           { id: 'readiness', icon: <Zap size={14} />,       label: 'Readiness' },
+          { id: 'strength',  icon: <Dumbbell size={14} />,  label: 'Stärke-Matrix' },
           { id: 'verlauf',   icon: <History size={14} />,   label: 'Verlauf' },
         ].map(({ id, icon, label }) => (
           <button key={id}
@@ -91,7 +95,9 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
       {viewMode === 'muscles' ? (
         <Muscles gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} recentDays={recentDays} onInspectExercise={onInspectExercise} />
       ) : viewMode === 'readiness' ? (
-        <ReviewReadinessMatrix taxonomy={taxonomy} muscleLanguage={muscleLanguage} />
+        <ReviewReadiness />
+      ) : viewMode === 'strength' ? (
+        <ReviewStrengthMatrix />
       ) : viewMode === 'verlauf' ? (
         <ReviewHistory sessions={historySessions} onOpenSession={onOpenSession} />
       ) : loading ? (

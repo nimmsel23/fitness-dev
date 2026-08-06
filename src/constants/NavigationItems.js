@@ -13,9 +13,10 @@ const baseItems = [
   // noDefaultSub: fehlender subTab markiert keinen der sub-Einträge als aktiv
   // (anders als z.B. bei 'session', wo subTab=null == sub[0]/"Heute").
   { id: 'review',   label: 'Review',   Icon: BarChart3, noDefaultSub: true, sub: [
-    { id: 'muscles',   label: 'Muskeln',   Icon: Layers },
-    { id: 'readiness', label: 'Readiness', Icon: Zap },
-    { id: 'verlauf',   label: 'Verlauf',   Icon: History },
+    { id: 'muscles',   label: 'Muskeln',      Icon: Layers },
+    { id: 'readiness', label: 'Readiness',    Icon: Zap },
+    { id: 'strength',  label: 'Stärke-Matrix',Icon: Dumbbell },
+    { id: 'verlauf',   label: 'Verlauf',      Icon: History },
   ]},
   { id: 'learn',    label: 'Lernen',   Icon: Brain,     sub: [
     { id: 'exercises', label: 'Übungen',  Icon: LibraryBig },
