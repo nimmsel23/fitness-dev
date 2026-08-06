@@ -34,18 +34,21 @@ async def lifespan(app: FastAPI):
     # Dev-Alltag oft (kein .env/firebase-fitness.json) — dann bewusst
     # überspringen statt den ganzen API-Server crashen zu lassen.
     #
-    # FITNESS_ENV=prod (nur vom fitness.service-Unit gesetzt, :6100) startet
-    # bewusst KEINE Watcher: seit der :6100-Migration laeuft dieselbe
-    # fitness.api.main-App auch dort, mit demselben live aus Dev verlinkten
-    # kb/ (siehe deploy.sh). Ohne dieses Gate wuerden zwei unabhaengige
-    # Watcher-Instanzen (Dev :9150 + Prod :6100) auf dieselben Firestore-
-    # Collections hoeren und in dieselben lokalen Dateien schreiben - genau
-    # das Multi-Writer-Problem, das diese Session an anderer Stelle schon
+    # FITNESS_SKIP_WATCHERS=1 (gesetzt von den Staging-/Prod-Units, :8100 und
+    # :6100) startet bewusst KEINE Watcher: dieselbe fitness.api.main-App
+    # laeuft dort ebenfalls, mit demselben live aus Dev verlinkten kb/ (siehe
+    # deploy.sh). Ohne dieses Gate wuerden mehrere unabhaengige
+    # Watcher-Instanzen (Dev :9150 + Staging :8100 + Prod :6100) auf dieselben
+    # Firestore-Collections hoeren und in dieselben lokalen Dateien schreiben -
+    # genau das Multi-Writer-Problem, das diese Session an anderer Stelle schon
     # beheben musste. Nur eine Instanz (Dev) soll Firestore-Events verarbeiten.
+    # Bewusst ein eigenes Flag statt FITNESS_ENV=prod zu ueberladen — Watcher-
+    # Besitz (hier) und Prod-Kontext (run_kb_sync()-Guard) sind zwei getrennte
+    # Fragen, auch wenn beide aktuell nur auf der Prod-Unit zusammenfallen.
     watchers = []
     enrichment_observer = enrichment_loop_thread = enrichment_stop_event = None
-    if os.environ.get("FITNESS_ENV") == "prod":
-        logger.info("FITNESS_ENV=prod — Firestore-/Enrichment-Watcher übersprungen (laufen nur in Dev, :9150).")
+    if os.environ.get("FITNESS_SKIP_WATCHERS") == "1":
+        logger.info("FITNESS_SKIP_WATCHERS=1 — Firestore-/Enrichment-Watcher übersprungen (laufen nur in Dev, :9150).")
     else:
         try:
             from fitness.firestore.mirror import start_catalog_watchers, start_userdata_watchers
