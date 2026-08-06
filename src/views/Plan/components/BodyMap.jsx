@@ -93,7 +93,7 @@ export default function BodyMap({ exercises = [], style = {} }) {
   return (
     <div className="flex justify-center gap-4">
       <div className="flex flex-col items-center gap-1">
-        <span className="text-xs text-forge-muted">Vorne</span>
+        <span className="text-xs text-fit-muted">Vorne</span>
         <Model
           data={data}
           style={modelStyle}
@@ -103,7 +103,7 @@ export default function BodyMap({ exercises = [], style = {} }) {
         />
       </div>
       <div className="flex flex-col items-center gap-1">
-        <span className="text-xs text-forge-muted">Hinten</span>
+        <span className="text-xs text-fit-muted">Hinten</span>
         <Model
           data={data}
           style={modelStyle}

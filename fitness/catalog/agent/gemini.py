@@ -427,7 +427,12 @@ Ein anderes Modell (Gemini) hat gerade folgenden Entwurf erzeugt:
 Pruefe streng:
 1. Wurde jegliches Coach-Feedback oben WIRKLICH vollstaendig umgesetzt (keine kritisierten Woerter/Formulierungen mehr enthalten)?
 2. Sind coaching_notes/common_errors frei von Redundanz und fachlich praezise?
-3. Sind primary_muscles/secondary_muscles/stabilizers plausibel fuer diese Uebung?
+3. Nutzen primary_muscles/secondary_muscles/stabilizers die spezifischste bekannte
+   anatomische ID (z.B. "101_pectoralis_major"), NICHT eine grobe Region wie "chest"
+   oder "shoulders"? Falls dort grobe Bucket-Namen stehen, obwohl die spezifische ID
+   bekannt/eindeutig ist, KORRIGIERE sie auf die spezifische ID. Grobe Bucket-Namen
+   sind nur zulaessig, wenn wirklich unklar ist, welcher konkrete Muskel/Kopf beteiligt
+   ist — niemals als Standard.
 
 Gib das KOMPLETTE, ggf. korrigierte JSON-Objekt zurueck (gleiche Struktur wie oben).
 "coaching_notes" und "common_errors" MUESSEN dabei flache JSON-Arrays aus Strings

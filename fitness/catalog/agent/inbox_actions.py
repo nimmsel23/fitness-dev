@@ -343,6 +343,37 @@ def _merge_source_refs(f: Path, ex: dict[str, Any]) -> None:
         ex["search_aliases"] = search_aliases
 
 
+def _find_yuhonas_match(display_name: str, min_score: float = 90.0) -> str | None:
+    """Fuzzy-Match eines Anzeigenamens gegen yuhonas-Uebungsnamen. Gibt die
+    yuhonas exercise_id (ohne "yuhonas_"-Praefix) zurueck, oder None wenn
+    keine sichere Uebereinstimmung existiert. wger und yuhonas teilen keine
+    gemeinsame ID — Name-Matching ist die einzige indirekte Bruecke."""
+    if not display_name:
+        return None
+    try:
+        from rapidfuzz import fuzz, process
+    except ImportError:
+        return None
+
+    from fitness.catalog.core.loader import load_catalog_yaml
+
+    doc = load_catalog_yaml("exercises/unreviewed_yuhonas.yml") or {}
+    entries = doc.get("exercises") or []
+    choices = {
+        e["exercise_id"]: e.get("display_name", "")
+        for e in entries
+        if e.get("exercise_id") and e.get("display_name")
+    }
+    if not choices:
+        return None
+
+    match = process.extractOne(display_name, choices, scorer=fuzz.token_set_ratio)
+    if not match or match[1] < min_score:
+        return None
+    matched_id = match[2]
+    return str(matched_id).removeprefix("yuhonas_")
+
+
 def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
     """Approved einen Inbox-Draft -> `{ex_id}.yml` (Expert-Tier). Gibt die
     finale exercise_id zurueck. Wirft ValueError wenn keine exercise_id da ist.
@@ -355,6 +386,24 @@ def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
         ex_id = ex_id.replace("inbox_", "")
         ex["exercise_id"] = ex_id
         ex["id"] = ex_id
+
+    # wger liefert nur numerische IDs (wger_1507). Die wger_id bleibt als
+    # Referenz erhalten (_merge_source_refs unten liest sie u.a. aus f.stem),
+    # aber beim Approven wird die coach-facing ID/Name - falls ein yuhonas-
+    # Pendant per Name gefunden wird - auf den sprechenden yuhonas-Slug
+    # umbenannt. Das schlaegt die Bruecke zwischen wger und yuhonas indirekt
+    # ueber den Namen, da beide Quellen keine gemeinsame ID teilen.
+    if re.fullmatch(r"wger_\d+", ex_id):
+        # yuhonas-Namen sind reines Englisch — english zuerst probieren,
+        # deutsche Felder scoren gegen einen englischen Korpus zu niedrig.
+        name_for_match = ex.get("english") or ex.get("display_name") or ex.get("german") or ex.get("name") or ""
+        yuhonas_match = _find_yuhonas_match(name_for_match)
+        if yuhonas_match:
+            if not ex.get("wger_id"):
+                ex["wger_id"] = int(ex_id.removeprefix("wger_"))
+            ex_id = yuhonas_match
+            ex["exercise_id"] = ex_id
+            ex["id"] = ex_id
 
     approved_at = datetime.now(timezone.utc).isoformat()
     ex["source"] = "expert"

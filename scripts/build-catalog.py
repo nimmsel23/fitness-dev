@@ -85,6 +85,7 @@ def run_build(source_dir: Path, output_file: Path):
                     "common_errors": ex.get("common_errors") or [],
                     "tags": ex.get("tags") or [],
                     "wger_id": ex.get("wger_id"),  # if available
+                    "yuhonas_id": ex.get("yuhonas_id") or ((ex.get("external_ids") or {}).get("yuhonas") or [None])[0],
                     "difficulty": ex.get("difficulty", "intermediate"),
                     "default_sets": ex.get("default_sets", 3),
                     "default_reps": ex.get("default_reps", 8),

@@ -33,6 +33,7 @@ export const api = {
         primaryMuscles: ex.primary_muscles || ex.primaryMuscles || [],
         secondaryMuscles: ex.secondary_muscles || ex.secondaryMuscles || [],
         equipment: ex.equipment,
+        yuhonas_id: ex.yuhonas_id || ex.external_ids?.yuhonas?.[0] || null,
       }))
       return { results }
     }
@@ -59,6 +60,7 @@ export const api = {
         name: body.name || body.exercise_id,
         primaryMuscles: body.primaryMuscles || [],
         secondaryMuscles: body.secondaryMuscles || [],
+        yuhonas_id: body.yuhonas_id || null,
         sets: 3, reps: '8-12', rest_seconds: 90,
         weight_type: 'kg', effort: 'normal',
         rir: null, tempo: null, drop_set: false, notes: null,

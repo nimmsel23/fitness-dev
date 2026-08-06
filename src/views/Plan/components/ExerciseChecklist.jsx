@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Check } from 'lucide-react'
 import { toggleExerciseCompletion, getPlanCompletions } from '@db'
+import { yuhonasImageUrl } from '../../../lib/yuhonasImage.js'
 
 export default function ExerciseChecklist({ plan, clientUid, date }) {
   const [completions, setCompletions] = useState({})
@@ -78,6 +79,15 @@ export default function ExerciseChecklist({ plan, clientUid, date }) {
                 <Check size={14} className="text-white" />
               )}
             </div>
+            {yuhonasImageUrl(exercise) && (
+              <img
+                src={yuhonasImageUrl(exercise)}
+                alt=""
+                loading="lazy"
+                className="w-10 h-10 rounded-lg object-cover flex-shrink-0 bg-fit-bg"
+                onError={(e) => { e.currentTarget.style.display = 'none' }}
+              />
+            )}
             <div className="flex-1 min-w-0">
               <p className="font-bold text-sm truncate">
                 {exercise.name}

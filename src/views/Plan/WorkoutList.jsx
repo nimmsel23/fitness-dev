@@ -1,35 +1,94 @@
-import { useEffect, useState } from "react";
-import { Dumbbell, Plus, Trash2, ChevronRight, Settings2 } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { Dumbbell, Plus, Trash2, Pencil, ChevronRight, Settings2, MoreHorizontal } from "lucide-react";
 import { api } from "./api.js";
+
+function WorkoutCard({ w, onOpen, onRename, onDelete }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = (e) => { if (!menuRef.current?.contains(e.target)) setMenuOpen(false); };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [menuOpen]);
+
+  return (
+    <article className="relative p-4 rounded-2xl bg-fit-bg2 border border-fit-line hover:border-fit-accent/50 transition-all">
+      <div className="flex items-start gap-3 mb-3">
+        <div className="w-9 h-9 rounded-xl bg-fit-accent/10 flex items-center justify-center flex-shrink-0">
+          <Dumbbell size={16} className="text-fit-accent" />
+        </div>
+        <h3 className="flex-1 min-w-0 font-semibold text-fit-ink truncate leading-tight pt-1.5">{w.name}</h3>
+        <div className="relative" ref={menuRef}>
+          <button
+            onClick={(e) => { e.stopPropagation(); setMenuOpen((v) => !v); }}
+            className="p-1.5 rounded-lg text-fit-muted hover:text-fit-ink hover:bg-fit-card transition-colors"
+            aria-label={`${w.name}: Optionen`}
+          >
+            <MoreHorizontal size={18} />
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 top-9 z-10 w-40 rounded-xl bg-fit-card border border-fit-line shadow-lg overflow-hidden">
+              <button
+                onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onRename(w); }}
+                className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-fit-ink hover:bg-fit-bg2 transition-colors"
+              >
+                <Pencil size={14} /> Umbenennen
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onDelete(w.id); }}
+                className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-fit-red hover:bg-red-500/10 transition-colors"
+              >
+                <Trash2 size={14} /> Löschen
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {w.goal && <p className="text-sm text-fit-muted mb-3 line-clamp-2">{w.goal}</p>}
+
+      <button
+        onClick={() => onOpen(w.id)}
+        className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-fit-card hover:bg-fit-accent/10 text-fit-ink text-sm font-medium transition-colors group"
+      >
+        <span>{w.exerciseCount ?? 0} Übungen</span>
+        <ChevronRight size={16} className="text-fit-muted group-hover:text-fit-accent transition-colors" />
+      </button>
+    </article>
+  );
+}
 
 export default function WorkoutList({ onOpen, onSettings }) {
   const [workouts, setWorkouts] = useState([]);
-  const [name, setName] = useState("");
-  const [goal, setGoal] = useState("");
-  const [creating, setCreating] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   async function load() {
+    setLoading(true);
     const d = await api.get("/workouts");
     setWorkouts(d.workouts);
+    setLoading(false);
   }
 
   useEffect(() => { load(); }, []);
 
-  async function erstellen(e) {
-    e.preventDefault();
-    if (!name.trim()) return;
-    setCreating(true);
-    try {
-      const d = await api.post("/workouts", { name: name.trim(), goal: goal.trim() || null });
-      onOpen(d.id);
-    } finally {
-      setCreating(false);
-    }
+  async function startEmptyWorkout() {
+    const d = await api.post("/workouts", {
+      name: `Workout ${new Date().toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit" })}`,
+      goal: null,
+    });
+    onOpen(d.id);
   }
 
-  async function löschen(id, e) {
-    e.stopPropagation();
+  async function renameWorkout(w) {
+    const name = prompt("Neuer Name:", w.name);
+    if (!name || !name.trim() || name.trim() === w.name) return;
+    await api.patch(`/workouts/${w.id}`, { name: name.trim() });
+    load();
+  }
+
+  async function deleteWorkout(id) {
     if (!confirm("Workout löschen?")) return;
     await api.delete(`/workouts/${id}`);
     load();
@@ -38,93 +97,61 @@ export default function WorkoutList({ onOpen, onSettings }) {
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 rounded-xl bg-forge-accent/20 flex items-center justify-center">
-          <Dumbbell size={20} className="text-forge-accent" />
-        </div>
+      <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">WorkoutForge</h1>
-          <p className="text-sm text-forge-muted">{workouts.length} Workouts</p>
+          <span className="text-xs font-bold text-fit-muted uppercase tracking-wide">Training</span>
+          <h1 className="text-2xl font-bold tracking-tight text-fit-ink">Workout beginnen</h1>
         </div>
-        <div className="ml-auto flex items-center gap-2">
-          <button
-            onClick={onSettings}
-            className="p-2 rounded-xl text-forge-muted hover:text-forge-ink hover:bg-forge-panel transition-colors"
-            title="Einstellungen"
-          >
-            <Settings2 size={18} />
-          </button>
-          <button
-            onClick={() => setShowForm((v) => !v)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-forge-accent text-white font-semibold text-sm hover:bg-blue-600 transition-colors"
-          >
-            <Plus size={16} />
-            Neu
-          </button>
-        </div>
+        <button
+          onClick={onSettings}
+          className="p-2 rounded-xl text-fit-muted hover:text-fit-ink hover:bg-fit-bg2 transition-colors"
+          title="Einstellungen"
+        >
+          <Settings2 size={18} />
+        </button>
       </div>
 
-      {/* Create Form */}
-      {showForm && (
-        <form onSubmit={erstellen} className="mb-6 p-4 rounded-2xl bg-forge-panel border border-forge-border flex flex-col gap-3">
-          <input
-            className="w-full px-4 py-2.5 rounded-xl bg-forge-bg border border-forge-border text-forge-ink placeholder:text-forge-muted focus:outline-none focus:border-forge-accent text-sm"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Name (z.B. Push A · Fullbody · Beine)"
-            autoFocus
-          />
-          <input
-            className="w-full px-4 py-2.5 rounded-xl bg-forge-bg border border-forge-border text-forge-ink placeholder:text-forge-muted focus:outline-none focus:border-forge-accent text-sm"
-            value={goal}
-            onChange={(e) => setGoal(e.target.value)}
-            placeholder="Ziel (z.B. Hypertrophie, Kraft, PPL)"
-          />
-          <div className="flex gap-2 justify-end">
-            <button type="button" onClick={() => setShowForm(false)}
-              className="px-4 py-2 rounded-xl text-forge-muted hover:text-forge-ink text-sm transition-colors">
-              Abbrechen
-            </button>
-            <button type="submit" disabled={creating || !name.trim()}
-              className="px-5 py-2 rounded-xl bg-forge-accent text-white font-semibold text-sm hover:bg-blue-600 disabled:opacity-40 transition-colors">
-              {creating ? "..." : "Erstellen"}
-            </button>
-          </div>
-        </form>
-      )}
+      {/* Schnellstart */}
+      <section className="mb-8">
+        <h2 className="text-sm font-bold text-fit-muted uppercase tracking-wide mb-3">Schnellstart</h2>
+        <button
+          onClick={startEmptyWorkout}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-fit-accent text-white font-semibold text-sm hover:bg-blue-600 transition-colors"
+        >
+          <Plus size={18} strokeWidth={3} />
+          Ein leeres Workout beginnen
+        </button>
+      </section>
 
-      {/* List */}
-      {workouts.length === 0 ? (
-        <div className="text-center py-20 text-forge-muted">
-          <Dumbbell size={40} className="mx-auto mb-4 opacity-30" />
-          <p className="text-sm">Noch keine Workouts. Erstelle dein erstes.</p>
+      {/* Templates */}
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-bold text-fit-muted uppercase tracking-wide">
+            Meine Templates {!loading && `(${workouts.length})`}
+          </h2>
+          <button
+            onClick={startEmptyWorkout}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-fit-accent hover:bg-fit-accent/10 text-sm font-medium transition-colors"
+          >
+            <Plus size={15} strokeWidth={2.7} /> Neu
+          </button>
         </div>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {workouts.map((w) => (
-            <button
-              key={w.id}
-              onClick={() => onOpen(w.id)}
-              className="w-full flex items-center gap-4 p-4 rounded-2xl bg-forge-panel border border-forge-border hover:border-forge-accent/50 hover:bg-slate-800 transition-all text-left group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-forge-accent/10 flex items-center justify-center flex-shrink-0">
-                <Dumbbell size={18} className="text-forge-accent" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-forge-ink truncate">{w.name}</div>
-                {w.goal && <div className="text-xs text-forge-muted mt-0.5">{w.goal}</div>}
-              </div>
-              <ChevronRight size={16} className="text-forge-muted group-hover:text-forge-accent transition-colors flex-shrink-0" />
-              <button
-                onClick={(e) => löschen(w.id, e)}
-                className="p-1.5 rounded-lg text-forge-muted hover:text-forge-red hover:bg-red-500/10 transition-all flex-shrink-0"
-              >
-                <Trash2 size={15} />
-              </button>
-            </button>
-          ))}
-        </div>
-      )}
+
+        {loading ? (
+          <div className="text-center py-16 text-fit-muted text-sm">Lädt…</div>
+        ) : workouts.length === 0 ? (
+          <div className="text-center py-16 text-fit-muted">
+            <Dumbbell size={36} className="mx-auto mb-3 opacity-30" />
+            <p className="text-sm">Noch keine Workouts. Erstelle dein erstes.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {workouts.map((w) => (
+              <WorkoutCard key={w.id} w={w} onOpen={onOpen} onRename={renameWorkout} onDelete={deleteWorkout} />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
