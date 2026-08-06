@@ -159,7 +159,7 @@ def sync_add_client(
     uid: str = typer.Argument(..., help="Firebase UID des neuen Klienten"),
     slug: str = typer.Argument(..., help="Slug für ~/Klienten/<slug>/ (z.B. 'max-mustermann')"),
     name: Optional[str] = typer.Option(None, "--name", "-n", help="Anzeigename (Default: aus Slug ableiten)"),
-    pull: bool = typer.Option(True, "--pull/--no-pull", help="Sessions sofort aus Firestore pullen"),
+    pull: bool = typer.Option(False, "--pull/--no-pull", help="Sessions aus Firestore pullen (Default: nein — erst registrieren, dann manuell entscheiden)"),
 ) -> None:
     """Neuen Klienten registrieren: ~/Klienten/<slug>/client.json anlegen + Firestore-Pull.
 
