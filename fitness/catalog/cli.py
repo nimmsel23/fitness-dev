@@ -691,10 +691,11 @@ def command_reimport(
 @app.command(name="push")
 def firestore_push(
     dry_run: Annotated[bool, typer.Option(help="Do not write to Firestore")] = False,
+    force: Annotated[bool, typer.Option(help="Push outside prod context (FITNESS_ENV=prod) anyway")] = False,
 ):
-    """Push local catalog KB → Firestore"""
+    """Push local catalog KB → Firestore (default: prod context only, FITNESS_ENV=prod)"""
     try:
-        run_kb_sync(dry_run=dry_run)
+        run_kb_sync(dry_run=dry_run, force=force)
     except Exception as exc:
         console.print(f"[fail]FAIL:[/fail] {exc}")
         raise typer.Exit(code=1)

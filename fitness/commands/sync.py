@@ -37,10 +37,13 @@ DEV_PORT = int(os.environ.get("FITNESS_PORT", 9100))
 
 
 @app.command("kb")
-def sync_kb(dry_run: bool = typer.Option(False, "--dry-run", help="Nicht wirklich schreiben")) -> None:
-    """Katalog (Exercises/Anatomy/Muscles/Yuhonas) → Firestore."""
+def sync_kb(
+    dry_run: bool = typer.Option(False, "--dry-run", help="Nicht wirklich schreiben"),
+    force: bool = typer.Option(False, "--force", help="Ausserhalb von Prod-Kontext (FITNESS_ENV=prod) trotzdem pushen"),
+) -> None:
+    """Katalog (Exercises/Anatomy/Muscles/Yuhonas) → Firestore. Standardmäßig nur im Prod-Kontext (FITNESS_ENV=prod)."""
     from fitness.catalog.api.firestore_push import run_kb_sync
-    run_kb_sync(dry_run=dry_run)
+    run_kb_sync(dry_run=dry_run, force=force)
 
 
 @app.command("pull")

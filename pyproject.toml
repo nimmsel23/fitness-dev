@@ -52,4 +52,4 @@ packages = [
     { include = "db" },
     { include = "anatomy_kb", from = "anatomy-kb" },
 ]
-exclude = ["fitness/catalog/state"]
+exclude = ["fitness/catalog/state", "fitness/catalog/kb"]
