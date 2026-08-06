@@ -8,13 +8,89 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 import re
+import subprocess
 from typing import Any
 
 import yaml
+from loguru import logger
 
 from fitness.catalog.core.paths import DATA_DIR
 from fitness.catalog.core.yaml_utils import load_yaml
 from fitness.catalog.agent.gemini import load_gemini_key, call_gemini, review_with_haiku, review_with_codex
+
+
+def _git_repo_root(start: Path) -> Path | None:
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(start), "rev-parse", "--show-toplevel"],
+            capture_output=True, text=True, timeout=5, check=True,
+        )
+        return Path(out.stdout.strip())
+    except Exception:
+        return None
+
+
+def _git_commit_paths(paths: list[Path], message: str) -> bool:
+    """Committet exakt die uebergebenen Pfade (bewusst KEIN `git add -A`)
+    direkt nach einer Inbox-Aktion (approve/delete). Grund: liegen diese
+    Aenderungen unstaged herum, landen sie erfahrungsgemaess spaeter in einem
+    unrelated Commit einer anderen parallel laufenden Session (falsche
+    Attribution, siehe fitness-dev/CLAUDE.md-Gotcha zu paralleler Nutzung).
+    Best-effort: Git-Fehler werden geloggt, nie geworfen - ein Commit-Problem
+    darf die eigentliche Inbox-Aktion nie blockieren oder rueckgaengig machen.
+    """
+    paths = [p for p in paths if p is not None]
+    if not paths:
+        return False
+    repo_root = _git_repo_root(paths[0].parent)
+    if not repo_root:
+        logger.warning("Auto-Commit uebersprungen: kein Git-Repo gefunden.")
+        return False
+    try:
+        subprocess.run(
+            ["git", "-C", str(repo_root), "add", "--"] + [str(p) for p in paths],
+            check=True, capture_output=True, text=True, timeout=10,
+        )
+        staged = subprocess.run(
+            ["git", "-C", str(repo_root), "diff", "--cached", "--quiet", "--"] + [str(p) for p in paths],
+            capture_output=True, timeout=10,
+        )
+        if staged.returncode == 0:
+            return False  # nichts tatsaechlich geaendert
+        subprocess.run(
+            ["git", "-C", str(repo_root), "commit", "-m", message, "--"] + [str(p) for p in paths],
+            check=True, capture_output=True, text=True, timeout=10,
+        )
+        logger.info(f"Auto-Commit: {message}")
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Auto-Commit fehlgeschlagen: {e.stderr}")
+        return False
+    except Exception as e:
+        logger.error(f"Auto-Commit fehlgeschlagen: {e}")
+        return False
+
+
+def _rebuild_runtime_catalog() -> None:
+    """~/.aos/fitness/workouts/catalog.json (gelesen von server.mjs/fitness-
+    runtime.mjs, Dev UND Prod-Node :6100) wird nur per `npm run build:catalog`
+    gebaut - ohne diesen Trigger bleibt es nach jedem Approve/Reject stale,
+    bis irgendwer manuell rebuildet. Best-effort, Fehler blockieren die
+    eigentliche Inbox-Aktion nicht."""
+    repo_root = _git_repo_root(DATA_DIR)
+    if not repo_root:
+        return
+    script = repo_root / "scripts" / "build-catalog.py"
+    if not script.exists():
+        return
+    try:
+        subprocess.run(
+            ["python3", str(script)],
+            cwd=str(repo_root), capture_output=True, text=True, timeout=30, check=True,
+        )
+        logger.info("catalog.json neu gebaut (Approve/Reject-Trigger).")
+    except Exception as e:
+        logger.error(f"catalog.json-Rebuild fehlgeschlagen: {e}")
 
 
 def inbox_dir() -> Path:
@@ -425,12 +501,15 @@ def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
         yaml.dump(detail_doc, allow_unicode=True, sort_keys=False, default_flow_style=False)
     )
     f.unlink()
+    _git_commit_paths([detail_path, f], f"chore(catalog): approve {ex_id} ({display_name})")
+    _rebuild_runtime_catalog()
     return ex_id
 
 
 def delete_inbox_entry(f: Path, ex: dict[str, Any] | None = None) -> None:
     write_inbox_tombstone(f, ex, reason="deleted_inbox")
     f.unlink()
+    _git_commit_paths([tombstones_path(), f], f"chore(catalog): reject inbox draft {f.stem}")
 
 
 def reenrich_inbox_entry(

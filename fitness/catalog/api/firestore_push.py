@@ -7,6 +7,7 @@ Anatomy. Firestore-Infrastruktur: firestore.kb
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -14,7 +15,7 @@ from typing import Any
 from loguru import logger
 from tqdm import tqdm
 
-from firestore.kb import get_db, fetch_hashes, batch_write
+from fitness.firestore.kb import get_db, fetch_hashes, batch_write
 from fitness.catalog.core.loader import catalog_path, load_catalog_directory_yaml, load_catalog_yaml
 from fitness.catalog.core.muscles import iter_muscle_documents
 from fitness.catalog.core.yaml_utils import load_yaml
@@ -346,7 +347,31 @@ def sync_activities(db: Any, dry_run: bool = False) -> dict[str, int]:
     return batch_write(db, col, list(_records()), dry_run=dry_run, use_hash=True)
 
 
-def run_kb_sync(dry_run: bool = False) -> None:
+def _is_prod_context() -> bool:
+    """FITNESS_ENV=prod wird ausschliesslich vom systemd-Unit fitness.service
+    gesetzt (Environment=-Zeile, siehe ops/fitness.service) - eine Dev-Shell
+    unter ~/fitness-dev hat das nie gesetzt, es sei denn jemand exportiert es
+    manuell. Dient als expliziter Marker, WO ein KB-Push laeuft."""
+    return os.environ.get("FITNESS_ENV") == "prod"
+
+
+def run_kb_sync(dry_run: bool = False, *, force: bool = False) -> None:
+    """KB-Push (lokal -> Firestore) ist bewusst auf Prod-Kontext beschraenkt
+    (FITNESS_ENV=prod): laeuft dieselbe Aktion aus einer Dev-Checkout-Shell,
+    kann ein aelterer lokaler kb/-Stand einen frischeren Firestore-Stand
+    (z.B. von der anderen Richtung, dem on_kb_exercises-Watcher, gemergt)
+    ueberschreiben - genau das Multi-Writer-Problem, das Session-uebergreifend
+    schon zu falscher Attribution/verlorenen Aenderungen gefuehrt hat. Mit
+    force=True (CLI: --force) bewusst uebersteuerbar fuer den Notfall."""
+    if not force and not _is_prod_context():
+        raise RuntimeError(
+            "KB-Push (lokal -> Firestore) ist auf Prod-Kontext beschraenkt "
+            "(FITNESS_ENV=prod, nur vom fitness.service-Unit gesetzt). "
+            "Von einer Dev-Shell aus laeuft das nicht, um zu verhindern dass "
+            "ein aelterer Dev-Stand einen frischeren Firestore-Stand "
+            "ueberschreibt. Mit --force explizit erzwingen, wenn das hier "
+            "wirklich gewollt ist."
+        )
     db = get_db()
     results = {
         "exercises":  sync_exercises(db, dry_run),

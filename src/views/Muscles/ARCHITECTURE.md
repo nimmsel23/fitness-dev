@@ -4,7 +4,7 @@ Muskelabdeckungs- und Superkompensations-Analyse mit interaktiver Body-Map. War 
 
 ## Komponenten
 
-- **`index.jsx`**: Haupt-Container — State (days, loading, showDetailed), HIT-Analyse-Logik, Datenfetch.
+- **`index.jsx`**: Haupt-Container — State (days, loading, showDetailed), Datenfetch. Die eigentliche Score-Berechnung (`computeMuscleScores`) lebt seit 2026-08-06 in `../../lib/superkompensation.js` (geteilt mit dem Readiness-SubTab in WeeklyReview, siehe `WeeklyReview/ARCHITECTURE.md`) — nicht mehr inline in dieser Datei.
 - **`MuscleHeader.jsx`**: Zeitraum-Toggle (7/14/28d) + Map-Mode-Toggle (Standard / Detailliert).
 - **`MuscleBodyMap.jsx`**: Standard-Heatmap (Anterior + Posterior) via `BodyMap`-Komponente, coloriert nach HIT-Score.
 - **`MuscleDetailedMap.jsx`**: Granulare anatomische Karte via `DetailedMuscleMap`, mit Side- und Gender-Toggle (lokal verwaltet).

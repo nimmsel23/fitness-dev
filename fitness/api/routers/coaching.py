@@ -18,7 +18,7 @@ from db.schemas import (
 from fitness.catalog import coverage as cov_module
 from fitness.catalog.planner import build_plan
 from fitness.catalog.weekly import build_weekly_coverage, resolve_week_selector
-from firestore.mirror import mirror_session
+from fitness.firestore.mirror import mirror_session
 
 router = APIRouter()
 

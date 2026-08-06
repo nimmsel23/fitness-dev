@@ -108,7 +108,7 @@ def send_push(token: str, title: str, body: str, tab: str = "") -> None:
 
 def check_and_notify() -> int:
     """Einmaliger Check-Durchlauf. Gibt Anzahl gesendeter Notifications zurück."""
-    from firestore import get_db, UID
+    from fitness.firestore import get_db, UID
 
     db = get_db()
     notifications = build_notifications(db, UID)
@@ -134,7 +134,7 @@ async def run_daily_scheduler() -> None:
     last_fired_date: str | None = None
     while True:
         try:
-            from firestore import get_db, UID
+            from fitness.firestore import get_db, UID
             db = get_db()
             settings = _get_push_settings(db, UID)
             reminder_time = (settings or {}).get("reminderTime", "18:00")

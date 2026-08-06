@@ -1,3 +1,4 @@
+import os
 import uvicorn
 import typer
 from typing_extensions import Annotated
@@ -24,32 +25,47 @@ async def lifespan(app: FastAPI):
     logger.info(f"runtime  {RUNTIME}")
     logger.info(f"db       {engine.url}")
 
-    # Firestore on_snapshot-Watchers: NUR Katalog-Belange (Inbox-Drafts +
-    # approved kb/exercises) laufen eingebettet im Catalog-API-Prozess mit.
-    # User-Data-Sync (Sessions/Journal/Habits/Nutrition/Supplements) läuft
-    # bewusst NICHT hier, sondern separat im fitness-firestore-daemon.service
-    # (firestore.mirror.start_userdata_watchers) — Trennung 2026-07-30,
-    # Catalog-UI soll keine User-Data synchronisieren. Firebase-Creds fehlen
-    # im Dev-Alltag oft (kein .env/firebase-fitness.json) — dann bewusst
+    # Firestore on_snapshot-Watchers: Katalog-Belange (Inbox-Drafts + approved
+    # kb/exercises) UND User-Data-Sync (Sessions/Journal/Habits/Nutrition/
+    # Supplements) laufen beide eingebettet im API-Prozess. Bis 2026-08-06 lief
+    # User-Data separat im fitness-firestore-daemon.service — die Trennung war
+    # unbegründet (fitness-api ist "das" Python-Backend, nicht nur Catalog-UI)
+    # und kostete einen zweiten Dauerprozess. Firebase-Creds fehlen im
+    # Dev-Alltag oft (kein .env/firebase-fitness.json) — dann bewusst
     # überspringen statt den ganzen API-Server crashen zu lassen.
+    #
+    # FITNESS_SKIP_WATCHERS=1 (gesetzt von den Staging-/Prod-Units, :8100 und
+    # :6100) startet bewusst KEINE Watcher: dieselbe fitness.api.main-App
+    # laeuft dort ebenfalls, mit demselben live aus Dev verlinkten kb/ (siehe
+    # deploy.sh). Ohne dieses Gate wuerden mehrere unabhaengige
+    # Watcher-Instanzen (Dev :9150 + Staging :8100 + Prod :6100) auf dieselben
+    # Firestore-Collections hoeren und in dieselben lokalen Dateien schreiben -
+    # genau das Multi-Writer-Problem, das diese Session an anderer Stelle schon
+    # beheben musste. Nur eine Instanz (Dev) soll Firestore-Events verarbeiten.
+    # Bewusst ein eigenes Flag statt FITNESS_ENV=prod zu ueberladen — Watcher-
+    # Besitz (hier) und Prod-Kontext (run_kb_sync()-Guard) sind zwei getrennte
+    # Fragen, auch wenn beide aktuell nur auf der Prod-Unit zusammenfallen.
     watchers = []
-    try:
-        from firestore.mirror import start_catalog_watchers
-        watchers = start_catalog_watchers()
-    except Exception as e:
-        logger.warning(f"Firestore-Watchers nicht gestartet: {e}")
-
-    # Gemini-Enrichment-Watcher (vormals eigener fitness-enricher.service):
-    # embedded statt eigenständiger systemd-Unit, analog zu den Firestore-
-    # Watchern oben — ein Prozess weniger, kein zusätzlicher Lifecycle zu
-    # pflegen. Inbox-Observer + Analytics-Loop laufen in eigenen Threads,
-    # blockieren den FastAPI-Event-Loop nicht (siehe start_enrichment_watcher()).
     enrichment_observer = enrichment_loop_thread = enrichment_stop_event = None
-    try:
-        from fitness.catalog.api.watcher import start_enrichment_watcher
-        enrichment_observer, enrichment_loop_thread, enrichment_stop_event = start_enrichment_watcher()
-    except Exception as e:
-        logger.warning(f"Enrichment-Watcher nicht gestartet: {e}")
+    if os.environ.get("FITNESS_SKIP_WATCHERS") == "1":
+        logger.info("FITNESS_SKIP_WATCHERS=1 — Firestore-/Enrichment-Watcher übersprungen (laufen nur in Dev, :9150).")
+    else:
+        try:
+            from fitness.firestore.mirror import start_catalog_watchers, start_userdata_watchers
+            watchers = start_catalog_watchers() + start_userdata_watchers()
+        except Exception as e:
+            logger.warning(f"Firestore-Watchers nicht gestartet: {e}")
+
+        # Gemini-Enrichment-Watcher (vormals eigener fitness-enricher.service):
+        # embedded statt eigenständiger systemd-Unit, analog zu den Firestore-
+        # Watchern oben — ein Prozess weniger, kein zusätzlicher Lifecycle zu
+        # pflegen. Inbox-Observer + Analytics-Loop laufen in eigenen Threads,
+        # blockieren den FastAPI-Event-Loop nicht (siehe start_enrichment_watcher()).
+        try:
+            from fitness.catalog.api.watcher import start_enrichment_watcher
+            enrichment_observer, enrichment_loop_thread, enrichment_stop_event = start_enrichment_watcher()
+        except Exception as e:
+            logger.warning(f"Enrichment-Watcher nicht gestartet: {e}")
 
     yield
 
@@ -200,7 +216,7 @@ def status(
         table.add_row("API /health", f"[red]nicht erreichbar[/red] ({e})")
 
     try:
-        from firestore.mirror import get_status as firestore_status
+        from fitness.firestore.mirror import get_status as firestore_status
         fs = firestore_status()
         if fs.get("ok"):
             table.add_row("Firestore-Watcher", f"[green]ok[/green] (project={fs.get('project')})")

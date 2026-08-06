@@ -9,7 +9,7 @@ from fitness.api.config import (
     logger
 )
 from db.schemas import SessionResponse, SyncRequest, SyncResponse
-from firestore.mirror import mirror_session
+from fitness.firestore.mirror import mirror_session
 from fitness.catalog.core.session_signal import exercise_has_training_signal
 
 router = APIRouter()

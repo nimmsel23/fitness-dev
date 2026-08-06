@@ -64,7 +64,7 @@ def _write_back_to_firestore_inbox(uid: str | None, doc_id: str | None, enriched
     if not uid or not doc_id:
         return
     try:
-        from firestore.kb import get_db
+        from fitness.firestore.kb import get_db
         db = get_db()
         ref = db.collection("fitness").document(uid).collection("inbox").document(doc_id)
         if not ref.get().exists:

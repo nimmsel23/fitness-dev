@@ -9,7 +9,7 @@ from fitness.api.config import (
     _uid_from_request, _read_json, logger
 )
 from db.schemas import JournalResponse
-from firestore.mirror import mirror_journal
+from fitness.firestore.mirror import mirror_journal
 
 router = APIRouter()
 

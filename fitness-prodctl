@@ -4,10 +4,11 @@ fitness-prodctl — Fitness Prod Controller (system-scope services)
 
 Kontrolliert die tatsächlich laufenden Prod-Services, getrennt von
 fitness-devctl (Dev-Stack, --user-scope, fitness-dev.service etc.):
-  - fitness.service              :6100  system-scope, /opt/fitness/server.mjs (sudo für restart/stop)
-  - fitness-api.service :9150 user-scope, WorkingDirectory ~/fitness-dev (FastAPI/uvicorn)
+  - fitness.service     :6100  system-scope, Python/FastAPI (uvicorn) aus /opt/fitness (sudo für restart/stop)
+  - fitness-api.service :9150  user-scope, WorkingDirectory ~/fitness-dev (FastAPI/uvicorn)
 
 Deploy: ./deploy.sh (baut in ~/fitness-dev, rsynct nach /opt/fitness, restartet fitness.service)
+Install: fitness-prodctl install (schreibt/aktualisiert die systemd-Unit selbst, sudo)
 """
 
 # subprocess: Python-Standardbibliothek zum Starten anderer Programme (hier:
@@ -40,10 +41,10 @@ DEV_DIR = Path(__file__).resolve().parent
 # Namen der systemd-Units, die wir steuern. Als Konstanten oben definiert,
 # damit man sie an einer einzigen Stelle ändern kann, statt sie im Code
 # verstreut als Strings zu wiederholen.
-NODE_SERVICE = "fitness.service"          # system-scope, sudo
+PROD_SERVICE = "fitness.service"          # system-scope, sudo — seit der :6100-Migration Python/uvicorn, nicht mehr Node
 SERVICES = {
-    "api": (NODE_SERVICE, True),          # (unit, is_system_scope)
-    "node": (NODE_SERVICE, True),         # Alias for legacy compatibility
+    "api": (PROD_SERVICE, True),          # (unit, is_system_scope)
+    "node": (PROD_SERVICE, True),         # Alias, historisch (war mal Node) — bleibt fuer Muskelgedaechtnis gueltig
 }
 
 
@@ -158,14 +159,67 @@ def restart(
         raise typer.Exit(rc)
 
 
-@app.command()
-def deploy():
-    """Führt ./deploy.sh aus (Build in SOURCE, rsync + restart fitness.service, braucht sudo)."""
+def _run_deploy_sh(target: str) -> int:
     deploy_script = DEV_DIR / "deploy.sh"
     if not deploy_script.exists():
         msg.fail(f"deploy.sh not found in {DEV_DIR}")
         raise typer.Exit(1)
-    subprocess.run(["bash", str(deploy_script)], cwd=DEV_DIR)
+    return subprocess.run(["bash", str(deploy_script), target], cwd=DEV_DIR).returncode
+
+
+@app.command()
+def deploy(target: str = typer.Argument("staging", help="staging | prod")):
+    """Führt ./deploy.sh <target> aus (Build in SOURCE, rsync + restart, prod braucht sudo)."""
+    rc = _run_deploy_sh(target)
+    if rc != 0:
+        raise typer.Exit(rc)
+
+
+# Quelle der systemd-Unit ist ~/.dotfiles (getrackt, gleiche Konvention wie
+# core4.service/door.service dort) - fitness-prodctl installiert davon nur
+# eine Kopie nach /etc/systemd/system/, editiert es nicht selbst.
+UNIT_SOURCE = Path.home() / ".dotfiles" / "config" / "systemd" / "system" / "fitness.service"
+UNIT_TARGET = Path("/etc/systemd/system/fitness.service")
+
+
+@app.command()
+def install(skip_deploy: bool = typer.Option(False, "--skip-deploy", help="Nur die Unit installieren, kein deploy.sh prod danach")):
+    """Baendelt alles, was Root braucht, an einer Stelle: installiert/aktualisiert
+    die fitness.service-Unit aus ~/.dotfiles nach /etc/systemd/system/ (sudo),
+    laedt systemd neu, und faehrt danach direkt mit `deploy.sh prod` fort
+    (rsync + venv + kb-Symlink + Restart mit der frisch installierten Unit) -
+    ein einziger Befehl von "nichts" zu "laeuft auf :6100 mit aktuellem Code"."""
+    if not UNIT_SOURCE.exists():
+        msg.fail(f"Unit-Quelle fehlt: {UNIT_SOURCE}")
+        raise typer.Exit(1)
+
+    current = UNIT_TARGET.read_text() if UNIT_TARGET.exists() else None
+    desired = UNIT_SOURCE.read_text()
+    if current == desired:
+        msg.good(f"{UNIT_TARGET} bereits aktuell.")
+    else:
+        msg.info(f"Installiere {UNIT_SOURCE} -> {UNIT_TARGET} (sudo)")
+        rc = subprocess.run(["sudo", "cp", str(UNIT_SOURCE), str(UNIT_TARGET)]).returncode
+        if rc != 0:
+            msg.fail(f"cp fehlgeschlagen (exit {rc})")
+            raise typer.Exit(rc)
+        rc = subprocess.run(["sudo", "systemctl", "daemon-reload"]).returncode
+        if rc != 0:
+            msg.fail(f"daemon-reload fehlgeschlagen (exit {rc})")
+            raise typer.Exit(rc)
+        msg.good(f"{UNIT_TARGET} installiert + daemon-reload durchgefuehrt.")
+
+    if skip_deploy:
+        msg.info("--skip-deploy gesetzt - 'fitness-prodctl deploy prod' separat ausfuehren, wenn bereit.")
+        return
+
+    msg.info("Fuehre ./deploy.sh prod aus (rsync + venv + kb-Symlink + Restart, sudo)")
+    rc = _run_deploy_sh("prod")
+    if rc == 0:
+        msg.good("Deploy + Restart abgeschlossen — fitness.service laeuft jetzt Python/uvicorn aus /opt/fitness auf :6100.")
+    else:
+        msg.fail(f"deploy.sh prod fehlgeschlagen (exit {rc})")
+        raise typer.Exit(rc)
 
 
 # Dieser if-Block läuft nur, wenn das Skript direkt ausgeführt wird

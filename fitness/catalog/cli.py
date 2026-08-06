@@ -41,7 +41,7 @@ from fitness.catalog.core.resolver import resolve_query
 from fitness.catalog.weekly import build_weekly_coverage
 from fitness.catalog.tui import run_tui
 from fitness.catalog.api.watcher import run_watcher
-from fitness.catalog.importer import import_external_exercises
+from fitness.catalog.importer import import_external_exercises, reimport_exercise
 from fitness.catalog.api.firestore_push import run_kb_sync, push_changed_exercises
 from fitness.catalog.core.rich_utils import (
     console,
@@ -669,13 +669,33 @@ def command_import():
         raise typer.Exit(code=1)
 
 
+@app.command(name="reimport")
+def command_reimport(
+    query: Annotated[str, typer.Argument(help="Name/Query der Uebung, z.B. 'Incline Bench Press'")],
+    source: Annotated[str, typer.Option(help="wger | yuhonas | both")] = "both",
+):
+    """Gezielter Einzel-Reimport einer Uebung aus wger/yuhonas -> kb/inbox/,
+    ohne den kompletten Bulk-Import (`import`) zu wiederholen."""
+    try:
+        written = reimport_exercise(query, source=source)
+        if not written:
+            console.print(f"[warn]Kein Treffer/nichts geschrieben fuer '{query}'.[/warn]")
+            raise typer.Exit(code=1)
+        for path in written:
+            console.print(f"[ok]OK:[/ok] {path}")
+    except Exception as exc:
+        console.print(f"[fail]FAIL:[/fail] {exc}")
+        raise typer.Exit(code=1)
+
+
 @app.command(name="push")
 def firestore_push(
     dry_run: Annotated[bool, typer.Option(help="Do not write to Firestore")] = False,
+    force: Annotated[bool, typer.Option(help="Push outside prod context (FITNESS_ENV=prod) anyway")] = False,
 ):
-    """Push local catalog KB → Firestore"""
+    """Push local catalog KB → Firestore (default: prod context only, FITNESS_ENV=prod)"""
     try:
-        run_kb_sync(dry_run=dry_run)
+        run_kb_sync(dry_run=dry_run, force=force)
     except Exception as exc:
         console.print(f"[fail]FAIL:[/fail] {exc}")
         raise typer.Exit(code=1)

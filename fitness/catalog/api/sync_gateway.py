@@ -85,6 +85,38 @@ def sync_session(day: str, session: dict[str, Any], session_id: str | None = Non
     return len(rows)
 
 
+def remove_session(day: str, session_id: str | None = None, uid: str | None = None) -> None:
+    """Lokale Session-Datei + SQLite-Rows entfernen, wenn Firestore das Dokument
+    gelöscht hat (z.B. saveSession() räumt einen date__id-Activity-Sidecar auf,
+    sobald er in den kanonischen Tag gemerged wurde — src/lib/db/firestore/
+    sessions.js:saveSession). firestore/mirror.py::on_session() ignorierte
+    REMOVED-Events bisher komplett, wodurch solche Sidecars lokal für immer als
+    Waisen liegen blieben, auch nachdem sie remote längst bereinigt waren."""
+    from fitness.paths import sessions_dir
+
+    sdir  = sessions_dir(uid)
+    fname = f"{day}__{session_id}.json" if session_id else f"{day}.json"
+    f = sdir / fname
+    if f.exists():
+        f.unlink()
+        logger.info(f"session file entfernt (remote gelöscht): {fname}")
+
+    SessionLocal = _get_session_local()
+    TrainingHistory, sa = _get_models()
+    with SessionLocal() as db:
+        if session_id:
+            db.execute(sa.delete(TrainingHistory).where(
+                TrainingHistory.date == day,
+                TrainingHistory.session_id == session_id,
+            ))
+        else:
+            db.execute(sa.delete(TrainingHistory).where(
+                TrainingHistory.date == day,
+                sa.or_(TrainingHistory.session_id.is_(None), TrainingHistory.session_id == ""),
+            ))
+        db.commit()
+
+
 def sync_from_file(path: Path) -> int:
     """JSON-File lesen und in SQLite synchronisieren."""
     try:

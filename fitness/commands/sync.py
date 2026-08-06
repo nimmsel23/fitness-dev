@@ -37,17 +37,20 @@ DEV_PORT = int(os.environ.get("FITNESS_PORT", 9100))
 
 
 @app.command("kb")
-def sync_kb(dry_run: bool = typer.Option(False, "--dry-run", help="Nicht wirklich schreiben")) -> None:
-    """Katalog (Exercises/Anatomy/Muscles/Yuhonas) → Firestore."""
+def sync_kb(
+    dry_run: bool = typer.Option(False, "--dry-run", help="Nicht wirklich schreiben"),
+    force: bool = typer.Option(False, "--force", help="Ausserhalb von Prod-Kontext (FITNESS_ENV=prod) trotzdem pushen"),
+) -> None:
+    """Katalog (Exercises/Anatomy/Muscles/Yuhonas) → Firestore. Standardmäßig nur im Prod-Kontext (FITNESS_ENV=prod)."""
     from fitness.catalog.api.firestore_push import run_kb_sync
-    run_kb_sync(dry_run=dry_run)
+    run_kb_sync(dry_run=dry_run, force=force)
 
 
 @app.command("pull")
 def sync_pull() -> None:
     """Firestore → lokal: Sessions, Journal, Inbox, Habits + Fuel-Nutrition/Supplements."""
-    from firestore.sync import pull
-    from firestore.fuel import pull_fuel
+    from fitness.firestore.sync import pull
+    from fitness.firestore.fuel import pull_fuel
 
     r = pull()
     rf = pull_fuel()
@@ -111,9 +114,9 @@ def sync_push(
     dry_run: bool = typer.Option(False, "--dry-run", help="Nur zählen, nicht schreiben"),
 ) -> None:
     """Lokal → Firestore: Sessions + Fuel."""
-    from firestore.sync import push
-    from firestore.fuel import push_fuel
-    from firestore._db import UID
+    from fitness.firestore.sync import push
+    from fitness.firestore.fuel import push_fuel
+    from fitness.firestore._db import UID
 
     r = push(uid=uid, force=force, dry_run=dry_run)
     fuel_uid = uid or UID
@@ -133,7 +136,7 @@ def sync_prune_activity_sidecars(
     apply: bool = typer.Option(False, "--apply", help="Remote date__id Activity-Sidecars wirklich löschen. Default ist dry-run."),
 ) -> None:
     """Löscht remote reine Cardio-Sidecars, wenn ein kanonisches Tagesdokument existiert."""
-    from firestore.sync import prune_activity_sidecars
+    from fitness.firestore.sync import prune_activity_sidecars
 
     result = prune_activity_sidecars(uid=uid, dry_run=not apply)
     print(yaml.safe_dump(result, sort_keys=False, allow_unicode=True).rstrip())
@@ -142,7 +145,7 @@ def sync_prune_activity_sidecars(
 @app.command("watch")
 def sync_watch(uid: Optional[str] = typer.Argument(None, help="Firestore UID (Default: firestore._db.UID)")) -> None:
     """Fuel-Watchdog: lokale Nutrition/Supplements-Änderungen → Firestore (blockierend)."""
-    from firestore.sync_cli import _watch_fuel
+    from fitness.firestore.sync_cli import _watch_fuel
     _watch_fuel(uid)
 
 
@@ -220,8 +223,27 @@ def sync_add_client(
         logger.success(f"Klient angelegt: {cfg_path}")
 
     # ── Lokales Sessions-Verzeichnis vorbereiten ──────────────────────────────
-    sess_dir = Path.home() / ".aos" / "users" / uid / "fitness" / "sessions"
-    sess_dir.mkdir(parents=True, exist_ok=True)
+    # ~/.aos/fitness/users/<uid>/ ist die physische Quelle (Node-API +
+    # Python-Watcher schreiben dorthin) — ~/.aos/users/<uid>/fitness muss ein
+    # Symlink darauf sein, sonst driften Node- und Python-Reads auseinander
+    # (siehe fitness/catalog/api/watcher.py:25).
+    from fitness.catalog.core.paths import runtime_root
+
+    real_dir = runtime_root() / "users" / uid
+    (real_dir / "sessions").mkdir(parents=True, exist_ok=True)
+
+    link_path = Path.home() / ".aos" / "users" / uid / "fitness"
+    link_path.parent.mkdir(parents=True, exist_ok=True)
+    if link_path.is_symlink():
+        if link_path.resolve() != real_dir.resolve():
+            logger.warning(f"{link_path} zeigt auf falsches Ziel — bitte manuell prüfen")
+    elif link_path.exists():
+        logger.warning(f"{link_path} existiert bereits als echtes Verzeichnis (kein Symlink) — bitte manuell mergen")
+    else:
+        link_path.symlink_to(real_dir, target_is_directory=True)
+        logger.info(f"Symlink angelegt: {link_path} -> {real_dir}")
+
+    sess_dir = real_dir / "sessions"
     logger.info(f"Sessions-Dir: {sess_dir}")
 
     # ── Firestore Pull ────────────────────────────────────────────────────────

@@ -140,6 +140,7 @@ RSYNC_EXCLUDES=(
   --exclude ".pytest_cache"
   --exclude ".venv"
   --exclude "fitness/catalog/state"
+  --exclude "fitness/catalog/kb"
 )
 
 msg "📦 Syncing files from $SOURCE → $DEST"
@@ -164,6 +165,35 @@ elif [[ $rsync_rc -ne 0 ]]; then
   die "rsync fehlgeschlagen mit Code $rsync_rc"
 fi
 
+# 2b. kb/ wird NICHT kopiert (siehe Exclude oben), sondern nach dem
+# Venv-Build (Schritt 3) direkt aus dem Dev-Repo verlinkt — dieselbe
+# Datei-Basis wie fitness/catalog/state, nur fuer den Katalog selbst. Grund:
+# kb/ ist Content (Coach-Approvals, Gemini-Enrichment, Firestore-Merges),
+# keine versionierte App-Code-Aenderung — soll sofort ueberall sichtbar sein
+# statt erst beim naechsten Deploy. Nebeneffekt: behebt auch das
+# exit-23/24-Problem oben fuer kb/ endgueltig, da rsync diesen Pfad gar
+# nicht mehr anfasst.
+#
+# WICHTIG: Der Symlink darf erst NACH `uv pip install .` gesetzt werden -
+# poetry-core (Wheel-Build-Backend) läuft beim Packagen in fitness/catalog/
+# hinein und crasht hart (ValueError in relative_to_project_root()), sobald
+# es dort auf einen Symlink trifft, dessen Ziel außerhalb des Projekt-Roots
+# liegt (~/fitness-dev statt ~/fitness) - das pyproject.toml-exclude greift
+# dabei zu spät, der Fehler passiert schon beim Datei-Discovery davor. Bis
+# zum pip-install-Schritt existiert kb/ hier also noch gar nicht (rsync hat
+# es ja ausgeschlossen) - kein Konflikt.
+#
+# Gleiches Problem betrifft fitness/catalog/state (Symlink -> ~/.aos/fitness/
+# agent-state, existiert seit 2026-07-11) - fiel nie auf, weil fitness.service
+# bis zur :6100-Python-Migration Node war und dieser venv-Build-Schritt fuer
+# den laufenden Prod-Service irrelevant war. Beide Symlinks brauchen dieselbe
+# "erst nach dem Build setzen"-Behandlung.
+KB_LINK="$DEST/fitness/catalog/kb"
+KB_SOURCE="$DEV_SOURCE/fitness/catalog/kb"
+STATE_LINK="$DEST/fitness/catalog/state"
+STATE_SOURCE="$HOME/.aos/fitness/agent-state"
+run_cmd rm -rf "$KB_LINK" "$STATE_LINK"
+
 # 3. Finalize Python Environment — Create .venv and install dependencies via uv
 msg "📦 Setting up Python virtual environment in $DEST"
 (
@@ -177,6 +207,11 @@ msg "📦 Setting up Python virtual environment in $DEST"
     ./.venv/bin/python3 -m pip install . --quiet
   fi
 )
+
+msg "🔗 Verlinke kb/ live aus $KB_SOURCE (kein Sync-Lag mehr)"
+run_cmd ln -s "$KB_SOURCE" "$KB_LINK"
+msg "🔗 Verlinke catalog/state aus $STATE_SOURCE"
+run_cmd ln -s "$STATE_SOURCE" "$STATE_LINK"
 
 # 4. Restart Service
 if $USE_SUDO; then

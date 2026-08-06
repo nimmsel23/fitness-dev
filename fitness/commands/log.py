@@ -396,7 +396,7 @@ def _firestore_journal_texts(uid: str, cutoff: str) -> dict[str, list[str]]:
     (fsid-Marker) von "habitJournals" (fshid-Marker) getrennt ist.
     """
     try:
-        from firestore._db import get_db
+        from fitness.firestore._db import get_db
     except Exception:
         return {}
     try:

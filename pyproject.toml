@@ -40,7 +40,7 @@ fitness-tui          = "fitness.commands.tui:main"
 fitness-activity     = "fitness.commands.activity:main"
 fitness-mail         = "fitness.commands.mail:main"
 fitness-sync         = "fitness.commands.sync:main"
-firestore-sync       = "firestore.sync_cli:main"
+firestore-sync       = "fitness.firestore.sync_cli:main"
 fitness-catalog      = "fitness.catalog.cli:main"
 fitness-catalog-api  = "fitness.api.main:main"
 fitness-api          = "fitness.api.main:main"
@@ -48,9 +48,8 @@ anatomy-agent        = "anatomy_kb.cli:main"
 
 [tool.poetry]
 packages = [
-    { include = "firestore" },
     { include = "fitness" },
     { include = "db" },
     { include = "anatomy_kb", from = "anatomy-kb" },
 ]
-exclude = ["fitness/catalog/state"]
+exclude = ["fitness/catalog/state", "fitness/catalog/kb"]

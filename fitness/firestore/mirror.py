@@ -58,9 +58,27 @@ def _save_known(path: Path, ids: set):
 
 def on_session(col_snapshot, changes, read_time):
     for change in changes:
+        doc_id = change.document.id
+        if change.type.name == "REMOVED":
+            # saveSession() (src/lib/db/firestore/sessions.js) löscht einen
+            # date__id-Activity-Sidecar remote, sobald er in den kanonischen
+            # Tag gemerged wurde. Ohne diesen Zweig blieb die lokale Kopie für
+            # immer als Waise liegen — hier wird sie ← Firestore mitgelöscht.
+            local = SESSIONS / f"{doc_id}.json"
+            if local.exists():
+                local.unlink()
+                logger.info(f"session ← {doc_id} entfernt (remote gelöscht)")
+            day = doc_id.split("__")[0]
+            sid = doc_id.split("__")[1] if "__" in doc_id else None
+            try:
+                from catalog.api.sync_gateway import remove_session as _gw_remove
+                _gw_remove(day, sid)
+            except Exception as exc:
+                logger.warning(f"sync_gateway remove {doc_id}: {exc}")
+            continue
         if change.type.name not in ("ADDED", "MODIFIED"):
             continue
-        doc_id, data = change.document.id, change.document.to_dict()
+        data = change.document.to_dict()
         SESSIONS.mkdir(parents=True, exist_ok=True)
         local = SESSIONS / f"{doc_id}.json"
         if local.exists() and change.type.name == "MODIFIED":
@@ -269,6 +287,7 @@ def on_inbox(col_snapshot, changes, read_time):
 #   2. zugehöriger kb/inbox/inbox_*.yml-Draft wird lokal gelöscht (reviewt, fertig)
 
 from fitness.catalog.core.paths import DATA_DIR as _CATALOG_DATA_DIR
+from fitness.catalog.agent.inbox_actions import _git_commit_paths, _rebuild_runtime_catalog
 
 _APPROVED_FILE = _CATALOG_DATA_DIR / "exercises" / "approved_from_firebase.yml"
 
@@ -277,15 +296,17 @@ def _slugify(name: str) -> str:
     return str(name or "").lower().replace(" ", "_")
 
 
-def _remove_inbox_draft(exercise_id: str, display_name: str) -> None:
+def _remove_inbox_draft(exercise_id: str, display_name: str) -> Path | None:
     inbox_dir = _CATALOG_DATA_DIR / "inbox"
     if not inbox_dir.exists():
-        return
+        return None
     candidates = {f"inbox_{_slugify(exercise_id)}.yml", f"inbox_{_slugify(display_name)}.yml"}
     for f in inbox_dir.glob("inbox_*.yml"):
         if f.name in candidates:
             f.unlink()
             logger.info(f"inbox draft entfernt (approved): {f.name}")
+            return f
+    return None
 
 
 def on_kb_exercises(col_snapshot, changes, read_time):
@@ -313,8 +334,18 @@ def on_kb_exercises(col_snapshot, changes, read_time):
         with _APPROVED_FILE.open("w", encoding="utf-8") as fh:
             yaml.safe_dump(doc, fh, allow_unicode=True, sort_keys=False)
 
-        _remove_inbox_draft(ex_id, display_name)
+        removed_draft = _remove_inbox_draft(ex_id, display_name)
         logger.success(f"kb exercise ← approved: {display_name} ({ex_id})")
+
+        # Gleiche Behandlung wie approve_inbox_entry() (lokaler CLI/TUI-Pfad,
+        # inbox_actions.py): sofort committen statt unstaged liegen zu lassen
+        # (sonst landet's frueher oder spaeter falsch attribuiert in einem
+        # unrelated Commit einer anderen Session, siehe fitness-dev/CLAUDE.md)
+        # + catalog.json neu bauen, damit die Uebung sofort in der Suche
+        # auftaucht statt erst beim naechsten manuellen Rebuild.
+        commit_paths = [_APPROVED_FILE] + ([removed_draft] if removed_draft else [])
+        _git_commit_paths(commit_paths, f"chore(catalog): approve {ex_id} ({display_name}) via Firestore")
+        _rebuild_runtime_catalog()
 
 
 # ── Fuel (Nutrition / Supplements) ────────────────────────────────────────────

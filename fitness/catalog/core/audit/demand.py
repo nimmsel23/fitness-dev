@@ -27,7 +27,7 @@ class DemandAuditResult:
 
 def _count_logged_exercises() -> Counter:
     """Zaehlt exercise_id-Vorkommen ueber die sessions-Collection ALLER User in Firestore."""
-    from firestore._db import get_db
+    from fitness.firestore._db import get_db
 
     db = get_db()
     counts: Counter = Counter()
