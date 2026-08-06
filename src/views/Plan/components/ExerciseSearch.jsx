@@ -72,11 +72,11 @@ export default function ExerciseSearch({ onAdd, exclude = [] }) {
                   src={yuhonasImageUrl(ex)}
                   alt=""
                   loading="lazy"
-                  className="w-11 h-11 rounded-lg object-cover flex-shrink-0 bg-fit-card"
+                  className="w-16 h-16 rounded-xl object-cover flex-shrink-0 bg-fit-card"
                   onError={(e) => { e.currentTarget.style.display = "none"; }}
                 />
               ) : (
-                <div className="w-11 h-11 rounded-lg flex-shrink-0 bg-fit-card" />
+                <div className="w-16 h-16 rounded-xl flex-shrink-0 bg-fit-card" />
               )}
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-fit-ink truncate">{ex.name}</div>

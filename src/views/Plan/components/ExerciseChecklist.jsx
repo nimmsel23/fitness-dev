@@ -84,7 +84,7 @@ export default function ExerciseChecklist({ plan, clientUid, date }) {
                 src={yuhonasImageUrl(exercise)}
                 alt=""
                 loading="lazy"
-                className="w-10 h-10 rounded-lg object-cover flex-shrink-0 bg-fit-bg"
+                className="w-16 h-16 rounded-xl object-cover flex-shrink-0 bg-fit-bg"
                 onError={(e) => { e.currentTarget.style.display = 'none' }}
               />
             )}

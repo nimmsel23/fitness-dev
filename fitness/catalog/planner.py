@@ -17,6 +17,7 @@ class PlanResult:
     goal: str | None
     slots: list[dict[str, Any]]
     coverage_summary: dict[str, Any]
+    exercises: list[dict[str, Any]]
 
 
 def build_plan(*, template: str | None = None, split: str | None = None, day: str | None = None, goal: str | None = None) -> PlanResult:
@@ -26,10 +27,17 @@ def build_plan(*, template: str | None = None, split: str | None = None, day: st
     if template_def is None:
         raise ValueError(f"Unknown plan template: {template_name}")
 
-    exercise_ids = {record.exercise_id for record in build_exercise_index()}
+    records = build_exercise_index()
+    records_by_id = {record.exercise_id: record for record in records}
+    exercise_ids = set(records_by_id)
     selected_ids: set[str] = set()
     slots = build_slots(template_def, exercise_ids, selected_ids)
     coverage_summary = build_coverage_summary(slots, rules)
+    exercises = [
+        exercise_record_to_frontend_dict(records_by_id[exercise_id])
+        for exercise_id in (slot["selected_exercise"] for slot in slots)
+        if exercise_id and exercise_id in records_by_id
+    ]
     return PlanResult(
         template=template_name,
         split=split,
@@ -37,7 +45,22 @@ def build_plan(*, template: str | None = None, split: str | None = None, day: st
         goal=goal,
         slots=slots,
         coverage_summary=coverage_summary,
+        exercises=exercises,
     )
+
+
+def exercise_record_to_frontend_dict(record: Any) -> dict[str, Any]:
+    """Mirrort die Firestore-Plan-Shape (src/lib/db/firestore/sessions.js::getPlanSuggestion),
+    damit AssignPlan.jsx/ExerciseChecklist.jsx dieselben Felder (inkl. yuhonas_id
+    fuer Bild-Thumbnails) bekommen, egal ob lokal oder Firestore-Backend."""
+    yuhonas_id = record.yuhonas_id or ((record.external_ids or {}).get("yuhonas") or [None])[0]
+    return {
+        "id": record.exercise_id,
+        "name": record.display_name,
+        "primaryMuscles": record.primary_muscles or [],
+        "secondaryMuscles": record.secondary_muscles or [],
+        "yuhonas_id": yuhonas_id,
+    }
 
 
 def load_program_rules() -> dict[str, Any]:
