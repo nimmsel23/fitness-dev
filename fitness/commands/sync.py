@@ -156,5 +156,97 @@ if __name__ == "__main__":
     app()
 
 
+@app.command("list-users")
+def sync_list_users(
+    unregistered_only: bool = typer.Option(False, "--new", "-n", help="Nur UIDs anzeigen die noch NICHT in ~/Klienten sind"),
+) -> None:
+    """Alle Firebase-Auth-User anzeigen (UID, Email, Name, letzter Login).
+
+    Markiert mit [✓] wenn die UID bereits in ~/Klienten/*/client.json registriert ist,
+    und mit [NEU] wenn noch keine lokale Registrierung existiert.
+
+    Neue UIDs direkt übernehmen:
+      fitness-sync add-client <UID> <slug> --name "Vorname Name"
+    """
+    from rich.console import Console
+    from rich.table import Table
+    from rich import box
+
+    console = Console()
+
+    # ── Firebase Auth initialisieren (nutzt selbes Cred wie firestore._db) ───
+    try:
+        import firebase_admin
+        from firebase_admin import auth, credentials
+        cred_path = Path.home() / ".env" / "firebase-fitness.json"
+        if not cred_path.exists():
+            logger.error(f"Service-Account fehlt: {cred_path}")
+            raise typer.Exit(1)
+        if not firebase_admin._apps:
+            firebase_admin.initialize_app(credentials.Certificate(str(cred_path)))
+    except ImportError:
+        logger.error("firebase-admin nicht installiert")
+        raise typer.Exit(1)
+
+    # ── Bekannte UIDs aus ~/Klienten laden ───────────────────────────────────
+    klienten_dir = Path.home() / "Klienten"
+    known: dict[str, str] = {}  # uid → klienten-slug
+    if klienten_dir.exists():
+        for slug_dir in klienten_dir.iterdir():
+            cfg = slug_dir / "client.json"
+            if not cfg.exists():
+                continue
+            try:
+                data = json.loads(cfg.read_text())
+                uids = list(data.get("firebase_uids") or [])
+                primary = data.get("firebase_uid")
+                if primary and primary not in uids:
+                    uids.insert(0, primary)
+                for uid in uids:
+                    if uid:
+                        known[uid] = slug_dir.name
+            except Exception:
+                continue
+
+    # ── Auth-User abrufen ────────────────────────────────────────────────────
+    table = Table(box=box.SIMPLE, show_header=True, header_style="bold cyan")
+    table.add_column("", width=5)
+    table.add_column("UID", style="dim", no_wrap=True)
+    table.add_column("Email")
+    table.add_column("Name")
+    table.add_column("Letzter Login", style="dim")
+    table.add_column("Slug / Hinweis", style="dim")
+
+    count = 0
+    page = auth.list_users()
+    while page:
+        for u in page.users:
+            is_known = u.uid in known
+            if unregistered_only and is_known:
+                continue
+
+            status     = "[green]✓[/]" if is_known else "[yellow]NEU[/]"
+            slug_hint  = known[u.uid] if is_known else f"fitness-sync add-client {u.uid} <slug>"
+            last_login = ""
+            if u.user_metadata and u.user_metadata.last_sign_in_timestamp:
+                from datetime import datetime, timezone
+                ts = u.user_metadata.last_sign_in_timestamp / 1000
+                last_login = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d %H:%M")
+
+            table.add_row(
+                status,
+                u.uid,
+                u.email or "—",
+                u.display_name or "—",
+                last_login,
+                slug_hint,
+            )
+            count += 1
+        page = page.get_next_page()
+
+    console.print(table)
+    console.print(f"[dim]{count} User total · {len(known)} registriert · {count - len(known)} neu[/]")
+
+
 def main() -> None:
     app()
