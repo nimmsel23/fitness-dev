@@ -1,12 +1,12 @@
 name: approved_from_firebase
 description: Coach-approved via Firebase Inbox
 exercises:
-- german: Klimmzug im Obergriff
-  common_errors:
-  - Kipping oder Beinschwung statt kontrollierter vertikaler Zug.
-  - Schultern zu den Ohren ziehen und ohne Scapula-Depression starten.
-  - Halbe Wiederholungen unten oder oben, wodurch Lat-Stretch und Abschluss fehlen.
-  - Kopf nach vorne schieben, statt Brust und Rückenarbeit zur Stange zu bringen.
+- search_aliases:
+  - Pullups
+  - yuhonas_pullups
+  - Klimmzug an Leiste
+  german: Klimmzug im Obergriff
+  exercise_id: '020'
   tags:
   - expert
   - back
@@ -15,72 +15,28 @@ exercises:
   - calisthenics
   - vertical_pull
   - grip_strength
-  english: Pull-Up
-  wger_id: 821
-  coaching_notes:
-  - Starte im aktiven Hang mit langem Körper und zieh die Schulterblätter zuerst nach
-    unten.
-  - Zieh die Ellenbogen Richtung Hüfte, nicht nur das Kinn irgendwie über die Stange.
-  - Nutze volle ROM: unten kontrolliert strecken, oben Brust Richtung Stange.
-  - Halte Rippen und Becken stabil, damit der Zug nicht in Schwung oder Hohlkreuz
-    kippt.
-  - Obergriff verschiebt den Fokus stärker auf Latissimus/oberen Rücken und etwas
-    weg vom Bizeps im Vergleich zum Chin-Up.
-  stabilizers:
-  - 304_rotator_cuff
-  - 206_erector_spinae
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
-  - 504_transverse_abdominis
-  - 405_forearm_flexors
-  - 105_serratus_anterior
-  display_name: Klimmzug im Obergriff
-  source: approved
-  variations:
-  - assisted_pull_up
-  - band_assisted_pull_up
-  - weighted_pull_up
-  - wide_grip_pull_up
-  - neutral_grip_pull_up
-  - scapular_pull_up
-  primary_muscles:
-  - 201_latissimus_dorsi
-  - 207_teres_major
-  - 204_trapezius_lower
-  secondary_muscles:
-  - 402_biceps_brachii
-  - 403_brachialis
-  - 404_brachioradialis
-  - 303_posterior_deltoid
-  - 205_rhomboids
-  - 203_trapezius_middle
-  - 204_trapezius_lower
-  name: Klimmzug im Obergriff
-  exercise_id: '020'
-  external_ids:
-    yuhonas:
-    - Pullups
-    wger:
-    - 821
-  id: '020'
-  search_aliases:
-  - Pullups
-  - yuhonas_pullups
-  - Klimmzug an Leiste
-  movement_pattern: vertical_pull
-  equipment:
-  - bodyweight
-  - pull_up_bar
+  _hash: 1f54c532ed9f8df13d9afb6851cbe9ac
   movements:
   - vertical
   - shoulder_adduction
   - elbow_flexion
   - scapular_depression
+  name: Klimmzug im Obergriff
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 207_teres_major
+  - 204_trapezius_lower
   wger_muscle_ids:
-    primary: []
     secondary: []
-  category: pull
-  _hash: 1f54c532ed9f8df13d9afb6851cbe9ac
+    primary: []
+  external_ids:
+    yuhonas:
+    - Pullups
+    wger:
+    - 821
+  equipment:
+  - bodyweight
+  - pull_up_bar
   aliases:
   - Klimmzug
   - Klimmzüge
@@ -96,3 +52,47 @@ exercises:
   - Standard Pull-up
   - Pronated Pull-up
   type: compound
+  id: '020'
+  category: pull
+  secondary_muscles:
+  - 402_biceps_brachii
+  - 403_brachialis
+  - 404_brachioradialis
+  - 303_posterior_deltoid
+  - 205_rhomboids
+  - 203_trapezius_middle
+  - 204_trapezius_lower
+  movement_pattern: vertical_pull
+  stabilizers:
+  - 304_rotator_cuff
+  - 206_erector_spinae
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 504_transverse_abdominis
+  - 405_forearm_flexors
+  - 105_serratus_anterior
+  wger_id: 821
+  source: approved
+  display_name: Klimmzug im Obergriff
+  coaching_notes:
+  - Starte im aktiven Hang mit langem Körper und zieh die Schulterblätter zuerst nach
+    unten.
+  - Zieh die Ellenbogen Richtung Hüfte, nicht nur das Kinn irgendwie über die Stange.
+  - Nutze volle ROM: unten kontrolliert strecken, oben Brust Richtung Stange.
+  - Halte Rippen und Becken stabil, damit der Zug nicht in Schwung oder Hohlkreuz
+    kippt.
+  - Obergriff verschiebt den Fokus stärker auf Latissimus/oberen Rücken und etwas
+    weg vom Bizeps im Vergleich zum Chin-Up.
+  variations:
+  - assisted_pull_up
+  - band_assisted_pull_up
+  - weighted_pull_up
+  - wide_grip_pull_up
+  - neutral_grip_pull_up
+  - scapular_pull_up
+  english: Pull-Up
+  common_errors:
+  - Kipping oder Beinschwung statt kontrollierter vertikaler Zug.
+  - Schultern zu den Ohren ziehen und ohne Scapula-Depression starten.
+  - Halbe Wiederholungen unten oder oben, wodurch Lat-Stretch und Abschluss fehlen.
+  - Kopf nach vorne schieben, statt Brust und Rückenarbeit zur Stange zu bringen.

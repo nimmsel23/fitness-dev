@@ -84,10 +84,20 @@ Preview, kein Plan — nur was bereits abgehakt ist.
 `{ [groupName]: { score: 1–4, color: '#hex' } }` — score für RBH frequency,
 color für react-muscle-highlighter direkt.
 
-Frontend hat hartcodierte Parallel-Mappings zur KB-Taxonomie
-(`lib/muscleMapping.js` RBH_SLUGS/SLUG_TO_GROUP, `DetailedMuscleMap.jsx`
-GROUP_TO_RMH) statt aus `fitness/catalog/kb/` zu lesen — bekannte
-Architektur-Schuld, noch nicht aufgelöst.
+**Stale-Doc-Fund (2026-08-06):** Dieser Absatz behauptete bis eben, `lib/muscleMapping.js`
+(RBH_SLUGS/SLUG_TO_GROUP) sei noch aktiv und hartcodiert — die Datei existiert
+im laufenden Code längst nicht mehr, abgelöst durch `lib/muscleMap.js`
+(`useMuscleMap()`), das live von `/fitness/muscles/viz` (`fitness/api/routers/
+exercises.py`) liest, welches wiederum dynamisch aus `kb/muscles/*.yml`
+aufbaut (`iter_muscle_documents()`, `muscle_index.yml`) — keine Region-Priorität
+hartcodiert, sortiert nach aufsteigender Mitgliederzahl der Region-Bucket-
+Dateien (kleine/spezifische zuerst, `back.yml`/`legs.yml` als Fallback zuletzt).
+`src/views/Muscles/AUDIT.md` und `fitness/catalog/ARCHITECTURE.md` hatten diesen
+Übergang bereits korrekt festgehalten — nur diese eine Datei war seit dem
+Refactor nie nachgezogen worden. Lehre: Doku-Claims zu Architektur-Schuld vor
+dem Weiterverwenden gegen den aktuellen Code prüfen, auch wenn andere Docs im
+selben Repo sich widersprechen könnten (ein einzelnes CLAUDE.md ist keine
+verlässliche SOT für sich allein).
 
 ---
 

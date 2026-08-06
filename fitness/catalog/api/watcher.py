@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -244,9 +245,18 @@ class InboxHandler(FileSystemEventHandler):
 from fitness.catalog.agent.ingestor import ingest_all_sessions, get_top_unreviewed_exercises
 from fitness.catalog.core.auditor import write_biomechanical_report
 
-def run_watcher():
-    setup_logging()
-    logger.info("Starting fitness-agent watcher daemon...")
+def start_enrichment_watcher() -> tuple[Observer, threading.Thread, threading.Event]:
+    """Startet Inbox-Observer + periodischen Analytics-Loop, nicht-blockierend.
+
+    Embeddbar in einen bereits laufenden Event-Loop/Prozess (siehe
+    fitness/api/main.py::lifespan) — analog zu firestore.mirror
+    .start_catalog_watchers(). Der Observer läuft ohnehin in seinem eigenen
+    Thread (watchdog-intern); der periodische Analytics-Loop (Session-
+    Ingestion, proaktive Refinement, Biomechanik-Audit) läuft hier als
+    eigener Daemon-Thread statt als blockierendes while+sleep im Hauptthread.
+    Rückgabe: (observer, loop_thread, stop_event) — Aufrufer stoppt via
+    stop_event.set(); observer.stop(); observer.join().
+    """
     ingest_sessions_enabled = os.getenv("FITNESS_WATCHER_INGEST_SESSIONS", "").strip() == "1"
     proactive_refiner_enabled = os.getenv("FITNESS_WATCHER_PROACTIVE_REFINER", "").strip() == "1"
     analytics_interval_seconds = int(os.getenv("FITNESS_WATCHER_ANALYTICS_INTERVAL_SECONDS", "36000"))
@@ -258,10 +268,10 @@ def run_watcher():
     api_key = load_gemini_key()
     if not api_key:
         logger.warning("GEMINI_API_KEY not found. Automated enrichment disabled.")
-        
+
     users_dir = runtime_root() / "users"
     users_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Initial scan for existing inbox files
     logger.info("Performing initial scan for pending inbox files...")
     for json_file in users_dir.glob("**/inbox/*.json"):
@@ -271,14 +281,15 @@ def run_watcher():
     handler = InboxHandler(api_key)
     observer.schedule(handler, str(users_dir), recursive=True)
     observer.start()
-    
-    last_ingest = 0
-    last_audit = 0
-    
-    try:
-        while True:
+
+    stop_event = threading.Event()
+
+    def _analytics_loop():
+        last_ingest = 0
+        last_audit = 0
+        while not stop_event.is_set():
             now = time.time()
-            
+
             # Optional background analytics. Disabled by default: the inbox watcher
             # must not invent history rows or phantom exercise drafts.
             if now - last_ingest > analytics_interval_seconds:
@@ -303,7 +314,7 @@ def run_watcher():
                     logger.error(f"Periodic optional analytics failed: {e}")
 
             # Periodically run Biomechanical Auditor
-            if now - last_audit > 7200: # Every 2 hours
+            if now - last_audit > 7200:  # Every 2 hours
                 logger.info("Running biomechanical consistency audit...")
                 try:
                     report_path = write_biomechanical_report()
@@ -312,7 +323,25 @@ def run_watcher():
                 except Exception as e:
                     logger.error(f"Biomechanical audit failed: {e}")
 
-            time.sleep(10)
+            stop_event.wait(10)
+
+    loop_thread = threading.Thread(target=_analytics_loop, name="enrichment-analytics-loop", daemon=True)
+    loop_thread.start()
+
+    return observer, loop_thread, stop_event
+
+
+def run_watcher():
+    """Foreground/Ad-hoc-CLI-Einstieg (`fitness enrich-watch` / `python3 -m
+    catalog watch`) — blockiert bis Ctrl+C. Normalerweise läuft die
+    Enrichment-Logik stattdessen eingebettet in fitness-api.service (siehe
+    start_enrichment_watcher() + fitness/api/main.py::lifespan)."""
+    setup_logging()
+    logger.info("Starting fitness-agent watcher daemon...")
+    observer, loop_thread, stop_event = start_enrichment_watcher()
+    try:
+        threading.Event().wait()
     except KeyboardInterrupt:
+        stop_event.set()
         observer.stop()
     observer.join()

@@ -31,9 +31,11 @@ English (e.g. "Jefferson Curl" must never resolve to "Barbell Curl" just
 because no proper English field existed to disambiguate against).
 
 CRITICAL: primary_muscles, secondary_muscles, and stabilizers must use the
-current catalog vocabulary. Prefer coarse bucket names for coach-review and
-coverage-level drafts. Use fine anatomical IDs only when the exercise clearly
-needs anatomy-learning detail.
+current catalog vocabulary. Prefer the most specific fine anatomical ID you
+are confident about (e.g. "101_pectoralis_major", not "chest"). Only fall
+back to a coarse bucket name when it is genuinely ambiguous which specific
+head/muscle is involved - never as the default for coach-review or
+coverage-level drafts.
 
 CRITICAL: "category" is the single Primal Movement Pattern bucket for the
 exercise: push, pull, squat, lunge, gait, twist, or carry. Do NOT use body
@@ -50,8 +52,10 @@ Allowed fine anatomical IDs:
 {muscle_detail_list}
 
 Do NOT use legacy aliases such as "quads" or stale numbered slugs. Examples:
-use "quadriceps" for broad quad work, not "quads"; use "chest" for broad chest
-pressing, or "102_pectoralis_major_clavicular" only when the incline angle is
+use "601_quadriceps_femoris" for broad quad work (not "quads" or a single
+head like "601a_rectus_femoris" unless that head alone is clearly isolated);
+use "101_pectoralis_major" for broad chest pressing (not "chest"), or
+"102_pectoralis_major_clavicular" only when the incline angle is
 intentionally the anatomical detail being captured.
 
 {{
@@ -89,9 +93,11 @@ search from wrongly matching an unrelated exercise when a user searches in
 English.
 
 CRITICAL: primary_muscles, secondary_muscles, and stabilizers must use the
-current catalog vocabulary. Prefer coarse bucket names for coach-review and
-coverage-level drafts. Use fine anatomical IDs only when the exercise clearly
-needs anatomy-learning detail.
+current catalog vocabulary. Prefer the most specific fine anatomical ID you
+are confident about (e.g. "101_pectoralis_major", not "chest"). Only fall
+back to a coarse bucket name when it is genuinely ambiguous which specific
+head/muscle is involved - never as the default for coach-review or
+coverage-level drafts.
 
 CRITICAL: "category" is the single Primal Movement Pattern bucket for the
 exercise: push, pull, squat, lunge, gait, twist, or carry. Do NOT use body
@@ -108,8 +114,10 @@ Allowed fine anatomical IDs:
 {muscle_detail_list}
 
 Do NOT use legacy aliases such as "quads" or stale numbered slugs. Examples:
-use "quadriceps" for broad quad work, not "quads"; use "chest" for broad chest
-pressing, or "102_pectoralis_major_clavicular" only when the incline angle is
+use "601_quadriceps_femoris" for broad quad work (not "quads" or a single
+head like "601a_rectus_femoris" unless that head alone is clearly isolated);
+use "101_pectoralis_major" for broad chest pressing (not "chest"), or
+"102_pectoralis_major_clavicular" only when the incline angle is
 intentionally the anatomical detail being captured.
 
 Existing Data (Wiki Layer):
