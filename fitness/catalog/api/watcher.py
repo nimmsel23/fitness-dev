@@ -132,7 +132,26 @@ def process_inbox_file(file_path: Path, api_key: str | None):
 
         logger.info(f"Enriching NEW exercise: {name}")
 
-        enriched_data = call_gemini(name, safe_name, api_key)
+        # Falls resolve_query() einen vorhandenen (nicht-high-confidence)
+        # Record findet, z.B. aus unreviewed_wger.yml mit einer echten
+        # original_description von wger selbst, muss Gemini diese Daten als
+        # Grundlage bekommen statt komplett blind (nur der nackte Name) neu
+        # zu erfinden — sonst geht die wger-Originalbeschreibung beim
+        # Enrichment verloren statt verfeinert zu werden.
+        existing_data = None
+        if resolution.matched and resolution.canonical_id:
+            record = find_by_id(resolution.canonical_id, build_exercise_index())
+            if record:
+                existing_data = {
+                    "exercise_id": record.exercise_id,
+                    "display_name": record.display_name,
+                    "original_description": record.original_description,
+                    "primary_muscles": record.primary_muscles,
+                    "secondary_muscles": record.secondary_muscles,
+                    "equipment": record.equipment,
+                }
+
+        enriched_data = call_gemini(name, safe_name, api_key, existing_data=existing_data)
 
         if enriched_data:
             uid, doc_id = _firestore_inbox_ref(file_path)
