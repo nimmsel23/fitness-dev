@@ -20,8 +20,12 @@ function hasTrainingSignal(ex) {
   if (!ex || typeof ex !== "object") return false;
   if (ex.done) return true;
   if (Number(ex.sets) > 0 || Number(ex.reps) > 0 || Number(ex.weight) > 0) return true;
+  // Bodyweight-/AMRAP-Sätze haben oft weder Gewicht noch numerische Reps
+  // (z.B. nur abgehakt) — ein bereits angelegter Satz-Eintrag zählt als
+  // Trainingssignal, sonst stuft isActivityOnly() echte Workouts fälschlich
+  // als reine Activity ein (siehe mergeActivityAddon).
   if (Array.isArray(ex.setsArray)) {
-    return ex.setsArray.some(s => Number(s?.reps) > 0 || Number(s?.weight) > 0);
+    return ex.setsArray.length > 0;
   }
   return false;
 }
@@ -57,7 +61,11 @@ function mergeActivityAddon(base, incoming, sourceId = null) {
   merged.activityAddons = addons;
   if (!merged.activity) merged.activity = addons[0];
   const exercises = Array.isArray(merged.exercises) ? merged.exercises : [];
-  if (!exercises.some(hasTrainingSignal)) {
+  // Nur auf "cardio" umstufen, wenn wirklich keine Exercises existieren —
+  // ein bereits gespeichertes Workout darf nie allein wegen einer
+  // fehleranfälligen Trainingssignal-Heuristik aus der UI verschwinden
+  // (ExerciseList wird nur bei sessionMode === "strength" gerendert).
+  if (exercises.length === 0) {
     merged.sessionMode = "cardio";
     merged.exercises = exercises;
     merged.activity = addons[0];
