@@ -8,14 +8,15 @@ ExerciseList, das Workout verschwand optisch komplett. Fix: jeder
 setsArray-Eintrag zählt jetzt als Trainingssignal, Downgrade auf cardio nur
 noch bei wirklich leerem exercises-Array. Commit 9d6b108, gepusht.
 
-# der neue Readiness & Stärke-Matrix SubTab
-war eine spontane idee eines agenten. die idee ist gut. 
-die umsetzung ist ein wenig vermischt. 
-Besser wäre die Readiness und das 1RM aufzutrennen in zweierlei Subtabs, denn das main feature der app ist die superkompensation zu berechnen und zu visualisieren und diese neue funktion ist dazu sehr komplimentär. 
-Readiness besagt etwas von OVERALL READINESS, diese könnte und sollte je nach Superkompensation im Muskeln Tab wiederspiegelt werden - da dieser jedoch das 1RM anhand der Readiness wiedergibt lass dir etwas spannendes einfallen dass mit dem ohnehin vorhanden scoring der app arbeitet. 
-
-
-
+# [x] der neue Readiness & Stärke-Matrix SubTab (erledigt 2026-08-06)
+Aufgetrennt in zwei SubTabs unter Review: `ReviewReadiness.jsx` (Overall
+Readiness, ACWR, Tages-Empfehlung, Regenerations-Matrix) und
+`ReviewStrengthMatrix.jsx` (1RM-Rechner + Prozent-Spektrum). Die
+Regenerations-Matrix nutzte vorher ein eigenes grobes 6-Gruppen-Modell
+parallel zum echten Superkompensations-Scoring im Muskeln-Tab — Score-Logik
+jetzt nach `src/lib/superkompensation.js` extrahiert und von beiden Tabs
+geteilt, Readiness zeigt exakt dieselben Zahlen wie der Muskeln-Tab.
+Commits 3aa68c9 + 6ca195a, gepusht.
 
 # Bericht (Review Main Tab)
 das Frontend lässt anhand des layouts bzw des fitting noch optimierung bzw grundlegende neuanlegung zu.
