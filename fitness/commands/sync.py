@@ -1,14 +1,16 @@
 """fitness-sync — KB-Sync + Firestore-Sync, an einem Ort statt in cli.py verstreut.
 
-  fitness-sync kb       [--dry-run]  Katalog (Exercises/Anatomy/Muscles/Yuhonas) → Firestore
-  fitness-sync pull                   Firestore → lokal (Sessions/Journal/Inbox/Habits + Fuel),
-                                       für den eigenen Operator-UID (firestore._db.UID)
-  fitness-sync pull-uid  <UID>        Sessions eines EINZELNEN Users ← Firestore, via die
-                                       laufende Node-API (Coach-Anwendungsfall: Klienten-Daten
-                                       ziehen ohne den eigenen UID zu wechseln)
-  fitness-sync push  [UID]            Lokal → Firestore (Sessions + Fuel)
-  fitness-sync watch [UID]            Fuel-Watchdog (blockierend, Ctrl+C zum Beenden)
-  fitness-sync all   [--dry-run]      kb + pull + push nacheinander
+  fitness-sync kb          [--dry-run]  Katalog (Exercises/Anatomy/Muscles/Yuhonas) → Firestore
+  fitness-sync pull                      Firestore → lokal (Sessions/Journal/Inbox/Habits + Fuel),
+                                          für den eigenen Operator-UID (firestore._db.UID)
+  fitness-sync pull-uid  <UID>           Sessions eines EINZELNEN Users ← Firestore, via die
+                                          laufende Node-API (Coach-Anwendungsfall: Klienten-Daten
+                                          ziehen ohne den eigenen UID zu wechseln)
+  fitness-sync push  [UID]               Lokal → Firestore (Sessions + Fuel)
+  fitness-sync watch [UID]               Fuel-Watchdog (blockierend, Ctrl+C zum Beenden)
+  fitness-sync all   [--dry-run]         kb + pull + push nacheinander
+  fitness-sync add-client <UID> <SLUG>   Neuen Klienten registrieren: client.json anlegen
+                                          + Sessions sofort aus Firestore pullen
 
 Vorher lag das als ein einziger, unauffindbarer "sync"-Befehl in fitness/cli.py,
 der KB-Sync und Firestore-Sync über einen Subprocess-Aufruf eines separat
@@ -152,8 +154,209 @@ def sync_all(dry_run: bool = typer.Option(False, "--dry-run", help="KB-Sync nich
     sync_push()
 
 
+@app.command("add-client")
+def sync_add_client(
+    uid: str = typer.Argument(..., help="Firebase UID des neuen Klienten"),
+    slug: str = typer.Argument(..., help="Slug für ~/Klienten/<slug>/ (z.B. 'max-mustermann')"),
+    name: Optional[str] = typer.Option(None, "--name", "-n", help="Anzeigename (Default: aus Slug ableiten)"),
+    pull: bool = typer.Option(False, "--pull/--no-pull", help="Sessions aus Firestore pullen (Default: nein — erst registrieren, dann manuell entscheiden)"),
+) -> None:
+    """Neuen Klienten registrieren: ~/Klienten/<slug>/client.json anlegen + Firestore-Pull.
+
+    Beispiel:
+      fitness-sync add-client AbC123XyZ new-client-name --name "Max Mustermann"
+
+    Nach diesem Befehl:
+      - ~/Klienten/<slug>/client.json existiert mit firebase_uid gesetzt
+      - ~/.aos/users/<uid>/fitness/sessions/ ist befüllt (wenn --pull aktiv)
+      - Die TUI zeigt den Klienten unter "Clients" und im User-Switch-Modal
+    """
+    import re
+    from datetime import datetime, timezone
+
+    klienten_dir = Path.home() / "Klienten"
+    client_dir   = klienten_dir / slug
+
+    # ── Slug validieren ───────────────────────────────────────────────────────
+    if not re.match(r'^[a-z0-9][a-z0-9-]*$', slug):
+        logger.error(f"Ungültiger Slug '{slug}' — nur Kleinbuchstaben, Ziffern und Bindestriche")
+        raise typer.Exit(1)
+
+    # ── Name ableiten falls nicht angegeben ───────────────────────────────────
+    display_name = name or " ".join(p.capitalize() for p in slug.replace("-", " ").split())
+
+    # ── Klienten-Dir anlegen ──────────────────────────────────────────────────
+    client_dir.mkdir(parents=True, exist_ok=True)
+    cfg_path = client_dir / "client.json"
+
+    if cfg_path.exists():
+        existing = json.loads(cfg_path.read_text())
+        existing_uids = list(existing.get("firebase_uids") or [])
+        primary = existing.get("firebase_uid")
+        if primary and primary not in existing_uids:
+            existing_uids.insert(0, primary)
+        if uid in existing_uids:
+            logger.warning(f"UID {uid} ist bereits in {cfg_path} eingetragen")
+        else:
+            existing_uids.append(uid)
+            existing["firebase_uids"] = existing_uids
+            if not existing.get("firebase_uid"):
+                existing["firebase_uid"] = uid
+            existing["updated_at"] = datetime.now(timezone.utc).isoformat()
+            cfg_path.write_text(json.dumps(existing, indent=2, ensure_ascii=False))
+            logger.success(f"UID {uid} zu {cfg_path} hinzugefügt")
+    else:
+        now = datetime.now(timezone.utc).isoformat()
+        client_data = {
+            "id":            slug,
+            "name":          display_name,
+            "status":        "aktiv",
+            "firebase_uid":  uid,
+            "firebase_uids": [uid],
+            "created_at":    now,
+            "updated_at":    now,
+        }
+        cfg_path.write_text(json.dumps(client_data, indent=2, ensure_ascii=False))
+        logger.success(f"Klient angelegt: {cfg_path}")
+
+    # ── Lokales Sessions-Verzeichnis vorbereiten ──────────────────────────────
+    sess_dir = Path.home() / ".aos" / "users" / uid / "fitness" / "sessions"
+    sess_dir.mkdir(parents=True, exist_ok=True)
+    logger.info(f"Sessions-Dir: {sess_dir}")
+
+    # ── Firestore Pull ────────────────────────────────────────────────────────
+    if pull:
+        logger.info(f"Starte Firestore-Pull für uid={uid} via Node-API (:{ DEV_PORT})...")
+        out = Path("/tmp/fitness-add-client-pull.json")
+        r = subprocess.run([
+            "curl", "-fsS", "--max-time", "60", "-X", "POST",
+            f"http://127.0.0.1:{DEV_PORT}/firestore/pull",
+            "-H", f"X-User-UID: {uid}",
+            "-o", str(out),
+        ])
+        if r.returncode != 0:
+            logger.warning(
+                "Node-API nicht erreichbar — Sessions wurden NICHT gepullt.\n"
+                f"  Manuell nachholen: fitness-sync pull-uid {uid}"
+            )
+        else:
+            try:
+                result = json.loads(out.read_text())
+                if result.get("ok"):
+                    logger.success(
+                        f"Pull fertig — {result['pulled']} gezogen · "
+                        f"{result['skipped']} übersprungen · "
+                        f"{result['conflicts']} Konflikte"
+                    )
+                    if result.get("conflict_dates"):
+                        logger.warning(f"Konflikte: {', '.join(result['conflict_dates'])}")
+                else:
+                    logger.warning(f"Pull-Fehler: {result.get('error')}")
+            except Exception as e:
+                logger.warning(f"Pull-Antwort konnte nicht gelesen werden: {e}")
+    else:
+        logger.info(f"Pull übersprungen. Nachholen mit: fitness-sync pull-uid {uid}")
+
+    logger.success(
+        f"\n  Klient '{display_name}' ({uid[:12]}…) ist jetzt registriert.\n"
+        "  Die TUI zeigt ihn unter 'Clients' und im User-Switch-Modal (u)."
+    )
+
+
 if __name__ == "__main__":
     app()
+
+
+@app.command("list-users")
+def sync_list_users(
+    unregistered_only: bool = typer.Option(False, "--new", "-n", help="Nur UIDs anzeigen die noch NICHT in ~/Klienten sind"),
+) -> None:
+    """Alle Firebase-Auth-User anzeigen (UID, Email, Name, letzter Login).
+
+    Markiert mit [✓] wenn die UID bereits in ~/Klienten/*/client.json registriert ist,
+    und mit [NEU] wenn noch keine lokale Registrierung existiert.
+
+    Neue UIDs direkt übernehmen:
+      fitness-sync add-client <UID> <slug> --name "Vorname Name"
+    """
+    from rich.console import Console
+    from rich.table import Table
+    from rich import box
+
+    console = Console()
+
+    # ── Firebase Auth initialisieren (nutzt selbes Cred wie firestore._db) ───
+    try:
+        import firebase_admin
+        from firebase_admin import auth, credentials
+        cred_path = Path.home() / ".env" / "firebase-fitness.json"
+        if not cred_path.exists():
+            logger.error(f"Service-Account fehlt: {cred_path}")
+            raise typer.Exit(1)
+        if not firebase_admin._apps:
+            firebase_admin.initialize_app(credentials.Certificate(str(cred_path)))
+    except ImportError:
+        logger.error("firebase-admin nicht installiert")
+        raise typer.Exit(1)
+
+    # ── Bekannte UIDs aus ~/Klienten laden ───────────────────────────────────
+    klienten_dir = Path.home() / "Klienten"
+    known: dict[str, str] = {}  # uid → klienten-slug
+    if klienten_dir.exists():
+        for slug_dir in klienten_dir.iterdir():
+            cfg = slug_dir / "client.json"
+            if not cfg.exists():
+                continue
+            try:
+                data = json.loads(cfg.read_text())
+                uids = list(data.get("firebase_uids") or [])
+                primary = data.get("firebase_uid")
+                if primary and primary not in uids:
+                    uids.insert(0, primary)
+                for uid in uids:
+                    if uid:
+                        known[uid] = slug_dir.name
+            except Exception:
+                continue
+
+    # ── Auth-User abrufen ────────────────────────────────────────────────────
+    table = Table(box=box.SIMPLE, show_header=True, header_style="bold cyan")
+    table.add_column("", width=5)
+    table.add_column("UID", style="dim", no_wrap=True)
+    table.add_column("Email")
+    table.add_column("Name")
+    table.add_column("Letzter Login", style="dim")
+    table.add_column("Slug / Hinweis", style="dim")
+
+    count = 0
+    page = auth.list_users()
+    while page:
+        for u in page.users:
+            is_known = u.uid in known
+            if unregistered_only and is_known:
+                continue
+
+            status     = "[green]✓[/]" if is_known else "[yellow]NEU[/]"
+            slug_hint  = known[u.uid] if is_known else f"fitness-sync add-client {u.uid} <slug>"
+            last_login = ""
+            if u.user_metadata and u.user_metadata.last_sign_in_timestamp:
+                from datetime import datetime, timezone
+                ts = u.user_metadata.last_sign_in_timestamp / 1000
+                last_login = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d %H:%M")
+
+            table.add_row(
+                status,
+                u.uid,
+                u.email or "—",
+                u.display_name or "—",
+                last_login,
+                slug_hint,
+            )
+            count += 1
+        page = page.get_next_page()
+
+    console.print(table)
+    console.print(f"[dim]{count} User total · {len(known)} registriert · {count - len(known)} neu[/]")
 
 
 def main() -> None:
