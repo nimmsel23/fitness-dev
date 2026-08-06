@@ -41,7 +41,7 @@ from fitness.catalog.core.resolver import resolve_query
 from fitness.catalog.weekly import build_weekly_coverage
 from fitness.catalog.tui import run_tui
 from fitness.catalog.api.watcher import run_watcher
-from fitness.catalog.importer import import_external_exercises
+from fitness.catalog.importer import import_external_exercises, reimport_exercise
 from fitness.catalog.api.firestore_push import run_kb_sync, push_changed_exercises
 from fitness.catalog.core.rich_utils import (
     console,
@@ -664,6 +664,25 @@ def command_import():
     """Bulk import exercises from external sources (wger, yuhonas)"""
     try:
         import_external_exercises()
+    except Exception as exc:
+        console.print(f"[fail]FAIL:[/fail] {exc}")
+        raise typer.Exit(code=1)
+
+
+@app.command(name="reimport")
+def command_reimport(
+    query: Annotated[str, typer.Argument(help="Name/Query der Uebung, z.B. 'Incline Bench Press'")],
+    source: Annotated[str, typer.Option(help="wger | yuhonas | both")] = "both",
+):
+    """Gezielter Einzel-Reimport einer Uebung aus wger/yuhonas -> kb/inbox/,
+    ohne den kompletten Bulk-Import (`import`) zu wiederholen."""
+    try:
+        written = reimport_exercise(query, source=source)
+        if not written:
+            console.print(f"[warn]Kein Treffer/nichts geschrieben fuer '{query}'.[/warn]")
+            raise typer.Exit(code=1)
+        for path in written:
+            console.print(f"[ok]OK:[/ok] {path}")
     except Exception as exc:
         console.print(f"[fail]FAIL:[/fail] {exc}")
         raise typer.Exit(code=1)

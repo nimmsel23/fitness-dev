@@ -5,6 +5,7 @@ import os
 import re
 from pathlib import Path
 from typing import Any
+import urllib.parse
 import urllib.request
 import yaml
 from tqdm import tqdm
@@ -58,6 +59,33 @@ def fetch_json(url: str, headers: dict[str, str] | None = None) -> Any:
     req = urllib.request.Request(url, headers=headers or {})
     with urllib.request.urlopen(req) as response:
         return json.loads(response.read().decode("utf-8"))
+
+
+YUHONAS_DIST_JSON_URL = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+
+
+def _ensure_yuhonas_json() -> Path | None:
+    """~/fitness/free-exercise-db ist ein voller Git-Klon (~200MB inkl. Bilder)
+    und wurde in der Praxis wiederholt extern geleert (Ursache nicht
+    identifiziert, siehe fitness-dev/CLAUDE.md-Gotcha zu diesem Pfad). Statt bei
+    jedem Reimport an dieser Fragilitaet zu scheitern: die ~1MB dist/exercises.json
+    bei Bedarf direkt von GitHub nachladen und lokal cachen - Bilder selbst
+    kommen ohnehin per CDN (src/lib/yuhonasImage.js), kein voller Klon noetig
+    fuer diesen Pfad.
+    """
+    path = Path.home() / "fitness/free-exercise-db/dist/exercises.json"
+    if path.exists():
+        return path
+    try:
+        logger.warning(f"{path} fehlt - lade dist/exercises.json direkt von GitHub nach...")
+        data = fetch_json(YUHONAS_DIST_JSON_URL)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data), encoding="utf-8")
+        logger.info(f"yuhonas dist/exercises.json wiederhergestellt ({len(data)} Eintraege).")
+        return path
+    except Exception as e:
+        logger.error(f"Konnte yuhonas dist/exercises.json nicht nachladen: {e}")
+        return None
 
 # Wiederhergestellt (User-Vorgabe 2026-07-25) aus dem Diff von Commit 6be284f
 # ("wger-Bulk-Import deaktivieren"), NICHT scharfgeschaltet: bevor der
@@ -195,8 +223,8 @@ def import_external_exercises():
         return normalize_muscle_id(name)
 
     unreviewed_yuhonas = []
-    yuhonas_path = Path.home() / "fitness/free-exercise-db/dist/exercises.json"
-    if yuhonas_path.exists():
+    yuhonas_path = _ensure_yuhonas_json()
+    if yuhonas_path and yuhonas_path.exists():
         logger.info("Importing from yuhonas free-exercise-db...")
         try:
             with yuhonas_path.open("r", encoding="utf-8") as f:
@@ -276,6 +304,155 @@ def import_external_exercises():
         with target.open("w", encoding="utf-8") as f:
             yaml.safe_dump(wrapper, f, allow_unicode=True, sort_keys=False)
         logger.info(f"Saved {len(unreviewed_yuhonas)} exercises to {target}")
+
+def _wger_entry_from_api_item(item: dict[str, Any]) -> dict[str, Any] | None:
+    """Baut denselben Entry-Shape wie import_external_exercises()'s wger-Zweig,
+    aus einem einzelnen /exerciseinfo/-Ergebnis (nicht der Bulk-Paginierung)."""
+    translations = item.get("translations", [])
+    de = next((t for t in translations if t.get("language") == 1), None)
+    en = next((t for t in translations if t.get("language") == 2), None)
+    display_name = (de or en or {}).get("name", "")
+    if not display_name:
+        return None
+
+    raw_taxonomy_doc_for_wger = load_catalog_yaml("muscle_index.yml") or {}
+    wger_groups = raw_taxonomy_doc_for_wger.get("wger_groups", {}) if isinstance(raw_taxonomy_doc_for_wger, dict) else {}
+    wger_id_to_norms: dict[int, list[str]] = {int(k): v for k, v in wger_groups.items() if isinstance(v, list)}
+
+    def get_norm_muscles(wger_muscles: list[dict[str, Any]]) -> list[str]:
+        res: list[str] = []
+        for m in wger_muscles:
+            res.extend(wger_id_to_norms.get(m.get("id"), []))
+        return sorted(set(res))
+
+    primary = get_norm_muscles(item.get("muscles", []))
+    secondary = get_norm_muscles(item.get("muscles_secondary", []))
+    name_variants = (display_name, (de or {}).get("name", ""), (en or {}).get("name", ""))
+    primary = reclassify_deltoid_muscles(primary, *name_variants)
+    secondary = reclassify_deltoid_muscles(secondary, *name_variants)
+
+    category_id = item.get("category", {}).get("id")
+    category = WGER_CATEGORY_MAP.get(category_id, "other")
+    description = (de or en or {}).get("description", "")
+    clean_desc = re.sub("<[^<]+?>", "", description).strip()
+
+    return {
+        "exercise_id": f"wger_{item.get('id')}",
+        "display_name": display_name,
+        "german": de.get("name") if de else display_name,
+        "category": category,
+        "primary_muscles": primary,
+        "secondary_muscles": secondary,
+        "equipment": [e.get("name").lower() for e in item.get("equipment", [])],
+        "coaching_notes": [clean_desc] if clean_desc else [],
+        "original_description": clean_desc,
+        "tags": ["unreviewed", "wger"],
+        "wger_id": item.get("id"),
+        "wger_muscle_ids": {
+            "primary": [m.get("id") for m in item.get("muscles", [])],
+            "secondary": [m.get("id") for m in item.get("muscles_secondary", [])],
+        },
+    }
+
+
+def _yuhonas_entry_from_json_item(item: dict[str, Any]) -> dict[str, Any] | None:
+    """Baut denselben Entry-Shape wie import_external_exercises()'s yuhonas-Zweig,
+    aus einem einzelnen dist/exercises.json-Eintrag."""
+    display_name = item.get("name")
+    if not display_name:
+        return None
+    return {
+        "exercise_id": f"yuhonas_{item.get('id').lower().replace(' ', '_')}",
+        "display_name": display_name,
+        "category": item.get("category", "other"),
+        "primary_muscles": sorted(set(normalize_muscle_id(m) for m in item.get("primaryMuscles", []))),
+        "secondary_muscles": sorted(set(normalize_muscle_id(m) for m in item.get("secondaryMuscles", []))),
+        "equipment": [item.get("equipment")] if item.get("equipment") else [],
+        "coaching_notes": item.get("instructions", []),
+        "original_description": item.get("instructions", []),
+        "tags": ["unreviewed", "yuhonas"],
+        "yuhonas_id": item.get("id"),
+    }
+
+
+def _write_inbox_draft(ex: dict[str, Any]) -> Path:
+    ex_id = ex["exercise_id"]
+    inbox_dir = DATA_DIR / "inbox"
+    inbox_dir.mkdir(parents=True, exist_ok=True)
+    target = inbox_dir / f"inbox_{ex_id}.yml"
+    doc = {
+        "name": f"inbox_{ex_id}",
+        "description": f"Reimported (gezielter Einzel-Reimport) fuer: {ex.get('display_name', ex_id)}",
+        "exercises": [ex],
+    }
+    target.write_text(yaml.dump(doc, allow_unicode=True, sort_keys=False, default_flow_style=False), encoding="utf-8")
+    return target
+
+
+def reimport_exercise(query: str, *, source: str = "both") -> list[Path]:
+    """Zieht eine einzelne Uebung gezielt aus wger und/oder yuhonas neu in
+    kb/inbox/ (ohne den kompletten Bulk-Import zu wiederholen) - fuer den Fall
+    "eine bestimmte Uebung fehlt/ist kaputt, Rest des Katalogs ist ok".
+
+    Ueberspringt den Reimport, wenn `query` bereits mit hoher Konfidenz auf
+    einen bestehenden (moeglicherweise approvten) Record matcht, um keine
+    Duplikate parallel zu einem Expert-Eintrag anzulegen.
+    """
+    if source not in ("wger", "yuhonas", "both"):
+        raise ValueError(f"unknown source: {source}")
+
+    existing = build_exercise_index()
+    res = resolve_query(query, existing)
+    if res.matched and res.confidence == "high":
+        logger.warning(f"'{query}' ist bereits im Katalog als '{res.canonical_id}' - kein Reimport noetig.")
+        return []
+
+    written: list[Path] = []
+
+    if source in ("wger", "both"):
+        try:
+            q = urllib.parse.quote(query)
+            headers = {"Authorization": f"Token {WGER_TOKEN}", "Accept": "application/json"}
+            data = fetch_json(f"{WGER_API_BASE}/exerciseinfo/?limit=5&search={q}", headers)
+            results = data.get("results", [])
+            if results:
+                entry = _wger_entry_from_api_item(results[0])
+                if entry:
+                    written.append(_write_inbox_draft(entry))
+                    logger.info(f"wger: '{entry['display_name']}' -> {entry['exercise_id']}")
+            else:
+                logger.info(f"wger: kein Treffer fuer '{query}'")
+        except Exception as e:
+            logger.error(f"wger reimport failed: {e}")
+
+    if source in ("yuhonas", "both"):
+        yuhonas_path = _ensure_yuhonas_json()
+        if not yuhonas_path:
+            logger.warning("yuhonas DB nicht verfuegbar (lokal fehlend, Nachladen von GitHub fehlgeschlagen)")
+        else:
+            try:
+                from rapidfuzz import fuzz, process
+
+                data = json.loads(yuhonas_path.read_text(encoding="utf-8"))
+                choices = {i: item.get("name", "") for i, item in enumerate(data)}
+                match = process.extractOne(query, choices, scorer=fuzz.token_set_ratio)
+                if match and match[1] >= 70:
+                    item = data[match[2]]
+                    entry = _yuhonas_entry_from_json_item(item)
+                    if entry:
+                        written.append(_write_inbox_draft(entry))
+                        logger.info(f"yuhonas: '{entry['display_name']}' -> {entry['exercise_id']} (score {match[1]:.0f})")
+                else:
+                    logger.info(f"yuhonas: kein ausreichend sicherer Treffer fuer '{query}'")
+            except ImportError:
+                logger.error("rapidfuzz nicht installiert - yuhonas-Fuzzy-Match uebersprungen")
+            except Exception as e:
+                logger.error(f"yuhonas reimport failed: {e}")
+
+    if not written:
+        logger.warning(f"Kein Treffer fuer '{query}' in {source} gefunden.")
+    return written
+
 
 if __name__ == "__main__":
     import_external_exercises()

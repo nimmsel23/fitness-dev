@@ -11,7 +11,7 @@ import { api } from "./api.js";
 import ExerciseSearch from "./components/ExerciseSearch.jsx";
 import MuscleHeatmap from "./components/MuscleHeatmap.jsx";
 import { muskelDe, muskelColor } from "./muscles.js";
-import { yuhonasImageUrl } from "../../lib/yuhonasImage.js";
+import ExercisePhotoStrip from "../../components/ExercisePhotoStrip.jsx";
 
 // ── Sortable Exercise Row ─────────────────────────────────
 
@@ -27,19 +27,11 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
 
   return (
     <div ref={setNodeRef} style={style} className="rounded-xl bg-fit-card border border-fit-line overflow-hidden">
+      <ExercisePhotoStrip ex={ex} className="h-32 m-2 mb-0" />
       <div className="flex items-center gap-2 px-3 py-3">
         <button {...attributes} {...listeners} className="text-fit-muted hover:text-fit-ink cursor-grab active:cursor-grabbing p-1">
           <GripVertical size={16} />
         </button>
-        {yuhonasImageUrl(ex) && (
-          <img
-            src={yuhonasImageUrl(ex)}
-            alt=""
-            loading="lazy"
-            className="w-16 h-16 rounded-xl object-cover flex-shrink-0 bg-fit-card"
-            onError={(e) => { e.currentTarget.style.display = "none"; }}
-          />
-        )}
         <div className="flex-1 min-w-0">
           <div className="text-sm font-semibold text-fit-ink truncate">{ex.name}</div>
           <div className="flex flex-wrap gap-1 mt-1">
