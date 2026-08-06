@@ -147,7 +147,12 @@ def rollup_training_days(sessions: list[dict]) -> list[dict]:
             is_strength = 1 if classify(session) != "cardio" else 0
             stem = session.get("_stem", "")
             canonical = 1 if stem == d else 0
-            return (is_strength, len(performed_exercises(session)), canonical, stem)
+            # canonical (Datei ohne __suffix, die eigentliche Hauptsession) muss
+            # vor der performed_exercises-Anzahl entscheiden — sonst gewinnt ein
+            # knapp geloggter HIIT-Finisher (z.B. 1x done:true) den Tiebreak
+            # gegen die echte Session, solange deren Sets/Gewichte noch nicht
+            # ausgefüllt sind, und überdeckt sie in der Tagesansicht.
+            return (is_strength, canonical, len(performed_exercises(session)), stem)
 
         main = max(ordered, key=rank)
         out = dict(main)

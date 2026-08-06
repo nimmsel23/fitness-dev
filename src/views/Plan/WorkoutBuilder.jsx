@@ -36,7 +36,7 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
             src={yuhonasImageUrl(ex)}
             alt=""
             loading="lazy"
-            className="w-10 h-10 rounded-lg object-cover flex-shrink-0 bg-fit-card"
+            className="w-16 h-16 rounded-xl object-cover flex-shrink-0 bg-fit-card"
             onError={(e) => { e.currentTarget.style.display = "none"; }}
           />
         )}
