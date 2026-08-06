@@ -1,57 +1,71 @@
 name: inbox_wger_1507
-description: 'Restored from graveyard: Liegestütz mit Klatschen'
-restored_at: '2026-07-28T06:07:14.738345+00:00'
-graveyard_entry:
-  id: inbox_wger_1507
-  exercise_id: wger_1507
-  display_name: Liegestütz mit Klatschen
-  reason: deleted_inbox
-  created_at: '2026-07-26T21:20:51.043753+00:00'
-  keys:
-  - inbox_wger_1507
-  - wger_1507
-  - wger:1507
-  - name:liegestütz_mit_klatschen
-  - name:clapping_push_up
+description: 'Neu angereichert (manueller Re-Enrich) fuer: Liegestütz mit Klatschen'
+enriched_at: '2026-08-06T13:42:44.247006+00:00'
 exercises:
 - exercise_id: wger_1507
   display_name: Liegestütz mit Klatschen
   german: Liegestütz mit Klatschen
-  category: chest
+  english: Clap Push-up
+  category: push
   primary_muscles:
-  - 101_pectoralis_major
-  - 102_pectoralis_major_clavicular
-  - 103_pectoralis_major_sternal
+  - chest
   secondary_muscles:
-  - 301_anterior_deltoid
-  - 401_triceps_brachii
-  - 401a_triceps_long_head
-  - 401b_triceps_lateral_head
-  - 401c_triceps_medial_head
-  - 501_rectus_abdominis
+  - shoulders
+  - triceps
+  stabilizers:
+  - core
+  - glutes
+  - quadriceps
+  - serratus_anterior
   equipment:
-  - none (bodyweight exercise)
+  - none
   coaching_notes:
-  - 'Der Liegestütz mit Klatschen ist eine explosive Oberkörperbewegung, die Schnellkraft
-    und die Stärke der schnellzuckenden Muskelfasern aufbaut. Er fügt dem klassischen
-    Liegestütz eine plyometrische Komponente hinzu, da die Hände während der Wiederholung
-    den Boden verlassen müssen.
-
-
-    Beginne in einer stabilen Liegestützposition mit den Händen etwas weiter als schulterbreit
-    und angespanntem Rumpf
-
-    Senke deinen Körper explosiv ab und drücke dich so kraftvoll vom Boden ab, dass
-    deine Hände abheben.
-
-    Klatsche schnell auf Brusthöhe in die Hände, bevor du sie wieder auf den Boden
-    setzt.
-
-    Lande mit leicht gebeugten Ellbogen, um den Aufprall abzufedern, und gehe sofort
-    in die nächste Wiederholung über'
+  - Der Liegestütz mit Klatschen ist eine fortgeschrittene, plyometrische Oberkörperübung,
+    die darauf abzielt, Schnellkraft in Brust, Schultern und Trizeps zu entwickeln.
+  - 'Beginne in einer stabilen Plank-Position: Hände etwas weiter als schulterbreit,
+    direkt unter den Schultern platziert. Der Körper bildet eine gerade Linie von
+    Kopf bis Fersen, Rumpf und Gesäß sind fest angespannt, der Nacken ist neutral.'
+  - Senke deinen Körper kontrolliert und mit Spannung ab, bis die Brust knapp über
+    dem Boden schwebt. Die Ellbogen sollten dabei in einem Winkel von etwa 45-60 Grad
+    zum Körper zeigen, nicht direkt zur Seite.
+  - Drücke dich aus dieser tiefen Position explosiv und kraftvoll vom Boden ab. Ziel
+    ist es, genügend Schwung zu erzeugen, damit beide Hände den Boden vollständig
+    verlassen.
+  - Während du dich in der Luft befindest, klatsche schnell einmal in die Hände vor
+    der Brust.
+  - Lande federnd mit leicht gebeugten Ellbogen, um den Aufprall abzudämpfen und die
+    Gelenke zu schonen. Gehe direkt und fließend in die nächste Wiederholung über,
+    um den plyometrischen Zyklus aufrechtzuerhalten.
+  common_errors:
+  - 'Mangelnde Rumpfspannung: Ein Durchhängen des unteren Rückens oder ein Anheben
+    des Gesäßes während der Bewegung deutet auf eine Schwäche des Rumpfes hin. Dies
+    reduziert die Effektivität der Übung und erhöht das Verletzungsrisiko. Halte den
+    Rumpf während der gesamten Bewegung fest angespannt, um eine stabile, neutrale
+    Wirbelsäulenposition zu gewährleisten.'
+  - 'Unkontrollierte Landung: Ein hartes Aufkommen auf den Handgelenken oder Schultern
+    kann zu unnötigem Stress auf die Gelenke führen. Lande bewusst mit leicht gebeugten
+    Ellbogen, um den Stoß abzufedern und die Energie für die nächste Wiederholung
+    zu nutzen.'
+  - 'Unzureichende Explosion: Wenn die Hände den Boden nicht verlassen oder der Klatsch
+    nicht ausgeführt werden kann, fehlt es an explosiver Kraft. Konzentriere dich
+    darauf, dich mit maximaler Absicht und Geschwindigkeit abzustoßen.'
+  - 'Verkürzte Bewegung: Den Körper nicht tief genug abzusenken oder den explosiven
+    Teil der Bewegung zu verkürzen, verringert den Trainingsreiz. Achte auf den vollen
+    Bewegungsumfang, sowohl in der Abwärts- als auch in der Aufwärtsphase.'
+  - 'Falsche Ellbogenposition: Ellbogen, die zu weit seitlich nach außen zeigen (90-Grad-Winkel),
+    belasten die Schultergelenke übermäßig. Halte die Ellbogen näher am Körper, um
+    die Brustmuskulatur effektiver zu aktivieren und die Schultern zu schützen.'
+  movements:
+  - horizontal_push
+  - plyometric
+  - elbow_extension
+  - shoulder_adduction
+  - scapular_protraction
   tags:
   - unreviewed
   - wger
+  - plyometrics
+  - explosive_strength
   wger_id: 1507
   wger_muscle_ids:
     primary:
@@ -61,3 +75,5 @@ exercises:
     - 6
     - 5
   source: unreviewed
+  variations: []
+  enriched_at: '2026-08-06T13:42:44.247006+00:00'

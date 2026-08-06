@@ -39,6 +39,18 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Firestore-Watchers nicht gestartet: {e}")
 
+    # Gemini-Enrichment-Watcher (vormals eigener fitness-enricher.service):
+    # embedded statt eigenständiger systemd-Unit, analog zu den Firestore-
+    # Watchern oben — ein Prozess weniger, kein zusätzlicher Lifecycle zu
+    # pflegen. Inbox-Observer + Analytics-Loop laufen in eigenen Threads,
+    # blockieren den FastAPI-Event-Loop nicht (siehe start_enrichment_watcher()).
+    enrichment_observer = enrichment_loop_thread = enrichment_stop_event = None
+    try:
+        from fitness.catalog.api.watcher import start_enrichment_watcher
+        enrichment_observer, enrichment_loop_thread, enrichment_stop_event = start_enrichment_watcher()
+    except Exception as e:
+        logger.warning(f"Enrichment-Watcher nicht gestartet: {e}")
+
     yield
 
     for w in watchers:
@@ -46,6 +58,10 @@ async def lifespan(app: FastAPI):
             w.unsubscribe()
         except Exception:
             pass
+    if enrichment_stop_event is not None:
+        enrichment_stop_event.set()
+        enrichment_observer.stop()
+        enrichment_observer.join()
     await close_httpx_client()
 
 app = FastAPI(
