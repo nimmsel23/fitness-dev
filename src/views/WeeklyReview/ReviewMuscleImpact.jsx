@@ -5,20 +5,20 @@ import { getMuscleIcon } from '../../constants/MuscleIcons';
 export default function ReviewMuscleImpact({ regionEntries, muscleLanguage = 'de', taxonomy = null }) {
   const maxScore = Math.max(...regionEntries.map(e => e[1]), 5);
   return (
-    <section className="card mb-0 shadow-lg border-fit-line/50 p-8">
-      <div className="label-caps !mb-8 flex items-center gap-2">
+    <section className="card mb-0 shadow-lg border-fit-line/50 p-4 sm:p-8">
+      <div className="label-caps !mb-4 sm:!mb-8 flex items-center gap-2">
         <TrendingUp size={16} className="text-fit-accent" />
         Relative Muskelbelastung
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
         {regionEntries.length > 0 ? regionEntries.map(([name, score]) => {
           const pct = Math.min(100, (score / maxScore) * 100);
           const Icon = getMuscleIcon(name);
           return (
-            <div key={name} className="flex flex-col p-5 rounded-2xl border bg-fit-bg2 border-fit-line hover:border-accent/40 transition-all group shadow-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <Icon size={12} className="opacity-30 group-hover:text-accent group-hover:opacity-100 transition-all" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 group-hover:text-accent group-hover:opacity-100 transition-colors">
+            <div key={name} className="flex flex-col p-3 sm:p-5 rounded-2xl border bg-fit-bg2 border-fit-line hover:border-accent/40 transition-all group shadow-sm min-w-0">
+              <div className="flex items-center gap-2 mb-2 sm:mb-3 min-w-0">
+                <Icon size={12} className="opacity-30 group-hover:text-accent group-hover:opacity-100 transition-all shrink-0" />
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.05em] sm:tracking-[0.2em] opacity-40 group-hover:text-accent group-hover:opacity-100 transition-colors truncate">
                   {translateMuscle(name, taxonomy, muscleLanguage)}
                 </span>
               </div>

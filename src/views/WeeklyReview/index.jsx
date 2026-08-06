@@ -75,7 +75,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
       />
 
       {/* Mode switcher */}
-      <div className="flex gap-1 p-1 bg-fit-card rounded-2xl border border-fit-line shadow-sm w-fit">
+      <div className="flex gap-1 p-1 bg-fit-card rounded-2xl border border-fit-line shadow-sm overflow-x-auto max-w-full [&::-webkit-scrollbar]:hidden">
         {[
           { id: 'report',    icon: <BarChart3 size={14} />, label: 'Bericht' },
           { id: 'muscles',   icon: <Activity size={14} />,  label: 'Muskeln' },
@@ -85,7 +85,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
         ].map(({ id, icon, label }) => (
           <button key={id}
             onClick={() => onSubNav?.(id)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === id ? 'bg-fit-accent text-black shadow-lg shadow-accent/20' : 'text-fit-dim hover:text-ink'}`}
+            className={`flex items-center gap-1.5 sm:gap-2 shrink-0 px-3 sm:px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${viewMode === id ? 'bg-fit-accent text-black shadow-lg shadow-accent/20' : 'text-fit-dim hover:text-ink'}`}
           >
             {icon} {label}
           </button>
