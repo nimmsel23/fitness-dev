@@ -1,18 +1,18 @@
 [data-theme="honey"] {
   --bg: #fdfaf0;
   --bg2: #f4f1e6;
-  --panel: #ece8da;
-  --card: #fdfaf0;
-  --card-hover: #f4f0e2;
-  --line: #d8d2c0;
-  --ink: #3d3828;
-  --muted: #7a7260;
-  --dim: #a89e88;
-  --accent: #c87800;
-  --accent-glow: rgba(200, 120, 0, 0.1);
-  --green: #5a8a40;
-  --red: #aa3030;
-  --orange: #c87800;
-  --glass: rgba(253, 250, 240, 0.85);
-  --glass-border: rgba(200, 120, 0, 0.08);
+  --panel: #f2ede0;
+  --card: #ebe6d8;
+  --card-hover: #e4dfd0;
+  --line: #ddd8c8;
+  --ink: #5c554a;
+  --muted: #8c8275;
+  --dim: #b8b0a1;
+  --accent: #f59e0b;
+  --accent-glow: rgba(245, 158, 11, 0.12);
+  --green: #10b981;
+  --red: #ef4444;
+  --orange: #f97316;
+  --glass: rgba(253, 250, 240, 0.8);
+  --glass-border: rgba(245, 158, 11, 0.1);
 }

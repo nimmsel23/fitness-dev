@@ -1,35 +1,25 @@
 /* Dark Themes */
 @import "./styles/themes/nordic.css";
-@import "./styles/themes/nordic-darker.css";
-@import "./styles/themes/nordic-bluish.css";
 @import "./styles/themes/dracula.css";
-@import "./styles/themes/dracula-purple.css";
-@import "./styles/themes/kanagawa.css";
-@import "./styles/themes/everforest.css";
-@import "./styles/themes/oxocarbon.css";
-@import "./styles/themes/midnight.css";
-@import "./styles/themes/matrix.css";
-@import "./styles/themes/forest.css";
-@import "./styles/themes/crimson.css";
-@import "./styles/themes/frappe.css";
-@import "./styles/themes/macchiato.css";
 @import "./styles/themes/mocha.css";
 @import "./styles/themes/gruvbox.css";
 @import "./styles/themes/solarized-dark.css";
 @import "./styles/themes/ant-dark.css";
-@import "./styles/themes/materia.css";
 @import "./styles/themes/arc-dark.css";
-@import "./styles/themes/homunculus.css";
+@import "./styles/themes/matrix.css";
 @import "./styles/themes/nothing.css";
+@import "./styles/themes/sweet-mars.css";
+@import "./styles/themes/sweet-purple.css";
 
 /* Light Themes */
 @import "./styles/themes/honey.css";
-@import "./styles/themes/paper.css";
 @import "./styles/themes/latte.css";
 @import "./styles/themes/solarized.css";
+@import "./styles/themes/gruvbox-light.css";
 @import "./styles/themes/arc.css";
 @import "./styles/themes/ant.css";
 @import "./styles/themes/alucard.css";
+@import "./styles/themes/sweet-amber-blue.css";
 
 @tailwind base;
 @tailwind components;

@@ -1,51 +1,39 @@
 export const DARK_THEMES = [
-  'nordic', 'nordic-darker', 'nordic-bluish',
-  'dracula', 'dracula-purple',
-  'kanagawa', 'everforest', 'oxocarbon',
-  'midnight', 'matrix', 'forest', 'crimson',
-  'frappe', 'macchiato', 'mocha',
+  'nordic', 'dracula', 'mocha',
   'gruvbox', 'solarized-dark',
-  'ant-dark', 'materia', 'arc-dark',
-  'homunculus', 'nothing',
+  'ant-dark', 'arc-dark',
+  'matrix', 'nothing',
+  'sweet-mars', 'sweet-purple',
 ];
 
 export const LIGHT_THEMES = [
-  'honey', 'paper', 'latte', 'solarized', 'arc', 'ant', 'alucard',
+  'honey', 'latte', 'solarized', 'gruvbox-light',
+  'arc', 'ant', 'alucard', 'sweet-amber-blue',
 ];
 
 export const THEMES = {
   // Dark
   nordic:             { bg: '#2e3440', accent: '#88c0d0' },
-  'nordic-darker':    { bg: '#1d212a', accent: '#88c0d0' },
-  'nordic-bluish':    { bg: '#2e3440', accent: '#81a1c1' },
   dracula:            { bg: '#1e1f29', accent: '#bd93f9' },
-  'dracula-purple':   { bg: '#1a1526', accent: '#ff79c6' },
-  kanagawa:           { bg: '#1f1f28', accent: '#e46876' },
-  everforest:         { bg: '#272e33', accent: '#a7c080' },
-  oxocarbon:          { bg: '#161616', accent: '#78a9ff' },
-  midnight:           { bg: '#0a0e1a', accent: '#4a9eff' },
-  matrix:             { bg: '#000000', accent: '#00ff41' },
-  forest:             { bg: '#1a2f23', accent: '#4ade80' },
-  crimson:            { bg: '#1a0f12', accent: '#f43f5e' },
-  frappe:             { bg: '#303446', accent: '#81c8be' },
-  macchiato:          { bg: '#24273a', accent: '#8aadf4' },
   mocha:              { bg: '#1e1e2e', accent: '#cba6f7' },
   gruvbox:            { bg: '#282828', accent: '#fabd2f' },
   'solarized-dark':   { bg: '#002b36', accent: '#268bd2' },
   'ant-dark':         { bg: '#222e32', accent: '#9bbfbf' },
-  materia:            { bg: '#1e1e1e', accent: '#8ab4f8' },
-  'arc-dark':         { bg: '#2f3445', accent: '#5294e2' },
-  homunculus:         { bg: '#1a1410', accent: '#c04040' },
-  nothing:            { bg: '#000000', accent: '#ffffff' },
+  'arc-dark':         { bg: '#404552', accent: '#5294e2' },
+  matrix:             { bg: '#000000', accent: '#00ff41' },
+  nothing:            { bg: '#000000', accent: '#ff3333' },
+  'sweet-mars':       { bg: '#2b1d1f', accent: '#ff5f5f' },
+  'sweet-purple':     { bg: '#161925', accent: '#c50ed2' },
 
   // Light
-  honey:              { bg: '#fdfaf0', accent: '#c87800' },
-  paper:              { bg: '#f4efe6', accent: '#7c5c3a' },
+  honey:              { bg: '#fdfaf0', accent: '#f59e0b' },
   latte:              { bg: '#eff1f5', accent: '#7287fd' },
-  solarized:          { bg: '#eee8d5', accent: '#268bd2' },
+  solarized:          { bg: '#fdf6e3', accent: '#268bd2' },
+  'gruvbox-light':    { bg: '#fbf1c7', accent: '#b57614' },
   arc:                { bg: '#ffffff', accent: '#5294e2' },
   ant:                { bg: '#f0f2f5', accent: '#1677ff' },
   alucard:            { bg: '#fffbeb', accent: '#644ac9' },
+  'sweet-amber-blue': { bg: '#f4f7fb', accent: '#e8a020' },
 };
 
 export const VALID_TABS = new Set(['dash', 'session', 'review', 'learn', 'settings', 'coach', 'gate']);
