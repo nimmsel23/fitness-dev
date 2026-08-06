@@ -71,6 +71,28 @@ def _git_commit_paths(paths: list[Path], message: str) -> bool:
         return False
 
 
+def _rebuild_runtime_catalog() -> None:
+    """~/.aos/fitness/workouts/catalog.json (gelesen von server.mjs/fitness-
+    runtime.mjs, Dev UND Prod-Node :6100) wird nur per `npm run build:catalog`
+    gebaut - ohne diesen Trigger bleibt es nach jedem Approve/Reject stale,
+    bis irgendwer manuell rebuildet. Best-effort, Fehler blockieren die
+    eigentliche Inbox-Aktion nicht."""
+    repo_root = _git_repo_root(DATA_DIR)
+    if not repo_root:
+        return
+    script = repo_root / "scripts" / "build-catalog.py"
+    if not script.exists():
+        return
+    try:
+        subprocess.run(
+            ["python3", str(script)],
+            cwd=str(repo_root), capture_output=True, text=True, timeout=30, check=True,
+        )
+        logger.info("catalog.json neu gebaut (Approve/Reject-Trigger).")
+    except Exception as e:
+        logger.error(f"catalog.json-Rebuild fehlgeschlagen: {e}")
+
+
 def inbox_dir() -> Path:
     """kb/inbox/ - alleinige Ablage fuer unreviewte Drafts (inbox_*.yml)."""
     return DATA_DIR / "inbox"
@@ -480,6 +502,7 @@ def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
     )
     f.unlink()
     _git_commit_paths([detail_path, f], f"chore(catalog): approve {ex_id} ({display_name})")
+    _rebuild_runtime_catalog()
     return ex_id
 
 
