@@ -14,7 +14,6 @@ export default function AdvancedSection({
   swipeEnabled, setSwipeEnabled,
   navMode, setNavMode,
   sidebarPinned, setSidebarPinned,
-  layoutScale, setLayoutScale,
   muscleLanguage, setMuscleLanguage,
   user,
 }) {
@@ -82,17 +81,6 @@ export default function AdvancedSection({
                 className={`w-12 h-6 rounded-full transition-colors relative border ${sidebarPinned ? 'bg-fit-accent border-fit-accent' : 'bg-fit-bg2 border-fit-line'}`}>
                 <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${sidebarPinned ? 'left-7' : 'left-1'}`} />
              </button>
-          </div>
-
-          {/* Layout Scale */}
-          <div className="space-y-3">
-             <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Layout Skalierung</div>
-             <input type="range" min="70" max="150" step="5" value={layoutScale} onChange={(e) => setLayoutScale(parseInt(e.target.value))} className="w-full accent-[var(--accent)] h-1" />
-             <div className="flex justify-between text-[10px] font-black opacity-30 uppercase">
-                <span>70%</span>
-                <span>{layoutScale}%</span>
-                <span>150%</span>
-             </div>
           </div>
 
           <SegmentedControl

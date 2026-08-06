@@ -24,7 +24,6 @@ export function createSettingsStore(prefix, extraFields = {}) {
     themeMode:         [key('theme-mode'),        () => ls(key('theme-mode'), 'manual')],
     circDark:          [key('circ-dark'),         () => ls(key('circ-dark'), 'nordic')],
     circLight:         [key('circ-light'),        () => ls(key('circ-light'), 'honey')],
-    layoutScale:       [key('layoutScale'),       () => lsInt(key('layoutScale'), 100)],
     recentDays:        [key('recentDays'),        () => lsInt(key('recentDays'), 7)],
     coverageThreshold: [key('coverageThreshold'), () => lsFloat(key('coverageThreshold'), 1.0)],
     showAdvanced:      [key('showAdvanced'),      () => ls(key('showAdvanced'), 'false') === 'true'],

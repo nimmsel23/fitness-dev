@@ -17,7 +17,6 @@ import { THEMES } from "../../constants/Themes";
 export default function Settings() {
   const { user, gender, setGender, split, setSplit, cycleLength, setCycleLength, defaultLocation, setDefaultLocation } = useUser();
   const {
-    layoutScale, setLayoutScale,
     recentDays, setRecentDays,
     coverageThreshold, setCoverageThreshold,
     showAdvanced, setShowAdvanced,
@@ -174,7 +173,6 @@ export default function Settings() {
           swipeEnabled={swipeEnabled} setSwipeEnabled={setSwipeEnabled}
           navMode={navMode} setNavMode={setNavMode}
           sidebarPinned={sidebarPinned} setSidebarPinned={setSidebarPinned}
-          layoutScale={layoutScale} setLayoutScale={setLayoutScale}
           muscleLanguage={muscleLanguage} setMuscleLanguage={setMuscleLanguage}
           user={user}
         />

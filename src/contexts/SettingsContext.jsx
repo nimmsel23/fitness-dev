@@ -8,9 +8,7 @@ import { DAY_START, DAY_END } from '../store/settingsStore.js';
 // die DOM-Seiteneffekte an (fontSize-Scaling, data-theme-Attribut), die
 // vitalos für sich selbst bereits separat in App.jsx erledigt.
 export function SettingsProvider({ children }) {
-  const { theme, themeMode, circDark, circLight, layoutScale } = useSettingsStore();
-
-  useEffect(() => { document.documentElement.style.fontSize = `${layoutScale}%`; }, [layoutScale]);
+  const { theme, themeMode, circDark, circLight } = useSettingsStore();
 
   useEffect(() => {
     if (themeMode === 'manual') {

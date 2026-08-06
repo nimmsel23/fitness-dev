@@ -35,7 +35,7 @@ export default function App() {
   const {
     theme, setThemeState, themeMode, setModeState,
     circDark, setCircDark, circLight, setCircLight,
-    layoutScale, setLayoutScale, recentDays, setRecentDays,
+    recentDays, setRecentDays,
     coverageThreshold, setCoverageThreshold, showAdvanced, setShowAdvanced,
     sidebarPinned, setSidebarPinned,
     swipeEnabled, setSwipeEnabled, muscleLanguage, setMuscleLanguage,
