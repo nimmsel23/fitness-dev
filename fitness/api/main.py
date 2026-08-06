@@ -165,13 +165,13 @@ def serve(
 def status(
     port: Annotated[int, typer.Option("--port", "-p", help="Port des laufenden Servers")] = PORT,
 ):
-    """Health-Check gegen den laufenden fitness-python-backend-Prozess + Firestore-Verbindung."""
+    """Health-Check gegen den laufenden fitness-api-Prozess + Firestore-Verbindung."""
     import httpx
     from rich.console import Console
     from rich.table import Table
 
     console = Console()
-    table = Table(title=f"fitness-python-backend :{port}")
+    table = Table(title=f"fitness-api :{port}")
     table.add_column("Check")
     table.add_column("Status")
 

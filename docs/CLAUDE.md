@@ -90,7 +90,7 @@ um den Katalog zu erweitern), kein eigenständiges Backend. Details:
 | Datei | Port | Typ | Rolle |
 |-------|------|-----|-------|
 | `server.mjs` | 9100 | Node/Hono | **DEV-Server** — Vite-Proxy-Target, Frontend-Dev |
-| `fitness/api/main.py` | 9150 | Python/FastAPI | **Prod-Backend** — Tailscale-Funnel, Direktimports (`fitness/catalog/api/api.py` ist nur noch Compat-Shim, siehe `../fitness/CLAUDE.md`) |
+| `fitness/api/main.py` | 9150 | Python/FastAPI | **Prod-Backend** — Tailscale-Funnel, Direktimports, Service `fitness-api.service` |
 
 **server.mjs** (Hono, `@hono/node-server`):
 - API-Routen: `/session`, `/journal`, `/exercises/search`, `/coverage`, `/fitness/plan`, `/fitness/weekly`, `/fitness/export`, `/fitness/body`

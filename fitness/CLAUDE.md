@@ -11,22 +11,15 @@ Katalog-/KB-Tool-Set (Übungen, Anatomie, Coverage-Berechnung), eigene Doku in
 
 ## Prod-API (`fitness/api/`, FastAPI, Port 9150)
 
-`fitness/api/main.py` ist der tatsächliche Server — modulares FastAPI, kein
-Monolith mehr. `fitness/catalog/api/api.py` existiert nur noch als
-**Compatibility-Shim** (`from fitness.api.main import app, main`) für
-bestehende systemd-Units/Skripte, die noch den alten Pfad referenzieren —
-keine eigene Logik mehr dort.
-
-**Offener Cleanup-Punkt (Stand 2026-08-06):** `pyproject.toml` (`fitness-api`/
-`fitness-catalog-api`-Scripts) zeigt bereits direkt auf `fitness.api.main:main`,
-aber `~/.dotfiles/config/systemd/user/fitness-python-backend.service`
-(`ExecStart=uvicorn fitness.catalog.api.api:app ...`) läuft noch über den
-Shim — das ist der einzige verbliebene Grund, warum `api.py` noch existiert.
-Sauberer wäre: Unit auf `fitness.api.main:app` umstellen, danach `api.py`
-löschen. **Nicht** ohne Absprache anfassen — Prod-Service (:9150), Änderung
-braucht Service-Restart (sudo). Der Rest von `fitness/catalog/api/`
-(`watcher.py`, `sync_gateway.py`, `firestore_push.py`, `push.py`) ist aktives
-KB-Sync-Tooling, unabhängig von diesem Shim, bleibt so bestehen.
+`fitness/api/main.py` ist der einzige Server — modulares FastAPI, kein
+Monolith, kein Compat-Shim mehr. Der frühere Shim `fitness/catalog/api/api.py`
+(`from fitness.api.main import app, main`) wurde am 2026-08-06 entfernt, nachdem
+der Prod-systemd-Unit umbenannt wurde: `fitness-python-backend.service` →
+**`fitness-api.service`** (`~/.dotfiles/config/systemd/user/fitness-api.service`),
+`ExecStart` zeigt jetzt direkt auf `uvicorn fitness.api.main:app`.
+`fitness/catalog/api/` enthält seitdem nur noch aktives KB-Sync-Tooling
+(`watcher.py`, `sync_gateway.py`, `firestore_push.py`, `push.py`), kein
+API-Server-Code mehr.
 
 ```
 fitness/api/
