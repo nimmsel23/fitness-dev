@@ -59,7 +59,7 @@ export default function ActivitySection({ activity, setActivity }) {
         <div className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-3 ml-1">
           Art der Aktivität
         </div>
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {ACTIVITY_TYPES.map(t => {
             const isActive = activity.type === t.value;
             return (

@@ -25,8 +25,8 @@ function slugify(name) {
     .replace(/^_+|_+$/g, '') || 'exercise';
 }
 
-export function useSession({ initialDate, initialDraft, recentDays = 7, coverageThreshold = 1.0 }) {
-  const [date, setDate]             = useState(initialDate || localToday());
+export function useSession({ initialDate, initialDraft, recentDays = 7, coverageThreshold = 1.0, onDateChange = null }) {
+  const [date, setDateState]        = useState(initialDate || localToday());
   const [sessionMode, setSessionMode] = useState('strength');
   const [block, setBlock]           = useState('');
   const [exercises, setExercises]   = useState([]);
@@ -75,8 +75,13 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
 
   function changeDate(d) {
     flushDirty();
-    setDate(d);
+    setDateState(d);
+    onDateChange?.(d);
   }
+
+  useEffect(() => {
+    if (initialDate && initialDate !== date) setDateState(initialDate);
+  }, [initialDate, date]);
 
   // ── Load / Reset ─────────────────────────────────────────────
   const loadSessionData = (d) => {
@@ -135,11 +140,20 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
       sessions.forEach(s => {
         const existing = sessByDate[s.date];
         if (existing) {
-          // mehrere Docs am selben Tag (z.B. Legs + HIIT-Finisher) mergen statt überschreiben
+          // Mehrere Docs am selben Tag (z.B. Legs + HIIT-Finisher im selben Doc
+          // gespeichert, aber historisch auf zwei Docs verteilt) mergen statt
+          // überschreiben. Eine explizit als eigene Cardio-Session geloggte
+          // zweite Session (sessionMode === 'cardio', z.B. ein separat
+          // geloggter Spaziergang) ist aber KEIN Finisher der ersten Session —
+          // deren activity darf nicht als Finisher-Badge übernommen werden.
+          const mainDoc = (existing.exercises?.length > 0) ? existing
+            : (s.exercises?.length > 0) ? s : existing;
+          const otherDoc = mainDoc === existing ? s : existing;
+          const finisherActivity = otherDoc.sessionMode !== 'cardio' ? otherDoc.activity : null;
           sessByDate[s.date] = {
-            ...existing,
+            ...mainDoc,
             exercises: [...(existing.exercises || []), ...(s.exercises || [])],
-            activity: existing.activity || s.activity,
+            activity: mainDoc.activity || finisherActivity,
           };
         } else {
           sessByDate[s.date] = s;

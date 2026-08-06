@@ -11,7 +11,7 @@ import { db } from "../../../firebase.js";
 import { num, todayISO } from "../shared/utils.js";
 import {
   ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds,
-  getMuscleGroups,
+  getMuscleGroups, buildMuscleBalanceInsights,
 } from "../shared/muscle.js";
 import { getUid } from "./core.js";
 import { getAllExercises } from "./kb.js";
@@ -90,7 +90,7 @@ export async function getMuscleCoverage(days = 7) {
       );
     }
     for (const region of (session.activity?.muscles || [])) {
-      hits[region] = (hits[region] || 0) + 0.5;
+      muscleToGroupIds(region).forEach((g) => { hits[g] = (hits[g] || 0) + 0.5; });
     }
   }
   return hits;
@@ -156,7 +156,9 @@ export async function getWeeklyReport(selector = "current") {
       if (!hasMapped && exName) muscleToGroupIds("", exName).forEach((gid) => groups.add(gid));
     }
     if (s.activity && ACTIVITY_MUSCLE_MAPPING[s.activity.type]) {
-      ACTIVITY_MUSCLE_MAPPING[s.activity.type].muscles.forEach((gid) => groups.add(gid));
+      ACTIVITY_MUSCLE_MAPPING[s.activity.type].muscles.forEach((m) => {
+        muscleToGroupIds(m).forEach((gid) => groups.add(gid));
+      });
     }
     return { date: s.date, groups: [...groups] };
   }).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
@@ -164,6 +166,18 @@ export async function getWeeklyReport(selector = "current") {
   const sessions = [];
   let entriesCount = 0;
   const muscleScores = {}, bodyRegionScores = {}, topExMap = {};
+  const allExercises = [];
+
+  // "Top Exercises" bewusst über die volle Historie (bis zu 120 Sessions),
+  // nicht nur die aktuelle Wochen-/Periodenauswahl (dates) — sonst zeigt der
+  // Report bei kurzen Perioden nur 1-2 Sessions und wirkt wie "es zählt nur
+  // das letzte Workout", obwohl deutlich mehr Trainingsdaten vorliegen.
+  for (const s of safeHistory) {
+    for (const ex of (s.exercises || [])) {
+      const exName = ex.name || ex.exercise_id || "";
+      if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
+    }
+  }
 
   // listSessionsForDate() statt getSession(date): getSession() lädt per exakter
   // Dokument-ID (nur der reine Datumsstring). Sessions, die über "Neues Workout"
@@ -183,7 +197,7 @@ export async function getWeeklyReport(selector = "current") {
       const primary = ex.primaryMuscles || [], secondary = ex.secondaryMuscles || [], stabilizers = ex.stabilizers || [];
       const exName = ex.name || ex.exercise_id || "";
       hasDoneExercises = true; entriesCount++;
-      if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
+      allExercises.push({ name: exName, primaryMuscles: primary });
       let hasMapped = false;
       [...primary, ...secondary, ...stabilizers].forEach((m) => {
         muscleToGroupIds(m, exName).forEach((gid) => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; hasMapped = true; });
@@ -207,9 +221,11 @@ export async function getWeeklyReport(selector = "current") {
       let autoSplit = sess.block || sess.trainingsart || "Training";
       if (!sess.block && sortedGroups.length > 0) autoSplit = sortedGroups[0][0].charAt(0).toUpperCase() + sortedGroups[0][0].slice(1);
       if (sess.activity && ACTIVITY_MUSCLE_MAPPING[sess.activity.type]) {
-        ACTIVITY_MUSCLE_MAPPING[sess.activity.type].muscles.forEach((gid) => {
-          sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
-          bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
+        ACTIVITY_MUSCLE_MAPPING[sess.activity.type].muscles.forEach((m) => {
+          muscleToGroupIds(m).forEach((gid) => {
+            sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
+            bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
+          });
         });
       }
       const muscleRecovery = {};
@@ -228,11 +244,18 @@ export async function getWeeklyReport(selector = "current") {
   const allGroups = getMuscleGroups().map((g) => g.id);
   const gaps = allGroups.filter((g) => (bodyRegionScores[g] || 0) < 1);
 
+  const efforts = sessions.map((s) => s.effort).filter((e) => typeof e === "number");
+  const avgEffort = efforts.length > 0 ? Math.round((efforts.reduce((a, b) => a + b, 0) / efforts.length) * 10) / 10 : null;
+
   return {
     ok: true, week: selector, session_count: sessions.length, entries_count: entriesCount,
+    total_exercises: entriesCount, avg_effort: avgEffort,
     sessions, muscle_scores: muscleScores, body_region_scores: bodyRegionScores, missing_regions: gaps,
     top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ display_name: name, count })),
-    recommendations: gaps.length > 0 ? [`Fokus auf: ${gaps.join(", ")}`] : ["Woche perfekt abgedeckt!"],
+    recommendations: [
+      ...(gaps.length > 0 ? [`Fokus auf: ${gaps.join(", ")}`] : ["Woche perfekt abgedeckt!"]),
+      ...buildMuscleBalanceInsights(allExercises),
+    ],
   };
 }
 

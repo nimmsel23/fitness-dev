@@ -25,7 +25,7 @@ export default function Sidebar({ tab, navigate, subTab, navigateSub, pinned, se
         </div>
 
         <nav className="space-y-1 flex-1">
-          {NAV_ITEMS.map(({ id, label, Icon, sub }) => {
+          {NAV_ITEMS.map(({ id, label, Icon, sub, noDefaultSub }) => {
             const isActive = tab === id;
             return (
               <div key={id}>
@@ -41,7 +41,7 @@ export default function Sidebar({ tab, navigate, subTab, navigateSub, pinned, se
                 {isActive && pinned && sub?.length > 0 && (
                   <div className="ml-4 mt-1 mb-1 space-y-0.5 border-l-2 border-fit-accent/20 pl-3 animate-in fade-in slide-in-from-top-2 duration-300">
                     {sub.map(({ id: subId, label: subLabel, Icon: SubIcon }) => {
-                      const isSubActive = subTab === subId || (!subTab && sub[0].id === subId);
+                      const isSubActive = subTab === subId || (!subTab && !noDefaultSub && sub[0].id === subId);
                       return (
                         <button
                           key={subId}

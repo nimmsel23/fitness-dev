@@ -6,7 +6,7 @@ import MuscleHighlightMap from "./MuscleHighlightMap";
 import { translateMuscle } from "../lib/translations";
 import { getMuscleIcon } from "../constants/MuscleIcons";
 
-export default function MuscleDetailModal({ muscleId, muscleData, onClose, loading, muscleLanguage = 'de', taxonomy = null }) {
+export default function MuscleDetailModal({ muscleId, muscleData, onClose, loading, muscleLanguage = 'de', taxonomy = null, onInspectExercise = null }) {
   const [exercises, setExercises] = useState([]);
   const [exLoading, setExLoading] = useState(false);
 
@@ -129,9 +129,19 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
                     ) : exercises.length > 0 ? (
                        <div className="flex flex-wrap gap-2">
                           {exercises.map(ex => (
-                             <span key={ex.exercise_id} className="px-3 py-1.5 rounded-xl bg-fit-accent/10 border border-fit-accent/20 text-fit-accent text-[10px] font-black uppercase tracking-widest">
-                                {ex.display_name || ex.name}
-                             </span>
+                             onInspectExercise ? (
+                               <button
+                                 key={ex.exercise_id}
+                                 onClick={() => onInspectExercise(ex)}
+                                 className="px-3 py-1.5 rounded-xl bg-fit-accent/10 border border-fit-accent/20 text-fit-accent text-[10px] font-black uppercase tracking-widest hover:bg-fit-accent/20 transition-colors cursor-pointer"
+                               >
+                                  {ex.display_name || ex.name}
+                               </button>
+                             ) : (
+                               <span key={ex.exercise_id} className="px-3 py-1.5 rounded-xl bg-fit-accent/10 border border-fit-accent/20 text-fit-accent text-[10px] font-black uppercase tracking-widest">
+                                  {ex.display_name || ex.name}
+                               </span>
+                             )
                           ))}
                        </div>
                     ) : (

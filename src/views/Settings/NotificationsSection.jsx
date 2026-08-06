@@ -33,6 +33,10 @@ export default function NotificationsSection({ user }) {
         </div>
       )}
 
+      <div className="text-[10px] font-bold text-sky-600 bg-sky-500/10 border border-sky-500/20 px-3 py-2 rounded-xl">
+        iPhone/iPad: zuerst zum Home-Bildschirm hinzufügen und dann die installierte App öffnen. Push in einem normalen Safari-Tab ist auf iOS/iPadOS nicht zuverlässig genug.
+      </div>
+
       {!settings?.enabled ? (
         <button
           onClick={enable}

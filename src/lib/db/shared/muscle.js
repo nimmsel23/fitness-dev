@@ -20,9 +20,37 @@ export const ACTIVITY_MUSCLE_MAPPING = Object.fromEntries(
 let _kbRegions = new Map(); // regionId -> label
 let _muscleToRegionMap = new Map(); // muscleId -> regionId
 
+// Freitext-Fallback: Sessions/Suchresultate speichern primaryMuscles/
+// secondaryMuscles teils als lesbare Gruppennamen ("Quads", "Shoulders")
+// statt kanonischer KB-IDs. Ohne diese Normalisierung landet so ein Eintrag
+// unverändert als "Region" (siehe muscleToRegion()-Fallback unten) — ein Key,
+// den keine Coverage-Abfrage kennt — und die Muskelgruppe erscheint
+// fälschlich als "nicht trainiert", obwohl Sessions dafür existieren.
+const FREE_TEXT_MUSCLE_ALIASES = {
+  chest: "chest", pec: "chest", pectoralis: "chest",
+  back: "back", lat: "back", lats: "back", latissimus: "back", trap: "back", traps: "back", rhomboid: "back",
+  shoulders: "shoulders", shoulder: "shoulders", delt: "shoulders", delts: "shoulders", deltoid: "shoulders",
+  arms: "arms", arm: "arms", bicep: "arms", biceps: "arms", tricep: "arms", triceps: "arms", forearm: "arms",
+  core: "core", abs: "core", ab: "core", obliques: "core",
+  glutes: "glutes", glute: "glutes", gluteal: "glutes", gluteus: "glutes",
+  quadriceps: "quadriceps", quad: "quadriceps", quads: "quadriceps", legs: "quadriceps", leg: "quadriceps",
+  hamstrings: "hamstrings", hamstring: "hamstrings",
+  calves: "calves", calf: "calves", gastrocnemius: "calves",
+};
+
+// Regions deren KB-Dateiname von der App-weiten Sammelgruppen-Konvention
+// abweicht (siehe MuscleBody.jsx::toGroup(), ACTIVITY_MUSCLE_GROUPS): die
+// KB-Region-Datei heißt "abs" (500_abs.yml), aber "core" ist überall sonst
+// die Sammelgruppe für Bauch/Rumpf (analog zu "back"/"legs" als Sammelgruppen
+// für ihre jeweiligen Sub-Regionen). Ohne diese Umbenennung landen HIIT-
+// Core-Finisher (ACTIVITY_MUSCLE_GROUPS.hiit enthält "core") in einem
+// separaten, nie mit der KB-Region verschmolzenen Bucket.
+const REGION_ID_ALIASES = { abs: "core" };
+
 function regionIdFromDoc(doc) {
   const id = String(doc.region || doc.doc_id || doc.id || doc.muscle_id || "").trim();
-  return id.includes("_") && /^\d/.test(id) ? id.split("_").slice(1).join("_") : id;
+  const stripped = id.includes("_") && /^\d/.test(id) ? id.split("_").slice(1).join("_") : id;
+  return REGION_ID_ALIASES[stripped] || stripped;
 }
 
 function bucketRank(doc) {
@@ -98,10 +126,64 @@ export function muscleToRegion(muscle) {
     return _muscleToRegionMap.get(id);
   }
 
+  // 3. Freitext-Fallback (nur wenn die aufgelöste Region tatsächlich aus der
+  // KB registriert ist — sonst wie bisher unverändert zurückgeben).
+  const alias = FREE_TEXT_MUSCLE_ALIASES[id.toLowerCase()];
+  if (alias && _kbRegions.has(alias)) return alias;
+
   return id;
 }
 
 export function muscleToGroupIds(muscle) {
   const region = muscleToRegion(muscle);
   return region ? [region] : [];
+}
+
+// Agonist/Antagonist-Paare, bei denen ein starkes Ungleichgewicht im
+// Trainingsvolumen auf einseitiges Training hindeutet — z.B. vordere Schulter
+// (Front-/Bankdrücken-lastig) vs. hintere Schulter (Rear Delt/Face Pull),
+// eine häufige Ursache für Rundschulter-Haltung.
+const MUSCLE_BALANCE_PAIRS = [
+  {
+    a: "301_anterior_deltoid", b: "303_posterior_deltoid",
+    labelA: "vordere Schulter", labelB: "hintere Schulter",
+    // Fallback für Übungen, die im KB nur generisch als "shoulders"/"304_rotator_cuff"
+    // getaggt sind (nicht mit der spezifischen Delt-Kopf-ID) — ohne diesen
+    // Namens-Abgleich fallen z.B. "Vorgebeugte Kabel Rear Delt Flys" (primary:
+    // ["shoulders"]) komplett aus der Zählung, was ein falsches Ungleichgewicht
+    // vortäuscht (siehe importer.py::DELTOID_REASSIGNMENT, gleiche Heuristik).
+    nameFallbackA: /front raise|frontheben|shoulder press|overhead press|schulterdr(ü|ue)cken/i,
+    nameFallbackB: /rear|reverse|posterior|face.?pull|vorgebeugt|rückwärt|hintere schulter/i,
+  },
+];
+
+/**
+ * Vergleicht Agonist/Antagonist-Paare über alle Übungen einer Periode und
+ * meldet ein deutliches Ungleichgewicht (>= 1.5x und mindestens 1 Punkt
+ * Differenz, um Rauschen bei kleinen Zahlen zu vermeiden).
+ * @param {Array<{name?: string, primaryMuscles?: string[]}>} exercises
+ */
+export function buildMuscleBalanceInsights(exercises) {
+  const insights = [];
+  const list = Array.isArray(exercises) ? exercises : [];
+
+  for (const { a, b, labelA, labelB, nameFallbackA, nameFallbackB } of MUSCLE_BALANCE_PAIRS) {
+    let scoreA = 0, scoreB = 0;
+    for (const ex of list) {
+      const primary = ex?.primaryMuscles || [];
+      const name = ex?.name || ex?.exercise_id || "";
+      if (primary.includes(a)) { scoreA += 1; continue; }
+      if (primary.includes(b)) { scoreB += 1; continue; }
+      // Generisch getaggte Übung (z.B. "shoulders") — über den Namen zuordnen.
+      if (nameFallbackB?.test(name)) scoreB += 1;
+      else if (nameFallbackA?.test(name)) scoreA += 1;
+    }
+    if (scoreA === 0 && scoreB === 0) continue;
+    if (scoreA >= scoreB * 1.5 && scoreA - scoreB >= 1) {
+      insights.push(`${labelA} wird deutlich mehr trainiert als ${labelB} (${scoreA.toFixed(1)} vs. ${scoreB.toFixed(1)}) — Rear Delt/Face Pull ergänzen.`);
+    } else if (scoreB >= scoreA * 1.5 && scoreB - scoreA >= 1) {
+      insights.push(`${labelB} wird deutlich mehr trainiert als ${labelA} (${scoreB.toFixed(1)} vs. ${scoreA.toFixed(1)}).`);
+    }
+  }
+  return insights;
 }

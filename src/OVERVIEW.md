@@ -16,7 +16,7 @@ Rendert Sidebar (Desktop), MobileNav (Mobile), ExerciseInsightModal (global) und
 - `tabs` — klassische Tab-Navigation (Standard)
 - `home` — AppGate als Hub-Startscreen, Views schieben sich von unten hoch
 
-**Federation-Mode** (`VITE_FEDERATION=true`): Journal, Fuel und Learn werden als lazy Remote-Module geladen statt aus lokalen Views.
+**Federation-Mode** (`VITE_FEDERATION=true`): Learn wird als lazy Remote-Modul geladen statt aus lokalen Views.
 
 ---
 
@@ -28,8 +28,6 @@ Rendert Sidebar (Desktop), MobileNav (Mobile), ExerciseInsightModal (global) und
 |--------|-------|------|------------|
 | `dash` | Heute | `Dashboard/` | direkt |
 | `session` | Training | `Session/` | direkt |
-| `fuel` | Fuel | remote `fuel/FuelApp` | lazy Federation |
-| `journal` | Journal | remote `journal/JournalApp` | lazy Federation |
 | `review` | Review | `WeeklyReview/` | direkt |
 | `learn` | Lernen | remote `learn/LearnApp` | lazy Federation |
 | `settings` | Setup | `Settings/` | direkt |

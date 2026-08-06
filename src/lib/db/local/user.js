@@ -27,15 +27,34 @@ export async function getLayout() {
 export async function saveLayout(layout) { writeJSON(LOCAL_KEYS.layout, { layout }); return { ok: true }; }
 
 export async function getPushSettings() {
-  return readJSON(LOCAL_KEYS.push, {
+  const data = readJSON(LOCAL_KEYS.push, {
     enabled: false,
+    tokens: [],
     types: {},
     reminderTime: "18:00",
   });
+  const tokens = Array.from(new Set([
+    ...(Array.isArray(data?.tokens) ? data.tokens : []),
+    ...(data?.token ? [data.token] : []),
+  ].filter(Boolean)));
+  return {
+    enabled: false,
+    types: {},
+    reminderTime: "18:00",
+    ...data,
+    token: tokens[0] || data?.token || null,
+    tokens,
+  };
 }
 
 export async function savePushSettings(settings) {
-  writeJSON(LOCAL_KEYS.push, settings);
+  writeJSON(LOCAL_KEYS.push, {
+    ...settings,
+    tokens: Array.from(new Set([
+      ...(Array.isArray(settings?.tokens) ? settings.tokens : []),
+      ...(settings?.token ? [settings.token] : []),
+    ].filter(Boolean))),
+  });
   return { ok: true };
 }
 

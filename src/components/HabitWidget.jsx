@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Check, BookOpen } from 'lucide-react'
 import { getHabits, recordHabit, localToday, getHabitJournal, saveHabitJournal } from '@db'
-import HabitJournalModal from '@habits/views/Habits/HabitJournalModal.jsx'
+import HabitJournalModal from './HabitJournalModal.jsx'
 
 function epochDayNow() {
   return Math.floor(Date.now() / 86400000)

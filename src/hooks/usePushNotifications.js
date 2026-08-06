@@ -7,6 +7,24 @@ import { VAPID_KEY } from '@firebase-config'
 const PUSH_SW_URL = '/firebase-messaging-sw.js'
 const PUSH_SW_SCOPE = '/firebase-push/'
 
+function mergePushSettings(base = {}, patch = {}) {
+  const merged = { ...base, ...patch }
+  const tokens = Array.from(new Set([
+    ...(Array.isArray(base?.tokens) ? base.tokens : []),
+    ...(base?.token ? [base.token] : []),
+    ...(Array.isArray(patch?.tokens) ? patch.tokens : []),
+    ...(patch?.token ? [patch.token] : []),
+  ].filter(Boolean)))
+  return {
+    enabled: false,
+    types: {},
+    reminderTime: '18:00',
+    ...merged,
+    token: tokens[0] || merged.token || null,
+    tokens,
+  }
+}
+
 export function usePushNotifications(user) {
   const [settings, setSettings] = useState(null)
   const [permission, setPermission] = useState(() =>
@@ -17,7 +35,7 @@ export function usePushNotifications(user) {
   useEffect(() => {
     if (isLocalMode() || !user) return
     let alive = true
-    getPushSettings().then((s) => alive && setSettings(s))
+    getPushSettings().then((s) => alive && setSettings(mergePushSettings({}, s)))
     return () => { alive = false }
   }, [user])
 
@@ -36,7 +54,7 @@ export function usePushNotifications(user) {
       const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: registration })
       if (!token) throw new Error('Kein Push-Token erhalten')
 
-      const next = { ...(settings || {}), enabled: true, token }
+      const next = mergePushSettings(settings, { enabled: true, token })
       await savePushSettings(next)
       setSettings(next)
     } finally {
@@ -48,7 +66,7 @@ export function usePushNotifications(user) {
     if (isLocalMode() || !user) return
     setBusy(true)
     try {
-      const next = { ...(settings || {}), enabled: false }
+      const next = mergePushSettings(settings, { enabled: false })
       await savePushSettings(next)
       setSettings(next)
     } finally {
@@ -58,14 +76,14 @@ export function usePushNotifications(user) {
 
   const updateTypes = useCallback(async (types) => {
     if (isLocalMode() || !user) return
-    const next = { ...(settings || {}), types: { ...(settings?.types || {}), ...types } }
+    const next = mergePushSettings(settings, { types: { ...(settings?.types || {}), ...types } })
     setSettings(next)
     await savePushSettings(next)
   }, [user, settings])
 
   const updateReminderTime = useCallback(async (reminderTime) => {
     if (isLocalMode() || !user) return
-    const next = { ...(settings || {}), reminderTime }
+    const next = mergePushSettings(settings, { reminderTime })
     setSettings(next)
     await savePushSettings(next)
   }, [user, settings])

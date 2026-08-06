@@ -1,6 +1,6 @@
 import { api } from "./core";
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants";
-import { muscleToGroupIds, getMuscleGroups } from "../shared/muscle";
+import { muscleToGroupIds, getMuscleGroups, buildMuscleBalanceInsights } from "../shared/muscle";
 
 export async function getDashboardAnalytics(days = 28) {
   try {
@@ -61,7 +61,20 @@ export async function getWeeklyReport(selector = "current") {
 
   const sessions = [];
   const bodyRegionScores = {};
+  const muscleScores = {};
   const topExMap = {};
+  const allExercises = [];
+
+  // "Top Exercises" bewusst über die volle Historie (bis zu 120 Sessions),
+  // nicht nur die aktuelle Wochen-/Periodenauswahl (dates) — sonst zeigt der
+  // Report bei kurzen Perioden nur 1-2 Sessions und wirkt wie "es zählt nur
+  // das letzte Workout", obwohl deutlich mehr Trainingsdaten vorliegen.
+  for (const s of history) {
+    for (const ex of (s.exercises || [])) {
+      const exName = ex.name || ex.exercise_id || "";
+      if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
+    }
+  }
 
   for (const date of dates) {
     const sess = history.find(h => h.date === date);
@@ -70,24 +83,27 @@ export async function getWeeklyReport(selector = "current") {
     for (let ex of (sess.exercises || [])) {
       const exName = ex.name || ex.exercise_id || "";
       if (!exName) continue;
-      topExMap[exName] = (topExMap[exName] || 0) + 1;
       // Snapshot-First: inline-Werte aus dem Log gewinnen. KB nur Fallback,
       // damit gelöschte/umbenannte Katalog-Einträge keine alten Sessions kaputtmachen.
       const kbEx = kbMap.get(exName.toLowerCase());
       const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
       const secondary = (ex.secondaryMuscles?.length ? ex.secondaryMuscles : null) || kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [];
       const stabilizers = (ex.stabilizers?.length ? ex.stabilizers : null) || kbEx?.stabilizers || [];
-      [...primary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; }));
+      allExercises.push({ name: exName, primaryMuscles: primary });
+      [...primary].forEach(m => {
+        muscleScores[m] = (muscleScores[m] || 0) + 1;
+        muscleToGroupIds(m, exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; });
+      });
       [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.7; }));
       [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.4; }));
     }
     const actRegions = sess.activity?.muscles
       || (sess.activity?.type ? ACTIVITY_MUSCLE_GROUPS[sess.activity.type] : null);
     if (actRegions) {
-      actRegions.forEach(gid => {
+      actRegions.forEach(m => muscleToGroupIds(m).forEach(gid => {
         sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 0.5;
         bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5;
-      });
+      }));
     }
     const muscleRecovery = {};
     for (const gid of Object.keys(sessGroupsCount)) {
@@ -111,11 +127,13 @@ export async function getWeeklyReport(selector = "current") {
     total_exercises: totalExercises,
     avg_effort: avgEffort,
     sessions,
+    muscle_scores: muscleScores,
     body_region_scores: bodyRegionScores,
     missing_regions: gaps,
-    recommendations: gaps.length > 0
-      ? [`Fokus auf: ${gaps.join(", ")}`]
-      : ["Woche gut abgedeckt!"],
+    recommendations: [
+      ...(gaps.length > 0 ? [`Fokus auf: ${gaps.join(", ")}`] : ["Woche gut abgedeckt!"]),
+      ...buildMuscleBalanceInsights(allExercises),
+    ],
     top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => {
       const kbEx = kbMap.get(name.toLowerCase());
       return {
@@ -161,7 +179,7 @@ export async function getMuscleCoverage(days = 7) {
     const actRegions = sess.activity?.muscles
       || (sess.activity?.type ? ACTIVITY_MUSCLE_GROUPS[sess.activity.type] : null);
     if (actRegions) {
-      actRegions.forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; });
+      actRegions.forEach(m => muscleToGroupIds(m).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
     }
   }
 

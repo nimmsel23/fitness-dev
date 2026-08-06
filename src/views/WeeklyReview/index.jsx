@@ -24,7 +24,10 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
     if (viewMode !== 'verlauf') return;
     getRecentSessions(60)
       .then(s => setHistorySessions(Array.isArray(s) ? s.filter(x => x?.exercises?.length > 0 || x?.activity) : []))
-      .catch(() => setHistorySessions([]));
+      .catch(err => {
+        console.error('getRecentSessions failed', err);
+        setHistorySessions([]);
+      });
   }, [viewMode]);
 
   function onNavigate(tab, date) {
@@ -35,7 +38,10 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
     setLoading(true);
     getWeeklyReport(week)
       .then(d => setData(d || null))
-      .catch(() => setData(null))
+      .catch(err => {
+        console.error('getWeeklyReport failed', err);
+        setData(null);
+      })
       .finally(() => setLoading(false));
   }, [week]);
 
@@ -83,7 +89,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
       </div>
 
       {viewMode === 'muscles' ? (
-        <Muscles gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} recentDays={recentDays} />
+        <Muscles gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} recentDays={recentDays} onInspectExercise={onInspectExercise} />
       ) : viewMode === 'readiness' ? (
         <ReviewReadinessMatrix taxonomy={taxonomy} muscleLanguage={muscleLanguage} />
       ) : viewMode === 'verlauf' ? (
@@ -116,6 +122,8 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
               <ReviewSessionList
                 sessions={data.sessions}
                 onNavigate={onNavigate}
+                muscleLanguage={muscleLanguage}
+                taxonomy={taxonomy}
               />
               <ReviewTopExercises
                 topExercises={data.top_exercises}

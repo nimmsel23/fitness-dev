@@ -34,8 +34,13 @@ WGER_CATEGORY_MAP = {
 # raise or rear delt fly alike - gets tagged with id 2, so a plain wger_id lookup
 # always resolves to 301_anterior_deltoid. Reclassify using name keywords instead.
 DELTOID_REASSIGNMENT = [
-    (re.compile(r"rear|reverse|posterior|face.?pull|external rotation|au(ss|ß)enrotation|"
-                r"hintere schulter|rotator ?cuff|vorgebeugt", re.I), "303_posterior_deltoid"),
+    # Außen-/Innenrotation trainiert primär die Rotatorenmanschette (Infraspinatus/
+    # Teres minor bei Außenrotation), nicht den hinteren Deltamuskel — anatomisch
+    # eigene Kategorie, muss vor dem breiteren posterior-Pattern geprüft werden.
+    (re.compile(r"external rotation|internal rotation|au(ss|ß)enrotation|innenrotation|"
+                r"rotator ?cuff", re.I), "304_rotator_cuff"),
+    (re.compile(r"rear|reverse|posterior|face.?pull|"
+                r"hintere schulter|vorgebeugt", re.I), "303_posterior_deltoid"),
     (re.compile(r"lateral raise|side raise|seitheben|upright row", re.I), "302_lateral_deltoid"),
 ]
 

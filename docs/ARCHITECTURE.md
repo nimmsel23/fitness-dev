@@ -9,7 +9,7 @@ Stand: 2026-06-12
 ```
 React + Vite        :5902 (dev)     ~/fitness-dev/src/
 Node.js Server      :9100           ~/fitness-dev/server.mjs
-Fitness Agent API   :9150           ~/fitness-dev/catalog/api.py
+Fitness Agent API   :9150           ~/fitness-dev/fitness/api/main.py (fitness-api.service)
 YAML Katalog        —               ~/fitness-dev/catalog/
 Session-Daten       —               ~/.aos/fitness/
 ```
@@ -124,7 +124,7 @@ src/components/
 ```
 
 **NAV_ITEMS** (Reihenfolge entspricht Swipe-Reihenfolge auf Mobile):
-`dash` → `session` → `habits` → `journal` → `review` → `learn` → `settings`
+`session` → `review` → `learn` → `settings`
 
 **@db Alias (vite.config.js):**
 - Default: `src/db.js` (Barrel für `src/lib/db/*.js`, alle Calls → Node-Server :9100, `isLocalMode() = true`)

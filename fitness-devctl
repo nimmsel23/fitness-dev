@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 fitness-devctl — Fitness Centre Stack Control
-Controls: Node API (:9100, fitness-dev.service) + Python Backend (:9150, fitness-python-backend.service)
+Controls: Node API (:9100, fitness-dev.service) + Python Backend (:9150, fitness-api.service)
 Deploy: ~/fitness-dev → /opt/fitness (fitness.service, system scope, sudo)
 
 Terminal-facing dispatcher: ~/fitness/bin/fitness (domain CLI, catalog, sessions, coverage etc.)
@@ -31,7 +31,7 @@ app = typer.Typer(help="Fitness Centre Stack Control", no_args_is_help=True)
 
 DEV_DIR = Path(__file__).resolve().parent
 NODE_SERVICE = os.getenv("FITNESS_NODE_SERVICE", "fitness-dev.service")
-PYTHON_SERVICE = os.getenv("FITNESS_PYTHON_SERVICE", "fitness-python-backend.service")
+PYTHON_SERVICE = os.getenv("FITNESS_PYTHON_SERVICE", "fitness-api.service")
 NODE_PORT = os.getenv("FITNESS_NODE_PORT", "9100")
 PYTHON_PORT = os.getenv("FITNESS_PYTHON_PORT", "9150")
 NODE_URL = f"http://127.0.0.1:{NODE_PORT}"
@@ -244,7 +244,7 @@ def logs(
     unit_map = {
         "node": NODE_SERVICE,
         "python": PYTHON_SERVICE,
-        "agent": "fitness-python-backend.service",
+        "agent": "fitness-api.service",
     }
     unit = unit_map.get(service)
     if not unit:

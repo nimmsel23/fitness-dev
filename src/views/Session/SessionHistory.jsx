@@ -13,10 +13,21 @@ import { useState } from 'react';
 import { History, Timer, Calendar, ChevronRight, Check, X as XIcon, Dumbbell, Activity } from 'lucide-react';
 import { localToday } from '@utils';
 import { blockColor } from './utils';
-import { ACTIVITY_LABELS, ACTIVITY_ICONS, ACTIVITY_EMOJI } from '../../constants/ActivityConstants';
+import { ACTIVITY_LABELS, ACTIVITY_ICONS, ACTIVITY_EMOJI, classifySession } from '../../constants/ActivityConstants';
 
 const DAY_SHORT = ['So','Mo','Di','Mi','Do','Fr','Sa'];
 const MON_SHORT = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+
+// Mindestens 10 Wochen, aber genug um auch ältere (z.B. manuell nachbearbeitete
+// und neu gepushte) Sessions zu erreichen — sonst sind sie nur im ungefensterten
+// Bericht/Verlauf sichtbar, aber im Session-Tab selbst nicht anwählbar.
+function weeksNeeded(today, recentSessions) {
+  const dates = Object.keys(recentSessions || {}).filter(d => d && d <= today);
+  if (dates.length === 0) return 10;
+  const oldest = dates.reduce((min, d) => (d < min ? d : min), today);
+  const days = Math.round((new Date(today) - new Date(oldest)) / 86400000);
+  return Math.max(10, Math.ceil(days / 7) + 1);
+}
 
 function buildWeekGroups(today, recentSessions) {
   const todayObj = new Date(today + 'T12:00:00');
@@ -25,7 +36,8 @@ function buildWeekGroups(today, recentSessions) {
   thisMonday.setDate(todayObj.getDate() - (dow0 === 0 ? 6 : dow0 - 1));
   thisMonday.setHours(0, 0, 0, 0);
 
-  return Array.from({ length: 10 }, (_, w) => {
+  const weekCount = weeksNeeded(today, recentSessions);
+  return Array.from({ length: weekCount }, (_, w) => {
     const monday = new Date(thisMonday);
     monday.setDate(thisMonday.getDate() - w * 7);
     const allDays = Array.from({ length: 7 }, (_, i) => {
@@ -79,13 +91,9 @@ export default function SessionHistory({
   };
 
   const renderSessionCard = (d, s) => {
-    const hasExercises = Array.isArray(s.exercises) && s.exercises.length > 0;
-    const isActivity = !hasExercises && (s.sessionMode === 'cardio' || !!s.activity);
-    const hasFinisher = hasExercises && !!s.activity;
-    const actType = s.activity?.type;
+    const { isActivity, hasFinisher, actType, label } = classifySession(s);
     const emoji = actType ? ACTIVITY_EMOJI[actType] : null;
     const ActivityIconComp = (!emoji && actType) ? (ACTIVITY_ICONS[actType] || Activity) : null;
-    const label = isActivity ? (ACTIVITY_LABELS[actType] || 'Ausdauer') : s.block;
     const color = blockColor(s.block, isActivity ? s.activity : null, s.sessionMode);
     const isReDate = reDateEntry?.d === d;
     const isDragging = draggedDate === d;

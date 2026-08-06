@@ -21,16 +21,28 @@ const CARDIO_SUPER      = 240;  // ≤ 10 Tage
 // score → Farbe, identisch zu hitColors in MuscleBodyMap.jsx (index = score-1)
 const SCORE_COLORS = { 1: '#3b82f6', 2: '#22c55e', 3: '#f59e0b', 4: '#ef4444' };
 
-// Kraft-Übungen: region-Wort direkt aus der KB (region["101_..."] === "chest"),
-// dasselbe Wort, das ACTIVITY_MUSCLE_GROUPS für Cardio schon verwendet — beide
-// Quellen laufen dadurch im selben lastSeen-Dict zusammen, ohne eigene Tabelle.
-const MUSCLE_GROUPS = [...new Set(Object.values(ACTIVITY_MUSCLE_GROUPS).flat())];
+// Die 16 spezifischen KB-Regionen (kb/muscles/*.yml) — bewusst NICHT mehr
+// aus ACTIVITY_MUSCLE_GROUPS abgeleitet (das deckte nur 9 grobe Sammelworte
+// ab, je nachdem welche Cardio-Aktivitäten zufällig existieren). Feste,
+// explizite Liste aller spezifischen (Nicht-Sammel-)Regionsdateien, ohne
+// iliopsoas (Tiefenmuskel, kein RMH-Äquivalent, kein sinnvolles
+// Highlighter-Trainingsziel). Kraft-Übungen lösen über getMuscleGroup()
+// (KB-Lookup) direkt zu einem dieser Werte auf; Cardio-Aktivitäten
+// (ACTIVITY_MUSCLE_GROUPS) sind jetzt ebenfalls auf dieselbe Wortliste
+// umgestellt, damit beide Quellen im selben lastSeen-Dict zusammenlaufen.
+const MUSCLE_GROUPS = [
+  'chest',
+  'upper_back', 'middle_back', 'lower_back', 'rhomboids', 'serratus_anterior',
+  'biceps', 'triceps', 'forearms',
+  'abs', 'abductors', 'adductors',
+  'glutes', 'quadriceps', 'hamstrings', 'calves',
+];
 
 function getMuscleGroup(muscleId) {
   return muscleToRegion(muscleId);
 }
 
-export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null, recentDays = 10 }) {
+export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null, recentDays = 10, onInspectExercise = null }) {
   const [days, setDays] = useState(recentDays);
   const [loading, setLoading] = useState(true);
   const [recentExercises, setRecentExercises] = useState([]);
@@ -200,6 +212,7 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
         onClose={() => setSelectedMuscleId(null)}
         muscleLanguage={muscleLanguage}
         taxonomy={taxonomy}
+        onInspectExercise={onInspectExercise}
       />
     </div>
   );

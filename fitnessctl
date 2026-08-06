@@ -4,9 +4,9 @@ fitnessctl — Fitness Centre Server Controller (typer, autocompletion-ready)
 
 Top-Level-Dispatcher, steuert Dev- und Prod-Stack getrennt an:
   fitnessctl dev   <cmd>   → fitness-devctl   (Dev-Stack, --user-scope: fitness-dev.service,
-                              fitness-python-backend.service)
+                              fitness-api.service)
   fitnessctl prod  <cmd>   → fitness-prodctl  (Prod-Stack, system-scope fitness.service :6100,
-                              user-scope fitness-python-backend.service :9150)
+                              user-scope fitness-api.service :9150)
 
 Domain commands (catalog, sessions, coverage etc.) → use: fitness
 """

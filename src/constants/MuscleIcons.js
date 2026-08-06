@@ -31,6 +31,19 @@ export const MUSCLE_ICONS = {
   "500_core":  Target,
   "600_legs":  Trophy,
   "700_calves": Focus,
+  // Die 16 spezifischen KB-Regionen (siehe Muscles/index.jsx MUSCLE_GROUPS) —
+  // fallen ohne diese Einträge auf den generischen Activity-Default zurück.
+  upper_back: ArrowUpCircle,
+  middle_back: ArrowUpCircle,
+  lower_back: ArrowUpCircle,
+  rhomboids: ArrowUpCircle,
+  serratus_anterior: Shield,
+  biceps: Dumbbell,
+  triceps: Dumbbell,
+  forearms: Dumbbell,
+  abs: Target,
+  abductors: Activity,
+  adductors: Activity,
 };
 
 export function getMuscleIcon(muscleId) {

@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import SessionSidebar from './SessionSidebar';
 
 export default function SidebarSheet({
@@ -7,7 +8,7 @@ export default function SidebarSheet({
   effort, setEffort, notes, setNotes,
   onDownload, onExportObsidian, coachFeedback = ""
 }) {
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100] flex items-end justify-center lg:items-stretch lg:justify-end animate-in fade-in duration-200">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div
@@ -32,6 +33,7 @@ export default function SidebarSheet({
         />
         <div className="h-8" />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

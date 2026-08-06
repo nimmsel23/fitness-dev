@@ -1,7 +1,8 @@
 import { Dumbbell } from 'lucide-react';
 import { formatRecovery } from './utils';
+import { translateMuscle } from '../../lib/translations';
 
-export default function ReviewSessionList({ sessions, onNavigate }) {
+export default function ReviewSessionList({ sessions, onNavigate, muscleLanguage = 'de', taxonomy = null }) {
   return (
     <section className="card mb-0 shadow-lg border-fit-line/50 p-8">
       <div className="label-caps !mb-6 flex items-center justify-between">
@@ -39,7 +40,7 @@ export default function ReviewSessionList({ sessions, onNavigate }) {
                        const colorMap = { active: 'bg-fit-red/10 text-fit-red border-fit-red/20', recovering: 'bg-fit-orange/10 text-fit-orange border-fit-orange/20', fresh: 'bg-fit-green/10 text-fit-green border-fit-green/20' };
                        return (
                          <span key={m} className={`text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md border ${colorMap[status]}`}>
-                           {m.slice(0,4)} {formatRecovery(hrs)}
+                           {translateMuscle(m, taxonomy, muscleLanguage)} {formatRecovery(hrs)}
                          </span>
                        )
                      })}

@@ -1,5 +1,7 @@
-import { useState, useMemo } from 'react';
-import { Zap, ShieldAlert, Dumbbell, Award, Flame, Activity, Sparkles, RefreshCw, Layers, CheckCircle2 } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { Zap, Dumbbell, Award, Flame, Activity, Sparkles, RefreshCw, Layers, CheckCircle2 } from 'lucide-react';
+import { getSessionHistory } from '@db';
+import { canonicalMuscleId } from '../../lib/translations.js';
 
 const EXERCISE_PRESETS = [
   { id: 'bench', name: 'Bankdrücken (Bench Press)', defaultWeight: 90, defaultReps: 5 },
@@ -10,16 +12,57 @@ const EXERCISE_PRESETS = [
   { id: 'custom', name: 'Eigene Übung', defaultWeight: 70, defaultReps: 8 },
 ];
 
-const MUSCLE_RECOVERY_DATA = [
-  { id: 'chest', name: 'Brust (Pectoralis)', hoursAgo: 22, recoveryHours: 48, icon: '💪' },
-  { id: 'back', name: 'Rücken (Latissimus & Trapezius)', hoursAgo: 50, recoveryHours: 48, icon: '🧱' },
-  { id: 'legs', name: 'Beine (Quadriceps & Hamstrings)', hoursAgo: 14, recoveryHours: 72, icon: '🦵' },
-  { id: 'shoulders', name: 'Schultern (Deltoideus)', hoursAgo: 38, recoveryHours: 48, icon: '🏋️' },
-  { id: 'arms', name: 'Arme (Biceps & Triceps)', hoursAgo: 44, recoveryHours: 36, icon: '⚡' },
-  { id: 'core', name: 'Rumpf / Core', hoursAgo: 18, recoveryHours: 24, icon: '🔥' },
+// 6 grobe Sammelgruppen für die Matrix-Kacheln (bewusst gröber als die 16
+// KB-Regionen aus Muscles/index.jsx — hier geht es um eine schnelle
+// Tages-Übersicht, nicht um Highlighter-Genauigkeit). recoveryHours sind
+// literaturübliche Vollregenerations-Fenster pro Muskelgruppengröße (kleine
+// Gruppen wie Arme/Core erholen sich schneller als große wie Beine).
+const MUSCLE_RECOVERY_META = [
+  { id: 'chest', name: 'Brust (Pectoralis)', recoveryHours: 48, icon: '💪' },
+  { id: 'back', name: 'Rücken (Latissimus & Trapezius)', recoveryHours: 48, icon: '🧱' },
+  { id: 'legs', name: 'Beine (Quadriceps & Hamstrings)', recoveryHours: 72, icon: '🦵' },
+  { id: 'shoulders', name: 'Schultern (Deltoideus)', recoveryHours: 48, icon: '🏋️' },
+  { id: 'arms', name: 'Arme (Biceps & Triceps)', recoveryHours: 36, icon: '⚡' },
+  { id: 'core', name: 'Rumpf / Core', recoveryHours: 24, icon: '🔥' },
 ];
 
+// Numerische KB-ID → eine der 6 groben Matrix-Gruppen. Bewusst eigenständig
+// von translations.js::numericSlugToGroup() (das liefert für 600-699 feinere
+// Beinuntergruppen wie quadriceps/hamstrings/glutes statt der hier
+// gewünschten Sammelgruppe "legs").
+function toBroadGroup(rawMuscle) {
+  const canonical = canonicalMuscleId(rawMuscle);
+  const m = String(canonical).match(/^(\d+)/);
+  if (m) {
+    const n = parseInt(m[1], 10);
+    if (n >= 100 && n < 200) return 'chest';
+    if (n >= 200 && n < 300) return 'back';
+    if (n >= 300 && n < 400) return 'shoulders';
+    if (n >= 400 && n < 500) return 'arms';
+    if (n >= 500 && n < 600) return 'core';
+    if (n >= 600 && n < 800) return 'legs';
+    return null;
+  }
+  // Wort-Fallback für Cardio-Aktivitätsgruppen (ACTIVITY_MUSCLE_GROUPS-Wörter),
+  // die nicht über canonicalMuscleId auf eine Nummer auflösen.
+  const word = String(rawMuscle || '').toLowerCase();
+  if (/quadriceps|hamstring|calves|glute/.test(word)) return 'legs';
+  if (/chest/.test(word)) return 'chest';
+  if (/back|trapezius|lat/.test(word)) return 'back';
+  if (/shoulder|delt/.test(word)) return 'shoulders';
+  if (/bicep|tricep|forearm/.test(word)) return 'arms';
+  if (/abs|core|obliqu/.test(word)) return 'core';
+  return null;
+}
+
 export default function ReviewReadinessMatrix({ taxonomy = null, muscleLanguage = 'de' }) {
+  const [sessions, setSessions] = useState([]);
+
+  useEffect(() => {
+    getSessionHistory(35)
+      .then(s => setSessions(Array.isArray(s) ? s.filter(Boolean) : []))
+      .catch(() => setSessions([]));
+  }, []);
   const [selectedPreset, setSelectedPreset] = useState(EXERCISE_PRESETS[0]);
   const [weight, setWeight] = useState(EXERCISE_PRESETS[0].defaultWeight);
   const [reps, setReps] = useState(EXERCISE_PRESETS[0].defaultReps);
@@ -67,11 +110,41 @@ export default function ReviewReadinessMatrix({ taxonomy = null, muscleLanguage 
     ];
   }, [calc1RM.avg]);
 
-  // Muscle recovery calculation
+  // Letztes Trainingsdatum pro grober Muskelgruppe aus der echten Session-
+  // Historie ermitteln (analog buildLastTrainedMap() in MuscleBody.jsx).
+  const lastTrainedByGroup = useMemo(() => {
+    const last = {};
+    for (const s of sessions) {
+      if (!s?.date) continue;
+      for (const ex of s.exercises || []) {
+        if (ex.done === false) continue;
+        for (const m of [...(ex.primaryMuscles || []), ...(ex.secondaryMuscles || [])]) {
+          const group = toBroadGroup(m);
+          if (group && (!last[group] || s.date > last[group])) last[group] = s.date;
+        }
+      }
+      const actMuscles = s.activity?.muscles;
+      if (Array.isArray(actMuscles)) {
+        for (const m of actMuscles) {
+          const group = toBroadGroup(m);
+          if (group && (!last[group] || s.date > last[group])) last[group] = s.date;
+        }
+      }
+    }
+    return last;
+  }, [sessions]);
+
+  // Muscle recovery calculation — hoursAgo aus echtem letzten Trainingsdatum,
+  // nicht mehr hartcodiert. Nie trainierte Gruppen gelten als voll erholt.
   const muscleStatuses = useMemo(() => {
-    return MUSCLE_RECOVERY_DATA.map((m) => {
-      const pct = Math.min(100, Math.round((m.hoursAgo / m.recoveryHours) * 100));
-      const hoursRemaining = Math.max(0, m.recoveryHours - m.hoursAgo);
+    const now = new Date();
+    return MUSCLE_RECOVERY_META.map((m) => {
+      const lastDate = lastTrainedByGroup[m.id];
+      const hoursAgo = lastDate
+        ? Math.round((now - new Date(lastDate + 'T12:00:00')) / (1000 * 60 * 60))
+        : m.recoveryHours * 3; // nie trainiert → klar voll erholt
+      const pct = Math.min(100, Math.round((Math.max(0, hoursAgo) / m.recoveryHours) * 100));
+      const hoursRemaining = Math.max(0, m.recoveryHours - hoursAgo);
       let statusLabel = 'Voll einsatzbereit';
       let statusColor = 'text-fit-accent bg-fit-accent/10 border-fit-accent/30';
 
@@ -85,22 +158,61 @@ export default function ReviewReadinessMatrix({ taxonomy = null, muscleLanguage 
 
       return {
         ...m,
+        hoursAgo: Math.max(0, hoursAgo),
         pct,
         hoursRemaining,
         statusLabel,
         statusColor,
       };
     });
-  }, []);
+  }, [lastTrainedByGroup]);
 
   // Overall Readiness Index (0 - 100)
   const overallReadiness = useMemo(() => {
+    if (muscleStatuses.length === 0) return 0;
     const sum = muscleStatuses.reduce((acc, curr) => acc + curr.pct, 0);
     return Math.round(sum / muscleStatuses.length);
   }, [muscleStatuses]);
 
-  // ACWR (Acute-to-Chronic Workload Ratio) estimation
-  const acwr = 1.15; // 0.8 - 1.3 is optimal zone
+  // Tages-Empfehlung: Gruppe mit der höchsten Bereitschaft (am längsten nicht
+  // trainiert relativ zu ihrem Erholungsfenster) zuerst vorschlagen.
+  const focusRecommendation = useMemo(() => {
+    if (muscleStatuses.length === 0) return null;
+    return [...muscleStatuses].sort((a, b) => b.pct - a.pct)[0];
+  }, [muscleStatuses]);
+
+  // ACWR (Acute:Chronic Workload Ratio) — Trainingslast (Effort × Übungsanzahl
+  // je Session, RPE-basierte Load-Näherung) der letzten 7 Tage im Verhältnis
+  // zum 4-Wochen-Schnitt derselben Größe. 0.8–1.3 gilt gemeinhin als
+  // Sweetspot, >1.5 als erhöhtes Überlastungsrisiko.
+  const acwr = useMemo(() => {
+    const now = new Date();
+    const dayOf = (dateStr) => Math.floor((now - new Date(dateStr + 'T12:00:00')) / (1000 * 60 * 60 * 24));
+    const sessionLoad = (s) => {
+      const effort = typeof s.effort === 'number' ? s.effort : 6;
+      const count = Array.isArray(s.exercises) ? s.exercises.length : (s.activity ? 1 : 0);
+      return effort * count;
+    };
+    let acute = 0, chronic28 = 0;
+    for (const s of sessions) {
+      if (!s?.date) continue;
+      const daysAgo = dayOf(s.date);
+      if (daysAgo < 0 || daysAgo > 27) continue;
+      const load = sessionLoad(s);
+      chronic28 += load;
+      if (daysAgo <= 6) acute += load;
+    }
+    const chronicWeekly = chronic28 / 4;
+    if (chronicWeekly <= 0) return null;
+    return Math.round((acute / chronicWeekly) * 100) / 100;
+  }, [sessions]);
+
+  const acwrLabel = acwr === null ? '—' : acwr < 0.8 ? 'Detraining' : acwr <= 1.3 ? 'Optimal' : acwr <= 1.5 ? 'Erhöht' : 'Risiko';
+  const acwrColor = acwr === null || (acwr >= 0.8 && acwr <= 1.3)
+    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+    : acwr <= 1.5
+      ? 'bg-amber-400/10 text-amber-400 border-amber-400/20'
+      : 'bg-fit-red/10 text-fit-red border-fit-red/20';
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
@@ -138,8 +250,8 @@ export default function ReviewReadinessMatrix({ taxonomy = null, muscleLanguage 
             <div className="p-4 rounded-2xl bg-fit-bg border border-fit-line/60">
               <div className="text-[10px] font-black uppercase tracking-widest text-fit-dim mb-1">ACWR Ratio</div>
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-fit-ink">{acwr}</span>
-                <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Optimal</span>
+                <span className="text-3xl font-black text-fit-ink">{acwr === null ? '—' : acwr}</span>
+                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${acwrColor}`}>{acwrLabel}</span>
               </div>
               <p className="text-[9px] text-fit-dim mt-1 truncate">Sweetspot (0.8 – 1.3)</p>
             </div>
@@ -148,9 +260,11 @@ export default function ReviewReadinessMatrix({ taxonomy = null, muscleLanguage 
               <div className="text-[10px] font-black uppercase tracking-widest text-fit-dim mb-1">Tages-Empfehlung</div>
               <div className="flex items-center gap-2 text-xs font-bold text-fit-ink">
                 <CheckCircle2 size={14} className="text-fit-accent flex-shrink-0" />
-                <span>Rücken & Trapezius focus</span>
+                <span>{focusRecommendation ? `${focusRecommendation.name.split(' (')[0]} Focus` : 'Keine Daten'}</span>
               </div>
-              <span className="text-[9px] text-fit-accent font-semibold mt-1">Regeneration 100% abgeschlossen</span>
+              <span className="text-[9px] text-fit-accent font-semibold mt-1">
+                {focusRecommendation ? `Regeneration ${focusRecommendation.pct}% abgeschlossen` : ''}
+              </span>
             </div>
           </div>
         </div>

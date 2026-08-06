@@ -1,54 +1,48 @@
-importScripts('https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js')
-importScripts('https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js')
+/* global importScripts, firebase */
 
-// Firebase-Konfiguration (muss mit src/cloud/firebase.js übereinstimmen)
-const firebaseConfig = {
-  apiKey: 'AIzaSyDDVhVKKBsKQp-SJzT-8Ih4RfkR4VrP9bg',
-  authDomain: 'fitness-aos.firebaseapp.com',
-  projectId: 'fitness-aos',
-  storageBucket: 'fitness-aos.appspot.com',
-  messagingSenderId: '1075389623656',
-  appId: '1:1075389623656:web:3aa903d8eca14d5c8f3cb2'
-}
+importScripts("https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/11.10.0/firebase-messaging-compat.js");
 
-firebase.initializeApp(firebaseConfig)
-const messaging = firebase.messaging()
+firebase.initializeApp({
+  apiKey: "AIzaSyD1hvp2UYrvizLOzoSqOX-bwRWcCpJVAlg",
+  authDomain: "fitness-aos.firebaseapp.com",
+  projectId: "fitness-aos",
+  storageBucket: "fitness-aos.firebasestorage.app",
+  messagingSenderId: "842575255284",
+  appId: "1:842575255284:web:65c4831683a893c110f0a1",
+});
 
-messaging.onBackgroundMessage(payload => {
-  const notificationTitle = payload.data?.title || 'Fitness Centre'
-  const notificationOptions = {
-    body: payload.data?.body || '',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
-    tag: payload.data?.tag || 'fitness-notification',
-    data: {
-      link: payload.data?.link || '/'
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  const data = payload?.data || {};
+  const title = data.title || payload?.notification?.title || "VitalOS";
+  const body = data.body || payload?.notification?.body || "Zeit für deinen nächsten Check-in.";
+  const link = data.link || "/?tab=session";
+
+  self.registration.showNotification(title, {
+    body,
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
+    data: { link, tab: data.tab || "session" },
+  });
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const link = event.notification?.data?.link || "/?tab=session";
+
+  event.waitUntil((async () => {
+    const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const client of clients) {
+      if ("focus" in client) {
+        try {
+          await client.navigate(link);
+        } catch {}
+        return client.focus();
+      }
     }
-  }
-
-  self.registration.showNotification(notificationTitle, notificationOptions)
-})
-
-// Handle notification click — öffnet die App mit dem link aus der Nachricht
-self.addEventListener('notificationclick', event => {
-  event.notification.close()
-
-  const link = event.notification.data?.link || '/'
-  const urlToOpen = new URL(link, self.location.origin).href
-
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
-      // Prüfe ob bereits ein Window offen ist
-      for (let i = 0; i < clientList.length; i++) {
-        const client = clientList[i]
-        if (client.url === urlToOpen && 'focus' in client) {
-          return client.focus()
-        }
-      }
-      // Wenn nein, öffne ein neues Window
-      if (clients.openWindow) {
-        return clients.openWindow(urlToOpen)
-      }
-    })
-  )
-})
+    if (self.clients.openWindow) return self.clients.openWindow(link);
+    return null;
+  })());
+});

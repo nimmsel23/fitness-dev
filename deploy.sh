@@ -4,6 +4,27 @@ set -euo pipefail
 
 # Default to staging target
 TARGET="${1:-staging}"
+BUILD_BEFORE_DEPLOY=false
+
+shift_count=0
+if [[ $# -gt 0 ]]; then
+  shift_count=1
+fi
+if [[ $shift_count -gt 0 ]]; then
+  shift
+fi
+
+for arg in "$@"; do
+  case "$arg" in
+    --build-yes)
+      BUILD_BEFORE_DEPLOY=true
+      ;;
+    *)
+      printf '\033[1;31m%s\033[0m\n' "Invalid argument '$arg'. Supported: --build-yes" >&2
+      exit 1
+      ;;
+  esac
+done
 
 if [[ "$TARGET" == "prod" ]]; then
   DEST="/opt/fitness"
@@ -55,21 +76,32 @@ run_cmd() {
 msg "🚀 Starting Fitness Deployment to $TARGET ($DEST)"
 msg "📍 Using source checkout $SOURCE"
 
-# 1. Build in SOURCE first — cross-repo alias bundling.
-# Ausnahme: Prod-Deploy aus dem Staging-Checkout (SOURCE == STAGING_SOURCE) —
-# der Stand in $SOURCE/dist wurde bereits beim vorherigen staging-Deploy
-# gebaut. Kein erneuter Build nötig, nur übernehmen und weiterreichen an prod.
-if [[ "$TARGET" == "prod" && "$SOURCE" == "$STAGING_SOURCE" && -d "$SOURCE/dist" ]]; then
-  msg "⏭️  Build übersprungen — nutze bereits vorhandenes $SOURCE/dist (aus dem staging-Deploy)"
-else
+# Build-Strategie: --build-yes erzwingt einen frischen Build. Ohne Flag gilt
+# beim Prod-Deploy aus dem Staging-Checkout (SOURCE == STAGING_SOURCE) die
+# Ausnahme — $SOURCE/dist wurde bereits beim vorherigen staging-Deploy gebaut,
+# kein doppelter Build nötig, nur übernehmen und weiterreichen an prod. In
+# allen anderen Fällen ohne Flag wird das vorhandene dist/ unverändert
+# übernommen (mit Warnung, damit ein veraltetes dist/ nicht unbemerkt bleibt).
+if $BUILD_BEFORE_DEPLOY; then
   msg "🔨 Building UI in $SOURCE"
   (
     cd "$SOURCE"
     npm run build > /dev/null
   )
+elif [[ "$TARGET" == "prod" && "$SOURCE" == "$STAGING_SOURCE" && -d "$SOURCE/dist" ]]; then
+  msg "⏭️  Build übersprungen — nutze bereits vorhandenes $SOURCE/dist (aus dem staging-Deploy)"
+elif [[ ! -d "$SOURCE/dist" ]]; then
+  warn "⚠️ No dist/ directory found in $SOURCE. Deploy will use the current checkout state without building."
+else
+  dist_mtime=$(stat -c '%y' "$SOURCE/dist" 2>/dev/null | cut -d'.' -f1 || true)
+  if [[ -n "$dist_mtime" ]]; then
+    warn "⚠️ Deploying existing dist/ from $dist_mtime (no build was run)."
+  else
+    warn "⚠️ Deploying existing dist/ without rebuild (timestamp unavailable)."
+  fi
 fi
 
-# 2. Versioned Backup
+# 1. Versioned Backup
 timestamp=$(date +%Y%m%d_%H%M%S)
 backup_path="$BACKUP_DIR/fitness_$timestamp"
 
@@ -79,7 +111,7 @@ if [[ -d "$DEST" ]]; then
   run_cmd cp -a "$DEST" "$backup_path"
 fi
 
-# 3. Sync to target directory
+# 2. Sync to target directory
 if [[ ! -d "$DEST" ]]; then
   msg "📂 Creating target directory $DEST"
   run_cmd mkdir -p "$DEST"
@@ -88,54 +120,51 @@ if [[ ! -d "$DEST" ]]; then
   fi
 fi
 
+RSYNC_EXCLUDES=(
+  --exclude ".git"
+  --exclude ".env"
+  --exclude ".env.*"
+  --exclude "node_modules"
+  --exclude "data"
+  --exclude ".archiv"
+  --exclude "*.bak"
+  --exclude ".claude"
+  --exclude "*.log"
+  --exclude ".firebase"
+  --exclude "dist-firebase"
+  --exclude "dist-versions"
+  --exclude ".worktrees"
+  --exclude "catalog-ui"
+  --exclude "gas-coach-summary"
+  --exclude "__pycache__"
+  --exclude ".pytest_cache"
+  --exclude ".venv"
+  --exclude "fitness/catalog/state"
+)
+
 msg "📦 Syncing files from $SOURCE → $DEST"
+# fitness-enricher.service/fitness-firestore-daemon.service schreiben live in
+# fitness/catalog/kb/** während der Sync läuft — rsync bricht das einzelne
+# betroffene File dann mit "vanished"/geändert ab und meldet exit code 23
+# (teilweise übertragen), obwohl der Rest sauber lief. set -e würde den
+# gesamten Deploy hier sonst stillschweigend abbrechen, bevor Service-Setup
+# + Restart passieren. Exit 23/24 daher als Warnung behandeln, alles andere
+# bleibt fatal.
+set +e
 if $USE_SUDO; then
-  sudo rsync -av --delete \
-    --exclude ".git" \
-    --exclude ".env" \
-    --exclude ".env.*" \
-    --exclude "node_modules" \
-    --exclude "data" \
-    --exclude ".archiv" \
-    --exclude "*.bak" \
-    --exclude ".claude" \
-    --exclude "*.log" \
-    --exclude ".firebase" \
-    --exclude "dist-firebase" \
-    --exclude "dist-versions" \
-    --exclude ".worktrees" \
-    --exclude "catalog-ui" \
-    --exclude "gas-coach-summary" \
-    --exclude "__pycache__" \
-    --exclude ".pytest_cache" \
-    --exclude ".venv" \
-    --exclude "fitness/catalog/state" \
-    "$SOURCE/" "$DEST/"
+  sudo rsync -av --delete "${RSYNC_EXCLUDES[@]}" "$SOURCE/" "$DEST/"
 else
-  rsync -av --delete \
-    --exclude ".git" \
-    --exclude ".env" \
-    --exclude ".env.*" \
-    --exclude "node_modules" \
-    --exclude "data" \
-    --exclude ".archiv" \
-    --exclude "*.bak" \
-    --exclude ".claude" \
-    --exclude "*.log" \
-    --exclude ".firebase" \
-    --exclude "dist-firebase" \
-    --exclude "dist-versions" \
-    --exclude ".worktrees" \
-    --exclude "catalog-ui" \
-    --exclude "gas-coach-summary" \
-    --exclude "__pycache__" \
-    --exclude ".pytest_cache" \
-    --exclude ".venv" \
-    --exclude "fitness/catalog/state" \
-    "$SOURCE/" "$DEST/"
+  rsync -av --delete "${RSYNC_EXCLUDES[@]}" "$SOURCE/" "$DEST/"
+fi
+rsync_rc=$?
+set -e
+if [[ $rsync_rc -eq 23 || $rsync_rc -eq 24 ]]; then
+  warn "⚠️  rsync meldet Code $rsync_rc (einzelne Dateien während des Syncs live verändert/verschwunden, z.B. durch fitness-enricher.service) — nicht fatal, Deploy läuft weiter."
+elif [[ $rsync_rc -ne 0 ]]; then
+  die "rsync fehlgeschlagen mit Code $rsync_rc"
 fi
 
-# 4. Finalize Python Environment — Create .venv and install dependencies via uv
+# 3. Finalize Python Environment — Create .venv and install dependencies via uv
 msg "📦 Setting up Python virtual environment in $DEST"
 (
   cd "$DEST"
@@ -149,7 +178,7 @@ msg "📦 Setting up Python virtual environment in $DEST"
   fi
 )
 
-# 5. Restart Service
+# 4. Restart Service
 if $USE_SUDO; then
   if systemctl list-unit-files "$SERVICE" >/dev/null 2>&1; then
     msg "🔄 Restarting system-scope $SERVICE (sudo)"
