@@ -14,7 +14,7 @@ from typing import Any
 from loguru import logger
 from tqdm import tqdm
 
-from firestore.kb import get_db, fetch_hashes, batch_write
+from fitness.firestore.kb import get_db, fetch_hashes, batch_write
 from fitness.catalog.core.loader import catalog_path, load_catalog_directory_yaml, load_catalog_yaml
 from fitness.catalog.core.muscles import iter_muscle_documents
 from fitness.catalog.core.yaml_utils import load_yaml

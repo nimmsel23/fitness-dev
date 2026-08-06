@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
     # überspringen statt den ganzen API-Server crashen zu lassen.
     watchers = []
     try:
-        from firestore.mirror import start_catalog_watchers
+        from fitness.firestore.mirror import start_catalog_watchers
         watchers = start_catalog_watchers()
     except Exception as e:
         logger.warning(f"Firestore-Watchers nicht gestartet: {e}")
@@ -200,7 +200,7 @@ def status(
         table.add_row("API /health", f"[red]nicht erreichbar[/red] ({e})")
 
     try:
-        from firestore.mirror import get_status as firestore_status
+        from fitness.firestore.mirror import get_status as firestore_status
         fs = firestore_status()
         if fs.get("ok"):
             table.add_row("Firestore-Watcher", f"[green]ok[/green] (project={fs.get('project')})")

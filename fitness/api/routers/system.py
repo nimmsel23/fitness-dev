@@ -11,10 +11,10 @@ from fitness.api.config import (
 from db.schemas import HealthResponse, BodyResponse
 
 # ── firestore imports ─────────────────────────────────────────────────────────
-from firestore.mirror import mirror_session
-from firestore.mirror import get_status as firestore_status
+from fitness.firestore.mirror import mirror_session
+from fitness.firestore.mirror import get_status as firestore_status
 try:
-    from firestore.sync import pull as firestore_pull
+    from fitness.firestore.sync import pull as firestore_pull
     _FIRESTORE_PULL_AVAILABLE = True
 except ImportError:
     _FIRESTORE_PULL_AVAILABLE = False
