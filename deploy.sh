@@ -182,9 +182,17 @@ fi
 # dabei zu spät, der Fehler passiert schon beim Datei-Discovery davor. Bis
 # zum pip-install-Schritt existiert kb/ hier also noch gar nicht (rsync hat
 # es ja ausgeschlossen) - kein Konflikt.
+#
+# Gleiches Problem betrifft fitness/catalog/state (Symlink -> ~/.aos/fitness/
+# agent-state, existiert seit 2026-07-11) - fiel nie auf, weil fitness.service
+# bis zur :6100-Python-Migration Node war und dieser venv-Build-Schritt fuer
+# den laufenden Prod-Service irrelevant war. Beide Symlinks brauchen dieselbe
+# "erst nach dem Build setzen"-Behandlung.
 KB_LINK="$DEST/fitness/catalog/kb"
 KB_SOURCE="$DEV_SOURCE/fitness/catalog/kb"
-run_cmd rm -rf "$KB_LINK"
+STATE_LINK="$DEST/fitness/catalog/state"
+STATE_SOURCE="$HOME/.aos/fitness/agent-state"
+run_cmd rm -rf "$KB_LINK" "$STATE_LINK"
 
 # 3. Finalize Python Environment — Create .venv and install dependencies via uv
 msg "📦 Setting up Python virtual environment in $DEST"
@@ -202,6 +210,8 @@ msg "📦 Setting up Python virtual environment in $DEST"
 
 msg "🔗 Verlinke kb/ live aus $KB_SOURCE (kein Sync-Lag mehr)"
 run_cmd ln -s "$KB_SOURCE" "$KB_LINK"
+msg "🔗 Verlinke catalog/state aus $STATE_SOURCE"
+run_cmd ln -s "$STATE_SOURCE" "$STATE_LINK"
 
 # 4. Restart Service
 if $USE_SUDO; then
