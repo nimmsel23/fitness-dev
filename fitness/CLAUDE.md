@@ -98,6 +98,35 @@ Entry-Point (Muster wie diese), NICHT als Inline-Funktion in `cli.py`.
 
 ---
 
+## `fitness/runtime/` — Runtime-User-Data-Reparatur (getrennt von `catalog/`)
+
+Eigenes Sub-Package für Sessions-/History-CRUD auf laufenden Nutzerdaten
+(`~/.aos/fitness/users/*`, `training_history`-SQLite) — bewusst **kein** Teil
+von `fitness/catalog/` (das ist reines KB-/Katalog-Tooling, siehe
+`catalog/CLAUDE.md`). Seit 2026-08-07 nur noch unter `fitness user-data <cmd>`
+gemountet (`fitness/cli.py` → `fitness.runtime.cli:app`); der frühere
+Doppel-Mount unter `fitness-catalog user-data` wurde entfernt, der Compat-Shim
+`fitness/catalog/user_data.py` gelöscht (war unbenutzt, nur Re-Exports).
+
+```
+fitness/runtime/
+├── cli.py             — Typer-App (users, session-signals, backfill-history,
+│                         merge-day-activities, fix-notes, history-update,
+│                         history-delete)
+├── user_data.py        — RuntimeUser/SessionSignal, list_runtime_users(),
+│                         iter_session_signals()
+├── sqlite_history.py   — HistoryPatch, apply_history_patches(),
+│                         update_history_row(), delete_history_row(),
+│                         find_history_backfill_patches()
+└── note_backfill.py     — Haiku-gestützte fix-notes-Logik
+```
+
+Alle schreibenden Subcommands sind **Dry-run per Default** — erst `--apply`
+patcht SQLite bzw. Session-JSON. Nutzt `db.models.TrainingHistory` (SQLAlchemy,
+siehe Alembic-Abschnitt unten) — keine eigene Tabellen-Definition.
+
+---
+
 ## Dispatcher
 
 | Dispatcher | Typ | Funktion |
