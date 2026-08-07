@@ -43,9 +43,32 @@ kb/exercises/*.yml         Exercise-Definitionen
 - Coverage-Granularität (primary / secondary / stabilizer auf Muskel-Ebene)
 - HIT-spezifische Hinweise (Stretch-Position, Peak-Kontraktion, TuT)
 
-**CLI-Einstieg:** `python3 -m catalog.catalog <command>` — `audit`, `resolve`,
-`teach`, `log`, `history`, `report`, `plan`, `coach-sheet`, `map-wger`,
-`export-wger-index`, `tui`. Binary: `fitness-catalog` (uv-Tool).
+**CLI-Einstieg:** `python3 -m catalog.catalog <command>`. Binary:
+`fitness-catalog` (uv-Tool, unter
+`~/.local/share/uv/tools/fitness-agent/bin/`).
+
+**Vollständige Command-Liste** (`fitness-catalog --help`):
+
+| Bereich | Commands |
+|---------|----------|
+| Setup/Diagnose | `bootstrap`, `doctor`, `wger-check` |
+| Katalog-Pflege | `audit [topic] [--enrich N]` (topics u.a. `anatomy`, `exercises`, `coverage`, `demand`), `add-exercise`, `enrich`, `watch`, `alias-add` |
+| Import/Mapping | `import` (Bulk, One-Shot — siehe unten), `reimport <query> [--source wger\|yuhonas\|both]` (Einzel-Reimport → `kb/inbox/`), `map-wger --exercise <id/query> [--write]`, `export-wger-index [--show-unmapped]` |
+| Inbox/Review | `inbox list\|show\|approve\|reenrich\|delete\|graveyard\|restore` (Non-TUI-Review), `graveyard list\|restore\|tui` |
+| Resolve/Query | `resolve`, `coverage`, `report` |
+| Training-Log | `log`, `history`, `progress`, `plan` |
+| Lehre/Export | `teach`, `coach-sheet`, `export-exercise`, `export-coverage`, `preview` |
+| Sync | `push [--dry-run] [--force]` (KB → Firestore, default nur `FITNESS_ENV=prod`), `push-changed` (nur geänderte IDs aus Git-Range) |
+| UI | `tui` (Dashboard/Inbox-Review/Browser/Plan/Lesson/History) |
+
+`import` ist als One-Shot-Bulk-Import gedacht, siehe Memory
+`project_wger_bulk_import_one_shot`.
+
+**Kein `user-data` hier:** Runtime-User-Daten-Reparatur (Sessions/History)
+gehört fachlich nicht zum Katalog-KB-Tool-Set und lebt seit 2026-08-07 in
+`fitness/runtime/` (eigene Typer-App), gemountet nur noch unter `fitness
+user-data <cmd>` (`fitness/cli.py`), nicht mehr unter `fitness-catalog`. Details:
+`../CLAUDE.md`.
 
 ---
 
