@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  ClipboardList, Dumbbell, Waves, Target, ScanSearch, Save, Check,
+  ClipboardList, PauseCircle, ShieldCheck, Swords, Zap, Save, Check,
 } from "lucide-react";
 import { useUser } from "../../contexts/UserContext";
 import { updateUserProfile } from "@db";
@@ -81,21 +81,20 @@ export default function Anamnese() {
           </div>
           <div>
             <h2 className="text-3xl font-black text-fit-ink">Anamnese</h2>
-            <p className="text-sm font-medium opacity-40">
-              REAL RAW RELEVANT RESULTS
-            </p>
+            <p className="text-sm font-medium opacity-40">REAL RAW RELEVANT RESULTS</p>
           </div>
         </div>
       </header>
 
-      {/* REAL + FACTS */}
+      {/* STOP */}
       <Category
-        icon={Dumbbell}
-        title="REAL"
+        icon={PauseCircle}
+        title="STOP"
+        subtitle="Interrupting patterns"
         accent="border-t-fit-accent"
       >
         <div>
-          <label className={labelCls}>Training age</label>
+          <label className={labelCls}>Pattern age</label>
           <select value={trainingExperience} onChange={(e) => setTrainingExperience(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="beginner">Einsteiger (Beginner)</option>
@@ -106,7 +105,7 @@ export default function Anamnese() {
         </div>
 
         <div>
-          <label className={labelCls}>Training frequency</label>
+          <label className={labelCls}>Current rhythm</label>
           <select value={trainingFrequency} onChange={(e) => setTrainingFrequency(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="none">Aktuell kein Training (0/week)</option>
@@ -119,18 +118,18 @@ export default function Anamnese() {
         </div>
 
         <div>
-          <label className={labelCls}>Current reality</label>
+          <label className={labelCls}>What is actually going on?</label>
           <textarea
             rows={3}
             value={trainingType}
-            placeholder="What does your body say about you? Are you fat or fit?"
+            placeholder="What pattern are you in right now? What keeps repeating?"
             onChange={(e) => setTrainingType(e.target.value)}
             className={inputCls}
           />
         </div>
 
         <div>
-          <label className={labelCls}>Daily activity</label>
+          <label className={labelCls}>Outside pressure</label>
           <select value={activityLevel} onChange={(e) => setActivityLevel(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="low">Überwiegend sitzend (Sedentary)</option>
@@ -141,14 +140,25 @@ export default function Anamnese() {
         </div>
       </Category>
 
-      {/* RAW + FEELINGS */}
+      {/* SUBMIT */}
       <Category
-        icon={Waves}
-        title="RAW"
+        icon={ShieldCheck}
+        title="SUBMIT"
         accent="border-t-fit-dim"
       >
         <div>
-          <label className={labelCls}>Energy</label>
+          <label className={labelCls}>Facts</label>
+          <textarea
+            rows={2}
+            value={painNotes}
+            placeholder="What are the undeniable realities of your current situation?"
+            onChange={(e) => setPainNotes(e.target.value)}
+            className={inputCls}
+          />
+        </div>
+
+        <div>
+          <label className={labelCls}>Feelings</label>
           <select value={energyLevel} onChange={(e) => setEnergyLevel(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="low">Eher niedrig (Low fuel)</option>
@@ -159,7 +169,30 @@ export default function Anamnese() {
         </div>
 
         <div>
-          <label className={labelCls}>Recovery</label>
+          <label className={labelCls}>Focus</label>
+          <textarea
+            rows={2}
+            value={secondaryGoal}
+            placeholder="What has been your mindset toward these facts and feelings?"
+            onChange={(e) => setSecondaryGoal(e.target.value)}
+            className={inputCls}
+          />
+        </div>
+
+        <div>
+          <label className={labelCls}>Fruit</label>
+          <textarea
+            rows={2}
+            value={trainingWorking}
+            placeholder="What results or outcomes have you gotten from this mindset?"
+            onChange={(e) => setTrainingWorking(e.target.value)}
+            className={inputCls}
+            />
+        </div>
+
+        <div className="border-t border-fit-line/50 pt-4 grid gap-4">
+          <div>
+            <label className={labelCls}>Recovery</label>
           <select value={recoveryQuality} onChange={(e) => setRecoveryQuality(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="poor">Schlecht (Lagging recovery)</option>
@@ -167,17 +200,6 @@ export default function Anamnese() {
             <option value="good">Gut (Reliable)</option>
             <option value="very_good">Sehr gut (Fast adaptation)</option>
           </select>
-        </div>
-
-        <div>
-          <label className={labelCls}>Pain / issues</label>
-          <textarea
-            rows={2}
-            value={painNotes}
-            placeholder="Shoulder, knee, back, neck..."
-            onChange={(e) => setPainNotes(e.target.value)}
-            className={inputCls}
-          />
         </div>
 
         <div>
@@ -189,6 +211,7 @@ export default function Anamnese() {
             onChange={(e) => setMobilityNotes(e.target.value)}
             className={inputCls}
           />
+        </div>
         </div>
 
         <div className="border-t border-fit-line/50 pt-4 grid gap-4">
@@ -238,12 +261,23 @@ export default function Anamnese() {
         </div>
       </Category>
 
-      {/* RELEVANT + FOCUS */}
+      {/* STRUGGLE */}
       <Category
-        icon={Target}
-        title="RELEVANT"
+        icon={Swords}
+        title="STRUGGLE"
         accent="border-t-fit-accent"
       >
+        <div>
+          <label className={labelCls}>Pain / issues</label>
+          <textarea
+            rows={2}
+            value={injuries}
+            placeholder="What are you wrestling with right now?"
+            onChange={(e) => setInjuries(e.target.value)}
+            className={inputCls}
+          />
+        </div>
+
         <div>
           <label className={labelCls}>Main goal</label>
           <select value={fitnessGoal} onChange={(e) => setFitnessGoal(e.target.value)} className={inputCls}>
@@ -260,43 +294,43 @@ export default function Anamnese() {
         </div>
 
         <div>
-          <label className={labelCls}>Why this goal?</label>
+          <label className={labelCls}>Story</label>
           <textarea
             rows={3}
-            value={secondaryGoal}
-            placeholder="Why now? What matters about it?"
-            onChange={(e) => setSecondaryGoal(e.target.value)}
+            value={medications}
+            placeholder="What story, fear, or resistance is shaping your behavior?"
+            onChange={(e) => setMedications(e.target.value)}
             className={inputCls}
           />
         </div>
       </Category>
 
-      {/* RESULTS + FRUIT */}
+      {/* STRIKE */}
       <Category
-        icon={ScanSearch}
-        title="RESULTS"
+        icon={Zap}
+        title="STRIKE"
         accent="border-t-fit-dim"
       >
         <div>
           <label className={labelCls}>Proof</label>
           <textarea
             rows={3}
-            value={trainingWorking}
+            value={trainingNotWorking}
             placeholder="What would prove progress?"
-            onChange={(e) => setTrainingWorking(e.target.value)}
+            onChange={(e) => setTrainingNotWorking(e.target.value)}
             className={inputCls}
           />
         </div>
 
         <div>
-          <label className={labelCls}>Obstacle</label>
+          <label className={labelCls}>Next move</label>
           <textarea
             rows={3}
-            value={trainingNotWorking}
-            placeholder="What is in the way right now?"
-            onChange={(e) => setTrainingNotWorking(e.target.value)}
+            value={medicalClearanceNotes}
+            placeholder="What is the next clear move?"
+            onChange={(e) => setMedicalClearanceNotes(e.target.value)}
             className={inputCls}
-            />
+          />
         </div>
       </Category>
 
