@@ -1,10 +1,8 @@
-import { NAV_ITEMS } from "../../constants/NavigationItems";
-
-export default function MobileNav({ tab, navigate, swipeHint }) {
-  const currentIndex = NAV_ITEMS.findIndex(i => i.id === tab);
+export default function MobileNav({ tab, navigate, swipeHint, navItems }) {
+  const currentIndex = navItems.findIndex(i => i.id === tab);
   const swipeTargetId =
-    swipeHint === 'left'  ? NAV_ITEMS[currentIndex + 1]?.id :
-    swipeHint === 'right' ? NAV_ITEMS[currentIndex - 1]?.id : null;
+    swipeHint === 'left'  ? navItems[currentIndex + 1]?.id :
+    swipeHint === 'right' ? navItems[currentIndex - 1]?.id : null;
 
   return (
     <nav
@@ -22,7 +20,7 @@ export default function MobileNav({ tab, navigate, swipeHint }) {
 
       <div className="bg-fit-card/90 backdrop-blur-2xl border-t border-fit-line/40 px-2 pt-2 pb-3">
         <div className="flex items-end justify-around">
-          {NAV_ITEMS.map(({ id, label, Icon }) => {
+          {navItems.map(({ id, label, Icon }) => {
             const isActive = tab === id;
             const isSwipeTarget = id === swipeTargetId;
 

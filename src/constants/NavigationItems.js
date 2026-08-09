@@ -23,15 +23,25 @@ const baseItems = [
     { id: 'anatomy',   label: 'Anatomie', Icon: Microscope },
     { id: 'quiz',      label: 'Quiz',     Icon: HelpCircle },
   ]},
-  { id: 'anamnese', label: 'Anamnese', Icon: ClipboardList },
-  { id: 'focus',    label: 'Fokus',    Icon: Crosshair },
   { id: 'settings', label: 'Setup',    Icon: Settings2 },
 ];
 
-export const NAV_ITEMS = baseItems;
+export function getNavItems({ focusReady = false } = {}) {
+  return [
+    ...baseItems.slice(0, 3),
+    focusReady
+      ? { id: 'focus', label: 'Fokus', Icon: Crosshair }
+      : { id: 'anamnese', label: 'Anamnese', Icon: ClipboardList },
+    ...baseItems.slice(3),
+  ];
+}
+
+export const NAV_ITEMS = getNavItems();
 
 export const VALID_TABS = new Set([
   ...baseItems.map(item => item.id),
+  'anamnese',
+  'focus',
   'coach',
   'inbox',
 ]);

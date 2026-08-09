@@ -1,8 +1,7 @@
 import { Activity, ChevronLeft, ChevronRight, Shield, Bell } from "lucide-react";
-import { NAV_ITEMS } from "../../constants/NavigationItems";
 import { isLocalMode } from "@db";
 
-export default function Sidebar({ tab, navigate, subTab, navigateSub, pinned, setPinned, children, user }) {
+export default function Sidebar({ tab, navigate, subTab, navigateSub, pinned, setPinned, children, user, navItems }) {
   return (
     <aside className={`hidden lg:flex flex-col alpha-glass border-r border-fit-line fixed inset-y-0 z-50 transition-all duration-500 ease-in-out ${pinned ? 'w-[280px]' : 'w-24'}`}>
       <div className={`p-8 flex flex-col h-full ${!pinned ? 'items-center' : ''}`}>
@@ -25,7 +24,7 @@ export default function Sidebar({ tab, navigate, subTab, navigateSub, pinned, se
         </div>
 
         <nav className="space-y-1 flex-1">
-          {NAV_ITEMS.map(({ id, label, Icon, sub, noDefaultSub }) => {
+          {navItems.map(({ id, label, Icon, sub, noDefaultSub }) => {
             const isActive = tab === id;
             return (
               <div key={id}>

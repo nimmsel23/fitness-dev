@@ -1,8 +1,11 @@
 import { useUser } from "../../contexts/UserContext";
+import { useState } from "react";
+import Anamnese from "../Anamnese/index.jsx";
 
 const metaCls = "text-[10px] font-black uppercase tracking-[0.28em] text-fit-accent";
 const labelCls = "text-[10px] font-black uppercase tracking-[0.22em] text-fit-ink/55";
 const bodyCls = "text-sm leading-relaxed text-fit-ink whitespace-pre-wrap";
+const actionCls = "rounded-2xl border border-fit-line bg-fit-card px-4 py-3 text-[10px] font-black uppercase tracking-[0.22em] text-fit-ink transition-colors hover:border-fit-accent hover:text-fit-accent";
 
 function Block({ label, value }) {
   return (
@@ -29,6 +32,7 @@ function HitCard({ title, fact, obstacle, strike, responsibility }) {
 }
 
 export default function Fokus() {
+  const [layer, setLayer] = useState("focus");
   const {
     warStackInsights,
     warStackLesson,
@@ -45,14 +49,48 @@ export default function Fokus() {
     { title: "Hit 4", fact: hit4Fact, obstacle: hit4Obstacle, strike: hit4Strike, responsibility: hit4Responsibility },
   ].filter((hit) => [hit.fact, hit.obstacle, hit.strike, hit.responsibility].some((value) => value?.trim()));
 
+  if (layer === "anamnese") {
+    return (
+      <div className="max-w-6xl mx-auto space-y-6 pb-32">
+        <div className="flex justify-start">
+          <button type="button" onClick={() => setLayer("focus")} className={actionCls}>
+            Zurück zu Fokus
+          </button>
+        </div>
+        <Anamnese />
+      </div>
+    );
+  }
+
+  if (layer === "freedom") {
+    return (
+      <div className="max-w-5xl mx-auto space-y-6 pb-32">
+        <header className="rounded-[24px] border border-fit-line bg-fit-card p-5 md:p-6 space-y-3">
+          <div className={metaCls}>NEXT</div>
+          <h2 className="text-3xl md:text-4xl font-black text-fit-ink leading-none">Freedom Map</h2>
+        </header>
+
+        <section className="rounded-[24px] border border-fit-line bg-fit-card p-5 md:p-6 space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Block label="Current Hits" value={hits.map((hit) => hit.title).join("\n")} />
+            <Block label="Direction" value={hits.map((hit) => hit.fact).filter(Boolean).join("\n\n")} />
+          </div>
+        </section>
+
+        <div className="flex flex-wrap gap-3">
+          <button type="button" onClick={() => setLayer("focus")} className={actionCls}>
+            Zurück zu Fokus
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-32">
       <header className="rounded-[24px] border border-fit-line bg-fit-card p-5 md:p-6 space-y-3">
         <div className={metaCls}>FOCUS MAP</div>
         <h2 className="text-3xl md:text-4xl font-black text-fit-ink leading-none">Fokus</h2>
-        <p className="text-sm text-fit-ink/65 max-w-3xl">
-          Die Hits sind der Fokus. Nicht das ganze Vorfeld, sondern die nächsten klaren Schritte.
-        </p>
       </header>
 
       {hits.length > 0 ? (
@@ -77,6 +115,15 @@ export default function Fokus() {
           <Block label="Lessons Learned" value={warStackLesson} />
         </div>
       </section>
+
+      <div className="flex flex-wrap gap-3">
+        <button type="button" onClick={() => setLayer("anamnese")} className={actionCls}>
+          Anamnese
+        </button>
+        <button type="button" onClick={() => setLayer("freedom")} className={actionCls}>
+          Freedom Map
+        </button>
+      </div>
     </div>
   );
 }

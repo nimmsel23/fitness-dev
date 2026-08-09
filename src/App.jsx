@@ -11,7 +11,7 @@ import Inbox from './views/Inbox/index.js'
 import ExerciseInsightModal from './components/ExerciseInsightModal.jsx'
 import { isLocalMode, getAnatomy, getAllMuscles } from '@db'
 
-import { NAV_ITEMS, VALID_TABS } from './constants/NavigationItems.js'
+import { getNavItems, VALID_TABS } from './constants/NavigationItems.js'
 
 import Sidebar from './components/layout/Sidebar.jsx'
 import MobileNav from './components/layout/MobileNav.jsx'
@@ -31,6 +31,10 @@ export default function App() {
   const {
     user, authLoading,
     gender, split, cycleLength, defaultLocation,
+    hit1Fact, hit1Obstacle, hit1Strike, hit1Responsibility,
+    hit2Fact, hit2Obstacle, hit2Strike, hit2Responsibility,
+    hit3Fact, hit3Obstacle, hit3Strike, hit3Responsibility,
+    hit4Fact, hit4Obstacle, hit4Strike, hit4Responsibility,
     signIn, signInEmail, signUpEmail, signOut
   } = useUser();
 
@@ -44,15 +48,29 @@ export default function App() {
     navMode, setNavMode
   } = useSettings();
 
+  const hasCompleteHit = (...values) => values.every((value) => value?.trim());
+  const focusReady = (
+    hasCompleteHit(hit1Fact, hit1Obstacle, hit1Strike, hit1Responsibility) ||
+    hasCompleteHit(hit2Fact, hit2Obstacle, hit2Strike, hit2Responsibility) ||
+    hasCompleteHit(hit3Fact, hit3Obstacle, hit3Strike, hit3Responsibility) ||
+    hasCompleteHit(hit4Fact, hit4Obstacle, hit4Strike, hit4Responsibility)
+  );
+  const navItems = getNavItems({ focusReady });
+  const resolveFlowTab = (id) => {
+    if (id === 'anamnese' && focusReady) return 'focus';
+    if (id === 'focus' && !focusReady) return 'anamnese';
+    return id;
+  };
+
   const [tab, setTab]             = useState(() => {
      // /catalog-ui ist ein Deep-Link direkt in den Coach-Tab -> Katalog-Browser,
      // damit dieser ohne Klick durch die Nav erreichbar ist (siehe Coach/index.jsx
      // fuer den passenden Sub-Tab-Check).
      if (window.location.pathname === '/catalog-ui') return 'coach';
      const hash = window.location.hash.replace(/^#\/?/, '');
-     if (VALID_TABS.has(hash)) return hash;
+     if (VALID_TABS.has(hash)) return resolveFlowTab(hash);
      const initialNavMode = localStorage.getItem('fitness-navMode') || 'tabs';
-     return initialNavMode === 'home' ? 'gate' : 'session';
+     return resolveFlowTab(initialNavMode === 'home' ? 'gate' : 'session');
   });
   const [subTab, setSubTab] = useState(null);
 
@@ -67,7 +85,7 @@ export default function App() {
   const [taxonomy, setTaxonomy] = useState(null);
 
   const { mainRef, swipeHint, slideDirection, setSlideDirection } = useSwipeNavigation({
-    navMode, tab, swipeEnabled, setTab, NAV_ITEMS
+    navMode, tab, swipeEnabled, setTab, NAV_ITEMS: navItems
   });
 
   useEffect(() => {
@@ -85,16 +103,23 @@ export default function App() {
   }, []);
 
   const navigateToTab = (newTabId) => {
-    if (newTabId === tab) return;
-    const oldIdx = NAV_ITEMS.findIndex(i => i.id === tab);
-    const newIdx = NAV_ITEMS.findIndex(i => i.id === newTabId);
+    const targetTabId = resolveFlowTab(newTabId);
+    if (targetTabId === 'gate') {
+      setSubTab(null);
+      setTab('gate');
+      return;
+    }
+    if (!navItems.some((item) => item.id === targetTabId)) return;
+    if (targetTabId === tab) return;
+    const oldIdx = navItems.findIndex(i => i.id === tab);
+    const newIdx = navItems.findIndex(i => i.id === targetTabId);
     if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
       setSlideDirection(newIdx > oldIdx ? 'left' : 'right');
     } else {
       setSlideDirection('bottom');
     }
     setSubTab(null);
-    setTab(newTabId);
+    setTab(targetTabId);
   };
 
   function navigate(id) { navigateToTab(id) }
@@ -108,13 +133,21 @@ export default function App() {
   useEffect(() => {
     const handlePopState = () => {
       const hash = window.location.hash.replace(/^#\/?/, '');
-      navigateToTab(VALID_TABS.has(hash) ? hash : 'session');
+      navigateToTab(VALID_TABS.has(hash) ? resolveFlowTab(hash) : 'session');
     };
     window.addEventListener('popstate', handlePopState);
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [tab]);
+  }, [tab, focusReady]);
+
+  useEffect(() => {
+    const resolvedTab = resolveFlowTab(tab);
+    if (resolvedTab !== tab) {
+      setSubTab(null);
+      setTab(resolvedTab);
+    }
+  }, [tab, focusReady]);
 
   function openSession(date, draft = null) {
     setSessionDate(date || null)
@@ -192,6 +225,7 @@ export default function App() {
           pinned={sidebarPinned}
           setPinned={setSidebarPinned}
           user={user}
+          navItems={navItems}
         >
           <UserProfile user={user} subtitle={isLocalMode() ? `${user?.email || 'localhost'} · localhost` : (user?.email || '')} />
           {!isLocalMode() && (
@@ -209,7 +243,7 @@ export default function App() {
               {/* Background Gate - only mounted in home mode */}
               {navMode === 'home' && (
                 <div className={`transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] max-w-[1600px] mx-auto min-h-[100dvh] flex flex-col ${tab !== 'gate' ? 'scale-[0.98] opacity-30 blur-[2px] pointer-events-none' : 'scale-100 opacity-100'}`}>
-                   <AppGate navigate={navigate} />
+                   <AppGate navigate={navigate} navItems={navItems} />
                 </div>
               )}
 
@@ -247,7 +281,7 @@ export default function App() {
               </div>
             </main>
 
-            {navMode === 'tabs' && <MobileNav tab={tab} navigate={navigate} swipeHint={swipeHint} />}
+            {navMode === 'tabs' && <MobileNav tab={tab} navigate={navigate} swipeHint={swipeHint} navItems={navItems} />}
           </div>
         </div>
       </ErrorBoundary>
