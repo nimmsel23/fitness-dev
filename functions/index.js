@@ -1,16 +1,53 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const fs = require("fs");
+const path = require("path");
+const yaml = require("js-yaml");
 
 admin.initializeApp();
 
 const TIME_ZONE = "Europe/Berlin";
 const REMINDER_WINDOW_MINUTES = 5;
+const REST_DAY_THRESHOLD_DAYS = 3;
+const COVERAGE_GAP_THRESHOLD = 1.0;
 const REMINDER_TYPES = {
   workout: true,
   habit: true,
   coverage: true,
   restday: true,
 };
+
+// Kanonische Muscle-Group-IDs für den Coverage-Alert. Bewusst hier
+// hardcodiert statt aus der KB gelesen (siehe src/lib/db/shared/muscle.js) —
+// die volle KB-Auflösung (setKBMuscles + live /fitness/muscles/viz) in eine
+// Cloud Function zu ziehen wäre eine eigene Baustelle. Deckt nur die groben
+// Sammelgruppen ab, keine Sub-Muskel-Granularität.
+const MUSCLE_GROUP_LABELS = {
+  chest: "Brust",
+  back: "Rücken",
+  shoulders: "Schultern",
+  arms: "Arme",
+  core: "Rumpf",
+  glutes: "Gesäß",
+  quadriceps: "Quadrizeps",
+  hamstrings: "Beinbeuger",
+  calves: "Waden",
+};
+
+const NOTIFICATIONS = yaml.load(fs.readFileSync(path.join(__dirname, "notifications.yaml"), "utf8"));
+
+function renderTemplate(str, vars = {}) {
+  return String(str || "").replace(/\{(\w+)\}/g, (_, key) => (vars[key] != null ? vars[key] : `{${key}}`));
+}
+
+function notificationText(type, vars = {}) {
+  const entry = NOTIFICATIONS[type] || {};
+  return {
+    title: renderTemplate(entry.title, vars),
+    body: renderTemplate(entry.body, vars),
+    link: entry.link || "/?tab=session",
+  };
+}
 
 function getLocalDateParts(date = new Date(), timeZone = TIME_ZONE) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -99,6 +136,28 @@ async function getDaysSinceLastCompletedTraining(userRef, todayDate) {
   return null;
 }
 
+function getCoverageGaps(scores = {}, threshold = COVERAGE_GAP_THRESHOLD) {
+  return Object.keys(MUSCLE_GROUP_LABELS).filter((id) => Number(scores[id] || 0) < threshold);
+}
+
+async function getCoverageScores(userRef) {
+  const snap = await userRef.collection("analytics").doc("dashboard").get();
+  if (!snap.exists) return {};
+  const data = snap.data() || {};
+  return data.rolling_7_days?.body_region_scores || {};
+}
+
+async function getOpenHabitsToday(userRef, date) {
+  const [habitsSnap, recordsSnap] = await Promise.all([
+    userRef.collection("habits").get(),
+    userRef.collection("habitRecords").where("date", "==", date).where("completion", "==", "DONE").get(),
+  ]);
+  const doneIds = new Set(recordsSnap.docs.map((doc) => doc.data().habitId));
+  return habitsSnap.docs
+    .map((doc) => ({ uuid: doc.id, ...doc.data() }))
+    .filter((habit) => !habit.deleted && !doneIds.has(habit.uuid));
+}
+
 async function sendReminder(uid, tokens, title, body, link) {
   if (!tokens || tokens.length === 0) return { sentCount: 0, failureCount: 0 };
 
@@ -127,38 +186,70 @@ exports.scheduledPushReminders = functions
   .region("europe-west1")
   .pubsub.schedule("every 5 minutes")
   .timeZone(TIME_ZONE)
-  .onRun(async (context) => {
+  .onRun(async () => {
     const { date, minutes } = getLocalDateParts();
     const db = admin.firestore();
     let sentCount = 0;
     let failureCount = 0;
 
     try {
-      const usersSnap = await db.collectionGroup("push").get();
+      // Direkter Scan über fitness/{uid} statt collectionGroup("push") — "push"
+      // ist im Datenmodell eine Dokument-ID unter settings/, keine eigene
+      // Collection, ein collectionGroup-Query fand hier nie etwas (Bug, siehe
+      // functions/notifications.yaml-Nachbarcommit).
+      const userRefs = await db.collection("fitness").listDocuments();
 
-      for (const doc of usersSnap.docs) {
-        const data = doc.data() || {};
+      for (const userRef of userRefs) {
+        const uid = userRef.id;
+        const pushSnap = await userRef.collection("settings").doc("push").get();
+        if (!pushSnap.exists) continue;
+
+        const data = pushSnap.data() || {};
         if (!data.enabled) continue;
 
         const tokens = normalizeTokens(data);
         if (tokens.length === 0) continue;
+        if (!isReminderDue(data.reminderTime, minutes)) continue;
 
-        if (isReminderDue(data.reminderTime, minutes)) {
-          const uid = doc.ref.parent.parent.id;
-          const userRef = db.collection("fitness").doc(uid);
-          const trained = await hasCompletedTrainingToday(userRef, date);
+        const types = getEnabledTypes(data);
+        const notifications = [];
 
-          if (!trained) {
-            const result = await sendReminder(
-              uid,
-              tokens,
-              "Workout Reminder",
-              "Zeit für dein Training!",
-              "/?tab=session"
-            );
-            sentCount += result.sentCount || 0;
-            failureCount += result.failureCount || 0;
+        if (types.restday) {
+          const daysSince = await getDaysSinceLastCompletedTraining(userRef, date);
+          if (daysSince != null && daysSince >= REST_DAY_THRESHOLD_DAYS) {
+            notifications.push(notificationText("restday", { days: daysSince }));
           }
+        }
+
+        // Workout-Reminder nur wenn Rest-Day-Check nicht schon gefeuert hat —
+        // sonst bekommt der User bei "lange nicht trainiert" zwei sich
+        // überschneidende Pushes zur selben Minute.
+        if (types.workout && notifications.length === 0) {
+          const trained = await hasCompletedTrainingToday(userRef, date);
+          if (!trained) notifications.push(notificationText("workout"));
+        }
+
+        if (types.coverage) {
+          const scores = await getCoverageScores(userRef);
+          const gaps = getCoverageGaps(scores);
+          if (gaps.length > 0) {
+            const regions = gaps.map((id) => MUSCLE_GROUP_LABELS[id] || id).join(", ");
+            notifications.push(notificationText("coverage", { regions }));
+          }
+        }
+
+        if (types.habit) {
+          const openHabits = await getOpenHabitsToday(userRef, date);
+          if (openHabits.length > 0) {
+            const names = openHabits.map((h) => h.name).filter(Boolean).slice(0, 3).join(", ");
+            notifications.push(notificationText("habit", { names: names || `${openHabits.length} Habit(s)` }));
+          }
+        }
+
+        for (const notification of notifications) {
+          const result = await sendReminder(uid, tokens, notification.title, notification.body, notification.link);
+          sentCount += result.sentCount || 0;
+          failureCount += result.failureCount || 0;
         }
       }
 
@@ -191,11 +282,6 @@ exports.onCoachFeedback = functions
     const tokens = normalizeTokens(pushData);
     if (tokens.length === 0) return null;
 
-    return sendReminder(
-      uid,
-      tokens,
-      "Coach Feedback",
-      newData.coachFeedback.substring(0, 100),
-      "/?tab=session"
-    );
+    const text = notificationText("coachFeedback");
+    return sendReminder(uid, tokens, text.title, newData.coachFeedback.substring(0, 100), text.link);
   });
