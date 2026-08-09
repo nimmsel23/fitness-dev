@@ -18,6 +18,24 @@ export function UserProvider({ children }) {
   const [heightCm, setHeightCm] = useState(() => parseInt(localStorage.getItem('fitness-heightCm') || '180', 10));
   const [weightKg, setWeightKg] = useState(() => parseFloat(localStorage.getItem('fitness-weightKg') || '75.0'));
 
+  // Trainingsanamnese (aktueller Stand, kein Verlauf)
+  const [trainingExperience, setTrainingExperience] = useState(() => localStorage.getItem('fitness-trainingExperience') || '');
+  const [trainingFrequency, setTrainingFrequency] = useState(() => localStorage.getItem('fitness-trainingFrequency') || '');
+  const [trainingType, setTrainingType] = useState(() => localStorage.getItem('fitness-trainingType') || '');
+  const [activityLevel, setActivityLevel] = useState(() => localStorage.getItem('fitness-activityLevel') || '');
+  const [fitnessGoal, setFitnessGoal] = useState(() => localStorage.getItem('fitness-fitnessGoal') || '');
+  const [secondaryGoal, setSecondaryGoal] = useState(() => localStorage.getItem('fitness-secondaryGoal') || '');
+  const [energyLevel, setEnergyLevel] = useState(() => localStorage.getItem('fitness-energyLevel') || '');
+  const [recoveryQuality, setRecoveryQuality] = useState(() => localStorage.getItem('fitness-recoveryQuality') || '');
+  const [painNotes, setPainNotes] = useState(() => localStorage.getItem('fitness-painNotes') || '');
+  const [mobilityNotes, setMobilityNotes] = useState(() => localStorage.getItem('fitness-mobilityNotes') || '');
+  const [chronicConditions, setChronicConditions] = useState(() => localStorage.getItem('fitness-chronicConditions') || '');
+  const [injuries, setInjuries] = useState(() => localStorage.getItem('fitness-injuries') || '');
+  const [medications, setMedications] = useState(() => localStorage.getItem('fitness-medications') || '');
+  const [medicalClearanceNotes, setMedicalClearanceNotes] = useState(() => localStorage.getItem('fitness-medicalClearanceNotes') || '');
+  const [trainingWorking, setTrainingWorking] = useState(() => localStorage.getItem('fitness-trainingWorking') || '');
+  const [trainingNotWorking, setTrainingNotWorking] = useState(() => localStorage.getItem('fitness-trainingNotWorking') || '');
+
   // Auth Listener
   useEffect(() => watchAuth((u) => {
     setUser(u);
@@ -38,6 +56,22 @@ export function UserProvider({ children }) {
           if (data.age) setAge(data.age);
           if (data.heightCm) setHeightCm(data.heightCm);
           if (data.weightKg) setWeightKg(data.weightKg);
+          if (data.trainingExperience) setTrainingExperience(data.trainingExperience);
+          if (data.trainingFrequency) setTrainingFrequency(data.trainingFrequency);
+          if (data.trainingType) setTrainingType(data.trainingType);
+          if (data.activityLevel) setActivityLevel(data.activityLevel);
+          if (data.fitnessGoal) setFitnessGoal(data.fitnessGoal);
+          if (data.secondaryGoal) setSecondaryGoal(data.secondaryGoal);
+          if (data.energyLevel) setEnergyLevel(data.energyLevel);
+          if (data.recoveryQuality) setRecoveryQuality(data.recoveryQuality);
+          if (data.painNotes) setPainNotes(data.painNotes);
+          if (data.mobilityNotes) setMobilityNotes(data.mobilityNotes);
+          if (data.chronicConditions) setChronicConditions(data.chronicConditions);
+          if (data.injuries) setInjuries(data.injuries);
+          if (data.medications) setMedications(data.medications);
+          if (data.medicalClearanceNotes) setMedicalClearanceNotes(data.medicalClearanceNotes);
+          if (data.trainingWorking) setTrainingWorking(data.trainingWorking);
+          if (data.trainingNotWorking) setTrainingNotWorking(data.trainingNotWorking);
         }
       } catch (err) {
         console.error("Fehler bei Hydration:", err);
@@ -54,6 +88,22 @@ export function UserProvider({ children }) {
   useEffect(() => { localStorage.setItem('fitness-age', age) }, [age]);
   useEffect(() => { localStorage.setItem('fitness-heightCm', heightCm) }, [heightCm]);
   useEffect(() => { localStorage.setItem('fitness-weightKg', weightKg) }, [weightKg]);
+  useEffect(() => { localStorage.setItem('fitness-trainingExperience', trainingExperience) }, [trainingExperience]);
+  useEffect(() => { localStorage.setItem('fitness-trainingFrequency', trainingFrequency) }, [trainingFrequency]);
+  useEffect(() => { localStorage.setItem('fitness-trainingType', trainingType) }, [trainingType]);
+  useEffect(() => { localStorage.setItem('fitness-activityLevel', activityLevel) }, [activityLevel]);
+  useEffect(() => { localStorage.setItem('fitness-fitnessGoal', fitnessGoal) }, [fitnessGoal]);
+  useEffect(() => { localStorage.setItem('fitness-secondaryGoal', secondaryGoal) }, [secondaryGoal]);
+  useEffect(() => { localStorage.setItem('fitness-energyLevel', energyLevel) }, [energyLevel]);
+  useEffect(() => { localStorage.setItem('fitness-recoveryQuality', recoveryQuality) }, [recoveryQuality]);
+  useEffect(() => { localStorage.setItem('fitness-painNotes', painNotes) }, [painNotes]);
+  useEffect(() => { localStorage.setItem('fitness-mobilityNotes', mobilityNotes) }, [mobilityNotes]);
+  useEffect(() => { localStorage.setItem('fitness-chronicConditions', chronicConditions) }, [chronicConditions]);
+  useEffect(() => { localStorage.setItem('fitness-injuries', injuries) }, [injuries]);
+  useEffect(() => { localStorage.setItem('fitness-medications', medications) }, [medications]);
+  useEffect(() => { localStorage.setItem('fitness-medicalClearanceNotes', medicalClearanceNotes) }, [medicalClearanceNotes]);
+  useEffect(() => { localStorage.setItem('fitness-trainingWorking', trainingWorking) }, [trainingWorking]);
+  useEffect(() => { localStorage.setItem('fitness-trainingNotWorking', trainingNotWorking) }, [trainingNotWorking]);
 
   const value = {
     user, authLoading,
@@ -64,6 +114,22 @@ export function UserProvider({ children }) {
     age, setAge,
     heightCm, setHeightCm,
     weightKg, setWeightKg,
+    trainingExperience, setTrainingExperience,
+    trainingFrequency, setTrainingFrequency,
+    trainingType, setTrainingType,
+    activityLevel, setActivityLevel,
+    fitnessGoal, setFitnessGoal,
+    secondaryGoal, setSecondaryGoal,
+    energyLevel, setEnergyLevel,
+    recoveryQuality, setRecoveryQuality,
+    painNotes, setPainNotes,
+    mobilityNotes, setMobilityNotes,
+    chronicConditions, setChronicConditions,
+    injuries, setInjuries,
+    medications, setMedications,
+    medicalClearanceNotes, setMedicalClearanceNotes,
+    trainingWorking, setTrainingWorking,
+    trainingNotWorking, setTrainingNotWorking,
     signIn, signInEmail, signUpEmail, signOut
   };
 

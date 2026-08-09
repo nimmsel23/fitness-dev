@@ -23,6 +23,7 @@ const baseItems = [
     { id: 'anatomy',   label: 'Anatomie', Icon: Microscope },
     { id: 'quiz',      label: 'Quiz',     Icon: HelpCircle },
   ]},
+  { id: 'anamnese', label: 'Anamnese', Icon: ClipboardList },
   { id: 'settings', label: 'Setup',    Icon: Settings2 },
 ];
 
