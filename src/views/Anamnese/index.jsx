@@ -16,9 +16,9 @@ function Category({ icon: Icon, tag, title, subtitle, quote, accent, children })
           <Icon size={20} className="text-fit-accent" />
         </div>
         <div className="space-y-1">
-          <div className="text-[10px] font-black uppercase tracking-widest text-fit-accent">{tag}</div>
+          {tag && <div className="text-[10px] font-black uppercase tracking-widest text-fit-accent">{tag}</div>}
           <h3 className="text-xl font-black text-fit-ink">{title}</h3>
-          <p className="text-xs font-semibold text-fit-ink/60">{subtitle}</p>
+          {subtitle && <p className="text-xs font-semibold text-fit-ink/60">{subtitle}</p>}
           {quote && (
             <p className="text-[10px] font-black uppercase tracking-widest text-fit-dim italic mt-2 border-l-2 border-fit-line pl-2 opacity-80">
               "{quote}"
@@ -82,7 +82,7 @@ export default function Anamnese() {
           <div>
             <h2 className="text-3xl font-black text-fit-ink">Anamnese</h2>
             <p className="text-sm font-medium opacity-40">
-              Fakten. Gefühle. Fokus. Ergebnisse.
+              REAL RAW RELEVANT RESULTS
             </p>
           </div>
         </div>
@@ -91,9 +91,8 @@ export default function Anamnese() {
       {/* REAL + FACTS */}
       <Category
         icon={Dumbbell}
-        tag="Real"
-        title="Fakten"
-        subtitle="Wo du wirklich stehst. Ohne Beschönigung, ohne Story, ohne Ausweichmanöver."
+        title="REAL"
+        subtitle="FACTS"
         quote="Facing reality is tough, especially when it clashes with the stories we’ve told ourselves."
         accent="border-t-fit-accent"
       >
@@ -122,7 +121,7 @@ export default function Anamnese() {
         </div>
 
         <div>
-          <label className={labelCls}>Aktuelle Trainingsform & ehrlicher Ist-Zustand</label>
+          <label className={labelCls}>Current training reality</label>
           <textarea
             rows={3}
             value={trainingType}
@@ -147,9 +146,8 @@ export default function Anamnese() {
       {/* RAW + FEELINGS */}
       <Category
         icon={Waves}
-        tag="Raw"
-        title="Gefühle & Körpersignale"
-        subtitle="Was dein Körper meldet: Energie, Schmerz, Müdigkeit, Spannung, Einschränkungen."
+        title="RAW"
+        subtitle="FEELINGS"
         quote="Feelings are what give life movement and meaning."
         accent="border-t-fit-dim"
       >
@@ -247,14 +245,13 @@ export default function Anamnese() {
       {/* RELEVANT + FOCUS */}
       <Category
         icon={Target}
-        tag="Relevant"
-        title="Fokus"
-        subtitle="Was jetzt wirklich zählt. Nicht alles gleichzeitig, sondern das Wesentliche."
+        title="RELEVANT"
+        subtitle="FOCUS"
         quote="Focus makes your facts and feelings relevant by zooming in on what truly matters."
         accent="border-t-fit-accent"
       >
         <div>
-          <label className={labelCls}>Primärer Fokus</label>
+          <label className={labelCls}>Primary focus</label>
           <select value={fitnessGoal} onChange={(e) => setFitnessGoal(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="strength">Kraft steigern (Strength)</option>
@@ -283,9 +280,8 @@ export default function Anamnese() {
       {/* RESULTS + FRUIT */}
       <Category
         icon={ScanSearch}
-        tag="Results"
-        title="Ergebnisse"
-        subtitle="Was kommt tatsächlich heraus. Nicht was gemeint war, sondern was sichtbar geworden ist."
+        title="RESULTS"
+        subtitle="FRUIT"
         quote="Results are the mirror of our authenticity."
         accent="border-t-fit-dim"
       >
@@ -311,11 +307,6 @@ export default function Anamnese() {
           />
         </div>
       </Category>
-
-      <p className="text-[10px] font-bold opacity-30 leading-relaxed text-center max-w-2xl mx-auto uppercase tracking-wider">
-        Diese Anamnese schafft Klarheit fuer Training, Coaching und Entscheidungen.
-        Sie ersetzt keine medizinische Diagnose.
-      </p>
 
       <button
         onClick={handleSave}
