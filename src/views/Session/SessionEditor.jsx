@@ -19,6 +19,7 @@ import SidebarSheet from './SidebarSheet';
 import SessionSidebar from './SessionSidebar';
 import AnatomyInline from './AnatomyInline';
 import SourceSettingsModal from './SourceSettingsModal';
+import { normalizeSessionGate } from '../../lib/sessionGate.js';
 
 const scrollToAnatomyCheck = () =>
   document.getElementById('anatomy-check')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -59,6 +60,7 @@ export default function SessionEditor({
   onSubNav,
 }) {
   const [showInlineDetails, setShowInlineDetails] = useState(false);
+  const gpsMapsUrl = normalizeSessionGate(sessionGate).gps?.mapsUrl || null;
 
   return (
     <div className="pb-36">
@@ -199,6 +201,7 @@ export default function SessionEditor({
               <SessionSidebar
                 location={location} setLocation={v => { setLocation(v); scheduleAutoSave(); }}
                 duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
+                gpsMapsUrl={gpsMapsUrl}
                 sessionMode={sessionMode}
                 block={block} setBlock={v => { setBlock(v); scheduleAutoSave(); }}
                 trainingsart={trainingsart} setTrainingsart={v => { setTrainingsart(v); scheduleAutoSave(); }}
@@ -263,6 +266,7 @@ export default function SessionEditor({
           onShowMap={() => { setShowSidebar(false); scrollToAnatomyCheck(); }}
           location={location} setLocation={v => { setLocation(v); scheduleAutoSave(); }}
           duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
+          gpsMapsUrl={gpsMapsUrl}
           sessionMode={sessionMode}
           block={block} setBlock={v => { setBlock(v); scheduleAutoSave(); }}
           trainingsart={trainingsart} setTrainingsart={v => { setTrainingsart(v); scheduleAutoSave(); }}

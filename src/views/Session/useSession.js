@@ -38,6 +38,25 @@ function getCurrentPosition() {
   });
 }
 
+// Löst GPS-Koordinaten in einen menschenlesbaren Ort auf: nächstes Gym (OSM
+// Overpass) > Adresse (Nominatim) > rohe Koordinaten. Serverseitig (/fitness/
+// geo/locate), damit kein Browser-CORS/Key-Kram nötig ist. Existiert der
+// Endpoint nicht (z.B. Firebase-Build ohne Node-Backend), einfach null.
+async function resolveGeoLocation(lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  try {
+    const base = import.meta.env.VITE_API_BASE || '';
+    const res = await fetch(`${base}/fitness/geo/locate?lat=${lat}&lng=${lng}`, {
+      signal: AbortSignal.timeout(9000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.ok ? data : null;
+  } catch {
+    return null;
+  }
+}
+
 function slugify(name) {
   return String(name || 'exercise')
     .toLowerCase()
@@ -346,7 +365,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
       block,
       exercises,
       effort,
-      location,
+      location: overrides.location ?? location,
       duration: overrides.duration ?? duration,
       notes,
       trainingsart,
@@ -453,15 +472,19 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
 
   async function startSessionGate() {
     const gps = await getCurrentPosition();
+    const geo = gps ? await resolveGeoLocation(gps.lat, gps.lng) : null;
     const nextGate = normalizeSessionGate({
       status: 'active',
       startedAt: new Date().toISOString(),
       endedAt: null,
-      gps,
+      gps: gps && geo ? { ...gps, label: geo.label, mapsUrl: geo.mapsUrl, source: geo.source } : gps,
     });
+    // Vorhandenen manuellen Location-Text nie überschreiben — nur befüllen, wenn leer.
+    const nextLocation = (!location.trim() && geo?.label) ? geo.label : undefined;
     setSessionGate(nextGate);
+    if (nextLocation) setLocation(nextLocation);
     setDirty(false);
-    await save(false, { sessionGate: nextGate });
+    await save(false, { sessionGate: nextGate, location: nextLocation });
     showToast('Workout gestartet');
   }
 

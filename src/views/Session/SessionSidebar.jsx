@@ -1,4 +1,4 @@
-import { Download, Zap, MapPin, Clock, Activity, Target, FileText, Info, X, Brain } from 'lucide-react';
+import { Download, Zap, MapPin, Clock, Activity, Target, FileText, Info, X, Brain, Navigation } from 'lucide-react';
 import SectionHeader from './SectionHeader';
 import { blockColor } from './utils';
 
@@ -6,6 +6,7 @@ const TRAININGSART_OPTIONS = ['Kraft', 'Hypertrophie', 'Ausdauer'];
 
 export default function SessionSidebar({
   location, setLocation, duration, setDuration,
+  gpsMapsUrl,
   sessionMode, block, setBlock,
   trainingsart, setTrainingsart,
   effort, setEffort, notes, setNotes, onDownload,
@@ -34,10 +35,19 @@ export default function SessionSidebar({
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-2 block ml-1 flex items-center gap-2">
               <MapPin size={12} /> Location
             </label>
-            <input type="text" value={location} placeholder="z.B. Home Gym" onChange={e => setLocation(e.target.value)}
-              className="w-full p-4 rounded-2xl border text-sm font-bold bg-fit-bg2 border-fit-line text-fit-ink focus:border-accent focus:bg-card outline-none transition-all" />
+            <div className="relative">
+              <input type="text" value={location} placeholder="z.B. Home Gym" onChange={e => setLocation(e.target.value)}
+                className="w-full p-4 rounded-2xl border text-sm font-bold bg-fit-bg2 border-fit-line text-fit-ink focus:border-accent focus:bg-card outline-none transition-all"
+                style={{ paddingRight: gpsMapsUrl ? '3.25rem' : undefined }} />
+              {gpsMapsUrl && (
+                <a href={gpsMapsUrl} target="_blank" rel="noopener noreferrer" title="In Google Maps öffnen"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-xl flex items-center justify-center bg-fit-accent/10 text-fit-accent hover:bg-fit-accent hover:text-black transition-all">
+                  <Navigation size={14} strokeWidth={2.5} />
+                </a>
+              )}
+            </div>
           </div>
-          
+
           <div className="relative group">
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-2 block ml-1 flex items-center gap-2">
               <Clock size={12} /> Dauer

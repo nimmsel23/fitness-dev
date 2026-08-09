@@ -9,6 +9,9 @@ export function normalizeSessionGate(value) {
     lng: Number.isFinite(Number(value.gps.lng)) ? Number(value.gps.lng) : null,
     accuracy: Number.isFinite(Number(value.gps.accuracy)) ? Number(value.gps.accuracy) : null,
     capturedAt: value.gps.capturedAt || null,
+    label: value.gps.label || null,
+    mapsUrl: value.gps.mapsUrl || null,
+    source: value.gps.source || null,
   } : null;
   let status = value.status || 'idle';
   if (startedAt && endedAt) status = 'completed';
