@@ -93,7 +93,7 @@ export default function Anamnese() {
         icon={Dumbbell}
         title="REAL"
         subtitle="FACTS"
-        quote="Facing reality is tough, especially when it clashes with the stories we’ve told ourselves."
+        quote="What are the undeniable realities of your current situation?"
         accent="border-t-fit-accent"
       >
         <div>
@@ -148,11 +148,11 @@ export default function Anamnese() {
         icon={Waves}
         title="RAW"
         subtitle="FEELINGS"
-        quote="Feelings are what give life movement and meaning."
+        quote="How do you truly feel about these facts?"
         accent="border-t-fit-dim"
       >
         <div>
-          <label className={labelCls}>What are you feeling in your body most days?</label>
+          <label className={labelCls}>How do you feel in your body most days?</label>
           <select value={energyLevel} onChange={(e) => setEnergyLevel(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="low">Eher niedrig (Low fuel)</option>
@@ -247,11 +247,11 @@ export default function Anamnese() {
         icon={Target}
         title="RELEVANT"
         subtitle="FOCUS"
-        quote="Focus makes your facts and feelings relevant by zooming in on what truly matters."
+        quote="What Door are you trying to open?"
         accent="border-t-fit-accent"
       >
         <div>
-          <label className={labelCls}>What truly matters most right now?</label>
+          <label className={labelCls}>What is the main Door you want to open?</label>
           <select value={fitnessGoal} onChange={(e) => setFitnessGoal(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="strength">Kraft steigern (Strength)</option>
@@ -266,11 +266,11 @@ export default function Anamnese() {
         </div>
 
         <div>
-          <label className={labelCls}>What are you willing to cut so this gets your focus?</label>
+          <label className={labelCls}>What story are you telling yourself about this Door?</label>
           <textarea
             rows={3}
             value={secondaryGoal}
-            placeholder="Distractions, habits, goals, or stories that need to go so the main target stays clear."
+            placeholder="What triggered this? Why does it matter? What story, fear, or belief is shaping how you approach it?"
             onChange={(e) => setSecondaryGoal(e.target.value)}
             className={inputCls}
           />
@@ -282,26 +282,26 @@ export default function Anamnese() {
         icon={ScanSearch}
         title="RESULTS"
         subtitle="FRUIT"
-        quote="Results are the mirror of our authenticity."
+        quote="What facts would prove this Door is opening?"
         accent="border-t-fit-dim"
       >
         <div>
-          <label className={labelCls}>What fruit are you getting right now?</label>
+          <label className={labelCls}>What measurable facts are you aiming for?</label>
           <textarea
             rows={3}
             value={trainingWorking}
-            placeholder="What results are real? Energy, strength, weight loss, consistency, pain reduction..."
+            placeholder="Body weight, pain-free sessions, weekly consistency, strength numbers, steps, energy, sleep..."
             onChange={(e) => setTrainingWorking(e.target.value)}
             className={inputCls}
           />
         </div>
 
         <div>
-          <label className={labelCls}>Where are you choosing reasons over results?</label>
+          <label className={labelCls}>What obstacle is in the way, and what is your strike?</label>
           <textarea
             rows={3}
             value={trainingNotWorking}
-            placeholder="Where are excuses, inconsistency, avoidance, or lack of follow-through showing up?"
+            placeholder="What could stop this, and what is the move that overcomes it?"
             onChange={(e) => setTrainingNotWorking(e.target.value)}
             className={inputCls}
           />
