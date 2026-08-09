@@ -6,6 +6,7 @@ import { updateUserProfile } from "@db";
 const inputCls = "w-full rounded-2xl border border-fit-line bg-fit-card px-4 py-3 text-sm font-semibold text-fit-ink outline-none transition-colors focus:border-fit-accent placeholder:text-fit-ink/30";
 const metaCls = "text-[10px] font-black uppercase tracking-[0.28em] text-fit-accent";
 const labelCls = "text-[11px] font-black uppercase tracking-[0.22em] text-fit-ink/55";
+const sublabelCls = "text-xs text-fit-ink/45 leading-snug";
 
 function Section({ meta, title, subtitle, children }) {
   return (
@@ -20,10 +21,13 @@ function Section({ meta, title, subtitle, children }) {
   );
 }
 
-function Field({ label, value, onChange, placeholder, rows = 4 }) {
+function Field({ label, hint, value, onChange, placeholder, rows = 4 }) {
   return (
     <label className="grid gap-2">
-      <span className={labelCls}>{label}</span>
+      <div className="grid gap-1">
+        <span className={labelCls}>{label}</span>
+        {hint && <span className={sublabelCls}>{hint}</span>}
+      </div>
       <textarea
         rows={rows}
         value={value}
@@ -39,32 +43,34 @@ function Hit({ number, fact, setFact, obstacle, setObstacle, strike, setStrike, 
   return (
     <div className="rounded-[20px] border border-fit-line bg-fit-bg2/35 p-4 space-y-4">
       <div className="text-sm font-black uppercase tracking-[0.24em] text-fit-ink">{number}</div>
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field
-          label="Fact"
-          value={fact}
-          onChange={setFact}
-          placeholder={"Was ist das klare, messbare Ergebnis, das du zu erreichen suchst?\nThe clear, measurable result you aim to achieve."}
-        />
-        <Field
-          label="Obstacle"
-          value={obstacle}
-          onChange={setObstacle}
-          placeholder={"Was könnte dich daran hindern, dieses Ergebnis zu erreichen?\nWhat could prevent you from achieving this fact?"}
-        />
-        <Field
-          label="Strike"
-          value={strike}
-          onChange={setStrike}
-          placeholder={"Was ist dein strategischer Zug, um dieses Hindernis zu überwinden?\nWhat’s your strategic move to overcome the obstacle?"}
-        />
-        <Field
-          label="Responsibility"
-          value={responsibility}
-          onChange={setResponsibility}
-          placeholder={"Wer trägt die Verantwortung für die Ausführung dieses Zuges?\nWho is responsible for executing this strike?"}
-        />
-      </div>
+      <Field
+        label="Fact"
+        hint="The clear, measurable result you aim to achieve."
+        value={fact}
+        onChange={setFact}
+        placeholder="Was ist das klare, messbare Ergebnis, das du zu erreichen suchst?"
+      />
+      <Field
+        label="Obstacle"
+        hint="What could prevent you from achieving this fact?"
+        value={obstacle}
+        onChange={setObstacle}
+        placeholder="Was könnte dich daran hindern, dieses Ergebnis zu erreichen?"
+      />
+      <Field
+        label="Strike"
+        hint="What’s your strategic move to overcome the obstacle?"
+        value={strike}
+        onChange={setStrike}
+        placeholder="Was ist dein strategischer Zug, um dieses Hindernis zu überwinden?"
+      />
+      <Field
+        label="Responsibility"
+        hint="Who is responsible for executing this strike?"
+        value={responsibility}
+        onChange={setResponsibility}
+        placeholder="Wer trägt die Verantwortung für die Ausführung dieses Zuges?"
+      />
     </div>
   );
 }
@@ -105,6 +111,16 @@ export default function Anamnese() {
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [visibleHits, setVisibleHits] = useState(() => {
+    const hitValues = [
+      hit1Fact || hit1Obstacle || hit1Strike || hit1Responsibility,
+      hit2Fact || hit2Obstacle || hit2Strike || hit2Responsibility,
+      hit3Fact || hit3Obstacle || hit3Strike || hit3Responsibility,
+      hit4Fact || hit4Obstacle || hit4Strike || hit4Responsibility,
+    ];
+    const lastFilledIndex = hitValues.reduce((last, value, index) => (value ? index : last), 0);
+    return Math.min(4, Math.max(1, lastFilledIndex + 1));
+  });
 
   async function handleSave() {
     if (!user) return;
@@ -161,15 +177,17 @@ export default function Anamnese() {
       >
         <Field
           label="Trigger"
+          hint="What person or event has sparked your desire for change?"
           value={warStackTrigger}
           onChange={setWarStackTrigger}
-          placeholder={"Welche Person oder welches Ereignis hat in dir den Wunsch nach Veränderung entfacht?\nWhat person or event has sparked your desire for change?"}
+          placeholder="Welche Person oder welches Ereignis hat in dir den Wunsch nach Veränderung entfacht?"
         />
         <Field
           label="Reality"
+          hint="What are the undeniable realities of your current situation?"
           value={trainingType}
           onChange={setTrainingType}
-          placeholder={"Was sind die unbestreitbaren Wirklichkeiten deiner gegenwärtigen Lage?\nWhat are the undeniable realities of your current situation?"}
+          placeholder="Was sind die unbestreitbaren Wirklichkeiten deiner gegenwärtigen Lage?"
           rows={6}
         />
       </Section>
@@ -182,27 +200,31 @@ export default function Anamnese() {
         <div className="grid gap-4 md:grid-cols-2">
           <Field
             label="Facts"
+            hint="What are the undeniable realities of your current situation?"
             value={submitFacts}
             onChange={setSubmitFacts}
-            placeholder={"Was sind die unbestreitbaren Wirklichkeiten deiner gegenwärtigen Lage?\nWhat are the undeniable realities of your current situation?"}
+            placeholder="Was sind die unbestreitbaren Wirklichkeiten deiner gegenwärtigen Lage?"
           />
           <Field
             label="Feelings"
+            hint="How do you truly feel about these facts?"
             value={submitFeelings}
             onChange={setSubmitFeelings}
-            placeholder={"Wie fühlst du dich diesen Tatsachen gegenüber in Wahrheit?\nHow do you truly feel about these facts?"}
+            placeholder="Wie fühlst du dich diesen Tatsachen gegenüber in Wahrheit?"
           />
           <Field
             label="Focus"
+            hint="What has been your mindset toward these facts and feelings?"
             value={submitFocus}
             onChange={setSubmitFocus}
-            placeholder={"Welche innere Haltung hattest du diesen Tatsachen und Gefühlen gegenüber?\nWhat has been your mindset toward these facts and feelings?"}
+            placeholder="Welche innere Haltung hattest du diesen Tatsachen und Gefühlen gegenüber?"
           />
           <Field
             label="Fruits"
+            hint="What results or outcomes have you gotten from this mindset?"
             value={submitFruit}
             onChange={setSubmitFruit}
-            placeholder={"Welche Ergebnisse oder Folgen sind aus dieser Haltung hervorgegangen?\nWhat results or outcomes have you gotten from this mindset?"}
+            placeholder="Welche Ergebnisse oder Folgen sind aus dieser Haltung hervorgegangen?"
           />
         </div>
       </Section>
@@ -214,35 +236,40 @@ export default function Anamnese() {
       >
         <Field
           label="Struggle"
+          hint="What are you actively engaging with right now?"
           value={injuries}
           onChange={setInjuries}
-          placeholder={"Womit ringst du gegenwärtig in tätiger Auseinandersetzung?\nWhat are you actively engaging with right now?"}
+          placeholder="Womit ringst du gegenwärtig in tätiger Auseinandersetzung?"
         />
         <Field
           label="Narrative"
+          hint="What story are you currently telling yourself?"
           value={warStackNarrative}
           onChange={setWarStackNarrative}
-          placeholder={"Welche Geschichte erzählst du dir darüber gegenwärtig?\nWhat story are you currently telling yourself?"}
+          placeholder="Welche Geschichte erzählst du dir darüber gegenwärtig?"
         />
         <div className="grid gap-4 md:grid-cols-2">
           <Field
             label="Validation"
+            hint="Why does this feel necessary?"
             value={warStackValidation}
             onChange={setWarStackValidation}
-            placeholder={"Warum erscheint es dir notwendig, dich dem zuzuwenden?\nWhy does this feel necessary?"}
+            placeholder="Warum erscheint es dir notwendig, dich dem zuzuwenden?"
           />
           <Field
             label="Impact"
+            hint="How would this change your life?"
             value={warStackImpact}
             onChange={setWarStackImpact}
-            placeholder={"Wie würde sich dein Leben wandeln, wenn sich dies wandelte?\nHow would this change your life?"}
+            placeholder="Wie würde sich dein Leben wandeln, wenn sich dies wandelte?"
           />
         </div>
         <Field
           label="Consequences"
+          hint="What happens if this stays as it is?"
           value={warStackConsequences}
           onChange={setWarStackConsequences}
-          placeholder={"Was geschieht, wenn es bleibt, wie es ist?\nWhat happens if this stays as it is?"}
+          placeholder="Was geschieht, wenn es bleibt, wie es ist?"
         />
       </Section>
 
@@ -251,65 +278,85 @@ export default function Anamnese() {
         title="Strike"
         subtitle="Der Übergang von Betrachtung zu Handlung: klare Ergebnisse, Hindernisse, Züge und Verantwortung."
       >
-        <div className="grid gap-4">
-          <Hit
-            number="Hit 1"
-            fact={hit1Fact}
-            setFact={setHit1Fact}
-            obstacle={hit1Obstacle}
-            setObstacle={setHit1Obstacle}
-            strike={hit1Strike}
-            setStrike={setHit1Strike}
-            responsibility={hit1Responsibility}
-            setResponsibility={setHit1Responsibility}
-          />
-          <Hit
-            number="Hit 2"
-            fact={hit2Fact}
-            setFact={setHit2Fact}
-            obstacle={hit2Obstacle}
-            setObstacle={setHit2Obstacle}
-            strike={hit2Strike}
-            setStrike={setHit2Strike}
-            responsibility={hit2Responsibility}
-            setResponsibility={setHit2Responsibility}
-          />
-          <Hit
-            number="Hit 3"
-            fact={hit3Fact}
-            setFact={setHit3Fact}
-            obstacle={hit3Obstacle}
-            setObstacle={setHit3Obstacle}
-            strike={hit3Strike}
-            setStrike={setHit3Strike}
-            responsibility={hit3Responsibility}
-            setResponsibility={setHit3Responsibility}
-          />
-          <Hit
-            number="Hit 4"
-            fact={hit4Fact}
-            setFact={setHit4Fact}
-            obstacle={hit4Obstacle}
-            setObstacle={setHit4Obstacle}
-            strike={hit4Strike}
-            setStrike={setHit4Strike}
-            responsibility={hit4Responsibility}
-            setResponsibility={setHit4Responsibility}
-          />
+        <div className="grid gap-4 xl:grid-cols-2">
+          {visibleHits >= 1 && (
+            <Hit
+              number="Hit 1"
+              fact={hit1Fact}
+              setFact={setHit1Fact}
+              obstacle={hit1Obstacle}
+              setObstacle={setHit1Obstacle}
+              strike={hit1Strike}
+              setStrike={setHit1Strike}
+              responsibility={hit1Responsibility}
+              setResponsibility={setHit1Responsibility}
+            />
+          )}
+          {visibleHits >= 2 && (
+            <Hit
+              number="Hit 2"
+              fact={hit2Fact}
+              setFact={setHit2Fact}
+              obstacle={hit2Obstacle}
+              setObstacle={setHit2Obstacle}
+              strike={hit2Strike}
+              setStrike={setHit2Strike}
+              responsibility={hit2Responsibility}
+              setResponsibility={setHit2Responsibility}
+            />
+          )}
+          {visibleHits >= 3 && (
+            <Hit
+              number="Hit 3"
+              fact={hit3Fact}
+              setFact={setHit3Fact}
+              obstacle={hit3Obstacle}
+              setObstacle={setHit3Obstacle}
+              strike={hit3Strike}
+              setStrike={setHit3Strike}
+              responsibility={hit3Responsibility}
+              setResponsibility={setHit3Responsibility}
+            />
+          )}
+          {visibleHits >= 4 && (
+            <Hit
+              number="Hit 4"
+              fact={hit4Fact}
+              setFact={setHit4Fact}
+              obstacle={hit4Obstacle}
+              setObstacle={setHit4Obstacle}
+              strike={hit4Strike}
+              setStrike={setHit4Strike}
+              responsibility={hit4Responsibility}
+              setResponsibility={setHit4Responsibility}
+            />
+          )}
         </div>
+
+        {visibleHits < 4 && (
+          <button
+            type="button"
+            onClick={() => setVisibleHits((count) => Math.min(4, count + 1))}
+            className="rounded-2xl border border-fit-line bg-fit-card px-4 py-3 text-sm font-black uppercase tracking-[0.18em] text-fit-ink transition-colors hover:border-fit-accent hover:text-fit-accent"
+          >
+            Hit hinzufügen
+          </button>
+        )}
 
         <div className="grid gap-4 md:grid-cols-2">
           <Field
             label="Insights"
+            hint="What new realizations have come to light during this process?"
             value={warStackInsights}
             onChange={setWarStackInsights}
-            placeholder={"Welche neuen Einsichten sind in diesem Vorgang ans Licht getreten?\nWhat new realizations have come to light during this process?"}
+            placeholder="Welche neuen Einsichten sind in diesem Vorgang ans Licht getreten?"
           />
           <Field
             label="Lessons Learned"
+            hint="What is the most important life lesson this has taught you?"
             value={warStackLesson}
             onChange={setWarStackLesson}
-            placeholder={"Was ist die wichtigste Lebenslehre, die dir dieser Vorgang gezeigt hat?\nWhat is the most important life lesson this has taught you?"}
+            placeholder="Was ist die wichtigste Lebenslehre, die dir dieser Vorgang gezeigt hat?"
           />
         </div>
       </Section>
