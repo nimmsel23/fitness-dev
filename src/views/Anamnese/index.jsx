@@ -82,7 +82,7 @@ export default function Anamnese() {
           <div>
             <h2 className="text-3xl font-black text-fit-ink">Anamnese</h2>
             <p className="text-sm font-medium opacity-40">
-              Der Code als Spiegel: Real · Raw · Relevant · Results.
+              Real · Raw · Relevant · Results.
             </p>
           </div>
         </div>
@@ -92,7 +92,7 @@ export default function Anamnese() {
       <Category
         icon={Dumbbell}
         tag="Real"
-        title="Fakten & Status"
+        title="Realität & Status"
         subtitle="Die ungeschminkte Wahrheit über deinen Körper und Alltag. Keine Ausreden, kein Schönreden."
         quote="Accepting the raw facts of where we are takes courage. Strip away the excuses."
         accent="border-t-fit-accent"
