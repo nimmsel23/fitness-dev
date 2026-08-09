@@ -76,7 +76,7 @@ export default function Anamnese() {
           </div>
           <div>
             <h2 className="text-3xl font-black text-fit-ink">Anamnese</h2>
-            <p className="text-sm font-medium opacity-40">REAL RAW RELEVANT RESULTS</p>
+            <p className="text-sm font-medium opacity-40">REAL. RAW. RELEVANT. RESULTS.</p>
           </div>
         </div>
       </header>
@@ -89,31 +89,18 @@ export default function Anamnese() {
         accent="border-t-fit-accent"
       >
         <div>
-          <label className={labelCls}>Training age</label>
-          <select value={trainingExperience} onChange={(e) => setTrainingExperience(e.target.value)} className={inputCls}>
-            <option value="">Keine Angabe</option>
-            <option value="beginner">Einsteiger (Beginner)</option>
-            <option value="returning">Wiedereinsteiger (Returning)</option>
-            <option value="intermediate">Fortgeschritten (Intermediate)</option>
-            <option value="advanced">Sehr erfahren (Advanced)</option>
-          </select>
+          <label className={labelCls}>Pattern</label>
+          <textarea
+            rows={3}
+            value={trainingExperience}
+            placeholder="What keeps repeating?"
+            onChange={(e) => setTrainingExperience(e.target.value)}
+            className={inputCls}
+          />
         </div>
 
         <div>
-          <label className={labelCls}>Training frequency</label>
-          <select value={trainingFrequency} onChange={(e) => setTrainingFrequency(e.target.value)} className={inputCls}>
-            <option value="">Keine Angabe</option>
-            <option value="none">Aktuell kein Training (0/week)</option>
-            <option value="1">1× pro Woche</option>
-            <option value="2">2× pro Woche</option>
-            <option value="3">3× pro Woche</option>
-            <option value="4">4× pro Woche</option>
-            <option value="5_plus">5× oder häufiger</option>
-          </select>
-        </div>
-
-        <div>
-          <label className={labelCls}>Current reality</label>
+          <label className={labelCls}>Reality</label>
           <textarea
             rows={3}
             value={trainingType}
@@ -124,14 +111,25 @@ export default function Anamnese() {
         </div>
 
         <div>
-          <label className={labelCls}>Daily activity</label>
-          <select value={activityLevel} onChange={(e) => setActivityLevel(e.target.value)} className={inputCls}>
-            <option value="">Keine Angabe</option>
-            <option value="low">Überwiegend sitzend (Sedentary)</option>
-            <option value="moderate">Mäßig aktiv (Moderate)</option>
-            <option value="active">Aktiver Alltag (Active)</option>
-            <option value="very_active">Körperlich sehr aktiv (Heavy labor)</option>
-          </select>
+          <label className={labelCls}>Pressure</label>
+          <textarea
+            rows={3}
+            value={activityLevel}
+            placeholder="What is pressing on you from outside?"
+            onChange={(e) => setActivityLevel(e.target.value)}
+            className={inputCls}
+          />
+        </div>
+
+        <div>
+          <label className={labelCls}>Rhythm</label>
+          <textarea
+            rows={3}
+            value={trainingFrequency}
+            placeholder="What does your current rhythm actually look like?"
+            onChange={(e) => setTrainingFrequency(e.target.value)}
+            className={inputCls}
+          />
         </div>
       </Category>
 
@@ -156,20 +154,13 @@ export default function Anamnese() {
 
           <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
             <div className={miniCls}>FEELINGS</div>
-            <select value={energyLevel} onChange={(e) => setEnergyLevel(e.target.value)} className={inputCls}>
-              <option value="">Keine Angabe</option>
-              <option value="low">Eher niedrig (Low fuel)</option>
-              <option value="variable">Stark schwankend (Variable)</option>
-              <option value="good">Gut (Solid)</option>
-              <option value="high">Sehr gut (Full tank)</option>
-            </select>
-            <select value={recoveryQuality} onChange={(e) => setRecoveryQuality(e.target.value)} className={inputCls}>
-              <option value="">Recovery</option>
-              <option value="poor">Schlecht (Lagging recovery)</option>
-              <option value="variable">Schwankend (Inconsistent)</option>
-              <option value="good">Gut (Reliable)</option>
-              <option value="very_good">Sehr gut (Fast adaptation)</option>
-            </select>
+            <textarea
+              rows={4}
+              value={energyLevel}
+              placeholder="How do you actually feel about these facts?"
+              onChange={(e) => setEnergyLevel(e.target.value)}
+              className={inputCls}
+            />
           </div>
 
           <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
@@ -229,17 +220,13 @@ export default function Anamnese() {
       >
         <div>
           <label className={labelCls}>Target</label>
-          <select value={fitnessGoal} onChange={(e) => setFitnessGoal(e.target.value)} className={inputCls}>
-            <option value="">Keine Angabe</option>
-            <option value="strength">Kraft steigern (Strength)</option>
-            <option value="muscle">Muskelaufbau (Hypertrophy)</option>
-            <option value="fat_loss">Körperfett reduzieren (Leanness)</option>
-            <option value="endurance">Ausdauer verbessern (Conditioning)</option>
-            <option value="mobility">Beweglichkeit (Mobility)</option>
-            <option value="health">Prävention / Vitalität (Longevity)</option>
-            <option value="performance">Sportliche Leistung (Athletic Power)</option>
-            <option value="daily_function">Dominanz im Alltag (Dominion)</option>
-          </select>
+          <textarea
+            rows={3}
+            value={fitnessGoal}
+            placeholder="What are you moving toward?"
+            onChange={(e) => setFitnessGoal(e.target.value)}
+            className={inputCls}
+          />
         </div>
 
         <div>
