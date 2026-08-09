@@ -1,4 +1,4 @@
-import { Dumbbell, Brain, BarChart3, Settings2, CalendarDays, ClipboardList, History, LibraryBig, Microscope, HelpCircle, Layers, Zap } from "lucide-react";
+import { Dumbbell, Brain, BarChart3, Settings2, CalendarDays, ClipboardList, History, LibraryBig, Microscope, HelpCircle, Layers, Zap, Crosshair } from "lucide-react";
 
 const baseItems = [
   { id: 'session',  label: 'Training', Icon: Dumbbell,  sub: [
@@ -24,6 +24,7 @@ const baseItems = [
     { id: 'quiz',      label: 'Quiz',     Icon: HelpCircle },
   ]},
   { id: 'anamnese', label: 'Anamnese', Icon: ClipboardList },
+  { id: 'focus',    label: 'Fokus',    Icon: Crosshair },
   { id: 'settings', label: 'Setup',    Icon: Settings2 },
 ];
 

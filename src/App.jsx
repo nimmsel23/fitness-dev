@@ -5,6 +5,7 @@ import Learn   from '@learn/views/Learn/index.jsx'
 import WeeklyReview from './views/WeeklyReview/index.jsx'
 import Settings from './views/Settings/index.jsx'
 import Anamnese from './views/Anamnese/index.jsx'
+import Fokus from './views/Fokus/index.jsx'
 import Coach from './views/Coach/index.jsx'
 import Inbox from './views/Inbox/index.js'
 import ExerciseInsightModal from './components/ExerciseInsightModal.jsx'
@@ -239,6 +240,7 @@ export default function App() {
                       {tab === 'coach'    && (isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92') && <Coach onInspectExercise={inspectExercise} />}
                       {tab === 'inbox'    && <Inbox />}
                       {tab === 'anamnese' && <Anamnese />}
+                      {tab === 'focus'    && <Fokus />}
                       {tab === 'settings' && <Settings />}
                   </div>
                 </div>
