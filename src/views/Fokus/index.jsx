@@ -4,18 +4,6 @@ const metaCls = "text-[10px] font-black uppercase tracking-[0.28em] text-fit-acc
 const labelCls = "text-[10px] font-black uppercase tracking-[0.22em] text-fit-ink/55";
 const bodyCls = "text-sm leading-relaxed text-fit-ink whitespace-pre-wrap";
 
-function Section({ meta, title, children }) {
-  return (
-    <section className="rounded-[24px] border border-fit-line bg-fit-card p-5 md:p-6 space-y-5">
-      <div className="space-y-2">
-        <div className={metaCls}>{meta}</div>
-        <h3 className="text-2xl md:text-3xl font-black text-fit-ink leading-none">{title}</h3>
-      </div>
-      <div className="grid gap-4">{children}</div>
-    </section>
-  );
-}
-
 function Block({ label, value }) {
   return (
     <div className="rounded-[18px] border border-fit-line bg-fit-bg2/35 p-4 space-y-2">
@@ -27,29 +15,21 @@ function Block({ label, value }) {
 
 function HitCard({ title, fact, obstacle, strike, responsibility }) {
   return (
-    <div className="rounded-[20px] border border-fit-line bg-fit-bg2/35 p-4 space-y-4">
-      <div className="text-sm font-black uppercase tracking-[0.24em] text-fit-ink">{title}</div>
+    <section className="rounded-[24px] border border-fit-line bg-fit-card p-5 md:p-6 space-y-4">
+      <div className="space-y-1">
+        <div className={metaCls}>HIT</div>
+        <h3 className="text-2xl font-black text-fit-ink leading-none">{title}</h3>
+      </div>
       <Block label="Fact" value={fact} />
       <Block label="Obstacle" value={obstacle} />
       <Block label="Strike" value={strike} />
       <Block label="Responsibility" value={responsibility} />
-    </div>
+    </section>
   );
 }
 
 export default function Fokus() {
   const {
-    trainingType,
-    warStackTrigger,
-    submitFacts,
-    submitFeelings,
-    submitFocus,
-    submitFruit,
-    injuries,
-    warStackNarrative,
-    warStackValidation,
-    warStackImpact,
-    warStackConsequences,
     warStackInsights,
     warStackLesson,
     hit1Fact, hit1Obstacle, hit1Strike, hit1Responsibility,
@@ -67,52 +47,36 @@ export default function Fokus() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-32">
-      <header className="rounded-[24px] border border-fit-line bg-fit-card p-5 md:p-6 space-y-2">
-        <div className={metaCls}>REAL · RAW · RELEVANT · RESULTS</div>
+      <header className="rounded-[24px] border border-fit-line bg-fit-card p-5 md:p-6 space-y-3">
+        <div className={metaCls}>FOCUS MAP</div>
         <h2 className="text-3xl md:text-4xl font-black text-fit-ink leading-none">Fokus</h2>
+        <p className="text-sm text-fit-ink/65 max-w-3xl">
+          Die Hits sind der Fokus. Nicht das ganze Vorfeld, sondern die nächsten klaren Schritte.
+        </p>
       </header>
 
-      <Section meta="REAL" title="Stop">
-        <div className="grid gap-4 md:grid-cols-2">
-          <Block label="Trigger" value={warStackTrigger} />
-          <Block label="Reality" value={trainingType} />
+      {hits.length > 0 ? (
+        <div className="grid gap-4 xl:grid-cols-2">
+          {hits.map((hit) => (
+            <HitCard key={hit.title} {...hit} />
+          ))}
         </div>
-      </Section>
+      ) : (
+        <section className="rounded-[24px] border border-fit-line bg-fit-card p-5 md:p-6">
+          <div className={metaCls}>FOCUS MAP</div>
+          <p className="mt-3 text-sm text-fit-ink/65">
+            Noch keine Hits gesetzt.
+          </p>
+        </section>
+      )}
 
-      <Section meta="RAW" title="Submit">
-        <div className="grid gap-4 md:grid-cols-2">
-          <Block label="Facts" value={submitFacts} />
-          <Block label="Feelings" value={submitFeelings} />
-          <Block label="Focus" value={submitFocus} />
-          <Block label="Fruits" value={submitFruit} />
-        </div>
-      </Section>
-
-      <Section meta="RELEVANT" title="Struggle">
-        <div className="grid gap-4 md:grid-cols-2">
-          <Block label="Struggle" value={injuries} />
-          <Block label="Narrative" value={warStackNarrative} />
-          <Block label="Validation" value={warStackValidation} />
-          <Block label="Impact" value={warStackImpact} />
-        </div>
-        <Block label="Consequences" value={warStackConsequences} />
-      </Section>
-
-      <Section meta="RESULTS" title="Strike">
-        {hits.length > 0 ? (
-          <div className="grid gap-4 xl:grid-cols-2">
-            {hits.map((hit) => (
-              <HitCard key={hit.title} {...hit} />
-            ))}
-          </div>
-        ) : (
-          <Block label="Hits" value="" />
-        )}
+      <section className="rounded-[24px] border border-fit-line bg-fit-card p-5 md:p-6 space-y-4">
+        <div className={metaCls}>REFLECTION</div>
         <div className="grid gap-4 md:grid-cols-2">
           <Block label="Insights" value={warStackInsights} />
           <Block label="Lessons Learned" value={warStackLesson} />
         </div>
-      </Section>
+      </section>
     </div>
   );
 }
