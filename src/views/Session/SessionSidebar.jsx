@@ -2,9 +2,12 @@ import { Download, Zap, MapPin, Clock, Activity, Target, FileText, Info, X, Brai
 import SectionHeader from './SectionHeader';
 import { blockColor } from './utils';
 
+const TRAININGSART_OPTIONS = ['Kraft', 'Hypertrophie', 'Ausdauer'];
+
 export default function SessionSidebar({
   location, setLocation, duration, setDuration,
   sessionMode, block, setBlock,
+  trainingsart, setTrainingsart,
   effort, setEffort, notes, setNotes, onDownload,
   onExportObsidian, onShowMap, onClose, coachFeedback = ""
 }) {
@@ -45,7 +48,28 @@ export default function SessionSidebar({
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-fit-dim/30 uppercase tracking-widest">MIN</span>
             </div>
           </div>
-          
+
+          <div className="group">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-2 block ml-1 flex items-center gap-2">
+              <Target size={12} /> Trainingsart
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {TRAININGSART_OPTIONS.map(opt => {
+                const isActive = trainingsart === opt;
+                return (
+                  <button key={opt} type="button" onClick={() => setTrainingsart(isActive ? '' : opt)}
+                    className={`px-2 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.1em] border transition-all ${
+                      isActive
+                        ? 'bg-fit-accent text-black border-fit-accent shadow-xl'
+                        : 'border-fit-line bg-fit-bg2 text-fit-dim hover:text-ink hover:border-line-hover'
+                    }`}>
+                    {opt}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
         </div>
       </section>
 

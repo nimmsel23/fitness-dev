@@ -5,6 +5,7 @@ export default function SidebarSheet({
   onClose, onShowMap,
   location, setLocation, duration, setDuration,
   sessionMode, block, setBlock,
+  trainingsart, setTrainingsart,
   effort, setEffort, notes, setNotes,
   onDownload, onExportObsidian, coachFeedback = ""
 }) {
@@ -23,6 +24,7 @@ export default function SidebarSheet({
           duration={duration} setDuration={setDuration}
           sessionMode={sessionMode}
           block={block} setBlock={setBlock}
+          trainingsart={trainingsart} setTrainingsart={setTrainingsart}
           effort={effort} setEffort={setEffort}
           notes={notes} setNotes={setNotes}
           onDownload={onDownload}

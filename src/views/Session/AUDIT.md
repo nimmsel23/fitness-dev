@@ -71,5 +71,4 @@ Kein Zeit-Debounce mehr. `scheduleAutoSave()` setzt nur das `dirty`-Flag; gespei
 - **BodyMap** — zeigt alle Exercises der Session (kein `done: true`-Filter)
 
 ## Auffälligkeiten
-- `trainingsart` wird geladen/gesetzt/gespeichert aber hat kein UI-Eingabefeld — wird intern für `restHours`-Berechnung genutzt (`s.trainingsart === block`)
 - `coachFeedback` wird geladen und an SidebarSheet übergeben — unklar ob dort editierbar

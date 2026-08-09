@@ -523,6 +523,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     effort, setEffort,
     location, setLocation,
     duration, setDuration,
+    trainingsart, setTrainingsart,
     notes, setNotes,
     coachFeedback,
     saving,

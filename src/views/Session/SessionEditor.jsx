@@ -32,6 +32,7 @@ export default function SessionEditor({
   effort, setEffort,
   location, setLocation,
   duration, setDuration,
+  trainingsart, setTrainingsart,
   notes, setNotes,
   coachFeedback,
   saving, dirty, autoSaveLabel,
@@ -200,6 +201,7 @@ export default function SessionEditor({
                 duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
                 sessionMode={sessionMode}
                 block={block} setBlock={v => { setBlock(v); scheduleAutoSave(); }}
+                trainingsart={trainingsart} setTrainingsart={v => { setTrainingsart(v); scheduleAutoSave(); }}
                 effort={effort} setEffort={v => { setEffort(v); scheduleAutoSave(); }}
                 notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
                 onDownload={handleDownload}
@@ -263,6 +265,7 @@ export default function SessionEditor({
           duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
           sessionMode={sessionMode}
           block={block} setBlock={v => { setBlock(v); scheduleAutoSave(); }}
+          trainingsart={trainingsart} setTrainingsart={v => { setTrainingsart(v); scheduleAutoSave(); }}
           effort={effort} setEffort={v => { setEffort(v); scheduleAutoSave(); }}
           notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
           onDownload={handleDownload}
