@@ -175,33 +175,48 @@ def deploy(target: str = typer.Argument("staging", help="staging | prod")):
         raise typer.Exit(rc)
 
 
-# Quelle der systemd-Unit ist ~/.dotfiles (getrackt, gleiche Konvention wie
-# core4.service/door.service dort) - fitness-prodctl installiert davon nur
-# eine Kopie nach /etc/systemd/system/, editiert es nicht selbst.
-UNIT_SOURCE = Path.home() / ".dotfiles" / "config" / "systemd" / "system" / "fitness.service"
+# Unit-Inhalt direkt hier im Skript (kein externer .dotfiles-Verweis) -- ein
+# Skript, alles drin. Bei Aenderungen: hier UND in /etc/systemd/system/fitness.service
+# gleichzeitig im Kopf behalten (install() gleicht das automatisch ab).
+UNIT_CONTENT = """[Unit]
+Description=Fitness Prod App (Python/FastAPI, serves API + built frontend from /opt/fitness)
+After=network.target
+
+[Service]
+Type=simple
+User=alpha
+WorkingDirectory=/opt/fitness
+ExecStart=/opt/fitness/.venv/bin/python -m uvicorn fitness.api.main:app --host 0.0.0.0 --port 6100 --no-access-log
+Restart=on-failure
+RestartSec=2
+Environment=FITNESS_ENV=prod
+Environment=FITNESS_SKIP_WATCHERS=1
+EnvironmentFile=-/etc/aos/fitness.env
+
+[Install]
+WantedBy=multi-user.target
+"""
 UNIT_TARGET = Path("/etc/systemd/system/fitness.service")
 
 
 @app.command()
 def install(skip_deploy: bool = typer.Option(False, "--skip-deploy", help="Nur die Unit installieren, kein deploy.sh prod danach")):
     """Baendelt alles, was Root braucht, an einer Stelle: installiert/aktualisiert
-    die fitness.service-Unit aus ~/.dotfiles nach /etc/systemd/system/ (sudo),
+    die fitness.service-Unit nach /etc/systemd/system/ (sudo),
     laedt systemd neu, und faehrt danach direkt mit `deploy.sh prod` fort
     (rsync + venv + kb-Symlink + Restart mit der frisch installierten Unit) -
     ein einziger Befehl von "nichts" zu "laeuft auf :6100 mit aktuellem Code"."""
-    if not UNIT_SOURCE.exists():
-        msg.fail(f"Unit-Quelle fehlt: {UNIT_SOURCE}")
-        raise typer.Exit(1)
-
     current = UNIT_TARGET.read_text() if UNIT_TARGET.exists() else None
-    desired = UNIT_SOURCE.read_text()
-    if current == desired:
+    if current == UNIT_CONTENT:
         msg.good(f"{UNIT_TARGET} bereits aktuell.")
     else:
-        msg.info(f"Installiere {UNIT_SOURCE} -> {UNIT_TARGET} (sudo)")
-        rc = subprocess.run(["sudo", "cp", str(UNIT_SOURCE), str(UNIT_TARGET)]).returncode
+        msg.info(f"Installiere Unit -> {UNIT_TARGET} (sudo)")
+        rc = subprocess.run(
+            ["sudo", "tee", str(UNIT_TARGET)],
+            input=UNIT_CONTENT, capture_output=True, text=True,
+        ).returncode
         if rc != 0:
-            msg.fail(f"cp fehlgeschlagen (exit {rc})")
+            msg.fail(f"Schreiben fehlgeschlagen (exit {rc})")
             raise typer.Exit(rc)
         rc = subprocess.run(["sudo", "systemctl", "daemon-reload"]).returncode
         if rc != 0:
