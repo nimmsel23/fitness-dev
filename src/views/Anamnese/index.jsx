@@ -82,19 +82,19 @@ export default function Anamnese() {
           <div>
             <h2 className="text-3xl font-black text-fit-ink">Anamnese</h2>
             <p className="text-sm font-medium opacity-40">
-              Real · Raw · Relevant · Results.
+              Fakten. Gefühle. Fokus. Ergebnisse.
             </p>
           </div>
         </div>
       </header>
 
-      {/* REAL — The Facts */}
+      {/* REAL + FACTS */}
       <Category
         icon={Dumbbell}
         tag="Real"
-        title="Realität & Status"
-        subtitle="Die ungeschminkte Wahrheit über deinen Körper und Alltag. Keine Ausreden, kein Schönreden."
-        quote="Accepting the raw facts of where we are takes courage. Strip away the excuses."
+        title="Fakten"
+        subtitle="Wo du wirklich stehst. Ohne Beschönigung, ohne Story, ohne Ausweichmanöver."
+        quote="Facing reality is tough, especially when it clashes with the stories we’ve told ourselves."
         accent="border-t-fit-accent"
       >
         <div>
@@ -122,11 +122,11 @@ export default function Anamnese() {
         </div>
 
         <div>
-          <label className={labelCls}>Aktuelle Trainingsform & Realität des Körpers</label>
+          <label className={labelCls}>Aktuelle Trainingsform & ehrlicher Ist-Zustand</label>
           <textarea
             rows={3}
             value={trainingType}
-            placeholder="What does your body say about you? Are you fat or fit? What are you actually doing right now?"
+            placeholder="Accepting the raw facts of where we are takes courage."
             onChange={(e) => setTrainingType(e.target.value)}
             className={inputCls}
           />
@@ -144,13 +144,13 @@ export default function Anamnese() {
         </div>
       </Category>
 
-      {/* RAW — The Fuel */}
+      {/* RAW + FEELINGS */}
       <Category
         icon={Waves}
         tag="Raw"
-        title="Energie, Schmerz & Physis"
-        subtitle="Ungefilterte Bestandsaufnahme deiner Energie und deines biologischen Status. Schmerz ist Energie, wenn man ihn nutzt."
-        quote="Every feeling is a part of your unique story, pushing you toward growth, understanding, and transcendence."
+        title="Gefühle & Körpersignale"
+        subtitle="Was dein Körper meldet: Energie, Schmerz, Müdigkeit, Spannung, Einschränkungen."
+        quote="Feelings are what give life movement and meaning."
         accent="border-t-fit-dim"
       >
         <div>
@@ -180,7 +180,7 @@ export default function Anamnese() {
           <textarea
             rows={2}
             value={painNotes}
-            placeholder="Dark Feelings & Physical Pain: Where is the pain? Schulter, Knie, Rücken? Use it as fuel."
+            placeholder="When you blend facts and feelings, you tap into the full depth of the human experience."
             onChange={(e) => setPainNotes(e.target.value)}
             className={inputCls}
           />
@@ -191,7 +191,7 @@ export default function Anamnese() {
           <textarea
             rows={2}
             value={mobilityNotes}
-            placeholder="Where is the body blocked or static? What limits your movement right now?"
+            placeholder="Feelings are the winds that fill our sails, making life unpredictable but enriching."
             onChange={(e) => setMobilityNotes(e.target.value)}
             className={inputCls}
           />
@@ -203,7 +203,7 @@ export default function Anamnese() {
             <textarea
               rows={2}
               value={chronicConditions}
-              placeholder="Systemic conditions, heart, lung, metabolism notes..."
+              placeholder="Facts give us a solid foundation to understand the world, but feelings are what give life movement and meaning."
               onChange={(e) => setChronicConditions(e.target.value)}
               className={inputCls}
             />
@@ -214,7 +214,7 @@ export default function Anamnese() {
             <textarea
               rows={2}
               value={injuries}
-              placeholder="Structural damage: Broken bones, surgeries, torn ligaments..."
+              placeholder="Owning your facts gives you a solid foundation. Embracing your feelings adds depth and life."
               onChange={(e) => setInjuries(e.target.value)}
               className={inputCls}
             />
@@ -225,7 +225,7 @@ export default function Anamnese() {
             <textarea
               rows={2}
               value={medications}
-              placeholder="Beta blockers, asthma spray, insulin, or other regular chemical input..."
+              placeholder="In life, facts and feelings are like the two steps in a dance."
               onChange={(e) => setMedications(e.target.value)}
               className={inputCls}
             />
@@ -236,7 +236,7 @@ export default function Anamnese() {
             <textarea
               rows={2}
               value={medicalClearanceNotes}
-              placeholder="Has a doctor set hard limits or cleared you fully for heavy loading?"
+              placeholder="The facts will set you free — but only if you’re willing to own them completely."
               onChange={(e) => setMedicalClearanceNotes(e.target.value)}
               className={inputCls}
             />
@@ -244,17 +244,17 @@ export default function Anamnese() {
         </div>
       </Category>
 
-      {/* RELEVANT — The Focus */}
+      {/* RELEVANT + FOCUS */}
       <Category
         icon={Target}
         tag="Relevant"
-        title="Zielsetzung & Fokus"
-        subtitle="Konzentriere deine Kräfte wie einen Laser. Alles Unwichtige wegschneiden."
-        quote="Focus is the tool that separates the essential from the trivial. Grab destructive stories by the throat."
+        title="Fokus"
+        subtitle="Was jetzt wirklich zählt. Nicht alles gleichzeitig, sondern das Wesentliche."
+        quote="Focus makes your facts and feelings relevant by zooming in on what truly matters."
         accent="border-t-fit-accent"
       >
         <div>
-          <label className={labelCls}>Primärer Fokus (Laser-Ziel)</label>
+          <label className={labelCls}>Primärer Fokus</label>
           <select value={fitnessGoal} onChange={(e) => setFitnessGoal(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="strength">Kraft steigern (Strength)</option>
@@ -273,20 +273,20 @@ export default function Anamnese() {
           <textarea
             rows={3}
             value={secondaryGoal}
-            placeholder="Narrowing down: Which specific targets matter? 10 strict pull-ups, pain-free squatting? Replace old stories with a lethal focus."
+            placeholder="Focus is the spotlight that lights up your goals in the darkness of uncertainty."
             onChange={(e) => setSecondaryGoal(e.target.value)}
             className={inputCls}
           />
         </div>
       </Category>
 
-      {/* RESULTS — The Fruit */}
+      {/* RESULTS + FRUIT */}
       <Category
         icon={ScanSearch}
         tag="Results"
-        title="Ergebnisse & Review"
-        subtitle="Die Ergebnisse lügen nicht. Dein Körper und dein Training sind das exakte Produkt deiner Handlungen."
-        quote="By their fruit, you shall know them. Results are the ultimate measure of character and commitment."
+        title="Ergebnisse"
+        subtitle="Was kommt tatsächlich heraus. Nicht was gemeint war, sondern was sichtbar geworden ist."
+        quote="Results are the mirror of our authenticity."
         accent="border-t-fit-dim"
       >
         <div>
@@ -294,7 +294,7 @@ export default function Anamnese() {
           <textarea
             rows={3}
             value={trainingWorking}
-            placeholder="The Sweet Fruit: What actions, patterns, or exercises actually work and produce measurable outcomes?"
+            placeholder="By their fruit, you shall know them."
             onChange={(e) => setTrainingWorking(e.target.value)}
             className={inputCls}
           />
@@ -305,7 +305,7 @@ export default function Anamnese() {
           <textarea
             rows={3}
             value={trainingNotWorking}
-            placeholder="The Bitter or Barren Fruit: Where have excuses or lack of focus blocked your progress? Why did commitments fail?"
+            placeholder="Today’s society makes it easy to prioritize excuses over results."
             onChange={(e) => setTrainingNotWorking(e.target.value)}
             className={inputCls}
           />
@@ -313,8 +313,8 @@ export default function Anamnese() {
       </Category>
 
       <p className="text-[10px] font-bold opacity-30 leading-relaxed text-center max-w-2xl mx-auto uppercase tracking-wider">
-        Diese Anamnese dient als Fundament für deinen Trainingsfokus und Coach-Auswertungen. 
-        Sie ist der ungeschönte Blick in den Spiegel, keine medizinische Diagnose.
+        Diese Anamnese schafft Klarheit fuer Training, Coaching und Entscheidungen.
+        Sie ersetzt keine medizinische Diagnose.
       </p>
 
       <button
@@ -337,4 +337,3 @@ export default function Anamnese() {
     </div>
   );
 }
-
