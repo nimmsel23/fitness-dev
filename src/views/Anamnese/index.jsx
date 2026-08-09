@@ -7,8 +7,9 @@ import { updateUserProfile } from "@db";
 
 const labelCls = "text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 ml-1 block text-fit-ink";
 const inputCls = "w-full bg-fit-bg2 border border-fit-line rounded-xl px-4 py-3 text-sm font-bold text-fit-ink focus:border-fit-accent outline-none transition-colors placeholder:text-fit-ink/20";
+const miniCls = "text-[10px] font-black uppercase tracking-[0.25em] text-fit-accent/70";
 
-function Category({ icon: Icon, tag, title, subtitle, quote, accent, children }) {
+function Category({ icon: Icon, title, subtitle, accent, children }) {
   return (
     <section className={`card p-8 space-y-6 border-t-4 ${accent} animate-in fade-in slide-in-from-top-4 duration-500`}>
       <div className="flex items-start gap-4">
@@ -16,14 +17,8 @@ function Category({ icon: Icon, tag, title, subtitle, quote, accent, children })
           <Icon size={20} className="text-fit-accent" />
         </div>
         <div className="space-y-1">
-          {tag && <div className="text-[10px] font-black uppercase tracking-widest text-fit-accent">{tag}</div>}
           <h3 className="text-xl font-black text-fit-ink">{title}</h3>
           {subtitle && <p className="text-xs font-semibold text-fit-ink/60">{subtitle}</p>}
-          {quote && (
-            <p className="text-[10px] font-black uppercase tracking-widest text-fit-dim italic mt-2 border-l-2 border-fit-line pl-2 opacity-80">
-              "{quote}"
-            </p>
-          )}
         </div>
       </div>
       <div className="grid gap-4">{children}</div>
@@ -90,11 +85,11 @@ export default function Anamnese() {
       <Category
         icon={PauseCircle}
         title="STOP"
-        subtitle="Interrupting patterns"
+        subtitle="Pause the pattern. Name the current reality."
         accent="border-t-fit-accent"
       >
         <div>
-          <label className={labelCls}>Pattern age</label>
+          <label className={labelCls}>Training age</label>
           <select value={trainingExperience} onChange={(e) => setTrainingExperience(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="beginner">Einsteiger (Beginner)</option>
@@ -105,7 +100,7 @@ export default function Anamnese() {
         </div>
 
         <div>
-          <label className={labelCls}>Current rhythm</label>
+          <label className={labelCls}>Training frequency</label>
           <select value={trainingFrequency} onChange={(e) => setTrainingFrequency(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="none">Aktuell kein Training (0/week)</option>
@@ -118,18 +113,18 @@ export default function Anamnese() {
         </div>
 
         <div>
-          <label className={labelCls}>What is actually going on?</label>
+          <label className={labelCls}>Current reality</label>
           <textarea
             rows={3}
             value={trainingType}
-            placeholder="What pattern are you in right now? What keeps repeating?"
+            placeholder="What is actually going on with your body and training right now?"
             onChange={(e) => setTrainingType(e.target.value)}
             className={inputCls}
           />
         </div>
 
         <div>
-          <label className={labelCls}>Outside pressure</label>
+          <label className={labelCls}>Daily activity</label>
           <select value={activityLevel} onChange={(e) => setActivityLevel(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="low">Überwiegend sitzend (Sedentary)</option>
@@ -144,117 +139,57 @@ export default function Anamnese() {
       <Category
         icon={ShieldCheck}
         title="SUBMIT"
+        subtitle="Radical honesty through facts, feelings, focus, and fruit."
         accent="border-t-fit-dim"
       >
-        <div>
-          <label className={labelCls}>Facts</label>
-          <textarea
-            rows={2}
-            value={painNotes}
-            placeholder="What are the undeniable realities of your current situation?"
-            onChange={(e) => setPainNotes(e.target.value)}
-            className={inputCls}
-          />
-        </div>
-
-        <div>
-          <label className={labelCls}>Feelings</label>
-          <select value={energyLevel} onChange={(e) => setEnergyLevel(e.target.value)} className={inputCls}>
-            <option value="">Keine Angabe</option>
-            <option value="low">Eher niedrig (Low fuel)</option>
-            <option value="variable">Stark schwankend (Variable)</option>
-            <option value="good">Gut (Solid)</option>
-            <option value="high">Sehr gut (Full tank)</option>
-          </select>
-        </div>
-
-        <div>
-          <label className={labelCls}>Focus</label>
-          <textarea
-            rows={2}
-            value={secondaryGoal}
-            placeholder="What has been your mindset toward these facts and feelings?"
-            onChange={(e) => setSecondaryGoal(e.target.value)}
-            className={inputCls}
-          />
-        </div>
-
-        <div>
-          <label className={labelCls}>Fruit</label>
-          <textarea
-            rows={2}
-            value={trainingWorking}
-            placeholder="What results or outcomes have you gotten from this mindset?"
-            onChange={(e) => setTrainingWorking(e.target.value)}
-            className={inputCls}
-            />
-        </div>
-
-        <div className="border-t border-fit-line/50 pt-4 grid gap-4">
-          <div>
-            <label className={labelCls}>Recovery</label>
-          <select value={recoveryQuality} onChange={(e) => setRecoveryQuality(e.target.value)} className={inputCls}>
-            <option value="">Keine Angabe</option>
-            <option value="poor">Schlecht (Lagging recovery)</option>
-            <option value="variable">Schwankend (Inconsistent)</option>
-            <option value="good">Gut (Reliable)</option>
-            <option value="very_good">Sehr gut (Fast adaptation)</option>
-          </select>
-        </div>
-
-        <div>
-          <label className={labelCls}>Limitations</label>
-          <textarea
-            rows={2}
-            value={mobilityNotes}
-            placeholder="Mobility, stiffness, weakness, restrictions..."
-            onChange={(e) => setMobilityNotes(e.target.value)}
-            className={inputCls}
-          />
-        </div>
-        </div>
-
-        <div className="border-t border-fit-line/50 pt-4 grid gap-4">
-          <div>
-            <label className={labelCls}>Conditions</label>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
+            <div className={miniCls}>FACTS</div>
             <textarea
-              rows={2}
-              value={chronicConditions}
-              placeholder="Asthma, diabetes, hypertension..."
-              onChange={(e) => setChronicConditions(e.target.value)}
+              rows={4}
+              value={painNotes}
+              placeholder="What are the undeniable realities of your current situation?"
+              onChange={(e) => setPainNotes(e.target.value)}
               className={inputCls}
             />
           </div>
 
-          <div>
-            <label className={labelCls}>Injuries / surgeries</label>
+          <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
+            <div className={miniCls}>FEELINGS</div>
+            <select value={energyLevel} onChange={(e) => setEnergyLevel(e.target.value)} className={inputCls}>
+              <option value="">Keine Angabe</option>
+              <option value="low">Eher niedrig (Low fuel)</option>
+              <option value="variable">Stark schwankend (Variable)</option>
+              <option value="good">Gut (Solid)</option>
+              <option value="high">Sehr gut (Full tank)</option>
+            </select>
+            <select value={recoveryQuality} onChange={(e) => setRecoveryQuality(e.target.value)} className={inputCls}>
+              <option value="">Recovery</option>
+              <option value="poor">Schlecht (Lagging recovery)</option>
+              <option value="variable">Schwankend (Inconsistent)</option>
+              <option value="good">Gut (Reliable)</option>
+              <option value="very_good">Sehr gut (Fast adaptation)</option>
+            </select>
+          </div>
+
+          <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
+            <div className={miniCls}>FOCUS</div>
             <textarea
-              rows={2}
-              value={injuries}
-              placeholder="ACL, shoulder, back, fracture..."
-              onChange={(e) => setInjuries(e.target.value)}
+              rows={4}
+              value={secondaryGoal}
+              placeholder="What has been your mindset toward these facts and feelings?"
+              onChange={(e) => setSecondaryGoal(e.target.value)}
               className={inputCls}
             />
           </div>
 
-          <div>
-            <label className={labelCls}>Medication</label>
+          <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
+            <div className={miniCls}>FRUIT</div>
             <textarea
-              rows={2}
-              value={medications}
-              placeholder="Pain meds, inhaler, insulin..."
-              onChange={(e) => setMedications(e.target.value)}
-              className={inputCls}
-            />
-          </div>
-
-          <div>
-            <label className={labelCls}>Medical notes</label>
-            <textarea
-              rows={2}
-              value={medicalClearanceNotes}
-              placeholder="Restrictions, clearance, imaging..."
-              onChange={(e) => setMedicalClearanceNotes(e.target.value)}
+              rows={4}
+              value={trainingWorking}
+              placeholder="What results or outcomes have you gotten from this mindset?"
+              onChange={(e) => setTrainingWorking(e.target.value)}
               className={inputCls}
             />
           </div>
@@ -265,21 +200,35 @@ export default function Anamnese() {
       <Category
         icon={Swords}
         title="STRUGGLE"
+        subtitle="Name the friction instead of hiding it."
         accent="border-t-fit-accent"
       >
-        <div>
-          <label className={labelCls}>Pain / issues</label>
-          <textarea
-            rows={2}
-            value={injuries}
-            placeholder="What are you wrestling with right now?"
-            onChange={(e) => setInjuries(e.target.value)}
-            className={inputCls}
-          />
-        </div>
+        <textarea
+          rows={4}
+          value={injuries}
+          placeholder="What are you wrestling with right now? Pain, resistance, fear, inconsistency, avoidance, shame, frustration..."
+          onChange={(e) => setInjuries(e.target.value)}
+          className={inputCls}
+        />
 
+        <textarea
+          rows={4}
+          value={medications}
+          placeholder="What story are you telling yourself that keeps this pattern alive?"
+          onChange={(e) => setMedications(e.target.value)}
+          className={inputCls}
+        />
+      </Category>
+
+      {/* STRIKE */}
+      <Category
+        icon={Zap}
+        title="STRIKE"
+        subtitle="Define the target and the next clear move."
+        accent="border-t-fit-dim"
+      >
         <div>
-          <label className={labelCls}>Main goal</label>
+          <label className={labelCls}>Target</label>
           <select value={fitnessGoal} onChange={(e) => setFitnessGoal(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="strength">Kraft steigern (Strength)</option>
@@ -293,24 +242,6 @@ export default function Anamnese() {
           </select>
         </div>
 
-        <div>
-          <label className={labelCls}>Story</label>
-          <textarea
-            rows={3}
-            value={medications}
-            placeholder="What story, fear, or resistance is shaping your behavior?"
-            onChange={(e) => setMedications(e.target.value)}
-            className={inputCls}
-          />
-        </div>
-      </Category>
-
-      {/* STRIKE */}
-      <Category
-        icon={Zap}
-        title="STRIKE"
-        accent="border-t-fit-dim"
-      >
         <div>
           <label className={labelCls}>Proof</label>
           <textarea
