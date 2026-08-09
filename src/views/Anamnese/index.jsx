@@ -44,25 +44,25 @@ function Hit({ number, fact, setFact, obstacle, setObstacle, strike, setStrike, 
           label="Fact"
           value={fact}
           onChange={setFact}
-          placeholder={"Welches messbare Ergebnis willst du erreichen?\nThe clear, measurable result you aim to achieve."}
+          placeholder={"Was ist das klare, messbare Ergebnis, das du zu erreichen suchst?\nThe clear, measurable result you aim to achieve."}
         />
         <Field
           label="Obstacle"
           value={obstacle}
           onChange={setObstacle}
-          placeholder={"Was könnte dich daran hindern?\nWhat could prevent you from achieving this fact?"}
+          placeholder={"Was könnte dich daran hindern, dieses Ergebnis zu erreichen?\nWhat could prevent you from achieving this fact?"}
         />
         <Field
           label="Strike"
           value={strike}
           onChange={setStrike}
-          placeholder={"Was ist dein klarer Zug dagegen?\nWhat’s your strategic move to overcome the obstacle?"}
+          placeholder={"Was ist dein strategischer Zug, um dieses Hindernis zu überwinden?\nWhat’s your strategic move to overcome the obstacle?"}
         />
         <Field
           label="Responsibility"
           value={responsibility}
           onChange={setResponsibility}
-          placeholder={"Wofür trägst du hier die Verantwortung?\nWho is responsible for executing this strike?"}
+          placeholder={"Wer trägt die Verantwortung für die Ausführung dieses Zuges?\nWho is responsible for executing this strike?"}
         />
       </div>
     </div>
@@ -157,19 +157,19 @@ export default function Anamnese() {
       <Section
         meta="REAL"
         title="Stop"
-        subtitle="Kurz anhalten. Nicht reagieren, sondern ehrlich ansehen, was gerade mit Training, Körper und Alltag los ist."
+        subtitle="Ein bewusstes Innehalten. Ein Raum, um zu sehen, zu bedenken und die Geschichten wahrzunehmen, die dich lenken."
       >
         <Field
           label="Trigger"
           value={warStackTrigger}
           onChange={setWarStackTrigger}
-          placeholder={"Was hat dich dazu gebracht, jetzt hinzuschauen?\nWhat person or event has sparked your desire for change?"}
+          placeholder={"Welche Person oder welches Ereignis hat in dir den Wunsch nach Veränderung entfacht?\nWhat person or event has sparked your desire for change?"}
         />
         <Field
           label="Reality"
           value={trainingType}
           onChange={setTrainingType}
-          placeholder={"Was ist der Stand bei Training, Körper und Alltag?\nWhat are the undeniable realities of your current situation?"}
+          placeholder={"Was sind die unbestreitbaren Wirklichkeiten deiner gegenwärtigen Lage?\nWhat are the undeniable realities of your current situation?"}
           rows={6}
         />
       </Section>
@@ -177,32 +177,32 @@ export default function Anamnese() {
       <Section
         meta="RAW"
         title="Submit"
-        subtitle="Alles benennen, ohne Ausreden und ohne Beschönigung: Fakten, Gefühle, Fokus und das, was bisher daraus entstanden ist."
+        subtitle="Radikale Ehrlichkeit. Offenlegen, erkennen und benennen, was wahr ist, auch wenn es unangenehm ist."
       >
         <div className="grid gap-4 md:grid-cols-2">
           <Field
             label="Facts"
             value={submitFacts}
             onChange={setSubmitFacts}
-            placeholder={"Welche Fakten stehen gerade fest?\nWhat are the undeniable realities of your current situation?"}
+            placeholder={"Was sind die unbestreitbaren Wirklichkeiten deiner gegenwärtigen Lage?\nWhat are the undeniable realities of your current situation?"}
           />
           <Field
             label="Feelings"
             value={submitFeelings}
             onChange={setSubmitFeelings}
-            placeholder={"Wie fühlst du dich damit wirklich?\nHow do you truly feel about these facts?"}
+            placeholder={"Wie fühlst du dich diesen Tatsachen gegenüber in Wahrheit?\nHow do you truly feel about these facts?"}
           />
           <Field
             label="Focus"
             value={submitFocus}
             onChange={setSubmitFocus}
-            placeholder={"Worauf waren dein Blick und dein Denken bisher gerichtet?\nWhat has been your mindset toward these facts and feelings?"}
+            placeholder={"Welche innere Haltung hattest du diesen Tatsachen und Gefühlen gegenüber?\nWhat has been your mindset toward these facts and feelings?"}
           />
           <Field
             label="Fruits"
             value={submitFruit}
             onChange={setSubmitFruit}
-            placeholder={"Was ist daraus bisher geworden?\nWhat results or outcomes have you gotten from this mindset?"}
+            placeholder={"Welche Ergebnisse oder Folgen sind aus dieser Haltung hervorgegangen?\nWhat results or outcomes have you gotten from this mindset?"}
           />
         </div>
       </Section>
@@ -210,46 +210,46 @@ export default function Anamnese() {
       <Section
         meta="RELEVANT"
         title="Struggle"
-        subtitle="Dort hinschauen, wo du festhängst: im Kopf, im Verhalten, im Training, im Umgang mit deinem Körper."
+        subtitle="Der Kampf mit alten Erzählungen, vertrauten Mustern und dem, was dich davon abhält, anders zu handeln."
       >
         <Field
           label="Struggle"
           value={injuries}
           onChange={setInjuries}
-          placeholder={"Womit ringst du gerade im Training, im Körper oder im Alltag?\nWhat are you actively engaging with right now?"}
+          placeholder={"Womit ringst du gegenwärtig in tätiger Auseinandersetzung?\nWhat are you actively engaging with right now?"}
         />
         <Field
           label="Narrative"
           value={warStackNarrative}
           onChange={setWarStackNarrative}
-          placeholder={"Welche Geschichte erzählst du dir dazu?\nWhat story are you currently telling yourself?"}
+          placeholder={"Welche Geschichte erzählst du dir darüber gegenwärtig?\nWhat story are you currently telling yourself?"}
         />
         <div className="grid gap-4 md:grid-cols-2">
           <Field
             label="Validation"
             value={warStackValidation}
             onChange={setWarStackValidation}
-            placeholder={"Warum musst du das jetzt angehen?\nWhy does this feel necessary?"}
+            placeholder={"Warum erscheint es dir notwendig, dich dem zuzuwenden?\nWhy does this feel necessary?"}
           />
           <Field
             label="Impact"
             value={warStackImpact}
             onChange={setWarStackImpact}
-            placeholder={"Was würde sich ändern, wenn du das drehst?\nHow would this change your life?"}
+            placeholder={"Wie würde sich dein Leben wandeln, wenn sich dies wandelte?\nHow would this change your life?"}
           />
         </div>
         <Field
           label="Consequences"
           value={warStackConsequences}
           onChange={setWarStackConsequences}
-          placeholder={"Was passiert, wenn du es weiter so laufen lässt?\nWhat happens if this stays as it is?"}
+          placeholder={"Was geschieht, wenn es bleibt, wie es ist?\nWhat happens if this stays as it is?"}
         />
       </Section>
 
       <Section
         meta="RESULTS"
         title="Strike"
-        subtitle="Aus Klarheit wird Richtung: konkrete Ergebnisse, echte Hindernisse, klare Züge und Verantwortung."
+        subtitle="Der Übergang von Betrachtung zu Handlung: klare Ergebnisse, Hindernisse, Züge und Verantwortung."
       >
         <div className="grid gap-4">
           <Hit
@@ -303,13 +303,13 @@ export default function Anamnese() {
             label="Insights"
             value={warStackInsights}
             onChange={setWarStackInsights}
-            placeholder={"Welche Einsicht ist dir gerade klar geworden?\nWhat new realizations have come to light during this process?"}
+            placeholder={"Welche neuen Einsichten sind in diesem Vorgang ans Licht getreten?\nWhat new realizations have come to light during this process?"}
           />
           <Field
             label="Lessons Learned"
             value={warStackLesson}
             onChange={setWarStackLesson}
-            placeholder={"Was ist die wichtigste Lektion daraus für dich?\nWhat is the most important life lesson this has taught you?"}
+            placeholder={"Was ist die wichtigste Lebenslehre, die dir dieser Vorgang gezeigt hat?\nWhat is the most important life lesson this has taught you?"}
           />
         </div>
       </Section>
