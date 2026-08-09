@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight, SlidersHorizontal, Settings2, Save } from 'lucide-react';
 import { blockColor, DAY_LABELS } from './utils';
 import { localToday } from '@utils';
+import { sessionHasLoggedWorkout } from '../../lib/sessionGate.js';
 
 export default function DateStrip({
   date, setDate, rollingDays, recentSessions,
@@ -94,7 +95,7 @@ export default function DateStrip({
             // Übungen aber ohne gesetzten Block-Namen (z.B. Kraft+Ausdauer am
             // selben Tag, activity ohne duration nie gespeichert) zeigte sonst
             // fälschlich keinen Haken, obwohl echte Daten vorliegen.
-            const hasSess = !!(sess?.block || sess?.activity || sess?.exercises?.length > 0);
+            const hasSess = sessionHasLoggedWorkout(sess);
             const isSelected = d === date;
             const isToday = d === today;
             const color = hasSess ? blockColor(sess?.block, sess?.activity, sess?.sessionMode) : null;

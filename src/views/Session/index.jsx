@@ -10,12 +10,21 @@ import { useSession } from './useSession';
 import SessionEditor from './SessionEditor';
 import SessionHistory from './SessionHistory';
 import PlanView from '../Plan/index.jsx';
+import WorkoutTimerCard from './WorkoutTimerCard.jsx';
 
 export default function Session({
   initialDate, initialDraft, onInspectExercise, onOpenSession,
-  recentDays = 7, coverageThreshold = 1.0, subTab, onDateChange,
+  recentDays = 7, coverageThreshold = 1.0, subTab, onDateChange, onSubNav,
 }) {
   const session = useSession({ initialDate, initialDraft, recentDays, coverageThreshold, onDateChange });
+
+  if (subTab === 'timer') {
+    return (
+      <div className="px-2 mt-3 pb-32">
+        <WorkoutTimerCard />
+      </div>
+    );
+  }
 
   if (subTab === 'plan') {
     return <PlanView />;
@@ -40,9 +49,11 @@ export default function Session({
 
   // Default: today / session editor
   return (
-    <SessionEditor
-      {...session}
-      onInspectExercise={onInspectExercise}
-    />
+      <SessionEditor
+        {...session}
+        onInspectExercise={onInspectExercise}
+        currentSubTab={subTab}
+        onSubNav={onSubNav}
+      />
   );
 }

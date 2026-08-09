@@ -7,6 +7,7 @@ Workout-Journal für Kraft- und Ausdauertraining. Zwei Session-Modi, Multi-Sessi
 - **`index.jsx`**: Thin Sub-Tab-Router — editor (default) / history / plan.
 - **`useSession.js`**: State-Owner — Session-Modi, Multi-Session, Autosave/Flush, alle Handler.
 - **`SessionEditor.jsx`**: Editor-Assembly — DateStrip + SessionSwitcher + ExerciseList/ActivitySection.
+- **`SessionGateCard.jsx`**: großes Start/Stop-Gate für den Trainingstag inkl. laufender Session-Stoppuhr und Live-Notification-Anbindung.
 - **`SessionHistory.jsx`**: Verlauf-SubTab — Timeline, Drag&Drop-Umdatierung.
 - **`DateStrip.jsx`**: 7-Tage-Slider, Save-Button, Sidebar- und Settings-Trigger.
 - **`SessionSwitcher.jsx`**: Multi-Session-Pills + Neu/Löschen (Löschen für jede Session der Tagesliste, auch die Hauptsession).
@@ -23,6 +24,25 @@ Workout-Journal für Kraft- und Ausdauertraining. Zwei Session-Modi, Multi-Sessi
 
 - **`strength`**: Krafttraining — ExerciseSection + optionaler ActivityAddon-Anhang.
 - **`cardio`**: Ausdauer — nur ActivitySection, keine Exercises, keine Gap-Hints.
+
+## Session Gate
+
+Vor dem manuellen Editor liegt ein leichtgewichtiges `sessionGate` im selben Session-Dokument:
+
+```json
+{
+  "sessionGate": {
+    "status": "active|completed",
+    "startedAt": "2026-08-09T11:23:00.000Z",
+    "endedAt": "2026-08-09T12:14:00.000Z"
+  }
+}
+```
+
+- Start loggt sofort den Fakt "Workout läuft", auch ohne Übungen.
+- Stop beendet die Session und füllt bei leerem `duration` automatisch grob die Minuten.
+- Der manuelle Editor bleibt bewusst getrennt darunter für das Nachtragen.
+- Eine aktive Session kann best-effort eine laufende App-Service-Worker-Benachrichtigung halten.
 
 ## Multi-Session pro Tag
 

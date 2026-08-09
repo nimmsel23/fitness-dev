@@ -12,6 +12,7 @@ import ReviewHistory from './ReviewHistory.jsx';
 import ReviewReadiness from './ReviewReadiness.jsx';
 import ReviewStrengthMatrix from './ReviewStrengthMatrix.jsx';
 import Muscles from '../Muscles/index.jsx';
+import { sessionHasLoggedWorkout } from '../../lib/sessionGate.js';
 
 const SUB_TABS = ['muscles', 'verlauf', 'readiness', 'strength'];
 
@@ -26,7 +27,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
   useEffect(() => {
     if (viewMode !== 'verlauf') return;
     getRecentSessions(60)
-      .then(s => setHistorySessions(Array.isArray(s) ? s.filter(x => x?.exercises?.length > 0 || x?.activity) : []))
+      .then(s => setHistorySessions(Array.isArray(s) ? s.filter(sessionHasLoggedWorkout) : []))
       .catch(err => {
         console.error('getRecentSessions failed', err);
         setHistorySessions([]);

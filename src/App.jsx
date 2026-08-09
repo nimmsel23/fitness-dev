@@ -27,7 +27,7 @@ import { useUser } from './contexts/UserContext'
 import { useSettings } from './contexts/SettingsContext'
 import { useSwipeNavigation } from './hooks/useSwipeNavigation'
 
-const SESSION_SUB_TABS = new Set(['today', 'plan', 'history'])
+const SESSION_SUB_TABS = new Set(['today', 'timer', 'plan', 'history'])
 const REVIEW_SUB_TABS = new Set(['report', 'muscles', 'readiness', 'strength', 'verlauf'])
 const LEARN_SUB_TABS = new Set(['exercises', 'anatomy', 'quiz'])
 const FOCUS_LAYERS = new Set(['focus', 'anamnese', 'freedom'])
@@ -368,7 +368,7 @@ export default function App() {
                   )}
                   <div key={tab} className={`${navMode === 'home' && tab !== 'gate' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in ${slideDirection === 'left' ? 'slide-in-from-right-8' : slideDirection === 'right' ? 'slide-in-from-left-8' : 'slide-in-from-bottom-4'} duration-500`}>
                       {/* Render content */}
-                      {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} onOpenSession={openSession} recentDays={recentDays} coverageThreshold={coverageThreshold} subTab={subTab} onDateChange={setSessionDate} />}
+                      {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} onOpenSession={openSession} recentDays={recentDays} coverageThreshold={coverageThreshold} subTab={subTab} onDateChange={setSessionDate} onSubNav={navigateSub} />}
                       {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} subTab={subTab} onSubNav={navigateSub} />}
                       {tab === 'learn'    && <Learn subTab={subTab} />}
                       {tab === 'coach'    && (isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92') && <Coach onInspectExercise={inspectExercise} />}

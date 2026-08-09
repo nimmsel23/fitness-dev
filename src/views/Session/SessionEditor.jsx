@@ -11,6 +11,7 @@ import { Save, ChevronDown } from 'lucide-react';
 import DateStrip from './DateStrip';
 import ModeSwitcher from './ModeSwitcher';
 import SessionSwitcher from './SessionSwitcher';
+import SessionGateCard from './SessionGateCard.jsx';
 import ExerciseList from './ExerciseList';
 import ActivitySection from './ActivitySection';
 import ActivityAddon from './ActivityAddon';
@@ -38,6 +39,7 @@ export default function SessionEditor({
   restHours,
   activity, setActivity,
   hasActivity, setHasActivity,
+  sessionGate,
   recentSessions,
   hint, gaps,
   prevMap,
@@ -48,9 +50,12 @@ export default function SessionEditor({
   toast,
   // Handlers
   save, selectSession, handleNewSession, handleDeleteSession,
+  startSessionGate, stopSessionGate,
   addEx, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, removeEx,
   exportObsidian, handleDownload, scheduleAutoSave,
   onInspectExercise,
+  currentSubTab,
+  onSubNav,
 }) {
   const [showInlineDetails, setShowInlineDetails] = useState(false);
 
@@ -71,6 +76,15 @@ export default function SessionEditor({
       />
 
       <div className="px-2 space-y-4 mt-3">
+        <SessionGateCard
+          date={date}
+          sessionGate={sessionGate}
+          currentSubTab={currentSubTab}
+          onSubNav={onSubNav}
+          onStart={startSessionGate}
+          onStop={stopSessionGate}
+        />
+
         {/* Session switcher */}
         <div
           className="px-4 py-3 rounded-2xl"
@@ -92,6 +106,14 @@ export default function SessionEditor({
         <ModeSwitcher sessionMode={sessionMode} setSessionMode={setSessionMode} />
 
         {/* Main content */}
+        <div className="px-1">
+          <div
+            className="text-[10px] font-black uppercase tracking-[0.22em] mb-2"
+            style={{ color: 'var(--dim)', opacity: 0.65 }}
+          >
+            Manuell nachtragen / editieren
+          </div>
+        </div>
         {sessionMode === 'strength' ? (
           <>
             <ExerciseList

@@ -18,6 +18,9 @@ export function UserProvider({ children }) {
   const [heightCm, setHeightCm] = useState(() => parseInt(localStorage.getItem('fitness-heightCm') || '180', 10));
   const [weightKg, setWeightKg] = useState(() => parseFloat(localStorage.getItem('fitness-weightKg') || '75.0'));
 
+  // Anamnese-Level (Level 1 = Standard-Intake, Level 2 = reflexives Journaling)
+  const [level1Complete, setLevel1Complete] = useState(() => localStorage.getItem('fitness-level1Complete') === 'true');
+
   // Trainingsanamnese (aktueller Stand, kein Verlauf)
   const [trainingExperience, setTrainingExperience] = useState(() => localStorage.getItem('fitness-trainingExperience') || '');
   const [trainingFrequency, setTrainingFrequency] = useState(() => localStorage.getItem('fitness-trainingFrequency') || '');
@@ -146,6 +149,7 @@ export function UserProvider({ children }) {
           if (data.freedomFirstMiles) setFreedomFirstMiles(data.freedomFirstMiles);
           if (data.freedomAdditions) setFreedomAdditions(data.freedomAdditions);
           if (data.freedomEliminations) setFreedomEliminations(data.freedomEliminations);
+          if (data.level1Complete) setLevel1Complete(data.level1Complete);
         }
       } catch (err) {
         console.error("Fehler bei Hydration:", err);
@@ -214,6 +218,7 @@ export function UserProvider({ children }) {
   useEffect(() => { localStorage.setItem('fitness-freedomFirstMiles', freedomFirstMiles) }, [freedomFirstMiles]);
   useEffect(() => { localStorage.setItem('fitness-freedomAdditions', freedomAdditions) }, [freedomAdditions]);
   useEffect(() => { localStorage.setItem('fitness-freedomEliminations', freedomEliminations) }, [freedomEliminations]);
+  useEffect(() => { localStorage.setItem('fitness-level1Complete', level1Complete) }, [level1Complete]);
 
   const value = {
     user, authLoading,
@@ -276,6 +281,7 @@ export function UserProvider({ children }) {
     freedomFirstMiles, setFreedomFirstMiles,
     freedomAdditions, setFreedomAdditions,
     freedomEliminations, setFreedomEliminations,
+    level1Complete, setLevel1Complete,
     signIn, signInEmail, signUpEmail, signOut
   };
 

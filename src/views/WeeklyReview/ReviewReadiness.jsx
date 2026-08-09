@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Zap, Activity, CheckCircle2 } from 'lucide-react';
 import { getSessionHistory, getAllExercises, muscleToRegion } from '@db';
 import { computeMuscleScores } from '../../lib/superkompensation.js';
+import { sessionHasLoggedWorkout } from '../../lib/sessionGate.js';
 
 // Grobe UI-Sammelgruppen für die Recovery-Karten — bündelt die 16 feinen
 // KB-Regionen aus computeMuscleScores() auf 5 lesbare Kacheln. Bewusst
@@ -88,7 +89,9 @@ export default function ReviewReadiness() {
     const dayOf = (dateStr) => Math.floor((now - new Date(dateStr + 'T12:00:00')) / (1000 * 60 * 60 * 24));
     const sessionLoad = (s) => {
       const effort = typeof s.effort === 'number' ? s.effort : 6;
-      const count = Array.isArray(s.exercises) ? s.exercises.length : (s.activity ? 1 : 0);
+      const count = Array.isArray(s.exercises) && s.exercises.length > 0
+        ? s.exercises.length
+        : sessionHasLoggedWorkout(s) ? 1 : 0;
       return effort * count;
     };
     let acute = 0, chronic28 = 0;

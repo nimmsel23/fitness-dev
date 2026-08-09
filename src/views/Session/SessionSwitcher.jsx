@@ -26,7 +26,7 @@ export default function SessionSwitcher({ daySessions, sessionId, selectSession,
           }}
         >
           <Plus size={12} strokeWidth={3} />
-          Workout starten
+          Manuell anlegen
         </button>
       </div>
     );

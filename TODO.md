@@ -31,3 +31,14 @@ das Frontend lässt anhand des layouts bzw des fitting noch optimierung bzw grun
 
 
 siehe später auch ./TODO-01_*
+
+# [ ] Session Gate / Thenics-Runner Ausbau
+- Today-Session zuerst als `Gym Session Gate`: großer Start-/Stop-Button, Trainingstag sofort loggen, manuelles Nachtragen bleibt darunter offen.
+- Während aktiver Session Thenics-artigen Guided Runner bauen:
+  - Quelle: im `Plan`-Tab gepflegtes Workout oder Coach-Zuweisung, aber nicht erzwungen.
+  - Fokus: `jetzt`-Übung groß, `als Nächstes` klein, klare Reihenfolge statt Formularwand.
+  - Optional später: Sets/Reps-Abhaken, Rest-Timer, Auto-Advance, Finished-Screen.
+- Session-Notification über App-Service-Worker:
+  - während aktiver Session laufende Status-Benachrichtigung mit Stoppuhr,
+  - beim Stop statischer Abschlussstatus,
+  - Plattformgrenze sauber beachten: echtes sekundengenaues Weiterlaufen bei komplett geschlossener PWA ist browser-/OS-abhängig.
