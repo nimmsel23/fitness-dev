@@ -1,8 +1,20 @@
 name: approved_from_firebase
 description: Coach-approved via Firebase Inbox
 exercises:
-- type: compound
-  source: approved
+- id: '020'
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 207_teres_major
+  - 204_trapezius_lower
+  type: compound
+  tags:
+  - expert
+  - back
+  - pull
+  - bodyweight
+  - calisthenics
+  - vertical_pull
+  - grip_strength
   coaching_notes:
   - Starte im aktiven Hang mit langem Körper und zieh die Schulterblätter zuerst nach
     unten.
@@ -12,38 +24,18 @@ exercises:
     kippt.
   - Obergriff verschiebt den Fokus stärker auf Latissimus/oberen Rücken und etwas
     weg vom Bizeps im Vergleich zum Chin-Up.
+  source: approved
+  category: pull
   equipment:
   - bodyweight
   - pull_up_bar
-  search_aliases:
-  - Pullups
-  - yuhonas_pullups
-  - Klimmzug an Leiste
-  wger_muscle_ids:
-    secondary: []
-    primary: []
-  _hash: 1f54c532ed9f8df13d9afb6851cbe9ac
-  external_ids:
-    yuhonas:
-    - Pullups
-    wger:
-    - 821
+  movement_pattern: vertical_pull
+  movements:
+  - vertical
+  - shoulder_adduction
+  - elbow_flexion
+  - scapular_depression
   german: Klimmzug im Obergriff
-  tags:
-  - expert
-  - back
-  - pull
-  - bodyweight
-  - calisthenics
-  - vertical_pull
-  - grip_strength
-  common_errors:
-  - Kipping oder Beinschwung statt kontrollierter vertikaler Zug.
-  - Schultern zu den Ohren ziehen und ohne Scapula-Depression starten.
-  - Halbe Wiederholungen unten oder oben, wodurch Lat-Stretch und Abschluss fehlen.
-  - Kopf nach vorne schieben, statt Brust und Rückenarbeit zur Stange zu bringen.
-  category: pull
-  exercise_id: '020'
   variations:
   - assisted_pull_up
   - band_assisted_pull_up
@@ -51,15 +43,6 @@ exercises:
   - wide_grip_pull_up
   - neutral_grip_pull_up
   - scapular_pull_up
-  wger_id: 821
-  secondary_muscles:
-  - 402_biceps_brachii
-  - 403_brachialis
-  - 404_brachioradialis
-  - 303_posterior_deltoid
-  - 205_rhomboids
-  - 203_trapezius_middle
-  - 204_trapezius_lower
   stabilizers:
   - 304_rotator_cuff
   - 206_erector_spinae
@@ -68,20 +51,9 @@ exercises:
   - 504_transverse_abdominis
   - 405_forearm_flexors
   - 105_serratus_anterior
-  name: Klimmzug im Obergriff
-  movement_pattern: vertical_pull
-  display_name: Klimmzug im Obergriff
-  english: Pull-Up
-  movements:
-  - vertical
-  - shoulder_adduction
-  - elbow_flexion
-  - scapular_depression
-  primary_muscles:
-  - 201_latissimus_dorsi
-  - 207_teres_major
-  - 204_trapezius_lower
-  id: '020'
+  wger_muscle_ids:
+    primary: []
+    secondary: []
   aliases:
   - Klimmzug
   - Klimmzüge
@@ -96,3 +68,31 @@ exercises:
   - Pull-Ups
   - Standard Pull-up
   - Pronated Pull-up
+  english: Pull-Up
+  _hash: 1f54c532ed9f8df13d9afb6851cbe9ac
+  secondary_muscles:
+  - 402_biceps_brachii
+  - 403_brachialis
+  - 404_brachioradialis
+  - 303_posterior_deltoid
+  - 205_rhomboids
+  - 203_trapezius_middle
+  - 204_trapezius_lower
+  external_ids:
+    yuhonas:
+    - Pullups
+    wger:
+    - 821
+  display_name: Klimmzug im Obergriff
+  exercise_id: '020'
+  search_aliases:
+  - Pullups
+  - yuhonas_pullups
+  - Klimmzug an Leiste
+  name: Klimmzug im Obergriff
+  wger_id: 821
+  common_errors:
+  - Kipping oder Beinschwung statt kontrollierter vertikaler Zug.
+  - Schultern zu den Ohren ziehen und ohne Scapula-Depression starten.
+  - Halbe Wiederholungen unten oder oben, wodurch Lat-Stretch und Abschluss fehlen.
+  - Kopf nach vorne schieben, statt Brust und Rückenarbeit zur Stange zu bringen.
