@@ -13,9 +13,30 @@ import {
 } from '@db';
 import { localToday } from '@utils';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
+import {
+  normalizeSessionGate,
+  estimateDurationMinutes,
+  sessionHasLoggedWorkout,
+} from '../../lib/sessionGate.js';
 import { getRollingDays } from './utils';
 
 const DEFAULT_ACTIVITY = { type: 'hiit', duration: '', notes: '', muscleTarget: 'core', muscles: ['core'] };
+
+function getCurrentPosition() {
+  if (typeof navigator === 'undefined' || !navigator.geolocation) return Promise.resolve(null);
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => resolve({
+        lat: position.coords?.latitude ?? null,
+        lng: position.coords?.longitude ?? null,
+        accuracy: position.coords?.accuracy ?? null,
+        capturedAt: new Date().toISOString(),
+      }),
+      () => resolve(null),
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 },
+    );
+  });
+}
 
 function slugify(name) {
   return String(name || 'exercise')
@@ -42,6 +63,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   const [restHours, setRestHours]   = useState(null);
   const [activity, setActivity]     = useState({ ...DEFAULT_ACTIVITY });
   const [hasActivity, setHasActivity] = useState(false);
+  const [sessionGate, setSessionGate] = useState(() => normalizeSessionGate(null));
   const [recentSessions, setRecentSessions] = useState({});
   const [hint, setHint]             = useState(null);
   const [gaps, setGaps]             = useState([]);
@@ -108,6 +130,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
       setActivity({ ...DEFAULT_ACTIVITY });
       setHasActivity(false);
     }
+    setSessionGate(normalizeSessionGate(d.sessionGate));
   };
 
   const resetSessionData = () => {
@@ -122,6 +145,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     setSessionMode('strength');
     setActivity({ ...DEFAULT_ACTIVITY });
     setHasActivity(false);
+    setSessionGate(normalizeSessionGate(null));
   };
 
   const selectSession = (id) => {
@@ -313,12 +337,31 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   }
 
   // ── Save ──────────────────────────────────────────────────────
-  async function save(silent = false) {
+  function buildSessionPayload(overrides = {}) {
+    const nextSessionMode = overrides.sessionMode ?? sessionMode;
+    const nextActivity = overrides.activity ?? activity;
+    const nextHasActivity = overrides.hasActivity ?? hasActivity;
+    const nextSessionGate = normalizeSessionGate(overrides.sessionGate ?? sessionGate);
+    const sessData = {
+      block,
+      exercises,
+      effort,
+      location,
+      duration: overrides.duration ?? duration,
+      notes,
+      trainingsart,
+      sessionMode: nextSessionMode,
+    };
+    if (nextSessionMode === 'cardio') sessData.activity = nextActivity;
+    else if (nextHasActivity && nextActivity?.duration) sessData.activity = nextActivity;
+    if (nextSessionGate.startedAt || nextSessionGate.endedAt) sessData.sessionGate = nextSessionGate;
+    return sessData;
+  }
+
+  async function save(silent = false, overrides = {}) {
     if (!silent) setSaving(true);
+    const sessData = buildSessionPayload(overrides);
     try {
-      const sessData = { block, exercises, effort, location, duration, notes, trainingsart, sessionMode };
-      if (sessionMode === 'cardio') sessData.activity = activity;
-      else if (hasActivity && activity.duration) sessData.activity = activity;
       setAutoSaveLabel(silent ? 'Auto…' : 'Speichert…');
       await saveSession(date, sessData, sessionId);
       setDirty(false);
@@ -343,7 +386,16 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     // sonst überschreibt der Nachlauf eines Flush-Saves die frische Tagesliste.
     const savedDate = date;
     listSessionsForDate(savedDate).then(list => {
-      if (dateRef.current === savedDate) setDaySessions(list);
+      if (dateRef.current === savedDate) {
+        setDaySessions(list);
+        setRecentSessions(prev => {
+          const next = { ...prev };
+          const primary = list.find(item => item.id === null) || list[0] || null;
+          if (primary && sessionHasLoggedWorkout(primary)) next[savedDate] = primary;
+          else delete next[savedDate];
+          return next;
+        });
+      }
     }).catch(() => {});
     getCoverageGaps(recentDays, coverageThreshold).then(setGaps).catch(() => {});
   }
@@ -399,6 +451,36 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     setDaySessions(prev => [...prev, { id: newSuffix, block: 'Neues Workout', exercises: [], saved_at: new Date().toISOString() }]);
   }
 
+  async function startSessionGate() {
+    const gps = await getCurrentPosition();
+    const nextGate = normalizeSessionGate({
+      status: 'active',
+      startedAt: new Date().toISOString(),
+      endedAt: null,
+      gps,
+    });
+    setSessionGate(nextGate);
+    setDirty(false);
+    await save(false, { sessionGate: nextGate });
+    showToast('Workout gestartet');
+  }
+
+  async function stopSessionGate() {
+    const baseGate = normalizeSessionGate(sessionGate);
+    if (!baseGate.startedAt) return;
+    const nextGate = normalizeSessionGate({
+      status: 'completed',
+      startedAt: baseGate.startedAt,
+      endedAt: new Date().toISOString(),
+    });
+    const nextDuration = duration || estimateDurationMinutes(nextGate);
+    setSessionGate(nextGate);
+    if (nextDuration && nextDuration !== duration) setDuration(nextDuration);
+    setDirty(false);
+    await save(false, { sessionGate: nextGate, duration: nextDuration });
+    showToast('Workout beendet');
+  }
+
   // ── Exports ───────────────────────────────────────────────────
   async function exportObsidian() {
     try {
@@ -449,6 +531,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     restHours,
     activity, setActivity,
     hasActivity, setHasActivity,
+    sessionGate, setSessionGate,
     recentSessions,
     hint, gaps,
     prevMap,
@@ -465,6 +548,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     rollingDays,
     // Handlers
     save, selectSession, handleNewSession, handleDeleteSession,
+    startSessionGate, stopSessionGate,
     addEx, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, removeEx,
     exportObsidian, handleDownload, moveSessionToDate,
     scheduleAutoSave,

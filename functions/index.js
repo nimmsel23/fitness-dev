@@ -12,6 +12,7 @@ const REST_DAY_THRESHOLD_DAYS = 3;
 const COVERAGE_GAP_THRESHOLD = 1.0;
 const REMINDER_TYPES = {
   workout: true,
+  activeWorkout: true,
   habit: true,
   coverage: true,
   restday: true,
@@ -121,6 +122,33 @@ async function hasCompletedTrainingToday(userRef, date) {
   );
 }
 
+function parseIsoMillis(value) {
+  if (typeof value !== "string") return null;
+  const ms = Date.parse(value);
+  return Number.isFinite(ms) ? ms : null;
+}
+
+async function getActiveWorkoutReminderCandidate(userRef, now = Date.now()) {
+  const snap = await userRef.collection("sessions").orderBy("date", "desc").limit(20).get();
+  let candidate = null;
+
+  for (const doc of snap.docs) {
+    const data = doc.data() || {};
+    const gate = data.sessionGate || {};
+    const startedAtMs = parseIsoMillis(gate.startedAt);
+    if (!startedAtMs) continue;
+    if (gate.endedAt) continue;
+    if (gate.reminderSentAt) continue;
+    const elapsedMs = now - startedAtMs;
+    if (elapsedMs < 60 * 60 * 1000) continue;
+    if (!candidate || startedAtMs > candidate.startedAtMs) {
+      candidate = { ref: doc.ref, data, startedAtMs, elapsedMs };
+    }
+  }
+
+  return candidate;
+}
+
 async function getDaysSinceLastCompletedTraining(userRef, todayDate) {
   const snap = await userRef.collection("sessions").orderBy("date", "desc").limit(120).get();
   const today = new Date(`${todayDate}T12:00:00`);
@@ -209,10 +237,22 @@ exports.scheduledPushReminders = functions
 
         const tokens = normalizeTokens(data);
         if (tokens.length === 0) continue;
-        if (!isReminderDue(data.reminderTime, minutes)) continue;
 
         const types = getEnabledTypes(data);
         const notifications = [];
+
+        if (types.activeWorkout) {
+          const candidate = await getActiveWorkoutReminderCandidate(userRef);
+          if (candidate) {
+            const elapsedMinutes = Math.max(60, Math.round(candidate.elapsedMs / 60000));
+            notifications.push({
+              ...notificationText("activeWorkout", { minutes: elapsedMinutes }),
+              _sessionRef: candidate.ref,
+            });
+          }
+        }
+
+        if (!isReminderDue(data.reminderTime, minutes) && notifications.length === 0) continue;
 
         if (types.restday) {
           const daysSince = await getDaysSinceLastCompletedTraining(userRef, date);
@@ -250,6 +290,13 @@ exports.scheduledPushReminders = functions
           const result = await sendReminder(uid, tokens, notification.title, notification.body, notification.link);
           sentCount += result.sentCount || 0;
           failureCount += result.failureCount || 0;
+          if ((result.sentCount || 0) > 0 && notification._sessionRef) {
+            await notification._sessionRef.set({
+              sessionGate: {
+                reminderSentAt: admin.firestore.FieldValue.serverTimestamp(),
+              },
+            }, { merge: true });
+          }
         }
       }
 

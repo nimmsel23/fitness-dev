@@ -14,6 +14,7 @@ import { History, Timer, Calendar, ChevronRight, Check, X as XIcon, Dumbbell, Ac
 import { localToday } from '@utils';
 import { blockColor } from './utils';
 import { ACTIVITY_LABELS, ACTIVITY_ICONS, ACTIVITY_EMOJI, classifySession } from '../../constants/ActivityConstants';
+import { sessionHasLoggedWorkout } from '../../lib/sessionGate.js';
 
 const DAY_SHORT = ['So','Mo','Di','Mi','Do','Fr','Sa'];
 const MON_SHORT = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
@@ -46,13 +47,13 @@ function buildWeekGroups(today, recentSessions) {
       return d.toISOString().slice(0, 10);
     }).filter(d => d <= today).reverse();
 
-    const hasSessions = allDays.some(d => recentSessions[d]?.exercises?.length > 0 || recentSessions[d]?.activity);
+    const hasSessions = allDays.some(d => sessionHasLoggedWorkout(recentSessions[d]));
 
     let visibleDays;
     if (w === 0) {
       visibleDays = allDays;
     } else if (hasSessions) {
-      const sessionDays = allDays.filter(d => recentSessions[d]?.exercises?.length > 0 || recentSessions[d]?.activity);
+      const sessionDays = allDays.filter(d => sessionHasLoggedWorkout(recentSessions[d]));
       const oldest = sessionDays[sessionDays.length - 1];
       const newest = sessionDays[0];
       visibleDays = allDays.filter(d => d >= oldest && d <= newest);
@@ -63,7 +64,7 @@ function buildWeekGroups(today, recentSessions) {
     const jan4 = new Date(monday.getFullYear(), 0, 4);
     const kw = Math.max(1, Math.floor(((monday - jan4) / 86400000 + jan4.getDay() + 1) / 7));
     const label = w === 0 ? 'Diese Woche' : w === 1 ? 'Letzte Woche' : `KW ${kw} · ${monday.getFullYear()}`;
-    const sessionCount = allDays.filter(d => recentSessions[d]?.exercises?.length > 0 || recentSessions[d]?.activity).length;
+    const sessionCount = allDays.filter(d => sessionHasLoggedWorkout(recentSessions[d])).length;
 
     return { label, kw, allDays, visibleDays, hasSessions, sessionCount };
   });
@@ -251,7 +252,7 @@ export default function SessionHistory({
 
   const renderDayRow = (d, showEmpty) => {
     const s = recentSessions[d];
-    const hasSession = s?.exercises?.length > 0 || s?.activity;
+    const hasSession = sessionHasLoggedWorkout(s);
     if (!hasSession && !showEmpty) return null;
 
     const isToday = d === today;

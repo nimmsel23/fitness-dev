@@ -34,6 +34,8 @@ const SWR_PREFIXES = [
   '/health',
 ]
 
+const WORKOUT_NOTIFICATION_TAG = 'fitness-workout-session'
+
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(c => c.addAll(STATIC).catch(() => {}))
@@ -125,6 +127,29 @@ self.addEventListener('message', e => {
   if (e.data.type === 'GET_VERSION' && e.source) {
     e.source.postMessage({ type: 'VERSION', version: CACHE })
   }
+  if (e.data.type === 'SHOW_WORKOUT_TIMER_NOTIFICATION') {
+    e.waitUntil(showWorkoutNotification(e.data))
+  }
+  if (e.data.type === 'CLEAR_WORKOUT_TIMER_NOTIFICATION') {
+    e.waitUntil(clearWorkoutNotification(e.data.tag))
+  }
+})
+
+self.addEventListener('notificationclick', e => {
+  const target = e.notification?.data?.link || '/#session'
+  e.notification.close()
+  e.waitUntil((async () => {
+    const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+    for (const client of clients) {
+      if (!('focus' in client)) continue
+      try {
+        await client.navigate(target)
+      } catch {}
+      return client.focus()
+    }
+    if (self.clients.openWindow) return self.clients.openWindow(target)
+    return null
+  })())
 })
 
 // Background Sync — flushed IDB-Queue wenn Connectivity zurückkommt
@@ -184,4 +209,27 @@ function idbDelete(db, store, id) {
       r.onerror = () => resolve()
     } catch { resolve() }
   })
+}
+
+async function showWorkoutNotification(data) {
+  if (!self.registration?.showNotification) return
+  await self.registration.showNotification(data.title || 'Workout läuft', {
+    tag: data.tag || WORKOUT_NOTIFICATION_TAG,
+    renotify: false,
+    silent: true,
+    requireInteraction: !!data.active,
+    body: data.body || 'Die Workout-Stoppuhr läuft.',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    data: {
+      link: data.date ? `/#session?date=${data.date}` : '/#session',
+      date: data.date || null,
+      active: !!data.active,
+    },
+  })
+}
+
+async function clearWorkoutNotification(tag = WORKOUT_NOTIFICATION_TAG) {
+  const notifications = await self.registration.getNotifications({ tag })
+  notifications.forEach(notification => notification.close())
 }

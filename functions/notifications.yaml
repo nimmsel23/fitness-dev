@@ -8,6 +8,11 @@ workout:
   body: "Zeit für dein Training!"
   link: "/?tab=session"
 
+activeWorkout:
+  title: "Workout noch offen"
+  body: "Vor {minutes} Minuten gestartet. Fertig oder abbrechen?"
+  link: "/?tab=session"
+
 restday:
   title: "Alles ok?"
   body: "Letzte Session war vor {days} Tagen"

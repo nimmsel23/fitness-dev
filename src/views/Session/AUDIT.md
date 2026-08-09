@@ -8,7 +8,8 @@ Workout-Journal — Session-Logging mit Satz/Wdh/Gewicht, Session-Modi, intellig
 |-------|-------|
 | `index.jsx` | Thin Sub-Tab-Router: editor (default) / history / plan |
 | `useSession.js` | State-Owner, alle Handler, Autosave/Flush, Datenfluss |
-| `SessionEditor.jsx` | Editor-Assembly: DateStrip + Switcher + ExerciseList/ActivitySection |
+| `SessionEditor.jsx` | Editor-Assembly: DateStrip + Switcher + ExerciseList/ActivitySection | 
+| `SessionGateCard.jsx` | Großer Start/Stop-Einstieg für Trainingstag, Timer, Live-Status-Notification |
 | `SessionHistory.jsx` | Verlauf-SubTab: Timeline, Drag&Drop-Umdatierung |
 | `DateStrip.jsx` | Datum-Navigation (7-Tage-Slider), Save-Button, Sidebar/Settings-Trigger |
 | `SessionSwitcher.jsx` | Multi-Session-Pills + Neu/Löschen (Löschen für jede Session der Tagesliste, auch Hauptsession) |
@@ -31,6 +32,15 @@ Workout-Journal — Session-Logging mit Satz/Wdh/Gewicht, Session-Modi, intellig
 | `cardio` | Ausdauer — nur ActivitySection, keine Exercises |
 
 Umschaltbar per Mode-Switcher in der UI. Wird im Session-JSON als `sessionMode` gespeichert. Legacy-Sessions ohne `sessionMode` werden erkannt: hat eine Session `activity` aber keine Exercises → `cardio`.
+
+## Session Gate
+
+Zusätzlich zum bestehenden manuellen Workout-Editor kann eine Session jetzt ein `sessionGate` enthalten:
+
+- `startedAt` markiert den Start des Workouts.
+- `endedAt` markiert das Ende.
+- ohne Übungen/Activity zählt ein gestartetes oder beendetes Gate trotzdem als geloggter Trainingstag.
+- die Oberfläche bleibt absichtlich zweistufig: erst Start/Stop, dann optionales Nachtragen.
 
 ## Multi-Session pro Tag
 
