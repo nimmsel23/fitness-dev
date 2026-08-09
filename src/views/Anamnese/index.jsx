@@ -1,27 +1,71 @@
 import { useState } from "react";
-import {
-  ClipboardList, PauseCircle, ShieldCheck, Swords, Zap, Save, Check,
-} from "lucide-react";
+import { Save, Check } from "lucide-react";
 import { useUser } from "../../contexts/UserContext";
 import { updateUserProfile } from "@db";
 
-const inputCls = "w-full bg-fit-bg2 border border-fit-line rounded-xl px-4 py-3 text-sm font-bold text-fit-ink focus:border-fit-accent outline-none transition-colors placeholder:text-fit-ink/20";
-const miniCls = "text-[10px] font-black uppercase tracking-[0.25em] text-fit-accent/70";
+const inputCls = "w-full rounded-2xl border border-fit-line bg-fit-card px-4 py-3 text-sm font-semibold text-fit-ink outline-none transition-colors focus:border-fit-accent placeholder:text-fit-ink/30";
+const metaCls = "text-[10px] font-black uppercase tracking-[0.28em] text-fit-accent";
+const labelCls = "text-[11px] font-black uppercase tracking-[0.22em] text-fit-ink/55";
 
-function Category({ icon: Icon, title, subtitle, accent, children }) {
+function Section({ meta, title, subtitle, children }) {
   return (
-    <section className={`card p-8 space-y-6 border-t-4 ${accent} animate-in fade-in slide-in-from-top-4 duration-500`}>
-      <div className="flex items-start gap-4">
-        <div className="w-10 h-10 rounded-xl bg-fit-accent/10 flex items-center justify-center shrink-0 mt-1">
-          <Icon size={20} className="text-fit-accent" />
-        </div>
-        <div className="space-y-1">
-          <h3 className="text-xl font-black text-fit-ink">{title}</h3>
-          {subtitle && <p className="text-xs font-semibold text-fit-ink/60">{subtitle}</p>}
-        </div>
+    <section className="rounded-[24px] border border-fit-line bg-fit-card p-5 md:p-6 space-y-5">
+      <div className="space-y-2">
+        <div className={metaCls}>{meta}</div>
+        <h3 className="text-2xl md:text-3xl font-black text-fit-ink leading-none">{title}</h3>
+        <p className="text-sm text-fit-ink/65 max-w-3xl">{subtitle}</p>
       </div>
       <div className="grid gap-4">{children}</div>
     </section>
+  );
+}
+
+function Field({ label, value, onChange, placeholder, rows = 4 }) {
+  return (
+    <label className="grid gap-2">
+      <span className={labelCls}>{label}</span>
+      <textarea
+        rows={rows}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputCls}
+      />
+    </label>
+  );
+}
+
+function Hit({ number, fact, setFact, obstacle, setObstacle, strike, setStrike, responsibility, setResponsibility }) {
+  return (
+    <div className="rounded-[20px] border border-fit-line bg-fit-bg2/35 p-4 space-y-4">
+      <div className="text-sm font-black uppercase tracking-[0.24em] text-fit-ink">{number}</div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Field
+          label="Fact"
+          value={fact}
+          onChange={setFact}
+          placeholder={"Messbares Ergebnis.\nThe clear, measurable result you aim to achieve."}
+        />
+        <Field
+          label="Obstacle"
+          value={obstacle}
+          onChange={setObstacle}
+          placeholder={"Was könnte dich davon abhalten?\nWhat could prevent you from achieving this fact?"}
+        />
+        <Field
+          label="Strike"
+          value={strike}
+          onChange={setStrike}
+          placeholder={"Dein strategischer Zug.\nWhat’s your strategic move to overcome the obstacle?"}
+        />
+        <Field
+          label="Responsibility"
+          value={responsibility}
+          onChange={setResponsibility}
+          placeholder={"Wofür übernimmst du Verantwortung?\nWho is responsible for executing this strike?"}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -29,25 +73,34 @@ export default function Anamnese() {
   const {
     user,
     trainingType, setTrainingType,
-    fitnessGoal, setFitnessGoal,
-    injuries, setInjuries,
-    medicalClearanceNotes, setMedicalClearanceNotes,
-    trainingNotWorking, setTrainingNotWorking,
     submitFacts, setSubmitFacts,
     submitFeelings, setSubmitFeelings,
     submitFocus, setSubmitFocus,
     submitFruit, setSubmitFruit,
-    warStackTitle, setWarStackTitle,
-    warStackDomain, setWarStackDomain,
-    warStackSubdomain, setWarStackSubdomain,
-    warStackDoor, setWarStackDoor,
     warStackTrigger, setWarStackTrigger,
+    injuries, setInjuries,
     warStackNarrative, setWarStackNarrative,
     warStackValidation, setWarStackValidation,
     warStackImpact, setWarStackImpact,
     warStackConsequences, setWarStackConsequences,
     warStackInsights, setWarStackInsights,
     warStackLesson, setWarStackLesson,
+    hit1Fact, setHit1Fact,
+    hit1Obstacle, setHit1Obstacle,
+    hit1Strike, setHit1Strike,
+    hit1Responsibility, setHit1Responsibility,
+    hit2Fact, setHit2Fact,
+    hit2Obstacle, setHit2Obstacle,
+    hit2Strike, setHit2Strike,
+    hit2Responsibility, setHit2Responsibility,
+    hit3Fact, setHit3Fact,
+    hit3Obstacle, setHit3Obstacle,
+    hit3Strike, setHit3Strike,
+    hit3Responsibility, setHit3Responsibility,
+    hit4Fact, setHit4Fact,
+    hit4Obstacle, setHit4Obstacle,
+    hit4Strike, setHit4Strike,
+    hit4Responsibility, setHit4Responsibility,
   } = useUser();
 
   const [saving, setSaving] = useState(false);
@@ -58,25 +111,34 @@ export default function Anamnese() {
     setSaving(true);
     const success = await updateUserProfile(user.uid, {
       trainingType,
-      fitnessGoal,
-      injuries,
-      medicalClearanceNotes,
-      trainingNotWorking,
       submitFacts,
       submitFeelings,
       submitFocus,
       submitFruit,
-      warStackTitle,
-      warStackDomain,
-      warStackSubdomain,
-      warStackDoor,
       warStackTrigger,
+      injuries,
       warStackNarrative,
       warStackValidation,
       warStackImpact,
       warStackConsequences,
       warStackInsights,
       warStackLesson,
+      hit1Fact,
+      hit1Obstacle,
+      hit1Strike,
+      hit1Responsibility,
+      hit2Fact,
+      hit2Obstacle,
+      hit2Strike,
+      hit2Responsibility,
+      hit3Fact,
+      hit3Obstacle,
+      hit3Strike,
+      hit3Responsibility,
+      hit4Fact,
+      hit4Obstacle,
+      hit4Strike,
+      hit4Responsibility,
     });
     if (success) {
       setSaved(true);
@@ -86,201 +148,176 @@ export default function Anamnese() {
   }
 
   return (
-    <div className="space-y-8 pb-32 max-w-5xl mx-auto">
-      <header className="mb-4 animate-in fade-in duration-700">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-fit-accent/10 flex items-center justify-center shrink-0">
-            <ClipboardList size={20} className="text-fit-accent" />
-          </div>
-          <div>
-            <h2 className="text-3xl font-black text-fit-ink">Anamnese</h2>
-            <p className="text-sm font-medium opacity-40">REAL. RAW. RELEVANT. RESULTS.</p>
-          </div>
-        </div>
+    <div className="max-w-5xl mx-auto space-y-6 pb-32">
+      <header className="rounded-[24px] border border-fit-line bg-fit-card p-5 md:p-6 space-y-2">
+        <div className={metaCls}>REAL · RAW · RELEVANT · RESULTS</div>
+        <h2 className="text-3xl md:text-4xl font-black text-fit-ink leading-none">Anamnese</h2>
       </header>
 
-      {/* STOP */}
-      <Category
-        icon={PauseCircle}
-        title="STOP"
-        accent="border-t-fit-accent"
+      <Section
+        meta="REAL"
+        title="Stop"
+        subtitle="This deliberate pause is the foundation of the first step in the Voice — Stop."
       >
-        <textarea
-          rows={4}
+        <Field
+          label="Trigger"
           value={warStackTrigger}
-          placeholder="Welcher Mensch oder welches Ereignis hat das in Bewegung gesetzt? / What person or event set this in motion? / quis homo aut quod eventum hoc movit?"
-          onChange={(e) => setWarStackTrigger(e.target.value)}
-          className={inputCls}
+          onChange={setWarStackTrigger}
+          placeholder={"Was hat dich gestoppt?\nWhat person or event has sparked your desire for change?"}
         />
-
-        <textarea
-          rows={6}
+        <Field
+          label="Reality"
           value={trainingType}
-          placeholder="Was geht gerade wirklich ab? / What is actually going on right now? / quid nunc revera agitur?"
-          onChange={(e) => setTrainingType(e.target.value)}
-          className={inputCls}
+          onChange={setTrainingType}
+          placeholder={"Was ist gerade wirklich los mit Training, Körper und Alltag?\nWhat are the undeniable realities of your current situation?"}
+          rows={6}
         />
-      </Category>
+      </Section>
 
-      {/* SUBMIT */}
-      <Category
-        icon={ShieldCheck}
-        title="SUBMIT"
-        accent="border-t-fit-dim"
+      <Section
+        meta="RAW"
+        title="Submit"
+        subtitle="In Submit, the first requirement is honesty—radical honesty."
       >
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
-            <div className={miniCls}>FACTS</div>
-            <textarea
-              rows={4}
-              value={submitFacts}
-              placeholder="Was sind die unbestreitbaren Fakten? / What are the undeniable realities of your current situation? / quae sunt facta indubitata?"
-              onChange={(e) => setSubmitFacts(e.target.value)}
-              className={inputCls}
-            />
-          </div>
-
-          <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
-            <div className={miniCls}>FEELINGS</div>
-            <textarea
-              rows={4}
-              value={submitFeelings}
-              placeholder="Wie fühlst du dich dazu wirklich? / How do you truly feel about these facts? / quomodo de his rebus vere sentis?"
-              onChange={(e) => setSubmitFeelings(e.target.value)}
-              className={inputCls}
-            />
-          </div>
-
-          <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
-            <div className={miniCls}>FOCUS</div>
-            <textarea
-              rows={4}
-              value={submitFocus}
-              placeholder="Wie war dein Fokus gegenüber diesen Fakten und Gefühlen? / What has been your mindset toward these facts and feelings? / quo animo ad haec stetisti?"
-              onChange={(e) => setSubmitFocus(e.target.value)}
-              className={inputCls}
-            />
-          </div>
-
-          <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
-            <div className={miniCls}>FRUIT</div>
-            <textarea
-              rows={4}
-              value={submitFruit}
-              placeholder="Welche Resultate kamen daraus? / What results or outcomes have you gotten from this mindset? / qui fructus inde venerunt?"
-              onChange={(e) => setSubmitFruit(e.target.value)}
-              className={inputCls}
-            />
-          </div>
+          <Field
+            label="Facts"
+            value={submitFacts}
+            onChange={setSubmitFacts}
+            placeholder={"Welche Fakten kannst du nicht wegdiskutieren?\nWhat are the undeniable realities of your current situation?"}
+          />
+          <Field
+            label="Feelings"
+            value={submitFeelings}
+            onChange={setSubmitFeelings}
+            placeholder={"Wie fühlst du dich diesen Fakten gegenüber wirklich?\nHow do you truly feel about these facts?"}
+          />
+          <Field
+            label="Focus"
+            value={submitFocus}
+            onChange={setSubmitFocus}
+            placeholder={"Worauf war dein Blick und dein Denken bisher gerichtet?\nWhat has been your mindset toward these facts and feelings?"}
+          />
+          <Field
+            label="Fruits"
+            value={submitFruit}
+            onChange={setSubmitFruit}
+            placeholder={"Was ist daraus bisher entstanden?\nWhat results or outcomes have you gotten from this mindset?"}
+          />
         </div>
-      </Category>
+      </Section>
 
-      {/* STRUGGLE */}
-      <Category
-        icon={Swords}
-        title="STRUGGLE"
-        accent="border-t-fit-accent"
+      <Section
+        meta="RELEVANT"
+        title="Struggle"
+        subtitle="It’s a battle with the stories from your past, the narratives that shaped your actions."
       >
-        <textarea
-          rows={4}
+        <Field
+          label="Struggle"
           value={injuries}
-          placeholder="Womit ringst du gerade wirklich? / What are you wrestling with right now? / cum quo nunc vere luctaris?"
-          onChange={(e) => setInjuries(e.target.value)}
-          className={inputCls}
+          onChange={setInjuries}
+          placeholder={"Womit ringst du gerade wirklich im Training, im Körper oder im Alltag?\nWhat are you actively engaging with right now?"}
         />
-
-        <textarea
-          rows={4}
+        <Field
+          label="Narrative"
           value={warStackNarrative}
-          placeholder="Welche Geschichte erzählst du dir dazu gerade? / What story are you currently telling yourself about this? / quam fabulam tibi nunc narras?"
-          onChange={(e) => setWarStackNarrative(e.target.value)}
-          className={inputCls}
+          onChange={setWarStackNarrative}
+          placeholder={"Welche Geschichte läuft dazu in deinem Kopf?\nWhat story are you currently telling yourself?"}
         />
-
-        <textarea
-          rows={4}
-          value={warStackValidation}
-          placeholder="Warum fühlt sich das notwendig an? / Why does this feel necessary? / cur hoc necessarium videtur?"
-          onChange={(e) => setWarStackValidation(e.target.value)}
-          className={inputCls}
-        />
-      </Category>
-
-      {/* STRIKE */}
-      <Category
-        icon={Zap}
-        title="STRIKE"
-        accent="border-t-fit-dim"
-      >
-        <textarea
-          rows={4}
-          value={warStackDoor}
-          placeholder="Welche Schwelle versuchst du zu überschreiten? / What is the threshold you are trying to cross? / quam portam transire conaris?"
-          onChange={(e) => setWarStackDoor(e.target.value)}
-          className={inputCls}
-        />
-
-        <textarea
-          rows={4}
-          value={fitnessGoal}
-          placeholder="Worauf gehst du konkret zu? / What are you moving toward? / ad quid moveris?"
-          onChange={(e) => setFitnessGoal(e.target.value)}
-          className={inputCls}
-        />
-
-        <textarea
-          rows={4}
-          value={warStackImpact}
-          placeholder="Was verändert sich, wenn sich das öffnet? / What would change if this opened? / quid mutaretur si hoc aperiretur?"
-          onChange={(e) => setWarStackImpact(e.target.value)}
-          className={inputCls}
-        />
-
-        <textarea
-          rows={4}
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field
+            label="Validation"
+            value={warStackValidation}
+            onChange={setWarStackValidation}
+            placeholder={"Warum fühlt es sich notwendig an, das jetzt anzugehen?\nWhy does this feel necessary?"}
+          />
+          <Field
+            label="Impact"
+            value={warStackImpact}
+            onChange={setWarStackImpact}
+            placeholder={"Was würde sich verändern, wenn du das wirklich drehst?\nHow would this change your life?"}
+          />
+        </div>
+        <Field
+          label="Consequences"
           value={warStackConsequences}
-          placeholder="Was passiert, wenn das geschlossen bleibt? / What happens if this stays closed? / quid fit si hoc clausum manet?"
-          onChange={(e) => setWarStackConsequences(e.target.value)}
-          className={inputCls}
+          onChange={setWarStackConsequences}
+          placeholder={"Was passiert, wenn du es weiter laufen lässt?\nWhat happens if this stays as it is?"}
         />
+      </Section>
 
-        <textarea
-          rows={4}
-          value={trainingNotWorking}
-          placeholder="Woran würdest du Fortschritt erkennen? / What would prove progress? / unde progressum agnosceres?"
-          onChange={(e) => setTrainingNotWorking(e.target.value)}
-          className={inputCls}
-        />
+      <Section
+        meta="RESULTS"
+        title="Strike"
+        subtitle="The Strike moves you from theory to practice, from potential energy to real-world impact."
+      >
+        <div className="grid gap-4">
+          <Hit
+            number="Hit 1"
+            fact={hit1Fact}
+            setFact={setHit1Fact}
+            obstacle={hit1Obstacle}
+            setObstacle={setHit1Obstacle}
+            strike={hit1Strike}
+            setStrike={setHit1Strike}
+            responsibility={hit1Responsibility}
+            setResponsibility={setHit1Responsibility}
+          />
+          <Hit
+            number="Hit 2"
+            fact={hit2Fact}
+            setFact={setHit2Fact}
+            obstacle={hit2Obstacle}
+            setObstacle={setHit2Obstacle}
+            strike={hit2Strike}
+            setStrike={setHit2Strike}
+            responsibility={hit2Responsibility}
+            setResponsibility={setHit2Responsibility}
+          />
+          <Hit
+            number="Hit 3"
+            fact={hit3Fact}
+            setFact={setHit3Fact}
+            obstacle={hit3Obstacle}
+            setObstacle={setHit3Obstacle}
+            strike={hit3Strike}
+            setStrike={setHit3Strike}
+            responsibility={hit3Responsibility}
+            setResponsibility={setHit3Responsibility}
+          />
+          <Hit
+            number="Hit 4"
+            fact={hit4Fact}
+            setFact={setHit4Fact}
+            obstacle={hit4Obstacle}
+            setObstacle={setHit4Obstacle}
+            strike={hit4Strike}
+            setStrike={setHit4Strike}
+            responsibility={hit4Responsibility}
+            setResponsibility={setHit4Responsibility}
+          />
+        </div>
 
-        <textarea
-          rows={4}
-          value={medicalClearanceNotes}
-          placeholder="Was ist der nächste klare Move? / What is the next clear move? / quis est proximus motus clarus?"
-          onChange={(e) => setMedicalClearanceNotes(e.target.value)}
-          className={inputCls}
-        />
-
-        <textarea
-          rows={4}
-          value={warStackInsights}
-          placeholder="Welche Einsichten sind aufgetaucht? / What new realizations have come to light? / quae nova intellecta emerserunt?"
-          onChange={(e) => setWarStackInsights(e.target.value)}
-          className={inputCls}
-        />
-
-        <textarea
-          rows={4}
-          value={warStackLesson}
-          placeholder="Was ist die wichtigste Lektion? / What is the most important lesson? / quae est lectio gravissima?"
-          onChange={(e) => setWarStackLesson(e.target.value)}
-          className={inputCls}
-        />
-      </Category>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field
+            label="Insights"
+            value={warStackInsights}
+            onChange={setWarStackInsights}
+            placeholder={"Welche Einsicht ist gerade klar geworden?\nWhat new realizations have come to light during this process?"}
+          />
+          <Field
+            label="Lessons Learned"
+            value={warStackLesson}
+            onChange={setWarStackLesson}
+            placeholder={"Was ist die wichtigste Lektion daraus?\nWhat is the most important life lesson this has taught you?"}
+          />
+        </div>
+      </Section>
 
       <button
         onClick={handleSave}
         disabled={saving || !user}
-        className="w-full max-w-md mx-auto flex items-center justify-center gap-2 px-4 py-4 bg-fit-accent text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:opacity-90 disabled:opacity-50 transition-all"
+        className="w-full max-w-md mx-auto flex items-center justify-center gap-2 rounded-2xl bg-fit-accent px-4 py-4 text-[10px] font-black uppercase tracking-[0.24em] text-white transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {saving ? (
           <span className="animate-pulse">Speichert in Cloud...</span>

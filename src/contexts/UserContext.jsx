@@ -52,6 +52,22 @@ export function UserProvider({ children }) {
   const [warStackConsequences, setWarStackConsequences] = useState(() => localStorage.getItem('fitness-warStackConsequences') || '');
   const [warStackInsights, setWarStackInsights] = useState(() => localStorage.getItem('fitness-warStackInsights') || '');
   const [warStackLesson, setWarStackLesson] = useState(() => localStorage.getItem('fitness-warStackLesson') || '');
+  const [hit1Fact, setHit1Fact] = useState(() => localStorage.getItem('fitness-hit1Fact') || '');
+  const [hit1Obstacle, setHit1Obstacle] = useState(() => localStorage.getItem('fitness-hit1Obstacle') || '');
+  const [hit1Strike, setHit1Strike] = useState(() => localStorage.getItem('fitness-hit1Strike') || '');
+  const [hit1Responsibility, setHit1Responsibility] = useState(() => localStorage.getItem('fitness-hit1Responsibility') || '');
+  const [hit2Fact, setHit2Fact] = useState(() => localStorage.getItem('fitness-hit2Fact') || '');
+  const [hit2Obstacle, setHit2Obstacle] = useState(() => localStorage.getItem('fitness-hit2Obstacle') || '');
+  const [hit2Strike, setHit2Strike] = useState(() => localStorage.getItem('fitness-hit2Strike') || '');
+  const [hit2Responsibility, setHit2Responsibility] = useState(() => localStorage.getItem('fitness-hit2Responsibility') || '');
+  const [hit3Fact, setHit3Fact] = useState(() => localStorage.getItem('fitness-hit3Fact') || '');
+  const [hit3Obstacle, setHit3Obstacle] = useState(() => localStorage.getItem('fitness-hit3Obstacle') || '');
+  const [hit3Strike, setHit3Strike] = useState(() => localStorage.getItem('fitness-hit3Strike') || '');
+  const [hit3Responsibility, setHit3Responsibility] = useState(() => localStorage.getItem('fitness-hit3Responsibility') || '');
+  const [hit4Fact, setHit4Fact] = useState(() => localStorage.getItem('fitness-hit4Fact') || '');
+  const [hit4Obstacle, setHit4Obstacle] = useState(() => localStorage.getItem('fitness-hit4Obstacle') || '');
+  const [hit4Strike, setHit4Strike] = useState(() => localStorage.getItem('fitness-hit4Strike') || '');
+  const [hit4Responsibility, setHit4Responsibility] = useState(() => localStorage.getItem('fitness-hit4Responsibility') || '');
 
   // Auth Listener
   useEffect(() => watchAuth((u) => {
@@ -104,6 +120,22 @@ export function UserProvider({ children }) {
           if (data.warStackConsequences) setWarStackConsequences(data.warStackConsequences);
           if (data.warStackInsights) setWarStackInsights(data.warStackInsights);
           if (data.warStackLesson) setWarStackLesson(data.warStackLesson);
+          if (data.hit1Fact) setHit1Fact(data.hit1Fact);
+          if (data.hit1Obstacle) setHit1Obstacle(data.hit1Obstacle);
+          if (data.hit1Strike) setHit1Strike(data.hit1Strike);
+          if (data.hit1Responsibility) setHit1Responsibility(data.hit1Responsibility);
+          if (data.hit2Fact) setHit2Fact(data.hit2Fact);
+          if (data.hit2Obstacle) setHit2Obstacle(data.hit2Obstacle);
+          if (data.hit2Strike) setHit2Strike(data.hit2Strike);
+          if (data.hit2Responsibility) setHit2Responsibility(data.hit2Responsibility);
+          if (data.hit3Fact) setHit3Fact(data.hit3Fact);
+          if (data.hit3Obstacle) setHit3Obstacle(data.hit3Obstacle);
+          if (data.hit3Strike) setHit3Strike(data.hit3Strike);
+          if (data.hit3Responsibility) setHit3Responsibility(data.hit3Responsibility);
+          if (data.hit4Fact) setHit4Fact(data.hit4Fact);
+          if (data.hit4Obstacle) setHit4Obstacle(data.hit4Obstacle);
+          if (data.hit4Strike) setHit4Strike(data.hit4Strike);
+          if (data.hit4Responsibility) setHit4Responsibility(data.hit4Responsibility);
         }
       } catch (err) {
         console.error("Fehler bei Hydration:", err);
@@ -151,6 +183,22 @@ export function UserProvider({ children }) {
   useEffect(() => { localStorage.setItem('fitness-warStackConsequences', warStackConsequences) }, [warStackConsequences]);
   useEffect(() => { localStorage.setItem('fitness-warStackInsights', warStackInsights) }, [warStackInsights]);
   useEffect(() => { localStorage.setItem('fitness-warStackLesson', warStackLesson) }, [warStackLesson]);
+  useEffect(() => { localStorage.setItem('fitness-hit1Fact', hit1Fact) }, [hit1Fact]);
+  useEffect(() => { localStorage.setItem('fitness-hit1Obstacle', hit1Obstacle) }, [hit1Obstacle]);
+  useEffect(() => { localStorage.setItem('fitness-hit1Strike', hit1Strike) }, [hit1Strike]);
+  useEffect(() => { localStorage.setItem('fitness-hit1Responsibility', hit1Responsibility) }, [hit1Responsibility]);
+  useEffect(() => { localStorage.setItem('fitness-hit2Fact', hit2Fact) }, [hit2Fact]);
+  useEffect(() => { localStorage.setItem('fitness-hit2Obstacle', hit2Obstacle) }, [hit2Obstacle]);
+  useEffect(() => { localStorage.setItem('fitness-hit2Strike', hit2Strike) }, [hit2Strike]);
+  useEffect(() => { localStorage.setItem('fitness-hit2Responsibility', hit2Responsibility) }, [hit2Responsibility]);
+  useEffect(() => { localStorage.setItem('fitness-hit3Fact', hit3Fact) }, [hit3Fact]);
+  useEffect(() => { localStorage.setItem('fitness-hit3Obstacle', hit3Obstacle) }, [hit3Obstacle]);
+  useEffect(() => { localStorage.setItem('fitness-hit3Strike', hit3Strike) }, [hit3Strike]);
+  useEffect(() => { localStorage.setItem('fitness-hit3Responsibility', hit3Responsibility) }, [hit3Responsibility]);
+  useEffect(() => { localStorage.setItem('fitness-hit4Fact', hit4Fact) }, [hit4Fact]);
+  useEffect(() => { localStorage.setItem('fitness-hit4Obstacle', hit4Obstacle) }, [hit4Obstacle]);
+  useEffect(() => { localStorage.setItem('fitness-hit4Strike', hit4Strike) }, [hit4Strike]);
+  useEffect(() => { localStorage.setItem('fitness-hit4Responsibility', hit4Responsibility) }, [hit4Responsibility]);
 
   const value = {
     user, authLoading,
@@ -192,6 +240,22 @@ export function UserProvider({ children }) {
     warStackConsequences, setWarStackConsequences,
     warStackInsights, setWarStackInsights,
     warStackLesson, setWarStackLesson,
+    hit1Fact, setHit1Fact,
+    hit1Obstacle, setHit1Obstacle,
+    hit1Strike, setHit1Strike,
+    hit1Responsibility, setHit1Responsibility,
+    hit2Fact, setHit2Fact,
+    hit2Obstacle, setHit2Obstacle,
+    hit2Strike, setHit2Strike,
+    hit2Responsibility, setHit2Responsibility,
+    hit3Fact, setHit3Fact,
+    hit3Obstacle, setHit3Obstacle,
+    hit3Strike, setHit3Strike,
+    hit3Responsibility, setHit3Responsibility,
+    hit4Fact, setHit4Fact,
+    hit4Obstacle, setHit4Obstacle,
+    hit4Strike, setHit4Strike,
+    hit4Responsibility, setHit4Responsibility,
     signIn, signInEmail, signUpEmail, signOut
   };
 
