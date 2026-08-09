@@ -43,14 +43,6 @@ Jeder Eintrag hat einen klaren Reconnect-Pfad.
 
 ---
 
-## 5. trainingsart — gespeichert, nie angezeigt
-
-**Datei:** `src/views/Session/index.jsx:26,72,94,214`
-**Problem:** `trainingsart` wird geladen, gesetzt, beim Save mitgeschrieben und sogar für die `restHours`-Berechnung genutzt (`s.trainingsart === block`). Aber es gibt kein UI-Element zum Setzen — User kann es nie eingeben.
-**Reconnect:** Input-Feld in `SessionSidebar` oder `SidebarSheet` ergänzen. Alternativ mit `block` zusammenlegen wenn es dasselbe abbildet.
-
----
-
 ## 6. taxonomy — App.jsx lädt, WeeklyReview ignoriert
 
 **Datei:** `src/views/WeeklyReview/index.jsx:66,74`
@@ -146,7 +138,6 @@ Coach schreibt Nachricht in `fitness/{uid}/inbox` → Firestore `onSnapshot` tri
 |---|---------|---------|
 | 6 | `taxonomy` nicht weitergegeben in WeeklyReview | 2 Zeilen |
 | 7 | `navigate`-Prop toter Slot in Dashboard | 1 Zeile |
-| 5 | `trainingsart` ohne UI-Input | Klein |
 | 11a | Push-Notifications: App-Erinnerungen (Workout, Habits, Coverage) | Mittel — SW + Firebase Function + Settings-UI |
 | 11b | Coach2Klient Push | Klein wenn 11a fertig |
 
