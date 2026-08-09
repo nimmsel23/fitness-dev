@@ -26,7 +26,15 @@ const baseItems = [
   { id: 'settings', label: 'Setup',    Icon: Settings2 },
 ];
 
-export function getNavItems({ focusReady = false } = {}) {
+export function getNavItems({ focusReady = false, devBypass = false } = {}) {
+  if (devBypass) {
+    return [
+      ...baseItems.slice(0, 3),
+      { id: 'anamnese', label: 'Anamnese', Icon: ClipboardList },
+      { id: 'focus', label: 'Fokus', Icon: Crosshair },
+      ...baseItems.slice(3),
+    ];
+  }
   return [
     ...baseItems.slice(0, 3),
     focusReady

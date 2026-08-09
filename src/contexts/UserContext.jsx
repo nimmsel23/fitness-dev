@@ -68,6 +68,11 @@ export function UserProvider({ children }) {
   const [hit4Obstacle, setHit4Obstacle] = useState(() => localStorage.getItem('fitness-hit4Obstacle') || '');
   const [hit4Strike, setHit4Strike] = useState(() => localStorage.getItem('fitness-hit4Strike') || '');
   const [hit4Responsibility, setHit4Responsibility] = useState(() => localStorage.getItem('fitness-hit4Responsibility') || '');
+  const [freedomHorizon, setFreedomHorizon] = useState(() => localStorage.getItem('fitness-freedomHorizon') || '');
+  const [freedomFoundation, setFreedomFoundation] = useState(() => localStorage.getItem('fitness-freedomFoundation') || '');
+  const [freedomFirstMiles, setFreedomFirstMiles] = useState(() => localStorage.getItem('fitness-freedomFirstMiles') || '');
+  const [freedomAdditions, setFreedomAdditions] = useState(() => localStorage.getItem('fitness-freedomAdditions') || '');
+  const [freedomEliminations, setFreedomEliminations] = useState(() => localStorage.getItem('fitness-freedomEliminations') || '');
 
   // Auth Listener
   useEffect(() => watchAuth((u) => {
@@ -136,6 +141,11 @@ export function UserProvider({ children }) {
           if (data.hit4Obstacle) setHit4Obstacle(data.hit4Obstacle);
           if (data.hit4Strike) setHit4Strike(data.hit4Strike);
           if (data.hit4Responsibility) setHit4Responsibility(data.hit4Responsibility);
+          if (data.freedomHorizon) setFreedomHorizon(data.freedomHorizon);
+          if (data.freedomFoundation) setFreedomFoundation(data.freedomFoundation);
+          if (data.freedomFirstMiles) setFreedomFirstMiles(data.freedomFirstMiles);
+          if (data.freedomAdditions) setFreedomAdditions(data.freedomAdditions);
+          if (data.freedomEliminations) setFreedomEliminations(data.freedomEliminations);
         }
       } catch (err) {
         console.error("Fehler bei Hydration:", err);
@@ -199,6 +209,11 @@ export function UserProvider({ children }) {
   useEffect(() => { localStorage.setItem('fitness-hit4Obstacle', hit4Obstacle) }, [hit4Obstacle]);
   useEffect(() => { localStorage.setItem('fitness-hit4Strike', hit4Strike) }, [hit4Strike]);
   useEffect(() => { localStorage.setItem('fitness-hit4Responsibility', hit4Responsibility) }, [hit4Responsibility]);
+  useEffect(() => { localStorage.setItem('fitness-freedomHorizon', freedomHorizon) }, [freedomHorizon]);
+  useEffect(() => { localStorage.setItem('fitness-freedomFoundation', freedomFoundation) }, [freedomFoundation]);
+  useEffect(() => { localStorage.setItem('fitness-freedomFirstMiles', freedomFirstMiles) }, [freedomFirstMiles]);
+  useEffect(() => { localStorage.setItem('fitness-freedomAdditions', freedomAdditions) }, [freedomAdditions]);
+  useEffect(() => { localStorage.setItem('fitness-freedomEliminations', freedomEliminations) }, [freedomEliminations]);
 
   const value = {
     user, authLoading,
@@ -256,6 +271,11 @@ export function UserProvider({ children }) {
     hit4Obstacle, setHit4Obstacle,
     hit4Strike, setHit4Strike,
     hit4Responsibility, setHit4Responsibility,
+    freedomHorizon, setFreedomHorizon,
+    freedomFoundation, setFreedomFoundation,
+    freedomFirstMiles, setFreedomFirstMiles,
+    freedomAdditions, setFreedomAdditions,
+    freedomEliminations, setFreedomEliminations,
     signIn, signInEmail, signUpEmail, signOut
   };
 

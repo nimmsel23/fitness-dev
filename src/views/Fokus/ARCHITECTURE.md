@@ -1,15 +1,16 @@
 # View Architecture: Fokus
 
 ## Purpose
-Read-only focus map derived from the `Hit` outputs of the Anamnese flow. It does not mirror the full Anamnese structure and does not own separate persistence.
+Focus map derived from the `Hit` outputs of the Anamnese flow, with a nested Freedom layer for the next planning step.
 
 ## Features
 - Shows only the filled `Hit` outputs as the actual focus map.
 - Keeps `Insights` and `Lessons Learned` as a reflection block below the hits.
-- Reuses existing state from `UserContext`.
+- Offers nested layers for returning to `Anamnese` and progressing to `Freedom Map`.
+- `Freedom Map` has its own persisted fields (`Horizon`, `Foundation`, `First Miles`, `Additions`, `Eliminations`).
 
 ## Logic
-- Pure view layer.
-- All data comes from `useUser()` in `src/contexts/UserContext.jsx`.
+- Reads hit and reflection data from `useUser()` in `src/contexts/UserContext.jsx`.
 - Filters out empty hits before rendering.
-- No save action, no additional state storage.
+- Uses local component state `layer` to switch between `focus`, `anamnese`, and `freedom`.
+- Saves Freedom fields through `updateUserProfile()` into the same profile metadata document used by Anamnese.

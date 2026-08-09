@@ -37,6 +37,7 @@ export default function App() {
     hit4Fact, hit4Obstacle, hit4Strike, hit4Responsibility,
     signIn, signInEmail, signUpEmail, signOut
   } = useUser();
+  const devBypassFlow = isLocalMode();
 
   const {
     theme, setThemeState, themeMode, setModeState,
@@ -55,8 +56,9 @@ export default function App() {
     hasCompleteHit(hit3Fact, hit3Obstacle, hit3Strike, hit3Responsibility) ||
     hasCompleteHit(hit4Fact, hit4Obstacle, hit4Strike, hit4Responsibility)
   );
-  const navItems = getNavItems({ focusReady });
+  const navItems = getNavItems({ focusReady, devBypass: devBypassFlow });
   const resolveFlowTab = (id) => {
+    if (devBypassFlow) return id;
     if (id === 'anamnese' && focusReady) return 'focus';
     if (id === 'focus' && !focusReady) return 'anamnese';
     return id;
