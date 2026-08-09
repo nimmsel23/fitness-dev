@@ -97,7 +97,7 @@ export default function Anamnese() {
         accent="border-t-fit-accent"
       >
         <div>
-          <label className={labelCls}>Trainingserfahrung</label>
+          <label className={labelCls}>How long have you been training?</label>
           <select value={trainingExperience} onChange={(e) => setTrainingExperience(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="beginner">Einsteiger (Beginner)</option>
@@ -108,7 +108,7 @@ export default function Anamnese() {
         </div>
 
         <div>
-          <label className={labelCls}>Aktuelle Trainingshäufigkeit</label>
+          <label className={labelCls}>How often do you train right now?</label>
           <select value={trainingFrequency} onChange={(e) => setTrainingFrequency(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="none">Aktuell kein Training (0/week)</option>
@@ -121,18 +121,18 @@ export default function Anamnese() {
         </div>
 
         <div>
-          <label className={labelCls}>Current training reality</label>
+          <label className={labelCls}>What does your training currently look like?</label>
           <textarea
             rows={3}
             value={trainingType}
-            placeholder="Accepting the raw facts of where we are takes courage."
+            placeholder="Lifting, running, classes, sports, rehab, mostly walking, mostly sitting..."
             onChange={(e) => setTrainingType(e.target.value)}
             className={inputCls}
           />
         </div>
 
         <div>
-          <label className={labelCls}>Aktivitätsniveau im Alltag</label>
+          <label className={labelCls}>How active is your normal day?</label>
           <select value={activityLevel} onChange={(e) => setActivityLevel(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="low">Überwiegend sitzend (Sedentary)</option>
@@ -152,7 +152,7 @@ export default function Anamnese() {
         accent="border-t-fit-dim"
       >
         <div>
-          <label className={labelCls}>Energie / Physische Kraft im Alltag</label>
+          <label className={labelCls}>How is your energy on most days?</label>
           <select value={energyLevel} onChange={(e) => setEnergyLevel(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="low">Eher niedrig (Low fuel)</option>
@@ -163,7 +163,7 @@ export default function Anamnese() {
         </div>
 
         <div>
-          <label className={labelCls}>Erholungskapazität</label>
+          <label className={labelCls}>How well do you recover?</label>
           <select value={recoveryQuality} onChange={(e) => setRecoveryQuality(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="poor">Schlecht (Lagging recovery)</option>
@@ -174,22 +174,22 @@ export default function Anamnese() {
         </div>
 
         <div>
-          <label className={labelCls}>Schmerzen / Reibungspunkte</label>
+          <label className={labelCls}>Where do you have pain or recurring issues?</label>
           <textarea
             rows={2}
             value={painNotes}
-            placeholder="When you blend facts and feelings, you tap into the full depth of the human experience."
+            placeholder="Shoulder, knee, back, elbow, neck, headaches, no pain..."
             onChange={(e) => setPainNotes(e.target.value)}
             className={inputCls}
           />
         </div>
 
         <div>
-          <label className={labelCls}>Beweglichkeit & Einschränkungen</label>
+          <label className={labelCls}>What movements feel limited?</label>
           <textarea
             rows={2}
             value={mobilityNotes}
-            placeholder="Feelings are the winds that fill our sails, making life unpredictable but enriching."
+            placeholder="Deep squat, overhead reach, rotation, hamstrings, ankles, nothing major..."
             onChange={(e) => setMobilityNotes(e.target.value)}
             className={inputCls}
           />
@@ -197,44 +197,44 @@ export default function Anamnese() {
 
         <div className="border-t border-fit-line/50 pt-4 grid gap-4">
           <div>
-            <label className={labelCls}>Chronische Erkrankungen</label>
+            <label className={labelCls}>Any chronic conditions?</label>
             <textarea
               rows={2}
               value={chronicConditions}
-              placeholder="Facts give us a solid foundation to understand the world, but feelings are what give life movement and meaning."
+              placeholder="Asthma, diabetes, hypertension, autoimmune issues, none..."
               onChange={(e) => setChronicConditions(e.target.value)}
               className={inputCls}
             />
           </div>
 
           <div>
-            <label className={labelCls}>Verletzungen / Operationen (Historie)</label>
+            <label className={labelCls}>Past injuries or surgeries?</label>
             <textarea
               rows={2}
               value={injuries}
-              placeholder="Owning your facts gives you a solid foundation. Embracing your feelings adds depth and life."
+              placeholder="ACL tear, shoulder surgery, hernia, fracture, none..."
               onChange={(e) => setInjuries(e.target.value)}
               className={inputCls}
             />
           </div>
 
           <div>
-            <label className={labelCls}>Medikamente (Trainingsbeeinflussend)</label>
+            <label className={labelCls}>Any medication that affects training?</label>
             <textarea
               rows={2}
               value={medications}
-              placeholder="In life, facts and feelings are like the two steps in a dance."
+              placeholder="Pain meds, inhaler, insulin, beta blockers, none..."
               onChange={(e) => setMedications(e.target.value)}
               className={inputCls}
             />
           </div>
 
           <div>
-            <label className={labelCls}>Ärztliche Hinweise & Freigaben</label>
+            <label className={labelCls}>Any medical restrictions or clearance notes?</label>
             <textarea
               rows={2}
               value={medicalClearanceNotes}
-              placeholder="The facts will set you free — but only if you’re willing to own them completely."
+              placeholder="Avoid impact, cleared for full training, waiting on imaging, none..."
               onChange={(e) => setMedicalClearanceNotes(e.target.value)}
               className={inputCls}
             />
@@ -251,7 +251,7 @@ export default function Anamnese() {
         accent="border-t-fit-accent"
       >
         <div>
-          <label className={labelCls}>Primary focus</label>
+          <label className={labelCls}>What is your main goal right now?</label>
           <select value={fitnessGoal} onChange={(e) => setFitnessGoal(e.target.value)} className={inputCls}>
             <option value="">Keine Angabe</option>
             <option value="strength">Kraft steigern (Strength)</option>
@@ -266,11 +266,11 @@ export default function Anamnese() {
         </div>
 
         <div>
-          <label className={labelCls}>Nebenziele & konkrete Performance-Targets</label>
+          <label className={labelCls}>Any secondary goals or concrete targets?</label>
           <textarea
             rows={3}
             value={secondaryGoal}
-            placeholder="Focus is the spotlight that lights up your goals in the darkness of uncertainty."
+            placeholder="Lose 5 kg, 10 pull-ups, pain-free running, better sleep, improve posture..."
             onChange={(e) => setSecondaryGoal(e.target.value)}
             className={inputCls}
           />
@@ -286,22 +286,22 @@ export default function Anamnese() {
         accent="border-t-fit-dim"
       >
         <div>
-          <label className={labelCls}>Was bringt aktuell echte Ergebnisse?</label>
+          <label className={labelCls}>What is working well at the moment?</label>
           <textarea
             rows={3}
             value={trainingWorking}
-            placeholder="By their fruit, you shall know them."
+            placeholder="Consistent walks, full-body training, protein intake, earlier bedtime..."
             onChange={(e) => setTrainingWorking(e.target.value)}
             className={inputCls}
           />
         </div>
 
         <div>
-          <label className={labelCls}>Wo mangelt es an Ergebnissen / Wo sind Ausreden?</label>
+          <label className={labelCls}>What is not working?</label>
           <textarea
             rows={3}
             value={trainingNotWorking}
-            placeholder="Today’s society makes it easy to prioritize excuses over results."
+            placeholder="Inconsistent schedule, pain flare-ups, overeating, poor sleep, skipping sessions..."
             onChange={(e) => setTrainingNotWorking(e.target.value)}
             className={inputCls}
           />
