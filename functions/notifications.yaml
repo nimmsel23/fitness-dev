@@ -1,0 +1,29 @@
+# Texte für Push-Notifications, gelesen von functions/index.js.
+# Platzhalter in {geschweiften Klammern} werden zur Laufzeit ersetzt
+# (siehe renderTemplate() in index.js). Änderungen hier wirken erst nach
+# `firebase deploy --only functions`.
+
+workout:
+  title: "Workout Reminder"
+  body: "Zeit für dein Training!"
+  link: "/?tab=session"
+
+restday:
+  title: "Alles ok?"
+  body: "Letzte Session war vor {days} Tagen"
+  link: "/?tab=session"
+
+coverage:
+  title: "Coverage-Alert"
+  body: "{regions} seit 7 Tagen kaum trainiert"
+  link: "/?tab=review"
+
+habit:
+  title: "Habit Reminder"
+  body: "Noch offen heute: {names}"
+  link: "/?tab=habits"
+
+coachFeedback:
+  title: "Coach Feedback"
+  link: "/?tab=session"
+  # body ist dynamisch (Feedback-Text selbst) — kein Template hier
