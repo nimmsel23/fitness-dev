@@ -18,44 +18,48 @@ import {
   estimateDurationMinutes,
   sessionHasLoggedWorkout,
 } from '../../lib/sessionGate.js';
+import { resolveGeoLocation } from '../../lib/geoLocate.js';
 import { getRollingDays } from './utils';
 
 const DEFAULT_ACTIVITY = { type: 'hiit', duration: '', notes: '', muscleTarget: 'core', muscles: ['core'] };
 
+// GPS-Fix drinnen (Gym, Beton/Stahl) dauert oft länger als ein knapper
+// Timeout erlaubt — jeder Fehler (Timeout, Denial, Unavailable) lief bisher
+// still in `resolve(null)`, ohne dass man es je bemerkt hätte (Bug-Fund
+// 2026-08-09: sessionGate.gps blieb trotz erteilter Berechtigung null).
+// enableHighAccuracy:true + 15s Timeout, Fehlergrund wird zurückgegeben statt
+// verschluckt, damit startSessionGate() sichtbares Feedback geben kann.
 function getCurrentPosition() {
-  if (typeof navigator === 'undefined' || !navigator.geolocation) return Promise.resolve(null);
+  if (typeof navigator === 'undefined' || !navigator.geolocation) {
+    return Promise.resolve({ position: null, errorReason: 'unsupported' });
+  }
   return new Promise((resolve) => {
     navigator.geolocation.getCurrentPosition(
       (position) => resolve({
-        lat: position.coords?.latitude ?? null,
-        lng: position.coords?.longitude ?? null,
-        accuracy: position.coords?.accuracy ?? null,
-        capturedAt: new Date().toISOString(),
+        position: {
+          lat: position.coords?.latitude ?? null,
+          lng: position.coords?.longitude ?? null,
+          accuracy: position.coords?.accuracy ?? null,
+          capturedAt: new Date().toISOString(),
+        },
+        errorReason: null,
       }),
-      () => resolve(null),
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 },
+      (err) => {
+        const reason = err?.code === 1 ? 'denied' : err?.code === 3 ? 'timeout' : 'unavailable';
+        resolve({ position: null, errorReason: reason });
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 5 * 60 * 1000 },
     );
   });
 }
 
-// Löst GPS-Koordinaten in einen menschenlesbaren Ort auf: nächstes Gym (OSM
-// Overpass) > Adresse (Nominatim) > rohe Koordinaten. Serverseitig (/fitness/
-// geo/locate), damit kein Browser-CORS/Key-Kram nötig ist. Existiert der
-// Endpoint nicht (z.B. Firebase-Build ohne Node-Backend), einfach null.
-async function resolveGeoLocation(lat, lng) {
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-  try {
-    const base = import.meta.env.VITE_API_BASE || '';
-    const res = await fetch(`${base}/fitness/geo/locate?lat=${lat}&lng=${lng}`, {
-      signal: AbortSignal.timeout(9000),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.ok ? data : null;
-  } catch {
-    return null;
-  }
-}
+const GPS_ERROR_LABELS = {
+  denied: 'Standort-Zugriff verweigert',
+  timeout: 'Standort-Fix hat zu lange gedauert (drinnen oft schwach)',
+  unavailable: 'Standort nicht verfügbar',
+  unsupported: 'Standort wird nicht unterstützt',
+};
+
 
 function slugify(name) {
   return String(name || 'exercise')
@@ -471,7 +475,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   }
 
   async function startSessionGate() {
-    const gps = await getCurrentPosition();
+    const { position: gps, errorReason } = await getCurrentPosition();
     const geo = gps ? await resolveGeoLocation(gps.lat, gps.lng) : null;
     const nextGate = normalizeSessionGate({
       status: 'active',
@@ -485,7 +489,11 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     if (nextLocation) setLocation(nextLocation);
     setDirty(false);
     await save(false, { sessionGate: nextGate, location: nextLocation });
-    showToast('Workout gestartet');
+    if (errorReason) {
+      showToast(`Workout gestartet · ${GPS_ERROR_LABELS[errorReason] || 'Standort nicht erfasst'}`);
+    } else {
+      showToast('Workout gestartet');
+    }
   }
 
   async function stopSessionGate() {

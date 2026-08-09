@@ -41,7 +41,7 @@ Zusätzlich zum bestehenden manuellen Workout-Editor kann eine Session jetzt ein
 - `endedAt` markiert das Ende.
 - ohne Übungen/Activity zählt ein gestartetes oder beendetes Gate trotzdem als geloggter Trainingstag.
 - die Oberfläche bleibt absichtlich zweistufig: erst Start/Stop, dann optionales Nachtragen.
-- `gps` wird beim Start einmalig erfasst und serverseitig via `GET /fitness/geo/locate` (server.mjs, Overpass + Nominatim, kein API-Key) aufgelöst: nächstes Gym (250m Radius) > Adresse > rohe Koordinaten. Befüllt `location` nur wenn leer, liefert zusätzlich `mapsUrl` für den Navigation-Icon-Link im Location-Feld.
+- `gps` wird beim Start einmalig erfasst (15s Timeout, `enableHighAccuracy`, Fehlgrund `denied`/`timeout`/`unavailable` landet als Toast) und client-seitig via `lib/geoLocate.js` (Overpass + Nominatim, kein API-Key, kein Server-Roundtrip) aufgelöst: nächstes Gym (250m Radius) > Adresse > rohe Koordinaten. Client-seitig bewusst statt Server-Endpoint, weil der Firebase-Hosting-Build `server.mjs` nicht erreicht. Befüllt `location` nur wenn leer, liefert zusätzlich `mapsUrl` für den Navigation-Icon-Link im Location-Feld.
 
 ## Multi-Session pro Tag
 
