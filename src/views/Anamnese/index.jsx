@@ -5,7 +5,6 @@ import {
 import { useUser } from "../../contexts/UserContext";
 import { updateUserProfile } from "@db";
 
-const labelCls = "text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 ml-1 block text-fit-ink";
 const inputCls = "w-full bg-fit-bg2 border border-fit-line rounded-xl px-4 py-3 text-sm font-bold text-fit-ink focus:border-fit-accent outline-none transition-colors placeholder:text-fit-ink/20";
 const miniCls = "text-[10px] font-black uppercase tracking-[0.25em] text-fit-accent/70";
 
@@ -29,22 +28,26 @@ function Category({ icon: Icon, title, subtitle, accent, children }) {
 export default function Anamnese() {
   const {
     user,
-    trainingExperience, setTrainingExperience,
-    trainingFrequency, setTrainingFrequency,
     trainingType, setTrainingType,
-    activityLevel, setActivityLevel,
     fitnessGoal, setFitnessGoal,
-    secondaryGoal, setSecondaryGoal,
-    energyLevel, setEnergyLevel,
-    recoveryQuality, setRecoveryQuality,
-    painNotes, setPainNotes,
-    mobilityNotes, setMobilityNotes,
-    chronicConditions, setChronicConditions,
     injuries, setInjuries,
-    medications, setMedications,
     medicalClearanceNotes, setMedicalClearanceNotes,
-    trainingWorking, setTrainingWorking,
     trainingNotWorking, setTrainingNotWorking,
+    submitFacts, setSubmitFacts,
+    submitFeelings, setSubmitFeelings,
+    submitFocus, setSubmitFocus,
+    submitFruit, setSubmitFruit,
+    warStackTitle, setWarStackTitle,
+    warStackDomain, setWarStackDomain,
+    warStackSubdomain, setWarStackSubdomain,
+    warStackDoor, setWarStackDoor,
+    warStackTrigger, setWarStackTrigger,
+    warStackNarrative, setWarStackNarrative,
+    warStackValidation, setWarStackValidation,
+    warStackImpact, setWarStackImpact,
+    warStackConsequences, setWarStackConsequences,
+    warStackInsights, setWarStackInsights,
+    warStackLesson, setWarStackLesson,
   } = useUser();
 
   const [saving, setSaving] = useState(false);
@@ -54,11 +57,26 @@ export default function Anamnese() {
     if (!user) return;
     setSaving(true);
     const success = await updateUserProfile(user.uid, {
-      trainingExperience, trainingFrequency, trainingType, activityLevel,
-      fitnessGoal, secondaryGoal,
-      energyLevel, recoveryQuality, painNotes, mobilityNotes,
-      chronicConditions, injuries, medications, medicalClearanceNotes,
-      trainingWorking, trainingNotWorking,
+      trainingType,
+      fitnessGoal,
+      injuries,
+      medicalClearanceNotes,
+      trainingNotWorking,
+      submitFacts,
+      submitFeelings,
+      submitFocus,
+      submitFruit,
+      warStackTitle,
+      warStackDomain,
+      warStackSubdomain,
+      warStackDoor,
+      warStackTrigger,
+      warStackNarrative,
+      warStackValidation,
+      warStackImpact,
+      warStackConsequences,
+      warStackInsights,
+      warStackLesson,
     });
     if (success) {
       setSaved(true);
@@ -85,102 +103,112 @@ export default function Anamnese() {
       <Category
         icon={PauseCircle}
         title="STOP"
-        subtitle="Pause the pattern. Name the current reality."
+        subtitle="pausa"
         accent="border-t-fit-accent"
       >
-        <div>
-          <label className={labelCls}>Pattern</label>
-          <textarea
-            rows={3}
-            value={trainingExperience}
-            placeholder="What keeps repeating?"
-            onChange={(e) => setTrainingExperience(e.target.value)}
-            className={inputCls}
-          />
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
+            <div className={miniCls}>TITLE · titulus</div>
+            <textarea
+              rows={3}
+              value={warStackTitle}
+              placeholder="What do you call this? / Wie nennst du das?"
+              onChange={(e) => setWarStackTitle(e.target.value)}
+              className={inputCls}
+            />
+          </div>
+
+          <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
+            <div className={miniCls}>DOMAIN · dominium</div>
+            <textarea
+              rows={3}
+              value={warStackDomain}
+              placeholder="What part of life does this belong to? / Wohin gehört das in deinem Leben?"
+              onChange={(e) => setWarStackDomain(e.target.value)}
+              className={inputCls}
+            />
+          </div>
+
+          <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
+            <div className={miniCls}>SUB-DOMAIN · subdominium</div>
+            <textarea
+              rows={3}
+              value={warStackSubdomain}
+              placeholder="What is the deeper layer here? / Was ist die tiefere Schicht darunter?"
+              onChange={(e) => setWarStackSubdomain(e.target.value)}
+              className={inputCls}
+            />
+          </div>
+
+          <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
+            <div className={miniCls}>THRESHOLD · porta</div>
+            <textarea
+              rows={3}
+              value={warStackDoor}
+              placeholder="What is the threshold you are trying to cross? / Welche Schwelle versuchst du zu überschreiten?"
+              onChange={(e) => setWarStackDoor(e.target.value)}
+              className={inputCls}
+            />
+          </div>
         </div>
 
-        <div>
-          <label className={labelCls}>Reality</label>
-          <textarea
-            rows={3}
-            value={trainingType}
-            placeholder="What is actually going on with your body and training right now?"
-            onChange={(e) => setTrainingType(e.target.value)}
-            className={inputCls}
-          />
-        </div>
-
-        <div>
-          <label className={labelCls}>Pressure</label>
-          <textarea
-            rows={3}
-            value={activityLevel}
-            placeholder="What is pressing on you from outside?"
-            onChange={(e) => setActivityLevel(e.target.value)}
-            className={inputCls}
-          />
-        </div>
-
-        <div>
-          <label className={labelCls}>Rhythm</label>
-          <textarea
-            rows={3}
-            value={trainingFrequency}
-            placeholder="What does your current rhythm actually look like?"
-            onChange={(e) => setTrainingFrequency(e.target.value)}
-            className={inputCls}
-          />
-        </div>
+        <textarea
+          rows={6}
+          value={trainingType}
+          placeholder="What is actually going on right now? / Was geht gerade wirklich ab?"
+          onChange={(e) => setTrainingType(e.target.value)}
+          className={inputCls}
+        />
       </Category>
 
       {/* SUBMIT */}
       <Category
         icon={ShieldCheck}
         title="SUBMIT"
-        subtitle="Radical honesty through facts, feelings, focus, and fruit."
+        subtitle="submissio"
         accent="border-t-fit-dim"
       >
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
-            <div className={miniCls}>FACTS</div>
+            <div className={miniCls}>FACTS · facta</div>
             <textarea
               rows={4}
-              value={painNotes}
-              placeholder="What are the undeniable realities of your current situation?"
-              onChange={(e) => setPainNotes(e.target.value)}
+              value={submitFacts}
+              placeholder="What are the undeniable realities of your current situation? / Was sind die unbestreitbaren Tatsachen?"
+              onChange={(e) => setSubmitFacts(e.target.value)}
               className={inputCls}
             />
           </div>
 
           <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
-            <div className={miniCls}>FEELINGS</div>
+            <div className={miniCls}>FEELINGS · sensus</div>
             <textarea
               rows={4}
-              value={energyLevel}
-              placeholder="How do you actually feel about these facts?"
-              onChange={(e) => setEnergyLevel(e.target.value)}
+              value={submitFeelings}
+              placeholder="How do you truly feel about these facts? / Wie fühlst du dich dazu wirklich?"
+              onChange={(e) => setSubmitFeelings(e.target.value)}
               className={inputCls}
             />
           </div>
 
           <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
-            <div className={miniCls}>FOCUS</div>
+            <div className={miniCls}>FOCUS · focus</div>
             <textarea
               rows={4}
-              value={secondaryGoal}
-              placeholder="What has been your mindset toward these facts and feelings?"
-              onChange={(e) => setSecondaryGoal(e.target.value)}
+              value={submitFocus}
+              placeholder="What has been your mindset toward these facts and feelings? / Wie war dein Fokus gegenüber diesen Fakten und Gefühlen?"
+              onChange={(e) => setSubmitFocus(e.target.value)}
               className={inputCls}
             />
           </div>
 
           <div className="space-y-3 rounded-2xl border border-fit-line/60 bg-fit-bg2/60 p-4">
-            <div className={miniCls}>FRUIT</div>
+            <div className={miniCls}>FRUIT · fructus</div>
             <textarea
               rows={4}
-              value={trainingWorking}
-              placeholder="What results or outcomes have you gotten from this mindset?"
-              onChange={(e) => setTrainingWorking(e.target.value)}
+              value={submitFruit}
+              placeholder="What results or outcomes have you gotten from this mindset? / Welche Resultate kamen daraus?"
+              onChange={(e) => setSubmitFruit(e.target.value)}
               className={inputCls}
             />
           </div>
@@ -191,22 +219,38 @@ export default function Anamnese() {
       <Category
         icon={Swords}
         title="STRUGGLE"
-        subtitle="Name the friction instead of hiding it."
+        subtitle="lucta"
         accent="border-t-fit-accent"
       >
         <textarea
           rows={4}
+          value={warStackTrigger}
+          placeholder="What person or event set this in motion? / Welcher Mensch oder welches Ereignis hat das in Bewegung gesetzt?"
+          onChange={(e) => setWarStackTrigger(e.target.value)}
+          className={inputCls}
+        />
+
+        <textarea
+          rows={4}
           value={injuries}
-          placeholder="What are you wrestling with right now? Pain, resistance, fear, inconsistency, avoidance, shame, frustration..."
+          placeholder="What are you wrestling with right now? / Womit ringst du gerade wirklich?"
           onChange={(e) => setInjuries(e.target.value)}
           className={inputCls}
         />
 
         <textarea
           rows={4}
-          value={medications}
-          placeholder="What story are you telling yourself that keeps this pattern alive?"
-          onChange={(e) => setMedications(e.target.value)}
+          value={warStackNarrative}
+          placeholder="What story are you currently telling yourself about this? / Welche Geschichte erzählst du dir dazu gerade?"
+          onChange={(e) => setWarStackNarrative(e.target.value)}
+          className={inputCls}
+        />
+
+        <textarea
+          rows={4}
+          value={warStackValidation}
+          placeholder="Why does this feel necessary? / Warum fühlt sich das notwendig an?"
+          onChange={(e) => setWarStackValidation(e.target.value)}
           className={inputCls}
         />
       </Category>
@@ -215,41 +259,64 @@ export default function Anamnese() {
       <Category
         icon={Zap}
         title="STRIKE"
-        subtitle="Define the target and the next clear move."
+        subtitle="ictus"
         accent="border-t-fit-dim"
       >
-        <div>
-          <label className={labelCls}>Target</label>
-          <textarea
-            rows={3}
-            value={fitnessGoal}
-            placeholder="What are you moving toward?"
-            onChange={(e) => setFitnessGoal(e.target.value)}
-            className={inputCls}
-          />
-        </div>
+        <textarea
+          rows={4}
+          value={fitnessGoal}
+          placeholder="What are you moving toward? / Worauf gehst du konkret zu?"
+          onChange={(e) => setFitnessGoal(e.target.value)}
+          className={inputCls}
+        />
 
-        <div>
-          <label className={labelCls}>Proof</label>
-          <textarea
-            rows={3}
-            value={trainingNotWorking}
-            placeholder="What would prove progress?"
-            onChange={(e) => setTrainingNotWorking(e.target.value)}
-            className={inputCls}
-          />
-        </div>
+        <textarea
+          rows={4}
+          value={warStackImpact}
+          placeholder="What would change if this opened? / Was verändert sich, wenn sich das öffnet?"
+          onChange={(e) => setWarStackImpact(e.target.value)}
+          className={inputCls}
+        />
 
-        <div>
-          <label className={labelCls}>Next move</label>
-          <textarea
-            rows={3}
-            value={medicalClearanceNotes}
-            placeholder="What is the next clear move?"
-            onChange={(e) => setMedicalClearanceNotes(e.target.value)}
-            className={inputCls}
-          />
-        </div>
+        <textarea
+          rows={4}
+          value={warStackConsequences}
+          placeholder="What happens if this stays closed? / Was passiert, wenn das geschlossen bleibt?"
+          onChange={(e) => setWarStackConsequences(e.target.value)}
+          className={inputCls}
+        />
+
+        <textarea
+          rows={4}
+          value={trainingNotWorking}
+          placeholder="What would prove progress? / Woran würdest du Fortschritt erkennen?"
+          onChange={(e) => setTrainingNotWorking(e.target.value)}
+          className={inputCls}
+        />
+
+        <textarea
+          rows={4}
+          value={medicalClearanceNotes}
+          placeholder="What is the next clear move? / Was ist der nächste klare Move?"
+          onChange={(e) => setMedicalClearanceNotes(e.target.value)}
+          className={inputCls}
+        />
+
+        <textarea
+          rows={4}
+          value={warStackInsights}
+          placeholder="What new realizations have come to light? / Welche Einsichten sind aufgetaucht?"
+          onChange={(e) => setWarStackInsights(e.target.value)}
+          className={inputCls}
+        />
+
+        <textarea
+          rows={4}
+          value={warStackLesson}
+          placeholder="What is the most important lesson this stack has taught you? / Was ist die wichtigste Lektion?"
+          onChange={(e) => setWarStackLesson(e.target.value)}
+          className={inputCls}
+        />
       </Category>
 
       <button
