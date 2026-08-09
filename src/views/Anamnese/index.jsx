@@ -1,69 +1,160 @@
 import { useState } from "react";
-import {
-  ClipboardList, Dumbbell, Waves, Target, ScanSearch, Save, Check,
-} from "lucide-react";
+import { Save, Check } from "lucide-react";
 import { useUser } from "../../contexts/UserContext";
 import { updateUserProfile } from "@db";
 
-const labelCls = "text-[10px] font-black uppercase tracking-widest opacity-40 mb-2 ml-1 block text-fit-ink";
-const inputCls = "w-full bg-fit-bg2 border border-fit-line rounded-xl px-4 py-3 text-sm font-bold text-fit-ink focus:border-fit-accent outline-none transition-colors placeholder:text-fit-ink/20";
+const inputCls = "w-full rounded-2xl border border-fit-line bg-fit-card px-4 py-3 text-sm font-semibold text-fit-ink outline-none transition-colors focus:border-fit-accent placeholder:text-fit-ink/30";
+const metaCls = "text-[10px] font-black uppercase tracking-[0.28em] text-fit-accent";
+const labelCls = "text-[11px] font-black uppercase tracking-[0.22em] text-fit-ink/55";
+const sublabelCls = "text-xs text-fit-ink/45 leading-snug";
 
-function Category({ icon: Icon, tag, title, subtitle, quote, accent, children }) {
+function Section({ meta, title, subtitle, children }) {
   return (
-    <section className={`card p-8 space-y-6 border-t-4 ${accent} animate-in fade-in slide-in-from-top-4 duration-500`}>
-      <div className="flex items-start gap-4">
-        <div className="w-10 h-10 rounded-xl bg-fit-accent/10 flex items-center justify-center shrink-0 mt-1">
-          <Icon size={20} className="text-fit-accent" />
-        </div>
-        <div className="space-y-1">
-          <div className="text-[10px] font-black uppercase tracking-widest text-fit-accent">{tag}</div>
-          <h3 className="text-xl font-black text-fit-ink">{title}</h3>
-          <p className="text-xs font-semibold text-fit-ink/60">{subtitle}</p>
-          {quote && (
-            <p className="text-[10px] font-black uppercase tracking-widest text-fit-dim italic mt-2 border-l-2 border-fit-line pl-2 opacity-80">
-              "{quote}"
-            </p>
-          )}
-        </div>
+    <section className="rounded-[24px] border border-fit-line bg-fit-card p-5 md:p-6 space-y-5">
+      <div className="space-y-2">
+        <div className={metaCls}>{meta}</div>
+        <h3 className="text-2xl md:text-3xl font-black text-fit-ink leading-none">{title}</h3>
+        <p className="text-sm text-fit-ink/65 max-w-3xl">{subtitle}</p>
       </div>
       <div className="grid gap-4">{children}</div>
     </section>
   );
 }
 
+function Field({ label, hint, value, onChange, placeholder, rows = 4 }) {
+  return (
+    <label className="grid gap-2">
+      <div className="grid gap-1">
+        <span className={labelCls}>{label}</span>
+        {hint && <span className={sublabelCls}>{hint}</span>}
+      </div>
+      <textarea
+        rows={rows}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputCls}
+      />
+    </label>
+  );
+}
+
+function Hit({ number, fact, setFact, obstacle, setObstacle, strike, setStrike, responsibility, setResponsibility }) {
+  return (
+    <div className="rounded-[20px] border border-fit-line bg-fit-bg2/35 p-4 space-y-4">
+      <div className="text-sm font-black uppercase tracking-[0.24em] text-fit-ink">{number}</div>
+      <Field
+        label="Fact"
+        hint="The clear, measurable result you aim to achieve."
+        value={fact}
+        onChange={setFact}
+        placeholder="Was ist das klare, messbare Ergebnis, das du zu erreichen suchst?"
+      />
+      <Field
+        label="Obstacle"
+        hint="What could prevent you from achieving this fact?"
+        value={obstacle}
+        onChange={setObstacle}
+        placeholder="Was könnte dich daran hindern, dieses Ergebnis zu erreichen?"
+      />
+      <Field
+        label="Strike"
+        hint="What’s your strategic move to overcome the obstacle?"
+        value={strike}
+        onChange={setStrike}
+        placeholder="Was ist dein strategischer Zug, um dieses Hindernis zu überwinden?"
+      />
+      <Field
+        label="Responsibility"
+        hint="Who is responsible for executing this strike?"
+        value={responsibility}
+        onChange={setResponsibility}
+        placeholder="Wer trägt die Verantwortung für die Ausführung dieses Zuges?"
+      />
+    </div>
+  );
+}
+
 export default function Anamnese() {
   const {
     user,
-    trainingExperience, setTrainingExperience,
-    trainingFrequency, setTrainingFrequency,
     trainingType, setTrainingType,
-    activityLevel, setActivityLevel,
-    fitnessGoal, setFitnessGoal,
-    secondaryGoal, setSecondaryGoal,
-    energyLevel, setEnergyLevel,
-    recoveryQuality, setRecoveryQuality,
-    painNotes, setPainNotes,
-    mobilityNotes, setMobilityNotes,
-    chronicConditions, setChronicConditions,
+    submitFacts, setSubmitFacts,
+    submitFeelings, setSubmitFeelings,
+    submitFocus, setSubmitFocus,
+    submitFruit, setSubmitFruit,
+    warStackTrigger, setWarStackTrigger,
     injuries, setInjuries,
-    medications, setMedications,
-    medicalClearanceNotes, setMedicalClearanceNotes,
-    trainingWorking, setTrainingWorking,
-    trainingNotWorking, setTrainingNotWorking,
+    warStackNarrative, setWarStackNarrative,
+    warStackValidation, setWarStackValidation,
+    warStackImpact, setWarStackImpact,
+    warStackConsequences, setWarStackConsequences,
+    warStackInsights, setWarStackInsights,
+    warStackLesson, setWarStackLesson,
+    hit1Fact, setHit1Fact,
+    hit1Obstacle, setHit1Obstacle,
+    hit1Strike, setHit1Strike,
+    hit1Responsibility, setHit1Responsibility,
+    hit2Fact, setHit2Fact,
+    hit2Obstacle, setHit2Obstacle,
+    hit2Strike, setHit2Strike,
+    hit2Responsibility, setHit2Responsibility,
+    hit3Fact, setHit3Fact,
+    hit3Obstacle, setHit3Obstacle,
+    hit3Strike, setHit3Strike,
+    hit3Responsibility, setHit3Responsibility,
+    hit4Fact, setHit4Fact,
+    hit4Obstacle, setHit4Obstacle,
+    hit4Strike, setHit4Strike,
+    hit4Responsibility, setHit4Responsibility,
   } = useUser();
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [visibleHits, setVisibleHits] = useState(() => {
+    const hitValues = [
+      hit1Fact || hit1Obstacle || hit1Strike || hit1Responsibility,
+      hit2Fact || hit2Obstacle || hit2Strike || hit2Responsibility,
+      hit3Fact || hit3Obstacle || hit3Strike || hit3Responsibility,
+      hit4Fact || hit4Obstacle || hit4Strike || hit4Responsibility,
+    ];
+    const lastFilledIndex = hitValues.reduce((last, value, index) => (value ? index : last), 0);
+    return Math.min(4, Math.max(1, lastFilledIndex + 1));
+  });
 
   async function handleSave() {
     if (!user) return;
     setSaving(true);
     const success = await updateUserProfile(user.uid, {
-      trainingExperience, trainingFrequency, trainingType, activityLevel,
-      fitnessGoal, secondaryGoal,
-      energyLevel, recoveryQuality, painNotes, mobilityNotes,
-      chronicConditions, injuries, medications, medicalClearanceNotes,
-      trainingWorking, trainingNotWorking,
+      trainingType,
+      submitFacts,
+      submitFeelings,
+      submitFocus,
+      submitFruit,
+      warStackTrigger,
+      injuries,
+      warStackNarrative,
+      warStackValidation,
+      warStackImpact,
+      warStackConsequences,
+      warStackInsights,
+      warStackLesson,
+      hit1Fact,
+      hit1Obstacle,
+      hit1Strike,
+      hit1Responsibility,
+      hit2Fact,
+      hit2Obstacle,
+      hit2Strike,
+      hit2Responsibility,
+      hit3Fact,
+      hit3Obstacle,
+      hit3Strike,
+      hit3Responsibility,
+      hit4Fact,
+      hit4Obstacle,
+      hit4Strike,
+      hit4Responsibility,
     });
     if (success) {
       setSaved(true);
@@ -73,254 +164,207 @@ export default function Anamnese() {
   }
 
   return (
-    <div className="space-y-8 pb-32 max-w-5xl mx-auto">
-      <header className="mb-4 animate-in fade-in duration-700">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-fit-accent/10 flex items-center justify-center shrink-0">
-            <ClipboardList size={20} className="text-fit-accent" />
-          </div>
-          <div>
-            <h2 className="text-3xl font-black text-fit-ink">Anamnese</h2>
-            <p className="text-sm font-medium opacity-40">
-              Real · Raw · Relevant · Results.
-            </p>
-          </div>
-        </div>
+    <div className="max-w-5xl mx-auto space-y-6 pb-32">
+      <header className="rounded-[24px] border border-fit-line bg-fit-card p-5 md:p-6 space-y-2">
+        <div className={metaCls}>REAL · RAW · RELEVANT · RESULTS</div>
+        <h2 className="text-3xl md:text-4xl font-black text-fit-ink leading-none">Anamnese</h2>
       </header>
 
-      {/* REAL — The Facts */}
-      <Category
-        icon={Dumbbell}
-        tag="Real"
-        title="Realität & Status"
-        subtitle="Die ungeschminkte Wahrheit über deinen Körper und Alltag. Keine Ausreden, kein Schönreden."
-        quote="Accepting the raw facts of where we are takes courage. Strip away the excuses."
-        accent="border-t-fit-accent"
+      <Section
+        meta="REAL"
+        title="Stop"
+        subtitle="Ein bewusstes Innehalten. Ein Raum, um zu sehen, zu bedenken und die Geschichten wahrzunehmen, die dich lenken."
       >
-        <div>
-          <label className={labelCls}>Trainingserfahrung</label>
-          <select value={trainingExperience} onChange={(e) => setTrainingExperience(e.target.value)} className={inputCls}>
-            <option value="">Keine Angabe</option>
-            <option value="beginner">Einsteiger (Beginner)</option>
-            <option value="returning">Wiedereinsteiger (Returning)</option>
-            <option value="intermediate">Fortgeschritten (Intermediate)</option>
-            <option value="advanced">Sehr erfahren (Advanced)</option>
-          </select>
-        </div>
+        <Field
+          label="Trigger"
+          hint="What person or event has sparked your desire for change?"
+          value={warStackTrigger}
+          onChange={setWarStackTrigger}
+          placeholder="Welche Person oder welches Ereignis hat in dir den Wunsch nach Veränderung entfacht?"
+        />
+        <Field
+          label="Reality"
+          hint="What are the undeniable realities of your current situation?"
+          value={trainingType}
+          onChange={setTrainingType}
+          placeholder="Was sind die unbestreitbaren Wirklichkeiten deiner gegenwärtigen Lage?"
+          rows={6}
+        />
+      </Section>
 
-        <div>
-          <label className={labelCls}>Aktuelle Trainingshäufigkeit</label>
-          <select value={trainingFrequency} onChange={(e) => setTrainingFrequency(e.target.value)} className={inputCls}>
-            <option value="">Keine Angabe</option>
-            <option value="none">Aktuell kein Training (0/week)</option>
-            <option value="1">1× pro Woche</option>
-            <option value="2">2× pro Woche</option>
-            <option value="3">3× pro Woche</option>
-            <option value="4">4× pro Woche</option>
-            <option value="5_plus">5× oder häufiger</option>
-          </select>
-        </div>
-
-        <div>
-          <label className={labelCls}>Aktuelle Trainingsform & Realität des Körpers</label>
-          <textarea
-            rows={3}
-            value={trainingType}
-            placeholder="What does your body say about you? Are you fat or fit? What are you actually doing right now?"
-            onChange={(e) => setTrainingType(e.target.value)}
-            className={inputCls}
-          />
-        </div>
-
-        <div>
-          <label className={labelCls}>Aktivitätsniveau im Alltag</label>
-          <select value={activityLevel} onChange={(e) => setActivityLevel(e.target.value)} className={inputCls}>
-            <option value="">Keine Angabe</option>
-            <option value="low">Überwiegend sitzend (Sedentary)</option>
-            <option value="moderate">Mäßig aktiv (Moderate)</option>
-            <option value="active">Aktiver Alltag (Active)</option>
-            <option value="very_active">Körperlich sehr aktiv (Heavy labor)</option>
-          </select>
-        </div>
-      </Category>
-
-      {/* RAW — The Fuel */}
-      <Category
-        icon={Waves}
-        tag="Raw"
-        title="Energie, Schmerz & Physis"
-        subtitle="Ungefilterte Bestandsaufnahme deiner Energie und deines biologischen Status. Schmerz ist Energie, wenn man ihn nutzt."
-        quote="Every feeling is a part of your unique story, pushing you toward growth, understanding, and transcendence."
-        accent="border-t-fit-dim"
+      <Section
+        meta="RAW"
+        title="Submit"
+        subtitle="Radikale Ehrlichkeit. Offenlegen, erkennen und benennen, was wahr ist, auch wenn es unangenehm ist."
       >
-        <div>
-          <label className={labelCls}>Energie / Physische Kraft im Alltag</label>
-          <select value={energyLevel} onChange={(e) => setEnergyLevel(e.target.value)} className={inputCls}>
-            <option value="">Keine Angabe</option>
-            <option value="low">Eher niedrig (Low fuel)</option>
-            <option value="variable">Stark schwankend (Variable)</option>
-            <option value="good">Gut (Solid)</option>
-            <option value="high">Sehr gut (Full tank)</option>
-          </select>
-        </div>
-
-        <div>
-          <label className={labelCls}>Erholungskapazität</label>
-          <select value={recoveryQuality} onChange={(e) => setRecoveryQuality(e.target.value)} className={inputCls}>
-            <option value="">Keine Angabe</option>
-            <option value="poor">Schlecht (Lagging recovery)</option>
-            <option value="variable">Schwankend (Inconsistent)</option>
-            <option value="good">Gut (Reliable)</option>
-            <option value="very_good">Sehr gut (Fast adaptation)</option>
-          </select>
-        </div>
-
-        <div>
-          <label className={labelCls}>Schmerzen / Reibungspunkte</label>
-          <textarea
-            rows={2}
-            value={painNotes}
-            placeholder="Dark Feelings & Physical Pain: Where is the pain? Schulter, Knie, Rücken? Use it as fuel."
-            onChange={(e) => setPainNotes(e.target.value)}
-            className={inputCls}
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field
+            label="Facts"
+            hint="What are the undeniable realities of your current situation?"
+            value={submitFacts}
+            onChange={setSubmitFacts}
+            placeholder="Was sind die unbestreitbaren Wirklichkeiten deiner gegenwärtigen Lage?"
+          />
+          <Field
+            label="Feelings"
+            hint="How do you truly feel about these facts?"
+            value={submitFeelings}
+            onChange={setSubmitFeelings}
+            placeholder="Wie fühlst du dich diesen Tatsachen gegenüber in Wahrheit?"
+          />
+          <Field
+            label="Focus"
+            hint="What has been your mindset toward these facts and feelings?"
+            value={submitFocus}
+            onChange={setSubmitFocus}
+            placeholder="Welche innere Haltung hattest du diesen Tatsachen und Gefühlen gegenüber?"
+          />
+          <Field
+            label="Fruits"
+            hint="What results or outcomes have you gotten from this mindset?"
+            value={submitFruit}
+            onChange={setSubmitFruit}
+            placeholder="Welche Ergebnisse oder Folgen sind aus dieser Haltung hervorgegangen?"
           />
         </div>
+      </Section>
 
-        <div>
-          <label className={labelCls}>Beweglichkeit & Einschränkungen</label>
-          <textarea
-            rows={2}
-            value={mobilityNotes}
-            placeholder="Where is the body blocked or static? What limits your movement right now?"
-            onChange={(e) => setMobilityNotes(e.target.value)}
-            className={inputCls}
-          />
-        </div>
-
-        <div className="border-t border-fit-line/50 pt-4 grid gap-4">
-          <div>
-            <label className={labelCls}>Chronische Erkrankungen</label>
-            <textarea
-              rows={2}
-              value={chronicConditions}
-              placeholder="Systemic conditions, heart, lung, metabolism notes..."
-              onChange={(e) => setChronicConditions(e.target.value)}
-              className={inputCls}
-            />
-          </div>
-
-          <div>
-            <label className={labelCls}>Verletzungen / Operationen (Historie)</label>
-            <textarea
-              rows={2}
-              value={injuries}
-              placeholder="Structural damage: Broken bones, surgeries, torn ligaments..."
-              onChange={(e) => setInjuries(e.target.value)}
-              className={inputCls}
-            />
-          </div>
-
-          <div>
-            <label className={labelCls}>Medikamente (Trainingsbeeinflussend)</label>
-            <textarea
-              rows={2}
-              value={medications}
-              placeholder="Beta blockers, asthma spray, insulin, or other regular chemical input..."
-              onChange={(e) => setMedications(e.target.value)}
-              className={inputCls}
-            />
-          </div>
-
-          <div>
-            <label className={labelCls}>Ärztliche Hinweise & Freigaben</label>
-            <textarea
-              rows={2}
-              value={medicalClearanceNotes}
-              placeholder="Has a doctor set hard limits or cleared you fully for heavy loading?"
-              onChange={(e) => setMedicalClearanceNotes(e.target.value)}
-              className={inputCls}
-            />
-          </div>
-        </div>
-      </Category>
-
-      {/* RELEVANT — The Focus */}
-      <Category
-        icon={Target}
-        tag="Relevant"
-        title="Zielsetzung & Fokus"
-        subtitle="Konzentriere deine Kräfte wie einen Laser. Alles Unwichtige wegschneiden."
-        quote="Focus is the tool that separates the essential from the trivial. Grab destructive stories by the throat."
-        accent="border-t-fit-accent"
+      <Section
+        meta="RELEVANT"
+        title="Struggle"
+        subtitle="Der Kampf mit alten Erzählungen, vertrauten Mustern und dem, was dich davon abhält, anders zu handeln."
       >
-        <div>
-          <label className={labelCls}>Primärer Fokus (Laser-Ziel)</label>
-          <select value={fitnessGoal} onChange={(e) => setFitnessGoal(e.target.value)} className={inputCls}>
-            <option value="">Keine Angabe</option>
-            <option value="strength">Kraft steigern (Strength)</option>
-            <option value="muscle">Muskelaufbau (Hypertrophy)</option>
-            <option value="fat_loss">Körperfett reduzieren (Leanness)</option>
-            <option value="endurance">Ausdauer verbessern (Conditioning)</option>
-            <option value="mobility">Beweglichkeit (Mobility)</option>
-            <option value="health">Prävention / Vitalität (Longevity)</option>
-            <option value="performance">Sportliche Leistung (Athletic Power)</option>
-            <option value="daily_function">Dominanz im Alltag (Dominion)</option>
-          </select>
-        </div>
-
-        <div>
-          <label className={labelCls}>Nebenziele & konkrete Performance-Targets</label>
-          <textarea
-            rows={3}
-            value={secondaryGoal}
-            placeholder="Narrowing down: Which specific targets matter? 10 strict pull-ups, pain-free squatting? Replace old stories with a lethal focus."
-            onChange={(e) => setSecondaryGoal(e.target.value)}
-            className={inputCls}
+        <Field
+          label="Struggle"
+          hint="What are you actively engaging with right now?"
+          value={injuries}
+          onChange={setInjuries}
+          placeholder="Womit ringst du gegenwärtig in tätiger Auseinandersetzung?"
+        />
+        <Field
+          label="Narrative"
+          hint="What story are you currently telling yourself?"
+          value={warStackNarrative}
+          onChange={setWarStackNarrative}
+          placeholder="Welche Geschichte erzählst du dir darüber gegenwärtig?"
+        />
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field
+            label="Validation"
+            hint="Why does this feel necessary?"
+            value={warStackValidation}
+            onChange={setWarStackValidation}
+            placeholder="Warum erscheint es dir notwendig, dich dem zuzuwenden?"
+          />
+          <Field
+            label="Impact"
+            hint="How would this change your life?"
+            value={warStackImpact}
+            onChange={setWarStackImpact}
+            placeholder="Wie würde sich dein Leben wandeln, wenn sich dies wandelte?"
           />
         </div>
-      </Category>
+        <Field
+          label="Consequences"
+          hint="What happens if this stays as it is?"
+          value={warStackConsequences}
+          onChange={setWarStackConsequences}
+          placeholder="Was geschieht, wenn es bleibt, wie es ist?"
+        />
+      </Section>
 
-      {/* RESULTS — The Fruit */}
-      <Category
-        icon={ScanSearch}
-        tag="Results"
-        title="Ergebnisse & Review"
-        subtitle="Die Ergebnisse lügen nicht. Dein Körper und dein Training sind das exakte Produkt deiner Handlungen."
-        quote="By their fruit, you shall know them. Results are the ultimate measure of character and commitment."
-        accent="border-t-fit-dim"
+      <Section
+        meta="RESULTS"
+        title="Strike"
+        subtitle="Der Übergang von Betrachtung zu Handlung: klare Ergebnisse, Hindernisse, Züge und Verantwortung."
       >
-        <div>
-          <label className={labelCls}>Was bringt aktuell echte Ergebnisse?</label>
-          <textarea
-            rows={3}
-            value={trainingWorking}
-            placeholder="The Sweet Fruit: What actions, patterns, or exercises actually work and produce measurable outcomes?"
-            onChange={(e) => setTrainingWorking(e.target.value)}
-            className={inputCls}
-          />
+        <div className="grid gap-4 xl:grid-cols-2">
+          {visibleHits >= 1 && (
+            <Hit
+              number="Hit 1"
+              fact={hit1Fact}
+              setFact={setHit1Fact}
+              obstacle={hit1Obstacle}
+              setObstacle={setHit1Obstacle}
+              strike={hit1Strike}
+              setStrike={setHit1Strike}
+              responsibility={hit1Responsibility}
+              setResponsibility={setHit1Responsibility}
+            />
+          )}
+          {visibleHits >= 2 && (
+            <Hit
+              number="Hit 2"
+              fact={hit2Fact}
+              setFact={setHit2Fact}
+              obstacle={hit2Obstacle}
+              setObstacle={setHit2Obstacle}
+              strike={hit2Strike}
+              setStrike={setHit2Strike}
+              responsibility={hit2Responsibility}
+              setResponsibility={setHit2Responsibility}
+            />
+          )}
+          {visibleHits >= 3 && (
+            <Hit
+              number="Hit 3"
+              fact={hit3Fact}
+              setFact={setHit3Fact}
+              obstacle={hit3Obstacle}
+              setObstacle={setHit3Obstacle}
+              strike={hit3Strike}
+              setStrike={setHit3Strike}
+              responsibility={hit3Responsibility}
+              setResponsibility={setHit3Responsibility}
+            />
+          )}
+          {visibleHits >= 4 && (
+            <Hit
+              number="Hit 4"
+              fact={hit4Fact}
+              setFact={setHit4Fact}
+              obstacle={hit4Obstacle}
+              setObstacle={setHit4Obstacle}
+              strike={hit4Strike}
+              setStrike={setHit4Strike}
+              responsibility={hit4Responsibility}
+              setResponsibility={setHit4Responsibility}
+            />
+          )}
         </div>
 
-        <div>
-          <label className={labelCls}>Wo mangelt es an Ergebnissen / Wo sind Ausreden?</label>
-          <textarea
-            rows={3}
-            value={trainingNotWorking}
-            placeholder="The Bitter or Barren Fruit: Where have excuses or lack of focus blocked your progress? Why did commitments fail?"
-            onChange={(e) => setTrainingNotWorking(e.target.value)}
-            className={inputCls}
+        {visibleHits < 4 && (
+          <button
+            type="button"
+            onClick={() => setVisibleHits((count) => Math.min(4, count + 1))}
+            className="rounded-2xl border border-fit-line bg-fit-card px-4 py-3 text-sm font-black uppercase tracking-[0.18em] text-fit-ink transition-colors hover:border-fit-accent hover:text-fit-accent"
+          >
+            Hit hinzufügen
+          </button>
+        )}
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field
+            label="Insights"
+            hint="What new realizations have come to light during this process?"
+            value={warStackInsights}
+            onChange={setWarStackInsights}
+            placeholder="Welche neuen Einsichten sind in diesem Vorgang ans Licht getreten?"
+          />
+          <Field
+            label="Lessons Learned"
+            hint="What is the most important life lesson this has taught you?"
+            value={warStackLesson}
+            onChange={setWarStackLesson}
+            placeholder="Was ist die wichtigste Lebenslehre, die dir dieser Vorgang gezeigt hat?"
           />
         </div>
-      </Category>
-
-      <p className="text-[10px] font-bold opacity-30 leading-relaxed text-center max-w-2xl mx-auto uppercase tracking-wider">
-        Diese Anamnese dient als Fundament für deinen Trainingsfokus und Coach-Auswertungen. 
-        Sie ist der ungeschönte Blick in den Spiegel, keine medizinische Diagnose.
-      </p>
+      </Section>
 
       <button
         onClick={handleSave}
         disabled={saving || !user}
-        className="w-full max-w-md mx-auto flex items-center justify-center gap-2 px-4 py-4 bg-fit-accent text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:opacity-90 disabled:opacity-50 transition-all"
+        className="w-full max-w-md mx-auto flex items-center justify-center gap-2 rounded-2xl bg-fit-accent px-4 py-4 text-[10px] font-black uppercase tracking-[0.24em] text-white transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {saving ? (
           <span className="animate-pulse">Speichert in Cloud...</span>
@@ -337,4 +381,3 @@ export default function Anamnese() {
     </div>
   );
 }
-
