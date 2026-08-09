@@ -27,6 +27,85 @@ import { useUser } from './contexts/UserContext'
 import { useSettings } from './contexts/SettingsContext'
 import { useSwipeNavigation } from './hooks/useSwipeNavigation'
 
+const SESSION_SUB_TABS = new Set(['today', 'plan', 'history'])
+const REVIEW_SUB_TABS = new Set(['report', 'muscles', 'readiness', 'strength', 'verlauf'])
+const LEARN_SUB_TABS = new Set(['exercises', 'anatomy', 'quiz'])
+const FOCUS_LAYERS = new Set(['focus', 'anamnese', 'freedom'])
+
+function isIsoDate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''))
+}
+
+function parseHashRoute({ resolveFlowTab, navMode }) {
+  const fallbackTab = resolveFlowTab(navMode === 'home' ? 'gate' : 'session')
+  const rawHash = window.location.hash.replace(/^#\/?/, '')
+  const [pathPart = '', queryPart = ''] = rawHash.split('?')
+  const [rawTab = '', rawSub = ''] = pathPart.split('/').filter(Boolean)
+  const params = new URLSearchParams(queryPart)
+  const date = params.get('date')
+
+  const next = {
+    tab: fallbackTab,
+    subTab: null,
+    sessionDate: isIsoDate(date) ? date : null,
+    focusLayer: null,
+  }
+
+  if (VALID_TABS.has(rawTab)) {
+    next.tab = resolveFlowTab(rawTab)
+  }
+
+  if (next.tab === 'session') {
+    if (SESSION_SUB_TABS.has(rawSub) && rawSub !== 'today') next.subTab = rawSub
+    return next
+  }
+
+  if (next.tab === 'review') {
+    if (REVIEW_SUB_TABS.has(rawSub) && rawSub !== 'report') next.subTab = rawSub
+    return next
+  }
+
+  if (next.tab === 'learn') {
+    if (LEARN_SUB_TABS.has(rawSub)) next.subTab = rawSub
+    return next
+  }
+
+  if (next.tab === 'focus') {
+    if (rawTab === 'anamnese') {
+      next.focusLayer = 'anamnese'
+      return next
+    }
+    if (FOCUS_LAYERS.has(rawSub) && rawSub !== 'focus') {
+      next.focusLayer = rawSub
+    }
+  }
+
+  return next
+}
+
+function buildHashRoute({ tab, subTab, sessionDate, focusLayer }) {
+  const segments = [tab]
+  const params = new URLSearchParams()
+
+  if (tab === 'session') {
+    if (SESSION_SUB_TABS.has(subTab)) {
+      segments.push(subTab)
+    } else if (sessionDate) {
+      segments.push('today')
+    }
+    if (sessionDate && !subTab) params.set('date', sessionDate)
+  } else if (tab === 'review') {
+    if (REVIEW_SUB_TABS.has(subTab) && subTab !== 'report') segments.push(subTab)
+  } else if (tab === 'learn') {
+    if (LEARN_SUB_TABS.has(subTab)) segments.push(subTab)
+  } else if (tab === 'focus') {
+    if (FOCUS_LAYERS.has(focusLayer) && focusLayer !== 'focus') segments.push(focusLayer)
+  }
+
+  const query = params.toString()
+  return `#${segments.join('/')}${query ? `?${query}` : ''}`
+}
+
 export default function App() {
   const {
     user, authLoading,
@@ -64,27 +143,27 @@ export default function App() {
     return id;
   };
 
+  const initialRoute = parseHashRoute({
+    resolveFlowTab,
+    navMode: localStorage.getItem('fitness-navMode') || 'tabs',
+  })
+
   const [tab, setTab]             = useState(() => {
-     // /catalog-ui ist ein Deep-Link direkt in den Coach-Tab -> Katalog-Browser,
-     // damit dieser ohne Klick durch die Nav erreichbar ist (siehe Coach/index.jsx
-     // fuer den passenden Sub-Tab-Check).
      if (window.location.pathname === '/catalog-ui') return 'coach';
-     const hash = window.location.hash.replace(/^#\/?/, '');
-     if (VALID_TABS.has(hash)) return resolveFlowTab(hash);
-     const initialNavMode = localStorage.getItem('fitness-navMode') || 'tabs';
-     return resolveFlowTab(initialNavMode === 'home' ? 'gate' : 'session');
+     return initialRoute.tab;
   });
-  const [subTab, setSubTab] = useState(null);
+  const [subTab, setSubTab] = useState(() => initialRoute.subTab);
 
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [authRegistering, setAuthRegistering] = useState(false);
 
-  const [sessionDate, setSessionDate]   = useState(null)
+  const [sessionDate, setSessionDate]   = useState(() => initialRoute.sessionDate)
   const [sessionDraft, setSessionDraft] = useState(null)
   const [inspectorExercise, setInspectorExercise] = useState(null)
   const [taxonomy, setTaxonomy] = useState(null);
+  const [focusLayer, setFocusLayer] = useState(() => initialRoute.focusLayer);
 
   const { mainRef, swipeHint, slideDirection, setSlideDirection } = useSwipeNavigation({
     navMode, tab, swipeEnabled, setTab, NAV_ITEMS: navItems
@@ -121,32 +200,50 @@ export default function App() {
       setSlideDirection('bottom');
     }
     setSubTab(null);
+    setSessionDraft(null);
+    if (targetTabId !== 'session') setSessionDate(null);
+    if (targetTabId !== 'focus') setFocusLayer(null);
     setTab(targetTabId);
   };
 
   function navigate(id) { navigateToTab(id) }
   function navigateSub(id) { setSubTab(id) }
-
-  // Sync tab → URL hash
-  useEffect(() => {
-    if (window.location.hash.slice(1) !== tab) history.pushState(null, '', `#${tab}`)
-  }, [tab])
+  function navigateFocusLayer(id) { setFocusLayer(id) }
 
   useEffect(() => {
-    const handlePopState = () => {
-      const hash = window.location.hash.replace(/^#\/?/, '');
-      navigateToTab(VALID_TABS.has(hash) ? resolveFlowTab(hash) : 'session');
-    };
-    window.addEventListener('popstate', handlePopState);
+    const targetHash = buildHashRoute({ tab, subTab, sessionDate, focusLayer })
+    if (window.location.hash !== targetHash) {
+      history.replaceState(null, '', targetHash)
+    }
+  }, [tab, subTab, sessionDate, focusLayer])
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.pathname === '/catalog-ui') {
+        setSubTab(null)
+        setSessionDate(null)
+        setFocusLayer(null)
+        setTab('coach')
+        return
+      }
+      const route = parseHashRoute({ resolveFlowTab, navMode })
+      setTab(route.tab)
+      setSubTab(route.subTab)
+      setSessionDate(route.sessionDate)
+      setSessionDraft(null)
+      setFocusLayer(route.focusLayer)
+    }
+    window.addEventListener('hashchange', handleHashChange);
     return () => {
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handleHashChange);
     };
-  }, [tab, focusReady]);
+  }, [navMode, focusReady]);
 
   useEffect(() => {
     const resolvedTab = resolveFlowTab(tab);
     if (resolvedTab !== tab) {
       setSubTab(null);
+      setFocusLayer(resolvedTab === 'focus' ? 'anamnese' : null);
       setTab(resolvedTab);
     }
   }, [tab, focusReady]);
@@ -155,6 +252,7 @@ export default function App() {
     setSessionDate(date || null)
     setSessionDraft(draft || null)
     setSubTab(null)
+    setFocusLayer(null)
     navigate('session')
   }
 
@@ -270,13 +368,13 @@ export default function App() {
                   )}
                   <div key={tab} className={`${navMode === 'home' && tab !== 'gate' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in ${slideDirection === 'left' ? 'slide-in-from-right-8' : slideDirection === 'right' ? 'slide-in-from-left-8' : 'slide-in-from-bottom-4'} duration-500`}>
                       {/* Render content */}
-                      {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} onOpenSession={openSession} recentDays={recentDays} coverageThreshold={coverageThreshold} subTab={subTab} />}
+                      {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} onOpenSession={openSession} recentDays={recentDays} coverageThreshold={coverageThreshold} subTab={subTab} onDateChange={setSessionDate} />}
                       {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} subTab={subTab} onSubNav={navigateSub} />}
                       {tab === 'learn'    && <Learn subTab={subTab} />}
                       {tab === 'coach'    && (isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92') && <Coach onInspectExercise={inspectExercise} />}
                       {tab === 'inbox'    && <Inbox />}
                       {tab === 'anamnese' && <Anamnese />}
-                      {tab === 'focus'    && <Fokus />}
+                      {tab === 'focus'    && <Fokus initialLayer={focusLayer} onLayerChange={navigateFocusLayer} />}
                       {tab === 'settings' && <Settings />}
                   </div>
                 </div>

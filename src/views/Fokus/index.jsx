@@ -1,5 +1,5 @@
 import { useUser } from "../../contexts/UserContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Anamnese from "../Anamnese/index.jsx";
 import { updateUserProfile } from "@db";
 
@@ -48,8 +48,8 @@ function Field({ label, value, onChange, placeholder, rows = 4 }) {
   );
 }
 
-export default function Fokus() {
-  const [layer, setLayer] = useState("focus");
+export default function Fokus({ initialLayer = null, onLayerChange = null }) {
+  const [layer, setLayer] = useState(initialLayer || "focus");
   const [savingFreedom, setSavingFreedom] = useState(false);
   const [savedFreedom, setSavedFreedom] = useState(false);
   const {
@@ -73,6 +73,15 @@ export default function Fokus() {
     { title: "Hit 3", fact: hit3Fact, obstacle: hit3Obstacle, strike: hit3Strike, responsibility: hit3Responsibility },
     { title: "Hit 4", fact: hit4Fact, obstacle: hit4Obstacle, strike: hit4Strike, responsibility: hit4Responsibility },
   ].filter((hit) => [hit.fact, hit.obstacle, hit.strike, hit.responsibility].some((value) => value?.trim()));
+
+  useEffect(() => {
+    const nextLayer = initialLayer || "focus";
+    if (nextLayer !== layer) setLayer(nextLayer);
+  }, [initialLayer, layer]);
+
+  useEffect(() => {
+    onLayerChange?.(layer);
+  }, [layer, onLayerChange]);
 
   async function handleFreedomSave() {
     if (!user) return;
