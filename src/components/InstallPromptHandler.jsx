@@ -14,12 +14,23 @@ export function InstallPromptHandler() {
       e.preventDefault();
       setDeferredPrompt(e);
       setShowPrompt(true);
+      window.dispatchEvent(new CustomEvent('fitness-auth-gate-trigger', {
+        detail: { source: 'beforeinstallprompt', at: Date.now() },
+      }));
+    };
+
+    const handleAppInstalled = () => {
+      window.dispatchEvent(new CustomEvent('fitness-auth-gate-trigger', {
+        detail: { source: 'appinstalled', at: Date.now() },
+      }));
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 

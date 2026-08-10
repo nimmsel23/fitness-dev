@@ -8,17 +8,30 @@ import {
 } from "firebase/firestore";
 
 import { db } from "../../../firebase.js";
-import { getUid } from "./core.js";
+import { getUid, hasAuthSession } from "./core.js";
+import {
+  getSettings as getLocalSettings,
+  saveSettings as saveLocalSettings,
+  getLayout as getLocalLayout,
+  saveLayout as saveLocalLayout,
+  getPushSettings as getLocalPushSettings,
+  savePushSettings as saveLocalPushSettings,
+  getBodyEntry as getLocalBodyEntry,
+  saveBodyEntry as saveLocalBodyEntry,
+  getBodyEntries as getLocalBodyEntries,
+} from "../local/user.js";
 
 // ── Settings ──────────────────────────────────────────────────────────────────
 
 export async function getSettings() {
+  if (!hasAuthSession()) return getLocalSettings();
   const snap = await getDoc(doc(db, "fitness", getUid(), "settings", "general"));
   if (!snap.exists()) return { theme: "honey", themeMode: "manual" };
   return snap.data();
 }
 
 export async function saveSettings(settings) {
+  if (!hasAuthSession()) return saveLocalSettings(settings);
   await setDoc(doc(db, "fitness", getUid(), "settings", "general"), {
     ...settings,
     updated_at: serverTimestamp(),
@@ -29,12 +42,14 @@ export async function saveSettings(settings) {
 // ── Layout ────────────────────────────────────────────────────────────────────
 
 export async function getLayout() {
+  if (!hasAuthSession()) return getLocalLayout();
   const snap = await getDoc(doc(db, "fitness", getUid(), "settings", "layout"));
   if (!snap.exists()) return null;
   return snap.data()?.layout;
 }
 
 export async function saveLayout(layout) {
+  if (!hasAuthSession()) return saveLocalLayout(layout);
   await setDoc(doc(db, "fitness", getUid(), "settings", "layout"), {
     layout,
     updated_at: serverTimestamp(),
@@ -43,6 +58,7 @@ export async function saveLayout(layout) {
 }
 
 export async function getPushSettings() {
+  if (!hasAuthSession()) return getLocalPushSettings();
   const snap = await getDoc(doc(db, "fitness", getUid(), "settings", "push"));
   if (!snap.exists()) {
     return {
@@ -68,6 +84,7 @@ export async function getPushSettings() {
 }
 
 export async function savePushSettings(settings) {
+  if (!hasAuthSession()) return saveLocalPushSettings(settings);
   await setDoc(doc(db, "fitness", getUid(), "settings", "push"), {
     ...settings,
     tokens: Array.from(new Set([
@@ -82,12 +99,14 @@ export async function savePushSettings(settings) {
 // ── Body entries ──────────────────────────────────────────────────────────────
 
 export async function getBodyEntry(date) {
+  if (!hasAuthSession()) return getLocalBodyEntry(date);
   const snap = await getDoc(doc(db, "fitness", getUid(), "body", date));
   if (!snap.exists()) return null;
   return snap.data();
 }
 
 export async function saveBodyEntry(date, data) {
+  if (!hasAuthSession()) return saveLocalBodyEntry(date, data);
   await setDoc(doc(db, "fitness", getUid(), "body", date), {
     ...data,
     date,
@@ -97,6 +116,7 @@ export async function saveBodyEntry(date, data) {
 }
 
 export async function getBodyEntries(days = 30) {
+  if (!hasAuthSession()) return getLocalBodyEntries(days);
   const q = query(
     collection(db, "fitness", getUid(), "body"),
     orderBy("date", "desc"),
