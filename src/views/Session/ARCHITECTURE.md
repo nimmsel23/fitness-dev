@@ -19,8 +19,9 @@ Workout-Journal für Kraft- und Ausdauertraining. Zwei Session-Modi, Multi-Sessi
 - **`SidebarSheet.jsx`**: Bottom-Sheet mit SessionSidebar (Block, Ort, Dauer, Effort, Notizen, Exports).
 - **`MuscleMapModal.jsx`**: Anterior/Posterior BodyMap aller Session-Exercises + Anatomie-Detail.
 - **`SourceSettingsModal.jsx`**: Übungsquellen-Toggle (wger/yuhonas/coach) via localStorage.
-- **`WorkoutTimerCard.jsx`**: reine Stoppuhr, lebt im `skills`-SubTab (Platzhalter für den geplanten Thenics-Guided-Runner, noch nicht gebaut).
+- **`WorkoutTimerCard.jsx`**: reine Stoppuhr, lebt im `skills`-SubTab, Lime-Akzent (`#c8ff00`).
 - **`SixPackPromiseCard.jsx`**: lebt im `timer`-SubTab. Eigenständiger Mini-Router (Home/Track/Day/Runner/Shuffle/Learn/Favorites/Selfies) nach dem Athlean-X "6 Pack Promise"-Vorbild — verifizierte echte Übungsnamen (Crucifix, Rolling Jackknifes, Canoe Crunches u.a. aus App-Reviews + Nutzer-Screenshots), 8-Wochen-Track mit Rest-Tagen an Tag 3/7, Timing nach Nutzerangabe (30/60s Arbeit, 5s Standard-Übergang, 1-2× 30/45s echte Pause pro Workout). Setzt `document.documentElement[data-theme]` auf `"sixpack"` solange gemountet (gleiches Pattern wie `SettingsContext.jsx`) — kippt die ganze App ins Rot/Schwarz-Theme (`styles/themes/sixpack.css`), stellt vorherigen Wert beim Verlassen wieder her.
+- **`SkillsCard.jsx`**: lebt im `skills`-SubTab. Calisthenics-Skill-Liste (14 Skills, Thenics-App-Vorbild) mit Progressions-Kette im Thenics-Prinzip (aktuelle Stufe groß, nächste klein, weitere Stufen gesperrt bis "gemeistert"). Fortschritt pro Skill in localStorage. Setzt `data-theme="skills"` solange gemountet (`styles/themes/skills.css`, Lime-Akzent) — gleiches Pattern wie `SixPackPromiseCard.jsx`. Skill/Progressions-Daten aktuell im Component hardcodiert, **nicht** verbunden mit `fitness/catalog/kb/exercises/calisthenics/*.yml` (gleicher Inhalt, zwei Quellen — siehe AUDIT.md).
 
 ## Session-Modi
 
