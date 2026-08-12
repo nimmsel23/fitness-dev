@@ -352,6 +352,17 @@ function WorkoutRunner({ skill, stage, onFinish, onExit }) {
     if (phase === 'rest') advancePhase();
   }
 
+  // Workout-Log als Beweis: nur die Primär-Übung (Stufe 0 im blocks-Array,
+  // immer role "Primär") zählt für Auto-Unlock — Sekundär/Conditioning sind
+  // Zubehör und sollen die Freischaltung nicht triggern. Jeder Satz muss das
+  // Ziel erreichen oder übertreffen (reps: >=, hold: läuft aktuell immer
+  // komplett durch, siehe Auffälligkeiten).
+  const primaryBlock = blocks[0];
+  const primaryLog = log[0] || [];
+  const metTarget = primaryLog.length >= primaryBlock.sets && primaryLog.every(v =>
+    primaryBlock.type === 'hold' ? v >= primaryBlock.seconds : v >= primaryBlock.reps
+  );
+
   function saveWorkout() {
     const totalDurationSeconds = Math.round((Date.now() - startedAt) / 1000);
     onFinish({
@@ -360,6 +371,7 @@ function WorkoutRunner({ skill, stage, onFinish, onExit }) {
       progressionStage: stage,
       totalDurationSeconds,
       rpe,
+      metTarget,
       exercises: blocks.map((b, i) => ({ name: b.name, role: b.role, type: b.type, setsCompleted: log[i] })),
     });
   }
@@ -463,6 +475,7 @@ function WorkoutRunner({ skill, stage, onFinish, onExit }) {
           rpe={rpe}
           onSetRpe={setRpe}
           onSave={saveWorkout}
+          metTarget={metTarget}
         />
       )}
 
@@ -475,7 +488,7 @@ function WorkoutRunner({ skill, stage, onFinish, onExit }) {
   );
 }
 
-function SessionSummary({ blocks, log, startedAt, rpe, onSetRpe, onSave }) {
+function SessionSummary({ blocks, log, startedAt, rpe, onSetRpe, onSave, metTarget }) {
   const totalSeconds = Math.round((Date.now() - startedAt) / 1000);
   const totalVolume = blocks.reduce((sum, _b, i) => sum + log[i].reduce((s, v) => s + v, 0), 0);
   const volumeUnit = blocks.every(b => b.type === 'hold') ? 'Sek.' : 'Wdh/Sek.';
@@ -488,6 +501,11 @@ function SessionSummary({ blocks, log, startedAt, rpe, onSetRpe, onSave }) {
         <div className="text-[11px] font-bold mt-1" style={{ color: 'var(--dim)' }}>
           Gesamtzeit {formatSeconds(totalSeconds)} · Volumen {totalVolume} {volumeUnit}
         </div>
+        {metTarget && (
+          <div className="text-[11px] font-black mt-2 px-3 py-1.5 rounded-lg inline-block" style={{ background: 'var(--accent-glow, rgba(200,255,0,0.12))', color: 'var(--accent)' }}>
+            ✓ Ziel erreicht — schaltet beim Speichern automatisch die nächste Stufe frei
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-2 mb-4">
@@ -760,7 +778,11 @@ function SkillDetailScreen({ skill, stage, history, holds, sessions, onBack, onM
           skill={skill}
           stage={stage}
           onExit={() => setRunnerActive(false)}
-          onFinish={(sessionData) => { onLogWorkout(stage, sessionData); setRunnerActive(false); }}
+          onFinish={(sessionData) => {
+            onLogWorkout(stage, sessionData);
+            if (sessionData.metTarget && !isLast) onMaster();
+            setRunnerActive(false);
+          }}
         />
       ) : (
         <div
