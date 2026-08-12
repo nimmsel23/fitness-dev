@@ -254,6 +254,7 @@ def _call_haiku_cli(prompt: str, timeout: int = 90) -> str | None:
 def _call_codex_cli(prompt: str, timeout: int = 120) -> str | None:
     """Best-effort local Codex fallback. It must only return JSON text and must
     not edit the repository; this is an enrichment provider, not an approver."""
+    model = os.environ.get("FITNESS_CODEX_ENRICH_MODEL", "gpt-5-mini")
     codex_prompt = (
         prompt
         + "\n\nReturn ONLY the JSON object. Do not edit files. Do not run tools. "
@@ -261,7 +262,7 @@ def _call_codex_cli(prompt: str, timeout: int = 120) -> str | None:
     )
     try:
         result = subprocess.run(
-            ["codex", "exec", "--sandbox", "read-only", "--skip-git-repo-check", "-"],
+            ["codex", "exec", "-m", model, "--sandbox", "workspace-write", "--skip-git-repo-check", "--ephemeral", "-"],
             input=codex_prompt,
             capture_output=True,
             text=True,
@@ -290,7 +291,7 @@ def _call_codex_review_cli(prompt: str, timeout: int = 120) -> str | None:
                 "-m",
                 model,
                 "--sandbox",
-                "read-only",
+                "workspace-write",
                 "--skip-git-repo-check",
                 "--ephemeral",
                 "-",
@@ -382,6 +383,58 @@ def call_gemini(
     logger.error("AI enrichment response parse failed")
     if text and "Gemini" not in text:
         logger.debug(text[:1000])
+    return None
+
+
+def call_enrichment(
+    exercise_name: str,
+    safe_name: str,
+    existing_data: dict | None = None,
+    feedback: str | None = None,
+    provider: str = "gemini",
+    api_key: str | None = None,
+) -> dict | None:
+    muscle_bucket_list, muscle_detail_list, allowed_muscles = _muscle_prompt_vocab()
+
+    if existing_data:
+        prompt = PROMPT_EXERCISE_ENRICH.format(
+            existing_json=json.dumps(existing_data, indent=2, ensure_ascii=False),
+            muscle_bucket_list=muscle_bucket_list,
+            muscle_detail_list=muscle_detail_list,
+            feedback_section=PROMPT_FEEDBACK_SECTION.format(feedback=feedback) if feedback else "",
+            feedback_instruction=PROMPT_FEEDBACK_INSTRUCTION if feedback else "",
+        )
+    else:
+        prompt = PROMPT_EXERCISE_NEW.format(
+            exercise_name=exercise_name,
+            safe_name=safe_name,
+            muscle_bucket_list=muscle_bucket_list,
+            muscle_detail_list=muscle_detail_list,
+        )
+
+    provider_key = str(provider or "gemini").strip().lower()
+    text: str | None = None
+    if provider_key == "codex":
+        text = _call_codex_cli(prompt)
+    elif provider_key == "haiku":
+        text = _call_haiku_cli(prompt)
+    else:
+        text = _call(prompt, api_key, timeout=30) if api_key else None
+        if not text:
+            logger.warning("Gemini nicht verfuegbar/fehlgeschlagen, versuche Haiku-Fallback...")
+            text = _call_haiku_cli(prompt)
+            if not text:
+                logger.warning("Haiku-Fallback fehlgeschlagen, versuche Codex-Fallback...")
+                text = _call_codex_cli(prompt)
+
+    if not text:
+        return None
+
+    parsed = _extract_json_object(text)
+    if parsed:
+        _warn_unknown_muscles(parsed, allowed_muscles)
+        return parsed
+    logger.error("AI enrichment response parse failed")
     return None
 
 

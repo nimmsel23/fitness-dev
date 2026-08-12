@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Lock, Check, Circle } from 'lucide-react';
 
 const SKILLS_STORAGE_KEY = 'fitness-skills-progress-v1';
@@ -140,6 +140,18 @@ export default function SkillsCard() {
   }
 
   const openSkill = openSkillId ? SKILLS.find(s => s.id === openSkillId) : null;
+
+  // Lime-Akzent der Stoppuhr-Card gilt für den ganzen Skills-SubTab, gleiches
+  // data-theme-Pattern wie SixPackPromiseCard.jsx.
+  useEffect(() => {
+    const root = document.documentElement;
+    const previous = root.getAttribute('data-theme');
+    root.setAttribute('data-theme', 'skills');
+    return () => {
+      if (previous) root.setAttribute('data-theme', previous);
+      else root.removeAttribute('data-theme');
+    };
+  }, []);
 
   return (
     <section

@@ -845,6 +845,7 @@ def inbox_reenrich_cmd(
     file_id: Annotated[str, typer.Argument(help="z.B. inbox_wger_851")],
     feedback: Annotated[Optional[str], typer.Option("--feedback", "-f", help='Freitext-Kritik, z.B. "bequem und Polster passen nicht"')] = None,
     no_haiku: Annotated[bool, typer.Option("--no-haiku", help="Haiku-Gegenpruefung ueberspringen")] = False,
+    provider: Annotated[str, typer.Option("--provider", help="gemini|codex|haiku")] = "gemini",
 ):
     """Jagt einen Inbox-Draft frisch durch Gemini (+ optional Haiku-Review)"""
     from fitness.catalog.agent.inbox_actions import load_inbox_entry, display_name_of, reenrich_inbox_entry
@@ -858,7 +859,7 @@ def inbox_reenrich_cmd(
     name = display_name_of(ex, file_id)
     console.print(f"[info]Frage Gemini an fuer '{name}'...[/info]")
     try:
-        result = reenrich_inbox_entry(f, ex, name, feedback=feedback, use_haiku_review=not no_haiku)
+        result = reenrich_inbox_entry(f, ex, name, feedback=feedback, use_haiku_review=not no_haiku, provider=provider)
     except RuntimeError as exc:
         console.print(f"[fail]FAIL:[/fail] {exc}")
         raise typer.Exit(code=1)
@@ -870,6 +871,75 @@ def inbox_reenrich_cmd(
         else:
             console.print("[warn]Haiku/Codex-Review nicht verfuegbar — Gemini-Ergebnis behalten[/warn]")
     console.print(f"[ok]✓ Neu angereichert:[/ok] {f.name}")
+
+
+@app.command(name="batch-reenrich")
+def batch_reenrich_cmd(
+    scope: Annotated[str, typer.Option("--scope", help="inbox|approved|both")] = "both",
+    provider: Annotated[str, typer.Option("--provider", help="gemini|codex|haiku")] = "codex",
+    review_mode: Annotated[str, typer.Option("--review-mode", help="none|haiku|codex|auto")] = "codex",
+    feedback: Annotated[Optional[str], typer.Option("--feedback", "-f", help="Optionales globales Coach-Feedback")] = None,
+):
+    """Batch-Re-Enrichment fuer Inbox-Drafts und/oder freigegebene Detaildateien."""
+    from fitness.catalog.agent.inbox_actions import (
+        list_inbox_files,
+        load_inbox_entry,
+        display_name_of,
+        reenrich_inbox_entry,
+        list_approved_exercise_files,
+        reenrich_approved_entry,
+    )
+
+    selected_scope = str(scope or "both").strip().lower()
+    todo_inbox = selected_scope in {"inbox", "both"}
+    todo_approved = selected_scope in {"approved", "both"}
+    if not (todo_inbox or todo_approved):
+        console.print(f"[fail]FAIL:[/fail] Ungueltiger scope: {scope}")
+        raise typer.Exit(code=1)
+
+    failures: list[str] = []
+    changed = 0
+
+    if todo_inbox:
+        files = list_inbox_files()
+        console.print(f"[info]Inbox-Drafts:[/info] {len(files)}")
+        for f in files:
+            try:
+                _f, ex = load_inbox_entry(f.stem)
+                name = display_name_of(ex, f.stem)
+                reenrich_inbox_entry(_f, ex, name, feedback=feedback, use_haiku_review=(review_mode == "auto"), provider=provider)
+                changed += 1
+                console.print(f"[ok]Inbox reenriched:[/ok] {f.name}")
+            except Exception as exc:
+                failures.append(f"{f.name}: {exc}")
+                console.print(f"[fail]Inbox failed:[/fail] {f.name} -> {exc}")
+
+    if todo_approved:
+        files = list_approved_exercise_files()
+        console.print(f"[info]Approved detail files:[/info] {len(files)}")
+        for f in files:
+            try:
+                doc = yaml.safe_load(f.read_text()) or {}
+                ex = (doc.get("exercises") or [{}])[0]
+                name = display_name_of(ex, f.stem)
+                reenrich_approved_entry(f, ex, name, feedback=feedback, provider=provider, review_mode=review_mode)
+                changed += 1
+                console.print(f"[ok]Approved reenriched:[/ok] {f.name}")
+            except Exception as exc:
+                failures.append(f"{f.name}: {exc}")
+                console.print(f"[fail]Approved failed:[/fail] {f.name} -> {exc}")
+
+    try:
+        from fitness.catalog.agent.inbox_actions import _rebuild_runtime_catalog
+        _rebuild_runtime_catalog()
+    except Exception as exc:
+        failures.append(f"catalog rebuild: {exc}")
+
+    if failures:
+        console.print(Panel("\n".join(failures[:20]), title=f"Batch-Reenrich mit Fehlern ({len(failures)})", border_style="red"))
+        raise typer.Exit(code=1)
+
+    console.print(f"[ok]✓ Batch-Reenrich abgeschlossen:[/ok] {changed} Dateien")
 
 
 @inbox_app.command(name="delete")

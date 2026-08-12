@@ -23,12 +23,13 @@ Workout-Journal — Session-Logging mit Satz/Wdh/Gewicht, Session-Modi, intellig
 | `MuscleMapModal.jsx` | Anterior/Posterior BodyMap + Anatomie-Detail-Chain |
 | `SourceSettingsModal.jsx` | Übungsquellen-Toggle (wger/yuhonas/coach) via localStorage |
 | `utils.js` | `getRollingDays`, `blockColor`, `DAY_LABELS` |
-| `WorkoutTimerCard.jsx` | reine Stoppuhr, SubTab `skills` (Platzhalter für geplanten Thenics-Guided-Runner) |
+| `WorkoutTimerCard.jsx` | reine Stoppuhr, SubTab `skills`, Lime-Akzent (`#c8ff00`) |
 | `SixPackPromiseCard.jsx` | SubTab `timer` — eigenständiger 6-Pack-Promise-Nachbau (Home/Track/Day/Runner/Shuffle/Learn/Favorites/Selfies), setzt App-weit `data-theme="sixpack"` solange gemountet |
+| `SkillsCard.jsx` | SubTab `skills` — Calisthenics-Skill-Liste + Progressions-Kette im Thenics-Stil (aktuelle Stufe groß, nächste klein, Rest gesperrt bis gemeistert), Fortschritt in localStorage. Setzt App-weit `data-theme="skills"` solange gemountet (Lime-Theme, gleiches Pattern wie `SixPackPromiseCard.jsx`). Skill-Daten aktuell noch hardcodiert im Component (14 Skills, identisch zu `fitness/catalog/kb/exercises/calisthenics/*.yml`, aber nicht von dort geladen — siehe Auffälligkeiten). |
 
 ## Auffälligkeiten (2026-08-12)
 - `SixPackPromiseCard.jsx`: Übungskategorisierung (Lower/Bottom-up/Top-down/Upper Abs) ist eigene fachliche Einordnung der 10 verifizierten echten Übungsnamen, nicht aus der App selbst bestätigt — vom Nutzer als Vitaltrainer ggf. zu korrigieren.
-- Skills-SubTab enthält aktuell nur die umgezogene Stoppuhr, der eigentliche Thenics-Prinzip-Inhalt (aktuelle Übung groß, nächste klein, Auto-Advance) ist noch nicht gebaut.
+- `SkillsCard.jsx`: Skill/Progressions-Daten sind im Component hardcodiert (`SKILLS`-Array), obwohl es seit heute auch `kb/exercises/calisthenics/*.yml` mit identischem Inhalt gibt — kein API-Endpoint verbindet beide, zwei Quellen für dieselben Daten. Bei künftiger Änderung an einer Stelle die andere nicht vergessen (oder auf einen einzigen Ladepfad umstellen).
 
 ## Session-Modi
 

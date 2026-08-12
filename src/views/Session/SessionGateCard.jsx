@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Play, Square, Clock3, CheckCircle2, PencilLine, CalendarDays, ClipboardList, History, TimerReset } from 'lucide-react';
+import { Play, Square, Clock3, CheckCircle2, PencilLine, CalendarDays, ClipboardList, History, TimerReset, Sparkles } from 'lucide-react';
 import {
   normalizeSessionGate,
   isSessionGateActive,
@@ -45,9 +45,10 @@ async function sendSessionGateNotification(sessionGate, date) {
 
 const SESSION_NAV_ITEMS = [
   { id: 'today', label: 'Session', Icon: CalendarDays },
-  { id: 'plan', label: 'Plan', Icon: ClipboardList },
+  { id: 'plan', label: 'Plan', Icon: ClipboardList, comingSoon: true },
   { id: 'history', label: 'Verlauf', Icon: History },
-  { id: 'timer', label: 'Timer/Stoppuhr', Icon: TimerReset },
+  { id: 'timer', label: '6 Pack', Icon: TimerReset, comingSoon: true },
+  { id: 'skills', label: 'Skills', Icon: Sparkles, comingSoon: true },
 ];
 
 export default function SessionGateCard({ date, sessionGate, currentSubTab = null, onSubNav, onStart, onStop }) {
@@ -184,7 +185,7 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
           Bereiche
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-          {SESSION_NAV_ITEMS.map(({ id, label, Icon }) => {
+          {SESSION_NAV_ITEMS.map(({ id, label, Icon, comingSoon }) => {
             const selected = (currentSubTab || 'today') === id;
             return (
               <button
@@ -210,6 +211,14 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
                     {label}
                   </span>
                 </div>
+                {comingSoon && (
+                  <span
+                    className="mt-1.5 inline-block text-[9px] font-black uppercase tracking-[0.1em] px-1.5 py-0.5 rounded"
+                    style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--dim)' }}
+                  >
+                    Coming soon
+                  </span>
+                )}
               </button>
             );
           })}

@@ -167,7 +167,7 @@ class InboxActionsTest(unittest.TestCase):
 
             with (
                 mock.patch("fitness.catalog.agent.inbox_actions.load_gemini_key", return_value="key"),
-                mock.patch("fitness.catalog.agent.inbox_actions.call_gemini", return_value=gemini_result),
+                mock.patch("fitness.catalog.agent.inbox_actions.call_enrichment", return_value=gemini_result),
                 mock.patch("fitness.catalog.agent.inbox_actions.review_with_haiku", return_value=None),
                 mock.patch("fitness.catalog.agent.inbox_actions.review_with_codex", return_value=codex_result),
             ):
@@ -179,6 +179,62 @@ class InboxActionsTest(unittest.TestCase):
             restored = doc["exercises"][0]
             self.assertEqual(restored["primary_muscles"], ["601_quadriceps_femoris"])
             self.assertEqual(restored["source"], "unreviewed")
+
+    def test_reenrich_normalizes_coarse_shoulder_label_by_name(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            draft = Path(tmp) / "inbox_frontheben.yml"
+            draft.write_text(
+                yaml.dump({
+                    "name": "inbox_frontheben",
+                    "exercises": [{
+                        "exercise_id": "frontheben",
+                        "display_name": "Frontheben",
+                    }],
+                }, allow_unicode=True),
+                encoding="utf-8",
+            )
+            ex = {
+                "exercise_id": "frontheben",
+                "display_name": "Frontheben",
+            }
+            gemini_result = {
+                "exercise_id": "frontheben",
+                "display_name": "Frontheben",
+                "primary_muscles": ["shoulders"],
+            }
+
+            with (
+                mock.patch("fitness.catalog.agent.inbox_actions.load_gemini_key", return_value="key"),
+                mock.patch("fitness.catalog.agent.inbox_actions.call_enrichment", return_value=gemini_result),
+            ):
+                reenrich_inbox_entry(draft, ex, "Frontheben", use_haiku_review=False)
+
+            doc = yaml.safe_load(draft.read_text(encoding="utf-8"))
+            restored = doc["exercises"][0]
+            self.assertEqual(restored["primary_muscles"], ["301_anterior_deltoid"])
+
+    def test_approve_normalizes_coarse_shoulder_label_by_name(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            inbox = root / "inbox"
+            exercises = root / "exercises"
+            inbox.mkdir()
+            exercises.mkdir()
+            draft = inbox / "inbox_frontheben.yml"
+            draft.write_text("name: inbox_frontheben\nexercises: []\n", encoding="utf-8")
+            ex = {
+                "exercise_id": "frontheben",
+                "display_name": "Frontheben",
+                "primary_muscles": ["shoulders"],
+            }
+
+            with mock.patch("fitness.catalog.agent.inbox_actions.exercises_dir", return_value=exercises):
+                approved_id = approve_inbox_entry(draft, ex)
+
+            self.assertEqual(approved_id, "frontheben")
+            doc = yaml.safe_load((exercises / "frontheben.yml").read_text(encoding="utf-8"))
+            approved = doc["exercises"][0]
+            self.assertEqual(approved["primary_muscles"], ["301_anterior_deltoid"])
 
 
 if __name__ == "__main__":
