@@ -363,13 +363,43 @@ def deploy(
         subprocess.run(["sudo", "mkdir", "-p", str(dest)], check=True)
         subprocess.run(["sudo", "chown", f"{os.getuid()}:{os.getgid()}", str(dest)], check=True)
 
+    rsync_excludes = [
+        "--exclude=.git",
+        "--exclude=.env",
+        "--exclude=.env.*",
+        "--exclude=node_modules",
+        "--exclude=data",
+        "--exclude=.archiv",
+        "--exclude=*.bak",
+        "--exclude=.claude",
+        "--exclude=*.log",
+        "--exclude=.firebase",
+        "--exclude=dist-firebase",
+        "--exclude=dist-versions",
+        "--exclude=.worktrees",
+        "--exclude=catalog-ui",
+        "--exclude=gas-coach-summary",
+        "--exclude=__pycache__",
+        "--exclude=.pytest_cache",
+        "--exclude=.venv",
+        "--exclude=fitness/catalog/state",
+        "--exclude=fitness/catalog/kb",
+    ]
+
     msg.info(f"Syncing {DEV_DIR}/ → {dest}/")
-    subprocess.run([
-        "sudo", "rsync", "-av", "--delete",
-        "--exclude=.git", "--exclude=node_modules", "--exclude=data",
-        "--exclude=.archiv", "--exclude=*.bak",
+    rsync_cmd = [
+        "sudo", "rsync", "-av", "--delete", "--force",
+        *rsync_excludes,
         f"{DEV_DIR}/", f"{dest}/",
-    ], check=True)
+    ]
+    rsync_result = subprocess.run(rsync_cmd)
+    if rsync_result.returncode in (23, 24):
+        msg.warn(
+            f"rsync returned {rsync_result.returncode} — continuing because some live/generated files "
+            "may have changed during sync."
+        )
+    elif rsync_result.returncode != 0:
+        raise subprocess.CalledProcessError(rsync_result.returncode, rsync_cmd)
 
     # 3. npm install + build
     subprocess.run(["sudo", "chown", "-R", f"{os.getuid()}:{os.getgid()}", str(dest)], check=True)

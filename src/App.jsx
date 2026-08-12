@@ -224,12 +224,13 @@ export default function App() {
 
   const navigateToTab = (newTabId) => {
     const targetTabId = resolveFlowTab(newTabId);
+    const isSpecialTab = targetTabId === 'coach' || targetTabId === 'inbox';
     if (targetTabId === 'gate') {
       setSubTab(null);
       setTab('gate');
       return;
     }
-    if (!navItems.some((item) => item.id === targetTabId)) return;
+    if (!isSpecialTab && !navItems.some((item) => item.id === targetTabId)) return;
     if (targetTabId === tab) return;
     const oldIdx = navItems.findIndex(i => i.id === tab);
     const newIdx = navItems.findIndex(i => i.id === targetTabId);
