@@ -140,6 +140,192 @@ function escapeCsvValue(v) {
   return String(v ?? "").replaceAll('"', '""');
 }
 
+function normalizeTrackingType(value) {
+  const raw = String(value || "").trim().toLowerCase();
+  if (["bodyweight_reps", "bodyweight", "bodyweight&reps"].includes(raw)) return "bodyweight_reps";
+  if (["distance_time", "distance", "distance&time", "cardio"].includes(raw)) return "distance_time";
+  if (["duration", "time", "timer"].includes(raw)) return "duration";
+  return "weight_reps";
+}
+
+function defaultTemplateSet(index = 0, overrides = {}) {
+  return {
+    id: overrides.id || crypto.randomUUID(),
+    setIndex: overrides.setIndex ?? index + 1,
+    setType: overrides.setType || "normal",
+    targetReps: overrides.targetReps ?? "8-12",
+    targetWeight: overrides.targetWeight ?? null,
+    targetDistance: overrides.targetDistance ?? null,
+    targetDuration: overrides.targetDuration ?? null,
+  };
+}
+
+function normalizeTemplateSets(exercise = {}) {
+  const raw = Array.isArray(exercise.templateSets) && exercise.templateSets.length > 0
+    ? exercise.templateSets
+    : Array.from({ length: Math.max(1, Number(exercise.target_sets) || 3) }, (_, index) =>
+        defaultTemplateSet(index, {
+          targetReps: exercise.target_reps ?? "8-12",
+          targetWeight: exercise.target_weight ?? null,
+          setType: exercise.drop_set ? "drop" : (exercise.effort === "to_failure" || exercise.effort === "absolute_failure" ? "failure" : "normal"),
+        })
+      );
+
+  return raw.map((set, index) => defaultTemplateSet(index, set));
+}
+
+function deriveLegacyRoutineFields(exercise = {}) {
+  const templateSets = normalizeTemplateSets(exercise);
+  return {
+    trackingType: normalizeTrackingType(exercise.trackingType || exercise.weight_type),
+    templateSets,
+    target_sets: templateSets.length,
+    target_reps: templateSets[0]?.targetReps ?? "8-12",
+    target_weight: templateSets[0]?.targetWeight ?? null,
+    drop_set: templateSets.some((set) => set.setType === "drop"),
+    effort: templateSets.some((set) => set.setType === "failure") ? "to_failure" : (exercise.effort || "normal"),
+    weight_type: exercise.weight_type || "kg",
+  };
+}
+
+function normalizeRoutineExercise(exercise = {}, order = 0) {
+  const derived = deriveLegacyRoutineFields(exercise);
+  return {
+    ...exercise,
+    ...derived,
+    id: exercise.id || crypto.randomUUID(),
+    name: exercise.name || exercise.exercise_id || "Übung",
+    primaryMuscles: Array.isArray(exercise.primaryMuscles) ? exercise.primaryMuscles : [],
+    secondaryMuscles: Array.isArray(exercise.secondaryMuscles) ? exercise.secondaryMuscles : [],
+    yuhonas_id: exercise.yuhonas_id || null,
+    rest_seconds: Number(exercise.rest_seconds) || 90,
+    rir: exercise.rir ?? null,
+    tempo: exercise.tempo ?? null,
+    notes: exercise.notes ?? null,
+    order: Number.isFinite(exercise.order) ? exercise.order : order,
+  };
+}
+
+function normalizeSetEntry(set = {}, index = 0) {
+  return {
+    id: set.id || crypto.randomUUID(),
+    order: Number.isFinite(set.order) ? set.order : index,
+    setIndex: set.setIndex ?? index + 1,
+    setType: set.setType || "normal",
+    targetReps: set.targetReps ?? null,
+    targetWeight: set.targetWeight ?? null,
+    targetDistance: set.targetDistance ?? null,
+    targetDuration: set.targetDuration ?? null,
+    ghostReps: set.ghostReps ?? null,
+    ghostWeight: set.ghostWeight ?? null,
+    ghostDistance: set.ghostDistance ?? null,
+    ghostDuration: set.ghostDuration ?? null,
+    reps: set.reps ?? null,
+    weight: set.weight ?? null,
+    distance: set.distance ?? null,
+    duration: set.duration ?? null,
+    completed: !!set.completed,
+  };
+}
+
+function normalizeWorkoutExercise(exercise = {}, order = 0) {
+  return {
+    ...exercise,
+    id: exercise.id || crypto.randomUUID(),
+    name: exercise.name || exercise.exercise_id || "Übung",
+    trackingType: normalizeTrackingType(exercise.trackingType || exercise.weight_type),
+    primaryMuscles: Array.isArray(exercise.primaryMuscles) ? exercise.primaryMuscles : [],
+    secondaryMuscles: Array.isArray(exercise.secondaryMuscles) ? exercise.secondaryMuscles : [],
+    yuhonas_id: exercise.yuhonas_id || null,
+    rest_seconds: Number(exercise.rest_seconds) || 90,
+    notes: exercise.notes ?? null,
+    order: Number.isFinite(exercise.order) ? exercise.order : order,
+    sets: Array.isArray(exercise.sets) ? exercise.sets.map((set, index) => normalizeSetEntry(set, index)) : [],
+  };
+}
+
+function extractHistoricalSets(exercise = {}) {
+  if (Array.isArray(exercise.setsArray) && exercise.setsArray.length > 0) {
+    return exercise.setsArray;
+  }
+  if (Array.isArray(exercise.sets) && exercise.sets.length > 0) {
+    return exercise.sets;
+  }
+  return [];
+}
+
+function findLatestExercisePerformance(exerciseId) {
+  if (!exerciseId) return null;
+  const sessionsDir = path.join(DATA_DIR, "sessions");
+  const files = fs.existsSync(sessionsDir)
+    ? fs.readdirSync(sessionsDir).filter((name) => name.endsWith(".json")).sort().reverse()
+    : [];
+
+  for (const name of files) {
+    const session = readJson(path.join(sessionsDir, name), {});
+    const exercises = Array.isArray(session?.exercises) ? session.exercises : [];
+    const match = exercises.find((ex) => String(ex.exercise_id || ex.id || "") === String(exerciseId));
+    if (!match) continue;
+    const histSets = extractHistoricalSets(match).filter(Boolean);
+    if (histSets.length === 0) continue;
+    return {
+      date: session?.date || name.replace(/\.json$/, "").split("__")[0],
+      exercise: match,
+      sets: histSets,
+    };
+  }
+
+  const workoutLogs = readWorkoutLogs()
+    .filter((workout) => workout.finished_at)
+    .slice()
+    .sort((a, b) => String(b.finished_at || b.started_at).localeCompare(String(a.finished_at || a.started_at)));
+  for (const workout of workoutLogs) {
+    const match = (workout.exercises || []).find((ex) => String(ex.exercise_id || ex.id || "") === String(exerciseId));
+    if (!match) continue;
+    const histSets = extractHistoricalSets(match).filter(Boolean);
+    if (histSets.length === 0) continue;
+    return {
+      date: workout.finished_at || workout.started_at || null,
+      exercise: match,
+      sets: histSets,
+    };
+  }
+
+  return null;
+}
+
+function buildWorkoutExerciseFromRoutine(routineExercise = {}) {
+  const templateSets = normalizeTemplateSets(routineExercise);
+  const history = findLatestExercisePerformance(routineExercise.exercise_id);
+  return normalizeWorkoutExercise({
+    exercise_id: routineExercise.exercise_id,
+    name: routineExercise.name,
+    primaryMuscles: routineExercise.primaryMuscles,
+    secondaryMuscles: routineExercise.secondaryMuscles,
+    yuhonas_id: routineExercise.yuhonas_id,
+    trackingType: routineExercise.trackingType,
+    rest_seconds: routineExercise.rest_seconds,
+    notes: null,
+    order: routineExercise.order,
+    sets: templateSets.map((templateSet, index) => {
+      const previous = history?.sets?.[index] || history?.sets?.[0] || {};
+      const normalizedSet = normalizeSetEntry({
+        setType: templateSet.setType,
+        targetReps: templateSet.targetReps,
+        targetWeight: templateSet.targetWeight,
+        targetDistance: templateSet.targetDistance,
+        targetDuration: templateSet.targetDuration,
+        ghostReps: templateSet.targetReps ?? previous.reps ?? null,
+        ghostWeight: templateSet.targetWeight ?? previous.weight ?? null,
+        ghostDistance: templateSet.targetDistance ?? previous.distance ?? null,
+        ghostDuration: templateSet.targetDuration ?? previous.duration ?? null,
+      }, index);
+      return normalizedSet;
+    }),
+    lastPerformedAt: history?.date || null,
+  });
+}
+
 // wger-client.mjs wird erst per dynamic import() geladen, wenn der erste
 // echte Fallback-Aufruf nötig ist (lokaler Katalog liefert nichts) — kein
 // Boot-Ping, kein Token im Hauptmodul. wger ist meist offline, das Modul
@@ -826,7 +1012,12 @@ app.get("/blocks", (c) => {
 // geloggte Workout-Instanzen (Strong-Modell) liegen jetzt separat, s.u.
 const ROUTINES_PATH = path.join(DATA_DIR, "routines.json");
 function readRoutines() { return readJson(ROUTINES_PATH, []); }
-function writeRoutines(list) { writeJson(ROUTINES_PATH, list); }
+function writeRoutines(list) {
+  writeJson(ROUTINES_PATH, (Array.isArray(list) ? list : []).map((routine) => ({
+    ...routine,
+    exercises: (routine.exercises || []).map((exercise, index) => normalizeRoutineExercise(exercise, index)),
+  })));
+}
 
 app.get("/routines", (c) => {
   const routines = readRoutines()
@@ -848,7 +1039,10 @@ app.post("/routines", async (c) => {
 app.get("/routines/:id", (c) => {
   const routine = readRoutines().find(r => r.id === c.req.param("id"));
   if (!routine) return c.json({ error: "not_found" }, 404);
-  const exercises = routine.exercises.slice().sort((a, b) => a.order - b.order);
+  const exercises = routine.exercises
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .map((exercise, index) => normalizeRoutineExercise(exercise, index));
   return c.json({ routine: { ...routine, exercises } });
 });
 
@@ -873,18 +1067,27 @@ app.post("/routines/:id/exercises", async (c) => {
   const routines = readRoutines();
   const routine = routines.find(r => r.id === c.req.param("id"));
   if (!routine) return c.json({ error: "not_found" }, 404);
-  const exercise = {
+  const exercise = normalizeRoutineExercise({
     id: crypto.randomUUID(),
     exercise_id: body.exercise_id,
     name: body.name || body.exercise_id,
     primaryMuscles: body.primaryMuscles || [],
     secondaryMuscles: body.secondaryMuscles || [],
     yuhonas_id: body.yuhonas_id || null,
-    target_sets: 3, target_reps: "8-12", rest_seconds: 90,
-    weight_type: "kg", effort: "normal",
-    rir: null, tempo: null, drop_set: false, notes: null,
+    trackingType: body.trackingType || "weight_reps",
+    templateSets: body.templateSets || undefined,
+    target_sets: 3,
+    target_reps: "8-12",
+    target_weight: null,
+    rest_seconds: 90,
+    weight_type: "kg",
+    effort: "normal",
+    rir: null,
+    tempo: null,
+    drop_set: false,
+    notes: null,
     order: routine.exercises.length,
-  };
+  }, routine.exercises.length);
   routine.exercises.push(exercise);
   writeRoutines(routines);
   return c.json({ id: exercise.id });
@@ -930,7 +1133,12 @@ app.put("/routines/:id/exercises/order", async (c) => {
 // aber unabhängig editierbar — Änderungen hier schreiben nie in die Routine zurück.
 const WORKOUTS_PATH = path.join(DATA_DIR, "workouts.json");
 function readWorkoutLogs() { return readJson(WORKOUTS_PATH, []); }
-function writeWorkoutLogs(list) { writeJson(WORKOUTS_PATH, list); }
+function writeWorkoutLogs(list) {
+  writeJson(WORKOUTS_PATH, (Array.isArray(list) ? list : []).map((workout) => ({
+    ...workout,
+    exercises: (workout.exercises || []).map((exercise, index) => normalizeWorkoutExercise(exercise, index)),
+  })));
+}
 
 app.get("/workouts", (c) => {
   const workouts = readWorkoutLogs()
@@ -945,30 +1153,21 @@ app.post("/workouts", async (c) => {
   const workouts = readWorkoutLogs();
   let exercises = [];
   let name = body.name;
+  let sourceRoutineId = body.routine_id || null;
   if (body.routine_id) {
     const routine = readRoutines().find(r => r.id === body.routine_id);
     if (routine) {
       name = name || routine.name;
-      exercises = routine.exercises.slice().sort((a, b) => a.order - b.order).map(re => ({
-        id: crypto.randomUUID(),
-        exercise_id: re.exercise_id,
-        name: re.name,
-        primaryMuscles: re.primaryMuscles,
-        secondaryMuscles: re.secondaryMuscles,
-        yuhonas_id: re.yuhonas_id,
-        rest_seconds: re.rest_seconds,
-        weight_type: re.weight_type,
-        notes: null,
-        order: re.order,
-        sets: Array.from({ length: re.target_sets || 3 }, (_, i) => ({
-          id: crypto.randomUUID(), order: i, weight: null, reps: null, completed: false,
-        })),
-      }));
+      exercises = routine.exercises
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map((routineExercise) => buildWorkoutExerciseFromRoutine(normalizeRoutineExercise(routineExercise, routineExercise.order)));
     }
   }
   const workout = {
     id: crypto.randomUUID(),
     routine_id: body.routine_id || null,
+    sourceRoutineId,
     name: name || `Workout ${new Date().toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit" })}`,
     started_at: new Date().toISOString(),
     finished_at: null,
@@ -983,7 +1182,10 @@ app.get("/workouts/:id", (c) => {
   const workout = readWorkoutLogs().find(w => w.id === c.req.param("id"));
   if (!workout) return c.json({ error: "not_found" }, 404);
   const exercises = workout.exercises.slice().sort((a, b) => a.order - b.order)
-    .map(ex => ({ ...ex, sets: ex.sets.slice().sort((a, b) => a.order - b.order) }));
+    .map((ex, index) => {
+      const normalized = normalizeWorkoutExercise(ex, index);
+      return { ...normalized, sets: normalized.sets.slice().sort((a, b) => a.order - b.order) };
+    });
   return c.json({ workout: { ...workout, exercises } });
 });
 
@@ -1008,19 +1210,20 @@ app.post("/workouts/:id/exercises", async (c) => {
   const workouts = readWorkoutLogs();
   const workout = workouts.find(w => w.id === c.req.param("id"));
   if (!workout) return c.json({ error: "not_found" }, 404);
-  const exercise = {
+  const exercise = normalizeWorkoutExercise({
     id: crypto.randomUUID(),
     exercise_id: body.exercise_id,
     name: body.name || body.exercise_id,
     primaryMuscles: body.primaryMuscles || [],
     secondaryMuscles: body.secondaryMuscles || [],
     yuhonas_id: body.yuhonas_id || null,
-    rest_seconds: 90, weight_type: "kg", notes: null,
+    trackingType: body.trackingType || "weight_reps",
+    rest_seconds: 90,
+    weight_type: "kg",
+    notes: null,
     order: workout.exercises.length,
-    sets: Array.from({ length: 3 }, (_, i) => ({
-      id: crypto.randomUUID(), order: i, weight: null, reps: null, completed: false,
-    })),
-  };
+    sets: Array.from({ length: 3 }, (_, i) => normalizeSetEntry({}, i)),
+  }, workout.exercises.length);
   workout.exercises.push(exercise);
   writeWorkoutLogs(workouts);
   return c.json({ id: exercise.id });
@@ -1053,7 +1256,14 @@ app.post("/workouts/:id/exercises/:eid/sets", (c) => {
   const workout = workouts.find(w => w.id === c.req.param("id"));
   const exercise = workout?.exercises.find(e => e.id === c.req.param("eid"));
   if (!exercise) return c.json({ error: "not_found" }, 404);
-  const set = { id: crypto.randomUUID(), order: exercise.sets.length, weight: null, reps: null, completed: false };
+  const lastTemplate = exercise.sets[exercise.sets.length - 1] || {};
+  const set = normalizeSetEntry({
+    setType: lastTemplate.setType || "normal",
+    targetReps: lastTemplate.targetReps ?? null,
+    targetWeight: lastTemplate.targetWeight ?? null,
+    targetDistance: lastTemplate.targetDistance ?? null,
+    targetDuration: lastTemplate.targetDuration ?? null,
+  }, exercise.sets.length);
   exercise.sets.push(set);
   writeWorkoutLogs(workouts);
   return c.json({ id: set.id });
