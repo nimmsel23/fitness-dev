@@ -15,28 +15,23 @@ const SKILLS_STORAGE_KEY = 'fitness-skills-progress-v1';
 // Übungsart, keine erfundenen Werte. sets/reps/seconds sind eigene, generische
 // Default-Vorgaben (3×8 bzw. 3×15s), NICHT aus der echten Thenics-App
 // verifiziert — dort variieren die Vorgaben vermutlich pro Skill-Schwere.
-// module: 'module_1_basics' | 'module_2_biomechanics' | 'module_3_execution'
-// — reines Metadaten-Feld für die 3 Ausbildungsmodule (Nutzer-Vorgabe
-// 2026-08-12), aktuell nirgends im Code ausgewertet/verdrahtet (kein
-// Coach-Approval, kein Video-Verification-Flow — explizit nicht gebaut,
-// nur das Datenfeld für spätere Auswertung). null wo keine Zuordnung
-// vorlag. Front-Lever-Zielwerte (sets/seconds) für Tuck/Advanced Tuck/
-// Straddle stammen aus derselben Nutzer-Vorgabe und ersetzen die generischen
-// Defaults; rest_seconds aus der Vorgabe wurde NICHT übernommen, da
-// WorkoutRunner Pausenzeiten pro Rolle (Primär/Sekundär/Conditioning) statt
-// pro Stufe vergibt — Konflikt bewusst nicht aufgelöst, außerhalb des
-// freigegebenen Scopes.
-function reps(name, sets = 3, count = 8, module = null) { return { name, type: 'reps', sets, reps: count, module }; }
-function hold(name, sets = 3, seconds = 15, module = null) { return { name, type: 'hold', sets, seconds, module }; }
+// Front-Lever-Zielwerte (sets/seconds) für Tuck/Advanced Tuck/Straddle
+// stammen aus Nutzer-Vorgabe 2026-08-12 und ersetzen die generischen
+// Defaults. (Ein zunächst mit derselben Vorgabe eingeführtes module-Feld
+// für 3 Ausbildungsmodule wurde noch am selben Tag wieder entfernt — laut
+// Nutzer war der zugrunde liegende Web-Agent vom Ausbildungskontext
+// verwirrt, das Konzept war Unsinn.)
+function reps(name, sets = 3, count = 8) { return { name, type: 'reps', sets, reps: count }; }
+function hold(name, sets = 3, seconds = 15) { return { name, type: 'hold', sets, seconds }; }
 
 const SKILLS = [
   { id: 'muscle-up', name: 'Muscle-Up', tier: 'free', category: 'pull', progressions: [reps('Klimmzüge', 4, 8), reps('Explosive Klimmzüge'), reps('Chest-to-Bar Pull-Ups'), reps('Bar Dips'), reps('Muscle-Up Negative', 3, 5), reps('Muscle-Up', 3, 3)] },
-  { id: 'planche', name: 'Planche', tier: 'free', category: 'push', progressions: [hold('Plank'), hold('Planche Lean', 3, 15, 'module_1_basics'), hold('Frog Stand'), hold('Tuck Planche', 3, 15, 'module_2_biomechanics'), hold('Advanced Tuck Planche', 3, 15, 'module_2_biomechanics'), hold('Straddle Planche', 3, 15, 'module_3_execution'), hold('Full Planche', 3, 15, 'module_3_execution')] },
-  { id: 'front-lever', name: 'Front Lever', tier: 'free', category: 'pull', progressions: [reps('Scapula Pulls', 3, 10, 'module_1_basics'), hold('Tuck Front Lever', 4, 15, 'module_1_basics'), hold('Advanced Tuck Front Lever', 5, 10, 'module_2_biomechanics'), hold('One Leg Front Lever'), hold('Straddle Front Lever', 4, 8, 'module_3_execution'), hold('Full Front Lever', 3, 15, 'module_3_execution')] },
+  { id: 'planche', name: 'Planche', tier: 'free', category: 'push', progressions: [hold('Plank'), hold('Planche Lean'), hold('Frog Stand'), hold('Tuck Planche'), hold('Advanced Tuck Planche'), hold('Straddle Planche'), hold('Full Planche')] },
+  { id: 'front-lever', name: 'Front Lever', tier: 'free', category: 'pull', progressions: [reps('Scapula Pulls', 3, 10), hold('Tuck Front Lever', 4, 15), hold('Advanced Tuck Front Lever', 5, 10), hold('One Leg Front Lever'), hold('Straddle Front Lever', 4, 8), hold('Full Front Lever')] },
   { id: 'back-lever', name: 'Back Lever', tier: 'free', category: 'pull', progressions: [reps('Skin the Cat', 3, 5), hold('Tuck Back Lever'), hold('Advanced Tuck Back Lever'), hold('Straddle Back Lever'), hold('Full Back Lever')] },
   { id: 'handstand-pushup', name: 'Handstand Push-Up', tier: 'free', category: 'push', progressions: [reps('Pike Push-Ups'), reps('Elevated Pike Push-Ups'), reps('Wall Handstand Push-Ups'), reps('Freestanding Handstand Push-Ups', 3, 5)] },
   { id: 'v-sit', name: 'V-Sit', tier: 'free', category: 'core', progressions: [hold('Tuck L-Sit'), hold('L-Sit'), hold('Straddle L-Sit'), hold('V-Sit')] },
-  { id: 'pistol-squat', name: 'Pistol Squat', tier: 'free', category: 'core', progressions: [reps('Assisted Squats', 3, 8, 'module_1_basics'), reps('Deep Squats'), reps('Step-Ups', 3, 8, 'module_1_basics'), reps('Negative Pistol Squats', 3, 8, 'module_2_biomechanics'), reps('Full Pistol Squat', 3, 8, 'module_3_execution')] },
+  { id: 'pistol-squat', name: 'Pistol Squat', tier: 'free', category: 'core', progressions: [reps('Assisted Squats'), reps('Deep Squats'), reps('Step-Ups'), reps('Negative Pistol Squats'), reps('Full Pistol Squat')] },
   { id: 'human-flag', name: 'Human Flag', tier: 'pro', category: 'core', progressions: [hold('Support Holds'), hold('Vertical Flag'), hold('Tuck Human Flag'), hold('Straddle Human Flag'), hold('Full Human Flag')] },
   { id: 'one-arm-pullup', name: 'One Arm Pull-Up', tier: 'pro', category: 'pull', progressions: [reps('Archer Pull-Ups'), reps('Weighted Pull-Ups'), reps('One Arm Negative Pull-Ups', 3, 5), reps('Assisted One Arm Pull-Up', 3, 3)] },
   { id: 'dragon-flag', name: 'Dragon Flag', tier: 'pro', category: 'core', progressions: [reps('Candlestick', 3, 5), reps('Dragon Flag Negatives', 3, 5), reps('Tuck Dragon Flag', 3, 5), reps('Full Dragon Flag', 3, 3)] },
@@ -833,10 +828,10 @@ function SkillDetailScreen({ skill, stage, history, holds, sessions, onBack, onM
       {!isLast ? (
         <button
           onClick={onMaster}
-          className="w-full min-h-12 rounded-2xl flex items-center justify-center gap-2 text-sm font-black uppercase tracking-[0.16em]"
-          style={{ background: 'var(--accent)', color: '#fff' }}
+          className="w-full py-2.5 flex items-center justify-center gap-1.5 text-[11px] font-bold"
+          style={{ color: 'var(--dim)' }}
         >
-          <Check size={16} strokeWidth={3} /> Stufe gemeistert — nächste freischalten
+          <Check size={13} strokeWidth={2.7} /> Manuell auf nächste Stufe springen
         </button>
       ) : (
         <div className="text-center py-3 text-sm font-black" style={{ color: 'var(--accent)' }}>
