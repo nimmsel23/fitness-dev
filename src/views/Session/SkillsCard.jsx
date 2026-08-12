@@ -34,8 +34,6 @@ const SKILLS = [
   { id: 'shrimp-squat', name: 'Shrimp Squat', tier: 'pro', category: 'core', progressions: [reps('Airborne Squat'), hold('Shrimp Squat (einarmig halten)'), reps('Full Shrimp Squat', 3, 5)] },
 ];
 
-const REST_SECONDS = 90;
-
 const CATEGORY_META = {
   push: { Icon: ArrowUp },
   pull: { Icon: ArrowDown },
@@ -127,6 +125,13 @@ function SkillListScreen({ progress, onOpen }) {
       ))}
     </div>
   );
+}
+
+function formatSeconds(totalSeconds) {
+  const safe = Math.max(0, Math.floor(totalSeconds || 0));
+  const minutes = Math.floor(safe / 60);
+  const seconds = safe % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
 function formatMasteredAt(iso) {
@@ -222,20 +227,53 @@ function formatTarget(p) {
   return p.type === 'hold' ? `${p.sets}× ${p.seconds}s halten` : `${p.sets}× ${p.reps} Wdh`;
 }
 
-// ── Geführter Workout-Runner (State-Machine) ────────────────────────────────
+// ── Geführter Workout-Runner (State-Machine, 3-Phasen-Modell) ───────────────
 // prep (kurzer Countdown) → work (Countdown bei "hold", manuelle Bestätigung
-// bei "reps") → rest (Auto-Countdown, Screen-Tönung) → nächster Satz von
-// vorn, bis alle Sätze durch sind → done. Kein manuelles Stoppen zwischen den
-// Sätzen nötig — genau der Unterschied zur freien Stoppuhr darunter.
+// bei "reps") → rest (Auto-Countdown, +30s/SKIP, Screen-Tönung) → nächster
+// Satz, bis der Block durch ist → nächster Block → done. Reihenfolge und
+// Pausenzeiten sind eigene, an ZNS-/Volumen-/Conditioning-Prinzipien
+// angelehnte Defaults — nicht 1:1 aus der echten App verifiziert:
+//   1. Primär   = aktuelle Progressionsstufe, hohe Intensität, lange Pause (150s)
+//   2. Sekundär = eine Stufe zurück (mehr Volumen), mittlere Pause (75s) — entfällt bei Stufe 0
+//   3. Conditioning = Core/Gelenk-Übung passend zur Skill-Kategorie, kurze Pause (45s)
 const PREP_SECONDS = 3;
 
-function WorkoutRunner({ stageInfo, onFinish, onExit }) {
+const CONDITIONING_BY_CATEGORY = {
+  push: { name: 'Hollow Body Hold', type: 'hold', sets: 3, seconds: 20 },
+  pull: { name: 'Scapula Pulls', type: 'reps', sets: 3, reps: 10 },
+  core: { name: 'Plank', type: 'hold', sets: 3, seconds: 30 },
+};
+
+function buildWorkoutBlocks(skill, stage) {
+  const blocks = [{ ...skill.progressions[stage], role: 'Primär', restSeconds: 150 }];
+  if (stage > 0) {
+    blocks.push({ ...skill.progressions[stage - 1], role: 'Sekundär', restSeconds: 75 });
+  }
+  blocks.push({ ...CONDITIONING_BY_CATEGORY[skill.category], role: 'Conditioning', restSeconds: 45 });
+  return blocks;
+}
+
+const RPE_OPTIONS = [
+  { id: 'easy', label: 'Leicht' },
+  { id: 'optimal', label: 'Optimal' },
+  { id: 'limit', label: 'Am Limit' },
+];
+
+function WorkoutRunner({ skill, stage, onFinish, onExit }) {
+  const [blocks] = useState(() => buildWorkoutBlocks(skill, stage));
+  const [blockIndex, setBlockIndex] = useState(0);
   const [phase, setPhase] = useState('prep');
   const [setIndex, setSetIndex] = useState(0);
   const [remainingMs, setRemainingMs] = useState(PREP_SECONDS * 1000);
   const [workElapsedMs, setWorkElapsedMs] = useState(0);
+  const [startedAt] = useState(() => Date.now());
+  const [log, setLog] = useState(() => blocks.map(() => []));
+  const [actualReps, setActualReps] = useState(blocks[0].type === 'reps' ? blocks[0].reps : 0);
+  const [rpe, setRpe] = useState(null);
 
-  const isHold = stageInfo.type === 'hold';
+  const block = blocks[blockIndex];
+  const nextBlock = blocks[blockIndex + 1];
+  const isHold = block.type === 'hold';
 
   useEffect(() => {
     if (phase === 'done') return undefined;
@@ -251,23 +289,41 @@ function WorkoutRunner({ stageInfo, onFinish, onExit }) {
       });
     }, 100);
     return () => window.clearInterval(interval);
-  }, [phase, setIndex]);
+  }, [phase, setIndex, blockIndex]);
+
+  function logAchieved(value) {
+    setLog(current => {
+      const next = current.map(arr => arr.slice());
+      next[blockIndex] = [...next[blockIndex], value];
+      return next;
+    });
+  }
 
   function advancePhase() {
     if (phase === 'prep') {
       setPhase('work');
       setWorkElapsedMs(0);
-      setRemainingMs(isHold ? stageInfo.seconds * 1000 : 0);
+      setRemainingMs(isHold ? block.seconds * 1000 : 0);
+      if (!isHold) setActualReps(block.reps);
       return;
     }
     if (phase === 'work') {
+      if (isHold) logAchieved(block.seconds);
       goToRest();
       return;
     }
     if (phase === 'rest') {
       const nextSet = setIndex + 1;
-      if (nextSet >= stageInfo.sets) {
-        setPhase('done');
+      if (nextSet >= block.sets) {
+        const nextBlockIndex = blockIndex + 1;
+        if (nextBlockIndex >= blocks.length) {
+          setPhase('done');
+          return;
+        }
+        setBlockIndex(nextBlockIndex);
+        setSetIndex(0);
+        setPhase('prep');
+        setRemainingMs(PREP_SECONDS * 1000);
         return;
       }
       setSetIndex(nextSet);
@@ -278,19 +334,44 @@ function WorkoutRunner({ stageInfo, onFinish, onExit }) {
 
   function goToRest() {
     setPhase('rest');
-    setRemainingMs(REST_SECONDS * 1000);
+    setRemainingMs(block.restSeconds * 1000);
   }
 
   function completeRepsSet() {
-    if (phase === 'work' && !isHold) goToRest();
+    if (phase !== 'work' || isHold) return;
+    logAchieved(actualReps);
+    goToRest();
   }
 
-  useEffect(() => {
-    if (phase === 'done') onFinish();
-  }, [phase]);
+  function addRestTime() {
+    if (phase === 'rest') setRemainingMs(ms => ms + 30000);
+  }
 
-  const phaseColor = { prep: 'var(--accent)', work: 'var(--accent)', rest: '#38bdf8', done: 'var(--accent)' }[phase];
+  function skipRest() {
+    if (phase === 'rest') advancePhase();
+  }
+
+  function saveWorkout() {
+    const totalDurationSeconds = Math.round((Date.now() - startedAt) / 1000);
+    onFinish({
+      timestamp: new Date().toISOString(),
+      skillId: skill.id,
+      progressionStage: stage,
+      totalDurationSeconds,
+      rpe,
+      exercises: blocks.map((b, i) => ({ name: b.name, role: b.role, type: b.type, setsCompleted: log[i] })),
+    });
+  }
+
+  const phaseColor = phase === 'rest' ? '#38bdf8' : 'var(--accent)';
   const phaseLabel = { prep: 'Bereit machen', work: isHold ? 'Halten' : 'Wiederholungen', rest: 'Pause', done: 'Fertig' }[phase];
+
+  const nextPreviewLabel = (() => {
+    if (phase !== 'rest') return null;
+    if (setIndex + 1 < block.sets) return `Satz ${setIndex + 2}/${block.sets} ${block.name}`;
+    if (nextBlock) return `${nextBlock.role}: ${nextBlock.name}`;
+    return 'Letzter Satz — gleich fertig';
+  })();
 
   return (
     <div
@@ -299,14 +380,34 @@ function WorkoutRunner({ stageInfo, onFinish, onExit }) {
     >
       {phase !== 'done' && (
         <>
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] mb-1" style={{ color: phaseColor }}>
-            {phaseLabel} · Satz {setIndex + 1}/{stageInfo.sets}
+          <div className="text-[10px] font-black uppercase tracking-[0.2em] mb-1" style={{ color: 'var(--dim)' }}>
+            Übung {blockIndex + 1}/{blocks.length} · {block.role}
           </div>
-          <div className="text-lg font-black text-fit-ink mb-3">{stageInfo.name}</div>
+          <div className="text-[10px] font-black uppercase tracking-[0.2em] mb-1" style={{ color: phaseColor }}>
+            {phaseLabel} · Satz {setIndex + 1}/{block.sets}
+          </div>
+          <div className="text-lg font-black text-fit-ink mb-3">{block.name}</div>
 
-          {phase === 'work' && !isHold ? (
+          {phase === 'work' && !isHold && (
             <>
-              <div className="text-4xl font-black tabular-nums text-fit-ink mb-1">{stageInfo.reps}× Wdh</div>
+              <div className="text-[11px] font-bold mb-1" style={{ color: 'var(--dim)' }}>Ziel: {block.reps}× Wdh</div>
+              <div className="flex items-center justify-center gap-4 mb-1">
+                <button
+                  onClick={() => setActualReps(n => Math.max(0, n - 1))}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-black"
+                  style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}
+                >
+                  −
+                </button>
+                <div className="text-4xl font-black tabular-nums text-fit-ink w-16">{actualReps}</div>
+                <button
+                  onClick={() => setActualReps(n => n + 1)}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-black"
+                  style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}
+                >
+                  +
+                </button>
+              </div>
               <div className="text-[11px] font-bold mb-4" style={{ color: 'var(--dim)' }}>Laufzeit: {formatHoldTime(workElapsedMs)}</div>
               <button
                 onClick={completeRepsSet}
@@ -316,22 +417,118 @@ function WorkoutRunner({ stageInfo, onFinish, onExit }) {
                 <Check size={16} strokeWidth={3} /> Satz erledigt
               </button>
             </>
-          ) : (
+          )}
+
+          {(phase === 'work' && isHold) && (
             <div className="text-5xl font-black tabular-nums text-fit-ink">{Math.ceil(remainingMs / 1000)}s</div>
+          )}
+
+          {phase === 'prep' && (
+            <div className="text-5xl font-black tabular-nums text-fit-ink">{Math.ceil(remainingMs / 1000)}s</div>
+          )}
+
+          {phase === 'rest' && (
+            <>
+              <div className="text-5xl font-black tabular-nums text-fit-ink mb-2">{Math.ceil(remainingMs / 1000)}s</div>
+              {nextPreviewLabel && (
+                <div className="text-[11px] font-bold mb-4" style={{ color: 'var(--dim)' }}>Als Nächstes: {nextPreviewLabel}</div>
+              )}
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  onClick={addRestTime}
+                  className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-[0.12em]"
+                  style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}
+                >
+                  +30s
+                </button>
+                <button
+                  onClick={skipRest}
+                  className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-[0.12em]"
+                  style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}
+                >
+                  Skip
+                </button>
+              </div>
+            </>
           )}
         </>
       )}
 
       {phase === 'done' && (
-        <div>
-          <Trophy size={28} style={{ color: 'var(--accent)' }} className="mx-auto mb-2" />
-          <div className="text-lg font-black text-fit-ink">Workout abgeschlossen</div>
-          <div className="text-[11px] font-bold mt-1" style={{ color: 'var(--dim)' }}>{stageInfo.sets} Sätze {stageInfo.name}</div>
-        </div>
+        <SessionSummary
+          blocks={blocks}
+          log={log}
+          startedAt={startedAt}
+          rpe={rpe}
+          onSetRpe={setRpe}
+          onSave={saveWorkout}
+        />
       )}
 
-      <button onClick={onExit} className="mt-4 text-[11px] font-bold" style={{ color: 'var(--dim)' }}>
-        Abbrechen
+      {phase !== 'done' && (
+        <button onClick={onExit} className="mt-4 text-[11px] font-bold" style={{ color: 'var(--dim)' }}>
+          Abbrechen
+        </button>
+      )}
+    </div>
+  );
+}
+
+function SessionSummary({ blocks, log, startedAt, rpe, onSetRpe, onSave }) {
+  const totalSeconds = Math.round((Date.now() - startedAt) / 1000);
+  const totalVolume = blocks.reduce((sum, _b, i) => sum + log[i].reduce((s, v) => s + v, 0), 0);
+  const volumeUnit = blocks.every(b => b.type === 'hold') ? 'Sek.' : 'Wdh/Sek.';
+
+  return (
+    <div className="text-left">
+      <div className="text-center mb-4">
+        <Trophy size={28} style={{ color: 'var(--accent)' }} className="mx-auto mb-2" />
+        <div className="text-lg font-black text-fit-ink">Workout Complete!</div>
+        <div className="text-[11px] font-bold mt-1" style={{ color: 'var(--dim)' }}>
+          Gesamtzeit {formatSeconds(totalSeconds)} · Volumen {totalVolume} {volumeUnit}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2 mb-4">
+        {blocks.map((b, i) => (
+          <div key={i} className="px-3 py-2.5 rounded-xl" style={{ background: 'var(--bg2)' }}>
+            <div className="text-[10px] font-black uppercase tracking-[0.1em] mb-0.5" style={{ color: 'var(--dim)' }}>{b.role}</div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-fit-ink">{b.name}</span>
+              <span className="text-xs font-mono" style={{ color: 'var(--dim)' }}>
+                {log[i].join(' | ')}{b.type === 'hold' ? 's' : ''}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mb-4">
+        <div className="text-[10px] font-black uppercase tracking-[0.15em] mb-2 text-center" style={{ color: 'var(--dim)' }}>Wie hart war's?</div>
+        <div className="flex items-center justify-center gap-2">
+          {RPE_OPTIONS.map(opt => (
+            <button
+              key={opt.id}
+              onClick={() => onSetRpe(opt.id)}
+              className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-[0.1em]"
+              style={{
+                background: rpe === opt.id ? 'var(--accent)' : 'var(--bg2)',
+                color: rpe === opt.id ? '#fff' : 'var(--ink)',
+                border: rpe === opt.id ? 'none' : '1px solid var(--line)',
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button
+        onClick={onSave}
+        className="w-full min-h-12 rounded-2xl flex items-center justify-center gap-2 text-sm font-black uppercase tracking-[0.16em]"
+        style={{ background: 'var(--accent)', color: '#fff' }}
+      >
+        <Check size={16} strokeWidth={3} /> Workout speichern
       </button>
     </div>
   );
@@ -356,9 +553,10 @@ function SkillDetailScreen({ skill, stage, history, holds, sessions, onBack, onM
 
       {runnerActive ? (
         <WorkoutRunner
-          stageInfo={stageInfo}
+          skill={skill}
+          stage={stage}
           onExit={() => setRunnerActive(false)}
-          onFinish={() => onLogWorkout(stage)}
+          onFinish={(sessionData) => { onLogWorkout(stage, sessionData); setRunnerActive(false); }}
         />
       ) : (
         <div
@@ -486,13 +684,13 @@ export default function SkillsCard() {
     });
   }
 
-  function logWorkout(skillId, stage) {
+  function logWorkout(skillId, stage, sessionData) {
     const entry = progress[skillId] ?? { stage: 0, history: [], holds: [], sessions: [] };
     persist({
       ...progress,
       [skillId]: {
         ...entry,
-        sessions: [...(entry.sessions || []), { stage, at: new Date().toISOString() }],
+        sessions: [...(entry.sessions || []), { stage, at: sessionData.timestamp, ...sessionData }],
       },
     });
   }
@@ -531,7 +729,7 @@ export default function SkillsCard() {
           onBack={() => setOpenSkillId(null)}
           onMaster={() => master(openSkill.id, openSkill)}
           onLogHold={(stage, duration) => logHold(openSkill.id, stage, duration)}
-          onLogWorkout={(stage) => logWorkout(openSkill.id, stage)}
+          onLogWorkout={(stage, sessionData) => logWorkout(openSkill.id, stage, sessionData)}
         />
       ) : (
         <SkillListScreen progress={progress} onOpen={setOpenSkillId} />
