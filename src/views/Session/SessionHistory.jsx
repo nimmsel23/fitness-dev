@@ -76,6 +76,7 @@ export default function SessionHistory({
   draggedDate, setDraggedDate,
   dragOverDate, setDragOverDate,
   moveSessionToDate,
+  hasMoreHistory, onLoadMoreHistory,
 }) {
   const today = localToday();
   const weekGroups = buildWeekGroups(today, recentSessions);
@@ -409,6 +410,16 @@ export default function SessionHistory({
           </div>
         );
       })}
+
+      {hasMoreHistory && (
+        <button
+          onClick={onLoadMoreHistory}
+          className="w-full mt-4 py-3 rounded-xl text-sm font-bold transition-colors"
+          style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}
+        >
+          Mehr laden
+        </button>
+      )}
     </div>
   );
 }
