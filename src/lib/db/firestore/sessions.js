@@ -98,6 +98,8 @@ function normalizeGhostSet(set = {}, index = 0) {
     setIndex: set.setIndex ?? index + 1,
     setType: set.setType || "normal",
     reps: set.reps ?? null,
+    weight: set.weight ?? null,
+    distance: set.distance ?? null,
     duration: set.duration ?? null,
   };
 }
@@ -275,13 +277,15 @@ export async function buildWorkoutFromRoutine(routine, lookup = getLastExerciseP
           setIndex: index + 1,
           setType: templateEx.drop_set ? "drop" : "normal",
           targetReps: templateEx.target_reps ?? "8-12",
+          targetWeight: templateEx.target_weight ?? null,
+          targetDistance: templateEx.targetDistance ?? null,
           targetDuration: templateEx.targetDuration ?? null,
         }));
 
     exercises.push({
       exercise_id: templateEx.exercise_id,
       name: templateEx.name,
-      trackingType: templateEx.trackingType || "bodyweight_reps",
+      trackingType: templateEx.trackingType || "weight_reps",
       rest_seconds: templateEx.rest_seconds ?? 90,
       order: templateEx.order ?? exercises.length,
       sets: templateSets.map((templateSet, index) => {
@@ -290,11 +294,17 @@ export async function buildWorkoutFromRoutine(routine, lookup = getLastExerciseP
           setIndex: templateSet.setIndex ?? index + 1,
           setType: templateSet.setType || "normal",
           targetReps: templateSet.targetReps ?? null,
+          targetWeight: templateSet.targetWeight ?? null,
+          targetDistance: templateSet.targetDistance ?? null,
           targetDuration: templateSet.targetDuration ?? null,
           progressionStage: templateSet.progressionStage ?? templateEx.progressionStage ?? null,
           ghostReps: ghostSet.reps ?? templateSet.targetReps ?? null,
+          ghostWeight: ghostSet.weight ?? templateSet.targetWeight ?? null,
+          ghostDistance: ghostSet.distance ?? templateSet.targetDistance ?? null,
           ghostDuration: ghostSet.duration ?? templateSet.targetDuration ?? null,
           reps: null,
+          weight: null,
+          distance: null,
           duration: null,
           completed: false,
         };

@@ -143,8 +143,9 @@ function escapeCsvValue(v) {
 function normalizeTrackingType(value) {
   const raw = String(value || "").trim().toLowerCase();
   if (["bodyweight_reps", "bodyweight", "bodyweight&reps"].includes(raw)) return "bodyweight_reps";
+  if (["distance_time", "distance", "distance&time", "cardio"].includes(raw)) return "distance_time";
   if (["duration", "time", "timer"].includes(raw)) return "duration";
-  return "bodyweight_reps";
+  return "weight_reps";
 }
 
 function defaultTemplateSet(index = 0, overrides = {}) {
@@ -153,6 +154,8 @@ function defaultTemplateSet(index = 0, overrides = {}) {
     setIndex: overrides.setIndex ?? index + 1,
     setType: overrides.setType || "normal",
     targetReps: overrides.targetReps ?? "8-12",
+    targetWeight: overrides.targetWeight ?? null,
+    targetDistance: overrides.targetDistance ?? null,
     targetDuration: overrides.targetDuration ?? null,
     progressionStage: overrides.progressionStage ?? null,
   };
@@ -164,6 +167,7 @@ function normalizeTemplateSets(exercise = {}) {
     : Array.from({ length: Math.max(1, Number(exercise.target_sets) || 3) }, (_, index) =>
         defaultTemplateSet(index, {
           targetReps: exercise.target_reps ?? "8-12",
+          targetWeight: exercise.target_weight ?? null,
           setType: exercise.drop_set ? "drop" : (exercise.effort === "to_failure" || exercise.effort === "absolute_failure" ? "failure" : "normal"),
         })
       );
@@ -178,10 +182,10 @@ function deriveLegacyRoutineFields(exercise = {}) {
     templateSets,
     target_sets: templateSets.length,
     target_reps: templateSets[0]?.targetReps ?? "8-12",
-    target_weight: null,
+    target_weight: templateSets[0]?.targetWeight ?? null,
     drop_set: templateSets.some((set) => set.setType === "drop"),
     effort: templateSets.some((set) => set.setType === "failure") ? "to_failure" : (exercise.effort || "normal"),
-    weight_type: exercise.weight_type || "bodyweight",
+    weight_type: exercise.weight_type || "kg",
   };
 }
 
@@ -210,11 +214,17 @@ function normalizeSetEntry(set = {}, index = 0) {
     setIndex: set.setIndex ?? index + 1,
     setType: set.setType || "normal",
     targetReps: set.targetReps ?? null,
+    targetWeight: set.targetWeight ?? null,
+    targetDistance: set.targetDistance ?? null,
     targetDuration: set.targetDuration ?? null,
     progressionStage: set.progressionStage ?? null,
     ghostReps: set.ghostReps ?? null,
+    ghostWeight: set.ghostWeight ?? null,
+    ghostDistance: set.ghostDistance ?? null,
     ghostDuration: set.ghostDuration ?? null,
     reps: set.reps ?? null,
+    weight: set.weight ?? null,
+    distance: set.distance ?? null,
     duration: set.duration ?? null,
     completed: !!set.completed,
   };
@@ -304,9 +314,13 @@ function buildWorkoutExerciseFromRoutine(routineExercise = {}) {
       const normalizedSet = normalizeSetEntry({
         setType: templateSet.setType,
         targetReps: templateSet.targetReps,
+        targetWeight: templateSet.targetWeight,
+        targetDistance: templateSet.targetDistance,
         targetDuration: templateSet.targetDuration,
         progressionStage: templateSet.progressionStage ?? routineExercise.progressionStage ?? null,
         ghostReps: previous.reps ?? templateSet.targetReps ?? null,
+        ghostWeight: previous.weight ?? templateSet.targetWeight ?? null,
+        ghostDistance: previous.distance ?? templateSet.targetDistance ?? null,
         ghostDuration: previous.duration ?? templateSet.targetDuration ?? null,
       }, index);
       return normalizedSet;
@@ -1063,12 +1077,12 @@ app.post("/routines/:id/exercises", async (c) => {
     primaryMuscles: body.primaryMuscles || [],
     secondaryMuscles: body.secondaryMuscles || [],
     yuhonas_id: body.yuhonas_id || null,
-    trackingType: body.trackingType || "bodyweight_reps",
+    trackingType: body.trackingType || "weight_reps",
     templateSets: body.templateSets || undefined,
     target_sets: 3,
     target_reps: "8-12",
     rest_seconds: 90,
-    weight_type: "bodyweight",
+    weight_type: "kg",
     effort: "normal",
     rir: null,
     tempo: null,
@@ -1218,9 +1232,9 @@ app.post("/workouts/:id/exercises", async (c) => {
     primaryMuscles: body.primaryMuscles || [],
     secondaryMuscles: body.secondaryMuscles || [],
     yuhonas_id: body.yuhonas_id || null,
-    trackingType: body.trackingType || "bodyweight_reps",
+    trackingType: body.trackingType || "weight_reps",
     rest_seconds: 90,
-    weight_type: "bodyweight",
+    weight_type: "kg",
     notes: null,
     order: workout.exercises.length,
     sets: Array.from({ length: 3 }, (_, i) => normalizeSetEntry({}, i)),
@@ -1261,6 +1275,8 @@ app.post("/workouts/:id/exercises/:eid/sets", (c) => {
   const set = normalizeSetEntry({
     setType: lastTemplate.setType || "normal",
     targetReps: lastTemplate.targetReps ?? null,
+    targetWeight: lastTemplate.targetWeight ?? null,
+    targetDistance: lastTemplate.targetDistance ?? null,
     targetDuration: lastTemplate.targetDuration ?? null,
     progressionStage: lastTemplate.progressionStage ?? null,
   }, exercise.sets.length);

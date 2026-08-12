@@ -5,17 +5,33 @@ import ExerciseSearch from "./components/ExerciseSearch.jsx";
 import { muskelDe, muskelColor } from "./muscles.js";
 
 function SetRow({ set, index, trackingType, onPatch, onDelete }) {
-  const isBodyweight = trackingType !== "duration";
+  const isWeight = trackingType === "weight_reps";
+  const isBodyweight = trackingType === "bodyweight_reps";
   const isDuration = trackingType === "duration";
+  const isDistanceTime = trackingType === "distance_time";
 
   function toggleCompleted() {
     if (set.completed) {
       onPatch({ completed: false });
       return;
     }
-    if (isBodyweight) {
+    if (isWeight || isBodyweight) {
+      if (isWeight && (set.weight === null || set.weight === "") && set.ghostWeight !== null && set.ghostWeight !== undefined) {
+        onPatch({ weight: set.ghostWeight, reps: set.reps ?? set.ghostReps ?? null, completed: true });
+        return;
+      }
       if ((set.reps === null || set.reps === "") && set.ghostReps !== null && set.ghostReps !== undefined) {
         onPatch({ reps: set.ghostReps, completed: true });
+        return;
+      }
+    }
+    if (isDistanceTime) {
+      if ((set.distance === null || set.distance === "") && set.ghostDistance !== null && set.ghostDistance !== undefined) {
+        onPatch({ distance: set.ghostDistance, duration: set.duration ?? set.ghostDuration ?? null, completed: true });
+        return;
+      }
+      if ((set.duration === null || set.duration === "") && set.ghostDuration !== null && set.ghostDuration !== undefined) {
+        onPatch({ duration: set.ghostDuration, completed: true });
         return;
       }
     }
@@ -33,6 +49,16 @@ function SetRow({ set, index, trackingType, onPatch, onDelete }) {
         : "grid-cols-[1.5rem_1fr_1fr_2.25rem_2.25rem]"
     }`}>
       <span className="text-xs font-mono text-fit-muted text-center">{index + 1}</span>
+      {(isWeight || isDistanceTime) && (
+        <input
+          type="number"
+          inputMode="decimal"
+          placeholder={isWeight ? String(set.ghostWeight ?? set.targetWeight ?? "kg") : String(set.ghostDistance ?? set.targetDistance ?? "km")}
+          value={isWeight ? (set.weight ?? "") : (set.distance ?? "")}
+          onChange={(e) => onPatch({ [isWeight ? "weight" : "distance"]: e.target.value === "" ? null : Number(e.target.value) })}
+          className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent placeholder:text-fit-muted"
+        />
+      )}
       {isBodyweight && (
         <input
           type="number"
@@ -47,6 +73,26 @@ function SetRow({ set, index, trackingType, onPatch, onDelete }) {
         <div className="px-2 py-1.5 rounded-lg bg-fit-bg2/50 border border-fit-line text-fit-muted text-[11px] text-center">
           {set.progressionStage || "stage offen"}
         </div>
+      )}
+      {isWeight && (
+        <input
+          type="number"
+          inputMode="numeric"
+          placeholder={String(set.ghostReps ?? set.targetReps ?? "Wdh")}
+          value={set.reps ?? ""}
+          onChange={(e) => onPatch({ reps: e.target.value === "" ? null : Number(e.target.value) })}
+          className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent placeholder:text-fit-muted"
+        />
+      )}
+      {isDistanceTime && (
+        <input
+          type="number"
+          inputMode="numeric"
+          placeholder={String(set.ghostDuration ?? set.targetDuration ?? "min")}
+          value={set.duration ?? ""}
+          onChange={(e) => onPatch({ duration: e.target.value === "" ? null : Number(e.target.value) })}
+          className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent placeholder:text-fit-muted"
+        />
       )}
       {isDuration && (
         <input
@@ -104,9 +150,11 @@ function ExerciseBlock({ ex, onAddSet, onPatchSet, onDeleteSet, onDeleteExercise
             : "grid-cols-[1.5rem_1fr_1fr_2.25rem_2.25rem]"
         }`}>
           <span className="text-center">#</span>
-          <span className="text-center">{ex.trackingType === "duration" ? "Zeit" : "Wdh"}</span>
+          <span className="text-center">
+            {ex.trackingType === "weight_reps" ? "kg" : ex.trackingType === "distance_time" ? "km" : ex.trackingType === "duration" ? "Zeit" : "Wdh"}
+          </span>
           {ex.trackingType !== "duration" && (
-            <span className="text-center">Stage</span>
+            <span className="text-center">{ex.trackingType === "bodyweight_reps" ? "Stage" : ex.trackingType === "distance_time" ? "Zeit" : "Wdh"}</span>
           )}
           <span />
           <span />
@@ -116,7 +164,7 @@ function ExerciseBlock({ ex, onAddSet, onPatchSet, onDeleteSet, onDeleteExercise
             key={set.id}
             set={set}
             index={i}
-            trackingType={ex.trackingType || "bodyweight_reps"}
+            trackingType={ex.trackingType || "weight_reps"}
             onPatch={(patch) => onPatchSet(set.id, patch)}
             onDelete={() => onDeleteSet(set.id)}
           />
@@ -152,7 +200,7 @@ export default function WorkoutSession({ workoutId, onBack, onFinished }) {
       primaryMuscles: ex.primaryMuscles,
       secondaryMuscles: ex.secondaryMuscles,
       yuhonas_id: ex.yuhonas_id,
-      trackingType: ex.trackingType || "bodyweight_reps",
+      trackingType: ex.trackingType || "weight_reps",
     });
     load();
   }
@@ -193,8 +241,14 @@ export default function WorkoutSession({ workoutId, onBack, onFinished }) {
             .map((set) => ({
               exercise_id: exercise.exercise_id,
               setId: set.id,
-              metricType: exercise.trackingType === "duration" ? "seconds" : "reps",
+              metricType:
+                exercise.trackingType === "weight_reps" ? "weight_reps"
+                  : exercise.trackingType === "distance_time" ? "distance_time"
+                    : exercise.trackingType === "duration" ? "seconds"
+                      : "reps",
               reps: set.reps ?? null,
+              weight: set.weight ?? null,
+              distance: set.distance ?? null,
               seconds: set.duration ?? null,
               progressionStage: set.progressionStage ?? null,
               completedAt: finishedAt,

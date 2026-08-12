@@ -19,6 +19,8 @@ function ensureTemplateSets(ex) {
     setIndex: index + 1,
     setType: ex.drop_set ? "drop" : "normal",
     targetReps: ex.target_reps ?? "8-12",
+    targetWeight: ex.target_weight ?? null,
+    targetDistance: ex.targetDistance ?? null,
     targetDuration: ex.targetDuration ?? null,
     progressionStage: ex.progressionStage ?? null,
   }));
@@ -34,7 +36,7 @@ function patchTemplateSets(ex, recipe) {
     templateSets: nextTemplateSets,
     target_sets: nextTemplateSets.length,
     target_reps: nextTemplateSets[0]?.targetReps ?? "8-12",
-    target_weight: null,
+    target_weight: nextTemplateSets[0]?.targetWeight ?? null,
     drop_set: nextTemplateSets.some((set) => set.setType === "drop"),
     effort: nextTemplateSets.some((set) => set.setType === "failure") ? "to_failure" : "normal",
   };
@@ -76,7 +78,7 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
           {templateSets.some((set) => set.setType === "failure") && <span className="text-xs px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 font-medium">Failure</span>}
           {templateSets.some((set) => set.setType === "drop") ? <span className="text-xs px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-400 font-medium">Drop</span> : null}
           <span className="font-mono text-xs text-fit-muted">
-            {templateSets.length}×{(ex.trackingType || "bodyweight_reps") === "duration" ? (leadSet.targetDuration ?? "10s") : (leadSet.targetReps ?? "8-12")}
+            {templateSets.length}×{(ex.trackingType || "weight_reps") === "duration" ? (leadSet.targetDuration ?? "10s") : (leadSet.targetReps ?? "8-12")}
           </span>
           <button onClick={() => setOpen((v) => !v)} className="p-1.5 rounded-lg text-fit-muted hover:text-fit-ink transition-colors">
             {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -97,22 +99,33 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
                 setIndex: index + 1,
                 setType: templateSets[index]?.setType || leadSet.setType || "normal",
                 targetReps: templateSets[index]?.targetReps ?? leadSet.targetReps ?? "8-12",
+                targetWeight: templateSets[index]?.targetWeight ?? leadSet.targetWeight ?? null,
+                targetDistance: templateSets[index]?.targetDistance ?? leadSet.targetDistance ?? null,
                 targetDuration: templateSets[index]?.targetDuration ?? leadSet.targetDuration ?? null,
                 progressionStage: templateSets[index]?.progressionStage ?? leadSet.progressionStage ?? ex.progressionStage ?? null,
               })))}
               className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono focus:outline-none focus:border-fit-accent" />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-fit-muted font-medium">{(ex.trackingType || "bodyweight_reps") === "duration" ? "Ziel-Sekunden" : "Ziel-Wdh"}</span>
-            <input value={(ex.trackingType || "bodyweight_reps") === "duration" ? (leadSet.targetDuration ?? "") : (leadSet.targetReps ?? "")}
+            <span className="text-xs text-fit-muted font-medium">{(ex.trackingType || "weight_reps") === "duration" ? "Ziel-Sekunden" : "Ziel-Wdh"}</span>
+            <input value={(ex.trackingType || "weight_reps") === "duration" ? (leadSet.targetDuration ?? "") : (leadSet.targetReps ?? "")}
               onChange={(e) => onPatch("templateSets", templateSets.map((set) => (
-                (ex.trackingType || "bodyweight_reps") === "duration"
+                (ex.trackingType || "weight_reps") === "duration"
                   ? { ...set, targetDuration: e.target.value === "" ? null : Number(e.target.value) }
                   : { ...set, targetReps: e.target.value }
               )))}
               className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono focus:outline-none focus:border-fit-accent"
-              placeholder={(ex.trackingType || "bodyweight_reps") === "duration" ? "10" : "8-12 / AMRAP"} />
+              placeholder={(ex.trackingType || "weight_reps") === "duration" ? "10" : "8-12 / AMRAP"} />
           </label>
+          {(ex.trackingType || "weight_reps") === "weight_reps" && (
+            <label className="flex flex-col gap-1">
+              <span className="text-xs text-fit-muted font-medium">Ziel-Gewicht</span>
+              <input type="number" min="0" value={leadSet.targetWeight ?? ""}
+                onChange={(e) => onPatch("templateSets", templateSets.map((set) => ({ ...set, targetWeight: e.target.value === "" ? null : Number(e.target.value) })))}
+                className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono focus:outline-none focus:border-fit-accent"
+                placeholder="60" />
+            </label>
+          )}
           <label className="flex flex-col gap-1">
             <span className="text-xs text-fit-muted font-medium">Pause (s)</span>
             <input type="number" min="0" value={ex.rest_seconds}
@@ -121,11 +134,13 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
           </label>
           <label className="flex flex-col gap-1">
             <span className="text-xs text-fit-muted font-medium">Tracking</span>
-            <select value={ex.trackingType || "bodyweight_reps"}
+            <select value={ex.trackingType || "weight_reps"}
               onChange={(e) => onPatch("trackingType", e.target.value)}
               className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm focus:outline-none focus:border-fit-accent">
+              <option value="weight_reps">Gewicht + Wdh</option>
               <option value="bodyweight_reps">Bodyweight + Wdh</option>
               <option value="duration">Dauer</option>
+              <option value="distance_time">Distanz + Zeit</option>
             </select>
           </label>
           <label className="flex flex-col gap-1">
@@ -198,7 +213,7 @@ export default function RoutineBuilder({ routineId, onBack }) {
       primaryMuscles: ex.primaryMuscles,
       secondaryMuscles: ex.secondaryMuscles,
       yuhonas_id: ex.yuhonas_id,
-      trackingType: ex.trackingType || "bodyweight_reps",
+      trackingType: ex.trackingType || "weight_reps",
     });
     load();
   }
@@ -214,7 +229,7 @@ export default function RoutineBuilder({ routineId, onBack }) {
       const next = key === "templateSets"
         ? patchTemplateSets(e, () => val)
         : { ...e, [key]: val };
-      return key === "trackingType" ? { ...next, weight_type: val === "duration" ? "seconds" : "bodyweight" } : next;
+      return key === "trackingType" ? { ...next, weight_type: val === "bodyweight_reps" ? "bodyweight" : "kg" } : next;
     }));
     setDirty((d) => {
       const currentExercise = exercises.find((e) => e.id === rowId);
