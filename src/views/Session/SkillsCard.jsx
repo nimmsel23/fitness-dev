@@ -534,6 +534,60 @@ function SessionSummary({ blocks, log, startedAt, rpe, onSetRpe, onSave }) {
   );
 }
 
+// Read-only Archiv der Workout-Historie eines Skills — einmal gespeicherte
+// Sessions werden nirgends im Code nachträglich editiert (kein update()/
+// delete() für sessions[]), auch ein späterer Downgrade rührt sie nicht an.
+function WorkoutArchive({ sessions }) {
+  const [openId, setOpenId] = useState(null);
+  if (sessions.length === 0) return null;
+  const sorted = sessions.slice().reverse();
+
+  return (
+    <div className="mb-6">
+      <div className="text-[10px] font-black uppercase tracking-[0.15em] mb-2" style={{ color: 'var(--dim)' }}>
+        Archiv · {sessions.length} Workout{sessions.length === 1 ? '' : 's'}
+      </div>
+      <div className="flex flex-col gap-1.5">
+        {sorted.map((s, i) => {
+          const isOpen = openId === i;
+          const totalVolume = (s.exercises || []).reduce((sum, ex) => sum + (ex.setsCompleted || []).reduce((a, b) => a + b, 0), 0);
+          return (
+            <div key={s.timestamp || i} className="rounded-lg overflow-hidden" style={{ background: 'var(--bg2)' }}>
+              <button
+                onClick={() => setOpenId(isOpen ? null : i)}
+                className="w-full flex items-center justify-between px-3 py-2.5 text-left"
+              >
+                <div>
+                  <div className="text-sm font-bold text-fit-ink">{formatMasteredAt(s.timestamp || s.at)}</div>
+                  <div className="text-[10px] font-bold" style={{ color: 'var(--dim)' }}>
+                    {formatSeconds(s.totalDurationSeconds || 0)} · {totalVolume} Vol. {s.rpe ? `· ${RPE_OPTIONS.find(o => o.id === s.rpe)?.label ?? s.rpe}` : ''}
+                  </div>
+                </div>
+                <ChevronRight size={14} style={{ color: 'var(--dim)', transform: isOpen ? 'rotate(90deg)' : 'none', transition: 'transform 0.15s' }} />
+              </button>
+              {isOpen && (
+                <div className="px-3 pb-3 flex flex-col gap-1.5">
+                  {(s.exercises || []).map((ex, j) => (
+                    <div key={j} className="flex items-center justify-between px-2.5 py-1.5 rounded-lg" style={{ background: 'var(--card, var(--bg))' }}>
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.08em]" style={{ color: 'var(--dim)' }}>{ex.role}</div>
+                        <span className="text-xs font-bold text-fit-ink">{ex.name}</span>
+                      </div>
+                      <span className="text-[11px] font-mono" style={{ color: 'var(--dim)' }}>
+                        {(ex.setsCompleted || []).join(' | ')}{ex.type === 'hold' ? 's' : ''}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function SkillDetailScreen({ skill, stage, history, holds, sessions, onBack, onMaster, onDowngrade, onLogHold, onLogWorkout }) {
   const stageInfo = skill.progressions[stage];
   const next = skill.progressions[stage + 1];
@@ -573,13 +627,10 @@ function SkillDetailScreen({ skill, stage, history, holds, sessions, onBack, onM
           >
             <Play size={16} strokeWidth={3} /> Workout starten
           </button>
-          {sessions.length > 0 && (
-            <div className="text-[10px] font-bold mt-3" style={{ color: 'var(--dim)', opacity: 0.7 }}>
-              {sessions.length}× absolviert · zuletzt {formatMasteredAt(sessions[sessions.length - 1].at)}
-            </div>
-          )}
         </div>
       )}
+
+      <WorkoutArchive sessions={sessions} />
 
       {next && (
         <div className="text-center text-[11px] font-bold mb-5" style={{ color: 'var(--dim)', opacity: 0.8 }}>
