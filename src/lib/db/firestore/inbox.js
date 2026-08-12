@@ -9,6 +9,7 @@ import {
 
 import { db } from "../../../firebase.js";
 import { getUid, BRIDGE_API_BASE } from "./core.js";
+import { normalizeExerciseRecord } from "../shared/exercise.js";
 
 // ── Inbox ─────────────────────────────────────────────────────────────────────
 
@@ -73,7 +74,7 @@ export async function approveInbox(id, userId) {
   if (!snap.exists()) return { ok: false, error: "not_found" };
 
   const data = snap.data();
-  const exercise = data.enriched || data;
+  const exercise = normalizeExerciseRecord(data.enriched || data);
   const exId = exercise.exercise_id || exercise.id || id;
 
   const batch = writeBatch(db);
