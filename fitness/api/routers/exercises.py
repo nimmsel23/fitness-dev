@@ -282,10 +282,32 @@ def inbox_list():
 @router.post("/fitness/inbox/queue")
 async def inbox_queue(request: Request):
     body = await request.json()
+    from fitness.catalog.core.exercise_schema import apply_exercise_schema
+    from fitness.catalog.core.source_merge import build_external_seed
+
+    display_name = body.get("display_name") or body.get("name") or ""
+    exercise_id = body.get("exercise_id") or body.get("id")
+    merged_seed = build_external_seed(display_name, exercise_id) or {}
+    seed = {
+        **merged_seed,
+        **{k: v for k, v in body.items() if v not in (None, "", [], {})},
+    }
+    if display_name and not seed.get("display_name"):
+        seed["display_name"] = display_name
+    if exercise_id and not seed.get("exercise_id"):
+        seed["exercise_id"] = exercise_id
+        seed["id"] = exercise_id
+    seed = apply_exercise_schema(seed, review_status="draft", ai_reviewed=False)
+
     INBOX_DIR.mkdir(parents=True, exist_ok=True)
     item_id = f"inbox_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
     f = INBOX_DIR / f"{item_id}.yml"
-    f.write_text(yaml.dump({**body, "queued_at": datetime.utcnow().isoformat()}, allow_unicode=True))
+    f.write_text(yaml.dump({
+        "name": item_id,
+        "description": f"Inbox queued for: {seed.get('display_name') or display_name or item_id}",
+        "queued_at": datetime.utcnow().isoformat(),
+        "exercises": [seed],
+    }, allow_unicode=True, sort_keys=False))
     return {"ok": True, "id": item_id}
 
 @router.post("/fitness/inbox/{id}/approve")
