@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Lock, Check, Circle, Play, Pause, Flag, Trophy, ArrowUp, ArrowDown, Activity } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const SKILLS_STORAGE_KEY = 'fitness-skills-progress-v1';
 
@@ -18,7 +19,7 @@ function reps(name, sets = 3, count = 8) { return { name, type: 'reps', sets, re
 function hold(name, sets = 3, seconds = 15) { return { name, type: 'hold', sets, seconds }; }
 
 const SKILLS = [
-  { id: 'muscle-up', name: 'Muscle-Up', tier: 'free', category: 'pull', progressions: [reps('Klimmzüge'), reps('Explosive Klimmzüge'), reps('Chest-to-Bar Pull-Ups'), reps('Bar Dips'), reps('Muscle-Up Negative', 3, 5), reps('Muscle-Up', 3, 3)] },
+  { id: 'muscle-up', name: 'Muscle-Up', tier: 'free', category: 'pull', progressions: [reps('Klimmzüge', 4, 8), reps('Explosive Klimmzüge'), reps('Chest-to-Bar Pull-Ups'), reps('Bar Dips'), reps('Muscle-Up Negative', 3, 5), reps('Muscle-Up', 3, 3)] },
   { id: 'planche', name: 'Planche', tier: 'free', category: 'push', progressions: [hold('Plank'), hold('Planche Lean'), hold('Frog Stand'), hold('Tuck Planche'), hold('Advanced Tuck Planche'), hold('Straddle Planche'), hold('Full Planche')] },
   { id: 'front-lever', name: 'Front Lever', tier: 'free', category: 'pull', progressions: [reps('Scapula Pulls', 3, 10), hold('Tuck Front Lever'), hold('Advanced Tuck Front Lever'), hold('One Leg Front Lever'), hold('Straddle Front Lever'), hold('Full Front Lever')] },
   { id: 'back-lever', name: 'Back Lever', tier: 'free', category: 'pull', progressions: [reps('Skin the Cat', 3, 5), hold('Tuck Back Lever'), hold('Advanced Tuck Back Lever'), hold('Straddle Back Lever'), hold('Full Back Lever')] },
@@ -588,6 +589,155 @@ function WorkoutArchive({ sessions }) {
   );
 }
 
+function SkillLevelChart({ history }) {
+  if (!history || history.length < 2) return null;
+
+  // Baue kumulativen Verlauf: stage über Zeit
+  let currentStage = 0;
+  const data = [];
+  const sortedHistory = history.slice().sort((a, b) => new Date(a.masteredAt) - new Date(b.masteredAt));
+
+  for (const entry of sortedHistory) {
+    if (entry.reset) {
+      currentStage = entry.stage;
+    } else {
+      currentStage = entry.stage + 1;
+    }
+    const date = new Date(entry.masteredAt);
+    const dateStr = date.toLocaleDateString('de-AT', { day: '2-digit', month: '2-digit' });
+    data.push({ date: dateStr, stage: currentStage });
+  }
+
+  return (
+    <div className="rounded-2xl p-4 mb-4" style={{ background: 'var(--bg2)', border: '1px solid var(--line)' }}>
+      <div className="text-[10px] font-black uppercase tracking-[0.15em] mb-3" style={{ color: 'var(--dim)' }}>
+        Progression über Zeit
+      </div>
+      <ResponsiveContainer width="100%" height={220}>
+        <LineChart data={data} margin={{ top: 5, right: 15, left: -20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
+          <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--dim)' }} />
+          <YAxis tick={{ fontSize: 11, fill: 'var(--dim)' }} />
+          <Tooltip
+            contentStyle={{ background: 'var(--bg2)', border: '1px solid var(--line)', borderRadius: '8px' }}
+            labelStyle={{ color: 'var(--ink)' }}
+            formatter={(value) => `Stufe ${value}`}
+            labelFormatter={(label) => `Datum: ${label}`}
+          />
+          <Line
+            type="stepAfter"
+            dataKey="stage"
+            stroke="var(--accent)"
+            strokeWidth={2}
+            dot={{ fill: 'var(--accent)', r: 4 }}
+            activeDot={{ r: 6 }}
+            isAnimationActive={true}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function VolumeChart({ sessions }) {
+  if (!sessions || sessions.length === 0) return null;
+
+  // Extrahiere alle distinct Übungsnamen
+  const exerciseNames = new Set();
+  for (const session of sessions) {
+    if (session.exercises) {
+      for (const exercise of session.exercises) {
+        if (exercise.name) {
+          exerciseNames.add(exercise.name);
+        }
+      }
+    }
+  }
+
+  const exerciseList = Array.from(exerciseNames).sort();
+  const [selectedExercise, setSelectedExercise] = useState(exerciseList[0] || null);
+
+  if (!selectedExercise) return null;
+
+  // Filtere Sessions + berechne Volumen für die gewählte Übung
+  const chartData = [];
+  for (const session of sessions) {
+    const exercises = session.exercises || [];
+    const matchingExercises = exercises.filter(ex => ex.name === selectedExercise);
+
+    if (matchingExercises.length > 0) {
+      let volume = 0;
+      for (const ex of matchingExercises) {
+        const setValues = ex.setsCompleted || [];
+        volume += setValues.reduce((sum, val) => sum + val, 0);
+      }
+
+      const date = new Date(session.timestamp);
+      const dateStr = date.toLocaleDateString('de-AT', { day: '2-digit', month: '2-digit' });
+      chartData.push({ date: dateStr, volume });
+    }
+  }
+
+  if (chartData.length < 2) {
+    return (
+      <div className="rounded-2xl p-4 mb-4" style={{ background: 'var(--bg2)', border: '1px solid var(--line)' }}>
+        <div className="text-[10px] font-black uppercase tracking-[0.15em] mb-3" style={{ color: 'var(--dim)' }}>
+          Trainingsvolumen
+        </div>
+        <div className="text-xs" style={{ color: 'var(--dim)' }}>
+          Für {selectedExercise}: Noch nicht genug Trainingsdaten vorhanden.
+        </div>
+      </div>
+    );
+  }
+
+  const volumeUnit = sessions[0]?.exercises?.[0]?.type === 'hold' ? 's' : 'Wdh';
+
+  return (
+    <div className="rounded-2xl p-4 mb-4" style={{ background: 'var(--bg2)', border: '1px solid var(--line)' }}>
+      <div className="mb-3 flex items-center justify-between">
+        <div className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: 'var(--dim)' }}>
+          Trainingsvolumen
+        </div>
+      </div>
+
+      <select
+        value={selectedExercise}
+        onChange={(e) => setSelectedExercise(e.target.value)}
+        className="w-full mb-3 px-3 py-2 rounded-lg text-xs font-bold"
+        style={{ background: 'var(--bg)', border: '1px solid var(--line)', color: 'var(--ink)' }}
+      >
+        {exerciseList.map(name => (
+          <option key={name} value={name}>{name}</option>
+        ))}
+      </select>
+
+      <ResponsiveContainer width="100%" height={220}>
+        <LineChart data={chartData} margin={{ top: 5, right: 15, left: -20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
+          <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--dim)' }} />
+          <YAxis tick={{ fontSize: 11, fill: 'var(--dim)' }} label={{ value: volumeUnit, angle: -90, position: 'insideLeft', style: { color: 'var(--dim)', fontSize: 11 } }} />
+          <Tooltip
+            contentStyle={{ background: 'var(--bg2)', border: '1px solid var(--line)', borderRadius: '8px' }}
+            labelStyle={{ color: 'var(--ink)' }}
+            formatter={(value) => `${value} ${volumeUnit}`}
+            labelFormatter={(label) => `Datum: ${label}`}
+          />
+          <Line
+            type="monotone"
+            dataKey="volume"
+            stroke="var(--accent)"
+            strokeWidth={2}
+            dot={{ fill: 'var(--accent)', r: 4 }}
+            activeDot={{ r: 6 }}
+            isAnimationActive={true}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 function SkillDetailScreen({ skill, stage, history, holds, sessions, onBack, onMaster, onDowngrade, onLogHold, onLogWorkout }) {
   const stageInfo = skill.progressions[stage];
   const next = skill.progressions[stage + 1];
@@ -631,6 +781,9 @@ function SkillDetailScreen({ skill, stage, history, holds, sessions, onBack, onM
       )}
 
       <WorkoutArchive sessions={sessions} />
+
+      <SkillLevelChart history={history} />
+      <VolumeChart sessions={sessions} />
 
       {next && (
         <div className="text-center text-[11px] font-bold mb-5" style={{ color: 'var(--dim)', opacity: 0.8 }}>
