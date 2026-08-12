@@ -21,7 +21,7 @@ from fitness.catalog.api.firestore_push import run_kb_sync
 from fitness.catalog.core.resolver import resolve_query, find_by_id, build_exercise_index
 from fitness.catalog.core.rich_utils import setup_logging
 from fitness.catalog.agent.gemini import load_gemini_key, call_gemini
-from fitness.catalog.coverage import normalize_muscle_id
+from fitness.catalog.core.muscle_normalization import normalize_exercise_muscles
 
 # runtime_root()/users (= ~/.aos/fitness/users) ist physisch identisch mit
 # ~/.aos/users/<uid>/fitness — Letzteres ist nur ein Symlink auf Ersteres
@@ -207,20 +207,7 @@ def process_inbox_file_virtual(
         save_inbox_draft(target_file, enriched_data, description)
 
 def save_inbox_draft(target_file: Path, data: dict, description: str):
-    def normalize_muscle_list(values):
-        raw_values = values if isinstance(values, list) else ([] if values in (None, "") else [values])
-        out = []
-        for value in raw_values:
-            parts = str(value).replace("/", ",").replace(";", ",").split(",")
-            for part in parts:
-                normalized = normalize_muscle_id(part)
-                if normalized and normalized not in out:
-                    out.append(normalized)
-        return out
-
-    data["primary_muscles"] = normalize_muscle_list(data.get("primary_muscles"))
-    data["secondary_muscles"] = normalize_muscle_list(data.get("secondary_muscles"))
-    data["stabilizers"] = normalize_muscle_list(data.get("stabilizers"))
+    data = normalize_exercise_muscles(data)
     if "stabilizers" not in data: data["stabilizers"] = []
     if "variations" not in data: data["variations"] = []
     enriched_at = datetime.now(timezone.utc).isoformat()

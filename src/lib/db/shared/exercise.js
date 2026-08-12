@@ -1,14 +1,11 @@
 import { canonicalMuscleId, splitMuscleEntries } from "../../translations.js";
 
-const REGION_BUCKET_MAP = {
-  100: "chest",
-  200: "back",
-  300: "shoulders",
-  400: "arms",
-  500: "core",
-  600: "legs",
-  700: "calves",
-};
+const GENERIC_REGION_REASSIGNMENT = [
+  [/external rotation|internal rotation|au(ss|ß)enrotation|innenrotation|rotator ?cuff/i, "304_rotator_cuff"],
+  [/rear|reverse|posterior|face.?pull|hintere schulter|vorgebeugt|rückwärt/i, "303_posterior_deltoid"],
+  [/lateral raise|side raise|seitheben|upright row/i, "302_lateral_deltoid"],
+  [/front raise|frontheben|shoulder press|overhead press|arnold press|schulterdr(ü|ue)cken/i, "301_anterior_deltoid"],
+];
 
 function toArray(value) {
   if (Array.isArray(value)) return value;
@@ -16,31 +13,34 @@ function toArray(value) {
   return [value];
 }
 
-function normalizeBucketId(id) {
-  const match = String(id || "").match(/^(\d{3})_[a-z0-9_]+$/i);
-  if (!match) return id;
-  return REGION_BUCKET_MAP[Number(match[1])] || id;
-}
-
 export function normalizeExerciseMuscleId(raw) {
   const value = String(raw || "").trim();
   if (!value) return "";
-  return normalizeBucketId(canonicalMuscleId(value));
+  return canonicalMuscleId(value);
 }
 
-export function normalizeExerciseMuscleList(rawList) {
+function refineGenericRegionLabels(muscleIds, ...nameVariants) {
+  const names = nameVariants.filter(Boolean).join(" ");
+  const genericShoulders = new Set(["shoulders", "300_shoulders"]);
+  if (!muscleIds.some((muscleId) => genericShoulders.has(muscleId))) return muscleIds;
+  for (const [pattern, replacement] of GENERIC_REGION_REASSIGNMENT) {
+    if (pattern.test(names)) {
+      return muscleIds.map((muscleId) => (genericShoulders.has(muscleId) ? replacement : muscleId));
+    }
+  }
+  return muscleIds;
+}
+
+export function normalizeExerciseMuscleList(rawList, ...nameVariants) {
   const normalized = [];
   for (const raw of splitMuscleEntries(toArray(rawList))) {
     const value = normalizeExerciseMuscleId(raw);
     if (value && !normalized.includes(value)) normalized.push(value);
   }
-  return normalized;
+  return refineGenericRegionLabels(normalized, ...nameVariants);
 }
 
 export function normalizeExerciseRecord(rawEx = {}) {
-  const primaryMuscles = normalizeExerciseMuscleList(rawEx.primaryMuscles || rawEx.primary_muscles);
-  const secondaryMuscles = normalizeExerciseMuscleList(rawEx.secondaryMuscles || rawEx.secondary_muscles);
-  const stabilizers = normalizeExerciseMuscleList(rawEx.stabilizers);
   const displayName =
     rawEx.displayName ||
     rawEx.display_name ||
@@ -50,6 +50,17 @@ export function normalizeExerciseRecord(rawEx = {}) {
     rawEx.id ||
     "Übung";
   const id = rawEx.id || rawEx.exercise_id || null;
+  const nameVariants = [
+    displayName,
+    rawEx.german,
+    rawEx.english,
+    rawEx.name,
+    rawEx.exercise_id,
+    rawEx.id,
+  ];
+  const primaryMuscles = normalizeExerciseMuscleList(rawEx.primaryMuscles || rawEx.primary_muscles, ...nameVariants);
+  const secondaryMuscles = normalizeExerciseMuscleList(rawEx.secondaryMuscles || rawEx.secondary_muscles, ...nameVariants);
+  const stabilizers = normalizeExerciseMuscleList(rawEx.stabilizers, ...nameVariants);
 
   return {
     ...rawEx,

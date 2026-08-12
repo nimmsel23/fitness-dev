@@ -463,8 +463,7 @@ function RunnerScreen({ workout, onFinish, onBack }) {
 
   useEffect(() => {
     if (state.done) onFinish();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.done]);
+  }, [state.done, onFinish]);
 
   const current = workout.items[state.itemIndex];
   const next = workout.items[state.itemIndex + 1];

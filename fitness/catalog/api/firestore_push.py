@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -19,6 +20,13 @@ from fitness.firestore.kb import get_db, fetch_hashes, batch_write
 from fitness.catalog.core.loader import catalog_path, load_catalog_directory_yaml, load_catalog_yaml
 from fitness.catalog.core.muscles import iter_muscle_documents
 from fitness.catalog.core.yaml_utils import load_yaml
+
+GENERIC_REGION_REASSIGNMENT = [
+    (re.compile(r"external rotation|internal rotation|au(ss|ß)enrotation|innenrotation|rotator ?cuff", re.I), "304_rotator_cuff"),
+    (re.compile(r"rear|reverse|posterior|face.?pull|hintere schulter|vorgebeugt", re.I), "303_posterior_deltoid"),
+    (re.compile(r"lateral raise|side raise|seitheben", re.I), "302_lateral_deltoid"),
+    (re.compile(r"front raise|frontheben", re.I), "301_anterior_deltoid"),
+]
 
 
 def sync_exercises(db: Any, dry_run: bool = False) -> dict[str, int]:
@@ -265,6 +273,15 @@ def sync_yuhonas(db: Any, dry_run: bool = False) -> dict[str, int]:
     def _resolve(names: list) -> list:
         return [string_aliases.get(m, m) for m in names]
 
+    def _refine_generic_region_labels(muscles: list[str], exercise_name: str) -> list[str]:
+        generic_shoulders = {"shoulders", "300_shoulders"}
+        if not generic_shoulders.intersection(muscles):
+            return muscles
+        for pattern, replacement in GENERIC_REGION_REASSIGNMENT:
+            if pattern.search(exercise_name or ""):
+                return [replacement if m in generic_shoulders else m for m in muscles]
+        return muscles
+
     def _records():
         for json_file in sorted(yuhonas_dir.glob("*.json")):
             try:
@@ -275,6 +292,8 @@ def sync_yuhonas(db: Any, dry_run: bool = False) -> dict[str, int]:
             if raw_id in reviewed_refs["yuhonas"] or _norm_text(raw.get("name", "")) in reviewed_refs["names"]:
                 continue
             ex_id = f"yuhonas_{raw.get('id', json_file.stem)}"
+            primary = _refine_generic_region_labels(_resolve(raw.get("primaryMuscles", [])), raw.get("name", ""))
+            secondary = _refine_generic_region_labels(_resolve(raw.get("secondaryMuscles", [])), raw.get("name", ""))
             yield ex_id, {
                 "exercise_id": ex_id,
                 "id": ex_id,
@@ -283,8 +302,8 @@ def sync_yuhonas(db: Any, dry_run: bool = False) -> dict[str, int]:
                 "tags": ["yuhonas", "unreviewed"],
                 "category": raw.get("category", ""),
                 "equipment": [raw.get("equipment")] if raw.get("equipment") else [],
-                "primary_muscles": _resolve(raw.get("primaryMuscles", [])),
-                "secondary_muscles": _resolve(raw.get("secondaryMuscles", [])),
+                "primary_muscles": primary,
+                "secondary_muscles": secondary,
                 "instructions": raw.get("instructions", []),
                 "images": raw.get("images", []),
             }

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from fitness.catalog.coverage import (
     calculate_coverage,
     load_coverage_rules,
@@ -11,6 +13,22 @@ from fitness.catalog.core.resolver import build_exercise_index
 from .loaders import load_body_regions
 from .types import AuditLine, AuditReport, CoverageAuditResult, ok, warn, fail
 from .utils import muscle_regions
+
+OVERBROAD_SHOULDER_LABELS = {"shoulders", "300_shoulders"}
+SHOULDER_SPECIFIC_NAME_PATTERNS = [
+    re.compile(r"front raise|frontheben", re.I),
+    re.compile(r"lateral raise|side raise|seitheben", re.I),
+    re.compile(r"rear|reverse|posterior|rear delt|face.?pull|hintere schulter|vorgebeugt", re.I),
+    re.compile(r"external rotation|internal rotation|au(ss|ß)enrotation|innenrotation|rotator ?cuff", re.I),
+]
+
+
+def has_overbroad_shoulder_label(exercise) -> bool:
+    primary = set(exercise.primary_muscles or [])
+    if not primary.intersection(OVERBROAD_SHOULDER_LABELS):
+        return False
+    name = f"{exercise.display_name or ''} {exercise.german or ''} {exercise.english or ''}"
+    return any(pattern.search(name) for pattern in SHOULDER_SPECIFIC_NAME_PATTERNS)
 
 
 def run_coverage_audit() -> AuditReport:
@@ -41,9 +59,13 @@ def run_coverage_audit() -> AuditReport:
 
     body_regions = load_body_regions()
     zero_coverage: list[str] = []
+    overbroad_shoulder_exercises: list[str] = []
 
     for exercise in exercise_index:
         exercise_failures: list[str] = []
+        if has_overbroad_shoulder_label(exercise):
+            overbroad_shoulder_exercises.append(exercise.exercise_id)
+            exercise_failures.append(f"{exercise.exercise_id} uses overbroad shoulder label for a shoulder-specific exercise")
         for muscle in (exercise.primary_muscles or []):
             norm_id = normalize_muscle_id(muscle)
             if norm_id not in taxonomy:
@@ -95,6 +117,11 @@ def run_coverage_audit() -> AuditReport:
     else:
         lines.append(ok("no zero coverage exercises"))
 
+    if overbroad_shoulder_exercises:
+        lines.append(fail("overbroad shoulder labels: " + ", ".join(sorted(set(overbroad_shoulder_exercises)))))
+    else:
+        lines.append(ok("no overbroad shoulder labels"))
+
     return AuditReport(lines)
 
 
@@ -125,10 +152,14 @@ def audit_coverage() -> CoverageAuditResult:
     exercises_with_unmapped_primary_muscles: list[str] = []
     exercises_with_unmapped_secondary_muscles: list[str] = []
     exercises_with_unmapped_stabilizers: list[str] = []
+    exercises_with_overbroad_shoulder_labels: list[str] = []
     zero_coverage_exercises: list[str] = []
     lines: list[AuditLine] = []
 
     for exercise in exercise_index:
+        if has_overbroad_shoulder_label(exercise):
+            exercises_with_overbroad_shoulder_labels.append(exercise.exercise_id)
+            lines.append(fail(f"{exercise.exercise_id} uses overbroad shoulder label for a shoulder-specific exercise"))
         if any(normalize_muscle_id(muscle) not in taxonomy for muscle in (exercise.primary_muscles or [])):
             exercises_with_unmapped_primary_muscles.append(exercise.exercise_id)
         if any(normalize_muscle_id(muscle) not in taxonomy for muscle in (exercise.secondary_muscles or [])):
@@ -168,6 +199,7 @@ def audit_coverage() -> CoverageAuditResult:
         exercises_with_unmapped_primary_muscles=sorted(set(exercises_with_unmapped_primary_muscles)),
         exercises_with_unmapped_secondary_muscles=sorted(set(exercises_with_unmapped_secondary_muscles)),
         exercises_with_unmapped_stabilizers=sorted(set(exercises_with_unmapped_stabilizers)),
+        exercises_with_overbroad_shoulder_labels=sorted(set(exercises_with_overbroad_shoulder_labels)),
         zero_coverage_exercises=sorted(set(zero_coverage_exercises)),
         lines=lines,
     )
@@ -175,7 +207,8 @@ def audit_coverage() -> CoverageAuditResult:
 
 def status_for_coverage(result: CoverageAuditResult) -> str:
     if (result.unknown_role_weights or result.exercises_with_unmapped_primary_muscles
-            or result.exercises_with_unmapped_secondary_muscles or result.exercises_with_unmapped_stabilizers):
+            or result.exercises_with_unmapped_secondary_muscles or result.exercises_with_unmapped_stabilizers
+            or result.exercises_with_overbroad_shoulder_labels):
         return "FAIL"
     if result.unmapped_muscles or result.unmapped_body_regions or result.zero_coverage_exercises:
         return "WARN"

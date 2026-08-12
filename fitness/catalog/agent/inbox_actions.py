@@ -15,8 +15,9 @@ import yaml
 from loguru import logger
 
 from fitness.catalog.core.paths import DATA_DIR
+from fitness.catalog.core.muscle_normalization import normalize_exercise_muscles
 from fitness.catalog.core.yaml_utils import load_yaml
-from fitness.catalog.agent.gemini import load_gemini_key, call_gemini, review_with_haiku, review_with_codex
+from fitness.catalog.agent.gemini import load_gemini_key, call_enrichment, review_with_haiku, review_with_codex
 
 
 def _git_repo_root(start: Path) -> Path | None:
@@ -138,6 +139,25 @@ def load_inbox_entry(file_id: str) -> tuple[Path, dict[str, Any]]:
 
 def display_name_of(ex: dict[str, Any], fallback: str) -> str:
     return ex.get("display_name") or ex.get("german") or ex.get("name") or fallback
+
+
+def list_approved_exercise_files() -> list[Path]:
+    files: list[Path] = []
+    for f in sorted(exercises_dir().glob("*.yml")):
+        if f.name.startswith("unreviewed_") or f.name.startswith("approved_from_firebase"):
+            continue
+        try:
+            doc = load_yaml(f)
+        except Exception:
+            continue
+        exercises = doc.get("exercises") or []
+        if len(exercises) != 1 or not isinstance(exercises[0], dict):
+            continue
+        ex = exercises[0]
+        source = str(ex.get("source") or "")
+        if source in {"approved", "expert"} or str(doc.get("description") or "").startswith("Expert details for "):
+            files.append(f)
+    return files
 
 
 def _norm_key(value: Any) -> str:
@@ -454,6 +474,7 @@ def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
     """Approved einen Inbox-Draft -> `{ex_id}.yml` (Expert-Tier). Gibt die
     finale exercise_id zurueck. Wirft ValueError wenn keine exercise_id da ist.
     """
+    ex = normalize_exercise_muscles(ex)
     ex_id = ex.get("exercise_id") or ex.get("id")
     if not ex_id:
         raise ValueError("keine exercise_id im Draft")
@@ -518,6 +539,7 @@ def reenrich_inbox_entry(
     name: str,
     feedback: str | None = None,
     use_haiku_review: bool = True,
+    provider: str = "gemini",
 ) -> dict[str, Any]:
     """Jagt einen bestehenden Inbox-Draft frisch durch Gemini (optional mit
     Coach-Feedback), laesst Haiku/Codex als zweite Meinung gegenpruefen
@@ -526,14 +548,14 @@ def reenrich_inbox_entry(
 
     Rueckgabe: {"enriched": dict, "haiku_applied": bool, "review_provider": str | None}
     """
-    api_key = load_gemini_key()
+    api_key = load_gemini_key() if provider == "gemini" else None
 
     ex_id = ex.get("exercise_id") or ex.get("id") or f.stem.replace("inbox_", "")
     safe_name = str(ex_id).lower().replace(" ", "_")
 
-    enriched = call_gemini(name, safe_name, api_key, existing_data=ex, feedback=feedback)
+    enriched = call_enrichment(name, safe_name, existing_data=ex, feedback=feedback, provider=provider, api_key=api_key)
     if not enriched:
-        raise RuntimeError("Gemini-Anreicherung fehlgeschlagen")
+        raise RuntimeError(f"{provider}-Anreicherung fehlgeschlagen")
 
     review_provider = None
     if use_haiku_review:
@@ -546,6 +568,8 @@ def reenrich_inbox_entry(
             if reviewed:
                 enriched = reviewed
                 review_provider = "codex"
+
+    enriched = normalize_exercise_muscles(enriched, name)
 
     f.with_suffix(".yml.bak").write_text(f.read_text())
 
@@ -565,5 +589,62 @@ def reenrich_inbox_entry(
     return {
         "enriched": enriched,
         "haiku_applied": review_provider == "haiku",
+        "review_provider": review_provider,
+    }
+
+
+def reenrich_approved_entry(
+    f: Path,
+    ex: dict[str, Any],
+    name: str,
+    feedback: str | None = None,
+    provider: str = "gemini",
+    review_mode: str = "codex",
+) -> dict[str, Any]:
+    api_key = load_gemini_key() if provider == "gemini" else None
+    ex_id = ex.get("exercise_id") or ex.get("id") or f.stem
+    safe_name = str(ex_id).lower().replace(" ", "_")
+
+    enriched = call_enrichment(name, safe_name, existing_data=ex, feedback=feedback, provider=provider, api_key=api_key)
+    if not enriched:
+        raise RuntimeError(f"{provider}-Anreicherung fehlgeschlagen")
+
+    review_provider = None
+    mode = str(review_mode or "none").strip().lower()
+    if mode == "haiku":
+        reviewed = review_with_haiku(enriched, feedback=feedback)
+        if reviewed:
+            enriched = reviewed
+            review_provider = "haiku"
+    elif mode == "codex":
+        reviewed = review_with_codex(enriched, feedback=feedback)
+        if reviewed:
+            enriched = reviewed
+            review_provider = "codex"
+    elif mode == "auto":
+        reviewed = review_with_haiku(enriched, feedback=feedback)
+        if reviewed:
+            enriched = reviewed
+            review_provider = "haiku"
+        else:
+            reviewed = review_with_codex(enriched, feedback=feedback)
+            if reviewed:
+                enriched = reviewed
+                review_provider = "codex"
+
+    enriched = normalize_exercise_muscles(enriched, name)
+    for key in ("exercise_id", "id", "source", "approved_at", "wger_id", "yuhonas_id", "external_ids", "search_aliases", "logged_by_uid"):
+        if (key not in enriched or enriched.get(key) in (None, "", [])) and ex.get(key) not in (None, "", []):
+            enriched[key] = ex.get(key)
+    enriched.setdefault("exercise_id", ex_id)
+    enriched.setdefault("id", ex.get("id") or ex_id)
+
+    doc = load_yaml(f)
+    doc["description"] = f"Expert details for {display_name_of(enriched, ex_id)}"
+    doc["exercises"] = [enriched]
+    f.with_suffix(".yml.bak").write_text(f.read_text())
+    f.write_text(yaml.dump(doc, allow_unicode=True, sort_keys=False, default_flow_style=False))
+    return {
+        "enriched": enriched,
         "review_provider": review_provider,
     }

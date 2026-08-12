@@ -294,10 +294,13 @@ def inbox_approve(id: str):
     if not f.exists():
         raise HTTPException(404, detail="not_found")
     data = yaml.safe_load(f.read_text()) or {}
-    data["status"] = "approved"
-    data["approved_at"] = datetime.utcnow().isoformat()
-    f.write_text(yaml.dump(data, allow_unicode=True))
-    return {"ok": True, "id": id}
+    exercises = data.get("exercises") if isinstance(data, dict) else None
+    ex = exercises[0] if isinstance(exercises, list) and exercises else data
+    if not isinstance(ex, dict):
+        raise HTTPException(400, detail="invalid_inbox_entry")
+    from fitness.catalog.agent.inbox_actions import approve_inbox_entry
+    approved_id = approve_inbox_entry(f, ex)
+    return {"ok": True, "id": id, "exercise_id": approved_id}
 
 @router.delete("/fitness/inbox/{id}")
 def inbox_delete(id: str):

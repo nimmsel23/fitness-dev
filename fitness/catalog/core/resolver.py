@@ -34,6 +34,13 @@ GENERIC_FUZZY_TOKENS = {
     "pull", "push", "raise", "row", "squat", "sz", "zug",
 }
 
+GENERIC_REGION_REASSIGNMENT = [
+    (re.compile(r"external rotation|internal rotation|au(ss|ß)enrotation|innenrotation|rotator ?cuff", re.I), "304_rotator_cuff"),
+    (re.compile(r"rear|reverse|posterior|face.?pull|hintere schulter|vorgebeugt", re.I), "303_posterior_deltoid"),
+    (re.compile(r"lateral raise|side raise|seitheben", re.I), "302_lateral_deltoid"),
+    (re.compile(r"front raise|frontheben", re.I), "301_anterior_deltoid"),
+]
+
 
 @dataclass
 class ExerciseRecord:
@@ -269,6 +276,15 @@ def build_exercise_index() -> list[ExerciseRecord]:
         def resolve_muscle_strings(names: list) -> list:
             return [string_aliases.get(m, m) for m in (names or [])]
 
+        def refine_generic_region_labels(muscles: list[str], exercise_name: str) -> list[str]:
+            generic_shoulders = {"shoulders", "300_shoulders"}
+            if not generic_shoulders.intersection(muscles):
+                return muscles
+            for pattern, replacement in GENERIC_REGION_REASSIGNMENT:
+                if pattern.search(exercise_name or ""):
+                    return [replacement if m in generic_shoulders else m for m in muscles]
+            return muscles
+
         for json_file in sorted(yuhonas_dir.glob("*.json")):
             try:
                 raw = json.loads(json_file.read_text())
@@ -283,6 +299,8 @@ def build_exercise_index() -> list[ExerciseRecord]:
             instructions = raw.get("instructions") or []
             primary = resolve_muscle_strings(raw.get("primaryMuscles", []))
             secondary = resolve_muscle_strings(raw.get("secondaryMuscles", []))
+            primary = refine_generic_region_labels(primary, name)
+            secondary = refine_generic_region_labels(secondary, name)
 
             if target_id and target_id in index:
                 rec = index[target_id]

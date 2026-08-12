@@ -64,6 +64,7 @@ class CoverageAuditResult:
     exercises_with_unmapped_primary_muscles: list[str]
     exercises_with_unmapped_secondary_muscles: list[str]
     exercises_with_unmapped_stabilizers: list[str]
+    exercises_with_overbroad_shoulder_labels: list[str]
     zero_coverage_exercises: list[str]
     lines: list[AuditLine]
 

@@ -7,6 +7,7 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenri
   const userId   = ex.userId || null;
   const warnings = data.biomechanical_warnings || [];
   const isProactive = ex.description?.toLowerCase().includes('proactively');
+  const isPendingEnrichment = ex.status === 'pending' || ex.status === 'pending_review';
   const busy = actioning === fileId;
 
   if (asMessage) {
@@ -22,7 +23,7 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenri
       body = ex.text || "Dein Coach hat einen Kommentar hinterlassen.";
       iconBg = "bg-fit-accent/10";
       iconColor = "text-fit-accent";
-    } else if (ex.status === 'pending') {
+    } else if (isPendingEnrichment) {
       icon = <RefreshCw className="animate-spin text-fit-orange" size={20} />;
       title = `Anfrage gesendet: ${data.display_name || data.name}`;
       body = "Die Übungsanfrage wurde registriert. Die KI analysiert nun die biomechanischen Details...";
@@ -111,7 +112,7 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenri
               ? <span className="flex items-center gap-1 text-[9px] font-black px-2 py-0.5 bg-blue/10 text-blue rounded-full border border-blue/20 uppercase tracking-tighter"><Sparkles size={10} /> Proaktiv</span>
               : <span className="text-[9px] font-black px-2 py-0.5 bg-fit-green/10 text-fit-green rounded-full border border-fit-green/20 uppercase tracking-tighter">Klient</span>
           )}
-          {ex.status === 'pending' && (
+          {isPendingEnrichment && (
             <span className="text-[9px] font-black px-2 py-0.5 bg-fit-orange/15 text-fit-orange rounded-full border border-fit-orange/25 uppercase tracking-tighter animate-pulse">
               Wartet auf KI-Anreicherung
             </span>

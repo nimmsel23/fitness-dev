@@ -45,6 +45,13 @@ DELTOID_REASSIGNMENT = [
     (re.compile(r"lateral raise|side raise|seitheben|upright row", re.I), "302_lateral_deltoid"),
 ]
 
+GENERIC_REGION_REASSIGNMENT = [
+    (re.compile(r"external rotation|internal rotation|au(ss|ß)enrotation|innenrotation|rotator ?cuff", re.I), "304_rotator_cuff"),
+    (re.compile(r"rear|reverse|posterior|face.?pull|hintere schulter|vorgebeugt", re.I), "303_posterior_deltoid"),
+    (re.compile(r"lateral raise|side raise|seitheben", re.I), "302_lateral_deltoid"),
+    (re.compile(r"front raise|frontheben", re.I), "301_anterior_deltoid"),
+]
+
 
 def reclassify_deltoid_muscles(muscle_ids: list[str], *name_variants: str) -> list[str]:
     if "301_anterior_deltoid" not in muscle_ids:
@@ -53,6 +60,16 @@ def reclassify_deltoid_muscles(muscle_ids: list[str], *name_variants: str) -> li
     for pattern, replacement in DELTOID_REASSIGNMENT:
         if pattern.search(names):
             return [replacement if m == "301_anterior_deltoid" else m for m in muscle_ids]
+    return muscle_ids
+
+
+def refine_generic_region_labels(muscle_ids: list[str], *name_variants: str) -> list[str]:
+    names = " ".join(n for n in name_variants if n)
+    generic_shoulders = {"shoulders", "300_shoulders"}
+    if generic_shoulders.intersection(muscle_ids):
+        for pattern, replacement in GENERIC_REGION_REASSIGNMENT:
+            if pattern.search(names):
+                return [replacement if m in generic_shoulders else m for m in muscle_ids]
     return muscle_ids
 
 def fetch_json(url: str, headers: dict[str, str] | None = None) -> Any:
@@ -175,6 +192,8 @@ def import_external_exercises():
                     )
                     primary = reclassify_deltoid_muscles(primary, *name_variants)
                     secondary = reclassify_deltoid_muscles(secondary, *name_variants)
+                    primary = refine_generic_region_labels(primary, *name_variants)
+                    secondary = refine_generic_region_labels(secondary, *name_variants)
 
                     category_id = item.get("category", {}).get("id")
                     category = WGER_CATEGORY_MAP.get(category_id, "other")
@@ -243,6 +262,8 @@ def import_external_exercises():
 
                 primary = sorted(set(resolve_yuhonas_muscle(m) for m in item.get("primaryMuscles", [])))
                 secondary = sorted(set(resolve_yuhonas_muscle(m) for m in item.get("secondaryMuscles", [])))
+                primary = refine_generic_region_labels(primary, display_name)
+                secondary = refine_generic_region_labels(secondary, display_name)
 
                 wger_primary = []
                 for m in primary:

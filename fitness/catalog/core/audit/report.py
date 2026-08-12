@@ -59,6 +59,7 @@ def render_audit_report(bundle: AuditBundle) -> str:
         f"- Exercises with unmapped primary muscles: {bundle.coverage.exercises_with_unmapped_primary_muscles}",
         f"- Exercises with unmapped secondary muscles: {bundle.coverage.exercises_with_unmapped_secondary_muscles}",
         f"- Exercises with unmapped stabilizers: {bundle.coverage.exercises_with_unmapped_stabilizers}",
+        f"- Exercises with overbroad shoulder labels: {bundle.coverage.exercises_with_overbroad_shoulder_labels}",
         f"- Zero coverage exercises: {bundle.coverage.zero_coverage_exercises}",
         "",
         "## Anatomy Audit",

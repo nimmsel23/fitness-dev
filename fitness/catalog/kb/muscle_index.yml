@@ -55,21 +55,21 @@ muscles:
   703_tibialis_anterior:           {}
 
 string_aliases:
-  abdominals:  500_abs
+  abdominals:  abs
   abductors:   abductors
   adductors:   602_adductors
   biceps:      402_biceps_brachii
-  calves:      700_calves
-  chest:       100_chest
+  calves:      calves
+  chest:       chest
   forearms:    405_forearm_flexors
   glutes:      glutes
   hamstrings:  hamstrings
   lats:        201_latissimus_dorsi
   lower back:  206_erector_spinae
-  middle back: 200_back
+  middle back: middle_back
   neck:        202_trapezius_upper
   quadriceps:  601_quadriceps_femoris
-  shoulders:   300_shoulders
+  shoulders:   shoulders
   traps:       202_trapezius
   triceps:     401_triceps_brachii
 
