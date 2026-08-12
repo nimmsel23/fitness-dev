@@ -16,6 +16,7 @@ export * from "./local/utils.js";
 // Shared utilities always available in both modes
 export * from "./shared/utils.js";
 export * from "./shared/muscle.js";
+export * from "./shared/exercise.js";
 export * from "./shared/parse.js";
 export * from "./shared/favourites.js";
 

@@ -1,4 +1,5 @@
 /* Dark Themes */
+@import "./styles/themes/sixpack.css";
 @import "./styles/themes/nordic.css";
 @import "./styles/themes/dracula.css";
 @import "./styles/themes/mocha.css";

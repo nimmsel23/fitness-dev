@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 
 import { db } from "../../../firebase.js";
+import { normalizeExerciseRecord } from "../shared/exercise.js";
 export { getFavourites, toggleFavourite } from "../shared/favourites.js";
 
 // ── Exercises ─────────────────────────────────────────────────────────────────
@@ -76,12 +77,10 @@ export async function searchExercises(query, limit = 12) {
     return { ex, score };
   }).filter((x) => x.score > 0).sort((a, b) => b.score - a.score).slice(0, limit);
 
-  const results = scored.map(({ ex }) => ({
+  const results = scored.map(({ ex }) => normalizeExerciseRecord({
     ...ex,
-    id:              ex.exercise_id || ex.id,
-    name:            ex.display_name || ex.german || ex.name || ex.exercise_id || ex.id,
-    primaryMuscles:  ex.primary_muscles  || ex.primaryMuscles  || [],
-    secondaryMuscles: ex.secondary_muscles || ex.secondaryMuscles || [],
+    id: ex.exercise_id || ex.id,
+    name: ex.display_name || ex.german || ex.name || ex.exercise_id || ex.id,
     source: "firestore",
   }));
   return {

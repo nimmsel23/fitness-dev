@@ -10,6 +10,7 @@ import {
   saveSession, getSessionHistory, listSessionsForDate, deleteSession,
   parseQuick, getExercise,
   getCoverageGaps, getPlanSuggestion, exportFitnessData, queueForEnrichment,
+  normalizeExerciseRecord,
 } from '@db';
 import { localToday } from '@utils';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
@@ -253,32 +254,35 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
 
   // ── Exercise handlers ─────────────────────────────────────────
   async function addEx(ex) {
-    let primary = ex.primaryMuscles || ex.primary_muscles || [];
-    let secondary = ex.secondaryMuscles || ex.secondary_muscles || [];
+    let normalized = normalizeExerciseRecord(ex);
+    let primary = normalized.primaryMuscles;
+    let secondary = normalized.secondaryMuscles;
     if (primary.length === 0 && secondary.length === 0 && !ex.isNew) {
       try {
         const kbEx = await getExercise(ex.id || ex.name);
         if (kbEx) {
-          primary = kbEx.primaryMuscles || kbEx.primary_muscles || [];
-          secondary = kbEx.secondaryMuscles || kbEx.secondaryMuscles || [];
+          normalized = normalizeExerciseRecord({ ...kbEx, ...normalized });
+          primary = normalized.primaryMuscles;
+          secondary = normalized.secondaryMuscles;
         }
       } catch (e) { console.warn('Could not fetch KB data:', e); }
     }
-    const displayName = ex.display_name || ex.name;
+    const displayName = normalized.displayName;
     // Firestore lehnt undefined-Feldwerte ab (setDoc crasht sonst still im
     // Auto-Save) — bei manuell hinzugefügten, noch nicht im Katalog
     // geführten Übungen (isNew) fehlt id/exercise_id, daher slug-Fallback.
-    const id = ex.id || ex.exercise_id || `inbox_${slugify(displayName)}`;
+    const id = normalized.id || `inbox_${slugify(displayName)}`;
     setExercises(prev => [...prev, {
       id,
       name: displayName,
       primaryMuscles: primary,
       secondaryMuscles: secondary,
+      stabilizers: normalized.stabilizers || [],
       setsArray: [{ reps: '', weight: '' }],
       note: '',
-      source: ex.source || (ex.isNew ? 'inbox' : 'unknown'),
+      source: normalized.source || (ex.isNew ? 'inbox' : 'unknown'),
     }]);
-    if (ex.source !== 'expert') queueForEnrichment({ ...ex, id, name: displayName });
+    if (normalized.source !== 'expert') queueForEnrichment({ ...normalized, id, name: displayName });
     showToast(`+ ${displayName}`);
     setTimeout(() => { saveRef.current?.(true); setDirty(false); }, 0);
   }

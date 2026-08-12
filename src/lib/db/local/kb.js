@@ -1,4 +1,5 @@
 import { api } from "./core";
+import { normalizeExerciseRecord } from "../shared/exercise.js";
 
 export async function getExercise(exerciseId) {
   try {
@@ -35,7 +36,11 @@ export async function searchExercises(query, limit = 12) {
     const sources = stored ? JSON.parse(stored) : { wger: true, yuhonas: true, coach: true };
     const active = Object.entries(sources).filter(([, v]) => v).map(([k]) => k).join(',') || 'wger';
     const data = await api.get(`/fitness/search?q=${encodeURIComponent(q)}&limit=${limit}&sources=${active}`);
-    return data || { ok: false, results: [], query: q };
+    if (!data) return { ok: false, results: [], query: q };
+    return {
+      ...data,
+      results: Array.isArray(data.results) ? data.results.map((ex) => normalizeExerciseRecord(ex)) : [],
+    };
   } catch {
     return { ok: false, results: [], query: q };
   }

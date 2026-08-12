@@ -11,6 +11,8 @@ import SessionEditor from './SessionEditor';
 import SessionHistory from './SessionHistory';
 import PlanView from '../Plan/index.jsx';
 import WorkoutTimerCard from './WorkoutTimerCard.jsx';
+import SixPackPromiseCard from './SixPackPromiseCard.jsx';
+import SkillsCard from './SkillsCard.jsx';
 
 export default function Session({
   initialDate, initialDraft, onInspectExercise, onOpenSession,
@@ -19,8 +21,13 @@ export default function Session({
   const session = useSession({ initialDate, initialDraft, recentDays, coverageThreshold, onDateChange });
 
   if (subTab === 'timer') {
+    return <SixPackPromiseCard />;
+  }
+
+  if (subTab === 'skills') {
     return (
-      <div className="px-2 mt-3 pb-32">
+      <div className="px-2 mt-3 pb-32 space-y-4">
+        <SkillsCard />
         <WorkoutTimerCard />
       </div>
     );

@@ -90,6 +90,8 @@ export default defineConfig(async ({ mode }) => {
         '/fitness':   BACKEND,
         '/firestore': BACKEND,
         '/habitsync': BACKEND,
+        '/workouts':  BACKEND,
+        '/routines':  BACKEND,
       },
     },
     build: {
