@@ -87,7 +87,15 @@ export default function AdvancedSection({
           {/* Layout Scale */}
           <div className="space-y-3">
              <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Layout Skalierung</div>
-             <input type="range" min="70" max="150" step="5" value={layoutScale} onChange={(e) => setLayoutScale(parseInt(e.target.value))} className="w-full accent-[var(--accent)] h-1" />
+             <input
+               type="range"
+               min="70"
+               max="150"
+               step="5"
+               value={layoutScale}
+               onChange={(e) => setLayoutScale(parseInt(e.target.value))}
+               className="fit-slider w-full"
+             />
              <div className="flex justify-between text-[10px] font-black opacity-30 uppercase">
                 <span>70%</span>
                 <span>{layoutScale}%</span>
