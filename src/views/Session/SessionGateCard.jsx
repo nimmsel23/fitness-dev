@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Play, Square, Clock3, CheckCircle2, PencilLine, CalendarDays, ClipboardList, History, TimerReset } from 'lucide-react';
+import { Play, Square, Clock3, CheckCircle2, PencilLine, CalendarDays, ClipboardList, History, TimerReset, Sparkles } from 'lucide-react';
 import {
   normalizeSessionGate,
   isSessionGateActive,
@@ -47,7 +47,8 @@ const SESSION_NAV_ITEMS = [
   { id: 'today', label: 'Session', Icon: CalendarDays },
   { id: 'plan', label: 'Plan', Icon: ClipboardList },
   { id: 'history', label: 'Verlauf', Icon: History },
-  { id: 'timer', label: 'Timer/Stoppuhr', Icon: TimerReset },
+  { id: 'timer', label: '6 Pack', Icon: TimerReset },
+  { id: 'skills', label: 'Skills', Icon: Sparkles },
 ];
 
 export default function SessionGateCard({ date, sessionGate, currentSubTab = null, onSubNav, onStart, onStop }) {
