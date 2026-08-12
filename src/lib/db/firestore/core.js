@@ -67,6 +67,10 @@ export async function signUpEmail(email, password, displayName) {
 
 export async function signOut() { await fbSignOut(auth); }
 
+export function hasAuthSession() {
+  return Boolean(currentUid);
+}
+
 export function getUid() {
   if (!currentUid) throw new Error("Nicht eingeloggt");
   return currentUid;

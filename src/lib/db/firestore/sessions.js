@@ -10,9 +10,20 @@ import {
 
 import { db } from "../../../firebase.js";
 import { todayISO } from "../shared/utils.js";
-import { getUid, pingBridge } from "./core.js";
+import { getUid, hasAuthSession, pingBridge } from "./core.js";
 import { getAllExercises } from "./kb.js";
 import { updateAnalyticsDoc } from "./analysis.js";
+import {
+  getSession as getLocalSession,
+  saveSession as saveLocalSession,
+  deleteSession as deleteLocalSession,
+  listSessionsForDate as listLocalSessionsForDate,
+  getRecentSessions as getLocalRecentSessions,
+  getLatestSession as getLocalLatestSession,
+  getSessionHistory as getLocalSessionHistory,
+  getPlan as getLocalPlan,
+  savePlan as saveLocalPlan,
+} from "../local/sessions.js";
 
 // ── Sessions ──────────────────────────────────────────────────────────────────
 
@@ -74,6 +85,7 @@ function mergeActivityAddon(base, incoming, sourceId = null) {
 }
 
 export async function getSession(date = todayISO(), id = null) {
+  if (!hasAuthSession()) return getLocalSession(date, id);
   const targetId = id ? `${date}__${id}` : date;
   const snap = await getDoc(doc(db, "fitness", getUid(), "sessions", targetId));
   if (!snap.exists()) return { date, block: "", exercises: [], effort: null, mood: "", notes: "" };
@@ -91,6 +103,7 @@ export async function getSession(date = todayISO(), id = null) {
 }
 
 export async function saveSession(date = todayISO(), sessionData, id = null) {
+  if (!hasAuthSession()) return saveLocalSession(date, sessionData, id);
   if (isActivityOnly(sessionData)) {
     const canonicalRef = doc(db, "fitness", getUid(), "sessions", date);
     const canonicalSnap = await getDoc(canonicalRef);
@@ -125,6 +138,7 @@ export async function saveSession(date = todayISO(), sessionData, id = null) {
 }
 
 export async function deleteSession(date = todayISO(), id = null) {
+  if (!hasAuthSession()) return deleteLocalSession(date, id);
   const targetId = id ? `${date}__${id}` : date;
   await deleteDoc(doc(db, "fitness", getUid(), "sessions", targetId));
   pingBridge();
@@ -132,6 +146,7 @@ export async function deleteSession(date = todayISO(), id = null) {
 }
 
 export async function listSessionsForDate(date = todayISO()) {
+  if (!hasAuthSession()) return listLocalSessionsForDate(date);
   const q = query(
     collection(db, "fitness", getUid(), "sessions"),
     where("date", "==", date)
@@ -152,6 +167,7 @@ export async function listSessionsForDate(date = todayISO()) {
 }
 
 export async function getRecentSessions(n = 10) {
+  if (!hasAuthSession()) return getLocalRecentSessions(n);
   const q = query(
     collection(db, "fitness", getUid(), "sessions"),
     orderBy("date", "desc"),
@@ -172,11 +188,13 @@ export async function getRecentSessions(n = 10) {
 }
 
 export async function getLatestSession() {
+  if (!hasAuthSession()) return getLocalLatestSession();
   const sessions = await getRecentSessions(1);
   return sessions.length > 0 ? sessions[0] : null;
 }
 
 export async function getSessionHistory(days = 90) {
+  if (!hasAuthSession()) return getLocalSessionHistory(days);
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
   const cutoffISO = cutoff.toISOString().slice(0, 10);
@@ -206,12 +224,14 @@ export async function getMealsHistory(_limit) { return []; }
 // ── Plan ──────────────────────────────────────────────────────────────────────
 
 export async function getPlan() {
+  if (!hasAuthSession()) return getLocalPlan();
   const snap = await getDoc(doc(db, "fitness", getUid(), "plan"));
   if (!snap.exists()) return null;
   return snap.data();
 }
 
 export async function savePlan(plan) {
+  if (!hasAuthSession()) return saveLocalPlan(plan);
   await setDoc(doc(db, "fitness", getUid(), "plan"), {
     ...plan,
     updated_at: serverTimestamp(),

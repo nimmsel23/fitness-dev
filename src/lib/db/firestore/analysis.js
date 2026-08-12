@@ -13,15 +13,23 @@ import {
   ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds,
   getMuscleGroups, buildMuscleBalanceInsights,
 } from "../shared/muscle.js";
-import { getUid } from "./core.js";
+import { getUid, hasAuthSession } from "./core.js";
 import { getAllExercises } from "./kb.js";
 import { getSessionHistory, listSessionsForDate } from "./sessions.js";
+import {
+  getDashboardAnalytics as getLocalDashboardAnalytics,
+  getWeeklyReport as getLocalWeeklyReport,
+  getCoverageGaps as getLocalCoverageGaps,
+  getMuscleCoverage as getLocalMuscleCoverage,
+} from "../local/analysis.js";
+import { getProgressTrend as getLocalProgressTrend } from "../local/sessions.js";
 
 export { ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds };
 
 // ── Analytics cache doc ───────────────────────────────────────────────────────
 
 export async function updateAnalyticsDoc() {
+  if (!hasAuthSession()) return null;
   try {
     const [s7, s14, s21] = await Promise.all([
       getMuscleCoverage(7),
@@ -42,6 +50,7 @@ export async function updateAnalyticsDoc() {
 }
 
 export async function getDashboardAnalytics(days = 21) {
+  if (!hasAuthSession()) return getLocalDashboardAnalytics(days);
   try {
     const snap = await getDoc(doc(db, "fitness", getUid(), "analytics", "dashboard"));
     if (snap.exists()) {
@@ -61,6 +70,7 @@ export async function getDashboardAnalytics(days = 21) {
 // ── Muscle coverage ───────────────────────────────────────────────────────────
 
 export async function getMuscleCoverage(days = 7) {
+  if (!hasAuthSession()) return getLocalMuscleCoverage(days);
   const today = new Date();
   const startDate = new Date();
   startDate.setDate(today.getDate() - (days - 1));
@@ -97,6 +107,7 @@ export async function getMuscleCoverage(days = 7) {
 }
 
 export async function getCoverageGaps(days = 7, threshold = 1.0) {
+  if (!hasAuthSession()) return getLocalCoverageGaps(days, threshold);
   const hits = await getMuscleCoverage(days);
   return getMuscleGroups()
     .filter((g) => (hits[g.id] || 0) < threshold)
@@ -131,6 +142,7 @@ function getWeekBounds(selector = "current") {
 }
 
 export async function getWeeklyReport(selector = "current") {
+  if (!hasAuthSession()) return getLocalWeeklyReport(selector);
   const dates = getWeekBounds(selector);
   const [kbExercises, history] = await Promise.all([
     getAllExercises(),
@@ -262,6 +274,7 @@ export async function getWeeklyReport(selector = "current") {
 // ── Progress trend ────────────────────────────────────────────────────────────
 
 export async function getProgressTrend(exerciseName, lastN = 4) {
+  if (!hasAuthSession()) return getLocalProgressTrend(exerciseName, lastN);
   const history = await getSessionHistory(lastN * 7);
   const safeHistory = Array.isArray(history)
     ? history.filter(Boolean).map((s) => ({ ...s, exercises: Array.isArray(s.exercises) ? s.exercises : [] }))

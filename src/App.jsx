@@ -20,6 +20,7 @@ import ErrorBoundary from './components/common/ErrorBoundary.jsx'
 import PwaUpdateBanner from './components/common/PwaUpdateBanner.jsx'
 import { IosInstallHint } from './components/IosInstallHint.jsx'
 import { InstallPromptHandler } from './components/InstallPromptHandler.jsx'
+import AuthGateModal from './components/AuthGateModal.jsx'
 
 import AppGate from './views/AppGate.jsx'
 
@@ -158,6 +159,9 @@ export default function App() {
   const [authPassword, setAuthPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [authRegistering, setAuthRegistering] = useState(false);
+  const [showAuthGateModal, setShowAuthGateModal] = useState(false);
+  const [authGateTriggerCount, setAuthGateTriggerCount] = useState(0);
+  const [authGateDismissedAt, setAuthGateDismissedAt] = useState(0);
 
   const [sessionDate, setSessionDate]   = useState(() => initialRoute.sessionDate)
   const [sessionDraft, setSessionDraft] = useState(null)
@@ -175,6 +179,41 @@ export default function App() {
   }, [user]);
 
   useEffect(() => {
+    if (isLocalMode()) return undefined;
+
+    const timer = window.setTimeout(() => {
+      setAuthGateTriggerCount((count) => count + 1);
+    }, 60000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isLocalMode()) return undefined;
+
+    const handleAuthGateTrigger = () => {
+      setAuthGateTriggerCount((count) => count + 1);
+    };
+
+    window.addEventListener('fitness-auth-gate-trigger', handleAuthGateTrigger);
+    return () => {
+      window.removeEventListener('fitness-auth-gate-trigger', handleAuthGateTrigger);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isLocalMode() || user) {
+      setShowAuthGateModal(false);
+      return;
+    }
+    if (authGateTriggerCount > authGateDismissedAt) {
+      setShowAuthGateModal(true);
+    }
+  }, [user, authGateTriggerCount, authGateDismissedAt]);
+
+  useEffect(() => {
     if (isLocalMode()) {
       fetch('http://localhost:9100/fitness/muscles')
         .then(r => r.json())
@@ -185,12 +224,13 @@ export default function App() {
 
   const navigateToTab = (newTabId) => {
     const targetTabId = resolveFlowTab(newTabId);
+    const isSpecialTab = targetTabId === 'coach' || targetTabId === 'inbox';
     if (targetTabId === 'gate') {
       setSubTab(null);
       setTab('gate');
       return;
     }
-    if (!navItems.some((item) => item.id === targetTabId)) return;
+    if (!isSpecialTab && !navItems.some((item) => item.id === targetTabId)) return;
     if (targetTabId === tab) return;
     const oldIdx = navItems.findIndex(i => i.id === tab);
     const newIdx = navItems.findIndex(i => i.id === targetTabId);
@@ -274,9 +314,15 @@ export default function App() {
     try {
       if (authRegistering) await signUpEmail(authEmail, authPassword);
       else                 await signInEmail(authEmail, authPassword);
+      setShowAuthGateModal(false);
     } catch {
       setAuthError('Anmeldung fehlgeschlagen.');
     }
+  }
+
+  function handleDismissAuthGate() {
+    setShowAuthGateModal(false);
+    setAuthGateDismissedAt(authGateTriggerCount);
   }
 
   if (authLoading) return (
@@ -285,35 +331,32 @@ export default function App() {
     </div>
   );
 
-  if (!user) return (
-    <div className="min-h-screen flex items-center justify-center bg-fit-bg text-fit-ink p-6">
-      <div className="w-full max-w-sm card p-8 space-y-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-black tracking-tight">VitalOS Fitness</h1>
-          <p className="text-fit-dim text-[10px] font-bold uppercase tracking-widest mt-2">Anmelden</p>
-        </div>
-        <form onSubmit={handleAuthSubmit} className="space-y-3">
-          <input type="email"    placeholder="Email"    value={authEmail}    onChange={e => setAuthEmail(e.target.value)}    required className="w-full bg-fit-bg2 border border-fit-line rounded-xl px-4 py-3 text-sm font-bold focus:border-fit-accent outline-none" />
-          <input type="password" placeholder="Passwort" value={authPassword} onChange={e => setAuthPassword(e.target.value)} required className="w-full bg-fit-bg2 border border-fit-line rounded-xl px-4 py-3 text-sm font-bold focus:border-fit-accent outline-none" />
-          {authError && <p className="text-fit-red text-[10px] font-bold uppercase text-center">{authError}</p>}
-          <button type="submit" className="w-full btn btn-primary py-3 font-black uppercase tracking-widest">
-            {authRegistering ? 'Account erstellen' : 'Anmelden'}
-          </button>
-        </form>
-        <div className="flex items-center gap-3"><div className="h-px bg-fit-line flex-1 opacity-50" /><span className="text-[9px] font-black uppercase text-fit-dim">oder</span><div className="h-px bg-fit-line flex-1 opacity-50" /></div>
-        <button onClick={signIn} className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white text-black rounded-xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-transform">Google Login</button>
-        <button onClick={() => setAuthRegistering(!authRegistering)} className="w-full text-[10px] font-black text-fit-dim uppercase hover:text-fit-accent">
-          {authRegistering ? 'Bereits einen Account? Anmelden' : 'Neu hier? Account erstellen'}
-        </button>
-      </div>
-    </div>
-  );
-
   return (
     <>
       <InstallPromptHandler />
       <IosInstallHint />
       <PwaUpdateBanner />
+      <AuthGateModal
+        open={!isLocalMode() && !user && showAuthGateModal}
+        onClose={handleDismissAuthGate}
+        authEmail={authEmail}
+        setAuthEmail={setAuthEmail}
+        authPassword={authPassword}
+        setAuthPassword={setAuthPassword}
+        authError={authError}
+        authRegistering={authRegistering}
+        setAuthRegistering={setAuthRegistering}
+        onSubmit={handleAuthSubmit}
+        onGoogleSignIn={async () => {
+          try {
+            setAuthError('');
+            await signIn();
+            setShowAuthGateModal(false);
+          } catch {
+            setAuthError('Anmeldung fehlgeschlagen.');
+          }
+        }}
+      />
       <ErrorBoundary>
         <div className="app-shell flex min-h-screen overflow-x-hidden w-full bg-fit-bg text-fit-ink font-sans transition-colors duration-500">
 
@@ -327,10 +370,15 @@ export default function App() {
           user={user}
           navItems={navItems}
         >
-          <UserProfile user={user} subtitle={isLocalMode() ? `${user?.email || 'localhost'} · localhost` : (user?.email || '')} />
-          {!isLocalMode() && (
+          <UserProfile user={user} subtitle={isLocalMode() ? `${user?.email || 'localhost'} · localhost` : (user?.email || 'Demo-Modus · lokal gespeichert')} />
+          {!isLocalMode() && user && (
             <button onClick={signOut} className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black uppercase tracking-widest text-fit-red bg-fit-red/5 border border-fit-red/10 rounded-xl hover:bg-fit-red/10 transition-all">
               Logout
+            </button>
+          )}
+          {!isLocalMode() && !user && (
+            <button onClick={() => setShowAuthGateModal(true)} className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-black uppercase tracking-widest text-fit-accent bg-fit-accent/10 border border-fit-accent/20 rounded-xl hover:bg-fit-accent/15 transition-all">
+              Login öffnen
             </button>
           )}
           <button onClick={() => window.location.reload()} className="w-full flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase tracking-widest text-fit-dim bg-fit-bg2 rounded-xl hover:bg-white/5 transition-all">
@@ -372,7 +420,17 @@ export default function App() {
                       {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} subTab={subTab} onSubNav={navigateSub} />}
                       {tab === 'learn'    && <Learn subTab={subTab} />}
                       {tab === 'coach'    && (isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92') && <Coach onInspectExercise={inspectExercise} />}
-                      {tab === 'inbox'    && <Inbox />}
+                      {tab === 'inbox'    && (user ? <Inbox /> : (
+                        <div className="card mx-auto max-w-2xl p-6 text-center">
+                          <h2 className="text-lg font-black tracking-tight">Inbox nur mit Login</h2>
+                          <p className="mt-2 text-sm text-fit-dim">
+                            Der Demo-Modus bleibt lokal. Für Inbox- und Coach-Daten brauchst du einen angemeldeten Cloud-User.
+                          </p>
+                          <button onClick={() => setShowAuthGateModal(true)} className="mt-4 btn btn-primary px-5 py-3 text-[10px] font-black uppercase tracking-widest">
+                            Login öffnen
+                          </button>
+                        </div>
+                      ))}
                       {tab === 'anamnese' && <Anamnese />}
                       {tab === 'focus'    && <Fokus initialLayer={focusLayer} onLayerChange={navigateFocusLayer} />}
                       {tab === 'settings' && <Settings />}
