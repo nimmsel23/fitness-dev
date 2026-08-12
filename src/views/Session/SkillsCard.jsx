@@ -534,7 +534,7 @@ function SessionSummary({ blocks, log, startedAt, rpe, onSetRpe, onSave }) {
   );
 }
 
-function SkillDetailScreen({ skill, stage, history, holds, sessions, onBack, onMaster, onLogHold, onLogWorkout }) {
+function SkillDetailScreen({ skill, stage, history, holds, sessions, onBack, onMaster, onDowngrade, onLogHold, onLogWorkout }) {
   const stageInfo = skill.progressions[stage];
   const next = skill.progressions[stage + 1];
   const isLast = stage >= skill.progressions.length - 1;
@@ -607,6 +607,16 @@ function SkillDetailScreen({ skill, stage, history, holds, sessions, onBack, onM
         </div>
       )}
 
+      {stage > 0 && (
+        <button
+          onClick={onDowngrade}
+          className="w-full mt-2 py-2 text-[11px] font-bold"
+          style={{ color: 'var(--dim)' }}
+        >
+          ↩ Eine Stufe zurücksetzen
+        </button>
+      )}
+
       <div className="mt-6">
         <div className="text-[10px] font-black uppercase tracking-[0.15em] mb-2" style={{ color: 'var(--dim)' }}>Kette</div>
         <div className="flex flex-col gap-1.5">
@@ -632,8 +642,10 @@ function SkillDetailScreen({ skill, stage, history, holds, sessions, onBack, onM
             {history.slice().reverse().map((h, i) => (
               <div key={`${h.stage}-${h.masteredAt}-${i}`} className="flex items-center justify-between px-3 py-2 rounded-lg" style={{ background: 'var(--bg2)' }}>
                 <div className="flex items-center gap-2">
-                  <Check size={13} color="#22c55e" strokeWidth={3} />
-                  <span className="text-sm" style={{ color: 'var(--ink)' }}>{h.name}</span>
+                  {h.reset
+                    ? <ArrowDown size={13} style={{ color: '#f59e0b' }} strokeWidth={3} />
+                    : <Check size={13} color="#22c55e" strokeWidth={3} />}
+                  <span className="text-sm" style={{ color: 'var(--ink)' }}>{h.reset ? `Zurückgesetzt auf: ${h.name}` : h.name}</span>
                 </div>
                 <span className="text-[11px] font-mono" style={{ color: 'var(--dim)' }}>{formatMasteredAt(h.masteredAt)}</span>
               </div>
@@ -669,6 +681,25 @@ export default function SkillsCard() {
         ...entry,
         stage: entry.stage + 1,
         history: [...(entry.history || []), { stage: entry.stage, name: masteredName, masteredAt: new Date().toISOString() }],
+      },
+    });
+  }
+
+  // Reset ist kein Einweg-Ticket: bewusst symmetrisch zu master() — nur der
+  // stage-Wert (Status-Welt) ändert sich, nichts am bisherigen Verlauf/Holds/
+  // Sessions wird gelöscht. Ein eigener history-Eintrag macht den Rückschritt
+  // im Verlauf sichtbar statt ihn stillschweigend zu verstecken.
+  function downgrade(skillId, skill) {
+    const entry = progress[skillId] ?? { stage: 0, history: [], holds: [], sessions: [] };
+    if (entry.stage <= 0) return;
+    if (typeof window !== 'undefined' && !window.confirm(`${skill.name}: eine Stufe zurücksetzen?`)) return;
+    const newStage = entry.stage - 1;
+    persist({
+      ...progress,
+      [skillId]: {
+        ...entry,
+        stage: newStage,
+        history: [...(entry.history || []), { stage: newStage, name: skill.progressions[newStage].name, masteredAt: new Date().toISOString(), reset: true }],
       },
     });
   }
@@ -728,6 +759,7 @@ export default function SkillsCard() {
           sessions={progress[openSkill.id]?.sessions ?? []}
           onBack={() => setOpenSkillId(null)}
           onMaster={() => master(openSkill.id, openSkill)}
+          onDowngrade={() => downgrade(openSkill.id, openSkill)}
           onLogHold={(stage, duration) => logHold(openSkill.id, stage, duration)}
           onLogWorkout={(stage, sessionData) => logWorkout(openSkill.id, stage, sessionData)}
         />
