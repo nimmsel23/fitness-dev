@@ -398,17 +398,17 @@ export default function App() {
               {/* Foreground Sheet (or normal Tab content) */}
               <div 
                 className={`
-                  ${navMode === 'home' ? 'fixed inset-0 z-40 overflow-x-hidden transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]' : 'p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto'}
+                  ${navMode === 'home' ? 'fixed inset-0 z-30 overflow-x-hidden transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]' : 'p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto'}
                   ${navMode === 'home' && tab === 'gate' ? 'translate-y-full pointer-events-none' : 'translate-y-0'}
                 `}
               >
-                <div className={`${navMode === 'home' ? 'h-full w-full bg-[var(--bg)] shadow-[0_-20px_50px_rgba(0,0,0,0.3)] overflow-y-auto overflow-x-hidden rounded-t-[40px] border-t border-[var(--line)]/30 relative pt-6 lg:rounded-none lg:border-t-0' : ''}`}>
+                <div className={`${navMode === 'home' ? 'alpha-glass h-full w-full overflow-y-auto overflow-x-hidden rounded-t-[40px] border-t border-[var(--line)]/30 shadow-[0_-20px_50px_rgba(0,0,0,0.3)] relative pt-6 lg:m-4 lg:h-[calc(100dvh-2rem)] lg:rounded-[32px] lg:border lg:border-[var(--line)]/30 lg:shadow-[0_24px_80px_rgba(0,0,0,0.32)]' : ''}`}>
                   {/* Back-to-Gate handle (only in home mode, when not on gate) */}
                   {navMode === 'home' && tab !== 'gate' && (
                     <button
                       onClick={() => navigate('gate')}
                       aria-label="Zurück zum Menü"
-                      className="sticky top-0 z-30 mx-auto flex flex-col items-center gap-1 pt-2 pb-3 w-full bg-gradient-to-b from-[var(--bg)] via-[var(--bg)] to-transparent active:opacity-60 transition-opacity"
+                      className="sticky top-0 z-30 mx-auto flex w-full flex-col items-center gap-1 pt-2 pb-3 active:opacity-60 transition-opacity bg-gradient-to-b from-[color:var(--glass)] via-[color:var(--glass)] to-transparent backdrop-blur-md"
                     >
                       <div className="w-10 h-1.5 rounded-full bg-fit-line" />
                       <span className="text-[9px] font-black uppercase tracking-widest text-fit-dim opacity-60">Menü</span>
