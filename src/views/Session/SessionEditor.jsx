@@ -6,8 +6,9 @@
  * No inline history, no inline plan — those are separate sub-tabs.
  */
 
-import { useState } from 'react';
-import { Save, ChevronDown } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Save, ChevronDown, X } from 'lucide-react';
 import DateStrip from './DateStrip';
 import ModeSwitcher from './ModeSwitcher';
 import SessionSwitcher from './SessionSwitcher';
@@ -62,6 +63,15 @@ export default function SessionEditor({
   const [showInlineDetails, setShowInlineDetails] = useState(false);
   const gpsMapsUrl = normalizeSessionGate(sessionGate).gps?.mapsUrl || null;
 
+  // Session Gate ist kein inline Card-Element mehr, sondern ein echtes Sheet
+  // über dem Training-Haupttab: "Heute" in der Nav-Bar (SessionGateCard.jsx
+  // SESSION_NAV_ITEMS) öffnet es explizit, statt dass es immer sichtbar oben
+  // klebt. Editor selbst bleibt darunter erreichbar (kein Plan-Zwang).
+  const [gateSheetOpen, setGateSheetOpen] = useState(false);
+  useEffect(() => {
+    if (currentSubTab === 'today') setGateSheetOpen(true);
+  }, [currentSubTab]);
+
   return (
     <div className="pb-36">
       {/* Sticky date strip */}
@@ -79,15 +89,6 @@ export default function SessionEditor({
       />
 
       <div className="px-2 space-y-4 mt-3">
-        <SessionGateCard
-          date={date}
-          sessionGate={sessionGate}
-          currentSubTab={currentSubTab}
-          onSubNav={onSubNav}
-          onStart={startSessionGate}
-          onStop={stopSessionGate}
-        />
-
         {/* Session switcher */}
         <div
           className="px-4 py-3 rounded-2xl"
@@ -280,6 +281,35 @@ export default function SessionEditor({
 
       {showTabSettings && (
         <SourceSettingsModal onClose={() => setShowTabSettings(false)} />
+      )}
+
+      {gateSheetOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-200">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setGateSheetOpen(false)} />
+          <div className="relative w-full max-w-2xl bg-fit-card border-t border-fit-line rounded-t-[40px] shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto">
+            <div className="sticky top-0 bg-fit-card pt-4 pb-2 flex items-center justify-between px-5 z-10">
+              <div className="w-10 h-1 rounded-full bg-fit-line mx-auto" />
+              <button
+                onClick={() => setGateSheetOpen(false)}
+                className="absolute right-4 top-3 p-1.5 rounded-lg text-fit-dim hover:text-fit-ink transition-colors"
+                aria-label="Schließen"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="px-2 pb-8">
+              <SessionGateCard
+                date={date}
+                sessionGate={sessionGate}
+                currentSubTab={currentSubTab}
+                onSubNav={(id) => { setGateSheetOpen(false); onSubNav?.(id); }}
+                onStart={() => { startSessionGate(); setGateSheetOpen(false); }}
+                onStop={stopSessionGate}
+              />
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
