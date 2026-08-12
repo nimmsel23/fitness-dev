@@ -5,36 +5,25 @@ import ExerciseSearch from "./components/ExerciseSearch.jsx";
 import { muskelDe, muskelColor } from "./muscles.js";
 
 function SetRow({ set, index, trackingType, onPatch, onDelete }) {
-  const isWeight = trackingType === "weight_reps";
-  const isBodyweight = trackingType === "bodyweight_reps";
+  const isBodyweight = trackingType !== "duration";
   const isDuration = trackingType === "duration";
-  const isDistanceTime = trackingType === "distance_time";
 
   function toggleCompleted() {
     if (set.completed) {
-      onPatch("completed", false);
+      onPatch({ completed: false });
       return;
     }
-    if (isWeight || isBodyweight) {
-      if ((set.weight === null || set.weight === "") && set.ghostWeight !== null && set.ghostWeight !== undefined && !isBodyweight) {
-        onPatch("weight", set.ghostWeight);
-      }
+    if (isBodyweight) {
       if ((set.reps === null || set.reps === "") && set.ghostReps !== null && set.ghostReps !== undefined) {
-        onPatch("reps", set.ghostReps);
+        onPatch({ reps: set.ghostReps, completed: true });
+        return;
       }
     }
     if (isDuration && (set.duration === null || set.duration === "") && set.ghostDuration !== null && set.ghostDuration !== undefined) {
-      onPatch("duration", set.ghostDuration);
+      onPatch({ duration: set.ghostDuration, completed: true });
+      return;
     }
-    if (isDistanceTime) {
-      if ((set.distance === null || set.distance === "") && set.ghostDistance !== null && set.ghostDistance !== undefined) {
-        onPatch("distance", set.ghostDistance);
-      }
-      if ((set.duration === null || set.duration === "") && set.ghostDuration !== null && set.ghostDuration !== undefined) {
-        onPatch("duration", set.ghostDuration);
-      }
-    }
-    onPatch("completed", true);
+    onPatch({ completed: true });
   }
 
   return (
@@ -44,25 +33,20 @@ function SetRow({ set, index, trackingType, onPatch, onDelete }) {
         : "grid-cols-[1.5rem_1fr_1fr_2.25rem_2.25rem]"
     }`}>
       <span className="text-xs font-mono text-fit-muted text-center">{index + 1}</span>
-      {(isWeight || isDistanceTime) && (
-        <input
-          type="number"
-          inputMode="decimal"
-          placeholder={isWeight ? String(set.ghostWeight ?? set.targetWeight ?? "kg") : String(set.ghostDistance ?? set.targetDistance ?? "km")}
-          value={isWeight ? (set.weight ?? "") : (set.distance ?? "")}
-          onChange={(e) => onPatch(isWeight ? "weight" : "distance", e.target.value === "" ? null : Number(e.target.value))}
-          className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent placeholder:text-fit-muted"
-        />
-      )}
-      {(isWeight || isBodyweight || isDistanceTime) && (
+      {isBodyweight && (
         <input
           type="number"
           inputMode="numeric"
-          placeholder={isDistanceTime ? String(set.ghostDuration ?? set.targetDuration ?? "min") : String(set.ghostReps ?? set.targetReps ?? "Wdh")}
-          value={isDistanceTime ? (set.duration ?? "") : (set.reps ?? "")}
-          onChange={(e) => onPatch(isDistanceTime ? "duration" : "reps", e.target.value === "" ? null : Number(e.target.value))}
+          placeholder={String(set.ghostReps ?? set.targetReps ?? "Wdh")}
+          value={set.reps ?? ""}
+          onChange={(e) => onPatch({ reps: e.target.value === "" ? null : Number(e.target.value) })}
           className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent placeholder:text-fit-muted"
         />
+      )}
+      {isBodyweight && (
+        <div className="px-2 py-1.5 rounded-lg bg-fit-bg2/50 border border-fit-line text-fit-muted text-[11px] text-center">
+          {set.progressionStage || "stage offen"}
+        </div>
       )}
       {isDuration && (
         <input
@@ -70,7 +54,7 @@ function SetRow({ set, index, trackingType, onPatch, onDelete }) {
           inputMode="numeric"
           placeholder={String(set.ghostDuration ?? set.targetDuration ?? "sek")}
           value={set.duration ?? ""}
-          onChange={(e) => onPatch("duration", e.target.value === "" ? null : Number(e.target.value))}
+          onChange={(e) => onPatch({ duration: e.target.value === "" ? null : Number(e.target.value) })}
           className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent placeholder:text-fit-muted"
         />
       )}
@@ -120,11 +104,9 @@ function ExerciseBlock({ ex, onAddSet, onPatchSet, onDeleteSet, onDeleteExercise
             : "grid-cols-[1.5rem_1fr_1fr_2.25rem_2.25rem]"
         }`}>
           <span className="text-center">#</span>
-          <span className="text-center">
-            {ex.trackingType === "weight_reps" ? "kg" : ex.trackingType === "distance_time" ? "km" : ex.trackingType === "duration" ? "Zeit" : "Wdh"}
-          </span>
+          <span className="text-center">{ex.trackingType === "duration" ? "Zeit" : "Wdh"}</span>
           {ex.trackingType !== "duration" && (
-            <span className="text-center">{ex.trackingType === "distance_time" ? "Zeit" : "Wdh"}</span>
+            <span className="text-center">Stage</span>
           )}
           <span />
           <span />
@@ -134,8 +116,8 @@ function ExerciseBlock({ ex, onAddSet, onPatchSet, onDeleteSet, onDeleteExercise
             key={set.id}
             set={set}
             index={i}
-            trackingType={ex.trackingType || "weight_reps"}
-            onPatch={(key, val) => onPatchSet(set.id, key, val)}
+            trackingType={ex.trackingType || "bodyweight_reps"}
+            onPatch={(patch) => onPatchSet(set.id, patch)}
             onDelete={() => onDeleteSet(set.id)}
           />
         ))}
@@ -153,6 +135,7 @@ function ExerciseBlock({ ex, onAddSet, onPatchSet, onDeleteSet, onDeleteExercise
 export default function WorkoutSession({ workoutId, onBack, onFinished }) {
   const [workout, setWorkout] = useState(null);
   const [exercises, setExercises] = useState([]);
+  const [saving, setSaving] = useState(false);
 
   async function load() {
     const d = await api.get(`/workouts/${workoutId}`);
@@ -169,7 +152,7 @@ export default function WorkoutSession({ workoutId, onBack, onFinished }) {
       primaryMuscles: ex.primaryMuscles,
       secondaryMuscles: ex.secondaryMuscles,
       yuhonas_id: ex.yuhonas_id,
-      trackingType: ex.trackingType || "weight_reps",
+      trackingType: ex.trackingType || "bodyweight_reps",
     });
     load();
   }
@@ -184,12 +167,11 @@ export default function WorkoutSession({ workoutId, onBack, onFinished }) {
     load();
   }
 
-  function patchSetLocal(exerciseId, setId, key, val) {
+  function patchSetLocal(exerciseId, setId, patch) {
     setExercises((prev) => prev.map((e) => e.id !== exerciseId ? e : {
       ...e,
-      sets: e.sets.map((s) => s.id === setId ? { ...s, [key]: val } : s),
+      sets: e.sets.map((s) => s.id === setId ? { ...s, ...patch } : s),
     }));
-    api.patch(`/workouts/${workoutId}/exercises/${exerciseId}/sets/${setId}`, { [key]: val });
   }
 
   async function deleteSet(exerciseId, setId) {
@@ -198,7 +180,30 @@ export default function WorkoutSession({ workoutId, onBack, onFinished }) {
   }
 
   async function finishWorkout() {
-    await api.patch(`/workouts/${workoutId}`, { finished_at: new Date().toISOString() });
+    setSaving(true);
+    try {
+      const finishedAt = new Date().toISOString();
+      await api.patch(`/workouts/${workoutId}`, {
+        exercises,
+        finished_at: finishedAt,
+        sessionState: "completed",
+        eventLog: exercises.flatMap((exercise) =>
+          (exercise.sets || [])
+            .filter((set) => set.completed)
+            .map((set) => ({
+              exercise_id: exercise.exercise_id,
+              setId: set.id,
+              metricType: exercise.trackingType === "duration" ? "seconds" : "reps",
+              reps: set.reps ?? null,
+              seconds: set.duration ?? null,
+              progressionStage: set.progressionStage ?? null,
+              completedAt: finishedAt,
+            }))
+        ),
+      });
+    } finally {
+      setSaving(false);
+    }
     onFinished();
   }
 
@@ -216,8 +221,9 @@ export default function WorkoutSession({ workoutId, onBack, onFinished }) {
           <h1 className="text-xl font-bold tracking-tight truncate">{workout.name}</h1>
         </div>
         <button
+          disabled={saving}
           onClick={finishWorkout}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-fit-accent text-white text-sm font-semibold hover:bg-blue-600 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-fit-accent text-white text-sm font-semibold hover:bg-blue-600 disabled:opacity-50 transition-colors"
         >
           <Flag size={14} strokeWidth={2.7} /> Fertig
         </button>
@@ -238,7 +244,7 @@ export default function WorkoutSession({ workoutId, onBack, onFinished }) {
               key={ex.id}
               ex={ex}
               onAddSet={() => addSet(ex.id)}
-              onPatchSet={(setId, key, val) => patchSetLocal(ex.id, setId, key, val)}
+              onPatchSet={(setId, patch) => patchSetLocal(ex.id, setId, patch)}
               onDeleteSet={(setId) => deleteSet(ex.id, setId)}
               onDeleteExercise={() => removeExercise(ex.id)}
             />
