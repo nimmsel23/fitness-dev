@@ -27,7 +27,7 @@ export const MUSCLE_GROUPS = [
   'chest',
   'upper_back', 'middle_back', 'lower_back', 'rhomboids', 'serratus_anterior',
   'biceps', 'triceps', 'forearms',
-  'abs', 'abductors', 'adductors',
+  'core', 'abductors', 'adductors',
   'glutes', 'quadriceps', 'hamstrings', 'calves',
 ];
 

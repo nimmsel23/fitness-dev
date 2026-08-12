@@ -13,7 +13,7 @@ const BROAD_GROUPS = [
   { id: 'back', name: 'Rücken', icon: '🧱', members: ['upper_back', 'middle_back', 'lower_back', 'rhomboids', 'serratus_anterior'] },
   { id: 'legs', name: 'Beine', icon: '🦵', members: ['glutes', 'quadriceps', 'hamstrings', 'calves'] },
   { id: 'arms', name: 'Arme', icon: '⚡', members: ['biceps', 'triceps', 'forearms'] },
-  { id: 'core', name: 'Rumpf / Core', icon: '🔥', members: ['abs', 'abductors', 'adductors'] },
+  { id: 'core', name: 'Rumpf / Core', icon: '🔥', members: ['core', 'abductors', 'adductors'] },
 ];
 
 // score (1-4, aus computeMuscleScores) → Regenerations-% für die UI.

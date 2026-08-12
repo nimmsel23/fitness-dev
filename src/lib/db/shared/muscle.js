@@ -47,10 +47,15 @@ const FREE_TEXT_MUSCLE_ALIASES = {
 // separaten, nie mit der KB-Region verschmolzenen Bucket.
 const REGION_ID_ALIASES = { abs: "core" };
 
+function normalizeRegionId(raw) {
+  const id = String(raw || "").trim();
+  return REGION_ID_ALIASES[id] || id;
+}
+
 function regionIdFromDoc(doc) {
   const id = String(doc.region || doc.doc_id || doc.id || doc.muscle_id || "").trim();
   const stripped = id.includes("_") && /^\d/.test(id) ? id.split("_").slice(1).join("_") : id;
-  return REGION_ID_ALIASES[stripped] || stripped;
+  return normalizeRegionId(stripped);
 }
 
 function bucketRank(doc) {
@@ -89,7 +94,7 @@ export function setKBMuscles(musclesList) {
   // Detail-ID noch nicht in einer Top-Level-Region eingetragen wurde.
   for (const doc of docs) {
     const id = String(doc.id || doc.muscle_id || "").trim();
-    const region = String(doc.region || "").trim();
+    const region = normalizeRegionId(doc.region);
     if (id && region && doc.kb_level === "muscle" && !_muscleToRegionMap.has(id)) {
       _muscleToRegionMap.set(id, region);
     }
@@ -115,7 +120,7 @@ export function getMuscleGroups() {
  * Liest die Region einer Muskel-ID direkt aus dem KB-Mapping (aus muscles: [...] in *.yml).
  */
 export function muscleToRegion(muscle) {
-  const id = String(muscle || "").trim();
+  const id = normalizeRegionId(muscle);
   if (!id) return null;
 
   // 1. Ist selbst eine Region
