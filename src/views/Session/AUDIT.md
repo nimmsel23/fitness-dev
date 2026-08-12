@@ -6,7 +6,7 @@ Workout-Journal — Session-Logging mit Satz/Wdh/Gewicht, Session-Modi, intellig
 ## Komponenten
 | Datei | Zweck |
 |-------|-------|
-| `index.jsx` | Thin Sub-Tab-Router: editor (default) / history / plan |
+| `index.jsx` | Thin Sub-Tab-Router: editor (default) / timer / skills / plan / history |
 | `useSession.js` | State-Owner, alle Handler, Autosave/Flush, Datenfluss |
 | `SessionEditor.jsx` | Editor-Assembly: DateStrip + Switcher + ExerciseList/ActivitySection | 
 | `SessionGateCard.jsx` | Großer Start/Stop-Einstieg für Trainingstag, Timer, Live-Status-Notification |
@@ -23,6 +23,12 @@ Workout-Journal — Session-Logging mit Satz/Wdh/Gewicht, Session-Modi, intellig
 | `MuscleMapModal.jsx` | Anterior/Posterior BodyMap + Anatomie-Detail-Chain |
 | `SourceSettingsModal.jsx` | Übungsquellen-Toggle (wger/yuhonas/coach) via localStorage |
 | `utils.js` | `getRollingDays`, `blockColor`, `DAY_LABELS` |
+| `WorkoutTimerCard.jsx` | reine Stoppuhr, SubTab `skills` (Platzhalter für geplanten Thenics-Guided-Runner) |
+| `SixPackPromiseCard.jsx` | SubTab `timer` — eigenständiger 6-Pack-Promise-Nachbau (Home/Track/Day/Runner/Shuffle/Learn/Favorites/Selfies), setzt App-weit `data-theme="sixpack"` solange gemountet |
+
+## Auffälligkeiten (2026-08-12)
+- `SixPackPromiseCard.jsx`: Übungskategorisierung (Lower/Bottom-up/Top-down/Upper Abs) ist eigene fachliche Einordnung der 10 verifizierten echten Übungsnamen, nicht aus der App selbst bestätigt — vom Nutzer als Vitaltrainer ggf. zu korrigieren.
+- Skills-SubTab enthält aktuell nur die umgezogene Stoppuhr, der eigentliche Thenics-Prinzip-Inhalt (aktuelle Übung groß, nächste klein, Auto-Advance) ist noch nicht gebaut.
 
 ## Session-Modi
 
