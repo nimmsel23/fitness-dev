@@ -15,7 +15,7 @@
     "lint": "eslint src/ --ext .js,.jsx",
     "build": "npm run lint && vite build && node scripts/snapshot.mjs dist",
     "build:preview": "npm run deploy:preview",
-    "build:firebase": "node scripts/build-firebase.mjs",
+    "build:firebase": "vite build --mode firebase --outDir dist-firebase && node scripts/stamp-sw.mjs dist-firebase && node scripts/snapshot.mjs dist-firebase",
     "stamp:sw": "node scripts/stamp-sw.mjs dist-firebase",
     "preview:firebase": "firebase hosting:channel:deploy preview --expires 1h",
     "deploy:firebase": "firebase deploy --only hosting",
