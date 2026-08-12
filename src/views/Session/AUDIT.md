@@ -30,6 +30,8 @@ Workout-Journal — Session-Logging mit Satz/Wdh/Gewicht, Session-Modi, intellig
 ## Auffälligkeiten (2026-08-12)
 - `SixPackPromiseCard.jsx`: Übungskategorisierung (Lower/Bottom-up/Top-down/Upper Abs) ist eigene fachliche Einordnung der 10 verifizierten echten Übungsnamen, nicht aus der App selbst bestätigt — vom Nutzer als Vitaltrainer ggf. zu korrigieren.
 - `SkillsCard.jsx`: Skill/Progressions-Daten sind im Component hardcodiert (`SKILLS`-Array), obwohl es seit heute auch `kb/exercises/calisthenics/*.yml` mit identischem Inhalt gibt — kein API-Endpoint verbindet beide, zwei Quellen für dieselben Daten. Bei künftiger Änderung an einer Stelle die andere nicht vergessen (oder auf einen einzigen Ladepfad umstellen).
+- `useSession.js` (`getRollingDays(30)`, Zeile ~112): Date-Picker im Session-Tab kann grundsätzlich nie weiter als 30 Tage zurück (rollierendes Fenster ab `new Date()`), unabhängig vom `historyLimit`-Fix unten — betraf einen Klienten (Matthias), der ältere Workouts nicht nachloggen konnte. **Noch offen**, kein Fix bisher.
+- `getSessionHistory(n)`-Limit (früher fix 60) ist jetzt `historyLimit`-State mit "Mehr laden"-Button in `SessionHistory.jsx` — Fix wirkt identisch für lokalen Dev-Build und Firebase-Prod, da beide `n` direkt in ihre jeweilige Query (Datei-Slice bzw. Firestore `limit(n)`) durchreichen.
 
 ## Session-Modi
 

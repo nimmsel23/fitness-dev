@@ -50,6 +50,8 @@ export default function Session({
         dragOverDate={session.dragOverDate}
         setDragOverDate={session.setDragOverDate}
         moveSessionToDate={session.moveSessionToDate}
+        hasMoreHistory={session.hasMoreHistory}
+        onLoadMoreHistory={session.loadMoreHistory}
       />
     );
   }

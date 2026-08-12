@@ -89,6 +89,8 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   const [hasActivity, setHasActivity] = useState(false);
   const [sessionGate, setSessionGate] = useState(() => normalizeSessionGate(null));
   const [recentSessions, setRecentSessions] = useState({});
+  const [historyLimit, setHistoryLimit] = useState(60);
+  const [hasMoreHistory, setHasMoreHistory] = useState(false);
   const [hint, setHint]             = useState(null);
   const [gaps, setGaps]             = useState([]);
   const [prevMap, setPrevMap]       = useState({});
@@ -181,8 +183,14 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   };
 
   // ── History / prevMap ─────────────────────────────────────────
+  // historyLimit ist stateful (statt fix 60) — SessionHistory.jsx bekommt
+  // einen "Mehr laden"-Button, der ihn hochsetzt, weil sowohl die lokale
+  // Route als auch die Firestore-Query (`limit(n)`) hart bei n abschneiden,
+  // ohne Pagination. Betrifft Firebase-Prod genauso wie lokal (Matthias
+  // konnte im Date-Picker/Verlauf nicht weiter als ~60 Sessions zurück).
   useEffect(() => {
-    getSessionHistory(60).then(sessions => {
+    getSessionHistory(historyLimit).then(sessions => {
+      setHasMoreHistory(sessions.length >= historyLimit);
       const sessByDate = {};
       const pMap = {};
       sessions.forEach(s => {
@@ -226,7 +234,11 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
         }
       }
     }).catch(() => {});
-  }, [block, date]);
+  }, [block, date, historyLimit]);
+
+  function loadMoreHistory() {
+    setHistoryLimit(current => current + 60);
+  }
 
   // ── Day sessions + hints ──────────────────────────────────────
   useEffect(() => {
@@ -569,6 +581,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     hasActivity, setHasActivity,
     sessionGate, setSessionGate,
     recentSessions,
+    hasMoreHistory, loadMoreHistory,
     hint, gaps,
     prevMap,
     daySessions,

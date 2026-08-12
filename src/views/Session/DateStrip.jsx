@@ -35,12 +35,12 @@ export default function DateStrip({
   return (
     <div className="sticky top-0 z-30 px-2 pb-2 pt-2" style={{ background: 'var(--bg)' }}>
       {/* Top bar: date label + actions */}
-      <div className="flex items-center justify-between mb-3 px-1">
-        <div>
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-3 px-1">
+        <div className="min-w-0 flex-1">
           <div className="text-[9px] font-black uppercase tracking-[0.3em] text-fit-dim/40">Session</div>
-          <div className="text-sm font-black text-fit-ink">{dateLabel}</div>
+          <div className="truncate text-sm font-black text-fit-ink">{dateLabel}</div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 self-start">
           {autoSaveLabel && (
             <span className="text-[9px] font-black uppercase tracking-widest text-fit-accent/70 animate-in fade-in">
               {autoSaveLabel}
@@ -68,7 +68,7 @@ export default function DateStrip({
           <button
             onClick={onSave}
             disabled={saving}
-            className="h-9 px-4 rounded-xl bg-fit-accent text-black font-black text-[10px] uppercase tracking-[0.15em] shadow-lg shadow-accent/25 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
+            className="flex h-9 items-center gap-2 rounded-xl bg-fit-accent px-3 sm:px-4 text-[10px] font-black uppercase tracking-[0.15em] text-black shadow-lg shadow-accent/25 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
           >
             {saving
               ? <div className="w-3.5 h-3.5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
