@@ -1030,7 +1030,7 @@ app.get("/routines", (c) => {
 app.post("/routines", async (c) => {
   const body = await c.req.json();
   const routines = readRoutines();
-  const routine = { id: crypto.randomUUID(), name: body.name, goal: body.goal || null, created_at: new Date().toISOString(), exercises: [] };
+  const routine = { id: crypto.randomUUID(), name: body.name, goal: body.goal || null, category: body.category || null, created_at: new Date().toISOString(), exercises: [] };
   routines.push(routine);
   writeRoutines(routines);
   return c.json({ id: routine.id });
