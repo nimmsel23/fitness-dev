@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import WorkoutList from './WorkoutList.jsx'
-import WorkoutBuilder from './WorkoutBuilder.jsx'
+import RoutineBuilder from './RoutineBuilder.jsx'
+import WorkoutSession from './WorkoutSession.jsx'
 import AssignedPlans from './AssignedPlans.jsx'
 
 export default function PlanView() {
@@ -12,15 +13,23 @@ export default function PlanView() {
         <>
           <AssignedPlans />
           <WorkoutList
-            onOpen={(id) => setRoute({ view: 'builder', workoutId: id })}
+            onEditRoutine={(id) => setRoute({ view: 'routine', routineId: id })}
+            onOpenWorkout={(id) => setRoute({ view: 'workout', workoutId: id })}
             onSettings={() => {}}
           />
         </>
       )}
-      {route.view === 'builder' && (
-        <WorkoutBuilder
+      {route.view === 'routine' && (
+        <RoutineBuilder
+          routineId={route.routineId}
+          onBack={() => setRoute({ view: 'list' })}
+        />
+      )}
+      {route.view === 'workout' && (
+        <WorkoutSession
           workoutId={route.workoutId}
           onBack={() => setRoute({ view: 'list' })}
+          onFinished={() => setRoute({ view: 'list' })}
         />
       )}
     </div>

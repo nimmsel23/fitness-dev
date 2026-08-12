@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, GripVertical, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
@@ -46,7 +46,7 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
         <div className="flex items-center gap-1 flex-shrink-0">
           {ex.effort === "to_failure" && <span className="text-xs px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 font-medium">Failure</span>}
           {ex.drop_set ? <span className="text-xs px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-400 font-medium">Drop</span> : null}
-          <span className="font-mono text-xs text-fit-muted">{ex.sets}×{ex.reps}</span>
+          <span className="font-mono text-xs text-fit-muted">{ex.target_sets}×{ex.target_reps}</span>
           <button onClick={() => setOpen((v) => !v)} className="p-1.5 rounded-lg text-fit-muted hover:text-fit-ink transition-colors">
             {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
@@ -59,15 +59,15 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
       {open && (
         <div className="px-4 pb-4 pt-1 border-t border-fit-line/50 grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-fit-muted font-medium">Sätze</span>
-            <input type="number" min="1" value={ex.sets}
-              onChange={(e) => onPatch("sets", Number(e.target.value))}
+            <span className="text-xs text-fit-muted font-medium">Ziel-Sätze</span>
+            <input type="number" min="1" value={ex.target_sets}
+              onChange={(e) => onPatch("target_sets", Number(e.target.value))}
               className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono focus:outline-none focus:border-fit-accent" />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-fit-muted font-medium">Wdh</span>
-            <input value={ex.reps}
-              onChange={(e) => onPatch("reps", e.target.value)}
+            <span className="text-xs text-fit-muted font-medium">Ziel-Wdh</span>
+            <input value={ex.target_reps}
+              onChange={(e) => onPatch("target_reps", e.target.value)}
               className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono focus:outline-none focus:border-fit-accent"
               placeholder="8-12 / AMRAP" />
           </label>
@@ -130,10 +130,10 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
   );
 }
 
-// ── Workout Builder ───────────────────────────────────────
+// ── Routine Builder ────────────────────────────────────────
 
-export default function WorkoutBuilder({ workoutId, onBack }) {
-  const [workout, setWorkout] = useState(null);
+export default function RoutineBuilder({ routineId, onBack }) {
+  const [routine, setRoutine] = useState(null);
   const [exercises, setExercises] = useState([]);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState({});
@@ -141,15 +141,15 @@ export default function WorkoutBuilder({ workoutId, onBack }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   async function load() {
-    const d = await api.get(`/workouts/${workoutId}`);
-    setWorkout(d.workout);
-    setExercises(d.workout.exercises);
+    const d = await api.get(`/routines/${routineId}`);
+    setRoutine(d.routine);
+    setExercises(d.routine.exercises);
   }
 
-  useEffect(() => { load(); }, [workoutId]);
+  useEffect(() => { load(); }, [routineId]);
 
   async function addExercise(ex) {
-    await api.post(`/workouts/${workoutId}/exercises`, {
+    await api.post(`/routines/${routineId}/exercises`, {
       exercise_id: ex.id,
       name: ex.name,
       primaryMuscles: ex.primaryMuscles,
@@ -160,7 +160,7 @@ export default function WorkoutBuilder({ workoutId, onBack }) {
   }
 
   async function removeExercise(rowId) {
-    await api.delete(`/workouts/${workoutId}/exercises/${rowId}`);
+    await api.delete(`/routines/${routineId}/exercises/${rowId}`);
     load();
   }
 
@@ -174,7 +174,7 @@ export default function WorkoutBuilder({ workoutId, onBack }) {
     try {
       await Promise.all(
         Object.entries(dirty).map(([id, patch]) =>
-          api.patch(`/workouts/${workoutId}/exercises/${id}`, patch)
+          api.patch(`/routines/${routineId}/exercises/${id}`, patch)
         )
       );
       setDirty({});
@@ -189,7 +189,7 @@ export default function WorkoutBuilder({ workoutId, onBack }) {
     const newIndex = exercises.findIndex((e) => e.id === over.id);
     const reordered = arrayMove(exercises, oldIndex, newIndex);
     setExercises(reordered);
-    await api.put(`/workouts/${workoutId}/exercises/order`, {
+    await api.put(`/routines/${routineId}/exercises/order`, {
       order: reordered.map((e, i) => ({ id: e.id, order: i })),
     });
   }
@@ -197,7 +197,7 @@ export default function WorkoutBuilder({ workoutId, onBack }) {
   const hasDirty = Object.keys(dirty).length > 0;
   const excludeIds = exercises.map((e) => e.exercise_id);
 
-  if (!workout) return <div className="flex items-center justify-center h-screen text-fit-muted text-sm">Lädt…</div>;
+  if (!routine) return <div className="flex items-center justify-center h-screen text-fit-muted text-sm">Lädt…</div>;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
@@ -207,8 +207,8 @@ export default function WorkoutBuilder({ workoutId, onBack }) {
           <ArrowLeft size={20} />
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold tracking-tight truncate">{workout.name}</h1>
-          {workout.goal && <p className="text-sm text-fit-muted">{workout.goal}</p>}
+          <h1 className="text-xl font-bold tracking-tight truncate">{routine.name}</h1>
+          {routine.goal && <p className="text-sm text-fit-muted">{routine.goal}</p>}
         </div>
         {hasDirty && (
           <button onClick={savePatches} disabled={saving}

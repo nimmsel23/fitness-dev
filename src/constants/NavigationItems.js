@@ -1,9 +1,10 @@
-import { Dumbbell, Brain, BarChart3, Settings2, CalendarDays, ClipboardList, History, LibraryBig, Microscope, HelpCircle, Layers, Zap, Crosshair, TimerReset } from "lucide-react";
+import { Dumbbell, Brain, BarChart3, Settings2, CalendarDays, ClipboardList, History, LibraryBig, Microscope, HelpCircle, Layers, Zap, Crosshair, TimerReset, Sparkles } from "lucide-react";
 
 const baseItems = [
   { id: 'session',  label: 'Training', Icon: Dumbbell,  sub: [
     { id: 'today',   label: 'Heute',    Icon: CalendarDays },
     { id: 'timer',   label: 'Timer',    Icon: TimerReset },
+    { id: 'skills',  label: 'Skills',   Icon: Sparkles },
     { id: 'plan',    label: 'Plan',     Icon: ClipboardList },
     { id: 'history', label: 'History',  Icon: History },
   ]},

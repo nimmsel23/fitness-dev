@@ -28,7 +28,7 @@ import { useUser } from './contexts/UserContext'
 import { useSettings } from './contexts/SettingsContext'
 import { useSwipeNavigation } from './hooks/useSwipeNavigation'
 
-const SESSION_SUB_TABS = new Set(['today', 'timer', 'plan', 'history'])
+const SESSION_SUB_TABS = new Set(['today', 'timer', 'skills', 'plan', 'history'])
 const REVIEW_SUB_TABS = new Set(['report', 'muscles', 'readiness', 'strength', 'verlauf'])
 const LEARN_SUB_TABS = new Set(['exercises', 'anatomy', 'quiz'])
 const FOCUS_LAYERS = new Set(['focus', 'anamnese', 'freedom'])

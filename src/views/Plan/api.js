@@ -1,28 +1,34 @@
-import {
-  collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
-  query, orderBy,
-} from 'firebase/firestore'
-import { db, auth } from '@db'
+import { isLocalMode } from '@db'
 import { searchExercises as dbSearch } from '@db'
 
-function uid() { return auth.currentUser?.uid }
-const wCol = () => collection(db, 'fitness', uid(), 'wf_workouts')
-const eCol = (wid) => collection(db, 'fitness', uid(), 'wf_workouts', wid, 'exercises')
+const API_BASE = import.meta.env.VITE_API_BASE || ''
+
+// Routines (Vorlagen) und Workouts (geloggte Instanzen, Strong-Modell) laufen
+// bislang nur lokal gegen server.mjs — kein Firestore-Prod-Pendant. Vorherige
+// Firestore-only Implementierung (wf_workouts-Collection) ist raus: `db` aus
+// `@db` ist im lokalen Dev-Build `null`, jeder Firestore-Call wäre dort
+// synchron gecrasht (Plan-SubTab hing bei "Lädt…").
+async function localFetch(method, path, body) {
+  const res = await fetch(API_BASE + path, {
+    method,
+    headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  })
+  if (!res.ok) throw new Error(`${method} ${path} → ${res.status}`)
+  return res.json()
+}
+
+const LOCAL_GET = [/^\/routines$/, /^\/routines\/[^/]+$/, /^\/workouts$/, /^\/workouts\/[^/]+$/]
+const LOCAL_POST = [/^\/routines$/, /^\/routines\/[^/]+\/exercises$/, /^\/workouts$/, /^\/workouts\/[^/]+\/exercises$/, /^\/workouts\/[^/]+\/exercises\/[^/]+\/sets$/]
+const LOCAL_PATCH = [/^\/routines\/[^/]+$/, /^\/routines\/[^/]+\/exercises\/[^/]+$/, /^\/workouts\/[^/]+$/, /^\/workouts\/[^/]+\/exercises\/[^/]+\/sets\/[^/]+$/]
+const LOCAL_PUT = [/^\/routines\/[^/]+\/exercises\/order$/, /^\/workouts\/[^/]+\/exercises\/order$/]
+const LOCAL_DELETE = [/^\/routines\/[^/]+$/, /^\/routines\/[^/]+\/exercises\/[^/]+$/, /^\/workouts\/[^/]+$/, /^\/workouts\/[^/]+\/exercises\/[^/]+$/, /^\/workouts\/[^/]+\/exercises\/[^/]+\/sets\/[^/]+$/]
+
+function matches(path, patterns) { return patterns.some(p => p.test(path)) }
 
 export const api = {
   async get(path) {
-    if (path === '/workouts') {
-      const snap = await getDocs(query(wCol(), orderBy('created_at', 'desc')))
-      return { workouts: snap.docs.map(d => ({ id: d.id, ...d.data() })) }
-    }
-
-    const workoutMatch = path.match(/^\/workouts\/([^/]+)$/)
-    if (workoutMatch) {
-      const [, wid] = workoutMatch
-      const wSnap = await getDoc(doc(wCol(), wid))
-      const eSnap = await getDocs(query(eCol(wid), orderBy('order', 'asc')))
-      return { workout: { id: wSnap.id, ...wSnap.data(), exercises: eSnap.docs.map(d => ({ id: d.id, ...d.data() })) } }
-    }
+    if (isLocalMode() && matches(path, LOCAL_GET)) return localFetch('GET', path)
 
     if (path.startsWith('/exercises')) {
       const q = new URLSearchParams(path.split('?')[1] || '').get('q') || ''
@@ -46,28 +52,7 @@ export const api = {
   },
 
   async post(path, body) {
-    if (path === '/workouts') {
-      const ref = await addDoc(wCol(), { name: body.name, goal: body.goal || null, created_at: new Date().toISOString() })
-      return { id: ref.id }
-    }
-
-    const addExMatch = path.match(/^\/workouts\/([^/]+)\/exercises$/)
-    if (addExMatch) {
-      const [, wid] = addExMatch
-      const eSnap = await getDocs(eCol(wid))
-      const ref = await addDoc(eCol(wid), {
-        exercise_id: body.exercise_id,
-        name: body.name || body.exercise_id,
-        primaryMuscles: body.primaryMuscles || [],
-        secondaryMuscles: body.secondaryMuscles || [],
-        yuhonas_id: body.yuhonas_id || null,
-        sets: 3, reps: '8-12', rest_seconds: 90,
-        weight_type: 'kg', effort: 'normal',
-        rir: null, tempo: null, drop_set: false, notes: null,
-        order: eSnap.size,
-      })
-      return { id: ref.id }
-    }
+    if (isLocalMode() && matches(path, LOCAL_POST)) return localFetch('POST', path, body)
 
     if (path === '/settings') {
       const cur = JSON.parse(localStorage.getItem('wf-settings') || '{}')
@@ -79,42 +64,17 @@ export const api = {
   },
 
   async patch(path, body) {
-    const exMatch = path.match(/^\/workouts\/([^/]+)\/exercises\/([^/]+)$/)
-    if (exMatch) {
-      const [, wid, eid] = exMatch
-      await updateDoc(doc(eCol(wid), eid), body)
-      return { ok: true }
-    }
-    const wMatch = path.match(/^\/workouts\/([^/]+)$/)
-    if (wMatch) {
-      await updateDoc(doc(wCol(), wMatch[1]), body)
-      return { ok: true }
-    }
+    if (isLocalMode() && matches(path, LOCAL_PATCH)) return localFetch('PATCH', path, body)
     return {}
   },
 
   async put(path, body) {
-    const orderMatch = path.match(/^\/workouts\/([^/]+)\/exercises\/order$/)
-    if (orderMatch) {
-      const [, wid] = orderMatch
-      await Promise.all(body.order.map(({ id, order }) => updateDoc(doc(eCol(wid), id), { order })))
-      return { ok: true }
-    }
+    if (isLocalMode() && matches(path, LOCAL_PUT)) return localFetch('PUT', path, body)
     return {}
   },
 
   async delete(path) {
-    const exMatch = path.match(/^\/workouts\/([^/]+)\/exercises\/([^/]+)$/)
-    if (exMatch) {
-      const [, wid, eid] = exMatch
-      await deleteDoc(doc(eCol(wid), eid))
-      return { ok: true }
-    }
-    const wMatch = path.match(/^\/workouts\/([^/]+)$/)
-    if (wMatch) {
-      await deleteDoc(doc(wCol(), wMatch[1]))
-      return { ok: true }
-    }
+    if (isLocalMode() && matches(path, LOCAL_DELETE)) return localFetch('DELETE', path)
     return {}
   },
 }

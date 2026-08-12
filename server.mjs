@@ -818,6 +818,269 @@ app.get("/blocks", (c) => {
   return c.json({ ok: true, blocks });
 });
 
+// ── Routines (Plan-Vorlagen) ──────────────────────────────────────────────────
+// Wiederverwendbare Übungslisten mit Ziel-Sätzen/Wdh, kein echtes Logging.
+// Ersetzt die Firestore-only wf_workouts-Collection (auth.currentUser war im
+// Non-Firebase-Dev-Build undefined → Plan-SubTab hing bei "Lädt…"). Persistiert
+// flach als JSON statt Subcollections. Vormals unter /workouts geführt — echte
+// geloggte Workout-Instanzen (Strong-Modell) liegen jetzt separat, s.u.
+const ROUTINES_PATH = path.join(DATA_DIR, "routines.json");
+function readRoutines() { return readJson(ROUTINES_PATH, []); }
+function writeRoutines(list) { writeJson(ROUTINES_PATH, list); }
+
+app.get("/routines", (c) => {
+  const routines = readRoutines()
+    .slice()
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    .map(({ exercises, ...r }) => ({ ...r, exerciseCount: exercises.length }));
+  return c.json({ routines });
+});
+
+app.post("/routines", async (c) => {
+  const body = await c.req.json();
+  const routines = readRoutines();
+  const routine = { id: crypto.randomUUID(), name: body.name, goal: body.goal || null, created_at: new Date().toISOString(), exercises: [] };
+  routines.push(routine);
+  writeRoutines(routines);
+  return c.json({ id: routine.id });
+});
+
+app.get("/routines/:id", (c) => {
+  const routine = readRoutines().find(r => r.id === c.req.param("id"));
+  if (!routine) return c.json({ error: "not_found" }, 404);
+  const exercises = routine.exercises.slice().sort((a, b) => a.order - b.order);
+  return c.json({ routine: { ...routine, exercises } });
+});
+
+app.patch("/routines/:id", async (c) => {
+  const body = await c.req.json();
+  const routines = readRoutines();
+  const routine = routines.find(r => r.id === c.req.param("id"));
+  if (!routine) return c.json({ error: "not_found" }, 404);
+  Object.assign(routine, body);
+  writeRoutines(routines);
+  return c.json({ ok: true });
+});
+
+app.delete("/routines/:id", (c) => {
+  const routines = readRoutines().filter(r => r.id !== c.req.param("id"));
+  writeRoutines(routines);
+  return c.json({ ok: true });
+});
+
+app.post("/routines/:id/exercises", async (c) => {
+  const body = await c.req.json();
+  const routines = readRoutines();
+  const routine = routines.find(r => r.id === c.req.param("id"));
+  if (!routine) return c.json({ error: "not_found" }, 404);
+  const exercise = {
+    id: crypto.randomUUID(),
+    exercise_id: body.exercise_id,
+    name: body.name || body.exercise_id,
+    primaryMuscles: body.primaryMuscles || [],
+    secondaryMuscles: body.secondaryMuscles || [],
+    yuhonas_id: body.yuhonas_id || null,
+    target_sets: 3, target_reps: "8-12", rest_seconds: 90,
+    weight_type: "kg", effort: "normal",
+    rir: null, tempo: null, drop_set: false, notes: null,
+    order: routine.exercises.length,
+  };
+  routine.exercises.push(exercise);
+  writeRoutines(routines);
+  return c.json({ id: exercise.id });
+});
+
+app.patch("/routines/:id/exercises/:eid", async (c) => {
+  const body = await c.req.json();
+  const routines = readRoutines();
+  const routine = routines.find(r => r.id === c.req.param("id"));
+  const exercise = routine?.exercises.find(e => e.id === c.req.param("eid"));
+  if (!exercise) return c.json({ error: "not_found" }, 404);
+  Object.assign(exercise, body);
+  writeRoutines(routines);
+  return c.json({ ok: true });
+});
+
+app.delete("/routines/:id/exercises/:eid", (c) => {
+  const routines = readRoutines();
+  const routine = routines.find(r => r.id === c.req.param("id"));
+  if (!routine) return c.json({ error: "not_found" }, 404);
+  routine.exercises = routine.exercises.filter(e => e.id !== c.req.param("eid"));
+  writeRoutines(routines);
+  return c.json({ ok: true });
+});
+
+app.put("/routines/:id/exercises/order", async (c) => {
+  const body = await c.req.json();
+  const routines = readRoutines();
+  const routine = routines.find(r => r.id === c.req.param("id"));
+  if (!routine) return c.json({ error: "not_found" }, 404);
+  for (const { id, order } of body.order || []) {
+    const exercise = routine.exercises.find(e => e.id === id);
+    if (exercise) exercise.order = order;
+  }
+  writeRoutines(routines);
+  return c.json({ ok: true });
+});
+
+// ── Workouts (geloggte Instanzen, Strong-Modell) ──────────────────────────────
+// Eine Übung = eine Zeile, mehrere Satz-Zeilen darunter (Gewicht/Wdh/Häkchen).
+// Mehrfach dieselbe Übung hinzufügen ist kein Weg mehr, mehr Sätze zu bekommen —
+// dafür gibt's POST .../sets. Optional an eine Routine gekoppelt (routine_id),
+// aber unabhängig editierbar — Änderungen hier schreiben nie in die Routine zurück.
+const WORKOUTS_PATH = path.join(DATA_DIR, "workouts.json");
+function readWorkoutLogs() { return readJson(WORKOUTS_PATH, []); }
+function writeWorkoutLogs(list) { writeJson(WORKOUTS_PATH, list); }
+
+app.get("/workouts", (c) => {
+  const workouts = readWorkoutLogs()
+    .slice()
+    .sort((a, b) => new Date(b.started_at) - new Date(a.started_at))
+    .map(({ exercises, ...w }) => ({ ...w, exerciseCount: exercises.length }));
+  return c.json({ workouts });
+});
+
+app.post("/workouts", async (c) => {
+  const body = await c.req.json();
+  const workouts = readWorkoutLogs();
+  let exercises = [];
+  let name = body.name;
+  if (body.routine_id) {
+    const routine = readRoutines().find(r => r.id === body.routine_id);
+    if (routine) {
+      name = name || routine.name;
+      exercises = routine.exercises.slice().sort((a, b) => a.order - b.order).map(re => ({
+        id: crypto.randomUUID(),
+        exercise_id: re.exercise_id,
+        name: re.name,
+        primaryMuscles: re.primaryMuscles,
+        secondaryMuscles: re.secondaryMuscles,
+        yuhonas_id: re.yuhonas_id,
+        rest_seconds: re.rest_seconds,
+        weight_type: re.weight_type,
+        notes: null,
+        order: re.order,
+        sets: Array.from({ length: re.target_sets || 3 }, (_, i) => ({
+          id: crypto.randomUUID(), order: i, weight: null, reps: null, completed: false,
+        })),
+      }));
+    }
+  }
+  const workout = {
+    id: crypto.randomUUID(),
+    routine_id: body.routine_id || null,
+    name: name || `Workout ${new Date().toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit" })}`,
+    started_at: new Date().toISOString(),
+    finished_at: null,
+    exercises,
+  };
+  workouts.push(workout);
+  writeWorkoutLogs(workouts);
+  return c.json({ id: workout.id });
+});
+
+app.get("/workouts/:id", (c) => {
+  const workout = readWorkoutLogs().find(w => w.id === c.req.param("id"));
+  if (!workout) return c.json({ error: "not_found" }, 404);
+  const exercises = workout.exercises.slice().sort((a, b) => a.order - b.order)
+    .map(ex => ({ ...ex, sets: ex.sets.slice().sort((a, b) => a.order - b.order) }));
+  return c.json({ workout: { ...workout, exercises } });
+});
+
+app.patch("/workouts/:id", async (c) => {
+  const body = await c.req.json();
+  const workouts = readWorkoutLogs();
+  const workout = workouts.find(w => w.id === c.req.param("id"));
+  if (!workout) return c.json({ error: "not_found" }, 404);
+  Object.assign(workout, body);
+  writeWorkoutLogs(workouts);
+  return c.json({ ok: true });
+});
+
+app.delete("/workouts/:id", (c) => {
+  const workouts = readWorkoutLogs().filter(w => w.id !== c.req.param("id"));
+  writeWorkoutLogs(workouts);
+  return c.json({ ok: true });
+});
+
+app.post("/workouts/:id/exercises", async (c) => {
+  const body = await c.req.json();
+  const workouts = readWorkoutLogs();
+  const workout = workouts.find(w => w.id === c.req.param("id"));
+  if (!workout) return c.json({ error: "not_found" }, 404);
+  const exercise = {
+    id: crypto.randomUUID(),
+    exercise_id: body.exercise_id,
+    name: body.name || body.exercise_id,
+    primaryMuscles: body.primaryMuscles || [],
+    secondaryMuscles: body.secondaryMuscles || [],
+    yuhonas_id: body.yuhonas_id || null,
+    rest_seconds: 90, weight_type: "kg", notes: null,
+    order: workout.exercises.length,
+    sets: Array.from({ length: 3 }, (_, i) => ({
+      id: crypto.randomUUID(), order: i, weight: null, reps: null, completed: false,
+    })),
+  };
+  workout.exercises.push(exercise);
+  writeWorkoutLogs(workouts);
+  return c.json({ id: exercise.id });
+});
+
+app.delete("/workouts/:id/exercises/:eid", (c) => {
+  const workouts = readWorkoutLogs();
+  const workout = workouts.find(w => w.id === c.req.param("id"));
+  if (!workout) return c.json({ error: "not_found" }, 404);
+  workout.exercises = workout.exercises.filter(e => e.id !== c.req.param("eid"));
+  writeWorkoutLogs(workouts);
+  return c.json({ ok: true });
+});
+
+app.put("/workouts/:id/exercises/order", async (c) => {
+  const body = await c.req.json();
+  const workouts = readWorkoutLogs();
+  const workout = workouts.find(w => w.id === c.req.param("id"));
+  if (!workout) return c.json({ error: "not_found" }, 404);
+  for (const { id, order } of body.order || []) {
+    const exercise = workout.exercises.find(e => e.id === id);
+    if (exercise) exercise.order = order;
+  }
+  writeWorkoutLogs(workouts);
+  return c.json({ ok: true });
+});
+
+app.post("/workouts/:id/exercises/:eid/sets", (c) => {
+  const workouts = readWorkoutLogs();
+  const workout = workouts.find(w => w.id === c.req.param("id"));
+  const exercise = workout?.exercises.find(e => e.id === c.req.param("eid"));
+  if (!exercise) return c.json({ error: "not_found" }, 404);
+  const set = { id: crypto.randomUUID(), order: exercise.sets.length, weight: null, reps: null, completed: false };
+  exercise.sets.push(set);
+  writeWorkoutLogs(workouts);
+  return c.json({ id: set.id });
+});
+
+app.patch("/workouts/:id/exercises/:eid/sets/:sid", async (c) => {
+  const body = await c.req.json();
+  const workouts = readWorkoutLogs();
+  const workout = workouts.find(w => w.id === c.req.param("id"));
+  const exercise = workout?.exercises.find(e => e.id === c.req.param("eid"));
+  const set = exercise?.sets.find(s => s.id === c.req.param("sid"));
+  if (!set) return c.json({ error: "not_found" }, 404);
+  Object.assign(set, body);
+  writeWorkoutLogs(workouts);
+  return c.json({ ok: true });
+});
+
+app.delete("/workouts/:id/exercises/:eid/sets/:sid", (c) => {
+  const workouts = readWorkoutLogs();
+  const workout = workouts.find(w => w.id === c.req.param("id"));
+  const exercise = workout?.exercises.find(e => e.id === c.req.param("eid"));
+  if (!exercise) return c.json({ error: "not_found" }, 404);
+  exercise.sets = exercise.sets.filter(s => s.id !== c.req.param("sid"));
+  writeWorkoutLogs(workouts);
+  return c.json({ ok: true });
+});
+
 // ── Session ───────────────────────────────────────────────────────────────────
 // Multi-Session Schema:
 //   Filename: YYYY-MM-DD.json (legacy / Default-Session des Tages)

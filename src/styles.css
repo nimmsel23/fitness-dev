@@ -1,4 +1,5 @@
 /* Dark Themes */
+@import "./styles/themes/sixpack.css";
 @import "./styles/themes/nordic.css";
 @import "./styles/themes/nordic-darker.css";
 @import "./styles/themes/nordic-bluish.css";
