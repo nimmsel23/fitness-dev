@@ -2,6 +2,7 @@ exercise_id: cable_external_rotation
 description: Expert details for Außenrotation am Kabelzug
 exercises:
 - exercise_id: cable_external_rotation
+  wger_id: null
   id: cable_external_rotation
   name: External Cable Rotations
   display_name: Außenrotation am Kabelzug
@@ -11,29 +12,60 @@ exercises:
   type: isolation
   movements:
   - shoulder_external_rotation
-  - scapular_control
+  - glenohumeral_external_rotation
+  - scapular_stability
+  - anti_trunk_rotation
+  - elbow_isometric_flexion
+  - unilateral_control
   - rotator_cuff
   equipment:
   - cable
   primary_muscles:
-  - shoulders
-  secondary_muscles: []
+  - 306_infraspinatus
+  - 307_teres_minor
+  secondary_muscles:
+  - 303_posterior_deltoid
   stabilizers:
-  - upper_back
-  - abs
+  - 305_supraspinatus
+  - 308_subscapularis
+  - 203_trapezius_middle
+  - 204_trapezius_lower
+  - 205_rhomboids
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 504_transverse_abdominis
   coaching_notes:
-  - Stellen Sie sich seitlich zum Kabelzugturm, der Griff auf Ellenbogenhöhe.
-  - Halten Sie den Oberarm eng am Körper und beugen Sie den Ellenbogen auf 90 Grad.
-  - Rotieren Sie den Unterarm langsam nach außen, weg vom Körper, während der Oberarm
-    stabil bleibt.
-  - Führen Sie die Bewegung kontrolliert zurück in die Ausgangsposition.
-  - Konzentrieren Sie sich auf die Muskelkontraktion der Rotatorenmanschette und vermeiden
-    Sie Schwung.
+  - Stellen Sie sich seitlich zum Kabelzug, sodass der arbeitende Arm weiter vom Turm
+    entfernt ist, und positionieren Sie den Griff etwa auf Ellenbogenhöhe.
+  - Ziehen Sie die Schulter sanft nach hinten unten und halten Sie das Schulterblatt
+    ruhig, ohne es während der Bewegung nach vorn kippen zu lassen.
+  - Klemmen Sie den Oberarm eng an den Körper und halten Sie den Ellenbogen konstant
+    bei ungefähr 90 Grad Beugung.
+  - Starten Sie aus der Innenrotation und drehen Sie den Unterarm kontrolliert nach
+    außen, während Oberarm, Schulter und Rumpf stabil bleiben.
+  - Bewegen Sie nur im Schultergelenk; denken Sie daran, den Oberarmkopf zentriert
+    in der Pfanne zu halten statt Reichweite über Ausweichbewegungen zu erzwingen.
+  - Arbeiten Sie mit leichtem bis moderatem Widerstand und einer sauberen Exzentrik,
+    damit die Rotatorenmanschette die gesamte Bewegung kontrollieren kann.
+  - Atmen Sie ruhig aus, wenn Sie nach außen rotieren, und spannen Sie Bauch und Rumpf
+    leicht an, um ein Mitdrehen des Oberkörpers zu verhindern.
+  - Beenden Sie die Wiederholung dort, wo Sie die Außenrotation noch ohne Schulterhochziehen,
+    Hohlkreuz oder Ellbogenverlust sauber kontrollieren können.
   common_errors:
-  - Verwendung von zu viel Gewicht, was zu Kompensationsbewegungen führt.
-  - Den Ellenbogen vom Körper wegbewegen oder den Oberarm mitschwingen lassen.
-  - Schnelle, unkontrollierte Bewegungen, besonders in der exzentrischen Phase.
-  - Mit dem Oberkörper mitrotieren anstatt nur aus der Schulter.
+  - Zu hohes Gewicht, sodass die Bewegung über Schwung statt über die Außenrotatoren
+    erzeugt wird.
+  - Der Ellenbogen löst sich vom Oberkörper oder wandert nach hinten, wodurch die
+    Übung ihre Zielmuskulatur verfehlt.
+  - Der Oberkörper rotiert mit, um zusätzliche Bewegungsamplitude vorzutäuschen.
+  - Die Schulter zieht nach oben Richtung Ohr, anstatt in einer stabilen, tiefen Position
+    zu bleiben.
+  - Die exzentrische Phase wird fallengelassen, statt den Griff kontrolliert zurückzuführen.
+  - Das Handgelenk knickt ab oder der Griff wird verkrampft festgehalten, obwohl die
+    Bewegung aus der Schulter kommen soll.
+  - Zu weit in die Endposition zu drehen, obwohl die Spannung nur noch über Kompensation
+    gehalten werden kann.
+  - Den Oberarm nach vorn schieben oder das Schulterblatt nach vorn kippen lassen,
+    statt den Humeruskopf zentriert zu kontrollieren.
   tags:
   - rotator_cuff
   - shoulder_health
@@ -42,14 +74,30 @@ exercises:
   - athletic_performance
   - shoulders
   - shoulder_external_rotation
+  - infraspinatus
+  - teres_minor
   - unreviewed
   aliases:
   - Cable Rotator Cuff
   - Shoulder External Rotation
   - Cable Shoulder External Rotation
-  variations: []
+  - Kabelzug-Außenrotation
+  - Außenrotation Schulter am Kabelzug
+  variations:
+  - Cable External Rotation with Towel Support
+  - Half-Kneeling Cable External Rotation
+  - Standing Single-Arm Cable External Rotation
   source: expert
   search_aliases:
   - Außenrotation am Kabelzug
   - Cable External Rotation
   - External Cable Rotations
+  - Shoulder External Rotation
+  - Cable Shoulder External Rotation
+  - Kabelzug-Außenrotation
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: manual
+    source_refs: {}
+  review_state:
+    status: approved

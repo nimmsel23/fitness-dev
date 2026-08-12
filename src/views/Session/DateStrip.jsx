@@ -8,8 +8,8 @@
  * - Integrated action buttons inline
  */
 
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, SlidersHorizontal, Settings2, Save } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, SlidersHorizontal, Settings2, Save, CalendarDays } from 'lucide-react';
 import { blockColor, DAY_LABELS } from './utils';
 import { localToday } from '@utils';
 import { sessionHasLoggedWorkout } from '../../lib/sessionGate.js';
@@ -22,10 +22,21 @@ export default function DateStrip({
   const today = localToday();
   const todayIdx = rollingDays.findIndex(d => d === today);
   const [offset, setOffset] = useState(Math.max(0, todayIdx - 6));
+  const dateInputRef = useRef(null);
 
   const visible = rollingDays.slice(offset, offset + 7);
   const canBack = offset > 0;
   const canFwd = offset + 7 < rollingDays.length;
+
+  // Direkter Datumssprung statt nur 3-Tage-Klicks — rollingDays selbst deckt
+  // nur ein begrenztes Fenster ab (siehe useSession.js), daher außerhalb davon
+  // auf setDate direkt zurückfallen statt auf den Offset-Index angewiesen zu sein.
+  function jumpToDate(d) {
+    if (!d) return;
+    setDate(d);
+    const idx = rollingDays.findIndex(x => x === d);
+    if (idx >= 0) setOffset(Math.max(0, Math.min(rollingDays.length - 7, idx - 3)));
+  }
 
   // Format selected date nicely
   const selectedObj = new Date(date + 'T12:00:00');
@@ -51,6 +62,21 @@ export default function DateStrip({
               ●
             </span>
           )}
+          <button
+            onClick={() => dateInputRef.current?.showPicker?.() ?? dateInputRef.current?.click()}
+            className="relative w-9 h-9 rounded-xl bg-fit-bg2 border border-fit-line flex items-center justify-center text-fit-dim hover:text-fit-accent hover:border-fit-accent/40 transition-all"
+            title="Datum wählen"
+          >
+            <CalendarDays size={15} />
+            <input
+              ref={dateInputRef}
+              type="date"
+              value={date}
+              onChange={(e) => jumpToDate(e.target.value)}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+              aria-label="Datum wählen"
+            />
+          </button>
           <button
             onClick={onOpenSidebar}
             className="w-9 h-9 rounded-xl bg-fit-bg2 border border-fit-line flex items-center justify-center text-fit-dim hover:text-fit-accent hover:border-fit-accent/40 transition-all"

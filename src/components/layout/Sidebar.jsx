@@ -3,9 +3,9 @@ import { isLocalMode } from "@db";
 
 export default function Sidebar({ tab, navigate, subTab, navigateSub, pinned, setPinned, children, user, navItems }) {
   return (
-    <aside className={`hidden lg:flex flex-col alpha-glass border-r border-fit-line fixed inset-y-0 z-50 transition-all duration-500 ease-in-out ${pinned ? 'w-[280px]' : 'w-24'}`}>
+    <aside className={`hidden lg:flex flex-col alpha-glass border-r border-fit-line fixed inset-y-0 z-40 transition-all duration-500 ease-in-out ${pinned ? 'w-[280px]' : 'w-24'}`}>
       <div className={`p-8 flex flex-col h-full ${!pinned ? 'items-center' : ''}`}>
-        <div className="flex items-center gap-4 mb-12 relative">
+        <div className="relative mb-12 flex items-center gap-4 pr-6">
           <div className="w-12 h-12 shrink-0 rounded-2xl bg-fit-accent text-black flex items-center justify-center shadow-2xl shadow-fit-accent/40 transition-transform hover:scale-105">
             <Activity size={26} />
           </div>
@@ -17,7 +17,7 @@ export default function Sidebar({ tab, navigate, subTab, navigateSub, pinned, se
           )}
           <button
             onClick={() => setPinned(!pinned)}
-            className={`absolute top-2 w-8 h-8 rounded-full bg-fit-card border border-fit-line flex items-center justify-center text-fit-dim hover:text-fit-accent transition-all z-10 shadow-lg hover:scale-110 active:scale-90 ${pinned ? '-right-11' : '-right-4 translate-x-full'}`}
+            className="absolute right-0 top-2 z-10 flex h-8 w-8 translate-x-1/2 items-center justify-center rounded-full border border-fit-line bg-fit-card text-fit-dim shadow-lg transition-all hover:scale-110 hover:text-fit-accent active:scale-90"
           >
             {pinned ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
           </button>

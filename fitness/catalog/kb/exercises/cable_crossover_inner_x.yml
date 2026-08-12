@@ -1,60 +1,85 @@
 exercise_id: cable_crossover_inner_x
-description: Expert details for Kabelzug über Kreuz (Brust)
+description: Expert details for Kabel-Crossover über Kreuz
 exercises:
 - exercise_id: cable_crossover_inner_x
   id: cable_crossover_inner_x
   name: Inner-X-Cable-Cross
-  display_name: Kabelzug über Kreuz (Brust)
-  german: Kabelzug über Kreuz (Brust)
+  display_name: Kabel-Crossover über Kreuz
+  german: Kabel-Crossover über Kreuz
   english: Cross-Body Cable Crossover
   category: push
   type: isolation
   movements:
   - horizontal_adduction
+  - scapular_protraction
+  - isometric_core_stability
   - cable
   - peak_contraction
   equipment:
   - cable
   primary_muscles:
-  - chest
+  - 101_pectoralis_major
   secondary_muscles:
-  - shoulders
+  - 301_anterior_deltoid
   stabilizers:
-  - abs
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
   coaching_notes:
-  - Stellen Sie sich in die Mitte der Kabelzugmaschine, fassen Sie die Griffe und
-    nehmen Sie einen leichten Ausfallschritt nach vorne ein, um die Stabilität zu
-    erhöhen.
-  - Lehnen Sie den Oberkörper leicht nach vorne, halten Sie die Arme leicht gebeugt
-    und die Ellbogen fixiert.
-  - Führen Sie die Griffe vor Ihrem Körper zusammen, überkreuzen Sie sie, wenn möglich,
-    um eine maximale Kontraktion der Brustmuskulatur zu erreichen.
-  - Konzentrieren Sie sich darauf, die Brustmuskeln am Ende der Bewegung aktiv zusammenzuziehen
-    und einen starken Peak-Contraction zu spüren.
-  - Lassen Sie die Arme kontrolliert und langsam in die Ausgangsposition zurückkehren,
-    um eine gute Dehnung in der Brust zu spüren.
+  - Stelle die Kabelrollen etwa auf Schulterhöhe ein, gehe mittig zwischen die Türme
+    und nimm einen versetzten, stabilen Stand ein.
+  - Hebe den Brustkorb an, halte die Schultern tief und hinten organisiert und bewahre
+    während der gesamten Wiederholung eine leichte Ellbogenbeugung.
+  - Führe die Arme in einer weiten Bogenbahn vor dem Körper zusammen, bis sich die
+    Hände leicht überkreuzen und die Brust aktiv maximal verkürzt.
+  - Die Bewegung kommt aus der horizontalen Adduktion im Schultergelenk, nicht aus
+    einem nachdrückenden Strecken der Ellbogen.
+  - Halte die Endposition für einen kurzen Moment, ohne die Schultern nach vorn hochzuziehen,
+    und spanne die Brust bewusst an.
+  - Lass die Griffe kontrolliert und unter Spannung in die gedehnte Position zurückkehren,
+    ohne dass die Gewichte absetzen oder dich nach hinten ziehen.
+  - Wähle ein Gewicht, bei dem du die Zugbahn sauber halten kannst und die Spannung
+    durchgehend in der Brust statt im vorderen Schulterbereich spürst.
   common_errors:
-  - Verwendung von zu viel Gewicht, was zu einer übermäßigen Beugung der Ellbogen
-    und dem Einsatz der Trizeps- oder Schultermuskulatur anstelle der Brust führt.
-  - Verlust der Kontrolle während der exzentrischen Phase (Rückweg), wodurch das Potenzial
-    für Muskelwachstum reduziert wird.
-  - Rundung des oberen Rückens oder übermäßiges Schwung holen, anstatt die Bewegung
-    aus der Brust zu steuern.
-  - Unzureichender Bewegungsbereich, insbesondere kein vollständiges Zusammenführen
-    der Griffe oder keine volle Dehnung in der Ausgangsposition.
+  - Zu hohes Gewicht, wodurch die Ellbogen zunehmend strecken und die Übung eher zu
+    einem Trizepsdrücken als zu einer Brustisolation wird.
+  - Die Schultern wandern nach oben oder nach vorn, was die Belastung aus der Brust
+    in den Nacken und die vordere Schulter verschiebt.
+  - Zu kurze Bewegungsamplitude, bei der weder eine saubere Dehnung in der Startposition
+    noch eine volle Kontraktion in der Endposition erreicht wird.
+  - Schwung aus Oberkörper oder Hüfte, statt die Wiederholung kontrolliert aus dem
+    Schultergelenk zu führen.
+  - Zu starkes Beugen oder Verändern des Ellbogenwinkels während der Wiederholung,
+    wodurch die Belastung unnötig auf Arme und Gelenke verlagert wird.
+  - Die exzentrische Phase wird fallen gelassen, sodass Spannung, Kontrolle und Dehnungsreiz
+    in der Brust verloren gehen.
+  - Der Kopf schiebt nach vorn oder der untere Rücken wird überstreckt, weil die Rumpfspannung
+    und Standstabilität fehlen.
   tags:
   - chest_isolation
   - cable_workout
   - muscle_building
   - chest
   - horizontal_adduction
-  - unreviewed
+  - peak_contraction
+  - cross_body
   aliases:
-  - Kabelzug
-  - Cable Fly
+  - Cable Crossover
+  - Cross Cable Fly
+  - Kabel-Fly über Kreuz
+  - Überkreuztes Cable Crossover
   variations: []
   source: expert
   search_aliases:
-  - Kabelzug über Kreuz (Brust)
+  - Kabel-Crossover über Kreuz
   - Cross-Body Cable Crossover
+  - Cable Crossover
+  - Kabel-Fly über Kreuz
   - Inner-X-Cable-Cross
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: manual
+    source_refs: {}
+  review_state:
+    status: approved

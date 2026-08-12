@@ -1,66 +1,104 @@
 exercise_id: cable_crossover_low_to_high
-description: Expert details for Kabelzug von unten nach oben
+description: Expert details for Kabel-Crossover von unten nach oben
 exercises:
 - exercise_id: cable_crossover_low_to_high
+  wger_id: null
   id: cable_crossover_low_to_high
-  name: Low-to-High Cable Cross
-  display_name: Kabelzug von unten nach oben
-  german: Kabelzug von unten nach oben
+  name: Low-to-High Cable Crossover
+  display_name: Kabel-Crossover von unten nach oben
+  german: Kabel-Crossover von unten nach oben
   english: Low-to-High Cable Crossover
   category: push
   type: isolation
   movements:
-  - incline
   - horizontal_adduction
   - shoulder_flexion
+  - incline
+  - scapular_protraction
+  - anti_extension
   equipment:
   - cable
   primary_muscles:
-  - chest
+  - 102_pectoralis_major_clavicular
   secondary_muscles:
-  - shoulders
+  - 301_anterior_deltoid
+  - 105_serratus_anterior
   stabilizers:
-  - abs
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
   coaching_notes:
-  - Stellen Sie die Kabelzüge auf die niedrigste Position ein. Greifen Sie je einen
-    Griff mit jeder Hand.
-  - Stellen Sie sich mit leichtem Vorwärtsschritt oder in einer leichten Schrittstellung
-    in die Mitte der Kabelzugmaschine.
-  - Beugen Sie die Ellbogen leicht an und halten Sie diese Beugung während der gesamten
-    Bewegung bei.
-  - Führen Sie die Griffe in einer diagonalen Bewegung von unten nach oben und innen
-    zusammen, bis sich Ihre Hände auf Brusthöhe oder leicht darüber treffen.
-  - Konzentrieren Sie sich darauf, die obere Brust am höchsten Punkt der Bewegung
-    bewusst anzuspannen.
-  - Führen Sie die Griffe kontrolliert und langsam in die Ausgangsposition zurück,
-    um die Dehnung in der Brust zu spüren.
+  - Stelle beide Kabel auf die unterste Position und wähle ein Gewicht, das dir eine
+    saubere Bogenbewegung ohne Schwung erlaubt.
+  - Nimm eine stabile Schrittstellung ein, richte das Brustbein auf und halte den
+    Rumpf aktiv, damit die Bewegung aus dem Schultergelenk und nicht aus dem unteren
+    Rücken kommt.
+  - Greife die Griffe mit leicht gebeugten Ellbogen und behalte diesen Ellbogenwinkel
+    über die gesamte Wiederholung nahezu konstant.
+  - Starte mit den Händen leicht hinter der Körperlinie, um die Brust unter Dehnung
+    zu bringen, ohne die Schulter nach vorn kippen zu lassen.
+  - Führe die Arme in einem weiten Bogen von unten außen nach oben innen, als würdest
+    du die Oberarme vor dem oberen Brustkorb zusammenführen.
+  - Denke daran, die Oberarme zueinander zu bewegen, statt die Griffe mit den Händen
+    nach oben zu ziehen; so bleibt die Zielspannung auf der oberen Brust.
+  - Am Endpunkt dürfen sich die Hände auf Höhe des oberen Brustkorbs oder leicht darunter
+    treffen, ohne dass die Schultern nach oben gezogen werden.
+  - Halte die Endkontraktion kurz, spanne die obere Brust bewusst an und lass die
+    Griffe anschließend kontrolliert in die Dehnung zurücklaufen.
+  - Begrenze die Range of Motion, sobald du vorne nur noch Schultervorschub statt
+    zusätzlicher Brustspannung erzeugst.
+  - Atme beim Zusammenführen aus und beim kontrollierten Zurückführen ein, um Rumpfspannung
+    und Bewegungsrhythmus sauber zu halten.
   common_errors:
-  - Verwenden von zu viel Gewicht, wodurch die Bewegung unkontrolliert wird und andere
-    Muskeln (z.B. Trizeps, Schultern) dominieren.
-  - Zu starkes Beugen oder Strecken der Ellbogen, was die Belastung von der Brust
-    nimmt.
-  - Schultern hochziehen (Schulterzucken), was den oberen Trapezius aktiviert und
-    die Brust weniger isoliert.
-  - Rundrücken oder Überstrecken des Rückens; der Rumpf sollte stabil und leicht nach
-    vorne gebeugt bleiben.
-  - Die Bewegung nicht vollständig ausführen, sowohl in der Kontraktions- als auch
-    in der Dehnungsphase.
+  - Zu viel Gewicht, wodurch aus der geführten Fly-Bewegung ein unsauberes Ziehen
+    oder Drücken mit Schwung wird.
+  - Die Ellbogen während der Wiederholung stark beugen oder strecken, wodurch Bizeps
+    und Trizeps unnötig viel Arbeit übernehmen.
+  - Die Schultern zu den Ohren hochziehen, statt die Schulterblätter kontrolliert
+    und ruhig zu halten.
+  - Ins Hohlkreuz ausweichen, um die Griffe höher zu bekommen, anstatt die Spannung
+    in der oberen Brust sauber zu erzeugen.
+  - Die Hände aktiv übereinander schlagen lassen und dadurch vorne die Spannung zu
+    verlieren.
+  - Die exzentrische Phase abkürzen und die Gewichte einfach zurückziehen lassen,
+    statt die Dehnung kontrolliert zu nutzen.
+  - Zu tief oder zu weit hinter den Körper öffnen, obwohl die Schulterposition dabei
+    instabil oder unangenehm wird.
+  - Die Bewegung aus den Händen zu denken, statt die Oberarme diagonal nach innen
+    oben zu führen.
+  - Den Kopf nach vorn schieben oder den Oberkörper stark mitdrehen, wodurch die Übung
+    an Isolation verliert.
+  - Eine zu hohe Kabelposition wählen, wodurch der Zugwinkel eher zu einer normalen
+    Fly-Variante als zur oberen-Brust-Betonung passt.
   tags:
-  - chest
+  - push
   - isolation
   - cable
   - upper_chest
   - fly
-  - incline_horizontal_adduction
-  - unreviewed
+  - clavicular_pec
+  - standing
   aliases:
-  - Cable Fly (Low-to-High)
+  - Cable Fly Low to High
+  - Low Cable Fly
   - Incline Cable Fly
-  - Kabelzug von unten
+  - Low-to-High Cable Fly
+  - Kabel-Flys von unten nach oben
   - Kabelzug obere Brust
+  - Unterer Kabel-Crossover
   variations: []
   source: expert
   search_aliases:
-  - Kabelzug von unten nach oben
+  - Kabel-Crossover von unten nach oben
+  - Kabel-Flys von unten nach oben
   - Low-to-High Cable Crossover
-  - Low-to-High Cable Cross
+  - Low-to-High Cable Fly
+  - Incline Cable Fly
+  - Low Cable Fly
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: manual
+    source_refs: {}
+  review_state:
+    status: approved

@@ -1,5 +1,5 @@
 name: '041'
-description: Expert details for Incline Dumbbell Press / Schrägbankdrücken mit Kurzhanteln.
+description: Expert details for Schrägbankdrücken mit Kurzhanteln
 exercises:
 - exercise_id: '041'
   id: '041'
@@ -13,6 +13,7 @@ exercises:
   - incline
   - horizontal_press
   - shoulder_horizontal_adduction
+  - shoulder_flexion
   - elbow_extension
   equipment:
   - dumbbell
@@ -26,21 +27,50 @@ exercises:
   - 105_serratus_anterior
   stabilizers:
   - 304_rotator_cuff
-  - 504_transverse_abdominis
-  - 501_rectus_abdominis
   - 203_trapezius_middle
   - 204_trapezius_lower
+  - 504_transverse_abdominis
+  - 507_multifidus
   coaching_notes:
-  - Stelle die Bank auf etwa 30-45 Grad ein; je steiler der Winkel, desto mehr übernimmt die vordere Schulter.
-  - Ziehe die Schulterblätter vor dem ersten Rep nach hinten und unten und halte die Brust aktiv.
-  - Senke die Kurzhanteln kontrolliert bis knapp neben die obere Brust, ohne die Schulter nach vorne kippen zu lassen.
-  - Drücke in einer leicht bogenförmigen Linie nach oben und stoppe kurz vor dem harten Ellenbogen-Lockout.
-  - Halte Füße, Gesäß und oberen Rücken stabil aufgesetzt; ein extremes Hohlkreuz verfälscht den Reiz.
+  - Wähle in der Regel eine Bankneigung von etwa 30 bis 45 Grad; damit triffst du
+    die obere Brust deutlich, ohne die Übung unnötig in Richtung Schulterdrücken zu
+    verschieben.
+  - Setze Füße, Gesäß und oberen Rücken stabil auf und baue vor dem Ausheben Ganzkörperspannung
+    auf, damit der Oberkörper während des Satzes ruhig bleibt.
+  - Ziehe die Schulterblätter leicht nach hinten und unten und halte diese Position
+    kontrolliert, damit die Brust arbeiten kann und der Schulterkopf vorne nicht ausweicht.
+  - Führe die Kurzhanteln unten etwa auf Höhe der oberen Brust beziehungsweise knapp
+    außerhalb der Schulterlinie, statt sie zu tief oder zu weit Richtung Hals absinken
+    zu lassen.
+  - Lasse die Ellenbogen in einer natürlichen schrägen Linie unter den Hanteln arbeiten;
+    ein Winkel von ungefähr 45 bis 70 Grad zum Oberkörper ist meist deutlich gelenkschonender
+    als extremes Abspreizen.
+  - Drücke die Hanteln nicht senkrecht über das Gesicht, sondern in einer leicht bogenförmigen
+    Bahn über Schulter und Brustmitte, sodass Unterarm und Hantel in der Druckphase
+    sauber übereinander bleiben.
+  - Beende jede Wiederholung kurz vor dem harten Lockout, wenn du die Spannung gezielt
+    auf der Brust halten willst; verriegle nur dann vollständig, wenn die Trainingsabsicht
+    klar auf maximale Standardisierung oder Last ausgerichtet ist.
+  - 'Nutze den vollen kontrollierbaren Bewegungsumfang: tief genug für eine deutliche
+    Brustdehnung, aber nur so tief, wie du Schulterposition, Ellbogenpfad und Handgelenke
+    sauber stabil halten kannst.'
   common_errors:
-  - Zu steiler Bankwinkel, wodurch aus der Übung fast Schulterdrücken wird.
-  - Schultern am unteren Punkt nach vorne rollen lassen.
-  - Hanteln unkontrolliert fallen lassen oder oben gegeneinander schlagen.
-  - Ellenbogen zu weit nach außen spreizen und dadurch die Schulter unnötig stressen.
+  - Die Bank zu steil einstellen, sodass die vordere Schulter die Hauptarbeit übernimmt
+    und der Reiz auf der oberen Brust deutlich sinkt.
+  - Die Schulterblätter beim Ablassen nach vorne kippen oder die Schultern hochziehen,
+    was die vordere Schulter unnötig belastet.
+  - Die Hanteln unten zu tief neben den Körper fallen lassen und dabei die passive
+    Schulterbeweglichkeit statt aktive Kontrolle zu nutzen.
+  - Die Ellenbogen starr im 90-Grad-Winkel abspreizen, wodurch die Schulter im unteren
+    Abschnitt oft unnötig gestresst wird.
+  - Die Hanteln oben gegeneinander schlagen oder Schwung aus dem Richtungswechsel
+    holen, statt die exzentrische Phase kontrolliert zu führen.
+  - Die Handgelenke nach hinten abknicken, sodass die Kraftlinie nicht mehr sauber
+    über Unterarm und Hantel verläuft.
+  - Mit den Füßen herumrutschen oder das Gesäß von der Bank lösen, um Wiederholungen
+    künstlich leichter zu machen.
+  - Zu kurz ablassen und dadurch den gedehnten unteren Arbeitsbereich der Brust fast
+    vollständig verschenken.
   tags:
   - expert
   - chest
@@ -60,8 +90,11 @@ exercises:
   - Incline Dumbbell Chest Press
   search_aliases:
   - incline_dumbbell_press
-  - Schraegbankdruecken KH
-  - Schraegbankdruecken Kurzhantel
+  - incline_db_press
+  - dumbbell_incline_press
+  - schraegbankdruecken_kh
+  - schraegbankdruecken_kurzhantel
+  - kurzhantelschraegbankdruecken
   - wger_537
   - yuhonas_incline_dumbbell_press
   - Incline_Dumbbell_Press
@@ -83,3 +116,22 @@ exercises:
     - 2
     - 5
   source: expert
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: merged_external
+    source_refs:
+      wger:
+      - '537'
+      yuhonas:
+      - Incline_Dumbbell_Press
+  source_snapshot:
+    wger:
+      wger_id: 537
+      wger_muscle_ids:
+        primary:
+        - 4
+        secondary:
+        - 2
+        - 5
+  review_state:
+    status: approved

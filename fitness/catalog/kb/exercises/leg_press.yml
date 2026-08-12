@@ -2,6 +2,7 @@ exercise_id: leg_press
 description: Expert details for Beinpresse
 exercises:
 - exercise_id: leg_press
+  wger_id: null
   id: leg_press
   name: Beinpresse
   display_name: Beinpresse
@@ -10,47 +11,71 @@ exercises:
   category: squat
   type: compound
   movements:
-  - knee_flexion_extension
+  - knee_extension
+  - knee_flexion
   - hip_extension
+  - hip_flexion
+  - bilateral
+  - closed_chain
   - machine_guided
   equipment:
   - machine
   primary_muscles:
-  - quadriceps
+  - 601_quadriceps_femoris
   secondary_muscles:
-  - glutes
-  - adductors
-  - hamstrings
+  - 603_gluteus_maximus
+  - 602_adductors
+  - 604_biceps_femoris
+  - 605_semitendinosus
+  - 606_semimembranosus
   stabilizers:
-  - abs
-  - lower_back
+  - 504_transverse_abdominis
+  - 206_erector_spinae
+  - 507_multifidus
   coaching_notes:
-  - Rücken während der gesamten Bewegung gegen die Lehne gedrückt halten – verhindert
-    Instabilität und reduziert Rückenbelastung
-  - 'Volle Bewegungsamplitude nutzen: oben knapp vor Durchstreckung halten, unten
-    mindestens 90° Kniebeugung erreichen'
-  - Knie müssen sich in einer geraden Linie mit Fersen bewegen – nicht nach innen
-    (Valgus) oder außen drehen
-  - Füße schulterbreit positionieren und flach auf der Plattform – verstärkt Stabilität
-    und Aktivierung
-  - Mit kontrolliertem Tempo arbeiten – langsam senken (2–3 Sekunden), explosiv drücken
-  - Hüftgelenk vollständig öffnen beim Drücken – fördert maximale Gesäß- und Quadrizeps-Aktivierung
+  - Setze Becken und gesamten unteren Rücken stabil an die Lehne und halte diese Position
+    über den kompletten Satz, damit die Kraft sauber über Hüfte und Knie auf die Plattform
+    übertragen wird.
+  - Positioniere die Füße etwa hüft- bis schulterbreit mittig auf der Platte und richte
+    Zehen und Knie in dieselbe Richtung aus, damit das Kniegelenk sauber geführt bleibt.
+  - Senke den Schlitten kontrolliert ab, bis du eine tiefe, schmerzfreie Knie- und
+    Hüftbeugung erreichst, ohne dass das Becken nach hinten kippt oder der Rücken
+    rund wird.
+  - Drücke die Plattform aus dem ganzen Fuß heraus und halte besonders Ferse und Großzehenballen
+    in Kontakt, um Stabilität und gleichmäßige Kraftentfaltung zu sichern.
+  - Lass die Knie in der Druckphase aktiv über dem Fuß mitlaufen und denke daran,
+    den Schlitten wegzuschieben statt dich aus der Hüfte herauszuwinden.
+  - Stoppe oben kurz vor der vollständigen Knieverriegelung, damit Spannung auf der
+    Zielmuskulatur bleibt und du nicht passiv in die Gelenke hängst.
+  - Nutze ein kontrolliertes Tempo mit ruhiger exzentrischer Phase und kraftvoller,
+    aber technisch sauberer konzentrischer Phase statt den Schlitten federn zu lassen.
+  - Wähle die Tiefe und Fußposition so, dass du den Quadrizeps belastest, ohne im
+    unteren Umkehrpunkt die Position der Lendenwirbelsäule oder der Kniekontrolle
+    zu verlieren.
   common_errors:
-  - Rücken von der Lehne abheben – erzeugt Lumbalstress und Kraftverlust
-  - Knie einknicken (Valgus) – beschädigt Kniegelenke, nicht in dieser Position trainieren
-  - Unzureichende Tiefe – halbe Bewegungen aktivieren Muskeln weniger und führen zu
-    Dysbalancen
-  - Knie über Zehen hinaus drücken – normales Knieverhalten, kein Problem wenn Gewicht
-    in Fersen bleibt
-  - Zu schweres Gewicht mit schlechter Form und Hüftanteil – Qualität vor Quantität
+  - Das Becken kippt im unteren Punkt nach hinten und der untere Rücken löst sich
+    von der Lehne, wodurch unnötiger Stress auf die Lendenwirbelsäule entsteht.
+  - Die Knie fallen nach innen oder weichen unkontrolliert nach außen aus, anstatt
+    sauber in Linie mit dem Fuß zu laufen.
+  - Der Bewegungsumfang wird künstlich verkürzt, obwohl mehr saubere Tiefe möglich
+    wäre, sodass Trainingsreiz und Gelenkkontrolle verschenkt werden.
+  - Oben werden die Knie hart durchgedrückt und die Spannung geht aus Quadrizeps und
+    Gesäß in eine passive Gelenkposition über.
+  - Der Schlitten wird in der unteren Position abgefedert oder mit Schwung umgekehrt,
+    statt die exzentrische Phase aktiv zu kontrollieren.
+  - Die Füße stehen zu hoch, zu tief oder asymmetrisch auf der Plattform, sodass Druckverteilung,
+    Kniepfad und Zielmuskulatur unnötig verfälscht werden.
+  - Das Gewicht ist zu schwer gewählt, sodass nur noch halbe Wiederholungen, Hüftverschiebungen
+    oder ein Verlust der Rumpfspannung möglich sind.
+  - Die Last wird einseitig über Vorfuß oder Fersen verschoben, wodurch Stabilität
+    verloren geht und die Kraftübertragung auf die Plattform schlechter wird.
   tags:
   - machine
   - compound
   - quad-dominant
   - lower-body
   - strength
-  - power
-  - hip-extension
+  - hypertrophy
   - legs
   - leg_press
   - unreviewed
@@ -58,8 +83,18 @@ exercises:
   - Leg Press Machine
   - Machine Leg Press
   - Plate-Loaded Leg Press
+  - 45 Degree Leg Press
+  - Schlitten-Beinpresse
   variations: []
   source: expert
   search_aliases:
   - Beinpresse
+  - Schlitten-Beinpresse
   - Leg Press
+  - Leg Press Machine
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: manual
+    source_refs: {}
+  review_state:
+    status: approved

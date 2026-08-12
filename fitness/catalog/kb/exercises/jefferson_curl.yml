@@ -1,7 +1,8 @@
 name: jefferson_curl
-description: Expert details for Jefferson Curl.
+description: Expert details for Jefferson Curl
 exercises:
 - exercise_id: jefferson_curl
+  wger_id: null
   id: jefferson_curl
   name: Jefferson Curl
   display_name: Jefferson Curl
@@ -10,31 +11,65 @@ exercises:
   category: pull
   type: isolation
   movements:
+  - segmental_spinal_flexion
   - loaded_spinal_flexion
   - hip_hinge
+  - hip_flexion
   - hamstring_lengthening
+  - eccentric_control
+  - end_range_control
   equipment:
   - bodyweight
   - barbell
   - dumbbell
   - kettlebell
   primary_muscles:
-  - lower_back
+  - 206_erector_spinae
   - hamstrings
   secondary_muscles:
-  - glutes
+  - 603_gluteus_maximus
   stabilizers:
-  - abs
+  - 504_transverse_abdominis
+  - 507_multifidus
+  - 505_quadratus_lumborum
   coaching_notes:
-  - Langsam und maximal kontrolliert ausführen; das ist Mobilitäts- und Kontrollarbeit, kein Ego-Lift.
-  - Starte mit neutralem Kopf und rolle Wirbel für Wirbel nach vorne ab.
-  - Halte die Last nah am Körper und gehe nur bis zur kontrollierbaren Dehngrenze.
-  - Rolle auch auf dem Rückweg segmental auf, statt aus Hüfte oder Schwung hochzureißen.
+  - Führe jede Wiederholung langsam und bewusst aus; der Jefferson Curl ist eine Kontroll-
+    und Gewebeverträglichkeitsübung, kein Krafttest.
+  - Beginne aus einem stabilen Stand, atme ein, spanne den Rumpf leicht an und rolle
+    dann die Wirbelsäule Wirbel für Wirbel von oben nach unten ab.
+  - Lass zuerst das Kinn sinken, dann Brustwirbelsäule und erst zuletzt Lendenwirbelsäule
+    und Hüfte folgen, statt sofort nur in der Hüfte zu knicken.
+  - Halte die Last dicht am Körper und wähle nur so viel Gewicht, dass du die segmentale
+    Bewegung ohne Zugreißen oder Schutzspannung kontrollieren kannst.
+  - Gehe nur so tief, wie du Position, Atmung und Spannung sauber halten kannst; ein
+    moderater, kontrollierter Stretch ist erwünscht, stechender Schmerz nicht.
+  - Verteile den Druck gleichmäßig über den ganzen Fuß und halte die Knie weich, aber
+    weitgehend ruhig, damit die Bewegung aus Wirbelsäule und Hüfte organisiert bleibt.
+  - Nutze am tiefsten Punkt keine passive Hängeposition, sondern behalte muskuläre
+    Kontrolle über Rumpf und Beinrückseite.
+  - Rolle dich für den Rückweg ebenso segmental wieder auf und stelle dir vor, die
+    Wirbelsäule stapelt sich von unten nach oben neu auf.
+  - Starte konservativ und steigere zuerst Bewegungsqualität und Toleranz im unbelasteten
+    oder sehr leicht belasteten Bereich, bevor du die Last erhöhst.
   common_errors:
-  - Zu schnell abrollen und passive Endrange erzwingen.
-  - Schmerz, Kribbeln oder Nervenzug ignorieren.
-  - Mit steifem Rücken aus der Hüfte klappen statt segmental zu flektieren.
-  - Zu früh Zusatzgewicht nutzen, bevor unbelastete Kontrolle vorhanden ist.
+  - Zu viel Gewicht wählen und dadurch die Bewegung in einen unsauberen Rundrücken-Good-Morning
+    verwandeln.
+  - Statt segmental abzurollen nur aus der Hüfte nach vorne klappen und die eigentliche
+    Wirbelsäulenarbeit umgehen.
+  - In die Endposition hineinfedern oder mit Schwung tiefer ziehen, obwohl die Kontrolle
+    bereits verloren ist.
+  - Schmerz, Kribbeln, elektrisierende Symptome oder starken Nervenzug ignorieren
+    und trotzdem weiter in die Tiefe gehen.
+  - Den tiefsten Punkt passiv aushängen lassen, anstatt Rumpf und hintere Kette aktiv
+    unter Spannung zu halten.
+  - Beim Aufrollen ruckartig aus der Hüfte hochschießen, statt die Wirbelsäule kontrolliert
+    wieder aufzubauen.
+  - Die Knie ständig beugen und strecken, um fehlende Beweglichkeit oder Kontrolle
+    auszuweichen.
+  - Den Kopf früh in den Nacken nehmen oder die Last vom Körper wegdriften lassen,
+    was die Hebel unnötig verschlechtert.
+  - Die Übung zu früh als schwere Kraftübung programmieren, bevor endgradige Flexionskontrolle
+    und Belastungsverträglichkeit aufgebaut wurden.
   tags:
   - expert
   - mobility
@@ -49,3 +84,9 @@ exercises:
   - Spine Curl
   variations: []
   source: expert
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: manual
+    source_refs: {}
+  review_state:
+    status: approved

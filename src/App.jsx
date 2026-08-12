@@ -358,7 +358,7 @@ export default function App() {
         }}
       />
       <ErrorBoundary>
-        <div className="app-shell flex min-h-screen overflow-x-hidden w-full bg-fit-bg text-fit-ink font-sans transition-colors duration-500">
+        <div className="app-shell isolate flex min-h-screen overflow-x-hidden w-full bg-fit-bg text-fit-ink font-sans transition-colors duration-500">
 
         <Sidebar
           tab={tab}
@@ -398,11 +398,11 @@ export default function App() {
               {/* Foreground Sheet (or normal Tab content) */}
               <div 
                 className={`
-                  ${navMode === 'home' ? 'fixed inset-0 z-50 transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]' : 'p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto'}
+                  ${navMode === 'home' ? 'fixed inset-0 z-40 overflow-x-hidden transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]' : 'p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto'}
                   ${navMode === 'home' && tab === 'gate' ? 'translate-y-full pointer-events-none' : 'translate-y-0'}
                 `}
               >
-                <div className={`${navMode === 'home' ? 'h-full bg-[var(--bg)] shadow-[0_-20px_50px_rgba(0,0,0,0.3)] overflow-y-auto rounded-t-[40px] border-t border-[var(--line)]/30 relative pt-6' : ''}`}>
+                <div className={`${navMode === 'home' ? 'h-full w-full bg-[var(--bg)] shadow-[0_-20px_50px_rgba(0,0,0,0.3)] overflow-y-auto overflow-x-hidden rounded-t-[40px] border-t border-[var(--line)]/30 relative pt-6 lg:rounded-none lg:border-t-0' : ''}`}>
                   {/* Back-to-Gate handle (only in home mode, when not on gate) */}
                   {navMode === 'home' && tab !== 'gate' && (
                     <button

@@ -1,5 +1,5 @@
 name: '402'
-description: Expert details for Leg Curl / Beinbeuger.
+description: Expert details for Beinbeuger
 exercises:
 - exercise_id: '402'
   id: '402'
@@ -22,17 +22,35 @@ exercises:
   - 701_gastrocnemius
   stabilizers:
   - 504_transverse_abdominis
-  - 501_rectus_abdominis
+  - 507_multifidus
   coaching_notes:
-  - Stelle das Polster so ein, dass das Kniegelenk frei beugen kann und die Last nicht am Sprunggelenk hebelt.
-  - Halte Hüfte und Becken fest am Polster; wenn die Hüfte abhebt, ist der Satz technisch vorbei.
-  - Beuge kontrolliert bis zur aktiven Peak-Kontraktion und senke langsam in die Dehnung zurück.
-  - Nutze Dorsalflexion neutral bis leicht aktiv, wenn du den Hamstring-Fokus halten willst.
+  - Richte die Maschine so ein, dass die Kniegelenkachse sauber mit dem Drehpunkt
+    der Maschine fluchtet und das Polster knapp oberhalb der Ferse sitzt.
+  - Halte Becken und Bauchspannung stabil gegen das Polster, damit die Bewegung aus
+    der Kniebeugung kommt und nicht aus einer Ausweichbewegung in Hüfte oder Lendenwirbelsäule.
+  - Starte jede Wiederholung kontrolliert aus der gestreckten Position, ohne das Gewicht
+    auf den Anschlag fallen zu lassen, und baue Spannung bereits vor dem ersten Zentimeter
+    der Beugung auf.
+  - Ziehe die Rolle über die Ferse nach unten beziehungsweise hinten, bis du eine
+    klare aktive Peak-Kontraktion der hinteren Oberschenkel erreichst, ohne das Becken
+    anzuheben.
+  - Führe die exzentrische Phase bewusst langsam zurück und nutze die Dehnposition
+    der Hamstrings, ohne die Kontrolle über Knieachse und Becken zu verlieren.
+  - Halte das Fußgelenk neutral bis leicht in Dorsalflexion, wenn du den Hamstring-Fokus
+    erhöhen und unnötige Dominanz der Waden reduzieren willst.
   common_errors:
-  - Schwung aus Hüfte oder Rücken statt kontrollierter Kniebeugung.
-  - Gewicht abwerfen und die exzentrische Dehnphase verlieren.
-  - Zu wenig ROM oder fehlende Peak-Kontraktion.
-  - Wadenkrampf durch zu starkes Zehenspitzenziehen oder schlecht eingestellte Rolle.
+  - Das Becken hebt vom Polster ab, um mit Schwung oder Hüftextension die letzten
+    Grade der Wiederholung zu erzwingen.
+  - Die exzentrische Phase wird fallen gelassen, sodass Spannung und Dehnreiz in den
+    Hamstrings verloren gehen.
+  - Die Maschine ist falsch eingestellt, wodurch der Drehpunkt nicht zum Knie passt
+    oder das Polster unangenehm am Sprunggelenk hebelt.
+  - Es wird nur in verkürzter Teilbewegung gearbeitet, ohne die kontrollierte Dehnung
+    und ohne saubere Endkontraktion auszunutzen.
+  - Mit zu viel Last wird die Bewegung ruckartig eingeleitet, statt die Kniebeugung
+    gleichmäßig und muskulär zu starten.
+  - Die Füße werden verkrampft eingesetzt, sodass Wadenkrämpfe oder eine unnötige
+    Verlagerung der Arbeit weg von den Hamstrings entstehen.
   tags:
   - expert
   - legs
@@ -45,6 +63,7 @@ exercises:
   - Machine Leg Curl
   - Hamstring Curl
   - Liegender Beinbeuger
+  - Sitzender Beinbeuger
   search_aliases:
   - leg_curl
   - wger_364
@@ -62,3 +81,18 @@ exercises:
     - 11
     secondary: []
   source: expert
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: external
+    source_refs:
+      wger:
+      - '364'
+  source_snapshot:
+    wger:
+      wger_id: 364
+      wger_muscle_ids:
+        primary:
+        - 11
+        secondary: []
+  review_state:
+    status: approved

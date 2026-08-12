@@ -254,7 +254,7 @@ def _call_haiku_cli(prompt: str, timeout: int = 90) -> str | None:
 def _call_codex_cli(prompt: str, timeout: int = 120) -> str | None:
     """Best-effort local Codex fallback. It must only return JSON text and must
     not edit the repository; this is an enrichment provider, not an approver."""
-    model = os.environ.get("FITNESS_CODEX_ENRICH_MODEL", "gpt-5-mini")
+    model = os.environ.get("FITNESS_CODEX_ENRICH_MODEL", "gpt-5.4")
     codex_prompt = (
         prompt
         + "\n\nReturn ONLY the JSON object. Do not edit files. Do not run tools. "

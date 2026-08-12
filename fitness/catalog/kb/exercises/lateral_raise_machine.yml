@@ -1,72 +1,88 @@
 exercise_id: lateral_raise_machine
-description: Expert details for Seithebemaschine
+description: Expert details for Maschinelles Seitheben
 exercises:
 - exercise_id: lateral_raise_machine
   id: lateral_raise_machine
   name: Seithebemaschine
-  display_name: Seithebemaschine
+  display_name: Maschinelles Seitheben
   german: Maschinelles Seitheben
   english: Machine Lateral Raise
   category: push
   type: isolation
   movements:
   - shoulder_abduction
-  - machine_guided
+  - scapular_upward_rotation
   - scapular_control
+  - machine_guided
+  - open_chain
   equipment:
   - machine
   primary_muscles:
   - 302_lateral_deltoid
   secondary_muscles:
-  - 301_anterior_deltoid
+  - 305_supraspinatus
+  - 105_serratus_anterior
+  - 204_trapezius_lower
+  - 202_trapezius_upper
   stabilizers:
+  - 304_rotator_cuff
   - 504_transverse_abdominis
-  - 501_rectus_abdominis
+  - 507_multifidus
   - 206_erector_spinae
   coaching_notes:
-  - Setzen Sie sich stabil in die Maschine. Richten Sie die Drehachse der Maschine
-    präzise auf Ihr Schultergelenk aus. Die Polster sollten an Ihren Unterarmen oder
-    Ellbogen anliegen, um eine direkte Kraftübertragung zu gewährleisten.
-  - Halten Sie Ihren Oberkörper während der gesamten Bewegung stabil und den Rücken
-    gerade, idealerweise mit leichtem Kontakt zur Rückenlehne. Spannen Sie die Bauch-
-    und untere Rückenmuskulatur leicht an, um eine feste Basis zu schaffen.
-  - Fassen Sie die Griffe fest und heben Sie die Arme kontrolliert und gleichmäßig
-    seitlich nach oben, indem Sie die Kraft bewusst aus den seitlichen Deltamuskeln
-    beziehen.
-  - Halten Sie die Ellbogen leicht gebeugt und fixiert. Die Handgelenke sollten in
-    einer neutralen Position verbleiben, tendenziell auf gleicher Höhe oder leicht
-    über den Ellbogen. Dies fördert eine neutrale oder leicht externe Rotation im
-    Schultergelenk und maximiert die Aktivierung des lateralen Deltamuskels.
-  - Führen Sie die Bewegung nur bis etwa Schulterhöhe aus. Eine höhere Bewegung aktiviert
-    primär den oberen Trapezius und kann das Schultergelenk unnötig belasten.
-  - Halten Sie die maximale Kontraktion am höchsten Punkt kurz. Senken Sie das Gewicht
-    dann langsam und kontrolliert ab, widerstehen Sie dem Zug des Gewichts bewusst,
-    bis die Arme wieder in der Ausgangsposition sind.
-  - Atmen Sie beim Anheben der Arme aus und beim kontrollierten Absenken des Gewichts
-    ein.
+  - Stellen Sie den Sitz so ein, dass die Drehachse der Maschine etwa auf Höhe Ihres
+    Schultergelenks liegt. Die Polster sollten stabil an Unterarmen oder Ellenbogen
+    anliegen, damit der Widerstand sauber in die Abduktion übertragen wird.
+  - Nehmen Sie eine aufrechte Sitzposition ein, halten Sie Brustbein und Kopf neutral
+    und erzeugen Sie leichte Spannung in Bauch und Rumpf. Der Oberkörper bleibt ruhig,
+    ohne seitliches Ausweichen oder Rücklage.
+  - Starten Sie aus der Schulter, nicht aus den Händen. Denken Sie daran, die Ellenbogen
+    seitlich nach außen und leicht nach oben zu führen, statt das Gewicht nur irgendwie
+    anzuheben.
+  - Halten Sie die Ellenbogen leicht gebeugt und diesen Winkel während des Satzes
+    möglichst konstant. So bleibt die Spannung auf dem Zielmuskel und unnötiger Stress
+    auf Ellbogen und Handgelenke wird reduziert.
+  - Führen Sie die Arme in der Skapularebene sauber nach außen. Eine neutrale bis
+    leicht außenrotierte Schulterposition ist meist angenehmer für den subakromialen
+    Raum als eine forcierte Innenrotation.
+  - Heben Sie kontrolliert bis ungefähr Schulterhöhe oder knapp darunter, sofern Sie
+    die Spannung auf dem seitlichen Deltamuskel halten können. Die Bewegung soll aus
+    aktiver Schulterabduktion kommen, nicht aus einem Schulterzucken.
+  - Lassen Sie die Schultern bewusst unten und lang, während sich die Schulterblätter
+    natürlich mitbewegen dürfen. Ziel ist kontrollierte Aufwärtsrotation des Schulterblatts
+    ohne dominantes Hochziehen in den Nacken.
+  - Nutzen Sie ein moderates Tempo mit klarer exzentrischer Kontrolle. Gerade das
+    langsame Absenken liefert viel Trainingsreiz und zeigt, ob Sie das Gewicht wirklich
+    beherrschen.
+  - Arbeiten Sie im schmerzfreien Bewegungsbereich. Wenn sich die Endposition vorne
+    im Schulterdach unangenehm anfühlt, reduzieren Sie Bewegungsumfang, Last oder
+    justieren die Sitz- und Armposition.
+  - Atmen Sie beim Anheben aus und beim kontrollierten Absenken ein. Halten Sie den
+    Rumpfdruck konstant, ohne ins Pressen oder Hohlkreuz zu kippen.
   common_errors:
-  - 'Schwung holen: Das Bewegen des Gewichts durch Schwungholen mit dem Oberkörper
-    reduziert die Isolation des seitlichen Deltamuskels und erhöht das Verletzungsrisiko.
-    Nutzen Sie ausschließlich die Kraft der Schultermuskulatur.'
-  - 'Schultern hochziehen (Shrugging): Vermeiden Sie es, die Schultern während der
-    Bewegung nach oben in Richtung Ohren zu ziehen. Dies überlastet den oberen Trapezius
-    und mindert die Effektivität für den seitlichen Deltamuskel.'
-  - 'Zu viel Gewicht: Ein zu hohes Gewicht führt zu einer unsauberen Ausführung, ineffektiver
-    Muskelstimulation und einem erhöhten Risiko für Schulter- und Nackenverletzungen.
-    Wählen Sie ein Gewicht, das eine kontrollierte Ausführung ermöglicht.'
-  - 'Ellbogen durchstrecken: Halten Sie die Ellbogen immer leicht gebeugt, um die
-    Gelenke zu schützen und eine konstante Spannung auf dem Zielmuskel zu halten.'
-  - 'Bewegung über Schulterhöhe hinaus: Das Anheben der Arme weit über Schulterhöhe
-    hinaus verschiebt die Belastung vom seitlichen Deltamuskels auf den oberen Trapezius
-    und erhöht unnötig den Stress auf das Schultergelenk.'
-  - 'Interne Rotation der Schulter ("Wasser ausgießen"): Vermeiden Sie es, die Handgelenke
-    während der Aufwärtsbewegung unter die Ellbogen zu drehen. Dies fördert eine interne
-    Rotation im Schultergelenk, was zu Gelenkstress führen und die Aktivierung des
-    lateralen Deltamuskels reduzieren kann. Halten Sie die Handgelenke neutral oder
-    leicht über den Ellbogen.'
-  - 'Kontrollverlust in der Abwärtsbewegung: Das schnelle oder unkontrollierte Absinken
-    des Gewichts reduziert die wichtige exzentrische Phase der Muskelkontraktion,
-    die entscheidend für Muskelwachstum und Kraftentwicklung ist.'
+  - 'Zu viel Gewicht: Wenn Sie die Last nur mit Schwung, Nackenspannung oder verkürztem
+    Bewegungsradius bewegen können, ist sie zu schwer für saubere laterale Deltoid-Arbeit.'
+  - 'Schultern hochziehen: Ein dominantes Shrugging verlagert die Arbeit vom seitlichen
+    Deltamuskel auf den oberen Trapezius und nimmt der Übung ihren eigentlichen Fokus.'
+  - 'Mit dem Oberkörper mitarbeiten: Seitliches Lehnen, Rücklage oder Rotieren des
+    Rumpfs reduziert die Isolation und erhöht die Wahrscheinlichkeit für eine unsaubere
+    Belastung der Schulter.'
+  - 'Ellbogenwinkel ständig verändern: Starkes Beugen oder Strecken während der Wiederholung
+    macht die Bewegung inkonsistent und verändert den Hebel unnötig.'
+  - 'Zu hoch anheben: Wer deutlich über Schulterhöhe hinausgeht, verliert oft die
+    Spannung im Zielmuskel und kompensiert über Nacken und Schulterblatthebung.'
+  - 'Innenrotation erzwingen: Das klassische ''Wasser ausgießen'' kann bei vielen
+    Trainierenden den Schulterraum ungünstig verengen und die Übung unnötig unangenehm
+    machen.'
+  - 'Absenkphase fallen lassen: Das unkontrollierte Zurückfallen der Arme verschenkt
+    exzentrischen Reiz und erhöht die Gelenkbelastung am Umkehrpunkt.'
+  - 'Falsch eingestellt sitzen: Wenn Sitzhöhe oder Maschinenachse nicht zum Schultergelenk
+    passen, fühlt sich die Bewegung oft unnatürlich an und trifft den Zielmuskel schlechter.'
+  - 'Zu kurzer Bewegungsweg: Sehr kleine Teilwiederholungen aus Bequemlichkeit reduzieren
+    den Trainingsreiz, sofern sie nicht bewusst als Intensitätstechnik eingesetzt
+    werden.'
+  - 'Schmerz ignorieren: Stechender Schmerz an der Vorder- oder Oberseite der Schulter
+    ist kein normales Brennen im Muskel und sollte nicht einfach ''weggedrückt'' werden.'
   tags:
   - shoulder_isolation
   - deltoid
@@ -76,10 +92,11 @@ exercises:
   - shoulder_abduction
   - expert_reviewed
   aliases:
-  - Maschinelles Seitheben
-  - Lateral Raise Machine
+  - Seithebemaschine
   - Seitheben an der Maschine
-  - Machine Side Lateral Raises
+  - Machine Lateral Raise
+  - Lateral Raise Machine
+  - Machine Side Lateral Raise
   search_aliases:
   - wger_1570
   external_ids:
@@ -92,3 +109,18 @@ exercises:
     secondary: []
   variations: []
   source: expert
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: external
+    source_refs:
+      wger:
+      - '1570'
+  source_snapshot:
+    wger:
+      wger_id: 1570
+      wger_muscle_ids:
+        primary:
+        - 2
+        secondary: []
+  review_state:
+    status: approved

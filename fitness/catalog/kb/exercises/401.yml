@@ -1,5 +1,5 @@
 name: '401'
-description: Expert details for Leg Extension / Beinstrecken.
+description: Expert details for Beinstrecken
 exercises:
 - exercise_id: '401'
   id: '401'
@@ -12,6 +12,8 @@ exercises:
   movements:
   - knee_extension
   - open_chain
+  - seated
+  - single_joint
   equipment:
   - machine
   primary_muscles:
@@ -19,19 +21,30 @@ exercises:
   secondary_muscles: []
   stabilizers:
   - 504_transverse_abdominis
-  - 501_rectus_abdominis
-  emphasis_muscles:
-  - 601c_vastus_medialis
+  - 507_multifidus
+  emphasis_muscles: []
   coaching_notes:
-  - Richte Kniegelenk und Drehachse der Maschine sauber aus, bevor du Last auflegst.
-  - Strecke kontrolliert bis kurz vor harte Hyperextension und halte oben kurz aktive Quadrizepsspannung.
-  - Führe die exzentrische Phase langsam zurück, statt das Gewicht in den Stack fallen zu lassen.
-  - Halte Hüfte und Rücken fest am Sitz; Bewegung kommt aus dem Knie, nicht aus Schwung oder Hüftheben.
+  - Stelle die Maschine so ein, dass die Kniegelenkachse exakt mit der Drehachse der
+    Maschine fluchtet und das Polster knapp oberhalb des Sprunggelenks sitzt.
+  - Spanne den Quadrizeps aktiv an und strecke das Knie kontrolliert, bis kurz vor
+    die harte Endstellung, ohne das Gelenk aggressiv zu verriegeln.
+  - Senke das Gewicht langsam und geführt ab, damit der Quadrizeps auch in der exzentrischen
+    Phase unter Spannung bleibt.
+  - Halte Gesäß, unteren Rücken und Oberschenkel stabil am Sitz; die Bewegung soll
+    sauber aus der Knieextension kommen, nicht aus Schwung oder Ausweichen im Oberkörper.
+  - Wähle eine ROM, in der du schmerzfrei arbeiten kannst, und halte Knie, Fuß und
+    Oberschenkel in einer sauberen Linie über die gesamte Wiederholung.
   common_errors:
-  - Zu viel Gewicht und dadurch Schwung statt sauberer Knieextension.
-  - Unvollständige ROM, besonders fehlende kontrollierte Endstreckung.
-  - Knie kippen nach innen oder außen, statt in Linie mit Hüfte und Fuß zu bleiben.
-  - Hüfte hebt vom Sitz ab und nimmt Spannung aus dem Quadrizeps.
+  - Zu hohes Trainingsgewicht, sodass die Wiederholung mit Schwung eingeleitet wird
+    statt mit sauberer Muskelspannung.
+  - Das Gewicht in der Abwärtsphase einfach fallen lassen und dadurch Spannung sowie
+    Gelenkkontrolle verlieren.
+  - Die Knie nicht korrekt zur Maschinenachse ausrichten, was unnötigen Druck auf
+    das Gelenk erzeugen kann.
+  - Am oberen Punkt hart ins Kniegelenk hineinschnappen, statt die Endstreckung muskulär
+    zu kontrollieren.
+  - Hüfte oder Gesäß vom Sitz abheben und mit dem Oberkörper ausweichen, um die letzten
+    Grade der Bewegung zu erzwingen.
   tags:
   - expert
   - legs
@@ -41,9 +54,9 @@ exercises:
   - knee_extension
   aliases:
   - Beinstrecker
+  - Kniestrecker
   - Leg Extension
   - Leg Extension Machine
-  - Kniestrecker
   - Quadriceps Extension
   search_aliases:
   - leg_extension
@@ -67,3 +80,20 @@ exercises:
     - 10
     secondary: []
   source: expert
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: merged_external
+    source_refs:
+      wger:
+      - '851'
+      yuhonas:
+      - Leg_Extensions
+  source_snapshot:
+    wger:
+      wger_id: 851
+      wger_muscle_ids:
+        primary:
+        - 10
+        secondary: []
+  review_state:
+    status: approved

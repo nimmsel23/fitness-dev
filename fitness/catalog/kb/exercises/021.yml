@@ -1,19 +1,21 @@
 name: '021'
-description: Expert details for Chin-Up / Klimmzug im Untergriff.
+description: Expert details for Untergriff-Klimmzug
 exercises:
 - exercise_id: '021'
   id: '021'
-  name: Klimmzug im Untergriff
-  display_name: Klimmzug im Untergriff
-  german: Klimmzug im Untergriff
+  name: Untergriff-Klimmzug
+  display_name: Untergriff-Klimmzug
+  german: Untergriff-Klimmzug
   english: Chin-Up
   category: pull
   type: compound
   movements:
   - vertical
+  - shoulder_adduction
   - shoulder_extension
   - elbow_flexion
   - scapular_depression
+  - scapular_retraction
   - supinated_grip
   equipment:
   - bodyweight
@@ -24,27 +26,43 @@ exercises:
   - 403_brachialis
   secondary_muscles:
   - 207_teres_major
-  - 204_trapezius_lower
   - 203_trapezius_middle
+  - 204_trapezius_lower
   - 205_rhomboids
   - 404_brachioradialis
   stabilizers:
+  - 304_rotator_cuff
   - 501_rectus_abdominis
   - 504_transverse_abdominis
   - 206_erector_spinae
-  - 304_rotator_cuff
   - 405_forearm_flexors
   coaching_notes:
-  - Greife schulterbreit bis leicht enger im Untergriff; Handflächen zeigen zu dir.
-  - Starte aus aktivem Hang mit Schulterdepression, nicht aus passiv hochgezogenen Schultern.
-  - Ziehe Ellenbogen nach unten und leicht nach hinten, bis das Kinn sauber über die Stange kommt.
-  - Senke kontrolliert bis zur vollen Streckung, ohne unten Spannung komplett zu verlieren.
-  - Halte Rippen und Becken stabil, damit der Zug nicht in Schwung oder Hohlkreuz kippt.
+  - Greife etwa schulterbreit oder leicht enger im Untergriff, sodass die Handgelenke
+    gerade bleiben und die Ellenbogen sauber unter der Stange arbeiten können.
+  - 'Beginne im aktiven Hang: Schulterblätter leicht nach unten setzen, Rumpf anspannen
+    und die Beine ruhig halten, bevor die erste Zugphase startet.'
+  - Denke daran, die Ellenbogen nach unten Richtung Rippen zu ziehen, statt nur das
+    Kinn zur Stange vorzuschieben; so kommt der Zug aus Latissimus und Armbeugern.
+  - Halte Brustbein stolz und Rippen kontrolliert, damit du weder ins Hohlkreuz fällst
+    noch dich in eine lose Bananenform schwingst.
+  - Ziehe bis das Kinn klar über der Stange ist oder die obere Brust die Stange annähert,
+    ohne die Spannung in Schultergürtel und Rumpf zu verlieren.
+  - Senke dich kontrolliert in die volle Ellbogenstreckung zurück und nutze die exzentrische
+    Phase bewusst, statt unten einfach in die passive Schulterposition zu fallen.
   common_errors:
-  - Schwung aus Hüfte oder Beinen statt kontrolliertem vertikalem Zug.
-  - Nur das Kinn nach vorne schieben, statt Brust und Rücken aktiv Richtung Stange zu bewegen.
-  - Zu breiter Untergriff, wodurch Handgelenk und Ellenbogen unnötig belastet werden.
-  - Halbe Wiederholungen unten oder oben, wodurch Lat- und Bizepsreiz verloren gehen.
+  - Aus einem passiven Hang mit hochgezogenen Schultern anziehen, wodurch die Schulterblattkontrolle
+    und ein sauberer Kraftaufbau verloren gehen.
+  - Schwung aus Hüfte, Knien oder Kipping nutzen, statt jede Wiederholung aus ruhiger
+    Rumpfspannung und kontrolliertem Zug zu erzeugen.
+  - Das Kinn nur nach vorne schieben, um die Wiederholung künstlich zu beenden, obwohl
+    Brustkorb und Ellenbogen nicht sauber nach oben beziehungsweise unten geführt
+    wurden.
+  - Zu weit oder zu eng greifen, sodass Handgelenke einknicken und Ellenbogen unnötig
+    gereizt werden.
+  - Unten nicht vollständig strecken oder oben die Endposition abkürzen, wodurch Bewegungsumfang
+    und Trainingsreiz deutlich sinken.
+  - Beim Hochziehen die Rippen aufreißen und ins Hohlkreuz kippen, statt Becken und
+    Rumpf stabil zu halten.
   tags:
   - expert
   - back
@@ -54,23 +72,24 @@ exercises:
   - vertical_pull
   - compound
   aliases:
-  - Klimmzug (Untergriff)
-  - Klimmzüge im Untergriff
-  - Klimmzug Untergriff
+  - Klimmzug im Untergriff
   - Untergriff Klimmzug
-  - Chin-up
+  - Klimmzug Untergriff
+  - Klimmzüge im Untergriff
+  - enger Untergriff-Klimmzug
   - Chin-Up
   - Chin Up
-  - Chin Ups
+  - Chin-Ups
   - Underhand Pull-Up
   - Underhand Grip Pull-Up
   - Supinated Grip Pull-Up
-  - Supinated Pull-up
-  - Reverse Grip Pull Up
+  - Reverse Grip Pull-Up
   search_aliases:
   - chin_up
+  - chin-up
+  - untergriff_klimmzug
+  - klimmzug_untergriff
   - yuhonas_chin-up
-  - Chin-Up
   - wger_152
   external_ids:
     wger:
@@ -87,3 +106,19 @@ exercises:
     primary: []
     secondary: []
   source: expert
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: merged_external
+    source_refs:
+      wger:
+      - '152'
+      yuhonas:
+      - Chin-Up
+  source_snapshot:
+    wger:
+      wger_id: 152
+      wger_muscle_ids:
+        primary: []
+        secondary: []
+  review_state:
+    status: approved

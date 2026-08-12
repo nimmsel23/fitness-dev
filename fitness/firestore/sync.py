@@ -32,6 +32,11 @@ def _save_known_habits(uid: str, ids: set):
     state_file.write_text(json.dumps(sorted(ids), indent=2))
 
 
+def _cleanup_inbox_files(inbox_dir: Path, doc_id: str) -> None:
+    for local in inbox_dir.glob(f"{doc_id}_*.json"):
+        local.unlink(missing_ok=True)
+
+
 def pull() -> dict:
     from tqdm import tqdm
     db = get_db()
@@ -192,12 +197,16 @@ def pull() -> dict:
         # Pull Inbox
         for doc in db.collection("fitness").document(uid).collection("inbox").stream():
             data = doc.to_dict()
+            status = str((data or {}).get("status") or "").strip().lower()
+            if status in {"approved", "rejected", "resolved", "ai_enriched"}:
+                _cleanup_inbox_files(inbox_dir, doc.id)
+                continue
             name = data.get("name", "unknown").replace(" ", "_")
             local = inbox_dir / f"{doc.id}_{name}.json"
-            if not local.exists():
-                out = {k: (ts(v) if hasattr(v, "isoformat") else v) for k, v in data.items()}
-                local.write_text(json.dumps(out, indent=2, ensure_ascii=False))
-                total_inbox += 1
+            _cleanup_inbox_files(inbox_dir, doc.id)
+            out = {k: (ts(v) if hasattr(v, "isoformat") else v) for k, v in data.items()}
+            local.write_text(json.dumps(out, indent=2, ensure_ascii=False))
+            total_inbox += 1
 
         # Pull Workouts (WorkoutForge)
         for doc in db.collection("fitness").document(uid).collection("wf_workouts").stream():
