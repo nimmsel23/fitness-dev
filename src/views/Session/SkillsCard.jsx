@@ -37,9 +37,9 @@ const SKILLS = [
 const REST_SECONDS = 90;
 
 const CATEGORY_META = {
-  push: { label: 'Druck-Skills (Push)', Icon: ArrowUp },
-  pull: { label: 'Zug-Skills (Pull)', Icon: ArrowDown },
-  core: { label: 'Core & Legs', Icon: Activity },
+  push: { Icon: ArrowUp },
+  pull: { Icon: ArrowDown },
+  core: { Icon: Activity },
 };
 
 // Eigenständiges Hash-Query-Param `skill=<id>` — bewusst nicht über App.jsx's
@@ -83,7 +83,6 @@ function SkillRow({ skill, progress, onOpen, isLast }) {
       <div className="min-w-0">
         <div className="flex items-center gap-1.5">
           <span className="text-sm font-bold text-fit-ink truncate">{skill.name}</span>
-          {skill.tier === 'pro' && <Lock size={11} style={{ color: 'var(--dim)', opacity: 0.6 }} />}
         </div>
         <div className="text-[11px] mt-0.5 truncate" style={{ color: 'var(--dim)' }}>
           {done ? 'Gemeistert' : `Stufe ${stage + 1}/${skill.progressions.length} · ${skill.progressions[stage].name}`}
@@ -101,11 +100,8 @@ function CategoryGroup({ category, skills, progress, onOpen }) {
   const meta = CATEGORY_META[category];
   return (
     <div className="mb-4">
-      <div className="flex items-center gap-1.5 mb-1 px-1">
-        <meta.Icon size={11} style={{ color: 'var(--dim)', opacity: 0.6 }} />
-        <span className="text-[9px] font-black uppercase tracking-[0.14em]" style={{ color: 'var(--dim)', opacity: 0.6 }}>
-          {meta.label}
-        </span>
+      <div className="mb-1 px-1">
+        <meta.Icon size={11} style={{ color: 'var(--dim)', opacity: 0.5 }} />
       </div>
       <div className="rounded-2xl px-3" style={{ background: 'var(--bg2)' }}>
         {skills.map((skill, i) => (
@@ -116,33 +112,19 @@ function CategoryGroup({ category, skills, progress, onOpen }) {
   );
 }
 
-function SkillTierSection({ tier, label, progress, onOpen }) {
-  const tierSkills = SKILLS.filter(s => s.tier === tier);
-  const categories = ['push', 'pull', 'core'].filter(c => tierSkills.some(s => s.category === c));
-
+function SkillListScreen({ progress, onOpen }) {
+  const categories = ['push', 'pull', 'core'].filter(c => SKILLS.some(s => s.category === c));
   return (
-    <div className="mb-5">
-      <div className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 px-1" style={{ color: 'var(--accent)' }}>
-        {label}
-      </div>
+    <div>
       {categories.map(category => (
         <CategoryGroup
           key={category}
           category={category}
-          skills={tierSkills.filter(s => s.category === category)}
+          skills={SKILLS.filter(s => s.category === category)}
           progress={progress}
           onOpen={onOpen}
         />
       ))}
-    </div>
-  );
-}
-
-function SkillListScreen({ progress, onOpen }) {
-  return (
-    <div>
-      <SkillTierSection tier="free" label="Kostenlose Skills" progress={progress} onOpen={onOpen} />
-      <SkillTierSection tier="pro" label="Pro Skills" progress={progress} onOpen={onOpen} />
     </div>
   );
 }
