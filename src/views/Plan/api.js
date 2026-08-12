@@ -26,9 +26,25 @@ const LOCAL_DELETE = [/^\/routines\/[^/]+$/, /^\/routines\/[^/]+\/exercises\/[^/
 
 function matches(path, patterns) { return patterns.some(p => p.test(path)) }
 
+// Firebase-Prod-Build hat noch keine Firestore-Implementierung für Routinen/
+// Workouts (siehe Kommentar oben) — muss aber trotzdem valide leere Shapes
+// liefern statt {}, sonst crasht WorkoutList.jsx ("d.routines.length" auf
+// undefined) direkt beim Öffnen des Plan-Tabs (Live-Vorfall 2026-08-12,
+// nachdem der lokale Umbau versehentlich auf master deployed wurde).
+function emptyShapeFor(path) {
+  if (path === '/routines') return { routines: [] }
+  if (/^\/routines\/[^/]+$/.test(path)) return { routine: { id: null, name: '', goal: null, exercises: [] } }
+  if (path === '/workouts') return { workouts: [] }
+  if (/^\/workouts\/[^/]+$/.test(path)) return { workout: { id: null, name: '', exercises: [] } }
+  return null
+}
+
 export const api = {
   async get(path) {
     if (isLocalMode() && matches(path, LOCAL_GET)) return localFetch('GET', path)
+
+    const fallback = emptyShapeFor(path)
+    if (fallback) return fallback
 
     if (path.startsWith('/exercises')) {
       const q = new URLSearchParams(path.split('?')[1] || '').get('q') || ''
