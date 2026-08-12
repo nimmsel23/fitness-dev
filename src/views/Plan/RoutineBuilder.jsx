@@ -13,6 +13,32 @@ import MuscleHeatmap from "./components/MuscleHeatmap.jsx";
 import { muskelDe, muskelColor } from "./muscles.js";
 import ExercisePhotoStrip from "../../components/ExercisePhotoStrip.jsx";
 
+function ensureTemplateSets(ex) {
+  if (Array.isArray(ex.templateSets) && ex.templateSets.length > 0) return ex.templateSets;
+  return Array.from({ length: Math.max(1, Number(ex.target_sets) || 3) }, (_, index) => ({
+    setIndex: index + 1,
+    setType: ex.drop_set ? "drop" : "normal",
+    targetReps: ex.target_reps ?? "8-12",
+    targetWeight: ex.target_weight ?? null,
+  }));
+}
+
+function patchTemplateSets(ex, recipe) {
+  const nextTemplateSets = recipe(ensureTemplateSets(ex)).map((set, index) => ({
+    ...set,
+    setIndex: set.setIndex ?? index + 1,
+  }));
+  return {
+    ...ex,
+    templateSets: nextTemplateSets,
+    target_sets: nextTemplateSets.length,
+    target_reps: nextTemplateSets[0]?.targetReps ?? "8-12",
+    target_weight: nextTemplateSets[0]?.targetWeight ?? null,
+    drop_set: nextTemplateSets.some((set) => set.setType === "drop"),
+    effort: nextTemplateSets.some((set) => set.setType === "failure") ? "to_failure" : "normal",
+  };
+}
+
 // ── Sortable Exercise Row ─────────────────────────────────
 
 function ExerciseRow({ ex, onPatch, onDelete }) {
@@ -24,6 +50,8 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+  const templateSets = ensureTemplateSets(ex);
+  const leadSet = templateSets[0] || {};
 
   return (
     <div ref={setNodeRef} style={style} className="rounded-xl bg-fit-card border border-fit-line overflow-hidden">
@@ -44,9 +72,9 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
           </div>
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
-          {ex.effort === "to_failure" && <span className="text-xs px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 font-medium">Failure</span>}
-          {ex.drop_set ? <span className="text-xs px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-400 font-medium">Drop</span> : null}
-          <span className="font-mono text-xs text-fit-muted">{ex.target_sets}×{ex.target_reps}</span>
+          {templateSets.some((set) => set.setType === "failure") && <span className="text-xs px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 font-medium">Failure</span>}
+          {templateSets.some((set) => set.setType === "drop") ? <span className="text-xs px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-400 font-medium">Drop</span> : null}
+          <span className="font-mono text-xs text-fit-muted">{templateSets.length}×{leadSet.targetReps ?? "8-12"}</span>
           <button onClick={() => setOpen((v) => !v)} className="p-1.5 rounded-lg text-fit-muted hover:text-fit-ink transition-colors">
             {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
@@ -60,14 +88,22 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
         <div className="px-4 pb-4 pt-1 border-t border-fit-line/50 grid grid-cols-2 gap-3">
           <label className="flex flex-col gap-1">
             <span className="text-xs text-fit-muted font-medium">Ziel-Sätze</span>
-            <input type="number" min="1" value={ex.target_sets}
-              onChange={(e) => onPatch("target_sets", Number(e.target.value))}
+            <input type="number" min="1" value={templateSets.length}
+              onChange={(e) => onPatch("templateSets", Array.from({ length: Math.max(1, Number(e.target.value) || 1) }, (_, index) => ({
+                ...(templateSets[index] || leadSet || {}),
+                setIndex: index + 1,
+                setType: templateSets[index]?.setType || leadSet.setType || "normal",
+                targetReps: templateSets[index]?.targetReps ?? leadSet.targetReps ?? "8-12",
+                targetWeight: templateSets[index]?.targetWeight ?? leadSet.targetWeight ?? null,
+                targetDistance: templateSets[index]?.targetDistance ?? leadSet.targetDistance ?? null,
+                targetDuration: templateSets[index]?.targetDuration ?? leadSet.targetDuration ?? null,
+              })))}
               className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono focus:outline-none focus:border-fit-accent" />
           </label>
           <label className="flex flex-col gap-1">
             <span className="text-xs text-fit-muted font-medium">Ziel-Wdh</span>
-            <input value={ex.target_reps}
-              onChange={(e) => onPatch("target_reps", e.target.value)}
+            <input value={leadSet.targetReps ?? ""}
+              onChange={(e) => onPatch("templateSets", templateSets.map((set) => ({ ...set, targetReps: e.target.value })))}
               className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono focus:outline-none focus:border-fit-accent"
               placeholder="8-12 / AMRAP" />
           </label>
@@ -78,23 +114,25 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
               className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono focus:outline-none focus:border-fit-accent" />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-fit-muted font-medium">Gewicht</span>
-            <select value={ex.weight_type}
-              onChange={(e) => onPatch("weight_type", e.target.value)}
+            <span className="text-xs text-fit-muted font-medium">Tracking</span>
+            <select value={ex.trackingType || "weight_reps"}
+              onChange={(e) => onPatch("trackingType", e.target.value)}
               className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm focus:outline-none focus:border-fit-accent">
-              <option>kg</option>
-              <option>%1RM</option>
-              <option>bodyweight</option>
+              <option value="weight_reps">Gewicht + Wdh</option>
+              <option value="bodyweight_reps">Bodyweight + Wdh</option>
+              <option value="duration">Dauer</option>
+              <option value="distance_time">Distanz + Zeit</option>
             </select>
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-fit-muted font-medium">Effort</span>
-            <select value={ex.effort ?? "normal"}
-              onChange={(e) => onPatch("effort", e.target.value)}
+            <span className="text-xs text-fit-muted font-medium">Satz-Typ</span>
+            <select value={leadSet.setType || "normal"}
+              onChange={(e) => onPatch("templateSets", templateSets.map((set) => ({ ...set, setType: e.target.value })))}
               className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm focus:outline-none focus:border-fit-accent">
               <option value="normal">Normal</option>
-              <option value="to_failure">To Failure</option>
-              <option value="absolute_failure">Absolute Failure</option>
+              <option value="warmup">Warm-up</option>
+              <option value="drop">Drop</option>
+              <option value="failure">Failure</option>
             </select>
           </label>
           <label className="flex flex-col gap-1">
@@ -112,10 +150,10 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
               placeholder="30X0" />
           </label>
           <label className="flex items-center gap-2 col-span-1 pt-4">
-            <input type="checkbox" checked={!!ex.drop_set}
-              onChange={(e) => onPatch("drop_set", e.target.checked)}
+            <input type="checkbox" checked={templateSets.some((set) => set.targetWeight !== null && set.targetWeight !== "")}
+              onChange={(e) => onPatch("templateSets", templateSets.map((set) => ({ ...set, targetWeight: e.target.checked ? (set.targetWeight ?? 0) : null })))}
               className="rounded" />
-            <span className="text-sm text-fit-muted">Drop Set</span>
+            <span className="text-sm text-fit-muted">Hard Targets aktiv</span>
           </label>
           <label className="flex flex-col gap-1 col-span-2">
             <span className="text-xs text-fit-muted font-medium">Notiz</span>
@@ -155,6 +193,7 @@ export default function RoutineBuilder({ routineId, onBack }) {
       primaryMuscles: ex.primaryMuscles,
       secondaryMuscles: ex.secondaryMuscles,
       yuhonas_id: ex.yuhonas_id,
+      trackingType: ex.trackingType || "weight_reps",
     });
     load();
   }
@@ -165,8 +204,30 @@ export default function RoutineBuilder({ routineId, onBack }) {
   }
 
   function patchLocal(rowId, key, val) {
-    setExercises((prev) => prev.map((e) => e.id === rowId ? { ...e, [key]: val } : e));
-    setDirty((d) => ({ ...d, [rowId]: { ...(d[rowId] ?? {}), [key]: val } }));
+    setExercises((prev) => prev.map((e) => {
+      if (e.id !== rowId) return e;
+      const next = key === "templateSets"
+        ? patchTemplateSets(e, () => val)
+        : { ...e, [key]: val };
+      return key === "trackingType" ? { ...next, weight_type: val === "bodyweight_reps" ? "bodyweight" : "kg" } : next;
+    }));
+    setDirty((d) => {
+      const currentExercise = exercises.find((e) => e.id === rowId);
+      const nextExercise = currentExercise
+        ? (key === "templateSets" ? patchTemplateSets(currentExercise, () => val) : { ...currentExercise, [key]: val })
+        : { [key]: val };
+      const patch = key === "templateSets"
+        ? {
+            templateSets: nextExercise.templateSets,
+            target_sets: nextExercise.target_sets,
+            target_reps: nextExercise.target_reps,
+            target_weight: nextExercise.target_weight,
+            drop_set: nextExercise.drop_set,
+            effort: nextExercise.effort,
+          }
+        : { [key]: val };
+      return { ...d, [rowId]: { ...(d[rowId] ?? {}), ...patch } };
+    });
   }
 
   async function savePatches() {

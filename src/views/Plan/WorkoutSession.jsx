@@ -4,22 +4,78 @@ import { api } from "./api.js";
 import ExerciseSearch from "./components/ExerciseSearch.jsx";
 import { muskelDe, muskelColor } from "./muscles.js";
 
-function SetRow({ set, index, onPatch, onDelete }) {
+function SetRow({ set, index, trackingType, onPatch, onDelete }) {
+  const isWeight = trackingType === "weight_reps";
+  const isBodyweight = trackingType === "bodyweight_reps";
+  const isDuration = trackingType === "duration";
+  const isDistanceTime = trackingType === "distance_time";
+
+  function toggleCompleted() {
+    if (set.completed) {
+      onPatch("completed", false);
+      return;
+    }
+    if (isWeight || isBodyweight) {
+      if ((set.weight === null || set.weight === "") && set.ghostWeight !== null && set.ghostWeight !== undefined && !isBodyweight) {
+        onPatch("weight", set.ghostWeight);
+      }
+      if ((set.reps === null || set.reps === "") && set.ghostReps !== null && set.ghostReps !== undefined) {
+        onPatch("reps", set.ghostReps);
+      }
+    }
+    if (isDuration && (set.duration === null || set.duration === "") && set.ghostDuration !== null && set.ghostDuration !== undefined) {
+      onPatch("duration", set.ghostDuration);
+    }
+    if (isDistanceTime) {
+      if ((set.distance === null || set.distance === "") && set.ghostDistance !== null && set.ghostDistance !== undefined) {
+        onPatch("distance", set.ghostDistance);
+      }
+      if ((set.duration === null || set.duration === "") && set.ghostDuration !== null && set.ghostDuration !== undefined) {
+        onPatch("duration", set.ghostDuration);
+      }
+    }
+    onPatch("completed", true);
+  }
+
   return (
-    <div className="grid grid-cols-[1.5rem_1fr_1fr_2.25rem_2.25rem] items-center gap-2 px-1 py-1.5">
+    <div className={`grid items-center gap-2 px-1 py-1.5 ${
+      isDuration
+        ? "grid-cols-[1.5rem_1fr_2.25rem_2.25rem]"
+        : "grid-cols-[1.5rem_1fr_1fr_2.25rem_2.25rem]"
+    }`}>
       <span className="text-xs font-mono text-fit-muted text-center">{index + 1}</span>
-      <input
-        type="number" inputMode="decimal" placeholder="kg" value={set.weight ?? ""}
-        onChange={(e) => onPatch("weight", e.target.value === "" ? null : Number(e.target.value))}
-        className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent"
-      />
-      <input
-        type="number" inputMode="numeric" placeholder="Wdh" value={set.reps ?? ""}
-        onChange={(e) => onPatch("reps", e.target.value === "" ? null : Number(e.target.value))}
-        className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent"
-      />
+      {(isWeight || isDistanceTime) && (
+        <input
+          type="number"
+          inputMode="decimal"
+          placeholder={isWeight ? String(set.ghostWeight ?? set.targetWeight ?? "kg") : String(set.ghostDistance ?? set.targetDistance ?? "km")}
+          value={isWeight ? (set.weight ?? "") : (set.distance ?? "")}
+          onChange={(e) => onPatch(isWeight ? "weight" : "distance", e.target.value === "" ? null : Number(e.target.value))}
+          className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent placeholder:text-fit-muted"
+        />
+      )}
+      {(isWeight || isBodyweight || isDistanceTime) && (
+        <input
+          type="number"
+          inputMode="numeric"
+          placeholder={isDistanceTime ? String(set.ghostDuration ?? set.targetDuration ?? "min") : String(set.ghostReps ?? set.targetReps ?? "Wdh")}
+          value={isDistanceTime ? (set.duration ?? "") : (set.reps ?? "")}
+          onChange={(e) => onPatch(isDistanceTime ? "duration" : "reps", e.target.value === "" ? null : Number(e.target.value))}
+          className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent placeholder:text-fit-muted"
+        />
+      )}
+      {isDuration && (
+        <input
+          type="number"
+          inputMode="numeric"
+          placeholder={String(set.ghostDuration ?? set.targetDuration ?? "sek")}
+          value={set.duration ?? ""}
+          onChange={(e) => onPatch("duration", e.target.value === "" ? null : Number(e.target.value))}
+          className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent placeholder:text-fit-muted"
+        />
+      )}
       <button
-        onClick={() => onPatch("completed", !set.completed)}
+        onClick={toggleCompleted}
         className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
         style={{ background: set.completed ? "#22c55e33" : "var(--bg2)", color: set.completed ? "#22c55e" : "var(--dim)" }}
       >
@@ -46,6 +102,11 @@ function ExerciseBlock({ ex, onAddSet, onPatchSet, onDeleteSet, onDeleteExercise
               </span>
             ))}
           </div>
+          {ex.lastPerformedAt && (
+            <div className="mt-1 text-[11px] text-fit-muted">
+              Letztes Mal: {new Date(ex.lastPerformedAt).toLocaleDateString("de-AT")}
+            </div>
+          )}
         </div>
         <button onClick={onDeleteExercise} className="p-1.5 rounded-lg text-fit-muted hover:text-fit-red hover:bg-red-500/10 transition-all">
           <Trash2 size={14} />
@@ -53,10 +114,18 @@ function ExerciseBlock({ ex, onAddSet, onPatchSet, onDeleteSet, onDeleteExercise
       </div>
 
       <div className="px-3 pb-2">
-        <div className="grid grid-cols-[1.5rem_1fr_1fr_2.25rem_2.25rem] gap-2 px-1 pb-1 text-[10px] font-bold uppercase tracking-wide text-fit-muted">
+        <div className={`grid gap-2 px-1 pb-1 text-[10px] font-bold uppercase tracking-wide text-fit-muted ${
+          ex.trackingType === "duration"
+            ? "grid-cols-[1.5rem_1fr_2.25rem_2.25rem]"
+            : "grid-cols-[1.5rem_1fr_1fr_2.25rem_2.25rem]"
+        }`}>
           <span className="text-center">#</span>
-          <span className="text-center">kg</span>
-          <span className="text-center">Wdh</span>
+          <span className="text-center">
+            {ex.trackingType === "weight_reps" ? "kg" : ex.trackingType === "distance_time" ? "km" : ex.trackingType === "duration" ? "Zeit" : "Wdh"}
+          </span>
+          {ex.trackingType !== "duration" && (
+            <span className="text-center">{ex.trackingType === "distance_time" ? "Zeit" : "Wdh"}</span>
+          )}
           <span />
           <span />
         </div>
@@ -65,6 +134,7 @@ function ExerciseBlock({ ex, onAddSet, onPatchSet, onDeleteSet, onDeleteExercise
             key={set.id}
             set={set}
             index={i}
+            trackingType={ex.trackingType || "weight_reps"}
             onPatch={(key, val) => onPatchSet(set.id, key, val)}
             onDelete={() => onDeleteSet(set.id)}
           />
@@ -99,6 +169,7 @@ export default function WorkoutSession({ workoutId, onBack, onFinished }) {
       primaryMuscles: ex.primaryMuscles,
       secondaryMuscles: ex.secondaryMuscles,
       yuhonas_id: ex.yuhonas_id,
+      trackingType: ex.trackingType || "weight_reps",
     });
     load();
   }
