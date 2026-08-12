@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Lock, Check, Circle, Play, Pause, Flag, Trop
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const SKILLS_STORAGE_KEY = 'fitness-skills-progress-v1';
+const ACTIVE_RUNNER_STORAGE_KEY = 'fitness-skills-active-runner-v1';
 
 // Skills + Progressionen 1:1 nach Thenics-App-Struktur (Nutzer-Recherche
 // 2026-08-12, Play Store + Reddit r/bodyweightfitness Community-Reihenfolge).
@@ -74,6 +75,31 @@ function loadProgress() {
   } catch {
     return {};
   }
+}
+
+// Crash-Sicherheit für laufende Workouts: strukturelle Fortschritts-Punkte
+// (Block/Satz-Index, bisher geloggte Sätze) landen bei jeder Änderung in
+// localStorage, NICHT die laufenden Countdown-Millisekunden (kein
+// 100ms-Schreib-Spam). Bei Wiedereinstieg wird immer bei "prep" des zuletzt
+// erreichten Satzes neu gestartet statt einen exakten Countdown-Stand zu
+// rekonstruieren — bereits geloggte Sätze bleiben aber erhalten.
+function loadActiveRunner() {
+  if (typeof window === 'undefined') return null;
+  try {
+    return JSON.parse(window.localStorage.getItem(ACTIVE_RUNNER_STORAGE_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function saveActiveRunner(state) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(ACTIVE_RUNNER_STORAGE_KEY, JSON.stringify(state));
+}
+
+function clearActiveRunner() {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(ACTIVE_RUNNER_STORAGE_KEY);
 }
 
 function SkillRow({ skill, progress, onOpen, isLast }) {
@@ -266,21 +292,46 @@ const RPE_OPTIONS = [
   { id: 'limit', label: 'Am Limit' },
 ];
 
-function WorkoutRunner({ skill, stage, onFinish, onExit }) {
+function WorkoutRunner({ skill, stage, resumeState, onFinish, onExit }) {
   const [blocks] = useState(() => buildWorkoutBlocks(skill, stage));
-  const [blockIndex, setBlockIndex] = useState(0);
+  const initialBlockIndex = resumeState?.blockIndex ?? 0;
+  const [blockIndex, setBlockIndex] = useState(initialBlockIndex);
   const [phase, setPhase] = useState('prep');
-  const [setIndex, setSetIndex] = useState(0);
+  const [setIndex, setSetIndex] = useState(resumeState?.setIndex ?? 0);
   const [remainingMs, setRemainingMs] = useState(PREP_SECONDS * 1000);
   const [workElapsedMs, setWorkElapsedMs] = useState(0);
-  const [startedAt] = useState(() => Date.now());
-  const [log, setLog] = useState(() => blocks.map(() => []));
-  const [actualReps, setActualReps] = useState(blocks[0].type === 'reps' ? blocks[0].reps : 0);
-  const [rpe, setRpe] = useState(null);
+  const [startedAt] = useState(() => resumeState?.startedAt ?? Date.now());
+  const [log, setLog] = useState(() => resumeState?.log ?? blocks.map(() => []));
+  const [actualReps, setActualReps] = useState(blocks[initialBlockIndex].type === 'reps' ? blocks[initialBlockIndex].reps : 0);
+  const [rpe, setRpe] = useState(resumeState?.rpe ?? null);
 
   const block = blocks[blockIndex];
   const nextBlock = blocks[blockIndex + 1];
   const isHold = block.type === 'hold';
+
+  // Persistiert nur strukturelle Fortschritts-Punkte (kein Countdown-Ticken)
+  // — siehe loadActiveRunner()-Kommentar weiter oben.
+  useEffect(() => {
+    if (phase === 'done') return;
+    saveActiveRunner({ skillId: skill.id, stage, blockIndex, setIndex, log, rpe, startedAt });
+  }, [blockIndex, setIndex, log, rpe]);
+
+  function handleExit() {
+    clearActiveRunner();
+    onExit();
+  }
+
+  function skipBlock() {
+    const nextBlockIndex = blockIndex + 1;
+    if (nextBlockIndex >= blocks.length) {
+      setPhase('done');
+      return;
+    }
+    setBlockIndex(nextBlockIndex);
+    setSetIndex(0);
+    setPhase('prep');
+    setRemainingMs(PREP_SECONDS * 1000);
+  }
 
   useEffect(() => {
     if (phase === 'done') return undefined;
@@ -370,6 +421,7 @@ function WorkoutRunner({ skill, stage, onFinish, onExit }) {
   );
 
   function saveWorkout() {
+    clearActiveRunner();
     const totalDurationSeconds = Math.round((Date.now() - startedAt) / 1000);
     onFinish({
       timestamp: new Date().toISOString(),
@@ -486,9 +538,16 @@ function WorkoutRunner({ skill, stage, onFinish, onExit }) {
       )}
 
       {phase !== 'done' && (
-        <button onClick={onExit} className="mt-4 text-[11px] font-bold" style={{ color: 'var(--dim)' }}>
-          Abbrechen
-        </button>
+        <div className="flex items-center justify-center gap-4 mt-4">
+          <button onClick={handleExit} className="text-[11px] font-bold" style={{ color: 'var(--dim)' }}>
+            Abbrechen
+          </button>
+          {blockIndex > 0 && (
+            <button onClick={skipBlock} className="text-[11px] font-bold" style={{ color: 'var(--dim)' }}>
+              {block.role} überspringen →
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -767,6 +826,10 @@ function SkillDetailScreen({ skill, stage, history, holds, sessions, onBack, onM
   const next = skill.progressions[stage + 1];
   const isLast = stage >= skill.progressions.length - 1;
   const [runnerActive, setRunnerActive] = useState(false);
+  const [resumeState, setResumeState] = useState(() => {
+    const saved = loadActiveRunner();
+    return saved && saved.skillId === skill.id && saved.stage === stage ? saved : null;
+  });
 
   return (
     <div>
@@ -783,29 +846,63 @@ function SkillDetailScreen({ skill, stage, history, holds, sessions, onBack, onM
         <WorkoutRunner
           skill={skill}
           stage={stage}
-          onExit={() => setRunnerActive(false)}
+          resumeState={resumeState}
+          onExit={() => { setResumeState(null); setRunnerActive(false); }}
           onFinish={(sessionData) => {
             onLogWorkout(stage, sessionData);
             if (sessionData.metTarget && !isLast) onMaster();
+            setResumeState(null);
             setRunnerActive(false);
           }}
         />
       ) : (
-        <div
-          className="rounded-2xl px-5 py-6 mb-4 text-center"
-          style={{ background: 'var(--accent-glow, rgba(0,0,0,0.05))', border: '1px solid var(--line)' }}
-        >
-          <div className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--accent)' }}>Jetzt</div>
-          <div className="text-2xl font-black text-fit-ink mt-2">{stageInfo.name}</div>
-          <div className="text-[11px] font-bold mt-1" style={{ color: 'var(--dim)' }}>{formatTarget(stageInfo)}</div>
-          <button
-            onClick={() => setRunnerActive(true)}
-            className="w-full mt-4 min-h-12 rounded-2xl flex items-center justify-center gap-2 text-sm font-black uppercase tracking-[0.16em]"
-            style={{ background: 'var(--accent)', color: '#fff' }}
+        <>
+          {resumeState && (
+            <div
+              className="rounded-2xl px-5 py-4 mb-4"
+              style={{ background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.35)' }}
+            >
+              <div className="text-[10px] font-black uppercase tracking-[0.2em] mb-1" style={{ color: '#38bdf8' }}>Unterbrochenes Workout gefunden</div>
+              <div className="text-xs font-bold mb-3" style={{ color: 'var(--dim)' }}>
+                Übung {resumeState.blockIndex + 1}, Satz {resumeState.setIndex + 1} — bisherige Sätze bleiben erhalten.
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setRunnerActive(true)}
+                  className="flex-1 min-h-11 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-[0.12em]"
+                  style={{ background: '#38bdf8', color: '#000' }}
+                >
+                  <Play size={14} strokeWidth={3} /> Fortsetzen
+                </button>
+                <button
+                  onClick={() => { clearActiveRunner(); setResumeState(null); }}
+                  className="px-4 min-h-11 rounded-xl text-xs font-black uppercase tracking-[0.12em]"
+                  style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}
+                >
+                  Verwerfen
+                </button>
+              </div>
+            </div>
+          )}
+          <div
+            className="rounded-2xl px-5 py-6 mb-4 text-center"
+            style={{ background: 'var(--accent-glow, rgba(0,0,0,0.05))', border: '1px solid var(--line)' }}
           >
-            <Play size={16} strokeWidth={3} /> Workout starten
-          </button>
-        </div>
+            <div className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: 'var(--accent)' }}>Jetzt</div>
+            <div className="text-2xl font-black text-fit-ink mt-2">{stageInfo.name}</div>
+            <div className="text-[11px] font-bold mt-1" style={{ color: 'var(--dim)' }}>{formatTarget(stageInfo)}</div>
+            <button
+              onClick={() => {
+                if (resumeState) { clearActiveRunner(); setResumeState(null); }
+                setRunnerActive(true);
+              }}
+              className="w-full mt-4 min-h-12 rounded-2xl flex items-center justify-center gap-2 text-sm font-black uppercase tracking-[0.16em]"
+              style={{ background: 'var(--accent)', color: '#fff' }}
+            >
+              <Play size={16} strokeWidth={3} /> {resumeState ? 'Neues Workout starten' : 'Workout starten'}
+            </button>
+          </div>
+        </>
       )}
 
       <WorkoutArchive sessions={sessions} />
