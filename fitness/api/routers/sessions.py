@@ -17,6 +17,12 @@ router = APIRouter()
 def _today() -> str:
     return date.today().isoformat()
 
+def _require_uid(request: Request) -> str:
+    uid = _uid_from_request(request)
+    if not uid or uid == "default":
+        raise HTTPException(400, detail="uid Pflicht. Aktive UID fehlt; via ?uid=... oder X-User-UID Header senden.")
+    return uid
+
 
 def _performed_exercises(session: dict[str, Any]) -> list[dict[str, Any]]:
     return [
@@ -78,7 +84,7 @@ def session_get(request: Request, date_: str = Query(None, alias="date"), id: st
 
 @router.post("/session")
 async def session_post(request: Request, date_: str = Query(None, alias="date"), id: str | None = None):
-    uid  = _uid_from_request(request)
+    uid  = _require_uid(request)
     day  = date_ or _today()
     body = await request.json()
 
@@ -112,7 +118,7 @@ async def session_post(request: Request, date_: str = Query(None, alias="date"),
 
 @router.delete("/session")
 def session_delete(request: Request, date_: str = Query(None, alias="date"), id: str | None = None):
-    uid = _uid_from_request(request)
+    uid = _require_uid(request)
     day = date_ or _today()
     f   = _session_file(uid, day, id)
     if f.exists():
@@ -171,7 +177,7 @@ def session_latest(request: Request):
 
 @router.delete("/session/{date_path}")
 def session_delete_by_date(date_path: str, request: Request, id: str | None = None):
-    uid = _uid_from_request(request)
+    uid = _require_uid(request)
     f   = _session_file(uid, date_path, id)
     if f.exists():
         f.unlink()
