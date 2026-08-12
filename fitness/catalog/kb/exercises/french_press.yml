@@ -1,42 +1,64 @@
 exercise_id: french_press
-description: Expert details for Französisches Drücken
+description: Expert details for French Press
 exercises:
 - exercise_id: french_press
   id: french_press
   name: French Press
-  display_name: Französisches Drücken
-  german: Französisches Drücken
-  english: French Press
+  display_name: French Press
+  german: French Press
+  english: Lying Triceps Extension
   category: push
   type: isolation
   movements:
   - elbow_extension
-  - overhead
+  - elbow_flexion
+  - shoulder_flexion
+  - shoulder_stability
   equipment:
   - dumbbell
   - barbell
   - cable
   primary_muscles:
-  - arms
-  secondary_muscles: []
+  - 401_triceps_brachii
+  secondary_muscles:
+  - 407_anconeus
   stabilizers:
-  - shoulders
+  - 301_anterior_deltoid
+  - 304_rotator_cuff
+  - 405_forearm_flexors
+  - 406_forearm_extensors
   coaching_notes:
-  - Arme sollten während der gesamten Bewegung senkrecht zum Boden bleiben. Nur die
-    Ellbogen beugen sich, keine Schulterbewegung.
-  - Ellbogen eng beieinander halten. Ein breiter Stand führt zu schlechterer Isolation
-    und überlasten die Schultergelenke.
-  - 'Vollständigen Bewegungsbereich nutzen: von der vollen Streckung bis zur kontrollierten
-    Beugung hinter dem Kopf.'
-  - Bei der Absenkung einatmen, bei der Streckung ausatmen.
-  - Mit moderatem Gewicht beginnen – diese Übung erfordert gute Kontrolle und Stabilität
-    im Ellbogengelenk.
+  - Oberarme von Beginn bis Ende ruhig halten und die Bewegung fast ausschließlich
+    aus dem Ellbogengelenk ausführen.
+  - Ellbogen etwa schulterbreit bis leicht enger ausrichten und während des Satzes
+    kontrolliert in dieser Linie halten.
+  - Das Gewicht langsam hinter oder neben die Stirn absenken, sodass die Trizepsmuskulatur
+    unter Spannung bleibt und kein Fallenlassen entsteht.
+  - Am tiefsten Punkt eine kontrollierte Dehnung zulassen, ohne die Schulter nach
+    vorn kippen oder die Oberarme nach hinten wegdriften zu lassen.
+  - In der Streckphase aktiv bis kurz vor die volle Ellbogenstreckung arbeiten, ohne
+    die Gelenke hart einzurasten.
+  - Handgelenke neutral halten und die Hantel oder Stange fest, aber nicht verkrampft
+    führen.
+  - Brustkorb stabil halten, Nacken lang lassen und den Kopf ruhig auf der Bank positionieren.
+  - Ein moderates Gewicht wählen, das eine saubere exzentrische Phase und eine präzise
+    Ellbogenführung über alle Wiederholungen erlaubt.
   common_errors:
-  - Ellbogen bewegen sich auseinander statt stabil beieinander zu bleiben
-  - Schulterbewegung statt isolierter Ellbogenstreckung – führt zu Kraftverlust
-  - Zu schweres Gewicht, das zu Schwungbewegungen und Rumpfausgleich führt
-  - Unvollständiger Bewegungsbereich – nicht bis zur vollständigen Streckung
-  - Kopf wird passiv nach hinten bewegt statt aktiv neutral zu bleiben
+  - Die Oberarme wandern während der Wiederholungen nach hinten oder nach vorn, sodass
+    die Übung mehr zur Schulterbewegung wird.
+  - Die Ellbogen spreizen stark nach außen, was Spannung vom Trizeps nimmt und die
+    Gelenkbelastung erhöht.
+  - Das Gewicht wird zu schnell abgesenkt und unten nicht kontrolliert, wodurch die
+    exzentrische Arbeit verloren geht.
+  - Die Handgelenke knicken ab statt neutral zu bleiben, was die Kraftübertragung
+    verschlechtert.
+  - Mit Schwung aus Schulter oder Rumpf arbeiten, um den schwierigsten Bereich zu
+    überbrücken.
+  - Zu weit Richtung Gesicht oder Stirn führen, obwohl die gewählte Variante eine
+    sichere, reproduzierbare Hantelbahn neben oder leicht hinter den Kopf braucht.
+  - Oben aggressiv in die Ellbogen einrasten statt die Endposition muskulär zu kontrollieren.
+  - Zu schwer trainieren und dadurch Bewegungsradius, Ellbogenkontrolle und konstante
+    Spannung deutlich verlieren.
   tags:
   - triceps
   - isolation
@@ -48,10 +70,23 @@ exercises:
   - unreviewed
   aliases:
   - Skull Crushers
+  - French Press
+  - Trizepsstrecken liegend
+  - SZ-Trizepsdrücken
   - Lying Triceps Extension
-  - Trizeps-Drücken
   variations: []
   source: expert
   search_aliases:
-  - Französisches Drücken
   - French Press
+  - Franzoesisches Druecken
+  - Französisches Drücken
+  - Lying Triceps Extension
+  - Skull Crusher
+  - Skull Crushers
+  - Trizepsstrecken liegend
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: manual
+    source_refs: {}
+  review_state:
+    status: approved

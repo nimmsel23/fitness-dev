@@ -1,5 +1,5 @@
 name: '020'
-description: Expert details for Pull-Up / Klimmzug im Obergriff.
+description: Expert details for Klimmzug im Obergriff
 exercises:
 - exercise_id: '020'
   id: '020'
@@ -12,37 +12,62 @@ exercises:
   movements:
   - vertical
   - shoulder_adduction
+  - shoulder_extension
   - elbow_flexion
   - scapular_depression
+  - scapular_downward_rotation
   equipment:
   - bodyweight
   - pull_up_bar
   primary_muscles:
   - 201_latissimus_dorsi
   - 207_teres_major
-  - 204_trapezius_lower
   secondary_muscles:
+  - 204_trapezius_lower
+  - 203_trapezius_middle
+  - 205_rhomboids
   - 402_biceps_brachii
   - 403_brachialis
   - 404_brachioradialis
-  - 203_trapezius_middle
-  - 205_rhomboids
   stabilizers:
-  - 501_rectus_abdominis
-  - 504_transverse_abdominis
-  - 206_erector_spinae
   - 304_rotator_cuff
+  - 405_forearm_flexors
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  - 206_erector_spinae
+  - 507_multifidus
   coaching_notes:
-  - Starte im aktiven Hang mit langem Körper und zieh die Schulterblätter zuerst nach unten.
-  - Zieh die Ellenbogen Richtung Hüfte, nicht nur das Kinn irgendwie über die Stange.
-  - Nutze volle ROM: unten kontrolliert strecken, oben Brust Richtung Stange.
-  - Halte Rippen und Becken stabil, damit der Zug nicht in Schwung oder Hohlkreuz kippt.
-  - Obergriff verschiebt den Fokus stärker auf Latissimus/oberen Rücken und etwas weg vom Bizeps im Vergleich zum Chin-Up.
+  - 'Starte aus einem aktiven Hang: Hals lang, Rippen unten, Schulterblätter zuerst
+    sanft nach unten setzen statt passiv in den Schultern zu hängen.'
+  - Denke daran, die Ellenbogen Richtung Flanken oder Hüfte zu ziehen. So bleibt der
+    Zug aus Latissimus und oberem Rücken statt nur aus den Armen.
+  - Halte den Körper als ruhige Linie von Kopf bis Fuß. Gesäß und Bauch leicht anspannen,
+    damit kein Hohlkreuz oder Beinschwung entsteht.
+  - 'Arbeite über die volle kontrollierte ROM: unten sauber strecken, oben den Brustkorb
+    zur Stange bringen, ohne die Spannung im Rumpf zu verlieren.'
+  - Führe den Obergriff mit stabilem Handgelenk und festem Griff aus. Die Stange soll
+    tief in der Hand liegen, damit du die Zuglinie sauber halten kannst.
+  - Lass die Schulterblätter während des Hochziehens nach unten und leicht nach hinten
+    arbeiten, ohne die Schultern zu den Ohren hochzuziehen.
+  - Steuere auch die Exzentrik bewusst. Ein langsames, sauberes Absenken verbessert
+    Schulterkontrolle, Kraftaufbau und Positionsgefühl im Hang.
+  - Der Obergriff verlagert die Belastung etwas stärker auf Latissimus, Teres major
+    und oberen Rücken und etwas weniger auf den Bizeps als beim Chin-Up.
   common_errors:
-  - Kipping oder Beinschwung statt kontrollierter vertikaler Zug.
-  - Schultern zu den Ohren ziehen und ohne Scapula-Depression starten.
-  - Halbe Wiederholungen unten oder oben, wodurch Lat-Stretch und Abschluss fehlen.
-  - Kopf nach vorne schieben, statt Brust und Rückenarbeit zur Stange zu bringen.
+  - Mit Kipping, Beinschwung oder Hüftschwung arbeiten statt jede Wiederholung aus
+    dem Hang kontrolliert einzuleiten.
+  - Aus einem passiven Hang hart anziehen, ohne zuerst Spannung im Schultergürtel
+    aufzubauen.
+  - Die Schultern zu den Ohren ziehen und damit Scapula-Depression und stabile Schultermechanik
+    zu verlieren.
+  - Nur das Kinn irgendwie über die Stange bringen, während Brustkorb, Schulterposition
+    und Zuglinie kollabieren.
+  - 'Halbe Wiederholungen machen: unten nicht ausstrecken oder oben zu früh abbrechen.'
+  - Den Kopf nach vorne zur Stange schieben statt den Körper zur Stange zu ziehen.
+  - Ins Hohlkreuz fallen oder die Rippen aufklappen lassen, wodurch der Rumpf instabil
+    wird und die Kraftübertragung leidet.
+  - Zu breit greifen und dadurch ROM, Schultermechanik und saubere Ellbogenführung
+    unnötig verschlechtern.
   tags:
   - expert
   - back
@@ -86,3 +111,19 @@ exercises:
     primary: []
     secondary: []
   source: expert
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: merged_external
+    source_refs:
+      wger:
+      - '821'
+      yuhonas:
+      - Pullups
+  source_snapshot:
+    wger:
+      wger_id: 821
+      wger_muscle_ids:
+        primary: []
+        secondary: []
+  review_state:
+    status: approved

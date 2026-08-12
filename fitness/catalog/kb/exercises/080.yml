@@ -1,8 +1,8 @@
-name: '080'
-description: Expert details for Deadlift / Kreuzheben.
+name: 080
+description: Expert details for Kreuzheben
 exercises:
-- exercise_id: '080'
-  id: '080'
+- exercise_id: 080
+  id: 080
   name: Kreuzheben
   display_name: Kreuzheben
   german: Kreuzheben
@@ -14,6 +14,8 @@ exercises:
   - hip_extension
   - knee_extension
   - spinal_anti_flexion
+  - scapular_depression
+  - grip_isometric
   equipment:
   - barbell
   primary_muscles:
@@ -30,21 +32,43 @@ exercises:
   - 405_forearm_flexors
   stabilizers:
   - 504_transverse_abdominis
-  - 501_rectus_abdominis
+  - 507_multifidus
+  - 506_diaphragm
+  - 508_pelvic_floor
   - 205_rhomboids
   - 608_gluteus_medius
   - 609_gluteus_minimus
-  - 701_gastrocnemius
   coaching_notes:
-  - Stange über dem Mittelfuß starten und während des gesamten Zugs eng am Körper führen.
-  - Vor dem Abheben Bracing setzen und die Lat-Spannung aktiv aufbauen.
-  - Hüfte und Schultern steigen gemeinsam; die Bewegung ist kein ungewollter Stiff-Leg-Deadlift.
-  - Den Boden wegdrücken, dann Hüfte durchstrecken; oben nicht in Hyperextension lehnen.
+  - Stelle die Füße so, dass die Stange über dem Mittelfuß liegt; die Schienbeine
+    kommen erst nach dem Setup leicht an die Stange.
+  - 'Baue vor dem Abheben Ganzkörperspannung auf: tief in Bauch und Flanken einatmen,
+    den Rumpf zirkulär anspannen und die Achseln aktiv ''schließen'', damit die Lat-Spannung
+    die Stange am Körper hält.'
+  - Ziehe das Spiel aus der Stange, bevor das Gewicht den Boden verlässt; der erste
+    Zug ist Druck in den Boden, nicht ein ruckartiges Hochreißen mit dem Rücken.
+  - Hüfte und Schultern sollen in der Startphase gemeinsam steigen, sodass der Rückenwinkel
+    bis knapp unter Kniehöhe weitgehend stabil bleibt.
+  - Führe die Stange in einer geraden, engen Bahn über Schienbein und Oberschenkel;
+    je näher die Last am Körperschwerpunkt bleibt, desto sauberer ist die Hebelmechanik.
+  - Beende die Wiederholung mit vollständiger Hüftstreckung und aufgerichtetem Körper,
+    ohne ins Hohlkreuz zu fallen oder die Rippen nach vorne zu schieben.
+  - Senke die Stange kontrolliert über die Hüfte ein, halte die Spannung bis zum Boden
+    und starte jede Wiederholung aus einer sauber neu aufgebauten Position.
   common_errors:
-  - Rücken rund machen, bevor die Stange den Boden verlässt.
-  - Hüfte schießt zuerst hoch und der Zug wird zum Rückenheben.
-  - Stange driftet vom Schienbein weg und vergrößert den Hebelarm.
-  - Lockout durch Zurücklehnen statt saubere Hüftstreckung.
+  - Die Hüfte schießt beim Start zuerst hoch, wodurch aus dem Zug vom Boden ein ineffizientes
+    Rückenheben wird.
+  - Der Rücken verliert vor dem Abheben oder direkt vom Boden weg die Spannung und
+    rundet insbesondere in der Lendenwirbelsäule ein.
+  - Die Stange driftet vom Körper weg, was den Hebelarm vergrößert und den Zug unnötig
+    schwer macht.
+  - Es wird ohne sauberes Bracing angerissen, statt erst Spannung in Rumpf, Lat und
+    Griff aufzubauen.
+  - Die Knie werden zu früh nach hinten genommen, sodass die Stange um die Knie herumgeführt
+    werden muss statt geradlinig aufzusteigen.
+  - Der Lockout wird durch Zurücklehnen und Überstrecken der Lendenwirbelsäule erzwungen
+    statt durch eine saubere Hüftstreckung abgeschlossen.
+  - Die exzentrische Phase wird fallengelassen oder ungeordnet abgesenkt, wodurch
+    Position, Spannung und Reproduzierbarkeit der nächsten Wiederholung verloren gehen.
   tags:
   - expert
   - legs
@@ -58,6 +82,8 @@ exercises:
   - Deadlifts
   search_aliases:
   - deadlift
+  - kreuzheben
+  - konventionelles kreuzheben
   - wger_184
   external_ids:
     wger:
@@ -76,3 +102,21 @@ exercises:
     - 12
     - 11
   source: expert
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: external
+    source_refs:
+      wger:
+      - '184'
+  source_snapshot:
+    wger:
+      wger_id: 184
+      wger_muscle_ids:
+        primary:
+        - 16
+        - 8
+        secondary:
+        - 12
+        - 11
+  review_state:
+    status: approved

@@ -6,43 +6,61 @@ exercises:
   display_name: Trizeps Seildrücken
   german: Trizeps Seildrücken
   english: Rope Triceps Pushdown
-  category: strength
+  category: push
   equipment:
   - cable
   primary_muscles:
   - 401a_triceps_long_head
   - 401b_triceps_lateral_head
   - 401c_triceps_medial_head
-  secondary_muscles: []
+  secondary_muscles:
+  - 407_anconeus
   stabilizers:
+  - 304_rotator_cuff
+  - 405_forearm_flexors
+  - 406_forearm_extensors
   - 203_trapezius_middle
   - 205_rhomboids
   - 501_rectus_abdominis
   - 504_transverse_abdominis
+  movements:
+  - elbow_extension
+  - shoulder_stability
+  - scapular_retraction
+  - anti_flexion
   movement_pattern: elbow_extension
   coaching_notes:
-  - Positionieren Sie sich mit leicht gebeugten Knien und einem kleinen Schritt vom
-    Kabelturm entfernt. Lehnen Sie sich leicht nach vorne, um eine stabile Basis zu
-    schaffen.
-  - Fassen Sie das Seil mit einem neutralen Griff (Handflächen zueinander) und halten
-    Sie die Ellbogen eng am Körper, direkt unter den Schultern.
-  - Strecken Sie die Unterarme vollständig nach unten, indem Sie die Trizepse bewusst
-    anspannen. Ziehen Sie dabei die Enden des Seils leicht auseinander, um eine maximale
-    Kontraktion zu erreichen.
-  - Halten Sie die Oberarme während der gesamten Bewegung fixiert und konzentrieren
-    Sie sich darauf, die Bewegung ausschließlich aus dem Ellbogengelenk auszuführen.
-  - Führen Sie die exzentrische Phase (Rückführung des Seils nach oben) langsam und
-    kontrolliert aus, um die Trizepse unter Spannung zu halten und eine volle Dehnung
-    zu ermöglichen.
+  - Stellen Sie sich etwa einen halben Schritt vom Kabelturm entfernt auf, Brustbein
+    angehoben, Knie leicht gebeugt und den Rumpf aktiv gespannt. Die Ausgangsposition
+    soll stabil sein, ohne dass Sie ins Hohlkreuz ausweichen.
+  - Greifen Sie das Seil neutral und ziehen Sie die Ellbogen dicht an die Flanken.
+    Entscheidend ist, dass die Oberarme während des gesamten Satzes nahezu unbeweglich
+    bleiben und nur das Ellbogengelenk arbeitet.
+  - Beginnen Sie jede Wiederholung aus einer kontrollierten Dehnung, ohne dass die
+    Schultern nach vorn kippen. Drücken Sie das Seil dann nach unten, bis die Ellbogen
+    vollständig gestreckt sind.
+  - Am unteren Endpunkt die Seilenden leicht nach außen führen und die Trizepse bewusst
+    hart anspannen. Diese kleine Abspreizbewegung erhöht oft das Kontraktionsgefühl,
+    darf aber nicht aus einer Schulterrotation entstehen.
+  - Lassen Sie das Gewicht langsam und kontrolliert zurücklaufen, sodass die Unterarme
+    zur Ausgangsposition aufsteigen, ohne dass die Ellbogen nach vorn wandern. Die
+    exzentrische Phase sollte aktiv gebremst werden.
+  - Wählen Sie ein Gewicht, das volle Streckung und saubere Ellbogenführung erlaubt.
+    Bei dieser Übung ist konstante Spannung und präzise Isolation wertvoller als hohe
+    Last.
   common_errors:
-  - Verwenden von zu viel Gewicht, was zu einem Schwung aus dem Oberkörper oder den
-    Schultern führt und die Isolation der Trizepse reduziert.
-  - Abspreizen der Ellbogen vom Körper, wodurch die Spannung auf die Trizepse verringert
-    und andere Muskeln unnötig belastet werden.
-  - Unvollständige Streckung der Arme am tiefsten Punkt, was eine volle Trizeps-Kontraktion
-    verhindert.
-  - Die Aufwärtsbewegung zu schnell ausführen, wodurch das Training der exzentrischen
-    Muskelphase vernachlässigt wird und das Verletzungsrisiko steigt.
+  - Zu viel Gewicht verwenden und das Kabel mit Oberkörper-Schwung nach unten drücken,
+    statt die Bewegung sauber aus dem Ellbogen zu erzeugen.
+  - Die Ellbogen nach außen oder nach vorn wandern lassen, wodurch Spannung vom Trizeps
+    verloren geht und Schulter sowie Brust stärker mithelfen.
+  - Nur den halben Bewegungsradius trainieren und die Ellbogen unten nicht vollständig
+    strecken, wodurch ein großer Teil der Endkontraktion verloren geht.
+  - Am oberen Punkt das Gewicht einfach hochschnellen lassen, statt die Rückführung
+    kontrolliert zu bremsen und die Dehnung aktiv mitzunehmen.
+  - Die Handgelenke stark abknicken oder einrollen, wodurch Unterarme und Griff unnötig
+    überlastet werden und die Kraftübertragung schlechter wird.
+  - Die Schultern hochziehen oder nach vorn fallen lassen, was die Nacken- und Schulterspannung
+    erhöht und die Übung instabil macht.
   wger_id: 659
   variations: []
   source: expert
@@ -53,4 +71,21 @@ exercises:
   search_aliases:
   - wger_659
   - Trizeps Seildrücken
+  - Seildrücken
+  - Trizeps Pushdown mit Seil
   - Rope Triceps Pushdown
+  - Cable Rope Pushdown
+  - Triceps Rope Pushdown
+  id: wger_659
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: external
+    source_refs:
+      wger:
+      - '659'
+  source_snapshot:
+    wger:
+      wger_id: 659
+  review_state:
+    status: approved
+    approved_at: '2026-07-28T06:01:06.387369+00:00'

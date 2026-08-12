@@ -11,44 +11,77 @@ exercises:
   type: isolation
   movements:
   - shoulder_extension
+  - shoulder_adduction
+  - scapular_depression
   - machine_guided
   equipment:
   - machine
   primary_muscles:
-  - middle_back
+  - 201_latissimus_dorsi
+  - 207_teres_major
   secondary_muscles:
-  - chest
-  - shoulders
+  - 401a_triceps_long_head
+  - 203_trapezius_middle
+  - 204_trapezius_lower
   stabilizers:
-  - abs
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 206_erector_spinae
   coaching_notes:
-  - Kontrollierte Bewegung durchführen, keine ruckartigen Züge oder Schwungbewegungen
-  - In der Ausgangsposition die Arme vollständig oder nahezu vollständig strecken
-  - Ellbogen leicht gebeugt halten – weder vollständig durchgestreckt noch stark gebeugt
-  - Am unteren Punkt der Bewegung eine intensive Brustkontraktion anstreben
-  - Die komplette Bewegungsamplitude ausnutzen für optimale Muskelaktivation
-  - Vor schweren Sätzen ausgiebig aufwärmen, um die Schulter zu mobilisieren
+  - Richte die Maschine so ein, dass sich das Schultergelenk sauber mit der Drehachse
+    der Maschine deckt; nur dann bleibt die Belastung auf Lat und Teres major statt
+    unnötig auf der Schultervorderseite.
+  - Halte den Brustkorb stolz, die Rippen aber unten, und spanne den Bauch an, damit
+    die Bewegung aus dem Schultergelenk kommt und nicht aus einem Hohlkreuz.
+  - Beginne aus einer langen Position mit leicht gebeugten, konstant fixierten Ellbogen;
+    der Ellenbogenwinkel bleibt während des Satzes nahezu unverändert.
+  - Ziehe die Arme in einem kontrollierten Bogen nach unten, indem du die Oberarme
+    Richtung Hüfte führst und die Achseln aktiv schließt.
+  - Denke an Schulterblätter nach unten und stabil, statt die Schultern nach vorn
+    hochzuziehen; so bleibt der Latissimus in einer besseren Arbeitslinie.
+  - Arbeite mit voller, schmerzfreier Dehnung oben und beende die konzentrische Phase
+    mit bewusster Lat-Spannung unten, ohne die Bewegung mit den Händen zu dominieren.
+  - Wähle ein Gewicht, bei dem du die exzentrische Phase sauber bremsen kannst; gerade
+    bei der Dehnposition bringt die kontrollierte Rückführung den größten Trainingsreiz.
   common_errors:
-  - Zu schnelle oder unkontrollierte Bewegungen mit erhöhtem Verletzungsrisiko
-  - Ellbogen zu weit nach außen positionieren – sollten nah am Körper sein
-  - Mit zu viel Gewicht arbeiten und die Bewegung mit Schwung ausführen
-  - Unvollständige Bewegungsamplitude, die die Effektivität mindert
-  - Nacken und Schultern anspannen statt die Bewegung sauber auszuführen
+  - Die Bewegung durch Ellbogenbeugung in eine Art Trizeps- oder Rudervariante verwandeln,
+    statt den Oberarm aus dem Schultergelenk zu führen.
+  - Mit einem Hohlkreuz oder aufklappendem Brustkorb arbeiten, um das Gewicht zu bewegen;
+    dadurch sinkt die Zielmuskelspannung und die Lendenwirbelsäule übernimmt.
+  - Die Schultern nach oben ziehen oder nach vorn einrollen lassen, wodurch die Last
+    aus dem Latissimus in Nacken und vordere Schulter verlagert wird.
+  - Zu tief oder zu aggressiv in die obere Dehnposition gehen, obwohl die Schulterbeweglichkeit
+    das nicht sauber zulässt.
+  - Am unteren Ende nur das Gewicht anschlagen oder ablegen, statt aktiv in die Endkontraktion
+    zu ziehen.
+  - Zu viel Gewicht wählen und die konzentrische Phase mit Schwung einleiten, wodurch
+    die Maschine zwar bewegt wird, die Zielmuskulatur aber schlechter arbeitet.
+  - Den Bewegungsradius künstlich verkürzen und die starke Dehnung oben vermeiden,
+    obwohl genau dort ein wesentlicher Teil des Trainingsreizes entsteht.
   tags:
   - isolation
-  - chest
   - machine
-  - horizontal-pull
-  - hypertrophy
-  - warm-up
   - back
+  - latissimus
   - shoulder_extension
-  - unreviewed
+  - shoulder_adduction
+  - hypertrophy
+  - expert
   aliases:
   - Machine Pullover
-  - Brustmaschine-Pullover
+  - Maschinen-Pullover
+  - Nautilus Pullover
   variations: []
   source: expert
   search_aliases:
   - Pullover-Maschine
+  - Maschinen-Pullover
   - Pullover Machine
+  - Machine Pullover
+  - Nautilus Pullover
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: manual
+    source_refs: {}
+  review_state:
+    status: approved

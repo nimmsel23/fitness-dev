@@ -54,6 +54,17 @@ def _save_known(path: Path, ids: set):
     path.write_text(json.dumps(sorted(ids), indent=2))
 
 
+def _inbox_local_dir(uid: str) -> Path:
+    return Path.home() / ".aos" / "users" / uid / "fitness" / "inbox"
+
+
+def _inbox_local_files(uid: str, doc_id: str) -> list[Path]:
+    inbox_dir = _inbox_local_dir(uid)
+    if not inbox_dir.exists():
+        return []
+    return sorted(inbox_dir.glob(f"{doc_id}_*.json"))
+
+
 # ── Sessions ──────────────────────────────────────────────────────────────────
 
 def on_session(col_snapshot, changes, read_time):
@@ -259,19 +270,36 @@ def on_habit_journals(col_snapshot, changes, read_time):
 # obwohl der lokale Modus (eigene UID) enrichten Content zeigte.
 def on_inbox(col_snapshot, changes, read_time):
     for change in changes:
-        if change.type.name != "ADDED":
-            continue
         doc_id, data = change.document.id, change.document.to_dict()
         uid = change.document.reference.parent.parent.id
+        existing_files = _inbox_local_files(uid, doc_id)
+
+        if change.type.name == "REMOVED":
+            for local in existing_files:
+                local.unlink(missing_ok=True)
+            continue
+
+        if change.type.name not in ("ADDED", "MODIFIED"):
+            continue
+
+        status = str((data or {}).get("status") or "").strip().lower()
+        terminal_statuses = {"approved", "rejected", "resolved", "ai_enriched"}
+        if status in terminal_statuses:
+            for local in existing_files:
+                local.unlink(missing_ok=True)
+            logger.info(f"inbox ← {doc_id} entfernt (status={status}) uid={uid}")
+            continue
+
         name = str(data.get("name", "unknown")).replace(" ", "_")
-        inbox_dir = Path.home() / ".aos" / "users" / uid / "fitness" / "inbox"
+        inbox_dir = _inbox_local_dir(uid)
         inbox_dir.mkdir(parents=True, exist_ok=True)
         local = inbox_dir / f"{doc_id}_{name}.json"
-        if local.exists():
-            continue
+        for stale in existing_files:
+            if stale != local:
+                stale.unlink(missing_ok=True)
         out = {k: (ts(v) if hasattr(v, "isoformat") else v) for k, v in data.items()}
         local.write_text(json.dumps(out, indent=2, ensure_ascii=False))
-        logger.success(f"inbox ← {name} ({doc_id}) uid={uid}")
+        logger.success(f"inbox ← {name} ({doc_id}) uid={uid} [{change.type.name.lower()}]")
 
 
 # ── KB Exercises (Coach-Approvals aus dem Firebase-Inbox-Tab) ────────────────

@@ -18,6 +18,7 @@ from watchdog.events import FileSystemEventHandler, FileCreatedEvent
 from fitness.catalog.core.paths import DATA_DIR, runtime_root
 from fitness.catalog.agent.inbox_actions import is_inbox_tombstoned
 from fitness.catalog.api.firestore_push import run_kb_sync
+from fitness.catalog.core.exercise_schema import apply_exercise_schema
 from fitness.catalog.core.resolver import resolve_query, find_by_id, build_exercise_index
 from fitness.catalog.core.rich_utils import setup_logging
 from fitness.catalog.agent.gemini import load_gemini_key, call_gemini
@@ -213,6 +214,7 @@ def save_inbox_draft(target_file: Path, data: dict, description: str):
     enriched_at = datetime.now(timezone.utc).isoformat()
     data["source"] = "unreviewed"
     data["enriched_at"] = enriched_at
+    data = apply_exercise_schema(data, review_status="draft", ai_reviewed=False)
     
     wrapper = {
         "name": target_file.stem,

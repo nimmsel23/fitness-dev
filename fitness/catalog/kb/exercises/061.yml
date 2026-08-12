@@ -1,5 +1,5 @@
 name: '061'
-description: Expert details for Front Squat / Frontkniebeuge.
+description: Expert details for Frontkniebeuge
 exercises:
 - exercise_id: '061'
   id: '061'
@@ -11,9 +11,11 @@ exercises:
   type: compound
   movements:
   - knee_flexion_extension
-  - hip_extension
+  - hip_flexion_extension
   - ankle_dorsiflexion
   - front_rack_bracing
+  - thoracic_extension
+  - spinal_anti_flexion
   equipment:
   - barbell
   - squat_rack
@@ -22,32 +24,56 @@ exercises:
   secondary_muscles:
   - 603_gluteus_maximus
   - 602_adductors
-  - 604_biceps_femoris
-  - 605_semitendinosus
-  - 606_semimembranosus
   stabilizers:
   - 504_transverse_abdominis
   - 501_rectus_abdominis
+  - 507_multifidus
+  - 505_quadratus_lumborum
   - 206_erector_spinae
+  - 202_trapezius_upper
   - 203_trapezius_middle
   - 204_trapezius_lower
   - 205_rhomboids
   - 301_anterior_deltoid
+  - 304_rotator_cuff
   - 608_gluteus_medius
   - 609_gluteus_minimus
-  - 701_gastrocnemius
   - 702_soleus
+  - 701_gastrocnemius
   coaching_notes:
-  - Ellbogen bleiben hoch; sobald sie fallen, rollt die Stange nach vorne und der Squat kippt.
-  - Aufrechter Torso, Knie kontrolliert nach vorne und über die Zehen führen.
-  - Druck über Mittelfuß/Ganzfuß halten, Fersen bleiben am Boden.
-  - Bracing vor jeder Wiederholung setzen; Bauchspannung hält die Front-Rack-Position stabil.
-  - Tiefe nur so weit, wie Sprunggelenk, Hüfte und Rückenposition sauber bleiben.
+  - 'Baue zuerst ein sauberes Front-Rack: Stange liegt auf den vorderen Schultern,
+    nicht in den Händen; Ellbogen aktiv nach vorne-oben führen.'
+  - Atme tief in Bauch und Flanken ein und spanne den Rumpf vor jeder Wiederholung
+    hart an, damit der Oberkörper aufrecht bleibt.
+  - Setze dich zwischen die Hüften, während die Knie kontrolliert nach vorne über
+    die Zehen reisen; so bleibt die Last mittig über dem Fuß.
+  - Halte den Druck über Mittelfuß bis Ferse, ohne die Zehen zu verlieren; der ganze
+    Fuß bleibt belastet.
+  - Denke an Brustbein hoch und oberen Rücken lang, damit die Stange nicht nach vorne
+    abrollt.
+  - Gehe nur so tief, wie du Spannung, neutrale Wirbelsäule und stabile Fußposition
+    halten kannst.
+  - Drücke aus dem tiefsten Punkt gleichzeitig Boden weg und Ellbogen hoch, statt
+    die Hüfte zuerst nach hinten schießen zu lassen.
+  - Wenn Mobilität limitiert ist, priorisiere eine stabile Front-Rack- und Sprunggelenksposition
+    vor zusätzlicher Last.
   common_errors:
-  - Ellbogen fallen lassen und dadurch in eine Good-Morning-Position kippen.
-  - Knie kollabieren nach innen statt über den Zehen zu laufen.
-  - Fersen heben ab, weil Sprunggelenk-Dorsiflexion oder Lastposition fehlen.
-  - Untere Position rebounden, ohne Rumpfspannung und Kniekontrolle zu halten.
+  - Ellbogen sinken ab, wodurch die Stange nach vorne kippt und die Bewegung in eine
+    Good-Morning-Mechanik abrutscht.
+  - Die Hüfte schießt aus dem Loch zuerst hoch, sodass der Oberkörper stark nach vorne
+    fällt.
+  - Knie kollabieren nach innen, statt aktiv über dem zweiten bis dritten Zeh geführt
+    zu werden.
+  - Fersen heben ab oder der Druck wandert nur auf den Vorfuß, meist durch fehlende
+    Dorsalflexion oder verlorene Rumpfspannung.
+  - Die Stange wird mit den Händen getragen, statt auf den Schultern abgelegt zu sein,
+    was Handgelenke unnötig überlastet.
+  - Tiefe wird erzwungen, obwohl Becken, LWS oder Oberkörperposition dabei sichtbar
+    die Spannung verlieren.
+  - Im unteren Umkehrpunkt wird passiv gebounced, ohne Spannung in Rumpf, Fuß und
+    Knielinie zu halten.
+  - Zu frühes Ausatmen in der Aufwärtsphase führt zum Kollaps im Rumpf und zu instabiler
+    Stangenbahn.
   tags:
   - expert
   - legs
@@ -65,7 +91,10 @@ exercises:
   - Vordere Kniebeuge
   search_aliases:
   - front_squat
-  - Front Kniebeuge
+  - barbell_front_squat
+  - front kniebeuge
+  - frontkniebeuge
+  - frontbeuge
   - wger_257
   external_ids:
     wger:
@@ -83,3 +112,20 @@ exercises:
     - 8
     - 6
   source: expert
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: external
+    source_refs:
+      wger:
+      - '257'
+  source_snapshot:
+    wger:
+      wger_id: 257
+      wger_muscle_ids:
+        primary:
+        - 10
+        secondary:
+        - 8
+        - 6
+  review_state:
+    status: approved

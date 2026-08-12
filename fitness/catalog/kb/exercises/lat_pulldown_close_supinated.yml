@@ -1,86 +1,121 @@
 exercise_id: lat_pulldown_close_supinated
-description: Expert details for Enger, supinierter Latzug
+description: Expert details for Enger Latzug im Untergriff
 exercises:
 - exercise_id: lat_pulldown_close_supinated
   id: lat_pulldown_close_supinated
-  name: Close-Grip Latpulldown supiniert
-  display_name: Enger, supinierter Latzug
-  german: Enger, supinierter Latzug
+  wger_id: null
+  name: Enger Latzug im Untergriff
+  display_name: Enger Latzug im Untergriff
+  german: Enger Latzug im Untergriff
+  english: Close-Grip Underhand Lat Pulldown
   category: pull
   type: compound
   movements:
   - vertical
   - shoulder_adduction
+  - shoulder_extension
   - elbow_flexion
   - scapular_depression
+  - scapular_retraction
   - close_grip
   - supinated_grip
   equipment:
   - machine
   - cable
   primary_muscles:
-  - middle_back
-  - bizeps
+  - 201_latissimus_dorsi
+  - 402_biceps_brachii
   secondary_muscles:
-  - upper_back
-  - arms
-  - rhomboids
+  - 207_teres_major
+  - 403_brachialis
+  - 404_brachioradialis
+  - 203_trapezius_middle
+  - 204_trapezius_lower
+  - 205_rhomboids
   stabilizers:
-  - abs
-  - shoulders
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 206_erector_spinae
   coaching_notes:
-  - Nehmen Sie eine stabile Sitzposition ein und fixieren Sie Ihre Knie unter den
-    Polstern.
-  - Lehnen Sie den Oberkörper leicht zurück (ca. 10-15 Grad), um den Lats einen optimalen
-    Bewegungsspielraum zu ermöglichen.
-  - Fassen Sie die enge, supinierte Stange (Untergriff) schulterbreit oder etwas enger.
-    Achten Sie auf einen festen Griff, bei dem die Daumen die Stange vollständig umschließen.
-  - Leiten Sie die Bewegung ein, indem Sie die Schulterblätter aktiv nach unten ziehen
-    (Depression) und zusammenführen (Retraktion).
-  - Ziehen Sie die Stange zur oberen Brust oder zum Brustbein, während Sie die Ellbogen
-    eng am Körper halten und nach unten und leicht nach hinten führen.
-  - Konzentrieren Sie sich darauf, die Bewegung primär aus den Rückenmuskeln zu initiieren,
-    nicht nur aus den Armen.
-  - Halten Sie die maximale Kontraktion am tiefsten Punkt kurz, um die Lats vollständig
-    zu aktivieren.
-  - Lassen Sie die Stange kontrolliert und langsam nach oben steigen, bis die Arme
-    fast vollständig gestreckt sind und Sie eine gute Dehnung in den Lats spüren.
-  - Vermeiden Sie ein vollständiges Aushängen der Schultern am oberen Punkt, um die
-    Spannung in den Muskeln zu halten und die Gelenke zu schonen.
-  - Atmen Sie während der Ziehbewegung (konzentrisch) aus und beim Ablassen der Stange
-    (exzentrisch) ein.
+  - Stellen Sie Sitzhöhe und Kniepolster so ein, dass die Oberschenkel sicher fixiert
+    sind und Sie bei gestreckten Armen die Stange sauber greifen können, ohne aus
+    dem Sitz gezogen zu werden.
+  - Greifen Sie eng im Untergriff. Die Handgelenke bleiben neutral, die Brust ist
+    angehoben und der Kopf bleibt in Verlängerung der Wirbelsäule.
+  - Nehmen Sie nur eine leichte Rücklage ein. Der Oberkörper bleibt während des Satzes
+    weitgehend ruhig, damit der Zug nicht zu einer Rudervariante wird.
+  - 'Beginnen Sie jede Wiederholung mit aktiver Schulterblattdepression: Ziehen Sie
+    die Schultern weg von den Ohren, bevor Sie die Ellbogen beugen.'
+  - Führen Sie die Ellbogen eng am Körper nach unten in Richtung Flanken. Denken Sie
+    daran, die Oberarme nach unten zu ziehen, statt nur die Hände zur Brust zu bewegen.
+  - Ziehen Sie die Stange kontrolliert bis zum oberen Brustbein oder knapp darunter,
+    sofern Sie dabei Brustkorb und Schulterposition stabil halten können.
+  - Halten Sie am unteren Punkt kurz Spannung auf dem Latissimus, ohne in ein Hohlkreuz
+    oder ein starkes Zurücklehnen auszuweichen.
+  - Lassen Sie die Stange exzentrisch langsam ansteigen und geben Sie den Lats am
+    oberen Punkt eine spürbare Dehnung, ohne passiv in die Schultergelenke zu hängen.
+  - Atmen Sie beim Herunterziehen aus und beim kontrollierten Hochlassen ein. Halten
+    Sie den Rumpf über die gesamte Bewegung aktiv angespannt.
+  - Wählen Sie ein Gewicht, bei dem Sie die Schulterblätter kontrollieren und den
+    vollen Bewegungsradius ohne Schwung oder Formverlust halten können.
   common_errors:
-  - '**Schwungholen:** Den Oberkörper zu stark nach hinten lehnen und mit Schwung
-    arbeiten, anstatt die Muskeln isoliert zu nutzen.'
-  - '**Rundrücken:** Die Wirbelsäule krümmen, insbesondere im unteren Rückenbereich,
-    was die Belastung erhöhen kann.'
-  - '**Schulterhochziehen (Shrugging):** Die Schultern in Richtung Ohren ziehen, anstatt
-    sie aktiv nach unten zu drücken und zu stabilisieren.'
-  - '**Nur Armeinsatz:** Die Bewegung primär mit dem Bizeps ausführen, ohne die Lats
-    ausreichend zu aktivieren.'
-  - '**Unkontrollierte Exzentrik:** Die Stange unkontrolliert nach oben schnellen
-    lassen, was das Verletzungsrisiko erhöht und den Trainingseffekt mindert.'
-  - '**Zu viel Gewicht:** Dies führt oft zu einer schlechten Form und verminderter
-    Muskelaktivierung, da Hilfsmuskeln oder Schwung eingesetzt werden.'
+  - Zu starkes Zurücklehnen, wodurch die Übung biomechanisch eher zu einem Kabelrudern
+    wird und der vertikale Zug verloren geht.
+  - Die Bewegung nur aus den Armen einzuleiten, statt zuerst die Schulterblätter nach
+    unten zu setzen und dann die Ellbogen zu führen.
+  - Die Schultern während des Zugs hochzuziehen, was die Spannung vom Latissimus nimmt
+    und den Nacken unnötig belastet.
+  - Die Stange mit Schwung nach unten zu reißen und die exzentrische Phase unkontrolliert
+    nach oben schnellen zu lassen.
+  - Die Handgelenke stark abzuknicken oder den Griff zu verkrampfen, sodass Unterarme
+    und Ellenbogen unnötig überlastet werden.
+  - Die Stange zu tief hinter den Brustkorb zu ziehen und dafür den Brustkorb stark
+    aufzureißen oder ins Hohlkreuz auszuweichen.
+  - Am oberen Punkt passiv in die Schultern zu hängen, anstatt die Dehnung kontrolliert
+    mit stabiler Schulterposition zuzulassen.
+  - Ein zu breiter oder uneinheitlicher Griff, obwohl die Variante gezielt mit engem
+    Untergriff ausgeführt werden soll.
+  - Den Kopf nach vorne zu schieben oder den Nacken zu überstrecken, statt die Halswirbelsäule
+    neutral zu halten.
+  - Zu viel Gewicht zu wählen, sodass Bewegungsradius, Schulterblattkontrolle und
+    Zugrichtung unsauber werden.
   tags:
   - Rücken
-  - Lats
+  - Latissimus
   - Bizeps
   - Vertikaler Zug
   - Maschine
+  - Kabel
   - Untergriff
   - Enger Griff
   - back
+  - lats
+  - biceps
   - vertical_pull
-  - unreviewed
+  - underhand_grip
+  - close_grip
+  - coach_review_draft
   aliases:
-  - Enger Untergriff Latzug
-  - Supinierter Latzug enger Griff
-  - Reverse Grip Close-Grip Lat Pulldown
+  - Enger Untergriff-Latzug
+  - Latzug eng im Untergriff
+  - Supinierter enger Latzug
+  - Close-Grip Supinated Lat Pulldown
+  - Reverse-Grip Close-Grip Lat Pulldown
+  - Close-Grip Supinated Lat Pulldown
   variations: []
   source: expert
-  english: Close-Grip Supinated Lat Pulldown
   search_aliases:
-  - Enger, supinierter Latzug
+  - Enger Latzug im Untergriff
+  - Enger Untergriff-Latzug
+  - Latzug eng im Untergriff
+  - Supinierter enger Latzug
+  - Close-Grip Underhand Lat Pulldown
   - Close-Grip Supinated Lat Pulldown
+  - Reverse-Grip Close-Grip Lat Pulldown
   - Close-Grip Latpulldown supiniert
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: manual
+    source_refs: {}
+  review_state:
+    status: approved

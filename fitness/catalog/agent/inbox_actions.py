@@ -15,6 +15,7 @@ import yaml
 from loguru import logger
 
 from fitness.catalog.core.paths import DATA_DIR
+from fitness.catalog.core.exercise_schema import apply_exercise_schema
 from fitness.catalog.core.muscle_normalization import normalize_exercise_muscles
 from fitness.catalog.core.yaml_utils import load_yaml
 from fitness.catalog.agent.gemini import load_gemini_key, call_enrichment, review_with_haiku, review_with_codex
@@ -506,6 +507,7 @@ def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
     ex["source"] = "expert"
     ex["approved_at"] = approved_at
     _merge_source_refs(f, ex)
+    ex = apply_exercise_schema(ex, review_status="approved", ai_reviewed=True)
 
     detail_path = exercises_dir() / f"{ex_id}.yml"
     if detail_path.exists():
@@ -578,6 +580,12 @@ def reenrich_inbox_entry(
     enriched_at = datetime.now(timezone.utc).isoformat()
     enriched["source"] = "unreviewed"
     enriched["enriched_at"] = enriched_at
+    enriched = apply_exercise_schema(
+        enriched,
+        review_status="draft",
+        review_provider=review_provider,
+        ai_reviewed=bool(review_provider),
+    )
 
     description = (
         f"Reenriched (Coach-Feedback) fuer: {name}" if feedback
@@ -638,6 +646,12 @@ def reenrich_approved_entry(
             enriched[key] = ex.get(key)
     enriched.setdefault("exercise_id", ex_id)
     enriched.setdefault("id", ex.get("id") or ex_id)
+    enriched = apply_exercise_schema(
+        enriched,
+        review_status="approved",
+        review_provider=review_provider,
+        ai_reviewed=(review_provider is not None),
+    )
 
     doc = load_yaml(f)
     doc["description"] = f"Expert details for {display_name_of(enriched, ex_id)}"

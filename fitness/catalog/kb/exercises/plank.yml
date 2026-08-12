@@ -1,62 +1,85 @@
 exercise_id: plank
-description: Expert details for Plank
+description: Expert details for Unterarmstütz
 exercises:
 - exercise_id: plank
   id: plank
   name: Plank
-  display_name: Plank
+  display_name: Unterarmstütz
   german: Unterarmstütz
+  english: Plank
   category: carry
   type: isolation
   movements:
   - anti_extension
   - bracing
   - isometric
+  - scapular_protraction
+  - shoulder_flexion
+  - posterior_pelvic_tilt
   equipment:
   - bodyweight
   primary_muscles:
-  - abs
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
   secondary_muscles:
-  - glutes
-  - lower_back
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 603_gluteus_maximus
   stabilizers:
-  - shoulders
+  - 105_serratus_anterior
+  - 301_anterior_deltoid
+  - 304_rotator_cuff
+  - 206_erector_spinae
+  - 507_multifidus
   coaching_notes:
-  - Konzentrieren Sie sich auf die saubere Ausführung jeder Übung, um maximale Effektivität
-    und Verletzungsprävention zu gewährleisten.
-  - Halten Sie den Rumpf während aller Übungen aktiv angespannt und vermeiden Sie
-    ein Durchhängen des unteren Rückens.
-  - 'Achten Sie auf eine bewusste Atmung: Ausatmen bei Anstrengung, Einatmen beim
-    Entspannen.'
-  - Passen Sie die Intensität und die Auswahl der Übungen Ihrem aktuellen Fitnesslevel
-    an, um Überlastung zu vermeiden und kontinuierlichen Fortschritt zu erzielen.
+  - Spannen Sie Bauch, Gesäß und Oberschenkel gleichzeitig an, als wollten Sie den
+    Boden mit den Unterarmen nach hinten ziehen und die Füße nach vorne schieben.
+  - Halten Sie Kopf, Brustkorb, Becken und Fersen in einer geraden Linie; das Ziel
+    ist Körperspannung, nicht bloß Zeit auf der Uhr.
+  - Kippen Sie das Becken leicht nach hinten, damit der untere Rücken lang bleibt
+    und die Anti-Extensionsarbeit aus der Rumpfmuskulatur kommt.
+  - Drücken Sie die Unterarme aktiv in den Boden und schieben Sie die Schulterblätter
+    kontrolliert nach vorne, damit der obere Rücken stabil bleibt.
+  - Atmen Sie flach und kontrolliert in den Bauch- und Flankenraum, ohne die Spannung
+    im Rumpf zu verlieren.
+  - Beenden Sie den Satz, sobald die Beckenposition oder Rumpfspannung nicht mehr
+    sauber gehalten werden kann.
   common_errors:
-  - Vernachlässigung der Form zugunsten der Geschwindigkeit, was die Effektivität
-    reduziert und das Verletzungsrisiko erhöht.
-  - Ein Hohlkreuz oder Durchhängen des Bauches während stabilisierender Übungen wie
-    Planks.
-  - Unkontrollierte, ruckartige Bewegungen, insbesondere bei Rotationsübungen.
-  - Nur die oberflächlichen Bauchmuskeln zu trainieren und die tiefere Rumpfmuskulatur
-    zu ignorieren.
+  - Das Becken sinkt ab und der untere Rücken fällt ins Hohlkreuz, wodurch die Belastung
+    von der Rumpfmuskulatur auf passive Strukturen verlagert wird.
+  - Das Gesäß wird zu hoch geschoben, sodass die Position eher zu einer Pike als zu
+    einer geraden Plank-Linie wird.
+  - Die Schultern kollabieren zwischen den Oberarmen, weil nicht aktiv in den Boden
+    gedrückt und die Schulterblattspannung verloren wird.
+  - Der Kopf wird angehoben oder fallen gelassen, statt die Halswirbelsäule neutral
+    in Verlängerung der Wirbelsäule zu halten.
+  - Es wird die Luft angehalten, bis die Rumpfspannung zusammenbricht, anstatt unter
+    Spannung kontrolliert weiterzuatmen.
+  - Die Haltedauer wird über Technik priorisiert, obwohl die Übung biomechanisch nur
+    mit sauberer Anti-Extensionskontrolle sinnvoll ist.
   tags:
   - core
-  - hiit
   - abs
   - stability
   - bodyweight_workout
   - trunk
   - anti_extension
-  - unreviewed
+  - isometric
   aliases:
-  - Ab-HIIT-Training
-  - Intensives Rumpftraining
-  - Bauchmuskel-HIIT
-  - Unterarmstütz
+  - Plank
   - Front Plank
-  - Core HIIT Workout
+  - Unterarmstütz
+  - Forearm Plank
   variations: []
   source: expert
-  english: Plank
   search_aliases:
   - Plank
+  - Front Plank
+  - Forearm Plank
   - Unterarmstütz
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: manual
+    source_refs: {}
+  review_state:
+    status: approved

@@ -5,94 +5,95 @@ exercises:
 - exercise_id: wger_1507
   display_name: Liegestütz mit Klatschen
   german: Liegestütz mit Klatschen
-  english: Clap Push-up
+  english: Clap Push-Up
   category: push
   primary_muscles:
-  - chest
-  - shoulders
-  - triceps
+  - 101_pectoralis_major
+  - 401_triceps_brachii
+  - 301_anterior_deltoid
   secondary_muscles:
-  - serratus_anterior
+  - 105_serratus_anterior
+  - 304_rotator_cuff
   stabilizers:
-  - core
-  - glutes
-  - quadriceps
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 603_gluteus_maximus
+  - 601_quadriceps_femoris
+  - 507_multifidus
   equipment:
   - none
   coaching_notes:
-  - Der Liegestütz mit Klatschen ist eine fortgeschrittene, plyometrische Oberkörperübung,
-    die darauf abzielt, explosive Kraft, Schnellkraft und reaktive Fähigkeiten in
-    der Brust-, Schulter- und Trizepsmuskulatur zu entwickeln, während der Rumpf maximal
-    stabilisiert wird.
-  - 'Beginne in einer präzisen und stabilen Liegestützposition: Die Hände sind etwas
-    breiter als schulterbreit positioniert, die Finger zeigen nach vorne und die Handflächen
-    sind fest im Boden verankert. Die Schultern befinden sich direkt über den Händen.
-    Der Körper bildet eine absolut gerade Linie von Kopf bis zu den Fersen. Aktiviere
-    bewusst den Rumpf (Bauchnabel zur Wirbelsäule ziehen) und spanne das Gesäß fest
-    an, um ein Durchhängen des Rückens zu verhindern. Der Nacken bleibt neutral, der
-    Blick ist leicht nach vorne unten gerichtet.'
-  - Senke deinen Körper kontrolliert und mit maximaler Körperspannung ab. Achte darauf,
-    dass die Ellbogen in einem Winkel von etwa 45 bis 60 Grad zum Körper zeigen, um
-    die Schultergelenke zu schonen und die Brustmuskulatur optimal zu aktivieren.
-    Gehe so tief, bis deine Brust knapp über dem Boden schwebt oder diesen leicht
-    berührt, ohne die Körperspannung zu verlieren.
-  - Aus der untersten Position drückst du dich nun mit maximaler explosiver Kraft
-    vom Boden ab. Ziel ist es, den Oberkörper so stark zu beschleunigen, dass beide
-    Hände vollständig den Boden verlassen und du ausreichend Zeit für den Klatsch
-    hast.
-  - Führe während der kurzen Flugphase schnell einen präzisen Klatsch vor der Brust
-    aus. Konzentriere dich dabei auf die Geschwindigkeit und die Effizienz der Bewegung,
-    um die Flugzeit optimal zu nutzen.
-  - Lande federnd und kontrolliert auf den Händen. Die Ellbogen sollten dabei leicht
-    gebeugt sein, um den Aufprallstoß abzufedern und die Gelenke (Handgelenke, Ellbogen,
-    Schultern) zu schützen. Nutze die Landeenergie sofort, um fließend und reaktiv
-    in die nächste Wiederholung überzugehen und den plyometrischen Zyklus aufrechtzuerhalten.
-    Dies ist entscheidend für die Entwicklung von Schnellkraft und die Optimierung
-    des Dehnungs-Verkürzungs-Zyklus.
-  - Der Fokus liegt auf der maximalen Beschleunigung des Körpers nach oben und einer
-    effizienten, reaktiven Landung, um das volle Potenzial der Übung auszuschöpfen
-    und die Bodenkontaktzeit zu minimieren.
+  - 'Baue jede Wiederholung aus einer sauberen hohen Liegestützposition auf: Hände
+    etwa schulterbreit bis leicht breiter, Finger nach vorn, Schultern über den Händen.
+    Kopf, Brustkorb, Becken, Knie und Fersen bleiben in einer geraden Linie.'
+  - Erzeuge vor dem Absenken Ganzkörperspannung. Spanne Bauch, Gesäß und Oberschenkel
+    aktiv an, ziehe die Rippen kontrolliert nach unten und halte die Halswirbelsäule
+    neutral. Je besser die Rumpfspannung, desto sauberer wird die Kraft in den Boden
+    übertragen.
+  - Senke dich kontrolliert ab, bis die Brust knapp über dem Boden ist. Die Ellbogen
+    zeigen dabei nicht starr nach außen, sondern ungefähr 30 bis 60 Grad zur Körperseite,
+    damit Schulter und Brust günstig zusammenarbeiten.
+  - Nutze unten keinen passiven Kollaps. Wechsle zügig, aber kontrolliert aus der
+    Bremsphase in den explosiven Abdruck. Ziel ist nicht nur hochzukommen, sondern
+    den Boden maximal schnell wegzudrücken.
+  - Drücke dich so explosiv ab, dass beide Hände klar den Boden verlassen. Der Klatscher
+    ist nur das sichtbare Ergebnis eines starken Abdrucks; der eigentliche Trainingsfokus
+    liegt auf Schnellkraft und Rate of Force Development im gesamten Push-Muster.
+  - Halte den Körper auch in der Flugphase lang und stabil. Vermeide es, in der Luft
+    die Hüfte einzuknicken oder die Beine unruhig werden zu lassen. Der Rumpf bleibt
+    fest, damit du in derselben Linie wieder landest.
+  - Lande aktiv und weich über die ganze Handfläche. Fange den Aufprall mit leicht
+    gebeugten Ellbogen ab, ohne in den Schultergürtel einzusacken. Die Landung soll
+    kontrolliert, leise und reaktiv sein.
+  - 'Lass die Schulterblätter natürlich arbeiten: In der Druckphase dürfen sie aktiv
+    nach vorn gleiten, ohne dass du die Schultern zu den Ohren ziehst. So unterstützt
+    du Serratus anterior und eine stabile Schultermechanik.'
+  - Beende den Satz, sobald Explosivität, Körperspannung oder Landekontrolle deutlich
+    nachlassen. Bei plyometrischen Liegestützvarianten zählt Wiederholungsqualität
+    klar mehr als Ermüdung.
+  - Als Progression eignet sich zunächst der explosive Liegestütz ohne Klatschen oder
+    mit erhöhter Handposition. Erst wenn Höhe, Landung und Rumpfkontrolle konsistent
+    sauber sind, ist der Klatscher sinnvoll.
   common_errors:
-  - 'Mangelnde Rumpfspannung und Instabilität: Ein Durchhängen des unteren Rückens
-    (Hohlkreuz) oder ein zu starkes Anheben des Gesäßes (Pike-Position) signalisiert
-    eine unzureichende Rumpfstabilisation. Dies beeinträchtigt nicht nur die Kraftübertragung
-    und die Effektivität der Übung, sondern erhöht auch das Risiko für Wirbelsäulenverletzungen.
-    Halte den Rumpf und das Gesäß während der gesamten Bewegung fest angespannt, um
-    eine neutrale und stabile Wirbelsäulenposition zu gewährleisten.'
-  - 'Unkontrollierte oder harte Landung: Ein abruptes und ungedämpftes Aufkommen auf
-    den Handgelenken oder Schultern belastet die Gelenke übermäßig und kann zu akuten
-    Verletzungen oder langfristigen Problemen führen. Lande bewusst mit leicht gebeugten
-    Ellbogen, um den Aufprall abzufedern und die kinetische Energie für die nächste
-    explosive Wiederholung optimal zu nutzen. Die Landung sollte ''weich'' und geräuscharm
-    sein, vergleichbar mit dem Aufsetzen einer Katze.'
-  - 'Unzureichende explosive Kraft für den Klatsch: Wenn die Hände den Boden nicht
-    vollständig verlassen oder der Klatsch nicht ausgeführt werden kann, fehlt es
-    an der erforderlichen Schnellkraft. Dies mindert den plyometrischen Trainingseffekt.
-    Konzentriere dich darauf, dich mit maximaler Intention und Geschwindigkeit vom
-    Boden abzustoßen. Gegebenenfalls sollte eine Progression gewählt werden, z.B.
-    ein explosiver Liegestütz ohne Klatsch oder von den Knien.'
-  - 'Verkürzter Bewegungsumfang: Den Körper nicht tief genug abzusenken oder den explosiven
-    Teil der Bewegung zu verkürzen, reduziert den Trainingsreiz für die Zielmuskulatur
-    erheblich und limitiert die Entwicklung der Schnellkraft. Achte auf den vollen
-    Bewegungsumfang, sowohl in der Abwärts- als auch in der Aufwärtsphase, um die
-    maximale Muskelaktivierung und den größten Kraftoutput zu erreichen.'
-  - 'Falsche Ellbogenposition (Ellbogen zu weit außen): Ellbogen, die im 90-Grad-Winkel
-    seitlich nach außen zeigen, überlasten die Schultergelenke (Impingement-Risiko)
-    und verlagern den Fokus unnötig von der Brust weg. Halte die Ellbogen näher am
-    Körper (ca. 45-60 Grad), um die Brustmuskulatur effektiver zu aktivieren und die
-    Schultern zu schützen.'
-  - 'Unzureichende Federung und Reaktivität: Wenn nach der Landung eine Pause eingelegt
-    wird, anstatt direkt in die nächste Wiederholung überzugehen, geht der plyometrische
-    Effekt des Dehnungs-Verkürzungs-Zyklus verloren. Ziel ist es, die Bodenkontaktzeit
-    zu minimieren und die Energie der Landung unmittelbar in den nächsten Abstoß umzuwandeln,
-    um die maximale reaktive Kraft zu trainieren.'
+  - Die Hüfte hängt durch oder schiebt sich nach oben. Dadurch geht die starre Körperlinie
+    verloren, die Kraftübertragung wird schlechter und die Lendenwirbelsäule unnötig
+    belastet.
+  - Es wird zu wenig explosiv gedrückt, sodass die Hände den Boden kaum verlassen.
+    Dann wird der Klatscher hektisch erzwungen statt durch einen echten Schnellkraftimpuls
+    ermöglicht.
+  - Die Landung erfolgt hart mit gestreckten oder fast gestreckten Ellbogen. Das erhöht
+    die Stoßbelastung auf Handgelenke, Ellbogen und Schultern deutlich.
+  - Die Ellbogen flaren seitlich fast auf 90 Grad auf. Das verschlechtert meist die
+    Schulterposition und nimmt der Bewegung die stabile Druckbahn.
+  - Der Athlet fällt in der exzentrischen Phase einfach nach unten, statt Spannung
+    zu halten und den Richtungswechsel vorzubereiten. So geht Kontrolle verloren und
+    die Reaktivkraft wird schlechter genutzt.
+  - Zwischen Landung und nächstem Abdruck entsteht eine deutliche Pause. Damit geht
+    der plyometrische Charakter verloren, weil der Dehnungs-Verkürzungs-Zyklus nicht
+    mehr effektiv genutzt wird.
+  - Der Kopf wird vorgeschoben oder die Halswirbelsäule überstreckt, um scheinbar
+    früher vom Boden wegzukommen. Das verschlechtert die Gesamtausrichtung des Körpers.
+  - Die Schultern werden in der Landung hochgezogen und der Oberkörper sackt zwischen
+    den Armen ein. Das reduziert die aktive Schulterstabilität und macht die Wiederholung
+    unsauber.
+  - Der Bewegungsumfang wird verkürzt, indem nur halbe Wiederholungen ausgeführt werden.
+    Ohne ausreichende Tiefe sinken mechanische Spannung und Trainingsreiz für Brust,
+    Trizeps und vordere Schulter.
+  - Es wird trotz nachlassender Höhe und Kontrolle weitergemacht. Bei dieser Übung
+    ist das ein typischer Qualitätsfehler, weil Explosivität und sichere Landung der
+    Kern der Ausführung sind.
   movements:
   - horizontal_push
   - plyometric
+  - explosive_concentric
+  - reactive_strength
   - elbow_extension
-  - shoulder_adduction
+  - shoulder_horizontal_adduction
   - scapular_protraction
-  - shoulder_flexion
+  - closed_chain
+  - anti_extension
   tags:
   - unreviewed
   - wger
@@ -108,7 +109,7 @@ exercises:
     - 5
   source: expert
   variations: []
-  enriched_at: '2026-08-06T14:00:45.817859+00:00'
+  enriched_at: '2026-08-12T00:00:00+02:00'
   approved_at: '2026-08-06T14:46:47.488621+00:00'
   external_ids:
     wger:
@@ -116,4 +117,27 @@ exercises:
   search_aliases:
   - wger_1507
   - Liegestütz mit Klatschen
-  - Clap Push-up
+  - Clap Push-Up
+  - Clapping Push-Up
+  - Plyometric Push-Up
+  id: wger_1507
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: external
+    source_refs:
+      wger:
+      - '1507'
+  source_snapshot:
+    wger:
+      wger_id: 1507
+      wger_muscle_ids:
+        primary:
+        - 4
+        secondary:
+        - 2
+        - 6
+        - 5
+  review_state:
+    status: approved
+    enriched_at: '2026-08-12T00:00:00+02:00'
+    approved_at: '2026-08-06T14:46:47.488621+00:00'

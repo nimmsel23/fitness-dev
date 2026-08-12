@@ -12,44 +12,57 @@ exercises:
   secondary_muscles:
   - 301_anterior_deltoid
   stabilizers:
-  - abs
-  - shoulders
+  - 304_rotator_cuff
+  - 203_trapezius_middle
+  - 205_rhomboids
   equipment:
   - Machine
   movements:
-  - shoulder_adduction
   - horizontal_adduction
-  - scapular_protraction
-  - scapular_retraction
+  - shoulder_horizontal_adduction
+  - scapular_stability
   - joint_isolation
+  - controlled_eccentric
   coaching_notes:
-  - Stellen Sie die Maschine so ein, dass Ihre Schultern auf Höhe der Drehachse liegen
-    und Ihre Füße flach auf dem Boden stehen.
-  - Halten Sie Ihren Rücken während der gesamten Übung fest an der Rückenlehne.
-  - Fassen Sie die Griffe mit einem leichten Griff, die Ellenbogen sind leicht gebeugt
-    und bleiben in dieser Position fixiert.
-  - Atmen Sie aus und führen Sie die Griffe kontrolliert vor Ihrer Brust zusammen,
-    während Sie Ihre Brustmuskulatur bewusst anspannen.
-  - Halten Sie die Kontraktion einen Moment und führen Sie die Griffe dann langsam
-    und kontrolliert zurück in die Ausgangsposition, um eine gute Dehnung in der Brust
-    zu spüren.
-  - Vermeiden Sie es, die Griffe am Ende der Bewegung zu überkreuzen, um die Spannung
-    in den Brustmuskeln zu halten.
-  - Führen Sie die Bewegung flüssig und ohne Schwung aus, um die Zielmuskulatur optimal
-    zu isolieren.
+  - Stellen Sie Sitz und Griffposition so ein, dass die Hände beziehungsweise Unterarme
+    auf Höhe der Brustmitte arbeiten und die Schultergelenke sauber mit der Maschinenachse
+    fluchten.
+  - Setzen Sie sich aufrecht an, halten Sie Brustbein angehoben und den oberen Rücken
+    stabil an der Lehne, ohne ins Hohlkreuz auszuweichen.
+  - Ziehen Sie die Schultern sanft nach unten und hinten und behalten Sie diese Spannung,
+    damit die Brustmuskulatur die Bewegung führt und nicht der Nacken.
+  - Halten Sie die Ellenbogen leicht gebeugt und lassen Sie diesen Winkel während
+    des gesamten Satzes nahezu unverändert, damit die Übung eine echte Fly- und keine
+    Druckbewegung bleibt.
+  - Führen Sie die Arme in einem gleichmäßigen Bogen vor dem Körper zusammen und denken
+    Sie daran, die Oberarme zueinander zu führen statt die Griffe nur mit den Händen
+    nach innen zu ziehen.
+  - Atmen Sie beim Zusammenführen aus und spannen Sie die Brust in der Endposition
+    aktiv an, ohne die Spannung durch Anschlagen der Gewichte oder hektisches Überkreuzen
+    zu verlieren.
+  - Senken Sie das Gewicht langsam und kontrolliert ab, bis eine deutliche, aber schmerzfreie
+    Dehnung in der Brust entsteht, ohne die Schulter nach vorn kippen zu lassen.
+  - Wählen Sie ein Gewicht, mit dem Sie die Zielmuskulatur klar spüren und die exzentrische
+    Phase sauber bremsen können; Qualität der Spannung ist hier wichtiger als Last.
   common_errors:
-  - '**Zu hohes Gewicht:** Führt oft dazu, dass andere Muskeln (z.B. Schultern oder
-    Arme) die Arbeit übernehmen oder der Rücken von der Lehne abhebt.'
-  - '**Ellenbogen durchgedrückt:** Dies belastet die Ellenbogengelenke unnötig und
-    kann zu Verletzungen führen; die Ellenbogen sollten immer leicht gebeugt bleiben.'
-  - '**Schultern hochgezogen (Shrugging):** Aktiviert den oberen Trapezius anstatt
-    der Brust und kann zu Nacken- oder Schulterschmerzen führen.'
-  - '**Kurzer Bewegungsumfang:** Wenn die Bewegung zu früh gestoppt wird, wird die
-    Brustmuskulatur nicht vollständig gedehnt und kontrahiert.'
-  - '**Ruckartige Bewegungen:** Verringert die effektive Muskelspannung und erhöht
-    das Verletzungsrisiko, insbesondere an den Schultern.'
-  - '**Hüfte von der Bank abgehoben:** Ein Verlust der stabilen Position, der die
-    Effektivität der Übung reduziert und den unteren Rücken unnötig belastet.'
+  - Zu schweres Gewicht verlagert die Arbeit von der Brust auf vordere Schulter, Arme
+    und Schwung und verschlechtert die Gelenkposition.
+  - Durchgedrückte oder sich stark verändernde Ellenbogen machen aus dem Butterfly
+    eine Mischform aus Fly und Press und erhöhen unnötig die Belastung auf Ellenbogen
+    und Schulter.
+  - Nach vorn gezogene oder hochgezogene Schultern reduzieren die Brustarbeit und
+    provozieren oft Druckgefühl im vorderen Schulterbereich oder im Nacken.
+  - Zu kurzer Bewegungsumfang nimmt sowohl die Dehnung als auch die Endkontraktion
+    aus der Übung und verschenkt einen großen Teil des Trainingsreizes.
+  - Zu tiefes Zurückführen trotz fehlender Beweglichkeit kann die vordere Schulter
+    überlasten; die Dehnung soll kontrolliert und schmerzfrei bleiben.
+  - Gewichte abprallen lassen oder die Wiederholung mit Schwung einleiten nimmt Spannung
+    aus dem Zielmuskel und erhöht die Belastung auf passive Strukturen.
+  - Mit den Händen ziehen statt die Oberarme aktiv zusammenzuführen verschiebt den
+    Fokus weg von der Brust und macht die Ausführung unpräzise.
+  - Den Rücken von der Lehne lösen oder den Brustkorb übermäßig nach vorne schieben,
+    um mehr Range of Motion zu erzwingen, verfälscht die Bewegung und mindert die
+    Isolation.
   tags:
   - unreviewed
   - wger
@@ -70,3 +83,21 @@ exercises:
   - wger_926
   - Butterfly an der Maschine
   - Machine Chest Fly
+  id: wger_926
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: external
+    source_refs:
+      wger:
+      - '926'
+  source_snapshot:
+    wger:
+      wger_id: 926
+      wger_muscle_ids:
+        primary:
+        - 4
+        secondary: []
+  review_state:
+    status: approved
+    enriched_at: '2026-07-28T06:01:48.874486+00:00'
+    approved_at: '2026-07-28T06:03:36.274707+00:00'

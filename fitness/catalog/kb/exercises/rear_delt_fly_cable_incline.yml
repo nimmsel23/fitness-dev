@@ -1,12 +1,13 @@
 exercise_id: rear_delt_fly_cable_incline
-description: Expert details for Vorgebeugte Kabel Rear Delt Flys
+description: Expert details for Vorgebeugtes Kabel Reverse Fly
 exercises:
 - exercise_id: rear_delt_fly_cable_incline
+  wger_id: null
   id: rear_delt_fly_cable_incline
-  name: Vorgebeugte Kabel Rear Delt Flys
-  display_name: Vorgebeugte Kabel Rear Delt Flys
-  german: Vorgebeugte Kabel Rear Delt Flys
-  english: Cable Rear Delt Fly
+  name: Vorgebeugtes Kabel Reverse Fly
+  display_name: Vorgebeugtes Kabel Reverse Fly
+  german: Vorgebeugtes Kabel Reverse Fly
+  english: Bent-Over Cable Rear Delt Fly
   category: pull
   type: isolation
   movements:
@@ -16,48 +17,83 @@ exercises:
   equipment:
   - cable
   primary_muscles:
-  - shoulders
+  - 303_posterior_deltoid
   secondary_muscles:
-  - upper_back
-  - rhomboids
+  - 205_rhomboids
+  - 203_trapezius_middle
+  - 306_infraspinatus
+  - 307_teres_minor
   stabilizers:
-  - abs
+  - 504_transverse_abdominis
+  - 206_erector_spinae
+  - 507_multifidus
+  - 405_forearm_flexors
   coaching_notes:
-  - Oberkörper mindestens 45° nach vorne beugen — das optimiert den Hebelarm auf den
-    hinteren Deltoid.
-  - Ellbogen leicht gebeugt halten (ca. 10–15°) und diese Position durchgehend beibehalten.
-  - Mit den hinteren Delts ziehen, nicht mit den Unterarmen — Fokus auf Schulterbewegung.
-  - Arme bis etwa Schulterhöhe heben; nicht höher hinaus.
-  - Am obersten Punkt kurz halten und den hinteren Deltoid bewusst anspannen.
-  - Volle Dehnung am unteren Punkt — aber nicht mit Schwung, sondern kontrolliert.
-  - Gewicht moderat wählen um Kontrolle zu garantieren; Form > Gewicht.
-  - Die Vornbeuge engagiert auch Rumpf und Hamstrings — diese Stabilität nutzen, nicht
-    verlieren.
+  - Stelle die Kabel tief ein und nimm eine stabile vorgebeugte Position ein, sodass
+    der Oberkörper klar nach vorne geneigt bleibt und der Zug sauber auf den hinteren
+    Delt trifft.
+  - Halte Brustbein lang, Bauch fest und Wirbelsäule neutral; die Bewegung kommt aus
+    dem Schultergelenk, nicht aus Schwung im Rumpf.
+  - Führe die Arme mit leicht gebeugten Ellbogen nach außen hinten und halte diesen
+    Ellbogenwinkel über die ganze Wiederholung konstant.
+  - Denke daran, die Oberarme auseinanderzuziehen, statt die Griffe mit den Händen
+    nach hinten zu reißen; so bleibt die Spannung auf dem hinteren Deltoid.
+  - Ziehe bis ungefähr auf Schulterlinie oder knapp darunter und stoppe dort, wo du
+    den hinteren Delt maximal spürst, ohne ins Hohlkreuz oder Schulterzucken zu fallen.
+  - Lass die Schulterblätter kontrolliert mitarbeiten, aber übertreibe die Retraktion
+    nicht; zuerst soll der hintere Delt die Bewegung einleiten.
+  - Nutze am unteren Punkt die gedehnte Position bewusst und kehre kontrolliert um,
+    ohne die Gewichte aufeinanderprallen zu lassen.
+  - Wähle ein Gewicht, das dir saubere Wiederholungen mit klarer Endposition erlaubt;
+    bei Rear-Delt-Arbeit ist lokale Kontrolle wichtiger als Last.
+  - Halte den Nacken lang und die Schultern weg von den Ohren, damit der obere Trapez
+    nicht die Arbeit des hinteren Deltoids übernimmt.
+  - Atme ruhig, brace den Rumpf vor jeder Wiederholung und halte die Körperposition
+    von der ersten bis zur letzten Wiederholung identisch.
   common_errors:
-  - Zu viel Schwung/Momentum statt kontrollierter Bewegung — führt zu schlechter Muskelaktivation.
-  - Ellbogen zu stark gebeugt oder zu stark gestreckt — sollten konstant leicht bent
-    sein.
-  - Oberarme zu tief hängen lassen — sollten nie unter Schulterhöhe gehen.
-  - Mit Unterarmen/Händen ziehen statt mit Schultergelenk — reduziert Deltoid-Belastung.
-  - Zu viel Gewicht, das zur Kompensation mit Rumpf führt — Form leiden lassen.
-  - Oberkörper nicht ausreichend gebeugt — reduziert Dehnung und Kontraktion des Posterior
-    Delt.
+  - Zu aufrechter Oberkörper, wodurch die Übung eher in Richtung oberer Rücken statt
+    hinterer Schulter verschoben wird.
+  - Schwung aus Hüfte oder Rücken holen, um die Griffe zu beschleunigen, statt die
+    Wiederholung muskulär zu kontrollieren.
+  - Die Schultern hochziehen und damit den oberen Trapez dominieren lassen.
+  - Die Ellbogen während der Bewegung stark beugen oder strecken, sodass aus dem Fly
+    eine andere Zugbewegung wird.
+  - Mit den Händen ziehen, statt die Oberarme zu führen; dadurch sinkt die Spannung
+    auf dem hinteren Deltoid.
+  - Zu weit nach hinten ziehen und dabei ins Hohlkreuz gehen oder die Rippen aufklappen.
+  - Die exzentrische Phase fallen lassen und die Spannung am unteren Punkt verlieren.
+  - Zu viel Gewicht wählen und deshalb nur halbe Wiederholungen oder unsaubere Endpositionen
+    erreichen.
+  - Die Schulterblätter sofort maximal zusammenpressen, sodass die Bewegung aus dem
+    Rücken statt aus dem Schultergelenk gestartet wird.
+  - Den Kopf nach vorne schieben oder den Nacken verspannen, anstatt die Halswirbelsäule
+    neutral zu halten.
   tags:
   - shoulder
   - isolation
   - rear_deltoid
-  - posterior_chain
+  - posterior_deltoid
   - cable_machine
   - hypertrophy
-  - shoulders
+  - pull
   - horizontal_abduction
-  - unreviewed
   aliases:
-  - Kabel Rear Delt Fly vorgebeugt
-  - Incline Cable Fly
-  - Bent-Over Fly Cable
+  - Kabel Reverse Fly vorgebeugt
+  - Vorgebeugtes Kabel Rear Delt Fly
+  - Vorgebeugtes Kabel Reverse Flys
+  - Bent-Over Cable Reverse Fly
+  - Cable Rear Delt Fly
+  - Cable Reverse Fly
   variations: []
   source: expert
   search_aliases:
-  - Vorgebeugte Kabel Rear Delt Flys
+  - Vorgebeugtes Kabel Reverse Fly
+  - Bent-Over Cable Rear Delt Fly
   - Cable Rear Delt Fly
+  - Kabel Reverse Fly vorgebeugt
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: manual
+    source_refs: {}
+  review_state:
+    status: approved

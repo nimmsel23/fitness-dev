@@ -1,12 +1,13 @@
 exercise_id: reissen_und_umsetzen
-description: Expert details for Reissen und Umsetzen
+description: Expert details for Umsetzen und Stoßen
 exercises:
 - exercise_id: reissen_und_umsetzen
+  wger_id: null
   id: reissen_und_umsetzen
-  name: Reissen und Umsetzen
-  display_name: Reissen und Umsetzen
-  german: Reissen und Umsetzen
-  english: Clean and Snatch
+  name: Umsetzen und Stoßen
+  display_name: Umsetzen und Stoßen
+  german: Umsetzen und Stoßen
+  english: Clean and Jerk
   category: pull
   type: compound
   movements:
@@ -14,57 +15,88 @@ exercises:
   - triple_extension
   - hip_extension
   - knee_extension
+  - ankle_plantarflexion
+  - shrug
   - front_rack_catch
+  - dip_drive
+  - overhead_press
+  - overhead_lockout
+  - split_stance
   equipment:
   - barbell
   primary_muscles:
-  - quadriceps
-  - glutes
-  - shoulders
-  - upper_back
+  - 601_quadriceps_femoris
+  - 603_gluteus_maximus
+  - 202_trapezius_upper
+  - 401_triceps_brachii
   secondary_muscles:
-  - hamstrings
-  - lower_back
-  - arms
-  - calves
+  - 604_biceps_femoris
+  - 605_semitendinosus
+  - 606_semimembranosus
+  - 206_erector_spinae
+  - 301_anterior_deltoid
+  - 203_trapezius_middle
+  - 701_gastrocnemius
+  - 702_soleus
   stabilizers:
-  - abs
+  - 504_transverse_abdominis
+  - 507_multifidus
+  - 304_rotator_cuff
+  - 608_gluteus_medius
+  - 505_quadratus_lumborum
   coaching_notes:
-  - 'Zweiphasige Bewegung: Clean (Reissen) vom Boden zur Schulter in einer flüssigen
-    Zugbewegung, Dip in die Knie, dann Jerk (Umsetzen) mit Beinarbeit explosiv über
-    den Kopf stoßen'
-  - Der Power muss aus den Beinen kommen - Hüft- und Bein-Extension sind der Motor
-    für beide Phasen
-  - 'Beim Jerk: Schnelle Beinarbeit (Split oder Power Position) um unter das Gewicht
-    zu gehen, nicht das Gewicht nach oben zu drücken'
-  - Full-Body-Stabilität erforderlich - Core muss rigide gegen Scherkräfte stabilisieren,
-    besonders in der Overhead-Position
-  - Nur für geüpfte Lifter geeignet - Olympisches Gewichtheben erfordert extensive
-    Technik-Schulung und progressives Ladungstraining
+  - 'Starte mit engem Kontakt zur Hantel: Mittelfuß unter der Stange, Brust angehoben,
+    Latissimus angespannt und der Oberkörperwinkel im ersten Zug möglichst konstant.'
+  - Beschleunige die Hantel aus den Beinen und der Hüfte, nicht aus den Armen. Die
+    Arme bleiben im Zug lang, bis die Streckung in Sprunggelenk, Knie und Hüfte abgeschlossen
+    ist.
+  - Im Umsetzen die Ellenbogen schnell und aggressiv nach vorn bringen, damit die
+    Hantel sauber auf den Schultern im Front Rack landet und nicht in den Händen hängen
+    bleibt.
+  - Für den Stoß zuerst einen kontrollierten, geraden Dip ausführen, dann explosiv
+    vertikal treiben. Der Impuls kommt aus den Beinen; die Arme vollenden nur die
+    Fixierung über Kopf.
+  - 'Überkopf eine stabile Linie herstellen: Stange über Mittelfuß, Rippen unten,
+    Gesäß angespannt und Schultergürtel aktiv nach oben rotiert. Erst vollständig
+    kontrollieren, dann die Füße wieder zusammenführen.'
+  - Die Bewegung ist hochtechnisch und ermüdungssensibel. Last nur steigern, wenn
+    Startposition, Rack-Position und Overhead-Fixierung unter Geschwindigkeit reproduzierbar
+    sauber bleiben.
   common_errors:
-  - Zu langsamer/zu niedriger Pull - Clean muss explosiv sein, nicht graduel
-  - Unzureichende Beinarbeit beim Jerk - versuchen, das Gewicht nur mit Armen zu stoßen
-    statt unter das Gewicht zu gehen
-  - Rumpf-Stabilität verlieren in der Overhead-Position - resuliert in Shoulder-Impingement
-    oder Verletzung
-  - Unausreichende Mobility - eingeschränkete Schulter-/Hüft-Mobilität verhindert
-    sichere Position
-  - Zu schweres Gewicht für Technik-Level - verursacht form-Breakdown und Verletzungsrisiko
+  - Die Hantel zu früh mit den Armen reißen, wodurch der Beinschub verloren geht und
+    der Zugweg unruhig oder bogenförmig wird.
+  - Im ersten Zug die Hüfte zu schnell hochschieben, sodass der Oberkörper nach vorn
+    kippt und die Hantel vom Körper wegdriftet.
+  - Im Clean die Ellenbogen zu langsam nach vorn bringen; dadurch crasht die Hantel
+    auf die Schultern oder wird unsauber mit den Händen gefangen.
+  - Im Jerk nach vorn oder nach hinten dippen statt senkrecht, was den Kraftvektor
+    verschiebt und die Hantel aus der idealen Überkopf-Linie bringt.
+  - Den Stoß mit den Armen ausdrücken zu wollen, anstatt aktiv unter die Hantel zu
+    gehen; das limitiert die Last und macht die Fixierung instabil.
+  - Überkopf in ein Hohlkreuz fallen oder den Rumpf nicht verspannen, wodurch die
+    Lendenwirbelsäule ausweicht und die Schulterposition unsicher wird.
   tags:
   - olympic_lifting
+  - olympic_lift
   - explosive
   - full_body
   - power
   - coordination
   - technical
-  - legs
-  - olympic_lift
-  - unreviewed
   aliases:
   - clean_and_jerk
   - C&J
+  - umsetzen_und_stossen
   variations: []
   source: expert
   search_aliases:
-  - Reissen und Umsetzen
-  - Clean and Snatch
+  - Umsetzen und Stoßen
+  - Umsetzen und Stossen
+  - Clean and Jerk
+  - C&J
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: manual
+    source_refs: {}
+  review_state:
+    status: approved

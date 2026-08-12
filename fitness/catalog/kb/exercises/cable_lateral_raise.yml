@@ -1,58 +1,83 @@
 exercise_id: cable_lateral_raise
-description: Expert details for Seitheben am Seilzug
+description: Expert details for Seitheben am Kabelzug
 exercises:
 - exercise_id: cable_lateral_raise
   id: cable_lateral_raise
-  name: Seitheben am Seilzug
-  display_name: Seitheben am Seilzug
-  german: Seitheben am Seilzug
+  name: Seitheben am Kabelzug
+  display_name: Seitheben am Kabelzug
+  german: Seitheben am Kabelzug
   english: Cable Lateral Raise
   category: push
   type: isolation
   movements:
   - shoulder_abduction
+  - scapular_upward_rotation
   - scapular_control
+  - glenohumeral_stability
+  - anti_lateral_flexion
   equipment:
   - cable
   primary_muscles:
   - 302_lateral_deltoid
   secondary_muscles:
-  - 301_anterior_deltoid
   - 305_supraspinatus
+  - 301_anterior_deltoid
   stabilizers:
-  - 504_transverse_abdominis
-  - 501_rectus_abdominis
-  - 203_trapezius_middle
+  - 304_rotator_cuff
+  - 202_trapezius_upper
   - 204_trapezius_lower
+  - 105_serratus_anterior
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 608_gluteus_medius
   coaching_notes:
-  - Halte eine leichte, aber fixe Beugung (ca. 10-20°) in den Ellbogen. Diese Armposition
-    bleibt während der gesamten Bewegung statisch.
-  - Führe die Bewegung bewusst mit den Ellbogen an. Die Hände und Handgelenke bleiben
-    neutral und stabil, ohne zu rotieren oder zu knicken.
-  - Positioniere den Seilzug so, dass der Widerstand optimal auf den seitlichen Deltoid
-    wirkt – idealerweise auf Knie- oder Hüfthöhe.
-  - Hebe das Gewicht kontrolliert und ohne jeglichen Schwung seitlich bis auf Schulterhöhe
-    an.
-  - Halte die Spitzenkontraktion oben für eine Sekunde, um die Muskelspannung zu maximieren.
-  - Lasse das Gewicht langsam und hochkontrolliert in der negativen Phase ab, um die
-    Spannung im Muskel aufrechtzuerhalten und den vollen Bewegungsumfang zu nutzen.
-  - Halte die Schultern während der gesamten Ausführung stabil und unten, um ein Hochziehen
-    (Shrug) und eine Überaktivierung des oberen Trapezius zu verhindern.
-  - Spann deinen Rumpf an und halte den Oberkörper aufrecht und absolut stabil, um
-    jegliche Kompensation zu vermeiden.
+  - Stelle dich seitlich zum Kabelzug und positioniere den Griff so, dass der Zug
+    bereits in der unteren Position Spannung aufbaut. Das verbessert die Belastungskurve
+    gegenüber Kurzhantel-Seitheben.
+  - Fasse den Griff mit der arbeitenden Hand, halte den Oberkörper aufrecht und spanne
+    Bauch und Gesäß an, damit du nicht zur Gegenseite kippst oder ausweichst.
+  - Bewege den Arm in der Skapulaebene leicht vor dem Körper, statt exakt streng seitlich
+    hinter der Frontalebene zu arbeiten. Das ist für viele Schultern sauberer und
+    angenehmer.
+  - Lass den Ellbogen die Bewegung anführen und halte ihn leicht gebeugt. Der Ellbogenwinkel
+    bleibt während des Satzes nahezu unverändert.
+  - Hebe den Arm kontrolliert bis ungefähr auf Schulterhöhe oder minimal darunter.
+    Arbeite nur so hoch, wie du die Spannung auf dem seitlichen Deltoid hältst und
+    die Schulter sauber kontrollierst.
+  - Halte das Handgelenk neutral und den Griff ruhig. Der Arm hebt sich als Einheit,
+    ohne dass du aus dem Unterarm oder mit Schwung arbeitest.
+  - Lass das Schulterblatt natürlich mitrotieren, aber ohne die Schulter aktiv hochzuziehen.
+    Ziel ist Abduktion mit sauberer Schulterblattkontrolle, nicht ein Shrug.
+  - Senke das Gewicht langsam ab und nutze die exzentrische Phase bewusst. Gerade
+    beim Kabelzug ist die Spannung unten hoch genug, um die negative Phase effektiv
+    auszureizen.
+  - Wähle ein Gewicht, mit dem du die letzten Wiederholungen noch ohne Oberkörper-Schwung
+    und ohne Verlust der Gelenkposition kontrollieren kannst.
+  - Wenn du einarmig arbeitest, kannst du dich mit der freien Hand leicht am Turm
+    stabilisieren, um Kompensation zu reduzieren und den seitlichen Deltoid präziser
+    zu treffen.
   common_errors:
-  - Verwendung von zu hohem Gewicht, was zu Schwung, einem Hochziehen der Schultern
-    (Shrug) oder Kompensation durch den Oberkörper führt.
-  - Ein zu starkes Nach-hinten-Lehnen oder Schwingen des Oberkörpers, um die Bewegung
-    zu erleichtern.
-  - Die Ellbogen unter die Höhe der Handgelenke fallen lassen, was den Hebel verändert
-    und die Belastung vom seitlichen Deltoid nimmt.
-  - Die Arme über Schulterhöhe hinaus heben, was die Rotatorenmanschette unnötig belastet
-    und die Spannung vom Zielmuskel reduziert.
-  - Zu schnelle, ruckartige und unkontrollierte Bewegungen, die den Trainingseffekt
-    mindern und das Verletzungsrisiko erhöhen.
-  - Eine ungewollte Innen- oder Außenrotation des Arms oder Unterarms, die die Last
-    vom seitlichen Deltoid nimmt und die Schulter unnötig belastet.
+  - Zu viel Gewicht zu wählen und die Hantel mit Schwung, Beinimpuls oder Seitneigung
+    des Oberkörpers nach oben zu beschleunigen.
+  - Die Schulter während der Hebebewegung hochzuziehen, sodass der obere Trapezius
+    die Arbeit übernimmt und der Zielreiz auf dem seitlichen Deltoid sinkt.
+  - Den Arm durch deutliche Innenrotation anzuheben oder die Hand nach unten zu kippen,
+    statt das Schultergelenk neutral und stabil zu führen.
+  - Den Ellbogenwinkel ständig zu verändern und die Bewegung damit eher in eine Mischung
+    aus Seitheben und Zugbewegung zu verwandeln.
+  - Zu hoch zu heben, obwohl dabei die Spannung verloren geht oder die Schulterposition
+    unsauber wird. Mehr Höhe ist hier nicht automatisch besser.
+  - Das Gewicht unten einfach fallen zu lassen und dadurch die exzentrische Kontrolle
+    und den Vorteil der konstanten Kabelspannung zu verschenken.
+  - Den Arm zu weit hinter dem Körper oder in einer unnatürlichen Linie zu führen,
+    was die Schultermechanik häufig verschlechtert.
+  - Den Rumpf nicht zu stabilisieren, sodass du zur Gegenseite ausweichst oder ins
+    Hohlkreuz gehst, um die Wiederholung zu erleichtern.
+  - Mit dem Handgelenk oder Unterarm zu arbeiten, anstatt die Last über den Oberarm
+    und den seitlichen Deltoid zu bewegen.
+  - Die Bewegung hektisch auszuführen und jede Wiederholung anders zu starten, statt
+    eine konstante Zuglinie und reproduzierbare Technik beizubehalten.
   tags:
   - isolation
   - cable_machine
@@ -62,10 +87,11 @@ exercises:
   - unilateral
   aliases:
   - Kabel-Seitheben
-  - Cable Lateral Raise (Seilzug)
-  - Side Lateral Raise (Cable)
-  - Seitheben am Kabel, Einarmig
-  - One Arm Cable Lateral Raise
+  - Einarmiges Seitheben am Kabelzug
+  - Seitheben am Seilzug
+  - Cable Side Raise
+  - Single-Arm Cable Lateral Raise
+  - One-Arm Cable Lateral Raise
   search_aliases:
   - wger_1556
   - wger_349
@@ -80,3 +106,19 @@ exercises:
     secondary: []
   variations: []
   source: expert
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: external
+    source_refs:
+      wger:
+      - '1556'
+      - '349'
+  source_snapshot:
+    wger:
+      wger_id: 1556
+      wger_muscle_ids:
+        primary:
+        - 2
+        secondary: []
+  review_state:
+    status: approved

@@ -1,54 +1,99 @@
 exercise_id: face_pull
-description: Expert details for Face Pulls
+description: Expert details for Face Pull am Kabel
 exercises:
 - exercise_id: face_pull
   id: face_pull
-  name: Face Pulls
-  display_name: Face Pulls
-  german: Face Pulls
+  name: Face Pull
+  display_name: Face Pull am Kabel
+  german: Face Pull am Kabel
+  english: Face Pull
   category: pull
   type: compound
   movements:
   - horizontal
   - shoulder_external_rotation
+  - shoulder_horizontal_abduction
   - scapular_retraction
   - elbow_flexion
   equipment:
   - cable
   primary_muscles:
-  - shoulders
-  - upper_back
+  - 303_posterior_deltoid
+  - 203_trapezius_middle
+  - 205_rhomboids
   secondary_muscles:
-  - rhomboids
+  - 306_infraspinatus
+  - 307_teres_minor
+  - 204_trapezius_lower
+  - 403_brachialis
+  - 404_brachioradialis
   stabilizers:
-  - abs
+  - 504_transverse_abdominis
+  - 206_erector_spinae
+  - 507_multifidus
   coaching_notes:
-  - Stellen Sie das Kabel so ein, dass es sich auf Schulter- oder Kopfhöhe befindet.
-  - Fassen Sie das Seil mit einem Oberhandgriff und ziehen Sie es in Richtung Ihres
-    Gesichts.
-  - Konzentrieren Sie sich darauf, die Schulterblätter zusammenzuziehen und die Schultern
-    nach außen zu rotieren.
-  - Halten Sie die Ellbogen hoch und nach außen, über dem Handgelenk, um die Zielmuskulatur
-    optimal zu aktivieren.
+  - Stellen Sie den Kabelzug ungefähr auf Augen- bis Stirnhöhe ein und verwenden Sie
+    idealerweise ein Seil, damit sich die Hände am Ende der Zugphase frei nach außen
+    bewegen können.
+  - Nehmen Sie einen stabilen Stand ein, spannen Sie Bauch und Gesäß leicht an und
+    halten Sie Brustbein und Kopf neutral, damit der Oberkörper während des gesamten
+    Satzes ruhig bleibt.
+  - 'Leiten Sie die Bewegung mit den Schulterblättern ein: Ziehen Sie die Schulterblätter
+    kontrolliert nach hinten, bevor Sie das Seil zum Gesicht führen.'
+  - Führen Sie die Ellbogen hoch und seitlich, etwa auf Schulterhöhe, und denken Sie
+    daran, die Hände am Ende auseinanderzuziehen, statt das Seil nur gerade nach hinten
+    zu ziehen.
+  - Enden Sie mit den Händen ungefähr neben Ohren oder Wangenknochen, sodass Schulteraußenrotation
+    und hintere Schulter aktiv mitarbeiten, ohne dass die Schultern zu den Ohren hochziehen.
+  - Ziehen Sie kontrolliert, halten Sie die Endposition kurz unter Spannung und lassen
+    Sie das Gewicht langsam zurück, damit der obere Rücken und die hintere Schulter
+    die exzentrische Phase mitarbeiten.
+  - Wählen Sie ein Gewicht, bei dem Sie die Ellbogenposition, die Außenrotation und
+    die Schulterblattkontrolle sauber halten können; beim Face Pull ist Ausführung
+    wichtiger als Last.
   common_errors:
-  - Zu viel Gewicht verwenden, was zu Schwung führt und die Form beeinträchtigt.
-  - Die Ellbogen zu tief halten, wodurch der Fokus von den hinteren Schultern und
-    dem oberen Rücken abweicht.
-  - Den Rücken übermäßig runden oder überstrecken; halten Sie den Oberkörper stabil.
+  - Zu viel Gewicht zu wählen und den Satz mit Schwung aus dem Oberkörper oder mit
+    einem Rücklehnen abzuschließen, statt die Zugbewegung muskulär zu kontrollieren.
+  - Die Ellbogen absinken zu lassen, wodurch die Bewegung mehr zu einem normalen Rudern
+    wird und der Reiz auf hintere Schulter und Außenrotatoren deutlich sinkt.
+  - Das Seil nur zur Nase zu ziehen, ohne die Hände in der Endposition auseinanderzuführen;
+    dadurch geht ein wesentlicher Teil der Außenrotation verloren.
+  - Die Schultern zu den Ohren hochzuziehen, statt den Nacken lang zu halten und die
+    Schulterblätter kontrolliert nach hinten-unten arbeiten zu lassen.
+  - Den unteren Rücken zu überstrecken oder die Rippen aufzufächern, um mehr Bewegungsweg
+    vorzutäuschen; halten Sie Rumpf und Becken stabil.
+  - Die exzentrische Phase fallen zu lassen und die Spannung zwischen den Wiederholungen
+    komplett zu verlieren, anstatt die Rückführung bewusst zu bremsen.
+  - Den Kabelzug zu tief einzustellen, sodass der Bewegungswinkel nicht mehr zur Zielmuskulatur
+    passt und die Übung biomechanisch eher zu einem tiefen Ruderzug wird.
   tags:
   - schultern
-  - rücken
+  - oberer_ruecken
   - haltung
   - rotatorenmanschette
-  - shoulders
+  - rear_delts
+  - upper_back
+  - cable
   - horizontal_pull
   - unreviewed
   aliases:
-  - kabelzug zum gesicht
+  - kabel face pull
+  - face pull kabelzug
+  - seilzug zum gesicht
   - rope face pull
+  - cable face pull
   variations: []
   source: expert
-  english: Face Pull
   search_aliases:
-  - Face Pulls
   - Face Pull
+  - Face Pulls
+  - Face Pull am Kabel
+  - Kabel Face Pull
+  - Rope Face Pull
+  - Cable Face Pull
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: manual
+    source_refs: {}
+  review_state:
+    status: approved

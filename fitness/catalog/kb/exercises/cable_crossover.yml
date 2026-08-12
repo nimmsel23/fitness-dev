@@ -1,39 +1,67 @@
 exercise_id: cable_crossover
-description: Expert details for Kabelzug-Überkreuzung
+description: Expert details for Kabel-Crossover
 exercises:
 - exercise_id: cable_crossover
   id: cable_crossover
   name: Cable Crossover
-  display_name: Kabelzug-Überkreuzung
-  german: Kabelzug-Überkreuzung
+  display_name: Kabel-Crossover
+  german: Kabel-Crossover
   english: Cable Crossover
   category: push
   type: isolation
   movements:
-  - horizontal_adduction
-  - cable
   - shoulder_horizontal_adduction
+  - horizontal_adduction
+  - scapular_protraction
+  - isometric_elbow_flexion
+  - isometric_trunk_stabilization
+  - cable
   equipment:
   - cable
   primary_muscles:
-  - chest
+  - 101_pectoralis_major
   secondary_muscles:
-  - shoulders
+  - 301_anterior_deltoid
+  - 105_serratus_anterior
   stabilizers:
-  - abs
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 507_multifidus
   coaching_notes:
-  - Arme während der gesamten Bewegung leicht gebeugt halten, nicht vollständig strecken
-  - Langsam und kontrolliert zusammenführen, Peak-Kontraktion 1-2 Sekunden halten
-  - Kein Schwung mit dem Oberkörper — reine Adduktionsbewegung aus den Armen
-  - 'Für unteren Brustbereich: Griffe von oben nach unten führen'
-  - 'Für mittleren Brustbereich: Griffe in mittlerer Höhe positionieren'
-  - 'Für oberen Brustbereich: Griffe von unten nach oben führen'
-  - Aufrecht bleiben, nicht nach vorne lehnen
+  - 'Stelle die Kabel so ein, dass der Zugwinkel zu der Brustregion passt, die du
+    betonen willst: hoch nach tief eher sternal, mittig eher gesamter Brustkorb, tief
+    nach hoch eher clavicular.'
+  - Nimm eine stabile Split- oder Parallelstellung ein und richte Brustbein und Rippen
+    kontrolliert auf, ohne ins Hohlkreuz zu fallen.
+  - Halte die Ellbogen über die ganze Bewegung leicht gebeugt und behalte diesen Winkel
+    konstant; die Bewegung kommt aus dem Schultergelenk, nicht aus aktivem Drücken
+    mit dem Trizeps.
+  - Führe die Griffe in einem weiten Bogen zusammen, als würdest du die Oberarme vor
+    dem Brustkorb umarmen, statt die Hände einfach nur nach vorn zu schieben.
+  - Lass die Brust in der Dehnung arbeiten, aber stoppe bevor die Schulter nach vorn
+    kippt oder du Spannung im vorderen Schultergelenk verlierst.
+  - Bringe die Hände vor dem Körper kontrolliert zusammen und halte die Endposition
+    kurz, ohne die Schultern hochzuziehen oder den Nacken anzuspannen.
+  - Halte den Rumpf ruhig und vermeide Rotation; beide Seiten sollen mit gleicher
+    Bahn und gleicher Geschwindigkeit arbeiten.
+  - Wähle ein Gewicht, bei dem du den Zielmuskel klar spürst und die exzentrische
+    Phase sauber abbremsen kannst.
   common_errors:
-  - Zu schnell oder mit Oberkörper-Schwung arbeiten statt kontrolliert
-  - Arme am äußersten Punkt vollständig strecken (sollten leicht gebeugt bleiben)
-  - Zu schwer laden und dadurch Bewegungsqualität verlieren
-  - Nach vorne lehnen oder Rumpf-Rotation verwenden
+  - Die Griffe mit Schwung zusammenwerfen, statt die Brust kontrolliert durch den
+    gesamten Bewegungsbogen arbeiten zu lassen.
+  - Die Ellbogen während der Wiederholung stark beugen oder strecken und die Bewegung
+    dadurch in eine Druckübung verwandeln.
+  - In der Dehnung zu weit nach hinten gehen und dabei die Schulter nach vorne ziehen
+    oder das vordere Schultergelenk reizen.
+  - Die Schultern hochziehen und Spannung in Nacken und oberem Trapez übernehmen lassen.
+  - Den Oberkörper nach vorne werfen oder rotieren, um die letzten Zentimeter zu erzwingen.
+  - Zu schwer laden und dadurch den Kontakt zur Brust verlieren, sodass vor allem
+    vordere Schulter und Arme übernehmen.
+  - Die Hände nur vor dem Körper zusammenführen, ohne die Oberarme wirklich horizontal
+    zu adduzieren.
+  - Den Zugwinkel zufällig wählen und dann eine andere Brustregion erwarten, als die
+    eingestellte Seilbahn tatsächlich belastet.
   tags:
   - chest_isolation
   - fly_pattern
@@ -41,12 +69,24 @@ exercises:
   - horizontal_adduction
   - pec_contraction
   - chest
-  - unreviewed
   aliases:
-  - Kabelzug Überkreuzung
-  - Überkreuzung
+  - Kabelzug-Überkreuzung
+  - Kabel Crossover
+  - Cable Fly
+  - Standing Cable Fly
+  - Überkreuzung am Kabelzug
   variations: []
   source: expert
   search_aliases:
+  - Kabel-Crossover
+  - Kabel Crossover
   - Kabelzug-Überkreuzung
   - Cable Crossover
+  - Cable Fly
+  - Standing Cable Fly
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: manual
+    source_refs: {}
+  review_state:
+    status: approved

@@ -1,12 +1,13 @@
 exercise_id: cable_row
-description: Expert details for Rudern am Kabelzug
+description: Expert details for Sitzendes Kabelrudern
 exercises:
 - exercise_id: cable_row
+  wger_id: null
   id: cable_row
-  name: Rudern am Kabelzug
-  display_name: Rudern am Kabelzug
-  german: Rudern am Kabelzug
-  english: Cable Row
+  name: Sitzendes Kabelrudern
+  display_name: Sitzendes Kabelrudern
+  german: Sitzendes Kabelrudern
+  english: Seated Cable Row
   category: pull
   type: compound
   movements:
@@ -17,41 +18,70 @@ exercises:
   equipment:
   - cable
   primary_muscles:
-  - middle_back
-  - upper_back
+  - 201_latissimus_dorsi
+  - 203_trapezius_middle
+  - 205_rhomboids
   secondary_muscles:
-  - bizeps
-  - arms
+  - 207_teres_major
+  - 303_posterior_deltoid
+  - 402_biceps_brachii
+  - 403_brachialis
+  - 404_brachioradialis
   stabilizers:
-  - abs
-  - lower_back
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 206_erector_spinae
+  - 507_multifidus
   coaching_notes:
-  - Oberkörper minimal nach vorne neigen (etwa 45°), Knie leicht gebeugt
-  - Langhantel dicht am Körper halten, nicht weggebeugt
-  - An der Oberseite pausieren und Schulterblattsqueeze durchführen
-  - Keine übermäßige Lumbalflexion – Rückenstrecker neutral halten
-  - Ellbogen dicht am Körper, nicht weit abspreizen
-  - Kontrolle in der Bewegung, kein Reißen oder exzessives Momentum
+  - Aufrecht sitzen und den Brustkorb anheben, sodass die Wirbelsaeule waehrend der
+    ganzen Wiederholung neutral bleibt.
+  - 'Ziehe den Griff zuerst ueber die Schulterbewegung ein: Schulterblaetter nach
+    hinten unten fuehren, dann die Ellbogen dicht am Koerper nach hinten ziehen.'
+  - Fuehre den Zug zur unteren Rippenkante oder knapp zum Bauchnabel, ohne die Schultern
+    nach vorn kippen zu lassen.
+  - Halte am Endpunkt kurz Spannung im oberen Ruecken, ohne ins Hohlkreuz zu fallen
+    oder den Brustkorb uebertrieben herauszuschieben.
+  - Lasse das Gewicht kontrolliert nach vorn zurueck, bis die Schulterblaetter sauber
+    protruieren, ohne die Spannung komplett zu verlieren.
+  - Waehle ein Gewicht, bei dem du den Griff mit konstantem Tempo bewegen kannst statt
+    den Oberkoerper nach hinten zu reissen.
   common_errors:
-  - Rücken zu sehr gerundet oder übermäßig gewölbt
-  - Langhantel vom Körper weg während des Zugs
-  - Zu schnelle Wiederholungen ohne Muskelkontrolle
-  - Gewicht zu schwer, Kompensation durch Rückenstrecker statt Lat
-  - Schulterblatt nicht vollständig retraktion
+  - Den Oberkoerper stark nach hinten lehnen und die Wiederholung mit Schwung statt
+    mit Rueckenmuskulatur einleiten.
+  - Die Schultern am Endpunkt nach oben ziehen statt die Schulterblaetter nach hinten
+    unten zu kontrollieren.
+  - Den Griff zu hoch zur Brust ziehen, wodurch die Ellbogen auffaechern und der Zug
+    unsauber wird.
+  - In der exzentrischen Phase die Spannung verlieren und die Gewichte nach vorn ziehen
+    lassen.
+  - Mit rundem unteren Ruecken sitzen oder aus der Lendenwirbelsaeule in Flexion und
+    Extension arbeiten.
+  - Zu viel Gewicht waehlen, sodass der Bewegungsumfang verkuerzt wird und die Schulterblaetter
+    kaum noch arbeiten.
   tags:
   - back
   - compound
   - horizontal_pull
-  - barbell
+  - cable
   - strength
-  - unreviewed
   aliases:
-  - Cable Row
-  - Seated Cable Row
   - Rudern am Kabelzug
   - Kabelrudern
+  - Sitzendes Kabelrudern
+  - Cable Row
+  - Seated Cable Row
+  - Seated Cable Row Machine
   variations: []
   source: expert
   search_aliases:
+  - Sitzendes Kabelrudern
   - Rudern am Kabelzug
+  - Kabelrudern
+  - Seated Cable Row
   - Cable Row
+  schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: manual
+    source_refs: {}
+  review_state:
+    status: approved
