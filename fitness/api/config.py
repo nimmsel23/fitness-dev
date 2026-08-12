@@ -60,9 +60,23 @@ def _write_json(p: Path, data) -> None:
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(data, indent=2, ensure_ascii=False))
 
+def _active_uid_fallback() -> str | None:
+    for key in ("FITNESS_UID", "AOS_UID"):
+        value = (os.environ.get(key) or "").strip()
+        if value and value != "default":
+            return value
+    uid_file = Path.home() / ".aos" / "users" / ".active-uid"
+    try:
+        value = uid_file.read_text().strip()
+    except Exception:
+        value = ""
+    return value if value and value != "default" else None
+
 def _uid_from_request(request) -> str:
-    uid = request.query_params.get("uid") or request.headers.get("X-User-UID", "default")
-    return uid or "default"
+    uid = (request.query_params.get("uid") or request.headers.get("X-User-UID") or "").strip()
+    if uid and uid != "default":
+        return uid
+    return _active_uid_fallback() or "default"
 
 def _session_file(uid: str, day: str, sid: str | None) -> Path:
     fname = f"{day}__{sid}.json" if sid else f"{day}.json"
@@ -148,4 +162,3 @@ def _get_index() -> list:
     if _exercise_index is None:
         _exercise_index = build_exercise_index()
     return _exercise_index
-

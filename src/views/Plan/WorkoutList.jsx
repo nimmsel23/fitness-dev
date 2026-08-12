@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Dumbbell, Plus, Trash2, Pencil, ChevronRight, Play, Settings2, MoreHorizontal } from "lucide-react";
+import { Dumbbell, Plus, Trash2, Pencil, ChevronRight, ChevronDown, Play, Settings2, MoreHorizontal, Sparkles } from "lucide-react";
 import { api } from "./api.js";
 
 function RoutineCard({ r, onEdit, onStart, onRename, onDelete }) {
@@ -74,6 +74,35 @@ function RoutineCard({ r, onEdit, onStart, onRename, onDelete }) {
   );
 }
 
+function CalisthenicsSkillsSection({ routines, loading, onEdit, onStart, onRename, onDelete }) {
+  const [open, setOpen] = useState(false);
+  const skillRoutines = routines.filter((r) => r.category === "calisthenics-skill");
+  if (!loading && skillRoutines.length === 0) return null;
+
+  return (
+    <section className="mb-8">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between mb-3 px-1"
+      >
+        <span className="flex items-center gap-2 text-sm font-bold text-fit-muted uppercase tracking-wide">
+          <Sparkles size={15} className="text-fit-accent" />
+          Calisthenics Skills {!loading && `(${skillRoutines.length})`}
+        </span>
+        <ChevronDown size={16} className={`text-fit-muted transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
+          {skillRoutines.map((r) => (
+            <RoutineCard key={r.id} r={r} onEdit={onEdit} onStart={onStart} onRename={onRename} onDelete={onDelete} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function WorkoutList({ onEditRoutine, onOpenWorkout, onSettings }) {
   const [routines, setRoutines] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -144,11 +173,20 @@ export default function WorkoutList({ onEditRoutine, onOpenWorkout, onSettings }
         </button>
       </section>
 
+      <CalisthenicsSkillsSection
+        routines={routines}
+        loading={loading}
+        onEdit={onEditRoutine}
+        onStart={startFromRoutine}
+        onRename={renameRoutine}
+        onDelete={deleteRoutine}
+      />
+
       {/* Routinen */}
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-bold text-fit-muted uppercase tracking-wide">
-            Meine Routinen {!loading && `(${routines.length})`}
+            Meine Routinen {!loading && `(${routines.filter((r) => r.category !== "calisthenics-skill").length})`}
           </h2>
           <button
             onClick={newRoutine}
@@ -160,14 +198,14 @@ export default function WorkoutList({ onEditRoutine, onOpenWorkout, onSettings }
 
         {loading ? (
           <div className="text-center py-16 text-fit-muted text-sm">Lädt…</div>
-        ) : routines.length === 0 ? (
+        ) : routines.filter((r) => r.category !== "calisthenics-skill").length === 0 ? (
           <div className="text-center py-16 text-fit-muted">
             <Dumbbell size={36} className="mx-auto mb-3 opacity-30" />
             <p className="text-sm">Noch keine Routinen. Erstelle deine erste Vorlage.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {routines.map((r) => (
+            {routines.filter((r) => r.category !== "calisthenics-skill").map((r) => (
               <RoutineCard key={r.id} r={r} onEdit={onEditRoutine} onStart={startFromRoutine} onRename={renameRoutine} onDelete={deleteRoutine} />
             ))}
           </div>

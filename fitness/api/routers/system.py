@@ -41,6 +41,12 @@ def note_backfill(uid: str | None = None, apply: bool = False):
 def _today() -> str:
     return date.today().isoformat()
 
+def _require_uid(request: Request) -> str:
+    uid = _uid_from_request(request)
+    if not uid or uid == "default":
+        raise HTTPException(400, detail="uid Pflicht. Aktive UID fehlt; via ?uid=... oder X-User-UID Header senden.")
+    return uid
+
 @router.get("/health", response_model=HealthResponse)
 def health():
     return HealthResponse(ok=True, port=PORT, runtime=str(RUNTIME))
@@ -82,7 +88,7 @@ def fs_status():
 
 @router.post("/firestore/sync")
 def fs_sync(request: Request):
-    uid      = _uid_from_request(request)
+    uid      = _require_uid(request)
     sess_root = RUNTIME / "users"
     sess_dir = sess_root / uid / "sessions"
     if not sess_dir.exists():
@@ -102,9 +108,7 @@ def fs_sync(request: Request):
 
 @router.post("/firestore/pull")
 def fs_pull(request: Request):
-    uid = _uid_from_request(request)
-    if not uid or uid == "default":
-        raise HTTPException(400, detail="uid Pflicht (kein default). Via ?uid=... oder X-User-UID Header.")
+    uid = _require_uid(request)
     status = firestore_status()
     if not status.get("ok"):
         raise HTTPException(503, detail="Firestore nicht verbunden")

@@ -16,6 +16,12 @@ router = APIRouter()
 def _today() -> str:
     return date.today().isoformat()
 
+def _require_uid(request: Request) -> str:
+    uid = _uid_from_request(request)
+    if not uid or uid == "default":
+        raise HTTPException(400, detail="uid Pflicht. Aktive UID fehlt; via ?uid=... oder X-User-UID Header senden.")
+    return uid
+
 @router.get("/journal")
 def journal_get(request: Request, date_: str = Query(None, alias="date")):
     day = date_ or _today()
@@ -26,7 +32,7 @@ def journal_get(request: Request, date_: str = Query(None, alias="date")):
 
 @router.post("/journal")
 async def journal_post(request: Request, date_: str = Query(None, alias="date")):
-    uid     = _uid_from_request(request)
+    uid     = _require_uid(request)
     day     = date_ or _today()
     body    = await request.json()
     content = body.get("content", "")
