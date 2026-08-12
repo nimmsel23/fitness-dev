@@ -111,7 +111,11 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   const dirtyRef = useRef(false);
   const dateRef = useRef(null);
   const autoSaveTimerRef = useRef(null);
-  const rollingDays = getRollingDays(30);
+  // War fix 30 — Date-Picker konnte nie weiter als 30 Tage zurück, unabhängig
+  // von tatsächlich vorhandenen älteren Sessions (Klienten-Bug: Matthias
+  // konnte alte Workouts nicht nachloggen). 365 Tage sind nur Datums-Strings,
+  // keine Fetches — billig genug, um das Fenster einfach großzügig zu machen.
+  const rollingDays = getRollingDays(365);
 
   // Ungespeicherte Änderungen sichern, bevor der Editor-State neu geladen wird
   // (Datumswechsel, Session-Wechsel, neues Workout, Unmount). save() liest den

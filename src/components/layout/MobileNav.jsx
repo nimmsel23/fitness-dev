@@ -6,7 +6,7 @@ export default function MobileNav({ tab, navigate, swipeHint, navItems }) {
 
   return (
     <nav
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-50"
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-40"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {/* Swipe direction indicator — thin accent line at top */}
