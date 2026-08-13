@@ -9,6 +9,7 @@ import {
 } from "firebase/firestore";
 
 import { db } from "../../../firebase.js";
+import { getStaticMuscle, getStaticMuscleDocs } from "../../kb/muscles.js";
 import { normalizeExerciseRecord } from "../shared/exercise.js";
 export { getFavourites, toggleFavourite } from "../shared/favourites.js";
 
@@ -124,19 +125,12 @@ export async function getAnatomy(exerciseId) {
   return snap.data();
 }
 
-import { setKBMuscles } from "../shared/muscle.js";
-
 export async function getAllMuscles() {
-  const snap = await getDocs(collection(db, "fitness", "kb", "muscles"));
-  const docs = snap.docs.map((d) => ({ ...d.data(), doc_id: d.id, id: d.data().id || d.id }));
-  setKBMuscles(docs);
-  return docs;
+  return getStaticMuscleDocs();
 }
 
 export async function getMuscle(muscleId) {
-  const snap = await getDoc(doc(db, "fitness", "kb", "muscles", muscleId));
-  if (!snap.exists()) return null;
-  return snap.data();
+  return getStaticMuscle(muscleId);
 }
 
 // Anatomy & Muscles CRUD weiter oben definiert.

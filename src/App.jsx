@@ -27,6 +27,7 @@ import AppGate from './views/AppGate.jsx'
 import { useUser } from './contexts/UserContext'
 import { useSettings } from './contexts/SettingsContext'
 import { useSwipeNavigation } from './hooks/useSwipeNavigation'
+import { getStaticMuscleTaxonomy } from './lib/kb/muscles.js'
 
 const SESSION_SUB_TABS = new Set(['today', 'timer', 'skills', 'plan', 'history'])
 const REVIEW_SUB_TABS = new Set(['report', 'muscles', 'readiness', 'strength', 'verlauf'])
@@ -166,7 +167,7 @@ export default function App() {
   const [sessionDate, setSessionDate]   = useState(() => initialRoute.sessionDate)
   const [sessionDraft, setSessionDraft] = useState(null)
   const [inspectorExercise, setInspectorExercise] = useState(null)
-  const [taxonomy, setTaxonomy] = useState(null);
+  const [taxonomy] = useState(() => getStaticMuscleTaxonomy());
   const [focusLayer, setFocusLayer] = useState(() => initialRoute.focusLayer);
 
   const { mainRef, swipeHint, slideDirection, setSlideDirection } = useSwipeNavigation({
@@ -212,15 +213,6 @@ export default function App() {
       setShowAuthGateModal(true);
     }
   }, [user, authGateTriggerCount, authGateDismissedAt]);
-
-  useEffect(() => {
-    if (isLocalMode()) {
-      fetch('http://localhost:9100/fitness/muscles')
-        .then(r => r.json())
-        .then(data => setTaxonomy(data?.muscles || null))
-        .catch(() => {});
-    }
-  }, []);
 
   const navigateToTab = (newTabId) => {
     const targetTabId = resolveFlowTab(newTabId);
