@@ -18,11 +18,14 @@ import { getAllExercises } from "./kb.js";
 import { getSessionHistory, listSessionsForDate } from "./sessions.js";
 import {
   getDashboardAnalytics as getLocalDashboardAnalytics,
+  getRecoveryAnalytics as getLocalRecoveryAnalytics,
   getWeeklyReport as getLocalWeeklyReport,
   getCoverageGaps as getLocalCoverageGaps,
   getMuscleCoverage as getLocalMuscleCoverage,
 } from "../local/analysis.js";
 import { getProgressTrend as getLocalProgressTrend } from "../local/sessions.js";
+import { computeMuscleScores } from "../../superkompensation.js";
+import { muscleToRegion } from "../shared/muscle.js";
 
 export { ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds };
 
@@ -33,10 +36,13 @@ const pendingWeeklyRefreshes = new Map();
 export async function updateAnalyticsDoc() {
   if (!hasAuthSession()) return null;
   try {
-    const [s7, s14, s21] = await Promise.all([
+    const [s7, s14, s21, r7, r14, r28] = await Promise.all([
       getMuscleCoverage(7),
       getMuscleCoverage(14),
       getMuscleCoverage(21),
+      buildRecoveryAnalyticsData(7),
+      buildRecoveryAnalyticsData(14),
+      buildRecoveryAnalyticsData(28),
     ]);
     await setDoc(
       doc(db, "fitness", getUid(), "analytics", "dashboard"),
@@ -44,6 +50,9 @@ export async function updateAnalyticsDoc() {
         rolling_7_days:  { body_region_scores: s7,  updated_at: new Date().toISOString() },
         rolling_14_days: { body_region_scores: s14, updated_at: new Date().toISOString() },
         rolling_21_days: { body_region_scores: s21, updated_at: new Date().toISOString() },
+        recovery_7_days: r7,
+        recovery_14_days: r14,
+        recovery_28_days: r28,
       }
     );
   } catch (e) {
@@ -114,6 +123,79 @@ export async function getCoverageGaps(days = 7, threshold = 1.0) {
   return getMuscleGroups()
     .filter((g) => (hits[g.id] || 0) < threshold)
     .map((g) => ({ name: g.label, id: g.id, hits: hits[g.id] || 0 }));
+}
+
+function buildAcwr(sessions) {
+  const now = new Date();
+  const safeSessions = Array.isArray(sessions) ? sessions.filter(Boolean) : [];
+  const dayOf = (dateStr) => Math.floor((now - new Date(`${dateStr}T12:00:00`)) / 86400000);
+  const sessionLoad = (session) => {
+    const effort = typeof session?.effort === "number" ? session.effort : 6;
+    const count = Array.isArray(session?.exercises) && session.exercises.length > 0
+      ? session.exercises.length
+      : session?.activity ? 1 : 0;
+    return effort * count;
+  };
+
+  let acute = 0;
+  let chronic28 = 0;
+  for (const session of safeSessions) {
+    if (!session?.date) continue;
+    const daysAgo = dayOf(session.date);
+    if (daysAgo < 0 || daysAgo > 27) continue;
+    const load = sessionLoad(session);
+    chronic28 += load;
+    if (daysAgo <= 6) acute += load;
+  }
+  const chronicWeekly = chronic28 / 4;
+  if (chronicWeekly <= 0) return null;
+  return Math.round((acute / chronicWeekly) * 100) / 100;
+}
+
+async function buildRecoveryAnalyticsData(days = 28) {
+  const [sessions, kbExercises] = await Promise.all([
+    getSessionHistory(60),
+    getAllExercises(),
+  ]);
+  const safeSessions = Array.isArray(sessions)
+    ? sessions.filter(Boolean).map((session) => ({
+      ...session,
+      exercises: Array.isArray(session.exercises) ? session.exercises : [],
+    }))
+    : [];
+  const kbMap = new Map();
+  (Array.isArray(kbExercises) ? kbExercises : []).forEach((exercise) => {
+    kbMap.set((exercise.display_name || exercise.name || "").toLowerCase(), exercise);
+  });
+
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const sessionsInRange = safeSessions.filter((session) => session.date && session.date >= cutoffStr);
+  return {
+    ok: true,
+    days,
+    cutoff_date: cutoffStr,
+    updated_at: new Date().toISOString(),
+    session_count: sessionsInRange.length,
+    hit_analysis: computeMuscleScores(sessionsInRange, kbMap, muscleToRegion),
+    acwr: buildAcwr(safeSessions),
+  };
+}
+
+export async function getRecoveryAnalytics(days = 28) {
+  if (!hasAuthSession()) return getLocalRecoveryAnalytics(days);
+  try {
+    const snap = await getDoc(doc(db, "fitness", getUid(), "analytics", "dashboard"));
+    if (snap.exists()) {
+      const data = snap.data() || {};
+      const field = days <= 7 ? "recovery_7_days" : days <= 14 ? "recovery_14_days" : "recovery_28_days";
+      if (data[field]) return data[field];
+    }
+  } catch (e) {
+    console.warn("Failed to fetch cached recovery analytics", e);
+  }
+  return buildRecoveryAnalyticsData(days);
 }
 
 // ── Weekly report ─────────────────────────────────────────────────────────────

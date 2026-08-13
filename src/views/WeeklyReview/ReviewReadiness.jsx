@@ -1,8 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Zap, Activity, CheckCircle2 } from 'lucide-react';
-import { getSessionHistory, getAllExercises, muscleToRegion } from '@db';
-import { computeMuscleScores } from '../../lib/superkompensation.js';
-import { sessionHasLoggedWorkout } from '../../lib/sessionGate.js';
+import { getRecoveryAnalytics } from '@db';
 
 // Grobe UI-Sammelgruppen für die Recovery-Karten — bündelt die 16 feinen
 // KB-Regionen aus computeMuscleScores() auf 5 lesbare Kacheln. Bewusst
@@ -21,28 +19,20 @@ const BROAD_GROUPS = [
 const SCORE_TO_PCT = { 1: 20, 2: 55, 3: 80, 4: 100 };
 
 export default function ReviewReadiness() {
-  const [sessions, setSessions] = useState([]);
-  const [kbExercises, setKbExercises] = useState([]);
+  const [hitAnalysis, setHitAnalysis] = useState({ heavy: [], recovering: [], super: [], ready: [], scores: {} });
+  const [acwr, setAcwr] = useState(null);
 
   useEffect(() => {
-    getSessionHistory(35)
-      .then(s => setSessions(Array.isArray(s) ? s.filter(Boolean) : []))
-      .catch(() => setSessions([]));
-    getAllExercises()
-      .then(ex => setKbExercises(Array.isArray(ex) ? ex : []))
-      .catch(() => setKbExercises([]));
+    getRecoveryAnalytics(28)
+      .then((data) => {
+        setHitAnalysis(data?.hit_analysis || { heavy: [], recovering: [], super: [], ready: [], scores: {} });
+        setAcwr(data?.acwr ?? null);
+      })
+      .catch(() => {
+        setHitAnalysis({ heavy: [], recovering: [], super: [], ready: [], scores: {} });
+        setAcwr(null);
+      });
   }, []);
-
-  const kbMap = useMemo(() => {
-    const m = new Map();
-    kbExercises.forEach(ex => m.set((ex.display_name || ex.name || '').toLowerCase(), ex));
-    return m;
-  }, [kbExercises]);
-
-  const hitAnalysis = useMemo(
-    () => computeMuscleScores(sessions, kbMap, muscleToRegion),
-    [sessions, kbMap]
-  );
 
   const groupStatuses = useMemo(() => {
     return BROAD_GROUPS.map(g => {
@@ -84,30 +74,6 @@ export default function ReviewReadiness() {
   // je Session, RPE-basierte Load-Näherung) der letzten 7 Tage im Verhältnis
   // zum 4-Wochen-Schnitt derselben Größe. 0.8–1.3 gilt gemeinhin als
   // Sweetspot, >1.5 als erhöhtes Überlastungsrisiko.
-  const acwr = useMemo(() => {
-    const now = new Date();
-    const dayOf = (dateStr) => Math.floor((now - new Date(dateStr + 'T12:00:00')) / (1000 * 60 * 60 * 24));
-    const sessionLoad = (s) => {
-      const effort = typeof s.effort === 'number' ? s.effort : 6;
-      const count = Array.isArray(s.exercises) && s.exercises.length > 0
-        ? s.exercises.length
-        : sessionHasLoggedWorkout(s) ? 1 : 0;
-      return effort * count;
-    };
-    let acute = 0, chronic28 = 0;
-    for (const s of sessions) {
-      if (!s?.date) continue;
-      const daysAgo = dayOf(s.date);
-      if (daysAgo < 0 || daysAgo > 27) continue;
-      const load = sessionLoad(s);
-      chronic28 += load;
-      if (daysAgo <= 6) acute += load;
-    }
-    const chronicWeekly = chronic28 / 4;
-    if (chronicWeekly <= 0) return null;
-    return Math.round((acute / chronicWeekly) * 100) / 100;
-  }, [sessions]);
-
   const acwrLabel = acwr === null ? '—' : acwr < 0.8 ? 'Detraining' : acwr <= 1.3 ? 'Optimal' : acwr <= 1.5 ? 'Erhöht' : 'Risiko';
   const acwrColor = acwr === null || (acwr >= 0.8 && acwr <= 1.3)
     ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'

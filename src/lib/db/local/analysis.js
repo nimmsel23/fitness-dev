@@ -1,6 +1,7 @@
 import { api } from "./core";
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants";
-import { muscleToGroupIds, getMuscleGroups, buildMuscleBalanceInsights } from "../shared/muscle";
+import { muscleToGroupIds, getMuscleGroups, buildMuscleBalanceInsights, muscleToRegion } from "../shared/muscle";
+import { computeMuscleScores } from "../../superkompensation.js";
 
 export async function getDashboardAnalytics(days = 28) {
   try {
@@ -191,4 +192,65 @@ export async function getCoverageGaps(days = 7, threshold = 1.0) {
   return getMuscleGroups()
     .filter(g => (hits[g.id] || 0) < threshold)
     .map(g => ({ name: g.label, id: g.id, hits: hits[g.id] || 0 }));
+}
+
+function buildAcwr(sessions) {
+  const now = new Date();
+  const safeSessions = Array.isArray(sessions) ? sessions.filter(Boolean) : [];
+  const dayOf = (dateStr) => Math.floor((now - new Date(`${dateStr}T12:00:00`)) / 86400000);
+  const sessionLoad = (session) => {
+    const effort = typeof session?.effort === 'number' ? session.effort : 6;
+    const count = Array.isArray(session?.exercises) && session.exercises.length > 0
+      ? session.exercises.length
+      : session?.activity ? 1 : 0;
+    return effort * count;
+  };
+
+  let acute = 0;
+  let chronic28 = 0;
+  for (const session of safeSessions) {
+    if (!session?.date) continue;
+    const daysAgo = dayOf(session.date);
+    if (daysAgo < 0 || daysAgo > 27) continue;
+    const load = sessionLoad(session);
+    chronic28 += load;
+    if (daysAgo <= 6) acute += load;
+  }
+  const chronicWeekly = chronic28 / 4;
+  if (chronicWeekly <= 0) return null;
+  return Math.round((acute / chronicWeekly) * 100) / 100;
+}
+
+export async function getRecoveryAnalytics(days = 28) {
+  const [exRes, histRes] = await Promise.all([
+    api.get('/fitness/exercises/all').catch(() => ({ exercises: [] })),
+    api.get('/session/history?limit=120').catch(() => ({ sessions: [] })),
+  ]);
+
+  const kbExercises = exRes.exercises || [];
+  const history = histRes.sessions || [];
+  const safeSessions = Array.isArray(history)
+    ? history.filter(Boolean).map((session) => ({
+      ...session,
+      exercises: Array.isArray(session.exercises) ? session.exercises : [],
+    }))
+    : [];
+  const kbMap = new Map();
+  kbExercises.forEach((exercise) => {
+    kbMap.set((exercise.display_name || exercise.name || exercise.exercise_id || '').toLowerCase(), exercise);
+  });
+
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const sessionsInRange = safeSessions.filter((session) => session.date && session.date >= cutoffStr);
+  return {
+    ok: true,
+    days,
+    cutoff_date: cutoffStr,
+    updated_at: new Date().toISOString(),
+    session_count: sessionsInRange.length,
+    hit_analysis: computeMuscleScores(sessionsInRange, kbMap, muscleToRegion),
+    acwr: buildAcwr(safeSessions),
+  };
 }
