@@ -26,6 +26,8 @@ import { getProgressTrend as getLocalProgressTrend } from "../local/sessions.js"
 
 export { ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds };
 
+const pendingWeeklyRefreshes = new Map();
+
 // ── Analytics cache doc ───────────────────────────────────────────────────────
 
 export async function updateAnalyticsDoc() {
@@ -141,8 +143,28 @@ function getWeekBounds(selector = "current") {
   return dates;
 }
 
-export async function getWeeklyReport(selector = "current") {
-  if (!hasAuthSession()) return getLocalWeeklyReport(selector);
+function getWeekSelectorFromDate(date = todayISO()) {
+  const source = new Date(`${date}T12:00:00`);
+  const day = (source.getDay() + 6) % 7;
+  source.setDate(source.getDate() - day + 3);
+  const isoYear = source.getFullYear();
+  const firstThursday = new Date(isoYear, 0, 4);
+  const firstDay = (firstThursday.getDay() + 6) % 7;
+  firstThursday.setDate(firstThursday.getDate() - firstDay + 3);
+  const diffDays = Math.round((source - firstThursday) / 86400000);
+  const isoWeek = 1 + Math.floor(diffDays / 7);
+  return `${isoYear}-W${String(isoWeek).padStart(2, "0")}`;
+}
+
+function resolveWeekSelector(selector = "current") {
+  return selector === "current" ? getWeekSelectorFromDate(todayISO()) : selector;
+}
+
+function weeklyReportDocRef(selector = "current") {
+  return doc(db, "fitness", getUid(), "analytics", `weekly_${resolveWeekSelector(selector)}`);
+}
+
+async function buildWeeklyReportData(selector = "current") {
   const dates = getWeekBounds(selector);
   const [kbExercises, history] = await Promise.all([
     getAllExercises(),
@@ -260,7 +282,12 @@ export async function getWeeklyReport(selector = "current") {
   const avgEffort = efforts.length > 0 ? Math.round((efforts.reduce((a, b) => a + b, 0) / efforts.length) * 10) / 10 : null;
 
   return {
-    ok: true, week: selector, session_count: sessions.length, entries_count: entriesCount,
+    ok: true,
+    week: resolveWeekSelector(selector),
+    requested_week: selector,
+    week_dates: dates,
+    session_count: sessions.length,
+    entries_count: entriesCount,
     total_exercises: entriesCount, avg_effort: avgEffort,
     sessions, muscle_scores: muscleScores, body_region_scores: bodyRegionScores, missing_regions: gaps,
     top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ display_name: name, count })),
@@ -269,6 +296,66 @@ export async function getWeeklyReport(selector = "current") {
       ...buildMuscleBalanceInsights(allExercises),
     ],
   };
+}
+
+export async function updateWeeklyReportDoc(selector = "current") {
+  if (!hasAuthSession()) return null;
+  const data = await buildWeeklyReportData(selector);
+  await setDoc(weeklyReportDocRef(selector), {
+    ...data,
+    updated_at: new Date().toISOString(),
+    saved_at: serverTimestamp(),
+  });
+  return data;
+}
+
+export function scheduleWeeklyReportRefreshForDate(date = todayISO(), delayMs = 900) {
+  if (!hasAuthSession()) return Promise.resolve(null);
+  const selector = getWeekSelectorFromDate(date);
+  const existing = pendingWeeklyRefreshes.get(selector);
+  if (existing?.timer) clearTimeout(existing.timer);
+
+  let resolvePromise;
+  let rejectPromise;
+  const promise = new Promise((resolve, reject) => {
+    resolvePromise = resolve;
+    rejectPromise = reject;
+  });
+
+  const timer = setTimeout(async () => {
+    try {
+      const data = await updateWeeklyReportDoc(selector);
+      resolvePromise(data);
+    } catch (error) {
+      rejectPromise(error);
+    } finally {
+      pendingWeeklyRefreshes.delete(selector);
+    }
+  }, delayMs);
+
+  pendingWeeklyRefreshes.set(selector, { timer, promise });
+  return promise;
+}
+
+export async function getWeeklyReport(selector = "current") {
+  if (!hasAuthSession()) return getLocalWeeklyReport(selector);
+
+  const resolvedSelector = resolveWeekSelector(selector);
+  const pending = pendingWeeklyRefreshes.get(resolvedSelector);
+  if (pending?.promise) {
+    try {
+      await pending.promise;
+    } catch {}
+  }
+
+  try {
+    const snap = await getDoc(weeklyReportDocRef(selector));
+    if (snap.exists()) return snap.data();
+  } catch (e) {
+    console.warn("Failed to fetch cached weekly report", e);
+  }
+
+  return updateWeeklyReportDoc(selector);
 }
 
 // ── Progress trend ────────────────────────────────────────────────────────────
