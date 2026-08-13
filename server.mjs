@@ -157,6 +157,7 @@ function defaultTemplateSet(index = 0, overrides = {}) {
     targetWeight: overrides.targetWeight ?? null,
     targetDistance: overrides.targetDistance ?? null,
     targetDuration: overrides.targetDuration ?? null,
+    progressionStage: overrides.progressionStage ?? null,
   };
 }
 
@@ -216,6 +217,7 @@ function normalizeSetEntry(set = {}, index = 0) {
     targetWeight: set.targetWeight ?? null,
     targetDistance: set.targetDistance ?? null,
     targetDuration: set.targetDuration ?? null,
+    progressionStage: set.progressionStage ?? null,
     ghostReps: set.ghostReps ?? null,
     ghostWeight: set.ghostWeight ?? null,
     ghostDistance: set.ghostDistance ?? null,
@@ -315,10 +317,11 @@ function buildWorkoutExerciseFromRoutine(routineExercise = {}) {
         targetWeight: templateSet.targetWeight,
         targetDistance: templateSet.targetDistance,
         targetDuration: templateSet.targetDuration,
-        ghostReps: templateSet.targetReps ?? previous.reps ?? null,
-        ghostWeight: templateSet.targetWeight ?? previous.weight ?? null,
-        ghostDistance: templateSet.targetDistance ?? previous.distance ?? null,
-        ghostDuration: templateSet.targetDuration ?? previous.duration ?? null,
+        progressionStage: templateSet.progressionStage ?? routineExercise.progressionStage ?? null,
+        ghostReps: previous.reps ?? templateSet.targetReps ?? null,
+        ghostWeight: previous.weight ?? templateSet.targetWeight ?? null,
+        ghostDistance: previous.distance ?? templateSet.targetDistance ?? null,
+        ghostDuration: previous.duration ?? templateSet.targetDuration ?? null,
       }, index);
       return normalizedSet;
     }),
@@ -1078,7 +1081,6 @@ app.post("/routines/:id/exercises", async (c) => {
     templateSets: body.templateSets || undefined,
     target_sets: 3,
     target_reps: "8-12",
-    target_weight: null,
     rest_seconds: 90,
     weight_type: "kg",
     effort: "normal",
@@ -1086,6 +1088,9 @@ app.post("/routines/:id/exercises", async (c) => {
     tempo: null,
     drop_set: false,
     notes: null,
+    moduleId: body.moduleId || null,
+    protocolType: body.protocolType || null,
+    progressionStage: body.progressionStage || null,
     order: routine.exercises.length,
   }, routine.exercises.length);
   routine.exercises.push(exercise);
@@ -1126,8 +1131,8 @@ app.put("/routines/:id/exercises/order", async (c) => {
   return c.json({ ok: true });
 });
 
-// ── Workouts (geloggte Instanzen, Strong-Modell) ──────────────────────────────
-// Eine Übung = eine Zeile, mehrere Satz-Zeilen darunter (Gewicht/Wdh/Häkchen).
+// ── Workouts (geloggte Instanzen, Calisthenics-Modell) ────────────────────────
+// Eine Übung = eine Zeile, mehrere Satz-Zeilen darunter (Wdh/Sekunden/Häkchen).
 // Mehrfach dieselbe Übung hinzufügen ist kein Weg mehr, mehr Sätze zu bekommen —
 // dafür gibt's POST .../sets. Optional an eine Routine gekoppelt (routine_id),
 // aber unabhängig editierbar — Änderungen hier schreiben nie in die Routine zurück.
@@ -1171,6 +1176,13 @@ app.post("/workouts", async (c) => {
     name: name || `Workout ${new Date().toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit" })}`,
     started_at: new Date().toISOString(),
     finished_at: null,
+    sessionState: "work",
+    protocolMeta: {
+      moduleId: body.moduleId || null,
+      protocolType: body.protocolType || null,
+      requiresReview: true,
+    },
+    eventLog: [],
     exercises,
   };
   workouts.push(workout);
@@ -1195,6 +1207,9 @@ app.patch("/workouts/:id", async (c) => {
   const workout = workouts.find(w => w.id === c.req.param("id"));
   if (!workout) return c.json({ error: "not_found" }, 404);
   Object.assign(workout, body);
+  if (Array.isArray(body.exercises)) {
+    workout.exercises = body.exercises.map((exercise, index) => normalizeWorkoutExercise(exercise, index));
+  }
   writeWorkoutLogs(workouts);
   return c.json({ ok: true });
 });
@@ -1263,6 +1278,7 @@ app.post("/workouts/:id/exercises/:eid/sets", (c) => {
     targetWeight: lastTemplate.targetWeight ?? null,
     targetDistance: lastTemplate.targetDistance ?? null,
     targetDuration: lastTemplate.targetDuration ?? null,
+    progressionStage: lastTemplate.progressionStage ?? null,
   }, exercise.sets.length);
   exercise.sets.push(set);
   writeWorkoutLogs(workouts);

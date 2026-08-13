@@ -1,10 +1,58 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Trash2, Check, Plus, Flag } from "lucide-react";
 import { api } from "./api.js";
 import ExerciseSearch from "./components/ExerciseSearch.jsx";
 import { muskelDe, muskelColor } from "./muscles.js";
 
-function SetRow({ set, index, trackingType, onPatch, onDelete }) {
+const REST_TIMER_TAG = "fitness-plan-rest-timer";
+
+function restTimerStorageKey(workoutId) {
+  return `fitness-plan-rest-timer:${workoutId}`;
+}
+
+function readStoredRestTimer(workoutId) {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(restTimerStorageKey(workoutId));
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredRestTimer(workoutId, timer) {
+  if (typeof window === "undefined") return;
+  try {
+    if (!timer) window.localStorage.removeItem(restTimerStorageKey(workoutId));
+    else window.localStorage.setItem(restTimerStorageKey(workoutId), JSON.stringify(timer));
+  } catch {}
+}
+
+async function sendRestTimerNotification(timer) {
+  if (typeof window === "undefined" || typeof navigator === "undefined") return;
+  if (!("serviceWorker" in navigator) || typeof Notification === "undefined") return;
+
+  const registration = window.__swRegistration || await navigator.serviceWorker.getRegistration();
+  if (!registration?.active) return;
+
+  if (!timer) {
+    registration.active.postMessage({ type: "CLEAR_WORKOUT_TIMER_NOTIFICATION", tag: REST_TIMER_TAG });
+    return;
+  }
+
+  if (Notification.permission !== "granted") return;
+
+  const remainingSeconds = Math.max(0, Math.ceil((timer.targetTime - Date.now()) / 1000));
+  registration.active.postMessage({
+    type: "SHOW_WORKOUT_TIMER_NOTIFICATION",
+    tag: REST_TIMER_TAG,
+    title: "Satzpause läuft",
+    body: `${timer.exerciseName || "Übung"} · noch ${remainingSeconds}s`,
+    active: true,
+  });
+}
+
+function SetRow({ set, index, trackingType, onPatch, onDelete, onCompleted }) {
   const isWeight = trackingType === "weight_reps";
   const isBodyweight = trackingType === "bodyweight_reps";
   const isDuration = trackingType === "duration";
@@ -12,29 +60,40 @@ function SetRow({ set, index, trackingType, onPatch, onDelete }) {
 
   function toggleCompleted() {
     if (set.completed) {
-      onPatch("completed", false);
+      onPatch({ completed: false });
       return;
     }
     if (isWeight || isBodyweight) {
-      if ((set.weight === null || set.weight === "") && set.ghostWeight !== null && set.ghostWeight !== undefined && !isBodyweight) {
-        onPatch("weight", set.ghostWeight);
+      if (isWeight && (set.weight === null || set.weight === "") && set.ghostWeight !== null && set.ghostWeight !== undefined) {
+        onPatch({ weight: set.ghostWeight, reps: set.reps ?? set.ghostReps ?? null, completed: true });
+        onCompleted?.();
+        return;
       }
       if ((set.reps === null || set.reps === "") && set.ghostReps !== null && set.ghostReps !== undefined) {
-        onPatch("reps", set.ghostReps);
+        onPatch({ reps: set.ghostReps, completed: true });
+        onCompleted?.();
+        return;
       }
-    }
-    if (isDuration && (set.duration === null || set.duration === "") && set.ghostDuration !== null && set.ghostDuration !== undefined) {
-      onPatch("duration", set.ghostDuration);
     }
     if (isDistanceTime) {
       if ((set.distance === null || set.distance === "") && set.ghostDistance !== null && set.ghostDistance !== undefined) {
-        onPatch("distance", set.ghostDistance);
+        onPatch({ distance: set.ghostDistance, duration: set.duration ?? set.ghostDuration ?? null, completed: true });
+        onCompleted?.();
+        return;
       }
       if ((set.duration === null || set.duration === "") && set.ghostDuration !== null && set.ghostDuration !== undefined) {
-        onPatch("duration", set.ghostDuration);
+        onPatch({ duration: set.ghostDuration, completed: true });
+        onCompleted?.();
+        return;
       }
     }
-    onPatch("completed", true);
+    if (isDuration && (set.duration === null || set.duration === "") && set.ghostDuration !== null && set.ghostDuration !== undefined) {
+      onPatch({ duration: set.ghostDuration, completed: true });
+      onCompleted?.();
+      return;
+    }
+    onPatch({ completed: true });
+    onCompleted?.();
   }
 
   return (
@@ -50,17 +109,42 @@ function SetRow({ set, index, trackingType, onPatch, onDelete }) {
           inputMode="decimal"
           placeholder={isWeight ? String(set.ghostWeight ?? set.targetWeight ?? "kg") : String(set.ghostDistance ?? set.targetDistance ?? "km")}
           value={isWeight ? (set.weight ?? "") : (set.distance ?? "")}
-          onChange={(e) => onPatch(isWeight ? "weight" : "distance", e.target.value === "" ? null : Number(e.target.value))}
+          onChange={(e) => onPatch({ [isWeight ? "weight" : "distance"]: e.target.value === "" ? null : Number(e.target.value) })}
           className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent placeholder:text-fit-muted"
         />
       )}
-      {(isWeight || isBodyweight || isDistanceTime) && (
+      {isBodyweight && (
         <input
           type="number"
           inputMode="numeric"
-          placeholder={isDistanceTime ? String(set.ghostDuration ?? set.targetDuration ?? "min") : String(set.ghostReps ?? set.targetReps ?? "Wdh")}
-          value={isDistanceTime ? (set.duration ?? "") : (set.reps ?? "")}
-          onChange={(e) => onPatch(isDistanceTime ? "duration" : "reps", e.target.value === "" ? null : Number(e.target.value))}
+          placeholder={String(set.ghostReps ?? set.targetReps ?? "Wdh")}
+          value={set.reps ?? ""}
+          onChange={(e) => onPatch({ reps: e.target.value === "" ? null : Number(e.target.value) })}
+          className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent placeholder:text-fit-muted"
+        />
+      )}
+      {isBodyweight && (
+        <div className="px-2 py-1.5 rounded-lg bg-fit-bg2/50 border border-fit-line text-fit-muted text-[11px] text-center">
+          {set.progressionStage || "stage offen"}
+        </div>
+      )}
+      {isWeight && (
+        <input
+          type="number"
+          inputMode="numeric"
+          placeholder={String(set.ghostReps ?? set.targetReps ?? "Wdh")}
+          value={set.reps ?? ""}
+          onChange={(e) => onPatch({ reps: e.target.value === "" ? null : Number(e.target.value) })}
+          className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent placeholder:text-fit-muted"
+        />
+      )}
+      {isDistanceTime && (
+        <input
+          type="number"
+          inputMode="numeric"
+          placeholder={String(set.ghostDuration ?? set.targetDuration ?? "min")}
+          value={set.duration ?? ""}
+          onChange={(e) => onPatch({ duration: e.target.value === "" ? null : Number(e.target.value) })}
           className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent placeholder:text-fit-muted"
         />
       )}
@@ -70,7 +154,7 @@ function SetRow({ set, index, trackingType, onPatch, onDelete }) {
           inputMode="numeric"
           placeholder={String(set.ghostDuration ?? set.targetDuration ?? "sek")}
           value={set.duration ?? ""}
-          onChange={(e) => onPatch("duration", e.target.value === "" ? null : Number(e.target.value))}
+          onChange={(e) => onPatch({ duration: e.target.value === "" ? null : Number(e.target.value) })}
           className="px-2 py-1.5 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono text-center focus:outline-none focus:border-fit-accent placeholder:text-fit-muted"
         />
       )}
@@ -88,7 +172,7 @@ function SetRow({ set, index, trackingType, onPatch, onDelete }) {
   );
 }
 
-function ExerciseBlock({ ex, onAddSet, onPatchSet, onDeleteSet, onDeleteExercise }) {
+function ExerciseBlock({ ex, onAddSet, onPatchSet, onDeleteSet, onDeleteExercise, onCompletedSet }) {
   return (
     <div className="rounded-xl bg-fit-card border border-fit-line overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-3">
@@ -124,7 +208,7 @@ function ExerciseBlock({ ex, onAddSet, onPatchSet, onDeleteSet, onDeleteExercise
             {ex.trackingType === "weight_reps" ? "kg" : ex.trackingType === "distance_time" ? "km" : ex.trackingType === "duration" ? "Zeit" : "Wdh"}
           </span>
           {ex.trackingType !== "duration" && (
-            <span className="text-center">{ex.trackingType === "distance_time" ? "Zeit" : "Wdh"}</span>
+            <span className="text-center">{ex.trackingType === "bodyweight_reps" ? "Stage" : ex.trackingType === "distance_time" ? "Zeit" : "Wdh"}</span>
           )}
           <span />
           <span />
@@ -135,8 +219,9 @@ function ExerciseBlock({ ex, onAddSet, onPatchSet, onDeleteSet, onDeleteExercise
             set={set}
             index={i}
             trackingType={ex.trackingType || "weight_reps"}
-            onPatch={(key, val) => onPatchSet(set.id, key, val)}
+            onPatch={(patch) => onPatchSet(set.id, patch)}
             onDelete={() => onDeleteSet(set.id)}
+            onCompleted={() => onCompletedSet?.(set)}
           />
         ))}
         <button
@@ -153,6 +238,9 @@ function ExerciseBlock({ ex, onAddSet, onPatchSet, onDeleteSet, onDeleteExercise
 export default function WorkoutSession({ workoutId, onBack, onFinished }) {
   const [workout, setWorkout] = useState(null);
   const [exercises, setExercises] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [restTimer, setRestTimer] = useState(null);
+  const [nowMs, setNowMs] = useState(Date.now());
 
   async function load() {
     const d = await api.get(`/workouts/${workoutId}`);
@@ -161,6 +249,81 @@ export default function WorkoutSession({ workoutId, onBack, onFinished }) {
   }
 
   useEffect(() => { load(); }, [workoutId]);
+
+  useEffect(() => {
+    setRestTimer(readStoredRestTimer(workoutId));
+  }, [workoutId]);
+
+  useEffect(() => {
+    if (!restTimer?.targetTime) return undefined;
+    const tick = window.setInterval(() => setNowMs(Date.now()), 250);
+    return () => window.clearInterval(tick);
+  }, [restTimer?.targetTime]);
+
+  useEffect(() => {
+    if (!restTimer?.targetTime) {
+      writeStoredRestTimer(workoutId, null);
+      sendRestTimerNotification(null).catch(() => {});
+      return;
+    }
+    writeStoredRestTimer(workoutId, restTimer);
+    sendRestTimerNotification(restTimer).catch(() => {});
+  }, [workoutId, restTimer]);
+
+  useEffect(() => {
+    function handleVisibilityChange() {
+      if (document.visibilityState !== "visible") return;
+      setNowMs(Date.now());
+      setRestTimer(readStoredRestTimer(workoutId));
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [workoutId]);
+
+  useEffect(() => {
+    if (!restTimer?.targetTime) return;
+    if (restTimer.targetTime > nowMs) return;
+    setRestTimer(null);
+    sendRestTimerNotification({
+      ...restTimer,
+      targetTime: Date.now(),
+    }).catch(() => {});
+    if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+      new Notification("Satzpause beendet", {
+        body: `${restTimer.exerciseName || "Übung"} · weiter`,
+        tag: REST_TIMER_TAG,
+        silent: false,
+      });
+    }
+  }, [nowMs, restTimer]);
+
+  const restRemainingMs = restTimer?.targetTime ? Math.max(0, restTimer.targetTime - nowMs) : 0;
+  const restRemainingLabel = useMemo(() => {
+    const totalSeconds = Math.ceil(restRemainingMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }, [restRemainingMs]);
+
+  async function primeNotificationPermission() {
+    if (typeof Notification === "undefined" || Notification.permission !== "default") return;
+    try { await Notification.requestPermission(); } catch {}
+  }
+
+  function startRestTimer(exercise, set) {
+    const restSeconds = Number(exercise?.rest_seconds) || 0;
+    if (restSeconds <= 0) return;
+    const nextTimer = {
+      workoutId,
+      exerciseId: exercise.id,
+      setId: set.id,
+      exerciseName: exercise.name,
+      targetTime: Date.now() + restSeconds * 1000,
+      restSeconds,
+    };
+    setNowMs(Date.now());
+    setRestTimer(nextTimer);
+  }
 
   async function addExercise(ex) {
     await api.post(`/workouts/${workoutId}/exercises`, {
@@ -184,12 +347,11 @@ export default function WorkoutSession({ workoutId, onBack, onFinished }) {
     load();
   }
 
-  function patchSetLocal(exerciseId, setId, key, val) {
+  function patchSetLocal(exerciseId, setId, patch) {
     setExercises((prev) => prev.map((e) => e.id !== exerciseId ? e : {
       ...e,
-      sets: e.sets.map((s) => s.id === setId ? { ...s, [key]: val } : s),
+      sets: e.sets.map((s) => s.id === setId ? { ...s, ...patch } : s),
     }));
-    api.patch(`/workouts/${workoutId}/exercises/${exerciseId}/sets/${setId}`, { [key]: val });
   }
 
   async function deleteSet(exerciseId, setId) {
@@ -198,7 +360,37 @@ export default function WorkoutSession({ workoutId, onBack, onFinished }) {
   }
 
   async function finishWorkout() {
-    await api.patch(`/workouts/${workoutId}`, { finished_at: new Date().toISOString() });
+    setSaving(true);
+    try {
+      setRestTimer(null);
+      const finishedAt = new Date().toISOString();
+      await api.patch(`/workouts/${workoutId}`, {
+        exercises,
+        finished_at: finishedAt,
+        sessionState: "completed",
+        eventLog: exercises.flatMap((exercise) =>
+          (exercise.sets || [])
+            .filter((set) => set.completed)
+            .map((set) => ({
+              exercise_id: exercise.exercise_id,
+              setId: set.id,
+              metricType:
+                exercise.trackingType === "weight_reps" ? "weight_reps"
+                  : exercise.trackingType === "distance_time" ? "distance_time"
+                    : exercise.trackingType === "duration" ? "seconds"
+                      : "reps",
+              reps: set.reps ?? null,
+              weight: set.weight ?? null,
+              distance: set.distance ?? null,
+              seconds: set.duration ?? null,
+              progressionStage: set.progressionStage ?? null,
+              completedAt: finishedAt,
+            }))
+        ),
+      });
+    } finally {
+      setSaving(false);
+    }
     onFinished();
   }
 
@@ -216,12 +408,32 @@ export default function WorkoutSession({ workoutId, onBack, onFinished }) {
           <h1 className="text-xl font-bold tracking-tight truncate">{workout.name}</h1>
         </div>
         <button
-          onClick={finishWorkout}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-fit-accent text-white text-sm font-semibold hover:bg-blue-600 transition-colors"
+          disabled={saving}
+          onClick={async () => {
+            await primeNotificationPermission();
+            await finishWorkout();
+          }}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-fit-accent text-white text-sm font-semibold hover:bg-blue-600 disabled:opacity-50 transition-colors"
         >
           <Flag size={14} strokeWidth={2.7} /> Fertig
         </button>
       </div>
+
+      {restTimer && (
+        <div className="mb-4 rounded-2xl border border-fit-line bg-fit-card px-4 py-3 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-[11px] uppercase tracking-wide text-fit-muted">Rest Timer</div>
+            <div className="text-sm font-semibold text-fit-ink">{restTimer.exerciseName}</div>
+          </div>
+          <div className="text-lg font-mono text-fit-ink">{restRemainingLabel}</div>
+          <button
+            onClick={() => setRestTimer(null)}
+            className="px-3 py-1.5 rounded-lg bg-fit-bg2 text-fit-muted text-xs font-semibold hover:text-fit-ink transition-colors"
+          >
+            Stop
+          </button>
+        </div>
+      )}
 
       <div className="mb-5">
         <ExerciseSearch onAdd={addExercise} exclude={excludeIds} />
@@ -238,9 +450,13 @@ export default function WorkoutSession({ workoutId, onBack, onFinished }) {
               key={ex.id}
               ex={ex}
               onAddSet={() => addSet(ex.id)}
-              onPatchSet={(setId, key, val) => patchSetLocal(ex.id, setId, key, val)}
+              onPatchSet={(setId, patch) => patchSetLocal(ex.id, setId, patch)}
               onDeleteSet={(setId) => deleteSet(ex.id, setId)}
               onDeleteExercise={() => removeExercise(ex.id)}
+              onCompletedSet={(set) => {
+                primeNotificationPermission().catch(() => {});
+                startRestTimer(ex, set);
+              }}
             />
           ))}
         </div>

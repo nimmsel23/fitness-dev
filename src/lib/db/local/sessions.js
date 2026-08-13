@@ -104,6 +104,8 @@ export async function buildWorkoutFromRoutine(routine, lookup = getLastExerciseP
           setType: templateEx.drop_set ? "drop" : "normal",
           targetReps: templateEx.target_reps ?? "8-12",
           targetWeight: templateEx.target_weight ?? null,
+          targetDistance: templateEx.targetDistance ?? null,
+          targetDuration: templateEx.targetDuration ?? null,
         }));
 
     exercises.push({
@@ -121,10 +123,11 @@ export async function buildWorkoutFromRoutine(routine, lookup = getLastExerciseP
           targetWeight: templateSet.targetWeight ?? null,
           targetDistance: templateSet.targetDistance ?? null,
           targetDuration: templateSet.targetDuration ?? null,
-          ghostReps: templateSet.targetReps ?? ghostSet.reps ?? null,
-          ghostWeight: templateSet.targetWeight ?? ghostSet.weight ?? null,
-          ghostDistance: templateSet.targetDistance ?? ghostSet.distance ?? null,
-          ghostDuration: templateSet.targetDuration ?? ghostSet.duration ?? null,
+          progressionStage: templateSet.progressionStage ?? templateEx.progressionStage ?? null,
+          ghostReps: ghostSet.reps ?? templateSet.targetReps ?? null,
+          ghostWeight: ghostSet.weight ?? templateSet.targetWeight ?? null,
+          ghostDistance: ghostSet.distance ?? templateSet.targetDistance ?? null,
+          ghostDuration: ghostSet.duration ?? templateSet.targetDuration ?? null,
           reps: null,
           weight: null,
           distance: null,

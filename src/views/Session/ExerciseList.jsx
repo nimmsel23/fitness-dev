@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { Dumbbell, Plus, Search, Zap } from 'lucide-react';
+import { Dumbbell, Plus, Search } from 'lucide-react';
 import ExerciseCard from './ExerciseCard';
 import ExerciseSearchOverlay from '../../components/ExerciseSearchOverlay';
 
@@ -13,40 +13,13 @@ export default function ExerciseList({
   updateEx, addSet, removeSet, removeEx, replaceSets, moveEx,
   date, addEx, quickInput, setQuickInput, addQuick,
   prevMap = {}, onInspectExercise,
-  hint, gaps,
+  gaps,
 }) {
   const [showSearch, setShowSearch] = useState(false);
   const safe = Array.isArray(exercises) ? exercises : [];
 
   return (
     <div className="space-y-5">
-
-      {/* Plan hint */}
-      {hint && (
-        <div
-          className="flex items-center gap-3 px-4 py-3 rounded-2xl animate-in slide-in-from-top-2 duration-300"
-          style={{
-            background: 'rgba(var(--accent-rgb,200,255,0),0.04)',
-            border: '1px solid rgba(var(--accent-rgb,200,255,0),0.15)',
-          }}
-        >
-          <Zap size={15} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-          <div className="min-w-0">
-            <span
-              className="text-[10px] font-black uppercase tracking-widest mr-2"
-              style={{ color: 'var(--accent)' }}
-            >
-              {hint.block}
-            </span>
-            <span
-              className="text-[11px]"
-              style={{ color: 'var(--muted)' }}
-            >
-              {(hint.exercises || []).slice(0, 3).join(' · ')}
-            </span>
-          </div>
-        </div>
-      )}
 
       {/* Coverage gaps */}
       {gaps.length > 0 && (

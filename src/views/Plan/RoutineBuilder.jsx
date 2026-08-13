@@ -20,6 +20,9 @@ function ensureTemplateSets(ex) {
     setType: ex.drop_set ? "drop" : "normal",
     targetReps: ex.target_reps ?? "8-12",
     targetWeight: ex.target_weight ?? null,
+    targetDistance: ex.targetDistance ?? null,
+    targetDuration: ex.targetDuration ?? null,
+    progressionStage: ex.progressionStage ?? null,
   }));
 }
 
@@ -74,7 +77,9 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
         <div className="flex items-center gap-1 flex-shrink-0">
           {templateSets.some((set) => set.setType === "failure") && <span className="text-xs px-1.5 py-0.5 rounded bg-red-500/15 text-red-400 font-medium">Failure</span>}
           {templateSets.some((set) => set.setType === "drop") ? <span className="text-xs px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-400 font-medium">Drop</span> : null}
-          <span className="font-mono text-xs text-fit-muted">{templateSets.length}×{leadSet.targetReps ?? "8-12"}</span>
+          <span className="font-mono text-xs text-fit-muted">
+            {templateSets.length}×{(ex.trackingType || "weight_reps") === "duration" ? (leadSet.targetDuration ?? "10s") : (leadSet.targetReps ?? "8-12")}
+          </span>
           <button onClick={() => setOpen((v) => !v)} className="p-1.5 rounded-lg text-fit-muted hover:text-fit-ink transition-colors">
             {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
@@ -97,16 +102,30 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
                 targetWeight: templateSets[index]?.targetWeight ?? leadSet.targetWeight ?? null,
                 targetDistance: templateSets[index]?.targetDistance ?? leadSet.targetDistance ?? null,
                 targetDuration: templateSets[index]?.targetDuration ?? leadSet.targetDuration ?? null,
+                progressionStage: templateSets[index]?.progressionStage ?? leadSet.progressionStage ?? ex.progressionStage ?? null,
               })))}
               className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono focus:outline-none focus:border-fit-accent" />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-fit-muted font-medium">Ziel-Wdh</span>
-            <input value={leadSet.targetReps ?? ""}
-              onChange={(e) => onPatch("templateSets", templateSets.map((set) => ({ ...set, targetReps: e.target.value })))}
+            <span className="text-xs text-fit-muted font-medium">{(ex.trackingType || "weight_reps") === "duration" ? "Ziel-Sekunden" : "Ziel-Wdh"}</span>
+            <input value={(ex.trackingType || "weight_reps") === "duration" ? (leadSet.targetDuration ?? "") : (leadSet.targetReps ?? "")}
+              onChange={(e) => onPatch("templateSets", templateSets.map((set) => (
+                (ex.trackingType || "weight_reps") === "duration"
+                  ? { ...set, targetDuration: e.target.value === "" ? null : Number(e.target.value) }
+                  : { ...set, targetReps: e.target.value }
+              )))}
               className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono focus:outline-none focus:border-fit-accent"
-              placeholder="8-12 / AMRAP" />
+              placeholder={(ex.trackingType || "weight_reps") === "duration" ? "10" : "8-12 / AMRAP"} />
           </label>
+          {(ex.trackingType || "weight_reps") === "weight_reps" && (
+            <label className="flex flex-col gap-1">
+              <span className="text-xs text-fit-muted font-medium">Ziel-Gewicht</span>
+              <input type="number" min="0" value={leadSet.targetWeight ?? ""}
+                onChange={(e) => onPatch("templateSets", templateSets.map((set) => ({ ...set, targetWeight: e.target.value === "" ? null : Number(e.target.value) })))}
+                className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono focus:outline-none focus:border-fit-accent"
+                placeholder="60" />
+            </label>
+          )}
           <label className="flex flex-col gap-1">
             <span className="text-xs text-fit-muted font-medium">Pause (s)</span>
             <input type="number" min="0" value={ex.rest_seconds}
@@ -149,11 +168,12 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
               className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-mono focus:outline-none focus:border-fit-accent"
               placeholder="30X0" />
           </label>
-          <label className="flex items-center gap-2 col-span-1 pt-4">
-            <input type="checkbox" checked={templateSets.some((set) => set.targetWeight !== null && set.targetWeight !== "")}
-              onChange={(e) => onPatch("templateSets", templateSets.map((set) => ({ ...set, targetWeight: e.target.checked ? (set.targetWeight ?? 0) : null })))}
-              className="rounded" />
-            <span className="text-sm text-fit-muted">Hard Targets aktiv</span>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs text-fit-muted font-medium">Progression Stage</span>
+            <input value={leadSet.progressionStage ?? ex.progressionStage ?? ""}
+              onChange={(e) => onPatch("templateSets", templateSets.map((set) => ({ ...set, progressionStage: e.target.value || null })))}
+              className="px-3 py-2 rounded-lg bg-fit-bg2 border border-fit-line text-fit-ink text-sm focus:outline-none focus:border-fit-accent"
+              placeholder="tuck / adv_tuck / full" />
           </label>
           <label className="flex flex-col gap-1 col-span-2">
             <span className="text-xs text-fit-muted font-medium">Notiz</span>

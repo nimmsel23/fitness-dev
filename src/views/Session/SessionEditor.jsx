@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Save, ChevronDown, X } from 'lucide-react';
+import { Save, ChevronDown, X, Zap } from 'lucide-react';
 import DateStrip from './DateStrip';
 import ModeSwitcher from './ModeSwitcher';
 import SessionSwitcher from './SessionSwitcher';
@@ -89,6 +89,32 @@ export default function SessionEditor({
       />
 
       <div className="px-2 space-y-4 mt-3">
+        {hint && (
+          <div
+            className="flex items-center gap-3 px-4 py-3 rounded-2xl animate-in slide-in-from-top-2 duration-300"
+            style={{
+              background: 'rgba(var(--accent-rgb,200,255,0),0.04)',
+              border: '1px solid rgba(var(--accent-rgb,200,255,0),0.15)',
+            }}
+          >
+            <Zap size={15} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+            <div className="min-w-0">
+              <div
+                className="text-[10px] font-black uppercase tracking-widest"
+                style={{ color: 'var(--accent)' }}
+              >
+                {hint.block}
+              </div>
+              <div
+                className="text-[11px] mt-0.5 truncate"
+                style={{ color: 'var(--muted)' }}
+              >
+                {(hint.exercises || []).slice(0, 3).join(' · ')}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Session switcher */}
         <div
           className="px-4 py-3 rounded-2xl"
@@ -137,7 +163,6 @@ export default function SessionEditor({
               addQuick={addQuick}
               prevMap={prevMap}
               onInspectExercise={onInspectExercise}
-              hint={hint}
               gaps={gaps}
             />
 
@@ -286,8 +311,8 @@ export default function SessionEditor({
       {gateSheetOpen && createPortal(
         <div className="fixed inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-200">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setGateSheetOpen(false)} />
-          <div className="relative w-full max-w-2xl bg-fit-card border-t border-fit-line rounded-t-[40px] shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[85vh] overflow-y-auto">
-            <div className="sticky top-0 bg-fit-card pt-4 pb-2 flex items-center justify-between px-5 z-10">
+          <div className="relative w-full max-w-xl bg-fit-card border-t border-fit-line rounded-t-[32px] sm:rounded-t-[40px] shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[92vh] overflow-y-auto">
+            <div className="sticky top-0 bg-fit-card pt-3 pb-2 flex items-center justify-between px-4 sm:px-5 z-10">
               <div className="w-10 h-1 rounded-full bg-fit-line mx-auto" />
               <button
                 onClick={() => setGateSheetOpen(false)}
@@ -297,7 +322,7 @@ export default function SessionEditor({
                 <X size={16} />
               </button>
             </div>
-            <div className="px-2 pb-8">
+            <div className="px-2 sm:px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
               <SessionGateCard
                 date={date}
                 sessionGate={sessionGate}

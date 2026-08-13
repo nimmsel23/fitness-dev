@@ -90,7 +90,7 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
 
   return (
     <section
-      className="rounded-[2rem] p-5 sm:p-6 overflow-hidden relative"
+      className="rounded-[1.75rem] sm:rounded-[2rem] p-4 sm:p-6 overflow-hidden relative"
       style={{
         background: active
           ? 'linear-gradient(135deg, rgba(200,255,0,0.16), rgba(200,255,0,0.05))'
@@ -104,7 +104,7 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
             : '1px solid var(--line)',
       }}
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
         <div>
           <div
             className="text-[10px] font-black uppercase tracking-[0.22em] mb-2"
@@ -112,10 +112,10 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
           >
             Gym Session Gate
           </div>
-          <h3 className="text-xl sm:text-2xl font-black text-fit-ink">
+          <h3 className="text-lg sm:text-2xl font-black text-fit-ink">
             {active ? 'Im Gym. Handy weg.' : completed ? 'Workout ist geloggt.' : 'Workout schnell starten.'}
           </h3>
-          <p className="text-sm mt-2 max-w-xl" style={{ color: 'var(--dim)', opacity: 0.8 }}>
+          <p className="text-[13px] sm:text-sm mt-2 max-w-xl" style={{ color: 'var(--dim)', opacity: 0.8 }}>
             {active
               ? 'Die Zeit läuft bereits. Das eigentliche Tracking kann komplett später passieren.'
               : completed
@@ -124,7 +124,7 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
           </p>
         </div>
         <div
-          className="shrink-0 rounded-2xl px-3 py-2 text-right"
+          className="w-full sm:w-auto shrink-0 rounded-2xl px-3 py-2 text-left sm:text-right"
           style={{ background: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,255,255,0.06)' }}
         >
           <div className="text-[10px] font-black uppercase tracking-[0.22em]" style={{ color: 'var(--dim)' }}>
@@ -136,11 +136,11 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 mt-6">
+      <div className="flex flex-wrap items-stretch gap-3 mt-5">
         {!active ? (
           <button
             onClick={handleStart}
-            className="w-full sm:w-auto sm:min-w-[24rem] min-h-[5.5rem] px-8 rounded-[1.75rem] flex items-center justify-center gap-4 text-base sm:text-lg font-black uppercase tracking-[0.16em] transition-all hover:scale-[1.01] active:scale-[0.98]"
+            className="w-full sm:w-auto sm:min-w-[22rem] min-h-[4.5rem] sm:min-h-[5.5rem] px-6 sm:px-8 rounded-[1.5rem] sm:rounded-[1.75rem] flex items-center justify-center gap-3 sm:gap-4 text-sm sm:text-lg font-black uppercase tracking-[0.14em] sm:tracking-[0.16em] transition-all hover:scale-[1.01] active:scale-[0.98]"
             style={{
               background: 'var(--accent)',
               color: '#000',
@@ -153,7 +153,7 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
         ) : (
           <button
             onClick={onStop}
-            className="w-full sm:w-auto sm:min-w-[24rem] min-h-[5.5rem] px-8 rounded-[1.75rem] flex items-center justify-center gap-4 text-base sm:text-lg font-black uppercase tracking-[0.16em] transition-all hover:scale-[1.01] active:scale-[0.98]"
+            className="w-full sm:w-auto sm:min-w-[22rem] min-h-[4.5rem] sm:min-h-[5.5rem] px-6 sm:px-8 rounded-[1.5rem] sm:rounded-[1.75rem] flex items-center justify-center gap-3 sm:gap-4 text-sm sm:text-lg font-black uppercase tracking-[0.14em] sm:tracking-[0.16em] transition-all hover:scale-[1.01] active:scale-[0.98]"
             style={{
               background: '#fb923c',
               color: '#120c00',
@@ -166,7 +166,7 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
         )}
 
         <div
-          className="flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-bold"
+          className="w-full sm:flex-1 flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-bold"
           style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--dim)' }}
         >
           {active ? <Clock3 size={14} /> : completed ? <CheckCircle2 size={14} /> : <PencilLine size={14} />}
@@ -180,11 +180,11 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
         </div>
       </div>
 
-      <div className="mt-5 pt-5" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+      <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
         <div className="text-[10px] font-black uppercase tracking-[0.2em] mb-3" style={{ color: 'var(--dim)', opacity: 0.65 }}>
           Bereiche
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {SESSION_NAV_ITEMS.map(({ id, label, Icon, comingSoon }) => {
             const selected = (currentSubTab || 'today') === id;
             return (
