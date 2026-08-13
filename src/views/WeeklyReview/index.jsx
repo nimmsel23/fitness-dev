@@ -15,6 +15,7 @@ import Muscles from '../Muscles/index.jsx';
 import { sessionHasLoggedWorkout } from '../../lib/sessionGate.js';
 
 const SUB_TABS = ['muscles', 'verlauf', 'readiness', 'strength'];
+const weeklyReportCache = new Map();
 
 export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleLanguage = 'de', taxonomy = null, gender = 'male', recentDays = 10, subTab = null, onSubNav }) {
   const [week, setWeek]       = useState('current');
@@ -39,15 +40,27 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
   }
 
   useEffect(() => {
+    if (viewMode !== 'report') return;
+
+    if (weeklyReportCache.has(week)) {
+      setData(weeklyReportCache.get(week) || null);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     getWeeklyReport(week)
-      .then(d => setData(d || null))
+      .then(d => {
+        const next = d || null;
+        weeklyReportCache.set(week, next);
+        setData(next);
+      })
       .catch(err => {
         console.error('getWeeklyReport failed', err);
         setData(null);
       })
       .finally(() => setLoading(false));
-  }, [week]);
+  }, [viewMode, week]);
 
   async function exportWeekly() {
     try {
@@ -56,6 +69,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
         week_selector: week,
         force: true,
       })
+      weeklyReportCache.delete(week)
       setToast(result?.path ? `Export: ${result.path}` : 'Exportiert')
     } catch {
       setToast('Export fehlgeschlagen')
