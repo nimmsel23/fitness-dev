@@ -39,6 +39,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   `fitness-catalog audit anatomy|exercises|coverage` (Topic angeben!) —
   `audit` ohne Topic/mit "all" hängt (>30s, vermutlich wger-Netzwerkaufruf),
   nicht mit langem Timeout erneut versuchen ohne das zu verifizieren.
+- **`chmod +x` auf einen Git-Hook (`.githooks/*`) ist selbst KEIN Deploy-Befehl**
+  und braucht keine Pro-Deploy-Bestätigung — es aktiviert nur eine Automatik,
+  die frühestens beim nächsten tatsächlichen `git push` nach `master` greift
+  (der eigentliche Deploy-Trigger bleibt dieser spätere, separate `push`-
+  Befehl, den der User ohnehin selbst auslöst). Deploy-Bestätigung bleibt
+  Pflicht für: `firebase deploy`, `npm run firebase`/`build:firebase &&
+  deploy`, `git push` nach `master` selbst, `fitness-catalog push` (Prod-
+  KB-Sync) — nicht für das bloße Freischalten eines bereits geschriebenen,
+  gereviewten Hooks. (2026-08-14, nach einem Fall wo der Auto-Mode-
+  Classifier `chmod +x .githooks/pre-push` fälschlich als Deploy blockierte.)
 - **Mehrere Claude-Sessions laufen praktisch immer parallel** an diesem Repo
   (`ps aux | grep claude` zeigt üblicherweise mehrere Prozesse, teils
   eigenständige anatomy-agent-Läufe). Vor größeren Eingriffen/gemeinsam
