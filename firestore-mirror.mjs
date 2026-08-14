@@ -9,9 +9,11 @@
  */
 
 import { createRequire } from "node:module";
-import { existsSync } from "node:fs";
+import fs, { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+
+const SESSIONS_ROOT = join(homedir(), ".aos", "fitness", "users");
 
 const CRED_PATH = join(homedir(), ".env", "firebase-fitness.json");
 const PROJECT   = process.env.FIREBASE_FITNESS_PROJECT || "fitness-aos";
@@ -68,6 +70,82 @@ export async function mirrorSession(date, session, uid = "default") {
       saved_at: new Date().toISOString(),
     })
   );
+}
+
+export async function mirrorSessionDelete(date, uid = "default", sessionId = null) {
+  const db = await getDb();
+  if (!db) return;
+  const targetId = sessionId ? `${date}__${sessionId}` : date;
+  fire(() => db.collection("fitness").doc(uid).collection("sessions").doc(targetId).delete());
+}
+
+let _userDataWatchersStarted = false;
+
+/**
+ * Eingebetteter Realtime-Sync (Cloud → lokal) für Sessions — ersetzt den
+ * separaten fitness-firestore-daemon.service/fitness-firestore-mirror.service
+ * (Python, oneshot bzw. eigener Prozess). Läuft im selben Node-Prozess wie
+ * server.mjs, kein externer Daemon mehr nötig. Deckt insbesondere Löschungen
+ * ab (Firestore-Doc gelöscht → docChanges() liefert type "removed"), was der
+ * alte oneshot-Pull nie konnte (der hat nur geschrieben, nie lokal gelöscht).
+ */
+export async function startUserDataWatchers({ onSessionWrite, onSessionDelete } = {}) {
+  if (_userDataWatchersStarted) return;
+  const db = await getDb();
+  if (!db) return;
+  _userDataWatchersStarted = true;
+
+  let uids;
+  try {
+    uids = fs.readdirSync(SESSIONS_ROOT).filter(d => {
+      try { return fs.statSync(join(SESSIONS_ROOT, d)).isDirectory(); } catch { return false; }
+    });
+  } catch {
+    uids = ["default"];
+  }
+  if (!uids.length) uids = ["default"];
+
+  for (const uid of uids) {
+    const sessDir = join(SESSIONS_ROOT, uid, "sessions");
+    db.collection("fitness").doc(uid).collection("sessions").onSnapshot(
+      snap => {
+        for (const change of snap.docChanges()) {
+          const docId = change.doc.id; // "YYYY-MM-DD" oder "YYYY-MM-DD__<sessionId>"
+          const date = docId.split("__")[0];
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+          const file = join(sessDir, `${docId}.json`);
+
+          if (change.type === "removed") {
+            if (existsSync(file)) {
+              try { fs.unlinkSync(file); } catch (e) { console.warn(`[firestore-mirror] delete lokal fehler ${file}: ${e.message}`); }
+            }
+            onSessionDelete?.(uid, docId);
+            continue;
+          }
+
+          const data = change.doc.data();
+          let local = null;
+          try { local = JSON.parse(fs.readFileSync(file, "utf8")); } catch {}
+          const cloudTs = data.saved_at || "";
+          const localTs = local?.saved_at || "";
+          // Push (mirrorSession) ist fire-and-forget lokal→Cloud — ohne diesen
+          // Vergleich würde jeder eigene lokale Save sofort als "Cloud-Änderung"
+          // zurückkommen und einen sinnlosen Round-Trip auslösen.
+          if (local && localTs && cloudTs && localTs >= cloudTs) continue;
+
+          try {
+            fs.mkdirSync(sessDir, { recursive: true });
+            fs.writeFileSync(file, JSON.stringify(data, null, 2));
+            onSessionWrite?.(date, data);
+          } catch (e) {
+            console.warn(`[firestore-mirror] write lokal fehler ${file}: ${e.message}`);
+          }
+        }
+      },
+      err => console.warn(`[firestore-mirror] Listener-Fehler (${uid}): ${err.message}`)
+    );
+  }
+  console.log(`[firestore-mirror] User-Data-Watcher aktiv für ${uids.length} uid(s): ${uids.join(", ")}`);
 }
 
 export async function mirrorJournal(date, entry, uid = "default") {
