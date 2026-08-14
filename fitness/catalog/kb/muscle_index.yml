@@ -70,16 +70,23 @@ string_aliases:
   triceps:     401_triceps_brachii
 
 wger_groups:
+  # wger unterscheidet pro Muskel-ID KEINE Teilköpfe/-anteile — ein Import,
+  # der auf eine Liste mehrerer spezifischer Teilmuskeln expandiert (z.B.
+  # 4 -> Pectoralis major UND Clavicular- UND Sternal-Kopf gleichzeitig),
+  # behauptet mehr Praezision als die Quelle je hatte. Fuer 4/5/7/10 existiert
+  # eine echte, verlustfreie Parent-ID in der Taxonomie -> nur die nutzen.
+  # 9 und 11 bleiben Mehrfach-Listen, weil dort KEINE einzelne Parent-ID
+  # existiert (Taxonomie-Luecke, kein Fall fuer denselben Fix).
   1:  [402_biceps_brachii]
   2:  [301_anterior_deltoid]
   3:  [105_serratus_anterior]
-  4:  [101_pectoralis_major, 102_pectoralis_major_clavicular, 103_pectoralis_major_sternal]
-  5:  [401_triceps_brachii, 401a_triceps_long_head, 401b_triceps_lateral_head, 401c_triceps_medial_head]
+  4:  [101_pectoralis_major]
+  5:  [401_triceps_brachii]
   6:  [501_rectus_abdominis]
-  7:  [701_gastrocnemius, 701a_gastrocnemius_medial, 701b_gastrocnemius_lateral]
+  7:  [701_gastrocnemius]
   8:  [603_gluteus_maximus]
   9:  [202_trapezius_upper, 203_trapezius_middle, 204_trapezius_lower, 303_posterior_deltoid]
-  10: [601a_rectus_femoris, 601b_vastus_lateralis, 601c_vastus_medialis, 601d_vastus_intermedius]
+  10: [601_quadriceps_femoris]
   11: [604_biceps_femoris, 605_semitendinosus, 606_semimembranosus]
   12: [201_latissimus_dorsi]
   13: [403_brachialis]
