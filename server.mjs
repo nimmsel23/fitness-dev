@@ -6,7 +6,7 @@ import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import Database from "better-sqlite3";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
-import { mirrorSession, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, readHabits, pullAllSessions } from "./firestore-mirror.mjs";
+import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, readHabits, pullAllSessions, startUserDataWatchers } from "./firestore-mirror.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -66,6 +66,14 @@ const stmtInsertEntry = db.prepare(`
   VALUES
     (@date, @session_id, @workout_id, @exercise_id, @display_name, @sets, @reps, @weight, @rpe, @done, @notes, @completion_status)
 `);
+
+function deleteSessionFromDb(date, sessionId = null) {
+  if (sessionId) {
+    db.prepare("DELETE FROM training_history WHERE date = ? AND session_id = ?").run(date, sessionId);
+  } else {
+    db.prepare("DELETE FROM training_history WHERE date = ? AND (session_id IS NULL OR session_id = '')").run(date);
+  }
+}
 
 function syncSessionToDb(date, session) {
   const block = session.block || "";
@@ -1401,6 +1409,8 @@ app.delete("/session", (c) => {
   const id   = c.req.query("id") || null;
   const file = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions", sessionFileName(date, id));
   if (fs.existsSync(file)) fs.unlinkSync(file);
+  deleteSessionFromDb(date, id);
+  mirrorSessionDelete(date, uid, id);
   return c.json({ ok: true });
 });
 
@@ -1714,3 +1724,13 @@ app.get("*", async (c) => {
 serve({ fetch: app.fetch, port: PORT, hostname: HOST }, () =>
   console.log(`💪 fitness-dev on http://${HOST}:${PORT}`)
 );
+
+// Eingebetteter Firestore-User-Data-Sync (Cloud → lokal, inkl. Löschungen) —
+// löst den separaten fitness-firestore-daemon.service/fitness-firestore-mirror.service ab.
+startUserDataWatchers({
+  onSessionWrite: (date, data) => { try { syncSessionToDb(date, data); } catch (e) { console.warn(`[firestore-mirror] SQLite-Sync fehler ${date}: ${e.message}`); } },
+  onSessionDelete: (_uid, docId) => {
+    const [date, sessionId] = docId.split("__");
+    try { deleteSessionFromDb(date, sessionId || null); } catch (e) { console.warn(`[firestore-mirror] SQLite-Delete fehler ${docId}: ${e.message}`); }
+  },
+}).catch(e => console.warn(`[firestore-mirror] Watcher-Start fehler: ${e.message}`));
