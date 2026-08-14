@@ -5,24 +5,7 @@ import { searchExercises, getSessionHistory, getPlanSuggestion, toggleFavourite,
 import {
   loadLanguageFilter, filterByLanguage, LANG_STORAGE_KEY,
 } from '../lib/exerciseLanguage.js'
-
-const MUSCLE_COLORS = {
-  'Biceps brachii':    '#a78bfa',
-  'Triceps brachii':   '#818cf8',
-  'Deltoid':           '#38bdf8',
-  'Pectoralis major':  '#f472b6',
-  'Latissimus dorsi':  '#34d399',
-  'Trapezius':         '#6ee7b7',
-  'Rectus abdominis':  '#fbbf24',
-  'Quadriceps femoris':'#fb923c',
-  'Biceps femoris':    '#f87171',
-  'Gluteus maximus':   '#c084fc',
-  'Gastrocnemius':     '#67e8f9',
-}
-
-function muscleColor(name) {
-  return MUSCLE_COLORS[name] || '#7b8ba5'
-}
+import { muskelDe, muskelColor as muscleColor, dedupeMuskeln } from '../views/Plan/muscles.js'
 
 export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
   const [query, setQuery] = useState('')
@@ -189,7 +172,7 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
                       >
                         <span className="font-bold text-sm text-fit-ink group-hover:text-accent transition-colors">{ex.name}</span>
                         {ex.primaryMuscles?.length > 0 && (
-                          <span className="text-[9px] font-bold text-fit-dim/60 mt-1 uppercase tracking-wider">{ex.primaryMuscles.join(' · ')}</span>
+                          <span className="text-[9px] font-bold text-fit-dim/60 mt-1 uppercase tracking-wider">{dedupeMuskeln(ex.primaryMuscles).map(muskelDe).join(' · ')}</span>
                         )}
                       </button>
                     ))}
@@ -265,10 +248,10 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
                         </div>
                         
                         <div className="flex flex-wrap gap-1.5 mt-2">
-                          {(ex.primaryMuscles || []).map(m => (
+                          {dedupeMuskeln(ex.primaryMuscles).map(m => (
                             <span key={m} className="text-[9px] px-2 py-0.5 rounded-lg font-black uppercase tracking-widest"
                               style={{ background: muscleColor(m) + '22', color: muscleColor(m) }}>
-                              {m}
+                              {muskelDe(m)}
                             </span>
                           ))}
                           {ex.source && (
