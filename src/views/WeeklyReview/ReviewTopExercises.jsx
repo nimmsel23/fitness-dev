@@ -20,7 +20,7 @@ export default function ReviewTopExercises({ topExercises = [], onInspectExercis
   }
 
   return (
-    <section className="card mb-0 shadow-lg border-fit-line/50 p-6 sm:p-9">
+    <section className="bg-fit-card rounded-[32px] mb-0 shadow-lg border border-fit-line/50 p-6 sm:p-9">
       <div className="label-caps !mb-6 flex items-center gap-2">
         <BarChart3 size={16} className="text-fit-accent" />
         Top Exercises

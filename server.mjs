@@ -1727,10 +1727,16 @@ serve({ fetch: app.fetch, port: PORT, hostname: HOST }, () =>
 
 // Eingebetteter Firestore-User-Data-Sync (Cloud → lokal, inkl. Löschungen) —
 // löst den separaten fitness-firestore-daemon.service/fitness-firestore-mirror.service ab.
-startUserDataWatchers({
-  onSessionWrite: (date, data) => { try { syncSessionToDb(date, data); } catch (e) { console.warn(`[firestore-mirror] SQLite-Sync fehler ${date}: ${e.message}`); } },
-  onSessionDelete: (_uid, docId) => {
-    const [date, sessionId] = docId.split("__");
-    try { deleteSessionFromDb(date, sessionId || null); } catch (e) { console.warn(`[firestore-mirror] SQLite-Delete fehler ${docId}: ${e.message}`); }
-  },
-}).catch(e => console.warn(`[firestore-mirror] Watcher-Start fehler: ${e.message}`));
+// Verzögert (statt direkt nach serve()): firebase-admins Token-Refresh beim
+// Boot kollidierte mit Node/undici (ERR_INVALID_STATE, crashte den ganzen
+// Prozess, siehe notifyPythonSync-Kommentar oben für dieselbe Bug-Klasse) —
+// nach ein paar Sekunden ist der Event-Loop durchgewärmt, kein Crash mehr.
+setTimeout(() => {
+  startUserDataWatchers({
+    onSessionWrite: (date, data) => { try { syncSessionToDb(date, data); } catch (e) { console.warn(`[firestore-mirror] SQLite-Sync fehler ${date}: ${e.message}`); } },
+    onSessionDelete: (_uid, docId) => {
+      const [date, sessionId] = docId.split("__");
+      try { deleteSessionFromDb(date, sessionId || null); } catch (e) { console.warn(`[firestore-mirror] SQLite-Delete fehler ${docId}: ${e.message}`); }
+    },
+  }).catch(e => console.warn(`[firestore-mirror] Watcher-Start fehler: ${e.message}`));
+}, 5000);

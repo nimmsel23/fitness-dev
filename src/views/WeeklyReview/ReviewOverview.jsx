@@ -2,7 +2,7 @@ import { CalendarDays } from 'lucide-react';
 
 export default function ReviewOverview({ sessionCount, totalExercises, avgEffort }) {
   return (
-    <section className="card mb-0 shadow-lg border-fit-line/50 p-5 sm:p-10">
+    <section className="bg-fit-card rounded-[32px] mb-0 shadow-lg border border-fit-line/50 p-5 sm:p-10">
       <div className="label-caps !mb-5 sm:!mb-7 flex items-center gap-2">
         <CalendarDays size={16} className="text-fit-accent" />
         Übersicht

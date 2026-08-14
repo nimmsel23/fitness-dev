@@ -4,7 +4,7 @@ import { getMuscleIcon } from '../../constants/MuscleIcons';
 
 export default function ReviewInsights({ recommendations, missingRegions, muscleLanguage = 'de', taxonomy = null }) {
   return (
-    <section className="card mb-0 bg-fit-accent/5 border-fit-accent/20 shadow-xl p-6 sm:p-9">
+    <section className="rounded-[32px] mb-0 bg-fit-accent/5 border border-fit-accent/20 shadow-xl p-6 sm:p-9">
       <div className="label-caps !mb-6 flex items-center gap-2 text-fit-accent">
         <Sparkles size={16} />
         Insights & Tipps
