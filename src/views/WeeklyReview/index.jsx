@@ -139,18 +139,16 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
           <div className="lg:col-span-8 space-y-8">
             <ReviewMuscleImpact regionEntries={regionEntries} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <ReviewSessionList
-                sessions={data.sessions}
-                onNavigate={onNavigate}
-                muscleLanguage={muscleLanguage}
-                taxonomy={taxonomy}
-              />
-              <ReviewTopExercises
-                topExercises={data.top_exercises}
-                onInspectExercise={onInspectExercise}
-              />
-            </div>
+            <ReviewSessionList
+              sessions={data.sessions}
+              onNavigate={onNavigate}
+              muscleLanguage={muscleLanguage}
+              taxonomy={taxonomy}
+            />
+            <ReviewTopExercises
+              topExercises={data.top_exercises}
+              onInspectExercise={onInspectExercise}
+            />
           </div>
         </div>
       ) : (
