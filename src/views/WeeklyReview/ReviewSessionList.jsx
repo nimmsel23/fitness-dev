@@ -4,8 +4,8 @@ import { translateMuscle } from '../../lib/translations';
 
 export default function ReviewSessionList({ sessions, onNavigate, muscleLanguage = 'de', taxonomy = null }) {
   return (
-    <section className="bg-fit-card rounded-[32px] mb-0 shadow-lg border border-fit-line/50 p-6 sm:p-9">
-      <div className="label-caps !mb-6 flex items-center justify-between">
+    <section>
+      <div className="label-caps !mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
            <Dumbbell size={16} className="text-fit-accent" />
            Sessions im Detail

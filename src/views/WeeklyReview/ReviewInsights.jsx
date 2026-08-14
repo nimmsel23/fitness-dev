@@ -4,14 +4,14 @@ import { getMuscleIcon } from '../../constants/MuscleIcons';
 
 export default function ReviewInsights({ recommendations, missingRegions, muscleLanguage = 'de', taxonomy = null }) {
   return (
-    <section className="rounded-[32px] mb-0 bg-fit-accent/5 border border-fit-accent/20 shadow-xl p-6 sm:p-9">
-      <div className="label-caps !mb-6 flex items-center gap-2 text-fit-accent">
+    <section>
+      <div className="label-caps !mb-4 flex items-center gap-2 text-fit-accent">
         <Sparkles size={16} />
         Insights & Tipps
       </div>
-      <div className="space-y-4">
+      <div className="space-y-3">
         {(recommendations || []).map((rec, i) => (
-          <div key={i} className="flex gap-4 text-sm sm:text-base font-medium leading-relaxed text-fit-ink/80 bg-fit-card/50 p-5 rounded-xl border border-fit-accent/10">
+          <div key={i} className="flex gap-4 text-sm sm:text-base font-medium leading-relaxed text-fit-ink/80 bg-fit-accent/5 p-5 rounded-2xl border border-fit-accent/20">
             <span className="text-fit-accent font-black mt-0.5">→</span>
             {rec}
           </div>
