@@ -16,7 +16,7 @@ function ExerciseAnatomyCard({ ex }) {
     : ex.secondary_muscles?.slice(0, 2) || [];
 
   return (
-    <div className="card border-fit-line/50 overflow-hidden">
+    <div className="bg-fit-card rounded-[32px] border border-fit-line/50 overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full p-5 flex items-center justify-between gap-4 text-left hover:bg-bg2/50 transition-colors"

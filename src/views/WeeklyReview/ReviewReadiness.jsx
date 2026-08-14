@@ -138,7 +138,7 @@ export default function ReviewReadiness() {
       </div>
 
       {/* Muscle Recovery Status Matrix */}
-      <div className="card p-8 border border-fit-line/60 shadow-lg space-y-6">
+      <div className="bg-fit-card rounded-[32px] p-8 border border-fit-line/60 shadow-lg space-y-6">
         <div className="flex items-center justify-between">
           <div className="label-caps flex items-center gap-2 !mb-0">
             <Activity size={16} className="text-fit-accent" />

@@ -5,7 +5,7 @@ import { getMuscleIcon } from '../../constants/MuscleIcons';
 export default function ReviewMuscleImpact({ regionEntries, muscleLanguage = 'de', taxonomy = null }) {
   const maxScore = Math.max(...regionEntries.map(e => e[1]), 5);
   return (
-    <section className="card mb-0 shadow-lg border-fit-line/50 p-5 sm:p-10">
+    <section className="bg-fit-card rounded-[32px] mb-0 shadow-lg border border-fit-line/50 p-5 sm:p-10">
       <div className="label-caps !mb-5 sm:!mb-9 flex items-center gap-2">
         <TrendingUp size={16} className="text-fit-accent" />
         Relative Muskelbelastung
