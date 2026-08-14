@@ -1,22 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Play, Pause, Dumbbell, Shuffle, Check, ChevronLeft, ListChecks, UtensilsCrossed, BookOpen, Star, Camera, Video } from 'lucide-react';
+import { SIXPACK_CATEGORIES, SIXPACK_EXERCISE_DETAILS, SIXPACK_EXERCISE_POOL, VERIFIED_WEEK1_WORKOUTS } from './sixpackData.js';
+import { getAllExercises } from '@db';
 
 const SIXPACK_PROGRAM_KEY = 'fitness-sixpack-program-v1';
 const SIXPACK_FAVORITES_KEY = 'fitness-sixpack-favorites-v1';
 const SIXPACK_SELFIES_KEY = 'fitness-sixpack-selfies-v1';
 
-// Verifizierte, echte Übungsnamen aus der 6 Pack Promise App (App-Reviews +
-// Day-8-Screenshot des Nutzers) — keine erfundenen Namen. Kategorisierung
-// (Lower/Bottom-up/Top-down/Upper) ist eigene fachliche Einordnung, nicht aus
-// der App verifiziert — vom Nutzer als Vitaltrainer korrigierbar.
-const EXERCISE_CATEGORIES = [
-  { id: 'lower', label: 'Lower Abs', exercises: ['Heels to the Heavens', 'Hanging Bat Crunch', 'Hands Back Raises'] },
-  { id: 'bottom-up', label: 'Bottom-up Rotation', exercises: ['Rolling Jackknifes', 'Drunken Mountain Climbers'] },
-  { id: 'top-down', label: 'Top-down Rotation', exercises: ['Crucifix', 'Canoe Crunches', 'Seated Ab Circles'] },
-  { id: 'upper', label: 'Upper Abs', exercises: ['Rib Crushers', 'Starfish Crunch'] },
-];
-
-const EXERCISE_POOL = EXERCISE_CATEGORIES.flatMap(cat => cat.exercises);
+const EXERCISE_CATEGORIES = SIXPACK_CATEGORIES;
+const EXERCISE_POOL = SIXPACK_EXERCISE_POOL;
 
 // Track-Screenshot des Nutzers: Tag 3 und Tag 7 jeder Woche sind REST-Tage.
 const REST_DAYS_IN_WEEK = [3, 7];
@@ -51,12 +43,27 @@ function isRestDay(day) {
   return REST_DAYS_IN_WEEK.includes(dayInWeek(day));
 }
 
+function getVerifiedWorkout(day) {
+  if (weekOf(day) !== 1) return null;
+  const preset = VERIFIED_WEEK1_WORKOUTS[dayInWeek(day)];
+  if (!preset) return null;
+  return {
+    day,
+    rest: false,
+    items: preset.items.map((item) => ({ ...item })),
+    source: preset.source,
+  };
+}
+
 // Generiert einen Tagesplan im Format des Day-8-Screenshots: 4-6 Übungen
 // à 30 oder 60 Sekunden, dazwischen normal ein kurzer 5s-Übergang (unsichtbar
 // in der Liste), aber 1-2x pro Workout ein echter Rest-Block (30 oder 45s),
 // der als eigene Zeile erscheint — exakt wie "Rest · 45 Seconds" im Screenshot.
 function generateDayWorkout(day) {
   if (isRestDay(day)) return { day, rest: true, exercises: [] };
+
+  const verifiedWorkout = getVerifiedWorkout(day);
+  if (verifiedWorkout) return verifiedWorkout;
 
   const exerciseCount = 4 + Math.floor(Math.random() * 3);
   const exercises = shuffleIndices(EXERCISE_POOL.length)
@@ -163,24 +170,91 @@ function EatScreen({ onBack }) {
 }
 
 function LearnScreen({ onBack }) {
+  const [query, setQuery] = useState('');
+  const [allExercises, setAllExercises] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const exercises = await getAllExercises();
+      if (cancelled) return;
+      setAllExercises(Array.isArray(exercises) ? exercises : []);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const visibleExercises = useMemo(() => {
+    const curated = allExercises
+      .filter((exercise) => {
+        const id = String(exercise.exercise_id || exercise.id || '').trim();
+        if (!id) return false;
+        if (id === 'approved_from_firebase') return false;
+        if (id.startsWith('unreviewed_') || id.startsWith('inbox_')) return false;
+        const reviewStatus = exercise.review_state?.status;
+        const tags = exercise.tags || [];
+        return reviewStatus === 'approved' || reviewStatus === 'curated' || exercise.source === 'expert' || exercise.source === 'manual' || tags.includes('expert');
+      })
+      .map((exercise) => {
+        const id = String(exercise.exercise_id || exercise.id || '').trim();
+        const name = exercise.display_name || exercise.displayName || exercise.german || exercise.english || exercise.name || id;
+        const primary = Array.isArray(exercise.primary_muscles) ? exercise.primary_muscles : (Array.isArray(exercise.primaryMuscles) ? exercise.primaryMuscles : []);
+        const secondary = Array.isArray(exercise.secondary_muscles) ? exercise.secondary_muscles : (Array.isArray(exercise.secondaryMuscles) ? exercise.secondaryMuscles : []);
+        return {
+          id,
+          name,
+          source: exercise.source || 'catalog',
+          primaryCount: primary.length,
+          secondaryCount: secondary.length,
+          tags: Array.isArray(exercise.tags) ? exercise.tags : [],
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const q = query.trim().toLowerCase();
+    if (!q) return curated;
+    return curated.filter((exercise) => {
+      const hay = [exercise.id, exercise.name, exercise.source, ...exercise.tags].join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  }, [allExercises, query]);
+
   return (
     <div>
       <BackHeader label="Learn" onBack={onBack} />
+      <div className="px-4 py-2 text-[11px] font-bold" style={{ color: 'var(--dim)' }}>
+        Echte Exercise-Library aus dem KB-Katalog, nicht 6-Pack-spezifisch.
+      </div>
+      <div className="px-4 pb-2">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Exercise suchen..."
+          className="w-full rounded-xl px-3 py-2 text-sm"
+          style={{ background: '#141414', color: '#fff', border: '1px solid #2a2a2a' }}
+        />
+      </div>
+      <div className="px-4 pb-2 text-[11px] font-bold" style={{ color: 'var(--dim)' }}>
+        {visibleExercises.length} Exercises
+      </div>
       <div>
-        {EXERCISE_CATEGORIES.map(cat => (
-          <div key={cat.id}>
-            <div className="px-4 py-2 text-[11px] font-black uppercase tracking-[0.12em]" style={{ background: '#0e0e0e', color: '#e2001a' }}>
-              {cat.label}
-            </div>
-            {cat.exercises.map(name => (
-              <div key={name} className="px-4 py-3 flex items-center justify-between" style={{ background: '#1a1a1a', borderBottom: '1px solid #000' }}>
-                <span className="text-sm font-bold" style={{ color: '#fff' }}>{name}</span>
-                <div className="flex items-center gap-1.5 text-[10px] font-bold" style={{ color: 'var(--dim)' }}>
-                  <Video size={13} />
-                  Video folgt
+        {visibleExercises.map((exercise) => (
+          <div key={exercise.id} className="px-4 py-3" style={{ background: '#1a1a1a', borderBottom: '1px solid #000' }}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-sm font-bold" style={{ color: '#fff' }}>{exercise.name}</div>
+                <div className="text-[10px] font-black uppercase tracking-[0.1em] mt-1" style={{ color: '#e2001a' }}>
+                  {exercise.id}
                 </div>
               </div>
-            ))}
+              <div className="flex items-center gap-1.5 text-[10px] font-bold shrink-0" style={{ color: 'var(--dim)' }}>
+                <BookOpen size={13} />
+                {exercise.source}
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-3 mt-2 text-[11px]" style={{ color: 'var(--dim)' }}>
+              <div>{exercise.primaryCount} primary · {exercise.secondaryCount} secondary</div>
+              <div>{exercise.tags.slice(0, 2).join(' · ') || 'catalog'}</div>
+            </div>
           </div>
         ))}
       </div>

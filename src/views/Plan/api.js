@@ -26,6 +26,14 @@ const LOCAL_DELETE = [/^\/routines\/[^/]+$/, /^\/routines\/[^/]+\/exercises\/[^/
 
 function matches(path, patterns) { return patterns.some(p => p.test(path)) }
 
+// Schreibende Routinen/Workout-Calls im Firebase-Build duerfen NICHT wie ein
+// Erfolg aussehen (frueher: stiller `{}`-Return) - das liess Uebungen nach dem
+// Hinzufuegen kommentarlos verschwinden, weil der folgende GET dann die leere
+// emptyShapeFor()-Huelle lieferte. Lieber sichtbar fehlschlagen.
+function assertLocalWriteSupported(path) {
+  throw new Error(`Plan/Workout-Aenderungen sind in dieser Build-Variante noch nicht verfuegbar (${path}) — nur im lokalen Dev-/Prod-Server.`)
+}
+
 // Firebase-Prod-Build hat noch keine Firestore-Implementierung für Routinen/
 // Workouts (siehe Kommentar oben) — muss aber trotzdem valide leere Shapes
 // liefern statt {}, sonst crasht WorkoutList.jsx ("d.routines.length" auf
@@ -68,7 +76,10 @@ export const api = {
   },
 
   async post(path, body) {
-    if (isLocalMode() && matches(path, LOCAL_POST)) return localFetch('POST', path, body)
+    if (matches(path, LOCAL_POST)) {
+      if (isLocalMode()) return localFetch('POST', path, body)
+      assertLocalWriteSupported(path)
+    }
 
     if (path === '/settings') {
       const cur = JSON.parse(localStorage.getItem('wf-settings') || '{}')
@@ -80,17 +91,26 @@ export const api = {
   },
 
   async patch(path, body) {
-    if (isLocalMode() && matches(path, LOCAL_PATCH)) return localFetch('PATCH', path, body)
+    if (matches(path, LOCAL_PATCH)) {
+      if (isLocalMode()) return localFetch('PATCH', path, body)
+      assertLocalWriteSupported(path)
+    }
     return {}
   },
 
   async put(path, body) {
-    if (isLocalMode() && matches(path, LOCAL_PUT)) return localFetch('PUT', path, body)
+    if (matches(path, LOCAL_PUT)) {
+      if (isLocalMode()) return localFetch('PUT', path, body)
+      assertLocalWriteSupported(path)
+    }
     return {}
   },
 
   async delete(path) {
-    if (isLocalMode() && matches(path, LOCAL_DELETE)) return localFetch('DELETE', path)
+    if (matches(path, LOCAL_DELETE)) {
+      if (isLocalMode()) return localFetch('DELETE', path)
+      assertLocalWriteSupported(path)
+    }
     return {}
   },
 }

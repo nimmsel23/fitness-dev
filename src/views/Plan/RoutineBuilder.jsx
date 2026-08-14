@@ -10,7 +10,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { api } from "./api.js";
 import ExerciseSearch from "./components/ExerciseSearch.jsx";
 import MuscleHeatmap from "./components/MuscleHeatmap.jsx";
-import { muskelDe, muskelColor } from "./muscles.js";
+import { muskelDe, muskelColor, dedupeMuskeln } from "./muscles.js";
 import ExercisePhotoStrip from "../../components/ExercisePhotoStrip.jsx";
 
 function ensureTemplateSets(ex) {
@@ -66,7 +66,7 @@ function ExerciseRow({ ex, onPatch, onDelete }) {
         <div className="flex-1 min-w-0">
           <div className="text-sm font-semibold text-fit-ink truncate">{ex.name}</div>
           <div className="flex flex-wrap gap-1 mt-1">
-            {ex.primaryMuscles?.slice(0, 3).map((m) => (
+            {dedupeMuskeln(ex.primaryMuscles).slice(0, 3).map((m) => (
               <span key={m} className="text-xs px-1.5 py-0.5 rounded font-medium"
                 style={{ background: muskelColor(m) + "22", color: muskelColor(m) }}>
                 {muskelDe(m)}

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Trash2, Check, Plus, Flag } from "lucide-react";
 import { api } from "./api.js";
 import ExerciseSearch from "./components/ExerciseSearch.jsx";
-import { muskelDe, muskelColor } from "./muscles.js";
+import { muskelDe, muskelColor, dedupeMuskeln } from "./muscles.js";
 
 const REST_TIMER_TAG = "fitness-plan-rest-timer";
 
@@ -179,7 +179,7 @@ function ExerciseBlock({ ex, onAddSet, onPatchSet, onDeleteSet, onDeleteExercise
         <div className="flex-1 min-w-0">
           <div className="text-sm font-semibold text-fit-ink truncate">{ex.name}</div>
           <div className="flex flex-wrap gap-1 mt-1">
-            {ex.primaryMuscles?.slice(0, 3).map((m) => (
+            {dedupeMuskeln(ex.primaryMuscles).slice(0, 3).map((m) => (
               <span key={m} className="text-xs px-1.5 py-0.5 rounded font-medium"
                 style={{ background: muskelColor(m) + "22", color: muskelColor(m) }}>
                 {muskelDe(m)}
