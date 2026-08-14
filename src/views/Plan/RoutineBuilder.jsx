@@ -10,7 +10,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { api } from "./api.js";
 import ExerciseSearch from "./components/ExerciseSearch.jsx";
 import MuscleHeatmap from "./components/MuscleHeatmap.jsx";
-import { muskelDe, muskelColor, dedupeMuskeln } from "./muscles.js";
+import { muskelDe, muskelColor, dedupeMuskeln } from "../../lib/muscleLabels.js";
 import ExercisePhotoStrip from "../../components/ExercisePhotoStrip.jsx";
 
 function ensureTemplateSets(ex) {
