@@ -42,7 +42,8 @@ from fitness.catalog.weekly import build_weekly_coverage
 from fitness.catalog.tui import run_tui
 from fitness.catalog.api.watcher import run_watcher
 from fitness.catalog.importer import import_external_exercises, reimport_exercise
-from fitness.catalog.api.firestore_push import run_kb_sync, push_changed_exercises
+from fitness.catalog.api.firestore_push import run_kb_sync, push_changed_exercises, sync_muscles
+from fitness.firestore.kb import get_db
 from fitness.catalog.client_session import log_workout as run_log_client_workout
 from fitness.catalog.core.resolver import resolve_query as run_resolve_query, build_exercise_index
 from fitness.catalog.core.rich_utils import (
@@ -808,14 +809,21 @@ def firestore_push_changed(
     until: Annotated[str, typer.Option(help="Git-Ref (default: HEAD)")] = "HEAD",
     dry_run: Annotated[bool, typer.Option(help="Do not write to Firestore")] = False,
 ):
-    """Pusht nur die in einem Git-Range geänderten Exercise-IDs.
+    """Pusht nur die in einem Git-Range geänderten Exercises + Muskel-Taxonomie.
 
-    Quota-schonende Alternative zu `push` für kleine Catalog-Patches.
+    Quota-schonende Alternative zu `push` für kleine Catalog-Patches. Kein
+    FITNESS_ENV=prod-Gate noetig (im Unterschied zu `push`) — beide
+    zugrundeliegenden Funktionen sind auf den Git-Diff-Range beschraenkt,
+    kein Risiko einen frischeren Firestore-Stand vollstaendig zu ueberschreiben.
     Default: letzter Commit (HEAD~1..HEAD).
     """
     try:
-        result = push_changed_exercises(since_ref=since, until_ref=until, dry_run=dry_run)
-        console.print(f"[ok]✓[/ok] {result}")
+        exercises_result = push_changed_exercises(since_ref=since, until_ref=until, dry_run=dry_run)
+        console.print(f"[ok]✓[/ok] exercises: {exercises_result}")
+        if not dry_run:
+            db = get_db()
+            muscles_result = sync_muscles(db, dry_run=dry_run, since_ref=since, until_ref=until)
+            console.print(f"[ok]✓[/ok] muscles: {muscles_result}")
     except Exception as exc:
         console.print(f"[fail]FAIL:[/fail] {exc}")
         raise typer.Exit(code=1)
