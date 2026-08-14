@@ -16,8 +16,8 @@ const MUSCLE_MAP = {
   forearms:            { de: "Unterarme",            gruppe: "zug" },
 
   // ── Beine ─────────────────────────────────────────────────
-  quadriceps:          { de: "Quadrizeps",           gruppe: "beine" },
-  hamstrings:          { de: "Hamstrings",           gruppe: "beine" },
+  quadriceps:          { de: "Beinstrecker",         gruppe: "beine" },
+  hamstrings:          { de: "Beinbeuger",           gruppe: "beine" },
   glutes:              { de: "Gesäß",                gruppe: "beine" },
   calves:              { de: "Waden",                gruppe: "beine" },
   adductors:           { de: "Adduktoren",           gruppe: "beine" },
