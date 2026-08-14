@@ -54,23 +54,19 @@ muscles:
   602_adductors:                   {}
   703_tibialis_anterior:           {}
 
+# Nur Woerter mit einer verlustfreien 1:1-Ziel-ID (echte Parent-ID in der
+# Taxonomie, keine Auswahl aus mehreren gleichwertigen Kandidaten). Die
+# uebrigen der urspruenglich 17 wger/yuhonas-Flach-Woerter (chest, shoulders,
+# hamstrings, calves, glutes, abdominals, abductors, forearms, "lower back",
+# "middle back", neck, traps) decken 2-8 Einzelmuskeln ab, ohne dass die
+# Quelle verraet welchen genau — eine automatische Zuordnung waere geraten.
+# Bewusst NICHT hier eingetragen: bleiben als roher Quell-String stehen, bis
+# ein Review (Gemini/Mensch) die Uebung tatsaechlich pruezisiert.
 string_aliases:
-  abdominals:  abs
-  abductors:   abductors
   adductors:   602_adductors
   biceps:      402_biceps_brachii
-  calves:      calves
-  chest:       chest
-  forearms:    405_forearm_flexors
-  glutes:      glutes
-  hamstrings:  hamstrings
   lats:        201_latissimus_dorsi
-  lower back:  206_erector_spinae
-  middle back: middle_back
-  neck:        202_trapezius_upper
   quadriceps:  601_quadriceps_femoris
-  shoulders:   shoulders
-  traps:       202_trapezius
   triceps:     401_triceps_brachii
 
 wger_groups:

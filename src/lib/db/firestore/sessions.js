@@ -12,7 +12,7 @@ import { db } from "../../../firebase.js";
 import { todayISO } from "../shared/utils.js";
 import { getUid, hasAuthSession, pingBridge } from "./core.js";
 import { getAllExercises } from "./kb.js";
-import { updateAnalyticsDoc } from "./analysis.js";
+import { updateAnalyticsDoc, scheduleWeeklyReportRefreshForDate } from "./analysis.js";
 import {
   getSession as getLocalSession,
   saveSession as saveLocalSession,
@@ -142,6 +142,7 @@ export async function saveSession(date = todayISO(), sessionData, id = null) {
     }
     pingBridge();
     updateAnalyticsDoc();
+    scheduleWeeklyReportRefreshForDate(date).catch(() => {});
     return { ok: true, id: null, merged: true };
   }
 
@@ -154,6 +155,7 @@ export async function saveSession(date = todayISO(), sessionData, id = null) {
   });
   pingBridge();
   updateAnalyticsDoc(); // fire-and-forget
+  scheduleWeeklyReportRefreshForDate(date).catch(() => {});
   return { ok: true, id };
 }
 
@@ -162,6 +164,8 @@ export async function deleteSession(date = todayISO(), id = null) {
   const targetId = id ? `${date}__${id}` : date;
   await deleteDoc(doc(db, "fitness", getUid(), "sessions", targetId));
   pingBridge();
+  updateAnalyticsDoc();
+  scheduleWeeklyReportRefreshForDate(date).catch(() => {});
   return { ok: true };
 }
 

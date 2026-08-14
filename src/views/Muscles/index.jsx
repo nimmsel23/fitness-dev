@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { getSessionHistory, getAllExercises, getMuscle, muscleToRegion } from "@db";
-import { computeMuscleScores } from "../../lib/superkompensation.js";
+import { getRecoveryAnalytics, getMuscle } from "@db";
 
 import MuscleHeader from "./MuscleHeader";
 import MuscleAnalysis from "./MuscleAnalysis";
@@ -9,14 +8,9 @@ import MuscleBodyMap from "./MuscleBodyMap";
 import MuscleInsights from "./MuscleInsights";
 import AnatomyDetailModal from "../../components/AnatomyDetailModal";
 
-function getMuscleGroup(muscleId) {
-  return muscleToRegion(muscleId);
-}
-
 export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null, recentDays = 10, onInspectExercise = null }) {
   const [days, setDays] = useState(recentDays);
   const [loading, setLoading] = useState(true);
-  const [recentExercises, setRecentExercises] = useState([]);
   const [hitAnalysis, setHitAnalysis] = useState({ heavy: [], recovering: [], super: [], ready: [], scores: {} });
   const [showDetailed, setShowDetailed] = useState(false);
   const [selectedMuscleId, setSelectedMuscleId] = useState(null);
@@ -38,38 +32,10 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([
-      getSessionHistory(60),
-      getAllExercises()
-    ]).then(([sessions, kbExercises]) => {
-      const safeSessions = Array.isArray(sessions) ? sessions.filter(Boolean).map(s => ({
-        ...s,
-        exercises: Array.isArray(s.exercises) ? s.exercises : [],
-      })) : [];
-      const kbMap = new Map();
-      kbExercises.forEach(ex => {
-        kbMap.set((ex.display_name || ex.name || "").toLowerCase(), ex);
-      });
-
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - days);
-      const cutoffStr = cutoff.toISOString().slice(0, 10);
-      
-      const inRange = safeSessions
-        .filter(s => s.date >= cutoffStr)
-        .flatMap(s => s.exercises || [])
-        .map(ex => {
-          const kbEx = kbMap.get((ex.name || "").toLowerCase());
-          return {
-            ...ex,
-            primaryMuscles: kbEx?.primary_muscles || kbEx?.primaryMuscles || ex.primaryMuscles || [],
-            secondaryMuscles: kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || []
-          };
-        });
-      setRecentExercises(inRange);
-
-      setHitAnalysis(computeMuscleScores(safeSessions, kbMap, getMuscleGroup));
-    }).catch(e => console.error(e)).finally(() => setLoading(false));
+    getRecoveryAnalytics(days)
+      .then((data) => setHitAnalysis(data?.hit_analysis || { heavy: [], recovering: [], super: [], ready: [], scores: {} }))
+      .catch((error) => console.error(error))
+      .finally(() => setLoading(false));
   }, [days]);
 
   return (
@@ -92,8 +58,8 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent/5 to-transparent pointer-events-none" />
             {showDetailed ? (
               <MuscleDetailedMap
-                exercises={recentExercises}
                 gender={gender}
+                scores={hitAnalysis.scores}
                 onGroupClick={setSelectedMuscleId}
               />
             ) : (
