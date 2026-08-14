@@ -406,6 +406,7 @@ export function muscleToRbhSlug(raw) {
 // Region-Wort als Fallback, kein Treffer → null (ehrlich statt erfunden).
 const RMH_SLUG_BY_NUMERIC_ID = {
   100: 'chest', 101: 'chest', 102: 'chest', 103: 'chest', 104: 'chest', 105: 'chest',
+  201: 'upper-back', 205: 'upper-back', 207: 'upper-back',
   202: 'trapezius', 203: 'trapezius', 204: 'trapezius',
   206: 'lower-back',
   301: 'deltoids', 302: 'deltoids', 303: 'deltoids',
