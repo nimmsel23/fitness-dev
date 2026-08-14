@@ -61,29 +61,37 @@ export function computeMuscleScores(sessions, kbMap, getMuscleGroup) {
     const sessionDate = new Date(s.date + "T12:00:00");
     const hoursAgo = (now - sessionDate) / (1000 * 60 * 60);
 
-    if (s.activity) {
-      if (hoursAgo <= 168) {
-        const activeMuscles = ACTIVITY_MUSCLE_GROUPS[s.activity.type] || ['quadriceps', 'calves'];
-        for (const m of activeMuscles) {
-          if (!lastSeen[m] || lastSeen[m].hours > hoursAgo) {
-            if (!lastSeen[m] || lastSeen[m].type !== 'strength' || lastSeen[m].hours > 72) {
-              lastSeen[m] = { hours: hoursAgo, type: 'cardio' };
-            }
+    // Beide Zweige unabhängig ausführen (kein if/else!) — eine Session kann
+    // gleichzeitig Kraft-Exercises UND einen Activity-Finisher (ActivityAddon,
+    // "hasActivity") haben. Mit if/else wurden bei jeder Session mit Finisher
+    // die kompletten Kraft-Exercises stillschweigend übersprungen, weil s.activity
+    // truthy war — der Finisher "gewann" immer gegen die eigentliche Session.
+    if (s.activity && hoursAgo <= 168) {
+      // activity.muscles (spezifisches Ziel aus ActivityAddon, z.B. ["core"])
+      // hat Vorrang vor dem groben Typ-Default — konsistent mit getWeeklyReport().
+      const activeMuscles = (s.activity.muscles?.length ? s.activity.muscles : null)
+        || ACTIVITY_MUSCLE_GROUPS[s.activity.type]
+        || ['quadriceps', 'calves'];
+      for (const raw of activeMuscles) {
+        const m = getMuscleGroup(raw) || raw;
+        if (!lastSeen[m] || lastSeen[m].hours > hoursAgo) {
+          if (!lastSeen[m] || lastSeen[m].type !== 'strength' || lastSeen[m].hours > 72) {
+            lastSeen[m] = { hours: hoursAgo, type: 'cardio' };
           }
         }
       }
-    } else {
-      for (const ex of (s.exercises || [])) {
-        const kbEx = kbMap?.get((ex.name || "").toLowerCase());
-        const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
-        const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
+    }
 
-        for (const m of [...primary, ...secondary]) {
-          const group = getMuscleGroup(m);
-          if (group && MUSCLE_GROUPS.includes(group)) {
-            if (!lastSeen[group] || lastSeen[group].hours > hoursAgo) {
-              lastSeen[group] = { hours: hoursAgo, type: 'strength' };
-            }
+    for (const ex of (s.exercises || [])) {
+      const kbEx = kbMap?.get((ex.name || "").toLowerCase());
+      const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
+      const secondary = kbEx?.secondary_muscles || kbEx?.secondaryMuscles || ex.secondaryMuscles || [];
+
+      for (const m of [...primary, ...secondary]) {
+        const group = getMuscleGroup(m);
+        if (group && MUSCLE_GROUPS.includes(group)) {
+          if (!lastSeen[group] || lastSeen[group].hours > hoursAgo) {
+            lastSeen[group] = { hours: hoursAgo, type: 'strength' };
           }
         }
       }
