@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getRecoveryAnalytics, getMuscle } from "@db";
+import { getRecoveryAnalytics, getMuscle, getRecentSessions } from "@db";
 
 import MuscleHeader from "./MuscleHeader";
 import MuscleAnalysis from "./MuscleAnalysis";
@@ -7,6 +7,8 @@ import MuscleDetailedMap from "./MuscleDetailedMap";
 import MuscleBodyMap from "./MuscleBodyMap";
 import MuscleInsights from "./MuscleInsights";
 import AnatomyDetailModal from "../../components/AnatomyDetailModal";
+import SessionDetailModal from "./SessionDetailModal";
+import ReviewSessionList from "../WeeklyReview/ReviewSessionList";
 
 export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null, recentDays = 10, onInspectExercise = null }) {
   const [days, setDays] = useState(recentDays);
@@ -16,6 +18,8 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
   const [selectedMuscleId, setSelectedMuscleId] = useState(null);
   const [muscleData, setMuscleData] = useState(null);
   const [muscleLoading, setMuscleLoading] = useState(false);
+  const [sessions, setSessions] = useState([]);
+  const [selectedSession, setSelectedSession] = useState(null);
 
   useEffect(() => {
     if (!selectedMuscleId) { setMuscleData(null); return; }
@@ -36,6 +40,19 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
       .then((data) => setHitAnalysis(data?.hit_analysis || { heavy: [], recovering: [], super: [], ready: [], scores: {} }))
       .catch((error) => console.error(error))
       .finally(() => setLoading(false));
+  }, [days]);
+
+  useEffect(() => {
+    const cutoff = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+    getRecentSessions(60)
+      .then(list => {
+        const filtered = (Array.isArray(list) ? list : [])
+          .filter(s => s.date >= cutoff)
+          .map(s => ({ ...s, exercise_count: s.exercises?.length || 0 }))
+          .sort((a, b) => b.date.localeCompare(a.date));
+        setSessions(filtered);
+      })
+      .catch(() => setSessions([]));
   }, [days]);
 
   return (
@@ -77,7 +94,25 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
         </div>
       )}
 
-      <AnatomyDetailModal 
+      {!loading && (
+        <div className="mt-8">
+          <ReviewSessionList
+            sessions={sessions}
+            onNavigate={(_, date) => setSelectedSession(sessions.find(s => s.date === date) || null)}
+            muscleLanguage={muscleLanguage}
+            taxonomy={taxonomy}
+          />
+        </div>
+      )}
+
+      <SessionDetailModal
+        session={selectedSession}
+        onClose={() => setSelectedSession(null)}
+        muscleLanguage={muscleLanguage}
+        taxonomy={taxonomy}
+      />
+
+      <AnatomyDetailModal
         muscleId={selectedMuscleId}
         muscleData={muscleData}
         loading={muscleLoading}

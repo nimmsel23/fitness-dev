@@ -6,7 +6,6 @@ import ReviewHeader from './ReviewHeader';
 import ReviewOverview from './ReviewOverview';
 import ReviewInsights from './ReviewInsights';
 import ReviewMuscleImpact from './ReviewMuscleImpact';
-import ReviewSessionList from './ReviewSessionList';
 import ReviewTopExercises from './ReviewTopExercises';
 import ReviewHistory from './ReviewHistory.jsx';
 import ReviewReadiness from './ReviewReadiness.jsx';
@@ -34,10 +33,6 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
         setHistorySessions([]);
       });
   }, [viewMode]);
-
-  function onNavigate(tab, date) {
-    if (tab === 'session') onOpenSession?.(date || null);
-  }
 
   useEffect(() => {
     if (viewMode !== 'report') return;
@@ -139,12 +134,6 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
           <div className="lg:col-span-8 space-y-8">
             <ReviewMuscleImpact regionEntries={regionEntries} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
 
-            <ReviewSessionList
-              sessions={data.sessions}
-              onNavigate={onNavigate}
-              muscleLanguage={muscleLanguage}
-              taxonomy={taxonomy}
-            />
             <ReviewTopExercises
               topExercises={data.top_exercises}
               onInspectExercise={onInspectExercise}
