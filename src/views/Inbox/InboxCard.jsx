@@ -1,5 +1,19 @@
 import { CheckCircle2, Trash2, Info, AlertTriangle, Sparkles, User, RefreshCw, MessageSquare, Brain } from 'lucide-react';
 
+function buildInspectPayload(ex, data) {
+  return {
+    ...ex,
+    ...data,
+    file_id: ex.file_id || data.file_id || null,
+    userId: ex.userId || data.userId || null,
+    status: ex.status || data.status || null,
+    inbox_status: ex.status || data.status || null,
+    coachFeedback: ex.coachFeedback || ex.feedback || data.coachFeedback || data.feedback || '',
+    inbox_entry: ex,
+    enriched: ex.enriched || data.enriched || null,
+  };
+}
+
 export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenrich, onInspect, showUserId = false, asMessage = false }) {
   // Unterstützt beide Backend-Shapes: { exercises: [data] } und { enriched: data } und flach
   const data     = ex.exercises?.[0] || ex.enriched || ex;
@@ -70,7 +84,7 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenri
         <div className="flex items-center gap-2 shrink-0">
           {ex.status === 'approved' && (
             <button
-              onClick={() => onInspect?.(data)}
+              onClick={() => onInspect?.(buildInspectPayload(ex, data))}
               className="p-2.5 bg-fit-bg2 text-fit-dim hover:text-ink rounded-lg border border-fit-line transition-all active:scale-95"
               title="Übung anzeigen"
             >
@@ -153,7 +167,7 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenri
 
       <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
         <button
-          onClick={() => onInspect?.(data)}
+          onClick={() => onInspect?.(buildInspectPayload(ex, data))}
           className="p-3 bg-fit-bg2 text-fit-dim hover:text-ink rounded-xl border border-fit-line transition-all active:scale-95"
           title="Details"
         >

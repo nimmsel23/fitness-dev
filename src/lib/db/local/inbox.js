@@ -21,7 +21,7 @@ export async function approveInbox(id, userId) {
   }
 }
 
-export async function reenrichInbox(id, ex) {
+export async function reenrichInbox(id, _userId = null, ex = null) {
   try {
     const data = ex?.exercises?.[0] || ex?.enriched || ex || {};
     return await api.post(`/fitness/inbox/${id}/reenrich`, {
@@ -35,7 +35,7 @@ export async function reenrichInbox(id, ex) {
   }
 }
 
-export async function deleteInbox(id) {
+export async function deleteInbox(id, _userId = null) {
   try {
     return await api.delete(`/fitness/inbox/${id}`);
   } catch {

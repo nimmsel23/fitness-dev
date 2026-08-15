@@ -1,17 +1,29 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
+  CheckCircle2,
   Brain,
   Copy,
   Download,
   FileSearch,
   Loader2,
   PencilLine,
+  RefreshCw,
   Save,
   Sparkles,
+  Trash2,
   X,
 } from 'lucide-react'
-import { downloadText, exportFitnessData, getAnatomy, saveAnatomy, saveExercise } from '@db'
+import {
+  approveInbox,
+  deleteInbox,
+  downloadText,
+  exportFitnessData,
+  getAnatomy,
+  reenrichInbox,
+  saveAnatomy,
+  saveExercise,
+} from '@db'
 import { buildExerciseCoachSheet, buildExerciseInsights } from '../lib/exerciseInsights.js'
 import { translateMuscle } from '../lib/translations.js'
 
@@ -265,6 +277,39 @@ function RawList({ title, items = [], empty = 'n/a' }) {
   )
 }
 
+function cleanText(value) {
+  return String(value || '').trim()
+}
+
+function hasMeaningfulLesson(lessonDraft) {
+  if (!lessonDraft || typeof lessonDraft !== 'object') return false
+  return [
+    lessonDraft.learning_goal_short,
+    lessonDraft.learning_goal_detailed,
+    lessonDraft.trainer_simple,
+    lessonDraft.trainer_technical,
+    lessonDraft.trainer_client_friendly,
+    lessonDraft.coaching_cues,
+    lessonDraft.feel_cues,
+    lessonDraft.common_errors,
+  ].some((value) => cleanText(value))
+}
+
+function getInboxStatusMeta(status) {
+  if (status === 'approved') return { label: 'Freigegeben', tone: 'accent' }
+  if (status === 'ai_enriched') return { label: 'KI-Entwurf bereit', tone: 'accent' }
+  if (status === 'pending' || status === 'pending_review') return { label: 'Wartet auf Enrichment', tone: 'warn' }
+  if (status === 'rejected') return { label: 'Verworfen', tone: 'default' }
+  if (status === 'failed_enrichment') return { label: 'Enrichment fehlgeschlagen', tone: 'warn' }
+  return { label: 'Kein Inbox-Status', tone: 'default' }
+}
+
+function roleEntries(items = [], taxonomy = null, muscleLanguage = 'de') {
+  return (Array.isArray(items) ? items : [])
+    .map((item) => translateMuscle(item, taxonomy, muscleLanguage))
+    .filter(Boolean)
+}
+
 const VIEW_OPTIONS = [
   { id: 'coach', label: 'Coach Sheet', icon: PencilLine },
   { id: 'preview', label: 'Preview', icon: Sparkles },
@@ -278,6 +323,8 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
   const [loadingLesson, setLoadingLesson] = useState(false)
   const [savingLesson, setSavingLesson] = useState(false)
   const [savingNotes, setSavingNotes] = useState(false)
+  const [reviewFeedback, setReviewFeedback] = useState(exercise?.coachFeedback || exercise?.feedback || '')
+  const [reviewAction, setReviewAction] = useState('')
   const [notice, setNotice] = useState('')
   const [activeView, setActiveView] = useState('coach')
 
@@ -285,6 +332,8 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
     setLocalExercise(exercise)
     setLessonDraft(buildLessonDraft(exercise, exercise?.lesson))
     setExerciseNotes(exercise?.notes || exercise?.description || '')
+    setReviewFeedback(exercise?.coachFeedback || exercise?.feedback || '')
+    setReviewAction('')
     setActiveView('coach')
   }, [exercise])
 
@@ -330,7 +379,19 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
   const sourceDescription = insight.rawDescription || localExercise.description || ''
   const primaryLabels = insight.primary.map((muscle) => translateMuscle(muscle, taxonomy, muscleLanguage))
   const secondaryLabels = insight.secondary.map((muscle) => translateMuscle(muscle, taxonomy, muscleLanguage))
+  const stabilizerLabels = roleEntries(localExercise.stabilizers, taxonomy, muscleLanguage)
   const sourceTags = Array.isArray(localExercise.tags) ? localExercise.tags : []
+  const inboxFileId = localExercise.file_id || localExercise.inbox_entry?.file_id || null
+  const inboxUserId = localExercise.userId || localExercise.inbox_entry?.userId || null
+  const inboxStatus = localExercise.inbox_status || localExercise.status || localExercise.inbox_entry?.status || null
+  const inboxStatusMeta = getInboxStatusMeta(inboxStatus)
+  const hasLessonDraft = hasMeaningfulLesson(lessonDraft)
+  const hasOriginalSource = Boolean(sourceDescription || rawInstructions.length)
+  const roleBlocks = [
+    { label: 'Haupttreiber', items: primaryLabels, tone: 'accent' },
+    { label: 'Mitspieler / Synergisten', items: secondaryLabels, tone: 'default' },
+    { label: 'Stabilisatoren', items: stabilizerLabels, tone: 'default' },
+  ].filter((block) => block.items.length)
 
   async function copySheet() {
     try {
@@ -401,6 +462,90 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
     }
   }
 
+  function publishInboxUpdate(status) {
+    window.dispatchEvent(new CustomEvent('fitness-inbox-updated', {
+      detail: { fileId: inboxFileId, status },
+    }))
+  }
+
+  async function handleApproveInbox() {
+    if (!inboxFileId || reviewAction) return
+    setReviewAction('approve')
+    try {
+      const next = {
+        ...localExercise,
+        coachFeedback: reviewFeedback,
+        feedback: reviewFeedback,
+        inbox_status: 'approved',
+        status: 'approved',
+      }
+      await approveInbox(inboxFileId, inboxUserId)
+      setLocalExercise(next)
+      onExerciseChange?.(next)
+      publishInboxUpdate('approved')
+      setNotice('Inbox-Eintrag freigegeben')
+    } catch {
+      setNotice('Freigabe fehlgeschlagen')
+    } finally {
+      setReviewAction('')
+    }
+  }
+
+  async function handleReenrichInbox() {
+    if (!inboxFileId || reviewAction) return
+    setReviewAction('reenrich')
+    try {
+      const payload = {
+        ...localExercise,
+        coachFeedback: reviewFeedback,
+        feedback: reviewFeedback,
+      }
+      const result = await reenrichInbox(inboxFileId, inboxUserId, payload)
+      if (!result?.ok) {
+        setNotice('Neu-Anreicherung fehlgeschlagen')
+        return
+      }
+      const next = {
+        ...localExercise,
+        coachFeedback: reviewFeedback,
+        feedback: reviewFeedback,
+        inbox_status: 'ai_enriched',
+        status: 'ai_enriched',
+        enriched: result.enriched || localExercise.enriched || null,
+        ...(result.enriched || {}),
+      }
+      setLocalExercise(next)
+      onExerciseChange?.(next)
+      publishInboxUpdate('ai_enriched')
+      setNotice(result?.via === 'vertex' ? 'Neu angereichert (Vertex-Fallback)' : 'Neu angereichert')
+    } catch {
+      setNotice('Neu-Anreicherung fehlgeschlagen')
+    } finally {
+      setReviewAction('')
+    }
+  }
+
+  async function handleRejectInbox() {
+    if (!inboxFileId || reviewAction) return
+    setReviewAction('reject')
+    try {
+      await deleteInbox(inboxFileId, inboxUserId)
+      const next = {
+        ...localExercise,
+        inbox_status: 'rejected',
+        status: 'rejected',
+      }
+      setLocalExercise(next)
+      onExerciseChange?.(next)
+      publishInboxUpdate('rejected')
+      setNotice('Inbox-Eintrag verworfen')
+    } catch {
+      setNotice('Verwerfen fehlgeschlagen')
+    } finally {
+      setReviewAction('')
+    }
+  }
+
   return createPortal(
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
@@ -458,6 +603,60 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
             <div className="flex-1 min-h-0 overflow-hidden">
               <div className="grid h-full min-h-0 md:grid-cols-[340px_minmax(0,1fr)]">
                 <aside className="min-h-0 overflow-y-auto p-4 md:p-5 space-y-4" style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+                  {inboxFileId && (
+                    <ShellCard title="Review Actions" eyebrow="Coach Inbox" tone={inboxStatusMeta.tone}>
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap gap-2">
+                          <MetaPill tone={inboxStatusMeta.tone}>{inboxStatusMeta.label}</MetaPill>
+                          {inboxUserId && <MetaPill>{inboxUserId}</MetaPill>}
+                          <MetaPill>{inboxFileId}</MetaPill>
+                        </div>
+                        <Field
+                          label="Nachfrage / Review-Fokus"
+                          value={reviewFeedback}
+                          onChange={setReviewFeedback}
+                          rows={5}
+                          placeholder="Was soll Gemini bzw. das Backend beim Re-Enrichment präzisieren?"
+                        />
+                        <div className="grid gap-2">
+                          <button
+                            onClick={handleApproveInbox}
+                            disabled={Boolean(reviewAction) || inboxStatus === 'approved'}
+                            className="rounded-2xl px-3 py-2.5 text-sm font-semibold text-left"
+                            style={{ background: 'rgba(94,234,212,0.14)', border: '1px solid rgba(94,234,212,0.28)', color: 'var(--accent)' }}
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              {reviewAction === 'approve' ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                              Freigeben
+                            </span>
+                          </button>
+                          <button
+                            onClick={handleReenrichInbox}
+                            disabled={Boolean(reviewAction)}
+                            className="rounded-2xl px-3 py-2.5 text-sm font-semibold text-left"
+                            style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              {reviewAction === 'reenrich' ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                              Neu anreichern
+                            </span>
+                          </button>
+                          <button
+                            onClick={handleRejectInbox}
+                            disabled={Boolean(reviewAction) || inboxStatus === 'rejected'}
+                            className="rounded-2xl px-3 py-2.5 text-sm font-semibold text-left"
+                            style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#fca5a5' }}
+                          >
+                            <span className="inline-flex items-center gap-2">
+                              {reviewAction === 'reject' ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                              Verwerfen
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    </ShellCard>
+                  )}
+
                   <ShellCard title="Exercise Snapshot" eyebrow="Overview" tone="accent">
                     <div className="space-y-2">
                       <StatRow label="Display" value={displayName} />
@@ -541,26 +740,42 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
 
                   {activeView === 'coach' && (
                     <div className="space-y-5">
-                      <ShellCard title="Review statt Umschreiben" eyebrow="Originalquelle zuerst" tone="warn">
-                        <div className="space-y-3 text-sm leading-6" style={{ color: 'var(--ink)' }}>
-                          <p>
-                            Hier soll primär die Originalbeschreibung aus wger/yuhonas geprüft werden. Der Coach schreibt kein neues Bewegungsmuster,
-                            sondern kontrolliert Rohdaten, fragt nach und gibt frei.
-                          </p>
-                          <div className="rounded-2xl p-3" style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid var(--line)' }}>
-                            {sourceDescription || 'Keine Originalbeschreibung in diesem Record vorhanden.'}
+                      <div className="grid gap-5 xl:grid-cols-2">
+                        <ShellCard title="Originalquelle" eyebrow="wger / yuhonas zuerst" tone="warn">
+                          <div className="space-y-3 text-sm leading-6" style={{ color: 'var(--ink)' }}>
+                            <p>
+                              Der Coach soll hier nicht frei neu texten. Erst die Quellbeschreibung prüfen, dann nur gezielt nachschärfen oder freigeben.
+                            </p>
+                            <div className="rounded-2xl p-3" style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid var(--line)' }}>
+                              {sourceDescription || 'Im aktuellen Record fehlt `original_description`.'}
+                            </div>
+                            {rawInstructions.length > 0 && (
+                              <ul className="space-y-2">
+                                {rawInstructions.slice(0, 5).map((item, index) => (
+                                  <li key={`coach-raw-${index}`} className="rounded-2xl px-3 py-2" style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid var(--line)', color: 'var(--ink)' }}>
+                                    {item}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
                           </div>
-                          {rawInstructions.length > 0 && (
-                            <ul className="space-y-2">
-                              {rawInstructions.slice(0, 4).map((item, index) => (
-                                <li key={`coach-raw-${index}`} className="rounded-2xl px-3 py-2" style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid var(--line)', color: 'var(--ink)' }}>
-                                  {item}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      </ShellCard>
+                        </ShellCard>
+
+                        <ShellCard title="Review-Ziel" eyebrow="Was soll hier entstehen?" tone="accent">
+                          <div className="space-y-3 text-sm leading-6" style={{ color: 'var(--ink)' }}>
+                            <div className="rounded-2xl p-3" style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid var(--line)' }}>
+                              {cleanText(lessonDraft.trainer_technical) || cleanText(lessonDraft.learning_goal_detailed) || 'Noch kein belastbarer Lesson-Draft vorhanden.'}
+                            </div>
+                            <div className="grid gap-2 md:grid-cols-2">
+                              <StatRow label="Originalquelle" value={hasOriginalSource ? 'vorhanden' : 'lückenhaft'} />
+                              <StatRow label="Lesson-Draft" value={hasLessonDraft ? 'vorhanden' : 'fehlt / sehr dünn'} />
+                            </div>
+                            <div className="text-sm" style={{ color: 'var(--muted)' }}>
+                              Bewegungsmuster bleibt backend-/Gemini-getrieben. Hier geht es um Review, Rückfrage und Freigabe.
+                            </div>
+                          </div>
+                        </ShellCard>
+                      </div>
 
                       <ShellCard
                         title="Lesson Review"
@@ -604,23 +819,36 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
 
                   {activeView === 'preview' && (
                     <div className="space-y-5">
-                      <ShellCard title="Originalbeschreibung" eyebrow="Preview" tone="accent">
-                        <div className="space-y-3 text-sm leading-6" style={{ color: 'var(--ink)' }}>
-                          <p>{sourceDescription || insight.learningGoal || 'Keine Originalbeschreibung vorhanden.'}</p>
-                          {rawInstructions.length > 0 && (
-                            <div className="space-y-2 pt-2">
-                              {rawInstructions.slice(0, 5).map((item, index) => (
-                                <div key={`preview-raw-${index}`} className="rounded-2xl px-3 py-2" style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid var(--line)' }}>
-                                  {item}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          {lesson && insight.detailedMeaning && (
-                            <p style={{ color: 'var(--muted)' }}>{insight.detailedMeaning}</p>
-                          )}
-                        </div>
-                      </ShellCard>
+                      <div className="grid gap-5 xl:grid-cols-2">
+                        <ShellCard title="Originalbeschreibung" eyebrow="Source" tone="accent">
+                          <div className="space-y-3 text-sm leading-6" style={{ color: 'var(--ink)' }}>
+                            <p>{sourceDescription || 'Im aktuellen Record fehlt `original_description`.'}</p>
+                            {rawInstructions.length > 0 && (
+                              <div className="space-y-2 pt-2">
+                                {rawInstructions.slice(0, 5).map((item, index) => (
+                                  <div key={`preview-raw-${index}`} className="rounded-2xl px-3 py-2" style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid var(--line)' }}>
+                                    {item}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </ShellCard>
+
+                        <ShellCard title="Review-Draft" eyebrow="Lesson / Coach Output">
+                          <div className="space-y-3 text-sm leading-6" style={{ color: 'var(--ink)' }}>
+                            <div>{cleanText(lessonDraft.learning_goal_detailed) || cleanText(lessonDraft.trainer_technical) || 'Noch kein belastbarer Review-Draft vorhanden.'}</div>
+                            {cleanText(lessonDraft.trainer_client_friendly) && (
+                              <div className="rounded-2xl p-3" style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid var(--line)', color: 'var(--muted)' }}>
+                                {lessonDraft.trainer_client_friendly}
+                              </div>
+                            )}
+                            {cleanText(lessonDraft.movement_pattern) && (
+                              <MetaPill tone="accent">{lessonDraft.movement_pattern}</MetaPill>
+                            )}
+                          </div>
+                        </ShellCard>
+                      </div>
 
                       <div className="grid gap-5 xl:grid-cols-2">
                         <ShellCard title="Coaching Cues" eyebrow="Preview">
@@ -642,6 +870,21 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
                           )}
                         </ShellCard>
                       </div>
+
+                      {roleBlocks.length > 0 && (
+                        <ShellCard title="Muskelrollen" eyebrow="Funktionssicht">
+                          <div className="grid gap-4 md:grid-cols-3">
+                            {roleBlocks.map((block) => (
+                              <div key={block.label} className="space-y-2">
+                                <div className="text-[10px] font-black uppercase tracking-[0.22em]" style={{ color: 'var(--muted)' }}>
+                                  {block.label}
+                                </div>
+                                <TagCloud items={block.items} tone={block.tone} />
+                              </div>
+                            ))}
+                          </div>
+                        </ShellCard>
+                      )}
 
                       {(lesson?.muscle_anatomy || lessonDraft.muscle_anatomy) && (
                         <ShellCard title="Muscle Anatomy" eyebrow="Preview">
