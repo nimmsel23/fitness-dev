@@ -56,6 +56,18 @@ export async function getAnatomy(exerciseId) {
   }
 }
 
+export async function saveAnatomy(exerciseId, data) {
+  const exId = exerciseId || data.exercise_id || data.id;
+  try {
+    const result = await api.post(`/exercise/${encodeURIComponent(exId)}/teaching`, {
+      ...data,
+      exercise_id: exId,
+    });
+    return result || { ok: false };
+  } catch {
+    return { ok: false };
+  }
+}
 export async function getAllMuscles() {
   return getStaticMuscleDocs();
 }

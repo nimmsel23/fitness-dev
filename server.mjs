@@ -5,8 +5,39 @@ import { fileURLToPath } from "node:url";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import Database from "better-sqlite3";
+import pino from "pino";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
-import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, readHabits, pullAllSessions, startUserDataWatchers } from "./firestore-mirror.mjs";
+import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, readHabits, pullAllSessions } from "./firestore-mirror.mjs";
+
+// pino-pretty IMMER aktiv, auch unter systemd/journalctl — das ist der
+// tatsächliche Haupt-Log-Weg hier (nicht nur `npm run dev` im Terminal).
+// Rohes JSON war unter journalctl deutlich unlesbarer als die alten
+// console.log-Zeilen. Farbe bleibt an (journalctl rendert ANSI im Terminal
+// sauber), kein translateTime — journalctl stempelt eh schon, ein zweiter
+// Timestamp war nur Redundanz ohne Mehrwert.
+const log = pino({
+  transport: {
+    target: "pino-pretty",
+    options: { colorize: true, ignore: "pid,hostname,time" },
+  },
+});
+
+// firebase-admin/undici haben beim Boot ein bekanntes, nicht-deterministisches
+// Stream-Close-Race (ERR_INVALID_STATE), das den ganzen Prozess mitreißt, weil
+// es außerhalb jedes try/catch als uncaughtException landet (siehe
+// notifyPythonSync + Firestore-Watcher-Kommentare unten für dieselbe Bug-Klasse,
+// dort zeitbasiert umschifft — das reicht nicht immer, siehe 2026-08-15 Rückfall).
+// Statt zu raten wie lange "warm genug" ist: diese spezifische, bekannt harmlose
+// Race gezielt abfangen statt den Prozess sterben zu lassen. Alles andere crasht
+// weiterhin normal.
+process.on("uncaughtException", (err) => {
+  if (err?.code === "ERR_INVALID_STATE" && /ReadableStream is already closed/.test(err?.message || "")) {
+    log.warn(`[undici-race] bekanntes Boot-Race abgefangen, Prozess läuft weiter: ${err.message}`);
+    return;
+  }
+  log.error({ err }, "[uncaughtException] unbekannt, Prozess beendet sich");
+  process.exit(1);
+});
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -104,7 +135,7 @@ function syncSessionToDb(date, session) {
 }
 
 // ── Python sync_gateway — fire-and-forget nach Session-Write ─────────────────
-async function notifyPythonSync(date, session, uid = "default", sessionId = null) {
+async function notifyPythonSync(date, session, uid = FITNESS_UID, sessionId = null) {
   try {
     const res = await fetch(`${PYTHON_BASE}/internal/sync/session`, {
       method: "POST",
@@ -786,7 +817,7 @@ app.get("/fitness/coach/plans/:clientUid/:planId/progress", (c) => {
 
 // Klienten-Seite: eigene zugewiesene Pläne lesen + Completions togglen.
 app.get("/fitness/plans/assigned", (c) => {
-  const uid = c.req.query("uid") || c.req.header("X-User-UID") || "default";
+  const uid = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
   const dir = clientPlansDir(uid);
   if (!fs.existsSync(dir)) return c.json({ ok: true, plans: [] });
   const plans = fs.readdirSync(dir)
@@ -798,7 +829,7 @@ app.get("/fitness/plans/assigned", (c) => {
 
 app.post("/fitness/plans/:planId/completions", async (c) => {
   const planId = c.req.param("planId");
-  const uid    = c.req.query("uid") || c.req.header("X-User-UID") || "default";
+  const uid    = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
   const body   = await c.req.json().catch(() => ({}));
   const date   = body.date || localToday();
 
@@ -1330,7 +1361,7 @@ function parseSessionFile(fname) {
 }
 
 app.get("/session", (c) => {
-  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || "default";
+  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
   const date = c.req.query("date") || localToday();
   const id   = c.req.query("id") || null;
   const file = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions", sessionFileName(date, id));
@@ -1339,7 +1370,7 @@ app.get("/session", (c) => {
 });
 
 app.get("/sessions", (c) => {
-  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || "default";
+  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
   const date = c.req.query("date") || localToday();
   const dir  = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   if (!fs.existsSync(dir)) return c.json({ ok: true, sessions: [] });
@@ -1365,7 +1396,7 @@ app.get("/sessions", (c) => {
 });
 
 app.post("/session", async (c) => {
-  const uid     = c.req.header("X-User-UID") || "default";
+  const uid     = c.req.header("X-User-UID") || FITNESS_UID;
   const date    = c.req.query("date") || localToday();
   const id      = c.req.query("id") || null;
   const userDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
@@ -1397,14 +1428,14 @@ function freezeSnapshot(session) {
   }));
   for (const ex of exercises) {
     if (!ex.primaryMuscles.length && !ex.secondaryMuscles.length) {
-      console.warn(`[snapshot] ${session.date} ${ex.name}: keine Muskel-Daten — Coverage wird fehlen`);
+      log.warn(`[snapshot] ${session.date} ${ex.name}: keine Muskel-Daten — Coverage wird fehlen`);
     }
   }
   return { ...session, exercises, snapshot_version: 1 };
 }
 
 app.delete("/session", (c) => {
-  const uid  = c.req.header("X-User-UID") || "default";
+  const uid  = c.req.header("X-User-UID") || FITNESS_UID;
   const date = c.req.query("date") || localToday();
   const id   = c.req.query("id") || null;
   const file = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions", sessionFileName(date, id));
@@ -1415,7 +1446,7 @@ app.delete("/session", (c) => {
 });
 
 app.get("/session/history", (c) => {
-  const uid     = c.req.query("uid") || c.req.header("X-User-UID") || "default";
+  const uid     = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
   const limit   = Number(c.req.query("limit") || 10);
   const dir     = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   if (!fs.existsSync(dir)) return c.json({ ok: true, sessions: [] });
@@ -1428,7 +1459,7 @@ app.get("/session/history", (c) => {
 });
 
 app.get("/session/latest", (c) => {
-  const uid   = c.req.query("uid") || c.req.header("X-User-UID") || "default";
+  const uid   = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
   const dir   = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   if (!fs.existsSync(dir)) return c.json({ ok: false }, 404);
   const files = fs.readdirSync(dir).filter(f => f.endsWith(".json")).sort().reverse();
@@ -1460,7 +1491,7 @@ app.get("/journal", async (c) => {
 });
 
 app.post("/journal", async (c) => {
-  const uid           = c.req.header("X-User-UID") || "default";
+  const uid           = c.req.header("X-User-UID") || FITNESS_UID;
   const date          = c.req.query("date") || localToday();
   const file          = path.join(DATA_DIR, "journal", `${date}.md`);
   const { content }   = await c.req.json().catch(() => ({}));
@@ -1513,7 +1544,7 @@ app.get("/coverage/gaps", (c) => {
 
 // ── Export CSV ────────────────────────────────────────────────────────────────
 app.get("/export/csv", (c) => {
-  const uid     = c.req.query("uid") || c.req.header("X-User-UID") || "default";
+  const uid     = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
   const sessDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   const days    = Math.min(365, Math.max(1, Number(c.req.query("days") || 14)));
   const mode    = c.req.query("mode") || "simple";
@@ -1559,7 +1590,7 @@ app.get("/export/csv", (c) => {
 });
 
 app.get("/export/pflichtaufgabe", (c) => {
-  const uid = c.req.query("uid") || c.req.header("X-User-UID") || "default";
+  const uid = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
   const dir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   const files = fs.existsSync(dir)
     ? fs.readdirSync(dir).filter(f => f.endsWith(".json")).sort()
@@ -1652,7 +1683,7 @@ app.post("/firestore/pull", async (c) => {
 
     writeJson(localPath, data);
     try { syncSessionToDb(date, data); } catch (e) {
-      console.warn(`[pull] SQLite-Sync fehler für ${date}: ${e.message}`);
+      log.warn(`[pull] SQLite-Sync fehler für ${date}: ${e.message}`);
     }
     pulled++;
   }
@@ -1661,7 +1692,7 @@ app.post("/firestore/pull", async (c) => {
 });
 
 app.post("/firestore/sync", async (c) => {
-  const uid = c.req.header("X-User-UID") || "default";
+  const uid = c.req.header("X-User-UID") || FITNESS_UID;
   const status = await getFirestoreStatus();
   if (!status.ok) return c.json({ ok: false, error: "Firestore nicht verbunden" }, 503);
   const sessDir = path.join(DATA_DIR, "sessions");
@@ -1722,21 +1753,18 @@ app.get("*", async (c) => {
 
 // ═════════════════════════════════════════════════════════════════════════════
 serve({ fetch: app.fetch, port: PORT, hostname: HOST }, () =>
-  console.log(`💪 fitness-dev on http://${HOST}:${PORT}`)
+  log.info(`💪 fitness-dev on http://${HOST}:${PORT}`)
 );
 
-// Eingebetteter Firestore-User-Data-Sync (Cloud → lokal, inkl. Löschungen) —
-// löst den separaten fitness-firestore-daemon.service/fitness-firestore-mirror.service ab.
-// Verzögert (statt direkt nach serve()): firebase-admins Token-Refresh beim
-// Boot kollidierte mit Node/undici (ERR_INVALID_STATE, crashte den ganzen
-// Prozess, siehe notifyPythonSync-Kommentar oben für dieselbe Bug-Klasse) —
-// nach ein paar Sekunden ist der Event-Loop durchgewärmt, kein Crash mehr.
-setTimeout(() => {
-  startUserDataWatchers({
-    onSessionWrite: (date, data) => { try { syncSessionToDb(date, data); } catch (e) { console.warn(`[firestore-mirror] SQLite-Sync fehler ${date}: ${e.message}`); } },
-    onSessionDelete: (_uid, docId) => {
-      const [date, sessionId] = docId.split("__");
-      try { deleteSessionFromDb(date, sessionId || null); } catch (e) { console.warn(`[firestore-mirror] SQLite-Delete fehler ${docId}: ${e.message}`); }
-    },
-  }).catch(e => console.warn(`[firestore-mirror] Watcher-Start fehler: ${e.message}`));
-}, 5000);
+// User-Data-Firestore-Listener (Cloud → lokal) läuft NICHT hier — der lief kurz
+// (9c9fb3e, 2026-08-14) eingebettet in server.mjs, war aber ein unbemerktes
+// Duplikat: fitness-api.service (fitness/api/main.py) bettet denselben Sync
+// bereits seit 2026-08-06 ein (siehe dortiger Kommentar). Zwei Prozesse
+// hörten damit parallel auf dieselben Firestore-Collections und schrieben in
+// dieselben lokalen Dateien/SQLite-Zeilen (sync_gateway deckt das in Python
+// vollständig ab, inkl. Delete). Das war zugleich die Quelle des
+// undici-Boot-Race (ERR_INVALID_STATE) — mit dem Listener entfernt entfällt
+// der Trigger, nicht nur dessen Symptom (siehe uncaughtException-Guard oben,
+// bleibt als genereller Schutz, ist aber jetzt nicht mehr der Normalfall).
+// mirrorSession/mirrorSessionDelete/mirrorJournal (Push lokal → Cloud, bei
+// jedem Write-Endpoint) bleiben unverändert — kein Duplikat, eigener Zweck.

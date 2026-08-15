@@ -4,9 +4,12 @@ Command Center für Coach-seitige Exercise-Freigabe, Klienten-Journal-Feed und K
 
 ## Komponenten
 
-- **`index.jsx`**: Haupt-View mit Sub-Tab Navigation:
-  1. `Übungsanfragen` (`InboxCard` / `useInbox`)
-  2. `Klienten-Workouts` (Global Feed aller Workouts, Journals und Habit-Journals mit Coach-Feedback; clientseitiger Filter nach Klient + Typ, seit 2026-07-22)
+- **`index.jsx`**: seit 2026-08-15 reiner Tab-Router (~90 Zeilen, vorher 374 —
+  Struktur-Split, siehe `../CLAUDE.md`), verteilt an:
+  1. `Übungsanfragen` (`InboxCard` / `useInbox`, weiterhin inline in `index.jsx`)
+  2. `Klienten-Workouts` → eigene `ClientWorkoutsFeed.jsx` (vorher inline in
+     `index.jsx`): Global Feed aller Workouts, Journals und Habit-Journals mit
+     Coach-Feedback; clientseitiger Filter nach Klient + Typ, seit 2026-07-22
   3. `Katalog Browser` (`CatalogBrowser.jsx`)
   4. `Plan-Zuweisung` (`AssignPlan.jsx`, seit 2026-08-01 mit echter Backend-Anbindung statt Stub)
   5. `Klienten` (`ClientManagement.jsx`, seit 2026-08-06) — Status pro User (Klient/Freund·Test)

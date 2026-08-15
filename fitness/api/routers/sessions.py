@@ -35,6 +35,45 @@ def _is_activity_only(session: dict[str, Any]) -> bool:
     return bool(session.get("activity")) and not _performed_exercises(session)
 
 
+def _queue_unreviewed_enrichment(session: dict[str, Any]) -> None:
+    """Merged für jede tatsächlich geloggte, noch nicht 'expert' klassifizierte
+    Übung wger+yuhonas-Rohdaten (build_external_seed(), via
+    process_inbox_file_virtual()) zu einem Inbox-Draft. Läuft im selben
+    Backend-Prozess (run_in_executor, kein separater Watcher/Service) direkt
+    nach dem Session-Save — bewusst NICHT die frühere
+    FITNESS_WATCHER_PROACTIVE_REFINER-Logik (periodischer Scan über
+    'meistgenutzte unreviewed Übungen'): die wurde deaktiviert, weil sie
+    Übungen anreicherte, die niemand tatsächlich geloggt hatte. Hier ist der
+    Scope exakt die Übungen dieser einen Session.
+    """
+    from fitness.catalog.core.resolver import build_exercise_index, resolve_query, find_by_id
+    from fitness.catalog.api.watcher import process_inbox_file_virtual
+    from fitness.catalog.agent.gemini import load_gemini_key
+
+    api_key = load_gemini_key()
+    records = build_exercise_index()
+    seen: set[str] = set()
+    for ex in _performed_exercises(session):
+        name = ex.get("name") or ex.get("display_name") or ex.get("exercise_id")
+        if not name:
+            continue
+        try:
+            resolution = resolve_query(str(name), records)
+        except Exception as e:
+            logger.warning(f"resolve_query fuer proaktives Enrichment fehlgeschlagen ({name}): {e}")
+            continue
+        if not resolution.matched or not resolution.canonical_id or resolution.canonical_id in seen:
+            continue
+        seen.add(resolution.canonical_id)
+        record = find_by_id(resolution.canonical_id, records)
+        if record and record.source == "expert":
+            continue
+        try:
+            process_inbox_file_virtual(resolution.canonical_id, resolution.display_name, api_key)
+        except Exception as e:
+            logger.warning(f"Proaktives Enrichment fuer {resolution.canonical_id} fehlgeschlagen: {e}")
+
+
 def _merge_activity_addon(base: dict[str, Any], incoming: dict[str, Any], source_id: str | None) -> dict[str, Any]:
     activity = incoming.get("activity")
     if not isinstance(activity, dict) or not activity:
@@ -113,6 +152,7 @@ async def session_post(request: Request, date_: str = Query(None, alias="date"),
     _write_json(_session_file(uid, day, id), session)
     _sync_session_to_db(day, session, id)
     asyncio.get_event_loop().run_in_executor(None, mirror_session, day, session, uid)
+    asyncio.get_event_loop().run_in_executor(None, _queue_unreviewed_enrichment, session)
     logger.info(f"session saved  {uid}/{day}  block={session.get('block','')}  exercises={n_ex}")
     return {"ok": True, "id": id}
 

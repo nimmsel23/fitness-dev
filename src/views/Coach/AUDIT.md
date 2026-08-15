@@ -41,3 +41,14 @@ Versteckte Admin-Ansicht ("Hidden Chamber") für Coach-seitige Verwaltung — ni
 
 ## Status
 Funktioniert (Stand 2026-07-22, nach den o.g. Fixes live verifiziert: Übungsanfragen zeigen Daten). Katalog-Browser- und Klienten-Workouts-Sub-Tab in derselben Session ebenfalls verifiziert bzw. um Filter ergänzt. Plan-Zuweisung (2026-08-01) per Build-Check verifiziert (Lint + `npm run build` sauber), nicht live gegen Prod-Firestore getestet — siehe `~/.claude/projects/-home-alpha-vitalos--git-modules-fitness-dev/memory/project_coach_assigned_plans_vs_klienten_dev.md` für den vollen Architektur-Kontext (klienten-dev/klienten-python als älteres Parallelsystem, VitalOS als geplante Coach-Shell).
+
+## Update 2026-08-15: Struktur-Split + 5. Sub-Tab nachgetragen
+- `index.jsx` ist jetzt 5 Sub-Tabs (diese Tabelle/Auflistung oben nannte nur 4 —
+  `Klienten` (`ClientManagement.jsx`, seit 2026-08-06) fehlte hier schlicht).
+- `index.jsx` selbst: 374 → ~90 Zeilen, reiner Tab-Router. Der komplette
+  "Klienten-Workouts"-Block (Zeile 15 oben, Filter-Leiste + Feed-Rendering)
+  lebt jetzt in eigener `ClientWorkoutsFeed.jsx` — gleiches Verhalten, nur
+  eigene Datei, Muster jetzt konsistent mit `CatalogBrowser.jsx`/`AssignPlan.jsx`/
+  `ClientManagement.jsx`. Build grün, keine funktionale Änderung.
+- Der unter "Auffälligkeiten" genannte Punkt (kein gemeinsamer State zwischen
+  Tabs) besteht unverändert fort — reiner Struktur-Split, keine State-Arbeit.

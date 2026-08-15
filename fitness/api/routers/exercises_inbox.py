@@ -1,0 +1,134 @@
+from __future__ import annotations
+
+from datetime import datetime
+import uuid
+
+import yaml
+from fastapi import APIRouter, HTTPException, Request
+
+from fitness.api.config import INBOX_DIR
+
+router = APIRouter()
+
+
+@router.get("/fitness/inbox")
+def inbox_list():
+    if not INBOX_DIR.exists():
+        return {"ok": True, "items": []}
+    items = []
+    for f in sorted(INBOX_DIR.glob("inbox_*.yml")):
+        try:
+            data = yaml.safe_load(f.read_text()) or {}
+            items.append({"id": f.stem, "file": f.name, **data})
+        except Exception as exc:
+            from fitness.api.config import logger
+            logger.warning(f"inbox_list {f.name}: {exc}")
+    return {"ok": True, "items": items}
+
+
+@router.post("/fitness/inbox/queue")
+async def inbox_queue(request: Request):
+    body = await request.json()
+    from fitness.catalog.core.exercise_schema import apply_exercise_schema
+    from fitness.catalog.core.source_merge import build_external_seed
+
+    display_name = body.get("display_name") or body.get("name") or ""
+    exercise_id = body.get("exercise_id") or body.get("id")
+    merged_seed = build_external_seed(display_name, exercise_id) or {}
+    seed = {
+        **merged_seed,
+        **{k: v for k, v in body.items() if v not in (None, "", [], {})},
+    }
+    if display_name and not seed.get("display_name"):
+        seed["display_name"] = display_name
+    if exercise_id and not seed.get("exercise_id"):
+        seed["exercise_id"] = exercise_id
+        seed["id"] = exercise_id
+    seed = apply_exercise_schema(seed, review_status="draft", ai_reviewed=False)
+
+    INBOX_DIR.mkdir(parents=True, exist_ok=True)
+    item_id = f"inbox_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
+    f = INBOX_DIR / f"{item_id}.yml"
+    f.write_text(yaml.dump({
+        "name": item_id,
+        "description": f"Inbox queued for: {seed.get('display_name') or display_name or item_id}",
+        "queued_at": datetime.utcnow().isoformat(),
+        "exercises": [seed],
+    }, allow_unicode=True, sort_keys=False))
+    return {"ok": True, "id": item_id}
+
+
+@router.post("/fitness/inbox/{id}/approve")
+def inbox_approve(id: str):
+    f = INBOX_DIR / f"{id}.yml"
+    if not f.exists():
+        raise HTTPException(404, detail="not_found")
+    data = yaml.safe_load(f.read_text()) or {}
+    exercises = data.get("exercises") if isinstance(data, dict) else None
+    ex = exercises[0] if isinstance(exercises, list) and exercises else data
+    if not isinstance(ex, dict):
+        raise HTTPException(400, detail="invalid_inbox_entry")
+    from fitness.catalog.agent.inbox_actions import approve_inbox_entry
+    approved_id = approve_inbox_entry(f, ex)
+    return {"ok": True, "id": id, "exercise_id": approved_id}
+
+
+@router.delete("/fitness/inbox/{id}")
+def inbox_delete(id: str):
+    f = INBOX_DIR / f"{id}.yml"
+    if f.exists():
+        data = yaml.safe_load(f.read_text()) or {}
+        exercises = data.get("exercises") if isinstance(data, dict) else None
+        ex = exercises[0] if isinstance(exercises, list) and exercises else data
+        from fitness.catalog.agent.inbox_actions import delete_inbox_entry
+        delete_inbox_entry(f, ex if isinstance(ex, dict) else None)
+    return {"ok": True}
+
+
+@router.post("/fitness/inbox/{id}/reenrich")
+async def inbox_reenrich(id: str, request: Request):
+    from fitness.catalog.agent.gemini import load_gemini_key
+    from fitness.catalog.api.watcher import process_inbox_file_virtual, _write_back_to_firestore_inbox
+    from fitness.catalog.core.paths import DATA_DIR
+    from fitness.catalog.core.resolver import resolve_query
+
+    body = await request.json()
+    display_name = body.get("display_name") or body.get("name") or id
+    exercise_id = body.get("exercise_id") or body.get("id")
+    uid = body.get("uid")
+    doc_id = body.get("doc_id")
+    feedback = body.get("feedback")
+    current_data = body.get("current_data")
+
+    if not exercise_id:
+        resolution = resolve_query(display_name)
+        exercise_id = resolution.canonical_id if resolution.matched else display_name
+
+    api_key = load_gemini_key()
+    process_inbox_file_virtual(
+        exercise_id,
+        display_name,
+        api_key,
+        force=True,
+        feedback=feedback,
+        current_data=current_data if isinstance(current_data, dict) else None,
+    )
+
+    safe_name = str(exercise_id).lower().replace(" ", "_")
+    draft_path = DATA_DIR / "inbox" / f"inbox_{safe_name}.yml"
+    if not draft_path.exists():
+        raise HTTPException(502, detail="gemini_enrichment_failed")
+
+    enriched_doc = yaml.safe_load(draft_path.read_text()) or {}
+    enriched_data = (enriched_doc.get("exercises") or [{}])[0]
+
+    if uid and doc_id:
+        _write_back_to_firestore_inbox(uid, doc_id, enriched_data)
+
+    return {
+        "ok": True,
+        "id": id,
+        "exercise_id": exercise_id,
+        "enriched": enriched_data,
+        "draft_path": str(draft_path),
+    }

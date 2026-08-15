@@ -18,6 +18,7 @@ from fitness.api.routers.journal import router as journal_router
 from fitness.api.routers.exercises import router as exercises_router
 from fitness.api.routers.coaching import router as coaching_router
 from fitness.api.routers.system import router as system_router
+from fitness.anatomy.router import router as anatomy_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -100,6 +101,7 @@ app.include_router(journal_router)
 app.include_router(exercises_router)
 app.include_router(coaching_router)
 app.include_router(system_router)
+app.include_router(anatomy_router)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DUAL FRONTEND ROUTING SYSTEM (Multi-SPA Architecture)

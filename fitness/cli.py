@@ -52,8 +52,9 @@ FITNESSCTL   = FITNESS_DEV / "fitnessctl"
 # "-m" automatisch das aktuelle Arbeitsverzeichnis auf sys.path, und FITNESS_DEV
 # (wo der Symlink liegt) ist ohnehin das cwd aller subprocess-Aufrufe unten.
 
-DEV_PORT = int(os.environ.get("FITNESS_PORT", 9100))
-KB_PORT  = int(os.environ.get("ANATOMY_KB_PORT", 9200))
+DEV_PORT    = int(os.environ.get("FITNESS_PORT", 9100))
+KB_PORT     = int(os.environ.get("ANATOMY_KB_PORT", 9200))
+PYTHON_PORT = int(os.environ.get("FITNESS_PYTHON_PORT", 9150))
 
 # ── gum-Helpers ────────────────────────────────────────────────────────────────
 def _has_gum() -> bool:
@@ -104,8 +105,9 @@ def unit_active(unit: str) -> str:
 
 # ── Health ─────────────────────────────────────────────────────────────────────
 SERVICES = [
-    (DEV_PORT, "fitness-dev (Node)", "fitness-dev.service"),
-    (KB_PORT,  "anatomy-kb (aiohttp)", None),
+    (DEV_PORT,    "fitness-dev (Node)",      "fitness-dev.service"),
+    (PYTHON_PORT, "fitness-api (FastAPI)",   "fitness-api.service"),
+    (KB_PORT,     "anatomy-kb (aiohttp)",    None),
 ]
 
 def _ping(port: int) -> str:
@@ -130,10 +132,12 @@ def cmd_health() -> None:
         raise SystemExit(1)
 
 def cmd_status() -> None:
+    # fitness-firestore-mirror.service ist retired (seit 9c9fb3e in server.mjs
+    # eingebettet, siehe fitness-dev.service) — deshalb nicht mehr gelistet.
     units = [
-        ("fitness-dev.service",          "DEV Node :9100"),
-        ("fitness-firestore-mirror.service", "Firestore Mirror"),
-        ("fitness-mail.timer",               "Fitbit Mail Timer"),
+        ("fitness-dev.service",  "DEV Node :9100"),
+        ("fitness-api.service",  "DEV Python :9150"),
+        ("fitness-mail.timer",   "Fitbit Mail Timer"),
     ]
     rows = []
     for unit, label in units:

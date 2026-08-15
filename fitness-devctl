@@ -321,70 +321,51 @@ def build(
 @app.command()
 def deploy(
     dry_run: bool = typer.Option(False, "--dry-run", help="Show what would happen, no changes"),
-    skip_build: bool = typer.Option(False, "--skip-build", help="Skip npm build step"),
+    build: bool = typer.Option(False, "--build", help="Frischen Build erzwingen (deploy.sh --build-yes), sonst wird vorhandenes dist/ übernommen"),
 ):
-    """Deploy ~/fitness-dev → /opt/fitness (sudo, restarts fitness.service)."""
-    dest = Path("/opt/fitness")
-    backup_dir = Path("/opt/fitness_backups")
+    """Deploy ~/fitness-dev → ~/fitness (staging) → /opt/fitness (prod), via deploy.sh.
+
+    Delegiert an deploy.sh statt eigener Rsync-Logik zu duplizieren — deploy.sh
+    kennt die vollständigen Excludes (u.a. fitness/catalog/kb, free-exercise-db,
+    dist-versions) und behandelt rsync-Exitcode 23/24 (live schreibende Services
+    während des Syncs) bereits korrekt als nicht-fatal. Die alte Eigenimplementierung
+    hier hatte beides nicht → brach bei jedem kb/-Live-Write mit CalledProcessError ab
+    (gefunden 2026-08-15).
+    """
+    deploy_script = DEV_DIR / "deploy.sh"
+    if not deploy_script.exists():
+        msg.fail(f"deploy.sh nicht gefunden unter {deploy_script}")
+        raise typer.Exit(1)
+
+    cmd_staging = ["bash", str(deploy_script), "staging"] + (["--build-yes"] if build else [])
+    cmd_prod = ["bash", str(deploy_script), "prod"]
 
     if dry_run:
-        msg.info(f"DRY RUN — would sync {DEV_DIR} → {dest}")
-        msg.info(f"Would backup to {backup_dir}/fitness_<timestamp>/")
-        msg.info("Would run: npm install + npm run build in /opt/fitness")
-        msg.info("Would run: sudo systemctl restart fitness.service")
+        msg.info(f"DRY RUN — würde ausführen:")
+        msg.info(f"  {' '.join(cmd_staging)}")
+        msg.info(f"  {' '.join(cmd_prod)}")
         return
 
-    # Confirm before destructive sudo op
+    # Confirm before destructive sudo op (deploy.sh selbst fragt nicht nach)
     import shutil
     if not shutil.which("gum"):
-        ans = input(f"Deploy {DEV_DIR} → {dest} and restart fitness.service? [y/N] ")
+        ans = input("Deploy ~/fitness-dev → ~/fitness → /opt/fitness (sudo, restarts fitness.service)? [y/N] ")
         if ans.lower() != "y":
             msg.warn("Aborted.")
             raise typer.Exit(0)
     else:
-        r = subprocess.run(["gum", "confirm", f"Deploy to {dest} and restart fitness.service?"])
+        r = subprocess.run(["gum", "confirm", "Deploy ~/fitness-dev → ~/fitness → /opt/fitness (sudo, restarts fitness.service)?"])
         if r.returncode != 0:
             msg.warn("Aborted.")
             raise typer.Exit(0)
 
-    import datetime
-    ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_path = backup_dir / f"fitness_{ts}"
+    msg.info(f"Running: {' '.join(cmd_staging)}")
+    subprocess.run(cmd_staging, cwd=DEV_DIR, check=True)
 
-    # 1. Backup
-    if dest.exists():
-        msg.info(f"Backup: {dest} → {backup_path}")
-        subprocess.run(["sudo", "mkdir", "-p", str(backup_dir)], check=True)
-        subprocess.run(["sudo", "cp", "-a", str(dest), str(backup_path)], check=True)
+    msg.info(f"Running: {' '.join(cmd_prod)}")
+    subprocess.run(cmd_prod, cwd=DEV_DIR, check=True)
 
-    # 2. Rsync
-    if not dest.exists():
-        msg.info(f"Creating {dest}")
-        subprocess.run(["sudo", "mkdir", "-p", str(dest)], check=True)
-        subprocess.run(["sudo", "chown", f"{os.getuid()}:{os.getgid()}", str(dest)], check=True)
-
-    msg.info(f"Syncing {DEV_DIR}/ → {dest}/")
-    subprocess.run([
-        "sudo", "rsync", "-av", "--delete",
-        "--exclude=.git", "--exclude=node_modules", "--exclude=data",
-        "--exclude=.archiv", "--exclude=*.bak",
-        f"{DEV_DIR}/", f"{dest}/",
-    ], check=True)
-
-    # 3. npm install + build
-    subprocess.run(["sudo", "chown", "-R", f"{os.getuid()}:{os.getgid()}", str(dest)], check=True)
-    if not skip_build:
-        msg.info("npm install + build in /opt/fitness...")
-        subprocess.run(["npm", "install", "--silent"], cwd=dest, check=True)
-        subprocess.run(["npm", "run", "build"], cwd=dest, check=True)
-
-    # 4. Restart prod service
-    msg.info("sudo systemctl restart fitness.service")
-    r = subprocess.run(["sudo", "systemctl", "restart", "fitness.service"])
-    if r.returncode == 0:
-        msg.good("fitness.service restarted — deploy complete")
-    else:
-        msg.warn("fitness.service restart failed — check with: sudo systemctl status fitness.service")
+    msg.good("Deploy complete (via deploy.sh: staging → prod)")
 
 
 # ── Internal ──────────────────────────────────────────────────────────────────
