@@ -63,7 +63,7 @@ class CoachSheetTest(unittest.TestCase):
         result = export_coach_sheet_note("dips_chest")
         export_path = Path(load_runtime_config()["obsidian"]["export_path"]).expanduser()
 
-        self.assertEqual(result.path, export_path / "Coach Sheets" / "dips_chest.md")
+        self.assertEqual(result.path, export_path / "Coach Sheets" / "dips_mit_brustfokus.md")
         self.assertTrue(result.path.exists())
         content = result.path.read_text(encoding="utf-8")
         self.assertIn("## Coaching Points", content)

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+import re
 from typing import Any
 
 import yaml
@@ -105,7 +106,14 @@ def export_teach_note(exercise_id: str, *, mode: str = "trainer", force: bool = 
     if lesson is None:
         raise ValueError(f"Unknown anatomy lesson: {exercise_id}")
     body = render_lesson_markdown(lesson, mode=mode)
-    note_name = f"Anatomy/{exercise_id}"
+    record = find_exercise(exercise_id)
+    note_stub = preferred_note_stub(
+        german=(record.german if record else None),
+        display_name=(record.display_name if record else exercise_id),
+        english=(record.english if record else None),
+        fallback=exercise_id,
+    )
+    note_name = f"Anatomy/{note_stub}"
     frontmatter = {
         "exercise_id": exercise_id,
         "mode": mode,
@@ -120,7 +128,13 @@ def export_teach_note(exercise_id: str, *, mode: str = "trainer", force: bool = 
 
 def export_coach_sheet_note(exercise_query: str, *, force: bool = False) -> ExportWriteResult:
     sheet = build_coach_sheet(exercise_query)
-    note_name = f"Coach Sheets/{sheet['exercise_id']}"
+    note_stub = preferred_note_stub(
+        german=sheet.get("german"),
+        display_name=sheet.get("display_name"),
+        english=sheet.get("english"),
+        fallback=sheet["exercise_id"],
+    )
+    note_name = f"Coach Sheets/{note_stub}"
     frontmatter = {
         "exercise_id": sheet["exercise_id"],
         "display_name": sheet["display_name"],
@@ -370,6 +384,20 @@ def build_tags(source_file: str, exercise_id: str) -> list[str]:
 
 def pretty_title(text: str) -> str:
     return text.replace("_", " ").strip().title()
+
+
+def slugify_note_name(value: str | None) -> str:
+    text = (value or "").strip().casefold()
+    text = re.sub(r"[^a-z0-9]+", "_", text)
+    return text.strip("_")
+
+
+def preferred_note_stub(*, german: str | None, display_name: str | None, english: str | None, fallback: str) -> str:
+    for candidate in (german, display_name, english, fallback):
+        slug = slugify_note_name(candidate)
+        if slug:
+            return slug
+    return slugify_note_name(fallback) or "exercise"
 
 
 def plan_field(plan: Any, field_name: str, default: Any = None) -> Any:

@@ -30,7 +30,7 @@ class TeachingObsidianExportTest(unittest.TestCase):
         config = load_runtime_config()
         export_path = Path(config["obsidian"]["export_path"]).expanduser()
 
-        self.assertEqual(result.path, export_path / "Anatomy" / "dips_chest.md")
+        self.assertEqual(result.path, export_path / "Anatomy" / "dips_mit_brustfokus.md")
         self.assertTrue(result.path.exists())
 
         content = result.path.read_text(encoding="utf-8")
@@ -52,7 +52,7 @@ class TeachingObsidianExportTest(unittest.TestCase):
     def test_cli_export_command_writes_markdown(self) -> None:
         code = main(["teach", "dips_chest", "--mode", "trainer", "--export", "obsidian"])
         self.assertEqual(code, 0)
-        target = Path(load_runtime_config()["obsidian"]["export_path"]).expanduser() / "Anatomy" / "dips_chest.md"
+        target = Path(load_runtime_config()["obsidian"]["export_path"]).expanduser() / "Anatomy" / "dips_mit_brustfokus.md"
         self.assertTrue(target.exists())
 
 
