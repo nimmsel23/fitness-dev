@@ -1,6 +1,8 @@
-"""Muscle anatomy KB (origin/insertion/innervation/function + alias resolution).
+"""Anatomy-facing adapters around the catalog KB.
 
-Eigenes Sub-Package neben fitness.catalog, analog zu fitness.runtime — Anatomie ist
-fachlich eine eigene Zuständigkeit, auch wenn die Daten in fitness.catalog.kb.muscles
-liegen (kein eigener Datenbaum, siehe store.py).
+This package is intentionally thin:
+- HTTP/API namespace and enrichment-specific helpers may live here.
+- The underlying SSOT for muscles and anatomy teaching remains
+  `fitness.catalog.kb.*`.
+- Write-capable muscle storage lives in `fitness.catalog.muscles_store`.
 """
