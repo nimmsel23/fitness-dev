@@ -1,6 +1,6 @@
 import { Dumbbell } from 'lucide-react';
 import { formatRecovery } from './utils';
-import { translateMuscle } from '../../lib/translations';
+import { translateMuscle } from '../../lib/kb/muscles.js';
 
 export default function ReviewSessionList({ sessions, onNavigate, muscleLanguage = 'de', taxonomy = null }) {
   return (

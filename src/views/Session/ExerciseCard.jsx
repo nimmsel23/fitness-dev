@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import {
   formatMuscleDetail, loadMuscleDetail, MUSCLE_DETAIL_KEY, splitMuscleEntries,
-} from '../../lib/translations.js';
+} from '../../lib/kb/muscles.js';
 
 const NXM_PATTERN = /^\s*(\d{1,2})\s*[xX×*]\s*(\d{1,3})\s*$/;
 

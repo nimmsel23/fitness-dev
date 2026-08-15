@@ -3,7 +3,7 @@ import { getAllExercises } from "@db";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import MuscleHighlightMap from "./MuscleHighlightMap";
-import { translateMuscle } from "../lib/translations";
+import { translateMuscle } from "../lib/kb/muscles.js";
 import { getMuscleIcon } from "../constants/MuscleIcons";
 
 export default function MuscleDetailModal({ muscleId, muscleData, onClose, loading, muscleLanguage = 'de', taxonomy = null, onInspectExercise = null }) {

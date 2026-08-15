@@ -1,4 +1,4 @@
-import { translateMuscle } from "../../lib/translations";
+import { translateMuscle } from "../../lib/kb/muscles.js";
 
 export default function MuscleAnalysis({ hitAnalysis, muscleLanguage = 'de', taxonomy = null }) {
   const { heavy, recovering, super: supercomp, ready } = hitAnalysis;

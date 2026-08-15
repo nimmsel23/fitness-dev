@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { BarChart2, User } from "lucide-react";
-import { muskelDe, muskelColor } from "../../../lib/muscleLabels.js";
+import { muskelDe, muskelColor } from "../../../lib/kb/muscles.js";
 import BodyMap from "./BodyMap.jsx";
 
 function parseReps(reps) {

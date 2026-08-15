@@ -1,4 +1,4 @@
-import { canonicalMuscleId, splitMuscleEntries } from "../../translations.js";
+import { canonicalMuscleId, splitMuscleEntries } from "../../kb/muscles.js";
 
 const GENERIC_REGION_REASSIGNMENT = [
   [/external rotation|internal rotation|au(ss|ß)enrotation|innenrotation|rotator ?cuff/i, "304_rotator_cuff"],

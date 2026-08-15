@@ -1,5 +1,5 @@
 import { normalizeExerciseRecord } from './db/shared/exercise.js'
-import { formatMuscleDetail } from './translations.js'
+import { formatMuscleDetail } from './kb/muscles.js'
 
 function cleanList(items) {
   return [...new Set((items || []).map(v => String(v || '').trim()).filter(Boolean))]

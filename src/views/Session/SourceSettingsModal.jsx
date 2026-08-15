@@ -7,7 +7,7 @@ import {
 import {
   MUSCLE_DETAIL_OPTIONS, MUSCLE_DETAIL_KEY,
   loadMuscleDetail, saveMuscleDetail,
-} from '../../lib/translations.js';
+} from '../../lib/kb/muscles.js';
 
 const SOURCES = [
   { key: 'wger',    label: 'wger',         desc: '~800 Übungen · Standard',       experimental: false },

@@ -25,7 +25,7 @@ import {
   saveExercise,
 } from '@db'
 import { buildExerciseCoachSheet, buildExerciseInsights } from '../lib/exerciseInsights.js'
-import { translateMuscle } from '../lib/translations.js'
+import { translateMuscle } from '../lib/kb/muscles.js'
 
 function linesToText(value) {
   return Array.isArray(value) ? value.join('\n') : ''

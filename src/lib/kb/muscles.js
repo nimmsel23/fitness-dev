@@ -1,4 +1,18 @@
+/**
+ * SSOT-Barrel für Muskelwissen im Frontend.
+ *
+ * Enthält:
+ * - gebündelte KB-Dokumente aus fitness/catalog/kb/muscles/**
+ * - statische Taxonomy-/Viz-Getter
+ * - zentrale Re-Exports für Muskel-Translations, Label- und Map-Helfer
+ *
+ * Alt-Dateien wie ../translations.js, ../muscleLabels.js und ../muscleMap.js
+ * bleiben nur als dünne Fassaden bestehen und sollen langfristig hierhin
+ * zeigen, damit die Muskel-Utilities an einem Ort auffindbar sind.
+ */
+
 import yaml from "js-yaml";
+import { useEffect, useState } from "react";
 
 import { setKBMuscles } from "../db/shared/muscle.js";
 
@@ -142,3 +156,36 @@ export function getStaticMuscle(muscleId) {
 export function getStaticMuscleViz() {
   return STATIC_MUSCLE_VIZ;
 }
+
+export function useMuscleMap() {
+  const [map, setMap] = useState(STATIC_MUSCLE_VIZ);
+  useEffect(() => {
+    setMap(STATIC_MUSCLE_VIZ);
+  }, []);
+  return map;
+}
+
+export function getMuscleMapSync() {
+  return STATIC_MUSCLE_VIZ;
+}
+
+export {
+  translateMuscleGroup,
+  canonicalMuscleId,
+  splitMuscleEntries,
+  formatMuscleDetail,
+  MUSCLE_DETAIL_KEY,
+  MUSCLE_DETAIL_DEFAULT,
+  MUSCLE_DETAIL_OPTIONS,
+  loadMuscleDetail,
+  saveMuscleDetail,
+  muscleToRbhSlug,
+  muscleToRmhSlug,
+  translateMuscle,
+} from "./muscleTranslations.js";
+export {
+  muskelDe,
+  muskelGruppe,
+  muskelColor,
+  dedupeMuskeln,
+} from "./muscleLabels.js";
