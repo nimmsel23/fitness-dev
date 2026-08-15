@@ -30,20 +30,11 @@ def inbox_list():
 async def inbox_queue(request: Request):
     body = await request.json()
     from fitness.catalog.core.exercise_schema import apply_exercise_schema
-    from fitness.catalog.core.source_merge import build_external_seed
+    from fitness.catalog.core.inbox_pipeline import build_inbox_draft_seed
 
     display_name = body.get("display_name") or body.get("name") or ""
     exercise_id = body.get("exercise_id") or body.get("id")
-    merged_seed = build_external_seed(display_name, exercise_id) or {}
-    seed = {
-        **merged_seed,
-        **{k: v for k, v in body.items() if v not in (None, "", [], {})},
-    }
-    if display_name and not seed.get("display_name"):
-        seed["display_name"] = display_name
-    if exercise_id and not seed.get("exercise_id"):
-        seed["exercise_id"] = exercise_id
-        seed["id"] = exercise_id
+    seed = build_inbox_draft_seed(display_name, exercise_id, body, restart=False)
     seed = apply_exercise_schema(seed, review_status="draft", ai_reviewed=False)
 
     INBOX_DIR.mkdir(parents=True, exist_ok=True)
@@ -135,6 +126,7 @@ async def inbox_reenrich(id: str, request: Request):
         force=True,
         feedback=feedback,
         current_data=current_data if isinstance(current_data, dict) else None,
+        restart_pipeline=True,
     )
 
     safe_name = str(exercise_id).lower().replace(" ", "_")

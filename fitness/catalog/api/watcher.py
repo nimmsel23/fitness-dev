@@ -19,6 +19,7 @@ from fitness.catalog.core.paths import DATA_DIR, runtime_root
 from fitness.catalog.agent.inbox_actions import is_inbox_tombstoned
 from fitness.catalog.api.firestore_push import run_kb_sync
 from fitness.catalog.core.exercise_schema import apply_exercise_schema
+from fitness.catalog.core.inbox_pipeline import build_inbox_draft_seed
 from fitness.catalog.core.source_merge import build_external_seed
 from fitness.catalog.core.resolver import resolve_query, find_by_id, build_exercise_index
 from fitness.catalog.core.rich_utils import setup_logging
@@ -143,25 +144,12 @@ def process_inbox_file(file_path: Path, api_key: str | None):
         # Grundlage bekommen statt komplett blind (nur der nackte Name) neu
         # zu erfinden — sonst geht die wger-Originalbeschreibung beim
         # Enrichment verloren statt verfeinert zu werden.
-        existing_data = data if isinstance(data, dict) else None
-        external_seed = build_external_seed(name, safe_name)
-        if external_seed:
-            existing_data = {**external_seed, **(existing_data or {})}
-        if resolution.matched and resolution.canonical_id:
-            record = find_by_id(resolution.canonical_id, build_exercise_index())
-            if record:
-                canonical_seed = {
-                    "exercise_id": record.exercise_id,
-                    "display_name": record.display_name,
-                    "original_description": record.original_description,
-                    "primary_muscles": record.primary_muscles,
-                    "secondary_muscles": record.secondary_muscles,
-                    "equipment": record.equipment,
-                }
-                if existing_data:
-                    existing_data = {**existing_data, **{k: v for k, v in canonical_seed.items() if v not in (None, "", [], {})}}
-                else:
-                    existing_data = canonical_seed
+        existing_data = build_inbox_draft_seed(
+            name,
+            safe_name,
+            data if isinstance(data, dict) else None,
+            restart=False,
+        )
 
         enriched_data = call_gemini(name, safe_name, api_key, existing_data=existing_data)
 
@@ -182,6 +170,7 @@ def process_inbox_file_virtual(
     force: bool = False,
     feedback: str | None = None,
     current_data: dict | None = None,
+    restart_pipeline: bool = False,
 ):
     safe_name = ex_id.lower().replace(" ", "_")
     target_file = DATA_DIR / "inbox" / f"inbox_{safe_name}.yml"
@@ -192,19 +181,12 @@ def process_inbox_file_virtual(
         logger.info(f"Exercise inbox tombstoned, skipping proactive draft: {display_name}")
         return
 
-    existing_data = current_data or build_external_seed(display_name, ex_id)
-    if existing_data is None:
-        records = build_exercise_index()
-        record = find_by_id(ex_id, records)
-        if record:
-            existing_data = {
-                "exercise_id": record.exercise_id,
-                "display_name": record.display_name,
-                "category": record.category if hasattr(record, "category") else None,
-                "primary_muscles": record.primary_muscles,
-                "equipment": record.equipment,
-                "wger_id": record.wger_muscle_ids.get("wger_id") if record.wger_muscle_ids else None
-            }
+    existing_data = build_inbox_draft_seed(
+        display_name,
+        ex_id,
+        current_data,
+        restart=restart_pipeline,
+    )
 
     if feedback:
         logger.info(f"Feedback-Reenrichment for: {display_name} — \"{feedback}\"")
