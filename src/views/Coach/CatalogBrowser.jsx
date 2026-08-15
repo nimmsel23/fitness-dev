@@ -149,7 +149,7 @@ export default function CatalogBrowser({ onInspectExercise }) {
 
               {onInspectExercise && (
                 <button
-                  onClick={() => onInspectExercise(selectedExercise.exercise_id || selectedExercise.id)}
+                  onClick={() => onInspectExercise(selectedExercise)}
                   className="flex items-center gap-2 px-3.5 py-2 bg-fit-bg2 border border-fit-line/60 rounded-xl text-xs font-bold text-fit-ink hover:border-fit-accent transition-all shrink-0"
                 >
                   <ExternalLink size={14} className="text-fit-accent" /> Detail Inspector öffnen
