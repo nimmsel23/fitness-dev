@@ -166,7 +166,8 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
       .then((lesson) => {
         if (!active || !lesson) return
         setLocalExercise((prev) => {
-          const next = { ...prev, lesson }
+          const base = prev && typeof prev === 'object' ? prev : exercise
+          const next = { ...base, lesson }
           onExerciseChange?.(next)
           return next
         })
@@ -187,7 +188,7 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
     return () => clearTimeout(timer)
   }, [notice])
 
-  if (!exercise) return null
+  if (!exercise || !localExercise) return null
 
   const insight = buildExerciseInsights(localExercise)
   const exerciseId = localExercise.exercise_id || localExercise.id || localExercise.name
