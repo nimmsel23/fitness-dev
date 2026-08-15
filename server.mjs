@@ -7,17 +7,18 @@ import { serve } from "@hono/node-server";
 import Database from "better-sqlite3";
 import pino from "pino";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
-import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, readHabits, pullAllSessions, startUserDataWatchers } from "./firestore-mirror.mjs";
+import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, readHabits, pullAllSessions } from "./firestore-mirror.mjs";
 
 // pino-pretty IMMER aktiv, auch unter systemd/journalctl — das ist der
 // tatsächliche Haupt-Log-Weg hier (nicht nur `npm run dev` im Terminal).
 // Rohes JSON war unter journalctl deutlich unlesbarer als die alten
-// console.log-Zeilen. Farbe nur an, wenn wirklich ein TTY dranhängt, sonst
-// landen ANSI-Escapes im Journal.
+// console.log-Zeilen. Farbe bleibt an (journalctl rendert ANSI im Terminal
+// sauber), kein translateTime — journalctl stempelt eh schon, ein zweiter
+// Timestamp war nur Redundanz ohne Mehrwert.
 const log = pino({
   transport: {
     target: "pino-pretty",
-    options: { colorize: process.stdout.isTTY === true, translateTime: "HH:MM:ss", ignore: "pid,hostname" },
+    options: { colorize: true, ignore: "pid,hostname,time" },
   },
 });
 
@@ -1755,18 +1756,15 @@ serve({ fetch: app.fetch, port: PORT, hostname: HOST }, () =>
   log.info(`💪 fitness-dev on http://${HOST}:${PORT}`)
 );
 
-// Eingebetteter Firestore-User-Data-Sync (Cloud → lokal, inkl. Löschungen) —
-// löst den separaten fitness-firestore-daemon.service/fitness-firestore-mirror.service ab.
-// Verzögert (statt direkt nach serve()): firebase-admins Token-Refresh beim
-// Boot kollidierte mit Node/undici (ERR_INVALID_STATE, crashte den ganzen
-// Prozess, siehe notifyPythonSync-Kommentar oben für dieselbe Bug-Klasse) —
-// nach ein paar Sekunden ist der Event-Loop durchgewärmt, kein Crash mehr.
-setTimeout(() => {
-  startUserDataWatchers({
-    onSessionWrite: (date, data) => { try { syncSessionToDb(date, data); } catch (e) { log.warn(`[firestore-mirror] SQLite-Sync fehler ${date}: ${e.message}`); } },
-    onSessionDelete: (_uid, docId) => {
-      const [date, sessionId] = docId.split("__");
-      try { deleteSessionFromDb(date, sessionId || null); } catch (e) { log.warn(`[firestore-mirror] SQLite-Delete fehler ${docId}: ${e.message}`); }
-    },
-  }).catch(e => log.warn(`[firestore-mirror] Watcher-Start fehler: ${e.message}`));
-}, 5000);
+// User-Data-Firestore-Listener (Cloud → lokal) läuft NICHT hier — der lief kurz
+// (9c9fb3e, 2026-08-14) eingebettet in server.mjs, war aber ein unbemerktes
+// Duplikat: fitness-api.service (fitness/api/main.py) bettet denselben Sync
+// bereits seit 2026-08-06 ein (siehe dortiger Kommentar). Zwei Prozesse
+// hörten damit parallel auf dieselben Firestore-Collections und schrieben in
+// dieselben lokalen Dateien/SQLite-Zeilen (sync_gateway deckt das in Python
+// vollständig ab, inkl. Delete). Das war zugleich die Quelle des
+// undici-Boot-Race (ERR_INVALID_STATE) — mit dem Listener entfernt entfällt
+// der Trigger, nicht nur dessen Symptom (siehe uncaughtException-Guard oben,
+// bleibt als genereller Schutz, ist aber jetzt nicht mehr der Normalfall).
+// mirrorSession/mirrorSessionDelete/mirrorJournal (Push lokal → Cloud, bei
+// jedem Write-Endpoint) bleiben unverändert — kein Duplikat, eigener Zweck.
