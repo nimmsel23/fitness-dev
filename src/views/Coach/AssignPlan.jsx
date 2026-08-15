@@ -1,20 +1,26 @@
 import { useState, useEffect } from 'react'
-import { Dumbbell, Plus, Save, Trash2, ChevronDown, X } from 'lucide-react'
+import { Dumbbell, Plus, Trash2, X, ChevronDown, ChevronUp, Snowflake } from 'lucide-react'
+
+// Standard-Vorgaben, damit nicht bei jeder Übung Sätze/Wdh von Hand getippt
+// werden müssen — nur ein Startpunkt, Coach kann danach trotzdem frei ändern.
+const REP_PRESETS = [
+  { label: 'Hypertrophie', sets: 3, reps: '8-12' },
+  { label: 'Kraft', sets: 5, reps: '5' },
+  { label: 'Ausdauer', sets: 3, reps: '15-20' },
+  { label: 'Deload', sets: 2, reps: '8-10' },
+]
 import { useUser } from '../../contexts/UserContext'
 import {
   getAllUserProfiles,
   listMacrocycles,
   getMacrocycle,
   createMacrocycle,
-  updateMacrocycleWeeks,
   deleteMacrocycle,
+  addRoutine,
+  updateRoutine,
+  deleteRoutine,
 } from '@db'
 import ExerciseSearch from '../Plan/components/ExerciseSearch.jsx'
-
-const DAYS = [
-  ['mo', 'Mo'], ['di', 'Di'], ['mi', 'Mi'], ['do', 'Do'],
-  ['fr', 'Fr'], ['sa', 'Sa'], ['so', 'So'],
-]
 
 export default function AssignPlan() {
   const { user } = useUser()
@@ -23,13 +29,17 @@ export default function AssignPlan() {
   const [cycles, setCycles] = useState([])
   const [loading, setLoading] = useState(false)
 
-  const [activeCycle, setActiveCycle] = useState(null) // volles Objekt inkl. weeks
-  const [dirty, setDirty] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [openDay, setOpenDay] = useState(null) // `${weekIdx}:${dayKey}`
+  const [cycle, setCycle] = useState(null)
   const [newName, setNewName] = useState('')
-  const [newWeeks, setNewWeeks] = useState(10)
+  const [newTotalWeeks, setNewTotalWeeks] = useState(10)
   const [creating, setCreating] = useState(false)
+  const [newRoutineLabel, setNewRoutineLabel] = useState('')
+  const [newRoutineRest, setNewRoutineRest] = useState(24)
+  const [newRoutineDeload, setNewRoutineDeload] = useState(false)
+  const [openRoutine, setOpenRoutine] = useState(null)
+  const [preset, setPreset] = useState(REP_PRESETS[0])
+  const [completions, setCompletions] = useState([])
+  const [cycleMeta, setCycleMeta] = useState(null)
 
   useEffect(() => {
     getAllUserProfiles().then(setProfiles).catch(() => setProfiles({}))
@@ -37,8 +47,7 @@ export default function AssignPlan() {
 
   async function selectClient(clientUid) {
     setSelectedClient(clientUid)
-    setActiveCycle(null)
-    setOpenDay(null)
+    setCycle(null)
     if (!clientUid) { setCycles([]); return }
     setLoading(true)
     try {
@@ -50,11 +59,11 @@ export default function AssignPlan() {
 
   async function openCycle(cycleId) {
     setLoading(true)
-    setOpenDay(null)
     try {
       const full = await getMacrocycle(selectedClient, cycleId)
-      setActiveCycle(full)
-      setDirty(false)
+      setCycle(full?.macrocycle || null)
+      setCompletions(full?.completions || [])
+      setCycleMeta(full ? { currentWeek: full.currentWeek, totalWeeks: full.totalWeeks, finished: full.finished } : null)
     } finally {
       setLoading(false)
     }
@@ -64,78 +73,64 @@ export default function AssignPlan() {
     if (!newName.trim() || !user?.uid || !selectedClient) return
     setCreating(true)
     try {
-      const created = await createMacrocycle(selectedClient, {
-        name: newName.trim(),
-        coachUid: user.uid,
-        weeks: Number(newWeeks) || 1,
-      })
+      const created = await createMacrocycle(selectedClient, { name: newName.trim(), coachUid: user.uid, totalWeeks: Number(newTotalWeeks) || 10 })
       if (created) {
         setNewName('')
         setCycles(await listMacrocycles(selectedClient))
-        setActiveCycle(created)
-        setDirty(false)
+        setCycle(created)
+        setCompletions([])
+        setCycleMeta({ currentWeek: 1, totalWeeks: created.totalWeeks, finished: false })
       }
     } finally {
       setCreating(false)
     }
   }
 
-  async function handleDelete(cycleId) {
+  async function handleDeleteCycle(cycleId) {
     await deleteMacrocycle(selectedClient, cycleId)
     setCycles(await listMacrocycles(selectedClient))
-    if (activeCycle?.id === cycleId) setActiveCycle(null)
+    if (cycle?.id === cycleId) setCycle(null)
   }
 
-  async function handleSave() {
-    if (!activeCycle) return
-    setSaving(true)
-    try {
-      const saved = await updateMacrocycleWeeks(selectedClient, activeCycle.id, activeCycle.weeks)
-      if (saved) {
-        setActiveCycle(saved)
-        setDirty(false)
-        setCycles(await listMacrocycles(selectedClient))
-      }
-    } finally {
-      setSaving(false)
+  async function handleAddRoutine() {
+    if (!newRoutineLabel.trim()) return
+    const updated = await addRoutine(selectedClient, cycle.id, {
+      label: newRoutineLabel.trim(),
+      isDeload: newRoutineDeload,
+      restHoursAfter: Number(newRoutineRest) || 0,
+    })
+    if (updated) {
+      setCycle(updated)
+      setNewRoutineLabel('')
+      setNewRoutineDeload(false)
+      setOpenRoutine(updated.routines[updated.routines.length - 1].id)
     }
   }
 
-  function updateDay(weekIdx, dayKey, updater) {
-    setActiveCycle(prev => {
-      const weeks = prev.weeks.map((w, i) => {
-        if (i !== weekIdx) return w
-        const current = w.days[dayKey] || { label: '', exercises: [] }
-        return { ...w, days: { ...w.days, [dayKey]: updater(current) } }
-      })
-      return { ...prev, weeks }
-    })
-    setDirty(true)
+  async function handleDeleteRoutine(routineId) {
+    const updated = await deleteRoutine(selectedClient, cycle.id, routineId)
+    if (updated) setCycle(updated)
   }
 
-  function addExerciseToDay(weekIdx, dayKey, ex) {
-    updateDay(weekIdx, dayKey, (day) => ({
-      ...day,
-      exercises: [...(day.exercises || []), { exercise_id: ex.id, name: ex.name, sets: 3, reps: '8-12' }],
-    }))
+  async function addExercise(routineId, ex) {
+    const routine = cycle.routines.find(r => r.id === routineId)
+    const exercises = [...(routine.exercises || []), { exercise_id: ex.id, name: ex.name, sets: preset.sets, reps: preset.reps, weight: '' }]
+    setCycle(prev => ({ ...prev, routines: prev.routines.map(r => r.id === routineId ? { ...r, exercises } : r) }))
+    await updateRoutine(selectedClient, cycle.id, routineId, { exercises })
   }
 
-  function removeExerciseFromDay(weekIdx, dayKey, idx) {
-    updateDay(weekIdx, dayKey, (day) => ({
-      ...day,
-      exercises: day.exercises.filter((_, i) => i !== idx),
-    }))
+  async function removeExercise(routineId, idx) {
+    const routine = cycle.routines.find(r => r.id === routineId)
+    const exercises = routine.exercises.filter((_, i) => i !== idx)
+    setCycle(prev => ({ ...prev, routines: prev.routines.map(r => r.id === routineId ? { ...r, exercises } : r) }))
+    await updateRoutine(selectedClient, cycle.id, routineId, { exercises })
   }
 
-  function updateExerciseField(weekIdx, dayKey, idx, field, value) {
-    updateDay(weekIdx, dayKey, (day) => ({
-      ...day,
-      exercises: day.exercises.map((ex, i) => i === idx ? { ...ex, [field]: value } : ex),
-    }))
-  }
-
-  function updateDayLabel(weekIdx, dayKey, label) {
-    updateDay(weekIdx, dayKey, (day) => ({ ...day, label, exercises: day.exercises || [] }))
+  async function updateExerciseField(routineId, idx, field, value) {
+    const routine = cycle.routines.find(r => r.id === routineId)
+    const exercises = routine.exercises.map((ex, i) => i === idx ? { ...ex, [field]: value } : ex)
+    setCycle(prev => ({ ...prev, routines: prev.routines.map(r => r.id === routineId ? { ...r, exercises } : r) }))
+    await updateRoutine(selectedClient, cycle.id, routineId, { exercises })
   }
 
   return (
@@ -143,7 +138,7 @@ export default function AssignPlan() {
       <div className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 p-6">
         <h2 className="text-lg font-bold text-fit-ink mb-4 flex items-center gap-2">
           <Dumbbell size={20} className="text-fit-accent" />
-          Makrozyklen
+          Trainingszyklen
         </h2>
         <label className="block text-xs font-bold text-fit-dim uppercase mb-2">Klient auswählen</label>
         <select
@@ -158,25 +153,28 @@ export default function AssignPlan() {
         </select>
       </div>
 
-      {selectedClient && !activeCycle && (
+      {selectedClient && !cycle && (
         <>
           <div className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 p-6">
-            <h3 className="text-sm font-bold text-fit-ink mb-3">Neuer Makrozyklus</h3>
+            <h3 className="text-sm font-bold text-fit-ink mb-3">Neuer Zyklus</h3>
             <div className="flex flex-wrap gap-2">
               <input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="z.B. 10-Wochen Hypertrophie-Block"
+                placeholder="z.B. Push Pull Legs"
                 className="flex-1 min-w-[200px] bg-fit-bg border border-fit-line rounded-lg px-3 py-2 text-sm text-fit-ink focus:border-fit-accent outline-none"
               />
-              <input
-                type="number"
-                min={1}
-                max={52}
-                value={newWeeks}
-                onChange={(e) => setNewWeeks(e.target.value)}
-                className="w-24 bg-fit-bg border border-fit-line rounded-lg px-3 py-2 text-sm text-fit-ink focus:border-fit-accent outline-none"
-              />
+              <label className="flex items-center gap-1.5 text-xs text-fit-dim">
+                <input
+                  type="number"
+                  min={1}
+                  max={52}
+                  value={newTotalWeeks}
+                  onChange={(e) => setNewTotalWeeks(e.target.value)}
+                  className="w-16 bg-fit-bg border border-fit-line rounded-lg px-2 py-2 text-fit-ink"
+                />
+                Wochen
+              </label>
               <button
                 onClick={handleCreate}
                 disabled={creating || !newName.trim()}
@@ -185,7 +183,6 @@ export default function AssignPlan() {
                 <Plus size={14} /> Anlegen
               </button>
             </div>
-            <p className="text-xs text-fit-dim mt-2">Anzahl Wochen — danach Woche für Woche, Tag für Tag frei bestücken.</p>
           </div>
 
           {loading ? (
@@ -195,7 +192,7 @@ export default function AssignPlan() {
           ) : cycles.length === 0 ? (
             <div className="text-center py-12 text-fit-dim text-xs opacity-50">
               <Dumbbell size={32} className="mx-auto mb-2 opacity-30" />
-              <p>Noch kein Makrozyklus für diesen Klienten</p>
+              <p>Noch kein Zyklus für diesen Klienten</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -207,10 +204,10 @@ export default function AssignPlan() {
                 >
                   <div>
                     <h3 className="font-bold text-sm text-fit-ink">{c.name}</h3>
-                    <p className="text-xs text-fit-dim mt-1">{c.weekCount} Wochen · angelegt {new Date(c.createdAt).toLocaleDateString('de-DE')}</p>
+                    <p className="text-xs text-fit-dim mt-1">{c.routineCount || 0} Routinen</p>
                   </div>
                   <button
-                    onClick={(e) => { e.stopPropagation(); handleDelete(c.id) }}
+                    onClick={(e) => { e.stopPropagation(); handleDeleteCycle(c.id) }}
                     className="p-2 text-fit-dim hover:text-red-400 transition-colors"
                   >
                     <Trash2 size={16} />
@@ -222,116 +219,179 @@ export default function AssignPlan() {
         </>
       )}
 
-      {activeCycle && (
+      {cycle && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => { setActiveCycle(null); setDirty(false) }}
-              className="text-xs font-bold text-fit-dim hover:text-fit-ink uppercase"
-            >
-              ← Zurück
-            </button>
-            <div className="flex items-center gap-2">
-              {dirty && <span className="text-xs text-fit-accent font-bold">Ungespeichert</span>}
+          <button onClick={() => setCycle(null)} className="text-xs font-bold text-fit-dim hover:text-fit-ink uppercase">
+            ← Zurück
+          </button>
+
+          <div className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-fit-ink">{cycle.name}</h3>
+              {cycleMeta && (
+                <span className={`text-xs font-black uppercase ${cycleMeta.finished ? 'text-fit-dim' : 'text-fit-accent'}`}>
+                  {cycleMeta.finished ? 'Abgeschlossen' : `Woche ${cycleMeta.currentWeek} / ${cycleMeta.totalWeeks}`}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-fit-dim mt-1">Rotiert flexibel in dieser Reihenfolge — kein fester Kalendertag.</p>
+            {cycleMeta && (
+              <div className="h-1.5 bg-fit-bg rounded-full overflow-hidden mt-2">
+                <div
+                  className="h-full bg-fit-accent transition-all"
+                  style={{ width: `${Math.min(100, (cycleMeta.currentWeek / cycleMeta.totalWeeks) * 100)}%` }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Feedback des Klienten: was wurde tatsächlich trainiert */}
+          <div className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 p-4">
+            <h4 className="text-xs font-bold text-fit-dim uppercase mb-2">Erledigt vom Klienten</h4>
+            {completions.length === 0 ? (
+              <p className="text-xs text-fit-dim opacity-50">Noch nichts abgehakt</p>
+            ) : (
+              <div className="space-y-1.5">
+                {completions.slice(-8).reverse().map((c) => {
+                  const routine = cycle.routines.find(r => r.id === c.routineId)
+                  return (
+                    <div key={c.id} className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-fit-ink">{routine?.label || c.routineId}</span>
+                      <span className="text-fit-dim">{new Date(c.completedAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Routine hinzufügen — Name + Pause danach + optional Deload */}
+          <div className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 p-4 space-y-2">
+            <div className="flex gap-2">
+              <input
+                value={newRoutineLabel}
+                onChange={(e) => setNewRoutineLabel(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddRoutine()}
+                placeholder="z.B. Push"
+                className="flex-1 bg-fit-bg border border-fit-line rounded-lg px-3 py-2 text-sm text-fit-ink focus:border-fit-accent outline-none"
+              />
               <button
-                onClick={handleSave}
-                disabled={saving || !dirty}
+                onClick={handleAddRoutine}
+                disabled={!newRoutineLabel.trim()}
                 className="btn btn-primary px-4 py-2 text-xs font-bold uppercase flex items-center gap-1.5 disabled:opacity-50"
               >
-                <Save size={14} /> {saving ? 'Speichert…' : 'Speichern'}
+                <Plus size={14} /> Routine
               </button>
+            </div>
+            <div className="flex items-center gap-3 text-xs">
+              <label className="flex items-center gap-1.5 text-fit-dim">
+                Pause danach
+                <input
+                  type="number"
+                  min={0}
+                  value={newRoutineRest}
+                  onChange={(e) => setNewRoutineRest(e.target.value)}
+                  className="w-16 bg-fit-bg border border-fit-line rounded px-2 py-1 text-fit-ink"
+                />
+                Std.
+              </label>
+              <label className="flex items-center gap-1.5 text-fit-dim cursor-pointer">
+                <input type="checkbox" checked={newRoutineDeload} onChange={(e) => setNewRoutineDeload(e.target.checked)} />
+                <Snowflake size={13} /> Deload
+              </label>
             </div>
           </div>
 
-          <div className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 p-4">
-            <h3 className="font-bold text-fit-ink">{activeCycle.name}</h3>
-            <p className="text-xs text-fit-dim mt-1">{activeCycle.weeks.length} Wochen</p>
+          {/* Vorgabe für neu hinzugefügte Übungen — nur ein Startwert */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-fit-dim">Vorgabe für neue Übungen:</span>
+            {REP_PRESETS.map(p => (
+              <button
+                key={p.label}
+                onClick={() => setPreset(p)}
+                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-colors ${
+                  preset.label === p.label ? 'bg-fit-accent text-black' : 'bg-fit-bg border border-fit-line text-fit-dim hover:text-fit-ink'
+                }`}
+              >
+                {p.label} ({p.sets}×{p.reps})
+              </button>
+            ))}
           </div>
 
-          <div className="space-y-3">
-            {activeCycle.weeks.map((week, weekIdx) => (
-              <div key={week.weekNr} className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 overflow-hidden">
-                <div className="px-4 py-2.5 bg-fit-bg/50 border-b border-fit-line/30">
-                  <span className="text-xs font-black uppercase text-fit-accent">Woche {week.weekNr}</span>
-                </div>
-                <div className="grid grid-cols-7 divide-x divide-fit-line/20">
-                  {DAYS.map(([dayKey, dayLabel]) => {
-                    const day = week.days[dayKey]
-                    const isOpen = openDay === `${weekIdx}:${dayKey}`
-                    return (
-                      <button
-                        key={dayKey}
-                        onClick={() => setOpenDay(isOpen ? null : `${weekIdx}:${dayKey}`)}
-                        className={`p-2 text-center transition-colors ${isOpen ? 'bg-fit-accent/10' : 'hover:bg-fit-bg/50'}`}
+          {/* Routinen — flache Liste, aufklappbar für Übungen, kein Grid */}
+          <div className="space-y-2">
+            {cycle.routines.map((routine, i) => {
+              const isOpen = openRoutine === routine.id
+              return (
+                <div key={routine.id} className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 overflow-hidden">
+                  <button
+                    onClick={() => setOpenRoutine(isOpen ? null : routine.id)}
+                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-fit-bg2/80"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-full bg-fit-accent/20 text-fit-accent text-xs font-black flex items-center justify-center">{i + 1}</span>
+                      <span className="font-bold text-sm text-fit-ink">{routine.label}</span>
+                      {routine.isDeload && <Snowflake size={13} className="text-blue-400" title="Deload" />}
+                      <span className="text-xs text-fit-dim">{(routine.exercises || []).length} Übungen</span>
+                      {routine.restHoursAfter > 0 && (
+                        <span className="text-xs text-fit-dim/70">· {routine.restHoursAfter}h Pause danach</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        onClick={(e) => { e.stopPropagation(); handleDeleteRoutine(routine.id) }}
+                        className="p-1 text-fit-dim hover:text-red-400"
                       >
-                        <div className="text-[10px] font-black uppercase text-fit-dim">{dayLabel}</div>
-                        <div className={`text-xs font-bold mt-0.5 truncate ${day ? 'text-fit-ink' : 'text-fit-dim/40'}`}>
-                          {day?.label || (day?.exercises?.length ? `${day.exercises.length} Üb.` : '—')}
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
+                        <Trash2 size={14} />
+                      </span>
+                      {isOpen ? <ChevronUp size={16} className="text-fit-dim" /> : <ChevronDown size={16} className="text-fit-dim" />}
+                    </div>
+                  </button>
 
-                {DAYS.map(([dayKey]) => {
-                  if (openDay !== `${weekIdx}:${dayKey}`) return null
-                  const day = week.days[dayKey] || { label: '', exercises: [] }
-                  return (
-                    <div key={dayKey} className="p-4 border-t border-fit-line/30 bg-fit-bg/30 space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <input
-                          value={day.label || ''}
-                          onChange={(e) => updateDayLabel(weekIdx, dayKey, e.target.value)}
-                          placeholder="Tagesbezeichnung, z.B. Push"
-                          className="flex-1 bg-fit-bg border border-fit-line rounded-lg px-3 py-1.5 text-xs font-bold text-fit-ink focus:border-fit-accent outline-none"
-                        />
-                        <button
-                          onClick={() => setOpenDay(null)}
-                          className="p-1.5 text-fit-dim hover:text-fit-ink"
-                        >
-                          <ChevronDown size={16} />
-                        </button>
-                      </div>
-
-                      {(day.exercises || []).length > 0 && (
+                  {isOpen && (
+                    <div className="p-4 border-t border-fit-line/30 bg-fit-bg/30 space-y-3">
+                      {(routine.exercises || []).length > 0 && (
                         <div className="space-y-2">
-                          {day.exercises.map((ex, exIdx) => (
+                          {routine.exercises.map((ex, exIdx) => (
                             <div key={exIdx} className="flex items-center gap-2 bg-fit-bg2/50 rounded-lg px-3 py-2">
                               <span className="flex-1 text-xs font-bold text-fit-ink truncate">{ex.name}</span>
                               <input
                                 type="number"
                                 value={ex.sets}
-                                onChange={(e) => updateExerciseField(weekIdx, dayKey, exIdx, 'sets', Number(e.target.value))}
+                                onChange={(e) => updateExerciseField(routine.id, exIdx, 'sets', Number(e.target.value))}
                                 className="w-12 bg-fit-bg border border-fit-line rounded px-1.5 py-1 text-xs text-center text-fit-ink"
                                 title="Sätze"
                               />
                               <span className="text-fit-dim text-xs">×</span>
                               <input
                                 value={ex.reps}
-                                onChange={(e) => updateExerciseField(weekIdx, dayKey, exIdx, 'reps', e.target.value)}
+                                onChange={(e) => updateExerciseField(routine.id, exIdx, 'reps', e.target.value)}
                                 className="w-16 bg-fit-bg border border-fit-line rounded px-1.5 py-1 text-xs text-center text-fit-ink"
                                 title="Wiederholungen"
                               />
-                              <button
-                                onClick={() => removeExerciseFromDay(weekIdx, dayKey, exIdx)}
-                                className="p-1 text-fit-dim hover:text-red-400"
-                              >
+                              <input
+                                value={ex.weight ?? ''}
+                                onChange={(e) => updateExerciseField(routine.id, exIdx, 'weight', e.target.value)}
+                                placeholder="kg"
+                                className="w-14 bg-fit-bg border border-fit-line rounded px-1.5 py-1 text-xs text-center text-fit-ink"
+                                title="Gewicht (kg)"
+                              />
+                              <button onClick={() => removeExercise(routine.id, exIdx)} className="p-1 text-fit-dim hover:text-red-400">
                                 <X size={14} />
                               </button>
                             </div>
                           ))}
                         </div>
                       )}
-
                       <ExerciseSearch
-                        exclude={(day.exercises || []).map(e => e.exercise_id)}
-                        onAdd={(ex) => addExerciseToDay(weekIdx, dayKey, ex)}
+                        exclude={(routine.exercises || []).map(e => e.exercise_id)}
+                        onAdd={(ex) => addExercise(routine.id, ex)}
                       />
                     </div>
-                  )
-                })}
-              </div>
-            ))}
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

@@ -25,9 +25,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `CLAUDE.md` ist Symlink → `docs/CLAUDE.md`. Direktes Schreiben scheitert
   ("Refusing to write through symlink") — immer `docs/CLAUDE.md` editieren.
 - `~/vitalos/fitness-app` ist ein Git-**Worktree** von `~/fitness-dev`
-  (`git worktree list` zeigt alle) — kein separater Clone. Ein Branch kann
-  nicht in zwei Worktrees gleichzeitig ausgecheckt sein; dort meist mit
-  `git checkout <commit-hash>` (detached) statt `git checkout master` arbeiten.
+  (`git worktree list` zeigt alle) — kein separater Clone, `master` ist dort
+  dauerhaft ausgecheckt. **`git checkout master` in `~/fitness-dev` schlägt
+  deshalb erwartbar fehl** ("bereits von Arbeitsverzeichnis in .../vitalos/...
+  verwendet") — das ist kein Fehlerzustand, den man dem User meldet oder bei
+  dem man nachfragt, sondern der Normalfall. Vorgehen zum `dev`→`master`-Merge,
+  direkt ausführen statt zu stoppen:
+  ```
+  cd ~/fitness-dev && git push origin dev        # dev-Branch sichern
+  cd ~/vitalos/fitness-app                       # master ist hier schon ausgecheckt
+  git merge dev --no-edit
+  ```
+  Bei Konflikten: `master` entwickelt sich hier eigenständig weiter (andere
+  Sessions committen direkt hierhin), ist praktisch immer die aktuellere Seite
+  für Dateien, die `dev` nicht selbst geändert hat. Vor dem Auflösen kurz
+  `git log --oneline -3 -- <datei>` auf beiden Branches vergleichen (`git log
+  ... dev -- <datei>` vs. lokal) — zeigt `master` neuere/unabhängige Commits,
+  mit `git checkout --ours -- <datei> && git add <datei>` zugunsten `master`
+  auflösen, danach `git commit --no-edit`. Für reine Arbeit im Worktree ohne
+  Merge-Absicht (z.B. Datei ansehen): `git checkout <commit-hash>` (detached)
+  reicht, `master` muss dafür nicht angerührt werden.
+  Push von `master` passiert aus `~/vitalos/fitness-app` heraus (`git push`),
+  nicht aus `~/fitness-dev` — von dort ist `master` ja nicht ausgecheckt.
 - Live-KB-Pfad ist `fitness/catalog/kb/`. `catalog` ist Symlink darauf
   (`catalog -> fitness/catalog`), `fitness_cli` Symlink auf `fitness` — kein
   separater Alt-Baum mehr, alle drei Pfade sind identisch. Details zur

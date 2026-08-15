@@ -1,16 +1,31 @@
 import { db } from '../../../firebase.js'
 import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, query, orderBy } from 'firebase/firestore'
 
-// Makrozyklen — Firestore-Pendant zu fitness/api/routers/macrocycles.py.
-// Collection: fitness/{clientUid}/macrocycles/{id}
+// Makrozyklen — Firestore-Pendant. Collection: fitness/{clientUid}/macrocycles/{id}
+// Completions: fitness/{clientUid}/macrocycles/{id}/completions/{completionId}
+
+async function loadDoc(clientUid, cycleId) {
+  const snap = await getDoc(doc(db, 'fitness', clientUid, 'macrocycles', cycleId))
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null
+}
+async function saveDoc(clientUid, macrocycle) {
+  const record = { ...macrocycle, updatedAt: new Date().toISOString() }
+  await setDoc(doc(db, 'fitness', clientUid, 'macrocycles', macrocycle.id), record, { merge: true })
+  return record
+}
+async function loadCompletions(clientUid, cycleId) {
+  const ref = collection(db, 'fitness', clientUid, 'macrocycles', cycleId, 'completions')
+  const snap = await getDocs(query(ref, orderBy('completedAt', 'asc')))
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
 
 export async function listMacrocycles(clientUid) {
   try {
     const ref = collection(db, 'fitness', clientUid, 'macrocycles')
     const snap = await getDocs(query(ref, orderBy('createdAt', 'desc')))
     return snap.docs.map(d => {
-      const { weeks, ...rest } = d.data()
-      return { id: d.id, ...rest, weekCount: (weeks || []).length }
+      const { routines, ...rest } = d.data()
+      return { id: d.id, ...rest, routineCount: (routines || []).length }
     })
   } catch (error) {
     console.error('Error listing macrocycles:', error)
@@ -20,47 +35,47 @@ export async function listMacrocycles(clientUid) {
 
 export async function getMacrocycle(clientUid, cycleId) {
   try {
-    const snap = await getDoc(doc(db, 'fitness', clientUid, 'macrocycles', cycleId))
-    return snap.exists() ? { id: snap.id, ...snap.data() } : null
+    const macrocycle = await loadDoc(clientUid, cycleId)
+    if (!macrocycle) return null
+    const completions = await loadCompletions(clientUid, cycleId)
+    const nextRoutineIndex = macrocycle.routines?.length ? completions.length % macrocycle.routines.length : 0
+
+    let restingUntil = null
+    if (completions.length) {
+      const last = completions[completions.length - 1]
+      const lastRoutine = macrocycle.routines?.find(r => r.id === last.routineId)
+      const restHours = lastRoutine?.restHoursAfter || 0
+      if (restHours) {
+        const readyAt = new Date(last.completedAt).getTime() + restHours * 3600 * 1000
+        if (readyAt > Date.now()) restingUntil = new Date(readyAt).toISOString()
+      }
+    }
+
+    const totalWeeks = macrocycle.totalWeeks || 10
+    const elapsedWeeks = Math.floor((Date.now() - new Date(macrocycle.createdAt).getTime()) / (7 * 86400000))
+    const currentWeek = Math.min(elapsedWeeks + 1, totalWeeks)
+
+    return { ok: true, macrocycle, completions, nextRoutineIndex, restingUntil, currentWeek, totalWeeks, finished: elapsedWeeks >= totalWeeks }
   } catch (error) {
     console.error('Error fetching macrocycle:', error)
     return null
   }
 }
 
-const DAYS = ['mo', 'di', 'mi', 'do', 'fr', 'sa', 'so']
-function emptyWeek(weekNr) {
-  return { weekNr, days: Object.fromEntries(DAYS.map(d => [d, null])) }
-}
-
-export async function createMacrocycle(clientUid, { name, coachUid, weeks }) {
+export async function createMacrocycle(clientUid, { name, coachUid, totalWeeks }) {
   try {
-    const weekCount = Math.max(1, Math.min(Number(weeks) || 1, 52))
     const ref = doc(collection(db, 'fitness', clientUid, 'macrocycles'))
     const record = {
-      name,
-      clientUid,
-      coachUid,
+      name, clientUid, coachUid,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      weeks: Array.from({ length: weekCount }, (_, i) => emptyWeek(i + 1)),
+      totalWeeks: Number(totalWeeks) || 10,
+      routines: [],
     }
     await setDoc(ref, record)
     return { id: ref.id, ...record }
   } catch (error) {
     console.error('Error creating macrocycle:', error)
-    return null
-  }
-}
-
-export async function updateMacrocycleWeeks(clientUid, cycleId, weeks) {
-  try {
-    const ref = doc(db, 'fitness', clientUid, 'macrocycles', cycleId)
-    await setDoc(ref, { weeks, updatedAt: new Date().toISOString() }, { merge: true })
-    const snap = await getDoc(ref)
-    return snap.exists() ? { id: snap.id, ...snap.data() } : null
-  } catch (error) {
-    console.error('Error updating macrocycle:', error)
     return null
   }
 }
@@ -72,5 +87,70 @@ export async function deleteMacrocycle(clientUid, cycleId) {
   } catch (error) {
     console.error('Error deleting macrocycle:', error)
     return false
+  }
+}
+
+export async function addRoutine(clientUid, cycleId, { label, isDeload, restHoursAfter }) {
+  try {
+    const m = await loadDoc(clientUid, cycleId)
+    if (!m) return null
+    m.routines = [...(m.routines || []), {
+      id: `rt_${Math.random().toString(16).slice(2, 10)}`,
+      label,
+      isDeload: !!isDeload,
+      restHoursAfter: Number(restHoursAfter) || 0,
+      exercises: [],
+    }]
+    return await saveDoc(clientUid, m)
+  } catch (error) {
+    console.error('Error adding routine:', error)
+    return null
+  }
+}
+
+export async function updateRoutine(clientUid, cycleId, routineId, patch) {
+  try {
+    const m = await loadDoc(clientUid, cycleId)
+    if (!m) return null
+    m.routines = (m.routines || []).map(r => r.id === routineId ? { ...r, ...patch } : r)
+    return await saveDoc(clientUid, m)
+  } catch (error) {
+    console.error('Error updating routine:', error)
+    return null
+  }
+}
+
+export async function deleteRoutine(clientUid, cycleId, routineId) {
+  try {
+    const m = await loadDoc(clientUid, cycleId)
+    if (!m) return null
+    m.routines = (m.routines || []).filter(r => r.id !== routineId)
+    return await saveDoc(clientUid, m)
+  } catch (error) {
+    console.error('Error deleting routine:', error)
+    return null
+  }
+}
+
+export async function completeRoutine(clientUid, cycleId, routineId, exercises) {
+  try {
+    const ref = doc(collection(db, 'fitness', clientUid, 'macrocycles', cycleId, 'completions'))
+    const record = { routineId, completedAt: new Date().toISOString(), exercises: exercises || [] }
+    await setDoc(ref, record)
+    return { id: ref.id, ...record }
+  } catch (error) {
+    console.error('Error completing routine:', error)
+    return null
+  }
+}
+
+export async function getLastPerformance(clientUid, cycleId, routineId) {
+  try {
+    const completions = await loadCompletions(clientUid, cycleId)
+    const matches = completions.filter(c => c.routineId === routineId)
+    return matches[matches.length - 1] || null
+  } catch (error) {
+    console.error('Error fetching last performance:', error)
+    return null
   }
 }
