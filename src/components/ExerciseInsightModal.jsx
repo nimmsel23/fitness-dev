@@ -281,6 +281,21 @@ function cleanText(value) {
   return String(value || '').trim()
 }
 
+function asList(value) {
+  if (Array.isArray(value)) return value.filter(Boolean).map(String)
+  if (value === null || value === undefined || value === '') return []
+  return [String(value)]
+}
+
+function sourceRefs(exercise) {
+  const snapshot = exercise?.source_snapshot || {}
+  const external = exercise?.external_ids || {}
+  return {
+    wger: asList(snapshot?.wger?.wger_id || external?.wger || exercise?.wger_id),
+    yuhonas: asList(snapshot?.yuhonas?.yuhonas_id || external?.yuhonas || exercise?.yuhonas_id),
+  }
+}
+
 function hasMeaningfulLesson(lessonDraft) {
   if (!lessonDraft || typeof lessonDraft !== 'object') return false
   return [
@@ -387,6 +402,7 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
   const inboxStatusMeta = getInboxStatusMeta(inboxStatus)
   const hasLessonDraft = hasMeaningfulLesson(lessonDraft)
   const hasOriginalSource = Boolean(sourceDescription || rawInstructions.length)
+  const sourceRefMap = sourceRefs(localExercise)
   const roleBlocks = [
     { label: 'Haupttreiber', items: primaryLabels, tone: 'accent' },
     { label: 'Mitspieler / Synergisten', items: secondaryLabels, tone: 'default' },
@@ -663,6 +679,32 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
                       <StatRow label="German" value={localExercise.german || localExercise.display_name || 'n/a'} />
                       <StatRow label="English" value={localExercise.english || localExercise.name || 'n/a'} />
                       <StatRow label="Pattern" value={insight.movement.pattern || 'n/a'} />
+                    </div>
+                  </ShellCard>
+
+                  <ShellCard title="Source Provenance" eyebrow="wger / yuhonas / schema">
+                    <div className="space-y-3">
+                      <StatRow label="Origin Type" value={localExercise.origin?.type || 'n/a'} />
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.22em] mb-2" style={{ color: 'var(--muted)' }}>Source Refs</div>
+                        <TagCloud
+                          items={[
+                            ...sourceRefMap.wger.map((id) => `wger:${id}`),
+                            ...sourceRefMap.yuhonas.map((id) => `yuhonas:${id}`),
+                          ]}
+                          empty="Keine externen Source-Refs im aktuellen Inbox-Record."
+                        />
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.22em] mb-2" style={{ color: 'var(--muted)' }}>Snapshot</div>
+                        <TagCloud
+                          items={[
+                            ...(localExercise.source_snapshot?.wger ? ['wger snapshot'] : []),
+                            ...(localExercise.source_snapshot?.yuhonas ? ['yuhonas snapshot'] : []),
+                          ]}
+                          empty="Kein source_snapshot vorhanden."
+                        />
+                      </div>
                     </div>
                   </ShellCard>
 
@@ -946,6 +988,16 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
                           <JsonBlock title="joint_actions" value={lesson?.joint_actions || lessonDraft.joint_actions} />
                           <JsonBlock title="body_highlighter_regions" value={lesson?.body_highlighter_regions || lessonDraft.body_highlighter_regions} />
                           <JsonBlock title="muscle_roles" value={lesson?.muscle_roles || lessonDraft.muscle_roles} />
+                        </ShellCard>
+                      </div>
+
+                      <div className="grid gap-5 xl:grid-cols-2">
+                        <ShellCard title="Origin Metadata" eyebrow="Raw JSON">
+                          <JsonBlock title="origin" value={localExercise.origin} />
+                          <JsonBlock title="external_ids" value={localExercise.external_ids} />
+                        </ShellCard>
+                        <ShellCard title="Source Snapshot" eyebrow="Raw JSON">
+                          <JsonBlock title="source_snapshot" value={localExercise.source_snapshot} />
                         </ShellCard>
                       </div>
                     </div>

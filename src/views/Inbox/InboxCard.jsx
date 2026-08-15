@@ -1,5 +1,20 @@
 import { CheckCircle2, Trash2, Info, AlertTriangle, Sparkles, User, RefreshCw, MessageSquare, Brain } from 'lucide-react';
 
+function asList(value) {
+  if (Array.isArray(value)) return value.filter(Boolean).map(String);
+  if (value === null || value === undefined || value === '') return [];
+  return [String(value)];
+}
+
+function sourceRefs(data) {
+  const snapshot = data?.source_snapshot || {};
+  const external = data?.external_ids || {};
+  return {
+    wger: asList(snapshot?.wger?.wger_id || external?.wger || data?.wger_id),
+    yuhonas: asList(snapshot?.yuhonas?.yuhonas_id || external?.yuhonas || data?.yuhonas_id),
+  };
+}
+
 function buildInspectPayload(ex, data) {
   return {
     ...ex,
@@ -23,6 +38,7 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenri
   const isProactive = ex.description?.toLowerCase().includes('proactively');
   const isPendingEnrichment = ex.status === 'pending' || ex.status === 'pending_review';
   const busy = actioning === fileId;
+  const refs = sourceRefs(data);
 
   if (asMessage) {
     let icon = <MessageSquare className="text-fit-dim" size={20} />;
@@ -148,6 +164,21 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenri
             <span key={m} className="text-[9px] font-bold px-2 py-0.5 bg-fit-accent/5 text-fit-accent rounded-md border border-fit-accent/10">{m}</span>
           ))}
         </div>
+
+        {(refs.wger.length > 0 || refs.yuhonas.length > 0) && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {refs.wger.map((id) => (
+              <span key={`wger-${id}`} className="text-[9px] font-black px-2 py-0.5 bg-fit-bg2 rounded-full border border-fit-line text-fit-dim uppercase tracking-tighter">
+                wger {id}
+              </span>
+            ))}
+            {refs.yuhonas.map((id) => (
+              <span key={`yuhonas-${id}`} className="text-[9px] font-black px-2 py-0.5 bg-fit-bg2 rounded-full border border-fit-line text-fit-dim uppercase tracking-tighter">
+                yuhonas {id}
+              </span>
+            ))}
+          </div>
+        )}
 
         {warnings.length > 0 && (
           <div className="mb-3 p-3 bg-fit-red/5 border border-fit-red/10 rounded-xl space-y-1">

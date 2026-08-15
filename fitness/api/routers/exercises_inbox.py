@@ -73,6 +73,29 @@ def inbox_approve(id: str):
     return {"ok": True, "id": id, "exercise_id": approved_id}
 
 
+@router.get("/fitness/inbox/{id}/duplicates")
+def inbox_duplicates(id: str, uid: str | None = None):
+    from fitness.catalog.agent.inbox_dedup import find_merge_plan_for_doc, describe_merge_plan
+
+    plan = find_merge_plan_for_doc(id, uid=uid)
+    if not plan:
+        return {"ok": True, "has_duplicates": False, "plan": None}
+    return {"ok": True, "has_duplicates": True, "plan": describe_merge_plan(plan)}
+
+
+@router.post("/fitness/inbox/{id}/merge-duplicates")
+async def inbox_merge_duplicates(id: str, request: Request):
+    from fitness.catalog.agent.inbox_dedup import find_merge_plan_for_doc, describe_merge_plan, apply_merge
+
+    body = await request.json()
+    uid = body.get("uid")
+    plan = find_merge_plan_for_doc(id, uid=uid)
+    if not plan:
+        raise HTTPException(404, detail="no_duplicate_group")
+    apply_merge(plan)
+    return {"ok": True, "merged": True, "plan": describe_merge_plan(plan)}
+
+
 @router.delete("/fitness/inbox/{id}")
 def inbox_delete(id: str):
     f = INBOX_DIR / f"{id}.yml"

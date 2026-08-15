@@ -149,3 +149,21 @@ export async function deleteInbox(id, userId) {
   }
   return { ok: true };
 }
+
+export async function getInboxDuplicates(id, userId) {
+  const targetUid = userId || getUid();
+  const res = await fetch(`${BRIDGE_API_BASE}/inbox/${id}/duplicates?uid=${encodeURIComponent(targetUid)}`);
+  if (!res.ok) return { ok: false, has_duplicates: false, plan: null };
+  return await res.json();
+}
+
+export async function mergeInboxDuplicates(id, userId) {
+  const targetUid = userId || getUid();
+  const res = await fetch(`${BRIDGE_API_BASE}/inbox/${id}/merge-duplicates`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ uid: targetUid }),
+  });
+  if (!res.ok) return { ok: false, merged: false, plan: null };
+  return await res.json();
+}

@@ -125,3 +125,51 @@ def apply_merge(plan: dict[str, Any]) -> None:
             "status": "merged_duplicate",
             "merged_into": survivor["_doc_id"],
         })
+
+
+def _serialize_entry(entry: dict[str, Any]) -> dict[str, Any]:
+    enriched = entry.get("enriched") or {}
+    return {
+        "uid": entry.get("_uid"),
+        "doc_id": entry.get("_doc_id"),
+        "display_name": _doc_display_name(entry),
+        "status": entry.get("status"),
+        "has_enriched": bool(entry.get("enriched")),
+        "exercise_id": enriched.get("exercise_id") or entry.get("exercise_id") or entry.get("id"),
+        "wger_id": enriched.get("wger_id") or entry.get("wger_id"),
+        "yuhonas_id": enriched.get("yuhonas_id") or entry.get("yuhonas_id"),
+        "origin": enriched.get("origin") or entry.get("origin"),
+        "external_ids": enriched.get("external_ids") or entry.get("external_ids"),
+        "source_snapshot": enriched.get("source_snapshot") or entry.get("source_snapshot"),
+    }
+
+
+def describe_merge_plan(plan: dict[str, Any]) -> dict[str, Any]:
+    survivor = plan["survivor"]
+    losers = plan["losers"]
+    merged_enriched = plan["merged_enriched"]
+    return {
+        "display_name": _doc_display_name(survivor),
+        "survivor": _serialize_entry(survivor),
+        "losers": [_serialize_entry(entry) for entry in losers],
+        "merged_field_count": len(merged_enriched or {}),
+    }
+
+
+def find_merge_plan_for_doc(doc_id: str, uid: str | None = None) -> dict[str, Any] | None:
+    wanted_doc_id = str(doc_id or "").strip()
+    wanted_uid = str(uid or "").strip() or None
+    if not wanted_doc_id:
+        return None
+    for group in find_duplicate_groups():
+        if not any(
+            str(entry.get("_doc_id") or "") == wanted_doc_id
+            and (wanted_uid is None or str(entry.get("_uid") or "") == wanted_uid)
+            for entry in group
+        ):
+            continue
+        plan = plan_merge(group)
+        if not plan.get("losers"):
+            return None
+        return plan
+    return None

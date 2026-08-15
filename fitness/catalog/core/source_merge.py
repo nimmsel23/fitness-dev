@@ -5,6 +5,7 @@ from typing import Any
 
 from fitness.catalog.core.loader import load_catalog_yaml
 from fitness.catalog.core.resolver import normalize_text
+from fitness.catalog.core.resolver import build_exercise_index, find_by_id, resolve_query
 
 try:
     from rapidfuzz import fuzz, process
@@ -48,15 +49,73 @@ def _best_match(query: str, entries: list[dict[str, Any]], *, min_score: int = 8
     if not process or not fuzz:
         return None
 
-    choices: dict[int, str] = {}
+    choices: dict[str, str] = {}
+    choice_to_entry: dict[str, int] = {}
     for idx, entry in enumerate(entries):
-        texts = _candidate_texts(entry)
-        if texts:
-            choices[idx] = texts[0]
+        for text in _candidate_texts(entry):
+            choice_key = f"{idx}:{text}"
+            choices[choice_key] = text
+            choice_to_entry[choice_key] = idx
     match = process.extractOne(query, choices, scorer=fuzz.token_set_ratio)
     if not match or match[1] < min_score:
         return None
-    return entries[match[2]]
+    return entries[choice_to_entry[match[2]]]
+
+
+def _candidate_queries(display_name: str, exercise_id: str | None = None) -> list[str]:
+    queries: list[str] = []
+    seen: set[str] = set()
+
+    def add(value: Any) -> None:
+        text = str(value or "").strip()
+        if not text:
+            return
+        key = text.casefold()
+        if key in seen:
+            return
+        seen.add(key)
+        queries.append(text)
+
+    add(display_name)
+    add(exercise_id)
+
+    record = None
+    if exercise_id:
+        record = find_by_id(str(exercise_id), build_exercise_index())
+    if record is None and display_name:
+        resolution = resolve_query(display_name)
+        if resolution.matched and resolution.canonical_id:
+            record = find_by_id(resolution.canonical_id, build_exercise_index())
+
+    if record is not None:
+        english = str(record.english or "").strip()
+        display = str(record.display_name or "").strip()
+        equipment = [str(item).strip() for item in (record.equipment or []) if str(item).strip()]
+
+        for value in (
+            record.display_name,
+            record.german,
+            record.exercise_id,
+            record.wger_id and f"wger_{record.wger_id}",
+            record.yuhonas_id,
+        ):
+            add(value)
+        # Erst spezifische Varianten wie "Barbell Deadlift" erzeugen, damit
+        # generische Namen ("Deadlift") nicht an irgendeine yuhonas-Variante
+        # mit demselben Kernwort binden (Axle/Trap/Sumo/...).
+        if english:
+            for gear in equipment:
+                add(f"{gear} {english}")
+        if display and display != english:
+            for gear in equipment:
+                add(f"{gear} {display}")
+        add(english)
+        for item in record.aliases or []:
+            add(item)
+        for item in record.search_aliases or []:
+            add(item)
+
+    return queries
 
 
 def _merged_external_id_map(wger: dict[str, Any] | None, yuhonas: dict[str, Any] | None) -> dict[str, list[Any]]:
@@ -99,7 +158,7 @@ def _merge_list_fields(*values: Any) -> list[Any]:
 def build_external_seed(display_name: str, exercise_id: str | None = None) -> dict[str, Any] | None:
     wger_entry = None
     yuhonas_entry = None
-    queries = [q for q in [display_name, exercise_id] if isinstance(q, str) and q.strip()]
+    queries = _candidate_queries(display_name, exercise_id)
 
     wger_entries = _entries_from_file("unreviewed_wger.yml")
     yuhonas_entries = _entries_from_file("unreviewed_yuhonas.yml")

@@ -43,6 +43,23 @@ export async function deleteInbox(id, _userId = null) {
   }
 }
 
+export async function getInboxDuplicates(id, userId = null) {
+  try {
+    const suffix = userId ? `?uid=${encodeURIComponent(userId)}` : "";
+    return await api.get(`/fitness/inbox/${id}/duplicates${suffix}`);
+  } catch {
+    return { ok: false, has_duplicates: false, plan: null };
+  }
+}
+
+export async function mergeInboxDuplicates(id, userId = null) {
+  try {
+    return await api.post(`/fitness/inbox/${id}/merge-duplicates`, userId ? { uid: userId } : {});
+  } catch {
+    return { ok: false, merged: false, plan: null };
+  }
+}
+
 export async function sendToInbox(exerciseData) {
   try {
     return await api.post("/fitness/inbox", exerciseData);

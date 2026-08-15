@@ -54,6 +54,15 @@ class SourceMergeTest(unittest.TestCase):
             self.assertIn("wger", seed["external_ids"])
             self.assertIn("yuhonas", seed["external_ids"])
 
+    def test_build_external_seed_uses_canonical_expert_aliases(self) -> None:
+        seed = build_external_seed("Kreuzheben", "080")
+        self.assertIsNotNone(seed)
+        self.assertEqual(seed["exercise_id"], "080")
+        self.assertEqual(seed["wger_id"], 184)
+        self.assertEqual(seed["yuhonas_id"], "Barbell_Deadlift")
+        self.assertEqual(seed["external_ids"]["wger"], [184])
+        self.assertEqual(seed["external_ids"]["yuhonas"], ["Barbell_Deadlift"])
+
 
 if __name__ == "__main__":
     unittest.main()
