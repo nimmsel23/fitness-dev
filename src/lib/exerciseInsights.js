@@ -73,8 +73,13 @@ function inferMovement(ex) {
   const description = Array.isArray(ex?.original_description)
     ? cleanList(ex.original_description).join(' ')
     : String(ex?.original_description || '').trim()
+  const reviewStatus = ex?.review_state?.status || ''
+  const source = String(ex?.source || '').trim().toLowerCase()
+  const rawCoachingNotes = (source === 'unreviewed' || reviewStatus === 'draft')
+    ? cleanList(ex?.coaching_notes).join(' ')
+    : ''
   const primary = cleanList(ex?.primaryMuscles)
-  const fallbackLesson = description || instructions.join(' ')
+  const fallbackLesson = description || instructions.join(' ') || rawCoachingNotes
 
   return {
     title: 'Originaldaten aus der Quell-Datenbank',
@@ -87,7 +92,7 @@ function inferMovement(ex) {
     quiz: '',
     isRaw: true,
     rawInstructions: instructions,
-    rawDescription: description,
+    rawDescription: description || rawCoachingNotes,
   }
 }
 

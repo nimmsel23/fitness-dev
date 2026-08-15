@@ -63,6 +63,14 @@ class SourceMergeTest(unittest.TestCase):
         self.assertEqual(seed["external_ids"]["wger"], [184])
         self.assertEqual(seed["external_ids"]["yuhonas"], ["Barbell_Deadlift"])
 
+    def test_build_external_seed_uses_exact_external_ids_before_fuzzy_name_match(self) -> None:
+        seed = build_external_seed("Schrägbankdrücken mit Kurzhanteln", "041")
+        self.assertIsNotNone(seed)
+        self.assertEqual(seed["wger_id"], 537)
+        self.assertEqual(seed["yuhonas_id"], "Incline_Dumbbell_Press")
+        self.assertTrue(seed["original_description"])
+        self.assertTrue(seed["instructions"])
+
 
 if __name__ == "__main__":
     unittest.main()

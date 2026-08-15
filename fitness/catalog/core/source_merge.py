@@ -20,6 +20,32 @@ def _entries_from_file(filename: str) -> list[dict[str, Any]]:
     return [entry for entry in entries if isinstance(entry, dict)]
 
 
+def _find_wger_entry(entries: list[dict[str, Any]], wger_id: Any) -> dict[str, Any] | None:
+    try:
+        wanted = int(wger_id)
+    except (TypeError, ValueError):
+        return None
+    for entry in entries:
+        try:
+            if int(entry.get("wger_id")) == wanted:
+                return entry
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def _find_yuhonas_entry(entries: list[dict[str, Any]], yuhonas_id: Any) -> dict[str, Any] | None:
+    wanted = str(yuhonas_id or "").strip()
+    if not wanted:
+        return None
+    wanted_lower = wanted.casefold()
+    for entry in entries:
+        value = str(entry.get("yuhonas_id") or "").strip()
+        if value and value.casefold() == wanted_lower:
+            return entry
+    return None
+
+
 def _candidate_texts(entry: dict[str, Any]) -> list[str]:
     values: list[str] = []
     for key in ("display_name", "german", "english", "name", "exercise_id", "id"):
@@ -163,6 +189,24 @@ def build_external_seed(display_name: str, exercise_id: str | None = None) -> di
     wger_entries = _entries_from_file("unreviewed_wger.yml")
     yuhonas_entries = _entries_from_file("unreviewed_yuhonas.yml")
 
+    record = find_by_id(str(exercise_id), build_exercise_index()) if exercise_id else None
+    wger_hints: list[Any] = []
+    yuhonas_hints: list[Any] = []
+
+    if record is not None:
+        if record.wger_id not in (None, ""):
+            wger_hints.append(record.wger_id)
+        if record.external_ids and isinstance(record.external_ids, dict):
+            wger_hints.extend((record.external_ids.get("wger") or []))
+            yuhonas_hints.extend((record.external_ids.get("yuhonas") or []))
+        if record.yuhonas_id not in (None, ""):
+            yuhonas_hints.append(record.yuhonas_id)
+
+    for hint in wger_hints:
+        wger_entry = wger_entry or _find_wger_entry(wger_entries, hint)
+    for hint in yuhonas_hints:
+        yuhonas_entry = yuhonas_entry or _find_yuhonas_entry(yuhonas_entries, hint)
+
     for query in queries:
         wger_entry = wger_entry or _best_match(query, wger_entries)
         yuhonas_entry = yuhonas_entry or _best_match(query, yuhonas_entries)
@@ -188,10 +232,16 @@ def build_external_seed(display_name: str, exercise_id: str | None = None) -> di
         "primary_muscles": _merge_list_fields((wger_entry or {}).get("primary_muscles"), (yuhonas_entry or {}).get("primary_muscles")),
         "secondary_muscles": _merge_list_fields((wger_entry or {}).get("secondary_muscles"), (yuhonas_entry or {}).get("secondary_muscles")),
         "stabilizers": _merge_list_fields((wger_entry or {}).get("stabilizers"), (yuhonas_entry or {}).get("stabilizers")),
-        "instructions": deepcopy((yuhonas_entry or {}).get("instructions")) or [],
+        "instructions": deepcopy((yuhonas_entry or {}).get("instructions")) or deepcopy((yuhonas_entry or {}).get("coaching_notes")) or [],
         "images": deepcopy((yuhonas_entry or {}).get("images")) or [],
         "coaching_notes": _merge_list_fields((wger_entry or {}).get("coaching_notes"), (yuhonas_entry or {}).get("coaching_notes")),
-        "original_description": deepcopy((wger_entry or {}).get("original_description")) or deepcopy((yuhonas_entry or {}).get("original_description")),
+        "original_description": (
+            deepcopy((wger_entry or {}).get("original_description"))
+            or deepcopy((yuhonas_entry or {}).get("original_description"))
+            or _merge_list_fields((wger_entry or {}).get("coaching_notes"))
+            or _merge_list_fields((yuhonas_entry or {}).get("instructions"))
+            or _merge_list_fields((yuhonas_entry or {}).get("coaching_notes"))
+        ),
         "wger_id": (wger_entry or {}).get("wger_id"),
         "wger_muscle_ids": deepcopy((wger_entry or {}).get("wger_muscle_ids")),
         "yuhonas_id": (yuhonas_entry or {}).get("yuhonas_id"),

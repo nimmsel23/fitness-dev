@@ -290,9 +290,12 @@ function asList(value) {
 function sourceRefs(exercise) {
   const snapshot = exercise?.source_snapshot || {}
   const external = exercise?.external_ids || {}
+  const exerciseId = String(exercise?.exercise_id || exercise?.id || '').trim()
+  const directWger = exerciseId.startsWith('wger_') ? exerciseId.slice(5) : null
+  const directYuhonas = exerciseId.startsWith('yuhonas_') ? exerciseId.slice(8) : null
   return {
-    wger: asList(snapshot?.wger?.wger_id || external?.wger || exercise?.wger_id),
-    yuhonas: asList(snapshot?.yuhonas?.yuhonas_id || external?.yuhonas || exercise?.yuhonas_id),
+    wger: asList(snapshot?.wger?.wger_id || external?.wger || exercise?.wger_id || directWger),
+    yuhonas: asList(snapshot?.yuhonas?.yuhonas_id || external?.yuhonas || exercise?.yuhonas_id || directYuhonas),
   }
 }
 
