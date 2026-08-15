@@ -6,6 +6,7 @@
  * index.jsx went from 860 lines → ~60 lines. 
  */
 
+import { useState } from 'react';
 import { useSession } from './useSession';
 import SessionEditor from './SessionEditor';
 import SessionHistory from './SessionHistory';
@@ -13,12 +14,29 @@ import PlanView from '../Plan/index.jsx';
 import WorkoutTimerCard from './WorkoutTimerCard.jsx';
 import SixPackPromiseCard from './SixPackPromiseCard.jsx';
 import SkillsCard from './SkillsCard.jsx';
+import TodayPlan, { useTodayPlan } from './TodayPlan.jsx';
 
 export default function Session({
   initialDate, initialDraft, onInspectExercise, onOpenSession,
   recentDays = 7, coverageThreshold = 1.0, subTab, onDateChange, onSubNav,
 }) {
   const session = useSession({ initialDate, initialDraft, recentDays, coverageThreshold, onDateChange });
+  const { loading: planLoading, cycle, nextRoutine, lastPerformance, clientUid, reload } = useTodayPlan();
+  const [logFreely, setLogFreely] = useState(false);
+
+  const isTodayTab = subTab === 'today' || !subTab;
+  if (isTodayTab && !planLoading && cycle && nextRoutine && !logFreely) {
+    return (
+      <TodayPlan
+        cycle={cycle}
+        nextRoutine={nextRoutine}
+        lastPerformance={lastPerformance}
+        clientUid={clientUid}
+        onDone={reload}
+        onLogFreely={() => setLogFreely(true)}
+      />
+    );
+  }
 
   if (subTab === 'timer') {
     return <SixPackPromiseCard />;

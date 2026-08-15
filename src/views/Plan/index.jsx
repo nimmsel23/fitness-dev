@@ -3,7 +3,6 @@ import WorkoutList from './WorkoutList.jsx'
 import RoutineBuilder from './RoutineBuilder.jsx'
 import WorkoutSession from './WorkoutSession.jsx'
 import AssignedPlans from './AssignedPlans.jsx'
-import AssignedMacrocycles from './AssignedMacrocycles.jsx'
 
 export default function PlanView() {
   const [route, setRoute] = useState({ view: 'list' })
@@ -12,7 +11,6 @@ export default function PlanView() {
     <div className="max-w-2xl mx-auto">
       {route.view === 'list' && (
         <>
-          <AssignedMacrocycles />
           <AssignedPlans />
           <WorkoutList
             onEditRoutine={(id) => setRoute({ view: 'routine', routineId: id })}
