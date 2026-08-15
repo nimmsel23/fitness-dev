@@ -112,7 +112,7 @@
 <div id="app">
   <div class="topbar">
     <div class="brand"><span>ALPHA OS</span></div>
-    <div class="topbar-actions"><button id="themeBtn">MOCHA</button></div>
+    <div class="topbar-actions"><button id="exportBtn">EXPORT</button><button id="themeBtn">MOCHA</button></div>
   </div>
   <div class="view-container">
     <div class="view active" id="view-dash">
@@ -180,6 +180,19 @@ navs.forEach(n=>n.onclick=()=>{ switchView(n.dataset.view); if(n.dataset.view===
 const THEMES=["mocha","latte","nordic","dracula"];
 function applyTheme(t) { document.documentElement.setAttribute("data-theme",t); $("#themeBtn").textContent=t.toUpperCase(); state.theme=t; localStorage.setItem("fitness-theme",t); }
 $("#themeBtn").onclick=()=>{ applyTheme(THEMES[(THEMES.indexOf(state.theme)+1)%THEMES.length]); };
+$("#exportBtn").onclick=async()=>{
+  try {
+    const r = await api("/export/pflichtaufgabe");
+    if (!r.ok || !r.count) { toast("Keine Sessions gefunden"); return; }
+    const blob = new Blob([r.csv], {type:"text/csv;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = r.filename || "trainingsprotokoll-pflichtaufgabe.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast(`${r.count} Einträge exportiert`);
+  } catch(e) { toast("Export fehlgeschlagen"); }
+};
 async function loadHabits() {
   const el=$("#habitList"); el.innerHTML="";
   try {

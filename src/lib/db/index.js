@@ -9,6 +9,7 @@ export * from "./local/kb.js";
 export * from "./local/inbox.js";
 export * from "./local/coach.js";
 export * from "./local/assignedPlans.js";
+export * from "./local/macrocycles.js";
 export * from "./local/analysis.js";
 export * from "./local/user.js";
 export * from "./local/utils.js";
