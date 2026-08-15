@@ -983,6 +983,45 @@ def inbox_reenrich_cmd(
     console.print(f"[ok]✓ Neu angereichert:[/ok] {f.name}")
 
 
+@inbox_app.command(name="dedupe")
+def inbox_dedupe_cmd(
+    yes: Annotated[bool, typer.Option("--yes", "-y", help="Alle Gruppen ohne Rückfrage zusammenführen")] = False,
+):
+    """Findet doppelte Firestore-Inbox-Drafts (gleicher Übungsname, mehrere
+    Docs) und fragt pro Gruppe 'Zusammenführen?' — wie beim Kontakte-Merge
+    am Smartphone. Behält den vollständigsten Draft, mergt Listen-Felder
+    (coaching_notes/instructions/...) aus den anderen rein, markiert die
+    übrigen als 'merged_duplicate' (kein Hard-Delete, reversibel)."""
+    from fitness.catalog.agent.inbox_dedup import find_duplicate_groups, plan_merge, apply_merge
+
+    groups = find_duplicate_groups()
+    if not groups:
+        console.print("[ok]Keine Duplikate gefunden.[/ok]")
+        return
+
+    console.print(f"[info]{len(groups)} Duplikat-Gruppe(n) gefunden.[/info]\n")
+    merged_count = 0
+    for group in groups:
+        plan = plan_merge(group)
+        survivor = plan["survivor"]
+        losers = plan["losers"]
+        name = survivor.get("display_name") or survivor.get("name") or "?"
+
+        console.print(f"[bold]{name}[/bold] ({len(group)}x)")
+        console.print(f"  behalten:  {survivor['_uid']}/{survivor['_doc_id']}  status={survivor.get('status')}")
+        for loser in losers:
+            console.print(f"  mergen:    {loser['_uid']}/{loser['_doc_id']}  status={loser.get('status')}")
+
+        if yes or typer.confirm("  Zusammenführen?", default=True):
+            apply_merge(plan)
+            merged_count += 1
+            console.print("  [ok]✓ zusammengeführt[/ok]\n")
+        else:
+            console.print("  [dim]übersprungen[/dim]\n")
+
+    console.print(f"[ok]Fertig: {merged_count}/{len(groups)} Gruppen zusammengeführt.[/ok]")
+
+
 @app.command(name="batch-reenrich")
 def batch_reenrich_cmd(
     scope: Annotated[str, typer.Option("--scope", help="inbox|approved|both")] = "both",
