@@ -443,7 +443,13 @@ export default function App() {
           </div>
         </div>
       </ErrorBoundary>
-      <ExerciseInsightModal exercise={inspectorExercise} onClose={() => setInspectorExercise(null)} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
+      <ExerciseInsightModal
+        exercise={inspectorExercise}
+        onClose={() => setInspectorExercise(null)}
+        onExerciseChange={setInspectorExercise}
+        muscleLanguage={muscleLanguage}
+        taxonomy={taxonomy}
+      />
     </>
   );
 }

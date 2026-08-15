@@ -99,7 +99,8 @@ def process_inbox_file(file_path: Path, api_key: str | None):
             file_path.unlink()
             return
 
-        safe_name = name.lower().replace(" ", "_")
+        draft_id = str(data.get("exercise_id") or data.get("id") or name).strip()
+        safe_name = draft_id.lower().replace(" ", "_")
         target_file = DATA_DIR / "inbox" / f"inbox_{safe_name}.yml"
         tombstone_data = {"exercise_id": safe_name, "display_name": name, "name": name}
         uid, doc_id = _firestore_inbox_ref(file_path)
@@ -142,7 +143,10 @@ def process_inbox_file(file_path: Path, api_key: str | None):
         # Grundlage bekommen statt komplett blind (nur der nackte Name) neu
         # zu erfinden — sonst geht die wger-Originalbeschreibung beim
         # Enrichment verloren statt verfeinert zu werden.
-        existing_data = build_external_seed(name, safe_name)
+        existing_data = data if isinstance(data, dict) else None
+        external_seed = build_external_seed(name, safe_name)
+        if external_seed:
+            existing_data = {**external_seed, **(existing_data or {})}
         if resolution.matched and resolution.canonical_id:
             record = find_by_id(resolution.canonical_id, build_exercise_index())
             if record:

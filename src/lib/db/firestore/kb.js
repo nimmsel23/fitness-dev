@@ -124,6 +124,17 @@ export async function getAnatomy(exerciseId) {
   return snap.data();
 }
 
+export async function saveAnatomy(exerciseId, data) {
+  const exId = exerciseId || data.exercise_id || data.id;
+  if (!exId) return { ok: false, error: "missing_id" };
+  await setDoc(doc(db, "fitness", "kb", "anatomy", exId), {
+    ...data,
+    exercise_id: exId,
+    updated_at: serverTimestamp(),
+  }, { merge: true });
+  return { ok: true, exercise_id: exId, lesson: { ...data, exercise_id: exId } };
+}
+
 import { setKBMuscles } from "../shared/muscle.js";
 
 export async function getAllMuscles() {

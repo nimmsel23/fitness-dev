@@ -27,6 +27,8 @@ export async function reenrichInbox(id, ex) {
     return await api.post(`/fitness/inbox/${id}/reenrich`, {
       exercise_id: data.exercise_id || data.id,
       display_name: data.display_name || data.name || data.german,
+      feedback: ex?.coachFeedback || ex?.feedback || null,
+      current_data: data,
     });
   } catch {
     return { ok: false };

@@ -103,6 +103,7 @@ export async function approveInbox(id, userId) {
 export async function reenrichInbox(id, userId, ex) {
   const targetUid = userId || getUid();
   const data = ex?.exercises?.[0] || ex?.enriched || ex || {};
+  const feedback = ex?.coachFeedback || ex?.feedback || null;
   try {
     const res = await fetch(`${BRIDGE_API_BASE}/inbox/${id}/reenrich`, {
       method: "POST",
@@ -112,6 +113,8 @@ export async function reenrichInbox(id, userId, ex) {
         display_name: data.display_name || data.name || data.german,
         uid: targetUid,
         doc_id: id,
+        feedback,
+        current_data: data,
       }),
     });
     if (res.ok) return await res.json();
@@ -122,7 +125,13 @@ export async function reenrichInbox(id, userId, ex) {
   try {
     const enriched = await enrichExerciseViaVertex(data, ex?.coachFeedback || null);
     const inboxRef = doc(db, "fitness", targetUid, "inbox", id);
-    await updateDoc(inboxRef, { status: "ai_enriched", enriched });
+    await updateDoc(inboxRef, {
+      status: "ai_enriched",
+      enriched,
+      updated_at: serverTimestamp(),
+      reenrich_feedback: feedback || null,
+      reenrich_source: "vertex_fallback",
+    });
     return { ok: true, id, exercise_id: enriched.exercise_id || enriched.id, enriched, via: "vertex" };
   } catch (e) {
     return { ok: false, error: String(e) };
