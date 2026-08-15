@@ -1,6 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Copy, Download, Loader2, Save, X, ChevronDown, ChevronUp } from 'lucide-react'
+import {
+  Brain,
+  Copy,
+  Download,
+  FileSearch,
+  Loader2,
+  PencilLine,
+  Save,
+  Sparkles,
+  X,
+} from 'lucide-react'
 import { downloadText, exportFitnessData, getAnatomy, saveAnatomy, saveExercise } from '@db'
 import { buildExerciseCoachSheet, buildExerciseInsights } from '../lib/exerciseInsights.js'
 import { translateMuscle } from '../lib/translations.js'
@@ -48,6 +58,7 @@ function textToErrors(value) {
 function buildLessonDraft(exercise, lesson) {
   const record = exercise && typeof exercise === 'object' ? exercise : {}
   const source = lesson && typeof lesson === 'object' ? lesson : {}
+  const quizSource = Array.isArray(source.quiz) ? source.quiz[0] || {} : (source.quiz || {})
   return {
     title: source.title || record.display_name || record.displayName || record.name || '',
     learning_goal_short: source.learning_goal?.short || '',
@@ -61,11 +72,12 @@ function buildLessonDraft(exercise, lesson) {
     coaching_cues: linesToText(source.coaching_cues),
     feel_cues: linesToText(source.feel_cues),
     common_errors: errorsToText(source.common_errors),
+    quiz_question: quizSource.question || '',
+    quiz_answer: quizSource.answer || '',
     muscle_anatomy: source.muscle_anatomy || {},
     joint_actions: source.joint_actions || {},
     body_highlighter_regions: source.body_highlighter_regions || {},
     muscle_roles: source.muscle_roles || {},
-    quiz: source.quiz || {},
   }
 }
 
@@ -73,24 +85,71 @@ function lessonDraftToPayload(exerciseId, draft) {
   return {
     exercise_id: exerciseId,
     title: draft.title,
-    learning_goal_short: draft.learning_goal_short,
-    learning_goal_detailed: draft.learning_goal_detailed,
+    learning_goal: {
+      short: draft.learning_goal_short,
+      detailed: draft.learning_goal_detailed,
+    },
     movement_pattern: draft.movement_pattern,
-    trainer_simple: draft.trainer_simple,
-    trainer_technical: draft.trainer_technical,
-    trainer_client_friendly: draft.trainer_client_friendly,
+    trainer_explanation: {
+      simple: draft.trainer_simple,
+      technical: draft.trainer_technical,
+      client_friendly: draft.trainer_client_friendly,
+    },
     coaching_cues: textToLines(draft.coaching_cues),
     feel_cues: textToLines(draft.feel_cues),
     common_errors: textToErrors(draft.common_errors),
+    quiz: {
+      question: draft.quiz_question,
+      answer: draft.quiz_answer,
+    },
     muscle_anatomy: draft.muscle_anatomy,
     joint_actions: draft.joint_actions,
     body_highlighter_regions: draft.body_highlighter_regions,
     muscle_roles: draft.muscle_roles,
-    quiz: draft.quiz,
   }
 }
 
-function Field({ label, value, onChange, placeholder = '', rows = 3 }) {
+function toneColor(tone) {
+  if (tone === 'accent') return {
+    background: 'rgba(94,234,212,0.12)',
+    border: '1px solid rgba(94,234,212,0.24)',
+    color: 'var(--accent)',
+  }
+  if (tone === 'warn') return {
+    background: 'rgba(251,191,36,0.12)',
+    border: '1px solid rgba(251,191,36,0.24)',
+    color: '#fbbf24',
+  }
+  return {
+    background: 'var(--bg2)',
+    border: '1px solid var(--line)',
+    color: 'var(--ink)',
+  }
+}
+
+function ShellCard({ title, eyebrow = null, children, tone = 'default', actions = null }) {
+  const toneStyle = toneColor(tone)
+  return (
+    <section className="rounded-[24px] p-4 md:p-5" style={toneStyle}>
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div>
+          {eyebrow && (
+            <div className="text-[10px] font-black uppercase tracking-[0.24em]" style={{ color: 'var(--muted)' }}>
+              {eyebrow}
+            </div>
+          )}
+          <div className="text-sm md:text-base font-black mt-1" style={{ color: toneStyle.color }}>
+            {title}
+          </div>
+        </div>
+        {actions}
+      </div>
+      {children}
+    </section>
+  )
+}
+
+function Field({ label, value, onChange, placeholder = '', rows = 3, disabled = false }) {
   return (
     <label className="block space-y-1.5">
       <div className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>{label}</div>
@@ -99,47 +158,118 @@ function Field({ label, value, onChange, placeholder = '', rows = 3 }) {
         onChange={(e) => onChange(e.target.value)}
         rows={rows}
         placeholder={placeholder}
-        className="w-full rounded-xl px-3 py-2 text-sm outline-none resize-y"
-        style={{ background: 'var(--bg2)', color: 'var(--ink)', border: '1px solid var(--line)' }}
+        disabled={disabled}
+        className="w-full rounded-2xl px-3 py-2.5 text-sm outline-none resize-y"
+        style={{
+          background: disabled ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.12)',
+          color: disabled ? 'var(--muted)' : 'var(--ink)',
+          border: '1px solid var(--line)',
+          opacity: disabled ? 0.85 : 1,
+        }}
       />
     </label>
   )
 }
 
+function MetaPill({ children, tone = 'default' }) {
+  const toneStyle = toneColor(tone)
+  return (
+    <span className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold" style={toneStyle}>
+      {children}
+    </span>
+  )
+}
+
+function StatRow({ label, value }) {
+  return (
+    <div className="flex items-start justify-between gap-4 py-2 border-b last:border-b-0" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+      <div className="text-[10px] font-black uppercase tracking-[0.22em]" style={{ color: 'var(--muted)' }}>{label}</div>
+      <div className="text-sm text-right leading-5 max-w-[70%]" style={{ color: 'var(--ink)' }}>{value || 'n/a'}</div>
+    </div>
+  )
+}
+
+function TagCloud({ items = [], tone = 'default', empty = 'n/a' }) {
+  if (!items.length) return <div className="text-sm" style={{ color: 'var(--muted)' }}>{empty}</div>
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map((item) => (
+        <MetaPill key={item} tone={tone}>{item}</MetaPill>
+      ))}
+    </div>
+  )
+}
+
+function JsonBlock({ title, value }) {
+  const pretty = useMemo(() => {
+    if (!value || (typeof value === 'object' && Object.keys(value).length === 0)) return ''
+    try {
+      return JSON.stringify(value, null, 2)
+    } catch {
+      return String(value || '')
+    }
+  }, [value])
+
+  if (!pretty) return null
+  return (
+    <div className="space-y-2">
+      <div className="text-[10px] font-black uppercase tracking-[0.24em]" style={{ color: 'var(--muted)' }}>{title}</div>
+      <pre
+        className="rounded-2xl p-3 text-xs overflow-x-auto whitespace-pre-wrap break-words"
+        style={{ background: 'rgba(0,0,0,0.14)', border: '1px solid var(--line)', color: 'var(--ink)' }}
+      >
+        {pretty}
+      </pre>
+    </div>
+  )
+}
+
 function MuscleAnatomySection({ muscleAnatomy, muscleLanguage = 'de', taxonomy = null }) {
-  const [open, setOpen] = useState(false)
   const entries = Object.entries(muscleAnatomy || {})
   if (!entries.length) return null
   return (
-    <section className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--line)' }}>
-      <button
-        onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-4 py-3"
-        style={{ background: 'var(--card)', color: 'var(--ink)' }}
-      >
-        <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
-          Muskel-Anatomie ({entries.length} Muskeln)
-        </span>
-        {open ? <ChevronUp size={15} style={{ color: 'var(--muted)' }} /> : <ChevronDown size={15} style={{ color: 'var(--muted)' }} />}
-      </button>
-      {open && (
-        <div className="px-4 pb-4 pt-1 grid gap-3 md:grid-cols-2" style={{ background: 'var(--card)' }}>
-          {entries.map(([id, m]) => (
-            <div key={id} className="p-3 rounded-xl space-y-1.5" style={{ background: 'var(--bg2)', border: '1px solid var(--line)' }}>
-              <div className="text-sm font-bold" style={{ color: 'var(--accent)' }}>
-                {translateMuscle(id, taxonomy, muscleLanguage)}
-              </div>
-              {m.origin && <div><span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Ursprung </span><span className="text-xs" style={{ color: 'var(--ink)' }}>{m.origin}</span></div>}
-              {m.insertion && <div><span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Ansatz </span><span className="text-xs" style={{ color: 'var(--ink)' }}>{m.insertion}</span></div>}
-              {m.innervation && <div><span className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Innervation </span><span className="text-xs" style={{ color: 'var(--ink)' }}>{m.innervation}</span></div>}
-              {m.function_in_exercise && <div className="pt-1 text-xs leading-5" style={{ color: 'var(--muted)', borderTop: '1px solid var(--line)' }}>{m.function_in_exercise}</div>}
-            </div>
-          ))}
+    <div className="grid gap-3 md:grid-cols-2">
+      {entries.map(([id, muscle]) => (
+        <div key={id} className="rounded-2xl p-3" style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid var(--line)' }}>
+          <div className="text-sm font-black mb-2" style={{ color: 'var(--accent)' }}>
+            {translateMuscle(id, taxonomy, muscleLanguage)}
+          </div>
+          <div className="space-y-1.5 text-xs leading-5" style={{ color: 'var(--ink)' }}>
+            {muscle.origin && <div><span style={{ color: 'var(--muted)' }}>Ursprung:</span> {muscle.origin}</div>}
+            {muscle.insertion && <div><span style={{ color: 'var(--muted)' }}>Ansatz:</span> {muscle.insertion}</div>}
+            {muscle.innervation && <div><span style={{ color: 'var(--muted)' }}>Innervation:</span> {muscle.innervation}</div>}
+            {muscle.function_in_exercise && <div style={{ color: 'var(--muted)' }}>{muscle.function_in_exercise}</div>}
+          </div>
         </div>
-      )}
-    </section>
+      ))}
+    </div>
   )
 }
+
+function RawList({ title, items = [], empty = 'n/a' }) {
+  return (
+    <div className="space-y-2">
+      <div className="text-[10px] font-black uppercase tracking-[0.24em]" style={{ color: 'var(--muted)' }}>{title}</div>
+      {items.length ? (
+        <ul className="space-y-2">
+          {items.map((item, index) => (
+            <li key={`${title}-${index}`} className="rounded-2xl px-3 py-2 text-sm" style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid var(--line)', color: 'var(--ink)' }}>
+              {item}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="text-sm" style={{ color: 'var(--muted)' }}>{empty}</div>
+      )}
+    </div>
+  )
+}
+
+const VIEW_OPTIONS = [
+  { id: 'coach', label: 'Coach Sheet', icon: PencilLine },
+  { id: 'preview', label: 'Preview', icon: Sparkles },
+  { id: 'raw', label: 'Rohdaten', icon: FileSearch },
+]
 
 export default function ExerciseInsightModal({ exercise, onClose, onExerciseChange = null, muscleLanguage = 'de', taxonomy = null }) {
   const [localExercise, setLocalExercise] = useState(exercise)
@@ -149,11 +279,13 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
   const [savingLesson, setSavingLesson] = useState(false)
   const [savingNotes, setSavingNotes] = useState(false)
   const [notice, setNotice] = useState('')
+  const [activeView, setActiveView] = useState('coach')
 
   useEffect(() => {
     setLocalExercise(exercise)
     setLessonDraft(buildLessonDraft(exercise, exercise?.lesson))
     setExerciseNotes(exercise?.notes || exercise?.description || '')
+    setActiveView('coach')
   }, [exercise])
 
   useEffect(() => {
@@ -184,19 +316,29 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
 
   useEffect(() => {
     if (!notice) return
-    const timer = setTimeout(() => setNotice(''), 2200)
+    const timer = setTimeout(() => setNotice(''), 2400)
     return () => clearTimeout(timer)
   }, [notice])
 
   if (!exercise || !localExercise) return null
 
   const insight = buildExerciseInsights(localExercise)
+  const lesson = localExercise.lesson || null
   const exerciseId = localExercise.exercise_id || localExercise.id || localExercise.name
+  const displayName = localExercise.display_name || localExercise.displayName || localExercise.name || 'Übung'
+  const rawInstructions = Array.isArray(insight.rawInstructions) ? insight.rawInstructions : []
+  const sourceDescription = insight.rawDescription || localExercise.description || ''
+  const primaryLabels = insight.primary.map((muscle) => translateMuscle(muscle, taxonomy, muscleLanguage))
+  const secondaryLabels = insight.secondary.map((muscle) => translateMuscle(muscle, taxonomy, muscleLanguage))
+  const sourceTags = Array.isArray(localExercise.tags) ? localExercise.tags : []
 
   async function copySheet() {
     try {
       await navigator.clipboard.writeText(buildExerciseCoachSheet(localExercise))
-    } catch {}
+      setNotice('Coach Sheet kopiert')
+    } catch {
+      setNotice('Kopieren fehlgeschlagen')
+    }
   }
 
   async function exportSheet(kind) {
@@ -205,15 +347,16 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
         ? { kind: 'exercise_lesson', exercise_id: exerciseId, mode: 'trainer', force: true }
         : { kind: 'exercise_sheet', query: exerciseId, force: true }
       const result = await exportFitnessData(payload)
-      alert(result?.path ? `Exportiert: ${result.path}` : 'Exportiert')
+      setNotice(result?.path ? `Exportiert: ${result.path}` : 'Exportiert')
     } catch {
-      alert('Export fehlgeschlagen')
+      setNotice('Export fehlgeschlagen')
     }
   }
 
   function downloadSheet() {
-    const name = (insight.title || 'exercise').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-    downloadText(`${name || 'exercise'}-coach-sheet.md`, buildExerciseCoachSheet(localExercise), 'text/markdown;charset=utf-8')
+    const slug = (insight.title || 'exercise').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    downloadText(`${slug || 'exercise'}-coach-sheet.md`, buildExerciseCoachSheet(localExercise), 'text/markdown;charset=utf-8')
+    setNotice('Markdown geladen')
   }
 
   async function handleSaveLesson() {
@@ -222,8 +365,8 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
     try {
       const payload = lessonDraftToPayload(exerciseId, lessonDraft)
       const result = await saveAnatomy(exerciseId, payload)
-      const lesson = result?.lesson || payload
-      const next = { ...localExercise, lesson }
+      const nextLesson = result?.lesson || payload
+      const next = { ...localExercise, lesson: nextLesson }
       setLocalExercise(next)
       onExerciseChange?.(next)
       setNotice('Coach Sheet gespeichert')
@@ -244,7 +387,7 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
         id: exerciseId,
         notes: exerciseNotes,
         description: exerciseNotes,
-        display_name: localExercise.display_name || localExercise.displayName || localExercise.name,
+        display_name: displayName,
       }
       await saveExercise(exerciseId, payload)
       const next = { ...localExercise, ...payload }
@@ -260,205 +403,320 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
 
   return createPortal(
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.68)' }} onClick={onClose} />
-      <div
-        className="absolute inset-x-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 w-full md:w-[min(980px,94vw)] max-h-[92vh] overflow-hidden rounded-t-3xl md:rounded-3xl shadow-2xl"
-        style={{ background: 'var(--panel)', border: '1px solid var(--line)' }}
-      >
-        <div className="flex items-start justify-between gap-3 px-5 py-4 border-b" style={{ borderColor: 'var(--line)' }}>
-          <div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.25em]" style={{ color: 'var(--muted)' }}>
-              Exercise Detail / Meaning / Coach Sheet
-            </div>
-            <h2 className="text-xl font-extrabold leading-tight mt-1" style={{ color: 'var(--ink)' }}>
-              {insight.title}
-            </h2>
-            <div className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
-              {insight.category} · {insight.equipment}
-            </div>
-            {insight.isRaw && (
-              <div
-                className="inline-flex items-center gap-1.5 mt-2 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg"
-                style={{ background: 'rgba(251,191,36,0.12)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.3)' }}
-              >
-                Ungeprüfte Rohdaten oder fehlende Lesson
-              </div>
-            )}
-          </div>
-          <button onClick={onClose} className="p-2 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--line)', color: 'var(--muted)' }}>
-            <X size={18} />
-          </button>
-        </div>
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
-        <div className="overflow-y-auto max-h-[calc(92vh-80px)] px-5 py-5 space-y-4">
-          <div className="grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
-            <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-              <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>Was es lehrt</div>
-              <p className="text-sm leading-6" style={{ color: 'var(--ink)' }}>
-                {insight.learningGoal || 'Keine Original-Beschreibung vorhanden.'}
-              </p>
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>Bewegung</div>
-                  <div className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>{insight.movement.pattern}</div>
-                </div>
-                <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>Körperregionen</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {insight.regions.map((r) => (
-                      <span key={r} className="text-[11px] px-2 py-1 rounded-full" style={{ background: 'var(--bg2)', color: 'var(--accent)' }}>
-                        {r}
-                      </span>
-                    ))}
+      <div className="absolute inset-x-0 bottom-0 md:inset-4 md:bottom-4">
+        <div
+          className="mx-auto h-[94vh] md:h-full w-full md:max-w-[1460px] rounded-t-[28px] md:rounded-[32px] overflow-hidden shadow-2xl"
+          style={{
+            background: 'linear-gradient(180deg, rgba(18,26,28,0.98) 0%, rgba(11,16,18,0.98) 100%)',
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}
+        >
+          <div className="flex h-full flex-col">
+            <header className="border-b px-5 py-4 md:px-6" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: 'var(--muted)' }}>
+                    Coach Sheet Rebuild
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <h2 className="text-2xl md:text-3xl font-black leading-tight" style={{ color: 'var(--ink)' }}>
+                      {displayName}
+                    </h2>
+                    <MetaPill tone={insight.isRaw ? 'warn' : 'accent'}>
+                      {insight.isRaw ? 'Raw / ungeprüft' : 'Lesson vorhanden'}
+                    </MetaPill>
+                    {loadingLesson && (
+                      <MetaPill tone="default">
+                        <span className="inline-flex items-center gap-1.5"><Loader2 size={12} className="animate-spin" /> lade anatomy</span>
+                      </MetaPill>
+                    )}
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <MetaPill>{insight.category}</MetaPill>
+                    <MetaPill>{insight.equipment}</MetaPill>
+                    <MetaPill>{exerciseId}</MetaPill>
+                    {localExercise.source && <MetaPill>{localExercise.source}</MetaPill>}
                   </div>
                 </div>
-              </div>
-            </section>
 
-            <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-              <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>Schnellzugriff</div>
-              <div className="space-y-3">
-                <button onClick={() => exportSheet('sheet')} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold" style={{ background: 'rgba(94,234,212,0.12)', border: '1px solid rgba(94,234,212,0.28)', color: 'var(--accent)' }}>
-                  <span className="flex items-center gap-2"><Download size={14} /> Coach Sheet exportieren</span>
-                  <span style={{ color: 'var(--muted)' }}>obsidian</span>
-                </button>
-                <button onClick={() => exportSheet('lesson')} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold" style={{ background: 'rgba(94,234,212,0.08)', border: '1px solid rgba(94,234,212,0.2)', color: 'var(--ink)' }}>
-                  <span className="flex items-center gap-2"><Download size={14} /> Lesson exportieren</span>
-                  <span style={{ color: 'var(--muted)' }}>obsidian</span>
-                </button>
-                <button onClick={downloadSheet} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold" style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}>
-                  <span className="flex items-center gap-2"><Download size={14} /> Coach Sheet laden</span>
-                  <span style={{ color: 'var(--muted)' }}>md</span>
-                </button>
-                <button onClick={copySheet} className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold" style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}>
-                  <span className="flex items-center gap-2"><Copy size={14} /> Markdown kopieren</span>
-                  <span style={{ color: 'var(--muted)' }}>obsidian</span>
-                </button>
-              </div>
-            </section>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-              <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Muskeln</div>
-              <div className="space-y-3">
-                <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: 'var(--muted)' }}>Primär</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {insight.primary.length ? insight.primary.map((m) => (
-                      <span key={m} className="text-[11px] px-2 py-1 rounded-full" style={{ background: 'rgba(94,234,212,0.12)', color: 'var(--accent)' }}>
-                        {translateMuscle(m, taxonomy, muscleLanguage)}
-                      </span>
-                    )) : <span className="text-sm" style={{ color: 'var(--muted)' }}>n/a</span>}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: 'var(--muted)' }}>Sekundär</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {insight.secondary.length ? insight.secondary.map((m) => (
-                      <span key={m} className="text-[11px] px-2 py-1 rounded-full" style={{ background: 'var(--bg2)', color: 'var(--muted)' }}>
-                        {translateMuscle(m, taxonomy, muscleLanguage)}
-                      </span>
-                    )) : <span className="text-sm" style={{ color: 'var(--muted)' }}>n/a</span>}
-                  </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button onClick={copySheet} className="rounded-2xl px-3 py-2 text-sm font-semibold" style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}>
+                    <span className="inline-flex items-center gap-2"><Copy size={14} /> Copy</span>
+                  </button>
+                  <button onClick={downloadSheet} className="rounded-2xl px-3 py-2 text-sm font-semibold" style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}>
+                    <span className="inline-flex items-center gap-2"><Download size={14} /> MD</span>
+                  </button>
+                  <button onClick={onClose} className="rounded-2xl p-2.5" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--muted)' }}>
+                    <X size={18} />
+                  </button>
                 </div>
               </div>
-            </section>
+            </header>
 
-            <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-              <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Exercise Notes</div>
-              <Field
-                label="Notizen"
-                value={exerciseNotes}
-                onChange={setExerciseNotes}
-                rows={5}
-                placeholder="Coaching-Notizen, Umsetzungsdetails, interne Hinweise..."
-              />
-              <div className="mt-3 flex justify-end">
-                <button onClick={handleSaveNotes} disabled={savingNotes} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold" style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}>
-                  {savingNotes ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                  Exercise speichern
-                </button>
-              </div>
-            </section>
-          </div>
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <div className="grid h-full min-h-0 md:grid-cols-[340px_minmax(0,1fr)]">
+                <aside className="min-h-0 overflow-y-auto p-4 md:p-5 space-y-4" style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+                  <ShellCard title="Exercise Snapshot" eyebrow="Overview" tone="accent">
+                    <div className="space-y-2">
+                      <StatRow label="Display" value={displayName} />
+                      <StatRow label="German" value={localExercise.german || localExercise.display_name || 'n/a'} />
+                      <StatRow label="English" value={localExercise.english || localExercise.name || 'n/a'} />
+                      <StatRow label="Pattern" value={insight.movement.pattern || 'n/a'} />
+                    </div>
+                  </ShellCard>
 
-          {(insight.coachCues.length > 0 || insight.commonErrors.length > 0) && (
-            <div className="grid gap-4 md:grid-cols-2">
-              {insight.coachCues.length > 0 && (
-                <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-                  <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Coaching Cues</div>
-                  <div className="flex flex-wrap gap-2">
-                    {insight.coachCues.map((cue) => (
-                      <span key={cue} className="text-sm px-3 py-2 rounded-xl" style={{ background: 'var(--bg2)', color: 'var(--ink)' }}>{cue}</span>
-                    ))}
-                  </div>
-                </section>
-              )}
-              {insight.commonErrors.length > 0 && (
-                <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-                  <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Fehlerbilder</div>
-                  <div className="space-y-2">
-                    {insight.commonErrors.map((err) => (
-                      <div key={`${err.error}-${err.correction}`} className="p-3 rounded-xl" style={{ background: 'var(--bg2)', border: '1px solid var(--line)' }}>
-                        <div className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>{err.error}</div>
-                        <div className="text-sm mt-1" style={{ color: 'var(--muted)' }}>{err.anatomicalReason}</div>
-                        <div className="text-sm mt-1" style={{ color: 'var(--accent)' }}>{err.correction}</div>
+                  <ShellCard title="Muscles" eyebrow="Targeting">
+                    <div className="space-y-3">
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.22em] mb-2" style={{ color: 'var(--muted)' }}>Primär</div>
+                        <TagCloud items={primaryLabels} tone="accent" />
                       </div>
-                    ))}
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.22em] mb-2" style={{ color: 'var(--muted)' }}>Sekundär</div>
+                        <TagCloud items={secondaryLabels} />
+                      </div>
+                      <div>
+                        <div className="text-[10px] font-black uppercase tracking-[0.22em] mb-2" style={{ color: 'var(--muted)' }}>Body Regions</div>
+                        <TagCloud items={insight.regions} />
+                      </div>
+                    </div>
+                  </ShellCard>
+
+                  <ShellCard
+                    title="Coach Notes"
+                    eyebrow="Exercise Layer"
+                    actions={(
+                      <button onClick={handleSaveNotes} disabled={savingNotes} className="rounded-xl px-3 py-2 text-xs font-black uppercase tracking-wider" style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}>
+                        {savingNotes ? <span className="inline-flex items-center gap-2"><Loader2 size={12} className="animate-spin" /> save</span> : <span className="inline-flex items-center gap-2"><Save size={12} /> save</span>}
+                      </button>
+                    )}
+                  >
+                    <Field
+                      label="Notes / Description"
+                      value={exerciseNotes}
+                      onChange={setExerciseNotes}
+                      rows={8}
+                      placeholder="Eigene Coach-Notizen, Qualitätsurteil, Merge-Hinweise, Kontext."
+                    />
+                  </ShellCard>
+
+                  <ShellCard title="Actions" eyebrow="Export">
+                    <div className="grid gap-2">
+                      <button onClick={() => exportSheet('sheet')} className="rounded-2xl px-3 py-2.5 text-sm font-semibold text-left" style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}>
+                        Coach Sheet exportieren
+                      </button>
+                      <button onClick={() => exportSheet('lesson')} className="rounded-2xl px-3 py-2.5 text-sm font-semibold text-left" style={{ background: 'var(--bg2)', border: '1px solid var(--line)', color: 'var(--ink)' }}>
+                        Lesson exportieren
+                      </button>
+                    </div>
+                  </ShellCard>
+                </aside>
+
+                <main className="min-h-0 overflow-y-auto p-4 md:p-6 space-y-5">
+                  <div className="flex flex-wrap gap-2">
+                    {VIEW_OPTIONS.map(({ id, label, icon: Icon }) => {
+                      const active = activeView === id
+                      return (
+                        <button
+                          key={id}
+                          onClick={() => setActiveView(id)}
+                          className="rounded-full px-4 py-2 text-sm font-black transition-all"
+                          style={active ? {
+                            background: 'rgba(94,234,212,0.14)',
+                            border: '1px solid rgba(94,234,212,0.28)',
+                            color: 'var(--accent)',
+                          } : {
+                            background: 'rgba(255,255,255,0.04)',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            color: 'var(--muted)',
+                          }}
+                        >
+                          <span className="inline-flex items-center gap-2"><Icon size={14} /> {label}</span>
+                        </button>
+                      )
+                    })}
                   </div>
-                </section>
-              )}
-            </div>
-          )}
 
-          <section className="p-4 rounded-2xl space-y-4" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--muted)' }}>Coach Sheet Editor</div>
-                <div className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
-                  {loadingLesson ? 'Anatomie-Daten werden geladen…' : 'Lesson direkt im aktuellen Datenpfad bearbeiten.'}
-                </div>
+                  {activeView === 'coach' && (
+                    <div className="space-y-5">
+                      <ShellCard title="Review statt Umschreiben" eyebrow="Originalquelle zuerst" tone="warn">
+                        <div className="space-y-3 text-sm leading-6" style={{ color: 'var(--ink)' }}>
+                          <p>
+                            Hier soll primär die Originalbeschreibung aus wger/yuhonas geprüft werden. Der Coach schreibt kein neues Bewegungsmuster,
+                            sondern kontrolliert Rohdaten, fragt nach und gibt frei.
+                          </p>
+                          <div className="rounded-2xl p-3" style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid var(--line)' }}>
+                            {sourceDescription || 'Keine Originalbeschreibung in diesem Record vorhanden.'}
+                          </div>
+                          {rawInstructions.length > 0 && (
+                            <ul className="space-y-2">
+                              {rawInstructions.slice(0, 4).map((item, index) => (
+                                <li key={`coach-raw-${index}`} className="rounded-2xl px-3 py-2" style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid var(--line)', color: 'var(--ink)' }}>
+                                  {item}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      </ShellCard>
+
+                      <ShellCard
+                        title="Lesson Review"
+                        eyebrow="AI / Backend liefert, Coach prüft"
+                        tone="accent"
+                        actions={(
+                          <button onClick={handleSaveLesson} disabled={savingLesson || loadingLesson} className="rounded-xl px-3 py-2 text-xs font-black uppercase tracking-wider" style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', color: 'var(--accent)' }}>
+                            {savingLesson ? <span className="inline-flex items-center gap-2"><Loader2 size={12} className="animate-spin" /> save</span> : <span className="inline-flex items-center gap-2"><Save size={12} /> save lesson</span>}
+                          </button>
+                        )}
+                      >
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <Field label="Titel" value={lessonDraft.title} onChange={(value) => setLessonDraft((prev) => ({ ...prev, title: value }))} rows={2} />
+                          <Field label="Movement Pattern (AI/Backend)" value={lessonDraft.movement_pattern} onChange={(value) => setLessonDraft((prev) => ({ ...prev, movement_pattern: value }))} rows={2} placeholder="Soll per Gemini/localhost kommen, nicht manuell ausgeschmückt." disabled />
+                          <Field label="Learning Goal Kurz" value={lessonDraft.learning_goal_short} onChange={(value) => setLessonDraft((prev) => ({ ...prev, learning_goal_short: value }))} rows={4} />
+                          <Field label="Learning Goal Detailliert" value={lessonDraft.learning_goal_detailed} onChange={(value) => setLessonDraft((prev) => ({ ...prev, learning_goal_detailed: value }))} rows={5} />
+                        </div>
+                      </ShellCard>
+
+                      <ShellCard title="Trainer Voice" eyebrow="Explanation">
+                        <div className="grid gap-4 md:grid-cols-3">
+                          <Field label="Simple" value={lessonDraft.trainer_simple} onChange={(value) => setLessonDraft((prev) => ({ ...prev, trainer_simple: value }))} rows={6} />
+                          <Field label="Technical" value={lessonDraft.trainer_technical} onChange={(value) => setLessonDraft((prev) => ({ ...prev, trainer_technical: value }))} rows={6} />
+                          <Field label="Client Friendly" value={lessonDraft.trainer_client_friendly} onChange={(value) => setLessonDraft((prev) => ({ ...prev, trainer_client_friendly: value }))} rows={6} />
+                        </div>
+                      </ShellCard>
+
+                      <ShellCard title="Coaching Payload" eyebrow="Execution">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <Field label="Coaching Cues" value={lessonDraft.coaching_cues} onChange={(value) => setLessonDraft((prev) => ({ ...prev, coaching_cues: value }))} rows={7} placeholder="Eine Zeile pro Cue" />
+                          <Field label="Feel Cues" value={lessonDraft.feel_cues} onChange={(value) => setLessonDraft((prev) => ({ ...prev, feel_cues: value }))} rows={7} placeholder="Eine Zeile pro Cue" />
+                          <Field label="Common Errors" value={lessonDraft.common_errors} onChange={(value) => setLessonDraft((prev) => ({ ...prev, common_errors: value }))} rows={8} placeholder="error | anatomical reason | correction | cue" />
+                          <div className="space-y-4">
+                            <Field label="Quiz Question" value={lessonDraft.quiz_question} onChange={(value) => setLessonDraft((prev) => ({ ...prev, quiz_question: value }))} rows={3} />
+                            <Field label="Quiz Answer" value={lessonDraft.quiz_answer} onChange={(value) => setLessonDraft((prev) => ({ ...prev, quiz_answer: value }))} rows={5} />
+                          </div>
+                        </div>
+                      </ShellCard>
+                    </div>
+                  )}
+
+                  {activeView === 'preview' && (
+                    <div className="space-y-5">
+                      <ShellCard title="Originalbeschreibung" eyebrow="Preview" tone="accent">
+                        <div className="space-y-3 text-sm leading-6" style={{ color: 'var(--ink)' }}>
+                          <p>{sourceDescription || insight.learningGoal || 'Keine Originalbeschreibung vorhanden.'}</p>
+                          {rawInstructions.length > 0 && (
+                            <div className="space-y-2 pt-2">
+                              {rawInstructions.slice(0, 5).map((item, index) => (
+                                <div key={`preview-raw-${index}`} className="rounded-2xl px-3 py-2" style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid var(--line)' }}>
+                                  {item}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {lesson && insight.detailedMeaning && (
+                            <p style={{ color: 'var(--muted)' }}>{insight.detailedMeaning}</p>
+                          )}
+                        </div>
+                      </ShellCard>
+
+                      <div className="grid gap-5 xl:grid-cols-2">
+                        <ShellCard title="Coaching Cues" eyebrow="Preview">
+                          <RawList title="Cues" items={insight.coachCues} empty="Keine Cues vorhanden." />
+                        </ShellCard>
+                        <ShellCard title="Error Patterns" eyebrow="Preview">
+                          {insight.commonErrors.length ? (
+                            <div className="space-y-3">
+                              {insight.commonErrors.map((err) => (
+                                <div key={`${err.error}-${err.correction}`} className="rounded-2xl p-3" style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid var(--line)' }}>
+                                  <div className="text-sm font-black" style={{ color: 'var(--ink)' }}>{err.error}</div>
+                                  {err.anatomicalReason && <div className="text-sm mt-1" style={{ color: 'var(--muted)' }}>{err.anatomicalReason}</div>}
+                                  {err.correction && <div className="text-sm mt-1" style={{ color: 'var(--accent)' }}>{err.correction}</div>}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-sm" style={{ color: 'var(--muted)' }}>Keine Fehlerbilder vorhanden.</div>
+                          )}
+                        </ShellCard>
+                      </div>
+
+                      {(lesson?.muscle_anatomy || lessonDraft.muscle_anatomy) && (
+                        <ShellCard title="Muscle Anatomy" eyebrow="Preview">
+                          <MuscleAnatomySection muscleAnatomy={lesson?.muscle_anatomy || lessonDraft.muscle_anatomy} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
+                        </ShellCard>
+                      )}
+                    </div>
+                  )}
+
+                  {activeView === 'raw' && (
+                    <div className="space-y-5">
+                      <ShellCard title="Source Record" eyebrow="Raw Exercise Data">
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <RawList title="Original Instructions" items={rawInstructions} empty="Keine Instructions vorhanden." />
+                          <div className="space-y-2">
+                            <div className="text-[10px] font-black uppercase tracking-[0.24em]" style={{ color: 'var(--muted)' }}>Original Description</div>
+                            <div className="rounded-2xl p-3 text-sm leading-6" style={{ background: 'rgba(0,0,0,0.12)', border: '1px solid var(--line)', color: 'var(--ink)' }}>
+                              {insight.rawDescription || localExercise.original_description || 'Keine Beschreibung vorhanden.'}
+                            </div>
+                          </div>
+                        </div>
+                      </ShellCard>
+
+                      <div className="grid gap-5 xl:grid-cols-2">
+                        <ShellCard title="Field Snapshot" eyebrow="Exercise">
+                          <div className="space-y-2">
+                            <StatRow label="Display Name" value={displayName} />
+                            <StatRow label="German" value={localExercise.german || 'n/a'} />
+                            <StatRow label="English" value={localExercise.english || 'n/a'} />
+                            <StatRow label="Category" value={localExercise.category || 'n/a'} />
+                            <StatRow label="Type" value={localExercise.type || 'n/a'} />
+                            <StatRow label="Equipment" value={Array.isArray(localExercise.equipment) ? localExercise.equipment.join(', ') : (localExercise.equipment || 'n/a')} />
+                          </div>
+                        </ShellCard>
+
+                        <ShellCard title="Tags & Arrays" eyebrow="Exercise">
+                          <div className="space-y-3">
+                            <div>
+                              <div className="text-[10px] font-black uppercase tracking-[0.22em] mb-2" style={{ color: 'var(--muted)' }}>Tags</div>
+                              <TagCloud items={sourceTags} />
+                            </div>
+                            <div>
+                              <div className="text-[10px] font-black uppercase tracking-[0.22em] mb-2" style={{ color: 'var(--muted)' }}>Primary Raw</div>
+                              <TagCloud items={(localExercise.primary_muscles || localExercise.primaryMuscles || []).map(String)} />
+                            </div>
+                            <div>
+                              <div className="text-[10px] font-black uppercase tracking-[0.22em] mb-2" style={{ color: 'var(--muted)' }}>Secondary Raw</div>
+                              <TagCloud items={(localExercise.secondary_muscles || localExercise.secondaryMuscles || []).map(String)} />
+                            </div>
+                          </div>
+                        </ShellCard>
+                      </div>
+
+                      <div className="grid gap-5 xl:grid-cols-2">
+                        <ShellCard title="Lesson Structure" eyebrow="Raw JSON">
+                          <JsonBlock title="lesson" value={lesson} />
+                        </ShellCard>
+                        <ShellCard title="Extended Anatomy Blocks" eyebrow="Raw JSON">
+                          <JsonBlock title="joint_actions" value={lesson?.joint_actions || lessonDraft.joint_actions} />
+                          <JsonBlock title="body_highlighter_regions" value={lesson?.body_highlighter_regions || lessonDraft.body_highlighter_regions} />
+                          <JsonBlock title="muscle_roles" value={lesson?.muscle_roles || lessonDraft.muscle_roles} />
+                        </ShellCard>
+                      </div>
+                    </div>
+                  )}
+
+                  {notice && (
+                    <div className="rounded-2xl px-4 py-3 text-sm font-semibold" style={{ background: 'rgba(94,234,212,0.1)', border: '1px solid rgba(94,234,212,0.22)', color: 'var(--accent)' }}>
+                      {notice}
+                    </div>
+                  )}
+                </main>
               </div>
-              <button onClick={handleSaveLesson} disabled={savingLesson || loadingLesson} className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold" style={{ background: 'rgba(94,234,212,0.12)', border: '1px solid rgba(94,234,212,0.28)', color: 'var(--accent)' }}>
-                {savingLesson ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                Coach Sheet speichern
-              </button>
             </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Titel" value={lessonDraft.title} onChange={(value) => setLessonDraft((prev) => ({ ...prev, title: value }))} rows={2} />
-              <Field label="Movement Pattern" value={lessonDraft.movement_pattern} onChange={(value) => setLessonDraft((prev) => ({ ...prev, movement_pattern: value }))} rows={2} />
-              <Field label="Learning Goal Kurz" value={lessonDraft.learning_goal_short} onChange={(value) => setLessonDraft((prev) => ({ ...prev, learning_goal_short: value }))} rows={3} />
-              <Field label="Learning Goal Detailliert" value={lessonDraft.learning_goal_detailed} onChange={(value) => setLessonDraft((prev) => ({ ...prev, learning_goal_detailed: value }))} rows={4} />
-              <Field label="Trainer Simple" value={lessonDraft.trainer_simple} onChange={(value) => setLessonDraft((prev) => ({ ...prev, trainer_simple: value }))} rows={4} />
-              <Field label="Trainer Technical" value={lessonDraft.trainer_technical} onChange={(value) => setLessonDraft((prev) => ({ ...prev, trainer_technical: value }))} rows={4} />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Client Friendly" value={lessonDraft.trainer_client_friendly} onChange={(value) => setLessonDraft((prev) => ({ ...prev, trainer_client_friendly: value }))} rows={4} />
-              <Field label="Feel Cues" value={lessonDraft.feel_cues} onChange={(value) => setLessonDraft((prev) => ({ ...prev, feel_cues: value }))} rows={5} placeholder="Eine Zeile pro Cue" />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Coaching Cues" value={lessonDraft.coaching_cues} onChange={(value) => setLessonDraft((prev) => ({ ...prev, coaching_cues: value }))} rows={6} placeholder="Eine Zeile pro Cue" />
-              <Field label="Common Errors" value={lessonDraft.common_errors} onChange={(value) => setLessonDraft((prev) => ({ ...prev, common_errors: value }))} rows={6} placeholder="error | reason | correction | cue" />
-            </div>
-          </section>
-
-          <MuscleAnatomySection muscleAnatomy={localExercise.lesson?.muscle_anatomy} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
-
-          {loadingLesson && (
-            <div className="text-center py-2 text-xs flex items-center justify-center gap-2" style={{ color: 'var(--muted)' }}>
-              <Loader2 size={14} className="animate-spin" /> Anatomie-Daten werden geladen…
-            </div>
-          )}
-
-          {notice && (
-            <div className="text-center py-2 text-xs font-semibold rounded-xl" style={{ color: 'var(--accent)', background: 'rgba(94,234,212,0.08)', border: '1px solid rgba(94,234,212,0.2)' }}>
-              {notice}
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </div>,

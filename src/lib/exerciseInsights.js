@@ -1,7 +1,21 @@
 import { normalizeExerciseRecord } from './db/shared/exercise.js'
+import { formatMuscleDetail } from './translations.js'
 
 function cleanList(items) {
   return [...new Set((items || []).map(v => String(v || '').trim()).filter(Boolean))]
+}
+
+function describeMuscles(items, limit = 3) {
+  return cleanList(items)
+    .slice(0, limit)
+    .map((item) => formatMuscleDetail(item, null, 'de', 'normal'))
+}
+
+function describeFallbackPattern(ex) {
+  const primaryLabels = describeMuscles(ex?.primaryMuscles)
+  if (!primaryLabels.length) return 'Bewegungsmuster noch nicht vom Coach beschrieben'
+  if (primaryLabels.length === 1) return `Fokus auf ${primaryLabels[0]}`
+  return `Fokus auf ${primaryLabels.join(', ')}`
 }
 
 function unwrapLesson(ex) {
@@ -60,11 +74,12 @@ function inferMovement(ex) {
     ? cleanList(ex.original_description).join(' ')
     : String(ex?.original_description || '').trim()
   const primary = cleanList(ex?.primaryMuscles)
+  const fallbackLesson = description || instructions.join(' ')
 
   return {
-    title: 'Rohdaten (noch nicht vom Coach geprüft)',
-    pattern: primary.length ? `Zielmuskel: ${primary.slice(0, 2).join(', ')}` : '',
-    lesson: description,
+    title: 'Originaldaten aus der Quell-Datenbank',
+    pattern: describeFallbackPattern(ex),
+    lesson: fallbackLesson,
     jointActions: [],
     feel: '',
     cues: [],
@@ -103,8 +118,8 @@ function inferRegionLabels(ex) {
   if (/chest|pec|pectoral/.test(muscles)) add('Brust vorne')
   if (/lat|back|trapezius|rhomboid/.test(muscles)) add('Rücken')
   if (/shoulder|deltoid/.test(muscles)) add('Schulter')
-  if (/triceps/.test(muscles)) add('Oberarm hinten')
-  if (/biceps/.test(muscles)) add('Oberarm vorne')
+  if (/triceps/.test(muscles)) add('Armstrecker')
+  if (/biceps|brachialis|brachioradialis/.test(muscles)) add('Armbeuger')
   if (/quad|quadriceps/.test(muscles)) add('Oberschenkel vorne')
   if (/hamstring|biceps femoris/.test(muscles)) add('Oberschenkel hinten')
   if (/glute/.test(muscles)) add('Gesäß')

@@ -102,7 +102,7 @@ class TuiTest(unittest.TestCase):
 
         self.assertIn("Exported coach sheet", result.message)
         export_path = Path(load_runtime_config()["obsidian"]["export_path"]).expanduser()
-        target = export_path / "Coach Sheets" / "dips_chest.md"
+        target = export_path / "Coach Sheets" / "dips_mit_brustfokus.md"
         self.assertTrue(target.exists())
 
     def test_preview_action_opens_dedicated_preview_screen(self) -> None:
