@@ -9,6 +9,7 @@ export * from "./firestore/kb.js";
 export * from "./firestore/inbox.js";
 export * from "./firestore/coach.js";
 export * from "./firestore/assignedPlans.js";
+export * from "./firestore/macrocycles.js";
 export * from "./firestore/analysis.js";
 export * from "./firestore/user.js";
 export * from "./firestore/utils.js";
