@@ -23,16 +23,31 @@ def load_index() -> dict[str, dict]:
     return json.loads(INDEX_FILE.read_text())
 
 
+def _z_c_variants(key: str) -> list[str]:
+    """Deutsche Eindeutschungen (Bizeps, Trizeps, Quadrizeps) nutzen 'z' wo
+    Latein/Englisch 'c' schreibt. Beide Richtungen generieren, damit z.B.
+    'quadrizeps' -> 'quadriceps' matcht und umgekehrt."""
+    variants = {key}
+    variants.add(key.replace("z", "c"))
+    variants.add(key.replace("c", "z"))
+    return list(variants)
+
+
 def canonical_id(name: str) -> Optional[str]:
-    """Findet kanonische muscle_id für einen beliebigen Namen (fuzzy)."""
+    """Findet kanonische muscle_id für einen beliebigen Namen (fuzzy).
+    Deckt ab: exakte ID, Substring-Match auf latin/name_en/name_de,
+    sowie deutsche z/c-Schreibvarianten (Quadrizeps <-> Quadriceps)."""
     index = load_index()
     key = name.lower().strip()
     if key in index:
         return key
-    # Partial-Match auf latin oder name_en
-    for mid, meta in index.items():
-        if key in meta.get("latin", "").lower() or key in meta.get("name_en", "").lower():
-            return mid
+    for candidate in _z_c_variants(key):
+        for mid, meta in index.items():
+            haystacks = (
+                meta.get("latin", ""), meta.get("name_en", ""), meta.get("name_de", ""),
+            )
+            if any(candidate in h.lower() for h in haystacks if h):
+                return mid
     return None
 
 

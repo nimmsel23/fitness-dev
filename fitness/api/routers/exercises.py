@@ -14,17 +14,8 @@ from db.schemas import ExerciseSearchResponse, MusclesResponse
 from fitness.catalog.core.resolver import resolve_query, find_by_id
 from fitness.catalog.agent.teaching import find_lesson
 from fitness.catalog.core.muscles import iter_muscle_documents
-
-# ── Optional anatomy_kb ───────────────────────────────────────────────────────
-import sys
-from pathlib import Path
-_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-_ANATOMY_KB_PATH = _ROOT / "anatomy-kb"
-if _ANATOMY_KB_PATH.exists():
-    sys.path.insert(0, str(_ANATOMY_KB_PATH))
-    _ANATOMY_KB_AVAILABLE = True
-else:
-    _ANATOMY_KB_AVAILABLE = False
+from fitness.anatomy import store as anatomy_store
+from fitness.anatomy import resolve as anatomy_resolve
 
 router = APIRouter()
 
@@ -160,16 +151,18 @@ def exercise_teaching(id: str):
 
 @router.get("/fitness/muscles")
 async def muscles_list():
-    if _ANATOMY_KB_AVAILABLE:
-        try:
-            from anatomy_kb.muscle_handler import load_muscles
-            return load_muscles()
-        except Exception as exc:
-            logger.warning(f"anatomy_kb.load_muscles failed, fallback: {exc}")
     try:
-        from fitness.catalog.core.loader import load_catalog_yaml
-        muscles = load_catalog_yaml("muscles/muscle_index.yml")
-        return muscles
+        muscles = []
+        for mid in anatomy_store.list_muscles():
+            doc = anatomy_store.load_muscle(mid) or {}
+            muscles.append({
+                "muscle_id": mid,
+                "wger_id": doc.get("wger_id"),
+                "latin": doc.get("label_lat", ""),
+                "name_en": doc.get("label_en", ""),
+                "has_anatomy": bool(doc.get("origin")),
+            })
+        return {"count": len(muscles), "muscles": muscles}
     except Exception as exc:
         logger.error(f"muscles_list: {exc}")
         raise HTTPException(502, detail=str(exc))
@@ -249,21 +242,11 @@ def muscles_viz():
 
 @router.get("/fitness/muscles/{id}")
 async def muscle_detail_anatomy(id: str):
-    if _ANATOMY_KB_AVAILABLE:
-        try:
-            from anatomy_kb.muscle_handler import load_muscles
-            data = load_muscles()
-            muscle = (data.get("muscles") or {}).get(id)
-            if muscle:
-                return muscle
-        except Exception as exc:
-            logger.warning(f"muscle_detail {id}: {exc}")
-    try:
-        for doc_id, data in iter_muscle_documents():
-            if id in {doc_id, data.get("id"), data.get("catalog_id")}:
-                return data
-    except Exception as exc:
-        logger.warning(f"catalog muscle_detail {id}: {exc}")
+    muscle_id = id if anatomy_store.load_muscle(id) else anatomy_resolve.canonical_id(id)
+    if muscle_id:
+        doc = anatomy_store.load_muscle(muscle_id)
+        if doc:
+            return doc
     raise HTTPException(404, detail="not_found")
 
 @router.get("/fitness/inbox")

@@ -122,7 +122,49 @@ RBH-Ebene — z.B. hat die Rotatorenmanschette keine eigene `wger_id`, das
   Health-Check vor Debugging: `curl -s -o /dev/null -w "%{http_code}\n"
   "http://127.0.0.1:8000/"` — offener Port ≠ funktionierende App.
 - **yuhonas** (free-exercise-db): Bilder + Form-Videos, alternative Namen.
+  ⚠️ **Zwei separate, unabhängige yuhonas-Integrationen im Code — nicht
+  verwechseln:**
+  1. `importer.py::_ensure_yuhonas_json()` — der tatsächlich aktive Pfad,
+     liest die Bulk-Datei `~/fitness/free-exercise-db/dist/exercises.json`
+     und importiert sie über den normalen Bulk-Import-Flow
+     (`unreviewed_*.yml`).
+  2. `resolver.py::build_exercise_index()`, "Durchlauf 3: Yuhonas" — toter
+     Code, sucht per `catalog_path("../yuhonas")` nach
+     `fitness/catalog/yuhonas/*.json` (Einzeldateien pro Übung), ein
+     Verzeichnis das nie existiert hat. Läuft seit jeher ins Leere (`if
+     yuhonas_dir.exists()`-Guard greift immer), vermutlich Altlast aus einer
+     Vorgänger-Import-Struktur, durch (1) abgelöst aber nie entfernt. Noch
+     nicht bereinigt — Entscheidung (reparieren vs. löschen) steht aus.
+
+  **Root Cause für "Repo wird nach dem Import geleert" gefunden + gefixt
+  (2026-08-15):** nicht der Importer selbst — `deploy.sh` (Staging-Deploy,
+  `~/fitness-dev/deploy.sh` UND die deployte Kopie `~/fitness/deploy.sh`)
+  syncte per `rsync -av --delete "$SOURCE/" "$DEST/"` von `~/fitness-dev/`
+  nach `~/fitness/`. `free-exercise-db` liegt manuell unter `~/fitness/`,
+  existiert aber nicht in `$SOURCE` — `--delete` löschte deshalb bei jedem
+  Staging-Deploy den kompletten Klon-Inhalt, außer `.git` (generell per
+  `--exclude ".git"` geschützt, daher blieb exakt der leere `.git`-Ordner
+  übrig — das beobachtete Symptom). Fix: `--exclude "free-exercise-db"` zu
+  `RSYNC_EXCLUDES` in beiden `deploy.sh`-Kopien ergänzt. Repo aus eigener
+  Git-Historie wiederhergestellt (`git checkout HEAD -- .`, rein lokal, da
+  Index+Objects intakt waren — kein Neuklon nötig). Der alte Gotcha
+  ("Ursache nicht identifiziert", `_ensure_yuhonas_json()`-Docstring in
+  `importer.py`) ist damit aufgelöst, der GitHub-Fallback-Fetch dort bleibt
+  aber als zusätzliches Sicherheitsnetz bestehen (schadet nicht, greift nur
+  noch bei echtem Erstklon-Fehlen).
 - **custom_yaml**: Semantic Source of Truth, Anatomie-Lehre, überschreibt bei Konflikt.
+
+**Dedup-Bug in `build_exercise_index()` gefixt (2026-08-15):** Durchlauf 2
+(Bulk/`unreviewed_*.yml`) legte für neue, noch unbekannte Übungen einen
+Bulk-Record an, registrierte ihn aber nie in `by_wger`/`by_name` — dadurch
+konnte Durchlauf 3 (Yuhonas, sobald der Pfad oben gefixt ist) bzw. weitere
+Bulk-Einträge in Durchlauf 2 selbst denselben Record nie wiederfinden und
+legten für dieselbe reale Übung einen zweiten, separaten unreviewed-Eintrag
+an — sichtbar als Duplikate in Suche/Coach-Inbox. Fix: Registrierung direkt
+nach dem Anlegen des neuen Bulk-Records. Verifiziert (Alt- vs. Neu-Vergleich
+von `build_exercise_index()`): 1715 → 1687 Records, −28 Duplikate — allein
+aus Bulk-zu-Bulk-Merges innerhalb Durchlauf 2, der Yuhonas-Anteil des
+Duplikat-Problems bleibt bestehen, bis der Pfad-Bug oben behoben ist.
 
 **yuhonas/wger liefern flache Muskel-Namen** (`chest`, `lats`, `lower back`, ...),
 keine kanonischen IDs. `muscle_index.yml::string_aliases` löst genau diese 17
@@ -152,6 +194,37 @@ Default, einzelne Muskel-Files können ihn feiner überschreiben (`rglob` +
 Feld lesen, nicht Dateinamen). Frontend hat noch hartcodierte Parallel-
 Mappings (siehe `../../src/CLAUDE.md`) statt aus der KB zu lesen —
 Architektur-Schuld, noch nicht aufgelöst.
+
+**`GET /fitness/muscles/viz` (`fitness/api/routers/exercises.py`) ist als
+Konstruktion selbst Architektur-Schuld** (User-Bewertung 2026-08-15: "mega
+construction fail", bewusst noch nicht angefasst). Konkrete Befunde:
+- `body_region:`-Feld aus dem Absatz oben existiert in KEINER einzigen
+  Datei unter `kb/muscles/**/*.yml` (`grep -rl body_region` → 0 Treffer) —
+  die Doku-Aussage "kanonische Regions-Taxonomie" ist Wunschzustand, nicht
+  Ist-Zustand. Region kommt tatsächlich rein aus Ordner-Tiefe
+  (`build_muscle_document()` in `core/muscles.py`: `is_region = path.parent
+  == root`, `region = path.parent.name`), kein überschreibbares Feld.
+- `muscles_viz()` sortiert Regions-Dateien nach `len(muscles)` aufsteigend
+  und nutzt `setdefault` als impliziten Prioritäts-Mechanismus (kleine/
+  spezifische Dateien gewinnen vor großen Sammel-Dateien) — funktioniert,
+  ist aber eine stille Heuristik ohne explizite Rangfolge.
+- Drittes paralleles Encoding derselben BodyMap-Slugs: `anatomy-kb/
+  muscle-index.json::rbh_slugs` dupliziert `viz.body_muscles.ids` aus dem
+  Catalog, aber unsynced und teils falsch (z.B. `quadriceps_femoris` hat
+  `rbh_slugs: [quads]` ohne links/rechts, während `viz.body_muscles.ids`
+  korrekt `[quads-left, quads-right]` führt). `rbh_slugs` wird vom
+  Frontend nirgends gelesen (nur intern in anatomy-kb selbst) — totes,
+  driftendes Duplikat.
+- Wurzelursache laut User (2026-08-15): `anatomy-kb` war ursprünglich ein
+  Symlink, wurde irgendwann zu einem echten, eigenständigen Ordner (heute
+  Git Subtree, siehe `anatomy-kb/CLAUDE.md`) — dadurch konnte die
+  Muskel-Daten-Kopie von `kb/muscles/` abdriften, statt dieselbe Quelle zu
+  bleiben.
+- User-Position (wiederholt vertreten, zuletzt 2026-08-15): eigentlich
+  sollte die GESAMTE `kb/` (nicht nur `muscles/`) ein Subtree sein, der
+  außerhalb dieses Repos liegt — Zielbild: genau EINE KB für Anatomie +
+  Exercises, nicht mehrere Repos mit potenziell abdriftenden Teilkopien.
+  Noch nicht umgesetzt, nur festgehalten.
 
 ---
 
