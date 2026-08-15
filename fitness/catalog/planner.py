@@ -63,6 +63,37 @@ def exercise_record_to_frontend_dict(record: Any) -> dict[str, Any]:
     }
 
 
+@dataclass
+class WeekResult:
+    split: str
+    label: str
+    days: dict[str, PlanResult | None]
+
+
+def build_week(*, split: str | None = None) -> WeekResult:
+    rules = load_program_rules()
+    splits = rules.get("splits", {})
+    if not isinstance(splits, dict):
+        raise ValueError("program_rules.yml hat keine splits-Sektion")
+
+    split_name = (split or "").strip() or rules.get("default_program")
+    if not isinstance(split_name, str) or not split_name.strip():
+        raise ValueError("Kein split angegeben und kein default_program gesetzt")
+    split_def = splits.get(split_name)
+    if not isinstance(split_def, dict):
+        raise ValueError(f"Unknown split: {split_name}")
+
+    days_def = split_def.get("days", {})
+    days: dict[str, PlanResult | None] = {}
+    for day_key, template_name in (days_def.items() if isinstance(days_def, dict) else []):
+        if not template_name:
+            days[day_key] = None
+            continue
+        days[day_key] = build_plan(template=template_name)
+
+    return WeekResult(split=split_name, label=split_def.get("label", split_name), days=days)
+
+
 def load_program_rules() -> dict[str, Any]:
     rules = load_catalog_yaml("rules/program_rules.yml")
     if isinstance(rules, dict):
@@ -77,9 +108,9 @@ def resolve_template_name(*, template: str | None, split: str | None, day: str |
         return template.strip()
     if day and day.strip():
         return f"{day.strip()}_day"
-    default_split = rules.get("default_split")
-    if isinstance(default_split, str) and default_split.strip():
-        return default_split.strip()
+    default_template = rules.get("default_template")
+    if isinstance(default_template, str) and default_template.strip():
+        return default_template.strip()
     raise ValueError("No plan template provided")
 
 

@@ -1,9 +1,38 @@
 program_rules:
-  default_split: full_body
-  max_sessions_per_week: 4
+  # default_split zeigte bisher auf "full_body" - ein Template das nie existiert
+  # hat (nur push_day/pull_day/legs_day gab's je). build_plan() ohne Argumente
+  # ist damit immer mit "Unknown plan template: full_body" gecrasht - nie
+  # bemerkt, weil build_plan() nie ohne explizites template/day aufgerufen wurde.
+  default_template: push_day
   coverage_defaults:
     sets: 1
     rpe: 8
+  # Wochen-Ebene: welche Tages-Templates in welcher Reihenfolge eine Woche
+  # ergeben. Tag ohne Eintrag oder mit null = Ruhetag. Neu (vorher gab's das
+  # nicht - max_sessions_per_week: 4 war eine Zahl ohne jede Verbindung zu den
+  # Templates, nirgends benutzt, um tatsächlich eine Woche zusammenzubauen).
+  default_program: ppl_3day
+  splits:
+    ppl_3day:
+      label: "Push/Pull/Legs (3x/Woche)"
+      days:
+        mo: push_day
+        di: null
+        mi: pull_day
+        do: null
+        fr: legs_day
+        sa: null
+        so: null
+    ppl_6day:
+      label: "Push/Pull/Legs (6x/Woche)"
+      days:
+        mo: push_day
+        di: pull_day
+        mi: legs_day
+        do: push_day
+        fr: pull_day
+        sa: legs_day
+        so: null
   templates:
     push_day:
       slots:
