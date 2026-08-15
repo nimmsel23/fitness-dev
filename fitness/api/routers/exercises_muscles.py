@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 
 from fitness.api.config import logger
 from fitness.anatomy import resolve as anatomy_resolve
-from fitness.anatomy import store as anatomy_store
+from fitness.catalog import muscles_store
 from fitness.catalog.core.muscles import iter_muscle_documents
 
 router = APIRouter()
@@ -14,8 +14,8 @@ router = APIRouter()
 async def muscles_list():
     try:
         muscles = []
-        for mid in anatomy_store.list_muscles():
-            doc = anatomy_store.load_muscle(mid) or {}
+        for mid in muscles_store.list_muscles():
+            doc = muscles_store.load_muscle(mid) or {}
             muscles.append({
                 "muscle_id": mid,
                 "wger_id": doc.get("wger_id"),
@@ -99,9 +99,9 @@ def muscles_viz():
 
 @router.get("/fitness/muscles/{id}")
 async def muscle_detail_anatomy(id: str):
-    muscle_id = id if anatomy_store.load_muscle(id) else anatomy_resolve.canonical_id(id)
+    muscle_id = id if muscles_store.load_muscle(id) else anatomy_resolve.canonical_id(id)
     if muscle_id:
-        doc = anatomy_store.load_muscle(muscle_id)
+        doc = muscles_store.load_muscle(muscle_id)
         if doc:
             return doc
     raise HTTPException(404, detail="not_found")

@@ -1,3 +1,18 @@
+"""Facade barrel for the exercise-related HTTP surface.
+
+This module stays as the single import target for `fitness.api.main`, while the
+actual route implementations are split by responsibility into catalog,
+teaching, muscles, and inbox modules.
+
+Important architecture note:
+- `/fitness/anatomy/*` may exist as an HTTP namespace for anatomy-specific
+  actions.
+- The underlying SSOT for muscles and anatomy teaching still lives in the
+  catalog KB (`fitness/catalog/kb/...`).
+- Write-capable muscle KB logic therefore belongs to `fitness.catalog.*`, not
+  to a separate long-lived `fitness.anatomy` data layer.
+"""
+
 from fastapi import APIRouter
 
 from fitness.api.routers.exercises_catalog import router as catalog_router
