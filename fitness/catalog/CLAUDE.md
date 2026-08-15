@@ -319,6 +319,27 @@ Vier Inbox-Ablageorte im Code (lokal `kb/inbox/*.yml`, Watcher-beobachteter
 `fitness/api/config.py::INBOX_DIR`) — Konsolidierung noch offen, bei Änderung
 alle vier synchron halten.
 
+**Proaktives Enrichment beim Session-Save (2026-08-15, im Backend, kein
+separater Service):** `fitness/api/routers/sessions.py::_queue_unreviewed_enrichment()`
+läuft als Fire-and-Forget (`asyncio...run_in_executor`, gleiches Muster wie
+`mirror_session`) direkt nach jedem `POST /session`. Für jede tatsächlich
+geloggte Übung (`_performed_exercises()`, kein bloßer Plan-Eintrag) wird per
+`resolve_query()` der Record-Tier geprüft — ist er bereits `"expert"`, wird
+nichts getan; sonst läuft `process_inbox_file_virtual()` (→
+`build_external_seed()`, mergt wger+yuhonas-Rohdaten für genau diese eine
+Übung zu einem Inbox-Draft). Funktionstest verifiziert: Session mit nur einer
+Expert-Übung → 0 Aufrufe, Session mit einer Bulk-Übung → genau 1 Aufruf mit
+korrekter `wger_id`.
+
+Bewusst NICHT die ältere `FITNESS_WATCHER_PROACTIVE_REFINER`-Logik (periodischer
+Scan des `fitness-enricher.service`-Watchers über die "meistgenutzten
+unreviewed Übungen", Default `off` via Env-Flag) — die reicherte Übungen an,
+die niemand tatsächlich geloggt hatte ("the inbox watcher must not invent
+history rows or phantom exercise drafts", Kommentar im Code). Der neue
+Trigger ist strikt auf die Übungen der jeweils gespeicherten Session
+begrenzt, läuft im selben FastAPI-Prozess statt in einem separaten
+Watcher-Prozess.
+
 ---
 
 ## Datei-Backups & parallele Sessions
