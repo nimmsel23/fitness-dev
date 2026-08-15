@@ -141,6 +141,12 @@ RSYNC_EXCLUDES=(
   --exclude ".venv"
   --exclude "fitness/catalog/state"
   --exclude "fitness/catalog/kb"
+  # free-exercise-db liegt manuell unter $DEST (~/fitness), existiert aber
+  # nicht in $SOURCE (~/fitness-dev) — ohne diesen Exclude loescht --delete
+  # bei jedem Staging-Deploy den kompletten Klon bis auf .git leer (Root
+  # Cause fuer den "yuhonas-Repo wird nach dem Import geleert"-Bug,
+  # 2026-08-15 gefunden). Siehe fitness/catalog/CLAUDE.md.
+  --exclude "free-exercise-db"
 )
 
 msg "📦 Syncing files from $SOURCE → $DEST"

@@ -103,6 +103,12 @@ export default function ExerciseInsightModal({ exercise, onClose, muscleLanguage
             <div className="text-sm mt-1" style={{ color: 'var(--muted)' }}>
               {insight.category} · {insight.equipment}
             </div>
+            {insight.isRaw && (
+              <div className="inline-flex items-center gap-1.5 mt-2 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg"
+                style={{ background: 'rgba(251,191,36,0.12)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.3)' }}>
+                Ungeprüfte Rohdaten (wger/yuhonas) — keine Coach-Lesson vorhanden
+              </div>
+            )}
           </div>
           <button onClick={onClose} className="p-2 rounded-xl" style={{ background: 'var(--card)', border: '1px solid var(--line)', color: 'var(--muted)' }}>
             <X size={18} />
@@ -113,7 +119,9 @@ export default function ExerciseInsightModal({ exercise, onClose, muscleLanguage
           <div className="grid gap-4 md:grid-cols-[1.3fr_0.9fr]">
             <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
               <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>Was es lehrt</div>
-              <p className="text-sm leading-6" style={{ color: 'var(--ink)' }}>{insight.learningGoal}</p>
+              <p className="text-sm leading-6" style={{ color: 'var(--ink)' }}>
+                {insight.learningGoal || 'Keine Original-Beschreibung vorhanden.'}
+              </p>
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 <div>
                   <div className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>Bewegung</div>
@@ -186,44 +194,69 @@ export default function ExerciseInsightModal({ exercise, onClose, muscleLanguage
               </div>
             </section>
 
-            <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-              <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Begruendung</div>
-              <p className="text-sm leading-6" style={{ color: 'var(--ink)' }}>{insight.movement.lesson}</p>
-              <div className="mt-4 text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>Spuerhinweis</div>
-              <p className="text-sm leading-6" style={{ color: 'var(--ink)' }}>{insight.feelCues[0] || 'Saubere Spannung und klare Linie.'}</p>
-            </section>
+            {insight.isRaw ? (
+              <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+                <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Original-Anleitung (ungeprüft)</div>
+                {insight.rawInstructions.length ? (
+                  <ol className="text-sm leading-6 list-decimal list-inside space-y-1" style={{ color: 'var(--ink)' }}>
+                    {insight.rawInstructions.map((line, idx) => <li key={idx}>{line}</li>)}
+                  </ol>
+                ) : (
+                  <p className="text-sm leading-6" style={{ color: 'var(--muted)' }}>Keine Original-Anleitung vorhanden.</p>
+                )}
+              </section>
+            ) : (
+              <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+                <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Begruendung</div>
+                <p className="text-sm leading-6" style={{ color: 'var(--ink)' }}>{insight.movement.lesson}</p>
+                {insight.feelCues[0] && (
+                  <>
+                    <div className="mt-4 text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>Spuerhinweis</div>
+                    <p className="text-sm leading-6" style={{ color: 'var(--ink)' }}>{insight.feelCues[0]}</p>
+                  </>
+                )}
+              </section>
+            )}
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-              <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Coaching Cues</div>
-              <div className="flex flex-wrap gap-2">
-                {insight.coachCues.map(cue => (
-                  <span key={cue} className="text-sm px-3 py-2 rounded-xl" style={{ background: 'var(--bg2)', color: 'var(--ink)' }}>
-                    {cue}
-                  </span>
-                ))}
-              </div>
-            </section>
-
-            <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-              <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Fehlerbilder</div>
-              <div className="space-y-2">
-                {insight.commonErrors.map(err => (
-                  <div key={err.error} className="p-3 rounded-xl" style={{ background: 'var(--bg2)', border: '1px solid var(--line)' }}>
-                    <div className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>{err.error}</div>
-                    <div className="text-sm mt-1" style={{ color: 'var(--muted)' }}>{err.anatomicalReason}</div>
-                    <div className="text-sm mt-1" style={{ color: 'var(--accent)' }}>{err.correction}</div>
+          {(insight.coachCues.length > 0 || insight.commonErrors.length > 0) && (
+            <div className="grid gap-4 md:grid-cols-2">
+              {insight.coachCues.length > 0 && (
+                <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+                  <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Coaching Cues</div>
+                  <div className="flex flex-wrap gap-2">
+                    {insight.coachCues.map(cue => (
+                      <span key={cue} className="text-sm px-3 py-2 rounded-xl" style={{ background: 'var(--bg2)', color: 'var(--ink)' }}>
+                        {cue}
+                      </span>
+                    ))}
                   </div>
-                ))}
-              </div>
-            </section>
-          </div>
+                </section>
+              )}
 
-          <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-            <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Lernfrage</div>
-            <p className="text-sm leading-6" style={{ color: 'var(--ink)' }}>{insight.quiz[0]?.question}</p>
-          </section>
+              {insight.commonErrors.length > 0 && (
+                <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+                  <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Fehlerbilder</div>
+                  <div className="space-y-2">
+                    {insight.commonErrors.map(err => (
+                      <div key={err.error} className="p-3 rounded-xl" style={{ background: 'var(--bg2)', border: '1px solid var(--line)' }}>
+                        <div className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>{err.error}</div>
+                        <div className="text-sm mt-1" style={{ color: 'var(--muted)' }}>{err.anatomicalReason}</div>
+                        <div className="text-sm mt-1" style={{ color: 'var(--accent)' }}>{err.correction}</div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+          )}
+
+          {insight.quiz[0]?.question && (
+            <section className="p-4 rounded-2xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
+              <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--muted)' }}>Lernfrage</div>
+              <p className="text-sm leading-6" style={{ color: 'var(--ink)' }}>{insight.quiz[0].question}</p>
+            </section>
+          )}
 
           <MuscleAnatomySection muscleAnatomy={exercise.lesson?.muscle_anatomy} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
 

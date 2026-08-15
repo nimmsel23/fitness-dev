@@ -263,6 +263,18 @@ def build_exercise_index() -> list[ExerciseRecord]:
                         yuhonas_id=entry.get("yuhonas_id"),
                         external_ids=entry.get("external_ids"),
                     )
+                    # Bugfix: ohne diese Registrierung findet Durchlauf 3
+                    # (Yuhonas) denselben, hier gerade neu angelegten
+                    # Bulk-Eintrag nie wieder — by_wger/by_name wurden bisher
+                    # nur aus Durchlauf 1 (Expert/Inbox) befuellt. Ergebnis:
+                    # zwei separate unreviewed-Eintraege (bulk + yuhonas) fuer
+                    # dieselbe reale Uebung, beide parallel in der Search
+                    # sichtbar, statt eines einzigen mergebaren Inbox-Drafts.
+                    if w_id:
+                        by_wger[int(w_id)] = ex_id
+                    for candidate in (norm_name, norm_german, norm_english):
+                        if candidate:
+                            by_name[candidate] = ex_id
 
     # Durchlauf 3: Yuhonas (Bilder + Instructions mergen, oder neuer Fallback-Record)
     yuhonas_dir = catalog_path("../yuhonas")

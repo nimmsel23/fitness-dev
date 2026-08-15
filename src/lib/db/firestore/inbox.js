@@ -10,6 +10,7 @@ import {
 import { db } from "../../../firebase.js";
 import { getUid, BRIDGE_API_BASE } from "./core.js";
 import { normalizeExerciseRecord } from "../shared/exercise.js";
+import { enrichExerciseViaVertex } from "../../exerciseAiEnrich.js";
 
 // ── Inbox ─────────────────────────────────────────────────────────────────────
 
@@ -91,11 +92,14 @@ export async function approveInbox(id, userId) {
 
 // Jagt einen bestehenden Inbox-Eintrag (z.B. aus einer frueheren Import-Aera,
 // der mit dem aktuellen Schema nicht mehr sauber approvebar ist) nochmal
-// frisch durch die Gemini-Anreicherung. Muss serverseitig laufen (API-Key,
-// Python-Pipeline) — ruft deshalb das FastAPI-Backend ueber den
-// Tailscale-Funnel an statt direkt Firestore zu schreiben. Der Backend-
-// Endpoint aktualisiert das Firestore-Dokument selbst zurueck
-// (siehe fitness/api/routers/exercises.py::inbox_reenrich).
+// frisch durch die Gemini-Anreicherung. Primärpfad: FastAPI-Backend ueber
+// den Tailscale-Funnel (Gemini→Haiku→Codex-Kette, exakte KB-Schema-
+// Normalisierung) — der Endpoint aktualisiert das Firestore-Dokument selbst
+// zurueck (siehe fitness/api/routers/exercises.py::inbox_reenrich). Das
+// setzt aber voraus, dass der lokale Coach-Rechner läuft. Schlägt der Call
+// fehl (Netzwerkfehler, Funnel down), fällt reenrichInbox auf Vertex AI
+// direkt im Browser zurück (exerciseAiEnrich.js) und schreibt selbst ins
+// Firestore-Dokument — funktioniert dann unabhängig von localhost.
 export async function reenrichInbox(id, userId, ex) {
   const targetUid = userId || getUid();
   const data = ex?.exercises?.[0] || ex?.enriched || ex || {};
@@ -110,8 +114,16 @@ export async function reenrichInbox(id, userId, ex) {
         doc_id: id,
       }),
     });
-    if (!res.ok) return { ok: false, error: `status_${res.status}` };
-    return await res.json();
+    if (res.ok) return await res.json();
+  } catch {
+    // lokales Backend nicht erreichbar — weiter zum Vertex-Fallback unten
+  }
+
+  try {
+    const enriched = await enrichExerciseViaVertex(data, ex?.coachFeedback || null);
+    const inboxRef = doc(db, "fitness", targetUid, "inbox", id);
+    await updateDoc(inboxRef, { status: "ai_enriched", enriched });
+    return { ok: true, id, exercise_id: enriched.exercise_id || enriched.id, enriched, via: "vertex" };
   } catch (e) {
     return { ok: false, error: String(e) };
   }

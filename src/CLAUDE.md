@@ -197,3 +197,75 @@ kennzeichnet HIT-Trainingseinheiten (kein Satz/Wdh-Tracking, Training bis zum
 Muskelversagen).
 
 **Response Pattern** (API): `{ ok: true, data: {...} }` oder `{ ok: false, error: "..." }`
+
+---
+
+## Exercise Insight Modal / "Coach Sheet" (`ExerciseInsightModal.jsx`, `lib/exerciseInsights.js`)
+
+Öffnet sich global bei jedem Exercise-Klick in der ganzen App (nicht nur im
+Coach-Tab) — trotz des Namens "Coach Sheet" kein reines Coach-Feature.
+`buildExerciseInsights(ex)` hat zwei Modi:
+- **Mit `lesson`** (echte `anatomy_teaching`-YAML vorhanden): normale
+  Anatomie-Lektion mit Coaching-Cues, Fehlerbildern, Quiz.
+- **Ohne `lesson`** (Stand 2026-08-15: ~22 von ~50+ Übungen): zeigt die
+  echten `instructions`/`original_description`-Rohfelder aus wger/yuhonas
+  (kommen bereits über `dataclasses.asdict()` vom Backend, siehe
+  `ExerciseRecord` in `fitness/catalog/core/resolver.py` — kein Backend-Fix
+  nötig). Sichtbarer "Ungeprüfte Rohdaten"-Badge im Modal-Header. **Vorher**
+  gab's hier ~250 Zeilen Keyword-Matching (`inferMovement()`), das bei jeder
+  lessonlosen Übung denselben erfundenen Bewegungsmuster-Text ausgegeben hat
+  ("Drückmuster"/"Zugmuster"/etc., unabhängig von der tatsächlichen Übung) —
+  ersatzlos entfernt, war reine Fake-Generik.
+- Coaching-Cues-/Fehlerbilder-/Lernfrage-Sektionen erscheinen im Modal nur
+  noch, wenn echte Daten vorhanden sind (`insight.coachCues.length`,
+  `insight.commonErrors.length`, `insight.quiz[0]?.question`) — keine leeren
+  Platzhalter-Boxen mehr. `buildExerciseCoachSheet()` (Markdown-Export)
+  zieht mit, inkl. `status: unreviewed|reviewed` im Frontmatter.
+
+---
+
+## Vertex-AI-Enrichment-Fallback (`lib/exerciseAiEnrich.js`, `lib/aiRetry.js`)
+
+Zweiter Enrichment-Pfad für `reenrichInbox()` (Coach-Inbox, `views/Inbox/`,
+eingebunden im Coach-Tab `activeSubTab === 'exercises'`) — greift, wenn der
+primäre Pfad (FastAPI-Backend über Tailscale-Funnel, Gemini→Haiku→Codex-Kette
+serverseitig) fehlschlägt, weil der lokale Coach-Rechner gerade nicht läuft.
+Analog zu `fuel-dev`s `VERTEX_AI_ROADMAP.md`-Muster (dort "coach"/local vs.
+"client"/cloud getrennt, hier als Fallback in derselben Funktion).
+
+- `src/firebase.js`: `vertexAI = getAI(app, { backend: new VertexAIBackend() })`
+  — bewusst die aktuelle `firebase/ai`-API, nicht das deprecated
+  `getVertexAI()` aus `firebase/vertexai` (das fuel-dev noch nutzt).
+- `lib/exerciseAiEnrich.js`: Prompts 1:1 aus
+  `fitness/catalog/agent/gemini.py` (`PROMPT_EXERCISE_ENRICH`/`_NEW`)
+  portiert, aber mit `responseSchema`/`responseMimeType: "application/json"`
+  statt fragilem Markdown-Fence-Parsing — Vertex liefert garantiert valides
+  JSON. Die dort serverseitig erzwungene Muskel-Vokabular-Liste
+  (`_muscle_prompt_vocab()`, gespeist aus `kb/muscles/*.yml`) ist hier
+  bewusst nur eine Prompt-Empfehlung statt Hard-Constraint — der Coach
+  reviewt jeden Draft ohnehin vor Freigabe (siehe Exercise-Insight-Modal
+  oben), ein leicht unpräziser Muskel-Name ist kein Datenintegritätsproblem.
+- `lib/db/firestore/inbox.js::reenrichInbox()`: Backend-Call zuerst, bei
+  Fehlschlag (Netzwerkfehler/Funnel down) `enrichExerciseViaVertex()` +
+  direktes `updateDoc()` auf denselben Firestore-Inbox-Doc
+  (`status: 'ai_enriched'`, `enriched: {...}`) — identisches Zielformat wie
+  der Python-Pfad (`_write_back_to_firestore_inbox` in
+  `fitness/catalog/api/watcher.py`), damit die Coach-UI keinen Unterschied
+  sieht.
+- **Nicht portiert** (bewusst, siehe `anatomy-kb/VERTEX_AI_ROADMAP.md`):
+  die anatomy-kb-eigene Muskel-Anatomie-Anreicherung (`anatomy_kb/gemini.py`,
+  Ursprung/Ansatz/Innervation pro Muskel) — anderes Zielschema, eigener
+  CLI/Daemon-Workflow, kein Browser-Trigger-Punkt vorhanden. Nur der
+  Exercise-Draft-Reenrich (Coach-Inbox) hat den Browser-Fallback.
+
+**Coach-Tab-Struktur-Split erledigt (2026-08-15):** `views/Coach/index.jsx`
+war 374 Zeilen mit allen 5 Sub-Tabs ("Hidden Chamber": Übungsanfragen/
+Klienten-Workouts/Katalog-Browser/Trainingspläne/Klienten) in einer Datei
+inkl. riesigem inline Feed-View-Block. Jetzt: `index.jsx` (~90 Zeilen) ist
+reiner Tab-Router, der Klienten-Workouts-Feed lebt in eigener
+`ClientWorkoutsFeed.jsx` — Muster jetzt konsistent mit den bereits
+bestehenden `AssignPlan.jsx`/`CatalogBrowser.jsx`/`ClientManagement.jsx`
+(je eine Datei pro Sub-Tab). Der Dedup-Merge-Bug (mehrere unreviewte
+wger/yuhonas-Duplikate statt EINEM Inbox-Draft) ist separat in
+`../fitness/catalog/CLAUDE.md` dokumentiert (Fix in `resolver.py`
+umgesetzt, Yuhonas-Anteil hängt noch am kaputten Datenpfad dort).

@@ -68,7 +68,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   fehlen, ist ein frischer Klon in ein Temp-Verzeichnis + gezieltes Kopieren
   risikofrei; `git checkout -- .` im Original-Ordner wird vom
   Auto-Mode-Classifier als Bypass-Versuch geblockt — nicht versuchen,
-  stattdessen User fragen oder Fresh-Clone-Weg nehmen.
+  stattdessen User fragen oder Fresh-Clone-Weg nehmen. **Root Cause
+  gefunden + gefixt (2026-08-15):** `deploy.sh`s `rsync --delete` leerte
+  dieses manuell platzierte Repo bei jedem Staging-Deploy, weil es nicht in
+  `$SOURCE` existiert — Fix: `--exclude "free-exercise-db"` in
+  `RSYNC_EXCLUDES` (beide Kopien, `~/fitness-dev/deploy.sh` und
+  `~/fitness/deploy.sh`). Details: `../fitness/catalog/CLAUDE.md`. Der oben
+  beschriebene Restore-Weg bleibt trotzdem gültig, falls es doch nochmal
+  passiert (z.B. durch einen manuellen `rm`) — jetzt reicht dafür sogar
+  `git checkout HEAD -- .` direkt im Original-Ordner, da die Ursache (nicht
+  der Auto-Mode-Classifier) das eigentliche Risiko war.
 - Firestore-Bugs live debuggen statt aus Code raten: `firebase-admin`
   Python-SDK + Credentials unter `~/.env/firebase-fitness.json`
   (`firebase_admin.initialize_app(credentials.Certificate(...))`, dann
@@ -108,6 +117,16 @@ um den Katalog zu erweitern), kein eigenständiges Backend. Details:
 - Proxies: wger (lokal), HabitSync (:6842)
 - **Dual-write**: `POST /session` schreibt JSON-File + SQLite synchron
 - **wger Gewichtssync**: `POST /fitness/body` mit `weight_kg` → schreibt Body-JSON + pusht `POST /api/v2/weightentry/` zu wger (fire-and-forget). Token: `WGER_API_TOKEN` env. Base-URL: `WGER_BASE` env (Standard `:8000`, wger läuft tatsächlich auf `:80`, siehe `../fitness/catalog/CLAUDE.md`).
+- **UID-Fallback (Fix 2026-08-15)**: alle Routen ohne expliziten `uid`-Query-Param
+  fallen jetzt einheitlich auf `FITNESS_UID` (aufgelöst aus `.active-uid`-Datei
+  bzw. Env, Modul-Konstante oben in der Datei) zurück. Vorher fielen 12 Routen
+  stattdessen auf den literalen String `"default"` zurück, während andere
+  bereits korrekt `FITNESS_UID` nutzten — dadurch landeten Requests ohne
+  `?uid=`/`X-User-UID`-Header in einem separaten `~/.aos/fitness/users/default/`-
+  Ordner, byte-identisch dupliziert zur echten UID (verifiziert + Ordner
+  gelöscht). Das Python-Prod-Backend (`fitness/api/config.py::_uid_from_request`)
+  hatte diesen Bug nie — dort war die Fallback-Kette schon korrekt bis auf
+  `_active_uid_fallback()`.
 
 **fitness-runtime.mjs** (Shared Runtime): `searchExercises()`, `buildPlan()`,
 `getWeeklySummary()` (via Python weekly.py), `exportSessionMarkdown()`.
@@ -209,7 +228,13 @@ gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
 - ✅ Firestore Sync + PWA Offline-Unterstützung (SW + IndexedDB offline-queue)
 - ✅ Firebase PWA: `npm run build:firebase` → `~/fitness/dist-firebase/`
 - ✅ anatomy-kb Integration (Git Subtree, :9200)
+- ✅ Exercise-Insight-Modal zeigt bei fehlender Lesson echte wger/yuhonas-
+  Rohdaten statt erfundenem Keyword-Fallback-Text (Details: `../src/CLAUDE.md`)
+- ✅ Vertex-AI-Fallback für Coach-Inbox-Reenrich, unabhängig vom lokalen
+  Backend (Details: `../src/CLAUDE.md`)
 - ⏳ AI Agent Workflow (Gemini → anatomy_teaching YAML-Generierung, laufend)
 - ⏳ Coverage-Granularität (primary/secondary/stabilizer) — teilweise
 - ⏳ Anatomie-Lehre für alle Übungen (~28 von ~50+ im Katalog)
 - ⏳ npm workspaces (root + pwa/ + arena/ als Workspace-Pakete)
+- ⏳ Coach-Tab-Gesamtaufräumung (`views/Coach/`, 5 Sub-Tabs, ~1000 Zeilen) —
+  noch nicht begonnen, Details + Zielbild in `../src/CLAUDE.md`
