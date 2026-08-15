@@ -46,9 +46,10 @@ function textToErrors(value) {
 }
 
 function buildLessonDraft(exercise, lesson) {
+  const record = exercise && typeof exercise === 'object' ? exercise : {}
   const source = lesson && typeof lesson === 'object' ? lesson : {}
   return {
-    title: source.title || exercise.display_name || exercise.displayName || exercise.name || '',
+    title: source.title || record.display_name || record.displayName || record.name || '',
     learning_goal_short: source.learning_goal?.short || '',
     learning_goal_detailed: source.learning_goal?.detailed || '',
     movement_pattern: typeof source.movement_pattern === 'string'
