@@ -9,13 +9,17 @@ import pino from "pino";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
 import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, readHabits, pullAllSessions, startUserDataWatchers } from "./firestore-mirror.mjs";
 
-// journalctl stempelt eh schon zeit, pino-pretty nur für lesbare Level/Struktur
-// in interaktiven Läufen (npm run dev) — unter systemd bleibt's kompaktes JSON.
-const log = pino(
-  process.env.NODE_ENV === "development" && process.stdout.isTTY
-    ? { transport: { target: "pino-pretty", options: { colorize: true, translateTime: "HH:MM:ss", ignore: "pid,hostname" } } }
-    : {}
-);
+// pino-pretty IMMER aktiv, auch unter systemd/journalctl — das ist der
+// tatsächliche Haupt-Log-Weg hier (nicht nur `npm run dev` im Terminal).
+// Rohes JSON war unter journalctl deutlich unlesbarer als die alten
+// console.log-Zeilen. Farbe nur an, wenn wirklich ein TTY dranhängt, sonst
+// landen ANSI-Escapes im Journal.
+const log = pino({
+  transport: {
+    target: "pino-pretty",
+    options: { colorize: process.stdout.isTTY === true, translateTime: "HH:MM:ss", ignore: "pid,hostname" },
+  },
+});
 
 // firebase-admin/undici haben beim Boot ein bekanntes, nicht-deterministisches
 // Stream-Close-Race (ERR_INVALID_STATE), das den ganzen Prozess mitreißt, weil
