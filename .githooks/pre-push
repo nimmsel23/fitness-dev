@@ -1,6 +1,6 @@
 #!/bin/bash
 # pre-push hook: build + deploy to Firebase when relevant frontend files are
-# part of the push to master (sw-cache-bump + manifest-version-bump happen
+# part of the push to vitalos (sw-cache-bump + manifest-version-bump happen
 # inside `npm run build:firebase` via scripts/bump-sw.mjs). Also pushes
 # changed catalog/KB YAMLs (fitness/catalog/kb/) to Firestore via
 # `fitness-catalog push-changed` — scoped to the pushed range, no
@@ -30,7 +30,7 @@ kb_until=""
 while read -r local_ref local_sha remote_ref remote_sha; do
   [ -z "$local_ref" ] && continue
   branch="${local_ref#refs/heads/}"
-  [ "$branch" != "master" ] && continue
+  [ "$branch" != "vitalos" ] && continue
 
   if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
     # New branch on remote — diff against empty tree
@@ -50,9 +50,9 @@ while read -r local_ref local_sha remote_ref remote_sha; do
 
   if echo "$changed" | grep -Eq "$KB_TRIGGER"; then
     if command -v gum >/dev/null 2>&1; then
-      gum log --level info "fitness-dev: KB-Aenderungen im Push zu master — pushe geaenderte Exercises/Muskeln zu Firestore…"
+      gum log --level info "fitness-dev: KB-Aenderungen im Push zu vitalos — pushe geaenderte Exercises/Muskeln zu Firestore…"
     else
-      echo "🔍 fitness-dev: KB-Aenderungen im Push zu master — pushe geaenderte Exercises/Muskeln zu Firestore…"
+      echo "🔍 fitness-dev: KB-Aenderungen im Push zu vitalos — pushe geaenderte Exercises/Muskeln zu Firestore…"
     fi
     if command -v fitness-catalog >/dev/null 2>&1; then
       fitness-catalog push-changed --since "$kb_since" --until "$kb_until"
@@ -71,9 +71,9 @@ if [ "$should_deploy" != true ]; then
 fi
 
 if command -v gum >/dev/null 2>&1; then
-  gum log --level info "fitness-dev: relevante Änderungen im Push zu master — baue + deploye zu Firebase…"
+  gum log --level info "fitness-dev: relevante Änderungen im Push zu vitalos — baue + deploye zu Firebase…"
 else
-  echo "🔍 fitness-dev: relevante Änderungen im Push zu master — baue + deploye zu Firebase…"
+  echo "🔍 fitness-dev: relevante Änderungen im Push zu vitalos — baue + deploye zu Firebase…"
 fi
 
 npm run firebase

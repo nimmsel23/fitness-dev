@@ -16,7 +16,7 @@ on:
     paths:
       - 'src/**'
   pull_request:
-    branches: [master, dev]
+    branches: [vitalos, dev]
     paths:
       - 'src/**'
 

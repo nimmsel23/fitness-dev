@@ -1,15 +1,17 @@
-# Live-Deploy für Fitness: Push auf master
-# 
+# Live-Deploy für Fitness: Push auf vitalos (vormals "master" — umbenannt
+# 2026-08-17 zur Klarheit: dieser Branch dient nur dem Firebase-Deploy-Ziel,
+# nicht der primären Entwicklung, die läuft auf dev).
+#
 # Baut die App und lädt sie direkt live auf Firebase hoch.
 # Analog zur Preview-Action wird das vitalos Meta-Repo ausgecheckt,
 # damit alle Nachbar-Repos (cross-repo imports) vorhanden sind.
 
-name: Live Deploy (Fitness master)
+name: Live Deploy (Fitness vitalos)
 
 on:
   workflow_dispatch:
   push:
-    branches: [master]
+    branches: [vitalos]
     paths:
       - 'src/**'
 
@@ -74,7 +76,7 @@ jobs:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            🚀 Fitness ist LIVE deployed (master)!
+            🚀 Fitness ist LIVE deployed (vitalos)!
 
             🔗 Live-URL: https://fitness-aos.web.app
             (oder eine verknüpfte Domain)
