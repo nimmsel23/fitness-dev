@@ -1,8 +1,24 @@
 name: approved_from_firebase
 description: Coach-approved via Firebase Inbox
 exercises:
-- german: Klimmzug im Obergriff
-  movement_pattern: vertical_pull
+- wger_id: 821
+  variations:
+  - assisted_pull_up
+  - band_assisted_pull_up
+  - weighted_pull_up
+  - wide_grip_pull_up
+  - neutral_grip_pull_up
+  - scapular_pull_up
+  equipment:
+  - bodyweight
+  - pull_up_bar
+  movements:
+  - vertical
+  - shoulder_adduction
+  - shoulder_extension
+  - elbow_flexion
+  - scapular_depression
+  - scapular_downward_rotation
   stabilizers:
   - 304_rotator_cuff
   - 206_erector_spinae
@@ -11,35 +27,21 @@ exercises:
   - 504_transverse_abdominis
   - 405_forearm_flexors
   - 105_serratus_anterior
+  name: Klimmzug im Obergriff
   id: '020'
-  movements:
-  - vertical
-  - shoulder_adduction
-  - shoulder_extension
-  - elbow_flexion
-  - scapular_depression
-  - scapular_downward_rotation
-  wger_muscle_ids:
-    primary: []
-    secondary: []
   display_name: Klimmzug im Obergriff
-  wger_id: 821
-  tags:
-  - expert
-  - back
-  - pull
-  - bodyweight
-  - calisthenics
-  - vertical_pull
-  - grip_strength
-  english: Pull-Up
-  variations:
-  - assisted_pull_up
-  - band_assisted_pull_up
-  - weighted_pull_up
-  - wide_grip_pull_up
-  - neutral_grip_pull_up
-  - scapular_pull_up
+  schema_version: 2026-08-12.exercise-v1
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 207_teres_major
+  - 204_trapezius_lower
+  german: Klimmzug im Obergriff
+  source: approved
+  wger_muscle_ids:
+    secondary: []
+    primary: []
+  _hash: 5b1492dc2565bb2657dffee1777519b3
+  movement_pattern: vertical_pull
   aliases:
   - Klimmzug
   - Klimmzüge
@@ -54,6 +56,29 @@ exercises:
   - Pull-Ups
   - Standard Pull-up
   - Pronated Pull-up
+  common_errors:
+  - Mit Kipping, Beinschwung oder Hüftschwung arbeiten statt jede Wiederholung aus
+    dem Hang kontrolliert einzuleiten.
+  - Aus einem passiven Hang hart anziehen, ohne zuerst Spannung im Schultergürtel
+    aufzubauen.
+  - Die Schultern zu den Ohren ziehen und damit Scapula-Depression und stabile Schultermechanik
+    zu verlieren.
+  - Nur das Kinn irgendwie über die Stange bringen, während Brustkorb, Schulterposition
+    und Zuglinie kollabieren.
+  - 'Halbe Wiederholungen machen: unten nicht ausstrecken oder oben zu früh abbrechen.'
+  - Den Kopf nach vorne zur Stange schieben statt den Körper zur Stange zu ziehen.
+  - Ins Hohlkreuz fallen oder die Rippen aufklappen lassen, wodurch der Rumpf instabil
+    wird und die Kraftübertragung leidet.
+  - Zu breit greifen und dadurch ROM, Schultermechanik und saubere Ellbogenführung
+    unnötig verschlechtern.
+  exercise_id: '020'
+  type: compound
+  source_snapshot:
+    wger:
+      wger_id: 821
+      wger_muscle_ids:
+        secondary: []
+        primary: []
   secondary_muscles:
   - 402_biceps_brachii
   - 403_brachialis
@@ -62,11 +87,22 @@ exercises:
   - 205_rhomboids
   - 203_trapezius_middle
   - 204_trapezius_lower
+  review_state:
+    status: approved
+  category: pull
   external_ids:
     yuhonas:
     - Pullups
     wger:
     - 821
+  tags:
+  - expert
+  - back
+  - pull
+  - bodyweight
+  - calisthenics
+  - vertical_pull
+  - grip_strength
   origin:
     source_refs:
       yuhonas:
@@ -74,7 +110,10 @@ exercises:
       wger:
       - '821'
     type: merged_external
-  type: compound
+  search_aliases:
+  - Pullups
+  - yuhonas_pullups
+  - Klimmzug an Leiste
   coaching_notes:
   - 'Starte aus einem aktiven Hang: Hals lang, Rippen unten, Schulterblätter zuerst
     sanft nach unten setzen statt passiv in den Schultern zu hängen.'
@@ -92,43 +131,4 @@ exercises:
     Schulterkontrolle, Kraftaufbau und Positionsgefühl im Hang.
   - Der Obergriff verlagert die Belastung etwas stärker auf Latissimus, Teres major
     und oberen Rücken und etwas weniger auf den Bizeps als beim Chin-Up.
-  common_errors:
-  - Mit Kipping, Beinschwung oder Hüftschwung arbeiten statt jede Wiederholung aus
-    dem Hang kontrolliert einzuleiten.
-  - Aus einem passiven Hang hart anziehen, ohne zuerst Spannung im Schultergürtel
-    aufzubauen.
-  - Die Schultern zu den Ohren ziehen und damit Scapula-Depression und stabile Schultermechanik
-    zu verlieren.
-  - Nur das Kinn irgendwie über die Stange bringen, während Brustkorb, Schulterposition
-    und Zuglinie kollabieren.
-  - 'Halbe Wiederholungen machen: unten nicht ausstrecken oder oben zu früh abbrechen.'
-  - Den Kopf nach vorne zur Stange schieben statt den Körper zur Stange zu ziehen.
-  - Ins Hohlkreuz fallen oder die Rippen aufklappen lassen, wodurch der Rumpf instabil
-    wird und die Kraftübertragung leidet.
-  - Zu breit greifen und dadurch ROM, Schultermechanik und saubere Ellbogenführung
-    unnötig verschlechtern.
-  schema_version: 2026-08-12.exercise-v1
-  name: Klimmzug im Obergriff
-  primary_muscles:
-  - 201_latissimus_dorsi
-  - 207_teres_major
-  - 204_trapezius_lower
-  review_state:
-    status: approved
-  source_snapshot:
-    wger:
-      wger_id: 821
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-  category: pull
-  exercise_id: '020'
-  _hash: 5b1492dc2565bb2657dffee1777519b3
-  search_aliases:
-  - Pullups
-  - yuhonas_pullups
-  - Klimmzug an Leiste
-  equipment:
-  - bodyweight
-  - pull_up_bar
-  source: approved
+  english: Pull-Up
