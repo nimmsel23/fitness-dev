@@ -26,7 +26,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   ("Refusing to write through symlink") — immer `docs/CLAUDE.md` editieren.
 - `~/vitalos/fitness-app` ist ein Git-**Worktree** von `~/fitness-dev`
   (`git worktree list` zeigt alle) — kein separater Clone, `master` ist dort
-  dauerhaft ausgecheckt. **`git checkout master` in `~/fitness-dev` schlägt
+  dauerhaft ausgecheckt. **Dient nur dem `master`-Merge + dem Firebase-Build/
+  Deploy** (Post-Push-Hook baut dort `npm run firebase` und deployt nach
+  `fitness-aos.web.app`) — kein einziger laufender lokaler Server zeigt
+  dorthin. Der eigentliche Dev-Server (Node `fitness-dev.service` :9100 +
+  Python `fitness-api.service` :9150, inkl. eingebettetem Firestore-Watcher
+  für Katalog-Approvals) läuft mit `WorkingDirectory=/home/alpha/fitness-dev`
+  — sprich, jede lokale Entwicklung/jeder Funnel-Zugriff läuft über
+  `~/fitness-dev`, nie über den Worktree. Verifiziert 2026-08-17 via
+  `systemctl --user show <service> -p WorkingDirectory`. **`git checkout
+  master` in `~/fitness-dev` schlägt
   deshalb erwartbar fehl** ("bereits von Arbeitsverzeichnis in .../vitalos/...
   verwendet") — das ist kein Fehlerzustand, den man dem User meldet oder bei
   dem man nachfragt, sondern der Normalfall. Vorgehen zum `dev`→`master`-Merge,
