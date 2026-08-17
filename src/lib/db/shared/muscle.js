@@ -116,6 +116,15 @@ export function getMuscleGroups() {
     .map(([id, label]) => ({ id, label }));
 }
 
+// Regionen, die in der Coverage-Gaps-Anzeige (Weekly Review, Dashboard)
+// bewusst nicht als "fehlend" auftauchen sollen — werden im Alltag kaum
+// isoliert trainiert und sind kein sinnvolles Coverage-Ziel.
+const GAP_EXCLUDED_REGIONS = new Set(["iliopsoas", "forearms"]);
+
+export function getMuscleGroupsForGaps() {
+  return getMuscleGroups().filter((g) => !GAP_EXCLUDED_REGIONS.has(g.id));
+}
+
 /**
  * Liest die Region einer Muskel-ID direkt aus dem KB-Mapping (aus muscles: [...] in *.yml).
  */

@@ -1,6 +1,6 @@
 import { api } from "./core";
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants";
-import { muscleToGroupIds, getMuscleGroups, buildMuscleBalanceInsights, muscleToRegion } from "../shared/muscle";
+import { muscleToGroupIds, getMuscleGroupsForGaps, buildMuscleBalanceInsights, muscleToRegion } from "../shared/muscle";
 import { computeMuscleScores } from "../../superkompensation.js";
 
 export async function getDashboardAnalytics(days = 28) {
@@ -117,7 +117,7 @@ export async function getWeeklyReport(selector = "current") {
     sessions.push({ ...sess, exercise_count: sess.exercises?.length || 0, muscle_recovery: muscleRecovery });
   }
 
-  const allGroups = getMuscleGroups().map(g => g.id);
+  const allGroups = getMuscleGroupsForGaps().map(g => g.id);
   const gaps = allGroups.filter(g => (bodyRegionScores[g] || 0) < 1);
   const totalExercises = sessions.reduce((sum, s) => sum + (s.exercise_count || 0), 0);
   const effortValues = sessions.map(s => s.effort).filter(e => e && Number(e) > 0);
@@ -189,7 +189,7 @@ export async function getMuscleCoverage(days = 7) {
 
 export async function getCoverageGaps(days = 7, threshold = 1.0) {
   const hits = await getMuscleCoverage(days);
-  return getMuscleGroups()
+  return getMuscleGroupsForGaps()
     .filter(g => (hits[g.id] || 0) < threshold)
     .map(g => ({ name: g.label, id: g.id, hits: hits[g.id] || 0 }));
 }

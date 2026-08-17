@@ -11,7 +11,7 @@ import { db } from "../../../firebase.js";
 import { num, todayISO } from "../shared/utils.js";
 import {
   ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds,
-  getMuscleGroups, buildMuscleBalanceInsights,
+  getMuscleGroupsForGaps, buildMuscleBalanceInsights,
 } from "../shared/muscle.js";
 import { getUid, hasAuthSession } from "./core.js";
 import { getAllExercises } from "./kb.js";
@@ -120,7 +120,7 @@ export async function getMuscleCoverage(days = 7) {
 export async function getCoverageGaps(days = 7, threshold = 1.0) {
   if (!hasAuthSession()) return getLocalCoverageGaps(days, threshold);
   const hits = await getMuscleCoverage(days);
-  return getMuscleGroups()
+  return getMuscleGroupsForGaps()
     .filter((g) => (hits[g.id] || 0) < threshold)
     .map((g) => ({ name: g.label, id: g.id, hits: hits[g.id] || 0 }));
 }
@@ -357,7 +357,7 @@ async function buildWeeklyReportData(selector = "current") {
     }
   }
 
-  const allGroups = getMuscleGroups().map((g) => g.id);
+  const allGroups = getMuscleGroupsForGaps().map((g) => g.id);
   const gaps = allGroups.filter((g) => (bodyRegionScores[g] || 0) < 1);
 
   const efforts = sessions.map((s) => s.effort).filter((e) => typeof e === "number");
