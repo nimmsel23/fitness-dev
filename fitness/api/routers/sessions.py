@@ -6,7 +6,7 @@ from fastapi import APIRouter, Request, Query, HTTPException
 from fitness.api.config import (
     SESS_ROOT, _uid_from_request, date, _read_json, _write_json,
     _session_file, _parse_session_fname, _freeze_snapshot, _sync_session_to_db,
-    logger
+    logger, load_klienten_registry
 )
 from db.schemas import SessionResponse, SyncRequest, SyncResponse
 from fitness.firestore.mirror import mirror_session
@@ -32,6 +32,13 @@ def _performed_exercises(session: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _is_activity_only(session: dict[str, Any]) -> bool:
+    # Explizit als eigenständige Ausdauer-Hauptsession angelegt (Frontend-
+    # ModeSwitcher -> sessionMode: "cardio") darf nie in eine andere Session
+    # desselben Tages gemerged werden, selbst wenn exercises leer ist — sonst
+    # verschwindet die bewusst geloggte Cardio-Session in der
+    # activity-Addon-Liste einer bereits existierenden Kraft-Session.
+    if session.get("sessionMode") == "cardio":
+        return False
     return bool(session.get("activity")) and not _performed_exercises(session)
 
 
@@ -147,6 +154,19 @@ async def session_post(request: Request, date_: str = Query(None, alias="date"),
         logger.info(f"session activity merged  {uid}/{day}  activity={body.get('activity', {}).get('type','')}")
         return {"ok": True, "id": None, "merged": True}
 
+    # Normaler (Nicht-Merge-)Save auf die kanonische Tagesdatei (id=None):
+    # activityAddons, die durch einen früheren Finisher-Merge dort schon
+    # liegen, dürfen nicht verschwinden, nur weil dieser Save-Call sie nicht
+    # kennt (z.B. Autosave beim Editieren der Hauptsession) — sonst löscht
+    # das nächste Tippen in der Hauptsession still einen bereits geloggten
+    # Finisher (siehe _merge_activity_addon oben).
+    if id is None and "activityAddons" not in body:
+        canonical = _session_file(uid, day, None)
+        existing = _read_json(canonical, {}) if canonical.exists() else {}
+        if isinstance(existing, dict) and existing.get("activityAddons"):
+            body = {**body, "activityAddons": existing["activityAddons"]}
+            body.setdefault("activity", existing.get("activity"))
+
     session = _freeze_snapshot({**body, "date": day, "session_id": id, "saved_at": datetime.utcnow().isoformat()})
     n_ex = len(session.get("exercises", []))
     _write_json(_session_file(uid, day, id), session)
@@ -155,6 +175,30 @@ async def session_post(request: Request, date_: str = Query(None, alias="date"),
     asyncio.get_event_loop().run_in_executor(None, _queue_unreviewed_enrichment, session)
     logger.info(f"session saved  {uid}/{day}  block={session.get('block','')}  exercises={n_ex}")
     return {"ok": True, "id": id}
+
+@router.delete("/session/activity")
+async def session_delete_activity(request: Request, date_: str = Query(None, alias="date"), index: int = Query(...)):
+    """Entfernt einen einzelnen Finisher aus activityAddons, ohne die
+    gesamte (Kraft-)Session zu löschen. Gegenstück zum Merge in
+    _merge_activity_addon oben — bisher gab es keinen Weg zurück."""
+    uid = _require_uid(request)
+    day = date_ or _today()
+    canonical = _session_file(uid, day, None)
+    existing = _read_json(canonical, {})
+    if not isinstance(existing, dict) or not existing:
+        raise HTTPException(404, detail="not_found")
+    addons = list(existing.get("activityAddons") or [])
+    if index < 0 or index >= len(addons):
+        raise HTTPException(404, detail="addon_not_found")
+    addons.pop(index)
+    existing["activityAddons"] = addons
+    existing["activity"] = addons[0] if addons else None
+    session = _freeze_snapshot({**existing, "saved_at": datetime.utcnow().isoformat()})
+    _write_json(canonical, session)
+    _sync_session_to_db(day, session, None)
+    asyncio.get_event_loop().run_in_executor(None, mirror_session, day, session, uid)
+    logger.info(f"session activity addon deleted  {uid}/{day}  index={index}")
+    return {"ok": True, "activityAddons": addons}
 
 @router.delete("/session")
 def session_delete(request: Request, date_: str = Query(None, alias="date"), id: str | None = None):
@@ -235,11 +279,14 @@ async def internal_sync_session(body: SyncRequest):
 
 @router.get("/fitness/clients")
 def clients(request: Request):
+    klienten = load_klienten_registry()
+    result = [{"uid": uid, "name": meta["name"], "slug": meta["slug"]} for uid, meta in klienten.items()]
+
     if not SESS_ROOT.exists():
-        return {"ok": True, "clients": []}
-    result = []
+        return {"ok": True, "clients": result}
+    known_uids = {c["uid"] for c in result}
     for uid_dir in SESS_ROOT.iterdir():
-        if not uid_dir.is_dir() or uid_dir.name in ("default", "kb"):
+        if not uid_dir.is_dir() or uid_dir.name in ("default", "kb") or uid_dir.name in known_uids:
             continue
         name     = uid_dir.name[:8]
         sess_dir = uid_dir / "sessions"

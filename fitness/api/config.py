@@ -40,10 +40,6 @@ _CATALOG_DIST_DIR = _HERE.parent / "catalog" / "dist"
 _CATALOG_INDEX_HTML = _CATALOG_DIST_DIR / "index.html"
 
 
-# Local habits fallback
-LOCAL_HABITS_FILE = Path.home() / ".aos" / "journal" / "habits" / "definitions.json"
-LOCAL_RECORDS_DIR = Path.home() / ".aos" / "journal" / "habits" / "records"
-
 # ── helper imports ────────────────────────────────────────────────────────────
 from db import SessionLocal, engine, Base
 from db.models import TrainingHistory
@@ -59,6 +55,33 @@ def _read_json(p: Path, fallback=None):
 def _write_json(p: Path, data) -> None:
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(data, indent=2, ensure_ascii=False))
+
+def load_klienten_registry() -> dict[str, dict[str, str]]:
+    """uid -> {name, slug} aus ~/Klienten/*/client.json (firebase_uid /
+    firebase_uids). Das ist die eigentliche SOT für Klientennamen (siehe
+    fitness-sync add-client) — portiert von server.mjs (Node), wo dieselbe
+    Lücke ("nur aus letzter Session geraten, sonst rohe UID gezeigt") schon
+    an mehreren Stellen behoben war, während Python sie noch hatte. Geteilt
+    zwischen coaching.py (/fitness/coach/profiles) und sessions.py
+    (/fitness/clients), damit der Fix nicht ein drittes Mal auseinanderläuft."""
+    dir_ = Path.home() / "Klienten"
+    registry: dict[str, dict[str, str]] = {}
+    if not dir_.exists():
+        return registry
+    for slug_dir in dir_.iterdir():
+        cfg_path = slug_dir / "client.json"
+        if not cfg_path.exists():
+            continue
+        cfg = _read_json(cfg_path)
+        if not cfg:
+            continue
+        uids = set(cfg.get("firebase_uids") or [])
+        if cfg.get("firebase_uid"):
+            uids.add(cfg["firebase_uid"])
+        for uid in uids:
+            if uid:
+                registry[uid] = {"name": cfg.get("name"), "slug": slug_dir.name}
+    return registry
 
 def _active_uid_fallback() -> str | None:
     for key in ("FITNESS_UID", "AOS_UID"):

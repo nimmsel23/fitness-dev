@@ -160,19 +160,6 @@ export async function mirrorJournal(date, entry, uid = "default") {
   );
 }
 
-export async function getHabitJournals(uid = "default") {
-  const db = await getDb();
-  if (!db) return [];
-  const col = db.collection("fitness").doc(uid).collection("habit_journals");
-  const snap = await col.get();
-  return snap.docs.map(d => {
-    const id = d.id; // habitId__date
-    const [habitId, date] = id.split("__");
-    const data = d.data();
-    return { habitId, date, ...data };
-  });
-}
-
 // ── Read Layer (Firestore → direkt, kein lokaler Sync nötig) ─────────────────
 
 export async function readJournal(uid, date) {
@@ -301,28 +288,6 @@ export async function readSession(uid, date) {
   } catch { return null; }
 }
 
-export async function readHabits(uid) {
-  const db = await getDb();
-  if (!db) return null;
-  try {
-    const [habitsSnap, recordsSnap] = await Promise.all([
-      db.collection("fitness").doc(uid).collection("habits").get(),
-      db.collection("fitness").doc(uid).collection("habitRecords")
-        .where("date", "==", new Date().toISOString().slice(0,10)).get(),
-    ]);
-    const doneToday = new Set(recordsSnap.docs.map(d => d.data().habitId));
-    return habitsSnap.docs
-      .map(d => ({ uuid: d.id, ...d.data() }))
-      .filter(h => !h.deleted)
-      .map(h => ({
-        ...h,
-        records: doneToday.has(h.uuid)
-          ? [{ date: new Date().toISOString().slice(0,10), completion: "DONE" }]
-          : [],
-      }));
-  } catch { return null; }
-}
-
 export async function mirrorPlan(plan, uid = "default") {
   const db = await getDb();
   if (!db) return;
@@ -331,23 +296,5 @@ export async function mirrorPlan(plan, uid = "default") {
       ...plan,
       updated_at: new Date().toISOString(),
     })
-  );
-}
-
-// New: Mirror habit journal entries (memoirs)
-export async function mirrorHabitJournal(habitId, date, entry, uid = "default") {
-  const db = await getDb();
-  if (!db) return;
-  fire(() =>
-    db.collection("fitness")
-      .doc(uid)
-      .collection("habit_journals")
-      .doc(`${habitId}__${date}`)
-      .set({
-        habitId,
-        date,
-        ...entry,
-        saved_at: new Date().toISOString(),
-      })
   );
 }

@@ -15,7 +15,7 @@ import SessionSwitcher from './SessionSwitcher';
 import SessionGateCard from './SessionGateCard.jsx';
 import ExerciseList from './ExerciseList';
 import ActivitySection from './ActivitySection';
-import ActivityAddon from './ActivityAddon';
+import ActivityAddon, { ADDON_TYPES } from './ActivityAddon';
 import SidebarSheet from './SidebarSheet';
 import SessionSidebar from './SessionSidebar';
 import AnatomyInline from './AnatomyInline';
@@ -42,6 +42,7 @@ export default function SessionEditor({
   restHours,
   activity, setActivity,
   hasActivity, setHasActivity,
+  activityAddons, removeActivityAddon,
   sessionGate,
   recentSessions,
   hint, gaps,
@@ -206,6 +207,46 @@ export default function SessionEditor({
               </div>
             </div>
             <ActivitySection activity={activity} setActivity={v => { setActivity(v); scheduleAutoSave(); }} />
+          </div>
+        )}
+
+        {/* Bereits gespeicherte Finisher dieses Tages (activityAddons-Historie) */}
+        {activityAddons?.length > 0 && (
+          <div className="space-y-1.5">
+            <div
+              className="text-[9px] font-black uppercase tracking-[0.2em] px-1"
+              style={{ color: 'var(--dim)', opacity: 0.5 }}
+            >
+              Geloggte Finisher
+            </div>
+            {activityAddons.map((addon, i) => {
+              const meta = ADDON_TYPES.find(t => t.value === addon.type) || ADDON_TYPES[0];
+              return (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl"
+                  style={{ background: 'var(--card)', border: '1px solid var(--line)' }}
+                >
+                  <span className="text-base leading-none">{meta.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] font-bold" style={{ color: 'var(--ink)' }}>
+                      {meta.label}{addon.duration ? ` · ${addon.duration} min` : ''}
+                    </div>
+                    {addon.notes && (
+                      <div className="text-[10px] truncate" style={{ color: 'var(--dim)', opacity: 0.6 }}>
+                        {addon.notes}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => removeActivityAddon(i)}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-fit-dim hover:text-fit-red hover:bg-fit-red/10 transition-all"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
 

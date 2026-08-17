@@ -19,6 +19,7 @@ from fitness.api.routers.exercises import router as exercises_router
 from fitness.api.routers.coaching import router as coaching_router
 from fitness.api.routers.coach_plans import router as coach_plans_router
 from fitness.api.routers.macrocycles import router as macrocycles_router
+from fitness.api.routers.workouts import router as workouts_router
 from fitness.api.routers.system import router as system_router
 from fitness.anatomy.router import router as anatomy_router
 
@@ -104,6 +105,7 @@ app.include_router(exercises_router)
 app.include_router(coaching_router)
 app.include_router(coach_plans_router)
 app.include_router(macrocycles_router)
+app.include_router(workouts_router)
 app.include_router(system_router)
 app.include_router(anatomy_router)
 

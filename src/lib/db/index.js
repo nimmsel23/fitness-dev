@@ -4,7 +4,6 @@
 export * from "./local/core.js";
 export * from "./local/sessions.js";
 export * from "./local/journal.js";
-export * from "./local/habits.js";
 export * from "./local/kb.js";
 export * from "./local/inbox.js";
 export * from "./local/coach.js";

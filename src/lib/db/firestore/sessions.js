@@ -45,6 +45,12 @@ function hasTrainingSignal(ex) {
 }
 
 function isActivityOnly(sessionData) {
+  // Explizit als eigenständige Ausdauer-Hauptsession angelegt (ModeSwitcher
+  // → sessionMode: "cardio") darf NIE in eine andere Session desselben Tages
+  // gemerged werden, selbst wenn exercises leer ist — sonst verschwindet die
+  // bewusst geloggte Cardio-Session in der activity-Addon-Liste einer
+  // bereits existierenden Kraft-Session.
+  if (sessionData?.sessionMode === "cardio") return false;
   const exercises = Array.isArray(sessionData?.exercises) ? sessionData.exercises : [];
   return !!sessionData?.activity && !exercises.some(hasTrainingSignal);
 }
@@ -146,8 +152,23 @@ export async function saveSession(date = todayISO(), sessionData, id = null) {
     return { ok: true, id: null, merged: true };
   }
 
+  // Normaler (Nicht-Merge-)Save auf die kanonische Tagesdatei (id=null):
+  // activityAddons, die durch einen früheren Finisher-Merge dort schon
+  // liegen, dürfen nicht verschwinden, nur weil dieser Save-Call sie nicht
+  // kennt (z.B. Autosave beim Editieren der Hauptsession) — setDoc()
+  // überschreibt sonst das ganze Dokument (kein merge:true).
+  let addonCarryOver = {};
+  if (!id && !("activityAddons" in sessionData)) {
+    const canonicalSnap = await getDoc(doc(db, "fitness", getUid(), "sessions", date));
+    const existing = canonicalSnap.exists() ? canonicalSnap.data() || {} : {};
+    if (existing.activityAddons) {
+      addonCarryOver = { activityAddons: existing.activityAddons, activity: existing.activity };
+    }
+  }
+
   const targetId = id ? `${date}__${id}` : date;
   await setDoc(doc(db, "fitness", getUid(), "sessions", targetId), {
+    ...addonCarryOver,
     ...sessionData,
     date,
     session_id: id || null,
@@ -157,6 +178,30 @@ export async function saveSession(date = todayISO(), sessionData, id = null) {
   updateAnalyticsDoc(); // fire-and-forget
   scheduleWeeklyReportRefreshForDate(date).catch(() => {});
   return { ok: true, id };
+}
+
+// Entfernt einen einzelnen Finisher aus activityAddons, ohne die gesamte
+// (Kraft-)Session zu löschen. Gegenstück zu mergeActivityAddon() oben.
+export async function deleteActivityAddon(date = todayISO(), index) {
+  if (!hasAuthSession()) return { ok: false, error: "local_mode_unsupported" };
+  const ref = doc(db, "fitness", getUid(), "sessions", date);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return { ok: false, error: "not_found" };
+  const data = snap.data() || {};
+  const addons = Array.isArray(data.activityAddons) ? [...data.activityAddons] : [];
+  if (index < 0 || index >= addons.length) return { ok: false, error: "addon_not_found" };
+  addons.splice(index, 1);
+  await setDoc(ref, {
+    ...data,
+    activityAddons: addons,
+    activity: addons[0] || null,
+    date,
+    saved_at: serverTimestamp(),
+  });
+  pingBridge();
+  updateAnalyticsDoc();
+  scheduleWeeklyReportRefreshForDate(date).catch(() => {});
+  return { ok: true, activityAddons: addons };
 }
 
 export async function deleteSession(date = todayISO(), id = null) {

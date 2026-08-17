@@ -15,7 +15,7 @@ const MUSCLE_TARGETS = [
   { value: 'full',  label: 'Full Body' },
 ];
 
-const ADDON_TYPES = [
+export const ADDON_TYPES = [
   { value: 'hiit',      label: 'HIIT',        icon: '⚡' },
   { value: 'stretching',label: 'Stretching',  icon: '🤸' },
   { value: 'yoga',      label: 'Yoga',        icon: '🧘' },

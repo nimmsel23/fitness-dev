@@ -49,6 +49,19 @@ export async function deleteSession(date = localToday(), id = null) {
   return { ok: true };
 }
 
+// Entfernt einen einzelnen Finisher aus activityAddons, ohne die gesamte
+// (Kraft-)Session zu löschen. Node proxied das an fitness-api (Python) —
+// dort lebt die Merge/Addon-Logik, siehe firestore/sessions.js für den
+// Firestore-Pfad mit derselben Signatur.
+export async function deleteActivityAddon(date = localToday(), index) {
+  try {
+    const data = await api.delete(`/session/activity?date=${date}&index=${index}`);
+    return { ok: true, activityAddons: data?.activityAddons || [] };
+  } catch {
+    return { ok: false, error: "delete_failed" };
+  }
+}
+
 export async function getRecentSessions(n = 10) {
   try {
     const data = await api.get(`/session/history?limit=${n}`);
