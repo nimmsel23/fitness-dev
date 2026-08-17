@@ -9,7 +9,7 @@ from fastapi import APIRouter, Request, Query, HTTPException
 
 from fitness.api.config import (
     RUNTIME, SESS_ROOT, _uid_from_request, _read_json, _write_json,
-    _last_dates, _record_to_dict, logger
+    _last_dates, _record_to_dict, logger, load_klienten_registry
 )
 from db.schemas import (
     CoachFeedResponse, CoachProfilesResponse, CoachFeedbackRequest,
@@ -105,16 +105,20 @@ def coach_feed(limit: int = 100):
 
 @router.get("/fitness/coach/profiles", response_model=CoachProfilesResponse)
 def coach_profiles():
+    klienten = load_klienten_registry()
+    profiles = {uid: {"displayName": meta["name"], "uid": uid, "slug": meta["slug"]} for uid, meta in klienten.items()}
+
     if not SESS_ROOT.exists():
-        return {"ok": True, "profiles": {}}
-    
+        return {"ok": True, "profiles": profiles}
+
     uids = [
         d.name for d in SESS_ROOT.iterdir()
         if d.is_dir() and d.name not in ("default", "kb")
     ]
-    
-    profiles = {}
+
     for uid in uids:
+        if uid in profiles:
+            continue  # Klienten-Registry hat Vorrang
         sess_dir = SESS_ROOT / uid / "sessions"
         display_name = uid[:8]
         if sess_dir.exists():
@@ -127,11 +131,11 @@ def coach_profiles():
                     elif last_sess.get("user_email"):
                         display_name = last_sess["user_email"]
         profiles[uid] = {"displayName": display_name, "uid": uid}
-        
+
     return {"ok": True, "profiles": profiles}
 
 @router.post("/fitness/coach/feedback")
-def coach_feedback(body: CoachFeedbackRequest):
+async def coach_feedback(body: CoachFeedbackRequest):
     clean_session_id = body.sessionId.replace(f"{body.userId}__", "")
     sess_file = SESS_ROOT / body.userId / "sessions" / f"{clean_session_id}.json"
     
@@ -152,21 +156,43 @@ def coach_feedback(body: CoachFeedbackRequest):
 
 # ── Plan & Blocks ────────────────────────────────────────────────────────────
 @router.get("/plan/today")
-def plan_today(date_: str = Query(None, alias="date")):
-    day  = date_ or _today()
-    dow  = _DOW_DE[datetime.fromisoformat(day + "T12:00:00").weekday() + 1 % 7]
+def plan_today(request: Request, date_: str = Query(None, alias="date")):
+    day = date_ or _today()
+    uid = _uid_from_request(request)
     plan = _read_json(RUNTIME / "plan.json")
-    if plan:
-        match = next((e for e in plan.get("einheiten", []) if dow in (e.get("days") or [])), None)
-        if match:
-            exercises = [
-                u["name"]
-                for a in match.get("abschnitte", [])
-                for u in (a.get("übungen") or a.get("uebungen") or [])
-            ]
-            return {"ok": True, "suggestion": {"day": dow, "block": match["name"], "exercises": exercises}}
+    einheiten = (plan or {}).get("einheiten", [])
+
+    # Letztes geloggtes Workout ermitteln (block-Feld), unabhängig vom Wochentag.
+    sess_dir = SESS_ROOT / uid / "sessions"
+    last_block, last_logged_at = None, None
+    if sess_dir.exists():
+        for f in sorted(sess_dir.glob("*.json"), reverse=True):
+            sess = _read_json(f)
+            if sess and sess.get("block"):
+                last_block = sess["block"]
+                last_logged_at = sess.get("date") or f.name.removesuffix(".json").split("__")[0]
+                break
+
+    # Rotation statt Wochentag-Matching: nächste Einheit nach der zuletzt geloggten.
+    if einheiten:
+        last_idx = next((i for i, e in enumerate(einheiten) if e.get("name") == last_block), -1)
+        next_unit = einheiten[(last_idx + 1) % len(einheiten)]
+        exercises = [
+            u["name"]
+            for a in next_unit.get("abschnitte", [])
+            for u in (a.get("übungen") or a.get("uebungen") or [])
+        ]
+        return {"ok": True, "suggestion": {
+            "block": next_unit["name"], "exercises": exercises,
+            "lastBlock": last_block, "lastLoggedAt": last_logged_at,
+        }}
+
+    dow = _DOW_DE[(datetime.fromisoformat(day + "T12:00:00").weekday() + 1) % 7]
     block, exercises = _FALLBACK_PLAN.get(dow, ("Full Body", ["Squat", "Press", "Row"]))
-    return {"ok": True, "suggestion": {"day": dow, "block": block, "exercises": exercises}}
+    return {"ok": True, "suggestion": {
+        "day": dow, "block": block, "exercises": exercises,
+        "lastBlock": last_block, "lastLoggedAt": last_logged_at,
+    }}
 
 @router.get("/blocks")
 def blocks():

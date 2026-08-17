@@ -4,7 +4,6 @@
 export * from "./firestore/core.js";
 export * from "./firestore/sessions.js";
 export * from "./firestore/journal.js";
-export * from "./firestore/habits.js";
 export * from "./firestore/kb.js";
 export * from "./firestore/inbox.js";
 export * from "./firestore/coach.js";

@@ -5,7 +5,7 @@ from datetime import date, datetime, timedelta
 from fastapi import APIRouter, Request, Query, HTTPException
 
 from fitness.api.config import (
-    PORT, RUNTIME, BODY_DIR, _HERE, _DIST_DIR, _uid_from_request, _read_json, _write_json,
+    PORT, RUNTIME, BODY_DIR, SESS_ROOT, _HERE, _DIST_DIR, _uid_from_request, _read_json, _write_json,
     _wger_post, logger
 )
 from db.schemas import HealthResponse, BodyResponse
@@ -61,25 +61,42 @@ async def theme_post(request: Request):
     _write_json(_THEME_FILE, body)
     return {"ok": True}
 
+def _body_dir(uid: str):
+    return SESS_ROOT / uid / "body"
+
 @router.get("/fitness/body", response_model=BodyResponse)
-def body_get(days: int = Query(30, le=365, ge=1)):
-    BODY_DIR.mkdir(parents=True, exist_ok=True)
-    files = sorted(BODY_DIR.glob("????-??-??.json"), reverse=True)[:days]
-    return {"ok": True, "entries": [e for f in files if (e := _read_json(f))]}
+def body_get(request: Request, days: int = Query(30, le=365, ge=1)):
+    uid = _uid_from_request(request)
+    # Pro-uid-Ordner zuerst, globaler BODY_DIR als Legacy-Fallback für
+    # Einträge von vor diesem Fix — vorher war BODY_DIR ein einziger Topf
+    # für alle Klienten, Gewicht/Schlaf/HF hätten sich pro Datum überschrieben.
+    own_dir = _body_dir(uid)
+    own_dir.mkdir(parents=True, exist_ok=True)
+    by_date: dict[str, dict] = {}
+    for f in BODY_DIR.glob("????-??-??.json"):
+        if (e := _read_json(f)):
+            by_date[f.stem] = e
+    for f in own_dir.glob("????-??-??.json"):
+        if (e := _read_json(f)):
+            by_date[f.stem] = e  # eigener Ordner hat Vorrang vor Legacy-Global
+    entries = [by_date[d] for d in sorted(by_date, reverse=True)[:days]]
+    return {"ok": True, "entries": entries}
 
 @router.post("/fitness/body")
 async def body_post(request: Request):
-    BODY_DIR.mkdir(parents=True, exist_ok=True)
+    uid = _uid_from_request(request)
+    dir_ = _body_dir(uid)
+    dir_.mkdir(parents=True, exist_ok=True)
     payload  = await request.json()
     day      = payload.get("date", _today())
-    f        = BODY_DIR / f"{day}.json"
+    f        = dir_ / f"{day}.json"
     existing = _read_json(f, {"date": day})
     _write_json(f, {**existing, **payload, "updated_at": datetime.utcnow().isoformat()})
     if payload.get("weight_kg") is not None:
         asyncio.create_task(_wger_post("/weightentry/", {"date": day, "weight": str(payload["weight_kg"])}))
-        logger.info(f"body saved  {day}  weight={payload['weight_kg']}kg  → wger sync")
+        logger.info(f"body saved  {uid}/{day}  weight={payload['weight_kg']}kg  → wger sync")
     else:
-        logger.info(f"body saved  {day}")
+        logger.info(f"body saved  {uid}/{day}")
     return {"ok": True, "day": day}
 
 @router.get("/firestore/status")
@@ -127,8 +144,12 @@ def fs_pull(request: Request):
 
 @router.get("/fitness/config")
 def fitness_config():
+    # config.yml ist echtes YAML (von wger.py/obsidian.py via load_catalog_yaml
+    # gelesen) — _read_json() (json.loads) crashte hier immer still auf dem
+    # Except-Fallback, GET lieferte dadurch dauerhaft ein leeres {} zurück.
+    from fitness.catalog.core.yaml_utils import load_yaml
     try:
-        config = _read_json(_HERE.parent / "catalog" / "config.yml") or {}
+        config = load_yaml(_HERE.parent / "catalog" / "config.yml") or {}
     except Exception as exc:
         logger.warning(f"fitness_config: {exc}")
         config = {}
@@ -136,6 +157,10 @@ def fitness_config():
 
 @router.post("/fitness/config")
 async def fitness_config_post(request: Request):
+    # Dito: mit _write_json() (json.dump) wäre die echte YAML-Config mit
+    # JSON-Text überschrieben worden — wger.py/obsidian.py hätten danach
+    # beim nächsten load_catalog_yaml("config.yml") gecrasht.
+    from fitness.catalog.core.yaml_utils import dump_yaml
     body = await request.json()
-    _write_json(_HERE.parent / "catalog" / "config.yml", body)
+    dump_yaml(body, _HERE.parent / "catalog" / "config.yml")
     return {"ok": True}

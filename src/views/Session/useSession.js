@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   saveSession, getSessionHistory, listSessionsForDate, deleteSession,
+  deleteActivityAddon,
   parseQuick, getExercise,
   getCoverageGaps, getPlanSuggestion, exportFitnessData, queueForEnrichment,
   normalizeExerciseRecord,
@@ -87,6 +88,10 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   const [restHours, setRestHours]   = useState(null);
   const [activity, setActivity]     = useState({ ...DEFAULT_ACTIVITY });
   const [hasActivity, setHasActivity] = useState(false);
+  // Bereits gespeicherte Finisher dieser Tages-Session (Merge-Historie,
+  // siehe activityAddons in fitness/api/routers/sessions.py) — nur Anzeige/
+  // Löschen, kein Editier-State wie `activity` oben.
+  const [activityAddons, setActivityAddons] = useState([]);
   const [sessionGate, setSessionGate] = useState(() => normalizeSessionGate(null));
   const [recentSessions, setRecentSessions] = useState({});
   const [historyLimit, setHistoryLimit] = useState(60);
@@ -160,6 +165,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
       setActivity({ ...DEFAULT_ACTIVITY });
       setHasActivity(false);
     }
+    setActivityAddons(Array.isArray(d.activityAddons) ? d.activityAddons : []);
     setSessionGate(normalizeSessionGate(d.sessionGate));
   };
 
@@ -175,8 +181,18 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     setSessionMode('strength');
     setActivity({ ...DEFAULT_ACTIVITY });
     setHasActivity(false);
+    setActivityAddons([]);
     setSessionGate(normalizeSessionGate(null));
   };
+
+  // Löscht einen einzelnen Finisher aus der bereits gespeicherten
+  // activityAddons-Historie (nicht den gerade im Formular editierten
+  // `activity`-Draft — der lebt nur lokal bis zum nächsten Save).
+  async function removeActivityAddon(index) {
+    const result = await deleteActivityAddon(date, index);
+    if (result?.ok) setActivityAddons(result.activityAddons || []);
+    return result;
+  }
 
   const selectSession = (id) => {
     flushDirty();
@@ -583,6 +599,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     restHours,
     activity, setActivity,
     hasActivity, setHasActivity,
+    activityAddons, removeActivityAddon,
     sessionGate, setSessionGate,
     recentSessions,
     hasMoreHistory, loadMoreHistory,

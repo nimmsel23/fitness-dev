@@ -7,7 +7,7 @@ import { serve } from "@hono/node-server";
 import Database from "better-sqlite3";
 import pino from "pino";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
-import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, readHabits, pullAllSessions } from "./firestore-mirror.mjs";
+import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, pullAllSessions } from "./firestore-mirror.mjs";
 
 // pino-pretty IMMER aktiv, auch unter systemd/journalctl — das ist der
 // tatsächliche Haupt-Log-Weg hier (nicht nur `npm run dev` im Terminal).
@@ -178,196 +178,6 @@ function lastDates(days) {
 function escapeCsvValue(v) {
   return String(v ?? "").replaceAll('"', '""');
 }
-
-function normalizeTrackingType(value) {
-  const raw = String(value || "").trim().toLowerCase();
-  if (["bodyweight_reps", "bodyweight", "bodyweight&reps"].includes(raw)) return "bodyweight_reps";
-  if (["distance_time", "distance", "distance&time", "cardio"].includes(raw)) return "distance_time";
-  if (["duration", "time", "timer"].includes(raw)) return "duration";
-  return "weight_reps";
-}
-
-function defaultTemplateSet(index = 0, overrides = {}) {
-  return {
-    id: overrides.id || crypto.randomUUID(),
-    setIndex: overrides.setIndex ?? index + 1,
-    setType: overrides.setType || "normal",
-    targetReps: overrides.targetReps ?? "8-12",
-    targetWeight: overrides.targetWeight ?? null,
-    targetDistance: overrides.targetDistance ?? null,
-    targetDuration: overrides.targetDuration ?? null,
-    progressionStage: overrides.progressionStage ?? null,
-  };
-}
-
-function normalizeTemplateSets(exercise = {}) {
-  const raw = Array.isArray(exercise.templateSets) && exercise.templateSets.length > 0
-    ? exercise.templateSets
-    : Array.from({ length: Math.max(1, Number(exercise.target_sets) || 3) }, (_, index) =>
-        defaultTemplateSet(index, {
-          targetReps: exercise.target_reps ?? "8-12",
-          targetWeight: exercise.target_weight ?? null,
-          setType: exercise.drop_set ? "drop" : (exercise.effort === "to_failure" || exercise.effort === "absolute_failure" ? "failure" : "normal"),
-        })
-      );
-
-  return raw.map((set, index) => defaultTemplateSet(index, set));
-}
-
-function deriveLegacyRoutineFields(exercise = {}) {
-  const templateSets = normalizeTemplateSets(exercise);
-  return {
-    trackingType: normalizeTrackingType(exercise.trackingType || exercise.weight_type),
-    templateSets,
-    target_sets: templateSets.length,
-    target_reps: templateSets[0]?.targetReps ?? "8-12",
-    target_weight: templateSets[0]?.targetWeight ?? null,
-    drop_set: templateSets.some((set) => set.setType === "drop"),
-    effort: templateSets.some((set) => set.setType === "failure") ? "to_failure" : (exercise.effort || "normal"),
-    weight_type: exercise.weight_type || "kg",
-  };
-}
-
-function normalizeRoutineExercise(exercise = {}, order = 0) {
-  const derived = deriveLegacyRoutineFields(exercise);
-  return {
-    ...exercise,
-    ...derived,
-    id: exercise.id || crypto.randomUUID(),
-    name: exercise.name || exercise.exercise_id || "Übung",
-    primaryMuscles: Array.isArray(exercise.primaryMuscles) ? exercise.primaryMuscles : [],
-    secondaryMuscles: Array.isArray(exercise.secondaryMuscles) ? exercise.secondaryMuscles : [],
-    yuhonas_id: exercise.yuhonas_id || null,
-    rest_seconds: Number(exercise.rest_seconds) || 90,
-    rir: exercise.rir ?? null,
-    tempo: exercise.tempo ?? null,
-    notes: exercise.notes ?? null,
-    order: Number.isFinite(exercise.order) ? exercise.order : order,
-  };
-}
-
-function normalizeSetEntry(set = {}, index = 0) {
-  return {
-    id: set.id || crypto.randomUUID(),
-    order: Number.isFinite(set.order) ? set.order : index,
-    setIndex: set.setIndex ?? index + 1,
-    setType: set.setType || "normal",
-    targetReps: set.targetReps ?? null,
-    targetWeight: set.targetWeight ?? null,
-    targetDistance: set.targetDistance ?? null,
-    targetDuration: set.targetDuration ?? null,
-    progressionStage: set.progressionStage ?? null,
-    ghostReps: set.ghostReps ?? null,
-    ghostWeight: set.ghostWeight ?? null,
-    ghostDistance: set.ghostDistance ?? null,
-    ghostDuration: set.ghostDuration ?? null,
-    reps: set.reps ?? null,
-    weight: set.weight ?? null,
-    distance: set.distance ?? null,
-    duration: set.duration ?? null,
-    completed: !!set.completed,
-  };
-}
-
-function normalizeWorkoutExercise(exercise = {}, order = 0) {
-  return {
-    ...exercise,
-    id: exercise.id || crypto.randomUUID(),
-    name: exercise.name || exercise.exercise_id || "Übung",
-    trackingType: normalizeTrackingType(exercise.trackingType || exercise.weight_type),
-    primaryMuscles: Array.isArray(exercise.primaryMuscles) ? exercise.primaryMuscles : [],
-    secondaryMuscles: Array.isArray(exercise.secondaryMuscles) ? exercise.secondaryMuscles : [],
-    yuhonas_id: exercise.yuhonas_id || null,
-    rest_seconds: Number(exercise.rest_seconds) || 90,
-    notes: exercise.notes ?? null,
-    order: Number.isFinite(exercise.order) ? exercise.order : order,
-    sets: Array.isArray(exercise.sets) ? exercise.sets.map((set, index) => normalizeSetEntry(set, index)) : [],
-  };
-}
-
-function extractHistoricalSets(exercise = {}) {
-  if (Array.isArray(exercise.setsArray) && exercise.setsArray.length > 0) {
-    return exercise.setsArray;
-  }
-  if (Array.isArray(exercise.sets) && exercise.sets.length > 0) {
-    return exercise.sets;
-  }
-  return [];
-}
-
-function findLatestExercisePerformance(exerciseId) {
-  if (!exerciseId) return null;
-  const sessionsDir = path.join(DATA_DIR, "sessions");
-  const files = fs.existsSync(sessionsDir)
-    ? fs.readdirSync(sessionsDir).filter((name) => name.endsWith(".json")).sort().reverse()
-    : [];
-
-  for (const name of files) {
-    const session = readJson(path.join(sessionsDir, name), {});
-    const exercises = Array.isArray(session?.exercises) ? session.exercises : [];
-    const match = exercises.find((ex) => String(ex.exercise_id || ex.id || "") === String(exerciseId));
-    if (!match) continue;
-    const histSets = extractHistoricalSets(match).filter(Boolean);
-    if (histSets.length === 0) continue;
-    return {
-      date: session?.date || name.replace(/\.json$/, "").split("__")[0],
-      exercise: match,
-      sets: histSets,
-    };
-  }
-
-  const workoutLogs = readWorkoutLogs()
-    .filter((workout) => workout.finished_at)
-    .slice()
-    .sort((a, b) => String(b.finished_at || b.started_at).localeCompare(String(a.finished_at || a.started_at)));
-  for (const workout of workoutLogs) {
-    const match = (workout.exercises || []).find((ex) => String(ex.exercise_id || ex.id || "") === String(exerciseId));
-    if (!match) continue;
-    const histSets = extractHistoricalSets(match).filter(Boolean);
-    if (histSets.length === 0) continue;
-    return {
-      date: workout.finished_at || workout.started_at || null,
-      exercise: match,
-      sets: histSets,
-    };
-  }
-
-  return null;
-}
-
-function buildWorkoutExerciseFromRoutine(routineExercise = {}) {
-  const templateSets = normalizeTemplateSets(routineExercise);
-  const history = findLatestExercisePerformance(routineExercise.exercise_id);
-  return normalizeWorkoutExercise({
-    exercise_id: routineExercise.exercise_id,
-    name: routineExercise.name,
-    primaryMuscles: routineExercise.primaryMuscles,
-    secondaryMuscles: routineExercise.secondaryMuscles,
-    yuhonas_id: routineExercise.yuhonas_id,
-    trackingType: routineExercise.trackingType,
-    rest_seconds: routineExercise.rest_seconds,
-    notes: null,
-    order: routineExercise.order,
-    sets: templateSets.map((templateSet, index) => {
-      const previous = history?.sets?.[index] || history?.sets?.[0] || {};
-      const normalizedSet = normalizeSetEntry({
-        setType: templateSet.setType,
-        targetReps: templateSet.targetReps,
-        targetWeight: templateSet.targetWeight,
-        targetDistance: templateSet.targetDistance,
-        targetDuration: templateSet.targetDuration,
-        progressionStage: templateSet.progressionStage ?? routineExercise.progressionStage ?? null,
-        ghostReps: previous.reps ?? templateSet.targetReps ?? null,
-        ghostWeight: previous.weight ?? templateSet.targetWeight ?? null,
-        ghostDistance: previous.distance ?? templateSet.targetDistance ?? null,
-        ghostDuration: previous.duration ?? templateSet.targetDuration ?? null,
-      }, index);
-      return normalizedSet;
-    }),
-    lastPerformedAt: history?.date || null,
-  });
-}
-
 // wger-client.mjs wird erst per dynamic import() geladen, wenn der erste
 // echte Fallback-Aufruf nötig ist (lokaler Katalog liefert nichts) — kein
 // Boot-Ping, kein Token im Hauptmodul. wger ist meist offline, das Modul
@@ -580,13 +390,17 @@ app.get("/exercise/:id/teaching", async (c) => {
 // ── Inbox Management ─────────────────────────────────────────────────────────
 app.get("/fitness/clients", (c) => {
   const usersDir = path.join(os.homedir(), ".aos", "fitness", "users");
-  if (!fs.existsSync(usersDir)) return c.json({ ok: true, clients: [] });
-  
-  const uids = fs.readdirSync(usersDir).filter(d => 
-    fs.statSync(path.join(usersDir, d)).isDirectory() && !["default", "kb"].includes(d)
+  const klienten = loadKlientenRegistry();
+  const clients = Object.entries(klienten).map(([uid, meta]) => ({ uid, name: meta.name, slug: meta.slug }));
+  const knownUids = new Set(clients.map(c => c.uid));
+
+  if (!fs.existsSync(usersDir)) return c.json({ ok: true, clients });
+
+  const uids = fs.readdirSync(usersDir).filter(d =>
+    fs.statSync(path.join(usersDir, d)).isDirectory() && !["default", "kb"].includes(d) && !knownUids.has(d)
   );
 
-  const clients = uids.map(uid => {
+  for (const uid of uids) {
     let name = uid.slice(0, 8);
     const sessDir = path.join(usersDir, uid, "sessions");
     if (fs.existsSync(sessDir)) {
@@ -596,8 +410,8 @@ app.get("/fitness/clients", (c) => {
         if (lastSess?.user_name) name = lastSess.user_name;
       }
     }
-    return { uid, name };
-  });
+    clients.push({ uid, name });
+  }
 
   return c.json({ ok: true, clients });
 });
@@ -941,79 +755,35 @@ app.post("/fitness/export", async (c) => {
   }
 });
 
-// ── Habits (Firestore-first, lokale definitions.json als Offline-Fallback) ────
-const LOCAL_HABITS_FILE = path.join(os.homedir(), ".aos", "journal", "habits", "definitions.json");
-const LOCAL_RECORDS_DIR = path.join(os.homedir(), ".aos", "journal", "habits", "records");
-
-app.get("/habitsync/habits", async (c) => {
-  const uid = c.req.header("X-User-UID") || FITNESS_UID;
-  const fsHabits = await readHabits(uid);
-  if (fsHabits) return c.json(fsHabits);
-  // Offline-Fallback: lokale definitions.json
-  try {
-    const defs = JSON.parse(fs.readFileSync(LOCAL_HABITS_FILE, "utf8")).filter(h => !h.deleted);
-    const date = localToday();
-    const recFile = path.join(LOCAL_RECORDS_DIR, `${date}.json`);
-    const records = fs.existsSync(recFile) ? JSON.parse(fs.readFileSync(recFile, "utf8")) : [];
-    const doneToday = new Set(records.map(r => r.uuid));
-    return c.json(defs.map(h => ({
-      ...h,
-      records: doneToday.has(h.uuid) ? [{ date, completion: "DONE" }] : [],
-    })));
-  } catch { return c.json([]); }
-});
-
-app.post("/habitsync/record/:uuid", async (c) => {
-  const uid  = c.req.header("X-User-UID") || FITNESS_UID;
-  const uuid = c.req.param("uuid");
-  if (!uuid) return c.json({ ok: false, error: "missing_uuid" }, 400);
-  // Firestore
-  const { mirrorHabitRecord } = await import("./firestore-mirror.mjs");
-  await mirrorHabitRecord?.(uid, uuid);
-  // Lokal
-  fs.mkdirSync(LOCAL_RECORDS_DIR, { recursive: true });
-  const date = localToday();
-  const recFile = path.join(LOCAL_RECORDS_DIR, `${date}.json`);
-  const records = fs.existsSync(recFile) ? JSON.parse(fs.readFileSync(recFile, "utf8")) : [];
-  if (!records.find(r => r.uuid === uuid)) {
-    records.push({ uuid, date, completion: "DONE", ts: new Date().toISOString() });
-    fs.writeFileSync(recFile, JSON.stringify(records, null, 2));
-  }
-  return c.json({ ok: true });
-});
-
-app.post("/habitsync/add", async (c) => {
-  const { name, icon = "Activity" } = await c.req.json().catch(() => ({}));
-  if (!name) return c.json({ ok: false, error: "missing_name" }, 400);
-  const { randomUUID } = await import("node:crypto");
-  const habit = { uuid: randomUUID(), name: name.trim(), icon, created_at: new Date().toISOString() };
-  const defs = fs.existsSync(LOCAL_HABITS_FILE) ? JSON.parse(fs.readFileSync(LOCAL_HABITS_FILE, "utf8")) : [];
-  defs.push(habit);
-  fs.mkdirSync(path.dirname(LOCAL_HABITS_FILE), { recursive: true });
-  fs.writeFileSync(LOCAL_HABITS_FILE, JSON.stringify(defs, null, 2));
-  return c.json({ ok: true, habit });
-});
-
-app.delete("/habitsync/delete/:uuid", (c) => {
-  const uuid = c.req.param("uuid");
-  if (!uuid) return c.json({ ok: false, error: "missing_uuid" }, 400);
-  if (!fs.existsSync(LOCAL_HABITS_FILE)) return c.json({ ok: false, error: "no_habits" }, 404);
-  const defs = JSON.parse(fs.readFileSync(LOCAL_HABITS_FILE, "utf8"))
-    .map(h => h.uuid === uuid ? { ...h, deleted: true } : h);
-  fs.writeFileSync(LOCAL_HABITS_FILE, JSON.stringify(defs, null, 2));
-  return c.json({ ok: true });
-});
 app.get("/plan/today", (c) => {
   const date = c.req.query("date") || localToday();
   const plan = readJson(path.join(DATA_DIR, "plan.json"));
-  const dow  = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"][new Date(date + "T12:00:00").getDay()];
-  if (plan) {
-    const match = (plan.einheiten || []).find(e => (e.days || []).includes(dow));
-    if (match) {
-      const exercises = (match.abschnitte || []).flatMap(a => (a.übungen || a.uebungen || []).map(u => u.name));
-      return c.json({ ok: true, suggestion: { day: dow, block: match.name, exercises } });
+  const einheiten = (plan && plan.einheiten) || [];
+
+  // Letztes geloggtes Workout ermitteln (block-Feld), unabhängig vom Wochentag.
+  const sessionsDir = path.join(DATA_DIR, "sessions");
+  const files = fs.existsSync(sessionsDir)
+    ? fs.readdirSync(sessionsDir).filter((name) => name.endsWith(".json")).sort().reverse()
+    : [];
+  let lastBlock = null, lastLoggedAt = null;
+  for (const name of files) {
+    const sess = readJson(path.join(sessionsDir, name), {});
+    if (sess?.block) {
+      lastBlock = sess.block;
+      lastLoggedAt = sess.date || name.replace(".json", "").split("__")[0];
+      break;
     }
   }
+
+  // Rotation statt Wochentag-Matching: nächste Einheit nach der zuletzt geloggten.
+  if (einheiten.length) {
+    const lastIdx = einheiten.findIndex((e) => e.name === lastBlock);
+    const next = einheiten[lastIdx === -1 ? 0 : (lastIdx + 1) % einheiten.length];
+    const exercises = (next.abschnitte || []).flatMap((a) => (a.übungen || a.uebungen || []).map((u) => u.name));
+    return c.json({ ok: true, suggestion: { block: next.name, exercises, lastBlock, lastLoggedAt } });
+  }
+
+  const dow  = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"][new Date(date + "T12:00:00").getDay()];
   const fallback = {
     Mo: { block: "Push",      exercises: ["Incline Dumbbell Press", "Dips", "Lateral Raise", "Cable Fly", "Triceps Extension"] },
     Di: { block: "Pull",      exercises: ["Pull-Up", "Row", "Lat Pulldown", "Face Pull", "Biceps Curl"] },
@@ -1023,7 +793,7 @@ app.get("/plan/today", (c) => {
     Sa: { block: "Full Body", exercises: ["Squat", "Press", "Row", "Hinge", "Carry"] },
     So: { block: "Recovery",  exercises: ["Mobility", "Walk", "Core Breathing"] },
   }[dow] || { block: "Full Body", exercises: ["Squat", "Press", "Row"] };
-  return c.json({ ok: true, suggestion: { day: dow, block: fallback.block, exercises: fallback.exercises } });
+  return c.json({ ok: true, suggestion: { day: dow, block: fallback.block, exercises: fallback.exercises, lastBlock, lastLoggedAt } });
 });
 
 // ── Blocks ────────────────────────────────────────────────────────────────────
@@ -1046,305 +816,58 @@ app.get("/blocks", (c) => {
   return c.json({ ok: true, blocks });
 });
 
-// ── Routines (Plan-Vorlagen) ──────────────────────────────────────────────────
-// Wiederverwendbare Übungslisten mit Ziel-Sätzen/Wdh, kein echtes Logging.
-// Ersetzt die Firestore-only wf_workouts-Collection (auth.currentUser war im
-// Non-Firebase-Dev-Build undefined → Plan-SubTab hing bei "Lädt…"). Persistiert
-// flach als JSON statt Subcollections. Vormals unter /workouts geführt — echte
-// geloggte Workout-Instanzen (Strong-Modell) liegen jetzt separat, s.u.
-const ROUTINES_PATH = path.join(DATA_DIR, "routines.json");
-function readRoutines() { return readJson(ROUTINES_PATH, []); }
-function writeRoutines(list) {
-  writeJson(ROUTINES_PATH, (Array.isArray(list) ? list : []).map((routine) => ({
-    ...routine,
-    exercises: (routine.exercises || []).map((exercise, index) => normalizeRoutineExercise(exercise, index)),
-  })));
+// ── Routines / Workouts ───────────────────────────────────────────────────────
+// Reine Proxies zu fitness-api (Python, :9150) — Node hält hier absichtlich
+// keine eigene Logik/keinen eigenen Datenschreiber mehr (war vorher
+// routines.json/workouts.json direkt in Node gelesen/geschrieben, parallel
+// zum späteren Python-Äquivalent möglich → zwei unabhängige Writer auf
+// dieselbe Datei). Alles Neue kommt nur noch in fitness/api/routers/*.py.
+async function proxyToPython(c, pythonPath) {
+  const qs = c.req.query();
+  const search = new URLSearchParams(qs).toString();
+  const url = `${PYTHON_BASE}${pythonPath}${search ? `?${search}` : ""}`;
+  const init = { method: c.req.method, headers: {} };
+  const uid = c.req.header("X-User-UID");
+  if (uid) init.headers["X-User-UID"] = uid;
+  if (!["GET", "HEAD"].includes(c.req.method)) {
+    init.headers["Content-Type"] = "application/json";
+    init.body = await c.req.text();
+  }
+  try {
+    const res = await fetch(url, init);
+    const text = await res.text();
+    return c.body(text, res.status, { "Content-Type": res.headers.get("content-type") || "application/json" });
+  } catch (err) {
+    return c.json({ ok: false, error: "fitness_api_unreachable", details: String(err?.message || err) }, 502);
+  }
 }
 
-app.get("/routines", (c) => {
-  const routines = readRoutines()
-    .slice()
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-    .map(({ exercises, ...r }) => ({ ...r, exerciseCount: exercises.length }));
-  return c.json({ routines });
-});
+app.get("/routines", (c) => proxyToPython(c, "/routines"));
+app.post("/routines", (c) => proxyToPython(c, "/routines"));
+app.get("/routines/:id", (c) => proxyToPython(c, `/routines/${c.req.param("id")}`));
+app.patch("/routines/:id", (c) => proxyToPython(c, `/routines/${c.req.param("id")}`));
+app.delete("/routines/:id", (c) => proxyToPython(c, `/routines/${c.req.param("id")}`));
+app.post("/routines/:id/exercises", (c) => proxyToPython(c, `/routines/${c.req.param("id")}/exercises`));
+app.put("/routines/:id/exercises/order", (c) => proxyToPython(c, `/routines/${c.req.param("id")}/exercises/order`));
+app.patch("/routines/:id/exercises/:eid", (c) => proxyToPython(c, `/routines/${c.req.param("id")}/exercises/${c.req.param("eid")}`));
+app.delete("/routines/:id/exercises/:eid", (c) => proxyToPython(c, `/routines/${c.req.param("id")}/exercises/${c.req.param("eid")}`));
 
-app.post("/routines", async (c) => {
-  const body = await c.req.json();
-  const routines = readRoutines();
-  const routine = { id: crypto.randomUUID(), name: body.name, goal: body.goal || null, category: body.category || null, created_at: new Date().toISOString(), exercises: [] };
-  routines.push(routine);
-  writeRoutines(routines);
-  return c.json({ id: routine.id });
-});
+app.get("/workouts", (c) => proxyToPython(c, "/workouts"));
+app.post("/workouts", (c) => proxyToPython(c, "/workouts"));
+app.get("/workouts/:id", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}`));
+app.patch("/workouts/:id", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}`));
+app.delete("/workouts/:id", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}`));
+app.post("/workouts/:id/exercises", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises`));
+app.put("/workouts/:id/exercises/order", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises/order`));
+app.delete("/workouts/:id/exercises/:eid", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises/${c.req.param("eid")}`));
+app.post("/workouts/:id/exercises/:eid/sets", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises/${c.req.param("eid")}/sets`));
+app.patch("/workouts/:id/exercises/:eid/sets/:sid", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises/${c.req.param("eid")}/sets/${c.req.param("sid")}`));
+app.delete("/workouts/:id/exercises/:eid/sets/:sid", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises/${c.req.param("eid")}/sets/${c.req.param("sid")}`));
 
-app.get("/routines/:id", (c) => {
-  const routine = readRoutines().find(r => r.id === c.req.param("id"));
-  if (!routine) return c.json({ error: "not_found" }, 404);
-  const exercises = routine.exercises
-    .slice()
-    .sort((a, b) => a.order - b.order)
-    .map((exercise, index) => normalizeRoutineExercise(exercise, index));
-  return c.json({ routine: { ...routine, exercises } });
-});
-
-app.patch("/routines/:id", async (c) => {
-  const body = await c.req.json();
-  const routines = readRoutines();
-  const routine = routines.find(r => r.id === c.req.param("id"));
-  if (!routine) return c.json({ error: "not_found" }, 404);
-  Object.assign(routine, body);
-  writeRoutines(routines);
-  return c.json({ ok: true });
-});
-
-app.delete("/routines/:id", (c) => {
-  const routines = readRoutines().filter(r => r.id !== c.req.param("id"));
-  writeRoutines(routines);
-  return c.json({ ok: true });
-});
-
-app.post("/routines/:id/exercises", async (c) => {
-  const body = await c.req.json();
-  const routines = readRoutines();
-  const routine = routines.find(r => r.id === c.req.param("id"));
-  if (!routine) return c.json({ error: "not_found" }, 404);
-  const exercise = normalizeRoutineExercise({
-    id: crypto.randomUUID(),
-    exercise_id: body.exercise_id,
-    name: body.name || body.exercise_id,
-    primaryMuscles: body.primaryMuscles || [],
-    secondaryMuscles: body.secondaryMuscles || [],
-    yuhonas_id: body.yuhonas_id || null,
-    trackingType: body.trackingType || "weight_reps",
-    templateSets: body.templateSets || undefined,
-    target_sets: 3,
-    target_reps: "8-12",
-    rest_seconds: 90,
-    weight_type: "kg",
-    effort: "normal",
-    rir: null,
-    tempo: null,
-    drop_set: false,
-    notes: null,
-    moduleId: body.moduleId || null,
-    protocolType: body.protocolType || null,
-    progressionStage: body.progressionStage || null,
-    order: routine.exercises.length,
-  }, routine.exercises.length);
-  routine.exercises.push(exercise);
-  writeRoutines(routines);
-  return c.json({ id: exercise.id });
-});
-
-app.patch("/routines/:id/exercises/:eid", async (c) => {
-  const body = await c.req.json();
-  const routines = readRoutines();
-  const routine = routines.find(r => r.id === c.req.param("id"));
-  const exercise = routine?.exercises.find(e => e.id === c.req.param("eid"));
-  if (!exercise) return c.json({ error: "not_found" }, 404);
-  Object.assign(exercise, body);
-  writeRoutines(routines);
-  return c.json({ ok: true });
-});
-
-app.delete("/routines/:id/exercises/:eid", (c) => {
-  const routines = readRoutines();
-  const routine = routines.find(r => r.id === c.req.param("id"));
-  if (!routine) return c.json({ error: "not_found" }, 404);
-  routine.exercises = routine.exercises.filter(e => e.id !== c.req.param("eid"));
-  writeRoutines(routines);
-  return c.json({ ok: true });
-});
-
-app.put("/routines/:id/exercises/order", async (c) => {
-  const body = await c.req.json();
-  const routines = readRoutines();
-  const routine = routines.find(r => r.id === c.req.param("id"));
-  if (!routine) return c.json({ error: "not_found" }, 404);
-  for (const { id, order } of body.order || []) {
-    const exercise = routine.exercises.find(e => e.id === id);
-    if (exercise) exercise.order = order;
-  }
-  writeRoutines(routines);
-  return c.json({ ok: true });
-});
-
-// ── Workouts (geloggte Instanzen, Calisthenics-Modell) ────────────────────────
-// Eine Übung = eine Zeile, mehrere Satz-Zeilen darunter (Wdh/Sekunden/Häkchen).
-// Mehrfach dieselbe Übung hinzufügen ist kein Weg mehr, mehr Sätze zu bekommen —
-// dafür gibt's POST .../sets. Optional an eine Routine gekoppelt (routine_id),
-// aber unabhängig editierbar — Änderungen hier schreiben nie in die Routine zurück.
-const WORKOUTS_PATH = path.join(DATA_DIR, "workouts.json");
-function readWorkoutLogs() { return readJson(WORKOUTS_PATH, []); }
-function writeWorkoutLogs(list) {
-  writeJson(WORKOUTS_PATH, (Array.isArray(list) ? list : []).map((workout) => ({
-    ...workout,
-    exercises: (workout.exercises || []).map((exercise, index) => normalizeWorkoutExercise(exercise, index)),
-  })));
-}
-
-app.get("/workouts", (c) => {
-  const workouts = readWorkoutLogs()
-    .slice()
-    .sort((a, b) => new Date(b.started_at) - new Date(a.started_at))
-    .map(({ exercises, ...w }) => ({ ...w, exerciseCount: exercises.length }));
-  return c.json({ workouts });
-});
-
-app.post("/workouts", async (c) => {
-  const body = await c.req.json();
-  const workouts = readWorkoutLogs();
-  let exercises = [];
-  let name = body.name;
-  let sourceRoutineId = body.routine_id || null;
-  if (body.routine_id) {
-    const routine = readRoutines().find(r => r.id === body.routine_id);
-    if (routine) {
-      name = name || routine.name;
-      exercises = routine.exercises
-        .slice()
-        .sort((a, b) => a.order - b.order)
-        .map((routineExercise) => buildWorkoutExerciseFromRoutine(normalizeRoutineExercise(routineExercise, routineExercise.order)));
-    }
-  }
-  const workout = {
-    id: crypto.randomUUID(),
-    routine_id: body.routine_id || null,
-    sourceRoutineId,
-    name: name || `Workout ${new Date().toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit" })}`,
-    started_at: new Date().toISOString(),
-    finished_at: null,
-    sessionState: "work",
-    protocolMeta: {
-      moduleId: body.moduleId || null,
-      protocolType: body.protocolType || null,
-      requiresReview: true,
-    },
-    eventLog: [],
-    exercises,
-  };
-  workouts.push(workout);
-  writeWorkoutLogs(workouts);
-  return c.json({ id: workout.id });
-});
-
-app.get("/workouts/:id", (c) => {
-  const workout = readWorkoutLogs().find(w => w.id === c.req.param("id"));
-  if (!workout) return c.json({ error: "not_found" }, 404);
-  const exercises = workout.exercises.slice().sort((a, b) => a.order - b.order)
-    .map((ex, index) => {
-      const normalized = normalizeWorkoutExercise(ex, index);
-      return { ...normalized, sets: normalized.sets.slice().sort((a, b) => a.order - b.order) };
-    });
-  return c.json({ workout: { ...workout, exercises } });
-});
-
-app.patch("/workouts/:id", async (c) => {
-  const body = await c.req.json();
-  const workouts = readWorkoutLogs();
-  const workout = workouts.find(w => w.id === c.req.param("id"));
-  if (!workout) return c.json({ error: "not_found" }, 404);
-  Object.assign(workout, body);
-  if (Array.isArray(body.exercises)) {
-    workout.exercises = body.exercises.map((exercise, index) => normalizeWorkoutExercise(exercise, index));
-  }
-  writeWorkoutLogs(workouts);
-  return c.json({ ok: true });
-});
-
-app.delete("/workouts/:id", (c) => {
-  const workouts = readWorkoutLogs().filter(w => w.id !== c.req.param("id"));
-  writeWorkoutLogs(workouts);
-  return c.json({ ok: true });
-});
-
-app.post("/workouts/:id/exercises", async (c) => {
-  const body = await c.req.json();
-  const workouts = readWorkoutLogs();
-  const workout = workouts.find(w => w.id === c.req.param("id"));
-  if (!workout) return c.json({ error: "not_found" }, 404);
-  const exercise = normalizeWorkoutExercise({
-    id: crypto.randomUUID(),
-    exercise_id: body.exercise_id,
-    name: body.name || body.exercise_id,
-    primaryMuscles: body.primaryMuscles || [],
-    secondaryMuscles: body.secondaryMuscles || [],
-    yuhonas_id: body.yuhonas_id || null,
-    trackingType: body.trackingType || "weight_reps",
-    rest_seconds: 90,
-    weight_type: "kg",
-    notes: null,
-    order: workout.exercises.length,
-    sets: Array.from({ length: 3 }, (_, i) => normalizeSetEntry({}, i)),
-  }, workout.exercises.length);
-  workout.exercises.push(exercise);
-  writeWorkoutLogs(workouts);
-  return c.json({ id: exercise.id });
-});
-
-app.delete("/workouts/:id/exercises/:eid", (c) => {
-  const workouts = readWorkoutLogs();
-  const workout = workouts.find(w => w.id === c.req.param("id"));
-  if (!workout) return c.json({ error: "not_found" }, 404);
-  workout.exercises = workout.exercises.filter(e => e.id !== c.req.param("eid"));
-  writeWorkoutLogs(workouts);
-  return c.json({ ok: true });
-});
-
-app.put("/workouts/:id/exercises/order", async (c) => {
-  const body = await c.req.json();
-  const workouts = readWorkoutLogs();
-  const workout = workouts.find(w => w.id === c.req.param("id"));
-  if (!workout) return c.json({ error: "not_found" }, 404);
-  for (const { id, order } of body.order || []) {
-    const exercise = workout.exercises.find(e => e.id === id);
-    if (exercise) exercise.order = order;
-  }
-  writeWorkoutLogs(workouts);
-  return c.json({ ok: true });
-});
-
-app.post("/workouts/:id/exercises/:eid/sets", (c) => {
-  const workouts = readWorkoutLogs();
-  const workout = workouts.find(w => w.id === c.req.param("id"));
-  const exercise = workout?.exercises.find(e => e.id === c.req.param("eid"));
-  if (!exercise) return c.json({ error: "not_found" }, 404);
-  const lastTemplate = exercise.sets[exercise.sets.length - 1] || {};
-  const set = normalizeSetEntry({
-    setType: lastTemplate.setType || "normal",
-    targetReps: lastTemplate.targetReps ?? null,
-    targetWeight: lastTemplate.targetWeight ?? null,
-    targetDistance: lastTemplate.targetDistance ?? null,
-    targetDuration: lastTemplate.targetDuration ?? null,
-    progressionStage: lastTemplate.progressionStage ?? null,
-  }, exercise.sets.length);
-  exercise.sets.push(set);
-  writeWorkoutLogs(workouts);
-  return c.json({ id: set.id });
-});
-
-app.patch("/workouts/:id/exercises/:eid/sets/:sid", async (c) => {
-  const body = await c.req.json();
-  const workouts = readWorkoutLogs();
-  const workout = workouts.find(w => w.id === c.req.param("id"));
-  const exercise = workout?.exercises.find(e => e.id === c.req.param("eid"));
-  const set = exercise?.sets.find(s => s.id === c.req.param("sid"));
-  if (!set) return c.json({ error: "not_found" }, 404);
-  Object.assign(set, body);
-  writeWorkoutLogs(workouts);
-  return c.json({ ok: true });
-});
-
-app.delete("/workouts/:id/exercises/:eid/sets/:sid", (c) => {
-  const workouts = readWorkoutLogs();
-  const workout = workouts.find(w => w.id === c.req.param("id"));
-  const exercise = workout?.exercises.find(e => e.id === c.req.param("eid"));
-  if (!exercise) return c.json({ error: "not_found" }, 404);
-  exercise.sets = exercise.sets.filter(s => s.id !== c.req.param("sid"));
-  writeWorkoutLogs(workouts);
-  return c.json({ ok: true });
-});
+// Einzelnen Finisher aus activityAddons löschen — Node selbst kennt kein
+// Addon-Merging (siehe /session oben, reiner 1:1-Dateischreiber), die
+// Löschlogik lebt nur in Python (fitness/api/routers/sessions.py).
+app.delete("/session/activity", (c) => proxyToPython(c, "/session/activity"));
 
 // ── Session ───────────────────────────────────────────────────────────────────
 // Multi-Session Schema:
@@ -1493,7 +1016,12 @@ app.get("/journal", async (c) => {
 app.post("/journal", async (c) => {
   const uid           = c.req.header("X-User-UID") || FITNESS_UID;
   const date          = c.req.query("date") || localToday();
-  const file          = path.join(DATA_DIR, "journal", `${date}.md`);
+  // Pro-uid-Ordner (wie GET oben schon macht) statt fix an den beim Server-
+  // Start aufgelösten DATA_DIR (= FITNESS_UID) — sonst landet der Eintrag
+  // eines anderen Klienten (X-User-UID-Header) immer im falschen Journal.
+  const dir           = path.join(os.homedir(), ".aos", "fitness", "users", uid, "journal");
+  fs.mkdirSync(dir, { recursive: true });
+  const file          = path.join(dir, `${date}.md`);
   const { content }   = await c.req.json().catch(() => ({}));
   fs.writeFileSync(file, content || "");
   mirrorJournal(date, { text: content || "" }, uid);
@@ -1616,21 +1144,37 @@ app.get("/export/pflichtaufgabe", (c) => {
 });
 
 // ── Body metrics ──────────────────────────────────────────────────────────────
+// Pro-uid-Ordner (BODY_DIR bleibt Legacy-Fallback für Einträge von vor diesem
+// Fix) — vorher war BODY_DIR ein einziger Topf für alle Klienten, Gewicht/
+// Schlaf/HF hätten sich pro Datum zwischen Klienten überschrieben.
+function bodyDirFor(uid) {
+  return path.join(os.homedir(), ".aos", "fitness", "users", uid, "body");
+}
+
 app.get("/fitness/body", (c) => {
+  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
   const days = Math.min(365, Math.max(1, Number(c.req.query("days") || 30)));
-  fs.mkdirSync(BODY_DIR, { recursive: true });
-  const files   = fs.existsSync(BODY_DIR)
-    ? fs.readdirSync(BODY_DIR).filter(f => f.match(/^\d{4}-\d{2}-\d{2}\.json$/)).sort().reverse().slice(0, days)
-    : [];
-  const entries = files.map(f => readJson(path.join(BODY_DIR, f))).filter(Boolean);
+  const ownDir = bodyDirFor(uid);
+  fs.mkdirSync(ownDir, { recursive: true });
+  const byDate = new Map();
+  for (const dir of [BODY_DIR, ownDir]) {
+    if (!fs.existsSync(dir)) continue;
+    for (const f of fs.readdirSync(dir).filter(f => f.match(/^\d{4}-\d{2}-\d{2}\.json$/))) {
+      const entry = readJson(path.join(dir, f));
+      if (entry) byDate.set(f.replace(".json", ""), entry); // ownDir überschreibt Legacy-Global (spätere Iteration gewinnt)
+    }
+  }
+  const entries = [...byDate.keys()].sort().reverse().slice(0, days).map(d => byDate.get(d));
   return c.json({ ok: true, entries });
 });
 
 app.post("/fitness/body", async (c) => {
-  fs.mkdirSync(BODY_DIR, { recursive: true });
+  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
+  const dir  = bodyDirFor(uid);
+  fs.mkdirSync(dir, { recursive: true });
   const payload  = await c.req.json().catch(() => ({}));
   const day      = payload.date || localToday();
-  const file     = path.join(BODY_DIR, `${day}.json`);
+  const file     = path.join(dir, `${day}.json`);
   const existing = readJson(file, { date: day });
   writeJson(file, { ...existing, ...payload, updated_at: new Date().toISOString() });
   if (payload.weight_kg != null) {
