@@ -96,7 +96,7 @@ export const MUSCLE_TARGET_GROUPS = {
 // Bewegungsmuster biceps (Zug) oder triceps (Druck), ggf. + forearms bei
 // grifflastigen Aktivitäten (Klettern).
 export const ACTIVITY_MUSCLE_GROUPS = {
-  swimming:   ["chest", "upper_back", "biceps", "triceps", "abs", "quadriceps", "hamstrings"], // Default = Brustschwimmen
+  swimming:   ["chest", "upper_back", "biceps", "triceps", "abs", "quadriceps", "hamstrings", "adductors", "abductors"], // Default = Brustschwimmen (Grätschbeinschlag beansprucht Hüft-Ab-/Adduktoren)
   running:    ["quadriceps", "hamstrings", "calves", "glutes"],
   cycling:    ["quadriceps", "hamstrings", "calves", "glutes"],
   hiking:     ["quadriceps", "hamstrings", "calves", "glutes", "abs"],
@@ -111,8 +111,8 @@ export const ACTIVITY_MUSCLE_GROUPS = {
 
 // Schwimmstil-Varianten — überschreiben das swimming-Default je nach Stil.
 export const SWIM_STYLE_MUSCLES = {
-  breast: ["chest", "upper_back", "biceps", "triceps", "abs", "quadriceps", "hamstrings"], // Brustschwimmen
-  back:   ["middle_back", "upper_back", "biceps", "abs", "quadriceps"],                    // Rückenschwimmen
+  breast: ["chest", "upper_back", "biceps", "triceps", "abs", "quadriceps", "hamstrings", "adductors", "abductors"], // Brustschwimmen (Grätschbeinschlag)
+  back:   ["middle_back", "upper_back", "biceps", "abs", "quadriceps", "adductors", "abductors"],                    // Rückenschwimmen (Flatterkick mit Hüftrotation)
 };
 
 /**

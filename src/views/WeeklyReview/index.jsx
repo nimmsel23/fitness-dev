@@ -6,6 +6,7 @@ import ReviewHeader from './ReviewHeader';
 import ReviewOverview from './ReviewOverview';
 import ReviewInsights from './ReviewInsights';
 import ReviewMuscleImpact from './ReviewMuscleImpact';
+import ReviewPPLBalance from './ReviewPPLBalance';
 import ReviewTopExercises from './ReviewTopExercises';
 import ReviewHistory from './ReviewHistory.jsx';
 import ReviewReadiness from './ReviewReadiness.jsx';
@@ -132,6 +133,8 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
           </div>
 
           <div className="lg:col-span-8 space-y-8">
+            <ReviewPPLBalance bodyRegionScores={data.body_region_scores} />
+
             <ReviewMuscleImpact regionEntries={regionEntries} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
 
             <ReviewTopExercises
