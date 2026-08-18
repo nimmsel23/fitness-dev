@@ -1,16 +1,26 @@
 name: approved_from_firebase
 description: Coach-approved via Firebase Inbox
 exercises:
-- schema_version: 2026-08-12.exercise-v1
-  display_name: Klimmzug im Obergriff
-  equipment:
-  - bodyweight
-  - pull_up_bar
-  wger_muscle_ids:
-    primary: []
-    secondary: []
-  review_state:
-    status: approved
+- display_name: Klimmzug im Obergriff
+  stabilizers:
+  - 304_rotator_cuff
+  - 206_erector_spinae
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 504_transverse_abdominis
+  - 405_forearm_flexors
+  - 105_serratus_anterior
+  variations:
+  - assisted_pull_up
+  - band_assisted_pull_up
+  - weighted_pull_up
+  - wide_grip_pull_up
+  - neutral_grip_pull_up
+  - scapular_pull_up
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 207_teres_major
+  - 204_trapezius_lower
   aliases:
   - Klimmzug
   - Klimmzüge
@@ -25,8 +35,24 @@ exercises:
   - Pull-Ups
   - Standard Pull-up
   - Pronated Pull-up
-  category: pull
+  id: '020'
+  search_aliases:
+  - Pullups
+  - yuhonas_pullups
+  - Klimmzug an Leiste
+  exercise_id: '020'
+  _hash: 5b1492dc2565bb2657dffee1777519b3
+  wger_id: 821
   english: Pull-Up
+  secondary_muscles:
+  - 402_biceps_brachii
+  - 403_brachialis
+  - 404_brachioradialis
+  - 303_posterior_deltoid
+  - 205_rhomboids
+  - 203_trapezius_middle
+  - 204_trapezius_lower
+  name: Klimmzug im Obergriff
   tags:
   - expert
   - back
@@ -35,27 +61,14 @@ exercises:
   - calisthenics
   - vertical_pull
   - grip_strength
-  wger_id: 821
-  movement_pattern: vertical_pull
-  _hash: 5b1492dc2565bb2657dffee1777519b3
-  source_snapshot:
-    wger:
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      wger_id: 821
-  name: Klimmzug im Obergriff
-  type: compound
   german: Klimmzug im Obergriff
-  source: approved
-  variations:
-  - assisted_pull_up
-  - band_assisted_pull_up
-  - weighted_pull_up
-  - wide_grip_pull_up
-  - neutral_grip_pull_up
-  - scapular_pull_up
-  exercise_id: '020'
+  origin:
+    source_refs:
+      yuhonas:
+      - Pullups
+      wger:
+      - '821'
+    type: merged_external
   coaching_notes:
   - 'Starte aus einem aktiven Hang: Hals lang, Rippen unten, Schulterblätter zuerst
     sanft nach unten setzen statt passiv in den Schultern zu hängen.'
@@ -73,30 +86,12 @@ exercises:
     Schulterkontrolle, Kraftaufbau und Positionsgefühl im Hang.
   - Der Obergriff verlagert die Belastung etwas stärker auf Latissimus, Teres major
     und oberen Rücken und etwas weniger auf den Bizeps als beim Chin-Up.
-  stabilizers:
-  - 304_rotator_cuff
-  - 206_erector_spinae
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
-  - 504_transverse_abdominis
-  - 405_forearm_flexors
-  - 105_serratus_anterior
-  search_aliases:
-  - Pullups
-  - yuhonas_pullups
-  - Klimmzug an Leiste
-  primary_muscles:
-  - 201_latissimus_dorsi
-  - 207_teres_major
-  - 204_trapezius_lower
-  secondary_muscles:
-  - 402_biceps_brachii
-  - 403_brachialis
-  - 404_brachioradialis
-  - 303_posterior_deltoid
-  - 205_rhomboids
-  - 203_trapezius_middle
-  - 204_trapezius_lower
+  external_ids:
+    yuhonas:
+    - Pullups
+    wger:
+    - 821
+  type: compound
   movements:
   - vertical
   - shoulder_adduction
@@ -104,14 +99,21 @@ exercises:
   - elbow_flexion
   - scapular_depression
   - scapular_downward_rotation
-  id: '020'
-  origin:
-    type: merged_external
-    source_refs:
-      wger:
-      - '821'
-      yuhonas:
-      - Pullups
+  category: pull
+  wger_muscle_ids:
+    primary: []
+    secondary: []
+  movement_pattern: vertical_pull
+  source: approved
+  schema_version: 2026-08-12.exercise-v1
+  source_snapshot:
+    wger:
+      wger_muscle_ids:
+        primary: []
+        secondary: []
+      wger_id: 821
+  review_state:
+    status: approved
   common_errors:
   - Mit Kipping, Beinschwung oder Hüftschwung arbeiten statt jede Wiederholung aus
     dem Hang kontrolliert einzuleiten.
@@ -127,8 +129,6 @@ exercises:
     wird und die Kraftübertragung leidet.
   - Zu breit greifen und dadurch ROM, Schultermechanik und saubere Ellbogenführung
     unnötig verschlechtern.
-  external_ids:
-    wger:
-    - 821
-    yuhonas:
-    - Pullups
+  equipment:
+  - bodyweight
+  - pull_up_bar
