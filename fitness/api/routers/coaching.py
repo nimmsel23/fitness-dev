@@ -17,7 +17,7 @@ from db.schemas import (
 )
 from fitness.catalog import coverage as cov_module
 from fitness.catalog.planner import build_plan
-from fitness.catalog.weekly import build_weekly_coverage, resolve_week_selector
+from fitness.catalog.weekly import build_weekly_coverage
 from fitness.firestore.mirror import mirror_session
 
 router = APIRouter()
@@ -236,7 +236,7 @@ async def fitness_plan(request: Request, template: str = "", split: str = "", da
 @router.get("/fitness/weekly")
 def fitness_weekly(week: str = "current"):
     try:
-        result = build_weekly_coverage(resolve_week_selector(week))
+        result = build_weekly_coverage(week)
         return {"ok": True, **result}
     except Exception as exc:
         logger.error(f"fitness_weekly {week}: {exc}")
