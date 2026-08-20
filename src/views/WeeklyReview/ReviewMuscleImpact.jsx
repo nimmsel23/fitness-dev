@@ -1,5 +1,5 @@
 import { TrendingUp } from 'lucide-react';
-import { translateMuscle } from '../../lib/translations';
+import { translateMuscle } from '../../lib/kb/muscles.js';
 import { getMuscleIcon } from '../../constants/MuscleIcons';
 
 // regionEntries kommt roh pro Einzelmuskel (z.B. mehrere Rücken-Muskeln

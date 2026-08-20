@@ -1,5 +1,5 @@
 import Body from 'react-muscle-highlighter';
-import { muscleToRmhSlug, canonicalMuscleId } from '../lib/translations.js';
+import { muscleToRmhSlug, canonicalMuscleId } from '../lib/kb/muscles.js';
 
 // groupScores: { [muscleIdOrWord]: { score, color } } — mehrere Keys können
 // auf denselben RMH-Slug rollen (z.B. einzelne Trapezius-Köpfe → "trapezius").

@@ -1,18 +1,18 @@
 [data-theme="solarized"] {
-  --bg: #eee8d5;
-  --bg2: #e4ddc8;
-  --panel: #ddd6c0;
-  --card: #fdf6e3;
-  --card-hover: #f7f0d8;
-  --line: #93a1a1;
-  --ink: #586e75;
-  --muted: #657b83;
-  --dim: #839496;
+  --bg: #fdf6e3;
+  --bg2: #eee8d5;
+  --panel: #e4ddc8;
+  --card: #ddd6c0;
+  --card-hover: #d3cbb5;
+  --line: #c8c0aa;
+  --ink: #657b83;
+  --muted: #839496;
+  --dim: #93a1a1;
   --accent: #268bd2;
-  --accent-glow: rgba(38, 139, 210, 0.1);
+  --accent-glow: rgba(38, 139, 210, 0.12);
   --green: #859900;
   --red: #dc322f;
   --orange: #cb4b16;
-  --glass: rgba(238, 232, 213, 0.9);
-  --glass-border: rgba(38, 139, 210, 0.08);
+  --glass: rgba(228, 221, 200, 0.9);
+  --glass-border: rgba(38, 139, 210, 0.1);
 }

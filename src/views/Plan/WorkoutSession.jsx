@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Trash2, Check, Plus, Flag } from "lucide-react";
 import { api } from "./api.js";
 import ExerciseSearch from "./components/ExerciseSearch.jsx";
-import { muskelDe, muskelColor, dedupeMuskeln } from "../../lib/muscleLabels.js";
+import { muskelDe, muskelColor, dedupeMuskeln } from "../../lib/kb/muscles.js";
 
 const REST_TIMER_TAG = "fitness-plan-rest-timer";
 

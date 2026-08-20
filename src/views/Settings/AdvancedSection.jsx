@@ -102,7 +102,6 @@ export default function AdvancedSection({
                 <span>150%</span>
              </div>
           </div>
-
           <SegmentedControl
             label="Muskel-Terminologie"
             options={[

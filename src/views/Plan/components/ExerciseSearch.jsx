@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { api } from "../api.js";
-import { muskelDe, muskelColor, dedupeMuskeln } from "../../../lib/muscleLabels.js";
+import { muskelDe, muskelColor, dedupeMuskeln } from "../../../lib/kb/muscles.js";
 import ExercisePhotoStrip from "../../../components/ExercisePhotoStrip.jsx";
 
 export default function ExerciseSearch({ onAdd, exclude = [] }) {

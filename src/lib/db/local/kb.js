@@ -1,5 +1,6 @@
 import { api } from "./core";
 import { normalizeExerciseRecord } from "../shared/exercise.js";
+import { getStaticMuscle, getStaticMuscleDocs } from "../../kb/muscles.js";
 
 export async function getExercise(exerciseId) {
   try {
@@ -67,22 +68,12 @@ export async function saveAnatomy(exerciseId, data) {
     return { ok: false };
   }
 }
-
-import { setKBMuscles } from "../shared/muscle.js";
-
 export async function getAllMuscles() {
-  try {
-    const data = await api.get("/fitness/muscles/all");
-    const list = Array.isArray(data) ? data : (data?.muscles || []);
-    setKBMuscles(list);
-    return list;
-  } catch {
-    return [];
-  }
+  return getStaticMuscleDocs();
 }
 
 export async function getMuscle(muscleId) {
-  try { return await api.get(`/fitness/muscles/${encodeURIComponent(muscleId)}`); } catch { return null; }
+  return getStaticMuscle(muscleId);
 }
 
 // Local KB Functions

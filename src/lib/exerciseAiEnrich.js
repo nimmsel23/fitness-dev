@@ -11,7 +11,7 @@
  * ist hier kein Datenintegritätsproblem.
  */
 import { getGenerativeModel, SchemaType } from "firebase/ai";
-import { vertexAI } from "../firebase.js";
+import { getVertexAI } from "../firebase.js";
 import { withAiRetry } from "./aiRetry.js";
 
 const RESPONSE_SCHEMA = {
@@ -109,6 +109,10 @@ function normalizeEnrichedFields(data) {
 }
 
 async function callVertex(prompt) {
+  const vertexAI = getVertexAI()
+  if (!vertexAI) {
+    throw new Error("vertex_ai_unavailable")
+  }
   const model = getGenerativeModel(vertexAI, {
     model: "gemini-2.5-flash",
     generationConfig: { responseMimeType: "application/json", responseSchema: RESPONSE_SCHEMA },

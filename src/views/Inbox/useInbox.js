@@ -23,6 +23,16 @@ export function useInbox({ global = false } = {}) {
 
   useEffect(() => { load(); }, [load]);
 
+  useEffect(() => {
+    const handleInboxUpdate = () => {
+      load();
+    };
+    window.addEventListener('fitness-inbox-updated', handleInboxUpdate);
+    return () => {
+      window.removeEventListener('fitness-inbox-updated', handleInboxUpdate);
+    };
+  }, [load]);
+
   async function approve(fileId) {
     setActioning(fileId);
     try {

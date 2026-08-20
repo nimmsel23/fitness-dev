@@ -17,6 +17,7 @@ from loguru import logger
 from fitness.catalog.core.paths import DATA_DIR
 from fitness.catalog.core.exercise_schema import apply_exercise_schema
 from fitness.catalog.core.muscle_normalization import normalize_exercise_muscles
+from fitness.catalog.core.source_merge import build_external_seed
 from fitness.catalog.core.yaml_utils import load_yaml
 from fitness.catalog.agent.gemini import load_gemini_key, call_enrichment, review_with_haiku, review_with_codex
 
@@ -471,6 +472,26 @@ def _find_yuhonas_match(display_name: str, min_score: float = 90.0) -> str | Non
     return str(matched_id).removeprefix("yuhonas_")
 
 
+def _merge_missing_source_payload(ex: dict[str, Any], display_name: str, exercise_id: str) -> dict[str, Any]:
+    seed = build_external_seed(display_name, exercise_id)
+    if not seed:
+        return ex
+
+    for key in (
+        "wger_id",
+        "yuhonas_id",
+        "external_ids",
+        "original_description",
+        "instructions",
+        "images",
+        "search_aliases",
+        "aliases",
+    ):
+        if ex.get(key) in (None, "", [], {}) and seed.get(key) not in (None, "", [], {}):
+            ex[key] = seed.get(key)
+    return ex
+
+
 def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
     """Approved einen Inbox-Draft -> `{ex_id}.yml` (Expert-Tier). Gibt die
     finale exercise_id zurueck. Wirft ValueError wenn keine exercise_id da ist.
@@ -507,6 +528,7 @@ def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
     ex["source"] = "expert"
     ex["approved_at"] = approved_at
     _merge_source_refs(f, ex)
+    ex = _merge_missing_source_payload(ex, display_name_of(ex, ex_id), ex_id)
     ex = apply_exercise_schema(ex, review_status="approved", ai_reviewed=True)
 
     detail_path = exercises_dir() / f"{ex_id}.yml"
@@ -646,6 +668,7 @@ def reenrich_approved_entry(
             enriched[key] = ex.get(key)
     enriched.setdefault("exercise_id", ex_id)
     enriched.setdefault("id", ex.get("id") or ex_id)
+    enriched = _merge_missing_source_payload(enriched, display_name_of(enriched, ex_id), ex_id)
     enriched = apply_exercise_schema(
         enriched,
         review_status="approved",

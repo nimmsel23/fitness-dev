@@ -1,5 +1,5 @@
 import { Sparkles, Trophy } from 'lucide-react';
-import { translateMuscle } from '../../lib/translations';
+import { translateMuscle } from '../../lib/kb/muscles.js';
 import { getMuscleIcon } from '../../constants/MuscleIcons';
 
 export default function ReviewInsights({ recommendations, missingRegions, muscleLanguage = 'de', taxonomy = null }) {

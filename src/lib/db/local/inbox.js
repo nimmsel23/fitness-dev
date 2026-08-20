@@ -21,7 +21,7 @@ export async function approveInbox(id, userId) {
   }
 }
 
-export async function reenrichInbox(id, ex) {
+export async function reenrichInbox(id, _userId = null, ex = null) {
   try {
     const data = ex?.exercises?.[0] || ex?.enriched || ex || {};
     return await api.post(`/fitness/inbox/${id}/reenrich`, {
@@ -35,11 +35,28 @@ export async function reenrichInbox(id, ex) {
   }
 }
 
-export async function deleteInbox(id) {
+export async function deleteInbox(id, _userId = null) {
   try {
     return await api.delete(`/fitness/inbox/${id}`);
   } catch {
     return { ok: false };
+  }
+}
+
+export async function getInboxDuplicates(id, userId = null) {
+  try {
+    const suffix = userId ? `?uid=${encodeURIComponent(userId)}` : "";
+    return await api.get(`/fitness/inbox/${id}/duplicates${suffix}`);
+  } catch {
+    return { ok: false, has_duplicates: false, plan: null };
+  }
+}
+
+export async function mergeInboxDuplicates(id, userId = null) {
+  try {
+    return await api.post(`/fitness/inbox/${id}/merge-duplicates`, userId ? { uid: userId } : {});
+  } catch {
+    return { ok: false, merged: false, plan: null };
   }
 }
 

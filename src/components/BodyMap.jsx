@@ -1,5 +1,5 @@
 import Model from 'react-body-highlighter';
-import { muscleToRbhSlug } from '../lib/translations.js';
+import { muscleToRbhSlug } from '../lib/kb/muscles.js';
 
 function addScore(scores, muscle, amount) {
   const slug = muscleToRbhSlug(muscle);

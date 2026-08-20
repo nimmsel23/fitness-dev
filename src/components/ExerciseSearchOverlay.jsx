@@ -5,7 +5,7 @@ import { searchExercises, getSessionHistory, getPlanSuggestion, toggleFavourite,
 import {
   loadLanguageFilter, filterByLanguage, LANG_STORAGE_KEY,
 } from '../lib/exerciseLanguage.js'
-import { muskelDe, muskelColor as muscleColor, dedupeMuskeln } from '../lib/muscleLabels.js'
+import { muskelDe, muskelColor as muscleColor, dedupeMuskeln } from '../lib/kb/muscles.js'
 
 export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
   const [query, setQuery] = useState('')

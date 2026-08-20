@@ -134,14 +134,17 @@ Permission-Denied (leicht im try/catch verschluckt).
 
 ---
 
-## Swipe / Gym Mode
+## Swipe-Navigation
 
 **Swipe-Navigation** (Mobile): Links/Rechts wischen wechselt zwischen Views
 (minSwipeDistance: 75px, jank-freier vertikaler Scroll-Lock, schließt
 horizontal scrollbare/interaktive Elemente aus).
 
-**Gym Mode**: `layoutScale` (50–150%) skaliert `document.documentElement.fontSize`
-— für große Gym-Displays.
+("Gym Mode" — `layoutScale`, rem-skaliertes `document.documentElement.fontSize`
+— wurde am 2026-08-06 komplett entfernt: brach auf Mobile den Viewport, weil
+feste `100vw`/`max-width`-Container nicht mitskalierten → horizontaler
+Overflow, den `overflow-x-hidden` nur noch unscrollbar abschnitt statt
+sichtbar zu machen.)
 
 ---
 

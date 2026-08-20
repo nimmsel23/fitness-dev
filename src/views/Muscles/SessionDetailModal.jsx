@@ -1,6 +1,6 @@
 import { X, Dumbbell } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { translateMuscle } from '../../lib/translations';
+import { translateMuscle } from '../../lib/kb/muscles.js';
 
 export default function SessionDetailModal({ session, onClose, muscleLanguage = 'de', taxonomy = null }) {
   if (!session) return null;

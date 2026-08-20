@@ -8,12 +8,23 @@ import { config } from "../firebase.config.js";
 const alreadyInit = getApps().length > 0;
 const app = alreadyInit ? getApp() : initializeApp(config);
 
-// Browser-seitiger Vertex-AI-Zugang — unabhängig vom lokalen Python-Backend
-// (das nur läuft, wenn der Coach-Laptop an ist). Analog zu fuel-dev's
-// firebase.js (dort noch die deprecated getVertexAI-API), gleiches Projekt
-// (fitness-aos), Vertex AI dort bereits aktiv. getAI()/VertexAIBackend ist
-// der aktuelle, nicht-deprecated Ersatz für getVertexAI().
-export const vertexAI = getAI(app, { backend: new VertexAIBackend() });
+let vertexAIInstance = undefined;
+
+// Browser-seitigen Vertex-AI-Zugang NICHT auf Modulebene initialisieren:
+// wenn getAI() im Hosting-Browser wirft, crasht die ganze App noch vor dem
+// ersten Render. Deshalb lazy + fehlertolerant; echte Enrichment-Calls können
+// dann gezielt mit "nicht verfügbar" scheitern statt einen Whitescreen zu
+// verursachen.
+export function getVertexAI() {
+  if (vertexAIInstance !== undefined) return vertexAIInstance;
+  try {
+    vertexAIInstance = getAI(app, { backend: new VertexAIBackend() });
+  } catch (error) {
+    console.warn("[firebase] Vertex AI init failed", error);
+    vertexAIInstance = null;
+  }
+  return vertexAIInstance;
+}
 
 export const db = alreadyInit
   ? getFirestore(app)

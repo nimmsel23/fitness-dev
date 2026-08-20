@@ -1,5 +1,34 @@
 import { CheckCircle2, Trash2, Info, AlertTriangle, Sparkles, User, RefreshCw, MessageSquare, Brain } from 'lucide-react';
 
+function asList(value) {
+  if (Array.isArray(value)) return value.filter(Boolean).map(String);
+  if (value === null || value === undefined || value === '') return [];
+  return [String(value)];
+}
+
+function sourceRefs(data) {
+  const snapshot = data?.source_snapshot || {};
+  const external = data?.external_ids || {};
+  return {
+    wger: asList(snapshot?.wger?.wger_id || external?.wger || data?.wger_id),
+    yuhonas: asList(snapshot?.yuhonas?.yuhonas_id || external?.yuhonas || data?.yuhonas_id),
+  };
+}
+
+function buildInspectPayload(ex, data) {
+  return {
+    ...ex,
+    ...data,
+    file_id: ex.file_id || data.file_id || null,
+    userId: ex.userId || data.userId || null,
+    status: ex.status || data.status || null,
+    inbox_status: ex.status || data.status || null,
+    coachFeedback: ex.coachFeedback || ex.feedback || data.coachFeedback || data.feedback || '',
+    inbox_entry: ex,
+    enriched: ex.enriched || data.enriched || null,
+  };
+}
+
 export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenrich, onInspect, showUserId = false, asMessage = false }) {
   // Unterstützt beide Backend-Shapes: { exercises: [data] } und { enriched: data } und flach
   const data     = ex.exercises?.[0] || ex.enriched || ex;
@@ -9,6 +38,7 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenri
   const isProactive = ex.description?.toLowerCase().includes('proactively');
   const isPendingEnrichment = ex.status === 'pending' || ex.status === 'pending_review';
   const busy = actioning === fileId;
+  const refs = sourceRefs(data);
 
   if (asMessage) {
     let icon = <MessageSquare className="text-fit-dim" size={20} />;
@@ -70,7 +100,7 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenri
         <div className="flex items-center gap-2 shrink-0">
           {ex.status === 'approved' && (
             <button
-              onClick={() => onInspect?.(data)}
+              onClick={() => onInspect?.(buildInspectPayload(ex, data))}
               className="p-2.5 bg-fit-bg2 text-fit-dim hover:text-ink rounded-lg border border-fit-line transition-all active:scale-95"
               title="Übung anzeigen"
             >
@@ -135,6 +165,21 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenri
           ))}
         </div>
 
+        {(refs.wger.length > 0 || refs.yuhonas.length > 0) && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {refs.wger.map((id) => (
+              <span key={`wger-${id}`} className="text-[9px] font-black px-2 py-0.5 bg-fit-bg2 rounded-full border border-fit-line text-fit-dim uppercase tracking-tighter">
+                wger {id}
+              </span>
+            ))}
+            {refs.yuhonas.map((id) => (
+              <span key={`yuhonas-${id}`} className="text-[9px] font-black px-2 py-0.5 bg-fit-bg2 rounded-full border border-fit-line text-fit-dim uppercase tracking-tighter">
+                yuhonas {id}
+              </span>
+            ))}
+          </div>
+        )}
+
         {warnings.length > 0 && (
           <div className="mb-3 p-3 bg-fit-red/5 border border-fit-red/10 rounded-xl space-y-1">
             {warnings.map((w, i) => (
@@ -153,7 +198,7 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenri
 
       <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
         <button
-          onClick={() => onInspect?.(data)}
+          onClick={() => onInspect?.(buildInspectPayload(ex, data))}
           className="p-3 bg-fit-bg2 text-fit-dim hover:text-ink rounded-xl border border-fit-line transition-all active:scale-95"
           title="Details"
         >
