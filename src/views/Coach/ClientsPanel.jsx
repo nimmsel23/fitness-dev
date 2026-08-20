@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Users, Star, UserCheck, Dumbbell, Layers } from 'lucide-react';
+import { Users, Star, UserCheck, Dumbbell, Layers, Target } from 'lucide-react';
 import { getAllUserProfiles, getUserProfile, updateUserProfile } from '@db';
 import ClientWorkoutsFeed from './ClientWorkoutsFeed';
 import AssignPlan from './AssignPlan';
+import ClientHabits from './ClientHabits';
 
 const STATUS_OPTIONS = [
   { id: 'client', label: 'Klient', hint: 'Zahlend & committed — volle Coach-Aufmerksamkeit', icon: Star, color: 'text-fit-accent' },
@@ -11,6 +12,7 @@ const STATUS_OPTIONS = [
 
 const DETAIL_TABS = [
   { id: 'workouts', label: 'Workouts', icon: Dumbbell },
+  { id: 'habits', label: 'Habits', icon: Target },
   { id: 'plan', label: 'Trainingsplan', icon: Layers },
 ];
 
@@ -168,6 +170,7 @@ export default function ClientsPanel() {
 
             <div className="flex-1 overflow-y-auto p-4">
               {detailTab === 'workouts' && <ClientWorkoutsFeed clientUid={selectedUid} />}
+              {detailTab === 'habits' && <ClientHabits clientUid={selectedUid} />}
               {detailTab === 'plan' && <AssignPlan clientUid={selectedUid} clientName={selectedName} />}
             </div>
           </>

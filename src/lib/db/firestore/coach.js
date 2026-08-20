@@ -85,6 +85,29 @@ export async function getClientJournalFeed(clientUid, limitCount = 100) {
   return feed.slice(0, limitCount);
 }
 
+// Coach beobachtet Habit-Fortschritt eines Klienten (read-only): direkte
+// Query auf fitness/{clientUid}/routines + .../workouts, bypass getUid()
+// (das würde immer den eingeloggten Coach selbst treffen, nicht den
+// Klienten). Nur Meta-Felder nötig (targetCount/targetPeriodDays auf der
+// Routine, routine_id/finished_at/sessionState auf dem Workout) — Fortschritt
+// wird im UI-Layer aus beidem berechnet (lib/habitProgress.js), keine
+// exercises-Subcollections nötig.
+export async function getClientRoutinesProgress(clientUid) {
+  try {
+    const [routinesSnap, workoutsSnap] = await Promise.all([
+      getDocs(collection(db, "fitness", clientUid, "routines")),
+      getDocs(collection(db, "fitness", clientUid, "workouts")),
+    ]);
+    return {
+      routines: routinesSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
+      workouts: workoutsSnap.docs.map((d) => ({ id: d.id, ...d.data() })),
+    };
+  } catch (e) {
+    console.error("Error in getClientRoutinesProgress:", e);
+    return { routines: [], workouts: [] };
+  }
+}
+
 export async function getGlobalJournalFeed(limitCount = 50) {
   const feed = [];
 

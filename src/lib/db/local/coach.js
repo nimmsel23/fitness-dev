@@ -22,6 +22,23 @@ export async function getClientJournalFeed(clientUid, limitCount = 100) {
   }
 }
 
+// Coach beobachtet Habit-Fortschritt eines Klienten (read-only) — nutzt
+// dieselben /routines + /workouts-Routen wie der Klient selbst, per
+// ?uid=-Override (Python _uid_from_request() unterstützt das bereits für
+// alle Routen, kein neuer Endpoint nötig). Fortschritt wird im UI-Layer
+// aus routines+workouts berechnet (lib/habitProgress.js).
+export async function getClientRoutinesProgress(clientUid) {
+  try {
+    const [routinesRes, workoutsRes] = await Promise.all([
+      api.get(`/routines?uid=${encodeURIComponent(clientUid)}`),
+      api.get(`/workouts?uid=${encodeURIComponent(clientUid)}`),
+    ]);
+    return { routines: routinesRes?.routines || [], workouts: workoutsRes?.workouts || [] };
+  } catch {
+    return { routines: [], workouts: [] };
+  }
+}
+
 export async function getAllUserProfiles() {
   try {
     const data = await api.get('/fitness/coach/profiles');

@@ -2,18 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Dumbbell, Plus, Trash2, Pencil, ChevronDown, Play, Settings2, MoreHorizontal, Sparkles, Check, Target } from "lucide-react";
 import { api } from "./api.js";
 import { muskelDe, muskelColor, dedupeMuskeln } from "../../lib/muscleLabels.js";
-
-// Zählt abgeschlossene Workouts einer Routine innerhalb der letzten
-// `periodDays` Tage (rollierendes Fenster ab heute, kein Kalenderwochen-Reset).
-function countCompletionsInPeriod(routineId, workouts, periodDays) {
-  if (!periodDays) return 0;
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - periodDays);
-  const cutoffIso = cutoff.toISOString();
-  return workouts.filter((w) =>
-    w.routine_id === routineId && w.sessionState === "completed" && w.finished_at && w.finished_at >= cutoffIso
-  ).length;
-}
+import { countCompletionsInPeriod, computeHabitProgress, pickNextRoutine } from "../../lib/habitProgress.js";
 
 function RoutineCard({ r, onEdit, onStart, onRename, onDelete, onQuickComplete, onSetTarget, completingId, workouts }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -210,15 +199,10 @@ function CalisthenicsSkillsSection({ routines, loading, onEdit, onStart, onRenam
 // "Pensum" = alle Routinen mit gesetztem Ziel gelten als erfüllt, wenn jede
 // ihre eigene Ziel-Häufigkeit im eigenen Zeitraum erreicht hat (jede Routine
 // kann ihr eigenes Zeitfenster haben, kein gemeinsamer Kalenderzeitraum).
+// Logik in lib/habitProgress.js, geteilt mit Coach/ClientsPanel.jsx.
 function PensumSummary({ routines, workouts }) {
-  const targeted = routines.filter((r) => r.targetCount > 0 && r.targetPeriodDays > 0);
-  if (targeted.length === 0) return null;
-
-  const rows = targeted.map((r) => ({
-    r,
-    done: countCompletionsInPeriod(r.id, workouts, r.targetPeriodDays),
-  }));
-  const allMet = rows.every(({ r, done }) => done >= r.targetCount);
+  const { rows, allMet } = computeHabitProgress(routines, workouts);
+  if (rows.length === 0) return null;
 
   return (
     <section className="mb-8">
@@ -228,7 +212,7 @@ function PensumSummary({ routines, workouts }) {
           <h2 className="text-sm font-bold text-fit-ink">Pensum {allMet ? 'erfüllt ✓' : ''}</h2>
         </div>
         <div className="space-y-1.5">
-          {rows.map(({ r, done }) => (
+          {rows.map(({ routine: r, done }) => (
             <div key={r.id} className="flex items-center justify-between text-xs">
               <span className="font-medium text-fit-ink">{r.name}</span>
               <span className={done >= r.targetCount ? 'text-green-500 font-semibold' : 'text-fit-muted'}>
@@ -240,30 +224,6 @@ function PensumSummary({ routines, workouts }) {
       </div>
     </section>
   );
-}
-
-// Habit-artige Rotation (Vorbild: TodayPlan.jsx bei den Coach-Makrozyklen,
-// dort per nextRoutineIndex/Completion-Count). Routinen (Strong-Modell) haben
-// aber keine explizite Reihenfolge — deshalb hier: die Routine, die am
-// längsten nicht abgeschlossen wurde, ist "dran". Nie abgeschlossen zählt
-// als am längsten überfällig (sortiert zuerst).
-function pickNextRoutine(routines, workouts) {
-  const eligible = routines.filter((r) => r.category !== "calisthenics-skill");
-  if (eligible.length === 0) return null;
-
-  const lastCompletedAt = {};
-  for (const w of workouts) {
-    if (w.sessionState !== "completed" || !w.routine_id || !w.finished_at) continue;
-    if (!lastCompletedAt[w.routine_id] || w.finished_at > lastCompletedAt[w.routine_id]) {
-      lastCompletedAt[w.routine_id] = w.finished_at;
-    }
-  }
-
-  return eligible.slice().sort((a, b) => {
-    const aDate = lastCompletedAt[a.id] || "";
-    const bDate = lastCompletedAt[b.id] || "";
-    return aDate.localeCompare(bDate); // "" (nie) sortiert vor jedem Datum
-  })[0];
 }
 
 function NextUpCard({ routine, onQuickComplete, onStart, completing }) {
