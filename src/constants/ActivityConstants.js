@@ -115,6 +115,15 @@ export const SWIM_STYLE_MUSCLES = {
   back:   ["middle_back", "upper_back", "biceps", "abs", "quadriceps", "adductors", "abductors"],                    // Rückenschwimmen (Flatterkick mit Hüftrotation)
 };
 
+// Primary-Mover-Teilmenge von SWIM_STYLE_MUSCLES/ACTIVITY_MUSCLE_GROUPS — der
+// Rest bleibt secondary-gewichtet. Brustschwimmen: Pec-Zug ist die
+// Hauptantriebsphase (nicht nur "irgendein beteiligter Muskel" wie bislang
+// pauschal angenommen), Rückenschwimmen analog der Latzug-Phase.
+export const SWIM_STYLE_PRIMARY_MUSCLES = {
+  breast: ["chest"],
+  back:   ["middle_back"],
+};
+
 /**
  * Single source of truth for deriving a session's primary type + label.
  * A session with exercises (strength) stays primary even when an activity

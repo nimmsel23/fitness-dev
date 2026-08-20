@@ -31,6 +31,34 @@ export { ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds };
 
 const pendingWeeklyRefreshes = new Map();
 
+const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
+const DEFAULT_EFFORT = 7; // RPE-7-Baseline, siehe fitness/catalog/coverage.py effort_factor-Tabelle
+
+// Session-Budget-Normalisierung: die Summe aller Gewichte EINER Session ist
+// auf effort/10 gedeckelt, unabhängig davon wie viele Übungen geloggt wurden
+// — verhindert dass eine Session mit vielen Übungen allein durch die Anzahl
+// höher zählt als eine gleich intensive Session mit 1-2 Übungen
+// (One-Set-to-Failure). Spiegel von local/analysis.js::normalizedSessionHits.
+function normalizedSessionHits(session) {
+  const rows = [];
+  for (const ex of (Array.isArray(session.exercises) ? session.exercises : [])) {
+    const exName = ex.name || ex.exercise_id || "";
+    (ex.primaryMuscles || []).forEach((m) => rows.push([m, exName, ROLE_W.primary]));
+    (ex.secondaryMuscles || []).forEach((m) => rows.push([m, exName, ROLE_W.secondary]));
+    (ex.stabilizers || []).forEach((m) => rows.push([m, exName, ROLE_W.stabilizer]));
+  }
+  const actPrimary = new Set(session.activity?.primaryMuscles || []);
+  (session.activity?.muscles || []).forEach((m) =>
+    rows.push([m, null, actPrimary.has(m) ? ROLE_W.primary : ROLE_W.secondary])
+  );
+  const rawTotal = rows.reduce((sum, [, , w]) => sum + w, 0);
+  if (rawTotal <= 0) return [];
+  const effort = Number(session?.effort);
+  const budget = (Number.isFinite(effort) && effort > 0 ? effort : DEFAULT_EFFORT) / 10;
+  const scale = budget / rawTotal;
+  return rows.map(([m, exName, w]) => [m, exName, w * scale]);
+}
+
 // ── Analytics cache doc ───────────────────────────────────────────────────────
 
 export async function updateAnalyticsDoc() {
@@ -98,26 +126,15 @@ export async function getMuscleCoverage(days = 7) {
   const hits = {};
   for (const d of snap.docs) {
     const session = d.data();
-    for (const ex of (Array.isArray(session.exercises) ? session.exercises : [])) {
-      const exName = ex.name || ex.exercise_id || "";
-      [...(ex.primaryMuscles || [])].forEach((m) =>
-        muscleToGroupIds(m, exName).forEach((g) => { hits[g] = (hits[g] || 0) + 1; })
-      );
-      [...(ex.secondaryMuscles || [])].forEach((m) =>
-        muscleToGroupIds(m, exName).forEach((g) => { hits[g] = (hits[g] || 0) + 0.7; })
-      );
-      [...(ex.stabilizers || [])].forEach((m) =>
-        muscleToGroupIds(m, exName).forEach((g) => { hits[g] = (hits[g] || 0) + 0.4; })
-      );
-    }
-    for (const region of (session.activity?.muscles || [])) {
-      muscleToGroupIds(region).forEach((g) => { hits[g] = (hits[g] || 0) + 0.5; });
+    for (const [m, exName, w] of normalizedSessionHits(session)) {
+      muscleToGroupIds(m, exName).forEach((g) => { hits[g] = (hits[g] || 0) + w; });
     }
   }
   return hits;
 }
 
-export async function getCoverageGaps(days = 7, threshold = 1.0) {
+// Threshold an die Session-Budget-Normalisierung angepasst, siehe local/analysis.js::getCoverageGaps.
+export async function getCoverageGaps(days = 7, threshold = 0.3) {
   if (!hasAuthSession()) return getLocalCoverageGaps(days, threshold);
   const hits = await getMuscleCoverage(days);
   return getMuscleGroupsForGaps()

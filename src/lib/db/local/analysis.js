@@ -3,6 +3,51 @@ import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants";
 import { muscleToGroupIds, getMuscleGroupsForGaps, buildMuscleBalanceInsights, muscleToRegion } from "../shared/muscle";
 import { computeMuscleScores } from "../../superkompensation.js";
 
+const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
+const DEFAULT_EFFORT = 7; // RPE-7-Baseline, siehe fitness/catalog/coverage.py effort_factor-Tabelle
+
+// Rohe (Muskel, Übungsname, Gewicht)-Treffer einer Session, aus geloggten
+// Übungen UND einem geloggten Cardio/Activity-Finisher. activity.primaryMuscles
+// markiert die Hauptmover (z.B. Brust beim Brustschwimmen) — Rest bleibt
+// secondary. Spiegel von server.mjs::sessionHits / coaching.py::_exercise_hits.
+function sessionHits(sess, kbMap) {
+  const rows = [];
+  for (const ex of (sess.exercises || [])) {
+    const exName = ex.name || ex.exercise_id || "";
+    const kbEx = kbMap.get(exName.toLowerCase());
+    const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
+    const secondary = (ex.secondaryMuscles?.length ? ex.secondaryMuscles : null) || kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [];
+    const stabilizers = (ex.stabilizers?.length ? ex.stabilizers : null) || kbEx?.stabilizers || [];
+    primary.forEach(m => rows.push([m, exName, ROLE_W.primary]));
+    secondary.forEach(m => rows.push([m, exName, ROLE_W.secondary]));
+    stabilizers.forEach(m => rows.push([m, exName, ROLE_W.stabilizer]));
+  }
+  const actMuscles = sess.activity?.muscles
+    || (sess.activity?.type ? ACTIVITY_MUSCLE_GROUPS[sess.activity.type] : null) || [];
+  const actPrimary = new Set(sess.activity?.primaryMuscles || []);
+  actMuscles.forEach(m => rows.push([m, null, actPrimary.has(m) ? ROLE_W.primary : ROLE_W.secondary]));
+  return rows;
+}
+
+function sessionBudget(sess) {
+  const effort = Number(sess?.effort);
+  return (Number.isFinite(effort) && effort > 0 ? effort : DEFAULT_EFFORT) / 10;
+}
+
+// Session-Budget-Normalisierung: die Summe aller Gewichte EINER Session ist
+// auf effort/10 gedeckelt, unabhängig davon wie viele Übungen geloggt
+// wurden. One-Set-to-Failure: jede geloggte Übung ist ungefähr gleich hart,
+// mehr Übungen bedeuten mehr Muskel-Breite, nicht automatisch mehr
+// Gesamtbelastung. Spiegel von server.mjs::normalizedSessionHits /
+// coaching.py::_normalized_session_hits.
+function normalizedSessionHits(sess, kbMap) {
+  const raw = sessionHits(sess, kbMap);
+  const rawTotal = raw.reduce((sum, [, , w]) => sum + w, 0);
+  if (rawTotal <= 0) return [];
+  const scale = sessionBudget(sess) / rawTotal;
+  return raw.map(([m, exName, w]) => [m, exName, w * scale]);
+}
+
 export async function getDashboardAnalytics(days = 28) {
   try {
     const data = await api.get(`/fitness/analytics/dashboard?days=${days}`);
@@ -81,30 +126,27 @@ export async function getWeeklyReport(selector = "current") {
     const sess = history.find(h => h.date === date);
     if (!sess) continue;
     const sessGroupsCount = {};
-    for (let ex of (sess.exercises || [])) {
+    for (const ex of (sess.exercises || [])) {
       const exName = ex.name || ex.exercise_id || "";
       if (!exName) continue;
       // Snapshot-First: inline-Werte aus dem Log gewinnen. KB nur Fallback,
       // damit gelöschte/umbenannte Katalog-Einträge keine alten Sessions kaputtmachen.
       const kbEx = kbMap.get(exName.toLowerCase());
       const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
-      const secondary = (ex.secondaryMuscles?.length ? ex.secondaryMuscles : null) || kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [];
-      const stabilizers = (ex.stabilizers?.length ? ex.stabilizers : null) || kbEx?.stabilizers || [];
       allExercises.push({ name: exName, primaryMuscles: primary });
-      [...primary].forEach(m => {
-        muscleScores[m] = (muscleScores[m] || 0) + 1;
-        muscleToGroupIds(m, exName).forEach(gid => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; });
-      });
-      [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.7; }));
-      [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.4; }));
+      // muscleScores bleibt eine reine Übungs-Häufigkeit (wie oft dieser Muskel
+      // als primary vorkommt), unabhängig von der Session-Budget-Normalisierung
+      // unten — anderes Konzept als "Belastung".
+      primary.forEach(m => { muscleScores[m] = (muscleScores[m] || 0) + 1; });
     }
-    const actRegions = sess.activity?.muscles
-      || (sess.activity?.type ? ACTIVITY_MUSCLE_GROUPS[sess.activity.type] : null);
-    if (actRegions) {
-      actRegions.forEach(m => muscleToGroupIds(m).forEach(gid => {
-        sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 0.5;
-        bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5;
-      }));
+    // Session-Budget-normalisiert (normalizedSessionHits): verhindert, dass eine
+    // Session mit vielen Übungen allein wegen der Übungsanzahl höher zählt als
+    // eine gleich intensive Session mit 1-2 Übungen.
+    for (const [m, exName, w] of normalizedSessionHits(sess, kbMap)) {
+      muscleToGroupIds(m, exName).forEach(gid => {
+        sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + w;
+        bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + w;
+      });
     }
     const muscleRecovery = {};
     for (const gid of Object.keys(sessGroupsCount)) {
@@ -118,7 +160,8 @@ export async function getWeeklyReport(selector = "current") {
   }
 
   const allGroups = getMuscleGroupsForGaps().map(g => g.id);
-  const gaps = allGroups.filter(g => (bodyRegionScores[g] || 0) < 1);
+  // Threshold an die Session-Budget-Normalisierung angepasst, siehe getCoverageGaps().
+  const gaps = allGroups.filter(g => (bodyRegionScores[g] || 0) < 0.3);
   const totalExercises = sessions.reduce((sum, s) => sum + (s.exercise_count || 0), 0);
   const effortValues = sessions.map(s => s.effort).filter(e => e && Number(e) > 0);
   const avgEffort = effortValues.length > 0 ? Math.round(effortValues.reduce((a, b) => a + Number(b), 0) / effortValues.length * 10) / 10 : null;
@@ -164,30 +207,18 @@ export async function getMuscleCoverage(days = 7) {
   const sessionsInWindow = history.filter(s => s.date && s.date >= cutoffDate);
 
   for (const sess of sessionsInWindow) {
-    for (let ex of (sess.exercises || [])) {
-      const exName = ex.name || ex.exercise_id || "";
-      // Snapshot-First: inline-Werte aus dem Log gewinnen. KB nur Fallback,
-      // damit gelöschte/umbenannte Katalog-Einträge keine alten Sessions kaputtmachen.
-      const kbEx = kbMap.get(exName.toLowerCase());
-      const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
-      const secondary = (ex.secondaryMuscles?.length ? ex.secondaryMuscles : null) || kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [];
-      const stabilizers = (ex.stabilizers?.length ? ex.stabilizers : null) || kbEx?.stabilizers || [];
-      [...primary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; }));
-      [...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.7; }));
-      [...stabilizers].forEach(m => muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.4; }));
-    }
-    // Activity addon: muscles pre-resolved on save, fallback to old mapping for legacy sessions
-    const actRegions = sess.activity?.muscles
-      || (sess.activity?.type ? ACTIVITY_MUSCLE_GROUPS[sess.activity.type] : null);
-    if (actRegions) {
-      actRegions.forEach(m => muscleToGroupIds(m).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.5; }));
+    for (const [m, exName, w] of normalizedSessionHits(sess, kbMap)) {
+      muscleToGroupIds(m, exName).forEach(gid => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + w; });
     }
   }
 
   return bodyRegionScores;
 }
 
-export async function getCoverageGaps(days = 7, threshold = 1.0) {
+// Threshold an die Session-Budget-Normalisierung angepasst (normalizedSessionHits) —
+// Gruppen-Scores liegen jetzt in der Größenordnung effort/10 pro Session statt
+// vorher unbegrenzt pro Übung zu summieren, siehe server.mjs::/coverage/gaps.
+export async function getCoverageGaps(days = 7, threshold = 0.3) {
   const hits = await getMuscleCoverage(days);
   return getMuscleGroupsForGaps()
     .filter(g => (hits[g.id] || 0) < threshold)

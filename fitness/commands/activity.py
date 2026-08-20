@@ -122,8 +122,12 @@ def log(
             logger.info(f"{variant_field} nicht gesetzt → Default: {chosen}")
         activity_obj[variant_field] = chosen
         activity_obj["muscles"] = variants[chosen]["muscles"]
+        if variants[chosen].get("primary_muscles"):
+            activity_obj["primaryMuscles"] = variants[chosen]["primary_muscles"]
     else:
         activity_obj["muscles"] = spec["muscles"]
+        if spec.get("primary_muscles"):
+            activity_obj["primaryMuscles"] = spec["primary_muscles"]
 
     if intensity is not None:
         activity_obj["intensity"] = intensity
