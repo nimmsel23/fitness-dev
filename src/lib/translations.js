@@ -366,6 +366,7 @@ export function saveMuscleDetail(value) {
 // bleiben unaufgelöst (null) — ehrlich statt erfunden (siehe HIGHLIGHTERS.md).
 const RBH_SLUG_BY_NUMERIC_ID = {
   100: 'chest', 101: 'chest', 102: 'chest', 103: 'chest', 104: 'chest', 105: 'chest',
+  201: 'upper-back', 205: 'upper-back', 207: 'upper-back',
   202: 'trapezius', 203: 'trapezius', 204: 'trapezius',
   206: 'lower-back',
   301: 'front-deltoids', 303: 'back-deltoids',
@@ -388,7 +389,8 @@ const RBH_SLUG_BY_WORD = {
   chest: 'chest', calves: 'calves', quadriceps: 'quadriceps',
   glutes: 'gluteal', hamstrings: 'hamstring', forearms: 'forearm',
   abs: 'abs', obliques: 'obliques', biceps: 'biceps', triceps: 'triceps',
-  trapezius: 'trapezius', upper_back: 'upper-back', abductors: 'abductors',
+  trapezius: 'trapezius', upper_back: 'upper-back', middle_back: 'upper-back',
+  abductors: 'abductors',
 };
 
 export function muscleToRbhSlug(raw) {
@@ -428,7 +430,7 @@ const RMH_SLUG_BY_WORD = {
   glutes: 'gluteal', hamstrings: 'hamstring', forearms: 'forearm',
   abs: 'abs', obliques: 'obliques', biceps: 'biceps', triceps: 'triceps',
   trapezius: 'trapezius', shoulders: 'deltoids', adductors: 'adductors',
-  upper_back: 'upper-back',
+  upper_back: 'upper-back', middle_back: 'upper-back',
 };
 
 export function muscleToRmhSlug(raw) {

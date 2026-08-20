@@ -27,10 +27,16 @@ export function exercisesToModelData(exercises) {
 // groupScores: { [muscleIdOrWord]: { score, color } } — Keys können jetzt
 // Einzelmuskel-IDs sein (z.B. "603_gluteus_maximus" und "608_gluteus_medius"
 // getrennt), die beide auf denselben RBH-Slug ("gluteal") rollen. Deshalb
-// erst nach Ziel-Slug aggregieren (niedrigster Score = frischest trainiert
-// gewinnt), statt 1:1 pro Input-Key einen Eintrag zu erzeugen — sonst
-// bekäme react-body-highlighter zwei Einträge für denselben Slug und der
-// zuletzt iterierte (nicht der frischeste) würde zufällig gewinnen.
+// erst nach Ziel-Slug aggregieren, statt 1:1 pro Input-Key einen Eintrag zu
+// erzeugen — sonst bekäme react-body-highlighter zwei Einträge für denselben
+// Slug und der zuletzt iterierte würde zufällig gewinnen.
+// Bei Kollision gewinnt der HÖCHSTE Score (= am stärksten belastet), nicht
+// der frischeste: MUSCLE_GROUPS ist feiner als das RBH-Slug-Vokabular (z.B.
+// teilen sich "rhomboids"/"serratus_anterior" einen Slug mit "upper_back"/
+// "chest") — würde der frischeste gewinnen, verschwindet "in Erholung"/
+// "stark belastet" einer Teilregion einfach hinter einer frischen
+// Nachbarregion, obwohl genau das der Divergenz-Bug war, den die Fokus-
+// Analyse-Liste (superkompensation.js) nicht hat, weil sie nicht aggregiert.
 // "upper_back" ist laut KB-Architektur die Sammelregion für Trapezius
 // (202-204) + Rhomboids + Rear Delt — RBH zeichnet "trapezius" aber als
 // eigene SVG-Form getrennt von "upper-back", die sonst nie eine Farbe
@@ -39,7 +45,7 @@ function groupScoresToModelData(groupScores) {
   const bySlug = {};
   const assign = (slug, score) => {
     if (!slug) return;
-    if (!bySlug[slug] || score < bySlug[slug]) bySlug[slug] = score;
+    if (!bySlug[slug] || score > bySlug[slug]) bySlug[slug] = score;
   };
   for (const [region, gs] of Object.entries(groupScores || {})) {
     if (!gs?.score) continue;
