@@ -11,7 +11,7 @@ const GROUP_TRANSLATIONS = {
     arms: 'Arme',
     core: 'Bauch',
     glutes: 'Gesäß',
-    quadriceps: 'Quadrizeps',
+    quadriceps: 'Beinstrecker',
     hamstrings: 'Beinbeuger',
     calves: 'Waden',
     legs: 'Beine',

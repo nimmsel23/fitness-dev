@@ -1,6 +1,9 @@
+id: 600_legs
 label_de: Beine
 label_en: Legs
 label_lat: Membrum inferius
+# id im "X00_"-Format erzwingt bucketRank()-Fallback-Priorität (siehe
+# arms.yml/back.yml) — Absicherung derselben "gewinnt-durch-Zufall"-Situation.
 muscles:
   - 601_quadriceps_femoris
   - 602_adductors
