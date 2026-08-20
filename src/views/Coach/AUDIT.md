@@ -52,10 +52,23 @@ selbst pro Routine im Strong-Style Plan-Tab (`views/Plan/WorkoutList.jsx`,
 `.../workouts`-Query statt `collectionGroup`, bypass `getUid()`). Fortschritts-
 Formel lebt jetzt zentral in `src/lib/habitProgress.js` (vorher in
 `WorkoutList.jsx` dupliziert), geteilt zwischen Plan-Tab (Self-Service) und
-Coach-Tab (Beobachtung). **Bewusst nicht gebaut:** Coach kann diese
-Routinen-Ziele nicht selbst setzen/zuweisen — reines Beobachten, kein Schreib-
-Pfad. Live verifiziert (`?uid=`-Query liefert korrekt fremde Klienten-Routine
-mit gesetztem Ziel).
+Coach-Tab (Beobachtung). Live verifiziert (`?uid=`-Query liefert korrekt
+fremde Klienten-Routine mit gesetztem Ziel).
+
+## Update 2026-08-20 (Teil 4): Basic Schreib-UI nachgezogen
+Der oben genannte "kein Schreib-Pfad"-Punkt ist überholt: `ClientHabits.jsx`
+kann jetzt für den gewählten Klienten Routinen anlegen, Übungen per Suche
+hinzufügen (`searchExercises` aus `@db`) und Ziel-Häufigkeit setzen —
+`createClientRoutine`/`addClientRoutineExercise`/`setClientRoutineTarget`/
+`deleteClientRoutine`/`getClientRoutine` in `firestore/coach.js` +
+`local/coach.js`. Backend brauchte dafür **keine** Änderung: Pythons
+`_uid_from_request()` akzeptiert `?uid=` schon für alle HTTP-Methoden, nicht
+nur GET (live verifiziert: POST/PATCH/DELETE mit `?uid=` funktionieren
+identisch zum Klienten-eigenen Self-Service-Pfad). Bewusst weiterhin
+schlank: kein Reorder, kein Template-Sets-Feintuning (RIR/Tempo/Satz-Typ) im
+Coach-UI — das bleibt Sache des Klienten in dessen eigenem
+`RoutineBuilder.jsx`. Live end-to-end getestet (Routine anlegen → Übung
+hinzufügen → Ziel setzen → verifizieren → löschen).
 
 ## Update 2026-08-20 (Teil 2): Klienten-zentrierter Workflow + echter Feed-Bug behoben
 - **Struktur**: `index.jsx` von 5 auf 3 Sub-Tabs reduziert (Übungsanfragen /
