@@ -5,11 +5,12 @@ import * as fsWorkouts from '../../lib/db/firestore/workouts.js'
 
 const API_BASE = import.meta.env.VITE_API_BASE || ''
 
-// Routines (Vorlagen) und Workouts (geloggte Instanzen, Strong-Modell) laufen
-// bislang nur lokal gegen server.mjs — kein Firestore-Prod-Pendant. Vorherige
-// Firestore-only Implementierung (wf_workouts-Collection) ist raus: `db` aus
-// `@db` ist im lokalen Dev-Build `null`, jeder Firestore-Call wäre dort
-// synchron gecrasht (Plan-SubTab hing bei "Lädt…").
+// Lokal (isLocalMode()) läuft alles gegen server.mjs' JSON-Datei-Backend
+// (/routines, /workouts). Im Firebase-Build übernimmt firestoreDispatch()
+// unten (lib/db/firestore/routines.js + workouts.js) dieselben Pfade als
+// Firestore-CRUD — beide Backends sind vollständig implementiert, keines
+// ist ein Stub. `db` aus `@db` ist im lokalen Dev-Build `null`, deshalb
+// bewusst per isLocalMode()-Weiche getrennt statt einheitlich über @db.
 async function localFetch(method, path, body) {
   const res = await fetch(API_BASE + path, {
     method,

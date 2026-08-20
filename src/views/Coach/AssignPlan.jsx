@@ -22,10 +22,11 @@ import {
 } from '@db'
 import ExerciseSearch from '../Plan/components/ExerciseSearch.jsx'
 
-export default function AssignPlan() {
+export default function AssignPlan({ clientUid: presetClientUid, clientName: presetClientName }) {
   const { user } = useUser()
+  const embedded = !!presetClientUid
   const [profiles, setProfiles] = useState({})
-  const [selectedClient, setSelectedClient] = useState('')
+  const [selectedClient, setSelectedClient] = useState(presetClientUid || '')
   const [cycles, setCycles] = useState([])
   const [loading, setLoading] = useState(false)
 
@@ -42,8 +43,14 @@ export default function AssignPlan() {
   const [cycleMeta, setCycleMeta] = useState(null)
 
   useEffect(() => {
+    if (embedded) return
     getAllUserProfiles().then(setProfiles).catch(() => setProfiles({}))
-  }, [])
+  }, [embedded])
+
+  // Eingebetteter Modus (aus ClientsPanel): Klient ist schon fix, direkt Zyklen laden.
+  useEffect(() => {
+    if (presetClientUid) selectClient(presetClientUid)
+  }, [presetClientUid])
 
   async function selectClient(clientUid) {
     setSelectedClient(clientUid)
@@ -135,23 +142,30 @@ export default function AssignPlan() {
 
   return (
     <div className="space-y-6">
-      <div className="card p-6">
-        <h2 className="text-base font-semibold text-fit-ink mb-4 flex items-center gap-2">
+      {embedded ? (
+        <h2 className="text-base font-semibold text-fit-ink flex items-center gap-2">
           <Dumbbell size={18} className="text-fit-accent" />
-          Trainingszyklen
+          Trainingsplan {presetClientName ? `— ${presetClientName}` : ''}
         </h2>
-        <label className="block text-xs font-medium mb-2" style={{ color: 'var(--dim)', opacity: 0.7 }}>Klient auswählen</label>
-        <select
-          value={selectedClient}
-          onChange={(e) => selectClient(e.target.value)}
-          className="w-full bg-fit-bg border border-fit-line rounded-xl px-4 py-2 text-sm font-semibold text-fit-ink focus:border-fit-accent outline-none"
-        >
-          <option value="">Klient wählen…</option>
-          {Object.values(profiles).map(p => (
-            <option key={p.uid} value={p.uid}>{p.displayName}</option>
-          ))}
-        </select>
-      </div>
+      ) : (
+        <div className="card p-6">
+          <h2 className="text-base font-semibold text-fit-ink mb-4 flex items-center gap-2">
+            <Dumbbell size={18} className="text-fit-accent" />
+            Trainingszyklen
+          </h2>
+          <label className="block text-xs font-medium mb-2" style={{ color: 'var(--dim)', opacity: 0.7 }}>Klient auswählen</label>
+          <select
+            value={selectedClient}
+            onChange={(e) => selectClient(e.target.value)}
+            className="w-full bg-fit-bg border border-fit-line rounded-xl px-4 py-2 text-sm font-semibold text-fit-ink focus:border-fit-accent outline-none"
+          >
+            <option value="">Klient wählen…</option>
+            {Object.values(profiles).map(p => (
+              <option key={p.uid} value={p.uid}>{p.displayName}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {selectedClient && !cycle && (
         <>

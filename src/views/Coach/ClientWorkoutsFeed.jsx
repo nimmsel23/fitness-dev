@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Dumbbell, MessageSquare, Brain, Check } from 'lucide-react';
-import { getGlobalJournalFeed, getAllUserProfiles, saveCoachFeedback } from '@db';
+import { getGlobalJournalFeed, getClientJournalFeed, getAllUserProfiles, saveCoachFeedback } from '@db';
 
-export default function ClientWorkoutsFeed() {
+export default function ClientWorkoutsFeed({ clientUid }) {
   const [journals, setJournals] = useState([]);
   const [loadingJournals, setLoadingJournals] = useState(true);
   const [userProfiles, setUserProfiles] = useState({});
@@ -19,8 +19,12 @@ export default function ClientWorkoutsFeed() {
 
   useEffect(() => {
     setLoadingJournals(true);
+    // clientUid gesetzt (aus ClientsPanel): gezielte Pro-Klient-Query statt
+    // des global auf 50/100 gedeckelten Feeds — sonst können die Einträge
+    // dieses Klienten durch den globalen Cutoff verschwinden, bevor der
+    // uid-Filter unten sie überhaupt sieht.
     Promise.all([
-      getGlobalJournalFeed(),
+      clientUid ? getClientJournalFeed(clientUid) : getGlobalJournalFeed(),
       getAllUserProfiles()
     ]).then(([feed, profiles]) => {
       setJournals(feed);
@@ -39,7 +43,7 @@ export default function ClientWorkoutsFeed() {
     }).finally(() => {
       setLoadingJournals(false);
     });
-  }, []);
+  }, [clientUid]);
 
   async function handleCommentSubmit(item) {
     const text = commentsText[item.id] || '';
@@ -65,8 +69,10 @@ export default function ClientWorkoutsFeed() {
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 
+  const effectiveFilterUserId = clientUid || filterUserId;
+  const scopedJournals = clientUid ? journals.filter(j => j.userId === clientUid) : journals;
   const filteredJournals = journals.filter(j =>
-    (filterUserId === 'all' || j.userId === filterUserId) &&
+    (effectiveFilterUserId === 'all' || j.userId === effectiveFilterUserId) &&
     (filterType === 'all' || j.type === filterType)
   );
 
@@ -76,11 +82,13 @@ export default function ClientWorkoutsFeed() {
     </div>
   );
 
-  if (journals.length === 0) return (
+  if (scopedJournals.length === 0) return (
     <div className="card py-16 flex flex-col items-center justify-center text-center" style={{ opacity: 0.5 }}>
       <Dumbbell size={40} className="mb-3 text-fit-dim" />
       <h3 className="text-base font-semibold text-fit-ink">Keine Workouts</h3>
-      <p className="text-xs mt-1" style={{ color: 'var(--dim)' }}>Es wurden noch keine Workouts geloggt</p>
+      <p className="text-xs mt-1" style={{ color: 'var(--dim)' }}>
+        {clientUid ? 'Dieser Klient hat noch nichts geloggt' : 'Es wurden noch keine Workouts geloggt'}
+      </p>
     </div>
   );
 
@@ -88,18 +96,20 @@ export default function ClientWorkoutsFeed() {
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Filter-Leiste */}
       <div className="flex flex-wrap items-center gap-3">
-        <select
-          value={filterUserId}
-          onChange={(e) => setFilterUserId(e.target.value)}
-          className="bg-fit-bg2 border border-fit-line/60 rounded-full px-3 py-2 text-xs font-semibold text-fit-ink outline-none focus:border-fit-accent"
-        >
-          <option value="all">Alle Klienten ({journals.length})</option>
-          {journalClients.map(c => (
-            <option key={c.uid} value={c.uid}>
-              {c.name} ({journals.filter(j => j.userId === c.uid).length})
-            </option>
-          ))}
-        </select>
+        {!clientUid && (
+          <select
+            value={filterUserId}
+            onChange={(e) => setFilterUserId(e.target.value)}
+            className="bg-fit-bg2 border border-fit-line/60 rounded-full px-3 py-2 text-xs font-semibold text-fit-ink outline-none focus:border-fit-accent"
+          >
+            <option value="all">Alle Klienten ({journals.length})</option>
+            {journalClients.map(c => (
+              <option key={c.uid} value={c.uid}>
+                {c.name} ({journals.filter(j => j.userId === c.uid).length})
+              </option>
+            ))}
+          </select>
+        )}
 
         <div className="flex gap-1 p-1 bg-fit-bg2 rounded-full border border-fit-line/40">
           {[
@@ -117,7 +127,7 @@ export default function ClientWorkoutsFeed() {
           ))}
         </div>
 
-        {(filterUserId !== 'all' || filterType !== 'all') && (
+        {((!clientUid && filterUserId !== 'all') || filterType !== 'all') && (
           <button
             onClick={() => { setFilterUserId('all'); setFilterType('all'); }}
             className="text-xs font-semibold text-fit-dim hover:text-fit-accent"

@@ -493,15 +493,24 @@ app.delete("/fitness/inbox/:id", async (c) => {
   }
 });
 
-// ── Coach Feed (alle Klienten-Workouts) ──────────────────────────────────────
+// ── Coach Feed (alle Klienten-Workouts, optional auf einen Klienten
+// eingeschränkt via ?uid=) ────────────────────────────────────────────────
+// Ohne ?uid= wird global über alle Klienten hinweg auf `limit` gedeckelt —
+// bei mehreren aktiven Usern (inkl. Coach selbst) können die Einträge eines
+// bestimmten Klienten dadurch aus dem Feed fallen, bevor ein
+// clientseitiger Filter sie sieht. Mit ?uid= wird gezielt nur dieser eine
+// Ordner gelesen, kein globaler Cutoff greift dazwischen.
 app.get("/fitness/coach/feed", (c) => {
   const usersDir = path.join(os.homedir(), ".aos", "fitness", "users");
   const limit = Number(c.req.query("limit") || 100);
+  const onlyUid = c.req.query("uid") || null;
   if (!fs.existsSync(usersDir)) return c.json({ ok: true, feed: [] });
 
-  const uids = fs.readdirSync(usersDir).filter(d =>
-    fs.statSync(path.join(usersDir, d)).isDirectory() && !["default", "kb"].includes(d)
-  );
+  const uids = onlyUid
+    ? [onlyUid].filter(uid => fs.existsSync(path.join(usersDir, uid)))
+    : fs.readdirSync(usersDir).filter(d =>
+        fs.statSync(path.join(usersDir, d)).isDirectory() && !["default", "kb"].includes(d)
+      );
 
   const feed = [];
   for (const uid of uids) {

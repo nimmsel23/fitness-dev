@@ -3,10 +3,87 @@
  */
 
 import {
-  doc, setDoc, getDocs, serverTimestamp, collectionGroup,
+  doc, setDoc, getDocs, serverTimestamp, collectionGroup, collection,
 } from "firebase/firestore";
 
 import { db } from "../../../firebase.js";
+
+// Direkte Pro-Klient-Query (fitness/{uid}/sessions|journal|habitJournals),
+// keine collectionGroup über alle User. Wichtig: getGlobalJournalFeed()
+// deckelt global auf `limitCount` Items über ALLE Klienten hinweg, bevor
+// überhaupt gefiltert wird — bei mehreren aktiven Usern (inkl. des Coaches
+// selbst, der die App auch für eigene Sessions nutzt) fallen die Einträge
+// eines bestimmten Klienten dadurch komplett aus dem Feed, noch bevor ein
+// clientseitiger uid-Filter sie sehen könnte. Für "zeig mir Klient X" muss
+// deshalb gezielt nach diesem einen Klienten gequeried werden.
+export async function getClientJournalFeed(clientUid, limitCount = 100) {
+  const feed = [];
+
+  try {
+    const snap = await getDocs(collection(db, "fitness", clientUid, "sessions"));
+    for (const d of snap.docs) {
+      const data = d.data();
+      feed.push({
+        id: d.id,
+        userId: clientUid,
+        path: d.ref.path,
+        date: data.date || "Unbekannt",
+        exercises: data.exercises || [],
+        effort: data.effort ?? null,
+        mood: data.mood || "",
+        notes: data.notes || "",
+        coachFeedback: data.coachFeedback || "",
+        time: data.saved_at?.toDate?.()?.toISOString() || data.date || "",
+        type: "workout",
+      });
+    }
+  } catch (e) {
+    console.error("Error in getClientJournalFeed sessions:", e);
+  }
+
+  try {
+    const journalSnap = await getDocs(collection(db, "fitness", clientUid, "journal"));
+    for (const d of journalSnap.docs) {
+      const data = d.data();
+      feed.push({
+        id: d.id,
+        userId: clientUid,
+        path: d.ref.path,
+        date: data.date || "Unbekannt",
+        notes: data.text || "",
+        tags: data.tags || [],
+        coachFeedback: data.coachFeedback || "",
+        time: data.time || data.date || "",
+        type: "journal",
+      });
+    }
+  } catch (e) {
+    console.error("Error in getClientJournalFeed journal:", e);
+  }
+
+  try {
+    const habitSnap = await getDocs(collection(db, "fitness", clientUid, "habitJournals"));
+    for (const d of habitSnap.docs) {
+      const data = d.data();
+      feed.push({
+        id: d.id,
+        userId: clientUid,
+        path: d.ref.path,
+        habitId: data.habitId || null,
+        date: data.date || "Unbekannt",
+        notes: data.text || "",
+        coachFeedback: data.coachFeedback || "",
+        time: data.date || "",
+        type: "habit_journal",
+      });
+    }
+  } catch (e) {
+    console.error("Error in getClientJournalFeed habitJournals:", e);
+  }
+
+  feed.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+  return feed.slice(0, limitCount);
+}
 
 export async function getGlobalJournalFeed(limitCount = 50) {
   const feed = [];

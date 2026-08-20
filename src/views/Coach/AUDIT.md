@@ -42,15 +42,43 @@ Versteckte Admin-Ansicht ("Hidden Chamber") für Coach-seitige Verwaltung — ni
 ## Status
 Funktioniert (Stand 2026-07-22, nach den o.g. Fixes live verifiziert: Übungsanfragen zeigen Daten). Katalog-Browser- und Klienten-Workouts-Sub-Tab in derselben Session ebenfalls verifiziert bzw. um Filter ergänzt. Plan-Zuweisung (2026-08-01) per Build-Check verifiziert (Lint + `npm run build` sauber), nicht live gegen Prod-Firestore getestet — siehe `~/.claude/projects/-home-alpha-vitalos--git-modules-fitness-dev/memory/project_coach_assigned_plans_vs_klienten_dev.md` für den vollen Architektur-Kontext (klienten-dev/klienten-python als älteres Parallelsystem, VitalOS als geplante Coach-Shell).
 
-## Update 2026-08-20: Redesign auf Concept A / "Ruhig"
-Alle 5 Sub-Views (`index.jsx` Router, `ClientManagement.jsx`,
-`ClientWorkoutsFeed.jsx`, `CatalogBrowser.jsx`, `AssignPlan.jsx`) von
-`font-black uppercase tracking-widest` auf sentence-case `font-semibold`/
-`font-medium` umgestellt, harte Boxen/Badges durch `rounded-full` Chips
-ersetzt, `var(--dim)`-Inline-Styling für de-emphasized Labels — konsistent
-mit Session/Learn/Review/Settings. Titel "Hidden Chamber" → "Coach" (Konzept
-"Versteckte Admin-View" bleibt technisch bestehen, nur der reißerische Name
-ist weg). Reine Stilarbeit, kein Verhalten geändert, Build grün.
+## Update 2026-08-20 (Teil 2): Klienten-zentrierter Workflow + echter Feed-Bug behoben
+- **Struktur**: `index.jsx` von 5 auf 3 Sub-Tabs reduziert (Übungsanfragen /
+  Katalog Browser / Klienten). `ClientManagement.jsx` (Status-Toggle) +
+  `ClientWorkoutsFeed.jsx` (global) + `AssignPlan.jsx` (Klient-Dropdown) waren
+  vorher drei unabhängige Tabs ohne gemeinsamen State — behoben durch neue
+  `ClientsPanel.jsx`: links Klientenliste, rechts Detail mit `Workouts`/
+  `Trainingsplan` als Sub-Tabs. `ClientManagement.jsx` **gelöscht**, Status-
+  Toggle-Logik lebt jetzt in `ClientsPanel.jsx`. `AssignPlan.jsx` und
+  `ClientWorkoutsFeed.jsx` akzeptieren jetzt optional `clientUid`
+  (+ `AssignPlan`: `clientName`) und blenden ihre eigene Klientenauswahl aus,
+  wenn sie eingebettet unter `ClientsPanel` laufen — bleiben aber als
+  eigenständige Komponenten mit interner Auswahl nutzbar, falls sie je wieder
+  standalone gebraucht werden.
+- **Echter Bug behoben (nicht nur der alte Filter-Dropdown, der jetzt
+  ohnehin durch die Klientenliste ersetzt ist):** `getGlobalJournalFeed()`
+  holt/deckelt global über ALLE Klienten (50 Firestore / 100 lokal), bevor
+  überhaupt gefiltert wird. Bei mehreren aktiven Usern (der Coach selbst
+  nutzt die App ebenfalls für eigene Sessions) konnten die Einträge eines
+  bestimmten Klienten dadurch komplett aus dem Feed fallen, obwohl sie
+  existieren — sichtbar als "Filter zeigt nichts/falsches an". Fix: neue
+  `getClientJournalFeed(clientUid)` (`firestore/coach.js`: direkte
+  `collection(db, "fitness", uid, ...)`-Query statt `collectionGroup` über
+  alle User; `local/coach.js` + `server.mjs` `/fitness/coach/feed?uid=`:
+  liest nur den einen User-Ordner). `ClientWorkoutsFeed.jsx` nutzt diese
+  Funktion automatisch, sobald `clientUid` gesetzt ist. Live gegen
+  `server.mjs` verifiziert: `?uid=<x>` liefert ausschließlich Einträge dieses
+  einen Users, ohne den Parameter waren 3 User gemischt und bei `limit=100`
+  gekappt.
+- **Redesign (Concept A / "Ruhig")**: alle Sub-Views von
+  `font-black uppercase tracking-widest` auf sentence-case `font-semibold`/
+  `font-medium` umgestellt, harte Boxen/Badges durch `rounded-full` Chips
+  ersetzt, `var(--dim)`-Inline-Styling für de-emphasized Labels — konsistent
+  mit Session/Learn/Review/Settings. Titel "Hidden Chamber" → "Coach".
+- Build grün (`npm run build`), lokaler API-Test der neuen `?uid=`-Route
+  bestanden. Noch **nicht** live gegen Firestore-Prod getestet (nur
+  Struktur-Parität zur Firestore-Dokumentstruktur per `firebase-admin`
+  live verifiziert, siehe Fund oben zu `fitness/{uid}/sessions/...`).
 
 ## Update 2026-08-15: Struktur-Split + 5. Sub-Tab nachgetragen
 - `index.jsx` ist jetzt 5 Sub-Tabs (diese Tabelle/Auflistung oben nannte nur 4 —

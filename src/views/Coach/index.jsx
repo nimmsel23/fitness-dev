@@ -1,17 +1,13 @@
 import { useState } from 'react';
-import { CheckCircle2, Sparkles, Dumbbell, Layers, Users } from 'lucide-react';
+import { CheckCircle2, Sparkles, Dumbbell, Users } from 'lucide-react';
 import { useInbox } from '../Inbox/useInbox';
 import InboxCard from '../Inbox/InboxCard';
 import CatalogBrowser from './CatalogBrowser';
-import AssignPlan from './AssignPlan';
-import ClientManagement from './ClientManagement';
-import ClientWorkoutsFeed from './ClientWorkoutsFeed';
+import ClientsPanel from './ClientsPanel';
 
 const SUB_TABS = [
   { id: 'exercises', label: (n) => `Übungsanfragen (${n})` },
-  { id: 'journals', label: () => 'Klienten-Workouts' },
   { id: 'catalog', label: () => 'Katalog Browser', icon: Dumbbell },
-  { id: 'plans', label: () => 'Trainingspläne', icon: Layers },
   { id: 'clients', label: () => 'Klienten', icon: Users },
 ];
 
@@ -80,10 +76,8 @@ export default function Coach({ onInspectExercise }) {
           </div>
         )
       )}
-      {activeSubTab === 'journals' && <ClientWorkoutsFeed />}
       {activeSubTab === 'catalog' && <CatalogBrowser onInspectExercise={onInspectExercise} />}
-      {activeSubTab === 'plans' && <AssignPlan />}
-      {activeSubTab === 'clients' && <ClientManagement />}
+      {activeSubTab === 'clients' && <ClientsPanel />}
 
       {toast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-full text-xs font-semibold shadow-lg z-50 bg-fit-card text-fit-accent border border-fit-line animate-in slide-in-from-bottom-4 duration-300">
