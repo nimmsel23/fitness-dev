@@ -31,13 +31,20 @@ export function exercisesToModelData(exercises) {
 // gewinnt), statt 1:1 pro Input-Key einen Eintrag zu erzeugen — sonst
 // bekäme react-body-highlighter zwei Einträge für denselben Slug und der
 // zuletzt iterierte (nicht der frischeste) würde zufällig gewinnen.
+// "upper_back" ist laut KB-Architektur die Sammelregion für Trapezius
+// (202-204) + Rhomboids + Rear Delt — RBH zeichnet "trapezius" aber als
+// eigene SVG-Form getrennt von "upper-back", die sonst nie eine Farbe
+// bekommt, egal wie frisch die Region trainiert wurde.
 function groupScoresToModelData(groupScores) {
   const bySlug = {};
+  const assign = (slug, score) => {
+    if (!slug) return;
+    if (!bySlug[slug] || score < bySlug[slug]) bySlug[slug] = score;
+  };
   for (const [region, gs] of Object.entries(groupScores || {})) {
     if (!gs?.score) continue;
-    const slug = muscleToRbhSlug(region);
-    if (!slug) continue;
-    if (!bySlug[slug] || gs.score < bySlug[slug]) bySlug[slug] = gs.score;
+    assign(muscleToRbhSlug(region), gs.score);
+    if (region === 'upper_back') assign('trapezius', gs.score);
   }
   return Object.entries(bySlug).map(([slug, score]) => ({
     name: slug,
