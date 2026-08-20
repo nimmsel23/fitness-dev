@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from "react";
-import { Dumbbell, Plus, Trash2, Pencil, ChevronRight, ChevronDown, Play, Settings2, MoreHorizontal, Sparkles } from "lucide-react";
+import { Dumbbell, Plus, Trash2, Pencil, ChevronRight, ChevronDown, Play, Settings2, MoreHorizontal, Sparkles, Check } from "lucide-react";
 import { api } from "./api.js";
 
-function RoutineCard({ r, onEdit, onStart, onRename, onDelete }) {
+function RoutineCard({ r, onEdit, onStart, onRename, onDelete, onQuickComplete, completingId }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
+  const completing = completingId === r.id;
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -29,7 +30,14 @@ function RoutineCard({ r, onEdit, onStart, onRename, onDelete }) {
             <MoreHorizontal size={18} />
           </button>
           {menuOpen && (
-            <div className="absolute right-0 top-9 z-10 w-40 rounded-xl bg-fit-card border border-fit-line shadow-lg overflow-hidden">
+            <div className="absolute right-0 top-9 z-10 w-48 rounded-xl bg-fit-card border border-fit-line shadow-lg overflow-hidden">
+              <button
+                onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onQuickComplete(r); }}
+                disabled={completing}
+                className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-fit-ink hover:bg-fit-bg2 transition-colors disabled:opacity-50"
+              >
+                <Check size={14} className="text-fit-accent" /> {completing ? 'Speichert…' : 'Heute als erledigt markieren'}
+              </button>
               <button
                 onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit(r.id); }}
                 className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-fit-ink hover:bg-fit-bg2 transition-colors"
@@ -63,6 +71,14 @@ function RoutineCard({ r, onEdit, onStart, onRename, onDelete }) {
           <Play size={14} strokeWidth={2.7} /> Start
         </button>
         <button
+          onClick={() => onQuickComplete(r)}
+          disabled={completing}
+          title="Heute als erledigt markieren, ohne Sätze einzeln einzutragen"
+          className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-fit-card hover:bg-fit-accent/10 text-fit-ink text-sm font-medium transition-colors disabled:opacity-50"
+        >
+          <Check size={14} className={completing ? 'animate-pulse' : ''} />
+        </button>
+        <button
           onClick={() => onEdit(r.id)}
           className="flex items-center justify-between gap-1 px-3 py-2 rounded-xl bg-fit-card hover:bg-fit-accent/10 text-fit-ink text-sm font-medium transition-colors group"
         >
@@ -74,7 +90,7 @@ function RoutineCard({ r, onEdit, onStart, onRename, onDelete }) {
   );
 }
 
-function CalisthenicsSkillsSection({ routines, loading, onEdit, onStart, onRename, onDelete }) {
+function CalisthenicsSkillsSection({ routines, loading, onEdit, onStart, onRename, onDelete, onQuickComplete, completingId }) {
   const [open, setOpen] = useState(false);
   const skillRoutines = routines.filter((r) => r.category === "calisthenics-skill");
   if (!loading && skillRoutines.length === 0) return null;
@@ -95,7 +111,7 @@ function CalisthenicsSkillsSection({ routines, loading, onEdit, onStart, onRenam
       {open && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
           {skillRoutines.map((r) => (
-            <RoutineCard key={r.id} r={r} onEdit={onEdit} onStart={onStart} onRename={onRename} onDelete={onDelete} />
+            <RoutineCard key={r.id} r={r} onEdit={onEdit} onStart={onStart} onRename={onRename} onDelete={onDelete} onQuickComplete={onQuickComplete} completingId={completingId} />
           ))}
         </div>
       )}
@@ -103,9 +119,31 @@ function CalisthenicsSkillsSection({ routines, loading, onEdit, onStart, onRenam
   );
 }
 
+// Fallback-Kette wie in WorkoutSession.jsx's SetRow.toggleCompleted(): echter
+// Wert > letzte Performance (ghost) > Template-Zielwert. Beim Quick-Complete
+// gibt es keine Eingabe, deshalb übernimmt jeder Satz automatisch den besten
+// verfügbaren Wert aus dieser Kette statt leer zu bleiben.
+function fillCompletedSet(s) {
+  return {
+    ...s,
+    completed: true,
+    reps: s.reps ?? s.ghostReps ?? s.targetReps ?? null,
+    weight: s.weight ?? s.ghostWeight ?? s.targetWeight ?? null,
+    distance: s.distance ?? s.ghostDistance ?? s.targetDistance ?? null,
+    duration: s.duration ?? s.ghostDuration ?? s.targetDuration ?? null,
+  };
+}
+
 export default function WorkoutList({ onEditRoutine, onOpenWorkout, onSettings }) {
   const [routines, setRoutines] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [completingId, setCompletingId] = useState(null);
+  const [toast, setToast] = useState('');
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 2400);
+  };
 
   async function load() {
     setLoading(true);
@@ -124,6 +162,32 @@ export default function WorkoutList({ onEditRoutine, onOpenWorkout, onSettings }
   async function startFromRoutine(routineId) {
     const d = await api.post("/workouts", { routine_id: routineId });
     onOpenWorkout(d.id);
+  }
+
+  // Alternative zum vollen WorkoutSession-Log: Routine wird direkt als
+  // "heute erledigt" gespeichert, jeder Satz übernimmt automatisch den
+  // besten verfügbaren Wert (siehe fillCompletedSet) statt Satz für Satz
+  // manuell einzutragen. Bleibt auf WorkoutList, keine Navigation.
+  async function quickComplete(routine) {
+    setCompletingId(routine.id);
+    try {
+      const created = await api.post("/workouts", { routine_id: routine.id });
+      const { workout } = await api.get(`/workouts/${created.id}`);
+      const exercises = (workout.exercises || []).map((ex) => ({
+        ...ex,
+        sets: (ex.sets || []).map(fillCompletedSet),
+      }));
+      await api.patch(`/workouts/${created.id}`, {
+        exercises,
+        finished_at: new Date().toISOString(),
+        sessionState: "completed",
+      });
+      showToast(`${routine.name} erledigt ✓`);
+    } catch {
+      showToast('Fehler beim Speichern');
+    } finally {
+      setCompletingId(null);
+    }
   }
 
   async function renameRoutine(r) {
@@ -180,6 +244,8 @@ export default function WorkoutList({ onEditRoutine, onOpenWorkout, onSettings }
         onStart={startFromRoutine}
         onRename={renameRoutine}
         onDelete={deleteRoutine}
+        onQuickComplete={quickComplete}
+        completingId={completingId}
       />
 
       {/* Routinen */}
@@ -206,11 +272,17 @@ export default function WorkoutList({ onEditRoutine, onOpenWorkout, onSettings }
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {routines.filter((r) => r.category !== "calisthenics-skill").map((r) => (
-              <RoutineCard key={r.id} r={r} onEdit={onEditRoutine} onStart={startFromRoutine} onRename={renameRoutine} onDelete={deleteRoutine} />
+              <RoutineCard key={r.id} r={r} onEdit={onEditRoutine} onStart={startFromRoutine} onRename={renameRoutine} onDelete={deleteRoutine} onQuickComplete={quickComplete} completingId={completingId} />
             ))}
           </div>
         )}
       </section>
+
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 px-5 py-2.5 rounded-full text-xs font-semibold shadow-lg z-50 bg-fit-card text-fit-accent border border-fit-line animate-in slide-in-from-bottom-4 duration-300">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
