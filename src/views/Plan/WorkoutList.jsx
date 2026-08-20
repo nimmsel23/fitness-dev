@@ -1,9 +1,21 @@
 import { useEffect, useState, useRef } from "react";
-import { Dumbbell, Plus, Trash2, Pencil, ChevronDown, Play, Settings2, MoreHorizontal, Sparkles, Check } from "lucide-react";
+import { Dumbbell, Plus, Trash2, Pencil, ChevronDown, Play, Settings2, MoreHorizontal, Sparkles, Check, Target } from "lucide-react";
 import { api } from "./api.js";
 import { muskelDe, muskelColor, dedupeMuskeln } from "../../lib/muscleLabels.js";
 
-function RoutineCard({ r, onEdit, onStart, onRename, onDelete, onQuickComplete, completingId }) {
+// Zählt abgeschlossene Workouts einer Routine innerhalb der letzten
+// `periodDays` Tage (rollierendes Fenster ab heute, kein Kalenderwochen-Reset).
+function countCompletionsInPeriod(routineId, workouts, periodDays) {
+  if (!periodDays) return 0;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - periodDays);
+  const cutoffIso = cutoff.toISOString();
+  return workouts.filter((w) =>
+    w.routine_id === routineId && w.sessionState === "completed" && w.finished_at && w.finished_at >= cutoffIso
+  ).length;
+}
+
+function RoutineCard({ r, onEdit, onStart, onRename, onDelete, onQuickComplete, onSetTarget, completingId, workouts }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const completing = completingId === r.id;
@@ -61,6 +73,12 @@ function RoutineCard({ r, onEdit, onStart, onRename, onDelete, onQuickComplete, 
                 <Check size={14} className="text-fit-accent" /> {completing ? 'Speichert…' : 'Heute als erledigt markieren'}
               </button>
               <button
+                onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onSetTarget(r); }}
+                className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-fit-ink hover:bg-fit-bg2 transition-colors"
+              >
+                <Target size={14} /> Ziel festlegen
+              </button>
+              <button
                 onClick={(e) => { e.stopPropagation(); setMenuOpen(false); onEdit(r.id); }}
                 className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-fit-ink hover:bg-fit-bg2 transition-colors"
               >
@@ -84,6 +102,17 @@ function RoutineCard({ r, onEdit, onStart, onRename, onDelete, onQuickComplete, 
       </div>
 
       {r.goal && <p className="text-sm text-fit-muted mb-3 line-clamp-2">{r.goal}</p>}
+
+      {r.targetCount > 0 && r.targetPeriodDays > 0 && (() => {
+        const done = countCompletionsInPeriod(r.id, workouts, r.targetPeriodDays);
+        const met = done >= r.targetCount;
+        return (
+          <div className={`flex items-center gap-1.5 mb-3 text-xs font-semibold ${met ? 'text-green-500' : 'text-fit-accent'}`}>
+            <Target size={13} />
+            {done}/{r.targetCount} in {r.targetPeriodDays} Tagen {met && '· erfüllt'}
+          </div>
+        );
+      })()}
 
       <button
         onClick={togglePreview}
@@ -149,7 +178,7 @@ function RoutineCard({ r, onEdit, onStart, onRename, onDelete, onQuickComplete, 
   );
 }
 
-function CalisthenicsSkillsSection({ routines, loading, onEdit, onStart, onRename, onDelete, onQuickComplete, completingId }) {
+function CalisthenicsSkillsSection({ routines, loading, onEdit, onStart, onRename, onDelete, onQuickComplete, onSetTarget, completingId, workouts }) {
   const [open, setOpen] = useState(false);
   const skillRoutines = routines.filter((r) => r.category === "calisthenics-skill");
   if (!loading && skillRoutines.length === 0) return null;
@@ -170,10 +199,45 @@ function CalisthenicsSkillsSection({ routines, loading, onEdit, onStart, onRenam
       {open && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
           {skillRoutines.map((r) => (
-            <RoutineCard key={r.id} r={r} onEdit={onEdit} onStart={onStart} onRename={onRename} onDelete={onDelete} onQuickComplete={onQuickComplete} completingId={completingId} />
+            <RoutineCard key={r.id} r={r} onEdit={onEdit} onStart={onStart} onRename={onRename} onDelete={onDelete} onQuickComplete={onQuickComplete} onSetTarget={onSetTarget} completingId={completingId} workouts={workouts} />
           ))}
         </div>
       )}
+    </section>
+  );
+}
+
+// "Pensum" = alle Routinen mit gesetztem Ziel gelten als erfüllt, wenn jede
+// ihre eigene Ziel-Häufigkeit im eigenen Zeitraum erreicht hat (jede Routine
+// kann ihr eigenes Zeitfenster haben, kein gemeinsamer Kalenderzeitraum).
+function PensumSummary({ routines, workouts }) {
+  const targeted = routines.filter((r) => r.targetCount > 0 && r.targetPeriodDays > 0);
+  if (targeted.length === 0) return null;
+
+  const rows = targeted.map((r) => ({
+    r,
+    done: countCompletionsInPeriod(r.id, workouts, r.targetPeriodDays),
+  }));
+  const allMet = rows.every(({ r, done }) => done >= r.targetCount);
+
+  return (
+    <section className="mb-8">
+      <div className={`rounded-2xl border p-4 ${allMet ? 'bg-green-500/10 border-green-500/30' : 'bg-fit-bg2 border-fit-line'}`}>
+        <div className="flex items-center gap-2 mb-3">
+          <Target size={16} className={allMet ? 'text-green-500' : 'text-fit-accent'} />
+          <h2 className="text-sm font-bold text-fit-ink">Pensum {allMet ? 'erfüllt ✓' : ''}</h2>
+        </div>
+        <div className="space-y-1.5">
+          {rows.map(({ r, done }) => (
+            <div key={r.id} className="flex items-center justify-between text-xs">
+              <span className="font-medium text-fit-ink">{r.name}</span>
+              <span className={done >= r.targetCount ? 'text-green-500 font-semibold' : 'text-fit-muted'}>
+                {done}/{r.targetCount} in {r.targetPeriodDays} Tagen
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
@@ -335,6 +399,19 @@ export default function WorkoutList({ onEditRoutine, onOpenWorkout, onSettings }
     }
   }
 
+  async function setRoutineTarget(r) {
+    const countStr = prompt(`Wie oft soll "${r.name}" im Zeitraum erledigt werden?`, r.targetCount || "2");
+    if (countStr === null) return;
+    const count = Number(countStr);
+    if (!Number.isFinite(count) || count <= 0) return;
+    const daysStr = prompt(`In wie vielen Tagen (rollierendes Fenster)?`, r.targetPeriodDays || "7");
+    if (daysStr === null) return;
+    const days = Number(daysStr);
+    if (!Number.isFinite(days) || days <= 0) return;
+    await api.patch(`/routines/${r.id}`, { targetCount: count, targetPeriodDays: days });
+    load();
+  }
+
   async function renameRoutine(r) {
     const name = prompt("Neuer Name:", r.name);
     if (!name || !name.trim() || name.trim() === r.name) return;
@@ -379,6 +456,8 @@ export default function WorkoutList({ onEditRoutine, onOpenWorkout, onSettings }
         />
       )}
 
+      <PensumSummary routines={routines} workouts={workouts} />
+
       {/* Schnellstart */}
       <section className="mb-8">
         <h2 className="text-sm font-bold text-fit-muted uppercase tracking-wide mb-3">Schnellstart</h2>
@@ -399,7 +478,9 @@ export default function WorkoutList({ onEditRoutine, onOpenWorkout, onSettings }
         onRename={renameRoutine}
         onDelete={deleteRoutine}
         onQuickComplete={quickComplete}
+        onSetTarget={setRoutineTarget}
         completingId={completingId}
+        workouts={workouts}
       />
 
       {/* Routinen */}
@@ -426,7 +507,7 @@ export default function WorkoutList({ onEditRoutine, onOpenWorkout, onSettings }
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {routines.filter((r) => r.category !== "calisthenics-skill").map((r) => (
-              <RoutineCard key={r.id} r={r} onEdit={onEditRoutine} onStart={startFromRoutine} onRename={renameRoutine} onDelete={deleteRoutine} onQuickComplete={quickComplete} completingId={completingId} />
+              <RoutineCard key={r.id} r={r} onEdit={onEditRoutine} onStart={startFromRoutine} onRename={renameRoutine} onDelete={deleteRoutine} onQuickComplete={quickComplete} onSetTarget={setRoutineTarget} completingId={completingId} workouts={workouts} />
             ))}
           </div>
         )}
