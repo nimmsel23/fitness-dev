@@ -22,10 +22,11 @@ import {
 } from '@db'
 import ExerciseSearch from '../Plan/components/ExerciseSearch.jsx'
 
-export default function AssignPlan() {
+export default function AssignPlan({ clientUid: presetClientUid, clientName: presetClientName }) {
   const { user } = useUser()
+  const embedded = !!presetClientUid
   const [profiles, setProfiles] = useState({})
-  const [selectedClient, setSelectedClient] = useState('')
+  const [selectedClient, setSelectedClient] = useState(presetClientUid || '')
   const [cycles, setCycles] = useState([])
   const [loading, setLoading] = useState(false)
 
@@ -42,8 +43,14 @@ export default function AssignPlan() {
   const [cycleMeta, setCycleMeta] = useState(null)
 
   useEffect(() => {
+    if (embedded) return
     getAllUserProfiles().then(setProfiles).catch(() => setProfiles({}))
-  }, [])
+  }, [embedded])
+
+  // Eingebetteter Modus (aus ClientsPanel): Klient ist schon fix, direkt Zyklen laden.
+  useEffect(() => {
+    if (presetClientUid) selectClient(presetClientUid)
+  }, [presetClientUid])
 
   async function selectClient(clientUid) {
     setSelectedClient(clientUid)
@@ -135,36 +142,43 @@ export default function AssignPlan() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 p-6">
-        <h2 className="text-lg font-bold text-fit-ink mb-4 flex items-center gap-2">
-          <Dumbbell size={20} className="text-fit-accent" />
-          Trainingszyklen
+      {embedded ? (
+        <h2 className="text-base font-semibold text-fit-ink flex items-center gap-2">
+          <Dumbbell size={18} className="text-fit-accent" />
+          Trainingsplan {presetClientName ? `— ${presetClientName}` : ''}
         </h2>
-        <label className="block text-xs font-bold text-fit-dim uppercase mb-2">Klient auswählen</label>
-        <select
-          value={selectedClient}
-          onChange={(e) => selectClient(e.target.value)}
-          className="w-full bg-fit-bg border border-fit-line rounded-lg px-4 py-2 text-sm font-bold text-fit-ink focus:border-fit-accent outline-none"
-        >
-          <option value="">Klient wählen…</option>
-          {Object.values(profiles).map(p => (
-            <option key={p.uid} value={p.uid}>{p.displayName}</option>
-          ))}
-        </select>
-      </div>
+      ) : (
+        <div className="card p-6">
+          <h2 className="text-base font-semibold text-fit-ink mb-4 flex items-center gap-2">
+            <Dumbbell size={18} className="text-fit-accent" />
+            Trainingszyklen
+          </h2>
+          <label className="block text-xs font-medium mb-2" style={{ color: 'var(--dim)', opacity: 0.7 }}>Klient auswählen</label>
+          <select
+            value={selectedClient}
+            onChange={(e) => selectClient(e.target.value)}
+            className="w-full bg-fit-bg border border-fit-line rounded-xl px-4 py-2 text-sm font-semibold text-fit-ink focus:border-fit-accent outline-none"
+          >
+            <option value="">Klient wählen…</option>
+            {Object.values(profiles).map(p => (
+              <option key={p.uid} value={p.uid}>{p.displayName}</option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {selectedClient && !cycle && (
         <>
-          <div className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 p-6">
-            <h3 className="text-sm font-bold text-fit-ink mb-3">Neuer Zyklus</h3>
+          <div className="card p-6">
+            <h3 className="text-sm font-semibold text-fit-ink mb-3">Neuer Zyklus</h3>
             <div className="flex flex-wrap gap-2">
               <input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="z.B. Push Pull Legs"
-                className="flex-1 min-w-[200px] bg-fit-bg border border-fit-line rounded-lg px-3 py-2 text-sm text-fit-ink focus:border-fit-accent outline-none"
+                className="flex-1 min-w-[200px] bg-fit-bg border border-fit-line rounded-xl px-3 py-2 text-sm text-fit-ink focus:border-fit-accent outline-none"
               />
-              <label className="flex items-center gap-1.5 text-xs text-fit-dim">
+              <label className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--dim)', opacity: 0.7 }}>
                 <input
                   type="number"
                   min={1}
@@ -178,7 +192,7 @@ export default function AssignPlan() {
               <button
                 onClick={handleCreate}
                 disabled={creating || !newName.trim()}
-                className="btn btn-primary px-4 py-2 text-xs font-bold uppercase flex items-center gap-1.5 disabled:opacity-50"
+                className="btn btn-primary px-4 py-2 text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50"
               >
                 <Plus size={14} /> Anlegen
               </button>
@@ -190,8 +204,8 @@ export default function AssignPlan() {
               <div className="w-6 h-6 border-2 border-fit-accent/30 border-t-fit-accent rounded-full animate-spin" />
             </div>
           ) : cycles.length === 0 ? (
-            <div className="text-center py-12 text-fit-dim text-xs opacity-50">
-              <Dumbbell size={32} className="mx-auto mb-2 opacity-30" />
+            <div className="text-center py-12 text-xs" style={{ color: 'var(--dim)', opacity: 0.5 }}>
+              <Dumbbell size={28} className="mx-auto mb-2" style={{ opacity: 0.5 }} />
               <p>Noch kein Zyklus für diesen Klienten</p>
             </div>
           ) : (
@@ -199,12 +213,12 @@ export default function AssignPlan() {
               {cycles.map(c => (
                 <div
                   key={c.id}
-                  className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 p-4 flex items-center justify-between hover:bg-fit-bg2/80 transition-colors cursor-pointer"
+                  className="card p-4 flex items-center justify-between hover:border-fit-accent/25 transition-all cursor-pointer"
                   onClick={() => openCycle(c.id)}
                 >
                   <div>
-                    <h3 className="font-bold text-sm text-fit-ink">{c.name}</h3>
-                    <p className="text-xs text-fit-dim mt-1">{c.routineCount || 0} Routinen</p>
+                    <h3 className="font-semibold text-sm text-fit-ink">{c.name}</h3>
+                    <p className="text-xs mt-1" style={{ color: 'var(--dim)', opacity: 0.6 }}>{c.routineCount || 0} Routinen</p>
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleDeleteCycle(c.id) }}
@@ -221,20 +235,20 @@ export default function AssignPlan() {
 
       {cycle && (
         <div className="space-y-4">
-          <button onClick={() => setCycle(null)} className="text-xs font-bold text-fit-dim hover:text-fit-ink uppercase">
+          <button onClick={() => setCycle(null)} className="text-xs font-semibold text-fit-dim hover:text-fit-ink">
             ← Zurück
           </button>
 
-          <div className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 p-4">
+          <div className="card p-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-fit-ink">{cycle.name}</h3>
+              <h3 className="font-semibold text-fit-ink">{cycle.name}</h3>
               {cycleMeta && (
-                <span className={`text-xs font-black uppercase ${cycleMeta.finished ? 'text-fit-dim' : 'text-fit-accent'}`}>
+                <span className={`text-xs font-semibold ${cycleMeta.finished ? 'text-fit-dim' : 'text-fit-accent'}`}>
                   {cycleMeta.finished ? 'Abgeschlossen' : `Woche ${cycleMeta.currentWeek} / ${cycleMeta.totalWeeks}`}
                 </span>
               )}
             </div>
-            <p className="text-xs text-fit-dim mt-1">Rotiert flexibel in dieser Reihenfolge — kein fester Kalendertag.</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--dim)', opacity: 0.6 }}>Rotiert flexibel in dieser Reihenfolge — kein fester Kalendertag.</p>
             {cycleMeta && (
               <div className="h-1.5 bg-fit-bg rounded-full overflow-hidden mt-2">
                 <div
@@ -246,18 +260,18 @@ export default function AssignPlan() {
           </div>
 
           {/* Feedback des Klienten: was wurde tatsächlich trainiert */}
-          <div className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 p-4">
-            <h4 className="text-xs font-bold text-fit-dim uppercase mb-2">Erledigt vom Klienten</h4>
+          <div className="card p-4">
+            <h4 className="text-xs font-medium mb-2" style={{ color: 'var(--dim)', opacity: 0.7 }}>Erledigt vom Klienten</h4>
             {completions.length === 0 ? (
-              <p className="text-xs text-fit-dim opacity-50">Noch nichts abgehakt</p>
+              <p className="text-xs" style={{ color: 'var(--dim)', opacity: 0.5 }}>Noch nichts abgehakt</p>
             ) : (
               <div className="space-y-1.5">
                 {completions.slice(-8).reverse().map((c) => {
                   const routine = cycle.routines.find(r => r.id === c.routineId)
                   return (
                     <div key={c.id} className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-fit-ink">{routine?.label || c.routineId}</span>
-                      <span className="text-fit-dim">{new Date(c.completedAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
+                      <span className="font-semibold text-fit-ink">{routine?.label || c.routineId}</span>
+                      <span style={{ color: 'var(--dim)', opacity: 0.6 }}>{new Date(c.completedAt).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                   )
                 })}
@@ -266,36 +280,36 @@ export default function AssignPlan() {
           </div>
 
           {/* Routine hinzufügen — Name + Pause danach + optional Deload */}
-          <div className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 p-4 space-y-2">
+          <div className="card p-4 space-y-2">
             <div className="flex gap-2">
               <input
                 value={newRoutineLabel}
                 onChange={(e) => setNewRoutineLabel(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddRoutine()}
                 placeholder="z.B. Push"
-                className="flex-1 bg-fit-bg border border-fit-line rounded-lg px-3 py-2 text-sm text-fit-ink focus:border-fit-accent outline-none"
+                className="flex-1 bg-fit-bg border border-fit-line rounded-xl px-3 py-2 text-sm text-fit-ink focus:border-fit-accent outline-none"
               />
               <button
                 onClick={handleAddRoutine}
                 disabled={!newRoutineLabel.trim()}
-                className="btn btn-primary px-4 py-2 text-xs font-bold uppercase flex items-center gap-1.5 disabled:opacity-50"
+                className="btn btn-primary px-4 py-2 text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50"
               >
                 <Plus size={14} /> Routine
               </button>
             </div>
-            <div className="flex items-center gap-3 text-xs">
-              <label className="flex items-center gap-1.5 text-fit-dim">
+            <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--dim)', opacity: 0.7 }}>
+              <label className="flex items-center gap-1.5">
                 Pause danach
                 <input
                   type="number"
                   min={0}
                   value={newRoutineRest}
                   onChange={(e) => setNewRoutineRest(e.target.value)}
-                  className="w-16 bg-fit-bg border border-fit-line rounded px-2 py-1 text-fit-ink"
+                  className="w-16 bg-fit-bg border border-fit-line rounded-lg px-2 py-1 text-fit-ink"
                 />
                 Std.
               </label>
-              <label className="flex items-center gap-1.5 text-fit-dim cursor-pointer">
+              <label className="flex items-center gap-1.5 cursor-pointer">
                 <input type="checkbox" checked={newRoutineDeload} onChange={(e) => setNewRoutineDeload(e.target.checked)} />
                 <Snowflake size={13} /> Deload
               </label>
@@ -304,12 +318,12 @@ export default function AssignPlan() {
 
           {/* Vorgabe für neu hinzugefügte Übungen — nur ein Startwert */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-fit-dim">Vorgabe für neue Übungen:</span>
+            <span className="text-xs" style={{ color: 'var(--dim)', opacity: 0.6 }}>Vorgabe für neue Übungen:</span>
             {REP_PRESETS.map(p => (
               <button
                 key={p.label}
                 onClick={() => setPreset(p)}
-                className={`px-2.5 py-1 rounded-md text-xs font-bold transition-colors ${
+                className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
                   preset.label === p.label ? 'bg-fit-accent text-black' : 'bg-fit-bg border border-fit-line text-fit-dim hover:text-fit-ink'
                 }`}
               >
@@ -323,18 +337,18 @@ export default function AssignPlan() {
             {cycle.routines.map((routine, i) => {
               const isOpen = openRoutine === routine.id
               return (
-                <div key={routine.id} className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 overflow-hidden">
+                <div key={routine.id} className="card overflow-hidden">
                   <button
                     onClick={() => setOpenRoutine(isOpen ? null : routine.id)}
-                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-fit-bg2/80"
+                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-fit-bg2/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded-full bg-fit-accent/20 text-fit-accent text-xs font-black flex items-center justify-center">{i + 1}</span>
-                      <span className="font-bold text-sm text-fit-ink">{routine.label}</span>
+                      <span className="w-6 h-6 rounded-full bg-fit-accent/20 text-fit-accent text-xs font-semibold flex items-center justify-center">{i + 1}</span>
+                      <span className="font-semibold text-sm text-fit-ink">{routine.label}</span>
                       {routine.isDeload && <Snowflake size={13} className="text-blue-400" title="Deload" />}
-                      <span className="text-xs text-fit-dim">{(routine.exercises || []).length} Übungen</span>
+                      <span className="text-xs" style={{ color: 'var(--dim)', opacity: 0.6 }}>{(routine.exercises || []).length} Übungen</span>
                       {routine.restHoursAfter > 0 && (
-                        <span className="text-xs text-fit-dim/70">· {routine.restHoursAfter}h Pause danach</span>
+                        <span className="text-xs" style={{ color: 'var(--dim)', opacity: 0.5 }}>· {routine.restHoursAfter}h Pause danach</span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
@@ -353,8 +367,8 @@ export default function AssignPlan() {
                       {(routine.exercises || []).length > 0 && (
                         <div className="space-y-2">
                           {routine.exercises.map((ex, exIdx) => (
-                            <div key={exIdx} className="flex items-center gap-2 bg-fit-bg2/50 rounded-lg px-3 py-2">
-                              <span className="flex-1 text-xs font-bold text-fit-ink truncate">{ex.name}</span>
+                            <div key={exIdx} className="flex items-center gap-2 bg-fit-bg2/50 rounded-xl px-3 py-2">
+                              <span className="flex-1 text-xs font-semibold text-fit-ink truncate">{ex.name}</span>
                               <input
                                 type="number"
                                 value={ex.sets}

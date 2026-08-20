@@ -147,8 +147,12 @@ def _merge_activity(base: dict[str, Any], incoming: dict[str, Any], source_stem:
 
     entry = dict(activity)
     entry.setdefault("_source_stem", source_stem)
-    if not any(_same_activity(a, entry) for a in addons):
-        addons.append(entry)
+    # Konsistent mit _merge_activity_addon (fitness/api/routers/sessions.py):
+    # pro Quell-Datei (source_stem) zählt nur der letzte Stand, nicht jede
+    # Signatur-Variante — verhindert Phantom-Finisher, falls ein Sidecar
+    # mehrfach überschrieben wurde, bevor gemerged wurde.
+    addons = [a for a in addons if a.get("_source_stem") != source_stem]
+    addons.append(entry)
 
     merged["activityAddons"] = addons
     if not isinstance(merged.get("activity"), dict) or not merged.get("activity"):

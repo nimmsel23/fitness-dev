@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Download } from 'lucide-react';
 
 export function InstallPromptHandler() {
@@ -59,7 +60,7 @@ export function InstallPromptHandler() {
     return null;
   }
 
-  return (
+  return createPortal(
     <div className="fixed top-20 left-4 right-4 z-50 animate-in fade-in slide-in-from-top-4 duration-300">
       <div className="bg-fit-accent/10 border border-fit-accent/20 rounded-2xl p-4 flex items-center gap-4 shadow-lg backdrop-blur-sm">
         <Download size={20} className="text-fit-accent flex-shrink-0" />
@@ -82,6 +83,7 @@ export function InstallPromptHandler() {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

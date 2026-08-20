@@ -6,12 +6,11 @@ Workout-Journal für Kraft- und Ausdauertraining. Zwei Session-Modi, Multi-Sessi
 
 - **`index.jsx`**: Thin Sub-Tab-Router — editor (default) / timer / skills / plan / history.
 - **`useSession.js`**: State-Owner — Session-Modi, Multi-Session, Autosave/Flush, alle Handler.
-- **`SessionEditor.jsx`**: Editor-Assembly — DateStrip + SessionSwitcher + ExerciseList/ActivitySection.
+- **`SessionEditor.jsx`**: Editor-Assembly — SessionHeader + ExerciseList/ActivitySection.
 - **`SessionGateCard.jsx`**: großes Start/Stop-Gate für den Trainingstag inkl. laufender Session-Stoppuhr und Live-Notification-Anbindung.
 - **`SessionHistory.jsx`**: Verlauf-SubTab — Timeline, Drag&Drop-Umdatierung.
-- **`DateStrip.jsx`**: 7-Tage-Slider, Save-Button, Sidebar- und Settings-Trigger.
-- **`SessionSwitcher.jsx`**: Multi-Session-Pills + Neu/Löschen (Löschen für jede Session der Tagesliste, auch die Hauptsession).
-- **`ModeSwitcher.jsx`**: strength/cardio Umschalter.
+- **`SessionHeader.jsx`**: konsolidierter Header (ersetzt `DateStrip.jsx`/`SessionSwitcher.jsx`/`ModeSwitcher.jsx`) — Titel + Kalender-Sprung + Overflow-Menü, flacher Day-Strip, Session-Pills + Kraft/Ausdauer-Underline-Tabs.
+- **`useDayStrip.js`**: Day-Strip-Fensterung/Navigation, von `SessionHeader.jsx` genutzt.
 - **`ExerciseList.jsx`**: Übungsliste + QuickInput + ExerciseSearchOverlay + Hint/Gap-Banner.
 - **`ExerciseCard.jsx`**: Einzelübung — `setsArray` (multi-set), NxM-Expansion, Drop-Set, prevMap-Stats, Trend-Badge, Recovery.
 - **`ActivitySection.jsx`**: Cardio-Logger — im `cardio`-Mode die gesamte Session.

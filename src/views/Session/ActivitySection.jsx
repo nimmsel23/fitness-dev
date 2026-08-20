@@ -10,6 +10,7 @@ import {
   ACTIVITY_MUSCLE_GROUPS,
   MUSCLE_TARGET_GROUPS,
   SWIM_STYLE_MUSCLES,
+  SWIM_STYLE_PRIMARY_MUSCLES,
 } from '../../constants/ActivityConstants';
 
 const ACTIVITY_TYPES = [
@@ -47,6 +48,16 @@ function musclesForActivity(type, { muscleTarget, swimStyle } = {}) {
   return ACTIVITY_MUSCLE_GROUPS[type] || MUSCLE_TARGET_GROUPS.full;
 }
 
+// Primary-Mover-Teilmenge für die Coverage-Berechnung — nur beim Schwimmen
+// bislang differenziert (siehe SWIM_STYLE_PRIMARY_MUSCLES), sonst leer
+// (alle Muskeln bleiben secondary-gewichtet, unverändertes Altverhalten).
+function primaryMusclesForActivity(type, { swimStyle } = {}) {
+  if (type === 'swimming') {
+    return SWIM_STYLE_PRIMARY_MUSCLES[swimStyle || 'breast'] || [];
+  }
+  return [];
+}
+
 export default function ActivitySection({ activity, setActivity }) {
   const selected = ACTIVITY_TYPES.find(t => t.value === activity.type) || ACTIVITY_TYPES[0];
   const activeTarget = activity.muscleTarget || ACTIVITY_MUSCLE_DEFAULTS[activity.type] || 'full';
@@ -69,6 +80,7 @@ export default function ActivitySection({ activity, setActivity }) {
                   const target = ACTIVITY_MUSCLE_DEFAULTS[t.value] || 'full';
                   const next = { ...activity, type: t.value, muscleTarget: target };
                   next.muscles = musclesForActivity(t.value, next);
+                  next.primaryMuscles = primaryMusclesForActivity(t.value, next);
                   setActivity(next);
                 }}
                 className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border transition-all ${
@@ -110,6 +122,7 @@ export default function ActivitySection({ activity, setActivity }) {
                 onClick={() => {
                   const next = { ...activity, muscleTarget: t.value };
                   next.muscles = musclesForActivity('hiit', next);
+                  next.primaryMuscles = primaryMusclesForActivity('hiit', next);
                   setActivity(next);
                 }}
                 className={`px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wider transition-all ${
@@ -131,6 +144,7 @@ export default function ActivitySection({ activity, setActivity }) {
                 onClick={() => {
                   const next = { ...activity, swimStyle: s.value };
                   next.muscles = musclesForActivity('swimming', next);
+                  next.primaryMuscles = primaryMusclesForActivity('swimming', next);
                   setActivity(next);
                 }}
                 className={`px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wider transition-all ${

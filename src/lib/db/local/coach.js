@@ -11,6 +11,60 @@ export async function getGlobalJournalFeed(limitCount = 100) {
   }
 }
 
+// Gezielt nur die Einträge eines Klienten — umgeht den globalen
+// limit-Cutoff von getGlobalJournalFeed() (siehe server.mjs-Kommentar).
+export async function getClientJournalFeed(clientUid, limitCount = 100) {
+  try {
+    const data = await api.get(`/fitness/coach/feed?uid=${encodeURIComponent(clientUid)}&limit=${limitCount}`);
+    return data?.feed || [];
+  } catch {
+    return [];
+  }
+}
+
+// Coach beobachtet Habit-Fortschritt eines Klienten (read-only) — nutzt
+// dieselben /routines + /workouts-Routen wie der Klient selbst, per
+// ?uid=-Override (Python _uid_from_request() unterstützt das bereits für
+// alle Routen, kein neuer Endpoint nötig). Fortschritt wird im UI-Layer
+// aus routines+workouts berechnet (lib/habitProgress.js).
+export async function getClientRoutinesProgress(clientUid) {
+  try {
+    const [routinesRes, workoutsRes] = await Promise.all([
+      api.get(`/routines?uid=${encodeURIComponent(clientUid)}`),
+      api.get(`/workouts?uid=${encodeURIComponent(clientUid)}`),
+    ]);
+    return { routines: routinesRes?.routines || [], workouts: workoutsRes?.workouts || [] };
+  } catch {
+    return { routines: [], workouts: [] };
+  }
+}
+
+// Coach-Schreibpfad für Klienten-Routinen — nutzt dieselben Routen wie der
+// Klient selbst, ?uid=-Override (siehe getClientRoutinesProgress oben, live
+// bestätigt dass das auch für POST/PATCH/DELETE funktioniert, nicht nur GET).
+// Einzelne Routine inkl. exercises (die Listen-Route /routines liefert
+// bewusst keine exercises, siehe fitness/api/routers/workouts.py) — Coach-
+// Pendant zu views/Plan/WorkoutList.jsx's on-demand Vorschau-Fetch.
+export async function getClientRoutine(clientUid, routineId) {
+  return api.get(`/routines/${routineId}?uid=${encodeURIComponent(clientUid)}`);
+}
+
+export async function createClientRoutine(clientUid, body) {
+  return api.post(`/routines?uid=${encodeURIComponent(clientUid)}`, body);
+}
+
+export async function addClientRoutineExercise(clientUid, routineId, body) {
+  return api.post(`/routines/${routineId}/exercises?uid=${encodeURIComponent(clientUid)}`, body);
+}
+
+export async function setClientRoutineTarget(clientUid, routineId, patch) {
+  return api.patch(`/routines/${routineId}?uid=${encodeURIComponent(clientUid)}`, patch);
+}
+
+export async function deleteClientRoutine(clientUid, routineId) {
+  return api.delete(`/routines/${routineId}?uid=${encodeURIComponent(clientUid)}`);
+}
+
 export async function getAllUserProfiles() {
   try {
     const data = await api.get('/fitness/coach/profiles');

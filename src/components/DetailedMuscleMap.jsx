@@ -3,15 +3,33 @@ import { muscleToRmhSlug, canonicalMuscleId } from '../lib/kb/muscles.js';
 
 // groupScores: { [muscleIdOrWord]: { score, color } } — mehrere Keys können
 // auf denselben RMH-Slug rollen (z.B. einzelne Trapezius-Köpfe → "trapezius").
-// Nach Ziel-Slug aggregieren (niedrigster Score = frischest trainiert
-// gewinnt), sonst überschreiben sich Duplikate zufällig statt sinnvoll.
+// Nach Ziel-Slug aggregieren, sonst überschreiben sich Duplikate zufällig
+// statt sinnvoll.
+//
+// Bei Kollision gewinnt der HÖCHSTE Score (= am stärksten belastet), nicht
+// der frischeste: MUSCLE_GROUPS ist feiner als das RMH-Slug-Vokabular (z.B.
+// teilen sich "rhomboids"/"middle_back"/"serratus_anterior" einen Slug mit
+// "upper_back"/"chest") — würde der frischeste gewinnen, verschwindet "in
+// Erholung"/"stark belastet" einer Teilregion hinter einer frischen
+// Nachbarregion, obwohl die Fokus-Analyse-Liste (superkompensation.js) das
+// korrekt getrennt ausweist, weil sie nicht slug-aggregiert.
+//
+// "upper_back" ist laut KB-Architektur die bewusste Sammelregion für
+// Trapezius (202-204) + Rhomboids + Rear Delt + Rotator Cuff (siehe
+// MUSCLE_CATALOG_ARCHITECTURE.md) — RMH zeichnet "trapezius" aber als
+// eigene SVG-Form getrennt von "upper-back". Ohne diesen zusätzlichen
+// Eintrag bleibt die Trapezius-Form immer ungefärbt, egal wie frisch
+// die Region trainiert wurde.
 function groupScoresToData(groupScores) {
   const bySlug = {};
+  const assign = (slug, gs) => {
+    if (!slug) return;
+    if (!bySlug[slug] || gs.score > bySlug[slug].score) bySlug[slug] = { score: gs.score, color: gs.color };
+  };
   for (const [region, gs] of Object.entries(groupScores || {})) {
     if (!gs?.score) continue;
-    const slug = muscleToRmhSlug(region);
-    if (!slug) continue;
-    if (!bySlug[slug] || gs.score < bySlug[slug].score) bySlug[slug] = { score: gs.score, color: gs.color };
+    assign(muscleToRmhSlug(region), gs);
+    if (region === 'upper_back') assign('trapezius', gs);
   }
   return Object.entries(bySlug).map(([slug, { color }]) => ({ slug, color }));
 }

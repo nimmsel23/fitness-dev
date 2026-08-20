@@ -5,30 +5,30 @@ import { getMuscleIcon } from '../../constants/MuscleIcons';
 export default function ReviewInsights({ recommendations, missingRegions, muscleLanguage = 'de', taxonomy = null }) {
   return (
     <section>
-      <div className="label-caps !mb-4 flex items-center gap-2 text-fit-accent">
-        <Sparkles size={16} />
-        Insights & Tipps
+      <div className="flex items-center gap-2 mb-3 text-[11px] font-semibold text-fit-accent">
+        <Sparkles size={14} />
+        Insights &amp; Tipps
       </div>
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {(recommendations || []).map((rec, i) => (
-          <div key={i} className="flex gap-4 text-sm sm:text-base font-medium leading-relaxed text-fit-ink/80 bg-fit-accent/5 p-5 rounded-2xl border border-fit-accent/20">
-            <span className="text-fit-accent font-black mt-0.5">→</span>
+          <div key={i} className="flex gap-3 text-sm leading-relaxed text-fit-ink/80 bg-fit-accent/5 p-4 rounded-2xl border border-fit-accent/20">
+            <span className="text-fit-accent font-bold mt-0.5">·</span>
             {rec}
           </div>
         ))}
         {missingRegions.length > 0 ? (
-          <div className="pt-4 border-t border-fit-accent/10">
-             <div className="text-xs font-black uppercase tracking-[0.2em] text-fit-red mb-3 flex items-center gap-2">
+          <div className="pt-3 border-t border-fit-accent/10">
+             <div className="text-[11px] font-semibold text-fit-red mb-2.5 flex items-center gap-1.5">
                 <Trophy size={13} />
-                Coverage Gaps
+                Länger nicht trainiert
              </div>
-             <div className="flex flex-wrap gap-2.5">
+             <div className="flex flex-wrap gap-1.5">
                {missingRegions.map(region => {
                  const Icon = getMuscleIcon(region);
                  return (
-                   <span key={region} className="text-xs font-black uppercase tracking-widest px-3.5 py-2 rounded-lg border transition-all flex items-center gap-1.5"
+                   <span key={region} className="text-xs font-medium px-2.5 py-1.5 rounded-full border flex items-center gap-1.5"
                      style={{ background: 'rgba(239,68,68,0.05)', color: 'var(--red)', borderColor: 'rgba(239,68,68,0.2)' }}>
-                     <Icon size={13} />
+                     <Icon size={12} />
                      {translateMuscle(region, taxonomy, muscleLanguage)}
                    </span>
                  );
@@ -36,10 +36,10 @@ export default function ReviewInsights({ recommendations, missingRegions, muscle
              </div>
           </div>
         ) : (
-          <div className="pt-4 border-t border-fit-accent/10">
-             <div className="flex items-center gap-3 p-4 bg-fit-green/10 rounded-xl border border-fit-green/20">
-               <div className="w-9 h-9 rounded-full bg-fit-green text-black flex items-center justify-center font-black">✓</div>
-               <span className="text-sm font-bold text-fit-green">Perfekte Abdeckung! Alle Regionen trainiert.</span>
+          <div className="pt-3 border-t border-fit-accent/10">
+             <div className="flex items-center gap-3 p-3.5 bg-fit-green/10 rounded-xl border border-fit-green/20">
+               <div className="w-8 h-8 rounded-full bg-fit-green text-black flex items-center justify-center font-bold text-sm">✓</div>
+               <span className="text-sm font-semibold text-fit-green">Perfekte Abdeckung! Alle Regionen trainiert.</span>
              </div>
           </div>
         )}

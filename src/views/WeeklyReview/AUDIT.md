@@ -66,7 +66,7 @@ index.jsx
 - **Top-Exercises auf 6 gecapped**: `topExercises.slice(0, 6)` — nicht alle zeigen
 - **`onInspectExercise` Prop-Normalisierung**: snake_case (API) → camelCase (ExerciseInsightModal), inkl. `display_name || exercise_id`-Fallback und `source_file`-Stripping für category
 - **`missingRegions.length > 0` Branch**: zeigt Coverage-Gap-Badges; empty = Erfolgs-Banner (grün)
-- **Empty-States**: jede Subkomponente hat eigenen leeren Zustand (dashed border, uppercase text)
+- **Empty-States**: jede Subkomponente hat eigenen leeren Zustand (dashed border, sentence-case text seit Redesign 2026-08-20, vorher uppercase)
 - **Loading-State**: Spinner + Text, zentral im Container — keine Subkomponente ist für Loading zuständig
 - **`taxonomy` Prop**: wird von index.jsx an ReviewInsights + ReviewMuscleImpact weitergegeben (taxonomy={taxonomy} — war früher fehlend, ist jetzt korrekt)
 

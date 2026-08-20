@@ -25,14 +25,17 @@ swimming:
   label: Schwimmen
   emoji: "🏊"
   muscles: [chest, shoulders, arms, core, quadriceps, hamstrings]  # Default: Brustschwimmen
+  primary_muscles: [chest]  # Pec-Zug ist die Hauptantriebsphase, Rest sekundär
   variant_field: swimStyle
   variants:
     breast:
       label: Brustschwimmen
       muscles: [chest, shoulders, arms, core, quadriceps, hamstrings]
+      primary_muscles: [chest]
     back:
       label: Rückenschwimmen
       muscles: [back, shoulders, arms, core, quadriceps]
+      primary_muscles: [back]
 
 hiking:
   label: Wandern

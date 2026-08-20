@@ -23,20 +23,20 @@ export default function ReviewPPLBalance({ bodyRegionScores }) {
 
   return (
     <section>
-      <div className="label-caps !mb-4 flex items-center gap-2">
-        <ArrowLeftRight size={16} className="text-fit-accent" />
+      <div className="flex items-center gap-2 mb-3 text-[11px] font-semibold" style={{ color: 'var(--dim)', opacity: 0.7 }}>
+        <ArrowLeftRight size={14} className="text-fit-accent" />
         Push / Pull / Legs Balance
       </div>
       {hasData ? (
-        <div className="grid grid-cols-3 gap-3 sm:gap-4">
+        <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
           {bars.map(({ label, score }) => {
             const pct = Math.min(100, (score / maxScore) * 100);
             return (
-              <div key={label} className="flex flex-col p-4 sm:p-6 rounded-2xl border bg-fit-card border-fit-line shadow-sm min-w-0">
-                <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.08em] sm:tracking-[0.2em] opacity-40 mb-3 sm:mb-4">
+              <div key={label} className="flex flex-col p-3.5 sm:p-6 rounded-2xl border bg-fit-card border-fit-line min-w-0">
+                <span className="text-[11px] sm:text-xs font-medium opacity-60 mb-2.5 sm:mb-4">
                   {label}
                 </span>
-                <span className="text-3xl font-black text-fit-ink mb-3">{score.toFixed(1)}</span>
+                <span className="text-2xl sm:text-3xl font-bold text-fit-ink mb-2.5">{score.toFixed(1)}</span>
                 <div className="w-full h-2 bg-fit-line rounded-full overflow-hidden">
                   <div className="h-full bg-fit-accent transition-all duration-1000" style={{ width: `${pct}%` }} />
                 </div>
@@ -45,7 +45,7 @@ export default function ReviewPPLBalance({ bodyRegionScores }) {
           })}
         </div>
       ) : (
-        <div className="py-8 text-center text-sm opacity-30 font-bold uppercase tracking-widest border border-dashed rounded-2xl">Keine Daten in diesem Zeitraum</div>
+        <div className="py-8 text-center text-sm font-semibold border border-dashed rounded-2xl" style={{ color: 'var(--dim)', opacity: 0.6 }}>Keine Daten in diesem Zeitraum</div>
       )}
     </section>
   );

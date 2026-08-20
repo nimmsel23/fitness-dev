@@ -98,21 +98,33 @@ def _merge_activity_addon(base: dict[str, Any], incoming: dict[str, Any], source
     if merged.get("activity") and all(a != merged["activity"] for a in addons):
         addons.insert(0, dict(merged["activity"]))
 
-    signature = (
-        activity_entry.get("type"),
-        activity_entry.get("duration"),
-        activity_entry.get("notes"),
-        activity_entry.get("swimStyle"),
-        activity_entry.get("muscleTarget"),
-    )
-    if not any((
-        a.get("type"),
-        a.get("duration"),
-        a.get("notes"),
-        a.get("swimStyle"),
-        a.get("muscleTarget"),
-    ) == signature for a in addons):
+    if source_id:
+        # Autosave (1.5s Debounce) feuert bei jeder Änderung im Aktivitäts-
+        # Formular einer Sidecar-Session (z.B. Cardio-Typ mehrfach umgeschaltet,
+        # bevor der User sich entscheidet) — jeder Zwischenstand hat eine
+        # eigene source_id-Zugehörigkeit. Ohne dieses Ersetzen sammelten sich
+        # pro Browsing-Session mehrere Phantom-Finisher an, einer pro
+        # ausprobierter Typ/Dauer-Kombination. Nur der jeweils letzte Stand
+        # DERSELBEN source_id zählt; unterschiedliche source_ids (= wirklich
+        # getrennt geloggte Finisher) bleiben eigene Einträge.
+        addons = [a for a in addons if a.get("_source_id") != source_id]
         addons.append(activity_entry)
+    else:
+        signature = (
+            activity_entry.get("type"),
+            activity_entry.get("duration"),
+            activity_entry.get("notes"),
+            activity_entry.get("swimStyle"),
+            activity_entry.get("muscleTarget"),
+        )
+        if not any((
+            a.get("type"),
+            a.get("duration"),
+            a.get("notes"),
+            a.get("swimStyle"),
+            a.get("muscleTarget"),
+        ) == signature for a in addons):
+            addons.append(activity_entry)
 
     merged["activityAddons"] = addons
     merged.setdefault("activity", addons[0])

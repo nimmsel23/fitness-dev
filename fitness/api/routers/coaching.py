@@ -17,7 +17,7 @@ from db.schemas import (
 )
 from fitness.catalog import coverage as cov_module
 from fitness.catalog.planner import build_plan
-from fitness.catalog.weekly import build_weekly_coverage, resolve_week_selector
+from fitness.catalog.weekly import build_weekly_coverage
 from fitness.firestore.mirror import mirror_session
 
 router = APIRouter()
@@ -38,6 +38,47 @@ _ROLE_W = {"primary": 1.0, "secondary": 0.5, "stabilizer": 0.2}
 def _today() -> str:
     return date.today().isoformat()
 
+def _exercise_hits(sess: dict) -> list[tuple[str, str, float]]:
+    """Rohe (Muskel, Rolle, Gewicht)-Treffer einer Session, aus geloggten
+    Übungen UND einem geloggten Cardio/Activity-Finisher (z.B. Schwimmen) —
+    Activities fehlten hier zuvor komplett, dadurch trug z.B. Brustschwimmen
+    nichts zur Brust-Coverage bei."""
+    rows: list[tuple[str, str, float]] = []
+    for ex in (sess or {}).get("exercises", []):
+        for role, muscles in (
+            ("primary",    ex.get("primaryMuscles") or ex.get("primary_muscles") or []),
+            ("secondary",  ex.get("secondaryMuscles") or ex.get("secondary_muscles") or []),
+            ("stabilizer", ex.get("stabilizers") or []),
+        ):
+            w = _ROLE_W[role]
+            for m in muscles:
+                rows.append((cov_module.normalize_muscle_id(m), role, w))
+    activity = (sess or {}).get("activity") or {}
+    act_primary = set(activity.get("primaryMuscles") or [])
+    for m in (activity.get("muscles") or []):
+        role = "primary" if m in act_primary else "secondary"
+        rows.append((cov_module.normalize_muscle_id(m), role, _ROLE_W[role]))
+    return rows
+
+def _normalized_session_hits(sess: dict) -> list[tuple[str, str, float]]:
+    """Max-per-Muskel-Normalisierung: pro Session zählt für einen Muskel nur
+    der höchste Rollen-Treffer (nicht die Summe über alle Übungen).
+    One-Set-to-Failure-Philosophie: jede geloggte Übung ist ungefähr gleich
+    hart, mehrere Übungen für denselben Muskel bedeuten mehr Breite, nicht
+    automatisch mehr Gesamtbelastung — sonst zählt ein 4-Übungen-Rücken-
+    Workout allein wegen der Übungsanzahl mehr als ein 1-2-Übungen-Brust-
+    Workout. (Die zuvor versuchte Session-Budget-Skalierung war zu
+    aggressiv — sie hat pro Session auf einen festen Gesamtwert gedeckelt,
+    wodurch nach ein paar Tagen fast jeder Muskel auf denselben Wert
+    konvergierte.)"""
+    raw = _exercise_hits(sess)
+    best: dict[str, tuple[str, float]] = {}
+    for m, role, w in raw:
+        cur = best.get(m)
+        if cur is None or w > cur[1]:
+            best[m] = (role, w)
+    return [(m, role, w) for m, (role, w) in best.items()]
+
 def _coverage_hits(uid: str, days: int) -> dict[str, float]:
     sess_dir = SESS_ROOT / uid / "sessions"
     today = date.today()
@@ -45,15 +86,8 @@ def _coverage_hits(uid: str, days: int) -> dict[str, float]:
     for i in range(days):
         day = (today - timedelta(days=i)).isoformat()
         sess = _read_json(sess_dir / f"{day}.json") if sess_dir.exists() else None
-        for ex in (sess or {}).get("exercises", []):
-            for role, muscles in (
-                ("primary",    ex.get("primaryMuscles") or ex.get("primary_muscles") or []),
-                ("secondary",  ex.get("secondaryMuscles") or ex.get("secondary_muscles") or []),
-                ("stabilizer", ex.get("stabilizers") or []),
-            ):
-                w = _ROLE_W[role]
-                for m in muscles:
-                    rows.append((cov_module.normalize_muscle_id(m), w))
+        for m, _role, w in _normalized_session_hits(sess):
+            rows.append((m, w))
     if not rows:
         return {}
     df = pd.DataFrame(rows, columns=["muscle", "weight"])
@@ -236,7 +270,7 @@ async def fitness_plan(request: Request, template: str = "", split: str = "", da
 @router.get("/fitness/weekly")
 def fitness_weekly(week: str = "current"):
     try:
-        result = build_weekly_coverage(resolve_week_selector(week))
+        result = build_weekly_coverage(week)
         return {"ok": True, **result}
     except Exception as exc:
         logger.error(f"fitness_weekly {week}: {exc}")
@@ -265,18 +299,13 @@ def coverage_anatomy(request: Request, days: int = Query(7, le=90, ge=1)):
     uid      = _uid_from_request(request)
     sess_dir = SESS_ROOT / uid / "sessions"
     today    = date.today()
+    taxonomy = cov_module.load_muscle_taxonomy()
     rows: list[dict] = []
     for i in range(days):
         day  = (today - timedelta(days=i)).isoformat()
         sess = _read_json(sess_dir / f"{day}.json") if sess_dir.exists() else None
-        for ex in (sess or {}).get("exercises", []):
-            for role, muscles in (
-                ("primary",    ex.get("primaryMuscles") or ex.get("primary_muscles") or []),
-                ("secondary",  ex.get("secondaryMuscles") or ex.get("secondary_muscles") or []),
-                ("stabilizer", ex.get("stabilizers") or []),
-            ):
-                for m in muscles:
-                    rows.append({"muscle": cov_module.normalize_muscle_id(m), "name_en": m, "role": role, "w": _ROLE_W[role]})
+        for m, role, w in _normalized_session_hits(sess):
+            rows.append({"muscle": m, "name_en": taxonomy.get(m, {}).get("name_en", m), "role": role, "w": w})
     if not rows:
         return {"ok": True, "days": days, "muscles": []}
     df = pd.DataFrame(rows)

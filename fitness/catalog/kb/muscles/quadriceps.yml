@@ -1,7 +1,7 @@
-label_de: Quadrizeps
+label_de: Beinstrecker
 label_en: Quadriceps
 label_lat: Compartimentum femoris anterius
-aliases: [quad, quads, quadriceps, quadrizeps, oberschenkel vorne, front thigh]
+aliases: [quad, quads, quadriceps, quadrizeps, oberschenkel vorne, front thigh, beinstrecker]
 muscles:
   - 601_quadriceps_femoris
   - 601a_rectus_femoris

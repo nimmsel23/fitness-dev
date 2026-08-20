@@ -474,10 +474,18 @@ if __name__ == "__main__":
 from datetime import datetime
 
 def mirror_session(date: str, session: dict, uid: str = UID) -> None:
+    # Doc-ID muss wie lokal (fitness/api/config.py::_session_file) den
+    # session_id-Suffix tragen, sonst kollabieren Mehrfach-Sessions
+    # desselben Tages (Haupt-Session + HIIT-/Cardio-Sidecar) in Firestore
+    # unter derselben Doc-ID und überschreiben sich gegenseitig, obwohl
+    # sie lokal sauber getrennt bleiben. Node-Pendant (firestore-mirror.mjs
+    # mirrorSession) macht das schon richtig — hier nachgezogen.
+    session_id = session.get("session_id")
+    target_id = f"{date}__{session_id}" if session_id else date
     try:
         db = get_db()
         out = {**session, "date": date, "saved_at": datetime.utcnow().isoformat()}
-        db.collection("fitness").document(uid).collection("sessions").document(date).set(out)
+        db.collection("fitness").document(uid).collection("sessions").document(target_id).set(out)
     except Exception as e:
         logger.warning(f"mirror_session fehler: {e}")
 

@@ -7,7 +7,7 @@ import { serve } from "@hono/node-server";
 import Database from "better-sqlite3";
 import pino from "pino";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
-import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, pullAllSessions } from "./firestore-mirror.mjs";
+import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, pullAllSessions, pullJournalTree } from "./firestore-mirror.mjs";
 
 // pino-pretty IMMER aktiv, auch unter systemd/journalctl — das ist der
 // tatsächliche Haupt-Log-Weg hier (nicht nur `npm run dev` im Terminal).
@@ -237,6 +237,50 @@ function defaultBlocks() {
   ];
 }
 
+const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
+
+// Rohe (Muskel, Rolle, Gewicht)-Treffer einer Session, aus geloggten Übungen
+// UND einem geloggten Cardio/Activity-Finisher (activity.muscles[], bereits
+// beim Speichern aufgelöst; activity.primaryMuscles[] markiert die
+// Hauptmover, z.B. Brust beim Brustschwimmen — Rest bleibt secondary).
+function sessionHits(sess) {
+  const rows = [];
+  for (const ex of (sess?.exercises || [])) {
+    const pm = ex.primary_muscles || ex.primaryMuscles || [];
+    const sm = ex.secondary_muscles || ex.secondaryMuscles || [];
+    const st = ex.stabilizers || [];
+    for (const m of pm) rows.push([m, "primary", ROLE_W.primary]);
+    for (const m of sm) rows.push([m, "secondary", ROLE_W.secondary]);
+    for (const m of st) rows.push([m, "stabilizer", ROLE_W.stabilizer]);
+  }
+  const actPrimary = new Set(sess?.activity?.primaryMuscles || []);
+  for (const m of (sess?.activity?.muscles || [])) {
+    const role = actPrimary.has(m) ? "primary" : "secondary";
+    rows.push([m, role, ROLE_W[role]]);
+  }
+  return rows;
+}
+
+// Max-per-Muskel-Normalisierung: pro Session zählt für einen Muskel nur der
+// höchste Rollen-Treffer (nicht die Summe über alle Übungen). One-Set-to-
+// Failure: jede geloggte Übung ist ungefähr gleich hart, mehrere Übungen für
+// denselben Muskel bedeuten mehr Breite, nicht automatisch mehr
+// Gesamtbelastung — sonst zählt ein 4-Übungen-Rücken-Workout allein wegen
+// der Übungsanzahl mehr als ein 1-2-Übungen-Brust-Workout. (Die zuvor
+// versuchte Session-Budget-Skalierung war zu aggressiv — sie hat pro Session
+// auf einen festen Gesamtwert gedeckelt, wodurch nach ein paar Tagen fast
+// jeder Muskel auf denselben Wert konvergierte.) Spiegel von
+// coaching.py::_normalized_session_hits.
+function normalizedSessionHits(sess) {
+  const raw = sessionHits(sess);
+  const best = new Map();
+  for (const [m, role, w] of raw) {
+    const cur = best.get(m);
+    if (!cur || w > cur[1]) best.set(m, [role, w]);
+  }
+  return Array.from(best.entries()).map(([m, [role, w]]) => [m, role, w]);
+}
+
 function computeCoverage(days) {
   const allDates = [];
   for (let i = 0; i < days; i++) {
@@ -247,17 +291,9 @@ function computeCoverage(days) {
   const hits = {};
   for (const date of allDates) {
     const sess = readJson(path.join(DATA_DIR, "sessions", `${date}.json`));
-    for (const ex of (sess?.exercises || [])) {
-      const pm = ex.primary_muscles || ex.primaryMuscles || [];
-      const sm = ex.secondary_muscles || ex.secondaryMuscles || [];
-      const st = ex.stabilizers || [];
-      for (const m of pm) { const id = muscleToGroupId(m) || normMuscleKey(m); if (id) hits[id] = (hits[id] || 0) + 1; }
-      for (const m of sm) { const id = muscleToGroupId(m) || normMuscleKey(m); if (id) hits[id] = (hits[id] || 0) + 0.5; }
-      for (const m of st) { const id = muscleToGroupId(m) || normMuscleKey(m); if (id) hits[id] = (hits[id] || 0) + 0.2; }
-    }
-    // Activity addon: muscles bereits beim Speichern aufgelöst (activity.muscles[])
-    for (const m of (sess?.activity?.muscles || [])) {
-      hits[m] = (hits[m] || 0) + 0.5;
+    for (const [m, , w] of normalizedSessionHits(sess)) {
+      const id = muscleToGroupId(m) || normMuscleKey(m);
+      if (id) hits[id] = (hits[id] || 0) + w;
     }
   }
   return hits;
@@ -284,15 +320,9 @@ function computeCoverageAnatomy(days) {
   }
   for (const date of allDates) {
     const sess = readJson(path.join(DATA_DIR, "sessions", `${date}.json`));
-    for (const ex of (sess?.exercises || [])) {
-      const pm = ex.primary_muscles || ex.primaryMuscles || [];
-      const sm = ex.secondary_muscles || ex.secondaryMuscles || [];
-      const st = ex.stabilizers || [];
-      for (const m of pm) hit(m, 1,   "primary");
-      for (const m of sm) hit(m, 0.5, "secondary");
-      for (const m of st) hit(m, 0.2, "secondary");
+    for (const [m, role, w] of normalizedSessionHits(sess)) {
+      hit(m, w, role === "primary" ? "primary" : "secondary");
     }
-    for (const m of (sess?.activity?.muscles || [])) hit(m, 0.5, "secondary");
   }
   return Array.from(map.values()).sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
 }
@@ -463,15 +493,24 @@ app.delete("/fitness/inbox/:id", async (c) => {
   }
 });
 
-// ── Coach Feed (alle Klienten-Workouts) ──────────────────────────────────────
+// ── Coach Feed (alle Klienten-Workouts, optional auf einen Klienten
+// eingeschränkt via ?uid=) ────────────────────────────────────────────────
+// Ohne ?uid= wird global über alle Klienten hinweg auf `limit` gedeckelt —
+// bei mehreren aktiven Usern (inkl. Coach selbst) können die Einträge eines
+// bestimmten Klienten dadurch aus dem Feed fallen, bevor ein
+// clientseitiger Filter sie sieht. Mit ?uid= wird gezielt nur dieser eine
+// Ordner gelesen, kein globaler Cutoff greift dazwischen.
 app.get("/fitness/coach/feed", (c) => {
   const usersDir = path.join(os.homedir(), ".aos", "fitness", "users");
   const limit = Number(c.req.query("limit") || 100);
+  const onlyUid = c.req.query("uid") || null;
   if (!fs.existsSync(usersDir)) return c.json({ ok: true, feed: [] });
 
-  const uids = fs.readdirSync(usersDir).filter(d =>
-    fs.statSync(path.join(usersDir, d)).isDirectory() && !["default", "kb"].includes(d)
-  );
+  const uids = onlyUid
+    ? [onlyUid].filter(uid => fs.existsSync(path.join(usersDir, uid)))
+    : fs.readdirSync(usersDir).filter(d =>
+        fs.statSync(path.join(usersDir, d)).isDirectory() && !["default", "kb"].includes(d)
+      );
 
   const feed = [];
   for (const uid of uids) {
@@ -1202,14 +1241,37 @@ app.post("/firestore/pull", async (c) => {
   const status = await getFirestoreStatus();
   if (!status.ok) return c.json({ ok: false, error: "Firestore nicht verbunden" }, 503);
 
-  const docs = await pullAllSessions(uid);
-  if (!docs) return c.json({ ok: false, error: "Pull fehlgeschlagen" }, 500);
+  const [docs, journalTree] = await Promise.all([
+    pullAllSessions(uid),
+    pullJournalTree(uid),
+  ]);
+  if (!docs || !journalTree) return c.json({ ok: false, error: "Pull fehlgeschlagen" }, 500);
 
   const sessDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
+  const journalDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "journal");
   fs.mkdirSync(sessDir, { recursive: true });
+  fs.mkdirSync(journalDir, { recursive: true });
 
   let pulled = 0, skipped = 0, conflicts = 0;
   const conflictDates = [];
+  let journalPulled = 0, habitJournalPulled = 0, habitRecordPulled = 0;
+
+  const formatTs = (value) => {
+    if (!value) return "";
+    if (typeof value === "string") return value.slice(0, 16);
+    if (value instanceof Date) return value.toISOString().slice(0, 16);
+    if (typeof value.toDate === "function") return value.toDate().toISOString().slice(0, 16);
+    return "";
+  };
+
+  const appendJournalBlock = (date, marker, block) => {
+    const mdPath = path.join(journalDir, `${date}.md`);
+    const existing = fs.existsSync(mdPath) ? fs.readFileSync(mdPath, "utf8") : "";
+    if (existing.includes(marker)) return false;
+    const prefix = existing && !existing.endsWith("\n") ? "\n" : "";
+    fs.appendFileSync(mdPath, `${prefix}${marker}\n${block}\n`, "utf8");
+    return true;
+  };
 
   for (const { date, data } of docs) {
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { skipped++; continue; }
@@ -1232,7 +1294,57 @@ app.post("/firestore/pull", async (c) => {
     pulled++;
   }
 
-  return c.json({ ok: true, pulled, skipped, conflicts, conflict_dates: conflictDates });
+  for (const { id, data } of journalTree.journal) {
+    const date = data?.date || "";
+    const text = String(data?.text || "").trim();
+    if (!date || !text) continue;
+    const time = formatTs(data?.time);
+    if (appendJournalBlock(date, `<!-- fsid:${id} -->`, `**${time}** ${text}`)) {
+      journalPulled++;
+    }
+  }
+
+  for (const { id, data } of journalTree.habitJournals) {
+    const date = data?.date || "";
+    if (!date) continue;
+    const text = String(data?.text || "").trim();
+    const coachFeedback = String(data?.coachFeedback || "").trim();
+    const habitId = data?.habitId || "";
+    const habitName = journalTree.habitNames?.[habitId] || `Habit:${habitId}`;
+    const time = formatTs(data?.recorded_at || data?.updated_at);
+    let block = `**Habit: ${habitName}**`;
+    if (time) block += ` _${time}_`;
+    if (text) block += `\n${text}`;
+    if (coachFeedback) block += `\n> **Coach Feedback:** ${coachFeedback}`;
+    if (appendJournalBlock(date, `<!-- fshid:${id} -->`, block)) {
+      habitJournalPulled++;
+    }
+  }
+
+  for (const { id, data } of journalTree.habitRecords) {
+    const date = data?.date || "";
+    if (!date) continue;
+    const habitId = data?.habitId || "";
+    const habitName = journalTree.habitNames?.[habitId] || `Habit:${habitId}`;
+    const completion = data?.completion || "DONE";
+    const time = formatTs(data?.recorded_at);
+    let block = `**${habitName}** ${completion}`;
+    if (time) block += ` _${time}_`;
+    if (appendJournalBlock(date, `<!-- fshr:${id} -->`, block)) {
+      habitRecordPulled++;
+    }
+  }
+
+  return c.json({
+    ok: true,
+    pulled,
+    skipped,
+    conflicts,
+    conflict_dates: conflictDates,
+    journal_pulled: journalPulled,
+    habit_journal_pulled: habitJournalPulled,
+    habit_record_pulled: habitRecordPulled,
+  });
 });
 
 app.post("/firestore/sync", async (c) => {

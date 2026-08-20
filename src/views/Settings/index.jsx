@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Settings2 } from "lucide-react";
 import { api, isLocalMode } from "@db";
 import AppearanceSection from "./AppearanceSection";
@@ -38,6 +38,9 @@ export default function Settings() {
   const [swChecking, setSwChecking] = useState(false)
   const [swCheckResult, setSwCheckResult] = useState(null)
   const [swLastChecked, setSwLastChecked] = useState(null)
+  const mountedRef = useRef(true)
+
+  useEffect(() => () => { mountedRef.current = false }, [])
 
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return
@@ -75,7 +78,7 @@ export default function Settings() {
     } catch {
       setSwCheckResult('error')
     }
-    setTimeout(() => setSwChecking(false), 600)
+    setTimeout(() => { if (mountedRef.current) setSwChecking(false) }, 600)
   }
 
   function handleSwApply() {
@@ -115,8 +118,8 @@ export default function Settings() {
   return (
     <div className="space-y-8 pb-32 max-w-5xl mx-auto">
       <header className="mb-4 animate-in fade-in duration-700">
-        <h2 className="text-3xl font-black text-fit-ink">Settings</h2>
-        <p className="text-sm font-medium opacity-40">Konfiguriere dein VitalOS Fitness Erlebnis.</p>
+        <h2 className="text-xl font-bold text-fit-ink">Setup</h2>
+        <p className="text-sm font-medium" style={{ color: 'var(--dim)', opacity: 0.7 }}>Konfiguriere dein VitalOS Fitness-Erlebnis.</p>
       </header>
 
       <ProfileSection />
@@ -162,10 +165,10 @@ export default function Settings() {
       <div className="flex justify-center pt-2">
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all font-black text-[9px] uppercase tracking-widest ${showAdvanced ? 'border-fit-accent bg-fit-accent/5 text-fit-accent shadow-lg shadow-fit-accent/5' : 'border-fit-line bg-fit-bg2 text-fit-dim hover:text-fit-ink'}`}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-xs font-semibold ${showAdvanced ? 'border-fit-accent bg-fit-accent/5 text-fit-accent' : 'border-fit-line bg-fit-bg2 text-fit-dim hover:text-fit-ink'}`}
         >
-          <Settings2 size={12} className={showAdvanced ? 'animate-pulse' : ''} />
-          {showAdvanced ? 'Advanced Mode: Ein' : 'Advanced Mode: Aus'}
+          <Settings2 size={13} />
+          {showAdvanced ? 'Erweiterte Optionen: ein' : 'Erweiterte Optionen: aus'}
         </button>
       </div>
 

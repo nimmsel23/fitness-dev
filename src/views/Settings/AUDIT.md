@@ -63,13 +63,18 @@ Konfigurationsansicht für Appearance, Training-Präferenzen, SW-Updates, Firest
 ## Auffälligkeiten
 
 - **wger-Fetch direkt mit `fetch()`**, nicht über `api`-Helper — hardcoded `http://localhost:8000`. In anderen Builds/Umgebungen potentiell broken, aber durch `isLocalMode()`-Guard abgesichert.
-- **`swChecking` Reset per `setTimeout(..., 600)`** in `handleSwCheck` — kein Cleanup wenn Komponente vorher unmountet. Kleines Memory-Leak-Risiko.
+- **`swChecking` Reset per `setTimeout(..., 600)`** in `handleSwCheck` — **behoben (2026-08-20)**: `mountedRef` in `index.jsx` verhindert jetzt den State-Update nach Unmount.
 - **`layoutOpen` und `slidersOpen`** sind lokale Collapsible-States in AppearanceSection/TrainingSection — werden nicht persistiert, resetten bei Tab-Wechsel auf closed. Eventuell absichtlich, aber nach Refactoring leicht vergessen.
 - **`themes` Prop**: wird in `AppearanceSection` als Objekt genutzt (`Object.keys(themes).length`, `themes[id]`), aber nie in `index.jsx` selbst — kommt direkt vom App-Root durch.
 - **`navMode`-Toggle ist `lg:hidden`**: Die Mobile-Navigation-Sektion in AppearanceSection ist CSS-hidden auf Desktop. Ein Desktop-User sieht die Option nicht — kein Bug, aber unklar ob Absicht oder vergessen.
-- **`AdvancedSection`** bekommt kein `firestoreStatus` — war früher so, ist behoben.
-- **Keine Error-States für Health/Wger**: `health?.ok` und `wger` zeigen `FAIL` auch wenn noch `null` (loading). Beim initialem Render sieht man kurz `FAIL` bevor die Fetch-Responses kommen — kein Loading-State.
+- **`AdvancedSection`** bekommt kein `firestoreStatus` — war früher so, ist behoben, kein doppelter Status mehr (nur noch in `LocalDevSection`).
+- **Health/Wger-Loading-State war bereits vorhanden** (`'…'` bei `null`) — die vorherige Version dieses Audits behauptete hier fälschlich einen fehlenden Loading-State; Stand jetzt zeigt Diagnose nie `FAIL` vor Ankunft der Fetch-Antwort.
 
 ## Status
 
-Okay — Struktur ist sauber aufgeteilt, keine kritischen Bugs. Zwei kleinere Issues (doppelter Firestore-Status, kein Loading-State für Diagnose). Viel Wiederholung beim Segmented-Control-Pattern die bei einem Refactoring als erstes raus sollte.
+Redesign 2026-08-20 (Concept A / "Ruhig", konsistent mit Session/Learn/Review):
+alle Sections von `font-black uppercase tracking-widest` auf sentence-case
+`font-semibold`/`font-medium` umgestellt, Karten-Padding/Radien vereinheitlicht,
+harte `border-t-4`-Akzente entfernt. Struktur ist sauber aufgeteilt, keine
+kritischen Bugs mehr offen. Viel Wiederholung beim Segmented-Control-Pattern
+die bei einem Refactoring als erstes raus sollte.

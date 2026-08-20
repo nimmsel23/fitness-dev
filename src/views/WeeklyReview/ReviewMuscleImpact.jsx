@@ -20,24 +20,24 @@ export default function ReviewMuscleImpact({ regionEntries, muscleLanguage = 'de
   const maxScore = Math.max(...grouped.map(e => e.score), 5);
   return (
     <section>
-      <div className="label-caps !mb-4 flex items-center gap-2">
-        <TrendingUp size={16} className="text-fit-accent" />
+      <div className="flex items-center gap-2 mb-3 text-[11px] font-semibold" style={{ color: 'var(--dim)', opacity: 0.7 }}>
+        <TrendingUp size={14} className="text-fit-accent" />
         Relative Muskelbelastung
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-4">
         {grouped.length > 0 ? grouped.map(({ label, score, icon }) => {
           const pct = Math.min(100, (score / maxScore) * 100);
           const Icon = getMuscleIcon(icon);
           return (
-            <div key={label} className="flex flex-col p-4 sm:p-6 rounded-2xl border bg-fit-card border-fit-line hover:border-accent/40 transition-all group shadow-sm min-w-0">
-              <div className="flex items-center gap-2 mb-3 sm:mb-4 min-w-0">
-                <Icon size={13} className="opacity-30 group-hover:text-accent group-hover:opacity-100 transition-all shrink-0" />
-                <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.08em] sm:tracking-[0.2em] opacity-40 group-hover:text-accent group-hover:opacity-100 transition-colors truncate">
+            <div key={label} className="flex flex-col p-3.5 sm:p-6 rounded-2xl border bg-fit-card border-fit-line hover:border-accent/40 transition-all group min-w-0">
+              <div className="flex items-center gap-1.5 mb-2.5 sm:mb-4 min-w-0">
+                <Icon size={13} className="opacity-40 group-hover:text-accent group-hover:opacity-100 transition-all shrink-0" />
+                <span className="text-[11px] sm:text-xs font-medium opacity-60 group-hover:text-accent group-hover:opacity-100 transition-colors truncate">
                   {label}
                 </span>
               </div>
               <div className="flex items-end justify-between mt-auto">
-                <span className="text-3xl font-black text-fit-ink">{score.toFixed(1)}</span>
+                <span className="text-2xl sm:text-3xl font-bold text-fit-ink">{score.toFixed(1)}</span>
                 <div className="w-2 h-10 bg-fit-line rounded-full overflow-hidden flex flex-col justify-end">
                   <div className="w-full bg-fit-accent transition-all duration-1000" style={{ height: `${pct}%` }} />
                 </div>
@@ -45,7 +45,7 @@ export default function ReviewMuscleImpact({ regionEntries, muscleLanguage = 'de
             </div>
           )
         }) : (
-          <div className="col-span-full py-8 text-center text-sm opacity-30 font-bold uppercase tracking-widest border border-dashed rounded-2xl">Keine Daten in diesem Zeitraum</div>
+          <div className="col-span-full py-8 text-center text-sm font-semibold border border-dashed rounded-2xl" style={{ color: 'var(--dim)', opacity: 0.6 }}>Keine Daten in diesem Zeitraum</div>
         )}
       </div>
     </section>
