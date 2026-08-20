@@ -4,7 +4,6 @@ import { muscleToGroupIds, getMuscleGroupsForGaps, buildMuscleBalanceInsights, m
 import { computeMuscleScores } from "../../superkompensation.js";
 
 const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
-const DEFAULT_EFFORT = 7; // RPE-7-Baseline, siehe fitness/catalog/coverage.py effort_factor-Tabelle
 
 // Rohe (Muskel, Übungsname, Gewicht)-Treffer einer Session, aus geloggten
 // Übungen UND einem geloggten Cardio/Activity-Finisher. activity.primaryMuscles
@@ -29,23 +28,23 @@ function sessionHits(sess, kbMap) {
   return rows;
 }
 
-function sessionBudget(sess) {
-  const effort = Number(sess?.effort);
-  return (Number.isFinite(effort) && effort > 0 ? effort : DEFAULT_EFFORT) / 10;
-}
-
-// Session-Budget-Normalisierung: die Summe aller Gewichte EINER Session ist
-// auf effort/10 gedeckelt, unabhängig davon wie viele Übungen geloggt
-// wurden. One-Set-to-Failure: jede geloggte Übung ist ungefähr gleich hart,
-// mehr Übungen bedeuten mehr Muskel-Breite, nicht automatisch mehr
-// Gesamtbelastung. Spiegel von server.mjs::normalizedSessionHits /
+// Max-per-Muskel-Normalisierung: pro Session zählt für einen Muskel nur der
+// höchste Rollen-Treffer (nicht die Summe über alle Übungen). One-Set-to-
+// Failure: jede geloggte Übung ist ungefähr gleich hart, mehrere Übungen für
+// denselben Muskel bedeuten mehr Breite, nicht automatisch mehr
+// Gesamtbelastung. (Die zuvor versuchte Session-Budget-Skalierung war zu
+// aggressiv — sie hat pro Session auf einen festen Gesamtwert gedeckelt,
+// wodurch nach ein paar Tagen fast jeder Muskel auf denselben Wert
+// konvergierte.) Spiegel von server.mjs::normalizedSessionHits /
 // coaching.py::_normalized_session_hits.
 function normalizedSessionHits(sess, kbMap) {
   const raw = sessionHits(sess, kbMap);
-  const rawTotal = raw.reduce((sum, [, , w]) => sum + w, 0);
-  if (rawTotal <= 0) return [];
-  const scale = sessionBudget(sess) / rawTotal;
-  return raw.map(([m, exName, w]) => [m, exName, w * scale]);
+  const best = new Map();
+  for (const [m, exName, w] of raw) {
+    const cur = best.get(m);
+    if (!cur || w > cur[1]) best.set(m, [exName, w]);
+  }
+  return Array.from(best.entries()).map(([m, [exName, w]]) => [m, exName, w]);
 }
 
 export async function getDashboardAnalytics(days = 28) {
@@ -81,8 +80,103 @@ function getWeekBounds(selector = "current") {
   return dates;
 }
 
-export async function getWeeklyReport(selector = "current") {
-  const dates = getWeekBounds(selector);
+// Letzte `days` Kalendertage (heute inklusive, absteigend zu älter) — rollendes
+// Fenster statt Kalenderwoche/-monat, damit "monatlich" nicht an Monatsgrenzen
+// hängt (z.B. am 1. eines Monats sonst nur 1 Tag Daten).
+function getRollingDates(days) {
+  const dates = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const x = new Date();
+    x.setDate(x.getDate() - i);
+    dates.push(x.toISOString().slice(0, 10));
+  }
+  return dates;
+}
+
+// Baut den eigentlichen Report (Sessions/Scores/Gaps/Top-Exercises) für eine
+// beliebige Liste von Datums-Strings. Von getWeeklyReport() (7-Tage-Kalenderwoche)
+// UND getMonthlyReport() (rollendes 28-Tage-Fenster + 7-Tage-Wochen-Chunks
+// darin) genutzt, damit beide exakt dieselbe Normalisierung/Aggregation teilen.
+function computeReport(dates, { history, kbMap, historyWithMuscles, topExMap }) {
+  const sessions = [];
+  const bodyRegionScores = {};
+  const muscleScores = {};
+  const allExercises = [];
+
+  for (const date of dates) {
+    const sess = history.find(h => h.date === date);
+    if (!sess) continue;
+    const sessGroupsCount = {};
+    for (const ex of (sess.exercises || [])) {
+      const exName = ex.name || ex.exercise_id || "";
+      if (!exName) continue;
+      // Snapshot-First: inline-Werte aus dem Log gewinnen. KB nur Fallback,
+      // damit gelöschte/umbenannte Katalog-Einträge keine alten Sessions kaputtmachen.
+      const kbEx = kbMap.get(exName.toLowerCase());
+      const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
+      allExercises.push({ name: exName, primaryMuscles: primary });
+      // muscleScores bleibt eine reine Übungs-Häufigkeit (wie oft dieser Muskel
+      // als primary vorkommt), unabhängig von der Session-Budget-Normalisierung
+      // unten — anderes Konzept als "Belastung".
+      primary.forEach(m => { muscleScores[m] = (muscleScores[m] || 0) + 1; });
+    }
+    // Max-per-Muskel-normalisiert (normalizedSessionHits): verhindert, dass eine
+    // Session mit vielen Übungen allein wegen der Übungsanzahl höher zählt als
+    // eine gleich intensive Session mit 1-2 Übungen.
+    for (const [m, exName, w] of normalizedSessionHits(sess, kbMap)) {
+      muscleToGroupIds(m, exName).forEach(gid => {
+        sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + w;
+        bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + w;
+      });
+    }
+    const muscleRecovery = {};
+    for (const gid of Object.keys(sessGroupsCount)) {
+      const lastSess = historyWithMuscles.find(h => h.date < date && h.groups.includes(gid));
+      if (lastSess) {
+        const d1 = new Date(date), d2 = new Date(lastSess.date);
+        muscleRecovery[gid] = Math.round((d1 - d2) / (1000 * 60 * 60));
+      }
+    }
+    sessions.push({ ...sess, exercise_count: sess.exercises?.length || 0, muscle_recovery: muscleRecovery });
+  }
+
+  const allGroups = getMuscleGroupsForGaps().map(g => g.id);
+  const gaps = allGroups.filter(g => (bodyRegionScores[g] || 0) < 1);
+  const totalExercises = sessions.reduce((sum, s) => sum + (s.exercise_count || 0), 0);
+  const effortValues = sessions.map(s => s.effort).filter(e => e && Number(e) > 0);
+  const avgEffort = effortValues.length > 0 ? Math.round(effortValues.reduce((a, b) => a + Number(b), 0) / effortValues.length * 10) / 10 : null;
+  return {
+    ok: true,
+    date_from: dates[0],
+    date_to: dates[dates.length - 1],
+    session_count: sessions.length,
+    total_exercises: totalExercises,
+    avg_effort: avgEffort,
+    sessions,
+    muscle_scores: muscleScores,
+    body_region_scores: bodyRegionScores,
+    missing_regions: gaps,
+    recommendations: [
+      // Roher Gap-Dump entfernt — dieselben `gaps` erscheinen bereits übersetzt
+      // als Chips im "Coverage Gaps"-Abschnitt (ReviewInsights.jsx), eine
+      // zusätzliche unübersetzte Fließtext-Liste war reine Dopplung.
+      ...(gaps.length === 0 ? ["Woche gut abgedeckt!"] : []),
+      ...buildMuscleBalanceInsights(allExercises),
+    ],
+    top_exercises: !topExMap ? [] : Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => {
+      const kbEx = kbMap.get(name.toLowerCase());
+      return {
+        display_name: name,
+        count,
+        exercise_id: kbEx?.exercise_id || kbEx?.id || null,
+        primary_muscles: kbEx?.primary_muscles || kbEx?.primaryMuscles || [],
+        secondary_muscles: kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [],
+      };
+    })
+  };
+}
+
+async function loadReportContext() {
   const [exRes, histRes] = await Promise.all([
     api.get('/fitness/exercises/all').catch(() => ({ exercises: [] })),
     api.get('/session/history?limit=120').catch(() => ({ sessions: [] }))
@@ -105,16 +199,11 @@ export async function getWeeklyReport(selector = "current") {
     return { date: s.date, groups: [...groups] };
   }).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
-  const sessions = [];
-  const bodyRegionScores = {};
-  const muscleScores = {};
-  const topExMap = {};
-  const allExercises = [];
-
   // "Top Exercises" bewusst über die volle Historie (bis zu 120 Sessions),
-  // nicht nur die aktuelle Wochen-/Periodenauswahl (dates) — sonst zeigt der
-  // Report bei kurzen Perioden nur 1-2 Sessions und wirkt wie "es zählt nur
-  // das letzte Workout", obwohl deutlich mehr Trainingsdaten vorliegen.
+  // nicht nur die aktuelle Perioden-Auswahl — sonst zeigt der Report bei
+  // kurzen Perioden nur 1-2 Sessions und wirkt wie "es zählt nur das letzte
+  // Workout", obwohl deutlich mehr Trainingsdaten vorliegen.
+  const topExMap = {};
   for (const s of history) {
     for (const ex of (s.exercises || [])) {
       const exName = ex.name || ex.exercise_id || "";
@@ -122,76 +211,42 @@ export async function getWeeklyReport(selector = "current") {
     }
   }
 
-  for (const date of dates) {
-    const sess = history.find(h => h.date === date);
-    if (!sess) continue;
-    const sessGroupsCount = {};
-    for (const ex of (sess.exercises || [])) {
-      const exName = ex.name || ex.exercise_id || "";
-      if (!exName) continue;
-      // Snapshot-First: inline-Werte aus dem Log gewinnen. KB nur Fallback,
-      // damit gelöschte/umbenannte Katalog-Einträge keine alten Sessions kaputtmachen.
-      const kbEx = kbMap.get(exName.toLowerCase());
-      const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
-      allExercises.push({ name: exName, primaryMuscles: primary });
-      // muscleScores bleibt eine reine Übungs-Häufigkeit (wie oft dieser Muskel
-      // als primary vorkommt), unabhängig von der Session-Budget-Normalisierung
-      // unten — anderes Konzept als "Belastung".
-      primary.forEach(m => { muscleScores[m] = (muscleScores[m] || 0) + 1; });
-    }
-    // Session-Budget-normalisiert (normalizedSessionHits): verhindert, dass eine
-    // Session mit vielen Übungen allein wegen der Übungsanzahl höher zählt als
-    // eine gleich intensive Session mit 1-2 Übungen.
-    for (const [m, exName, w] of normalizedSessionHits(sess, kbMap)) {
-      muscleToGroupIds(m, exName).forEach(gid => {
-        sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + w;
-        bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + w;
-      });
-    }
-    const muscleRecovery = {};
-    for (const gid of Object.keys(sessGroupsCount)) {
-      const lastSess = historyWithMuscles.find(h => h.date < date && h.groups.includes(gid));
-      if (lastSess) {
-        const d1 = new Date(date), d2 = new Date(lastSess.date);
-        muscleRecovery[gid] = Math.round((d1 - d2) / (1000 * 60 * 60));
-      }
-    }
-    sessions.push({ ...sess, exercise_count: sess.exercises?.length || 0, muscle_recovery: muscleRecovery });
-  }
+  return { history, kbMap, historyWithMuscles, topExMap };
+}
 
-  const allGroups = getMuscleGroupsForGaps().map(g => g.id);
-  // Threshold an die Session-Budget-Normalisierung angepasst, siehe getCoverageGaps().
-  const gaps = allGroups.filter(g => (bodyRegionScores[g] || 0) < 0.3);
-  const totalExercises = sessions.reduce((sum, s) => sum + (s.exercise_count || 0), 0);
-  const effortValues = sessions.map(s => s.effort).filter(e => e && Number(e) > 0);
-  const avgEffort = effortValues.length > 0 ? Math.round(effortValues.reduce((a, b) => a + Number(b), 0) / effortValues.length * 10) / 10 : null;
-  return {
-    ok: true,
-    session_count: sessions.length,
-    total_exercises: totalExercises,
-    avg_effort: avgEffort,
-    sessions,
-    muscle_scores: muscleScores,
-    body_region_scores: bodyRegionScores,
-    missing_regions: gaps,
-    recommendations: [
-      // Roher Gap-Dump entfernt — dieselben `gaps` erscheinen bereits übersetzt
-      // als Chips im "Coverage Gaps"-Abschnitt (ReviewInsights.jsx), eine
-      // zusätzliche unübersetzte Fließtext-Liste war reine Dopplung.
-      ...(gaps.length === 0 ? ["Woche gut abgedeckt!"] : []),
-      ...buildMuscleBalanceInsights(allExercises),
-    ],
-    top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => {
-      const kbEx = kbMap.get(name.toLowerCase());
-      return {
-        display_name: name,
-        count,
-        exercise_id: kbEx?.exercise_id || kbEx?.id || null,
-        primary_muscles: kbEx?.primary_muscles || kbEx?.primaryMuscles || [],
-        secondary_muscles: kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [],
-      };
-    })
-  };
+export async function getWeeklyReport(selector = "current") {
+  const dates = getWeekBounds(selector);
+  const ctx = await loadReportContext();
+  return computeReport(dates, ctx);
+}
+
+// Rollendes 28-Tage-Fenster ("Monat" = letzte 28 Tage, nicht Kalendermonat) +
+// Aufschlüsselung in 4 rollende 7-Tage-Wochen (jüngste zuerst) für die
+// Wochenansichten innerhalb des Monats-Reviews.
+export async function getMonthlyReport(days = 28) {
+  const dates = getRollingDates(days);
+  const ctx = await loadReportContext();
+  const overall = computeReport(dates, ctx);
+
+  const weeks = [];
+  for (let start = dates.length - 7; start > -7; start -= 7) {
+    const chunk = dates.slice(Math.max(0, start), start + 7);
+    if (chunk.length === 0) continue;
+    const weekReport = computeReport(chunk, ctx);
+    weeks.push({
+      date_from: chunk[0],
+      date_to: chunk[chunk.length - 1],
+      session_count: weekReport.session_count,
+      avg_effort: weekReport.avg_effort,
+      body_region_scores: weekReport.body_region_scores,
+      missing_regions: weekReport.missing_regions,
+    });
+  }
+  // Schleife läuft bereits von der jüngsten zur ältesten 7-Tage-Chunk (start
+  // beginnt bei dates.length-7 und zählt runter) — weeks ist somit schon
+  // jüngste-zuerst sortiert, kein zusätzliches reverse() nötig.
+
+  return { ...overall, weeks };
 }
 
 export async function getMuscleCoverage(days = 7) {
@@ -218,10 +273,7 @@ export async function getMuscleCoverage(days = 7) {
   return bodyRegionScores;
 }
 
-// Threshold an die Session-Budget-Normalisierung angepasst (normalizedSessionHits) —
-// Gruppen-Scores liegen jetzt in der Größenordnung effort/10 pro Session statt
-// vorher unbegrenzt pro Übung zu summieren, siehe server.mjs::/coverage/gaps.
-export async function getCoverageGaps(days = 7, threshold = 0.3) {
+export async function getCoverageGaps(days = 7, threshold = 1.0) {
   const hits = await getMuscleCoverage(days);
   return getMuscleGroupsForGaps()
     .filter(g => (hits[g.id] || 0) < threshold)

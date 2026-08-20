@@ -238,7 +238,6 @@ function defaultBlocks() {
 }
 
 const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
-const DEFAULT_EFFORT = 7; // RPE-7-Baseline, siehe fitness/catalog/coverage.py effort_factor-Tabelle
 
 // Rohe (Muskel, Rolle, Gewicht)-Treffer einer Session, aus geloggten Übungen
 // UND einem geloggten Cardio/Activity-Finisher (activity.muscles[], bereits
@@ -262,24 +261,24 @@ function sessionHits(sess) {
   return rows;
 }
 
-function sessionBudget(sess) {
-  const effort = Number(sess?.effort);
-  return (Number.isFinite(effort) && effort > 0 ? effort : DEFAULT_EFFORT) / 10;
-}
-
-// Session-Budget-Normalisierung: die Summe aller Gewichte EINER Session ist
-// auf effort/10 gedeckelt, unabhängig davon wie viele Übungen geloggt
-// wurden. One-Set-to-Failure: jede geloggte Übung ist ungefähr gleich hart,
-// mehr Übungen bedeuten mehr Muskel-Breite, nicht automatisch mehr
+// Max-per-Muskel-Normalisierung: pro Session zählt für einen Muskel nur der
+// höchste Rollen-Treffer (nicht die Summe über alle Übungen). One-Set-to-
+// Failure: jede geloggte Übung ist ungefähr gleich hart, mehrere Übungen für
+// denselben Muskel bedeuten mehr Breite, nicht automatisch mehr
 // Gesamtbelastung — sonst zählt ein 4-Übungen-Rücken-Workout allein wegen
-// der Übungsanzahl viel mehr als ein 1-2-Übungen-Brust-Workout mit
-// identischem Effort. Spiegel von coaching.py::_normalized_session_hits.
+// der Übungsanzahl mehr als ein 1-2-Übungen-Brust-Workout. (Die zuvor
+// versuchte Session-Budget-Skalierung war zu aggressiv — sie hat pro Session
+// auf einen festen Gesamtwert gedeckelt, wodurch nach ein paar Tagen fast
+// jeder Muskel auf denselben Wert konvergierte.) Spiegel von
+// coaching.py::_normalized_session_hits.
 function normalizedSessionHits(sess) {
   const raw = sessionHits(sess);
-  const rawTotal = raw.reduce((sum, [, , w]) => sum + w, 0);
-  if (rawTotal <= 0) return [];
-  const scale = sessionBudget(sess) / rawTotal;
-  return raw.map(([m, role, w]) => [m, role, w * scale]);
+  const best = new Map();
+  for (const [m, role, w] of raw) {
+    const cur = best.get(m);
+    if (!cur || w > cur[1]) best.set(m, [role, w]);
+  }
+  return Array.from(best.entries()).map(([m, [role, w]]) => [m, role, w]);
 }
 
 function computeCoverage(days) {
@@ -1097,10 +1096,7 @@ app.get("/coverage/gaps", (c) => {
   const days = Number(c.req.query("days") || 7);
   const hits = computeCoverage(days);
   const all  = ["chest","back","shoulders","arms","core","glutes","quads","hamstrings","calves"];
-  // Threshold an die Session-Budget-Normalisierung angepasst (normalizedSessionHits) —
-  // Gruppen-Scores liegen jetzt in der Größenordnung effort/10 statt vorher
-  // unbegrenzt pro Übung zu summieren, siehe coverage_gaps in coaching.py.
-  const gaps = all.filter(g => (hits[g] || 0) < 0.3).map(g => ({ name: g, hits: hits[g] || 0, exercises: [] }));
+  const gaps = all.filter(g => (hits[g] || 0) < 1).map(g => ({ name: g, hits: hits[g] || 0, exercises: [] }));
   return c.json({ ok: true, gaps });
 });
 

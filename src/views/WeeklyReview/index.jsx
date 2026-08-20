@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getWeeklyReport, exportFitnessData, getRecentSessions } from '@db';
+import { getMonthlyReport, exportFitnessData, getRecentSessions } from '@db';
 import { BarChart3, Activity, History, Zap, Dumbbell } from 'lucide-react';
 
 import ReviewHeader from './ReviewHeader';
@@ -7,6 +7,7 @@ import ReviewOverview from './ReviewOverview';
 import ReviewInsights from './ReviewInsights';
 import ReviewMuscleImpact from './ReviewMuscleImpact';
 import ReviewPPLBalance from './ReviewPPLBalance';
+import ReviewWeeksBreakdown from './ReviewWeeksBreakdown';
 import ReviewTopExercises from './ReviewTopExercises';
 import ReviewHistory from './ReviewHistory.jsx';
 import ReviewReadiness from './ReviewReadiness.jsx';
@@ -15,14 +16,15 @@ import Muscles from '../Muscles/index.jsx';
 import { sessionHasLoggedWorkout } from '../../lib/sessionGate.js';
 
 const SUB_TABS = ['muscles', 'verlauf', 'readiness', 'strength'];
-const weeklyReportCache = new Map();
+const REVIEW_WINDOW_DAYS = 28;
+let monthlyReportCache = null;
 
 export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleLanguage = 'de', taxonomy = null, gender = 'male', recentDays = 10, subTab = null, onSubNav }) {
-  const [week, setWeek]       = useState('current');
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast]     = useState('');
   const [historySessions, setHistorySessions] = useState([]);
+  const [selectedWeek, setSelectedWeek] = useState(null); // null = gesamte 28 Tage, sonst Index in data.weeks
   const viewMode = SUB_TABS.includes(subTab) ? subTab : 'report';
 
   useEffect(() => {
@@ -38,34 +40,34 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
   useEffect(() => {
     if (viewMode !== 'report') return;
 
-    if (weeklyReportCache.has(week)) {
-      setData(weeklyReportCache.get(week) || null);
+    if (monthlyReportCache) {
+      setData(monthlyReportCache);
       setLoading(false);
       return;
     }
 
     setLoading(true);
-    getWeeklyReport(week)
+    getMonthlyReport(REVIEW_WINDOW_DAYS)
       .then(d => {
         const next = d || null;
-        weeklyReportCache.set(week, next);
+        monthlyReportCache = next;
         setData(next);
       })
       .catch(err => {
-        console.error('getWeeklyReport failed', err);
+        console.error('getMonthlyReport failed', err);
         setData(null);
       })
       .finally(() => setLoading(false));
-  }, [viewMode, week]);
+  }, [viewMode]);
 
   async function exportWeekly() {
     try {
       const result = await exportFitnessData({
         kind: 'weekly',
-        week_selector: week,
+        week_selector: 'current',
         force: true,
       })
-      weeklyReportCache.delete(week)
+      monthlyReportCache = null
       setToast(result?.path ? `Export: ${result.path}` : 'Exportiert')
     } catch {
       setToast('Export fehlgeschlagen')
@@ -73,14 +75,15 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
     setTimeout(() => setToast(''), 2600)
   }
 
-  const regionEntries = Object.entries(data?.body_region_scores || {}).sort((a, b) => b[1] - a[1]);
-  const missingRegions = data?.missing_regions || [];
+  // Bei ausgewählter Wochen-Karte zeigen PPL-Balance/Muskelbelastung nur
+  // deren body_region_scores, sonst die Summe über die vollen 28 Tage.
+  const selectedData = selectedWeek != null ? data?.weeks?.[selectedWeek] : data;
+  const regionEntries = Object.entries(selectedData?.body_region_scores || {}).sort((a, b) => b[1] - a[1]);
+  const missingRegions = selectedData?.missing_regions || [];
 
   return (
     <div className="space-y-6 pb-32">
       <ReviewHeader
-        week={week}
-        setWeek={setWeek}
         onExport={exportWeekly}
         toast={toast}
       />
@@ -133,7 +136,9 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
           </div>
 
           <div className="lg:col-span-8 space-y-8">
-            <ReviewPPLBalance bodyRegionScores={data.body_region_scores} />
+            <ReviewWeeksBreakdown weeks={data.weeks} selectedIndex={selectedWeek} onSelect={setSelectedWeek} />
+
+            <ReviewPPLBalance bodyRegionScores={selectedData?.body_region_scores} />
 
             <ReviewMuscleImpact regionEntries={regionEntries} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
 
@@ -145,7 +150,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
         </div>
       ) : (
         <section className="p-8 rounded-3xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-          <p className="text-sm font-semibold text-center" style={{ color: 'var(--dim)' }}>Wochenreport konnte nicht geladen werden.</p>
+          <p className="text-sm font-semibold text-center" style={{ color: 'var(--dim)' }}>Monatsreport konnte nicht geladen werden.</p>
         </section>
       )}
     </div>

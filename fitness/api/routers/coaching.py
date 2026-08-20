@@ -34,7 +34,6 @@ _FALLBACK_PLAN = {
     "So": ("Recovery",  ["Mobility", "Walk", "Core Breathing"]),
 }
 _ROLE_W = {"primary": 1.0, "secondary": 0.5, "stabilizer": 0.2}
-_DEFAULT_EFFORT = 7.0  # RPE-7-Baseline, siehe fitness/catalog/coverage.py effort_factor-Tabelle
 
 def _today() -> str:
     return date.today().isoformat()
@@ -61,29 +60,24 @@ def _exercise_hits(sess: dict) -> list[tuple[str, str, float]]:
         rows.append((cov_module.normalize_muscle_id(m), role, _ROLE_W[role]))
     return rows
 
-def _session_budget(sess: dict) -> float:
-    try:
-        effort = float((sess or {}).get("effort"))
-    except (TypeError, ValueError):
-        effort = _DEFAULT_EFFORT
-    if effort <= 0:
-        effort = _DEFAULT_EFFORT
-    return effort / 10.0
-
 def _normalized_session_hits(sess: dict) -> list[tuple[str, str, float]]:
-    """Session-Budget-Normalisierung: die Summe aller Gewichte EINER Session
-    ist auf effort/10 gedeckelt, unabhängig davon wie viele Übungen geloggt
-    wurden. One-Set-to-Failure-Philosophie: jede geloggte Übung ist ungefähr
-    gleich hart, mehr Übungen bedeuten mehr Muskel-Breite, nicht automatisch
-    mehr Gesamtbelastung — sonst zählt ein 4-Übungen-Rücken-Workout allein
-    wegen der Übungsanzahl viel mehr als ein 1-2-Übungen-Brust-Workout mit
-    identischem Effort."""
+    """Max-per-Muskel-Normalisierung: pro Session zählt für einen Muskel nur
+    der höchste Rollen-Treffer (nicht die Summe über alle Übungen).
+    One-Set-to-Failure-Philosophie: jede geloggte Übung ist ungefähr gleich
+    hart, mehrere Übungen für denselben Muskel bedeuten mehr Breite, nicht
+    automatisch mehr Gesamtbelastung — sonst zählt ein 4-Übungen-Rücken-
+    Workout allein wegen der Übungsanzahl mehr als ein 1-2-Übungen-Brust-
+    Workout. (Die zuvor versuchte Session-Budget-Skalierung war zu
+    aggressiv — sie hat pro Session auf einen festen Gesamtwert gedeckelt,
+    wodurch nach ein paar Tagen fast jeder Muskel auf denselben Wert
+    konvergierte.)"""
     raw = _exercise_hits(sess)
-    raw_total = sum(w for _, _, w in raw)
-    if raw_total <= 0:
-        return []
-    scale = _session_budget(sess) / raw_total
-    return [(m, role, w * scale) for m, role, w in raw]
+    best: dict[str, tuple[str, float]] = {}
+    for m, role, w in raw:
+        cur = best.get(m)
+        if cur is None or w > cur[1]:
+            best[m] = (role, w)
+    return [(m, role, w) for m, (role, w) in best.items()]
 
 def _coverage_hits(uid: str, days: int) -> dict[str, float]:
     sess_dir = SESS_ROOT / uid / "sessions"
@@ -333,14 +327,10 @@ def coverage_gaps(request: Request, days: int = Query(7, le=90, ge=1)):
     uid  = _uid_from_request(request)
     hits = _coverage_hits(uid, days)
     taxonomy = cov_module.load_muscle_taxonomy()
-    # Threshold an die Session-Budget-Normalisierung angepasst (_normalized_session_hits):
-    # Scores liegen jetzt in der Größenordnung effort/10 pro Session statt vorher
-    # unbegrenzt pro Übung zu summieren — 0.5 wäre auf der neuen Skala fast immer
-    # ein "Gap", selbst bei tatsächlich trainierten Muskeln.
     gaps = [
         {"id": mid, "name_en": info.get("name_en", mid), "name_de": info.get("name_de", mid), "totalScore": 0}
         for mid, info in taxonomy.items()
-        if hits.get(mid, 0) < 0.15
+        if hits.get(mid, 0) < 0.5
     ]
     return {"ok": True, "days": days, "gaps": gaps}
 

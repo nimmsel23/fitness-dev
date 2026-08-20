@@ -20,6 +20,7 @@ import {
   getDashboardAnalytics as getLocalDashboardAnalytics,
   getRecoveryAnalytics as getLocalRecoveryAnalytics,
   getWeeklyReport as getLocalWeeklyReport,
+  getMonthlyReport as getLocalMonthlyReport,
   getCoverageGaps as getLocalCoverageGaps,
   getMuscleCoverage as getLocalMuscleCoverage,
 } from "../local/analysis.js";
@@ -32,13 +33,12 @@ export { ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds };
 const pendingWeeklyRefreshes = new Map();
 
 const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
-const DEFAULT_EFFORT = 7; // RPE-7-Baseline, siehe fitness/catalog/coverage.py effort_factor-Tabelle
 
-// Session-Budget-Normalisierung: die Summe aller Gewichte EINER Session ist
-// auf effort/10 gedeckelt, unabhängig davon wie viele Übungen geloggt wurden
-// — verhindert dass eine Session mit vielen Übungen allein durch die Anzahl
-// höher zählt als eine gleich intensive Session mit 1-2 Übungen
-// (One-Set-to-Failure). Spiegel von local/analysis.js::normalizedSessionHits.
+// Max-per-Muskel-Normalisierung: pro Session zählt für einen Muskel nur der
+// höchste Rollen-Treffer (nicht die Summe über alle Übungen) — verhindert
+// dass eine Session mit vielen Übungen allein durch die Anzahl höher zählt
+// als eine gleich intensive Session mit 1-2 Übungen (One-Set-to-Failure).
+// Spiegel von local/analysis.js::normalizedSessionHits.
 function normalizedSessionHits(session) {
   const rows = [];
   for (const ex of (Array.isArray(session.exercises) ? session.exercises : [])) {
@@ -51,12 +51,12 @@ function normalizedSessionHits(session) {
   (session.activity?.muscles || []).forEach((m) =>
     rows.push([m, null, actPrimary.has(m) ? ROLE_W.primary : ROLE_W.secondary])
   );
-  const rawTotal = rows.reduce((sum, [, , w]) => sum + w, 0);
-  if (rawTotal <= 0) return [];
-  const effort = Number(session?.effort);
-  const budget = (Number.isFinite(effort) && effort > 0 ? effort : DEFAULT_EFFORT) / 10;
-  const scale = budget / rawTotal;
-  return rows.map(([m, exName, w]) => [m, exName, w * scale]);
+  const best = new Map();
+  for (const [m, exName, w] of rows) {
+    const cur = best.get(m);
+    if (!cur || w > cur[1]) best.set(m, [exName, w]);
+  }
+  return Array.from(best.entries()).map(([m, [exName, w]]) => [m, exName, w]);
 }
 
 // ── Analytics cache doc ───────────────────────────────────────────────────────
@@ -133,8 +133,7 @@ export async function getMuscleCoverage(days = 7) {
   return hits;
 }
 
-// Threshold an die Session-Budget-Normalisierung angepasst, siehe local/analysis.js::getCoverageGaps.
-export async function getCoverageGaps(days = 7, threshold = 0.3) {
+export async function getCoverageGaps(days = 7, threshold = 1.0) {
   if (!hasAuthSession()) return getLocalCoverageGaps(days, threshold);
   const hits = await getMuscleCoverage(days);
   return getMuscleGroupsForGaps()
@@ -458,6 +457,135 @@ export async function getWeeklyReport(selector = "current") {
   }
 
   return updateWeeklyReportDoc(selector);
+}
+
+// Letzte `days` Kalendertage (heute inklusive) — rollendes Fenster statt
+// Kalenderwoche, damit "Monat" nicht an Monatsgrenzen hängt. Spiegel von
+// local/analysis.js::getRollingDates.
+function getRollingDates(days) {
+  const dates = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const x = new Date();
+    x.setDate(x.getDate() - i);
+    dates.push(x.toISOString().slice(0, 10));
+  }
+  return dates;
+}
+
+// Rollendes 28-Tage-Fenster ("Monat" = letzte 28 Tage, nicht Kalendermonat) +
+// Aufschlüsselung in 4 rollende 7-Tage-Wochen (jüngste zuerst) für die
+// Wochenansichten innerhalb des Monats-Reviews. Bewusst NICHT über
+// buildWeeklyReportData()/den Firestore-Cache-Doc-Pfad gebaut (andere,
+// ältere Rollen-Gewichtung ohne Max-per-Muskel-Normalisierung, siehe
+// normalizedSessionHits oben) — nutzt stattdessen dieselbe Normalisierung
+// wie getMuscleCoverage()/getCoverageGaps() in dieser Datei.
+export async function getMonthlyReport(days = 28) {
+  if (!hasAuthSession()) return getLocalMonthlyReport(days);
+
+  const dates = getRollingDates(days);
+  const [kbExercises, history] = await Promise.all([
+    getAllExercises(),
+    getSessionHistory(120),
+  ]);
+  const kbMap = new Map();
+  kbExercises.forEach((ex) => kbMap.set((ex.display_name || ex.name || "").toLowerCase(), ex));
+
+  const safeHistory = Array.isArray(history)
+    ? history.filter(Boolean).map((s) => ({ ...s, exercises: Array.isArray(s.exercises) ? s.exercises : [] }))
+    : [];
+
+  const topExMap = {};
+  for (const s of safeHistory) {
+    for (const ex of (s.exercises || [])) {
+      const exName = ex.name || ex.exercise_id || "";
+      if (exName) topExMap[exName] = (topExMap[exName] || 0) + 1;
+    }
+  }
+
+  // Ein listSessionsForDate()-Call pro Tag, das Ergebnis wird für den
+  // Gesamtzeitraum UND die 7-Tage-Wochen-Chunks wiederverwendet.
+  const sessionsByDate = new Map();
+  for (const date of dates) {
+    sessionsByDate.set(date, await listSessionsForDate(date));
+  }
+
+  function aggregate(dateSlice) {
+    const bodyRegionScores = {};
+    const muscleScores = {};
+    const allExercises = [];
+    let sessionCount = 0;
+    let exerciseCount = 0;
+    const efforts = [];
+    for (const date of dateSlice) {
+      for (const sess of (sessionsByDate.get(date) || [])) {
+        const exercises = Array.isArray(sess.exercises) ? sess.exercises : [];
+        const hasContent = exercises.length > 0 || sess.block || sess.activity;
+        if (!hasContent) continue;
+        sessionCount++;
+        exerciseCount += exercises.length;
+        if (typeof sess.effort === "number") efforts.push(sess.effort);
+        for (const ex of exercises) {
+          const exName = ex.name || ex.exercise_id || "";
+          const primary = ex.primaryMuscles || [];
+          allExercises.push({ name: exName, primaryMuscles: primary });
+          primary.forEach((m) => { muscleScores[m] = (muscleScores[m] || 0) + 1; });
+        }
+        for (const [m, exName, w] of normalizedSessionHits(sess)) {
+          muscleToGroupIds(m, exName).forEach((gid) => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + w; });
+        }
+      }
+    }
+    const avgEffort = efforts.length > 0 ? Math.round((efforts.reduce((a, b) => a + b, 0) / efforts.length) * 10) / 10 : null;
+    return { bodyRegionScores, muscleScores, allExercises, sessionCount, exerciseCount, avgEffort };
+  }
+
+  const overall = aggregate(dates);
+  const allGroups = getMuscleGroupsForGaps().map((g) => g.id);
+  const gaps = allGroups.filter((g) => (overall.bodyRegionScores[g] || 0) < 1);
+
+  const weeks = [];
+  for (let start = dates.length - 7; start > -7; start -= 7) {
+    const chunk = dates.slice(Math.max(0, start), start + 7);
+    if (chunk.length === 0) continue;
+    const wk = aggregate(chunk);
+    weeks.push({
+      date_from: chunk[0],
+      date_to: chunk[chunk.length - 1],
+      session_count: wk.sessionCount,
+      avg_effort: wk.avgEffort,
+      body_region_scores: wk.bodyRegionScores,
+      missing_regions: allGroups.filter((g) => (wk.bodyRegionScores[g] || 0) < 1),
+    });
+  }
+  // Schleife läuft bereits jüngste→älteste 7-Tage-Chunk zuerst (start zählt
+  // von dates.length-7 runter) — weeks ist somit schon jüngste-zuerst.
+
+  return {
+    ok: true,
+    date_from: dates[0],
+    date_to: dates[dates.length - 1],
+    session_count: overall.sessionCount,
+    total_exercises: overall.exerciseCount,
+    avg_effort: overall.avgEffort,
+    muscle_scores: overall.muscleScores,
+    body_region_scores: overall.bodyRegionScores,
+    missing_regions: gaps,
+    recommendations: [
+      ...(gaps.length === 0 ? ["Zeitraum gut abgedeckt!"] : []),
+      ...buildMuscleBalanceInsights(overall.allExercises),
+    ],
+    top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => {
+      const kbEx = kbMap.get(name.toLowerCase());
+      return {
+        display_name: name,
+        count,
+        exercise_id: kbEx?.exercise_id || kbEx?.id || null,
+        primary_muscles: kbEx?.primary_muscles || kbEx?.primaryMuscles || [],
+        secondary_muscles: kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [],
+      };
+    }),
+    weeks,
+  };
 }
 
 // ── Progress trend ────────────────────────────────────────────────────────────

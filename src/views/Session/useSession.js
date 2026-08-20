@@ -71,7 +71,7 @@ function slugify(name) {
     .replace(/^_+|_+$/g, '') || 'exercise';
 }
 
-export function useSession({ initialDate, initialDraft, recentDays = 7, coverageThreshold = 0.3, onDateChange = null }) {
+export function useSession({ initialDate, initialDraft, recentDays = 7, coverageThreshold = 1.0, onDateChange = null }) {
   const [date, setDateState]        = useState(initialDate || localToday());
   const [sessionMode, setSessionMode] = useState('strength');
   const [block, setBlock]           = useState('');
