@@ -175,7 +175,10 @@ export async function getWeeklyReport(selector = "current") {
     body_region_scores: bodyRegionScores,
     missing_regions: gaps,
     recommendations: [
-      ...(gaps.length > 0 ? [`Fokus auf: ${gaps.join(", ")}`] : ["Woche gut abgedeckt!"]),
+      // Roher Gap-Dump entfernt — dieselben `gaps` erscheinen bereits übersetzt
+      // als Chips im "Coverage Gaps"-Abschnitt (ReviewInsights.jsx), eine
+      // zusätzliche unübersetzte Fließtext-Liste war reine Dopplung.
+      ...(gaps.length === 0 ? ["Woche gut abgedeckt!"] : []),
       ...buildMuscleBalanceInsights(allExercises),
     ],
     top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => {

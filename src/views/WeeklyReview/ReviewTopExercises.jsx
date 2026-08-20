@@ -21,23 +21,23 @@ export default function ReviewTopExercises({ topExercises = [], onInspectExercis
 
   return (
     <section>
-      <div className="label-caps !mb-4 flex items-center gap-2">
-        <BarChart3 size={16} className="text-fit-accent" />
+      <div className="flex items-center gap-2 mb-3 text-[11px] font-semibold" style={{ color: 'var(--dim)', opacity: 0.7 }}>
+        <BarChart3 size={14} className="text-fit-accent" />
         Top Exercises
       </div>
-      <div className="space-y-3.5">
+      <div className="space-y-2">
         {topExercises.slice(0, 6).map(ex => (
           <button
             key={ex.exercise_id || ex.display_name}
             onClick={() => openTopExercise(ex)}
-            className="w-full text-left p-5 rounded-2xl border bg-fit-bg2 border-fit-line hover:border-accent/50 transition-all flex items-center justify-between group"
+            className="w-full text-left p-3.5 rounded-2xl border bg-fit-bg2 border-fit-line hover:border-accent/50 transition-all flex items-center justify-between group"
           >
-            <span className="text-sm font-bold text-fit-ink group-hover:text-accent truncate pr-4">{ex.display_name || ex.exercise_id}</span>
-            <span className="text-sm font-black text-fit-accent bg-fit-accent/10 px-3 py-1.5 rounded-lg border border-fit-accent/20">{ex.count}x</span>
+            <span className="text-sm font-semibold text-fit-ink group-hover:text-accent truncate pr-4">{ex.display_name || ex.exercise_id}</span>
+            <span className="text-xs font-bold text-fit-accent bg-fit-accent/10 px-2.5 py-1 rounded-full border border-fit-accent/20">{ex.count}x</span>
           </button>
         ))}
         {topExercises.length === 0 && (
-          <div className="py-8 text-center text-[10px] font-black opacity-30 uppercase tracking-[0.2em] border border-dashed rounded-3xl">Keine Top Exercises</div>
+          <div className="py-8 text-center text-sm font-semibold border border-dashed rounded-2xl" style={{ color: 'var(--dim)', opacity: 0.6 }}>Keine Top Exercises</div>
         )}
       </div>
     </section>

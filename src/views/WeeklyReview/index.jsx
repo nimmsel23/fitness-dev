@@ -86,7 +86,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
       />
 
       {/* Mode switcher */}
-      <div className="flex gap-1 p-1 bg-fit-card rounded-2xl border border-fit-line shadow-sm overflow-x-auto max-w-full [&::-webkit-scrollbar]:hidden">
+      <div className="flex gap-1 p-1 bg-fit-card rounded-2xl border border-fit-line overflow-x-auto max-w-full [&::-webkit-scrollbar]:hidden">
         {[
           { id: 'report',    icon: <BarChart3 size={14} />, label: 'Bericht' },
           { id: 'muscles',   icon: <Activity size={14} />,  label: 'Muskeln' },
@@ -96,7 +96,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
         ].map(({ id, icon, label }) => (
           <button key={id}
             onClick={() => onSubNav?.(id)}
-            className={`flex items-center gap-1.5 sm:gap-2 shrink-0 px-3 sm:px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${viewMode === id ? 'bg-fit-accent text-black shadow-lg shadow-accent/20' : 'text-fit-dim hover:text-ink'}`}
+            className={`flex items-center gap-1.5 sm:gap-2 shrink-0 px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${viewMode === id ? 'bg-fit-accent text-black' : 'text-fit-dim hover:text-ink'}`}
           >
             {icon} {label}
           </button>
@@ -114,7 +114,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
       ) : loading ? (
         <div className="flex flex-col items-center justify-center py-32 opacity-30">
           <div className="spinner mb-6" />
-          <p className="text-xs font-black uppercase tracking-[0.3em]">Generiere Report…</p>
+          <p className="text-sm font-semibold">Generiere Report…</p>
         </div>
       ) : data ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -145,7 +145,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
         </div>
       ) : (
         <section className="p-8 rounded-3xl" style={{ background: 'var(--card)', border: '1px solid var(--line)' }}>
-          <p className="text-sm font-bold opacity-40 text-center uppercase tracking-widest">Wochenreport konnte nicht geladen werden.</p>
+          <p className="text-sm font-semibold text-center" style={{ color: 'var(--dim)' }}>Wochenreport konnte nicht geladen werden.</p>
         </section>
       )}
     </div>
