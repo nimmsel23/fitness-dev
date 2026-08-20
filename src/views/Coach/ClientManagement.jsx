@@ -50,16 +50,16 @@ export default function ClientManagement() {
   );
 
   if (uids.length === 0) return (
-    <div className="card py-20 flex flex-col items-center justify-center text-center opacity-30 border-dashed">
-      <Users size={48} className="mb-4 text-fit-dim" />
-      <h3 className="text-lg font-black">Keine Nutzer</h3>
-      <p className="text-xs font-bold uppercase tracking-widest mt-1">Es haben sich noch keine Klienten registriert</p>
+    <div className="card py-16 flex flex-col items-center justify-center text-center" style={{ opacity: 0.5 }}>
+      <Users size={40} className="mb-3 text-fit-dim" />
+      <h3 className="text-base font-semibold text-fit-ink">Keine Nutzer</h3>
+      <p className="text-xs mt-1" style={{ color: 'var(--dim)' }}>Es haben sich noch keine Klienten registriert</p>
     </div>
   );
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-fit-dim px-1">
+      <p className="text-xs px-1" style={{ color: 'var(--dim)', opacity: 0.7 }}>
         Status legt fest, wen du als committed betreust — rein informativ, keine Firestore-Regel hängt daran.
       </p>
       {uids.map((uid) => {
@@ -69,12 +69,12 @@ export default function ClientManagement() {
         return (
           <div key={uid} className="card p-4 flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <div className="text-sm font-bold text-fit-ink truncate">{name}</div>
+              <div className="text-sm font-semibold text-fit-ink truncate">{name}</div>
               {profile.email && profile.email !== name && (
-                <div className="text-[10px] text-fit-dim truncate">{profile.email}</div>
+                <div className="text-xs truncate" style={{ color: 'var(--dim)', opacity: 0.6 }}>{profile.email}</div>
               )}
             </div>
-            <div className="flex gap-1 p-1 bg-fit-bg2 rounded-xl border border-fit-line/40 shrink-0">
+            <div className="flex gap-1 p-1 bg-fit-bg2 rounded-full border border-fit-line/40 shrink-0">
               {STATUS_OPTIONS.map(opt => {
                 const Icon = opt.icon;
                 const active = status === opt.id;
@@ -84,7 +84,7 @@ export default function ClientManagement() {
                     title={opt.hint}
                     disabled={saving === uid}
                     onClick={() => setStatus(uid, opt.id)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all disabled:opacity-50 ${
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all disabled:opacity-50 ${
                       active ? 'bg-fit-accent text-black' : 'text-fit-dim hover:text-fit-ink'
                     }`}
                   >
