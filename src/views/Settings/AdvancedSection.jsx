@@ -19,33 +19,33 @@ export default function AdvancedSection({
   user,
 }) {
   return (
-    <section className="card p-8 mt-8 border-dashed border-red-500/20 bg-red-500/5 animate-in fade-in slide-in-from-bottom-8 duration-500">
-       <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
-            <ShieldAlert size={20} className="text-red-500" />
+    <section className="card p-6 mt-6 border-dashed border-red-500/20 bg-red-500/5 animate-in fade-in slide-in-from-bottom-8 duration-500">
+       <div className="flex items-center gap-3 mb-6">
+          <div className="w-9 h-9 rounded-xl bg-red-500/20 flex items-center justify-center">
+            <ShieldAlert size={18} className="text-red-500" />
           </div>
           <div>
-             <h3 className="text-xl font-black text-fit-ink">Advanced & Labor</h3>
-             <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Experimentelle Funktionen</p>
+             <h3 className="text-base font-semibold text-fit-ink">Erweitert &amp; Labor</h3>
+             <p className="text-xs" style={{ color: 'var(--dim)', opacity: 0.6 }}>Experimentelle Funktionen</p>
           </div>
        </div>
 
-       <div className="bg-fit-bg2 p-6 rounded-3xl border border-fit-line">
-          <div className="flex items-center gap-3 mb-6">
-             <Sparkles size={18} className="text-fit-accent" />
-             <h4 className="text-sm font-black text-fit-ink uppercase tracking-widest">Labor</h4>
+       <div className="bg-fit-bg2 p-5 rounded-2xl border border-fit-line">
+          <div className="flex items-center gap-2.5 mb-4">
+             <Sparkles size={16} className="text-fit-accent" />
+             <h4 className="text-sm font-semibold text-fit-ink">Labor</h4>
           </div>
-          <div className="space-y-6">
+          <div className="space-y-5">
              {/* Swipe Navigation */}
              <div className="flex items-center justify-between">
                 <div>
-                   <div className="text-xs font-black text-fit-ink">Swipe-Navigation</div>
-                   <div className="text-[9px] font-bold opacity-30 uppercase text-fit-dim">Tab-Wechsel per Wischgeste</div>
+                   <div className="text-xs font-semibold text-fit-ink">Swipe-Navigation</div>
+                   <div className="text-xs text-fit-dim" style={{ opacity: 0.6 }}>Tab-Wechsel per Wischgeste</div>
                 </div>
                 <div className="flex bg-fit-bg p-1 rounded-xl border border-fit-line">
                    {[{ id: true, label: 'Ein' }, { id: false, label: 'Aus' }].map(({ id, label }) => (
                       <button key={label} onClick={() => setSwipeEnabled(id)}
-                         className={`px-3 py-1.5 text-[8px] font-black uppercase rounded-lg transition-all ${swipeEnabled === id ? 'bg-fit-card shadow-sm text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}>
+                         className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${swipeEnabled === id ? 'bg-fit-card shadow-sm text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}>
                          {label}
                       </button>
                    ))}
@@ -56,17 +56,17 @@ export default function AdvancedSection({
        </div>
 
        {/* Layout & Navigation (experimentell) */}
-       <div className="mt-6 bg-fit-bg2 p-6 rounded-3xl border border-fit-line space-y-6">
-          <div className="flex items-center gap-3">
-             <LayoutGrid size={18} className="text-fit-accent" />
-             <h4 className="text-sm font-black text-fit-ink uppercase tracking-widest">Layout & Navigation</h4>
+       <div className="mt-5 bg-fit-bg2 p-5 rounded-2xl border border-fit-line space-y-5">
+          <div className="flex items-center gap-2.5">
+             <LayoutGrid size={16} className="text-fit-accent" />
+             <h4 className="text-sm font-semibold text-fit-ink">Layout &amp; Navigation</h4>
           </div>
 
           <SegmentedControl
-            label="Navigation Modus"
+            label="Navigations-Modus"
             options={[
               { id: 'tabs', label: 'Tabs + Navbar' },
-              { id: 'home', label: 'Home Menü' },
+              { id: 'home', label: 'Home-Menü' },
             ]}
             value={navMode}
             onChange={setNavMode}
@@ -75,8 +75,8 @@ export default function AdvancedSection({
           {/* Desktop Sidebar Toggle */}
           <div className="hidden lg:flex items-center justify-between">
              <div>
-                <div className="text-sm font-black text-fit-ink">Desktop Sidebar</div>
-                <div className="text-[10px] font-bold opacity-30 uppercase">Permanent fixiert</div>
+                <div className="text-sm font-semibold text-fit-ink">Desktop-Sidebar</div>
+                <div className="text-xs" style={{ color: 'var(--dim)', opacity: 0.6 }}>Permanent fixiert</div>
              </div>
              <button onClick={() => setSidebarPinned(!sidebarPinned)}
                 className={`w-12 h-6 rounded-full transition-colors relative border ${sidebarPinned ? 'bg-fit-accent border-fit-accent' : 'bg-fit-bg2 border-fit-line'}`}>
@@ -86,7 +86,7 @@ export default function AdvancedSection({
 
           {/* Layout Scale */}
           <div className="space-y-3">
-             <div className="text-[10px] font-black uppercase tracking-widest opacity-30 ml-1">Layout Skalierung</div>
+             <div className="text-xs font-medium ml-1" style={{ color: 'var(--dim)', opacity: 0.7 }}>Layout-Skalierung</div>
              <input
                type="range"
                min="70"
@@ -96,7 +96,7 @@ export default function AdvancedSection({
                onChange={(e) => setLayoutScale(parseInt(e.target.value))}
                className="fit-slider w-full"
              />
-             <div className="flex justify-between text-[10px] font-black opacity-30 uppercase">
+             <div className="flex justify-between text-xs" style={{ color: 'var(--dim)', opacity: 0.5 }}>
                 <span>70%</span>
                 <span>{layoutScale}%</span>
                 <span>150%</span>
@@ -117,28 +117,28 @@ export default function AdvancedSection({
 
        {/* User Auth */}
        {user && (
-          <div className="mt-6 bg-fit-bg2 p-6 rounded-3xl border border-fit-line">
-             <div className="flex items-center gap-3 mb-6">
-                <UserCircle size={18} className="text-fit-accent" />
-                <h4 className="text-sm font-black text-fit-ink uppercase tracking-widest">Account</h4>
+          <div className="mt-5 bg-fit-bg2 p-5 rounded-2xl border border-fit-line">
+             <div className="flex items-center gap-2.5 mb-4">
+                <UserCircle size={16} className="text-fit-accent" />
+                <h4 className="text-sm font-semibold text-fit-ink">Account</h4>
              </div>
-             <div className="space-y-3 text-[11px] font-mono">
+             <div className="space-y-2.5 text-xs font-mono">
                 <div className="flex items-center justify-between bg-fit-bg p-3 rounded-xl border border-fit-line">
-                   <span className="opacity-40 uppercase tracking-widest text-[10px] font-black">E-Mail</span>
-                   <span className="font-black text-fit-ink truncate max-w-[60%]">{user.email || '—'}</span>
+                   <span style={{ color: 'var(--dim)', opacity: 0.6 }}>E-Mail</span>
+                   <span className="font-semibold text-fit-ink truncate max-w-[60%]">{user.email || '—'}</span>
                 </div>
                 <div className="flex items-center justify-between bg-fit-bg p-3 rounded-xl border border-fit-line">
-                   <span className="opacity-40 uppercase tracking-widest text-[10px] font-black">UID</span>
-                   <span className="font-black text-fit-accent truncate max-w-[60%]" title={user.uid}>{user.uid || '—'}</span>
+                   <span style={{ color: 'var(--dim)', opacity: 0.6 }}>UID</span>
+                   <span className="font-semibold text-fit-accent truncate max-w-[60%]" title={user.uid}>{user.uid || '—'}</span>
                 </div>
                 <div className="flex items-center justify-between bg-fit-bg p-3 rounded-xl border border-fit-line">
-                   <span className="opacity-40 uppercase tracking-widest text-[10px] font-black">Beitritt</span>
-                   <span className="font-black text-fit-ink">{formatJoinDate(user.metadata?.creationTime)}</span>
+                   <span style={{ color: 'var(--dim)', opacity: 0.6 }}>Beitritt</span>
+                   <span className="font-semibold text-fit-ink">{formatJoinDate(user.metadata?.creationTime)}</span>
                 </div>
                 {user.metadata?.lastSignInTime && (
                    <div className="flex items-center justify-between bg-fit-bg p-3 rounded-xl border border-fit-line">
-                      <span className="opacity-40 uppercase tracking-widest text-[10px] font-black">Letzter Login</span>
-                      <span className="font-black text-fit-dim">{formatJoinDate(user.metadata.lastSignInTime)}</span>
+                      <span style={{ color: 'var(--dim)', opacity: 0.6 }}>Letzter Login</span>
+                      <span className="font-semibold text-fit-dim">{formatJoinDate(user.metadata.lastSignInTime)}</span>
                    </div>
                 )}
              </div>

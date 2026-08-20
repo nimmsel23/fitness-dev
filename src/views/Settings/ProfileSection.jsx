@@ -46,21 +46,21 @@ export default function ProfileSection() {
   if (!user) return null;
 
   return (
-    <section className="card p-8 space-y-6 border-t-4 border-t-fit-accent animate-in fade-in slide-in-from-top-4 duration-500">
+    <section className="card p-6 space-y-5 animate-in fade-in slide-in-from-top-4 duration-500">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-fit-accent/10 flex items-center justify-center shrink-0">
-            <User2 size={20} className="text-fit-accent" />
+          <div className="w-9 h-9 rounded-xl bg-fit-accent/10 flex items-center justify-center shrink-0">
+            <User2 size={18} className="text-fit-accent" />
           </div>
           <div className="min-w-0">
-            <h3 className="text-xl font-black text-fit-ink">Körperprofil</h3>
-            <div className="text-[10px] font-black uppercase tracking-widest text-fit-dim truncate">{user.email}</div>
+            <h3 className="text-base font-semibold text-fit-ink">Körperprofil</h3>
+            <div className="text-xs text-fit-dim truncate" style={{ opacity: 0.6 }}>{user.email}</div>
           </div>
         </div>
         {!isLocalMode() && (
           <button
             onClick={() => { if (window.confirm('Wirklich abmelden?')) signOut(); }}
-            className="flex items-center gap-1.5 shrink-0 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-fit-red bg-fit-red/5 border border-fit-red/10 rounded-xl hover:bg-fit-red/10 transition-all"
+            className="flex items-center gap-1.5 shrink-0 px-3 py-2 text-xs font-semibold text-fit-red bg-fit-red/5 border border-fit-red/10 rounded-full hover:bg-fit-red/10 transition-all"
             title="Abmelden"
           >
             <LogOut size={13} />
@@ -70,25 +70,25 @@ export default function ProfileSection() {
       </div>
 
       <div>
-        <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-2 ml-1">Anzeigename (Für den Coach)</div>
-        <input 
-          type="text" 
-          value={displayName} 
+        <div className="text-xs font-medium mb-2 ml-1" style={{ color: 'var(--dim)', opacity: 0.7 }}>Anzeigename (für den Coach)</div>
+        <input
+          type="text"
+          value={displayName}
           placeholder="Dein Vor- und Nachname"
           onChange={e => setDisplayName(e.target.value)}
-          className={inputCls} 
+          className={inputCls}
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-2 ml-1">Geschlecht</div>
+          <div className="text-xs font-medium mb-2 ml-1" style={{ color: 'var(--dim)', opacity: 0.7 }}>Geschlecht</div>
           <div className="flex gap-1 p-1 bg-fit-bg2 rounded-xl border border-fit-line">
             {[{ id: 'm', label: 'Männlich' }, { id: 'f', label: 'Weiblich' }].map(({ id, label }) => (
-              <button 
-                key={id} 
+              <button
+                key={id}
                 onClick={() => setGender(id)}
-                className={`flex-1 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${gender === id ? 'bg-fit-card shadow-md text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}
+                className={`flex-1 py-2.5 text-xs font-semibold rounded-lg transition-all ${gender === id ? 'bg-fit-card shadow-sm text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}
               >
                 {label}
               </button>
@@ -97,50 +97,50 @@ export default function ProfileSection() {
         </div>
 
         <div>
-          <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-2 ml-1">Alter</div>
-          <input 
+          <div className="text-xs font-medium mb-2 ml-1" style={{ color: 'var(--dim)', opacity: 0.7 }}>Alter</div>
+          <input
             type="number" value={age || ''} min={15} max={99}
             onChange={e => setAge(Number(e.target.value))}
-            className={inputCls} 
+            className={inputCls}
           />
-          <div className="text-[9px] font-bold opacity-30 ml-1 mt-1">Jahre</div>
+          <div className="text-xs ml-1 mt-1" style={{ color: 'var(--dim)', opacity: 0.5 }}>Jahre</div>
         </div>
 
         <div>
-          <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-2 ml-1">Größe</div>
-          <input 
+          <div className="text-xs font-medium mb-2 ml-1" style={{ color: 'var(--dim)', opacity: 0.7 }}>Größe</div>
+          <input
             type="number" value={heightCm || ''} min={120} max={230}
             onChange={e => setHeightCm(Number(e.target.value))}
-            className={inputCls} 
+            className={inputCls}
           />
-          <div className="text-[9px] font-bold opacity-30 ml-1 mt-1">cm</div>
+          <div className="text-xs ml-1 mt-1" style={{ color: 'var(--dim)', opacity: 0.5 }}>cm</div>
         </div>
 
         <div>
-          <div className="text-[10px] font-black uppercase tracking-widest opacity-30 mb-2 ml-1">Gewicht</div>
-          <input 
+          <div className="text-xs font-medium mb-2 ml-1" style={{ color: 'var(--dim)', opacity: 0.7 }}>Gewicht</div>
+          <input
             type="number" value={weightKg || ''} min={30} max={300} step={0.5}
             onChange={e => setWeightKg(Number(e.target.value))}
-            className={inputCls} 
+            className={inputCls}
           />
-          <div className="text-[9px] font-bold opacity-30 ml-1 mt-1">kg</div>
+          <div className="text-xs ml-1 mt-1" style={{ color: 'var(--dim)', opacity: 0.5 }}>kg</div>
         </div>
       </div>
 
       <button
         onClick={handleSave}
         disabled={saving || !displayName.trim()}
-        className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-4 bg-fit-accent text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:opacity-90 disabled:opacity-50 transition-all"
+        className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-3 bg-fit-accent text-white rounded-xl font-semibold text-xs hover:opacity-90 disabled:opacity-50 transition-all"
       >
         {saving ? (
-          <span className="animate-pulse">Speichert in Cloud...</span>
+          <span className="animate-pulse">Speichert in Cloud…</span>
         ) : saved ? (
           <>
             <Check size={14} /> Cloud synchronisiert
           </>
         ) : (
           <>
-            <Save size={14} /> Profil & Daten speichern
+            <Save size={14} /> Profil &amp; Daten speichern
           </>
         )}
       </button>
