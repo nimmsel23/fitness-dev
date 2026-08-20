@@ -39,6 +39,32 @@ export async function getClientRoutinesProgress(clientUid) {
   }
 }
 
+// Coach-Schreibpfad für Klienten-Routinen — nutzt dieselben Routen wie der
+// Klient selbst, ?uid=-Override (siehe getClientRoutinesProgress oben, live
+// bestätigt dass das auch für POST/PATCH/DELETE funktioniert, nicht nur GET).
+// Einzelne Routine inkl. exercises (die Listen-Route /routines liefert
+// bewusst keine exercises, siehe fitness/api/routers/workouts.py) — Coach-
+// Pendant zu views/Plan/WorkoutList.jsx's on-demand Vorschau-Fetch.
+export async function getClientRoutine(clientUid, routineId) {
+  return api.get(`/routines/${routineId}?uid=${encodeURIComponent(clientUid)}`);
+}
+
+export async function createClientRoutine(clientUid, body) {
+  return api.post(`/routines?uid=${encodeURIComponent(clientUid)}`, body);
+}
+
+export async function addClientRoutineExercise(clientUid, routineId, body) {
+  return api.post(`/routines/${routineId}/exercises?uid=${encodeURIComponent(clientUid)}`, body);
+}
+
+export async function setClientRoutineTarget(clientUid, routineId, patch) {
+  return api.patch(`/routines/${routineId}?uid=${encodeURIComponent(clientUid)}`, patch);
+}
+
+export async function deleteClientRoutine(clientUid, routineId) {
+  return api.delete(`/routines/${routineId}?uid=${encodeURIComponent(clientUid)}`);
+}
+
 export async function getAllUserProfiles() {
   try {
     const data = await api.get('/fitness/coach/profiles');

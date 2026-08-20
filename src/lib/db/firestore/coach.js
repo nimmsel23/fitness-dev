@@ -3,10 +3,62 @@
  */
 
 import {
-  doc, setDoc, getDocs, serverTimestamp, collectionGroup, collection,
+  doc, setDoc, updateDoc, getDocs, writeBatch, serverTimestamp, collectionGroup, collection,
 } from "firebase/firestore";
 
 import { db } from "../../../firebase.js";
+import { normalizeRoutineExercise } from "./routines.js";
+
+// Coach-Schreibpfad für Klienten-Routinen (Habit-Ziele setzen/Routine
+// anlegen). Spiegelt firestore/routines.js 1:1, aber parametrisiert auf
+// clientUid statt getUid() (das würde immer den eingeloggten Coach selbst
+// treffen). "Basic" bewusst: kein Reorder/Template-Sets-Editor hier, nur
+// Name+Ziel+Übungen hinzufügen — Feintuning macht der Klient selbst im
+// Plan-Tab (views/Plan/RoutineBuilder.jsx).
+export async function getClientRoutine(clientUid, routineId) {
+  const exSnap = await getDocs(collection(db, "fitness", clientUid, "routines", routineId, "exercises"));
+  const exercises = exSnap.docs
+    .map((d) => normalizeRoutineExercise({ id: d.id, ...d.data() }))
+    .sort((a, b) => a.order - b.order);
+  return { routine: { id: routineId, exercises } };
+}
+
+export async function createClientRoutine(clientUid, { name, goal = null, category = null }) {
+  const ref = doc(collection(db, "fitness", clientUid, "routines"));
+  await setDoc(ref, {
+    name, goal, category,
+    created_at: new Date().toISOString(),
+    exerciseCount: 0,
+  });
+  return { id: ref.id };
+}
+
+export async function addClientRoutineExercise(clientUid, routineId, body) {
+  const exercisesCol = collection(db, "fitness", clientUid, "routines", routineId, "exercises");
+  const exSnap = await getDocs(exercisesCol);
+  const order = exSnap.size;
+  const ref = doc(exercisesCol);
+  const exercise = normalizeRoutineExercise({ ...body, id: ref.id }, order);
+  const batch = writeBatch(db);
+  batch.set(ref, exercise);
+  batch.update(doc(db, "fitness", clientUid, "routines", routineId), { exerciseCount: order + 1 });
+  await batch.commit();
+  return { id: ref.id };
+}
+
+export async function setClientRoutineTarget(clientUid, routineId, patch) {
+  await updateDoc(doc(db, "fitness", clientUid, "routines", routineId), patch);
+  return { ok: true };
+}
+
+export async function deleteClientRoutine(clientUid, routineId) {
+  const exSnap = await getDocs(collection(db, "fitness", clientUid, "routines", routineId, "exercises"));
+  const batch = writeBatch(db);
+  exSnap.docs.forEach((d) => batch.delete(d.ref));
+  batch.delete(doc(db, "fitness", clientUid, "routines", routineId));
+  await batch.commit();
+  return { ok: true };
+}
 
 // Direkte Pro-Klient-Query (fitness/{uid}/sessions|journal|habitJournals),
 // keine collectionGroup über alle User. Wichtig: getGlobalJournalFeed()
