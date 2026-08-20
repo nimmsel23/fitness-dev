@@ -8,11 +8,9 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Save, ChevronDown, X, Zap } from 'lucide-react';
-import DateStrip from './DateStrip';
-import ModeSwitcher from './ModeSwitcher';
-import SessionSwitcher from './SessionSwitcher';
+import { Save, ChevronDown, X } from 'lucide-react';
 import SessionGateCard from './SessionGateCard.jsx';
+import SessionHeader from './SessionHeader';
 import ExerciseList from './ExerciseList';
 import ActivitySection from './ActivitySection';
 import ActivityAddon, { ADDON_TYPES } from './ActivityAddon';
@@ -75,73 +73,22 @@ export default function SessionEditor({
 
   return (
     <div className="pb-36">
-      {/* Sticky date strip */}
-      <DateStrip
-        date={date}
-        setDate={setDate}
-        rollingDays={rollingDays}
-        recentSessions={recentSessions}
-        saving={saving}
-        autoSaveLabel={autoSaveLabel}
-        dirty={dirty}
-        onSave={save}
+      {/* Sticky header — DateStrip/SessionSwitcher/hint/ModeSwitcher merged into one calm unit */}
+      <SessionHeader
+        date={date} setDate={setDate} rollingDays={rollingDays} recentSessions={recentSessions}
+        saving={saving} autoSaveLabel={autoSaveLabel} dirty={dirty} onSave={save}
         onOpenSidebar={() => setShowSidebar(true)}
         onOpenSettings={() => setShowTabSettings(true)}
+        hint={hint}
+        daySessions={daySessions} sessionId={sessionId} selectSession={selectSession}
+        onNew={handleNewSession} onDelete={handleDeleteSession}
+        sessionMode={sessionMode} setSessionMode={setSessionMode}
       />
 
-      <div className="px-2 space-y-4 mt-3">
-        {hint && (
-          <div
-            className="flex items-center gap-3 px-4 py-3 rounded-2xl animate-in slide-in-from-top-2 duration-300"
-            style={{
-              background: 'rgba(var(--accent-rgb,200,255,0),0.04)',
-              border: '1px solid rgba(var(--accent-rgb,200,255,0),0.15)',
-            }}
-          >
-            <Zap size={15} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-            <div className="min-w-0">
-              <div
-                className="text-[10px] font-black uppercase tracking-widest"
-                style={{ color: 'var(--accent)' }}
-              >
-                {hint.block}
-              </div>
-              <div
-                className="text-[11px] mt-0.5 truncate"
-                style={{ color: 'var(--muted)' }}
-              >
-                {(hint.exercises || []).slice(0, 3).join(' · ')}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Session switcher */}
-        <div
-          className="px-4 py-3 rounded-2xl"
-          style={{
-            background: 'var(--card)',
-            border: '1px solid var(--line)',
-          }}
-        >
-          <SessionSwitcher
-            daySessions={daySessions}
-            sessionId={sessionId}
-            selectSession={selectSession}
-            onNew={handleNewSession}
-            onDelete={handleDeleteSession}
-          />
-        </div>
-
-        {/* Mode switcher */}
-        <ModeSwitcher sessionMode={sessionMode} setSessionMode={setSessionMode} />
-
+      <div className="px-2 space-y-4 mt-1">
         {/* Main content */}
         <div className="px-1">
-          <div
-            className="text-[10px] font-black uppercase tracking-[0.22em] mb-2"
-            style={{ color: 'var(--dim)', opacity: 0.65 }}
-          >
+          <div className="text-xs font-semibold mb-2" style={{ color: 'var(--dim)', opacity: 0.7 }}>
             Manuell nachtragen / editieren
           </div>
         </div>

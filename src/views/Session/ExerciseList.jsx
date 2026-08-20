@@ -21,31 +21,19 @@ export default function ExerciseList({
   return (
     <div className="space-y-5">
 
-      {/* Coverage gaps */}
+      {/* Coverage gaps — informational, not alarm-red: these are muscles that
+          simply haven't been trained in a while, not an error state. */}
       {gaps.length > 0 && (
-        <div
-          className="px-4 py-3 rounded-2xl"
-          style={{
-            background: 'rgba(255,80,80,0.04)',
-            border: '1px solid rgba(255,80,80,0.15)',
-          }}
-        >
-          <div
-            className="text-[9px] font-black uppercase tracking-[0.2em] mb-2"
-            style={{ color: 'var(--red)' }}
-          >
-            Coverage-Lücken
-          </div>
+        <div className="flex items-start gap-2 px-1">
+          <span className="text-[10px] font-semibold shrink-0 mt-0.5" style={{ color: 'var(--dim)', opacity: 0.6 }}>
+            Länger nicht trainiert
+          </span>
           <div className="flex flex-wrap gap-1.5">
             {gaps.map(g => (
               <span
                 key={g.name}
-                className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg"
-                style={{
-                  background: 'rgba(255,80,80,0.08)',
-                  color: 'var(--red)',
-                  border: '1px solid rgba(255,80,80,0.2)',
-                }}
+                className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                style={{ background: 'var(--bg2)', color: 'var(--dim)' }}
               >
                 {g.name}
               </span>
@@ -56,17 +44,8 @@ export default function ExerciseList({
 
       {/* Rest hours badge */}
       {restHours !== null && (
-        <div className="flex items-center gap-2">
-          <div
-            className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-lg font-mono"
-            style={{
-              background: 'rgba(var(--accent-rgb,200,255,0),0.06)',
-              color: 'var(--accent)',
-              border: '1px solid rgba(var(--accent-rgb,200,255,0),0.15)',
-            }}
-          >
-            ⏱ {restHours}h Rest
-          </div>
+        <div className="flex items-center gap-1.5 px-1 text-[11px] font-medium" style={{ color: 'var(--dim)' }}>
+          <span style={{ color: 'var(--accent)' }}>⏱</span> {restHours}h seit letztem Training
         </div>
       )}
 
@@ -93,30 +72,12 @@ export default function ExerciseList({
 
         {/* Empty state */}
         {safe.length === 0 && (
-          <div
-            className="flex flex-col items-center justify-center py-14 rounded-3xl"
-            style={{
-              background: 'rgba(var(--bg2-rgb,30,30,40),0.3)',
-              border: '2px dashed var(--line)',
-              opacity: 0.5,
-            }}
-          >
-            <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center mb-3"
-              style={{ background: 'var(--line)' }}
-            >
-              <Dumbbell size={26} style={{ color: 'var(--dim)' }} />
-            </div>
-            <p
-              className="text-[11px] font-black uppercase tracking-[0.25em]"
-              style={{ color: 'var(--dim)' }}
-            >
+          <div className="flex flex-col items-center justify-center py-12 rounded-2xl" style={{ border: '1px dashed var(--line)' }}>
+            <Dumbbell size={20} style={{ color: 'var(--dim)', opacity: 0.4 }} className="mb-2" />
+            <p className="text-sm font-semibold" style={{ color: 'var(--dim)' }}>
               Noch keine Übungen
             </p>
-            <p
-              className="text-[10px] mt-1"
-              style={{ color: 'var(--dim)', opacity: 0.5 }}
-            >
+            <p className="text-xs mt-0.5" style={{ color: 'var(--dim)', opacity: 0.5 }}>
               Übung hinzufügen oder Quick-Input nutzen
             </p>
           </div>
@@ -128,7 +89,7 @@ export default function ExerciseList({
         {/* Primary: Search */}
         <button
           onClick={() => setShowSearch(true)}
-          className="w-full flex items-center justify-between px-5 py-4 rounded-2xl font-black uppercase tracking-[0.15em] text-[11px] transition-all hover:scale-[1.01] active:scale-95"
+          className="w-full flex items-center justify-between px-5 py-3.5 rounded-2xl font-bold text-sm transition-all hover:scale-[1.01] active:scale-95"
           style={{
             background: 'var(--accent)',
             color: '#000',
