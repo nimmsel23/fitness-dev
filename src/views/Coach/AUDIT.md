@@ -42,6 +42,21 @@ Versteckte Admin-Ansicht ("Hidden Chamber") für Coach-seitige Verwaltung — ni
 ## Status
 Funktioniert (Stand 2026-07-22, nach den o.g. Fixes live verifiziert: Übungsanfragen zeigen Daten). Katalog-Browser- und Klienten-Workouts-Sub-Tab in derselben Session ebenfalls verifiziert bzw. um Filter ergänzt. Plan-Zuweisung (2026-08-01) per Build-Check verifiziert (Lint + `npm run build` sauber), nicht live gegen Prod-Firestore getestet — siehe `~/.claude/projects/-home-alpha-vitalos--git-modules-fitness-dev/memory/project_coach_assigned_plans_vs_klienten_dev.md` für den vollen Architektur-Kontext (klienten-dev/klienten-python als älteres Parallelsystem, VitalOS als geplante Coach-Shell).
 
+## Update 2026-08-20 (Teil 3): Habit-Beobachtung für Coach
+Neuer 3. Sub-Tab `Habits` in `ClientsPanel.jsx` (zwischen Workouts und
+Trainingsplan) — read-only Sicht auf die Ziel-Häufigkeiten, die der Klient
+selbst pro Routine im Strong-Style Plan-Tab (`views/Plan/WorkoutList.jsx`,
+"Ziel festlegen") gesetzt hat. Neue Komponente `ClientHabits.jsx`, nutzt
+`getClientRoutinesProgress(clientUid)` (lokal: `?uid=`-Override auf
+`/routines`+`/workouts`; Firestore: direkte `fitness/{uid}/routines`+
+`.../workouts`-Query statt `collectionGroup`, bypass `getUid()`). Fortschritts-
+Formel lebt jetzt zentral in `src/lib/habitProgress.js` (vorher in
+`WorkoutList.jsx` dupliziert), geteilt zwischen Plan-Tab (Self-Service) und
+Coach-Tab (Beobachtung). **Bewusst nicht gebaut:** Coach kann diese
+Routinen-Ziele nicht selbst setzen/zuweisen — reines Beobachten, kein Schreib-
+Pfad. Live verifiziert (`?uid=`-Query liefert korrekt fremde Klienten-Routine
+mit gesetztem Ziel).
+
 ## Update 2026-08-20 (Teil 2): Klienten-zentrierter Workflow + echter Feed-Bug behoben
 - **Struktur**: `index.jsx` von 5 auf 3 Sub-Tabs reduziert (Übungsanfragen /
   Katalog Browser / Klienten). `ClientManagement.jsx` (Status-Toggle) +
