@@ -219,6 +219,33 @@ run_cmd ln -s "$KB_SOURCE" "$KB_LINK"
 msg "🔗 Verlinke catalog/state aus $STATE_SOURCE"
 run_cmd ln -s "$STATE_SOURCE" "$STATE_LINK"
 
+# 3b. Systemd-Unit schreiben (nur staging — prod-Unit liegt system-weit
+# unter /etc/systemd/system/, unabhängig von diesem Skript). Die Unit lebt
+# damit im Projekt statt separat in ~/.dotfiles getrackt zu werden.
+if [[ "$TARGET" == "staging" ]]; then
+  msg "🧩 Schreibe systemd Unit $SERVICE"
+  mkdir -p "$HOME/.config/systemd/user"
+  cat > "$HOME/.config/systemd/user/$SERVICE" <<EOF
+[Unit]
+Description=Fitness Centre Preview Service (FastAPI :$PORT)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=$DEST
+ExecStart=$DEST/.venv/bin/python3 -m uvicorn fitness.api.main:app --host 127.0.0.1 --port $PORT --no-access-log
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+Environment=PORT=$PORT
+Environment=FITNESS_DATA_DIR=$HOME/.aos/fitness
+Environment=FITNESS_SKIP_WATCHERS=1
+
+[Install]
+WantedBy=default.target
+EOF
+fi
+
 # 4. Restart Service
 if $USE_SUDO; then
   if systemctl list-unit-files "$SERVICE" >/dev/null 2>&1; then
