@@ -18,8 +18,8 @@ export default function ReviewPPLBalance({ bodyRegionScores }) {
     label,
     score: sumRegions(bodyRegionScores, regions),
   }));
-  const maxScore = Math.max(...bars.map(b => b.score), 1);
-  const hasData = bars.some(b => b.score > 0);
+  const total = bars.reduce((sum, b) => sum + b.score, 0);
+  const hasData = total > 0;
 
   return (
     <section>
@@ -30,13 +30,13 @@ export default function ReviewPPLBalance({ bodyRegionScores }) {
       {hasData ? (
         <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
           {bars.map(({ label, score }) => {
-            const pct = Math.min(100, (score / maxScore) * 100);
+            const pct = total > 0 ? (score / total) * 100 : 0;
             return (
               <div key={label} className="flex flex-col p-3.5 sm:p-6 rounded-2xl border bg-fit-card border-fit-line min-w-0">
                 <span className="text-[11px] sm:text-xs font-medium opacity-60 mb-2.5 sm:mb-4">
                   {label}
                 </span>
-                <span className="text-2xl sm:text-3xl font-bold text-fit-ink mb-2.5">{score.toFixed(1)}</span>
+                <span className="text-2xl sm:text-3xl font-bold text-fit-ink mb-2.5">{pct.toFixed(0)}%</span>
                 <div className="w-full h-2 bg-fit-line rounded-full overflow-hidden">
                   <div className="h-full bg-fit-accent transition-all duration-1000" style={{ width: `${pct}%` }} />
                 </div>

@@ -18,6 +18,16 @@ export const CARDIO_HEAVY      = 24;   // ≤ 1 Tag
 export const CARDIO_RECOVERING = 96;   // ≤ 4 Tage
 export const CARDIO_SUPER      = 240;  // ≤ 10 Tage
 
+// HIIT-Finisher (z.B. 5-Minuten-Core-Routinen) sind bewusst für tägliches/
+// mehrfach-wöchentliches Training konzipiert — mit dem Cardio-Fenster (24h
+// bis "stark belastet") stünde abs/lower_back bei 5x/Woche praktisch
+// dauerhaft auf Rot, obwohl das laut Programm-Design kein Overtraining ist.
+// Deutlich kürzeres Fenster, damit "stark belastet" nur den Trainingstag
+// selbst markiert und der Muskel danach schnell wieder als bereit gilt.
+export const HIIT_HEAVY      = 4;    // ≤ 4 Std.
+export const HIIT_RECOVERING = 24;   // ≤ 1 Tag
+export const HIIT_SUPER      = 72;   // ≤ 3 Tage
+
 // score → Farbe, identisch zu hitColors in MuscleBodyMap.jsx (index = score-1)
 export const SCORE_COLORS = { 1: '#3b82f6', 2: '#22c55e', 3: '#f59e0b', 4: '#ef4444' };
 
@@ -33,6 +43,12 @@ export const MUSCLE_GROUPS = [
 
 function scoreForLastSeen(last) {
   if (!last) return 1;
+  if (last.type === 'hiit') {
+    if (last.hours > HIIT_SUPER) return 1;
+    if (last.hours > HIIT_RECOVERING) return 2;
+    if (last.hours > HIIT_HEAVY) return 3;
+    return 4;
+  }
   if (last.type === 'cardio') {
     if (last.hours > CARDIO_SUPER) return 1;
     if (last.hours > CARDIO_RECOVERING) return 2;
@@ -72,11 +88,12 @@ export function computeMuscleScores(sessions, kbMap, getMuscleGroup) {
       const activeMuscles = (s.activity.muscles?.length ? s.activity.muscles : null)
         || ACTIVITY_MUSCLE_GROUPS[s.activity.type]
         || ['quadriceps', 'calves'];
+      const activityType = s.activity.type === 'hiit' ? 'hiit' : 'cardio';
       for (const raw of activeMuscles) {
         const m = getMuscleGroup(raw) || raw;
         if (!lastSeen[m] || lastSeen[m].hours > hoursAgo) {
           if (!lastSeen[m] || lastSeen[m].type !== 'strength' || lastSeen[m].hours > 72) {
-            lastSeen[m] = { hours: hoursAgo, type: 'cardio' };
+            lastSeen[m] = { hours: hoursAgo, type: activityType };
           }
         }
       }

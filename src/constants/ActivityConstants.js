@@ -105,7 +105,7 @@ export const ACTIVITY_MUSCLE_GROUPS = {
   yoga:       ["abs", "upper_back", "lower_back"],
   stretching: ["abs", "lower_back", "hamstrings"],
   climbing:   ["middle_back", "upper_back", "biceps", "forearms", "abs", "quadriceps"],
-  hiit:       ["abs", "quadriceps", "upper_back"],
+  hiit:       ["abs", "lower_back", "quadriceps", "upper_back"],
   boxing:     ["upper_back", "triceps", "abs", "quadriceps"],
 };
 
