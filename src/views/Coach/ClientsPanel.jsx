@@ -3,7 +3,8 @@ import { Users, Star, UserCheck, Dumbbell, Layers, Target } from 'lucide-react';
 import { getAllUserProfiles, getUserProfile, updateUserProfile } from '@db';
 import ClientWorkoutsFeed from './ClientWorkoutsFeed';
 import AssignPlan from './AssignPlan';
-import ClientHabits from './ClientHabits';
+import ClientPlan from './ClientPlan';
+import ClientTrainingPlans from './ClientTrainingPlans';
 
 const STATUS_OPTIONS = [
   { id: 'client', label: 'Klient', hint: 'Zahlend & committed — volle Coach-Aufmerksamkeit', icon: Star, color: 'text-fit-accent' },
@@ -12,8 +13,9 @@ const STATUS_OPTIONS = [
 
 const DETAIL_TABS = [
   { id: 'workouts', label: 'Workouts', icon: Dumbbell },
-  { id: 'habits', label: 'Habits', icon: Target },
-  { id: 'plan', label: 'Trainingsplan', icon: Layers },
+  { id: 'templates', label: 'Templates', icon: Target },
+  { id: 'trainingplan', label: 'Trainingsplan', icon: Layers },
+  { id: 'plan', label: 'Rotation (alt)', icon: Layers },
 ];
 
 // Klient wählen -> alles zu diesem Klienten (Workouts + Trainingsplan) in
@@ -170,7 +172,8 @@ export default function ClientsPanel() {
 
             <div className="flex-1 overflow-y-auto p-4">
               {detailTab === 'workouts' && <ClientWorkoutsFeed clientUid={selectedUid} />}
-              {detailTab === 'habits' && <ClientHabits clientUid={selectedUid} />}
+              {detailTab === 'templates' && <ClientPlan clientUid={selectedUid} />}
+              {detailTab === 'trainingplan' && <ClientTrainingPlans clientUid={selectedUid} />}
               {detailTab === 'plan' && <AssignPlan clientUid={selectedUid} clientName={selectedName} />}
             </div>
           </>

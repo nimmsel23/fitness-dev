@@ -90,7 +90,7 @@ export async function deleteMacrocycle(clientUid, cycleId) {
   }
 }
 
-export async function addRoutine(clientUid, cycleId, { label, isDeload, restHoursAfter }) {
+export async function addRoutine(clientUid, cycleId, { label, isDeload, restHoursAfter, targetCount, targetPeriodDays, sourceTemplateId }) {
   try {
     const m = await loadDoc(clientUid, cycleId)
     if (!m) return null
@@ -99,6 +99,9 @@ export async function addRoutine(clientUid, cycleId, { label, isDeload, restHour
       label,
       isDeload: !!isDeload,
       restHoursAfter: Number(restHoursAfter) || 0,
+      targetCount: Number(targetCount) || 0,
+      targetPeriodDays: Number(targetPeriodDays) || 0,
+      sourceTemplateId: sourceTemplateId || null,
       exercises: [],
     }]
     return await saveDoc(clientUid, m)

@@ -32,8 +32,8 @@ export async function deleteMacrocycle(clientUid, cycleId) {
   return true;
 }
 
-export async function addRoutine(clientUid, cycleId, { label, isDeload, restHoursAfter }) {
-  const data = await api.post(`${base(clientUid)}/${encodeURIComponent(cycleId)}/routines`, { label, isDeload, restHoursAfter });
+export async function addRoutine(clientUid, cycleId, { label, isDeload, restHoursAfter, targetCount, targetPeriodDays, sourceTemplateId }) {
+  const data = await api.post(`${base(clientUid)}/${encodeURIComponent(cycleId)}/routines`, { label, isDeload, restHoursAfter, targetCount, targetPeriodDays, sourceTemplateId });
   return data?.macrocycle || null;
 }
 

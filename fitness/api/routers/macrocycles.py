@@ -163,6 +163,17 @@ async def add_routine(client_uid: str, cycle_id: str, request: Request):
         # pro Routine frei wählbar (Push→24h, Pull→48h, Legs→72h o.ä.), kein
         # globales Fenster für den ganzen Zyklus.
         "restHoursAfter": int(body.get("restHoursAfter") or 0),
+        # Plan-Ziel pro Routine: x-mal in y Tagen (rollierendes Fenster),
+        # unabhängig von der Rotation-Reihenfolge — beides kann parallel
+        # existieren (Rotation sagt "was ist dran", Ziel sagt "reicht das").
+        "targetCount": int(body.get("targetCount") or 0),
+        "targetPeriodDays": int(body.get("targetPeriodDays") or 0),
+        # Verweis auf das Template (routines.json-Eintrag), aus dem diese
+        # Plan-Routine erzeugt wurde — Fortschritt wird darüber gegen die
+        # echten Workout-Completions gezählt (workouts.routine_id), nicht
+        # gegen einen separaten /complete-Aufruf. Optional: von Hand
+        # angelegte Plan-Routinen ohne Template-Bezug bleiben None.
+        "sourceTemplateId": body.get("sourceTemplateId"),
         "exercises": [],
     })
     _save(client_uid, m)
@@ -182,6 +193,10 @@ async def update_routine(client_uid: str, cycle_id: str, routine_id: str, reques
         routine["isDeload"] = bool(body["isDeload"])
     if "restHoursAfter" in body:
         routine["restHoursAfter"] = int(body["restHoursAfter"] or 0)
+    if "targetCount" in body:
+        routine["targetCount"] = int(body["targetCount"] or 0)
+    if "targetPeriodDays" in body:
+        routine["targetPeriodDays"] = int(body["targetPeriodDays"] or 0)
     if "exercises" in body and isinstance(body["exercises"], list):
         routine["exercises"] = body["exercises"]
     _save(client_uid, m)

@@ -1,15 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
-import { Target, Plus, Trash2, ChevronDown, Search, Loader2 } from 'lucide-react';
+import { Layers, Plus, Trash2, ChevronDown, Search, Loader2 } from 'lucide-react';
 import {
   getClientRoutinesProgress, getClientRoutine, searchExercises,
-  createClientRoutine, addClientRoutineExercise, setClientRoutineTarget, deleteClientRoutine,
+  createClientRoutine, addClientRoutineExercise, deleteClientRoutine,
 } from '@db';
-import { computeHabitProgress } from '../../lib/habitProgress';
 
-// Basic Coach-Schreib-UI für Klienten-Habits: Routine anlegen, Übungen
-// hinzufügen, Ziel-Häufigkeit setzen. Bewusst schlank gehalten — kein
-// Reorder/Template-Sets-Feintuning wie im Klienten-eigenen RoutineBuilder,
-// das bleibt Sache des Klienten selbst.
+// Coach-Schreib-UI für Klienten-Templates: Template anlegen, Übungen
+// hinzufügen. Bewusst schlank gehalten — kein Reorder/Template-Sets-
+// Feintuning wie im Klienten-eigenen RoutineBuilder, das bleibt Sache des
+// Klienten selbst. Ziel-Häufigkeit (x-mal in y Tagen) wird NICHT mehr hier
+// gesetzt — das gehört auf die Trainingsplan-Ebene (Makro, mehrere
+// Templates gebündelt), siehe views/Coach/ClientTrainingPlans.jsx. Vorher
+// gab es hier eine zweite, parallele Ziel-Setzen-Mechanik direkt auf
+// Templates — Duplikat zur echten Bündelung, entfernt.
 function ExerciseAdder({ onAdd, exclude }) {
   const [q, setQ] = useState('');
   const [results, setResults] = useState([]);
@@ -68,10 +71,9 @@ function ExerciseAdder({ onAdd, exclude }) {
   );
 }
 
-function RoutineRow({ routine, clientUid, done, onAddExercise, onSetTarget, onDelete, refreshKey }) {
+function RoutineRow({ routine, clientUid, onAddExercise, onDelete, refreshKey }) {
   const [open, setOpen] = useState(false);
   const [exercises, setExercises] = useState(null);
-  const met = routine.targetCount > 0 && done >= routine.targetCount;
 
   useEffect(() => {
     if (!open) return;
@@ -88,34 +90,14 @@ function RoutineRow({ routine, clientUid, done, onAddExercise, onSetTarget, onDe
       <button onClick={() => setOpen((v) => !v)} className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-fit-bg/50 transition-colors">
         <div className="min-w-0 text-left">
           <div className="text-sm font-semibold text-fit-ink truncate">{routine.name}</div>
-          {routine.targetCount > 0 && routine.targetPeriodDays > 0 && (
-            <div className={`text-xs mt-0.5 ${met ? 'text-green-500' : 'text-fit-dim'}`}>
-              {done}/{routine.targetCount} in {routine.targetPeriodDays} Tagen {met && '✓'}
-            </div>
-          )}
         </div>
         <ChevronDown size={16} className={`text-fit-dim shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
         <div className="px-3 pb-3 pt-1 border-t border-fit-line/30 space-y-3">
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-fit-dim">Ziel:</label>
-            <input
-              type="number" min={1} defaultValue={routine.targetCount || ''}
-              onBlur={(e) => onSetTarget(routine, 'targetCount', Number(e.target.value))}
-              placeholder="—"
-              className="w-16 bg-fit-bg border border-fit-line rounded-lg px-2 py-1 text-xs text-fit-ink text-center"
-            />
-            <span className="text-xs text-fit-dim">× in</span>
-            <input
-              type="number" min={1} defaultValue={routine.targetPeriodDays || ''}
-              onBlur={(e) => onSetTarget(routine, 'targetPeriodDays', Number(e.target.value))}
-              placeholder="—"
-              className="w-16 bg-fit-bg border border-fit-line rounded-lg px-2 py-1 text-xs text-fit-ink text-center"
-            />
-            <span className="text-xs text-fit-dim">Tagen</span>
-            <button onClick={() => onDelete(routine)} className="ml-auto p-1.5 text-fit-dim hover:text-red-400 transition-colors">
+          <div className="flex items-center justify-end">
+            <button onClick={() => onDelete(routine)} className="p-1.5 text-fit-dim hover:text-red-400 transition-colors">
               <Trash2 size={14} />
             </button>
           </div>
@@ -142,9 +124,8 @@ function RoutineRow({ routine, clientUid, done, onAddExercise, onSetTarget, onDe
   );
 }
 
-export default function ClientHabits({ clientUid }) {
+export default function ClientPlan({ clientUid }) {
   const [routines, setRoutines] = useState([]);
-  const [workouts, setWorkouts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
@@ -152,9 +133,8 @@ export default function ClientHabits({ clientUid }) {
 
   async function load() {
     setLoading(true);
-    const { routines, workouts } = await getClientRoutinesProgress(clientUid);
+    const { routines } = await getClientRoutinesProgress(clientUid);
     setRoutines(routines);
-    setWorkouts(workouts);
     setLoading(false);
   }
 
@@ -185,12 +165,6 @@ export default function ClientHabits({ clientUid }) {
     load();
   }
 
-  async function handleSetTarget(routine, field, value) {
-    if (!Number.isFinite(value) || value <= 0) return;
-    await setClientRoutineTarget(clientUid, routine.id, { [field]: value });
-    load();
-  }
-
   async function handleDelete(routine) {
     if (!confirm(`"${routine.name}" wirklich löschen?`)) return;
     await deleteClientRoutine(clientUid, routine.id);
@@ -203,30 +177,10 @@ export default function ClientHabits({ clientUid }) {
     </div>
   );
 
-  const { rows, allMet } = computeHabitProgress(routines, workouts);
   const nonSkillRoutines = routines.filter((r) => r.category !== 'calisthenics-skill');
 
   return (
     <div className="space-y-4">
-      {rows.length > 0 && (
-        <div className={`rounded-2xl border p-4 ${allMet ? 'bg-green-500/10 border-green-500/30' : 'bg-fit-bg2 border-fit-line'}`}>
-          <div className="flex items-center gap-2 mb-3">
-            <Target size={16} className={allMet ? 'text-green-500' : 'text-fit-accent'} />
-            <h3 className="text-sm font-semibold text-fit-ink">Pensum {allMet ? 'erfüllt ✓' : ''}</h3>
-          </div>
-          <div className="space-y-2">
-            {rows.map(({ routine: r, done }) => (
-              <div key={r.id} className="flex items-center justify-between text-sm">
-                <span className="font-medium text-fit-ink">{r.name}</span>
-                <span className={done >= r.targetCount ? 'text-green-500 font-semibold' : 'text-fit-dim'}>
-                  {done}/{r.targetCount} in {r.targetPeriodDays} Tagen {done >= r.targetCount && '✓'}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div className="flex gap-2">
         <input
           value={newName}
@@ -246,26 +200,21 @@ export default function ClientHabits({ clientUid }) {
 
       {nonSkillRoutines.length === 0 ? (
         <div className="card py-12 flex flex-col items-center justify-center text-center" style={{ opacity: 0.5 }}>
-          <Target size={36} className="mb-3 text-fit-dim" />
-          <p className="text-xs" style={{ color: 'var(--dim)' }}>Noch keine Routinen für diesen Klienten</p>
+          <Layers size={36} className="mb-3 text-fit-dim" />
+          <p className="text-xs" style={{ color: 'var(--dim)' }}>Noch keine Templates für diesen Klienten</p>
         </div>
       ) : (
         <div className="space-y-2">
-          {nonSkillRoutines.map((r) => {
-            const progressRow = rows.find((row) => row.routine.id === r.id);
-            return (
-              <RoutineRow
-                key={r.id}
-                routine={r}
-                clientUid={clientUid}
-                done={progressRow?.done ?? 0}
-                onAddExercise={handleAddExercise}
-                onSetTarget={handleSetTarget}
-                onDelete={handleDelete}
-                refreshKey={refreshKey}
-              />
-            );
-          })}
+          {nonSkillRoutines.map((r) => (
+            <RoutineRow
+              key={r.id}
+              routine={r}
+              clientUid={clientUid}
+              onAddExercise={handleAddExercise}
+              onDelete={handleDelete}
+              refreshKey={refreshKey}
+            />
+          ))}
         </div>
       )}
     </div>
