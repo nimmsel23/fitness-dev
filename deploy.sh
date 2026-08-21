@@ -219,14 +219,14 @@ run_cmd ln -s "$KB_SOURCE" "$KB_LINK"
 msg "🔗 Verlinke catalog/state aus $STATE_SOURCE"
 run_cmd ln -s "$STATE_SOURCE" "$STATE_LINK"
 
-# 3b. Systemd-Unit schreiben (nur staging — prod-Unit liegt system-weit
-# unter /etc/systemd/system/, unabhängig von diesem Skript). Die Unit lebt
-# damit im Projekt statt separat in ~/.dotfiles getrackt zu werden.
+# 3b. Systemd-Unit sicherstellen (staging + prod, beide inline hier statt
+# extern getrackt — staging lag vorher via ~/.dotfiles-Symlink, prod-Inhalt
+# war dupliziert in fitness-prodctl). Diff-Check vor dem Schreiben, damit
+# ein unveraendertes deploy.sh-staging/-prod nicht bei jedem Lauf einen
+# unnoetigen daemon-reload ausloest.
 if [[ "$TARGET" == "staging" ]]; then
-  msg "🧩 Schreibe systemd Unit $SERVICE"
-  mkdir -p "$HOME/.config/systemd/user"
-  cat > "$HOME/.config/systemd/user/$SERVICE" <<EOF
-[Unit]
+  UNIT_PATH="$HOME/.config/systemd/user/$SERVICE"
+  UNIT_CONTENT="[Unit]
 Description=Fitness Centre Preview Service (FastAPI :$PORT)
 After=network.target
 
@@ -243,7 +243,39 @@ Environment=FITNESS_SKIP_WATCHERS=1
 
 [Install]
 WantedBy=default.target
-EOF
+"
+elif [[ "$TARGET" == "prod" ]]; then
+  UNIT_PATH="/etc/systemd/system/$SERVICE"
+  UNIT_CONTENT="[Unit]
+Description=Fitness Prod App (Python/FastAPI, serves API + built frontend from /opt/fitness)
+After=network.target
+
+[Service]
+Type=simple
+User=alpha
+WorkingDirectory=$DEST
+ExecStart=$DEST/.venv/bin/python -m uvicorn fitness.api.main:app --host 0.0.0.0 --port $PORT --no-access-log
+Restart=on-failure
+RestartSec=2
+Environment=FITNESS_ENV=prod
+Environment=FITNESS_SKIP_WATCHERS=1
+EnvironmentFile=-/etc/aos/fitness.env
+
+[Install]
+WantedBy=multi-user.target
+"
+fi
+
+if [[ "$(cat "$UNIT_PATH" 2>/dev/null || true)" == "$(printf '%s' "$UNIT_CONTENT")" ]]; then
+  msg "🧩 Unit $SERVICE bereits aktuell"
+else
+  msg "🧩 Schreibe/aktualisiere systemd Unit $SERVICE"
+  if $USE_SUDO; then
+    printf '%s\n' "$UNIT_CONTENT" | sudo tee "$UNIT_PATH" >/dev/null
+  else
+    mkdir -p "$(dirname "$UNIT_PATH")"
+    printf '%s\n' "$UNIT_CONTENT" > "$UNIT_PATH"
+  fi
 fi
 
 # 4. Restart Service
