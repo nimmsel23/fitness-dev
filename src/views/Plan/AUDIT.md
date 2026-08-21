@@ -72,14 +72,17 @@ sieht/bearbeitet denselben Plan für einen Klienten (`views/Coach/
 ClientTrainingPlans.jsx`, dünner Lade-Wrapper). Beide Fälle laufen durch
 denselben Code — kein zweiter Nachbau der Bündelungslogik im Coach-Tab.
 
-Ausnahme: der Quick-Complete-Haken ("heute erledigt") bleibt im Coach-Fall
-deaktiviert, weil `views/Plan/api.js` (Self-Service-Dispatcher) im
-Firestore-Modus immer auf den eigenen `getUid()` schreibt, kein
-`clientUid`-Override kennt. Ziel-**Setzen** ("Template hinzufügen" mit
-Zeitraum-Ziel) funktioniert für den Coach dagegen bereits, weil
-`addRoutine`/`updateRoutine`/`getMacrocycle` (aus `@db`) von Anfang an
-`clientUid`-parametrisiert sind. Der Coach kann also vorgeben, aber (noch)
-nicht stellvertretend für den Klienten abhaken.
+Quick-Complete ("heute erledigt") funktioniert jetzt auch im Coach-Fall
+(z.B. Coach hat live mit dem Klienten trainiert) — über
+`quickCompleteClientRoutine()` (`lib/quickComplete.js`), das
+`createClientWorkout`/`getClientWorkout`/`updateClientWorkout` aus `@db`
+nutzt statt `views/Plan/api.js` (dessen Self-Service-Dispatcher im
+Firestore-Modus kein `clientUid` kennt). Dafür wurden `createWorkout`/
+`getWorkout`/`updateWorkout` (`firestore/workouts.js`) sowie `getRoutine`
+(`firestore/routines.js`) um einen optionalen `uidOverride`-Parameter
+erweitert (additiv, Default bleibt `getUid()`) statt die Logik zu
+duplizieren. Ziel-**Setzen** ("Template hinzufügen" mit Zeitraum-Ziel)
+funktionierte für den Coach bereits vorher.
 
 `views/Coach/ClientPlan.jsx` (vormals `ClientHabits.jsx`) verwaltet nur noch
 Templates selbst (Name, Übungen) — keine Ziel-Logik mehr, die gehört
@@ -102,8 +105,8 @@ gemischt zu werden.
 
 - **Wochen-Slider** (`src/components/WeekSlider.jsx`, HabitShare-artig,
   7-Tage-Strip Mo–So) ist in `PlanCard.jsx` verdrahtet, ersetzt den
-  einzelnen Erledigt-Haken. Nur der heutige Tag ist antippbar (Self-Service),
-  Coach sieht denselben Slider read-only (`readOnly=isCoach`).
+  einzelnen Erledigt-Haken. Nur der heutige Tag ist antippbar, für
+  Self-Service UND Coach gleichermaßen.
 - **Pro-Tag-Kommentar Coach↔Klient** auf Plan-Ebene: neue Funktion
   `saveWorkoutFeedback(clientUid, workoutId, text)` (lokal + Firestore,
   `lib/db/{local,firestore}/coach.js`) schreibt `coachFeedback` direkt aufs
@@ -113,6 +116,12 @@ gemischt zu werden.
   `WeekSlider` auf erledigten Tagen: Coach kann schreiben/bearbeiten, Klient
   sieht denselben Kommentar read-only (Icon erscheint auch ohne
   `onComment`-Prop, wenn `workout.coachFeedback` gesetzt ist).
+- **Quick-Complete für Coach** (z.B. Coach hat live mit dem Klienten
+  trainiert): `quickCompleteClientRoutine()` in `lib/quickComplete.js`,
+  nutzt neue `createClientWorkout`/`getClientWorkout`/`updateClientWorkout`
+  (lokal + Firestore). Firestore-Seite: `createWorkout`/`getWorkout`/
+  `updateWorkout`/`getRoutine` um optionalen `uidOverride`-Parameter
+  erweitert statt Logik zu duplizieren.
 
 ## Offene Punkte (nicht implementiert, bewusst)
 

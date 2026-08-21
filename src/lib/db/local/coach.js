@@ -90,3 +90,19 @@ export async function saveCoachFeedback(userId, sessionId, type, text) {
 export async function saveWorkoutFeedback(clientUid, workoutId, text) {
   return api.patch(`/workouts/${workoutId}?uid=${encodeURIComponent(clientUid)}`, { coachFeedback: text });
 }
+
+// Coach erstellt/liest/patcht ein Workout im Namen eines Klienten — für den
+// Fall "Coach hat live mit dem Klienten trainiert, markiert das Template
+// als heute erledigt" (quickCompleteRoutine-Äquivalent, siehe
+// lib/quickComplete.js::quickCompleteClientRoutine).
+export async function createClientWorkout(clientUid, body) {
+  return api.post(`/workouts?uid=${encodeURIComponent(clientUid)}`, body);
+}
+
+export async function getClientWorkout(clientUid, workoutId) {
+  return api.get(`/workouts/${workoutId}?uid=${encodeURIComponent(clientUid)}`);
+}
+
+export async function updateClientWorkout(clientUid, workoutId, patch) {
+  return api.patch(`/workouts/${workoutId}?uid=${encodeURIComponent(clientUid)}`, patch);
+}

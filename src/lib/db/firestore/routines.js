@@ -68,8 +68,8 @@ export async function createRoutine(body) {
   return { id: ref.id };
 }
 
-export async function getRoutine(routineId) {
-  const uid = getUid();
+export async function getRoutine(routineId, uidOverride) {
+  const uid = uidOverride || getUid();
   const metaSnap = await getDoc(routineDoc(uid, routineId));
   if (!metaSnap.exists()) throw new Error("Routine nicht gefunden");
   const exSnap = await getDocs(exercisesCol(uid, routineId));

@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { Plus, Target, Trash2, CheckCircle2 } from "lucide-react";
 import {
   getMacrocycle, deleteMacrocycle, addRoutine, updateRoutine, deleteRoutine, getUid, getClientRoutine, saveWorkoutFeedback,
+  createClientWorkout, getClientWorkout, updateClientWorkout,
 } from "@db";
 import { api } from "../api.js";
 import { countCompletionsInPeriod, pickNextPlanRoutine } from "../../../lib/habitProgress.js";
-import { quickCompleteRoutine } from "../../../lib/quickComplete.js";
+import { quickCompleteRoutine, quickCompleteClientRoutine } from "../../../lib/quickComplete.js";
 import TemplatePicker from "./TemplatePicker.jsx";
 import WeekSlider from "../../../components/WeekSlider.jsx";
 
@@ -61,12 +62,19 @@ export default function PlanCard({ plan, templates, workouts, clientUid, onReloa
   // Wochen-Slider ruft das nur auf, wenn heute noch NICHT erledigt ist
   // (WeekSlider deaktiviert den Klick sonst nicht selbst) — Un-Markieren
   // eines bereits geloggten Tages ist bewusst nicht unterstützt (würde ein
-  // echtes Workout löschen müssen, nicht nur einen Marker).
+  // echtes Workout löschen müssen, nicht nur einen Marker). Im Coach-Fall
+  // (gemeinsam mit dem Klienten trainiert) läuft es über
+  // quickCompleteClientRoutine (eigener @db-Pfad, dual-mode-sicher) statt
+  // über views/Plan/api.js, das kein clientUid im Firestore-Modus kennt.
   async function markDone(r, alreadyDoneToday) {
-    if (!r.sourceTemplateId || isCoach || alreadyDoneToday) return;
+    if (!r.sourceTemplateId || alreadyDoneToday) return;
     setCompletingId(r.id);
     try {
-      await quickCompleteRoutine(api, r.sourceTemplateId);
+      if (isCoach) {
+        await quickCompleteClientRoutine({ createClientWorkout, getClientWorkout, updateClientWorkout }, uid, r.sourceTemplateId);
+      } else {
+        await quickCompleteRoutine(api, r.sourceTemplateId);
+      }
       onReload();
     } finally {
       setCompletingId(null);
@@ -146,7 +154,6 @@ export default function PlanCard({ plan, templates, workouts, clientUid, onReloa
                   <WeekSlider
                     templateId={r.sourceTemplateId}
                     workouts={workouts}
-                    readOnly={isCoach}
                     todayBusy={completingId === r.id}
                     onToggleToday={(alreadyDoneToday) => markDone(r, alreadyDoneToday)}
                     onComment={isCoach ? commentOnWorkout : undefined}

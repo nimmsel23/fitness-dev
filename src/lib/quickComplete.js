@@ -15,18 +15,34 @@ export function fillCompletedSet(s) {
   };
 }
 
-// uid optional: gesetzt, wenn der Coach im Namen eines Klienten quick-
-// completed (hängt ?uid= an jeden Call, analog zu den anderen
-// Coach-Schreibpfaden in lib/db/local|firestore/coach.js).
-export async function quickCompleteRoutine(api, routineId, uid = null) {
-  const q = uid ? `?uid=${encodeURIComponent(uid)}` : "";
-  const created = await api.post(`/workouts${q}`, { routine_id: routineId });
-  const { workout } = await api.get(`/workouts/${created.id}${q}`);
+export async function quickCompleteRoutine(api, routineId) {
+  const created = await api.post(`/workouts`, { routine_id: routineId });
+  const { workout } = await api.get(`/workouts/${created.id}`);
   const exercises = (workout.exercises || []).map((ex) => ({
     ...ex,
     sets: (ex.sets || []).map(fillCompletedSet),
   }));
-  await api.patch(`/workouts/${created.id}${q}`, {
+  await api.patch(`/workouts/${created.id}`, {
+    exercises,
+    finished_at: new Date().toISOString(),
+    sessionState: "completed",
+  });
+}
+
+// Coach-Pendant: für "hab live mit dem Klienten trainiert, markiere das
+// Template als heute erledigt". Nutzt createClientWorkout/getClientWorkout/
+// updateClientWorkout aus @db (lokal via ?uid=-Override, Firestore via
+// uidOverride-Parameter in workouts.js) statt views/Plan/api.js — die
+// Self-Service-Dispatcher-Weiche kennt im Firestore-Modus kein clientUid.
+export async function quickCompleteClientRoutine(dbFns, clientUid, routineId) {
+  const { createClientWorkout, getClientWorkout, updateClientWorkout } = dbFns;
+  const created = await createClientWorkout(clientUid, { routine_id: routineId });
+  const { workout } = await getClientWorkout(clientUid, created.id);
+  const exercises = (workout.exercises || []).map((ex) => ({
+    ...ex,
+    sets: (ex.sets || []).map(fillCompletedSet),
+  }));
+  await updateClientWorkout(clientUid, created.id, {
     exercises,
     finished_at: new Date().toISOString(),
     sessionState: "completed",

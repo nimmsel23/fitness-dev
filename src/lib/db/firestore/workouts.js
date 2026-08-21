@@ -121,12 +121,15 @@ export async function listWorkouts() {
   return { workouts };
 }
 
-export async function createWorkout(body) {
-  const uid = getUid();
+// uidOverride: Coach erstellt ein Workout im Namen eines Klienten (Quick-
+// Complete bei gemeinsamer Session) — siehe views/Coach/ClientTrainingPlans.jsx.
+// Ohne Override identisch zum Self-Service-Fall.
+export async function createWorkout(body, uidOverride) {
+  const uid = uidOverride || getUid();
   let exercises = [];
   let name = body.name;
   if (body.routine_id) {
-    const { routine } = await getRoutine(body.routine_id);
+    const { routine } = await getRoutine(body.routine_id, uidOverride);
     name = name || routine.name;
     exercises = routine.exercises
       .slice()
@@ -156,8 +159,8 @@ export async function createWorkout(body) {
   return { id: ref.id };
 }
 
-export async function getWorkout(workoutId) {
-  const uid = getUid();
+export async function getWorkout(workoutId, uidOverride) {
+  const uid = uidOverride || getUid();
   const metaSnap = await getDoc(workoutDoc(uid, workoutId));
   if (!metaSnap.exists()) throw new Error("Workout nicht gefunden");
   const exSnap = await getDocs(exercisesCol(uid, workoutId));
@@ -168,8 +171,8 @@ export async function getWorkout(workoutId) {
   return { workout: { id: metaSnap.id, ...metaSnap.data(), exercises } };
 }
 
-export async function updateWorkout(workoutId, patch) {
-  const uid = getUid();
+export async function updateWorkout(workoutId, patch, uidOverride) {
+  const uid = uidOverride || getUid();
   const { exercises, ...meta } = patch || {};
   if (Object.keys(meta).length > 0) {
     await updateDoc(workoutDoc(uid, workoutId), meta);

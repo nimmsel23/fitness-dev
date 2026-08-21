@@ -8,6 +8,22 @@ import {
 
 import { db } from "../../../firebase.js";
 import { normalizeRoutineExercise } from "./routines.js";
+import { createWorkout, getWorkout, updateWorkout } from "./workouts.js";
+
+// Coach erstellt/liest/patcht ein Workout im Namen eines Klienten (Quick-
+// Complete bei gemeinsam trainierter Session) — dünne Wrapper um die
+// uidOverride-parametrisierten workouts.js-Funktionen, kein Parallelbau.
+export async function createClientWorkout(clientUid, body) {
+  return createWorkout(body, clientUid);
+}
+
+export async function getClientWorkout(clientUid, workoutId) {
+  return getWorkout(workoutId, clientUid);
+}
+
+export async function updateClientWorkout(clientUid, workoutId, patch) {
+  return updateWorkout(workoutId, patch, clientUid);
+}
 
 // Coach-Schreibpfad für Klienten-Routinen (Habit-Ziele setzen/Routine
 // anlegen). Spiegelt firestore/routines.js 1:1, aber parametrisiert auf

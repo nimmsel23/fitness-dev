@@ -6,9 +6,15 @@ export default function Sidebar({ tab, navigate, subTab, navigateSub, pinned, se
     <aside className={`hidden lg:flex flex-col alpha-glass border-r border-fit-line fixed inset-y-0 z-40 transition-all duration-500 ease-in-out ${pinned ? 'w-[280px]' : 'w-24'}`}>
       <div className={`p-8 flex flex-col h-full ${!pinned ? 'items-center' : ''}`}>
         <div className="relative mb-12 flex items-center gap-4 pr-6">
-          <div className="w-12 h-12 shrink-0 rounded-2xl bg-fit-accent text-black flex items-center justify-center shadow-2xl shadow-fit-accent/40 transition-transform hover:scale-105">
+          <a
+            href="https://fitness-aos.web.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Firebase-App öffnen (fitness-aos.web.app)"
+            className="w-12 h-12 shrink-0 rounded-2xl bg-fit-accent text-black flex items-center justify-center shadow-2xl shadow-fit-accent/40 transition-transform hover:scale-105"
+          >
             <Activity size={26} />
-          </div>
+          </a>
           {pinned && (
             <div className="animate-in fade-in slide-in-from-left-4 duration-500">
               <h2 className="text-xl font-black tracking-tight text-fit-ink">Fitness</h2>
