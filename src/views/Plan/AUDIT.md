@@ -98,13 +98,24 @@ gemischt zu werden.
 
 ---
 
+## Erledigt seit erster Fassung dieses Dokuments
+
+- **Wochen-Slider** (`src/components/WeekSlider.jsx`, HabitShare-artig,
+  7-Tage-Strip Mo–So) ist in `PlanCard.jsx` verdrahtet, ersetzt den
+  einzelnen Erledigt-Haken. Nur der heutige Tag ist antippbar (Self-Service),
+  Coach sieht denselben Slider read-only (`readOnly=isCoach`).
+- **Pro-Tag-Kommentar Coach↔Klient** auf Plan-Ebene: neue Funktion
+  `saveWorkoutFeedback(clientUid, workoutId, text)` (lokal + Firestore,
+  `lib/db/{local,firestore}/coach.js`) schreibt `coachFeedback` direkt aufs
+  Workout-Dokument (`fitness/{uid}/workouts/{id}`) — eigener Speicher als
+  das ältere `saveCoachFeedback` (das schreibt aufs alte Session-JSON-Modell,
+  `sessions/journal/habitJournals`, nicht auf `workouts`). Kommentar-Icon im
+  `WeekSlider` auf erledigten Tagen: Coach kann schreiben/bearbeiten, Klient
+  sieht denselben Kommentar read-only (Icon erscheint auch ohne
+  `onComment`-Prop, wenn `workout.coachFeedback` gesetzt ist).
+
 ## Offene Punkte (nicht implementiert, bewusst)
 
-- Wochen-Slider (HabitShare-artig, 7-Tage-Strip mit Tap-Toggle) —
-  `src/components/WeekSlider.jsx` existiert, ist aber noch nicht in
-  `PlanCard.jsx` verdrahtet.
-- Pro-Tag-Kommentar Coach↔Klient auf Plan-Ebene (analog `saveCoachFeedback`
-  bei Journal/Workout-Einträgen) — noch nicht gebaut.
 - Erweitertes URL-Hashing für den Plan-Tab (welcher Plan/welches Template
   offen ist in der URL) — noch nicht gebaut, App.jsx kennt bisher nur
   `subTab=plan` als Segment, keine tiefere Verschachtelung.

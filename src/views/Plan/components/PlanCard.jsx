@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { Plus, Target, Trash2, Check, CheckCircle2 } from "lucide-react";
+import { Plus, Target, Trash2, CheckCircle2 } from "lucide-react";
 import {
-  getMacrocycle, deleteMacrocycle, addRoutine, updateRoutine, deleteRoutine, getUid, getClientRoutine,
+  getMacrocycle, deleteMacrocycle, addRoutine, updateRoutine, deleteRoutine, getUid, getClientRoutine, saveWorkoutFeedback,
 } from "@db";
 import { api } from "../api.js";
 import { countCompletionsInPeriod, pickNextPlanRoutine } from "../../../lib/habitProgress.js";
 import { quickCompleteRoutine } from "../../../lib/quickComplete.js";
 import TemplatePicker from "./TemplatePicker.jsx";
+import WeekSlider from "../../../components/WeekSlider.jsx";
 
 // Ein Trainingsplan (Makrozyklus): mehrere Templates gebündelt, je mit
 // eigenem Zeitraum-Ziel. Zeigt "Heute dran", Fortschritt pro Template und
@@ -57,8 +58,12 @@ export default function PlanCard({ plan, templates, workouts, clientUid, onReloa
     await load();
   }
 
-  async function markDone(r) {
-    if (!r.sourceTemplateId || isCoach) return;
+  // Wochen-Slider ruft das nur auf, wenn heute noch NICHT erledigt ist
+  // (WeekSlider deaktiviert den Klick sonst nicht selbst) — Un-Markieren
+  // eines bereits geloggten Tages ist bewusst nicht unterstützt (würde ein
+  // echtes Workout löschen müssen, nicht nur einen Marker).
+  async function markDone(r, alreadyDoneToday) {
+    if (!r.sourceTemplateId || isCoach || alreadyDoneToday) return;
     setCompletingId(r.id);
     try {
       await quickCompleteRoutine(api, r.sourceTemplateId);
@@ -66,6 +71,17 @@ export default function PlanCard({ plan, templates, workouts, clientUid, onReloa
     } finally {
       setCompletingId(null);
     }
+  }
+
+  // Coach kommentiert ein konkretes erledigtes Workout — nur im Coach-Fall
+  // angeboten (siehe WeekSlider onComment-Prop, self-service zeigt keine
+  // Kommentar-Icons).
+  async function commentOnWorkout(workout) {
+    const text = prompt("Kommentar zu diesem Workout:", workout.coachFeedback || "");
+    if (text === null) return;
+    await saveWorkoutFeedback(uid, workout.id, text);
+    await load();
+    onReload();
   }
 
   if (!detail) return <div className="rounded-2xl bg-fit-bg2 border border-fit-line p-4 text-xs text-fit-muted">Lädt…</div>;
@@ -112,28 +128,30 @@ export default function PlanCard({ plan, templates, workouts, clientUid, onReloa
             const met = r.targetCount > 0 && done >= r.targetCount;
             const isNext = nextUp?.id === r.id;
             return (
-              <div key={r.id} className={`flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-fit-bg ${isNext ? 'ring-1 ring-fit-accent/50' : ''}`}>
-                <span className="text-sm font-medium text-fit-ink">{r.label}</span>
-                <div className="flex items-center gap-2">
-                  {r.targetCount > 0 && r.targetPeriodDays > 0 && (
-                    <span className={`flex items-center gap-1 text-xs font-semibold ${met ? 'text-green-500' : 'text-fit-accent'}`}>
-                      <Target size={12} /> {done}/{r.targetCount} in {r.targetPeriodDays}T
-                    </span>
-                  )}
-                  {r.sourceTemplateId && !isCoach && (
-                    <button
-                      onClick={() => markDone(r)}
-                      disabled={completingId === r.id}
-                      title="Heute als erledigt markieren"
-                      className="p-1.5 rounded-lg bg-fit-card hover:bg-fit-accent/10 text-fit-accent transition-colors disabled:opacity-50"
-                    >
-                      <Check size={13} className={completingId === r.id ? 'animate-pulse' : ''} />
+              <div key={r.id} className={`px-3 py-2.5 rounded-xl bg-fit-bg ${isNext ? 'ring-1 ring-fit-accent/50' : ''}`}>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-sm font-medium text-fit-ink truncate">{r.label}</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {r.targetCount > 0 && r.targetPeriodDays > 0 && (
+                      <span className={`flex items-center gap-1 text-xs font-semibold ${met ? 'text-green-500' : 'text-fit-accent'}`}>
+                        <Target size={12} /> {done}/{r.targetCount} in {r.targetPeriodDays}T
+                      </span>
+                    )}
+                    <button onClick={() => removeRoutine(r.id)} className="p-1 text-fit-dim hover:text-fit-red transition-colors">
+                      <Trash2 size={12} />
                     </button>
-                  )}
-                  <button onClick={() => removeRoutine(r.id)} className="p-1 text-fit-dim hover:text-fit-red transition-colors">
-                    <Trash2 size={12} />
-                  </button>
+                  </div>
                 </div>
+                {r.sourceTemplateId && (
+                  <WeekSlider
+                    templateId={r.sourceTemplateId}
+                    workouts={workouts}
+                    readOnly={isCoach}
+                    todayBusy={completingId === r.id}
+                    onToggleToday={(alreadyDoneToday) => markDone(r, alreadyDoneToday)}
+                    onComment={isCoach ? commentOnWorkout : undefined}
+                  />
+                )}
               </div>
             );
           })

@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react';
+import { Check, MessageCircle } from 'lucide-react';
 
 const DAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
@@ -22,23 +22,29 @@ function currentWeekDates() {
 // (views/Plan/TrainingPlans.jsx) und Coach-Ansicht (views/Coach/…) — eine
 // Komponente, dieselbe Sicht für beide, das ist der Sinn (Coach checkt
 // gegen, sieht exakt was der Klient sieht).
-export default function WeekSlider({ templateId, workouts, onToggleToday, todayBusy = false, readOnly = false }) {
+// onComment optional: wenn gesetzt, bekommt ein erledigter Tag ein kleines
+// Kommentar-Icon darunter (Coach-Feedback zu genau diesem Workout — nutzt
+// dieselbe coachFeedback-Infrastruktur wie Journal/Session-Einträge, siehe
+// saveCoachFeedback in lib/db/{local,firestore}/coach.js). Aufrufer
+// entscheidet, was beim Klick passiert (WeekSlider bleibt @db-frei).
+export default function WeekSlider({ templateId, workouts, onToggleToday, todayBusy = false, readOnly = false, onComment }) {
   const days = currentWeekDates();
   const todayIso = new Date().toISOString().slice(0, 10);
 
-  const doneDates = new Set(
+  const doneWorkoutByDate = new Map(
     (workouts || [])
       .filter((w) => w.routine_id === templateId && w.sessionState === 'completed' && w.finished_at)
-      .map((w) => w.finished_at.slice(0, 10))
+      .map((w) => [w.finished_at.slice(0, 10), w])
   );
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-start gap-1.5">
       {days.map((d, i) => {
         const iso = d.toISOString().slice(0, 10);
         const isToday = iso === todayIso;
         const isFuture = iso > todayIso;
-        const done = doneDates.has(iso);
+        const workout = doneWorkoutByDate.get(iso);
+        const done = !!workout;
         const label = DAY_LABELS[i];
 
         const base = 'flex flex-col items-center justify-center gap-0.5 w-8 h-9 rounded-lg text-[10px] font-semibold transition-colors';
@@ -51,17 +57,28 @@ export default function WeekSlider({ templateId, workouts, onToggleToday, todayB
               : 'bg-fit-bg text-fit-dim';
 
         return (
-          <button
-            key={iso}
-            type="button"
-            disabled={readOnly || !isToday || todayBusy}
-            onClick={() => isToday && onToggleToday?.(done)}
-            className={`${base} ${style} ${isToday && !readOnly ? 'cursor-pointer' : 'cursor-default'}`}
-            title={iso}
-          >
-            <span>{label}</span>
-            {done ? <Check size={11} strokeWidth={3} /> : <span className="w-[11px] h-[11px]" />}
-          </button>
+          <div key={iso} className="flex flex-col items-center gap-1">
+            <button
+              type="button"
+              disabled={readOnly || !isToday || todayBusy}
+              onClick={() => isToday && onToggleToday?.(done)}
+              className={`${base} ${style} ${isToday && !readOnly ? 'cursor-pointer' : 'cursor-default'}`}
+              title={iso}
+            >
+              <span>{label}</span>
+              {done ? <Check size={11} strokeWidth={3} /> : <span className="w-[11px] h-[11px]" />}
+            </button>
+            {done && (onComment || workout.coachFeedback) && (
+              <button
+                type="button"
+                onClick={() => onComment ? onComment(workout) : alert(workout.coachFeedback)}
+                title={onComment ? (workout.coachFeedback ? "Kommentar bearbeiten" : "Kommentieren") : "Kommentar vom Coach ansehen"}
+                className={`p-0.5 rounded transition-colors ${workout.coachFeedback ? 'text-fit-accent' : 'text-fit-dim/50 hover:text-fit-dim'}`}
+              >
+                <MessageCircle size={11} />
+              </button>
+            )}
+          </div>
         );
       })}
     </div>

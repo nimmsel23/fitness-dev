@@ -81,3 +81,12 @@ export async function saveCoachFeedback(userId, sessionId, type, text) {
     return { ok: false };
   }
 }
+
+// Kommentar auf einem einzelnen Workout im neuen Routinen/Workouts-Modell
+// (Plan-Tab, Strong-Modell) — saveCoachFeedback oben schreibt aufs alte
+// Session-JSON-Modell, ein anderer Speicher. PATCH /workouts/:id ist
+// bereits generisch (`workout.update(body)` in workouts.py), also reicht
+// ein simples Patch mit ?uid=-Override, kein neuer Endpoint nötig.
+export async function saveWorkoutFeedback(clientUid, workoutId, text) {
+  return api.patch(`/workouts/${workoutId}?uid=${encodeURIComponent(clientUid)}`, { coachFeedback: text });
+}

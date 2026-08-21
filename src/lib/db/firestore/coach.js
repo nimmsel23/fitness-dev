@@ -280,3 +280,13 @@ export async function saveCoachFeedback(userId, entryId, type, text, habitId = n
   }
   return { ok: true };
 }
+
+// Kommentar auf einem einzelnen Workout im neuen Routinen/Workouts-Modell
+// (Plan-Tab, Strong-Modell, fitness/{uid}/workouts/{id}) — eigene Collection,
+// saveCoachFeedback oben deckt die ab (sessions/journal/habitJournals).
+export async function saveWorkoutFeedback(clientUid, workoutId, text) {
+  await updateDoc(doc(db, "fitness", clientUid, "workouts", workoutId), {
+    coachFeedback: String(text || "").trim(),
+  });
+  return { ok: true };
+}
