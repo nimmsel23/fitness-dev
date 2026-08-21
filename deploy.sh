@@ -33,8 +33,8 @@ if [[ "$TARGET" == "prod" ]]; then
   USE_SUDO=true
   PORT=6100
 elif [[ "$TARGET" == "staging" ]]; then
-  DEST="$HOME/fitness"
-  BACKUP_DIR="$HOME/fitness_backups"
+  DEST="$HOME/.local/fitness"
+  BACKUP_DIR="$HOME/.local/fitness_backups"
   SERVICE="fitness-preview.service"
   USE_SUDO=false
   PORT=8100
@@ -45,7 +45,7 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
 DEV_SOURCE="${HOME}/fitness-dev"
-STAGING_SOURCE="${HOME}/fitness"
+STAGING_SOURCE="${HOME}/.local/fitness"
 
 msg() { printf '\033[1;32m%s\033[0m\n' "$*"; }
 warn() { printf '\033[1;33m%s\033[0m\n' "$*" >&2; }
@@ -101,11 +101,11 @@ else
   fi
 fi
 
-# 1. Versioned Backup
-timestamp=$(date +%Y%m%d_%H%M%S)
-backup_path="$BACKUP_DIR/fitness_$timestamp"
-
-if [[ -d "$DEST" ]]; then
+# 1. Versioned Backup (nur prod — staging ist ein reiner Preview-Checkout,
+# der jederzeit aus $SOURCE neu synced werden kann)
+if [[ "$TARGET" == "prod" && -d "$DEST" ]]; then
+  timestamp=$(date +%Y%m%d_%H%M%S)
+  backup_path="$BACKUP_DIR/fitness_$timestamp"
   msg "📦 Creating versioned backup: $backup_path"
   run_cmd mkdir -p "$BACKUP_DIR"
   run_cmd cp -a "$DEST" "$backup_path"
@@ -141,7 +141,7 @@ RSYNC_EXCLUDES=(
   --exclude ".venv"
   --exclude "fitness/catalog/state"
   --exclude "fitness/catalog/kb"
-  # free-exercise-db liegt manuell unter $DEST (~/fitness), existiert aber
+  # free-exercise-db liegt manuell unter $DEST (~/.local/fitness), existiert aber
   # nicht in $SOURCE (~/fitness-dev) — ohne diesen Exclude loescht --delete
   # bei jedem Staging-Deploy den kompletten Klon bis auf .git leer (Root
   # Cause fuer den "yuhonas-Repo wird nach dem Import geleert"-Bug,
@@ -184,7 +184,7 @@ fi
 # poetry-core (Wheel-Build-Backend) läuft beim Packagen in fitness/catalog/
 # hinein und crasht hart (ValueError in relative_to_project_root()), sobald
 # es dort auf einen Symlink trifft, dessen Ziel außerhalb des Projekt-Roots
-# liegt (~/fitness-dev statt ~/fitness) - das pyproject.toml-exclude greift
+# liegt (~/fitness-dev statt ~/.local/fitness) - das pyproject.toml-exclude greift
 # dabei zu spät, der Fehler passiert schon beim Datei-Discovery davor. Bis
 # zum pip-install-Schritt existiert kb/ hier also noch gar nicht (rsync hat
 # es ja ausgeschlossen) - kein Konflikt.
