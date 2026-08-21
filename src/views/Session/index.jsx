@@ -19,6 +19,7 @@ import TodayPlan, { useTodayPlan } from './TodayPlan.jsx';
 export default function Session({
   initialDate, initialDraft, onInspectExercise, onOpenSession,
   recentDays = 7, coverageThreshold = 1.0, subTab, onDateChange, onSubNav,
+  planView, planId, onPlanRouteChange,
 }) {
   const session = useSession({ initialDate, initialDraft, recentDays, coverageThreshold, onDateChange });
   const { loading: planLoading, cycle, nextRoutine, lastPerformance, clientUid, reload } = useTodayPlan();
@@ -52,7 +53,7 @@ export default function Session({
   }
 
   if (subTab === 'plan') {
-    return <PlanView />;
+    return <PlanView routeView={planView} routeId={planId} onRouteChange={onPlanRouteChange} />;
   }
 
   if (subTab === 'history') {

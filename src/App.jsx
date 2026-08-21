@@ -45,12 +45,19 @@ function parseHashRoute({ resolveFlowTab, navMode }) {
   const [rawTab = '', rawSub = ''] = pathPart.split('/').filter(Boolean)
   const params = new URLSearchParams(queryPart)
   const date = params.get('date')
+  const view = params.get('view')
+  const id = params.get('id')
 
   const next = {
     tab: fallbackTab,
     subTab: null,
     sessionDate: isIsoDate(date) ? date : null,
     focusLayer: null,
+    // Nur relevant für tab=session/subTab=plan — welche Unteransicht des
+    // Plan-Tabs offen ist (routine/workout) + welches Template/Workout,
+    // damit ein Link direkt dorthin führt statt immer auf die Liste.
+    planView: null,
+    planId: null,
   }
 
   if (VALID_TABS.has(rawTab)) {
@@ -59,6 +66,10 @@ function parseHashRoute({ resolveFlowTab, navMode }) {
 
   if (next.tab === 'session') {
     if (SESSION_SUB_TABS.has(rawSub) && rawSub !== 'today') next.subTab = rawSub
+    if (next.subTab === 'plan' && (view === 'routine' || view === 'workout') && id) {
+      next.planView = view
+      next.planId = id
+    }
     return next
   }
 
@@ -85,7 +96,7 @@ function parseHashRoute({ resolveFlowTab, navMode }) {
   return next
 }
 
-function buildHashRoute({ tab, subTab, sessionDate, focusLayer }) {
+function buildHashRoute({ tab, subTab, sessionDate, focusLayer, planView, planId }) {
   const segments = [tab]
   const params = new URLSearchParams()
 
@@ -96,6 +107,10 @@ function buildHashRoute({ tab, subTab, sessionDate, focusLayer }) {
       segments.push('today')
     }
     if (sessionDate && !subTab) params.set('date', sessionDate)
+    if (subTab === 'plan' && (planView === 'routine' || planView === 'workout') && planId) {
+      params.set('view', planView)
+      params.set('id', planId)
+    }
   } else if (tab === 'review') {
     if (REVIEW_SUB_TABS.has(subTab) && subTab !== 'report') segments.push(subTab)
   } else if (tab === 'learn') {
@@ -166,6 +181,8 @@ export default function App() {
 
   const [sessionDate, setSessionDate]   = useState(() => initialRoute.sessionDate)
   const [sessionDraft, setSessionDraft] = useState(null)
+  const [planView, setPlanView] = useState(() => initialRoute.planView)
+  const [planId, setPlanId] = useState(() => initialRoute.planId)
   const [inspectorExercise, setInspectorExercise] = useState(null)
   const [taxonomy] = useState(() => getStaticMuscleTaxonomy());
   const [focusLayer, setFocusLayer] = useState(() => initialRoute.focusLayer);
@@ -243,11 +260,18 @@ export default function App() {
   function navigateFocusLayer(id) { setFocusLayer(id) }
 
   useEffect(() => {
-    const targetHash = buildHashRoute({ tab, subTab, sessionDate, focusLayer })
+    if (subTab !== 'plan' && (planView || planId)) {
+      setPlanView(null)
+      setPlanId(null)
+    }
+  }, [subTab])
+
+  useEffect(() => {
+    const targetHash = buildHashRoute({ tab, subTab, sessionDate, focusLayer, planView, planId })
     if (window.location.hash !== targetHash) {
       history.replaceState(null, '', targetHash)
     }
-  }, [tab, subTab, sessionDate, focusLayer])
+  }, [tab, subTab, sessionDate, focusLayer, planView, planId])
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -264,6 +288,8 @@ export default function App() {
       setSessionDate(route.sessionDate)
       setSessionDraft(null)
       setFocusLayer(route.focusLayer)
+      setPlanView(route.planView)
+      setPlanId(route.planId)
     }
     window.addEventListener('hashchange', handleHashChange);
     return () => {
@@ -408,7 +434,7 @@ export default function App() {
                   )}
                   <div key={tab} className={`${navMode === 'home' && tab !== 'gate' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in ${slideDirection === 'left' ? 'slide-in-from-right-8' : slideDirection === 'right' ? 'slide-in-from-left-8' : 'slide-in-from-bottom-4'} duration-500`}>
                       {/* Render content */}
-                      {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} onOpenSession={openSession} recentDays={recentDays} coverageThreshold={coverageThreshold} subTab={subTab} onDateChange={setSessionDate} onSubNav={navigateSub} />}
+                      {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} onOpenSession={openSession} recentDays={recentDays} coverageThreshold={coverageThreshold} subTab={subTab} onDateChange={setSessionDate} onSubNav={navigateSub} planView={planView} planId={planId} onPlanRouteChange={(view, id) => { setPlanView(view); setPlanId(id); }} />}
                       {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} subTab={subTab} onSubNav={navigateSub} />}
                       {tab === 'learn'    && <Learn subTab={subTab} />}
                       {tab === 'coach'    && (isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92') && <Coach onInspectExercise={inspectExercise} />}

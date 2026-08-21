@@ -122,11 +122,24 @@ gemischt zu werden.
   (lokal + Firestore). Firestore-Seite: `createWorkout`/`getWorkout`/
   `updateWorkout`/`getRoutine` um optionalen `uidOverride`-Parameter
   erweitert statt Logik zu duplizieren.
+- **URL-Hashing für den Plan-Tab**: `App.jsx` kennt jetzt `view`/`id`
+  Query-Parameter, aber nur wenn `tab=session&subTab=plan`
+  (`#session/plan?view=routine&id=<routineId>` bzw. `?view=workout&id=…`).
+  `PlanView` (`views/Plan/index.jsx`) nimmt optional `routeView`/`routeId`/
+  `onRouteChange` von `Session/index.jsx` (die wiederum von `App.jsx`
+  kommen) — ist die Komponente "controlled", fällt sonst auf ihren
+  bisherigen internen `useState`-Route zurück (bleibt eigenständig
+  einbindbar). Verlassen des `plan`-Subtabs räumt `planView`/`planId` in
+  `App.jsx` automatisch weg (kein stale Deep-Link beim nächsten Öffnen).
 
-## Offene Punkte (nicht implementiert, bewusst)
+## Offene Punkte
 
-- Erweitertes URL-Hashing für den Plan-Tab (welcher Plan/welches Template
-  offen ist in der URL) — noch nicht gebaut, App.jsx kennt bisher nur
-  `subTab=plan` als Segment, keine tiefere Verschachtelung.
+Keine bekannt — alle vier ursprünglich offenen Punkte (Wochen-Slider,
+Pro-Tag-Kommentar, Coach-Quick-Complete, URL-Hashing) sind umgesetzt.
+
+Nicht abgedeckt vom URL-Hashing: welcher **Trainingsplan** (`TrainingPlans`-
+Sektion) aufgeklappt ist, und welches Plan-Template innerhalb davon
+"aufgeklappt" ist (kein Deep-Link dahin) — nur die WorkoutList/RoutineBuilder/
+WorkoutSession-Ebene (`view`/`id`) ist verlinkbar.
 - Quick-Complete für Coach im Firestore-Modus (siehe oben) — bewusst
   deaktiviert statt unsicher gebaut.
