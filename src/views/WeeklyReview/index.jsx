@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getMonthlyReport, exportFitnessData, getRecentSessions } from '@db';
 import { BarChart3, Activity, History, Zap, Dumbbell } from 'lucide-react';
+import { readMonthlyReportCache, writeMonthlyReportCache, clearMonthlyReportCache } from '../../lib/reportCache';
 
 import ReviewHeader from './ReviewHeader';
 import ReviewOverview from './ReviewOverview';
@@ -17,7 +18,7 @@ import { sessionHasLoggedWorkout } from '../../lib/sessionGate.js';
 
 const SUB_TABS = ['muscles', 'verlauf', 'readiness', 'strength'];
 const REVIEW_WINDOW_DAYS = 28;
-let monthlyReportCache = null;
+let monthlyReportCache = null; // schnellster Pfad: gleicher Tab, kein JSON.parse
 
 export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleLanguage = 'de', taxonomy = null, gender = 'male', recentDays = 10, subTab = null, onSubNav }) {
   const [data, setData]       = useState(null);
@@ -46,11 +47,20 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
       return;
     }
 
+    const cached = readMonthlyReportCache();
+    if (cached) {
+      monthlyReportCache = cached;
+      setData(cached);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     getMonthlyReport(REVIEW_WINDOW_DAYS)
       .then(d => {
         const next = d || null;
         monthlyReportCache = next;
+        if (next) writeMonthlyReportCache(next);
         setData(next);
       })
       .catch(err => {
@@ -68,6 +78,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
         force: true,
       })
       monthlyReportCache = null
+      clearMonthlyReportCache()
       setToast(result?.path ? `Export: ${result.path}` : 'Exportiert')
     } catch {
       setToast('Export fehlgeschlagen')

@@ -1,5 +1,6 @@
 import { api, localToday } from "./core";
 import { num } from "./utils";
+import { clearMonthlyReportCache } from "../../reportCache";
 
 function exerciseSets(exercise) {
   if (Array.isArray(exercise?.setsArray) && exercise.setsArray.length > 0) return exercise.setsArray;
@@ -31,6 +32,7 @@ export async function getSession(date = localToday(), id = null) {
 export async function saveSession(date = localToday(), sessionData, id = null) {
   const qs = id ? `?date=${date}&id=${encodeURIComponent(id)}` : `?date=${date}`;
   await api.post(`/session${qs}`, sessionData || {});
+  clearMonthlyReportCache();
   return { ok: true };
 }
 
@@ -46,6 +48,7 @@ export async function listSessionsForDate(date = localToday()) {
 export async function deleteSession(date = localToday(), id = null) {
   const qs = id ? `?date=${date}&id=${encodeURIComponent(id)}` : `?date=${date}`;
   await api.delete(`/session${qs}`);
+  clearMonthlyReportCache();
   return { ok: true };
 }
 

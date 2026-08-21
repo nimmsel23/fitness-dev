@@ -13,6 +13,7 @@ import { todayISO } from "../shared/utils.js";
 import { getUid, hasAuthSession, pingBridge } from "./core.js";
 import { getAllExercises } from "./kb.js";
 import { updateAnalyticsDoc, scheduleWeeklyReportRefreshForDate } from "./analysis.js";
+import { clearMonthlyReportCache } from "../../reportCache";
 import {
   getSession as getLocalSession,
   saveSession as saveLocalSession,
@@ -149,6 +150,7 @@ export async function saveSession(date = todayISO(), sessionData, id = null) {
     pingBridge();
     updateAnalyticsDoc();
     scheduleWeeklyReportRefreshForDate(date).catch(() => {});
+    clearMonthlyReportCache();
     return { ok: true, id: null, merged: true };
   }
 
@@ -177,6 +179,7 @@ export async function saveSession(date = todayISO(), sessionData, id = null) {
   pingBridge();
   updateAnalyticsDoc(); // fire-and-forget
   scheduleWeeklyReportRefreshForDate(date).catch(() => {});
+  clearMonthlyReportCache();
   return { ok: true, id };
 }
 
@@ -201,6 +204,7 @@ export async function deleteActivityAddon(date = todayISO(), index) {
   pingBridge();
   updateAnalyticsDoc();
   scheduleWeeklyReportRefreshForDate(date).catch(() => {});
+  clearMonthlyReportCache();
   return { ok: true, activityAddons: addons };
 }
 
@@ -211,6 +215,7 @@ export async function deleteSession(date = todayISO(), id = null) {
   pingBridge();
   updateAnalyticsDoc();
   scheduleWeeklyReportRefreshForDate(date).catch(() => {});
+  clearMonthlyReportCache();
   return { ok: true };
 }
 
