@@ -1,40 +1,26 @@
 name: approved_from_firebase
 description: Coach-approved via Firebase Inbox
 exercises:
-- search_aliases:
-  - Pullups
-  - yuhonas_pullups
-  - Klimmzug an Leiste
-  wger_muscle_ids:
-    secondary: []
-    primary: []
-  movement_pattern: vertical_pull
-  equipment:
-  - bodyweight
-  - pull_up_bar
-  primary_muscles:
+- primary_muscles:
   - 201_latissimus_dorsi
   - 207_teres_major
   - 204_trapezius_lower
   name: Klimmzug im Obergriff
-  schema_version: 2026-08-12.exercise-v1
-  external_ids:
-    wger:
-    - 821
-    yuhonas:
-    - Pullups
-  stabilizers:
-  - 304_rotator_cuff
-  - 206_erector_spinae
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
-  - 504_transverse_abdominis
-  - 405_forearm_flexors
-  - 105_serratus_anterior
-  id: '020'
-  english: Pull-Up
-  type: compound
-  german: Klimmzug im Obergriff
+  category: pull
+  wger_muscle_ids:
+    primary: []
+    secondary: []
+  equipment:
+  - bodyweight
+  - pull_up_bar
+  origin:
+    type: merged_external
+    source_refs:
+      wger:
+      - '821'
+      yuhonas:
+      - Pullups
+  movement_pattern: vertical_pull
   coaching_notes:
   - 'Starte aus einem aktiven Hang: Hals lang, Rippen unten, Schulterblätter zuerst
     sanft nach unten setzen statt passiv in den Schultern zu hängen.'
@@ -52,45 +38,6 @@ exercises:
     Schulterkontrolle, Kraftaufbau und Positionsgefühl im Hang.
   - Der Obergriff verlagert die Belastung etwas stärker auf Latissimus, Teres major
     und oberen Rücken und etwas weniger auf den Bizeps als beim Chin-Up.
-  source: approved
-  category: pull
-  movements:
-  - vertical
-  - shoulder_adduction
-  - shoulder_extension
-  - elbow_flexion
-  - scapular_depression
-  - scapular_downward_rotation
-  source_snapshot:
-    wger:
-      wger_id: 821
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-  variations:
-  - assisted_pull_up
-  - band_assisted_pull_up
-  - weighted_pull_up
-  - wide_grip_pull_up
-  - neutral_grip_pull_up
-  - scapular_pull_up
-  exercise_id: '020'
-  tags:
-  - expert
-  - back
-  - pull
-  - bodyweight
-  - calisthenics
-  - vertical_pull
-  - grip_strength
-  origin:
-    type: merged_external
-    source_refs:
-      wger:
-      - '821'
-      yuhonas:
-      - Pullups
-  wger_id: 821
   common_errors:
   - Mit Kipping, Beinschwung oder Hüftschwung arbeiten statt jede Wiederholung aus
     dem Hang kontrolliert einzuleiten.
@@ -106,6 +53,55 @@ exercises:
     wird und die Kraftübertragung leidet.
   - Zu breit greifen und dadurch ROM, Schultermechanik und saubere Ellbogenführung
     unnötig verschlechtern.
+  english: Pull-Up
+  review_state:
+    status: approved
+  source: approved
+  wger_id: 821
+  exercise_id: '020'
+  display_name: Klimmzug im Obergriff
+  external_ids:
+    wger:
+    - 821
+    yuhonas:
+    - Pullups
+  source_snapshot:
+    wger:
+      wger_id: 821
+      wger_muscle_ids:
+        primary: []
+        secondary: []
+  _hash: 5b1492dc2565bb2657dffee1777519b3
+  secondary_muscles:
+  - 402_biceps_brachii
+  - 403_brachialis
+  - 404_brachioradialis
+  - 303_posterior_deltoid
+  - 205_rhomboids
+  - 203_trapezius_middle
+  - 204_trapezius_lower
+  id: '020'
+  tags:
+  - expert
+  - back
+  - pull
+  - bodyweight
+  - calisthenics
+  - vertical_pull
+  - grip_strength
+  german: Klimmzug im Obergriff
+  type: compound
+  variations:
+  - assisted_pull_up
+  - band_assisted_pull_up
+  - weighted_pull_up
+  - wide_grip_pull_up
+  - neutral_grip_pull_up
+  - scapular_pull_up
+  search_aliases:
+  - Pullups
+  - yuhonas_pullups
+  - Klimmzug an Leiste
   aliases:
   - Klimmzug
   - Klimmzüge
@@ -120,15 +116,19 @@ exercises:
   - Pull-Ups
   - Standard Pull-up
   - Pronated Pull-up
-  display_name: Klimmzug im Obergriff
-  secondary_muscles:
-  - 402_biceps_brachii
-  - 403_brachialis
-  - 404_brachioradialis
-  - 303_posterior_deltoid
-  - 205_rhomboids
-  - 203_trapezius_middle
-  - 204_trapezius_lower
-  review_state:
-    status: approved
-  _hash: 5b1492dc2565bb2657dffee1777519b3
+  schema_version: 2026-08-12.exercise-v1
+  movements:
+  - vertical
+  - shoulder_adduction
+  - shoulder_extension
+  - elbow_flexion
+  - scapular_depression
+  - scapular_downward_rotation
+  stabilizers:
+  - 304_rotator_cuff
+  - 206_erector_spinae
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 504_transverse_abdominis
+  - 405_forearm_flexors
+  - 105_serratus_anterior
