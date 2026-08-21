@@ -1,8 +1,31 @@
-export default function MobileNav({ tab, navigate, swipeHint, navItems }) {
-  const currentIndex = navItems.findIndex(i => i.id === tab);
-  const swipeTargetId =
-    swipeHint === 'left'  ? navItems[currentIndex + 1]?.id :
-    swipeHint === 'right' ? navItems[currentIndex - 1]?.id : null;
+import { useState } from 'react';
+import { MoreHorizontal } from 'lucide-react';
+
+// Training (session) ist der mit Abstand meistgenutzte Tab und startet
+// standardmäßig offen — deshalb erscheinen seine Subtabs (Heute/Timer/
+// Skills/Plan/History) direkt als primäre Reihe in der Bottom Nav statt
+// eines einzigen "Training"-Icons unter Gleichen. Alles andere (Review/
+// Lernen/Anamnese-Fokus/Setup) wandert hinter "•••" ganz rechts — dahinter
+// öffnet sich exakt die bisherige Nav-Bar-Zeile (gleiches Layout/Styling
+// wie vorher), nur als Sheet statt permanent sichtbar.
+export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHint, navItems }) {
+  const [showMore, setShowMore] = useState(false);
+
+  const sessionItem = navItems.find((i) => i.id === 'session');
+  const primaryItems = sessionItem?.sub || [];
+  const isOnSession = tab === 'session';
+  const isOnOtherTab = !isOnSession;
+
+  function openPrimary(subId) {
+    setShowMore(false);
+    if (!isOnSession) navigate('session');
+    navigateSub(subId);
+  }
+
+  function openOther(id) {
+    setShowMore(false);
+    navigate(id);
+  }
 
   return (
     <nav
@@ -18,44 +41,75 @@ export default function MobileNav({ tab, navigate, swipeHint, navItems }) {
             : 'opacity-0'
       }`} />
 
+      {showMore && (
+        <div className="absolute bottom-full left-0 right-0 mb-1 px-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div className="bg-fit-card/95 backdrop-blur-2xl border border-fit-line/40 rounded-2xl px-2 pt-2 pb-2 shadow-2xl">
+            <div className="flex items-end justify-around">
+              {navItems.map(({ id, label, Icon }) => {
+                const isActive = tab === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => openOther(id)}
+                    className="flex flex-col items-center gap-[5px] px-1 active:scale-90 transition-transform duration-150 min-w-[40px]"
+                  >
+                    <div className={`flex items-center justify-center rounded-2xl transition-all duration-300 ${
+                      isActive ? 'bg-fit-accent w-12 h-8 shadow-lg shadow-fit-accent/30' : 'w-10 h-8'
+                    }`}>
+                      <Icon size={isActive ? 17 : 19} className={isActive ? 'text-black stroke-[2.5]' : 'text-fit-dim stroke-[1.8]'} />
+                    </div>
+                    <span className={`text-[7.5px] font-black uppercase tracking-wide leading-none transition-all duration-300 ${
+                      isActive ? 'text-fit-accent opacity-100' : 'text-fit-dim opacity-50'
+                    }`}>
+                      {label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-fit-card/90 backdrop-blur-2xl border-t border-fit-line/40 px-2 pt-2 pb-3">
         <div className="flex items-end justify-around">
-          {navItems.map(({ id, label, Icon }) => {
-            const isActive = tab === id;
-            const isSwipeTarget = id === swipeTargetId;
-
+          {primaryItems.map(({ id: subId, label, Icon }) => {
+            const isActive = isOnSession && (subTab === subId || (!subTab && subId === 'today'));
             return (
               <button
-                key={id}
-                onClick={() => navigate(id)}
+                key={subId}
+                onClick={() => openPrimary(subId)}
                 className="flex flex-col items-center gap-[5px] px-1 active:scale-90 transition-transform duration-150 min-w-[40px]"
               >
                 <div className={`flex items-center justify-center rounded-2xl transition-all duration-300 ${
-                  isActive
-                    ? 'bg-fit-accent w-12 h-8 shadow-lg shadow-fit-accent/30'
-                    : isSwipeTarget
-                      ? 'ring-1 ring-fit-accent/60 bg-fit-accent/10 w-10 h-8'
-                      : 'w-10 h-8'
+                  isActive ? 'bg-fit-accent w-12 h-8 shadow-lg shadow-fit-accent/30' : 'w-10 h-8'
                 }`}>
-                  <Icon
-                    size={isActive ? 17 : 19}
-                    className={
-                      isActive       ? 'text-black stroke-[2.5]' :
-                      isSwipeTarget  ? 'text-fit-accent stroke-[2]' :
-                                       'text-fit-dim stroke-[1.8]'
-                    }
-                  />
+                  <Icon size={isActive ? 17 : 19} className={isActive ? 'text-black stroke-[2.5]' : 'text-fit-dim stroke-[1.8]'} />
                 </div>
                 <span className={`text-[7.5px] font-black uppercase tracking-wide leading-none transition-all duration-300 ${
-                  isActive      ? 'text-fit-accent opacity-100' :
-                  isSwipeTarget ? 'text-fit-accent/70 opacity-100' :
-                                  'text-fit-dim opacity-50'
+                  isActive ? 'text-fit-accent opacity-100' : 'text-fit-dim opacity-50'
                 }`}>
                   {label}
                 </span>
               </button>
             );
           })}
+
+          <button
+            onClick={() => setShowMore((v) => !v)}
+            className="flex flex-col items-center gap-[5px] px-1 active:scale-90 transition-transform duration-150 min-w-[40px]"
+          >
+            <div className={`flex items-center justify-center rounded-2xl transition-all duration-300 ${
+              showMore || isOnOtherTab ? 'bg-fit-accent w-12 h-8 shadow-lg shadow-fit-accent/30' : 'w-10 h-8'
+            }`}>
+              <MoreHorizontal size={isOnOtherTab || showMore ? 17 : 19} className={showMore || isOnOtherTab ? 'text-black stroke-[2.5]' : 'text-fit-dim stroke-[1.8]'} />
+            </div>
+            <span className={`text-[7.5px] font-black uppercase tracking-wide leading-none transition-all duration-300 ${
+              showMore || isOnOtherTab ? 'text-fit-accent opacity-100' : 'text-fit-dim opacity-50'
+            }`}>
+              Mehr
+            </span>
+          </button>
         </div>
       </div>
     </nav>

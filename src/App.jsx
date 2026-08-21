@@ -258,6 +258,13 @@ export default function App() {
   function navigate(id) { navigateToTab(id) }
   function navigateSub(id) { setSubTab(id) }
   function navigateFocusLayer(id) { setFocusLayer(id) }
+  // Plan ist kein eigener "tab"-Wert (bleibt technisch Session-Subtab, teilt
+  // sich Route/State mit Training), soll aber von überall aus direkt
+  // erreichbar sein wie ein normaler Tab — kombiniert Tab-Wechsel +
+  // Subtab-Wechsel in einem Klick. navigateToTab() setzt subTab synchron
+  // auf null; der Aufruf danach im selben Tick gewinnt (React batcht beide
+  // setSubTab-Aufrufe, letzter Wert zählt).
+  function navigateToPlan() { navigateToTab('session'); setSubTab('plan') }
 
   useEffect(() => {
     if (subTab !== 'plan' && (planView || planId)) {
@@ -383,6 +390,7 @@ export default function App() {
           navigate={navigate}
           subTab={subTab}
           navigateSub={navigateSub}
+          navigateToPlan={navigateToPlan}
           pinned={sidebarPinned}
           setPinned={setSidebarPinned}
           user={user}
@@ -457,7 +465,7 @@ export default function App() {
               </div>
             </main>
 
-            {navMode === 'tabs' && <MobileNav tab={tab} navigate={navigate} swipeHint={swipeHint} navItems={navItems} />}
+            {navMode === 'tabs' && <MobileNav tab={tab} subTab={subTab} navigate={navigate} navigateSub={navigateSub} swipeHint={swipeHint} navItems={navItems} />}
           </div>
         </div>
       </ErrorBoundary>
