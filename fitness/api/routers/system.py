@@ -5,7 +5,7 @@ from datetime import date, datetime, timedelta
 from fastapi import APIRouter, Request, Query, HTTPException
 
 from fitness.api.config import (
-    PORT, RUNTIME, BODY_DIR, SESS_ROOT, _HERE, _DIST_DIR, _uid_from_request, _read_json, _write_json,
+    PORT, ENV, RUNTIME, BODY_DIR, SESS_ROOT, _HERE, _DIST_DIR, _uid_from_request, _read_json, _write_json,
     _wger_post, logger
 )
 from db.schemas import HealthResponse, BodyResponse
@@ -49,7 +49,7 @@ def _require_uid(request: Request) -> str:
 
 @router.get("/health", response_model=HealthResponse)
 def health():
-    return HealthResponse(ok=True, port=PORT, runtime=str(RUNTIME))
+    return HealthResponse(ok=True, port=PORT, runtime=str(RUNTIME), env=ENV)
 
 @router.get("/theme")
 def theme_get():

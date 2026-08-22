@@ -20,6 +20,7 @@ class HealthResponse(BaseModel):
     ok: bool
     port: int
     runtime: str
+    env: str
 
 
 # ── Session ───────────────────────────────────────────────────────────────────
