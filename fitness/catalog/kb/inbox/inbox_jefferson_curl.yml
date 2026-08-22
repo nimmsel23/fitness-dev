@@ -1,5 +1,7 @@
-name: jefferson_curl
-description: Expert details for Jefferson Curl
+name: inbox_jefferson_curl
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Jefferson
+  Curl'
+generated_at: '2026-08-22T08:49:36.018266+00:00'
 exercises:
 - exercise_id: jefferson_curl
   wger_id: null
@@ -85,7 +87,7 @@ exercises:
   aliases:
   - Spine Curl
   variations: []
-  source: expert
+  source: unreviewed
   schema_version: 2026-08-12.exercise-v1
   origin:
     type: manual
