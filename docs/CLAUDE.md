@@ -221,6 +221,7 @@ Weitere Dispatcher (fitness-devctl/fitness-prodctl/fitnessctl): `../fitness/CLAU
 | `/health` | GET | Server-Status |
 | `/exercise/:id/teaching` | GET | Anatomy-Lesson aus catalog/kb/anatomy_teaching/ |
 | `/coaching-notes[?tag=]` | GET | Coaching Notes ("WhatsApp Wisdom Drops") aus catalog/kb/coaching_notes/, siehe `../fitness/catalog/CLAUDE.md` |
+| `/coaching-notes/product-signals` | GET | Offene UX-/Produkt-Reibungspunkte, aus Coaching-Notes extrahiert |
 | `/session?date=YYYY-MM-DD` | GET/POST | Tageslog — POST macht dual-write (JSON + SQLite) |
 | `/session/history?limit=10` | GET | Letzte N Sessions |
 | `/exercises/search?q=...` | GET | Search lokal + wger + yuhonas |

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Play, Pause, Dumbbell, Shuffle, Check, ChevronLeft, ListChecks, UtensilsCrossed, BookOpen, Star, Camera, Video } from 'lucide-react';
+import { Play, Pause, Dumbbell, Shuffle, Check, ChevronLeft, ListChecks, UtensilsCrossed, BookOpen, Star, Camera, Video, Lightbulb } from 'lucide-react';
 import { SIXPACK_CATEGORIES, SIXPACK_EXERCISE_DETAILS, SIXPACK_EXERCISE_POOL, SIXPACK_EXERCISE_COACHING, SIXPACK_CALISTHENICS_SKILLS, SIXPACK_VERIFIED_WORKOUTS } from './sixpackData.js';
+import { getAllCoachingNotes } from '../../lib/coachNotes';
 
 const SIXPACK_PROGRAM_KEY = 'fitness-sixpack-program-v1';
 const SIXPACK_FAVORITES_KEY = 'fitness-sixpack-favorites-v1';
@@ -187,7 +188,7 @@ function EatScreen({ onBack }) {
 // vollen KB-Katalog): die 21 kuratierten Core-Übungen aus SIXPACK_EXERCISE_DETAILS
 // plus die Calisthenics-Skills-Progressionsketten (kb/exercises/calisthenics/,
 // SIXPACK_CALISTHENICS_SKILLS) als zweite, eigene Sektion.
-function LearnScreen({ onBack, onOpenSkill, onOpenExercise }) {
+function LearnScreen({ onBack, onOpenSkill, onOpenExercise, onOpenNote }) {
   const [query, setQuery] = useState('');
 
   const visibleCore = useMemo(() => {
@@ -201,6 +202,13 @@ function LearnScreen({ onBack, onOpenSkill, onOpenExercise }) {
     const q = query.trim().toLowerCase();
     if (!q) return SIXPACK_CALISTHENICS_SKILLS;
     return SIXPACK_CALISTHENICS_SKILLS.filter((skill) => [skill.id, skill.name, skill.tier, ...skill.progressions].join(' ').toLowerCase().includes(q));
+  }, [query]);
+
+  const visibleNotes = useMemo(() => {
+    const list = getAllCoachingNotes();
+    const q = query.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter((n) => [n.id, n.title, ...(n.tags || [])].join(' ').toLowerCase().includes(q));
   }, [query]);
 
   return (
@@ -265,6 +273,70 @@ function LearnScreen({ onBack, onOpenSkill, onOpenExercise }) {
             </div>
           </button>
         ))}
+      </div>
+
+      {visibleNotes.length > 0 && (
+        <>
+          <div className="px-4 pt-4 pb-1 text-[10px] font-black uppercase tracking-[0.14em]" style={{ color: '#e2001a' }}>
+            Wisdom ({visibleNotes.length})
+          </div>
+          <div>
+            {visibleNotes.map((note) => (
+              <button
+                key={note.id}
+                onClick={() => onOpenNote?.(note.id)}
+                className="w-full px-4 py-3 text-left flex items-start gap-2.5"
+                style={{ background: '#1a1a1a', borderBottom: '1px solid #000' }}
+              >
+                <Lightbulb size={15} color="#e2001a" className="mt-0.5 shrink-0" />
+                <div>
+                  <div className="text-sm font-bold" style={{ color: '#fff' }}>{note.title}</div>
+                  {note.summary && (
+                    <div className="text-[11px] mt-1 line-clamp-2" style={{ color: 'var(--dim)' }}>
+                      {note.summary.trim()}
+                    </div>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function NoteDetailScreen({ note, onBack }) {
+  if (!note) return null;
+  return (
+    <div>
+      <BackHeader label={note.title} onBack={onBack} />
+      <div className="px-4 py-3">
+        {note.summary && (
+          <div className="text-sm font-bold mb-4" style={{ color: '#fff', background: '#1a1a1a', borderRadius: '0.75rem', padding: '0.7rem 0.9rem' }}>
+            {note.summary.trim()}
+          </div>
+        )}
+        {note.body && (
+          <div className="text-sm whitespace-pre-line mb-4" style={{ color: 'var(--dim)', lineHeight: 1.6 }}>
+            {note.body.trim()}
+          </div>
+        )}
+        {note.follow_up?.length > 0 && (
+          <div className="pb-6">
+            <div className="text-[10px] font-black uppercase tracking-[0.14em] mb-2" style={{ color: '#e2001a' }}>
+              Häufige Rückfragen
+            </div>
+            <ul className="space-y-2">
+              {note.follow_up.map((fu, i) => (
+                <li key={i} className="text-sm" style={{ background: '#1a1a1a', borderRadius: '0.75rem', padding: '0.6rem 0.8rem' }}>
+                  <div className="font-bold" style={{ color: '#fff' }}>{fu.question}</div>
+                  <div className="mt-1" style={{ color: 'var(--dim)' }}>{fu.answer?.trim?.() || fu.answer}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -663,6 +735,7 @@ export default function SixPackPromiseCard({ onSubNav }) {
   const [viewDay, setViewDay] = useState(null);
   const [adhocWorkout, setAdhocWorkout] = useState(null);
   const [viewExerciseId, setViewExerciseId] = useState(null);
+  const [viewNoteId, setViewNoteId] = useState(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -705,6 +778,11 @@ export default function SixPackPromiseCard({ onSubNav }) {
     setScreen('exercise');
   }
 
+  function openNote(noteId) {
+    setViewNoteId(noteId);
+    setScreen('note');
+  }
+
   function startAdhoc(workout) {
     setAdhocWorkout(workout);
     setViewDay(null);
@@ -741,11 +819,17 @@ export default function SixPackPromiseCard({ onSubNav }) {
         {screen === 'home' && <HomeScreen program={program} onOpenToday={() => openDay(program.currentDay)} onNav={setScreen} />}
         {screen === 'track' && <TrackScreen program={program} onBack={goHome} onOpenDay={openDay} />}
         {screen === 'eat' && <EatScreen onBack={goHome} />}
-        {screen === 'learn' && <LearnScreen onBack={goHome} onOpenSkill={openSkill} onOpenExercise={openExercise} />}
+        {screen === 'learn' && <LearnScreen onBack={goHome} onOpenSkill={openSkill} onOpenExercise={openExercise} onOpenNote={openNote} />}
         {screen === 'exercise' && (
           <ExerciseDetailScreen
             exercise={SIXPACK_EXERCISE_DETAILS[viewExerciseId]}
             coaching={SIXPACK_EXERCISE_COACHING[viewExerciseId]}
+            onBack={() => setScreen('learn')}
+          />
+        )}
+        {screen === 'note' && (
+          <NoteDetailScreen
+            note={getAllCoachingNotes().find((n) => n.id === viewNoteId)}
             onBack={() => setScreen('learn')}
           />
         )}

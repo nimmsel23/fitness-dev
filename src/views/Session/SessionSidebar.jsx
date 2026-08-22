@@ -1,4 +1,4 @@
-import { Download, Zap, MapPin, Clock, Activity, Target, FileText, Info, X, Brain, Navigation } from 'lucide-react';
+import { Download, MapPin, Clock, Activity, Target, FileText, Info, X, Brain, Navigation } from 'lucide-react';
 import SectionHeader from './SectionHeader';
 
 const TRAININGSART_OPTIONS = ['Kraft', 'Hypertrophie', 'Ausdauer'];
@@ -8,7 +8,7 @@ export default function SessionSidebar({
   gpsMapsUrl,
   trainingsart, setTrainingsart,
   notes, setNotes, onDownload,
-  onExportObsidian, onShowMap, onClose, coachFeedback = ""
+  onExportObsidian, onClose, coachFeedback = ""
 }) {
   return (
     <aside className="space-y-6">
@@ -79,19 +79,6 @@ export default function SessionSidebar({
           </div>
 
         </div>
-      </section>
-
-      <section className="space-y-3">
-        <button onClick={onShowMap} className="w-full p-6 rounded-[32px] border flex items-center justify-between bg-fit-card border-fit-line hover:border-accent/30 transition-all shadow-xl group overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-fit-accent/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
-          <div className="text-left relative z-10">
-            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-accent mb-1 group-hover:translate-x-1 transition-transform">Anatomie Check</div>
-            <div className="text-[11px] font-bold opacity-30">Visualisiere deine Abdeckung</div>
-          </div>
-          <div className="w-12 h-12 rounded-2xl bg-fit-accent/10 flex items-center justify-center text-fit-accent group-hover:scale-110 transition-all relative z-10">
-            <Zap size={22} fill="currentColor" />
-          </div>
-        </button>
       </section>
 
       <section className="card p-6 shadow-xl border-fit-line/50 rounded-[32px]">

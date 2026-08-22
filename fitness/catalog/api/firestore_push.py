@@ -255,6 +255,22 @@ def sync_muscles(
     return counts
 
 
+def push_changed_muscle_files(relative_paths: set[str], dry_run: bool = False) -> dict[str, int]:
+    """Pusht genau die übergebenen kb/muscles/-Dateien (relative Pfade unter
+    kb/muscles/) nach Firestore — kein Git-Diff nötig, für den Live-
+    Filesystem-Watcher (siehe catalog/api/muscle_watcher.py). Kein
+    FITNESS_ENV=prod-Gate: kb/muscles/ ist rein lokal->Firestore (push-only,
+    kein Firestore->lokal-Pfad, der überschrieben werden könnte)."""
+    if not relative_paths:
+        return {"changed_files": 0, "ok": 0, "unchanged": 0, "error": 0}
+    db = get_db()
+    col = db.collection("fitness").document("kb").collection("muscles")
+    targets = dict(iter_muscle_documents(only_relative_paths=relative_paths))
+    counts: dict[str, int] = {"changed_files": len(relative_paths)}
+    counts.update(batch_write(db, col, targets.items(), dry_run=dry_run, use_hash=True))
+    return counts
+
+
 def sync_yuhonas(db: Any, dry_run: bool = False) -> dict[str, int]:
     col = db.collection("fitness").document("kb").collection("exercises")
     yuhonas_dir = catalog_path("../yuhonas")

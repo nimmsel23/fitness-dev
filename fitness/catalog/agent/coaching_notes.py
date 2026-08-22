@@ -20,6 +20,16 @@ def find_note(note_id: str) -> dict[str, Any] | None:
     return None
 
 
+def load_open_product_signals() -> list[dict[str, Any]]:
+    """Produkt-/UX-Reibungspunkte aus coaching_notes (status: open), über alle Notes."""
+    signals: list[dict[str, Any]] = []
+    for note in load_all_notes():
+        for signal in note.get("product_signals") or []:
+            if isinstance(signal, dict) and signal.get("status", "open") == "open":
+                signals.append({**signal, "note_id": note.get("id")})
+    return signals
+
+
 def find_notes_by_tag(tag: str) -> list[dict[str, Any]]:
     tag = tag.strip().lower()
     matches: list[dict[str, Any]] = []
