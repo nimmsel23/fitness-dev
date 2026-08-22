@@ -51,6 +51,66 @@ msg() { printf '\033[1;32m%s\033[0m\n' "$*"; }
 warn() { printf '\033[1;33m%s\033[0m\n' "$*" >&2; }
 die() { printf '\033[1;31m%s\033[0m\n' "$*" >&2; exit 1; }
 
+require_file() {
+  local path="$1"
+  local label="${2:-$1}"
+  [[ -f "$path" ]] || die "❌ Missing $label at $path"
+  msg "✅ $label present: $path"
+}
+
+wait_for_http() {
+  local url="$1"
+  local label="$2"
+  local attempts="${3:-20}"
+  local sleep_s="${4:-1}"
+  local body=""
+  local i
+
+  for ((i = 1; i <= attempts; i++)); do
+    if body="$(curl -fsS --max-time 2 "$url" 2>/dev/null)"; then
+      msg "✅ $label healthy: $url"
+      printf '%s\n' "$body"
+      return 0
+    fi
+    sleep "$sleep_s"
+  done
+
+  die "❌ $label did not become healthy: $url"
+}
+
+systemd_status() {
+  local action="$1"
+  local unit="$2"
+  if $USE_SUDO; then
+    sudo systemctl "$action" "$unit"
+  else
+    systemctl --user "$action" "$unit"
+  fi
+}
+
+systemd_list_unit_files() {
+  local unit="$1"
+  if $USE_SUDO; then
+    systemctl list-unit-files "$unit"
+  else
+    systemctl --user list-unit-files "$unit"
+  fi
+}
+
+print_systemd_failure_context() {
+  local unit="$1"
+  warn "⚠️ systemd status for $unit"
+  if $USE_SUDO; then
+    sudo systemctl status "$unit" --no-pager || true
+    warn "⚠️ recent journal for $unit"
+    sudo journalctl -u "$unit" -n 40 --no-pager || true
+  else
+    systemctl --user status "$unit" --no-pager || true
+    warn "⚠️ recent journal for $unit"
+    journalctl --user -u "$unit" -n 40 --no-pager || true
+  fi
+}
+
 if [[ "$TARGET" == "staging" ]]; then
   SOURCE="$SCRIPT_DIR"
   if [[ "$SCRIPT_DIR" != "$DEV_SOURCE" && -f "$DEV_SOURCE/package.json" ]]; then
@@ -171,6 +231,11 @@ elif [[ $rsync_rc -ne 0 ]]; then
   die "rsync fehlgeschlagen mit Code $rsync_rc"
 fi
 
+msg "🩺 Verifying deployed artifacts"
+require_file "$DEST/package.json" "fitness checkout manifest"
+require_file "$DEST/pyproject.toml" "python project manifest"
+require_file "$DEST/dist/index.html" "built frontend dist"
+
 # 2b. kb/ wird NICHT kopiert (siehe Exclude oben), sondern nach dem
 # Venv-Build (Schritt 3) direkt aus dem Dev-Repo verlinkt — dieselbe
 # Datei-Basis wie fitness/catalog/state, nur fuer den Katalog selbst. Grund:
@@ -218,6 +283,10 @@ msg "🔗 Verlinke kb/ live aus $KB_SOURCE (kein Sync-Lag mehr)"
 run_cmd ln -s "$KB_SOURCE" "$KB_LINK"
 msg "🔗 Verlinke catalog/state aus $STATE_SOURCE"
 run_cmd ln -s "$STATE_SOURCE" "$STATE_LINK"
+if [[ ! -L "$KB_LINK" || ! -L "$STATE_LINK" ]]; then
+  die "❌ Expected live symlinks for kb/state after deploy"
+fi
+msg "✅ Live symlinks for kb/ and state/ verified"
 
 # 3b. Systemd-Unit sicherstellen (staging + prod, beide inline hier statt
 # extern getrackt — staging lag vorher via ~/.dotfiles-Symlink, prod-Inhalt
@@ -288,7 +357,7 @@ if $USE_SUDO; then
     warn "⚠️ System-scope $SERVICE not found. Skipping restart."
   fi
 else
-  if systemctl --user list-unit-files "$SERVICE" >/dev/null 2>&1; then
+  if systemd_list_unit_files "$SERVICE" >/dev/null 2>&1; then
     msg "🔄 Restarting user-scope $SERVICE"
     systemctl --user daemon-reload
     systemctl --user restart "$SERVICE"
@@ -296,5 +365,15 @@ else
     warn "⚠️ User-scope $SERVICE not found. Skipping restart."
   fi
 fi
+
+msg "🩺 Verifying runtime on :$PORT"
+if systemd_list_unit_files "$SERVICE" >/dev/null 2>&1; then
+  if ! systemd_status is-active --quiet "$SERVICE"; then
+    print_systemd_failure_context "$SERVICE"
+    die "❌ $SERVICE is not active after deploy"
+  fi
+fi
+
+wait_for_http "http://127.0.0.1:$PORT/health" "Fitness $TARGET health" >/dev/null
 
 msg "✅ Deployment to $DEST complete on port $PORT."
