@@ -1,5 +1,6 @@
-exercise_id: cable_crossover
-description: Expert details for Kabel-Crossover
+name: inbox_cable_crossover
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Kabel-Crossover'
+generated_at: '2026-08-22T08:49:31.444178+00:00'
 exercises:
 - exercise_id: cable_crossover
   id: cable_crossover
@@ -76,7 +77,7 @@ exercises:
   - Standing Cable Fly
   - Überkreuzung am Kabelzug
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Kabel-Crossover
   - Kabel Crossover
