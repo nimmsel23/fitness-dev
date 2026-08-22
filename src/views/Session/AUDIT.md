@@ -29,7 +29,8 @@ Workout-Journal — Session-Logging mit Satz/Wdh/Gewicht, Session-Modi, intellig
 | `SessionEditor.jsx` | `SessionGateCard` ist kein inline Card-Element mehr, sondern ein Sheet (Portal, Bottom-Sheet), das öffnet wenn `currentSubTab === 'today'` (Nav-Klick auf "Heute"/"Session") — Editor bleibt darunter jederzeit erreichbar |
 
 ## Auffälligkeiten (2026-08-20)
-- `SessionEditor.jsx`: Gate-Sheet öffnet aktuell über die normale Navigation nie automatisch, weil `subTab === 'today'` durch `App.jsx`s URL-Routing nie gesetzt wird (`'today'` wird dort explizit aus `SESSION_SUB_TABS` ausgeschlossen, gilt als "kein Sub-Tab"). Vorbestehendes Verhalten, nicht durch das Header-Redesign verursacht.
+- `SessionEditor.jsx`: **Gefixt (2026-08-22).** Gate-Sheet öffnete vorher über die normale Navigation nie automatisch, weil `subTab === 'today'` durch `App.jsx`s URL-Routing nie gesetzt wurde. Jetzt setzt `parseHashRoute()` `subTab = 'today'` explizit bei jedem Einstieg ohne explizites Datum (leerer Hash/PWA-Start-URL, oder `#session/today`) — ein Deep-Link mit explizitem ISO-Datum (Dashboard/Review) setzt weiterhin kein `subTab` und öffnet das Gate nicht.
+- `SplitPicker.jsx`: Split-Auswahl leitet sich jetzt automatisch aus den eingetragenen Übungen ab (`inferBlockFromExercises()` in `utils.js`), solange der User selbst noch nichts gewählt hat. `EffortPicker.jsx` (neu) zeigt RPE direkt unter dem SplitPicker statt nur in der Sidebar.
 
 ## Auffälligkeiten (2026-08-12)
 - `SixPackPromiseCard.jsx`: Übungskategorisierung (Lower/Bottom-up/Top-down/Upper Abs) ist eigene fachliche Einordnung der 10 verifizierten echten Übungsnamen, nicht aus der App selbst bestätigt — vom Nutzer als Vitaltrainer ggf. zu korrigieren.
