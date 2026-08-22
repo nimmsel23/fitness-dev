@@ -1,5 +1,7 @@
-exercise_id: rear_delt_fly_cable_incline
-description: Expert details for Vorgebeugtes Kabel Reverse Fly
+name: inbox_rear_delt_fly_cable_incline
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Vorgebeugtes
+  Kabel Reverse Fly'
+generated_at: '2026-08-22T08:49:37.486734+00:00'
 exercises:
 - exercise_id: rear_delt_fly_cable_incline
   wger_id: null
@@ -85,7 +87,7 @@ exercises:
   - Cable Rear Delt Fly
   - Cable Reverse Fly
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Vorgebeugtes Kabel Reverse Fly
   - Bent-Over Cable Rear Delt Fly
