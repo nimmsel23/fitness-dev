@@ -20,6 +20,7 @@ ist nur ein Symlink darauf) bzw. via firestore.fuel-Pfadhelfer nach
 
 import json
 import threading
+import time
 from pathlib import Path
 
 import yaml
@@ -44,6 +45,13 @@ STATE_FILE = STATE_DIR / "fsm-known-journal.json"
 
 console = Console()
 _lock = threading.Lock()
+
+# Zeitstempel (monotonic) des letzten lokalen Writes, den on_session selbst
+# ausgelöst hat (Firestore → lokal). local_watch.py's Session-Filesystem-
+# Watcher liest das, um sein eigenes Echo (lokaler Write löst sofort wieder
+# einen Push aus) für ein paar Sekunden zu unterdrücken, statt in einen
+# Push↔Pull-Ping-Pong zu laufen.
+_recent_pull_writes: dict[str, float] = {}
 
 
 def _load_known(path: Path) -> set:
@@ -79,6 +87,7 @@ def on_session(col_snapshot, changes, read_time):
             if local.exists():
                 local.unlink()
                 logger.info(f"session ← {doc_id} entfernt (remote gelöscht)")
+            _recent_pull_writes[doc_id] = time.monotonic()
             day = doc_id.split("__")[0]
             sid = doc_id.split("__")[1] if "__" in doc_id else None
             try:
@@ -99,6 +108,7 @@ def on_session(col_snapshot, changes, read_time):
                 continue
         out = {k: (ts(v) if hasattr(v, "isoformat") else v) for k, v in data.items()}
         local.write_text(json.dumps(out, indent=2, ensure_ascii=False))
+        _recent_pull_writes[doc_id] = time.monotonic()
         logger.success(f"session ← {doc_id}")
         # sync_gateway: Firestore-Pfad → SQLite (Python-only write, kein server.mjs beteiligt)
         day = doc_id.split("__")[0]
@@ -503,6 +513,17 @@ def mirror_session(date: str, session: dict, uid: str = UID) -> None:
         db.collection("fitness").document(uid).collection("sessions").document(target_id).set(out)
     except Exception as e:
         logger.warning(f"mirror_session fehler: {e}")
+
+def mirror_session_delete(doc_id: str, uid: str = UID) -> None:
+    """Löscht einen Session-Doc in Firestore — Gegenstück zu mirror_session()
+    für den Fall, dass eine lokale Session-Datei entfernt wird (Duplikat-
+    Cleanup, manuelle Reparatur o.ä.), nicht nur beim regulären App-Löschen
+    über POST/DELETE /session."""
+    try:
+        db = get_db()
+        db.collection("fitness").document(uid).collection("sessions").document(doc_id).delete()
+    except Exception as e:
+        logger.warning(f"mirror_session_delete fehler ({doc_id}): {e}")
 
 def mirror_journal(date: str, entry: dict, uid: str = UID) -> None:
     try:

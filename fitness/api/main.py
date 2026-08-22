@@ -51,6 +51,7 @@ async def lifespan(app: FastAPI):
     # Besitz (hier) und Prod-Kontext (run_kb_sync()-Guard) sind zwei getrennte
     # Fragen, auch wenn beide aktuell nur auf der Prod-Unit zusammenfallen.
     watchers = []
+    fs_observers = []
     enrichment_observer = enrichment_loop_thread = enrichment_stop_event = None
     if os.environ.get("FITNESS_SKIP_WATCHERS") == "1":
         logger.info("FITNESS_SKIP_WATCHERS=1 — Firestore-/Enrichment-Watcher übersprungen (laufen nur in Dev, :9150).")
@@ -72,11 +73,34 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"Enrichment-Watcher nicht gestartet: {e}")
 
+        # Lokale Filesystem-Watcher (watchdog, kein Firestore on_snapshot):
+        # spiegeln manuelle/skriptgetriebene Änderungen an Session-JSONs bzw.
+        # kb/muscles/-YAMLs automatisch nach Firestore, statt nur beim
+        # regulären API-Save (mirror_session) bzw. beim nächsten `git push`
+        # (pre-push-Hook-Fallback). Siehe fitness/firestore/local_watch.py
+        # und fitness/catalog/api/muscle_watcher.py.
+        try:
+            from fitness.firestore.local_watch import start_session_file_watcher
+            fs_observers.append(start_session_file_watcher())
+        except Exception as e:
+            logger.warning(f"Session-Filesystem-Watcher nicht gestartet: {e}")
+        try:
+            from fitness.catalog.api.muscle_watcher import start_muscle_kb_watcher
+            fs_observers.append(start_muscle_kb_watcher())
+        except Exception as e:
+            logger.warning(f"Muscle-KB-Filesystem-Watcher nicht gestartet: {e}")
+
     yield
 
     for w in watchers:
         try:
             w.unsubscribe()
+        except Exception:
+            pass
+    for obs in fs_observers:
+        try:
+            obs.stop()
+            obs.join()
         except Exception:
             pass
     if enrichment_stop_event is not None:
