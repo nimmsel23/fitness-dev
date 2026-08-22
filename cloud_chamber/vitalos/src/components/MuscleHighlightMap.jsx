@@ -1,1 +1,0 @@
-../../../../src/components/MuscleHighlightMap.jsx

@@ -1,1 +1,0 @@
-../../../../src/components/AnatomyDetailModal.jsx
