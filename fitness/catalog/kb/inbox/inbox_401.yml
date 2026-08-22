@@ -1,5 +1,6 @@
-name: '401'
-description: Expert details for Beinstrecken
+name: inbox_401
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Beinstrecken'
+generated_at: '2026-08-22T08:49:30.826940+00:00'
 exercises:
 - exercise_id: '401'
   id: '401'
@@ -79,7 +80,7 @@ exercises:
     primary:
     - 10
     secondary: []
-  source: expert
+  source: unreviewed
   schema_version: 2026-08-12.exercise-v1
   origin:
     type: merged_external
