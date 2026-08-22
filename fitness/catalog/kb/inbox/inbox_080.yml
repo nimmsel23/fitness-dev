@@ -1,5 +1,6 @@
-name: 080
-description: Expert details for Kreuzheben
+name: inbox_080
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Kreuzheben'
+generated_at: '2026-08-22T08:49:30.256133+00:00'
 exercises:
 - exercise_id: 080
   id: 080
@@ -88,21 +89,22 @@ exercises:
   wger_id: 184
   yuhonas_id: Barbell_Deadlift
   original_description:
-  - "Stelle dich mit etwas mehr als schulterbreitem Stand vor der Stange, die Füße\
-    \ zeigen leicht nach außen, die Stange ist direkt darüber und sehr nahe am Schienbein.\
-    \ Beuge die Knie (zeigen ebenfalls etwas nach außen) und neige den Oberkörper\
-    \ (bleibt während der ganzen Übung gerade). Greife die Stange schulterbreit mit\
-    \ einem Unter- und einem Obergriff.\nZiehe nun die Stange nach oben. An der höchsten\
-    \ Stelle mache ein leichtes Hohlkreuz und drücke die Schultern nach hinten. Gehe\
-    \ wieder runter, wobei du darauf achtest, dass der Rücken gerade bleibt und sich\
-    \ nicht krümmt. Du kannst unten angekommen eine kleine Pause einlegen oder sofort\
-    \ weitermachen."
+  - 'Stelle dich mit etwas mehr als schulterbreitem Stand vor der Stange, die Füße
+    zeigen leicht nach außen, die Stange ist direkt darüber und sehr nahe am Schienbein.
+    Beuge die Knie (zeigen ebenfalls etwas nach außen) und neige den Oberkörper (bleibt
+    während der ganzen Übung gerade). Greife die Stange schulterbreit mit einem Unter-
+    und einem Obergriff.
+
+    Ziehe nun die Stange nach oben. An der höchsten Stelle mache ein leichtes Hohlkreuz
+    und drücke die Schultern nach hinten. Gehe wieder runter, wobei du darauf achtest,
+    dass der Rücken gerade bleibt und sich nicht krümmt. Du kannst unten angekommen
+    eine kleine Pause einlegen oder sofort weitermachen.'
   instructions:
   - Stand in front of a loaded barbell.
-  - "While keeping the back as straight as possible, bend your knees, bend forward
+  - 'While keeping the back as straight as possible, bend your knees, bend forward
     and grasp the bar using a medium (shoulder width) overhand grip. This will be
     the starting position of the exercise. Tip: If it is difficult to hold on to the
-    bar with this grip, alternate your grip or use wrist straps."
+    bar with this grip, alternate your grip or use wrist straps.'
   - While holding the bar, start the lift by pushing with your legs while simultaneously
     getting your torso to the upright position as you breathe out. In the upright
     position, stick your chest out and contract the back by bringing the shoulder
@@ -130,7 +132,7 @@ exercises:
     secondary:
     - 12
     - 11
-  source: expert
+  source: unreviewed
   schema_version: 2026-08-12.exercise-v1
   origin:
     type: merged_external
@@ -150,28 +152,29 @@ exercises:
         - 12
         - 11
       original_description:
-      - "Stelle dich mit etwas mehr als schulterbreitem Stand vor der Stange, die Füße\
-        \ zeigen leicht nach außen, die Stange ist direkt darüber und sehr nahe am Schienbein.\
-        \ Beuge die Knie (zeigen ebenfalls etwas nach außen) und neige den Oberkörper\
-        \ (bleibt während der ganzen Übung gerade). Greife die Stange schulterbreit\
-        \ mit einem Unter- und einem Obergriff.\nZiehe nun die Stange nach oben. An\
-        \ der höchsten Stelle mache ein leichtes Hohlkreuz und drücke die Schultern\
-        \ nach hinten. Gehe wieder runter, wobei du darauf achtest, dass der Rücken\
-        \ gerade bleibt und sich nicht krümmt. Du kannst unten angekommen eine kleine\
-        \ Pause einlegen oder sofort weitermachen."
+      - 'Stelle dich mit etwas mehr als schulterbreitem Stand vor der Stange, die
+        Füße zeigen leicht nach außen, die Stange ist direkt darüber und sehr nahe
+        am Schienbein. Beuge die Knie (zeigen ebenfalls etwas nach außen) und neige
+        den Oberkörper (bleibt während der ganzen Übung gerade). Greife die Stange
+        schulterbreit mit einem Unter- und einem Obergriff.
+
+        Ziehe nun die Stange nach oben. An der höchsten Stelle mache ein leichtes
+        Hohlkreuz und drücke die Schultern nach hinten. Gehe wieder runter, wobei
+        du darauf achtest, dass der Rücken gerade bleibt und sich nicht krümmt. Du
+        kannst unten angekommen eine kleine Pause einlegen oder sofort weitermachen.'
     yuhonas:
       yuhonas_id: Barbell_Deadlift
       instructions:
       - Stand in front of a loaded barbell.
-      - "While keeping the back as straight as possible, bend your knees, bend forward
+      - 'While keeping the back as straight as possible, bend your knees, bend forward
         and grasp the bar using a medium (shoulder width) overhand grip. This will
-        be the starting position of the exercise. Tip: If it is difficult to hold on
-        to the bar with this grip, alternate your grip or use wrist straps."
+        be the starting position of the exercise. Tip: If it is difficult to hold
+        on to the bar with this grip, alternate your grip or use wrist straps.'
       - While holding the bar, start the lift by pushing with your legs while simultaneously
         getting your torso to the upright position as you breathe out. In the upright
         position, stick your chest out and contract the back by bringing the shoulder
-        blades back. Think of how the soldiers in the military look when they are in
-        standing in attention.
+        blades back. Think of how the soldiers in the military look when they are
+        in standing in attention.
       - Go back to the starting position by bending at the knees while simultaneously
         leaning the torso forward at the waist while keeping the back straight. When
         the weights on the bar touch the floor you are back at the starting position
