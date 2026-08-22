@@ -280,6 +280,10 @@ ein Live-Pfad gebraucht wird.
    ```
    Klientennamen/private Details generalisieren — die Note ist wiederverwendbar
    für alle Klienten, nicht Matthias-spezifisch.
+2b. Optional: Rohtext unverändert als `kb/coaching_notes/<slug>.raw.txt`
+   danebenlegen (Quellenarchiv, z.B. der originale WhatsApp-Export). Wird von
+   Loader/Build-Script ignoriert (beide filtern nur `.yaml`/`.yml`) — reine
+   Referenz für spätere Nachschlagezwecke, kein aktiver KB-Content.
 3. `npm run build:coaching-notes` (oder einfach `npm run dev`/`build`, läuft
    automatisch) — generiert `coachNotesData.generated.js` neu.
 4. Passende Stelle im Frontend mit `<CoachNoteCard tag="<tag-oder-activity-type>" />`
