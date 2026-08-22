@@ -1,5 +1,7 @@
-exercise_id: face_pull
-description: Expert details for Face Pull am Kabel
+name: inbox_face_pull
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Face
+  Pull am Kabel'
+generated_at: '2026-08-22T08:49:35.227645+00:00'
 exercises:
 - exercise_id: face_pull
   id: face_pull
@@ -83,7 +85,7 @@ exercises:
   - rope face pull
   - cable face pull
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Face Pull
   - Face Pulls
