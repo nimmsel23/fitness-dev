@@ -363,7 +363,22 @@ def on_kb_exercises(col_snapshot, changes, read_time):
             yaml.safe_dump(doc, fh, allow_unicode=True, sort_keys=False)
 
         removed_draft = _remove_inbox_draft(ex_id, display_name)
-        logger.success(f"kb exercise ← approved: {display_name} ({ex_id})")
+        # removed_draft ist der einzige verlaessliche Marker fuer einen ECHTEN
+        # Approval-Uebergang (Draft war noch da, wurde jetzt entfernt). Ohne
+        # diese Unterscheidung feuert der Listener bei JEDER weiteren Aenderung
+        # am bereits approved Dokument (z.B. neue Felder durch einen spaeteren
+        # `fitness sync kb push`-Lauf, der den Hash aendert) erneut als
+        # "approve ... via Firestore" - 24x fuer dieselbe Uebung (020,
+        # 2026-08-08 bis 2026-08-21) beobachtet, obwohl kein Mensch je wieder
+        # auf Approve gedrueckt hat. Bloss angereicherte Metadaten committen
+        # wir weiterhin (Datei bleibt Wahrheit), aber mit ehrlicher Message.
+        is_new_approval = removed_draft is not None
+        if is_new_approval:
+            logger.success(f"kb exercise ← approved: {display_name} ({ex_id})")
+            commit_message = f"chore(catalog): approve {ex_id} ({display_name}) via Firestore"
+        else:
+            logger.info(f"kb exercise ← metadata sync (bereits approved): {display_name} ({ex_id})")
+            commit_message = f"chore(catalog): sync approved exercise metadata {ex_id} ({display_name})"
 
         # Gleiche Behandlung wie approve_inbox_entry() (lokaler CLI/TUI-Pfad,
         # inbox_actions.py): sofort committen statt unstaged liegen zu lassen
@@ -372,7 +387,7 @@ def on_kb_exercises(col_snapshot, changes, read_time):
         # + catalog.json neu bauen, damit die Uebung sofort in der Suche
         # auftaucht statt erst beim naechsten manuellen Rebuild.
         commit_paths = [_APPROVED_FILE] + ([removed_draft] if removed_draft else [])
-        _git_commit_paths(commit_paths, f"chore(catalog): approve {ex_id} ({display_name}) via Firestore")
+        _git_commit_paths(commit_paths, commit_message)
         _rebuild_runtime_catalog()
 
 
