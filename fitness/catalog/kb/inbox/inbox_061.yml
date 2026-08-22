@@ -1,5 +1,6 @@
-name: '061'
-description: Expert details for Frontkniebeuge
+name: inbox_061
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Frontkniebeuge'
+generated_at: '2026-08-22T08:49:29.919463+00:00'
 exercises:
 - exercise_id: '061'
   id: '061'
@@ -111,7 +112,7 @@ exercises:
     secondary:
     - 8
     - 6
-  source: expert
+  source: unreviewed
   schema_version: 2026-08-12.exercise-v1
   origin:
     type: external
