@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Play, Pause, Dumbbell, Shuffle, Check, ChevronLeft, ListChecks, UtensilsCrossed, BookOpen, Star, Camera, Video } from 'lucide-react';
-import { SIXPACK_CATEGORIES, SIXPACK_EXERCISE_DETAILS, SIXPACK_EXERCISE_POOL, VERIFIED_WEEK1_WORKOUTS } from './sixpackData.js';
-import { getAllExercises } from '@db';
+import { SIXPACK_CATEGORIES, SIXPACK_EXERCISE_DETAILS, SIXPACK_EXERCISE_POOL, SIXPACK_CALISTHENICS_SKILLS, VERIFIED_WEEK1_WORKOUTS } from './sixpackData.js';
 
 const SIXPACK_PROGRAM_KEY = 'fitness-sixpack-program-v1';
 const SIXPACK_FAVORITES_KEY = 'fitness-sixpack-favorites-v1';
@@ -169,91 +168,83 @@ function EatScreen({ onBack }) {
   );
 }
 
+// Learn ist sein eigener, 6-Pack-spezifischer Fall (kein Ausflug in den
+// vollen KB-Katalog): die 21 kuratierten Core-Übungen aus SIXPACK_EXERCISE_DETAILS
+// plus die Calisthenics-Skills-Progressionsketten (kb/exercises/calisthenics/,
+// SIXPACK_CALISTHENICS_SKILLS) als zweite, eigene Sektion.
 function LearnScreen({ onBack }) {
   const [query, setQuery] = useState('');
-  const [allExercises, setAllExercises] = useState([]);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const exercises = await getAllExercises();
-      if (cancelled) return;
-      setAllExercises(Array.isArray(exercises) ? exercises : []);
-    })();
-    return () => { cancelled = true; };
-  }, []);
-
-  const visibleExercises = useMemo(() => {
-    const curated = allExercises
-      .filter((exercise) => {
-        const id = String(exercise.exercise_id || exercise.id || '').trim();
-        if (!id) return false;
-        if (id === 'approved_from_firebase') return false;
-        if (id.startsWith('unreviewed_') || id.startsWith('inbox_')) return false;
-        const reviewStatus = exercise.review_state?.status;
-        const tags = exercise.tags || [];
-        return reviewStatus === 'approved' || reviewStatus === 'curated' || exercise.source === 'expert' || exercise.source === 'manual' || tags.includes('expert');
-      })
-      .map((exercise) => {
-        const id = String(exercise.exercise_id || exercise.id || '').trim();
-        const name = exercise.display_name || exercise.displayName || exercise.german || exercise.english || exercise.name || id;
-        const primary = Array.isArray(exercise.primary_muscles) ? exercise.primary_muscles : (Array.isArray(exercise.primaryMuscles) ? exercise.primaryMuscles : []);
-        const secondary = Array.isArray(exercise.secondary_muscles) ? exercise.secondary_muscles : (Array.isArray(exercise.secondaryMuscles) ? exercise.secondaryMuscles : []);
-        return {
-          id,
-          name,
-          source: exercise.source || 'catalog',
-          primaryCount: primary.length,
-          secondaryCount: secondary.length,
-          tags: Array.isArray(exercise.tags) ? exercise.tags : [],
-        };
-      })
-      .sort((a, b) => a.name.localeCompare(b.name));
-
+  const visibleCore = useMemo(() => {
+    const list = Object.values(SIXPACK_EXERCISE_DETAILS).sort((a, b) => a.name.localeCompare(b.name));
     const q = query.trim().toLowerCase();
-    if (!q) return curated;
-    return curated.filter((exercise) => {
-      const hay = [exercise.id, exercise.name, exercise.source, ...exercise.tags].join(' ').toLowerCase();
-      return hay.includes(q);
-    });
-  }, [allExercises, query]);
+    if (!q) return list;
+    return list.filter((ex) => [ex.id, ex.name, ex.category, ex.focusLabel].join(' ').toLowerCase().includes(q));
+  }, [query]);
+
+  const visibleSkills = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return SIXPACK_CALISTHENICS_SKILLS;
+    return SIXPACK_CALISTHENICS_SKILLS.filter((skill) => [skill.id, skill.name, skill.tier, ...skill.progressions].join(' ').toLowerCase().includes(q));
+  }, [query]);
 
   return (
     <div>
       <BackHeader label="Learn" onBack={onBack} />
       <div className="px-4 py-2 text-[11px] font-bold" style={{ color: 'var(--dim)' }}>
-        Echte Exercise-Library aus dem KB-Katalog, nicht 6-Pack-spezifisch.
+        Core-Übungen aus dem 6-Pack-Programm + Calisthenics-Skill-Progressionen.
       </div>
       <div className="px-4 pb-2">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Exercise suchen..."
+          placeholder="Exercise oder Skill suchen..."
           className="w-full rounded-xl px-3 py-2 text-sm"
           style={{ background: '#141414', color: '#fff', border: '1px solid #2a2a2a' }}
         />
       </div>
-      <div className="px-4 pb-2 text-[11px] font-bold" style={{ color: 'var(--dim)' }}>
-        {visibleExercises.length} Exercises
+
+      <div className="px-4 pt-2 pb-1 text-[10px] font-black uppercase tracking-[0.14em]" style={{ color: '#e2001a' }}>
+        Core ({visibleCore.length})
       </div>
       <div>
-        {visibleExercises.map((exercise) => (
+        {visibleCore.map((exercise) => (
           <div key={exercise.id} className="px-4 py-3" style={{ background: '#1a1a1a', borderBottom: '1px solid #000' }}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-sm font-bold" style={{ color: '#fff' }}>{exercise.name}</div>
                 <div className="text-[10px] font-black uppercase tracking-[0.1em] mt-1" style={{ color: '#e2001a' }}>
-                  {exercise.id}
+                  {exercise.focusLabel}
                 </div>
               </div>
               <div className="flex items-center gap-1.5 text-[10px] font-bold shrink-0" style={{ color: 'var(--dim)' }}>
                 <BookOpen size={13} />
-                {exercise.source}
+                {exercise.verifiedDays.length > 0 ? `Tag ${exercise.verifiedDays.join(', ')}` : 'Pool'}
               </div>
             </div>
-            <div className="flex items-center justify-between gap-3 mt-2 text-[11px]" style={{ color: 'var(--dim)' }}>
-              <div>{exercise.primaryCount} primary · {exercise.secondaryCount} secondary</div>
-              <div>{exercise.tags.slice(0, 2).join(' · ') || 'catalog'}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="px-4 pt-4 pb-1 text-[10px] font-black uppercase tracking-[0.14em]" style={{ color: '#e2001a' }}>
+        Calisthenics Skills ({visibleSkills.length})
+      </div>
+      <div>
+        {visibleSkills.map((skill) => (
+          <div key={skill.id} className="px-4 py-3" style={{ background: '#1a1a1a', borderBottom: '1px solid #000' }}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-sm font-bold" style={{ color: '#fff' }}>{skill.name}</div>
+                <div className="text-[11px] mt-1" style={{ color: 'var(--dim)' }}>
+                  {skill.progressions.join(' → ')}
+                </div>
+              </div>
+              <span
+                className="text-[9px] font-black uppercase tracking-[0.1em] px-2 py-1 rounded-md shrink-0"
+                style={{ background: skill.tier === 'pro' ? '#e2001a' : '#2a2a2a', color: '#fff' }}
+              >
+                {skill.tier}
+              </span>
             </div>
           </div>
         ))}

@@ -235,3 +235,23 @@ export const SIXPACK_EXERCISE_DETAILS = Object.fromEntries(
     },
   ]),
 );
+
+// Spiegel von kb/exercises/calisthenics/*.yml (Skill-Progressionen, kein
+// vollständiges ExerciseRecord-Schema — nur id/name/tier/progressions, daher
+// hier als eigene, handgepflegte Liste statt über den Exercise-Resolver).
+export const SIXPACK_CALISTHENICS_SKILLS = [
+  { id: 'front-lever', name: 'Front Lever', tier: 'free', progressions: ['Scapula Pulls', 'Tuck Front Lever', 'Advanced Tuck Front Lever', 'One Leg Front Lever', 'Straddle Front Lever', 'Full Front Lever'] },
+  { id: 'back-lever', name: 'Back Lever', tier: 'free', progressions: ['Skin the Cat', 'Tuck Back Lever', 'Advanced Tuck Back Lever', 'Straddle Back Lever', 'Full Back Lever'] },
+  { id: 'planche', name: 'Planche', tier: 'free', progressions: ['Plank', 'Planche Lean', 'Frog Stand', 'Tuck Planche', 'Advanced Tuck Planche', 'Straddle Planche', 'Full Planche'] },
+  { id: 'muscle-up', name: 'Muscle-Up', tier: 'free', progressions: ['Klimmzüge', 'Explosive Klimmzüge', 'Chest-to-Bar Pull-Ups', 'Bar Dips', 'Muscle-Up Negative', 'Muscle-Up'] },
+  { id: 'handstand-pushup', name: 'Handstand Push-Up', tier: 'free', progressions: ['Pike Push-Ups', 'Elevated Pike Push-Ups', 'Wall Handstand Push-Ups', 'Freestanding Handstand Push-Ups'] },
+  { id: 'pistol-squat', name: 'Pistol Squat', tier: 'free', progressions: ['Assisted Squats', 'Deep Squats', 'Step-Ups', 'Negative Pistol Squats', 'Full Pistol Squat'] },
+  { id: 'v-sit', name: 'V-Sit', tier: 'free', progressions: ['Tuck L-Sit', 'L-Sit', 'Straddle L-Sit', 'V-Sit'] },
+  { id: 'dragon-flag', name: 'Dragon Flag', tier: 'pro', progressions: ['Candlestick', 'Dragon Flag Negatives', 'Tuck Dragon Flag', 'Full Dragon Flag'] },
+  { id: 'human-flag', name: 'Human Flag', tier: 'pro', progressions: ['Support Holds', 'Vertical Flag', 'Tuck Human Flag', 'Straddle Human Flag', 'Full Human Flag'] },
+  { id: 'hefesto', name: 'Hefesto', tier: 'pro', progressions: ['Korean Dips', 'Back Lever Pull-Ups', 'Hefesto Negatives', 'Full Hefesto'] },
+  { id: 'one-arm-handstand', name: 'One Arm Handstand', tier: 'pro', progressions: ['Handstand Balance', 'Handstand Shifting', 'Finger Support Handstand', 'One Arm Handstand'] },
+  { id: 'one-arm-pullup', name: 'One Arm Pull-Up', tier: 'pro', progressions: ['Archer Pull-Ups', 'Weighted Pull-Ups', 'One Arm Negative Pull-Ups', 'Assisted One Arm Pull-Up'] },
+  { id: 'one-arm-pushup', name: 'One Arm Push-Up', tier: 'pro', progressions: ['Incline One Arm Push-Up', 'Archer Push-Ups', 'One Arm Push-Up'] },
+  { id: 'shrimp-squat', name: 'Shrimp Squat', tier: 'pro', progressions: ['Airborne Squat', 'Shrimp Squat (einarmig halten)', 'Full Shrimp Squat'] },
+];

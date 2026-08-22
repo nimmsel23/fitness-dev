@@ -27,8 +27,12 @@ def iter_catalog_yaml_files(relative_dir: str) -> list[Path]:
     directory = catalog_path(relative_dir)
     if not directory.exists():
         return []
-    # Unterstütze sowohl .yml (Exercises/Coaching) als auch .yaml (Anatomie)
-    files = list(directory.glob("*.yml")) + list(directory.glob("*.yaml"))
+    # rglob statt glob: Unterordner (z.B. kb/exercises/6pack/,
+    # kb/exercises/calisthenics/) wurden bis 2026-08-21 von jedem Aufrufer
+    # (resolver.py, firestore_push.py, ...) stillschweigend übersprungen —
+    # kuratierte Dateien dort landeten nie im Exercise-Index. Unterstütze
+    # sowohl .yml (Exercises/Coaching) als auch .yaml (Anatomie).
+    files = list(directory.rglob("*.yml")) + list(directory.rglob("*.yaml"))
     return sorted(files)
 
 
