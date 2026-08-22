@@ -1,5 +1,7 @@
-exercise_id: lat_pulldown_close_supinated
-description: Expert details for Enger Latzug im Untergriff
+name: inbox_lat_pulldown_close_supinated
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Enger
+  Latzug im Untergriff'
+generated_at: '2026-08-22T08:49:36.251438+00:00'
 exercises:
 - exercise_id: lat_pulldown_close_supinated
   id: lat_pulldown_close_supinated
@@ -103,7 +105,7 @@ exercises:
   - Reverse-Grip Close-Grip Lat Pulldown
   - Close-Grip Supinated Lat Pulldown
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Enger Latzug im Untergriff
   - Enger Untergriff-Latzug
