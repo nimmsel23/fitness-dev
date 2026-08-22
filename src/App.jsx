@@ -77,8 +77,18 @@ function parseHashRoute({ resolveFlowTab, navMode }) {
   }
 
   if (next.tab === 'session') {
-    if (SESSION_SUB_TABS.has(rawSub) && rawSub !== 'today') next.subTab = rawSub
-    else if (!rawSub) next.sessionDate = next.sessionDate || localToday()
+    const explicitDate = isIsoDate(rawSub) || (!rawSub && isIsoDate(legacyDate))
+    if (SESSION_SUB_TABS.has(rawSub) && rawSub !== 'today') {
+      next.subTab = rawSub
+    } else if (explicitDate) {
+      // Deep-Link mit explizitem Datum (z.B. von Dashboard/Review) — kein Gate
+      next.sessionDate = next.sessionDate || localToday()
+    } else {
+      // Kein Datum angegeben: frischer Einstieg (leerer Hash, PWA-Start_url)
+      // oder explizit #session/today — hier soll das Session-Gate aufgehen
+      next.subTab = 'today'
+      next.sessionDate = next.sessionDate || localToday()
+    }
     if (next.subTab === 'plan' && (view === 'routine' || view === 'workout') && id) {
       next.planView = view
       next.planId = id
