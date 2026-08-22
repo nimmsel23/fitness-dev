@@ -1,5 +1,7 @@
-exercise_id: cable_lateral_raise
-description: Expert details for Seitheben am Kabelzug
+name: inbox_cable_lateral_raise
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Seitheben
+  am Kabelzug'
+generated_at: '2026-08-22T08:49:33.024097+00:00'
 exercises:
 - exercise_id: cable_lateral_raise
   id: cable_lateral_raise
@@ -105,7 +107,7 @@ exercises:
     - 2
     secondary: []
   variations: []
-  source: expert
+  source: unreviewed
   schema_version: 2026-08-12.exercise-v1
   origin:
     type: external
