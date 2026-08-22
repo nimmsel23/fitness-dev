@@ -1,5 +1,7 @@
-exercise_id: cable_crossover_inner_x
-description: Expert details for Kabel-Crossover über Kreuz
+name: inbox_cable_crossover_inner_x
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Kabel-Crossover
+  über Kreuz'
+generated_at: '2026-08-22T08:49:32.146544+00:00'
 exercises:
 - exercise_id: cable_crossover_inner_x
   id: cable_crossover_inner_x
@@ -70,7 +72,7 @@ exercises:
   - Kabel-Fly über Kreuz
   - Überkreuztes Cable Crossover
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Kabel-Crossover über Kreuz
   - Cross-Body Cable Crossover
