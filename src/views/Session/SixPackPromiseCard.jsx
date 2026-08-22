@@ -257,19 +257,11 @@ function LearnScreen({ onBack, onOpenSkill, onOpenExercise }) {
             className="w-full px-4 py-3 text-left"
             style={{ background: '#1a1a1a', borderBottom: '1px solid #000' }}
           >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="text-sm font-bold" style={{ color: '#fff' }}>{skill.name}</div>
-                <div className="text-[11px] mt-1" style={{ color: 'var(--dim)' }}>
-                  {skill.progressions.join(' → ')}
-                </div>
+            <div>
+              <div className="text-sm font-bold" style={{ color: '#fff' }}>{skill.name}</div>
+              <div className="text-[11px] mt-1" style={{ color: 'var(--dim)' }}>
+                {skill.progressions.join(' → ')}
               </div>
-              <span
-                className="text-[9px] font-black uppercase tracking-[0.1em] px-2 py-1 rounded-md shrink-0"
-                style={{ background: skill.tier === 'pro' ? '#e2001a' : '#2a2a2a', color: '#fff' }}
-              >
-                {skill.tier}
-              </span>
             </div>
           </button>
         ))}
