@@ -1,5 +1,7 @@
-exercise_id: cable_crossover_high_to_low
-description: Expert details for Kabel-Crossover von oben nach unten
+name: inbox_cable_crossover_high_to_low
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Kabel-Crossover
+  von oben nach unten'
+generated_at: '2026-08-22T08:49:31.778170+00:00'
 exercises:
 - exercise_id: cable_crossover_high_to_low
   id: cable_crossover_high_to_low
@@ -78,7 +80,7 @@ exercises:
   - kabel fly von oben nach unten
   - kabel crossover oben unten
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Kabel-Crossover von oben nach unten
   - Kabelzug Flys von oben nach unten
