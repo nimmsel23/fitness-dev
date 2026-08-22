@@ -6,7 +6,7 @@ export default function SidebarSheet({
   location, setLocation, duration, setDuration,
   gpsMapsUrl,
   trainingsart, setTrainingsart,
-  effort, setEffort, notes, setNotes,
+  notes, setNotes,
   onDownload, onExportObsidian, coachFeedback = ""
 }) {
   return createPortal(
@@ -24,7 +24,6 @@ export default function SidebarSheet({
           duration={duration} setDuration={setDuration}
           gpsMapsUrl={gpsMapsUrl}
           trainingsart={trainingsart} setTrainingsart={setTrainingsart}
-          effort={effort} setEffort={setEffort}
           notes={notes} setNotes={setNotes}
           onDownload={onDownload}
           onExportObsidian={onExportObsidian}
