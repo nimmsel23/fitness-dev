@@ -106,7 +106,7 @@ function buildHashRoute({ tab, subTab, sessionDate, focusLayer, planView, planId
     } else if (sessionDate) {
       segments.push('today')
     }
-    if (sessionDate && !subTab) params.set('date', sessionDate)
+    if (sessionDate) params.set('date', sessionDate)
     if (subTab === 'plan' && (planView === 'routine' || planView === 'workout') && planId) {
       params.set('view', planView)
       params.set('id', planId)
