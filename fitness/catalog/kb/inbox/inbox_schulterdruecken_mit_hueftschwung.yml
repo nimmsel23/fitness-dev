@@ -1,5 +1,7 @@
-exercise_id: schulterdruecken_mit_hueftschwung
-description: Expert details for Push Press
+name: inbox_schulterdruecken_mit_hueftschwung
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Push
+  Press'
+generated_at: '2026-08-22T08:49:38.212653+00:00'
 exercises:
 - exercise_id: schulterdruecken_mit_hueftschwung
   wger_id: null
@@ -85,7 +87,7 @@ exercises:
   - Langhantel Push Press
   - Kurzhantel Push Press
   - Einarmiger Kurzhantel Push Press
-  source: expert
+  source: unreviewed
   search_aliases:
   - Push Press
   - Stoßdrücken
