@@ -24,38 +24,61 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `CLAUDE.md` ist Symlink → `docs/CLAUDE.md`. Direktes Schreiben scheitert
   ("Refusing to write through symlink") — immer `docs/CLAUDE.md` editieren.
+- **`~/vitalos/bin/fitness-release` ist der bevorzugte Weg für den
+  `dev`→`vitalos`-Merge + Deploy** (dünner Wrapper um
+  `~/vitalos/bin/vos-release fitness`, verifiziert + branch-Fix
+  2026-08-22). Er pusht `~/fitness-dev`s `dev`-Branch, mergt ihn in den
+  `~/vitalos/fitness-app`-Worktree, pusht dort — was den Post-Push-Hook
+  triggert (`npm run firebase`: KB-Data-Rebuild → `vite build --mode
+  firebase` → stamp-sw → snapshot → `firebase deploy --only hosting` nach
+  `fitness-aos.web.app`) — und bumpt danach den Submodule-Pointer im
+  `~/vitalos`-Parent-Repo. `vos-release` deckt neben `fitness` auch fuel/
+  habits/journal/learn/relax ab, siehe `~/vitalos/bin/vos-release --help`.
+  Läuft interaktiv mit `gum confirm`-Rückfragen vor den kritischen Git-
+  Operationen; `--yes` überspringt diese — nur nach expliziter User-
+  Bestätigung verwenden, da das Skript einen echten Prod-Deploy auslöst.
+  Voraussetzung: `~/fitness-dev` sauber (`git status` clean) und `dev`-Branch
+  ausgecheckt, sonst bricht `require_clean_repo`/`expect_branch` kontrolliert
+  ab, bevor irgendwas gepusht wird.
 - `~/vitalos/fitness-app` ist ein Git-**Worktree** von `~/fitness-dev`
-  (`git worktree list` zeigt alle) — kein separater Clone, `master` ist dort
-  dauerhaft ausgecheckt. **Dient nur dem `master`-Merge + dem Firebase-Build/
-  Deploy** (Post-Push-Hook baut dort `npm run firebase` und deployt nach
-  `fitness-aos.web.app`) — kein einziger laufender lokaler Server zeigt
+  (`git worktree list` zeigt alle) — kein separater Clone. Der dort
+  ausgecheckte Branch heißt **`vitalos`**, nicht mehr `master`
+  (umbenannt, `origin/HEAD` zeigt entsprechend auf `origin/vitalos`;
+  `~/vitalos/bin/vos-release` kannte diesen Rename bis 2026-08-22 nicht und
+  scheiterte mit "Expected ... on branch master, found vitalos" — dort per
+  `TARGET_BRANCHES[fitness]="vitalos"` gefixt, andere Module in
+  `vos-release` sind weiterhin `master`). **Dient nur dem `vitalos`-Merge +
+  dem Firebase-Build/Deploy** — kein einziger laufender lokaler Server zeigt
   dorthin. Der eigentliche Dev-Server (Node `fitness-dev.service` :9100 +
   Python `fitness-api.service` :9150, inkl. eingebettetem Firestore-Watcher
   für Katalog-Approvals) läuft mit `WorkingDirectory=/home/alpha/fitness-dev`
   — sprich, jede lokale Entwicklung/jeder Funnel-Zugriff läuft über
   `~/fitness-dev`, nie über den Worktree. Verifiziert 2026-08-17 via
   `systemctl --user show <service> -p WorkingDirectory`. **`git checkout
-  master` in `~/fitness-dev` schlägt
+  vitalos` in `~/fitness-dev` schlägt
   deshalb erwartbar fehl** ("bereits von Arbeitsverzeichnis in .../vitalos/...
   verwendet") — das ist kein Fehlerzustand, den man dem User meldet oder bei
-  dem man nachfragt, sondern der Normalfall. Vorgehen zum `dev`→`master`-Merge,
+  dem man nachfragt, sondern der Normalfall.
+
+  Manueller Fallback, falls `fitness-release` nicht verfügbar/gewünscht ist —
   direkt ausführen statt zu stoppen:
   ```
   cd ~/fitness-dev && git push origin dev        # dev-Branch sichern
-  cd ~/vitalos/fitness-app                       # master ist hier schon ausgecheckt
+  cd ~/vitalos/fitness-app                       # vitalos ist hier schon ausgecheckt
   git merge dev --no-edit
+  git push origin vitalos
   ```
-  Bei Konflikten: `master` entwickelt sich hier eigenständig weiter (andere
+  Bei Konflikten: `vitalos` entwickelt sich hier eigenständig weiter (andere
   Sessions committen direkt hierhin), ist praktisch immer die aktuellere Seite
   für Dateien, die `dev` nicht selbst geändert hat. Vor dem Auflösen kurz
   `git log --oneline -3 -- <datei>` auf beiden Branches vergleichen (`git log
-  ... dev -- <datei>` vs. lokal) — zeigt `master` neuere/unabhängige Commits,
-  mit `git checkout --ours -- <datei> && git add <datei>` zugunsten `master`
+  ... dev -- <datei>` vs. lokal) — zeigt `vitalos` neuere/unabhängige Commits,
+  mit `git checkout --ours -- <datei> && git add <datei>` zugunsten `vitalos`
   auflösen, danach `git commit --no-edit`. Für reine Arbeit im Worktree ohne
   Merge-Absicht (z.B. Datei ansehen): `git checkout <commit-hash>` (detached)
-  reicht, `master` muss dafür nicht angerührt werden.
-  Push von `master` passiert aus `~/vitalos/fitness-app` heraus (`git push`),
-  nicht aus `~/fitness-dev` — von dort ist `master` ja nicht ausgecheckt.
+  reicht, `vitalos` muss dafür nicht angerührt werden.
+  Push von `vitalos` passiert aus `~/vitalos/fitness-app` heraus (`git push`),
+  nicht aus `~/fitness-dev` — von dort ist `vitalos` ja nicht ausgecheckt.
 - Live-KB-Pfad ist `fitness/catalog/kb/`. `catalog` ist Symlink darauf
   (`catalog -> fitness/catalog`), `fitness_cli` Symlink auf `fitness` — kein
   separater Alt-Baum mehr, alle drei Pfade sind identisch. Details zur
