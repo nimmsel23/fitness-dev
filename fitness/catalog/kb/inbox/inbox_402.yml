@@ -1,5 +1,6 @@
-name: '402'
-description: Expert details for Beinbeuger
+name: inbox_402
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Beinbeuger'
+generated_at: '2026-08-22T08:49:31.119025+00:00'
 exercises:
 - exercise_id: '402'
   id: '402'
@@ -80,7 +81,7 @@ exercises:
     primary:
     - 11
     secondary: []
-  source: expert
+  source: unreviewed
   schema_version: 2026-08-12.exercise-v1
   origin:
     type: external
