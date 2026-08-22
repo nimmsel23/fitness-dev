@@ -1,117 +1,109 @@
 import { useState, useEffect } from 'react'
-import { CalendarRange } from 'lucide-react'
+import { CalendarRange, Dumbbell } from 'lucide-react'
 import { useUser } from '../../contexts/UserContext'
 import { listMacrocycles, getMacrocycle } from '@db'
 
-const DAYS = [
-  ['mo', 'Mo'], ['di', 'Di'], ['mi', 'Mi'], ['do', 'Do'],
-  ['fr', 'Fr'], ['sa', 'Sa'], ['so', 'So'],
-]
+const DAY_KEYS = ['mo', 'di', 'mi', 'do', 'fr', 'sa', 'so']
+const DAY_LABELS = { mo: 'Montag', di: 'Dienstag', mi: 'Mittwoch', do: 'Donnerstag', fr: 'Freitag', sa: 'Samstag', so: 'Sonntag' }
 
-// Welche Kalenderwoche seit Start des Zyklus — bestimmt, welche Woche
-// standardmäßig aufgeklappt ist, ohne dass der Klient selbst zählen muss.
-function currentWeekIndex(createdAt, weekCount) {
-  const start = new Date(createdAt)
-  const days = Math.floor((Date.now() - start.getTime()) / 86400000)
-  const idx = Math.floor(days / 7)
-  return Math.min(Math.max(idx, 0), weekCount - 1)
+function todayKey() {
+  // JS getDay(): 0=So..6=Sa → auf unser mo-so Schema drehen
+  const jsDay = new Date().getDay()
+  return DAY_KEYS[(jsDay + 6) % 7]
+}
+
+// Läuft die Blöcke der Reihe nach durch und bestimmt, in welchem Block/welcher
+// Woche der Klient anhand der verstrichenen Zeit seit Zyklus-Start gerade steht.
+function locateCurrentWeek(macrocycle) {
+  const blocks = macrocycle.blocks || []
+  const elapsedWeeks = Math.floor((Date.now() - new Date(macrocycle.createdAt).getTime()) / (7 * 86400000))
+  let remaining = Math.max(elapsedWeeks, 0)
+  for (const block of blocks) {
+    if (remaining < block.weeks.length) {
+      return { block, week: block.weeks[remaining] }
+    }
+    remaining -= block.weeks.length
+  }
+  // Zyklus durchgelaufen — letzten Block/letzte Woche als Endstand zeigen
+  const lastBlock = blocks[blocks.length - 1]
+  return lastBlock ? { block: lastBlock, week: lastBlock.weeks[lastBlock.weeks.length - 1] } : { block: null, week: null }
 }
 
 export default function AssignedMacrocycles() {
   const { user } = useUser()
-  const [cycles, setCycles] = useState([])
-  const [openCycleId, setOpenCycleId] = useState(null)
-  const [openWeekIdx, setOpenWeekIdx] = useState(0)
+  const [cycle, setCycle] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!user?.uid) return
     listMacrocycles(user.uid)
       .then(async (list) => {
-        setCycles(list)
-        if (list.length > 0) {
-          const first = await getMacrocycle(user.uid, list[0].id)
-          if (first) {
-            setOpenCycleId(first.id)
-            setOpenWeekIdx(currentWeekIndex(first.createdAt, first.weeks.length))
-          }
-        }
+        if (list.length === 0) { setCycle(null); return }
+        const full = await getMacrocycle(user.uid, list[0].id)
+        setCycle(full)
       })
-      .catch(() => setCycles([]))
+      .catch(() => setCycle(null))
       .finally(() => setLoading(false))
   }, [user?.uid])
 
-  const [fullCycle, setFullCycle] = useState(null)
-  useEffect(() => {
-    if (!openCycleId || !user?.uid) { setFullCycle(null); return }
-    getMacrocycle(user.uid, openCycleId).then(setFullCycle)
-  }, [openCycleId, user?.uid])
+  if (loading || !cycle || !(cycle.blocks || []).length) return null
 
-  if (loading || cycles.length === 0) return null
+  const { block, week } = locateCurrentWeek(cycle)
+  if (!block || !week) return null
 
-  const week = fullCycle?.weeks?.[openWeekIdx]
+  const today = todayKey()
+  const todayPlan = week.days[today]
+  const hasExercises = todayPlan && (todayPlan.exercises || []).length > 0
 
   return (
     <div className="mb-6 space-y-3">
       <h3 className="text-xs font-bold text-fit-dim uppercase flex items-center gap-2 px-1">
         <CalendarRange size={14} className="text-fit-accent" />
-        Trainingsplan vom Coach
+        {cycle.name} · Block {block.blockNr} ({block.focus}) · Woche {week.weekNr}
       </h3>
 
-      {fullCycle && (
-        <div className="rounded-lg bg-fit-bg2/50 border border-fit-line/50 overflow-hidden">
-          <div className="px-4 py-3 flex items-center justify-between">
-            <div>
-              <div className="font-bold text-sm text-fit-ink">{fullCycle.name}</div>
-              <div className="text-xs text-fit-dim mt-0.5">Woche {openWeekIdx + 1} / {fullCycle.weeks.length}</div>
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setOpenWeekIdx(i => Math.max(0, i - 1))}
-                disabled={openWeekIdx === 0}
-                className="px-2 py-1 text-xs font-bold text-fit-dim hover:text-fit-ink disabled:opacity-30"
-              >‹</button>
-              <button
-                onClick={() => setOpenWeekIdx(i => Math.min(fullCycle.weeks.length - 1, i + 1))}
-                disabled={openWeekIdx === fullCycle.weeks.length - 1}
-                className="px-2 py-1 text-xs font-bold text-fit-dim hover:text-fit-ink disabled:opacity-30"
-              >›</button>
-            </div>
+      <div className="rounded-lg bg-fit-accent/10 border border-fit-accent/30 overflow-hidden">
+        <div className="px-4 py-3 border-b border-fit-accent/20">
+          <div className="text-[10px] font-black uppercase text-fit-accent">Heute — {DAY_LABELS[today]}</div>
+          <div className="text-lg font-black text-fit-ink mt-0.5">
+            {hasExercises ? (todayPlan.label || 'Training') : 'Ruhetag'}
           </div>
-
-          {week && (
-            <div className="divide-y divide-fit-line/20">
-              {DAYS.map(([dayKey, dayLabel]) => {
-                const day = week.days[dayKey]
-                if (!day || !(day.exercises || []).length) {
-                  return (
-                    <div key={dayKey} className="px-4 py-2.5 flex items-center gap-3 opacity-40">
-                      <span className="text-[10px] font-black uppercase w-7">{dayLabel}</span>
-                      <span className="text-xs">Ruhetag</span>
-                    </div>
-                  )
-                }
-                return (
-                  <div key={dayKey} className="px-4 py-2.5">
-                    <div className="flex items-center gap-3 mb-1.5">
-                      <span className="text-[10px] font-black uppercase w-7 text-fit-accent">{dayLabel}</span>
-                      <span className="text-xs font-bold text-fit-ink">{day.label || 'Training'}</span>
-                    </div>
-                    <div className="pl-10 space-y-1">
-                      {day.exercises.map((ex, i) => (
-                        <div key={i} className="text-xs text-fit-dim flex items-center justify-between">
-                          <span>{ex.name}</span>
-                          <span className="text-fit-dim/70">{ex.sets}×{ex.reps}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
         </div>
-      )}
+
+        {hasExercises && (
+          <div className="divide-y divide-fit-line/20">
+            {todayPlan.exercises.map((ex, i) => (
+              <div key={i} className="px-4 py-2.5 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Dumbbell size={13} className="text-fit-dim flex-shrink-0" />
+                  <span className="text-sm font-bold text-fit-ink">{ex.name}</span>
+                </div>
+                <span className="text-xs font-bold text-fit-dim">
+                  {ex.sets}×{ex.reps}{ex.weight ? ` @ ${ex.weight}kg` : ''}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Restliche Woche als Kontext, kompakt — kein zweites Riesengrid */}
+      <div className="flex gap-1.5 px-1">
+        {DAY_KEYS.map(d => {
+          const day = week.days[d]
+          const active = d === today
+          return (
+            <div
+              key={d}
+              className={`flex-1 text-center py-1.5 rounded-md text-[10px] font-black uppercase ${
+                active ? 'bg-fit-accent text-black' : day?.exercises?.length ? 'bg-fit-bg2 text-fit-ink' : 'bg-fit-bg2/40 text-fit-dim/40'
+              }`}
+            >
+              {d}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

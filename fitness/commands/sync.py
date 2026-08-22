@@ -3,9 +3,9 @@
   fitness-sync kb          [--dry-run]  Katalog (Exercises/Anatomy/Muscles/Yuhonas) → Firestore
   fitness-sync pull                      Firestore → lokal (Sessions/Journal/Inbox/Habits + Fuel),
                                           für den eigenen Operator-UID (firestore._db.UID)
-  fitness-sync pull-uid  <UID>           Sessions eines EINZELNEN Users ← Firestore, via die
-                                          laufende Node-API (Coach-Anwendungsfall: Klienten-Daten
-                                          ziehen ohne den eigenen UID zu wechseln)
+  fitness-sync pull-uid  <REF>           Daten eines EINZELNEN Users ← Firestore, via die
+                                          laufende Python-API; REF darf firebase_uid,
+                                          client slug/id oder crm_id sein
   fitness-sync push  [UID]               Lokal → Firestore (Sessions + Fuel)
   fitness-sync watch [UID]               Fuel-Watchdog (blockierend, Ctrl+C zum Beenden)
   fitness-sync all   [--dry-run]         kb + pull + push nacheinander
@@ -34,6 +34,7 @@ from loguru import logger
 app = typer.Typer(add_completion=False, no_args_is_help=True)
 
 DEV_PORT = int(os.environ.get("FITNESS_PORT", 9100))
+PYTHON_PORT = int(os.environ.get("FITNESS_PYTHON_PORT", os.environ.get("FITNESS_PORT", 9150)))
 
 
 @app.command("kb")
@@ -62,14 +63,15 @@ def sync_pull() -> None:
 
 @app.command("pull-uid")
 def sync_pull_uid(
-    uid: Optional[str] = typer.Argument(None, help="Firestore UID (auto-detect wenn leer)"),
+    uid: Optional[str] = typer.Argument(None, help="firebase_uid, client slug/id oder crm_id (auto-detect wenn leer)"),
 ) -> None:
-    """Sessions eines einzelnen Users ← Firestore, via die laufende Node-API (:9100).
+    """Daten eines einzelnen Users ← Firestore, via die laufende Python-API.
 
-    Anders als "pull" (SDK-Direktzugriff, immer der eigene UID) ruft das den
-    /firestore/pull-Endpoint der Node-API auf — für den Coach-Anwendungsfall,
-    gezielt die Daten eines bestimmten Klienten zu ziehen, ohne den eigenen
-    aktiven UID umzustellen. Braucht einen laufenden Node-Server (fitnessctl dev).
+    Anders als "pull" (SDK-Direktzugriff, standardmäßig alle UIDs) ruft das den
+    /firestore/pull-Endpoint der Python-API auf. Der Endpoint löst REF
+    universell über ~/Klienten/*/client.json auf, daher funktionieren hier
+    firebase_uid, client slug/id und crm_id. Braucht einen laufenden
+    Python-Server (dev meist :9150, prod typischerweise :6100).
     """
     if not uid:
         uid = os.getenv("FITNESS_UID")
@@ -88,11 +90,11 @@ def sync_pull_uid(
         logger.error("Keine uid — FITNESS_UID setzen oder als Argument übergeben")
         raise typer.Exit(1)
 
-    logger.info(f"Pull ← Firestore (uid={uid})...")
+    logger.info(f"Pull ← Firestore (ref={uid})...")
     out = Path("/tmp/fitness-pull.json")
     r = subprocess.run([
         "curl", "-fsS", "--max-time", "30", "-X", "POST",
-        f"http://127.0.0.1:{DEV_PORT}/firestore/pull",
+        f"http://127.0.0.1:{PYTHON_PORT}/firestore/pull",
         "-H", f"X-User-UID: {uid}", "-o", str(out),
     ])
     if r.returncode != 0:
@@ -102,7 +104,16 @@ def sync_pull_uid(
     if not result.get("ok"):
         logger.error(result.get("error", "unknown"))
         raise typer.Exit(1)
-    logger.success(f"pulled {result['pulled']} · skipped {result['skipped']} · conflicts {result['conflicts']}")
+    resolved_uid = result.get("uid") or uid
+    logger.success(
+        "pulled "
+        f"uid={resolved_uid} · "
+        f"{result['pulled']} sessions · "
+        f"{result.get('journal_pulled', 0)} journal · "
+        f"{result.get('habit_journal_pulled', 0)} habit-journal · "
+        f"{result.get('habit_record_pulled', 0)} habit-record · "
+        f"skipped {result['skipped']} · conflicts {result['conflicts']}"
+    )
     if result.get("conflict_dates"):
         logger.warning(f"Konflikte: {', '.join(result['conflict_dates'])}")
 

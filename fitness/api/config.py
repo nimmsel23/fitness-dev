@@ -83,6 +83,42 @@ def load_klienten_registry() -> dict[str, dict[str, str]]:
                 registry[uid] = {"name": cfg.get("name"), "slug": slug_dir.name}
     return registry
 
+def _resolve_client_ref(ref: str | None) -> str | None:
+    raw = str(ref or "").strip()
+    if not raw or raw == "default":
+        return None
+
+    registry = load_klienten_registry()
+    if raw in registry:
+        return raw
+
+    klienten_dir = Path.home() / "Klienten"
+    if not klienten_dir.exists():
+        return raw
+
+    lowered = raw.casefold()
+    for slug_dir in klienten_dir.iterdir():
+        cfg_path = slug_dir / "client.json"
+        if not cfg_path.exists():
+            continue
+        cfg = _read_json(cfg_path) or {}
+        if not cfg:
+            continue
+        uids = list(cfg.get("firebase_uids") or [])
+        primary_uid = cfg.get("firebase_uid")
+        if primary_uid and primary_uid not in uids:
+            uids.insert(0, primary_uid)
+        if not uids:
+            continue
+        slug = str(cfg.get("id") or slug_dir.name).strip()
+        crm_id = str(cfg.get("crm_id") or "").strip()
+        name = str(cfg.get("name") or "").strip()
+        candidates = {slug, slug_dir.name, crm_id}
+        if raw in {c for c in candidates if c} or (name and name.casefold() == lowered):
+            return uids[0]
+
+    return raw
+
 def _active_uid_fallback() -> str | None:
     for key in ("FITNESS_UID", "AOS_UID"):
         value = (os.environ.get(key) or "").strip()
@@ -98,7 +134,7 @@ def _active_uid_fallback() -> str | None:
 def _uid_from_request(request) -> str:
     uid = (request.query_params.get("uid") or request.headers.get("X-User-UID") or "").strip()
     if uid and uid != "default":
-        return uid
+        return _resolve_client_ref(uid) or uid
     return _active_uid_fallback() or "default"
 
 def _session_file(uid: str, day: str, sid: str | None) -> Path:

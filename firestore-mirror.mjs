@@ -277,6 +277,35 @@ export async function pullAllSessions(uid = "default") {
   }
 }
 
+export async function pullJournalTree(uid = "default") {
+  const db = await getDb();
+  if (!db) return null;
+  try {
+    const userRef = db.collection("fitness").doc(uid);
+    const [journalSnap, habitJournalSnap, habitRecordSnap, habitsSnap] = await Promise.all([
+      userRef.collection("journal").get(),
+      userRef.collection("habitJournals").get(),
+      userRef.collection("habitRecords").get(),
+      userRef.collection("habits").get(),
+    ]);
+
+    const habitNames = new Map();
+    for (const doc of habitsSnap.docs) {
+      habitNames.set(doc.id, doc.data()?.name || doc.id);
+    }
+
+    return {
+      journal: journalSnap.docs.map((d) => ({ id: d.id, data: d.data() || {} })),
+      habitJournals: habitJournalSnap.docs.map((d) => ({ id: d.id, data: d.data() || {} })),
+      habitRecords: habitRecordSnap.docs.map((d) => ({ id: d.id, data: d.data() || {} })),
+      habitNames: Object.fromEntries(habitNames),
+    };
+  } catch (e) {
+    console.warn(`[firestore-mirror] pullJournalTree fehler: ${e.message}`);
+    return null;
+  }
+}
+
 export async function readSession(uid, date) {
   const db = await getDb();
   if (!db) return null;

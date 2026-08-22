@@ -37,7 +37,7 @@ def _cleanup_inbox_files(inbox_dir: Path, doc_id: str) -> None:
         local.unlink(missing_ok=True)
 
 
-def pull() -> dict:
+def pull(uid: str | None = None) -> dict:
     from tqdm import tqdm
     db = get_db()
     total_pulled = 0
@@ -47,8 +47,11 @@ def pull() -> dict:
     total_inbox = 0
 
     _SKIP_UIDS = {"default", "kb", "_template"}
-    all_refs = [r for r in db.collection("fitness").list_documents()
-                if r.id not in _SKIP_UIDS]
+    if uid:
+        all_refs = [db.collection("fitness").document(uid)]
+    else:
+        all_refs = [r for r in db.collection("fitness").list_documents()
+                    if r.id not in _SKIP_UIDS]
     for user_ref in tqdm(all_refs, desc="Pull users", unit="user"):
         uid = user_ref.id
         user_dir = (USERS_DIR / uid / "fitness").resolve()

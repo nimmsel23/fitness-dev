@@ -135,9 +135,19 @@ def fs_pull(request: Request):
     sess_dir = sess_root / uid / "sessions"
     sess_dir.mkdir(parents=True, exist_ok=True)
     try:
-        result = firestore_pull()
+        result = firestore_pull(uid=uid)
         logger.info(f"firestore/pull  {uid}  {result}")
-        return {"ok": True, **result}
+        return {
+            "ok": True,
+            "uid": uid,
+            **result,
+            "pulled": result.get("sessions", 0),
+            "journal_pulled": result.get("journal", 0),
+            "habit_journal_pulled": result.get("habit_journal", 0),
+            "habit_record_pulled": result.get("habit_record", 0),
+            "conflicts": result.get("conflicts", 0),
+            "conflict_dates": result.get("conflict_dates", []),
+        }
     except Exception as exc:
         logger.error(f"firestore/pull {uid}: {exc}")
         raise HTTPException(500, detail=str(exc))
