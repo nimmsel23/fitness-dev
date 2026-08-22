@@ -1,5 +1,7 @@
-exercise_id: reissen_und_umsetzen
-description: Expert details for Umsetzen und Stoßen
+name: inbox_reissen_und_umsetzen
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Umsetzen
+  und Stoßen'
+generated_at: '2026-08-22T08:49:37.736590+00:00'
 exercises:
 - exercise_id: reissen_und_umsetzen
   wger_id: null
@@ -88,7 +90,7 @@ exercises:
   - C&J
   - umsetzen_und_stossen
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Umsetzen und Stoßen
   - Umsetzen und Stossen
