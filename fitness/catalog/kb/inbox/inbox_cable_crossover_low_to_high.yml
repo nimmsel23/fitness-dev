@@ -1,5 +1,7 @@
-exercise_id: cable_crossover_low_to_high
-description: Expert details for Kabel-Crossover von unten nach oben
+name: inbox_cable_crossover_low_to_high
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Kabel-Crossover
+  von unten nach oben'
+generated_at: '2026-08-22T08:49:32.455840+00:00'
 exercises:
 - exercise_id: cable_crossover_low_to_high
   wger_id: null
@@ -88,7 +90,7 @@ exercises:
   - Kabelzug obere Brust
   - Unterer Kabel-Crossover
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Kabel-Crossover von unten nach oben
   - Kabel-Flys von unten nach oben
