@@ -1,6 +1,7 @@
-exercise_id: wger_659
-description: Expert details for Trizeps Seildrücken
-approved_at: '2026-07-28T06:01:06.387369+00:00'
+name: inbox_wger_659
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Trizeps
+  Seildrücken'
+generated_at: '2026-08-22T08:49:39.619495+00:00'
 exercises:
 - exercise_id: wger_659
   display_name: Trizeps Seildrücken
@@ -63,8 +64,7 @@ exercises:
     erhöht und die Übung instabil macht.
   wger_id: 659
   variations: []
-  source: expert
-  approved_at: '2026-07-28T06:01:06.387369+00:00'
+  source: unreviewed
   external_ids:
     wger:
     - 659
