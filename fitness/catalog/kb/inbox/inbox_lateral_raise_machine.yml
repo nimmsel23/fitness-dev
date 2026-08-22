@@ -1,5 +1,7 @@
-exercise_id: lateral_raise_machine
-description: Expert details for Maschinelles Seitheben
+name: inbox_lateral_raise_machine
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Maschinelles
+  Seitheben'
+generated_at: '2026-08-22T08:49:36.486234+00:00'
 exercises:
 - exercise_id: lateral_raise_machine
   id: lateral_raise_machine
@@ -108,7 +110,7 @@ exercises:
     - 2
     secondary: []
   variations: []
-  source: expert
+  source: unreviewed
   schema_version: 2026-08-12.exercise-v1
   origin:
     type: external
