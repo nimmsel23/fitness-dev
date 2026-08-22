@@ -551,6 +551,46 @@ def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:
     return ex_id
 
 
+def demote_expert_entry(exercise_id: str) -> Path:
+    """Gegenstueck zu approve_inbox_entry(): schickt eine vermeintliche
+    Expert-Datei (`kb/exercises/{id}.yml`) zurueck nach `kb/inbox/inbox_{id}.yml`
+    zum (erneuten) Review. Nicht destruktiv - alle vorhandenen Felder (auch
+    rohe wger/yuhonas-Quelldaten) bleiben erhalten, nur die Approval-Marker
+    werden zurueckgesetzt. Fuer Faelle, in denen eine Datei als "expert"
+    getaggt wurde (source_tier in resolver.py haengt nur an der Ordner-
+    Position, kb/exercises/ vs. kb/inbox/), ohne dass tatsaechlich je ein
+    approve_inbox_entry()-Aufruf stattgefunden hat.
+    """
+    detail_path = exercises_dir() / f"{exercise_id}.yml"
+    if not detail_path.exists():
+        raise FileNotFoundError(f"Keine Expert-Datei gefunden: {detail_path}")
+
+    doc = load_yaml(detail_path)
+    exercises = doc.get("exercises") or [{}]
+    ex = dict(exercises[0]) if exercises else {}
+    ex.pop("approved_at", None)
+    ex["source"] = "unreviewed"
+
+    display_name = display_name_of(ex, exercise_id)
+    inbox_path = inbox_dir() / f"inbox_{exercise_id}.yml"
+    wrapper = {
+        "name": inbox_path.stem,
+        "description": f"Zurueck zur Review geschickt (war faelschlich als expert getaggt): {display_name}",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "exercises": [ex],
+    }
+    inbox_path.write_text(
+        yaml.dump(wrapper, allow_unicode=True, sort_keys=False, default_flow_style=False)
+    )
+    detail_path.unlink()
+    _git_commit_paths(
+        [inbox_path, detail_path],
+        f"chore(catalog): {exercise_id} ({display_name}) zurueck in Inbox — nie echt approved",
+    )
+    _rebuild_runtime_catalog()
+    return inbox_path
+
+
 def delete_inbox_entry(f: Path, ex: dict[str, Any] | None = None) -> None:
     write_inbox_tombstone(f, ex, reason="deleted_inbox")
     f.unlink()

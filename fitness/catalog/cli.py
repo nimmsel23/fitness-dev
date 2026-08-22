@@ -950,6 +950,24 @@ def inbox_approve_cmd(
     console.print(f"[ok]✓ Approved -> {ex_id}.yml[/ok]")
 
 
+@inbox_app.command(name="demote")
+def inbox_demote_cmd(
+    exercise_id: Annotated[str, typer.Argument(help="z.B. 020 oder wger_1507 (Dateiname ohne .yml)")],
+):
+    """Schickt eine vermeintliche Expert-Datei (kb/exercises/{id}.yml) zurück
+    in die Inbox zum (erneuten) Review. Gegenstück zu `approve` — für Fälle,
+    in denen eine Datei nur wegen ihres Speicherorts als 'expert' galt, ohne
+    je wirklich approved worden zu sein."""
+    from fitness.catalog.agent.inbox_actions import demote_expert_entry
+
+    try:
+        inbox_path = demote_expert_entry(exercise_id)
+    except FileNotFoundError as exc:
+        console.print(f"[fail]FAIL:[/fail] {exc}")
+        raise typer.Exit(code=1)
+    console.print(f"[ok]✓ Demoted -> {inbox_path.name}[/ok]")
+
+
 @inbox_app.command(name="reenrich")
 def inbox_reenrich_cmd(
     file_id: Annotated[str, typer.Argument(help="z.B. inbox_wger_851")],
