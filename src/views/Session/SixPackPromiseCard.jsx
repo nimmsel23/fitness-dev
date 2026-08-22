@@ -30,6 +30,22 @@ function shuffleIndices(count) {
   return arr;
 }
 
+// Gleiches Hash-Query-Pattern wie SkillsCard.jsx (getSkillIdFromHash/
+// setSkillIdInHash) — bewusst dupliziert statt importiert, damit Timer und
+// Skills unabhängig bleiben. App.jsx überschreibt den Hash beim Subtab-
+// Wechsel zwar wieder ohne den skill-Query-Param (buildHashRoute kennt ihn
+// nicht), aber SkillsCard hat den Wert dann schon aus der useState-
+// Initializer-Funktion gelesen, bevor dieser Overwrite greift.
+function setSkillIdInHash(skillId) {
+  if (typeof window === 'undefined') return;
+  const [pathPart = '', queryPart = ''] = window.location.hash.replace(/^#\/?/, '').split('?');
+  const params = new URLSearchParams(queryPart);
+  if (skillId) params.set('skill', skillId);
+  else params.delete('skill');
+  const query = params.toString();
+  window.history.replaceState(null, '', `#${pathPart}${query ? `?${query}` : ''}`);
+}
+
 function dayInWeek(day) {
   return ((day - 1) % DAYS_PER_WEEK) + 1;
 }
@@ -172,7 +188,7 @@ function EatScreen({ onBack }) {
 // vollen KB-Katalog): die 21 kuratierten Core-Übungen aus SIXPACK_EXERCISE_DETAILS
 // plus die Calisthenics-Skills-Progressionsketten (kb/exercises/calisthenics/,
 // SIXPACK_CALISTHENICS_SKILLS) als zweite, eigene Sektion.
-function LearnScreen({ onBack }) {
+function LearnScreen({ onBack, onOpenSkill }) {
   const [query, setQuery] = useState('');
 
   const visibleCore = useMemo(() => {
@@ -231,7 +247,12 @@ function LearnScreen({ onBack }) {
       </div>
       <div>
         {visibleSkills.map((skill) => (
-          <div key={skill.id} className="px-4 py-3" style={{ background: '#1a1a1a', borderBottom: '1px solid #000' }}>
+          <button
+            key={skill.id}
+            onClick={() => onOpenSkill?.(skill.id)}
+            className="w-full px-4 py-3 text-left"
+            style={{ background: '#1a1a1a', borderBottom: '1px solid #000' }}
+          >
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-sm font-bold" style={{ color: '#fff' }}>{skill.name}</div>
@@ -246,7 +267,7 @@ function LearnScreen({ onBack }) {
                 {skill.tier}
               </span>
             </div>
-          </div>
+          </button>
         ))}
       </div>
     </div>
@@ -578,7 +599,7 @@ function RunnerScreen({ workout, onFinish, onBack }) {
   );
 }
 
-export default function SixPackPromiseCard() {
+export default function SixPackPromiseCard({ onSubNav }) {
   const [program, setProgram] = useState(() => loadProgram());
   const [screen, setScreen] = useState('home');
   const [viewDay, setViewDay] = useState(null);
@@ -610,6 +631,14 @@ export default function SixPackPromiseCard() {
 
   function startWorkout() {
     setScreen('runner');
+  }
+
+  // Springt vom Timer-Learn-Screen in den Skills-Subtab und öffnet dort
+  // direkt das SkillDetailScreen des angeklickten Skills (gleiche IDs wie
+  // SkillsCard.jsx's SKILLS-Array, siehe sixpackData.js-Kommentar).
+  function openSkill(skillId) {
+    setSkillIdInHash(skillId);
+    onSubNav?.('skills');
   }
 
   function startAdhoc(workout) {
@@ -648,7 +677,7 @@ export default function SixPackPromiseCard() {
         {screen === 'home' && <HomeScreen program={program} onOpenToday={() => openDay(program.currentDay)} onNav={setScreen} />}
         {screen === 'track' && <TrackScreen program={program} onBack={goHome} onOpenDay={openDay} />}
         {screen === 'eat' && <EatScreen onBack={goHome} />}
-        {screen === 'learn' && <LearnScreen onBack={goHome} />}
+        {screen === 'learn' && <LearnScreen onBack={goHome} onOpenSkill={openSkill} />}
         {screen === 'favorites' && <FavoritesScreen onBack={goHome} />}
         {screen === 'selfies' && <SelfiesScreen onBack={goHome} />}
         {screen === 'shuffle' && <ShuffleScreen onBack={goHome} onStart={startAdhoc} />}

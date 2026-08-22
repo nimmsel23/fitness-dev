@@ -40,7 +40,7 @@ export default function Session({
   }
 
   if (subTab === 'timer') {
-    return <SixPackPromiseCard />;
+    return <SixPackPromiseCard onSubNav={onSubNav} />;
   }
 
   if (subTab === 'skills') {
