@@ -1,5 +1,6 @@
-exercise_id: dips_chest
-description: Expert details for Brust-Dips
+name: inbox_dips_chest
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Brust-Dips'
+generated_at: '2026-08-22T08:49:34.396264+00:00'
 exercises:
 - exercise_id: dips_chest
   id: dips_chest
@@ -70,7 +71,7 @@ exercises:
   - Brustbetonte Dips
   - Parallel Bar Chest Dip
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Brust-Dips
   - Chest Dip
