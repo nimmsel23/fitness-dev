@@ -1,5 +1,6 @@
-exercise_id: plank
-description: Expert details for Unterarmstütz
+name: inbox_plank
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Unterarmstütz'
+generated_at: '2026-08-22T08:49:36.994953+00:00'
 exercises:
 - exercise_id: plank
   id: plank
@@ -71,7 +72,7 @@ exercises:
   - Unterarmstütz
   - Forearm Plank
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Plank
   - Front Plank
