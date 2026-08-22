@@ -1,5 +1,6 @@
-exercise_id: leg_press
-description: Expert details for Beinpresse
+name: inbox_leg_press
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Beinpresse'
+generated_at: '2026-08-22T08:49:36.746798+00:00'
 exercises:
 - exercise_id: leg_press
   wger_id: null
@@ -86,7 +87,7 @@ exercises:
   - 45 Degree Leg Press
   - Schlitten-Beinpresse
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Beinpresse
   - Schlitten-Beinpresse
