@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Play, Pause, Dumbbell, Shuffle, Check, ChevronLeft, ListChecks, UtensilsCrossed, BookOpen, Star, Camera, Video } from 'lucide-react';
-import { SIXPACK_CATEGORIES, SIXPACK_EXERCISE_DETAILS, SIXPACK_EXERCISE_POOL, SIXPACK_CALISTHENICS_SKILLS, VERIFIED_WEEK1_WORKOUTS } from './sixpackData.js';
+import { SIXPACK_CATEGORIES, SIXPACK_EXERCISE_DETAILS, SIXPACK_EXERCISE_POOL, SIXPACK_EXERCISE_COACHING, SIXPACK_CALISTHENICS_SKILLS, SIXPACK_VERIFIED_WORKOUTS } from './sixpackData.js';
 
 const SIXPACK_PROGRAM_KEY = 'fitness-sixpack-program-v1';
 const SIXPACK_FAVORITES_KEY = 'fitness-sixpack-favorites-v1';
@@ -59,8 +59,7 @@ function isRestDay(day) {
 }
 
 function getVerifiedWorkout(day) {
-  if (weekOf(day) !== 1) return null;
-  const preset = VERIFIED_WEEK1_WORKOUTS[dayInWeek(day)];
+  const preset = SIXPACK_VERIFIED_WORKOUTS[day];
   if (!preset) return null;
   return {
     day,
@@ -188,7 +187,7 @@ function EatScreen({ onBack }) {
 // vollen KB-Katalog): die 21 kuratierten Core-Übungen aus SIXPACK_EXERCISE_DETAILS
 // plus die Calisthenics-Skills-Progressionsketten (kb/exercises/calisthenics/,
 // SIXPACK_CALISTHENICS_SKILLS) als zweite, eigene Sektion.
-function LearnScreen({ onBack, onOpenSkill }) {
+function LearnScreen({ onBack, onOpenSkill, onOpenExercise }) {
   const [query, setQuery] = useState('');
 
   const visibleCore = useMemo(() => {
@@ -225,7 +224,12 @@ function LearnScreen({ onBack, onOpenSkill }) {
       </div>
       <div>
         {visibleCore.map((exercise) => (
-          <div key={exercise.id} className="px-4 py-3" style={{ background: '#1a1a1a', borderBottom: '1px solid #000' }}>
+          <button
+            key={exercise.id}
+            onClick={() => onOpenExercise?.(exercise.id)}
+            className="w-full px-4 py-3 text-left"
+            style={{ background: '#1a1a1a', borderBottom: '1px solid #000' }}
+          >
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="text-sm font-bold" style={{ color: '#fff' }}>{exercise.name}</div>
@@ -238,7 +242,7 @@ function LearnScreen({ onBack, onOpenSkill }) {
                 {exercise.verifiedDays.length > 0 ? `Tag ${exercise.verifiedDays.join(', ')}` : 'Pool'}
               </div>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -270,6 +274,68 @@ function LearnScreen({ onBack, onOpenSkill }) {
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+function ExerciseDetailScreen({ exercise, coaching, onBack }) {
+  if (!exercise) return null;
+  return (
+    <div>
+      <BackHeader label={exercise.name} onBack={onBack} />
+      <div className="px-4 py-3 flex items-center gap-2 flex-wrap">
+        <span
+          className="text-[9px] font-black uppercase tracking-[0.1em] px-2 py-1 rounded-md"
+          style={{ background: '#2a2a2a', color: '#fff' }}
+        >
+          {exercise.focusLabel}
+        </span>
+        {exercise.verifiedDays.length > 0 && (
+          <span
+            className="text-[9px] font-black uppercase tracking-[0.1em] px-2 py-1 rounded-md flex items-center gap-1"
+            style={{ background: '#e2001a', color: '#fff' }}
+          >
+            <BookOpen size={11} /> Tag {exercise.verifiedDays.join(', ')}
+          </span>
+        )}
+        {(coaching?.equipment || []).map((eq) => (
+          <span key={eq} className="text-[9px] font-bold uppercase tracking-[0.1em] px-2 py-1 rounded-md" style={{ background: '#141414', color: 'var(--dim)', border: '1px solid #2a2a2a' }}>
+            {eq}
+          </span>
+        ))}
+      </div>
+
+      {coaching?.coachingNotes?.length > 0 && (
+        <div className="px-4 pb-2">
+          <div className="text-[10px] font-black uppercase tracking-[0.14em] mb-2" style={{ color: '#e2001a' }}>Ausführung</div>
+          <ul className="space-y-2">
+            {coaching.coachingNotes.map((note, i) => (
+              <li key={i} className="text-sm" style={{ color: '#fff', background: '#1a1a1a', borderRadius: '0.75rem', padding: '0.6rem 0.8rem' }}>
+                {note}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {coaching?.commonErrors?.length > 0 && (
+        <div className="px-4 pb-6">
+          <div className="text-[10px] font-black uppercase tracking-[0.14em] mb-2" style={{ color: '#e2001a' }}>Häufige Fehler</div>
+          <ul className="space-y-2">
+            {coaching.commonErrors.map((err, i) => (
+              <li key={i} className="text-sm" style={{ color: 'var(--dim)', background: '#141414', border: '1px solid #2a2a2a', borderRadius: '0.75rem', padding: '0.6rem 0.8rem' }}>
+                {err}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {!coaching && (
+        <div className="p-6 text-center text-sm" style={{ color: 'var(--dim)' }}>
+          Noch keine Coaching-Notizen für diese Übung hinterlegt.
+        </div>
+      )}
     </div>
   );
 }
@@ -604,6 +670,7 @@ export default function SixPackPromiseCard({ onSubNav }) {
   const [screen, setScreen] = useState('home');
   const [viewDay, setViewDay] = useState(null);
   const [adhocWorkout, setAdhocWorkout] = useState(null);
+  const [viewExerciseId, setViewExerciseId] = useState(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -639,6 +706,11 @@ export default function SixPackPromiseCard({ onSubNav }) {
   function openSkill(skillId) {
     setSkillIdInHash(skillId);
     onSubNav?.('skills');
+  }
+
+  function openExercise(exerciseId) {
+    setViewExerciseId(exerciseId);
+    setScreen('exercise');
   }
 
   function startAdhoc(workout) {
@@ -677,7 +749,14 @@ export default function SixPackPromiseCard({ onSubNav }) {
         {screen === 'home' && <HomeScreen program={program} onOpenToday={() => openDay(program.currentDay)} onNav={setScreen} />}
         {screen === 'track' && <TrackScreen program={program} onBack={goHome} onOpenDay={openDay} />}
         {screen === 'eat' && <EatScreen onBack={goHome} />}
-        {screen === 'learn' && <LearnScreen onBack={goHome} onOpenSkill={openSkill} />}
+        {screen === 'learn' && <LearnScreen onBack={goHome} onOpenSkill={openSkill} onOpenExercise={openExercise} />}
+        {screen === 'exercise' && (
+          <ExerciseDetailScreen
+            exercise={SIXPACK_EXERCISE_DETAILS[viewExerciseId]}
+            coaching={SIXPACK_EXERCISE_COACHING[viewExerciseId]}
+            onBack={() => setScreen('learn')}
+          />
+        )}
         {screen === 'favorites' && <FavoritesScreen onBack={goHome} />}
         {screen === 'selfies' && <SelfiesScreen onBack={goHome} />}
         {screen === 'shuffle' && <ShuffleScreen onBack={goHome} onStart={startAdhoc} />}

@@ -171,6 +171,49 @@ sichtbar zu machen.)
 
 ---
 
+## Build-Time-KB-Import statt Hardcoding (`views/Session/sixpackData.js`)
+
+**Architekturentscheidung (2026-08-22):** Der Timer-Tab (`SixPackPromiseCard.jsx`,
+6-Pack-Promise-Programm + Calisthenics-Skills) braucht seine Übungs-/Workout-/
+Skill-Daten **offline** (PWA-Constraint, kein Firestore-Roundtrip beim Öffnen von
+Learn) — aber die KB (`fitness/catalog/kb/exercises/6pack/`,
+`fitness/catalog/kb/exercises/calisthenics/`) muss trotzdem die einzige Quelle
+bleiben, die von Menschen/Agents editiert wird. **Erster Anlauf war falsch:**
+Inhalte (Coaching-Notizen, Übungslisten, Woche-1-Workouts) wurden von Hand aus
+den YAMLs in `sixpackData.js` abgetippt — Doppelpflege, garantiert Drift bei
+jeder neuen Übung/Woche.
+
+**Fix:** `scripts/build-sixpack-data.mjs` liest die KB-YAMLs zur Build-/Dev-Zeit
+(kein Firestore, keine Laufzeit-API) und generiert
+`src/views/Session/sixpackData.generated.js` (git-ignored, nie von Hand
+editieren). `sixpackData.js` selbst ist nur noch ein stabiler Re-Export dieser
+generierten Datei — der Import-Pfad für Components bleibt gleich, der Inhalt
+kommt vollständig aus der KB.
+
+- **Läuft automatisch** via `predev`/`prebuild`/`prebuild:firebase`-Hooks in
+  `package.json` (npm führt `pre<script>` vor `<script>` aus) — bei
+  `npm run dev`/`build`/`build:firebase` immer aktuell. Manuell:
+  `npm run build:sixpack-data`.
+- **Ausnahme:** `scripts/dev-runner.mjs` (von `fitness-dev.service` teils
+  indirekt genutzt) spawnt `vite` direkt statt über `npm run dev` — der
+  `predev`-Hook greift dort NICHT. Nach KB-Änderungen im laufenden Dev-Betrieb
+  notfalls `npm run build:sixpack-data` manuell nachziehen (Vite HMR pickt die
+  neu geschriebene Datei danach automatisch auf).
+- Absolute Tage statt Wochen-Sonderfall: `week{N}_workouts.yml`-Dateikonvention
+  (aktuell nur `week1_workouts.yml`) — der Generator berechnet
+  `(Woche-1)*7 + Tag` selbst. Neue Wochen = einfach `week2_workouts.yml` in
+  `kb/exercises/6pack/` anlegen, kein Code-Update nötig.
+- Gleiches Prinzip gilt für `SIXPACK_CALISTHENICS_SKILLS` (aus
+  `kb/exercises/calisthenics/*.yml`) und die Core-Coaching-Notizen/Common-
+  Errors, die im Exercise-Insight-Screen des Timer-Tabs angezeigt werden.
+- `fitness/catalog/core/loader.py::iter_catalog_yaml_files()` (rglob statt
+  glob, Fix im selben Arbeitsgang) sorgt dafür, dass dieselben `6pack/`- und
+  `calisthenics/`-Unterordner auch im Python-Exercise-Resolver (Coverage,
+  Firestore-Push, Coach-Katalog-Browser) sichtbar sind — beide Fixes zusammen
+  schließen die KB-Subordner-Blindheit app-weit, nicht nur im Timer-Tab.
+
+---
+
 ## Session-JSON-Format
 
 `~/.aos/fitness/sessions/YYYY-MM-DD.json` — das Objekt, das Session-View

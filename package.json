@@ -9,12 +9,16 @@
     "cloud_chamber/vitalos"
   ],
   "scripts": {
+    "predev": "npm run build:sixpack-data",
     "dev": "node scripts/dev-runner.mjs",
     "start": "node server.mjs",
     "ui:dev": "vite",
     "lint": "eslint src/ --ext .js,.jsx",
+    "prebuild": "npm run build:sixpack-data",
     "build": "npm run lint && vite build && node scripts/snapshot.mjs dist",
     "build:preview": "npm run deploy:preview",
+    "prebuild:firebase": "npm run build:sixpack-data",
+    "build:sixpack-data": "node scripts/build-sixpack-data.mjs",
     "build:firebase": "vite build --mode firebase --outDir dist-firebase && node scripts/stamp-sw.mjs dist-firebase && node scripts/snapshot.mjs dist-firebase",
     "stamp:sw": "node scripts/stamp-sw.mjs dist-firebase",
     "preview:firebase": "firebase hosting:channel:deploy preview --expires 1h",
@@ -66,5 +70,8 @@
     "tailwindcss": "^3.4.13",
     "vite": "^5.4.8",
     "vite-plugin-pwa": "^0.20.0"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.10.0": true
   }
 }
