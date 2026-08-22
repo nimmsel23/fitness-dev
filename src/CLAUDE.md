@@ -212,6 +212,63 @@ kommt vollständig aus der KB.
   Firestore-Push, Coach-Katalog-Browser) sichtbar sind — beide Fixes zusammen
   schließen die KB-Subordner-Blindheit app-weit, nicht nur im Timer-Tab.
 
+### Zweiter Fall: Bulk-Exercise-Daten (`lib/db/firestore/kb.js`, 2026-08-22)
+
+**Hintergrund:** Am selben Tag wurde entdeckt, dass `resolver.py::build_exercise_index()`
+den `"expert"`-Tier rein über den Speicherort vergibt (`kb/exercises/` vs.
+`kb/inbox/`), nicht über ein echtes `approved_at` — 38 Übungen trugen den
+`expert`-Tag, ohne je den Approve-Workflow durchlaufen zu haben (u. a. das
+mehrfach fälschlich re-committete `020.yml`, siehe Git-Log
+`chore(catalog): approve 020 ... via Firestore`, 24× zwischen 08-08 und
+08-21 — Ursache war `on_kb_exercises()` in `fitness/firestore/mirror.py`,
+das bei JEDER Änderung an einem bereits approved Dokument erneut als
+"approve" feuerte, nicht nur beim echten Übergang). Alle 38 wurden per neuem
+CLI-Befehl `fitness-catalog inbox demote <id>` zurück nach `kb/inbox/`
+geschickt (Gegenstück zu `approve`, in `fitness/catalog/agent/inbox_actions.py`).
+
+Im Zuge dessen fiel auf, dass die **Firebase-PWA** (`lib/db/firestore/kb.js`)
+bei jeder ersten Suche die **komplette** `fitness/kb/exercises`-Collection aus
+Firestore lud (>1700 Docs) — nur um daraus lokal zu scoren. Der überwiegende
+Teil davon (`unreviewed_wger.yml` + `unreviewed_yuhonas.yml`, ~1717 Übungen)
+ist reiner, praktisch nie wechselnder Rohimport — ändert sich nur, wenn
+jemand explizit `fitness-catalog import` (One-Shot-Bulk-Import) erneut laufen
+lässt. Nach demselben Muster wie oben (Build-Time-KB-Import) generiert
+`scripts/build-exercise-bulk-data.mjs` daraus
+`src/lib/db/firestore/exerciseBulkData.generated.js` (git-ignored) —
+`kb.js::searchExercises()` merged dieses statische Array jetzt mit einem
+Firestore-Fetch, der die bereits im Bundle enthaltenen IDs rausfiltert
+(`_getCuratedExercises()`), statt sie doppelt zu laden.
+
+- **Bewusst NICHT** wie beim 6-Pack vollständig ersetzt: der kuratierte/
+  expert-Teil des Katalogs wächst laufend über Coach-Approvals in der
+  Firestore-UI — der ganze Sinn dieses Kanals ist, dass eine Freigabe **ohne
+  App-Redeploy** sichtbar wird. Nur der statische Bulk-Anteil eignet sich für
+  Build-Time-Bundling; würde man den ganzen Katalog so bündeln, bräuchte
+  jede Coach-Freigabe einen `npm run build:firebase && deploy`-Zyklus statt
+  eines einzelnen Firestore-Writes. Diese Abwägung wurde mit dem User
+  explizit durchgesprochen, bevor der Scope auf die zwei Bulk-Dateien
+  begrenzt wurde.
+- **Ehrliche Einschränkung (noch offen):** `_getCuratedExercises()` liest
+  Stand 2026-08-22 weiterhin die volle Firestore-Collection und filtert erst
+  danach client-seitig — das spart also (noch) keine Firestore-Reads, nur
+  die doppelte Listung im Suchindex. Der volle Nutzen (Firestore-Fetch nur
+  noch über den kleinen kuratierten Rest) erfordert zusätzlich, dass
+  `fitness/catalog/api/firestore_push.py::sync_exercises()` die beiden
+  `unreviewed_*`-Dateien beim Push nach Firestore ausklammert — das würde
+  über die bestehende Orphan-Cleanup-Logik automatisch ~1717 Docs aus
+  Firestore löschen. Bewusst noch nicht umgesetzt (großer, irreversibel
+  wirkender Firestore-Delete, braucht eigene Freigabe), nur der
+  client-seitige Teil ist live.
+- **Selbstheilend bei Reimport:** Läuft `fitness-catalog import` erneut und
+  ändert die beiden `unreviewed_*.yml`-Dateien, holt sich der nächste
+  `npm run dev`/`build`/`build:firebase` (via `predev`/`prebuild`/
+  `prebuild:firebase` → `build:kb-data` → `build:bulk-data`) automatisch den
+  neuen Stand — kein manueller Nacharbeitsschritt nötig, gleiches Prinzip wie
+  bei `build:sixpack-data`.
+- `getAllExercises()` (voller Fetch) bleibt für den Coach-Katalog-Browser
+  unverändert bestehen — nur `searchExercises()` nutzt den neuen,
+  bulk-gefilterten Pfad.
+
 ---
 
 ## Session-JSON-Format

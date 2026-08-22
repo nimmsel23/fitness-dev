@@ -11,7 +11,17 @@ import {
 import { db } from "../../../firebase.js";
 import { getStaticMuscle, getStaticMuscleDocs } from "../../kb/muscles.js";
 import { normalizeExerciseRecord } from "../shared/exercise.js";
+import { EXERCISE_BULK_DATA } from "./exerciseBulkData.generated.js";
 export { getFavourites, toggleFavourite } from "../shared/favourites.js";
+
+// EXERCISE_BULK_DATA (scripts/build-exercise-bulk-data.mjs, aus
+// unreviewed_wger.yml/unreviewed_yuhonas.yml) deckt den statischen,
+// praktisch nie wechselnden Rohimport-Teil des Katalogs ab (~1700 Übungen).
+// Diese IDs werden aus dem Firestore-Fetch rausgefiltert, damit sie nicht
+// doppelt im Suchindex landen und nicht bei jeder Suche live nachgeladen
+// werden müssen — nur der kleine, aktiv wachsende kuratierte/expert-Teil
+// kommt noch aus Firestore. KB-YAML bleibt SSOT, siehe src/CLAUDE.md.
+const _BULK_IDS = new Set(EXERCISE_BULK_DATA.map((ex) => ex.exercise_id || ex.id));
 
 // ── Exercises ─────────────────────────────────────────────────────────────────
 
@@ -24,6 +34,16 @@ export async function getExercise(exerciseId) {
 export async function getAllExercises() {
   const snap = await getDocs(collection(db, "fitness", "kb", "exercises"));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+// Wie getAllExercises(), aber ohne die Bulk-Übungen, die bereits statisch im
+// Client-Bundle liegen (EXERCISE_BULK_DATA) — vermeidet, ~1700 Docs live zu
+// laden, nur um sie danach wegzufiltern.
+async function _getCuratedExercises() {
+  const snap = await getDocs(collection(db, "fitness", "kb", "exercises"));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .filter((ex) => !_BULK_IDS.has(ex.exercise_id || ex.id));
 }
 
 export async function saveExercise(exerciseId, data) {
@@ -51,7 +71,10 @@ function _normalize(s) {
 export async function searchExercises(query, limit = 12) {
   const q = String(query || "").trim();
   if (!q) return { ok: true, results: [], query: q, suggestions: [] };
-  if (!_searchCache) _searchCache = await getAllExercises();
+  if (!_searchCache) {
+    const curated = await _getCuratedExercises();
+    _searchCache = [...EXERCISE_BULK_DATA, ...curated];
+  }
 
   const stored = localStorage.getItem("fitness-sessionSources");
   const sources = stored ? JSON.parse(stored) : { wger: true, yuhonas: true, coach: true };
