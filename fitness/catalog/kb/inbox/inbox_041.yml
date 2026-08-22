@@ -1,5 +1,7 @@
-name: '041'
-description: Expert details for Schrägbankdrücken mit Kurzhanteln
+name: inbox_041
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Schrägbankdrücken
+  mit Kurzhanteln'
+generated_at: '2026-08-22T08:49:29.627369+00:00'
 exercises:
 - exercise_id: '041'
   id: '041'
@@ -137,7 +139,7 @@ exercises:
     secondary:
     - 2
     - 5
-  source: expert
+  source: unreviewed
   schema_version: 2026-08-12.exercise-v1
   origin:
     type: merged_external
@@ -156,9 +158,9 @@ exercises:
         - 2
         - 5
       original_description:
-      - Setze dich auf die Bank, die Füße sind fest auf dem Boden und geben Halt, der
-        Kopf liegt auf der Bank. Nehme die Hanteln in die Hand und drücke sie nach
-        oben. Bringe die Hanteln nach unten, bis sie neben der Brust sind. Drücke
+      - Setze dich auf die Bank, die Füße sind fest auf dem Boden und geben Halt,
+        der Kopf liegt auf der Bank. Nehme die Hanteln in die Hand und drücke sie
+        nach oben. Bringe die Hanteln nach unten, bis sie neben der Brust sind. Drücke
         das Gewicht wieder nach oben.
     yuhonas:
       yuhonas_id: Incline_Dumbbell_Press
