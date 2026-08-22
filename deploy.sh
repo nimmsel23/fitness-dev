@@ -80,11 +80,11 @@ wait_for_http() {
 
 systemd_status() {
   local action="$1"
-  local unit="$2"
+  shift
   if $USE_SUDO; then
-    sudo systemctl "$action" "$unit"
+    sudo systemctl "$action" "$@"
   else
-    systemctl --user "$action" "$unit"
+    systemctl --user "$action" "$@"
   fi
 }
 
