@@ -2,7 +2,7 @@ import { createPortal } from 'react-dom';
 import SessionSidebar from './SessionSidebar';
 
 export default function SidebarSheet({
-  onClose, onShowMap,
+  onClose,
   location, setLocation, duration, setDuration,
   gpsMapsUrl,
   trainingsart, setTrainingsart,
@@ -27,7 +27,6 @@ export default function SidebarSheet({
           notes={notes} setNotes={setNotes}
           onDownload={onDownload}
           onExportObsidian={onExportObsidian}
-          onShowMap={onShowMap}
           onClose={onClose}
           coachFeedback={coachFeedback}
         />

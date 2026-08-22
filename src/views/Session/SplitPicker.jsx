@@ -24,7 +24,7 @@ export default function SplitPicker({ block, setBlock }) {
   const [hovered, setHovered] = useState(null);
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-6 gap-1.5">
       {SPLITS.map(({ key, icon: Icon }) => {
         const isActive = block === key;
         const isHovered = hovered === key && !isActive;
@@ -33,24 +33,25 @@ export default function SplitPicker({ block, setBlock }) {
           <button
             key={key}
             type="button"
+            title={key}
             onMouseEnter={() => setHovered(key)}
             onMouseLeave={() => setHovered(null)}
             onClick={() => setBlock(isActive ? '' : key)}
-            className="group relative flex items-center justify-center gap-2 rounded-2xl px-3 py-3 text-[12px] font-bold transition-all duration-200 ease-out active:scale-95"
+            className="group relative flex flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[9px] font-bold transition-all duration-200 ease-out active:scale-95"
             style={{
               background: isActive ? color : isHovered ? `${color}1a` : 'var(--card)',
               color: isActive ? '#000' : isHovered ? color : 'var(--dim)',
               border: `1px solid ${isActive ? color : isHovered ? `${color}80` : 'var(--line)'}`,
               boxShadow: isActive
-                ? `0 6px 16px -4px ${color}66`
+                ? `0 4px 12px -4px ${color}66`
                 : isHovered
-                  ? `0 6px 18px -8px ${color}70`
+                  ? `0 4px 14px -8px ${color}70`
                   : 'none',
-              transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
+              transform: isHovered ? 'translateY(-1px)' : 'translateY(0)',
             }}
           >
             <Icon
-              size={15}
+              size={14}
               strokeWidth={2.5}
               className="transition-transform duration-200 ease-out group-hover:scale-125 group-active:scale-95"
             />

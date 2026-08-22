@@ -17,7 +17,7 @@ export default function EffortPicker({ effort, setEffort }) {
   const pct = ((effort - 1) / 9) * 100;
   return (
     <div
-      className="group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl border border-[var(--line)] hover:border-[var(--rpe-color)] transition-all duration-200 ease-out hover:shadow-[0_6px_20px_-10px_var(--rpe-color)] hover:-translate-y-0.5"
+      className="group flex items-center gap-2.5 px-3 py-1.5 rounded-xl border border-[var(--line)] hover:border-[var(--rpe-color)] transition-all duration-200 ease-out hover:shadow-[0_6px_20px_-10px_var(--rpe-color)] hover:-translate-y-0.5"
       style={{ background: 'var(--card)', '--rpe-color': color }}
     >
       <div

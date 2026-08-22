@@ -18,13 +18,9 @@ import ActivitySection from './ActivitySection';
 import ActivityAddon, { ADDON_TYPES } from './ActivityAddon';
 import SidebarSheet from './SidebarSheet';
 import SessionSidebar from './SessionSidebar';
-import AnatomyInline from './AnatomyInline';
 import SourceSettingsModal from './SourceSettingsModal';
 import { normalizeSessionGate } from '../../lib/sessionGate.js';
 import { inferBlockFromExercises } from './utils';
-
-const scrollToAnatomyCheck = () =>
-  document.getElementById('anatomy-check')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
 export default function SessionEditor({
   // State from useSession
@@ -104,13 +100,13 @@ export default function SessionEditor({
 
       {/* Split-Auswahl — 1 Klick, direkt unter dem Datumspicker statt hinter "Weitere Details" */}
       {sessionMode === 'strength' && (
-        <div className="px-3 mt-2 mb-2">
+        <div className="px-3 mt-1.5 mb-1.5">
           <SplitPicker block={block} setBlock={v => { setBlock(v); scheduleAutoSave(); }} />
         </div>
       )}
 
       {/* RPE — ebenfalls prominent statt hinter "Details & Notizen" versteckt */}
-      <div className="px-3 mb-3">
+      <div className="px-3 mb-1.5">
         <EffortPicker effort={effort} setEffort={v => { setEffort(v); scheduleAutoSave(); }} />
       </div>
 
@@ -219,9 +215,6 @@ export default function SessionEditor({
           </div>
         )}
 
-        {/* Anatomie-Check — inline statt Modal */}
-        <AnatomyInline exercises={exercises} />
-
         {/* Details & Notizen — Location/Dauer/Trainingsart/Effort/Notizen, klappt Sidebar-Inhalte inline auf.
             Split (Push/Pull/...) sitzt seit der UX-Überarbeitung nicht mehr hier, sondern prominent
             unter dem Datumspicker (SplitPicker) — das war vorher die eigentliche Logging-Hürde. */}
@@ -244,7 +237,6 @@ export default function SessionEditor({
                 notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
                 onDownload={handleDownload}
                 onExportObsidian={exportObsidian}
-                onShowMap={scrollToAnatomyCheck}
                 coachFeedback={coachFeedback}
               />
             </div>
@@ -298,7 +290,6 @@ export default function SessionEditor({
       {showSidebar && (
         <SidebarSheet
           onClose={() => setShowSidebar(false)}
-          onShowMap={() => { setShowSidebar(false); scrollToAnatomyCheck(); }}
           location={location} setLocation={v => { setLocation(v); scheduleAutoSave(); }}
           duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
           gpsMapsUrl={gpsMapsUrl}

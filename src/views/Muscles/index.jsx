@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { getRecoveryAnalytics, getMuscle, getRecentSessions } from "@db";
+import { getRecoveryAnalytics, getMuscle, getRecentSessions, getSession } from "@db";
 
 import MuscleHeader from "./MuscleHeader";
 import MuscleAnalysis from "./MuscleAnalysis";
 import MuscleDetailedMap from "./MuscleDetailedMap";
 import MuscleBodyMap from "./MuscleBodyMap";
+import MuscleSessionMap from "./MuscleSessionMap";
 import MuscleInsights from "./MuscleInsights";
 import AnatomyDetailModal from "../../components/AnatomyDetailModal";
 import SessionDetailModal from "./SessionDetailModal";
@@ -14,12 +15,20 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
   const [days, setDays] = useState(recentDays);
   const [loading, setLoading] = useState(true);
   const [hitAnalysis, setHitAnalysis] = useState({ heavy: [], recovering: [], super: [], ready: [], scores: {} });
-  const [showDetailed, setShowDetailed] = useState(false);
+  const [viewMode, setViewMode] = useState('standard');
+  const [todayExercises, setTodayExercises] = useState([]);
   const [selectedMuscleId, setSelectedMuscleId] = useState(null);
   const [muscleData, setMuscleData] = useState(null);
   const [muscleLoading, setMuscleLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
+
+  useEffect(() => {
+    if (viewMode !== 'today') return;
+    getSession()
+      .then(d => setTodayExercises(Array.isArray(d?.exercises) ? d.exercises : []))
+      .catch(() => setTodayExercises([]));
+  }, [viewMode]);
 
   useEffect(() => {
     if (!selectedMuscleId) { setMuscleData(null); return; }
@@ -57,11 +66,11 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
 
   return (
     <div className="pb-32">
-      <MuscleHeader 
-        days={days} 
-        setDays={setDays} 
-        showDetailed={showDetailed} 
-        setShowDetailed={setShowDetailed} 
+      <MuscleHeader
+        days={days}
+        setDays={setDays}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
       />
 
       {loading ? (
@@ -73,15 +82,23 @@ export default function Muscles({ gender, muscleLanguage = 'de', taxonomy = null
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-8 p-10 rounded-[40px] border flex justify-center gap-20 bg-fit-card border-fit-line shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-accent/5 to-transparent pointer-events-none" />
-            {showDetailed ? (
+            {viewMode === 'detail' && (
               <MuscleDetailedMap
                 gender={gender}
                 scores={hitAnalysis.scores}
                 onGroupClick={setSelectedMuscleId}
               />
-            ) : (
+            )}
+            {viewMode === 'standard' && (
               <MuscleBodyMap
                 scores={hitAnalysis.scores}
+                onGroupClick={setSelectedMuscleId}
+              />
+            )}
+            {viewMode === 'today' && (
+              <MuscleSessionMap
+                gender={gender}
+                exercises={todayExercises}
                 onGroupClick={setSelectedMuscleId}
               />
             )}
