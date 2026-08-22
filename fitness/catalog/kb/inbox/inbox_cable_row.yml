@@ -1,5 +1,7 @@
-exercise_id: cable_row
-description: Expert details for Sitzendes Kabelrudern
+name: inbox_cable_row
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Sitzendes
+  Kabelrudern'
+generated_at: '2026-08-22T08:49:33.297947+00:00'
 exercises:
 - exercise_id: cable_row
   wger_id: null
@@ -72,7 +74,7 @@ exercises:
   - Seated Cable Row
   - Seated Cable Row Machine
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Sitzendes Kabelrudern
   - Rudern am Kabelzug
