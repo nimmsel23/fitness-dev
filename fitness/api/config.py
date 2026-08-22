@@ -21,6 +21,15 @@ from fitness.catalog.core.paths import runtime_root
 
 PORT     = int(os.environ.get("FITNESS_PYTHON_PORT", os.environ.get("FITNESS_PORT", 9150)))
 HOST     = os.environ.get("FITNESS_HOST", "127.0.0.1")
+# FITNESS_ENV wird ausschliesslich von den deploy.sh-generierten Units
+# gesetzt (staging: fitness-preview.service, prod: fitness.service) — eine
+# Dev-Shell/fitness-api.service hat das nie, daher der explizite "dev"-
+# Fallback statt eines leeren Strings. Dient u.a. /health, um Dev/Staging/
+# Prod eindeutig zu unterscheiden (vorher liess sich das nur indirekt am
+# PORT-Feld ablesen, das ausserdem staging/prod mangels gesetztem
+# FITNESS_PYTHON_PORT faelschlich auf 9150 zeigte — siehe deploy.sh-Fix
+# vom selben Tag).
+ENV      = os.environ.get("FITNESS_ENV", "dev")
 RUNTIME  = runtime_root()                     # ~/.aos/fitness
 SESS_ROOT = RUNTIME / "users"                 # ~/.aos/fitness/users/{uid}/sessions/
 BODY_DIR  = RUNTIME / "body"

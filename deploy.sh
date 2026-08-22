@@ -80,11 +80,11 @@ wait_for_http() {
 
 systemd_status() {
   local action="$1"
-  local unit="$2"
+  shift
   if $USE_SUDO; then
-    sudo systemctl "$action" "$unit"
+    sudo systemctl "$action" "$@"
   else
-    systemctl --user "$action" "$unit"
+    systemctl --user "$action" "$@"
   fi
 }
 
@@ -306,7 +306,8 @@ ExecStart=$DEST/.venv/bin/python3 -m uvicorn fitness.api.main:app --host 127.0.0
 Restart=always
 RestartSec=5
 Environment=NODE_ENV=production
-Environment=PORT=$PORT
+Environment=FITNESS_ENV=staging
+Environment=FITNESS_PYTHON_PORT=$PORT
 Environment=FITNESS_DATA_DIR=$HOME/.aos/fitness
 Environment=FITNESS_SKIP_WATCHERS=1
 
@@ -327,6 +328,7 @@ ExecStart=$DEST/.venv/bin/python -m uvicorn fitness.api.main:app --host 0.0.0.0 
 Restart=on-failure
 RestartSec=2
 Environment=FITNESS_ENV=prod
+Environment=FITNESS_PYTHON_PORT=$PORT
 Environment=FITNESS_SKIP_WATCHERS=1
 EnvironmentFile=-/etc/aos/fitness.env
 
