@@ -1,5 +1,6 @@
-exercise_id: skin_the_cat
-description: Expert details for Schulterdurchzug
+name: inbox_skin_the_cat
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Schulterdurchzug'
+generated_at: '2026-08-22T08:49:38.500354+00:00'
 exercises:
 - exercise_id: skin_the_cat
   wger_id: null
@@ -118,7 +119,7 @@ exercises:
   variations:
   - tuck_skin_the_cat
   - ring_skin_the_cat
-  source: expert
+  source: unreviewed
   schema_version: 2026-08-12.exercise-v1
   origin:
     type: manual
