@@ -38,20 +38,32 @@ function isIsoDate(value) {
   return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''))
 }
 
+function localToday() {
+  return new Date().toISOString().slice(0, 10)
+}
+
 function parseHashRoute({ resolveFlowTab, navMode }) {
   const fallbackTab = resolveFlowTab(navMode === 'home' ? 'gate' : 'session')
   const rawHash = window.location.hash.replace(/^#\/?/, '')
   const [pathPart = '', queryPart = ''] = rawHash.split('?')
   const [rawTab = '', rawSub = ''] = pathPart.split('/').filter(Boolean)
   const params = new URLSearchParams(queryPart)
-  const date = params.get('date')
+  const legacyDate = params.get('date')
   const view = params.get('view')
   const id = params.get('id')
+  const normalizedPathDate = rawSub === 'today'
+    ? localToday()
+    : isIsoDate(rawSub)
+      ? rawSub
+      : null
+  const normalizedLegacyDate = rawSub === 'today'
+    ? (isIsoDate(legacyDate) ? legacyDate : localToday())
+    : (isIsoDate(legacyDate) ? legacyDate : null)
 
   const next = {
     tab: fallbackTab,
     subTab: null,
-    sessionDate: isIsoDate(date) ? date : null,
+    sessionDate: normalizedPathDate || normalizedLegacyDate,
     focusLayer: null,
     // Nur relevant für tab=session/subTab=plan — welche Unteransicht des
     // Plan-Tabs offen ist (routine/workout) + welches Template/Workout,
@@ -66,6 +78,7 @@ function parseHashRoute({ resolveFlowTab, navMode }) {
 
   if (next.tab === 'session') {
     if (SESSION_SUB_TABS.has(rawSub) && rawSub !== 'today') next.subTab = rawSub
+    else if (!rawSub) next.sessionDate = next.sessionDate || localToday()
     if (next.subTab === 'plan' && (view === 'routine' || view === 'workout') && id) {
       next.planView = view
       next.planId = id
@@ -101,12 +114,11 @@ function buildHashRoute({ tab, subTab, sessionDate, focusLayer, planView, planId
   const params = new URLSearchParams()
 
   if (tab === 'session') {
-    if (SESSION_SUB_TABS.has(subTab)) {
+    if (SESSION_SUB_TABS.has(subTab) && subTab !== 'today') {
       segments.push(subTab)
     } else if (sessionDate) {
-      segments.push('today')
+      segments.push(sessionDate)
     }
-    if (sessionDate) params.set('date', sessionDate)
     if (subTab === 'plan' && (planView === 'routine' || planView === 'workout') && planId) {
       params.set('view', planView)
       params.set('id', planId)
