@@ -1,6 +1,7 @@
-exercise_id: yuhonas_side_leg_raises
-description: Expert details for Seitliches Beinheben im Stand
-approved_at: '2026-07-28T06:00:25.263872+00:00'
+name: inbox_yuhonas_side_leg_raises
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Seitliches
+  Beinheben im Stand'
+generated_at: '2026-08-22T08:49:40.444828+00:00'
 exercises:
 - exercise_id: yuhonas_side_leg_raises
   wger_id: null
@@ -57,7 +58,7 @@ exercises:
   wger_muscle_ids:
     primary: []
     secondary: []
-  source: expert
+  source: unreviewed
   external_ids:
     yuhonas:
     - Side_Leg_Raises
@@ -68,7 +69,6 @@ exercises:
   - Standing Side Leg Raise
   - Seitliches Beinheben im Stand
   - Side Leg Raises
-  approved_at: '2026-07-28T06:00:25.263872+00:00'
   id: yuhonas_side_leg_raises
   schema_version: 2026-08-12.exercise-v1
   origin:
