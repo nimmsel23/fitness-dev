@@ -11,6 +11,7 @@ import { createPortal } from 'react-dom';
 import { Save, ChevronDown, X } from 'lucide-react';
 import SessionGateCard from './SessionGateCard.jsx';
 import SessionHeader from './SessionHeader';
+import SplitPicker from './SplitPicker';
 import ExerciseList from './ExerciseList';
 import ActivitySection from './ActivitySection';
 import ActivityAddon, { ADDON_TYPES } from './ActivityAddon';
@@ -84,6 +85,13 @@ export default function SessionEditor({
         onNew={handleNewSession} onDelete={handleDeleteSession}
         sessionMode={sessionMode} setSessionMode={setSessionMode}
       />
+
+      {/* Split-Auswahl — 1 Klick, direkt unter dem Datumspicker statt hinter "Weitere Details" */}
+      {sessionMode === 'strength' && (
+        <div className="px-3 -mt-1 mb-1">
+          <SplitPicker block={block} setBlock={v => { setBlock(v); scheduleAutoSave(); }} />
+        </div>
+      )}
 
       <div className="px-2 space-y-4 mt-1">
         {/* Main content */}
@@ -200,14 +208,16 @@ export default function SessionEditor({
         {/* Anatomie-Check — inline statt Modal */}
         <AnatomyInline exercises={exercises} />
 
-        {/* Weitere Details — versteckt, klappt Sidebar-Inhalte inline auf */}
+        {/* Details & Notizen — Location/Dauer/Trainingsart/Effort/Notizen, klappt Sidebar-Inhalte inline auf.
+            Split (Push/Pull/...) sitzt seit der UX-Überarbeitung nicht mehr hier, sondern prominent
+            unter dem Datumspicker (SplitPicker) — das war vorher die eigentliche Logging-Hürde. */}
         <div>
           <button
             onClick={() => setShowInlineDetails(v => !v)}
             className="w-full flex items-center justify-between px-5 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all"
             style={{ background: 'var(--card)', border: '1px solid var(--line)', color: 'var(--dim)' }}
           >
-            <span>Weitere Details</span>
+            <span>Details & Notizen</span>
             <ChevronDown size={14} style={{ transform: showInlineDetails ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
           </button>
           {showInlineDetails && (
@@ -216,8 +226,6 @@ export default function SessionEditor({
                 location={location} setLocation={v => { setLocation(v); scheduleAutoSave(); }}
                 duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
                 gpsMapsUrl={gpsMapsUrl}
-                sessionMode={sessionMode}
-                block={block} setBlock={v => { setBlock(v); scheduleAutoSave(); }}
                 trainingsart={trainingsart} setTrainingsart={v => { setTrainingsart(v); scheduleAutoSave(); }}
                 effort={effort} setEffort={v => { setEffort(v); scheduleAutoSave(); }}
                 notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
@@ -281,8 +289,6 @@ export default function SessionEditor({
           location={location} setLocation={v => { setLocation(v); scheduleAutoSave(); }}
           duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
           gpsMapsUrl={gpsMapsUrl}
-          sessionMode={sessionMode}
-          block={block} setBlock={v => { setBlock(v); scheduleAutoSave(); }}
           trainingsart={trainingsart} setTrainingsart={v => { setTrainingsart(v); scheduleAutoSave(); }}
           effort={effort} setEffort={v => { setEffort(v); scheduleAutoSave(); }}
           notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
