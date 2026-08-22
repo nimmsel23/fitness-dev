@@ -1,5 +1,7 @@
-exercise_id: cable_external_rotation
-description: Expert details for Außenrotation am Kabelzug
+name: inbox_cable_external_rotation
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Außenrotation
+  am Kabelzug'
+generated_at: '2026-08-22T08:49:32.723181+00:00'
 exercises:
 - exercise_id: cable_external_rotation
   wger_id: null
@@ -87,7 +89,7 @@ exercises:
   - Cable External Rotation with Towel Support
   - Half-Kneeling Cable External Rotation
   - Standing Single-Arm Cable External Rotation
-  source: expert
+  source: unreviewed
   search_aliases:
   - Außenrotation am Kabelzug
   - Cable External Rotation
