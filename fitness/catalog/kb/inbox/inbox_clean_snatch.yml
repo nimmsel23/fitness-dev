@@ -1,5 +1,6 @@
-exercise_id: clean_snatch
-description: Expert details for Reißen
+name: inbox_clean_snatch
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Reißen'
+generated_at: '2026-08-22T08:49:33.984056+00:00'
 exercises:
 - exercise_id: clean_snatch
   wger_id: null
@@ -106,7 +107,7 @@ exercises:
   - Squat Snatch
   - Reissen
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Reißen
   - Reissen
