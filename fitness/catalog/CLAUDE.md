@@ -228,6 +228,71 @@ construction fail", bewusst noch nicht angefasst). Konkrete Befunde:
 
 ---
 
+## Coaching Notes Pipeline ("WhatsApp Wisdom Drops")
+
+**Problem:** Spontane Coaching-Erklärungen (z.B. eine Trainingsmethoden-
+Klarstellung an einen Klienten über WhatsApp) enthalten oft wiederverwendbares
+Wissen, das sonst nur im Chatverlauf lebt und für die App verloren geht.
+**Lösung:** Ein eigener, schlanker KB-Content-Typ (analog zu
+`anatomy_teaching/`, aber ohne dessen Bewegungs-/Gelenk-Detailtiefe), der
+kontextuell im Frontend auftaucht statt in einem generischen FAQ zu versanden.
+
+```
+kb/coaching_notes/*.yaml   (SSOT, von Hand/Agent geschrieben)
+    ↓ Python: fitness/catalog/agent/coaching_notes.py (load_all_notes, find_notes_by_tag)
+    ↓ FastAPI: GET /coaching-notes[?tag=], GET /coaching-notes/{id}
+    ↓ Node-Proxy: server.mjs (/coaching-notes → proxyToPython)
+    ↓ Build-Time: scripts/build-coaching-notes.mjs → src/lib/coachNotesData.generated.js
+    ↓ Frontend: src/lib/coachNotes.js (getCoachingNotesByTag) → <CoachNoteCard tag="..." />
+```
+
+**Warum Build-Time-Bundle statt Live-API-Call im Frontend:** gleiches Prinzip
+wie bei `SIXPACK_*`/`exerciseBulkData` (siehe `../../src/CLAUDE.md`) — Notes
+ändern sich selten, brauchen aber sowohl im lokalen Dev-Betrieb als auch im
+Firebase-Build (kein Zugriff auf die lokale Python-API) denselben Inhalt ohne
+Firestore-Sync-Aufwand. `build:coaching-notes` läuft automatisch vor jedem
+`dev`/`build`/`build:firebase` (`predev`/`prebuild`/`prebuild:firebase` →
+`build:kb-data`). Die FastAPI-Route (`/coaching-notes`) bleibt trotzdem
+bestehen — für Terminal-Zugriff (`fitness-catalog`-CLI o.ä.) und falls später
+ein Live-Pfad gebraucht wird.
+
+**Pipeline für einen neuen Wisdom-Drop (Claude/Agent-Workflow):**
+1. Rohtext (WhatsApp-Auszug o.ä.) vom User bekommen.
+2. Neue Datei `kb/coaching_notes/<slug>.yaml` anlegen, Schema:
+   ```yaml
+   id: <slug>                        # eindeutig, snake_case
+   title: "Kurzer Frage-/Aussagetitel"
+   tags: [thema1, thema2]            # frei wählbar, z.B. training_method
+   applies_to:
+     activity_types: [hiit]          # optional — Werte aus ACTIVITY_MUSCLE_GROUPS-Keys
+     topics: [intensity_technique]   # optional — freie Themen-Tags
+   source: whatsapp_coaching_<klient>_<datum>
+   summary: >
+     1-3 Sätze Kurzfassung.
+   body: |
+     Vollständige, strukturierte Erklärung (Markdown-Überschriften ##
+     erlaubt, wird als whitespace-pre-line gerendert — kein Markdown-Parser
+     im Frontend, also keine Links/Bold-Syntax erwarten).
+   follow_up:                        # optional, Frage/Antwort-Paare
+     - question: "..."
+       answer: "..."
+   created: "YYYY-MM-DD"
+   ```
+   Klientennamen/private Details generalisieren — die Note ist wiederverwendbar
+   für alle Klienten, nicht Matthias-spezifisch.
+3. `npm run build:coaching-notes` (oder einfach `npm run dev`/`build`, läuft
+   automatisch) — generiert `coachNotesData.generated.js` neu.
+4. Passende Stelle im Frontend mit `<CoachNoteCard tag="<tag-oder-activity-type>" />`
+   versehen (bereits verdrahtet: `ActivityAddon.jsx` zeigt Notes mit
+   `tag === activity.type`, aktuell `hiit`). Neue Surfacing-Punkte einfach nach
+   demselben Muster ergänzen — `getCoachingNotesByTag()` matched gegen `tags`,
+   `applies_to.activity_types` und `applies_to.topics` gleichzeitig.
+5. Kein Server-Neustart nötig für die reine YAML-Änderung im Firebase-Build
+   (Build-Time-Bundle) — für den lokalen Node/Python-Dev-Betrieb liest
+   `load_all_notes()` bei jedem Request frisch von Disk.
+
+---
+
 ## Coverage-Formel
 
 ```

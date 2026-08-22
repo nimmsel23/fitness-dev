@@ -8,6 +8,7 @@
 
 import { Plus, X } from 'lucide-react';
 import { ACTIVITY_MUSCLE_DEFAULTS, MUSCLE_TARGET_GROUPS } from '../../constants/ActivityConstants';
+import CoachNoteCard from '../../components/CoachNoteCard';
 
 const MUSCLE_TARGETS = [
   { value: 'core',  label: 'Core' },
@@ -137,6 +138,8 @@ export default function ActivityAddon({ hasActivity, setHasActivity, activity, s
           min
         </span>
       </div>
+
+      <CoachNoteCard tag={activity.type} />
     </div>
   );
 }
