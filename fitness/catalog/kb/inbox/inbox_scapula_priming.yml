@@ -1,5 +1,6 @@
-exercise_id: scapula_priming
-description: Expert details for Schulterblatt-Aktivierung
+name: inbox_scapula_priming
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Schulterblatt-Aktivierung'
+generated_at: '2026-08-22T08:49:37.976131+00:00'
 exercises:
 - exercise_id: scapula_priming
   id: scapula_priming
@@ -81,7 +82,7 @@ exercises:
   - Shoulder Blade Mobility Drills
   - Schulterblatt-Mobilisation
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Schulterblatt-Aktivierung
   - Scapular Activation
