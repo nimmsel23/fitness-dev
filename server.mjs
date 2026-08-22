@@ -881,6 +881,9 @@ async function proxyToPython(c, pythonPath) {
   }
 }
 
+app.get("/coaching-notes", (c) => proxyToPython(c, "/coaching-notes"));
+app.get("/coaching-notes/:id", (c) => proxyToPython(c, `/coaching-notes/${c.req.param("id")}`));
+
 app.get("/routines", (c) => proxyToPython(c, "/routines"));
 app.post("/routines", (c) => proxyToPython(c, "/routines"));
 app.get("/routines/:id", (c) => proxyToPython(c, `/routines/${c.req.param("id")}`));
