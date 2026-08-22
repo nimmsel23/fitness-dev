@@ -239,12 +239,28 @@ kontextuell im Frontend auftaucht statt in einem generischen FAQ zu versanden.
 
 ```
 kb/coaching_notes/*.yaml   (SSOT, von Hand/Agent geschrieben)
-    ↓ Python: fitness/catalog/agent/coaching_notes.py (load_all_notes, find_notes_by_tag)
-    ↓ FastAPI: GET /coaching-notes[?tag=], GET /coaching-notes/{id}
-    ↓ Node-Proxy: server.mjs (/coaching-notes → proxyToPython)
+    ↓ Python: fitness/catalog/agent/coaching_notes.py (load_all_notes, find_notes_by_tag, load_open_product_signals)
+    ↓ FastAPI: GET /coaching-notes[?tag=], GET /coaching-notes/{id}, GET /coaching-notes/product-signals
+    ↓ Node-Proxy: server.mjs (/coaching-notes* → proxyToPython)
     ↓ Build-Time: scripts/build-coaching-notes.mjs → src/lib/coachNotesData.generated.js
-    ↓ Frontend: src/lib/coachNotes.js (getCoachingNotesByTag) → <CoachNoteCard tag="..." />
+    ↓ Frontend: src/lib/coachNotes.js (getAllCoachingNotes/getCoachingNotesByTag)
+      → Timer-Tab (SixPackPromiseCard.jsx) LearnScreen, Sektion "Wisdom"
+      → NoteDetailScreen (Titel/Summary/Body/Follow-up)
 ```
+
+**Surfacing-Entscheidung (2026-08-22):** Erster Anlauf war ein kontextueller
+Tooltip in `ActivityAddon.jsx` (erscheint beim HIIT-Activity-Finisher,
+während/kurz vor dem Training) — auf User-Feedback verworfen: taucht "zu
+plötzlich" auf, wenn die Session eigentlich schon läuft. Stattdessen lebt es
+jetzt als durchsuchbare Liste ("Wisdom") im Timer-Tab-Learn-Screen
+(`SixPackPromiseCard.jsx::LearnScreen`, dritte Sektion nach Core-Übungen und
+Calisthenics-Skills) — bewusst dort statt im separaten `learn-dev`-Repo
+(`~/learn-dev`, per `@learn`-Vite-Alias eingebunden, siehe `../../src/CLAUDE.md`),
+weil das eine Cross-Repo-Integration gewesen wäre und der Timer-Tab thematisch
+ohnehin schon HIIT-artige Core-Finisher behandelt. `CoachNoteCard.jsx`
+(generische Tailwind-Karte für den ersten Anlauf) wurde wieder entfernt —
+`src/lib/coachNotes.js` (die Datenzugriffs-Helper) bleibt bestehen und wird
+jetzt direkt von `SixPackPromiseCard.jsx` importiert.
 
 **Warum Build-Time-Bundle statt Live-API-Call im Frontend:** gleiches Prinzip
 wie bei `SIXPACK_*`/`exerciseBulkData` (siehe `../../src/CLAUDE.md`) — Notes
@@ -286,14 +302,30 @@ ein Live-Pfad gebraucht wird.
    Referenz für spätere Nachschlagezwecke, kein aktiver KB-Content.
 3. `npm run build:coaching-notes` (oder einfach `npm run dev`/`build`, läuft
    automatisch) — generiert `coachNotesData.generated.js` neu.
-4. Passende Stelle im Frontend mit `<CoachNoteCard tag="<tag-oder-activity-type>" />`
-   versehen (bereits verdrahtet: `ActivityAddon.jsx` zeigt Notes mit
-   `tag === activity.type`, aktuell `hiit`). Neue Surfacing-Punkte einfach nach
-   demselben Muster ergänzen — `getCoachingNotesByTag()` matched gegen `tags`,
-   `applies_to.activity_types` und `applies_to.topics` gleichzeitig.
+4. Taucht automatisch in der "Wisdom"-Liste im Timer-Tab-Learn-Screen auf
+   (`SixPackPromiseCard.jsx::LearnScreen`, nutzt `getAllCoachingNotes()`) —
+   kein zusätzlicher Verdrahtungsschritt pro Note nötig. Nur bei Bedarf für
+   einen *zusätzlichen*, kontextuellen Surfacing-Punkt (z.B. an einer ganz
+   bestimmten Stelle im Flow) `getCoachingNotesByTag()` gezielt verwenden —
+   matched gegen `tags`, `applies_to.activity_types` und `applies_to.topics`
+   gleichzeitig.
 5. Kein Server-Neustart nötig für die reine YAML-Änderung im Firebase-Build
    (Build-Time-Bundle) — für den lokalen Node/Python-Dev-Betrieb liest
    `load_all_notes()` bei jedem Request frisch von Disk.
+6. **Produkt-/UX-Signale erkennen** (optional, aber immer prüfen): Rohtext
+   nicht nur nach Coaching-Wissen durchsuchen, sondern auch nach Reibungspunkten
+   in der App-Nutzung selbst (z.B. "Klient trägt nicht/verzögert ein", "Klient
+   kennt Feature X nicht", "Klient hat sich die Antwort auf eine Frage selbst
+   gesucht, die die App eigentlich beantworten könnte"). Falls vorhanden: als
+   `product_signals:`-Liste in dieselbe YAML eintragen (Felder `signal`,
+   `hypothesis`, `status: open`, siehe `hit_vs_5x5_vs_hiit.yaml` als Beispiel)
+   — getrennt vom eigentlichen `body`, damit die Note selbst klientenneutral
+   bleibt. Offene Signale zusätzlich unter "💬 Client-Signale" in `docs/TODO.md`
+   verlinken, damit sie sichtbar sind, ohne dass diese Pipeline selbst UX-Fixes
+   implementiert (das bleibt Aufgabe der jeweils zuständigen Session-/Feature-
+   Arbeit, z.B. der laufenden Session-Tab-UX-Überarbeitung).
+   Abfrage aller offenen Signale: `load_open_product_signals()`
+   (`fitness/catalog/agent/coaching_notes.py`) bzw. `GET /coaching-notes/product-signals`.
 
 ---
 

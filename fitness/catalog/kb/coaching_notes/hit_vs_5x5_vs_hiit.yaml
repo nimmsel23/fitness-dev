@@ -61,3 +61,37 @@ follow_up:
       Nein, wenn es wirklich ein kurzer HIIT-Finisher ist (nicht
       Krafttraining) — dafür konzipiert, hohe Frequenz zu vertragen.
 created: "2026-08-22"
+# Produkt-/UX-Signale aus dem Rohtext (hit_vs_5x5_vs_hiit.raw.txt) — keine
+# Coaching-Inhalte, sondern Reibungspunkte in der App-Nutzung, die beim
+# Durchlesen auffielen. Getrennt vom eigentlichen coaching-content, damit
+# die Note selbst klientenneutral bleibt. Siehe "Coaching Notes Pipeline"
+# in ../../CLAUDE.md, Schritt 6, für die Extraktionslogik.
+product_signals:
+  - signal: >
+      Klient trägt Sessions verzögert/gesammelt nach ("noch nicht
+      eingetragen", "trag dann beides ein") statt direkt beim Training —
+      wiederkehrendes Muster, nicht Einzelfall.
+    hypothesis: >
+      Logging-Hürde im Moment des Trainings zu hoch (App nicht griffbereit /
+      zu viele Schritte) — Nachtragen aus dem Gedächtnis ist fehleranfälliger
+      und reduziert die Motivation, überhaupt zu loggen.
+    status: open
+  - signal: >
+      Klient weiß nicht, wie/ob der Coach seine Logs sieht ("Wie genau
+      schaust du das an?") — die einzige Einsicht läuft über ein
+      Coach-only-Terminal-Tool (`fitness log clients <slug>`), der Klient
+      selbst hat keine vergleichbare Rückmeldeansicht.
+    hypothesis: >
+      Fehlende Transparenz/Feedback-Loop im Client-facing Teil der App —
+      ein "das sieht dein Coach"-Hinweis oder eine einfache
+      Fortschritts-Rückmeldung direkt in der App könnte die wahrgenommene
+      Hürde senken (Motivation: sichtbar, dass geloggt wird).
+    status: open
+  - signal: >
+      Klient beantwortet eine Split-/Rotationsfrage (Push/Legs/Pull um
+      Wanderurlaub herum) sich selbst, ohne App-Unterstützung.
+    hypothesis: >
+      Mögliche Opportunity für eine einfache In-App-Split-Vorschlagslogik
+      bei anstehenden Pausentagen/Reisen — niedrige Priorität, kein
+      akuter Schmerzpunkt (Klient kam allein drauf).
+    status: open

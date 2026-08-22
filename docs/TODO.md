@@ -14,7 +14,27 @@
 - [ ] **PWA Offline Support**: Ensure essential features work without active connection.
 - [ ] **Anatomy Teaching**: Expand deep anatomy content for all core exercises in the catalog.
 
+## 💬 Client-Signale (aus Coaching Notes extrahiert)
+Reibungspunkte in der App-Nutzung, die beim Verschriftlichen spontaner
+Coaching-Erklärungen ("WhatsApp Wisdom Drops") auffielen — siehe
+`fitness/catalog/CLAUDE.md`, Abschnitt "Coaching Notes Pipeline", Schritt 6.
+Kein Fix-Auftrag an sich, nur Sichtbarkeit für die laufende Session-Tab-UX-
+Arbeit. Quelle: `fitness/catalog/kb/coaching_notes/*.yaml` (`product_signals:`).
+- [ ] **Verzögertes/gesammeltes Nachtragen von Sessions** (`hit_vs_5x5_vs_hiit`):
+  Klient trägt oft erst abends/nachträglich ein statt direkt beim Training —
+  mögliche Logging-Hürde im Moment des Trainings.
+- [ ] **Fehlende Transparenz für Klienten, was der Coach sieht** (`hit_vs_5x5_vs_hiit`):
+  Coach-Einsicht läuft nur über ein Terminal-Tool, Klient hat keine
+  vergleichbare eigene Rückmeldeansicht/Fortschrittsanzeige.
+- [ ] **Split-Rotation um Reisetage** (`hit_vs_5x5_vs_hiit`, niedrige Priorität):
+  Klient hat sich Push/Pull/Legs-Reihenfolge um einen Wanderurlaub selbst
+  ausgedacht — mögliche Opportunity für eine einfache In-App-Vorschlagslogik.
+
 ## 🏗 Architectural / Tech Debt
+- [ ] **SixPackPromiseCard.jsx aus Session/ auslösen**: Hat inhaltlich nichts
+  mit Session/ zu tun außer der Ordner-Verschachtelung — eigenes `views/6pack/`
+  anlegen, `Session/SixPackPromiseCard.jsx` als reinen Re-Export/Barrel stehen
+  lassen (User-Vorschlag 2026-08-22, bewusst zurückgestellt: "später evtl").
 - [x] **Multi-Session Schema**: Migrate to `sessions/{sessionId}` structure to support multiple workouts per day.
 - [ ] **Habit Tab Refactoring**: Refactor Habit Tab into a more encapsulated, app-like structure.
 - [x] **Local Data Migration**: Move `data/` from repo-local to `~/.aos/fitness/`. ✅ (Implemented in server and agent).
