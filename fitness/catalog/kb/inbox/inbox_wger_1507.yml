@@ -1,6 +1,7 @@
-exercise_id: wger_1507
-description: Expert details for Liegestütz mit Klatschen
-approved_at: '2026-08-06T14:46:47.488621+00:00'
+name: inbox_wger_1507
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Liegestütz
+  mit Klatschen'
+generated_at: '2026-08-22T08:49:38.876097+00:00'
 exercises:
 - exercise_id: wger_1507
   display_name: Liegestütz mit Klatschen
@@ -107,10 +108,9 @@ exercises:
     - 2
     - 6
     - 5
-  source: expert
+  source: unreviewed
   variations: []
   enriched_at: '2026-08-12T00:00:00+02:00'
-  approved_at: '2026-08-06T14:46:47.488621+00:00'
   external_ids:
     wger:
     - 1507
