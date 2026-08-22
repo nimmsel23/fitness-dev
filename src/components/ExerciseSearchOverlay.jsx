@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { Search, X, History, Zap, Dumbbell, BadgeCheck, Star, Plus } from 'lucide-react'
+import { Search, X, History, Zap, Dumbbell, Star, Plus } from 'lucide-react'
 import { searchExercises, getSessionHistory, getPlanSuggestion, toggleFavourite, getFavourites } from '@db'
 import {
   loadLanguageFilter, filterByLanguage, LANG_STORAGE_KEY,
 } from '../lib/exerciseLanguage.js'
-import { muskelDe, muskelColor as muscleColor, dedupeMuskeln } from '../lib/kb/muscles.js'
 
 export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
   const [query, setQuery] = useState('')
@@ -171,9 +170,6 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
                         className="group flex flex-col p-4 rounded-3xl bg-fit-card border border-fit-line hover:border-accent/50 hover:bg-accent/5 transition-all text-left shadow-sm active:scale-[0.98]"
                       >
                         <span className="font-bold text-sm text-fit-ink group-hover:text-accent transition-colors">{ex.name}</span>
-                        {ex.primaryMuscles?.length > 0 && (
-                          <span className="text-[9px] font-bold text-fit-dim/60 mt-1 uppercase tracking-wider">{dedupeMuskeln(ex.primaryMuscles).map(muskelDe).join(' · ')}</span>
-                        )}
                       </button>
                     ))}
                   </div>
@@ -227,49 +223,28 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
                       key={ex.id || ex.name}
                       onClick={() => pick(ex)}
                       onMouseEnter={() => setSelectedIndex(idx)}
-                      className={`w-full flex items-center justify-between p-5 rounded-3xl border transition-all text-left shadow-sm group ${
-                        selectedIndex === idx 
-                        ? 'bg-fit-accent/10 border-fit-accent/50 translate-x-1' 
-                        : 'bg-fit-card border-fit-line hover:border-line-hover'
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-all text-left group ${
+                        selectedIndex === idx
+                        ? 'bg-fit-accent/5 border-fit-accent/30'
+                        : 'bg-fit-card/50 border-fit-line/60 hover:border-line-hover'
                       }`}
                     >
-                      <div className="flex-1 min-w-0 pr-4">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`font-black text-base truncate ${selectedIndex === idx ? 'text-fit-accent' : 'text-fit-ink'}`}>
-                            {ex.name}
-                          </span>
-                          {ex.source === 'expert' && <BadgeCheck size={14} className="text-blue-400" />}
-                          <button
-                            onClick={e => handleToggleFav(e, ex.id || ex.exercise_id)}
-                            className="ml-auto shrink-0 p-0.5 rounded-full hover:scale-110 transition-transform"
-                          >
-                            <Star size={14} className={favourites.includes(ex.id || ex.exercise_id) ? 'text-yellow-400 fill-yellow-400' : 'text-fit-dim/30'} />
-                          </button>
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                          {dedupeMuskeln(ex.primaryMuscles).map(m => (
-                            <span key={m} className="text-[9px] px-2 py-0.5 rounded-lg font-black uppercase tracking-widest"
-                              style={{ background: muscleColor(m) + '22', color: muscleColor(m) }}>
-                              {muskelDe(m)}
-                            </span>
-                          ))}
-                          {ex.source && (
-                            <span className={`text-[8px] px-2 py-0.5 rounded-lg font-black uppercase tracking-widest border ${
-                              ex.source === 'expert' ? 'border-fit-accent/30 text-fit-accent bg-fit-accent/5' : 
-                              ex.source === 'bulk' ? 'border-fit-line text-fit-dim/60 bg-fit-bg2' : 
-                              'border-fit-orange/30 text-fit-orange bg-fit-orange/5'
-                            }`}>
-                              {ex.source}
-                            </span>
-                          )}
-                        </div>
+                      <div className="flex-1 min-w-0 pr-4 flex items-center gap-2">
+                        <span className={`font-semibold text-sm truncate ${selectedIndex === idx ? 'text-fit-accent' : 'text-fit-ink'}`}>
+                          {ex.name}
+                        </span>
+                        <button
+                          onClick={e => handleToggleFav(e, ex.id || ex.exercise_id)}
+                          className="ml-auto shrink-0 p-0.5 rounded-full hover:scale-110 transition-transform"
+                        >
+                          <Star size={13} className={favourites.includes(ex.id || ex.exercise_id) ? 'text-yellow-400 fill-yellow-400' : 'text-fit-dim/20'} />
+                        </button>
                       </div>
-                      
-                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
-                        selectedIndex === idx ? 'bg-fit-accent text-black scale-110 shadow-lg shadow-accent/20' : 'bg-fit-bg2 text-fit-dim'
+
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all shrink-0 ${
+                        selectedIndex === idx ? 'bg-fit-accent/20 text-fit-accent' : 'bg-fit-bg2 text-fit-dim'
                       }`}>
-                        <Plus size={20} />
+                        <Plus size={16} />
                       </div>
                     </button>
                   ))}
