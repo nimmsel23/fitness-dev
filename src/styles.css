@@ -140,6 +140,37 @@
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
+/* RPE-Slider (EffortPicker) — custom Thumb statt hässlichem Browser-Default */
+.rpe-range { -webkit-appearance: none; appearance: none; outline: none; }
+.rpe-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 9999px;
+  background: var(--rpe-color, var(--accent));
+  border: 2px solid var(--bg);
+  box-shadow: 0 2px 8px -1px rgba(0,0,0,0.5), 0 0 0 0 var(--rpe-color, var(--accent));
+  cursor: pointer;
+  transition: transform 0.15s ease-out, box-shadow 0.2s ease-out;
+}
+.rpe-range:hover::-webkit-slider-thumb,
+.rpe-range:active::-webkit-slider-thumb {
+  transform: scale(1.25);
+  box-shadow: 0 2px 8px -1px rgba(0,0,0,0.5), 0 0 0 6px color-mix(in srgb, var(--rpe-color, var(--accent)) 25%, transparent);
+}
+.rpe-range::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 9999px;
+  background: var(--rpe-color, var(--accent));
+  border: 2px solid var(--bg);
+  cursor: pointer;
+  transition: transform 0.15s ease-out, box-shadow 0.2s ease-out;
+}
+.rpe-range:hover::-moz-range-thumb,
+.rpe-range:active::-moz-range-thumb {
+  transform: scale(1.25);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--rpe-color, var(--accent)) 25%, transparent);
+}
+
 /* spinner */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinner {

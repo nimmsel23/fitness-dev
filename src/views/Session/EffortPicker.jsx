@@ -17,11 +17,14 @@ export default function EffortPicker({ effort, setEffort }) {
   const pct = ((effort - 1) / 9) * 100;
   return (
     <div
-      className="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl"
-      style={{ background: 'var(--card)', border: '1px solid var(--line)' }}
+      className="group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl border border-[var(--line)] hover:border-[var(--rpe-color)] transition-all duration-200 ease-out hover:shadow-[0_6px_20px_-10px_var(--rpe-color)] hover:-translate-y-0.5"
+      style={{ background: 'var(--card)', '--rpe-color': color }}
     >
-      <div className="flex items-center gap-1.5 shrink-0" style={{ color }}>
-        <Flame size={13} strokeWidth={2.5} />
+      <div
+        className="flex items-center gap-1.5 shrink-0 transition-transform duration-200 ease-out group-hover:scale-110"
+        style={{ color }}
+      >
+        <Flame size={13} strokeWidth={2.5} className="group-hover:animate-pulse" />
         <span className="text-[11px] font-black uppercase tracking-wide">RPE</span>
       </div>
       <input
@@ -30,13 +33,16 @@ export default function EffortPicker({ effort, setEffort }) {
         max={10}
         value={effort}
         onChange={e => setEffort(Number(e.target.value))}
-        className="flex-1 h-1.5 rounded-full appearance-none cursor-pointer"
+        className="rpe-range flex-1 h-1.5 rounded-full cursor-pointer"
         style={{
           background: `linear-gradient(to right, ${color} ${pct}%, var(--line) ${pct}%)`,
-          accentColor: color,
+          '--rpe-color': color,
         }}
       />
-      <span className="text-sm font-black w-4 text-center shrink-0" style={{ color }}>
+      <span
+        className="text-sm font-black w-4 text-center shrink-0 transition-transform duration-200 ease-out group-hover:scale-125"
+        style={{ color }}
+      >
         {effort}
       </span>
     </div>
