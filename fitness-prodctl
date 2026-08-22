@@ -168,8 +168,26 @@ def _run_deploy_sh(target: str) -> int:
 
 
 @app.command()
-def deploy(target: str = typer.Argument("staging", help="staging | prod")):
-    """Führt ./deploy.sh <target> aus (Build in SOURCE, rsync + restart, prod braucht sudo)."""
+def deploy(target: str = typer.Argument("prod", help="staging | prod")):
+    """Führt ./deploy.sh <target> aus (Build in SOURCE, rsync + restart, prod braucht sudo).
+
+    Default ist bewusst 'prod', nicht 'staging' — dieses Skript ist der
+    Prod-Controller (fitness-prodctl), 'fitness prod deploy' ohne weiteres
+    Argument soll deshalb tatsächlich prod deployen, nicht (wie bis
+    2026-08-22) versehentlich nochmal nur staging treffen. Für Staging
+    weiterhin fitness-devctl deploy bzw. 'fitness-prodctl deploy staging'.
+    """
+    if target == "prod":
+        import shutil
+        prompt = "Deploy /opt/fitness (prod, sudo, restarts fitness.service)?"
+        if shutil.which("gum"):
+            r = subprocess.run(["gum", "confirm", prompt])
+            confirmed = r.returncode == 0
+        else:
+            confirmed = input(f"{prompt} [y/N] ").lower() == "y"
+        if not confirmed:
+            msg.warn("Aborted.")
+            raise typer.Exit(0)
     rc = _run_deploy_sh(target)
     if rc != 0:
         raise typer.Exit(rc)
