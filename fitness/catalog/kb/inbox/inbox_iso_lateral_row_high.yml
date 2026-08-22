@@ -1,5 +1,7 @@
-exercise_id: iso_lateral_row_high
-description: Expert details for Iso-Lateral High Row
+name: inbox_iso_lateral_row_high
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Iso-Lateral
+  High Row'
+generated_at: '2026-08-22T08:49:35.772128+00:00'
 exercises:
 - exercise_id: iso_lateral_row_high
   wger_id: null
@@ -72,7 +74,7 @@ exercises:
   - Hammer Strength Iso-Lateral High Row
   - High Row Machine
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Iso-Lateral High Row
   - High Iso Lateral Row Machine
