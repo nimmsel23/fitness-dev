@@ -12,6 +12,7 @@ import { Save, ChevronDown, X } from 'lucide-react';
 import SessionGateCard from './SessionGateCard.jsx';
 import SessionHeader from './SessionHeader';
 import SplitPicker from './SplitPicker';
+import EffortPicker from './EffortPicker';
 import ExerciseList from './ExerciseList';
 import ActivitySection from './ActivitySection';
 import ActivityAddon, { ADDON_TYPES } from './ActivityAddon';
@@ -20,6 +21,7 @@ import SessionSidebar from './SessionSidebar';
 import AnatomyInline from './AnatomyInline';
 import SourceSettingsModal from './SourceSettingsModal';
 import { normalizeSessionGate } from '../../lib/sessionGate.js';
+import { inferBlockFromExercises } from './utils';
 
 const scrollToAnatomyCheck = () =>
   document.getElementById('anatomy-check')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -72,6 +74,20 @@ export default function SessionEditor({
     if (currentSubTab === 'today') setGateSheetOpen(true);
   }, [currentSubTab]);
 
+  // Split-Autoerkennung: solange der User selbst noch keinen Split gewählt
+  // hat (block === ''), leitet sie den Split aus den bereits eingetragenen
+  // Übungen ab (z.B. nur Chest/Shoulder/Tricep-Übungen → "Push") — die
+  // Session bekommt so automatisch ihre Kennzeichnung, ohne dass der Split
+  // manuell nachgetragen werden muss.
+  useEffect(() => {
+    if (sessionMode !== 'strength' || block) return;
+    const inferred = inferBlockFromExercises(exercises);
+    if (inferred) {
+      setBlock(inferred);
+      scheduleAutoSave();
+    }
+  }, [exercises, sessionMode, block]);
+
   return (
     <div className="pb-36">
       {/* Sticky header — DateStrip/SessionSwitcher/hint/ModeSwitcher merged into one calm unit */}
@@ -88,10 +104,15 @@ export default function SessionEditor({
 
       {/* Split-Auswahl — 1 Klick, direkt unter dem Datumspicker statt hinter "Weitere Details" */}
       {sessionMode === 'strength' && (
-        <div className="px-3 -mt-1 mb-1">
+        <div className="px-3 mt-2 mb-2">
           <SplitPicker block={block} setBlock={v => { setBlock(v); scheduleAutoSave(); }} />
         </div>
       )}
+
+      {/* RPE — ebenfalls prominent statt hinter "Details & Notizen" versteckt */}
+      <div className="px-3 mb-3">
+        <EffortPicker effort={effort} setEffort={v => { setEffort(v); scheduleAutoSave(); }} />
+      </div>
 
       <div className="px-2 space-y-4 mt-1">
         {sessionMode === 'strength' ? (
@@ -220,7 +241,6 @@ export default function SessionEditor({
                 duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
                 gpsMapsUrl={gpsMapsUrl}
                 trainingsart={trainingsart} setTrainingsart={v => { setTrainingsart(v); scheduleAutoSave(); }}
-                effort={effort} setEffort={v => { setEffort(v); scheduleAutoSave(); }}
                 notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
                 onDownload={handleDownload}
                 onExportObsidian={exportObsidian}
@@ -283,7 +303,6 @@ export default function SessionEditor({
           duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
           gpsMapsUrl={gpsMapsUrl}
           trainingsart={trainingsart} setTrainingsart={v => { setTrainingsart(v); scheduleAutoSave(); }}
-          effort={effort} setEffort={v => { setEffort(v); scheduleAutoSave(); }}
           notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
           onDownload={handleDownload}
           onExportObsidian={exportObsidian}

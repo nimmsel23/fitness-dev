@@ -7,7 +7,7 @@ export default function SessionSidebar({
   location, setLocation, duration, setDuration,
   gpsMapsUrl,
   trainingsart, setTrainingsart,
-  effort, setEffort, notes, setNotes, onDownload,
+  notes, setNotes, onDownload,
   onExportObsidian, onShowMap, onClose, coachFeedback = ""
 }) {
   return (
@@ -102,18 +102,6 @@ export default function SessionSidebar({
           <SectionHeader>Qualität & Fokus</SectionHeader>
         </div>
         <div className="space-y-8">
-          <div>
-            <div className="flex items-center justify-between mb-4 px-1">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40">Effort (RPE)</span>
-              <span className="text-2xl font-black text-fit-accent">{effort}</span>
-            </div>
-            <input type="range" min={1} max={10} value={effort} onChange={e => setEffort(Number(e.target.value))} className="w-full accent-accent h-1.5 bg-fit-bg2 rounded-full appearance-none cursor-pointer" />
-            <div className="flex justify-between mt-2 px-1">
-              <span className="text-[8px] font-black text-fit-dim/20 uppercase">Leicht</span>
-              <span className="text-[8px] font-black text-fit-dim/20 uppercase">Maximal</span>
-            </div>
-          </div>
-          
           <div className="group">
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-2 block ml-1 flex items-center gap-2">
               <FileText size={12} /> Notizen
