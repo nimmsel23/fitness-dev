@@ -1,5 +1,7 @@
-exercise_id: french_press
-description: Expert details for French Press
+name: inbox_french_press
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): French
+  Press'
+generated_at: '2026-08-22T08:49:35.518283+00:00'
 exercises:
 - exercise_id: french_press
   id: french_press
@@ -75,7 +77,7 @@ exercises:
   - SZ-Trizepsdrücken
   - Lying Triceps Extension
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - French Press
   - Franzoesisches Druecken
