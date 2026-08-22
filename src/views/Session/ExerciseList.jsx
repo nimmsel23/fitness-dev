@@ -13,34 +13,12 @@ export default function ExerciseList({
   updateEx, addSet, removeSet, removeEx, replaceSets, moveEx,
   date, addEx, quickInput, setQuickInput, addQuick,
   prevMap = {}, onInspectExercise,
-  gaps,
 }) {
   const [showSearch, setShowSearch] = useState(false);
   const safe = Array.isArray(exercises) ? exercises : [];
 
   return (
     <div className="space-y-5">
-
-      {/* Coverage gaps — informational, not alarm-red: these are muscles that
-          simply haven't been trained in a while, not an error state. */}
-      {gaps.length > 0 && (
-        <div className="flex items-start gap-2 px-1">
-          <span className="text-[10px] font-semibold shrink-0 mt-0.5" style={{ color: 'var(--dim)', opacity: 0.6 }}>
-            Länger nicht trainiert
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            {gaps.map(g => (
-              <span
-                key={g.name}
-                className="text-[10px] font-medium px-2 py-0.5 rounded-full"
-                style={{ background: 'var(--bg2)', color: 'var(--dim)' }}
-              >
-                {g.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Rest hours badge */}
       {restHours !== null && (

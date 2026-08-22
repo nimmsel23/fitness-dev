@@ -44,7 +44,7 @@ export default function SessionEditor({
   activityAddons, removeActivityAddon,
   sessionGate,
   recentSessions,
-  hint, gaps,
+  hint,
   prevMap,
   daySessions, sessionId,
   showSidebar, setShowSidebar,
@@ -94,12 +94,6 @@ export default function SessionEditor({
       )}
 
       <div className="px-2 space-y-4 mt-1">
-        {/* Main content */}
-        <div className="px-1">
-          <div className="text-xs font-semibold mb-2" style={{ color: 'var(--dim)', opacity: 0.7 }}>
-            Manuell nachtragen / editieren
-          </div>
-        </div>
         {sessionMode === 'strength' ? (
           <>
             <ExerciseList
@@ -119,7 +113,6 @@ export default function SessionEditor({
               addQuick={addQuick}
               prevMap={prevMap}
               onInspectExercise={onInspectExercise}
-              gaps={gaps}
             />
 
             {/* Activity finisher addon */}
