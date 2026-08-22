@@ -10,11 +10,13 @@ const TIME_ZONE = "Europe/Berlin";
 const REMINDER_WINDOW_MINUTES = 5;
 const REST_DAY_THRESHOLD_DAYS = 3;
 const COVERAGE_GAP_THRESHOLD = 1.0;
+const PPL_RATIO_ALERT_THRESHOLD = 0.15;
 const REMINDER_TYPES = {
   workout: true,
   activeWorkout: true,
   habit: true,
   coverage: true,
+  pplRatio: true,
   restday: true,
 };
 
@@ -33,6 +35,18 @@ const MUSCLE_GROUP_LABELS = {
   quadriceps: "Quadrizeps",
   hamstrings: "Beinbeuger",
   calves: "Waden",
+};
+
+const PPL_BUCKETS = {
+  push: ["chest", "shoulders", "arms"],
+  pull: ["back", "arms"],
+  legs: ["glutes", "quadriceps", "hamstrings", "calves"],
+};
+
+const PPL_BUCKET_LABELS = {
+  push: "Push",
+  pull: "Pull",
+  legs: "Legs",
 };
 
 const NOTIFICATIONS = yaml.load(fs.readFileSync(path.join(__dirname, "notifications.yaml"), "utf8"));
@@ -168,6 +182,30 @@ function getCoverageGaps(scores = {}, threshold = COVERAGE_GAP_THRESHOLD) {
   return Object.keys(MUSCLE_GROUP_LABELS).filter((id) => Number(scores[id] || 0) < threshold);
 }
 
+function sumScores(scores = {}, keys = []) {
+  return keys.reduce((sum, key) => sum + Math.max(0, Number(scores[key] || 0)), 0);
+}
+
+function getLowPplBuckets(scores = {}, threshold = PPL_RATIO_ALERT_THRESHOLD) {
+  const totals = {
+    push: sumScores(scores, PPL_BUCKETS.push),
+    pull: sumScores(scores, PPL_BUCKETS.pull),
+    legs: sumScores(scores, PPL_BUCKETS.legs),
+  };
+  const overall = totals.push + totals.pull + totals.legs;
+  if (overall <= 0) return [];
+
+  return Object.entries(totals)
+    .map(([bucket, total]) => ({ bucket, ratio: total / overall }))
+    .filter(({ ratio }) => ratio < threshold)
+    .sort((a, b) => a.ratio - b.ratio)
+    .map(({ bucket, ratio }) => ({
+      bucket,
+      label: PPL_BUCKET_LABELS[bucket] || bucket,
+      percent: Math.round(ratio * 100),
+    }));
+}
+
 async function getCoverageScores(userRef) {
   const snap = await userRef.collection("analytics").doc("dashboard").get();
   if (!snap.exists) return {};
@@ -240,6 +278,7 @@ exports.scheduledPushReminders = functions
 
         const types = getEnabledTypes(data);
         const notifications = [];
+        let coverageScores = null;
 
         if (types.activeWorkout) {
           const candidate = await getActiveWorkoutReminderCandidate(userRef);
@@ -270,11 +309,20 @@ exports.scheduledPushReminders = functions
         }
 
         if (types.coverage) {
-          const scores = await getCoverageScores(userRef);
-          const gaps = getCoverageGaps(scores);
+          coverageScores = coverageScores || await getCoverageScores(userRef);
+          const gaps = getCoverageGaps(coverageScores);
           if (gaps.length > 0) {
             const regions = gaps.map((id) => MUSCLE_GROUP_LABELS[id] || id).join(", ");
             notifications.push(notificationText("coverage", { regions }));
+          }
+        }
+
+        if (types.pplRatio) {
+          coverageScores = coverageScores || await getCoverageScores(userRef);
+          const lowBuckets = getLowPplBuckets(coverageScores);
+          if (lowBuckets.length > 0) {
+            const buckets = lowBuckets.map(({ label, percent }) => `${label} ${percent}%`).join(", ");
+            notifications.push(notificationText("pplRatio", { buckets }));
           }
         }
 

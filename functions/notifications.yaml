@@ -23,6 +23,11 @@ coverage:
   body: "{regions} seit 7 Tagen kaum trainiert"
   link: "/?tab=review"
 
+pplRatio:
+  title: "PPL-Ratio kippt"
+  body: "{buckets} liegen unter 15 % deiner 7-Tage-Coverage"
+  link: "/?tab=review"
+
 habit:
   title: "Habit Reminder"
   body: "Noch offen heute: {names}"
