@@ -45,7 +45,7 @@ export default function UserProfile({ user, subtitle, onOpenSettings }) {
 
       {isOpen && createPortal(
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-md z-[9999] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-fit-scrim backdrop-blur-md z-[9999] flex items-center justify-center p-4"
           onClick={() => setIsOpen(false)}
         >
           <div

@@ -298,7 +298,7 @@ export default function SessionEditor({
 
       {gateSheetOpen && createPortal(
         <div className="fixed inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-200">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setGateSheetOpen(false)} />
+          <div className="absolute inset-0 bg-fit-scrim backdrop-blur-sm" onClick={() => setGateSheetOpen(false)} />
           <div className="relative w-full max-w-xl bg-fit-card border-t border-fit-line rounded-t-[32px] sm:rounded-t-[40px] shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[92vh] overflow-y-auto">
             <div className="sticky top-0 bg-fit-card pt-3 pb-2 flex items-center justify-between px-4 sm:px-5 z-10">
               <div className="w-10 h-1 rounded-full bg-fit-line mx-auto" />

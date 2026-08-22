@@ -111,30 +111,30 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[200] flex flex-col bg-fit-bg/95 backdrop-blur-xl animate-in fade-in duration-200">
+    <div className="search-overlay-backdrop fixed inset-0 z-[200] flex flex-col bg-fit-bg/95 backdrop-blur-xl">
       {/* Header / Search Bar */}
-      <div className="p-4 border-b border-fit-line/50 bg-fit-card/50 sticky top-0 z-10">
+      <div className="search-overlay-panel p-4 border-b border-fit-line/50 bg-fit-card/50 sticky top-0 z-10">
         <div className="max-w-2xl mx-auto flex items-center gap-4">
           <div className="relative flex-1 group">
-            <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-fit-dim group-focus-within:text-accent transition-colors" />
+            <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-fit-dim group-focus-within:text-fit-accent transition-colors" />
             <input
               ref={inputRef}
               type="text"
               value={query}
               onChange={e => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Übung suchen..."
-              className="w-full pl-12 pr-12 py-4 bg-fit-bg2 border border-fit-line rounded-2xl text-lg font-bold text-fit-ink outline-none focus:border-accent focus:ring-4 focus:ring-accent/10 transition-all shadow-xl"
+              placeholder="Übung suchen…"
+              className="w-full pl-12 pr-12 py-4 bg-fit-bg2 border border-fit-line rounded-2xl text-lg font-bold text-fit-ink outline-none focus:border-fit-accent focus:ring-4 focus:ring-fit-accent/10 transition-all shadow-xl tracking-tight"
             />
             {loading && (
               <div className="absolute right-14 top-1/2 -translate-y-1/2">
                 <div className="w-5 h-5 border-2 border-fit-accent/20 border-t-fit-accent rounded-full animate-spin" />
               </div>
             )}
-            {query && (
-              <button 
+            {query && !loading && (
+              <button
                 onClick={() => setQuery('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-fit-line/20 flex items-center justify-center text-fit-dim hover:text-ink hover:bg-line/40 transition-all"
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-fit-line/20 flex items-center justify-center text-fit-dim hover:text-fit-ink hover:bg-fit-line/40 transition-all"
               >
                 <X size={16} />
               </button>
@@ -142,7 +142,7 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
           </div>
           <button
             onClick={onClose}
-            className="w-12 h-12 rounded-2xl bg-fit-bg2 flex items-center justify-center text-fit-dim hover:text-ink hover:bg-card transition-all border border-fit-line"
+            className="w-12 h-12 rounded-2xl bg-fit-bg2 flex items-center justify-center text-fit-dim hover:text-fit-ink hover:bg-fit-card transition-all border border-fit-line shrink-0"
           >
             <X size={24} />
           </button>
@@ -163,13 +163,14 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
                     <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim">Zuletzt verwendet</h3>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {recents.map(ex => (
-                      <button 
+                    {recents.map((ex, idx) => (
+                      <button
                         key={ex.name}
                         onClick={() => pick(ex)}
-                        className="group flex flex-col p-4 rounded-3xl bg-fit-card border border-fit-line hover:border-accent/50 hover:bg-accent/5 transition-all text-left shadow-sm active:scale-[0.98]"
+                        style={{ animationDelay: `${idx * 20}ms` }}
+                        className="search-row-in group flex flex-col p-4 rounded-3xl bg-fit-card border border-fit-line hover:border-fit-accent/50 hover:bg-fit-accent/5 transition-all text-left shadow-sm active:scale-[0.98]"
                       >
-                        <span className="font-bold text-sm text-fit-ink group-hover:text-accent transition-colors">{ex.name}</span>
+                        <span className="font-bold text-sm text-fit-ink group-hover:text-fit-accent transition-colors">{ex.name}</span>
                       </button>
                     ))}
                   </div>
@@ -184,11 +185,12 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
                     <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim">Geplant für Heute</h3>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {program.map(ex => (
-                      <button 
+                    {program.map((ex, idx) => (
+                      <button
                         key={ex.name}
                         onClick={() => pick(ex)}
-                        className="group flex items-center gap-4 p-4 rounded-3xl bg-fit-orange/5 border border-fit-orange/20 hover:border-orange/50 hover:bg-orange/10 transition-all text-left shadow-sm active:scale-[0.98]"
+                        style={{ animationDelay: `${idx * 20}ms` }}
+                        className="search-row-in group flex items-center gap-4 p-4 rounded-3xl bg-fit-orange/5 border border-fit-orange/20 hover:border-fit-orange/50 hover:bg-fit-orange/10 transition-all text-left shadow-sm active:scale-[0.98]"
                       >
                         <div className="w-10 h-10 rounded-2xl bg-fit-orange/10 flex items-center justify-center text-fit-orange group-hover:scale-110 transition-transform">
                           <Plus size={20} />
@@ -213,41 +215,50 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
             <section className="space-y-4 pb-20">
               <div className="flex items-center justify-between px-2">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim">Suchergebnisse</h3>
-                <span className="text-[10px] font-bold text-fit-accent bg-fit-accent/10 px-2 py-0.5 rounded-full">{results.length} Treffer</span>
+                <span className="text-[10px] font-bold text-fit-accent bg-fit-accent/10 px-2 py-0.5 rounded-full font-mono">{results.length}</span>
               </div>
-              
+
               {results.length > 0 ? (
-                <div className="space-y-2">
-                  {results.map((ex, idx) => (
-                    <button
-                      key={ex.id || ex.name}
-                      onClick={() => pick(ex)}
-                      onMouseEnter={() => setSelectedIndex(idx)}
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl border transition-all text-left group ${
-                        selectedIndex === idx
-                        ? 'bg-fit-accent/5 border-fit-accent/30'
-                        : 'bg-fit-card/50 border-fit-line/60 hover:border-line-hover'
-                      }`}
-                    >
-                      <div className="flex-1 min-w-0 pr-4 flex items-center gap-2">
-                        <span className={`font-semibold text-sm truncate ${selectedIndex === idx ? 'text-fit-accent' : 'text-fit-ink'}`}>
+                <div className="space-y-1.5">
+                  {results.map((ex, idx) => {
+                    const active = selectedIndex === idx
+                    return (
+                      <button
+                        key={ex.id || ex.name}
+                        onClick={() => pick(ex)}
+                        onMouseEnter={() => setSelectedIndex(idx)}
+                        style={{ animationDelay: `${Math.min(idx, 14) * 12}ms` }}
+                        className={`search-row-in relative w-full flex items-center gap-3 pl-3 pr-3 py-2.5 rounded-xl border text-left transition-colors duration-150 ${
+                          active
+                            ? 'bg-fit-accent/[0.06] border-fit-accent/25'
+                            : 'bg-transparent border-transparent hover:bg-fit-card/50'
+                        }`}
+                      >
+                        <span
+                          className={`absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-full transition-opacity duration-150 ${
+                            active ? 'bg-fit-accent opacity-100' : 'opacity-0'
+                          }`}
+                        />
+                        <span className={`shrink-0 font-mono text-[10px] tabular-nums w-5 text-right ${active ? 'text-fit-accent' : 'text-fit-dim/40'}`}>
+                          {String(idx + 1).padStart(2, '0')}
+                        </span>
+                        <span className={`flex-1 min-w-0 truncate text-[13px] ${active ? 'font-semibold text-fit-ink' : 'font-medium text-fit-dim'}`}>
                           {ex.name}
                         </span>
                         <button
                           onClick={e => handleToggleFav(e, ex.id || ex.exercise_id)}
-                          className="ml-auto shrink-0 p-0.5 rounded-full hover:scale-110 transition-transform"
+                          className="shrink-0 p-0.5 rounded-full hover:scale-110 transition-transform"
                         >
-                          <Star size={13} className={favourites.includes(ex.id || ex.exercise_id) ? 'text-yellow-400 fill-yellow-400' : 'text-fit-dim/20'} />
+                          <Star size={12} className={favourites.includes(ex.id || ex.exercise_id) ? 'text-yellow-400 fill-yellow-400' : 'text-fit-dim/20'} />
                         </button>
-                      </div>
-
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all shrink-0 ${
-                        selectedIndex === idx ? 'bg-fit-accent/20 text-fit-accent' : 'bg-fit-bg2 text-fit-dim'
-                      }`}>
-                        <Plus size={16} />
-                      </div>
-                    </button>
-                  ))}
+                        {active && (
+                          <kbd className="shrink-0 hidden sm:flex items-center gap-0.5 font-mono text-[9px] text-fit-accent/70 bg-fit-accent/10 rounded px-1.5 py-0.5">
+                            ↵
+                          </kbd>
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
               ) : !loading && (
                 <div className="py-20 flex flex-col items-center gap-4 text-center">
@@ -255,7 +266,7 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
                     <Search size={32} />
                   </div>
                   <p className="text-sm font-black uppercase tracking-widest text-fit-dim">Keine Übungen gefunden</p>
-                  <button 
+                  <button
                     onClick={() => pick({ name: query, isNew: true })}
                     className="mt-2 btn btn-primary px-8"
                   >
@@ -268,6 +279,15 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
 
         </div>
       </div>
+
+      {/* Keyboard hint bar */}
+      {results.length > 0 && (
+        <div className="hidden sm:flex items-center justify-center gap-5 px-4 py-2 border-t border-fit-line/40 bg-fit-card/70 backdrop-blur text-[10px] font-mono text-fit-dim/60">
+          <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 rounded bg-fit-bg2 border border-fit-line">↑↓</kbd>navigieren</span>
+          <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 rounded bg-fit-bg2 border border-fit-line">↵</kbd>auswählen</span>
+          <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 rounded bg-fit-bg2 border border-fit-line">esc</kbd>schließen</span>
+        </div>
+      )}
     </div>,
     document.body
   )

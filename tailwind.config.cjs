@@ -44,6 +44,11 @@ module.exports = {
           green: 'var(--green)',
           red:   'var(--red)',
           orange:'var(--orange)',
+          scrim: 'var(--scrim)',
+          selected: 'var(--surface-selected)',
+          accentSubtle: 'var(--accent-subtle)',
+          accentSubtleHover: 'var(--accent-subtle-hover)',
+          accentBorder: 'var(--accent-border)',
         },
         forge: {
           bg:     'var(--card)',
