@@ -1,5 +1,7 @@
-exercise_id: cable_row_close_grip
-description: Expert details for Sitzendes Kabelrudern enger Griff
+name: inbox_cable_row_close_grip
+description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Sitzendes
+  Kabelrudern enger Griff'
+generated_at: '2026-08-22T08:49:33.603892+00:00'
 exercises:
 - exercise_id: cable_row_close_grip
   id: cable_row_close_grip
@@ -79,7 +81,7 @@ exercises:
   - Close-Grip Cable Row
   - Close-Neutral Seated Cable Row
   variations: []
-  source: expert
+  source: unreviewed
   search_aliases:
   - Sitzendes Kabelrudern enger Griff
   - Sitzendes enges Kabelrudern
