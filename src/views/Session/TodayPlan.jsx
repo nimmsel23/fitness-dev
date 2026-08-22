@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Dumbbell, Check } from 'lucide-react'
 import { useUser } from '../../contexts/UserContext'
-import { listMacrocycles, getMacrocycle, completeRoutine, getLastPerformance } from '@db'
+import { watchAuth, listMacrocycles, getMacrocycle, completeRoutine, getLastPerformance } from '@db'
 
 // Habit-artig: Coach legt eine rotierende Liste von Routinen an (Push/Pull/
 // Legs o.ä.), kein Kalender/Wochentag. Der Klient sieht immer nur "die
@@ -9,8 +9,12 @@ import { listMacrocycles, getMacrocycle, completeRoutine, getLastPerformance } f
 // tippt sie ab wie einen Habit — Details (Übungen/Sätze/Wdh) bleiben
 // sichtbar, nur die Bedienung ist so simpel wie ein Habit-Tracker.
 export function useTodayPlan() {
-  const { user } = useUser()
+  const userContext = useUser()
+  const [authUser, setAuthUser] = useState(null)
+  const user = userContext?.user ?? authUser
   const [state, setState] = useState({ loading: true, cycle: null, nextRoutine: null, lastPerformance: null })
+
+  useEffect(() => watchAuth?.((nextUser) => setAuthUser(nextUser)), [])
 
   async function reload() {
     if (!user?.uid) { setState({ loading: false, cycle: null, nextRoutine: null, lastPerformance: null }); return }
