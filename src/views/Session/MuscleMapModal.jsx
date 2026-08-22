@@ -24,7 +24,7 @@ export default function MuscleMapModal({ exercises, onClose }) {
   return createPortal(
     <>
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
-        <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
+        <div className="absolute inset-0 bg-fit-scrim backdrop-blur-md" onClick={onClose} />
 
         <div className="relative w-full max-w-lg bg-fit-card border border-fit-line rounded-[40px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
           <div className="p-8 border-b border-fit-line/50 flex items-center justify-between">

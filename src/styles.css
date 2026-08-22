@@ -43,7 +43,51 @@
   --scrollbar-width: 6px;
   --scrollbar-radius: 3px;
   --glass-border: rgba(255,255,255,0.05); /* Global glass border */
+
+  /*
+   * Overlay/Scrim — derived from the active theme's own --bg2 + --ink instead
+   * of a hardcoded bg-black/60. Jedes der 21 Themes (Nordic, Latte, Dracula,
+   * Gruvbox, ...) bekommt so einen zur eigenen Palette passenden Backdrop
+   * statt eines theme-blinden Schwarztons, der jedes Modal gleich generisch
+   * aussehen liess unabhaengig vom gewaehlten Theme.
+   */
+  --scrim: color-mix(in srgb, var(--bg2) 55%, var(--ink) 45%);
+
+  /* Elevation-Skala fuer Modals/Overlays — ersetzt ad-hoc bg-fit-accent/[0.x]
+     Opacity-Zahlen, die pro Component neu erfunden wurden. */
+  --surface-selected: color-mix(in srgb, var(--accent) 8%, var(--card));
+  --accent-subtle: color-mix(in srgb, var(--accent) 10%, transparent);
+  --accent-subtle-hover: color-mix(in srgb, var(--accent) 16%, transparent);
+  --accent-border: color-mix(in srgb, var(--accent) 30%, transparent);
 }
+
+/* ==========================================================================
+   1b. MOTION: shared entrance-animation utilities
+   Vorher liefen `animate-in fade-in zoom-in-95 slide-in-from-bottom` app-weit
+   ins Leere, weil kein tailwindcss-animate-Plugin installiert ist — die
+   Klassen standen nur als String im JSX, ohne CSS-Definition. Hier einmalig
+   zentral nachgerüstet, damit alle bestehenden Modals ohne Datei-für-Datei-
+   Änderung funktionierende Animationen bekommen.
+   ========================================================================== */
+@keyframes fitFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fitZoomIn95 {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes fitSlideInFromBottom {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation-fill-mode: both; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-in.fade-in { animation-name: fitFadeIn; animation-timing-function: ease-out; }
+.animate-in.zoom-in-95 { animation-name: fitZoomIn95; }
+.animate-in.slide-in-from-bottom { animation-name: fitSlideInFromBottom; }
+.animate-in.duration-200 { animation-duration: 200ms; }
+.animate-in.duration-300 { animation-duration: 300ms; }
+/* zoom-in-95 + fade-in gemeinsam auf einem Element: zweite Animation via ::after-Trick
+   nicht nötig, animation-name erlaubt Kommaliste — hier reicht ein Element i.d.R. nur
+   eine der beiden Klassen zusätzlich zu fade-in trägt (siehe Modal-Patterns). */
+.animate-in.fade-in.zoom-in-95 { animation-name: fitFadeIn, fitZoomIn95; }
 
 /* ==========================================================================
    2. THEME DEFINITIONS: Fully Self-Contained Color Palettes
@@ -78,6 +122,20 @@
 .alpha-button {
   @apply rounded-2xl font-black uppercase tracking-widest transition-all active:scale-95;
 }
+
+/* Exercise Search Overlay — command-palette entrance choreography */
+@keyframes searchBackdropIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes searchPanelIn {
+  from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes searchRowIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.search-overlay-backdrop { animation: searchBackdropIn 0.18s ease-out both; }
+.search-overlay-panel { animation: searchPanelIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.search-row-in { animation: searchRowIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
 /* spinner */
 @keyframes spin { to { transform: rotate(360deg); } }

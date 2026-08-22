@@ -71,7 +71,7 @@ export default function HabitJournalModal({
   const Icon = ICON_COMPONENTS_MAP[habit.icon || "Activity"] || Activity;
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-in fade-in duration-200 sm:p-8">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-fit-scrim p-4 backdrop-blur-md animate-in fade-in duration-200 sm:p-8">
       <div className="absolute inset-0" onClick={() => { onSaveJournal(); onClose(); }} />
       <div className="relative flex max-h-full w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-fit-line bg-fit-card shadow-2xl animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between border-b border-fit-line/60 px-8 py-6">
