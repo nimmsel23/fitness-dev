@@ -1,13 +1,11 @@
 import { Download, Zap, MapPin, Clock, Activity, Target, FileText, Info, X, Brain, Navigation } from 'lucide-react';
 import SectionHeader from './SectionHeader';
-import { blockColor } from './utils';
 
 const TRAININGSART_OPTIONS = ['Kraft', 'Hypertrophie', 'Ausdauer'];
 
 export default function SessionSidebar({
   location, setLocation, duration, setDuration,
   gpsMapsUrl,
-  sessionMode, block, setBlock,
   trainingsart, setTrainingsart,
   effort, setEffort, notes, setNotes, onDownload,
   onExportObsidian, onShowMap, onClose, coachFeedback = ""
@@ -82,39 +80,6 @@ export default function SessionSidebar({
 
         </div>
       </section>
-
-      {sessionMode !== 'cardio' && (
-        <section className="card p-6 shadow-xl border-fit-line/50 rounded-[32px]">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="w-8 h-8 rounded-xl bg-fit-accent/10 flex items-center justify-center text-fit-accent">
-            <Target size={16} strokeWidth={3} />
-          </div>
-          <SectionHeader>Training Split</SectionHeader>
-        </div>
-        <div className="grid grid-cols-2 gap-2.5">
-          {['Push', 'Pull', 'Legs', 'Upper', 'Lower', 'Full'].map(l => {
-            const color = blockColor(l);
-            const isActive = block === l;
-            return (
-              <button key={l} onClick={() => setBlock(l)}
-                className={`px-3 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.15em] border transition-all ${
-                  isActive 
-                  ? 'shadow-xl' 
-                  : 'border-fit-line bg-fit-bg2 text-fit-dim hover:text-ink hover:border-line-hover'
-                }`}
-                style={{
-                  borderColor: isActive ? color : undefined,
-                  backgroundColor: isActive ? color : undefined,
-                  color: isActive ? '#000' : undefined,
-                  boxShadow: isActive ? `0 10px 25px -5px ${color}44` : undefined
-                }}>
-                {l}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-      )}
 
       <section className="space-y-3">
         <button onClick={onShowMap} className="w-full p-6 rounded-[32px] border flex items-center justify-between bg-fit-card border-fit-line hover:border-accent/30 transition-all shadow-xl group overflow-hidden relative">
