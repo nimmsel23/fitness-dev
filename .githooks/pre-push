@@ -39,10 +39,12 @@ while read -r local_ref local_sha remote_ref remote_sha; do
 
   # Reminder: der volle Release-Flow (fitness-dev dev -> vitalos/fitness-app
   # vitalos -> vitalos-Pointer-Bump) läuft bereits automatisiert über
-  # ~/vitalos/bin/fitness-release (bzw. vos-release fitness). Manuelles
-  # Pushen von vitalos hier ist meist nur der halbe Weg — Hinweis statt
-  # Blockade.
-  if [ "$branch" = "vitalos" ]; then
+  # ~/vitalos/bin/fitness-release (bzw. vos-release fitness). Der kritische
+  # Moment ist der Push von dev — direkt danach folgt sonst von Hand: Merge
+  # in vitalos/fitness-app vitalos, Push, Submodule-Pointer in vitalos
+  # bumpen. Deshalb hier auf "dev" triggern, nicht erst auf "vitalos" (das
+  # waere schon der vorletzte Schritt der manuellen Kette).
+  if [ "$branch" = "dev" ]; then
     echo "💡 Tipp: für den kompletten dev->vitalos->vitalos-Flow gibt es ~/vitalos/bin/fitness-release (vos-release fitness --help)." >&2
   fi
 
