@@ -37,6 +37,15 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   [ -z "$local_ref" ] && continue
   branch="${local_ref#refs/heads/}"
 
+  # Reminder: der volle Release-Flow (fitness-dev dev -> vitalos/fitness-app
+  # vitalos -> vitalos-Pointer-Bump) läuft bereits automatisiert über
+  # ~/vitalos/bin/fitness-release (bzw. vos-release fitness). Manuelles
+  # Pushen von vitalos hier ist meist nur der halbe Weg — Hinweis statt
+  # Blockade.
+  if [ "$branch" = "vitalos" ]; then
+    echo "💡 Tipp: für den kompletten dev->vitalos->vitalos-Flow gibt es ~/vitalos/bin/fitness-release (vos-release fitness --help)." >&2
+  fi
+
   if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
     # New branch on remote — diff against empty tree
     range="$local_sha"
