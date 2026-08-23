@@ -62,6 +62,25 @@ def _save_known(path: Path, ids: set):
     path.write_text(json.dumps(sorted(ids), indent=2))
 
 
+def _uid_of(doc) -> str:
+    """uid aus dem Dokumentpfad fitness/{uid}/{collection}/{docId} extrahieren
+    (Pendant zu on_inbox's collection_group-Ansatz, siehe dort)."""
+    return doc.reference.parent.parent.id
+
+
+def _is_fitness_scoped(doc) -> bool:
+    """Guard für collection_group-Listener: 'sessions'/'journal'/'habits' etc.
+    sind generische Namen, die auch unter anderen Top-Level-Collections
+    existieren können (habits-dev, journal-dev, relax-dev, ...) — ohne diese
+    Prüfung würde ein collection_group-Listener fremde Pillar-Daten
+    mitschneiden, nur weil die Subcollection zufällig gleich heißt."""
+    return doc.reference.parent.parent.parent.id == "fitness"
+
+
+def _user_fitness_dir(uid: str) -> Path:
+    return Path.home() / ".aos" / "users" / uid / "fitness"
+
+
 def _inbox_local_dir(uid: str) -> Path:
     return Path.home() / ".aos" / "users" / uid / "fitness" / "inbox"
 
@@ -77,16 +96,20 @@ def _inbox_local_files(uid: str, doc_id: str) -> list[Path]:
 
 def on_session(col_snapshot, changes, read_time):
     for change in changes:
+        if not _is_fitness_scoped(change.document):
+            continue
+        uid = _uid_of(change.document)
+        sessions_dir = _user_fitness_dir(uid) / "sessions"
         doc_id = change.document.id
         if change.type.name == "REMOVED":
             # saveSession() (src/lib/db/firestore/sessions.js) löscht einen
             # date__id-Activity-Sidecar remote, sobald er in den kanonischen
             # Tag gemerged wurde. Ohne diesen Zweig blieb die lokale Kopie für
             # immer als Waise liegen — hier wird sie ← Firestore mitgelöscht.
-            local = SESSIONS / f"{doc_id}.json"
+            local = sessions_dir / f"{doc_id}.json"
             if local.exists():
                 local.unlink()
-                logger.info(f"session ← {doc_id} entfernt (remote gelöscht)")
+                logger.info(f"session ← {uid}/{doc_id} entfernt (remote gelöscht)")
             _recent_pull_writes[doc_id] = time.monotonic()
             day = doc_id.split("__")[0]
             sid = doc_id.split("__")[1] if "__" in doc_id else None
@@ -99,8 +122,8 @@ def on_session(col_snapshot, changes, read_time):
         if change.type.name not in ("ADDED", "MODIFIED"):
             continue
         data = change.document.to_dict()
-        SESSIONS.mkdir(parents=True, exist_ok=True)
-        local = SESSIONS / f"{doc_id}.json"
+        sessions_dir.mkdir(parents=True, exist_ok=True)
+        local = sessions_dir / f"{doc_id}.json"
         # Konfliktprüfung bei JEDEM Event mit vorhandener lokaler Datei, nicht
         # nur bei "MODIFIED": Firestores on_snapshot liefert beim ersten
         # Listener-Start (also bei jedem Neustart von fitness-api.service)
@@ -124,7 +147,7 @@ def on_session(col_snapshot, changes, read_time):
         out = {k: (ts(v) if hasattr(v, "isoformat") else v) for k, v in data.items()}
         local.write_text(json.dumps(out, indent=2, ensure_ascii=False))
         _recent_pull_writes[doc_id] = time.monotonic()
-        logger.success(f"session ← {doc_id}")
+        logger.success(f"session ← {uid}/{doc_id}")
         # sync_gateway: Firestore-Pfad → SQLite (Python-only write, kein server.mjs beteiligt)
         day = doc_id.split("__")[0]
         sid = doc_id.split("__")[1] if "__" in doc_id else None
@@ -144,8 +167,11 @@ _known_journal = _load_known(_known_journal_path)
 def on_journal(col_snapshot, changes, read_time):
     global _known_journal
     for change in changes:
+        if not _is_fitness_scoped(change.document):
+            continue
         if change.type.name != "ADDED":
             continue
+        uid = _uid_of(change.document)
         doc_id = change.document.id
         with _lock:
             if doc_id in _known_journal:
@@ -158,27 +184,35 @@ def on_journal(col_snapshot, changes, read_time):
         time = (ts(data.get("time")) or "")[:16]
         if not date or not text:
             continue
-        JOURNAL.mkdir(parents=True, exist_ok=True)
-        md_file = JOURNAL / f"{date}.md"
+        journal_dir = _user_fitness_dir(uid) / "journal"
+        journal_dir.mkdir(parents=True, exist_ok=True)
+        md_file = journal_dir / f"{date}.md"
         marker  = f"<!-- fsid:{doc_id} -->"
         if md_file.exists() and marker in md_file.read_text():
             continue
         with md_file.open("a") as fh:
             fh.write(f"\n{marker}\n**{time}** {text}\n")
-        logger.success(f"journal ← {date}  {text[:60]}")
+        logger.success(f"journal ← {uid}/{date}  {text[:60]}")
 
 
 # ── Habits (Definitionen) ─────────────────────────────────────────────────────
 
 def on_habits(col_snapshot, changes, read_time):
-    HABITS_DIR.mkdir(parents=True, exist_ok=True)
-    defs_file = HABITS_DIR / "definitions.json"
-    defs = json.loads(defs_file.read_text()) if defs_file.exists() else []
-    defs_map = {h["uuid"]: h for h in defs}
-    changed = False
+    changed_dirs: dict[str, Path] = {}
+    defs_maps: dict[str, dict] = {}
     for change in changes:
+        if not _is_fitness_scoped(change.document):
+            continue
         if change.type.name not in ("ADDED", "MODIFIED"):
             continue
+        uid = _uid_of(change.document)
+        habits_dir = _user_fitness_dir(uid) / "habits"
+        if uid not in defs_maps:
+            habits_dir.mkdir(parents=True, exist_ok=True)
+            defs_file = habits_dir / "definitions.json"
+            defs = json.loads(defs_file.read_text()) if defs_file.exists() else []
+            defs_maps[uid] = {h["uuid"]: h for h in defs}
+            changed_dirs[uid] = habits_dir
         doc_id = change.document.id
         data   = change.document.to_dict()
         entry  = {
@@ -188,11 +222,11 @@ def on_habits(col_snapshot, changes, read_time):
             "deleted":    bool(data.get("deleted", False)),
             "created_at": ts(data.get("created_at")) or "",
         }
-        defs_map[doc_id] = entry
-        changed = True
-        logger.success(f"habit ← {data.get('name', doc_id)}")
-    if changed:
-        defs_file.write_text(json.dumps(list(defs_map.values()), indent=2, ensure_ascii=False))
+        defs_maps[uid][doc_id] = entry
+        logger.success(f"habit ← {uid}/{data.get('name', doc_id)}")
+    for uid, habits_dir in changed_dirs.items():
+        defs_file = habits_dir / "definitions.json"
+        defs_file.write_text(json.dumps(list(defs_maps[uid].values()), indent=2, ensure_ascii=False))
 
 
 # ── HabitRecords (Completions) ────────────────────────────────────────────────
@@ -203,8 +237,11 @@ _known_hr = _load_known(_known_hr_path)
 def on_habit_records(col_snapshot, changes, read_time):
     global _known_hr
     for change in changes:
+        if not _is_fitness_scoped(change.document):
+            continue
         if change.type.name != "ADDED":
             continue
+        uid = _uid_of(change.document)
         doc_id = change.document.id
         with _lock:
             if doc_id in _known_hr:
@@ -218,9 +255,12 @@ def on_habit_records(col_snapshot, changes, read_time):
         if not date or not habit_id:
             continue
 
+        user_dir = _user_fitness_dir(uid)
+
         # Records-File für diesen Tag aktualisieren
-        HABITS_DIR.mkdir(parents=True, exist_ok=True)
-        rec_dir  = HABITS_DIR / "records"
+        habits_dir = user_dir / "habits"
+        habits_dir.mkdir(parents=True, exist_ok=True)
+        rec_dir  = habits_dir / "records"
         rec_dir.mkdir(parents=True, exist_ok=True)
         rec_file = rec_dir / f"{date}.json"
         records  = json.loads(rec_file.read_text()) if rec_file.exists() else []
@@ -229,8 +269,9 @@ def on_habit_records(col_snapshot, changes, read_time):
             rec_file.write_text(json.dumps(records, indent=2, ensure_ascii=False))
 
         # Journal-Markdown
-        JOURNAL.mkdir(parents=True, exist_ok=True)
-        md_file = JOURNAL / f"{date}.md"
+        journal_dir = user_dir / "journal"
+        journal_dir.mkdir(parents=True, exist_ok=True)
+        md_file = journal_dir / f"{date}.md"
         marker  = f"<!-- fshr:{doc_id} -->"
         if not (md_file.exists() and marker in md_file.read_text()):
             with md_file.open("a", encoding="utf-8") as fh:
@@ -241,7 +282,7 @@ def on_habit_records(col_snapshot, changes, read_time):
                     fh.write(f"**{habit_id}** {completion}\n")
         with _lock:
             _save_known(_known_hr_path, _known_hr)
-        logger.success(f"habit_record ← {date} {habit_id}")
+        logger.success(f"habit_record ← {uid}/{date} {habit_id}")
 
 
 # ── HabitJournals (Memoirs) ───────────────────────────────────────────────────
@@ -252,8 +293,11 @@ _known_hj = _load_known(_known_hj_path)
 def on_habit_journals(col_snapshot, changes, read_time):
     global _known_hj
     for change in changes:
+        if not _is_fitness_scoped(change.document):
+            continue
         if change.type.name not in ("ADDED", "MODIFIED"):
             continue
+        uid = _uid_of(change.document)
         doc_id = change.document.id
         with _lock:
             if doc_id in _known_hj:
@@ -266,8 +310,9 @@ def on_habit_journals(col_snapshot, changes, read_time):
         feedback = data.get("coachFeedback", "").strip()
         if not date:
             continue
-        JOURNAL.mkdir(parents=True, exist_ok=True)
-        md_file = JOURNAL / f"{date}.md"
+        journal_dir = _user_fitness_dir(uid) / "journal"
+        journal_dir.mkdir(parents=True, exist_ok=True)
+        md_file = journal_dir / f"{date}.md"
         marker  = f"<!-- fshid:{doc_id} -->"
         if md_file.exists() and marker in md_file.read_text():
             with _lock:
@@ -281,7 +326,7 @@ def on_habit_journals(col_snapshot, changes, read_time):
                 fh.write(f"> **Coach Feedback:** {feedback}\n")
         with _lock:
             _save_known(_known_hj_path, _known_hj)
-        logger.success(f"habit_journal ← {date} {habit_id} {text[:40]}")
+        logger.success(f"habit_journal ← {uid}/{date} {habit_id} {text[:40]}")
 
 
 # ── Inbox (Coach-Review-Drafts) ───────────────────────────────────────────────
@@ -472,22 +517,32 @@ def start_userdata_watchers() -> list:
     """Sessions/Journal/Habits/Nutrition/Supplements — reiner User-Data-Sync,
     läuft im eigenständigen fitness-firestore-daemon.service, NICHT mehr im
     Katalog-Prozess (:9150). Trennung 2026-07-30: Catalog-UI soll keine
-    User-Data synchronisieren, das ist Aufgabe der Fitness-App-Seite."""
+    User-Data synchronisieren, das ist Aufgabe der Fitness-App-Seite.
+
+    Sessions/Journal/Habits* laufen seit 2026-08-23 als collection_group-
+    Listener (alle UIDs, nicht nur die eigene aktive) — analog zu on_inbox
+    weiter unten, das denselben Single-UID-Bug schon 2026-08-xx für die
+    Inbox gefixt hat. Vorher hörte dieser Daemon NUR auf fitness/{UID=eigene
+    Coach-UID}/..., Klienten-Sessions (z.B. Matthias) landeten nie lokal,
+    unabhängig davon ob der Daemon lief oder nicht — ein neuer Klient
+    brauchte vorher zusätzlich manuelles Eintragen, jetzt greift's automatisch
+    sobald die App unter fitness/{irgendeine-uid}/... schreibt. Nutrition/
+    Supplements bleiben bewusst UID-scoped (Fuel-Daten des Coaches selbst,
+    kein Klienten-Mirror-Bedarf hier)."""
     db  = get_db()
-    ref = db.collection("fitness").document(UID)
     watchers = [
-        ref.collection("sessions").on_snapshot(on_session),
-        ref.collection("journal").on_snapshot(on_journal),
-        ref.collection("habits").on_snapshot(on_habits),
-        ref.collection("habitRecords").on_snapshot(on_habit_records),
-        ref.collection("habitJournals").on_snapshot(on_habit_journals),
+        db.collection_group("sessions").on_snapshot(on_session),
+        db.collection_group("journal").on_snapshot(on_journal),
+        db.collection_group("habits").on_snapshot(on_habits),
+        db.collection_group("habitRecords").on_snapshot(on_habit_records),
+        db.collection_group("habitJournals").on_snapshot(on_habit_journals),
         db.collection("nutrition").document(UID).collection("logs").on_snapshot(on_nutrition),
         db.collection("supplements").document(UID).collection("logs").on_snapshot(on_supplements),
         db.collection("supplements").document(UID).collection("meta").document("catalog").on_snapshot(on_supplements_catalog),
     ]
-    logger.info(f"Listening → fitness/{UID}/ [sessions|journal|habits|habitRecords|habitJournals]")
+    logger.info("Listening → fitness/*/[sessions|journal|habits|habitRecords|habitJournals] [alle User, collectionGroup]")
     logger.info(f"Listening → nutrition/{UID}/logs, supplements/{UID}/logs+meta")
-    logger.info(f"Mirror → {USER_DIR} (+ {_data_dir(UID)} für Fuel)")
+    logger.info("Mirror → ~/.aos/users/<uid>/fitness/ (+ Fuel für die eigene UID)")
     return watchers
 
 
