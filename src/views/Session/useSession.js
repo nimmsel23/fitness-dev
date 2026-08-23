@@ -304,18 +304,38 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     // Auto-Save) — bei manuell hinzugefügten, noch nicht im Katalog
     // geführten Übungen (isNew) fehlt id/exercise_id, daher slug-Fallback.
     const id = normalized.id || `inbox_${slugify(displayName)}`;
-    setExercises(prev => [...prev, {
-      id,
-      name: displayName,
-      primaryMuscles: primary,
-      secondaryMuscles: secondary,
-      stabilizers: normalized.stabilizers || [],
-      setsArray: [{ reps: '', weight: '' }],
-      note: '',
-      source: normalized.source || (ex.isNew ? 'inbox' : 'unknown'),
-    }]);
-    if (normalized.source !== 'expert') queueForEnrichment({ ...normalized, id, name: displayName });
-    showToast(`+ ${displayName}`);
+    // Dieselbe Übung erneut per Suche hinzuzufügen (statt "+Satz" auf der
+    // schon vorhandenen Karte) erzeugte bisher einen zweiten, dritten, ...
+    // exercises[]-Eintrag mit je einem Satz im setsArray -- ein Dropset/
+    // mehrere Sätze derselben Übung wurde dadurch als N verschiedene
+    // "Übungen" mit gleichem Namen angezeigt statt als eine Übung mit N
+    // Sätzen (live an Bestandsdaten reproduziert, siehe Coach-Feedback).
+    // Jetzt: existiert die id schon in dieser Session, wird stattdessen ein
+    // Satz angehängt (wie addSet()), keine Duplikat-Übung angelegt.
+    let merged = false;
+    setExercises(prev => {
+      const existingIdx = prev.findIndex(e => e.id === id);
+      if (existingIdx === -1) {
+        return [...prev, {
+          id,
+          name: displayName,
+          primaryMuscles: primary,
+          secondaryMuscles: secondary,
+          stabilizers: normalized.stabilizers || [],
+          setsArray: [{ reps: '', weight: '' }],
+          note: '',
+          source: normalized.source || (ex.isNew ? 'inbox' : 'unknown'),
+        }];
+      }
+      merged = true;
+      return prev.map((e, idx) => {
+        if (idx !== existingIdx) return e;
+        const last = e.setsArray[e.setsArray.length - 1] || {};
+        return { ...e, setsArray: [...e.setsArray, { reps: last.reps || '', weight: last.weight || '' }] };
+      });
+    });
+    if (!merged && normalized.source !== 'expert') queueForEnrichment({ ...normalized, id, name: displayName });
+    showToast(merged ? `+ Satz (${displayName})` : `+ ${displayName}`);
     setTimeout(() => { saveRef.current?.(true); setDirty(false); }, 0);
   }
 
