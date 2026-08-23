@@ -15,7 +15,7 @@ def training_values(exercise: dict[str, Any]) -> dict[str, Any]:
         active_sets = [
             item
             for item in sets_array
-            if isinstance(item, dict) and exercise_has_training_signal({"setsArray": [item]})
+            if isinstance(item, dict) and _set_has_values(item)
         ]
         if active_sets and sets == 0:
             sets = len(active_sets)
@@ -46,32 +46,25 @@ def _positive_number(value: Any) -> bool:
 
 
 def exercise_has_training_signal(exercise: dict[str, Any]) -> bool:
-    """Return true only for entries that look actually performed.
+    """Return true for entries that were actually logged into the workout.
 
-    Search/catalog template entries can appear in session JSON with empty
-    `setsArray` rows. Those must not drive demand audits or proactive inbox
-    enrichment.
+    Vormals verlangte diese Funktion zusätzlich numerische Set-Daten (Gewicht/
+    Wdh/RPE), um eine Übung als "geloggt" zu zählen — mit der Begründung, dass
+    Such-/Katalog-Vorschauen leere `setsArray`-Einträge im Session-JSON
+    hinterlassen könnten. Das trifft auf den tatsächlichen Frontend-Flow nicht
+    zu: Übungen landen ausschließlich über einen expliziten "+"-Klick
+    (`addEx()` in `useSession.js`) in `exercises[]` — es gibt keinen passiven
+    Preview-Pfad. Die alte Filterung führte dazu, dass ein voll geplanter/
+    begonnener Pull-Tag (7 Übungen) spurlos aus SQLite-History, Demand-Audit
+    und Proactive-Enrichment verschwand, nur weil die Sätze nicht ausgefüllt
+    wurden (Fund 2026-08-23, Session vom 2026-07-31). Anwesenheit in der Liste
+    ist jetzt selbst das Signal — unabhängig vom Detailgrad.
     """
-    if bool(exercise.get("done")):
-        return True
+    return bool(exercise.get("id") or exercise.get("exercise_id") or exercise.get("name"))
 
-    if _note_has_training_signal(exercise.get("note") or exercise.get("notes")):
-        return True
 
-    for key in ("sets", "reps", "weight", "rpe"):
-        if _positive_number(exercise.get(key)):
-            return True
-
-    sets_array = exercise.get("setsArray")
-    if isinstance(sets_array, list):
-        for item in sets_array:
-            if not isinstance(item, dict):
-                continue
-            for key in ("reps", "weight", "rpe"):
-                if _positive_number(item.get(key)):
-                    return True
-
-    return False
+def _set_has_values(item: dict[str, Any]) -> bool:
+    return any(_positive_number(item.get(key)) for key in ("reps", "weight", "rpe"))
 
 
 def _note_has_training_signal(value: Any) -> bool:
