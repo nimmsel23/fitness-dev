@@ -93,6 +93,12 @@ bin/firestore-sync pull                     # Firestore → ~/.aos/fitness/
 | [ROADMAP.md](./ROADMAP.md) | Feature-Roadmap |
 | [AGENTS.md](./AGENTS.md) | Agent-Workflow |
 
+Kurz zu den Invarianten:
+- localhost/Desktop kommt aus `~/fitness-dev`
+- Firebase-Live-Release kommt aus `vitalos/fitness-app`
+- `@vos/cross-app-aliases` und die lokale `.local -> /opt`-Kette sind Teil des
+  funktionierenden Setups und kein austauschbares Detail
+
 ---
 
 ## Status

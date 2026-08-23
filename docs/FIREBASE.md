@@ -24,6 +24,7 @@ Es gibt bei Fitness drei verschiedene Linien, die man nicht vermischen darf:
 - Branch `master` bzw. `vitalos` je nach Repo-Stand
 - von `fitness-dev` wird hierhin weitergereicht
 - von hier läuft der eigentliche Firebase-Live-Deploy
+- der Top-Level-Wrapper dafür ist `fitness-release`
 
 ### `/home/alpha/vitalos`
 
@@ -35,6 +36,12 @@ Kurz:
 - `fitness-dev` = Dev + lokale Deploys + CI-Ausgangspunkt
 - `vitalos/fitness-app` = Firebase-Live-Release
 - `vitalos` = Parent/Submodule-Pointer + Shell-CI
+
+Der bequeme Top-Level-Wrapper für den Release-Pfad ist:
+
+```bash
+fitness-release
+```
 
 ## 2. Lokaler Desktop-Deploy
 
@@ -62,6 +69,8 @@ Relevante Controller:
 - `fitness-devctl` = Dev-/Staging-Controller
 - `fitness-prodctl` = Prod-/systemd-Controller
 - `fitnessctl` = Top-Level-Dispatcher
+- `fitness-release` = Top-Level-Release-Wrapper für die Weitergabe Richtung
+  `vitalos/fitness-app`
 
 Lokale Ports:
 - Dev Backend: `:9100`
@@ -139,3 +148,21 @@ fitness/
 | `~/.env/firebase-fitness.json` | Service Account für lokale Mirror-/Python-Pfade |
 | `firebase.config.js` | Web-App Config (gitignored) |
 | GitHub Secrets | `FIREBASE_CONFIG`, `FIREBASE_SERVICE_ACCOUNT` |
+
+## 8. What Could Possibly Go Wrong
+
+- `~/fitness-dev` und `vitalos/fitness-app` werden gedanklich vermischt
+- `deploy.sh prod` wird direkt gegen `~/fitness-dev` gedacht, obwohl es aus
+  `~/.local/fitness` liest
+- ein historisches `~/fitness`-Release-Vessel wird noch als echte Quelle
+  angenommen
+- Meta-Repo-Builds brechen, wenn Cross-App-Aliase oder Workspace-Kontexte
+  stillschweigend verändert werden
+
+## 9. Nicht Verändern
+
+- die Trennung `fitness-dev` = Dev/localhost und `vitalos/fitness-app` = Firebase-Live-Release
+- die lokale Kette `~/fitness-dev -> ~/.local/fitness -> /opt/fitness`
+- `fitness-release` als Top-Level-Release-Wrapper
+- `@vos/cross-app-aliases` als SSOT für Cross-Repo-Aliase
+- `build:kb-data` als feste Vorbedingung der Build-Pfade
