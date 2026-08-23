@@ -13,7 +13,7 @@ Der gesamte Datenfluss wird dynamisch über den Alias `@db` in der `vite.config.
 ### Local Dev Mode (`npm run dev`)
 - **Datenfluss-Steuerung:** Der `@db`-Alias zeigt auf `src/lib/db/index.js`.
 - **Lokales Backend:** Fetch-Requests des Frontends gehen an den Vite-Proxy (Port `5902`), der sie an `http://localhost:9100` weiterleitet. 
-- **`server.mjs`:** Auf diesem Port läuft ein einfaches Hono-basiertes Node.js-Backend (`server.mjs`). Es speichert Daten in lokales FS-JSON sowie SQLite (`better-sqlite3`) und dient **rein als lokales Mock-/Dev-Backend**.
+- **`server.mjs`:** Auf diesem Port läuft ein einfaches Hono-basiertes Node.js-Backend (`server.mjs`). Es schreibt Sessions als lokale FS-JSON (Source of Truth) und benachrichtigt danach das Python-Backend (`fitness-api.service` :9150), das als einziger Schreiber die SQLite-Historie (`training_history.sqlite`) per Upsert aktualisiert — Details: `docs/ARCHITECTURE.md` ("Session-Storage: Schichten & Konfliktmodell"). `server.mjs` dient ansonsten weiter **rein als lokales Mock-/Dev-Backend**.
 
 ### Firebase Mode (`npm run build:firebase` / Produktion)
 - **Datenfluss-Steuerung:** Der `@db`-Alias zeigt auf `src/lib/db/index.firestore.js`.

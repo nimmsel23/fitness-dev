@@ -176,7 +176,11 @@ def _freeze_snapshot(session: dict) -> dict:
         }
         for ex in (session.get("exercises") or [])
     ]
-    return {**session, "exercises": exercises, "snapshot_version": 1}
+    # rev-Handling gespiegelt zu server.mjs::freezeSnapshot — diese Route ist
+    # ein eigenständiger Session-Write-Pfad (Prod-API direkt, nicht über Node
+    # proxied), muss also selbst hochzählen, nicht nur durchreichen.
+    rev = (int(session.get("rev") or 0)) + 1
+    return {**session, "exercises": exercises, "snapshot_version": 1, "rev": rev}
 
 # ── HTTPX wger client ─────────────────────────────────────────────────────────
 try:

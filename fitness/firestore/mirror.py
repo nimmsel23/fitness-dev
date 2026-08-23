@@ -28,7 +28,7 @@ from loguru import logger
 from rich.console import Console
 from rich.logging import RichHandler
 
-from ._db import get_db, ts, UID
+from ._db import get_db, ts, UID, remote_wins
 from .fuel import _data_dir, _nutrition_path, _supplements_path, _supplements_catalog_path, _strip_meta, _write_json
 
 def _user_dir() -> Path:
@@ -101,10 +101,25 @@ def on_session(col_snapshot, changes, read_time):
         data = change.document.to_dict()
         SESSIONS.mkdir(parents=True, exist_ok=True)
         local = SESSIONS / f"{doc_id}.json"
-        if local.exists() and change.type.name == "MODIFIED":
-            local_ts  = json.loads(local.read_text()).get("saved_at", "")
-            remote_ts = ts(data.get("saved_at"))
-            if remote_ts and local_ts and local_ts >= remote_ts:
+        # Konfliktprüfung bei JEDEM Event mit vorhandener lokaler Datei, nicht
+        # nur bei "MODIFIED": Firestores on_snapshot liefert beim ersten
+        # Listener-Start (also bei jedem Neustart von fitness-api.service)
+        # ALLE Bestandsdokumente als "ADDED" aus, nicht nur echte Neuanlagen.
+        # Ohne diese Prüfung hier überschrieb jeder Service-Neustart blind
+        # sämtliche lokalen Sessions mit dem Firestore-Stand, unabhängig von
+        # rev — live reproduziert, plausible Ursache der historischen
+        # Massen-saved_at-Neuschreibung vom 2026-08-06 (die frühere Annahme,
+        # das sei ein einmaliges Migrationsskript gewesen, ist nicht belegt —
+        # kein Commit/Tool schreibt je das dort gefundene _merged_from-Feld).
+        if local.exists():
+            local_data = json.loads(local.read_text())
+            # rev statt saved_at-String-Vergleich: monoton, serverseitig
+            # verwaltet (server.mjs::freezeSnapshot / config.py::_freeze_
+            # snapshot) — robust gegen Client-Uhr-Drift. Geteilte Entscheidung
+            # mit fitness/firestore/sync.py::pull()/push() über _db.remote_wins(),
+            # damit diese Logik nicht wie zuvor (saved_at-Bug) in zwei Dateien
+            # auseinanderdriftet.
+            if not remote_wins(local_data, data):
                 continue
         out = {k: (ts(v) if hasattr(v, "isoformat") else v) for k, v in data.items()}
         local.write_text(json.dumps(out, indent=2, ensure_ascii=False))
@@ -509,7 +524,14 @@ def mirror_session(date: str, session: dict, uid: str = UID) -> None:
     target_id = f"{date}__{session_id}" if session_id else date
     try:
         db = get_db()
-        out = {**session, "date": date, "saved_at": datetime.utcnow().isoformat()}
+        # saved_at NICHT hier überschreiben — kommt bereits aus
+        # _freeze_snapshot() (echte Editierzeit, rev-synchron). Ein erzwungenes
+        # "jetzt" bei jedem Push täuschte dem rev-Gleichstand-Tie-Break in
+        # on_session() eine neuere Remote-Version vor und löste einen
+        # unnötigen Rückpull aus (live reproduziert, Ursache der historischen
+        # Massen-saved_at-Neuschreibung vom 2026-08-06). Gespiegelt zu
+        # firestore-mirror.mjs::mirrorSession() (Node-Pendant).
+        out = {**session, "date": date}
         db.collection("fitness").document(uid).collection("sessions").document(target_id).set(out)
     except Exception as e:
         logger.warning(f"mirror_session fehler: {e}")

@@ -166,7 +166,15 @@ um den Katalog zu erweitern), kein eigenständiges Backend. Details:
 - API-Routen: `/session`, `/journal`, `/exercises/search`, `/coverage`, `/fitness/plan`, `/fitness/weekly`, `/fitness/export`, `/fitness/body`
 - Static-Serving (dist/ oder public/) + SPA-Fallback
 - Proxies: wger (lokal), HabitSync (:6842)
-- **Dual-write**: `POST /session` schreibt JSON-File + SQLite synchron
+- **Session-Storage (seit 2026-08-23, siehe Sub-Doc-Sektion "Session-Storage:
+  Schichten & Konfliktmodell" in `docs/ARCHITECTURE.md`):** `POST /session`
+  schreibt nur noch die JSON-Datei (SOT) und benachrichtigt danach — awaited,
+  nicht mehr fire-and-forget — `fitness-api.service`, das per SQLAlchemy-
+  Upsert die einzige `training_history.sqlite`-Instanz schreibt. Node hat
+  keinen eigenen SQLite-Writer mehr (früher paralleler, unkoordinierter
+  better-sqlite3-Writer, Ursache für ~57/116 Zero-Value-Zeilen). Response
+  trägt `sqliteSync: false`, wenn der Python-Sync fehlschlägt — der JSON-Save
+  selbst bleibt davon unberührt.
 - **wger Gewichtssync**: `POST /fitness/body` mit `weight_kg` → schreibt Body-JSON + pusht `POST /api/v2/weightentry/` zu wger (fire-and-forget). Token: `WGER_API_TOKEN` env. Base-URL: `WGER_BASE` env (Standard `:8000`, wger läuft tatsächlich auf `:80`, siehe `../fitness/catalog/CLAUDE.md`).
 - **UID-Fallback (Fix 2026-08-15)**: alle Routen ohne expliziten `uid`-Query-Param
   fallen jetzt einheitlich auf `FITNESS_UID` (aufgelöst aus `.active-uid`-Datei
@@ -222,7 +230,7 @@ Weitere Dispatcher (fitness-devctl/fitness-prodctl/fitnessctl): `../fitness/CLAU
 | `/exercise/:id/teaching` | GET | Anatomy-Lesson aus catalog/kb/anatomy_teaching/ |
 | `/coaching-notes[?tag=]` | GET | Coaching Notes ("WhatsApp Wisdom Drops") aus catalog/kb/coaching_notes/, siehe `../fitness/catalog/CLAUDE.md` |
 | `/coaching-notes/product-signals` | GET | Offene UX-/Produkt-Reibungspunkte, aus Coaching-Notes extrahiert |
-| `/session?date=YYYY-MM-DD` | GET/POST | Tageslog — POST macht dual-write (JSON + SQLite) |
+| `/session?date=YYYY-MM-DD` | GET/POST | Tageslog — POST schreibt JSON (SOT), Python synct danach SQLite |
 | `/session/history?limit=10` | GET | Letzte N Sessions |
 | `/exercises/search?q=...` | GET | Search lokal + wger + yuhonas |
 | `/fitness/plan?template=ppl&split=6` | GET | Trainingsplan-Generator |
@@ -249,7 +257,6 @@ gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
 
 - **wger lokal** — primäres Backend, lokal gehostet (Port-Gotcha: `../fitness/catalog/CLAUDE.md`)
 - **yuhonas_free_exercise_db** — optional, Bilder + Varianten
-- **better-sqlite3** — dual-write SQLite im Node-Server
 - **React** ^18.3, **Vite** ^5.4, **TailwindCSS** ^3.4
 - **react-body-highlighter** ^2.0.5 — Body-Map UI
 - **recharts** — Charts (WeightChart, Coverage-Trends)
@@ -259,7 +266,7 @@ gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
 ## Workflow
 
 1. **Ausbildung läuft** — User macht Fitnesstrainer-Module, Pflichtaufgaben
-2. **User loggt Sessions** — über Session-View, dual-write in JSON + SQLite
+2. **User loggt Sessions** — über Session-View, JSON (SOT) + Python-Sync nach SQLite
 3. **AI Agent erweitert Katalog** — nutzt `fitness/catalog`-Tools (`audit anatomy` → fehlende Übungen, Gemini generiert YAML, `map-wger` → wger-IDs)
 4. **fitness-dev zeigt es** — Anatomie-Layer, Coverage-Analyse, BodyMap
 5. **Loop** — mehr Logs → bessere Coverage-Analyse → bessere Vorschläge
@@ -276,7 +283,9 @@ gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
 - ✅ wger + yuhonas Integration
 - ✅ Katalog-Struktur in `fitness/catalog/kb/` (Exercises, Anatomy Teaching, Rules, Registry)
 - ✅ Pytest-Suite (`fitness/catalog/tests/`, ~60 vorbestehende Fehler, siehe Sub-Doc)
-- ✅ Session dual-write (JSON + SQLite via better-sqlite3)
+- ✅ Session-Storage: JSON (SOT, Node) + SQLite-Upsert (einziger Schreiber:
+  Python via SQLAlchemy, `UNIQUE(date, session_id, exercise_id)`), rev-
+  basiertes Firestore-Konfliktmodell (Details: `docs/ARCHITECTURE.md`)
 - ✅ Gmail-Pipeline (bin/fitness-mail, Fitbit-Daten)
 - ✅ Firestore Sync + PWA Offline-Unterstützung (SW + IndexedDB offline-queue)
 - ✅ Firebase PWA: `npm run build:firebase` → `~/fitness/dist-firebase/`

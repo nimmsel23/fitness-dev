@@ -4,7 +4,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import Database from "better-sqlite3";
 import pino from "pino";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
 import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, pullAllSessions, pullJournalTree } from "./firestore-mirror.mjs";
@@ -61,96 +60,30 @@ const BODY_DIR = path.join(DATA_DIR, "body");
 
 for (const d of ["sessions", "journal"]) fs.mkdirSync(path.join(DATA_DIR, d), { recursive: true });
 
-// ── SQLite dual-write ─────────────────────────────────────────────────────────
-const DB_PATH = path.join(DATA_DIR, "sessions", "training_history.sqlite");
-const db = new Database(DB_PATH);
-db.exec(`
-  CREATE TABLE IF NOT EXISTS training_history (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    date TEXT NOT NULL,
-    session_id TEXT,
-    workout_id TEXT NOT NULL,
-    exercise_id TEXT NOT NULL,
-    display_name TEXT NOT NULL,
-    sets INTEGER NOT NULL DEFAULT 0,
-    reps INTEGER NOT NULL DEFAULT 0,
-    weight REAL NOT NULL DEFAULT 0,
-    rpe INTEGER NOT NULL DEFAULT 0,
-    done INTEGER NOT NULL DEFAULT 0,
-    notes TEXT NOT NULL DEFAULT '',
-    pain TEXT NOT NULL DEFAULT '',
-    completion_status TEXT NOT NULL DEFAULT 'completed'
-  );
-  CREATE INDEX IF NOT EXISTS idx_th_exercise_date
-    ON training_history(exercise_id, date DESC, id DESC);
-`);
+// ── SQLite: Python (sync_gateway.py) ist der einzige Schreiber ──────────────
+// Früher hatte Node hier einen eigenen better-sqlite3-Writer parallel zu
+// Python — beide schrieben in dieselbe training_history.sqlite, ohne
+// Koordination. Nodes Variante las zusätzlich ex.sets/reps/weight direkt
+// (Summary-Felder, in echten Sessions leer, da nur setsArray befüllt wird)
+// → ein Großteil der Zeilen hatte sets=0/reps=0/weight=0. Node schreibt jetzt
+// nur noch die JSON-Datei (SOT) und benachrichtigt Python, das aus setsArray
+// korrekt aggregiert (session_signal.py::training_values()) und per Upsert
+// mit echtem UNIQUE(date, session_id, exercise_id) schreibt.
 
-try {
-  db.exec("ALTER TABLE training_history ADD COLUMN session_id TEXT");
-} catch (e) {
-  // Column already exists or table was just created with the column
-}
-
-const stmtInsertEntry = db.prepare(`
-  INSERT INTO training_history
-    (date, session_id, workout_id, exercise_id, display_name, sets, reps, weight, rpe, done, notes, completion_status)
-  VALUES
-    (@date, @session_id, @workout_id, @exercise_id, @display_name, @sets, @reps, @weight, @rpe, @done, @notes, @completion_status)
-`);
-
-function deleteSessionFromDb(date, sessionId = null) {
-  if (sessionId) {
-    db.prepare("DELETE FROM training_history WHERE date = ? AND session_id = ?").run(date, sessionId);
-  } else {
-    db.prepare("DELETE FROM training_history WHERE date = ? AND (session_id IS NULL OR session_id = '')").run(date);
-  }
-}
-
-function syncSessionToDb(date, session) {
-  const block = session.block || "";
-  const sessionId = session.session_id || null;
-  db.transaction(() => {
-    if (sessionId) {
-      db.prepare("DELETE FROM training_history WHERE date = ? AND session_id = ?").run(date, sessionId);
-    } else {
-      db.prepare("DELETE FROM training_history WHERE date = ? AND (session_id IS NULL OR session_id = '')").run(date);
-    }
-    for (const ex of (session.exercises || [])) {
-      stmtInsertEntry.run({
-        date,
-        session_id:        sessionId,
-        workout_id:        block,
-        exercise_id:       ex.exercise_id || ex.id || "",
-        display_name:      ex.name || ex.exercise_id || ex.id || "",
-        sets:              Number(ex.sets)   || 0,
-        reps:              Number(ex.reps)   || 0,
-        weight:            Number(ex.weight) || 0,
-        rpe:               Number(ex.rpe)    || 0,
-        done:              ex.done ? 1 : 0,
-        notes:             ex.note || "",
-        completion_status: ex.done ? "completed" : "pending",
-      });
-    }
-  })();
-}
-
-// ── Python sync_gateway — fire-and-forget nach Session-Write ─────────────────
+// ── Python sync_gateway — awaited, damit ein echter Sync-Fehler dem Client
+// sichtbar wird (sqliteSync:false in der Response), statt still zu verschwinden.
 async function notifyPythonSync(date, session, uid = FITNESS_UID, sessionId = null) {
-  try {
-    const res = await fetch(`${PYTHON_BASE}/internal/sync/session`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ date, session, uid, session_id: sessionId }),
-      signal: AbortSignal.timeout(3000),
-    });
-    // Body IMMER konsumieren, sonst race zwischen AbortSignal.timeout()-Cleanup
-    // und undicis interner Stream-Close-Logik → ERR_INVALID_STATE crashed den
-    // ganzen Prozess (unhandled, außerhalb dieses try/catch). Body-Inhalt hier
-    // irrelevant, nur das Draining zählt.
-    await res.text().catch(() => {});
-  } catch {
-    // fire-and-forget — Python-Backend nicht zwingend erreichbar
-  }
+  const res = await fetch(`${PYTHON_BASE}/internal/sync/session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ date, session, uid, session_id: sessionId }),
+    signal: AbortSignal.timeout(3000),
+  });
+  // Body IMMER konsumieren, sonst race zwischen AbortSignal.timeout()-Cleanup
+  // und undicis interner Stream-Close-Logik → ERR_INVALID_STATE crashed den
+  // ganzen Prozess (unhandled, außerhalb jedes try/catch).
+  await res.text().catch(() => {});
+  if (!res.ok) throw new Error(`sync_gateway antwortete ${res.status}`);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -970,11 +903,16 @@ app.post("/session", async (c) => {
   const file    = path.join(userDir, sessionFileName(date, id));
   const data    = await c.req.json().catch(() => ({}));
   const session = freezeSnapshot({ ...data, date, session_id: id, saved_at: new Date().toISOString() });
-  writeJson(file, session);
-  syncSessionToDb(date, session);          // better-sqlite3 (lokal, synchron)
-  notifyPythonSync(date, session, uid, id); // SQLAlchemy via Python (async, fire-and-forget)
-  mirrorSession(date, session, uid);
-  return c.json({ ok: true, id });
+  writeJson(file, session); // JSON ist SOT — bleibt in jedem Fall geschrieben
+  let sqliteSync = true;
+  try {
+    await notifyPythonSync(date, session, uid, id); // SQLAlchemy-Upsert via Python, jetzt awaited
+  } catch (e) {
+    sqliteSync = false;
+    log.warn(`[session-sync] SQLite-Sync fehlgeschlagen (${date}${id ? `__${id}` : ""}): ${e.message}`);
+  }
+  mirrorSession(date, session, uid); // Remote, bleibt fire-and-forget (siehe firestore-mirror.mjs Retry-Markierung)
+  return c.json({ ok: true, id, sqliteSync });
 });
 
 /**
@@ -997,7 +935,12 @@ function freezeSnapshot(session) {
       log.warn(`[snapshot] ${session.date} ${ex.name}: keine Muskel-Daten — Coverage wird fehlen`);
     }
   }
-  return { ...session, exercises, snapshot_version: 1 };
+  // rev = monoton hochzählende Revision, serverseitig verwaltet (Client kann
+  // sie nicht manipulieren). Ersetzt saved_at-String-Vergleich als Basis für
+  // Firestore-Konfliktauflösung (siehe mirror.py::on_session) — Uhr-Drift
+  // zwischen Geräten kann rev nicht verfälschen, nur der lokale Save-Zähler.
+  const rev = (Number(session.rev) || 0) + 1;
+  return { ...session, exercises, snapshot_version: 1, rev };
 }
 
 app.delete("/session", (c) => {
@@ -1367,7 +1310,25 @@ app.post("/firestore/sync", async (c) => {
       if (data) { mirrorSession(date, data, uid); synced++; }
     }
   }
-  return c.json({ ok: true, synced });
+  // Konsumiert die Retry-Markierung aus firestore-mirror.mjs::fire() — Saves,
+  // deren Firestore-Push zuvor fehlgeschlagen ist (z.B. Netzwerk kurz weg),
+  // landen hier nicht mehr unsichtbar im Nirwana, sondern werden bei
+  // nächster Gelegenheit erneut versucht. Best-effort: Datei wird vor dem
+  // erneuten Versuch geleert, ein erneuter Fehlschlag hängt sich über
+  // dieselbe fire()-Logik wieder an.
+  let retried = 0;
+  const retryFile = path.join(path.dirname(sessDir), ".pending-firestore-retries.json");
+  if (fs.existsSync(retryFile)) {
+    const pending = readJson(retryFile, []);
+    fs.unlinkSync(retryFile);
+    for (const entry of pending) {
+      if (entry.kind !== "session") continue;
+      const fname = entry.sessionId ? `${entry.date}__${entry.sessionId}.json` : `${entry.date}.json`;
+      const data = readJson(path.join(sessDir, fname));
+      if (data) { mirrorSession(entry.date, data, entry.uid || uid); retried++; }
+    }
+  }
+  return c.json({ ok: true, synced, retried });
 });
 
 app.get("/v1", (c) => {
