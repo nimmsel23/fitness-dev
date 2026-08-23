@@ -85,6 +85,7 @@ bin/firestore-sync pull                     # Firestore → ~/.aos/fitness/
 
 | Dokument | Inhalt |
 |----------|--------|
+| [docs/FIREBASE.md](./docs/FIREBASE.md) | Firebase-Live-Release, `vitalos/fitness-app`, lokale `.local -> /opt` Deploy-Kette |
 | [CLAUDE.md](./CLAUDE.md) | API-Referenz, Katalog-Struktur, Session-Format, Design-Patterns |
 | [FIRESTORE.md](./FIRESTORE.md) | Firebase/Firestore Sync-Architektur |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Technische Architektur, Datenquellen |

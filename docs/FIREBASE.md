@@ -1,109 +1,141 @@
 # Firebase — AlphaOS Fitness
 
-Stand: 2026-07-02
+Stand: 2026-08-23
 
-Firebase-Projekt: **fitness-aos** (GCP, eur3)
+Firebase-Projekt: **fitness-aos**
 PWA: **https://fitness-aos.web.app**
-Single-User: `uid = "default"`
 
----
+Diese Datei beschreibt den tatsächlich genutzten Firebase- und Deploy-Pfad.
 
-## Architektur & Struktur (Safe-Production-Pipeline)
+## 1. Reale Trennung der Linien
 
-Um ein versehentliches Überschreiben der Produktion oder SW-Cache-Verschmutzung zu verhindern, gilt folgende Struktur:
+Es gibt bei Fitness drei verschiedene Linien, die man nicht vermischen darf:
 
-*   **`~/fitness-dev`**: Entwicklungs-Workspace. Alle Test-Deployments erfolgen hier ausschließlich über Vorschaukanäle (`npm run build:preview`). Direkte Produktions-Deploys sind hier über einen Safety-Lock blockiert.
-*   **`~/fitness`**: Release-Vessel. Enthält symbolische Links auf den Build-Output (`dist-firebase/`) und die Konfigurationen aus `fitness-dev`. Der echte Produktions-Deploy wird ausschließlich von hier aus gestartet.
+### `~/fitness-dev`
 
----
+- aktiver Dev-Checkout
+- Branch `dev`
+- hier passieren Implementierung, lokale Builds und lokale Desktop-Deploys
+- hier startet auch die Preview-/CI-Linie
 
-## Datenmodell (Firestore)
+### `/home/alpha/vitalos/fitness-app`
 
+- Release-Vessel für Firebase
+- Branch `master` bzw. `vitalos` je nach Repo-Stand
+- von `fitness-dev` wird hierhin weitergereicht
+- von hier läuft der eigentliche Firebase-Live-Deploy
+
+### `/home/alpha/vitalos`
+
+- Parent-Repo
+- bekommt am Ende den Submodule-Pointer-Bump
+- relevant für Shell-/Meta-Repo-CI
+
+Kurz:
+- `fitness-dev` = Dev + lokale Deploys + CI-Ausgangspunkt
+- `vitalos/fitness-app` = Firebase-Live-Release
+- `vitalos` = Parent/Submodule-Pointer + Shell-CI
+
+## 2. Lokaler Desktop-Deploy
+
+Der localhost-Deploy ist bei Fitness dieselbe Grundidee wie bei Fuel:
+
+1. **Dev -> Staging**
+   - Quelle: `~/fitness-dev`
+   - Ziel: `~/.local/fitness`
+   - Mechanik: `./deploy.sh staging`
+   - Wrapper: `fitness-devctl deploy` bzw. `fitnessctl dev deploy`
+
+2. **Staging -> Localhost-Prod**
+   - Quelle: `~/.local/fitness`
+   - Ziel: `/opt/fitness`
+   - Mechanik: `./deploy.sh prod`
+   - Wrapper: `fitness-prodctl deploy` bzw. `fitnessctl prod deploy`
+
+Wichtig:
+- `~/.local/fitness` ist Staging, nicht Prod
+- `/opt/fitness` ist der echte localhost-Prod-Stand
+- `deploy.sh prod` liest aus `~/.local/fitness`, nicht direkt aus `~/fitness-dev`
+
+Relevante Controller:
+- `deploy.sh` = eigentliche Deploy-Logik
+- `fitness-devctl` = Dev-/Staging-Controller
+- `fitness-prodctl` = Prod-/systemd-Controller
+- `fitnessctl` = Top-Level-Dispatcher
+
+Lokale Ports:
+- Dev Backend: `:9100`
+- Dev Frontend: `:5902`
+- Localhost-Prod: `fitness.service` auf `:6100` aus `/opt/fitness`
+
+## 3. Firebase-Live-Release
+
+Der Firebase-Live-Release passiert nicht aus einem historischen `~/fitness`
+Vessel, sondern über den tatsächlichen Release-Pfad:
+
+1. Änderungen in `~/fitness-dev` auf `dev`
+2. weiter nach `/home/alpha/vitalos/fitness-app`
+3. dort Live-Build + Firebase-Deploy
+4. danach Parent-Pointer-Update in `/home/alpha/vitalos`
+
+Wenn man also fragt "wo deployt Fitness wirklich nach Firebase?", ist die
+praktische Antwort:
+
+- **nicht** aus einem separaten alten `~/fitness`-Vessel
+- **sondern** aus `vitalos/fitness-app`
+
+## 4. Build-Abhängigkeiten
+
+Vor Dev-/Prod-/Firebase-Builds laufen bei Fitness KB-Generierungen:
+
+```bash
+npm run build:kb-data
 ```
+
+Das hängt bereits an:
+- `predev`
+- `prebuild`
+- `prebuild:firebase`
+
+Es umfasst:
+- `build:sixpack-data`
+- `build:bulk-data`
+- `build:coaching-notes`
+
+Wenn Generated-Dateien fehlen, ist zuerst zu prüfen, ob `build:kb-data`
+wirklich vor dem eigentlichen Build lief.
+
+## 5. GitHub Actions / CI
+
+Für die CI gilt dieselbe Meta-Repo-Logik wie bei Fuel:
+
+- Builds sind oft nur im `vitalos`-Kontext korrekt
+- Cross-App-Importe und Workspace-Aliase hängen am Meta-Repo
+- `fitness-dev` allein ist nicht automatisch die vollständige Build-Umgebung
+
+Für Fitness ist deshalb immer zu unterscheiden:
+- **lokaler Desktop-Deploy** über `deploy.sh` / `fitnessctl`
+- **Firebase-Live-Release** über `vitalos/fitness-app`
+- **Meta-Repo-/Shell-CI** über `vitalos`
+
+## 6. Datenmodell (Firestore)
+
+```text
 fitness/
 ├── default/
-│   ├── sessions/{date}         Session-Log (YYYY-MM-DD)
-│   ├── journal/{auto-id}       Text-Notizen
-│   ├── plan                    Aktiver Trainingsplan
-│   └── body/{date}             Körpermessungen (Fitbit-Pipeline)
+│   ├── sessions/{date}
+│   ├── journal/{auto-id}
+│   ├── plan
+│   └── body/{date}
 └── kb/
-    ├── exercises/{exercise_id} Exercise-Definitionen (aus catalog/kb)
-    └── anatomy/{exercise_id}   Anatomy Teaching (aus catalog/kb)
+    ├── exercises/{exercise_id}
+    └── anatomy/{exercise_id}
 ```
 
-### Session-Dokument
-
-```json
-{
-  "date": "2026-05-20",
-  "block": "Push",
-  "exercises": [
-    {
-      "exercise_id": "barbell_bench",
-      "name": "Bankdrücken",
-      "sets": "4", "reps": "8", "weight": "80",
-      "primaryMuscles": ["Chest"],
-      "secondaryMuscles": ["Shoulders", "Triceps"],
-      "isHIT": false,
-      "done": true
-    }
-  ],
-  "effort": 8,
-  "mood": "",
-  "notes": "",
-  "saved_at": "<Firestore Timestamp>"
-}
-```
-
----
-
-## Sync-Architektur
-
-### Lokal → Firestore (automatisch)
-
-**Node-Server** (`firestore-mirror.mjs`): spiegelt jeden `POST /session` und `POST /journal` fire-and-forget nach Firestore.
-
-**Python-Backend** (`firestore/mirror.py`): äquivalente Push-Funktionen für den Python-Server:
-- `mirror_session(date, session, uid)` → `fitness/{uid}/sessions/{date}`
-- `mirror_journal(date, entry, uid)` → `fitness/{uid}/journal/{date}`
-- `mirror_plan(plan, uid)` → `fitness/{uid}/plan/active`
-- `get_status()` → Verbindungsstatus
-
-Beide nutzen `~/.env/firebase-fitness.json` als Service-Account.
-
-### Firestore → Lokal
-
-*   **Live (Daemon)**: `python -m firestore.mirror` (WebSocket sync).
-*   **One-Shot**: `fitness-sync pull` / `push` / `sync`.
-
----
-
-## Deployment & PWA
-
-Die PWA-Sourcen liegen direkt im Root von `fitness-dev`.
-
-### Deployment-Workflow (Safe-Pipeline)
-
-1.  **Preview**: `npm run preview-firebase` (Baut nach `~/fitness/dist-firebase` und erstellt temporären Link).
-2.  **Live**: `npm run deploy-firebase` (Baut und rollt Hosting + Rules/Indexes aus).
-
-### Automatisierung
-
-*   **GitHub Actions**: `.github/workflows/deploy-pwa.yml` (CI/CD Deploy aus Root).
-*   **Git Hook**: `.git/hooks/post-commit` (Automatischer Deploy bei Frontend-Änderungen).
-
-### Konfiguration
-
-*   **Rules**: `firestore.rules` (Root)
-*   **Indexes**: `firestore.indexes.json` (Root)
-*   **Hosting**: `firebase.json` (Root/Release Vessel)
-
----
-
-## Credentials
+## 7. Credentials
 
 | Datei | Zweck |
 |-------|-------|
-| `~/.env/firebase-fitness.json` | Service Account (Python + local Mirror) |
+| `~/.env/firebase-fitness.json` | Service Account für lokale Mirror-/Python-Pfade |
 | `firebase.config.js` | Web-App Config (gitignored) |
 | GitHub Secrets | `FIREBASE_CONFIG`, `FIREBASE_SERVICE_ACCOUNT` |
