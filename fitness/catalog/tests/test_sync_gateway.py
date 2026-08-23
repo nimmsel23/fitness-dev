@@ -31,6 +31,12 @@ class SyncGatewayTest(unittest.TestCase):
         self.tempdir.cleanup()
 
     def test_sync_parses_note_only_training_signal(self) -> None:
+        # Jede Übung in exercises[] gilt als geloggt, sobald sie per "+"-Klick
+        # zur Session hinzugefügt wurde — unabhängig davon, ob Sätze/Gewicht
+        # ausgefüllt wurden (siehe session_signal.py::exercise_has_training_signal,
+        # Fix 2026-08-23 nach Fund einer spurlos aus der History verschwundenen
+        # Pull-Session). "wger_empty" bleibt daher NICHT mehr ungesynct, nur
+        # ihre Sets/Reps/Gewicht bleiben 0.
         count = sync_session(
             "2026-07-12",
             {
@@ -51,14 +57,17 @@ class SyncGatewayTest(unittest.TestCase):
             },
         )
 
-        self.assertEqual(count, 1)
+        self.assertEqual(count, 2)
         with sqlite3.connect(ensure_history_db()) as conn:
             rows = conn.execute(
-                "select workout_id, exercise_id, sets, reps, weight, notes from training_history"
+                "select workout_id, exercise_id, sets, reps, weight, notes from training_history order by exercise_id"
             ).fetchall()
         self.assertEqual(
             rows,
-            [("2026-07-12", "wger_206", 1, 40, 8.0, "8kg jeweils, ca. 40 Schritte")],
+            [
+                ("2026-07-12", "wger_206", 1, 40, 8.0, "8kg jeweils, ca. 40 Schritte"),
+                ("2026-07-12", "wger_empty", 0, 0, 0.0, ""),
+            ],
         )
 
 
