@@ -102,10 +102,25 @@ def on_session(col_snapshot, changes, read_time):
         SESSIONS.mkdir(parents=True, exist_ok=True)
         local = SESSIONS / f"{doc_id}.json"
         if local.exists() and change.type.name == "MODIFIED":
-            local_ts  = json.loads(local.read_text()).get("saved_at", "")
-            remote_ts = ts(data.get("saved_at"))
-            if remote_ts and local_ts and local_ts >= remote_ts:
-                continue
+            local_data = json.loads(local.read_text())
+            # rev statt saved_at-String-Vergleich: monoton, serverseitig
+            # verwaltet (server.mjs::freezeSnapshot / config.py::_freeze_
+            # snapshot) — robust gegen Client-Uhr-Drift, der den alten
+            # String-Vergleich falsch entscheiden lassen konnte. rev=0
+            # (Feld fehlt, alte Docs von vor diesem Fix) fällt auf das
+            # bisherige "übernehmen"-Verhalten zurück.
+            local_rev  = int(local_data.get("rev") or 0)
+            remote_rev = int(data.get("rev") or 0)
+            if remote_rev and remote_rev < local_rev:
+                continue  # lokaler Stand ist weiter fortgeschritten — nicht überschreiben
+            if remote_rev and remote_rev == local_rev:
+                # Echter Gleichstand (z.B. zwei Geräte committen denselben
+                # rev nahezu gleichzeitig). Kein Feld-Merge/CRDT — einfaches,
+                # deterministisches Tie-Breaking über saved_at als Fallback.
+                local_ts  = local_data.get("saved_at", "")
+                remote_ts = ts(data.get("saved_at"))
+                if remote_ts and local_ts and local_ts >= remote_ts:
+                    continue
         out = {k: (ts(v) if hasattr(v, "isoformat") else v) for k, v in data.items()}
         local.write_text(json.dumps(out, indent=2, ensure_ascii=False))
         _recent_pull_writes[doc_id] = time.monotonic()

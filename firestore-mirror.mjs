@@ -50,8 +50,32 @@ async function getDb() {
   }
 }
 
-function fire(fn) {
-  fn().catch((e) => console.warn(`[firestore-mirror] write fehler: ${e.message}`));
+// Retry-Markierung statt stillem Schlucken: bei Fehlschlag landet der
+// Datensatz in einer Pending-Datei, die der bestehende /firestore/sync-
+// Endpoint (letzte 30 Sessions) beim nächsten Aufruf mit abarbeiten kann —
+// kein neuer Scheduler, nur ein sichtbarer statt unsichtbarer Fehlerzustand.
+function pendingRetryFile(uid) {
+  return join(SESSIONS_ROOT, uid, ".pending-firestore-retries.json");
+}
+
+function appendPendingRetry(uid, entry) {
+  const file = pendingRetryFile(uid);
+  let list = [];
+  try { list = JSON.parse(fs.readFileSync(file, "utf8")); } catch {}
+  list.push({ ...entry, failedAt: new Date().toISOString() });
+  try {
+    fs.mkdirSync(join(SESSIONS_ROOT, uid), { recursive: true });
+    fs.writeFileSync(file, JSON.stringify(list.slice(-50), null, 2));
+  } catch (e) {
+    console.warn(`[firestore-mirror] Retry-Markierung fehlgeschlagen: ${e.message}`);
+  }
+}
+
+function fire(fn, retryMeta = null) {
+  fn().catch((e) => {
+    console.warn(`[firestore-mirror] write fehler: ${e.message}`);
+    if (retryMeta) appendPendingRetry(retryMeta.uid, retryMeta);
+  });
 }
 
 export async function getFirestoreStatus() {
@@ -63,12 +87,14 @@ export async function mirrorSession(date, session, uid = "default") {
   const db = await getDb();
   if (!db) return;
   const targetId = session.session_id ? `${date}__${session.session_id}` : date;
-  fire(() =>
-    db.collection("fitness").doc(uid).collection("sessions").doc(targetId).set({
-      ...session,
-      date,
-      saved_at: new Date().toISOString(),
-    })
+  fire(
+    () =>
+      db.collection("fitness").doc(uid).collection("sessions").doc(targetId).set({
+        ...session,
+        date,
+        saved_at: new Date().toISOString(),
+      }),
+    { kind: "session", uid, date, sessionId: session.session_id || null }
   );
 }
 

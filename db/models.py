@@ -3,7 +3,7 @@ SQLAlchemy ORM Models — fitness-dev
 """
 from __future__ import annotations
 
-from sqlalchemy import Float, Index, Integer, String, Text
+from sqlalchemy import Float, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from db import Base
@@ -29,6 +29,10 @@ class TrainingHistory(Base):
 
     __table_args__ = (
         Index("idx_th_exercise_date", "exercise_id", "date"),
+        # Gespiegelt aus alembic/versions/f3a1b8c2d4e5_unique_training_history_row.py
+        # — Testdatenbanken entstehen über Base.metadata.create_all() (nicht
+        # Alembic), müssen die Constraint also auch hier im Modell tragen.
+        UniqueConstraint("date", "session_id", "exercise_id", name="uq_training_history_date_session_exercise"),
     )
 
     def __repr__(self) -> str:

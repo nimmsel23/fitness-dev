@@ -29,6 +29,11 @@ class ExerciseItem(BaseModel):
     exercise_id: str = ""
     id: str = ""
     name: str = ""
+    # DEPRECATED — nur Backward-Compat-Lesen alter Sessions, die diese Felder
+    # noch befüllt hatten. setsArray ist die alleinige Quelle der Wahrheit für
+    # neue Writes; server.mjs/sync_gateway.py schreiben sets/reps/weight NICHT
+    # mehr direkt (das führte zu 57/116 Zero-Value-Zeilen in training_history,
+    # weil diese Felder in echten Sessions leer blieben).
     sets: str | int = ""
     reps: str | int = ""
     weight: str | float = ""
@@ -55,6 +60,12 @@ class SessionData(BaseModel):
     duration: str | int = ""
     saved_at: str = ""
     snapshot_version: int = 0
+    # Monoton hochzählende Revision, serverseitig verwaltet (server.mjs::
+    # freezeSnapshot, fitness/api/config.py::_freeze_snapshot). Ersetzt den
+    # saved_at-String-Vergleich als Basis für Firestore-Konfliktauflösung
+    # (siehe firestore/mirror.py::on_session) — robust gegen Client-Uhr-Drift.
+    # Fehlt das Feld (alte Sessions), gilt rev=0 (Pydantic-Default deckt das ab).
+    rev: int = 0
 
     model_config = {"extra": "allow"}
 

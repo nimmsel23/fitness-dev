@@ -422,14 +422,18 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     const sessData = buildSessionPayload(overrides);
     try {
       setAutoSaveLabel(silent ? 'Auto…' : 'Speichert…');
-      await saveSession(date, sessData, sessionId);
+      const result = await saveSession(date, sessData, sessionId);
       setDirty(false);
       if (silent) {
-        setAutoSaveLabel('Auto ✓');
+        setAutoSaveLabel(result?.sqliteSync === false ? 'Auto ⚠' : 'Auto ✓');
         setTimeout(() => setAutoSaveLabel(''), 2000);
       } else {
         setAutoSaveLabel('');
-        showToast('Gespeichert ✓');
+        // JSON-Save war in jedem Fall erfolgreich (sonst wäre saveSession()
+        // geworfen) — sqliteSync:false meldet nur eine verzögerte SQLite-
+        // Spiegelung (Python-Backend kurzzeitig nicht erreichbar), kein
+        // Datenverlust. Kein Fehler-Toast, nur ein schwächerer Hinweis.
+        showToast(result?.sqliteSync === false ? 'Gespeichert ✓ (Sync verzögert)' : 'Gespeichert ✓');
       }
     } catch (e) {
       // Silent Auto-Saves zeigten bislang gar keine Fehlermeldung — ein
@@ -504,7 +508,14 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
 
   function handleNewSession() {
     flushDirty();
-    const newSuffix = String(Date.now());
+    // crypto.randomUUID() statt Date.now(): kollisionsfrei bei zwei
+    // Geräten/Tabs, die im selben Millisekunden-Fenster eine Zusatz-Session
+    // für denselben Tag starten (sonst gleicher Dateiname, eine überschreibt
+    // die andere). Fallback für Nicht-HTTPS/Nicht-localhost-Kontexte, wo
+    // crypto.randomUUID fehlt (gleiches Muster wie lib/db/firestore/workouts.js).
+    const newSuffix = (typeof crypto !== 'undefined' && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     setSessionId(newSuffix);
     resetSessionData();
     setDaySessions(prev => [...prev, { id: newSuffix, block: 'Neues Workout', exercises: [], saved_at: new Date().toISOString() }]);

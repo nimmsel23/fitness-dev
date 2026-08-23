@@ -275,12 +275,16 @@ zukünftige Erweiterung: Mapping von granularen Katalog-Muskel-IDs (aus `muscles
   "block": "Push",
   "location": "Gym",
   "duration": 60,
+  "session_id": null,
+  "rev": 3,
   "exercises": [
     {
       "name": "Bankdrücken",
-      "sets": 4,
-      "reps": 8,
-      "weight": 80,
+      "exercise_id": "barbell_bench",
+      "setsArray": [
+        { "reps": 8, "weight": 80 },
+        { "reps": 8, "weight": 80 }
+      ],
       "primaryMuscles": ["chest"],
       "secondaryMuscles": ["triceps", "shoulders"],
       "done": true,
@@ -289,9 +293,64 @@ zukünftige Erweiterung: Mapping von granularen Katalog-Muskel-IDs (aus `muscles
   ],
   "effort": 8,
   "notes": "",
-  "saved_at": "2026-05-17T18:30:00Z"
+  "saved_at": "2026-05-17T18:30:00Z",
+  "snapshot_version": 1
 }
 ```
+
+`setsArray` ist die alleinige Quelle pro Übung (Reps/Gewicht pro Satz) — ein
+älteres, paralleles `sets`/`reps`/`weight`-Scalar-Feld existiert nur noch als
+Backward-Compat-Lesefeld in `ExerciseItem` (`db/schemas.py`) für Sessions von
+vor diesem Fix, wird bei neuen Writes nicht mehr befüllt. `rev` ist eine
+serverseitig hochgezählte Revision (siehe nächste Sektion).
+
+---
+
+## Session-Storage: Schichten & Konfliktmodell
+
+Vier Schichten, klare Rollenverteilung (Stand: 2026-08-23-Fix, vorher hatte
+Node einen eigenen, unkoordinierten SQLite-Writer parallel zu Python — siehe
+Git-Historie "Session-Storage-Redesign" für den vollen Befund):
+
+```
+JSON-Datei (~/.aos/fitness/users/<uid>/sessions/*.json)
+  = Source of Truth. Node (server.mjs) UND Python (fitness/api/routers/
+    sessions.py) können hier direkt schreiben — beides sind vollwertige,
+    unabhängige Session-Write-Pfade (Node: Dev-Proxy :9100, Python: Prod-API
+    :9150 direkt, z.B. über Tailscale-Funnel).
+      ↓ awaited Notify (POST /internal/sync/session)
+SQLite (training_history.sqlite)
+  = Abgeleiteter Index, EIN Schreiber: fitness/catalog/api/sync_gateway.py
+    (SQLAlchemy). INSERT ... ON CONFLICT DO UPDATE auf
+    UNIQUE(date, session_id, exercise_id) — kein Delete-before-Insert mehr,
+    dadurch kein Zwischenzustand ganz ohne Rows für eine Session. Aus der
+    Session entfernte Übungen werden gezielt per Differenzmenge gelöscht.
+    session_id wird als "" (nicht NULL) gespeichert — SQLite behandelt NULL
+    in UNIQUE-Indizes als paarweise verschieden, ein NULL-Wert hätte den
+    Conflict-Check für Default-Sessions nie greifen lassen.
+      ↓ fire-and-forget (Remote)
+Firestore (fitness/{uid}/sessions/{date__sessionId})
+  = Remote-Mirror, rev-basiertes Last-Write-Wins (fitness/firestore/
+    mirror.py::on_session, läuft eingebettet in fitness-api.service).
+    Ersetzt den früheren saved_at-String-Vergleich, der bei Client-Uhr-Drift
+    den falschen Stand gewinnen lassen konnte — rev ist ein serverseitig
+    (nie clientseitig) hochgezählter Zähler pro Save, monoton pro Gerät.
+    Bei echtem rev-Gleichstand: saved_at als Tie-Breaker (kein Feld-Merge/
+    CRDT, ganzes Dokument gewinnt).
+      ↕ awaited Push-Fehler → .pending-firestore-retries.json
+        (abarbeitbar über POST /firestore/sync, kein eigener Scheduler)
+Frontend-State (useSession.js)
+  = sessionId wird einmalig bei "Neues Workout" per crypto.randomUUID()
+    vergeben (vorher Date.now(), kollisionsanfällig bei zwei Geräten im
+    selben Millisekunden-Fenster) und danach für die gesamte Session-
+    Lebensdauer unverändert mitgeschickt.
+```
+
+**Was bewusst NICHT gemacht wurde** (Scope-Grenze): kein CRDT/Feld-Merge bei
+echtem rev-Gleichstand, keine rückwirkende Korrektur historischer Zero-Value-
+Zeilen in `training_history` (nur neue Writes profitieren), kein `set_index`
+für Per-Satz-Rows in SQLite (die Tabelle bleibt aggregiert pro Exercise, wie
+zuvor — eine echte Per-Satz-Granularität wäre eine Schema-Erweiterung).
 
 ---
 

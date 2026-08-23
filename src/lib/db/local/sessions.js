@@ -31,9 +31,11 @@ export async function getSession(date = localToday(), id = null) {
 
 export async function saveSession(date = localToday(), sessionData, id = null) {
   const qs = id ? `?date=${date}&id=${encodeURIComponent(id)}` : `?date=${date}`;
-  await api.post(`/session${qs}`, sessionData || {});
+  const res = await api.post(`/session${qs}`, sessionData || {});
   clearMonthlyReportCache();
-  return { ok: true };
+  // sqliteSync durchreichen (server.mjs signalisiert damit einen verzögerten,
+  // nicht-fatalen SQLite-Sync — der JSON-Save selbst war erfolgreich).
+  return { ok: true, sqliteSync: res?.sqliteSync !== false };
 }
 
 export async function listSessionsForDate(date = localToday()) {

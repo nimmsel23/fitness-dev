@@ -38,50 +38,79 @@ def _get_models():
 
 
 def sync_session(day: str, session: dict[str, Any], session_id: str | None = None) -> int:
-    """Session-Dict in SQLite schreiben. Gibt Anzahl geschriebener Rows zurück."""
+    """Session-Dict per Upsert in SQLite schreiben. Gibt Anzahl betroffener
+    Rows zurück. Nutzt INSERT ... ON CONFLICT DO UPDATE auf
+    UNIQUE(date, session_id, exercise_id) statt Delete-before-Insert — damit
+    existiert nie ein Zwischenzustand ganz ohne Rows für die Session (das
+    frühere Delete-before-Insert war das eigentliche Race-Fenster bei
+    schnell aufeinanderfolgenden Saves). Aus der Session entfernte Übungen
+    werden gezielt per Differenzmenge gelöscht, nicht pauschal."""
+    from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+
     SessionLocal = _get_session_local()
     TrainingHistory, sa = _get_models()
 
     block = session.get("block", "")
-    sid   = session_id or session.get("session_id")
+    # Normalisiert auf "" statt None: SQLite behandelt NULL in UNIQUE-Indizes
+    # als paarweise verschieden — zwei Rows mit session_id=NULL würden vom
+    # ON CONFLICT unten NIE als Duplikat erkannt, jeder Save der Default-
+    # Session (kein session_id) hätte also unbegrenzt neue Rows angehäuft,
+    # statt sie upzudaten. "" ist ein normaler Wert und funktioniert im
+    # Unique-Index korrekt.
+    sid = session_id or session.get("session_id") or ""
+
+    exercises = [
+        ex for ex in session.get("exercises", [])
+        if isinstance(ex, dict) and exercise_has_training_signal(ex)
+    ]
+    current_exercise_ids = {ex.get("exercise_id") or ex.get("id", "") for ex in exercises}
 
     with SessionLocal() as db:
-        if sid:
+        # IS NULL bleibt im Filter, damit Bestandszeilen aus der Zeit vor
+        # dieser Normalisierung (session_id noch NULL) weiter gefunden werden.
+        sid_filter = TrainingHistory.session_id == sid if sid else sa.or_(
+            TrainingHistory.session_id.is_(None), TrainingHistory.session_id == ""
+        )
+        existing_ids = set(db.execute(
+            sa.select(TrainingHistory.exercise_id).where(TrainingHistory.date == day, sid_filter)
+        ).scalars())
+        stale_ids = existing_ids - current_exercise_ids
+        if stale_ids:
             db.execute(sa.delete(TrainingHistory).where(
-                TrainingHistory.date == day,
-                TrainingHistory.session_id == sid,
-            ))
-        else:
-            db.execute(sa.delete(TrainingHistory).where(
-                TrainingHistory.date == day,
-                sa.or_(TrainingHistory.session_id.is_(None), TrainingHistory.session_id == ""),
+                TrainingHistory.date == day, sid_filter, TrainingHistory.exercise_id.in_(stale_ids)
             ))
 
         rows = []
-        for ex in session.get("exercises", []):
-            if not isinstance(ex, dict) or not exercise_has_training_signal(ex):
-                continue
+        for ex in exercises:
             values = training_values(ex)
-            rows.append(
-                TrainingHistory(
-                    date              = day,
-                    session_id        = sid,
-                    workout_id        = block or day,
-                    exercise_id       = ex.get("exercise_id") or ex.get("id", ""),
-                    display_name      = ex.get("name") or ex.get("exercise_id") or ex.get("id", ""),
-                    sets              = values["sets"],
-                    reps              = values["reps"],
-                    weight            = values["weight"],
-                    rpe               = values["rpe"],
-                    done              = 1 if ex.get("done") else 0,
-                    notes             = ex.get("note") or ex.get("notes") or "",
-                    completion_status = "completed" if ex.get("done") else "pending",
-                )
+            rows.append(dict(
+                date              = day,
+                session_id        = sid,
+                workout_id        = block or day,
+                exercise_id       = ex.get("exercise_id") or ex.get("id", ""),
+                display_name      = ex.get("name") or ex.get("exercise_id") or ex.get("id", ""),
+                sets              = values["sets"],
+                reps              = values["reps"],
+                weight            = values["weight"],
+                rpe               = values["rpe"],
+                done              = 1 if ex.get("done") else 0,
+                notes             = ex.get("note") or ex.get("notes") or "",
+                completion_status = "completed" if ex.get("done") else "pending",
+            ))
+
+        for row in rows:
+            stmt = sqlite_insert(TrainingHistory).values(**row)
+            stmt = stmt.on_conflict_do_update(
+                index_elements=["date", "session_id", "exercise_id"],
+                set_={c: stmt.excluded[c] for c in (
+                    "workout_id", "display_name", "sets", "reps", "weight",
+                    "rpe", "done", "notes", "completion_status",
+                )},
             )
-        db.add_all(rows)
+            db.execute(stmt)
         db.commit()
 
-    logger.debug(f"sync_gateway: {day} → {len(rows)} rows")
+    logger.debug(f"sync_gateway: {day} → {len(rows)} rows upserted, {len(stale_ids)} entfernt")
     return len(rows)
 
 
@@ -110,6 +139,8 @@ def remove_session(day: str, session_id: str | None = None, uid: str | None = No
                 TrainingHistory.session_id == session_id,
             ))
         else:
+            # IS NULL bleibt hier als Fallback für Bestandszeilen aus der Zeit
+            # vor der ""-Normalisierung in sync_session().
             db.execute(sa.delete(TrainingHistory).where(
                 TrainingHistory.date == day,
                 sa.or_(TrainingHistory.session_id.is_(None), TrainingHistory.session_id == ""),
