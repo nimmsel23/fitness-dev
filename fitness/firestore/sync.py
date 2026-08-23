@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from ._db import get_db, ts, UID
+from ._db import get_db, ts, UID, remote_wins
 from fitness.catalog.core.session_signal import exercise_has_training_signal
 
 USERS_DIR = Path.home() / ".aos" / "users"
@@ -85,13 +85,11 @@ def pull(uid: str | None = None) -> dict:
             if local.exists():
                 try:
                     local_data = json.loads(local.read_text())
-                    local_ts  = local_data.get("saved_at", "")
-                    remote_ts = ts(data.get("saved_at"))
-                    if remote_ts and local_ts and local_ts >= remote_ts:
+                    if not remote_wins(local_data, data):
                         total_skipped += 1
                         continue
                 except Exception: pass
-            
+
             out = {k: (ts(v) if hasattr(v, "isoformat") else v) for k, v in data.items()}
             local.write_text(json.dumps(out, indent=2, ensure_ascii=False))
             total_pulled += 1
@@ -259,12 +257,10 @@ def push(uid: str | None = None, *, force: bool = False, dry_run: bool = False) 
             doc_id     = f.stem
             actual_date = doc_id.split("__")[0]
             local_data = json.loads(f.read_text())
-            local_ts   = ts(local_data.get("saved_at"))
             ref = None if db is None else db.collection("fitness").document(uid).collection("sessions").document(doc_id)
             remote = None if ref is None else ref.get()
             if remote and remote.exists and not force:
-                remote_ts = ts(remote.to_dict().get("saved_at"))
-                if remote_ts and local_ts and remote_ts >= local_ts:
+                if remote_wins(local_data, remote.to_dict()):
                     skipped += 1
                     continue
             if not dry_run:

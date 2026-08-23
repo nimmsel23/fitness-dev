@@ -92,7 +92,14 @@ export async function mirrorSession(date, session, uid = "default") {
       db.collection("fitness").doc(uid).collection("sessions").doc(targetId).set({
         ...session,
         date,
-        saved_at: new Date().toISOString(),
+        // saved_at NICHT hier überschreiben: session.saved_at kommt bereits
+        // aus freezeSnapshot() (echte Editierzeit, rev-synchron). Ein
+        // erzwungenes "jetzt" bei jedem Push — auch bei reinen Resyncs ohne
+        // inhaltliche Änderung (z.B. POST /firestore/sync) — täuschte dem
+        // rev-Gleichstand-Tie-Break in mirror.py::on_session() eine neuere
+        // Remote-Version vor, die dann zurückgepullt wurde und die lokale
+        // Datei unnötig überschrieb (live reproduziert + Ursache der
+        // historischen Massen-saved_at-Neuschreibung vom 2026-08-06).
       }),
     { kind: "session", uid, date, sessionId: session.session_id || null }
   );

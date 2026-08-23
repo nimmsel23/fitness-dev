@@ -36,3 +36,23 @@ def ts(val) -> str | None:
     if val is None:
         return None
     return val.isoformat() if hasattr(val, "isoformat") else str(val)
+
+
+def remote_wins(local_data: dict, remote_data: dict) -> bool:
+    """Gemeinsame Konfliktentscheidung für Session-Pulls: rev statt saved_at-
+    String-Vergleich (robust gegen Client-Uhr-Drift). Zentral hier statt in
+    mirror.py UND sync.py getrennt gepflegt — genau diese Verdopplung war der
+    Grund, warum der rev-Fix (2026-08-23) zunächst nur mirror.py::on_session()
+    erreichte und sync.py::pull()/push() den alten, fehleranfälligen
+    saved_at-Vergleich weiterhin nutzten, obwohl beide dieselbe Aufgabe lösen.
+    True = remote gewinnt (lokale Datei wird überschrieben)."""
+    local_rev  = int(local_data.get("rev") or 0)
+    remote_rev = int(remote_data.get("rev") or 0)
+    if remote_rev and remote_rev < local_rev:
+        return False
+    if remote_rev and remote_rev == local_rev:
+        local_ts  = local_data.get("saved_at", "")
+        remote_ts = ts(remote_data.get("saved_at"))
+        if remote_ts and local_ts and local_ts >= remote_ts:
+            return False
+    return True

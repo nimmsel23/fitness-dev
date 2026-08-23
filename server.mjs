@@ -1310,7 +1310,25 @@ app.post("/firestore/sync", async (c) => {
       if (data) { mirrorSession(date, data, uid); synced++; }
     }
   }
-  return c.json({ ok: true, synced });
+  // Konsumiert die Retry-Markierung aus firestore-mirror.mjs::fire() — Saves,
+  // deren Firestore-Push zuvor fehlgeschlagen ist (z.B. Netzwerk kurz weg),
+  // landen hier nicht mehr unsichtbar im Nirwana, sondern werden bei
+  // nächster Gelegenheit erneut versucht. Best-effort: Datei wird vor dem
+  // erneuten Versuch geleert, ein erneuter Fehlschlag hängt sich über
+  // dieselbe fire()-Logik wieder an.
+  let retried = 0;
+  const retryFile = path.join(path.dirname(sessDir), ".pending-firestore-retries.json");
+  if (fs.existsSync(retryFile)) {
+    const pending = readJson(retryFile, []);
+    fs.unlinkSync(retryFile);
+    for (const entry of pending) {
+      if (entry.kind !== "session") continue;
+      const fname = entry.sessionId ? `${entry.date}__${entry.sessionId}.json` : `${entry.date}.json`;
+      const data = readJson(path.join(sessDir, fname));
+      if (data) { mirrorSession(entry.date, data, entry.uid || uid); retried++; }
+    }
+  }
+  return c.json({ ok: true, synced, retried });
 });
 
 app.get("/v1", (c) => {
