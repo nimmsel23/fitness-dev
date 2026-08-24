@@ -20,6 +20,7 @@ export default function Session({
   initialDate, initialDraft, onInspectExercise, onOpenSession,
   recentDays = 7, coverageThreshold = 1.0, subTab, onDateChange, onSubNav,
   planView, planId, onPlanRouteChange,
+  gateAutoOpenFlag, onGateAutoOpenConsumed,
 }) {
   const session = useSession({ initialDate, initialDraft, recentDays, coverageThreshold, onDateChange });
   const { loading: planLoading, cycle, nextRoutine, lastPerformance, clientUid, reload } = useTodayPlan();
@@ -82,6 +83,8 @@ export default function Session({
         onInspectExercise={onInspectExercise}
         currentSubTab={subTab}
         onSubNav={onSubNav}
+        gateAutoOpenFlag={gateAutoOpenFlag}
+        onGateAutoOpenConsumed={onGateAutoOpenConsumed}
       />
   );
 }

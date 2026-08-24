@@ -57,6 +57,8 @@ export default function SessionEditor({
   onInspectExercise,
   currentSubTab,
   onSubNav,
+  gateAutoOpenFlag,
+  onGateAutoOpenConsumed,
 }) {
   const [showInlineDetails, setShowInlineDetails] = useState(false);
   const gpsMapsUrl = normalizeSessionGate(sessionGate).gps?.mapsUrl || null;
@@ -65,10 +67,20 @@ export default function SessionEditor({
   // über dem Training-Haupttab: "Heute" in der Nav-Bar (SessionGateCard.jsx
   // SESSION_NAV_ITEMS) öffnet es explizit, statt dass es immer sichtbar oben
   // klebt. Editor selbst bleibt darunter erreichbar (kein Plan-Zwang).
+  //
+  // gateAutoOpenFlag kommt als One-Shot-Signal von App (überlebt Remounts) —
+  // nur wahr, wenn tatsächlich auf den "Heute"-Subtab navigiert wurde, nicht
+  // bei jedem Datumswechsel (der wegen key={sessionDate} in App.jsx einen
+  // kompletten Remount dieser Komponente auslöst, ein reiner
+  // currentSubTab-Check hier würde also bei jedem Datumswechsel erneut
+  // feuern, da mount-Effects unabhängig von deps immer einmal laufen).
   const [gateSheetOpen, setGateSheetOpen] = useState(false);
   useEffect(() => {
-    if (currentSubTab === 'today') setGateSheetOpen(true);
-  }, [currentSubTab]);
+    if (gateAutoOpenFlag) {
+      setGateSheetOpen(true);
+      onGateAutoOpenConsumed?.();
+    }
+  }, []);
 
   // Split-Autoerkennung: solange der User selbst noch keinen Split gewählt
   // hat (block === ''), leitet sie den Split aus den bereits eingetragenen
