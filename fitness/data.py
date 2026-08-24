@@ -276,6 +276,7 @@ def load_client_registry() -> dict[str, dict]:
             "client_dir": slug_dir,
             "espocrm":    data.get("espocrm"),
             "crm_id":     data.get("crm_id"),
+            "status":     data.get("status"),
         }
         for uid in uids:
             registry[uid] = meta

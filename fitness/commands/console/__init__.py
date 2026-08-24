@@ -9,7 +9,12 @@ Module:
   watcher.py       — watchdog FileSystemEventHandler (Session/Journal-Aenderungen)
   gap_check.py     — periodischer Trainingsluecken-Check, ein Fehler pro Klient
                       darf den Loop nie mehr komplett stoppen (siehe Docstring dort)
-  core.py          — verdrahtet Watcher + Gap-Loop + Rich-Live-Rendering, run()
+  drafts.py        — Persistenz der KI-Ausgaben (~/.aos/fitness/console/drafts/),
+                      Schritt 1 im Ausbau; `fitness-log drafts` liest sie
+  keys.py          — nicht-blockierendes Einzeltasten-Lesen (cbreak-Mode, stdlib)
+  approval.py      — interaktive Freigabe von Feedback-Entwuerfen (a/d/s),
+                      Schritt 2 im Ausbau, schreibt Status in drafts.py zurueck
+  core.py          — verdrahtet Watcher + Gap-Loop + Freigabe + Rich-Live, run()
 
 `fitness/commands/log.py::cmd_console` ruft nur noch `run()` auf.
 """

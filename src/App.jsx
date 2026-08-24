@@ -295,6 +295,21 @@ export default function App() {
     }
   }, [subTab])
 
+  // Session-Gate-Sheet soll nur beim tatsächlichen Navigieren auf den
+  // "Heute"-Subtab aufgehen, nicht bei jedem Datumswechsel — Session (siehe
+  // key={sessionDate || 'today'} unten) remountet komplett bei jedem
+  // Datumswechsel, ein lokaler useEffect in SessionEditor würde also auch
+  // bei bloßem Datumswechsel erneut feuern. Dieses Flag lebt hier in App
+  // (remountet nicht) und wird als One-Shot-Signal nach unten gereicht.
+  const prevSubTabForGateRef = useRef(null)
+  const [gateAutoOpenFlag, setGateAutoOpenFlag] = useState(false)
+  useEffect(() => {
+    if (tab === 'session' && subTab === 'today' && prevSubTabForGateRef.current !== 'today') {
+      setGateAutoOpenFlag(true)
+    }
+    prevSubTabForGateRef.current = subTab
+  }, [tab, subTab])
+
   useEffect(() => {
     const targetHash = buildHashRoute({ tab, subTab, sessionDate, focusLayer, planView, planId })
     if (window.location.hash !== targetHash) {
@@ -464,7 +479,7 @@ export default function App() {
                   )}
                   <div key={tab} className={`${navMode === 'home' && tab !== 'gate' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in ${slideDirection === 'left' ? 'slide-in-from-right-8' : slideDirection === 'right' ? 'slide-in-from-left-8' : 'slide-in-from-bottom-4'} duration-500`}>
                       {/* Render content */}
-                      {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} onOpenSession={openSession} recentDays={recentDays} coverageThreshold={coverageThreshold} subTab={subTab} onDateChange={setSessionDate} onSubNav={navigateSub} planView={planView} planId={planId} onPlanRouteChange={(view, id) => { setPlanView(view); setPlanId(id); }} />}
+                      {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} onOpenSession={openSession} recentDays={recentDays} coverageThreshold={coverageThreshold} subTab={subTab} onDateChange={setSessionDate} onSubNav={navigateSub} planView={planView} planId={planId} onPlanRouteChange={(view, id) => { setPlanView(view); setPlanId(id); }} gateAutoOpenFlag={gateAutoOpenFlag} onGateAutoOpenConsumed={() => setGateAutoOpenFlag(false)} />}
                       {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} subTab={subTab} onSubNav={navigateSub} />}
                       {tab === 'learn'    && <Learn subTab={subTab} />}
                       {tab === 'coach'    && (isLocalMode() || user?.email?.includes('alpha') || user?.uid === '59ole36uNpNwml5H6VDYCXyCME92') && <Coach onInspectExercise={inspectExercise} />}
