@@ -20,8 +20,9 @@ def _analyze_session(events: "_queue.Queue[str]", name: str, session: dict) -> N
     def _run() -> None:
         try:
             feedback = draft_session_feedback(session)
-        except Exception:
+        except Exception as exc:
             logger.exception(f"console Feedback-Entwurf fehlgeschlagen fuer '{name}' — Session-Watch laeuft weiter")
+            events.put(event_line("red", "Fehler", name, f"Feedback-Entwurf: {exc}"))
             return
         if feedback:
             events.put(event_line("green", "KI-Feedback-Vorschlag", name, feedback))
@@ -29,11 +30,28 @@ def _analyze_session(events: "_queue.Queue[str]", name: str, session: dict) -> N
     _threading.Thread(target=_run, daemon=True).start()
 
 
+def _setup_file_logging() -> None:
+    # Rich's Live-Rendering nimmt exklusiv den Terminal-Stream in Beschlag.
+    # loguru's Default-Sink schreibt auf stderr — landet ein Traceback dort
+    # waehrend Live aktiv ist, zerreisst das die Panel-Neuzeichnung (Symptom:
+    # doppelte/verschobene Boxen, sieht wie ein Haenger aus, ist aber nur ein
+    # Rendering-Konflikt). Fix: waehrend der Konsolen-Session in eine Datei
+    # loggen, nicht auf den Terminal-Stream.
+    from ...catalog.core.paths import runtime_root
+
+    log_dir = runtime_root() / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    logger.remove()
+    logger.add(log_dir / "console.log", rotation="1 MB", retention=3, level="INFO")
+
+
 def run(gap_check_interval: int) -> None:
     from watchdog.observers import Observer
     from rich.console import Console as RichConsole
     from rich.live import Live
     from rich.panel import Panel
+
+    _setup_file_logging()
 
     registry = load_client_registry()
     if not registry:

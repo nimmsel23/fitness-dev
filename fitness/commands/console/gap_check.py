@@ -32,8 +32,9 @@ def gap_check_loop(
             name = meta.get("name", "?")
             try:
                 _check_one_client(meta, events, check_training_gap)
-            except Exception:
+            except Exception as exc:
                 logger.exception(f"console gap-check fehlgeschlagen fuer Klient '{name}' — ueberspringe, Loop laeuft weiter")
+                events.put(event_line("red", "Fehler", name, f"Gap-Check: {exc}"))
         time.sleep(interval)
 
 
