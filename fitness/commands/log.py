@@ -12,6 +12,7 @@ Subcommands:
   sync-status           Firestore ↔ lokal Sync-Status + Klienten-Registry
   clients [NAME]         Alle Klienten-Sessions chronologisch (--journal für Freitext)
   console                Live-TUI: Klienten-Logs + Zwei-KI-Analyse (siehe commands/console/)
+  drafts [--client NAME]  Persistierte KI-Entwuerfe aus der Console anzeigen
 """
 from __future__ import annotations
 
@@ -596,6 +597,33 @@ def cmd_console(
 ) -> None:
     from .console import run
     run(gap_check_interval)
+
+
+# ── drafts ────────────────────────────────────────────────────────────────────
+# Persistierte KI-Ausgaben aus der Live-Console (console/drafts.py) ausserhalb
+# der laufenden Session einsehen — Schritt 1 im console-Ausbau.
+
+@app.command(name="drafts", help="Persistierte KI-Entwuerfe aus der Live-Console anzeigen (Gap-Erklaerungen, Feedback)")
+def cmd_drafts(
+    client: str = typer.Option(None, "--client", help="Nur Entwuerfe fuer diesen Klienten (Name-Substring)"),
+    limit: int = typer.Option(20, "--limit", help="Max. Anzahl Entwuerfe"),
+) -> None:
+    from .console.drafts import list_drafts
+
+    entries = list_drafts()
+    if client:
+        needle = client.lower()
+        entries = [e for e in entries if needle in e.get("name", "").lower()]
+    entries = entries[:limit]
+
+    if not entries:
+        print(c("yellow", "  Keine Entwuerfe gefunden."))
+        return
+
+    for e in entries:
+        kind_label = "Gap" if e.get("kind") == "gap" else "Feedback"
+        kind_color = "red" if e.get("kind") == "gap" else "green"
+        print(f"{c('dim', e.get('created_at', '?'))}  {c('accent', e.get('name', '?'))}  {c(kind_color, kind_label)}  {e.get('text', '')}")
 
 
 # ── Entry-Point ───────────────────────────────────────────────────────────────

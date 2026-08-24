@@ -17,6 +17,7 @@ import time
 from loguru import logger
 
 from ...paths import AOS_USERS
+from .drafts import save_draft
 from .events import event_line
 
 
@@ -61,5 +62,8 @@ def _check_one_client(meta: dict, events: "_queue.Queue[str]", check_training_ga
 
     result = check_training_gap(name, last_date, journal_text)
     if result and not result.get("explained"):
-        gap_label = f"Trainingsluecke ({result.get('days_gap', '?')}d)"
-        events.put(event_line("red", gap_label, name, result.get("reason", "")))
+        days_gap = result.get("days_gap", "?")
+        reason = result.get("reason", "")
+        gap_label = f"Trainingsluecke ({days_gap}d)"
+        events.put(event_line("red", gap_label, name, reason))
+        save_draft(uids[0], name, "gap", reason, days_gap=days_gap, last_session_date=last_date)

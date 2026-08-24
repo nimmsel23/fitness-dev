@@ -9,12 +9,13 @@ from loguru import logger
 
 from ...data import load_client_registry
 from ...render import c
+from .drafts import save_draft
 from .events import event_line
 from .gap_check import gap_check_loop
 from .watcher import SessionJournalHandler
 
 
-def _analyze_session(events: "_queue.Queue[str]", name: str, session: dict) -> None:
+def _analyze_session(events: "_queue.Queue[str]", uid: str, name: str, session: dict) -> None:
     from fitness.catalog.agent.coach_ai import draft_session_feedback
 
     def _run() -> None:
@@ -26,6 +27,7 @@ def _analyze_session(events: "_queue.Queue[str]", name: str, session: dict) -> N
             return
         if feedback:
             events.put(event_line("green", "KI-Feedback-Vorschlag", name, feedback))
+            save_draft(uid, name, "feedback", feedback, session_block=session.get("block"))
 
     _threading.Thread(target=_run, daemon=True).start()
 
@@ -66,7 +68,7 @@ def run(gap_check_interval: int) -> None:
     handler = SessionJournalHandler(
         events,
         registry,
-        on_session=lambda uid, name, session: _analyze_session(events, name, session),
+        on_session=lambda uid, name, session: _analyze_session(events, uid, name, session),
     )
 
     observer = Observer()
