@@ -12,6 +12,12 @@ naechsten `interval` Sekunden (Default 30min) — sieht aus wie ein Haenger,
 ist aber die korrekte Wartezeit bis zum naechsten Zyklus. Jetzt: kurze
 "Pruefe..."-Zeile bevor die KI-Calls starten + Zyklus-Abschluss-Zeile mit
 Zeitpunkt des naechsten Checks, damit klar ist dass der Loop lebt.
+
+**Fix 3 (2026-08-24):** Schöffy hat die App einmalig ausprobiert
+(`status: "freund"` in client.json, eine einzige Session) — kein aktives
+Coaching-Verhaeltnis, trotzdem meldete jeder Zyklus seine "Luecke" erneut.
+NON_COACHING_STATUSES filtert Klienten ohne echtes Coaching-Verhaeltnis
+("freund", "interessent") vor dem Gap-Check raus.
 """
 from __future__ import annotations
 
@@ -25,6 +31,8 @@ from ...paths import AOS_USERS
 from .drafts import save_draft
 from .events import event_line
 
+NON_COACHING_STATUSES = frozenset({"freund", "interessent"})
+
 
 def gap_check_loop(
     registry: dict,
@@ -34,15 +42,19 @@ def gap_check_loop(
     from fitness.catalog.agent.coach_ai import check_training_gap
 
     while True:
+        checked = 0
         for meta in registry.values():
             name = meta.get("name", "?")
+            if meta.get("status") in NON_COACHING_STATUSES:
+                continue
+            checked += 1
             try:
                 _check_one_client(meta, events, check_training_gap)
             except Exception as exc:
                 logger.exception(f"console gap-check fehlgeschlagen fuer Klient '{name}' — ueberspringe, Loop laeuft weiter")
                 events.put(event_line("red", "Fehler", name, f"Gap-Check: {exc}"))
         next_check = time.strftime("%H:%M:%S", time.localtime(time.time() + interval))
-        events.put(event_line("dim", "Zyklus fertig", f"{len(registry)} Klienten geprueft", f"naechster Check ~{next_check}"))
+        events.put(event_line("dim", "Zyklus fertig", f"{checked} Klienten geprueft", f"naechster Check ~{next_check}"))
         time.sleep(interval)
 
 
