@@ -34,7 +34,9 @@ export default function ActivityAddon({ hasActivity, setHasActivity, activity, s
       <button
         onClick={() => {
           setHasActivity(true);
-          setActivity({ type: 'hiit', duration: '', notes: '', muscleTarget: 'core', muscles: ['core'] });
+          // Default 5min: der weit überwiegende Fall in der Praxis (Coach-
+          // Feedback), Nutzer können den Wert weiterhin frei überschreiben.
+          setActivity({ type: 'hiit', duration: '5', notes: '', muscleTarget: 'core', muscles: ['core'] });
         }}
         className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-2xl border border-dashed border-fit-line text-fit-dim hover:border-fit-orange/40 hover:text-fit-orange hover:bg-fit-orange/5 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-200"
       >

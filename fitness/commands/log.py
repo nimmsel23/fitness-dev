@@ -10,6 +10,8 @@ Subcommands:
   history ÜBUNG         Set-Verlauf aus SQLite
   stats [--days N]      Aggregate (Split, Cardio, Muskel-Coverage)
   sync-status           Firestore ↔ lokal Sync-Status + Klienten-Registry
+  clients [NAME]         Alle Klienten-Sessions chronologisch (--journal für Freitext)
+  console                Live-TUI: Klienten-Logs + Zwei-KI-Analyse (siehe commands/console/)
 """
 from __future__ import annotations
 
@@ -584,144 +586,16 @@ def cmd_clients(
 
 # ── console ───────────────────────────────────────────────────────────────────
 # Live-TUI: alle Klienten-Sessions/Journal-Eintraege in Echtzeit + Zwei-KI-
-# Analyse (Trainingsluecken-Kontext-Check, Auto-Feedback-Entwuerfe). Siehe
-# fitness/catalog/agent/coach_ai.py fuer die KI-Logik.
-
-import json as _json
-import queue as _queue
-import threading as _threading
-import time as _time
-
-
-def _console_client_name(uid: str, registry: dict) -> str:
-    for meta in registry.values():
-        if uid in (meta.get("uids") or [meta.get("uid")]):
-            return meta["name"]
-    return uid[:12] + "…"
-
-
-def _console_run(gap_check_interval: int) -> None:
-    from watchdog.observers import Observer
-    from watchdog.events import FileSystemEventHandler
-    from rich.console import Console as RichConsole
-    from rich.live import Live
-    from rich.panel import Panel
-
-    from fitness.catalog.agent.coach_ai import check_training_gap, draft_session_feedback
-
-    registry = load_client_registry()
-    if not registry:
-        print(c("yellow", "  Keine Klienten in ~/Klienten/ registriert."))
-        raise typer.Exit(1)
-
-    # Physischer Pfad, NICHT AOS_USERS (~/.aos/users/): <uid>/fitness ist dort
-    # nur ein Symlink auf ~/.aos/fitness/users/<uid>, und watchdog/inotify
-    # folgt bei rekursivem Watch keinen Symlinks (gleicher Gotcha wie im
-    # bestehenden Enrichment-Watcher, siehe fitness/catalog/api/watcher.py).
-    from fitness.catalog.core.paths import runtime_root
-    watch_root = runtime_root() / "users"
-
-    events: "_queue.Queue[str]" = _queue.Queue()
-
-    def _analyze_session(uid: str, name: str, session: dict) -> None:
-        def _run():
-            feedback = draft_session_feedback(session)
-            if feedback:
-                ts = _time.strftime("%H:%M:%S")
-                events.put(f"{c('dim', ts)}  {c('accent', name)}  {c('green', 'KI-Feedback-Vorschlag')}  {feedback}")
-        _threading.Thread(target=_run, daemon=True).start()
-
-    class _LogHandler(FileSystemEventHandler):
-        def on_created(self, event):
-            self._handle(event)
-
-        def on_modified(self, event):
-            self._handle(event)
-
-        def _handle(self, event):
-            if event.is_directory:
-                return
-            path = Path(event.src_path)
-            parts = path.parts
-            if "users" not in parts:
-                return
-            uid_idx = parts.index("users") + 1
-            if uid_idx >= len(parts):
-                return
-            uid = parts[uid_idx]
-            name = _console_client_name(uid, registry)
-            ts = _time.strftime("%H:%M:%S")
-
-            if path.suffix == ".json" and "sessions" in parts:
-                try:
-                    data = _json.loads(path.read_text(encoding="utf-8"))
-                except Exception:
-                    return
-                block = data.get("block") or "?"
-                n_ex = len(data.get("exercises") or [])
-                events.put(f"{c('dim', ts)}  {c('accent', name)}  {c('white', 'Session')}  [{block}] {n_ex} Uebungen")
-                _analyze_session(uid, name, data)
-            elif path.suffix == ".md" and "journal" in parts:
-                events.put(f"{c('dim', ts)}  {c('accent', name)}  {c('cyan', 'Journal')}  {path.stem}")
-
-    def _gap_check_loop() -> None:
-        while True:
-            for meta in registry.values():
-                uids = meta.get("uids") or [meta.get("uid")]
-                name = meta["name"]
-                last_date = None
-                for uid in uids:
-                    sdir = AOS_USERS / uid / "fitness" / "sessions"
-                    if not sdir.exists():
-                        continue
-                    dates = sorted((f.stem[:10] for f in sdir.glob("*.json") if len(f.stem) >= 10), reverse=True)
-                    if dates and (last_date is None or dates[0] > last_date):
-                        last_date = dates[0]
-
-                journal_text = ""
-                for uid in uids:
-                    jdir = AOS_USERS / uid / "fitness" / "journal"
-                    if not jdir.exists():
-                        continue
-                    for jf in sorted(jdir.glob("*.md"), reverse=True)[:5]:
-                        journal_text += jf.read_text(encoding="utf-8") + "\n"
-
-                result = check_training_gap(name, last_date, journal_text)
-                if result and not result.get("explained"):
-                    ts = _time.strftime("%H:%M:%S")
-                    gap_label = f"Trainingsluecke ({result.get('days_gap', '?')}d)"
-                    events.put(f"{c('dim', ts)}  {c('accent', name)}  {c('red', gap_label)}  {result.get('reason', '')}")
-            _time.sleep(gap_check_interval)
-
-    observer = Observer()
-    observer.schedule(_LogHandler(), str(watch_root), recursive=True)
-    observer.start()
-
-    _threading.Thread(target=_gap_check_loop, daemon=True).start()
-
-    rich_console = RichConsole()
-    lines: list[str] = [c("dim", "Live-Konsole gestartet — wartet auf neue Logs (Ctrl+C zum Beenden)")]
-
-    try:
-        with Live(Panel("\n".join(lines), title="Fitness Console"), console=rich_console, refresh_per_second=2) as live:
-            while True:
-                try:
-                    line = events.get(timeout=0.5)
-                    lines.append(line)
-                    del lines[:-40]
-                    live.update(Panel("\n".join(lines), title="Fitness Console"))
-                except _queue.Empty:
-                    continue
-    except KeyboardInterrupt:
-        observer.stop()
-    observer.join()
-
+# Analyse (Trainingsluecken-Kontext-Check, Auto-Feedback-Entwuerfe). Implementierung
+# als eigenes Subpackage: fitness/commands/console/ (Watcher/Gap-Check/Rich-UI
+# getrennt, siehe console/__init__.py).
 
 @app.command(name="console", help="Live-TUI: Klienten-Logs in Echtzeit + Zwei-KI-Analyse (Trainingsluecken, Auto-Feedback)")
 def cmd_console(
     gap_check_interval: int = typer.Option(1800, "--gap-interval", help="Sekunden zwischen Trainingsluecken-Checks"),
 ) -> None:
-    _console_run(gap_check_interval)
+    from .console import run
+    run(gap_check_interval)
 
 
 # ── Entry-Point ───────────────────────────────────────────────────────────────

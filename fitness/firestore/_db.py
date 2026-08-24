@@ -45,14 +45,26 @@ def remote_wins(local_data: dict, remote_data: dict) -> bool:
     Grund, warum der rev-Fix (2026-08-23) zunächst nur mirror.py::on_session()
     erreichte und sync.py::pull()/push() den alten, fehleranfälligen
     saved_at-Vergleich weiterhin nutzten, obwohl beide dieselbe Aufgabe lösen.
-    True = remote gewinnt (lokale Datei wird überschrieben)."""
+    True = remote gewinnt (lokale Datei wird überschrieben).
+
+    Bug (live reproduziert 2026-08-23, Matthias-Datenverlust): die alte
+    Fassung verglich saved_at nur, wenn BEIDE revs nicht-null UND gleich
+    waren — bei rev=0==0 (Legacy-Sessions ohne rev-Feld, der Normalfall vor
+    dessen Einführung) griff kein Vergleich, es fiel direkt auf "remote
+    gewinnt" durch. Ein Daemon-Neustart feuert für JEDES Bestandsdokument ein
+    ADDED-Event (Firestore-on_snapshot-Verhalten) — das hat lokal manuell
+    korrigierte Sessions blind mit dem älteren Firestore-Stand überschrieben.
+    Jetzt: bei gleichem rev (auch 0==0) gewinnt remote nur, wenn sein
+    saved_at nachweislich NEUER ist als lokal; ohne verwertbare Zeitstempel
+    bleibt lokal der sichere Default."""
     local_rev  = int(local_data.get("rev") or 0)
     remote_rev = int(remote_data.get("rev") or 0)
-    if remote_rev and remote_rev < local_rev:
+    if remote_rev != local_rev:
+        return remote_rev > local_rev
+    local_ts  = local_data.get("saved_at", "")
+    remote_ts = ts(remote_data.get("saved_at"))
+    if not remote_ts:
         return False
-    if remote_rev and remote_rev == local_rev:
-        local_ts  = local_data.get("saved_at", "")
-        remote_ts = ts(remote_data.get("saved_at"))
-        if remote_ts and local_ts and local_ts >= remote_ts:
-            return False
-    return True
+    if not local_ts:
+        return True
+    return remote_ts > local_ts

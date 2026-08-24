@@ -81,24 +81,23 @@ def _queue_unreviewed_enrichment(session: dict[str, Any]) -> None:
             logger.warning(f"Proaktives Enrichment fuer {resolution.canonical_id} fehlgeschlagen: {e}")
 
 
-def _merge_activity_addon(base: dict[str, Any], incoming: dict[str, Any], source_id: str | None) -> dict[str, Any]:
-    activity = incoming.get("activity")
-    if not isinstance(activity, dict) or not activity:
-        return base
+def _addon_signature(entry: dict[str, Any]) -> tuple:
+    return (
+        entry.get("type"),
+        entry.get("duration"),
+        entry.get("notes"),
+        entry.get("swimStyle"),
+        entry.get("muscleTarget"),
+    )
 
-    merged = dict(base)
-    activity_entry = dict(activity)
+
+def _append_activity_addon(
+    addons: list[dict[str, Any]], activity: dict[str, Any], source_id: str | None = None
+) -> list[dict[str, Any]]:
+    addons = [dict(a) for a in addons if isinstance(a, dict)]
+    entry = dict(activity)
     if source_id:
-        activity_entry.setdefault("_source_id", source_id)
-
-    addons = [
-        dict(a) for a in (merged.get("activityAddons") or [])
-        if isinstance(a, dict)
-    ]
-    if merged.get("activity") and all(a != merged["activity"] for a in addons):
-        addons.insert(0, dict(merged["activity"]))
-
-    if source_id:
+        entry.setdefault("_source_id", source_id)
         # Autosave (1.5s Debounce) feuert bei jeder Änderung im Aktivitäts-
         # Formular einer Sidecar-Session (z.B. Cardio-Typ mehrfach umgeschaltet,
         # bevor der User sich entscheidet) — jeder Zwischenstand hat eine
@@ -108,23 +107,28 @@ def _merge_activity_addon(base: dict[str, Any], incoming: dict[str, Any], source
         # DERSELBEN source_id zählt; unterschiedliche source_ids (= wirklich
         # getrennt geloggte Finisher) bleiben eigene Einträge.
         addons = [a for a in addons if a.get("_source_id") != source_id]
-        addons.append(activity_entry)
+        addons.append(entry)
     else:
-        signature = (
-            activity_entry.get("type"),
-            activity_entry.get("duration"),
-            activity_entry.get("notes"),
-            activity_entry.get("swimStyle"),
-            activity_entry.get("muscleTarget"),
-        )
-        if not any((
-            a.get("type"),
-            a.get("duration"),
-            a.get("notes"),
-            a.get("swimStyle"),
-            a.get("muscleTarget"),
-        ) == signature for a in addons):
-            addons.append(activity_entry)
+        signature = _addon_signature(entry)
+        if not any(_addon_signature(a) == signature for a in addons):
+            addons.append(entry)
+    return addons
+
+
+def _merge_activity_addon(base: dict[str, Any], incoming: dict[str, Any], source_id: str | None) -> dict[str, Any]:
+    activity = incoming.get("activity")
+    if not isinstance(activity, dict) or not activity:
+        return base
+
+    merged = dict(base)
+    addons = [
+        dict(a) for a in (merged.get("activityAddons") or [])
+        if isinstance(a, dict)
+    ]
+    if merged.get("activity") and all(a != merged["activity"] for a in addons):
+        addons.insert(0, dict(merged["activity"]))
+
+    addons = _append_activity_addon(addons, activity, source_id)
 
     merged["activityAddons"] = addons
     merged.setdefault("activity", addons[0])
@@ -172,12 +176,28 @@ async def session_post(request: Request, date_: str = Query(None, alias="date"),
     # kennt (z.B. Autosave beim Editieren der Hauptsession) — sonst löscht
     # das nächste Tippen in der Hauptsession still einen bereits geloggten
     # Finisher (siehe _merge_activity_addon oben).
-    if id is None and "activityAddons" not in body:
+    if id is None:
         canonical = _session_file(uid, day, None)
         existing = _read_json(canonical, {}) if canonical.exists() else {}
-        if isinstance(existing, dict) and existing.get("activityAddons"):
-            body = {**body, "activityAddons": existing["activityAddons"]}
+        existing_addons = existing.get("activityAddons") if isinstance(existing, dict) else None
+
+        if "activityAddons" not in body and existing_addons:
+            body = {**body, "activityAddons": existing_addons}
             body.setdefault("activity", existing.get("activity"))
+
+        incoming_activity = body.get("activity")
+        if isinstance(incoming_activity, dict) and incoming_activity and _performed_exercises(body):
+            # Finisher zusammen mit einer Kraftsession gespeichert, die
+            # bereits Übungen enthält -> _is_activity_only() weiter unten
+            # greift hier nicht (Übungen vorhanden), der Merge-Pfad dort
+            # würde also nie erreicht. Ohne diesen Zweig landet der Finisher
+            # zwar im "activity"-Feld (Save war technisch erfolgreich), aber
+            # nie in activityAddons -> verschwindet sichtbar aus der
+            # "Geloggte Finisher"-Liste im Frontend (Fund 2026-08-23,
+            # Matthias-Report: "5 min core" wirkte ungespeichert, war aber
+            # in jeder betroffenen Session tatsächlich im activity-Feld da).
+            current_addons = list(body.get("activityAddons") or existing_addons or [])
+            body = {**body, "activityAddons": _append_activity_addon(current_addons, incoming_activity)}
 
     session = _freeze_snapshot({**body, "date": day, "session_id": id, "saved_at": datetime.utcnow().isoformat()})
     n_ex = len(session.get("exercises", []))
