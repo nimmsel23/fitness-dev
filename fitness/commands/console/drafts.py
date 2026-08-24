@@ -38,6 +38,16 @@ def save_draft(uid: str, name: str, kind: str, text: str, **meta) -> Path:
     return path
 
 
+def mark_status(path: Path, status: str) -> None:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return
+    data["status"] = status
+    data["reviewed_at"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
 def list_drafts(uid: str | None = None) -> list[dict]:
     base = runtime_root() / "console" / "drafts"
     if not base.exists():
