@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Save, ChevronDown, X } from 'lucide-react';
 import SessionGateCard from './SessionGateCard.jsx';
+import SessionSlots from './SessionSlots.jsx';
 import SessionHeader from './SessionHeader';
 import SplitPicker from './SplitPicker';
 import EffortPicker from './EffortPicker';
@@ -41,6 +42,7 @@ export default function SessionEditor({
   hasActivity, setHasActivity,
   activityAddons, removeActivityAddon,
   sessionGate,
+  slots, addSlot, removeSlot, updateSlot,
   recentSessions,
   hint,
   prevMap,
@@ -125,8 +127,34 @@ export default function SessionEditor({
       <div className="px-2 space-y-4 mt-1">
         {sessionMode === 'strength' ? (
           <>
-            <ExerciseList
+            {/* Frei belegbare Session-Slots (Warm-up-Block, Activity, Notiz, ...) —
+                additiv, leeres slots-Array rendert nichts */}
+            <SessionSlots
+              slots={slots}
               exercises={exercises}
+              block={block}
+              addSlot={addSlot}
+              removeSlot={removeSlot}
+              updateSlot={updateSlot}
+              restHours={restHours}
+              muscleRecovery={recentSessions[date]?.muscle_recovery || {}}
+              updateEx={updateEx}
+              addSet={addSet}
+              removeSet={removeSet}
+              removeEx={removeEx}
+              replaceSets={replaceSets}
+              moveEx={moveEx}
+              date={date}
+              addEx={addEx}
+              quickInput={quickInput}
+              setQuickInput={setQuickInput}
+              addQuick={addQuick}
+              prevMap={prevMap}
+              onInspectExercise={onInspectExercise}
+            />
+
+            <ExerciseList
+              exercises={exercises.filter(ex => !ex.slotId)}
               restHours={restHours}
               muscleRecovery={recentSessions[date]?.muscle_recovery || {}}
               updateEx={updateEx}
