@@ -9,6 +9,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Save, ChevronDown, X } from 'lucide-react';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import SessionGateCard from './SessionGateCard.jsx';
 import SessionSlots from './SessionSlots.jsx';
 import SessionHeader from './SessionHeader';
@@ -54,7 +55,7 @@ export default function SessionEditor({
   // Handlers
   save, selectSession, handleNewSession, handleDeleteSession,
   startSessionGate, stopSessionGate,
-  addEx, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, removeEx,
+  addEx, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, moveExercise, removeEx,
   exportObsidian, handleDownload, scheduleAutoSave,
   onInspectExercise,
   currentSubTab,
@@ -98,6 +99,31 @@ export default function SessionEditor({
     }
   }, [exercises, sessionMode, block]);
 
+  // Übungen tragen ihren Index im flachen exercises-Array als __i mit sich
+  // (ExerciseList reicht ihn 1:1 an updateEx/addSet/removeEx/moveEx durch) —
+  // notwendig, weil sowohl die Basisliste als auch jede Slot-Liste nur eine
+  // gefilterte Teilmenge rendern; ohne __i würde ein lokaler Listen-Index
+  // (0,1,2,...) auf die falsche Übung im Gesamt-Array zeigen, sobald ein
+  // Slot benutzt wird.
+  const indexedExercises = exercises.map((ex, i) => ({ ...ex, __i: i }));
+
+  const dndSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const BASE_CONTAINER = '__base__';
+
+  function handleExerciseDragEnd({ active, over }) {
+    if (!over || !moveExercise) return;
+    const activeId = active.id;
+    const overData = over.data.current;
+    const targetContainer = overData?.containerId ?? over.id;
+    const targetSlotId = targetContainer === BASE_CONTAINER ? null : targetContainer;
+    const containerItems = exercises.filter(e => (e.slotId || null) === (targetSlotId || null));
+    const targetIndex = overData?.containerId
+      ? containerItems.findIndex(e => e.id === over.id)
+      : containerItems.length;
+    if (targetIndex === -1) return;
+    moveExercise(activeId, targetSlotId, targetIndex);
+  }
+
   return (
     <div className="pb-36">
       {/* Sticky header — DateStrip/SessionSwitcher/hint/ModeSwitcher merged into one calm unit */}
@@ -126,11 +152,12 @@ export default function SessionEditor({
 
       <div className="px-2 space-y-4 mt-1">
         {sessionMode === 'strength' ? (
-          <>
+          <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleExerciseDragEnd}>
             {/* Basis-Übungsliste = impliziter erster Abschnitt der Session
                 (wie schon immer: Übungen + Sets + Activity-Finisher unten). */}
             <ExerciseList
-              exercises={exercises.filter(ex => !ex.slotId)}
+              containerId={BASE_CONTAINER}
+              exercises={indexedExercises.filter(ex => !ex.slotId)}
               restHours={restHours}
               muscleRecovery={recentSessions[date]?.muscle_recovery || {}}
               updateEx={updateEx}
@@ -161,7 +188,7 @@ export default function SessionEditor({
                 oben, additiv. Leeres slots-Array rendert nichts. */}
             <SessionSlots
               slots={slots}
-              exercises={exercises}
+              exercises={indexedExercises}
               block={block}
               addSlot={addSlot}
               removeSlot={removeSlot}
@@ -182,7 +209,7 @@ export default function SessionEditor({
               prevMap={prevMap}
               onInspectExercise={onInspectExercise}
             />
-          </>
+          </DndContext>
         ) : (
           /* Cardio mode */
           <div

@@ -50,12 +50,6 @@ function SlotCard({ slot, exercises, block, updateSlot, removeSlot, exerciseList
           placeholder="Slot"
           className="flex-1 min-w-0 bg-transparent text-[11px] font-black uppercase tracking-[0.15em] text-fit-ink outline-none"
         />
-        <input
-          type="time"
-          value={slot.time || ''}
-          onChange={e => updateSlot(slot.id, { time: e.target.value })}
-          className="w-[72px] shrink-0 px-1.5 py-1 rounded-lg bg-fit-bg2 border border-fit-line text-[10px] font-bold text-fit-dim outline-none"
-        />
         {hasContent && (
           <button
             onClick={handleSaveTemplate}
@@ -76,7 +70,7 @@ function SlotCard({ slot, exercises, block, updateSlot, removeSlot, exerciseList
 
       {/* Ein Slot ist eine Mini-Session: Übungen, Activity und Notiz sind
           unabhängig voneinander kombinierbar, nicht exklusiv nach `type`. */}
-      <ExerciseList {...exerciseListProps} exercises={exercises} addEx={(ex) => exerciseListProps.addEx(ex, slot.id)} />
+      <ExerciseList {...exerciseListProps} containerId={slot.id} exercises={exercises} addEx={(ex) => exerciseListProps.addEx(ex, slot.id)} />
 
       {(showActivity || slot.activityType) && (
         <div className="flex gap-2">
@@ -129,8 +123,6 @@ function SlotCard({ slot, exercises, block, updateSlot, removeSlot, exerciseList
 }
 
 export default function SessionSlots({ slots = [], exercises = [], block, addSlot, removeSlot, updateSlot, ...exerciseListProps }) {
-  const [adding, setAdding] = useState(false);
-  const [newLabel, setNewLabel] = useState('');
   const [templates, setTemplates] = useState([]);
   const [showTemplates, setShowTemplates] = useState(false);
 
@@ -141,13 +133,12 @@ export default function SessionSlots({ slots = [], exercises = [], block, addSlo
     return () => { alive = false; };
   }, [block]);
 
+  // Ein Klick legt sofort einen namenlosen Slot an — Umbenennen ist optional
+  // und passiert direkt in der Slot-Karte selbst, kein Zwangs-Eingabefeld vorab.
+  // Kein Auto-Timestamp: Sessions werden immer nachträglich geloggt, eine
+  // "jetzt"-Uhrzeit beim Anlegen wäre erfunden, nicht die echte Trainingszeit.
   function handleAdd() {
-    if (!newLabel.trim()) return;
-    const now = new Date();
-    const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    addSlot({ label: newLabel.trim(), time });
-    setNewLabel('');
-    setAdding(false);
+    addSlot({ label: `Slot ${slots.length + 1}` });
   }
 
   // Baustein anwenden = Slot 1:1 aus der Vorlage nachbauen (Übungen +
@@ -214,28 +205,13 @@ export default function SessionSlots({ slots = [], exercises = [], block, addSlo
         </div>
       )}
 
-      {adding ? (
-        <input
-          autoFocus
-          value={newLabel}
-          onChange={e => setNewLabel(e.target.value)}
-          onKeyDown={e => {
-            if (e.key === 'Enter') handleAdd();
-            if (e.key === 'Escape') { setNewLabel(''); setAdding(false); }
-          }}
-          onBlur={() => { if (!newLabel.trim()) setAdding(false); }}
-          placeholder="Slot-Name, z.B. Warm-up — Enter zum Anlegen"
-          className="w-full px-4 py-3.5 rounded-2xl bg-fit-bg2 border border-fit-accent/40 text-sm font-bold text-fit-ink outline-none"
-        />
-      ) : (
-        <button
-          onClick={() => setAdding(true)}
-          className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-2xl border border-dashed border-fit-line text-fit-dim hover:border-fit-accent/40 hover:text-fit-accent hover:bg-fit-accent/5 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-200"
-        >
-          <Plus size={13} strokeWidth={3} />
-          Slot hinzufügen
-        </button>
-      )}
+      <button
+        onClick={handleAdd}
+        className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-2xl border border-dashed border-fit-line text-fit-dim hover:border-fit-accent/40 hover:text-fit-accent hover:bg-fit-accent/5 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-200"
+      >
+        <Plus size={13} strokeWidth={3} />
+        Slot hinzufügen
+      </button>
     </div>
   );
 }

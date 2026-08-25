@@ -308,14 +308,22 @@ implizite erste Abschnitt; jeder per "+ Slot hinzufügen" angelegte Slot ist
 ein weiterer, gleichartiger Abschnitt danach (z. B. Basis="Rücken",
 Slot="Bizeps" als zweiter Pull-Day-Teil). Kein exklusiver Typ: ein Slot
 kann Übungen, einen Activity-Block (`activityType`/`duration`) und eine
-Notiz (`text`) beliebig kombiniert enthalten — `{ id, label, order, time?,
-activityType?, duration?, text? }`. `time` (optional, `"HH:MM"`) macht die
-Session zum Journal/Protokoll — wird beim Anlegen eines Slots automatisch
-auf die aktuelle Uhrzeit gesetzt, danach inline editierbar
-(`SessionSlots.jsx::SlotCard`). Passende `exercises[]`-Einträge
+Notiz (`text`) beliebig kombiniert enthalten — `{ id, label, order,
+activityType?, duration?, text? }`. Passende `exercises[]`-Einträge
 referenzieren ihren Slot über das optionale Feld `slotId` (fehlt/`null` =
 unzugeordnet, rendert im Basis-Abschnitt). Leeres `slots`-Array =
-unverändertes Alt-Verhalten, kein Zwang.
+unverändertes Alt-Verhalten, kein Zwang. **Kein `time`-Feld** (kurz
+eingeführt, gleichentags revertiert): fitness-dev wird nie live im Gym
+bedient, Sessions werden immer nachträglich geloggt — ein automatischer
+"jetzt"-Zeitstempel beim Anlegen eines Slots wäre erfundene Präzision.
+Uhrzeit/Ort sind Session-weite Attribute, nicht pro Slot dupliziert.
+
+**Drag & Drop**: Übungen sind per Griff-Icon sortierbar und zwischen
+Basis-Abschnitt/Slots verschiebbar (`@dnd-kit`, ein `DndContext` in
+`SessionEditor.jsx` über Basis-`ExerciseList` + alle Slot-`ExerciseList`s).
+`useSession.js::moveExercise(exerciseId, targetSlotId, targetIndex)` ist
+der zentrale, Container-bewusste Reorder-Pfad — sowohl DnD als auch die
+Pfeil-Buttons in `ExerciseCard.jsx` laufen darüber.
 
 **Slot-Bausteine**: der Slot selbst ist der Baustein — "Als Baustein
 speichern" snapshotted 1:1 den aktuellen Slot-Inhalt (welche Kombination
