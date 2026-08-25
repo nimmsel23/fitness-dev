@@ -299,6 +299,17 @@ speichert/lädt:
 kennzeichnet HIT-Trainingseinheiten (kein Satz/Wdh-Tracking, Training bis zum
 Muskelversagen).
 
+**Session-Slots** (`slots[]`, optional, additiv seit 2026-08-25): frei
+belegbare Sub-Einheiten innerhalb einer Session (`views/Session/SessionSlots.jsx`,
+State/Handler in `useSession.js`). Jeder Eintrag: `{ id, label, type:
+"exercises"|"activity"|"note", order, ...typ-spezifische Felder }`
+(`activity`: `activityType`/`duration`/`notes`; `note`: `text`). Passende
+`exercises[]`-Einträge referenzieren ihren Slot über das optionale Feld
+`slotId` (fehlt/`null` = unzugeordnet, rendert in der normalen `ExerciseList`
+wie bisher). Leeres `slots`-Array = unverändertes Alt-Verhalten, kein Zwang.
+Wiederverwendbare Slot-Bausteine pro Trainingsblock: `getSlotTemplates(block)`/
+`saveSlotTemplate()` (`lib/db/local|firestore/slotTemplates.js`).
+
 **Response Pattern** (API): `{ ok: true, data: {...} }` oder `{ ok: false, error: "..." }`
 
 ---

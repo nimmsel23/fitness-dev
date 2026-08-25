@@ -92,6 +92,11 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   // siehe activityAddons in fitness/api/routers/sessions.py) — nur Anzeige/
   // Löschen, kein Editier-State wie `activity` oben.
   const [activityAddons, setActivityAddons] = useState([]);
+  // Frei belegbare Sub-Einheiten innerhalb der Session (Warm-up-Block,
+  // Cardio-Finisher, Notiz-Abschnitt, ...) — additiv zum bestehenden
+  // Activity-Addon-Mechanismus, berührt exercises[] nur über das optionale
+  // slotId-Feld (kein Slot definiert -> exakt heutiges Verhalten).
+  const [slots, setSlots] = useState([]);
   const [sessionGate, setSessionGate] = useState(() => normalizeSessionGate(null));
   const [recentSessions, setRecentSessions] = useState({});
   const [historyLimit, setHistoryLimit] = useState(60);
@@ -166,6 +171,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
       setHasActivity(false);
     }
     setActivityAddons(Array.isArray(d.activityAddons) ? d.activityAddons : []);
+    setSlots(Array.isArray(d.slots) ? d.slots : []);
     setSessionGate(normalizeSessionGate(d.sessionGate));
   };
 
@@ -182,6 +188,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     setActivity({ ...DEFAULT_ACTIVITY });
     setHasActivity(false);
     setActivityAddons([]);
+    setSlots([]);
     setSessionGate(normalizeSessionGate(null));
   };
 
@@ -192,6 +199,25 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     const result = await deleteActivityAddon(date, index);
     if (result?.ok) setActivityAddons(result.activityAddons || []);
     return result;
+  }
+
+  // ── Session-Slots (frei belegbare Sub-Einheiten) ────────────────
+  function addSlot({ type, label, ...extra }) {
+    const id = crypto.randomUUID();
+    setSlots(prev => [...prev, { id, type, label, order: prev.length, ...extra }]);
+    scheduleAutoSave();
+    return id;
+  }
+
+  function removeSlot(id) {
+    setSlots(prev => prev.filter(s => s.id !== id));
+    setExercises(prev => prev.map(ex => ex.slotId === id ? { ...ex, slotId: null } : ex));
+    scheduleAutoSave();
+  }
+
+  function updateSlot(id, patch) {
+    setSlots(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s));
+    scheduleAutoSave();
   }
 
   const selectSession = (id) => {
@@ -285,7 +311,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 2200); }
 
   // ── Exercise handlers ─────────────────────────────────────────
-  async function addEx(ex) {
+  async function addEx(ex, slotId = null) {
     let normalized = normalizeExerciseRecord(ex);
     let primary = normalized.primaryMuscles;
     let secondary = normalized.secondaryMuscles;
@@ -325,6 +351,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
           setsArray: [{ reps: '', weight: '' }],
           note: '',
           source: normalized.source || (ex.isNew ? 'inbox' : 'unknown'),
+          slotId: slotId || null,
         }];
       }
       merged = true;
@@ -430,6 +457,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
       notes,
       trainingsart,
       sessionMode: nextSessionMode,
+      slots,
     };
     if (nextSessionMode === 'cardio') sessData.activity = nextActivity;
     else if (nextHasActivity && nextActivity?.duration) sessData.activity = nextActivity;
@@ -631,6 +659,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     activity, setActivity,
     hasActivity, setHasActivity,
     activityAddons, removeActivityAddon,
+    slots, addSlot, removeSlot, updateSlot,
     sessionGate, setSessionGate,
     recentSessions,
     hasMoreHistory, loadMoreHistory,
