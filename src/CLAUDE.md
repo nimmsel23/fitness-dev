@@ -299,16 +299,33 @@ speichert/lädt:
 kennzeichnet HIT-Trainingseinheiten (kein Satz/Wdh-Tracking, Training bis zum
 Muskelversagen).
 
-**Session-Slots** (`slots[]`, optional, additiv seit 2026-08-25): frei
-belegbare Sub-Einheiten innerhalb einer Session (`views/Session/SessionSlots.jsx`,
-State/Handler in `useSession.js`). Jeder Eintrag: `{ id, label, type:
-"exercises"|"activity"|"note", order, ...typ-spezifische Felder }`
-(`activity`: `activityType`/`duration`/`notes`; `note`: `text`). Passende
-`exercises[]`-Einträge referenzieren ihren Slot über das optionale Feld
-`slotId` (fehlt/`null` = unzugeordnet, rendert in der normalen `ExerciseList`
-wie bisher). Leeres `slots`-Array = unverändertes Alt-Verhalten, kein Zwang.
-Wiederverwendbare Slot-Bausteine pro Trainingsblock: `getSlotTemplates(block)`/
-`saveSlotTemplate()` (`lib/db/local|firestore/slotTemplates.js`).
+**Session-Slots** (`slots[]`, optional, additiv seit 2026-08-25): zusätzliche,
+frei benannte Abschnitte innerhalb einer Session, jeweils gleich aufgebaut
+wie der Basis-Abschnitt (`views/Session/SessionSlots.jsx`, State/Handler in
+`useSession.js`). Mentalmodell: die Session **ohne** Slots (Basis-
+`ExerciseList` + `ActivityAddon`, unverändert wie seit jeher) ist der
+implizite erste Abschnitt; jeder per "+ Slot hinzufügen" angelegte Slot ist
+ein weiterer, gleichartiger Abschnitt danach (z. B. Basis="Rücken",
+Slot="Bizeps" als zweiter Pull-Day-Teil). Kein exklusiver Typ: ein Slot
+kann Übungen, einen Activity-Block (`activityType`/`duration`) und eine
+Notiz (`text`) beliebig kombiniert enthalten — `{ id, label, order, time?,
+activityType?, duration?, text? }`. `time` (optional, `"HH:MM"`) macht die
+Session zum Journal/Protokoll — wird beim Anlegen eines Slots automatisch
+auf die aktuelle Uhrzeit gesetzt, danach inline editierbar
+(`SessionSlots.jsx::SlotCard`). Passende `exercises[]`-Einträge
+referenzieren ihren Slot über das optionale Feld `slotId` (fehlt/`null` =
+unzugeordnet, rendert im Basis-Abschnitt). Leeres `slots`-Array =
+unverändertes Alt-Verhalten, kein Zwang.
+
+**Slot-Bausteine**: der Slot selbst ist der Baustein — "Als Baustein
+speichern" snapshotted 1:1 den aktuellen Slot-Inhalt (welche Kombination
+aus Übungen/Activity/Notiz auch immer gerade drin ist), keine separate,
+enger gefasste Template-Struktur. Persistenz: `getSlotTemplates(block)`/
+`saveSlotTemplate()` (`lib/db/local|firestore/slotTemplates.js`), gruppiert
+nach Trainingsblock (Push/Pull/Legs/...) — perspektivisch die Brücke
+zwischen Session-Tab und Plan-Tab (noch nicht umgesetzt). Der Basis-
+`ActivityAddon`-Finisher bleibt unverändert bestehen — Slots sind rein
+additive Extra-Abschnitte, kein Ersatz dafür.
 
 **Response Pattern** (API): `{ ok: true, data: {...} }` oder `{ ok: false, error: "..." }`
 

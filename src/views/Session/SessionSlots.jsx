@@ -7,36 +7,34 @@
  */
 
 import { useEffect, useState } from 'react';
-import { Plus, X, Save, ChevronDown, Pencil, Check } from 'lucide-react';
+import { Plus, X, Save, ChevronDown, Check } from 'lucide-react';
 import ExerciseList from './ExerciseList';
 import { ADDON_TYPES } from './ActivityAddon';
 import { getSlotTemplates, saveSlotTemplate } from '@db';
 
-const SLOT_TYPES = [
-  { value: 'exercises', label: 'Übungen' },
-  { value: 'activity',  label: 'Activity' },
-  { value: 'note',      label: 'Notiz' },
-];
-
 function SlotCard({ slot, exercises, block, updateSlot, removeSlot, exerciseListProps }) {
-  const [editingLabel, setEditingLabel] = useState(false);
-  const [labelDraft, setLabelDraft] = useState(slot.label || '');
   const [saved, setSaved] = useState(false);
+  const [showActivity, setShowActivity] = useState(false);
+  const [showNote, setShowNote] = useState(false);
+  const hasContent = exercises.length > 0 || !!slot.activityType || !!slot.text;
 
+  // Der Slot selbst IST der Baustein: gespeichert wird 1:1, was der Slot
+  // aktuell enthält (Übungen/Activity/Notiz beliebig kombiniert), nicht
+  // ein einzelner exklusiver "Typ".
   async function handleSaveTemplate() {
     const template = {
       id: crypto.randomUUID(),
       block: block || '',
       label: slot.label,
-      type: slot.type,
-      ...(slot.type === 'activity' ? { activityType: slot.activityType } : {}),
-      ...(slot.type === 'exercises' ? {
+      ...(exercises.length > 0 ? {
         exercises: exercises.map(ex => ({
           id: ex.id, name: ex.name,
           primaryMuscles: ex.primaryMuscles, secondaryMuscles: ex.secondaryMuscles,
           stabilizers: ex.stabilizers, source: ex.source,
         })),
       } : {}),
+      ...(slot.activityType ? { activityType: slot.activityType, duration: slot.duration } : {}),
+      ...(slot.text ? { text: slot.text } : {}),
     };
     await saveSlotTemplate(template);
     setSaved(true);
@@ -45,86 +43,86 @@ function SlotCard({ slot, exercises, block, updateSlot, removeSlot, exerciseList
 
   return (
     <div className="rounded-[24px] border border-fit-line bg-fit-card p-4 space-y-3 animate-in slide-in-from-top-2 duration-200">
-      <div className="flex items-center justify-between gap-2">
-        {editingLabel ? (
-          <div className="flex-1 flex items-center gap-1.5">
-            <input
-              autoFocus
-              value={labelDraft}
-              onChange={e => setLabelDraft(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && (updateSlot(slot.id, { label: labelDraft }), setEditingLabel(false))}
-              className="flex-1 px-2 py-1 rounded-lg bg-fit-bg2 border border-fit-line text-xs font-bold text-fit-ink outline-none"
-            />
-            <button onClick={() => { updateSlot(slot.id, { label: labelDraft }); setEditingLabel(false); }} className="text-fit-dim hover:text-fit-accent">
-              <Check size={14} />
-            </button>
-          </div>
-        ) : (
-          <button onClick={() => { setLabelDraft(slot.label || ''); setEditingLabel(true); }} className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.15em] text-fit-ink hover:text-fit-accent transition-colors">
-            {slot.label || 'Slot'}
-            <Pencil size={11} className="opacity-40" />
-          </button>
-        )}
-        <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-2">
+        <input
+          value={slot.label || ''}
+          onChange={e => updateSlot(slot.id, { label: e.target.value })}
+          placeholder="Slot"
+          className="flex-1 min-w-0 bg-transparent text-[11px] font-black uppercase tracking-[0.15em] text-fit-ink outline-none"
+        />
+        <input
+          type="time"
+          value={slot.time || ''}
+          onChange={e => updateSlot(slot.id, { time: e.target.value })}
+          className="w-[72px] shrink-0 px-1.5 py-1 rounded-lg bg-fit-bg2 border border-fit-line text-[10px] font-bold text-fit-dim outline-none"
+        />
+        {hasContent && (
           <button
             onClick={handleSaveTemplate}
             title="Als Baustein speichern"
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-fit-dim hover:text-fit-accent hover:bg-fit-accent/10 transition-all"
+            className="w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-fit-dim hover:text-fit-accent hover:bg-fit-accent/10 transition-all"
           >
             {saved ? <Check size={13} /> : <Save size={13} />}
           </button>
-          <button
-            onClick={() => removeSlot(slot.id)}
-            title="Slot entfernen"
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-fit-dim hover:text-fit-red hover:bg-fit-red/10 transition-all"
-          >
-            <X size={13} />
-          </button>
-        </div>
+        )}
+        <button
+          onClick={() => removeSlot(slot.id)}
+          title="Slot entfernen"
+          className="w-7 h-7 shrink-0 rounded-lg flex items-center justify-center text-fit-dim hover:text-fit-red hover:bg-fit-red/10 transition-all"
+        >
+          <X size={13} />
+        </button>
       </div>
 
-      {slot.type === 'exercises' && (
-        <ExerciseList {...exerciseListProps} exercises={exercises} addEx={(ex) => exerciseListProps.addEx(ex, slot.id)} />
-      )}
+      {/* Ein Slot ist eine Mini-Session: Übungen, Activity und Notiz sind
+          unabhängig voneinander kombinierbar, nicht exklusiv nach `type`. */}
+      <ExerciseList {...exerciseListProps} exercises={exercises} addEx={(ex) => exerciseListProps.addEx(ex, slot.id)} />
 
-      {slot.type === 'activity' && (
-        <div className="space-y-2">
-          <div className="flex flex-wrap gap-1.5">
+      {(showActivity || slot.activityType) && (
+        <div className="flex gap-2">
+          <select
+            value={slot.activityType || 'hiit'}
+            onChange={e => updateSlot(slot.id, { activityType: e.target.value })}
+            className="flex-1 px-3 py-2.5 rounded-xl bg-fit-bg2 border border-fit-line text-fit-ink text-sm font-bold outline-none"
+          >
             {ADDON_TYPES.map(t => (
-              <button
-                key={t.value}
-                onClick={() => updateSlot(slot.id, { activityType: t.value })}
-                className={`px-2.5 py-1.5 rounded-lg border text-[9px] font-black uppercase tracking-wide transition-all ${
-                  (slot.activityType || 'hiit') === t.value
-                    ? 'border-fit-orange bg-fit-orange/15 text-fit-orange'
-                    : 'border-fit-line bg-fit-bg2 text-fit-dim hover:border-fit-orange/30'
-                }`}
-              >
-                {t.icon} {t.label}
-              </button>
+              <option key={t.value} value={t.value}>{t.icon} {t.label}</option>
             ))}
-          </div>
-          <div className="relative">
-            <input
-              type="number"
-              placeholder="Dauer"
-              value={slot.duration || ''}
-              onChange={e => updateSlot(slot.id, { duration: e.target.value })}
-              className="w-full p-3 pr-14 rounded-xl border bg-fit-bg2 border-fit-line text-fit-ink font-bold text-sm outline-none"
-            />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest text-fit-dim/30">min</span>
-          </div>
+          </select>
+          <input
+            type="number"
+            placeholder="Min"
+            value={slot.duration || ''}
+            onChange={e => updateSlot(slot.id, { duration: e.target.value })}
+            className="w-16 px-2 py-2.5 rounded-xl bg-fit-bg2 border border-fit-line text-fit-ink font-bold text-sm text-center outline-none"
+          />
         </div>
       )}
 
-      {slot.type === 'note' && (
+      {(showNote || slot.text) && (
         <textarea
+          autoFocus={showNote && !slot.text}
           value={slot.text || ''}
           onChange={e => updateSlot(slot.id, { text: e.target.value })}
           placeholder="Notiz..."
-          rows={3}
+          rows={2}
           className="w-full p-3 rounded-xl border bg-fit-bg2 border-fit-line text-fit-ink text-sm outline-none resize-none"
         />
+      )}
+
+      {(!(showActivity || slot.activityType) || !(showNote || slot.text)) && (
+        <div className="flex gap-4">
+          {!(showActivity || slot.activityType) && (
+            <button onClick={() => setShowActivity(true)} className="text-[10px] font-bold text-fit-dim hover:text-fit-accent transition-colors">
+              + Activity
+            </button>
+          )}
+          {!(showNote || slot.text) && (
+            <button onClick={() => setShowNote(true)} className="text-[10px] font-bold text-fit-dim hover:text-fit-accent transition-colors">
+              + Notiz
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -132,7 +130,6 @@ function SlotCard({ slot, exercises, block, updateSlot, removeSlot, exerciseList
 
 export default function SessionSlots({ slots = [], exercises = [], block, addSlot, removeSlot, updateSlot, ...exerciseListProps }) {
   const [adding, setAdding] = useState(false);
-  const [newType, setNewType] = useState('exercises');
   const [newLabel, setNewLabel] = useState('');
   const [templates, setTemplates] = useState([]);
   const [showTemplates, setShowTemplates] = useState(false);
@@ -146,19 +143,22 @@ export default function SessionSlots({ slots = [], exercises = [], block, addSlo
 
   function handleAdd() {
     if (!newLabel.trim()) return;
-    addSlot({ type: newType, label: newLabel.trim() });
+    const now = new Date();
+    const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    addSlot({ label: newLabel.trim(), time });
     setNewLabel('');
-    setNewType('exercises');
     setAdding(false);
   }
 
+  // Baustein anwenden = Slot 1:1 aus der Vorlage nachbauen (Übungen +
+  // Activity + Notiz, je nachdem was die Vorlage enthält).
   async function handleUseTemplate(tpl) {
     const id = addSlot({
-      type: tpl.type,
       label: tpl.label,
-      ...(tpl.type === 'activity' ? { activityType: tpl.activityType } : {}),
+      ...(tpl.activityType ? { activityType: tpl.activityType, duration: tpl.duration } : {}),
+      ...(tpl.text ? { text: tpl.text } : {}),
     });
-    if (tpl.type === 'exercises' && Array.isArray(tpl.exercises)) {
+    if (Array.isArray(tpl.exercises)) {
       for (const ex of tpl.exercises) {
         await exerciseListProps.addEx(ex, id);
       }
@@ -200,7 +200,13 @@ export default function SessionSlots({ slots = [], exercises = [], block, addSlo
                   className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-fit-bg2 border border-fit-line text-left hover:border-fit-accent/40 transition-all"
                 >
                   <span className="text-xs font-bold text-fit-ink">{tpl.label}</span>
-                  <span className="text-[9px] font-black uppercase tracking-wide text-fit-dim opacity-50">{tpl.type}</span>
+                  <span className="text-[9px] font-black uppercase tracking-wide text-fit-dim opacity-50">
+                    {[
+                      tpl.exercises?.length ? `${tpl.exercises.length} Übungen` : null,
+                      tpl.activityType ? 'Activity' : null,
+                      tpl.text ? 'Notiz' : null,
+                    ].filter(Boolean).join(' · ')}
+                  </span>
                 </button>
               ))}
             </div>
@@ -209,33 +215,18 @@ export default function SessionSlots({ slots = [], exercises = [], block, addSlo
       )}
 
       {adding ? (
-        <div className="rounded-2xl border border-dashed border-fit-line p-4 space-y-3">
-          <div className="flex gap-1.5">
-            {SLOT_TYPES.map(t => (
-              <button
-                key={t.value}
-                onClick={() => setNewType(t.value)}
-                className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wide transition-all ${
-                  newType === t.value ? 'bg-fit-accent/15 text-fit-accent border border-fit-accent' : 'bg-fit-bg2 text-fit-dim border border-fit-line'
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <input
-            autoFocus
-            value={newLabel}
-            onChange={e => setNewLabel(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleAdd()}
-            placeholder="Name des Slots (z.B. Warm-up)"
-            className="w-full px-3 py-2.5 rounded-xl bg-fit-bg2 border border-fit-line text-sm font-bold text-fit-ink outline-none"
-          />
-          <div className="flex gap-2">
-            <button onClick={handleAdd} className="flex-1 py-2.5 rounded-xl bg-fit-accent text-black text-xs font-bold">Slot anlegen</button>
-            <button onClick={() => setAdding(false)} className="px-4 py-2.5 rounded-xl bg-fit-bg2 border border-fit-line text-fit-dim text-xs font-bold">Abbrechen</button>
-          </div>
-        </div>
+        <input
+          autoFocus
+          value={newLabel}
+          onChange={e => setNewLabel(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') handleAdd();
+            if (e.key === 'Escape') { setNewLabel(''); setAdding(false); }
+          }}
+          onBlur={() => { if (!newLabel.trim()) setAdding(false); }}
+          placeholder="Slot-Name, z.B. Warm-up — Enter zum Anlegen"
+          className="w-full px-4 py-3.5 rounded-2xl bg-fit-bg2 border border-fit-accent/40 text-sm font-bold text-fit-ink outline-none"
+        />
       ) : (
         <button
           onClick={() => setAdding(true)}

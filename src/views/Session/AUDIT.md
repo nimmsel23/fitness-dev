@@ -8,7 +8,8 @@ Workout-Journal — Session-Logging mit Satz/Wdh/Gewicht, Session-Modi, intellig
 |-------|-------|
 | `index.jsx` | Thin Sub-Tab-Router: editor (default) / timer / skills / plan / history |
 | `useSession.js` | State-Owner, alle Handler, Autosave/Flush, Datenfluss |
-| `SessionEditor.jsx` | Editor-Assembly: SessionHeader + ExerciseList/ActivitySection |
+| `SessionEditor.jsx` | Editor-Assembly: SessionHeader + ExerciseList + ActivityAddon (Basis-Abschnitt) + SessionSlots (zusätzliche Abschnitte) / ActivitySection (Cardio-Mode) |
+| `SessionSlots.jsx` | Zusätzliche, frei benannte Abschnitte einer Strength-Session (seit 2026-08-25) — additiv zum Basis-Abschnitt, kein Ersatz. Jeder Slot kombiniert frei Übungen + Activity + Notiz, Slot-Inhalt 1:1 als "Baustein" pro Trainingsblock speicherbar (`slotTemplates.js`) |
 | `SessionGateCard.jsx` | Großer Start/Stop-Einstieg für Trainingstag, Timer, Live-Status-Notification |
 | `SessionHistory.jsx` | Verlauf-SubTab: Timeline, Drag&Drop-Umdatierung |
 | `SessionHeader.jsx` | Konsolidierter Header (2026-08-20, "Concept A/Ruhig"): ersetzt `DateStrip.jsx` + `SessionSwitcher.jsx` + `ModeSwitcher.jsx` (alle drei gelöscht) — Titel-Zeile mit Kalender-Sprung + Overflow-Menü (Session-Details/Übungsquellen) statt vier Icon-Buttons, flacher Day-Strip ohne Boxen, Session-Pills + Kraft/Ausdauer-Underline-Tabs in einer Zeile |
@@ -28,6 +29,9 @@ Workout-Journal — Session-Logging mit Satz/Wdh/Gewicht, Session-Modi, intellig
 | Dritte Datenquelle: Plan-Tab hat zusätzlich 14 "Skill: <Name>"-Routinen (Strong-Modell, `category: "calisthenics-skill"`), die aus denselben Skills generiert wurden — listen aber alle Progressionsstufen einer Skill gleichzeitig als flache Übungsliste statt stage-aware wie SkillsCard. Komplett unsynchronisiert mit #1/#2 (siehe Task "Skills/6Pack Learn-Tab-Überschneidung", Konsolidierung noch offen). |
 | `SessionEditor.jsx` | `SessionGateCard` ist kein inline Card-Element mehr, sondern ein Sheet (Portal, Bottom-Sheet), das öffnet wenn `currentSubTab === 'today'` (Nav-Klick auf "Heute"/"Session") — Editor bleibt darunter jederzeit erreichbar |
 
+## Auffälligkeiten (2026-08-25)
+- `SessionSlots.jsx` (neu): erste Version machte den Fehler, `ActivityAddon` als "obsolet" aus `SessionEditor.jsx` zu entfernen — nutzerkorrigiert: der Basis-Abschnitt (ExerciseList + ActivityAddon) bleibt unverändert, Slots sind rein additive Extra-Abschnitte danach, kein Ersatz. Erste Slot-UI war zudem zu klickintensiv (Label-Edit-Modus, Uhrzeit-Klick-zum-Öffnen, 10-Button-Activity-Grid, zweistufiges Anlegen) — auf direkte Inline-Inputs + Dropdown + Ein-Schritt-Eingabe vereinfacht.
+
 ## Auffälligkeiten (2026-08-20)
 - `SessionEditor.jsx`: **Gefixt (2026-08-22).** Gate-Sheet öffnete vorher über die normale Navigation nie automatisch, weil `subTab === 'today'` durch `App.jsx`s URL-Routing nie gesetzt wurde. Jetzt setzt `parseHashRoute()` `subTab = 'today'` explizit bei jedem Einstieg ohne explizites Datum (leerer Hash/PWA-Start-URL, oder `#session/today`) — ein Deep-Link mit explizitem ISO-Datum (Dashboard/Review) setzt weiterhin kein `subTab` und öffnet das Gate nicht.
 - `SplitPicker.jsx`: Split-Auswahl leitet sich jetzt automatisch aus den eingetragenen Übungen ab (`inferBlockFromExercises()` in `utils.js`), solange der User selbst noch nichts gewählt hat. `EffortPicker.jsx` (neu) zeigt RPE direkt unter dem SplitPicker statt nur in der Sidebar.
@@ -46,7 +50,7 @@ Workout-Journal — Session-Logging mit Satz/Wdh/Gewicht, Session-Modi, intellig
 
 | Mode | Bedeutung |
 |------|-----------|
-| `strength` | Krafttraining — ExerciseSection + optionaler ActivityAddon |
+| `strength` | Krafttraining — ExerciseSection + optionaler ActivityAddon, plus beliebig viele zusätzliche SessionSlots |
 | `cardio` | Ausdauer — nur ActivitySection, keine Exercises |
 
 Umschaltbar per Mode-Switcher in der UI. Wird im Session-JSON als `sessionMode` gespeichert. Legacy-Sessions ohne `sessionMode` werden erkannt: hat eine Session `activity` aber keine Exercises → `cardio`.

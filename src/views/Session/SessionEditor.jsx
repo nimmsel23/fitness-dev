@@ -1,7 +1,7 @@
 /**
  * SessionEditor — Main workout logging view.
  *
- * Assembles: DateStrip + SessionSwitcher + ModeSwitcher + ExerciseList / ActivitySection + ActivityAddon
+ * Assembles: DateStrip + SessionSwitcher + ModeSwitcher + ExerciseList + ActivityAddon + SessionSlots / ActivitySection
  * State comes entirely from useSession hook via props.
  * No inline history, no inline plan — those are separate sub-tabs.
  */
@@ -127,8 +127,38 @@ export default function SessionEditor({
       <div className="px-2 space-y-4 mt-1">
         {sessionMode === 'strength' ? (
           <>
-            {/* Frei belegbare Session-Slots (Warm-up-Block, Activity, Notiz, ...) —
-                additiv, leeres slots-Array rendert nichts */}
+            {/* Basis-Übungsliste = impliziter erster Abschnitt der Session
+                (wie schon immer: Übungen + Sets + Activity-Finisher unten). */}
+            <ExerciseList
+              exercises={exercises.filter(ex => !ex.slotId)}
+              restHours={restHours}
+              muscleRecovery={recentSessions[date]?.muscle_recovery || {}}
+              updateEx={updateEx}
+              addSet={addSet}
+              removeSet={removeSet}
+              removeEx={removeEx}
+              replaceSets={replaceSets}
+              moveEx={moveEx}
+              date={date}
+              addEx={addEx}
+              quickInput={quickInput}
+              setQuickInput={setQuickInput}
+              addQuick={addQuick}
+              prevMap={prevMap}
+              onInspectExercise={onInspectExercise}
+            />
+
+            {/* Activity finisher addon — für den Basis-Abschnitt, unverändert */}
+            <ActivityAddon
+              hasActivity={hasActivity}
+              setHasActivity={setHasActivity}
+              activity={activity}
+              setActivity={v => { setActivity(v); scheduleAutoSave(); }}
+            />
+
+            {/* Zusätzliche, frei benannte Abschnitte (Slots) — jeder ein
+                weiterer Übungen+Activity+Notiz-Block wie der Basis-Abschnitt
+                oben, additiv. Leeres slots-Array rendert nichts. */}
             <SessionSlots
               slots={slots}
               exercises={exercises}
@@ -151,33 +181,6 @@ export default function SessionEditor({
               addQuick={addQuick}
               prevMap={prevMap}
               onInspectExercise={onInspectExercise}
-            />
-
-            <ExerciseList
-              exercises={exercises.filter(ex => !ex.slotId)}
-              restHours={restHours}
-              muscleRecovery={recentSessions[date]?.muscle_recovery || {}}
-              updateEx={updateEx}
-              addSet={addSet}
-              removeSet={removeSet}
-              removeEx={removeEx}
-              replaceSets={replaceSets}
-              moveEx={moveEx}
-              date={date}
-              addEx={addEx}
-              quickInput={quickInput}
-              setQuickInput={setQuickInput}
-              addQuick={addQuick}
-              prevMap={prevMap}
-              onInspectExercise={onInspectExercise}
-            />
-
-            {/* Activity finisher addon */}
-            <ActivityAddon
-              hasActivity={hasActivity}
-              setHasActivity={setHasActivity}
-              activity={activity}
-              setActivity={v => { setActivity(v); scheduleAutoSave(); }}
             />
           </>
         ) : (

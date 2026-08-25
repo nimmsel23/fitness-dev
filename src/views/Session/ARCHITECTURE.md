@@ -6,7 +6,8 @@ Workout-Journal für Kraft- und Ausdauertraining. Zwei Session-Modi, Multi-Sessi
 
 - **`index.jsx`**: Thin Sub-Tab-Router — editor (default) / timer / skills / plan / history.
 - **`useSession.js`**: State-Owner — Session-Modi, Multi-Session, Autosave/Flush, alle Handler.
-- **`SessionEditor.jsx`**: Editor-Assembly — SessionHeader + ExerciseList/ActivitySection.
+- **`SessionEditor.jsx`**: Editor-Assembly — SessionHeader + ExerciseList + ActivityAddon (Basis-Abschnitt) + SessionSlots (zusätzliche Abschnitte) / ActivitySection (Cardio-Mode).
+- **`SessionSlots.jsx`**: zusätzliche, frei benannte Abschnitte einer Strength-Session — jeder Slot ein weiterer Übungen+Activity+Notiz-Block wie der Basis-Abschnitt, additiv, kein Ersatz für ihn. Slot-Inhalt 1:1 als wiederverwendbarer "Baustein" pro Trainingsblock speicherbar (`lib/db/local|firestore/slotTemplates.js`).
 - **`SessionGateCard.jsx`**: großes Start/Stop-Gate für den Trainingstag inkl. laufender Session-Stoppuhr und Live-Notification-Anbindung.
 - **`SessionHistory.jsx`**: Verlauf-SubTab — Timeline, Drag&Drop-Umdatierung.
 - **`SessionHeader.jsx`**: konsolidierter Header (ersetzt `DateStrip.jsx`/`SessionSwitcher.jsx`/`ModeSwitcher.jsx`) — Titel + Kalender-Sprung + Overflow-Menü, flacher Day-Strip, Session-Pills + Kraft/Ausdauer-Underline-Tabs.
@@ -24,8 +25,25 @@ Workout-Journal für Kraft- und Ausdauertraining. Zwei Session-Modi, Multi-Sessi
 
 ## Session-Modi
 
-- **`strength`**: Krafttraining — ExerciseSection + optionaler ActivityAddon-Anhang.
-- **`cardio`**: Ausdauer — nur ActivitySection, keine Exercises, keine Gap-Hints.
+- **`strength`**: Krafttraining — Basis-ExerciseList + optionaler ActivityAddon-Anhang, plus beliebig viele zusätzliche `SessionSlots` (je ein weiterer Übungen+Activity+Notiz-Abschnitt).
+- **`cardio`**: Ausdauer — nur ActivitySection, keine Exercises, keine Gap-Hints, keine Slots.
+
+## Session-Slots (seit 2026-08-25)
+
+Zusätzliche, frei benannte Abschnitte einer Strength-Session — additiv zum
+Basis-Abschnitt (Basis-`ExerciseList` + `ActivityAddon`), kein Ersatz dafür.
+Mentalmodell: die Session ohne Slots ist der implizite erste Abschnitt,
+jeder per "+ Slot hinzufügen" angelegte Slot ist ein weiterer, gleichartiger
+Abschnitt danach (z.B. Basis="Rücken", Slot="Bizeps" als zweiter Teil eines
+Pull-Days). Kein exklusiver Typ: ein Slot kombiniert frei Übungen, einen
+Activity-Block (`activityType`/`duration`) und eine Notiz (`text`).
+`exercises[]`-Einträge referenzieren ihren Slot über `slotId` (fehlt/`null`
+= Basis-Abschnitt). `time` (`"HH:MM"`, optional) macht die Session zum
+Journal/Protokoll. Der Slot selbst ist der Baustein: "Als Baustein
+speichern" snapshotted den kompletten Slot-Inhalt, wiederverwendbar pro
+Trainingsblock (`getSlotTemplates(block)`/`saveSlotTemplate()`) —
+perspektivisch die Brücke zwischen Session-Tab und Plan-Tab (noch nicht
+umgesetzt).
 
 ## Session Gate
 
@@ -61,11 +79,14 @@ Kein Zeit-Debounce mehr (seit 2026-07). `scheduleAutoSave()` setzt nur das `dirt
   "date": "2026-06-22",
   "sessionMode": "strength",
   "block": "Push",
-  "exercises": [{ "id": "...", "name": "...", "setsArray": [{"reps": "8", "weight": "80"}], "primaryMuscles": [...] }],
+  "exercises": [{ "id": "...", "name": "...", "setsArray": [{"reps": "8", "weight": "80"}], "primaryMuscles": [...], "slotId": null }],
   "effort": 8,
   "location": "",
   "duration": "",
   "notes": "",
-  "activity": { "type": "hiit", "duration": "", "notes": "" }
+  "activity": { "type": "hiit", "duration": "", "notes": "" },
+  "slots": [
+    { "id": "uuid", "label": "Bizeps", "order": 0, "time": "18:05", "activityType": "hiit", "duration": "5", "text": "" }
+  ]
 }
 ```
