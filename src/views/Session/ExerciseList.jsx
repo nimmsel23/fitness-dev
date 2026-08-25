@@ -4,18 +4,50 @@
  */
 
 import { useState } from 'react';
-import { Dumbbell, Plus, Search } from 'lucide-react';
+import { Dumbbell, Plus, Search, GripVertical } from 'lucide-react';
+import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import ExerciseCard from './ExerciseCard';
 import ExerciseSearchOverlay from '../../components/ExerciseSearchOverlay';
 
+// Drag-Handle-Wrapper um ExerciseCard: Listener/Attribute sitzen nur am
+// Griff-Icon, nicht auf der ganzen Karte — sonst wären Inputs/Buttons in
+// ExerciseCard nicht mehr klickbar, weil dnd-kit Pointer-Events abfängt.
+function SortableExerciseRow({ ex, containerId, children }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: ex.id,
+    data: { containerId },
+  });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-start gap-1">
+      <button
+        {...attributes}
+        {...listeners}
+        className="shrink-0 mt-3.5 w-5 h-8 flex items-center justify-center text-fit-dim/40 hover:text-fit-dim cursor-grab active:cursor-grabbing touch-none"
+        aria-label="Übung verschieben"
+      >
+        <GripVertical size={14} />
+      </button>
+      <div className="flex-1 min-w-0">{children}</div>
+    </div>
+  );
+}
+
 export default function ExerciseList({
-  exercises = [], restHours, muscleRecovery = {},
+  exercises = [], restHours, muscleRecovery = {}, containerId = '__base__',
   updateEx, addSet, removeSet, removeEx, replaceSets, moveEx,
   date, addEx, quickInput, setQuickInput, addQuick,
   prevMap = {}, onInspectExercise,
 }) {
   const [showSearch, setShowSearch] = useState(false);
   const safe = Array.isArray(exercises) ? exercises : [];
+  const { setNodeRef: setDroppableRef } = useDroppable({ id: containerId });
 
   return (
     <div className="space-y-5">
@@ -28,39 +60,42 @@ export default function ExerciseList({
       )}
 
       {/* Exercise cards */}
-      <div className="space-y-2">
-        {safe.map((ex, idx) => (
-          <ExerciseCard
-            key={idx}
-            ex={ex}
-            i={idx}
-            muscleRecovery={muscleRecovery}
-            updateEx={updateEx}
-            addSet={addSet}
-            removeSet={removeSet}
-            removeEx={removeEx}
-            replaceSets={replaceSets}
-            moveEx={moveEx}
-            isFirst={idx === 0}
-            isLast={idx === safe.length - 1}
-            prev={prevMap[ex.name]}
-            onInspectExercise={onInspectExercise}
-          />
-        ))}
+      <SortableContext items={safe.map(ex => ex.id)} strategy={verticalListSortingStrategy}>
+        <div ref={setDroppableRef} className="space-y-2 min-h-[8px]">
+          {safe.map((ex, idx) => (
+            <SortableExerciseRow key={ex.id} ex={ex} containerId={containerId}>
+              <ExerciseCard
+                ex={ex}
+                i={ex.__i ?? idx}
+                muscleRecovery={muscleRecovery}
+                updateEx={updateEx}
+                addSet={addSet}
+                removeSet={removeSet}
+                removeEx={removeEx}
+                replaceSets={replaceSets}
+                moveEx={moveEx}
+                isFirst={idx === 0}
+                isLast={idx === safe.length - 1}
+                prev={prevMap[ex.name]}
+                onInspectExercise={onInspectExercise}
+              />
+            </SortableExerciseRow>
+          ))}
 
-        {/* Empty state */}
-        {safe.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 rounded-2xl" style={{ border: '1px dashed var(--line)' }}>
-            <Dumbbell size={20} style={{ color: 'var(--dim)', opacity: 0.4 }} className="mb-2" />
-            <p className="text-sm font-semibold" style={{ color: 'var(--dim)' }}>
-              Noch keine Übungen
-            </p>
-            <p className="text-xs mt-0.5" style={{ color: 'var(--dim)', opacity: 0.5 }}>
-              Übung hinzufügen oder Quick-Input nutzen
-            </p>
-          </div>
-        )}
-      </div>
+          {/* Empty state */}
+          {safe.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 rounded-2xl" style={{ border: '1px dashed var(--line)' }}>
+              <Dumbbell size={20} style={{ color: 'var(--dim)', opacity: 0.4 }} className="mb-2" />
+              <p className="text-sm font-semibold" style={{ color: 'var(--dim)' }}>
+                Noch keine Übungen
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--dim)', opacity: 0.5 }}>
+                Übung hinzufügen oder Quick-Input nutzen
+              </p>
+            </div>
+          )}
+        </div>
+      </SortableContext>
 
       {/* Add controls */}
       <div className="space-y-2">

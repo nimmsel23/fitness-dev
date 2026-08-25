@@ -202,9 +202,9 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   }
 
   // ── Session-Slots (frei belegbare Sub-Einheiten) ────────────────
-  function addSlot({ type, label, ...extra }) {
+  function addSlot({ label, ...extra }) {
     const id = crypto.randomUUID();
-    setSlots(prev => [...prev, { id, type, label, order: prev.length, ...extra }]);
+    setSlots(prev => [...prev, { id, label, order: prev.length, ...extra }]);
     scheduleAutoSave();
     return id;
   }
@@ -217,6 +217,29 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
 
   function updateSlot(id, patch) {
     setSlots(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s));
+    scheduleAutoSave();
+  }
+
+  // Ein Exercise-Eintrag wird in einen anderen Container (Basis oder ein
+  // bestimmter Slot) und/oder an eine andere Position innerhalb dieses
+  // Containers verschoben — Grundlage für DnD UND für die Pfeil-Buttons
+  // (moveEx unten), damit beide denselben, korrekten Container-Begriff
+  // benutzen statt naiv im flachen Gesamt-Array zu tauschen (das würde
+  // Nachbarn aus fremden Containern dazwischenrutschen lassen).
+  function moveExercise(exerciseId, targetSlotId, targetContainerIndex) {
+    setExercises(prev => {
+      const idx = prev.findIndex(e => e.id === exerciseId);
+      if (idx === -1) return prev;
+      const item = { ...prev[idx], slotId: targetSlotId || null };
+      const rest = prev.filter(e => e.id !== exerciseId);
+      const containerItems = rest.filter(e => (e.slotId || null) === (targetSlotId || null));
+      const clamped = Math.max(0, Math.min(targetContainerIndex, containerItems.length));
+      const anchor = containerItems[clamped];
+      const insertAt = anchor ? rest.findIndex(e => e.id === anchor.id) : rest.length;
+      const next = [...rest];
+      next.splice(insertAt, 0, item);
+      return next;
+    });
     scheduleAutoSave();
   }
 
@@ -368,8 +391,13 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
 
   function addQuick() {
     if (!quickInput.trim()) return;
-    const ex = parseQuick(quickInput);
-    if (ex) {
+    const parsed = parseQuick(quickInput);
+    if (parsed) {
+      // parseQuick liefert keine id — ohne die wären Quick-Adds nicht von
+      // updateEx/removeEx/DnD adressierbar (id ist der Sortable-/Dedup-Key
+      // aller Übungen dieser Session, siehe addEx()).
+      const id = `inbox_${slugify(parsed.name)}`;
+      const ex = { ...parsed, id, source: 'inbox', slotId: null };
       setExercises(prev => [...prev, ex]);
       setQuickInput('');
       showToast(`+ ${ex.name}`);
@@ -413,13 +441,12 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   }
 
   function moveEx(i, direction) {
-    if (i + direction < 0 || i + direction >= exercises.length) return;
-    setExercises(prev => {
-      const next = [...prev];
-      [next[i], next[i + direction]] = [next[i + direction], next[i]];
-      return next;
-    });
-    scheduleAutoSave();
+    const ex = exercises[i];
+    if (!ex) return;
+    const containerId = ex.slotId || null;
+    const containerItems = exercises.filter(e => (e.slotId || null) === containerId);
+    const localIdx = containerItems.findIndex(e => e.id === ex.id);
+    moveExercise(ex.id, containerId, localIdx + direction);
   }
 
   function removeEx(i) {
@@ -679,7 +706,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     // Handlers
     save, selectSession, handleNewSession, handleDeleteSession,
     startSessionGate, stopSessionGate,
-    addEx, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, removeEx,
+    addEx, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, moveExercise, removeEx,
     exportObsidian, handleDownload, moveSessionToDate,
     scheduleAutoSave,
   };

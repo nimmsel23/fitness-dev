@@ -38,12 +38,44 @@ Abschnitt danach (z.B. Basis="Rücken", Slot="Bizeps" als zweiter Teil eines
 Pull-Days). Kein exklusiver Typ: ein Slot kombiniert frei Übungen, einen
 Activity-Block (`activityType`/`duration`) und eine Notiz (`text`).
 `exercises[]`-Einträge referenzieren ihren Slot über `slotId` (fehlt/`null`
-= Basis-Abschnitt). `time` (`"HH:MM"`, optional) macht die Session zum
-Journal/Protokoll. Der Slot selbst ist der Baustein: "Als Baustein
+= Basis-Abschnitt). Der Slot selbst ist der Baustein: "Als Baustein
 speichern" snapshotted den kompletten Slot-Inhalt, wiederverwendbar pro
 Trainingsblock (`getSlotTemplates(block)`/`saveSlotTemplate()`) —
 perspektivisch die Brücke zwischen Session-Tab und Plan-Tab (noch nicht
 umgesetzt).
+
+**Kein `time`-Feld pro Slot** (2026-08-25, revertiert): Sessions werden nie
+live im Gym geloggt, immer nachträglich — ein "jetzt"-Zeitstempel beim
+Anlegen eines Slots wäre erfundene Präzision, kein echter Trainingszeitpunkt.
+Uhrzeit/Ort sind Session-weite Kontext-Attribute (gehören ggf. in die
+`SessionSidebar`, nicht dupliziert pro Slot) — aktuell nirgends als Feld
+umgesetzt, da kein konkreter Bedarf.
+
+**Drag & Drop (seit 2026-08-25):** `@dnd-kit` (schon Dependency von
+`Plan/RoutineBuilder.jsx`, jetzt auch explizit in `package.json`) erlaubt
+Übungen per Griff-Icon innerhalb einer Liste umzusortieren UND zwischen
+Basis-Abschnitt und Slots zu verschieben. Ein einziger `DndContext` in
+`SessionEditor.jsx` (strength-Zweig) umschließt Basis-`ExerciseList`
+(`containerId="__base__"`) + alle Slot-`ExerciseList`s (`containerId=slot.id`).
+`useSession.js::moveExercise(exerciseId, targetSlotId, targetContainerIndex)`
+ist der eine Ort, der Container-Zugehörigkeit + Position im flachen
+`exercises`-Array anfasst — sowohl DnD (`onDragEnd`) als auch die
+Pfeil-Buttons in `ExerciseCard.jsx` (`moveEx(i, direction)`, jetzt ein
+dünner Wrapper um `moveExercise`) laufen darüber, damit Nachbarn aus
+fremden Containern nicht dazwischenrutschen.
+
+**Bugfix 2026-08-25:** `ExerciseList.jsx` bekam vor Slots immer das volle,
+ungefilterte `exercises`-Array — der lokale Map-Index (`idx`) war identisch
+zum globalen Array-Index, den `updateEx`/`addSet`/`removeSet`/`removeEx`/
+`replaceSets` erwarten. Mit Slots rendert `ExerciseList` nur noch gefilterte
+Teilmengen (Basis: `!ex.slotId`, Slot: `ex.slotId === slot.id`) — der lokale
+Index zeigte dadurch potenziell auf die falsche Übung im Gesamt-Array.
+Fix: `SessionEditor.jsx` versieht jede Übung einmalig mit `__i` (ihr echter
+Index im ungefilterten Array), `ExerciseList` nutzt `ex.__i` statt `idx` für
+alle Mutations-Callbacks. `moveEx`/`moveExercise` sind davon unabhängig
+korrekt (id-basiert). Ebenfalls gefixt: `addQuick()` erzeugte Übungen ganz
+ohne `id`-Feld (nötig als Sortable-/Dedup-Key) — jetzt analog zu `addEx()`
+`inbox_${slugify(name)}`.
 
 ## Session Gate
 
@@ -86,7 +118,7 @@ Kein Zeit-Debounce mehr (seit 2026-07). `scheduleAutoSave()` setzt nur das `dirt
   "notes": "",
   "activity": { "type": "hiit", "duration": "", "notes": "" },
   "slots": [
-    { "id": "uuid", "label": "Bizeps", "order": 0, "time": "18:05", "activityType": "hiit", "duration": "5", "text": "" }
+    { "id": "uuid", "label": "Bizeps", "order": 0, "activityType": "hiit", "duration": "5", "text": "" }
   ]
 }
 ```
