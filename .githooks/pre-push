@@ -30,6 +30,7 @@ BACKEND_TRIGGER='^(fitness/|db/|alembic/|server\.mjs$|fitness-runtime\.mjs$|fire
 
 should_deploy=false
 should_deploy_staging=false
+should_build_dev=false
 kb_since=""
 kb_until=""
 
@@ -63,6 +64,8 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     should_deploy_staging=true
   fi
 
+  [ "$branch" = "dev" ] && should_build_dev=true
+
   [ "$branch" != "vitalos" ] && continue
 
   relevant=$(echo "$changed" | grep -Ev "$SKIP" || true)
@@ -87,6 +90,22 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     fi
   fi
 done
+
+if [ "$should_build_dev" = true ]; then
+  if command -v gum >/dev/null 2>&1; then
+    gum log --level info "fitness-dev: Push zu dev — baue UI (npm run build) als Build-Verifikation…"
+  else
+    echo "🔍 fitness-dev: Push zu dev — baue UI (npm run build) als Build-Verifikation…"
+  fi
+  npm run build
+  build_status=$?
+  if [ $build_status -ne 0 ]; then
+    echo "❌ npm run build fehlgeschlagen — Push wird abgebrochen (kein kaputter Stand auf dev)." >&2
+    echo "   Mit 'git push --no-verify' kannst du den Hook überspringen, falls das Absicht ist." >&2
+    exit 1
+  fi
+  echo "✅ Build-Verifikation OK (dist/ aktuell)."
+fi
 
 if [ "$should_deploy_staging" = true ]; then
   if command -v gum >/dev/null 2>&1; then
