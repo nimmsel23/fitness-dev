@@ -35,7 +35,12 @@ export async function saveSession(date = localToday(), sessionData, id = null) {
   clearMonthlyReportCache();
   // sqliteSync durchreichen (server.mjs signalisiert damit einen verzögerten,
   // nicht-fatalen SQLite-Sync — der JSON-Save selbst war erfolgreich).
-  return { ok: true, sqliteSync: res?.sqliteSync !== false };
+  return {
+    ok: true,
+    queued: res?.queued === true,
+    offline: res?.offline === true,
+    sqliteSync: res?.sqliteSync !== false,
+  };
 }
 
 export async function listSessionsForDate(date = localToday()) {

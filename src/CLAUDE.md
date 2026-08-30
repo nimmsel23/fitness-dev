@@ -163,6 +163,17 @@ sichtbar zu machen.)
 - GET offline → IDB-Cache zurückgeben statt Fehler
 - POST offline → in Queue einreihen, Background Sync registrieren, 202 zurück
 - Auto-flush beim `online`-Event
+- Queue-Events `fitness:queue-enqueued` / `fitness:queue-flushed` stehen der UI
+  für Rehydration nach Offline-Saves zur Verfügung
+
+**Session-Runtime-Backstop** (`src/lib/sessionRuntimeStore.js`, Stand 2026-08-30):
+- Während Session-Edits hält der Client einen lokalen Runtime-Draft in
+  `localStorage` (`fitness-session-runtime-v1`)
+- Bei offline/queued Saves bleibt dieser Draft bewusst bestehen und wird in
+  `useSession()` in Tagesliste + Verlauf wieder über die geladenen Sessions
+  gelegt
+- Ziel: Reload, Tab-Kill oder kurzzeitige Offline-Phasen dürfen nicht wie
+  "Workout nicht gespeichert" aussehen, auch wenn der Netz-Sync noch aussteht
 
 **Firestore Sync** (`firestore-mirror.mjs`, firebase-admin, Node-seitig):
 - Creds: `~/.env/firebase-fitness.json` (Service Account), Projekt: `fitness-aos`
