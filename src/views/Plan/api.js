@@ -90,7 +90,7 @@ export const api = {
     }
 
     if (path === '/settings') {
-      return { settings: JSON.parse(localStorage.getItem('wf-settings') || '{"yuhonas_enabled":"true","wger_enabled":"false","wger_url":"http://localhost:8000","wger_token":""}') }
+      return { settings: JSON.parse(localStorage.getItem('wf-settings') || '{"yuhonas_enabled":"true","wger_enabled":"false","wger_url":"http://localhost","wger_token":""}') }
     }
 
     return {}

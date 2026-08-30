@@ -95,7 +95,7 @@ export default function Settings() {
     if (!api) return;
     let alive = true;
     api.get('/health').then(d => alive && setHealth(d)).catch(() => alive && setHealth({ ok: false }))
-    fetch('http://localhost:8000/api/v2/language/?format=json')
+    fetch('http://localhost/api/v2/language/?format=json')
       .then(r => alive && setWger(r.ok))
       .catch(() => alive && setWger(false))
     api.get('/firestore/status').then(d => alive && setFirestoreStatus(d)).catch(() => alive && setFirestoreStatus({ ok: false }))
