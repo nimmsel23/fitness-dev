@@ -1,8 +1,8 @@
 """fitness-sync — KB-Sync + Firestore-Sync, an einem Ort statt in cli.py verstreut.
 
   fitness-sync kb          [--dry-run]  Katalog (Exercises/Anatomy/Muscles/Yuhonas) → Firestore
-  fitness-sync pull                      Firestore → lokal (Sessions/Journal/Inbox/Habits + Fuel),
-                                          für den eigenen Operator-UID (firestore._db.UID)
+  fitness-sync pull [UID]                Firestore → lokal (Sessions/Journal/Inbox/Habits + Fuel)
+                                          für einen gezielten User oder den Operator-UID
   fitness-sync pull-uid  <REF>           Daten eines EINZELNEN Users ← Firestore, via die
                                           laufende Python-API; REF darf firebase_uid,
                                           client slug/id oder crm_id sein
@@ -48,16 +48,20 @@ def sync_kb(
 
 
 @app.command("pull")
-def sync_pull() -> None:
+def sync_pull(
+    uid: Optional[str] = typer.Argument(None, help="Firestore UID (leer = alle Fitness-User, Fuel fuer Operator-UID)"),
+) -> None:
     """Firestore → lokal: Sessions, Journal, Inbox, Habits + Fuel-Nutrition/Supplements."""
     from fitness.firestore.sync import pull
     from fitness.firestore.fuel import pull_fuel
+    from fitness.firestore._db import UID
 
-    r = pull()
-    rf = pull_fuel()
+    r = pull(uid=uid)
+    fuel_uid = uid or UID
+    rf = pull_fuel(fuel_uid)
     logger.success(
-        f"pull — sessions {r['sessions']} · journal {r['journal']} · inbox {r['inbox']} "
-        f"| fuel: nutrition {rf['nutrition']} · supplements {rf['supplements']}"
+        f"pull — fitness uid={uid or 'all'} sessions {r['sessions']} · journal {r['journal']} · inbox {r['inbox']} "
+        f"| fuel uid={fuel_uid} nutrition {rf['nutrition']} · supplements {rf['supplements']}"
     )
 
 
@@ -161,11 +165,14 @@ def sync_watch(uid: Optional[str] = typer.Argument(None, help="Firestore UID (De
 
 
 @app.command("all")
-def sync_all(dry_run: bool = typer.Option(False, "--dry-run", help="KB-Sync nicht wirklich schreiben")) -> None:
+def sync_all(
+    uid: Optional[str] = typer.Argument(None, help="Firestore UID fuer Runtime/Fuel (leer = Defaultverhalten der Teilkommandos)"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="KB-Sync nicht wirklich schreiben"),
+) -> None:
     """KB-Sync + Firestore Pull + Push nacheinander."""
     sync_kb(dry_run=dry_run)
-    sync_pull()
-    sync_push()
+    sync_pull(uid)
+    sync_push(uid)
 
 
 @app.command("add-client")
