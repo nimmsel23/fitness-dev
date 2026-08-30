@@ -26,8 +26,22 @@ const LOCAL_POST = [/^\/routines$/, /^\/routines\/[^/]+\/exercises$/, /^\/workou
 const LOCAL_PATCH = [/^\/routines\/[^/]+$/, /^\/routines\/[^/]+\/exercises\/[^/]+$/, /^\/workouts\/[^/]+$/, /^\/workouts\/[^/]+\/exercises\/[^/]+\/sets\/[^/]+$/]
 const LOCAL_PUT = [/^\/routines\/[^/]+\/exercises\/order$/, /^\/workouts\/[^/]+\/exercises\/order$/]
 const LOCAL_DELETE = [/^\/routines\/[^/]+$/, /^\/routines\/[^/]+\/exercises\/[^/]+$/, /^\/workouts\/[^/]+$/, /^\/workouts\/[^/]+\/exercises\/[^/]+$/, /^\/workouts\/[^/]+\/exercises\/[^/]+\/sets\/[^/]+$/]
+const DEFAULT_SETTINGS = {
+  yuhonas_enabled: 'true',
+  wger_enabled: 'false',
+  wger_url: 'http://localhost',
+  wger_token: '',
+}
 
 function matches(path, patterns) { return patterns.some(p => p.test(path)) }
+
+function normalizeSettings(raw = {}) {
+  const next = { ...DEFAULT_SETTINGS, ...(raw || {}) }
+  if (next.wger_url === 'http://localhost:8000' || next.wger_url === 'http://127.0.0.1:8000') {
+    next.wger_url = DEFAULT_SETTINGS.wger_url
+  }
+  return next
+}
 
 // Firebase-Build: Routinen/Workouts gegen Firestore statt server.mjs.
 // Gibt eine Promise zurueck wenn der Pfad erkannt wurde, sonst null (Aufrufer
@@ -90,7 +104,9 @@ export const api = {
     }
 
     if (path === '/settings') {
-      return { settings: JSON.parse(localStorage.getItem('wf-settings') || '{"yuhonas_enabled":"true","wger_enabled":"false","wger_url":"http://localhost","wger_token":""}') }
+      const settings = normalizeSettings(JSON.parse(localStorage.getItem('wf-settings') || '{}'))
+      localStorage.setItem('wf-settings', JSON.stringify(settings))
+      return { settings }
     }
 
     return {}
@@ -104,8 +120,8 @@ export const api = {
     }
 
     if (path === '/settings') {
-      const cur = JSON.parse(localStorage.getItem('wf-settings') || '{}')
-      localStorage.setItem('wf-settings', JSON.stringify({ ...cur, ...body }))
+      const cur = normalizeSettings(JSON.parse(localStorage.getItem('wf-settings') || '{}'))
+      localStorage.setItem('wf-settings', JSON.stringify(normalizeSettings({ ...cur, ...body })))
       return { ok: true }
     }
 
