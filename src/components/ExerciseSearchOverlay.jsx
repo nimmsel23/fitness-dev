@@ -6,6 +6,14 @@ import {
   loadLanguageFilter, filterByLanguage, LANG_STORAGE_KEY,
 } from '../lib/exerciseLanguage.js'
 
+const SOURCE_STORAGE_KEY = 'fitness-sessionSources'
+const SOURCE_LABELS = {
+  wger: 'wger',
+  yuhonas: 'yuhonas',
+  coach: 'coach',
+  expert: 'coach',
+}
+
 export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
@@ -15,11 +23,13 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const [favourites, setFavourites] = useState(() => getFavourites())
   const [langFilter, setLangFilter] = useState(() => loadLanguageFilter())
+  const rerunSearchRef = useRef(() => {})
 
   // Hot-reload, wenn Settings im Modal geändert werden
   useEffect(() => {
     const onStorage = (e) => {
       if (!e.key || e.key === LANG_STORAGE_KEY) setLangFilter(loadLanguageFilter())
+      if (!e.key || e.key === SOURCE_STORAGE_KEY) rerunSearchRef.current?.()
     }
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
@@ -78,8 +88,8 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
       setSelectedIndex(-1)
       return 
     }
-    
-    debounceRef.current = setTimeout(async () => {
+
+    const runSearch = async () => {
       setLoading(true)
       try {
         const data = await searchExercises(query, 25)
@@ -88,7 +98,12 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
         setSelectedIndex(filtered.length > 0 ? 0 : -1)
       } catch { /* silent */ }
       finally { setLoading(false) }
-    }, 250)
+    }
+
+    rerunSearchRef.current = runSearch
+    debounceRef.current = setTimeout(runSearch, 250)
+
+    return () => clearTimeout(debounceRef.current)
   }, [query, langFilter])
 
   const handleKeyDown = (e) => {
@@ -206,7 +221,7 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
               <div className="p-8 rounded-[40px] bg-fit-bg2/50 border border-fit-line border-dashed flex flex-col items-center text-center gap-4 opacity-50">
                 <Dumbbell size={32} className="text-fit-dim" />
                 <p className="text-xs font-bold text-fit-dim max-w-xs leading-relaxed uppercase tracking-widest">
-                  Tippe mindestens 2 Buchstaben um den Experten-Katalog zu durchsuchen.
+                  Tippe mindestens 2 Buchstaben um die clientseitige Exercise-Suche zu starten.
                 </p>
               </div>
             </>
@@ -244,6 +259,11 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
                         </span>
                         <span className={`flex-1 min-w-0 truncate text-[13px] ${active ? 'font-semibold text-fit-ink' : 'font-medium text-fit-dim'}`}>
                           {ex.name}
+                        </span>
+                        <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-black uppercase tracking-widest ${
+                          active ? 'bg-fit-accent/10 text-fit-accent' : 'bg-fit-bg2 text-fit-dim/60'
+                        }`}>
+                          {SOURCE_LABELS[ex.source] || ex.source || 'exercise'}
                         </span>
                         <button
                           onClick={e => handleToggleFav(e, ex.id || ex.exercise_id)}
