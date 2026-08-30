@@ -120,7 +120,7 @@ export async function searchExercises(query, limit = 12) {
     ...ex,
     id: ex.exercise_id || ex.id,
     name: ex.display_name || ex.german || ex.name || ex.exercise_id || ex.id,
-    source: "firestore",
+    source: _getExerciseSource(ex),
   }));
   return {
     ok: true, source: "firestore", query: q, results,

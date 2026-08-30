@@ -21,6 +21,13 @@ import {
   sessionHasLoggedWorkout,
 } from '../../lib/sessionGate.js';
 import { resolveGeoLocation } from '../../lib/geoLocate.js';
+import {
+  saveSessionRuntimeDraft,
+  clearSessionRuntimeDraft,
+  clearQueuedSessionRuntimeDraftsForDate,
+  mergeSessionRuntimeDrafts,
+  mergeSessionRuntimeDraftsIntoHistory,
+} from '../../lib/sessionRuntimeStore.js';
 import { getRollingDays } from './utils';
 
 const DEFAULT_ACTIVITY = { type: 'hiit', duration: '', notes: '', muscleTarget: 'core', muscles: ['core'] };
@@ -259,10 +266,11 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   // konnte im Date-Picker/Verlauf nicht weiter als ~60 Sessions zurück).
   useEffect(() => {
     getSessionHistory(historyLimit).then(sessions => {
+      const hydratedSessions = mergeSessionRuntimeDraftsIntoHistory(sessions);
       setHasMoreHistory(sessions.length >= historyLimit);
       const sessByDate = {};
       const pMap = {};
-      sessions.forEach(s => {
+      hydratedSessions.forEach(s => {
         const existing = sessByDate[s.date];
         if (existing) {
           // Mehrere Docs am selben Tag (z.B. Legs + HIIT-Finisher im selben Doc
@@ -313,7 +321,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   useEffect(() => {
     const load = async () => {
       try {
-        const list = await listSessionsForDate(date);
+        const list = mergeSessionRuntimeDrafts(date, await listSessionsForDate(date));
         setDaySessions(list);
         if (list.length > 0) {
           const found = list.find(s => s.id === sessionId);
@@ -332,6 +340,41 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
 
   // ── Toast ─────────────────────────────────────────────────────
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 2200); }
+
+  useEffect(() => {
+    if (!dirty) return;
+    saveSessionRuntimeDraft(date, buildSessionPayload(), sessionId, { syncState: 'local' });
+  }, [
+    dirty, date, sessionId, block, exercises, effort, location, duration, notes,
+    trainingsart, sessionMode, activity, hasActivity, slots, sessionGate,
+  ]);
+
+  useEffect(() => {
+    function handleQueueFlushed(event) {
+      const items = Array.isArray(event?.detail?.items) ? event.detail.items : [];
+      const touchedCurrentDate = items.some((item) => {
+        if (item?.method !== 'POST') return false;
+        const url = String(item?.url || '');
+        return url.includes('/session') && url.includes(`date=${date}`);
+      });
+      if (!touchedCurrentDate) return;
+      clearQueuedSessionRuntimeDraftsForDate(date);
+      listSessionsForDate(date)
+        .then((list) => mergeSessionRuntimeDrafts(date, list))
+        .then((list) => {
+          if (dateRef.current !== date) return;
+          setDaySessions(list);
+          const current = list.find((session) => session.id === sessionId) || list[0] || null;
+          if (current) {
+            setSessionId(current.id);
+            loadSessionData(current);
+          }
+        })
+        .catch(() => {});
+    }
+    window.addEventListener('fitness:queue-flushed', handleQueueFlushed);
+    return () => window.removeEventListener('fitness:queue-flushed', handleQueueFlushed);
+  }, [date, sessionId]);
 
   // ── Exercise handlers ─────────────────────────────────────────
   async function addEx(ex, slotId = null) {
@@ -494,13 +537,22 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
 
   async function save(silent = false, overrides = {}) {
     if (!silent) setSaving(true);
+    const savedDate = date;
+    const savedSessionId = sessionId;
     const sessData = buildSessionPayload(overrides);
     try {
+      saveSessionRuntimeDraft(savedDate, sessData, savedSessionId, { syncState: 'saving' });
       setAutoSaveLabel(silent ? 'Auto…' : 'Speichert…');
-      const result = await saveSession(date, sessData, sessionId);
+      const result = await saveSession(savedDate, sessData, savedSessionId);
       setDirty(false);
+      if (result?.queued || result?.offline) {
+        saveSessionRuntimeDraft(savedDate, sessData, savedSessionId, { syncState: 'queued' });
+      } else {
+        clearSessionRuntimeDraft(savedDate, savedSessionId);
+      }
       if (silent) {
-        setAutoSaveLabel(result?.sqliteSync === false ? 'Auto ⚠' : 'Auto ✓');
+        if (result?.queued || result?.offline) setAutoSaveLabel('Offline ✓');
+        else setAutoSaveLabel(result?.sqliteSync === false ? 'Auto ⚠' : 'Auto ✓');
         setTimeout(() => setAutoSaveLabel(''), 2000);
       } else {
         setAutoSaveLabel('');
@@ -508,13 +560,15 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
         // geworfen) — sqliteSync:false meldet nur eine verzögerte SQLite-
         // Spiegelung (Python-Backend kurzzeitig nicht erreichbar), kein
         // Datenverlust. Kein Fehler-Toast, nur ein schwächerer Hinweis.
-        showToast(result?.sqliteSync === false ? 'Gespeichert ✓ (Sync verzögert)' : 'Gespeichert ✓');
+        if (result?.queued || result?.offline) showToast('Offline gespeichert ✓ · Sync ausstehend');
+        else showToast(result?.sqliteSync === false ? 'Gespeichert ✓ (Sync verzögert)' : 'Gespeichert ✓');
       }
     } catch (e) {
       // Silent Auto-Saves zeigten bislang gar keine Fehlermeldung — ein
       // fehlgeschlagener Save (z.B. Firestore-Constraint-Fehler) verschwand
       // komplett unbemerkt. Wenigstens in der Konsole sichtbar machen.
       console.error('Session-Save fehlgeschlagen:', e);
+      saveSessionRuntimeDraft(savedDate, sessData, savedSessionId, { syncState: 'error' });
       if (!silent) showToast('Fehler beim Speichern');
       setAutoSaveLabel('');
     } finally {
@@ -522,13 +576,13 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     }
     // Nur übernehmen, wenn der User nicht inzwischen das Datum gewechselt hat —
     // sonst überschreibt der Nachlauf eines Flush-Saves die frische Tagesliste.
-    const savedDate = date;
     listSessionsForDate(savedDate).then(list => {
+      const hydratedList = mergeSessionRuntimeDrafts(savedDate, list);
       if (dateRef.current === savedDate) {
-        setDaySessions(list);
+        setDaySessions(hydratedList);
         setRecentSessions(prev => {
           const next = { ...prev };
-          const primary = list.find(item => item.id === null) || list[0] || null;
+          const primary = hydratedList.find(item => item.id === null) || hydratedList[0] || null;
           if (primary && sessionHasLoggedWorkout(primary)) next[savedDate] = primary;
           else delete next[savedDate];
           return next;
@@ -563,11 +617,12 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     if (!window.confirm('Dieses Workout wirklich löschen?')) return;
     try {
       await deleteSession(date, sessionId);
+      clearSessionRuntimeDraft(date, sessionId);
       // Dirty-Flag löschen, sonst würde der nächste Flush (Tab-/Datumswechsel)
       // die gerade gelöschte Session als leere Datei wieder anlegen.
       setDirty(false);
       showToast('Gelöscht ✓');
-      const list = await listSessionsForDate(date);
+      const list = mergeSessionRuntimeDrafts(date, await listSessionsForDate(date));
       setDaySessions(list);
       // DateStrip-Indikator aktualisieren: ohne Refresh bliebe der ✓-Haken stehen.
       setRecentSessions(prev => {
@@ -592,6 +647,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     setSessionId(newSuffix);
+    clearSessionRuntimeDraft(date, newSuffix);
     resetSessionData();
     setDaySessions(prev => [...prev, { id: newSuffix, block: 'Neues Workout', exercises: [], saved_at: new Date().toISOString() }]);
   }
@@ -658,6 +714,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     if (!sess) return;
     await saveSession(newDate, { ...sess, date: newDate });
     await deleteSession(oldDate);
+    clearSessionRuntimeDraft(oldDate, sess.id || null);
     setRecentSessions(prev => {
       const next = { ...prev, [newDate]: { ...sess, date: newDate } };
       delete next[oldDate];

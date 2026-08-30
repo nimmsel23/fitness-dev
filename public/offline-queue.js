@@ -61,7 +61,12 @@
   // ── Queue ─────────────────────────────────────────────────────────────────
 
   async function enqueue(entry) {
-    return req((await store('queue', 'readwrite')).add({ ...entry, ts: Date.now() }))
+    const queued = { ...entry, ts: Date.now() }
+    const id = await req((await store('queue', 'readwrite')).add(queued))
+    window.dispatchEvent(new CustomEvent('fitness:queue-enqueued', {
+      detail: { id, method: queued.method, url: queued.url, ts: queued.ts },
+    }))
+    return id
   }
 
   async function queueAll() {
@@ -93,6 +98,7 @@
     const items = await queueAll().catch(() => [])
     if (!items.length) return { ok: true, flushed: 0, failed: 0 }
     let flushed = 0, failed = 0
+    const flushedItems = []
     for (const item of items) {
       try {
         const res = await fetch(item.url, {
@@ -103,13 +109,16 @@
         if (!res.ok && res.status >= 500) throw new Error(`http_${res.status}`)
         await queueDelete(item.id)
         flushed++
+        flushedItems.push({ id: item.id, method: item.method, url: item.url })
       } catch {
         failed++
         break
       }
     }
     if (flushed > 0) {
-      window.dispatchEvent(new CustomEvent('fitness:queue-flushed', { detail: { flushed, failed } }))
+      window.dispatchEvent(new CustomEvent('fitness:queue-flushed', {
+        detail: { flushed, failed, items: flushedItems },
+      }))
     }
     return { ok: failed === 0, flushed, failed }
   }

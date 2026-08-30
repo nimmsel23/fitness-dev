@@ -287,6 +287,19 @@ def push_fuel(uid: str = UID) -> dict:
                     queue_set(ref, {"items": items, "_content_hash": new_hash,
                                     "saved_at": datetime.utcnow().isoformat()})
 
+        nutrition_cat_path = _nutrition_catalog_path(data_dir)
+        if nutrition_cat_path.exists():
+            local = _read_json(nutrition_cat_path, {"items": []})
+            items = local.get("items", [])
+            if items:
+                ref = db.collection("nutrition").document(uid).collection("meta").document("catalog")
+                new_hash = _content_hash(items)
+                if _hash_matches(remote_meta(ref).get("_content_hash"), new_hash):
+                    results["skipped"] += 1
+                else:
+                    queue_set(ref, {"items": items, "_content_hash": new_hash,
+                                    "saved_at": datetime.utcnow().isoformat()})
+
         commit_batch()
         logger.success(f"fuel push uid={uid}: {results['written']} writes, {results['skipped']} skipped")
 
@@ -324,5 +337,9 @@ def pull_fuel(uid: str = UID) -> dict:
     doc = db.collection("supplements").document(uid).collection("meta").document("catalog").get()
     if doc.exists:
         _write_json(_supplements_catalog_path(data_dir), _strip_meta(doc.to_dict()))
+
+    doc = db.collection("nutrition").document(uid).collection("meta").document("catalog").get()
+    if doc.exists:
+        _write_json(_nutrition_catalog_path(data_dir), _strip_meta(doc.to_dict()))
 
     return count
