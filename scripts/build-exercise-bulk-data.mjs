@@ -11,6 +11,11 @@
 // holt aus Firestore nur noch den kleinen, aktiv wachsenden Rest (expert +
 // inbox). KB-YAMLs bleiben SSOT — dieses Skript ist der einzige Ort, der ihren
 // Inhalt in JS dupliziert (gleiches Muster wie build-sixpack-data.mjs).
+//
+// Wichtige Semantik ab 2026-08-30: Im Client-Bundle sind diese beiden Quellen
+// NICHT mehr "unreviewed". "unreviewed" bezeichnet nur noch echte KB-Drafts/
+// Review-Kandidaten. Die eingebackenen Bulk-Records behalten ihren Ursprung
+// (wger/yuhonas), bekommen aber statt des unreviewed-Tags ein bulk_import-Marker.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,12 +32,25 @@ function loadYaml(path) {
   return yaml.load(readFileSync(path, 'utf-8'));
 }
 
+function normalizeBulkExercise(exercise) {
+  const tags = Array.isArray(exercise?.tags) ? exercise.tags : [];
+  const nextTags = tags.filter((tag) => tag !== 'unreviewed');
+  if (!nextTags.includes('bulk_import')) nextTags.push('bulk_import');
+  return {
+    ...exercise,
+    tags: nextTags,
+    review_state: exercise?.review_state?.status === 'draft'
+      ? { ...exercise.review_state, status: 'imported' }
+      : exercise?.review_state,
+  };
+}
+
 const exercises = [];
 for (const file of SOURCE_FILES) {
   const doc = loadYaml(join(EXERCISES_DIR, file));
   for (const ex of doc?.exercises || []) {
     if (!ex || (!ex.exercise_id && !ex.id)) continue;
-    exercises.push(ex);
+    exercises.push(normalizeBulkExercise(ex));
   }
 }
 

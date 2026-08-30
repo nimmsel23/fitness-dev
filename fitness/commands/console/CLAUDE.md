@@ -20,8 +20,13 @@ console/
 ├── gap_check.py      — periodischer Trainingslücken-Check über alle (aktiven) Klienten
 ├── drafts.py          — Persistenz der KI-Ausgaben (~/.aos/fitness/console/drafts/)
 ├── approval.py         — interaktive Freigabe von Feedback-Entwürfen (a/d/s)
-└── keys.py              — nicht-blockierendes Einzeltasten-Lesen (cbreak-Mode, stdlib)
+├── keys.py              — nicht-blockierendes Einzeltasten-Lesen (cbreak-Mode, stdlib)
+└── events.py             — Shared-Helfer: Klienten-Name-Lookup, Event-Zeilen-Formatierung
 ```
+
+Im Ordner liegen parallel `.py.bak`-Dateien zu `__init__.py`/`core.py`/
+`drafts.py`/`gap_check.py` — vor dem nächsten Commit aufräumen (analog zum
+`.bak`-Hinweis für `kb/` in `docs/CLAUDE.md`).
 
 `fitness/commands/log.py::cmd_console` ruft nur `console.run(gap_check_interval)`
 auf. `fitness-log drafts [--client NAME]` (separater Befehl in `log.py`, nicht Teil

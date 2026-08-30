@@ -458,6 +458,7 @@ app.get("/fitness/coach/feed", (c) => {
         id: `${uid}__${date}`,
         userId: uid,
         date: data.date || date,
+        block: data.block || null,
         exercises: data.exercises || [],
         effort: data.effort ?? null,
         mood: data.mood || "",
@@ -555,6 +556,25 @@ app.get("/fitness/coach/plans/:clientUid", (c) => {
     .map(f => readJson(path.join(dir, f)))
     .filter(p => p && (!coachUid || p.createdBy === coachUid));
   return c.json({ ok: true, plans });
+});
+
+// ── Split-Zyklus-Habit-Tracking (Coach legt fest, welche `block`-Tags als
+// Zyklus gezählt werden + Zielzahl, z.B. Push/Pull/Legs x10) ────────────────
+function habitCycleFile(uid) {
+  return path.join(os.homedir(), ".aos", "fitness", "users", uid, "habit-cycle.json");
+}
+
+app.get("/fitness/coach/habit-cycle/:clientUid", (c) => {
+  const clientUid = c.req.param("clientUid");
+  return c.json({ ok: true, config: readJson(habitCycleFile(clientUid), { tags: [], targetCycles: 0 }) });
+});
+
+app.post("/fitness/coach/habit-cycle/:clientUid", async (c) => {
+  const clientUid = c.req.param("clientUid");
+  const body = await c.req.json().catch(() => ({}));
+  const config = { tags: Array.isArray(body.tags) ? body.tags : [], targetCycles: Number(body.targetCycles) || 0 };
+  writeJson(habitCycleFile(clientUid), config);
+  return c.json({ ok: true, config });
 });
 
 app.post("/fitness/coach/plans/:clientUid", async (c) => {

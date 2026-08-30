@@ -26,6 +26,11 @@ FUEL_DATA_DIR = Path(
 ).expanduser()
 
 
+def _fuel_bridge_disabled() -> bool:
+    raw = str(os.getenv("FITNESS_DISABLE_FUEL_BRIDGE", "")).strip().lower()
+    return raw in {"1", "true", "yes", "on"}
+
+
 # ── Lokale Pfade ──────────────────────────────────────────────────────────────
 
 def _nutrition_path(d: str, data_dir: Path) -> Path:
@@ -36,6 +41,10 @@ def _supplements_path(d: str, data_dir: Path) -> Path:
 
 def _supplements_catalog_path(data_dir: Path) -> Path:
     return data_dir / "supplements" / "catalog.json"
+
+
+def _nutrition_catalog_path(data_dir: Path) -> Path:
+    return data_dir / "nutrition" / "catalog.json"
 
 
 # ── Helfer ────────────────────────────────────────────────────────────────────
@@ -68,14 +77,19 @@ def _merge_by_id(a: list[dict], b: list[dict]) -> list[dict]:
     return sorted(by_id.values(), key=lambda x: x.get("time", ""))
 
 def _data_dir(uid: str) -> Path:
-    if uid == UID or uid == "default":
+    if uid == "default":
         return FUEL_DATA_DIR
-    return FUEL_DATA_DIR / "users" / uid
+    data_dir = FUEL_DATA_DIR / "users" / uid
+    data_dir.mkdir(parents=True, exist_ok=True)
+    return data_dir
 
 
 # ── Fire-and-forget (wird vom fuel-dev Server pro Request aufgerufen) ─────────
 
 def mirror_fuel_nutrition(date: str, data: dict, uid: str = UID) -> None:
+    if _fuel_bridge_disabled():
+        logger.info(f"fuel-bridge scope=runtime direction=push uid={uid} target=nutrition result=skip reason=bridge_disabled")
+        return
     try:
         db = get_db()
         db.collection("nutrition").document(uid).collection("logs").document(date).set(
@@ -85,6 +99,9 @@ def mirror_fuel_nutrition(date: str, data: dict, uid: str = UID) -> None:
         logger.warning(f"mirror_fuel_nutrition fehler ({date}, {uid}): {e}")
 
 def mirror_fuel_supplements(date: str, data: dict, uid: str = UID) -> None:
+    if _fuel_bridge_disabled():
+        logger.info(f"fuel-bridge scope=runtime direction=push uid={uid} target=supplements result=skip reason=bridge_disabled")
+        return
     try:
         db = get_db()
         db.collection("supplements").document(uid).collection("logs").document(date).set(
@@ -95,6 +112,9 @@ def mirror_fuel_supplements(date: str, data: dict, uid: str = UID) -> None:
 
 def mirror_fuel_catalog(data: dict, uid: str = UID, kind: str = "nutrition") -> None:
     """kind: 'nutrition' | 'supplements'"""
+    if _fuel_bridge_disabled():
+        logger.info(f"fuel-bridge scope=catalog direction=push uid={uid} target={kind} result=skip reason=bridge_disabled")
+        return
     try:
         db = get_db()
         col = "nutrition" if kind == "nutrition" else "supplements"
@@ -186,6 +206,10 @@ def push_fuel(uid: str = UID) -> dict:
     Kein _quota_ok-Probe-Write mehr: erster echter Batch-Commit zeigt's selbst.
     """
     from google.api_core.exceptions import ResourceExhausted
+
+    if _fuel_bridge_disabled():
+        logger.info(f"fuel-bridge scope=runtime direction=push uid={uid} result=skip reason=bridge_disabled")
+        return {"dates": 0, "written": 0, "skipped": 0, "disabled": True}
 
     db = get_db()
     data_dir = _data_dir(uid)
@@ -282,6 +306,9 @@ def push_fuel(uid: str = UID) -> dict:
 
 def pull_fuel(uid: str = UID) -> dict:
     """Firestore → lokale Fuel-Daten."""
+    if _fuel_bridge_disabled():
+        logger.info(f"fuel-bridge scope=runtime direction=pull uid={uid} result=skip reason=bridge_disabled")
+        return {"nutrition": 0, "supplements": 0, "disabled": True}
     db = get_db()
     data_dir = _data_dir(uid)
     count = {"nutrition": 0, "supplements": 0}

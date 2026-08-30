@@ -30,6 +30,7 @@ export function isSessionGateCompleted(sessionGate) {
 export function sessionHasLoggedWorkout(session) {
   if (!session || typeof session !== 'object') return false;
   if (Array.isArray(session.exercises) && session.exercises.length > 0) return true;
+  if (String(session.block || '').trim()) return true;
   if (session.activity) return true;
   const gate = normalizeSessionGate(session.sessionGate);
   return !!gate.endedAt;

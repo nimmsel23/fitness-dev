@@ -23,6 +23,12 @@ function unwrapLesson(ex) {
   return lesson && typeof lesson === 'object' ? lesson : null
 }
 
+function isUnreviewedExercise(ex) {
+  const reviewStatus = String(ex?.review_state?.status || '').trim().toLowerCase()
+  const source = String(ex?.source || '').trim().toLowerCase()
+  return source === 'unreviewed' || reviewStatus === 'draft'
+}
+
 function flattenLessonJointActions(value) {
   if (!value) return []
   if (Array.isArray(value)) return cleanList(value)
@@ -73,9 +79,7 @@ function inferMovement(ex) {
   const description = Array.isArray(ex?.original_description)
     ? cleanList(ex.original_description).join(' ')
     : String(ex?.original_description || '').trim()
-  const reviewStatus = ex?.review_state?.status || ''
-  const source = String(ex?.source || '').trim().toLowerCase()
-  const rawCoachingNotes = (source === 'unreviewed' || reviewStatus === 'draft')
+  const rawCoachingNotes = isUnreviewedExercise(ex)
     ? cleanList(ex?.coaching_notes).join(' ')
     : ''
   const primary = cleanList(ex?.primaryMuscles)
@@ -200,12 +204,13 @@ export function buildExerciseInsights(rawEx) {
 
 export function buildExerciseCoachSheet(ex) {
   const i = buildExerciseInsights(ex)
+  const status = isUnreviewedExercise(ex) ? 'unreviewed' : i.isRaw ? 'imported' : 'reviewed'
   const lines = [
     `---`,
     `type: exercise-coach-sheet`,
     `exercise: ${JSON.stringify(i.title)}`,
     `category: ${JSON.stringify(i.category)}`,
-    `status: ${i.isRaw ? 'unreviewed' : 'reviewed'}`,
+    `status: ${status}`,
     `---`,
     `# ${i.title}`,
     ``,

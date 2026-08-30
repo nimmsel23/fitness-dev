@@ -4,6 +4,17 @@ export const BLOCK_COLORS = {
   hiking: "#48c87a", running: "#e05060", cycling: "#38bdf8", swimming: "#5294e2"
 };
 
+// Kanonische Form eines Split-Tags für Vergleiche (Coach-Habit-Tracking,
+// SplitPicker-Werte) — Kleinschreibung + Trim, "full body" -> "full", damit
+// die zwei im Code parallel existierenden Vokabulare (SplitPicker: "Full",
+// Wochenplan-Defaults: "Full Body") zusammenfallen.
+export function normalizeBlock(block) {
+  const b = String(block || "").trim().toLowerCase();
+  if (!b) return "";
+  if (b === "full body") return "full";
+  return b;
+}
+
 export function blockColor(block, activity) {
   if (activity?.type && BLOCK_COLORS[activity.type]) return BLOCK_COLORS[activity.type];
   if (!block) return "var(--accent)";

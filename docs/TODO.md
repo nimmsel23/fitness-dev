@@ -10,8 +10,19 @@
 - [x] **Media Integration**: Integrate images from `yuhonas` database as fallback/static alternatives to GIFs. ✅ (850+ images added).
 - [x] **ExerciseDB API**: Evaluate and potentially integrate `exercisedb-api` for even broader coverage. ✅ (Integrated hasaneyldrm dataset).
 - [x] **Drag & Drop Dashboard**: Implement customizable widget layout (Ref: `react-grid-layout`). ✅ (Implemented in Dashboard.jsx).
-- [ ] **Habit-Journal Modal**: Implement popup journal modal triggered from each habit.
-- [ ] **PWA Offline Support**: Ensure essential features work without active connection.
+- [ ] **Habit-Journal Modal**: gehört zu `habits-dev` (Sibling-Repo,
+  Symlink-Tab), nicht zu fitness-dev — dort bereits vollständig implementiert
+  (`HabitJournalModal.jsx`). Verwaiste alte Kopie in
+  `fitness-dev/src/components/HabitJournalModal.jsx` kann weg (2026-08-27).
+- [x] **Workout→Habit-Tracking für Coach**: `views/Coach/ClientHabitCycle.jsx`
+  (neuer "Habits"-Sub-Tab) — Split-Zyklus-Zähler + Wochen-Dot-Grid pro Klient,
+  liest `session.block` aus, kein neues Datenmodell. Details:
+  `../src/CLAUDE.md`.
+- [x] **PWA Offline Support**: Session/Journal/Body-POST laufen im lokalen
+  Build transparent über `public/offline-queue.js` (IndexedDB-Queue +
+  Background-Sync via `sw.js`) — verifiziert 2026-08-27. ⚠️ Firebase-Build
+  (`src/db.firestore.js`) hat keine eigene Queue, verlässt sich auf Firestores
+  eingebaute Offline-Persistence (ungeprüft).
 - [ ] **Anatomy Teaching**: Expand deep anatomy content for all core exercises in the catalog.
 
 ## 💬 Client-Signale (aus Coaching Notes extrahiert)
