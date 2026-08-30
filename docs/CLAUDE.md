@@ -165,7 +165,7 @@ um den Katalog zu erweitern), kein eigenständiges Backend. Details:
 **server.mjs** (Hono, `@hono/node-server`):
 - API-Routen: `/session`, `/journal`, `/exercises/search`, `/coverage`, `/fitness/plan`, `/fitness/weekly`, `/fitness/export`, `/fitness/body`
 - Static-Serving (dist/ oder public/) + SPA-Fallback
-- Proxies: wger (lokal), HabitSync (:6842)
+- Proxies: wger (lokal, derzeit gestoppt), HabitSync (:6842)
 - **Session-Storage (seit 2026-08-23, siehe Sub-Doc-Sektion "Session-Storage:
   Schichten & Konfliktmodell" in `docs/ARCHITECTURE.md`):** `POST /session`
   schreibt nur noch die JSON-Datei (SOT) und benachrichtigt danach — awaited,
@@ -175,7 +175,8 @@ um den Katalog zu erweitern), kein eigenständiges Backend. Details:
   better-sqlite3-Writer, Ursache für ~57/116 Zero-Value-Zeilen). Response
   trägt `sqliteSync: false`, wenn der Python-Sync fehlschlägt — der JSON-Save
   selbst bleibt davon unberührt.
-- **wger Gewichtssync**: `POST /fitness/body` mit `weight_kg` → schreibt Body-JSON + pusht `POST /api/v2/weightentry/` zu wger (fire-and-forget). Token: `WGER_API_TOKEN` env. Base-URL: `WGER_BASE` env (Standard `:8000`, wger läuft tatsächlich auf `:80`, siehe `../fitness/catalog/CLAUDE.md`).
+- **wger Status (2026-08-30)**: Der Docker-Stack unter `~/.local/docker-apps/wger` ist aktuell bewusst gestoppt, weil wger faktisch nicht als aktives Fitness-Backend genutzt wird. Relevante SOTs fuer Plaene, Sessions und lokale Runtime bleiben `server.mjs`/`fitness-api.service` plus `~/.aos/fitness/`. Falls wger spaeter wieder aktiviert wird, Host-Zugang ueber `http://localhost` bzw. `WGER_BASE=http://127.0.0.1/api/v2`, nicht `:8000`.
+- **wger Gewichtssync**: `POST /fitness/body` mit `weight_kg` → schreibt Body-JSON + pusht `POST /api/v2/weightentry/` zu wger (fire-and-forget). Token: `WGER_API_TOKEN` env. Base-URL: `WGER_BASE` env (frueher oft `:8000` dokumentiert, tatsaechlicher Host-Zugang ueber `:80`, siehe `../fitness/catalog/CLAUDE.md`).
 - **UID-Fallback (Fix 2026-08-15)**: alle Routen ohne expliziten `uid`-Query-Param
   fallen jetzt einheitlich auf `FITNESS_UID` (aufgelöst aus `.active-uid`-Datei
   bzw. Env, Modul-Konstante oben in der Datei) zurück. Vorher fielen 12 Routen

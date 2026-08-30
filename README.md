@@ -36,7 +36,7 @@ Workout-Tracking PWA und CLI für Krafttraining — Pflichtaufgaben-Werkzeug der
 | Backend | Node.js (`server.mjs`) | 9100 |
 | Frontend | React + Vite | 5902 (dev) |
 | PWA | Firebase Hosting | fitness-aos.web.app |
-| Exercise DB | wger (lokal) | 8000 |
+| Exercise DB | wger (lokal, derzeit gestoppt) | 80 |
 | Ergänzung | yuhonas free-exercise-db | — |
 
 ---
@@ -107,7 +107,7 @@ Kurz zu den Invarianten:
 - ✅ Frontend Views (Dashboard, Session, Journal, Muscles, Learn, WeeklyReview)
 - ✅ Firebase PWA (fitness-aos.web.app) — Firestore-basiert, kein lokaler Server
 - ✅ Firestore Sync (on-demand pull via Bridge-Ping, Oneshot beim Boot)
-- ✅ wger Integration (lokal)
+- ✅ wger Integration vorhanden, aber Stand 2026-08-30 bewusst gestoppt da aktuell nicht als aktives Backend genutzt
 - ✅ yuhonas Integration (Bilder, Varianten)
 - ✅ Katalog-Struktur (Exercises, Anatomy Teaching, Rules, Maps)
 - ✅ BodyMap (react-body-highlighter) — Muskelvisualisierung in Session + Coverage-View
