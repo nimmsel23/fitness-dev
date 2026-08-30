@@ -96,6 +96,53 @@ export function pickNextRoutine(routines, workouts) {
   })[0];
 }
 
+// Split-Zyklus-Tracking ("Push/Pull/Legs x10"): zählt pro konfiguriertem
+// Split-Tag, wie oft eine Session mit passendem `block`-Feld geloggt wurde,
+// und leitet daraus ab, wie viele VOLLSTÄNDIGE Zyklen (jeder Tag mind. 1x)
+// abgeschlossen sind. Läuft unbegrenzt weiter (kein Endzustand bei Erreichen
+// des Ziels) — `targetCycles` ist nur eine Anzeige-Markierung, kein Cutoff.
+// Bewusst KEIN neues Datenfeld an Session/Routine nötig: `session.block`
+// existiert bereits (SplitPicker), hier nur ausgelesen + normalisiert.
+import { normalizeBlock } from "../views/Session/utils";
+
+export function computeSplitCycleProgress(sessions, tags, targetCycles = 0) {
+  const wantedTags = (tags || []).map(normalizeBlock).filter(Boolean);
+  const counts = Object.fromEntries(wantedTags.map((t) => [t, 0]));
+  for (const s of sessions || []) {
+    const tag = normalizeBlock(s?.block);
+    if (tag && tag in counts) counts[tag]++;
+  }
+  const cyclesCompleted = wantedTags.length > 0
+    ? Math.min(...wantedTags.map((t) => counts[t]))
+    : 0;
+  return {
+    tags: wantedTags,
+    counts,
+    cyclesCompleted,
+    targetCycles: targetCycles || 0,
+  };
+}
+
+// Tages-Punkte für einen Split-Tag über die letzten `days` Kalendertage
+// (gleiches Dot-Grid-Muster wie getRecentCompletionDays, aber gegen
+// `session.block` statt `routine_id` gematcht).
+export function getRecentBlockDays(tag, sessions, days = 14) {
+  const wantedTag = normalizeBlock(tag);
+  const doneDates = new Set(
+    (sessions || [])
+      .filter((s) => normalizeBlock(s?.block) === wantedTag && s?.date)
+      .map((s) => String(s.date).slice(0, 10))
+  );
+  const out = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const iso = d.toISOString().slice(0, 10);
+    out.push({ date: iso, done: doneDates.has(iso) });
+  }
+  return out;
+}
+
 // Wie pickNextRoutine, aber für Routinen innerhalb eines Trainingsplans
 // (Makrozyklus) — die matchen gegen workouts nicht über ihre eigene id
 // (rt_xxx, planintern), sondern über sourceTemplateId (die tatsächliche

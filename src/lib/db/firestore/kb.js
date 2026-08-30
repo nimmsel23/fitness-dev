@@ -61,11 +61,29 @@ export async function saveExercise(exerciseId, data) {
 // Load once, cache in module scope, score in browser.
 let _searchCache = null;
 
+const DEFAULT_SESSION_SOURCES = { wger: true, yuhonas: true, coach: true };
+
 function _normalize(s) {
   return String(s || "")
     .toLowerCase()
     .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
     .replace(/[-_]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function _loadSessionSources() {
+  try {
+    const raw = JSON.parse(localStorage.getItem("fitness-sessionSources") || "{}");
+    return { ...DEFAULT_SESSION_SOURCES, ...(raw || {}) };
+  } catch {
+    return { ...DEFAULT_SESSION_SOURCES };
+  }
+}
+
+function _getExerciseSource(ex) {
+  const tags = Array.isArray(ex?.tags) ? ex.tags : [];
+  if (tags.includes("yuhonas") || ex?.yuhonas_id) return "yuhonas";
+  if (tags.includes("wger") || tags.includes("unreviewed") || ex?.wger_id) return "wger";
+  return "coach";
 }
 
 export async function searchExercises(query, limit = 12) {
@@ -76,15 +94,12 @@ export async function searchExercises(query, limit = 12) {
     _searchCache = [...EXERCISE_BULK_DATA, ...curated];
   }
 
-  const stored = localStorage.getItem("fitness-sessionSources");
-  const sources = stored ? JSON.parse(stored) : { wger: true, yuhonas: true, coach: true };
+  const sources = _loadSessionSources();
   const superseded = _buildSupersededExternalRefs(_searchCache);
   const pool = _searchCache.filter((ex) => {
-    const tags = ex.tags || [];
     if (_isSupersededExternalExercise(ex, superseded)) return false;
-    if (tags.includes("wger") || tags.includes("unreviewed")) return sources.wger !== false;
-    if (tags.includes("yuhonas")) return sources.yuhonas !== false;
-    return sources.coach === true;
+    const source = _getExerciseSource(ex);
+    return sources[source] !== false;
   });
 
   const qn = _normalize(q);

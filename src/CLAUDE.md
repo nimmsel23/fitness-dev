@@ -239,6 +239,13 @@ lässt. Nach demselben Muster wie oben (Build-Time-KB-Import) generiert
 Firestore-Fetch, der die bereits im Bundle enthaltenen IDs rausfiltert
 (`_getCuratedExercises()`), statt sie doppelt zu laden.
 
+- **Semantik-Korrektur ab 2026-08-30:** Die beiden Quelldateien heißen zwar
+  weiterhin `unreviewed_wger.yml` / `unreviewed_yuhonas.yml`, aber sobald ihr
+  Inhalt clientseitig in `exerciseBulkData.generated.js` eingebaut ist, gilt
+  er NICHT mehr als `unreviewed`. Im Bundle sind das einfach statische
+  `wger`-/`yuhonas`-Importe (`bulk_import`), damit `unreviewed` nur noch echte
+  Review-Kandidaten im KB-Sinn bezeichnet.
+
 - **Bewusst NICHT** wie beim 6-Pack vollständig ersetzt: der kuratierte/
   expert-Teil des Katalogs wächst laufend über Coach-Approvals in der
   Firestore-UI — der ganze Sinn dieses Kanals ist, dass eine Freigabe **ohne
@@ -408,3 +415,25 @@ bestehenden `AssignPlan.jsx`/`CatalogBrowser.jsx`/`ClientManagement.jsx`
 wger/yuhonas-Duplikate statt EINEM Inbox-Draft) ist separat in
 `../fitness/catalog/CLAUDE.md` dokumentiert (Fix in `resolver.py`
 umgesetzt, Yuhonas-Anteil hängt noch am kaputten Datenpfad dort).
+
+**Coach-seitiges Split-Zyklus-Habit-Tracking (2026-08-27,
+`views/Coach/ClientHabitCycle.jsx`, neuer `ClientsPanel.jsx`-Sub-Tab
+"Habits"):** HabitShare-artige Wochenübersicht + Zyklus-Zähler ("Push/Pull/
+Legs x10") pro Klient. Baut **bewusst nicht** auf `habits-dev` auf (das kennt
+Fitness/Fuel nicht, komplett isolierte Habit-Collection) — liest stattdessen
+retroaktiv das ohnehin vorhandene `session.block`-Feld aus (`SplitPicker.jsx`,
+bereits seit längerem Teil des Session-JSON-Formats), keine neue
+Datenstruktur, funktioniert sofort auf der kompletten Historie. Coach
+konfiguriert pro Klient frei wählbare Tags (müssen mit den SplitPicker-Werten
+übereinstimmen, sonst kein Match) + optionale Zielzahl; Zyklen laufen
+unbegrenzt weiter (kein Endzustand bei Zielerreichung, nur Anzeige-Marker).
+`lib/habitProgress.js::computeSplitCycleProgress()`/`getRecentBlockDays()`
+sind die Kernlogik, `views/Session/utils.js::normalizeBlock()` vereinheitlicht
+dabei die zwei bisher parallel existierenden Block-Vokabulare (`"Full"` vs.
+`"Full Body"`). Konfig-Persistenz: lokal
+`~/.aos/fitness/users/{uid}/habit-cycle.json`, Firestore
+`fitness/{uid}/settings/habitCycle` (`lib/db/{local,firestore}/coach.js`).
+**Bekannte Lücke:** Tag-Eingabe ist Freitext ohne Autocomplete gegen die
+tatsächlichen `SPLITS`-Werte aus `SplitPicker.jsx` — Tippfehler/Groß-
+Kleinschreibungs-Varianten jenseits von `normalizeBlock()`s einfachem
+Lowercase+"full body"-Mapping matchen nicht.

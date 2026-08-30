@@ -3,7 +3,7 @@
  */
 
 import {
-  doc, setDoc, updateDoc, getDocs, writeBatch, serverTimestamp, collectionGroup, collection,
+  doc, setDoc, getDoc, updateDoc, getDocs, writeBatch, serverTimestamp, collectionGroup, collection,
 } from "firebase/firestore";
 
 import { db } from "../../../firebase.js";
@@ -96,6 +96,7 @@ export async function getClientJournalFeed(clientUid, limitCount = 100) {
         userId: clientUid,
         path: d.ref.path,
         date: data.date || "Unbekannt",
+        block: data.block || null,
         exercises: data.exercises || [],
         effort: data.effort ?? null,
         mood: data.mood || "",
@@ -190,6 +191,7 @@ export async function getGlobalJournalFeed(limitCount = 50) {
         userId,
         path: d.ref.path,
         date: data.date || "Unbekannt",
+        block: data.block || null,
         exercises: data.exercises || [],
         effort: data.effort ?? null,
         mood: data.mood || "",
@@ -249,6 +251,32 @@ export async function getGlobalJournalFeed(limitCount = 50) {
 
   feed.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
   return feed.slice(0, limitCount);
+}
+
+// Split-Zyklus-Konfiguration (Push/Pull/Legs x10) pro Klient — Pendant zu
+// local/coach.js, hier direkt als Doc statt Datei.
+export async function getClientHabitCycleConfig(clientUid) {
+  try {
+    const snap = await getDoc(doc(db, "fitness", clientUid, "settings", "habitCycle"));
+    return snap.exists() ? { tags: [], targetCycles: 0, ...snap.data() } : { tags: [], targetCycles: 0 };
+  } catch (e) {
+    console.error("Error in getClientHabitCycleConfig:", e);
+    return { tags: [], targetCycles: 0 };
+  }
+}
+
+export async function saveClientHabitCycleConfig(clientUid, config) {
+  try {
+    await setDoc(doc(db, "fitness", clientUid, "settings", "habitCycle"), {
+      tags: Array.isArray(config?.tags) ? config.tags : [],
+      targetCycles: Number(config?.targetCycles) || 0,
+      updated_at: serverTimestamp(),
+    });
+    return { ok: true };
+  } catch (e) {
+    console.error("Error in saveClientHabitCycleConfig:", e);
+    return { ok: false };
+  }
 }
 
 export async function getAllUserProfiles() {

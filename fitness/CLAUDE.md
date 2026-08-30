@@ -31,7 +31,7 @@ fitness/api/
 
 - Port: `FITNESS_PYTHON_PORT` env (default 9150)
 - Starten: `python3 -m fitness.api.main` / `fitness-api` (uv-Tool-Entry-Point, siehe `pyproject.toml`) / `fitness-devctl start --no-node`
-- Service: `fitness-python-backend.service`
+- Service: `fitness-api.service`
 - **Firestore-Watcher-Trennung (seit 2026-07-30):** Nur Katalog-Belange
   (Inbox-Drafts + approved `kb/exercises`) laufen eingebettet im API-Prozess
   (`firestore.mirror.start_catalog_watchers()`). User-Data-Sync (Sessions/
@@ -131,7 +131,7 @@ siehe Alembic-Abschnitt unten) — keine eigene Tabellen-Definition.
 
 | Dispatcher | Typ | Funktion |
 |---|---|---|
-| `fitness-devctl` | python3 | Dev-Server-Controller (--user-scope: fitness-dev.service, fitness-python-backend.service) |
+| `fitness-devctl` | python3 | Dev-Server-Controller (--user-scope: fitness-dev.service, fitness-api.service) |
 | `fitness-prodctl` | python3 | Prod-Controller (fitness.service, system-scope :6100, sudo für restart/stop) |
 | `~/fitness/bin/fitness` | python3 | Terminal-facing Domain-CLI (session/journal/coverage/gaps/search/sync/catalog) |
 | `fitnessctl` | python3 | Reiner Top-Level-Router: `fitnessctl dev <cmd>` → fitness-devctl, `fitnessctl prod <cmd>` → fitness-prodctl |

@@ -2,6 +2,17 @@ import { api } from "./core";
 import { normalizeExerciseRecord } from "../shared/exercise.js";
 import { getStaticMuscle, getStaticMuscleDocs } from "../../kb/muscles.js";
 
+const DEFAULT_SESSION_SOURCES = { wger: true, yuhonas: true, coach: true };
+
+function loadSessionSources() {
+  try {
+    const raw = JSON.parse(localStorage.getItem('fitness-sessionSources') || '{}');
+    return { ...DEFAULT_SESSION_SOURCES, ...(raw || {}) };
+  } catch {
+    return { ...DEFAULT_SESSION_SOURCES };
+  }
+}
+
 export async function getExercise(exerciseId) {
   try {
     const data = await api.get("/fitness/exercises/all");
@@ -33,8 +44,7 @@ export async function searchExercises(query, limit = 12) {
   const q = String(query || "").trim();
   if (!q) return { ok: true, results: [], query: q, suggestions: [] };
   try {
-    const stored = localStorage.getItem('fitness-sessionSources');
-    const sources = stored ? JSON.parse(stored) : { wger: true, yuhonas: true, coach: true };
+    const sources = loadSessionSources();
     const active = Object.entries(sources).filter(([, v]) => v).map(([k]) => k).join(',') || 'wger';
     const data = await api.get(`/fitness/search?q=${encodeURIComponent(q)}&limit=${limit}&sources=${active}`);
     if (!data) return { ok: false, results: [], query: q };
