@@ -1,3 +1,41 @@
+# Session-Handoff-Automatisierung: PreCompact-Hook + Doku-Learnings + Auto-Commit (2026-08-31)
+
+Nach der Swagger/Zod-Arbeit wurde die Handoff-Kette zwischen Claude-Code-
+Sessions in diesem Repo automatisiert: TODO.md (Makro) → Arbeit →
+RESULTS.md (was tatsächlich gemacht wurde) → NEXT.md (was offen blieb),
+plus die konkreten Learnings dieser Session dauerhaft in `docs/CLAUDE.md`
+verankert.
+
+* **`docs/BACKEND.md`** (neu): eigenständiges Backend-Doku-Dokument für
+  `server.mjs` (Swagger/Zod-Autodoc, Node↔Python-Routen-Parität) — bewusst
+  offen als allgemeines Dokument angelegt, nicht exklusiv auf ein Thema
+  beschränkt formuliert.
+* **`NEXT.md`** (neu, repo-lokal): aktive Arbeitsliste für fitness-dev
+  (Gegenstück zur globalen `~/NEXT.md`) — hält fest, was konkret als
+  Nächstes ansteht, im Unterschied zu `TODO.md` (Makro-Backlog ohne Limit).
+* **`.claude/hooks/pre-compact-fill-docs.sh`** (neu) + **`.claude/settings.json`**:
+  PreCompact-Hook, der bei jedem Compact via `claude -p
+  --dangerously-skip-permissions` (nach expliziter User-Freigabe,
+  eingeschränkt auf `Read,Edit`) automatisch `TODO.md`/`RESULTS.md`/
+  `NEXT.md` aus dem Transkript nachpflegt — hinter `flock`
+  (`.claude/hooks/.fill-docs.lock`) gegen die in diesem Repo üblichen
+  parallelen Sessions abgesichert, überspringt reine Recherche-Sessions
+  ohne Git-Änderungen.
+* **`.claude/hooks/post-edit-commit-docs.sh`** (neu): PostToolUse-Hook
+  (Edit|Write), committet automatisch und einzeln (kein `git add -A`, kein
+  Push), sobald `TODO.md`, `RESULTS.md`, `NEXT.md`, `docs/CLAUDE.md` oder
+  `docs/BACKEND.md` geändert werden — ebenfalls `flock`-gesichert, leere
+  Diffs erzeugen keinen Commit.
+* **`docs/CLAUDE.md`**: vier Learnings aus dieser Session ergänzt —
+  `fitness-dev.service` läuft im Normalfall nicht (nicht annehmen, dass ein
+  laufender Node-Prozess automatisch der fitness-Server ist), Prozessname
+  `server.mjs` ist über Sibling-Repos mehrdeutig (`readlink -f
+  /proc/<pid>/cwd` statt Namen prüfen), `git stash push -- <datei>` als
+  Symlink-sicherer Spezialfall von `git stash`, sowie die neue Session-
+  Handoff-Konvention (`NEXT.md` bei unklarem Sessionstart zuerst lesen).
+
+---
+
 # Inbox: Rohdaten-Snapshots von wger/yuhonas getrennt anfügen (2026-08-31)
 
 Ausgangspunkt war der Wunsch, Inbox-Drafts live zu verbessern (Fallbeispiel:
