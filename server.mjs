@@ -2,8 +2,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { Hono } from "hono";
 import { serve } from "@hono/node-server";
+import { swaggerUI } from "@hono/swagger-ui";
+import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import pino from "pino";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
 import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, pullAllSessions, pullJournalTree } from "./firestore-mirror.mjs";
@@ -261,7 +262,7 @@ function computeCoverageAnatomy(days) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-const app = new Hono();
+const app = new OpenAPIHono(); // Drop-in-Ersatz für Hono, alle bestehenden app.get/post/etc. bleiben unverändert nutzbar
 
 app.use("*", async (c, next) => {
   c.res.headers.set("Access-Control-Allow-Origin", "*");
@@ -276,9 +277,26 @@ app.get("/health", (c) =>
 );
 
 // ── Exercise search ───────────────────────────────────────────────────────────
-app.get("/exercises/search", async (c) => {
-  const q     = c.req.query("q")     || "";
-  const limit = Math.min(Number(c.req.query("limit") || 12), 50);
+const exerciseSearchRoute = createRoute({
+  method: "get",
+  path: "/exercises/search",
+  tags: ["exercises"],
+  summary: "Übungssuche lokal + wger-Fallback",
+  request: {
+    query: z.object({
+      q: z.string().optional().default("").openapi({ example: "bankdrücken" }),
+      limit: z.coerce.number().int().positive().max(50).optional().default(12),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Suchergebnisse",
+      content: { "application/json": { schema: z.object({ ok: z.boolean(), source: z.string().optional(), results: z.array(z.record(z.string(), z.any())) }) } },
+    },
+  },
+});
+app.openapi(exerciseSearchRoute, async (c) => {
+  const { q, limit } = c.req.valid("query");
   if (q.length < 1) return c.json({ ok: true, results: [] });
   const local = await searchExercises(q, limit);
   if (local?.results?.length) return c.json(local);
@@ -702,11 +720,25 @@ app.get("/fitness/muscles/:id", async (c) => {
   }
 });
 
-app.get("/fitness/plan", async (c) => {
-  const template = c.req.query("template") || "";
-  const split    = c.req.query("split")    || "";
-  const day      = c.req.query("day")      || "";
-  const goal     = c.req.query("goal")     || "";
+const fitnessPlanRoute = createRoute({
+  method: "get",
+  path: "/fitness/plan",
+  tags: ["fitness"],
+  summary: "Trainingsplan-Generator",
+  request: {
+    query: z.object({
+      template: z.string().optional().default(""),
+      split: z.string().optional().default(""),
+      day: z.string().optional().default(""),
+      goal: z.string().optional().default(""),
+    }),
+  },
+  responses: {
+    200: { description: "Generierter Plan", content: { "application/json": { schema: z.record(z.string(), z.any()) } } },
+  },
+});
+app.openapi(fitnessPlanRoute, async (c) => {
+  const { template, split, day, goal } = c.req.valid("query");
   return c.json(await buildPlan({ template, split, day, goal }));
 });
 
@@ -914,14 +946,60 @@ app.get("/sessions", (c) => {
   return c.json({ ok: true, sessions });
 });
 
-app.post("/session", async (c) => {
+// Bewusst permissiv (.loose() + fast alles optional): das echte
+// Session-JSON-Format (siehe src/CLAUDE.md) hat gewachsene Zusatzfelder
+// (slots[], rev, snapshot_version, ...), Ziel dieses Schemas ist Doku +
+// Grundschutz (kaputtes/Nicht-Objekt-Payload abfangen), keine strenge Gate-
+// Validierung, die reale Klient-Payloads zurückweisen könnte.
+const sessionExerciseSchema = z.object({
+  exercise_id: z.string().optional(),
+  id: z.string().optional(),
+  name: z.string().optional(),
+  sets: z.union([z.string(), z.number()]).optional(),
+  reps: z.union([z.string(), z.number()]).optional(),
+  weight: z.union([z.string(), z.number()]).optional(),
+  note: z.string().optional(),
+  primaryMuscles: z.array(z.string()).optional(),
+  secondaryMuscles: z.array(z.string()).optional(),
+  isHIT: z.boolean().optional(),
+  done: z.boolean().optional(),
+  slotId: z.string().nullable().optional(),
+}).loose();
+const sessionBodySchema = z.object({
+  date: z.string().optional(),
+  block: z.string().optional(),
+  exercises: z.array(sessionExerciseSchema).optional(),
+  slots: z.array(z.record(z.string(), z.any())).optional(),
+  effort: z.union([z.string(), z.number()]).optional(),
+  mood: z.string().optional(),
+  notes: z.string().optional(),
+}).loose().openapi("SessionBody");
+
+const sessionSaveRoute = createRoute({
+  method: "post",
+  path: "/session",
+  tags: ["session"],
+  summary: "Session speichern (JSON = SOT, danach SQLite-Sync via Python)",
+  request: {
+    query: z.object({ date: z.string().optional(), id: z.string().optional() }),
+    body: { content: { "application/json": { schema: sessionBodySchema } } },
+  },
+  responses: {
+    200: {
+      description: "Gespeichert",
+      content: { "application/json": { schema: z.object({ ok: z.boolean(), id: z.string().nullable(), sqliteSync: z.boolean() }) } },
+    },
+  },
+});
+app.openapi(sessionSaveRoute, async (c) => {
   const uid     = c.req.header("X-User-UID") || FITNESS_UID;
-  const date    = c.req.query("date") || localToday();
-  const id      = c.req.query("id") || null;
+  const { date: dateQ, id: idQ } = c.req.valid("query");
+  const date    = dateQ || localToday();
+  const id      = idQ || null;
   const userDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   fs.mkdirSync(userDir, { recursive: true });
   const file    = path.join(userDir, sessionFileName(date, id));
-  const data    = await c.req.json().catch(() => ({}));
+  const data    = c.req.valid("json");
   const session = freezeSnapshot({ ...data, date, session_id: id, saved_at: new Date().toISOString() });
   writeJson(file, session); // JSON ist SOT — bleibt in jedem Fall geschrieben
   let sqliteSync = true;
@@ -1360,6 +1438,59 @@ app.get("/v1", (c) => {
   }
   return c.text("Not Found", 404);
 });
+
+// ── API-Doku (Swagger UI) ─────────────────────────────────────────────────────
+// Spec wird zur Laufzeit aus Honos eigener Routing-Tabelle (app.routes)
+// generiert statt von Hand gepflegt — bleibt automatisch synchron mit dem
+// tatsächlichen Code, auch wenn oben Routen dazukommen/wegfallen. Bewusst
+// ohne @hono/zod-openapi (würde ein Rewrite aller ~60 Handler auf
+// Zod-Schemas verlangen, reiner "hat der Endpoint einen Namen"-Nutzen hier
+// reicht für internes Debugging/Doku-Zweck).
+function buildOpenApiSpec() {
+  const paths = {};
+  for (const r of app.routes) {
+    if (r.method === "ALL" || r.path === "/*" || r.path === "*") continue;
+    const method = r.method.toLowerCase();
+    if (!["get", "post", "put", "patch", "delete"].includes(method)) continue;
+    const openApiPath = r.path.replace(/:([^/]+)/g, "{$1}");
+    paths[openApiPath] ??= {};
+    const params = [...r.path.matchAll(/:([^/]+)/g)].map(([, name]) => ({
+      name, in: "path", required: true, schema: { type: "string" },
+    }));
+    paths[openApiPath][method] = {
+      summary: `${r.method} ${r.path}`,
+      tags: [openApiPath.split("/").filter(Boolean)[0] || "root"],
+      parameters: params,
+      responses: { 200: { description: "OK" } },
+    };
+  }
+  return {
+    openapi: "3.0.3",
+    info: {
+      title: "fitness-dev API",
+      version: "1.0.0",
+      description: "Auto-generiert aus der Hono-Routing-Tabelle (server.mjs) — kein Handschrift-Spec, immer synchron mit dem laufenden Code.",
+    },
+    servers: [{ url: "/" }],
+    paths,
+  };
+}
+app.get("/openapi.json", (c) => {
+  // Basis: alle Routen generisch aus der Hono-Routing-Tabelle (immer
+  // vollständig). Overlay: die paar Routen, die per .openapi()+Zod
+  // registriert sind (aktuell /exercises/search, /fitness/plan, POST
+  // /session) — deren echte Request/Response-Schemas ersetzen den
+  // generischen Eintrag. OpenAPIHono liefert diese eigene Teil-Spec über
+  // getOpenAPIDocument(), unabhängig von den restlichen Hono-Plain-Routen.
+  const spec = buildOpenApiSpec();
+  const zodDoc = app.getOpenAPIDocument({ openapi: "3.0.3", info: spec.info });
+  for (const [p, methods] of Object.entries(zodDoc.paths || {})) {
+    spec.paths[p] = { ...spec.paths[p], ...methods };
+  }
+  if (zodDoc.components) spec.components = zodDoc.components;
+  return c.json(spec);
+});
+app.get("/docs", swaggerUI({ url: "/openapi.json" }));
 
 // ── Static / SPA fallback ─────────────────────────────────────────────────────
 app.get("*", async (c) => {
