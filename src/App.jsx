@@ -420,7 +420,7 @@ export default function App() {
         }}
       />
       <ErrorBoundary>
-        <div className="app-shell isolate flex min-h-screen overflow-x-hidden w-full bg-fit-bg text-fit-ink font-sans transition-colors duration-500">
+        <div className={`app-shell isolate flex min-h-screen overflow-x-hidden w-full bg-fit-bg text-fit-ink font-sans transition-colors duration-500 ${tab === 'coach' ? 'coach-console' : ''}`}>
 
         <Sidebar
           tab={tab}

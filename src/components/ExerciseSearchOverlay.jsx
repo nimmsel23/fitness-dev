@@ -10,8 +10,8 @@ const SOURCE_STORAGE_KEY = 'fitness-sessionSources'
 const SOURCE_LABELS = {
   wger: 'wger',
   yuhonas: 'yuhonas',
-  coach: 'coach',
-  expert: 'coach',
+  coach: 'vitalos',
+  expert: 'vitalos',
 }
 
 export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
