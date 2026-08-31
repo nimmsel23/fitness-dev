@@ -1,3 +1,64 @@
+# Inbox-Drafts zeigen rohe wger-/yuhonas-Quellen getrennt, neuer Source-Consistency-Audit (2026-09-01)
+
+Ausgangspunkt war die Beobachtung, dass Gemini-generierte Inbox-Drafts
+(z.B. `inbox_081`, `inbox_wger_206`) teils unbelegte/falsche Muskel-
+Zuordnungen fälschlich als "expert" durchgewunken hatten. Ziel laut User:
+kein automatisches Verschmelzen von wger- und yuhonas-Daten ("nicht zu
+yuwogerhona zusammenkleben"), sondern beide Rohquellen sichtbar getrennt
+im Coach-Sheet ("wger sagt X, yuhonas sagt Y") plus ein Check, der KI-
+Behauptungen gegen echte Rohdaten prüft.
+
+* **`fitness/catalog/core/source_merge.py`**: neue Funktion
+  `find_source_entries()` (Refactoring aus `build_external_seed()`) findet
+  rohe wger-/yuhonas-Einzeltreffer getrennt, ohne sie zu mergen. Gestaffeltes
+  Fuzzy-Matching ergänzt: sichere Treffer (Score ≥86) wie bisher, unsichere
+  Kandidaten darunter (z.B. "Walking Lunges" vs. "Barbell Walking Lunge",
+  Score 74) werden jetzt als Kandidat mit Score sichtbar statt komplett zu
+  verschwinden. Optionale `record`/`wger_entries`/`yuhonas_entries`-Parameter
+  vermeiden teuren `build_exercise_index()`-Rebuild bei Batch-Aufrufen.
+* **`fitness/catalog/agent/inbox_actions.py`**: neue Funktion
+  `attach_source_snapshot()` + CLI-Befehl `fitness-catalog inbox
+  attach-sources [file_id] [--apply]` (dry-run per Default) — verlinkt bei
+  sicherem Treffer `wger_id`/`yuhonas_id`/`external_ids` auf oberster Ebene
+  und hängt den jeweils rohen, unveränderten Treffer unter `origin.wger`/
+  `origin.yuhonas` an (nach zwei Namensrunden mit dem User: erst
+  `source_snapshot.*`, dann `origin.snapshots.*`, am Ende direkt
+  `origin.wger`/`origin.yuhonas` ohne Zwischenebene).
+* **Bulk-Lauf über alle ~44 Inbox-Drafts** (`--apply`, zwei Durchgänge):
+  29 Drafts erhielten neu geschriebene Rohdaten-Verweise, 6 hatten sie
+  schon, 5 bleiben ohne externe Quelle (u.a. `inbox_jefferson_curl`,
+  `inbox_scapula_priming`, `inbox_skin_the_cat`, 2× Yoga-Headstand-Duplikat).
+* **`fitness/catalog/coach_sheet.py`**: neuer Abschnitt "## Quellen
+  (unverändert, getrennt)" — zeigt `origin.wger`/`origin.yuhonas` als
+  eigene, unvermischte Blöcke im Coach-Sheet.
+* **`fitness/catalog/core/audit/source_consistency.py`** (neu): Audit-Topic
+  `fitness-catalog audit source-consistency` — prüft primary_muscles/
+  secondary_muscles unreviewter Inbox-Drafts gegen die rohen wger-/yuhonas-
+  Quellen (Source-of-Truth) auf Körperregion-Ebene, meldet unbelegte
+  Muskel-Zuordnungen als Verdacht auf KI-Fehlklassifizierung. Performance-
+  Fix: `find_source_entries()` bekam einen `record`-Parameter statt eines
+  ursprünglich geplanten globalen `lru_cache` (der hätte in `fitness-api.service`
+  veraltete Daten geliefert und die Test-Isolation gebrochen) — Laufzeit von
+  timeout(>120s) auf ~8-10s für 36 geprüfte Records gesenkt.
+* **`fitness/catalog/kb/muscle_index.yml`**: `string_aliases` um fehlende
+  yuhonas-Vokabeln ergänzt (`forearms`, `glutes`, `hamstrings`, `lower_back`,
+  `middle_back`, `traps`) — reduzierte Audit-Rauschen von 133 auf 18 echte
+  Flags. Ein testbrechender Alias (`shoulders → 302_lateral_deltoid`) wurde
+  wieder entfernt, da er die bestehende kontextsensitive Zuordnung
+  (`refine_generic_region_labels`) kurzgeschlossen hatte.
+* **`fitness/catalog/core/resolver.py`**: `ExerciseRecord` um `origin`-Feld
+  erweitert, damit `coach_sheet.py` die Rohdaten-Snapshots konsumieren kann.
+* **`fitness/catalog/CLAUDE.md`**: Sektion zum neuen `attach-sources`-
+  Befehl, der Fuzzy-Match-Falle und der bewussten Nicht-Verschmelzung
+  ergänzt.
+* Committet als `4157fe3` (erster Teil) und `161bfd0` (46 Dateien,
+  Feinschliff + Audit + Coach-Sheet), gepusht nach `origin/dev` — Post-Push-
+  Hook baute Frontend + Staging-Deploy erfolgreich.
+* Offen geblieben: Task #3 aus der User-Taskliste ("Audit-Flags in
+  Coach-Inbox-UI anzeigen") wurde nicht begonnen.
+
+---
+
 # Session-Handoff-Hooks nach fuel-dev portiert (2026-09-01)
 
 Auf Wunsch ("fuel-dev brauch auch noch so ein system") wurde das in
