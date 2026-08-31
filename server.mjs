@@ -357,7 +357,7 @@ app.openapi(defineJsonRoute({
   summary: "Übungen nach Muskelgruppe",
   query: z.object({ group: z.string().optional().default("") }),
 }), async (c) => {
-  const group = c.req.query("group") || "";
+  const { group } = c.req.valid("query");
   // Delegating search logic to agent if possible, but keeping local filter for now
   const normalized = group.toLowerCase().replace(/\s+/g, "_");
   const local = (fitnessData.exercises || []).filter(ex => {
@@ -466,7 +466,7 @@ app.openapi(defineJsonRoute({
   jsonBody: looseObjectSchema,
 }), async (c) => {
   try {
-    const body = await c.req.json();
+    const body = c.req.valid("json");
     const res = await fetch(`${PYTHON_BASE}/fitness/inbox/queue`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -530,9 +530,8 @@ app.openapi(defineJsonRoute({
     uid: z.string().optional(),
   }),
 }), (c) => {
+  const { limit, uid: onlyUid = null } = c.req.valid("query");
   const usersDir = path.join(os.homedir(), ".aos", "fitness", "users");
-  const limit = Number(c.req.query("limit") || 100);
-  const onlyUid = c.req.query("uid") || null;
   if (!fs.existsSync(usersDir)) return c.json({ ok: true, feed: [] });
 
   const uids = onlyUid
@@ -639,7 +638,7 @@ app.openapi(defineJsonRoute({
     text: z.string().optional(),
   }).loose(),
 }), async (c) => {
-  const { userId, sessionId, text } = await c.req.json().catch(() => ({}));
+  const { userId, sessionId, text } = c.req.valid("json");
   if (!userId || !sessionId || !text) return c.json({ ok: false, error: "missing fields" }, 400);
 
   const sessFile = path.join(os.homedir(), ".aos", "fitness", "users", userId, "sessions", `${sessionId.replace(`${userId}__`, "")}.json`);
@@ -665,8 +664,8 @@ app.openapi(defineJsonRoute({
   params: z.object({ clientUid: z.string() }),
   query: z.object({ coachUid: z.string().optional().default("") }),
 }), (c) => {
+  const { coachUid } = c.req.valid("query");
   const clientUid = c.req.param("clientUid");
-  const coachUid  = c.req.query("coachUid") || "";
   const dir = clientPlansDir(clientUid);
   if (!fs.existsSync(dir)) return c.json({ ok: true, plans: [] });
   const plans = fs.readdirSync(dir)
@@ -705,8 +704,8 @@ app.openapi(defineJsonRoute({
   }).loose(),
 }), async (c) => {
   const clientUid = c.req.param("clientUid");
-  const body = await c.req.json().catch(() => ({}));
-  const config = { tags: Array.isArray(body.tags) ? body.tags : [], targetCycles: Number(body.targetCycles) || 0 };
+  const body = c.req.valid("json");
+  const config = { tags: Array.isArray(body.tags) ? body.tags : [], targetCycles: body.targetCycles || 0 };
   writeJson(habitCycleFile(clientUid), config);
   return c.json({ ok: true, config });
 });
@@ -723,7 +722,7 @@ app.openapi(defineJsonRoute({
   }).loose(),
 }), async (c) => {
   const clientUid = c.req.param("clientUid");
-  const body = await c.req.json().catch(() => ({}));
+  const body = c.req.valid("json");
   const { coachUid, plan } = body;
   if (!coachUid || !plan) return c.json({ ok: false, error: "missing fields" }, 400);
 
@@ -749,12 +748,13 @@ app.openapi(defineJsonRoute({
   params: z.object({ clientUid: z.string(), planId: z.string() }),
   query: z.object({ date: z.string().optional() }),
 }), (c) => {
+  const { date: todayQ } = c.req.valid("query");
   const clientUid = c.req.param("clientUid");
   const planId    = c.req.param("planId");
   const plan = readJson(path.join(clientPlansDir(clientUid), `${planId}.json`));
   if (!plan) return c.json({ ok: true, progress: null });
 
-  const today = c.req.query("date") || localToday();
+  const today = todayQ || localToday();
   const completion = readJson(path.join(clientPlansDir(clientUid), planId, "completions", `${today}.json`));
   const exercises  = plan.exercises || [];
   const doneCount  = completion?.doneExerciseIds?.length || 0;
@@ -780,7 +780,8 @@ app.openapi(defineJsonRoute({
   summary: "Dem User zugewiesene Pläne",
   query: z.object({ uid: z.string().optional() }),
 }), (c) => {
-  const uid = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
+  const { uid: uidQ } = c.req.valid("query");
+  const uid = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
   const dir = clientPlansDir(uid);
   if (!fs.existsSync(dir)) return c.json({ ok: true, plans: [] });
   const plans = fs.readdirSync(dir)
@@ -803,9 +804,10 @@ app.openapi(defineJsonRoute({
     exerciseId: z.string().optional(),
   }).loose(),
 }), async (c) => {
+  const { uid: uidQ } = c.req.valid("query");
   const planId = c.req.param("planId");
-  const uid    = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
-  const body   = await c.req.json().catch(() => ({}));
+  const uid    = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
+  const body   = c.req.valid("json");
   const date   = body.date || localToday();
 
   const dir  = path.join(clientPlansDir(uid), planId, "completions");
@@ -854,9 +856,7 @@ app.openapi(defineJsonRoute({
     sources: z.string().optional().default("wger,yuhonas"),
   }),
 }), async (c) => {
-  const q       = c.req.query("q")       || "";
-  const limit   = Math.min(Number(c.req.query("limit") || 12), 50);
-  const sources = c.req.query("sources") || "wger,yuhonas";
+  const { q, limit, sources } = c.req.valid("query");
   return c.json(await searchExercises(q, limit, sources));
 });
 
@@ -931,7 +931,7 @@ app.openapi(defineJsonRoute({
   summary: "Wochensummary",
   query: z.object({ week: z.string().optional().default("current") }),
 }), async (c) => {
-  const week = c.req.query("week") || "current";
+  const { week } = c.req.valid("query");
   try { return c.json(await getWeeklySummary(week)); }
   catch (e) { return c.json({ ok: false, error: e.message }, 500); }
 });
@@ -943,7 +943,7 @@ app.openapi(defineJsonRoute({
   summary: "Export erzeugen",
   jsonBody: looseObjectSchema,
 }), async (c) => {
-  const data = await c.req.json().catch(() => ({}));
+  const data = c.req.valid("json");
   const kind = String(data.kind || "").trim();
   try {
     if (kind === "session") {
@@ -980,7 +980,8 @@ app.openapi(defineJsonRoute({
   summary: "Heutige Plan-Suggestion",
   query: z.object({ date: z.string().optional() }),
 }), (c) => {
-  const date = c.req.query("date") || localToday();
+  const { date: dateQ } = c.req.valid("query");
+  const date = dateQ || localToday();
   const plan = readJson(path.join(DATA_DIR, "plan.json"));
   const einheiten = (plan && plan.einheiten) || [];
 
@@ -1281,9 +1282,10 @@ app.openapi(defineJsonRoute({
     id: z.string().optional(),
   }),
 }), (c) => {
-  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
-  const date = c.req.query("date") || localToday();
-  const id   = c.req.query("id") || null;
+  const { uid: uidQ, date: dateQ, id: idQ } = c.req.valid("query");
+  const uid  = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
+  const date = dateQ || localToday();
+  const id   = idQ || null;
   const file = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions", sessionFileName(date, id));
   const data = readJson(file);
   return c.json({ ok: true, data: data || null });
@@ -1299,8 +1301,9 @@ app.openapi(defineJsonRoute({
     date: z.string().optional(),
   }),
 }), (c) => {
-  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
-  const date = c.req.query("date") || localToday();
+  const { uid: uidQ, date: dateQ } = c.req.valid("query");
+  const uid  = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
+  const date = dateQ || localToday();
   const dir  = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   if (!fs.existsSync(dir)) return c.json({ ok: true, sessions: [] });
   const sessions = fs.readdirSync(dir)
@@ -1430,8 +1433,9 @@ app.openapi(defineJsonRoute({
   }),
 }), (c) => {
   const uid  = c.req.header("X-User-UID") || FITNESS_UID;
-  const date = c.req.query("date") || localToday();
-  const id   = c.req.query("id") || null;
+  const { date: dateQ, id: idQ } = c.req.valid("query");
+  const date = dateQ || localToday();
+  const id   = idQ || null;
   const file = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions", sessionFileName(date, id));
   if (fs.existsSync(file)) fs.unlinkSync(file);
   deleteSessionFromDb(date, id);
@@ -1449,8 +1453,8 @@ app.openapi(defineJsonRoute({
     limit: z.coerce.number().int().positive().max(365).optional().default(10),
   }),
 }), (c) => {
-  const uid     = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
-  const limit   = Number(c.req.query("limit") || 10);
+  const { uid: uidQ, limit } = c.req.valid("query");
+  const uid     = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
   const dir     = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   if (!fs.existsSync(dir)) return c.json({ ok: true, sessions: [] });
   const files   = fs.readdirSync(dir).filter(f => f.endsWith(".json")).sort().reverse().slice(0, limit);
@@ -1468,7 +1472,8 @@ app.openapi(defineJsonRoute({
   summary: "Neueste Session laden",
   query: z.object({ uid: z.string().optional() }),
 }), (c) => {
-  const uid   = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
+  const { uid: uidQ } = c.req.valid("query");
+  const uid   = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
   const dir   = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   if (!fs.existsSync(dir)) return c.json({ ok: false }, 404);
   const files = fs.readdirSync(dir).filter(f => f.endsWith(".json")).sort().reverse();
@@ -1485,8 +1490,9 @@ app.openapi(defineJsonRoute({
   summary: "Journal-Eintrag lesen",
   query: z.object({ date: z.string().optional() }),
 }), async (c) => {
+  const { date: dateQ } = c.req.valid("query");
   const uid  = c.req.header("X-User-UID") || FITNESS_UID;
-  const date = c.req.query("date") || localToday();
+  const date = dateQ || localToday();
   // Firestore-first
   const fsContent = await readJournalFull(uid, date);
   if (fsContent) return c.json({ ok: true, content: fsContent, mtime: date, source: "firestore" });
@@ -1513,15 +1519,16 @@ app.openapi(defineJsonRoute({
   query: z.object({ date: z.string().optional() }),
   jsonBody: z.object({ content: z.string().optional() }).loose(),
 }), async (c) => {
+  const { date: dateQ } = c.req.valid("query");
+  const { content } = c.req.valid("json");
   const uid           = c.req.header("X-User-UID") || FITNESS_UID;
-  const date          = c.req.query("date") || localToday();
+  const date          = dateQ || localToday();
   // Pro-uid-Ordner (wie GET oben schon macht) statt fix an den beim Server-
   // Start aufgelösten DATA_DIR (= FITNESS_UID) — sonst landet der Eintrag
   // eines anderen Klienten (X-User-UID-Header) immer im falschen Journal.
   const dir           = path.join(os.homedir(), ".aos", "fitness", "users", uid, "journal");
   fs.mkdirSync(dir, { recursive: true });
   const file          = path.join(dir, `${date}.md`);
-  const { content }   = await c.req.json().catch(() => ({}));
   fs.writeFileSync(file, content || "");
   mirrorJournal(date, { text: content || "" }, uid);
   return c.json({ ok: true });
@@ -1534,8 +1541,8 @@ app.openapi(defineJsonRoute({
   summary: "Journal-Liste laden",
   query: z.object({ limit: z.coerce.number().int().positive().max(500).optional().default(50) }),
 }), async (c) => {
+  const { limit: limitCount } = c.req.valid("query");
   const uid = c.req.header("X-User-UID") || FITNESS_UID;
-  const limitCount = Number(c.req.query("limit") || 50);
   // Firestore-first
   const fsEntries = await listJournals(uid, limitCount);
   if (fsEntries) return c.json({ ok: true, entries: fsEntries, source: "firestore" });
@@ -1568,7 +1575,7 @@ app.openapi(defineJsonRoute({
   summary: "Anatomy-Coverage berechnen",
   query: z.object({ days: z.coerce.number().int().positive().max(365).optional().default(7) }),
 }), (c) => {
-  const days    = Number(c.req.query("days") || 7);
+  const { days } = c.req.valid("query");
   const muscles = computeCoverageAnatomy(days);
   return c.json({ ok: true, days, muscles });
 });
@@ -1580,7 +1587,7 @@ app.openapi(defineJsonRoute({
   summary: "Coverage-Gaps berechnen",
   query: z.object({ days: z.coerce.number().int().positive().max(365).optional().default(7) }),
 }), (c) => {
-  const days = Number(c.req.query("days") || 7);
+  const { days } = c.req.valid("query");
   const hits = computeCoverage(days);
   const all  = ["chest","back","shoulders","arms","core","glutes","quads","hamstrings","calves"];
   const gaps = all.filter(g => (hits[g] || 0) < 1).map(g => ({ name: g, hits: hits[g] || 0, exercises: [] }));
@@ -1599,10 +1606,9 @@ app.openapi(defineJsonRoute({
     mode: z.enum(["simple", "detailed"]).optional().default("simple"),
   }),
 }), (c) => {
-  const uid     = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
+  const { uid: uidQ, days, mode } = c.req.valid("query");
+  const uid     = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
   const sessDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
-  const days    = Math.min(365, Math.max(1, Number(c.req.query("days") || 14)));
-  const mode    = c.req.query("mode") || "simple";
   const dates   = lastDates(days).reverse();
 
   const isDetailed = mode === "detailed";
@@ -1651,7 +1657,8 @@ app.openapi(defineJsonRoute({
   summary: "Pflichtaufgabe-Trainingsprotokoll exportieren",
   query: z.object({ uid: z.string().optional() }),
 }), (c) => {
-  const uid = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
+  const { uid: uidQ } = c.req.valid("query");
+  const uid = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
   const dir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   const files = fs.existsSync(dir)
     ? fs.readdirSync(dir).filter(f => f.endsWith(".json")).sort()
@@ -1694,8 +1701,8 @@ app.openapi(defineJsonRoute({
     days: z.coerce.number().int().positive().max(365).optional().default(30),
   }),
 }), (c) => {
-  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
-  const days = Math.min(365, Math.max(1, Number(c.req.query("days") || 30)));
+  const { uid: uidQ, days } = c.req.valid("query");
+  const uid  = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
   const ownDir = bodyDirFor(uid);
   fs.mkdirSync(ownDir, { recursive: true });
   const byDate = new Map();
@@ -1721,10 +1728,11 @@ app.openapi(defineJsonRoute({
     weight_kg: z.union([z.string(), z.number()]).optional(),
   }).loose(),
 }), async (c) => {
-  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
+  const { uid: uidQ } = c.req.valid("query");
+  const uid  = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
   const dir  = bodyDirFor(uid);
   fs.mkdirSync(dir, { recursive: true });
-  const payload  = await c.req.json().catch(() => ({}));
+  const payload  = c.req.valid("json");
   const day      = payload.date || localToday();
   const file     = path.join(dir, `${day}.json`);
   const existing = readJson(file, { date: day });
@@ -1749,7 +1757,7 @@ app.openapi(defineJsonRoute({
   tags: ["system"],
   summary: "Theme-Konfiguration speichern",
   jsonBody: looseObjectSchema,
-}), async (c) => { writeJson(themeFile, await c.req.json().catch(() => ({}))); return c.json({ ok: true }); });
+}), async (c) => { writeJson(themeFile, c.req.valid("json")); return c.json({ ok: true }); });
 
 // ── Firestore ─────────────────────────────────────────────────────────────────
 app.openapi(defineJsonRoute({
@@ -1766,7 +1774,8 @@ app.openapi(defineJsonRoute({
   summary: "Sessions und Journal aus Firestore ziehen",
   query: z.object({ uid: z.string().optional() }),
 }), async (c) => {
-  const uid = c.req.query("uid") || c.req.header("X-User-UID");
+  const { uid: uidQ } = c.req.valid("query");
+  const uid = uidQ || c.req.header("X-User-UID");
   if (!uid || uid === "default") {
     return c.json({
       ok: false,
