@@ -74,24 +74,27 @@ export default function CatalogBrowser({ onInspectExercise }) {
   }
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] border border-fit-line/30 rounded-2xl overflow-hidden bg-fit-bg">
+    <div className="cc-panel flex h-[calc(100vh-12rem)] overflow-hidden bg-fit-bg">
+      <span className="cc-br1" /><span className="cc-br2" />
       {/* Left Sidebar: Search & Results */}
-      <div className="w-80 border-r border-fit-line/30 bg-fit-bg2/50 flex flex-col shrink-0">
-        <div className="p-4 border-b border-fit-line/30 relative">
-          <Search className="absolute left-7 top-1/2 -translate-y-1/2 text-fit-dim" size={16} />
-          <input
-            type="text"
-            placeholder="Übung suchen..."
-            className="w-full bg-fit-bg border border-fit-line rounded-xl py-2 pl-10 pr-10 text-sm focus:outline-none focus:border-fit-accent transition-colors text-fit-ink"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {loading && <Loader2 className="absolute right-7 top-1/2 -translate-y-1/2 text-fit-accent animate-spin" size={16} />}
+      <div className="cc-panel-side w-80 border-r border-fit-line/30 flex flex-col shrink-0">
+        <div className="p-4 border-b border-fit-line/30">
+          <span className="cc-panel-head block mb-2">02 · Archiv-Suche</span>
+          <div className="cc-terminal-input">
+            <span className="cc-prompt">&gt;</span>
+            <input
+              type="text"
+              placeholder="search exercises... (name, muskel, quelle)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {loading ? <Loader2 className="text-fit-accent animate-spin shrink-0" size={14} /> : <Search className="text-fit-dim shrink-0" size={14} />}
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto">
           {results.length === 0 && !loading && (
-            <div className="p-8 text-center text-xs" style={{ color: 'var(--dim)', opacity: 0.6 }}>
+            <div className="cc-panel-head p-8 text-center">
               Keine Ergebnisse gefunden.
             </div>
           )}
@@ -103,7 +106,7 @@ export default function CatalogBrowser({ onInspectExercise }) {
               return (
                 <li
                   key={exId}
-                  className={`p-3.5 transition-all cursor-pointer group border-l-2 ${isSelected ? 'bg-fit-accent/10 border-l-fit-accent' : 'border-l-transparent hover:bg-fit-bg'}`}
+                  className={`cc-list-row p-3.5 cursor-pointer group ${isSelected ? 'selected' : ''}`}
                   onClick={() => setSelectedExercise(ex)}
                 >
                   <div className={`text-sm font-semibold truncate ${isSelected ? 'text-fit-accent' : 'text-fit-ink group-hover:text-fit-accent'}`}>
