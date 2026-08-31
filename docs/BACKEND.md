@@ -37,19 +37,36 @@ auf, ohne dass irgendwer die Doku pflegen muss.
 **Nachteil:** Keine Body-/Response-Schemas, nur "diese Route existiert
 mit dieser Methode und diesen Pfad-Parametern".
 
-### Ebene 2 — Zod-Schemas (drei Kern-Routen als Vorlage)
+### Ebene 2 — Zod-Schemas (jetzt praktisch alle API-Routen)
 
 `app` ist `OpenAPIHono` (aus `@hono/zod-openapi`) statt `Hono` — ein
 Drop-in-Ersatz, alle bestehenden `app.get(...)`/`app.post(...)`-Aufrufe
-bleiben unverändert lauffähig. Nur drei besonders häufig genutzte Routen
-sind zusätzlich über `app.openapi(createRoute({...}), handler)`
-registriert:
+konnten schrittweise auf `app.openapi(createRoute({...}), handler)`
+gehoben werden. Stand 2026-08-31 laufen jetzt praktisch alle echten
+API-Routen in `server.mjs` über Zod; Plain-Hono geblieben sind nur die
+Sonderfälle `GET /openapi.json`, `GET /docs` und der SPA-Fallback
+`GET *`.
+
+Typisches Muster:
+
+```js
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/fitness/export",
+  tags: ["fitness"],
+  summary: "Export erzeugen",
+  jsonBody: looseObjectSchema,
+}), async (c) => { ... });
+```
+
+Die benannten Kernrouten bleiben als explizite Einzel-Schemas bestehen:
 
 | Route | Schema-Datei-Ort | Besonderheit |
 |-------|-------------------|--------------|
 | `GET /exercises/search` | `server.mjs`, `exerciseSearchRoute` | `limit` via `z.coerce.number()` (Query-Params kommen immer als String an) |
 | `GET /fitness/plan` | `server.mjs`, `fitnessPlanRoute` | Alle vier Query-Parameter optional mit `.default("")` |
 | `POST /session` | `server.mjs`, `sessionSaveRoute` | Body-Schema `.loose()` (siehe unten) |
+| übrige JSON-Routen | `server.mjs`, `defineJsonRoute()` | gemeinsamer Helfer für Query-/Param-/Body-Schemas und Standard-Responses |
 
 Diese Routen bekommen dadurch **echte Request-Validierung**, nicht nur
 Doku: ein ungültiger Wert (z. B. `limit=abc`) führt jetzt zu `400` mit
@@ -105,7 +122,7 @@ Kurz: Malformed-Input-Schutz statt strenger Shape-Gate-Validierung.
 ```js
 app.get("/openapi.json", (c) => {
   const spec = buildOpenApiSpec();                                   // Ebene 1, alle Routen
-  const zodDoc = app.getOpenAPIDocument({ openapi: "3.0.3", info: spec.info }); // Ebene 2, nur die 3 Zod-Routen
+  const zodDoc = app.getOpenAPIDocument({ openapi: "3.0.3", info: spec.info }); // Ebene 2, alle app.openapi()-Routen
   for (const [p, methods] of Object.entries(zodDoc.paths || {})) {
     spec.paths[p] = { ...spec.paths[p], ...methods };                // Zod-Eintrag überschreibt nur die eigene Methode
   }
@@ -114,10 +131,9 @@ app.get("/openapi.json", (c) => {
 });
 ```
 
-Wichtig: `GET /session` (nicht Zod-registriert) und `POST /session`
-(Zod-registriert) liegen auf demselben Pfad — der Merge überschreibt pro
-HTTP-Methode, nicht pro Pfad, daher bleibt `GET /session` im generischen
-Basis-Format, während `POST /session` das angereicherte Zod-Schema zeigt.
+Wichtig: `GET /session` und `POST /session` liegen auf demselben Pfad —
+der Merge überschreibt pro HTTP-Methode, nicht pro Pfad, daher bleiben
+beide Methoden unabhängig dokumentiert.
 
 ---
 
@@ -127,10 +143,14 @@ Um eine weitere Route mit Zod auszustatten:
 
 1. `createRoute({ method, path, tags, summary, request: { query/body/params }, responses })` definieren.
 2. Bestehenden `app.get(...)`/`app.post(...)`-Aufruf durch
-   `app.openapi(<route>, handler)` ersetzen.
-3. Im Handler `c.req.query(...)`/`c.req.json()` durch
-   `c.req.valid("query")`/`c.req.valid("json")` ersetzen.
-4. Bei Body-Schemas mit gewachsener/freier Struktur (wie Sessions):
+   `app.openapi(<route>, handler)` ersetzen oder den gemeinsamen Helfer
+   `defineJsonRoute()` verwenden.
+3. Für Query-/Path-/Body-Validierung ein passendes Zod-Schema angeben.
+   Der Handler kann danach weiter `c.req.query(...)`, `c.req.param(...)`
+   oder `c.req.json()` nutzen; `c.req.valid(...)` ist optional, aber für
+   neue strengere Handler meist lesbarer.
+4. Bei Body-Schemas mit gewachsener/freier Struktur (wie Sessions oder
+   Proxy-Payloads):
    `.loose()` statt striktem Schema erwägen, um reale Payloads nicht zu
    brechen.
 

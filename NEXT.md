@@ -11,10 +11,10 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   Coach-Redesign (2026-08-31) nur die automatische CSS-Kaskade geerbt,
   nicht die tiefere `cc-panel`/`cc-dossier`-Struktur wie CatalogBrowser/
   Klienten-Roster.
-- Von ~60 Node-Routen in `server.mjs` haben nur 3 (`/exercises/search`,
-  `/fitness/plan`, `POST /session`) echte Zod-Schemas als Vorlage
-  bekommen (2026-08-31), Rest bleibt beim generischen Autodoc ohne Body-/
-  Response-Schema.
+- Die Zod-Umstellung in `server.mjs` deckt jetzt praktisch alle API-
+  Routen ab; offen ist eher Nachschärfung einzelner Response-Schemas
+  (der breite Rollout nutzt bewusst oft `z.any()`/lockere Objekt-Schemas
+  statt strikter Domain-Shapes).
 - `/fitness/coach/habit-cycle/:clientUid` fehlt weiterhin im
   Python-Backend (Details: `docs/BACKEND.md`, Claude-Memory
   `project_server_mjs_frontend_only_migration`).

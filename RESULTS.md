@@ -112,13 +112,16 @@ durchgespielten Prototyp (dunkles, taktisches "Command-Center"-Thema).
 * **Basis-Ebene (alle ~60 Routen):** `buildOpenApiSpec()` introspektiert
   zur Laufzeit Honos eigene Routing-Tabelle (`app.routes`) — kein
   Handschrift-Dokument, das hinter dem Code zurückfallen kann.
-* **Zod-Ebene (drei Kern-Routen als Vorlage):** `GET /exercises/search`,
-  `GET /fitness/plan`, `POST /session` laufen über `OpenAPIHono` +
-  `createRoute()` mit echten Zod-Schemas — inkl. echter Request-
-  Validierung (`400` bei kaputten Query-Werten/Bodies statt stillem
-  leerem Fallback, live verifiziert). `POST /session`s Body-Schema
-  bewusst `.loose()` + fast komplett optional, um reale, gewachsene
-  Session-Payloads nicht zurückzuweisen.
+* **Zod-Ebene (praktisch kompletter API-Surface):** Fast alle JSON-
+  Endpoints in `server.mjs` laufen jetzt über `OpenAPIHono` +
+  `createRoute()`. Zusätzlich zu den drei zuerst gebauten Kernrouten
+  (`GET /exercises/search`, `GET /fitness/plan`, `POST /session`) wurden
+  die restlichen lokalen und Proxy-API-Routen auf `app.openapi(...)`
+  gehoben. Plain-Hono geblieben sind nur `GET /openapi.json`, `GET /docs`
+  und der SPA-Fallback `GET *`. Für die breite Umstellung gibt es jetzt
+  den Helfer `defineJsonRoute()` plus `looseObjectSchema`, damit Query-,
+  Path- und Body-Validierung einheitlich bleiben, ohne gewachsene
+  Payloads künstlich zu verhärten.
 * **Backend-Paritäts-Audit** (Node-Routen gegen `fitness/api/routers/*.py`
   abgeglichen): von ~60 Routen hat genau eine kein Python-Gegenstück —
   `GET/POST /fitness/coach/habit-cycle/:clientUid`. Alle anderen
@@ -203,4 +206,3 @@ The settings panel has been split into dedicated, self-contained sub-sections:
 # AlphaOS Fitness Ecosystem — Bugfix: Touch-Stepper Weight Precedence (2026-07-11)
 
 Fixed a precedence bug in `ExerciseCard.jsx` where clicking on step buttons (`+2.5` / `-2.5`) for weights did not register when the weight field already had a value. Added parentheses around `parseFloat(raw) || 0` so `delta` is correctly added.
-
