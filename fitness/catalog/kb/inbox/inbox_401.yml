@@ -89,7 +89,6 @@ exercises:
       - '851'
       yuhonas:
       - Leg_Extensions
-  source_snapshot:
     wger:
       wger_id: 851
       wger_muscle_ids:

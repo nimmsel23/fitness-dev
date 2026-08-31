@@ -41,6 +41,7 @@ def build_coach_sheet(exercise_query: str) -> dict[str, Any]:
         "trainer_simple": lesson_payload.get("trainer_simple", ""),
         "trainer_technical": lesson_payload.get("trainer_technical", ""),
         "short_trainer_checklist": build_trainer_checklist(coaching_notes, common_errors, lesson_payload),
+        "source_snapshot": record.source_snapshot or {},
     }
 
 
@@ -71,6 +72,15 @@ def render_coach_sheet_markdown(sheet: dict[str, Any]) -> str:
     if not sheet["common_errors"]:
         lines.append("- Keine Angaben")
     lines.append("")
+    source_snapshot = sheet.get("source_snapshot") or {}
+    if source_snapshot:
+        lines.append("## Quellen (unverändert, getrennt)")
+        for source_key, label in (("wger", "wger"), ("yuhonas", "yuhonas")):
+            entry = source_snapshot.get(source_key)
+            if not isinstance(entry, dict):
+                continue
+            lines.extend(_render_source_block(label, entry))
+        lines.append("")
     lines.append("## Anatomische Erklärung")
     lesson = sheet["lesson"]
     if lesson:
@@ -89,6 +99,34 @@ def render_coach_sheet_markdown(sheet: dict[str, Any]) -> str:
     for item in sheet["short_trainer_checklist"]:
         lines.append(f"- {item}")
     return "\n".join(lines).strip() + "\n"
+
+
+def _render_source_block(label: str, entry: dict[str, Any]) -> list[str]:
+    """Ein source_snapshot-Rohtreffer (wger ODER yuhonas) als eigener,
+    unvermischter Block — bewusst kein Feld-Merge mit dem Rest des Sheets,
+    das ist genau der Punkt: der Coach soll "wger sagt X, yuhonas sagt Y"
+    nebeneinander sehen koennen, nicht eine bereits verschmolzene Version."""
+    name = entry.get("display_name") or entry.get("german") or entry.get("english") or ""
+    lines = [f"### {label}" + (f" — {name}" if name else "")]
+    primary = entry.get("primary_muscles") or []
+    secondary = entry.get("secondary_muscles") or []
+    if primary:
+        lines.append(f"- Primär: {format_muscle_list(primary)}")
+    if secondary:
+        lines.append(f"- Sekundär: {format_muscle_list(secondary)}")
+    notes = entry.get("coaching_notes") or entry.get("instructions") or []
+    if not notes:
+        # wger-Snapshots tragen oft nur original_description statt
+        # strukturierter coaching_notes (z.B. inbox_041: nur wger_id +
+        # original_description) — als Fallback-Text zeigen statt leer.
+        original = entry.get("original_description")
+        notes = original if isinstance(original, list) else ([original] if original else [])
+    for note in notes[:3]:
+        lines.append(f"- {note}")
+    if not primary and not secondary and not notes:
+        lines.append("- (keine Detaildaten in diesem Snapshot)")
+    lines.append("")
+    return lines
 
 
 def extract_lesson_payload(lesson: dict[str, Any] | None) -> dict[str, Any]:

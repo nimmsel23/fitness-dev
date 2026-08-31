@@ -135,7 +135,6 @@ exercises:
       - '152'
       yuhonas:
       - Chin-Up
-  source_snapshot:
     wger:
       wger_id: 152
       wger_muscle_ids:

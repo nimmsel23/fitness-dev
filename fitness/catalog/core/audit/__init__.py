@@ -19,6 +19,7 @@ from .report import render_audit_report, write_audit_report, write_audit_report_
 from .runner import audit_all, run_all_audits
 from .loaders import load_all_anatomy_lessons, load_legacy_lesson_ids, load_aliases_document, load_body_regions
 from .demand import DemandEntry, DemandAuditResult, run_demand_audit
+from .source_consistency import MuscleFlag, SourceConsistencyResult, run_source_consistency_audit
 
 __all__ = [
     "AuditLine", "AuditReport", "ExerciseAuditResult", "AliasAuditResult",
@@ -33,4 +34,5 @@ __all__ = [
     "audit_all", "run_all_audits",
     "load_all_anatomy_lessons", "load_legacy_lesson_ids", "load_aliases_document", "load_body_regions",
     "DemandEntry", "DemandAuditResult", "run_demand_audit",
+    "MuscleFlag", "SourceConsistencyResult", "run_source_consistency_audit",
 ]

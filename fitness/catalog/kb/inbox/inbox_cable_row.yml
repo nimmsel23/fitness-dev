@@ -85,9 +85,6 @@ exercises:
   origin:
     type: manual
     source_refs: {}
-  review_state:
-    status: approved
-  source_snapshot:
     wger:
       exercise_id: wger_1442
       display_name: Abwechselndes hohes Kabelrudern
@@ -165,3 +162,5 @@ exercises:
       wger_muscle_ids:
         primary: []
         secondary: []
+  review_state:
+    status: approved

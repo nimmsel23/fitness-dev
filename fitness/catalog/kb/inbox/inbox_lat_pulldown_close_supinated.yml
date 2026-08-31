@@ -119,9 +119,6 @@ exercises:
   origin:
     type: manual
     source_refs: {}
-  review_state:
-    status: approved
-  source_snapshot:
     wger:
       exercise_id: wger_355
       display_name: Latzug
@@ -187,3 +184,5 @@ exercises:
       wger_muscle_ids:
         primary: []
         secondary: []
+  review_state:
+    status: approved

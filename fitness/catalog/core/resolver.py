@@ -75,6 +75,7 @@ class ExerciseRecord:
     yuhonas_id: str | None = None
     original_description: str | list[str] | None = None
     logged_by_uid: str | None = None
+    source_snapshot: dict[str, Any] | None = None
 
 
 @dataclass
@@ -202,6 +203,24 @@ def build_exercise_index() -> list[ExerciseRecord]:
                 
                 if isinstance(entry, dict) and entry.get("wger_muscle_ids"):
                     rec.wger_muscle_ids = entry["wger_muscle_ids"]
+
+                # origin.wger/origin.yuhonas: rohe Einzeltreffer, die
+                # `attach_source_snapshot()` (inbox_actions.py) unter dem
+                # bestehenden `origin`-Feld anhaengt (neben dessen
+                # `type`/`source_refs`) — unveraendert durchreichen, damit
+                # das Coach-Sheet "wger sagt X, yuhonas sagt Y" getrennt
+                # zeigen kann, statt dass die Attribution beim Index-Bau
+                # verloren geht.
+                if isinstance(entry, dict):
+                    origin = entry.get("origin")
+                    if isinstance(origin, dict):
+                        raw_sources = {
+                            key: origin[key]
+                            for key in ("wger", "yuhonas")
+                            if isinstance(origin.get(key), dict)
+                        }
+                        if raw_sources:
+                            rec.source_snapshot = raw_sources
 
     # Durchlauf 2: Bulk (Anreicherung oder Fallback)
     for path, document in bulk_docs:

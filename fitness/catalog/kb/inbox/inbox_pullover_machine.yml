@@ -84,9 +84,6 @@ exercises:
   origin:
     type: manual
     source_refs: {}
-  review_state:
-    status: approved
-  source_snapshot:
     wger:
       exercise_id: wger_1365
       display_name: Pullover Machine
@@ -110,3 +107,5 @@ exercises:
         secondary:
         - 4
         - 5
+  review_state:
+    status: approved

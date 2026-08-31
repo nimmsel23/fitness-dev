@@ -4,7 +4,7 @@ description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt):
 generated_at: '2026-08-22T08:49:35.772128+00:00'
 exercises:
 - exercise_id: iso_lateral_row_high
-  wger_id: null
+  wger_id: 1448
   id: iso_lateral_row_high
   name: High Iso Lateral Row Machine
   display_name: Iso-Lateral High Row
@@ -85,9 +85,6 @@ exercises:
   origin:
     type: manual
     source_refs: {}
-  review_state:
-    status: approved
-  source_snapshot:
     wger:
       exercise_id: wger_1448
       display_name: High Row
@@ -108,3 +105,8 @@ exercises:
         primary:
         - 12
         secondary: []
+  review_state:
+    status: approved
+  external_ids:
+    wger:
+    - 1448

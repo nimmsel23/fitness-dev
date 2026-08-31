@@ -76,7 +76,6 @@ exercises:
     source_refs:
       yuhonas:
       - Side_Leg_Raises
-  source_snapshot:
     wger:
       wger_muscle_ids:
         primary: []

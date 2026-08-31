@@ -90,7 +90,6 @@ exercises:
     source_refs:
       wger:
       - '926'
-  source_snapshot:
     wger:
       wger_id: 926
       wger_muscle_ids:

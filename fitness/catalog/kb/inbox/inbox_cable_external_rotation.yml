@@ -101,9 +101,6 @@ exercises:
   origin:
     type: manual
     source_refs: {}
-  review_state:
-    status: approved
-  source_snapshot:
     wger:
       exercise_id: wger_142
       display_name: Außenrotation am Kabelzug
@@ -175,3 +172,5 @@ exercises:
       wger_muscle_ids:
         primary: []
         secondary: []
+  review_state:
+    status: approved

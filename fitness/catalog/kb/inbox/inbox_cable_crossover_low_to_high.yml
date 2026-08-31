@@ -102,9 +102,6 @@ exercises:
   origin:
     type: manual
     source_refs: {}
-  review_state:
-    status: approved
-  source_snapshot:
     yuhonas:
       exercise_id: yuhonas_cable_crossover
       display_name: Cable Crossover
@@ -139,3 +136,5 @@ exercises:
       wger_muscle_ids:
         primary: []
         secondary: []
+  review_state:
+    status: approved

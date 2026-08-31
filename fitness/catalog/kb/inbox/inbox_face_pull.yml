@@ -97,9 +97,6 @@ exercises:
   origin:
     type: manual
     source_refs: {}
-  review_state:
-    status: approved
-  source_snapshot:
     wger:
       exercise_id: wger_222
       display_name: Face Pulls
@@ -150,3 +147,5 @@ exercises:
       wger_muscle_ids:
         primary: []
         secondary: []
+  review_state:
+    status: approved

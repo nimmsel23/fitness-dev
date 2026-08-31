@@ -87,7 +87,6 @@ exercises:
     source_refs:
       wger:
       - '348'
-  source_snapshot:
     wger:
       wger_id: 348
     yuhonas:

@@ -114,7 +114,6 @@ exercises:
     source_refs:
       wger:
       - '507'
-  source_snapshot:
     wger:
       wger_id: 507
       wger_muscle_ids:
