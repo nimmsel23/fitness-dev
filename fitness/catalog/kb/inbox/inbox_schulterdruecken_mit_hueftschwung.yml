@@ -100,3 +100,51 @@ exercises:
     source_refs: {}
   review_state:
     status: approved
+  source_snapshot:
+    wger:
+      exercise_id: wger_478
+      display_name: Push Press
+      german: Push Press
+      category: shoulders
+      primary_muscles:
+      - 202_trapezius_upper
+      - 203_trapezius_middle
+      - 204_trapezius_lower
+      - 303_posterior_deltoid
+      secondary_muscles:
+      - 603_gluteus_maximus
+      equipment: []
+      coaching_notes:
+      - Bringe deine Kurzhanteln im Cleanen auf deine Schultern, die Handflächen zeigen
+        nach innen. Atme ein und spanne deinen Rumpf an. (Bild 1) Gehe in die Knie
+        und nutze deine Beine, um die Kurzhanteln (Bild 2) über den Kopf zu drücken.
+        Senke sie kontrolliert und in langsamem Tempo wieder zu deinen Schultern ab
+        und wiederhole.
+      tags:
+      - unreviewed
+      - wger
+      wger_id: 478
+      wger_muscle_ids:
+        primary:
+        - 9
+        secondary:
+        - 8
+    yuhonas:
+      exercise_id: yuhonas_push_press
+      display_name: Push Press
+      category: olympic weightlifting
+      primary_muscles:
+      - shoulders
+      secondary_muscles:
+      - quadriceps
+      - triceps
+      equipment:
+      - barbell
+      coaching_notes: []
+      tags:
+      - unreviewed
+      - yuhonas
+      yuhonas_id: Push_Press
+      wger_muscle_ids:
+        primary: []
+        secondary: []

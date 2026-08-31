@@ -1,3 +1,99 @@
+# Inbox: Rohdaten-Snapshots von wger/yuhonas getrennt anfügen (2026-08-31)
+
+Ausgangspunkt war der Wunsch, Inbox-Drafts live zu verbessern (Fallbeispiel:
+`inbox_wger_206`, Walking Lunges). Ursprünglicher Ansatz war ein Feld-Merge
+(`merge_inbox_sources`), der aber Muskel-Rollen verfälschte
+(`gluteus_maximus` landete gleichzeitig in `primary_` und
+`secondary_muscles`) und vom User explizit gestoppt wurde ("keine Automatik
+ohne Anstoß", "mit mergen meine ich nicht wger und yuhona zu yuwogerhona
+zusammenzukleben"). Die tatsächlich gebaute Lösung zeigt beide Quellen
+stattdessen unverändert nebeneinander.
+
+* **`fitness/catalog/core/source_merge.py`**: neue Funktion
+  `find_source_entries(display_name, exercise_id)` — findet rohen wger- und
+  yuhonas-Eintrag getrennt (kein Feld-Merge); `build_external_seed()` nutzt
+  sie jetzt intern, Verhalten dort unverändert.
+* **`fitness/catalog/agent/inbox_actions.py`**: neue Funktion
+  `attach_source_snapshot(f, ex, apply=False)` — legt gefundene Rohdaten
+  unverändert unter `source_snapshot.wger`/`source_snapshot.yuhonas` ab,
+  überschreibt nie einen bereits vorhandenen Snapshot, **Dry-run per
+  Default** (Repo-Konvention, analog `fitness user-data`).
+* **`fitness/catalog/cli.py`**: neuer Befehl
+  `fitness-catalog inbox attach-sources [file_id] [--apply]`.
+* Bulk-`--apply`-Lauf über alle 44 Inbox-Drafts ausgeführt: 29 Dateien neu
+  mit `source_snapshot` versehen (u.a. `inbox_020`, `inbox_061`,
+  `inbox_081`, `inbox_cable_*`, `inbox_dips_chest`, `inbox_face_pull`,
+  `inbox_french_press`, `inbox_leg_press`, `inbox_plank`,
+  `inbox_pullover_machine`, `inbox_wger_129/659/926`, u.a.), 6 hatten
+  Snapshots schon vorher (unverändert), 5 ohne Treffer in keiner
+  Fremdquelle (`inbox_cable_row_close_grip`, `inbox_jefferson_curl`,
+  `inbox_scapula_priming`, `inbox_skin_the_cat`, 2× Yoga-Headstand-Skelette).
+* Root-Cause dafür geklärt, warum praktisch keine Inbox-Übung vorher beide
+  Quellen trug: `_best_match()`s `min_score=86`-Schwelle in
+  `source_merge.py` ist zu streng für wger-generische vs.
+  yuhonas-equipment-präfigierte Namen (z.B. "Walking Lunges" vs. "Barbell
+  Walking Lunge" scort nur 68–74) — kein Bugfix daran vorgenommen, nur
+  diagnostiziert.
+* Root-Cause für die beiden leeren Yoga-Headstand-Inbox-Drafts geklärt:
+  `POST /fitness/inbox/queue` (GUI-Queue-Endpoint) baut nur das nackte
+  Skelett (`build_inbox_draft_seed`) und ruft nie Gemini auf — anders als
+  `process_inbox_file_virtual()` (CLI/Session-Save-Pfad). Keine Code-
+  Änderung, nur Befund.
+
+---
+
+# Coach-Tab Redesign "Hidden Chamber" (2026-08-31)
+
+Kompletter Layout-/CSS-Umbau des Coach-Tabs nach einem zuvor als Artifact
+durchgespielten Prototyp (dunkles, taktisches "Command-Center"-Thema).
+
+* **`src/styles/coach-console.css`** (neu): scoped CSS-Variablen-Kaskade
+  (`.coach-console`) mit den 1:1 aus dem Prototyp übernommenen Farb-/Radius-
+  /Spacing-Werten — überschreibt dieselben Custom Properties, die alle
+  bestehenden `fit-*`-Tailwind-Utilities schon nutzen, kein Rewrite jeder
+  einzelnen Komponente nötig.
+* **`src/App.jsx`**: Theme-Klasse auf den `app-shell`-Container gehoben
+  (nur wenn `tab === 'coach'`), nicht nur den Content-Bereich — sonst blieb
+  die Sidebar im alten Theme hängen und sah wie eine zweite, fremde App aus.
+* **`src/views/Coach/index.jsx`**, **`InboxCard.jsx`**, **`ClientsPanel.jsx`**,
+  **`CatalogBrowser.jsx`**: Exercise-Requests laufen jetzt als kompaktes
+  Karten-Grid (`cc-card-grid`) mit farbcodierten Ghost-Action-Buttons statt
+  voller Listenzeilen mit kaum sichtbaren Icon-Quadraten. Katalog-Browser +
+  Klienten-Panel haben Eckklammer-Rahmen (`cc-panel`/`cc-dossier`),
+  Terminal-Prompt-Suchfeld und eine Avatar-Initialen-Box bekommen.
+* Gemerged `dev` → `vitalos` (`~/vitalos/bin/fitness-release`), Firebase-
+  Deploy nach `fitness-aos.web.app` verifiziert.
+
+---
+
+# Swagger/OpenAPI-Autodoc + Zod-Validierung in server.mjs (2026-08-31)
+
+`GET /docs` (Swagger UI) + `GET /openapi.json` laufen jetzt mit — Details
++ Muster für weitere Routen: `docs/BACKEND.md`.
+
+* **Basis-Ebene (alle ~60 Routen):** `buildOpenApiSpec()` introspektiert
+  zur Laufzeit Honos eigene Routing-Tabelle (`app.routes`) — kein
+  Handschrift-Dokument, das hinter dem Code zurückfallen kann.
+* **Zod-Ebene (drei Kern-Routen als Vorlage):** `GET /exercises/search`,
+  `GET /fitness/plan`, `POST /session` laufen über `OpenAPIHono` +
+  `createRoute()` mit echten Zod-Schemas — inkl. echter Request-
+  Validierung (`400` bei kaputten Query-Werten/Bodies statt stillem
+  leerem Fallback, live verifiziert). `POST /session`s Body-Schema
+  bewusst `.loose()` + fast komplett optional, um reale, gewachsene
+  Session-Payloads nicht zurückzuweisen.
+* **Backend-Paritäts-Audit** (Node-Routen gegen `fitness/api/routers/*.py`
+  abgeglichen): von ~60 Routen hat genau eine kein Python-Gegenstück —
+  `GET/POST /fitness/coach/habit-cycle/:clientUid`. Alle anderen
+  `proxyToPython`- und nativen Node-Routen hatten ein verifiziertes
+  1:1-Pendant. Festgehalten in Claude-Memory
+  `project_server_mjs_frontend_only_migration`, noch nicht gefixt.
+* Nebenbei zwei `~/vitalos/bin/vos-release`-Nervereien behoben: `node_modules`
+  im `fitness-app`-Worktree war ein echtes Verzeichnis statt Symlink (einmalig
+  gefixt), und `require_clean_repo` blockierte auf reinem Katalog-Inbox-/
+  Python-Code-Churn paralleler Sessions (Noise-Pattern erweitert).
+
+---
+
 # Session-Tab: Hauptsession löschbar (Klienten-Request Matthias-Mayer, 2026-07-13)
 
 Klient WM4bg (Matthias-Mayer) fragte, ob man eine Session löschen kann — im UI war der

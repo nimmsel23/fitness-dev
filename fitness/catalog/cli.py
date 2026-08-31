@@ -1001,6 +1001,47 @@ def inbox_reenrich_cmd(
     console.print(f"[ok]✓ Neu angereichert:[/ok] {f.name}")
 
 
+@inbox_app.command(name="attach-sources")
+def inbox_attach_sources_cmd(
+    file_id: Annotated[Optional[str], typer.Argument(help="z.B. inbox_wger_206 (leer = alle Drafts)")] = None,
+    apply: Annotated[bool, typer.Option("--apply", help="Tatsaechlich schreiben (Default: nur anzeigen)")] = False,
+):
+    """Sucht zu jedem Inbox-Draft den jeweils fehlenden wger-/yuhonas-Rohdatensatz
+    und legt ihn UNVERAENDERT unter source_snapshot.wger/.yuhonas ab — keine
+    Feld-Verschmelzung (primary_muscles/coaching_notes etc. bleiben unangetastet).
+    Damit kann das Coach-Sheet spaeter getrennt zeigen, was wger und was yuhonas
+    zu einer Uebung sagen. Dry-run per Default, --apply zum tatsaechlichen Schreiben."""
+    from fitness.catalog.agent.inbox_actions import list_inbox_files, load_inbox_entry, display_name_of, attach_source_snapshot
+
+    targets = [file_id] if file_id else [f.stem for f in list_inbox_files()]
+    if not targets:
+        console.print("[ok]Inbox leer.[/ok]")
+        return
+
+    any_found = False
+    for target in targets:
+        try:
+            f, ex = load_inbox_entry(target)
+        except (FileNotFoundError, ValueError) as exc:
+            console.print(f"[fail]FAIL:[/fail] {target}: {exc}")
+            continue
+        name = display_name_of(ex, target)
+        result = attach_source_snapshot(f, ex, apply=apply)
+        found = result["found"]
+        newly = [k for k, v in found.items() if v]
+        if newly:
+            any_found = True
+            verb = "geschrieben" if (apply and result["changed"]) else "gefunden (dry-run)"
+            console.print(f"[ok]✓ {f.stem}[/ok] ({name}): {', '.join(newly)} {verb}")
+        else:
+            console.print(f"[dim]– {f.stem}[/dim] ({name}): keine zusätzliche Quelle gefunden")
+
+    if not any_found:
+        console.print("[ok]Keine zusätzlichen Quellen-Treffer.[/ok]")
+    elif not apply:
+        console.print("[info]Dry-run — mit --apply tatsächlich schreiben.[/info]")
+
+
 @inbox_app.command(name="dedupe")
 def inbox_dedupe_cmd(
     yes: Annotated[bool, typer.Option("--yes", "-y", help="Alle Gruppen ohne Rückfrage zusammenführen")] = False,

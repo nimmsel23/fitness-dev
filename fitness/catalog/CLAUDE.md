@@ -54,7 +54,7 @@ kb/exercises/*.yml         Exercise-Definitionen
 | Setup/Diagnose | `bootstrap`, `doctor`, `wger-check` |
 | Katalog-Pflege | `audit [topic] [--enrich N]` (topics u.a. `anatomy`, `exercises`, `coverage`, `demand`), `add-exercise`, `enrich`, `watch`, `alias-add` |
 | Import/Mapping | `import` (Bulk, One-Shot — siehe unten), `reimport <query> [--source wger\|yuhonas\|both]` (Einzel-Reimport → `kb/inbox/`), `map-wger --exercise <id/query> [--write]`, `export-wger-index [--show-unmapped]` |
-| Inbox/Review | `inbox list\|show\|approve\|reenrich\|delete\|graveyard\|restore` (Non-TUI-Review), `graveyard list\|restore\|tui` |
+| Inbox/Review | `inbox list\|show\|approve\|reenrich\|delete\|graveyard\|restore\|attach-sources [file_id] [--apply]` (Non-TUI-Review), `graveyard list\|restore\|tui` |
 | Resolve/Query | `resolve`, `coverage`, `report` |
 | Training-Log | `log`, `history`, `progress`, `plan` |
 | Lehre/Export | `teach`, `coach-sheet`, `export-exercise`, `export-coverage`, `preview` |
@@ -440,6 +440,28 @@ history rows or phantom exercise drafts", Kommentar im Code). Der neue
 Trigger ist strikt auf die Übungen der jeweils gespeicherten Session
 begrenzt, läuft im selben FastAPI-Prozess statt in einem separaten
 Watcher-Prozess.
+
+**"Mergen" bei wger/yuhonas ist absichtlich KEINE Feld-Verschmelzung** (User-
+Klarstellung 2026-08-31, nach mehreren Präzisierungsrunden): `inbox
+attach-sources [file_id] [--apply]` (dry-run per Default) hängt den jeweils
+rohen, unveränderten wger- bzw. yuhonas-Treffer unter
+`source_snapshot.wger`/`source_snapshot.yuhonas` in den Inbox-Draft — für
+spätere "wger sagt X, yuhonas sagt Y"-Anzeige, ohne bestehende Felder
+anzufassen. Lookup-Funktion dafür ist `find_source_entries()` in
+`core/source_merge.py` (gibt `{"wger": entry|None, "yuhonas": entry|None}`
+zurück). Das ist eine andere Funktion als `build_external_seed()` (nutzt
+`find_source_entries()` intern, mergt danach aber Listenfelder für neue
+Katalog-Seeds) — bei "Quellen zusammenführen"-Anfragen zuerst klären, welche
+der beiden gemeint ist.
+
+**Fuzzy-Match-Falle:** `_best_match()` in `source_merge.py` nutzt
+`rapidfuzz.fuzz.token_set_ratio` mit `min_score=86` — zu strikt für
+wger-generische vs. yuhonas-geräte-präfixierte Namen (z.B. "Walking Lunges"
+vs. "Barbell/Bodyweight/Dumbbell Walking Lunge" scored nur 68–74). Das ist der
+Hauptgrund, warum die meisten Inbox-Drafts nur eine der beiden Quellen haben,
+nicht ein Bug in der Aufruf-Kette. Threshold-Senkung wurde noch nicht
+evaluiert (Risiko: False Positives bei unterschiedlichen Übungen mit
+ähnlichem Namen).
 
 ---
 

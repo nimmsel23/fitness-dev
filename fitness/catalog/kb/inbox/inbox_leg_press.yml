@@ -99,3 +99,77 @@ exercises:
     source_refs: {}
   review_state:
     status: approved
+  source_snapshot:
+    wger:
+      exercise_id: wger_371
+      display_name: Beinpresse
+      german: Beinpresse
+      category: legs
+      primary_muscles:
+      - 601_quadriceps_femoris
+      - 603_gluteus_maximus
+      - 604_biceps_femoris
+      - 605_semitendinosus
+      - 606_semimembranosus
+      - 701_gastrocnemius
+      secondary_muscles:
+      - 603_gluteus_maximus
+      - 701_gastrocnemius
+      equipment: []
+      coaching_notes:
+      - 'In die Maschine setzten und die Füße auf die Auflage stellen, der Abstand,
+        etwas mehr als schulterbreit. Die Füße sind etwas nach außen gedreht.
+
+        Das Gewicht wird so weit abgesenkt, dass die Knie einen rechten Winkel machen.
+        Sofort wird das Gewicht nach oben gedrückt. Die Knie zeigen etwas nach außen
+        und werden nie ganz ausgestreckt, die Bewegung bleibt immer flüssig, also
+        weder oben noch unten irgendwelche Pausen einlegen!'
+      tags:
+      - unreviewed
+      - wger
+      wger_id: 371
+      wger_muscle_ids:
+        primary:
+        - 11
+        - 7
+        - 8
+        - 10
+        secondary:
+        - 7
+        - 8
+    yuhonas:
+      exercise_id: yuhonas_leg_press
+      display_name: Leg Press
+      category: strength
+      primary_muscles:
+      - quadriceps
+      secondary_muscles:
+      - calves
+      - glutes
+      - hamstrings
+      equipment:
+      - machine
+      coaching_notes:
+      - 'Using a leg press machine, sit down on the machine and place your legs on
+        the platform directly in front of you at a medium (shoulder width) foot stance.
+        (Note: For the purposes of this discussion we will use the medium stance described
+        above which targets overall development; however you can choose any of the
+        three stances described in the foot positioning section).'
+      - 'Lower the safety bars holding the weighted platform in place and press the
+        platform all the way up until your legs are fully extended in front of you.
+        Tip: Make sure that you do not lock your knees. Your torso and the legs should
+        make a perfect 90-degree angle. This will be your starting position.'
+      - As you inhale, slowly lower the platform until your upper and lower legs make
+        a 90-degree angle.
+      - Pushing mainly with the heels of your feet and using the quadriceps go back
+        to the starting position as you exhale.
+      - Repeat for the recommended amount of repetitions and ensure to lock the safety
+        pins properly once you are done. You do not want that platform falling on
+        you fully loaded.
+      tags:
+      - unreviewed
+      - yuhonas
+      yuhonas_id: Leg_Press
+      wger_muscle_ids:
+        primary: []
+        secondary: []

@@ -86,6 +86,36 @@ exercises:
   source_snapshot:
     wger:
       wger_id: 659
+    yuhonas:
+      exercise_id: yuhonas_triceps_pushdown
+      display_name: Triceps Pushdown
+      category: strength
+      primary_muscles:
+      - triceps
+      secondary_muscles: []
+      equipment:
+      - cable
+      coaching_notes:
+      - Attach a straight or angled bar to a high pulley and grab with an overhand
+        grip (palms facing down) at shoulder width.
+      - Standing upright with the torso straight and a very small inclination forward,
+        bring the upper arms close to your body and perpendicular to the floor. The
+        forearms should be pointing up towards the pulley as they hold the bar. This
+        is your starting position.
+      - Using the triceps, bring the bar down until it touches the front of your thighs
+        and the arms are fully extended perpendicular to the floor. The upper arms
+        should always remain stationary next to your torso and only the forearms should
+        move. Exhale as you perform this movement.
+      - After a second hold at the contracted position, bring the bar slowly up to
+        the starting point. Breathe in as you perform this step.
+      - Repeat for the recommended amount of repetitions.
+      tags:
+      - unreviewed
+      - yuhonas
+      yuhonas_id: Triceps_Pushdown
+      wger_muscle_ids:
+        primary: []
+        secondary: []
   review_state:
     status: approved
     approved_at: '2026-07-28T06:01:06.387369+00:00'

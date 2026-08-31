@@ -5,6 +5,7 @@ zwischen TUI und CLI, kein Drift zwischen beiden Wegen).
 """
 from __future__ import annotations
 
+from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
 import re
@@ -490,6 +491,55 @@ def _merge_missing_source_payload(ex: dict[str, Any], display_name: str, exercis
         if ex.get(key) in (None, "", [], {}) and seed.get(key) not in (None, "", [], {}):
             ex[key] = seed.get(key)
     return ex
+
+
+def attach_source_snapshot(f: Path, ex: dict[str, Any], apply: bool = False) -> dict[str, Any]:
+    """Sucht den rohen wger- und yuhonas-Eintrag zu einem Inbox-Draft (per
+    ID-Hinweis bzw. Namens-Fuzzy-Match, siehe `source_merge.find_source_entries`)
+    und legt beide UNVERAENDERT unter `ex["source_snapshot"]["wger"]` bzw.
+    `["yuhonas"]` ab — bewusst KEINE Feld-Verschmelzung (kein Union von
+    `primary_muscles`/`coaching_notes` etc., das bleibt Aufgabe von
+    `build_external_seed()`/`approve_inbox_entry()`). Zweck: Coach-Sheet bzw.
+    GUI koennen anschliessend getrennt zeigen "wger sagt X" / "yuhonas sagt Y",
+    statt dass die Herkunft einzelner Aussagen verloren geht.
+
+    Dry-run per Default (Repo-Konvention, siehe `fitness/runtime/cli.py`):
+    ohne `apply=True` wird nichts geschrieben, nur berechnet + zurueckgegeben.
+    Bei `apply=True` wird nur geschrieben, wenn mindestens eine der beiden
+    Quellen neu dazukommt (.bak vorher, bestehender Snapshot bleibt erhalten
+    falls schon vorhanden — kein Overwrite eines bereits gesetzten Snapshots).
+    Rueckgabe: {"found": {"wger": bool, "yuhonas": bool}, "changed": bool, "exercise": ex}.
+    """
+    from fitness.catalog.core.source_merge import find_source_entries
+
+    ex_id = ex.get("exercise_id") or ex.get("id") or f.stem.replace("inbox_", "")
+    display_name = display_name_of(ex, ex_id)
+
+    found = find_source_entries(display_name, str(ex_id))
+    existing_snapshot = ex.get("source_snapshot") if isinstance(ex.get("source_snapshot"), dict) else {}
+
+    new_snapshot = dict(existing_snapshot)
+    changed = False
+    for source_key in ("wger", "yuhonas"):
+        if existing_snapshot.get(source_key):
+            continue
+        entry = found.get(source_key)
+        if entry:
+            new_snapshot[source_key] = deepcopy(entry)
+            changed = True
+
+    if changed and apply:
+        ex["source_snapshot"] = new_snapshot
+        f.with_suffix(".yml.bak").write_text(f.read_text())
+        doc = load_yaml(f)
+        doc["exercises"] = [ex]
+        f.write_text(yaml.dump(doc, allow_unicode=True, sort_keys=False))
+
+    return {
+        "found": {"wger": bool(found.get("wger")), "yuhonas": bool(found.get("yuhonas"))},
+        "changed": changed,
+        "exercise": ex,
+    }
 
 
 def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:

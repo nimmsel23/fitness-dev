@@ -87,3 +87,81 @@ exercises:
     source_refs: {}
   review_state:
     status: approved
+  source_snapshot:
+    wger:
+      exercise_id: wger_1442
+      display_name: Abwechselndes hohes Kabelrudern
+      german: Abwechselndes hohes Kabelrudern
+      category: back
+      primary_muscles:
+      - 201_latissimus_dorsi
+      secondary_muscles: []
+      equipment: []
+      coaching_notes:
+      - 'Beginne,
+
+        indem du den Aufsatz hoch an der Kabelstation positionierst und etwa 1 m vom
+        Aufsatz zurücktrittst. Greife
+
+        den Griff des Kabelzugs mit der linken Hand auf etwa Kopfhöhe, mit leicht
+        gebeugtem Ellbogen. Tritt mit dem linken Fuß zurück.
+
+        Ziehe
+
+        dein Ellbogengelenk zum Oberkörper hin, während du dich leicht drehst, und
+        führe ein
+
+        einarmiges Rudern aus. Aktiviere den Latissimus, während du dich drehst.
+
+        Kehre
+
+        mit Kabelzug und linkem Fuß in die Ausgangsposition zurück und greife den
+        Griff des Kabelzugs mit der
+
+        rechten Hand. Wiederhole diese Bewegung auf der gegenüberliegenden Seite,
+        mit dem rechten Fuß nach hinten gestellt.'
+      tags:
+      - unreviewed
+      - wger
+      wger_id: 1442
+      wger_muscle_ids:
+        primary:
+        - 12
+        secondary: []
+    yuhonas:
+      exercise_id: yuhonas_seated_cable_rows
+      display_name: Seated Cable Rows
+      category: strength
+      primary_muscles:
+      - middle_back
+      secondary_muscles:
+      - biceps
+      - lats
+      - shoulders
+      equipment:
+      - cable
+      coaching_notes:
+      - 'For this exercise you will need access to a low pulley row machine with a
+        V-bar. Note: The V-bar will enable you to have a neutral grip where the palms
+        of your hands face each other. To get into the starting position, first sit
+        down on the machine and place your feet on the front platform or crossbar
+        provided making sure that your knees are slightly bent and not locked.'
+      - Lean over as you keep the natural alignment of your back and grab the V-bar
+        handles.
+      - With your arms extended pull back until your torso is at a 90-degree angle
+        from your legs. Your back should be slightly arched and your chest should
+        be sticking out. You should be feeling a nice stretch on your lats as you
+        hold the bar in front of you. This is the starting position of the exercise.
+      - Keeping the torso stationary, pull the handles back towards your torso while
+        keeping the arms close to it until you touch the abdominals. Breathe out as
+        you perform that movement. At that point you should be squeezing your back
+        muscles hard. Hold that contraction for a second and slowly go back to the
+        original position while breathing in.
+      - Repeat for the recommended amount of repetitions.
+      tags:
+      - unreviewed
+      - yuhonas
+      yuhonas_id: Seated_Cable_Rows
+      wger_muscle_ids:
+        primary: []
+        secondary: []

@@ -87,3 +87,24 @@ exercises:
     source_refs: {}
   review_state:
     status: approved
+  source_snapshot:
+    wger:
+      exercise_id: wger_1448
+      display_name: High Row
+      german: High Row
+      category: back
+      primary_muscles:
+      - 201_latissimus_dorsi
+      secondary_muscles: []
+      equipment: []
+      coaching_notes:
+      - Kneeling down on one leg and pulling cable down while driving elbow into the
+        lats.
+      tags:
+      - unreviewed
+      - wger
+      wger_id: 1448
+      wger_muscle_ids:
+        primary:
+        - 12
+        secondary: []

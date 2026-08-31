@@ -181,7 +181,14 @@ def _merge_list_fields(*values: Any) -> list[Any]:
     return out
 
 
-def build_external_seed(display_name: str, exercise_id: str | None = None) -> dict[str, Any] | None:
+def find_source_entries(display_name: str, exercise_id: str | None = None) -> dict[str, dict[str, Any] | None]:
+    """Sucht die rohen wger-/yuhonas-Einzeleintraege (aus `unreviewed_wger.yml`
+    / `unreviewed_yuhonas.yml`) fuer eine Uebung, per ID-Hinweis (falls schon
+    ein Katalog-Record existiert) oder Namens-Fuzzy-Match. Liefert beide roh
+    und getrennt zurueck (`{"wger": entry|None, "yuhonas": entry|None}`) —
+    keine Feld-Verschmelzung, das macht ausschliesslich `build_external_seed()`
+    fuer neue Katalog-Seeds. Fuer Anzeige/Attribution ("wger sagt X, yuhonas
+    sagt Y") ist dies die richtige Quelle, nicht `build_external_seed()`."""
     wger_entry = None
     yuhonas_entry = None
     queries = _candidate_queries(display_name, exercise_id)
@@ -210,6 +217,14 @@ def build_external_seed(display_name: str, exercise_id: str | None = None) -> di
     for query in queries:
         wger_entry = wger_entry or _best_match(query, wger_entries)
         yuhonas_entry = yuhonas_entry or _best_match(query, yuhonas_entries)
+
+    return {"wger": wger_entry, "yuhonas": yuhonas_entry}
+
+
+def build_external_seed(display_name: str, exercise_id: str | None = None) -> dict[str, Any] | None:
+    found = find_source_entries(display_name, exercise_id)
+    wger_entry = found["wger"]
+    yuhonas_entry = found["yuhonas"]
 
     if not wger_entry and not yuhonas_entry:
         return None

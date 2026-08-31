@@ -99,3 +99,54 @@ exercises:
     source_refs: {}
   review_state:
     status: approved
+  source_snapshot:
+    wger:
+      exercise_id: wger_222
+      display_name: Face Pulls
+      german: Face Pulls
+      category: shoulders
+      primary_muscles:
+      - 202_trapezius_upper
+      - 203_trapezius_middle
+      - 204_trapezius_lower
+      - 303_posterior_deltoid
+      secondary_muscles: []
+      equipment: []
+      coaching_notes:
+      - 'Die Übung trainiert die Rückseite der Schulter.
+
+        Die Ausführung erfolgt mit dem Seil am Kabelzug. Beide Enden des Seils in
+        jeweils einer Hand halten, dabei die Schultern maximal vorwärts strecken und
+        das Kabel leicht gespannt halten (Ruheposition).
+
+        Dann das Seil auf das Gesicht zuziehen. Die Hände bewegen sich dabei so weit
+        wie möglich seitlicht am Kopf vorbei, die Schulter rotiert also nach hinten/außen.'
+      tags:
+      - unreviewed
+      - wger
+      wger_id: 222
+      wger_muscle_ids:
+        primary:
+        - 9
+        secondary: []
+    yuhonas:
+      exercise_id: yuhonas_face_pull
+      display_name: Face Pull
+      category: strength
+      primary_muscles:
+      - shoulders
+      secondary_muscles:
+      - middle_back
+      equipment:
+      - cable
+      coaching_notes:
+      - Facing a high pulley with a rope or dual handles attached, pull the weight
+        directly towards your face, separating your hands as you do so. Keep your
+        upper arms parallel to the ground.
+      tags:
+      - unreviewed
+      - yuhonas
+      yuhonas_id: Face_Pull
+      wger_muscle_ids:
+        primary: []
+        secondary: []
