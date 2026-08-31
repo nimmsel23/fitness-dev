@@ -1,3 +1,32 @@
+# Session-Handoff-Hooks nach fuel-dev portiert (2026-09-01)
+
+Auf Wunsch ("fuel-dev brauch auch noch so ein system") wurde das in
+fitness-dev gebaute Handoff-System (PreCompact füllt TODO/RESULTS/NEXT.md,
+PostToolUse committet sie automatisch) 1:1 nach `~/fuel-dev` portiert.
+Betrifft nur `~/fuel-dev`, keine Datei in diesem Repo.
+
+* **`~/fuel-dev/.claude/hooks/pre-compact-fill-docs.sh`** (neu): identischer
+  Mechanismus wie in fitness-dev — `claude -p --dangerously-skip-permissions`
+  (nach expliziter User-Freigabe), `flock`-gesichert, überspringt Sessions
+  ohne Git-Änderungen. Pfade auf `~/fuel-dev` umgeschrieben; dort gibt es
+  kein `docs/`-Unterverzeichnis, `CLAUDE.md` liegt direkt im Root (kein
+  Symlink wie in fitness-dev).
+* **`~/fuel-dev/.claude/hooks/post-edit-commit-docs.sh`** (neu): committet
+  automatisch `TODO.md`/`RESULTS.md`/`NEXT.md`/`CLAUDE.md` bei Edit/Write,
+  `flock`-gesichert, kein `git add -A`, kein Push.
+* **`~/fuel-dev/.claude/settings.json`**: beide Hooks registriert
+  (PreCompact + PostToolUse Edit|Write), JSON-Validität geprüft.
+* Beide Hooks funktional getestet (irrelevante Datei → No-op, relevante
+  Datei ohne Diff → No-op, gehaltener Lock → kein Commit) — eigene
+  Testzeile in `~/fuel-dev/NEXT.md` danach wieder entfernt.
+* Committet in `~/fuel-dev` als `eaed175`. Zusätzlich als Nebeneffekt
+  fremde, bereits vorhandene unstaged Änderungen einer anderen Session
+  (`ARCHITECTURE.md`, `bin/fuelctl` — Status-Refactor auf Prod-Runtime-
+  Health, Catalog-Server-Anzeige entfernt) mitcommittet (`188ac51`), da sie
+  inhaltlich konsistent und vollständig waren.
+
+---
+
 # Session-Handoff-Automatisierung: PreCompact-Hook + Doku-Learnings + Auto-Commit (2026-08-31)
 
 Nach der Swagger/Zod-Arbeit wurde die Handoff-Kette zwischen Claude-Code-
