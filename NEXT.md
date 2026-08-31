@@ -32,3 +32,8 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   systematisch Treffer bei wger-generischen vs. yuhonas-equipment-
   präfigierten Namen (z.B. "Walking Lunges" vs. "Barbell Walking Lunge") —
   diagnostiziert, aber noch nicht gefixt.
+- Der neue `PreCompact`-Hook (`.claude/hooks/pre-compact-fill-docs.sh`)
+  wurde nur mit simuliertem Fake-Input getestet (JSON-/Bash-Syntax, Lock-
+  Verhalten), noch nicht gegen einen echten Compact-Trigger — erster
+  echter Lauf sollte kurz verifiziert werden (füllt er TODO/RESULTS/NEXT
+  sinnvoll, committet der PostToolUse-Hook danach sauber).
