@@ -15,6 +15,18 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/alpha/fitness-dev/.claude/hooks/post-edit-commit-docs.sh",
+            "statusMessage": "Doku auto-committen..."
+          }
+        ]
+      }
     ]
   }
 }
