@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `../fitness/catalog/CLAUDE.md` — Katalog-/KB-Tool-Set (Sub-Package von `fitness/`: KB-Struktur, Coverage-Formel, Gemini-Enrichment)
 - `../src/CLAUDE.md` — React-Frontend (Tabs/Views, DB-Layer, Body-Highlighter, PWA/Offline, Session-JSON-Format)
 - `../anatomy-kb/CLAUDE.md` — Muskel-Anatomie-KB (Git Subtree, :9200)
+- `BACKEND.md` — server.mjs API-Autodoc (Swagger/OpenAPI) + Zod-Validierung, Node↔Python-Routen-Parität
 
 ---
 
@@ -40,6 +41,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   Voraussetzung: `~/fitness-dev` sauber (`git status` clean) und `dev`-Branch
   ausgecheckt, sonst bricht `require_clean_repo`/`expect_branch` kontrolliert
   ab, bevor irgendwas gepusht wird.
+  `vos-release`s `NOISE_PATTERNS[fitness]` (Stand 2026-08-31) blendet
+  `fitness/catalog/kb/inbox/*` und `fitness/**/*.py` beim Clean-Check
+  aus — beides wird vom Firebase-Build nie gelesen (der braucht nur
+  `src/**` + KB-*Daten*-YAMLs außerhalb von `inbox/`), blockiert den
+  Release also nicht mehr automatisch. Andere unstaged Änderungen
+  (`src/**`, KB-Daten außerhalb `inbox/`) blockieren weiterhin zu Recht.
 - `~/vitalos/fitness-app` ist ein Git-**Worktree** von `~/fitness-dev`
   (`git worktree list` zeigt alle) — kein separater Clone. Der dort
   ausgecheckte Branch heißt **`vitalos`**, nicht mehr `master`
@@ -59,6 +66,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   deshalb erwartbar fehl** ("bereits von Arbeitsverzeichnis in .../vitalos/...
   verwendet") — das ist kein Fehlerzustand, den man dem User meldet oder bei
   dem man nachfragt, sondern der Normalfall.
+- **`fitness-dev.service` ist im Normalfall `disabled`/`inactive`**
+  (verifiziert 2026-08-31, `systemctl --user status fitness-dev.service`)
+  — der Dev-Server läuft praktisch immer manuell (`npm run dev` /
+  `scripts/dev-runner.mjs` in einem Terminal), nicht als Service. Vor
+  Live-Tests gegen :9100 IMMER verifizieren ob überhaupt etwas läuft
+  (`curl`/`systemctl status`), nicht annehmen. Und: `server.mjs` als
+  Prozessname ist über die Sibling-Repos (`fuel-dev`, `fitness-dev`, ...)
+  mehrdeutig — vor einer Annahme "das ist der fitness-Prozess" immer
+  `readlink -f /proc/<pid>/cwd` prüfen, nicht nur den Namen.
 
   Manueller Fallback, falls `fitness-release` nicht verfügbar/gewünscht ist —
   direkt ausführen statt zu stoppen:
@@ -114,6 +130,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   is beyond a symbolic link"), ein danach ausgeführtes `git stash pop` poppt
   dann einen ALTEN, unrelated Stash-Eintrag statt nichts zu tun. Nach jedem
   `git stash`: `git stash list` davor/danach vergleichen.
+  Sicherer Spezialfall: `git stash push -- <konkrete-datei(en)>` (ohne
+  `-u`, pfad-gescoped) umgeht das Symlink-Problem und eignet sich, um
+  fremdes unstaged WIP (andere Session) kurz beiseitezulegen, z.B. vor
+  einem `fitness-release`-Lauf, der `require_clean_repo` verlangt.
 - `~/fitness/free-exercise-db` ist ein reiner Git-Klon von
   `github.com/yuhonas/free-exercise-db` (kein eigener Code) — falls Dateien
   fehlen, ist ein frischer Klon in ein Temp-Verzeichnis + gezieltes Kopieren
@@ -137,6 +157,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   IDs, tatsächlich gespeicherte Feldwerte).
 - Nach `git push`: `gh run list --limit 5` / `gh run view <id> --log-failed`
   prüfen — Post-Push-Hook triggert automatisch Build+Deploy.
+- **Session-Handoff (seit 2026-08-31):** `TODO.md` (Makro-Backlog),
+  `RESULTS.md` (Session-Log) und `NEXT.md` (repo-lokal, was offen
+  blieb) werden von einem `PreCompact`-Hook (`.claude/hooks/
+  pre-compact-fill-docs.sh`) automatisch nachgepflegt. Bei Sessionstart
+  in unklarem Zustand: `NEXT.md` zuerst lesen, nicht nur `TODO.md`.
 
 ---
 
@@ -187,6 +212,30 @@ um den Katalog zu erweitern), kein eigenständiges Backend. Details:
   gelöscht). Das Python-Prod-Backend (`fitness/api/config.py::_uid_from_request`)
   hatte diesen Bug nie — dort war die Fallback-Kette schon korrekt bis auf
   `_active_uid_fallback()`.
+
+**API-Autodoc (2026-08-31, `@hono/swagger-ui` + `@hono/zod-openapi`):**
+`GET /docs` (Swagger UI) und `GET /openapi.json` (das Spec selbst) laufen
+mit. Zwei Ebenen, bewusst nicht identisch tief dokumentiert:
+- **Basis-Ebene (alle ~60 Routen):** `buildOpenApiSpec()` in `server.mjs`
+  introspektiert zur Laufzeit Honos eigene Routing-Tabelle (`app.routes`,
+  offiziell öffentliches API laut `hono-base.d.ts`) und listet jede Route
+  mit Pfad/Methode/Path-Params — kein Handschrift-Eintrag, kann also nie
+  hinter dem Code zurückfallen, liefert aber keine Body-/Response-Schemas.
+- **Zod-Ebene (nur `GET /exercises/search`, `GET /fitness/plan`,
+  `POST /session`):** `app` ist `OpenAPIHono` statt `Hono` (Drop-in-Ersatz,
+  alle anderen `app.get/post/...`-Aufrufe unverändert lauffähig). Diese drei
+  Routen sind stattdessen über `app.openapi(createRoute({...}), handler)`
+  mit echten Zod-Schemas registriert — inkl. echter Request-Validierung
+  (kaputte Query-Werte/Bodies geben jetzt `400` mit ZodError statt vorher
+  stillem Fallback auf leere Defaults). `POST /session`s Body-Schema ist
+  bewusst `.loose()` + fast komplett optional, um reale Session-Payloads mit
+  gewachsenen Zusatzfeldern (`slots[]`, `rev`, ...) nicht zurückzuweisen —
+  Ziel ist Malformed-Input-Schutz, keine strenge Shape-Gate-Validierung.
+  `GET /openapi.json` merged beide Ebenen: Basis-Spec als Fallback, die
+  Zod-Routen überschreiben ihren jeweiligen Pfad/Methode-Eintrag mit dem
+  über `app.getOpenAPIDocument()` gewonnenen, schema-reichen Eintrag.
+- Muster für weitere Routen: siehe die drei bestehenden `createRoute(...)`-
+  Blöcke in `server.mjs` als Vorlage.
 
 **fitness-runtime.mjs** (Shared Runtime): `searchExercises()`, `buildPlan()`,
 `getWeeklySummary()` (via Python weekly.py), `exportSessionMarkdown()`.
@@ -242,6 +291,8 @@ Weitere Dispatcher (fitness-devctl/fitness-prodctl/fitnessctl): `../fitness/CLAU
 | `/fitness/body` | POST | Body-Eintrag speichern + wger-Gewichtssync (wenn `weight_kg` vorhanden) |
 | `/firestore/status` | GET | Firestore-Verbindungsstatus (`{ ok, project }`) |
 | `/firestore/sync` | POST | Letzte 30 Sessions → Firestore pushen |
+| `/docs` | GET | Swagger UI — interaktive API-Doku, siehe Abschnitt "API-Autodoc" unten |
+| `/openapi.json` | GET | OpenAPI-3.0-Spec, zur Laufzeit aus `app.routes` generiert |
 
 ---
 
@@ -261,6 +312,7 @@ gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
 - **React** ^18.3, **Vite** ^5.4, **TailwindCSS** ^3.4
 - **react-body-highlighter** ^2.0.5 — Body-Map UI
 - **recharts** — Charts (WeightChart, Coverage-Trends)
+- **@hono/swagger-ui**, **@hono/zod-openapi**, **zod** ^4 — API-Autodoc in `server.mjs` (`/docs`, `/openapi.json`), siehe API-Autodoc-Absatz oben
 
 ---
 
