@@ -1,1 +1,0 @@
-../../../../src/components/WeightChart.jsx
