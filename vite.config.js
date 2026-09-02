@@ -75,6 +75,18 @@ export default defineConfig(async ({ mode }) => {
           '**/node_modules/**',
           '**/cloud_chamber/vitalos/**',
           '**/cloud_chamber/fitness-dev/**',
+          // Python-/Build-/Nested-App-Bäume — kein Frontend-Code, aber viele
+          // Dateien (u.a. .venv: 3300+, katalog-ui: 145M node_modules) die
+          // chokidar sonst mitüberwacht und den Vite-Dev-Server irgendwann
+          // (OOM/EMFILE) abschmieren lassen (beobachtet 2026-09-02).
+          '**/.venv/**',
+          '**/.worktrees/**',
+          '**/__pycache__/**',
+          '**/.pytest_cache/**',
+          '**/catalog-ui/**',
+          '**/functions/**',
+          '**/fitness_agent.egg-info/**',
+          '**/.git/**',
         ],
       },
       proxy: {
