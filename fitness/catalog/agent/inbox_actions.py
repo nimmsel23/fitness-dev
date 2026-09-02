@@ -5,6 +5,7 @@ zwischen TUI und CLI, kein Drift zwischen beiden Wegen).
 """
 from __future__ import annotations
 
+from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
 import re
@@ -490,6 +491,111 @@ def _merge_missing_source_payload(ex: dict[str, Any], display_name: str, exercis
         if ex.get(key) in (None, "", [], {}) and seed.get(key) not in (None, "", [], {}):
             ex[key] = seed.get(key)
     return ex
+
+
+def _link_source_id(ex: dict[str, Any], source_key: str, entry: dict[str, Any]) -> bool:
+    """Setzt `ex["wger_id"]`/`ex["yuhonas_id"]` + `ex["external_ids"][source_key]`
+    aus einem gefundenen Rohtreffer, falls die Übung dort noch keine ID hat.
+    Das ist die eigentliche "Verlinkung" (nicht nur der rohe Snapshot) —
+    macht `wger_id`/`yuhonas_id`/`external_ids` fuer nachfolgende ID-Hinweis-
+    Lookups (`source_merge._candidate_queries`, exakt statt fuzzy) und fuer
+    `inbox reenrich` (REENRICH_OVERLAY_FIELDS uebernimmt genau diese Felder)
+    sofort nutzbar, statt dass die Verknuepfung nur im Snapshot vergraben ist.
+    Gibt True zurueck, wenn etwas geaendert wurde."""
+    id_field = f"{source_key}_id"
+    raw_id = entry.get(id_field)
+    changed = False
+    if raw_id not in (None, "") and ex.get(id_field) in (None, ""):
+        ex[id_field] = raw_id
+        changed = True
+    if raw_id not in (None, ""):
+        external_ids = ex.get("external_ids")
+        if not isinstance(external_ids, dict):
+            external_ids = {}
+        existing_ids = external_ids.get(source_key)
+        existing_ids = list(existing_ids) if isinstance(existing_ids, list) else []
+        if raw_id not in existing_ids:
+            existing_ids.append(raw_id)
+            external_ids[source_key] = existing_ids
+            ex["external_ids"] = external_ids
+            changed = True
+    return changed
+
+
+def attach_source_snapshot(f: Path, ex: dict[str, Any], apply: bool = False) -> dict[str, Any]:
+    """Sucht den rohen wger- und yuhonas-Eintrag zu einem Inbox-Draft (per
+    ID-Hinweis bzw. Namens-Fuzzy-Match, siehe `source_merge.find_source_entries`),
+    verlinkt bei einem sicheren Treffer (Score >= AUTO_MATCH_MIN_SCORE) die
+    IDs (`wger_id`/`yuhonas_id`/`external_ids`) auf oberster Ebene und legt
+    beide Rohtreffer zusaetzlich UNVERAENDERT unter `ex["origin"]["wger"]`
+    bzw. `ex["origin"]["yuhonas"]` ab — nebenbei `origin.type`/
+    `origin.source_refs`, falls noch nicht gesetzt (dieselbe `origin`-
+    Struktur, die approve_inbox_entry() bereits kennt, siehe unten). Bewusst
+    KEINE Feld-Verschmelzung (kein Union von `primary_muscles`/
+    `coaching_notes` etc., das bleibt Aufgabe von `build_external_seed()`/
+    `approve_inbox_entry()`). Zweck: `inbox reenrich` hat sofort eine feste
+    ID-Basis statt erneut fuzzy raten zu muessen, und Coach-Sheet/GUI koennen
+    getrennt zeigen "wger sagt X" / "yuhonas sagt Y".
+
+    Treffer zwischen CANDIDATE_MIN_SCORE und AUTO_MATCH_MIN_SCORE werden NIE
+    automatisch verlinkt (zu unsicher), sondern nur im Rueckgabewert unter
+    `candidates` fuer eine manuelle Review durchgereicht.
+
+    Dry-run per Default (Repo-Konvention, siehe `fitness/runtime/cli.py`):
+    ohne `apply=True` wird nichts geschrieben, nur berechnet + zurueckgegeben.
+    Bei `apply=True` wird nur geschrieben, wenn mindestens eine der beiden
+    Quellen neu dazukommt (.bak vorher, bestehende IDs/Rohtreffer bleiben
+    erhalten — kein Overwrite bereits gesetzter Werte).
+    Rueckgabe: {"found": {"wger": bool, "yuhonas": bool}, "changed": bool,
+    "candidates": {"wger": {"id":..,"score":..}|None, "yuhonas": ...}, "exercise": ex}.
+    """
+    from fitness.catalog.core.source_merge import find_source_entries
+
+    ex_id = ex.get("exercise_id") or ex.get("id") or f.stem.replace("inbox_", "")
+    display_name = display_name_of(ex, ex_id)
+
+    found = find_source_entries(display_name, str(ex_id))
+    origin = ex.get("origin") if isinstance(ex.get("origin"), dict) else {}
+
+    new_origin = dict(origin)
+    new_source_refs = dict(origin.get("source_refs") or {})
+    changed = False
+    for source_key in ("wger", "yuhonas"):
+        entry = found.get(source_key)
+        if not entry:
+            continue
+        if _link_source_id(ex, source_key, entry):
+            changed = True
+        if not origin.get(source_key):
+            new_origin[source_key] = deepcopy(entry)
+            changed = True
+            id_value = entry.get(f"{source_key}_id")
+            if id_value not in (None, "") and source_key not in new_source_refs:
+                new_source_refs[source_key] = [str(id_value)]
+
+    if changed and apply:
+        new_origin.setdefault("type", "external")
+        if new_source_refs:
+            new_origin["source_refs"] = new_source_refs
+        ex["origin"] = new_origin
+        f.with_suffix(".yml.bak").write_text(f.read_text())
+        doc = load_yaml(f)
+        doc["exercises"] = [ex]
+        f.write_text(yaml.dump(doc, allow_unicode=True, sort_keys=False))
+
+    def _candidate_info(source_key: str) -> dict[str, Any] | None:
+        entry = found.get(f"{source_key}_candidate")
+        score = found.get(f"{source_key}_candidate_score")
+        if not entry:
+            return None
+        return {"id": entry.get(f"{source_key}_id") or entry.get("exercise_id"), "score": score}
+
+    return {
+        "found": {"wger": bool(found.get("wger")), "yuhonas": bool(found.get("yuhonas"))},
+        "changed": changed,
+        "candidates": {"wger": _candidate_info("wger"), "yuhonas": _candidate_info("yuhonas")},
+        "exercise": ex,
+    }
 
 
 def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:

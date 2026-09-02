@@ -1,5 +1,4 @@
 
-
 # [NEW] Coach Office 
 Beispielfeature: Trainingsplanbesprechung zwischen Klient und Coach. Social Media Style. Comment-feed per Exercise
 

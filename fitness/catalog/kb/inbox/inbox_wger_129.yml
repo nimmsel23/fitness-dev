@@ -75,12 +75,40 @@ exercises:
     source_refs:
       wger:
       - '129'
-  source_snapshot:
     wger:
       wger_id: 129
       wger_muscle_ids:
         primary:
         - 4
+        secondary: []
+    yuhonas:
+      exercise_id: yuhonas_cable_chest_press
+      display_name: Cable Chest Press
+      category: strength
+      primary_muscles:
+      - chest
+      secondary_muscles:
+      - shoulders
+      - triceps
+      equipment:
+      - cable
+      coaching_notes:
+      - Adjust the weight to an appropriate amount and be seated, grasping the handles.
+        Your upper arms should be about 45 degrees to the body, with your head and
+        chest up. The elbows should be bent to about 90 degrees. This will be your
+        starting position.
+      - Begin by extending through the elbow, pressing the handles together straight
+        in front of you. Keep your shoulder blades retracted as you execute the movement.
+      - After pausing at full extension, return to th starting position, keeping tension
+        on the cables.
+      - You can also execute this movement with your back off the pad, at an incline
+        or decline, or alternate hands.
+      tags:
+      - unreviewed
+      - yuhonas
+      yuhonas_id: Cable_Chest_Press
+      wger_muscle_ids:
+        primary: []
         secondary: []
   review_state:
     status: draft

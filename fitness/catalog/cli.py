@@ -19,6 +19,7 @@ from fitness.catalog.core.audit import (
     run_all_audits,
     status_for_exercises,
     run_demand_audit,
+    run_source_consistency_audit,
 )
 from fitness.catalog.coach_sheet import build_coach_sheet, render_coach_sheet_markdown
 from fitness.catalog.coverage import calculate_coverage as run_calculate_coverage
@@ -53,6 +54,7 @@ from fitness.catalog.core.rich_utils import (
     print_doctor_report,
     print_exercise_audit,
     print_demand_audit,
+    print_source_consistency_audit,
 )
 
 app = typer.Typer(help="AlphaOS Fitness Agent CLI", add_completion=False)
@@ -143,6 +145,11 @@ def audit(
                 except Exception as exc:
                     console.print(f"[fail]FAIL[/fail] {entry.exercise_id}: {exc}")
             console.print(Panel(f"[ok]{min(enrich, len(result.entries))} Kandidaten an Gemini geschickt — Inbox prüfen.[/ok]", expand=False))
+    elif topic == "source-consistency":
+        result = run_source_consistency_audit()
+        print_source_consistency_audit(result)
+        if result.flags:
+            raise typer.Exit(code=1)
     elif topic == "all":
         sys.exit(run_all_audits())
     else:
@@ -999,6 +1006,62 @@ def inbox_reenrich_cmd(
         else:
             console.print("[warn]Haiku/Codex-Review nicht verfuegbar — Gemini-Ergebnis behalten[/warn]")
     console.print(f"[ok]✓ Neu angereichert:[/ok] {f.name}")
+
+
+@inbox_app.command(name="attach-sources")
+def inbox_attach_sources_cmd(
+    file_id: Annotated[Optional[str], typer.Argument(help="z.B. inbox_wger_206 (leer = alle Drafts)")] = None,
+    apply: Annotated[bool, typer.Option("--apply", help="Tatsaechlich schreiben (Default: nur anzeigen)")] = False,
+):
+    """Sucht zu jedem Inbox-Draft den jeweils fehlenden wger-/yuhonas-Rohdatensatz,
+    verlinkt bei einem sicheren Treffer wger_id/yuhonas_id/external_ids auf
+    oberster Ebene und legt den Rohdatensatz UNVERAENDERT unter
+    origin.wger/origin.yuhonas ab — keine Feld-Verschmelzung
+    (primary_muscles/coaching_notes etc. bleiben unangetastet). Unsichere
+    Treffer (Score zwischen CANDIDATE_MIN_SCORE und AUTO_MATCH_MIN_SCORE)
+    werden NIE automatisch verlinkt, nur als Kandidat angezeigt. Dry-run per
+    Default, --apply zum tatsaechlichen Schreiben."""
+    from fitness.catalog.agent.inbox_actions import list_inbox_files, load_inbox_entry, display_name_of, attach_source_snapshot
+
+    targets = [file_id] if file_id else [f.stem for f in list_inbox_files()]
+    if not targets:
+        console.print("[ok]Inbox leer.[/ok]")
+        return
+
+    any_found = False
+    for target in targets:
+        try:
+            f, ex = load_inbox_entry(target)
+        except (FileNotFoundError, ValueError) as exc:
+            console.print(f"[fail]FAIL:[/fail] {target}: {exc}")
+            continue
+        name = display_name_of(ex, target)
+        result = attach_source_snapshot(f, ex, apply=apply)
+        found = result["found"]
+        newly = [k for k, v in found.items() if v]
+        if newly:
+            any_found = True
+            if apply and result["changed"]:
+                verb = "geschrieben"
+            elif apply:
+                verb = "bereits vorhanden"
+            else:
+                verb = "gefunden (dry-run)"
+            console.print(f"[ok]✓ {f.stem}[/ok] ({name}): {', '.join(newly)} {verb}")
+        else:
+            console.print(f"[dim]– {f.stem}[/dim] ({name}): keine zusätzliche Quelle gefunden")
+
+        for source_key, cand in result.get("candidates", {}).items():
+            if cand:
+                console.print(
+                    f"    [warn]? Kandidat ({source_key}): {cand['id']} — Score {cand['score']:.0f}, "
+                    f"zu unsicher fuer Automatik, manuell pruefen[/warn]"
+                )
+
+    if not any_found:
+        console.print("[ok]Keine zusätzlichen Quellen-Treffer.[/ok]")
+    elif not apply:
+        console.print("[info]Dry-run — mit --apply tatsächlich schreiben.[/info]")
 
 
 @inbox_app.command(name="dedupe")

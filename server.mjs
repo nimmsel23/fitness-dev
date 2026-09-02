@@ -2,8 +2,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { Hono } from "hono";
 import { serve } from "@hono/node-server";
+import { swaggerUI } from "@hono/swagger-ui";
+import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import pino from "pino";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
 import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, pullAllSessions, pullJournalTree } from "./firestore-mirror.mjs";
@@ -261,7 +262,7 @@ function computeCoverageAnatomy(days) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-const app = new Hono();
+const app = new OpenAPIHono(); // Drop-in-Ersatz für Hono, alle bestehenden app.get/post/etc. bleiben unverändert nutzbar
 
 app.use("*", async (c, next) => {
   c.res.headers.set("Access-Control-Allow-Origin", "*");
@@ -270,15 +271,61 @@ app.use("*", async (c, next) => {
 
 app.options("*", (c) => c.body(null, 204));
 
+const anyJsonSchema = z.any();
+const looseObjectSchema = z.object({}).loose();
+const jsonContent = (schema = anyJsonSchema) => ({ "application/json": { schema } });
+const jsonResponse = (schema = anyJsonSchema, description = "OK") => ({
+  description,
+  content: jsonContent(schema),
+});
+function defineJsonRoute({ method, path, tags, summary, description, query, params, jsonBody, responseSchema = anyJsonSchema, responseDescription = "OK", responses }) {
+  const request = {};
+  if (query) request.query = query;
+  if (params) request.params = params;
+  if (jsonBody) request.body = { content: jsonContent(jsonBody) };
+  return createRoute({
+    method,
+    path,
+    tags,
+    summary,
+    description,
+    ...(Object.keys(request).length ? { request } : {}),
+    responses: responses || { 200: jsonResponse(responseSchema, responseDescription) },
+  });
+}
+
 // ── Health ────────────────────────────────────────────────────────────────────
-app.get("/health", (c) =>
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/health",
+  tags: ["system"],
+  summary: "Healthcheck",
+  responseSchema: z.object({ ok: z.boolean(), port: z.number(), uptime: z.number() }),
+}), (c) =>
   c.json({ ok: true, port: PORT, uptime: Math.floor(process.uptime()) })
 );
 
 // ── Exercise search ───────────────────────────────────────────────────────────
-app.get("/exercises/search", async (c) => {
-  const q     = c.req.query("q")     || "";
-  const limit = Math.min(Number(c.req.query("limit") || 12), 50);
+const exerciseSearchRoute = createRoute({
+  method: "get",
+  path: "/exercises/search",
+  tags: ["exercises"],
+  summary: "Übungssuche lokal + wger-Fallback",
+  request: {
+    query: z.object({
+      q: z.string().optional().default("").openapi({ example: "bankdrücken" }),
+      limit: z.coerce.number().int().positive().max(50).optional().default(12),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Suchergebnisse",
+      content: { "application/json": { schema: z.object({ ok: z.boolean(), source: z.string().optional(), results: z.array(z.record(z.string(), z.any())) }) } },
+    },
+  },
+});
+app.openapi(exerciseSearchRoute, async (c) => {
+  const { q, limit } = c.req.valid("query");
   if (q.length < 1) return c.json({ ok: true, results: [] });
   const local = await searchExercises(q, limit);
   if (local?.results?.length) return c.json(local);
@@ -303,8 +350,14 @@ app.get("/exercises/search", async (c) => {
 });
 
 // ── Exercises by muscle group ─────────────────────────────────────────────────
-app.get("/exercises/by-group", async (c) => {
-  const group = c.req.query("group") || "";
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/exercises/by-group",
+  tags: ["exercises"],
+  summary: "Übungen nach Muskelgruppe",
+  query: z.object({ group: z.string().optional().default("") }),
+}), async (c) => {
+  const { group } = c.req.valid("query");
   // Delegating search logic to agent if possible, but keeping local filter for now
   const normalized = group.toLowerCase().replace(/\s+/g, "_");
   const local = (fitnessData.exercises || []).filter(ex => {
@@ -338,7 +391,13 @@ app.get("/exercises/by-group", async (c) => {
 });
 
 // ── Exercise teaching (anatomy-kb → catalog/kb/anatomy_teaching) ─────────────
-app.get("/exercise/:id/teaching", async (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/exercise/{id}/teaching",
+  tags: ["exercises"],
+  summary: "Teaching/Lesson zu einer Übung",
+  params: z.object({ id: z.string() }),
+}), async (c) => {
   const id = c.req.param("id");
   try {
     const res = await fetch(`${PYTHON_BASE}/exercise/${id}`);
@@ -351,7 +410,12 @@ app.get("/exercise/:id/teaching", async (c) => {
 });
 
 // ── Inbox Management ─────────────────────────────────────────────────────────
-app.get("/fitness/clients", (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/clients",
+  tags: ["fitness"],
+  summary: "Bekannte Fitness-Clients",
+}), (c) => {
   const usersDir = path.join(os.homedir(), ".aos", "fitness", "users");
   const klienten = loadKlientenRegistry();
   const clients = Object.entries(klienten).map(([uid, meta]) => ({ uid, name: meta.name, slug: meta.slug }));
@@ -379,7 +443,12 @@ app.get("/fitness/clients", (c) => {
   return c.json({ ok: true, clients });
 });
 
-app.get("/fitness/inbox", async (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/inbox",
+  tags: ["inbox"],
+  summary: "Inbox-Entwürfe lesen",
+}), async (c) => {
   try {
     const res = await fetch(`${PYTHON_BASE}/fitness/inbox`);
     const data = await res.json();
@@ -389,9 +458,30 @@ app.get("/fitness/inbox", async (c) => {
   }
 });
 
-app.post("/fitness/inbox/queue", async (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/inbox/merge-candidates",
+  tags: ["inbox"],
+  summary: "Fuzzy-Merge-Kandidaten fuer Inbox-Drafts (Hinweis, kein Auto-Link)",
+}), async (c) => {
   try {
-    const body = await c.req.json();
+    const res = await fetch(`${PYTHON_BASE}/fitness/inbox/merge-candidates`);
+    const data = await res.json();
+    return c.json(data);
+  } catch (err) {
+    return c.json({ ok: false, error: "python_unreachable" }, 502);
+  }
+});
+
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/fitness/inbox/queue",
+  tags: ["inbox"],
+  summary: "Inbox-Entwurf enqueuen",
+  jsonBody: looseObjectSchema,
+}), async (c) => {
+  try {
+    const body = c.req.valid("json");
     const res = await fetch(`${PYTHON_BASE}/fitness/inbox/queue`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -404,7 +494,13 @@ app.post("/fitness/inbox/queue", async (c) => {
   }
 });
 
-app.post("/fitness/inbox/:id/approve", async (c) => {
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/fitness/inbox/{id}/approve",
+  tags: ["inbox"],
+  summary: "Inbox-Entwurf freigeben",
+  params: z.object({ id: z.string() }),
+}), async (c) => {
   const id = c.req.param("id");
   try {
     const res = await fetch(`${PYTHON_BASE}/fitness/inbox/${id}/approve`, { method: "POST" });
@@ -415,7 +511,13 @@ app.post("/fitness/inbox/:id/approve", async (c) => {
   }
 });
 
-app.delete("/fitness/inbox/:id", async (c) => {
+app.openapi(defineJsonRoute({
+  method: "delete",
+  path: "/fitness/inbox/{id}",
+  tags: ["inbox"],
+  summary: "Inbox-Entwurf löschen",
+  params: z.object({ id: z.string() }),
+}), async (c) => {
   const id = c.req.param("id");
   try {
     const res = await fetch(`${PYTHON_BASE}/fitness/inbox/${id}`, { method: "DELETE" });
@@ -433,10 +535,18 @@ app.delete("/fitness/inbox/:id", async (c) => {
 // bestimmten Klienten dadurch aus dem Feed fallen, bevor ein
 // clientseitiger Filter sie sieht. Mit ?uid= wird gezielt nur dieser eine
 // Ordner gelesen, kein globaler Cutoff greift dazwischen.
-app.get("/fitness/coach/feed", (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/coach/feed",
+  tags: ["coach"],
+  summary: "Coach-Feed über Workout-Sessions",
+  query: z.object({
+    limit: z.coerce.number().int().positive().max(500).optional().default(100),
+    uid: z.string().optional(),
+  }),
+}), (c) => {
+  const { limit, uid: onlyUid = null } = c.req.valid("query");
   const usersDir = path.join(os.homedir(), ".aos", "fitness", "users");
-  const limit = Number(c.req.query("limit") || 100);
-  const onlyUid = c.req.query("uid") || null;
   if (!fs.existsSync(usersDir)) return c.json({ ok: true, feed: [] });
 
   const uids = onlyUid
@@ -495,7 +605,12 @@ function loadKlientenRegistry() {
   return registry;
 }
 
-app.get("/fitness/coach/profiles", (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/coach/profiles",
+  tags: ["coach"],
+  summary: "Coach-Profile für bekannte UIDs",
+}), (c) => {
   const usersDir = path.join(os.homedir(), ".aos", "fitness", "users");
   const klienten = loadKlientenRegistry();
   const profiles = {};
@@ -527,8 +642,18 @@ app.get("/fitness/coach/profiles", (c) => {
   return c.json({ ok: true, profiles });
 });
 
-app.post("/fitness/coach/feedback", async (c) => {
-  const { userId, sessionId, text } = await c.req.json().catch(() => ({}));
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/fitness/coach/feedback",
+  tags: ["coach"],
+  summary: "Coach-Feedback in Session schreiben",
+  jsonBody: z.object({
+    userId: z.string().optional(),
+    sessionId: z.string().optional(),
+    text: z.string().optional(),
+  }).loose(),
+}), async (c) => {
+  const { userId, sessionId, text } = c.req.valid("json");
   if (!userId || !sessionId || !text) return c.json({ ok: false, error: "missing fields" }, 400);
 
   const sessFile = path.join(os.homedir(), ".aos", "fitness", "users", userId, "sessions", `${sessionId.replace(`${userId}__`, "")}.json`);
@@ -546,9 +671,16 @@ function clientPlansDir(uid) {
   return path.join(os.homedir(), ".aos", "fitness", "users", uid, "plans");
 }
 
-app.get("/fitness/coach/plans/:clientUid", (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/coach/plans/{clientUid}",
+  tags: ["coach"],
+  summary: "Zugewiesene Pläne eines Klienten",
+  params: z.object({ clientUid: z.string() }),
+  query: z.object({ coachUid: z.string().optional().default("") }),
+}), (c) => {
+  const { coachUid } = c.req.valid("query");
   const clientUid = c.req.param("clientUid");
-  const coachUid  = c.req.query("coachUid") || "";
   const dir = clientPlansDir(clientUid);
   if (!fs.existsSync(dir)) return c.json({ ok: true, plans: [] });
   const plans = fs.readdirSync(dir)
@@ -564,22 +696,48 @@ function habitCycleFile(uid) {
   return path.join(os.homedir(), ".aos", "fitness", "users", uid, "habit-cycle.json");
 }
 
-app.get("/fitness/coach/habit-cycle/:clientUid", (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/coach/habit-cycle/{clientUid}",
+  tags: ["coach"],
+  summary: "Habit-Cycle-Konfiguration eines Klienten",
+  params: z.object({ clientUid: z.string() }),
+}), (c) => {
   const clientUid = c.req.param("clientUid");
   return c.json({ ok: true, config: readJson(habitCycleFile(clientUid), { tags: [], targetCycles: 0 }) });
 });
 
-app.post("/fitness/coach/habit-cycle/:clientUid", async (c) => {
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/fitness/coach/habit-cycle/{clientUid}",
+  tags: ["coach"],
+  summary: "Habit-Cycle-Konfiguration speichern",
+  params: z.object({ clientUid: z.string() }),
+  jsonBody: z.object({
+    tags: z.array(z.string()).optional(),
+    targetCycles: z.coerce.number().int().min(0).optional(),
+  }).loose(),
+}), async (c) => {
   const clientUid = c.req.param("clientUid");
-  const body = await c.req.json().catch(() => ({}));
-  const config = { tags: Array.isArray(body.tags) ? body.tags : [], targetCycles: Number(body.targetCycles) || 0 };
+  const body = c.req.valid("json");
+  const config = { tags: Array.isArray(body.tags) ? body.tags : [], targetCycles: body.targetCycles || 0 };
   writeJson(habitCycleFile(clientUid), config);
   return c.json({ ok: true, config });
 });
 
-app.post("/fitness/coach/plans/:clientUid", async (c) => {
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/fitness/coach/plans/{clientUid}",
+  tags: ["coach"],
+  summary: "Plan einem Klienten zuweisen",
+  params: z.object({ clientUid: z.string() }),
+  jsonBody: z.object({
+    coachUid: z.string().optional(),
+    plan: looseObjectSchema.optional(),
+  }).loose(),
+}), async (c) => {
   const clientUid = c.req.param("clientUid");
-  const body = await c.req.json().catch(() => ({}));
+  const body = c.req.valid("json");
   const { coachUid, plan } = body;
   if (!coachUid || !plan) return c.json({ ok: false, error: "missing fields" }, 400);
 
@@ -597,13 +755,21 @@ app.post("/fitness/coach/plans/:clientUid", async (c) => {
   return c.json({ ok: true, plan: record });
 });
 
-app.get("/fitness/coach/plans/:clientUid/:planId/progress", (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/coach/plans/{clientUid}/{planId}/progress",
+  tags: ["coach"],
+  summary: "Fortschritt eines zugewiesenen Plans",
+  params: z.object({ clientUid: z.string(), planId: z.string() }),
+  query: z.object({ date: z.string().optional() }),
+}), (c) => {
+  const { date: todayQ } = c.req.valid("query");
   const clientUid = c.req.param("clientUid");
   const planId    = c.req.param("planId");
   const plan = readJson(path.join(clientPlansDir(clientUid), `${planId}.json`));
   if (!plan) return c.json({ ok: true, progress: null });
 
-  const today = c.req.query("date") || localToday();
+  const today = todayQ || localToday();
   const completion = readJson(path.join(clientPlansDir(clientUid), planId, "completions", `${today}.json`));
   const exercises  = plan.exercises || [];
   const doneCount  = completion?.doneExerciseIds?.length || 0;
@@ -622,8 +788,15 @@ app.get("/fitness/coach/plans/:clientUid/:planId/progress", (c) => {
 });
 
 // Klienten-Seite: eigene zugewiesene Pläne lesen + Completions togglen.
-app.get("/fitness/plans/assigned", (c) => {
-  const uid = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/plans/assigned",
+  tags: ["fitness"],
+  summary: "Dem User zugewiesene Pläne",
+  query: z.object({ uid: z.string().optional() }),
+}), (c) => {
+  const { uid: uidQ } = c.req.valid("query");
+  const uid = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
   const dir = clientPlansDir(uid);
   if (!fs.existsSync(dir)) return c.json({ ok: true, plans: [] });
   const plans = fs.readdirSync(dir)
@@ -633,10 +806,23 @@ app.get("/fitness/plans/assigned", (c) => {
   return c.json({ ok: true, plans });
 });
 
-app.post("/fitness/plans/:planId/completions", async (c) => {
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/fitness/plans/{planId}/completions",
+  tags: ["fitness"],
+  summary: "Plan-Completions schreiben oder togglen",
+  params: z.object({ planId: z.string() }),
+  query: z.object({ uid: z.string().optional() }),
+  jsonBody: z.object({
+    date: z.string().optional(),
+    doneExerciseIds: z.array(z.string()).optional(),
+    exerciseId: z.string().optional(),
+  }).loose(),
+}), async (c) => {
+  const { uid: uidQ } = c.req.valid("query");
   const planId = c.req.param("planId");
-  const uid    = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
-  const body   = await c.req.json().catch(() => ({}));
+  const uid    = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
+  const body   = c.req.valid("json");
   const date   = body.date || localToday();
 
   const dir  = path.join(clientPlansDir(uid), planId, "completions");
@@ -659,7 +845,12 @@ app.post("/fitness/plans/:planId/completions", async (c) => {
 });
 
 // ── Fitness config / search / plan / weekly / export ─────────────────────────
-app.get("/fitness/config", (c) =>
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/config",
+  tags: ["fitness"],
+  summary: "Lokale Fitness-Konfiguration",
+}), (c) =>
   c.json({
     ok:         true,
     config:     fitnessData.config,
@@ -669,18 +860,36 @@ app.get("/fitness/config", (c) =>
   })
 );
 
-app.get("/fitness/search", async (c) => {
-  const q       = c.req.query("q")       || "";
-  const limit   = Math.min(Number(c.req.query("limit") || 12), 50);
-  const sources = c.req.query("sources") || "wger,yuhonas";
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/search",
+  tags: ["fitness"],
+  summary: "Exercize Search mit Source-Auswahl",
+  query: z.object({
+    q: z.string().optional().default(""),
+    limit: z.coerce.number().int().positive().max(50).optional().default(12),
+    sources: z.string().optional().default("wger,yuhonas"),
+  }),
+}), async (c) => {
+  const { q, limit, sources } = c.req.valid("query");
   return c.json(await searchExercises(q, limit, sources));
 });
 
-app.get("/fitness/exercises/all", (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/exercises/all",
+  tags: ["fitness"],
+  summary: "Alle lokalen Übungen",
+}), (c) => {
   return c.json({ ok: true, exercises: fitnessData.exercises || [] });
 });
 
-app.get("/fitness/muscles", async (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/muscles",
+  tags: ["fitness"],
+  summary: "Muskelindex laden",
+}), async (c) => {
   try {
     const res = await fetch(`${PYTHON_BASE}/fitness/muscles`);
     return c.json(await res.json());
@@ -689,7 +898,13 @@ app.get("/fitness/muscles", async (c) => {
   }
 });
 
-app.get("/fitness/muscles/:id", async (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/muscles/{id}",
+  tags: ["fitness"],
+  summary: "Muskel-Detail laden",
+  params: z.object({ id: z.string() }),
+}), async (c) => {
   const id = c.req.param("id");
   try {
     const res = await fetch(`${PYTHON_BASE}/fitness/muscles`);
@@ -702,22 +917,48 @@ app.get("/fitness/muscles/:id", async (c) => {
   }
 });
 
-app.get("/fitness/plan", async (c) => {
-  const template = c.req.query("template") || "";
-  const split    = c.req.query("split")    || "";
-  const day      = c.req.query("day")      || "";
-  const goal     = c.req.query("goal")     || "";
+const fitnessPlanRoute = createRoute({
+  method: "get",
+  path: "/fitness/plan",
+  tags: ["fitness"],
+  summary: "Trainingsplan-Generator",
+  request: {
+    query: z.object({
+      template: z.string().optional().default(""),
+      split: z.string().optional().default(""),
+      day: z.string().optional().default(""),
+      goal: z.string().optional().default(""),
+    }),
+  },
+  responses: {
+    200: { description: "Generierter Plan", content: { "application/json": { schema: z.record(z.string(), z.any()) } } },
+  },
+});
+app.openapi(fitnessPlanRoute, async (c) => {
+  const { template, split, day, goal } = c.req.valid("query");
   return c.json(await buildPlan({ template, split, day, goal }));
 });
 
-app.get("/fitness/weekly", async (c) => {
-  const week = c.req.query("week") || "current";
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/weekly",
+  tags: ["fitness"],
+  summary: "Wochensummary",
+  query: z.object({ week: z.string().optional().default("current") }),
+}), async (c) => {
+  const { week } = c.req.valid("query");
   try { return c.json(await getWeeklySummary(week)); }
   catch (e) { return c.json({ ok: false, error: e.message }, 500); }
 });
 
-app.post("/fitness/export", async (c) => {
-  const data = await c.req.json().catch(() => ({}));
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/fitness/export",
+  tags: ["fitness"],
+  summary: "Export erzeugen",
+  jsonBody: looseObjectSchema,
+}), async (c) => {
+  const data = c.req.valid("json");
   const kind = String(data.kind || "").trim();
   try {
     if (kind === "session") {
@@ -747,8 +988,15 @@ app.post("/fitness/export", async (c) => {
   }
 });
 
-app.get("/plan/today", (c) => {
-  const date = c.req.query("date") || localToday();
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/plan/today",
+  tags: ["plan"],
+  summary: "Heutige Plan-Suggestion",
+  query: z.object({ date: z.string().optional() }),
+}), (c) => {
+  const { date: dateQ } = c.req.valid("query");
+  const date = dateQ || localToday();
   const plan = readJson(path.join(DATA_DIR, "plan.json"));
   const einheiten = (plan && plan.einheiten) || [];
 
@@ -789,7 +1037,12 @@ app.get("/plan/today", (c) => {
 });
 
 // ── Blocks ────────────────────────────────────────────────────────────────────
-app.get("/blocks", (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/blocks",
+  tags: ["plan"],
+  summary: "Verfügbare Trainingsblöcke",
+}), (c) => {
   const plan   = readJson(path.join(DATA_DIR, "plan.json"));
   const blocks = defaultBlocks();
   for (const unit of (plan?.einheiten || [])) {
@@ -834,36 +1087,190 @@ async function proxyToPython(c, pythonPath) {
   }
 }
 
-app.get("/coaching-notes", (c) => proxyToPython(c, "/coaching-notes"));
-app.get("/coaching-notes/product-signals", (c) => proxyToPython(c, "/coaching-notes/product-signals"));
-app.get("/coaching-notes/:id", (c) => proxyToPython(c, `/coaching-notes/${c.req.param("id")}`));
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/coaching-notes",
+  tags: ["coaching-notes"],
+  summary: "Coaching-Notes Liste",
+}), (c) => proxyToPython(c, "/coaching-notes"));
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/coaching-notes/product-signals",
+  tags: ["coaching-notes"],
+  summary: "Coaching-Notes Product Signals",
+}), (c) => proxyToPython(c, "/coaching-notes/product-signals"));
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/coaching-notes/{id}",
+  tags: ["coaching-notes"],
+  summary: "Coaching-Note Detail",
+  params: z.object({ id: z.string() }),
+}), (c) => proxyToPython(c, `/coaching-notes/${c.req.param("id")}`));
 
-app.get("/routines", (c) => proxyToPython(c, "/routines"));
-app.post("/routines", (c) => proxyToPython(c, "/routines"));
-app.get("/routines/:id", (c) => proxyToPython(c, `/routines/${c.req.param("id")}`));
-app.patch("/routines/:id", (c) => proxyToPython(c, `/routines/${c.req.param("id")}`));
-app.delete("/routines/:id", (c) => proxyToPython(c, `/routines/${c.req.param("id")}`));
-app.post("/routines/:id/exercises", (c) => proxyToPython(c, `/routines/${c.req.param("id")}/exercises`));
-app.put("/routines/:id/exercises/order", (c) => proxyToPython(c, `/routines/${c.req.param("id")}/exercises/order`));
-app.patch("/routines/:id/exercises/:eid", (c) => proxyToPython(c, `/routines/${c.req.param("id")}/exercises/${c.req.param("eid")}`));
-app.delete("/routines/:id/exercises/:eid", (c) => proxyToPython(c, `/routines/${c.req.param("id")}/exercises/${c.req.param("eid")}`));
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/routines",
+  tags: ["routines"],
+  summary: "Routines Liste",
+}), (c) => proxyToPython(c, "/routines"));
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/routines",
+  tags: ["routines"],
+  summary: "Routine anlegen",
+  jsonBody: looseObjectSchema,
+}), (c) => proxyToPython(c, "/routines"));
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/routines/{id}",
+  tags: ["routines"],
+  summary: "Routine Detail",
+  params: z.object({ id: z.string() }),
+}), (c) => proxyToPython(c, `/routines/${c.req.param("id")}`));
+app.openapi(defineJsonRoute({
+  method: "patch",
+  path: "/routines/{id}",
+  tags: ["routines"],
+  summary: "Routine aktualisieren",
+  params: z.object({ id: z.string() }),
+  jsonBody: looseObjectSchema,
+}), (c) => proxyToPython(c, `/routines/${c.req.param("id")}`));
+app.openapi(defineJsonRoute({
+  method: "delete",
+  path: "/routines/{id}",
+  tags: ["routines"],
+  summary: "Routine löschen",
+  params: z.object({ id: z.string() }),
+}), (c) => proxyToPython(c, `/routines/${c.req.param("id")}`));
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/routines/{id}/exercises",
+  tags: ["routines"],
+  summary: "Übung an Routine anhängen",
+  params: z.object({ id: z.string() }),
+  jsonBody: looseObjectSchema,
+}), (c) => proxyToPython(c, `/routines/${c.req.param("id")}/exercises`));
+app.openapi(defineJsonRoute({
+  method: "put",
+  path: "/routines/{id}/exercises/order",
+  tags: ["routines"],
+  summary: "Routine-Übungsreihenfolge speichern",
+  params: z.object({ id: z.string() }),
+  jsonBody: looseObjectSchema,
+}), (c) => proxyToPython(c, `/routines/${c.req.param("id")}/exercises/order`));
+app.openapi(defineJsonRoute({
+  method: "patch",
+  path: "/routines/{id}/exercises/{eid}",
+  tags: ["routines"],
+  summary: "Routine-Übung aktualisieren",
+  params: z.object({ id: z.string(), eid: z.string() }),
+  jsonBody: looseObjectSchema,
+}), (c) => proxyToPython(c, `/routines/${c.req.param("id")}/exercises/${c.req.param("eid")}`));
+app.openapi(defineJsonRoute({
+  method: "delete",
+  path: "/routines/{id}/exercises/{eid}",
+  tags: ["routines"],
+  summary: "Routine-Übung löschen",
+  params: z.object({ id: z.string(), eid: z.string() }),
+}), (c) => proxyToPython(c, `/routines/${c.req.param("id")}/exercises/${c.req.param("eid")}`));
 
-app.get("/workouts", (c) => proxyToPython(c, "/workouts"));
-app.post("/workouts", (c) => proxyToPython(c, "/workouts"));
-app.get("/workouts/:id", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}`));
-app.patch("/workouts/:id", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}`));
-app.delete("/workouts/:id", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}`));
-app.post("/workouts/:id/exercises", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises`));
-app.put("/workouts/:id/exercises/order", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises/order`));
-app.delete("/workouts/:id/exercises/:eid", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises/${c.req.param("eid")}`));
-app.post("/workouts/:id/exercises/:eid/sets", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises/${c.req.param("eid")}/sets`));
-app.patch("/workouts/:id/exercises/:eid/sets/:sid", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises/${c.req.param("eid")}/sets/${c.req.param("sid")}`));
-app.delete("/workouts/:id/exercises/:eid/sets/:sid", (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises/${c.req.param("eid")}/sets/${c.req.param("sid")}`));
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/workouts",
+  tags: ["workouts"],
+  summary: "Workouts Liste",
+}), (c) => proxyToPython(c, "/workouts"));
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/workouts",
+  tags: ["workouts"],
+  summary: "Workout anlegen",
+  jsonBody: looseObjectSchema,
+}), (c) => proxyToPython(c, "/workouts"));
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/workouts/{id}",
+  tags: ["workouts"],
+  summary: "Workout Detail",
+  params: z.object({ id: z.string() }),
+}), (c) => proxyToPython(c, `/workouts/${c.req.param("id")}`));
+app.openapi(defineJsonRoute({
+  method: "patch",
+  path: "/workouts/{id}",
+  tags: ["workouts"],
+  summary: "Workout aktualisieren",
+  params: z.object({ id: z.string() }),
+  jsonBody: looseObjectSchema,
+}), (c) => proxyToPython(c, `/workouts/${c.req.param("id")}`));
+app.openapi(defineJsonRoute({
+  method: "delete",
+  path: "/workouts/{id}",
+  tags: ["workouts"],
+  summary: "Workout löschen",
+  params: z.object({ id: z.string() }),
+}), (c) => proxyToPython(c, `/workouts/${c.req.param("id")}`));
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/workouts/{id}/exercises",
+  tags: ["workouts"],
+  summary: "Übung an Workout anhängen",
+  params: z.object({ id: z.string() }),
+  jsonBody: looseObjectSchema,
+}), (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises`));
+app.openapi(defineJsonRoute({
+  method: "put",
+  path: "/workouts/{id}/exercises/order",
+  tags: ["workouts"],
+  summary: "Workout-Übungsreihenfolge speichern",
+  params: z.object({ id: z.string() }),
+  jsonBody: looseObjectSchema,
+}), (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises/order`));
+app.openapi(defineJsonRoute({
+  method: "delete",
+  path: "/workouts/{id}/exercises/{eid}",
+  tags: ["workouts"],
+  summary: "Workout-Übung löschen",
+  params: z.object({ id: z.string(), eid: z.string() }),
+}), (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises/${c.req.param("eid")}`));
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/workouts/{id}/exercises/{eid}/sets",
+  tags: ["workouts"],
+  summary: "Set an Workout-Übung anhängen",
+  params: z.object({ id: z.string(), eid: z.string() }),
+  jsonBody: looseObjectSchema,
+}), (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises/${c.req.param("eid")}/sets`));
+app.openapi(defineJsonRoute({
+  method: "patch",
+  path: "/workouts/{id}/exercises/{eid}/sets/{sid}",
+  tags: ["workouts"],
+  summary: "Workout-Set aktualisieren",
+  params: z.object({ id: z.string(), eid: z.string(), sid: z.string() }),
+  jsonBody: looseObjectSchema,
+}), (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises/${c.req.param("eid")}/sets/${c.req.param("sid")}`));
+app.openapi(defineJsonRoute({
+  method: "delete",
+  path: "/workouts/{id}/exercises/{eid}/sets/{sid}",
+  tags: ["workouts"],
+  summary: "Workout-Set löschen",
+  params: z.object({ id: z.string(), eid: z.string(), sid: z.string() }),
+}), (c) => proxyToPython(c, `/workouts/${c.req.param("id")}/exercises/${c.req.param("eid")}/sets/${c.req.param("sid")}`));
 
 // Einzelnen Finisher aus activityAddons löschen — Node selbst kennt kein
 // Addon-Merging (siehe /session oben, reiner 1:1-Dateischreiber), die
 // Löschlogik lebt nur in Python (fitness/api/routers/sessions.py).
-app.delete("/session/activity", (c) => proxyToPython(c, "/session/activity"));
+app.openapi(defineJsonRoute({
+  method: "delete",
+  path: "/session/activity",
+  tags: ["session"],
+  summary: "Activity-Finisher aus Session löschen",
+  query: z.object({
+    date: z.string().optional(),
+    id: z.string().optional(),
+    activityId: z.string().optional(),
+    uid: z.string().optional(),
+  }).loose(),
+}), (c) => proxyToPython(c, "/session/activity"));
 
 // ── Session ───────────────────────────────────────────────────────────────────
 // Multi-Session Schema:
@@ -879,18 +1286,39 @@ function parseSessionFile(fname) {
   return { date, id: id || null };
 }
 
-app.get("/session", (c) => {
-  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
-  const date = c.req.query("date") || localToday();
-  const id   = c.req.query("id") || null;
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/session",
+  tags: ["session"],
+  summary: "Eine Session für Datum plus optional ID laden",
+  query: z.object({
+    uid: z.string().optional(),
+    date: z.string().optional(),
+    id: z.string().optional(),
+  }),
+}), (c) => {
+  const { uid: uidQ, date: dateQ, id: idQ } = c.req.valid("query");
+  const uid  = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
+  const date = dateQ || localToday();
+  const id   = idQ || null;
   const file = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions", sessionFileName(date, id));
   const data = readJson(file);
   return c.json({ ok: true, data: data || null });
 });
 
-app.get("/sessions", (c) => {
-  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
-  const date = c.req.query("date") || localToday();
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/sessions",
+  tags: ["session"],
+  summary: "Alle Sessions eines Tages laden",
+  query: z.object({
+    uid: z.string().optional(),
+    date: z.string().optional(),
+  }),
+}), (c) => {
+  const { uid: uidQ, date: dateQ } = c.req.valid("query");
+  const uid  = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
+  const date = dateQ || localToday();
   const dir  = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   if (!fs.existsSync(dir)) return c.json({ ok: true, sessions: [] });
   const sessions = fs.readdirSync(dir)
@@ -914,14 +1342,60 @@ app.get("/sessions", (c) => {
   return c.json({ ok: true, sessions });
 });
 
-app.post("/session", async (c) => {
+// Bewusst permissiv (.loose() + fast alles optional): das echte
+// Session-JSON-Format (siehe src/CLAUDE.md) hat gewachsene Zusatzfelder
+// (slots[], rev, snapshot_version, ...), Ziel dieses Schemas ist Doku +
+// Grundschutz (kaputtes/Nicht-Objekt-Payload abfangen), keine strenge Gate-
+// Validierung, die reale Klient-Payloads zurückweisen könnte.
+const sessionExerciseSchema = z.object({
+  exercise_id: z.string().optional(),
+  id: z.string().optional(),
+  name: z.string().optional(),
+  sets: z.union([z.string(), z.number()]).optional(),
+  reps: z.union([z.string(), z.number()]).optional(),
+  weight: z.union([z.string(), z.number()]).optional(),
+  note: z.string().optional(),
+  primaryMuscles: z.array(z.string()).optional(),
+  secondaryMuscles: z.array(z.string()).optional(),
+  isHIT: z.boolean().optional(),
+  done: z.boolean().optional(),
+  slotId: z.string().nullable().optional(),
+}).loose();
+const sessionBodySchema = z.object({
+  date: z.string().optional(),
+  block: z.string().optional(),
+  exercises: z.array(sessionExerciseSchema).optional(),
+  slots: z.array(z.record(z.string(), z.any())).optional(),
+  effort: z.union([z.string(), z.number()]).optional(),
+  mood: z.string().optional(),
+  notes: z.string().optional(),
+}).loose().openapi("SessionBody");
+
+const sessionSaveRoute = createRoute({
+  method: "post",
+  path: "/session",
+  tags: ["session"],
+  summary: "Session speichern (JSON = SOT, danach SQLite-Sync via Python)",
+  request: {
+    query: z.object({ date: z.string().optional(), id: z.string().optional() }),
+    body: { content: { "application/json": { schema: sessionBodySchema } } },
+  },
+  responses: {
+    200: {
+      description: "Gespeichert",
+      content: { "application/json": { schema: z.object({ ok: z.boolean(), id: z.string().nullable(), sqliteSync: z.boolean() }) } },
+    },
+  },
+});
+app.openapi(sessionSaveRoute, async (c) => {
   const uid     = c.req.header("X-User-UID") || FITNESS_UID;
-  const date    = c.req.query("date") || localToday();
-  const id      = c.req.query("id") || null;
+  const { date: dateQ, id: idQ } = c.req.valid("query");
+  const date    = dateQ || localToday();
+  const id      = idQ || null;
   const userDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   fs.mkdirSync(userDir, { recursive: true });
   const file    = path.join(userDir, sessionFileName(date, id));
-  const data    = await c.req.json().catch(() => ({}));
+  const data    = c.req.valid("json");
   const session = freezeSnapshot({ ...data, date, session_id: id, saved_at: new Date().toISOString() });
   writeJson(file, session); // JSON ist SOT — bleibt in jedem Fall geschrieben
   let sqliteSync = true;
@@ -963,10 +1437,20 @@ function freezeSnapshot(session) {
   return { ...session, exercises, snapshot_version: 1, rev };
 }
 
-app.delete("/session", (c) => {
+app.openapi(defineJsonRoute({
+  method: "delete",
+  path: "/session",
+  tags: ["session"],
+  summary: "Session löschen",
+  query: z.object({
+    date: z.string().optional(),
+    id: z.string().optional(),
+  }),
+}), (c) => {
   const uid  = c.req.header("X-User-UID") || FITNESS_UID;
-  const date = c.req.query("date") || localToday();
-  const id   = c.req.query("id") || null;
+  const { date: dateQ, id: idQ } = c.req.valid("query");
+  const date = dateQ || localToday();
+  const id   = idQ || null;
   const file = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions", sessionFileName(date, id));
   if (fs.existsSync(file)) fs.unlinkSync(file);
   deleteSessionFromDb(date, id);
@@ -974,9 +1458,18 @@ app.delete("/session", (c) => {
   return c.json({ ok: true });
 });
 
-app.get("/session/history", (c) => {
-  const uid     = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
-  const limit   = Number(c.req.query("limit") || 10);
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/session/history",
+  tags: ["session"],
+  summary: "Session-Historie laden",
+  query: z.object({
+    uid: z.string().optional(),
+    limit: z.coerce.number().int().positive().max(365).optional().default(10),
+  }),
+}), (c) => {
+  const { uid: uidQ, limit } = c.req.valid("query");
+  const uid     = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
   const dir     = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   if (!fs.existsSync(dir)) return c.json({ ok: true, sessions: [] });
   const files   = fs.readdirSync(dir).filter(f => f.endsWith(".json")).sort().reverse().slice(0, limit);
@@ -987,8 +1480,15 @@ app.get("/session/history", (c) => {
   return c.json({ ok: true, sessions });
 });
 
-app.get("/session/latest", (c) => {
-  const uid   = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/session/latest",
+  tags: ["session"],
+  summary: "Neueste Session laden",
+  query: z.object({ uid: z.string().optional() }),
+}), (c) => {
+  const { uid: uidQ } = c.req.valid("query");
+  const uid   = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
   const dir   = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   if (!fs.existsSync(dir)) return c.json({ ok: false }, 404);
   const files = fs.readdirSync(dir).filter(f => f.endsWith(".json")).sort().reverse();
@@ -998,9 +1498,16 @@ app.get("/session/latest", (c) => {
 });
 
 // ── Journal ───────────────────────────────────────────────────────────────────
-app.get("/journal", async (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/journal",
+  tags: ["journal"],
+  summary: "Journal-Eintrag lesen",
+  query: z.object({ date: z.string().optional() }),
+}), async (c) => {
+  const { date: dateQ } = c.req.valid("query");
   const uid  = c.req.header("X-User-UID") || FITNESS_UID;
-  const date = c.req.query("date") || localToday();
+  const date = dateQ || localToday();
   // Firestore-first
   const fsContent = await readJournalFull(uid, date);
   if (fsContent) return c.json({ ok: true, content: fsContent, mtime: date, source: "firestore" });
@@ -1019,24 +1526,38 @@ app.get("/journal", async (c) => {
   return c.json({ ok: true, content, mtime, source: "local" });
 });
 
-app.post("/journal", async (c) => {
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/journal",
+  tags: ["journal"],
+  summary: "Journal-Eintrag speichern",
+  query: z.object({ date: z.string().optional() }),
+  jsonBody: z.object({ content: z.string().optional() }).loose(),
+}), async (c) => {
+  const { date: dateQ } = c.req.valid("query");
+  const { content } = c.req.valid("json");
   const uid           = c.req.header("X-User-UID") || FITNESS_UID;
-  const date          = c.req.query("date") || localToday();
+  const date          = dateQ || localToday();
   // Pro-uid-Ordner (wie GET oben schon macht) statt fix an den beim Server-
   // Start aufgelösten DATA_DIR (= FITNESS_UID) — sonst landet der Eintrag
   // eines anderen Klienten (X-User-UID-Header) immer im falschen Journal.
   const dir           = path.join(os.homedir(), ".aos", "fitness", "users", uid, "journal");
   fs.mkdirSync(dir, { recursive: true });
   const file          = path.join(dir, `${date}.md`);
-  const { content }   = await c.req.json().catch(() => ({}));
   fs.writeFileSync(file, content || "");
   mirrorJournal(date, { text: content || "" }, uid);
   return c.json({ ok: true });
 });
 
-app.get("/journal/list", async (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/journal/list",
+  tags: ["journal"],
+  summary: "Journal-Liste laden",
+  query: z.object({ limit: z.coerce.number().int().positive().max(500).optional().default(50) }),
+}), async (c) => {
+  const { limit: limitCount } = c.req.valid("query");
   const uid = c.req.header("X-User-UID") || FITNESS_UID;
-  const limitCount = Number(c.req.query("limit") || 50);
   // Firestore-first
   const fsEntries = await listJournals(uid, limitCount);
   if (fsEntries) return c.json({ ok: true, entries: fsEntries, source: "firestore" });
@@ -1062,14 +1583,26 @@ app.get("/journal/list", async (c) => {
 });
 
 // ── Coverage ──────────────────────────────────────────────────────────────────
-app.get("/coverage/anatomy", (c) => {
-  const days    = Number(c.req.query("days") || 7);
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/coverage/anatomy",
+  tags: ["coverage"],
+  summary: "Anatomy-Coverage berechnen",
+  query: z.object({ days: z.coerce.number().int().positive().max(365).optional().default(7) }),
+}), (c) => {
+  const { days } = c.req.valid("query");
   const muscles = computeCoverageAnatomy(days);
   return c.json({ ok: true, days, muscles });
 });
 
-app.get("/coverage/gaps", (c) => {
-  const days = Number(c.req.query("days") || 7);
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/coverage/gaps",
+  tags: ["coverage"],
+  summary: "Coverage-Gaps berechnen",
+  query: z.object({ days: z.coerce.number().int().positive().max(365).optional().default(7) }),
+}), (c) => {
+  const { days } = c.req.valid("query");
   const hits = computeCoverage(days);
   const all  = ["chest","back","shoulders","arms","core","glutes","quads","hamstrings","calves"];
   const gaps = all.filter(g => (hits[g] || 0) < 1).map(g => ({ name: g, hits: hits[g] || 0, exercises: [] }));
@@ -1077,11 +1610,20 @@ app.get("/coverage/gaps", (c) => {
 });
 
 // ── Export CSV ────────────────────────────────────────────────────────────────
-app.get("/export/csv", (c) => {
-  const uid     = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/export/csv",
+  tags: ["export"],
+  summary: "CSV-Export aus Sessions",
+  query: z.object({
+    uid: z.string().optional(),
+    days: z.coerce.number().int().positive().max(365).optional().default(14),
+    mode: z.enum(["simple", "detailed"]).optional().default("simple"),
+  }),
+}), (c) => {
+  const { uid: uidQ, days, mode } = c.req.valid("query");
+  const uid     = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
   const sessDir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
-  const days    = Math.min(365, Math.max(1, Number(c.req.query("days") || 14)));
-  const mode    = c.req.query("mode") || "simple";
   const dates   = lastDates(days).reverse();
 
   const isDetailed = mode === "detailed";
@@ -1123,8 +1665,15 @@ app.get("/export/csv", (c) => {
   return c.json({ ok: true, filename, csv });
 });
 
-app.get("/export/pflichtaufgabe", (c) => {
-  const uid = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/export/pflichtaufgabe",
+  tags: ["export"],
+  summary: "Pflichtaufgabe-Trainingsprotokoll exportieren",
+  query: z.object({ uid: z.string().optional() }),
+}), (c) => {
+  const { uid: uidQ } = c.req.valid("query");
+  const uid = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
   const dir = path.join(os.homedir(), ".aos", "fitness", "users", uid, "sessions");
   const files = fs.existsSync(dir)
     ? fs.readdirSync(dir).filter(f => f.endsWith(".json")).sort()
@@ -1157,9 +1706,18 @@ function bodyDirFor(uid) {
   return path.join(os.homedir(), ".aos", "fitness", "users", uid, "body");
 }
 
-app.get("/fitness/body", (c) => {
-  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
-  const days = Math.min(365, Math.max(1, Number(c.req.query("days") || 30)));
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/body",
+  tags: ["fitness"],
+  summary: "Body-Metriken lesen",
+  query: z.object({
+    uid: z.string().optional(),
+    days: z.coerce.number().int().positive().max(365).optional().default(30),
+  }),
+}), (c) => {
+  const { uid: uidQ, days } = c.req.valid("query");
+  const uid  = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
   const ownDir = bodyDirFor(uid);
   fs.mkdirSync(ownDir, { recursive: true });
   const byDate = new Map();
@@ -1174,11 +1732,22 @@ app.get("/fitness/body", (c) => {
   return c.json({ ok: true, entries });
 });
 
-app.post("/fitness/body", async (c) => {
-  const uid  = c.req.query("uid") || c.req.header("X-User-UID") || FITNESS_UID;
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/fitness/body",
+  tags: ["fitness"],
+  summary: "Body-Metriken speichern",
+  query: z.object({ uid: z.string().optional() }),
+  jsonBody: z.object({
+    date: z.string().optional(),
+    weight_kg: z.union([z.string(), z.number()]).optional(),
+  }).loose(),
+}), async (c) => {
+  const { uid: uidQ } = c.req.valid("query");
+  const uid  = uidQ || c.req.header("X-User-UID") || FITNESS_UID;
   const dir  = bodyDirFor(uid);
   fs.mkdirSync(dir, { recursive: true });
-  const payload  = await c.req.json().catch(() => ({}));
+  const payload  = c.req.valid("json");
   const day      = payload.date || localToday();
   const file     = path.join(dir, `${day}.json`);
   const existing = readJson(file, { date: day });
@@ -1191,14 +1760,37 @@ app.post("/fitness/body", async (c) => {
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
 const themeFile = path.join(DATA_DIR, "theme.json");
-app.get("/theme",  (c) => c.json(readJson(themeFile, { theme: "mocha" })));
-app.post("/theme", async (c) => { writeJson(themeFile, await c.req.json().catch(() => ({}))); return c.json({ ok: true }); });
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/theme",
+  tags: ["system"],
+  summary: "Theme-Konfiguration lesen",
+}),  (c) => c.json(readJson(themeFile, { theme: "mocha" })));
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/theme",
+  tags: ["system"],
+  summary: "Theme-Konfiguration speichern",
+  jsonBody: looseObjectSchema,
+}), async (c) => { writeJson(themeFile, c.req.valid("json")); return c.json({ ok: true }); });
 
 // ── Firestore ─────────────────────────────────────────────────────────────────
-app.get("/firestore/status", async (c) => c.json(await getFirestoreStatus()));
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/firestore/status",
+  tags: ["firestore"],
+  summary: "Firestore-Verbindungsstatus",
+}), async (c) => c.json(await getFirestoreStatus()));
 
-app.post("/firestore/pull", async (c) => {
-  const uid = c.req.query("uid") || c.req.header("X-User-UID");
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/firestore/pull",
+  tags: ["firestore"],
+  summary: "Sessions und Journal aus Firestore ziehen",
+  query: z.object({ uid: z.string().optional() }),
+}), async (c) => {
+  const { uid: uidQ } = c.req.valid("query");
+  const uid = uidQ || c.req.header("X-User-UID");
   if (!uid || uid === "default") {
     return c.json({
       ok: false,
@@ -1314,7 +1906,12 @@ app.post("/firestore/pull", async (c) => {
   });
 });
 
-app.post("/firestore/sync", async (c) => {
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/firestore/sync",
+  tags: ["firestore"],
+  summary: "Lokale Sessions nach Firestore spiegeln",
+}), async (c) => {
   const uid = c.req.header("X-User-UID") || FITNESS_UID;
   const status = await getFirestoreStatus();
   if (!status.ok) return c.json({ ok: false, error: "Firestore nicht verbunden" }, 503);
@@ -1351,7 +1948,20 @@ app.post("/firestore/sync", async (c) => {
   return c.json({ ok: true, synced, retried });
 });
 
-app.get("/v1", (c) => {
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/v1",
+  tags: ["system"],
+  summary: "Legacy v1 HTML ausliefern",
+  responses: {
+    200: {
+      description: "HTML",
+      content: {
+        "text/html": { schema: z.string() },
+      },
+    },
+  },
+}), (c) => {
   const abs = path.join(STATIC_DIR, "v1.html");
   if (fs.existsSync(abs)) {
     return new Response(fs.createReadStream(abs), {
@@ -1360,6 +1970,59 @@ app.get("/v1", (c) => {
   }
   return c.text("Not Found", 404);
 });
+
+// ── API-Doku (Swagger UI) ─────────────────────────────────────────────────────
+// Spec wird zur Laufzeit aus Honos eigener Routing-Tabelle (app.routes)
+// generiert statt von Hand gepflegt — bleibt automatisch synchron mit dem
+// tatsächlichen Code, auch wenn oben Routen dazukommen/wegfallen. Bewusst
+// ohne @hono/zod-openapi (würde ein Rewrite aller ~60 Handler auf
+// Zod-Schemas verlangen, reiner "hat der Endpoint einen Namen"-Nutzen hier
+// reicht für internes Debugging/Doku-Zweck).
+function buildOpenApiSpec() {
+  const paths = {};
+  for (const r of app.routes) {
+    if (r.method === "ALL" || r.path === "/*" || r.path === "*") continue;
+    const method = r.method.toLowerCase();
+    if (!["get", "post", "put", "patch", "delete"].includes(method)) continue;
+    const openApiPath = r.path.replace(/:([^/]+)/g, "{$1}");
+    paths[openApiPath] ??= {};
+    const params = [...r.path.matchAll(/:([^/]+)/g)].map(([, name]) => ({
+      name, in: "path", required: true, schema: { type: "string" },
+    }));
+    paths[openApiPath][method] = {
+      summary: `${r.method} ${r.path}`,
+      tags: [openApiPath.split("/").filter(Boolean)[0] || "root"],
+      parameters: params,
+      responses: { 200: { description: "OK" } },
+    };
+  }
+  return {
+    openapi: "3.0.3",
+    info: {
+      title: "fitness-dev API",
+      version: "1.0.0",
+      description: "Auto-generiert aus der Hono-Routing-Tabelle (server.mjs) — kein Handschrift-Spec, immer synchron mit dem laufenden Code.",
+    },
+    servers: [{ url: "/" }],
+    paths,
+  };
+}
+app.get("/openapi.json", (c) => {
+  // Basis: alle Routen generisch aus der Hono-Routing-Tabelle (immer
+  // vollständig). Overlay: die paar Routen, die per .openapi()+Zod
+  // registriert sind (aktuell /exercises/search, /fitness/plan, POST
+  // /session) — deren echte Request/Response-Schemas ersetzen den
+  // generischen Eintrag. OpenAPIHono liefert diese eigene Teil-Spec über
+  // getOpenAPIDocument(), unabhängig von den restlichen Hono-Plain-Routen.
+  const spec = buildOpenApiSpec();
+  const zodDoc = app.getOpenAPIDocument({ openapi: "3.0.3", info: spec.info });
+  for (const [p, methods] of Object.entries(zodDoc.paths || {})) {
+    spec.paths[p] = { ...spec.paths[p], ...methods };
+  }
+  if (zodDoc.components) spec.components = zodDoc.components;
+  return c.json(spec);
+});
+app.get("/docs", swaggerUI({ url: "/openapi.json" }));
 
 // ── Static / SPA fallback ─────────────────────────────────────────────────────
 app.get("*", async (c) => {

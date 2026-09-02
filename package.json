@@ -41,6 +41,8 @@
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@hono/node-server": "^2.0.3",
+    "@hono/swagger-ui": "^0.6.1",
+    "@hono/zod-openapi": "^1.6.1",
     "@tanstack/react-query": "^5.101.0",
     "better-sqlite3": "^12.10.0",
     "body-muscles": "^1.0.0",
@@ -58,6 +60,7 @@
     "react-is": "^19.2.7",
     "react-muscle-highlighter": "^1.2.0",
     "recharts": "^3.8.1",
+    "zod": "^4.5.1",
     "zustand": "^5.0.14"
   },
   "optionalDependencies": {

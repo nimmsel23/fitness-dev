@@ -100,5 +100,100 @@ exercises:
   origin:
     type: manual
     source_refs: {}
+    wger:
+      exercise_id: wger_1686
+      display_name: Umsetzen und Stoßen
+      german: Umsetzen und Stoßen
+      category: shoulders
+      primary_muscles:
+      - 301_anterior_deltoid
+      secondary_muscles:
+      - 601_quadriceps_femoris
+      equipment:
+      - barbell
+      coaching_notes:
+      - 'Der erste Zug: Hebe die Stange vom Boden bis auf Kniehöhe, indem du aus den
+        Beinen arbeitest und den Winkel deines Rückens konstant hältst.
+
+        Die "Power"-Position: Sobald die Stange die Mitte der Oberschenkel erreicht,
+        ziehe explosiv die Schultern hoch und strecke die Hüfte, um vertikalen Schwung
+        zu erzeugen.
+
+        Das schnelle Umsetzen der Ellbogen: In der Fangphase drehst du die Ellbogen
+        rasch unter die Stange, um ein "Ablagebrett" auf deinen vorderen Deltamuskeln
+        zu schaffen.
+
+        Das senkrechte Drücken: Drücke die Stange in einer geraden Linie nach oben;
+        dein Kopf sollte sich leicht nach vorne schieben, sobald die Stange deine
+        Stirn passiert, um die volle Streckung zu erreichen.'
+      tags:
+      - unreviewed
+      - wger
+      wger_id: 1686
+      wger_muscle_ids:
+        primary:
+        - 2
+        secondary:
+        - 10
+    yuhonas:
+      exercise_id: yuhonas_clean_and_jerk
+      display_name: Clean and Jerk
+      category: olympic weightlifting
+      primary_muscles:
+      - shoulders
+      secondary_muscles:
+      - abdominals
+      - glutes
+      - hamstrings
+      - lower_back
+      - quadriceps
+      - traps
+      - triceps
+      equipment:
+      - barbell
+      coaching_notes:
+      - With a barbell on the floor close to the shins, take an overhand or hook grip
+        just outside the legs. Lower your hips with the weight focused on the heels,
+        back straight, head facing forward, chest up, with your shoulders just in
+        front of the bar. This will be your starting position.
+      - Begin the first pull by driving through the heels, extending your knees. Your
+        back angle should stay the same, and your arms should remain straight. Move
+        the weight with control as you continue to above the knees.
+      - Next comes the second pull, the main source of acceleration for the clean.
+        As the bar approaches the mid-thigh position, begin extending through the
+        hips. In a jumping motion, accelerate by extending the hips, knees, and ankles,
+        using speed to move the bar upward. There should be no need to actively pull
+        through the arms to accelerate the weight; at the end of the second pull,
+        the body should be fully extended, leaning slightly back, with the arms still
+        extended.
+      - As full extension is achieved, transition into the third pull by aggressively
+        shrugging and flexing the arms with the elbows up and out. At peak extension,
+        aggressively pull yourself down, rotating your elbows under the bar as you
+        do so. Receive the bar in a front squat position, the depth of which is dependent
+        upon the height of the bar at the end of the third pull. The bar should be
+        racked onto the protracted shoulders, lightly touching the throat with the
+        hands relaxed. Continue to descend to the bottom squat position, which will
+        help in the recovery.
+      - Immediately recover by driving through the heels, keeping the torso upright
+        and elbows up. Continue until you have risen to a standing position.
+      - The second phase is the jerk, which raises the weight overhead. Standing with
+        the weight racked on the front of the shoulders, begin with the dip. With
+        your feet directly under your hips, flex the knees without moving the hips
+        backward. Go down only slightly, and reverse direction as powerfully as possible.
+      - Drive through the heels create as much speed and force as possible, and be
+        sure to move your head out of the way as the bar leaves the shoulders.
+      - At this moment as the feet leave the floor, the feet must be placed into the
+        receiving position as quickly as possible. In the brief moment the feet are
+        not actively driving against the platform, the athletes effort to push the
+        bar up will drive them down. The feet should be split, with one foot forward,
+        and one foot back. Receive the bar with the arms locked out overhead. Return
+        to a standing position.
+      tags:
+      - unreviewed
+      - yuhonas
+      yuhonas_id: Clean_and_Jerk
+      wger_muscle_ids:
+        primary: []
+        secondary: []
   review_state:
     status: approved

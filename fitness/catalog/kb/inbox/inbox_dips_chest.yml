@@ -83,5 +83,60 @@ exercises:
   origin:
     type: manual
     source_refs: {}
+    wger:
+      exercise_id: wger_194
+      display_name: Dips
+      german: Dips
+      category: chest
+      primary_muscles:
+      - 101_pectoralis_major
+      - 401_triceps_brachii
+      secondary_muscles:
+      - 401_triceps_brachii
+      equipment:
+      - none (bodyweight exercise)
+      coaching_notes:
+      - Greife die Stangen an einer engen Stelle und drücke dich hoch. Strecke dabei
+        die Arme nicht ganz aus, dann bleiben während des gesamten Bewegungablaufs
+        die Muskeln immer unter Spannung. Beuge nun die Arme und gehe so tief wie
+        möglich runter, die Ellenbogen zeigen nach hinten. Du kannst an dieser Stelle
+        einige Sekunden bleiben, bevor du die Übung weitermachst.
+      tags:
+      - unreviewed
+      - wger
+      wger_id: 194
+      wger_muscle_ids:
+        primary:
+        - 4
+        - 5
+        secondary:
+        - 5
+    yuhonas:
+      exercise_id: yuhonas_parallel_bar_dip
+      display_name: Parallel Bar Dip
+      category: strength
+      primary_muscles:
+      - triceps
+      secondary_muscles:
+      - chest
+      - shoulders
+      equipment:
+      - other
+      coaching_notes:
+      - Stand between a set of parallel bars. Place a hand on each bar, and then take
+        a small jump to help you get into the starting position with your arms locked
+        out.
+      - Begin by flexing the elbow, lowering your body until your arms break 90 degrees.
+        Avoid swinging, and maintain good posture throughout the descent.
+      - Reverse the motion by extending the elbow, pushing yourself back up into the
+        starting position.
+      - Repeat for the desired number of repetitions.
+      tags:
+      - unreviewed
+      - yuhonas
+      yuhonas_id: Parallel_Bar_Dip
+      wger_muscle_ids:
+        primary: []
+        secondary: []
   review_state:
     status: approved

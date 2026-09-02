@@ -4,7 +4,7 @@ description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt):
 generated_at: '2026-08-22T08:49:35.772128+00:00'
 exercises:
 - exercise_id: iso_lateral_row_high
-  wger_id: null
+  wger_id: 1448
   id: iso_lateral_row_high
   name: High Iso Lateral Row Machine
   display_name: Iso-Lateral High Row
@@ -85,5 +85,28 @@ exercises:
   origin:
     type: manual
     source_refs: {}
+    wger:
+      exercise_id: wger_1448
+      display_name: High Row
+      german: High Row
+      category: back
+      primary_muscles:
+      - 201_latissimus_dorsi
+      secondary_muscles: []
+      equipment: []
+      coaching_notes:
+      - Kneeling down on one leg and pulling cable down while driving elbow into the
+        lats.
+      tags:
+      - unreviewed
+      - wger
+      wger_id: 1448
+      wger_muscle_ids:
+        primary:
+        - 12
+        secondary: []
   review_state:
     status: approved
+  external_ids:
+    wger:
+    - 1448

@@ -97,5 +97,54 @@ exercises:
   origin:
     type: manual
     source_refs: {}
+    wger:
+      exercise_id: wger_1429
+      display_name: Reverse Cable Flye
+      german: Reverse Cable Flye
+      category: back
+      primary_muscles:
+      - 303_posterior_deltoid
+      secondary_muscles:
+      - 202_trapezius_upper
+      - 203_trapezius_middle
+      - 204_trapezius_lower
+      - 303_posterior_deltoid
+      equipment: []
+      coaching_notes:
+      - Attach D-Handles to two cable pulleys in the upper position. Grab the left
+        on with your right hand and vice-versa.
+      tags:
+      - unreviewed
+      - wger
+      wger_id: 1429
+      wger_muscle_ids:
+        primary:
+        - 2
+        secondary:
+        - 9
+    yuhonas:
+      exercise_id: yuhonas_cable_rear_delt_fly
+      display_name: Cable Rear Delt Fly
+      category: strength
+      primary_muscles:
+      - shoulders
+      secondary_muscles: []
+      equipment:
+      - cable
+      coaching_notes:
+      - Adjust the pulleys to the appropriate height and adjust the weight. The pulleys
+        should be above your head.
+      - Grab the left pulley with your right hand and the right pulley with your left
+        hand, crossing them in front of you. This will be your starting position.
+      - Initiate the movement by moving your arms back and outward, keeping your arms
+        straight as you execute the movement.
+      - Pause at the end of the motion before returning the handles to the start position.
+      tags:
+      - unreviewed
+      - yuhonas
+      yuhonas_id: Cable_Rear_Delt_Fly
+      wger_muscle_ids:
+        primary: []
+        secondary: []
   review_state:
     status: approved

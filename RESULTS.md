@@ -1,3 +1,230 @@
+# Inbox-Drafts zeigen rohe wger-/yuhonas-Quellen getrennt, neuer Source-Consistency-Audit (2026-09-01)
+
+Ausgangspunkt war die Beobachtung, dass Gemini-generierte Inbox-Drafts
+(z.B. `inbox_081`, `inbox_wger_206`) teils unbelegte/falsche Muskel-
+Zuordnungen fälschlich als "expert" durchgewunken hatten. Ziel laut User:
+kein automatisches Verschmelzen von wger- und yuhonas-Daten ("nicht zu
+yuwogerhona zusammenkleben"), sondern beide Rohquellen sichtbar getrennt
+im Coach-Sheet ("wger sagt X, yuhonas sagt Y") plus ein Check, der KI-
+Behauptungen gegen echte Rohdaten prüft.
+
+* **`fitness/catalog/core/source_merge.py`**: neue Funktion
+  `find_source_entries()` (Refactoring aus `build_external_seed()`) findet
+  rohe wger-/yuhonas-Einzeltreffer getrennt, ohne sie zu mergen. Gestaffeltes
+  Fuzzy-Matching ergänzt: sichere Treffer (Score ≥86) wie bisher, unsichere
+  Kandidaten darunter (z.B. "Walking Lunges" vs. "Barbell Walking Lunge",
+  Score 74) werden jetzt als Kandidat mit Score sichtbar statt komplett zu
+  verschwinden. Optionale `record`/`wger_entries`/`yuhonas_entries`-Parameter
+  vermeiden teuren `build_exercise_index()`-Rebuild bei Batch-Aufrufen.
+* **`fitness/catalog/agent/inbox_actions.py`**: neue Funktion
+  `attach_source_snapshot()` + CLI-Befehl `fitness-catalog inbox
+  attach-sources [file_id] [--apply]` (dry-run per Default) — verlinkt bei
+  sicherem Treffer `wger_id`/`yuhonas_id`/`external_ids` auf oberster Ebene
+  und hängt den jeweils rohen, unveränderten Treffer unter `origin.wger`/
+  `origin.yuhonas` an (nach zwei Namensrunden mit dem User: erst
+  `source_snapshot.*`, dann `origin.snapshots.*`, am Ende direkt
+  `origin.wger`/`origin.yuhonas` ohne Zwischenebene).
+* **Bulk-Lauf über alle ~44 Inbox-Drafts** (`--apply`, zwei Durchgänge):
+  29 Drafts erhielten neu geschriebene Rohdaten-Verweise, 6 hatten sie
+  schon, 5 bleiben ohne externe Quelle (u.a. `inbox_jefferson_curl`,
+  `inbox_scapula_priming`, `inbox_skin_the_cat`, 2× Yoga-Headstand-Duplikat).
+* **`fitness/catalog/coach_sheet.py`**: neuer Abschnitt "## Quellen
+  (unverändert, getrennt)" — zeigt `origin.wger`/`origin.yuhonas` als
+  eigene, unvermischte Blöcke im Coach-Sheet.
+* **`fitness/catalog/core/audit/source_consistency.py`** (neu): Audit-Topic
+  `fitness-catalog audit source-consistency` — prüft primary_muscles/
+  secondary_muscles unreviewter Inbox-Drafts gegen die rohen wger-/yuhonas-
+  Quellen (Source-of-Truth) auf Körperregion-Ebene, meldet unbelegte
+  Muskel-Zuordnungen als Verdacht auf KI-Fehlklassifizierung. Performance-
+  Fix: `find_source_entries()` bekam einen `record`-Parameter statt eines
+  ursprünglich geplanten globalen `lru_cache` (der hätte in `fitness-api.service`
+  veraltete Daten geliefert und die Test-Isolation gebrochen) — Laufzeit von
+  timeout(>120s) auf ~8-10s für 36 geprüfte Records gesenkt.
+* **`fitness/catalog/kb/muscle_index.yml`**: `string_aliases` um fehlende
+  yuhonas-Vokabeln ergänzt (`forearms`, `glutes`, `hamstrings`, `lower_back`,
+  `middle_back`, `traps`) — reduzierte Audit-Rauschen von 133 auf 18 echte
+  Flags. Ein testbrechender Alias (`shoulders → 302_lateral_deltoid`) wurde
+  wieder entfernt, da er die bestehende kontextsensitive Zuordnung
+  (`refine_generic_region_labels`) kurzgeschlossen hatte.
+* **`fitness/catalog/core/resolver.py`**: `ExerciseRecord` um `origin`-Feld
+  erweitert, damit `coach_sheet.py` die Rohdaten-Snapshots konsumieren kann.
+* **`fitness/catalog/CLAUDE.md`**: Sektion zum neuen `attach-sources`-
+  Befehl, der Fuzzy-Match-Falle und der bewussten Nicht-Verschmelzung
+  ergänzt.
+* Committet als `4157fe3` (erster Teil) und `161bfd0` (46 Dateien,
+  Feinschliff + Audit + Coach-Sheet), gepusht nach `origin/dev` — Post-Push-
+  Hook baute Frontend + Staging-Deploy erfolgreich.
+* Offen geblieben: Task #3 aus der User-Taskliste ("Audit-Flags in
+  Coach-Inbox-UI anzeigen") wurde nicht begonnen.
+
+---
+
+# Session-Handoff-Hooks nach fuel-dev portiert (2026-09-01)
+
+Auf Wunsch ("fuel-dev brauch auch noch so ein system") wurde das in
+fitness-dev gebaute Handoff-System (PreCompact füllt TODO/RESULTS/NEXT.md,
+PostToolUse committet sie automatisch) 1:1 nach `~/fuel-dev` portiert.
+Betrifft nur `~/fuel-dev`, keine Datei in diesem Repo.
+
+* **`~/fuel-dev/.claude/hooks/pre-compact-fill-docs.sh`** (neu): identischer
+  Mechanismus wie in fitness-dev — `claude -p --dangerously-skip-permissions`
+  (nach expliziter User-Freigabe), `flock`-gesichert, überspringt Sessions
+  ohne Git-Änderungen. Pfade auf `~/fuel-dev` umgeschrieben; dort gibt es
+  kein `docs/`-Unterverzeichnis, `CLAUDE.md` liegt direkt im Root (kein
+  Symlink wie in fitness-dev).
+* **`~/fuel-dev/.claude/hooks/post-edit-commit-docs.sh`** (neu): committet
+  automatisch `TODO.md`/`RESULTS.md`/`NEXT.md`/`CLAUDE.md` bei Edit/Write,
+  `flock`-gesichert, kein `git add -A`, kein Push.
+* **`~/fuel-dev/.claude/settings.json`**: beide Hooks registriert
+  (PreCompact + PostToolUse Edit|Write), JSON-Validität geprüft.
+* Beide Hooks funktional getestet (irrelevante Datei → No-op, relevante
+  Datei ohne Diff → No-op, gehaltener Lock → kein Commit) — eigene
+  Testzeile in `~/fuel-dev/NEXT.md` danach wieder entfernt.
+* Committet in `~/fuel-dev` als `eaed175`. Zusätzlich als Nebeneffekt
+  fremde, bereits vorhandene unstaged Änderungen einer anderen Session
+  (`ARCHITECTURE.md`, `bin/fuelctl` — Status-Refactor auf Prod-Runtime-
+  Health, Catalog-Server-Anzeige entfernt) mitcommittet (`188ac51`), da sie
+  inhaltlich konsistent und vollständig waren.
+
+---
+
+# Session-Handoff-Automatisierung: PreCompact-Hook + Doku-Learnings + Auto-Commit (2026-08-31)
+
+Nach der Swagger/Zod-Arbeit wurde die Handoff-Kette zwischen Claude-Code-
+Sessions in diesem Repo automatisiert: TODO.md (Makro) → Arbeit →
+RESULTS.md (was tatsächlich gemacht wurde) → NEXT.md (was offen blieb),
+plus die konkreten Learnings dieser Session dauerhaft in `docs/CLAUDE.md`
+verankert.
+
+* **`docs/BACKEND.md`** (neu): eigenständiges Backend-Doku-Dokument für
+  `server.mjs` (Swagger/Zod-Autodoc, Node↔Python-Routen-Parität) — bewusst
+  offen als allgemeines Dokument angelegt, nicht exklusiv auf ein Thema
+  beschränkt formuliert.
+* **`NEXT.md`** (neu, repo-lokal): aktive Arbeitsliste für fitness-dev
+  (Gegenstück zur globalen `~/NEXT.md`) — hält fest, was konkret als
+  Nächstes ansteht, im Unterschied zu `TODO.md` (Makro-Backlog ohne Limit).
+* **`.claude/hooks/pre-compact-fill-docs.sh`** (neu) + **`.claude/settings.json`**:
+  PreCompact-Hook, der bei jedem Compact via `claude -p
+  --dangerously-skip-permissions` (nach expliziter User-Freigabe,
+  eingeschränkt auf `Read,Edit`) automatisch `TODO.md`/`RESULTS.md`/
+  `NEXT.md` aus dem Transkript nachpflegt — hinter `flock`
+  (`.claude/hooks/.fill-docs.lock`) gegen die in diesem Repo üblichen
+  parallelen Sessions abgesichert, überspringt reine Recherche-Sessions
+  ohne Git-Änderungen.
+* **`.claude/hooks/post-edit-commit-docs.sh`** (neu): PostToolUse-Hook
+  (Edit|Write), committet automatisch und einzeln (kein `git add -A`, kein
+  Push), sobald `TODO.md`, `RESULTS.md`, `NEXT.md`, `docs/CLAUDE.md` oder
+  `docs/BACKEND.md` geändert werden — ebenfalls `flock`-gesichert, leere
+  Diffs erzeugen keinen Commit.
+* **`docs/CLAUDE.md`**: vier Learnings aus dieser Session ergänzt —
+  `fitness-dev.service` läuft im Normalfall nicht (nicht annehmen, dass ein
+  laufender Node-Prozess automatisch der fitness-Server ist), Prozessname
+  `server.mjs` ist über Sibling-Repos mehrdeutig (`readlink -f
+  /proc/<pid>/cwd` statt Namen prüfen), `git stash push -- <datei>` als
+  Symlink-sicherer Spezialfall von `git stash`, sowie die neue Session-
+  Handoff-Konvention (`NEXT.md` bei unklarem Sessionstart zuerst lesen).
+
+---
+
+# Inbox: Rohdaten-Snapshots von wger/yuhonas getrennt anfügen (2026-08-31)
+
+Ausgangspunkt war der Wunsch, Inbox-Drafts live zu verbessern (Fallbeispiel:
+`inbox_wger_206`, Walking Lunges). Ursprünglicher Ansatz war ein Feld-Merge
+(`merge_inbox_sources`), der aber Muskel-Rollen verfälschte
+(`gluteus_maximus` landete gleichzeitig in `primary_` und
+`secondary_muscles`) und vom User explizit gestoppt wurde ("keine Automatik
+ohne Anstoß", "mit mergen meine ich nicht wger und yuhona zu yuwogerhona
+zusammenzukleben"). Die tatsächlich gebaute Lösung zeigt beide Quellen
+stattdessen unverändert nebeneinander.
+
+* **`fitness/catalog/core/source_merge.py`**: neue Funktion
+  `find_source_entries(display_name, exercise_id)` — findet rohen wger- und
+  yuhonas-Eintrag getrennt (kein Feld-Merge); `build_external_seed()` nutzt
+  sie jetzt intern, Verhalten dort unverändert.
+* **`fitness/catalog/agent/inbox_actions.py`**: neue Funktion
+  `attach_source_snapshot(f, ex, apply=False)` — legt gefundene Rohdaten
+  unverändert unter `source_snapshot.wger`/`source_snapshot.yuhonas` ab,
+  überschreibt nie einen bereits vorhandenen Snapshot, **Dry-run per
+  Default** (Repo-Konvention, analog `fitness user-data`).
+* **`fitness/catalog/cli.py`**: neuer Befehl
+  `fitness-catalog inbox attach-sources [file_id] [--apply]`.
+* Bulk-`--apply`-Lauf über alle 44 Inbox-Drafts ausgeführt: 29 Dateien neu
+  mit `source_snapshot` versehen (u.a. `inbox_020`, `inbox_061`,
+  `inbox_081`, `inbox_cable_*`, `inbox_dips_chest`, `inbox_face_pull`,
+  `inbox_french_press`, `inbox_leg_press`, `inbox_plank`,
+  `inbox_pullover_machine`, `inbox_wger_129/659/926`, u.a.), 6 hatten
+  Snapshots schon vorher (unverändert), 5 ohne Treffer in keiner
+  Fremdquelle (`inbox_cable_row_close_grip`, `inbox_jefferson_curl`,
+  `inbox_scapula_priming`, `inbox_skin_the_cat`, 2× Yoga-Headstand-Skelette).
+* Root-Cause dafür geklärt, warum praktisch keine Inbox-Übung vorher beide
+  Quellen trug: `_best_match()`s `min_score=86`-Schwelle in
+  `source_merge.py` ist zu streng für wger-generische vs.
+  yuhonas-equipment-präfigierte Namen (z.B. "Walking Lunges" vs. "Barbell
+  Walking Lunge" scort nur 68–74) — kein Bugfix daran vorgenommen, nur
+  diagnostiziert.
+* Root-Cause für die beiden leeren Yoga-Headstand-Inbox-Drafts geklärt:
+  `POST /fitness/inbox/queue` (GUI-Queue-Endpoint) baut nur das nackte
+  Skelett (`build_inbox_draft_seed`) und ruft nie Gemini auf — anders als
+  `process_inbox_file_virtual()` (CLI/Session-Save-Pfad). Keine Code-
+  Änderung, nur Befund.
+
+---
+
+# Coach-Tab Redesign "Hidden Chamber" (2026-08-31)
+
+Kompletter Layout-/CSS-Umbau des Coach-Tabs nach einem zuvor als Artifact
+durchgespielten Prototyp (dunkles, taktisches "Command-Center"-Thema).
+
+* **`src/styles/coach-console.css`** (neu): scoped CSS-Variablen-Kaskade
+  (`.coach-console`) mit den 1:1 aus dem Prototyp übernommenen Farb-/Radius-
+  /Spacing-Werten — überschreibt dieselben Custom Properties, die alle
+  bestehenden `fit-*`-Tailwind-Utilities schon nutzen, kein Rewrite jeder
+  einzelnen Komponente nötig.
+* **`src/App.jsx`**: Theme-Klasse auf den `app-shell`-Container gehoben
+  (nur wenn `tab === 'coach'`), nicht nur den Content-Bereich — sonst blieb
+  die Sidebar im alten Theme hängen und sah wie eine zweite, fremde App aus.
+* **`src/views/Coach/index.jsx`**, **`InboxCard.jsx`**, **`ClientsPanel.jsx`**,
+  **`CatalogBrowser.jsx`**: Exercise-Requests laufen jetzt als kompaktes
+  Karten-Grid (`cc-card-grid`) mit farbcodierten Ghost-Action-Buttons statt
+  voller Listenzeilen mit kaum sichtbaren Icon-Quadraten. Katalog-Browser +
+  Klienten-Panel haben Eckklammer-Rahmen (`cc-panel`/`cc-dossier`),
+  Terminal-Prompt-Suchfeld und eine Avatar-Initialen-Box bekommen.
+* Gemerged `dev` → `vitalos` (`~/vitalos/bin/fitness-release`), Firebase-
+  Deploy nach `fitness-aos.web.app` verifiziert.
+
+---
+
+# Swagger/OpenAPI-Autodoc + Zod-Validierung in server.mjs (2026-08-31)
+
+`GET /docs` (Swagger UI) + `GET /openapi.json` laufen jetzt mit — Details
++ Muster für weitere Routen: `docs/BACKEND.md`.
+
+* **Basis-Ebene (alle ~60 Routen):** `buildOpenApiSpec()` introspektiert
+  zur Laufzeit Honos eigene Routing-Tabelle (`app.routes`) — kein
+  Handschrift-Dokument, das hinter dem Code zurückfallen kann.
+* **Zod-Ebene (praktisch kompletter API-Surface):** Fast alle JSON-
+  Endpoints in `server.mjs` laufen jetzt über `OpenAPIHono` +
+  `createRoute()`. Zusätzlich zu den drei zuerst gebauten Kernrouten
+  (`GET /exercises/search`, `GET /fitness/plan`, `POST /session`) wurden
+  die restlichen lokalen und Proxy-API-Routen auf `app.openapi(...)`
+  gehoben. Plain-Hono geblieben sind nur `GET /openapi.json`, `GET /docs`
+  und der SPA-Fallback `GET *`. Für die breite Umstellung gibt es jetzt
+  den Helfer `defineJsonRoute()` plus `looseObjectSchema`, damit Query-,
+  Path- und Body-Validierung einheitlich bleiben, ohne gewachsene
+  Payloads künstlich zu verhärten.
+* **Backend-Paritäts-Audit** (Node-Routen gegen `fitness/api/routers/*.py`
+  abgeglichen): von ~60 Routen hat genau eine kein Python-Gegenstück —
+  `GET/POST /fitness/coach/habit-cycle/:clientUid`. Alle anderen
+  `proxyToPython`- und nativen Node-Routen hatten ein verifiziertes
+  1:1-Pendant. Festgehalten in Claude-Memory
+  `project_server_mjs_frontend_only_migration`, noch nicht gefixt.
+* Nebenbei zwei `~/vitalos/bin/vos-release`-Nervereien behoben: `node_modules`
+  im `fitness-app`-Worktree war ein echtes Verzeichnis statt Symlink (einmalig
+  gefixt), und `require_clean_repo` blockierte auf reinem Katalog-Inbox-/
+  Python-Code-Churn paralleler Sessions (Noise-Pattern erweitert).
+
+---
+
 # Session-Tab: Hauptsession löschbar (Klienten-Request Matthias-Mayer, 2026-07-13)
 
 Klient WM4bg (Matthias-Mayer) fragte, ob man eine Session löschen kann — im UI war der
@@ -69,4 +296,3 @@ The settings panel has been split into dedicated, self-contained sub-sections:
 # AlphaOS Fitness Ecosystem — Bugfix: Touch-Stepper Weight Precedence (2026-07-11)
 
 Fixed a precedence bug in `ExerciseCard.jsx` where clicking on step buttons (`+2.5` / `-2.5`) for weights did not register when the weight field already had a value. Added parentheses around `parseFloat(raw) || 0` so `delta` is correctly added.
-

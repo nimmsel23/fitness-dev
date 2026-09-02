@@ -68,6 +68,30 @@ string_aliases:
   lats:        201_latissimus_dorsi
   quadriceps:  601_quadriceps_femoris
   triceps:     401_triceps_brachii
+  # Ergaenzt 2026-09-01 fuer den source-consistency-Audit (siehe
+  # fitness/catalog/core/audit/source_consistency.py): yuhonas' rohe
+  # primary_muscles/secondary_muscles-Namen sind freie englische
+  # Muskelgruppen-Labels, ohne Aliase hier bleiben sie unkanonisiert und
+  # tragen nichts zur Quellen-Abgleichung bei (jeder Vergleich schlaegt
+  # dann faelschlich als "unbelegt" fehl). Ziel-Id = groesster/haeufigster
+  # Muskel der jeweiligen Gruppe, nicht jede moegliche Untergruppe.
+  # ACHTUNG "shoulders" bewusst NICHT hier aliasen: refine_generic_region_
+  # labels() (muscle_normalization.py) weist den generischen "shoulders"-
+  # Namen je nach Uebungsname gezielt einem Deltoid-Kopf zu (z.B.
+  # "Frontheben" -> anterior). Ein Alias hier wuerde diese kontextsensitive
+  # Zuordnung kurzschliessen (siehe test_inbox_actions.py's
+  # test_*_normalizes_coarse_shoulder_label_by_name) und IMMER lateral_
+  # deltoid erzwingen, auch wenn der Uebungsname klar was anderes zeigt.
+  abdominals:  501_rectus_abdominis
+  abductors:   608_gluteus_medius
+  calves:      701_gastrocnemius
+  chest:       101_pectoralis_major
+  forearms:    405_forearm_flexors
+  glutes:      603_gluteus_maximus
+  hamstrings:  604_biceps_femoris
+  lower_back:  206_erector_spinae
+  middle_back: 205_rhomboids
+  traps:       202_trapezius_upper
 
 wger_groups:
   # wger unterscheidet pro Muskel-ID KEINE Teilköpfe/-anteile — ein Import,

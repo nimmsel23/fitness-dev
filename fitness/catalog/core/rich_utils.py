@@ -186,6 +186,37 @@ def print_demand_audit(result: "DemandAuditResult") -> None:
         console.print(Panel(f"[ok]Status: {len(result.entries)} Kandidaten fuer Review[/ok]", expand=False))
 
 
+def print_source_consistency_audit(result: "SourceConsistencyResult") -> None:
+    print_header("Fitness Agent Source-Consistency Audit")
+
+    console.print(f"Geprueft (wger/yuhonas verlinkt): {result.total_checked}")
+    console.print(f"Ohne verlinkte Quelle (nicht pruefbar): {result.total_without_source}")
+    console.print()
+
+    if not result.flags:
+        console.print(Panel("[ok]Status: NO_UNCORROBORATED_MUSCLES[/ok]", expand=False))
+        return
+
+    table = Table(box=None, show_header=True)
+    table.add_column("Exercise ID")
+    table.add_column("Name")
+    table.add_column("Rolle", width=16)
+    table.add_column("Muskel (unbelegt)")
+    table.add_column("Geprueft gegen", width=16)
+
+    for flag in result.flags:
+        table.add_row(
+            flag.exercise_id,
+            flag.display_name,
+            flag.role.replace("_muscles", ""),
+            flag.muscle_id,
+            "+".join(flag.sources_checked),
+        )
+
+    console.print(table)
+    console.print(Panel(f"[warn]Status: {len(result.flags)} unbelegte Muskel-Zuordnungen — manuell pruefen[/warn]", expand=False))
+
+
 def setup_logging(level: str = "INFO") -> None:
     logging.basicConfig(
         level=logging.getLevelName(level),

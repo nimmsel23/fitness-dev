@@ -52,9 +52,9 @@ kb/exercises/*.yml         Exercise-Definitionen
 | Bereich | Commands |
 |---------|----------|
 | Setup/Diagnose | `bootstrap`, `doctor`, `wger-check` |
-| Katalog-Pflege | `audit [topic] [--enrich N]` (topics u.a. `anatomy`, `exercises`, `coverage`, `demand`), `add-exercise`, `enrich`, `watch`, `alias-add` |
+| Katalog-Pflege | `audit [topic] [--enrich N]` (topics u.a. `anatomy`, `exercises`, `coverage`, `demand`, `source-consistency`), `add-exercise`, `enrich`, `watch`, `alias-add` |
 | Import/Mapping | `import` (Bulk, One-Shot — siehe unten), `reimport <query> [--source wger\|yuhonas\|both]` (Einzel-Reimport → `kb/inbox/`), `map-wger --exercise <id/query> [--write]`, `export-wger-index [--show-unmapped]` |
-| Inbox/Review | `inbox list\|show\|approve\|reenrich\|delete\|graveyard\|restore` (Non-TUI-Review), `graveyard list\|restore\|tui` |
+| Inbox/Review | `inbox list\|show\|approve\|reenrich\|delete\|graveyard\|restore\|attach-sources [file_id] [--apply]` (Non-TUI-Review), `graveyard list\|restore\|tui` |
 | Resolve/Query | `resolve`, `coverage`, `report` |
 | Training-Log | `log`, `history`, `progress`, `plan` |
 | Lehre/Export | `teach`, `coach-sheet`, `export-exercise`, `export-coverage`, `preview` |
@@ -440,6 +440,37 @@ history rows or phantom exercise drafts", Kommentar im Code). Der neue
 Trigger ist strikt auf die Übungen der jeweils gespeicherten Session
 begrenzt, läuft im selben FastAPI-Prozess statt in einem separaten
 Watcher-Prozess.
+
+**"Mergen" bei wger/yuhonas ist absichtlich KEINE Feld-Verschmelzung** (User-
+Klarstellung 2026-08-31/09-01, nach mehreren Präzisierungsrunden): `inbox
+attach-sources [file_id] [--apply]` (dry-run per Default) verlinkt bei einem
+sicheren Treffer `wger_id`/`yuhonas_id`/`external_ids` auf oberster Ebene und
+hängt zusätzlich den jeweils rohen, unveränderten wger- bzw. yuhonas-Treffer
+unter `origin.wger`/`origin.yuhonas` in den Inbox-Draft (NICHT
+`source_snapshot.*` — das war der erste Name, per User-Feedback umbenannt:
+kollidiert sonst semantisch mit `source:` = Review-Tier-Feld unreviewed/
+bulk/expert. Auch NICHT `origin.snapshots.wger` — zweiter Versuch, per
+User-Feedback direkt eine Ebene flacher. `origin` existierte als Feld mit
+`type`/`source_refs` bereits vorher, `wger`/`yuhonas` sind neue Schlüssel
+direkt daneben). Coach-Sheet (`coach_sheet.py::render_coach_sheet_markdown()`)
+zeigt das als
+eigenen "## Quellen"-Abschnitt getrennt nach wger/yuhonas, ohne Merge.
+Lookup-Funktion dafür ist `find_source_entries()` in `core/source_merge.py`
+(gibt `{"wger": entry|None, "yuhonas": entry|None}` zurück, optional
+`wger_entries`/`yuhonas_entries`/`record`-Parameter für Batch-Aufrufer, um
+teure Neu-Ladungen/Rebuilds zu vermeiden). Das ist eine andere Funktion als
+`build_external_seed()` (nutzt `find_source_entries()` intern, mergt danach
+aber Listenfelder für neue Katalog-Seeds) — bei "Quellen zusammenführen"-
+Anfragen zuerst klären, welche der beiden gemeint ist.
+
+**Fuzzy-Match-Falle:** `_best_match()` in `source_merge.py` nutzt
+`rapidfuzz.fuzz.token_set_ratio` mit `min_score=86` — zu strikt für
+wger-generische vs. yuhonas-geräte-präfixierte Namen (z.B. "Walking Lunges"
+vs. "Barbell/Bodyweight/Dumbbell Walking Lunge" scored nur 68–74). Das ist der
+Hauptgrund, warum die meisten Inbox-Drafts nur eine der beiden Quellen haben,
+nicht ein Bug in der Aufruf-Kette. Threshold-Senkung wurde noch nicht
+evaluiert (Risiko: False Positives bei unterschiedlichen Übungen mit
+ähnlichem Namen).
 
 ---
 

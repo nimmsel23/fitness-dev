@@ -15,6 +15,15 @@ except ImportError:
 
 
 def _entries_from_file(filename: str) -> list[dict[str, Any]]:
+    # Bewusst UNGECACHT: find_source_entries() laeuft auch im langlebigen
+    # fitness-api.service-Prozess, ein Prozess-weiter Cache wuerde
+    # Aenderungen an unreviewed_wger.yml/unreviewed_yuhonas.yml (z.B. durch
+    # "fitness sync pull") bis zum naechsten Neustart nie sehen — und
+    # Test-Mocks auf load_catalog_yaml wuerden nach dem ersten Aufruf
+    # ignoriert (echter Regressions-Fund, siehe test_source_merge.py).
+    # Batch-Aufrufer mit vielen Records (z.B. audit/source_consistency.py)
+    # sollen stattdessen einmal selbst laden und ueber find_source_entries()s
+    # wger_entries/yuhonas_entries-Parameter durchreichen.
     doc = load_catalog_yaml(f"exercises/{filename}") or {}
     entries = doc.get("exercises") or []
     return [entry for entry in entries if isinstance(entry, dict)]
@@ -63,17 +72,28 @@ def _norm(value: str) -> str:
     return normalize_text(value, smart=True)
 
 
-def _best_match(query: str, entries: list[dict[str, Any]], *, min_score: int = 86) -> dict[str, Any] | None:
+# Unterhalb von AUTO_MATCH_MIN_SCORE wird nie automatisch verlinkt (Gefahr
+# falscher wger/yuhonas-Zuordnungen in Katalog-Seeds). Zwischen
+# CANDIDATE_MIN_SCORE und AUTO_MATCH_MIN_SCORE liegende Treffer sind zu
+# unsicher fuer Automatik, aber oft trotzdem der richtige Treffer (z.B.
+# wger-generischer Name vs. yuhonas-geraete-praefigierter Name, "Walking
+# Lunges" vs. "Barbell Walking Lunge" scort nur 68-74) — die werden als
+# Kandidat fuer manuelle Bestaetigung durchgereicht (siehe find_source_entries).
+AUTO_MATCH_MIN_SCORE = 86
+CANDIDATE_MIN_SCORE = 65
+
+
+def _best_match_scored(query: str, entries: list[dict[str, Any]]) -> tuple[dict[str, Any] | None, float]:
     normalized_query = _norm(query)
     if not normalized_query:
-        return None
+        return None, 0.0
 
     for entry in entries:
         if normalized_query in {_norm(text) for text in _candidate_texts(entry)}:
-            return entry
+            return entry, 100.0
 
     if not process or not fuzz:
-        return None
+        return None, 0.0
 
     choices: dict[str, str] = {}
     choice_to_entry: dict[str, int] = {}
@@ -83,12 +103,26 @@ def _best_match(query: str, entries: list[dict[str, Any]], *, min_score: int = 8
             choices[choice_key] = text
             choice_to_entry[choice_key] = idx
     match = process.extractOne(query, choices, scorer=fuzz.token_set_ratio)
-    if not match or match[1] < min_score:
-        return None
-    return entries[choice_to_entry[match[2]]]
+    if not match:
+        return None, 0.0
+    return entries[choice_to_entry[match[2]]], float(match[1])
 
 
-def _candidate_queries(display_name: str, exercise_id: str | None = None) -> list[str]:
+def _best_match(query: str, entries: list[dict[str, Any]], *, min_score: int = AUTO_MATCH_MIN_SCORE) -> dict[str, Any] | None:
+    entry, score = _best_match_scored(query, entries)
+    if entry is not None and score >= min_score:
+        return entry
+    return None
+
+
+def _candidate_queries(display_name: str, exercise_id: str | None = None, *, record: Any = None) -> list[str]:
+    """`record`: optionaler, bereits aufgeloester ExerciseRecord — spart bei
+    Batch-Aufrufern (die den Record schon aus einem einmaligen
+    build_exercise_index()-Snapshot haben, z.B. audit/source_consistency.py)
+    den teuren Rebuild des kompletten Index (~1700 Records, mehrere Sekunden)
+    UND den zusaetzlichen resolve_query()-Fuzzy-Match pro Aufruf. Ohne
+    Uebergabe unveraendertes Verhalten (Record wird wie bisher selbst
+    aufgeloest)."""
     queries: list[str] = []
     seen: set[str] = set()
 
@@ -105,13 +139,13 @@ def _candidate_queries(display_name: str, exercise_id: str | None = None) -> lis
     add(display_name)
     add(exercise_id)
 
-    record = None
-    if exercise_id:
-        record = find_by_id(str(exercise_id), build_exercise_index())
-    if record is None and display_name:
-        resolution = resolve_query(display_name)
-        if resolution.matched and resolution.canonical_id:
-            record = find_by_id(resolution.canonical_id, build_exercise_index())
+    if record is None:
+        if exercise_id:
+            record = find_by_id(str(exercise_id), build_exercise_index())
+        if record is None and display_name:
+            resolution = resolve_query(display_name)
+            if resolution.matched and resolution.canonical_id:
+                record = find_by_id(resolution.canonical_id, build_exercise_index())
 
     if record is not None:
         english = str(record.english or "").strip()
@@ -181,15 +215,53 @@ def _merge_list_fields(*values: Any) -> list[Any]:
     return out
 
 
-def build_external_seed(display_name: str, exercise_id: str | None = None) -> dict[str, Any] | None:
+def find_source_entries(
+    display_name: str,
+    exercise_id: str | None = None,
+    *,
+    record: Any = None,
+    wger_entries: list[dict[str, Any]] | None = None,
+    yuhonas_entries: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Sucht die rohen wger-/yuhonas-Einzeleintraege (aus `unreviewed_wger.yml`
+    / `unreviewed_yuhonas.yml`) fuer eine Uebung, per ID-Hinweis (falls schon
+    ein Katalog-Record existiert) oder Namens-Fuzzy-Match. Liefert beide roh
+    und getrennt zurueck (`{"wger": entry|None, "yuhonas": entry|None}`) —
+    keine Feld-Verschmelzung, das macht ausschliesslich `build_external_seed()`
+    fuer neue Katalog-Seeds. Fuer Anzeige/Attribution ("wger sagt X, yuhonas
+    sagt Y") ist dies die richtige Quelle, nicht `build_external_seed()`.
+
+    Zusaetzlich liefert die Rueckgabe `wger_candidate`/`yuhonas_candidate`
+    (entry|None) + `wger_candidate_score`/`yuhonas_candidate_score`
+    (float|None): Treffer zwischen CANDIDATE_MIN_SCORE und
+    AUTO_MATCH_MIN_SCORE, die zu unsicher fuer automatisches Verlinken sind,
+    aber fuer eine manuelle Bestaetigung (CLI/Coach-Review) taugen. Nur
+    gesetzt, wenn der jeweilige `wger`/`yuhonas`-Key None ist.
+
+    `record`: optionaler, bereits aufgeloester ExerciseRecord — siehe
+    `_candidate_queries()`, spart Batch-Aufrufern den wiederholten teuren
+    build_exercise_index()-Rebuild.
+
+    `wger_entries`/`yuhonas_entries`: optional bereits geladene Rohlisten —
+    spart Batch-Aufrufern (z.B. audit/source_consistency.py ueber ~40
+    Records) das wiederholte Neu-Laden derselben zwei YAML-Dateien. Ohne
+    Uebergabe unveraendertes Verhalten (frischer Load pro Aufruf, siehe
+    `_entries_from_file()`)."""
     wger_entry = None
     yuhonas_entry = None
-    queries = _candidate_queries(display_name, exercise_id)
+    wger_candidate: dict[str, Any] | None = None
+    yuhonas_candidate: dict[str, Any] | None = None
+    wger_candidate_score = 0.0
+    yuhonas_candidate_score = 0.0
+    queries = _candidate_queries(display_name, exercise_id, record=record)
 
-    wger_entries = _entries_from_file("unreviewed_wger.yml")
-    yuhonas_entries = _entries_from_file("unreviewed_yuhonas.yml")
+    if wger_entries is None:
+        wger_entries = _entries_from_file("unreviewed_wger.yml")
+    if yuhonas_entries is None:
+        yuhonas_entries = _entries_from_file("unreviewed_yuhonas.yml")
 
-    record = find_by_id(str(exercise_id), build_exercise_index()) if exercise_id else None
+    if record is None and exercise_id:
+        record = find_by_id(str(exercise_id), build_exercise_index())
     wger_hints: list[Any] = []
     yuhonas_hints: list[Any] = []
 
@@ -208,8 +280,33 @@ def build_external_seed(display_name: str, exercise_id: str | None = None) -> di
         yuhonas_entry = yuhonas_entry or _find_yuhonas_entry(yuhonas_entries, hint)
 
     for query in queries:
-        wger_entry = wger_entry or _best_match(query, wger_entries)
-        yuhonas_entry = yuhonas_entry or _best_match(query, yuhonas_entries)
+        if wger_entry is None:
+            cand, score = _best_match_scored(query, wger_entries)
+            if cand is not None and score >= AUTO_MATCH_MIN_SCORE:
+                wger_entry = cand
+            elif cand is not None and score >= CANDIDATE_MIN_SCORE and score > wger_candidate_score:
+                wger_candidate, wger_candidate_score = cand, score
+        if yuhonas_entry is None:
+            cand, score = _best_match_scored(query, yuhonas_entries)
+            if cand is not None and score >= AUTO_MATCH_MIN_SCORE:
+                yuhonas_entry = cand
+            elif cand is not None and score >= CANDIDATE_MIN_SCORE and score > yuhonas_candidate_score:
+                yuhonas_candidate, yuhonas_candidate_score = cand, score
+
+    return {
+        "wger": wger_entry,
+        "yuhonas": yuhonas_entry,
+        "wger_candidate": None if wger_entry is not None else wger_candidate,
+        "yuhonas_candidate": None if yuhonas_entry is not None else yuhonas_candidate,
+        "wger_candidate_score": None if wger_entry is not None or wger_candidate is None else wger_candidate_score,
+        "yuhonas_candidate_score": None if yuhonas_entry is not None or yuhonas_candidate is None else yuhonas_candidate_score,
+    }
+
+
+def build_external_seed(display_name: str, exercise_id: str | None = None) -> dict[str, Any] | None:
+    found = find_source_entries(display_name, exercise_id)
+    wger_entry = found["wger"]
+    yuhonas_entry = found["yuhonas"]
 
     if not wger_entry and not yuhonas_entry:
         return None

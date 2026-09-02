@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getInbox, getGlobalInbox, approveInbox, deleteInbox, reenrichInbox } from '@db';
+import { getInbox, getGlobalInbox, approveInbox, deleteInbox, reenrichInbox, getInboxMergeCandidates } from '@db';
 
 export function useInbox({ global = false } = {}) {
   const [exercises, setExercises] = useState([]);
+  const [mergeCandidates, setMergeCandidates] = useState({});
   const [loading, setLoading]     = useState(true);
   const [actioning, setActioning] = useState(null);
   const [toast, setToast]         = useState('');
@@ -19,6 +20,10 @@ export function useInbox({ global = false } = {}) {
     } finally {
       setLoading(false);
     }
+    // Eigener, unabhaengiger Ladepfad — reiner Zusatz-Hinweis, darf die
+    // Haupt-Inbox-Liste nicht blockieren/verzoegern, wenn er langsam ist
+    // oder fehlschlaegt (siehe getInboxMergeCandidates()-Fallbacks).
+    getInboxMergeCandidates().then(setMergeCandidates).catch(() => setMergeCandidates({}));
   }, [global]);
 
   useEffect(() => { load(); }, [load]);
@@ -82,5 +87,5 @@ export function useInbox({ global = false } = {}) {
     }
   }
 
-  return { exercises, loading, actioning, toast, approve, remove, reenrich };
+  return { exercises, mergeCandidates, loading, actioning, toast, approve, remove, reenrich };
 }

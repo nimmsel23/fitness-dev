@@ -26,6 +26,12 @@ def inbox_list():
     return {"ok": True, "items": items}
 
 
+@router.get("/fitness/inbox/merge-candidates")
+def inbox_merge_candidates():
+    from fitness.catalog.core.merge_candidates import list_inbox_merge_candidates
+    return {"ok": True, "candidates": list_inbox_merge_candidates()}
+
+
 @router.post("/fitness/inbox/queue")
 async def inbox_queue(request: Request):
     body = await request.json()
