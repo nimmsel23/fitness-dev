@@ -25,11 +25,14 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
 - Zwei identische leere Yoga-Headstand-Inbox-Drafts (`inbox_20260831_161715_3b9447`,
   `inbox_20260831_161759_cc51fb`) sind ein Duplikat — einer sollte
   tombstoned/gelöscht werden, noch nicht entschieden welcher.
-- Task #3 aus der Inbox-Source-Taskliste (2026-09-01) offen: Audit-Flags aus
-  `fitness-catalog audit source-consistency` sollen auch in der Coach-Inbox-
-  UI (`src/views/Coach/`, z.B. `InboxCard.jsx`) sichtbar werden, nicht nur im
-  CLI-Coach-Sheet — braucht einen neuen API-Endpoint analog zu
-  `/coaching-notes/product-signals`, noch nicht begonnen.
+- `dev` ist nach `ef3c247` (Merge-Kandidaten-Hinweise in Coach-Inbox-UI,
+  2026-09-02) noch nicht nach `vitalos` gemergt/deployed — nur Staging
+  (`:8100`) aktuell.
+- Die vom `source-consistency`-Audit gefundenen 18 echten Muskel-Flags
+  (u.a. `clean_snatch`, `dumbbell_lateral_raise`, `face_pull`) sind noch
+  nicht einzeln manuell durchgegangen/korrigiert worden — der Audit-Check
+  selbst ist fertig, die inhaltliche Review-Arbeit an den gefundenen Drafts
+  steht noch aus.
 - Der neue `PreCompact`-Hook (`.claude/hooks/pre-compact-fill-docs.sh`)
   wurde nur mit simuliertem Fake-Input getestet (JSON-/Bash-Syntax, Lock-
   Verhalten), noch nicht gegen einen echten Compact-Trigger — erster
