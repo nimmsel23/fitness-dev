@@ -459,6 +459,21 @@ app.openapi(defineJsonRoute({
 });
 
 app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/inbox/merge-candidates",
+  tags: ["inbox"],
+  summary: "Fuzzy-Merge-Kandidaten fuer Inbox-Drafts (Hinweis, kein Auto-Link)",
+}), async (c) => {
+  try {
+    const res = await fetch(`${PYTHON_BASE}/fitness/inbox/merge-candidates`);
+    const data = await res.json();
+    return c.json(data);
+  } catch (err) {
+    return c.json({ ok: false, error: "python_unreachable" }, 502);
+  }
+});
+
+app.openapi(defineJsonRoute({
   method: "post",
   path: "/fitness/inbox/queue",
   tags: ["inbox"],

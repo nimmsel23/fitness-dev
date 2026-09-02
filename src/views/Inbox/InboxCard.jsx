@@ -1,4 +1,4 @@
-import { CheckCircle2, Trash2, Info, AlertTriangle, Sparkles, User, RefreshCw, MessageSquare, Brain } from 'lucide-react';
+import { CheckCircle2, Trash2, Info, AlertTriangle, Sparkles, User, RefreshCw, MessageSquare, Brain, GitMerge } from 'lucide-react';
 
 function asList(value) {
   if (Array.isArray(value)) return value.filter(Boolean).map(String);
@@ -7,11 +7,11 @@ function asList(value) {
 }
 
 function sourceRefs(data) {
-  const snapshot = data?.source_snapshot || {};
+  const origin = data?.origin || {};
   const external = data?.external_ids || {};
   return {
-    wger: asList(snapshot?.wger?.wger_id || external?.wger || data?.wger_id),
-    yuhonas: asList(snapshot?.yuhonas?.yuhonas_id || external?.yuhonas || data?.yuhonas_id),
+    wger: asList(origin?.wger?.wger_id || external?.wger || data?.wger_id),
+    yuhonas: asList(origin?.yuhonas?.yuhonas_id || external?.yuhonas || data?.yuhonas_id),
   };
 }
 
@@ -29,7 +29,7 @@ function buildInspectPayload(ex, data) {
   };
 }
 
-export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenrich, onInspect, showUserId = false, asMessage = false }) {
+export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenrich, onInspect, mergeCandidate, showUserId = false, asMessage = false }) {
   // Unterstützt beide Backend-Shapes: { exercises: [data] } und { enriched: data } und flach
   const data     = ex.exercises?.[0] || ex.enriched || ex;
   const fileId   = ex.file_id;
@@ -176,6 +176,19 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenri
             <span key={`yuhonas-${id}`} className="text-[9px] font-black px-2 py-0.5 bg-fit-bg2 rounded-full border border-fit-line text-fit-dim uppercase tracking-tighter">
               yuhonas {id}
             </span>
+          ))}
+        </div>
+      )}
+
+      {mergeCandidate && (
+        <div className="mb-2.5 p-3 bg-fit-orange/5 border border-fit-orange/15 rounded-xl space-y-1">
+          {Object.entries(mergeCandidate).map(([sourceKey, cand]) => (
+            <div key={sourceKey} className="flex items-start gap-2 text-fit-orange text-[10px] font-bold leading-tight">
+              <GitMerge size={12} className="shrink-0 mt-0.5" />
+              <span className="uppercase tracking-tight">
+                Möglicher Merge-Kandidat ({sourceKey}): {cand.display_name || cand.id} — Score {Math.round(cand.score)}
+              </span>
+            </div>
           ))}
         </div>
       )}

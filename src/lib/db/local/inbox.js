@@ -43,6 +43,15 @@ export async function deleteInbox(id, _userId = null) {
   }
 }
 
+export async function getInboxMergeCandidates() {
+  try {
+    const data = await api.get("/fitness/inbox/merge-candidates");
+    return data?.candidates || {};
+  } catch {
+    return {};
+  }
+}
+
 export async function getInboxDuplicates(id, userId = null) {
   try {
     const suffix = userId ? `?uid=${encodeURIComponent(userId)}` : "";

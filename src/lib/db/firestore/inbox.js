@@ -150,6 +150,22 @@ export async function deleteInbox(id, userId) {
   return { ok: true };
 }
 
+// Wie getInboxDuplicates(): braucht den lokalen Coach-Rechner (Tailscale
+// Funnel), da die Fuzzy-Matches gegen unreviewed_wger.yml/unreviewed_yuhonas.yml
+// laufen — nicht im Firebase-Build gebundelt. Liefert bei Nichterreichbarkeit
+// einfach leer statt einen Fehler zu werfen; Kandidaten sind ein optionaler
+// Hinweis, kein kritischer Pfad.
+export async function getInboxMergeCandidates() {
+  try {
+    const res = await fetch(`${BRIDGE_API_BASE}/inbox/merge-candidates`);
+    if (!res.ok) return {};
+    const data = await res.json();
+    return data?.candidates || {};
+  } catch {
+    return {};
+  }
+}
+
 export async function getInboxDuplicates(id, userId) {
   const targetUid = userId || getUid();
   const res = await fetch(`${BRIDGE_API_BASE}/inbox/${id}/duplicates?uid=${encodeURIComponent(targetUid)}`);
