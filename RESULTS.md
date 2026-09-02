@@ -1,3 +1,39 @@
+# Merge-Kandidaten-Hinweise in Coach-Inbox-UI (Task #3 abgeschlossen) (2026-09-02)
+
+Fortsetzung der Vortags-Session: Task #3 ("Audit-Flags/Merge-Hinweise auch
+in der Coach-Inbox-UI zeigen, nicht nur im CLI-Coach-Sheet") war offen
+geblieben. Zusätzlich wurde in dieser Session live präzisiert, worum es dem
+User eigentlich ging (nicht Feld-Verschmelzung, sondern unsichere
+wger-/yuhonas-Fuzzy-Treffer sichtbar machen, damit der Coach manuell
+entscheiden kann) — die vorherige `origin.wger`/`origin.yuhonas`-Struktur
+aus 161bfd0 blieb dabei unverändert korrekt.
+
+* **`fitness/catalog/core/merge_candidates.py`** (neu): `list_inbox_merge_candidates()`
+  liefert für jeden Inbox-Draft ohne bereits verlinkten wger-/yuhonas-Treffer
+  einen Fuzzy-Kandidaten mit Score, ohne etwas zu schreiben (reine Anzeige).
+* **`fitness/api/routers/exercises_inbox.py`**: neuer Endpoint
+  `GET /fitness/inbox/merge-candidates`.
+* **`server.mjs`**: Node-Proxy für den neuen Endpoint.
+* **`src/lib/db/local/inbox.js`** + **`src/lib/db/firestore/inbox.js`**:
+  `getInboxMergeCandidates()` in beiden DB-Layern ergänzt (Firestore-Variante
+  liefert bei Nichterreichbarkeit des lokalen Rechners einfach leer, statt
+  zu werfen — Kandidaten sind optionaler Hinweis, kein Pflichtfeld).
+* **`src/views/Inbox/useInbox.js`**, **`src/views/Coach/index.jsx`**: laden
+  und reichen `mergeCandidates` durch.
+* **`src/views/Inbox/InboxCard.jsx`**: neuer oranger Hinweis-Block
+  ("Möglicher Merge-Kandidat (wger/yuhonas): Name — Score X") pro Draft mit
+  unsicherem Treffer; ersetzt/verlinkt nichts automatisch. Dabei nebenbei
+  einen Bug gefixt: die Komponente las noch das alte, umbenannte Feld
+  `source_snapshot` statt `origin.wger`/`origin.yuhonas`.
+* Volle Pytest-Suite (`test_source_merge.py`, `test_inbox_actions.py`) für
+  die `origin.wger`/`origin.yuhonas`-Struktur aus der Vortags-Session
+  nachträglich bestätigt (10/10 grün) — war nach dem letzten Rename dort
+  noch offen. `npm run build` grün.
+* Committet als `ef3c247`, gepusht nach `origin/dev` (Staging-Deploy `:8100`
+  automatisch via Post-Push-Hook). **Noch nicht nach `vitalos` gemergt.**
+
+---
+
 # Inbox-Drafts zeigen rohe wger-/yuhonas-Quellen getrennt, neuer Source-Consistency-Audit (2026-09-01)
 
 Ausgangspunkt war die Beobachtung, dass Gemini-generierte Inbox-Drafts
