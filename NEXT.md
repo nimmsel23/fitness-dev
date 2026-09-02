@@ -25,9 +25,6 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
 - Zwei identische leere Yoga-Headstand-Inbox-Drafts (`inbox_20260831_161715_3b9447`,
   `inbox_20260831_161759_cc51fb`) sind ein Duplikat — einer sollte
   tombstoned/gelöscht werden, noch nicht entschieden welcher.
-- `dev` ist nach `ef3c247` (Merge-Kandidaten-Hinweise in Coach-Inbox-UI,
-  2026-09-02) noch nicht nach `vitalos` gemergt/deployed — nur Staging
-  (`:8100`) aktuell.
 - Die vom `source-consistency`-Audit gefundenen 18 echten Muskel-Flags
   (u.a. `clean_snatch`, `dumbbell_lateral_raise`, `face_pull`) sind noch
   nicht einzeln manuell durchgegangen/korrigiert worden — der Audit-Check
