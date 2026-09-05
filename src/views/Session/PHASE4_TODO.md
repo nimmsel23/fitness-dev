@@ -28,22 +28,42 @@ umgekehrt zu kürzen.
       unverändert, nur zentral geroutet statt an drei Stellen verstreut.
       `npm run build` grün.
 
-- [ ] **Details/Notizen: doppeltes `SessionSidebar`-Rendering prüfen,
-      NICHT vorschnell auf einen Pfad reduzieren.** `SessionSidebar` wird
-      aktuell sowohl inline (Details-Toggle in `SessionEditor.jsx`) als
-      auch als Modal (`SidebarSheet.jsx`) gerendert. Bevor einer der beiden
-      Wege entfernt wird: mit Nutzer klären, ob das absichtlich
-      responsive ist (z.B. Desktop inline bequemer, Mobile Modal
-      platzsparender) oder tatsächlich unbeabsichtigte Doppelarbeit aus
-      einem Refactor. Erst nach Bestätigung ggf. reduzieren — Default ist
-      "beide Wege bleiben bestehen".
+- [x] **Details/Notizen: doppeltes `SessionSidebar`-Rendering geklärt
+      (2026-09-05, User-Rückfrage).** Nutzer bestätigt: absichtlich, beide
+      Wege (inline Details-Toggle in `SessionEditor.jsx` + Modal via
+      `SidebarSheet.jsx`) bleiben unverändert bestehen. Kein Code-Fix.
 
-- [ ] **Session-Gate-Sub-Tab-Router entduplizieren.** Das Gate-Sheet hat
-      aktuell einen eigenen internen Sub-Tab-Router (Session/Plan/Verlauf/
-      6Pack/Skills), der nicht mit der übergeordneten Tab-Navigation
-      (`index.jsx`) synchronisiert ist. Prüfen, ob der bestehende
-      Haupt-Router wiederverwendet werden kann statt eines zweiten,
-      parallelen.
+- [x] **Session-Gate-Sub-Tab-Router untersucht (2026-09-05, nur geprüft/
+      dokumentiert, User-Entscheidung: erstmal nur das, kein Code-Fix).**
+      Ergebnis: Es gibt **keinen zweiten, unsynchronisierten State-Router**
+      — `SessionGateCard.jsx`s Nav-Buttons rufen genau denselben
+      `onSubNav`-Callback auf und lesen denselben `currentSubTab`-Wert wie
+      `views/Session/index.jsx` (beide letztlich gespeist aus dem einen
+      `subTab`-State in `App.jsx`, der auch die Sidebar/Bottom-Nav treibt).
+      Kein Sync-Problem, keine zwei Wahrheiten über "welcher Sub-Tab ist
+      aktiv".
+
+      Was tatsächlich dupliziert ist: **zwei unabhängig gepflegte Listen
+      derselben 5 Sub-Tab-IDs** (`today`/`plan`/`history`/`timer`/`skills`),
+      mit bereits sichtbarem Drift:
+      - `src/constants/NavigationItems.js` (Sidebar/Bottom-Nav, die
+        "kanonische" Config): Reihenfolge `today, timer, skills, plan,
+        history`; Labels `"Timer"`, `"History"`; kein `comingSoon`-Flag.
+      - `SessionGateCard.jsx::SESSION_NAV_ITEMS` (Gate-Sheet-eigene Nav):
+        Reihenfolge `today, plan, history, timer, skills`; Labels
+        `"6 Pack"`, `"Verlauf"`; zusätzliches `comingSoon`-Flag auf
+        `plan`/`timer`/`skills` (in `NavigationItems.js` nicht vorhanden).
+
+      Nicht angefasst — genau die Sorte Divergenz, die laut Grundsatz oben
+      erst geklärt werden muss: könnte absichtlich sein (Gate-Sheet ist ein
+      kompakteres Mobile-Sheet, andere Label-Länge/Reihenfolge/"kommt
+      bald"-Markierung könnten dort bewusst anders sinnvoll sein als in der
+      Desktop-Sidebar) oder tatsächlich unbeabsichtigter Drift seit
+      Einführung von `comingSoon`. Nächster Schritt wäre eine explizite
+      Rückfrage, ob `SESSION_NAV_ITEMS` aus `NavigationItems.js`s
+      `sub`-Array abgeleitet werden soll (plus optionalem Label-/
+      Reihenfolge-Override fürs Sheet) oder ob beide Listen bewusst
+      eigenständig bleiben.
 
 - [ ] **Dual-DB-Layer — NICHT zusammenlegen, nur genau hinschauen.**
       `local/sessions.js` (Node-Proxy) vs. `firestore/sessions.js`
