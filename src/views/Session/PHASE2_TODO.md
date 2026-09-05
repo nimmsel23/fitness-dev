@@ -5,39 +5,36 @@ abgeschlossen (oder zumindest nicht blockierend).
 
 ## Stücke
 
-- [x] **ActivityAddon.jsx + ActivitySection.jsx zusammenlegen.** Beide sind
-      im Kern dieselbe Activity-Picker-UI, aber mit divergenten Defaults:
-      - `ActivityAddon` kennt 9 Activity-Types, `ActivitySection` 10
-        (Unterschied: "Walking" fehlt bei Addon).
-      - `ActivitySection` zeigt Muscle-Target/Swim-Style nur bei
-        `type === 'hiit'` bzw. `'swimming'` — bei Addon läuft das anders
-        (immer sichtbar). Grund nicht dokumentiert, wirkt wie Bug/Drift.
-      - Ziel: eine gemeinsame `ActivityPicker.jsx` mit einem Mode-Prop
-        (`addon` vs. `standalone`/cardio), gemeinsame `ACTIVITY_TYPES`- und
-        `ACTIVITY_MUSCLE_DEFAULTS`-Konstante.
-      - Vor dem Merge: mit Nutzer klären, ob die Muscle-Target-Sichtbarkeits-
-        Inkonsistenz ein Bug ist oder Absicht war (nicht raten).
-      - **Update 2026-09-05 (Sonnet-Agent, struktureller Teilschritt):**
-        `ActivityPicker.jsx` angelegt und `ActivityAddon.jsx`/
-        `ActivitySection.jsx` zu dünnen Re-Exports mit `mode="addon"` bzw.
-        `mode="standalone"` gemacht — verhaltensidentisch zu vorher,
-        `ADDON_TYPES`-Export (weiter von `SessionSlots.jsx` +
-        `ActivityAddonHistory.jsx` genutzt) bleibt erhalten. Dabei auch
-        festgestellt: die "9 vs 10 Activity-Types"-Diagnose oben ist
-        **stale** — beide Listen enthielten zum Zeitpunkt des Merges
-        bereits identische 10 Werte (inkl. "walking"), nur die
-        Anzeige-Reihenfolge unterscheidet sich (in `ActivityPicker.jsx` als
-        `ADDON_ORDER`/`STANDALONE_ORDER` erhalten). Die
-        Muscle-Target/Swim-Style-Sichtbarkeits-Inkonsistenz besteht dagegen
-        unverändert fort.
-      - **Nutzer-Entscheidung 2026-09-05:** explizit NICHT angleichen.
-        Button-Reihenfolge bleibt pro Modus unterschiedlich ("So lassen").
-        Bei der Muscle-Target/Swim-Style-Sichtbarkeit auf Nachfrage, ob
-        Cardio-Mode analog zum Addon erweitert werden soll (Muscle-Target
-        auch bei Laufen/Radfahren/etc. zeigen): "nein nicht angleichen".
-        Beide Modi bleiben damit bewusst mit unterschiedlichem
-        Sichtbarkeits-Verhalten bestehen — kein Bug, kein weiterer
-        Handlungsbedarf. Punkt ist damit abgeschlossen.
+- [x] **ActivityAddon.jsx + ActivitySection.jsx — NICHT zusammenlegen.**
+      Ursprüngliche Diagnose (Audit 2026-09-05): beide sind im Kern
+      ähnliche Activity-Picker-UI, aber mit divergenten Defaults
+      (Activity-Type-Reihenfolge, Muscle-Target/Swim-Style-Sichtbarkeit
+      nur bei bestimmten Typen im Cardio-Mode).
+      - **Versuch 2026-09-05 (Sonnet-Agent):** strukturell zu einer
+        gemeinsamen `ActivityPicker.jsx` mit Mode-Prop zusammengelegt,
+        Verhalten dabei 1:1 reproduziert (keine fachliche Änderung).
+        Dabei auch festgestellt: die "9 vs 10 Activity-Types"-Diagnose war
+        **stale** — beide Listen enthielten zu dem Zeitpunkt bereits
+        identische 10 Werte, nur die Anzeige-Reihenfolge unterscheidet sich.
+      - **Nutzer-Korrektur 2026-09-05, grundsätzlich (siehe
+        `feedback_never_unify_divergent_implementations` in der globalen
+        Memory):** "GAR NICHTS ANGLEICHEN IN DER APP UND NICHTS
+        VEREINHEITLICHEN — das ist ja das Problem hier in erster Linie!!
+        Dadurch wird die App konsequent kastriert. Toter Code ist fast NIE
+        tot sondern wurde abgehackt." Der Merge selbst — auch verhaltens-
+        erhaltend über einen Mode-Prop — war bereits der falsche Schritt,
+        nicht nur eine mögliche spätere Angleichung der Details.
+      - **Revert 2026-09-05:** `ActivityPicker.jsx` wieder gelöscht,
+        `ActivityAddon.jsx`/`ActivitySection.jsx` auf den Stand vor dem
+        Merge zurückgesetzt (zwei eigenständige, unabhängig entwickelbare
+        Komponenten). Die Divergenzen (Reihenfolge, Sichtbarkeits-Regeln)
+        bleiben bestehen — gelten jetzt als bewusst, nicht als Bug/Drift,
+        bis jemand explizit etwas an EINER der beiden Stellen erweitern
+        will (nicht angleichen).
+      - **Für künftige Agenten in diesem Repo:** ähnliche Fälle (zwei
+        Komponenten/Funktionen die fast dasselbe tun, aber leicht anders)
+        NICHT als Duplikat behandeln, das bereinigt gehört. Erst fragen,
+        eher in Richtung "erweitern" statt "vereinheitlichen" denken.
 
 - [x] **SessionHeader.jsx entwirren** (~200 Z., 4 Verantwortlichkeiten in
       einer Datei). Erledigt 2026-09-05: reines Aufsplitten, kein
