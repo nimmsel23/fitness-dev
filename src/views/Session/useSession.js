@@ -1,27 +1,30 @@
 /**
  * useSession — Custom hook for all Session state & handlers.
  *
- * Extracted from the 860-line index.jsx monolith.
- * Keeps the same external contract so SessionEditor can remain thin.
+ * Extracted from the 860-line index.jsx monolith, dann selbst zum
+ * State-Monolith gewachsen (771 Zeilen) — PHASE3_TODO.md Stück 4 hat die
+ * vier fachlich abgrenzbaren Teile in eigene Mini-Hooks ausgelagert:
+ * `useExerciseList()`, `useSessionActivity()`, `useSessionSlots()`,
+ * `useSessionGateController()` (siehe jeweilige Datei für Details/
+ * Interdependenzen). Dieser Haupthook bleibt Koordination: Datum/Session-
+ * Auswahl laden & speichern, History/Hints/Autosave, plus die Basis-
+ * Session-Felder (block/effort/location/duration/notes/...), die keinem
+ * der vier Mini-Hooks eindeutig zuzuordnen sind.
+ *
+ * Externer Rückgabe-Vertrag bleibt UNVERÄNDERT (SessionEditor.jsx konsumiert
+ * ihn per `{...session}`-Spread, siehe views/Session/index.jsx) — reine
+ * interne Umorganisation, kein Feature-/Verhaltensunterschied außer der
+ * unten dokumentierten Autosave-Race-Klärung.
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { arrayMove } from '@dnd-kit/sortable';
 import {
   saveSession, getSessionHistory, listSessionsForDate, deleteSession,
-  deleteActivityAddon,
-  parseQuick, getExercise,
-  getCoverageGaps, getPlanSuggestion, exportFitnessData, queueForEnrichment,
-  normalizeExerciseRecord,
+  getCoverageGaps, getPlanSuggestion, exportFitnessData,
 } from '@db';
 import { localToday } from '@utils';
 import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
-import {
-  normalizeSessionGate,
-  estimateDurationMinutes,
-  sessionHasLoggedWorkout,
-} from '../../lib/sessionGate.js';
-import { resolveGeoLocation } from '../../lib/geoLocate.js';
+import { normalizeSessionGate, sessionHasLoggedWorkout } from '../../lib/sessionGate.js';
 import {
   saveSessionRuntimeDraft,
   clearSessionRuntimeDraft,
@@ -30,60 +33,15 @@ import {
   mergeSessionRuntimeDraftsIntoHistory,
 } from '../../lib/sessionRuntimeStore.js';
 import { getRollingDays } from './utils';
-
-const DEFAULT_ACTIVITY = { type: 'hiit', duration: '', notes: '', muscleTarget: 'core', muscles: ['core'] };
-
-// GPS-Fix drinnen (Gym, Beton/Stahl) dauert oft länger als ein knapper
-// Timeout erlaubt — jeder Fehler (Timeout, Denial, Unavailable) lief bisher
-// still in `resolve(null)`, ohne dass man es je bemerkt hätte (Bug-Fund
-// 2026-08-09: sessionGate.gps blieb trotz erteilter Berechtigung null).
-// enableHighAccuracy:true + 15s Timeout, Fehlergrund wird zurückgegeben statt
-// verschluckt, damit startSessionGate() sichtbares Feedback geben kann.
-function getCurrentPosition() {
-  if (typeof navigator === 'undefined' || !navigator.geolocation) {
-    return Promise.resolve({ position: null, errorReason: 'unsupported' });
-  }
-  return new Promise((resolve) => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => resolve({
-        position: {
-          lat: position.coords?.latitude ?? null,
-          lng: position.coords?.longitude ?? null,
-          accuracy: position.coords?.accuracy ?? null,
-          capturedAt: new Date().toISOString(),
-        },
-        errorReason: null,
-      }),
-      (err) => {
-        const reason = err?.code === 1 ? 'denied' : err?.code === 3 ? 'timeout' : 'unavailable';
-        resolve({ position: null, errorReason: reason });
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 5 * 60 * 1000 },
-    );
-  });
-}
-
-const GPS_ERROR_LABELS = {
-  denied: 'Standort-Zugriff verweigert',
-  timeout: 'Standort-Fix hat zu lange gedauert (drinnen oft schwach)',
-  unavailable: 'Standort nicht verfügbar',
-  unsupported: 'Standort wird nicht unterstützt',
-};
-
-
-function slugify(name) {
-  return String(name || 'exercise')
-    .toLowerCase()
-    .normalize('NFKD').replace(/[̀-ͯ]/g, '') // Umlaute/Akzente entfernen
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '') || 'exercise';
-}
+import { useExerciseList } from './useExerciseList.js';
+import { useSessionActivity, DEFAULT_ACTIVITY } from './useSessionActivity.js';
+import { useSessionSlots } from './useSessionSlots.js';
+import { useSessionGateController } from './useSessionGateController.js';
 
 export function useSession({ initialDate, initialDraft, recentDays = 7, coverageThreshold = 1.0, onDateChange = null }) {
   const [date, setDateState]        = useState(initialDate || localToday());
   const [sessionMode, setSessionMode] = useState('strength');
   const [block, setBlock]           = useState('');
-  const [exercises, setExercises]   = useState([]);
   const [effort, setEffort]         = useState(5);
   const [location, setLocation]     = useState('');
   const [duration, setDuration]     = useState('');
@@ -92,20 +50,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   const [coachFeedback, setCoachFeedback] = useState('');
   const [saving, setSaving]         = useState(false);
   const [toast, setToast]           = useState('');
-  const [quickInput, setQuickInput] = useState('');
   const [restHours, setRestHours]   = useState(null);
-  const [activity, setActivity]     = useState({ ...DEFAULT_ACTIVITY });
-  const [hasActivity, setHasActivity] = useState(false);
-  // Bereits gespeicherte Finisher dieser Tages-Session (Merge-Historie,
-  // siehe activityAddons in fitness/api/routers/sessions.py) — nur Anzeige/
-  // Löschen, kein Editier-State wie `activity` oben.
-  const [activityAddons, setActivityAddons] = useState([]);
-  // Frei belegbare Sub-Einheiten innerhalb der Session (Warm-up-Block,
-  // Cardio-Finisher, Notiz-Abschnitt, ...) — additiv zum bestehenden
-  // Activity-Addon-Mechanismus, berührt exercises[] nur über das optionale
-  // slotId-Feld (kein Slot definiert -> exakt heutiges Verhalten).
-  const [slots, setSlots] = useState([]);
-  const [sessionGate, setSessionGate] = useState(() => normalizeSessionGate(null));
   const [recentSessions, setRecentSessions] = useState({});
   const [historyLimit, setHistoryLimit] = useState(60);
   const [hasMoreHistory, setHasMoreHistory] = useState(false);
@@ -129,11 +74,58 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   const dirtyRef = useRef(false);
   const dateRef = useRef(null);
   const autoSaveTimerRef = useRef(null);
+  // Race-Guard (PHASE3_TODO.md Stück 4, DB-Layer-Audit-Bugfund): der
+  // Draft-Effect unten schreibt bei JEDER relevanten State-Änderung
+  // syncState:'local' in den Runtime-Draft — lief bisher unabhängig davon,
+  // ob gerade ein echter API-Save (save()) in Flight ist. Ändert sich
+  // während eines laufenden Saves noch ein State-Feld (z.B. weitergetippte
+  // Notiz), konnte der Draft-Effect ein von save() gerade gesetztes
+  // 'saving'/'queued' wieder auf 'local' zurückstufen — kein Datenverlust
+  // (der API-Call selbst lief unbeeinflusst weiter), aber ein falscher
+  // Sync-Status im Runtime-Draft, der bei einem Reload mitten im Save kurz
+  // "unsynced" statt "wird synchronisiert" anzeigen konnte. Guard: Draft-
+  // Effect überspringt den Schreibvorgang, solange `savingRef.current`.
+  const savingRef = useRef(false);
   // War fix 30 — Date-Picker konnte nie weiter als 30 Tage zurück, unabhängig
   // von tatsächlich vorhandenen älteren Sessions (Klienten-Bug: Matthias
   // konnte alte Workouts nicht nachloggen). 365 Tage sind nur Datums-Strings,
   // keine Fetches — billig genug, um das Fenster einfach großzügig zu machen.
   const rollingDays = getRollingDays(365);
+
+  // ── Toast ─────────────────────────────────────────────────────
+  function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 2200); }
+
+  // Debounced Save: reine dirty=true-Markierung hat bislang NICHT automatisch
+  // gespeichert — echte Saves liefen nur bei Tab-Wechsel/Datumswechsel/Unmount.
+  // Wird die PWA im Hintergrund vom OS gekillt (Handy, Bildschirm aus beim
+  // Training), ohne dass diese Events sauber feuern, gingen Änderungen (Sets,
+  // Removes) verloren. Jetzt: 1.5s nach der letzten Änderung wird tatsächlich
+  // gespeichert, unabhängig von Tab-Lifecycle-Events.
+  function scheduleAutoSave() {
+    setDirty(true);
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      autoSaveTimerRef.current = null;
+      if (dirtyRef.current) { saveRef.current?.(true); setDirty(false); }
+    }, 1500);
+  }
+
+  // ── Mini-Hooks (PHASE3_TODO.md Stück 4) ─────────────────────────
+  const {
+    exercises, setExercises, quickInput, setQuickInput,
+    addEx, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, moveExercise, removeEx,
+  } = useExerciseList({ scheduleAutoSave, showToast, saveRef, setDirty });
+
+  const {
+    activity, setActivity, hasActivity, setHasActivity,
+    activityAddons, setActivityAddons, removeActivityAddon,
+  } = useSessionActivity({ date });
+
+  const { slots, setSlots, addSlot, removeSlot, updateSlot, reorderSlots } =
+    useSessionSlots({ setExercises, scheduleAutoSave });
+
+  const { sessionGate, setSessionGate, startSessionGate, stopSessionGate } =
+    useSessionGateController({ location, setLocation, duration, setDuration, save, setDirty, showToast });
 
   // Ungespeicherte Änderungen sichern, bevor der Editor-State neu geladen wird
   // (Datumswechsel, Session-Wechsel, neues Workout, Unmount). save() liest den
@@ -199,74 +191,6 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     setSlots([]);
     setSessionGate(normalizeSessionGate(null));
   };
-
-  // Löscht einen einzelnen Finisher aus der bereits gespeicherten
-  // activityAddons-Historie (nicht den gerade im Formular editierten
-  // `activity`-Draft — der lebt nur lokal bis zum nächsten Save).
-  async function removeActivityAddon(index) {
-    const result = await deleteActivityAddon(date, index);
-    if (result?.ok) setActivityAddons(result.activityAddons || []);
-    return result;
-  }
-
-  // ── Session-Slots (frei belegbare Sub-Einheiten) ────────────────
-  function addSlot({ label, ...extra }) {
-    const id = crypto.randomUUID();
-    setSlots(prev => [...prev, { id, label, order: prev.length, ...extra }]);
-    scheduleAutoSave();
-    return id;
-  }
-
-  function removeSlot(id) {
-    setSlots(prev => prev.filter(s => s.id !== id));
-    setExercises(prev => prev.map(ex => ex.slotId === id ? { ...ex, slotId: null } : ex));
-    scheduleAutoSave();
-  }
-
-  function updateSlot(id, patch) {
-    setSlots(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s));
-    scheduleAutoSave();
-  }
-
-  // Slots untereinander sortierbar machen (PHASE3_TODO.md Stück 3, User-
-  // Entscheidung 2026-09-05: volles nested dnd-kit-Sortable statt Pfeil-
-  // Buttons). `order` existierte als Feld schon immer, wurde aber nie
-  // geändert (nur beim Anlegen als prev.length gesetzt) — hier erstmals
-  // tatsächlich neu vergeben, nach demselben Muster wie moveExercise() für
-  // einzelne Übungen.
-  function reorderSlots(activeId, overId) {
-    setSlots(prev => {
-      const sorted = [...prev].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-      const oldIndex = sorted.findIndex(s => s.id === activeId);
-      const newIndex = sorted.findIndex(s => s.id === overId);
-      if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return prev;
-      return arrayMove(sorted, oldIndex, newIndex).map((s, idx) => ({ ...s, order: idx }));
-    });
-    scheduleAutoSave();
-  }
-
-  // Ein Exercise-Eintrag wird in einen anderen Container (Basis oder ein
-  // bestimmter Slot) und/oder an eine andere Position innerhalb dieses
-  // Containers verschoben — Grundlage für DnD UND für die Pfeil-Buttons
-  // (moveEx unten), damit beide denselben, korrekten Container-Begriff
-  // benutzen statt naiv im flachen Gesamt-Array zu tauschen (das würde
-  // Nachbarn aus fremden Containern dazwischenrutschen lassen).
-  function moveExercise(exerciseId, targetSlotId, targetContainerIndex) {
-    setExercises(prev => {
-      const idx = prev.findIndex(e => e.id === exerciseId);
-      if (idx === -1) return prev;
-      const item = { ...prev[idx], slotId: targetSlotId || null };
-      const rest = prev.filter(e => e.id !== exerciseId);
-      const containerItems = rest.filter(e => (e.slotId || null) === (targetSlotId || null));
-      const clamped = Math.max(0, Math.min(targetContainerIndex, containerItems.length));
-      const anchor = containerItems[clamped];
-      const insertAt = anchor ? rest.findIndex(e => e.id === anchor.id) : rest.length;
-      const next = [...rest];
-      next.splice(insertAt, 0, item);
-      return next;
-    });
-    scheduleAutoSave();
-  }
 
   const selectSession = (id) => {
     flushDirty();
@@ -356,11 +280,11 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     getCoverageGaps(recentDays, coverageThreshold).then(setGaps).catch(() => {});
   }, [date, recentDays, coverageThreshold]);
 
-  // ── Toast ─────────────────────────────────────────────────────
-  function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 2200); }
-
   useEffect(() => {
     if (!dirty) return;
+    // Guard siehe savingRef-Deklaration oben: kein 'local'-Downgrade während
+    // ein echter API-Save (save()) bereits eigene syncState-Updates schreibt.
+    if (savingRef.current) return;
     saveSessionRuntimeDraft(date, buildSessionPayload(), sessionId, { syncState: 'local' });
   }, [
     dirty, date, sessionId, block, exercises, effort, location, duration, notes,
@@ -394,142 +318,6 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     return () => window.removeEventListener('fitness:queue-flushed', handleQueueFlushed);
   }, [date, sessionId]);
 
-  // ── Exercise handlers ─────────────────────────────────────────
-  async function addEx(ex, slotId = null) {
-    let normalized = normalizeExerciseRecord(ex);
-    let primary = normalized.primaryMuscles;
-    let secondary = normalized.secondaryMuscles;
-    if (primary.length === 0 && secondary.length === 0 && !ex.isNew) {
-      try {
-        const kbEx = await getExercise(ex.id || ex.name);
-        if (kbEx) {
-          normalized = normalizeExerciseRecord({ ...kbEx, ...normalized });
-          primary = normalized.primaryMuscles;
-          secondary = normalized.secondaryMuscles;
-        }
-      } catch (e) { console.warn('Could not fetch KB data:', e); }
-    }
-    const displayName = normalized.displayName;
-    // Firestore lehnt undefined-Feldwerte ab (setDoc crasht sonst still im
-    // Auto-Save) — bei manuell hinzugefügten, noch nicht im Katalog
-    // geführten Übungen (isNew) fehlt id/exercise_id, daher slug-Fallback.
-    const id = normalized.id || `inbox_${slugify(displayName)}`;
-    // Dieselbe Übung erneut per Suche hinzuzufügen (statt "+Satz" auf der
-    // schon vorhandenen Karte) erzeugte bisher einen zweiten, dritten, ...
-    // exercises[]-Eintrag mit je einem Satz im setsArray -- ein Dropset/
-    // mehrere Sätze derselben Übung wurde dadurch als N verschiedene
-    // "Übungen" mit gleichem Namen angezeigt statt als eine Übung mit N
-    // Sätzen (live an Bestandsdaten reproduziert, siehe Coach-Feedback).
-    // Jetzt: existiert die id schon in dieser Session, wird stattdessen ein
-    // Satz angehängt (wie addSet()), keine Duplikat-Übung angelegt.
-    let merged = false;
-    setExercises(prev => {
-      const existingIdx = prev.findIndex(e => e.id === id);
-      if (existingIdx === -1) {
-        return [...prev, {
-          id,
-          name: displayName,
-          primaryMuscles: primary,
-          secondaryMuscles: secondary,
-          stabilizers: normalized.stabilizers || [],
-          setsArray: [{ reps: '', weight: '' }],
-          note: '',
-          source: normalized.source || (ex.isNew ? 'inbox' : 'unknown'),
-          slotId: slotId || null,
-        }];
-      }
-      merged = true;
-      return prev.map((e, idx) => {
-        if (idx !== existingIdx) return e;
-        const last = e.setsArray[e.setsArray.length - 1] || {};
-        return { ...e, setsArray: [...e.setsArray, { reps: last.reps || '', weight: last.weight || '' }] };
-      });
-    });
-    if (!merged && normalized.source !== 'expert') queueForEnrichment({ ...normalized, id, name: displayName });
-    showToast(merged ? `+ Satz (${displayName})` : `+ ${displayName}`);
-    setTimeout(() => { saveRef.current?.(true); setDirty(false); }, 0);
-  }
-
-  function addQuick() {
-    if (!quickInput.trim()) return;
-    const parsed = parseQuick(quickInput);
-    if (parsed) {
-      // parseQuick liefert keine id — ohne die wären Quick-Adds nicht von
-      // updateEx/removeEx/DnD adressierbar (id ist der Sortable-/Dedup-Key
-      // aller Übungen dieser Session, siehe addEx()).
-      const id = `inbox_${slugify(parsed.name)}`;
-      const ex = { ...parsed, id, source: 'inbox', slotId: null };
-      setExercises(prev => [...prev, ex]);
-      setQuickInput('');
-      showToast(`+ ${ex.name}`);
-      setTimeout(() => { saveRef.current?.(true); setDirty(false); }, 0);
-    }
-  }
-
-  function updateEx(i, field, value, setIdx = null) {
-    setExercises(prev => prev.map((ex, idx) => {
-      if (idx !== i) return ex;
-      if (setIdx !== null) {
-        const newSets = [...ex.setsArray];
-        newSets[setIdx] = { ...newSets[setIdx], [field]: value };
-        return { ...ex, setsArray: newSets };
-      }
-      return { ...ex, [field]: value };
-    }));
-    scheduleAutoSave();
-  }
-
-  function addSet(i) {
-    setExercises(prev => prev.map((ex, idx) => {
-      if (idx !== i) return ex;
-      const last = ex.setsArray[ex.setsArray.length - 1] || {};
-      return { ...ex, setsArray: [...ex.setsArray, { reps: last.reps || '', weight: last.weight || '' }] };
-    }));
-    scheduleAutoSave();
-  }
-
-  function replaceSets(i, newSets) {
-    setExercises(prev => prev.map((ex, idx) => idx !== i ? ex : { ...ex, setsArray: newSets }));
-    scheduleAutoSave();
-  }
-
-  function removeSet(i, setIdx) {
-    setExercises(prev => prev.map((ex, idx) => {
-      if (idx !== i || ex.setsArray.length <= 1) return ex;
-      return { ...ex, setsArray: ex.setsArray.filter((_, sIdx) => sIdx !== setIdx) };
-    }));
-    scheduleAutoSave();
-  }
-
-  function moveEx(i, direction) {
-    const ex = exercises[i];
-    if (!ex) return;
-    const containerId = ex.slotId || null;
-    const containerItems = exercises.filter(e => (e.slotId || null) === containerId);
-    const localIdx = containerItems.findIndex(e => e.id === ex.id);
-    moveExercise(ex.id, containerId, localIdx + direction);
-  }
-
-  function removeEx(i) {
-    setExercises(prev => prev.filter((_, idx) => idx !== i));
-    scheduleAutoSave();
-  }
-
-  // Debounced Save: reine dirty=true-Markierung hat bislang NICHT automatisch
-  // gespeichert — echte Saves liefen nur bei Tab-Wechsel/Datumswechsel/Unmount.
-  // Wird die PWA im Hintergrund vom OS gekillt (Handy, Bildschirm aus beim
-  // Training), ohne dass diese Events sauber feuern, gingen Änderungen (Sets,
-  // Removes) verloren. Jetzt: 1.5s nach der letzten Änderung wird tatsächlich
-  // gespeichert, unabhängig von Tab-Lifecycle-Events.
-  function scheduleAutoSave() {
-    setDirty(true);
-    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
-    autoSaveTimerRef.current = setTimeout(() => {
-      autoSaveTimerRef.current = null;
-      if (dirtyRef.current) { saveRef.current?.(true); setDirty(false); }
-    }, 1500);
-  }
-
   // ── Save ──────────────────────────────────────────────────────
   function buildSessionPayload(overrides = {}) {
     const nextSessionMode = overrides.sessionMode ?? sessionMode;
@@ -555,6 +343,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
 
   async function save(silent = false, overrides = {}) {
     if (!silent) setSaving(true);
+    savingRef.current = true;
     const savedDate = date;
     const savedSessionId = sessionId;
     const sessData = buildSessionPayload(overrides);
@@ -591,6 +380,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
       setAutoSaveLabel('');
     } finally {
       if (!silent) setSaving(false);
+      savingRef.current = false;
     }
     // Nur übernehmen, wenn der User nicht inzwischen das Datum gewechselt hat —
     // sonst überschreibt der Nachlauf eines Flush-Saves die frische Tagesliste.
@@ -668,44 +458,6 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     clearSessionRuntimeDraft(date, newSuffix);
     resetSessionData();
     setDaySessions(prev => [...prev, { id: newSuffix, block: 'Neues Workout', exercises: [], saved_at: new Date().toISOString() }]);
-  }
-
-  async function startSessionGate() {
-    const { position: gps, errorReason } = await getCurrentPosition();
-    const geo = gps ? await resolveGeoLocation(gps.lat, gps.lng) : null;
-    const nextGate = normalizeSessionGate({
-      status: 'active',
-      startedAt: new Date().toISOString(),
-      endedAt: null,
-      gps: gps && geo ? { ...gps, label: geo.label, mapsUrl: geo.mapsUrl, source: geo.source } : gps,
-    });
-    // Vorhandenen manuellen Location-Text nie überschreiben — nur befüllen, wenn leer.
-    const nextLocation = (!location.trim() && geo?.label) ? geo.label : undefined;
-    setSessionGate(nextGate);
-    if (nextLocation) setLocation(nextLocation);
-    setDirty(false);
-    await save(false, { sessionGate: nextGate, location: nextLocation });
-    if (errorReason) {
-      showToast(`Workout gestartet · ${GPS_ERROR_LABELS[errorReason] || 'Standort nicht erfasst'}`);
-    } else {
-      showToast('Workout gestartet');
-    }
-  }
-
-  async function stopSessionGate() {
-    const baseGate = normalizeSessionGate(sessionGate);
-    if (!baseGate.startedAt) return;
-    const nextGate = normalizeSessionGate({
-      status: 'completed',
-      startedAt: baseGate.startedAt,
-      endedAt: new Date().toISOString(),
-    });
-    const nextDuration = duration || estimateDurationMinutes(nextGate);
-    setSessionGate(nextGate);
-    if (nextDuration && nextDuration !== duration) setDuration(nextDuration);
-    setDirty(false);
-    await save(false, { sessionGate: nextGate, duration: nextDuration });
-    showToast('Workout beendet');
   }
 
   // ── Exports ───────────────────────────────────────────────────

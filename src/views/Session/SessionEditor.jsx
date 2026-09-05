@@ -7,16 +7,15 @@
  */
 
 import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import SessionGateCard from './SessionGateCard.jsx';
+import SessionGateSheet from './SessionGateSheet.jsx';
 import SessionSlots from './SessionSlots.jsx';
 import SessionHeader from './SessionHeader';
 import SplitPicker from './SplitPicker';
 import EffortPicker from './EffortPicker';
 import ExerciseList from './ExerciseList';
-import ActivitySection from './ActivitySection';
+import CardioSection from './CardioSection.jsx';
 import ActivityAddon from './ActivityAddon';
 import ActivityAddonHistory from './ActivityAddonHistory.jsx';
 import SessionToast from './SessionToast.jsx';
@@ -214,37 +213,7 @@ export default function SessionEditor({
           </DndContext>
         ) : (
           /* Cardio mode */
-          <div
-            className="p-5 rounded-3xl animate-in slide-in-from-top-2 duration-300"
-            style={{
-              background: 'rgba(255,140,50,0.04)',
-              border: '1px solid rgba(255,140,50,0.15)',
-            }}
-          >
-            <div className="flex items-center gap-3 mb-5">
-              <div
-                className="w-9 h-9 rounded-2xl flex items-center justify-center text-lg"
-                style={{ background: 'rgba(255,140,50,0.12)' }}
-              >
-                🏃
-              </div>
-              <div>
-                <div
-                  className="text-[11px] font-black uppercase tracking-[0.2em]"
-                  style={{ color: 'var(--orange)' }}
-                >
-                  Ausdauer-Session
-                </div>
-                <div
-                  className="text-[10px] font-medium"
-                  style={{ color: 'var(--dim)', opacity: 0.5 }}
-                >
-                  Cardio · Endurance
-                </div>
-              </div>
-            </div>
-            <ActivitySection activity={activity} setActivity={v => { setActivity(v); scheduleAutoSave(); }} />
-          </div>
+          <CardioSection activity={activity} setActivity={setActivity} scheduleAutoSave={scheduleAutoSave} />
         )}
 
         {/* Bereits gespeicherte Finisher dieses Tages (activityAddons-Historie) */}
@@ -304,34 +273,16 @@ export default function SessionEditor({
         <SourceSettingsModal onClose={() => setShowTabSettings(false)} />
       )}
 
-      {gateSheetOpen && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-200">
-          <div className="absolute inset-0 bg-fit-scrim backdrop-blur-sm" onClick={() => setGateSheetOpen(false)} />
-          <div className="relative w-full max-w-xl bg-fit-card border-t border-fit-line rounded-t-[32px] sm:rounded-t-[40px] shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[92vh] overflow-y-auto">
-            <div className="sticky top-0 bg-fit-card pt-3 pb-2 flex items-center justify-between px-4 sm:px-5 z-10">
-              <div className="w-10 h-1 rounded-full bg-fit-line mx-auto" />
-              <button
-                onClick={() => setGateSheetOpen(false)}
-                className="absolute right-4 top-3 p-1.5 rounded-lg text-fit-dim hover:text-fit-ink transition-colors"
-                aria-label="Schließen"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <div className="px-2 sm:px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-              <SessionGateCard
-                date={date}
-                sessionGate={sessionGate}
-                currentSubTab={currentSubTab}
-                onSubNav={(id) => { setGateSheetOpen(false); onSubNav?.(id); }}
-                onStart={() => { startSessionGate(); setGateSheetOpen(false); }}
-                onStop={stopSessionGate}
-              />
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      <SessionGateSheet
+        open={gateSheetOpen}
+        onClose={() => setGateSheetOpen(false)}
+        date={date}
+        sessionGate={sessionGate}
+        currentSubTab={currentSubTab}
+        onSubNav={onSubNav}
+        onStart={() => { startSessionGate(); setGateSheetOpen(false); }}
+        onStop={stopSessionGate}
+      />
     </div>
   );
 }

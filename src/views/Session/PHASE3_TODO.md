@@ -110,25 +110,71 @@ Copy-Paste-Code.
       prevMap, onInspectExercise, exerciseOps` (6 statt vorher 16 Keys).
 
 ### 4. useSession.js (771 Zeilen — der State-Monolith)
-- [ ] In Mini-Hooks aufspalten (aus DB-Layer-Audit + UI-Audit
-      übereinstimmend empfohlen):
-      - `useExerciseList()` — add/update/remove/move Exercise-State
-      - `useSessionActivity()` — `activity` + `activityAddons`
-      - `useSessionSlots()` — Slots-State + Handler
-      - `useSessionGateController()` — GPS-Start/Stop, Timer
-      - Haupthook (`useSession.js`) bleibt Koordination + Load/Save,
-        Ziel ~300 Zeilen statt 771.
-- [ ] Vor dem Split: Interdependenzen dokumentieren (z.B. `moveExercise()`
-      braucht Slot-Kontext UND Exercise-Liste gleichzeitig — nicht sauber
-      trennbar ohne gemeinsame Schnittstelle).
-- [ ] Bekannte Einzel-Bugs im selben Aufwasch mitnehmen (siehe
-      DB-Layer-Audit):
-      - GPS-Fehlerpfade (`getCurrentPosition()` vs. `resolveGeoLocation()`)
-        haben zwei getrennte Fehler-Enums, unklare Propagation an UI.
-      - Auto-Save schreibt localStorage-Draft UND API-Call im selben
-        Effect — Reihenfolge/Race prüfen.
-- [ ] `SessionEditor.jsx` danach auf reinen Orchestrator zurückstutzen
-      (kein Inline-JSX mehr außer Layout-Wrappern).
+- [x] In Mini-Hooks aufgespalten (2026-09-05): `useExerciseList.js`
+      (Übungs-Mutationen + Quick-Input, 181 Z.), `useSessionActivity.js`
+      (`activity`/`hasActivity`/`activityAddons`, 47 Z.),
+      `useSessionSlots.js` (Slots-State + Handler inkl. `reorderSlots`,
+      61 Z.), `useSessionGateController.js` (GPS-Start/Stop + Timer,
+      113 Z.). Haupthook `useSession.js`: 771 → 548 Zeilen (Ziel war ~300,
+      real erreicht ~30% Reduktion — Koordination + Load/Save + History/
+      Hints/Autosave-Effects sind selbst noch beträchtlich, siehe Rest der
+      Datei; eine weitere Aufspaltung dieser verbleibenden Effects wäre ein
+      eigenes, separates Stück gewesen und ist nicht Teil dieses Splits).
+      Externer Rückgabe-Vertrag von `useSession()` unverändert (identische
+      Feld-Namen/-Struktur) — `SessionEditor.jsx` (per `{...session}`-
+      Spread aus `views/Session/index.jsx`) brauchte keine Anpassung außer
+      dem separaten Orchestrator-Punkt unten. `npm run build` grün.
+- [x] Interdependenzen vor dem Split dokumentiert (als JSDoc-Kopf in den
+      jeweiligen Dateien, nicht nur hier):
+      - `moveExercise()` (jetzt in `useExerciseList.js`) braucht NUR
+        `exercises` (über das `slotId`-Feld) — keinen direkten Zugriff auf
+        `slots[]`. Die einzige echte Kopplungsstelle zwischen den beiden
+        Mini-Hooks ist `removeSlot()` (in `useSessionSlots.js`), das
+        `setExercises` von `useExerciseList.js` braucht, um `slotId` bei
+        betroffenen Übungen zurückzusetzen — nicht umgekehrt.
+      - `addEx()`/`addQuick()` brauchen `saveRef` + `setDirty` von außen
+        (Sofort-Save-Pattern nach dem State-Update); alle übrigen
+        Exercise-Mutationen laufen über das normale `scheduleAutoSave()`
+        des Haupthooks — beides als Parameter in `useExerciseList.js`.
+      - `startSessionGate()`/`stopSessionGate()` (jetzt in
+        `useSessionGateController.js`) brauchen `save` (per Hoisting aus
+        `useSession.js` referenzierbar, da dort als `async function`
+        deklariert), `setDirty`, `showToast` sowie `location`/`duration`
+        lesend UND schreibend — beide Felder bleiben bewusst im Haupthook
+        (Basis-Session-Felder, existieren auch ganz ohne Gate-Feature).
+      - `buildSessionPayload()`/`save()`/der Dirty-Autosave-Effect bleiben
+        zwangsläufig im Haupthook, da sie fast jedes Stück Session-State
+        lesen (block/exercises/effort/location/duration/notes/
+        trainingsart/sessionMode/activity/hasActivity/slots/sessionGate) —
+        keine sinnvolle Aufteilung ohne eine gemeinsame Schnittstelle, die
+        am Ende wieder alles zusammenführen müsste.
+- [x] Bekannte Einzel-Bugs im selben Aufwasch mitgenommen:
+      - GPS-Fehlerpfade geklärt statt vereinheitlicht (Doku-Kommentar in
+        `useSessionGateController.js`): es gibt real nur EIN Fehler-Enum
+        (`getCurrentPosition()`s `errorReason`) — `resolveGeoLocation()`
+        hat keins, fängt jeden eigenen Fehlschlag intern ab und degradiert
+        still auf den nächstschwächeren Fallback (Gym → Adresse →
+        Koordinaten). Kein zweites Enum zu vereinheitlichen; nur
+        dokumentiert, damit das nicht erneut gesucht wird. Kein UI-Fix
+        nötig/vorgenommen (Koordinaten-Fallback zeigt sich bereits selbst
+        sichtbar im `gps.label`).
+      - Auto-Save-Race behoben: neuer `savingRef`-Guard in `useSession.js`
+        — der Dirty-Draft-Effect (schreibt `syncState:'local'` in den
+        Runtime-Draft) überspringt den Schreibvorgang jetzt, solange ein
+        echter API-Save (`save()`) in Flight ist (`savingRef.current`
+        zwischen `try` und `finally` gesetzt) — verhindert, dass ein
+        während eines laufenden Saves noch geändertes Feld den von
+        `save()` gesetzten `'saving'`/`'queued'`-Status fälschlich auf
+        `'local'` zurückstuft. Kein Datenverlust vorher (API-Call lief
+        unbeeinflusst weiter), nur ein potenziell falscher Sync-Status bei
+        Reload mitten im Save.
+- [x] `SessionEditor.jsx` auf reinen Orchestrator zurückgestutzt
+      (2026-09-05): Cardio-Modus-Block → `CardioSection.jsx`, Gate-Sheet-
+      Portal → `SessionGateSheet.jsx` (beide rein mechanisch extrahiert,
+      keine Logik verändert). Verbleibendes Inline-JSX in
+      `SessionEditor.jsx` sind nur noch Layout-Wrapper (Grid/Spacing-Divs,
+      Details-Collapse-Toggle) um die Sub-Komponenten. `npm run build`
+      grün.
 
 ## Definition of Done pro Stück
 

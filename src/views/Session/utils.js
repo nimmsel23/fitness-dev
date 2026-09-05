@@ -86,6 +86,16 @@ export function parseLocalDate(dateStr) {
   return new Date(`${dateStr}T12:00:00`);
 }
 
+// Übungsname -> URL-/ID-sicherer Slug, für Inbox-IDs manuell/quick
+// hinzugefügter Übungen ohne Katalog-Eintrag (siehe useExerciseList.js).
+export function slugify(name) {
+  return String(name || 'exercise')
+    .toLowerCase()
+    .normalize('NFKD').replace(/[̀-ͯ]/g, '') // Umlaute/Akzente entfernen
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '') || 'exercise';
+}
+
 export const num = (v) => {
   if (v === null || v === undefined) return null;
   const s = String(v).trim().replace(',', '.');
