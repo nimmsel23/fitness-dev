@@ -1,3 +1,49 @@
+# Session-Tab Rebuild Phase 3, Stück 2+3 (ExerciseList.jsx, SessionSlots.jsx) (2026-09-05)
+
+Fortsetzung von Phase 3 nach Context-Compact — Nutzer wies "mach weiter mit
+Stück 3" an, danach "weiter mit Stück 4 dann aus Phase 3" (noch nicht
+begonnen). Stück 2 (`ExerciseList.jsx`) und Stück 3 (`SessionSlots.jsx`)
+aus `PHASE3_TODO.md` sind jetzt beide abgehakt.
+
+* **`src/views/Session/useSession.js`**: neues gebündeltes `exerciseOps`-
+  Objekt (`updateEx, addSet, removeSet, removeEx, replaceSets, moveEx,
+  addEx, quickInput, setQuickInput, addQuick, onToast`) ersetzt 11 einzelne
+  Props, die bisher separat durch `SessionEditor.jsx` an
+  `ExerciseList`/`SessionSlots` durchgereicht wurden. Reine
+  Anzeige-/Kontext-Props (`exercises`, `restHours`, `muscleRecovery`,
+  `date`, `prevMap`, `onInspectExercise`) bleiben bewusst einzeln, da Basis-
+  Abschnitt und Slots hier unterschiedliche Werte brauchen.
+  Zusätzlich `reorderSlots(activeId, overId)` ergänzt (`arrayMove()` aus
+  `@dnd-kit/sortable`, vergibt `order` für alle Slots neu — das Feld
+  existierte vorher schon, wurde aber nie tatsächlich geändert).
+* **`src/views/Session/ExerciseList.jsx`**: auf den neuen `exerciseOps`-
+  Contract umgestellt, `type: 'exercise'` in die Sortable-Daten ergänzt
+  (für die Unterscheidung der beiden Reorder-Pfade in `handleDragEnd()`),
+  JSDoc-Kommentar zur `DndContext`-Abhängigkeit ergänzt (kein lokaler
+  Fallback, `SessionEditor.jsx` muss den gemeinsamen Context bereitstellen).
+* **`src/views/Session/SessionSlots.jsx`**: Nested-DnD-Problem gelöst
+  (User-Entscheidung: volles verschachteltes dnd-kit-Sortable statt
+  Pfeil-Buttons) — Slots sind jetzt per eigenem Griff-Icon
+  (`SortableSlotRow`) untereinander sortierbar, in derselben `DndContext`
+  wie die Exercise-Listen (ein zweiter, echt verschachtelter `DndContext`
+  wäre von dnd-kit nicht erkannt worden). An zwei Stellen musste
+  `addEx`-Konsum auf `exerciseListProps.exerciseOps.addEx` umgestellt
+  werden (Slot-Override beim Anhängen der `slotId`, Template-Anwendung in
+  `handleUseTemplate()`). `SlotCard.jsx` (neu) rein mechanisch aus
+  `SessionSlots.jsx` herausgelöst, keine Logik verändert —
+  `SessionSlots.jsx` kümmert sich jetzt nur noch um Slot-Liste, Reorder,
+  Templates und Add-Button. Props-Rest-Spread auf 6 Keys reduziert
+  (vorher 16), profitiert direkt vom `exerciseOps`-Bündel.
+* Template-Persistenz (`getSlotTemplates`/`saveSlotTemplate` über `@db`)
+  gegengeprüft — läuft sauber über beide Barrels (lokal/Firestore), kein
+  Fix nötig.
+* **`src/views/Session/PHASE3_TODO.md`** — Stück 2 und 3 vollständig
+  abgehakt. Build verifiziert (Pre-Commit-Hook), committed (`f8020b5`
+  für Stück 2, `540dfc7` für Stück 3), **keiner der beiden Commits
+  gepusht**.
+
+---
+
 # Session-Tab Rebuild Phase 3 (ExerciseCard-Restpunkte) abgeschlossen (2026-09-05)
 
 Fortsetzung der Session-Tab-Rebuild-Arbeit vom selben Tag (siehe Eintrag
