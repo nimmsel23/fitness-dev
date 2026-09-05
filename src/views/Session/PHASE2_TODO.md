@@ -18,17 +18,21 @@ abgeschlossen (oder zumindest nicht blockierend).
       - Vor dem Merge: mit Nutzer klären, ob die Muscle-Target-Sichtbarkeits-
         Inkonsistenz ein Bug ist oder Absicht war (nicht raten).
 
-- [ ] **SessionHeader.jsx entwirren** (~200 Z., 4 Verantwortlichkeiten in
-      einer Datei):
-      - Titel-Zeile + Datumslabel
-      - Day-Strip (7-Tage-Auswahl)
-      - Hint-Banner
-      - Session-Pills + Kraft/Ausdauer-Switch
-      - Portal-Overflow-Menü ("Mehr") rausziehen in Vorbereitung auf Phase 4
-        (zentrales Modal-Layer) — hier nur den Portal-Call isolieren, nicht
-        das gesamte Modal-System bauen.
-      - Mehrfach-Datum-Parsing (mehrere Stellen parsen `date`/`dateObj`
-        separat) auf eine gemeinsame Stelle reduzieren.
+- [x] **SessionHeader.jsx entwirren** (~200 Z., 4 Verantwortlichkeiten in
+      einer Datei). Erledigt 2026-09-05: reines Aufsplitten, kein
+      Verhaltensunterschied.
+      - Titel-Zeile + Datumslabel + Day-Strip + Hint-Banner bleiben direkt
+        in `SessionHeader.jsx` (Composer-Rolle).
+      - Portal-Overflow-Menü ("Mehr" → Session-Details/Übungsquellen) nach
+        `SessionHeaderMenu.jsx` extrahiert — 1:1-Kopie inkl. `createPortal`,
+        eigener lokaler `moreOpen`-State. Vorbereitung für Phase 4
+        (zentrales Modal-Layer), hier nur der Portal-Call isoliert, kein
+        neues Modal-System gebaut.
+      - Session-Pills (Multi-Session-Switcher, +/Löschen) + Kraft/Ausdauer-
+        Mode-Switch nach `SessionModeAndPills.jsx` extrahiert.
+      - Mehrfach-Datum-Parsing (`new Date(d + 'T12:00:00')` unabhängig in
+        `SessionHeader.jsx` und `useDayStrip.js`) auf `parseLocalDate()` in
+        `utils.js` reduziert, beide Stellen nutzen jetzt den Helper.
 
 ## Definition of Done pro Stück
 
