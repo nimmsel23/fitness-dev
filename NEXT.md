@@ -35,38 +35,26 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   Verhalten), noch nicht gegen einen echten Compact-Trigger — erster
   echter Lauf sollte kurz verifiziert werden (füllt er TODO/RESULTS/NEXT
   sinnvoll, committet der PostToolUse-Hook danach sauber).
-- Session-Tab-Rebuild Phase 3 ist **komplett** (Stück 1–4: `9ff7d78`,
-  `f8020b5`, `540dfc7`, `dff5d3d`). Phase 4 ebenfalls abgeschlossen
-  (Stück 1 umgesetzt `81401ca`, Stück 2+3 geklärt/doc-only `52555db`,
-  Stück 4 gefixt `c21bf15`) — Details in RESULTS.md. Aus Phase 4 offen
-  geblieben:
+- Session-Tab-Rebuild Phase 1–4 ist **komplett und deployed** (2026-09-05
+  per `fitness-release --yes`: alle `dev`-Commits gepusht, nach `vitalos`
+  gemergt, nach `fitness-aos.web.app` deployed — inkl. `e472849`
+  Macrocycles-Proxy, `81122fc` server.mjs-TODO, `2893ede` SOT-Doku, Details
+  in RESULTS.md). Die früher hier gelisteten "nur lokal auf dev / nicht
+  gepusht"-Punkte sind damit erledigt, nicht erneut als offen behandeln.
+  Aus der Rebuild-Arbeit offen geblieben:
   - **Browser-Durchklick-Verifikation** von Phase 3 Stück 4 + Phase 4
     Stück 1 wurde von Claude mehrfach angemahnt, aber nie durchgeführt:
     Übung hinzufügen, Slot anlegen, GPS-Start/Stop, Auto-Save beobachten
     (die `savingRef`-Guard-Race), Sidebar/Settings/Gate-Modal öffnen
-    (neuer `activeModal`-State + `SessionModalsLayer.jsx`).
+    (neuer `activeModal`-State + `SessionModalsLayer.jsx`). Steht jetzt
+    gegen den live-deployten Stand aus.
   - **Gate-Sub-Tab-Nav-Drift**: `src/constants/NavigationItems.js` vs.
     `SessionGateCard.jsx::SESSION_NAV_ITEMS` pflegen dieselben 5 Sub-Tab-IDs
     unabhängig (Label/Reihenfolge/`comingSoon`-Flag driften). Nur in
     `PHASE4_TODO.md` dokumentiert — braucht eine explizite User-Rückfrage,
     bevor vereinheitlicht wird (Grundsatz `never_unify_divergent`).
-  - **"Vier SOTs, welche gewinnt bei Konflikt"**: JSON-Datei / SQLite /
-    Firestore / localStorage-Runtime-Draft (`sessionRuntimeStore.js`) haben
-    nirgends eine schriftlich fixierte Konfliktpriorität. Reine Doku-Lücke,
-    gehört als Absatz nach `docs/ARCHITECTURE.md` bzw. `CLAUDE.md` — Claude
-    hat angeboten das zu schreiben, User hat mit `/compact` geantwortet
-    statt zuzustimmen.
   - `getPlanSuggestion()` bleibt bewusst komplett divergent zwischen
     `local`/`firestore` — nicht als Aufräumaufgabe behandeln.
-- `server.mjs`-Commit `e472849` (Macrocycles-Proxy-Routen) ist lokal
-  committed, aber **nicht gepusht** — auf explizite Freigabe des Nutzers
-  warten, bevor das nach `dev`/`vitalos` geht.
-- `docs`-Commit `81122fc` (`TODO-02_ServerMjsModularisierung.md`) ist
-  ebenfalls nur lokal committed, nicht gepusht.
-- Auch die neuen Phase-3-Commits (`9ff7d78`, `f8020b5`, `540dfc7`,
-  `dff5d3d`) und die Phase-4-Commits (`81401ca`, `52555db`, `c21bf15`) sind
-  bisher nur lokal auf `dev` committed, nicht gepusht/gemergt — Claude hat
-  am Sessionende ausdrücklich auf Push/Merge-Freigabe gewartet.
 - CI-Blocker-Fix (`@vos/cross-app-aliases` als `optionalDependencies` in
   `fuel-dev`/`habits-dev`, `vitalos/package-lock.json` neu generiert) wurde
   gepusht, aber die dadurch neu getriggerten GitHub-Actions-Runs
