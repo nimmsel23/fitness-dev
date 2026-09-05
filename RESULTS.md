@@ -1,3 +1,61 @@
+# Session-Tab Rebuild Phase 3 Stück 4 + Phase 4 abgeschlossen (2026-09-05)
+
+Direkte Fortsetzung nach mehreren Context-Compacts. Nutzer wies "weiter mit
+stück 4 dann phase 4" an, danach die Nachfrage "was ist mit dem dual-db-layer
+los?". Damit sind Phase 3 (alle 4 Stücke) und Phase 4 (Stück 1 umgesetzt,
+2+3 geklärt/dokumentiert, 4 mit expliziter Freigabe gefixt) aus
+`PHASE3_TODO.md`/`PHASE4_TODO.md` abgehakt. Alle Commits liegen lokal auf
+`dev`, **nichts gepusht/gemergt**.
+
+* **`src/views/Session/useSession.js`** (Phase 3 Stück 4, `dff5d3d`): von
+  771 auf 548 Zeilen geschrumpft, in vier Mini-Hooks aufgespalten —
+  `useExerciseList.js` (181 Z., neu), `useSessionActivity.js` (47 Z., neu),
+  `useSessionSlots.js` (61 Z., neu), `useSessionGateController.js` (113 Z.,
+  neu). Externer Rückgabe-Vertrag des Haupthooks unverändert.
+  Interdependenzen vorab dokumentiert: `moveExercise()` braucht nur
+  `exercises[]` (keinen Slot-Zugriff), `removeSlot()` ist die einzige
+  Kopplungsstelle zu `setExercises`, der Gate-Controller nutzt `save()` per
+  Hoisting.
+* **GPS-Fehlerpfad** — als "Bug" im Audit gelistet, tatsächlich nur ein
+  Enum; `resolveGeoLocation()` degradiert intern still. Reine
+  Doku-Korrektur, kein Code-Fix.
+* **Auto-Save-Race** — echter Fix: `savingRef`-Guard verhindert, dass der
+  localStorage-Draft-Effect `syncState:'saving'/'queued'` auf `'local'`
+  zurücksetzt, während ein Save läuft.
+* **`src/views/Session/SessionEditor.jsx`** auf reinen Orchestrator
+  zurückgestutzt: Cardio-Block → **`CardioSection.jsx`** (neu), Gate-Sheet-
+  Portal → **`SessionGateSheet.jsx`** (neu).
+* **`src/views/Session/SessionModalsLayer.jsx`** (neu, Phase 4 Stück 1,
+  `81401ca`): `showSidebar`/`showTabSettings` (aus `useSession.js`) + lokales
+  `gateSheetOpen` (aus `SessionEditor.jsx`) zu einem `activeModal`-State
+  zusammengeführt (`null|sidebar|settings|gate`). Neue Komponente bündelt
+  alle drei Portal-Calls; die einzelnen Modal-Komponenten selbst unverändert.
+* **Phase 4 Stück 2** (`SessionSidebar` inline + Modal): vom Nutzer als
+  absichtlich bestätigt — nichts geändert. **Stück 3** (Gate-Sub-Tab-
+  Router): untersucht, es gibt **keinen** zweiten State-Router (`subTab`/
+  `onSubNav` kommt überall aus `App.jsx`). Gefundener echter Drift: zwei
+  unabhängig gepflegte Label/Reihenfolge/`comingSoon`-Listen derselben 5
+  Sub-Tab-IDs (`src/constants/NavigationItems.js` vs.
+  `SessionGateCard.jsx::SESSION_NAV_ITEMS`) — nur in **`PHASE4_TODO.md`**
+  dokumentiert, nicht vereinheitlicht (Commit `52555db`, doc-only).
+* **`src/lib/db/firestore/analysis.js`** (Phase 4 Stück 4, `c21bf15`):
+  Dual-DB-Layer geprüft statt zusammengelegt. `ROLE_W`-Gewichte in
+  `local`/`firestore` sind bereits identisch (Audit-Punkt stale). Realer
+  Unterschied: `firestore/analysis.js::normalizedSessionHits()` hatte keinen
+  KB-Fallback wie `local/analysis.js::sessionHits()` — Übungen ohne eigene
+  Muskeldaten (z.B. Quick-Add vor Enrichment) zählten auf der Firebase-PWA
+  nicht zur Coverage. Mit Freigabe gefixt: optionaler `kbMap`-Parameter +
+  gleicher Fallback; `getMuscleCoverage()` baut `kbMap` jetzt aus
+  `getAllExercises()` (vorher nicht geladen), `getMonthlyReport()` reicht
+  sein bereits vorhandenes `kbMap` durch. Beide Dateien bleiben eigenständig.
+  `getPlanSuggestion()` bewusst komplett divergent gelassen.
+* **`src/views/Session/PHASE3_TODO.md`** / **`PHASE4_TODO.md`** durchgängig
+  aktualisiert. `npm run build` (inkl. Pre-Commit-Hook) bei jedem Schritt
+  grün. Commits: `dff5d3d`, `81401ca`, `52555db`, `c21bf15` — alle nur
+  lokal auf `dev`.
+
+---
+
 # Session-Tab Rebuild Phase 3, Stück 2+3 (ExerciseList.jsx, SessionSlots.jsx) (2026-09-05)
 
 Fortsetzung von Phase 3 nach Context-Compact — Nutzer wies "mach weiter mit
