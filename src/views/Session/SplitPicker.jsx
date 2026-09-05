@@ -11,6 +11,18 @@ import { useState } from 'react';
 import { ArrowUpCircle, ArrowDownCircle, Footprints, ChevronsUp, ChevronsDown, CircleDot } from 'lucide-react';
 import { blockColor } from './utils';
 
+// SPLITS ist NICHT die einzige Stelle mit Push/Pull/Legs-Vokabular im Repo —
+// bewusst NICHT zusammengeführt (Phase-1-Audit 2026-09-05, zu riskant für
+// diese Phase), nur dokumentiert. Bekannte Duplikate:
+// - src/components/PlanBuilder.jsx (`push_day`/`pull_day`/`legs_day`/
+//   `full_body`-Templates, eigenes Label-Vokabular inkl. "Full Body" statt
+//   "Full" hier)
+// - src/views/WeeklyReview/ReviewPPLBalance.jsx (nur push/pull/legs, mit
+//   zusätzlichen Muskel-Region-Zuordnungen pro Split, kein Upper/Lower/Full)
+// - src/views/Session/utils.js::normalizeBlock()/inferBlockFromExercises()
+//   kennt bereits das Vokabular-Mismatch "Full" vs. "Full Body" und
+//   normalisiert dort separat
+// Details + Stand: PHASE1_TODO.md.
 const SPLITS = [
   { key: 'Push',  icon: ArrowUpCircle },
   { key: 'Pull',  icon: ArrowDownCircle },

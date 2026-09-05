@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Save, ChevronDown, X } from 'lucide-react';
+import { ChevronDown, X } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import SessionGateCard from './SessionGateCard.jsx';
 import SessionSlots from './SessionSlots.jsx';
@@ -17,7 +17,10 @@ import SplitPicker from './SplitPicker';
 import EffortPicker from './EffortPicker';
 import ExerciseList from './ExerciseList';
 import ActivitySection from './ActivitySection';
-import ActivityAddon, { ADDON_TYPES } from './ActivityAddon';
+import ActivityAddon from './ActivityAddon';
+import ActivityAddonHistory from './ActivityAddonHistory.jsx';
+import SessionToast from './SessionToast.jsx';
+import SessionSaveFab from './SessionSaveFab.jsx';
 import SidebarSheet from './SidebarSheet';
 import SessionSidebar from './SessionSidebar';
 import SourceSettingsModal from './SourceSettingsModal';
@@ -246,44 +249,7 @@ export default function SessionEditor({
         )}
 
         {/* Bereits gespeicherte Finisher dieses Tages (activityAddons-Historie) */}
-        {activityAddons?.length > 0 && (
-          <div className="space-y-1.5">
-            <div
-              className="text-[9px] font-black uppercase tracking-[0.2em] px-1"
-              style={{ color: 'var(--dim)', opacity: 0.5 }}
-            >
-              Geloggte Finisher
-            </div>
-            {activityAddons.map((addon, i) => {
-              const meta = ADDON_TYPES.find(t => t.value === addon.type) || ADDON_TYPES[0];
-              return (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl"
-                  style={{ background: 'var(--card)', border: '1px solid var(--line)' }}
-                >
-                  <span className="text-base leading-none">{meta.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[11px] font-bold" style={{ color: 'var(--ink)' }}>
-                      {meta.label}{addon.duration ? ` · ${addon.duration} min` : ''}
-                    </div>
-                    {addon.notes && (
-                      <div className="text-[10px] truncate" style={{ color: 'var(--dim)', opacity: 0.6 }}>
-                        {addon.notes}
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => removeActivityAddon(i)}
-                    className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 text-fit-dim hover:text-fit-red hover:bg-fit-red/10 transition-all"
-                  >
-                    <X size={13} />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <ActivityAddonHistory activityAddons={activityAddons} removeActivityAddon={removeActivityAddon} />
 
         {/* Details & Notizen — Location/Dauer/Trainingsart/Effort/Notizen, klappt Sidebar-Inhalte inline auf.
             Split (Push/Pull/...) sitzt seit der UX-Überarbeitung nicht mehr hier, sondern prominent
@@ -315,46 +281,10 @@ export default function SessionEditor({
       </div>
 
       {/* Toast */}
-      {toast && (
-        <div
-          className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl text-sm font-bold shadow-2xl z-50 animate-in slide-in-from-bottom-4 duration-300"
-          style={{
-            background: 'var(--card)',
-            color: 'var(--accent)',
-            border: '1px solid var(--line)',
-          }}
-        >
-          {toast}
-        </div>
-      )}
+      <SessionToast toast={toast} />
 
       {/* Floating save FAB (mobile) */}
-      <div className="lg:hidden fixed bottom-24 right-4 z-40 flex flex-col items-end gap-1.5">
-        {dirty && !autoSaveLabel && (
-          <span
-            className="text-[9px] font-black uppercase tracking-widest animate-in fade-in duration-300"
-            style={{ color: 'var(--red)', opacity: 0.7 }}
-          >
-            ●
-          </span>
-        )}
-        <button
-          onClick={save}
-          disabled={saving}
-          className="w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-95 disabled:opacity-50"
-          style={{
-            background: 'var(--accent)',
-            color: '#000',
-            boxShadow: dirty
-              ? '0 0 0 4px rgba(200,255,0,0.15), 0 8px 32px -4px rgba(200,255,0,0.4)'
-              : '0 8px 24px -4px rgba(200,255,0,0.3)',
-          }}
-        >
-          {saving
-            ? <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-            : <Save size={22} strokeWidth={2.5} />}
-        </button>
-      </div>
+      <SessionSaveFab dirty={dirty} autoSaveLabel={autoSaveLabel} saving={saving} onSave={save} />
 
       {/* Modals */}
       {showSidebar && (

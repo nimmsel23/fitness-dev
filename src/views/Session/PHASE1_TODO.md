@@ -6,24 +6,37 @@ Stücke sauber ziehen, ohne den Rest anzufassen.
 
 ## Stücke
 
-- [ ] **SplitPicker.jsx** (~65 Z.) — sauber isoliert (nur `block`/`setBlock`
-      Props). Prüfen: `SPLITS`-Konstante evtl. mit Coach/Plan-Tabellen
-      dupliziert, ggf. auf eine gemeinsame Quelle ziehen.
-- [ ] **EffortPicker.jsx** (~50 Z.) — sauber isoliert (nur `effort`/`setEffort`
-      Props). Hardcodierte Farben (`#22c55e`, `#ef4444` etc.) auf
-      System-Tokens (`--green`, `--red`) umstellen.
-- [ ] **Toast** (inline in `SessionEditor.jsx`) — kein Auto-Clear/Timer
-      vorhanden. Eigene Komponente extrahieren + Timer/explizites Clear
-      ergänzen.
-- [ ] **Speichern-FAB (Mobile)** (inline in `SessionEditor.jsx`) —
-      `bottom-24` ist hart codiert, kein `safe-area-inset-bottom` für
-      Notch-Phones. Eigene Komponente extrahieren + Safe-Area-Fix.
-- [ ] **Activity-Addon-Historie** (inline in `SessionEditor.jsx`, Zeile
-      ~249-286) — reines read-only Display bereits gespeicherter Finisher.
-      Sauber als eigene Komponente extrahieren (aktuell nur inline JSX).
-      Naming-Klarstellung: `activityAddons` (Historie, gespeichert) vs.
-      `activity` (aktuell in Bearbeitung) im Code/Kommentar festhalten,
-      war beim Audit verwirrend.
+- [x] **SplitPicker.jsx** (~65 Z.) — sauber isoliert (nur `block`/`setBlock`
+      Props). Duplikat-Check gemacht (Sonnet-Agent, 2026-09-05): `SPLITS`-
+      Vokabular auch in `src/components/PlanBuilder.jsx` (`push_day`/
+      `pull_day`/`legs_day`/`full_body`-Templates, "Full Body" statt "Full")
+      und `src/views/WeeklyReview/ReviewPPLBalance.jsx` (nur push/pull/legs
+      + Muskel-Region-Zuordnungen) — bewusst NICHT zusammengeführt (zu
+      riskant für diese Phase), nur als Kommentar im Code dokumentiert.
+      `utils.js::normalizeBlock()` kennt das "Full"/"Full Body"-Mismatch
+      bereits separat.
+- [x] **EffortPicker.jsx** (~50 Z.) — sauber isoliert (nur `effort`/`setEffort`
+      Props). Farbtoken-Umstellung gemacht (Sonnet-Agent, 2026-09-05):
+      `#22c55e`→`var(--green)`, `#fb923c`→`var(--orange)`,
+      `#ef4444`→`var(--red)` (verifiziert gegen `src/styles/themes/*.css`).
+      `#f59e0b` (mittlerer RPE-Bereich) hat KEINEN passenden Token im
+      Projekt (Themes kennen nur --green/--red/--orange) — bewusst als
+      Hex-Wert belassen statt einen neuen Token zu erfinden, im Code
+      kommentiert.
+- [x] **Toast** → extrahiert nach `SessionToast.jsx` (Sonnet-Agent,
+      2026-09-05). Korrektur zur ursprünglichen Annahme: es gab bereits ein
+      Auto-Clear (`showToast()` in `useSession.js` setzt
+      `setTimeout(() => setToast(''), 2200)`, einziger Schreibpfad für
+      `toast`) — kein zusätzlicher Timer ergänzt, nur JSDoc-Hinweis für
+      künftige Leser.
+- [x] **Speichern-FAB (Mobile)** → extrahiert nach `SessionSaveFab.jsx`
+      (Sonnet-Agent, 2026-09-05). `bottom-24` ersetzt durch
+      `calc(6rem + env(safe-area-inset-bottom))` (kein `pb-safe`-Utility im
+      Projekt vorhanden, daher inline style).
+- [x] **Activity-Addon-Historie** → extrahiert nach
+      `ActivityAddonHistory.jsx` (Sonnet-Agent, 2026-09-05), mit
+      JSDoc-Kommentar zur Naming-Klarstellung `activityAddons` (Historie)
+      vs. `activity` (aktueller Entwurf).
 
 ## Definition of Done pro Stück
 
