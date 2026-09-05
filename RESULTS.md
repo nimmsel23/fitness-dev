@@ -1,3 +1,212 @@
+# Session-Tab Rebuild Phase 3 Stück 4 + Phase 4 abgeschlossen (2026-09-05)
+
+Direkte Fortsetzung nach mehreren Context-Compacts. Nutzer wies "weiter mit
+stück 4 dann phase 4" an, danach die Nachfrage "was ist mit dem dual-db-layer
+los?". Damit sind Phase 3 (alle 4 Stücke) und Phase 4 (Stück 1 umgesetzt,
+2+3 geklärt/dokumentiert, 4 mit expliziter Freigabe gefixt) aus
+`PHASE3_TODO.md`/`PHASE4_TODO.md` abgehakt. Alle Commits liegen lokal auf
+`dev`, **nichts gepusht/gemergt**.
+
+* **`src/views/Session/useSession.js`** (Phase 3 Stück 4, `dff5d3d`): von
+  771 auf 548 Zeilen geschrumpft, in vier Mini-Hooks aufgespalten —
+  `useExerciseList.js` (181 Z., neu), `useSessionActivity.js` (47 Z., neu),
+  `useSessionSlots.js` (61 Z., neu), `useSessionGateController.js` (113 Z.,
+  neu). Externer Rückgabe-Vertrag des Haupthooks unverändert.
+  Interdependenzen vorab dokumentiert: `moveExercise()` braucht nur
+  `exercises[]` (keinen Slot-Zugriff), `removeSlot()` ist die einzige
+  Kopplungsstelle zu `setExercises`, der Gate-Controller nutzt `save()` per
+  Hoisting.
+* **GPS-Fehlerpfad** — als "Bug" im Audit gelistet, tatsächlich nur ein
+  Enum; `resolveGeoLocation()` degradiert intern still. Reine
+  Doku-Korrektur, kein Code-Fix.
+* **Auto-Save-Race** — echter Fix: `savingRef`-Guard verhindert, dass der
+  localStorage-Draft-Effect `syncState:'saving'/'queued'` auf `'local'`
+  zurücksetzt, während ein Save läuft.
+* **`src/views/Session/SessionEditor.jsx`** auf reinen Orchestrator
+  zurückgestutzt: Cardio-Block → **`CardioSection.jsx`** (neu), Gate-Sheet-
+  Portal → **`SessionGateSheet.jsx`** (neu).
+* **`src/views/Session/SessionModalsLayer.jsx`** (neu, Phase 4 Stück 1,
+  `81401ca`): `showSidebar`/`showTabSettings` (aus `useSession.js`) + lokales
+  `gateSheetOpen` (aus `SessionEditor.jsx`) zu einem `activeModal`-State
+  zusammengeführt (`null|sidebar|settings|gate`). Neue Komponente bündelt
+  alle drei Portal-Calls; die einzelnen Modal-Komponenten selbst unverändert.
+* **Phase 4 Stück 2** (`SessionSidebar` inline + Modal): vom Nutzer als
+  absichtlich bestätigt — nichts geändert. **Stück 3** (Gate-Sub-Tab-
+  Router): untersucht, es gibt **keinen** zweiten State-Router (`subTab`/
+  `onSubNav` kommt überall aus `App.jsx`). Gefundener echter Drift: zwei
+  unabhängig gepflegte Label/Reihenfolge/`comingSoon`-Listen derselben 5
+  Sub-Tab-IDs (`src/constants/NavigationItems.js` vs.
+  `SessionGateCard.jsx::SESSION_NAV_ITEMS`) — nur in **`PHASE4_TODO.md`**
+  dokumentiert, nicht vereinheitlicht (Commit `52555db`, doc-only).
+* **`src/lib/db/firestore/analysis.js`** (Phase 4 Stück 4, `c21bf15`):
+  Dual-DB-Layer geprüft statt zusammengelegt. `ROLE_W`-Gewichte in
+  `local`/`firestore` sind bereits identisch (Audit-Punkt stale). Realer
+  Unterschied: `firestore/analysis.js::normalizedSessionHits()` hatte keinen
+  KB-Fallback wie `local/analysis.js::sessionHits()` — Übungen ohne eigene
+  Muskeldaten (z.B. Quick-Add vor Enrichment) zählten auf der Firebase-PWA
+  nicht zur Coverage. Mit Freigabe gefixt: optionaler `kbMap`-Parameter +
+  gleicher Fallback; `getMuscleCoverage()` baut `kbMap` jetzt aus
+  `getAllExercises()` (vorher nicht geladen), `getMonthlyReport()` reicht
+  sein bereits vorhandenes `kbMap` durch. Beide Dateien bleiben eigenständig.
+  `getPlanSuggestion()` bewusst komplett divergent gelassen.
+* **`src/views/Session/PHASE3_TODO.md`** / **`PHASE4_TODO.md`** durchgängig
+  aktualisiert. `npm run build` (inkl. Pre-Commit-Hook) bei jedem Schritt
+  grün. Commits: `dff5d3d`, `81401ca`, `52555db`, `c21bf15` — alle nur
+  lokal auf `dev`.
+
+---
+
+# Session-Tab Rebuild Phase 3, Stück 2+3 (ExerciseList.jsx, SessionSlots.jsx) (2026-09-05)
+
+Fortsetzung von Phase 3 nach Context-Compact — Nutzer wies "mach weiter mit
+Stück 3" an, danach "weiter mit Stück 4 dann aus Phase 3" (noch nicht
+begonnen). Stück 2 (`ExerciseList.jsx`) und Stück 3 (`SessionSlots.jsx`)
+aus `PHASE3_TODO.md` sind jetzt beide abgehakt.
+
+* **`src/views/Session/useSession.js`**: neues gebündeltes `exerciseOps`-
+  Objekt (`updateEx, addSet, removeSet, removeEx, replaceSets, moveEx,
+  addEx, quickInput, setQuickInput, addQuick, onToast`) ersetzt 11 einzelne
+  Props, die bisher separat durch `SessionEditor.jsx` an
+  `ExerciseList`/`SessionSlots` durchgereicht wurden. Reine
+  Anzeige-/Kontext-Props (`exercises`, `restHours`, `muscleRecovery`,
+  `date`, `prevMap`, `onInspectExercise`) bleiben bewusst einzeln, da Basis-
+  Abschnitt und Slots hier unterschiedliche Werte brauchen.
+  Zusätzlich `reorderSlots(activeId, overId)` ergänzt (`arrayMove()` aus
+  `@dnd-kit/sortable`, vergibt `order` für alle Slots neu — das Feld
+  existierte vorher schon, wurde aber nie tatsächlich geändert).
+* **`src/views/Session/ExerciseList.jsx`**: auf den neuen `exerciseOps`-
+  Contract umgestellt, `type: 'exercise'` in die Sortable-Daten ergänzt
+  (für die Unterscheidung der beiden Reorder-Pfade in `handleDragEnd()`),
+  JSDoc-Kommentar zur `DndContext`-Abhängigkeit ergänzt (kein lokaler
+  Fallback, `SessionEditor.jsx` muss den gemeinsamen Context bereitstellen).
+* **`src/views/Session/SessionSlots.jsx`**: Nested-DnD-Problem gelöst
+  (User-Entscheidung: volles verschachteltes dnd-kit-Sortable statt
+  Pfeil-Buttons) — Slots sind jetzt per eigenem Griff-Icon
+  (`SortableSlotRow`) untereinander sortierbar, in derselben `DndContext`
+  wie die Exercise-Listen (ein zweiter, echt verschachtelter `DndContext`
+  wäre von dnd-kit nicht erkannt worden). An zwei Stellen musste
+  `addEx`-Konsum auf `exerciseListProps.exerciseOps.addEx` umgestellt
+  werden (Slot-Override beim Anhängen der `slotId`, Template-Anwendung in
+  `handleUseTemplate()`). `SlotCard.jsx` (neu) rein mechanisch aus
+  `SessionSlots.jsx` herausgelöst, keine Logik verändert —
+  `SessionSlots.jsx` kümmert sich jetzt nur noch um Slot-Liste, Reorder,
+  Templates und Add-Button. Props-Rest-Spread auf 6 Keys reduziert
+  (vorher 16), profitiert direkt vom `exerciseOps`-Bündel.
+* Template-Persistenz (`getSlotTemplates`/`saveSlotTemplate` über `@db`)
+  gegengeprüft — läuft sauber über beide Barrels (lokal/Firestore), kein
+  Fix nötig.
+* **`src/views/Session/PHASE3_TODO.md`** — Stück 2 und 3 vollständig
+  abgehakt. Build verifiziert (Pre-Commit-Hook), committed (`f8020b5`
+  für Stück 2, `540dfc7` für Stück 3), **keiner der beiden Commits
+  gepusht**.
+
+---
+
+# Session-Tab Rebuild Phase 3 (ExerciseCard-Restpunkte) abgeschlossen (2026-09-05)
+
+Fortsetzung der Session-Tab-Rebuild-Arbeit vom selben Tag (siehe Eintrag
+direkt darunter). Nach einem Context-Compact hat der Nutzer explizit "Phase 3"
+angewiesen — die vier noch offenen Checkbox-Punkte zu `ExerciseCard.jsx` aus
+`PHASE3_TODO.md` (Stück 1) wurden einzeln durchgegangen und abgeschlossen.
+
+* **`stepReps()`/`stepWeight()`** gegengelesen (Punkt aus dem Audit, der
+  ursprünglich als "Copy-Paste-Duplikat zusammenführen" markiert war):
+  tatsächlich **nicht identisch** — `stepReps` parst Integer und blockt bei
+  aktivem NxM-Pattern, `stepWeight` parst Float mit Komma→Punkt-Konvertierung
+  und rundet auf 2 Nachkommastellen. Bewusst getrennt gelassen (passend zur
+  neuen Memory-Regel, divergentes Verhalten nicht zu vereinheitlichen).
+* **`src/views/Session/ExerciseCard.jsx`**: Async-Trend-Fetch jetzt mit
+  Cleanup (kein Race-Condition-Risiko mehr bei schnellem Übungswechsel);
+  Toast-Feedback bei fehlgeschlagenem NxM-Set-Parse ergänzt; `formatMuscle`/
+  `muscleTags`-Berechnung per `useMemo` memoisiert (lief vorher bei jedem
+  Render neu, auch bei reinen Set-/Toast-Updates) — dafür `showToast`
+  durchgereicht von `useSession.js` → `SessionEditor.jsx` →
+  `ExerciseList.jsx`/`SessionSlots.jsx` → `ExerciseCard.jsx`.
+* **`src/views/Session/PHASE3_TODO.md`** — Stück 1 (`ExerciseCard.jsx`)
+  vollständig abgehakt. Build verifiziert (Pre-Commit-Hook), committed
+  (`9ff7d78`), **nicht gepusht**.
+
+---
+
+# Session-Tab Rebuild Phase 1+2, TodayPlan-Datumsbug gefunden+gefixt, Multi-Repo-CI-Blocker behoben (2026-09-05)
+
+Ausgangspunkt war ein Klienten-Bug-Report (Matthias: "Session-Tab hängt in
+Oktober 2025 fest, kommt nicht mehr zum aktuellen Datum zurück"). Auf dem
+Weg dorthin wurde ein Haiku-Doppel-Audit des gesamten Session-Tabs
+angestoßen (DB-Layer + UI-Reihenfolge von oben nach unten), daraus vier
+Rebuild-Phasen abgeleitet und in mehreren Worktree-Subagenten Phase 1+2
+umgesetzt. Ein Nutzer-Grundsatz wurde dabei erneut geschärft: divergentes
+Verhalten zwischen ähnlichen Komponenten wird nicht vereinheitlicht — ein
+bereits gemergter Merge (`ActivityAddon`+`ActivitySection` → `ActivityPicker`)
+wurde deshalb explizit zurückgerollt. Die Fehlersuche selbst eskalierte am
+Ende versehentlich zu einem repo-übergreifenden CI-Fix mit einem
+ungewollten Live-Redeploy von `fuel-os.web.app` als Nebenwirkung — im
+Transcript vom User gestoppt und offen als Fehleinschätzung benannt.
+
+* **`src/views/Session/index.jsx`** — **Root-Cause-Fix des eigentlichen
+  Bugs**: `isTodayTab` prüfte bisher nur `subTab === 'today' || !subTab`,
+  nicht das tatsächliche Session-Datum. `parseHashRoute()` lässt `subTab`
+  bei explizitem Datums-Deep-Link leer, wodurch `!subTab` fälschlich
+  `true` wurde — kombiniert mit dem Key-basierten Remount des
+  `<Session>`-Baums (killt den lokalen `logFreely`-Flag bei jedem
+  Datumswechsel) blieb der Coach-Habit-Screen (`TodayPlan.jsx`) hartnäckig
+  über jedem anderen Datum liegen. Fix: `isTodayTab` prüft jetzt zusätzlich
+  `date === localToday()`. Committed (`e4e9493`), gepusht, per
+  `fitness-release` nach `vitalos` gemergt und live deployed.
+* **Session-Tab Rebuild Phase 1** (`SplitPicker.jsx`, `EffortPicker.jsx`,
+  neu extrahiert: `SessionToast.jsx`, `SessionSaveFab.jsx`,
+  `ActivityAddonHistory.jsx`) — kleine, risikoarme Extraktionen aus dem
+  `SessionEditor.jsx`-Monolithen, per zwei parallelen Worktree-Agenten
+  umgesetzt und kontrolliert gemergt. Committed (`677c5c3`).
+* **Session-Tab Rebuild Phase 2** — `SessionHeader.jsx` entwirrt in
+  `SessionHeaderMenu.jsx` (Portal-Overflow-Menü) + `SessionModeAndPills.jsx`
+  (Session-Pills/Kraft-Ausdauer-Switch) + `parseLocalDate()`-Helper in
+  `utils.js` (`b23bb2a`). `ActivityAddon.jsx`/`ActivitySection.jsx` wurden
+  zunächst zu einer gemeinsamen `ActivityPicker.jsx` zusammengeführt,
+  danach auf Nutzer-Grundsatzentscheidung wieder **zurückgerollt** — beide
+  Komponenten bleiben bewusst getrennt (divergente Defaults: 9 vs. 10
+  Activity-Types, unterschiedliche Muscle-Target-Sichtbarkeit sind
+  Absicht, kein Duplikat).
+* **`src/views/Session/ExerciseCard.jsx`** — in Phase 3 (erstes Teilstück)
+  reine Auseinanderziehung in `ExerciseCardHeader.jsx`,
+  `ExerciseHistoryCollapse.jsx` und den Set-Grid-Teil, ohne
+  Verhaltensänderung. Committed (`5e713b6`).
+* **Neue stehende Memory-Regel** (`feedback_never_unify_divergent_implementations.md`,
+  global): divergentes Verhalten zwischen ähnlichen Komponenten ist fast
+  immer Absicht/Verlust-Signal, wird nicht durch Merge/Vereinheitlichung
+  "bereinigt" — Phase-3/4-TODOs entsprechend nachgeschärft (`stepReps`/
+  `stepWeight`, Dual-DB-Layer, Details/Sidebar-"Duplikat" jetzt als "erst
+  hinterfragen" statt "zusammenführen" formuliert).
+* **`src/views/Session/PHASE1_TODO.md` … `PHASE4_TODO.md`** (neu) — Vier
+  Rebuild-Phasen aus dem Haiku-Doppel-Audit dokumentiert, dienen als
+  Fortsetzungs-Basis für Phase 3 (`ExerciseList.jsx`, `SessionSlots.jsx`,
+  `useSession.js`-Split) und Phase 4 (Modals, Details/Sidebar, Dual-DB-Layer).
+* **`server.mjs`** — fehlende Proxy-Routen für `/fitness/coach/macrocycles/*`
+  ergänzt (Python-Backend-Router `fitness/api/routers/macrocycles.py` war
+  bereits vollständig implementiert, nur der Node-Proxy fehlte). Macht
+  den Coach-Makrozyklus/TodayPlan-Screen jetzt auch im lokalen Dev-Server
+  nutzbar, nicht mehr nur in der Firebase-PWA. Committed (`e472849`),
+  **nicht gepusht**.
+* **CI-Fix, repo-übergreifend** (`fitness-dev`, `vitalos`, `fuel-dev`,
+  `habits-dev`): `npm ci` scheiterte in allen Deploy-Workflows dauerhaft
+  (`EUSAGE`, mind. seit 2026-09-02), weil `@vos/cross-app-aliases` in
+  `fuel-app`/`habit-app` als fragiler `file:../vitalos/...`-Pfad deklariert
+  war, der nur im Standalone-Checkout auflöst, sowie durch eine intern
+  inkonsistente `vitalos/package-lock.json`. Fix: `@vos/cross-app-aliases`
+  in `fuel-dev`/`habits-dev` als `optionalDependencies` mit fixierter
+  `"1.0.0"`-Version (beide `vite.config.js` hatten bereits Try/Catch-
+  Fallbacks) statt `file:`-Pfad; `vitalos/package-lock.json` neu generiert
+  und gegen `npm ci` verifiziert. **Nebenwirkung**: Push nach
+  `fuel-dev`/`master` löste automatisch ein Live-Redeploy von
+  `fuel-os.web.app` aus (unangekündigter Seiteneffekt, im Transcript vom
+  User gestoppt).
+* Nebenbei durch eigene `rm -rf node_modules`/`npm ci`-Tests versehentlich
+  `fitness-dev`s lokalen `node_modules` geleert (Dev-Server dadurch kurz
+  down) — durch `npm install` wiederhergestellt, User musste den
+  `nodemon`-Prozess manuell neu starten.
+
+---
+
 # Session-Tab: Vite-Crash-Ursache + Sprach-Filter-Bug behoben, dev→vitalos deployed (2026-09-02)
 
 Auftrag war unspezifisch ("sieh zu dass im Session-Tab alles glatt läuft"),

@@ -18,69 +18,102 @@ umgekehrt zu kürzen.
 
 ## Stücke
 
-- [ ] **Modals zentralisieren.** Aktuell scattered: `showSidebar`,
-      `showTabSettings`, `gateSheetOpen` sind einzelne States in
-      `SessionEditor.jsx`/`useSession.js`, jedes Modal rendert seinen
-      eigenen `createPortal()`-Call an verschiedenen Stellen:
-      - `SidebarSheet.jsx` (Portal-Wrapper um `SessionSidebar`)
-      - `SourceSettingsModal.jsx` (Übungsquellen/Muskel-Detailgrad/
-        Sprachfilter)
-      - Session-Gate-Sheet (inline Portal in `SessionEditor.jsx`)
-      - Ziel: ein `SessionModalsLayer.jsx`, das alle Portal-Calls bündelt,
-        ein zentrales `activeModal`-State (statt 3+ Booleans).
+- [x] **Modals zentralisiert (2026-09-05).** `showSidebar`/
+      `showTabSettings` (vorher in `useSession.js`) + lokales
+      `gateSheetOpen` (vorher in `SessionEditor.jsx`) → ein einziges
+      `activeModal`-State (`null | 'sidebar' | 'settings' | 'gate'`) in
+      `useSession.js`. Neuer `SessionModalsLayer.jsx` bündelt alle drei
+      Portal-Calls (`SidebarSheet`, `SourceSettingsModal`,
+      `SessionGateSheet`) — jede einzelne Modal-Komponente selbst
+      unverändert, nur zentral geroutet statt an drei Stellen verstreut.
+      `npm run build` grün.
 
-- [ ] **Details/Notizen: doppeltes `SessionSidebar`-Rendering prüfen,
-      NICHT vorschnell auf einen Pfad reduzieren.** `SessionSidebar` wird
-      aktuell sowohl inline (Details-Toggle in `SessionEditor.jsx`) als
-      auch als Modal (`SidebarSheet.jsx`) gerendert. Bevor einer der beiden
-      Wege entfernt wird: mit Nutzer klären, ob das absichtlich
-      responsive ist (z.B. Desktop inline bequemer, Mobile Modal
-      platzsparender) oder tatsächlich unbeabsichtigte Doppelarbeit aus
-      einem Refactor. Erst nach Bestätigung ggf. reduzieren — Default ist
-      "beide Wege bleiben bestehen".
+- [x] **Details/Notizen: doppeltes `SessionSidebar`-Rendering geklärt
+      (2026-09-05, User-Rückfrage).** Nutzer bestätigt: absichtlich, beide
+      Wege (inline Details-Toggle in `SessionEditor.jsx` + Modal via
+      `SidebarSheet.jsx`) bleiben unverändert bestehen. Kein Code-Fix.
 
-- [ ] **Session-Gate-Sub-Tab-Router entduplizieren.** Das Gate-Sheet hat
-      aktuell einen eigenen internen Sub-Tab-Router (Session/Plan/Verlauf/
-      6Pack/Skills), der nicht mit der übergeordneten Tab-Navigation
-      (`index.jsx`) synchronisiert ist. Prüfen, ob der bestehende
-      Haupt-Router wiederverwendet werden kann statt eines zweiten,
-      parallelen.
+- [x] **Session-Gate-Sub-Tab-Router untersucht (2026-09-05, nur geprüft/
+      dokumentiert, User-Entscheidung: erstmal nur das, kein Code-Fix).**
+      Ergebnis: Es gibt **keinen zweiten, unsynchronisierten State-Router**
+      — `SessionGateCard.jsx`s Nav-Buttons rufen genau denselben
+      `onSubNav`-Callback auf und lesen denselben `currentSubTab`-Wert wie
+      `views/Session/index.jsx` (beide letztlich gespeist aus dem einen
+      `subTab`-State in `App.jsx`, der auch die Sidebar/Bottom-Nav treibt).
+      Kein Sync-Problem, keine zwei Wahrheiten über "welcher Sub-Tab ist
+      aktiv".
 
-- [ ] **Dual-DB-Layer — NICHT zusammenlegen, nur genau hinschauen.**
+      Was tatsächlich dupliziert ist: **zwei unabhängig gepflegte Listen
+      derselben 5 Sub-Tab-IDs** (`today`/`plan`/`history`/`timer`/`skills`),
+      mit bereits sichtbarem Drift:
+      - `src/constants/NavigationItems.js` (Sidebar/Bottom-Nav, die
+        "kanonische" Config): Reihenfolge `today, timer, skills, plan,
+        history`; Labels `"Timer"`, `"History"`; kein `comingSoon`-Flag.
+      - `SessionGateCard.jsx::SESSION_NAV_ITEMS` (Gate-Sheet-eigene Nav):
+        Reihenfolge `today, plan, history, timer, skills`; Labels
+        `"6 Pack"`, `"Verlauf"`; zusätzliches `comingSoon`-Flag auf
+        `plan`/`timer`/`skills` (in `NavigationItems.js` nicht vorhanden).
+
+      Nicht angefasst — genau die Sorte Divergenz, die laut Grundsatz oben
+      erst geklärt werden muss: könnte absichtlich sein (Gate-Sheet ist ein
+      kompakteres Mobile-Sheet, andere Label-Länge/Reihenfolge/"kommt
+      bald"-Markierung könnten dort bewusst anders sinnvoll sein als in der
+      Desktop-Sidebar) oder tatsächlich unbeabsichtigter Drift seit
+      Einführung von `comingSoon`. Nächster Schritt wäre eine explizite
+      Rückfrage, ob `SESSION_NAV_ITEMS` aus `NavigationItems.js`s
+      `sub`-Array abgeleitet werden soll (plus optionalem Label-/
+      Reihenfolge-Override fürs Sheet) oder ob beide Listen bewusst
+      eigenständig bleiben.
+
+- [x] **Dual-DB-Layer — geprüft statt zusammengelegt (2026-09-05).**
       `local/sessions.js` (Node-Proxy) vs. `firestore/sessions.js`
-      (521 Z., direkte Firestore-SDK-Calls) laufen dauerhaft parallel.
-      Der ursprüngliche Audit-Befund ("Funktions-Duplikate:
-      `normalizeGhostSet()`, `sessionHits()`, `normalizedSessionHits()`
-      fast identisch") ist per Grundsatz-Korrektur **nicht mehr die
-      Handlungsaufforderung** — der Audit selbst notierte bereits, dass
-      Firestore bei `sessionHits()` ein zusätzliches `ROLE_W`-Gewicht
-      und bei `normalizedSessionHits()` einen anderen KB-Fallback hat als
-      local. Das ist exakt das Muster aus dem `ActivityPicker`-Revert:
-      "fast identisch" hieß hier vermutlich schon immer "leicht anders,
-      aus einem Grund". `getPlanSuggestion()` ist ohnehin komplett
-      divergent (lokal simpler DOW-Fallback, Firestore volles
-      Template-Regel-System) und bleibt unangetastet.
-      - Falls überhaupt etwas hier passiert: pro Funktion einzeln mit dem
-        Nutzer durchgehen, WARUM Firestore/local unterschiedlich sind,
-        bevor irgendein "Shared-Utility"-Extract passiert. Kein
-        automatisches Zusammenführen, auch nicht als "risikoärmere
-        Vorstufe".
-      - Grundsatzentscheidung (eine der beiden DB-Schichten dauerhaft
-        führend machen, oder bewusst beibehalten als Online/Offline-Split)
-        braucht explizite Nutzer-Freigabe, nicht in dieser Phase im
-        Alleingang entscheiden. Standard-Erwartung nach der
-        Nutzer-Korrektur: eher "beide bleiben bestehen" als
-        "konsolidieren".
-      - Verwandt: vier konkurrierende SOTs ohne dokumentierte Priorität
-        (JSON-Datei, SQLite, Firestore, localStorage-Runtime-Draft) — die
-        Offline-Merge-Logik (`sessionRuntimeStore.js`) läuft aktuell nur
-        im Frontend, die Backend-APIs kennen localStorage-Drafts nicht.
-        Mindestens dokumentieren, welche Quelle bei Konflikt gewinnt —
-        das ist eine reine Doku-Aufgabe, kein Code-Merge.
+      (Firestore-SDK-Calls) bleiben zwei komplett getrennte
+      Implementierungen (bewusst — Firebase-PWA muss ohne Node-Backend
+      laufen). Live gegengelesen statt aus dem alten Audit-Text
+      übernommen:
+      - **`ROLE_W`-Gewichte** (`{primary:1, secondary:0.5,
+        stabilizer:0.2}`) sind in `local/analysis.js` UND
+        `firestore/analysis.js` inzwischen identisch — der ursprüngliche
+        Audit-Punkt "Firestore hat ein zusätzliches Gewicht" ist stale,
+        nicht mehr aktuell.
+      - **KB-Fallback bei fehlenden Muskeldaten** war der einzige real
+        noch bestehende Unterschied: `local::sessionHits()` fiel bei
+        leeren `ex.primaryMuscles/secondaryMuscles/stabilizers` auf einen
+        KB-Lookup zurück, `firestore::normalizedSessionHits()` nicht —
+        eine Übung ohne eigene Muskeldaten (z.B. frischer Quick-Add vor
+        Enrichment) zählte auf der Firebase-PWA gar nicht zur Coverage,
+        lokal schon. **Mit expliziter Nutzer-Freigabe gefixt**: `kbMap`-
+        Parameter (optional, Default `null`) + identischer Fallback in
+        `firestore/analysis.js::normalizedSessionHits()`; `kbMap` wird in
+        `getMuscleCoverage()` neu aus `getAllExercises()` gebaut (vorher
+        dort gar nicht geladen) und in `getMonthlyReport()`s bereits
+        vorhandenem `kbMap` einfach mitgegeben. Kein "Zusammenlegen"
+        zweier Implementierungen — beide Dateien bleiben eigenständig,
+        nur dieselbe Fallback-*Logik* jetzt auf beiden Seiten vorhanden.
+        `npm run build` grün.
+      - `getPlanSuggestion()` bleibt komplett divergent (lokal simpler
+        DOW-Fallback, Firestore volles Template-Regel-System) —
+        unangetastet, das ist laut Audit selbst schon immer beabsichtigt.
+      - Grundsatzentscheidung (eine DB-Schicht dauerhaft führend machen,
+        oder Online/Offline-Split bewusst beibehalten) weiterhin NICHT
+        getroffen — war auch nicht Teil dieser Freigabe, bleibt offen.
+      - Verwandt, weiterhin offen: vier konkurrierende SOTs ohne
+        dokumentierte Priorität (JSON-Datei, SQLite, Firestore,
+        localStorage-Runtime-Draft) — reine Doku-Aufgabe, noch nicht
+        geschrieben.
 
 ## Definition of Done
 
-1. Modal-States über ein einziges `activeModal`-Feld statt N Booleans.
+1. [x] Modal-States über ein einziges `activeModal`-Feld statt N Booleans
+       (erledigt 2026-09-05, siehe Stück 1 oben).
 2. Kein Duplicate-Rendering von `SessionSidebar` mehr.
-3. Dual-DB-Entscheidung (falls in dieser Phase getroffen) explizit in
-   `../CLAUDE.md` bzw. `AUDIT.md` dokumentiert, inkl. Begründung.
+3. [x] Vier-SOT-Konfliktmodell dokumentiert (2026-09-05): dritte Schicht
+   (Firestore) war bereits in `docs/ARCHITECTURE.md` beschrieben, die vierte
+   (Frontend-Runtime-Draft, `localStorage`) fehlte dort — ergänzt inkl.
+   Konfliktregel ("Draft gewinnt immer über Server-Stand, bis Save
+   bestätigt"). Zusätzlich in `src/views/Session/AUDIT.md` als
+   "Auffälligkeiten 2026-09-05" mit dem vollen Dual-DB-Befund (ROLE_W stale,
+   KB-Fallback-Fix, getPlanSuggestion divergent) querverwiesen. Keine neue
+   "eine Schicht führt dauerhaft"-Entscheidung getroffen — bewusst weiterhin
+   Online/Firestore vs. Offline/Node-JSON-Split, das ist der Zielzustand,
+   kein offener Punkt.

@@ -7,23 +7,20 @@
  */
 
 import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import SessionGateCard from './SessionGateCard.jsx';
+import SessionModalsLayer from './SessionModalsLayer.jsx';
 import SessionSlots from './SessionSlots.jsx';
 import SessionHeader from './SessionHeader';
 import SplitPicker from './SplitPicker';
 import EffortPicker from './EffortPicker';
 import ExerciseList from './ExerciseList';
-import ActivitySection from './ActivitySection';
+import CardioSection from './CardioSection.jsx';
 import ActivityAddon from './ActivityAddon';
 import ActivityAddonHistory from './ActivityAddonHistory.jsx';
 import SessionToast from './SessionToast.jsx';
 import SessionSaveFab from './SessionSaveFab.jsx';
-import SidebarSheet from './SidebarSheet';
 import SessionSidebar from './SessionSidebar';
-import SourceSettingsModal from './SourceSettingsModal';
 import { normalizeSessionGate } from '../../lib/sessionGate.js';
 import { inferBlockFromExercises } from './utils';
 
@@ -40,25 +37,24 @@ export default function SessionEditor({
   notes, setNotes,
   coachFeedback,
   saving, dirty, autoSaveLabel,
-  quickInput, setQuickInput,
   restHours,
   activity, setActivity,
   hasActivity, setHasActivity,
   activityAddons, removeActivityAddon,
   sessionGate,
-  slots, addSlot, removeSlot, updateSlot,
+  slots, addSlot, removeSlot, updateSlot, reorderSlots,
   recentSessions,
   hint,
   prevMap,
   daySessions, sessionId,
-  showSidebar, setShowSidebar,
-  showTabSettings, setShowTabSettings,
+  activeModal, setActiveModal,
   rollingDays,
   toast,
   // Handlers
   save, selectSession, handleNewSession, handleDeleteSession,
   startSessionGate, stopSessionGate,
-  addEx, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, moveExercise, removeEx,
+  moveExercise,
+  exerciseOps,
   exportObsidian, handleDownload, scheduleAutoSave,
   onInspectExercise,
   currentSubTab,
@@ -80,10 +76,9 @@ export default function SessionEditor({
   // kompletten Remount dieser Komponente auslöst, ein reiner
   // currentSubTab-Check hier würde also bei jedem Datumswechsel erneut
   // feuern, da mount-Effects unabhängig von deps immer einmal laufen).
-  const [gateSheetOpen, setGateSheetOpen] = useState(false);
   useEffect(() => {
     if (gateAutoOpenFlag) {
-      setGateSheetOpen(true);
+      setActiveModal('gate');
       onGateAutoOpenConsumed?.();
     }
   }, []);
@@ -127,14 +122,31 @@ export default function SessionEditor({
     moveExercise(activeId, targetSlotId, targetIndex);
   }
 
+  // Slots selbst sind seit Phase-3-Stück-3 ebenfalls per dnd-kit sortierbar
+  // (eigene SortableContext in SessionSlots.jsx, gleicher DndContext wie die
+  // Exercise-Listen). `type` in den jeweiligen `data`-Objekten (siehe
+  // ExerciseList.jsx/SessionSlots.jsx) unterscheidet, welcher der beiden
+  // Reorder-Pfade greift — beide teilen sich diesen einen DndContext, weil
+  // dnd-kit Drag-Erkennung nur über den nächsten Vorfahren-Context läuft.
+  function handleDragEnd({ active, over }) {
+    if (!over) return;
+    if (active.data.current?.type === 'slot') {
+      if (over.data.current?.type === 'slot' && active.id !== over.id) {
+        reorderSlots(active.id, over.id);
+      }
+      return;
+    }
+    handleExerciseDragEnd({ active, over });
+  }
+
   return (
     <div className="pb-36">
       {/* Sticky header — DateStrip/SessionSwitcher/hint/ModeSwitcher merged into one calm unit */}
       <SessionHeader
         date={date} setDate={setDate} rollingDays={rollingDays} recentSessions={recentSessions}
         saving={saving} autoSaveLabel={autoSaveLabel} dirty={dirty} onSave={save}
-        onOpenSidebar={() => setShowSidebar(true)}
-        onOpenSettings={() => setShowTabSettings(true)}
+        onOpenSidebar={() => setActiveModal('sidebar')}
+        onOpenSettings={() => setActiveModal('settings')}
         hint={hint}
         daySessions={daySessions} sessionId={sessionId} selectSession={selectSession}
         onNew={handleNewSession} onDelete={handleDeleteSession}
@@ -155,7 +167,7 @@ export default function SessionEditor({
 
       <div className="px-2 space-y-4 mt-1">
         {sessionMode === 'strength' ? (
-          <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleExerciseDragEnd}>
+          <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             {/* Basis-Übungsliste = impliziter erster Abschnitt der Session
                 (wie schon immer: Übungen + Sets + Activity-Finisher unten). */}
             <ExerciseList
@@ -163,19 +175,10 @@ export default function SessionEditor({
               exercises={indexedExercises.filter(ex => !ex.slotId)}
               restHours={restHours}
               muscleRecovery={recentSessions[date]?.muscle_recovery || {}}
-              updateEx={updateEx}
-              addSet={addSet}
-              removeSet={removeSet}
-              removeEx={removeEx}
-              replaceSets={replaceSets}
-              moveEx={moveEx}
               date={date}
-              addEx={addEx}
-              quickInput={quickInput}
-              setQuickInput={setQuickInput}
-              addQuick={addQuick}
               prevMap={prevMap}
               onInspectExercise={onInspectExercise}
+              exerciseOps={exerciseOps}
             />
 
             {/* Activity finisher addon — für den Basis-Abschnitt, unverändert */}
@@ -198,54 +201,15 @@ export default function SessionEditor({
               updateSlot={updateSlot}
               restHours={restHours}
               muscleRecovery={recentSessions[date]?.muscle_recovery || {}}
-              updateEx={updateEx}
-              addSet={addSet}
-              removeSet={removeSet}
-              removeEx={removeEx}
-              replaceSets={replaceSets}
-              moveEx={moveEx}
               date={date}
-              addEx={addEx}
-              quickInput={quickInput}
-              setQuickInput={setQuickInput}
-              addQuick={addQuick}
               prevMap={prevMap}
               onInspectExercise={onInspectExercise}
+              exerciseOps={exerciseOps}
             />
           </DndContext>
         ) : (
           /* Cardio mode */
-          <div
-            className="p-5 rounded-3xl animate-in slide-in-from-top-2 duration-300"
-            style={{
-              background: 'rgba(255,140,50,0.04)',
-              border: '1px solid rgba(255,140,50,0.15)',
-            }}
-          >
-            <div className="flex items-center gap-3 mb-5">
-              <div
-                className="w-9 h-9 rounded-2xl flex items-center justify-center text-lg"
-                style={{ background: 'rgba(255,140,50,0.12)' }}
-              >
-                🏃
-              </div>
-              <div>
-                <div
-                  className="text-[11px] font-black uppercase tracking-[0.2em]"
-                  style={{ color: 'var(--orange)' }}
-                >
-                  Ausdauer-Session
-                </div>
-                <div
-                  className="text-[10px] font-medium"
-                  style={{ color: 'var(--dim)', opacity: 0.5 }}
-                >
-                  Cardio · Endurance
-                </div>
-              </div>
-            </div>
-            <ActivitySection activity={activity} setActivity={v => { setActivity(v); scheduleAutoSave(); }} />
-          </div>
+          <CardioSection activity={activity} setActivity={setActivity} scheduleAutoSave={scheduleAutoSave} />
         )}
 
         {/* Bereits gespeicherte Finisher dieses Tages (activityAddons-Historie) */}
@@ -286,53 +250,26 @@ export default function SessionEditor({
       {/* Floating save FAB (mobile) */}
       <SessionSaveFab dirty={dirty} autoSaveLabel={autoSaveLabel} saving={saving} onSave={save} />
 
-      {/* Modals */}
-      {showSidebar && (
-        <SidebarSheet
-          onClose={() => setShowSidebar(false)}
-          location={location} setLocation={v => { setLocation(v); scheduleAutoSave(); }}
-          duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
-          gpsMapsUrl={gpsMapsUrl}
-          trainingsart={trainingsart} setTrainingsart={v => { setTrainingsart(v); scheduleAutoSave(); }}
-          notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
-          onDownload={handleDownload}
-          onExportObsidian={exportObsidian}
-          coachFeedback={coachFeedback}
-        />
-      )}
-
-      {showTabSettings && (
-        <SourceSettingsModal onClose={() => setShowTabSettings(false)} />
-      )}
-
-      {gateSheetOpen && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-end justify-center animate-in fade-in duration-200">
-          <div className="absolute inset-0 bg-fit-scrim backdrop-blur-sm" onClick={() => setGateSheetOpen(false)} />
-          <div className="relative w-full max-w-xl bg-fit-card border-t border-fit-line rounded-t-[32px] sm:rounded-t-[40px] shadow-2xl animate-in slide-in-from-bottom duration-300 max-h-[92vh] overflow-y-auto">
-            <div className="sticky top-0 bg-fit-card pt-3 pb-2 flex items-center justify-between px-4 sm:px-5 z-10">
-              <div className="w-10 h-1 rounded-full bg-fit-line mx-auto" />
-              <button
-                onClick={() => setGateSheetOpen(false)}
-                className="absolute right-4 top-3 p-1.5 rounded-lg text-fit-dim hover:text-fit-ink transition-colors"
-                aria-label="Schließen"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <div className="px-2 sm:px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-              <SessionGateCard
-                date={date}
-                sessionGate={sessionGate}
-                currentSubTab={currentSubTab}
-                onSubNav={(id) => { setGateSheetOpen(false); onSubNav?.(id); }}
-                onStart={() => { startSessionGate(); setGateSheetOpen(false); }}
-                onStop={stopSessionGate}
-              />
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      {/* Modals — gebündelt hinter einem einzigen activeModal-State,
+          siehe SessionModalsLayer.jsx (PHASE4_TODO.md Stück 1). */}
+      <SessionModalsLayer
+        activeModal={activeModal}
+        onClose={() => setActiveModal(null)}
+        location={location} setLocation={v => { setLocation(v); scheduleAutoSave(); }}
+        duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
+        gpsMapsUrl={gpsMapsUrl}
+        trainingsart={trainingsart} setTrainingsart={v => { setTrainingsart(v); scheduleAutoSave(); }}
+        notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
+        onDownload={handleDownload}
+        onExportObsidian={exportObsidian}
+        coachFeedback={coachFeedback}
+        date={date}
+        sessionGate={sessionGate}
+        currentSubTab={currentSubTab}
+        onSubNav={onSubNav}
+        onStartGate={() => { startSessionGate(); setActiveModal(null); }}
+        onStopGate={stopSessionGate}
+      />
     </div>
   );
 }

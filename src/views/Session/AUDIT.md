@@ -29,6 +29,49 @@ Workout-Journal — Session-Logging mit Satz/Wdh/Gewicht, Session-Modi, intellig
 | Dritte Datenquelle: Plan-Tab hat zusätzlich 14 "Skill: <Name>"-Routinen (Strong-Modell, `category: "calisthenics-skill"`), die aus denselben Skills generiert wurden — listen aber alle Progressionsstufen einer Skill gleichzeitig als flache Übungsliste statt stage-aware wie SkillsCard. Komplett unsynchronisiert mit #1/#2 (siehe Task "Skills/6Pack Learn-Tab-Überschneidung", Konsolidierung noch offen). |
 | `SessionEditor.jsx` | `SessionGateCard` ist kein inline Card-Element mehr, sondern ein Sheet (Portal, Bottom-Sheet), das öffnet wenn `currentSubTab === 'today'` (Nav-Klick auf "Heute"/"Session") — Editor bleibt darunter jederzeit erreichbar |
 
+## Auffälligkeiten (2026-09-05)
+- **Dual-DB-Layer (`@db`-Alias) — vier konkurrierende SOTs, keine dokumentierte
+  Konflikt-Priorität.** Geprüft im Rahmen von PHASE4_TODO.md Stück 4, nach
+  Nutzerfrage "was ist mit dem dual-db-layer los?". Zwei komplett getrennte
+  `@db`-Implementierungen bleiben bewusst bestehen (`lib/db/local/*.js` für
+  Node-Dev/-Prod, `lib/db/firestore/*.js` für die Firebase-PWA ohne
+  Node-Backend) — das ist keine Auffälligkeit für sich, sondern Architektur
+  (`Dual DB-Layer` steht bereits als ✅ in `../../CLAUDE.md`). Was fehlt, ist
+  eine Aussage, welche der vier tatsächlich beteiligten Schichten bei einem
+  Konflikt gewinnt:
+  1. **JSON-Datei** (`~/.aos/fitness/users/<uid>/sessions/*.json`) — SOT für
+     Node/Python-Seite, siehe `docs/ARCHITECTURE.md`s "Session-Storage:
+     Schichten & Konfliktmodell" (dort bereits sauber dokumentiert).
+  2. **SQLite** (`training_history.sqlite`) — abgeleiteter Index, ein
+     Schreiber (Python/SQLAlchemy), ebenfalls in `docs/ARCHITECTURE.md`.
+  3. **Firestore** (`fitness/{uid}/sessions/{date__sessionId}`) — bei der
+     Firebase-PWA die einzige echte SOT (kein JSON/SQLite dahinter), rev-
+     basiertes Last-Write-Wins (`docs/ARCHITECTURE.md`, selber Abschnitt).
+  4. **Frontend-Runtime-Draft** (`localStorage`,
+     `fitness-session-runtime-v1`, `src/lib/sessionRuntimeStore.js`) — bewusst
+     bestehen bleibender lokaler Zwischenstand, auch nachdem ein Save schon
+     unterwegs ist (Absicht: Reload/Offline soll nie wie "nicht gespeichert"
+     aussehen), siehe `../CLAUDE.md`-Abschnitt "Session-Runtime-Backstop".
+  Die ersten drei sind bereits paarweise dokumentiert (JSON↔SQLite↔Firestore
+  in `docs/ARCHITECTURE.md`), **nicht dokumentiert war bisher die vierte
+  Schicht im selben Konfliktmodell** — konkret: wenn der Firestore-Sync eines
+  Saves fehlschlägt/verzögert ankommt, während der Nutzer in der Zwischenzeit
+  weiter im Runtime-Draft editiert, gewinnt beim nächsten Laden immer der
+  Draft (per `useSession.js`-Merge-Logik), nicht Firestore — das ist so
+  gewollt (siehe Backstop-Zweck), war aber nirgends als Teil des
+  Vier-Schichten-Modells benannt. Ergänzt in `docs/ARCHITECTURE.md` (siehe
+  dort, gleicher Abschnitt) statt hier dupliziert.
+  Fund im selben Zug: `firestore/analysis.js::normalizedSessionHits()` fehlte
+  der KB-Fallback bei Übungen ohne eigene Muskeldaten (frischer Quick-Add vor
+  Enrichment), den `local/analysis.js::sessionHits()` schon hatte — mit
+  Nutzer-Freigabe gefixt (`kbMap`-Parameter ergänzt, siehe Git-Log
+  "fix(db): Firestore normalizedSessionHits KB-Fallback ergänzt"). `ROLE_W`-
+  Gewichte selbst waren bereits identisch, `getPlanSuggestion()` bleibt
+  bewusst divergent (Audit-Fund war hier stale). Grundsatzentscheidung "soll
+  eine Schicht dauerhaft führend sein" bewusst NICHT getroffen — beide Seiten
+  bleiben laut Architektur-Notwendigkeit (PWA muss ohne Node laufen)
+  eigenständig, das ist kein offener Punkt, sondern der Zielzustand selbst.
+
 ## Auffälligkeiten (2026-08-25)
 - `SessionSlots.jsx` (neu): erste Version machte den Fehler, `ActivityAddon` als "obsolet" aus `SessionEditor.jsx` zu entfernen — nutzerkorrigiert: der Basis-Abschnitt (ExerciseList + ActivityAddon) bleibt unverändert, Slots sind rein additive Extra-Abschnitte danach, kein Ersatz. Erste Slot-UI war zudem zu klickintensiv (Label-Edit-Modus, Uhrzeit-Klick-zum-Öffnen, 10-Button-Activity-Grid, zweistufiges Anlegen) — auf direkte Inline-Inputs + Dropdown + Ein-Schritt-Eingabe vereinfacht.
 - **`time`-Feld pro Slot wieder entfernt** (gleicher Tag): war auf der falschen Annahme aufgebaut, Sessions würden live im Gym geloggt — tatsächlich immer nachträglich, ein Auto-`new Date()`-Zeitstempel beim Anlegen war erfundene Präzision. Merke für zukünftige Agenten: **fitness-dev wird nie live im Gym bedient**, jedes Feature-Design für Session-Logging muss von retrospektiver Batch-Eingabe ausgehen (siehe Memory `feedback_no_live_gym_logging`).

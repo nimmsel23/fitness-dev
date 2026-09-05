@@ -344,13 +344,36 @@ Frontend-State (useSession.js)
     vergeben (vorher Date.now(), kollisionsanfällig bei zwei Geräten im
     selben Millisekunden-Fenster) und danach für die gesamte Session-
     Lebensdauer unverändert mitgeschickt.
+      ↕ Runtime-Draft (localStorage, Backstop, siehe unten)
 ```
+
+**Vierte Schicht — Frontend-Runtime-Draft (2026-08-30, `sessionRuntimeStore.js`,
+Dokumentationslücke geschlossen 2026-09-05):** zusätzlich zu den drei
+Server-/DB-Schichten oben hält der Client während des Editierens einen
+eigenen Zwischenstand in `localStorage`
+(`fitness-session-runtime-v1`, `src/lib/sessionRuntimeStore.js`) —
+unabhängig davon, ob ein Save gerade lokal, queued (offline) oder bereits
+serverseitig bestätigt ist. **Konfliktregel: der Draft gewinnt beim nächsten
+Laden immer über den zuletzt bekannten Server-/Firestore-Stand** (Merge in
+`useSession.js`), so lange er existiert — das ist bewusst so und kein
+Firestore-rev-Vergleich wie bei Schicht 3, sondern reiner Zeit-Vorrang für
+den lokalen Client. Zweck: ein Reload, Tab-Kill oder eine kurze Offline-
+Phase soll niemals wie "Workout nicht gespeichert" aussehen, selbst wenn der
+eigentliche Sync (Node→SQLite, Node/Firestore-Mirror, oder direkt Firestore
+bei der PWA) noch nicht durchgelaufen ist. Der Draft wird erst nach
+bestätigtem Save wieder geräumt. Betrifft **beide** `@db`-Implementierungen
+gleichermaßen (lokal wie Firebase-Build) — die drei DB-Schichten oben
+unterscheiden sich je nach Build, dieser Draft-Layer nicht.
 
 **Was bewusst NICHT gemacht wurde** (Scope-Grenze): kein CRDT/Feld-Merge bei
 echtem rev-Gleichstand, keine rückwirkende Korrektur historischer Zero-Value-
 Zeilen in `training_history` (nur neue Writes profitieren), kein `set_index`
 für Per-Satz-Rows in SQLite (die Tabelle bleibt aggregiert pro Exercise, wie
-zuvor — eine echte Per-Satz-Granularität wäre eine Schema-Erweiterung).
+zuvor — eine echte Per-Satz-Granularität wäre eine Schema-Erweiterung), kein
+dauerhaft "führender" Layer zwischen `local/*.js` und `firestore/*.js`
+(beide bleiben architektonisch eigenständig, siehe `src/views/Session/
+AUDIT.md` "Auffälligkeiten 2026-09-05" für den vollen Befund inkl. Firestore-
+KB-Fallback-Fix).
 
 ---
 
