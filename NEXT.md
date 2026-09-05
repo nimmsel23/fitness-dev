@@ -35,3 +35,29 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   Verhalten), noch nicht gegen einen echten Compact-Trigger — erster
   echter Lauf sollte kurz verifiziert werden (füllt er TODO/RESULTS/NEXT
   sinnvoll, committet der PostToolUse-Hook danach sauber).
+- Session-Tab-Rebuild Phase 3 ist erst beim ersten Teilstück
+  (`ExerciseCard.jsx`-Split) angehakt. Offen: `ExerciseList.jsx`
+  (Props-Drilling reduzieren, `addQuick()` nach `useSession.js`
+  verschieben), `SessionSlots.jsx` (verschachteltes DnD/Template-Persistenz
+  klären), und der eigentliche Kern — `useSession.js` (771 Zeilen, 60+
+  `useState`) in Mini-Hooks aufteilen. Details + Definition-of-Done in
+  `src/views/Session/PHASE3_TODO.md`. Phase 4 (Modals zentralisieren,
+  Details/Sidebar-Duplikat, Dual-DB-Layer) ist noch gar nicht begonnen.
+- `server.mjs`-Commit `e472849` (Macrocycles-Proxy-Routen) ist lokal
+  committed, aber **nicht gepusht** — auf explizite Freigabe des Nutzers
+  warten, bevor das nach `dev`/`vitalos` geht.
+- `docs`-Commit `81122fc` (`TODO-02_ServerMjsModularisierung.md`) ist
+  ebenfalls nur lokal committed, nicht gepusht.
+- CI-Blocker-Fix (`@vos/cross-app-aliases` als `optionalDependencies` in
+  `fuel-dev`/`habits-dev`, `vitalos/package-lock.json` neu generiert) wurde
+  gepusht, aber die dadurch neu getriggerten GitHub-Actions-Runs
+  (`gh run rerun`) wurden nicht mehr bis zum Abschluss verifiziert — Status
+  noch offen, ob sie tatsächlich grün durchlaufen.
+- Der versehentliche Live-Redeploy von `fuel-os.web.app` (Nebenwirkung des
+  CI-Fix-Pushs nach `fuel-dev`/`master`) sollte vom Nutzer selbst
+  gegengeprüft werden (funktioniert die App noch wie erwartet) — wurde in
+  dieser Session nicht mehr verifiziert.
+- Zwei ungeklärte fachliche Detailfragen aus dem Session-Tab-Audit bleiben
+  offen: ob `AssignPlan.jsx` (Coach) und `AssignedMacrocycles.jsx`
+  (Plan-Tab) bewusst zwei Oberflächen für dieselben Makrozyklus-Daten sind
+  oder Doppelarbeit, wurde nicht geprüft.
