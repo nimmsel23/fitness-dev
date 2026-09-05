@@ -6,6 +6,7 @@
 
 import { useRef, useState } from 'react';
 import { localToday } from '@utils';
+import { parseLocalDate } from './utils';
 
 const MON = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
 
@@ -26,7 +27,7 @@ export function useDayStrip({ date, setDate, rollingDays }) {
     if (idx >= 0) setOffset(Math.max(0, Math.min(rollingDays.length - 7, idx - 3)));
   }
 
-  const selectedObj = new Date(date + 'T12:00:00');
+  const selectedObj = parseLocalDate(date);
   const dateLabel = `${selectedObj.getDate()}. ${MON[selectedObj.getMonth()]} ${selectedObj.getFullYear()}`;
 
   return {

@@ -7,6 +7,7 @@
  */
 
 import { useState } from 'react';
+import { localToday } from '@utils';
 import { useSession } from './useSession';
 import SessionEditor from './SessionEditor';
 import SessionHistory from './SessionHistory';
@@ -26,7 +27,19 @@ export default function Session({
   const { loading: planLoading, cycle, nextRoutine, lastPerformance, clientUid, reload } = useTodayPlan();
   const [logFreely, setLogFreely] = useState(false);
 
-  const isTodayTab = subTab === 'today' || !subTab;
+  // BUGFIX 2026-09-05 (Klient Matthias — "stuck in Oktober 2025"): isTodayTab
+  // prüfte bisher NUR subTab, nicht das tatsächliche Datum. `!subTab` ist aber
+  // auch bei einem expliziten Datums-Deep-Link true (parseHashRoute() setzt
+  // subTab dort nie), UND jeder Datumswechsel remountet den ganzen <Session>-
+  // Baum (App.jsx: key={sessionDate}), was das lokale `logFreely` zurücksetzt.
+  // Ergebnis: sobald ein Klient mit aktivem Coach-Plan (cycle+nextRoutine) den
+  // Date-Picker benutzt, springt die App bei JEDEM Datumswechsel zurück auf
+  // diesen TodayPlan-Screen (der selbst komplett datums-blind ist, kein
+  // Date-Picker, keine SessionHeader) — Endlosschleife, kein Weg zurück zum
+  // Editor für ein beliebiges Datum. Fix: Gate nur, wenn tatsächlich HEUTE
+  // aktiv ist — TodayPlan ist ohnehin ein reiner "heute"-Habit-Screen, für
+  // jedes andere Datum ist der normale Editor korrekt.
+  const isTodayTab = (subTab === 'today' || !subTab) && session.date === localToday();
   if (isTodayTab && !planLoading && cycle && nextRoutine && !logFreely) {
     return (
       <TodayPlan

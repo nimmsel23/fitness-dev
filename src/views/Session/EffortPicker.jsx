@@ -5,11 +5,16 @@
 
 import { Flame } from 'lucide-react';
 
+// Farben aus System-Tokens statt hardcodierten Hex-Werten (Phase-1-Audit
+// 2026-09-05) — `#f59e0b` (mittlerer RPE-Bereich) hat keinen passenden Token
+// (Themes definieren nur --green/--red/--orange, kein --yellow/--amber) und
+// bleibt deshalb bewusst als Hex-Wert stehen statt einen neuen Token zu
+// erfinden, siehe PHASE1_TODO.md.
 function effortColor(v) {
-  if (v <= 3) return '#22c55e';
+  if (v <= 3) return 'var(--green)';
   if (v <= 6) return '#f59e0b';
-  if (v <= 8) return '#fb923c';
-  return '#ef4444';
+  if (v <= 8) return 'var(--orange)';
+  return 'var(--red)';
 }
 
 export default function EffortPicker({ effort, setEffort }) {

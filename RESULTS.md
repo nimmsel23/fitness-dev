@@ -1,3 +1,36 @@
+# Session-Tab: Vite-Crash-Ursache + Sprach-Filter-Bug behoben, dev→vitalos deployed (2026-09-02)
+
+Auftrag war unspezifisch ("sieh zu dass im Session-Tab alles glatt läuft"),
+daher zuerst durchgetestet statt aus TODO/NEXT zu raten. Zwei getrennte
+Ursachen gefunden und live gefixt: ein wiederkehrender Dev-Server-Crash
+sowie ein handfester Suche-Bug, der Übungen in der Firebase-PWA unsichtbar
+machte.
+
+* **`vite.config.js`**: `watch.ignored` schloss bisher nur `dist*`,
+  `.firebase`, `node_modules` aus — `.venv` (93 MB/3336 Dateien),
+  `.worktrees`, `catalog-ui`, `functions`, `__pycache__` u.a. wurden von
+  chokidar mitüberwacht und haben den Dev-Server (nodemon/vite) wiederholt
+  zum Absturz gebracht. Jetzt zusätzlich ausgeschlossen.
+* **`src/lib/exerciseLanguage.js`**: Die Sprach-Erkennungs-Regex
+  (`ES_TOKENS`/`ES_SUFFIX` u.a.) nutzte Zeichenklassen wie `[ée]`/`[ií]`/
+  `[oó]` für "mit oder ohne Akzent" — die Klasse matcht dabei aber auch das
+  reine ASCII-Zeichen. Dadurch wurden ~130 normale englische Übungsnamen
+  (`Incline Bench Press`, `Triceps Pushdown`, `Leg Extension`, ...)
+  fälschlich als FR/PT/ES erkannt und da diese Sprachen standardmäßig aus
+  der Suche ausgeblendet sind, verschwanden diese Übungen einfach aus den
+  Ergebnissen. Fix verlangt jetzt den echten Akzent; echte ES/FR/PT-Namen
+  (`Sentadilla`, `Extensión de piernas`) werden weiterhin korrekt erkannt.
+  Verifiziert per Node-Skript: Verteilung vorher `{es:56, fr:38, pt:18}`
+  fälschlich, nachher `{es:4, pt:2}` (nur noch echte Treffer).
+* Die auffällig leere `fitness/catalog/kb/exercises/approved_from_firebase.yml`
+  war ein roter Hering — bereits bekanntes/beabsichtigtes Verhalten des
+  Firestore-Approve-Rückbuchungs-Bugs, keine neue Ursache.
+* Committet als `7b472a8` auf `dev`, gepusht (Post-Push-Hook: Lint + Build
+  grün). Danach per `fitness-release --yes` nach `vitalos` gemergt und live
+  nach **fitness-aos.web.app** deployed — beide Fixes sind jetzt in Prod.
+
+---
+
 # Merge-Kandidaten-Hinweise in Coach-Inbox-UI (Task #3 abgeschlossen) (2026-09-02)
 
 Fortsetzung der Vortags-Session: Task #3 ("Audit-Flags/Merge-Hinweise auch

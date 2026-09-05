@@ -78,6 +78,14 @@ export function getRollingDays(count) {
 
 export const DAY_LABELS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
+// Zentrale Stelle für "YYYY-MM-DD" -> lokales Date-Objekt (Mittag statt
+// Mitternacht, damit Zeitzonen-Rundung nie auf den Vor-/Folgetag kippt).
+// Vorher parsten SessionHeader.jsx und useDayStrip.js dasselbe Pattern
+// (`new Date(d + 'T12:00:00')`) jeweils unabhängig.
+export function parseLocalDate(dateStr) {
+  return new Date(`${dateStr}T12:00:00`);
+}
+
 export const num = (v) => {
   if (v === null || v === undefined) return null;
   const s = String(v).trim().replace(',', '.');
