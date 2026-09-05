@@ -39,13 +39,26 @@ const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
 // dass eine Session mit vielen Übungen allein durch die Anzahl höher zählt
 // als eine gleich intensive Session mit 1-2 Übungen (One-Set-to-Failure).
 // Spiegel von local/analysis.js::normalizedSessionHits.
-function normalizedSessionHits(session) {
+//
+// KB-Fallback ergänzt (2026-09-05, Nutzer-Freigabe nach Dual-DB-Layer-
+// Review): war bis dahin der einzige echte Verhaltensunterschied zu
+// local/analysis.js::sessionHits() — fehlten einer Übung ihre eigenen
+// primaryMuscles/secondaryMuscles/stabilizers (z.B. Quick-Add/Inbox-
+// Übungen vor abgeschlossenem Enrichment), zählte sie auf der Firebase-
+// PWA gar nicht zur Muskel-Coverage, lokal schon (dort per KB-Lookup).
+// `kbMap` ist optional (Aufrufer ohne Katalog-Fetch bleiben unverändert
+// funktionsfähig, nur ohne Fallback).
+function normalizedSessionHits(session, kbMap = null) {
   const rows = [];
   for (const ex of (Array.isArray(session.exercises) ? session.exercises : [])) {
     const exName = ex.name || ex.exercise_id || "";
-    (ex.primaryMuscles || []).forEach((m) => rows.push([m, exName, ROLE_W.primary]));
-    (ex.secondaryMuscles || []).forEach((m) => rows.push([m, exName, ROLE_W.secondary]));
-    (ex.stabilizers || []).forEach((m) => rows.push([m, exName, ROLE_W.stabilizer]));
+    const kbEx = kbMap?.get(exName.toLowerCase());
+    const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
+    const secondary = (ex.secondaryMuscles?.length ? ex.secondaryMuscles : null) || kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [];
+    const stabilizers = (ex.stabilizers?.length ? ex.stabilizers : null) || kbEx?.stabilizers || [];
+    primary.forEach((m) => rows.push([m, exName, ROLE_W.primary]));
+    secondary.forEach((m) => rows.push([m, exName, ROLE_W.secondary]));
+    stabilizers.forEach((m) => rows.push([m, exName, ROLE_W.stabilizer]));
   }
   const actPrimary = new Set(session.activity?.primaryMuscles || []);
   (session.activity?.muscles || []).forEach((m) =>
@@ -116,17 +129,21 @@ export async function getMuscleCoverage(days = 7) {
   const startStr = startDate.toISOString().slice(0, 10);
   const todayStr = today.toISOString().slice(0, 10);
 
-  const q = query(
-    collection(db, "fitness", getUid(), "sessions"),
-    where("date", ">=", startStr),
-    where("date", "<=", todayStr),
-  );
-  const snap = await getDocs(q);
+  const [q, kbExercises] = await Promise.all([
+    getDocs(query(
+      collection(db, "fitness", getUid(), "sessions"),
+      where("date", ">=", startStr),
+      where("date", "<=", todayStr),
+    )),
+    getAllExercises(),
+  ]);
+  const kbMap = new Map();
+  kbExercises.forEach((ex) => kbMap.set((ex.display_name || ex.name || "").toLowerCase(), ex));
 
   const hits = {};
-  for (const d of snap.docs) {
+  for (const d of q.docs) {
     const session = d.data();
-    for (const [m, exName, w] of normalizedSessionHits(session)) {
+    for (const [m, exName, w] of normalizedSessionHits(session, kbMap)) {
       muscleToGroupIds(m, exName).forEach((g) => { hits[g] = (hits[g] || 0) + w; });
     }
   }
@@ -530,7 +547,7 @@ export async function getMonthlyReport(days = 28) {
           allExercises.push({ name: exName, primaryMuscles: primary });
           primary.forEach((m) => { muscleScores[m] = (muscleScores[m] || 0) + 1; });
         }
-        for (const [m, exName, w] of normalizedSessionHits(sess)) {
+        for (const [m, exName, w] of normalizedSessionHits(sess, kbMap)) {
           muscleToGroupIds(m, exName).forEach((gid) => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + w; });
         }
       }

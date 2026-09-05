@@ -65,37 +65,42 @@ umgekehrt zu kürzen.
       Reihenfolge-Override fürs Sheet) oder ob beide Listen bewusst
       eigenständig bleiben.
 
-- [ ] **Dual-DB-Layer — NICHT zusammenlegen, nur genau hinschauen.**
+- [x] **Dual-DB-Layer — geprüft statt zusammengelegt (2026-09-05).**
       `local/sessions.js` (Node-Proxy) vs. `firestore/sessions.js`
-      (521 Z., direkte Firestore-SDK-Calls) laufen dauerhaft parallel.
-      Der ursprüngliche Audit-Befund ("Funktions-Duplikate:
-      `normalizeGhostSet()`, `sessionHits()`, `normalizedSessionHits()`
-      fast identisch") ist per Grundsatz-Korrektur **nicht mehr die
-      Handlungsaufforderung** — der Audit selbst notierte bereits, dass
-      Firestore bei `sessionHits()` ein zusätzliches `ROLE_W`-Gewicht
-      und bei `normalizedSessionHits()` einen anderen KB-Fallback hat als
-      local. Das ist exakt das Muster aus dem `ActivityPicker`-Revert:
-      "fast identisch" hieß hier vermutlich schon immer "leicht anders,
-      aus einem Grund". `getPlanSuggestion()` ist ohnehin komplett
-      divergent (lokal simpler DOW-Fallback, Firestore volles
-      Template-Regel-System) und bleibt unangetastet.
-      - Falls überhaupt etwas hier passiert: pro Funktion einzeln mit dem
-        Nutzer durchgehen, WARUM Firestore/local unterschiedlich sind,
-        bevor irgendein "Shared-Utility"-Extract passiert. Kein
-        automatisches Zusammenführen, auch nicht als "risikoärmere
-        Vorstufe".
-      - Grundsatzentscheidung (eine der beiden DB-Schichten dauerhaft
-        führend machen, oder bewusst beibehalten als Online/Offline-Split)
-        braucht explizite Nutzer-Freigabe, nicht in dieser Phase im
-        Alleingang entscheiden. Standard-Erwartung nach der
-        Nutzer-Korrektur: eher "beide bleiben bestehen" als
-        "konsolidieren".
-      - Verwandt: vier konkurrierende SOTs ohne dokumentierte Priorität
-        (JSON-Datei, SQLite, Firestore, localStorage-Runtime-Draft) — die
-        Offline-Merge-Logik (`sessionRuntimeStore.js`) läuft aktuell nur
-        im Frontend, die Backend-APIs kennen localStorage-Drafts nicht.
-        Mindestens dokumentieren, welche Quelle bei Konflikt gewinnt —
-        das ist eine reine Doku-Aufgabe, kein Code-Merge.
+      (Firestore-SDK-Calls) bleiben zwei komplett getrennte
+      Implementierungen (bewusst — Firebase-PWA muss ohne Node-Backend
+      laufen). Live gegengelesen statt aus dem alten Audit-Text
+      übernommen:
+      - **`ROLE_W`-Gewichte** (`{primary:1, secondary:0.5,
+        stabilizer:0.2}`) sind in `local/analysis.js` UND
+        `firestore/analysis.js` inzwischen identisch — der ursprüngliche
+        Audit-Punkt "Firestore hat ein zusätzliches Gewicht" ist stale,
+        nicht mehr aktuell.
+      - **KB-Fallback bei fehlenden Muskeldaten** war der einzige real
+        noch bestehende Unterschied: `local::sessionHits()` fiel bei
+        leeren `ex.primaryMuscles/secondaryMuscles/stabilizers` auf einen
+        KB-Lookup zurück, `firestore::normalizedSessionHits()` nicht —
+        eine Übung ohne eigene Muskeldaten (z.B. frischer Quick-Add vor
+        Enrichment) zählte auf der Firebase-PWA gar nicht zur Coverage,
+        lokal schon. **Mit expliziter Nutzer-Freigabe gefixt**: `kbMap`-
+        Parameter (optional, Default `null`) + identischer Fallback in
+        `firestore/analysis.js::normalizedSessionHits()`; `kbMap` wird in
+        `getMuscleCoverage()` neu aus `getAllExercises()` gebaut (vorher
+        dort gar nicht geladen) und in `getMonthlyReport()`s bereits
+        vorhandenem `kbMap` einfach mitgegeben. Kein "Zusammenlegen"
+        zweier Implementierungen — beide Dateien bleiben eigenständig,
+        nur dieselbe Fallback-*Logik* jetzt auf beiden Seiten vorhanden.
+        `npm run build` grün.
+      - `getPlanSuggestion()` bleibt komplett divergent (lokal simpler
+        DOW-Fallback, Firestore volles Template-Regel-System) —
+        unangetastet, das ist laut Audit selbst schon immer beabsichtigt.
+      - Grundsatzentscheidung (eine DB-Schicht dauerhaft führend machen,
+        oder Online/Offline-Split bewusst beibehalten) weiterhin NICHT
+        getroffen — war auch nicht Teil dieser Freigabe, bleibt offen.
+      - Verwandt, weiterhin offen: vier konkurrierende SOTs ohne
+        dokumentierte Priorität (JSON-Datei, SQLite, Firestore,
+        localStorage-Runtime-Draft) — reine Doku-Aufgabe, noch nicht
+        geschrieben.
 
 ## Definition of Done
 
