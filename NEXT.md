@@ -35,22 +35,29 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   Verhalten), noch nicht gegen einen echten Compact-Trigger — erster
   echter Lauf sollte kurz verifiziert werden (füllt er TODO/RESULTS/NEXT
   sinnvoll, committet der PostToolUse-Hook danach sauber).
-- Session-Tab-Rebuild Phase 3: Stück 1 (`ExerciseCard.jsx`), Stück 2
-  (`ExerciseList.jsx`, `exerciseOps`-Bündel) und Stück 3 (`SessionSlots.jsx`,
-  Slot-Reorder-DnD + `SlotCard.jsx`-Extraktion) sind jetzt komplett
-  abgehakt (`9ff7d78`, `f8020b5`, `540dfc7`). Nutzer hat für die nächste
-  Session bereits **Stück 4** angewiesen (`weiter mit Stück 4 dann aus
-  Phase 3`), aber noch nicht begonnen: der eigentliche Kern —
-  `useSession.js` (771 Zeilen, 60+ `useState`) in Mini-Hooks aufspalten
-  (`useExerciseList`, `useSessionActivity`, `useSessionSlots`,
-  `useSessionGateController`), vorher Interdependenzen dokumentieren
-  (z.B. `moveExercise()` braucht Slot-Kontext UND Exercise-Liste
-  gleichzeitig), dabei zwei bekannte Einzel-Bugs mitnehmen (GPS-Fehlerpfade
-  mit zwei getrennten Error-Enums, Auto-Save-Race zwischen localStorage-
-  Draft und API-Call im selben Effect). Danach `SessionEditor.jsx` auf
-  reinen Orchestrator zurückstutzen. Details + Definition-of-Done in
-  `src/views/Session/PHASE3_TODO.md`. Phase 4 (Modals zentralisieren,
-  Details/Sidebar-Duplikat, Dual-DB-Layer) ist noch gar nicht begonnen.
+- Session-Tab-Rebuild Phase 3 ist **komplett** (Stück 1–4: `9ff7d78`,
+  `f8020b5`, `540dfc7`, `dff5d3d`). Phase 4 ebenfalls abgeschlossen
+  (Stück 1 umgesetzt `81401ca`, Stück 2+3 geklärt/doc-only `52555db`,
+  Stück 4 gefixt `c21bf15`) — Details in RESULTS.md. Aus Phase 4 offen
+  geblieben:
+  - **Browser-Durchklick-Verifikation** von Phase 3 Stück 4 + Phase 4
+    Stück 1 wurde von Claude mehrfach angemahnt, aber nie durchgeführt:
+    Übung hinzufügen, Slot anlegen, GPS-Start/Stop, Auto-Save beobachten
+    (die `savingRef`-Guard-Race), Sidebar/Settings/Gate-Modal öffnen
+    (neuer `activeModal`-State + `SessionModalsLayer.jsx`).
+  - **Gate-Sub-Tab-Nav-Drift**: `src/constants/NavigationItems.js` vs.
+    `SessionGateCard.jsx::SESSION_NAV_ITEMS` pflegen dieselben 5 Sub-Tab-IDs
+    unabhängig (Label/Reihenfolge/`comingSoon`-Flag driften). Nur in
+    `PHASE4_TODO.md` dokumentiert — braucht eine explizite User-Rückfrage,
+    bevor vereinheitlicht wird (Grundsatz `never_unify_divergent`).
+  - **"Vier SOTs, welche gewinnt bei Konflikt"**: JSON-Datei / SQLite /
+    Firestore / localStorage-Runtime-Draft (`sessionRuntimeStore.js`) haben
+    nirgends eine schriftlich fixierte Konfliktpriorität. Reine Doku-Lücke,
+    gehört als Absatz nach `docs/ARCHITECTURE.md` bzw. `CLAUDE.md` — Claude
+    hat angeboten das zu schreiben, User hat mit `/compact` geantwortet
+    statt zuzustimmen.
+  - `getPlanSuggestion()` bleibt bewusst komplett divergent zwischen
+    `local`/`firestore` — nicht als Aufräumaufgabe behandeln.
 - `server.mjs`-Commit `e472849` (Macrocycles-Proxy-Routen) ist lokal
   committed, aber **nicht gepusht** — auf explizite Freigabe des Nutzers
   warten, bevor das nach `dev`/`vitalos` geht.
