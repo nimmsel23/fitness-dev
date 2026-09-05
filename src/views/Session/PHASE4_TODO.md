@@ -18,16 +18,15 @@ umgekehrt zu kürzen.
 
 ## Stücke
 
-- [ ] **Modals zentralisieren.** Aktuell scattered: `showSidebar`,
-      `showTabSettings`, `gateSheetOpen` sind einzelne States in
-      `SessionEditor.jsx`/`useSession.js`, jedes Modal rendert seinen
-      eigenen `createPortal()`-Call an verschiedenen Stellen:
-      - `SidebarSheet.jsx` (Portal-Wrapper um `SessionSidebar`)
-      - `SourceSettingsModal.jsx` (Übungsquellen/Muskel-Detailgrad/
-        Sprachfilter)
-      - Session-Gate-Sheet (inline Portal in `SessionEditor.jsx`)
-      - Ziel: ein `SessionModalsLayer.jsx`, das alle Portal-Calls bündelt,
-        ein zentrales `activeModal`-State (statt 3+ Booleans).
+- [x] **Modals zentralisiert (2026-09-05).** `showSidebar`/
+      `showTabSettings` (vorher in `useSession.js`) + lokales
+      `gateSheetOpen` (vorher in `SessionEditor.jsx`) → ein einziges
+      `activeModal`-State (`null | 'sidebar' | 'settings' | 'gate'`) in
+      `useSession.js`. Neuer `SessionModalsLayer.jsx` bündelt alle drei
+      Portal-Calls (`SidebarSheet`, `SourceSettingsModal`,
+      `SessionGateSheet`) — jede einzelne Modal-Komponente selbst
+      unverändert, nur zentral geroutet statt an drei Stellen verstreut.
+      `npm run build` grün.
 
 - [ ] **Details/Notizen: doppeltes `SessionSidebar`-Rendering prüfen,
       NICHT vorschnell auf einen Pfad reduzieren.** `SessionSidebar` wird
@@ -80,7 +79,8 @@ umgekehrt zu kürzen.
 
 ## Definition of Done
 
-1. Modal-States über ein einziges `activeModal`-Feld statt N Booleans.
+1. [x] Modal-States über ein einziges `activeModal`-Feld statt N Booleans
+       (erledigt 2026-09-05, siehe Stück 1 oben).
 2. Kein Duplicate-Rendering von `SessionSidebar` mehr.
 3. Dual-DB-Entscheidung (falls in dieser Phase getroffen) explizit in
    `../CLAUDE.md` bzw. `AUDIT.md` dokumentiert, inkl. Begründung.

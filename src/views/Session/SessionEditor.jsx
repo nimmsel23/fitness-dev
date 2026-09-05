@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import SessionGateSheet from './SessionGateSheet.jsx';
+import SessionModalsLayer from './SessionModalsLayer.jsx';
 import SessionSlots from './SessionSlots.jsx';
 import SessionHeader from './SessionHeader';
 import SplitPicker from './SplitPicker';
@@ -20,9 +20,7 @@ import ActivityAddon from './ActivityAddon';
 import ActivityAddonHistory from './ActivityAddonHistory.jsx';
 import SessionToast from './SessionToast.jsx';
 import SessionSaveFab from './SessionSaveFab.jsx';
-import SidebarSheet from './SidebarSheet';
 import SessionSidebar from './SessionSidebar';
-import SourceSettingsModal from './SourceSettingsModal';
 import { normalizeSessionGate } from '../../lib/sessionGate.js';
 import { inferBlockFromExercises } from './utils';
 
@@ -49,8 +47,7 @@ export default function SessionEditor({
   hint,
   prevMap,
   daySessions, sessionId,
-  showSidebar, setShowSidebar,
-  showTabSettings, setShowTabSettings,
+  activeModal, setActiveModal,
   rollingDays,
   toast,
   // Handlers
@@ -79,10 +76,9 @@ export default function SessionEditor({
   // kompletten Remount dieser Komponente auslöst, ein reiner
   // currentSubTab-Check hier würde also bei jedem Datumswechsel erneut
   // feuern, da mount-Effects unabhängig von deps immer einmal laufen).
-  const [gateSheetOpen, setGateSheetOpen] = useState(false);
   useEffect(() => {
     if (gateAutoOpenFlag) {
-      setGateSheetOpen(true);
+      setActiveModal('gate');
       onGateAutoOpenConsumed?.();
     }
   }, []);
@@ -149,8 +145,8 @@ export default function SessionEditor({
       <SessionHeader
         date={date} setDate={setDate} rollingDays={rollingDays} recentSessions={recentSessions}
         saving={saving} autoSaveLabel={autoSaveLabel} dirty={dirty} onSave={save}
-        onOpenSidebar={() => setShowSidebar(true)}
-        onOpenSettings={() => setShowTabSettings(true)}
+        onOpenSidebar={() => setActiveModal('sidebar')}
+        onOpenSettings={() => setActiveModal('settings')}
         hint={hint}
         daySessions={daySessions} sessionId={sessionId} selectSession={selectSession}
         onNew={handleNewSession} onDelete={handleDeleteSession}
@@ -254,34 +250,25 @@ export default function SessionEditor({
       {/* Floating save FAB (mobile) */}
       <SessionSaveFab dirty={dirty} autoSaveLabel={autoSaveLabel} saving={saving} onSave={save} />
 
-      {/* Modals */}
-      {showSidebar && (
-        <SidebarSheet
-          onClose={() => setShowSidebar(false)}
-          location={location} setLocation={v => { setLocation(v); scheduleAutoSave(); }}
-          duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
-          gpsMapsUrl={gpsMapsUrl}
-          trainingsart={trainingsart} setTrainingsart={v => { setTrainingsart(v); scheduleAutoSave(); }}
-          notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
-          onDownload={handleDownload}
-          onExportObsidian={exportObsidian}
-          coachFeedback={coachFeedback}
-        />
-      )}
-
-      {showTabSettings && (
-        <SourceSettingsModal onClose={() => setShowTabSettings(false)} />
-      )}
-
-      <SessionGateSheet
-        open={gateSheetOpen}
-        onClose={() => setGateSheetOpen(false)}
+      {/* Modals — gebündelt hinter einem einzigen activeModal-State,
+          siehe SessionModalsLayer.jsx (PHASE4_TODO.md Stück 1). */}
+      <SessionModalsLayer
+        activeModal={activeModal}
+        onClose={() => setActiveModal(null)}
+        location={location} setLocation={v => { setLocation(v); scheduleAutoSave(); }}
+        duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
+        gpsMapsUrl={gpsMapsUrl}
+        trainingsart={trainingsart} setTrainingsart={v => { setTrainingsart(v); scheduleAutoSave(); }}
+        notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
+        onDownload={handleDownload}
+        onExportObsidian={exportObsidian}
+        coachFeedback={coachFeedback}
         date={date}
         sessionGate={sessionGate}
         currentSubTab={currentSubTab}
         onSubNav={onSubNav}
-        onStart={() => { startSessionGate(); setGateSheetOpen(false); }}
-        onStop={stopSessionGate}
+        onStartGate={() => { startSessionGate(); setActiveModal(null); }}
+        onStopGate={stopSessionGate}
       />
     </div>
   );

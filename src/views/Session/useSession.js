@@ -62,8 +62,11 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   const [autoSaveLabel, setAutoSaveLabel] = useState('');
   const [dirty, setDirty]           = useState(false);
   const [showMap, setShowMap]       = useState(false);
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [showTabSettings, setShowTabSettings] = useState(false);
+  // Zentraler Modal-State (PHASE4_TODO.md Stück 1) statt vorher 3 einzelner
+  // Booleans (showSidebar/showTabSettings in useSession.js + gateSheetOpen
+  // lokal in SessionEditor.jsx) — genau ein Portal kann offen sein.
+  // Werte: null | 'sidebar' | 'settings' | 'gate'.
+  const [activeModal, setActiveModal] = useState(null);
 
   // Drag-and-drop state for history view
   const [reDateEntry, setReDateEntry] = useState(null);
@@ -524,8 +527,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     autoSaveLabel,
     dirty,
     showMap, setShowMap,
-    showSidebar, setShowSidebar,
-    showTabSettings, setShowTabSettings,
+    activeModal, setActiveModal,
     reDateEntry, setReDateEntry,
     draggedDate, setDraggedDate,
     dragOverDate, setDragOverDate,
