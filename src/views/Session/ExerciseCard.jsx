@@ -9,17 +9,21 @@
  * - Trend badge, muscle tags, recovery indicator
  * - NxM expansion, drop-set detection
  * - Smooth animations throughout
+ *
+ * Orchestrator: owns state + all computed values + handlers, and composes
+ * ExerciseCardHeader / ExerciseHistoryCollapse / SetGridEditor. The note
+ * footer stays inline here (too small to warrant its own sub-component).
  */
 
 import { useState, useEffect } from 'react';
 import { getProgressTrend } from '@db';
-import {
-  TrendingUp, TrendingDown, Plus, Info, X, Clock, History,
-  ChevronDown, ChevronUp, GripVertical,
-} from 'lucide-react';
+import { Info } from 'lucide-react';
 import {
   formatMuscleDetail, loadMuscleDetail, MUSCLE_DETAIL_KEY, splitMuscleEntries,
 } from '../../lib/kb/muscles.js';
+import ExerciseCardHeader from './ExerciseCardHeader.jsx';
+import ExerciseHistoryCollapse from './ExerciseHistoryCollapse.jsx';
+import SetGridEditor from './SetGridEditor.jsx';
 
 const NXM_PATTERN = /^\s*(\d{1,2})\s*[xX×*]\s*(\d{1,3})\s*$/;
 
@@ -160,410 +164,43 @@ export default function ExerciseCard({
 
       {/* Header */}
       <div className="pl-4 pr-3 pt-4 pb-3">
-        <div className="flex items-start gap-2">
+        <ExerciseCardHeader
+          ex={ex}
+          i={i}
+          moveEx={moveEx}
+          removeEx={removeEx}
+          isFirst={isFirst}
+          isLast={isLast}
+          onInspectExercise={onInspectExercise}
+          muscleTags={muscleTags}
+          trend={trend}
+          exRecoveryHours={exRecoveryHours}
+          volumeSummary={volumeSummary}
+        />
 
-          {/* Move handles */}
-          <div className="flex flex-col gap-0.5 shrink-0 mt-0.5 opacity-20 hover:opacity-60 transition-opacity">
-            <button
-              onClick={() => moveEx(i, -1)}
-              disabled={isFirst}
-              className="w-5 h-5 flex items-center justify-center disabled:opacity-0 hover:text-fit-accent transition-all"
-            >
-              <ChevronUp size={12} />
-            </button>
-            <button
-              onClick={() => moveEx(i, 1)}
-              disabled={isLast}
-              className="w-5 h-5 flex items-center justify-center disabled:opacity-0 hover:text-fit-accent transition-all"
-            >
-              <ChevronDown size={12} />
-            </button>
-          </div>
-
-          {/* Exercise info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <h3
-                  onClick={() => onInspectExercise?.(ex)}
-                  className={`font-black text-[15px] leading-tight tracking-tight transition-colors ${
-                    onInspectExercise ? 'cursor-pointer hover:text-fit-accent' : ''
-                  }`}
-                  style={{ color: 'var(--ink)' }}
-                >
-                  {ex.name || <span style={{ color: 'var(--dim)', fontStyle: 'italic' }}>Übung</span>}
-                </h3>
-
-                <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                  {/* Muscle tags */}
-                  {muscleTags.map(label => (
-                    <span
-                      key={label}
-                      className="text-[9px] font-bold uppercase tracking-widest"
-                      style={{ color: 'var(--dim)', opacity: 0.6 }}
-                    >
-                      {label}
-                    </span>
-                  ))}
-
-                  {/* Source badge */}
-                  {ex.source && ex.source !== 'expert' && (
-                    <span
-                      className="text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-[0.15em]"
-                      style={{
-                        background: ex.source === 'bulk' ? 'var(--bg2)' : 'rgba(255,140,50,0.08)',
-                        color: ex.source === 'bulk' ? 'var(--dim)' : 'var(--orange)',
-                        border: `1px solid ${ex.source === 'bulk' ? 'var(--line)' : 'rgba(255,140,50,0.15)'}`,
-                      }}
-                    >
-                      {ex.source}
-                    </span>
-                  )}
-
-                  {/* Trend */}
-                  {trend && trend.status !== 'neutral' && (
-                    <div
-                      className="flex items-center gap-1 text-[9px] font-black px-1.5 py-0.5 rounded-full"
-                      style={{
-                        background: trend.status === 'up' ? 'rgba(var(--green-rgb,80,200,100),0.1)' : 'rgba(var(--red-rgb,255,80,80),0.1)',
-                        color: trend.status === 'up' ? 'var(--green)' : 'var(--red)',
-                      }}
-                    >
-                      {trend.status === 'up' ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
-                      {trend.change}%
-                    </div>
-                  )}
-
-                  {/* Recovery */}
-                  {exRecoveryHours !== null && (
-                    <div
-                      className="flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-widest"
-                      style={{
-                        background: 'rgba(var(--accent-rgb,200,255,0),0.06)',
-                        color: 'var(--accent)',
-                      }}
-                    >
-                      <Clock size={9} />
-                      {exRecoveryHours}h
-                    </div>
-                  )}
-
-                  {/* Volume summary */}
-                  {volumeSummary && (
-                    <span
-                      className="text-[9px] font-mono font-bold"
-                      style={{ color: 'var(--dim)', opacity: 0.5 }}
-                    >
-                      {volumeSummary}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Delete */}
-              <button
-                onClick={() => removeEx(i)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all shrink-0"
-                style={{ color: 'var(--dim)' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,80,80,0.08)'; e.currentTarget.style.color = 'var(--red)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--dim)'; }}
-              >
-                <X size={16} />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Previous stats bar */}
-        {prev && (
-          <button
-            onClick={() => setShowHistory(h => !h)}
-            className="mt-3 w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all"
-            style={{
-              background: showHistory ? 'rgba(var(--accent-rgb,200,255,0),0.05)' : 'var(--bg2)',
-              border: showHistory ? '1px solid rgba(var(--accent-rgb,200,255,0),0.15)' : '1px solid var(--line)',
-            }}
-          >
-            <div className="flex items-center gap-2.5">
-              <div
-                className="w-6 h-6 rounded-lg flex items-center justify-center"
-                style={{ background: 'var(--card)', border: '1px solid var(--line)' }}
-              >
-                <History size={11} style={{ color: 'var(--dim)' }} />
-              </div>
-              <div className="text-left">
-                <div
-                  className="text-[9px] font-black uppercase tracking-[0.2em]"
-                  style={{ color: 'var(--dim)', opacity: 0.4 }}
-                >
-                  Zuletzt · {prev.date}
-                </div>
-                <div
-                  className="text-[11px] font-mono font-bold"
-                  style={{ color: 'var(--dim)', opacity: 0.8 }}
-                >
-                  {prev.setsArray
-                    ? `${prev.setsArray.length}×${prev.setsArray[0]?.reps}${prev.setsArray[0]?.weight ? ` @ ${prev.setsArray[0].weight}kg` : ''}`
-                    : `${prev.sets}×${prev.reps}${prev.weight ? ` @ ${prev.weight}kg` : ''}`}
-                </div>
-              </div>
-            </div>
-            <ChevronDown
-              size={13}
-              style={{
-                color: 'var(--dim)',
-                opacity: 0.4,
-                transform: showHistory ? 'rotate(180deg)' : 'none',
-                transition: 'transform 0.2s',
-              }}
-            />
-          </button>
-        )}
-
-        {/* Expanded history */}
-        {showHistory && prev && (
-          <div
-            className="mt-2 p-3 rounded-xl space-y-1.5 animate-in slide-in-from-top-2 duration-200"
-            style={{ background: 'var(--bg2)', border: '1px solid var(--line)' }}
-          >
-            {prev.setsArray ? prev.setsArray.map((s, idx) => (
-              <div key={idx} className="flex items-center gap-3">
-                <span
-                  className="text-[9px] font-black uppercase w-5"
-                  style={{ color: 'var(--dim)', opacity: 0.35 }}
-                >
-                  S{idx + 1}
-                </span>
-                <span
-                  className="text-[11px] font-mono font-bold"
-                  style={{ color: 'var(--dim)', opacity: 0.7 }}
-                >
-                  {s.reps} reps{s.weight ? ` @ ${s.weight}kg` : ''}
-                </span>
-              </div>
-            )) : (
-              <span
-                className="text-[11px] font-mono font-bold"
-                style={{ color: 'var(--dim)', opacity: 0.7 }}
-              >
-                {prev.sets}×{prev.reps}{prev.weight ? ` @ ${prev.weight}kg` : ''}
-              </span>
-            )}
-            {trend && trend.status !== 'neutral' && (
-              <div
-                className="pt-1.5 mt-1 flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest"
-                style={{
-                  borderTop: '1px solid var(--line)',
-                  color: trend.status === 'up' ? 'var(--green)' : 'var(--red)',
-                  opacity: 0.7,
-                }}
-              >
-                {trend.status === 'up' ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
-                {trend.change}% zum Vorwert
-              </div>
-            )}
-          </div>
-        )}
+        <ExerciseHistoryCollapse
+          prev={prev}
+          trend={trend}
+          showHistory={showHistory}
+          setShowHistory={setShowHistory}
+        />
       </div>
 
       {/* Set grid */}
-      {setsArr.length > 0 && (
-        <div className="px-3 pb-3">
-          {/* Pattern / Drop-set banner */}
-          {(expandHint || patternSummary || isDropSet) && (
-            <div
-              className="flex items-center justify-between gap-2 px-3 py-1.5 mb-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
-              style={{
-                background: expandHint
-                  ? 'rgba(var(--accent-rgb,200,255,0),0.08)'
-                  : isDropSet
-                    ? 'rgba(255,140,50,0.08)'
-                    : 'var(--bg2)',
-                border: expandHint
-                  ? '1px solid rgba(var(--accent-rgb,200,255,0),0.2)'
-                  : isDropSet
-                    ? '1px solid rgba(255,140,50,0.2)'
-                    : '1px solid var(--line)',
-                color: expandHint ? 'var(--accent)' : isDropSet ? 'var(--orange)' : 'var(--dim)',
-              }}
-            >
-              {expandHint
-                ? `✓ ${expandHint.sets} × ${expandHint.reps} Reps`
-                : isDropSet
-                  ? '↓ Drop-Set'
-                  : `Straight · ${patternSummary.count}×${patternSummary.reps}${patternSummary.weight ? ` @ ${patternSummary.weight}kg` : ''}`}
-            </div>
-          )}
-
-          {/* Column headers */}
-          <div className="grid grid-cols-[24px_1fr_auto_1fr_28px] gap-1 px-1 mb-1.5">
-            <span />
-            <span
-              className="text-[9px] font-black uppercase tracking-widest text-center"
-              style={{ color: 'var(--dim)', opacity: 0.4 }}
-            >
-              Reps
-            </span>
-            <span />
-            <span
-              className="text-[9px] font-black uppercase tracking-widest text-center"
-              style={{ color: 'var(--dim)', opacity: 0.4 }}
-            >
-              kg
-            </span>
-            <span />
-          </div>
-
-          {/* Set rows */}
-          <div className="space-y-1.5">
-            {setsArr.map((set, sIdx) => {
-              const flashReps   = flashSet?.idx === sIdx && flashSet?.field === 'reps';
-              const flashWeight = flashSet?.idx === sIdx && flashSet?.field === 'weight';
-              return (
-                <div
-                  key={sIdx}
-                  className="grid grid-cols-[24px_1fr_auto_1fr_28px] items-center gap-1 animate-in slide-in-from-left-1 duration-150"
-                >
-                  {/* Set label */}
-                  <span
-                    className="text-[9px] font-black text-center"
-                    style={{ color: 'var(--dim)', opacity: 0.3 }}
-                  >
-                    {sIdx + 1}
-                  </span>
-
-                  {/* Reps */}
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => stepReps(sIdx, -1)}
-                      className="absolute left-0 top-0 bottom-0 w-9 flex items-center justify-center transition-all z-10 rounded-l-xl"
-                      style={{ color: 'var(--dim)', opacity: 0.5 }}
-                      onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = 'var(--accent)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--dim)'; }}
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder={sIdx === 0 ? '5×5' : '—'}
-                      value={set.reps || ''}
-                      onChange={e => updateEx(i, 'reps', e.target.value, sIdx)}
-                      onBlur={e => tryExpandReps(e.target.value, sIdx)}
-                      onKeyDown={e => { if (e.key === 'Enter' && tryExpandReps(e.target.value, sIdx)) e.target.blur(); }}
-                      className="w-full text-center font-mono font-black py-2.5 px-9 rounded-xl text-sm outline-none transition-all"
-                      style={{
-                        background: flashReps ? 'rgba(var(--accent-rgb,200,255,0),0.08)' : 'var(--bg2)',
-                        border: flashReps ? '1.5px solid var(--accent)' : '1.5px solid var(--line)',
-                        color: 'var(--ink)',
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => stepReps(sIdx, +1)}
-                      className="absolute right-0 top-0 bottom-0 w-9 flex items-center justify-center transition-all z-10 rounded-r-xl"
-                      style={{ color: 'var(--dim)', opacity: 0.5 }}
-                      onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = 'var(--accent)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--dim)'; }}
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                    {flashReps && flashSet?.delta != null && (
-                      <span
-                        className="pointer-events-none absolute -top-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase animate-in fade-in slide-in-from-bottom-1 duration-150"
-                        style={{ background: 'var(--accent)', color: '#000' }}
-                      >
-                        {flashSet.delta > 0 ? `+${flashSet.delta}` : flashSet.delta}
-                      </span>
-                    )}
-                  </div>
-
-                  <span
-                    className="text-[11px] font-black italic text-center"
-                    style={{ color: 'var(--dim)', opacity: 0.3 }}
-                  >
-                    @
-                  </span>
-
-                  {/* Weight */}
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => stepWeight(sIdx, -2.5)}
-                      className="absolute left-0 top-0 bottom-0 w-9 flex items-center justify-center transition-all z-10 rounded-l-xl"
-                      style={{ color: 'var(--dim)', opacity: 0.5 }}
-                      onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = 'var(--accent)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--dim)'; }}
-                    >
-                      <ChevronDown size={14} />
-                    </button>
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      placeholder="kg"
-                      value={set.weight || ''}
-                      onChange={e => updateEx(i, 'weight', e.target.value, sIdx)}
-                      className="w-full text-center font-mono font-black py-2.5 px-9 rounded-xl text-sm outline-none transition-all"
-                      style={{
-                        background: flashWeight ? 'rgba(var(--accent-rgb,200,255,0),0.08)' : 'var(--bg2)',
-                        border: flashWeight ? '1.5px solid var(--accent)' : '1.5px solid var(--line)',
-                        color: 'var(--ink)',
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => stepWeight(sIdx, +2.5)}
-                      className="absolute right-0 top-0 bottom-0 w-9 flex items-center justify-center transition-all z-10 rounded-r-xl"
-                      style={{ color: 'var(--dim)', opacity: 0.5 }}
-                      onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = 'var(--accent)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.color = 'var(--dim)'; }}
-                    >
-                      <ChevronUp size={14} />
-                    </button>
-                    {flashWeight && flashSet?.delta != null && (
-                      <span
-                        className="pointer-events-none absolute -top-1.5 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase animate-in fade-in slide-in-from-bottom-1 duration-150"
-                        style={{ background: 'var(--accent)', color: '#000' }}
-                      >
-                        {flashSet.delta > 0 ? `+${flashSet.delta}` : flashSet.delta}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Remove set */}
-                  <button
-                    onClick={() => removeSet(i, sIdx)}
-                    className="w-6 h-6 rounded-lg flex items-center justify-center transition-all"
-                    style={{ color: 'var(--dim)', opacity: 0.3 }}
-                    onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.color = 'var(--red)'; e.currentTarget.style.background = 'rgba(255,80,80,0.08)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.opacity = '0.3'; e.currentTarget.style.color = 'var(--dim)'; e.currentTarget.style.background = 'transparent'; }}
-                  >
-                    <X size={12} />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Add set */}
-          <button
-            onClick={() => addSet(i)}
-            className="w-full mt-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-1.5 transition-all"
-            style={{
-              background: 'rgba(var(--accent-rgb,200,255,0),0.04)',
-              border: '1.5px dashed rgba(var(--accent-rgb,200,255,0),0.2)',
-              color: 'var(--accent)',
-              opacity: 0.7,
-            }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.background = 'rgba(var(--accent-rgb,200,255,0),0.08)'; }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.background = 'rgba(var(--accent-rgb,200,255,0),0.04)'; }}
-          >
-            <Plus size={12} strokeWidth={3} />
-            Satz hinzufügen
-          </button>
-        </div>
-      )}
+      <SetGridEditor
+        i={i}
+        setsArr={setsArr}
+        updateEx={updateEx}
+        removeSet={removeSet}
+        addSet={addSet}
+        expandHint={expandHint}
+        patternSummary={patternSummary}
+        isDropSet={isDropSet}
+        flashSet={flashSet}
+        tryExpandReps={tryExpandReps}
+        stepReps={stepReps}
+        stepWeight={stepWeight}
+      />
 
       {/* Note footer */}
       <div
