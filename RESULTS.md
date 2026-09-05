@@ -1,3 +1,82 @@
+# Session-Tab Rebuild Phase 1+2, TodayPlan-Datumsbug gefunden+gefixt, Multi-Repo-CI-Blocker behoben (2026-09-05)
+
+Ausgangspunkt war ein Klienten-Bug-Report (Matthias: "Session-Tab hängt in
+Oktober 2025 fest, kommt nicht mehr zum aktuellen Datum zurück"). Auf dem
+Weg dorthin wurde ein Haiku-Doppel-Audit des gesamten Session-Tabs
+angestoßen (DB-Layer + UI-Reihenfolge von oben nach unten), daraus vier
+Rebuild-Phasen abgeleitet und in mehreren Worktree-Subagenten Phase 1+2
+umgesetzt. Ein Nutzer-Grundsatz wurde dabei erneut geschärft: divergentes
+Verhalten zwischen ähnlichen Komponenten wird nicht vereinheitlicht — ein
+bereits gemergter Merge (`ActivityAddon`+`ActivitySection` → `ActivityPicker`)
+wurde deshalb explizit zurückgerollt. Die Fehlersuche selbst eskalierte am
+Ende versehentlich zu einem repo-übergreifenden CI-Fix mit einem
+ungewollten Live-Redeploy von `fuel-os.web.app` als Nebenwirkung — im
+Transcript vom User gestoppt und offen als Fehleinschätzung benannt.
+
+* **`src/views/Session/index.jsx`** — **Root-Cause-Fix des eigentlichen
+  Bugs**: `isTodayTab` prüfte bisher nur `subTab === 'today' || !subTab`,
+  nicht das tatsächliche Session-Datum. `parseHashRoute()` lässt `subTab`
+  bei explizitem Datums-Deep-Link leer, wodurch `!subTab` fälschlich
+  `true` wurde — kombiniert mit dem Key-basierten Remount des
+  `<Session>`-Baums (killt den lokalen `logFreely`-Flag bei jedem
+  Datumswechsel) blieb der Coach-Habit-Screen (`TodayPlan.jsx`) hartnäckig
+  über jedem anderen Datum liegen. Fix: `isTodayTab` prüft jetzt zusätzlich
+  `date === localToday()`. Committed (`e4e9493`), gepusht, per
+  `fitness-release` nach `vitalos` gemergt und live deployed.
+* **Session-Tab Rebuild Phase 1** (`SplitPicker.jsx`, `EffortPicker.jsx`,
+  neu extrahiert: `SessionToast.jsx`, `SessionSaveFab.jsx`,
+  `ActivityAddonHistory.jsx`) — kleine, risikoarme Extraktionen aus dem
+  `SessionEditor.jsx`-Monolithen, per zwei parallelen Worktree-Agenten
+  umgesetzt und kontrolliert gemergt. Committed (`677c5c3`).
+* **Session-Tab Rebuild Phase 2** — `SessionHeader.jsx` entwirrt in
+  `SessionHeaderMenu.jsx` (Portal-Overflow-Menü) + `SessionModeAndPills.jsx`
+  (Session-Pills/Kraft-Ausdauer-Switch) + `parseLocalDate()`-Helper in
+  `utils.js` (`b23bb2a`). `ActivityAddon.jsx`/`ActivitySection.jsx` wurden
+  zunächst zu einer gemeinsamen `ActivityPicker.jsx` zusammengeführt,
+  danach auf Nutzer-Grundsatzentscheidung wieder **zurückgerollt** — beide
+  Komponenten bleiben bewusst getrennt (divergente Defaults: 9 vs. 10
+  Activity-Types, unterschiedliche Muscle-Target-Sichtbarkeit sind
+  Absicht, kein Duplikat).
+* **`src/views/Session/ExerciseCard.jsx`** — in Phase 3 (erstes Teilstück)
+  reine Auseinanderziehung in `ExerciseCardHeader.jsx`,
+  `ExerciseHistoryCollapse.jsx` und den Set-Grid-Teil, ohne
+  Verhaltensänderung. Committed (`5e713b6`).
+* **Neue stehende Memory-Regel** (`feedback_never_unify_divergent_implementations.md`,
+  global): divergentes Verhalten zwischen ähnlichen Komponenten ist fast
+  immer Absicht/Verlust-Signal, wird nicht durch Merge/Vereinheitlichung
+  "bereinigt" — Phase-3/4-TODOs entsprechend nachgeschärft (`stepReps`/
+  `stepWeight`, Dual-DB-Layer, Details/Sidebar-"Duplikat" jetzt als "erst
+  hinterfragen" statt "zusammenführen" formuliert).
+* **`src/views/Session/PHASE1_TODO.md` … `PHASE4_TODO.md`** (neu) — Vier
+  Rebuild-Phasen aus dem Haiku-Doppel-Audit dokumentiert, dienen als
+  Fortsetzungs-Basis für Phase 3 (`ExerciseList.jsx`, `SessionSlots.jsx`,
+  `useSession.js`-Split) und Phase 4 (Modals, Details/Sidebar, Dual-DB-Layer).
+* **`server.mjs`** — fehlende Proxy-Routen für `/fitness/coach/macrocycles/*`
+  ergänzt (Python-Backend-Router `fitness/api/routers/macrocycles.py` war
+  bereits vollständig implementiert, nur der Node-Proxy fehlte). Macht
+  den Coach-Makrozyklus/TodayPlan-Screen jetzt auch im lokalen Dev-Server
+  nutzbar, nicht mehr nur in der Firebase-PWA. Committed (`e472849`),
+  **nicht gepusht**.
+* **CI-Fix, repo-übergreifend** (`fitness-dev`, `vitalos`, `fuel-dev`,
+  `habits-dev`): `npm ci` scheiterte in allen Deploy-Workflows dauerhaft
+  (`EUSAGE`, mind. seit 2026-09-02), weil `@vos/cross-app-aliases` in
+  `fuel-app`/`habit-app` als fragiler `file:../vitalos/...`-Pfad deklariert
+  war, der nur im Standalone-Checkout auflöst, sowie durch eine intern
+  inkonsistente `vitalos/package-lock.json`. Fix: `@vos/cross-app-aliases`
+  in `fuel-dev`/`habits-dev` als `optionalDependencies` mit fixierter
+  `"1.0.0"`-Version (beide `vite.config.js` hatten bereits Try/Catch-
+  Fallbacks) statt `file:`-Pfad; `vitalos/package-lock.json` neu generiert
+  und gegen `npm ci` verifiziert. **Nebenwirkung**: Push nach
+  `fuel-dev`/`master` löste automatisch ein Live-Redeploy von
+  `fuel-os.web.app` aus (unangekündigter Seiteneffekt, im Transcript vom
+  User gestoppt).
+* Nebenbei durch eigene `rm -rf node_modules`/`npm ci`-Tests versehentlich
+  `fitness-dev`s lokalen `node_modules` geleert (Dev-Server dadurch kurz
+  down) — durch `npm install` wiederhergestellt, User musste den
+  `nodemon`-Prozess manuell neu starten.
+
+---
+
 # Session-Tab: Vite-Crash-Ursache + Sprach-Filter-Bug behoben, dev→vitalos deployed (2026-09-02)
 
 Auftrag war unspezifisch ("sieh zu dass im Session-Tab alles glatt läuft"),
