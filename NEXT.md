@@ -63,8 +63,10 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   warten, bevor das nach `dev`/`vitalos` geht.
 - `docs`-Commit `81122fc` (`TODO-02_ServerMjsModularisierung.md`) ist
   ebenfalls nur lokal committed, nicht gepusht.
-- Auch die neuen Phase-3-Commits (`9ff7d78`, `f8020b5`, `540dfc7`) sind
-  bisher nur lokal committed, nicht gepusht.
+- Auch die neuen Phase-3-Commits (`9ff7d78`, `f8020b5`, `540dfc7`,
+  `dff5d3d`) und die Phase-4-Commits (`81401ca`, `52555db`, `c21bf15`) sind
+  bisher nur lokal auf `dev` committed, nicht gepusht/gemergt — Claude hat
+  am Sessionende ausdrücklich auf Push/Merge-Freigabe gewartet.
 - CI-Blocker-Fix (`@vos/cross-app-aliases` als `optionalDependencies` in
   `fuel-dev`/`habits-dev`, `vitalos/package-lock.json` neu generiert) wurde
   gepusht, aber die dadurch neu getriggerten GitHub-Actions-Runs
