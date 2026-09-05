@@ -5,6 +5,19 @@ Rebuilds — beide Audits (DB-Layer + UI-Reihenfolge) landen unabhängig
 voneinander bei denselben drei Baustellen. Nicht ohne Tests/manuelle
 Verifikation pro Schritt angehen, nicht alles auf einmal.
 
+**Grundsatz (Nutzer-Korrektur 2026-09-05, siehe globale Memory
+`feedback_never_unify_divergent_implementations`): NICHTS angleichen oder
+vereinheitlichen.** Wo zwei Stellen im Code unterschiedlich aussehen oder
+sich unterschiedlich verhalten, ist die Standard-Annahme, dass das Absicht
+ist oder bei einem früheren Refactor verloren ging — nicht dass es
+bereinigt gehört. "Zusammenführen"/"Deduplizieren" ist selbst der
+riskante Schritt, auch wenn er verhaltenserhaltend gemeint ist (siehe
+Phase-2-Revert des `ActivityPicker.jsx`-Merges). Jeder Punkt unten, der
+nach Zusammenlegen von zwei Implementierungen klingt, braucht VOR der
+Umsetzung eine explizite Rückfrage an den Nutzer — nicht nur bei
+offensichtlichen fachlichen Unterschieden, auch bei vermeintlich reinem
+Copy-Paste-Code.
+
 ## Stücke (Reihenfolge wie unten empfohlen)
 
 ### 1. ExerciseCard.jsx (~600 Zeilen — größte Einzeldatei im Tab)
@@ -15,8 +28,12 @@ Verifikation pro Schritt angehen, nicht alles auf einmal.
         NxM-Expansion, Drop-Set-Detection)
       - `ExerciseHistoryCollapse.jsx` (Previous-Stats/`prevMap`-Anzeige)
       - `ExerciseCard.jsx` bleibt nur noch Orchestrator.
-- [ ] `stepReps()`/`stepWeight()` (fast identischer Copy-Paste-Code) zu
-      einem gemeinsamen `stepNumericField()`-Helper zusammenführen.
+- [ ] `stepReps()`/`stepWeight()` genau gegenlesen, ob sie WIRKLICH
+      identisch sind (nicht nur "sehen ähnlich aus"). Nur falls
+      tatsächlich bit-identische Logik (keine unterschiedlichen
+      Rundungs-/Schrittweiten/Edge-Cases zwischen Reps und Gewicht): dem
+      Nutzer explizit vorschlagen zusammenzuführen, nicht eigenmächtig
+      mergen. Im Zweifel getrennt lassen.
 - [ ] Async-Trend-Fetch (`getProgressTrend(ex.name)`) bekommt eine
       `useEffect`-Cleanup/Abort — aktuell keine Cancel-Logik, potentielle
       Race-Condition bei schnellem Übungs-Wechsel.
