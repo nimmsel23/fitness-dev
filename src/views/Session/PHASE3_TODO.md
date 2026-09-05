@@ -21,13 +21,15 @@ Copy-Paste-Code.
 ## Stücke (Reihenfolge wie unten empfohlen)
 
 ### 1. ExerciseCard.jsx (~600 Zeilen — größte Einzeldatei im Tab)
-- [ ] In Sub-Komponenten aufteilen:
+- [x] In Sub-Komponenten aufteilen (2026-09-05, rein mechanisch, keine
+      Logik/Werte verändert, `npm run build` grün):
       - `ExerciseCardHeader.jsx` (Name, Muscle-Tags, Trend, Recovery-Hours,
         Volume-Summary, Delete-Button)
       - `SetGridEditor.jsx` (Set-Grid, Reps/Weight-Inputs + Steppers,
         NxM-Expansion, Drop-Set-Detection)
       - `ExerciseHistoryCollapse.jsx` (Previous-Stats/`prevMap`-Anzeige)
-      - `ExerciseCard.jsx` bleibt nur noch Orchestrator.
+      - `ExerciseCard.jsx` ist jetzt reiner Orchestrator (State + berechnete
+        Werte + Handler + Zusammensetzen + Notiz-Footer inline).
 - [ ] `stepReps()`/`stepWeight()` genau gegenlesen, ob sie WIRKLICH
       identisch sind (nicht nur "sehen ähnlich aus"). Nur falls
       tatsächlich bit-identische Logik (keine unterschiedlichen
