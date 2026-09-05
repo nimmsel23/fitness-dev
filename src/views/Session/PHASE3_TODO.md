@@ -80,18 +80,34 @@ Copy-Paste-Code.
       alle Slot-Listen bereit.
 
 ### 3. SessionSlots.jsx (~220 Z.)
-- [ ] Nested-DnD-Problem lösen: Slots selbst sind untereinander nicht
-      sortierbar (nur Exercises zwischen Slots/Basis-Abschnitt) — DnD-
-      Konzept auf Session-Ebene klären, bevor an der Komponente selbst
-      geschraubt wird.
-- [ ] Template-Persistenz verifizieren: `getSlotTemplates(block)`/
-      `saveSlotTemplate()` sollen über `@db/slotTemplates.js` laufen
-      (`lib/db/local|firestore/slotTemplates.js`) — im Audit nicht
-      abschließend bestätigt, gegenchecken.
-- [ ] `SlotCard.jsx` als eigene Komponente aus der Slot-Listen-Verwaltung
-      herauslösen (aktuell beides in `SessionSlots.jsx` vermischt).
-- [ ] ~20 durchgereichte Props (u.a. komplettes `exerciseListProps`-Bündel)
-      reduzieren, sobald ExerciseList (#2) den eigenen Hook hat.
+- [x] Nested-DnD-Problem gelöst (2026-09-05, User-Entscheidung: volles
+      nested dnd-kit-Sortable statt Pfeil-Buttons). Slots sind jetzt per
+      eigenem Griff-Icon (`SortableSlotRow` in `SessionSlots.jsx`, gleiches
+      Muster wie `SortableExerciseRow` in `ExerciseList.jsx`) untereinander
+      sortierbar — eigene `SortableContext` über die Slot-IDs, im selben
+      `DndContext` wie die Exercise-Listen (dnd-kit erkennt Drags nur über
+      den nächsten Vorfahren-Context, ein zweiter, verschachtelter
+      `DndContext` wäre nicht nutzbar gewesen). Unterscheidung der beiden
+      Reorder-Pfade in `SessionEditor.jsx::handleDragEnd()` über
+      `active.data.current?.type` (`'slot'` vs. `'exercise'`, letzteres neu
+      an `ExerciseList.jsx`s Sortable-Items ergänzt). Neuer Handler
+      `reorderSlots(activeId, overId)` in `useSession.js` nutzt
+      `arrayMove()` aus `@dnd-kit/sortable` und vergibt `order` für alle
+      Slots neu (das Feld existierte vorher schon, wurde aber nie geändert
+      außer beim Anlegen). `npm run build` grün.
+- [x] Template-Persistenz verifiziert (2026-09-05): `getSlotTemplates()`/
+      `saveSlotTemplate()` laufen sauber über `@db` →
+      `lib/db/local/slotTemplates.js` (lokal) bzw.
+      `lib/db/firestore/slotTemplates.js` (Firebase-Build), beide korrekt
+      in ihrem jeweiligen Barrel (`lib/db/index.js` /
+      `lib/db/index.firestore.js`) re-exportiert. Kein Fix nötig.
+- [x] `SlotCard.jsx` als eigene Datei herausgelöst (rein mechanisch, keine
+      Logik verändert) — `SessionSlots.jsx` importiert sie jetzt und
+      kümmert sich nur noch um Slot-Liste + Reorder + Templates + Add-Button.
+- [x] Props reduziert: profitiert direkt von Stück 2s `exerciseOps`-Bündel
+      — `...exerciseListProps` (Rest-Spread in `SessionSlots`s
+      Funktionssignatur) enthält jetzt `restHours, muscleRecovery, date,
+      prevMap, onInspectExercise, exerciseOps` (6 statt vorher 16 Keys).
 
 ### 4. useSession.js (771 Zeilen — der State-Monolith)
 - [ ] In Mini-Hooks aufspalten (aus DB-Layer-Audit + UI-Audit

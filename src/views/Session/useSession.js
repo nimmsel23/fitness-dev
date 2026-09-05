@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+import { arrayMove } from '@dnd-kit/sortable';
 import {
   saveSession, getSessionHistory, listSessionsForDate, deleteSession,
   deleteActivityAddon,
@@ -224,6 +225,23 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
 
   function updateSlot(id, patch) {
     setSlots(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s));
+    scheduleAutoSave();
+  }
+
+  // Slots untereinander sortierbar machen (PHASE3_TODO.md Stück 3, User-
+  // Entscheidung 2026-09-05: volles nested dnd-kit-Sortable statt Pfeil-
+  // Buttons). `order` existierte als Feld schon immer, wurde aber nie
+  // geändert (nur beim Anlegen als prev.length gesetzt) — hier erstmals
+  // tatsächlich neu vergeben, nach demselben Muster wie moveExercise() für
+  // einzelne Übungen.
+  function reorderSlots(activeId, overId) {
+    setSlots(prev => {
+      const sorted = [...prev].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      const oldIndex = sorted.findIndex(s => s.id === activeId);
+      const newIndex = sorted.findIndex(s => s.id === overId);
+      if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return prev;
+      return arrayMove(sorted, oldIndex, newIndex).map((s, idx) => ({ ...s, order: idx }));
+    });
     scheduleAutoSave();
   }
 
@@ -743,7 +761,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     activity, setActivity,
     hasActivity, setHasActivity,
     activityAddons, removeActivityAddon,
-    slots, addSlot, removeSlot, updateSlot,
+    slots, addSlot, removeSlot, updateSlot, reorderSlots,
     sessionGate, setSessionGate,
     recentSessions,
     hasMoreHistory, loadMoreHistory,

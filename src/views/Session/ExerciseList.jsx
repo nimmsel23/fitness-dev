@@ -29,7 +29,7 @@ import ExerciseSearchOverlay from '../../components/ExerciseSearchOverlay';
 function SortableExerciseRow({ ex, containerId, children }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: ex.id,
-    data: { containerId },
+    data: { type: 'exercise', containerId },
   });
   const style = {
     transform: CSS.Transform.toString(transform),

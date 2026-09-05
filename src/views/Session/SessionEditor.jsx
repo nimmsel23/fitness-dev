@@ -45,7 +45,7 @@ export default function SessionEditor({
   hasActivity, setHasActivity,
   activityAddons, removeActivityAddon,
   sessionGate,
-  slots, addSlot, removeSlot, updateSlot,
+  slots, addSlot, removeSlot, updateSlot, reorderSlots,
   recentSessions,
   hint,
   prevMap,
@@ -127,6 +127,23 @@ export default function SessionEditor({
     moveExercise(activeId, targetSlotId, targetIndex);
   }
 
+  // Slots selbst sind seit Phase-3-Stück-3 ebenfalls per dnd-kit sortierbar
+  // (eigene SortableContext in SessionSlots.jsx, gleicher DndContext wie die
+  // Exercise-Listen). `type` in den jeweiligen `data`-Objekten (siehe
+  // ExerciseList.jsx/SessionSlots.jsx) unterscheidet, welcher der beiden
+  // Reorder-Pfade greift — beide teilen sich diesen einen DndContext, weil
+  // dnd-kit Drag-Erkennung nur über den nächsten Vorfahren-Context läuft.
+  function handleDragEnd({ active, over }) {
+    if (!over) return;
+    if (active.data.current?.type === 'slot') {
+      if (over.data.current?.type === 'slot' && active.id !== over.id) {
+        reorderSlots(active.id, over.id);
+      }
+      return;
+    }
+    handleExerciseDragEnd({ active, over });
+  }
+
   return (
     <div className="pb-36">
       {/* Sticky header — DateStrip/SessionSwitcher/hint/ModeSwitcher merged into one calm unit */}
@@ -155,7 +172,7 @@ export default function SessionEditor({
 
       <div className="px-2 space-y-4 mt-1">
         {sessionMode === 'strength' ? (
-          <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleExerciseDragEnd}>
+          <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             {/* Basis-Übungsliste = impliziter erster Abschnitt der Session
                 (wie schon immer: Übungen + Sets + Activity-Finisher unten). */}
             <ExerciseList
