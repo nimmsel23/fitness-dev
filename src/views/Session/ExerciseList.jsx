@@ -1,6 +1,18 @@
 /**
  * ExerciseList — Container for exercise cards + add/quick-add controls.
  * Upgraded version of ExerciseSection.jsx.
+ *
+ * Harte Abhängigkeit (PHASE3_TODO.md Stück 2): braucht einen umschließenden
+ * <DndContext> aus @dnd-kit/core im Parent — useDroppable()/useSortable()
+ * werfen sonst, es gibt keinen lokalen Fallback. Aktuell stellt
+ * SessionEditor.jsx genau einen DndContext für die Basisliste UND alle
+ * Slot-Listen (SessionSlots.jsx) gemeinsam bereit.
+ *
+ * exerciseOps bündelt die reinen Übungs-Mutations-Handler + Quick-Input-
+ * State aus useSession.js (vorher 11 einzeln durchgereichte Props) — reine
+ * Anzeige-/Kontext-Props (exercises, restHours, muscleRecovery, date,
+ * prevMap, onInspectExercise) bleiben einzeln, weil sie je nach Aufrufer
+ * (Basis-Abschnitt vs. einzelner Slot) unterschiedlich sind.
  */
 
 import { useState } from 'react';
@@ -41,10 +53,13 @@ function SortableExerciseRow({ ex, containerId, children }) {
 
 export default function ExerciseList({
   exercises = [], restHours, muscleRecovery = {}, containerId = '__base__',
-  updateEx, addSet, removeSet, removeEx, replaceSets, moveEx,
-  date, addEx, quickInput, setQuickInput, addQuick,
-  prevMap = {}, onInspectExercise, onToast,
+  date, prevMap = {}, onInspectExercise,
+  exerciseOps,
 }) {
+  const {
+    updateEx, addSet, removeSet, removeEx, replaceSets, moveEx,
+    addEx, quickInput, setQuickInput, addQuick, onToast,
+  } = exerciseOps;
   const [showSearch, setShowSearch] = useState(false);
   const safe = Array.isArray(exercises) ? exercises : [];
   const { setNodeRef: setDroppableRef } = useDroppable({ id: containerId });

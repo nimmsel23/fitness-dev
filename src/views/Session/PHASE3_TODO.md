@@ -51,15 +51,33 @@ Copy-Paste-Code.
       dem Memo ungenutzt).
 
 ### 2. ExerciseList.jsx
-- [ ] Props-Drilling reduzieren: `useExerciseListState()`/`useExerciseOps()`
-      Custom-Hook, der die 15+ durchgereichten Props gegenüber
-      `useSession.js` kapselt.
-- [ ] `addQuick()` (Quick-Input-Parser + AddEx-Wrapper) gehört fachlich
-      nicht in die View — nach `useSession.js` (oder einen dedizierten
-      `useQuickInput()`-Hook) verschieben.
-- [ ] Abhängigkeit vom Parent-`DndContext` explizit dokumentieren (crasht
-      aktuell ohne Kontext, kein lokaler Fallback) — falls das beim
-      Sub-Split relevant wird.
+- [x] Props-Drilling reduziert (2026-09-05): `useSession.js` liefert jetzt
+      zusätzlich ein gebündeltes `exerciseOps`-Objekt (`updateEx, addSet,
+      removeSet, removeEx, replaceSets, moveEx, addEx, quickInput,
+      setQuickInput, addQuick, onToast`) statt 11 einzelner Props.
+      `SessionEditor.jsx` reicht nur noch `exerciseOps` an
+      `ExerciseList`/`SessionSlots` durch (statt 11 Einzel-Props je
+      Aufrufstelle); reine Anzeige-/Kontext-Props (`exercises`, `restHours`,
+      `muscleRecovery`, `date`, `prevMap`, `onInspectExercise`) bleiben
+      bewusst einzeln, weil Basis-Abschnitt und Slots hier unterschiedliche
+      Werte brauchen. `SessionSlots.jsx` (Stück 3) musste dafür an zwei
+      Stellen mitgezogen werden, da es `addEx` nicht nur durchreicht,
+      sondern selbst konsumiert (Slot-Override zum Anhängen der `slotId`,
+      Template-Anwendung in `handleUseTemplate()`) — beide Stellen greifen
+      jetzt auf `exerciseListProps.exerciseOps.addEx` statt
+      `exerciseListProps.addEx`. Kein dedizierter Hook-File nötig, da
+      `useSession.js` selbst schon der Hook ist — die Kapselung ist einfach
+      ein weiteres Feld in dessen Rückgabe-Objekt.
+- [x] `addQuick()` war bereits vor diesem Stück in `useSession.js`
+      implementiert (Quick-Input-Parser via `parseQuick()` + State-Update),
+      nicht in der View — `ExerciseList.jsx` ruft es nur noch über
+      `exerciseOps.addQuick` auf. Punkt war bereits erfüllt, hier nur
+      verifiziert + im neuen Bündel nachgezogen.
+- [x] DndContext-Abhängigkeit dokumentiert: JSDoc-Kommentar am Dateikopf von
+      `ExerciseList.jsx` — `useDroppable()`/`useSortable()` werfen ohne
+      umschließenden `<DndContext>` (kein lokaler Fallback), aktuell stellt
+      `SessionEditor.jsx` genau einen gemeinsamen Context für Basisliste +
+      alle Slot-Listen bereit.
 
 ### 3. SessionSlots.jsx (~220 Z.)
 - [ ] Nested-DnD-Problem lösen: Slots selbst sind untereinander nicht

@@ -40,7 +40,6 @@ export default function SessionEditor({
   notes, setNotes,
   coachFeedback,
   saving, dirty, autoSaveLabel,
-  quickInput, setQuickInput,
   restHours,
   activity, setActivity,
   hasActivity, setHasActivity,
@@ -54,11 +53,12 @@ export default function SessionEditor({
   showSidebar, setShowSidebar,
   showTabSettings, setShowTabSettings,
   rollingDays,
-  toast, showToast,
+  toast,
   // Handlers
   save, selectSession, handleNewSession, handleDeleteSession,
   startSessionGate, stopSessionGate,
-  addEx, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, moveExercise, removeEx,
+  moveExercise,
+  exerciseOps,
   exportObsidian, handleDownload, scheduleAutoSave,
   onInspectExercise,
   currentSubTab,
@@ -163,20 +163,10 @@ export default function SessionEditor({
               exercises={indexedExercises.filter(ex => !ex.slotId)}
               restHours={restHours}
               muscleRecovery={recentSessions[date]?.muscle_recovery || {}}
-              updateEx={updateEx}
-              addSet={addSet}
-              removeSet={removeSet}
-              removeEx={removeEx}
-              replaceSets={replaceSets}
-              moveEx={moveEx}
               date={date}
-              addEx={addEx}
-              quickInput={quickInput}
-              setQuickInput={setQuickInput}
-              addQuick={addQuick}
               prevMap={prevMap}
               onInspectExercise={onInspectExercise}
-              onToast={showToast}
+              exerciseOps={exerciseOps}
             />
 
             {/* Activity finisher addon — für den Basis-Abschnitt, unverändert */}
@@ -199,20 +189,10 @@ export default function SessionEditor({
               updateSlot={updateSlot}
               restHours={restHours}
               muscleRecovery={recentSessions[date]?.muscle_recovery || {}}
-              updateEx={updateEx}
-              addSet={addSet}
-              removeSet={removeSet}
-              removeEx={removeEx}
-              replaceSets={replaceSets}
-              moveEx={moveEx}
               date={date}
-              addEx={addEx}
-              quickInput={quickInput}
-              setQuickInput={setQuickInput}
-              addQuick={addQuick}
               prevMap={prevMap}
               onInspectExercise={onInspectExercise}
-              onToast={showToast}
+              exerciseOps={exerciseOps}
             />
           </DndContext>
         ) : (

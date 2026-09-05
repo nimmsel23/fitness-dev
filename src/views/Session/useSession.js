@@ -766,5 +766,13 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     addEx, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, moveExercise, removeEx,
     exportObsidian, handleDownload, moveSessionToDate,
     scheduleAutoSave,
+    // Gebündelte Übungs-Mutations-Handler + Quick-Input-State für
+    // ExerciseList/SessionSlots (vorher 11 einzeln durchgereichte Props,
+    // siehe PHASE3_TODO.md Stück 2). Einzel-Exports oben bleiben bestehen,
+    // falls andere Aufrufer sie direkt brauchen.
+    exerciseOps: {
+      updateEx, addSet, removeSet, removeEx, replaceSets, moveEx,
+      addEx, quickInput, setQuickInput, addQuick, onToast: showToast,
+    },
   };
 }

@@ -70,7 +70,15 @@ function SlotCard({ slot, exercises, block, updateSlot, removeSlot, exerciseList
 
       {/* Ein Slot ist eine Mini-Session: Übungen, Activity und Notiz sind
           unabhängig voneinander kombinierbar, nicht exklusiv nach `type`. */}
-      <ExerciseList {...exerciseListProps} containerId={slot.id} exercises={exercises} addEx={(ex) => exerciseListProps.addEx(ex, slot.id)} />
+      <ExerciseList
+        {...exerciseListProps}
+        containerId={slot.id}
+        exercises={exercises}
+        exerciseOps={{
+          ...exerciseListProps.exerciseOps,
+          addEx: (ex) => exerciseListProps.exerciseOps.addEx(ex, slot.id),
+        }}
+      />
 
       {(showActivity || slot.activityType) && (
         <div className="flex gap-2">
@@ -151,7 +159,7 @@ export default function SessionSlots({ slots = [], exercises = [], block, addSlo
     });
     if (Array.isArray(tpl.exercises)) {
       for (const ex of tpl.exercises) {
-        await exerciseListProps.addEx(ex, id);
+        await exerciseListProps.exerciseOps.addEx(ex, id);
       }
     }
     setShowTemplates(false);
