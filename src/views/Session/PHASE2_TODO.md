@@ -5,7 +5,7 @@ abgeschlossen (oder zumindest nicht blockierend).
 
 ## Stücke
 
-- [ ] **ActivityAddon.jsx + ActivitySection.jsx zusammenlegen.** Beide sind
+- [x] **ActivityAddon.jsx + ActivitySection.jsx zusammenlegen.** Beide sind
       im Kern dieselbe Activity-Picker-UI, aber mit divergenten Defaults:
       - `ActivityAddon` kennt 9 Activity-Types, `ActivitySection` 10
         (Unterschied: "Walking" fehlt bei Addon).
@@ -29,9 +29,15 @@ abgeschlossen (oder zumindest nicht blockierend).
         Anzeige-Reihenfolge unterscheidet sich (in `ActivityPicker.jsx` als
         `ADDON_ORDER`/`STANDALONE_ORDER` erhalten). Die
         Muscle-Target/Swim-Style-Sichtbarkeits-Inkonsistenz besteht dagegen
-        unverändert fort und ist absichtlich NICHT gefixt — Checkbox bleibt
-        deshalb offen, bis der Nutzer das entschieden hat (siehe offene
-        Fragen in der Session-Antwort des Agents).
+        unverändert fort.
+      - **Nutzer-Entscheidung 2026-09-05:** explizit NICHT angleichen.
+        Button-Reihenfolge bleibt pro Modus unterschiedlich ("So lassen").
+        Bei der Muscle-Target/Swim-Style-Sichtbarkeit auf Nachfrage, ob
+        Cardio-Mode analog zum Addon erweitert werden soll (Muscle-Target
+        auch bei Laufen/Radfahren/etc. zeigen): "nein nicht angleichen".
+        Beide Modi bleiben damit bewusst mit unterschiedlichem
+        Sichtbarkeits-Verhalten bestehen — kein Bug, kein weiterer
+        Handlungsbedarf. Punkt ist damit abgeschlossen.
 
 - [x] **SessionHeader.jsx entwirren** (~200 Z., 4 Verantwortlichkeiten in
       einer Datei). Erledigt 2026-09-05: reines Aufsplitten, kein
