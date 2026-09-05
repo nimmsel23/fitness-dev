@@ -15,7 +15,7 @@
  * footer stays inline here (too small to warrant its own sub-component).
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getProgressTrend } from '@db';
 import { Info } from 'lucide-react';
 import {
@@ -29,7 +29,7 @@ const NXM_PATTERN = /^\s*(\d{1,2})\s*[xX×*]\s*(\d{1,3})\s*$/;
 
 export default function ExerciseCard({
   ex, i, muscleRecovery = {}, updateEx, addSet, removeSet, removeEx, replaceSets, moveEx,
-  isFirst, isLast, prev, onInspectExercise,
+  isFirst, isLast, prev, onInspectExercise, onToast,
 }) {
   const [trend, setTrend]             = useState(null);
   const [showHistory, setShowHistory] = useState(false);
@@ -44,19 +44,28 @@ export default function ExerciseCard({
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
+  // Abort-Guard: schneller Übungs-Wechsel darf keinen veralteten Trend mehr
+  // setzen (Race-Condition, siehe PHASE3_TODO.md).
   useEffect(() => {
-    if (ex.name) getProgressTrend(ex.name).then(setTrend);
+    if (!ex.name) return;
+    let cancelled = false;
+    getProgressTrend(ex.name).then(t => { if (!cancelled) setTrend(t); });
+    return () => { cancelled = true; };
   }, [ex.name]);
-
-  const formatMuscle = m => formatMuscleDetail(m, null, muscleLang, muscleDetail);
 
   // ── NxM Expansion ────────────────────────────────────────────
   const tryExpandReps = (val, sIdx) => {
     const m = NXM_PATTERN.exec(val);
+    // Kein Match = normale Reps-Eingabe (Standardfall), kein Fehler, kein Toast.
     if (!m || !replaceSets) return false;
     const nSets = Math.min(parseInt(m[1], 10), 20);
     const nReps = String(parseInt(m[2], 10));
-    if (nSets < 1) return false;
+    if (nSets < 1) {
+      // Sieht wie NxM aus, ergibt aber 0 Sätze (z.B. "0x5") — hier wollte der
+      // User tatsächlich expandieren, das ist der echte Fehlerfall.
+      onToast?.('Ungültiges Format — z.B. 5x5');
+      return false;
+    }
     const baseWeight = ex.setsArray?.[sIdx]?.weight || ex.setsArray?.[0]?.weight || '';
     replaceSets(i, Array.from({ length: nSets }, () => ({ reps: nReps, weight: baseWeight })));
     setExpandHint({ sets: nSets, reps: nReps });
@@ -116,17 +125,20 @@ export default function ExerciseCard({
   }
 
   // ── Muscle tags ───────────────────────────────────────────────
-  const muscleTags = (() => {
+  // formatMuscle() rief bisher bei jedem Render neu (auch bei Set/Toast-
+  // Änderungen, die mit Muskeln nichts zu tun haben) — memoized auf die
+  // tatsächlich relevanten Inputs (siehe PHASE3_TODO.md).
+  const muscleTags = useMemo(() => {
     const raw = splitMuscleEntries(ex.primaryMuscles || []);
     const seen = new Set();
     const labels = [];
     for (const m of raw) {
-      const label = formatMuscle(m);
+      const label = formatMuscleDetail(m, null, muscleLang, muscleDetail);
       if (label && !seen.has(label)) { seen.add(label); labels.push(label); }
       if (labels.length >= 3) break;
     }
     return labels;
-  })();
+  }, [ex.primaryMuscles, muscleLang, muscleDetail]);
 
   // ── Volume summary ────────────────────────────────────────────
   const volumeSummary = (() => {

@@ -737,7 +737,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     notes, setNotes,
     coachFeedback,
     saving,
-    toast,
+    toast, showToast,
     quickInput, setQuickInput,
     restHours,
     activity, setActivity,

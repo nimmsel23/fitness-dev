@@ -43,7 +43,7 @@ export default function ExerciseList({
   exercises = [], restHours, muscleRecovery = {}, containerId = '__base__',
   updateEx, addSet, removeSet, removeEx, replaceSets, moveEx,
   date, addEx, quickInput, setQuickInput, addQuick,
-  prevMap = {}, onInspectExercise,
+  prevMap = {}, onInspectExercise, onToast,
 }) {
   const [showSearch, setShowSearch] = useState(false);
   const safe = Array.isArray(exercises) ? exercises : [];
@@ -78,6 +78,7 @@ export default function ExerciseList({
                 isLast={idx === safe.length - 1}
                 prev={prevMap[ex.name]}
                 onInspectExercise={onInspectExercise}
+                onToast={onToast}
               />
             </SortableExerciseRow>
           ))}

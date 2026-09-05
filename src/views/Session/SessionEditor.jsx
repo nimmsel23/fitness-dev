@@ -54,7 +54,7 @@ export default function SessionEditor({
   showSidebar, setShowSidebar,
   showTabSettings, setShowTabSettings,
   rollingDays,
-  toast,
+  toast, showToast,
   // Handlers
   save, selectSession, handleNewSession, handleDeleteSession,
   startSessionGate, stopSessionGate,
@@ -176,6 +176,7 @@ export default function SessionEditor({
               addQuick={addQuick}
               prevMap={prevMap}
               onInspectExercise={onInspectExercise}
+              onToast={showToast}
             />
 
             {/* Activity finisher addon — für den Basis-Abschnitt, unverändert */}
@@ -211,6 +212,7 @@ export default function SessionEditor({
               addQuick={addQuick}
               prevMap={prevMap}
               onInspectExercise={onInspectExercise}
+              onToast={showToast}
             />
           </DndContext>
         ) : (

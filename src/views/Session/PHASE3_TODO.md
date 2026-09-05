@@ -30,18 +30,25 @@ Copy-Paste-Code.
       - `ExerciseHistoryCollapse.jsx` (Previous-Stats/`prevMap`-Anzeige)
       - `ExerciseCard.jsx` ist jetzt reiner Orchestrator (State + berechnete
         Werte + Handler + Zusammensetzen + Notiz-Footer inline).
-- [ ] `stepReps()`/`stepWeight()` genau gegenlesen, ob sie WIRKLICH
-      identisch sind (nicht nur "sehen ähnlich aus"). Nur falls
-      tatsächlich bit-identische Logik (keine unterschiedlichen
-      Rundungs-/Schrittweiten/Edge-Cases zwischen Reps und Gewicht): dem
-      Nutzer explizit vorschlagen zusammenzuführen, nicht eigenmächtig
-      mergen. Im Zweifel getrennt lassen.
-- [ ] Async-Trend-Fetch (`getProgressTrend(ex.name)`) bekommt eine
-      `useEffect`-Cleanup/Abort — aktuell keine Cancel-Logik, potentielle
-      Race-Condition bei schnellem Übungs-Wechsel.
-- [ ] `tryExpandReps()` gibt bei Parse-Fehler nur `false` zurück, kein
-      User-Feedback — Toast ergänzen, wenn NxM-Parsing fehlschlägt.
-- [ ] `formatMuscle()` wird bei jedem Render neu aufgerufen — memoizen.
+- [x] `stepReps()`/`stepWeight()` gegengelesen (2026-09-05): **nicht
+      identisch**, bewusst getrennt gelassen. `stepReps` parst als Integer
+      und blockt bei aktivem NxM-Pattern; `stepWeight` parst als Float mit
+      Komma→Punkt-Konvertierung und rundet auf 2 Nachkommastellen —
+      unterschiedliche Domänen (Wiederholungen vs. Gewicht), kein
+      zufälliges Copy-Paste. Kein Merge-Vorschlag nötig.
+- [x] Async-Trend-Fetch (`getProgressTrend(ex.name)`) hat jetzt eine
+      `useEffect`-Cleanup (`cancelled`-Flag) — verhindert, dass ein
+      schneller Übungs-Wechsel einen veralteten Trend setzt.
+- [x] `tryExpandReps()` toastet jetzt bei echtem Parse-Fehler (NxM-Pattern
+      matcht, aber `nSets < 1`, z.B. "0x5"). Normale Reps-Eingabe (kein
+      NxM-Match) bleibt bewusst ohne Toast — das ist der Standardfall,
+      kein Fehler. `showToast` dafür neu aus `useSession.js` exportiert
+      und über `SessionEditor→ExerciseList/SessionSlots→ExerciseCard`
+      als `onToast`-Prop durchgereicht.
+- [x] `muscleTags` (einziger Konsument von `formatMuscle()`) ist jetzt
+      `useMemo`-gecacht auf `[ex.primaryMuscles, muscleLang, muscleDetail]`
+      — `formatMuscle` selbst als separate Funktion entfernt (war nach
+      dem Memo ungenutzt).
 
 ### 2. ExerciseList.jsx
 - [ ] Props-Drilling reduzieren: `useExerciseListState()`/`useExerciseOps()`
