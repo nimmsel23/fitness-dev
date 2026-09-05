@@ -35,24 +35,29 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   Verhalten), noch nicht gegen einen echten Compact-Trigger — erster
   echter Lauf sollte kurz verifiziert werden (füllt er TODO/RESULTS/NEXT
   sinnvoll, committet der PostToolUse-Hook danach sauber).
-- Session-Tab-Rebuild Phase 3: Stück 1 (`ExerciseCard.jsx`-Split +
-  Restpunkte stepReps/stepWeight-Vergleich, Trend-Fetch-Cleanup, Toast bei
-  NxM-Parse-Fehler, `formatMuscle`-Memoisierung) ist jetzt komplett
-  abgehakt (`9ff7d78`). Offen als nächstes Stück: **`ExerciseList.jsx`**
-  (Props-Drilling reduzieren via Custom-Hook, `addQuick()` fachlich nach
-  `useSession.js` verschieben, Parent-`DndContext`-Abhängigkeit
-  dokumentieren) — Nutzer wurde am Ende der Session gefragt ob Stück 2
-  gleich weitergehen soll, Antwort steht noch aus. Danach `SessionSlots.jsx`
-  (verschachteltes DnD/Template-Persistenz klären) und der eigentliche Kern
-  — `useSession.js` (771 Zeilen, 60+ `useState`) in Mini-Hooks aufteilen.
-  Details + Definition-of-Done in `src/views/Session/PHASE3_TODO.md`.
-  Phase 4 (Modals zentralisieren, Details/Sidebar-Duplikat, Dual-DB-Layer)
-  ist noch gar nicht begonnen.
+- Session-Tab-Rebuild Phase 3: Stück 1 (`ExerciseCard.jsx`), Stück 2
+  (`ExerciseList.jsx`, `exerciseOps`-Bündel) und Stück 3 (`SessionSlots.jsx`,
+  Slot-Reorder-DnD + `SlotCard.jsx`-Extraktion) sind jetzt komplett
+  abgehakt (`9ff7d78`, `f8020b5`, `540dfc7`). Nutzer hat für die nächste
+  Session bereits **Stück 4** angewiesen (`weiter mit Stück 4 dann aus
+  Phase 3`), aber noch nicht begonnen: der eigentliche Kern —
+  `useSession.js` (771 Zeilen, 60+ `useState`) in Mini-Hooks aufspalten
+  (`useExerciseList`, `useSessionActivity`, `useSessionSlots`,
+  `useSessionGateController`), vorher Interdependenzen dokumentieren
+  (z.B. `moveExercise()` braucht Slot-Kontext UND Exercise-Liste
+  gleichzeitig), dabei zwei bekannte Einzel-Bugs mitnehmen (GPS-Fehlerpfade
+  mit zwei getrennten Error-Enums, Auto-Save-Race zwischen localStorage-
+  Draft und API-Call im selben Effect). Danach `SessionEditor.jsx` auf
+  reinen Orchestrator zurückstutzen. Details + Definition-of-Done in
+  `src/views/Session/PHASE3_TODO.md`. Phase 4 (Modals zentralisieren,
+  Details/Sidebar-Duplikat, Dual-DB-Layer) ist noch gar nicht begonnen.
 - `server.mjs`-Commit `e472849` (Macrocycles-Proxy-Routen) ist lokal
   committed, aber **nicht gepusht** — auf explizite Freigabe des Nutzers
   warten, bevor das nach `dev`/`vitalos` geht.
 - `docs`-Commit `81122fc` (`TODO-02_ServerMjsModularisierung.md`) ist
   ebenfalls nur lokal committed, nicht gepusht.
+- Auch die neuen Phase-3-Commits (`9ff7d78`, `f8020b5`, `540dfc7`) sind
+  bisher nur lokal committed, nicht gepusht.
 - CI-Blocker-Fix (`@vos/cross-app-aliases` als `optionalDependencies` in
   `fuel-dev`/`habits-dev`, `vitalos/package-lock.json` neu generiert) wurde
   gepusht, aber die dadurch neu getriggerten GitHub-Actions-Runs
