@@ -1,3 +1,38 @@
+# Vier-SOT-Konfliktmodell dokumentiert + Phase 1–4 nach vitalos deployed (2026-09-05)
+
+Abschluss der Session-Tab-Rebuild-Arbeit (siehe Einträge darunter). Nach einem
+weiteren Context-Compact hat der Nutzer die letzte offene Doku-Aufgabe aus
+`PHASE4_TODO.md` freigegeben ("ja schreib die docs noch") und danach
+`fitness-release --yes` ausgelöst — womit alle bis dahin nur lokal auf `dev`
+liegenden Commits (Phase 1–4, Macrocycles-Proxy, server.mjs-Modularisierungs-
+TODO, SOT-Doku) gepusht, in `vitalos` gemergt und nach `fitness-aos.web.app`
+deployed wurden. Die Kette lief fehlerfrei durch.
+
+* **`docs/ARCHITECTURE.md`** (`2893ede`): Session-Storage-Konfliktmodell um
+  die bisher fehlende vierte Schicht ergänzt — den Frontend-Runtime-Draft
+  (`localStorage`, `sessionRuntimeStore.js`) — inkl. eigener Konfliktregel:
+  der Draft gewinnt immer (reiner Zeit-Vorrang für den Client, bewusst kein
+  rev-Vergleich wie bei Firestore), bis ein Save bestätigt ist, damit
+  Reload/Offline nie wie Datenverlust aussieht.
+* **`src/views/Session/AUDIT.md`**: neuer "Auffälligkeiten (2026-09-05)"-
+  Eintrag mit dem vollständigen Dual-DB-Layer-Befund (`ROLE_W`-Gewichte waren
+  bereits identisch / Audit-Punkt stale, der Firestore-KB-Fallback-Fix war
+  real, `getPlanSuggestion()` bleibt bewusst divergent) als Querverweis.
+* **`src/views/Session/PHASE4_TODO.md`**: Definition-of-Done Punkt 3 auf
+  `[x]`. Kein Dual-DB-"eine Seite führt"-Beschluss getroffen (bewusst der
+  Zielzustand), aber die Konfliktlage ist jetzt an einer Stelle nachlesbar.
+* **Deploy via `fitness-release --yes`**: `dev` → `origin/dev` gepusht, in
+  den `vitalos`-Worktree gemergt + gepusht (Post-Push-Hook: KB-Data-Rebuild →
+  `vite build --mode firebase` → Firebase-Deploy nach `fitness-aos.web.app`),
+  Submodule-Pointer im `vitalos`-Parent-Repo gebumpt. Damit sind live: der
+  Mini-Hook-Split von `useSession.js` (`useExerciseList`/`useSessionActivity`/
+  `useSessionSlots`/`useSessionGateController`), der zentrale `activeModal`-
+  State (`SessionModalsLayer.jsx`), der Firestore-KB-Fallback-Fix in
+  `src/lib/db/firestore/analysis.js`, der `/fitness/coach/macrocycles/*`-Node-
+  Proxy (`e472849`) und das `server.mjs`-Modularisierungs-TODO (`81122fc`).
+
+---
+
 # Session-Tab Rebuild Phase 3 Stück 4 + Phase 4 abgeschlossen (2026-09-05)
 
 Direkte Fortsetzung nach mehreren Context-Compacts. Nutzer wies "weiter mit
