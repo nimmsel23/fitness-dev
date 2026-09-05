@@ -17,6 +17,21 @@ abgeschlossen (oder zumindest nicht blockierend).
         `ACTIVITY_MUSCLE_DEFAULTS`-Konstante.
       - Vor dem Merge: mit Nutzer klären, ob die Muscle-Target-Sichtbarkeits-
         Inkonsistenz ein Bug ist oder Absicht war (nicht raten).
+      - **Update 2026-09-05 (Sonnet-Agent, struktureller Teilschritt):**
+        `ActivityPicker.jsx` angelegt und `ActivityAddon.jsx`/
+        `ActivitySection.jsx` zu dünnen Re-Exports mit `mode="addon"` bzw.
+        `mode="standalone"` gemacht — verhaltensidentisch zu vorher,
+        `ADDON_TYPES`-Export (weiter von `SessionSlots.jsx` +
+        `ActivityAddonHistory.jsx` genutzt) bleibt erhalten. Dabei auch
+        festgestellt: die "9 vs 10 Activity-Types"-Diagnose oben ist
+        **stale** — beide Listen enthielten zum Zeitpunkt des Merges
+        bereits identische 10 Werte (inkl. "walking"), nur die
+        Anzeige-Reihenfolge unterscheidet sich (in `ActivityPicker.jsx` als
+        `ADDON_ORDER`/`STANDALONE_ORDER` erhalten). Die
+        Muscle-Target/Swim-Style-Sichtbarkeits-Inkonsistenz besteht dagegen
+        unverändert fort und ist absichtlich NICHT gefixt — Checkbox bleibt
+        deshalb offen, bis der Nutzer das entschieden hat (siehe offene
+        Fragen in der Session-Antwort des Agents).
 
 - [x] **SessionHeader.jsx entwirren** (~200 Z., 4 Verantwortlichkeiten in
       einer Datei). Erledigt 2026-09-05: reines Aufsplitten, kein
