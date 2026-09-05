@@ -1,3 +1,29 @@
+# Session-Tab Rebuild Phase 3 (ExerciseCard-Restpunkte) abgeschlossen (2026-09-05)
+
+Fortsetzung der Session-Tab-Rebuild-Arbeit vom selben Tag (siehe Eintrag
+direkt darunter). Nach einem Context-Compact hat der Nutzer explizit "Phase 3"
+angewiesen — die vier noch offenen Checkbox-Punkte zu `ExerciseCard.jsx` aus
+`PHASE3_TODO.md` (Stück 1) wurden einzeln durchgegangen und abgeschlossen.
+
+* **`stepReps()`/`stepWeight()`** gegengelesen (Punkt aus dem Audit, der
+  ursprünglich als "Copy-Paste-Duplikat zusammenführen" markiert war):
+  tatsächlich **nicht identisch** — `stepReps` parst Integer und blockt bei
+  aktivem NxM-Pattern, `stepWeight` parst Float mit Komma→Punkt-Konvertierung
+  und rundet auf 2 Nachkommastellen. Bewusst getrennt gelassen (passend zur
+  neuen Memory-Regel, divergentes Verhalten nicht zu vereinheitlichen).
+* **`src/views/Session/ExerciseCard.jsx`**: Async-Trend-Fetch jetzt mit
+  Cleanup (kein Race-Condition-Risiko mehr bei schnellem Übungswechsel);
+  Toast-Feedback bei fehlgeschlagenem NxM-Set-Parse ergänzt; `formatMuscle`/
+  `muscleTags`-Berechnung per `useMemo` memoisiert (lief vorher bei jedem
+  Render neu, auch bei reinen Set-/Toast-Updates) — dafür `showToast`
+  durchgereicht von `useSession.js` → `SessionEditor.jsx` →
+  `ExerciseList.jsx`/`SessionSlots.jsx` → `ExerciseCard.jsx`.
+* **`src/views/Session/PHASE3_TODO.md`** — Stück 1 (`ExerciseCard.jsx`)
+  vollständig abgehakt. Build verifiziert (Pre-Commit-Hook), committed
+  (`9ff7d78`), **nicht gepusht**.
+
+---
+
 # Session-Tab Rebuild Phase 1+2, TodayPlan-Datumsbug gefunden+gefixt, Multi-Repo-CI-Blocker behoben (2026-09-05)
 
 Ausgangspunkt war ein Klienten-Bug-Report (Matthias: "Session-Tab hängt in
