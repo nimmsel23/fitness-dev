@@ -107,5 +107,13 @@ umgekehrt zu kürzen.
 1. [x] Modal-States über ein einziges `activeModal`-Feld statt N Booleans
        (erledigt 2026-09-05, siehe Stück 1 oben).
 2. Kein Duplicate-Rendering von `SessionSidebar` mehr.
-3. Dual-DB-Entscheidung (falls in dieser Phase getroffen) explizit in
-   `../CLAUDE.md` bzw. `AUDIT.md` dokumentiert, inkl. Begründung.
+3. [x] Vier-SOT-Konfliktmodell dokumentiert (2026-09-05): dritte Schicht
+   (Firestore) war bereits in `docs/ARCHITECTURE.md` beschrieben, die vierte
+   (Frontend-Runtime-Draft, `localStorage`) fehlte dort — ergänzt inkl.
+   Konfliktregel ("Draft gewinnt immer über Server-Stand, bis Save
+   bestätigt"). Zusätzlich in `src/views/Session/AUDIT.md` als
+   "Auffälligkeiten 2026-09-05" mit dem vollen Dual-DB-Befund (ROLE_W stale,
+   KB-Fallback-Fix, getPlanSuggestion divergent) querverwiesen. Keine neue
+   "eine Schicht führt dauerhaft"-Entscheidung getroffen — bewusst weiterhin
+   Online/Firestore vs. Offline/Node-JSON-Split, das ist der Zielzustand,
+   kein offener Punkt.
