@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { User, Copy, X, Settings2 } from "lucide-react";
-import { useSettings } from "@fuel/store.js";
+import { useUser } from "../../contexts/UserContext.jsx";
 import { useEscapeKey } from "../../hooks/useEscapeKey.js";
 
 const inputCls = "w-full bg-fit-bg2 border border-fit-line rounded-xl px-3 py-2.5 text-sm font-bold text-fit-ink focus:border-fit-accent outline-none transition-colors"
@@ -9,12 +9,16 @@ const inputCls = "w-full bg-fit-bg2 border border-fit-line rounded-xl px-3 py-2.
 export default function UserProfile({ user, subtitle, onOpenSettings }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { age, gender, setSetting } = useSettings()
-  const [heightCm, setHeightCmState] = useState(() => parseInt(localStorage.getItem('vitalos-height') || '175', 10))
-  const [weightKg, setWeightKgState] = useState(() => parseFloat(localStorage.getItem('vitalos-weight') || '80'))
-
-  function setHeight(v) { setHeightCmState(v); localStorage.setItem('vitalos-height', v) }
-  function setWeight(v) { setWeightKgState(v); localStorage.setItem('vitalos-weight', v) }
+  const {
+    age,
+    setAge,
+    gender,
+    setGender,
+    heightCm,
+    setHeightCm,
+    weightKg,
+    setWeightKg,
+  } = useUser();
 
   // ESC schließt das Profil-Quickedit-Modal.
   useEscapeKey(() => setIsOpen(false), isOpen);
@@ -79,7 +83,7 @@ export default function UserProfile({ user, subtitle, onOpenSettings }) {
               {/* Geschlecht */}
               <div className="flex gap-1 p-1 bg-fit-bg2 rounded-xl border border-fit-line">
                 {[{ id: 'm', label: 'Männlich' }, { id: 'f', label: 'Weiblich' }].map(({ id, label }) => (
-                  <button key={id} onClick={() => setSetting('gender', id)}
+                  <button key={id} onClick={() => setGender(id)}
                     className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all ${gender === id ? 'bg-fit-card shadow-md text-fit-accent' : 'text-fit-dim hover:text-fit-ink'}`}>
                     {label}
                   </button>
@@ -90,21 +94,21 @@ export default function UserProfile({ user, subtitle, onOpenSettings }) {
                 <div>
                   <div className="text-[9px] font-black opacity-30 uppercase tracking-widest mb-1 ml-1">Alter</div>
                   <input type="number" value={age} min={15} max={99}
-                    onChange={e => setSetting('age', Number(e.target.value))}
+                    onChange={e => setAge(Number(e.target.value))}
                     className={inputCls} />
                   <div className="text-[8px] opacity-30 ml-1 mt-0.5">Jahre</div>
                 </div>
                 <div>
                   <div className="text-[9px] font-black opacity-30 uppercase tracking-widest mb-1 ml-1">Größe</div>
                   <input type="number" value={heightCm} min={120} max={230}
-                    onChange={e => setHeight(Number(e.target.value))}
+                    onChange={e => setHeightCm(Number(e.target.value))}
                     className={inputCls} />
                   <div className="text-[8px] opacity-30 ml-1 mt-0.5">cm</div>
                 </div>
                 <div>
                   <div className="text-[9px] font-black opacity-30 uppercase tracking-widest mb-1 ml-1">Gewicht</div>
                   <input type="number" value={weightKg} min={30} max={300} step={0.5}
-                    onChange={e => setWeight(Number(e.target.value))}
+                    onChange={e => setWeightKg(Number(e.target.value))}
                     className={inputCls} />
                   <div className="text-[8px] opacity-30 ml-1 mt-0.5">kg</div>
                 </div>

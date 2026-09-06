@@ -82,7 +82,7 @@ def _link_source(ex: dict, source: str, entry: dict) -> dict:
     return ex
 
 
-def _write_back_to_firestore(uid: str | None, doc_id: str | None, enriched_data: dict) -> None:
+def _write_back_to_firestore(uid: str | None, doc_id: str | None, enriched_data: dict, status: str = "source_linked") -> None:
     if not uid or not doc_id:
         return
     try:
@@ -93,9 +93,35 @@ def _write_back_to_firestore(uid: str | None, doc_id: str | None, enriched_data:
         if not ref.get().exists:
             return
         ref.update({
-            "status": "source_linked",
+            "status": status,
             "enriched": enriched_data,
         })
+    except Exception:
+        pass
+
+
+def _write_approved_to_firestore(uid: str | None, doc_id: str | None, exercise_id: str, exercise: dict) -> None:
+    if not uid or not doc_id:
+        return
+    try:
+        from google.cloud.firestore_v1 import SERVER_TIMESTAMP
+        from fitness.firestore.kb import get_db
+
+        db = get_db()
+        batch = db.batch()
+        inbox_ref = db.collection("fitness").document(uid).collection("inbox").document(doc_id)
+        kb_ref = db.collection("fitness").document("kb").collection("exercises").document(exercise_id)
+        batch.set(kb_ref, {
+            **exercise,
+            "source": "approved",
+            "approved_at": SERVER_TIMESTAMP,
+        })
+        batch.update(inbox_ref, {
+            "status": "approved",
+            "approved_at": SERVER_TIMESTAMP,
+            "enriched": exercise,
+        })
+        batch.commit()
     except Exception:
         pass
 
@@ -186,9 +212,25 @@ async def inbox_queue(request: Request):
 
 
 @router.post("/fitness/inbox/{id}/approve")
-def inbox_approve(id: str):
-    f = INBOX_DIR / f"{id}.yml"
-    if not f.exists():
+async def inbox_approve(id: str, request: Request):
+    body = {}
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    current_data = body.get("current_data") if isinstance(body.get("current_data"), dict) else {}
+
+    f = _draft_path_for(id, current_data)
+    if f is None and current_data:
+        INBOX_DIR.mkdir(parents=True, exist_ok=True)
+        f = INBOX_DIR / f"{id if id.startswith('inbox_') else f'inbox_{id}'}.yml"
+        f.write_text(yaml.dump({
+            "name": f.stem,
+            "description": f"Firestore inbox approve for: {current_data.get('display_name') or current_data.get('name') or id}",
+            "queued_at": datetime.utcnow().isoformat(),
+            "exercises": [current_data],
+        }, allow_unicode=True, sort_keys=False))
+    if f is None or not f.exists():
         raise HTTPException(404, detail="not_found")
     data = yaml.safe_load(f.read_text()) or {}
     exercises = data.get("exercises") if isinstance(data, dict) else None
@@ -197,6 +239,7 @@ def inbox_approve(id: str):
         raise HTTPException(400, detail="invalid_inbox_entry")
     from fitness.catalog.agent.inbox_actions import approve_inbox_entry
     approved_id = approve_inbox_entry(f, ex)
+    _write_approved_to_firestore(body.get("uid") or body.get("userId"), body.get("doc_id") or id, approved_id, ex)
     return {"ok": True, "id": id, "exercise_id": approved_id}
 
 

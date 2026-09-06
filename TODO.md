@@ -8,8 +8,10 @@ Beispielfeature: Trainingsplanbesprechung zwischen Klient und Coach. Social Medi
   Workflow.
 - Stand 2026-09-06: Source-Merge im Coach-Tab ist als expliziter
   `Verbinden`-Flow umgesetzt. Firebase kann bei laufendem lokalem
-  FastAPI-Prod-Server `http://127.0.0.1:6100/fitness` wger-/yuhonas-Kandidaten
-  an Inbox-Drafts hängen, sodass der spätere Expert-Datensatz beide IDs kennt.
+  FastAPI-Prod-Server wger-/yuhonas-Kandidaten an Inbox-Drafts hängen, sodass
+  der spätere Expert-Datensatz beide IDs kennt. Desktop nutzt
+  `http://127.0.0.1:6100/fitness`; Firebase Hosting nutzt per Default den
+  Funnel `https://ideapad.tail7a15d6.ts.net/fitness/fitness`.
 - Stand 2026-09-06: Reenrich ist als Rebuild alter Inbox-Drafts zu verstehen,
   nicht als reines Umformulieren von AI-Coach-Text. Bestätigte Provenance-Felder
   (`wger_id`, `yuhonas_id`, `external_ids`, `origin`, `source_snapshot`) müssen
@@ -23,6 +25,8 @@ Beispielfeature: Trainingsplanbesprechung zwischen Klient und Coach. Social Medi
   Firestore. Wenn Approve auch lokale `kb/exercises/*.yml` erzeugen soll, muss
   Approve ebenfalls über den lokalen `:6100`-Pfad laufen und Firestore danach
   nur spiegeln.
+- Architekturgrenze: Fitness importiert Fuel nicht direkt. Ernährung/Fuel bleibt
+  ein eigener Surface; keine `@fuel/*`-Imports im Fitness-Frontend einführen.
 
 
 

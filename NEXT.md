@@ -70,9 +70,40 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   oder Doppelarbeit, wurde nicht geprüft.
 - Coach-Inbox Source-Merge (2026-09-06) ist als expliziter
   `Verbinden`-Flow umgesetzt: Firebase-Coach-Tab kann Kandidaten ueber den
-  lokalen FastAPI-Prod-Server `http://127.0.0.1:6100/fitness` in
-  Firestore/YAML-Drafts verlinken. Offen bleibt ein separater Schritt:
+  lokalen FastAPI-Prod-Server in Firestore/YAML-Drafts verlinken. Desktop nutzt
+  `http://127.0.0.1:6100/fitness`; Firebase Hosting nutzt per Default den
+  Tailscale-Funnel `https://ideapad.tail7a15d6.ts.net/fitness/fitness`.
+  Offen bleibt ein separater Schritt:
   `approveInbox()` im
   Firebase-DB-Layer laeuft noch direkt gegen Firestore; falls Firebase-Approve
   auch lokale `kb/exercises/*.yml` erzeugen soll, muss Approve ebenfalls ueber
   den lokalen `:6100`-Pfad laufen und Firestore danach nur spiegeln.
+- Direkte Fitness-Fuel-Crossovers sind nicht vorgesehen. Der alte
+  `@fuel/store.js`-Headerimport und Fuel-Firestore-Re-Export wurden entfernt;
+  bei neuen Nutrition-Anforderungen nicht in Fitness importieren, sondern als
+  getrennten Fuel-Surface behandeln.
+
+## Claude Handoff - Firebase Coach-Inbox / Fuel-Grenze (2026-09-06)
+
+Kontext: Der Coach-Tab ist die offene Baustelle. Inbox-Items kommen aus Firestore, lokale Source-/KB-Arbeit muss aber ueber den lokalen Fitness-Prod-Server auf Port 6100 laufen. Der Tailscale Funnel routet nun `/fitness/` auf `http://127.0.0.1:6100/`.
+
+Aktueller Arbeitsstand in diesem Tree:
+- Firebase-Coach-API-Base ist nicht mehr nur hart `127.0.0.1`: `src/lib/db/firestore/core.js` nutzt `localStorage["fitness-local-api-base"]`, dann `VITE_LOCAL_FITNESS_API_BASE`, dann auf Firebase Hosting den Funnel `https://ideapad.tail7a15d6.ts.net/fitness/fitness`, sonst Desktop-Fallback `http://127.0.0.1:6100/fitness`.
+- `BRIDGE_API_BASE` nicht wieder einfuehren. Der Coach-Inbox-Vertrag ist der Fitness-Prod-Server auf 6100.
+- Direkte Fitness-Fuel-Crossovers sind nicht gewollt. `src/components/common/UserProfile.jsx` nutzt jetzt Fitness-`UserContext` statt `@fuel/store.js`; `src/lib/db/index.firestore.app.js` exportiert keine Fuel-Firestore-History mehr, sondern Fitness-Stubs fuer alte Nutrition/Supplement-History-Namen.
+- `vite.config.js` entfernt `@fuel` aus den Cross-App-Aliases, auch wenn `@vos/cross-app-aliases` den Alias liefern sollte. Neue Fitness-Imports aus `@fuel/*` sollen dadurch nicht still funktionieren.
+- Firebase-`approveInbox()` in `src/lib/db/firestore/inbox.js` versucht jetzt zuerst `POST ${LOCAL_FITNESS_API_BASE}/inbox/{id}/approve` mit `uid`, `doc_id` und `current_data`. Nur wenn der lokale Coach-Server nicht erreichbar ist, faellt es auf den direkten Firestore-Batch zurueck.
+- FastAPI `fitness/api/routers/exercises_inbox.py` akzeptiert beim Approve jetzt JSON-Body, kann aus `current_data` notfalls eine lokale Inbox-YAML erzeugen, ruft `approve_inbox_entry()` auf und spiegelt `status: approved` plus Expert-Datensatz nach Firestore zurueck.
+- `server.mjs` Proxy fuer `/fitness/inbox/{id}/approve` reicht JSON-Body weiter; live auf 6100 ist aber FastAPI/uvicorn direkt, nicht `server.mjs` als Edge.
+- `docs/FIREBASE.md`, `RESULTS.md`, `TODO.md` dokumentieren Web SDK vs Admin SDK vs lokales Backend, Funnel, Fuel-Grenze und Coach-Approve-Stand.
+
+Bisherige Verifikation:
+- `npm run build -- --mode firebase` lief nach Entfernen der Fuel-Imports gruen und ohne Fuel-Import-Warnings; transformierte Module gingen von 4515 auf 4184 zurueck. Uebrig war nur die bekannte Chunkgroessen-Warnung.
+- `curl https://ideapad.tail7a15d6.ts.net/fitness/health` antwortete mit FastAPI-Prod (`ok: true`, `port: 6100`).
+- CORS-Preflight gegen `https://ideapad.tail7a15d6.ts.net/fitness/fitness/inbox/example/link-source` antwortete 200 mit `access-control-allow-origin: *`.
+
+Noch vor finalem Deploy/Vertrauen pruefen:
+- Nach dem Approve-Umbau erneut `npm run build -- --mode firebase`, `node --check server.mjs` und `python -m py_compile fitness/api/routers/exercises_inbox.py` laufen lassen.
+- Browser-Durchklick gegen Firebase Hosting mit laufendem 6100: Source verbinden -> Reenrich -> Approve.
+- Danach lokal pruefen, ob `fitness/catalog/kb/exercises/*.yml` erzeugt wurde, und in Firestore pruefen: `fitness/{uid}/inbox/{doc_id}.status == approved` sowie `fitness/kb/exercises/{exercise_id}` existiert.
+- Wenn der lokale Server nicht erreichbar ist, greift bewusst der Firestore-Fallback; der erzeugt keine lokale YAML. Das ist akzeptabler Fallback, aber nicht der Coach-Workbench-Idealpfad.

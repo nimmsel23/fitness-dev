@@ -101,6 +101,21 @@ export async function approveInbox(id, userId) {
   const exercise = normalizeExerciseRecord(data.enriched || data);
   const exId = exercise.exercise_id || exercise.id || id;
 
+  try {
+    const res = await fetch(`${LOCAL_FITNESS_API_BASE}/inbox/${id}/approve`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uid: targetUid,
+        doc_id: id,
+        current_data: exercise,
+      }),
+    });
+    if (res.ok) return await res.json();
+  } catch {
+    // Local coach backend is optional for pure Firestore use; fallback below.
+  }
+
   const batch = writeBatch(db);
   batch.set(doc(db, "fitness", "kb", "exercises", exId), {
     ...exercise,

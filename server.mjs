@@ -502,10 +502,16 @@ app.openapi(defineJsonRoute({
   tags: ["inbox"],
   summary: "Inbox-Entwurf freigeben",
   params: z.object({ id: z.string() }),
+  jsonBody: looseObjectSchema,
 }), async (c) => {
   const id = c.req.param("id");
   try {
-    const res = await fetch(`${PYTHON_BASE}/fitness/inbox/${id}/approve`, { method: "POST" });
+    const body = c.req.valid("json");
+    const res = await fetch(`${PYTHON_BASE}/fitness/inbox/${id}/approve`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body || {}),
+    });
     const data = await res.json();
     return c.json(data, res.status);
   } catch (err) {

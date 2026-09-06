@@ -1,3 +1,43 @@
+# Firebase Coach-API-Base auf Funnel/6100 konfigurierbar gemacht (2026-09-06)
+
+Ausgangspunkt: Der lokale Fitness-Prod-Server laeuft auf `:6100`, und der
+Tailscale Funnel routet nun `/fitness/` auf `http://127.0.0.1:6100/`.
+
+* **Runtime-Aufloesung statt Hardcode**:
+  `src/lib/db/firestore/core.js` bestimmt `LOCAL_FITNESS_API_BASE` jetzt in
+  dieser Reihenfolge: `localStorage["fitness-local-api-base"]`,
+  `VITE_LOCAL_FITNESS_API_BASE`, Firebase-Hosting-Default
+  `https://ideapad.tail7a15d6.ts.net/fitness/fitness`, sonst Desktop-Fallback
+  `http://127.0.0.1:6100/fitness`.
+* **Handy/Firebase-Pfad**: Auf `fitness-aos.web.app` gehen Coach-Inbox-Aktionen
+  damit automatisch ueber den Funnel auf den lokalen Prod-Server. Der doppelte
+  Pfadteil `/fitness/fitness` ist durch Funnel-Prefix plus Backend-Route
+  bedingt.
+* **Doku**: `docs/FIREBASE.md` erklaert jetzt Web SDK, Admin SDK, lokalen
+  FastAPI-Prod-Server, `0.0.0.0` vs Browser-URL, Tailscale/Funnel und die
+  aktuelle harte Coach-Tab-Grenze bei `approveInbox()`.
+
+Offen bleibt: `approveInbox()` laeuft im Firebase-DB-Layer noch direkt gegen
+Firestore. Wenn Approve lokale Expert-YAMLs erzeugen soll, muss auch diese
+Aktion ueber den lokalen `:6100`-Pfad laufen.
+
+---
+
+# Fuel-Imports aus Fitness-Firebase-Build entfernt (2026-09-06)
+
+Der Firebase-Build zeigte Vite-Warnings zu `/home/alpha/fuel-dev`, weil Fitness
+zwei Fuel-Couplings hatte:
+
+* `src/components/common/UserProfile.jsx` importierte `@fuel/store.js`.
+* `src/lib/db/index.firestore.app.js` re-exportierte Fuel-History-Funktionen aus
+  `@fuel/lib/db/firestore/index.js`.
+
+Beides ist entfernt. `UserProfile` nutzt jetzt den Fitness-`UserContext`, und
+die alten Nutrition/Supplement-History-Exports bleiben als leere Fitness-Stubs
+erhalten. Fitness braucht damit auch im Coach-Tab keine Fuel-Schicht.
+
+---
+
 # Coach-Inbox: Firebase nutzt lokalen Prod-Server fuer Source-Merge (2026-09-06)
 
 Ausgangspunkt: Inbox-Drafts hatten teils nur eine Quelle verlinkt (`wger` oder

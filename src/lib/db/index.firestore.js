@@ -21,9 +21,6 @@ export * from "./shared/exercise.js";
 export * from "./shared/parse.js";
 export * from "./shared/favourites.js";
 
-// Kein Fuel-Proxy hier: dieser Barrel wird auch von Repos importiert, die
-// keine @fuel-Abhängigkeit haben (learn-dev). Konsumenten, die den
-// eingebetteten Journal-Tab rendern und daher Fuel-Daten brauchen
-// (fitness-devs eigener App-Build, habits-dev, journal-dev), holen sich
-// getMealsHistory/getNutritionNotesHistory/getSupplementsHistory explizit
-// selbst aus @fuel — siehe index.firestore.app.js.
+// Kein Fuel-Proxy: Fitness importiert Fuel bewusst nicht direkt. Alte
+// Nutrition-History-Namen bleiben in index.firestore.app.js als leere Stubs,
+// damit historische Import-Verträge keinen Cross-App-Build erzwingen.
