@@ -92,6 +92,12 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   ungetestet: Session am falschen Datum löschen/verschieben (der eigentliche
   User-Painpoint), die Tastatur-Shortcuts, Slot-DnD-Reorder, Datums-Slider
   auf dem Handy.
+- `1fc2758` (fix(session): Scrollbar im Date-Picker-Strip via `.no-scrollbar`
+  ausblenden) liegt auf `dev`, ist aber **nach** dem letzten Release
+  (`ca43a9c`/`fdccec2`) committed — noch nicht auf `fitness-aos.web.app`.
+  Braucht einen weiteren `fitness-release`-Lauf und dann die visuelle
+  Kontrolle, dass die Leiste auf Desktop **und** iOS-PWA wirklich weg ist,
+  ohne dass das horizontale Wischen leidet.
 - `useSession.js` (jetzt 357 Z.) ließe sich weiter entschlacken (Day-Sessions-
   /Plan-Hint-Effekt, ggf. `buildSessionPayload`/`save` als Parameter-Bag) —
   vom Nutzer als optionales Housekeeping eingestuft, nicht beauftragt.
