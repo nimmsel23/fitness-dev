@@ -76,8 +76,35 @@ export function getUid() {
   return currentUid;
 }
 
-export const BRIDGE_API_BASE = "https://ideapad.tail7a15d6.ts.net/api/fitness";
-const BRIDGE_NOTIFY = `${BRIDGE_API_BASE}/notify`;
+const DESKTOP_FITNESS_API_BASE = "http://127.0.0.1:6100/fitness";
+const FUNNEL_FITNESS_API_BASE = "https://ideapad.tail7a15d6.ts.net/fitness/fitness";
+const LOCAL_FITNESS_API_STORAGE_KEY = "fitness-local-api-base";
+
+function cleanApiBase(value) {
+  return String(value || "").trim().replace(/\/+$/, "");
+}
+
+function resolveLocalFitnessApiBase() {
+  if (typeof window !== "undefined") {
+    try {
+      const stored = cleanApiBase(window.localStorage?.getItem(LOCAL_FITNESS_API_STORAGE_KEY));
+      if (stored) return stored;
+    } catch {}
+  }
+
+  const envBase = cleanApiBase(import.meta.env?.VITE_LOCAL_FITNESS_API_BASE);
+  if (envBase) return envBase;
+
+  if (typeof window !== "undefined") {
+    const host = window.location?.hostname || "";
+    if (host === "fitness-aos.web.app" || host === "fitness-aos.firebaseapp.com") return FUNNEL_FITNESS_API_BASE;
+  }
+
+  return DESKTOP_FITNESS_API_BASE;
+}
+
+export const LOCAL_FITNESS_API_BASE = resolveLocalFitnessApiBase();
+const LOCAL_FITNESS_NOTIFY = `${LOCAL_FITNESS_API_BASE}/notify`;
 export function pingBridge() {
-  fetch(BRIDGE_NOTIFY, { method: "POST" }).catch(() => {});
+  fetch(LOCAL_FITNESS_NOTIFY, { method: "POST" }).catch(() => {});
 }

@@ -4,11 +4,18 @@ import { getMuscle } from '@db';
 import { X } from 'lucide-react';
 import AnatomyDetailModal from '../../components/AnatomyDetailModal.jsx';
 import DetailedMuscleMap from '../../components/DetailedMuscleMap.jsx';
+import { useEscapeKey } from '../../hooks/useEscapeKey.js';
 
 export default function MuscleMapModal({ exercises, onClose }) {
   const [selectedMuscleId, setSelectedMuscleId] = useState(null);
   const [muscleData, setMuscleData] = useState(null);
   const [muscleLoading, setMuscleLoading] = useState(false);
+
+  // ESC schließt dieses Modal nur, wenn nicht gerade das verschachtelte
+  // AnatomyDetailModal offen ist (das hat seinen eigenen Escape-Handler,
+  // der sonst gleichzeitig auslösen und beide Ebenen auf einmal
+  // schließen würde).
+  useEscapeKey(onClose, !!exercises.length && !selectedMuscleId);
 
   useEffect(() => {
     if (!selectedMuscleId) { setMuscleData(null); return; }

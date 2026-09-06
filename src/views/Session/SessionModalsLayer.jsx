@@ -8,9 +8,11 @@
  * `activeModal`: null | 'sidebar' | 'settings' | 'gate'.
  */
 
+import { useEffect } from 'react';
 import SidebarSheet from './SidebarSheet';
 import SourceSettingsModal from './SourceSettingsModal';
 import SessionGateSheet from './SessionGateSheet.jsx';
+import { useEscapeKey } from '../../hooks/useEscapeKey.js';
 
 export default function SessionModalsLayer({
   activeModal, onClose,
@@ -21,6 +23,27 @@ export default function SessionModalsLayer({
   // gate
   date, sessionGate, currentSubTab, onSubNav, onStartGate, onStopGate,
 }) {
+  // ESC schließt das jeweils offene Modal — ein zentraler Handler reicht,
+  // weil `activeModal` bereits zentral gebündelt ist (siehe Kommentar oben),
+  // statt in SidebarSheet/SourceSettingsModal/SessionGateSheet je einzeln
+  // denselben Listener zu registrieren.
+  useEscapeKey(onClose, activeModal !== null);
+
+  // Sichtbarkeit für App.jsx' globale Alt+Pfeil-Tab-Navigation: `activeModal`
+  // lebt in useSession.js, App.jsx kennt diesen State nicht (kein
+  // State-Lifting extra dafür, siehe Kommentar dort). Statt Props durch
+  // views/Session/index.jsx durchzureichen, ein simples DOM-Flag am
+  // document.body — App.jsx liest es bei jedem Tastendruck, kein Re-Render
+  // nötig, funktioniert unabhängig davon, welcher Tab/View gerade aktiv ist.
+  useEffect(() => {
+    if (activeModal !== null) {
+      document.body.dataset.sessionModalOpen = 'true';
+    } else {
+      delete document.body.dataset.sessionModalOpen;
+    }
+    return () => { delete document.body.dataset.sessionModalOpen; };
+  }, [activeModal]);
+
   return (
     <>
       {activeModal === 'sidebar' && (

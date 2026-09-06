@@ -151,6 +151,7 @@ export default function SessionEditor({
         daySessions={daySessions} sessionId={sessionId} selectSession={selectSession}
         onNew={handleNewSession} onDelete={handleDeleteSession}
         sessionMode={sessionMode} setSessionMode={setSessionMode}
+        block={block} activity={activity}
       />
 
       {/* Split-Auswahl — 1 Klick, direkt unter dem Datumspicker statt hinter "Weitere Details" */}

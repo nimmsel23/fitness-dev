@@ -12,7 +12,7 @@ const SUB_TABS = [
 ];
 
 export default function Coach({ onInspectExercise }) {
-  const { exercises, mergeCandidates, loading, actioning, toast, approve, remove, reenrich } = useInbox({ global: true });
+  const { exercises, mergeCandidates, loading, actioning, toast, approve, remove, reenrich, linkSource } = useInbox({ global: true });
   const [activeSubTab, setActiveSubTab] = useState('exercises');
 
   if (loading) return (
@@ -74,6 +74,7 @@ export default function Coach({ onInspectExercise }) {
                   onApprove={approve}
                   onDelete={remove}
                   onReenrich={reenrich}
+                  onLinkSource={linkSource}
                   onInspect={onInspectExercise}
                   mergeCandidate={mergeCandidates[ex.exercises?.[0]?.exercise_id || ex.enriched?.exercise_id || ex.exercise_id]}
                   showUserId

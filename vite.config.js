@@ -16,7 +16,7 @@ function siblingDir(devName, appName) {
   return existsSync(appPath) ? appPath : resolve(__dirname, '..', devName)
 }
 
-// SSOT für Cross-App-Aliase (@fuel, @relax, @learn + interne Cross-DB-Exports)
+// SSOT für Cross-App-Aliase (@relax, @learn + interne Cross-DB-Exports)
 // ist @vos/cross-app-aliases (~/vitalos/packages/cross-app-aliases) —
 // nur erreichbar, wenn dieses Repo als vitalos-Submodule genestet ist (npm
 // Workspace-Symlink). Standalone-Checkout (~/fitness-dev ohne vitalos-Parent)
@@ -27,7 +27,6 @@ async function resolveCrossAppAliases() {
     return crossAppAliases()
   } catch {
     return {
-      '@fuel':       resolve(siblingDir('fuel-dev', 'fuel-app'), 'src/client'),
       '@relax':      resolve(siblingDir('relax-dev', 'relax-app'), 'src'),
       '@learn':      resolve(__dirname, '../learn-dev/src'),
     }
@@ -37,6 +36,7 @@ async function resolveCrossAppAliases() {
 export default defineConfig(async ({ mode }) => {
   const isFirebase = mode === 'firebase'
   const crossAppAliases = await resolveCrossAppAliases()
+  delete crossAppAliases['@fuel']
 
   return {
     // Relativ statt absolut — sonst lösen Assets unter einem Funnel-Pfad-

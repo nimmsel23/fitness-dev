@@ -19,7 +19,7 @@ from fitness.catalog.core.paths import DATA_DIR, runtime_root
 from fitness.catalog.agent.inbox_actions import is_inbox_tombstoned
 from fitness.catalog.api.firestore_push import run_kb_sync
 from fitness.catalog.core.exercise_schema import apply_exercise_schema
-from fitness.catalog.core.inbox_pipeline import build_inbox_draft_seed
+from fitness.catalog.core.inbox_pipeline import build_inbox_draft_seed, preserve_reenrich_provenance
 from fitness.catalog.core.source_merge import build_external_seed
 from fitness.catalog.core.resolver import resolve_query, find_by_id, build_exercise_index
 from fitness.catalog.core.rich_utils import setup_logging
@@ -195,6 +195,8 @@ def process_inbox_file_virtual(
     enriched_data = call_gemini(display_name, safe_name, api_key, existing_data=existing_data, feedback=feedback)
 
     if enriched_data:
+        if restart_pipeline:
+            enriched_data = preserve_reenrich_provenance(enriched_data, existing_data)
         description = f"Reenriched (Coach-Feedback) for: {display_name}" if feedback else f"Proactively generated expert draft for: {display_name}"
         save_inbox_draft(target_file, enriched_data, description)
 

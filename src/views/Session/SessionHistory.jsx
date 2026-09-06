@@ -10,7 +10,7 @@
  */
 
 import { useState } from 'react';
-import { History, Timer, Calendar, ChevronRight, Check, X as XIcon, Dumbbell, Activity } from 'lucide-react';
+import { History, Timer, Calendar, ChevronRight, Check, X as XIcon, Dumbbell, Activity, Trash2 } from 'lucide-react';
 import { localToday } from '@utils';
 import { blockColor } from './utils';
 import { ACTIVITY_LABELS, ACTIVITY_ICONS, ACTIVITY_EMOJI, classifySession } from '../../constants/ActivityConstants';
@@ -75,7 +75,7 @@ export default function SessionHistory({
   reDateEntry, setReDateEntry,
   draggedDate, setDraggedDate,
   dragOverDate, setDragOverDate,
-  moveSessionToDate,
+  moveSessionToDate, deleteSessionAtDate,
   hasMoreHistory, onLoadMoreHistory,
 }) {
   const today = localToday();
@@ -179,6 +179,18 @@ export default function SessionHistory({
 
           {/* Actions */}
           <div className="flex items-center gap-1 shrink-0">
+            {/* Direktes Löschen aus dem Verlauf, ohne Umweg über "Edit
+                öffnen → im Editor löschen" (User-Feedback 2026-09-06:
+                Löschen einer falsch geloggten Session "hat nicht so gut
+                geklappt"). */}
+            <button
+              onClick={e => { e.stopPropagation(); deleteSessionAtDate?.(d, s.id ?? null); }}
+              className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"
+              style={{ color: 'var(--dim)', opacity: 0.5 }}
+              title="Löschen"
+            >
+              <Trash2 size={12} />
+            </button>
             <button
               onClick={e => { e.stopPropagation(); setReDateEntry(isReDate ? null : { d, value: d }); }}
               className="w-7 h-7 rounded-lg flex items-center justify-center transition-all"

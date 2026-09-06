@@ -1,78 +1,45 @@
-import { Footprints, Bike, Waves, Activity, Mountain, Anchor, Leaf, Zap } from "lucide-react";
+import { ACTIVITY_TYPES } from './activities';
 
-export const BLOCK_COLORS = {
-  // Strength splits
+// Strength split colors (kept as-is, not activity-type dependent)
+const STRENGTH_SPLIT_COLORS = {
   push:       "#f472b6",
   pull:       "#34d399",
   legs:       "#fb923c",
   upper:      "#38bdf8",
   lower:      "#a78bfa",
   full:       "#fbbf24",
-  // Cardio / Endurance — all use orange family to be visually distinct from strength
-  running:    "#f97316",  // orange
-  cycling:    "#fb923c",  // orange-400
-  swimming:   "#38bdf8",  // sky (water)
-  hiking:     "#4ade80",  // green (nature)
-  rowing:     "#22d3ee",  // cyan
-  climbing:   "#a78bfa",  // violet
-  yoga:       "#bd93f9",  // soft purple
-  stretching: "#e879f9",  // fuchsia
-  hiit:       "#ef4444",  // red (intensity)
-  walking:    "#86efac",  // soft green
 };
 
-export const ACTIVITY_LABELS = {
-  running:    "Laufen",
-  cycling:    "Radfahren",
-  swimming:   "Schwimmen",
-  hiking:     "Wandern",
-  rowing:     "Rudern",
-  climbing:   "Klettern",
-  yoga:       "Yoga",
-  stretching: "Stretching",
-  hiit:       "HIIT",
-  walking:    "Spazieren",
+// Build activity-type colors from ACTIVITY_TYPES
+const ACTIVITY_TYPE_COLORS = Object.fromEntries(
+  ACTIVITY_TYPES.map(activity => [activity.value, activity.color])
+);
+
+// Cardio / Endurance — all use orange family to be visually distinct from strength
+export const BLOCK_COLORS = {
+  ...STRENGTH_SPLIT_COLORS,
+  ...ACTIVITY_TYPE_COLORS,
 };
 
-export const ACTIVITY_EMOJI = {
-  running:    "🏃",
-  cycling:    "🚴",
-  swimming:   "🏊",
-  hiking:     "🥾",
-  rowing:     "🚣",
-  climbing:   "🧗",
-  yoga:       "🧘",
-  stretching: "🤸",
-  hiit:       "⚡",
-  walking:    "🚶",
-};
+// Activity labels
+export const ACTIVITY_LABELS = Object.fromEntries(
+  ACTIVITY_TYPES.map(activity => [activity.value, activity.label])
+);
 
-export const ACTIVITY_ICONS = {
-  running:    Footprints,
-  cycling:    Bike,
-  swimming:   Waves,
-  hiking:     Mountain,
-  rowing:     Anchor,
-  climbing:   Mountain,
-  yoga:       Leaf,
-  stretching: Activity,
-  hiit:       Zap,
-  walking:    Footprints,
-};
+// Activity emojis
+export const ACTIVITY_EMOJI = Object.fromEntries(
+  ACTIVITY_TYPES.map(activity => [activity.value, activity.emoji])
+);
+
+// Activity lucide-react icons
+export const ACTIVITY_ICONS = Object.fromEntries(
+  ACTIVITY_TYPES.map(activity => [activity.value, activity.icon])
+);
 
 // Default muscle target per activity type — used in ActivityAddon + server coverage
-export const ACTIVITY_MUSCLE_DEFAULTS = {
-  hiit:       'core',
-  stretching: 'full',
-  yoga:       'full',
-  running:    'legs',
-  cycling:    'legs',
-  rowing:     'full',
-  walking:    'legs',
-  hiking:     'legs',
-  climbing:   'full',
-  swimming:   'full',
-};
+export const ACTIVITY_MUSCLE_DEFAULTS = Object.fromEntries(
+  ACTIVITY_TYPES.map(activity => [activity.value, activity.muscleDefault])
+);
 
 // Muscle groups per target key — mirrors server.mjs muscleToGroupId keys
 export const MUSCLE_TARGET_GROUPS = {
@@ -96,17 +63,11 @@ export const MUSCLE_TARGET_GROUPS = {
 // Bewegungsmuster biceps (Zug) oder triceps (Druck), ggf. + forearms bei
 // grifflastigen Aktivitäten (Klettern).
 export const ACTIVITY_MUSCLE_GROUPS = {
-  swimming:   ["chest", "upper_back", "biceps", "triceps", "abs", "quadriceps", "hamstrings", "adductors", "abductors"], // Default = Brustschwimmen (Grätschbeinschlag beansprucht Hüft-Ab-/Adduktoren)
-  running:    ["quadriceps", "hamstrings", "calves", "glutes"],
-  cycling:    ["quadriceps", "hamstrings", "calves", "glutes"],
-  hiking:     ["quadriceps", "hamstrings", "calves", "glutes", "abs"],
-  walking:    ["quadriceps", "calves", "glutes"],
-  rowing:     ["middle_back", "upper_back", "biceps", "quadriceps", "hamstrings", "abs"],
-  yoga:       ["abs", "upper_back", "lower_back"],
-  stretching: ["abs", "lower_back", "hamstrings"],
-  climbing:   ["middle_back", "upper_back", "biceps", "forearms", "abs", "quadriceps"],
-  hiit:       ["abs", "lower_back", "quadriceps", "upper_back"],
-  boxing:     ["upper_back", "triceps", "abs", "quadriceps"],
+  ...Object.fromEntries(
+    ACTIVITY_TYPES.map(activity => [activity.value, activity.muscleGroups])
+  ),
+  // Additional entry (not part of ACTIVITY_TYPES, but used in muscle analysis)
+  boxing: ["upper_back", "triceps", "abs", "quadriceps"],
 };
 
 // Schwimmstil-Varianten — überschreiben das swimming-Default je nach Stil.

@@ -124,6 +124,22 @@ Copy-Paste-Code.
       Feld-Namen/-Struktur) — `SessionEditor.jsx` (per `{...session}`-
       Spread aus `views/Session/index.jsx`) brauchte keine Anpassung außer
       dem separaten Orchestrator-Punkt unten. `npm run build` grün.
+- [x] Zweiter Split-Durchgang (2026-09-06, Fortsetzung, rein mechanisch,
+      keine Logik/Werte verändert): die vier zuvor noch verbliebenen
+      großen Blöcke wurden ebenfalls in eigene Mini-Hooks ausgelagert —
+      `useSessionHistory.js` (History-Load-Effect, `prevMap`-Bau,
+      Multi-Doc-Merge, `restHours`, `loadMoreHistory`, 89 Z.),
+      `useSessionRuntimeSync.js` (localStorage-Runtime-Draft-Sync-Effect
+      inkl. `savingRef`-Race-Guard + `fitness:queue-flushed`-Listener,
+      84 Z.), `useSessionCrud.js` (`loadSessionData`/`resetSessionData`/
+      `selectSession`/`handleDeleteSession`/`handleNewSession`, 130 Z.),
+      `useSessionExport.js` (`exportObsidian`/`handleDownload`/
+      `moveSessionToDate`, 61 Z.). `useSessionRuntimeSync.js` bündelt die
+      vielen benötigten Session-Felder bewusst als ein `sessionState`-
+      Objekt statt 14 Einzel-Parametern (Trade-off, siehe JSDoc-Kopf dort).
+      Haupthook `useSession.js`: 548 → 357 Zeilen. Externer Rückgabe-
+      Vertrag weiterhin unverändert — `index.jsx`/`SessionEditor.jsx`
+      brauchten keine Anpassung. `npm run build` grün (inkl. Lint).
 - [x] Interdependenzen vor dem Split dokumentiert (als JSDoc-Kopf in den
       jeweiligen Dateien, nicht nur hier):
       - `moveExercise()` (jetzt in `useExerciseList.js`) braucht NUR

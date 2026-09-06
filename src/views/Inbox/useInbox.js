@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getInbox, getGlobalInbox, approveInbox, deleteInbox, reenrichInbox, getInboxMergeCandidates } from '@db';
+import { getInbox, getGlobalInbox, approveInbox, deleteInbox, reenrichInbox, getInboxMergeCandidates, linkInboxSource } from '@db';
 
 export function useInbox({ global = false } = {}) {
   const [exercises, setExercises] = useState([]);
@@ -72,6 +72,26 @@ export function useInbox({ global = false } = {}) {
     }
   }
 
+  async function linkSource(fileId, source, sourceId) {
+    setActioning(`${fileId}:${source}`);
+    try {
+      const ex = exercises.find(e => e.file_id === fileId);
+      const userId = ex?.userId || null;
+      const currentData = ex?.exercises?.[0] || ex?.enriched || ex || {};
+      const result = await linkInboxSource(fileId, source, sourceId, userId, currentData);
+      if (result?.ok) {
+        showToast(`${source} verlinkt ✓`);
+        await load();
+      } else {
+        showToast('Quelle konnte nicht verlinkt werden');
+      }
+    } catch {
+      showToast('Quelle konnte nicht verlinkt werden');
+    } finally {
+      setActioning(null);
+    }
+  }
+
   async function remove(fileId) {
     setActioning(fileId);
     try {
@@ -87,5 +107,5 @@ export function useInbox({ global = false } = {}) {
     }
   }
 
-  return { exercises, mergeCandidates, loading, actioning, toast, approve, remove, reenrich };
+  return { exercises, mergeCandidates, loading, actioning, toast, approve, remove, reenrich, linkSource };
 }

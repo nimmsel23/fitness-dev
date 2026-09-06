@@ -32,11 +32,11 @@ MuscleAnalysis, MuscleBodyMap, MuscleDetailedMap, MuscleInsights, MuscleHeader.
 **Cross-Repo-Symlink-Pattern** (`views/Journal`, `views/Habits`, `views/Learn`):
 Symlinks auf Sibling-Repos (`journal-dev`, `habits-dev`, `learn-dev`), weil
 `App.jsx` sie per relativem Import einbindet (`./views/Journal/index.jsx`), was
-eine physische Datei verlangt. Fuel dagegen rein über `@fuel`-Vite-Alias (kein
-Symlink). Geplante Umstellung (noch nicht umgesetzt): `App.jsx` auf
+eine physische Datei verlangt. Fitness importiert Fuel bewusst nicht direkt.
+Geplante Umstellung (noch nicht umgesetzt): `App.jsx` auf
 `@journal`/`@habits`/`@learn`-Aliase umstellen + Symlinks entfernen, dabei
 `tailwind.config.cjs`-`content`-Array um die externen Sibling-Pfade erweitern
-(wie `fuel-dev/tailwind.config.cjs`), damit fitness-devs eigenes Theme greift.
+(analog zu den Sibling-App-Setups), damit fitness-devs eigenes Theme greift.
 `Habits`/`Journal`-Views nutzen an vielen Stellen hartcodierte Fuel-Branding-
 Klassen (`text-orange-400` etc.) statt `fit-*`-Tokens — unabhängig vom
 Symlink-Thema, muss in `habits-dev`/`journal-dev` selbst gefixt werden.
@@ -387,12 +387,11 @@ Zweiter Enrichment-Pfad für `reenrichInbox()` (Coach-Inbox, `views/Inbox/`,
 eingebunden im Coach-Tab `activeSubTab === 'exercises'`) — greift, wenn der
 primäre Pfad (FastAPI-Backend über Tailscale-Funnel, Gemini→Haiku→Codex-Kette
 serverseitig) fehlschlägt, weil der lokale Coach-Rechner gerade nicht läuft.
-Analog zu `fuel-dev`s `VERTEX_AI_ROADMAP.md`-Muster (dort "coach"/local vs.
-"client"/cloud getrennt, hier als Fallback in derselben Funktion).
+Der Pfad ist Fitness-eigen: lokaler Coach-Backendpfad zuerst, Browser-/Cloud-
+Fallback nur wenn der lokale Coach-Rechner nicht erreichbar ist.
 
 - `src/firebase.js`: `vertexAI = getAI(app, { backend: new VertexAIBackend() })`
-  — bewusst die aktuelle `firebase/ai`-API, nicht das deprecated
-  `getVertexAI()` aus `firebase/vertexai` (das fuel-dev noch nutzt).
+  — bewusst die aktuelle `firebase/ai`-API.
 - `lib/exerciseAiEnrich.js`: Prompts 1:1 aus
   `fitness/catalog/agent/gemini.py` (`PROMPT_EXERCISE_ENRICH`/`_NEW`)
   portiert, aber mit `responseSchema`/`responseMimeType: "application/json"`
