@@ -128,3 +128,28 @@ Noch vor finalem Deploy/Vertrauen pruefen:
 - Browser-Durchklick gegen Firebase Hosting mit laufendem 6100: Source verbinden -> Reenrich -> Approve.
 - Danach lokal pruefen, ob `fitness/catalog/kb/exercises/*.yml` erzeugt wurde, und in Firestore pruefen: `fitness/{uid}/inbox/{doc_id}.status == approved` sowie `fitness/kb/exercises/{exercise_id}` existiert.
 - Wenn der lokale Server nicht erreichbar ist, greift bewusst der Firestore-Fallback; der erzeugt keine lokale YAML. Das ist akzeptabler Fallback, aber nicht der Coach-Workbench-Idealpfad.
+
+
+## Claude Handoff - Coach-Inbox Local-First Cache-Regel (2026-09-06)
+
+Neue Architekturentscheidung: Fuer die Coach-Inbox ist der lokale Fitness-Prod-
+Server auf `6100` jetzt der Owner. Firestore ist nur Cache/Fallback/Offline-
+Warteschlange. Nicht wieder Firestore-primary machen.
+
+Konkrete Stellen:
+- `src/lib/db/firestore/inbox.js::getInbox()` und `getGlobalInbox()` lesen zuerst
+  `${LOCAL_FITNESS_API_BASE}/inbox`; Firestore-Items werden nur bei local fail als
+  `cache_source: "firestore_cache"` und `offline_cache: true` angezeigt.
+- `sendToInbox()` queued zuerst lokal via `/fitness/inbox/queue`; Firestore ist
+  nur Fallback mit `sync_status: "pending_local"`.
+- `approveInbox()` verlangt kein Firestore-Dokument mehr vor dem lokalen Call;
+  es nutzt den UI-Draft oder Firestore nur als Datenhilfe und postet dann an
+  `/fitness/inbox/{id}/approve`. Kein Cloud-only Approve-Fallback mehr.
+- `reenrichInbox()` hat keinen Browser-Vertex-Fallback mehr. Ohne lokalen Server
+  gibt es `local_unreachable`/`local_reenrich_*`, weil Reenrich lokale YAML- und
+  Source-Lineage erhalten muss.
+
+Noch offen: echten Browser-Durchklick auf `fitness-aos.web.app/#coach` mit
+laufendem Funnel/`:6100`: local Draft sichtbar, Source verbinden, Reenrich,
+Approve, danach lokale `fitness/catalog/kb/exercises/*.yml` und Firestore-Mirror
+pruefen.

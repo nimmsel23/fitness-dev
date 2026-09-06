@@ -43,9 +43,13 @@ export function useInbox({ global = false } = {}) {
     try {
       const ex = exercises.find(e => e.file_id === fileId);
       const userId = ex?.userId || null;
-      await approveInbox(fileId, userId);
-      setExercises(prev => prev.filter(ex => ex.file_id !== fileId));
-      showToast('Freigegeben ✓');
+      const result = await approveInbox(fileId, userId, ex);
+      if (result?.ok) {
+        setExercises(prev => prev.filter(ex => ex.file_id !== fileId));
+        showToast('Freigegeben ✓');
+      } else {
+        showToast('Freigabe fehlgeschlagen');
+      }
     } catch {
       showToast('Fehler beim Freigeben');
     } finally {

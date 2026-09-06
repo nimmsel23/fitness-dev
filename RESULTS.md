@@ -783,3 +783,21 @@ The settings panel has been split into dedicated, self-contained sub-sections:
 # AlphaOS Fitness Ecosystem — Bugfix: Touch-Stepper Weight Precedence (2026-07-11)
 
 Fixed a precedence bug in `ExerciseCard.jsx` where clicking on step buttons (`+2.5` / `-2.5`) for weights did not register when the weight field already had a value. Added parentheses around `parseFloat(raw) || 0` so `delta` is correctly added.
+
+---
+
+# Coach-Inbox Local-First / Firestore nur Cache (2026-09-06)
+
+Die Firebase-Coach-Inbox wurde von Firestore-primary auf Local-first gedreht.
+`src/lib/db/firestore/inbox.js` versucht fuer `getInbox()`/`getGlobalInbox()`
+zuerst `${LOCAL_FITNESS_API_BASE}/inbox`; auf `fitness-aos.web.app` ist das der
+Tailscale-Funnel zum lokalen Fitness-Prod-Server auf `6100`. Firestore wird nur
+noch als `firestore_cache`/`offline_cache` gelesen, wenn der lokale Server nicht
+erreichbar ist.
+
+Finale Coach-Aktionen sind jetzt ebenfalls local-only: `approveInbox()` und
+`reenrichInbox()` fallen nicht mehr auf Cloud-only Firestore/Vertex zurueck.
+Damit wird kein Expert-Exercise mehr ohne lokale YAML-Lineage erzeugt, nur weil
+der lokale Server fehlt. `sendToInbox()` queued neue Items zuerst lokal ueber
+`/fitness/inbox/queue`; Firestore wird nur noch als Offline-Warteschlange mit
+`sync_status: pending_local` genutzt, falls local nicht erreichbar ist.

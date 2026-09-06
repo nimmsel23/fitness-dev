@@ -4,59 +4,67 @@
 
 import {
   collection, doc, addDoc, getDoc, getDocs, deleteDoc, updateDoc,
-  query, orderBy, serverTimestamp, writeBatch, collectionGroup,
+  query, orderBy, serverTimestamp, collectionGroup,
 } from "firebase/firestore";
 
 import { db } from "../../../firebase.js";
 import { getUid, LOCAL_FITNESS_API_BASE } from "./core.js";
 import { normalizeExerciseRecord } from "../shared/exercise.js";
-import { enrichExerciseViaVertex } from "../../exerciseAiEnrich.js";
 
-const REENRICH_PROVENANCE_FIELDS = [
-  "wger_id",
-  "wger_muscle_ids",
-  "yuhonas_id",
-  "external_ids",
-  "origin",
-  "source_snapshot",
-  "original_description",
-  "instructions",
-  "images",
-];
+function mapLocalInboxItems(data) {
+  return (data?.items || []).map((item) => ({
+    ...item,
+    file_id: item.file_id || item.id,
+    cache_source: "local_prod",
+  }));
+}
 
-function preserveReenrichProvenance(enriched, seed) {
-  const out = { ...(enriched || {}) };
-  for (const field of REENRICH_PROVENANCE_FIELDS) {
-    const value = seed?.[field];
-    if (value !== null && value !== undefined && value !== "" && !(Array.isArray(value) && value.length === 0)) {
-      out[field] = value;
-    }
-  }
-  return out;
+async function fetchLocalInbox() {
+  const res = await fetch(`${LOCAL_FITNESS_API_BASE}/inbox`);
+  if (!res.ok) throw new Error(`local_inbox_${res.status}`);
+  return mapLocalInboxItems(await res.json());
+}
+
+function markFirestoreCacheItem(item) {
+  return {
+    ...item,
+    cache_source: "firestore_cache",
+    offline_cache: true,
+  };
 }
 
 // ── Inbox ─────────────────────────────────────────────────────────────────────
 
 export async function sendToInbox(exerciseData) {
+  const uid = getUid();
   try {
-    const uid = getUid();
+    const res = await fetch(`${LOCAL_FITNESS_API_BASE}/inbox/queue`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...exerciseData, uid }),
+    });
+    if (res.ok) return await res.json();
+  } catch {
+    // Firestore is the offline/cache fallback when the local catalog server is absent.
+  }
+
+  try {
     const ref = await addDoc(collection(db, "fitness", uid, "inbox"), {
       ...exerciseData,
       userId: uid,
       received_at: serverTimestamp(),
+      cache_source: "firestore_cache",
+      sync_status: "pending_local",
     });
-    return { ok: true, id: ref.id };
+    return { ok: true, id: ref.id, cached: true };
   } catch (e) {
     console.error("Inbox Firestore push failed:", e);
     return { ok: false };
   }
 }
 
-// Vormals ein fetch() gegen http://localhost:9120 — unerreichbar für eine
-// deployte PWA, schlug im Firebase-Modus immer still fehl (try/catch{}).
-// Neue, unbekannte Übungen landeten dadurch nie im Coach-Inbox-Feed.
-// sendToInbox() schreibt in dieselbe Firestore-Collection, die getInbox()/
-// getGlobalInbox() unten lesen.
+// Neue unbekannte Übungen werden zuerst als lokale Inbox-Drafts erzeugt. Der
+// Firestore-Pfad darunter ist nur Cache/Offline-Warteschlange.
 export async function queueForEnrichment(ex) {
   if (!ex || ex.source === "expert") return;
   await sendToInbox({
@@ -67,19 +75,31 @@ export async function queueForEnrichment(ex) {
 }
 
 export async function getInbox() {
+  try {
+    return await fetchLocalInbox();
+  } catch {
+    // Continue with Firestore as last-known/offline cache.
+  }
+
   const q = query(
     collection(db, "fitness", getUid(), "inbox"),
     orderBy("received_at", "desc")
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ file_id: d.id, ...d.data() }));
+  return snap.docs.map((d) => markFirestoreCacheItem({ file_id: d.id, ...d.data() }));
 }
 
 export async function getGlobalInbox() {
   try {
+    return await fetchLocalInbox();
+  } catch {
+    // Continue with Firestore as last-known/offline cache.
+  }
+
+  try {
     const snap = await getDocs(collectionGroup(db, "inbox"));
     return snap.docs
-      .map((d) => ({
+      .map((d) => markFirestoreCacheItem({
         file_id: d.id,
         userId: d.ref.parent?.parent?.id || null,
         ...d.data(),
@@ -91,16 +111,23 @@ export async function getGlobalInbox() {
   }
 }
 
-export async function approveInbox(id, userId) {
+export async function approveInbox(id, userId, ex = null) {
   const targetUid = userId || getUid();
-  const inboxRef = doc(db, "fitness", targetUid, "inbox", id);
-  const snap = await getDoc(inboxRef);
-  if (!snap.exists()) return { ok: false, error: "not_found" };
+  let exercise = ex?.exercises?.[0] || ex?.enriched || ex || null;
 
-  const data = snap.data();
-  const exercise = normalizeExerciseRecord(data.enriched || data);
-  const exId = exercise.exercise_id || exercise.id || id;
+  if (!exercise) {
+    try {
+      const snap = await getDoc(doc(db, "fitness", targetUid, "inbox", id));
+      if (snap.exists()) {
+        const data = snap.data();
+        exercise = data.enriched || data;
+      }
+    } catch {
+      // Firestore is only a cache/data helper here; local approve remains authoritative.
+    }
+  }
 
+  const currentData = exercise ? normalizeExerciseRecord(exercise) : null;
   try {
     const res = await fetch(`${LOCAL_FITNESS_API_BASE}/inbox/${id}/approve`, {
       method: "POST",
@@ -108,30 +135,20 @@ export async function approveInbox(id, userId) {
       body: JSON.stringify({
         uid: targetUid,
         doc_id: id,
-        current_data: exercise,
+        current_data: currentData,
       }),
     });
     if (res.ok) return await res.json();
-  } catch {
-    // Local coach backend is optional for pure Firestore use; fallback below.
+    return { ok: false, error: `local_approve_${res.status}` };
+  } catch (e) {
+    return { ok: false, error: "local_unreachable", detail: String(e) };
   }
-
-  const batch = writeBatch(db);
-  batch.set(doc(db, "fitness", "kb", "exercises", exId), {
-    ...exercise,
-    source: "approved",
-    approved_at: serverTimestamp(),
-  });
-  batch.update(inboxRef, { status: "approved", approved_at: serverTimestamp() });
-  await batch.commit();
-
-  return { ok: true, id: exId };
 }
 
 // Jagt einen bestehenden Firestore-Inbox-Eintrag nochmal frisch durch die
 // lokale Fitness-Prod-Kette (:6100 -> Python/Gemini/Review) und schreibt den
-// angereicherten Draft von dort zurueck. Wenn der lokale Prod-Server nicht
-// laeuft, faellt die Firebase-App auf Vertex AI direkt im Browser zurueck.
+// angereicherten Draft von dort zurueck. Ohne lokalen Prod-Server gibt es kein
+// finales Reenrich mehr: Firestore ist hier nur Cache, nicht Enrichment-Owner.
 export async function reenrichInbox(id, userId, ex) {
   const targetUid = userId || getUid();
   const data = ex?.exercises?.[0] || ex?.enriched || ex || {};
@@ -150,31 +167,21 @@ export async function reenrichInbox(id, userId, ex) {
       }),
     });
     if (res.ok) return await res.json();
-  } catch {
-    // lokales Backend nicht erreichbar — weiter zum Vertex-Fallback unten
-  }
-
-  try {
-    const enriched = preserveReenrichProvenance(
-      await enrichExerciseViaVertex(data, ex?.coachFeedback || null),
-      data,
-    );
-    const inboxRef = doc(db, "fitness", targetUid, "inbox", id);
-    await updateDoc(inboxRef, {
-      status: "ai_enriched",
-      enriched,
-      updated_at: serverTimestamp(),
-      reenrich_feedback: feedback || null,
-      reenrich_source: "vertex_fallback",
-    });
-    return { ok: true, id, exercise_id: enriched.exercise_id || enriched.id, enriched, via: "vertex" };
+    return { ok: false, error: `local_reenrich_${res.status}` };
   } catch (e) {
-    return { ok: false, error: String(e) };
+    return { ok: false, error: "local_unreachable", detail: String(e) };
   }
 }
 
 export async function deleteInbox(id, userId) {
   const targetUid = userId || getUid();
+  try {
+    const res = await fetch(`${LOCAL_FITNESS_API_BASE}/inbox/${id}`, { method: "DELETE" });
+    if (res.ok) return await res.json();
+  } catch {
+    // Firestore cache cleanup remains useful when local is unavailable.
+  }
+
   const inboxRef = doc(db, "fitness", targetUid, "inbox", id);
   const snap = await getDoc(inboxRef);
   if (snap.exists() && targetUid !== getUid()) {
