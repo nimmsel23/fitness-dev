@@ -6,27 +6,44 @@
 
 import { Dumbbell, Activity, Plus, X } from 'lucide-react';
 import { blockColor } from './utils';
+import { classifySession, ACTIVITY_LABELS } from '../../constants/ActivityConstants';
+
+// Label für die aktuell im Editor bearbeitete Session — aus dem LIVE-State
+// (block/sessionMode/activity), nicht aus dem zuletzt gespeicherten
+// daySessions-Snapshot. Ohne das zeigte der Pill bis zum nächsten
+// Autosave+Refetch weiter "Neues Workout", selbst nachdem längst ein Split
+// gewählt oder auf Ausdauer gewechselt wurde (User-Feedback 2026-09-06).
+function liveSessionLabel(sessionMode, block, activityType) {
+  if (sessionMode === 'cardio') return ACTIVITY_LABELS[activityType] || 'Ausdauer';
+  return block || 'Kraft'; // Kraft-Session ohne Split-Wahl wird trotzdem als Kraft geführt, nicht als "Neues Workout".
+}
 
 export default function SessionModeAndPills({
   daySessions, sessionId, selectSession, onNew, onDelete,
-  sessionMode, setSessionMode,
+  sessionMode, setSessionMode, block, activity,
 }) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {daySessions.length === 0 ? (
-        <button
-          onClick={onNew}
-          className="flex items-center gap-1.5 text-xs font-semibold"
-          style={{ color: 'var(--accent)' }}
-        >
-          <Plus size={13} strokeWidth={2.5} /> Workout anlegen
-        </button>
+        // Kein Button hier mehr (User-Feedback 2026-09-06): die Übungsliste
+        // darunter ist bei leerem Tag bereits voll nutzbar, ganz ohne
+        // vorherigen Klick — "Workout anlegen" suggerierte einen nötigen
+        // ersten Schritt, der tatsächlich nur eine zweite, überflüssige
+        // Session-Identität (zufällige UUID statt der impliziten
+        // Haupt-Session) erzeugte. Der kleine "+"-Button unten bleibt für
+        // den echten Anwendungsfall bestehen: eine ZUSÄTZLICHE Session
+        // starten, wenn an dem Tag schon mindestens eine existiert.
+        <div />
       ) : (
         <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
           {daySessions.map(s => {
             const isSelected = s.id === sessionId;
-            const label = s.block || (s.id === null ? 'Hauptsession' : 'Workout');
-            const color = blockColor(s.block, s.activity, s.sessionMode);
+            const label = isSelected
+              ? liveSessionLabel(sessionMode, block, activity?.type)
+              : (classifySession(s).label || 'Kraft');
+            const color = isSelected
+              ? blockColor(block, activity, sessionMode)
+              : blockColor(s.block, s.activity, s.sessionMode);
             return (
               <button
                 key={s.id ?? 'main'}

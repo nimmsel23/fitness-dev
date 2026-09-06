@@ -8,11 +8,18 @@
  * `setRecentSessions` (aus useSessionHistory.js, für den DateStrip-Cache
  * beim Verschieben) und `setReDateEntry`/`showToast`.
  *
- * Hinweis (bewusst NICHT vereinheitlicht): `moveSessionToDate()` ruft
- * `deleteSession(oldDate)` ohne expliziten sessionId-Parameter auf, anders
- * als `handleDeleteSession()` in useSessionCrud.js
- * (`deleteSession(date, sessionId)`) — dieser Unterschied stand schon vor
- * dem Split so im Code und wurde 1:1 übernommen, nicht angeglichen.
+ * Fix 2026-09-06 (User-Feedback: Verschieben "hat nicht so gut geklappt"):
+ * `moveSessionToDate()` rief `deleteSession(oldDate)` bisher OHNE
+ * sessionId auf, während `handleDeleteSession()` in useSessionCrud.js
+ * korrekt `deleteSession(date, sessionId)` mit beiden Argumenten nutzt.
+ * War harmlos, solange die verschobene Session die implizite Haupt-Session
+ * (id === null) war — sobald aber eine benannte Zusatz-Session (id = UUID)
+ * verschoben wurde, löschte das den falschen (nicht-existenten) null-id-
+ * Eintrag am alten Datum: die eigentliche Datei blieb liegen, die neue
+ * Kopie am Zieldatum existierte zusätzlich → Session doppelt vorhanden statt
+ * verschoben. Jetzt: `sess.id` wird an Save UND Delete durchgereicht, die
+ * ID bleibt über den Datumswechsel hinweg erhalten statt implizit auf
+ * "Haupt-Session" zu wechseln.
  */
 
 import { saveSession, deleteSession, exportFitnessData } from '@db';
@@ -45,9 +52,10 @@ export function useSessionExport({
     if (!newDate || newDate === oldDate) { setReDateEntry(null); return; }
     const sess = recentSessions[oldDate];
     if (!sess) return;
-    await saveSession(newDate, { ...sess, date: newDate });
-    await deleteSession(oldDate);
-    clearSessionRuntimeDraft(oldDate, sess.id || null);
+    const sessId = sess.id || null;
+    await saveSession(newDate, { ...sess, date: newDate }, sessId);
+    await deleteSession(oldDate, sessId);
+    clearSessionRuntimeDraft(oldDate, sessId);
     setRecentSessions(prev => {
       const next = { ...prev, [newDate]: { ...sess, date: newDate } };
       delete next[oldDate];

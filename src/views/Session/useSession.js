@@ -153,7 +153,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   }, [initialDate, date]);
 
   const {
-    loadSessionData, resetSessionData, selectSession, handleDeleteSession, handleNewSession,
+    loadSessionData, resetSessionData, selectSession, handleDeleteSession, deleteSessionAtDate, handleNewSession,
   } = useSessionCrud({
     date, sessionId, setSessionId, daySessions, setDaySessions, setRecentSessions,
     setDirty, flushDirty, showToast, initialDraft,
@@ -340,7 +340,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     dragOverDate, setDragOverDate,
     rollingDays,
     // Handlers
-    save, selectSession, handleNewSession, handleDeleteSession,
+    save, selectSession, handleNewSession, handleDeleteSession, deleteSessionAtDate,
     startSessionGate, stopSessionGate,
     addEx, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, moveExercise, removeEx,
     exportObsidian, handleDownload, moveSessionToDate,

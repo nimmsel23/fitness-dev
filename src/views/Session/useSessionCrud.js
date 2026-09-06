@@ -87,27 +87,45 @@ export function useSessionCrud({
   };
 
   // ── Delete session ────────────────────────────────────────────
-  async function handleDeleteSession() {
+  // Generalisiert 2026-09-06 (User-Feedback: Löschen "hat nicht so gut
+  // geklappt"): vorher konnte nur die gerade im Editor offene Session
+  // gelöscht werden (handleDeleteSession, fest an `date`/`sessionId`
+  // gebunden) — eine falsch geloggte Session woanders im Verlauf (History-
+  // Tab) zu löschen brauchte den Umweg über "Edit öffnen → im Editor
+  // löschen". deleteSessionAtDate(d, id) ist die gleiche Logik für ein
+  // beliebiges Datum/ID-Paar, direkt aus SessionHistory.jsx aufrufbar.
+  // handleDeleteSession() ist jetzt nur noch ein dünner Wrapper darum.
+  async function deleteSessionAtDate(d, id = null) {
     if (!window.confirm('Dieses Workout wirklich löschen?')) return;
     try {
-      await deleteSession(date, sessionId);
-      clearSessionRuntimeDraft(date, sessionId);
-      // Dirty-Flag löschen, sonst würde der nächste Flush (Tab-/Datumswechsel)
-      // die gerade gelöschte Session als leere Datei wieder anlegen.
-      setDirty(false);
-      showToast('Gelöscht ✓');
-      const list = mergeSessionRuntimeDrafts(date, await listSessionsForDate(date));
-      setDaySessions(list);
+      await deleteSession(d, id);
+      clearSessionRuntimeDraft(d, id);
+      const list = mergeSessionRuntimeDrafts(d, await listSessionsForDate(d));
       // DateStrip-Indikator aktualisieren: ohne Refresh bliebe der ✓-Haken stehen.
       setRecentSessions(prev => {
         const next = { ...prev };
-        if (list.length > 0) next[date] = list[0];
-        else delete next[date];
+        if (list.length > 0) next[d] = list[0];
+        else delete next[d];
         return next;
       });
-      if (list.length > 0) { setSessionId(list[0].id); loadSessionData(list[0]); }
-      else { setSessionId(null); resetSessionData(); }
+      showToast('Gelöscht ✓');
+      // Nur wenn das betroffene Datum gerade im Editor offen ist, dessen
+      // State direkt nachziehen — sonst reicht das recentSessions-Update
+      // oben, der Editor selbst zeigt ja ein anderes Datum.
+      if (d === date) {
+        // Dirty-Flag löschen, sonst würde der nächste Flush (Tab-/
+        // Datumswechsel) die gerade gelöschte Session als leere Datei
+        // wieder anlegen.
+        setDirty(false);
+        setDaySessions(list);
+        if (list.length > 0) { setSessionId(list[0].id); loadSessionData(list[0]); }
+        else { setSessionId(null); resetSessionData(); }
+      }
     } catch { showToast('Fehler beim Löschen'); }
+  }
+
+  async function handleDeleteSession() {
+    await deleteSessionAtDate(date, sessionId);
   }
 
   function handleNewSession() {
@@ -126,5 +144,5 @@ export function useSessionCrud({
     setDaySessions(prev => [...prev, { id: newSuffix, block: 'Neues Workout', exercises: [], saved_at: new Date().toISOString() }]);
   }
 
-  return { loadSessionData, resetSessionData, selectSession, handleDeleteSession, handleNewSession };
+  return { loadSessionData, resetSessionData, selectSession, handleDeleteSession, deleteSessionAtDate, handleNewSession };
 }

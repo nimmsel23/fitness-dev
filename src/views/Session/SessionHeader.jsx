@@ -21,7 +21,7 @@ export default function CalmHeader({
   saving, autoSaveLabel, dirty, onSave, onOpenSidebar, onOpenSettings,
   hint,
   daySessions, sessionId, selectSession, onNew, onDelete,
-  sessionMode, setSessionMode,
+  sessionMode, setSessionMode, block, activity,
 }) {
   const { today, visible, canBack, canFwd, dateInputRef, dateLabel, goBack, goFwd, jumpToDate } =
     useDayStrip({ date, setDate, rollingDays });
@@ -127,6 +127,7 @@ export default function CalmHeader({
         onDelete={onDelete}
         sessionMode={sessionMode}
         setSessionMode={setSessionMode}
+        block={block} activity={activity}
       />
     </div>
   );
