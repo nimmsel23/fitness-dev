@@ -8,6 +8,7 @@
 
 import { Plus, X } from 'lucide-react';
 import { ACTIVITY_MUSCLE_DEFAULTS, MUSCLE_TARGET_GROUPS } from '../../constants/ActivityConstants';
+import { ACTIVITY_TYPES } from '../../constants/activities';
 
 const MUSCLE_TARGETS = [
   { value: 'core',  label: 'Core' },
@@ -15,18 +16,12 @@ const MUSCLE_TARGETS = [
   { value: 'full',  label: 'Full Body' },
 ];
 
-export const ADDON_TYPES = [
-  { value: 'hiit',      label: 'HIIT',        icon: '⚡' },
-  { value: 'stretching',label: 'Stretching',  icon: '🤸' },
-  { value: 'yoga',      label: 'Yoga',        icon: '🧘' },
-  { value: 'running',   label: 'Laufen',      icon: '🏃' },
-  { value: 'cycling',   label: 'Radfahren',   icon: '🚴' },
-  { value: 'rowing',    label: 'Rudern',      icon: '🚣' },
-  { value: 'walking',   label: 'Spazieren',   icon: '🚶' },
-  { value: 'swimming',  label: 'Schwimmen',   icon: '🏊' },
-  { value: 'hiking',    label: 'Wandern',     icon: '🥾' },
-  { value: 'climbing',  label: 'Klettern',    icon: '🧗' },
-];
+// Build ADDON_TYPES from ACTIVITY_TYPES — map lucide icon to emoji
+export const ADDON_TYPES = ACTIVITY_TYPES.map(activity => ({
+  value: activity.value,
+  label: activity.label,
+  icon: activity.emoji, // ActivityAddon uses emoji as the icon field, not lucide component
+}));
 
 export default function ActivityAddon({ hasActivity, setHasActivity, activity, setActivity }) {
   if (!hasActivity) {
