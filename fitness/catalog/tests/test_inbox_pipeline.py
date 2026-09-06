@@ -4,7 +4,7 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from fitness.catalog.core.inbox_pipeline import build_inbox_draft_seed
+from fitness.catalog.core.inbox_pipeline import build_inbox_draft_seed, preserve_reenrich_provenance
 
 
 class InboxPipelineTest(unittest.TestCase):
@@ -75,6 +75,36 @@ class InboxPipelineTest(unittest.TestCase):
         self.assertEqual(seed["display_name"], "Unterarmstütz")
         self.assertEqual(seed["category"], "twist")
         self.assertEqual(seed["coaching_notes"], ["Coach note"])
+
+    def test_reenrich_preserves_confirmed_source_links_after_ai_rebuild(self) -> None:
+        seed = {
+            "exercise_id": "walking_lunges",
+            "wger_id": 206,
+            "yuhonas_id": "Walking_Lunges",
+            "external_ids": {"wger": [206], "yuhonas": ["Walking_Lunges"]},
+            "origin": {
+                "type": "external",
+                "source_refs": {"wger": ["206"], "yuhonas": ["Walking_Lunges"]},
+                "wger": {"wger_id": 206, "display_name": "Walking Lunges"},
+                "yuhonas": {"yuhonas_id": "Walking_Lunges", "display_name": "Walking Lunges"},
+            },
+            "original_description": "Raw wger description",
+        }
+        ai_rebuild = {
+            "exercise_id": "walking_lunges",
+            "display_name": "Ausfallschritte im Gehen",
+            "coaching_notes": ["Neuer Coach-Text"],
+        }
+
+        rebuilt = preserve_reenrich_provenance(ai_rebuild, seed)
+
+        self.assertEqual(rebuilt["coaching_notes"], ["Neuer Coach-Text"])
+        self.assertEqual(rebuilt["wger_id"], 206)
+        self.assertEqual(rebuilt["yuhonas_id"], "Walking_Lunges")
+        self.assertEqual(rebuilt["external_ids"], {"wger": [206], "yuhonas": ["Walking_Lunges"]})
+        self.assertEqual(rebuilt["origin"]["source_refs"]["wger"], ["206"])
+        self.assertEqual(rebuilt["origin"]["source_refs"]["yuhonas"], ["Walking_Lunges"])
+        self.assertEqual(rebuilt["original_description"], "Raw wger description")
 
 
 if __name__ == "__main__":

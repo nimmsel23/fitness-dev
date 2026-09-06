@@ -15,6 +15,7 @@ from fitness.catalog.agent.inbox_actions import (
     reenrich_inbox_entry,
     restore_inbox_tombstone,
 )
+from fitness.api.routers.exercises_inbox import _link_source
 
 
 class InboxActionsTest(unittest.TestCase):
@@ -179,6 +180,35 @@ class InboxActionsTest(unittest.TestCase):
             restored = doc["exercises"][0]
             self.assertEqual(restored["primary_muscles"], ["601_quadriceps_femoris"])
             self.assertEqual(restored["source"], "unreviewed")
+
+    def test_link_source_adds_second_external_reference(self) -> None:
+        ex = {
+            "exercise_id": "wger_206",
+            "display_name": "Ausfallschritte im Gehen",
+            "wger_id": 206,
+            "external_ids": {"wger": [206]},
+            "origin": {
+                "type": "external",
+                "source_refs": {"wger": ["206"]},
+                "wger": {"wger_id": 206, "display_name": "Walking Lunges"},
+            },
+        }
+        yuhonas_entry = {
+            "exercise_id": "yuhonas_walking_lunges",
+            "yuhonas_id": "Walking_Lunges",
+            "display_name": "Walking Lunges",
+            "instructions": ["Step forward into a lunge."],
+        }
+
+        linked = _link_source(ex, "yuhonas", yuhonas_entry)
+
+        self.assertEqual(linked["wger_id"], 206)
+        self.assertEqual(linked["yuhonas_id"], "Walking_Lunges")
+        self.assertEqual(linked["external_ids"]["wger"], [206])
+        self.assertEqual(linked["external_ids"]["yuhonas"], ["Walking_Lunges"])
+        self.assertEqual(linked["origin"]["source_refs"]["wger"], ["206"])
+        self.assertEqual(linked["origin"]["source_refs"]["yuhonas"], ["Walking_Lunges"])
+        self.assertEqual(linked["origin"]["yuhonas"], yuhonas_entry)
 
     def test_reenrich_normalizes_coarse_shoulder_label_by_name(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

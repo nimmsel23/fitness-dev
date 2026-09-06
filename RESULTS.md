@@ -1,3 +1,64 @@
+# Coach-Inbox: Firebase nutzt lokalen Prod-Server fuer Source-Merge (2026-09-06)
+
+Ausgangspunkt: Inbox-Drafts hatten teils nur eine Quelle verlinkt (`wger` oder
+`yuhonas`), und ein Reenrich wirkte nicht nachvollziehbar. Gewuenschter
+Produkt-Schnitt: im Coach-Tab soll die Inbox wie Kontakte am Handy Kandidaten
+zum Zusammenfuehren zeigen; der Coach bestaetigt die Quelle explizit, damit der
+spaetere Expert-Draft beide externen IDs referenziert.
+
+* **Firebase-Inbox-Backendpfad**: `src/lib/db/firestore/core.js` nutzt fuer
+  lokale Coach-Aktionen jetzt `http://127.0.0.1:6100/fitness` statt des alten
+  `BRIDGE_API_BASE`/Tailscale-Bridge-Pfads. `src/lib/db/firestore/inbox.js`
+  ruft darueber `reenrich`, `merge-candidates`, `duplicates`,
+  `merge-duplicates` und den neuen Source-Link-Endpunkt auf.
+* **Lokaler Prod-Backendpfad :6100**: Live-Check
+  `curl -sS http://127.0.0.1:6100/health` antwortet als FastAPI-Prod
+  (`env: "prod"`). Die Firebase-App trifft fuer Coach-Inbox-Aktionen also
+  direkt den Python-Prod-Server auf `:6100`.
+* **Node-Kompatibilitaetsproxy**: `server.mjs` hat neue Proxy-Routen fuer
+  `POST /fitness/inbox/{id}/reenrich`,
+  `POST /fitness/inbox/{id}/link-source`,
+  `GET /fitness/inbox/{id}/duplicates` und
+  `POST /fitness/inbox/{id}/merge-duplicates`, falls die Node-Oberflaeche
+  denselben lokalen Pfad proxyt. Die CORS-Antwort setzt jetzt auch
+  Methods/Headers, damit JSON-POSTs aus einer Browser-Origin nicht am
+  Preflight scheitern.
+* **Expliziter Source-Merge**: `fitness/api/routers/exercises_inbox.py` hat
+  `POST /fitness/inbox/{id}/link-source`. Der Endpunkt nimmt
+  `{source: "wger"|"yuhonas", source_id, uid, doc_id, current_data}` entgegen,
+  sucht den Rohdatensatz in `unreviewed_wger.yml` oder `unreviewed_yuhonas.yml`,
+  schreibt `wger_id`/`yuhonas_id`, `external_ids.*` und `origin.wger` bzw.
+  `origin.yuhonas` in den Draft und aktualisiert bei Firestore-Kontext das
+  originale `fitness/{uid}/inbox/{doc_id}`-Dokument (`status: source_linked`,
+  `enriched: ...`).
+* **Coach-UI**: `src/views/Inbox/InboxCard.jsx` zeigt bestehende
+  Merge-Kandidaten nicht mehr nur passiv an, sondern bietet pro Kandidat einen
+  `Verbinden`-Button. `src/views/Inbox/useInbox.js` reicht den aktuellen
+  Draft-Payload mit, damit Firestore-Doc-ID und lokale Draft-ID auseinanderfallen
+  duerfen. `src/views/Coach/index.jsx` verdrahtet die Aktion im Coach-Tab.
+* **Coach-Sheet Reenrich-Vertrag nachgeschaerft**: Der Reenrich-Button im
+  Coach-Sheet war bisher praktisch "AI-Text neu" und konnte bestaetigte
+  Source-Verknuepfungen verlieren, wenn das Modell sie nicht erneut ausgab.
+  `ExerciseInsightModal.jsx` kann Source-Kandidaten jetzt ebenfalls direkt im
+  Sheet verbinden, und `fitness/catalog/core/inbox_pipeline.py` erhaelt beim
+  Rebuild bestaetigte Provenance-Felder (`wger_id`, `yuhonas_id`,
+  `external_ids`, `origin`, `source_snapshot`, Rohbeschreibung/Instructions).
+  Genutzt wird das im API/Watcher-Reenrich und im CLI/TUI-Reenrich; der
+  Firestore-Vertex-Fallback spiegelt dieselbe Regel in JS.
+* **Test/Build**: `python -m unittest fitness.catalog.tests.test_inbox_actions
+  fitness.catalog.tests.test_inbox_pipeline fitness.catalog.tests.test_source_merge`
+  laeuft gruen (14 Tests). `node --check server.mjs` und
+  `npm run build -- --mode firebase` laufen gruen; Vite meldet nur bestehende
+  Chunk-/Fuel-Dynamic-Import-Warnings. `git diff --check` ist sauber.
+
+Offen: `approveInbox()` im Firebase-DB-Layer schreibt weiterhin direkt nach
+Firestore `fitness/kb/exercises`. Durch den Source-Link enthaelt dieses
+Firestore-Expert-Dokument die bestaetigten IDs. Ein vollstaendiger
+Firebase-Approve ueber den lokalen `:6100`-Prod-Pfad, der zusaetzlich lokale
+YAML-Expert-Dateien erzeugt, ist ein separater naechster Schritt.
+
+---
+
 # Vier-SOT-Konfliktmodell dokumentiert + Phase 1–4 nach vitalos deployed (2026-09-05)
 
 Abschluss der Session-Tab-Rebuild-Arbeit (siehe Einträge darunter). Nach einem

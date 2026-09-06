@@ -68,3 +68,11 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   offen: ob `AssignPlan.jsx` (Coach) und `AssignedMacrocycles.jsx`
   (Plan-Tab) bewusst zwei Oberflächen für dieselben Makrozyklus-Daten sind
   oder Doppelarbeit, wurde nicht geprüft.
+- Coach-Inbox Source-Merge (2026-09-06) ist als expliziter
+  `Verbinden`-Flow umgesetzt: Firebase-Coach-Tab kann Kandidaten ueber den
+  lokalen FastAPI-Prod-Server `http://127.0.0.1:6100/fitness` in
+  Firestore/YAML-Drafts verlinken. Offen bleibt ein separater Schritt:
+  `approveInbox()` im
+  Firebase-DB-Layer laeuft noch direkt gegen Firestore; falls Firebase-Approve
+  auch lokale `kb/exercises/*.yml` erzeugen soll, muss Approve ebenfalls ueber
+  den lokalen `:6100`-Pfad laufen und Firestore danach nur spiegeln.

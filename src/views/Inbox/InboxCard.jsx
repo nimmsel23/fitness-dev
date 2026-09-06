@@ -29,7 +29,7 @@ function buildInspectPayload(ex, data) {
   };
 }
 
-export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenrich, onInspect, mergeCandidate, showUserId = false, asMessage = false }) {
+export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenrich, onLinkSource, onInspect, mergeCandidate, showUserId = false, asMessage = false }) {
   // Unterstützt beide Backend-Shapes: { exercises: [data] } und { enriched: data } und flach
   const data     = ex.exercises?.[0] || ex.enriched || ex;
   const fileId   = ex.file_id;
@@ -100,7 +100,7 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenri
         <div className="flex items-center gap-2 shrink-0">
           {ex.status === 'approved' && (
             <button
-              onClick={() => onInspect?.(buildInspectPayload(ex, data))}
+              onClick={() => onInspect?.({ ...buildInspectPayload(ex, data), mergeCandidate })}
               className="p-2.5 bg-fit-bg2 text-fit-dim hover:text-ink rounded-lg border border-fit-line transition-all active:scale-95"
               title="Übung anzeigen"
             >
@@ -181,13 +181,25 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenri
       )}
 
       {mergeCandidate && (
-        <div className="mb-2.5 p-3 bg-fit-orange/5 border border-fit-orange/15 rounded-xl space-y-1">
+        <div className="mb-2.5 p-3 bg-fit-orange/5 border border-fit-orange/15 rounded-xl space-y-2">
           {Object.entries(mergeCandidate).map(([sourceKey, cand]) => (
-            <div key={sourceKey} className="flex items-start gap-2 text-fit-orange text-[10px] font-bold leading-tight">
-              <GitMerge size={12} className="shrink-0 mt-0.5" />
-              <span className="uppercase tracking-tight">
-                Möglicher Merge-Kandidat ({sourceKey}): {cand.display_name || cand.id} — Score {Math.round(cand.score)}
-              </span>
+            <div key={sourceKey} className="flex items-start justify-between gap-2 text-fit-orange text-[10px] font-bold leading-tight">
+              <div className="flex items-start gap-2 min-w-0">
+                <GitMerge size={12} className="shrink-0 mt-0.5" />
+                <span className="uppercase tracking-tight">
+                  {sourceKey}: {cand.display_name || cand.id} · Score {Math.round(cand.score)}
+                </span>
+              </div>
+              {onLinkSource && (
+                <button
+                  onClick={() => onLinkSource(fileId, sourceKey, cand.id)}
+                  disabled={busy || actioning === `${fileId}:${sourceKey}`}
+                  className="shrink-0 px-2 py-1 rounded-md border border-fit-orange/20 bg-fit-orange/10 hover:bg-fit-orange/20 text-fit-orange uppercase tracking-tight disabled:opacity-50"
+                  title={`${sourceKey}-Quelle verlinken`}
+                >
+                  {actioning === `${fileId}:${sourceKey}` ? '...' : 'Verbinden'}
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -210,7 +222,7 @@ export default function InboxCard({ ex, actioning, onApprove, onDelete, onReenri
 
       <div className="cc-action-row">
         <button
-          onClick={() => onInspect?.(buildInspectPayload(ex, data))}
+          onClick={() => onInspect?.({ ...buildInspectPayload(ex, data), mergeCandidate })}
           className="cc-btn-ghost"
           title="Details"
         >

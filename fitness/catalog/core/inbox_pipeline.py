@@ -49,6 +49,20 @@ REENRICH_OVERLAY_FIELDS = {
     "logged_by_uid",
     "aliases",
     "search_aliases",
+    "origin",
+    "source_snapshot",
+}
+
+REENRICH_PROVENANCE_FIELDS = {
+    "wger_id",
+    "wger_muscle_ids",
+    "yuhonas_id",
+    "external_ids",
+    "origin",
+    "source_snapshot",
+    "original_description",
+    "instructions",
+    "images",
 }
 
 
@@ -201,3 +215,21 @@ def build_inbox_draft_seed(
         for key, value in merged.items()
         if not _is_empty(value)
     }
+
+
+def preserve_reenrich_provenance(enriched: dict[str, Any] | None, seed: dict[str, Any] | None) -> dict[str, Any]:
+    """Keep confirmed source/provenance fields when rebuilding an old draft.
+
+    Re-enrichment should refresh AI-authored coach text and schema fields, but
+    the model must not be the authority on whether a draft is linked to wger or
+    yuhonas. Those links come from the seed/current draft and confirmed source
+    merge actions.
+    """
+    out = deepcopy(enriched or {})
+    if not isinstance(seed, dict):
+        return out
+    for field in REENRICH_PROVENANCE_FIELDS:
+        value = seed.get(field)
+        if not _is_empty(value):
+            out[field] = deepcopy(value)
+    return out

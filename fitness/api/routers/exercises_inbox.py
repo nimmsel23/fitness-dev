@@ -11,6 +11,95 @@ from fitness.api.config import INBOX_DIR
 router = APIRouter()
 
 
+def _source_entry_by_id(source: str, source_id: str):
+    from fitness.catalog.core.source_merge import _entries_from_file
+
+    if source == "wger":
+        for entry in _entries_from_file("unreviewed_wger.yml"):
+            if str(entry.get("wger_id") or entry.get("exercise_id") or "") == str(source_id):
+                return entry
+    elif source == "yuhonas":
+        wanted = str(source_id or "").casefold()
+        for entry in _entries_from_file("unreviewed_yuhonas.yml"):
+            candidates = [
+                entry.get("yuhonas_id"),
+                entry.get("exercise_id"),
+                entry.get("id"),
+                entry.get("display_name"),
+            ]
+            if any(str(value or "").casefold() == wanted for value in candidates):
+                return entry
+    return None
+
+
+def _draft_path_for(id: str, data: dict | None = None):
+    candidates = [id]
+    if isinstance(data, dict):
+        candidates.extend([
+            data.get("exercise_id"),
+            data.get("id"),
+        ])
+    for candidate in candidates:
+        text = str(candidate or "").strip()
+        if not text:
+            continue
+        stem = text if text.startswith("inbox_") else f"inbox_{text}"
+        path = INBOX_DIR / f"{stem}.yml"
+        if path.exists():
+            return path
+    return None
+
+
+def _link_source(ex: dict, source: str, entry: dict) -> dict:
+    ex = dict(ex or {})
+    origin = dict(ex.get("origin") or {})
+    source_refs = dict(origin.get("source_refs") or {})
+    external_ids = dict(ex.get("external_ids") or {})
+
+    if source == "wger":
+        source_id = entry.get("wger_id")
+        ex["wger_id"] = source_id
+        if entry.get("wger_muscle_ids"):
+            ex["wger_muscle_ids"] = entry.get("wger_muscle_ids")
+    else:
+        source_id = entry.get("yuhonas_id") or entry.get("exercise_id") or entry.get("id")
+        ex["yuhonas_id"] = source_id
+
+    values = list(external_ids.get(source) or [])
+    if source_id not in (None, "") and source_id not in values:
+        values.append(source_id)
+    if values:
+        external_ids[source] = values
+        ex["external_ids"] = external_ids
+
+    origin["type"] = "external"
+    origin[source] = entry
+    if values:
+        source_refs[source] = [str(value) for value in values]
+    if source_refs:
+        origin["source_refs"] = source_refs
+    ex["origin"] = origin
+    return ex
+
+
+def _write_back_to_firestore(uid: str | None, doc_id: str | None, enriched_data: dict) -> None:
+    if not uid or not doc_id:
+        return
+    try:
+        from fitness.firestore.kb import get_db
+
+        db = get_db()
+        ref = db.collection("fitness").document(uid).collection("inbox").document(doc_id)
+        if not ref.get().exists:
+            return
+        ref.update({
+            "status": "source_linked",
+            "enriched": enriched_data,
+        })
+    except Exception:
+        pass
+
+
 @router.get("/fitness/inbox")
 def inbox_list():
     if not INBOX_DIR.exists():
@@ -30,6 +119,47 @@ def inbox_list():
 def inbox_merge_candidates():
     from fitness.catalog.core.merge_candidates import list_inbox_merge_candidates
     return {"ok": True, "candidates": list_inbox_merge_candidates()}
+
+
+@router.post("/fitness/inbox/{id}/link-source")
+async def inbox_link_source(id: str, request: Request):
+    body = await request.json()
+    source = str(body.get("source") or "").strip()
+    source_id = body.get("source_id")
+    if source not in {"wger", "yuhonas"} or source_id in (None, ""):
+        raise HTTPException(400, detail="invalid_source")
+
+    entry = _source_entry_by_id(source, str(source_id))
+    if not entry:
+        raise HTTPException(404, detail="source_not_found")
+
+    current_data = body.get("current_data") if isinstance(body.get("current_data"), dict) else {}
+    draft_path = _draft_path_for(id, current_data)
+    if draft_path:
+        doc = yaml.safe_load(draft_path.read_text()) or {}
+        exercises = doc.get("exercises") if isinstance(doc, dict) else None
+        ex = exercises[0] if isinstance(exercises, list) and exercises else doc
+        if not isinstance(ex, dict):
+            raise HTTPException(400, detail="invalid_inbox_entry")
+        linked = _link_source(ex, source, entry)
+        doc["exercises"] = [linked]
+        draft_path.with_suffix(".yml.bak").write_text(draft_path.read_text())
+        draft_path.write_text(yaml.dump(doc, allow_unicode=True, sort_keys=False))
+    else:
+        linked = _link_source(current_data, source, entry)
+
+    uid = body.get("uid")
+    doc_id = body.get("doc_id") or id
+    _write_back_to_firestore(uid, doc_id, linked)
+
+    return {
+        "ok": True,
+        "id": id,
+        "source": source,
+        "source_id": source_id,
+        "exercise": linked,
+        "draft_path": str(draft_path) if draft_path else None,
+    }
 
 
 @router.post("/fitness/inbox/queue")

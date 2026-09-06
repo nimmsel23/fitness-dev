@@ -17,6 +17,7 @@ from loguru import logger
 
 from fitness.catalog.core.paths import DATA_DIR
 from fitness.catalog.core.exercise_schema import apply_exercise_schema
+from fitness.catalog.core.inbox_pipeline import preserve_reenrich_provenance
 from fitness.catalog.core.muscle_normalization import normalize_exercise_muscles
 from fitness.catalog.core.source_merge import build_external_seed
 from fitness.catalog.core.yaml_utils import load_yaml
@@ -726,6 +727,7 @@ def reenrich_inbox_entry(
     enriched = call_enrichment(name, safe_name, existing_data=ex, feedback=feedback, provider=provider, api_key=api_key)
     if not enriched:
         raise RuntimeError(f"{provider}-Anreicherung fehlgeschlagen")
+    enriched = preserve_reenrich_provenance(enriched, ex)
 
     review_provider = None
     if use_haiku_review:

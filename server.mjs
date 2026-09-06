@@ -266,6 +266,8 @@ const app = new OpenAPIHono(); // Drop-in-Ersatz für Hono, alle bestehenden app
 
 app.use("*", async (c, next) => {
   c.res.headers.set("Access-Control-Allow-Origin", "*");
+  c.res.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+  c.res.headers.set("Access-Control-Allow-Headers", "Content-Type,Authorization");
   await next();
 });
 
@@ -504,6 +506,95 @@ app.openapi(defineJsonRoute({
   const id = c.req.param("id");
   try {
     const res = await fetch(`${PYTHON_BASE}/fitness/inbox/${id}/approve`, { method: "POST" });
+    const data = await res.json();
+    return c.json(data, res.status);
+  } catch (err) {
+    return c.json({ ok: false, error: "python_unreachable" }, 502);
+  }
+});
+
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/fitness/inbox/{id}/reenrich",
+  tags: ["inbox"],
+  summary: "Inbox-Entwurf neu anreichern",
+  params: z.object({ id: z.string() }),
+  jsonBody: looseObjectSchema,
+}), async (c) => {
+  const id = c.req.param("id");
+  try {
+    const body = c.req.valid("json");
+    const res = await fetch(`${PYTHON_BASE}/fitness/inbox/${id}/reenrich`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    return c.json(data, res.status);
+  } catch (err) {
+    return c.json({ ok: false, error: "python_unreachable" }, 502);
+  }
+});
+
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/fitness/inbox/{id}/link-source",
+  tags: ["inbox"],
+  summary: "wger-/yuhonas-Quelle mit Inbox-Entwurf verlinken",
+  params: z.object({ id: z.string() }),
+  jsonBody: looseObjectSchema,
+}), async (c) => {
+  const id = c.req.param("id");
+  try {
+    const body = c.req.valid("json");
+    const res = await fetch(`${PYTHON_BASE}/fitness/inbox/${id}/link-source`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    return c.json(data, res.status);
+  } catch (err) {
+    return c.json({ ok: false, error: "python_unreachable" }, 502);
+  }
+});
+
+app.openapi(defineJsonRoute({
+  method: "get",
+  path: "/fitness/inbox/{id}/duplicates",
+  tags: ["inbox"],
+  summary: "Duplicate-Gruppe fuer Inbox-Entwurf pruefen",
+  params: z.object({ id: z.string() }),
+  query: z.object({ uid: z.string().optional() }).optional(),
+}), async (c) => {
+  const id = c.req.param("id");
+  const uid = c.req.query("uid");
+  const suffix = uid ? `?uid=${encodeURIComponent(uid)}` : "";
+  try {
+    const res = await fetch(`${PYTHON_BASE}/fitness/inbox/${id}/duplicates${suffix}`);
+    const data = await res.json();
+    return c.json(data, res.status);
+  } catch (err) {
+    return c.json({ ok: false, error: "python_unreachable" }, 502);
+  }
+});
+
+app.openapi(defineJsonRoute({
+  method: "post",
+  path: "/fitness/inbox/{id}/merge-duplicates",
+  tags: ["inbox"],
+  summary: "Duplicate-Gruppe fuer Inbox-Entwurf zusammenfuehren",
+  params: z.object({ id: z.string() }),
+  jsonBody: looseObjectSchema,
+}), async (c) => {
+  const id = c.req.param("id");
+  try {
+    const body = c.req.valid("json");
+    const res = await fetch(`${PYTHON_BASE}/fitness/inbox/${id}/merge-duplicates`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
     const data = await res.json();
     return c.json(data, res.status);
   } catch (err) {

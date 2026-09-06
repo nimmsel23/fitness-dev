@@ -52,6 +52,20 @@ export async function getInboxMergeCandidates() {
   }
 }
 
+export async function linkInboxSource(id, source, sourceId, userId = null, currentData = null) {
+  try {
+    return await api.post(`/fitness/inbox/${id}/link-source`, {
+      source,
+      source_id: sourceId,
+      uid: userId,
+      doc_id: id,
+      current_data: currentData,
+    });
+  } catch {
+    return { ok: false };
+  }
+}
+
 export async function getInboxDuplicates(id, userId = null) {
   try {
     const suffix = userId ? `?uid=${encodeURIComponent(userId)}` : "";

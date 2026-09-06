@@ -8,9 +8,32 @@ import {
 } from "firebase/firestore";
 
 import { db } from "../../../firebase.js";
-import { getUid, BRIDGE_API_BASE } from "./core.js";
+import { getUid, LOCAL_FITNESS_API_BASE } from "./core.js";
 import { normalizeExerciseRecord } from "../shared/exercise.js";
 import { enrichExerciseViaVertex } from "../../exerciseAiEnrich.js";
+
+const REENRICH_PROVENANCE_FIELDS = [
+  "wger_id",
+  "wger_muscle_ids",
+  "yuhonas_id",
+  "external_ids",
+  "origin",
+  "source_snapshot",
+  "original_description",
+  "instructions",
+  "images",
+];
+
+function preserveReenrichProvenance(enriched, seed) {
+  const out = { ...(enriched || {}) };
+  for (const field of REENRICH_PROVENANCE_FIELDS) {
+    const value = seed?.[field];
+    if (value !== null && value !== undefined && value !== "" && !(Array.isArray(value) && value.length === 0)) {
+      out[field] = value;
+    }
+  }
+  return out;
+}
 
 // ── Inbox ─────────────────────────────────────────────────────────────────────
 
@@ -90,22 +113,16 @@ export async function approveInbox(id, userId) {
   return { ok: true, id: exId };
 }
 
-// Jagt einen bestehenden Inbox-Eintrag (z.B. aus einer frueheren Import-Aera,
-// der mit dem aktuellen Schema nicht mehr sauber approvebar ist) nochmal
-// frisch durch die Gemini-Anreicherung. Primärpfad: FastAPI-Backend ueber
-// den Tailscale-Funnel (Gemini→Haiku→Codex-Kette, exakte KB-Schema-
-// Normalisierung) — der Endpoint aktualisiert das Firestore-Dokument selbst
-// zurueck (siehe fitness/api/routers/exercises.py::inbox_reenrich). Das
-// setzt aber voraus, dass der lokale Coach-Rechner läuft. Schlägt der Call
-// fehl (Netzwerkfehler, Funnel down), fällt reenrichInbox auf Vertex AI
-// direkt im Browser zurück (exerciseAiEnrich.js) und schreibt selbst ins
-// Firestore-Dokument — funktioniert dann unabhängig von localhost.
+// Jagt einen bestehenden Firestore-Inbox-Eintrag nochmal frisch durch die
+// lokale Fitness-Prod-Kette (:6100 -> Python/Gemini/Review) und schreibt den
+// angereicherten Draft von dort zurueck. Wenn der lokale Prod-Server nicht
+// laeuft, faellt die Firebase-App auf Vertex AI direkt im Browser zurueck.
 export async function reenrichInbox(id, userId, ex) {
   const targetUid = userId || getUid();
   const data = ex?.exercises?.[0] || ex?.enriched || ex || {};
   const feedback = ex?.coachFeedback || ex?.feedback || null;
   try {
-    const res = await fetch(`${BRIDGE_API_BASE}/inbox/${id}/reenrich`, {
+    const res = await fetch(`${LOCAL_FITNESS_API_BASE}/inbox/${id}/reenrich`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -123,7 +140,10 @@ export async function reenrichInbox(id, userId, ex) {
   }
 
   try {
-    const enriched = await enrichExerciseViaVertex(data, ex?.coachFeedback || null);
+    const enriched = preserveReenrichProvenance(
+      await enrichExerciseViaVertex(data, ex?.coachFeedback || null),
+      data,
+    );
     const inboxRef = doc(db, "fitness", targetUid, "inbox", id);
     await updateDoc(inboxRef, {
       status: "ai_enriched",
@@ -150,14 +170,14 @@ export async function deleteInbox(id, userId) {
   return { ok: true };
 }
 
-// Wie getInboxDuplicates(): braucht den lokalen Coach-Rechner (Tailscale
-// Funnel), da die Fuzzy-Matches gegen unreviewed_wger.yml/unreviewed_yuhonas.yml
-// laufen — nicht im Firebase-Build gebundelt. Liefert bei Nichterreichbarkeit
-// einfach leer statt einen Fehler zu werfen; Kandidaten sind ein optionaler
-// Hinweis, kein kritischer Pfad.
+// Braucht den lokalen Coach-Rechner mit Fitness-Prod-Server (:6100), da die
+// Fuzzy-Matches gegen unreviewed_wger.yml/unreviewed_yuhonas.yml laufen —
+// nicht im Firebase-Build gebundelt. Liefert bei Nichterreichbarkeit einfach
+// leer statt einen Fehler zu werfen; Kandidaten sind ein optionaler Hinweis,
+// kein kritischer Pfad.
 export async function getInboxMergeCandidates() {
   try {
-    const res = await fetch(`${BRIDGE_API_BASE}/inbox/merge-candidates`);
+    const res = await fetch(`${LOCAL_FITNESS_API_BASE}/inbox/merge-candidates`);
     if (!res.ok) return {};
     const data = await res.json();
     return data?.candidates || {};
@@ -166,16 +186,33 @@ export async function getInboxMergeCandidates() {
   }
 }
 
+export async function linkInboxSource(id, source, sourceId, userId, currentData = null) {
+  const targetUid = userId || getUid();
+  const res = await fetch(`${LOCAL_FITNESS_API_BASE}/inbox/${id}/link-source`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      source,
+      source_id: sourceId,
+      uid: targetUid,
+      doc_id: id,
+      current_data: currentData,
+    }),
+  });
+  if (!res.ok) return { ok: false };
+  return await res.json();
+}
+
 export async function getInboxDuplicates(id, userId) {
   const targetUid = userId || getUid();
-  const res = await fetch(`${BRIDGE_API_BASE}/inbox/${id}/duplicates?uid=${encodeURIComponent(targetUid)}`);
+  const res = await fetch(`${LOCAL_FITNESS_API_BASE}/inbox/${id}/duplicates?uid=${encodeURIComponent(targetUid)}`);
   if (!res.ok) return { ok: false, has_duplicates: false, plan: null };
   return await res.json();
 }
 
 export async function mergeInboxDuplicates(id, userId) {
   const targetUid = userId || getUid();
-  const res = await fetch(`${BRIDGE_API_BASE}/inbox/${id}/merge-duplicates`, {
+  const res = await fetch(`${LOCAL_FITNESS_API_BASE}/inbox/${id}/merge-duplicates`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ uid: targetUid }),
