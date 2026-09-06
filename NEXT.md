@@ -82,6 +82,27 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   `@fuel/store.js`-Headerimport und Fuel-Firestore-Re-Export wurden entfernt;
   bei neuen Nutrition-Anforderungen nicht in Fitness importieren, sondern als
   getrennten Fuel-Surface behandeln.
+- Die 2026-09-06-Session-Tab-Änderungen (weiterer `useSession.js`-Hook-Split
+  auf 357 Z., Tastaturnavigation ESC/Alt+Pfeil/Set-Grid, Activity-Typ-
+  Einzelmodule, "+Workout"-Button-Ausblendung bei leerem Tag + Live-Pill-
+  Labels via `classifySession()`, `moveSessionToDate()`-Duplizierungs-Fix,
+  Verlaufs-Trash-Button in `SessionHistory.jsx`, scrollbare Datumsleiste
+  `useDayStrip.js`) sind via `fitness-release --yes` deployed, aber **von
+  Claude nie im Browser durchgeklickt**. Verhaltensrelevant und noch
+  ungetestet: Session am falschen Datum löschen/verschieben (der eigentliche
+  User-Painpoint), die Tastatur-Shortcuts, Slot-DnD-Reorder, Datums-Slider
+  auf dem Handy.
+- `useSession.js` (jetzt 357 Z.) ließe sich weiter entschlacken (Day-Sessions-
+  /Plan-Hint-Effekt, ggf. `buildSessionPayload`/`save` als Parameter-Bag) —
+  vom Nutzer als optionales Housekeeping eingestuft, nicht beauftragt.
+- `boxing` in `ACTIVITY_MUSCLE_GROUPS` (`src/constants/ActivityConstants.js`)
+  ist ein Ausreißer — nicht in der 10-Typen-Liste, hardcodiert. Bewusst
+  stehen gelassen; bei Bedarf klären, ob es ein echter 11. Activity-Typ
+  werden soll.
+- Parallele Subagenten am selben Repo künftig in isolierten Worktrees laufen
+  lassen — in dieser Session haben zwei nicht-isolierte Agenten sich beim
+  Committen (`git commit --amend`) gegenseitig Dateien zurückgesetzt (in
+  `17a283c` repariert, nichts verloren).
 
 ## Claude Handoff - Firebase Coach-Inbox / Fuel-Grenze (2026-09-06)
 
