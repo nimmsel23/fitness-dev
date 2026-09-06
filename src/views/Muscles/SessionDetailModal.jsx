@@ -1,8 +1,13 @@
 import { X, Dumbbell } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { translateMuscle } from '../../lib/kb/muscles.js';
+import { useEscapeKey } from '../../hooks/useEscapeKey.js';
 
 export default function SessionDetailModal({ session, onClose, muscleLanguage = 'de', taxonomy = null }) {
+  // ESC schließt das Session-Detail — vor dem Early-Return, sonst würde
+  // der Hook nur bedingt aufgerufen (Rules of Hooks).
+  useEscapeKey(onClose, !!session);
+
   if (!session) return null;
 
   const exercises = Array.isArray(session.exercises) ? session.exercises : [];

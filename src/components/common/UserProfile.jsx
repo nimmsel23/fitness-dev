@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { User, Copy, X, Settings2 } from "lucide-react";
 import { useSettings } from "@fuel/store.js";
+import { useEscapeKey } from "../../hooks/useEscapeKey.js";
 
 const inputCls = "w-full bg-fit-bg2 border border-fit-line rounded-xl px-3 py-2.5 text-sm font-bold text-fit-ink focus:border-fit-accent outline-none transition-colors"
 
@@ -14,6 +15,9 @@ export default function UserProfile({ user, subtitle, onOpenSettings }) {
 
   function setHeight(v) { setHeightCmState(v); localStorage.setItem('vitalos-height', v) }
   function setWeight(v) { setWeightKgState(v); localStorage.setItem('vitalos-weight', v) }
+
+  // ESC schließt das Profil-Quickedit-Modal.
+  useEscapeKey(() => setIsOpen(false), isOpen);
 
   return (
     <>

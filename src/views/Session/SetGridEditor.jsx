@@ -9,6 +9,7 @@
  * orchestrator and passed in as props.
  */
 
+import { useEffect, useRef } from 'react';
 import { Plus, ChevronDown, ChevronUp, X } from 'lucide-react';
 
 export default function SetGridEditor({
@@ -16,10 +17,72 @@ export default function SetGridEditor({
   expandHint, patternSummary, isDropSet,
   flashSet, tryExpandReps, stepReps, stepWeight,
 }) {
+  // Enter-Navigation zwischen Satz-Feldern (Tabellen-Kalkulation-artig,
+  // statt Browser-Default-Tab-Reihenfolge): Reps → Weight derselben Zeile →
+  // Reps der nächsten Zeile, bei der letzten Zeile wird zuerst eine neue
+  // Zeile erzeugt. `containerRef` + `data-role`/`data-idx` statt eigener
+  // Ref-Arrays pro Zeile, weil Zeilen per addSet/removeSet dynamisch
+  // entstehen/verschwinden — ein Query-Scope auf den Grid-Container bleibt
+  // dabei robuster als synchron mitgeführte Ref-Listen.
+  const containerRef = useRef(null);
+  const pendingFocusRef = useRef(null);
+
+  useEffect(() => {
+    const pending = pendingFocusRef.current;
+    if (!pending) return;
+    const el = containerRef.current?.querySelector(
+      `[data-role="${pending.field}"][data-idx="${pending.idx}"]`
+    );
+    if (el) {
+      el.focus();
+      pendingFocusRef.current = null;
+    }
+  }, [setsArr.length]);
+
+  function focusField(idx, field) {
+    const el = containerRef.current?.querySelector(`[data-role="${field}"][data-idx="${idx}"]`);
+    if (el) el.focus();
+    return !!el;
+  }
+
+  function handleRepsEnter(e, sIdx) {
+    if (tryExpandReps(e.target.value, sIdx)) {
+      // Pattern-Expand (z.B. "5x5") hat bereits neue Sätze erzeugt —
+      // bestehendes Verhalten (Blur) bleibt unverändert, keine zusätzliche
+      // Feld-Navigation obendrauf.
+      e.target.blur();
+      return;
+    }
+    e.preventDefault();
+    focusField(sIdx, 'weight');
+  }
+
+  function handleWeightEnter(e, sIdx) {
+    e.preventDefault();
+    const isLastRow = sIdx === setsArr.length - 1;
+    if (!isLastRow) {
+      focusField(sIdx + 1, 'reps');
+      return;
+    }
+    pendingFocusRef.current = { idx: sIdx + 1, field: 'reps' };
+    addSet(i);
+  }
+
+  // Pfeiltasten hoch/runter springen wie in einer Tabellen-Kalkulation
+  // zwischen Zeilen derselben Spalte (Reps bleibt Reps, Weight bleibt
+  // Weight) — Felder sind `type="text"`, kein nativer Zahlen-Stepper, den
+  // das verdrängen würde.
+  function handleVerticalNav(e, sIdx, field) {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    e.preventDefault();
+    const targetIdx = e.key === 'ArrowUp' ? sIdx - 1 : sIdx + 1;
+    focusField(targetIdx, field);
+  }
+
   if (setsArr.length === 0) return null;
 
   return (
-    <div className="px-3 pb-3">
+    <div className="px-3 pb-3" ref={containerRef}>
       {/* Pattern / Drop-set banner */}
       {(expandHint || patternSummary || isDropSet) && (
         <div
@@ -98,12 +161,17 @@ export default function SetGridEditor({
                 <input
                   type="text"
                   inputMode="numeric"
+                  data-role="reps"
+                  data-idx={sIdx}
                   placeholder={sIdx === 0 ? '5×5' : '—'}
                   value={set.reps || ''}
                   onChange={e => updateEx(i, 'reps', e.target.value, sIdx)}
                   onBlur={e => tryExpandReps(e.target.value, sIdx)}
-                  onKeyDown={e => { if (e.key === 'Enter' && tryExpandReps(e.target.value, sIdx)) e.target.blur(); }}
-                  className="w-full text-center font-mono font-black py-2.5 px-9 rounded-xl text-sm outline-none transition-all"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleRepsEnter(e, sIdx);
+                    else handleVerticalNav(e, sIdx, 'reps');
+                  }}
+                  className="w-full text-center font-mono font-black py-2.5 px-9 rounded-xl text-sm outline-none transition-all focus:ring-2 focus:ring-[var(--accent)]"
                   style={{
                     background: flashReps ? 'rgba(var(--accent-rgb,200,255,0),0.08)' : 'var(--bg2)',
                     border: flashReps ? '1.5px solid var(--accent)' : '1.5px solid var(--line)',
@@ -152,10 +220,16 @@ export default function SetGridEditor({
                 <input
                   type="text"
                   inputMode="decimal"
+                  data-role="weight"
+                  data-idx={sIdx}
                   placeholder="kg"
                   value={set.weight || ''}
                   onChange={e => updateEx(i, 'weight', e.target.value, sIdx)}
-                  className="w-full text-center font-mono font-black py-2.5 px-9 rounded-xl text-sm outline-none transition-all"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleWeightEnter(e, sIdx);
+                    else handleVerticalNav(e, sIdx, 'weight');
+                  }}
+                  className="w-full text-center font-mono font-black py-2.5 px-9 rounded-xl text-sm outline-none transition-all focus:ring-2 focus:ring-[var(--accent)]"
                   style={{
                     background: flashWeight ? 'rgba(var(--accent-rgb,200,255,0),0.08)' : 'var(--bg2)',
                     border: flashWeight ? '1.5px solid var(--accent)' : '1.5px solid var(--line)',

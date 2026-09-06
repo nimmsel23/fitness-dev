@@ -8,9 +8,13 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MoreHorizontal } from 'lucide-react';
+import { useEscapeKey } from '../../hooks/useEscapeKey.js';
 
 export default function SessionHeaderMenu({ onOpenSidebar, onOpenSettings }) {
   const [moreOpen, setMoreOpen] = useState(false);
+
+  // ESC schließt das "Mehr"-Dropdown.
+  useEscapeKey(() => setMoreOpen(false), moreOpen);
 
   return (
     <div className="relative">

@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import MuscleHighlightMap from "./MuscleHighlightMap";
 import { translateMuscle } from "../lib/kb/muscles.js";
 import { getMuscleIcon } from "../constants/MuscleIcons";
+import { useEscapeKey } from "../hooks/useEscapeKey.js";
 
 export default function MuscleDetailModal({ muscleId, muscleData, onClose, loading, muscleLanguage = 'de', taxonomy = null, onInspectExercise = null }) {
   const [exercises, setExercises] = useState([]);
@@ -31,6 +32,12 @@ export default function MuscleDetailModal({ muscleId, muscleData, onClose, loadi
       }
     }).finally(() => setExLoading(false));
   }, [muscleId, muscleData]);
+
+  // ESC schließt nur dieses (ggf. verschachtelte) Muskel-Detail-Modal —
+  // aktiv genau dann, wenn `muscleId` gesetzt ist (deckt sich mit dem
+  // Render-Gate unten), damit ein umschließendes Modal (z.B. MuscleMapModal)
+  // bei offenem Detail nicht mitgeschlossen wird.
+  useEscapeKey(onClose, !!muscleId);
 
   if (!muscleId) return null;
 

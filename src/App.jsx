@@ -288,6 +288,34 @@ export default function App() {
   // setSubTab-Aufrufe, letzter Wert zählt).
   function navigateToPlan() { navigateToTab('session'); setSubTab('plan') }
 
+  // App-weite Tab-Navigation per Tastatur: Alt+Pfeil links/rechts wechselt
+  // zyklisch durch NAV_ITEMS. Alt statt Ctrl/Cmd, weil Ctrl/Cmd+Zahl vom
+  // Browser für echten Tab-Wechsel reserviert ist (würde kollidieren) —
+  // Alt+Pfeil ist frei. Nur aktiv wenn kein Input/Textarea/ContentEditable
+  // fokussiert ist (sonst würde z.B. ein Reps-Feld die Navigation
+  // triggern statt Cursor zu bewegen) und kein App-weites Modal offen ist
+  // (ExerciseInsightModal, AuthGateModal — Session-lokale Modals wie
+  // SessionModalsLayer/activeModal sind hier bewusst nicht sichtbar, siehe
+  // Sub-Doc `src/CLAUDE.md`, kein State-Lifting dafür).
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (!event.altKey) return
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+      const target = event.target
+      const tag = target?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return
+      if (inspectorExercise || showAuthGateModal) return
+      const currentIdx = navItems.findIndex((item) => item.id === tab)
+      if (currentIdx === -1) return // z.B. Gate-Homescreen, kein Tab-Zyklus-Kontext
+      event.preventDefault()
+      const delta = event.key === 'ArrowRight' ? 1 : -1
+      const nextIdx = (currentIdx + delta + navItems.length) % navItems.length
+      navigate(navItems[nextIdx].id)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [navItems, tab, inspectorExercise, showAuthGateModal])
+
   useEffect(() => {
     if (subTab !== 'plan' && (planView || planId)) {
       setPlanView(null)

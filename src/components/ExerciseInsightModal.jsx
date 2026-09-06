@@ -26,6 +26,7 @@ import {
 } from '@db'
 import { buildExerciseCoachSheet, buildExerciseInsights } from '../lib/exerciseInsights.js'
 import { translateMuscle } from '../lib/kb/muscles.js'
+import { useEscapeKey } from '../hooks/useEscapeKey.js'
 
 function linesToText(value) {
   return Array.isArray(value) ? value.join('\n') : ''
@@ -386,6 +387,10 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
     const timer = setTimeout(() => setNotice(''), 2400)
     return () => clearTimeout(timer)
   }, [notice])
+
+  // ESC schließt das Coach-Sheet — global genutzt (jeder Exercise-Klick in
+  // der App), hatte bisher kein Tastatur-Escape.
+  useEscapeKey(onClose, !!exercise && !!localExercise)
 
   if (!exercise || !localExercise) return null
 

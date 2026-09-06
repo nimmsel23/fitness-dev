@@ -11,6 +11,7 @@
 import SidebarSheet from './SidebarSheet';
 import SourceSettingsModal from './SourceSettingsModal';
 import SessionGateSheet from './SessionGateSheet.jsx';
+import { useEscapeKey } from '../../hooks/useEscapeKey.js';
 
 export default function SessionModalsLayer({
   activeModal, onClose,
@@ -21,6 +22,12 @@ export default function SessionModalsLayer({
   // gate
   date, sessionGate, currentSubTab, onSubNav, onStartGate, onStopGate,
 }) {
+  // ESC schließt das jeweils offene Modal — ein zentraler Handler reicht,
+  // weil `activeModal` bereits zentral gebündelt ist (siehe Kommentar oben),
+  // statt in SidebarSheet/SourceSettingsModal/SessionGateSheet je einzeln
+  // denselben Listener zu registrieren.
+  useEscapeKey(onClose, activeModal !== null);
+
   return (
     <>
       {activeModal === 'sidebar' && (
