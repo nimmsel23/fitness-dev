@@ -6,37 +6,47 @@
  * vier fachlich abgrenzbaren Teile in eigene Mini-Hooks ausgelagert:
  * `useExerciseList()`, `useSessionActivity()`, `useSessionSlots()`,
  * `useSessionGateController()` (siehe jeweilige Datei für Details/
- * Interdependenzen). Dieser Haupthook bleibt Koordination: Datum/Session-
- * Auswahl laden & speichern, History/Hints/Autosave, plus die Basis-
- * Session-Felder (block/effort/location/duration/notes/...), die keinem
- * der vier Mini-Hooks eindeutig zuzuordnen sind.
+ * Interdependenzen). Ein zweiter Split-Durchgang (2026-09-06, gleiches
+ * Stück, Fortsetzung) hat vier weitere Teile herausgelöst:
+ * `useSessionHistory()` (History-Load + restHours + prevMap),
+ * `useSessionRuntimeSync()` (Runtime-Draft-Sync-Effect + Queue-Flushed-
+ * Listener), `useSessionCrud()` (Load/Reset/Select/Delete/New-Session) und
+ * `useSessionExport()` (Obsidian-/Markdown-Export + Move-Session-Between-
+ * Dates). Dieser Haupthook bleibt Koordination: Datum/Session-Auswahl,
+ * die Basis-Session-Felder (block/effort/location/duration/notes/...), die
+ * keinem der acht Mini-Hooks eindeutig zuzuordnen sind, plus
+ * `buildSessionPayload()`/`save()` (bleiben hier — lesen fast jedes Stück
+ * Session-State, keine sinnvolle Aufteilung ohne eine gemeinsame
+ * Schnittstelle, die am Ende wieder alles zusammenführen müsste) und die
+ * Verdrahtung aller Mini-Hooks.
  *
  * Externer Rückgabe-Vertrag bleibt UNVERÄNDERT (SessionEditor.jsx konsumiert
  * ihn per `{...session}`-Spread, siehe views/Session/index.jsx) — reine
  * interne Umorganisation, kein Feature-/Verhaltensunterschied außer der
- * unten dokumentierten Autosave-Race-Klärung.
+ * bereits dokumentierten Autosave-Race-Klärung (siehe useSessionRuntimeSync.js).
  */
 
 import { useState, useEffect, useRef } from 'react';
 import {
-  saveSession, getSessionHistory, listSessionsForDate, deleteSession,
-  getCoverageGaps, getPlanSuggestion, exportFitnessData,
+  saveSession, listSessionsForDate,
+  getCoverageGaps, getPlanSuggestion,
 } from '@db';
 import { localToday } from '@utils';
-import { buildSessionCoachSheet } from '../../lib/exerciseInsights.js';
 import { normalizeSessionGate, sessionHasLoggedWorkout } from '../../lib/sessionGate.js';
 import {
   saveSessionRuntimeDraft,
   clearSessionRuntimeDraft,
-  clearQueuedSessionRuntimeDraftsForDate,
   mergeSessionRuntimeDrafts,
-  mergeSessionRuntimeDraftsIntoHistory,
 } from '../../lib/sessionRuntimeStore.js';
 import { getRollingDays } from './utils';
 import { useExerciseList } from './useExerciseList.js';
-import { useSessionActivity, DEFAULT_ACTIVITY } from './useSessionActivity.js';
+import { useSessionActivity } from './useSessionActivity.js';
 import { useSessionSlots } from './useSessionSlots.js';
 import { useSessionGateController } from './useSessionGateController.js';
+import { useSessionHistory } from './useSessionHistory.js';
+import { useSessionRuntimeSync } from './useSessionRuntimeSync.js';
+import { useSessionCrud } from './useSessionCrud.js';
+import { useSessionExport } from './useSessionExport.js';
 
 export function useSession({ initialDate, initialDraft, recentDays = 7, coverageThreshold = 1.0, onDateChange = null }) {
   const [date, setDateState]        = useState(initialDate || localToday());
@@ -50,13 +60,8 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   const [coachFeedback, setCoachFeedback] = useState('');
   const [saving, setSaving]         = useState(false);
   const [toast, setToast]           = useState('');
-  const [restHours, setRestHours]   = useState(null);
-  const [recentSessions, setRecentSessions] = useState({});
-  const [historyLimit, setHistoryLimit] = useState(60);
-  const [hasMoreHistory, setHasMoreHistory] = useState(false);
   const [hint, setHint]             = useState(null);
   const [gaps, setGaps]             = useState([]);
-  const [prevMap, setPrevMap]       = useState({});
   const [daySessions, setDaySessions] = useState([]);
   const [sessionId, setSessionId]   = useState(null);
   const [autoSaveLabel, setAutoSaveLabel] = useState('');
@@ -77,17 +82,12 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   const dirtyRef = useRef(false);
   const dateRef = useRef(null);
   const autoSaveTimerRef = useRef(null);
-  // Race-Guard (PHASE3_TODO.md Stück 4, DB-Layer-Audit-Bugfund): der
-  // Draft-Effect unten schreibt bei JEDER relevanten State-Änderung
-  // syncState:'local' in den Runtime-Draft — lief bisher unabhängig davon,
-  // ob gerade ein echter API-Save (save()) in Flight ist. Ändert sich
-  // während eines laufenden Saves noch ein State-Feld (z.B. weitergetippte
-  // Notiz), konnte der Draft-Effect ein von save() gerade gesetztes
-  // 'saving'/'queued' wieder auf 'local' zurückstufen — kein Datenverlust
-  // (der API-Call selbst lief unbeeinflusst weiter), aber ein falscher
-  // Sync-Status im Runtime-Draft, der bei einem Reload mitten im Save kurz
-  // "unsynced" statt "wird synchronisiert" anzeigen konnte. Guard: Draft-
-  // Effect überspringt den Schreibvorgang, solange `savingRef.current`.
+  // Race-Guard (PHASE3_TODO.md Stück 4, DB-Layer-Audit-Bugfund): siehe
+  // JSDoc-Kopf von useSessionRuntimeSync.js für die volle Erklärung. Kurz:
+  // der dortige Draft-Effect überspringt den Schreibvorgang, solange
+  // `savingRef.current` — verhindert, dass ein während eines laufenden
+  // save() geändertes Feld dessen 'saving'/'queued'-Status fälschlich auf
+  // 'local' zurückstuft.
   const savingRef = useRef(false);
   // War fix 30 — Date-Picker konnte nie weiter als 30 Tage zurück, unabhängig
   // von tatsächlich vorhandenen älteren Sessions (Klienten-Bug: Matthias
@@ -130,6 +130,10 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   const { sessionGate, setSessionGate, startSessionGate, stopSessionGate } =
     useSessionGateController({ location, setLocation, duration, setDuration, save, setDirty, showToast });
 
+  const {
+    recentSessions, setRecentSessions, restHours, hasMoreHistory, loadMoreHistory, prevMap,
+  } = useSessionHistory({ block, date });
+
   // Ungespeicherte Änderungen sichern, bevor der Editor-State neu geladen wird
   // (Datumswechsel, Session-Wechsel, neues Workout, Unmount). save() liest den
   // State der aktuellen Closure — muss also VOR setDate/loadSessionData laufen.
@@ -148,119 +152,16 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     if (initialDate && initialDate !== date) setDateState(initialDate);
   }, [initialDate, date]);
 
-  // ── Load / Reset ─────────────────────────────────────────────
-  const loadSessionData = (d) => {
-    setBlock(d.block || '');
-    setExercises(d.exercises || []);
-    setEffort(d.effort ?? 5);
-    setLocation(d.location || '');
-    setDuration(d.duration || '');
-    setNotes(d.notes || '');
-    setCoachFeedback(d.coachFeedback || '');
-    setTrainingsart(d.trainingsart || '');
-    if (d.sessionMode) {
-      setSessionMode(d.sessionMode);
-    } else if (d.activity && !(d.exercises?.length)) {
-      setSessionMode('cardio');
-    } else {
-      setSessionMode('strength');
-    }
-    if (d.activity) {
-      setActivity({ ...DEFAULT_ACTIVITY, ...d.activity });
-      if (d.sessionMode !== 'cardio') setHasActivity(true);
-      else setHasActivity(false);
-    } else {
-      setActivity({ ...DEFAULT_ACTIVITY });
-      setHasActivity(false);
-    }
-    setActivityAddons(Array.isArray(d.activityAddons) ? d.activityAddons : []);
-    setSlots(Array.isArray(d.slots) ? d.slots : []);
-    setSessionGate(normalizeSessionGate(d.sessionGate));
-  };
-
-  const resetSessionData = () => {
-    setBlock(initialDraft?.block || '');
-    setExercises(initialDraft?.exercises || []);
-    setEffort(5);
-    setLocation('');
-    setDuration('');
-    setNotes('');
-    setCoachFeedback('');
-    setTrainingsart('');
-    setSessionMode('strength');
-    setActivity({ ...DEFAULT_ACTIVITY });
-    setHasActivity(false);
-    setActivityAddons([]);
-    setSlots([]);
-    setSessionGate(normalizeSessionGate(null));
-  };
-
-  const selectSession = (id) => {
-    flushDirty();
-    setSessionId(id);
-    const d = daySessions.find(s => s.id === id);
-    if (d) loadSessionData(d);
-    else resetSessionData();
-  };
-
-  // ── History / prevMap ─────────────────────────────────────────
-  // historyLimit ist stateful (statt fix 60) — SessionHistory.jsx bekommt
-  // einen "Mehr laden"-Button, der ihn hochsetzt, weil sowohl die lokale
-  // Route als auch die Firestore-Query (`limit(n)`) hart bei n abschneiden,
-  // ohne Pagination. Betrifft Firebase-Prod genauso wie lokal (Matthias
-  // konnte im Date-Picker/Verlauf nicht weiter als ~60 Sessions zurück).
-  useEffect(() => {
-    getSessionHistory(historyLimit).then(sessions => {
-      const hydratedSessions = mergeSessionRuntimeDraftsIntoHistory(sessions);
-      setHasMoreHistory(sessions.length >= historyLimit);
-      const sessByDate = {};
-      const pMap = {};
-      hydratedSessions.forEach(s => {
-        const existing = sessByDate[s.date];
-        if (existing) {
-          // Mehrere Docs am selben Tag (z.B. Legs + HIIT-Finisher im selben Doc
-          // gespeichert, aber historisch auf zwei Docs verteilt) mergen statt
-          // überschreiben. Eine explizit als eigene Cardio-Session geloggte
-          // zweite Session (sessionMode === 'cardio', z.B. ein separat
-          // geloggter Spaziergang) ist aber KEIN Finisher der ersten Session —
-          // deren activity darf nicht als Finisher-Badge übernommen werden.
-          const mainDoc = (existing.exercises?.length > 0) ? existing
-            : (s.exercises?.length > 0) ? s : existing;
-          const otherDoc = mainDoc === existing ? s : existing;
-          const finisherActivity = otherDoc.sessionMode !== 'cardio' ? otherDoc.activity : null;
-          sessByDate[s.date] = {
-            ...mainDoc,
-            exercises: [...(existing.exercises || []), ...(s.exercises || [])],
-            activity: mainDoc.activity || finisherActivity,
-          };
-        } else {
-          sessByDate[s.date] = s;
-        }
-        if (s.date !== date) {
-          (s.exercises || []).forEach(ex => {
-            if (ex.name && !pMap[ex.name]) {
-              pMap[ex.name] = { date: s.date, sets: ex.sets, reps: ex.reps, weight: ex.weight, setsArray: ex.setsArray };
-            }
-          });
-        }
-      });
-      setRecentSessions(sessByDate);
-      setPrevMap(pMap);
-      if (block) {
-        const lastSame = sessions.find(s => s.date < date && (s.block === block || s.trainingsart === block));
-        if (lastSame) {
-          const hours = Math.round((new Date(date) - new Date(lastSame.date)) / (1000 * 60 * 60));
-          setRestHours(hours);
-        } else {
-          setRestHours(null);
-        }
-      }
-    }).catch(() => {});
-  }, [block, date, historyLimit]);
-
-  function loadMoreHistory() {
-    setHistoryLimit(current => current + 60);
-  }
+  const {
+    loadSessionData, resetSessionData, selectSession, handleDeleteSession, handleNewSession,
+  } = useSessionCrud({
+    date, sessionId, setSessionId, daySessions, setDaySessions, setRecentSessions,
+    setDirty, flushDirty, showToast, initialDraft,
+    setBlock, setExercises, setEffort, setLocation, setDuration, setNotes,
+    setCoachFeedback, setTrainingsart, setSessionMode,
+    setActivity, setHasActivity, setActivityAddons,
+    setSlots, setSessionGate,
+  });
 
   // ── Day sessions + hints ──────────────────────────────────────
   useEffect(() => {
@@ -283,43 +184,18 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     getCoverageGaps(recentDays, coverageThreshold).then(setGaps).catch(() => {});
   }, [date, recentDays, coverageThreshold]);
 
-  useEffect(() => {
-    if (!dirty) return;
-    // Guard siehe savingRef-Deklaration oben: kein 'local'-Downgrade während
-    // ein echter API-Save (save()) bereits eigene syncState-Updates schreibt.
-    if (savingRef.current) return;
-    saveSessionRuntimeDraft(date, buildSessionPayload(), sessionId, { syncState: 'local' });
-  }, [
-    dirty, date, sessionId, block, exercises, effort, location, duration, notes,
-    trainingsart, sessionMode, activity, hasActivity, slots, sessionGate,
-  ]);
-
-  useEffect(() => {
-    function handleQueueFlushed(event) {
-      const items = Array.isArray(event?.detail?.items) ? event.detail.items : [];
-      const touchedCurrentDate = items.some((item) => {
-        if (item?.method !== 'POST') return false;
-        const url = String(item?.url || '');
-        return url.includes('/session') && url.includes(`date=${date}`);
-      });
-      if (!touchedCurrentDate) return;
-      clearQueuedSessionRuntimeDraftsForDate(date);
-      listSessionsForDate(date)
-        .then((list) => mergeSessionRuntimeDrafts(date, list))
-        .then((list) => {
-          if (dateRef.current !== date) return;
-          setDaySessions(list);
-          const current = list.find((session) => session.id === sessionId) || list[0] || null;
-          if (current) {
-            setSessionId(current.id);
-            loadSessionData(current);
-          }
-        })
-        .catch(() => {});
-    }
-    window.addEventListener('fitness:queue-flushed', handleQueueFlushed);
-    return () => window.removeEventListener('fitness:queue-flushed', handleQueueFlushed);
-  }, [date, sessionId]);
+  useSessionRuntimeSync({
+    sessionState: {
+      date, sessionId, block, exercises, effort, location, duration, notes,
+      trainingsart, sessionMode, activity, hasActivity, slots, sessionGate, dirty,
+    },
+    savingRef,
+    buildSessionPayload,
+    dateRef,
+    setDaySessions,
+    setSessionId,
+    loadSessionData,
+  });
 
   // ── Save ──────────────────────────────────────────────────────
   function buildSessionPayload(overrides = {}) {
@@ -423,79 +299,10 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     };
   }, []);
 
-  // ── Delete session ────────────────────────────────────────────
-  async function handleDeleteSession() {
-    if (!window.confirm('Dieses Workout wirklich löschen?')) return;
-    try {
-      await deleteSession(date, sessionId);
-      clearSessionRuntimeDraft(date, sessionId);
-      // Dirty-Flag löschen, sonst würde der nächste Flush (Tab-/Datumswechsel)
-      // die gerade gelöschte Session als leere Datei wieder anlegen.
-      setDirty(false);
-      showToast('Gelöscht ✓');
-      const list = mergeSessionRuntimeDrafts(date, await listSessionsForDate(date));
-      setDaySessions(list);
-      // DateStrip-Indikator aktualisieren: ohne Refresh bliebe der ✓-Haken stehen.
-      setRecentSessions(prev => {
-        const next = { ...prev };
-        if (list.length > 0) next[date] = list[0];
-        else delete next[date];
-        return next;
-      });
-      if (list.length > 0) { setSessionId(list[0].id); loadSessionData(list[0]); }
-      else { setSessionId(null); resetSessionData(); }
-    } catch { showToast('Fehler beim Löschen'); }
-  }
-
-  function handleNewSession() {
-    flushDirty();
-    // crypto.randomUUID() statt Date.now(): kollisionsfrei bei zwei
-    // Geräten/Tabs, die im selben Millisekunden-Fenster eine Zusatz-Session
-    // für denselben Tag starten (sonst gleicher Dateiname, eine überschreibt
-    // die andere). Fallback für Nicht-HTTPS/Nicht-localhost-Kontexte, wo
-    // crypto.randomUUID fehlt (gleiches Muster wie lib/db/firestore/workouts.js).
-    const newSuffix = (typeof crypto !== 'undefined' && crypto.randomUUID)
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    setSessionId(newSuffix);
-    clearSessionRuntimeDraft(date, newSuffix);
-    resetSessionData();
-    setDaySessions(prev => [...prev, { id: newSuffix, block: 'Neues Workout', exercises: [], saved_at: new Date().toISOString() }]);
-  }
-
-  // ── Exports ───────────────────────────────────────────────────
-  async function exportObsidian() {
-    try {
-      const result = await exportFitnessData({ kind: 'session', session: { date, block, exercises, effort, location, duration, notes }, force: true });
-      showToast(result?.path ? `Export: ${result.path}` : 'Exportiert');
-    } catch { showToast('Export fehlgeschlagen'); }
-  }
-
-  function handleDownload() {
-    const md = buildSessionCoachSheet({ date, block, exercises, effort, location, duration, notes });
-    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `fitness-session-${date}.md`; a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  // ── History: move session between dates ───────────────────────
-  async function moveSessionToDate(oldDate, newDate) {
-    if (!newDate || newDate === oldDate) { setReDateEntry(null); return; }
-    const sess = recentSessions[oldDate];
-    if (!sess) return;
-    await saveSession(newDate, { ...sess, date: newDate });
-    await deleteSession(oldDate);
-    clearSessionRuntimeDraft(oldDate, sess.id || null);
-    setRecentSessions(prev => {
-      const next = { ...prev, [newDate]: { ...sess, date: newDate } };
-      delete next[oldDate];
-      return next;
-    });
-    setReDateEntry(null);
-    showToast(`Verschoben → ${newDate}`);
-  }
+  const { exportObsidian, handleDownload, moveSessionToDate } = useSessionExport({
+    date, block, exercises, effort, location, duration, notes,
+    recentSessions, setRecentSessions, setReDateEntry, showToast,
+  });
 
   return {
     // State
