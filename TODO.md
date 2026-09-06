@@ -21,10 +21,13 @@ Beispielfeature: Trainingsplanbesprechung zwischen Klient und Coach. Social Medi
   approve/reject, lokale YAML-KB und Firestore-Expert-KB synchron halten,
   UI-Zustände/Fehler sichtbar machen und mit Browser-Durchklick gegen Firebase
   plus lokalem `:6100` verifizieren.
-- Besonders offen: Firebase-`approveInbox()` schreibt aktuell noch direkt nach
-  Firestore. Wenn Approve auch lokale `kb/exercises/*.yml` erzeugen soll, muss
-  Approve ebenfalls über den lokalen `:6100`-Pfad laufen und Firestore danach
-  nur spiegeln.
+- Stand 2026-09-06: Firebase-Inbox ist local-first umgestellt. Firestore ist
+  fuer Inbox nur noch Cache/Fallback/Offline-Warteschlange; `approveInbox()` und
+  `reenrichInbox()` sollen ohne lokalen `:6100` nicht mehr final cloud-only
+  schreiben.
+- Offen: Browser-Durchklick gegen `fitness-aos.web.app/#coach` mit laufendem
+  Funnel/`:6100`: lokale Drafts sichtbar, Source verbinden, Reenrich, Approve,
+  lokale Expert-YAML und Firestore-Mirror pruefen.
 - Architekturgrenze: Fitness importiert Fuel nicht direkt. Ernährung/Fuel bleibt
   ein eigener Surface; keine `@fuel/*`-Imports im Fitness-Frontend einführen.
 

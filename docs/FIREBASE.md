@@ -200,13 +200,15 @@ Lokale Katalog-Inbox:
 fitness/catalog/kb/inbox/*.yml
 ```
 
-Der Coach-Tab liest die Inbox im Firebase-Build direkt aus Firestore. Fuer
-Coach-Aktionen, die lokale KB-Quellen brauchen, ruft er den lokalen Prod-Server
-auf Port `6100` auf.
+Der Coach-Tab liest die Inbox im Firebase-Build jetzt **local-first** ueber den
+Fitness-Prod-Server auf Port `6100`. Firestore ist fuer die Inbox semantisch nur
+noch Cache/Fallback: letzter bekannter Stand, Offline-Warteschlange und
+Spiegelung fuer Handy/Cloud.
 
 Der beabsichtigte Review-Fluss:
 
-1. Ein Item liegt in der Firestore-Inbox.
+1. Ein Item liegt primaer als lokaler Inbox-Draft vor; Firestore kann eine
+   Cache-Kopie davon enthalten.
 2. Das Coach-Sheet zeigt vorhandene Source-Links und Kandidaten.
 3. Der Coach verbindet passende `wger`- und `yuhonas`-Kandidaten.
 4. Das Inbox-Item bekommt beide Referenzen:
@@ -252,12 +254,14 @@ Dafuer gibt es zwei saubere Zielarchitekturen:
 | Hybrid lokal | Firebase bleibt Cloud-State, lokaler FastAPI-Server macht Coach-Workbench-Aktionen |
 | Cloud-only | Coach-Backend wird nach Cloud Run / Cloud Functions verlegt und nutzt Admin SDK dort |
 
-Der aktuelle Stand ist Hybrid lokal.
+Der aktuelle Stand ist Hybrid lokal, aber fuer die Coach-Inbox mit harter
+Local-First-Regel: Firestore darf anzeigen und puffern, aber nicht mehr alleine
+final reenrichen oder approven.
 
 ## 9. Approve-Grenze im Coach-Tab
 
-Source-Link, Reenrich und Approve gehen im Firebase-Build zuerst ueber den
-lokalen Prod-Server. Beim Approve schreibt der lokale Server die Expert-YAML in:
+Source-Link, Reenrich und Approve gehen im Firebase-Build ueber den lokalen
+Prod-Server. Beim Approve schreibt der lokale Server die Expert-YAML in:
 
 ```text
 fitness/catalog/kb/exercises/*.yml
@@ -270,8 +274,10 @@ fitness/{uid}/inbox/{doc_id} -> status: approved
 fitness/kb/exercises/{exercise_id}
 ```
 
-Wenn der lokale Server nicht erreichbar ist, hat der Firebase-Client weiterhin
-einen Firestore-Fallback. Dieser Fallback erzeugt keine lokale YAML-Datei.
+Wenn der lokale Server nicht erreichbar ist, zeigt der Firebase-Client nur noch
+Firestore als `firestore_cache`/Offline-Cache an. Finales Reenrich und Approve
+sollen dann fehlschlagen statt einen Cloud-only Expert-Datensatz ohne lokale
+YAML-Lineage zu erzeugen.
 
 Offen bleibt deshalb nicht mehr die Verdrahtung selbst, sondern der
 Browser-Durchklick gegen die deployte Firebase-App plus laufendem `:6100`:

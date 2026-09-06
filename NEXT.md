@@ -82,6 +82,27 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   `@fuel/store.js`-Headerimport und Fuel-Firestore-Re-Export wurden entfernt;
   bei neuen Nutrition-Anforderungen nicht in Fitness importieren, sondern als
   getrennten Fuel-Surface behandeln.
+- Die 2026-09-06-Session-Tab-Änderungen (weiterer `useSession.js`-Hook-Split
+  auf 357 Z., Tastaturnavigation ESC/Alt+Pfeil/Set-Grid, Activity-Typ-
+  Einzelmodule, "+Workout"-Button-Ausblendung bei leerem Tag + Live-Pill-
+  Labels via `classifySession()`, `moveSessionToDate()`-Duplizierungs-Fix,
+  Verlaufs-Trash-Button in `SessionHistory.jsx`, scrollbare Datumsleiste
+  `useDayStrip.js`) sind via `fitness-release --yes` deployed, aber **von
+  Claude nie im Browser durchgeklickt**. Verhaltensrelevant und noch
+  ungetestet: Session am falschen Datum löschen/verschieben (der eigentliche
+  User-Painpoint), die Tastatur-Shortcuts, Slot-DnD-Reorder, Datums-Slider
+  auf dem Handy.
+- `useSession.js` (jetzt 357 Z.) ließe sich weiter entschlacken (Day-Sessions-
+  /Plan-Hint-Effekt, ggf. `buildSessionPayload`/`save` als Parameter-Bag) —
+  vom Nutzer als optionales Housekeeping eingestuft, nicht beauftragt.
+- `boxing` in `ACTIVITY_MUSCLE_GROUPS` (`src/constants/ActivityConstants.js`)
+  ist ein Ausreißer — nicht in der 10-Typen-Liste, hardcodiert. Bewusst
+  stehen gelassen; bei Bedarf klären, ob es ein echter 11. Activity-Typ
+  werden soll.
+- Parallele Subagenten am selben Repo künftig in isolierten Worktrees laufen
+  lassen — in dieser Session haben zwei nicht-isolierte Agenten sich beim
+  Committen (`git commit --amend`) gegenseitig Dateien zurückgesetzt (in
+  `17a283c` repariert, nichts verloren).
 
 ## Claude Handoff - Firebase Coach-Inbox / Fuel-Grenze (2026-09-06)
 
@@ -107,3 +128,28 @@ Noch vor finalem Deploy/Vertrauen pruefen:
 - Browser-Durchklick gegen Firebase Hosting mit laufendem 6100: Source verbinden -> Reenrich -> Approve.
 - Danach lokal pruefen, ob `fitness/catalog/kb/exercises/*.yml` erzeugt wurde, und in Firestore pruefen: `fitness/{uid}/inbox/{doc_id}.status == approved` sowie `fitness/kb/exercises/{exercise_id}` existiert.
 - Wenn der lokale Server nicht erreichbar ist, greift bewusst der Firestore-Fallback; der erzeugt keine lokale YAML. Das ist akzeptabler Fallback, aber nicht der Coach-Workbench-Idealpfad.
+
+
+## Claude Handoff - Coach-Inbox Local-First Cache-Regel (2026-09-06)
+
+Neue Architekturentscheidung: Fuer die Coach-Inbox ist der lokale Fitness-Prod-
+Server auf `6100` jetzt der Owner. Firestore ist nur Cache/Fallback/Offline-
+Warteschlange. Nicht wieder Firestore-primary machen.
+
+Konkrete Stellen:
+- `src/lib/db/firestore/inbox.js::getInbox()` und `getGlobalInbox()` lesen zuerst
+  `${LOCAL_FITNESS_API_BASE}/inbox`; Firestore-Items werden nur bei local fail als
+  `cache_source: "firestore_cache"` und `offline_cache: true` angezeigt.
+- `sendToInbox()` queued zuerst lokal via `/fitness/inbox/queue`; Firestore ist
+  nur Fallback mit `sync_status: "pending_local"`.
+- `approveInbox()` verlangt kein Firestore-Dokument mehr vor dem lokalen Call;
+  es nutzt den UI-Draft oder Firestore nur als Datenhilfe und postet dann an
+  `/fitness/inbox/{id}/approve`. Kein Cloud-only Approve-Fallback mehr.
+- `reenrichInbox()` hat keinen Browser-Vertex-Fallback mehr. Ohne lokalen Server
+  gibt es `local_unreachable`/`local_reenrich_*`, weil Reenrich lokale YAML- und
+  Source-Lineage erhalten muss.
+
+Noch offen: echten Browser-Durchklick auf `fitness-aos.web.app/#coach` mit
+laufendem Funnel/`:6100`: local Draft sichtbar, Source verbinden, Reenrich,
+Approve, danach lokale `fitness/catalog/kb/exercises/*.yml` und Firestore-Mirror
+pruefen.
