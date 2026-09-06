@@ -1,3 +1,76 @@
+# Session-Tab: Keyboard-Nav, Activity-Typ-Module, "+Workout"-Lifecycle-Fix, scrollbare Datumsleiste (2026-09-06)
+
+Fortsetzung der Session-Tab-Arbeit nach der Phase-1–4-Runde (Einträge vom
+2026-09-05). Der Nutzer hat drei parallele Subagenten freigegeben (weiterer
+`useSession.js`-Split, App-weite Tastaturnavigation, Activity-Typen als
+Einzelmodule), danach eine 5-Punkte-Liste zum "+Workout anlegen"-Verhalten
+abgearbeitet und am Ende selbst `fitness-release --yes` ausgelöst — alles ist
+live auf `fitness-aos.web.app`, die `vitalos`-CI-Runs (Deploy Fitness PWA +
+VitalOS Shell) sind grün.
+
+* **`src/views/Session/useSession.js`** (`a5032c2`): weiter von 551 auf 357
+  Zeilen gesplittet — neue Mini-Hooks `useSessionHistory.js` (89 Z.),
+  `useSessionRuntimeSync.js` (84 Z.), `useSessionCrud.js` (130 Z.),
+  `useSessionExport.js` (61 Z.). Haupthook koordiniert jetzt 8 Mini-Hooks,
+  behält nur Basis-Session-Felder + `buildSessionPayload()`/`save()`. Externer
+  Rückgabe-Vertrag unverändert (`index.jsx`/`SessionEditor.jsx` nicht
+  angefasst). Bestehende Divergenz — `moveSessionToDate()` ruft
+  `deleteSession(oldDate)` ohne `sessionId`, `handleDeleteSession()` mit —
+  1:1 übernommen, im JSDoc vermerkt, nicht angeglichen.
+* **Tastaturnavigation** (`3d501d2`, Lücke nachgezogen in `0e481ad`): neuer
+  Hook **`src/hooks/useEscapeKey.js`**. ESC schließt jetzt das oberste offene
+  Modal in `SessionModalsLayer.jsx`, `ExerciseInsightModal.jsx`,
+  `AnatomyDetailModal.jsx`, `MuscleMapModal.jsx`,
+  `views/Muscles/SessionDetailModal.jsx`, `common/UserProfile.jsx`,
+  `SessionHeaderMenu.jsx` (verschachtelte Modals berücksichtigt, damit nicht
+  zwei Ebenen gleichzeitig schließen). **`src/App.jsx`**: `Alt + ←/→`
+  wechselt zyklisch durch `NAV_ITEMS` (nicht bei fokussiertem
+  Input/offenem Modal); Set-Grid: `Enter` Reps→Weight→nächste Zeile, `↑/↓`
+  gleiche Spalte. `activeModal` aus `useSession.js` wird via
+  `SessionModalsLayer.jsx` nach `App.jsx` gemeldet, damit Alt+Pfeil bei
+  offenem Session-Modal nicht mehr den Haupt-Tab wechselt.
+* **`src/constants/activities/*.js`** (`17a283c`): je ein Modul pro
+  Ausdauer-/Cardio-Typ (`Laufen`, `Radfahren`, `Rudern`, `Spazieren`,
+  `Schwimmen`, `Wandern`, `Klettern`, `Yoga`, `Stretching`, `HIIT`) +
+  `index.js`-Barrel mit `ACTIVITY_TYPES`. **`src/constants/ActivityConstants.js`**
+  zu Barrel umgebaut, generiert `BLOCK_COLORS`/`ACTIVITY_LABELS`/
+  `ACTIVITY_EMOJI`/`ACTIVITY_ICONS`/`ACTIVITY_MUSCLE_DEFAULTS`/
+  `ACTIVITY_MUSCLE_GROUPS` via `Object.fromEntries()`. **`ActivityAddon.jsx`**:
+  `ADDON_TYPES` aus `ACTIVITY_TYPES` generiert. `boxing`-Eintrag in
+  `ACTIVITY_MUSCLE_GROUPS` (nicht in der 10er-Liste) bewusst hardcodiert
+  belassen.
+* **Session-Lifecycle / "+Workout anlegen"** (`37d5948`): Button bei leerem
+  Tag entfernt (`SessionModeAndPills.jsx`) — die Übungsliste ist ohne Klick
+  nutzbar, der Button erzeugte nur eine überflüssige zweite `sessionId`.
+  Session-Pill-Label live aus `classifySession()` (SSOT statt bisher zwei
+  abweichender Inline-Varianten): Split-Wahl (Push/Pull/Legs/Upper/Lower/Full)
+  benennt sofort, Ausdauer zeigt die gewählte Sportart, Kraft ohne Split
+  heißt "Kraft" (nie "Neues Workout"). Echter Bug behoben:
+  **`useSessionExport.js::moveSessionToDate()`** reichte `sessionId` nicht an
+  `saveSession()`/`deleteSession()` weiter → benannte Zusatz-Sessions wurden
+  beim Datums-Verschieben **dupliziert statt verschoben**. Neuer
+  `deleteSessionAtDate()` in `useSessionCrud.js` + Trash-Button je Karte in
+  **`SessionHistory.jsx`** (Löschen direkt aus dem Verlauf, ohne Umweg über
+  den Editor).
+* **`src/views/Session/useDayStrip.js`** (`5fd9e50`): Datumsleiste komplett
+  neu — alle `rollingDays` (bis 365) in einem `overflow-x-auto`-Container
+  statt festem 7-Tage-Fenster mit Chevron-Sprüngen; ausgewähltes Datum wird
+  automatisch ins Bild gescrollt, Chevrons bleiben als Zusatz.
+  `SessionHeader.jsx`-Markup entsprechend angepasst.
+* **Deploy**: `fitness-release --yes` (vom Nutzer ausgelöst) — `dev` →
+  `origin/dev` (`ca43a9c`), Staging-Deploy `:8100`, Merge nach `vitalos`
+  (57 Dateien, konfliktfrei), Firestore-KB-Sync, Firebase-Build + Deploy nach
+  `fitness-aos.web.app`, Submodule-Pointer in `~/vitalos` gebumpt (`fdccec2`).
+  `vitalos`-CI beide Runs grün.
+* **Subagent-Kollision**: die zwei parallelen Subagenten (Tastaturnav +
+  Activity-Split) liefen im **selben** Arbeitsverzeichnis statt in Worktrees;
+  der Keyboard-Agent hat per `git commit --amend` versehentlich
+  `ActivityConstants.js`/`ActivityAddon.jsx` auf den alten Stand
+  zurückgesetzt, die neuen `activities/*.js` blieben unstaged. Beim
+  Gegenlesen gefunden und in `17a283c` sauber nachgeholt — nichts verloren.
+
+---
+
 # Firebase Coach-API-Base auf Funnel/6100 konfigurierbar gemacht (2026-09-06)
 
 Ausgangspunkt: Der lokale Fitness-Prod-Server laeuft auf `:6100`, und der
