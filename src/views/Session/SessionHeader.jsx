@@ -81,7 +81,7 @@ export default function CalmHeader({
         <button onClick={goBack} className="w-6 h-6 flex items-center justify-center shrink-0" style={{ color: 'var(--dim)' }}>
           <ChevronLeft size={14} />
         </button>
-        <div ref={stripRef} className="flex-1 flex gap-1 overflow-x-auto min-w-0">
+        <div ref={stripRef} className="flex-1 flex gap-1 overflow-x-auto min-w-0 no-scrollbar">
           {allDays.map(d => {
             const sess = recentSessions[d];
             const hasSess = sessionHasLoggedWorkout(sess);
