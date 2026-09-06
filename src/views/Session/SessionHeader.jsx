@@ -23,7 +23,7 @@ export default function CalmHeader({
   daySessions, sessionId, selectSession, onNew, onDelete,
   sessionMode, setSessionMode, block, activity,
 }) {
-  const { today, visible, canBack, canFwd, dateInputRef, dateLabel, goBack, goFwd, jumpToDate } =
+  const { today, allDays, stripRef, dateInputRef, dateLabel, goBack, goFwd, jumpToDate } =
     useDayStrip({ date, setDate, rollingDays });
 
   return (
@@ -74,13 +74,15 @@ export default function CalmHeader({
         </div>
       </div>
 
-      {/* Day strip — flat, no boxes */}
+      {/* Day strip — echt scrollbar/wischbar statt festem 7-Tage-Fenster
+          (User-Feedback 2026-09-06), Chevrons bleiben als Komfort-Sprung
+          für Maus-Nutzer ohne Trackpad/Touch, siehe useDayStrip.js. */}
       <div className="flex items-center gap-1 mb-3">
-        <button onClick={goBack} disabled={!canBack} className="w-6 h-6 flex items-center justify-center shrink-0 disabled:opacity-0" style={{ color: 'var(--dim)' }}>
+        <button onClick={goBack} className="w-6 h-6 flex items-center justify-center shrink-0" style={{ color: 'var(--dim)' }}>
           <ChevronLeft size={14} />
         </button>
-        <div className="flex-1 flex justify-between min-w-0">
-          {visible.map(d => {
+        <div ref={stripRef} className="flex-1 flex gap-1 overflow-x-auto min-w-0">
+          {allDays.map(d => {
             const sess = recentSessions[d];
             const hasSess = sessionHasLoggedWorkout(sess);
             const isSelected = d === date;
@@ -88,7 +90,12 @@ export default function CalmHeader({
             const color = hasSess ? blockColor(sess?.block, sess?.activity, sess?.sessionMode) : null;
             const dateObj = parseLocalDate(d);
             return (
-              <button key={d} onClick={() => setDate(d)} className="flex flex-col items-center gap-1 flex-1 min-w-0 py-1">
+              <button
+                key={d}
+                data-date={d}
+                onClick={() => setDate(d)}
+                className="flex flex-col items-center gap-1 shrink-0 w-8 py-1"
+              >
                 <span className="text-[9px] font-medium" style={{ color: isSelected ? 'var(--accent)' : 'var(--dim)', opacity: isSelected ? 1 : 0.4 }}>
                   {DAY_LABELS[dateObj.getDay()]}
                 </span>
@@ -106,7 +113,7 @@ export default function CalmHeader({
             );
           })}
         </div>
-        <button onClick={goFwd} disabled={!canFwd} className="w-6 h-6 flex items-center justify-center shrink-0 disabled:opacity-0" style={{ color: 'var(--dim)' }}>
+        <button onClick={goFwd} className="w-6 h-6 flex items-center justify-center shrink-0" style={{ color: 'var(--dim)' }}>
           <ChevronRight size={14} />
         </button>
       </div>
