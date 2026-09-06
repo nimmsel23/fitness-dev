@@ -293,10 +293,12 @@ export default function App() {
   // Browser für echten Tab-Wechsel reserviert ist (würde kollidieren) —
   // Alt+Pfeil ist frei. Nur aktiv wenn kein Input/Textarea/ContentEditable
   // fokussiert ist (sonst würde z.B. ein Reps-Feld die Navigation
-  // triggern statt Cursor zu bewegen) und kein App-weites Modal offen ist
-  // (ExerciseInsightModal, AuthGateModal — Session-lokale Modals wie
-  // SessionModalsLayer/activeModal sind hier bewusst nicht sichtbar, siehe
-  // Sub-Doc `src/CLAUDE.md`, kein State-Lifting dafür).
+  // triggern statt Cursor zu bewegen) und kein Modal offen ist —
+  // App-weite (ExerciseInsightModal, AuthGateModal) per State hier, Session-
+  // lokale (SessionModalsLayer/activeModal aus useSession.js, App.jsx sieht
+  // diesen State nicht) per DOM-Flag auf document.body, das
+  // SessionModalsLayer.jsx selbst setzt/räumt — kein Prop-Lifting durch
+  // views/Session/index.jsx nötig für einen einzelnen Boolean.
   useEffect(() => {
     function handleKeyDown(event) {
       if (!event.altKey) return
@@ -305,6 +307,7 @@ export default function App() {
       const tag = target?.tagName
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) return
       if (inspectorExercise || showAuthGateModal) return
+      if (document.body.dataset.sessionModalOpen) return
       const currentIdx = navItems.findIndex((item) => item.id === tab)
       if (currentIdx === -1) return // z.B. Gate-Homescreen, kein Tab-Zyklus-Kontext
       event.preventDefault()
