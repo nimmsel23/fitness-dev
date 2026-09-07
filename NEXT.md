@@ -92,12 +92,20 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   ungetestet: Session am falschen Datum löschen/verschieben (der eigentliche
   User-Painpoint), die Tastatur-Shortcuts, Slot-DnD-Reorder, Datums-Slider
   auf dem Handy.
-- `1fc2758` (fix(session): Scrollbar im Date-Picker-Strip via `.no-scrollbar`
-  ausblenden) liegt auf `dev`, ist aber **nach** dem letzten Release
-  (`ca43a9c`/`fdccec2`) committed — noch nicht auf `fitness-aos.web.app`.
-  Braucht einen weiteren `fitness-release`-Lauf und dann die visuelle
-  Kontrolle, dass die Leiste auf Desktop **und** iOS-PWA wirklich weg ist,
-  ohne dass das horizontale Wischen leidet.
+- `1fc2758` (Scrollbar im Date-Picker-Strip via `.no-scrollbar` ausblenden)
+  und `c6a3a65` (Session Gate poppt nicht mehr bei explizitem Datum auf) sind
+  am 2026-09-07 via `fitness-release --yes` deployed (Submodule-Bump
+  `ba3a0ae`) — beide live auf `fitness-aos.web.app`. Offen bleibt nur die
+  visuelle/funktionale Kontrolle im Browser:
+  - Date-Picker-Leiste auf Desktop **und** iOS-PWA wirklich weg, ohne dass
+    das horizontale Wischen leidet.
+  - Gate-Fix durchklicken: bei per Day-Strip/Kalender-Icon gewähltem
+    nicht-heutigem Datum darf das Session-Gate-Sheet nicht aufpoppen; bei
+    echtem Wechsel auf heute weiterhin schon. Nur Build-verifiziert, von
+    Claude nie im Browser getestet.
+  - CI-Run dieses Release-Pushs (`vitalos` GitHub Actions, "Deploy Fitness
+    PWA" + "Deploy VitalOS Shell") wurde nach `fitness-release` nicht mehr
+    per `gh` gegengeprüft.
 - `useSession.js` (jetzt 357 Z.) ließe sich weiter entschlacken (Day-Sessions-
   /Plan-Hint-Effekt, ggf. `buildSessionPayload`/`save` als Parameter-Bag) —
   vom Nutzer als optionales Housekeeping eingestuft, nicht beauftragt.
