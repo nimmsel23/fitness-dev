@@ -63,7 +63,10 @@ def _write_json(path: Path, data: Any) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2))
 
 def _strip_meta(obj: dict) -> dict:
-    return {k: v for k, v in obj.items() if k not in ("updated_at", "_firestore_updated", "_local_mtime", "_content_hash", "saved_at")}
+    # owner_uid ist ein Sync-Sidecar (Cross-User-Guard), kein Nutzinhalt —
+    # aus dem Content-Hash raushalten, damit der Stempel keine Re-Push-Welle
+    # auslöst. In pull_fuel() wird er danach explizit wieder gesetzt.
+    return {k: v for k, v in obj.items() if k not in ("updated_at", "_firestore_updated", "_local_mtime", "_content_hash", "saved_at", "owner_uid")}
 
 def _merge_by_id(a: list[dict], b: list[dict]) -> list[dict]:
     by_id: dict[str, dict] = {}
@@ -84,6 +87,23 @@ def _data_dir(uid: str) -> Path:
     return data_dir
 
 
+def _owner_ok(data: Any, uid: str, label: str) -> bool:
+    """Cross-User-Schutz: ein Dokument unter nutrition/<X>/… bzw.
+    supplements/<X>/… gehört ausschliesslich <X>. Trägt es ein owner_uid,
+    das nicht zum erwarteten uid passt, ist es fremd hereingesynct — nicht
+    verarbeiten. Fehlendes owner_uid = Alt-Dokument → toleriert (bekommt den
+    Stempel beim nächsten Push)."""
+    if isinstance(data, dict):
+        owner = data.get("owner_uid")
+        if owner and owner != uid:
+            logger.warning(
+                f"fuel: OWNER MISMATCH {label} owner_uid={owner} expected={uid} "
+                f"— übersprungen (cross-user guard)"
+            )
+            return False
+    return True
+
+
 # ── Fire-and-forget (wird vom fuel-dev Server pro Request aufgerufen) ─────────
 
 def mirror_fuel_nutrition(date: str, data: dict, uid: str = UID) -> None:
@@ -91,9 +111,11 @@ def mirror_fuel_nutrition(date: str, data: dict, uid: str = UID) -> None:
         logger.info(f"fuel-bridge scope=runtime direction=push uid={uid} target=nutrition result=skip reason=bridge_disabled")
         return
     try:
+        if not _owner_ok(data, uid, f"nutrition/{uid}/logs/{date}"):
+            return
         db = get_db()
         db.collection("nutrition").document(uid).collection("logs").document(date).set(
-            {**data, "date": date, "saved_at": datetime.utcnow().isoformat()}
+            {**data, "date": date, "owner_uid": uid, "saved_at": datetime.utcnow().isoformat()}
         )
     except Exception as e:
         logger.warning(f"mirror_fuel_nutrition fehler ({date}, {uid}): {e}")
@@ -103,9 +125,11 @@ def mirror_fuel_supplements(date: str, data: dict, uid: str = UID) -> None:
         logger.info(f"fuel-bridge scope=runtime direction=push uid={uid} target=supplements result=skip reason=bridge_disabled")
         return
     try:
+        if not _owner_ok(data, uid, f"supplements/{uid}/logs/{date}"):
+            return
         db = get_db()
         db.collection("supplements").document(uid).collection("logs").document(date).set(
-            {**data, "date": date, "saved_at": datetime.utcnow().isoformat()}
+            {**data, "date": date, "owner_uid": uid, "saved_at": datetime.utcnow().isoformat()}
         )
     except Exception as e:
         logger.warning(f"mirror_fuel_supplements fehler ({date}, {uid}): {e}")
@@ -119,7 +143,7 @@ def mirror_fuel_catalog(data: dict, uid: str = UID, kind: str = "nutrition") -> 
         db = get_db()
         col = "nutrition" if kind == "nutrition" else "supplements"
         db.collection(col).document(uid).collection("meta").document("catalog").set(
-            {**data, "saved_at": datetime.utcnow().isoformat()}, merge=True
+            {**data, "owner_uid": uid, "saved_at": datetime.utcnow().isoformat()}, merge=True
         )
     except Exception as e:
         logger.warning(f"mirror_fuel_catalog fehler ({kind}, {uid}): {e}")
@@ -131,9 +155,11 @@ def _push_nutrition(date: str, uid: str, data_dir: Path) -> str:
     data = _read_json(_nutrition_path(date, data_dir), None)
     if not data:
         return "leer"
+    if not _owner_ok(data, uid, f"nutrition/{uid}/logs/{date} (lokal)"):
+        return "fremd (skip)"
     db = get_db()
     db.collection("nutrition").document(uid).collection("logs").document(date).set(
-        {**data, "date": date, "saved_at": datetime.utcnow().isoformat()}
+        {**data, "date": date, "owner_uid": uid, "saved_at": datetime.utcnow().isoformat()}
     )
     return f"{len(data.get('meals', []))} Mahlzeiten"
 
@@ -141,9 +167,11 @@ def _push_supplements(date: str, uid: str, data_dir: Path) -> str:
     data = _read_json(_supplements_path(date, data_dir), None)
     if not data:
         return "leer"
+    if not _owner_ok(data, uid, f"supplements/{uid}/logs/{date} (lokal)"):
+        return "fremd (skip)"
     db = get_db()
     db.collection("supplements").document(uid).collection("logs").document(date).set(
-        {**data, "date": date, "saved_at": datetime.utcnow().isoformat()}
+        {**data, "date": date, "owner_uid": uid, "saved_at": datetime.utcnow().isoformat()}
     )
     return f"{len(data.get('entries', []))} Einträge"
 
@@ -158,7 +186,7 @@ def _push_catalog(uid: str, data_dir: Path) -> str:
     remote = snap.to_dict().get("items", []) if snap.exists else []
     merged = _merge_by_id(items, remote)
     _write_json(_supplements_catalog_path(data_dir), {"items": merged})
-    doc_ref.set({"items": merged}, merge=True)
+    doc_ref.set({"items": merged, "owner_uid": uid}, merge=True)
     return f"{len(merged)} Items"
 
 def _collect_dates(data_dir: Path) -> list[str]:
@@ -248,12 +276,14 @@ def push_fuel(uid: str = UID) -> dict:
                 ref = db.collection("nutrition").document(uid).collection("logs").document(d)
                 remote = remote_meta(ref)
                 data = _read_json(np, None)
-                if data and _is_same_content(remote, data):
+                if data and not _owner_ok(data, uid, f"nutrition/{uid}/logs/{d} (lokal)"):
+                    results["skipped"] += 1
+                elif data and _is_same_content(remote, data):
                     results["skipped"] += 1
                 elif data and remote.get("_local_mtime", 0) >= mtime:
                     results["skipped"] += 1
                 elif data:
-                    queue_set(ref, {**data, "date": d, "_local_mtime": mtime,
+                    queue_set(ref, {**data, "date": d, "owner_uid": uid, "_local_mtime": mtime,
                                     "_content_hash": _content_hash(data),
                                     "saved_at": datetime.utcnow().isoformat()})
 
@@ -264,12 +294,14 @@ def push_fuel(uid: str = UID) -> dict:
                 ref = db.collection("supplements").document(uid).collection("logs").document(d)
                 remote = remote_meta(ref)
                 data = _read_json(sp, None)
-                if data and _is_same_content(remote, data):
+                if data and not _owner_ok(data, uid, f"supplements/{uid}/logs/{d} (lokal)"):
+                    results["skipped"] += 1
+                elif data and _is_same_content(remote, data):
                     results["skipped"] += 1
                 elif data and remote.get("_local_mtime", 0) >= mtime:
                     results["skipped"] += 1
                 elif data:
-                    queue_set(ref, {**data, "date": d, "_local_mtime": mtime,
+                    queue_set(ref, {**data, "date": d, "owner_uid": uid, "_local_mtime": mtime,
                                     "_content_hash": _content_hash(data),
                                     "saved_at": datetime.utcnow().isoformat()})
 
@@ -284,7 +316,7 @@ def push_fuel(uid: str = UID) -> dict:
                 if _hash_matches(remote_meta(ref).get("_content_hash"), new_hash):
                     results["skipped"] += 1
                 else:
-                    queue_set(ref, {"items": items, "_content_hash": new_hash,
+                    queue_set(ref, {"items": items, "owner_uid": uid, "_content_hash": new_hash,
                                     "saved_at": datetime.utcnow().isoformat()})
 
         nutrition_cat_path = _nutrition_catalog_path(data_dir)
@@ -297,7 +329,7 @@ def push_fuel(uid: str = UID) -> dict:
                 if _hash_matches(remote_meta(ref).get("_content_hash"), new_hash):
                     results["skipped"] += 1
                 else:
-                    queue_set(ref, {"items": items, "_content_hash": new_hash,
+                    queue_set(ref, {"items": items, "owner_uid": uid, "_content_hash": new_hash,
                                     "saved_at": datetime.utcnow().isoformat()})
 
         commit_batch()
@@ -327,19 +359,25 @@ def pull_fuel(uid: str = UID) -> dict:
     count = {"nutrition": 0, "supplements": 0}
 
     for snap in db.collection("nutrition").document(uid).collection("logs").stream():
-        _write_json(_nutrition_path(snap.id, data_dir), _strip_meta(snap.to_dict()))
+        raw = snap.to_dict()
+        if not _owner_ok(raw, uid, f"nutrition/{uid}/logs/{snap.id}"):
+            continue
+        _write_json(_nutrition_path(snap.id, data_dir), {**_strip_meta(raw), "owner_uid": uid})
         count["nutrition"] += 1
 
     for snap in db.collection("supplements").document(uid).collection("logs").stream():
-        _write_json(_supplements_path(snap.id, data_dir), _strip_meta(snap.to_dict()))
+        raw = snap.to_dict()
+        if not _owner_ok(raw, uid, f"supplements/{uid}/logs/{snap.id}"):
+            continue
+        _write_json(_supplements_path(snap.id, data_dir), {**_strip_meta(raw), "owner_uid": uid})
         count["supplements"] += 1
 
     doc = db.collection("supplements").document(uid).collection("meta").document("catalog").get()
-    if doc.exists:
-        _write_json(_supplements_catalog_path(data_dir), _strip_meta(doc.to_dict()))
+    if doc.exists and _owner_ok(doc.to_dict(), uid, f"supplements/{uid}/meta/catalog"):
+        _write_json(_supplements_catalog_path(data_dir), {**_strip_meta(doc.to_dict()), "owner_uid": uid})
 
     doc = db.collection("nutrition").document(uid).collection("meta").document("catalog").get()
-    if doc.exists:
-        _write_json(_nutrition_catalog_path(data_dir), _strip_meta(doc.to_dict()))
+    if doc.exists and _owner_ok(doc.to_dict(), uid, f"nutrition/{uid}/meta/catalog"):
+        _write_json(_nutrition_catalog_path(data_dir), {**_strip_meta(doc.to_dict()), "owner_uid": uid})
 
     return count

@@ -304,10 +304,33 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     recentSessions, setRecentSessions, setReDateEntry, showToast,
   });
 
+  // Moduswechsel (Kraft ↔ Ausdauer) darf eine bereits befüllte Session nicht
+  // in-place umbiegen — sonst überschreibt der nächste Save unter derselben
+  // sessionId die bisher geloggten Daten des vorherigen Modus (User-Feedback
+  // 2026-09-07). Ist die aktuell offene Session schon befüllt, wird für den
+  // neuen Modus stattdessen eine zusätzliche Session angelegt (wie der
+  // "+"-Button) — die alte bleibt unangetastet. Nur eine leere/neue Session
+  // darf ihren Modus einfach in-place wechseln.
+  function switchSessionMode(mode) {
+    if (mode === sessionMode) return;
+    const hasContent = sessionHasLoggedWorkout({
+      exercises, block,
+      activity: (sessionMode === 'cardio' || hasActivity) ? activity : null,
+      sessionGate,
+    });
+    if (hasContent) {
+      handleNewSession();
+      setSessionMode(mode);
+      showToast(mode === 'cardio' ? 'Neue Ausdauer-Session angelegt' : 'Neue Kraft-Session angelegt');
+    } else {
+      setSessionMode(mode);
+    }
+  }
+
   return {
     // State
     date, setDate: changeDate,
-    sessionMode, setSessionMode,
+    sessionMode, setSessionMode: switchSessionMode,
     block, setBlock,
     exercises,
     effort, setEffort,

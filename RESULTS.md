@@ -1,3 +1,30 @@
+# Session-Tab: Gate poppt nicht mehr bei explizitem Datum auf + Scrollbar-Fix live (2026-09-07)
+
+Nachlauf zur Session-Tab-Arbeit: Der Nutzer meldete, dass das Session-Gate-Sheet
+weiterhin aufpoppte, obwohl ein spezifisches (nicht-heutiges) Datum gewählt war
+("Session Gate darf nicht aufpoppen wenn ein spezifisches datum ausgewählt ist").
+Ursache + Fix umgesetzt, Build zweifach grün (manuell + Pre-Commit-Hook), danach
+auf Nutzer-Ansage ("Release") via `fitness-release --yes` deployed — womit auch der
+im Vorlauf nur auf `dev` liegende Scrollbar-Fix (`1fc2758`) jetzt live auf
+`fitness-aos.web.app` ist.
+
+* **`src/App.jsx`** (`c6a3a65`): `gateAutoOpenFlag` wird nur noch gesetzt, wenn
+  `sessionDate` tatsächlich `localToday()` ist. Vorher löste jeder `subTab`-Wechsel
+  auf `'today'` das Gate aus, ohne zu prüfen, welches Datum gerade angezeigt wird —
+  blieb `subTab` auf `'today'`, während per Day-Strip/Kalender-Icon ein anderes
+  Datum gewählt wurde, poppte das Gate erneut auf.
+* **`src/views/Session/SessionEditor.jsx`** (`c6a3a65`): zusätzliche Absicherung im
+  Mount-Effect — Gate wird nur geöffnet, wenn `date === localToday()` (gegen eine
+  mögliche Race zwischen Flag-Konsum und Editor-Remount bei `key={sessionDate}`).
+  Neuer Import `localToday` aus `@utils`.
+* **Deploy** (`fitness-release --yes`): `dev` gepusht, nach `vitalos` gemergt +
+  gepusht, Firebase-Build grün, deployed nach `https://fitness-aos.web.app`;
+  Submodule-Pointer im `vitalos`-Parent-Repo gebumpt (`ba3a0ae`). Live sind damit
+  sowohl `c6a3a65` (Gate-Fix) als auch `1fc2758` (Scrollbar im Date-Picker-Strip
+  via `.no-scrollbar` ausgeblendet).
+
+---
+
 # Session-Tab: Scrollbar im Date-Picker-Strip ausgeblendet (2026-09-06)
 
 Kleiner Nachzügler nach dem Deploy der scrollbaren Datumsleiste (Eintrag
