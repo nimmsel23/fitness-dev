@@ -29,7 +29,7 @@ from rich.console import Console
 from rich.logging import RichHandler
 
 from ._db import get_db, ts, UID, remote_wins
-from .fuel import _data_dir, _nutrition_path, _supplements_path, _supplements_catalog_path, _strip_meta, _write_json
+from .fuel import _data_dir, _nutrition_path, _supplements_path, _supplements_catalog_path, _strip_meta, _write_json, _owner_ok
 
 def _user_dir() -> Path:
     uid_file = Path.home() / ".aos" / "users" / ".active-uid"
@@ -469,7 +469,9 @@ def on_nutrition(col_snapshot, changes, read_time):
         if change.type.name not in ("ADDED", "MODIFIED"):
             continue
         doc_id, data = change.document.id, change.document.to_dict()
-        _write_json(_nutrition_path(doc_id, data_dir), _strip_meta(data))
+        if not _owner_ok(data, UID, f"nutrition/{UID}/logs/{doc_id}"):
+            continue
+        _write_json(_nutrition_path(doc_id, data_dir), {**_strip_meta(data), "owner_uid": UID})
         logger.success(f"nutrition ← {doc_id}")
 
 
@@ -479,7 +481,9 @@ def on_supplements(col_snapshot, changes, read_time):
         if change.type.name not in ("ADDED", "MODIFIED"):
             continue
         doc_id, data = change.document.id, change.document.to_dict()
-        _write_json(_supplements_path(doc_id, data_dir), _strip_meta(data))
+        if not _owner_ok(data, UID, f"supplements/{UID}/logs/{doc_id}"):
+            continue
+        _write_json(_supplements_path(doc_id, data_dir), {**_strip_meta(data), "owner_uid": UID})
         logger.success(f"supplements ← {doc_id}")
 
 
@@ -490,7 +494,9 @@ def on_supplements_catalog(doc_snapshot, changes, read_time):
     doc = doc_snapshot[0]
     if not doc.exists:
         return
-    _write_json(_supplements_catalog_path(data_dir), _strip_meta(doc.to_dict()))
+    if not _owner_ok(doc.to_dict(), UID, f"supplements/{UID}/meta/catalog"):
+        return
+    _write_json(_supplements_catalog_path(data_dir), {**_strip_meta(doc.to_dict()), "owner_uid": UID})
     logger.success("supplements catalog ← updated")
 
 
