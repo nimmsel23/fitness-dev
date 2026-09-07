@@ -117,6 +117,19 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   lassen — in dieser Session haben zwei nicht-isolierte Agenten sich beim
   Committen (`git commit --amend`) gegenseitig Dateien zurückgesetzt (in
   `17a283c` repariert, nichts verloren).
+- `85781f7` (Kraft/Ausdauer-Wechsel bei befüllter Session legt neue Session an,
+  `switchSessionMode` via `sessionHasLoggedWorkout()`) ist am 2026-09-07 via
+  `fitness-release --yes` nach Staging/`fitness-aos.web.app` (Submodule-Bump
+  `dcbf15d`) **und** via `pkexec fitnessctl prod deploy` nach Prod `:6100`
+  deployed. Nur Build-verifiziert, von Claude nie im Browser durchgeklickt.
+  Offen:
+  - Kraft-Session mit Übungen anlegen → auf Ausdauer switchen → etwas loggen:
+    verifizieren, dass eine **neue** Session entsteht und die ursprüngliche
+    Kraft-Session erhalten bleibt (nicht überschrieben). Gegenrichtung
+    (Ausdauer → Kraft) genauso. Leere Session muss weiterhin in-place wechseln.
+  - CI-Run dieses Release-Pushs (`vitalos` GitHub Actions, "Deploy Fitness PWA" +
+    "Deploy VitalOS Shell") wurde nach `fitness-release` nicht mehr per `gh`
+    gegengeprüft.
 
 ## Claude Handoff - Firebase Coach-Inbox / Fuel-Grenze (2026-09-06)
 
