@@ -335,11 +335,15 @@ export default function App() {
   const prevSubTabForGateRef = useRef(null)
   const [gateAutoOpenFlag, setGateAutoOpenFlag] = useState(false)
   useEffect(() => {
-    if (tab === 'session' && subTab === 'today' && prevSubTabForGateRef.current !== 'today') {
+    // Gate darf nur für HEUTE aufpoppen — ein explizit gewähltes Datum
+    // (Day-Strip, Kalender-Icon) darf subTab zwar weiterhin 'today' halten,
+    // soll das Gate aber nicht erneut öffnen (User-Feedback 2026-09-07).
+    const isActuallyToday = !sessionDate || sessionDate === localToday()
+    if (tab === 'session' && subTab === 'today' && prevSubTabForGateRef.current !== 'today' && isActuallyToday) {
       setGateAutoOpenFlag(true)
     }
     prevSubTabForGateRef.current = subTab
-  }, [tab, subTab])
+  }, [tab, subTab, sessionDate])
 
   useEffect(() => {
     const targetHash = buildHashRoute({ tab, subTab, sessionDate, focusLayer, planView, planId })

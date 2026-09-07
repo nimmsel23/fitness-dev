@@ -23,6 +23,7 @@ import SessionSaveFab from './SessionSaveFab.jsx';
 import SessionSidebar from './SessionSidebar';
 import { normalizeSessionGate } from '../../lib/sessionGate.js';
 import { inferBlockFromExercises } from './utils';
+import { localToday } from '@utils';
 
 export default function SessionEditor({
   // State from useSession
@@ -77,10 +78,13 @@ export default function SessionEditor({
   // currentSubTab-Check hier würde also bei jedem Datumswechsel erneut
   // feuern, da mount-Effects unabhängig von deps immer einmal laufen).
   useEffect(() => {
-    if (gateAutoOpenFlag) {
+    // Zusätzliche Absicherung neben dem date-Check in App.jsx (Race
+    // zwischen Flag-Konsum und Remount): Gate nie öffnen, wenn das
+    // aktuell angezeigte Datum nicht heute ist.
+    if (gateAutoOpenFlag && date === localToday()) {
       setActiveModal('gate');
-      onGateAutoOpenConsumed?.();
     }
+    if (gateAutoOpenFlag) onGateAutoOpenConsumed?.();
   }, []);
 
   // Split-Autoerkennung: solange der User selbst noch keinen Split gewählt
