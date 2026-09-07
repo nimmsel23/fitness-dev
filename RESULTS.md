@@ -1,3 +1,21 @@
+# Session-Tab: Scrollbar im Date-Picker-Strip ausgeblendet (2026-09-06)
+
+Kleiner Nachzügler nach dem Deploy der scrollbaren Datumsleiste (Eintrag
+weiter unten, gleicher Tag): Der neue `overflow-x-auto`-Container machte die
+native Scrollbar als sichtbaren Balken unter dem Day-Strip auf. Nutzer-Ansage
+"die scrollleiste darf nicht visible werden im datepicker". Auf `dev`
+committed (`1fc2758`), Build grün — liegt aber **hinter** dem letzten Release
+(`ca43a9c` / Submodule-Bump `fdccec2`), ist also noch **nicht auf
+`fitness-aos.web.app`**.
+
+* **`src/views/Session/SessionHeader.jsx`** (`1fc2758`): dem Day-Strip-
+  `overflow-x-auto`-Container die bereits vorhandene Utility-Klasse
+  `.no-scrollbar` gegeben (`src/styles.css:143` — `scrollbar-width: none` +
+  `::-webkit-scrollbar { display: none }`, Firefox + WebKit). Keine neue
+  CSS-Regel nötig, Scroll-/Wisch-Funktion unverändert.
+
+---
+
 # Session-Tab: Keyboard-Nav, Activity-Typ-Module, "+Workout"-Lifecycle-Fix, scrollbare Datumsleiste (2026-09-06)
 
 Fortsetzung der Session-Tab-Arbeit nach der Phase-1–4-Runde (Einträge vom
