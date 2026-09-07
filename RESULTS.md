@@ -1,3 +1,29 @@
+# Session-Tab: Kraft/Ausdauer-Wechsel überschreibt befüllte Session nicht mehr (2026-09-07)
+
+Nutzer-Meldung: Wenn bei einer bereits angefangenen Session zwischen Kraft und
+Ausdauer umgeschaltet wird, muss beim Loggen im jeweils anderen Modus eine **neue**
+Session entstehen — die vorherige (aus der geswitcht wurde) darf nicht überschrieben
+werden. Bisher bog der Umschalter den Modus immer direkt in der offenen Session um,
+sodass der nächste Save unter derselben `sessionId` die zuvor geloggten Daten
+überschrieb. Fix umgesetzt, Build zweifach grün (manuell + Pre-Commit-Hook),
+committed `85781f7`, danach auf Nutzer-Ansage komplett deployed.
+
+* **`src/views/Session/useSession.js`** (`85781f7`): `switchSessionMode` prüft jetzt
+  via `sessionHasLoggedWorkout()`, ob in der offenen Session bereits Übungen/Aktivität
+  eingetragen sind. Wenn ja, wird automatisch eine neue Session angelegt (gleiche
+  Mechanik wie der "+"-Button) und der Modus dort gesetzt — die ursprüngliche Session
+  bleibt unangetastet. Nur eine noch leere Session wechselt den Modus weiterhin
+  in-place.
+* **Deploy** (`fitness-release --yes`, vom Nutzer ausgelöst): `dev` gepusht
+  (`c6a3a65..85781f7`), Staging (`:8100`) deployed, nach `vitalos` gemergt + gepusht,
+  Firebase-Build grün, deployed nach `https://fitness-aos.web.app`, Submodule-Pointer
+  im `vitalos`-Parent-Repo gebumpt (`dcbf15d`).
+* **Prod-Deploy** (`pkexec fitnessctl prod deploy`, vom Nutzer im eigenen Terminal
+  ausgeführt): `fitness.service` auf `:6100` ist jetzt ebenfalls auf dem aktuellen
+  Stand mit dem Kraft/Ausdauer-Fix.
+
+---
+
 # Session-Tab: Gate poppt nicht mehr bei explizitem Datum auf + Scrollbar-Fix live (2026-09-07)
 
 Nachlauf zur Session-Tab-Arbeit: Der Nutzer meldete, dass das Session-Gate-Sheet
