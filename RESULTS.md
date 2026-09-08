@@ -1,3 +1,47 @@
+# CLI-Workout-Logging fortgesetzt + `fitness/commands/` aufgelöst (2026-09-08)
+
+Nutzer-Anliegen: "kann ich per CLI auch schon ordentlich meine Workouts loggen?
+das wurde anfangs schon gebaut, weiß nicht wo der Stand ist — bitte fortsetzen".
+Bestandsaufnahme: `fitness activity log` (seit `278ec71`) loggt nur Cardio, `fitness
+log` ist rein lesend, und `fitness/catalog/client_session.py` (`log-client-workout`)
+macht zwar den richtigen JSON-SOT-POST, ist aber an einen Klienten-Slug gebunden
+und lag ausserdem am falschen Ort. Daraus wurde ein neues Kraft-CLI + eine
+Paket-Umstrukturierung. Committed `894877d`, gepusht, Post-Push-Hook hat den
+Staging-Deploy (`:8100`) grün durchgeführt. `npm run build` grün, alle 152
+Python-Dateien kompilieren, uv-Tool neu installiert, alle Binaries manuell getestet.
+
+* **`fitness/strength/cli.py`** (neu, `fitness strength log|wizard`): Kraft-Session
+  per CLI loggen — liest die bestehende Session per `GET /session` und **merged**
+  Übung/Sätze hinein statt zu überschreiben (`rev` zählt korrekt hoch, live gegen
+  `:9150` verifiziert). Fuzzy-Resolver gegen den Katalog (`resolve_query`), HIT-Modus
+  (1 Satz bis Muskelversagen, `isHIT: true`, Reps/Gewicht optional — Nutzer trackt
+  nur Gewicht). Sätze/Reps/Gewicht bleiben im CLI voll erhalten.
+* **`fitness/commands/` komplett aufgelöst**: jedes Modul ist jetzt ein eigenes
+  Subpackage (`fitness/log/cli.py`, `fitness/tui/cli.py`, `fitness/activity/cli.py`,
+  `fitness/mail/cli.py`, `fitness/sync/cli.py`, `fitness/strength/cli.py` + je
+  `__init__.py`), `fitness/log/console/` mitgezogen — Muster wie `catalog/`/`runtime/`.
+  Ordnername `commands` war ausdrücklicher Nutzer-Wunsch weg.
+* **`fitness/muscles.py`** (neu): geteilter `muscle_to_group()`/`muscle_group_label()`-
+  Helper (lag vorher in `commands/__init__.py`) rausgezogen; Importe in `render.py`,
+  `tui/cli.py`, `activity/cli.py` u.a. nachgezogen.
+* **`fitness/runtime/client_session.py`** (verschoben aus `fitness/catalog/`):
+  `client_session.py` + `log-client-workout` + `_prompt_exercises_interactive()`
+  gehörten laut `catalog/CLAUDE.md` nie in den Katalog (Runtime-User-Daten-Reparatur
+  lebt seit 2026-08-07 in `fitness/runtime/`). Command jetzt `fitness user-data
+  log-client-workout`, aus `catalog/cli.py` entfernt.
+* **`bin/fitness-log`** (neu, im Repo versioniert): löst den `uv`-Tool-Shim-Symlink
+  in `~/.dotfiles/bin/` ab (uv legt den Symlink bei jedem `uv tool install` neu an
+  und musste wiederholt entfernt werden).
+* **`pyproject.toml`**: `[project.scripts]` auf die neuen Modulpfade umgestellt.
+* **`fitness/catalog/kb/inbox/*.yml`** (10 neue Drafts): als Nebeneffekt des
+  Session-Loggings automatisch vom proaktiven Enrichment erzeugt, mitcommittet.
+* **Runtime-Daten**: heutiges Pull-Workout des Nutzers (2026-09-08) über das neue
+  CLI sauber geloggt — 7 Übungen, je 1 Satz HIT, Gewicht wo bekannt (45 kg
+  Langhantelrudern), RPE 9, Ort/Dauer in den Notizen; Core-HIIT-Finisher separat als
+  Activity. Test-Sessions vom Live-Test vorher wieder gelöscht.
+
+---
+
 # Session-Tab: Kraft/Ausdauer-Wechsel überschreibt befüllte Session nicht mehr (2026-09-07)
 
 Nutzer-Meldung: Wenn bei einer bereits angefangenen Session zwischen Kraft und
