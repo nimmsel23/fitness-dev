@@ -228,3 +228,37 @@ pruefen.
 - **Prod-Deploy `:6100`** des neuen CLI-Paketlayouts (`fitness/coach/`,
   `fitness/log/strength.py`, `muscle_label()`) ist offen — reines Backend/CLI,
   keine Firebase-Relevanz, ging per Post-Push-Hook nur nach Staging.
+
+## Aus dem Katalog-Search/Inbox-Fix (2026-09-08, Commit `233dc19`)
+
+- **Bestehende ~52 Inbox-Drafts sind nicht saniert**: die drei Fixes greifen nur
+  für *neu* erzeugte Drafts / Snapshots. Die schon in `kb/inbox/` liegenden
+  wger-Drafts haben weiterhin die aufgeblähte Einzelquellen-Struktur
+  (10–13× "wger"/ID pro File) + generische `coaching_notes`-Boilerplate +
+  teils widersprüchliche `expert-tier`/`reviewed`-Tags. Ob die neu generiert,
+  per Script entduplex't oder verworfen werden, ist offen.
+- **Draft-*Erzeugung* selbst noch nicht auf "nur verlinken" umgestellt**: nur
+  `build_source_snapshot()` wurde entduplex't. Der Gemini-Seed / die
+  coaching_notes-Generierung (`build_external_seed()` / `call_gemini()` in
+  `fitness/catalog/agent/gemini.py`) dumpt/erzeugt weiterhin generischen
+  Volltext statt eine knappe ID-verlinkte Referenzbasis — vom Nutzer als
+  Kernproblem benannt, nur teilweise adressiert.
+- **`wger_1529` (Klimmzüge neutraler Griff)** liegt wieder als unapprovter Draft
+  in `kb/inbox/`. Fachlich fehlt Bizeps als `secondary_muscles` in der
+  KB-Quelle `unreviewed_wger.yml:17812` (nur `201_latissimus_dorsi`); der
+  angereicherte Draft hat Bizeps korrekt drin, ist aber bewusst nicht approved
+  (Nutzer will nicht, dass Claude approved). Approval-Entscheidung offen.
+- **`wger_1489` "Langhantelrudern (Obergriff)"** ist zu unscharf (nur
+  `201_latissimus_dorsi`, generische Notizen). Nutzer hat geklärt: es war
+  *hohes*, vorgebeugtes Rudern für den oberen Rücken. Sollte als eigener
+  präziser Katalog-Eintrag (hohes vs. niedriges Rudern) entstehen statt den
+  vagen wger-Import zu verwenden — noch nicht angelegt.
+- **`test_jefferson_curl_is_expert_record`** schlägt fehl (Hintergrund-Pytest
+  `test_resolver.py`). Von Claude als vorbestehend/datenstand-bedingt und
+  unabhängig von den Änderungen eingeschätzt, aber nicht abschließend
+  verifiziert.
+- Der `/exercises/search`-Fallback-Fix wurde nur syntax-/importgeprüft, **nicht
+  live gegen einen laufenden Backend** (`:9150`/`:6100`) mit echten
+  Doppel-Treffer-Queries durchgetestet.
+- **Prod-Deploy `:6100`** dieser drei Katalog-Fixes offen (ging per Post-Push
+  nur nach Staging `:8100`).
