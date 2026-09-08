@@ -265,9 +265,11 @@ pruefen.
 
 ## Aus dem Inbox-ID-Referenz-/TUI-Editor-Fix (2026-09-09, Commits `1a04fdd` + `f8173a9` + `db28cdf`)
 
-- **`db28cdf` (TUI-Feld-Editor + `inbox_wide_grip_chin_up.yml`) ist committet,
-  aber noch nicht gepusht** (`dev` ist 1 voraus vor `origin/dev`). `1a04fdd` +
-  `f8173a9` sind auf `origin/dev`. Kein Staging-/Prod-Deploy für keinen der drei.
+- **Alle drei Commits (`1a04fdd` + `f8173a9` + `db28cdf`) sind auf `origin/dev`**
+  (`db28cdf` am Session-Ende nachgepusht, `f8173a9..8a314bc`), Post-Push-Hook
+  Build + Staging-Deploy (`:8100`) grün mit durch. **Prod-Deploy `:6100`
+  (`pkexec fitnessctl prod deploy`) für die drei weiterhin offen** — reines
+  Backend/CLI, keine Firebase-Relevanz.
 - **`_edit_exercise_interactive()` / `_save_exercise_to_file()` (`tui.py`) nur
   import-/syntax-geprüft + ein `_save_exercise_to_file()`-Roundtrip getestet** —
   nie interaktiv durch das echte TUI-Menü (`fitness catalog` → Inbox-Detail "e" /
