@@ -4,7 +4,7 @@ from copy import deepcopy
 from typing import Any
 
 from fitness.catalog.core.loader import load_catalog_yaml
-from fitness.catalog.core.resolver import normalize_text
+from fitness.catalog.core.resolver import normalize_text, GENERIC_FUZZY_TOKENS, fuzzy_candidate_allowed
 from fitness.catalog.core.resolver import build_exercise_index, find_by_id, resolve_query
 
 try:
@@ -72,17 +72,17 @@ def _norm(value: str) -> str:
     return normalize_text(value, smart=True)
 
 
-# Nur fuers wger<->yuhonas-Matching (source_merge), NICHT der generelle
-# normalize_text()-Pfad — soll resolve_query() nicht beeinflussen. Grund:
-# wger liefert oft geraete-neutrale Namen ("Walking Lunges"), yuhonas
-# geraete-praefigierte ("Barbell Walking Lunge") + oft Singular statt
-# Plural ("Lunge" statt "Lunges") — beides druckt den rohen fuzz-Score
-# unter AUTO_MATCH_MIN_SCORE, obwohl es dieselbe Uebung ist (siehe
-# catalog/CLAUDE.md "Fuzzy-Match-Falle").
-_EQUIPMENT_PREFIX_WORDS = {
-    "barbell", "dumbbell", "dumbbells", "bodyweight", "kettlebell",
-    "kettlebells", "cable", "machine", "band", "bands", "smith", "ez",
-}
+# Equipment-/Bewegungs-Woerter fuers Scoring ausblenden: wger liefert oft
+# geraete-neutrale Namen ("Walking Lunges"), yuhonas geraete-praefigierte
+# ("Barbell Walking Lunge") + oft Singular statt Plural ("Lunge" statt
+# "Lunges") — beides druckt den rohen fuzz-Score unter AUTO_MATCH_MIN_SCORE,
+# obwohl es dieselbe Uebung ist (siehe catalog/CLAUDE.md "Fuzzy-Match-Falle").
+# Wiederverwendet GENERIC_FUZZY_TOKENS aus resolver.py (EINE Wortliste,
+# schon von resolve_query()/fuzzy_candidate_allowed() genutzt) statt einer
+# eigenen, engeren Liste — die deckt neben Equipment auch generische
+# Bewegungswoerter ab (curl/row/press/squat/...), die dasselbe Kollaps-
+# Risiko haben (siehe _best_match_scored()-Regression unten).
+_GENERIC_MATCH_TOKENS = GENERIC_FUZZY_TOKENS
 
 
 def _singularize(word: str) -> str:
@@ -92,8 +92,20 @@ def _singularize(word: str) -> str:
 
 
 def _match_norm(value: str) -> str:
-    words = [_singularize(w) for w in _norm(value).split() if w not in _EQUIPMENT_PREFIX_WORDS]
-    return " ".join(words)
+    """Generische Woerter (Equipment + Bewegungstyp) nur dann aus dem
+    Vergleichstext streichen, wenn danach noch >= 2 Woerter uebrig bleiben —
+    sonst bleibt z.B. "Cable Curls" als reines "curl" stehen, und
+    token_set_ratio bewertet danach JEDE Anfrage mit diesem Wort (auch
+    "Jefferson Curl") faelschlich als Untermenge/Volltreffer. Reicht als
+    Schutz allein trotzdem NICHT (siehe die zusaetzliche
+    `fuzzy_candidate_allowed()`-Pruefung in `_best_match_scored()` unten,
+    die genau den hier verbliebenen Fall - zwei Woerter, aber nur das
+    generische gemeinsam - noch abfaengt)."""
+    words = _norm(value).split()
+    stripped = [w for w in words if w not in _GENERIC_MATCH_TOKENS]
+    if len(stripped) < 2:
+        stripped = words
+    return " ".join(_singularize(w) for w in stripped)
 
 
 # Unterhalb von AUTO_MATCH_MIN_SCORE wird nie automatisch verlinkt (Gefahr
@@ -121,15 +133,32 @@ def _best_match_scored(query: str, entries: list[dict[str, Any]]) -> tuple[dict[
 
     choices: dict[str, str] = {}
     choice_to_entry: dict[str, int] = {}
+    choice_to_text: dict[str, str] = {}
     for idx, entry in enumerate(entries):
         for text in _candidate_texts(entry):
             choice_key = f"{idx}:{text}"
             choices[choice_key] = _match_norm(text)
             choice_to_entry[choice_key] = idx
-    match = process.extractOne(_match_norm(query), choices, scorer=fuzz.token_set_ratio)
-    if not match:
-        return None, 0.0
-    return entries[choice_to_entry[match[2]]], float(match[1])
+            choice_to_text[choice_key] = text
+
+    # Regression gefunden + gefixt (User-Report: "Jefferson Curl" matchte
+    # trotz der Equipment-Strip-Normalisierung oben immer noch faelschlich
+    # auf "Kurzhantel-Curl"/"Cable Curls" mit Score 100 — token_set_ratio
+    # bewertet zwei Namen, die sich nur ein generisches Wort ("curl") teilen,
+    # als Volltreffer, egal wie unterschiedlich der Rest ist). process.
+    # extractOne() gibt nur den EINEN besten Treffer zurueck, egal ob der
+    # inhaltlich Unsinn ist — deshalb hier process.extract() (mehrere
+    # Kandidaten) + `fuzzy_candidate_allowed()` (aus resolver.py, bereits von
+    # resolve_query() genutzt) als Gate: mind. ein NICHT-generisches Wort
+    # (nicht in GENERIC_FUZZY_TOKENS) muss zwischen Query und Kandidat
+    # uebereinstimmen, sonst wird der Kandidat trotz hohem Rohscore
+    # uebersprungen.
+    matches = process.extract(_match_norm(query), choices, scorer=fuzz.token_set_ratio, limit=5)
+    for _, score, choice_key in matches:
+        candidate_text = choice_to_text[choice_key]
+        if fuzzy_candidate_allowed(_norm(query), _norm(candidate_text)):
+            return entries[choice_to_entry[choice_key]], float(score)
+    return None, 0.0
 
 
 def _best_match(query: str, entries: list[dict[str, Any]], *, min_score: int = AUTO_MATCH_MIN_SCORE) -> dict[str, Any] | None:

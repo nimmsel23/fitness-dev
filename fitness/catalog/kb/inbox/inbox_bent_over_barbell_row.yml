@@ -1,8 +1,8 @@
-name: inbox_vorgebeugtes_langhantelrudern_stehend
+name: inbox_bent_over_barbell_row
 description: 'Neuer Inbox-Draft für: Vorgebeugtes Langhantelrudern (stehend)'
-generated_at: '2026-09-08T21:22:06.659436+00:00'
+generated_at: '2026-09-08T21:37:23.002778+00:00'
 exercises:
-- exercise_id: vorgebeugtes_langhantelrudern_stehend
+- exercise_id: bent_over_barbell_row
   display_name: Vorgebeugtes Langhantelrudern (stehend)
   wger_id: 1489
   yuhonas_id: Bent_Over_Barbell_Row
