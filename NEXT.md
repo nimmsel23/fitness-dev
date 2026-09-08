@@ -262,3 +262,32 @@ pruefen.
   Doppel-Treffer-Queries durchgetestet.
 - **Prod-Deploy `:6100`** dieser drei Katalog-Fixes offen (ging per Post-Push
   nur nach Staging `:8100`).
+
+## Aus dem Inbox-ID-Referenz-/TUI-Editor-Fix (2026-09-09, Commits `1a04fdd` + `f8173a9` + `db28cdf`)
+
+- **`db28cdf` (TUI-Feld-Editor + `inbox_wide_grip_chin_up.yml`) ist committet,
+  aber noch nicht gepusht** (`dev` ist 1 voraus vor `origin/dev`). `1a04fdd` +
+  `f8173a9` sind auf `origin/dev`. Kein Staging-/Prod-Deploy für keinen der drei.
+- **`_edit_exercise_interactive()` / `_save_exercise_to_file()` (`tui.py`) nur
+  import-/syntax-geprüft + ein `_save_exercise_to_file()`-Roundtrip getestet** —
+  nie interaktiv durch das echte TUI-Menü (`fitness catalog` → Inbox-Detail "e" /
+  Browser-Detail "e") durchgespielt.
+- **Bestehende ~52 Inbox-Drafts weiterhin nicht saniert**: `create_inbox_draft()`
+  + `new-draft` erzeugen jetzt ID-only, aber die schon in `kb/inbox/` liegenden
+  aufgeblähten wger-Drafts sind unberührt. Ob per Script neu erzeugt/entduplex't
+  oder verworfen, weiter offen.
+- **Gemini-Seed / `coaching_notes`-Generierung noch nicht auf "nur verlinken"
+  umgestellt**: `build_source_snapshot()` ist jetzt ganz weg und die
+  Draft-Anlage ID-only, aber `build_external_seed()` / `call_gemini()`
+  (`fitness/catalog/agent/gemini.py`) erzeugen weiter generischen Volltext statt
+  einer knappen ID-verlinkten Referenzbasis.
+- **Offene User-Frage vor `/compact`**: `2026-09-08.json` hat RPE/Dauer/Ort nur
+  als Freitext-Präfix im `notes`-Feld (kein `effort`/`duration`/`location` auf
+  Top-Level), daher rendert `fitness-log show` die Meta-Zeile nicht wie beim
+  07.09. Claude hat angeboten, `notes` in die strukturierten Felder aufzusplitten
+  — User hat nicht mehr geantwortet.
+- **`inbox_wger_92.yml`** weiterhin untracked (Enrichment-Nebeneffekt der
+  Bizeps-KH-Curls-Korrektur vom 2026-09-08), noch nicht committet/reviewed.
+- **CLAUDE.md-Doku-Ungenauigkeit**: `../fitness/catalog/CLAUDE.md` spricht von
+  "Textual TUI", `tui.py` nutzt aber durchgehend `rich.prompt` — im Commit
+  `db28cdf` als ungenau vermerkt, Doku-Fix nicht gemacht.
