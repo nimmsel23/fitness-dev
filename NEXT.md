@@ -205,3 +205,26 @@ pruefen.
   `~/.dotfiles/bin/fitness-log` neu an und überschattet das jetzt versionierte
   `bin/fitness-log`. Musste in der Session mehrfach von Hand entfernt werden —
   braucht eine dauerhafte Lösung (Entry-Point aus `[project.scripts]` nehmen o.ä.).
+
+## Aus dem CLI-Aufräumen (2026-09-08, Commits `4e64dd1` + `3a7a507`)
+
+- **`fitness coach log-client-workout` nicht end-to-end getestet**: nach der
+  Move-Kette `catalog/` → `runtime/` → `coach/` wurde der Klienten-Log-Pfad
+  (inkl. `_prompt_exercises_interactive()`) nicht gegen einen echten Klienten
+  (`~/Klienten/<id>/`) durchgespielt. Der Command-Pfad hat sich geändert — alte
+  Doku/Muscle-Memory verweist noch auf `fitness user-data log-client-workout`.
+- **Resolver benennt bei medium-confidence still um**: `fitness-log add` (non-
+  interaktiv) übernimmt jeden Fuzzy-Treffer außer low-confidence blind und
+  schreibt den Katalog-Namen statt des Original-Texts in die Session — Ursache
+  für den heutigen "Biceps Curls" → falsches `wger_91`-Mapping. Claude hat
+  vorgeschlagen (medium-confidence: Originalname behalten + Warnung, nur
+  high-confidence übernimmt Katalognamen), der Nutzer hat das aber nicht
+  explizit beauftragt. Fix steht noch aus.
+- **`fitness-log wizard` + HIT-Randfälle**: die neuen `add`/`wizard`-Subcommands
+  wurden nach dem Merge aus `fitness/strength/` nur build-/syntax-verifiziert,
+  `wizard` und die HIT-Modus-Randfälle nicht erneut interaktiv durchgespielt.
+- **`inbox_wger_92.yml`** (untracked): Enrichment-Nebeneffekt der heutigen
+  Bizeps-KH-Curls-Korrektur, noch nicht committet/reviewed.
+- **Prod-Deploy `:6100`** des neuen CLI-Paketlayouts (`fitness/coach/`,
+  `fitness/log/strength.py`, `muscle_label()`) ist offen — reines Backend/CLI,
+  keine Firebase-Relevanz, ging per Post-Push-Hook nur nach Staging.
