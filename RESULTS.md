@@ -1,3 +1,52 @@
+# CLI-Aufräumen: `fitness coach/`-Subpackage, `fitness-strength` in `fitness-log` gemerged, echte Muskelnamen (2026-09-08)
+
+Nachlauf zur CLI-Logging-Session (Commit `894877d`). Der Nutzer bemängelte zuerst,
+dass `client_session.py` auch in `fitness/runtime/` fehl am Platz ist ("runtime ist
+ja auch nicht richtig für das client_session.py"), dann dass `fitness-strength` als
+drittes Binary neben `fitness-log` unnötige Fragmentierung ist ("werde ich nie im
+Leben eintippen"), und zuletzt dass `fitness-log show` grobe Bucket-Regionen statt
+echter Muskelnamen anzeigt ("warum stehen da die Buckets statt den echten Muskeln").
+Alle drei umgesetzt, `npm run build` grün, Python-Syntax geprüft, `fitness-log show`
+live verifiziert. Committed `4e64dd1` + `3a7a507`, beide nach `origin/dev` gepusht
+(`3a7a507` force-pushed, weil Backticks in der ersten Commit-Message durch
+Shell-Command-Substitution zerschossen wurden). Kein `fitness-release`/Prod-Deploy
+in diesem Abschnitt.
+
+* **`fitness/coach/`** (neu, `4e64dd1`): `client_session.py` via `git mv` aus
+  `fitness/runtime/` hierher, plus `cli.py` (`log-client-workout` +
+  `_prompt_exercises_interactive()`) aus `runtime/cli.py` verschoben. Begründung:
+  `runtime/` ist Reparatur der Operator-eigenen Runtime-Daten
+  (`~/.aos/fitness/users/*`, SQLite-History), Klienten-Workout-Logging
+  (`~/Klienten/<id>/`) ist fachlich eine andere Domain und passt zu den
+  bestehenden Coach-API-Routern. Command jetzt **`fitness coach log-client-workout`**
+  (Move-Kette: `catalog/` → `runtime/` → `coach/`). Tote Imports in
+  `runtime/cli.py` entfernt, `fitness coach` in `fitness/cli.py` gemountet.
+* **`fitness/log/strength.py`** (neu, `3a7a507`): `fitness/strength/` komplett
+  entfernt, Inhalt hierher als Funktionen (`add_exercise()`/`run_wizard()`) statt
+  eigener Typer-App. `fitness-log` bekommt die neuen Subcommands **`add`** (vormals
+  `fitness strength log`) und **`wizard`** (vormals `fitness strength wizard`).
+  `fitness-strength`-Entry-Point aus `pyproject.toml` raus, `fitness strength`-
+  Passthrough aus `fitness/cli.py` raus.
+* **`fitness/muscles.py`** (`3a7a507`): neue `muscle_label()`-Funktion — löst eine
+  einzelne Muskel-ID (`"201_latissimus_dorsi"`) auf den echten KB-Namen
+  (`"Breiter Rückenmuskel Latissimus Dorsi"`) auf, statt sie via
+  `muscle_to_group()`/`muscle_group_label()` auf grobe Regionen
+  (`"Mittlerer Rücken"`) zusammenzufassen (wobei einzelne Muskel-Identität +
+  Duplikate wie `"Mittlerer Rücken, Mittlerer Rücken"` verloren gingen).
+* **`fitness/render.py`** (`3a7a507`): `render_detail` nutzt `muscle_label()` +
+  dedupliziert die Muskelliste; alte `muscle_to_group`/`muscle_group_label`-Importe
+  raus.
+* **Runtime-Daten**: heutige Session (2026-09-08) korrigiert — "Biceps Curls" war
+  tatsächlich einseitige Bizeps-KH-Curls, der Fuzzy-Resolver hatte sie bei
+  medium-confidence stillschweigend auf Bizeps-LH-Curls (`wger_91`) umbenannt. Im
+  Session-JSON auf `wger_92` (Bizeps KH-Curls, `primaryMuscles` `402`, `secondary`
+  `403`) korrigiert, `exercise_id_at_log` nachgezogen, Notiz "(einseitig)" ergänzt,
+  per `POST /session` gegen `:9150` neu synct (SQLite-Mirror mit). Backup unter
+  scratchpad. `fitness/catalog/kb/inbox/inbox_wger_92.yml` als Enrichment-Nebeneffekt
+  neu erzeugt (untracked, noch nicht committet/reviewed).
+
+---
+
 # CLI-Workout-Logging fortgesetzt + `fitness/commands/` aufgelöst (2026-09-08)
 
 Nutzer-Anliegen: "kann ich per CLI auch schon ordentlich meine Workouts loggen?
