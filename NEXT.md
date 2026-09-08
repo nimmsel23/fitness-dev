@@ -180,3 +180,28 @@ Noch offen: echten Browser-Durchklick auf `fitness-aos.web.app/#coach` mit
 laufendem Funnel/`:6100`: local Draft sichtbar, Source verbinden, Reenrich,
 Approve, danach lokale `fitness/catalog/kb/exercises/*.yml` und Firestore-Mirror
 pruefen.
+
+## Aus der CLI-Logging-Session (2026-09-08, Commit `894877d`)
+
+- **`fitness strength` nur teil-verifiziert**: `log` wurde live gegen `:9150`
+  (Merge, `rev`-Hochzählen) getestet, aber `fitness strength wizard`, die
+  HIT-Modus-Randfälle und `fitness user-data log-client-workout` nach dem
+  Move von `catalog/` → `runtime/` sind nicht end-to-end gegen einen echten
+  Klienten durchgespielt.
+- **Nur Staging-Deploy**: der `commands/`-Auflösung + `fitness strength` ging per
+  Post-Push-Hook nur nach Staging (`:8100`). Ob/wann Prod `:6100`
+  (`pkexec fitnessctl prod deploy`) mit dem neuen CLI-Paketlayout nachgezogen
+  werden soll, ist offen (reines Backend, keine Firebase-Relevanz).
+- **"Side-Hammer-Curls"**: der Katalog-Resolver hat es beim heutigen Log auf
+  "Hammer Curls" gematcht; Nutzer hat entschieden, es soll eine **eigene neue
+  Übung** werden. Das KB-Anlegen + Nachloggen als separate Übung ist noch nicht
+  passiert (ging in der Paket-Umstrukturierung unter).
+- **10 neue Inbox-Drafts** vom Enrichment-Nebeneffekt des Session-Loggings
+  mitcommittet (`inbox_wger_73` / `_91` / `_1398` / `_1489` / `_1529`,
+  `inbox_yuhonas_hammer_curls`, `inbox_20260907_160353_8856f0`,
+  `inbox_20260907_160429_51cebc`, `inbox_20260907_185946_6fe7bb`,
+  `inbox_20260907_190006_1b4749`) — noch unreviewed.
+- **uv-Shim-Symlink kehrt zurück**: jedes `uv tool install` legt
+  `~/.dotfiles/bin/fitness-log` neu an und überschattet das jetzt versionierte
+  `bin/fitness-log`. Musste in der Session mehrfach von Hand entfernt werden —
+  braucht eine dauerhafte Lösung (Entry-Point aus `[project.scripts]` nehmen o.ä.).
