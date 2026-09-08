@@ -35,11 +35,12 @@ dependencies = [
 
 [project.scripts]
 fitness              = "fitness.cli:main"
-fitness-log          = "fitness.commands.log:main"
-fitness-tui          = "fitness.commands.tui:main"
-fitness-activity     = "fitness.commands.activity:main"
-fitness-mail         = "fitness.commands.mail:main"
-fitness-sync         = "fitness.commands.sync:main"
+fitness-log          = "fitness.log.cli:main"
+fitness-tui          = "fitness.tui.cli:main"
+fitness-activity     = "fitness.activity.cli:main"
+fitness-strength     = "fitness.strength.cli:main"
+fitness-mail         = "fitness.mail.cli:main"
+fitness-sync         = "fitness.sync.cli:main"
 firestore-sync       = "fitness.firestore.sync_cli:main"
 fitness-catalog      = "fitness.catalog.cli:main"
 fitness-catalog-api  = "fitness.api.main:main"

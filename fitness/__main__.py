@@ -20,10 +20,10 @@ def main() -> None:
 
     cmd = sys.argv.pop(1)
     if cmd == "log":
-        from fitness.commands.log import main as log_main
+        from fitness.log.cli import main as log_main
         log_main()
     elif cmd == "tui":
-        from fitness.commands.tui import main as tui_main
+        from fitness.tui.cli import main as tui_main
         tui_main()
     else:
         print(f"Unbekannter Befehl: {cmd}  (log|tui)", file=sys.stderr)

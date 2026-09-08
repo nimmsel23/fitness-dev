@@ -10,7 +10,7 @@ from datetime import date, datetime, timedelta
 
 from .constants import ACTIVITY_EMOJI, ACTIVITY_LABEL, block_ansi_color
 from .data import activity_minutes, classify, performed_exercises, session_activities
-from .commands import muscle_to_group, muscle_group_label
+from .muscles import muscle_to_group, muscle_group_label
 
 # ── ANSI-Farbpalette ──────────────────────────────────────────────────────────
 _C: dict[str, str] = {

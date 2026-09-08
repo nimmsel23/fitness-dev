@@ -1,5 +1,5 @@
 """
-fitness.commands.log — Typer CLI App (fitness log).
+fitness.log.cli — Typer CLI App (fitness log).
 
 Direkter Dateizugriff auf Session-JSONs — kein Server nötig.
 
@@ -11,7 +11,7 @@ Subcommands:
   stats [--days N]      Aggregate (Split, Cardio, Muskel-Coverage)
   sync-status           Firestore ↔ lokal Sync-Status + Klienten-Registry
   clients [NAME]         Alle Klienten-Sessions chronologisch (--journal für Freitext)
-  console                Live-TUI: Klienten-Logs + Zwei-KI-Analyse (siehe commands/console/)
+  console                Live-TUI: Klienten-Logs + Zwei-KI-Analyse (siehe log/console/)
   drafts [--client NAME]  Persistierte KI-Entwuerfe aus der Console anzeigen
 """
 from __future__ import annotations
@@ -24,7 +24,7 @@ from typing import Optional
 import typer
 
 from ..constants import ACTIVITY_EMOJI, ACTIVITY_LABEL, WEEKDAYS_DE, block_ansi_color
-from . import muscle_to_group, muscle_group_label
+from ..muscles import muscle_to_group, muscle_group_label
 from ..data import (
     classify,
     activity_minutes,
@@ -588,7 +588,7 @@ def cmd_clients(
 # ── console ───────────────────────────────────────────────────────────────────
 # Live-TUI: alle Klienten-Sessions/Journal-Eintraege in Echtzeit + Zwei-KI-
 # Analyse (Trainingsluecken-Kontext-Check, Auto-Feedback-Entwuerfe). Implementierung
-# als eigenes Subpackage: fitness/commands/console/ (Watcher/Gap-Check/Rich-UI
+# als eigenes Subpackage: fitness/log/console/ (Watcher/Gap-Check/Rich-UI
 # getrennt, siehe console/__init__.py).
 
 @app.command(name="console", help="Live-TUI: Klienten-Logs in Echtzeit + Zwei-KI-Analyse (Trainingsluecken, Auto-Feedback)")

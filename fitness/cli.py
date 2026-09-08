@@ -8,6 +8,7 @@ fitness — Domain CLI für alle Fitness-Subcommands.
   fitness mail  <cmd>    Fitbit Gmail Pipeline
   fitness log   <cmd>    Session-Log aus Dateien (kein Server)
   fitness activity <cmd> Cardio/Activity loggen
+  fitness strength <cmd> Kraft-Session loggen (log|wizard), merged statt overwrite
   fitness sync  <cmd>    KB-Sync + Firestore-Sync (kb|pull|push|watch|all) → fitness-sync
   fitness user-data <cmd> Runtime-Userdaten/SQLite-History prüfen und gezielt patchen
   fitness health         /health aller Services
@@ -203,7 +204,11 @@ def tui(ctx: typer.Context) -> None:
 def activity(ctx: typer.Context) -> None:
     passthrough("fitness-activity", ctx.args, "fitness-activity")
 
-@app.command(context_settings=_ctx, help="KB-Sync + Firestore-Sync (kb|pull|push|watch|all) — siehe fitness/commands/sync.py")
+@app.command(context_settings=_ctx, help="Kraft-Session loggen (log|wizard) — merged in bestehende Session, überschreibt nicht. z.B. fitness strength log Bankdrücken -s 3 -r 8 -w 60")
+def strength(ctx: typer.Context) -> None:
+    passthrough("fitness-strength", ctx.args, "fitness-strength")
+
+@app.command(context_settings=_ctx, help="KB-Sync + Firestore-Sync (kb|pull|push|watch|all) — siehe fitness/sync/cli.py")
 def sync(ctx: typer.Context) -> None:
     passthrough("fitness-sync", ctx.args, "fitness-sync")
 

@@ -29,7 +29,7 @@ from loguru import logger
 from rich.console import Console
 from rich.table import Table
 
-from . import muscle_to_group
+from ..muscles import muscle_to_group
 
 # ── Setup ─────────────────────────────────────────────────────────────────────
 logger.remove()

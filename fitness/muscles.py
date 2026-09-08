@@ -1,4 +1,7 @@
-"""fitness.commands — Typer- und Textual-Entry-Points."""
+"""fitness.muscles — Muskel-Normalisierung, geteilt über mehrere CLI-Subpackages
+(log, activity, tui). Vorher fälschlich in fitness/commands/__init__.py, das
+per Konvention nur Sammel-Ordner für lose CLI-Skripte war (aufgelöst, siehe
+fitness/CLAUDE.md: jedes CLI-Skript hat jetzt sein eigenes Subpackage)."""
 from functools import lru_cache
 
 from fitness.catalog.coverage import (
