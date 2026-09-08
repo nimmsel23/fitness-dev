@@ -6,9 +6,8 @@ fitness — Domain CLI für alle Fitness-Subcommands.
   fitness tui            Session-Dashboard-TUI (Textual, fitness-tui) — hat NICHTS mit dem Katalog zu tun
   fitness kb    <cmd>    anatomy-kb kbctl (:9200)
   fitness mail  <cmd>    Fitbit Gmail Pipeline
-  fitness log   <cmd>    Session-Log aus Dateien (kein Server)
+  fitness log   <cmd>    Session-Log aus Dateien (kein Server) + add/wizard zum Kraft-Session-Loggen (merged statt overwrite)
   fitness activity <cmd> Cardio/Activity loggen
-  fitness strength <cmd> Kraft-Session loggen (log|wizard), merged statt overwrite
   fitness sync  <cmd>    KB-Sync + Firestore-Sync (kb|pull|push|watch|all) → fitness-sync
   fitness user-data <cmd> Runtime-Userdaten/SQLite-History prüfen und gezielt patchen
   fitness coach <cmd>    Klienten-Workout loggen (~/Klienten/<id>/)
@@ -195,7 +194,7 @@ def dev(ctx: typer.Context) -> None:
 def mail(ctx: typer.Context) -> None:
     passthrough("fitness-mail", ctx.args, "fitness-mail")
 
-@app.command(context_settings=_ctx, help="Session-Log direkt aus Dateien (ls|show|week|history|stats|sync-status) — kein Server nötig")
+@app.command(context_settings=_ctx, help="Session-Log direkt aus Dateien (ls|show|week|history|stats|sync-status|add|wizard) — kein Server nötig, add/wizard schreiben")
 def log(ctx: typer.Context) -> None:
     passthrough("fitness-log", ctx.args, "fitness-log")
 
@@ -206,10 +205,6 @@ def tui(ctx: typer.Context) -> None:
 @app.command(context_settings=_ctx, help="Cardio/Activity loggen (log|types|whoami) — z.B. fitness activity log swimming -d 20 -s breast")
 def activity(ctx: typer.Context) -> None:
     passthrough("fitness-activity", ctx.args, "fitness-activity")
-
-@app.command(context_settings=_ctx, help="Kraft-Session loggen (log|wizard) — merged in bestehende Session, überschreibt nicht. z.B. fitness strength log Bankdrücken -s 3 -r 8 -w 60")
-def strength(ctx: typer.Context) -> None:
-    passthrough("fitness-strength", ctx.args, "fitness-strength")
 
 @app.command(context_settings=_ctx, help="KB-Sync + Firestore-Sync (kb|pull|push|watch|all) — siehe fitness/sync/cli.py")
 def sync(ctx: typer.Context) -> None:

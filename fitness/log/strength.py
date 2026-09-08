@@ -1,5 +1,9 @@
 """
-fitness-strength — Kraft-Sessions per CLI loggen (Übung + Sätze/Reps/Gewicht).
+fitness.log.strength — Kraft-Sessions loggen (Übung + Sätze/Reps/Gewicht).
+
+Von `fitness-log add`/`fitness-log wizard` genutzt (vormals eigenes Binary
+`fitness-strength`, 2026-09-08 eingegliedert — Ein-Tool-Prinzip, `fitness-log`
+liest UND schreibt die eigenen Sessions, kein zweites Binary dafür nötig).
 
 Pendant zu fitness-activity (Cardio) — POST geht ebenfalls an :9100/session
 (JSON + SQLite + Firestore-Mirror). Anders als activity.py **überschreibt**
@@ -13,10 +17,10 @@ useExerciseList.js) und schreibt danach den vollständigen Stand zurück.
 IDs matchen bevorzugt.
 
 Beispiele:
-  fitness strength log "Bankdrücken" --sets 3 --reps 8 --weight 60
-  fitness strength log squat -s 4 -r 5 -w 100 --block Legs
-  fitness strength log "Lat Pulldown" -s 3 -r 10 -w 45 --notes "letzter Satz AMRAP"
-  fitness strength wizard
+  fitness-log add "Bankdrücken" --sets 3 --reps 8 --weight 60
+  fitness-log add squat -s 4 -r 5 -w 100 --block Legs
+  fitness-log add "Lat Pulldown" -s 3 -r 10 -w 45 --notes "letzter Satz AMRAP"
+  fitness-log wizard
 """
 from __future__ import annotations
 
@@ -40,8 +44,6 @@ console = Console()
 
 API = os.environ.get("FITNESS_API", "http://127.0.0.1:9100")
 USERS_DIR = Path.home() / ".aos" / "fitness" / "users"
-
-app = typer.Typer(no_args_is_help=False, add_completion=False)
 
 
 # ── HTTP / uid Helpers (identisch zu activity.py) ──────────────────────────────
@@ -132,7 +134,7 @@ def resolve_exercise(query: str) -> dict:
     }
 
 
-# ── Merge-Logik (kein Overwrite — anders als activity.py log()) ────────────────
+# ── Merge-Logik (kein Overwrite) ────────────────────────────────────────────────
 
 def _parse_series(value: str, n: int, label: str) -> list[str]:
     """'8' → [8]*n. '8,8,6' → [8,8,6] (muss dann genau n Werte haben)."""
@@ -167,21 +169,21 @@ def merge_exercise_into_session(session: dict | None, exercise: dict, sets_array
     return session
 
 
-# ── Commands ─────────────────────────────────────────────────────────────────
+# ── Öffentliche Funktionen (von fitness/log/cli.py als `add`/`wizard` gemountet) ─
 
-@app.command()
-def log(
-    exercise: str = typer.Argument(..., help="Übungsname (Freitext, Fuzzy-Match gegen Katalog)"),
-    sets: int = typer.Option(1, "--sets", "-s", min=1, help="Anzahl Sätze (Default 1 — z.B. für HIT/ein Satz bis zum Muskelversagen)"),
-    reps: str = typer.Option("", "--reps", "-r", help="Wiederholungen — eine Zahl (für alle Sätze) oder kommagetrennt pro Satz. Leer lassen wenn nicht getrackt (z.B. HIT)"),
-    weight: str = typer.Option("", "--weight", "-w", help="Gewicht (kg) — eine Zahl oder kommagetrennt pro Satz. Leer lassen wenn kein Zusatzgewicht (z.B. Bodyweight)"),
-    block: str = typer.Option(None, "--block", "-b", help="Trainingsblock (z.B. Push/Pull/Legs) — nur gesetzt wenn angegeben"),
-    notes: str = typer.Option(None, "--notes", "-n", help="Notiz an die Übung"),
-    day: str = typer.Option(None, "--date", help="YYYY-MM-DD (Default heute)"),
-    session_id: str = typer.Option(None, "--session-id", help="An eine bestehende Zusatz-Session anhängen (siehe `fitness log show`)"),
-    uid_override: str = typer.Option(None, "--uid"),
-    dry_run: bool = typer.Option(False, "--dry-run"),
-):
+def add_exercise(
+    exercise: str,
+    *,
+    sets: int = 1,
+    reps: str = "",
+    weight: str = "",
+    block: str | None = None,
+    notes: str | None = None,
+    day: str | None = None,
+    session_id: str | None = None,
+    uid_override: str | None = None,
+    dry_run: bool = False,
+) -> None:
     """Eine Übung (N Sätze) zur Kraft-Session des Tages hinzufügen — merged, überschreibt nicht."""
     reps_series = _parse_series(reps, sets, "reps")
     weight_series = _parse_series(weight, sets, "weight")
@@ -211,15 +213,11 @@ def log(
         raise typer.Exit(1)
 
 
-@app.command()
-def wizard(
-    day: str = typer.Option(None, "--date", help="YYYY-MM-DD (Default heute)"),
-    uid_override: str = typer.Option(None, "--uid"),
-):
+def run_wizard(*, day: str | None = None, uid_override: str | None = None) -> None:
     """Interaktiver Dialog: Block wählen, Übungen + Sätze eintippen, bis Abbruch.
 
-    Baut jeden Schritt intern auf `log()` auf (kein eigener POST-Pfad) —
-    dieselbe Merge-Logik, dieselbe Übungs-Auflösung.
+    Baut jeden Schritt intern auf denselben Merge-/Auflösungs-Helpern wie
+    add_exercise() auf (kein eigener POST-Pfad).
     """
     uid = uid_override or detect_uid()
     target_day = day or date.today().isoformat()
@@ -258,11 +256,3 @@ def wizard(
         first = False
 
     console.print("[dim]Session beendet.[/dim]")
-
-
-def main() -> None:
-    app()
-
-
-if __name__ == "__main__":
-    app()

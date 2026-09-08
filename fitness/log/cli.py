@@ -626,6 +626,37 @@ def cmd_drafts(
         print(f"{c('dim', e.get('created_at', '?'))}  {c('accent', e.get('name', '?'))}  {c(kind_color, kind_label)}  {e.get('text', '')}")
 
 
+@app.command(name="add", help="Übung (Sätze/Reps/Gewicht) zur Kraft-Session des Tages hinzufügen — merged, überschreibt nicht")
+def cmd_add(
+    exercise: str = typer.Argument(..., help="Übungsname (Freitext, Fuzzy-Match gegen Katalog)"),
+    sets: int = typer.Option(1, "--sets", "-s", min=1, help="Anzahl Sätze (Default 1 — z.B. für HIT/ein Satz bis zum Muskelversagen)"),
+    reps: str = typer.Option("", "--reps", "-r", help="Wiederholungen — eine Zahl (für alle Sätze) oder kommagetrennt pro Satz. Leer lassen wenn nicht getrackt (z.B. HIT)"),
+    weight: str = typer.Option("", "--weight", "-w", help="Gewicht (kg) — eine Zahl oder kommagetrennt pro Satz. Leer lassen wenn kein Zusatzgewicht (z.B. Bodyweight)"),
+    block: str = typer.Option(None, "--block", "-b", help="Trainingsblock (z.B. Push/Pull/Legs) — nur gesetzt wenn angegeben"),
+    notes: str = typer.Option(None, "--notes", "-n", help="Notiz an die Übung"),
+    day: str = typer.Option(None, "--date", help="YYYY-MM-DD (Default heute)"),
+    session_id: str = typer.Option(None, "--session-id", help="An eine bestehende Zusatz-Session anhängen"),
+    uid_override: str = typer.Option(None, "--uid"),
+    dry_run: bool = typer.Option(False, "--dry-run"),
+) -> None:
+    from .strength import add_exercise
+
+    add_exercise(
+        exercise, sets=sets, reps=reps, weight=weight, block=block, notes=notes,
+        day=day, session_id=session_id, uid_override=uid_override, dry_run=dry_run,
+    )
+
+
+@app.command(name="wizard", help="Interaktiver Dialog: Block wählen, Übungen + Sätze eintippen, bis Abbruch")
+def cmd_wizard(
+    day: str = typer.Option(None, "--date", help="YYYY-MM-DD (Default heute)"),
+    uid_override: str = typer.Option(None, "--uid"),
+) -> None:
+    from .strength import run_wizard
+
+    run_wizard(day=day, uid_override=uid_override)
+
+
 # ── Entry-Point ───────────────────────────────────────────────────────────────
 
 def main() -> None:
