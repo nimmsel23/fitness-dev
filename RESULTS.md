@@ -1,3 +1,46 @@
+# Katalog: unreviewed-Duplikate aus `exercises/search` raus, wger↔yuhonas-Matching, `source_snapshot` entduplex (2026-09-08)
+
+Ausgelöst durch konkrete schlechte Katalog-Einträge beim `fitness-log show` der
+heutigen Session: "Klimmzüge (neutraler Griff)" (`wger_1529`) zeigte keinen Bizeps,
+"Langhantelrudern (Obergriff)" (`wger_1489`) war zu unscharf, und der Nutzer
+kritisierte scharf, dass jeder Inbox-Draft "derselbe Scheißdreck" sei: eine einzige
+Quelle (wger), strukturell 10–13× redundant reingeschrieben, generische
+Klimmzug-Boilerplate als `coaching_notes`, mit `expert-tier`/`reviewed`-Tags obwohl
+reiner Gemini-Output. Claude hatte zwischenzeitlich `wger_1529` eigenmächtig per
+`fitness-catalog inbox approve` freigegeben (Commit `d5f3abf`) — auf Ansage des
+Nutzers ("wage es nicht etwas zu approven") per `git revert` rückgängig gemacht
+(`4a4711d`), Draft zurück in `kb/inbox/` als `status: draft`. Kernauftrag danach
+("die basis eines inbox drafts ist die id zum wger UND zum yuhona äquivalent …
+nicht einfach den inhalt reindumpen sondern VERLINKEN per ID … und die unrevieweds
+zugunsten der expert files auszuschalten in der exercisesearch"): drei
+zusammenhängende Pipeline-Fixes, committet `233dc19`, nach `origin/dev` gepusht,
+Staging-Deploy (`fitness-preview.service` :8100) per Post-Push-Hook grün. Betroffene
+Katalog-Tests grün (`test_exercise_schema.py`, `test_inbox_pipeline.py`), ein
+vorbestehender unabhängiger Fail (`test_jefferson_curl_is_expert_record`) blieb.
+
+* **`fitness/api/routers/exercises_catalog.py`** (`233dc19`): `GET /exercises/search`
+  zeigt unreviewed/bulk-Treffer nur noch als Fallback, wenn für denselben Query
+  kein Expert-/Inbox-Treffer existiert. Vorher standen rohe wger-Duplikate
+  gleichberechtigt neben kuratierten Einträgen.
+* **`fitness/catalog/core/source_merge.py`** (`233dc19`): neue
+  `_match_norm()`-Normalisierung (Geräte-Präfix `barbell`/`dumbbell`/`bodyweight`/…
+  + Singular/Plural) speziell vorm wger↔yuhonas-Fuzzy-Vergleich in `_best_match`,
+  bewusst **nicht** im generellen `normalize_text()`-/`resolve_query()`-Pfad.
+  "Walking Lunges" vs. "Barbell Walking Lunge" springt damit von fuzz-Score 74 auf
+  100 — Drafts referenzieren künftig öfter wirklich beide Quellen statt nur wger.
+  Nutzer-Entscheidung: "Gezielte Normalisierung (sicherer)" statt globaler
+  Schwellensenkung (`AUTO_MATCH_MIN_SCORE` 86 bleibt unverändert).
+* **`fitness/catalog/core/exercise_schema.py`** (`233dc19`): `build_source_snapshot()`
+  schreibt keine Text-Duplikate mehr (`original_description`/`instructions`/`images`
+  raus), nur noch reine ID-Referenzen (`wger_id`, `wger_muscle_ids`, `yuhonas_id`).
+  Das Coach-Sheet-Side-by-Side bleibt unberührt (nutzt separates
+  `origin.wger`/`origin.yuhonas`-Feld, nicht `source_snapshot`).
+* **`fitness/catalog/kb/inbox/inbox_wger_1529.yml`**: durch den Revert `4a4711d`
+  aus `kb/exercises/wger_1529.yml` zurück in die Inbox verschoben, `status: draft` —
+  weiterhin unreviewed/nicht approved.
+
+---
+
 # CLI-Aufräumen: `fitness coach/`-Subpackage, `fitness-strength` in `fitness-log` gemerged, echte Muskelnamen (2026-09-08)
 
 Nachlauf zur CLI-Logging-Session (Commit `894877d`). Der Nutzer bemängelte zuerst,
