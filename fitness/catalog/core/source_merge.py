@@ -72,6 +72,30 @@ def _norm(value: str) -> str:
     return normalize_text(value, smart=True)
 
 
+# Nur fuers wger<->yuhonas-Matching (source_merge), NICHT der generelle
+# normalize_text()-Pfad — soll resolve_query() nicht beeinflussen. Grund:
+# wger liefert oft geraete-neutrale Namen ("Walking Lunges"), yuhonas
+# geraete-praefigierte ("Barbell Walking Lunge") + oft Singular statt
+# Plural ("Lunge" statt "Lunges") — beides druckt den rohen fuzz-Score
+# unter AUTO_MATCH_MIN_SCORE, obwohl es dieselbe Uebung ist (siehe
+# catalog/CLAUDE.md "Fuzzy-Match-Falle").
+_EQUIPMENT_PREFIX_WORDS = {
+    "barbell", "dumbbell", "dumbbells", "bodyweight", "kettlebell",
+    "kettlebells", "cable", "machine", "band", "bands", "smith", "ez",
+}
+
+
+def _singularize(word: str) -> str:
+    if len(word) > 3 and word.endswith("s") and not word.endswith("ss"):
+        return word[:-1]
+    return word
+
+
+def _match_norm(value: str) -> str:
+    words = [_singularize(w) for w in _norm(value).split() if w not in _EQUIPMENT_PREFIX_WORDS]
+    return " ".join(words)
+
+
 # Unterhalb von AUTO_MATCH_MIN_SCORE wird nie automatisch verlinkt (Gefahr
 # falscher wger/yuhonas-Zuordnungen in Katalog-Seeds). Zwischen
 # CANDIDATE_MIN_SCORE und AUTO_MATCH_MIN_SCORE liegende Treffer sind zu
@@ -100,9 +124,9 @@ def _best_match_scored(query: str, entries: list[dict[str, Any]]) -> tuple[dict[
     for idx, entry in enumerate(entries):
         for text in _candidate_texts(entry):
             choice_key = f"{idx}:{text}"
-            choices[choice_key] = text
+            choices[choice_key] = _match_norm(text)
             choice_to_entry[choice_key] = idx
-    match = process.extractOne(query, choices, scorer=fuzz.token_set_ratio)
+    match = process.extractOne(_match_norm(query), choices, scorer=fuzz.token_set_ratio)
     if not match:
         return None, 0.0
     return entries[choice_to_entry[match[2]]], float(match[1])
