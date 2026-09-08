@@ -33,32 +33,6 @@ def infer_origin_type(exercise: dict[str, Any]) -> str:
     return "manual"
 
 
-def build_source_snapshot(exercise: dict[str, Any]) -> dict[str, Any]:
-    """Reine ID-Referenz auf die Quelle, kein Content-Dump: `original_description`/
-    `instructions`/`images` leben nur noch top-level (einzige Kopie, aktiv
-    gelesen von coach_sheet.py/app_tui.py/inbox_pipeline.py) — hier stand
-    bisher eine 1:1-Textduplikat-Kopie derselben Felder, ohne eigenen Zweck
-    (beide wurden aus demselben `exercise`-Dict gebaut, konnten also nie
-    auseinanderlaufen). Getrennt von `origin.wger`/`origin.yuhonas`
-    (inbox_actions.py::attach_source_snapshot), das fuer den Coach-Sheet-
-    Side-by-Side-Vergleich weiterhin den vollen Rohtreffer braucht."""
-    snapshot: dict[str, Any] = {}
-    wger = _non_empty_dict({
-        "wger_id": exercise.get("wger_id"),
-        "wger_muscle_ids": deepcopy(exercise.get("wger_muscle_ids")),
-    })
-    if wger:
-        snapshot["wger"] = wger
-
-    yuhonas = _non_empty_dict({
-        "yuhonas_id": exercise.get("yuhonas_id"),
-    })
-    if yuhonas:
-        snapshot["yuhonas"] = yuhonas
-
-    return snapshot
-
-
 def build_review_state(
     exercise: dict[str, Any],
     *,
@@ -96,9 +70,6 @@ def apply_exercise_schema(
         "type": infer_origin_type(ex),
         "source_refs": source_refs,
     }
-    snapshot = build_source_snapshot(ex)
-    if snapshot:
-        ex["source_snapshot"] = snapshot
     ex["review_state"] = build_review_state(
         ex,
         status=review_status,

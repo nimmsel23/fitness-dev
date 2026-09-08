@@ -525,18 +525,22 @@ def _link_source_id(ex: dict[str, Any], source_key: str, entry: dict[str, Any]) 
 
 def attach_source_snapshot(f: Path, ex: dict[str, Any], apply: bool = False) -> dict[str, Any]:
     """Sucht den rohen wger- und yuhonas-Eintrag zu einem Inbox-Draft (per
-    ID-Hinweis bzw. Namens-Fuzzy-Match, siehe `source_merge.find_source_entries`),
-    verlinkt bei einem sicheren Treffer (Score >= AUTO_MATCH_MIN_SCORE) die
-    IDs (`wger_id`/`yuhonas_id`/`external_ids`) auf oberster Ebene und legt
-    beide Rohtreffer zusaetzlich UNVERAENDERT unter `ex["origin"]["wger"]`
-    bzw. `ex["origin"]["yuhonas"]` ab — nebenbei `origin.type`/
-    `origin.source_refs`, falls noch nicht gesetzt (dieselbe `origin`-
-    Struktur, die approve_inbox_entry() bereits kennt, siehe unten). Bewusst
-    KEINE Feld-Verschmelzung (kein Union von `primary_muscles`/
-    `coaching_notes` etc., das bleibt Aufgabe von `build_external_seed()`/
-    `approve_inbox_entry()`). Zweck: `inbox reenrich` hat sofort eine feste
-    ID-Basis statt erneut fuzzy raten zu muessen, und Coach-Sheet/GUI koennen
-    getrennt zeigen "wger sagt X" / "yuhonas sagt Y".
+    ID-Hinweis bzw. Namens-Fuzzy-Match, siehe `source_merge.find_source_entries`)
+    und verlinkt bei einem sicheren Treffer (Score >= AUTO_MATCH_MIN_SCORE) NUR
+    die IDs (`wger_id`/`yuhonas_id`/`external_ids`, `origin.type`/
+    `origin.source_refs`) auf oberster Ebene.
+
+    Frueher wurde hier zusaetzlich der komplette Rohtreffer UNVERAENDERT unter
+    `ex["origin"]["wger"]`/`ex["origin"]["yuhonas"]` gespeichert — de facto ein
+    Content-Dump pro Inbox-Draft-Datei, trotz des Namens "snapshot" derselbe
+    Fehler, den `exercise_schema.py::build_source_snapshot()` schon fuer das
+    gleichnamige Feld hatte (siehe dessen Docstring). Per User-Direktive
+    ("ich sagte ganz einfach die ids verlinken" / "neue exercise xxx.yml =>
+    wger_id + yuhona") entfernt: eine neue/aktualisierte Inbox-Datei traegt
+    nur noch die ID-Referenz, nie eine Kopie des rohen Quelltexts. Wer den
+    Rohtreffer sehen will (Coach-Sheet "## Quellen"), holt ihn sich zur
+    Anzeigezeit ueber `find_source_entries()` per ID — siehe
+    `coach_sheet.py::_load_source_blocks()`.
 
     Treffer zwischen CANDIDATE_MIN_SCORE und AUTO_MATCH_MIN_SCORE werden NIE
     automatisch verlinkt (zu unsicher), sondern nur im Rueckgabewert unter
@@ -544,9 +548,9 @@ def attach_source_snapshot(f: Path, ex: dict[str, Any], apply: bool = False) -> 
 
     Dry-run per Default (Repo-Konvention, siehe `fitness/runtime/cli.py`):
     ohne `apply=True` wird nichts geschrieben, nur berechnet + zurueckgegeben.
-    Bei `apply=True` wird nur geschrieben, wenn mindestens eine der beiden
-    Quellen neu dazukommt (.bak vorher, bestehende IDs/Rohtreffer bleiben
-    erhalten — kein Overwrite bereits gesetzter Werte).
+    Bei `apply=True` wird nur geschrieben, wenn mindestens eine ID neu
+    dazukommt (.bak vorher, bestehende IDs bleiben erhalten — kein Overwrite
+    bereits gesetzter Werte).
     Rueckgabe: {"found": {"wger": bool, "yuhonas": bool}, "changed": bool,
     "candidates": {"wger": {"id":..,"score":..}|None, "yuhonas": ...}, "exercise": ex}.
     """
@@ -567,12 +571,10 @@ def attach_source_snapshot(f: Path, ex: dict[str, Any], apply: bool = False) -> 
             continue
         if _link_source_id(ex, source_key, entry):
             changed = True
-        if not origin.get(source_key):
-            new_origin[source_key] = deepcopy(entry)
+        id_value = entry.get(f"{source_key}_id")
+        if id_value not in (None, "") and source_key not in new_source_refs:
+            new_source_refs[source_key] = [str(id_value)]
             changed = True
-            id_value = entry.get(f"{source_key}_id")
-            if id_value not in (None, "") and source_key not in new_source_refs:
-                new_source_refs[source_key] = [str(id_value)]
 
     if changed and apply:
         new_origin.setdefault("type", "external")
@@ -597,6 +599,102 @@ def attach_source_snapshot(f: Path, ex: dict[str, Any], apply: bool = False) -> 
         "candidates": {"wger": _candidate_info("wger"), "yuhonas": _candidate_info("yuhonas")},
         "exercise": ex,
     }
+
+
+def create_inbox_draft(
+    display_name: str,
+    *,
+    exercise_id: str | None = None,
+    wger_id: Any = None,
+    yuhonas_id: Any = None,
+    coaching_notes: list[str] | None = None,
+    force: bool = False,
+) -> Path:
+    """Generelles Skript zum Anlegen eines neuen Inbox-Drafts — die Basis ist
+    IMMER nur die ID-Referenz zu wger/yuhonas, nie ein Content-Dump (siehe
+    `attach_source_snapshot()`-Docstring oben, gleiche Direktive: "die basis
+    eines inbox drafts ist die id zum wger UND zum yuhona äquivalent... nicht
+    einfach den wger/yuhona inhalt reindumpen sondern VERLINKEN per ID").
+
+    Zwei Faelle:
+    - `wger_id`/`yuhonas_id` explizit uebergeben: manueller Fixpunkt, z.B.
+      eine neue Uebungsvariante (User-Beispiel: "vorgebeugtes Langhantelrudern
+      stehend" hat selbst keinen eigenen wger/yuhonas-Treffer, soll aber die
+      IDs der allgemeinen "Langhantelrudern"-Basis als Referenz tragen, damit
+      spaeter jemand "wger/yuhonas sagen dazu X" nachschlagen kann, OHNE dass
+      deren Text in diese neue Datei kopiert wird).
+    - keine IDs uebergeben: Auto-Suche per `find_source_entries()` (Name-
+      Fuzzy-Match, derselbe AUTO_MATCH_MIN_SCORE-Threshold wie ueberall sonst)
+      — nur bei sicherem Treffer verlinkt, sonst bleibt die Uebung ohne
+      Quellenreferenz (kein falsches Verlinken erzwingen).
+
+    Schreibt NICHTS von `coaching_notes`/`primary_muscles`/etc. aus der
+    Quelle in die neue Datei — nur was explizit per `coaching_notes`-Parameter
+    uebergeben wird (eigene, neue Coach-Notizen fuer genau diese Variante).
+    Muskeln/Content fuellt entweder Gemini (`add-exercise`-CLI-Pfad,
+    `build_inbox_draft_seed()` nutzt die Quelle nur als GROUNDING-Kontext,
+    nicht als gespeicherte Kopie) oder ein Mensch manuell nach.
+
+    Gibt den Pfad der geschriebenen Datei zurueck. Wirft FileExistsError wenn
+    die Zieldatei schon existiert und `force=False`.
+    """
+    from fitness.catalog.core.source_merge import find_source_entries
+
+    safe_id = exercise_id or re.sub(r"_+", "_", re.sub(r"[^a-z0-9]+", "_", display_name.strip().lower())).strip("_")
+    target = inbox_dir() / f"inbox_{safe_id}.yml"
+    if target.exists() and not force:
+        raise FileExistsError(f"Inbox-Draft existiert bereits: {target}")
+
+    ex: dict[str, Any] = {
+        "exercise_id": safe_id,
+        "display_name": display_name,
+    }
+    if coaching_notes:
+        ex["coaching_notes"] = list(coaching_notes)
+
+    # wger_id/yuhonas_id sind top-level die alleinige Quelle der Wahrheit.
+    # external_ids ist nur die Liste-Form davon (fuer find_source_entries()-
+    # Hints/mehrere IDs pro Quelle) — origin.source_refs wird von
+    # apply_exercise_schema() bereits DARAUS abgeleitet, hier also bewusst
+    # NICHT nochmal von Hand gesetzt (das war die eigentliche "ID kommt 10x
+    # vor"-Redundanz: dieselbe ID in 3-4 Feldern gleichzeitig einzutragen).
+    external_ids: dict[str, list[Any]] = {}
+
+    if wger_id not in (None, ""):
+        ex["wger_id"] = wger_id
+        external_ids["wger"] = [wger_id]
+    if yuhonas_id not in (None, ""):
+        ex["yuhonas_id"] = yuhonas_id
+        external_ids["yuhonas"] = [yuhonas_id]
+
+    if not external_ids:
+        # Keine expliziten IDs übergeben -> automatische Suche, aber nur ein
+        # sicherer Treffer wird verlinkt (siehe attach_source_snapshot()).
+        found = find_source_entries(display_name, safe_id)
+        for source_key in ("wger", "yuhonas"):
+            entry = found.get(source_key)
+            if not entry:
+                continue
+            id_value = entry.get(f"{source_key}_id")
+            if id_value not in (None, ""):
+                ex[f"{source_key}_id"] = id_value
+                external_ids[source_key] = [id_value]
+
+    if external_ids:
+        ex["external_ids"] = external_ids
+
+    ex = apply_exercise_schema(ex, review_status="draft", review_provider="manual", ai_reviewed=False)
+
+    doc = {
+        "name": target.stem,
+        "description": f"Neuer Inbox-Draft für: {display_name}",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "exercises": [ex],
+    }
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(yaml.safe_dump(doc, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    logger.success(f"Inbox-Draft angelegt: {target.name}")
+    return target
 
 
 def approve_inbox_entry(f: Path, ex: dict[str, Any]) -> str:

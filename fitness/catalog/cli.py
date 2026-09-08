@@ -426,6 +426,74 @@ def add_exercise(
     console.print(f"[ok]OK:[/ok] Inbox-Draft für '{name}' erfolgreich erstellt (Original & KI-Notes verknüpft).")
 
 
+@app.command(name="find-source")
+def find_source(query: str):
+    """Durchsucht IMMER BEIDE Rohquellen (unreviewed_wger.yml UND
+    unreviewed_yuhonas.yml) fuer eine Uebung und zeigt Treffer + unsichere
+    Kandidaten getrennt an.
+
+    Existiert, weil manuelles grep/Nachschlagen gegen nur EINE der beiden
+    Dateien wiederholt zu falschen "gibt's nicht"-Aussagen gefuehrt hat,
+    obwohl die Uebung in der jeweils anderen Quelle die ganze Zeit vorhanden
+    war (z.B. "Bent Over Barbell Row" — nur in yuhonas, nicht in wger).
+    `find_source_entries()` selbst durchsucht seit jeher beide Dateien
+    zuverlaessig — dieser Command macht das jetzt auch fuer reine Recherche
+    (nicht nur intern beim Draft-Erstellen) zum verbindlichen ersten Schritt,
+    statt dass jede Session/jeder Aufruf ad-hoc neu (und potenziell nur
+    einseitig) grept."""
+    from fitness.catalog.core.source_merge import find_source_entries
+
+    found = find_source_entries(query, None)
+    any_hit = False
+    for source_key, label in (("wger", "wger"), ("yuhonas", "yuhonas")):
+        entry = found.get(source_key)
+        candidate = found.get(f"{source_key}_candidate")
+        score = found.get(f"{source_key}_candidate_score")
+        if entry:
+            any_hit = True
+            id_value = entry.get(f"{source_key}_id")
+            console.print(f"[ok]{label}:[/ok] '{entry.get('display_name')}' ({source_key}_id={id_value})")
+        elif candidate:
+            id_value = candidate.get(f"{source_key}_id") or candidate.get("exercise_id")
+            console.print(f"[warn]{label} (unsicher, Score {score:.0f}):[/warn] '{candidate.get('display_name')}' ({source_key}_id={id_value}) — nicht automatisch verlinkt, manuell pruefen")
+        else:
+            console.print(f"[dim]{label}:[/dim] kein Treffer")
+    if not any_hit:
+        console.print(f"[warn]WARN:[/warn] '{query}' in KEINER der beiden Quellen mit sicherem Score gefunden.")
+
+
+@app.command(name="new-draft")
+def new_draft(
+    name: Annotated[str, typer.Argument(help="Exercise Name (z.B. 'Vorgebeugtes Langhantelrudern (stehend)')")],
+    exercise_id: Annotated[Optional[str], typer.Option("--id", help="Custom exercise_id (default: aus Name abgeleitet)")] = None,
+    wger_id: Annotated[Optional[str], typer.Option(help="wger_id als Basis-Referenz verlinken (kein Auto-Match noetig/gewuenscht)")] = None,
+    yuhonas_id: Annotated[Optional[str], typer.Option(help="yuhonas_id als Basis-Referenz verlinken")] = None,
+    force: Annotated[bool, typer.Option(help="Bestehenden Draft ueberschreiben")] = False,
+):
+    """Legt einen neuen Inbox-Draft an — Basis ist NUR die ID-Referenz zu
+    wger/yuhonas (kein Content-Dump). Ohne --wger-id/--yuhonas-id wird per
+    Name-Fuzzy-Match versucht zu verlinken (nur bei sicherem Treffer). Für
+    Varianten, die es bei wger/yuhonas so nicht gibt (z.B. eine spezifische
+    Rudern-Variante), --wger-id/--yuhonas-id der naechstliegenden Basisübung
+    manuell angeben — die neue Datei bekommt dann NUR deren ID als Referenz,
+    keinen kopierten Inhalt. Danach z.B. mit `enrich <id>` (Gemini) oder von
+    Hand inhaltlich fuellen."""
+    from fitness.catalog.agent.inbox_actions import create_inbox_draft
+
+    try:
+        target = create_inbox_draft(
+            name,
+            exercise_id=exercise_id,
+            wger_id=wger_id,
+            yuhonas_id=yuhonas_id,
+            force=force,
+        )
+    except FileExistsError as exc:
+        console.print(f"[fail]FAIL:[/fail] {exc} (mit --force ueberschreiben)")
+        raise typer.Exit(code=1)
+    console.print(f"[ok]OK:[/ok] {target}")
+
+
 @app.command(name="enrich")
 def enrich_exercise(
     exercise_id: Annotated[str, typer.Argument(help="Exercise ID (z.B. '022' oder 'wger_31')")],
