@@ -1,3 +1,64 @@
+# Katalog: Inbox-Drafts nur noch ID-Referenz, wger↔yuhonas-Fuzzy-Match-Regression gefixt, strukturierter Feld-Editor in der TUI (2026-09-09)
+
+Direkte Fortsetzung des Katalog-Search/Inbox-Fixes (`233dc19`, Eintrag unten).
+Nach erneutem, scharfem User-Feedback ("die basis eines inbox drafts ist die id
+zum wger UND zum yuhona äquivalent … nicht content dumpen sondern VERLINKEN per
+ID", "die id kommt so oft vor") wurde die Draft-*Erzeugung* selbst auf reine
+ID-Referenz umgestellt — nicht mehr nur der `source_snapshot`. Im selben Zug fiel
+eine Regression der in `233dc19` eingeführten Equipment-Normalisierung auf
+(False-Positive-Match "Jefferson Curl" → "Cable Curls"/"Kurzhantel-Curl" mit
+Score 100) und wurde gefixt. Zuletzt auf Anfrage ("baue ein generelles skript
+zum bearbeiten von bestehender drafts bzw zum editen von bestehender expert
+exercises - inkl. tui") ein strukturierter Feld-Editor in die Katalog-TUI
+eingebaut. Drei Commits: `1a04fdd` + `f8173a9` nach `origin/dev` gepusht,
+`db28cdf` committet aber **noch nicht gepusht**. Kein Staging-/Prod-Deploy.
+Betroffene Katalog-Tests grün (`test_exercise_schema`, `test_inbox_pipeline`,
+`test_source_merge`); der vorbestehende `test_resolver`-Fail (jefferson_curl) ist
+durch den Move (s.u.) mit aufgelöst.
+
+* **`fitness/catalog/agent/inbox_actions.py`** (`1a04fdd`): `attach_source_snapshot()`
+  dumpt keinen Rohtreffer mehr unter `origin.wger`/`origin.yuhonas`, verlinkt nur
+  IDs. Neu `create_inbox_draft()` — legt Drafts ausschließlich mit ID-Referenz an
+  (explizite `--wger-id`/`--yuhonas-id` oder Auto-Match), nie mit kopiertem Content.
+* **`fitness/catalog/core/exercise_schema.py`** (`1a04fdd`): `build_source_snapshot()`
+  komplett entfernt (war nach dem `233dc19`-Trim nur noch ID-Duplikat ohne
+  Zusatznutzen). `test_exercise_schema.py` erwartet keinen `source_snapshot` mehr.
+* **`fitness/catalog/coach_sheet.py`** (`1a04fdd`): "## Quellen"-Block wird live
+  per ID über `find_source_entries()` nachgelesen statt aus gespeicherter Kopie.
+* **`fitness/catalog/cli.py`** (`1a04fdd`): neue Commands `fitness-catalog new-draft`
+  (ID-only-Draft) und `fitness-catalog find-source <name>` (durchsucht wger UND
+  yuhonas zusammen — Ursache eines Recherche-Fehlers in dieser Session:
+  wger-only-grep übersah "Bent Over Barbell Row", das nur in yuhonas existiert).
+* **`fitness/catalog/core/source_merge.py`** (`f8173a9`): `_best_match_scored()`
+  nutzt jetzt zusätzlich `fuzzy_candidate_allowed()` + `GENERIC_FUZZY_TOKENS` aus
+  `resolver.py` als Gate — mind. ein nicht-generisches Wort muss zwischen Query
+  und Kandidat übereinstimmen. Behebt den durch die Equipment-Normalisierung neu
+  entstandenen False-Positive ("curl" als einziges Restwort nach dem Strippen
+  reichte `token_set_ratio` für Score 100). "Walking Lunges" ↔ "Barbell Walking
+  Lunge" bleibt korrekt bei 100.
+* **`fitness/catalog/kb/exercises/jefferson_curl.yml`** (`f8173a9`, `git mv` aus
+  `kb/inbox/`): lag fälschlich als Draft trotz `review_state.status: approved`;
+  von redundanten Duplikatfeldern bereinigt (`id`/`name`/`wger_id: null` neben
+  `exercise_id`/`display_name`, `source: unreviewed` → `expert`). Damit ist der
+  `test_resolver`-Fail (jefferson_curl real in inbox statt exercises) mit erledigt.
+* **`fitness/catalog/tui.py`** (`db28cdf`): neue `_edit_exercise_interactive()`
+  (Rich-Prompt-Menü für Scalar- + Listen-Felder, Listen über `_edit_list_field()`)
+  + `_save_exercise_to_file()` (schreibt nur den per `exercise_id` passenden
+  Eintrag zurück, `.bak` vorher). Verdrahtet in `_inbox_detail` (neue Option "e"
+  strukturiert neben "x" rohem `$EDITOR`) und `_browser_detail` (Expert-Exercises
+  hatten vorher gar keine Edit-Option). Kein neues Framework, bleibt bei Rich.
+* **Neue Inbox-Drafts (ID-Referenz-Format)**: `inbox_bent_over_barbell_row.yml`
+  (`f8173a9`, umbenannt aus `inbox_vorgebeugtes_langhantelrudern_stehend.yml`;
+  `wger_1489` + yuhonas `Bent_Over_Barbell_Row`) und `inbox_wide_grip_chin_up.yml`
+  (`db28cdf`; User-Korrektur "mein untergriff klimmzug war einer im WEITEN GRIFF"
+  ≠ regulärer/enger 021-Eintrag; `wger_152`/yuhonas `Chin-Up` als Basis).
+* **Runtime-Sessiondatei `~/.aos/fitness/users/59ole…/sessions/2026-09-08.json`**
+  (kein Repo-File): `wger_1489`-Eintrag → `bent_over_barbell_row` mit korrekten
+  Muskeln inkl. Bizeps; zweiter Eintrag → `wide_grip_chin_up` mit korrigierten
+  primary/secondary-Muskeln.
+
+---
+
 # Katalog: unreviewed-Duplikate aus `exercises/search` raus, wger↔yuhonas-Matching, `source_snapshot` entduplex (2026-09-08)
 
 Ausgelöst durch konkrete schlechte Katalog-Einträge beim `fitness-log show` der
