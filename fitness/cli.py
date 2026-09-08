@@ -11,6 +11,7 @@ fitness — Domain CLI für alle Fitness-Subcommands.
   fitness strength <cmd> Kraft-Session loggen (log|wizard), merged statt overwrite
   fitness sync  <cmd>    KB-Sync + Firestore-Sync (kb|pull|push|watch|all) → fitness-sync
   fitness user-data <cmd> Runtime-Userdaten/SQLite-History prüfen und gezielt patchen
+  fitness coach <cmd>    Klienten-Workout loggen (~/Klienten/<id>/)
   fitness health         /health aller Services
   fitness status         systemd-Units Übersicht
   fitness coverage       Muskelabdeckung
@@ -38,6 +39,7 @@ from typing import Optional
 import typer
 
 from fitness.runtime.cli import app as runtime_user_data_app
+from fitness.coach.cli import app as coach_app
 
 # ── Pfade ──────────────────────────────────────────────────────────────────────
 FITNESS_DEV  = Path(__file__).resolve().parent.parent
@@ -157,6 +159,7 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 app.add_typer(runtime_user_data_app, name="user-data")
+app.add_typer(coach_app, name="coach")
 
 @app.command(context_settings=_ctx, help="fitness.catalog CLI (audit|teach|resolve|log|history|report|plan|...) — für alles außer der TUI selbst, siehe: fitness catalog")
 def agent(ctx: typer.Context) -> None:
