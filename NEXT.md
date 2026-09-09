@@ -293,3 +293,21 @@ pruefen.
 - **CLAUDE.md-Doku-Ungenauigkeit**: `../fitness/catalog/CLAUDE.md` spricht von
   "Textual TUI", `tui.py` nutzt aber durchgehend `rich.prompt` — im Commit
   `db28cdf` als ungenau vermerkt, Doku-Fix nicht gemacht.
+
+## Aus dem CLI-Log `effort`/RPE-Fix (2026-09-09, noch nicht committet)
+
+- **`fitness/log/strength.py` + `fitness/log/cli.py` sind uncommitted**
+  (`git status` zeigt beide als `M`): `--effort/--rpe/-e` für `fitness-log add`,
+  `effort`-Parameter in `merge_exercise_into_session()`, RPE-Abfrage im Wizard.
+  Muss committet werden. Der zugehörige Test-Lauf `pytest -k "strength or log"`
+  (Hintergrund `bp3v4mpbt`) lief bei `/compact` noch — Ergebnis vor dem Commit
+  prüfen.
+- **Nur `add`/`wizard` geprüft am Code, nicht live**: `fitness-log add --rpe 9`
+  bzw. der Wizard wurden nicht real gegen `:9100`/`:9150` durchgespielt
+  (schreibt `session.effort` tatsächlich sauber, ohne `notes` anzufassen?).
+- **`fitness/log/activity.py` (Cardio) hat das Gegenstück-Feld noch nicht**:
+  falls Ausdauer-Sessions ebenfalls ein strukturiertes `effort` bekommen sollen,
+  ist der Cardio-Log-Pfad noch offen — nicht beauftragt, nur Konsistenz-Lücke.
+- **`2026-09-08.json` ist datenkorrigiert** (`effort: 9`, `notes` gekürzt, `.bak`
+  vorhanden) — erledigt, nicht erneut anfassen. Der SQLite-Mirror /
+  Firestore-Sync für diese eine Session wurde nicht nachgezogen.
