@@ -30,6 +30,7 @@ from rich.logging import RichHandler
 
 from ._db import get_db, ts, UID, remote_wins
 from .fuel import _data_dir, _nutrition_path, _supplements_path, _supplements_catalog_path, _strip_meta, _write_json, _owner_ok
+from fitness.runtime.journal_store import upsert_entry as _journal_store_upsert
 
 def _user_dir() -> Path:
     uid_file = Path.home() / ".aos" / "users" / ".active-uid"
@@ -62,28 +63,20 @@ def _save_known(path: Path, ids: set):
     path.write_text(json.dumps(sorted(ids), indent=2))
 
 
-def _append_journal_block(md_file: Path, marker: str, body: str) -> bool:
-    """Hängt einen marker-getaggten Block append-only an die Tages-`journal/
-    YYYY-MM-DD.md` — idempotent über den HTML-Kommentar-Marker.
+def _journal_upsert(md_file: Path, *, source: str, entry_id: str, body: str, ts_value: str = "") -> bool:
+    """Upsert eines Journal-Eintrags in `journal/YYYY-MM-DD.entries.jsonl`
+    (die SOT) und Neu-Render der `.md` daraus.
 
-    Rückgabe ``False`` (und kein Write), wenn ``marker`` bereits in der Datei
-    steht. Die Marker (`<!-- fsid:… -->` / `fshr` / `fshid`) sind der
-    einzige Dedup-Schlüssel dieser Firestore→Markdown-Spiegelung. ``body``
-    ist der Text *nach* der Marker-Zeile; ein abschließender Zeilenumbruch
-    wird garantiert.
-
-    Einzige Schreibstelle für die drei Journal-Mirrors (Freitext, Habit-
-    Records, Habit-Memoirs) — vorher 3× leicht abweichend kopiert (mal ohne
-    `encoding=`, mal `not (...)`-Form). Wer später Einzel-Edit/-Delete pro
-    Marker braucht, muss nur diese eine Funktion um ein Gegenstück ergänzen.
+    Ersetzt das frühere marker-append-only-Modell: der Dedup-/Stabilitäts-
+    Schlüssel ist jetzt `entry_id` (= Firestore-doc-id), Body-Änderungen am
+    selben Eintrag werden als Edit übernommen. Idempotent — unveränderter
+    Eintrag löst keinen Write aus. Byte-identische Render-Regel mit der
+    Node-Seite (`journal-store.mjs`), siehe `fitness/runtime/journal_store.py`.
     """
-    if md_file.exists() and marker in md_file.read_text(encoding="utf-8"):
-        return False
-    md_file.parent.mkdir(parents=True, exist_ok=True)
-    block = body if body.endswith("\n") else body + "\n"
-    with md_file.open("a", encoding="utf-8") as fh:
-        fh.write(f"\n{marker}\n{block}")
-    return True
+    return _journal_store_upsert(
+        md_file,
+        {"id": entry_id, "source": source, "ts": ts_value, "body": body},
+    )
 
 
 def _uid_of(doc) -> str:
@@ -205,12 +198,13 @@ def on_journal(col_snapshot, changes, read_time):
         data = change.document.to_dict()
         date = data.get("date", "")
         text = data.get("text", "").strip()
-        time = (ts(data.get("time")) or "")[:16]
+        time_iso = ts(data.get("time")) or ""
+        time = time_iso[:16]
         if not date or not text:
             continue
         journal_dir = _user_fitness_dir(uid) / "journal"
         md_file = journal_dir / f"{date}.md"
-        if _append_journal_block(md_file, f"<!-- fsid:{doc_id} -->", f"**{time}** {text}"):
+        if _journal_upsert(md_file, source="journal", entry_id=doc_id, body=f"**{time}** {text}", ts_value=time_iso):
             logger.success(f"journal ← {uid}/{date}  {text[:60]}")
 
 
@@ -290,7 +284,8 @@ def on_habit_records(col_snapshot, changes, read_time):
         # Journal-Markdown
         md_file = (user_dir / "journal") / f"{date}.md"
         line = f"**{habit_id}** {completion} _{rec_at}_" if rec_at else f"**{habit_id}** {completion}"
-        _append_journal_block(md_file, f"<!-- fshr:{doc_id} -->", line)
+        _journal_upsert(md_file, source="habit_records", entry_id=doc_id, body=line,
+                        ts_value=(ts(data.get("recorded_at")) or ""))
         with _lock:
             _save_known(_known_hr_path, _known_hr)
         logger.success(f"habit_record ← {uid}/{date} {habit_id}")
@@ -327,7 +322,8 @@ def on_habit_journals(col_snapshot, changes, read_time):
             body += f"{text}\n"
         if feedback:
             body += f"> **Coach Feedback:** {feedback}\n"
-        wrote = _append_journal_block(md_file, f"<!-- fshid:{doc_id} -->", body)
+        wrote = _journal_upsert(md_file, source="habit_journals", entry_id=doc_id, body=body,
+                                ts_value=(ts(data.get("recorded_at") or data.get("updated_at")) or ""))
         with _lock:
             _save_known(_known_hj_path, _known_hj)
         if wrote:

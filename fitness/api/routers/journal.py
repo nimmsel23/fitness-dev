@@ -8,6 +8,7 @@ from fitness.api.config import (
 )
 from db.schemas import JournalResponse
 from fitness.firestore.mirror import mirror_journal
+from fitness.runtime.journal_store import entries_path, freetext_body, upsert_entry
 
 router = APIRouter()
 
@@ -30,12 +31,18 @@ def journal_get(request: Request, date_: str = Query(None, alias="date")):
     # Pro-uid-Ordner zuerst (mehrere echte Klienten teilen sich sonst denselben
     # globalen JOUR_DIR und überschreiben sich gegenseitig für dasselbe Datum)
     # — JOUR_DIR bleibt als Legacy-Fallback für Einträge von vor diesem Fix.
-    f = _journal_dir(uid) / f"{day}.md"
-    if not f.exists():
-        f = JOUR_DIR / f"{day}.md"
-    if not f.exists():
-        raise HTTPException(404)
-    return {"ok": True, "content": f.read_text(), "mtime": f.stat().st_mtime}
+    for base in (_journal_dir(uid), JOUR_DIR):
+        md = base / f"{day}.md"
+        jsonl = entries_path(md)
+        # JSONL ist die SOT: die editierbare Textarea bekommt nur den
+        # Freitext-Eintrag zurück, nicht die gerenderte .md (die enthält
+        # zusätzlich die Habit-/Firestore-Blöcke mit <!-- entry:… -->-Markern).
+        if jsonl.exists():
+            return {"ok": True, "content": freetext_body(jsonl, f"freetext-{day}"),
+                    "mtime": jsonl.stat().st_mtime}
+        if md.exists():  # noch nicht migrierte .md → roh wie bisher
+            return {"ok": True, "content": md.read_text(encoding="utf-8"), "mtime": md.stat().st_mtime}
+    raise HTTPException(404)
 
 @router.post("/journal")
 async def journal_post(request: Request, date_: str = Query(None, alias="date")):
@@ -45,7 +52,11 @@ async def journal_post(request: Request, date_: str = Query(None, alias="date"))
     content = body.get("content", "")
     dir_ = _journal_dir(uid)
     dir_.mkdir(parents=True, exist_ok=True)
-    (dir_ / f"{day}.md").write_text(content)
+    # Freitext-Tagesblock als EIN Eintrag upserten (stabile id `freetext-<date>`)
+    # statt die Datei zu overwriten — ein Daemon-Event (Habit/Firestore-Journal)
+    # kann den Freitext so nicht mehr wegräumen und umgekehrt.
+    upsert_entry(dir_ / f"{day}.md",
+                 {"id": f"freetext-{day}", "source": "freetext", "ts": "", "body": content})
     asyncio.get_event_loop().run_in_executor(None, mirror_journal, day, {"text": content}, uid)
     logger.info(f"journal saved  {uid}/{day}  {len(content)}ch")
     return {"ok": True}

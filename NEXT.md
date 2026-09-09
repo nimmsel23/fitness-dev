@@ -333,46 +333,43 @@ pruefen.
   u.a., ~25 Stellen). Bewusst nicht in einem Zug migriert (Live-API-Router,
   je eigenes `_sessions_dir()`-Idiom). Kandidat für einen späteren,
   abgegrenzten Folge-Pass pro Modul.
-- **Journal-Sync bleibt marker-append-only** (`<!-- fsid|fshr|fshid:… -->`
-  in `journal/YYYY-MM-DD.md`). `81031d6` hat nur die 3 divergenten
-  Schreib-/Dedup-Kopien in `mirror.py` zu `_append_journal_block()`
-  zusammengeführt. Der vom User als Design-Fehler benannte Kern (kein
-  Einzel-Edit/-Delete, fragiles Parsing) ist damit NICHT gelöst.
-
-  **JSONL-SOT-Umbau (`journal/YYYY-MM-DD.entries.jsonl` als Quelle, `.md`
-  deterministisch daraus gerendert) wurde am 2026-09-09 begonnen, dann
-  GESTOPPT** — Scope-Befund: die `journal/*.md` hat **vier** Schreiber in
-  **drei** Sprachen, nicht nur `mirror.py`:
-  1. `fitness/firestore/mirror.py` → `on_journal`/`on_habit_records`/
-     `on_habit_journals` — Marker-Append (Daemon `fitness-firestore-daemon`).
-  2. `fitness/api/routers/journal.py` → `POST /journal` — **Ganzdatei-
-     Overwrite** mit Freitext-`content` (Prod-API :9150/:6100).
-  3. `server.mjs` → `POST /journal` — **Ganzdatei-Overwrite** mit Freitext
-     (Dev :9100); zusätzlich `appendJournalBlock()` im `POST /firestore/sync`-
-     Pull-Handler (Marker-Append, on-demand).
-  4. `firestore-mirror.mjs` — Marker-Block-Builder für den Node-Pull-Pfad.
-
-  **Das Frontend schreibt die `.md`** (bestätigt, nicht geraten):
-  `src/lib/db/local/journal.js::saveJournal/updateJournal` POSTet im
-  Local-Modus den **ganzen Tagestext als ein Freitext-`content`** an
-  `POST /journal` → Ganzdatei-Overwrite. Im Firestore-Modus
-  (`src/lib/db/firestore/journal.js`) geht das Frontend direkt gegen
-  Firestore und fasst die `.md` gar nicht an. Die `.md` ist also
-  Doppelnutzung: Freitext-Tagesnotiz (Frontend, Overwrite) **+**
-  Marker-Append-Log der Firestore-Journal-/Habit-Docs (Daemons). Diese
-  beiden Schreibarten kollidieren schon heute (Frontend-Overwrite löscht
-  angehängte Habit-Blöcke).
-
-  Ein `mirror.py`-only-Umbau auf „`.md` aus JSONL neu rendern" würde den
-  Frontend-Freitext bei jedem Daemon-Event **überschreiben** (Datenverlust)
-  und ein Split-Brain mit den Node-Schreibern erzeugen. Sauber ist der
-  Umbau nur, wenn **alle vier Schreiber + der Frontend-Contract**
-  (Freitext-Blob ↔ strukturierte Einträge) zusammen migriert werden, plus
-  Einmal-Migration bestehender `.md` → JSONL. Das ist eine große,
-  sprachübergreifende Architektur-Umstellung → **braucht bewusste
-  User-/Team-Entscheidung über Umfang und Contract**, nicht als
-  Teil-Change durchdrücken. `_append_journal_block()` ist der eine Ort,
-  an dem die Python-Seite später ansetzt.
+- **Journal-Sync: JSONL-SOT-Umbau UMGESETZT (2026-09-09).**
+  `journal/YYYY-MM-DD.entries.jsonl` (eine JSON-Zeile pro Eintrag: `id`,
+  `source` ∈ journal|habit_records|habit_journals|freetext|session_note,
+  `ts`, `body`, optional `meta`) ist jetzt die Quelle der Wahrheit; die
+  `.md` ist ein reines, deterministisch neu gerendertes Derivat
+  (`render_md`: stabile Sortierung nach `(ts, id)`, Block
+  `<!-- entry:<id> -->\n<body>\n`, Blöcke mit `\n` verbunden).
+  - Shared-Logik: `fitness/runtime/journal_store.py` (Python) +
+    `journal-store.mjs` (Node-Port, byte-identische Render-Regel —
+    per Test verifiziert, auch Node-schreibt→Python-liest).
+  - Alle 4 Schreiber umgestellt: `fitness/firestore/mirror.py`
+    (`on_journal`/`on_habit_records`/`on_habit_journals` → `_journal_upsert`),
+    `fitness/api/routers/journal.py` `POST /journal` (Freitext als **ein**
+    Eintrag `freetext-<date>` upserten statt Datei-Overwrite),
+    `server.mjs` `POST /journal` + `appendJournalBlock()` im
+    `/firestore/sync`-Pull-Handler, `firestore-mirror.mjs`
+    (`readJournal`/`readJournalFull` bauen jetzt Entry-Objekte + `renderMd`).
+  - `GET /journal` (Node + Python) liefert im Local-Fallback nur noch den
+    **Freitext-Eintrag** in die editierbare Textarea, nicht die gerenderte
+    `.md` mit den `<!-- entry:… -->`-Markern. **Frontend unverändert** —
+    der bestehende `POST /journal`-Body (`{content}`) reicht,
+    `src/lib/db/local/journal.js` nicht angefasst.
+  - Edit = `upsert_entry` mit gleicher id; Delete = `delete_entry`
+    (Modul-API vorhanden, noch keine Route — kein bestehender Endpunkt).
+  - Migration: `python -m fitness.runtime.journal_migrate run [--uid <uid> |
+    --all-users] [--date YYYY-MM-DD] --apply` (auch `fitness user-data
+    migrate-journal run …`). Idempotent, nicht-destruktiv (alte `.md` →
+    `.md.premigration`). **Noch nicht ausgeführt** — bewusst nicht
+    automatisch übers Verzeichnis; muss pro UID gestartet werden.
+  - Restrisiken: (a) `.entries.jsonl` read-modify-write hat bei
+    gleichzeitigem Python-Daemon- + Node-Write dieselbe Race-Klasse wie
+    vorher der `.md`-Append (atomic `os.replace`, aber kein Lock) —
+    Kollision nur bei Sekunden-genau gleichzeitigem Write auf denselben Tag.
+    (b) Legacy-`.md` ohne Migration werden von `GET` weiter roh
+    zurückgegeben; erst nach `journal_migrate` greift der Freitext-Split.
+    (c) `session_note` ist als `source` reserviert, hat aber noch keinen
+    Schreiber.
 
 ## Aus dem CLI-Log Ort/Dauer-Fix (2026-09-09, Commits `07d4fdf` + `3d1cc0e`)
 

@@ -8,6 +8,7 @@ import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import pino from "pino";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
 import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, pullAllSessions, pullJournalTree } from "./firestore-mirror.mjs";
+import { entriesPath as journalEntriesPath, freetextBody as journalFreetextBody, upsertEntry as journalUpsertEntry } from "./journal-store.mjs";
 
 // pino-pretty IMMER aktiv, auch unter systemd/journalctl — das ist der
 // tatsächliche Haupt-Log-Weg hier (nicht nur `npm run dev` im Terminal).
@@ -1690,7 +1691,13 @@ app.openapi(defineJsonRoute({
   ].filter(({ file }) => fs.existsSync(file));
   if (!localDirs.length) return c.json({ ok: false }, 404);
   const content = localDirs.map(({ file, label }) => {
-    const text = fs.readFileSync(file, "utf8");
+    // Fitness-Journale: JSONL ist SOT → nur den Freitext-Eintrag in die
+    // editierbare Textarea (die gerenderte .md enthält zusätzlich die
+    // Habit-/Firestore-Blöcke). Fuel bleibt Rohtext.
+    const jsonl = journalEntriesPath(file);
+    const text = (label !== "Fuel" && fs.existsSync(jsonl))
+      ? journalFreetextBody(file, `freetext-${date}`)
+      : fs.readFileSync(file, "utf8");
     return label ? `## ${label} – ${date}\n\n${text}` : text;
   }).join("\n\n---\n\n");
   const mtime = localDirs.map(({ file }) => fs.statSync(file).mtime).reduce((a, b) => a > b ? a : b).toISOString().slice(0, 10);
@@ -1715,7 +1722,10 @@ app.openapi(defineJsonRoute({
   const dir           = path.join(os.homedir(), ".aos", "fitness", "users", uid, "journal");
   fs.mkdirSync(dir, { recursive: true });
   const file          = path.join(dir, `${date}.md`);
-  fs.writeFileSync(file, content || "");
+  // Freitext-Tagesblock als EIN Eintrag (stabile id `freetext-<date>`) in die
+  // JSONL-SOT upserten statt die Datei zu overwriten — Daemon-Events und
+  // Freitext räumen sich so nicht mehr gegenseitig weg.
+  journalUpsertEntry(file, { id: `freetext-${date}`, source: "freetext", ts: "", body: content || "" });
   mirrorJournal(date, { text: content || "" }, uid);
   return c.json({ ok: true });
 });
@@ -1994,14 +2004,11 @@ app.openapi(defineJsonRoute({
     return "";
   };
 
-  const appendJournalBlock = (date, marker, block) => {
-    const mdPath = path.join(journalDir, `${date}.md`);
-    const existing = fs.existsSync(mdPath) ? fs.readFileSync(mdPath, "utf8") : "";
-    if (existing.includes(marker)) return false;
-    const prefix = existing && !existing.endsWith("\n") ? "\n" : "";
-    fs.appendFileSync(mdPath, `${prefix}${marker}\n${block}\n`, "utf8");
-    return true;
-  };
+  // Upsert in die Tages-JSONL-SOT (journal-store.mjs) + Neu-Render der .md.
+  // `id` = Firestore-doc-id, identisch zum Python-Daemon-Pfad (mirror.py).
+  const appendJournalBlock = (date, source, id, block, ts = "") =>
+    journalUpsertEntry(path.join(journalDir, `${date}.md`),
+      { id, source, ts, body: block });
 
   for (const { date, data } of docs) {
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) { skipped++; continue; }
@@ -2029,7 +2036,7 @@ app.openapi(defineJsonRoute({
     const text = String(data?.text || "").trim();
     if (!date || !text) continue;
     const time = formatTs(data?.time);
-    if (appendJournalBlock(date, `<!-- fsid:${id} -->`, `**${time}** ${text}`)) {
+    if (appendJournalBlock(date, "journal", id, `**${time}** ${text}`, time)) {
       journalPulled++;
     }
   }
@@ -2046,7 +2053,7 @@ app.openapi(defineJsonRoute({
     if (time) block += ` _${time}_`;
     if (text) block += `\n${text}`;
     if (coachFeedback) block += `\n> **Coach Feedback:** ${coachFeedback}`;
-    if (appendJournalBlock(date, `<!-- fshid:${id} -->`, block)) {
+    if (appendJournalBlock(date, "habit_journals", id, block, formatTs(data?.recorded_at || data?.updated_at))) {
       habitJournalPulled++;
     }
   }
@@ -2060,7 +2067,7 @@ app.openapi(defineJsonRoute({
     const time = formatTs(data?.recorded_at);
     let block = `**${habitName}** ${completion}`;
     if (time) block += ` _${time}_`;
-    if (appendJournalBlock(date, `<!-- fshr:${id} -->`, block)) {
+    if (appendJournalBlock(date, "habit_records", id, block, time)) {
       habitRecordPulled++;
     }
   }

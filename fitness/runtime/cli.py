@@ -23,7 +23,9 @@ from fitness.runtime.note_backfill import (
     fix_sessions,
     find_suspect_default_effort,
 )
+from fitness.runtime.journal_migrate import app as journal_migrate_app
 app = typer.Typer(help="Runtime user-data CRUD: Sessions/History prüfen und gezielt patchen")
+app.add_typer(journal_migrate_app, name="migrate-journal")
 console = Console()
 
 
