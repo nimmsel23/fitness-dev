@@ -5,7 +5,7 @@ Von `fitness-log add`/`fitness-log wizard` genutzt (vormals eigenes Binary
 `fitness-strength`, 2026-09-08 eingegliedert — Ein-Tool-Prinzip, `fitness-log`
 liest UND schreibt die eigenen Sessions, kein zweites Binary dafür nötig).
 
-Pendant zu fitness-activity (Cardio) — POST geht ebenfalls an :9100/session
+Pendant zu fitness-activity (Cardio) — POST geht ebenfalls an :9150/session
 (JSON + SQLite + Firestore-Mirror). Anders als activity.py **überschreibt**
 dieses Modul die Tages-Session NICHT: es lädt zuerst die bestehende Session
 (GET /session), hängt die neue Übung/den neuen Satz an (oder mergt in eine
@@ -42,7 +42,11 @@ logger.add(sys.stderr, format="<level>{level: <7}</level> {message}", level="INF
 
 console = Console()
 
-API = os.environ.get("FITNESS_API", "http://127.0.0.1:9100")
+# Default: Python-Prod-Backend :9150 (fitness-api.service, im Normalfall aktiv).
+# Der Node-Dev-Server :9100 läuft nur manuell — FITNESS_API=http://127.0.0.1:9100
+# setzen wenn bewusst dorthin geloggt werden soll. Beide schreiben dieselbe
+# ~/.aos/fitness/-Session-JSON (SOT).
+API = os.environ.get("FITNESS_API", "http://127.0.0.1:9150")
 USERS_DIR = Path.home() / ".aos" / "fitness" / "users"
 
 

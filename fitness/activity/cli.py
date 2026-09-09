@@ -2,7 +2,7 @@
 fitness-activity — Cardio/Activity per CLI loggen
 
 Activity-Konfig liegt deklarativ in catalog/kb/activities.yml.
-POST geht an :9100/session (das macht JSON + SQLite + Firestore-Mirror).
+POST geht an :9150/session (das macht JSON + SQLite + Firestore-Mirror).
 
 Beispiele:
   fitness activity log swimming -d 20 -s breast -n "Donauinsel"
@@ -37,7 +37,11 @@ logger.add(sys.stderr, format="<level>{level: <7}</level> {message}", level="INF
 
 console = Console()
 
-API = os.environ.get("FITNESS_API", "http://127.0.0.1:9100")
+# Default: Python-Prod-Backend :9150 (fitness-api.service, im Normalfall aktiv).
+# Der Node-Dev-Server :9100 läuft nur manuell — FITNESS_API=http://127.0.0.1:9100
+# setzen wenn bewusst dorthin geloggt werden soll. Beide schreiben dieselbe
+# ~/.aos/fitness/-Session-JSON (SOT).
+API = os.environ.get("FITNESS_API", "http://127.0.0.1:9150")
 USERS_DIR = Path.home() / ".aos" / "fitness" / "users"
 CONFIG = Path(__file__).resolve().parent.parent / "catalog" / "kb" / "activities.yml"
 
