@@ -147,7 +147,13 @@ def _parse_series(value: str, n: int, label: str) -> list[str]:
     return parts
 
 
-def merge_exercise_into_session(session: dict | None, exercise: dict, sets_array: list[dict], block: str | None) -> dict:
+def merge_exercise_into_session(
+    session: dict | None,
+    exercise: dict,
+    sets_array: list[dict],
+    block: str | None,
+    effort: int | None = None,
+) -> dict:
     session = dict(session) if session else {}
     exercises = list(session.get("exercises") or [])
     idx = next((i for i, e in enumerate(exercises) if e.get("id") == exercise["id"]), -1)
@@ -166,6 +172,12 @@ def merge_exercise_into_session(session: dict | None, exercise: dict, sets_array
     elif not session.get("block"):
         session["block"] = ""
     session.setdefault("sessionMode", "strength")
+    # RPE/Effort ist ein strukturiertes Session-Feld (session.effort, siehe
+    # EffortPicker im Frontend), NICHT Freitext in notes — vorher landete
+    # z.B. "RPE 9" nur als String in notes, weil hier kein eigener Parameter
+    # existierte (Fix nach User-Feedback 2026-09-09).
+    if effort is not None:
+        session["effort"] = effort
     return session
 
 
@@ -179,6 +191,7 @@ def add_exercise(
     weight: str = "",
     block: str | None = None,
     notes: str | None = None,
+    effort: int | None = None,
     day: str | None = None,
     session_id: str | None = None,
     uid_override: str | None = None,
@@ -195,13 +208,15 @@ def add_exercise(
 
     console.print(f"[dim]→ {target_day}  uid={uid}[/dim]")
     console.print(f"  [bold]{ex['name']}[/bold]  {sets}× " + " / ".join(f"{r}×{w}kg" for r, w in zip(reps_series, weight_series)))
+    if effort is not None:
+        console.print(f"  [dim]RPE {effort}[/dim]")
 
     if dry_run:
         logger.info("(dry-run, nichts gesendet)")
         return
 
     current = get_session(uid, target_day, session_id)
-    merged = merge_exercise_into_session(current, ex, sets_array, block)
+    merged = merge_exercise_into_session(current, ex, sets_array, block, effort=effort)
     if notes:
         merged["notes"] = (merged.get("notes", "") + f"\n{ex['name']}: {notes}").strip()
 
@@ -224,6 +239,8 @@ def run_wizard(*, day: str | None = None, uid_override: str | None = None) -> No
     console.print(f"[bold cyan]Kraft-Session[/bold cyan]  [dim]{target_day}  uid={uid}[/dim]")
 
     block = Prompt.ask("Block (z.B. Push/Pull/Legs, leer = unverändert lassen)", default="")
+    effort_raw = Prompt.ask("Effort/RPE der ganzen Session (1-10, leer = unverändert lassen)", default="")
+    effort = int(effort_raw) if effort_raw.strip().isdigit() else None
 
     first = True
     while True:
@@ -245,7 +262,10 @@ def run_wizard(*, day: str | None = None, uid_override: str | None = None) -> No
         sets_array = [{"reps": reps_series[i], "weight": weight_series[i]} for i in range(sets)]
 
         current = get_session(uid, target_day, None)
-        merged = merge_exercise_into_session(current, ex, sets_array, block if first else None)
+        merged = merge_exercise_into_session(
+            current, ex, sets_array, block if first else None,
+            effort=effort if first else None,
+        )
         if notes:
             merged["notes"] = (merged.get("notes", "") + f"\n{ex['name']}: {notes}").strip()
         r = post_session(uid, target_day, None, merged)
