@@ -4,6 +4,7 @@ from copy import deepcopy
 from typing import Any
 
 from fitness.catalog.core.loader import load_catalog_yaml
+from fitness.catalog.core.muscle_normalization import normalize_exercise_muscle_list
 from fitness.catalog.core.resolver import normalize_text, GENERIC_FUZZY_TOKENS, fuzzy_candidate_allowed
 from fitness.catalog.core.resolver import build_exercise_index, find_by_id, resolve_query
 
@@ -379,9 +380,22 @@ def build_external_seed(display_name: str, exercise_id: str | None = None) -> di
         "english": (wger_entry or {}).get("english") or (yuhonas_entry or {}).get("english") or (yuhonas_entry or {}).get("display_name") or display_name,
         "category": (wger_entry or {}).get("category") or (yuhonas_entry or {}).get("category"),
         "equipment": _merge_list_fields((wger_entry or {}).get("equipment"), (yuhonas_entry or {}).get("equipment")),
-        "primary_muscles": _merge_list_fields((wger_entry or {}).get("primary_muscles"), (yuhonas_entry or {}).get("primary_muscles")),
-        "secondary_muscles": _merge_list_fields((wger_entry or {}).get("secondary_muscles"), (yuhonas_entry or {}).get("secondary_muscles")),
-        "stabilizers": _merge_list_fields((wger_entry or {}).get("stabilizers"), (yuhonas_entry or {}).get("stabilizers")),
+        # Rohe Regionsnamen (yuhonas liefert "chest"/"shoulders"/"triceps" statt
+        # kanonischer IDs) MUESSEN vor dem Merge aufgeloest werden — sonst landen
+        # sie unaufgeloest NEBEN den bereits kanonischen wger-IDs im Draft
+        # (grobe Regionen duerfen nie als Muskel-Eintrag stehen bleiben).
+        "primary_muscles": normalize_exercise_muscle_list(
+            _merge_list_fields((wger_entry or {}).get("primary_muscles"), (yuhonas_entry or {}).get("primary_muscles")),
+            display_name,
+        ),
+        "secondary_muscles": normalize_exercise_muscle_list(
+            _merge_list_fields((wger_entry or {}).get("secondary_muscles"), (yuhonas_entry or {}).get("secondary_muscles")),
+            display_name,
+        ),
+        "stabilizers": normalize_exercise_muscle_list(
+            _merge_list_fields((wger_entry or {}).get("stabilizers"), (yuhonas_entry or {}).get("stabilizers")),
+            display_name,
+        ),
         "instructions": deepcopy((yuhonas_entry or {}).get("instructions")) or deepcopy((yuhonas_entry or {}).get("coaching_notes")) or [],
         "images": deepcopy((yuhonas_entry or {}).get("images")) or [],
         "coaching_notes": _merge_list_fields((wger_entry or {}).get("coaching_notes"), (yuhonas_entry or {}).get("coaching_notes")),

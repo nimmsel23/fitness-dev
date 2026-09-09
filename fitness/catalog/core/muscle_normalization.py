@@ -64,6 +64,11 @@ def refine_generic_region_labels(muscle_ids: list[str], *name_variants: str) -> 
         for pattern, replacement in GENERIC_REGION_REASSIGNMENT:
             if pattern.search(names):
                 return [replacement if muscle in generic_shoulders else muscle for muscle in muscle_ids]
+        # Kein Uebungsnamen-Keyword matcht -> welcher Deltoid-Kopf gemeint ist,
+        # bleibt unklar. Grobe Regionen duerfen aber NIEMALS als Muskel-Eintrag
+        # stehen bleiben (User-Vorgabe) — lieber verwerfen als raten oder eine
+        # nicht-anatomische Region durchreichen.
+        return [muscle for muscle in muscle_ids if muscle not in generic_shoulders]
     return muscle_ids
 
 
