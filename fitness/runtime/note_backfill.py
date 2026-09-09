@@ -10,7 +10,7 @@ from typing import Any
 
 from loguru import logger
 
-from fitness.catalog.core.paths import runtime_root
+from fitness.runtime.session_store import iter_session_files
 
 SESSION_FIX_PROMPT = """Oeffne die Datei {path} (Read-Tool) -- eine Fitness-Trainings-Session-JSON.
 
@@ -153,47 +153,39 @@ def find_sessions_needing_fix(
     min_age_minutes: int = 60,
 ) -> list[Path]:
     """Find session files with empty/0 reps despite a note, or a missing/placeholder block."""
-    users_dir = runtime_root() / "users"
-    if not users_dir.exists():
-        return []
-    user_dirs = [users_dir / user_id] if user_id else sorted(p for p in users_dir.iterdir() if p.is_dir())
     cutoff = datetime.utcnow() - timedelta(minutes=min_age_minutes)
     candidates: list[Path] = []
 
-    for user_dir in user_dirs:
-        sessions_dir = user_dir / "sessions"
-        if not sessions_dir.exists():
+    for _uid, session_file in iter_session_files(user_id):
+        try:
+            data = json.loads(session_file.read_text(encoding="utf-8"))
+        except Exception:
             continue
-        for session_file in sorted(sessions_dir.glob("*.json")):
+        if not isinstance(data, dict):
+            continue
+        saved_at = data.get("saved_at")
+        if saved_at:
             try:
-                data = json.loads(session_file.read_text(encoding="utf-8"))
-            except Exception:
-                continue
-            if not isinstance(data, dict):
-                continue
-            saved_at = data.get("saved_at")
-            if saved_at:
-                try:
-                    if datetime.fromisoformat(saved_at.replace("Z", "+00:00")).replace(tzinfo=None) > cutoff:
-                        continue
-                except ValueError:
-                    pass
+                if datetime.fromisoformat(saved_at.replace("Z", "+00:00")).replace(tzinfo=None) > cutoff:
+                    continue
+            except ValueError:
+                pass
 
-            exercises = data.get("exercises", [])
-            needs_fix = _block_missing(data.get("block")) and bool(exercises)
-            if not needs_fix:
-                for exercise in exercises:
-                    if not isinstance(exercise, dict):
-                        continue
-                    note = str(exercise.get("note") or exercise.get("notes") or "").strip()
-                    sets_array = exercise.get("setsArray")
-                    if note and isinstance(sets_array, list) and any(
-                        isinstance(s, dict) and _reps_missing(s.get("reps")) for s in sets_array
-                    ):
-                        needs_fix = True
-                        break
-            if needs_fix:
-                candidates.append(session_file)
+        exercises = data.get("exercises", [])
+        needs_fix = _block_missing(data.get("block")) and bool(exercises)
+        if not needs_fix:
+            for exercise in exercises:
+                if not isinstance(exercise, dict):
+                    continue
+                note = str(exercise.get("note") or exercise.get("notes") or "").strip()
+                sets_array = exercise.get("setsArray")
+                if note and isinstance(sets_array, list) and any(
+                    isinstance(s, dict) and _reps_missing(s.get("reps")) for s in sets_array
+                ):
+                    needs_fix = True
+                    break
+        if needs_fix:
+            candidates.append(session_file)
     return candidates
 
 
@@ -243,33 +235,25 @@ def find_suspect_default_effort(*, user_id: str | None = None, default_value: in
     echter Wert laesst sich nachtraeglich nicht rekonstruieren, deshalb wird
     hier nur informativ geflaggt statt automatisch korrigiert.
     """
-    users_dir = runtime_root() / "users"
-    if not users_dir.exists():
-        return []
-    user_dirs = [users_dir / user_id] if user_id else sorted(p for p in users_dir.iterdir() if p.is_dir())
     suspects: list[dict[str, Any]] = []
 
-    for user_dir in user_dirs:
-        sessions_dir = user_dir / "sessions"
-        if not sessions_dir.exists():
+    for uid, session_file in iter_session_files(user_id):
+        try:
+            data = json.loads(session_file.read_text(encoding="utf-8"))
+        except Exception:
             continue
-        for session_file in sorted(sessions_dir.glob("*.json")):
-            try:
-                data = json.loads(session_file.read_text(encoding="utf-8"))
-            except Exception:
-                continue
-            if not isinstance(data, dict):
-                continue
-            if data.get("effort") == default_value and data.get("exercises"):
-                suspects.append(
-                    {
-                        "user_id": user_dir.name,
-                        "session_file": str(session_file),
-                        "date": str(data.get("date") or session_file.stem),
-                        "effort": default_value,
-                        "note": "vermutlich nie gesetzt (UI-Default) -- nicht automatisch korrigiert",
-                    }
-                )
+        if not isinstance(data, dict):
+            continue
+        if data.get("effort") == default_value and data.get("exercises"):
+            suspects.append(
+                {
+                    "user_id": uid,
+                    "session_file": str(session_file),
+                    "date": str(data.get("date") or session_file.stem),
+                    "effort": default_value,
+                    "note": "vermutlich nie gesetzt (UI-Default) -- nicht automatisch korrigiert",
+                }
+            )
     return suspects
 
 

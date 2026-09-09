@@ -6,8 +6,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from fitness.catalog.core.paths import runtime_root
 from fitness.catalog.core.session_signal import exercise_has_training_signal, training_values
+from fitness.runtime.session_store import (
+    iter_session_files,
+    session_date as _session_date,
+    session_path,
+    user_dirs,
+    user_sessions_dir,
+)
 
 
 @dataclass
@@ -42,15 +48,13 @@ class ActivityMergePlan:
 
 
 def list_runtime_users() -> list[RuntimeUser]:
-    users_dir = runtime_root() / "users"
-    if not users_dir.exists():
-        return []
     users: list[RuntimeUser] = []
-    for user_dir in sorted(p for p in users_dir.iterdir() if p.is_dir()):
+    for user_dir in user_dirs():
+        sessions_dir = user_sessions_dir(user_dir.name)
         users.append(
             RuntimeUser(
                 user_id=user_dir.name,
-                sessions=len(list((user_dir / "sessions").glob("*.json"))) if (user_dir / "sessions").exists() else 0,
+                sessions=len(list(sessions_dir.glob("*.json"))) if sessions_dir.exists() else 0,
                 inbox=len(list((user_dir / "inbox").glob("*.json"))) if (user_dir / "inbox").exists() else 0,
                 journals=len(list((user_dir / "journal").glob("*.md"))) if (user_dir / "journal").exists() else 0,
                 path=str(user_dir),
@@ -66,54 +70,35 @@ def iter_session_signals(
     date_from: str | None = None,
     date_to: str | None = None,
 ) -> list[SessionSignal]:
-    users_dir = runtime_root() / "users"
-    if not users_dir.exists():
-        return []
-    user_dirs = [users_dir / user_id] if user_id else sorted(p for p in users_dir.iterdir() if p.is_dir())
     signals: list[SessionSignal] = []
-    for user_dir in user_dirs:
-        sessions_dir = user_dir / "sessions"
-        if not sessions_dir.exists():
+    for uid, session_file in iter_session_files(user_id, date_from=date_from, date_to=date_to):
+        date = _session_date(session_file) or session_file.stem.split("__")[0]
+        try:
+            data = json.loads(session_file.read_text(encoding="utf-8"))
+        except Exception:
             continue
-        for session_file in sorted(sessions_dir.glob("*.json")):
-            date = session_file.stem.split("__")[0]
-            if date_from and date < date_from:
+        exercises = data.get("exercises", []) if isinstance(data, dict) else []
+        for exercise in exercises:
+            if not isinstance(exercise, dict) or not exercise_has_training_signal(exercise):
                 continue
-            if date_to and date > date_to:
+            exercise_id = str(exercise.get("exercise_id") or exercise.get("id") or "").strip()
+            if not exercise_id:
                 continue
-            try:
-                data = json.loads(session_file.read_text(encoding="utf-8"))
-            except Exception:
+            if exercise_ids and exercise_id not in exercise_ids:
                 continue
-            exercises = data.get("exercises", []) if isinstance(data, dict) else []
-            for exercise in exercises:
-                if not isinstance(exercise, dict) or not exercise_has_training_signal(exercise):
-                    continue
-                exercise_id = str(exercise.get("exercise_id") or exercise.get("id") or "").strip()
-                if not exercise_id:
-                    continue
-                if exercise_ids and exercise_id not in exercise_ids:
-                    continue
-                signals.append(
-                    SessionSignal(
-                        user_id=user_dir.name,
-                        date=date,
-                        session_file=str(session_file),
-                        exercise_id=exercise_id,
-                        display_name=str(exercise.get("name") or exercise_id),
-                        values=training_values(exercise),
-                        note=str(exercise.get("note") or exercise.get("notes") or ""),
-                        done=bool(exercise.get("done")),
-                    )
+            signals.append(
+                SessionSignal(
+                    user_id=uid,
+                    date=date,
+                    session_file=str(session_file),
+                    exercise_id=exercise_id,
+                    display_name=str(exercise.get("name") or exercise_id),
+                    values=training_values(exercise),
+                    note=str(exercise.get("note") or exercise.get("notes") or ""),
+                    done=bool(exercise.get("done")),
                 )
+            )
     return signals
-
-
-def _session_date(path: Path) -> str | None:
-    stem = path.stem
-    if len(stem) >= 10 and stem[:10].count("-") == 2:
-        return stem[:10]
-    return None
 
 
 def _performed_exercises(session: dict[str, Any]) -> list[dict[str, Any]]:
@@ -172,27 +157,16 @@ def merge_day_activities(
     apply: bool = False,
 ) -> list[ActivityMergePlan]:
     """Merge local activity-only sidecar JSONs into one canonical day document."""
-    users_dir = runtime_root() / "users"
-    if not users_dir.exists():
-        return []
-    user_dirs = [users_dir / user_id] if user_id else sorted(p for p in users_dir.iterdir() if p.is_dir())
     plans: list[ActivityMergePlan] = []
 
-    for user_dir in user_dirs:
-        sessions_dir = user_dir / "sessions"
-        if not sessions_dir.exists():
+    by_user_date: dict[str, dict[str, list[Path]]] = {}
+    for uid, path in iter_session_files(user_id, date_from=date_from, date_to=date_to):
+        d = _session_date(path)
+        if not d:
             continue
-        by_date: dict[str, list[Path]] = {}
-        for path in sorted(sessions_dir.glob("*.json")):
-            d = _session_date(path)
-            if not d:
-                continue
-            if date_from and d < date_from:
-                continue
-            if date_to and d > date_to:
-                continue
-            by_date.setdefault(d, []).append(path)
+        by_user_date.setdefault(uid, {}).setdefault(d, []).append(path)
 
+    for uid, by_date in by_user_date.items():
         for d, paths in by_date.items():
             loaded: list[tuple[Path, dict[str, Any]]] = []
             for path in paths:
@@ -206,7 +180,7 @@ def merge_day_activities(
             if not sidecars:
                 continue
 
-            canonical = sessions_dir / f"{d}.json"
+            canonical = session_path(uid, d)
             if canonical.exists():
                 try:
                     base = json.loads(canonical.read_text(encoding="utf-8"))
@@ -230,7 +204,7 @@ def merge_day_activities(
 
             plans.append(
                 ActivityMergePlan(
-                    user_id=user_dir.name,
+                    user_id=uid,
                     date=d,
                     canonical_file=str(canonical),
                     sidecar_files=[str(path) for path, _session in sidecars],
