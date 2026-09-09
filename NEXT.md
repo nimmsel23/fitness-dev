@@ -335,16 +335,41 @@ pruefen.
   abgegrenzten Folge-Pass pro Modul.
 - **Journal-Sync bleibt marker-append-only** (`<!-- fsid|fshr|fshid:… -->`
   in `journal/YYYY-MM-DD.md`). `81031d6` hat nur die 3 divergenten
-  Schreib-/Dedup-Kopien zu `_append_journal_block()` zusammengeführt. Der
-  vom User als Design-Fehler benannte Kern (kein Einzel-Edit/-Delete,
-  fragiles Parsing) ist damit NICHT gelöst und braucht eine
-  User-Design-Entscheidung. Konkreter Vorschlag, falls angegangen:
-  strukturiertes Zwischenformat `journal/YYYY-MM-DD.entries.jsonl` (eine
-  Zeile pro `{fsid, kind, time, text, …}`) als SOT, aus dem die `.md`
-  deterministisch **neu gerendert** wird (statt append). Damit fällt
-  Edit = Zeile ersetzen, Delete = Zeile raus, Marker-Parsing entfällt.
-  Migration: bestehende `.md` einmalig per Marker-Split → JSONL, `.md`
-  danach generiert. Betrifft nur `fitness/firestore/mirror.py` (Reader/
-  Writer beide dort) + evtl. Frontend-Journal-View, falls die `.md` direkt
-  liest — vorher prüfen (`src/**` Journal-Tab). Kein kleiner Change, daher
-  hier geparkt.
+  Schreib-/Dedup-Kopien in `mirror.py` zu `_append_journal_block()`
+  zusammengeführt. Der vom User als Design-Fehler benannte Kern (kein
+  Einzel-Edit/-Delete, fragiles Parsing) ist damit NICHT gelöst.
+
+  **JSONL-SOT-Umbau (`journal/YYYY-MM-DD.entries.jsonl` als Quelle, `.md`
+  deterministisch daraus gerendert) wurde am 2026-09-09 begonnen, dann
+  GESTOPPT** — Scope-Befund: die `journal/*.md` hat **vier** Schreiber in
+  **drei** Sprachen, nicht nur `mirror.py`:
+  1. `fitness/firestore/mirror.py` → `on_journal`/`on_habit_records`/
+     `on_habit_journals` — Marker-Append (Daemon `fitness-firestore-daemon`).
+  2. `fitness/api/routers/journal.py` → `POST /journal` — **Ganzdatei-
+     Overwrite** mit Freitext-`content` (Prod-API :9150/:6100).
+  3. `server.mjs` → `POST /journal` — **Ganzdatei-Overwrite** mit Freitext
+     (Dev :9100); zusätzlich `appendJournalBlock()` im `POST /firestore/sync`-
+     Pull-Handler (Marker-Append, on-demand).
+  4. `firestore-mirror.mjs` — Marker-Block-Builder für den Node-Pull-Pfad.
+
+  **Das Frontend schreibt die `.md`** (bestätigt, nicht geraten):
+  `src/lib/db/local/journal.js::saveJournal/updateJournal` POSTet im
+  Local-Modus den **ganzen Tagestext als ein Freitext-`content`** an
+  `POST /journal` → Ganzdatei-Overwrite. Im Firestore-Modus
+  (`src/lib/db/firestore/journal.js`) geht das Frontend direkt gegen
+  Firestore und fasst die `.md` gar nicht an. Die `.md` ist also
+  Doppelnutzung: Freitext-Tagesnotiz (Frontend, Overwrite) **+**
+  Marker-Append-Log der Firestore-Journal-/Habit-Docs (Daemons). Diese
+  beiden Schreibarten kollidieren schon heute (Frontend-Overwrite löscht
+  angehängte Habit-Blöcke).
+
+  Ein `mirror.py`-only-Umbau auf „`.md` aus JSONL neu rendern" würde den
+  Frontend-Freitext bei jedem Daemon-Event **überschreiben** (Datenverlust)
+  und ein Split-Brain mit den Node-Schreibern erzeugen. Sauber ist der
+  Umbau nur, wenn **alle vier Schreiber + der Frontend-Contract**
+  (Freitext-Blob ↔ strukturierte Einträge) zusammen migriert werden, plus
+  Einmal-Migration bestehender `.md` → JSONL. Das ist eine große,
+  sprachübergreifende Architektur-Umstellung → **braucht bewusste
+  User-/Team-Entscheidung über Umfang und Contract**, nicht als
+  Teil-Change durchdrücken. `_append_journal_block()` ist der eine Ort,
+  an dem die Python-Seite später ansetzt.
