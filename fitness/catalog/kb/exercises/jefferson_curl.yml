@@ -1,12 +1,9 @@
-name: inbox_jefferson_curl
-description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Jefferson
-  Curl'
+name: jefferson_curl
+description: 'Jefferson Curl — manueller Katalog-Eintrag, kein wger/yuhonas-Treffer
+  (verifiziert per find-source, seltene Uebung)'
 generated_at: '2026-08-22T08:49:36.018266+00:00'
 exercises:
 - exercise_id: jefferson_curl
-  wger_id: null
-  id: jefferson_curl
-  name: Jefferson Curl
   display_name: Jefferson Curl
   german: Jefferson Curl
   english: Jefferson Curl
@@ -87,7 +84,7 @@ exercises:
   aliases:
   - Spine Curl
   variations: []
-  source: unreviewed
+  source: expert
   schema_version: 2026-08-12.exercise-v1
   origin:
     type: manual

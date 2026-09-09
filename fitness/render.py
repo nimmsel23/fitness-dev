@@ -10,7 +10,7 @@ from datetime import date, datetime, timedelta
 
 from .constants import ACTIVITY_EMOJI, ACTIVITY_LABEL, block_ansi_color
 from .data import activity_minutes, classify, performed_exercises, session_activities
-from .commands import muscle_to_group, muscle_group_label
+from .muscles import muscle_label
 
 # ── ANSI-Farbpalette ──────────────────────────────────────────────────────────
 _C: dict[str, str] = {
@@ -196,11 +196,14 @@ def render_detail(session: dict) -> None:
             print(f"  {c('bold', 'Exercises')}  {c('muted', str(len(exs)) + ' done')}\n")
             for ex in exs:
                 name = ex.get("name", "?")
-                pm   = ", ".join(
-                    muscle_group_label(muscle_to_group(m)) or m
-                    for m in (ex.get("primaryMuscles") or [])
-                    if muscle_to_group(m)
-                )
+                seen: set[str] = set()
+                pm_labels = []
+                for m in (ex.get("primaryMuscles") or []):
+                    lbl = muscle_label(m)
+                    if lbl and lbl not in seen:
+                        seen.add(lbl)
+                        pm_labels.append(lbl)
+                pm = ", ".join(pm_labels)
                 note = ex.get("note", "")
                 print(f"  {c('white', '▸')} {c('bold', name)}  {c('muted', pm)}")
                 sets_arr = ex.get("setsArray") or []

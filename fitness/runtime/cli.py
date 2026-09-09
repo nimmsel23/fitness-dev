@@ -23,7 +23,6 @@ from fitness.runtime.note_backfill import (
     fix_sessions,
     find_suspect_default_effort,
 )
-
 app = typer.Typer(help="Runtime user-data CRUD: Sessions/History prüfen und gezielt patchen")
 console = Console()
 
@@ -170,3 +169,4 @@ def history_delete(
         console.print(f"[red]FAIL:[/red] {exc}")
         raise typer.Exit(code=1)
     console.print(yaml.safe_dump({"dry_run": False, "deleted": deleted_rows}, sort_keys=False, allow_unicode=True).rstrip())
+

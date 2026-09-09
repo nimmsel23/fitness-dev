@@ -1,4 +1,4 @@
-"""fitness.commands.console — Live-Coach-TUI Subpackage.
+"""fitness.log.console — Live-Coach-TUI Subpackage.
 
 Beobachtet Klienten-Sessions/Journal-Eintraege in Echtzeit (watchdog) und
 laesst Zwei-KI-Analyse (fitness/catalog/agent/coach_ai.py) darueberlaufen:

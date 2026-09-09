@@ -62,6 +62,30 @@ def _save_known(path: Path, ids: set):
     path.write_text(json.dumps(sorted(ids), indent=2))
 
 
+def _append_journal_block(md_file: Path, marker: str, body: str) -> bool:
+    """Hängt einen marker-getaggten Block append-only an die Tages-`journal/
+    YYYY-MM-DD.md` — idempotent über den HTML-Kommentar-Marker.
+
+    Rückgabe ``False`` (und kein Write), wenn ``marker`` bereits in der Datei
+    steht. Die Marker (`<!-- fsid:… -->` / `fshr` / `fshid`) sind der
+    einzige Dedup-Schlüssel dieser Firestore→Markdown-Spiegelung. ``body``
+    ist der Text *nach* der Marker-Zeile; ein abschließender Zeilenumbruch
+    wird garantiert.
+
+    Einzige Schreibstelle für die drei Journal-Mirrors (Freitext, Habit-
+    Records, Habit-Memoirs) — vorher 3× leicht abweichend kopiert (mal ohne
+    `encoding=`, mal `not (...)`-Form). Wer später Einzel-Edit/-Delete pro
+    Marker braucht, muss nur diese eine Funktion um ein Gegenstück ergänzen.
+    """
+    if md_file.exists() and marker in md_file.read_text(encoding="utf-8"):
+        return False
+    md_file.parent.mkdir(parents=True, exist_ok=True)
+    block = body if body.endswith("\n") else body + "\n"
+    with md_file.open("a", encoding="utf-8") as fh:
+        fh.write(f"\n{marker}\n{block}")
+    return True
+
+
 def _uid_of(doc) -> str:
     """uid aus dem Dokumentpfad fitness/{uid}/{collection}/{docId} extrahieren
     (Pendant zu on_inbox's collection_group-Ansatz, siehe dort)."""
@@ -185,14 +209,9 @@ def on_journal(col_snapshot, changes, read_time):
         if not date or not text:
             continue
         journal_dir = _user_fitness_dir(uid) / "journal"
-        journal_dir.mkdir(parents=True, exist_ok=True)
         md_file = journal_dir / f"{date}.md"
-        marker  = f"<!-- fsid:{doc_id} -->"
-        if md_file.exists() and marker in md_file.read_text():
-            continue
-        with md_file.open("a") as fh:
-            fh.write(f"\n{marker}\n**{time}** {text}\n")
-        logger.success(f"journal ← {uid}/{date}  {text[:60]}")
+        if _append_journal_block(md_file, f"<!-- fsid:{doc_id} -->", f"**{time}** {text}"):
+            logger.success(f"journal ← {uid}/{date}  {text[:60]}")
 
 
 # ── Habits (Definitionen) ─────────────────────────────────────────────────────
@@ -269,17 +288,9 @@ def on_habit_records(col_snapshot, changes, read_time):
             rec_file.write_text(json.dumps(records, indent=2, ensure_ascii=False))
 
         # Journal-Markdown
-        journal_dir = user_dir / "journal"
-        journal_dir.mkdir(parents=True, exist_ok=True)
-        md_file = journal_dir / f"{date}.md"
-        marker  = f"<!-- fshr:{doc_id} -->"
-        if not (md_file.exists() and marker in md_file.read_text()):
-            with md_file.open("a", encoding="utf-8") as fh:
-                fh.write(f"\n{marker}\n")
-                if rec_at:
-                    fh.write(f"**{habit_id}** {completion} _{rec_at}_\n")
-                else:
-                    fh.write(f"**{habit_id}** {completion}\n")
+        md_file = (user_dir / "journal") / f"{date}.md"
+        line = f"**{habit_id}** {completion} _{rec_at}_" if rec_at else f"**{habit_id}** {completion}"
+        _append_journal_block(md_file, f"<!-- fshr:{doc_id} -->", line)
         with _lock:
             _save_known(_known_hr_path, _known_hr)
         logger.success(f"habit_record ← {uid}/{date} {habit_id}")
@@ -310,23 +321,17 @@ def on_habit_journals(col_snapshot, changes, read_time):
         feedback = data.get("coachFeedback", "").strip()
         if not date:
             continue
-        journal_dir = _user_fitness_dir(uid) / "journal"
-        journal_dir.mkdir(parents=True, exist_ok=True)
-        md_file = journal_dir / f"{date}.md"
-        marker  = f"<!-- fshid:{doc_id} -->"
-        if md_file.exists() and marker in md_file.read_text():
-            with _lock:
-                _save_known(_known_hj_path, _known_hj)
-            continue
-        with md_file.open("a", encoding="utf-8") as fh:
-            fh.write(f"\n{marker}\n**Habit: {habit_id}**\n")
-            if text:
-                fh.write(f"{text}\n")
-            if feedback:
-                fh.write(f"> **Coach Feedback:** {feedback}\n")
+        md_file = (_user_fitness_dir(uid) / "journal") / f"{date}.md"
+        body = f"**Habit: {habit_id}**\n"
+        if text:
+            body += f"{text}\n"
+        if feedback:
+            body += f"> **Coach Feedback:** {feedback}\n"
+        wrote = _append_journal_block(md_file, f"<!-- fshid:{doc_id} -->", body)
         with _lock:
             _save_known(_known_hj_path, _known_hj)
-        logger.success(f"habit_journal ← {uid}/{date} {habit_id} {text[:40]}")
+        if wrote:
+            logger.success(f"habit_journal ← {uid}/{date} {habit_id} {text[:40]}")
 
 
 # ── Inbox (Coach-Review-Drafts) ───────────────────────────────────────────────

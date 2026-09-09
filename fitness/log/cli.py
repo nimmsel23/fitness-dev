@@ -1,5 +1,5 @@
 """
-fitness.commands.log — Typer CLI App (fitness log).
+fitness.log.cli — Typer CLI App (fitness log).
 
 Direkter Dateizugriff auf Session-JSONs — kein Server nötig.
 
@@ -11,7 +11,7 @@ Subcommands:
   stats [--days N]      Aggregate (Split, Cardio, Muskel-Coverage)
   sync-status           Firestore ↔ lokal Sync-Status + Klienten-Registry
   clients [NAME]         Alle Klienten-Sessions chronologisch (--journal für Freitext)
-  console                Live-TUI: Klienten-Logs + Zwei-KI-Analyse (siehe commands/console/)
+  console                Live-TUI: Klienten-Logs + Zwei-KI-Analyse (siehe log/console/)
   drafts [--client NAME]  Persistierte KI-Entwuerfe aus der Console anzeigen
 """
 from __future__ import annotations
@@ -24,7 +24,7 @@ from typing import Optional
 import typer
 
 from ..constants import ACTIVITY_EMOJI, ACTIVITY_LABEL, WEEKDAYS_DE, block_ansi_color
-from . import muscle_to_group, muscle_group_label
+from ..muscles import muscle_to_group, muscle_group_label
 from ..data import (
     classify,
     activity_minutes,
@@ -588,7 +588,7 @@ def cmd_clients(
 # ── console ───────────────────────────────────────────────────────────────────
 # Live-TUI: alle Klienten-Sessions/Journal-Eintraege in Echtzeit + Zwei-KI-
 # Analyse (Trainingsluecken-Kontext-Check, Auto-Feedback-Entwuerfe). Implementierung
-# als eigenes Subpackage: fitness/commands/console/ (Watcher/Gap-Check/Rich-UI
+# als eigenes Subpackage: fitness/log/console/ (Watcher/Gap-Check/Rich-UI
 # getrennt, siehe console/__init__.py).
 
 @app.command(name="console", help="Live-TUI: Klienten-Logs in Echtzeit + Zwei-KI-Analyse (Trainingsluecken, Auto-Feedback)")
@@ -624,6 +624,41 @@ def cmd_drafts(
         kind_label = "Gap" if e.get("kind") == "gap" else "Feedback"
         kind_color = "red" if e.get("kind") == "gap" else "green"
         print(f"{c('dim', e.get('created_at', '?'))}  {c('accent', e.get('name', '?'))}  {c(kind_color, kind_label)}  {e.get('text', '')}")
+
+
+@app.command(name="add", help="Übung (Sätze/Reps/Gewicht) zur Kraft-Session des Tages hinzufügen — merged, überschreibt nicht")
+def cmd_add(
+    exercise: str = typer.Argument(..., help="Übungsname (Freitext, Fuzzy-Match gegen Katalog)"),
+    sets: int = typer.Option(1, "--sets", "-s", min=1, help="Anzahl Sätze (Default 1 — z.B. für HIT/ein Satz bis zum Muskelversagen)"),
+    reps: str = typer.Option("", "--reps", "-r", help="Wiederholungen — eine Zahl (für alle Sätze) oder kommagetrennt pro Satz. Leer lassen wenn nicht getrackt (z.B. HIT)"),
+    weight: str = typer.Option("", "--weight", "-w", help="Gewicht (kg) — eine Zahl oder kommagetrennt pro Satz. Leer lassen wenn kein Zusatzgewicht (z.B. Bodyweight)"),
+    block: str = typer.Option(None, "--block", "-b", help="Trainingsblock (z.B. Push/Pull/Legs) — nur gesetzt wenn angegeben"),
+    notes: str = typer.Option(None, "--notes", "-n", help="Notiz an die Übung"),
+    effort: int = typer.Option(None, "--effort", "--rpe", "-e", help="RPE/Effort der Session (1-10) — strukturiertes Session-Feld, NICHT in notes packen"),
+    location: str = typer.Option(None, "--location", "-l", help="Trainingsort der Session (z.B. Studio-Name) — strukturiertes Session-Feld, NICHT in notes packen"),
+    duration: int = typer.Option(None, "--duration", help="Dauer der Session in Minuten — strukturiertes Session-Feld, NICHT in notes packen"),
+    day: str = typer.Option(None, "--date", help="YYYY-MM-DD (Default heute)"),
+    session_id: str = typer.Option(None, "--session-id", help="An eine bestehende Zusatz-Session anhängen"),
+    uid_override: str = typer.Option(None, "--uid"),
+    dry_run: bool = typer.Option(False, "--dry-run"),
+) -> None:
+    from .strength import add_exercise
+
+    add_exercise(
+        exercise, sets=sets, reps=reps, weight=weight, block=block, notes=notes,
+        effort=effort, location=location, duration=duration,
+        day=day, session_id=session_id, uid_override=uid_override, dry_run=dry_run,
+    )
+
+
+@app.command(name="wizard", help="Interaktiver Dialog: Block wählen, Übungen + Sätze eintippen, bis Abbruch")
+def cmd_wizard(
+    day: str = typer.Option(None, "--date", help="YYYY-MM-DD (Default heute)"),
+    uid_override: str = typer.Option(None, "--uid"),
+) -> None:
+    from .strength import run_wizard
+
+    run_wizard(day=day, uid_override=uid_override)
 
 
 # ── Entry-Point ───────────────────────────────────────────────────────────────

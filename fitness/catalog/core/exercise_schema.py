@@ -33,27 +33,6 @@ def infer_origin_type(exercise: dict[str, Any]) -> str:
     return "manual"
 
 
-def build_source_snapshot(exercise: dict[str, Any]) -> dict[str, Any]:
-    snapshot: dict[str, Any] = {}
-    wger = _non_empty_dict({
-        "wger_id": exercise.get("wger_id"),
-        "wger_muscle_ids": deepcopy(exercise.get("wger_muscle_ids")),
-        "original_description": deepcopy(exercise.get("original_description")),
-    })
-    if wger:
-        snapshot["wger"] = wger
-
-    yuhonas = _non_empty_dict({
-        "yuhonas_id": exercise.get("yuhonas_id"),
-        "instructions": deepcopy(exercise.get("instructions")),
-        "images": deepcopy(exercise.get("images")),
-    })
-    if yuhonas:
-        snapshot["yuhonas"] = yuhonas
-
-    return snapshot
-
-
 def build_review_state(
     exercise: dict[str, Any],
     *,
@@ -91,9 +70,6 @@ def apply_exercise_schema(
         "type": infer_origin_type(ex),
         "source_refs": source_refs,
     }
-    snapshot = build_source_snapshot(ex)
-    if snapshot:
-        ex["source_snapshot"] = snapshot
     ex["review_state"] = build_review_state(
         ex,
         status=review_status,

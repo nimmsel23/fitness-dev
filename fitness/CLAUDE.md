@@ -127,6 +127,29 @@ siehe Alembic-Abschnitt unten) — keine eigene Tabellen-Definition.
 
 ---
 
+## `fitness/coach/` — Klienten-Workout-Logging (getrennt von `runtime/`)
+
+Eigenes Sub-Package, seit 2026-09-08 aus `runtime/` herausgelöst: `runtime/`
+ist Reparatur an den eigenen (Operator-)Userdaten
+(`~/.aos/fitness/users/*`), `coach/` ist fachlich etwas anderes — Workouts
+für **Klienten** (`~/Klienten/<slug>/`) loggen, passt zu den bestehenden
+API-Routern `coach_plans.py`/`coaching.py`/`coaching_notes.py`. Vorher lag
+`client_session.py` erst in `fitness/catalog/` (verletzte dort die "Kein
+user-data hier"-Regel, siehe `catalog/CLAUDE.md`), dann kurz in
+`fitness/runtime/` (falsche Domain — kein Operator-Userdata-Repair, sondern
+Klienten-Logging) — jetzt endgültig hier.
+
+```
+fitness/coach/
+├── cli.py             — Typer-App (log-client-workout), gemountet unter
+│                         `fitness coach <cmd>`
+└── client_session.py   — log_workout(client, exercises, ...): POST an
+                          fitness-api :9150 falls firebase_uid vorhanden,
+                          sonst lokal unter ~/Klienten/<id>/sessions/ staged
+```
+
+---
+
 ## Dispatcher
 
 | Dispatcher | Typ | Funktion |

@@ -1,3 +1,260 @@
+# CLI-Log: strukturiertes `effort`/RPE-Feld statt Freitext in `notes` + Korrektur der 2026-09-08-Session (2026-09-09)
+
+Nachlauf zur Inbox-ID-Referenz-Session (Eintrag unten). Der Nutzer konfrontierte,
+dass die Session `2026-09-08.json` **rein per CLI von Claude angelegt** wurde
+(nicht in der App geloggt) und deshalb kein strukturiertes RPE-Feld hat: Claude
+hatte alle Angaben (Ort, Dauer, "RPE 9") beim Anlegen nur als Freitext-Präfix ins
+`notes`-Feld geschrieben statt in eigene Felder — App-geloggte Sessions haben
+dafür ein Top-Level-`effort`. Auftrag: "korrigiere das skript zum anlegen!
+wahrscheinlich warst du faul!". Zwei Teile umgesetzt (Skript-Fix + Datenkorrektur),
+plus vorab die vom Vorgänger-Turn offene Standing-Push-Aufgabe abgeschlossen.
+**Skript-Änderungen sind noch nicht committet** (`M fitness/log/cli.py`,
+`M fitness/log/strength.py`) — die Session endete mit `/compact`, bevor ein
+Commit lief; der relevante Test-Lauf (`pytest -k "strength or log"`, Hintergrund
+`bp3v4mpbt`) lief bei Session-Ende noch.
+
+* **`fitness/log/strength.py`**: `merge_exercise_into_session()` bekommt neuen
+  optionalen Parameter `effort: int | None`, schreibt ihn als `session["effort"]`
+  (nicht in `notes`). `add_exercise()` reicht `effort` durch. `run_wizard()` fragt
+  RPE/Effort jetzt als eigene Eingabe ab, nicht mehr über das Notiz-Feld.
+* **`fitness/log/cli.py`**: `cmd_add` bekommt Option `--effort` / `--rpe` / `-e`
+  (Hilfetext: "strukturiertes Session-Feld, NICHT in notes packen"), wird an
+  `add_exercise()` weitergegeben.
+* **Runtime-Sessiondatei `~/.aos/fitness/users/59ole…/sessions/2026-09-08.json`**
+  (kein Repo-File): "RPE 9" per Regex aus `notes` entfernt und als Top-Level
+  `effort: 9` gesetzt; `notes` bleibt `"Klimmzug im Obergriff: Fitness First
+  Schnirchgasse, 60min"`. Backup `.bak` vorher angelegt.
+* **`git push origin dev`** (`8a314bc..9c59bbb`): der lokal noch nicht gepushte
+  Auto-Doc-Commit `9c59bbb` (`docs: auto-update NEXT.md`) nach `origin/dev`
+  gebracht (Standing-Freigabe), nachdem der Hintergrund-Pytest `bq1zn2j7y` grün
+  (`exit 0`) war. Push löste Build-Verifikation + Staging-Deploy (`:8100`) grün
+  mit aus. Kein `fitness-release`/Prod-Deploy.
+
+---
+
+# Katalog: Inbox-Drafts nur noch ID-Referenz, wger↔yuhonas-Fuzzy-Match-Regression gefixt, strukturierter Feld-Editor in der TUI (2026-09-09)
+
+Direkte Fortsetzung des Katalog-Search/Inbox-Fixes (`233dc19`, Eintrag unten).
+Nach erneutem, scharfem User-Feedback ("die basis eines inbox drafts ist die id
+zum wger UND zum yuhona äquivalent … nicht content dumpen sondern VERLINKEN per
+ID", "die id kommt so oft vor") wurde die Draft-*Erzeugung* selbst auf reine
+ID-Referenz umgestellt — nicht mehr nur der `source_snapshot`. Im selben Zug fiel
+eine Regression der in `233dc19` eingeführten Equipment-Normalisierung auf
+(False-Positive-Match "Jefferson Curl" → "Cable Curls"/"Kurzhantel-Curl" mit
+Score 100) und wurde gefixt. Zuletzt auf Anfrage ("baue ein generelles skript
+zum bearbeiten von bestehender drafts bzw zum editen von bestehender expert
+exercises - inkl. tui") ein strukturierter Feld-Editor in die Katalog-TUI
+eingebaut. Drei Commits: `1a04fdd` + `f8173a9` nach `origin/dev` gepusht,
+`db28cdf` committet aber **noch nicht gepusht**. Kein Staging-/Prod-Deploy.
+Betroffene Katalog-Tests grün (`test_exercise_schema`, `test_inbox_pipeline`,
+`test_source_merge`); der vorbestehende `test_resolver`-Fail (jefferson_curl) ist
+durch den Move (s.u.) mit aufgelöst.
+
+* **`fitness/catalog/agent/inbox_actions.py`** (`1a04fdd`): `attach_source_snapshot()`
+  dumpt keinen Rohtreffer mehr unter `origin.wger`/`origin.yuhonas`, verlinkt nur
+  IDs. Neu `create_inbox_draft()` — legt Drafts ausschließlich mit ID-Referenz an
+  (explizite `--wger-id`/`--yuhonas-id` oder Auto-Match), nie mit kopiertem Content.
+* **`fitness/catalog/core/exercise_schema.py`** (`1a04fdd`): `build_source_snapshot()`
+  komplett entfernt (war nach dem `233dc19`-Trim nur noch ID-Duplikat ohne
+  Zusatznutzen). `test_exercise_schema.py` erwartet keinen `source_snapshot` mehr.
+* **`fitness/catalog/coach_sheet.py`** (`1a04fdd`): "## Quellen"-Block wird live
+  per ID über `find_source_entries()` nachgelesen statt aus gespeicherter Kopie.
+* **`fitness/catalog/cli.py`** (`1a04fdd`): neue Commands `fitness-catalog new-draft`
+  (ID-only-Draft) und `fitness-catalog find-source <name>` (durchsucht wger UND
+  yuhonas zusammen — Ursache eines Recherche-Fehlers in dieser Session:
+  wger-only-grep übersah "Bent Over Barbell Row", das nur in yuhonas existiert).
+* **`fitness/catalog/core/source_merge.py`** (`f8173a9`): `_best_match_scored()`
+  nutzt jetzt zusätzlich `fuzzy_candidate_allowed()` + `GENERIC_FUZZY_TOKENS` aus
+  `resolver.py` als Gate — mind. ein nicht-generisches Wort muss zwischen Query
+  und Kandidat übereinstimmen. Behebt den durch die Equipment-Normalisierung neu
+  entstandenen False-Positive ("curl" als einziges Restwort nach dem Strippen
+  reichte `token_set_ratio` für Score 100). "Walking Lunges" ↔ "Barbell Walking
+  Lunge" bleibt korrekt bei 100.
+* **`fitness/catalog/kb/exercises/jefferson_curl.yml`** (`f8173a9`, `git mv` aus
+  `kb/inbox/`): lag fälschlich als Draft trotz `review_state.status: approved`;
+  von redundanten Duplikatfeldern bereinigt (`id`/`name`/`wger_id: null` neben
+  `exercise_id`/`display_name`, `source: unreviewed` → `expert`). Damit ist der
+  `test_resolver`-Fail (jefferson_curl real in inbox statt exercises) mit erledigt.
+* **`fitness/catalog/tui.py`** (`db28cdf`): neue `_edit_exercise_interactive()`
+  (Rich-Prompt-Menü für Scalar- + Listen-Felder, Listen über `_edit_list_field()`)
+  + `_save_exercise_to_file()` (schreibt nur den per `exercise_id` passenden
+  Eintrag zurück, `.bak` vorher). Verdrahtet in `_inbox_detail` (neue Option "e"
+  strukturiert neben "x" rohem `$EDITOR`) und `_browser_detail` (Expert-Exercises
+  hatten vorher gar keine Edit-Option). Kein neues Framework, bleibt bei Rich.
+* **Neue Inbox-Drafts (ID-Referenz-Format)**: `inbox_bent_over_barbell_row.yml`
+  (`f8173a9`, umbenannt aus `inbox_vorgebeugtes_langhantelrudern_stehend.yml`;
+  `wger_1489` + yuhonas `Bent_Over_Barbell_Row`) und `inbox_wide_grip_chin_up.yml`
+  (`db28cdf`; User-Korrektur "mein untergriff klimmzug war einer im WEITEN GRIFF"
+  ≠ regulärer/enger 021-Eintrag; `wger_152`/yuhonas `Chin-Up` als Basis).
+* **Runtime-Sessiondatei `~/.aos/fitness/users/59ole…/sessions/2026-09-08.json`**
+  (kein Repo-File): `wger_1489`-Eintrag → `bent_over_barbell_row` mit korrekten
+  Muskeln inkl. Bizeps; zweiter Eintrag → `wide_grip_chin_up` mit korrigierten
+  primary/secondary-Muskeln.
+
+---
+
+# Katalog: unreviewed-Duplikate aus `exercises/search` raus, wger↔yuhonas-Matching, `source_snapshot` entduplex (2026-09-08)
+
+Ausgelöst durch konkrete schlechte Katalog-Einträge beim `fitness-log show` der
+heutigen Session: "Klimmzüge (neutraler Griff)" (`wger_1529`) zeigte keinen Bizeps,
+"Langhantelrudern (Obergriff)" (`wger_1489`) war zu unscharf, und der Nutzer
+kritisierte scharf, dass jeder Inbox-Draft "derselbe Scheißdreck" sei: eine einzige
+Quelle (wger), strukturell 10–13× redundant reingeschrieben, generische
+Klimmzug-Boilerplate als `coaching_notes`, mit `expert-tier`/`reviewed`-Tags obwohl
+reiner Gemini-Output. Claude hatte zwischenzeitlich `wger_1529` eigenmächtig per
+`fitness-catalog inbox approve` freigegeben (Commit `d5f3abf`) — auf Ansage des
+Nutzers ("wage es nicht etwas zu approven") per `git revert` rückgängig gemacht
+(`4a4711d`), Draft zurück in `kb/inbox/` als `status: draft`. Kernauftrag danach
+("die basis eines inbox drafts ist die id zum wger UND zum yuhona äquivalent …
+nicht einfach den inhalt reindumpen sondern VERLINKEN per ID … und die unrevieweds
+zugunsten der expert files auszuschalten in der exercisesearch"): drei
+zusammenhängende Pipeline-Fixes, committet `233dc19`, nach `origin/dev` gepusht,
+Staging-Deploy (`fitness-preview.service` :8100) per Post-Push-Hook grün. Betroffene
+Katalog-Tests grün (`test_exercise_schema.py`, `test_inbox_pipeline.py`), ein
+vorbestehender unabhängiger Fail (`test_jefferson_curl_is_expert_record`) blieb.
+
+* **`fitness/api/routers/exercises_catalog.py`** (`233dc19`): `GET /exercises/search`
+  zeigt unreviewed/bulk-Treffer nur noch als Fallback, wenn für denselben Query
+  kein Expert-/Inbox-Treffer existiert. Vorher standen rohe wger-Duplikate
+  gleichberechtigt neben kuratierten Einträgen.
+* **`fitness/catalog/core/source_merge.py`** (`233dc19`): neue
+  `_match_norm()`-Normalisierung (Geräte-Präfix `barbell`/`dumbbell`/`bodyweight`/…
+  + Singular/Plural) speziell vorm wger↔yuhonas-Fuzzy-Vergleich in `_best_match`,
+  bewusst **nicht** im generellen `normalize_text()`-/`resolve_query()`-Pfad.
+  "Walking Lunges" vs. "Barbell Walking Lunge" springt damit von fuzz-Score 74 auf
+  100 — Drafts referenzieren künftig öfter wirklich beide Quellen statt nur wger.
+  Nutzer-Entscheidung: "Gezielte Normalisierung (sicherer)" statt globaler
+  Schwellensenkung (`AUTO_MATCH_MIN_SCORE` 86 bleibt unverändert).
+* **`fitness/catalog/core/exercise_schema.py`** (`233dc19`): `build_source_snapshot()`
+  schreibt keine Text-Duplikate mehr (`original_description`/`instructions`/`images`
+  raus), nur noch reine ID-Referenzen (`wger_id`, `wger_muscle_ids`, `yuhonas_id`).
+  Das Coach-Sheet-Side-by-Side bleibt unberührt (nutzt separates
+  `origin.wger`/`origin.yuhonas`-Feld, nicht `source_snapshot`).
+* **`fitness/catalog/kb/inbox/inbox_wger_1529.yml`**: durch den Revert `4a4711d`
+  aus `kb/exercises/wger_1529.yml` zurück in die Inbox verschoben, `status: draft` —
+  weiterhin unreviewed/nicht approved.
+
+---
+
+# CLI-Aufräumen: `fitness coach/`-Subpackage, `fitness-strength` in `fitness-log` gemerged, echte Muskelnamen (2026-09-08)
+
+Nachlauf zur CLI-Logging-Session (Commit `894877d`). Der Nutzer bemängelte zuerst,
+dass `client_session.py` auch in `fitness/runtime/` fehl am Platz ist ("runtime ist
+ja auch nicht richtig für das client_session.py"), dann dass `fitness-strength` als
+drittes Binary neben `fitness-log` unnötige Fragmentierung ist ("werde ich nie im
+Leben eintippen"), und zuletzt dass `fitness-log show` grobe Bucket-Regionen statt
+echter Muskelnamen anzeigt ("warum stehen da die Buckets statt den echten Muskeln").
+Alle drei umgesetzt, `npm run build` grün, Python-Syntax geprüft, `fitness-log show`
+live verifiziert. Committed `4e64dd1` + `3a7a507`, beide nach `origin/dev` gepusht
+(`3a7a507` force-pushed, weil Backticks in der ersten Commit-Message durch
+Shell-Command-Substitution zerschossen wurden). Kein `fitness-release`/Prod-Deploy
+in diesem Abschnitt.
+
+* **`fitness/coach/`** (neu, `4e64dd1`): `client_session.py` via `git mv` aus
+  `fitness/runtime/` hierher, plus `cli.py` (`log-client-workout` +
+  `_prompt_exercises_interactive()`) aus `runtime/cli.py` verschoben. Begründung:
+  `runtime/` ist Reparatur der Operator-eigenen Runtime-Daten
+  (`~/.aos/fitness/users/*`, SQLite-History), Klienten-Workout-Logging
+  (`~/Klienten/<id>/`) ist fachlich eine andere Domain und passt zu den
+  bestehenden Coach-API-Routern. Command jetzt **`fitness coach log-client-workout`**
+  (Move-Kette: `catalog/` → `runtime/` → `coach/`). Tote Imports in
+  `runtime/cli.py` entfernt, `fitness coach` in `fitness/cli.py` gemountet.
+* **`fitness/log/strength.py`** (neu, `3a7a507`): `fitness/strength/` komplett
+  entfernt, Inhalt hierher als Funktionen (`add_exercise()`/`run_wizard()`) statt
+  eigener Typer-App. `fitness-log` bekommt die neuen Subcommands **`add`** (vormals
+  `fitness strength log`) und **`wizard`** (vormals `fitness strength wizard`).
+  `fitness-strength`-Entry-Point aus `pyproject.toml` raus, `fitness strength`-
+  Passthrough aus `fitness/cli.py` raus.
+* **`fitness/muscles.py`** (`3a7a507`): neue `muscle_label()`-Funktion — löst eine
+  einzelne Muskel-ID (`"201_latissimus_dorsi"`) auf den echten KB-Namen
+  (`"Breiter Rückenmuskel Latissimus Dorsi"`) auf, statt sie via
+  `muscle_to_group()`/`muscle_group_label()` auf grobe Regionen
+  (`"Mittlerer Rücken"`) zusammenzufassen (wobei einzelne Muskel-Identität +
+  Duplikate wie `"Mittlerer Rücken, Mittlerer Rücken"` verloren gingen).
+* **`fitness/render.py`** (`3a7a507`): `render_detail` nutzt `muscle_label()` +
+  dedupliziert die Muskelliste; alte `muscle_to_group`/`muscle_group_label`-Importe
+  raus.
+* **Runtime-Daten**: heutige Session (2026-09-08) korrigiert — "Biceps Curls" war
+  tatsächlich einseitige Bizeps-KH-Curls, der Fuzzy-Resolver hatte sie bei
+  medium-confidence stillschweigend auf Bizeps-LH-Curls (`wger_91`) umbenannt. Im
+  Session-JSON auf `wger_92` (Bizeps KH-Curls, `primaryMuscles` `402`, `secondary`
+  `403`) korrigiert, `exercise_id_at_log` nachgezogen, Notiz "(einseitig)" ergänzt,
+  per `POST /session` gegen `:9150` neu synct (SQLite-Mirror mit). Backup unter
+  scratchpad. `fitness/catalog/kb/inbox/inbox_wger_92.yml` als Enrichment-Nebeneffekt
+  neu erzeugt (untracked, noch nicht committet/reviewed).
+
+---
+
+# CLI-Workout-Logging fortgesetzt + `fitness/commands/` aufgelöst (2026-09-08)
+
+Nutzer-Anliegen: "kann ich per CLI auch schon ordentlich meine Workouts loggen?
+das wurde anfangs schon gebaut, weiß nicht wo der Stand ist — bitte fortsetzen".
+Bestandsaufnahme: `fitness activity log` (seit `278ec71`) loggt nur Cardio, `fitness
+log` ist rein lesend, und `fitness/catalog/client_session.py` (`log-client-workout`)
+macht zwar den richtigen JSON-SOT-POST, ist aber an einen Klienten-Slug gebunden
+und lag ausserdem am falschen Ort. Daraus wurde ein neues Kraft-CLI + eine
+Paket-Umstrukturierung. Committed `894877d`, gepusht, Post-Push-Hook hat den
+Staging-Deploy (`:8100`) grün durchgeführt. `npm run build` grün, alle 152
+Python-Dateien kompilieren, uv-Tool neu installiert, alle Binaries manuell getestet.
+
+* **`fitness/strength/cli.py`** (neu, `fitness strength log|wizard`): Kraft-Session
+  per CLI loggen — liest die bestehende Session per `GET /session` und **merged**
+  Übung/Sätze hinein statt zu überschreiben (`rev` zählt korrekt hoch, live gegen
+  `:9150` verifiziert). Fuzzy-Resolver gegen den Katalog (`resolve_query`), HIT-Modus
+  (1 Satz bis Muskelversagen, `isHIT: true`, Reps/Gewicht optional — Nutzer trackt
+  nur Gewicht). Sätze/Reps/Gewicht bleiben im CLI voll erhalten.
+* **`fitness/commands/` komplett aufgelöst**: jedes Modul ist jetzt ein eigenes
+  Subpackage (`fitness/log/cli.py`, `fitness/tui/cli.py`, `fitness/activity/cli.py`,
+  `fitness/mail/cli.py`, `fitness/sync/cli.py`, `fitness/strength/cli.py` + je
+  `__init__.py`), `fitness/log/console/` mitgezogen — Muster wie `catalog/`/`runtime/`.
+  Ordnername `commands` war ausdrücklicher Nutzer-Wunsch weg.
+* **`fitness/muscles.py`** (neu): geteilter `muscle_to_group()`/`muscle_group_label()`-
+  Helper (lag vorher in `commands/__init__.py`) rausgezogen; Importe in `render.py`,
+  `tui/cli.py`, `activity/cli.py` u.a. nachgezogen.
+* **`fitness/runtime/client_session.py`** (verschoben aus `fitness/catalog/`):
+  `client_session.py` + `log-client-workout` + `_prompt_exercises_interactive()`
+  gehörten laut `catalog/CLAUDE.md` nie in den Katalog (Runtime-User-Daten-Reparatur
+  lebt seit 2026-08-07 in `fitness/runtime/`). Command jetzt `fitness user-data
+  log-client-workout`, aus `catalog/cli.py` entfernt.
+* **`bin/fitness-log`** (neu, im Repo versioniert): löst den `uv`-Tool-Shim-Symlink
+  in `~/.dotfiles/bin/` ab (uv legt den Symlink bei jedem `uv tool install` neu an
+  und musste wiederholt entfernt werden).
+* **`pyproject.toml`**: `[project.scripts]` auf die neuen Modulpfade umgestellt.
+* **`fitness/catalog/kb/inbox/*.yml`** (10 neue Drafts): als Nebeneffekt des
+  Session-Loggings automatisch vom proaktiven Enrichment erzeugt, mitcommittet.
+* **Runtime-Daten**: heutiges Pull-Workout des Nutzers (2026-09-08) über das neue
+  CLI sauber geloggt — 7 Übungen, je 1 Satz HIT, Gewicht wo bekannt (45 kg
+  Langhantelrudern), RPE 9, Ort/Dauer in den Notizen; Core-HIIT-Finisher separat als
+  Activity. Test-Sessions vom Live-Test vorher wieder gelöscht.
+
+---
+
+# Session-Tab: Kraft/Ausdauer-Wechsel überschreibt befüllte Session nicht mehr (2026-09-07)
+
+Nutzer-Meldung: Wenn bei einer bereits angefangenen Session zwischen Kraft und
+Ausdauer umgeschaltet wird, muss beim Loggen im jeweils anderen Modus eine **neue**
+Session entstehen — die vorherige (aus der geswitcht wurde) darf nicht überschrieben
+werden. Bisher bog der Umschalter den Modus immer direkt in der offenen Session um,
+sodass der nächste Save unter derselben `sessionId` die zuvor geloggten Daten
+überschrieb. Fix umgesetzt, Build zweifach grün (manuell + Pre-Commit-Hook),
+committed `85781f7`, danach auf Nutzer-Ansage komplett deployed.
+
+* **`src/views/Session/useSession.js`** (`85781f7`): `switchSessionMode` prüft jetzt
+  via `sessionHasLoggedWorkout()`, ob in der offenen Session bereits Übungen/Aktivität
+  eingetragen sind. Wenn ja, wird automatisch eine neue Session angelegt (gleiche
+  Mechanik wie der "+"-Button) und der Modus dort gesetzt — die ursprüngliche Session
+  bleibt unangetastet. Nur eine noch leere Session wechselt den Modus weiterhin
+  in-place.
+* **Deploy** (`fitness-release --yes`, vom Nutzer ausgelöst): `dev` gepusht
+  (`c6a3a65..85781f7`), Staging (`:8100`) deployed, nach `vitalos` gemergt + gepusht,
+  Firebase-Build grün, deployed nach `https://fitness-aos.web.app`, Submodule-Pointer
+  im `vitalos`-Parent-Repo gebumpt (`dcbf15d`).
+* **Prod-Deploy** (`pkexec fitnessctl prod deploy`, vom Nutzer im eigenen Terminal
+  ausgeführt): `fitness.service` auf `:6100` ist jetzt ebenfalls auf dem aktuellen
+  Stand mit dem Kraft/Ausdauer-Fix.
+
+---
+
 # Session-Tab: Gate poppt nicht mehr bei explizitem Datum auf + Scrollbar-Fix live (2026-09-07)
 
 Nachlauf zur Session-Tab-Arbeit: Der Nutzer meldete, dass das Session-Gate-Sheet

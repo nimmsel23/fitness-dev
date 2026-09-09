@@ -1,5 +1,5 @@
 """
-fitness.commands.tui — Interaktive Textual TUI App (fitness tui).
+fitness.tui.cli — Interaktive Textual TUI App (fitness tui).
 
 Direkter Dateizugriff — kein Server nötig.
 
@@ -19,7 +19,7 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 from typing import ClassVar
 
-from fitness.commands import muscle_to_group, muscle_group_label
+from fitness.muscles import muscle_to_group, muscle_group_label
 from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding

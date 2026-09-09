@@ -258,6 +258,103 @@ def screen_inbox() -> str:
     return _inbox_detail(files[int(choice) - 1])
 
 
+_EDITABLE_SCALAR_FIELDS = ["display_name", "german", "english", "category", "movement_pattern", "type"]
+_EDITABLE_LIST_FIELDS = ["primary_muscles", "secondary_muscles", "stabilizers", "coaching_notes", "common_errors", "aliases"]
+
+
+def _save_exercise_to_file(f: Path, ex: dict[str, Any]) -> None:
+    """Schreibt eine bearbeitete Uebung zurueck in ihre Datei — findet den
+    passenden Eintrag in `doc["exercises"]` per exercise_id (Dateien koennen
+    mehrere Eintraege enthalten, z.B. unreviewed_*.yml), ersetzt NUR den,
+    Rest der Datei bleibt unangetastet. .bak vorher (Repo-Konvention)."""
+    doc = load_yaml(f)
+    exercises = doc.get("exercises") or []
+    ex_id = ex.get("exercise_id") or ex.get("id")
+    replaced = False
+    for i, entry in enumerate(exercises):
+        if isinstance(entry, dict) and (entry.get("exercise_id") or entry.get("id")) == ex_id:
+            exercises[i] = ex
+            replaced = True
+            break
+    if not replaced:
+        exercises.append(ex)
+    doc["exercises"] = exercises
+    f.with_suffix(".yml.bak").write_text(f.read_text(encoding="utf-8"), encoding="utf-8")
+    f.write_text(yaml.safe_dump(doc, allow_unicode=True, sort_keys=False), encoding="utf-8")
+
+
+def _edit_list_field(ex: dict[str, Any], field: str) -> None:
+    items = list(ex.get(field) or [])
+    while True:
+        _header("Feld bearbeiten", field)
+        if items:
+            for i, item in enumerate(items, 1):
+                console.print(f"  [dim]{i:2}[/dim]  {item}")
+        else:
+            console.print("  [dim](leer)[/dim]")
+        console.print()
+        _nav(**{"a": "hinzufuegen", "1-n": "loeschen (Nummer)", "b": "fertig"})
+        choice = Prompt.ask("  [bold]>[/bold]", default="b")
+        if choice == "b":
+            break
+        if choice == "a":
+            new_item = Prompt.ask("  neuer Eintrag")
+            if new_item.strip():
+                items.append(new_item.strip())
+            continue
+        if choice.isdigit() and 1 <= int(choice) <= len(items):
+            removed = items.pop(int(choice) - 1)
+            console.print(f"  [yellow]entfernt:[/yellow] {removed}")
+    ex[field] = items
+
+
+def _edit_exercise_interactive(f: Path, ex: dict[str, Any]) -> dict[str, Any]:
+    """Strukturierter Feld-Editor (Rich Prompt-Menue) — Ergaenzung zum
+    reinen `$EDITOR`-Aufruf: fuer schnelle, gezielte Aenderungen an einzelnen
+    Feldern statt der ganzen Rohdatei. Funktioniert identisch fuer Inbox-
+    Drafts UND Expert-Exercises (kb/exercises/*.yml), da beide dieselbe
+    {name, description, exercises:[...]}-Wrapper-Struktur nutzen."""
+    ex = dict(ex)
+    while True:
+        _header("Bearbeiten", ex.get("display_name") or ex.get("exercise_id") or f.stem)
+        table = Table(box=box.SIMPLE, show_header=False)
+        table.add_column("Nr", style="dim", width=4)
+        table.add_column("Feld", style="cyan")
+        table.add_column("Wert", style="bold")
+        options: dict[str, str] = {}
+        n = 1
+        for field in _EDITABLE_SCALAR_FIELDS:
+            table.add_row(str(n), field, str(ex.get(field) or ""))
+            options[str(n)] = field
+            n += 1
+        for field in _EDITABLE_LIST_FIELDS:
+            val = ex.get(field) or []
+            table.add_row(str(n), field, f"[dim]{len(val)} Eintraege[/dim]")
+            options[str(n)] = field
+            n += 1
+        console.print(table)
+        console.print()
+        _nav(**{f"1-{n - 1}": "Feld waehlen", "s": "speichern", "q": "verwerfen"})
+        choice = Prompt.ask("  [bold]>[/bold]", default="q")
+        if choice == "q":
+            return {}
+        if choice == "s":
+            _save_exercise_to_file(f, ex)
+            console.print(f"  [green]✓ Gespeichert:[/green] {f.name}")
+            _pause()
+            return ex
+        field = options.get(choice)
+        if not field:
+            continue
+        if field in _EDITABLE_LIST_FIELDS:
+            _edit_list_field(ex, field)
+        else:
+            current = str(ex.get(field) or "")
+            new_value = Prompt.ask(f"  {field}", default=current)
+            if new_value != current:
+                ex[field] = new_value
+
+
 def _inbox_detail(f: Path) -> str:
     _header("Inbox Detail", f.stem)
 
@@ -336,12 +433,15 @@ def _inbox_detail(f: Path) -> str:
         ))
 
     console.print()
-    _nav(**{"a": "Approve → expert", "e": "Bearbeiten", "r": "Neu anreichern (Gemini)", "f": "Feedback geben", "c": "Agent Chat", "d": "Löschen", "b": "zurück"})
-    choice = Prompt.ask("  [bold]>[/bold]", choices=["a", "e", "r", "f", "c", "d", "b"], default="b")
+    _nav(**{"a": "Approve → expert", "e": "Bearbeiten (Felder)", "x": "Bearbeiten ($EDITOR, Rohdatei)", "r": "Neu anreichern (Gemini)", "f": "Feedback geben", "c": "Agent Chat", "d": "Löschen", "b": "zurück"})
+    choice = Prompt.ask("  [bold]>[/bold]", choices=["a", "e", "x", "r", "f", "c", "d", "b"], default="b")
 
     if choice == "a":
         _approve(f, ex)
     elif choice == "e":
+        _edit_exercise_interactive(f, ex)
+        return _inbox_detail(f)
+    elif choice == "x":
         editor = os.environ.get("EDITOR", "nano")
         subprocess.call([editor, str(f)])
         return _inbox_detail(f)
@@ -643,14 +743,32 @@ def _browser_detail(ex: Any) -> None:
     if errors:
         console.print(Panel("\n".join(f"• {error}" for error in errors), title="Common Errors", border_style="red dim"))
 
-    _nav(**{"c": "Agent Chat", "b": "zurück"})
-    choice = Prompt.ask("  [bold]>[/bold]", choices=["c", "b"], default="b")
+    source_file = getattr(ex, "source_file", "") or ""
+    nav_opts = {"c": "Agent Chat", "b": "zurück"}
+    if source_file:
+        nav_opts = {"e": "Bearbeiten (Felder)", **nav_opts}
+    _nav(**nav_opts)
+    choice = Prompt.ask("  [bold]>[/bold]", choices=list(nav_opts.keys()), default="b")
     if choice == "c":
         _exercise_agent_chat(
             context_title=f"Catalog Exercise {getattr(ex, 'exercise_id', '')}",
-            source=str(getattr(ex, "source_file", "")),
+            source=str(source_file),
             exercise=ex,
         )
+    elif choice == "e" and source_file:
+        # source_file ist nur der Dateiname (z.B. "jefferson_curl.yml") —
+        # relativ zu kb/exercises/, wie in build_exercise_index() gesetzt.
+        target = DATA_DIR / "exercises" / source_file
+        if not target.exists():
+            console.print(f"  [red]Datei nicht gefunden: {target}[/red]")
+            _pause()
+            return
+        ex_dict = {
+            field: getattr(ex, field, None)
+            for field in ["exercise_id", "id", *_EDITABLE_SCALAR_FIELDS, *_EDITABLE_LIST_FIELDS]
+            if getattr(ex, field, None) not in (None, "", [])
+        }
+        _edit_exercise_interactive(target, ex_dict)
 
 
 # ─── Plan ──────────────────────────────────────────────────────────────────

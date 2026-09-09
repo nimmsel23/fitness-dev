@@ -45,7 +45,6 @@ from fitness.catalog.api.watcher import run_watcher
 from fitness.catalog.importer import import_external_exercises, reimport_exercise
 from fitness.catalog.api.firestore_push import run_kb_sync, push_changed_exercises, sync_muscles
 from fitness.firestore.kb import get_db
-from fitness.catalog.client_session import log_workout as run_log_client_workout
 from fitness.catalog.core.resolver import resolve_query as run_resolve_query, build_exercise_index
 from fitness.catalog.core.rich_utils import (
     console,
@@ -199,105 +198,6 @@ def coverage(
         console.print("[fail]FAIL:[/fail] Provide either --exercise or --week")
         raise typer.Exit(code=1)
 
-
-def _prompt_exercises_interactive() -> list[dict]:
-    """Fragt Übungen/Sätze interaktiv ab, matcht jede gegen den Katalog (inkl. unreviewed wger-Einträge)."""
-    records = build_exercise_index()
-    exercises: list[dict] = []
-    console.print("[bold]Übungen eingeben — leerer Name = fertig[/bold]")
-    while True:
-        name = typer.prompt("Übung", default="", show_default=False).strip()
-        if not name:
-            break
-
-        result = run_resolve_query(name, records)
-        exercise_id: Optional[str] = None
-        display_name = name
-        primary: list[str] = []
-        secondary: list[str] = []
-        extra: dict = {}
-
-        if result.matched:
-            console.print(
-                f"  → Katalog-Match: [bold]{result.display_name}[/bold] "
-                f"(id={result.canonical_id}, quelle={result.source}, confidence={result.confidence})"
-            )
-            if typer.confirm("  Übernehmen?", default=True):
-                exercise_id = result.canonical_id
-                display_name = result.display_name or name
-                record = next((r for r in records if r.exercise_id == exercise_id), None)
-                if record:
-                    primary = record.primary_muscles or []
-                    secondary = record.secondary_muscles or []
-                if exercise_id and (exercise_id.startswith("wger_") or exercise_id.startswith("yuhonas_")):
-                    extra = {"inferred": True, "review_state": "unreviewed"}
-        else:
-            console.print(f"  [warn]Kein Katalog-Match für '{name}'[/warn]")
-            if result.suggestions:
-                sugg = ", ".join(s.get("display_name", "") for s in result.suggestions[:3] if s.get("display_name"))
-                if sugg:
-                    console.print(f"  Vorschläge: {sugg}")
-
-        sets: list[dict] = []
-        set_no = 1
-        while True:
-            reps = typer.prompt(f"    Satz {set_no} — Reps (leer = fertig)", default="", show_default=False).strip()
-            if not reps:
-                break
-            weight = typer.prompt(f"    Satz {set_no} — Gewicht", default="", show_default=False).strip()
-            sets.append({"reps": reps, "weight": weight})
-            set_no += 1
-
-        note = typer.prompt("  Notiz (optional)", default="", show_default=False).strip()
-
-        exercises.append({
-            "name": display_name,
-            "id": exercise_id,
-            "primaryMuscles": primary,
-            "secondaryMuscles": secondary,
-            "setsArray": sets,
-            "source": "manual",
-            "note": note,
-            **extra,
-        })
-        console.print("")
-    return exercises
-
-
-@app.command(name="log-client-workout")
-def log_client_workout(
-    client: Annotated[str, typer.Option(help="Klienten-Slug, z.B. jakob-stadler (~/Klienten/<slug>/)")],
-    exercises_file: Annotated[Optional[Path], typer.Option("--exercises-file", help="JSON-Datei mit Übungsliste. Ohne Angabe: interaktiver Prompt")] = None,
-    date: Annotated[Optional[str], typer.Option(help="ISO-Datum, Default heute")] = None,
-    block: Annotated[str, typer.Option(help="Trainingsblock, z.B. Push/Pull/Full Body")] = "",
-    duration: Annotated[str, typer.Option(help="Dauer in Minuten")] = "",
-    location: Annotated[str, typer.Option(help="Ort, z.B. Fitnessstudio-Name")] = "",
-):
-    """Workout für einen Klienten loggen (POST an fitness-api :9150 falls firebase_uid vorhanden, sonst lokal staged)."""
-    if exercises_file:
-        import json as _json
-        exercises = _json.loads(exercises_file.read_text())
-    else:
-        exercises = _prompt_exercises_interactive()
-        if not exercises:
-            console.print("[fail]FAIL:[/fail] Keine Übungen eingegeben, abgebrochen.")
-            raise typer.Exit(code=1)
-    try:
-        result = run_log_client_workout(
-            client, exercises, day=date, block=block, duration=duration, location=location
-        )
-    except FileNotFoundError as exc:
-        console.print(f"[fail]FAIL:[/fail] {exc}")
-        raise typer.Exit(code=1)
-    except Exception as exc:
-        console.print(f"[fail]FAIL:[/fail] {exc}")
-        raise typer.Exit(code=1)
-
-    if result["mode"] == "api":
-        console.print(f"[ok]OK:[/ok] Session gespeichert via API (uid={result['uid']})")
-    else:
-        console.print(f"[warn]STAGED:[/warn] Kein firebase_uid für '{client}' — lokal abgelegt: {result['path']}")
-        console.print("  Noch NICHT in der App sichtbar. Nach Firebase-User-Anlage erneut mit gesetztem firebase_uid loggen (oder migrieren).")
 
 
 @app.command()
@@ -524,6 +424,74 @@ def add_exercise(
     console.print(f"[info]Gemini-Pipeline:[/info] Erstelle/enricher Katalog-Datei für '{name}'...")
     process_inbox_file_virtual(safe_id, name, api_key, force=force)
     console.print(f"[ok]OK:[/ok] Inbox-Draft für '{name}' erfolgreich erstellt (Original & KI-Notes verknüpft).")
+
+
+@app.command(name="find-source")
+def find_source(query: str):
+    """Durchsucht IMMER BEIDE Rohquellen (unreviewed_wger.yml UND
+    unreviewed_yuhonas.yml) fuer eine Uebung und zeigt Treffer + unsichere
+    Kandidaten getrennt an.
+
+    Existiert, weil manuelles grep/Nachschlagen gegen nur EINE der beiden
+    Dateien wiederholt zu falschen "gibt's nicht"-Aussagen gefuehrt hat,
+    obwohl die Uebung in der jeweils anderen Quelle die ganze Zeit vorhanden
+    war (z.B. "Bent Over Barbell Row" — nur in yuhonas, nicht in wger).
+    `find_source_entries()` selbst durchsucht seit jeher beide Dateien
+    zuverlaessig — dieser Command macht das jetzt auch fuer reine Recherche
+    (nicht nur intern beim Draft-Erstellen) zum verbindlichen ersten Schritt,
+    statt dass jede Session/jeder Aufruf ad-hoc neu (und potenziell nur
+    einseitig) grept."""
+    from fitness.catalog.core.source_merge import find_source_entries
+
+    found = find_source_entries(query, None)
+    any_hit = False
+    for source_key, label in (("wger", "wger"), ("yuhonas", "yuhonas")):
+        entry = found.get(source_key)
+        candidate = found.get(f"{source_key}_candidate")
+        score = found.get(f"{source_key}_candidate_score")
+        if entry:
+            any_hit = True
+            id_value = entry.get(f"{source_key}_id")
+            console.print(f"[ok]{label}:[/ok] '{entry.get('display_name')}' ({source_key}_id={id_value})")
+        elif candidate:
+            id_value = candidate.get(f"{source_key}_id") or candidate.get("exercise_id")
+            console.print(f"[warn]{label} (unsicher, Score {score:.0f}):[/warn] '{candidate.get('display_name')}' ({source_key}_id={id_value}) — nicht automatisch verlinkt, manuell pruefen")
+        else:
+            console.print(f"[dim]{label}:[/dim] kein Treffer")
+    if not any_hit:
+        console.print(f"[warn]WARN:[/warn] '{query}' in KEINER der beiden Quellen mit sicherem Score gefunden.")
+
+
+@app.command(name="new-draft")
+def new_draft(
+    name: Annotated[str, typer.Argument(help="Exercise Name (z.B. 'Vorgebeugtes Langhantelrudern (stehend)')")],
+    exercise_id: Annotated[Optional[str], typer.Option("--id", help="Custom exercise_id (default: aus Name abgeleitet)")] = None,
+    wger_id: Annotated[Optional[str], typer.Option(help="wger_id als Basis-Referenz verlinken (kein Auto-Match noetig/gewuenscht)")] = None,
+    yuhonas_id: Annotated[Optional[str], typer.Option(help="yuhonas_id als Basis-Referenz verlinken")] = None,
+    force: Annotated[bool, typer.Option(help="Bestehenden Draft ueberschreiben")] = False,
+):
+    """Legt einen neuen Inbox-Draft an — Basis ist NUR die ID-Referenz zu
+    wger/yuhonas (kein Content-Dump). Ohne --wger-id/--yuhonas-id wird per
+    Name-Fuzzy-Match versucht zu verlinken (nur bei sicherem Treffer). Für
+    Varianten, die es bei wger/yuhonas so nicht gibt (z.B. eine spezifische
+    Rudern-Variante), --wger-id/--yuhonas-id der naechstliegenden Basisübung
+    manuell angeben — die neue Datei bekommt dann NUR deren ID als Referenz,
+    keinen kopierten Inhalt. Danach z.B. mit `enrich <id>` (Gemini) oder von
+    Hand inhaltlich fuellen."""
+    from fitness.catalog.agent.inbox_actions import create_inbox_draft
+
+    try:
+        target = create_inbox_draft(
+            name,
+            exercise_id=exercise_id,
+            wger_id=wger_id,
+            yuhonas_id=yuhonas_id,
+            force=force,
+        )
+    except FileExistsError as exc:
+        console.print(f"[fail]FAIL:[/fail] {exc} (mit --force ueberschreiben)")
+        raise typer.Exit(code=1)
+    console.print(f"[ok]OK:[/ok] {target}")
 
 
 @app.command(name="enrich")

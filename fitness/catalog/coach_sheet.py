@@ -4,6 +4,7 @@ from typing import Any
 
 from fitness.catalog.core.resolver import build_exercise_index, resolve_query
 from fitness.catalog.core.muscles import iter_muscle_documents
+from fitness.catalog.core.source_merge import find_source_entries
 from fitness.catalog.agent.teaching import find_lesson
 
 
@@ -41,8 +42,20 @@ def build_coach_sheet(exercise_query: str) -> dict[str, Any]:
         "trainer_simple": lesson_payload.get("trainer_simple", ""),
         "trainer_technical": lesson_payload.get("trainer_technical", ""),
         "short_trainer_checklist": build_trainer_checklist(coaching_notes, common_errors, lesson_payload),
-        "source_snapshot": record.source_snapshot or {},
+        "source_snapshot": _load_source_blocks(record),
     }
+
+
+def _load_source_blocks(record: Any) -> dict[str, Any]:
+    """Rohtreffer fuer den Coach-Sheet-"## Quellen"-Block live per ID/Name
+    nachschlagen statt aus einer gespeicherten Kopie zu lesen — es gibt seit
+    dem Content-Dump-Fix in `attach_source_snapshot()` keine gespeicherte
+    Kopie mehr, `kb/inbox/*.yml`/`kb/exercises/*.yml` tragen nur noch
+    `wger_id`/`yuhonas_id` als Referenz. Gibt dieselbe Shape zurueck wie
+    frueher `record.source_snapshot` ({"wger": entry|None, "yuhonas":
+    entry|None}), damit `render_coach_sheet_markdown()` unveraendert bleibt."""
+    found = find_source_entries(record.display_name or record.exercise_id, record.exercise_id, record=record)
+    return {key: found[key] for key in ("wger", "yuhonas") if found.get(key)}
 
 
 def render_coach_sheet_markdown(sheet: dict[str, Any]) -> str:

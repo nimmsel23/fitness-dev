@@ -31,7 +31,8 @@ class ExerciseSchemaTest(unittest.TestCase):
             ai_reviewed=False,
         )
         self.assertEqual(ex["origin"]["type"], "external")
-        self.assertEqual(ex["source_snapshot"]["wger"]["wger_id"], 206)
+        self.assertEqual(ex["origin"]["source_refs"]["wger"], ["206"])
+        self.assertNotIn("source_snapshot", ex)
         self.assertEqual(ex["review_state"]["status"], "draft")
 
     def test_expert_source_defaults_to_approved(self) -> None:

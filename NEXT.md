@@ -117,6 +117,19 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   lassen — in dieser Session haben zwei nicht-isolierte Agenten sich beim
   Committen (`git commit --amend`) gegenseitig Dateien zurückgesetzt (in
   `17a283c` repariert, nichts verloren).
+- `85781f7` (Kraft/Ausdauer-Wechsel bei befüllter Session legt neue Session an,
+  `switchSessionMode` via `sessionHasLoggedWorkout()`) ist am 2026-09-07 via
+  `fitness-release --yes` nach Staging/`fitness-aos.web.app` (Submodule-Bump
+  `dcbf15d`) **und** via `pkexec fitnessctl prod deploy` nach Prod `:6100`
+  deployed. Nur Build-verifiziert, von Claude nie im Browser durchgeklickt.
+  Offen:
+  - Kraft-Session mit Übungen anlegen → auf Ausdauer switchen → etwas loggen:
+    verifizieren, dass eine **neue** Session entsteht und die ursprüngliche
+    Kraft-Session erhalten bleibt (nicht überschrieben). Gegenrichtung
+    (Ausdauer → Kraft) genauso. Leere Session muss weiterhin in-place wechseln.
+  - CI-Run dieses Release-Pushs (`vitalos` GitHub Actions, "Deploy Fitness PWA" +
+    "Deploy VitalOS Shell") wurde nach `fitness-release` nicht mehr per `gh`
+    gegengeprüft.
 
 ## Claude Handoff - Firebase Coach-Inbox / Fuel-Grenze (2026-09-06)
 
@@ -167,3 +180,196 @@ Noch offen: echten Browser-Durchklick auf `fitness-aos.web.app/#coach` mit
 laufendem Funnel/`:6100`: local Draft sichtbar, Source verbinden, Reenrich,
 Approve, danach lokale `fitness/catalog/kb/exercises/*.yml` und Firestore-Mirror
 pruefen.
+
+## Aus der CLI-Logging-Session (2026-09-08, Commit `894877d`)
+
+- **`fitness strength` nur teil-verifiziert**: `log` wurde live gegen `:9150`
+  (Merge, `rev`-Hochzählen) getestet, aber `fitness strength wizard`, die
+  HIT-Modus-Randfälle und `fitness user-data log-client-workout` nach dem
+  Move von `catalog/` → `runtime/` sind nicht end-to-end gegen einen echten
+  Klienten durchgespielt.
+- **Nur Staging-Deploy**: der `commands/`-Auflösung + `fitness strength` ging per
+  Post-Push-Hook nur nach Staging (`:8100`). Ob/wann Prod `:6100`
+  (`pkexec fitnessctl prod deploy`) mit dem neuen CLI-Paketlayout nachgezogen
+  werden soll, ist offen (reines Backend, keine Firebase-Relevanz).
+- **"Side-Hammer-Curls"**: der Katalog-Resolver hat es beim heutigen Log auf
+  "Hammer Curls" gematcht; Nutzer hat entschieden, es soll eine **eigene neue
+  Übung** werden. Das KB-Anlegen + Nachloggen als separate Übung ist noch nicht
+  passiert (ging in der Paket-Umstrukturierung unter).
+- **10 neue Inbox-Drafts** vom Enrichment-Nebeneffekt des Session-Loggings
+  mitcommittet (`inbox_wger_73` / `_91` / `_1398` / `_1489` / `_1529`,
+  `inbox_yuhonas_hammer_curls`, `inbox_20260907_160353_8856f0`,
+  `inbox_20260907_160429_51cebc`, `inbox_20260907_185946_6fe7bb`,
+  `inbox_20260907_190006_1b4749`) — noch unreviewed.
+- **uv-Shim-Symlink kehrt zurück**: jedes `uv tool install` legt
+  `~/.dotfiles/bin/fitness-log` neu an und überschattet das jetzt versionierte
+  `bin/fitness-log`. Musste in der Session mehrfach von Hand entfernt werden —
+  braucht eine dauerhafte Lösung (Entry-Point aus `[project.scripts]` nehmen o.ä.).
+
+## Aus dem CLI-Aufräumen (2026-09-08, Commits `4e64dd1` + `3a7a507`)
+
+- **`fitness coach log-client-workout` nicht end-to-end getestet**: nach der
+  Move-Kette `catalog/` → `runtime/` → `coach/` wurde der Klienten-Log-Pfad
+  (inkl. `_prompt_exercises_interactive()`) nicht gegen einen echten Klienten
+  (`~/Klienten/<id>/`) durchgespielt. Der Command-Pfad hat sich geändert — alte
+  Doku/Muscle-Memory verweist noch auf `fitness user-data log-client-workout`.
+- **Resolver benennt bei medium-confidence still um**: `fitness-log add` (non-
+  interaktiv) übernimmt jeden Fuzzy-Treffer außer low-confidence blind und
+  schreibt den Katalog-Namen statt des Original-Texts in die Session — Ursache
+  für den heutigen "Biceps Curls" → falsches `wger_91`-Mapping. Claude hat
+  vorgeschlagen (medium-confidence: Originalname behalten + Warnung, nur
+  high-confidence übernimmt Katalognamen), der Nutzer hat das aber nicht
+  explizit beauftragt. Fix steht noch aus.
+- **`fitness-log wizard` + HIT-Randfälle**: die neuen `add`/`wizard`-Subcommands
+  wurden nach dem Merge aus `fitness/strength/` nur build-/syntax-verifiziert,
+  `wizard` und die HIT-Modus-Randfälle nicht erneut interaktiv durchgespielt.
+- **`inbox_wger_92.yml`** (untracked): Enrichment-Nebeneffekt der heutigen
+  Bizeps-KH-Curls-Korrektur, noch nicht committet/reviewed.
+- **Prod-Deploy `:6100`** des neuen CLI-Paketlayouts (`fitness/coach/`,
+  `fitness/log/strength.py`, `muscle_label()`) ist offen — reines Backend/CLI,
+  keine Firebase-Relevanz, ging per Post-Push-Hook nur nach Staging.
+
+## Aus dem Katalog-Search/Inbox-Fix (2026-09-08, Commit `233dc19`)
+
+- **Bestehende ~52 Inbox-Drafts sind nicht saniert**: die drei Fixes greifen nur
+  für *neu* erzeugte Drafts / Snapshots. Die schon in `kb/inbox/` liegenden
+  wger-Drafts haben weiterhin die aufgeblähte Einzelquellen-Struktur
+  (10–13× "wger"/ID pro File) + generische `coaching_notes`-Boilerplate +
+  teils widersprüchliche `expert-tier`/`reviewed`-Tags. Ob die neu generiert,
+  per Script entduplex't oder verworfen werden, ist offen.
+- **Draft-*Erzeugung* selbst noch nicht auf "nur verlinken" umgestellt**: nur
+  `build_source_snapshot()` wurde entduplex't. Der Gemini-Seed / die
+  coaching_notes-Generierung (`build_external_seed()` / `call_gemini()` in
+  `fitness/catalog/agent/gemini.py`) dumpt/erzeugt weiterhin generischen
+  Volltext statt eine knappe ID-verlinkte Referenzbasis — vom Nutzer als
+  Kernproblem benannt, nur teilweise adressiert.
+- **`wger_1529` (Klimmzüge neutraler Griff)** liegt wieder als unapprovter Draft
+  in `kb/inbox/`. Fachlich fehlt Bizeps als `secondary_muscles` in der
+  KB-Quelle `unreviewed_wger.yml:17812` (nur `201_latissimus_dorsi`); der
+  angereicherte Draft hat Bizeps korrekt drin, ist aber bewusst nicht approved
+  (Nutzer will nicht, dass Claude approved). Approval-Entscheidung offen.
+- **`wger_1489` "Langhantelrudern (Obergriff)"** ist zu unscharf (nur
+  `201_latissimus_dorsi`, generische Notizen). Nutzer hat geklärt: es war
+  *hohes*, vorgebeugtes Rudern für den oberen Rücken. Sollte als eigener
+  präziser Katalog-Eintrag (hohes vs. niedriges Rudern) entstehen statt den
+  vagen wger-Import zu verwenden — noch nicht angelegt.
+- **`test_jefferson_curl_is_expert_record`** schlägt fehl (Hintergrund-Pytest
+  `test_resolver.py`). Von Claude als vorbestehend/datenstand-bedingt und
+  unabhängig von den Änderungen eingeschätzt, aber nicht abschließend
+  verifiziert.
+- Der `/exercises/search`-Fallback-Fix wurde nur syntax-/importgeprüft, **nicht
+  live gegen einen laufenden Backend** (`:9150`/`:6100`) mit echten
+  Doppel-Treffer-Queries durchgetestet.
+- **Prod-Deploy `:6100`** dieser drei Katalog-Fixes offen (ging per Post-Push
+  nur nach Staging `:8100`).
+
+## Aus dem Inbox-ID-Referenz-/TUI-Editor-Fix (2026-09-09, Commits `1a04fdd` + `f8173a9` + `db28cdf`)
+
+- **Alle drei Commits (`1a04fdd` + `f8173a9` + `db28cdf`) sind auf `origin/dev`**
+  (`db28cdf` am Session-Ende nachgepusht, `f8173a9..8a314bc`), Post-Push-Hook
+  Build + Staging-Deploy (`:8100`) grün mit durch. **Prod-Deploy `:6100`
+  (`pkexec fitnessctl prod deploy`) für die drei weiterhin offen** — reines
+  Backend/CLI, keine Firebase-Relevanz.
+- **`_edit_exercise_interactive()` / `_save_exercise_to_file()` (`tui.py`) nur
+  import-/syntax-geprüft + ein `_save_exercise_to_file()`-Roundtrip getestet** —
+  nie interaktiv durch das echte TUI-Menü (`fitness catalog` → Inbox-Detail "e" /
+  Browser-Detail "e") durchgespielt.
+- **Bestehende ~52 Inbox-Drafts weiterhin nicht saniert**: `create_inbox_draft()`
+  + `new-draft` erzeugen jetzt ID-only, aber die schon in `kb/inbox/` liegenden
+  aufgeblähten wger-Drafts sind unberührt. Ob per Script neu erzeugt/entduplex't
+  oder verworfen, weiter offen.
+- **Gemini-Seed / `coaching_notes`-Generierung noch nicht auf "nur verlinken"
+  umgestellt**: `build_source_snapshot()` ist jetzt ganz weg und die
+  Draft-Anlage ID-only, aber `build_external_seed()` / `call_gemini()`
+  (`fitness/catalog/agent/gemini.py`) erzeugen weiter generischen Volltext statt
+  einer knappen ID-verlinkten Referenzbasis.
+- **Offene User-Frage vor `/compact`**: `2026-09-08.json` hat RPE/Dauer/Ort nur
+  als Freitext-Präfix im `notes`-Feld (kein `effort`/`duration`/`location` auf
+  Top-Level), daher rendert `fitness-log show` die Meta-Zeile nicht wie beim
+  07.09. Claude hat angeboten, `notes` in die strukturierten Felder aufzusplitten
+  — User hat nicht mehr geantwortet.
+- **`inbox_wger_92.yml`** weiterhin untracked (Enrichment-Nebeneffekt der
+  Bizeps-KH-Curls-Korrektur vom 2026-09-08), noch nicht committet/reviewed.
+- **CLAUDE.md-Doku-Ungenauigkeit**: `../fitness/catalog/CLAUDE.md` spricht von
+  "Textual TUI", `tui.py` nutzt aber durchgehend `rich.prompt` — im Commit
+  `db28cdf` als ungenau vermerkt, Doku-Fix nicht gemacht.
+
+## Aus dem CLI-Log `effort`/RPE-Fix (2026-09-09, noch nicht committet)
+
+- **`fitness/log/strength.py` + `fitness/log/cli.py` sind uncommitted**
+  (`git status` zeigt beide als `M`): `--effort/--rpe/-e` für `fitness-log add`,
+  `effort`-Parameter in `merge_exercise_into_session()`, RPE-Abfrage im Wizard.
+  Muss committet werden. Der zugehörige Test-Lauf `pytest -k "strength or log"`
+  (Hintergrund `bp3v4mpbt`) lief bei `/compact` noch — Ergebnis vor dem Commit
+  prüfen.
+- **Nur `add`/`wizard` geprüft am Code, nicht live**: `fitness-log add --rpe 9`
+  bzw. der Wizard wurden nicht real gegen `:9100`/`:9150` durchgespielt
+  (schreibt `session.effort` tatsächlich sauber, ohne `notes` anzufassen?).
+- **`fitness/log/activity.py` (Cardio) hat das Gegenstück-Feld noch nicht**:
+  falls Ausdauer-Sessions ebenfalls ein strukturiertes `effort` bekommen sollen,
+  ist der Cardio-Log-Pfad noch offen — nicht beauftragt, nur Konsistenz-Lücke.
+- **`2026-09-08.json` ist datenkorrigiert** (`effort: 9`, `notes` gekürzt, `.bak`
+  vorhanden) — erledigt, nicht erneut anfassen. Der SQLite-Mirror /
+  Firestore-Sync für diese eine Session wurde nicht nachgezogen.
+
+## Aus dem Runtime-Session-Resolver + Journal-Mirror-Refactor (2026-09-09, Commits `e7f1519` + `81031d6`)
+
+- **Ordner-Verschachtelung Jahr/Monat für Session-JSONs bewusst NICHT
+  eingeführt** — braucht User-Entscheidung. `fitness/runtime/session_store.py`
+  ist jetzt der zentrale Resolver (`session_path`/`session_date`/
+  `iter_session_files`), aber alle Schreiber legen weiter flach ab:
+  `server.mjs` (`sessDir`), `fitness/api/routers/sessions.py` +
+  `fitness/api/config.py::_session_file`, `fitness/firestore/mirror.py`
+  (`on_session`, `mirror_session`), `firestore-mirror.mjs`. Verschachtelung
+  = alle vier Schreiber umstellen + einmalige Migration der Bestandsdateien
+  (kein `rm`, `mv` + `.bak`) + Firestore-Doc-IDs bleiben flach (`date` /
+  `date__sid`) → Mapping nur lokal. Erst machen, wenn die flache Ablage
+  echte Probleme macht (aktuell < ~500 Dateien/User, kein Druck).
+- **Nur `fitness/runtime/{user_data,note_backfill}.py` auf den Resolver
+  gezogen** — der Rest des Repos baut Session-Pfade weiter selbst
+  (`fitness/data.py`, `fitness/cli.py`, `fitness/api/routers/*.py`,
+  `fitness/catalog/api/sync_gateway.py`, `fitness/catalog/tui.py`,
+  `fitness/log/*`, `fitness/activity/cli.py`, `fitness/firestore/sync.py`
+  u.a., ~25 Stellen). Bewusst nicht in einem Zug migriert (Live-API-Router,
+  je eigenes `_sessions_dir()`-Idiom). Kandidat für einen späteren,
+  abgegrenzten Folge-Pass pro Modul.
+- **Journal-Sync bleibt marker-append-only** (`<!-- fsid|fshr|fshid:… -->`
+  in `journal/YYYY-MM-DD.md`). `81031d6` hat nur die 3 divergenten
+  Schreib-/Dedup-Kopien in `mirror.py` zu `_append_journal_block()`
+  zusammengeführt. Der vom User als Design-Fehler benannte Kern (kein
+  Einzel-Edit/-Delete, fragiles Parsing) ist damit NICHT gelöst.
+
+  **JSONL-SOT-Umbau (`journal/YYYY-MM-DD.entries.jsonl` als Quelle, `.md`
+  deterministisch daraus gerendert) wurde am 2026-09-09 begonnen, dann
+  GESTOPPT** — Scope-Befund: die `journal/*.md` hat **vier** Schreiber in
+  **drei** Sprachen, nicht nur `mirror.py`:
+  1. `fitness/firestore/mirror.py` → `on_journal`/`on_habit_records`/
+     `on_habit_journals` — Marker-Append (Daemon `fitness-firestore-daemon`).
+  2. `fitness/api/routers/journal.py` → `POST /journal` — **Ganzdatei-
+     Overwrite** mit Freitext-`content` (Prod-API :9150/:6100).
+  3. `server.mjs` → `POST /journal` — **Ganzdatei-Overwrite** mit Freitext
+     (Dev :9100); zusätzlich `appendJournalBlock()` im `POST /firestore/sync`-
+     Pull-Handler (Marker-Append, on-demand).
+  4. `firestore-mirror.mjs` — Marker-Block-Builder für den Node-Pull-Pfad.
+
+  **Das Frontend schreibt die `.md`** (bestätigt, nicht geraten):
+  `src/lib/db/local/journal.js::saveJournal/updateJournal` POSTet im
+  Local-Modus den **ganzen Tagestext als ein Freitext-`content`** an
+  `POST /journal` → Ganzdatei-Overwrite. Im Firestore-Modus
+  (`src/lib/db/firestore/journal.js`) geht das Frontend direkt gegen
+  Firestore und fasst die `.md` gar nicht an. Die `.md` ist also
+  Doppelnutzung: Freitext-Tagesnotiz (Frontend, Overwrite) **+**
+  Marker-Append-Log der Firestore-Journal-/Habit-Docs (Daemons). Diese
+  beiden Schreibarten kollidieren schon heute (Frontend-Overwrite löscht
+  angehängte Habit-Blöcke).
+
+  Ein `mirror.py`-only-Umbau auf „`.md` aus JSONL neu rendern" würde den
+  Frontend-Freitext bei jedem Daemon-Event **überschreiben** (Datenverlust)
+  und ein Split-Brain mit den Node-Schreibern erzeugen. Sauber ist der
+  Umbau nur, wenn **alle vier Schreiber + der Frontend-Contract**
+  (Freitext-Blob ↔ strukturierte Einträge) zusammen migriert werden, plus
+  Einmal-Migration bestehender `.md` → JSONL. Das ist eine große,
+  sprachübergreifende Architektur-Umstellung → **braucht bewusste
+  User-/Team-Entscheidung über Umfang und Contract**, nicht als
+  Teil-Change durchdrücken. `_append_journal_block()` ist der eine Ort,
+  an dem die Python-Seite später ansetzt.

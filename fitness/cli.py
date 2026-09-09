@@ -6,10 +6,11 @@ fitness — Domain CLI für alle Fitness-Subcommands.
   fitness tui            Session-Dashboard-TUI (Textual, fitness-tui) — hat NICHTS mit dem Katalog zu tun
   fitness kb    <cmd>    anatomy-kb kbctl (:9200)
   fitness mail  <cmd>    Fitbit Gmail Pipeline
-  fitness log   <cmd>    Session-Log aus Dateien (kein Server)
+  fitness log   <cmd>    Session-Log aus Dateien (kein Server) + add/wizard zum Kraft-Session-Loggen (merged statt overwrite)
   fitness activity <cmd> Cardio/Activity loggen
   fitness sync  <cmd>    KB-Sync + Firestore-Sync (kb|pull|push|watch|all) → fitness-sync
   fitness user-data <cmd> Runtime-Userdaten/SQLite-History prüfen und gezielt patchen
+  fitness coach <cmd>    Klienten-Workout loggen (~/Klienten/<id>/)
   fitness health         /health aller Services
   fitness status         systemd-Units Übersicht
   fitness coverage       Muskelabdeckung
@@ -37,6 +38,7 @@ from typing import Optional
 import typer
 
 from fitness.runtime.cli import app as runtime_user_data_app
+from fitness.coach.cli import app as coach_app
 
 # ── Pfade ──────────────────────────────────────────────────────────────────────
 FITNESS_DEV  = Path(__file__).resolve().parent.parent
@@ -156,6 +158,7 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 app.add_typer(runtime_user_data_app, name="user-data")
+app.add_typer(coach_app, name="coach")
 
 @app.command(context_settings=_ctx, help="fitness.catalog CLI (audit|teach|resolve|log|history|report|plan|...) — für alles außer der TUI selbst, siehe: fitness catalog")
 def agent(ctx: typer.Context) -> None:
@@ -191,7 +194,7 @@ def dev(ctx: typer.Context) -> None:
 def mail(ctx: typer.Context) -> None:
     passthrough("fitness-mail", ctx.args, "fitness-mail")
 
-@app.command(context_settings=_ctx, help="Session-Log direkt aus Dateien (ls|show|week|history|stats|sync-status) — kein Server nötig")
+@app.command(context_settings=_ctx, help="Session-Log direkt aus Dateien (ls|show|week|history|stats|sync-status|add|wizard) — kein Server nötig, add/wizard schreiben")
 def log(ctx: typer.Context) -> None:
     passthrough("fitness-log", ctx.args, "fitness-log")
 
@@ -203,7 +206,7 @@ def tui(ctx: typer.Context) -> None:
 def activity(ctx: typer.Context) -> None:
     passthrough("fitness-activity", ctx.args, "fitness-activity")
 
-@app.command(context_settings=_ctx, help="KB-Sync + Firestore-Sync (kb|pull|push|watch|all) — siehe fitness/commands/sync.py")
+@app.command(context_settings=_ctx, help="KB-Sync + Firestore-Sync (kb|pull|push|watch|all) — siehe fitness/sync/cli.py")
 def sync(ctx: typer.Context) -> None:
     passthrough("fitness-sync", ctx.args, "fitness-sync")
 
