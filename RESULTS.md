@@ -1,3 +1,37 @@
+# CLI-Log: strukturiertes `effort`/RPE-Feld statt Freitext in `notes` + Korrektur der 2026-09-08-Session (2026-09-09)
+
+Nachlauf zur Inbox-ID-Referenz-Session (Eintrag unten). Der Nutzer konfrontierte,
+dass die Session `2026-09-08.json` **rein per CLI von Claude angelegt** wurde
+(nicht in der App geloggt) und deshalb kein strukturiertes RPE-Feld hat: Claude
+hatte alle Angaben (Ort, Dauer, "RPE 9") beim Anlegen nur als Freitext-Präfix ins
+`notes`-Feld geschrieben statt in eigene Felder — App-geloggte Sessions haben
+dafür ein Top-Level-`effort`. Auftrag: "korrigiere das skript zum anlegen!
+wahrscheinlich warst du faul!". Zwei Teile umgesetzt (Skript-Fix + Datenkorrektur),
+plus vorab die vom Vorgänger-Turn offene Standing-Push-Aufgabe abgeschlossen.
+**Skript-Änderungen sind noch nicht committet** (`M fitness/log/cli.py`,
+`M fitness/log/strength.py`) — die Session endete mit `/compact`, bevor ein
+Commit lief; der relevante Test-Lauf (`pytest -k "strength or log"`, Hintergrund
+`bp3v4mpbt`) lief bei Session-Ende noch.
+
+* **`fitness/log/strength.py`**: `merge_exercise_into_session()` bekommt neuen
+  optionalen Parameter `effort: int | None`, schreibt ihn als `session["effort"]`
+  (nicht in `notes`). `add_exercise()` reicht `effort` durch. `run_wizard()` fragt
+  RPE/Effort jetzt als eigene Eingabe ab, nicht mehr über das Notiz-Feld.
+* **`fitness/log/cli.py`**: `cmd_add` bekommt Option `--effort` / `--rpe` / `-e`
+  (Hilfetext: "strukturiertes Session-Feld, NICHT in notes packen"), wird an
+  `add_exercise()` weitergegeben.
+* **Runtime-Sessiondatei `~/.aos/fitness/users/59ole…/sessions/2026-09-08.json`**
+  (kein Repo-File): "RPE 9" per Regex aus `notes` entfernt und als Top-Level
+  `effort: 9` gesetzt; `notes` bleibt `"Klimmzug im Obergriff: Fitness First
+  Schnirchgasse, 60min"`. Backup `.bak` vorher angelegt.
+* **`git push origin dev`** (`8a314bc..9c59bbb`): der lokal noch nicht gepushte
+  Auto-Doc-Commit `9c59bbb` (`docs: auto-update NEXT.md`) nach `origin/dev`
+  gebracht (Standing-Freigabe), nachdem der Hintergrund-Pytest `bq1zn2j7y` grün
+  (`exit 0`) war. Push löste Build-Verifikation + Staging-Deploy (`:8100`) grün
+  mit aus. Kein `fitness-release`/Prod-Deploy.
+
+---
+
 # Katalog: Inbox-Drafts nur noch ID-Referenz, wger↔yuhonas-Fuzzy-Match-Regression gefixt, strukturierter Feld-Editor in der TUI (2026-09-09)
 
 Direkte Fortsetzung des Katalog-Search/Inbox-Fixes (`233dc19`, Eintrag unten).
