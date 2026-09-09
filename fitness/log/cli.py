@@ -635,6 +635,8 @@ def cmd_add(
     block: str = typer.Option(None, "--block", "-b", help="Trainingsblock (z.B. Push/Pull/Legs) — nur gesetzt wenn angegeben"),
     notes: str = typer.Option(None, "--notes", "-n", help="Notiz an die Übung"),
     effort: int = typer.Option(None, "--effort", "--rpe", "-e", help="RPE/Effort der Session (1-10) — strukturiertes Session-Feld, NICHT in notes packen"),
+    location: str = typer.Option(None, "--location", "-l", help="Trainingsort der Session (z.B. Studio-Name) — strukturiertes Session-Feld, NICHT in notes packen"),
+    duration: int = typer.Option(None, "--duration", help="Dauer der Session in Minuten — strukturiertes Session-Feld, NICHT in notes packen"),
     day: str = typer.Option(None, "--date", help="YYYY-MM-DD (Default heute)"),
     session_id: str = typer.Option(None, "--session-id", help="An eine bestehende Zusatz-Session anhängen"),
     uid_override: str = typer.Option(None, "--uid"),
@@ -644,7 +646,8 @@ def cmd_add(
 
     add_exercise(
         exercise, sets=sets, reps=reps, weight=weight, block=block, notes=notes,
-        effort=effort, day=day, session_id=session_id, uid_override=uid_override, dry_run=dry_run,
+        effort=effort, location=location, duration=duration,
+        day=day, session_id=session_id, uid_override=uid_override, dry_run=dry_run,
     )
 
 

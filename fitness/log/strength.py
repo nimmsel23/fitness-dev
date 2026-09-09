@@ -153,6 +153,8 @@ def merge_exercise_into_session(
     sets_array: list[dict],
     block: str | None,
     effort: int | None = None,
+    location: str | None = None,
+    duration: int | None = None,
 ) -> dict:
     session = dict(session) if session else {}
     exercises = list(session.get("exercises") or [])
@@ -178,6 +180,10 @@ def merge_exercise_into_session(
     # existierte (Fix nach User-Feedback 2026-09-09).
     if effort is not None:
         session["effort"] = effort
+    if location is not None:
+        session["location"] = location
+    if duration is not None:
+        session["duration"] = duration
     return session
 
 
@@ -192,6 +198,8 @@ def add_exercise(
     block: str | None = None,
     notes: str | None = None,
     effort: int | None = None,
+    location: str | None = None,
+    duration: int | None = None,
     day: str | None = None,
     session_id: str | None = None,
     uid_override: str | None = None,
@@ -210,13 +218,19 @@ def add_exercise(
     console.print(f"  [bold]{ex['name']}[/bold]  {sets}× " + " / ".join(f"{r}×{w}kg" for r, w in zip(reps_series, weight_series)))
     if effort is not None:
         console.print(f"  [dim]RPE {effort}[/dim]")
+    if location:
+        console.print(f"  [dim]📍 {location}[/dim]")
+    if duration is not None:
+        console.print(f"  [dim]⏱ {duration}min[/dim]")
 
     if dry_run:
         logger.info("(dry-run, nichts gesendet)")
         return
 
     current = get_session(uid, target_day, session_id)
-    merged = merge_exercise_into_session(current, ex, sets_array, block, effort=effort)
+    merged = merge_exercise_into_session(
+        current, ex, sets_array, block, effort=effort, location=location, duration=duration,
+    )
     if notes:
         merged["notes"] = (merged.get("notes", "") + f"\n{ex['name']}: {notes}").strip()
 
@@ -241,6 +255,9 @@ def run_wizard(*, day: str | None = None, uid_override: str | None = None) -> No
     block = Prompt.ask("Block (z.B. Push/Pull/Legs, leer = unverändert lassen)", default="")
     effort_raw = Prompt.ask("Effort/RPE der ganzen Session (1-10, leer = unverändert lassen)", default="")
     effort = int(effort_raw) if effort_raw.strip().isdigit() else None
+    location = Prompt.ask("Ort (z.B. Studio-Name, leer = unverändert lassen)", default="").strip() or None
+    duration_raw = Prompt.ask("Dauer in Minuten (leer = unverändert lassen)", default="")
+    duration = int(duration_raw) if duration_raw.strip().isdigit() else None
 
     first = True
     while True:
@@ -265,6 +282,8 @@ def run_wizard(*, day: str | None = None, uid_override: str | None = None) -> No
         merged = merge_exercise_into_session(
             current, ex, sets_array, block if first else None,
             effort=effort if first else None,
+            location=location if first else None,
+            duration=duration if first else None,
         )
         if notes:
             merged["notes"] = (merged.get("notes", "") + f"\n{ex['name']}: {notes}").strip()
