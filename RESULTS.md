@@ -1,3 +1,61 @@
+# Runtime-Session-Resolver + Journal-Mirror-Konsolidierung + Yuhonas-Regionsnamen-Fix (2026-09-09)
+
+Drei kleinere Refactor-/Fix-Commits nach dem Ort/Dauer-Release (Eintrag unten),
+alle auf `origin/dev`, Post-Push-Hook (Build + Staging-Deploy `:8100`) jeweils
+grün. Parallel dazu wurde der JSONL-Journal-Umbau angefangen und nach einem
+Scope-Befund bewusst gestoppt (Details in `NEXT.md`). Der am Session-Ende vom
+Nutzer gestartete `fitness-release --yes` blieb an unstaged Journal-WIP einer
+**parallelen** Session hängen (`server.mjs`, `journal-store.mjs`,
+`fitness/runtime/journal_store.py`, `fitness/api/routers/journal.py`,
+`fitness/firestore/mirror.py`, `inbox_wger_92.yml`) — bewusst nicht angefasst,
+Release wartet bis die andere Session ihren Kram committet.
+
+* **`fitness/runtime/session_store.py`** (neu, `e7f1519`): zentraler
+  Session-JSON-Resolver — `session_path(uid, date, session_id=None)`,
+  `session_date(path)`, `iter_session_files(uid=None, date_from=, date_to=)`,
+  `user_dirs()` / `user_sessions_dir()` / `runtime_users_dir()`. Löst das je
+  ~5× eigenständig (teils divergent) nachgebaute `runtime_root()/users/<uid>/
+  sessions` + `glob("*.json")` + Datумsparsing ab.
+* **`fitness/runtime/user_data.py` + `fitness/runtime/note_backfill.py`**
+  (`e7f1519`): auf den Resolver umgezogen (`list_runtime_users`,
+  `iter_session_signals`, `merge_day_activities`,
+  `find_sessions_needing_fix`, `find_suspect_default_effort`). Verhalten
+  unverändert bis auf: Session-Dateien ohne parsebares ISO-Datum im Namen
+  werden jetzt konsistent übersprungen (vorher nur in `merge_day_activities`).
+  Keine Jahr/Monat-Ordnerverschachtelung eingeführt — die Schreiber legen
+  weiter flach ab (bewusst, siehe `NEXT.md`).
+* **`fitness/firestore/mirror.py`** (`81031d6`): `on_journal` /
+  `on_habit_records` / `on_habit_journals` hängten den marker-getaggten Block
+  (`<!-- fsid|fshr|fshid:… -->`) je 3× leicht abweichend an `journal/
+  YYYY-MM-DD.md` an — jetzt eine einzige idempotente `_append_journal_block(
+  md_file, marker, body)` mit konsistentem `encoding="utf-8"`. Append-only,
+  Marker bleibt Dedup-Schlüssel; echtes Einzel-Edit/-Delete bleibt bewusst
+  offen (User-Design-Entscheidung, `NEXT.md`).
+* **`fitness/catalog/core/source_merge.py` + `.../muscle_normalization.py`**
+  (`cbb7968`): User-Fund — `inbox_20260907_185946_6fe7bb.yml`
+  (Schrägbankdrücken KH) hatte `chest`/`shoulders`/`triceps` roh **neben**
+  den kanonischen wger-IDs. Root Cause: `build_external_seed()` mergte die
+  drei Muskel-Felder per `_merge_list_fields()` direkt aus den Rohdaten ohne
+  `normalize_exercise_muscle_list()`. Fix: alle drei Felder laufen jetzt durch
+  die Normalisierung; `refine_generic_region_labels()` verwirft grobe
+  Regionen (`shoulders`) beim Nicht-Match, statt sie durchzureichen.
+* **`fitness/catalog/kb/inbox/inbox_20260907_185946_6fe7bb.yml`** (`cbb7968`):
+  Draft manuell korrigiert (rohe Regionsnamen raus, kanonische IDs blieben),
+  `.bak` angelegt. Kompletter `kb/inbox/`-Scan: keine weiteren Drafts mit dem
+  Muster. Katalog-Tests: 2 shoulder-Normalisierungstests grün, nur die 2
+  bekannten vorbestehenden `.fitness-agent/config.yml`-Tmp-Dir-Fehler.
+* **JSONL-Journal-Umbau (`journal/YYYY-MM-DD.entries.jsonl` als SOT, `.md`
+  deterministisch daraus gerendert): begonnen, dann GESTOPPT.** Scope-Befund:
+  die `journal/*.md` hat **vier** Schreiber in **drei** Sprachen
+  (`mirror.py`, `api/routers/journal.py` Ganzdatei-Overwrite, `server.mjs`
+  Ganzdatei-Overwrite + `appendJournalBlock()`, `firestore-mirror.mjs`), und
+  das Frontend (`src/lib/db/local/journal.js`) POSTet im Local-Modus den
+  ganzen Tagestext als Freitext-`content` → Ganzdatei-Overwrite. Ein
+  `mirror.py`-only-Umbau würde den Frontend-Freitext überschreiben. Vollständig
+  in `NEXT.md` dokumentiert (`6cbd4d1` / `fd3ff10`).
+
+---
+
 # CLI-Log: Ort/Dauer strukturiert (`session.location`/`duration`) + `effort`/RPE-Fix committet & released (2026-09-09)
 
 Direkte Fortsetzung des `effort`/RPE-Eintrags unten. Der dort noch als „uncommitted,
