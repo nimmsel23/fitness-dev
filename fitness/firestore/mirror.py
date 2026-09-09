@@ -98,6 +98,23 @@ def _user_fitness_dir(uid: str) -> Path:
     return Path.home() / ".aos" / "users" / uid / "fitness"
 
 
+def _habit_name(uid: str, habit_id: str) -> str:
+    """Löst eine habitId auf ihren Anzeigenamen auf — aus der lokalen
+    `habits/definitions.json` (die `on_habits` pflegt). Fallback `Habit:<id>`,
+    identisch zu `fitness/firestore/sync.py`, damit beide Schreiber denselben
+    Journal-Body (und damit dieselbe `.entries.jsonl`) erzeugen."""
+    defs_file = _user_fitness_dir(uid) / "habits" / "definitions.json"
+    if defs_file.exists():
+        try:
+            for h in json.loads(defs_file.read_text()):
+                if h.get("uuid") == habit_id:
+                    # sync.py-Parität: bekannter Habit ohne name-Feld -> "Unknown Habit"
+                    return h.get("name") or "Unknown Habit"
+        except Exception:
+            pass
+    return f"Habit:{habit_id}"
+
+
 def _inbox_local_dir(uid: str) -> Path:
     return Path.home() / ".aos" / "users" / uid / "fitness" / "inbox"
 
@@ -283,8 +300,9 @@ def on_habit_records(col_snapshot, changes, read_time):
 
         # Journal-Markdown
         md_file = (user_dir / "journal") / f"{date}.md"
-        line = f"**{habit_id}** {completion} _{rec_at}_" if rec_at else f"**{habit_id}** {completion}"
-        _journal_upsert(md_file, source="habit_records", entry_id=doc_id, body=line,
+        hname = _habit_name(uid, habit_id)
+        body = f"**{hname}** {completion}" + (f" _{rec_at}_" if rec_at else "")
+        _journal_upsert(md_file, source="habit_records", entry_id=doc_id, body=body,
                         ts_value=(ts(data.get("recorded_at")) or ""))
         with _lock:
             _save_known(_known_hr_path, _known_hr)
@@ -317,11 +335,12 @@ def on_habit_journals(col_snapshot, changes, read_time):
         if not date:
             continue
         md_file = (_user_fitness_dir(uid) / "journal") / f"{date}.md"
-        body = f"**Habit: {habit_id}**\n"
-        if text:
-            body += f"{text}\n"
+        hname = _habit_name(uid, habit_id)
+        hj_time = (ts(data.get("recorded_at") or data.get("updated_at")) or "")[:16]
+        body = f"**Habit: {hname}**" + (f" _{hj_time}_" if hj_time else "")
+        body += f"\n{text}" if text else ""
         if feedback:
-            body += f"> **Coach Feedback:** {feedback}\n"
+            body += f"\n> **Coach Feedback:** {feedback}"
         wrote = _journal_upsert(md_file, source="habit_journals", entry_id=doc_id, body=body,
                                 ts_value=(ts(data.get("recorded_at") or data.get("updated_at")) or ""))
         with _lock:

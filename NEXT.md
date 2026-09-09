@@ -381,13 +381,26 @@ pruefen.
     verifiziert wiederhergestellt.
   - Restrisiken: (a) `.entries.jsonl` read-modify-write, atomic
     `os.replace` aber kein Lock — Race nur bei sekundengleichem Write auf
-    denselben Tag. (b) `mirror.py` (Daemon) und `sync.py` (`fitness sync
-    pull`) rendern Habit-Bodies minimal unterschiedlich (`habit_id` vs.
-    aufgelöster `hname`) → beim manuellen `pull` kosmetisches Flip-Flop
-    eines Eintrags, kein Datenverlust. (c) Daemon
-    `fitness-firestore-daemon.service` braucht **Restart**, um den neuen
-    Code zu laden — vorher hängt es weiter Alt-Marker an die `.md` (lokal,
-    re-migrierbar).
+    denselben Tag. (b) ~~`mirror.py` vs. `sync.py` Habit-Body-Divergenz~~
+    **GELÖST (2026-09-09)**: `mirror.py` löst Habit-Namen jetzt via neuer
+    `_habit_name(uid, habit_id)` aus `habits/definitions.json` auf (Fallback
+    `Habit:<id>` bzw. `Unknown Habit` bei bekanntem Habit ohne name —
+    `sync.py`-Parität). `on_habit_records`/`on_habit_journals`-Bodies exakt
+    an `sync.py` angeglichen (inkl. `_{time}_`-Suffix, `\n`-Trenner statt
+    trailing `\n`). (c) ~~Daemon braucht Restart~~ **ERLEDIGT**: Daemon
+    `fitness-firestore-daemon.service` nach JSONL-Umbau + `_habit_name`-Fix
+    neugestartet, läuft mit neuem Code (`WorkingDirectory ~/fitness-dev`).
+
+## fitnessctl daemon (2026-09-09)
+
+- **Neu: `fitnessctl daemon <cmd>`** steuert `fitness-firestore-daemon.service`
+  (user-scope Firestore-Mirror). Subcommands: `status` (aktiv/boot/pid/uptime
+  + ExecStart/WorkingDirectory + letzte 5 Journal-Zeilen), `restart`
+  (Pflicht nach Code-Änderung an `mirror.py`/`journal_store.py`), `start`,
+  `stop`, `enable`, `disable`, `logs [-f|-n N]`. Selbstständige Typer-Sub-App
+  in `fitnessctl` (nicht in `fitness-devctl`, da der Daemon weder Dev-Node-
+  noch Python-API-Stack ist). `fitnessctl daemon` fasst damit das an, was
+  `fitnessctl dev`/`prod` bewusst auslassen.
 
 ## Aus dem CLI-Log Ort/Dauer-Fix (2026-09-09, Commits `07d4fdf` + `3d1cc0e`)
 
