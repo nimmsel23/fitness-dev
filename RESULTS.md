@@ -1,3 +1,41 @@
+# CLI-Log: Ort/Dauer strukturiert (`session.location`/`duration`) + `effort`/RPE-Fix committet & released (2026-09-09)
+
+Direkte Fortsetzung des `effort`/RPE-Eintrags unten. Der dort noch als „uncommitted,
+Test läuft noch" beschriebene Stand wurde abgeschlossen (Commit `07d4fdf`), danach auf
+Nutzerwunsch („bau das skript endlich fertig") analog um strukturierte `location`/
+`duration`-Felder erweitert (Commit `3d1cc0e`). Beide Commits liegen auf `origin/dev`
+und wurden in den `vitalos`-Branch/Worktree gemergt+gepusht (Post-Push-Hook: Build +
+Staging-Deploy `:8100` grün). Der anschließend **vom Nutzer selbst** gestartete
+`fitness-release --yes` lief für den Fitness-Teil sauber durch, brach aber beim
+Submodule-Pointer-Bump im `~/vitalos`-Parent-Repo ab (3 unrelated unstaged Dateien
+einer parallelen Push-Notification-Session).
+
+* **`fitness/log/strength.py`**: `merge_exercise_into_session()` / `add_exercise()` /
+  `run_wizard()` bekommen `effort`-Parameter → `session["effort"]` statt Freitext-
+  `notes` (`07d4fdf`); dieselben drei Funktionen zusätzlich um `location` / `duration`
+  erweitert → `session["location"]` / `session["duration"]` (`3d1cc0e`). Der Wizard
+  fragt RPE, Ort und Dauer jeweils als eigene Eingabe ab; das `add`-Konsolen-Echo
+  zeigt 📍/⏱.
+* **`fitness/log/cli.py`**: `cmd_add` bekommt `--effort` / `--rpe` / `-e` (`07d4fdf`)
+  sowie `--location` / `-l` und `--duration` (`3d1cc0e`) — Hilfetexte betonen
+  „strukturiertes Session-Feld, NICHT in notes packen".
+* **Runtime-Session `~/.aos/fitness/users/59ole…/sessions/2026-09-08.json`** (kein
+  Repo-File): `effort: 9` (aus „RPE 9"), `location: "Fitness First Schnirchgasse"`,
+  `duration: 60` per Regex aus `notes` extrahiert; `notes` auf `"Klimmzug im
+  Obergriff"` reduziert. Backups `.bak` + `.bak2` vorher angelegt.
+* **Commits `07d4fdf` + `3d1cc0e`** nach `origin/dev` gepusht und in den `vitalos`-
+  Branch/Worktree gemergt+gepusht (`git branch --contains` bestätigt beide auf `dev`
+  und `vitalos`). Katalog-Tests: 48 Fehler, alle vorbestehend (`config.yml`-Fixture-
+  Bug lt. `catalog/CLAUDE.md`), keine der geänderten Dateien betroffen.
+* **`fitness-release --yes`** (vom Nutzer gestartet): Fitness-Push/Merge/Firestore-
+  Sync (`jefferson_curl.yml`) ok; Abbruch erst beim Parent-Repo-Commit, weil
+  `~/vitalos` selbst `M src/hooks/usePushNotifications.js`,
+  `M src/shell/Settings/NotificationsSection.jsx`, `M src/shell/db/settings.js`
+  unstaged hat (parallele Session). Submodule-Pointer `fitness-app` im `~/vitalos`-
+  Parent daher **nicht gebumpt**.
+
+---
+
 # CLI-Log: strukturiertes `effort`/RPE-Feld statt Freitext in `notes` + Korrektur der 2026-09-08-Session (2026-09-09)
 
 Nachlauf zur Inbox-ID-Referenz-Session (Eintrag unten). Der Nutzer konfrontierte,
