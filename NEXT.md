@@ -311,3 +311,40 @@ pruefen.
 - **`2026-09-08.json` ist datenkorrigiert** (`effort: 9`, `notes` gekürzt, `.bak`
   vorhanden) — erledigt, nicht erneut anfassen. Der SQLite-Mirror /
   Firestore-Sync für diese eine Session wurde nicht nachgezogen.
+
+## Aus dem Runtime-Session-Resolver + Journal-Mirror-Refactor (2026-09-09, Commits `e7f1519` + `81031d6`)
+
+- **Ordner-Verschachtelung Jahr/Monat für Session-JSONs bewusst NICHT
+  eingeführt** — braucht User-Entscheidung. `fitness/runtime/session_store.py`
+  ist jetzt der zentrale Resolver (`session_path`/`session_date`/
+  `iter_session_files`), aber alle Schreiber legen weiter flach ab:
+  `server.mjs` (`sessDir`), `fitness/api/routers/sessions.py` +
+  `fitness/api/config.py::_session_file`, `fitness/firestore/mirror.py`
+  (`on_session`, `mirror_session`), `firestore-mirror.mjs`. Verschachtelung
+  = alle vier Schreiber umstellen + einmalige Migration der Bestandsdateien
+  (kein `rm`, `mv` + `.bak`) + Firestore-Doc-IDs bleiben flach (`date` /
+  `date__sid`) → Mapping nur lokal. Erst machen, wenn die flache Ablage
+  echte Probleme macht (aktuell < ~500 Dateien/User, kein Druck).
+- **Nur `fitness/runtime/{user_data,note_backfill}.py` auf den Resolver
+  gezogen** — der Rest des Repos baut Session-Pfade weiter selbst
+  (`fitness/data.py`, `fitness/cli.py`, `fitness/api/routers/*.py`,
+  `fitness/catalog/api/sync_gateway.py`, `fitness/catalog/tui.py`,
+  `fitness/log/*`, `fitness/activity/cli.py`, `fitness/firestore/sync.py`
+  u.a., ~25 Stellen). Bewusst nicht in einem Zug migriert (Live-API-Router,
+  je eigenes `_sessions_dir()`-Idiom). Kandidat für einen späteren,
+  abgegrenzten Folge-Pass pro Modul.
+- **Journal-Sync bleibt marker-append-only** (`<!-- fsid|fshr|fshid:… -->`
+  in `journal/YYYY-MM-DD.md`). `81031d6` hat nur die 3 divergenten
+  Schreib-/Dedup-Kopien zu `_append_journal_block()` zusammengeführt. Der
+  vom User als Design-Fehler benannte Kern (kein Einzel-Edit/-Delete,
+  fragiles Parsing) ist damit NICHT gelöst und braucht eine
+  User-Design-Entscheidung. Konkreter Vorschlag, falls angegangen:
+  strukturiertes Zwischenformat `journal/YYYY-MM-DD.entries.jsonl` (eine
+  Zeile pro `{fsid, kind, time, text, …}`) als SOT, aus dem die `.md`
+  deterministisch **neu gerendert** wird (statt append). Damit fällt
+  Edit = Zeile ersetzen, Delete = Zeile raus, Marker-Parsing entfällt.
+  Migration: bestehende `.md` einmalig per Marker-Split → JSONL, `.md`
+  danach generiert. Betrifft nur `fitness/firestore/mirror.py` (Reader/
+  Writer beide dort) + evtl. Frontend-Journal-View, falls die `.md` direkt
+  liest — vorher prüfen (`src/**` Journal-Tab). Kein kleiner Change, daher
+  hier geparkt.
