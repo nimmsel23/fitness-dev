@@ -13,6 +13,10 @@
  * Eintrags-Schema: { id, source, ts, body, meta? }
  *   source ∈ journal | habit_records | habit_journals | freetext | session_note
  *   ts     ISO-8601 oder "" ("" sortiert zuerst)
+ *
+ * Identität ist das Paar (source, id), nicht die id allein — dieselbe
+ * Firestore-doc-id kommt über mehrere Subkollektionen vor. Marker:
+ * <!-- entry:<source>:<id> -->
  */
 
 import fs from "node:fs";
@@ -48,16 +52,20 @@ export function normalizeEntry(entry) {
 }
 
 function entryKey(e) {
-  return [String(e?.ts ?? ""), String(e?.id ?? "")];
+  return [String(e?.ts ?? ""), String(e?.source ?? ""), String(e?.id ?? "")];
 }
 
 function cmpKey(a, b) {
   const ka = entryKey(a), kb = entryKey(b);
-  if (ka[0] < kb[0]) return -1;
-  if (ka[0] > kb[0]) return 1;
-  if (ka[1] < kb[1]) return -1;
-  if (ka[1] > kb[1]) return 1;
+  for (let i = 0; i < ka.length; i++) {
+    if (ka[i] < kb[i]) return -1;
+    if (ka[i] > kb[i]) return 1;
+  }
   return 0;
+}
+
+function identity(e) {
+  return JSON.stringify([String(e?.source ?? ""), String(e?.id ?? "")]);
 }
 
 function atomicWrite(p, data) {
@@ -91,7 +99,7 @@ export function dumpEntries(jsonlPath, entries) {
 export function renderMd(entries) {
   const blocks = entries.slice().sort(cmpKey).map(e => {
     const body = String(e?.body ?? "").replace(/\n+$/, "");
-    return `<!-- entry:${e?.id} -->\n${body}\n`;
+    return `<!-- entry:${e?.source}:${e?.id} -->\n${body}\n`;
   });
   return blocks.join("\n");
 }
@@ -111,7 +119,7 @@ export function upsertEntry(mdOrJsonlPath, entry) {
   const norm = normalizeEntry(entry);
   if (!norm.id) return false;
   const entries = loadEntries(jf);
-  const idx = entries.findIndex(e => e.id === norm.id);
+  const idx = entries.findIndex(e => identity(e) === identity(norm));
   if (idx >= 0) {
     if (sameEntry(entries[idx], norm)) return false;
     entries[idx] = norm;
@@ -122,10 +130,10 @@ export function upsertEntry(mdOrJsonlPath, entry) {
   return true;
 }
 
-export function deleteEntry(mdOrJsonlPath, entryId) {
+export function deleteEntry(mdOrJsonlPath, entryId, source = null) {
   const jf = entriesPath(mdOrJsonlPath);
   const entries = loadEntries(jf);
-  const kept = entries.filter(e => e.id !== entryId);
+  const kept = entries.filter(e => !(e.id === entryId && (source === null || e.source === source)));
   if (kept.length === entries.length) return false;
   renderSidecar(jf, kept);
   return true;

@@ -11,9 +11,15 @@ Damit fällt:
 und das fragile Marker-Kommentar-Parsing der `.md` im Schreibpfad entfällt.
 
 Eintrags-Schema (alle Felder Strings ausser `meta`):
-  id      – stabil; = bisheriger Marker-Wert (fsid/fshr/fshid = Firestore-
-            doc-id) bzw. `freetext-<date>` für den Freitext-Tagesblock.
+  id      – stabil; = bisheriger Marker-Wert (fsid/fshr/fshid/fssn =
+            Firestore-doc-id) bzw. `freetext-<date>` für den Freitext-Block.
   source  – journal | habit_records | habit_journals | freetext | session_note
+
+Eintrags-**Identität** ist das Paar ``(source, id)``, nicht die `id` allein:
+dieselbe Firestore-doc-id kommt über verschiedene Subkollektionen (z.B.
+`habitRecords` **und** `habitJournals`, beide `<habitid>_<date>`) vor —
+würde nur die `id` zählen, überschrieben die Einträge sich gegenseitig.
+Der `.md`-Marker ist entsprechend ``<!-- entry:<source>:<id> -->``.
   ts      – ISO-8601-Zeitstempel oder "" (Sortierschlüssel; "" sortiert zuerst)
   body    – gerenderter Text des Blocks (mehrzeilig erlaubt)
   meta    – optionales dict, nur geschrieben wenn nicht leer
@@ -77,8 +83,13 @@ def normalize_entry(entry: dict[str, Any]) -> dict[str, Any]:
     return out
 
 
-def _entry_key(entry: dict[str, Any]) -> tuple[str, str]:
-    return (str(entry.get("ts") or ""), str(entry.get("id") or ""))
+def _entry_key(entry: dict[str, Any]) -> tuple[str, str, str]:
+    return (str(entry.get("ts") or ""), str(entry.get("source") or ""), str(entry.get("id") or ""))
+
+
+def _identity(entry: dict[str, Any]) -> tuple[str, str]:
+    """Eindeutige Identität eines Eintrags: (source, id)."""
+    return (str(entry.get("source") or ""), str(entry.get("id") or ""))
 
 
 def _atomic_write(path: Path, data: str) -> None:
@@ -127,7 +138,7 @@ def render_md(entries: list[dict[str, Any]]) -> str:
     blocks: list[str] = []
     for e in sorted(entries, key=_entry_key):
         body = str(e.get("body") or "").rstrip("\n")
-        blocks.append(f"<!-- entry:{e.get('id')} -->\n{body}\n")
+        blocks.append(f"<!-- entry:{e.get('source')}:{e.get('id')} -->\n{body}\n")
     return "\n".join(blocks)
 
 
@@ -149,7 +160,7 @@ def upsert_entry(md_or_jsonl_path: Path, entry: dict[str, Any]) -> bool:
         return False
     entries = load_entries(jsonl_path)
     for i, existing in enumerate(entries):
-        if existing.get("id") == norm["id"]:
+        if _identity(existing) == _identity(norm):
             if existing == norm:
                 return False
             entries[i] = norm
@@ -160,12 +171,15 @@ def upsert_entry(md_or_jsonl_path: Path, entry: dict[str, Any]) -> bool:
     return True
 
 
-def delete_entry(md_or_jsonl_path: Path, entry_id: str) -> bool:
-    """Entfernt den Eintrag mit `entry_id`, rendert die `.md` neu.
-    Rückgabe ``True`` wenn etwas entfernt wurde."""
+def delete_entry(md_or_jsonl_path: Path, entry_id: str, source: str | None = None) -> bool:
+    """Entfernt Einträge mit `entry_id` (und, wenn angegeben, `source`),
+    rendert die `.md` neu. Rückgabe ``True`` wenn etwas entfernt wurde."""
     jsonl_path = entries_path(md_or_jsonl_path)
     entries = load_entries(jsonl_path)
-    kept = [e for e in entries if e.get("id") != entry_id]
+    kept = [
+        e for e in entries
+        if not (e.get("id") == entry_id and (source is None or e.get("source") == source))
+    ]
     if len(kept) == len(entries):
         return False
     _render_sidecar(jsonl_path, kept)

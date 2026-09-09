@@ -47,8 +47,14 @@ def _cb() -> None:
     `python -m fitness.runtime.journal_migrate run` (Typer würde ein
     Ein-Kommando-App sonst auf argument-los kollabieren)."""
 
-_MARKER_RE = re.compile(r"^<!--\s*(fsid|fshr|fshid|entry):(.+?)\s*-->\s*$")
-_SOURCE_MAP = {"fsid": "journal", "fshr": "habit_records", "fshid": "habit_journals"}
+_MARKER_RE = re.compile(r"^<!--\s*(fsid|fshr|fshid|fssn|entry):(.+?)\s*-->\s*$")
+_SOURCE_MAP = {
+    "fsid": "journal",
+    "fshr": "habit_records",
+    "fshid": "habit_journals",
+    "fssn": "session_note",
+}
+_KNOWN_SOURCES = {"journal", "habit_records", "habit_journals", "freetext", "session_note"}
 
 
 def parse_md(text: str, date: str) -> list[dict]:
@@ -56,12 +62,17 @@ def parse_md(text: str, date: str) -> list[dict]:
 
     - Text vor dem ersten Marker (falls nicht nur Whitespace) -> ein
       `freetext-<date>`-Eintrag.
-    - Jeder `<!-- fsid|fshr|fshid:<id> -->`-Block -> ein Eintrag mit stabiler
-      id und passender `source`. `ts` wird auf einen Sortier-Sentinel
+    - Jeder `<!-- fsid|fshr|fshid|fssn:<id> -->`-Block -> ein Eintrag mit
+      stabiler id und passender `source`. `ts` wird auf einen Sortier-Sentinel
       (`0000-00-00T00:00:<lfd>`) gesetzt, damit die historische Reihenfolge
       **vor** allen echten (ISO-)Zeitstempeln erhalten bleibt.
-    - Bereits gerenderte `<!-- entry:<id> -->`-Blöcke werden 1:1 übernommen
-      (source `journal`, bzw. `session_note` bei `session-`-Präfix).
+    - `<!-- entry:<source>:<id> -->` (neues Renderer-Format) wird zerlegt;
+      `<!-- entry:<id> -->` (altes Format eines früheren Migrations-Laufs)
+      fällt auf source `journal` bzw. `session_note` bei `session-`-Präfix
+      zurück.
+
+    Identität ist `(source, id)` — derselbe Marker-Wert unter `fshr` **und**
+    `fshid` sind zwei getrennte Einträge, nicht einer.
     """
     lines = text.split("\n")
     i = 0
@@ -84,8 +95,13 @@ def parse_md(text: str, date: str) -> list[dict]:
         kind, ident = cur
         body = "\n".join(body_lines).strip("\n")
         if kind == "entry":
-            source = "session_note" if ident.startswith("session-") else "journal"
-            ts_value = ""
+            prefix, sep, rest = ident.partition(":")
+            if sep and prefix in _KNOWN_SOURCES:  # neues <source>:<id>-Format
+                source, ident = prefix, rest
+                ts_value = "" if source in ("journal", "freetext") else f"0000-00-00T00:00:{order:05d}"
+            else:  # altes <id>-only-Format
+                source = "session_note" if ident.startswith("session-") else "journal"
+                ts_value = ""
         else:
             source = _SOURCE_MAP[kind]
             ts_value = f"0000-00-00T00:00:{order:05d}"
@@ -102,10 +118,10 @@ def parse_md(text: str, date: str) -> list[dict]:
             body_lines.append(line)
     flush()
 
-    # letzter Eintrag je id gewinnt, Reihenfolge bleibt erhalten
-    dedup: dict[str, dict] = {}
+    # letzter Eintrag je (source, id) gewinnt, Reihenfolge bleibt erhalten
+    dedup: dict[tuple[str, str], dict] = {}
     for e in entries:
-        dedup[e["id"]] = e
+        dedup[(e["source"], e["id"])] = e
     return list(dedup.values())
 
 

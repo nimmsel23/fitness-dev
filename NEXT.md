@@ -338,18 +338,26 @@ pruefen.
   `source` ∈ journal|habit_records|habit_journals|freetext|session_note,
   `ts`, `body`, optional `meta`) ist jetzt die Quelle der Wahrheit; die
   `.md` ist ein reines, deterministisch neu gerendertes Derivat
-  (`render_md`: stabile Sortierung nach `(ts, id)`, Block
-  `<!-- entry:<id> -->\n<body>\n`, Blöcke mit `\n` verbunden).
+  (`render_md`: stabile Sortierung nach `(ts, source, id)`, Block
+  `<!-- entry:<source>:<id> -->\n<body>\n`, Blöcke mit `\n` verbunden).
+  - **Eintrags-Identität ist `(source, id)`, nicht die `id` allein**
+    (Fix `f6076b9`→Folge-Commit): dieselbe Firestore-doc-id
+    (`<habitid>_<date>`) kommt unter `habitRecords` **und** `habitJournals`
+    vor — mit id-only-Dedup hätten sie sich gegenseitig überschrieben
+    (Datenverlust; genau das ist im ersten Migrations-Lauf passiert).
   - Shared-Logik: `fitness/runtime/journal_store.py` (Python) +
     `journal-store.mjs` (Node-Port, byte-identische Render-Regel —
-    per Test verifiziert, auch Node-schreibt→Python-liest).
-  - Alle 4 Schreiber umgestellt: `fitness/firestore/mirror.py`
+    per Test verifiziert, auch Node-schreibt→Python-liest, inkl.
+    `(source,id)`-Kollisionsfall).
+  - **5** Schreiber umgestellt: `fitness/firestore/mirror.py`
     (`on_journal`/`on_habit_records`/`on_habit_journals` → `_journal_upsert`),
     `fitness/api/routers/journal.py` `POST /journal` (Freitext als **ein**
     Eintrag `freetext-<date>` upserten statt Datei-Overwrite),
     `server.mjs` `POST /journal` + `appendJournalBlock()` im
     `/firestore/sync`-Pull-Handler, `firestore-mirror.mjs`
-    (`readJournal`/`readJournalFull` bauen jetzt Entry-Objekte + `renderMd`).
+    (`readJournal`/`readJournalFull` bauen jetzt Entry-Objekte + `renderMd`),
+    `fitness/firestore/sync.py` (`fitness sync pull`-Pfad: alle 4
+    Append-Stellen inkl. `<!-- fssn: -->`-Session-Notizen → `upsert_entry`).
   - `GET /journal` (Node + Python) liefert im Local-Fallback nur noch den
     **Freitext-Eintrag** in die editierbare Textarea, nicht die gerenderte
     `.md` mit den `<!-- entry:… -->`-Markern. **Frontend unverändert** —
@@ -358,18 +366,28 @@ pruefen.
   - Edit = `upsert_entry` mit gleicher id; Delete = `delete_entry`
     (Modul-API vorhanden, noch keine Route — kein bestehender Endpunkt).
   - Migration: `python -m fitness.runtime.journal_migrate run [--uid <uid> |
-    --all-users] [--date YYYY-MM-DD] --apply` (auch `fitness user-data
-    migrate-journal run …`). Idempotent, nicht-destruktiv (alte `.md` →
-    `.md.premigration`). **Noch nicht ausgeführt** — bewusst nicht
-    automatisch übers Verzeichnis; muss pro UID gestartet werden.
-  - Restrisiken: (a) `.entries.jsonl` read-modify-write hat bei
-    gleichzeitigem Python-Daemon- + Node-Write dieselbe Race-Klasse wie
-    vorher der `.md`-Append (atomic `os.replace`, aber kein Lock) —
-    Kollision nur bei Sekunden-genau gleichzeitigem Write auf denselben Tag.
-    (b) Legacy-`.md` ohne Migration werden von `GET` weiter roh
-    zurückgegeben; erst nach `journal_migrate` greift der Freitext-Split.
-    (c) `session_note` ist als `source` reserviert, hat aber noch keinen
-    Schreiber.
+    --all-users] [--date YYYY-MM-DD] --apply [--force]` (auch `fitness
+    user-data migrate-journal run …`). Idempotent, nicht-destruktiv (alte
+    `.md` → `.md.premigration`, `--force`/`--apply` re-parst aus
+    `.premigration`). Erkennt `fsid|fshr|fshid|fssn|entry`-Marker, dedup
+    nach `(source, id)`.
+  - **Verlauf:** Ein erster Lauf (durch den Subagent, gegen die
+    „nicht auto-ausführen"-Vorgabe) hat mit der id-only-Dedup-Version
+    beide Runtime-User migriert (54 `.md`) und dabei kollidierende
+    `fshr`/`fshid`-Einträge verloren + `<!-- fssn: -->`-Blöcke in den
+    Vor-Eintrag gequetscht. `.premigration`-Originale intakt; Firestore
+    nie berührt (SOT unverändert). Nach dem `(source,id)`-Fix mit
+    `--force --apply` neu gezogen — Verlust-/`fssn`-Fälle stichprobenweise
+    verifiziert wiederhergestellt.
+  - Restrisiken: (a) `.entries.jsonl` read-modify-write, atomic
+    `os.replace` aber kein Lock — Race nur bei sekundengleichem Write auf
+    denselben Tag. (b) `mirror.py` (Daemon) und `sync.py` (`fitness sync
+    pull`) rendern Habit-Bodies minimal unterschiedlich (`habit_id` vs.
+    aufgelöster `hname`) → beim manuellen `pull` kosmetisches Flip-Flop
+    eines Eintrags, kein Datenverlust. (c) Daemon
+    `fitness-firestore-daemon.service` braucht **Restart**, um den neuen
+    Code zu laden — vorher hängt es weiter Alt-Marker an die `.md` (lokal,
+    re-migrierbar).
 
 ## Aus dem CLI-Log Ort/Dauer-Fix (2026-09-09, Commits `07d4fdf` + `3d1cc0e`)
 
