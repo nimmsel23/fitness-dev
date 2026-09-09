@@ -373,3 +373,32 @@ pruefen.
   User-/Team-Entscheidung über Umfang und Contract**, nicht als
   Teil-Change durchdrücken. `_append_journal_block()` ist der eine Ort,
   an dem die Python-Seite später ansetzt.
+
+## Aus dem CLI-Log Ort/Dauer-Fix (2026-09-09, Commits `07d4fdf` + `3d1cc0e`)
+
+- **`~/vitalos`-Parent-Submodule-Pointer nicht gebumpt**: der vom Nutzer
+  gestartete `fitness-release --yes` brach nach erfolgreichem dev→vitalos-
+  Merge/-Push beim Parent-Commit ab — `~/vitalos` selbst hat 3 unstaged
+  Dateien einer parallelen Push-Notification-Session
+  (`src/hooks/usePushNotifications.js`,
+  `src/shell/Settings/NotificationsSection.jsx`, `src/shell/db/settings.js`).
+  `fitness-app`-Submodule-Pointer in `~/vitalos` zeigt daher noch auf den
+  alten Commit; Release erneut laufen lassen (nachdem die Parent-Dateien
+  geklärt sind) oder Pointer manuell bumpen. Ob der Firebase-Deploy trotzdem
+  (über den `vitalos`-Submodule-Push-Hook) lief, ist nicht verifiziert.
+- **`fitness-log add`/`wizard` mit `--effort`/`--location`/`--duration` nur
+  code-/testverifiziert**, nicht live gegen eine echte Session durchgespielt
+  (schreibt sauber in `session.effort`/`location`/`duration`, ohne `notes`
+  anzufassen?).
+- **Frontend schreibt `location`/`duration`/`effort` weiterhin nicht
+  strukturiert**: nur der CLI-Pfad füllt die Top-Level-Felder; `src/views/
+  Session/*` erfasst Ort/Dauer/RPE noch als Freitext bzw. gar nicht (Schema in
+  `src/views/Session/ARCHITECTURE.md` dokumentiert sie bereits). Angleichung
+  nicht beauftragt.
+- **`fitness/log/activity.py` (Cardio)** hat auch kein `location`/`duration`-
+  Gegenstück (neben dem schon offenen `effort`) — Konsistenzlücke, nicht
+  beauftragt.
+- **SQLite-Mirror / Firestore-Sync für `2026-09-08.json`** nach der
+  `effort`/`location`/`duration`-Datenkorrektur nicht nachgezogen (die
+  Session selbst ist fertig korrigiert, `.bak` + `.bak2` vorhanden — nicht
+  erneut anfassen).
