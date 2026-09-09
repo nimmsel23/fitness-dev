@@ -402,3 +402,26 @@ pruefen.
   `effort`/`location`/`duration`-Datenkorrektur nicht nachgezogen (die
   Session selbst ist fertig korrigiert, `.bak` + `.bak2` vorhanden — nicht
   erneut anfassen).
+
+## Aus Resolver / Journal-Mirror / Yuhonas-Regionsnamen (2026-09-09, Commits `e7f1519` + `81031d6` + `cbb7968`)
+
+- **`fitness-release` am Session-Ende nicht durchgelaufen**: `fitness-release
+  --yes` bricht bei `require_clean_repo` ab, weil eine **parallele** Session
+  unstaged Journal-WIP im Repo hat (`server.mjs`, `journal-store.mjs`,
+  `fitness/runtime/journal_store.py`, `fitness/api/routers/journal.py`,
+  `fitness/firestore/mirror.py`, `inbox_wger_92.yml`). Bewusst nicht
+  angefasst. Release erneut laufen lassen, sobald die andere Session ihren
+  Journal-Kram committet/gepusht hat. `cbb7968`/`e7f1519`/`81031d6` sind bis
+  dahin nur auf `origin/dev` + Staging `:8100`, **nicht** nach `vitalos`/
+  Firebase/Prod `:6100`.
+- **Prod-Deploy `:6100`** (`pkexec fitnessctl prod deploy`) für die drei
+  Commits offen — reines Backend/CLI, keine Firebase-Relevanz, ging per
+  Post-Push-Hook nur nach Staging.
+- **`cbb7968` nur Scan-verifiziert**: `kb/inbox/`-Drafts sind sauber, aber
+  `kb/exercises/unreviewed_yuhonas.yml` (Roh-Bulk-Dump) bleibt bewusst
+  unangetastet — falls von dort je grobe Regionsnamen in echten
+  Katalog-Content wandern, greift der Fix erst beim nächsten
+  `build_external_seed()`-Lauf.
+- Resolver-Migration + JSONL-Journal-Umbau: die offenen Punkte stehen
+  ausführlich in der Sektion „Aus dem Runtime-Session-Resolver +
+  Journal-Mirror-Refactor" weiter oben — nicht doppeln.
