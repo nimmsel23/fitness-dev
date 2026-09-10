@@ -28,10 +28,7 @@ export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHin
   }
 
   return (
-    <nav
-      className="lg:hidden fixed bottom-0 left-0 right-0 z-40"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-    >
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-fit-card/90 backdrop-blur-2xl border-t border-fit-line/40">
       {/* Swipe direction indicator — thin accent line at top */}
       <div className={`absolute top-0 left-0 right-0 h-[2px] transition-all duration-200 ${
         swipeHint === 'left'
@@ -71,7 +68,10 @@ export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHin
         </div>
       )}
 
-      <div className="bg-fit-card/90 backdrop-blur-2xl border-t border-fit-line/40 px-2 pt-2 pb-3">
+      <div
+        className="px-2 pt-2"
+        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+      >
         <div className="flex items-end justify-around">
           {primaryItems.map(({ id: subId, label, Icon }) => {
             const isActive = isOnSession && (subTab === subId || (!subTab && subId === 'today'));

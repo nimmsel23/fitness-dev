@@ -144,7 +144,11 @@ export default function SessionEditor({
   }
 
   return (
-    <div className="pb-36">
+    // Untere Freifläche: muss die fixe Bottom-Nav (~76px + Safe-Area) UND
+    // den darüber schwebenden Save-FAB (bottom 6rem + Safe-Area, 56px hoch)
+    // freihalten, sonst klebt der letzte Block ("Details & Notizen") unter
+    // beiden. env() nur per inline-style möglich.
+    <div style={{ paddingBottom: 'calc(10rem + env(safe-area-inset-bottom))' }}>
       {/* Sticky header — DateStrip/SessionSwitcher/hint/ModeSwitcher merged into one calm unit */}
       <SessionHeader
         date={date} setDate={setDate} rollingDays={rollingDays} recentSessions={recentSessions}
