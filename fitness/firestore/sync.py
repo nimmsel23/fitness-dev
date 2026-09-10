@@ -7,6 +7,7 @@ from typing import Any
 
 from ._db import get_db, ts, UID, remote_wins
 from fitness.catalog.core.session_signal import exercise_has_training_signal
+from fitness.runtime.journal_store import upsert_entry as _journal_upsert
 
 USERS_DIR = Path.home() / ".aos" / "users"
 FITNESS_DIR = Path.home() / ".aos" / "fitness"
@@ -101,15 +102,15 @@ def pull(uid: str | None = None) -> dict:
             except Exception as exc:
                 pass  # SQLite-Sync optional, JSON ist SOT
 
-            # Unify notes into journal markdown
+            # Session-Notizen als Eintrag ins Tages-Journal (JSONL-SOT)
             notes = data.get("notes", "").strip()
             if notes:
-                md_file = journal_dir / f"{actual_date}.md"
-                marker = f"<!-- fssn:{doc_id} -->"
-                if not (md_file.exists() and marker in md_file.read_text()):
-                    block = data.get("block", "Training")
-                    with md_file.open("a", encoding="utf-8") as fh:
-                        fh.write(f"\n{marker}\n**Session: {block}**\n{notes}\n")
+                block = data.get("block", "Training")
+                _journal_upsert(journal_dir / f"{actual_date}.md", {
+                    "id": doc_id, "source": "session_note",
+                    "ts": (ts(data.get("date")) or actual_date or ""),
+                    "body": f"**Session: {block}**\n{notes}",
+                })
 
         # Pull Journal
         known = _load_known(uid)
@@ -123,14 +124,11 @@ def pull(uid: str | None = None) -> dict:
             if not date or not text:
                 continue
             
-            md_file = journal_dir / f"{date}.md"
-            marker  = f"<!-- fsid:{doc.id} -->"
-            if md_file.exists() and marker in md_file.read_text():
-                known.add(doc.id)
-                continue
-            
-            with md_file.open("a") as fh:
-                fh.write(f"\n{marker}\n**{time}** {text}\n")
+            _journal_upsert(journal_dir / f"{date}.md", {
+                "id": doc.id, "source": "journal",
+                "ts": (ts(data.get("time")) or ""),
+                "body": f"**{time}** {text}",
+            })
             known.add(doc.id)
             total_journal += 1
 
@@ -150,19 +148,15 @@ def pull(uid: str | None = None) -> dict:
             if not date:
                 continue
 
-            md_file = journal_dir / f"{date}.md"
-            marker  = f"<!-- fshid:{doc.id} -->"
-            if md_file.exists() and marker in md_file.read_text():
-                known_habits.add(doc.id)
-                continue
-
-            with md_file.open("a", encoding="utf-8") as fh:
-                fh.write(f"\n{marker}\n**Habit: {hname}**")
-                if time:
-                    fh.write(f" _{time}_")
-                fh.write(f"\n{text}\n" if text else "\n")
-                if coach_feedback:
-                    fh.write(f"> **Coach Feedback:** {coach_feedback}\n")
+            body = f"**Habit: {hname}**" + (f" _{time}_" if time else "")
+            body += f"\n{text}" if text else ""
+            if coach_feedback:
+                body += f"\n> **Coach Feedback:** {coach_feedback}"
+            _journal_upsert(journal_dir / f"{date}.md", {
+                "id": doc.id, "source": "habit_journals",
+                "ts": (ts(data.get("recorded_at") or data.get("updated_at")) or ""),
+                "body": body,
+            })
             known_habits.add(doc.id)
             total_habit_journal += 1
 
@@ -180,16 +174,12 @@ def pull(uid: str | None = None) -> dict:
             completion = data.get("completion", "DONE")
             if not date:
                 continue
-            md_file = journal_dir / f"{date}.md"
-            marker  = f"<!-- fshr:{doc.id} -->"
-            if md_file.exists() and marker in md_file.read_text():
-                known_records.add(doc.id)
-                continue
-            with md_file.open("a", encoding="utf-8") as fh:
-                fh.write(f"\n{marker}\n**{hname}** {completion}")
-                if rec_at:
-                    fh.write(f" _{rec_at}_")
-                fh.write("\n")
+            body = f"**{hname}** {completion}" + (f" _{rec_at}_" if rec_at else "")
+            _journal_upsert(journal_dir / f"{date}.md", {
+                "id": doc.id, "source": "habit_records",
+                "ts": (ts(data.get("recorded_at")) or ""),
+                "body": body,
+            })
             known_records.add(doc.id)
             total_habit_journal += 1
         state_file_hr.parent.mkdir(parents=True, exist_ok=True)

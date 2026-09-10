@@ -12,6 +12,7 @@ import { createRequire } from "node:module";
 import fs, { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { renderMd as journalRenderMd } from "./journal-store.mjs";
 
 const SESSIONS_ROOT = join(homedir(), ".aos", "fitness", "users");
 
@@ -202,13 +203,13 @@ export async function readJournal(uid, date) {
     const snap = await db.collection("fitness").doc(uid).collection("journal")
       .where("date", "==", date).limit(10).get();
     if (snap.empty) return null;
-    const parts = snap.docs
-      .sort((a, b) => (a.data().time || "").localeCompare(b.data().time || ""))
-      .map(d => {
-        const { text, time } = d.data();
-        return `<!-- fsid:${d.id} -->\n**${(time || "").slice(0,16)}** ${text || ""}`;
-      });
-    return parts.join("\n\n");
+    // Gleiche Render-Regel wie die .md-Derivate (journal-store.mjs::renderMd)
+    const entries = snap.docs.map(d => {
+      const { text, time } = d.data();
+      return { id: d.id, source: "journal", ts: (time || ""),
+               body: `**${(time || "").slice(0, 16)}** ${text || ""}` };
+    });
+    return journalRenderMd(entries);
   } catch { return null; }
 }
 
@@ -256,25 +257,32 @@ export async function readJournalFull(uid, date) {
       if (h.exists) habitNames[hid] = h.data().name || hid;
     }));
 
-    const parts = [];
+    // Entry-Objekte + gemeinsame Render-Regel (journal-store.mjs::renderMd),
+    // damit dieser Firestore-Read dieselbe .md-Form wie das Datei-Derivat liefert.
+    const entries = [];
     for (const d of jSnap.docs) {
       const { text, time } = d.data();
-      if (text) parts.push(`<!-- fsid:${d.id} -->\n**${(time||"").slice(0,16)}** ${text}`);
+      if (text) entries.push({ id: d.id, source: "journal", ts: (time || ""),
+                               body: `**${(time || "").slice(0, 16)}** ${text}` });
     }
     for (const d of hjSnap.docs) {
-      const { text, habitId, coachFeedback } = d.data();
+      const { text, habitId, coachFeedback, recorded_at, updated_at } = d.data();
       const name = habitNames[habitId] || habitId;
-      let block = `<!-- fshid:${d.id} -->\n**Habit: ${name}**\n${text || ""}`;
-      if (coachFeedback) block += `\n> **Coach Feedback:** ${coachFeedback}`;
-      parts.push(block);
+      let body = `**Habit: ${name}**\n${text || ""}`;
+      if (coachFeedback) body += `\n> **Coach Feedback:** ${coachFeedback}`;
+      const t = recorded_at || updated_at;
+      const ts = t?.toDate ? t.toDate().toISOString().slice(0, 16) : (typeof t === "string" ? t.slice(0, 16) : "");
+      entries.push({ id: d.id, source: "habit_journals", ts, body });
     }
     for (const d of hrSnap.docs) {
       const { habitId, completion, recorded_at } = d.data();
       const name = habitNames[habitId] || habitId;
-      const time = recorded_at ? recorded_at.toDate().toISOString().slice(0,16) : "";
-      parts.push(`<!-- fshr:${d.id} -->\n**${name}** ${completion||"DONE"} _${time}_`);
+      const time = recorded_at?.toDate ? recorded_at.toDate().toISOString().slice(0, 16)
+                 : (typeof recorded_at === "string" ? recorded_at.slice(0, 16) : "");
+      entries.push({ id: d.id, source: "habit_records", ts: time,
+                     body: `**${name}** ${completion || "DONE"} _${time}_` });
     }
-    return parts.length ? parts.join("\n\n") : null;
+    return entries.length ? journalRenderMd(entries) : null;
   } catch { return null; }
 }
 

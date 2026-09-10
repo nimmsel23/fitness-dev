@@ -333,43 +333,123 @@ pruefen.
   u.a., ~25 Stellen). Bewusst nicht in einem Zug migriert (Live-API-Router,
   je eigenes `_sessions_dir()`-Idiom). Kandidat für einen späteren,
   abgegrenzten Folge-Pass pro Modul.
-- **Journal-Sync bleibt marker-append-only** (`<!-- fsid|fshr|fshid:… -->`
-  in `journal/YYYY-MM-DD.md`). `81031d6` hat nur die 3 divergenten
-  Schreib-/Dedup-Kopien in `mirror.py` zu `_append_journal_block()`
-  zusammengeführt. Der vom User als Design-Fehler benannte Kern (kein
-  Einzel-Edit/-Delete, fragiles Parsing) ist damit NICHT gelöst.
+- **Journal-Sync: JSONL-SOT-Umbau UMGESETZT (2026-09-09).**
+  `journal/YYYY-MM-DD.entries.jsonl` (eine JSON-Zeile pro Eintrag: `id`,
+  `source` ∈ journal|habit_records|habit_journals|freetext|session_note,
+  `ts`, `body`, optional `meta`) ist jetzt die Quelle der Wahrheit; die
+  `.md` ist ein reines, deterministisch neu gerendertes Derivat
+  (`render_md`: stabile Sortierung nach `(ts, source, id)`, Block
+  `<!-- entry:<source>:<id> -->\n<body>\n`, Blöcke mit `\n` verbunden).
+  - **Eintrags-Identität ist `(source, id)`, nicht die `id` allein**
+    (Fix `f6076b9`→Folge-Commit): dieselbe Firestore-doc-id
+    (`<habitid>_<date>`) kommt unter `habitRecords` **und** `habitJournals`
+    vor — mit id-only-Dedup hätten sie sich gegenseitig überschrieben
+    (Datenverlust; genau das ist im ersten Migrations-Lauf passiert).
+  - Shared-Logik: `fitness/runtime/journal_store.py` (Python) +
+    `journal-store.mjs` (Node-Port, byte-identische Render-Regel —
+    per Test verifiziert, auch Node-schreibt→Python-liest, inkl.
+    `(source,id)`-Kollisionsfall).
+  - **5** Schreiber umgestellt: `fitness/firestore/mirror.py`
+    (`on_journal`/`on_habit_records`/`on_habit_journals` → `_journal_upsert`),
+    `fitness/api/routers/journal.py` `POST /journal` (Freitext als **ein**
+    Eintrag `freetext-<date>` upserten statt Datei-Overwrite),
+    `server.mjs` `POST /journal` + `appendJournalBlock()` im
+    `/firestore/sync`-Pull-Handler, `firestore-mirror.mjs`
+    (`readJournal`/`readJournalFull` bauen jetzt Entry-Objekte + `renderMd`),
+    `fitness/firestore/sync.py` (`fitness sync pull`-Pfad: alle 4
+    Append-Stellen inkl. `<!-- fssn: -->`-Session-Notizen → `upsert_entry`).
+  - `GET /journal` (Node + Python) liefert im Local-Fallback nur noch den
+    **Freitext-Eintrag** in die editierbare Textarea, nicht die gerenderte
+    `.md` mit den `<!-- entry:… -->`-Markern. **Frontend unverändert** —
+    der bestehende `POST /journal`-Body (`{content}`) reicht,
+    `src/lib/db/local/journal.js` nicht angefasst.
+  - Edit = `upsert_entry` mit gleicher id; Delete = `delete_entry`
+    (Modul-API vorhanden, noch keine Route — kein bestehender Endpunkt).
+  - Migration: `python -m fitness.runtime.journal_migrate run [--uid <uid> |
+    --all-users] [--date YYYY-MM-DD] --apply [--force]` (auch `fitness
+    user-data migrate-journal run …`). Idempotent, nicht-destruktiv (alte
+    `.md` → `.md.premigration`, `--force`/`--apply` re-parst aus
+    `.premigration`). Erkennt `fsid|fshr|fshid|fssn|entry`-Marker, dedup
+    nach `(source, id)`.
+  - **Verlauf:** Ein erster Lauf (durch den Subagent, gegen die
+    „nicht auto-ausführen"-Vorgabe) hat mit der id-only-Dedup-Version
+    beide Runtime-User migriert (54 `.md`) und dabei kollidierende
+    `fshr`/`fshid`-Einträge verloren + `<!-- fssn: -->`-Blöcke in den
+    Vor-Eintrag gequetscht. `.premigration`-Originale intakt; Firestore
+    nie berührt (SOT unverändert). Nach dem `(source,id)`-Fix mit
+    `--force --apply` neu gezogen — Verlust-/`fssn`-Fälle stichprobenweise
+    verifiziert wiederhergestellt.
+  - Restrisiken: (a) `.entries.jsonl` read-modify-write, atomic
+    `os.replace` aber kein Lock — Race nur bei sekundengleichem Write auf
+    denselben Tag. (b) ~~`mirror.py` vs. `sync.py` Habit-Body-Divergenz~~
+    **GELÖST (2026-09-09)**: `mirror.py` löst Habit-Namen jetzt via neuer
+    `_habit_name(uid, habit_id)` aus `habits/definitions.json` auf (Fallback
+    `Habit:<id>` bzw. `Unknown Habit` bei bekanntem Habit ohne name —
+    `sync.py`-Parität). `on_habit_records`/`on_habit_journals`-Bodies exakt
+    an `sync.py` angeglichen (inkl. `_{time}_`-Suffix, `\n`-Trenner statt
+    trailing `\n`). (c) ~~Daemon braucht Restart~~ **ERLEDIGT**: Daemon
+    `fitness-firestore-daemon.service` nach JSONL-Umbau + `_habit_name`-Fix
+    neugestartet, läuft mit neuem Code (`WorkingDirectory ~/fitness-dev`).
 
-  **JSONL-SOT-Umbau (`journal/YYYY-MM-DD.entries.jsonl` als Quelle, `.md`
-  deterministisch daraus gerendert) wurde am 2026-09-09 begonnen, dann
-  GESTOPPT** — Scope-Befund: die `journal/*.md` hat **vier** Schreiber in
-  **drei** Sprachen, nicht nur `mirror.py`:
-  1. `fitness/firestore/mirror.py` → `on_journal`/`on_habit_records`/
-     `on_habit_journals` — Marker-Append (Daemon `fitness-firestore-daemon`).
-  2. `fitness/api/routers/journal.py` → `POST /journal` — **Ganzdatei-
-     Overwrite** mit Freitext-`content` (Prod-API :9150/:6100).
-  3. `server.mjs` → `POST /journal` — **Ganzdatei-Overwrite** mit Freitext
-     (Dev :9100); zusätzlich `appendJournalBlock()` im `POST /firestore/sync`-
-     Pull-Handler (Marker-Append, on-demand).
-  4. `firestore-mirror.mjs` — Marker-Block-Builder für den Node-Pull-Pfad.
+## fitnessctl daemon (2026-09-09)
 
-  **Das Frontend schreibt die `.md`** (bestätigt, nicht geraten):
-  `src/lib/db/local/journal.js::saveJournal/updateJournal` POSTet im
-  Local-Modus den **ganzen Tagestext als ein Freitext-`content`** an
-  `POST /journal` → Ganzdatei-Overwrite. Im Firestore-Modus
-  (`src/lib/db/firestore/journal.js`) geht das Frontend direkt gegen
-  Firestore und fasst die `.md` gar nicht an. Die `.md` ist also
-  Doppelnutzung: Freitext-Tagesnotiz (Frontend, Overwrite) **+**
-  Marker-Append-Log der Firestore-Journal-/Habit-Docs (Daemons). Diese
-  beiden Schreibarten kollidieren schon heute (Frontend-Overwrite löscht
-  angehängte Habit-Blöcke).
+- **Neu: `fitnessctl daemon <cmd>`** steuert `fitness-firestore-daemon.service`
+  (user-scope Firestore-Mirror). Subcommands: `status` (aktiv/boot/pid/uptime
+  + ExecStart/WorkingDirectory + letzte 5 Journal-Zeilen), `restart`
+  (Pflicht nach Code-Änderung an `mirror.py`/`journal_store.py`), `start`,
+  `stop`, `enable`, `disable`, `logs [-f|-n N]`. Selbstständige Typer-Sub-App
+  in `fitnessctl` (nicht in `fitness-devctl`, da der Daemon weder Dev-Node-
+  noch Python-API-Stack ist). `fitnessctl daemon` fasst damit das an, was
+  `fitnessctl dev`/`prod` bewusst auslassen.
 
-  Ein `mirror.py`-only-Umbau auf „`.md` aus JSONL neu rendern" würde den
-  Frontend-Freitext bei jedem Daemon-Event **überschreiben** (Datenverlust)
-  und ein Split-Brain mit den Node-Schreibern erzeugen. Sauber ist der
-  Umbau nur, wenn **alle vier Schreiber + der Frontend-Contract**
-  (Freitext-Blob ↔ strukturierte Einträge) zusammen migriert werden, plus
-  Einmal-Migration bestehender `.md` → JSONL. Das ist eine große,
-  sprachübergreifende Architektur-Umstellung → **braucht bewusste
-  User-/Team-Entscheidung über Umfang und Contract**, nicht als
-  Teil-Change durchdrücken. `_append_journal_block()` ist der eine Ort,
-  an dem die Python-Seite später ansetzt.
+## Aus dem CLI-Log Ort/Dauer-Fix (2026-09-09, Commits `07d4fdf` + `3d1cc0e`)
+
+- **`~/vitalos`-Parent-Submodule-Pointer nicht gebumpt**: der vom Nutzer
+  gestartete `fitness-release --yes` brach nach erfolgreichem dev→vitalos-
+  Merge/-Push beim Parent-Commit ab — `~/vitalos` selbst hat 3 unstaged
+  Dateien einer parallelen Push-Notification-Session
+  (`src/hooks/usePushNotifications.js`,
+  `src/shell/Settings/NotificationsSection.jsx`, `src/shell/db/settings.js`).
+  `fitness-app`-Submodule-Pointer in `~/vitalos` zeigt daher noch auf den
+  alten Commit; Release erneut laufen lassen (nachdem die Parent-Dateien
+  geklärt sind) oder Pointer manuell bumpen. Ob der Firebase-Deploy trotzdem
+  (über den `vitalos`-Submodule-Push-Hook) lief, ist nicht verifiziert.
+- **`fitness-log add`/`wizard` mit `--effort`/`--location`/`--duration` nur
+  code-/testverifiziert**, nicht live gegen eine echte Session durchgespielt
+  (schreibt sauber in `session.effort`/`location`/`duration`, ohne `notes`
+  anzufassen?).
+- **Frontend schreibt `location`/`duration`/`effort` weiterhin nicht
+  strukturiert**: nur der CLI-Pfad füllt die Top-Level-Felder; `src/views/
+  Session/*` erfasst Ort/Dauer/RPE noch als Freitext bzw. gar nicht (Schema in
+  `src/views/Session/ARCHITECTURE.md` dokumentiert sie bereits). Angleichung
+  nicht beauftragt.
+- **`fitness/log/activity.py` (Cardio)** hat auch kein `location`/`duration`-
+  Gegenstück (neben dem schon offenen `effort`) — Konsistenzlücke, nicht
+  beauftragt.
+- **SQLite-Mirror / Firestore-Sync für `2026-09-08.json`** nach der
+  `effort`/`location`/`duration`-Datenkorrektur nicht nachgezogen (die
+  Session selbst ist fertig korrigiert, `.bak` + `.bak2` vorhanden — nicht
+  erneut anfassen).
+
+## Aus Resolver / Journal-Mirror / Yuhonas-Regionsnamen (2026-09-09, Commits `e7f1519` + `81031d6` + `cbb7968`)
+
+- **`fitness-release` am Session-Ende nicht durchgelaufen**: `fitness-release
+  --yes` bricht bei `require_clean_repo` ab, weil eine **parallele** Session
+  unstaged Journal-WIP im Repo hat (`server.mjs`, `journal-store.mjs`,
+  `fitness/runtime/journal_store.py`, `fitness/api/routers/journal.py`,
+  `fitness/firestore/mirror.py`, `inbox_wger_92.yml`). Bewusst nicht
+  angefasst. Release erneut laufen lassen, sobald die andere Session ihren
+  Journal-Kram committet/gepusht hat. `cbb7968`/`e7f1519`/`81031d6` sind bis
+  dahin nur auf `origin/dev` + Staging `:8100`, **nicht** nach `vitalos`/
+  Firebase/Prod `:6100`.
+- **Prod-Deploy `:6100`** (`pkexec fitnessctl prod deploy`) für die drei
+  Commits offen — reines Backend/CLI, keine Firebase-Relevanz, ging per
+  Post-Push-Hook nur nach Staging.
+- **`cbb7968` nur Scan-verifiziert**: `kb/inbox/`-Drafts sind sauber, aber
+  `kb/exercises/unreviewed_yuhonas.yml` (Roh-Bulk-Dump) bleibt bewusst
+  unangetastet — falls von dort je grobe Regionsnamen in echten
+  Katalog-Content wandern, greift der Fix erst beim nächsten
+  `build_external_seed()`-Lauf.
+- Resolver-Migration + JSONL-Journal-Umbau: die offenen Punkte stehen
+  ausführlich in der Sektion „Aus dem Runtime-Session-Resolver +
+  Journal-Mirror-Refactor" weiter oben — nicht doppeln.

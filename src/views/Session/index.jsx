@@ -59,7 +59,10 @@ export default function Session({
 
   if (subTab === 'skills') {
     return (
-      <div className="px-2 mt-3 pb-32 space-y-4">
+      <div
+        className="px-2 mt-3 space-y-4"
+        style={{ paddingBottom: 'calc(8rem + env(safe-area-inset-bottom))' }}
+      >
         <SkillsCard />
         <WorkoutTimerCard />
       </div>

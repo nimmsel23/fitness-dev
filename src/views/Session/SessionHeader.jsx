@@ -48,15 +48,23 @@ export default function CalmHeader({
             className="relative w-8 h-8 rounded-full flex items-center justify-center transition-colors"
             style={{ color: 'var(--dim)' }}
             title="Datum wählen"
+            aria-label="Datum wählen"
           >
             <CalendarDays size={15} />
+            {/* Kein inset-0-Overlay mehr: ein transparentes <input type="date">
+                über dem Button hat auf iOS Safari einen intrinsisch größeren,
+                nach links verschobenen Touch-Bereich → Taps landen auf dem
+                Nachbar-Icon. Der Picker wird ohnehin nur programmatisch über
+                showPicker()/click() geöffnet, das Feld braucht also keine
+                eigene Trefferfläche. */}
             <input
               ref={dateInputRef}
               type="date"
               value={date}
               onChange={(e) => jumpToDate(e.target.value)}
-              className="absolute inset-0 opacity-0 cursor-pointer"
-              aria-label="Datum wählen"
+              className="pointer-events-none absolute h-0 w-0 opacity-0"
+              tabIndex={-1}
+              aria-hidden="true"
             />
           </button>
           <SessionHeaderMenu onOpenSidebar={onOpenSidebar} onOpenSettings={onOpenSettings} />
