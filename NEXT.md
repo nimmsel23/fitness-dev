@@ -453,3 +453,50 @@ pruefen.
 - Resolver-Migration + JSONL-Journal-Umbau: die offenen Punkte stehen
   ausführlich in der Sektion „Aus dem Runtime-Session-Resolver +
   Journal-Mirror-Refactor" weiter oben — nicht doppeln.
+
+## Aus dem AGENTS.md/Trapezius-Hamstrings-Umbau (2026-09-13, Commits `99994fc`+`d0c6aa3`+`d80814f`+`f477717`)
+
+- **`fitness-release` nicht ausgeführt**: alle vier Commits liegen nur auf
+  `dev`/`origin/dev`, kein dev→vitalos-Merge, kein Firebase-Deploy. Der
+  Trapezius-/Hamstrings-KB-Umbau und das neue Push/Pull/Legs-Bundle sind also
+  noch nicht live auf `fitness-aos.web.app`.
+- **`~/TODO.md`-Eintrag zu Trapezius/Hamstrings nicht bereinigt**: der User-
+  Punkt oben in `~/TODO.md` ("triceps anteile und trapezius-anteile sind
+  fehlerhaft … beinbeuger … nicht entsprechend des quadrizeps-komplexes")
+  wurde fachlich umgesetzt (Trizeps war schon korrekt, Trapezius/Hamstrings
+  jetzt gefixt), aber die Datei selbst wurde bewusst nicht angerührt — auf
+  Wunsch offen gelassen, ob der Eintrag dort als erledigt markiert/entfernt
+  werden soll.
+- **Punkt 2 aus `catalog/kb/AGENTS.md`** (numerische Exercise-IDs, `xxx.yml`-
+  Rückumstellung anhand der `.bak`-Reste wie `020.yml.bak`/`401.yml.bak`)
+  bewusst nicht angefasst — als größerer, riskanter Umbau eingeschätzt
+  (bestehende Dateinamen/IDs), nicht eindeutig aus den Daten rekonstruierbar.
+  Braucht eine separate Planung/Freigabe, bevor daran gearbeitet wird.
+- **`push.generated.js`/`legs.generated.js` sind aktuell leer** (0 Übungen,
+  nur `pull.generated.js` hat 2) — spiegelt schlicht den heutigen KB-Stand
+  (wenige `source == "expert"`-Einträge mit `category: push`/`legs`), ist kein
+  Bug im neuen Build-Skript, aber noch nicht gegen einen reicheren KB-Stand
+  gegengeprüft.
+- Ein voller `pytest fitness/catalog/tests/` lief im Hintergrund und wurde vor
+  `/compact` nicht mehr bis zum Ende abgewartet (nur die gezielt betroffenen
+  `test_coverage.py`/Resolver-/Muscle-Viz-Checks wurden einzeln grün
+  verifiziert) — Ergebnis des vollen Laufs nicht bekannt.
+
+## Aus dem Session-Tab Mobil-Feinschliff (2026-09-10, Commit `e6de3e5`, released)
+
+- **Keine Browser-/PWA-Durchklick-Verifikation** der drei Fixes — nur Build +
+  ESLint. Der Nutzer-Painpoint war explizit mobil/iOS-PWA. Offen zu prüfen
+  gegen den live-deployten Stand (`fitness-aos.web.app`):
+  - Bottom-Nav: transparenter Streifen unter der Bar als iOS-PWA wirklich weg,
+    Bar sitzt bündig an der Unterkante, Icons nicht unter dem Home-Indicator.
+  - SessionEditor: letzter Block „Details & Notizen" auf dem Handy vollständig
+    über Bottom-Nav + Save-FAB scrollbar, nicht mehr verdeckt. Gleiches für den
+    `skills`-Subtab.
+  - SessionHeader: die drei Icons oben rechts (Kalender / Menü / Speichern)
+    treffen auf iOS Safari/PWA jeweils ihr eigenes Ziel; Datums-Picker öffnet
+    weiterhin per Kalender-Icon-Tap.
+- **CI-Run des Release-Pushs** (`vitalos` GitHub Actions, „Deploy Fitness PWA"
+  + „Deploy VitalOS Shell") nach `fitness-release` nicht per `gh` gegengeprüft.
+- Pre-Commit-Hook-Reminder: `src/views/Session/`-Code geändert, aber
+  `ARCHITECTURE.md`/`AUDIT.md` nicht im Commit — bewusst nicht aktualisiert
+  (reine CSS/Layout-Fixes ohne Architektur-Relevanz), kein Nachtrag geplant.
