@@ -12,6 +12,7 @@ export * from "./local/macrocycles.js";
 export * from "./local/analysis.js";
 export * from "./local/user.js";
 export * from "./local/slotTemplates.js";
+export * from "./local/tours.js";
 export * from "./local/utils.js";
 
 // Shared utilities always available in both modes
