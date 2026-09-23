@@ -9,6 +9,7 @@ import pino from "pino";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
 import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, pullAllSessions, pullJournalTree } from "./firestore-mirror.mjs";
 import { entriesPath as journalEntriesPath, freetextBody as journalFreetextBody, upsertEntry as journalUpsertEntry } from "./journal-store.mjs";
+import { stravaRoutes } from "./strava-routes.mjs";
 
 // pino-pretty IMMER aktiv, auch unter systemd/journalctl — das ist der
 // tatsächliche Haupt-Log-Weg hier (nicht nur `npm run dev` im Terminal).
@@ -2185,6 +2186,12 @@ function buildOpenApiSpec() {
     paths,
   };
 }
+// ── Strava-Live-Import (Radtouren-Tab, OAuth2) ──────────────────────────────
+// Routen ausgelagert in strava-routes.mjs (Hono-Sub-Router), Logik in
+// strava-integration.mjs — hier nur Mount, analog zum Dependency-Injection-
+// Stil der anderen importierten Module (firestore-mirror.mjs, journal-store.mjs).
+app.route("/tours/strava", stravaRoutes({ dataDir: DATA_DIR, log }));
+
 app.get("/openapi.json", (c) => {
   // Basis: alle Routen generisch aus der Hono-Routing-Tabelle (immer
   // vollständig). Overlay: die paar Routen, die per .openapi()+Zod
