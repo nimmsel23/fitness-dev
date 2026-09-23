@@ -21,8 +21,7 @@ async def exercises_search(request: Request, q: str = "", limit: int = 12):
         return {"ok": True, "results": [], "total": 0}
 
     idx = _get_index()
-    reviewed_results = []
-    unreviewed_results = []
+    results = []
     qn = q.lower()
     for ex in idx:
         fields = [
@@ -40,17 +39,10 @@ async def exercises_search(request: Request, q: str = "", limit: int = 12):
                 "primary_muscles": ex.primary_muscles or [],
                 "secondary_muscles": ex.secondary_muscles or [],
                 "source": "expert" if "expert" in (ex.tags or []) else "local",
+                "yuhonas_id": getattr(ex, "yuhonas_id", None),
             }
-            # Bulk/unreviewed Treffer (rohe wger/yuhonas-Importe, kein Review)
-            # nur als Fallback zeigen, wenn's fuer denselben Query ueberhaupt
-            # keinen Expert-/Inbox-Treffer gibt — sonst konkurrieren
-            # unreviewte Duplikate sichtbar mit dem kuratierten Eintrag.
-            if ex.source in ("expert", "inbox"):
-                reviewed_results.append(row)
-            else:
-                unreviewed_results.append(row)
+            results.append(row)
 
-    results = reviewed_results or unreviewed_results
     if results:
         return {"ok": True, "results": results[:limit], "total": len(results)}
 

@@ -18,8 +18,9 @@ export default function ExerciseSearch({ onAdd, exclude = [] }) {
     const t = setTimeout(async () => {
       setLoading(true);
       try {
-        const d = await api.get(`/exercises?q=${encodeURIComponent(q)}&limit=12`);
-        setResults(d.results.filter((e) => !exclude.includes(e.id)));
+        const d = await api.get(`/exercises?q=${encodeURIComponent(q)}&limit=50`);
+        const available = d.results.filter((e) => !exclude.includes(e.id));
+        setResults(available.sort((a, b) => Number(Boolean(b.yuhonas_id)) - Number(Boolean(a.yuhonas_id))).slice(0, 12));
       } finally {
         setLoading(false);
       }

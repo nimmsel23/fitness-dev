@@ -137,14 +137,13 @@ function _isExpert(ex) {
 }
 
 function _buildSupersededExternalRefs(exercises) {
-  const refs = { wger: new Set(), yuhonas: new Set(), names: new Set() };
+  const refs = { wger: new Set(), yuhonas: new Set() };
   for (const ex of exercises || []) {
     if (!_isExpert(ex)) continue;
     if (ex.wger_id) refs.wger.add(String(ex.wger_id));
     const external = ex.external_ids || {};
     for (const id of external.wger || []) refs.wger.add(String(id));
     for (const id of external.yuhonas || []) refs.yuhonas.add(String(id));
-    for (const name of ex.search_aliases || []) refs.names.add(_normalize(name));
   }
   return refs;
 }
@@ -154,8 +153,7 @@ function _isSupersededExternalExercise(ex, refs) {
   if (ex.merged_into || ex.superseded_by) return true;
   if (ex.wger_id && refs.wger.has(String(ex.wger_id))) return true;
   if (ex.yuhonas_id && refs.yuhonas.has(String(ex.yuhonas_id))) return true;
-  const hay = [ex.display_name, ex.german, ex.english, ex.name, ex.exercise_id, ex.id].map(_normalize);
-  return hay.some((item) => item && refs.names.has(item));
+  return false;
 }
 
 // Push/Pull/Legs-Split der expert-approved Exercises, offline verfügbar wie
