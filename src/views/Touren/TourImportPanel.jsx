@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { UploadCloud, Loader2, CheckCircle2, AlertCircle, Link2, Wifi } from 'lucide-react';
-import { FILE_ADAPTERS, LIVE_ADAPTERS, findFileAdapterFor, fileAdapterAccept } from '../../lib/tours/adapters/index.js';
+import { LIVE_ADAPTERS, findFileAdapterFor, fileAdapterAccept } from '../../lib/tours/adapters/index.js';
 
 export default function TourImportPanel({ onImportParsed }) {
   const inputRef = useRef(null);
