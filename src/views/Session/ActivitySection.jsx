@@ -5,6 +5,7 @@
  * Activity types cover the main endurance/sport disciplines.
  */
 
+import { Bike, ArrowUpRight } from 'lucide-react';
 import {
   ACTIVITY_MUSCLE_DEFAULTS,
   ACTIVITY_MUSCLE_GROUPS,
@@ -203,6 +204,72 @@ export default function ActivitySection({ activity, setActivity }) {
               km
             </span>
           </div>
+        </div>
+      )}
+
+      {/* Radtour-spezifische Zusatzfelder (Simon-Feedback, WhatsApp 2026-09-23) */}
+      {activity.type === 'cycling' && (
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-2 block ml-1">
+              ⌀ Speed
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                step="0.1"
+                placeholder="z.B. 24"
+                value={activity.avgSpeedKmh || ''}
+                onChange={e => setActivity({ ...activity, avgSpeedKmh: e.target.value })}
+                className="w-full p-4 pr-14 rounded-2xl border bg-fit-bg2 border-fit-line text-fit-ink font-bold text-sm focus:border-fit-orange outline-none transition-all"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest text-fit-dim/30">
+                km/h
+              </span>
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-2 block ml-1">
+              Max Speed
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                step="0.1"
+                placeholder="z.B. 48"
+                value={activity.maxSpeedKmh || ''}
+                onChange={e => setActivity({ ...activity, maxSpeedKmh: e.target.value })}
+                className="w-full p-4 pr-14 rounded-2xl border bg-fit-bg2 border-fit-line text-fit-ink font-bold text-sm focus:border-fit-orange outline-none transition-all"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest text-fit-dim/30">
+                km/h
+              </span>
+            </div>
+          </div>
+          <div className="col-span-2">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-2 block ml-1">
+              ⛰ Höhenmeter
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                step="1"
+                placeholder="z.B. 650"
+                value={activity.elevationGainM || ''}
+                onChange={e => setActivity({ ...activity, elevationGainM: e.target.value })}
+                className="w-full p-4 pr-14 rounded-2xl border bg-fit-bg2 border-fit-line text-fit-ink font-bold text-sm focus:border-fit-orange outline-none transition-all"
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest text-fit-dim/30">
+                hm
+              </span>
+            </div>
+          </div>
+          <a
+            href="#touren"
+            className="col-span-2 flex items-center justify-center gap-2 py-3 rounded-2xl border border-fit-orange/30 bg-fit-orange/5 text-fit-orange text-xs font-black uppercase tracking-widest hover:bg-fit-orange/10 transition-all"
+          >
+            <Bike size={14} /> Alle Radtouren ansehen <ArrowUpRight size={13} />
+          </a>
         </div>
       )}
 
