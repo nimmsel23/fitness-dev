@@ -52,6 +52,7 @@ export default defineConfig(async ({ mode }) => {
 
         '@src':                resolve(__dirname, './src'),
         '@db':                 resolve(__dirname, isFirebase ? './src/lib/db/index.firestore.app.js' : './src/lib/db/index.js'),
+        '@tours-strava':       resolve(__dirname, isFirebase ? './src/lib/tours/adapters/live/strava.firestore.js' : './src/lib/tours/adapters/live/strava.js'),
         '@fitness-db':         resolve(__dirname, './src/lib/db'),
         '@utils':              resolve(__dirname, './src/lib/utils.js'),
         '@cloud/firebase.js':  resolve(__dirname, './src/firebase.js'),

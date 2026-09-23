@@ -3,6 +3,7 @@ import { initializeFirestore, persistentLocalCache, persistentSingleTabManager, 
 import { getAuth, GoogleAuthProvider, browserLocalPersistence, setPersistence } from "firebase/auth";
 import { getMessaging, isSupported as isMessagingSupported } from "firebase/messaging";
 import { getAI, VertexAIBackend } from "firebase/ai";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { config } from "../firebase.config.js";
 
 const alreadyInit = getApps().length > 0;
@@ -35,6 +36,11 @@ export const db = alreadyInit
       // ab und zeigt keinen Fehler, wodurch ganze Session-Saves lautlos verpuffen.
       ignoreUndefinedProperties: true,
     });
+
+// Region muss mit functions/strava.js (REGION-Konstante) übereinstimmen —
+// sonst 404, weil httpsCallable() sonst auf der Default-Region sucht.
+export const functionsInstance = getFunctions(app, "europe-west1");
+export { httpsCallable };
 
 export const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence).catch(() => {});

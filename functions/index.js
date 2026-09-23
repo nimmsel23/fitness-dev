@@ -3,6 +3,7 @@ const admin = require("firebase-admin");
 const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
+const strava = require("./strava.js");
 
 admin.initializeApp();
 
@@ -331,4 +332,58 @@ exports.onCoachFeedback = functions
 
     const text = notificationText("coachFeedback");
     return sendReminder(uid, tokens, text.title, newData.coachFeedback.substring(0, 100), text.link);
+  });
+
+// ── Strava-Live-Import (Radtouren-Tab, Prod/Firebase-PWA) ──────────────────
+// Logik in strava.js — dev-Pendant ist server.mjs/strava-routes.mjs
+// (Node-Backend, nur lokal erreichbar). Setup: docs/STRAVA_SETUP.md.
+function requireAuth(context) {
+  if (!context.auth) throw new functions.https.HttpsError("unauthenticated", "Login erforderlich.");
+  return context.auth.uid;
+}
+
+exports.stravaAuthorizeUrl = functions
+  .region(strava.REGION)
+  .https.onCall(async (_data, context) => {
+    const uid = requireAuth(context);
+    const url = await strava.buildAuthorizeUrl(admin.firestore(), uid);
+    return { url };
+  });
+
+exports.stravaCallback = functions
+  .region(strava.REGION)
+  .https.onRequest(async (req, res) => {
+    const { code, state, error } = req.query;
+    if (error) return res.redirect(`${strava.APP_URL}/#tours?strava_error=${encodeURIComponent(String(error))}`);
+    if (!code || !state) return res.status(400).send("Strava: code/state fehlt im Callback.");
+    try {
+      await strava.exchangeCodeForTokens(admin.firestore(), { code: String(code), state: String(state) });
+      return res.redirect(`${strava.APP_URL}/#tours?strava_connected=1`);
+    } catch (err) {
+      console.error("[stravaCallback]", err);
+      return res.redirect(`${strava.APP_URL}/#tours?strava_error=${encodeURIComponent(err.message)}`);
+    }
+  });
+
+exports.stravaStatus = functions
+  .region(strava.REGION)
+  .https.onCall(async (_data, context) => {
+    const uid = requireAuth(context);
+    return strava.status(admin.firestore(), uid);
+  });
+
+exports.stravaActivities = functions
+  .region(strava.REGION)
+  .https.onCall(async (data, context) => {
+    const uid = requireAuth(context);
+    const tours = await strava.fetchActivities(admin.firestore(), uid, { perPage: data?.perPage || 30 });
+    return { tours };
+  });
+
+exports.stravaDisconnect = functions
+  .region(strava.REGION)
+  .https.onCall(async (_data, context) => {
+    const uid = requireAuth(context);
+    await strava.disconnect(admin.firestore(), uid);
+    return { ok: true };
   });

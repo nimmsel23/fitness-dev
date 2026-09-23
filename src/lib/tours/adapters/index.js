@@ -10,7 +10,10 @@ import { googleFitAdapter } from './live/googleFit.js';
 import { garminAdapter } from './live/garmin.js';
 import { appleHealthAdapter } from './live/appleHealth.js';
 import { huaweiAdapter } from './live/huawei.js';
-import { stravaAdapter } from './live/strava.js';
+// @tours-strava: Vite-Alias (vite.config.js), löst je nach Build-Modus auf
+// ./strava.js (Dev/Node-Backend, server.mjs) oder ./strava.firestore.js
+// (Firebase-Build, Cloud Functions) — analog zum bestehenden @db-Muster.
+import { stravaAdapter } from '@tours-strava';
 
 export const FILE_ADAPTERS = [
   { id: 'gpx', label: 'GPX', extensions: ['.gpx'], parse: parseGpxFile },
