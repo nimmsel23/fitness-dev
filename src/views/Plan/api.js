@@ -90,8 +90,10 @@ export const api = {
     }
 
     if (path.startsWith('/exercises')) {
-      const q = new URLSearchParams(path.split('?')[1] || '').get('q') || ''
-      const res = await dbSearch(q, 12)
+      const params = new URLSearchParams(path.split('?')[1] || '')
+      const q = params.get('q') || ''
+      const limit = Number(params.get('limit')) || 12
+      const res = await dbSearch(q, limit)
       const results = (res?.results || []).map(ex => ({
         id: ex.id || ex.exercise_id,
         name: ex.name || ex.display_name,
