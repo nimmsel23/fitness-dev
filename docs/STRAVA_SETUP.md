@@ -52,18 +52,53 @@ Token-Refresh läuft automatisch im Hintergrund (`strava-integration.mjs`,
 `refreshIfNeeded()`) — kein erneutes manuelles Verbinden nötig, solange der
 Refresh-Token gültig bleibt.
 
-## Bekannte Lücke: Prod-Firebase-PWA (Simon nutzt diese, nicht den Dev-Server)
+## Prod/Firebase (Simon nutzt diesen Weg, nicht den Dev-Server)
 
-Dieser Flow läuft ausschließlich über `server.mjs` (Node-Backend) — das
-existiert nur im lokalen/Dev-Modus bzw. auf `fitness.service` (:6100). Die
-**Firebase-PWA** (`fitness-aos.web.app`, was Simon tatsächlich in der App
-nutzt) hat keinen Node-Backend-Unterbau (`@db` zeigt dort auf
-`db.firestore.js`, direkter Firestore-SDK-Zugriff, kein Server dazwischen).
+Die **Firebase-PWA** (`fitness-aos.web.app`) hat keinen Node-Backend-
+Unterbau — `@db` zeigt dort auf `db.firestore.js` (direkter Firestore-SDK-
+Zugriff, kein Server dazwischen). Der obige `server.mjs`-Flow greift dort
+nicht. Seit Commit `07cf5f3` gibt es dafür ein eigenes Cloud-Functions-
+Pendant (`functions/strava.js` + fünf Exports in `functions/index.js`:
+`stravaAuthorizeUrl`, `stravaCallback`, `stravaStatus`, `stravaActivities`,
+`stravaDisconnect`) — Tokens landen dort pro Nutzer in Firestore
+(`fitness/{uid}/integrations/strava`) statt in einer lokalen Datei, `state`-
+Parameter (10 Min TTL, `fitness/{uid}/integrations/stravaPendingState`)
+bindet den OAuth-Callback zurück an die richtige uid.
 
-Damit Simon selbst "Verbinden" klicken kann, bräuchte es zusätzlich eine
-**Firebase Cloud Function** (oder einen alternativen HTTPS-Endpoint), die
-denselben OAuth-Code-Exchange serverseitig übernimmt — `client_secret` darf
-so oder so nie im Browser-Bundle landen. Das ist bewusst noch nicht gebaut
-(separater Scope, eigene Freigabe/Deploy nötig) — bis dahin bleibt für
-Prod-Nutzer weiterhin der Datei-Export-Weg (GPX/TCX/FIT hochladen) der
-einzige funktionierende Import.
+### 1. Credentials für Cloud Functions setzen (einmalig, eigener Schritt — dieselbe Strava-App wie oben, oder eine zweite mit Callback-Domain der Functions-URL)
+
+```bash
+firebase functions:config:set \
+  strava.client_id="DEINE_CLIENT_ID" \
+  strava.client_secret="DEIN_CLIENT_SECRET" \
+  --project fitness-aos
+```
+
+**Wichtig:** Die Strava-App braucht dafür eine zweite Callback-Domain (oder
+eine zweite Strava-App) mit **Authorization Callback Domain** =
+`europe-west1-fitness-aos.cloudfunctions.net` (die exakte Function-URL,
+siehe `REDIRECT_URI` in `functions/strava.js`) — die lokale `localhost`-App
+von oben reicht dafür nicht.
+
+### 2. Deploy (braucht explizite Freigabe, nicht automatisch ausgeführt)
+
+```bash
+cd ~/fitness-dev/functions
+firebase deploy --project fitness-aos --only \
+  functions:stravaAuthorizeUrl,functions:stravaCallback,functions:stravaStatus,functions:stravaActivities,functions:stravaDisconnect
+```
+
+Kein `firebase deploy --only functions` ohne Filter — das würde auch
+`scheduledPushReminders`/`onCoachFeedback` neu deployen, unnötiges Risiko
+für unveränderten Code.
+
+### 3. Danach
+
+Simon (oder jeder andere Firebase-Auth-Nutzer) sieht im Radtouren-Tab
+denselben Strava-Button wie im Dev-Modus — `@tours-strava` lädt dort
+automatisch `strava.firestore.js` statt `strava.js` (Vite-Alias, Build-
+Modus-abhängig), kein Unterschied für den Nutzer.
+
+**Noch offen:** Deploy wurde bisher NICHT ausgeführt (siehe Schritt 2) —
+bis dahin bleibt für Prod-Nutzer der Datei-Export-Weg (GPX/TCX/FIT
+hochladen) der einzige tatsächlich funktionierende Import.
