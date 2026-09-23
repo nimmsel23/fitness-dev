@@ -10,6 +10,7 @@ import { googleFitAdapter } from './live/googleFit.js';
 import { garminAdapter } from './live/garmin.js';
 import { appleHealthAdapter } from './live/appleHealth.js';
 import { huaweiAdapter } from './live/huawei.js';
+import { stravaAdapter } from './live/strava.js';
 
 export const FILE_ADAPTERS = [
   { id: 'gpx', label: 'GPX', extensions: ['.gpx'], parse: parseGpxFile },
@@ -17,7 +18,10 @@ export const FILE_ADAPTERS = [
   { id: 'fit', label: 'FIT', extensions: ['.fit'], parse: parseFitFile },
 ];
 
+// Strava zuerst: einziger Adapter mit echtem Code-Pfad (Self-Service-OAuth),
+// die anderen drei bleiben ehrliche Stubs (Partner-Approval/kein API nötig).
 export const LIVE_ADAPTERS = [
+  stravaAdapter,
   googleFitAdapter,
   garminAdapter,
   appleHealthAdapter,

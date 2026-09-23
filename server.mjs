@@ -9,6 +9,7 @@ import pino from "pino";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
 import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, pullAllSessions, pullJournalTree } from "./firestore-mirror.mjs";
 import { entriesPath as journalEntriesPath, freetextBody as journalFreetextBody, upsertEntry as journalUpsertEntry } from "./journal-store.mjs";
+import { stravaStatus, buildAuthorizeUrl, exchangeCodeForTokens, fetchStravaTours, disconnectStrava } from "./strava-integration.mjs";
 
 // pino-pretty IMMER aktiv, auch unter systemd/journalctl — das ist der
 // tatsächliche Haupt-Log-Weg hier (nicht nur `npm run dev` im Terminal).
@@ -2185,6 +2186,57 @@ function buildOpenApiSpec() {
     paths,
   };
 }
+// ── Strava-Live-Import (Radtouren-Tab, OAuth2) ──────────────────────────────
+// redirectUri wird aus der eingehenden Request gebaut (nicht hartcodiert),
+// damit dev (:9100) und prod (:6100) ohne Code-Änderung funktionieren — muss
+// aber in der Strava-App-Config als "Authorization Callback Domain" (nur der
+// Host, kein Port/Pfad) hinterlegt sein. Siehe docs/STRAVA_SETUP.md.
+function stravaRedirectUri(c) {
+  const url = new URL(c.req.url);
+  return `${url.protocol}//${url.host}/tours/strava/callback`;
+}
+
+app.get("/tours/strava/status", (c) => {
+  return c.json({ ok: true, ...stravaStatus(DATA_DIR) });
+});
+
+app.get("/tours/strava/authorize", (c) => {
+  try {
+    const authorizeUrl = buildAuthorizeUrl(stravaRedirectUri(c));
+    return c.redirect(authorizeUrl);
+  } catch (err) {
+    return c.json({ ok: false, error: err.message }, 400);
+  }
+});
+
+app.get("/tours/strava/callback", async (c) => {
+  const code = c.req.query("code");
+  const error = c.req.query("error");
+  if (error) return c.redirect(`/#tours?strava_error=${encodeURIComponent(error)}`);
+  if (!code) return c.json({ ok: false, error: "Strava: kein code-Parameter im Callback." }, 400);
+  try {
+    await exchangeCodeForTokens({ dataDir: DATA_DIR, code, redirectUri: stravaRedirectUri(c) });
+    return c.redirect("/#tours?strava_connected=1");
+  } catch (err) {
+    log.error({ err }, "[strava] Token-Exchange fehlgeschlagen");
+    return c.redirect(`/#tours?strava_error=${encodeURIComponent(err.message)}`);
+  }
+});
+
+app.get("/tours/strava/activities", async (c) => {
+  try {
+    const tours = await fetchStravaTours({ dataDir: DATA_DIR, perPage: Number(c.req.query("per_page") || 30) });
+    return c.json({ ok: true, tours });
+  } catch (err) {
+    return c.json({ ok: false, error: err.message }, 400);
+  }
+});
+
+app.post("/tours/strava/disconnect", (c) => {
+  disconnectStrava(DATA_DIR);
+  return c.json({ ok: true });
+});
+
 app.get("/openapi.json", (c) => {
   // Basis: alle Routen generisch aus der Hono-Routing-Tabelle (immer
   // vollständig). Overlay: die paar Routen, die per .openapi()+Zod

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { UploadCloud, Loader2, CheckCircle2, AlertCircle, Link2, Wifi } from 'lucide-react';
 import { LIVE_ADAPTERS, findFileAdapterFor, fileAdapterAccept } from '../../lib/tours/adapters/index.js';
 
@@ -7,6 +7,55 @@ export default function TourImportPanel({ onImportParsed }) {
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState(null); // { ok, message }
   const [dragOver, setDragOver] = useState(false);
+  const [liveStatus, setLiveStatus] = useState({}); // { [adapterId]: { configured, connected } }
+  const [liveBusy, setLiveBusy] = useState(null); // adapter.id gerade am Laufen
+
+  useEffect(() => {
+    for (const adapter of LIVE_ADAPTERS) {
+      if (typeof adapter.status !== 'function') continue;
+      adapter.status()
+        .then((s) => setLiveStatus((prev) => ({ ...prev, [adapter.id]: s })))
+        .catch(() => {});
+    }
+    // Rückkehr vom Strava-OAuth-Redirect (server.mjs leitet auf /#tours?strava_... um)
+    const hash = window.location.hash || '';
+    if (hash.includes('strava_connected=1')) {
+      setToast({ ok: true, message: 'Strava verbunden. Klicke nochmal auf Strava, um Touren zu importieren.' });
+      window.history.replaceState(null, '', window.location.pathname + window.location.search + '#tours');
+    } else if (hash.includes('strava_error=')) {
+      const msg = decodeURIComponent(hash.split('strava_error=')[1] || 'Strava-Verbindung fehlgeschlagen.');
+      setToast({ ok: false, message: `Strava: ${msg}` });
+      window.history.replaceState(null, '', window.location.pathname + window.location.search + '#tours');
+    }
+  }, []);
+
+  async function handleLiveAdapterClick(adapter) {
+    if (!adapter.live || !adapter.configured) {
+      setToast({ ok: false, message: `${adapter.label}: ${adapter.note}` });
+      return;
+    }
+    const status = liveStatus[adapter.id];
+    if (!status?.connected) {
+      await adapter.connect(); // Redirect zu OAuth — Rückkehr landet wieder hier
+      return;
+    }
+    setLiveBusy(adapter.id);
+    setToast(null);
+    try {
+      const tours = await adapter.fetchTours();
+      let ok = 0;
+      for (const tour of tours) {
+        await onImportParsed(tour);
+        ok += 1;
+      }
+      setToast({ ok: true, message: ok > 0 ? `${ok} Tour${ok > 1 ? 'en' : ''} von ${adapter.label} importiert.` : `Keine neuen Touren bei ${adapter.label} gefunden.` });
+    } catch (err) {
+      setToast({ ok: false, message: `${adapter.label}: ${err?.message || 'Import fehlgeschlagen'}` });
+    } finally {
+      setLiveBusy(null);
+      setTimeout(() => setToast(null), 6000);
+    }
+  }
 
   async function handleFiles(fileList) {
     const files = Array.from(fileList || []);
@@ -98,22 +147,31 @@ export default function TourImportPanel({ onImportParsed }) {
           <Wifi size={12} /> Live-Verbindung (noch nicht eingerichtet)
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {LIVE_ADAPTERS.map((adapter) => (
-            <button
-              key={adapter.id}
-              onClick={() => setToast({ ok: false, message: `${adapter.label}: ${adapter.note}` })}
-              className="p-3 rounded-xl border border-fit-line bg-fit-bg2 text-left opacity-70 hover:opacity-100 transition-opacity"
-              title={adapter.note}
-            >
-              <div className="flex items-center gap-1.5 text-[11px] font-bold text-fit-ink">
-                <Link2 size={12} className="text-fit-dim/40" />
-                {adapter.label}
-              </div>
-              <div className="text-[9px] font-black uppercase tracking-widest text-fit-dim/40 mt-1">
-                Nicht konfiguriert
-              </div>
-            </button>
-          ))}
+          {LIVE_ADAPTERS.map((adapter) => {
+            const status = liveStatus[adapter.id];
+            const isLiveConfigured = adapter.live && adapter.configured;
+            const connected = !!status?.connected;
+            const busyNow = liveBusy === adapter.id;
+            return (
+              <button
+                key={adapter.id}
+                onClick={() => handleLiveAdapterClick(adapter)}
+                disabled={busyNow}
+                className={`p-3 rounded-xl border text-left transition-opacity ${
+                  isLiveConfigured ? 'border-fit-orange/40 bg-fit-orange/5 opacity-100' : 'border-fit-line bg-fit-bg2 opacity-70 hover:opacity-100'
+                }`}
+                title={adapter.note}
+              >
+                <div className="flex items-center gap-1.5 text-[11px] font-bold text-fit-ink">
+                  {busyNow ? <Loader2 size={12} className="animate-spin text-fit-orange" /> : <Link2 size={12} className="text-fit-dim/40" />}
+                  {adapter.label}
+                </div>
+                <div className="text-[9px] font-black uppercase tracking-widest text-fit-dim/40 mt-1">
+                  {!isLiveConfigured ? 'Nicht konfiguriert' : connected ? 'Verbunden — Touren holen' : 'Verbinden'}
+                </div>
+              </button>
+            );
+          })}
         </div>
         <p className="text-[10px] text-fit-dim/40 mt-2 leading-relaxed">
           Für Google Fit/Garmin/Huawei fehlt ein echter API-Key/OAuth-Client — hier
