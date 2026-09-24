@@ -12,6 +12,7 @@
     "predev": "npm run build:kb-data",
     "dev": "node scripts/dev-runner.mjs",
     "start": "node server.mjs",
+    "fitness:routines": "node scripts/fitness-routines.mjs",
     "ui:dev": "vite",
     "lint": "eslint src/ 6pack/ Skills/ --ext .js,.jsx",
     "prebuild": "npm run build:kb-data",

@@ -1,4 +1,5 @@
 import { createPythonProxy } from "./server/lib/python-proxy.mjs";
+import { jsRoutineRoutes } from "./server/routes/js-routines.mjs";
 import { defineJsonRoute, looseObjectSchema } from "./server/lib/routes.mjs";
 import { registerExercises } from "./server/routes/exercises.mjs";
 import { registerCoach } from "./server/routes/coach.mjs";
@@ -320,6 +321,12 @@ registerSession(app, routeContext);
 registerJournal(app, routeContext);
 registerFitnessData(app, routeContext);
 registerFirestore(app, routeContext);
+
+// Isolierter Node-Prototyp: kein Zugriff auf Python-eigene Live-Daten ohne
+// ausdrückliche Konfiguration eines separaten Verzeichnisses.
+if (process.env.FITNESS_JS_ROUTINES_DATA_DIR) {
+  app.route("/js/routines", jsRoutineRoutes({ dataRoot: process.env.FITNESS_JS_ROUTINES_DATA_DIR }));
+}
 
 // ── API-Doku (Swagger UI) ─────────────────────────────────────────────────────
 // Spec wird zur Laufzeit aus Honos eigener Routing-Tabelle (app.routes)
