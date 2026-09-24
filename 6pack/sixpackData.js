@@ -1,6 +1,6 @@
 // Stabiler Import-Pfad für Timer/Skills-Views — der eigentliche Inhalt kommt
 // aus sixpackData.generated.js (per `npm run build:sixpack-data` aus der KB
-// erzeugt, siehe scripts/build-sixpack-data.mjs). KB-YAMLs sind SSOT: neue
+// erzeugt, siehe 6pack/build-data.mjs). KB-YAMLs sind SSOT: neue
 // Exercises/Workouts/Skills landen hier automatisch beim nächsten Build,
 // ohne dass dieser oder andere Dateien angefasst werden müssen.
 export {

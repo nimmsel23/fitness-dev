@@ -12,8 +12,13 @@ const BACKEND = 'http://localhost:9150'
 // Pfad kann nur in einem der beiden Kontexte stimmen. Deshalb zur Build-Zeit prüfen,
 // welches Sibling tatsächlich existiert, statt es fest zu verdrahten.
 function siblingDir(devName, appName) {
-  const appPath = resolve(__dirname, '..', appName)
-  return existsSync(appPath) ? appPath : resolve(__dirname, '..', devName)
+  for (const parent of ['..', '../..', '../../..']) {
+    for (const name of [appName, devName]) {
+      const candidate = resolve(__dirname, parent, name)
+      if (existsSync(candidate)) return candidate
+    }
+  }
+  return resolve(__dirname, '..', devName)
 }
 
 // SSOT für Cross-App-Aliase (@relax, @learn + interne Cross-DB-Exports)
@@ -28,7 +33,7 @@ async function resolveCrossAppAliases() {
   } catch {
     return {
       '@relax':      resolve(siblingDir('relax-dev', 'relax-app'), 'src'),
-      '@learn':      resolve(__dirname, '../learn-dev/src'),
+      '@learn':      resolve(siblingDir('learn-dev', 'learn-app'), 'src'),
     }
   }
 }

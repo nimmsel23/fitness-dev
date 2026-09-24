@@ -13,8 +13,9 @@ import SessionEditor from './SessionEditor';
 import SessionHistory from './SessionHistory';
 import PlanView from '../Plan/index.jsx';
 import WorkoutTimerCard from './WorkoutTimerCard.jsx';
-import SixPackPromiseCard from './SixPackPromiseCard.jsx';
-import SkillsCard from './SkillsCard.jsx';
+import SixPackPromiseCard from '../../../6pack/SixPackPromiseCard.jsx';
+import { getAllCoachingNotes } from '../../lib/coachNotes';
+import SkillsCard from '../../../Skills/SkillsCard.jsx';
 import TodayPlan, { useTodayPlan } from './TodayPlan.jsx';
 
 export default function Session({
@@ -54,7 +55,7 @@ export default function Session({
   }
 
   if (subTab === 'timer') {
-    return <SixPackPromiseCard onSubNav={onSubNav} />;
+    return <SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} />;
   }
 
   if (subTab === 'skills') {

@@ -7,9 +7,13 @@ const fs = require("fs")
 // Siblings existieren je nach Checkout-Kontext unter -dev (Home-Root) oder -app
 // (vitalos-Submodule) — zur Build-Zeit prüfen, welches tatsächlich da ist.
 function siblingGlob(devName, appName) {
-  const appPath = path.resolve(__dirname, "..", appName)
-  const dir = fs.existsSync(appPath) ? appPath : path.resolve(__dirname, "..", devName)
-  return `${dir}/src/**/*.{js,jsx}`
+  for (const parent of ["..", "../..", "../../.."]) {
+    for (const name of [appName, devName]) {
+      const dir = path.resolve(__dirname, parent, name)
+      if (fs.existsSync(dir)) return `${dir}/src/**/*.{js,jsx}`
+    }
+  }
+  return `${path.resolve(__dirname, "..", devName)}/src/**/*.{js,jsx}`
 }
 
 /** @type {import('tailwindcss').Config} */
@@ -17,9 +21,11 @@ module.exports = {
   content: [
     "./index.html",
     "./src/**/*.{js,jsx,ts,tsx}",
+    "./6pack/**/*.{js,jsx,ts,tsx}",
+    "./Skills/**/*.{js,jsx,ts,tsx}",
     siblingGlob("journal-dev", "journal-app"),
     siblingGlob("habits-dev", "habit-app"),
-    path.resolve(__dirname, "..", "learn-dev", "src", "**", "*.{js,jsx}"),
+    siblingGlob("learn-dev", "learn-app"),
   ],
   safelist: [
     'lg:flex',
