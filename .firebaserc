@@ -7,9 +7,6 @@
       "hosting": {
         "client": [
           "fitness-aos"
-        ],
-        "coach": [
-          "vos-coach"
         ]
       }
     }
