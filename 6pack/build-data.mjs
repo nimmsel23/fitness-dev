@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-/* eslint-env node */
-// Generiert src/views/Session/sixpackData.generated.js aus der KB
+// Generiert 6pack/sixpackData.generated.js aus der KB
 // (fitness/catalog/kb/exercises/6pack/ + /calisthenics/) — die KB bleibt SSOT,
 // dieses Skript ist der einzige Ort, der KB-Inhalte in JS dupliziert. Läuft
 // vor jedem Dev-Start und Build (predev/prebuild in package.json), damit neue
@@ -15,7 +14,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..');
 const SIXPACK_DIR = join(REPO_ROOT, 'fitness/catalog/kb/exercises/6pack');
 const CALISTHENICS_DIR = join(REPO_ROOT, 'fitness/catalog/kb/exercises/calisthenics');
-const OUT_FILE = join(REPO_ROOT, 'src/views/Session/sixpackData.generated.js');
+const OUT_FILE = join(REPO_ROOT, '6pack/sixpackData.generated.js');
 
 // Tag → grobe Learn/Shuffle-Kategorie. Neue Tags fallen auf 'lower' zurück
 // (häufigste Kategorie) statt den Build brechen zu lassen.
@@ -68,6 +67,7 @@ function buildExercises() {
       name: ex.name,
       category,
       focusLabel: CATEGORY_LABELS[category] || 'Core',
+      ...(ex.video_url ? { videoUrl: ex.video_url } : {}),
     };
     coaching[ex.id] = {
       coachingNotes: ex.coaching_notes || [],
@@ -98,6 +98,7 @@ function buildWorkouts(exercises) {
           name: item.type === 'exercise' ? (exercises[item.exercise_id]?.name || item.exercise_id) : 'Rest',
           exerciseId: item.exercise_id,
           seconds: item.duration_seconds,
+          ...(exercises[item.exercise_id]?.videoUrl ? { videoUrl: exercises[item.exercise_id].videoUrl } : {}),
           ...(item.notes ? { notes: item.notes } : {}),
         })),
       };

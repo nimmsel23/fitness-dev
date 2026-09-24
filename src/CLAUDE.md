@@ -182,7 +182,7 @@ sichtbar zu machen.)
 
 ---
 
-## Build-Time-KB-Import statt Hardcoding (`views/Session/sixpackData.js`)
+## Build-Time-KB-Import statt Hardcoding (`6pack/sixpackData.js`)
 
 **Architekturentscheidung (2026-08-22):** Der Timer-Tab (`SixPackPromiseCard.jsx`,
 6-Pack-Promise-Programm + Calisthenics-Skills) braucht seine Übungs-/Workout-/
@@ -194,9 +194,9 @@ Inhalte (Coaching-Notizen, Übungslisten, Woche-1-Workouts) wurden von Hand aus
 den YAMLs in `sixpackData.js` abgetippt — Doppelpflege, garantiert Drift bei
 jeder neuen Übung/Woche.
 
-**Fix:** `scripts/build-sixpack-data.mjs` liest die KB-YAMLs zur Build-/Dev-Zeit
+**Fix:** `6pack/build-data.mjs` liest die KB-YAMLs zur Build-/Dev-Zeit
 (kein Firestore, keine Laufzeit-API) und generiert
-`src/views/Session/sixpackData.generated.js` (git-ignored, nie von Hand
+`6pack/sixpackData.generated.js` (git-ignored, nie von Hand
 editieren). `sixpackData.js` selbst ist nur noch ein stabiler Re-Export dieser
 generierten Datei — der Import-Pfad für Components bleibt gleich, der Inhalt
 kommt vollständig aus der KB.

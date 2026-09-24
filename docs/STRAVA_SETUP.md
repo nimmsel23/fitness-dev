@@ -6,6 +6,17 @@ Tour importieren → Live-Verbindung`) tatsächlich verbindet statt den
 
 ## 1. Strava-API-App anlegen (einmalig, im Browser)
 
+**Wichtig seit 1. Juni 2026:** Strava hat sein Developer Program umgebaut
+(zwei Tiers, "Standard" und "Extended Access"). Für den Standard Tier — das
+ist unser Fall, keine große Partner-App wie Garmin/Apple — braucht der
+Account, unter dem die App registriert wird, eine **bezahlte Strava-
+Mitgliedschaft** (regulärer Membership-Tarif, ~11,99 $/Monat, keine
+separate Dev-Gebühr). Betrifft nur den einmaligen App-Registrierungsschritt
+unten — ändert nichts an der Multi-User-Fähigkeit der Implementierung
+selbst (jeder spätere Nutzer verbindet sich per OAuth mit seinem eigenen,
+normalen Strava-Account, unabhängig vom Tarif). Quelle:
+https://www.strava.com/legal/api_policy
+
 1. Bei Strava einloggen, dann zu https://www.strava.com/settings/api
 2. Neue App anlegen:
    - **Application Name**: z.B. "fitness-dev" (beliebig, nur intern sichtbar)
@@ -101,4 +112,17 @@ Modus-abhängig), kein Unterschied für den Nutzer.
 
 **Noch offen:** Deploy wurde bisher NICHT ausgeführt (siehe Schritt 2) —
 bis dahin bleibt für Prod-Nutzer der Datei-Export-Weg (GPX/TCX/FIT
-hochladen) der einzige tatsächlich funktionierende Import.
+hochladen) der einzige tatsächlich funktionierende Import. Zusätzlich
+braucht Schritt 1 jetzt eine bezahlte Strava-Mitgliedschaft für den
+App-registrierenden Account (siehe Hinweis oben) — geplant ist, dass
+Simon diese App selbst anlegt und Client-ID/-Secret sicher weiterreicht,
+statt dass wir einen eigenen kostenpflichtigen Account dafür anlegen.
+
+**Update 2026-09-24:** Deploy (Schritt 2) wurde inzwischen erfolgreich
+ausgeführt — alle fünf Functions (`stravaAuthorizeUrl`, `stravaCallback`,
+`stravaStatus`, `stravaActivities`, `stravaDisconnect`) laufen aktiv in
+`europe-west1` auf `fitness-aos` (`Deploy complete!`, Function-URL
+`https://europe-west1-fitness-aos.cloudfunctions.net/stravaCallback`).
+Der obige "Noch offen"-Absatz zu Schritt 2 ist damit überholt — offen
+bleibt weiterhin nur Schritt 1 (bezahlte Strava-Mitgliedschaft für die
+App-Registrierung, Simon soll sie selbst anlegen).

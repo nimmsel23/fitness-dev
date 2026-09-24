@@ -357,6 +357,17 @@ function WorkoutRunner({ skill, stage, resumeState, onFinish, onExit }) {
     });
   }
 
+  function correctRestReps(value) {
+    if (phase !== 'rest' || isHold) return;
+    const reps = Math.max(0, Number(value) || 0);
+    setLog(current => {
+      const next = current.map(arr => arr.slice());
+      if (next[blockIndex]?.[setIndex] === undefined) return current;
+      next[blockIndex][setIndex] = reps;
+      return next;
+    });
+  }
+
   function advancePhase() {
     if (phase === 'prep') {
       setPhase('work');
@@ -501,6 +512,22 @@ function WorkoutRunner({ skill, stage, resumeState, onFinish, onExit }) {
           {phase === 'rest' && (
             <>
               <div className="text-5xl font-black tabular-nums text-fit-ink mb-2">{Math.ceil(remainingMs / 1000)}s</div>
+              {!isHold && log[blockIndex]?.[setIndex] !== undefined && (
+                <label className="block text-left mb-4">
+                  <span className="block text-xs font-bold text-fit-ink mb-2">
+                    Letzter Satz: {log[blockIndex][setIndex]} Wdh
+                  </span>
+                  <input
+                    type="range"
+                    min="0"
+                    max={Math.max(20, block.reps * 2, log[blockIndex][setIndex])}
+                    value={log[blockIndex][setIndex]}
+                    onChange={event => correctRestReps(event.target.value)}
+                    className="skills-reps-slider w-full"
+                    aria-label="Wiederholungen des letzten Satzes korrigieren"
+                  />
+                </label>
+              )}
               {nextPreviewLabel && (
                 <div className="text-[11px] font-bold mb-4" style={{ color: 'var(--dim)' }}>Als Nächstes: {nextPreviewLabel}</div>
               )}

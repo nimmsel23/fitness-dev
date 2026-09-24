@@ -1,14 +1,30 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Play, Pause, Dumbbell, Shuffle, Check, ChevronLeft, ListChecks, UtensilsCrossed, BookOpen, Star, Camera, Video, Lightbulb } from 'lucide-react';
 import { SIXPACK_CATEGORIES, SIXPACK_EXERCISE_DETAILS, SIXPACK_EXERCISE_POOL, SIXPACK_EXERCISE_COACHING, SIXPACK_CALISTHENICS_SKILLS, SIXPACK_VERIFIED_WORKOUTS } from './sixpackData.js';
-import { getAllCoachingNotes } from '../../lib/coachNotes';
 
 const SIXPACK_PROGRAM_KEY = 'fitness-sixpack-program-v1';
 const SIXPACK_FAVORITES_KEY = 'fitness-sixpack-favorites-v1';
 const SIXPACK_SELFIES_KEY = 'fitness-sixpack-selfies-v1';
+const SIXPACK_VIDEO_URLS_KEY = 'fitness-sixpack-video-urls-v1';
+
+function loadVideoUrls() {
+  try {
+    return JSON.parse(window.localStorage.getItem(SIXPACK_VIDEO_URLS_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function playableVideoUrl(value) {
+  const url = value?.trim();
+  return url && (/^https:\/\//i.test(url) || url.startsWith('/')) ? url : null;
+}
 
 const EXERCISE_CATEGORIES = SIXPACK_CATEGORIES;
 const EXERCISE_POOL = SIXPACK_EXERCISE_POOL;
+const EXERCISE_VIDEOS_BY_NAME = Object.fromEntries(
+  Object.values(SIXPACK_EXERCISE_DETAILS).map(exercise => [exercise.name, exercise.videoUrl || ''])
+);
 
 // Track-Screenshot des Nutzers: Tag 3 und Tag 7 jeder Woche sind REST-Tage.
 const REST_DAYS_IN_WEEK = [3, 7];
@@ -188,7 +204,7 @@ function EatScreen({ onBack }) {
 // vollen KB-Katalog): die 21 kuratierten Core-Übungen aus SIXPACK_EXERCISE_DETAILS
 // plus die Calisthenics-Skills-Progressionsketten (kb/exercises/calisthenics/,
 // SIXPACK_CALISTHENICS_SKILLS) als zweite, eigene Sektion.
-function LearnScreen({ onBack, onOpenSkill, onOpenExercise, onOpenNote }) {
+function LearnScreen({ onBack, onOpenSkill, onOpenExercise, onOpenNote, coachingNotes }) {
   const [query, setQuery] = useState('');
 
   const visibleCore = useMemo(() => {
@@ -205,17 +221,17 @@ function LearnScreen({ onBack, onOpenSkill, onOpenExercise, onOpenNote }) {
   }, [query]);
 
   const visibleNotes = useMemo(() => {
-    const list = getAllCoachingNotes();
+    const list = coachingNotes;
     const q = query.trim().toLowerCase();
     if (!q) return list;
     return list.filter((n) => [n.id, n.title, ...(n.tags || [])].join(' ').toLowerCase().includes(q));
-  }, [query]);
+  }, [query, coachingNotes]);
 
   return (
     <div>
       <BackHeader label="Learn" onBack={onBack} />
       <div className="px-4 py-2 text-[11px] font-bold" style={{ color: 'var(--dim)' }}>
-        Core-Übungen aus dem 6-Pack-Programm + Calisthenics-Skill-Progressionen.
+        Core-Übungen aus dem 6-Pack-Programm{onOpenSkill ? ' + Calisthenics-Skill-Progressionen.' : '.'}
       </div>
       <div className="px-4 pb-2">
         <input
@@ -254,11 +270,11 @@ function LearnScreen({ onBack, onOpenSkill, onOpenExercise, onOpenNote }) {
         ))}
       </div>
 
-      <div className="px-4 pt-4 pb-1 text-[10px] font-black uppercase tracking-[0.14em]" style={{ color: '#e2001a' }}>
-        Calisthenics Skills ({visibleSkills.length})
-      </div>
-      <div>
-        {visibleSkills.map((skill) => (
+      {onOpenSkill && <>
+        <div className="px-4 pt-4 pb-1 text-[10px] font-black uppercase tracking-[0.14em]" style={{ color: '#e2001a' }}>
+          Calisthenics Skills ({visibleSkills.length})
+        </div>
+        <div>{visibleSkills.map((skill) => (
           <button
             key={skill.id}
             onClick={() => onOpenSkill?.(skill.id)}
@@ -272,8 +288,8 @@ function LearnScreen({ onBack, onOpenSkill, onOpenExercise, onOpenNote }) {
               </div>
             </div>
           </button>
-        ))}
-      </div>
+        ))}</div>
+      </>}
 
       {visibleNotes.length > 0 && (
         <>
@@ -670,6 +686,58 @@ function advanceRunnerState(state, workout) {
 
 function RunnerScreen({ workout, onFinish, onBack }) {
   const [state, setState] = useState(() => createRunnerState(workout));
+  const completionReported = useRef(false);
+  const announcedIndex = useRef(-1);
+  const lastCountdownBeep = useRef(null);
+  const audioContext = useRef(null);
+  const [videoUrls, setVideoUrls] = useState(loadVideoUrls);
+  const [videoError, setVideoError] = useState(false);
+
+  function beep(frequency = 880) {
+    const context = audioContext.current;
+    if (!context || context.state !== 'running') return;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.frequency.value = frequency;
+    oscillator.type = 'sine';
+    gain.gain.setValueAtTime(0.12, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.18);
+    oscillator.connect(gain).connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.18);
+  }
+
+  function announce(item) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(item.type === 'rest' ? 'Pause' : item.name);
+    utterance.lang = item.type === 'rest' ? 'de-DE' : 'en-US';
+    window.speechSynthesis.speak(utterance);
+  }
+
+  useEffect(() => {
+    if (!state.running || state.done || announcedIndex.current === state.itemIndex) return;
+    announcedIndex.current = state.itemIndex;
+    lastCountdownBeep.current = null;
+    setVideoError(false);
+    const item = workout.items[state.itemIndex];
+    if (!item) return;
+    beep(item.type === 'rest' ? 660 : 990);
+    announce(item);
+  }, [state.itemIndex, state.running, state.done, workout]);
+
+  useEffect(() => {
+    const item = workout.items[state.itemIndex];
+    if (!state.running || item?.type !== 'rest' || state.remaining > 3 || state.remaining < 1) return;
+    if (lastCountdownBeep.current === state.remaining) return;
+    lastCountdownBeep.current = state.remaining;
+    beep();
+  }, [state.itemIndex, state.remaining, state.running, workout]);
+
+  useEffect(() => () => {
+    window.speechSynthesis?.cancel();
+    audioContext.current?.close();
+  }, []);
 
   useEffect(() => {
     if (!state.running || state.done) return undefined;
@@ -678,17 +746,47 @@ function RunnerScreen({ workout, onFinish, onBack }) {
   }, [state.running, state.done, workout]);
 
   useEffect(() => {
-    if (state.done) onFinish();
+    if (state.done && !completionReported.current) {
+      completionReported.current = true;
+      onFinish();
+    }
   }, [state.done, onFinish]);
 
   const current = workout.items[state.itemIndex];
   const next = workout.items[state.itemIndex + 1];
+  const selectedVideoUrl = current?.type === 'exercise'
+    ? (videoUrls[current.name] ?? current.videoUrl ?? EXERCISE_VIDEOS_BY_NAME[current.name] ?? '')
+    : '';
+  const videoUrl = playableVideoUrl(selectedVideoUrl);
 
-  if (!current) {
+  function toggleRunning() {
+    if (!state.running) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass && !audioContext.current) audioContext.current = new AudioContextClass();
+      audioContext.current?.resume();
+    } else {
+      window.speechSynthesis?.cancel();
+    }
+    setState(s => ({ ...s, running: !s.running }));
+  }
+
+  function updateVideoUrl(value) {
+    setVideoError(false);
+    setVideoUrls(previous => {
+      const next = { ...previous, [current.name]: value };
+      window.localStorage.setItem(SIXPACK_VIDEO_URLS_KEY, JSON.stringify(next));
+      return next;
+    });
+  }
+
+  if (state.done || !current) {
     return (
       <div className="p-6 text-center">
         <Check size={32} color="#e2001a" className="mx-auto mb-3" />
         <div className="text-lg font-black text-fit-ink">Workout fertig</div>
+        <button onClick={onBack} className="mt-5 min-h-12 px-6 rounded-2xl text-sm font-black" style={{ background: '#e2001a', color: '#fff' }}>
+          Zurück
+        </button>
       </div>
     );
   }
@@ -709,6 +807,31 @@ function RunnerScreen({ workout, onFinish, onBack }) {
         <div className="text-5xl font-black tabular-nums text-fit-ink mt-4">{formatSeconds(state.remaining)}</div>
       </div>
 
+      {!isRest && (
+        <div className="mt-6">
+          <div className="aspect-video rounded-2xl overflow-hidden flex items-center justify-center text-center" style={{ background: '#111', border: '1px solid var(--line)' }}>
+            {videoUrl && !videoError ? (
+              <video key={videoUrl} src={videoUrl} autoPlay muted loop playsInline controls className="w-full h-full object-contain" onError={() => setVideoError(true)} />
+            ) : (
+              <span className="text-xs px-4" style={{ color: 'var(--dim)' }}>
+                {videoError ? 'Video konnte nicht geladen werden.' : 'Noch kein Video für diese Übung hinterlegt.'}
+              </span>
+            )}
+          </div>
+          <label className="block text-xs font-bold mt-3" style={{ color: 'var(--dim)' }}>
+            Video-URL für {current.name}
+            <input
+              type="url"
+              value={selectedVideoUrl}
+              onChange={event => updateVideoUrl(event.target.value)}
+              placeholder="https://…/uebung.mp4"
+              className="block w-full min-h-12 px-3 mt-2 rounded-xl text-sm text-fit-ink"
+              style={{ background: 'var(--bg2)', border: '1px solid var(--line)' }}
+            />
+          </label>
+        </div>
+      )}
+
       {next && (
         <div className="text-center text-[11px] font-bold mt-6" style={{ color: 'var(--dim)' }}>
           Als Nächstes: {next.name}
@@ -717,7 +840,7 @@ function RunnerScreen({ workout, onFinish, onBack }) {
 
       <div className="flex justify-center mt-6">
         <button
-          onClick={() => setState(s => ({ ...s, running: !s.running }))}
+          onClick={toggleRunning}
           className="min-h-12 px-6 rounded-2xl flex items-center gap-2 text-sm font-black uppercase tracking-[0.16em]"
           style={{ background: '#e2001a', color: '#fff' }}
         >
@@ -729,7 +852,7 @@ function RunnerScreen({ workout, onFinish, onBack }) {
   );
 }
 
-export default function SixPackPromiseCard({ onSubNav }) {
+export default function SixPackPromiseCard({ onSubNav, coachingNotes = [] }) {
   const [program, setProgram] = useState(() => loadProgram());
   const [screen, setScreen] = useState('home');
   const [viewDay, setViewDay] = useState(null);
@@ -819,7 +942,7 @@ export default function SixPackPromiseCard({ onSubNav }) {
         {screen === 'home' && <HomeScreen program={program} onOpenToday={() => openDay(program.currentDay)} onNav={setScreen} />}
         {screen === 'track' && <TrackScreen program={program} onBack={goHome} onOpenDay={openDay} />}
         {screen === 'eat' && <EatScreen onBack={goHome} />}
-        {screen === 'learn' && <LearnScreen onBack={goHome} onOpenSkill={openSkill} onOpenExercise={openExercise} onOpenNote={openNote} />}
+        {screen === 'learn' && <LearnScreen onBack={goHome} onOpenSkill={onSubNav ? openSkill : null} onOpenExercise={openExercise} onOpenNote={openNote} coachingNotes={coachingNotes} />}
         {screen === 'exercise' && (
           <ExerciseDetailScreen
             exercise={SIXPACK_EXERCISE_DETAILS[viewExerciseId]}
@@ -829,7 +952,7 @@ export default function SixPackPromiseCard({ onSubNav }) {
         )}
         {screen === 'note' && (
           <NoteDetailScreen
-            note={getAllCoachingNotes().find((n) => n.id === viewNoteId)}
+            note={coachingNotes.find((n) => n.id === viewNoteId)}
             onBack={() => setScreen('learn')}
           />
         )}

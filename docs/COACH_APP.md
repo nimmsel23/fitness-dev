@@ -21,7 +21,7 @@ Fuel-Daten werden.
 ## Zielbild
 
 Die Coach-App ist eine Admin-/Workbench-App. Sie sollte fachlich auf dem
-lokalen Fitness-Prod-Server und der lokalen Katalog-Pipeline beruhen, nicht auf
+lokalen Fitness-Python-API und der lokalen Katalog-Pipeline beruhen, nicht auf
 einem halb-authoritativen Firestore-Zwischenstand.
 
 Firestore bleibt wichtig, aber fuer andere Dinge:
@@ -30,7 +30,7 @@ Firestore bleibt wichtig, aber fuer andere Dinge:
 |---------|---------------------|
 | Sessions, Journal, Profile | Firestore / Runtime User Data |
 | Coach-Feedback an Klienten | Firestore |
-| Katalog-Inbox, Enrichment, Approve | lokaler Fitness-Prod-Server + YAML-KB |
+| Katalog-Inbox, Enrichment, Approve | lokale Fitness-Python-API + YAML-KB |
 | Expert Exercises im Client | generierte Build-Artefakte |
 | Fuel-Runtime-Daten | Firestore, spaeter ueber Coach-App einsehbar |
 
@@ -40,9 +40,24 @@ Client-Daten in die PWA eingebaut und deployed.
 
 ## Gewuenschter Flow fuer Exercise Approval
 
+Seit 2026-09-24 nutzt die gehostete Coach-App fuer die Inbox keinen Tailnet-
+HTTP-Zugriff mehr. `~/coach-dev` liest `coachInbox/*` und `coachState/mergeCandidates`
+aus Firestore und schreibt Aktionen als `coachCommands/*` mit Status `queued`.
+Der Python-API-Prozess `:9150` (`fitness/firestore/coach_bridge.py`) ist der
+einzige Consumer: er fuehrt die vorhandenen `/fitness/inbox`-Routen lokal aus,
+schreibt Ergebnis/Fehler in den Command und spiegelt den YAML-Inbox-Stand
+zurueck nach Firestore. `FITNESS_SKIP_WATCHERS=1` deaktiviert auch diesen
+Worker; die Dev-API-Instanz muss also laufen. Ein nicht gestarteter Worker
+laesst Commands in `queued`, ohne eine Freigabe vorzutaueschen. Rules fuer
+diese Collections werden nur aus `~/vitalos` deployed.
+
+Firestore ist hier Transport und Lesekopie, nicht die Exercise-SSOT. Erst
+lokales Approve aendert die YAML-KB; erst der folgende Client-Build uebernimmt
+die freigegebene Uebung in die PWA.
+
 1. Ein Klient erzeugt eine unbekannte Uebung oder Anfrage.
 2. Die Anfrage landet in der lokalen Coach/Katalog-Inbox.
-3. Der Coach arbeitet lokal gegen den Fitness-Prod-Server:
+3. Der Python-Worker verarbeitet die Coach-Auftraege gegen die lokale API:
    - Source-Kandidaten pruefen
    - `wger` / `yuhonas` verknuepfen
    - Enrichment/Reenrichment ausloesen
