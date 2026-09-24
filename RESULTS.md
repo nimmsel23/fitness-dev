@@ -1,3 +1,38 @@
+# Session Gate als "Mission-Konsole" neu gestaltet, Release nach vitalos (2026-09-24)
+
+Redesign des Session-Gate-Einstiegs (`/frontend-design`-Skill) plus
+anschließendem `fitness-release --yes` bis nach `vitalos`/Staging (`:8100`).
+Ein Commit `b6dda8e` auf `dev`.
+
+* **`src/views/Session/SessionGateCard.jsx`**: komplett neu gestaltet als
+  "Mission-Konsole" — radialer SVG-Ring-Timer statt reinem Zahlen-Feld,
+  monospace Status-Eyebrow mit Puls-Dot (`LIVE · TRACKING` /
+  `GATE GESCHLOSSEN` / `GATE BEREIT`), diagonale Hazard-Stripes im aktiven
+  Zustand, Blueprint-Grid im Standby-Zustand, Bereiche-Grid mit Code-
+  Nummerierung (`01`–`05`). Props/Verhalten (`onStart`, `onStop`,
+  `onSubNav`, GPS/Notification-Logik) unverändert, reines visuelles
+  Redesign, mit bestehenden Theme-CSS-Variablen (`--accent`, `--card`,
+  `--ink`, `--dim`, `--line`, `--bg2`).
+* **`src/styles.css`**: neue Keyframes/Klassen für das Gate-Redesign
+  ergänzt (Ring-Puls, Hazard-Stripes-Animation etc.).
+* Build lokal via `vite build --mode development` verifiziert, kein
+  Browser-Durchklick.
+* `fitness-release --yes` danach mehrfach neu gestartet, weil parallele
+  Sessions zwischenzeitlich unerwartete Changes im Repo hinterließen
+  (`docs/STRAVA_SETUP.md`, `unreviewed_wger.yml`, `kb.js`,
+  `exerciseInsights.js`) — jeweils von den anderen Sessions selbst wieder
+  aufgeräumt, kein eigener Eingriff nötig. Ein echter Blocker war eine
+  verwaiste `src/views/Session/sixpackData.generated.js` im
+  `~/vitalos/fitness-app`-Worktree (alter Pfad vor einem früheren Umzug
+  nach `6pack/`, nicht in `.gitignore` erfasst) — gelöscht, da reines
+  Build-Artefakt ohne SOT-Charakter; die tatsächlich aktive `.gitignore`-
+  Regel (`6pack/sixpackData.generated.js`) war bereits korrekt.
+* Release danach sauber durchgelaufen: `dev` → `vitalos` gemerged +
+  gepusht, Staging-Deploy `:8100` verifiziert, Submodule-Pointer in
+  `~/vitalos` gebumpt. Kein Prod-Deploy (`:6100`) in dieser Session.
+
+---
+
 # AGENTS.md-Punkte umgesetzt: Push/Pull/Legs-Build, Trapezius/Hamstrings als Muskel-Komplexe, Federation-Aufräumen (2026-09-13)
 
 Zwei fachliche Aufträge abgearbeitet (`catalog/kb/AGENTS.md` durchgehen; danach
