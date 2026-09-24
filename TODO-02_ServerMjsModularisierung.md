@@ -1,5 +1,15 @@
 # server.mjs — Modularisierung (Node-Standard statt Ein-Datei-Monolith)
 
+**Erledigt (2026-09-24):** Die API-Routen liegen unter `server/routes/`.
+`server.mjs` registriert die Module auf derselben `OpenAPIHono`-Instanz.
+Das ist hier das Hono-Äquivalent zum Sub-App-Mount: Die bestehenden
+`app.openapi()`-Schemas bleiben in `/openapi.json` erhalten. Der gemeinsame
+Schema-Helfer liegt unter `server/lib/routes.mjs`, der Python-Proxy
+unter `server/lib/python-proxy.mjs` und die Klienten-Registry unter
+`server/lib/klienten.mjs`. Die übrigen Runtime-Helfer bleiben im
+Bootstrap, weil ihre Auslagerung weitere Daten- und
+Initialisierungsgrenzen berührt.
+
 **Kontext (2026-09-05):** Beim Nachbau der `/fitness/coach/macrocycles`-
 Proxy-Routen (siehe Git-History, `feat(server): /fitness/coach/macrocycles
 Proxy-Routen ergänzt`) ist `server.mjs` auf **2148 Zeilen** angewachsen.
@@ -49,10 +59,7 @@ subApp)`) bzw. Express-Router-Äquivalent.
    Autodoc-Introspektion (`app.routes`) darf durch die Umstrukturierung
    keine Routen verlieren.
 
-## Bewusst nicht jetzt gemacht
+## Historischer Hinweis
 
-Diese Datei dokumentiert nur den Bedarf — kein Auftrag, das sofort
-umzusetzen. Erst auf explizite Freigabe hin angehen, nicht bei
-Gelegenheit "nebenbei" für eine einzelne Routen-Gruppe (siehe
-Macrocycles-Fix heute: bewusst NICHT als Vorwand für eine Ausnahme
-genutzt, um nicht wieder eigenmächtig Architektur zu verändern).
+Die ursprüngliche Notiz verlangte eine explizite Freigabe. Diese liegt
+mit dem Auftrag vom 2026-09-24 vor.
