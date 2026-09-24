@@ -50,5 +50,21 @@ def test_command_error_is_reported_not_marked_done():
     assert ref.update.call_args_list[1].args[0]["status"] == "error"
 
 
+def test_mutation_snapshot_published_before_done():
+    ref = Mock()
+    doc = Mock(reference=ref)
+    doc.to_dict.return_value = {"action": "link-source", "item_id": "inbox_test"}
+    db = Mock()
+    db.collection.return_value.where.return_value.stream.return_value = [doc]
+    events = []
+    ref.update.side_effect = lambda data: events.append(data["status"])
+
+    with patch("fitness.firestore.coach_bridge._execute_command", return_value={"ok": True}), \
+         patch("fitness.firestore.coach_bridge.publish_inbox", side_effect=lambda _: events.append("published")):
+        process_commands(db)
+
+    assert events == ["processing", "published", "done"]
+
+
 def test_yaml_dates_are_safe_for_firestore():
     assert _to_firestore({"queued_at": date(2026, 9, 24)}) == {"queued_at": "2026-09-24"}

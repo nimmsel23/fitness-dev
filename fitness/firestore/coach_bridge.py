@@ -110,6 +110,11 @@ def process_commands(db) -> None:
         ref.update({"status": "processing", "started_at": datetime.now(timezone.utc)})
         try:
             result = _execute_command(command)
+            if command.get("action") not in {"duplicates"}:
+                try:
+                    publish_inbox(db)
+                except Exception as exc:
+                    logger.warning(f"Coach snapshot after {doc.id} failed: {exc}")
             ref.update({"status": "done", "result": result, "finished_at": datetime.now(timezone.utc)})
         except Exception as exc:
             logger.exception(f"Coach command {doc.id} failed: {exc}")
