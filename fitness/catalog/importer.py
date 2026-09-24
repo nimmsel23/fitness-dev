@@ -72,6 +72,37 @@ def refine_generic_region_labels(muscle_ids: list[str], *name_variants: str) -> 
                 return [replacement if m in generic_shoulders else m for m in muscle_ids]
     return muscle_ids
 
+
+_LEG_CURL_NAME = re.compile(r"\b(?:leg curls?|hamstring curls?|beinbeuger)\b", re.I)
+_HAMSTRING_IDS = ["604a_biceps_femoris", "604b_semitendinosus", "604c_semimembranosus"]
+_WGER_LEG_CURL_GERMAN = {
+    1767: "Beinbeuger sitzend",
+    1770: "Beinbeuger sitzend",
+    366: "Beinbeuger sitzend",
+    1300: "Einbeiniger Beinbeuger",
+    1534: "Beinbeuger mit Widerstandsband",
+}
+
+
+def correct_leg_curl_primary(muscle_ids: list[str], *name_variants: str) -> list[str]:
+    """Wger muscle IDs 8/12 on some leg curls are source errors, not anatomy."""
+    if not any(_LEG_CURL_NAME.search(name or "") for name in name_variants):
+        return muscle_ids
+    return list(_HAMSTRING_IDS)
+
+
+def correct_leg_curl_category(category: str, *name_variants: str) -> str:
+    return "legs" if any(_LEG_CURL_NAME.search(name or "") for name in name_variants) else category
+
+
+def wger_names(item: dict[str, Any]) -> tuple[str, str | None, str | None]:
+    translations = item.get("translations", [])
+    de = next((t for t in translations if t.get("language") == 1), None)
+    en = next((t for t in translations if t.get("language") == 2), None)
+    german = (de or {}).get("name") or _WGER_LEG_CURL_GERMAN.get(item.get("id"))
+    english = (en or {}).get("name") or None
+    return german or english or "", german, english
+
 def fetch_json(url: str, headers: dict[str, str] | None = None) -> Any:
     req = urllib.request.Request(url, headers=headers or {})
     with urllib.request.urlopen(req) as response:
@@ -172,7 +203,7 @@ def import_external_exercises():
                     de = next((t for t in translations if t.get("language") == 1), None)
                     en = next((t for t in translations if t.get("language") == 2), None)
 
-                    display_name = (de or en or {}).get("name", "")
+                    display_name, german_name, english_name = wger_names(item)
                     if not display_name:
                         continue
 
@@ -194,9 +225,11 @@ def import_external_exercises():
                     secondary = reclassify_deltoid_muscles(secondary, *name_variants)
                     primary = refine_generic_region_labels(primary, *name_variants)
                     secondary = refine_generic_region_labels(secondary, *name_variants)
+                    primary = correct_leg_curl_primary(primary, *name_variants)
 
                     category_id = item.get("category", {}).get("id")
                     category = WGER_CATEGORY_MAP.get(category_id, "other")
+                    category = correct_leg_curl_category(category, *name_variants)
 
                     description = (de or en or {}).get("description", "")
                     clean_desc = re.sub('<[^<]+?>', '', description).strip()
@@ -204,7 +237,8 @@ def import_external_exercises():
                     ex = {
                         "exercise_id": safe_id,
                         "display_name": display_name,
-                        "german": de.get("name") if de else display_name,
+                        "german": german_name,
+                        "english": english_name,
                         "category": category,
                         "primary_muscles": primary,
                         "secondary_muscles": secondary,
@@ -332,7 +366,7 @@ def _wger_entry_from_api_item(item: dict[str, Any]) -> dict[str, Any] | None:
     translations = item.get("translations", [])
     de = next((t for t in translations if t.get("language") == 1), None)
     en = next((t for t in translations if t.get("language") == 2), None)
-    display_name = (de or en or {}).get("name", "")
+    display_name, german_name, english_name = wger_names(item)
     if not display_name:
         return None
 
@@ -351,16 +385,19 @@ def _wger_entry_from_api_item(item: dict[str, Any]) -> dict[str, Any] | None:
     name_variants = (display_name, (de or {}).get("name", ""), (en or {}).get("name", ""))
     primary = reclassify_deltoid_muscles(primary, *name_variants)
     secondary = reclassify_deltoid_muscles(secondary, *name_variants)
+    primary = correct_leg_curl_primary(primary, *name_variants)
 
     category_id = item.get("category", {}).get("id")
     category = WGER_CATEGORY_MAP.get(category_id, "other")
+    category = correct_leg_curl_category(category, *name_variants)
     description = (de or en or {}).get("description", "")
     clean_desc = re.sub("<[^<]+?>", "", description).strip()
 
     return {
         "exercise_id": f"wger_{item.get('id')}",
         "display_name": display_name,
-        "german": de.get("name") if de else display_name,
+        "german": german_name,
+        "english": english_name,
         "category": category,
         "primary_muscles": primary,
         "secondary_muscles": secondary,

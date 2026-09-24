@@ -257,6 +257,8 @@ def build_exercise_index() -> list[ExerciseRecord]:
                 if not rec.english and english: rec.english = english
                 if not rec.gif_url and entry.get("gif_url"): rec.gif_url = entry["gif_url"]
                 if not rec.yuhonas_id and entry.get("yuhonas_id"): rec.yuhonas_id = entry["yuhonas_id"]
+                if not rec.original_description:
+                    rec.original_description = entry.get("original_description") or entry.get("coaching_notes") or None
                 # Muskeln anreichern falls Expert-Record noch keine hat
                 if not rec.primary_muscles:
                     rec.primary_muscles = list_of_text(entry.get("primary_muscles"))
@@ -281,6 +283,7 @@ def build_exercise_index() -> list[ExerciseRecord]:
                         gif_url=entry.get("gif_url"),
                         yuhonas_id=entry.get("yuhonas_id"),
                         external_ids=entry.get("external_ids"),
+                        original_description=entry.get("original_description") or entry.get("coaching_notes") or None,
                     )
                     # Bugfix: ohne diese Registrierung findet Durchlauf 3
                     # (Yuhonas) denselben, hier gerade neu angelegten
