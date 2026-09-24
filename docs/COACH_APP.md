@@ -181,11 +181,13 @@ Aktuelle Ziele:
 
 | Target | Site | Public dir |
 |--------|------|------------|
-| `client` | `fitness-aos` | `dist-firebase` |
-| `coach` | `vos-coach` | `dist-coach` |
+| `client` in `fitness-dev` | `fitness-aos` | `dist-firebase` |
+| `coach` in `coach-dev` | `vos-coach` | `dist-coach` |
 
-`npm run build:firebase` baut beide Artefakte. Deployment setzt voraus, dass
-die Hosting-Site `vos-coach` im Firebase-Projekt existiert.
+`fitness-release` baut und deployt nur `hosting:client` aus dem Fitness-Repo.
+Der Coach-Build und `hosting:coach` kommen ausschliesslich aus `~/coach-dev`.
+Beide Sites nutzen das Firebase-Projekt `fitness-aos`; Firestore-Rules werden
+weiterhin als gemeinsames Set aus `~/vitalos` deployed.
 
 ## Nicht-Ziele
 
