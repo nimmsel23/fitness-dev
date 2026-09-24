@@ -454,6 +454,19 @@ pruefen.
   ausführlich in der Sektion „Aus dem Runtime-Session-Resolver +
   Journal-Mirror-Refactor" weiter oben — nicht doppeln.
 
+## Aus dem Session-Gate-Redesign "Mission-Konsole" (2026-09-24, Commit `b6dda8e`, nur Staging released)
+
+- **Kein Browser-Durchklick** des neuen Gate-Designs — nur `vite build`
+  lokal verifiziert. Offen: radialer Ring-Timer, Puls-Dot-Status,
+  Hazard-Stripes im aktiven Zustand und Blueprint-Grid im Standby real im
+  Browser/PWA gegenprüfen (Farben/Kontrast über die verschiedenen Themes,
+  Animationen auf iOS Safari/PWA).
+- **Nur Staging (`:8100`) deployed**, kein Prod-Deploy `:6100` und kein
+  Firebase-Deploy nach `fitness-aos.web.app` in dieser Session — Release
+  lief nur bis `vitalos`/Staging durch.
+- CI-Run des Release-Pushs (`vitalos` GitHub Actions) wurde nicht per `gh`
+  gegengeprüft.
+
 ## Aus dem AGENTS.md/Trapezius-Hamstrings-Umbau (2026-09-13, Commits `99994fc`+`d0c6aa3`+`d80814f`+`f477717`)
 
 - **`fitness-release` nicht ausgeführt**: alle vier Commits liegen nur auf
