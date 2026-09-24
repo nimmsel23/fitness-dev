@@ -171,6 +171,33 @@
   box-shadow: 0 0 0 6px color-mix(in srgb, var(--rpe-color, var(--accent)) 25%, transparent);
 }
 
+/* session gate — console */
+@keyframes gatePulseDot {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
+  50% { opacity: 0.55; box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 0%, transparent); }
+}
+@keyframes gateStripeMove {
+  from { background-position: 0 0; }
+  to { background-position: 56px 0; }
+}
+@keyframes gateRingSpin { to { transform: rotate(360deg); } }
+.session-gate-dot { animation: gatePulseDot 1.8s ease-in-out infinite; }
+.session-gate-stripes {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--accent) 14%, transparent) 0 10px,
+    transparent 10px 28px
+  );
+  animation: gateStripeMove 2.4s linear infinite;
+}
+.session-gate-ring-spin { animation: gateRingSpin 2.6s linear infinite; }
+.session-gate-blueprint {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--line) 60%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--line) 60%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
 /* spinner */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinner {
