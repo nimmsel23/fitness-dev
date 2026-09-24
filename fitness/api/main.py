@@ -53,6 +53,7 @@ async def lifespan(app: FastAPI):
     watchers = []
     fs_observers = []
     enrichment_observer = enrichment_loop_thread = enrichment_stop_event = None
+    coach_bridge_thread = coach_bridge_stop = None
     if os.environ.get("FITNESS_SKIP_WATCHERS") == "1":
         logger.info("FITNESS_SKIP_WATCHERS=1 — Firestore-/Enrichment-Watcher übersprungen (laufen nur in Dev, :9150).")
     else:
@@ -61,6 +62,11 @@ async def lifespan(app: FastAPI):
             watchers = start_catalog_watchers() + start_userdata_watchers()
         except Exception as e:
             logger.warning(f"Firestore-Watchers nicht gestartet: {e}")
+        try:
+            from fitness.firestore.coach_bridge import start_coach_bridge
+            coach_bridge_thread, coach_bridge_stop = start_coach_bridge()
+        except Exception as e:
+            logger.warning(f"Coach Firebase bridge nicht gestartet: {e}")
 
         # Gemini-Enrichment-Watcher (vormals eigener fitness-enricher.service):
         # embedded statt eigenständiger systemd-Unit, analog zu den Firestore-
@@ -91,6 +97,10 @@ async def lifespan(app: FastAPI):
             logger.warning(f"Muscle-KB-Filesystem-Watcher nicht gestartet: {e}")
 
     yield
+
+    if coach_bridge_stop is not None:
+        coach_bridge_stop.set()
+        coach_bridge_thread.join(timeout=10)
 
     for w in watchers:
         try:
