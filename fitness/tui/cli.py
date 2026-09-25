@@ -47,6 +47,20 @@ from ..data import (
 )
 
 
+def _session_note(s: dict) -> str:
+    """Kurze Notiz-Vorschau für die Log-Tabelle: Session-Notes oder Activity-Notes."""
+    note = s.get("notes") or ""
+    if not note:
+        for a in session_activities(s):
+            if a.get("notes"):
+                note = a["notes"]
+                break
+    note = " ".join(note.split())
+    if len(note) > 60:
+        note = note[:59] + "…"
+    return note
+
+
 def _cardio_meta(s: dict) -> str:
     """z.B. '45min · 12,3km' für Cardio/Add-on-Anzeige."""
     parts = []
@@ -232,7 +246,7 @@ class SessionTable(Static):
 
     def compose(self) -> ComposeResult:
         table = DataTable(zebra_stripes=True, cursor_type="row")
-        table.add_columns("Datum", "Typ", "Block / Aktivität", "Details", "Effort")
+        table.add_columns("Datum", "Typ", "Block / Aktivität", "Details", "Effort", "Notizen")
         for s in self._sessions:
             self._add_row(table, s)
         yield table
@@ -262,11 +276,13 @@ class SessionTable(Static):
                 f"{ACTIVITY_EMOJI.get(a.get('type', '?'), '🏃')} {ACTIVITY_LABEL.get(a.get('type', '?'), a.get('type', '?'))}"
                 for a in acts or [act]
             )
+            note = _session_note(s)
             table.add_row(
                 date_s, "🏃",
                 f"[dark_orange]{label}[/]",
                 f"[dim]{meta}[/]" if meta else "—",
                 "—",
+                f"[dim]{note}[/]" if note else "—",
                 key=s.get("_stem", d),
             )
         else:
@@ -278,11 +294,13 @@ class SessionTable(Static):
                 meta = _cardio_meta(s)
                 icons = "".join(ACTIVITY_EMOJI.get(a.get("type", "?"), "⚡") for a in acts)
                 addon = f"  [dark_orange]{icons or '⚡'}{'+' + meta if meta else ''}[/]"
+            note = _session_note(s)
             table.add_row(
                 date_s, "💪",
                 f"[{style}]{block or '?'}[/]",
                 f"[dim]{names}{ellipsis}[/]{addon}",
                 f"[yellow]{eff}/10[/]" if eff else "—",
+                f"[dim]{note}[/]" if note else "—",
                 key=s.get("_stem", d),
             )
 
