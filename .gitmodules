@@ -4,3 +4,7 @@
 [submodule "coach-dev"]
 	path = coach-dev
 	url = git@github.com:nimmsel23/coach-dev.git
+[submodule "plan-dev"]
+	path = plan-dev
+	url = git@github.com:nimmsel23/plan-dev.git
+	branch = fitness
