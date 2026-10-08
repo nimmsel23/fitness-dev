@@ -89,6 +89,18 @@ fitness_cli/  (→ Symlink auf fitness/)
 |--------|-------------|---------|
 | `fitness-tui` | `fitness.commands.tui:main` | Interaktive Textual TUI (Session-Dashboard) |
 | `fitness-log` | `fitness.commands.log:main` | Typer CLI (ls/show/stats/…) |
+
+**`fitness-log clients [NAME]` (tatsächlicher Code liegt unter `fitness/log/cli.py`,
+nicht mehr `fitness/commands/log.py` — Tabelle oben noch nicht nachgezogen):**
+zeigt pro Klient chronologisch alle Sessions. Seit 2026-10-08 zusätzlich:
+- **Rest-Days-Anzeige**: jede Kraft-Session mit Block (Push/Pull/Legs/...) zeigt
+  `(Nd rest)` — Tage seit dem letzten Vorkommen desselben Blocks, berechnet aus
+  einem chronologischen Vorab-Durchlauf (`last_seen_by_block`-Dict), Farbcode
+  dim < 7d / gelb 7-9d / rot ≥10d.
+- **Filter-Optionen**: `--block/-b <name>` (nur ein Block-Typ),
+  `--min-rest <N>` (nur Sessions mit ≥N Tagen Pause seit letztem gleichen
+  Block — findet Trainingslücken), `--cardio-only`, `--strength-only`.
+  Bestehende `--days/-d`, `--all/-a`, `--journal/-j` unverändert.
 | `fitness-sync` | `fitness.commands.sync:main` | KB-Sync + Firestore-Sync (kb/pull/pull-uid/push/watch/all) |
 | `fitness` | `fitness.cli:main` | Domain-CLI-Dispatcher, reicht `prod`/`dev` an `fitnessctl` durch |
 
