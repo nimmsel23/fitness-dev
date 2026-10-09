@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# deploy.sh — Versioned deployment for Fitness (staging/prod FastAPI server)
+# deploy.sh — Fitness deployment (staging/prod FastAPI server)
 set -euo pipefail
 
 # Default to staging target
@@ -28,13 +28,11 @@ done
 
 if [[ "$TARGET" == "prod" ]]; then
   DEST="/opt/fitness"
-  BACKUP_DIR="/opt/fitness_backups"
   SERVICE="fitness.service"
   USE_SUDO=true
   PORT=6100
 elif [[ "$TARGET" == "staging" ]]; then
   DEST="$HOME/.local/fitness"
-  BACKUP_DIR="$HOME/.local/fitness_backups"
   SERVICE="fitness-preview.service"
   USE_SUDO=false
   PORT=8100
@@ -161,17 +159,7 @@ else
   fi
 fi
 
-# 1. Versioned Backup (nur prod — staging ist ein reiner Preview-Checkout,
-# der jederzeit aus $SOURCE neu synced werden kann)
-if [[ "$TARGET" == "prod" && -d "$DEST" ]]; then
-  timestamp=$(date +%Y%m%d_%H%M%S)
-  backup_path="$BACKUP_DIR/fitness_$timestamp"
-  msg "📦 Creating versioned backup: $backup_path"
-  run_cmd mkdir -p "$BACKUP_DIR"
-  run_cmd cp -a "$DEST" "$backup_path"
-fi
-
-# 2. Sync to target directory
+# 1. Sync to target directory
 if [[ ! -d "$DEST" ]]; then
   msg "📂 Creating target directory $DEST"
   run_cmd mkdir -p "$DEST"
