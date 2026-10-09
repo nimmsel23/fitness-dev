@@ -1,3 +1,12 @@
+# 6Pack: Fuel-Link und Workout-Favoriten übernommen (2026-10-09)
+
+- Aus `6pack-dev` Commit `d669f39` per `publish:fitness` übernommen.
+- Eat öffnet Fuel auf Firebase unter `https://fuel-vos.web.app/`, lokal auf dem aktuellen Host auf Port `7000`.
+- Favorites speichert vollständige Tages- und Shuffle-Workouts einschließlich Übungen, Reihenfolge, Zeiten und Pausen; Wiederholungen verändern den Tagesfortschritt nicht.
+- Verifiziert: `npm run build` inklusive KB-Generierung und ESLint erfolgreich; veröffentlichte Komponente identisch mit der im 6Pack-Dev-Server per Browser geprüften Quelle.
+
+---
+
 # Session Gate als "Mission-Konsole" neu gestaltet, Release nach vitalos (2026-09-24)
 
 Redesign des Session-Gate-Einstiegs (`/frontend-design`-Skill) plus

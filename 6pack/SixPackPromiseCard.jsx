@@ -3,9 +3,16 @@ import { Play, Pause, Dumbbell, Shuffle, Check, ChevronLeft, ListChecks, Utensil
 import { SIXPACK_CATEGORIES, SIXPACK_EXERCISE_DETAILS, SIXPACK_EXERCISE_POOL, SIXPACK_EXERCISE_COACHING, SIXPACK_CALISTHENICS_SKILLS, SIXPACK_VERIFIED_WORKOUTS } from './sixpackData.js';
 
 const SIXPACK_PROGRAM_KEY = 'fitness-sixpack-program-v1';
-const SIXPACK_FAVORITES_KEY = 'fitness-sixpack-favorites-v1';
+const SIXPACK_FAVORITES_KEY = 'fitness-sixpack-workout-favorites-v1';
 const SIXPACK_SELFIES_KEY = 'fitness-sixpack-selfies-v1';
 const SIXPACK_VIDEO_URLS_KEY = 'fitness-sixpack-video-urls-v1';
+
+export function getFuelUrl({ hostname, protocol } = window.location) {
+  if (hostname.endsWith('.web.app') || hostname.endsWith('.firebaseapp.com')) {
+    return 'https://fuel-vos.web.app/';
+  }
+  return `${protocol}//${hostname}:7000/`;
+}
 
 function loadVideoUrls() {
   try {
@@ -135,7 +142,7 @@ function loadProgram() {
 function HomeScreen({ program, onOpenToday, onNav }) {
   const todayDone = program.completedDays.includes(program.currentDay);
   const menuButtons = [
-    { id: 'eat', label: 'Eat', Icon: UtensilsCrossed },
+    { id: 'eat', label: 'Eat', Icon: UtensilsCrossed, href: getFuelUrl() },
     { id: 'track', label: 'Track', Icon: ListChecks },
     { id: 'learn', label: 'Learn', Icon: BookOpen },
     { id: 'shuffle', label: 'Shuffle', Icon: Shuffle },
@@ -166,12 +173,15 @@ function HomeScreen({ program, onOpenToday, onNav }) {
       </button>
 
       <div className="grid grid-cols-3 gap-px mt-px" style={{ background: 'var(--line)' }}>
-        {menuButtons.map(({ id, label, Icon }) => (
-          <button key={id} onClick={() => onNav(id)} className="py-5 flex flex-col items-center gap-2" style={{ background: '#141414' }}>
-            <Icon size={18} color="#e2001a" />
-            <span className="text-[10px] font-black uppercase tracking-[0.1em] text-fit-ink">{label}</span>
-          </button>
-        ))}
+        {menuButtons.map(({ id, label, Icon, href }) => {
+          const Element = href ? 'a' : 'button';
+          return (
+            <Element key={id} href={href} onClick={href ? undefined : () => onNav(id)} className="py-5 flex flex-col items-center gap-2" style={{ background: '#141414' }}>
+              <Icon size={18} color="#e2001a" />
+              <span className="text-[10px] font-black uppercase tracking-[0.1em] text-fit-ink">{label}</span>
+            </Element>
+          );
+        })}
       </div>
     </div>
   );
@@ -185,17 +195,6 @@ function BackHeader({ label, onBack }) {
       </button>
       <div className="flex-1 text-center text-sm font-black text-fit-ink">{label}</div>
       <div style={{ width: 60 }} />
-    </div>
-  );
-}
-
-function EatScreen({ onBack }) {
-  return (
-    <div>
-      <BackHeader label="Eat" onBack={onBack} />
-      <div className="p-6 text-center text-sm" style={{ color: 'var(--dim)' }}>
-        Kein eigener Meal-Plan-Content — nutz stattdessen Fuel für Ernährungs-Logging.
-      </div>
     </div>
   );
 }
@@ -423,43 +422,61 @@ function ExerciseDetailScreen({ exercise, coaching, onBack }) {
 function loadFavorites() {
   if (typeof window === 'undefined') return [];
   try {
-    return JSON.parse(window.localStorage.getItem(SIXPACK_FAVORITES_KEY) || '[]');
+    const stored = JSON.parse(window.localStorage.getItem(SIXPACK_FAVORITES_KEY) || '[]');
+    return Array.isArray(stored) ? stored.filter(favorite =>
+      typeof favorite?.id === 'string' && typeof favorite?.label === 'string' &&
+      Array.isArray(favorite.workout?.items) && favorite.workout.items.length > 0 &&
+      favorite.workout.items.every(item => item && ['exercise', 'rest'].includes(item.type) &&
+        typeof item.name === 'string' && Number.isFinite(item.seconds) && item.seconds > 0)
+    ) : [];
   } catch {
     return [];
   }
 }
 
-function FavoritesScreen({ onBack }) {
-  const [favorites, setFavorites] = useState(() => loadFavorites());
+function workoutFavoriteId(workout) {
+  return JSON.stringify([workout.day ?? null, workout.items.map(({ type, name, seconds }) => [type, name, seconds])]);
+}
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-    window.localStorage.setItem(SIXPACK_FAVORITES_KEY, JSON.stringify(favorites));
-    return undefined;
-  }, [favorites]);
+function FavoriteWorkoutButton({ active, onClick }) {
+  return (
+    <button type="button" onClick={onClick} aria-pressed={active}
+      className="w-full px-4 py-3 flex items-center justify-center gap-2 text-sm font-bold"
+      style={{ background: '#1a1a1a', color: '#fff' }}>
+      <Star size={18} color="#e2001a" fill={active ? '#e2001a' : 'none'} />
+      {active ? 'Workout aus Favoriten entfernen' : 'Workout favorisieren'}
+    </button>
+  );
+}
 
-  function toggle(name) {
-    setFavorites(current => current.includes(name) ? current.filter(n => n !== name) : [...current, name]);
-  }
-
+function FavoritesScreen({ favorites, onBack, onStart, onRemove }) {
   return (
     <div>
       <BackHeader label="Favorites" onBack={onBack} />
       <div>
-        {EXERCISE_POOL.map(name => {
-          const active = favorites.includes(name);
-          return (
-            <button
-              key={name}
-              onClick={() => toggle(name)}
-              className="w-full px-4 py-3 flex items-center justify-between"
-              style={{ background: '#1a1a1a', borderBottom: '1px solid #000' }}
-            >
-              <span className="text-sm font-bold" style={{ color: '#fff' }}>{name}</span>
-              <Star size={16} color={active ? '#e2001a' : '#444'} fill={active ? '#e2001a' : 'none'} />
-            </button>
-          );
-        })}
+        {favorites.length === 0 && (
+          <div className="p-6 text-center text-sm" style={{ color: 'var(--dim)' }}>
+            Noch keine Lieblingsworkouts. Markiere ein Workout bei Today’s Workout, Track oder Shuffle mit dem Stern.
+          </div>
+        )}
+        {favorites.map(({ id, label, workout }) => (
+          <div key={id} className="px-4 py-4" style={{ background: '#1a1a1a', borderBottom: '1px solid #000' }}>
+            <details>
+              <summary className="cursor-pointer text-sm font-bold" style={{ color: '#fff' }}>
+                {label} · {workout.items.filter(item => item.type === 'exercise').length} Übungen · {formatSeconds(workout.items.reduce((sum, item) => sum + item.seconds, 0))}
+              </summary>
+              <ol className="mt-3 space-y-1 text-sm" style={{ color: 'var(--dim)' }}>
+                {workout.items.map((item, index) => <li key={index}>{item.name} · {item.seconds}s</li>)}
+              </ol>
+            </details>
+            <div className="flex gap-3 mt-3">
+              <button onClick={() => onStart(workout)} className="flex-1 py-3 text-sm font-black" style={{ background: '#e2001a', color: '#fff' }}>Start Workout</button>
+              <button onClick={() => onRemove(id)} aria-label={`${label} aus Favoriten entfernen`} className="px-3">
+                <Star size={18} color="#e2001a" fill="#e2001a" />
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -516,7 +533,7 @@ function SelfiesScreen({ onBack }) {
   );
 }
 
-function ShuffleScreen({ onBack, onStart }) {
+function ShuffleScreen({ onBack, onStart, favorites, onToggleFavorite }) {
   const [categoryRoutine] = useState(() => EXERCISE_CATEGORIES.map(cat => ({
     categoryId: cat.id,
     category: cat.label,
@@ -538,6 +555,7 @@ function ShuffleScreen({ onBack, onStart }) {
   return (
     <div>
       <BackHeader label="Shuffle" onBack={onBack} />
+      <FavoriteWorkoutButton active={favorites.some(favorite => favorite.id === workoutFavoriteId(workout))} onClick={() => onToggleFavorite(workout)} />
       <div className="px-4 py-2 text-[11px] font-bold" style={{ color: 'var(--dim)' }}>
         Ein Übung je Kategorie: Lower Abs → Bottom-up Rotation → Top-down Rotation → Upper Abs.
       </div>
@@ -620,7 +638,7 @@ function TrackScreen({ program, onBack, onOpenDay }) {
   );
 }
 
-function DayScreen({ day, workout, onBack, onStart }) {
+function DayScreen({ day, workout, onBack, onStart, isFavorite, onToggleFavorite }) {
   const totalSeconds = workout.items.reduce((sum, item) => sum + item.seconds, 0);
 
   return (
@@ -636,6 +654,7 @@ function DayScreen({ day, workout, onBack, onStart }) {
       <div className="py-3 text-center text-sm font-black" style={{ background: '#4a4a4a', color: '#fff' }}>
         Total Workout Time: {formatSeconds(totalSeconds)}
       </div>
+      <FavoriteWorkoutButton active={isFavorite} onClick={() => onToggleFavorite(workout)} />
 
       <div>
         {workout.items.map((item, i) => (
@@ -854,6 +873,8 @@ function RunnerScreen({ workout, onFinish, onBack }) {
 
 export default function SixPackPromiseCard({ onSubNav, coachingNotes = [] }) {
   const [program, setProgram] = useState(() => loadProgram());
+  const [favorites, setFavorites] = useState(loadFavorites);
+  const [adhocReturnScreen, setAdhocReturnScreen] = useState('shuffle');
   const [screen, setScreen] = useState('home');
   const [viewDay, setViewDay] = useState(null);
   const [adhocWorkout, setAdhocWorkout] = useState(null);
@@ -865,6 +886,25 @@ export default function SixPackPromiseCard({ onSubNav, coachingNotes = [] }) {
     window.localStorage.setItem(SIXPACK_PROGRAM_KEY, JSON.stringify(program));
     return undefined;
   }, [program]);
+
+  function toggleFavorite(workout) {
+    const id = workoutFavoriteId(workout);
+    const next = favorites.some(favorite => favorite.id === id)
+      ? favorites.filter(favorite => favorite.id !== id)
+      : [...favorites, {
+        id,
+        label: workout.day ? `Woche ${weekOf(workout.day)} · Tag ${dayInWeek(workout.day)}` : 'Shuffle Workout',
+        workout: { ...workout, items: workout.items.map(item => ({ ...item })) },
+      }];
+    window.localStorage.setItem(SIXPACK_FAVORITES_KEY, JSON.stringify(next));
+    setFavorites(next);
+  }
+
+  function removeFavorite(id) {
+    const next = favorites.filter(favorite => favorite.id !== id);
+    window.localStorage.setItem(SIXPACK_FAVORITES_KEY, JSON.stringify(next));
+    setFavorites(next);
+  }
 
   function getWorkout(day) {
     if (program.workouts[day]) return program.workouts[day];
@@ -906,7 +946,8 @@ export default function SixPackPromiseCard({ onSubNav, coachingNotes = [] }) {
     setScreen('note');
   }
 
-  function startAdhoc(workout) {
+  function startAdhoc(workout, returnScreen = 'shuffle') {
+    setAdhocReturnScreen(returnScreen);
     setAdhocWorkout(workout);
     setViewDay(null);
     setScreen('runner');
@@ -941,7 +982,6 @@ export default function SixPackPromiseCard({ onSubNav, coachingNotes = [] }) {
     <section className="rounded-[1.5rem] overflow-hidden" style={{ border: '1px solid var(--line)' }}>
         {screen === 'home' && <HomeScreen program={program} onOpenToday={() => openDay(program.currentDay)} onNav={setScreen} />}
         {screen === 'track' && <TrackScreen program={program} onBack={goHome} onOpenDay={openDay} />}
-        {screen === 'eat' && <EatScreen onBack={goHome} />}
         {screen === 'learn' && <LearnScreen onBack={goHome} onOpenSkill={onSubNav ? openSkill : null} onOpenExercise={openExercise} onOpenNote={openNote} coachingNotes={coachingNotes} />}
         {screen === 'exercise' && (
           <ExerciseDetailScreen
@@ -956,9 +996,9 @@ export default function SixPackPromiseCard({ onSubNav, coachingNotes = [] }) {
             onBack={() => setScreen('learn')}
           />
         )}
-        {screen === 'favorites' && <FavoritesScreen onBack={goHome} />}
+        {screen === 'favorites' && <FavoritesScreen favorites={favorites} onBack={goHome} onStart={workout => startAdhoc(workout, 'favorites')} onRemove={removeFavorite} />}
         {screen === 'selfies' && <SelfiesScreen onBack={goHome} />}
-        {screen === 'shuffle' && <ShuffleScreen onBack={goHome} onStart={startAdhoc} />}
+        {screen === 'shuffle' && <ShuffleScreen onBack={goHome} onStart={startAdhoc} favorites={favorites} onToggleFavorite={toggleFavorite} />}
         {screen === 'day' && activeWorkout && (
           activeWorkout.rest ? (
             <div className="p-6 text-center">
@@ -968,11 +1008,11 @@ export default function SixPackPromiseCard({ onSubNav, coachingNotes = [] }) {
               <div className="text-lg font-black text-fit-ink">Rest Day</div>
             </div>
           ) : (
-            <DayScreen day={viewDay} workout={activeWorkout} onBack={goHome} onStart={startWorkout} />
+            <DayScreen day={viewDay} workout={activeWorkout} onBack={goHome} onStart={startWorkout} isFavorite={favorites.some(favorite => favorite.id === workoutFavoriteId(activeWorkout))} onToggleFavorite={toggleFavorite} />
           )
         )}
         {screen === 'runner' && activeWorkout && (
-          <RunnerScreen workout={activeWorkout} onBack={() => setScreen(adhocWorkout ? 'shuffle' : 'day')} onFinish={finishWorkout} />
+          <RunnerScreen workout={activeWorkout} onBack={() => setScreen(adhocWorkout ? adhocReturnScreen : 'day')} onFinish={finishWorkout} />
         )}
     </section>
   );
