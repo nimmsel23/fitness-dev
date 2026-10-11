@@ -1,3 +1,16 @@
+# 6Pack: Integrationsbranch und lokaler Sync (2026-10-11)
+
+- `~/6pack-dev` bleibt auf `dev`; Submodule `6pack-dev` verwendet jetzt
+  `fitness`, auch in `.gitmodules` festgelegt. Stand `256b1cf` übernommen.
+- `npm run sync:6pack` holt den committeten lokalen dev-Stand, prüft Branches,
+  offene Änderungen und Fast-forward-Fähigkeit, veröffentlicht die drei
+  Laufzeitdateien nach `6pack/` und baut Fitness mit dessen eigener KB.
+- Kein automatischer Commit, Push oder Deploy im Sync-Befehl; vor dem späteren
+  Parent-Push den Branch `fitness` im 6Pack-Remote veröffentlichen.
+- Verifiziert: kompletter Sync inklusive KB-Generierung, ESLint und Vite-Build;
+  erneuter Aufruf stoppt korrekt bei uncommittetem Pointer. Komponente identisch
+  mit Submodule-Quelle; `git diff --check` erfolgreich. Kein Browser-Test.
+
 # 6Pack: Fuel-Link und Workout-Favoriten übernommen (2026-10-09)
 
 - Aus `6pack-dev` Commit `d669f39` per `publish:fitness` übernommen.

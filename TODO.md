@@ -1,4 +1,8 @@
 
+# [x] 6Pack-Integration (2026-10-11)
+- Submodule auf `fitness` führen; lokalen `dev`-Stand mit `npm run sync:6pack`
+  übernehmen, Fitness bauen und Pointer plus Laufzeitdateien committen.
+
 # [NEW] Coach Office 
 Beispielfeature: Trainingsplanbesprechung zwischen Klient und Coach. Social Media Style. Comment-feed per Exercise
 

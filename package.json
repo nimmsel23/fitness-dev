@@ -9,6 +9,7 @@
     "cloud_chamber/vitalos"
   ],
   "scripts": {
+    "sync:6pack": "node scripts/sync-sixpack.mjs",
     "predev": "npm run build:kb-data",
     "dev": "node scripts/dev-runner.mjs",
     "start": "node server.mjs",

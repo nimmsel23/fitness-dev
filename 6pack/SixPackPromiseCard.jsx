@@ -123,24 +123,64 @@ function generateDayWorkout(day) {
   return { day, rest: false, items };
 }
 
+// Lokales Kalenderdatum als YYYY-MM-DD (String-Vergleich = Datumsvergleich).
+function localDate(date = new Date()) {
+  const pad = n => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function addDays(isoDate, days) {
+  const [y, m, d] = isoDate.split('-').map(Number);
+  return localDate(new Date(y, m - 1, d + days));
+}
+
+const EMPTY_PROGRAM = { currentDay: 1, completedDays: [], completedOn: {}, lastCompletedOn: null, restDate: null, workouts: {} };
+
 function loadProgram() {
-  if (typeof window === 'undefined') return { currentDay: 1, completedDays: [], workouts: {} };
+  if (typeof window === 'undefined') return EMPTY_PROGRAM;
   try {
     const raw = window.localStorage.getItem(SIXPACK_PROGRAM_KEY);
-    if (!raw) return { currentDay: 1, completedDays: [], workouts: {} };
+    if (!raw) return EMPTY_PROGRAM;
     const parsed = JSON.parse(raw);
-    return {
+    return syncProgramToDate({
       currentDay: parsed.currentDay || 1,
       completedDays: Array.isArray(parsed.completedDays) ? parsed.completedDays : [],
+      completedOn: parsed.completedOn || {},
+      lastCompletedOn: parsed.lastCompletedOn || null,
+      restDate: parsed.restDate || null,
       workouts: parsed.workouts || {},
-    };
+    });
   } catch {
-    return { currentDay: 1, completedDays: [], workouts: {} };
+    return EMPTY_PROGRAM;
   }
 }
 
+// Ein Programm-Tag = ein Kalendertag. Ruhetage (Tag 3/7 jeder Woche) belegen
+// den Kalendertag nach dem letzten Workout und gelten am Folgetag automatisch
+// als erledigt — sonst bliebe das Programm auf dem Ruhetag stehen.
+function syncProgramToDate(program, today = localDate()) {
+  let p = program;
+  while (isRestDay(p.currentDay)) {
+    const restDate = p.restDate || (p.lastCompletedOn ? addDays(p.lastCompletedOn, 1) : today);
+    if (restDate >= today) return p.restDate === restDate ? p : { ...p, restDate };
+    p = {
+      ...p,
+      completedDays: p.completedDays.includes(p.currentDay) ? p.completedDays : [...p.completedDays, p.currentDay],
+      completedOn: { ...p.completedOn, [p.currentDay]: restDate },
+      currentDay: p.currentDay + 1,
+      lastCompletedOn: restDate,
+      restDate: null,
+    };
+  }
+  return p;
+}
+
 function HomeScreen({ program, onOpenToday, onNav }) {
-  const todayDone = program.completedDays.includes(program.currentDay);
+  const today = localDate();
+  // Heute schon trainiert → für den Rest des Tages Rest anzeigen.
+  const trainedToday = program.lastCompletedOn === today;
+  const restDayToday = !trainedToday && isRestDay(program.currentDay);
+  const lastDone = program.currentDay - 1;
   const menuButtons = [
     { id: 'eat', label: 'Eat', Icon: UtensilsCrossed, href: getFuelUrl() },
     { id: 'track', label: 'Track', Icon: ListChecks },
@@ -155,7 +195,9 @@ function HomeScreen({ program, onOpenToday, onNav }) {
       <div className="px-5 py-4 flex items-center justify-between" style={{ background: '#111' }}>
         <div className="text-xs font-black tracking-[0.3em]" style={{ color: '#e2001a' }}>6PP</div>
         <div className="text-[11px] font-bold" style={{ color: 'var(--dim)' }}>
-          Woche {weekOf(program.currentDay)} · Tag {dayInWeek(program.currentDay)}
+          {trainedToday
+            ? `Woche ${weekOf(lastDone)} · Tag ${dayInWeek(lastDone)} ✓`
+            : `Woche ${weekOf(program.currentDay)} · Tag ${dayInWeek(program.currentDay)}`}
         </div>
       </div>
 
@@ -168,8 +210,15 @@ function HomeScreen({ program, onOpenToday, onNav }) {
           <Dumbbell size={40} color="#333" />
         </div>
         <div className="px-4 py-2.5 text-center text-sm font-black uppercase tracking-[0.12em]" style={{ background: '#e2001a', color: '#fff' }}>
-          {todayDone ? `Tag ${program.currentDay} erledigt ✓` : "Today's Workout"}
+          {trainedToday ? 'Rest' : restDayToday ? 'Rest Day' : "Today's Workout"}
         </div>
+        {(trainedToday || restDayToday) && (
+          <div className="px-4 py-2 text-center text-[11px] font-bold" style={{ background: '#111', color: 'var(--dim)' }}>
+            {trainedToday
+              ? `Tag ${dayInWeek(lastDone)} erledigt ✓ · Morgen: ${isRestDay(program.currentDay) ? 'Rest Day' : `Tag ${dayInWeek(program.currentDay)}`}`
+              : `Erholung · Morgen: Tag ${dayInWeek(program.currentDay + 1)}`}
+          </div>
+        )}
       </button>
 
       <div className="grid grid-cols-3 gap-px mt-px" style={{ background: 'var(--line)' }}>
@@ -463,7 +512,7 @@ function FavoritesScreen({ favorites, onBack, onStart, onRemove }) {
           <div key={id} className="px-4 py-4" style={{ background: '#1a1a1a', borderBottom: '1px solid #000' }}>
             <details>
               <summary className="cursor-pointer text-sm font-bold" style={{ color: '#fff' }}>
-                {label} · {workout.items.filter(item => item.type === 'exercise').length} Übungen · {formatSeconds(workout.items.reduce((sum, item) => sum + item.seconds, 0))}
+                {label} · {workout.items.filter(item => item.type === 'exercise').length} Übungen · {formatSeconds(workoutTotalSeconds(workout.items))}
               </summary>
               <ol className="mt-3 space-y-1 text-sm" style={{ color: 'var(--dim)' }}>
                 {workout.items.map((item, index) => <li key={index}>{item.name} · {item.seconds}s</li>)}
@@ -639,7 +688,7 @@ function TrackScreen({ program, onBack, onOpenDay }) {
 }
 
 function DayScreen({ day, workout, onBack, onStart, isFavorite, onToggleFavorite }) {
-  const totalSeconds = workout.items.reduce((sum, item) => sum + item.seconds, 0);
+  const totalSeconds = workoutTotalSeconds(workout.items);
 
   return (
     <div>
@@ -685,10 +734,23 @@ function DayScreen({ day, workout, onBack, onStart, isFavorite, onToggleFavorite
   );
 }
 
+// Kurzer Übergang zwischen zwei direkt aufeinanderfolgenden Übungen (Zeit zum
+// Umpositionieren). Vor/nach einem echten Rest-Block entfällt er.
+const TRANSITION_SECONDS = 5;
+
+function needsTransition(items, index) {
+  return items[index]?.type === 'exercise' && items[index + 1]?.type === 'exercise';
+}
+
+function workoutTotalSeconds(items) {
+  return items.reduce((sum, item, i) => sum + item.seconds + (needsTransition(items, i) ? TRANSITION_SECONDS : 0), 0);
+}
+
 function createRunnerState(workout) {
   return {
     itemIndex: 0,
     remaining: workout.items[0]?.seconds || 0,
+    transition: false,
     running: false,
     done: workout.items.length === 0,
   };
@@ -698,65 +760,125 @@ function advanceRunnerState(state, workout) {
   if (!state.running || state.done) return state;
   const remaining = state.remaining - 1;
   if (remaining > 0) return { ...state, remaining };
+  if (!state.transition && needsTransition(workout.items, state.itemIndex)) {
+    return { ...state, transition: true, remaining: TRANSITION_SECONDS };
+  }
   const nextIndex = state.itemIndex + 1;
-  if (nextIndex >= workout.items.length) return { ...state, remaining: 0, running: false, done: true };
-  return { ...state, itemIndex: nextIndex, remaining: workout.items[nextIndex].seconds };
+  if (nextIndex >= workout.items.length) return { ...state, remaining: 0, transition: false, running: false, done: true };
+  return { ...state, itemIndex: nextIndex, transition: false, remaining: workout.items[nextIndex].seconds };
 }
 
 function RunnerScreen({ workout, onFinish, onBack }) {
   const [state, setState] = useState(() => createRunnerState(workout));
   const completionReported = useRef(false);
-  const announcedIndex = useRef(-1);
+  const announcedStep = useRef(null);
   const lastCountdownBeep = useRef(null);
   const audioContext = useRef(null);
+  const speechUnlocked = useRef(false);
   const [videoUrls, setVideoUrls] = useState(loadVideoUrls);
   const [videoError, setVideoError] = useState(false);
 
-  function beep(frequency = 880) {
+  function beep(frequency = 880, { duration = 0.18, delay = 0 } = {}) {
     const context = audioContext.current;
     if (!context || context.state !== 'running') return;
     const oscillator = context.createOscillator();
     const gain = context.createGain();
+    const start = context.currentTime + delay;
     oscillator.frequency.value = frequency;
     oscillator.type = 'sine';
-    gain.gain.setValueAtTime(0.12, context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.18);
+    gain.gain.setValueAtTime(0.12, start);
+    gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
     oscillator.connect(gain).connect(context.destination);
-    oscillator.start();
-    oscillator.stop(context.currentTime + 0.18);
+    oscillator.start(start);
+    oscillator.stop(start + duration);
   }
 
-  function announce(item) {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(item.type === 'rest' ? 'Pause' : item.name);
-    utterance.lang = item.type === 'rest' ? 'de-DE' : 'en-US';
+  // Start einer Übung/Pause: hoher, kurzer "Piep". Ende: tiefer, langer "Tüt".
+  const startBeep = (delay = 0) => beep(990, { delay });
+  const endBeep = () => beep(440, { duration: 0.45 });
+
+  function speak(text, lang) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
     window.speechSynthesis.speak(utterance);
   }
 
+  // Name + Dauer, z.B. "Crunches" … "30 Sekunden" bzw. "Pause, 45 Sekunden".
+  function announce(item) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    if (item.type === 'rest') {
+      speak(`Pause, ${item.seconds} Sekunden`, 'de-DE');
+    } else {
+      speak(item.name, 'en-US');
+      speak(`${item.seconds} Sekunden`, 'de-DE');
+    }
+  }
+
   useEffect(() => {
-    if (!state.running || state.done || announcedIndex.current === state.itemIndex) return;
-    announcedIndex.current = state.itemIndex;
+    if (!state.running && !state.done) return;
+    const step = state.done ? 'done' : `${state.itemIndex}:${state.transition}`;
+    if (announcedStep.current === step) return;
+    const previousStep = announcedStep.current;
+    announcedStep.current = step;
     lastCountdownBeep.current = null;
     setVideoError(false);
+    // Eine Übung/Pause ist gerade zu Ende gegangen (nicht der 5s-Wechsel).
+    const itemEnded = previousStep !== null && !previousStep.endsWith(':true');
+    if (itemEnded) endBeep();
+    if (state.done) return;
+    if (state.transition) {
+      // Nächste Übung schon im Übergang ansagen, damit man sich in Position bringen kann.
+      const nextItem = workout.items[state.itemIndex + 1];
+      if (nextItem) announce(nextItem);
+      return;
+    }
     const item = workout.items[state.itemIndex];
     if (!item) return;
-    beep(item.type === 'rest' ? 660 : 990);
-    announce(item);
-  }, [state.itemIndex, state.running, state.done, workout]);
+    // Start-Piep nach dem End-Tüt versetzt, damit sich die Töne nicht überlagern.
+    startBeep(itemEnded ? 0.55 : 0);
+    // Nach einem Übergang wurde die Übung bereits angesagt — nur der Start-Piep.
+    if (previousStep !== `${state.itemIndex - 1}:true`) announce(item);
+  }, [state.itemIndex, state.transition, state.running, state.done, workout]);
 
   useEffect(() => {
     const item = workout.items[state.itemIndex];
-    if (!state.running || item?.type !== 'rest' || state.remaining > 3 || state.remaining < 1) return;
+    const isPause = state.transition || item?.type === 'rest';
+    if (!state.running || !isPause || state.remaining > 3 || state.remaining < 1) return;
     if (lastCountdownBeep.current === state.remaining) return;
     lastCountdownBeep.current = state.remaining;
     beep();
-  }, [state.itemIndex, state.remaining, state.running, workout]);
+  }, [state.itemIndex, state.transition, state.remaining, state.running, workout]);
 
   useEffect(() => () => {
     window.speechSynthesis?.cancel();
     audioContext.current?.close();
   }, []);
+
+  // Bildschirm während des Workouts anlassen (Screen Wake Lock API). Der Lock
+  // fällt bei App-/Tab-Wechsel automatisch weg → bei Rückkehr neu anfordern.
+  useEffect(() => {
+    if (state.done || !('wakeLock' in navigator)) return undefined;
+    let lock = null;
+    let cancelled = false;
+    async function acquire() {
+      if (document.visibilityState !== 'visible' || (lock && !lock.released)) return;
+      try {
+        const acquired = await navigator.wakeLock.request('screen');
+        if (cancelled) acquired.release();
+        else lock = acquired;
+      } catch {
+        // z.B. Energiesparmodus — dann geht der Screen eben nach System-Timeout aus.
+      }
+    }
+    acquire();
+    document.addEventListener('visibilitychange', acquire);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', acquire);
+      lock?.release();
+    };
+  }, [state.done, state.running]);
 
   useEffect(() => {
     if (!state.running || state.done) return undefined;
@@ -780,9 +902,20 @@ function RunnerScreen({ workout, onFinish, onBack }) {
 
   function toggleRunning() {
     if (!state.running) {
+      // iOS Safari: Töne/Ansagen mit laufender Musik (Spotify etc.) mischen,
+      // statt sie zu stoppen. Ohne das übernimmt Web Audio die Audio-Session.
+      if (navigator.audioSession) navigator.audioSession.type = 'ambient';
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       if (AudioContextClass && !audioContext.current) audioContext.current = new AudioContextClass();
       audioContext.current?.resume();
+      // iOS Safari gibt Sprachausgabe erst frei, wenn speak() direkt im Tap
+      // aufgerufen wurde — die eigentlichen Ansagen laufen aber im useEffect.
+      if ('speechSynthesis' in window && !speechUnlocked.current) {
+        const unlock = new SpeechSynthesisUtterance(' ');
+        unlock.volume = 0;
+        window.speechSynthesis.speak(unlock);
+        speechUnlocked.current = true;
+      }
     } else {
       window.speechSynthesis?.cancel();
     }
@@ -811,6 +944,32 @@ function RunnerScreen({ workout, onFinish, onBack }) {
   }
 
   const isRest = current.type === 'rest';
+
+  if (state.transition) {
+    return (
+      <div className="p-6">
+        <button onClick={onBack} className="text-[#e2001a] flex items-center gap-1 text-sm font-bold mb-6">
+          <ChevronLeft size={18} /> Abbrechen
+        </button>
+        <div className="text-center">
+          <div className="text-[11px] font-black uppercase tracking-[0.2em]" style={{ color: '#e2001a' }}>Wechsel</div>
+          <div className="text-sm font-bold mt-2" style={{ color: 'var(--dim)' }}>Als Nächstes</div>
+          <div className="text-2xl font-black text-fit-ink mt-1">{next?.name}</div>
+          <div className="text-5xl font-black tabular-nums text-fit-ink mt-4">{formatSeconds(state.remaining)}</div>
+        </div>
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={toggleRunning}
+            className="min-h-12 px-6 rounded-2xl flex items-center gap-2 text-sm font-black uppercase tracking-[0.16em]"
+            style={{ background: '#e2001a', color: '#fff' }}
+          >
+            {state.running ? <Pause size={16} strokeWidth={3} /> : <Play size={16} strokeWidth={3} />}
+            {state.running ? 'Pause' : 'Start'}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">
@@ -875,6 +1034,18 @@ export default function SixPackPromiseCard({ onSubNav, coachingNotes = [] }) {
   const [program, setProgram] = useState(() => loadProgram());
   const [favorites, setFavorites] = useState(loadFavorites);
   const [adhocReturnScreen, setAdhocReturnScreen] = useState('shuffle');
+
+  // App bleibt auf dem iPhone oft über Nacht offen → beim Zurückkehren und
+  // jede Minute auf den neuen Kalendertag nachziehen (Ruhetag abschließen).
+  useEffect(() => {
+    const sync = () => setProgram(p => syncProgramToDate(p));
+    document.addEventListener('visibilitychange', sync);
+    const interval = window.setInterval(sync, 60_000);
+    return () => {
+      document.removeEventListener('visibilitychange', sync);
+      window.clearInterval(interval);
+    };
+  }, []);
   const [screen, setScreen] = useState('home');
   const [viewDay, setViewDay] = useState(null);
   const [adhocWorkout, setAdhocWorkout] = useState(null);
@@ -955,11 +1126,18 @@ export default function SixPackPromiseCard({ onSubNav, coachingNotes = [] }) {
 
   function finishWorkout() {
     if (adhocWorkout) return;
-    setProgram(p => ({
-      ...p,
-      completedDays: p.completedDays.includes(viewDay) ? p.completedDays : [...p.completedDays, viewDay],
-      currentDay: viewDay === p.currentDay ? p.currentDay + 1 : p.currentDay,
-    }));
+    const today = localDate();
+    setProgram(p => {
+      const advances = viewDay === p.currentDay;
+      return syncProgramToDate({
+        ...p,
+        completedDays: p.completedDays.includes(viewDay) ? p.completedDays : [...p.completedDays, viewDay],
+        completedOn: { ...p.completedOn, [viewDay]: today },
+        currentDay: advances ? p.currentDay + 1 : p.currentDay,
+        lastCompletedOn: advances ? today : p.lastCompletedOn,
+        restDate: null,
+      }, today);
+    });
   }
 
   const activeWorkout = adhocWorkout || (viewDay ? getWorkout(viewDay) : null);
