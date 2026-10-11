@@ -14,6 +14,11 @@ on:
     branches: [vitalos]
     paths:
       - 'src/**'
+      - '6pack'
+      - '.gitmodules'
+      - 'scripts/build-sixpack-data.mjs'
+      - 'package.json'
+      - 'package-lock.json'
 
 jobs:
   deploy_live:
@@ -37,6 +42,8 @@ jobs:
           SHA="${{ github.sha }}"
           git fetch origin "$SHA"
           git checkout "$SHA"
+          git submodule sync --recursive
+          git submodule update --init --recursive
 
       - uses: actions/setup-node@v4
         with:
