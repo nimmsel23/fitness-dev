@@ -57,6 +57,9 @@ wird so ähnlich erfolgen wie der Skills-Runner
   - User-spezifische Google Drive (GDrive) Synchronisation einbauen, damit Fotos sicher, persistent und geräteübergreifend in der Cloud gesichert werden (ohne den LocalStorage zu überlasten).
 - **Audio / Voice Cues**:
   - Wenn eine Übung nur noch 10 Sekunden dauert, muss die Audio-Stimme (TTS / Voice Cue) das ansagen (z. B. "Noch 10 Sekunden" / "10 seconds left").
+  - **Einseitige Übungen (Seitenwechsel / Richtungswechsel)**:
+    - Bei lateralen/asymmetrischen Übungen, die hintereinander doppelt vorkommen (z. B. Side Plank, Rotation), muss beim Wechsel zur 2. Seite explizit *"Change sides"* bzw. *"Change directions"* (oder *"Seitenwechsel"*) angesagt werden, damit sofort klar ist, dass dieselbe Übung für die Gegenseite folgt.
+
   - **Stimmqualität verbessern**: Aktuelle Standard-WebSpeech-Stimme klingt blechern/unnatürlich ("Sound nicht ganz super"):
     - *Ansatz 1 (Sofort via WebSpeech API)*:
       - Gezielt nach hochwertigen Online-/Systemstimmen filtern (`window.speechSynthesis.getVoices()`), z. B. Google Deutsch/US-English "Natural", Apple Siri / "Enhanced" / "Premium" Voices statt des dumpfen mechanischen Offline-Defaults.
