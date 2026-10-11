@@ -36,6 +36,7 @@ from ..constants import (
     block_rich_style, block_ansi_color,
 )
 from ..data import (
+    activity_distance_km,
     activity_minutes,
     classify,
     load_all_clients,
@@ -44,6 +45,33 @@ from ..data import (
     session_activities,
     sync_info,
 )
+
+
+def _session_note(s: dict) -> str:
+    """Kurze Notiz-Vorschau für die Log-Tabelle: Session-Notes oder Activity-Notes."""
+    note = s.get("notes") or ""
+    if not note:
+        for a in session_activities(s):
+            if a.get("notes"):
+                note = a["notes"]
+                break
+    note = " ".join(note.split())
+    if len(note) > 60:
+        note = note[:59] + "…"
+    return note
+
+
+def _cardio_meta(s: dict) -> str:
+    """z.B. '45min · 12,3km' für Cardio/Add-on-Anzeige."""
+    parts = []
+    adur = activity_minutes(s)
+    if adur:
+        parts.append(f"{adur}min")
+    adist = activity_distance_km(s)
+    if adist:
+        km = f"{adist:g}".replace(".", ",")
+        parts.append(f"{km}km")
+    return " · ".join(parts)
 
 # ── Detail-Modal ──────────────────────────────────────────────────────────────
 
@@ -93,9 +121,17 @@ class DetailModal(ModalScreen):
                 for a in acts or [act]
             )
             adur = activity_minutes(s)
+            adist = activity_distance_km(s)
             lines.append(("dt", f"{label}  —  {dt_s}"))
             if adur:
                 lines.append(("dm", f"⏱  {adur} Minuten gesamt"))
+            if adist:
+                km = f"{adist:g}".replace(".", ",")
+                avg = round(adist / (adur / 60), 1) if adur else None
+                lines.append(("dm", f"📏  {km} km" + (f"  ·  Ø {avg} km/h".replace(".", ",") if avg else "")))
+            notes_addons = [a.get("notes") for a in (acts or [act]) if a.get("notes")]
+            for n in notes_addons:
+                lines.append(("ds", f"📝 {n}"))
         else:
             style = block_rich_style(block)
             lines.append(("dt", f"💪  {block or '?'}  —  {dt_s}"))
@@ -110,9 +146,10 @@ class DetailModal(ModalScreen):
                     adur  = entry.get("duration", "")
                     emoji = ACTIVITY_EMOJI.get(atype, "⚡")
                     label = ACTIVITY_LABEL.get(atype, atype)
+                    meta  = _cardio_meta({"_activity_addons": [entry]})
                     lines.append(("df",
                         f"⚡ Add-on: {emoji} {label}"
-                        + (f" · {adur}min" if adur else "")))
+                        + (f" · {meta}" if meta else "")))
             if exs:
                 lines.append(("dm", f"\n{'─'*42}\n{len(exs)} Exercises:\n"))
                 for ex in exs:
@@ -209,7 +246,7 @@ class SessionTable(Static):
 
     def compose(self) -> ComposeResult:
         table = DataTable(zebra_stripes=True, cursor_type="row")
-        table.add_columns("Datum", "Typ", "Block / Aktivität", "Details", "Effort")
+        table.add_columns("Datum", "Typ", "Block / Aktivität", "Details", "Effort", "Notizen")
         for s in self._sessions:
             self._add_row(table, s)
         yield table
@@ -234,16 +271,18 @@ class SessionTable(Static):
         )
 
         if kind == "cardio":
-            adur  = activity_minutes(s)
+            meta  = _cardio_meta(s)
             label = " + ".join(
                 f"{ACTIVITY_EMOJI.get(a.get('type', '?'), '🏃')} {ACTIVITY_LABEL.get(a.get('type', '?'), a.get('type', '?'))}"
                 for a in acts or [act]
             )
+            note = _session_note(s)
             table.add_row(
                 date_s, "🏃",
                 f"[dark_orange]{label}[/]",
-                f"[dim]{adur}min[/]" if adur else "—",
+                f"[dim]{meta}[/]" if meta else "—",
                 "—",
+                f"[dim]{note}[/]" if note else "—",
                 key=s.get("_stem", d),
             )
         else:
@@ -252,14 +291,16 @@ class SessionTable(Static):
             ellipsis = "…" if len(exs) > 3 else ""
             addon = ""
             if kind == "strength+addon":
-                adur = activity_minutes(s)
+                meta = _cardio_meta(s)
                 icons = "".join(ACTIVITY_EMOJI.get(a.get("type", "?"), "⚡") for a in acts)
-                addon = f"  [dark_orange]{icons or '⚡'}{'+' + str(adur) + 'min' if adur else ''}[/]"
+                addon = f"  [dark_orange]{icons or '⚡'}{'+' + meta if meta else ''}[/]"
+            note = _session_note(s)
             table.add_row(
                 date_s, "💪",
                 f"[{style}]{block or '?'}[/]",
                 f"[dim]{names}{ellipsis}[/]{addon}",
                 f"[yellow]{eff}/10[/]" if eff else "—",
+                f"[dim]{note}[/]" if note else "—",
                 key=s.get("_stem", d),
             )
 
@@ -314,14 +355,14 @@ class WeekView(Static):
                 act  = acts[0] if acts else (s.get("activity") or {})
                 exs  = performed_exercises(s)
                 if kind == "cardio":
-                    adur  = activity_minutes(s)
+                    meta  = _cardio_meta(s)
                     label = " + ".join(
                         f"{ACTIVITY_EMOJI.get(a.get('type', '?'), '🏃')} {ACTIVITY_LABEL.get(a.get('type', '?'), a.get('type', '?'))}"
                         for a in acts or [act]
                     )
                     parts.append(
                         f"[dark_orange]{label}[/]"
-                        + (f" [dim]{adur}min[/]" if adur else "")
+                        + (f" [dim]{meta}[/]" if meta else "")
                     )
                 else:
                     block = s.get("block", "?")
@@ -329,9 +370,9 @@ class WeekView(Static):
                     names = ", ".join(e.get("name", "?") for e in exs[:3])
                     addon = ""
                     if kind == "strength+addon":
-                        adur = activity_minutes(s)
+                        meta = _cardio_meta(s)
                         icons = "".join(ACTIVITY_EMOJI.get(a.get("type", "?"), "⚡") for a in acts)
-                        addon = f"  [dark_orange]{icons or '⚡'}{'+' + str(adur) + 'min' if adur else ''}[/]"
+                        addon = f"  [dark_orange]{icons or '⚡'}{'+' + meta if meta else ''}[/]"
                     parts.append(f"[{style}]● {block}[/]  [dim]{names}[/]{addon}")
             lines.append(f"  {prefix}  " + "  [dim]│[/]  ".join(parts))
         return "\n".join(lines)
@@ -354,8 +395,10 @@ class StatsView(Static):
             for s in strength
         )
         cardio_min = 0
+        cardio_km  = 0.0
         for s in cardio:
             cardio_min += activity_minutes(s)
+            cardio_km  += activity_distance_km(s)
 
         block_dist: dict[str, int] = {}
         muscle_freq: dict[str, int] = {}
@@ -384,9 +427,11 @@ class StatsView(Static):
             f"  Kraft:    [bright_magenta]{len(strength)}x[/]"
             f"  ·  [dim]{total_ex} Übungen gesamt[/]"
         )
+        km_s = f"{cardio_km:g}".replace(".", ",")
         out.append(
             f"  Cardio-Tage: [dark_orange]{len(cardio)}x[/]"
             + (f"  ·  [dim]{cardio_min} min[/]" if cardio_min else "")
+            + (f"  ·  [dim]{km_s} km[/]" if cardio_km else "")
         )
 
         if block_dist:
@@ -555,23 +600,23 @@ class ClientsView(Static):
                     eff   = s.get("effort")
                     dl    = datetime.strptime(d, "%Y-%m-%d").strftime("%d.%m")
                     if kind == "cardio":
-                        adur  = activity_minutes(s)
+                        meta  = _cardio_meta(s)
                         label = " + ".join(
                             f"{ACTIVITY_EMOJI.get(a.get('type', '?'), '🏃')} {ACTIVITY_LABEL.get(a.get('type', '?'), a.get('type', '?'))}"
                             for a in acts or [act]
                         )
                         lines.append(
                             f"    [dim]{dl}[/]  [dark_orange]{label}[/]"
-                            + (f" [dim]{adur}min[/]" if adur else "")
+                            + (f" [dim]{meta}[/]" if meta else "")
                         )
                     else:
                         style = block_rich_style(block)
                         names = ", ".join(e.get("name", "?") for e in exs[:3])
                         addon = ""
                         if kind == "strength+addon":
-                            adur = activity_minutes(s)
+                            meta = _cardio_meta(s)
                             icons = "".join(ACTIVITY_EMOJI.get(a.get("type", "?"), "⚡") for a in acts)
-                            addon = f"  [dark_orange]{icons or '⚡'}{'+' + str(adur) + 'min' if adur else ''}[/]"
+                            addon = f"  [dark_orange]{icons or '⚡'}{'+' + meta if meta else ''}[/]"
                         eff_s = f" [dim]RPE {eff}[/]" if eff else ""
                         lines.append(
                             f"    [dim]{dl}[/]  [{style}]{block or '?'}[/]"

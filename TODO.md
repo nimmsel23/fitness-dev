@@ -1,4 +1,10 @@
 
+# [x] 6Pack-Integration (2026-10-11)
+- Doppelten Ordner entfernen: echtes Submodule unter `6pack/`, direkte Imports,
+  Fitness-KB-Generator unter `scripts/`; VitalOS-Branch-Zuordnung prüfen.
+- Submodule auf `fitness` führen; lokalen `dev`-Stand mit `npm run sync:6pack`
+  übernehmen, Fitness bauen und Pointer plus Laufzeitdateien committen.
+
 # [NEW] Coach Office 
 Beispielfeature: Trainingsplanbesprechung zwischen Klient und Coach. Social Media Style. Comment-feed per Exercise
 

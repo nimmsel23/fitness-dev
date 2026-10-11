@@ -1,3 +1,71 @@
+# 6Pack: echtes Submodule unter 6pack/ (2026-10-11)
+
+- Submodule von `6pack-dev/` nach `6pack/` verschoben; die drei bisher kopierten
+  Laufzeitdateien entfernt. Bestehende Imports laden jetzt direkt das Submodule.
+- Fitness-KB-Generator nach `scripts/build-sixpack-data.mjs` verschoben;
+  generierte Daten vor/nach Umbau bytegleich. KB unverändert.
+- `sync:6pack` aktualisiert nur noch den Branch `fitness` und baut Fitness.
+- VitalOS-Checkout separat auf vorhandenen Branch `vitalos` gestellt und dort
+  `.gitmodules` angepasst; bisheriger VitalOS-Pointer bleibt unverändert.
+- Verifiziert: ESLint, vollständiger Fitness-Build und `git diff --check`.
+
+# 6Pack: Integrationsbranch und lokaler Sync (2026-10-11)
+
+- `~/6pack-dev` bleibt auf `dev`; Submodule `6pack-dev` verwendet jetzt
+  `fitness`, auch in `.gitmodules` festgelegt. Stand `256b1cf` übernommen.
+- `npm run sync:6pack` holt den committeten lokalen dev-Stand, prüft Branches,
+  offene Änderungen und Fast-forward-Fähigkeit, veröffentlicht die drei
+  Laufzeitdateien nach `6pack/` und baut Fitness mit dessen eigener KB.
+- Kein automatischer Commit, Push oder Deploy im Sync-Befehl; vor dem späteren
+  Parent-Push den Branch `fitness` im 6Pack-Remote veröffentlichen.
+- Verifiziert: kompletter Sync inklusive KB-Generierung, ESLint und Vite-Build;
+  erneuter Aufruf stoppt korrekt bei uncommittetem Pointer. Komponente identisch
+  mit Submodule-Quelle; `git diff --check` erfolgreich. Kein Browser-Test.
+
+# 6Pack: Fuel-Link und Workout-Favoriten übernommen (2026-10-09)
+
+- Aus `6pack-dev` Commit `d669f39` per `publish:fitness` übernommen.
+- Eat öffnet Fuel auf Firebase unter `https://fuel-vos.web.app/`, lokal auf dem aktuellen Host auf Port `7000`.
+- Favorites speichert vollständige Tages- und Shuffle-Workouts einschließlich Übungen, Reihenfolge, Zeiten und Pausen; Wiederholungen verändern den Tagesfortschritt nicht.
+- Verifiziert: `npm run build` inklusive KB-Generierung und ESLint erfolgreich; veröffentlichte Komponente identisch mit der im 6Pack-Dev-Server per Browser geprüften Quelle.
+
+---
+
+# Session Gate als "Mission-Konsole" neu gestaltet, Release nach vitalos (2026-09-24)
+
+Redesign des Session-Gate-Einstiegs (`/frontend-design`-Skill) plus
+anschließendem `fitness-release --yes` bis nach `vitalos`/Staging (`:8100`).
+Ein Commit `b6dda8e` auf `dev`.
+
+* **`src/views/Session/SessionGateCard.jsx`**: komplett neu gestaltet als
+  "Mission-Konsole" — radialer SVG-Ring-Timer statt reinem Zahlen-Feld,
+  monospace Status-Eyebrow mit Puls-Dot (`LIVE · TRACKING` /
+  `GATE GESCHLOSSEN` / `GATE BEREIT`), diagonale Hazard-Stripes im aktiven
+  Zustand, Blueprint-Grid im Standby-Zustand, Bereiche-Grid mit Code-
+  Nummerierung (`01`–`05`). Props/Verhalten (`onStart`, `onStop`,
+  `onSubNav`, GPS/Notification-Logik) unverändert, reines visuelles
+  Redesign, mit bestehenden Theme-CSS-Variablen (`--accent`, `--card`,
+  `--ink`, `--dim`, `--line`, `--bg2`).
+* **`src/styles.css`**: neue Keyframes/Klassen für das Gate-Redesign
+  ergänzt (Ring-Puls, Hazard-Stripes-Animation etc.).
+* Build lokal via `vite build --mode development` verifiziert, kein
+  Browser-Durchklick.
+* `fitness-release --yes` danach mehrfach neu gestartet, weil parallele
+  Sessions zwischenzeitlich unerwartete Changes im Repo hinterließen
+  (`docs/STRAVA_SETUP.md`, `unreviewed_wger.yml`, `kb.js`,
+  `exerciseInsights.js`) — jeweils von den anderen Sessions selbst wieder
+  aufgeräumt, kein eigener Eingriff nötig. Ein echter Blocker war eine
+  verwaiste `src/views/Session/sixpackData.generated.js` im
+  `~/vitalos/fitness-app`-Worktree (alter Pfad vor einem früheren Umzug
+  nach `6pack/`, nicht in `.gitignore` erfasst) — gelöscht, da reines
+  Build-Artefakt ohne SOT-Charakter; die tatsächlich aktive `.gitignore`-
+  Regel (`6pack/sixpackData.generated.js`) war bereits korrekt.
+* Release danach sauber durchgelaufen: `dev` → `vitalos` gemerged +
+  gepusht, Staging-Deploy `:8100` verifiziert, Submodule-Pointer in
+  `~/vitalos` gebumpt. Kein Prod-Deploy (`:6100`) in dieser Session.
+
+---
+
 # AGENTS.md-Punkte umgesetzt: Push/Pull/Legs-Build, Trapezius/Hamstrings als Muskel-Komplexe, Federation-Aufräumen (2026-09-13)
 
 Zwei fachliche Aufträge abgearbeitet (`catalog/kb/AGENTS.md` durchgehen; danach
