@@ -57,9 +57,14 @@ wird so ähnlich erfolgen wie der Skills-Runner
   - User-spezifische Google Drive (GDrive) Synchronisation einbauen, damit Fotos sicher, persistent und geräteübergreifend in der Cloud gesichert werden (ohne den LocalStorage zu überlasten).
 - **Audio / Voice Cues**:
   - Wenn eine Übung nur noch 10 Sekunden dauert, muss die Audio-Stimme (TTS / Voice Cue) das ansagen (z. B. "Noch 10 Sekunden" / "10 seconds left").
-  - **Stimmqualität verbessern**: Aktuelle Standard-WebSpeech-Stimme klingt blechern/unnatürlich ("Sound nicht ganz super"). Optionen:
-    - *Bessere Browser-/OS-Stimmen filtern*: Gezielt nach hochwertigen Stimmen filtern (z. B. `voice.localService === false` bzw. Google/Apple "Enhanced"/"Premium"/Natural Voices wie Siri/Google Deutsch/Englisch, statt des dumpfen Fallbacks).
-    - *Voice-Pitch / Rate feintunen* oder Custom Audio Cues / vorgerenderte Audio-Snippets (ElevenLabs / Edge-TTS / OpenAI TTS Audio-Files für Countdown, Übungsnamen und Standard-Ansagen wie "Noch 10 Sekunden", "Pause", "Letzte Wiederholung").
+  - **Stimmqualität verbessern**: Aktuelle Standard-WebSpeech-Stimme klingt blechern/unnatürlich ("Sound nicht ganz super"):
+    - *Ansatz 1 (Sofort via WebSpeech API)*:
+      - Gezielt nach hochwertigen Online-/Systemstimmen filtern (`window.speechSynthesis.getVoices()`), z. B. Google Deutsch/US-English "Natural", Apple Siri / "Enhanced" / "Premium" Voices statt des dumpfen mechanischen Offline-Defaults.
+      - Voice-Parameter (`pitch`, `rate`, `volume`) feintunen, damit sie natürlicher und flüssiger klingt.
+    - *Ansatz 2 (Studio-Qualität via Audio-Files)*:
+      - Feste Ansagen ("Noch 10 Sekunden", "Pause, 30 Sekunden", "Halbzeit", "Letzte Wiederholung", Übungsnamen) vorab mit einer professionellen KI-Stimme (ElevenLabs, Edge-TTS oder OpenAI TTS) rendern und als gecachte Web-Audio/MP3-Snippets abspielen.
+      - Klingt 1:1 wie ein echter menschlicher Personal Coach im Studio ohne Browser-Abhängigkeiten.
+
 
 
 
