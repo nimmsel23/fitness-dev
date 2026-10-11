@@ -55,6 +55,9 @@ wird so ähnlich erfolgen wie der Skills-Runner
 - **6Pack Selfies / Progress Photos - Google Drive Sync**:
   - Bisher verbleiben Progress-Selfies ggf. nur im LocalStorage/lokalen Client-Speicher.
   - User-spezifische Google Drive (GDrive) Synchronisation einbauen, damit Fotos sicher, persistent und geräteübergreifend in der Cloud gesichert werden (ohne den LocalStorage zu überlasten).
+- **Audio / Voice Cues**:
+  - Wenn eine Übung nur noch 10 Sekunden dauert, muss die Audio-Stimme (TTS / Voice Cue) das ansagen (z. B. "Noch 10 Sekunden" / "10 seconds left").
+
 
 
 # [Push Messages] 
