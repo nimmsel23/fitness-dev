@@ -16,12 +16,12 @@ exercises:
     wird und die Kraftübertragung leidet.
   - Zu breit greifen und dadurch ROM, Schultermechanik und saubere Ellbogenführung
     unnötig verschlechtern.
-  wger_id: 821
   external_ids:
     wger:
     - 821
     yuhonas:
     - Pullups
+  wger_id: 821
   tags:
   - expert
   - back
@@ -33,16 +33,10 @@ exercises:
   primary_muscles:
   - 201_latissimus_dorsi
   - 207_teres_major
+  _hash: ca0502729ca8a8da6745ff2289218fa2
   equipment:
   - bodyweight
   - pull_up_bar
-  variations:
-  - assisted_pull_up
-  - band_assisted_pull_up
-  - weighted_pull_up
-  - wide_grip_pull_up
-  - neutral_grip_pull_up
-  - scapular_pull_up
   coaching_notes:
   - 'Starte aus einem aktiven Hang: Hals lang, Rippen unten, Schulterblätter zuerst
     sanft nach unten setzen statt passiv in den Schultern zu hängen.'
@@ -70,35 +64,27 @@ exercises:
   - 507_multifidus
   exercise_id: '020'
   wger_muscle_ids:
-    primary: []
     secondary: []
+    primary: []
   review_state:
     status: approved
   type: compound
   display_name: Klimmzug im Obergriff
   name: Klimmzug im Obergriff
   english: Pull-Up
-  id: '020'
   source: approved
-  category: pull
-  search_aliases:
-  - Pullups
-  - yuhonas_pullups
-  - Klimmzug an Leiste
-  - wger_821
-  - Klimmzug im Obergriff
-  - Pull-Up
+  id: '020'
   origin:
-    wger:
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      wger_id: 821
     source_refs:
       wger:
       - '821'
       yuhonas:
       - Pullups
+    wger:
+      wger_muscle_ids:
+        primary: []
+        secondary: []
+      wger_id: 821
     type: merged_external
     yuhonas:
       display_name: Pullups
@@ -111,8 +97,13 @@ exercises:
       equipment:
       - body only
       wger_muscle_ids:
-        secondary: []
         primary: []
+        secondary: []
+      category: strength
+      exercise_id: yuhonas_pullups
+      secondary_muscles:
+      - biceps
+      - middle_back
       coaching_notes:
       - 'Grab the pull-up bar with the palms facing forward using the prescribed grip.
         Note on grips: For a wide grip, your hands need to be spaced out at a distance
@@ -133,11 +124,14 @@ exercises:
         your torso back to the starting position when your arms are fully extended
         and the lats are fully stretched.
       - Repeat this motion for the prescribed amount of repetitions.
-      exercise_id: yuhonas_pullups
-      secondary_muscles:
-      - biceps
-      - middle_back
-      category: strength
+  search_aliases:
+  - Pullups
+  - yuhonas_pullups
+  - Klimmzug an Leiste
+  - wger_821
+  - Klimmzug im Obergriff
+  - Pull-Up
+  category: pull
   secondary_muscles:
   - 202c_trapezius_lower
   - 202b_trapezius_middle
@@ -145,6 +139,13 @@ exercises:
   - 402_biceps_brachii
   - 403_brachialis
   - 404_brachioradialis
+  variations:
+  - assisted_pull_up
+  - band_assisted_pull_up
+  - weighted_pull_up
+  - wide_grip_pull_up
+  - neutral_grip_pull_up
+  - scapular_pull_up
   aliases:
   - Klimmzug
   - Klimmzüge
