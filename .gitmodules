@@ -1,5 +1,5 @@
 [submodule "6pack-dev"]
-	path = 6pack-dev
+	path = 6pack
 	url = git@github.com:nimmsel23/6pack-dev.git
 	branch = fitness
 [submodule "coach-dev"]

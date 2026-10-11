@@ -21,7 +21,7 @@
     "build:preview": "npm run deploy:preview",
     "prebuild:firebase": "npm run build:kb-data",
     "build:kb-data": "npm run build:sixpack-data && npm run build:exercise-data && npm run build:coaching-notes",
-    "build:sixpack-data": "node 6pack/build-data.mjs",
+    "build:sixpack-data": "node scripts/build-sixpack-data.mjs",
     "build:exercise-data": "node scripts/exercise-data.mjs",
     "build:bulk-data": "node scripts/build-exercise-bulk-data.mjs",
     "build:ppl-data": "node scripts/build-ppl-data.mjs",

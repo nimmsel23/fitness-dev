@@ -1,3 +1,14 @@
+# 6Pack: echtes Submodule unter 6pack/ (2026-10-11)
+
+- Submodule von `6pack-dev/` nach `6pack/` verschoben; die drei bisher kopierten
+  Laufzeitdateien entfernt. Bestehende Imports laden jetzt direkt das Submodule.
+- Fitness-KB-Generator nach `scripts/build-sixpack-data.mjs` verschoben;
+  generierte Daten vor/nach Umbau bytegleich. KB unverändert.
+- `sync:6pack` aktualisiert nur noch den Branch `fitness` und baut Fitness.
+- VitalOS-Checkout separat auf vorhandenen Branch `vitalos` gestellt und dort
+  `.gitmodules` angepasst; bisheriger VitalOS-Pointer bleibt unverändert.
+- Verifiziert: ESLint, vollständiger Fitness-Build und `git diff --check`.
+
 # 6Pack: Integrationsbranch und lokaler Sync (2026-10-11)
 
 - `~/6pack-dev` bleibt auf `dev`; Submodule `6pack-dev` verwendet jetzt
