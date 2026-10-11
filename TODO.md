@@ -46,6 +46,10 @@ Beispielfeature: Trainingsplanbesprechung zwischen Klient und Coach. Social Medi
 
 ## [ ] ("Timer") 6Pack-Runner Ausbau (Tabata-like HIIT Core-Workouts) heavily inspired by ATHLEAN-X 6Pack App
 wird so ähnlich erfolgen wie der Skills-Runner
+- **6Pack Selfies / Progress Photos - Google Drive Sync**:
+  - Bisher verbleiben Progress-Selfies ggf. nur im LocalStorage/lokalen Client-Speicher.
+  - User-spezifische Google Drive (GDrive) Synchronisation einbauen, damit Fotos sicher, persistent und geräteübergreifend in der Cloud gesichert werden (ohne den LocalStorage zu überlasten).
+
 
 # [Push Messages] 
 tägliche Push benachrichtigungen bei fehlenden Logs - direkt im Benachrichtigungscenter interaktiv? 
