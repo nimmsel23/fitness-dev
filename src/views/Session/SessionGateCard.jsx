@@ -9,6 +9,12 @@ import {
 } from '../../lib/sessionGate.js';
 
 const NOTIFICATION_TAG = 'fitness-workout-session';
+const HOUR_REMINDER_TAG = 'fitness-workout-hour-reminder';
+const HOUR_REMINDER_MS = 60 * 60 * 1000;
+// localStorage statt In-Memory-Ref: die Session kann eine App-Session
+// überleben (Reload, Tab-Kill) — ohne Persistenz würde der Reminder bei
+// jedem Reopen erneut feuern, solange >1h aktiv ist.
+const HOUR_REMINDER_STORAGE_KEY = 'fitness-workout-hour-reminder-sent-for';
 
 async function sendSessionGateNotification(sessionGate, date) {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
@@ -27,6 +33,7 @@ async function sendSessionGateNotification(sessionGate, date) {
 
   if (!gate.startedAt) {
     registration.active.postMessage({ type: 'CLEAR_WORKOUT_TIMER_NOTIFICATION', tag: NOTIFICATION_TAG });
+    registration.active.postMessage({ type: 'CLEAR_WORKOUT_TIMER_NOTIFICATION', tag: HOUR_REMINDER_TAG });
     return;
   }
 
@@ -41,6 +48,35 @@ async function sendSessionGateNotification(sessionGate, date) {
     date,
     active: isSessionGateActive(gate),
   });
+}
+
+// Eigene, nicht-stille Erinnerung ab 1h aktiver Session (anders als die
+// laufende Stoppuhr-Notification oben, die bewusst `silent: true` ist, damit
+// sie nicht alle 30s piept). Grund: Sessions werden faktisch nie bewusst
+// beendet (sessionGate.endedAt bleibt null), wodurch das Workout nie als
+// Core4-Fitness zählt — siehe TODO.md "Bug/UX-Lücke" vom 2026-10-12.
+async function sendHourReminderNotification(date) {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
+  if (!('serviceWorker' in navigator) || typeof Notification === 'undefined') return;
+  if (Notification.permission !== 'granted') return;
+  const registration = window.__swRegistration || await navigator.serviceWorker.getRegistration();
+  if (!registration?.active) return;
+  registration.active.postMessage({
+    type: 'SHOW_WORKOUT_HOUR_REMINDER',
+    tag: HOUR_REMINDER_TAG,
+    title: 'Workout läuft seit über 1 Stunde',
+    body: 'Fertig? Session beenden — sonst zählt sie nicht für Core4.',
+    date,
+  });
+}
+
+function checkHourReminder(gate, date) {
+  if (!gate.startedAt || getSessionGateElapsedMs(gate) < HOUR_REMINDER_MS) return;
+  let sentFor = null;
+  try { sentFor = window.localStorage.getItem(HOUR_REMINDER_STORAGE_KEY); } catch {}
+  if (sentFor === gate.startedAt) return;
+  try { window.localStorage.setItem(HOUR_REMINDER_STORAGE_KEY, gate.startedAt); } catch {}
+  sendHourReminderNotification(date).catch(() => {});
 }
 
 const SESSION_NAV_ITEMS = [
@@ -100,9 +136,13 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
 
   useEffect(() => {
     sendSessionGateNotification(gate, date).catch(() => {});
+    // Sofort prüfen (nicht erst nach 30s) — deckt den Fall ab, dass die App
+    // erst wieder geöffnet wird, nachdem die Session längst >1h aktiv ist.
+    if (active) checkHourReminder(gate, date);
     if (!active) return undefined;
     const notificationTimer = window.setInterval(() => {
       sendSessionGateNotification(gate, date).catch(() => {});
+      checkHourReminder(gate, date);
     }, 30000);
     return () => window.clearInterval(notificationTimer);
   }, [active, completed, gate, date]);

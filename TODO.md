@@ -40,6 +40,29 @@ Beispielfeature: Trainingsplanbesprechung zwischen Klient und Coach. Social Medi
 
 
 # [ ] Session Gate / ("Skills") Thenics-Runner Ausbau (Calisthenics)
+- **Bug/UX-Lücke entdeckt (2026-10-12):** Sessions werden faktisch nie
+  bewusst beendet — `sessionGate.endedAt` bleibt `null`/`status: "active"`
+  auch nach abgeschlossenem Workout (Beispiel: `2026-10-11.json`, Operator-
+  UID). Dadurch greift die Auto-Done-Verknüpfung zu Core4-Fitness nicht
+  (kein Event-Ordner unter `~/.core4/events/<datum>/`), obwohl trainiert
+  wurde. Kein Einzelfall — niemand denkt am Ende des Workouts aktiv daran,
+  die Session explizit zu beenden. `stopSessionGate()`
+  (`useSessionGateController.js`) selbst setzt `endedAt` korrekt — das Problem
+  ist rein, dass der Button nie gedrückt wird.
+  - [x] (2026-10-12) 1-Stunden-Reminder ergänzt: `SessionGateCard.jsx` prüft
+    ab 1h aktiver Session (sofort bei App-Open + alle 30s) und schickt über
+    den Service Worker (`SHOW_WORKOUT_HOUR_REMINDER` in `public/sw.js`) eine
+    eigene, nicht-stille Benachrichtigung (Vibration, `requireInteraction`) —
+    bewusst anders als die bereits bestehende, laufend aktualisierte
+    Stoppuhr-Notification (`fitness-workout-session`), die `silent: true`
+    ist. Persistiert in `localStorage` (`fitness-workout-hour-reminder-sent-
+    for`) gegen Doppel-Feuern bei Reload. **Nicht verifiziert:** echtes
+    Verhalten bei komplett geschlossener PWA (Browser-/OS-abhängig, siehe
+    Plattformgrenze oben) — nur im geöffneten Tab/laufender PWA getestet
+    (Build grün, kein Browser-Durchklick in dieser Session möglich).
+  - Offen: harter Fallback, der eine >N-Stunden-alte offene Session beim
+    nächsten App-Open automatisch schließt/danach fragt (statt nur zu
+    erinnern) — bisher nur die Erinnerung, kein Auto-Close.
 - Today-Session zuerst als `Gym Session Gate`: großer Start-/Stop-Button, Trainingstag sofort loggen, manuelles Nachtragen bleibt darunter offen.
 - Während aktiver Session Thenics-artigen Guided Runner bauen:
   - Quelle: im `Plan`-Tab gepflegtes Workout oder Coach-Zuweisung, aber nicht erzwungen.

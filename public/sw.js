@@ -130,6 +130,9 @@ self.addEventListener('message', e => {
   if (e.data.type === 'SHOW_WORKOUT_TIMER_NOTIFICATION') {
     e.waitUntil(showWorkoutNotification(e.data))
   }
+  if (e.data.type === 'SHOW_WORKOUT_HOUR_REMINDER') {
+    e.waitUntil(showHourReminderNotification(e.data))
+  }
   if (e.data.type === 'CLEAR_WORKOUT_TIMER_NOTIFICATION') {
     e.waitUntil(clearWorkoutNotification(e.data.tag))
   }
@@ -225,6 +228,24 @@ async function showWorkoutNotification(data) {
       link: data.date ? `/#session?date=${data.date}` : '/#session',
       date: data.date || null,
       active: !!data.active,
+    },
+  })
+}
+
+async function showHourReminderNotification(data) {
+  if (!self.registration?.showNotification) return
+  await self.registration.showNotification(data.title || 'Workout läuft schon lange', {
+    tag: data.tag || 'fitness-workout-hour-reminder',
+    renotify: true,
+    silent: false,
+    requireInteraction: true,
+    vibrate: [200, 100, 200],
+    body: data.body || 'Schon über eine Stunde aktiv.',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    data: {
+      link: data.date ? `/#session?date=${data.date}` : '/#session',
+      date: data.date || null,
     },
   })
 }
