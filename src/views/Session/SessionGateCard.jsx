@@ -123,6 +123,14 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
   const active = isSessionGateActive(gate);
   const completed = isSessionGateCompleted(gate);
   const [nowMs, setNowMs] = useState(Date.now());
+  // Sichtbarer Status statt stillem No-op: `sendSessionGateNotification()`
+  // bricht bei fehlender Permission unauffällig ab — ohne diese Anzeige hat
+  // der User keine Chance zu sehen, dass genau das der Grund für "keine
+  // Notification bisher" ist (iOS fragt den Permission-Dialog nur einmal ab,
+  // ein Wegtippen/Verweigern bleibt sonst unsichtbar "denied").
+  const [notifStatus, setNotifStatus] = useState(() =>
+    typeof Notification === 'undefined' ? 'unsupported' : Notification.permission
+  );
 
   useEffect(() => {
     if (!active) return undefined;
@@ -131,20 +139,44 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
   }, [active]);
 
   useEffect(() => {
+    if (!active) return undefined;
+    function refreshNotifStatus() {
+      setNotifStatus(typeof Notification === 'undefined' ? 'unsupported' : Notification.permission);
+    }
+    refreshNotifStatus();
+    document.addEventListener('visibilitychange', refreshNotifStatus);
+    return () => document.removeEventListener('visibilitychange', refreshNotifStatus);
+  }, [active]);
+
+  useEffect(() => {
     setNowMs(Date.now());
   }, [gate.startedAt, gate.endedAt, gate.status]);
 
   useEffect(() => {
-    sendSessionGateNotification(gate, date).catch(() => {});
+    function runChecks() {
+      sendSessionGateNotification(gate, date).catch(() => {});
+      if (active) checkHourReminder(gate, date);
+    }
     // Sofort prüfen (nicht erst nach 30s) — deckt den Fall ab, dass die App
     // erst wieder geöffnet wird, nachdem die Session längst >1h aktiv ist.
-    if (active) checkHourReminder(gate, date);
+    runChecks();
     if (!active) return undefined;
-    const notificationTimer = window.setInterval(() => {
-      sendSessionGateNotification(gate, date).catch(() => {});
-      checkHourReminder(gate, date);
-    }, 30000);
-    return () => window.clearInterval(notificationTimer);
+    const notificationTimer = window.setInterval(runChecks, 30000);
+    // iOS suspendiert setInterval im Hintergrund fast sofort (Screen-Lock,
+    // App-Wechsel) — der 30s-Timer läuft dort effektiv nicht während der
+    // "Handy weg"-Phase, die dieses Feature eigentlich abdecken soll. Beim
+    // Zurückkehren in den Vordergrund (Screen an, App wieder aktiv) sofort
+    // nachholen, statt auf den nächsten (ggf. nie kommenden) Tick zu warten.
+    function onVisible() {
+      if (document.visibilityState === 'visible') runChecks();
+    }
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    return () => {
+      window.clearInterval(notificationTimer);
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+    };
   }, [active, completed, gate, date]);
 
   const elapsedMs = getSessionGateElapsedMs(gate, nowMs);
@@ -253,11 +285,17 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
             >
               {active ? <Clock3 size={13} /> : completed ? <CheckCircle2 size={13} /> : <PencilLine size={13} />}
               <span>
-                {active
-                  ? 'Live-Status läuft als App-Benachrichtigung weiter, solange der Browser das zulässt.'
-                  : completed
-                    ? 'Manuelles Nachtragen bleibt offen.'
-                    : 'Kein Plan-Zwang. Erst aktive Session, geloggt erst bei done.'}
+                {active && notifStatus !== 'granted'
+                  ? notifStatus === 'denied'
+                    ? '⚠ Benachrichtigungen blockiert — in den iOS/Browser-Einstellungen für diese App erlauben.'
+                    : notifStatus === 'unsupported'
+                      ? '⚠ Benachrichtigungen auf diesem Gerät/Browser nicht unterstützt.'
+                      : '⚠ Benachrichtigungen noch nicht erlaubt — beim nächsten Start erneut bestätigen.'
+                  : active
+                    ? 'Live-Status läuft als App-Benachrichtigung weiter, solange der Browser das zulässt.'
+                    : completed
+                      ? 'Manuelles Nachtragen bleibt offen.'
+                      : 'Kein Plan-Zwang. Erst aktive Session, geloggt erst bei done.'}
               </span>
             </div>
           </div>
