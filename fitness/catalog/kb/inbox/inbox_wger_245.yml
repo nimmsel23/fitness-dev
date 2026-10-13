@@ -1,0 +1,106 @@
+name: inbox_wger_245
+description: 'Proactively generated expert draft for: Frenchpress KH'
+generated_at: '2026-10-08T11:47:55.548361+00:00'
+enriched_at: '2026-10-08T11:47:55.548361+00:00'
+exercises:
+- english: Dumbbell Skullcrusher
+  display_name: Kurzhantel Stirndrücken
+  german: Kurzhantel Stirndrücken
+  wger_muscle_ids:
+    secondary: []
+    primary:
+    - 5
+  source_snapshot:
+    wger:
+      wger_muscle_ids:
+        secondary: []
+        primary:
+        - 5
+      wger_id: 245
+      original_description:
+      - 'Nehme die Hanteln in die Hand, lege dich auf eine Bank und stelle dich so
+        hin, dass ca. 1/4 des Kopfes nicht mehr auf der Bank liegt. Strecke die Arme
+        aus und lasse nun mit einem Bogen die Gewichte runter. Wenn die Hanteln knapp
+        über die Stirn sind, drücke sie wieder nach oben.
+
+        Es ist wichtig die Ellenbogen während der ganzen Übung wenig zu bewegen, damit
+        die Trizeps die Arbeit machen.'
+  wger_id: 245
+  id: wger_245
+  name: Frenchpress KH
+  exercise_id: wger_245
+  external_ids:
+    wger:
+    - 245
+  origin:
+    type: external
+    source_refs:
+      wger:
+      - '245'
+  category: push
+  equipment:
+  - bench
+  - dumbbell
+  primary_muscles:
+  - 401_triceps_brachii
+  secondary_muscles: []
+  stabilizers:
+  - 304_rotator_cuff
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 504_transverse_abdominis
+  - 206_erector_spinae
+  coaching_notes:
+  - Lege dich auf eine flache Hantelbank, die Füße fest auf dem Boden. Nimm die Kurzhanteln
+    in einen neutralen Griff (Handflächen zueinander) oder Obergriff (Handflächen
+    zu den Füßen) und strecke die Arme senkrecht über deiner Brust aus.
+  - Für eine intensivere Dehnung der langen Trizeps-Kopfes kann der Kopf leicht über
+    das Ende der Bank hinausragen, um die Hanteln tiefer hinter den Kopf senken zu
+    können.
+  - Senke die Kurzhanteln langsam und kontrolliert durch Beugen der Ellenbogen in
+    einem Bogen in Richtung Stirn oder leicht hinter den Kopf. Halte die Oberarme
+    dabei relativ ruhig und fixiert.
+  - Drücke die Hanteln über die Kraft deiner Trizeps zurück in die Ausgangsposition,
+    strecke die Ellenbogen vollständig durch und spanne den Trizeps am obersten Punkt
+    fest an.
+  - Atme während des Absenkens ein und beim Hochdrücken aus.
+  - Halte die Ellenbogen während der gesamten Bewegung stabil und versuche, sie nicht
+    übermäßig nach außen spreizen zu lassen.
+  common_errors:
+  - '**Abspreizen der Ellenbogen:** Wenn die Ellenbogen zu stark nach außen zeigen,
+    wird der Trizeps weniger effektiv trainiert und die Schultergelenke können unnötig
+    belastet werden.'
+  - '**Miteinsatz des Oberarms:** Wenn die Oberarme mitbewegt werden (Schultergelenk
+    beugt sich mit), wird die Übung zu einem engen Bankdrücken, was die Trizeps-Isolation
+    reduziert. Die Oberarme sollten so fixiert wie möglich bleiben.'
+  - '**Zu hohes Gewicht:** Die Verwendung von zu schweren Gewichten führt oft zu unsauberer
+    Technik, verkürztem Bewegungsumfang und erhöhtem Verletzungsrisiko für Ellenbogen
+    und Schultern.'
+  - '**Unvollständiger Bewegungsumfang:** Wenn die Ellenbogen nicht ausreichend gebeugt
+    werden (beim Absenken) oder nicht vollständig gestreckt werden (beim Hochdrücken),
+    wird der volle Trainingseffekt des Trizeps reduziert.'
+  - '**Hohlkreuz:** Ein übermäßiges Hohlkreuz auf der Bank kann den unteren Rücken
+    belasten. Die Bauchmuskulatur sollte angespannt werden, um den Rumpf zu stabilisieren.'
+  movements:
+  - elbow_extension
+  - shoulder_stabilization
+  - core_stabilization
+  original_description:
+  - 'Nehme die Hanteln in die Hand, lege dich auf eine Bank und stelle dich so hin,
+    dass ca. 1/4 des Kopfes nicht mehr auf der Bank liegt. Strecke die Arme aus und
+    lasse nun mit einem Bogen die Gewichte runter. Wenn die Hanteln knapp über die
+    Stirn sind, drücke sie wieder nach oben.
+
+    Es ist wichtig die Ellenbogen während der ganzen Übung wenig zu bewegen, damit
+    die Trizeps die Arbeit machen.'
+  tags:
+  - unreviewed
+  - wger
+  variations: []
+  source: unreviewed
+  enriched_at: '2026-10-08T11:47:55.548361+00:00'
+  schema_version: 2026-08-12.exercise-v1
+  review_state:
+    status: draft
+    ai_reviewed: false
+    enriched_at: '2026-10-08T11:47:55.548361+00:00'

@@ -96,6 +96,22 @@ Vor dem manuellen Editor liegt ein leichtgewichtiges `sessionGate` im selben Ses
 - Der manuelle Editor bleibt bewusst getrennt darunter für das Nachtragen.
 - Eine aktive Session kann best-effort eine laufende App-Service-Worker-Benachrichtigung halten.
 
+**Bugfix 2026-10-13 (Notification führte ins Leere):** Antippen der
+Workout-Stoppuhr-/Stunden-Erinnerung-Notification öffnete bisher nie das
+Gate-Sheet mit dem "Workout beenden"-Button — zwei unabhängige Sackgassen,
+beide gefixt:
+1. `public/sw.js`: `showWorkoutNotification()`/`showHourReminderNotification()`
+   verlinkten auf `/#session?date=...`, was `App.jsx::parseHashRoute()`
+   absichtlich als gate-loses Deep-Link behandelt (Fix 2026-09-07 für
+   Dashboard/Review-Links). `notificationclick`-Fallback war ebenfalls
+   `/#session`. Alle drei zeigen jetzt fest auf `/#session/today` — der
+   einzige Hash, der `subTab='today'` setzt und damit das Gate öffnet.
+2. `src/views/Session/index.jsx`: Selbst mit korrektem Hash verdrängte
+   `TodayPlan` (gate-unwissend) weiterhin den `SessionEditor`/das Gate,
+   solange ein Klient einen aktiven Coach-Plan-Zyklus hat. Fix: der
+   `isTodayTab`-Zweig prüft jetzt zusätzlich `isSessionGateActive(session.sessionGate)`
+   und lässt `TodayPlan` bei aktivem Gate nicht mehr zum Zug kommen.
+
 ## Multi-Session pro Tag
 
 Pro Tag können mehrere Sessions existieren. `id: null` = Hauptsession, `id: "<timestamp>"` = Suffix-Session. Switcher-Bar zeigt alle Sessions des Tages. "+ Neues Workout" legt eine neue Suffix-Session an. Löschen ist für jede Session der Tagesliste möglich — auch die Hauptsession (seit 2026-07, Klienten-Request).
