@@ -1,3 +1,23 @@
+# Fitness-Build und ungenutzte Submodule bereinigt (2026-10-13)
+
+- `coach-dev` und `plan-dev` aus Fitness-Gitlinks, `.gitmodules`, pnpm-Workspace
+  und Lockfile entfernt. Keine Fitness-Imports nutzen diese Checkouts;
+  Coach -> Plan -> Coach erzeugte mehrfach verschachtelte Submodule.
+  Fitness bindet weiterhin direkt `6pack` ein. Separate App-Repos und ihre
+  VitalOS-Release-Checkouts bleiben eigenständig.
+- Vorhandene, saubere Submodule-Verzeichnisse vollständig nach
+  `/tmp/fitness-unused-submodules-xc86753r` verschoben; Git-Objekte bleiben
+  erhalten. Die Sicherung ist temporär und keine dauerhafte Ablage.
+- Verschachtelte Package-Skripte von `npm run` auf `pnpm run` umgestellt.
+  Tailwind scannt 6Pack-Quellen statt dessen gesamten Dependency-Baum.
+- Local- und Firebase-Build erfolgreich, einschließlich Local-Lint,
+  KB-Generierung, Firebase-Cache-Stempel und Snapshots. pnpm-Lockfile offline
+  mit temporärem Store aktualisiert; Workspace enthält nur Fitness und 6Pack.
+  Bestehende ESLint-env-, Browserslist- und Chunk-Größen-Warnungen bleiben.
+- VitalOS-Release-Helfer erkennt separat den pnpm-Workspace und verlangt dort
+  keinen node_modules-Dev-Symlink mehr (VitalOS-Commit `e0fbc99`).
+  Kein Push, Merge oder Deployment durchgeführt.
+
 # 2026-10-13 — Fotoauswahl und Integration in aktuelle Submodule
 
 - Kamera plus Galerie-/Dateiauswahl mit Mehrfachauswahl, Validierung und
