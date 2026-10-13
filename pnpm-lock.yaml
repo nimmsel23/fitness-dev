@@ -65,6 +65,12 @@ importers:
       '@reduxjs/toolkit':
         specifier: ^2.11.2
         version: 2.11.2(react-redux@9.2.0(react@18.3.1)(redux@5.0.1))(react@18.3.1)
+      '@standard-schema/spec':
+        specifier: ^1.1.0
+        version: 1.1.0
+      '@standard-schema/utils':
+        specifier: ^0.3.0
+        version: 0.3.0
       '@tanstack/react-query':
         specifier: ^5.101.0
         version: 5.101.0(react@18.3.1)
@@ -83,6 +89,39 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      d3-array:
+        specifier: ^3.2.4
+        version: 3.2.4
+      d3-color:
+        specifier: ^3.1.0
+        version: 3.1.0
+      d3-ease:
+        specifier: ^3.0.1
+        version: 3.0.1
+      d3-format:
+        specifier: ^3.1.2
+        version: 3.1.2
+      d3-interpolate:
+        specifier: ^3.0.1
+        version: 3.0.1
+      d3-path:
+        specifier: ^3.1.0
+        version: 3.1.0
+      d3-scale:
+        specifier: ^4.0.2
+        version: 4.0.2
+      d3-shape:
+        specifier: ^3.2.0
+        version: 3.2.0
+      d3-time:
+        specifier: ^3.1.0
+        version: 3.1.0
+      d3-time-format:
+        specifier: ^4.1.0
+        version: 4.1.0
+      d3-timer:
+        specifier: ^3.0.1
+        version: 3.0.1
       date-fns:
         specifier: ^4.4.0
         version: 4.4.0
@@ -113,6 +152,9 @@ importers:
       immer:
         specifier: ^10.2.0
         version: 10.2.0
+      internmap:
+        specifier: ^2.0.3
+        version: 2.0.3
       js-yaml:
         specifier: ^4.1.1
         version: 4.1.1
@@ -149,6 +191,9 @@ importers:
       redux:
         specifier: ^5.0.1
         version: 5.0.1
+      redux-thunk:
+        specifier: ^3.1.0
+        version: 3.1.0(redux@5.0.1)
       reselect:
         specifier: ^5.1.1
         version: 5.1.1
