@@ -4,8 +4,12 @@ import { SIXPACK_CATEGORIES, SIXPACK_EXERCISE_DETAILS, SIXPACK_EXERCISE_POOL, SI
 
 const SIXPACK_PROGRAM_KEY = 'fitness-sixpack-program-v1';
 const SIXPACK_FAVORITES_KEY = 'fitness-sixpack-favorites-v1';
-const SIXPACK_SELFIES_KEY = 'fitness-sixpack-selfies-v1';
+// SIXPACK_SELFIES_KEY ('fitness-sixpack-selfies-v1') wurde ersetzt durch
+// SIXPACK_PENDING_KEY (Queue für lokale Server-Sync) — alte LocalStorage-
+// Fotos werden nicht migriert (waren Base64-Blobs, können bei Bedarf manuell
+// in public/sixpack-photos/ kopiert werden).
 const SIXPACK_VIDEO_URLS_KEY = 'fitness-sixpack-video-urls-v1';
+
 
 function loadVideoUrls() {
   try {
@@ -465,49 +469,224 @@ function FavoritesScreen({ onBack }) {
   );
 }
 
-function loadSelfies() {
+// ── 6Pack Selfies: Local-Server-Sync ─────────────────────────────────────────
+// Lädt Fotos per multipart POST an den lokalen server.mjs-Server hoch.
+// Ist der Server nicht erreichbar, landet das Foto im LocalStorage als
+// Pending-Queue und wird automatisch hochgeladen, sobald der Server wieder
+// online ist (beim nächsten Öffnen des Selfies-Screens oder beim nächsten
+// Netzwerkversuch).
+//
+// Datenfluss:
+//   1. Foto aufnehmen → readAsDataURL → immer in LocalStorage-Queue schreiben
+//   2. uploadPending() versucht alle Queue-Einträge per FormData an den Server
+//   3. Erfolg → Queue-Eintrag entfernen, Foto-Liste vom Server laden
+//   4. Fehler → Queue-Eintrag bleibt, Foto aus LocalStorage anzeigen (Fallback)
+//   5. GET /sixpack/photos?uid=<uid> → Foto-Liste vom Server (neueste zuerst)
+
+const SIXPACK_PENDING_KEY = 'fitness-sixpack-selfies-pending-v1';
+const LOCAL_SERVER = (() => {
+  if (typeof window === 'undefined') return 'http://127.0.0.1:9100';
+  // Prod-Port 6100, Dev-Port 9100 — wir probieren beide via Healthcheck
+  return window.__FITNESS_SERVER_BASE__ || 'http://127.0.0.1:9100';
+})();
+
+function loadPendingQueue() {
   if (typeof window === 'undefined') return [];
-  try {
-    return JSON.parse(window.localStorage.getItem(SIXPACK_SELFIES_KEY) || '[]');
-  } catch {
-    return [];
-  }
+  try { return JSON.parse(window.localStorage.getItem(SIXPACK_PENDING_KEY) || '[]'); }
+  catch { return []; }
+}
+function savePendingQueue(q) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(SIXPACK_PENDING_KEY, JSON.stringify(q));
+}
+
+/** Konvertiert eine DataURL in ein File-Objekt für FormData */
+function dataUrlToFile(dataUrl, filename) {
+  const [header, data] = dataUrl.split(',');
+  const mime = header.match(/:(.*?);/)?.[1] || 'image/jpeg';
+  const bytes = atob(data);
+  const arr = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+  return new File([arr], filename, { type: mime });
 }
 
 function SelfiesScreen({ onBack }) {
-  const [selfies, setSelfies] = useState(() => loadSelfies());
+  const [serverPhotos, setServerPhotos] = useState([]);
+  const [pending, setPending] = useState(() => loadPendingQueue());
+  const [serverOk, setServerOk] = useState(null); // null = unbekannt, true/false
+  const [uploading, setUploading] = useState(false);
+  const [statusMsg, setStatusMsg] = useState('');
 
+  // uid aus Window-Global oder Fallback
+  const uid = typeof window !== 'undefined'
+    ? (window.__FITNESS_UID__ || 'local')
+    : 'local';
+
+  /** Holt die Foto-Liste vom lokalen Server */
+  async function fetchServerPhotos() {
+    try {
+      const res = await fetch(`${LOCAL_SERVER}/sixpack/photos?uid=${encodeURIComponent(uid)}`, {
+        signal: AbortSignal.timeout(3000),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setServerOk(true);
+      setServerPhotos(data.photos || []);
+      return true;
+    } catch {
+      setServerOk(false);
+      return false;
+    }
+  }
+
+  /** Versucht alle ausstehenden Pending-Fotos hochzuladen */
+  async function uploadPending(currentPending) {
+    if (currentPending.length === 0) return;
+    setUploading(true);
+    const remaining = [];
+    for (const item of currentPending) {
+      try {
+        const file = dataUrlToFile(item.dataUrl, `photo-${item.date}.jpg`);
+        const fd = new FormData();
+        fd.append('photo', file);
+        const res = await fetch(`${LOCAL_SERVER}/sixpack/photos`, {
+          method: 'POST',
+          headers: { 'x-fitness-uid': uid },
+          body: fd,
+          signal: AbortSignal.timeout(10000),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        setServerOk(true);
+      } catch {
+        remaining.push(item); // bleibt in Queue
+        setServerOk(false);
+      }
+    }
+    savePendingQueue(remaining);
+    setPending(remaining);
+    setUploading(false);
+    if (remaining.length < currentPending.length) {
+      // Mind. eines erfolgreich → Liste aktualisieren
+      await fetchServerPhotos();
+    }
+  }
+
+  // Beim Mounten: Server-Fotos laden + ausstehende Queue leeren
   useEffect(() => {
-    if (typeof window === 'undefined') return undefined;
-    window.localStorage.setItem(SIXPACK_SELFIES_KEY, JSON.stringify(selfies));
-    return undefined;
-  }, [selfies]);
+    let cancelled = false;
+    async function init() {
+      const ok = await fetchServerPhotos();
+      if (cancelled) return;
+      if (ok) {
+        const q = loadPendingQueue();
+        if (q.length > 0) await uploadPending(q);
+      }
+    }
+    init();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  function onFile(e) {
+  async function onFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setSelfies(current => [{ date: new Date().toISOString(), dataUrl: reader.result }, ...current]);
-    };
-    reader.readAsDataURL(file);
     e.target.value = '';
+    setStatusMsg('');
+
+    // Immer zuerst als DataURL lesen (für LocalStorage-Fallback)
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
+    const item = { date: new Date().toISOString(), dataUrl };
+
+    // Direkt versuchen hochzuladen
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('photo', file);
+      const res = await fetch(`${LOCAL_SERVER}/sixpack/photos`, {
+        method: 'POST',
+        headers: { 'x-fitness-uid': uid },
+        body: fd,
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setServerOk(true);
+      setStatusMsg('✓ Foto gespeichert');
+      await fetchServerPhotos();
+    } catch {
+      // Server nicht erreichbar → in Queue
+      setServerOk(false);
+      const q = [...loadPendingQueue(), item];
+      savePendingQueue(q);
+      setPending(q);
+      setStatusMsg('📥 Offline gespeichert – wird synchronisiert wenn Server erreichbar');
+    } finally {
+      setUploading(false);
+    }
   }
+
+  // Alle sichtbaren Fotos: Server-Fotos zuerst, dann ausstehende LocalStorage-Fotos
+  const allPhotos = [
+    ...serverPhotos.map(p => ({ ...p, source: 'server' })),
+    ...pending.map(p => ({ date: p.date, dataUrl: p.dataUrl, source: 'pending' })),
+  ];
 
   return (
     <div>
       <BackHeader label="Selfies" onBack={onBack} />
-      <label className="block px-4 py-3 text-center text-sm font-black uppercase tracking-[0.12em]" style={{ background: '#e2001a', color: '#fff' }}>
-        Foto aufnehmen
-        <input type="file" accept="image/*" capture="environment" className="hidden" onChange={onFile} />
+
+      {/* Upload-Button */}
+      <label
+        className="block px-4 py-3 text-center text-sm font-black uppercase tracking-[0.12em]"
+        style={{ background: uploading ? '#a01010' : '#e2001a', color: '#fff', cursor: uploading ? 'wait' : 'pointer' }}
+      >
+        {uploading ? 'Uploading…' : 'Foto aufnehmen'}
+        <input type="file" accept="image/*" capture="environment" className="hidden" onChange={onFile} disabled={uploading} />
       </label>
-      {selfies.length === 0 ? (
+
+      {/* Status-Zeile */}
+      {(statusMsg || serverOk !== null) && (
+        <div
+          className="px-4 py-2 text-xs text-center font-bold"
+          style={{ color: serverOk ? '#4ade80' : '#facc15', background: '#0e0e0e' }}
+        >
+          {statusMsg || (serverOk
+            ? `🟢 Server online — ${serverPhotos.length} Foto${serverPhotos.length !== 1 ? 's' : ''} gespeichert`
+            : `🟡 Server offline — ${pending.length} Foto${pending.length !== 1 ? 's' : ''} ausstehend`
+          )}
+        </div>
+      )}
+
+      {/* Galerie */}
+      {allPhotos.length === 0 ? (
         <div className="p-6 text-center text-sm" style={{ color: 'var(--dim)' }}>Noch keine Fortschrittsfotos.</div>
       ) : (
         <div className="grid grid-cols-3 gap-px p-px" style={{ background: 'var(--line)' }}>
-          {selfies.map((s, i) => (
-            <div key={i} className="aspect-square" style={{ background: '#000' }}>
-              <img src={s.dataUrl} alt={new Date(s.date).toLocaleDateString('de-AT')} className="w-full h-full object-cover" />
+          {allPhotos.map((photo, i) => (
+            <div
+              key={i}
+              className="aspect-square relative"
+              style={{ background: '#000' }}
+            >
+              <img
+                src={photo.source === 'server' ? `${LOCAL_SERVER}${photo.url}` : photo.dataUrl}
+                alt={new Date(photo.date).toLocaleDateString('de-AT')}
+                className="w-full h-full object-cover"
+              />
+              {/* Pending-Indikator */}
+              {photo.source === 'pending' && (
+                <div
+                  className="absolute top-1 right-1 text-[9px] font-black px-1 rounded"
+                  style={{ background: '#facc15', color: '#000' }}
+                >
+                  ↑
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -515,6 +694,7 @@ function SelfiesScreen({ onBack }) {
     </div>
   );
 }
+
 
 function ShuffleScreen({ onBack, onStart }) {
   const [categoryRoutine] = useState(() => EXERCISE_CATEGORIES.map(cat => ({
