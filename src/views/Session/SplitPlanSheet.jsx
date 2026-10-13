@@ -6,9 +6,9 @@
  * (`addFromTemplate`, useExerciseList.js) — Schnell-Logging statt jede
  * Übung einzeln zu suchen.
  *
- * Zuordnung Vorlage → Split rein über Name/Kategorie (Keyword-Match, auch
- * deutsche Begriffe wie "Brust"/"Rücken"/"Beine"), weil Routines kein
- * eigenes Split-Feld haben. Passt keine, werden alle Vorlagen gezeigt.
+ * Zuordnung Vorlage → Split: gesetzte Kategorie, sonst aus dem Namen
+ * erkannt (Plan-Tab-Auto-Ordner, splitFolders.js). Passt keine, werden alle
+ * Vorlagen gezeigt.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -17,19 +17,14 @@ import { X, Loader2, ClipboardList, ChevronRight } from 'lucide-react';
 import { api } from '../Plan/api.js';
 import { useSwipeToDismiss } from '../../hooks/useSwipeToDismiss.js';
 import { blockColor } from './utils';
+import { groupRoutinesIntoFolders } from '../Plan/lib/splitFolders.js';
 
-const SPLIT_KEYWORDS = {
-  Push:  ['push', 'drück', 'druck', 'brust', 'chest'],
-  Pull:  ['pull', 'zug', 'rücken', 'ruecken', 'back'],
-  Legs:  ['leg', 'bein', 'squat'],
-  Upper: ['upper', 'oberkörper', 'oberkoerper'],
-  Lower: ['lower', 'unterkörper', 'unterkoerper'],
-  Full:  ['full', 'ganzkörper', 'ganzkoerper', 'total'],
-};
-
+// Dieselbe Split-Erkennung wie die Auto-Ordner im Plan-Tab
+// (views/Plan/lib/splitFolders.js): eine Vorlage erscheint hier genau unter
+// dem Split, in dessen Ordner sie dort einsortiert ist.
 export function routineMatchesSplit(routine, split) {
-  const hay = `${routine?.name || ''} ${routine?.category || ''}`.toLowerCase();
-  return (SPLIT_KEYWORDS[split] || [split.toLowerCase()]).some(k => hay.includes(k));
+  const { folderNames } = groupRoutinesIntoFolders([routine]);
+  return folderNames[0] === split;
 }
 
 export default function SplitPlanSheet({ split, onClose, onPick }) {
