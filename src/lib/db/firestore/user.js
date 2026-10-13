@@ -64,7 +64,7 @@ export async function getPushSettings() {
     return {
       enabled: false,
       tokens: [],
-      types: {},
+      types: { workout: true, activeWorkout: true, habit: true, coverage: true, pplRatio: true, restday: true },
       reminderTime: "18:00",
     };
   }
@@ -75,7 +75,7 @@ export async function getPushSettings() {
   ].filter(Boolean)));
   return {
     enabled: false,
-    types: {},
+    types: { workout: true, activeWorkout: true, habit: true, coverage: true, pplRatio: true, restday: true },
     reminderTime: "18:00",
     ...data,
     token: tokens[0] || data.token || null,

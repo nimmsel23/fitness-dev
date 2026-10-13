@@ -93,14 +93,14 @@ done
 
 if [ "$should_build_dev" = true ]; then
   if command -v gum >/dev/null 2>&1; then
-    gum log --level info "fitness-dev: Push zu dev — baue UI (npm run build) als Build-Verifikation…"
+    gum log --level info "fitness-dev: Push zu dev — baue UI (pnpm run build) als Build-Verifikation…"
   else
-    echo "🔍 fitness-dev: Push zu dev — baue UI (npm run build) als Build-Verifikation…"
+    echo "🔍 fitness-dev: Push zu dev — baue UI (pnpm run build) als Build-Verifikation…"
   fi
-  npm run build
+  pnpm run build
   build_status=$?
   if [ $build_status -ne 0 ]; then
-    echo "❌ npm run build fehlgeschlagen — Push wird abgebrochen (kein kaputter Stand auf dev)." >&2
+    echo "❌ pnpm run build fehlgeschlagen — Push wird abgebrochen (kein kaputter Stand auf dev)." >&2
     echo "   Mit 'git push --no-verify' kannst du den Hook überspringen, falls das Absicht ist." >&2
     exit 1
   fi
@@ -136,11 +136,11 @@ else
   echo "🔍 fitness-dev: relevante Änderungen im Push zu vitalos — baue + deploye zu Firebase…"
 fi
 
-npm run firebase
+pnpm run firebase
 status=$?
 
 if [ $status -ne 0 ]; then
-  echo "❌ npm run firebase fehlgeschlagen — Push wird abgebrochen (kein halb-deployter Stand)." >&2
+  echo "❌ pnpm run firebase fehlgeschlagen — Push wird abgebrochen (kein halb-deployter Stand)." >&2
   echo "   Mit 'git push --no-verify' kannst du den Hook überspringen, falls das Absicht ist." >&2
   exit 1
 fi

@@ -2,7 +2,7 @@ import path from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { Hono } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
-import * as integration from '../strava-integration.mjs';
+import * as integration from '../../strava-integration.mjs';
 
 // Local trusted-user API. UID selects storage; it is not public authentication.
 export function stravaRoutes({ usersRoot, log, api = integration }) {

@@ -20,7 +20,7 @@ Workout-Journal für Kraft- und Ausdauertraining. Zwei Session-Modi, Multi-Sessi
 - **`MuscleMapModal.jsx`**: Anterior/Posterior BodyMap aller Session-Exercises + Anatomie-Detail.
 - **`SourceSettingsModal.jsx`**: Übungsquellen-Toggle (wger/yuhonas/coach) via localStorage.
 - **`WorkoutTimerCard.jsx`**: reine Stoppuhr, lebt im `skills`-SubTab, Lime-Akzent (`#c8ff00`).
-- **`6pack/SixPackPromiseCard.jsx`**: `index.jsx` übergibt die UID aus dem aktiven `@db`-Adapter (lokal: `local`) an den Foto-Sync; ohne Auth-UID bleibt dieser gesperrt. `SixPackPromiseCard.jsx` ist jetzt der Barrel-Einstieg zu `SixPackApp.jsx` und `SelfiesScreen.jsx`; Selfies werden bei UID-Wechsel neu gemountet. Der `timer`-Subtab importiert die eigenständige 6Pack-Oberfläche aus dem Repo-Ordner `6pack/`. Home/Track/Day/Runner/Shuffle/Learn/Favorites/Selfies, Theme und KB-Generator liegen dort; Details in `6pack/README.md`. Der Runner sagt Übungen an, signalisiert Pausen akustisch und zeigt einen Video-Loop pro Übung. Die YAML-KB bleibt Datenquelle. Setzt `document.documentElement[data-theme]` auf `"sixpack"` solange gemountet und stellt den vorherigen Wert beim Verlassen wieder her.
+- **`6pack/SixPackPromiseCard.jsx`**: Der `timer`-Subtab importiert die eigenständige 6Pack-Oberfläche direkt aus dem Submodule `6pack/` (Integrationsbranch `fitness`). Home/Track/Day/Runner/Shuffle/Learn/Favorites/Selfies und Theme liegen dort. Der Fitness-KB-Generator bleibt unter `scripts/build-sixpack-data.mjs`; Details in `docs/6pack-integration.md`. Der Runner sagt Übungen an, signalisiert Pausen akustisch und zeigt einen Video-Loop pro Übung. Die YAML-KB bleibt Datenquelle. Setzt `document.documentElement[data-theme]` auf `"sixpack"` solange gemountet und stellt den vorherigen Wert beim Verlassen wieder her.
 - **`Skills/SkillsCard.jsx`**: Der `skills`-SubTab importiert die Calisthenics-Skill-Liste aus dem Repo-Ordner `Skills/`. Die Komponente verwaltet 14 Skills, Progressionen und Fortschritt in localStorage. Sie setzt `data-theme="skills"` solange gemountet; das Theme liegt in `Skills/skills.css`. Skill/Progressions-Daten sind aktuell in der Komponente hardcodiert, **nicht** verbunden mit `fitness/catalog/kb/exercises/calisthenics/*.yml` (siehe AUDIT.md).
 
 ## Session-Modi
@@ -96,6 +96,22 @@ Vor dem manuellen Editor liegt ein leichtgewichtiges `sessionGate` im selben Ses
 - Der manuelle Editor bleibt bewusst getrennt darunter für das Nachtragen.
 - Eine aktive Session kann best-effort eine laufende App-Service-Worker-Benachrichtigung halten.
 
+**Bugfix 2026-10-13 (Notification führte ins Leere):** Antippen der
+Workout-Stoppuhr-/Stunden-Erinnerung-Notification öffnete bisher nie das
+Gate-Sheet mit dem "Workout beenden"-Button — zwei unabhängige Sackgassen,
+beide gefixt:
+1. `public/sw.js`: `showWorkoutNotification()`/`showHourReminderNotification()`
+   verlinkten auf `/#session?date=...`, was `App.jsx::parseHashRoute()`
+   absichtlich als gate-loses Deep-Link behandelt (Fix 2026-09-07 für
+   Dashboard/Review-Links). `notificationclick`-Fallback war ebenfalls
+   `/#session`. Alle drei zeigen jetzt fest auf `/#session/today` — der
+   einzige Hash, der `subTab='today'` setzt und damit das Gate öffnet.
+2. `src/views/Session/index.jsx`: Selbst mit korrektem Hash verdrängte
+   `TodayPlan` (gate-unwissend) weiterhin den `SessionEditor`/das Gate,
+   solange ein Klient einen aktiven Coach-Plan-Zyklus hat. Fix: der
+   `isTodayTab`-Zweig prüft jetzt zusätzlich `isSessionGateActive(session.sessionGate)`
+   und lässt `TodayPlan` bei aktivem Gate nicht mehr zum Zug kommen.
+
 ## Multi-Session pro Tag
 
 Pro Tag können mehrere Sessions existieren. `id: null` = Hauptsession, `id: "<timestamp>"` = Suffix-Session. Switcher-Bar zeigt alle Sessions des Tages. "+ Neues Workout" legt eine neue Suffix-Session an. Löschen ist für jede Session der Tagesliste möglich — auch die Hauptsession (seit 2026-07, Klienten-Request).
@@ -122,3 +138,11 @@ Kein Zeit-Debounce mehr (seit 2026-07). `scheduleAutoSave()` setzt nur das `dirt
   ]
 }
 ```
+
+
+## 6Pack-Fotos
+
+Der Session-Router übergibt die aktive `@db`-UID an den Barrel-Einstieg im
+6Pack-Submodul. `SixPackApp.jsx` bindet `SelfiesScreen.jsx` mit UID-Key ein;
+ohne Auth-UID bleiben Fotos gesperrt. Kamera und Galerie-Mehrfachauswahl
+nutzen dieselbe nutzergebundene Offline-Queue und lokale Foto-API.

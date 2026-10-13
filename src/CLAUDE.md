@@ -194,7 +194,7 @@ Inhalte (Coaching-Notizen, Übungslisten, Woche-1-Workouts) wurden von Hand aus
 den YAMLs in `sixpackData.js` abgetippt — Doppelpflege, garantiert Drift bei
 jeder neuen Übung/Woche.
 
-**Fix:** `6pack/build-data.mjs` liest die KB-YAMLs zur Build-/Dev-Zeit
+**Fix:** `scripts/build-sixpack-data.mjs` liest die KB-YAMLs zur Build-/Dev-Zeit
 (kein Firestore, keine Laufzeit-API) und generiert
 `6pack/sixpackData.generated.js` (git-ignored, nie von Hand
 editieren). `sixpackData.js` selbst ist nur noch ein stabiler Re-Export dieser

@@ -116,7 +116,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   // ── Mini-Hooks (PHASE3_TODO.md Stück 4) ─────────────────────────
   const {
     exercises, setExercises, quickInput, setQuickInput,
-    addEx, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, moveExercise, removeEx,
+    addEx, addFromTemplate, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, moveExercise, removeEx,
   } = useExerciseList({ scheduleAutoSave, showToast, saveRef, setDirty });
 
   const {
@@ -365,7 +365,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     // Handlers
     save, selectSession, handleNewSession, handleDeleteSession, deleteSessionAtDate,
     startSessionGate, stopSessionGate,
-    addEx, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, moveExercise, removeEx,
+    addEx, addFromTemplate, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, moveExercise, removeEx,
     exportObsidian, handleDownload, moveSessionToDate,
     scheduleAutoSave,
     // Gebündelte Übungs-Mutations-Handler + Quick-Input-State für

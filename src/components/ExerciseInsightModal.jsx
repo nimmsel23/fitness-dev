@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   CheckCircle2,
@@ -28,6 +28,7 @@ import {
 import { buildExerciseCoachSheet, buildExerciseInsights } from '../lib/exerciseInsights.js'
 import { translateMuscle } from '../lib/kb/muscles.js'
 import { useEscapeKey } from '../hooks/useEscapeKey.js'
+import { useSwipeToDismiss } from '../hooks/useSwipeToDismiss.js'
 
 function linesToText(value) {
   return Array.isArray(value) ? value.join('\n') : ''
@@ -393,6 +394,13 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
   // ESC schließt das Coach-Sheet — global genutzt (jeder Exercise-Klick in
   // der App), hatte bisher kein Tastatur-Escape.
   useEscapeKey(onClose, !!exercise && !!localExercise)
+  // Mobil ein Bottom-Sheet (94vh) — ab md ein zentriertes Modal ohne Geste
+  const swipeBackdropRef = useRef(null)
+  const swipeSheetRef = useSwipeToDismiss(onClose, {
+    enabled: !!exercise && !!localExercise,
+    backdropRef: swipeBackdropRef,
+    media: '(max-width: 767px)',
+  })
 
   if (!exercise || !localExercise) return null
 
@@ -609,10 +617,11 @@ export default function ExerciseInsightModal({ exercise, onClose, onExerciseChan
 
   return createPortal(
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-fit-scrim backdrop-blur-sm" onClick={onClose} />
+      <div ref={swipeBackdropRef} className="absolute inset-0 bg-fit-scrim backdrop-blur-sm" onClick={onClose} />
 
       <div className="absolute inset-x-0 bottom-0 md:inset-4 md:bottom-4">
         <div
+          ref={swipeSheetRef}
           className="mx-auto h-[94vh] md:h-full w-full md:max-w-[1460px] rounded-t-[28px] md:rounded-[32px] overflow-hidden shadow-2xl"
           style={{
             background: 'linear-gradient(180deg, rgba(18,26,28,0.98) 0%, rgba(11,16,18,0.98) 100%)',

@@ -10,7 +10,10 @@ Subcommands:
   history ÜBUNG         Set-Verlauf aus SQLite
   stats [--days N]      Aggregate (Split, Cardio, Muskel-Coverage)
   sync-status           Firestore ↔ lokal Sync-Status + Klienten-Registry
-  clients [NAME]         Alle Klienten-Sessions chronologisch (--journal für Freitext)
+  clients [NAME]         Alle Klienten-Sessions chronologisch (--journal für Freitext,
+                         --block/-b, --min-rest, --cardio-only, --strength-only als Filter;
+                         zeigt pro Kraft-Session die Rest-Days seit dem letzten Block
+                         gleicher Art, z.B. "(15d rest)")
   console                Live-TUI: Klienten-Logs + Zwei-KI-Analyse (siehe log/console/)
   drafts [--client NAME]  Persistierte KI-Entwuerfe aus der Console anzeigen
 """
@@ -448,6 +451,10 @@ def cmd_clients(
     days: int  = typer.Option(90,  "--days", "-d", help="Fenster in Tagen (0 = alle)"),
     all_: bool = typer.Option(False, "--all", "-a",  help="Gesamtes Archiv (ignoriert --days)"),
     journal: bool = typer.Option(False, "--journal", "-j", help="Journal-Freitext passend zum Datum mit einsortieren (keine Habits); fragt zusaetzlich live Firestore ab, falls noch nicht lokal gepullt"),
+    block_filter: Optional[str] = typer.Option(None, "--block", "-b", help="Nur Sessions mit diesem Block (z.B. Push/Pull/Legs) — case-insensitive"),
+    min_rest: Optional[int] = typer.Option(None, "--min-rest", help="Nur Sessions zeigen, bei denen seit dem letzten Block gleicher Art mindestens N Tage vergangen sind"),
+    cardio_only: bool = typer.Option(False, "--cardio-only", help="Nur Cardio/Aktivitäts-Einträge zeigen, keine Kraft-Sessions"),
+    strength_only: bool = typer.Option(False, "--strength-only", help="Nur Kraft-Sessions zeigen, keine Cardio/Aktivitäts-Einträge"),
 ) -> None:
     registry = load_client_registry()
     if not registry:
@@ -527,6 +534,28 @@ def cmd_clients(
                         journal_by_date[d] = existing
 
         all_dates = sorted(set(session_by_date) | set(journal_by_date), reverse=True)
+
+        # Rest-Days seit letztem Block gleicher Art (Push/Pull/Legs/...) —
+        # chronologisch (aufsteigend) einmal durchlaufen, pro Block den
+        # jeweils letzten Vorkommen-Tag merken.
+        rest_days_by_date: dict[str, int] = {}
+        last_seen_by_block: dict[str, date] = {}
+        for d in sorted(session_by_date):
+            s_chrono = session_by_date[d]
+            if classify(s_chrono) == "cardio":
+                continue
+            block_chrono = (s_chrono.get("block") or "").strip()
+            if not block_chrono:
+                continue
+            try:
+                d_date = datetime.strptime(d, "%Y-%m-%d").date()
+            except ValueError:
+                continue
+            prev = last_seen_by_block.get(block_chrono)
+            if prev is not None:
+                rest_days_by_date[d] = (d_date - prev).days
+            last_seen_by_block[block_chrono] = d_date
+
         shown = 0
         for d in all_dates:
             try:
@@ -542,7 +571,18 @@ def cmd_clients(
                 exs   = performed_exercises(s)
                 block = s.get("block", "")
                 eff   = s.get("effort")
+                gap   = rest_days_by_date.get(d)
 
+                if cardio_only and kind != "cardio":
+                    s = None
+                elif strength_only and kind == "cardio":
+                    s = None
+                elif block_filter and (block or "").strip().lower() != block_filter.strip().lower():
+                    s = None
+                elif min_rest is not None and (kind == "cardio" or gap is None or gap < min_rest):
+                    s = None
+
+            if s is not None:
                 if kind == "cardio":
                     atype = act.get("type", "?")
                     adur  = activity_minutes(s)
@@ -562,8 +602,12 @@ def cmd_clients(
                         adur  = activity_minutes(s)
                         icons = "".join(ACTIVITY_EMOJI.get(a.get("type", "?"), "⚡") for a in acts)
                         addon = f"  {icons or '⚡'}{c('dim', '+' + str(adur) + 'min') if adur else ''}"
+                    gap_s = ""
+                    if gap is not None:
+                        gap_color = "red" if gap >= 10 else ("yellow" if gap >= 7 else "dim")
+                        gap_s = f"  {c(gap_color, f'({gap}d rest)')}"
                     print(f"   {date_s}   {c(bc, '[' + (block or '?') + ']')}  "
-                          f"{c('dim', ex_names + ell)}  {eff_s}{addon}")
+                          f"{c('dim', ex_names + ell)}  {eff_s}{addon}{gap_s}")
                 shown += 1
 
             preview = journal_by_date.get(d)

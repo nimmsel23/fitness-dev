@@ -130,13 +130,16 @@ self.addEventListener('message', e => {
   if (e.data.type === 'SHOW_WORKOUT_TIMER_NOTIFICATION') {
     e.waitUntil(showWorkoutNotification(e.data))
   }
+  if (e.data.type === 'SHOW_WORKOUT_HOUR_REMINDER') {
+    e.waitUntil(showHourReminderNotification(e.data))
+  }
   if (e.data.type === 'CLEAR_WORKOUT_TIMER_NOTIFICATION') {
     e.waitUntil(clearWorkoutNotification(e.data.tag))
   }
 })
 
 self.addEventListener('notificationclick', e => {
-  const target = e.notification?.data?.link || '/#session'
+  const target = e.notification?.data?.link || '/#session/today'
   e.notification.close()
   e.waitUntil((async () => {
     const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
@@ -222,9 +225,36 @@ async function showWorkoutNotification(data) {
     icon: '/icon-192.png',
     badge: '/icon-192.png',
     data: {
-      link: data.date ? `/#session?date=${data.date}` : '/#session',
+      // Bewusst immer '/#session/today', nicht '/#session?date=...' — nur
+      // dieser Hash setzt in App.jsx::parseHashRoute() subTab='today', was
+      // das Gate-Sheet (SessionGateCard, "Workout beenden"-Button) öffnet.
+      // Ein Datums-Deep-Link (?date=) wird dort absichtlich als "kein Gate"
+      // behandelt (Fix 2026-09-07 für Dashboard/Review-Links) — Klick auf
+      // diese Notification landete dadurch nur auf der normalen Tagesansicht,
+      // ohne jede Möglichkeit, das laufende Workout zu beenden. Das Gate
+      // öffnet ohnehin nur für den heutigen Tag (App.jsx::isActuallyToday),
+      // ein aktiver Gate ist in der Praxis immer "heute".
+      link: '/#session/today',
       date: data.date || null,
       active: !!data.active,
+    },
+  })
+}
+
+async function showHourReminderNotification(data) {
+  if (!self.registration?.showNotification) return
+  await self.registration.showNotification(data.title || 'Workout läuft schon lange', {
+    tag: data.tag || 'fitness-workout-hour-reminder',
+    renotify: true,
+    silent: false,
+    requireInteraction: true,
+    vibrate: [200, 100, 200],
+    body: data.body || 'Schon über eine Stunde aktiv.',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    data: {
+      link: '/#session/today',
+      date: data.date || null,
     },
   })
 }

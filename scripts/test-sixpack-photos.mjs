@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { sixpackPhotoRoutes } from '../routes/sixpack-photos.mjs';
+import { sixpackPhotoRoutes } from '../server/routes/sixpack-photos.mjs';
 
 const root = await mkdtemp(path.join(os.tmpdir(), 'fitness-photo-test-'));
 const app = sixpackPhotoRoutes({ root });

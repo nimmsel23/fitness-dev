@@ -103,3 +103,38 @@ export const num = (v) => {
   const n = Number(s);
   return Number.isFinite(n) ? n : null;
 };
+
+// Satzliste der letzten Session einer Übung (prevMap-Eintrag aus
+// useSessionHistory) als `[{ reps, weight }]` — neues `setsArray`-Format
+// direkt, Alt-Format (`sets`/`reps`/`weight` als Einzel-Strings) wird auf
+// N gleiche Sätze aufgefächert. `null`, wenn dort nichts Verwertbares
+// eingetragen war (z.B. Übung nur geplant, Reps leer).
+export function prevSetsFromHistory(prev) {
+  if (!prev) return null;
+  let sets;
+  if (Array.isArray(prev.setsArray) && prev.setsArray.length) {
+    sets = prev.setsArray.map(s => ({ reps: String(s?.reps ?? ''), weight: String(s?.weight ?? '') }));
+  } else {
+    const n = Math.min(parseInt(prev.sets, 10) || 0, 20);
+    if (!n || !prev.reps) return null;
+    sets = Array.from({ length: n }, () => ({ reps: String(prev.reps), weight: String(prev.weight ?? '') }));
+  }
+  sets = sets.filter(s => s.reps.trim() || s.weight.trim());
+  return sets.length ? sets : null;
+}
+
+// Progressionsvorschlag (progressive Überlastung) auf Basis der letzten
+// Werte: mit Zusatzlast +2,5 kg pro Satz bei gleichen Wiederholungen, ohne
+// Last (Körpergewicht) +1 Wiederholung. Bewusst simpel — nur ein
+// Startwert, die Stepper im Satz-Raster korrigieren nach Tagesform.
+export const PROGRESSION_KG = 2.5;
+export function progressSets(sets) {
+  return sets.map(s => {
+    const w = parseFloat(String(s.weight || '').replace(',', '.'));
+    if (w > 0) {
+      return { ...s, weight: String(Math.round((w + PROGRESSION_KG) * 100) / 100) };
+    }
+    const r = parseInt(s.reps, 10);
+    return Number.isFinite(r) ? { ...s, reps: String(r + 1) } : s;
+  });
+}

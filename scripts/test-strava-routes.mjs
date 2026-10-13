@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { Hono } from 'hono';
-import { stravaRoutes } from '../routes/strava.mjs';
+import { stravaRoutes } from '../server/routes/strava.mjs';
 const calls = [];
 const api = {
   stravaStatus: dataDir => ({ dataDir }),

@@ -31,6 +31,21 @@ Workout-Journal — Session-Logging mit Satz/Wdh/Gewicht, Session-Modi, intellig
 | Dritte Datenquelle: Plan-Tab hat zusätzlich 14 "Skill: <Name>"-Routinen (Strong-Modell, `category: "calisthenics-skill"`), die aus denselben Skills generiert wurden — listen aber alle Progressionsstufen einer Skill gleichzeitig als flache Übungsliste statt stage-aware wie SkillsCard. Komplett unsynchronisiert mit #1/#2 (siehe Task "Skills/6Pack Learn-Tab-Überschneidung", Konsolidierung noch offen). |
 | `SessionEditor.jsx` | `SessionGateCard` ist kein inline Card-Element mehr, sondern ein Sheet (Portal, Bottom-Sheet), das öffnet wenn `currentSubTab === 'today'` (Nav-Klick auf "Heute"/"Session") — Editor bleibt darunter jederzeit erreichbar |
 
+## Auffälligkeiten (2026-10-13)
+- **Gefixt:** Push-Notification zur laufenden Workout-Stoppuhr führte beim
+  Antippen ins Leere — kein Weg, die Session zu beenden, `sessionGate.endedAt`
+  blieb dadurch dauerhaft `null` und brach den Core4-Fitness-Auto-Done-Link
+  (Symptom seit `TODO.md`-Eintrag 2026-10-12). Root Cause war zweiteilig:
+  (1) `public/sw.js` verlinkte die Notification auf `/#session?date=...`,
+  was `App.jsx::parseHashRoute()` absichtlich als gate-loses Deep-Link
+  behandelt (Fix 2026-09-07 für Dashboard/Review-Links) — jetzt fest auf
+  `/#session/today` umgestellt (einziger Hash, der `subTab='today'` setzt
+  und damit das Gate öffnet). (2) `src/views/Session/index.jsx` ließ
+  selbst bei korrektem Hash den gate-unwissenden `TodayPlan`-Screen
+  weiterhin den `SessionEditor` verdrängen, wenn ein Klient einen aktiven
+  Coach-Plan-Zyklus hat — jetzt per `isSessionGateActive(session.sessionGate)`
+  ausgenommen, solange ein Gate läuft.
+
 ## Auffälligkeiten (2026-09-05)
 - **Dual-DB-Layer (`@db`-Alias) — vier konkurrierende SOTs, keine dokumentierte
   Konflikt-Priorität.** Geprüft im Rahmen von PHASE4_TODO.md Stück 4, nach

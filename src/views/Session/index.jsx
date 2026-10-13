@@ -18,6 +18,7 @@ import { getAllCoachingNotes } from '../../lib/coachNotes';
 import { getUid } from '@db';
 import SkillsCard from '../../../Skills/SkillsCard.jsx';
 import TodayPlan, { useTodayPlan } from './TodayPlan.jsx';
+import { isSessionGateActive } from '../../lib/sessionGate.js';
 
 export default function Session({
   initialDate, initialDraft, onInspectExercise, onOpenSession,
@@ -42,7 +43,16 @@ export default function Session({
   // aktiv ist — TodayPlan ist ohnehin ein reiner "heute"-Habit-Screen, für
   // jedes andere Datum ist der normale Editor korrekt.
   const isTodayTab = (subTab === 'today' || !subTab) && session.date === localToday();
-  if (isTodayTab && !planLoading && cycle && nextRoutine && !logFreely) {
+  // Ein aktiver Gate (Workout läuft bereits, siehe SessionGateCard) darf nie
+  // vom TodayPlan-Habit-Screen verdrängt werden — TodayPlan kennt den Gate
+  // nicht und bietet keinen Weg, eine laufende Session zu beenden. Ohne
+  // diese Ausnahme landete z.B. ein Klick auf die "Workout läuft"-Push-
+  // Notification (die gezielt auf #session/today verlinkt, um das Gate-Sheet
+  // zu öffnen) bei Klienten mit aktivem Coach-Plan-Zyklus trotzdem auf
+  // TodayPlan — Sackgasse ohne "Workout beenden"-Button (Bug/UX-Lücke aus
+  // TODO.md, 2026-10-12).
+  const gateActive = isSessionGateActive(session.sessionGate);
+  if (isTodayTab && !planLoading && cycle && nextRoutine && !logFreely && !gateActive) {
     return (
       <TodayPlan
         cycle={cycle}

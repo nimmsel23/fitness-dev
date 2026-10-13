@@ -87,6 +87,17 @@ def activity_minutes(session: dict) -> int:
     return total
 
 
+def activity_distance_km(session: dict) -> float:
+    """Sum activity distanceKm for cardio/add-on display (Radfahren, Laufen, ...)."""
+    total = 0.0
+    for act in session_activities(session):
+        try:
+            total += float(str(act.get("distanceKm") or "0").replace(",", "."))
+        except (TypeError, ValueError):
+            pass
+    return total
+
+
 def _same_activity(left: dict, right: dict) -> bool:
     keys = ("type", "duration", "notes", "swimStyle", "muscleTarget")
     return tuple(str(left.get(k, "")) for k in keys) == tuple(str(right.get(k, "")) for k in keys)
