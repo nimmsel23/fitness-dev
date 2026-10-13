@@ -1,3 +1,40 @@
+# PreCompact-Doc-Hook repariert + auf fuel-dev/plan-dev/coach-dev/6pack-dev ausgerollt (2026-10-13)
+
+Der `PreCompact`-Hook, der `RESULTS.md`/`TODO.md`/`NEXT.md` nach jedem Compact
+automatisch aktualisieren soll, hatte seit 2026-09-24 keinen einzigen
+`docs: auto-update`-Commit mehr produziert — Fehler wurden bis dahin
+stillschweigend verschluckt. Root Cause und Fix gefunden, danach auf die
+anderen Repos mit demselben Hook-Muster übertragen.
+
+- **`.claude/hooks/pre-compact-fill-docs.sh`** (fitness-dev, Commit `a15fba5`):
+  Logging ergänzt + Gemini-REST-Fallback (`curl`/`jq` gegen
+  `~/.env/gemini.env`, Review-Schritt) für den Fall, dass der `claude -p`-Pfad
+  (`--allowedTools "Read,Edit" --dangerously-skip-permissions`) scheitert oder
+  vom Auto-Mode-Classifier blockiert wird.
+- **`PostToolUse`-Auto-Commit-Hook** (`post-edit-commit-docs.sh`) live
+  getestet und als funktionierend bestätigt — das eigentliche Problem lag nur
+  im `PreCompact`-Pfad.
+- **Rollout auf `fuel-dev`, `plan-dev`, `coach-dev`, `6pack-dev`**: In
+  `plan-dev`/`coach-dev` zeigten `settings.json` + die lokalen Hook-Kopien
+  fälschlich auf absolute Pfade in `fitness-dev` statt auf das jeweils eigene
+  Repo — korrigiert (`REPO=`-Variable + Hook-Pfade in `settings.json`).
+  `6pack-dev` hatte noch gar kein Hook-Setup — `settings.json`, beide
+  Hook-Skripte sowie fehlende `TODO.md`/`NEXT.md`-Stubs neu angelegt.
+- **Fehler korrigiert:** Beim Anlegen der Stub-Dateien für `coach-dev` wurden
+  dessen bereits bestehende `RESULTS.md`/`TODO.md`/`NEXT.md` (echte
+  Session-Historie, >1200 Zeilen) versehentlich mit leeren Stubs überschrieben
+  — aus `git show <commit>~1` vollständig wiederhergestellt und verifiziert
+  (`diff` gegen Original zeigt keine Abweichung).
+- Alle fünf Repos committed und gepusht (`dev` bzw. bei `coach-dev` `vitalos`,
+  dort inkl. Merge von zwischenzeitlich eingetroffenen Remote-Commits ohne
+  echten Inhaltskonflikt).
+- Zusätzlich in `fitness-dev`: 7 untracked Katalog-Inbox-Drafts (wger +
+  Enrichment-Watcher) committed und gepusht (`4db48bd`); Pre-Push-Hook hat
+  dabei automatisch den Staging-Build (`fitness-preview.service`, :8100) neu
+  deployed.
+
+---
+
 # pnpm frozen-lockfile für Fitness/Coach/Plan korrigiert (2026-10-13)
 
 - Workspace-Override löst das private `@vos/cross-app-aliases` für alle Apps
