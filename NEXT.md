@@ -1,5 +1,4 @@
 # NEXT.md — fitness-dev (repo-lokal)
-<!-- hook-livetest 2026-10-13, wird gleich wieder entfernt -->
 
 Aktive Arbeitsliste für dieses Repo. Wird vom `PreCompact`-Hook
 (`.claude/hooks/pre-compact-fill-docs.sh`) automatisch mit offen
