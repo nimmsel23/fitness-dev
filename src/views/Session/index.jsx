@@ -56,7 +56,7 @@ export default function Session({
   }
 
   if (subTab === 'timer') {
-    const uid = (() => { try { return getUid(); } catch { return 'local'; } })();
+    const uid = (() => { try { return getUid(); } catch { return null; } })();
     return <SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} />;
   }
 

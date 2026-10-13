@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { sixpackPhotoRoutes } from "./sixpack-photos.mjs";
+import { sixpackPhotoRoutes } from "./routes/sixpack-photos.mjs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,7 +10,7 @@ import pino from "pino";
 import { buildPlan, exportSessionMarkdown, exportWithPython, fitnessData, getWeeklySummary, obsidianTargetPath, searchExercises } from "./fitness-runtime.mjs";
 import { mirrorSession, mirrorSessionDelete, mirrorJournal, getFirestoreStatus, readJournalFull, listJournals, pullAllSessions, pullJournalTree } from "./firestore-mirror.mjs";
 import { entriesPath as journalEntriesPath, freetextBody as journalFreetextBody, upsertEntry as journalUpsertEntry } from "./journal-store.mjs";
-import { stravaRoutes } from "./strava-routes.mjs";
+import { stravaRoutes } from "./routes/strava.mjs";
 
 // pino-pretty IMMER aktiv, auch unter systemd/journalctl — das ist der
 // tatsächliche Haupt-Log-Weg hier (nicht nur `npm run dev` im Terminal).
@@ -270,7 +270,7 @@ const app = new OpenAPIHono(); // Drop-in-Ersatz für Hono, alle bestehenden app
 app.use("*", async (c, next) => {
   c.res.headers.set("Access-Control-Allow-Origin", "*");
   c.res.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
-  c.res.headers.set("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Fitness-Uid");
+  c.res.headers.set("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Fitness-Uid,X-User-UID");
   await next();
 });
 
@@ -2188,13 +2188,13 @@ function buildOpenApiSpec() {
   };
 }
 // Local progress photos: runtime files stay outside public/build assets.
-app.route('/', sixpackPhotoRoutes({ defaultUid: FITNESS_UID }));
+app.route('/', sixpackPhotoRoutes());
 
 // ── Strava-Live-Import (Radtouren-Tab, OAuth2) ──────────────────────────────
-// Routen ausgelagert in strava-routes.mjs (Hono-Sub-Router), Logik in
+// Routen ausgelagert in routes/strava.mjs (Hono-Sub-Router), Logik in
 // strava-integration.mjs — hier nur Mount, analog zum Dependency-Injection-
 // Stil der anderen importierten Module (firestore-mirror.mjs, journal-store.mjs).
-app.route("/tours/strava", stravaRoutes({ dataDir: DATA_DIR, log }));
+app.route("/tours/strava", stravaRoutes({ usersRoot: path.join(os.homedir(), ".aos", "users"), log }));
 
 app.get("/openapi.json", (c) => {
   // Basis: alle Routen generisch aus der Hono-Routing-Tabelle (immer

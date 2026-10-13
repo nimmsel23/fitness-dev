@@ -7,16 +7,16 @@ import { bodyLimit } from 'hono/body-limit';
 
 const MAX_SIZE = 20 * 1024 * 1024;
 const TYPES = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.heic': 'image/heic', '.heif': 'image/heif' };
-const validUid = value => /^[\w-]{1,128}$/.test(value);
+const validUid = value => typeof value === 'string' && /^[\w-]{1,128}$/.test(value);
 const validId = value => /^[a-f0-9-]{36}$/.test(value);
 
 // This is the local server's trusted-user API, not a public authenticated store.
-export function sixpackPhotoRoutes({ defaultUid = 'local', root = process.env.FITNESS_SIXPACK_PHOTOS_DIR || path.join(os.homedir(), '.aos', 'fitness', 'users') } = {}) {
+export function sixpackPhotoRoutes({ root = process.env.FITNESS_SIXPACK_PHOTOS_DIR || path.join(os.homedir(), '.aos', 'fitness', 'users') } = {}) {
   const app = new Hono();
   const userDir = uid => path.join(root, uid, 'sixpack-photos');
   app.use('/sixpack/photos', bodyLimit({ maxSize: MAX_SIZE + 64 * 1024, onError: c => c.json({ ok: false, error: 'photo too large' }, 413) }));
   app.post('/sixpack/photos', async c => {
-    const uid = c.req.header('x-fitness-uid') || defaultUid;
+    const uid = c.req.header('x-fitness-uid');
     if (!validUid(uid)) return c.json({ ok: false, error: 'invalid uid' }, 400);
     const form = await c.req.formData();
     const file = form.get('photo');
@@ -42,7 +42,7 @@ export function sixpackPhotoRoutes({ defaultUid = 'local', root = process.env.FI
     return c.json({ ok: true, uid, filename, url: `/sixpack-photos/${uid}/${filename}` });
   });
   app.get('/sixpack/photos', async c => {
-    const uid = c.req.query('uid') || c.req.header('x-fitness-uid') || defaultUid;
+    const uid = c.req.query('uid') || c.req.header('x-fitness-uid');
     if (!validUid(uid)) return c.json({ ok: false, error: 'invalid uid' }, 400);
     let entries;
     try { entries = await fs.readdir(userDir(uid), { withFileTypes: true }); }

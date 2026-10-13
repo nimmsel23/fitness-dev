@@ -102,3 +102,22 @@ Modus-abhängig), kein Unterschied für den Nutzer.
 **Noch offen:** Deploy wurde bisher NICHT ausgeführt (siehe Schritt 2) —
 bis dahin bleibt für Prod-Nutzer der Datei-Export-Weg (GPX/TCX/FIT
 hochladen) der einzige tatsächlich funktionierende Import.
+
+
+## Lokale Mehrnutzer-Routen (2026-10-13)
+
+Der Hono-Router liegt in `routes/strava.mjs`, gemountet unter `/tours/strava`.
+Status, Authorize, Activities und Disconnect benötigen `?uid=<uid>` oder
+`X-User-UID`. Der lokale Adapter übergibt die UID des DB-Adapters; Vite leitet
+an Node weiter. Tokens liegen getrennt unter
+`~/.aos/users/<uid>/fitness/integrations/strava.json`.
+
+Authorize erzeugt einen kurzlebigen zufälligen OAuth-State, serverseitig an
+UID und ein HttpOnly/SameSite-Cookie gebunden. Der Callback akzeptiert nur
+passende, unbenutzte States und übernimmt niemals eine Callback-Query-UID.
+Nach Server-Neustart oder zehn Minuten muss die Verbindung neu gestartet
+werden. Der lokale Server setzt ein vertrauenswürdiges Zugangsnetz voraus:
+UID-Auswahl ersetzt keine Authentifizierung. Die Firebase-Variante verwendet
+weiterhin ihre bestehenden authentifizierten Cloud Functions.
+
+Regressionstest ohne echte Tokens/Netzwerk: `node scripts/test-strava-routes.mjs`.

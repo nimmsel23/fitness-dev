@@ -1,3 +1,17 @@
+# 2026-10-13 — 6Pack-Barrel und Mehrnutzer-Router
+
+- TODO für Galerie-/Dateiauswahl zusätzlich zur Selfie-Kamera ergänzt.
+- `SixPackPromiseCard.jsx` als kompatiblen Barrel aufgebaut; App, Selfies und
+  BackHeader in eigene Module getrennt (gemeinsame lokale/PWA-Oberfläche).
+- Hono-Router für Fotos und Strava unter `routes/` eingeordnet. Beide verlangen
+  eine explizite UID; kein Foto-/Strava-Fallback auf den Server-Betreiber.
+- Strava-Adapter sendet die UID; OAuth-State ist kurzlebig, einmalig und an
+  Browser-Cookie sowie initiierende UID gebunden. Tokens pro Nutzerordner.
+- Regressionstests für Fotos und Strava prüfen Nutzertrennung, fehlende UID,
+  Upload-Retry sowie OAuth-State-/Cookie-Bindung und Replay-Abwehr.
+- Keine bestehenden Nutzerdateien verändert; kein echter Strava-OAuth- oder
+  Kamera-Browsertest, keine Übernahme in dev/Submodul, kein Push/Deploy.
+
 # 2026-10-13 — Antigravity: lokalen 6Pack-Foto-Sync abgeschlossen
 
 - Anschluss an `847a61d` auf `agent/sixpack-photo-local-sync`: vorgemerkte
