@@ -97,6 +97,8 @@ export default defineConfig(async ({ mode }) => {
         ],
       },
       proxy: {
+        '/tours/strava': `http://127.0.0.1:${process.env.FITNESS_NODE_PORT || 9100}`,
+        '/sixpack': `http://127.0.0.1:${process.env.FITNESS_NODE_PORT || 9100}`,
         '/exercises': BACKEND,
         '/session':   BACKEND,
         '/journal':   BACKEND,

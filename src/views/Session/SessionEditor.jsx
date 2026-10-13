@@ -13,6 +13,7 @@ import SessionModalsLayer from './SessionModalsLayer.jsx';
 import SessionSlots from './SessionSlots.jsx';
 import SessionHeader from './SessionHeader';
 import SplitPicker from './SplitPicker';
+import SplitPlanSheet from './SplitPlanSheet.jsx';
 import EffortPicker from './EffortPicker';
 import ExerciseList from './ExerciseList';
 import CardioSection from './CardioSection.jsx';
@@ -55,6 +56,7 @@ export default function SessionEditor({
   save, selectSession, handleNewSession, handleDeleteSession,
   startSessionGate, stopSessionGate,
   moveExercise,
+  addFromTemplate,
   exerciseOps,
   exportObsidian, handleDownload, scheduleAutoSave,
   onInspectExercise,
@@ -64,6 +66,19 @@ export default function SessionEditor({
   onGateAutoOpenConsumed,
 }) {
   const [showInlineDetails, setShowInlineDetails] = useState(false);
+  // Long-Press auf einen Split-Chip → passende Plan-Vorlagen (SplitPlanSheet)
+  const [planSplit, setPlanSplit] = useState(null);
+
+  function applyPlanTemplate(split, routine) {
+    if (block !== split) { setBlock(split); scheduleAutoSave(); }
+    const total = (routine.exercises || []).length;
+    const added = addFromTemplate?.(routine.exercises || []) || 0;
+    exerciseOps?.onToast?.(
+      !total ? `${routine.name || 'Plan'} hat keine Übungen`
+        : added ? `+ ${added} Übungen aus „${routine.name}"`
+        : 'Alle Übungen sind schon in der Session'
+    );
+  }
   const gpsMapsUrl = normalizeSessionGate(sessionGate).gps?.mapsUrl || null;
 
   // Session Gate ist kein inline Card-Element mehr, sondern ein echtes Sheet
@@ -165,9 +180,14 @@ export default function SessionEditor({
       {/* Split-Auswahl — 1 Klick, direkt unter dem Datumspicker statt hinter "Weitere Details" */}
       {sessionMode === 'strength' && (
         <div className="px-3 mt-1.5 mb-1.5">
-          <SplitPicker block={block} setBlock={v => { setBlock(v); scheduleAutoSave(); }} />
+          <SplitPicker
+            block={block}
+            setBlock={v => { setBlock(v); scheduleAutoSave(); }}
+            onLongPress={addFromTemplate ? setPlanSplit : undefined}
+          />
         </div>
       )}
+      <SplitPlanSheet split={planSplit} onClose={() => setPlanSplit(null)} onPick={applyPlanTemplate} />
 
       {/* RPE — ebenfalls prominent statt hinter "Details & Notizen" versteckt */}
       <div className="px-3 mb-1.5">

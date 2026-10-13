@@ -138,3 +138,11 @@ Kein Zeit-Debounce mehr (seit 2026-07). `scheduleAutoSave()` setzt nur das `dirt
   ]
 }
 ```
+
+
+## 6Pack-Fotos
+
+Der Session-Router übergibt die aktive `@db`-UID an den Barrel-Einstieg im
+6Pack-Submodul. `SixPackApp.jsx` bindet `SelfiesScreen.jsx` mit UID-Key ein;
+ohne Auth-UID bleiben Fotos gesperrt. Kamera und Galerie-Mehrfachauswahl
+nutzen dieselbe nutzergebundene Offline-Queue und lokale Foto-API.

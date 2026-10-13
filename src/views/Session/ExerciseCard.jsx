@@ -24,6 +24,7 @@ import {
 import ExerciseCardHeader from './ExerciseCardHeader.jsx';
 import ExerciseHistoryCollapse from './ExerciseHistoryCollapse.jsx';
 import SetGridEditor from './SetGridEditor.jsx';
+import { prevSetsFromHistory, progressSets } from './utils.js';
 
 const NXM_PATTERN = /^\s*(\d{1,2})\s*[xX×*]\s*(\d{1,3})\s*$/;
 
@@ -140,6 +141,20 @@ export default function ExerciseCard({
     return labels;
   }, [ex.primaryMuscles, muscleLang, muscleDetail]);
 
+  // ── Werte vom letzten Mal ─────────────────────────────────────
+  // Übernimmt die Sätze der letzten Session dieser Übung 1:1 (`'same'`) oder
+  // als Progressionsvorschlag (`'progress'`, siehe utils.progressSets).
+  // Bereits eingetragene Werte werden nur nach Rückfrage überschrieben.
+  const prevSets = useMemo(() => prevSetsFromHistory(prev), [prev]);
+  const hasEnteredSets = setsArr.some(s => String(s.reps || '').trim() || String(s.weight || '').trim());
+
+  const applyPrev = (mode) => {
+    if (!prevSets || !replaceSets) return;
+    if (hasEnteredSets && !window.confirm('Eingetragene Sätze durch die Werte vom letzten Mal ersetzen?')) return;
+    replaceSets(i, mode === 'progress' ? progressSets(prevSets) : prevSets.map(s => ({ ...s })));
+    onToast?.(mode === 'progress' ? 'Progression übernommen ↑' : 'Werte vom letzten Mal übernommen');
+  };
+
   // ── Volume summary ────────────────────────────────────────────
   const volumeSummary = (() => {
     if (!setsArr.length) return null;
@@ -195,6 +210,8 @@ export default function ExerciseCard({
           trend={trend}
           showHistory={showHistory}
           setShowHistory={setShowHistory}
+          canApply={!!prevSets && !!replaceSets}
+          onApplyPrev={applyPrev}
         />
       </div>
 
@@ -212,6 +229,7 @@ export default function ExerciseCard({
         tryExpandReps={tryExpandReps}
         stepReps={stepReps}
         stepWeight={stepWeight}
+        prevSets={prevSets}
       />
 
       {/* Note footer */}

@@ -254,10 +254,10 @@ mit. Zwei Ebenen, bewusst nicht identisch tief dokumentiert:
 
 | Befehl | Zweck |
 |--------|-------|
-| `npm run dev` | Backend (9100) + Vite DevServer (5902) mit HMR |
-| `npm run ui:dev` | Nur Vite DevServer (Port 5902) |
-| `npm run build` | Production-Build in `dist/` |
-| `npm run build:catalog` | Katalog → ~/.aos/fitness/workouts/catalog.json |
+| `pnpm run dev` | Backend (9100) + Vite DevServer (5902) mit HMR |
+| `pnpm run ui:dev` | Nur Vite DevServer (Port 5902) |
+| `pnpm run build` | Production-Build in `dist/` |
+| `pnpm run build:catalog` | Katalog → ~/.aos/fitness/workouts/catalog.json |
 | `fitnessctl dev status` / `fitnessctl prod status` | Service-Status Dev bzw. Prod |
 | `fitness sync kb\|pull\|pull-uid\|push\|watch\|all` | KB-Sync + Firestore-Sync (`fitness/commands/sync.py`) |
 | `fitness catalog` | Katalog-TUI (Dashboard/Inbox-Review "Neuzugänge"/Browser/Plan/Lesson/History) |
@@ -350,6 +350,15 @@ gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
 - ⏳ AI Agent Workflow (Gemini → anatomy_teaching YAML-Generierung, laufend)
 - ⏳ Coverage-Granularität (primary/secondary/stabilizer) — teilweise
 - ⏳ Anatomie-Lehre für alle Übungen (~28 von ~50+ im Katalog)
-- ⏳ npm workspaces (root + pwa/ + arena/ als Workspace-Pakete)
+- ✅ pnpm-Workspace (2026-10-13): Root + `6pack`/`coach-dev`/`plan-dev`-Submodule
+  als Workspace-Packages (`pnpm-workspace.yaml`). Namenskollision behoben
+  (`coach-dev`/`plan-dev`-`package.json` hießen beide `"fitness-dev"` wie das
+  Root-Package, jetzt `"coach"`/`"plan"`). `@vos/cross-app-aliases` musste von
+  `file:` auf `link:` umgestellt werden — pnpm kopiert `file:`-Deps in seinen
+  Store statt sie zu symlinken, wodurch der `__dirname`-basierte
+  Sibling-Pfad-Trick in `~/vitalos/packages/cross-app-aliases/index.mjs`
+  (`../../learn-dev/...`) ins Leere lief. `pre-push`/`deploy.sh` nutzen jetzt
+  `pnpm run ...` statt `npm run ...`. pwa/arena existieren nicht (nie
+  angelegt) — aus dem alten Punkt entfernt.
 - ⏳ Coach-Tab-Gesamtaufräumung (`views/Coach/`, 5 Sub-Tabs, ~1000 Zeilen) —
   noch nicht begonnen, Details + Zielbild in `../src/CLAUDE.md`

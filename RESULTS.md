@@ -1,3 +1,104 @@
+# 2026-10-13 — Fotoauswahl und Integration in aktuelle Submodule
+
+- Kamera plus Galerie-/Dateiauswahl mit Mehrfachauswahl, Validierung und
+  Ergebnis je Datei. Gemeinsamer UID-gebundener Upload-/Offline-Ablauf.
+- Aus dem alten Antigravity-Worktree in das aktuelle 6Pack-Quellrepo portiert;
+  neuer Barrel und Selfies-Modul erhalten neuere Workout-Favoriten und
+  Runner-Ansagen. Foto-/Strava-Router liegen jetzt unter `server/routes/`.
+- Foto-Handler-Test prüft beide Eingaben, Mehrfachupload, ungültige Dateien,
+  UID-Zuordnung, Offline-Queue und vollen Speicher; API- und OAuth-Tests grün.
+- Standalone-6Pack-Build, Fitness-Lint, lokaler Fitness-Build, Firebase-Build
+  und vorhandener Server-Routentest erfolgreich.
+- Kein echter Kamera-/Galerie-Dialog auf einem Mobilgerät getestet.
+- Lokaler Merge nach 6Pack `dev` / `fitness` und Fitness `dev`; kein Push/Deploy.
+
+# 2026-10-13 — 6Pack-Barrel und Mehrnutzer-Router
+
+- TODO für Galerie-/Dateiauswahl zusätzlich zur Selfie-Kamera ergänzt.
+- `SixPackPromiseCard.jsx` als kompatiblen Barrel aufgebaut; App, Selfies und
+  BackHeader in eigene Module getrennt (gemeinsame lokale/PWA-Oberfläche).
+- Hono-Router für Fotos und Strava unter `routes/` eingeordnet. Beide verlangen
+  eine explizite UID; kein Foto-/Strava-Fallback auf den Server-Betreiber.
+- Strava-Adapter sendet die UID; OAuth-State ist kurzlebig, einmalig und an
+  Browser-Cookie sowie initiierende UID gebunden. Tokens pro Nutzerordner.
+- Regressionstests für Fotos und Strava prüfen Nutzertrennung, fehlende UID,
+  Upload-Retry sowie OAuth-State-/Cookie-Bindung und Replay-Abwehr.
+- Keine bestehenden Nutzerdateien verändert; kein echter Strava-OAuth- oder
+  Kamera-Browsertest, keine Übernahme in dev/Submodul, kein Push/Deploy.
+
+# 2026-10-13 — Antigravity: lokalen 6Pack-Foto-Sync abgeschlossen
+
+- Anschluss an `847a61d` auf `agent/sixpack-photo-local-sync`: vorgemerkte
+  UID-Weitergabe fertiggestellt (`@db`), relative Server-URLs und Vite-Proxy.
+- Offline-Queue pro UID, Remount bei Nutzerwechsel, manueller Retry und
+  Online-Event; Dateiformat/Datum bleiben erhalten, stabile Upload-ID verhindert
+  doppelte Fotos nach einem Timeout. Speicherfehler werden sichtbar gemeldet.
+- Foto-Routen in `sixpack-photos.mjs`; neue Fotos im Runtime-Nutzerbereich
+  statt `public/`, atomare Speicherung, Größenlimit, private Cache-Header.
+  Bestehende Fotos/Browserdaten wurden nicht migriert oder verändert.
+- Geprüft: Node-Syntax, ESLint, vollständiger lokaler Build, Firebase-Build und isolierter
+  API-Regressionstest (Upload/Download-Bytes, Retry-Deduplizierung, Datum,
+  Sortierung, Nutzertrennung, ungültige Parameter und fehlende Dateien).
+- Keine Browser-/Kamera-E2E-Prüfung, kein Push oder Deploy. Dieser historische
+  Worktree enthält 6pack noch als normalen Ordner; die Übernahme in das heutige
+  6Pack-Submodul ist ein eigener Integrationsschritt. GDrive-Sync bleibt offen.
+
+# fitness-dev + vitalos komplett auf pnpm umgestellt, Submodule-Architektur gefixt (2026-10-13)
+
+**Auslöser:** Firestore-Approval für "Klimmzug im Obergriff" aus der coach-dev-PWA
+landete nicht lokal. Root Cause: `fitness-api.service`s `on_kb_exercises`-Watcher
+(Firestore `on_snapshot`-Stream) war nach 2 Tagen Laufzeit lautlos gestorben —
+kein Crash, kein Log. Neustart hat gereicht, Approval kam sofort nach.
+
+**git-Link coach-dev ↔ fitness-dev:**
+- `coach-dev` ist in `fitness-dev` als Submodule registriert, aber `.gitmodules`
+  hatte kein `branch = dev` gesetzt (anders als `6pack-dev`/`plan-dev`) — der
+  Checkout war deshalb 5 Commits eingefroren. Branch ergänzt, Fast-Forward.
+
+**pnpm-Migration `fitness-dev` (Root + `6pack`/`coach-dev`/`plan-dev` als
+Workspace-Packages):**
+- `coach-dev`/`plan-dev` package.json hießen beide `"fitness-dev"` wie das
+  Root-Package (Namenskollision, da beide Codebase-Forks von fitness-dev sind)
+  → umbenannt zu `"coach"`/`"plan"`. Konvention: `-dev`-Suffix bleibt der
+  Standalone-Kopie vorbehalten (`~/coach-dev`), der ins Workspace eingebundene
+  Name verzichtet darauf — `6pack-dev` → `"6pack"` aus demselben Grund
+  nachgezogen.
+- `plan-dev`-Submodule-Branch-Referenz war inkonsistent: Root wollte `fitness`,
+  `coach-dev`s verschachteltes `.gitmodules` wollte `coach` → beide auf
+  `fitness` vereinheitlicht.
+- `@vos/cross-app-aliases`: `file:` → `link:` — pnpm kopiert `file:`-Deps in
+  seinen Content-Store statt sie an den Original-Ort zu symlinken, wodurch der
+  `__dirname`-basierte Sibling-Pfad-Trick in
+  `~/vitalos/packages/cross-app-aliases/index.mjs` ins Leere lief.
+- `package-lock.json` → `pnpm-lock.yaml` (`pnpm import`), Build 3× verifiziert.
+- `pre-commit`/`pre-push`/`deploy.sh`: `npm run` → `pnpm run`.
+
+**vitalos-Integration (neue Submodule + pnpm):**
+- `6pack`/`coach-dev`/`plan-dev` sind jetzt auch volle `vitalos`-Submodule
+  (`6pack-app`/`coach-app`/`plan-app`), jeweils mit eigenem `vitalos`-Branch.
+  `6pack-app` stand fälschlich auf `dev` statt `vitalos` (Diskrepanz zur
+  eigenen `.gitmodules`-Deklaration) — gemergt + korrigiert. `coach-app`
+  existierte in `vitalos` noch gar nicht — Branch angelegt, Submodule
+  hinzugefügt (Section-Name-Konvention gefixt: `coach-app`→`coach-dev`,
+  wie bei den anderen Einträgen üblich).
+- `vos-release`/`vos-sync-submodule-pointers` um die drei neuen Module
+  erweitert (Standalone-/Submodule-Pfade, Branches, Noise-Patterns).
+- Gleicher Namens- und Pfad-Bug wie oben trat **nochmal separat** in den
+  jeweiligen `vitalos`-Branch-Checkouts auf (die Renames von der
+  fitness-dev-Integration erreichten diese nicht) — dort ebenfalls gefixt.
+- `vitalos` selbst komplett auf pnpm: `pnpm-workspace.yaml` (11 Packages),
+  `@vos/cross-app-aliases` überall auf `"workspace:*"` vereinheitlicht (vorher
+  3-fach inkonsistent: `"1.0.0"` in Root/fuel-app/habit-app, `file:`/`link:`
+  in fitness-app/journal-app — Letzteres zusätzlich mit Nesting-Bug, da
+  `../vitalos/...` von innerhalb `vitalos/fitness-app` auf
+  `vitalos/vitalos/...` zeigte). `package-lock.json` in allen 8 betroffenen
+  Submodulen entfernt. 7 GitHub-Actions-Workflows + der Lockfile-Resync-Schritt
+  in `vos-sync-submodule-pointers` auf `pnpm install --frozen-lockfile` /
+  `pnpm --filter ./X run` umgestellt. Build von `vitalos`-Shell und
+  `fitness-app` lokal verifiziert (CI selbst nicht testbar, kein Runner hier).
+
+---
+
 # 6Pack: echtes Submodule unter 6pack/ (2026-10-11)
 
 - Submodule von `6pack-dev/` nach `6pack/` verschoben; die drei bisher kopierten
