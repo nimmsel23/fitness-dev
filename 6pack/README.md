@@ -59,4 +59,4 @@ API-Regressionstest (isolierte temporäre Dateien):
 `SelfiesScreen.jsx`, der geteilte Zurück-Header in `BackHeader.jsx`.
 Foto-Requests benötigen eine explizite UID (kein Server-Owner-Fallback).
 Ohne angemeldete UID bleibt die Foto-Oberfläche gesperrt; der lokale DB-Adapter
-liefert ausdrücklich `local`. Fotoauswahl neben Kamera ist in `TODO.md` erfasst.
+liefert ausdrücklich `local`. „Fotos auswählen“ öffnet Galerie/Dateien ohne Kamera-Zwang und erlaubt Mehrfachauswahl. Beide Eingaben nutzen denselben UID-gebundenen Upload-/Offline-Ablauf; jede Datei erhält eine eigene Statusmeldung.

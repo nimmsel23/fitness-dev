@@ -33,6 +33,7 @@ export default function SelfiesScreen({ onBack, uid }) {
   const [serverOk, setServerOk] = useState(null); // null = unbekannt, true/false
   const [uploading, setUploading] = useState(false);
   const [statusMsg, setStatusMsg] = useState('');
+  const [selectionResults, setSelectionResults] = useState([]);
 
   const busy = useRef(false);
   const hasUid = typeof uid === 'string' && /^[\w-]{1,128}$/.test(uid);
@@ -102,37 +103,48 @@ export default function SelfiesScreen({ onBack, uid }) {
   }, []);
 
   async function onFile(e) {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files || []);
     e.target.value = '';
-    if (!hasUid || !file || busy.current) return;
-    if (file.size > 20 * 1024 * 1024 || !/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name)) {
-      setStatusMsg('Bitte JPG, PNG, WebP oder HEIC/HEIF bis 20 MB auswählen.');
-      return;
-    }
+    if (!hasUid || !files.length || busy.current) return;
     busy.current = true;
     setUploading(true);
     setStatusMsg('');
-    const item = { id: crypto.randomUUID(), date: new Date().toISOString(), name: file.name };
+    setSelectionResults([]);
+    let saved = 0;
     try {
-      await upload(file, item.id, item.date);
-      setStatusMsg('✓ Foto gespeichert');
-      await fetchServerPhotos();
-    } catch {
-      setServerOk(false);
-      try {
-        item.dataUrl = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-        const queue = [...loadPendingQueue(uid), item];
-        savePendingQueue(uid, queue);
-        setPending(queue);
-        setStatusMsg('📥 Offline gespeichert – Synchronisierung ausstehend');
-      } catch {
-        setStatusMsg('Foto nicht gespeichert: Browserspeicher voll oder nicht verfügbar. Bitte Original behalten und erneut versuchen.');
+      for (const [index, file] of files.entries()) {
+        setStatusMsg(`Foto ${index + 1} von ${files.length} wird verarbeitet …`);
+        let message;
+        if (!file.size || file.size > 20 * 1024 * 1024 || !/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name)) {
+          message = 'Nicht gespeichert: JPG, PNG, WebP oder HEIC/HEIF bis 20 MB erforderlich.';
+        } else {
+          const item = { id: crypto.randomUUID(), date: new Date().toISOString(), name: file.name };
+          try {
+            await upload(file, item.id, item.date);
+            saved++;
+            message = 'Gespeichert';
+          } catch {
+            setServerOk(false);
+            try {
+              item.dataUrl = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+              });
+              const queue = [...loadPendingQueue(uid), item];
+              savePendingQueue(uid, queue);
+              setPending(queue);
+              message = 'Offline gespeichert – Synchronisierung ausstehend';
+            } catch {
+              message = 'Nicht gespeichert: Browserspeicher voll oder nicht verfügbar. Bitte Original behalten.';
+            }
+          }
+        }
+        setSelectionResults(results => [...results, { name: file.name, message }]);
       }
+      if (saved) await fetchServerPhotos();
+      setStatusMsg(`${files.length} Foto${files.length === 1 ? '' : 's'} verarbeitet.`);
     } finally {
       busy.current = false;
       setUploading(false);
@@ -159,6 +171,19 @@ export default function SelfiesScreen({ onBack, uid }) {
         {uploading ? 'Uploading…' : 'Foto aufnehmen'}
         <input type="file" accept="image/*" capture="environment" className="hidden" onChange={onFile} disabled={uploading} />
       </label>
+
+      <label
+        className="block px-4 py-3 text-center text-sm font-black uppercase tracking-[0.12em]"
+        style={{ background: '#222', color: '#fff', cursor: uploading ? 'wait' : 'pointer' }}
+      >
+        Fotos auswählen
+        <input type="file" accept="image/*" multiple className="hidden" onChange={onFile} disabled={uploading} />
+      </label>
+      {selectionResults.length > 0 && (
+        <ul className="px-4 py-2 text-xs space-y-1" aria-live="polite">
+          {selectionResults.map((result, index) => <li key={index}>{result.name}: {result.message}</li>)}
+        </ul>
+      )}
 
       {/* Status-Zeile */}
       {(statusMsg || serverOk !== null) && (
