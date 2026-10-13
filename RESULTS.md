@@ -1,3 +1,20 @@
+# 2026-10-13 — Antigravity: lokalen 6Pack-Foto-Sync abgeschlossen
+
+- Anschluss an `847a61d` auf `agent/sixpack-photo-local-sync`: vorgemerkte
+  UID-Weitergabe fertiggestellt (`@db`), relative Server-URLs und Vite-Proxy.
+- Offline-Queue pro UID, Remount bei Nutzerwechsel, manueller Retry und
+  Online-Event; Dateiformat/Datum bleiben erhalten, stabile Upload-ID verhindert
+  doppelte Fotos nach einem Timeout. Speicherfehler werden sichtbar gemeldet.
+- Foto-Routen in `sixpack-photos.mjs`; neue Fotos im Runtime-Nutzerbereich
+  statt `public/`, atomare Speicherung, Größenlimit, private Cache-Header.
+  Bestehende Fotos/Browserdaten wurden nicht migriert oder verändert.
+- Geprüft: Node-Syntax, ESLint, vollständiger lokaler Build, Firebase-Build und isolierter
+  API-Regressionstest (Upload/Download-Bytes, Retry-Deduplizierung, Datum,
+  Sortierung, Nutzertrennung, ungültige Parameter und fehlende Dateien).
+- Keine Browser-/Kamera-E2E-Prüfung, kein Push oder Deploy. Dieser historische
+  Worktree enthält 6pack noch als normalen Ordner; die Übernahme in das heutige
+  6Pack-Submodul ist ein eigener Integrationsschritt. GDrive-Sync bleibt offen.
+
 # AGENTS.md-Punkte umgesetzt: Push/Pull/Legs-Build, Trapezius/Hamstrings als Muskel-Komplexe, Federation-Aufräumen (2026-09-13)
 
 Zwei fachliche Aufträge abgearbeitet (`catalog/kb/AGENTS.md` durchgehen; danach

@@ -4,10 +4,6 @@ import { SIXPACK_CATEGORIES, SIXPACK_EXERCISE_DETAILS, SIXPACK_EXERCISE_POOL, SI
 
 const SIXPACK_PROGRAM_KEY = 'fitness-sixpack-program-v1';
 const SIXPACK_FAVORITES_KEY = 'fitness-sixpack-favorites-v1';
-// SIXPACK_SELFIES_KEY ('fitness-sixpack-selfies-v1') wurde ersetzt durch
-// SIXPACK_PENDING_KEY (Queue für lokale Server-Sync) — alte LocalStorage-
-// Fotos werden nicht migriert (waren Base64-Blobs, können bei Bedarf manuell
-// in public/sixpack-photos/ kopiert werden).
 const SIXPACK_VIDEO_URLS_KEY = 'fitness-sixpack-video-urls-v1';
 
 
@@ -469,35 +465,20 @@ function FavoritesScreen({ onBack }) {
   );
 }
 
-// ── 6Pack Selfies: Local-Server-Sync ─────────────────────────────────────────
-// Lädt Fotos per multipart POST an den lokalen server.mjs-Server hoch.
-// Ist der Server nicht erreichbar, landet das Foto im LocalStorage als
-// Pending-Queue und wird automatisch hochgeladen, sobald der Server wieder
-// online ist (beim nächsten Öffnen des Selfies-Screens oder beim nächsten
-// Netzwerkversuch).
-//
-// Datenfluss:
-//   1. Foto aufnehmen → readAsDataURL → immer in LocalStorage-Queue schreiben
-//   2. uploadPending() versucht alle Queue-Einträge per FormData an den Server
-//   3. Erfolg → Queue-Eintrag entfernen, Foto-Liste vom Server laden
-//   4. Fehler → Queue-Eintrag bleibt, Foto aus LocalStorage anzeigen (Fallback)
-//   5. GET /sixpack/photos?uid=<uid> → Foto-Liste vom Server (neueste zuerst)
+// Fotos werden direkt hochgeladen; nur fehlgeschlagene Uploads landen in der
+// nutzergebundenen Browser-Queue. Alte, unzugeordnete Queues bleiben unberührt.
+const SIXPACK_PENDING_KEY = 'fitness-sixpack-selfies-pending-v2';
+const LOCAL_SERVER = (import.meta.env.VITE_API_BASE || '').replace(/\/$/, '');
+const photoUrl = (route) => `${LOCAL_SERVER ? `${LOCAL_SERVER}/` : ''}${route.replace(/^\//, '')}`;
 
-const SIXPACK_PENDING_KEY = 'fitness-sixpack-selfies-pending-v1';
-const LOCAL_SERVER = (() => {
-  if (typeof window === 'undefined') return 'http://127.0.0.1:9100';
-  // Prod-Port 6100, Dev-Port 9100 — wir probieren beide via Healthcheck
-  return window.__FITNESS_SERVER_BASE__ || 'http://127.0.0.1:9100';
-})();
-
-function loadPendingQueue() {
-  if (typeof window === 'undefined') return [];
-  try { return JSON.parse(window.localStorage.getItem(SIXPACK_PENDING_KEY) || '[]'); }
-  catch { return []; }
+function loadPendingQueue(uid) {
+  try {
+    const queue = JSON.parse(window.localStorage.getItem(`${SIXPACK_PENDING_KEY}:${uid}`) || '[]');
+    return Array.isArray(queue) ? queue : [];
+  } catch { return []; }
 }
-function savePendingQueue(q) {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(SIXPACK_PENDING_KEY, JSON.stringify(q));
+function savePendingQueue(uid, queue) {
+  window.localStorage.setItem(`${SIXPACK_PENDING_KEY}:${uid}`, JSON.stringify(queue));
 }
 
 /** Konvertiert eine DataURL in ein File-Objekt für FormData */
@@ -510,28 +491,26 @@ function dataUrlToFile(dataUrl, filename) {
   return new File([arr], filename, { type: mime });
 }
 
-function SelfiesScreen({ onBack }) {
+function SelfiesScreen({ onBack, uid = 'local' }) {
   const [serverPhotos, setServerPhotos] = useState([]);
-  const [pending, setPending] = useState(() => loadPendingQueue());
+  const [pending, setPending] = useState(() => loadPendingQueue(uid));
   const [serverOk, setServerOk] = useState(null); // null = unbekannt, true/false
   const [uploading, setUploading] = useState(false);
   const [statusMsg, setStatusMsg] = useState('');
 
-  // uid aus Window-Global oder Fallback
-  const uid = typeof window !== 'undefined'
-    ? (window.__FITNESS_UID__ || 'local')
-    : 'local';
+  const busy = useRef(false);
 
   /** Holt die Foto-Liste vom lokalen Server */
   async function fetchServerPhotos() {
     try {
-      const res = await fetch(`${LOCAL_SERVER}/sixpack/photos?uid=${encodeURIComponent(uid)}`, {
+      const res = await fetch(photoUrl(`sixpack/photos?uid=${encodeURIComponent(uid)}`), {
         signal: AbortSignal.timeout(3000),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       setServerOk(true);
-      setServerPhotos(data.photos || []);
+      if (!data.ok || !Array.isArray(data.photos)) throw new Error('Invalid photo response');
+      setServerPhotos(data.photos);
       return true;
     } catch {
       setServerOk(false);
@@ -539,93 +518,85 @@ function SelfiesScreen({ onBack }) {
     }
   }
 
-  /** Versucht alle ausstehenden Pending-Fotos hochzuladen */
-  async function uploadPending(currentPending) {
-    if (currentPending.length === 0) return;
+  async function upload(file, id, date) {
+    const fd = new FormData();
+    fd.append('photo', file);
+    fd.append('id', id);
+    fd.append('date', date);
+    const res = await fetch(photoUrl('sixpack/photos'), {
+      method: 'POST', headers: { 'x-fitness-uid': uid }, body: fd,
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok || !(await res.json()).ok) throw new Error('Upload failed');
+  }
+
+  async function uploadPending() {
+    if (busy.current) return;
+    busy.current = true;
     setUploading(true);
-    const remaining = [];
-    for (const item of currentPending) {
-      try {
-        const file = dataUrlToFile(item.dataUrl, `photo-${item.date}.jpg`);
-        const fd = new FormData();
-        fd.append('photo', file);
-        const res = await fetch(`${LOCAL_SERVER}/sixpack/photos`, {
-          method: 'POST',
-          headers: { 'x-fitness-uid': uid },
-          body: fd,
-          signal: AbortSignal.timeout(10000),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        setServerOk(true);
-      } catch {
-        remaining.push(item); // bleibt in Queue
-        setServerOk(false);
+    try {
+      for (const item of loadPendingQueue(uid)) {
+        await upload(dataUrlToFile(item.dataUrl, item.name), item.id, item.date);
+        // Read fresh storage so photos queued elsewhere are retained.
+        const remaining = loadPendingQueue(uid).filter(p => p.id !== item.id);
+        savePendingQueue(uid, remaining);
+        setPending(remaining);
       }
-    }
-    savePendingQueue(remaining);
-    setPending(remaining);
-    setUploading(false);
-    if (remaining.length < currentPending.length) {
-      // Mind. eines erfolgreich → Liste aktualisieren
       await fetchServerPhotos();
+    } catch {
+      setServerOk(false);
+      setStatusMsg('Synchronisierung ausstehend – bitte erneut versuchen.');
+    } finally {
+      busy.current = false;
+      setUploading(false);
     }
   }
 
-  // Beim Mounten: Server-Fotos laden + ausstehende Queue leeren
   useEffect(() => {
     let cancelled = false;
     async function init() {
       const ok = await fetchServerPhotos();
-      if (cancelled) return;
-      if (ok) {
-        const q = loadPendingQueue();
-        if (q.length > 0) await uploadPending(q);
-      }
+      if (!cancelled && ok) await uploadPending();
     }
     init();
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    window.addEventListener('online', init);
+    return () => { cancelled = true; window.removeEventListener('online', init); };
   }, []);
 
   async function onFile(e) {
     const file = e.target.files?.[0];
-    if (!file) return;
     e.target.value = '';
-    setStatusMsg('');
-
-    // Immer zuerst als DataURL lesen (für LocalStorage-Fallback)
-    const dataUrl = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-
-    const item = { date: new Date().toISOString(), dataUrl };
-
-    // Direkt versuchen hochzuladen
+    if (!file || busy.current) return;
+    if (file.size > 20 * 1024 * 1024 || !/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name)) {
+      setStatusMsg('Bitte JPG, PNG, WebP oder HEIC/HEIF bis 20 MB auswählen.');
+      return;
+    }
+    busy.current = true;
     setUploading(true);
+    setStatusMsg('');
+    const item = { id: crypto.randomUUID(), date: new Date().toISOString(), name: file.name };
     try {
-      const fd = new FormData();
-      fd.append('photo', file);
-      const res = await fetch(`${LOCAL_SERVER}/sixpack/photos`, {
-        method: 'POST',
-        headers: { 'x-fitness-uid': uid },
-        body: fd,
-        signal: AbortSignal.timeout(10000),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setServerOk(true);
+      await upload(file, item.id, item.date);
       setStatusMsg('✓ Foto gespeichert');
       await fetchServerPhotos();
     } catch {
-      // Server nicht erreichbar → in Queue
       setServerOk(false);
-      const q = [...loadPendingQueue(), item];
-      savePendingQueue(q);
-      setPending(q);
-      setStatusMsg('📥 Offline gespeichert – wird synchronisiert wenn Server erreichbar');
+      try {
+        item.dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+        const queue = [...loadPendingQueue(uid), item];
+        savePendingQueue(uid, queue);
+        setPending(queue);
+        setStatusMsg('📥 Offline gespeichert – Synchronisierung ausstehend');
+      } catch {
+        setStatusMsg('Foto nicht gespeichert: Browserspeicher voll oder nicht verfügbar. Bitte Original behalten und erneut versuchen.');
+      }
     } finally {
+      busy.current = false;
       setUploading(false);
     }
   }
@@ -662,6 +633,12 @@ function SelfiesScreen({ onBack }) {
         </div>
       )}
 
+      {pending.length > 0 && (
+        <button className="w-full py-2 text-sm" onClick={() => { setStatusMsg(''); uploadPending(); }} disabled={uploading}>
+          Jetzt synchronisieren ({pending.length})
+        </button>
+      )}
+
       {/* Galerie */}
       {allPhotos.length === 0 ? (
         <div className="p-6 text-center text-sm" style={{ color: 'var(--dim)' }}>Noch keine Fortschrittsfotos.</div>
@@ -674,7 +651,7 @@ function SelfiesScreen({ onBack }) {
               style={{ background: '#000' }}
             >
               <img
-                src={photo.source === 'server' ? `${LOCAL_SERVER}${photo.url}` : photo.dataUrl}
+                src={photo.source === 'server' ? photoUrl(photo.url) : photo.dataUrl}
                 alt={new Date(photo.date).toLocaleDateString('de-AT')}
                 className="w-full h-full object-cover"
               />
@@ -1032,7 +1009,7 @@ function RunnerScreen({ workout, onFinish, onBack }) {
   );
 }
 
-export default function SixPackPromiseCard({ onSubNav, coachingNotes = [] }) {
+export default function SixPackPromiseCard({ onSubNav, coachingNotes = [], uid = 'local' }) {
   const [program, setProgram] = useState(() => loadProgram());
   const [screen, setScreen] = useState('home');
   const [viewDay, setViewDay] = useState(null);
@@ -1137,7 +1114,7 @@ export default function SixPackPromiseCard({ onSubNav, coachingNotes = [] }) {
           />
         )}
         {screen === 'favorites' && <FavoritesScreen onBack={goHome} />}
-        {screen === 'selfies' && <SelfiesScreen onBack={goHome} />}
+        {screen === 'selfies' && <SelfiesScreen key={uid} onBack={goHome} uid={uid} />}
         {screen === 'shuffle' && <ShuffleScreen onBack={goHome} onStart={startAdhoc} />}
         {screen === 'day' && activeWorkout && (
           activeWorkout.rest ? (

@@ -55,3 +55,5 @@ wird so ähnlich erfolgen wie der Skills-Runner
 tägliche Push benachrichtigungen bei fehlenden Logs - direkt im Benachrichtigungscenter interaktiv? 
 weiteführende Idee: falls in Settings PPL-Split eingestellt dann könnte täglich eine zB Pull=done? Message aufs handy kommen bis das jeweils nächste Workout done ist.
 Impuls hierzu: Klient:Matthias fehlende Ambition zum kontinuierlichen Loggen von Workouts.
+
+- [x] 2026-10-13: Antigravity-Worktree: lokalen 6Pack-Foto-Sync mit UID-Anbindung, Proxy, nutzergebundener Offline-Queue und Runtime-Speicher abschließen.

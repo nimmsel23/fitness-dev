@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { sixpackPhotoRoutes } from "./sixpack-photos.mjs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -269,7 +270,7 @@ const app = new OpenAPIHono(); // Drop-in-Ersatz für Hono, alle bestehenden app
 app.use("*", async (c, next) => {
   c.res.headers.set("Access-Control-Allow-Origin", "*");
   c.res.headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
-  c.res.headers.set("Access-Control-Allow-Headers", "Content-Type,Authorization");
+  c.res.headers.set("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Fitness-Uid");
   await next();
 });
 
@@ -2186,109 +2187,8 @@ function buildOpenApiSpec() {
     paths,
   };
 }
-// ── 6Pack Selfies / Progress-Photos (Local Server Sync) ─────────────────────
-// Fotos landen in public/sixpack-photos/<uid>/ — STATIC_DIR liefert sie aus,
-// weil der statische Handler (unten) per abs.startsWith(STATIC_DIR) bounded
-// ist. Wir brauchen daher ein eigenes Verzeichnis unterhalb von PUBLIC_DIR
-// (das auch bei STATIC_DIR=dist erreichbar ist), das wir explizit serven.
-// Route: POST /sixpack/photos — multipart/form-data, field "photo" (File)
-//        GET  /sixpack/photos — JSON-Liste der gespeicherten Fotos (desc.)
-//        GET  /sixpack-photos/:uid/* — statisches Serving der Dateien
-
-const SIXPACK_PHOTOS_DIR = path.join(PUBLIC_DIR, "sixpack-photos");
-
-app.post("/sixpack/photos", async (c) => {
-  try {
-    const uid = c.req.header("x-fitness-uid") || FITNESS_UID;
-    // Sanitize uid: nur alphanumerisch + Bindestrich erlaubt
-    if (!/^[\w-]{1,128}$/.test(uid)) return c.json({ ok: false, error: "invalid uid" }, 400);
-
-    const formData = await c.req.formData();
-    const file = formData.get("photo");
-    if (!file || typeof file === "string") return c.json({ ok: false, error: "no photo field" }, 400);
-
-    // Dateiname: ISO-Timestamp + Originalendung (jpg/jpeg/png/webp/heic)
-    const originalName = file.name || "photo.jpg";
-    const ext = path.extname(originalName).toLowerCase() || ".jpg";
-    const allowed = new Set([".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"]);
-    if (!allowed.has(ext)) return c.json({ ok: false, error: "unsupported image type" }, 415);
-
-    const ts = new Date().toISOString().replace(/[:.]/g, "-");
-    const filename = `${ts}${ext}`;
-    const userDir = path.join(SIXPACK_PHOTOS_DIR, uid);
-    fs.mkdirSync(userDir, { recursive: true });
-
-    const dest = path.join(userDir, filename);
-    const buf = Buffer.from(await file.arrayBuffer());
-    fs.writeFileSync(dest, buf);
-
-    const url = `/sixpack-photos/${uid}/${filename}`;
-    log.info(`[sixpack-photos] gespeichert: ${dest} (${buf.length} bytes)`);
-    return c.json({ ok: true, url, filename, uid });
-  } catch (err) {
-    log.error({ err }, "[sixpack-photos] Upload-Fehler");
-    return c.json({ ok: false, error: String(err?.message || err) }, 500);
-  }
-});
-
-app.get("/sixpack/photos", async (c) => {
-  try {
-    const uid = c.req.query("uid") || c.req.header("x-fitness-uid") || FITNESS_UID;
-    if (!/^[\w-]{1,128}$/.test(uid)) return c.json({ ok: false, error: "invalid uid" }, 400);
-
-    const userDir = path.join(SIXPACK_PHOTOS_DIR, uid);
-    if (!fs.existsSync(userDir)) return c.json({ ok: true, photos: [] });
-
-    const files = fs.readdirSync(userDir)
-      .filter(f => /\.(jpg|jpeg|png|webp|heic|heif)$/i.test(f))
-      .sort()
-      .reverse(); // neueste zuerst
-
-    const photos = files.map(filename => {
-      const stat = fs.statSync(path.join(userDir, filename));
-      // Datum aus Dateiname rekonstruieren (ISO-Format mit '-' statt ':' und '.')
-      // z.B. 2026-10-13T10-15-30-000Z.jpg  →  2026-10-13T10:15:30.000Z
-      const isoRaw = filename.replace(/\.[^.]+$/, "");
-      const isoStr = isoRaw
-        .replace(/T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z?$/, "T$1:$2:$3.$4Z");
-      return {
-        filename,
-        url: `/sixpack-photos/${uid}/${filename}`,
-        date: isoStr.includes("T") && !Number.isNaN(Date.parse(isoStr))
-          ? isoStr
-          : stat.mtime.toISOString(),
-        size: stat.size,
-      };
-    });
-    return c.json({ ok: true, uid, photos });
-  } catch (err) {
-    log.error({ err }, "[sixpack-photos] List-Fehler");
-    return c.json({ ok: false, error: String(err?.message || err) }, 500);
-  }
-});
-
-// Statisches Serving von /sixpack-photos/<uid>/<file>
-// Explizit vor dem generischen SPA-Fallback (unten), damit Bilder-Requests
-// nicht ins index.html-Fallback fallen.
-app.get("/sixpack-photos/:uid/:filename", (c) => {
-  const { uid, filename } = c.req.param();
-  // Sanitize: keine Directory-Traversal
-  if (!/^[\w-]{1,128}$/.test(uid) || /[/\\]/.test(filename) || filename.startsWith(".")) {
-    return c.text("Forbidden", 403);
-  }
-  const abs = path.join(SIXPACK_PHOTOS_DIR, uid, filename);
-  if (!abs.startsWith(SIXPACK_PHOTOS_DIR)) return c.text("Forbidden", 403);
-  if (!fs.existsSync(abs)) return c.text("Not Found", 404);
-  const ext = path.extname(filename).toLowerCase();
-  const MIME = {
-    ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
-    ".png": "image/png",  ".webp": "image/webp",
-    ".heic": "image/heic", ".heif": "image/heif",
-  };
-  return new Response(fs.createReadStream(abs), {
-    headers: { "Content-Type": MIME[ext] || "image/jpeg", "Cache-Control": "max-age=86400" },
-  });
-});
+// Local progress photos: runtime files stay outside public/build assets.
+app.route('/', sixpackPhotoRoutes({ defaultUid: FITNESS_UID }));
 
 // ── Strava-Live-Import (Radtouren-Tab, OAuth2) ──────────────────────────────
 // Routen ausgelagert in strava-routes.mjs (Hono-Sub-Router), Logik in

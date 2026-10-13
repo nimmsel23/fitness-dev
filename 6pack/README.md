@@ -20,3 +20,35 @@ Die Sprachausgabe nutzt die Speech-Synthesis-Funktion des Browsers. Pausenstart,
 Übungsstart und die letzten drei Pausensekunden erhalten Web-Audio-Signale.
 Audio wird erst nach dem Start-Tap aktiviert; Verfügbarkeit und Wiedergabe bei
 gesperrtem Bildschirm hängen vom Browser und Betriebssystem ab.
+
+
+## Fortschrittsfotos (lokaler Server)
+
+`Session` übergibt die UID des aktiven DB-Adapters. Upload, Liste und Bilder
+nutzen relative URLs am App-Server; `VITE_API_BASE` kann einen anderen Server
+angeben. Vite leitet `/sixpack*` an Node (`FITNESS_NODE_PORT`, Standard 9100)
+weiter. Firebase allein hat diesen lokalen Endpunkt nicht; ohne explizit
+konfigurierten erreichbaren Server bleiben neue Fotos in der Offline-Queue.
+
+`sixpack-photos.mjs` speichert neue Fotos unter
+`~/.aos/fitness/users/<uid>/sixpack-photos/`, außerhalb der Build-Assets.
+`FITNESS_SIXPACK_PHOTOS_DIR` überschreibt den übergeordneten Nutzerordner.
+Die Routen gehören zum lokalen, vertrauenswürdigen Server: Die UID dient zur
+Zuordnung, nicht als Authentifizierung für einen öffentlichen Foto-Dienst.
+
+Fehlgeschlagene Uploads landen unter
+`fitness-sixpack-selfies-pending-v2:<uid>` im Browser. Synchronisierung erfolgt
+beim Öffnen, beim Online-Ereignis oder per „Jetzt synchronisieren“.
+Dateiformat und Aufnahmedatum bleiben erhalten; eine stabile Upload-ID verhindert
+Duplikate bei Wiederholungen. JPG/PNG/WebP/HEIC/HEIF bis 20 MB sind erlaubt;
+HEIC-Anzeige hängt vom Browser ab. Bei vollem oder gesperrtem Browserspeicher
+erscheint eine Fehlermeldung statt einer falschen Speicherbestätigung.
+
+Alte unzugeordnete Browser-Einträge (`fitness-sixpack-selfies-v1`,
+`fitness-sixpack-selfies-pending-v1`) und Dateien unter `public/sixpack-photos/`
+werden nicht automatisch verschoben, gelöscht oder einem Nutzer zugeordnet.
+Sie sind in der neuen Galerie nicht eingebunden; eine Migration braucht eine
+explizite Nutzerzuordnung. Google-Drive-Sync bleibt ein separater TODO-Punkt.
+
+API-Regressionstest (isolierte temporäre Dateien):
+`node scripts/test-sixpack-photos.mjs`.
