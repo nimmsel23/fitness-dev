@@ -26,7 +26,7 @@ export default [
     },
   },
   {
-    files: ['6pack/**/*.mjs'],
+    files: ['6pack/**/*.mjs', '6pack/vite.config.js'],
     languageOptions: { globals: { ...globals.node } },
   },
 ];
