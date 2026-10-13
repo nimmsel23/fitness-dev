@@ -6,6 +6,14 @@ gebliebenen Punkten aus abgeschlossenen Sessions ergänzt.
 Unterscheidung zu `TODO.md`: hier steht *was als Nächstes konkret dran
 ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
 
+- `jakob-checkin.sh` wurde nach der Notify-Umstellung (siehe RESULTS.md,
+  2026-10-13) nur als Dry-Run getestet (Pfade/Logik verifiziert, keine
+  echte WhatsApp-Nachricht ausgelöst) — ein realer Lauf steht noch aus.
+- Die neuen Notify-Helper (`agent-notify.sh`, `agent-fix-prompt.sh`) sowie
+  die vier umgestellten Check-Skripte liegen unter `~/.local/Klienten/
+  bin/lib/` (kein Git-Repo, nur per Symlink von `~/vital/Klienten`
+  erreichbar) und sind bewusst unversioniert geblieben — Nutzer
+  übernimmt die Versionierung/Sicherung selbst.
 - ClientsPanel-Detail-Sub-Tabs (`ClientWorkoutsFeed`/`ClientHabitCycle`/
   `ClientPlan`/`ClientTrainingPlans`/`AssignPlan`) haben aus dem
   Coach-Redesign (2026-08-31) nur die automatische CSS-Kaskade geerbt,
@@ -520,3 +528,6 @@ pruefen.
 - Pre-Commit-Hook-Reminder: `src/views/Session/`-Code geändert, aber
   `ARCHITECTURE.md`/`AUDIT.md` nicht im Commit — bewusst nicht aktualisiert
   (reine CSS/Layout-Fixes ohne Architektur-Relevanz), kein Nachtrag geplant.
+
+**Gemini-Review (potenzielle blinde Flecken, 2026-10-13):**
+*   **Ungeprüfte Annahme über Dateiinhalte:** Claude klassifiziert alle `inbox/*.yml` Dateien als "nichts Sensibles" basierend auf dem `head` einer einzelnen Datei und Zeilenzählungen (`wc -l`) für den Rest. Es gab keine weitere Inhaltsprüfung der anderen 60+ Dateien, die ebenfalls
