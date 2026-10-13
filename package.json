@@ -3,11 +3,7 @@
   "version": "3.0.0",
   "private": true,
   "type": "module",
-  "workspaces": [
-    "cloud_chamber/journal-dev",
-    "cloud_chamber/learn-dev",
-    "cloud_chamber/vitalos"
-  ],
+  "packageManager": "pnpm@11.3.0",
   "scripts": {
     "sync:6pack": "node scripts/sync-sixpack.mjs",
     "predev": "npm run build:kb-data",
@@ -72,7 +68,7 @@
     "zustand": "^5.0.14"
   },
   "optionalDependencies": {
-    "@vos/cross-app-aliases": "file:../vitalos/packages/cross-app-aliases"
+    "@vos/cross-app-aliases": "link:../vitalos/packages/cross-app-aliases"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
