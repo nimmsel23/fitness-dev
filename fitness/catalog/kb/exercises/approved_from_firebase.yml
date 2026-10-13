@@ -1,48 +1,10 @@
 name: approved_from_firebase
 description: Coach-approved via Firebase Inbox
 exercises:
-- display_name: Klimmzug im Obergriff
-  category: pull
-  movements:
-  - vertical
-  - shoulder_adduction
-  - shoulder_extension
-  - elbow_flexion
-  - scapular_depression
-  - scapular_downward_rotation
-  aliases:
-  - Klimmzug
-  - Klimmzüge
-  - Klimmzug Obergriff
-  - Klimmzug im Obergriff
-  - Obergriff Klimmzug
-  - Pull-up
-  - Pull-up (Overhand Grip)
-  - Pull Up
-  - Pull Ups
-  - Pull-Up
-  - Pull-Ups
-  - Standard Pull-up
-  - Pronated Pull-up
-  review_state:
-    status: approved
-  schema_version: 2026-08-12.exercise-v1
-  type: compound
-  origin:
-    wger:
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      wger_id: 821
+- origin:
     yuhonas:
-      display_name: Pullups
-      category: strength
-      secondary_muscles:
-      - biceps
-      - middle_back
-      tags:
-      - unreviewed
-      - yuhonas
+      equipment:
+      - body only
       coaching_notes:
       - 'Grab the pull-up bar with the palms facing forward using the prescribed grip.
         Note on grips: For a wide grip, your hands need to be spaced out at a distance
@@ -64,39 +26,36 @@ exercises:
         and the lats are fully stretched.
       - Repeat this motion for the prescribed amount of repetitions.
       wger_muscle_ids:
-        primary: []
         secondary: []
+        primary: []
+      exercise_id: yuhonas_pullups
+      category: strength
+      secondary_muscles:
+      - biceps
+      - middle_back
+      display_name: Pullups
+      yuhonas_id: Pullups
       primary_muscles:
       - lats
-      equipment:
-      - body only
-      exercise_id: yuhonas_pullups
-      yuhonas_id: Pullups
+      tags:
+      - unreviewed
+      - yuhonas
+    type: merged_external
+    wger:
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      wger_id: 821
     source_refs:
-      wger:
-      - '821'
       yuhonas:
       - Pullups
-    type: merged_external
-  source: approved
-  primary_muscles:
-  - 201_latissimus_dorsi
-  - 207_teres_major
-  stabilizers:
-  - 304_rotator_cuff
-  - 405_forearm_flexors
-  - 504_transverse_abdominis
-  - 501_rectus_abdominis
-  - 206_erector_spinae
-  - 507_multifidus
-  search_aliases:
-  - Pullups
-  - yuhonas_pullups
-  - Klimmzug an Leiste
-  - wger_821
-  - Klimmzug im Obergriff
-  - Pull-Up
+      wger:
+      - '821'
   name: Klimmzug im Obergriff
+  schema_version: 2026-08-12.exercise-v1
+  source: approved
+  category: pull
+  _hash: ca0502729ca8a8da6745ff2289218fa2
   common_errors:
   - Mit Kipping, Beinschwung oder Hüftschwung arbeiten statt jede Wiederholung aus
     dem Hang kontrolliert einzuleiten.
@@ -112,6 +71,13 @@ exercises:
     wird und die Kraftübertragung leidet.
   - Zu breit greifen und dadurch ROM, Schultermechanik und saubere Ellbogenführung
     unnötig verschlechtern.
+  variations:
+  - assisted_pull_up
+  - band_assisted_pull_up
+  - weighted_pull_up
+  - wide_grip_pull_up
+  - neutral_grip_pull_up
+  - scapular_pull_up
   secondary_muscles:
   - 202c_trapezius_lower
   - 202b_trapezius_middle
@@ -119,14 +85,31 @@ exercises:
   - 402_biceps_brachii
   - 403_brachialis
   - 404_brachioradialis
-  wger_id: 821
-  id: '020'
+  search_aliases:
+  - Pullups
+  - yuhonas_pullups
+  - Klimmzug an Leiste
+  - wger_821
+  - Klimmzug im Obergriff
+  - Pull-Up
+  aliases:
+  - Klimmzug
+  - Klimmzüge
+  - Klimmzug Obergriff
+  - Klimmzug im Obergriff
+  - Obergriff Klimmzug
+  - Pull-up
+  - Pull-up (Overhand Grip)
+  - Pull Up
+  - Pull Ups
+  - Pull-Up
+  - Pull-Ups
+  - Standard Pull-up
+  - Pronated Pull-up
+  equipment:
+  - bodyweight
+  - pull_up_bar
   english: Pull-Up
-  external_ids:
-    wger:
-    - 821
-    yuhonas:
-    - Pullups
   tags:
   - expert
   - back
@@ -135,6 +118,7 @@ exercises:
   - calisthenics
   - vertical_pull
   - grip_strength
+  id: '020'
   coaching_notes:
   - 'Starte aus einem aktiven Hang: Hals lang, Rippen unten, Schulterblätter zuerst
     sanft nach unten setzen statt passiv in den Schultern zu hängen.'
@@ -152,19 +136,35 @@ exercises:
     Schulterkontrolle, Kraftaufbau und Positionsgefühl im Hang.
   - Der Obergriff verlagert die Belastung etwas stärker auf Latissimus, Teres major
     und oberen Rücken und etwas weniger auf den Bizeps als beim Chin-Up.
-  wger_muscle_ids:
-    primary: []
-    secondary: []
-  _hash: ca0502729ca8a8da6745ff2289218fa2
-  german: Klimmzug im Obergriff
-  equipment:
-  - bodyweight
-  - pull_up_bar
   exercise_id: '020'
-  variations:
-  - assisted_pull_up
-  - band_assisted_pull_up
-  - weighted_pull_up
-  - wide_grip_pull_up
-  - neutral_grip_pull_up
-  - scapular_pull_up
+  external_ids:
+    yuhonas:
+    - Pullups
+    wger:
+    - 821
+  type: compound
+  movements:
+  - vertical
+  - shoulder_adduction
+  - shoulder_extension
+  - elbow_flexion
+  - scapular_depression
+  - scapular_downward_rotation
+  wger_muscle_ids:
+    secondary: []
+    primary: []
+  stabilizers:
+  - 304_rotator_cuff
+  - 405_forearm_flexors
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  - 206_erector_spinae
+  - 507_multifidus
+  german: Klimmzug im Obergriff
+  review_state:
+    status: approved
+  wger_id: 821
+  display_name: Klimmzug im Obergriff
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 207_teres_major
