@@ -1,3 +1,47 @@
+# Fitness-Agent-Notifications aktionierbar gemacht (2026-10-13)
+
+Die headless `claude -p`-Checks für die Fitness-Agent-Klienten-Betreuung
+(Matthias, Simon, Frame-Interview, Jakob) meldeten Fehler bisher nur als
+rohe `notify-send`-Desktop-Notification ohne Folgeaktion — Auslöser war
+der Nutzerhinweis, dass der "fitness-agent" nach seinem täglichen
+systemd-oneshot Notifications über fehlende Schreibrechte schickt, mit
+denen sich nichts anfangen ließ. Jetzt öffnet ein Klick auf die
+Notification direkt ein Terminal mit vorgeladenem Claude-Fix-Prompt.
+
+- **`~/.local/Klienten/bin/lib/agent-notify.sh`** (neu) — gemeinsamer
+  Notify-Helper für alle vier Check-Skripte: schreibt bei Fehlern eine
+  Incident-Markdown-Datei nach `logs/incidents/` und zeigt per
+  `notify-send -A` eine Notification mit den Buttons "🔧 Mit Claude
+  fixen" / "Ignorieren"; entfernt vorher rohe ANSI-Farbcodes aus dem
+  Output (Root-Cause für unlesbare "Schreibrechte"-Meldungen in Log/
+  Notification).
+- **`~/.local/Klienten/bin/lib/agent-fix-prompt.sh`** (neu) — wird vom
+  Notify-Helper via eigene `systemd-run --user --collect`-Unit gestartet
+  und öffnet bei Klick auf "Fix" ein `foot`-Terminal mit laufendem
+  Claude, vorgeladen mit dem Incident. Lief zunächst ins Leere ("Klick
+  macht nix"): `foot` wurde innerhalb derselben Cgroup wie
+  `agent-fix-prompt.sh` selbst gestartet und beim Skript-Ende von
+  systemd (`KillMode=control-group`) mitgekillt — Fix: `foot` bekommt
+  jetzt eine eigene, zweite `systemd-run`-Unit, die den Aufrufer überlebt.
+- **`matthias-daily-check.sh`, `simon-radtour-check.sh`,
+  `frame-interview.sh`, `jakob-checkin.sh`** — rohes `notify-send` durch
+  den neuen Helper ersetzt, ANSI-Stripping vor Log-Schreibung ergänzt.
+- **`~/.claude/settings.json`** — fehlendes Komma (machte die Datei zu
+  ungültigem JSON) behoben; nutzlose `Write(...)`-Permission-Einträge
+  entfernt, da bei Dateizugriffs-Checks nur `Edit(...)`-Regeln greifen —
+  mutmaßlich die eigentliche Ursache der "keine Schreibrechte"-Meldungen
+  im headless-Modus.
+- End-to-End getestet: ein echter `matthias-daily-check.sh`-Lauf (Exit 0,
+  kein Incident) sowie mehrere simulierte Fehler-Notifications; der
+  finale Test nach dem Cgroup-Fix wurde vom Nutzer live als
+  funktionierend bestätigt. Test-Incident-Dateien danach wieder gelöscht.
+- **Nicht committed**: Die neuen/geänderten Dateien liegen unter
+  `~/.local/Klienten/` (kein Git-Repo, nur per Symlink von
+  `~/vital/Klienten` erreichbar) — bleibt auf expliziten Nutzerwunsch
+  unversioniert.
+
+---
+
 # PreCompact-Doc-Hook repariert + auf fuel-dev/plan-dev/coach-dev/6pack-dev ausgerollt (2026-10-13)
 
 Der `PreCompact`-Hook, der `RESULTS.md`/`TODO.md`/`NEXT.md` nach jedem Compact
