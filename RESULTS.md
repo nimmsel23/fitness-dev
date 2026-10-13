@@ -1,16 +1,21 @@
-# Fitness-Build auf pnpm angepasst; direkte App-Submodule wiederhergestellt (2026-10-13)
+# Fitness: pnpm-Build und direkte App-Submodule (2026-10-13)
 
-- Verschachtelte Fitness-Package-Skripte von `npm run` auf `pnpm run`
-  umgestellt. Tailwind scannt 6Pack-Quellen statt dessen Dependencies.
-- Local- und Firebase-Build inklusive Lint, KB-Generierung, Firebase-
-  Cache-Stempel und Snapshots erfolgreich geprüft. Bestehende ESLint-env-,
-  Browserslist- und Chunk-Größen-Warnungen bleiben.
-- VitalOS-Release-Helfer erkennt den pnpm-Workspace und verlangt dort keinen
-  node_modules-Dev-Symlink mehr (VitalOS-Commit `e0fbc99`).
-- Korrektur zu `dd62bf6`: Die direkten `coach-dev`- und `plan-dev`-Submodule
-  werden benötigt. Ihre Entfernung war falsch und wurde rückgängig gemacht,
-  einschließlich Workspace, Lockfile und vorhandener Verzeichnisse.
-  Die beanstandete Dopplung liegt innerhalb von Coach.
+- Direkte Submodule heißen `6pack`, `plan`, `coach` (ohne `-dev`).
+  `.gitmodules`, pnpm-Workspace und Lockfile folgen diesen Pfaden.
+- Ausschließlich die zusätzliche Plan-Kopie innerhalb von Coach entfernt
+  (Coach-Commit `45f4a23`). Die benötigten direkten Plan-/Coach-Einbindungen
+  bleiben bestehen. Ihre irrtümliche Entfernung in `dd62bf6` wurde mit
+  `ed014ac` vollständig rückgängig gemacht, bevor die Pfade umbenannt wurden.
+- Entfernte verschachtelte Plan-Kopie temporär gesichert unter
+  `/tmp/fitness-unused-submodules-xc86753r/coach-nested-plan-dev`.
+- Fitness-Package-Skripte nutzen durchgehend `pnpm run`. Tailwind scannt
+  6Pack-Quellen statt dessen Dependencies. Local- und Firebase-Build wurden
+  erfolgreich geprüft; ESLint-env-, Browserslist- und Bundle-Warnungen bleiben.
+- Offline-pnpm-Installation nach Pfadwechsel erfolgreich, ohne Downloads oder
+  Paketversionsänderungen. `--frozen-lockfile` meldet weiterhin die bereits
+  zuvor im Lockfile fehlende optionale `@vos/cross-app-aliases`-Deklaration
+  von Coach/Plan; diese separate Inkonsistenz wurde nicht umkonfiguriert.
+- VitalOS-Release-Helfer erkennt pnpm-Workspaces (Commit `e0fbc99`).
 - Kein Push, Merge oder Deployment durchgeführt.
 
 # 2026-10-13 — Fotoauswahl und Integration in aktuelle Submodule

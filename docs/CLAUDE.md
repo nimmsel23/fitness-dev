@@ -350,15 +350,13 @@ gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
 - ⏳ AI Agent Workflow (Gemini → anatomy_teaching YAML-Generierung, laufend)
 - ⏳ Coverage-Granularität (primary/secondary/stabilizer) — teilweise
 - ⏳ Anatomie-Lehre für alle Übungen (~28 von ~50+ im Katalog)
-- ✅ pnpm-Workspace (2026-10-13): Root + `6pack`/`coach-dev`/`plan-dev`-Submodule
-  als Workspace-Packages (`pnpm-workspace.yaml`). Namenskollision behoben
-  (`coach-dev`/`plan-dev`-`package.json` hießen beide `"fitness-dev"` wie das
-  Root-Package, jetzt `"coach"`/`"plan"`). `@vos/cross-app-aliases` musste von
-  `file:` auf `link:` umgestellt werden — pnpm kopiert `file:`-Deps in seinen
-  Store statt sie zu symlinken, wodurch der `__dirname`-basierte
-  Sibling-Pfad-Trick in `~/vitalos/packages/cross-app-aliases/index.mjs`
-  (`../../learn-dev/...`) ins Leere lief. `pre-push`/`deploy.sh` nutzen jetzt
-  `pnpm run ...` statt `npm run ...`. pwa/arena existieren nicht (nie
-  angelegt) — aus dem alten Punkt entfernt.
+- ✅ pnpm-Workspace (2026-10-13): Root + `6pack`, `plan`, `coach` als
+  direkte Submodule ohne `-dev` im Verzeichnisnamen. Die zusätzliche
+  Plan-Einbindung innerhalb von Coach wurde entfernt; Plan bleibt direkt
+  unter Fitness. Die eigenständigen Arbeitsrepos heißen weiterhin
+  `~/6pack-dev`, `~/plan-dev`, `~/coach-dev`.
+  `@vos/cross-app-aliases` nutzt `link:` für seine pfadbasierte Auflösung.
+  Fitness-Package-Skripte und Build-Hooks nutzen `pnpm run`; Tailwind scannt
+  6Pack-Quellen ohne dessen Dependencies.
 - ⏳ Coach-Tab-Gesamtaufräumung (`views/Coach/`, 5 Sub-Tabs, ~1000 Zeilen) —
   noch nicht begonnen, Details + Zielbild in `../src/CLAUDE.md`
