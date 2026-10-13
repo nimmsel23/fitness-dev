@@ -356,6 +356,8 @@ gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
   unter Fitness. Die eigenständigen Arbeitsrepos heißen weiterhin
   `~/6pack-dev`, `~/plan-dev`, `~/coach-dev`.
   `@vos/cross-app-aliases` nutzt `link:` für seine pfadbasierte Auflösung.
+  Ein Workspace-Override wendet diese lokale Quelle auch auf Coach/Plan an;
+  deren optionale Abhängigkeit ist damit im Frozen-Lockfile vollständig.
   Fitness-Package-Skripte und Build-Hooks nutzen `pnpm run`; Tailwind scannt
   6Pack-Quellen ohne dessen Dependencies.
 - ⏳ Coach-Tab-Gesamtaufräumung (`views/Coach/`, 5 Sub-Tabs, ~1000 Zeilen) —

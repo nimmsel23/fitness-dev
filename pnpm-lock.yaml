@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@vos/cross-app-aliases': link:../vitalos/packages/cross-app-aliases
+
 importers:
 
   .:
@@ -273,6 +276,10 @@ importers:
       vite-plugin-pwa:
         specifier: ^0.20.0
         version: 0.20.5(vite@5.4.21(@types/node@22.19.19)(terser@5.48.0))(workbox-build@7.4.1(@types/babel__core@7.20.5))(workbox-window@7.4.1)
+    optionalDependencies:
+      '@vos/cross-app-aliases':
+        specifier: link:../../vitalos/packages/cross-app-aliases
+        version: link:../../vitalos/packages/cross-app-aliases
 
   plan:
     dependencies:
@@ -394,6 +401,10 @@ importers:
       vite-plugin-pwa:
         specifier: ^0.20.0
         version: 0.20.5(vite@5.4.21(@types/node@22.19.19)(terser@5.48.0))(workbox-build@7.4.1(@types/babel__core@7.20.5))(workbox-window@7.4.1)
+    optionalDependencies:
+      '@vos/cross-app-aliases':
+        specifier: link:../../vitalos/packages/cross-app-aliases
+        version: link:../../vitalos/packages/cross-app-aliases
 
 packages:
 

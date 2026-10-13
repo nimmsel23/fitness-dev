@@ -1,3 +1,17 @@
+# pnpm frozen-lockfile für Fitness/Coach/Plan korrigiert (2026-10-13)
+
+- Workspace-Override löst das private `@vos/cross-app-aliases` für alle Apps
+  über die bestehende lokale VitalOS-Quelle auf. Coach/Plan verwenden damit
+  nicht mehr die nicht verfügbare Registry-Version `1.0.0`.
+- Lockfile enthält die bisher fehlenden optionalen Links für Coach/Plan;
+  keine Paketversionsänderungen, keine Submodule-Änderungen.
+- `pnpm install --offline --frozen-lockfile --ignore-scripts
+  --config.optimistic-repeat-install=false` erfolgreich für alle vier Pakete.
+  Ohne den letzten Schalter hätte pnpm nur seinen Wiederholungs-Schnellpfad
+  geprüft. Modulauflösung und Import aus Fitness, Coach und Plan separat
+  gegen dieselbe lokale Quelldatei verifiziert.
+- Kein Push oder Deployment.
+
 # Fitness: pnpm-Build und direkte App-Submodule (2026-10-13)
 
 - Direkte Submodule heißen `6pack`, `plan`, `coach` (ohne `-dev`).
@@ -12,9 +26,8 @@
   6Pack-Quellen statt dessen Dependencies. Local- und Firebase-Build wurden
   erfolgreich geprüft; ESLint-env-, Browserslist- und Bundle-Warnungen bleiben.
 - Offline-pnpm-Installation nach Pfadwechsel erfolgreich, ohne Downloads oder
-  Paketversionsänderungen. `--frozen-lockfile` meldet weiterhin die bereits
-  zuvor im Lockfile fehlende optionale `@vos/cross-app-aliases`-Deklaration
-  von Coach/Plan; diese separate Inkonsistenz wurde nicht umkonfiguriert.
+  Paketversionsänderungen. Die dabei gefundene fehlende optionale
+  `@vos/cross-app-aliases`-Deklaration wurde anschließend behoben (siehe oben).
 - VitalOS-Release-Helfer erkennt pnpm-Workspaces (Commit `e0fbc99`).
 - Kein Push, Merge oder Deployment durchgeführt.
 
