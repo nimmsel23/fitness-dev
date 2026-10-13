@@ -1,3 +1,23 @@
+# Fitness: pnpm-Build und direkte App-Submodule (2026-10-13)
+
+- Direkte Submodule heißen `6pack`, `plan`, `coach` (ohne `-dev`).
+  `.gitmodules`, pnpm-Workspace und Lockfile folgen diesen Pfaden.
+- Ausschließlich die zusätzliche Plan-Kopie innerhalb von Coach entfernt
+  (Coach-Commit `45f4a23`). Die benötigten direkten Plan-/Coach-Einbindungen
+  bleiben bestehen. Ihre irrtümliche Entfernung in `dd62bf6` wurde mit
+  `ed014ac` vollständig rückgängig gemacht, bevor die Pfade umbenannt wurden.
+- Entfernte verschachtelte Plan-Kopie temporär gesichert unter
+  `/tmp/fitness-unused-submodules-xc86753r/coach-nested-plan-dev`.
+- Fitness-Package-Skripte nutzen durchgehend `pnpm run`. Tailwind scannt
+  6Pack-Quellen statt dessen Dependencies. Local- und Firebase-Build wurden
+  erfolgreich geprüft; ESLint-env-, Browserslist- und Bundle-Warnungen bleiben.
+- Offline-pnpm-Installation nach Pfadwechsel erfolgreich, ohne Downloads oder
+  Paketversionsänderungen. `--frozen-lockfile` meldet weiterhin die bereits
+  zuvor im Lockfile fehlende optionale `@vos/cross-app-aliases`-Deklaration
+  von Coach/Plan; diese separate Inkonsistenz wurde nicht umkonfiguriert.
+- VitalOS-Release-Helfer erkennt pnpm-Workspaces (Commit `e0fbc99`).
+- Kein Push, Merge oder Deployment durchgeführt.
+
 # 2026-10-13 — Fotoauswahl und Integration in aktuelle Submodule
 
 - Kamera plus Galerie-/Dateiauswahl mit Mehrfachauswahl, Validierung und
