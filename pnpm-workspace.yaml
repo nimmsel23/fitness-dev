@@ -1,6 +1,8 @@
 packages:
   - "."
   - "6pack"
+  - "coach-dev"
+  - "plan-dev"
 allowBuilds:
   '@firebase/util': true
   better-sqlite3: true
