@@ -30,11 +30,18 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
   nicht einzeln manuell durchgegangen/korrigiert worden — der Audit-Check
   selbst ist fertig, die inhaltliche Review-Arbeit an den gefundenen Drafts
   steht noch aus.
-- Der neue `PreCompact`-Hook (`.claude/hooks/pre-compact-fill-docs.sh`)
-  wurde nur mit simuliertem Fake-Input getestet (JSON-/Bash-Syntax, Lock-
-  Verhalten), noch nicht gegen einen echten Compact-Trigger — erster
-  echter Lauf sollte kurz verifiziert werden (füllt er TODO/RESULTS/NEXT
-  sinnvoll, committet der PostToolUse-Hook danach sauber).
+- **`PreCompact`-Hook (2026-10-13 reparierter Stand, Commit `a15fba5`)
+  noch nicht gegen einen echten Compact-Trigger verifiziert**: Logging +
+  Gemini-REST-Fallback wurden nur isoliert getestet (Syntax, Lock-Verhalten,
+  einzelner `curl`-Smoke-Test gegen die Gemini-API), nicht im echten
+  Compact-Ablauf selbst. Gleiches gilt für den Rollout auf `fuel-dev`,
+  `plan-dev`, `coach-dev`, `6pack-dev` — dort wurde nur der
+  `PostToolUse`-Auto-Commit live geprüft, der `PreCompact`-Fallfüllpfad
+  jeweils noch nicht.
+- **CI-Runs der 5 Pushes vom 2026-10-13 (fitness-dev/fuel-dev/plan-dev/
+  coach-dev/6pack-dev, Hook-Fix-Rollout) nicht per `gh run list`/`gh run
+  view` gegengeprüft** — Pushes liefen erfolgreich durch, grüner CI-Status
+  aber nicht verifiziert.
 - Session-Tab-Rebuild Phase 1–4 ist **komplett und deployed** (2026-09-05
   per `fitness-release --yes`: alle `dev`-Commits gepusht, nach `vitalos`
   gemergt, nach `fitness-aos.web.app` deployed — inkl. `e472849`
