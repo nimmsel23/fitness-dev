@@ -38,6 +38,9 @@ importers:
       '@firebase/functions':
         specifier: ^0.12.9
         version: 0.12.9(@firebase/app@0.13.2)
+      '@firebase/installations':
+        specifier: ^0.6.18
+        version: 0.6.18(@firebase/app@0.13.2)
       '@firebase/logger':
         specifier: ^0.4.4
         version: 0.4.4
@@ -47,6 +50,9 @@ importers:
       '@firebase/util':
         specifier: ^1.12.1
         version: 1.12.1
+      '@firebase/webchannel-wrapper':
+        specifier: ^1.0.3
+        version: 1.0.3
       '@hono/node-server':
         specifier: ^2.0.3
         version: 2.0.3(hono@4.12.19)
