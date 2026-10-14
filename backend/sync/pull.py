@@ -48,13 +48,15 @@ class Report:
         return ("[dry-run] " if self.dry_run else "") + ", ".join(parts)
 
 
-def _emit(level: str, uid: str, doc_id: str, action: str, msg: str, **fields) -> None:
-    logger.bind(event="session", direction="pull", uid=uid, doc_id=doc_id, action=action, **fields).log(
-        level, f"session ← {uid[:8]}/{doc_id}  {action}: {msg}"
+def _emit(level: str, uid: str, doc_id: str, action: str, msg: str, *, direction: str = "pull", **fields) -> None:
+    arrow = "←" if direction != "push" else "→"
+    logger.bind(event="session", direction=direction, uid=uid, doc_id=doc_id, action=action, **fields).log(
+        level, f"session {arrow} {uid[:8]}/{doc_id}  {action}: {msg}"
     )
 
 
-def _pull_one(uid: str, doc_id: str, doc: RemoteDoc, store: SessionStore, report: Report, dry_run: bool) -> None:
+def _pull_one(uid: str, doc_id: str, doc: RemoteDoc, store: SessionStore, report: Report, dry_run: bool,
+              direction: str = "pull") -> None:
     remote = jsonable(doc.data)
 
     owner = remote.get("owner_uid")
@@ -62,7 +64,7 @@ def _pull_one(uid: str, doc_id: str, doc: RemoteDoc, store: SessionStore, report
         report.counts["übersprungen"] += 1
         _emit("WARNING", uid, doc_id, "übersprungen",
               f"owner_uid {owner} passt nicht zu {uid} (Cross-User-Guard)",
-              reason="owner_uid", dry_run=dry_run)
+              reason="owner_uid", dry_run=dry_run, direction=direction)
         return
 
     local, local_error = store.read(uid, doc_id)
@@ -71,7 +73,7 @@ def _pull_one(uid: str, doc_id: str, doc: RemoteDoc, store: SessionStore, report
         _emit("WARNING", uid, doc_id, "lokal_defekt",
               f"lokale Datei unlesbar ({local_error})"
               + (f", nach {quarantined.name} verschoben" if quarantined else ""),
-              reason="lokal_defekt", dry_run=dry_run)
+              reason="lokal_defekt", dry_run=dry_run, direction=direction)
         local = None
 
     decision: Decision = decide(local, remote)
@@ -83,7 +85,7 @@ def _pull_one(uid: str, doc_id: str, doc: RemoteDoc, store: SessionStore, report
 
     if not decision.write:
         report.counts["übersprungen"] += 1
-        _emit("DEBUG", uid, doc_id, "übersprungen", decision.reason, **facts)
+        _emit("DEBUG", uid, doc_id, "übersprungen", decision.reason, direction=direction, **facts)
         return
 
     action = "angelegt" if local is None else "aktualisiert"
@@ -92,7 +94,31 @@ def _pull_one(uid: str, doc_id: str, doc: RemoteDoc, store: SessionStore, report
         facts["backup"] = None if backup is None else str(backup)
     report.counts[action] += 1
     report.changes.append(Change(uid, doc_id, action, remote))
-    _emit("INFO", uid, doc_id, action, decision.reason, **facts)
+    _emit("INFO", uid, doc_id, action, decision.reason, direction=direction, **facts)
+
+
+def pull_one_checked(
+    uid: str, doc: RemoteDoc, store: SessionStore, report: Report, *, dry_run: bool = False, direction: str = "pull"
+) -> bool:
+    """Ein Dokument prüfen, entscheiden, schreiben (unter Schreib-Lock) und loggen.
+
+    Gemeinsamer Einstieg für Pull (Batch) und Daemon (live) — damit die Entscheidungs-
+    und Schutzlogik nie in zwei Dateien auseinanderdriftet. Gibt False zurück, wenn die
+    doc_id unbrauchbar war. Ein Fehler stoppt nie den Aufrufer."""
+    try:
+        check_doc_id(doc.id)
+    except InvalidDocId:
+        report.counts["fehler"] += 1
+        _emit("ERROR", uid, doc.id, "fehler", "ungültige doc_id, nicht als Dateiname verwendbar",
+              dry_run=dry_run, direction=direction)
+        return False
+    try:
+        with (nullcontext() if dry_run else store.write_lock()):
+            _pull_one(uid, doc.id, doc, store, report, dry_run, direction)
+    except Exception as exc:  # ein kaputtes Dokument stoppt den Lauf nicht
+        report.counts["fehler"] += 1
+        _emit("ERROR", uid, doc.id, "fehler", f"{type(exc).__name__}: {exc}", dry_run=dry_run, direction=direction)
+    return True
 
 
 def pull_sessions(
@@ -102,21 +128,8 @@ def pull_sessions(
     seen: set[str] = set()
 
     for doc in docs:
-        doc_id = doc.id
-        try:
-            check_doc_id(doc_id)
-        except InvalidDocId:
-            report.counts["fehler"] += 1
-            _emit("ERROR", uid, doc_id, "fehler", "ungültige doc_id, nicht als Dateiname verwendbar", dry_run=dry_run)
-            continue
-        seen.add(doc_id)
-
-        try:
-            with (nullcontext() if dry_run else store.write_lock()):
-                _pull_one(uid, doc_id, doc, store, report, dry_run)
-        except Exception as exc:  # ein kaputtes Dokument stoppt den Lauf nicht
-            report.counts["fehler"] += 1
-            _emit("ERROR", uid, doc_id, "fehler", f"{type(exc).__name__}: {exc}", dry_run=dry_run)
+        if pull_one_checked(uid, doc, store, report, dry_run=dry_run):
+            seen.add(doc.id)
 
     for orphan in sorted(store.list_ids(uid) - seen):
         report.counts["nur_lokal"] += 1

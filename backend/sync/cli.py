@@ -11,6 +11,7 @@ from loguru import logger
 from backend.sync import logsetup
 from backend.core.clients import load_clients
 from backend.sync.lock import AlreadyRunning
+from backend.sync.lock import single_instance
 from backend.sync.runner import resolve_targets, run_pull
 
 sync_app = typer.Typer(no_args_is_help=True, help="Firestore ↔ lokal (Fitness Sync)")
@@ -55,3 +56,49 @@ def pull_sessions_cmd(
         raise typer.Exit(2)
     errors = outcome.errors
     raise typer.Exit(1 if errors else 0)
+
+
+@sync_app.command("run")
+def run_cmd(
+    uid: list[str] = typer.Option([], "--uid", help="zusätzliche Firebase-UID, mehrfach möglich"),
+    clients: bool = typer.Option(True, "--clients/--no-clients", help="alle Klienten aus ~/Klienten (Standard: an)"),
+    include_coach: bool = typer.Option(False, "--include-coach", help="auch die Coach-UID(s) synchronisieren"),
+    notify_: bool = typer.Option(False, "--notify", help="Desktop-Meldung für eingehende Klienten-Workouts"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="nur entscheiden und loggen, nichts schreiben/melden"),
+    duration: float = typer.Option(0.0, "--duration", help="nach N Sekunden beenden (0 = bis SIGTERM/Ctrl+C)"),
+    root: Path = typer.Option(DEFAULT_ROOT, "--root", help="Datenwurzel"),
+    log_dir: Optional[Path] = typer.Option(None, "--log-dir", help="Standard: <root>/logs"),
+    verbose: bool = typer.Option(False, "-v", "--verbose"),
+):
+    """Daemon: Firestore-Änderungen an Sessions live nach lokal übernehmen (mit Reconnect)."""
+    import signal
+    import threading
+
+    from backend.sync.daemon import SyncDaemon
+    from backend.sync.source import FirestoreListener
+
+    registry = load_clients()
+    targets = resolve_targets(list(uid), clients, registry)
+    if include_coach:
+        targets = list(dict.fromkeys(targets + [u for u, c in registry.items() if c.is_coach]))
+    if not targets:
+        raise typer.BadParameter("keine UIDs: --uid angeben oder Klienten in ~/Klienten pflegen")
+
+    jsonl = logsetup.setup(log_dir or root / "logs", verbose)
+    logger.info(f"sync run uids={len(targets)} root={root} dry_run={dry_run} notify={notify_} log={jsonl}")
+    stop = threading.Event()
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        signal.signal(sig, lambda *_: stop.set())
+    if duration > 0:
+        threading.Timer(duration, stop.set).start()
+
+    daemon = SyncDaemon(root=root, registry=registry, listener=FirestoreListener(), notify_=notify_, dry_run=dry_run)
+    try:
+        if dry_run:
+            daemon.run(targets, stop)
+        else:
+            with single_instance(root / ".fitsync" / "fitsync.lock"):
+                daemon.run(targets, stop)
+    except AlreadyRunning as exc:
+        logger.error(f"läuft bereits (Lock {exc}) — abgebrochen")
+        raise typer.Exit(2)
