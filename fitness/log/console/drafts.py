@@ -60,7 +60,19 @@ def list_drafts(uid: str | None = None) -> list[dict]:
             continue
         for f in sorted(d.glob("*.json")):
             try:
-                out.append(json.loads(f.read_text(encoding="utf-8")))
+                entry = json.loads(f.read_text(encoding="utf-8"))
             except Exception:
                 continue
+            entry["id"] = f.stem
+            out.append(entry)
     return sorted(out, key=lambda e: e.get("created_at", ""), reverse=True)
+
+
+def find_draft_path(uid: str, draft_id: str) -> Path | None:
+    """Adressiert einen Draft per (uid, id) fuer die API — id ist der
+    Dateiname ohne Endung (<timestamp>_<kind>_<hex6>), wie list_drafts()
+    ihn zurueckgibt. Kein Pfad-Parameter von aussen, um Path-Traversal
+    ueber den Dateinamen auszuschliessen (uid wird in der API-Schicht
+    gegen [\\w-]{1,128} validiert, siehe fitness/api/routers/coaching.py)."""
+    path = drafts_dir(uid) / f"{draft_id}.json"
+    return path if path.exists() else None
