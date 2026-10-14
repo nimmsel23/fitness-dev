@@ -104,3 +104,9 @@ def test_parallele_schreiber_verlieren_nichts(tmp_path):
     [t.join() for t in threads]
     assert len(ib.entries()) == 20
     json.loads(ib.path.read_text())
+
+
+def test_lesen_ohne_inbox_legt_nichts_an(tmp_path):
+    ib = Inbox(tmp_path / "noch" / "nicht")
+    assert ib.entries() == [] and ib.unseen_count() == 0 and ib.get("x") is None
+    assert not (tmp_path / "noch").exists()

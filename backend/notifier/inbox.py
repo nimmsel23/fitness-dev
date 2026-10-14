@@ -161,6 +161,8 @@ class Inbox:
 
     # --- Lesen -----------------------------------------------------------
     def entries(self, *, unseen_only: bool = False, uid: str | None = None) -> list[Entry]:
+        if not self.path.exists():          # Lesen soll nichts anlegen (weder Ordner noch Lock)
+            return []
         with self._locked():
             state = self._load()
         out = [self._to_entry(raw, state["seen"]) for raw in state["entries"].values()]
