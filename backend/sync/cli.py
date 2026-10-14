@@ -17,6 +17,8 @@ from backend.sync.runner import resolve_targets, run_pull
 sync_app = typer.Typer(no_args_is_help=True, help="Firestore ↔ lokal (Fitness Sync)")
 pull_app = typer.Typer(no_args_is_help=True, help="Daten aus Firestore holen")
 sync_app.add_typer(pull_app, name="pull")
+push_app = typer.Typer(no_args_is_help=True, help="Lokale Daten nach Firestore schreiben (Standard: Dry-Run)")
+sync_app.add_typer(push_app, name="push")
 
 DEFAULT_ROOT = Path(os.environ.get("FITNESS_DATA_ROOT", Path.home() / ".aos" / "fitness"))
 
@@ -102,3 +104,36 @@ def run_cmd(
     except AlreadyRunning as exc:
         logger.error(f"läuft bereits (Lock {exc}) — abgebrochen")
         raise typer.Exit(2)
+
+
+@push_app.command("sessions")
+def push_sessions_cmd(
+    uid: str = typer.Option(None, "--uid", help="Firebase-UID (für --apply Pflicht, kein Standardwert)"),
+    apply: bool = typer.Option(False, "--apply", help="WIRKLICH nach Firestore schreiben (ohne: nur Dry-Run)"),
+    only: list[str] = typer.Option([], "--only", help="nur diese Session-ID(s), z.B. 2026-09-08"),
+    root: Path = typer.Option(DEFAULT_ROOT, "--root", help="Datenwurzel"),
+    log_dir: Optional[Path] = typer.Option(None, "--log-dir", help="Standard: <root>/logs"),
+    verbose: bool = typer.Option(False, "-v", "--verbose", help="auch übersprungene Dokumente auf der Konsole"),
+):
+    """Sessions nach fitness/<uid>/sessions schreiben. Ohne --apply wird nur entschieden und geloggt."""
+    from backend.core.store import SessionStore
+    from backend.sync.lock import single_instance
+    from backend.sync.push import push_sessions
+    from backend.sync.source import FirestoreTarget
+
+    if apply and not uid:
+        raise typer.BadParameter("--apply verlangt eine ausdrückliche --uid (kein stiller Standardwert beim Schreiben)")
+    uid = resolve_uid(uid)
+    jsonl = logsetup.setup(log_dir or root / "logs", verbose)
+    logger.info(f"push sessions uid={uid} root={root} apply={apply} log={jsonl}")
+    store, target = SessionStore(root), FirestoreTarget()
+    try:
+        if apply:
+            with single_instance(root / ".fitsync" / "fitsync.lock"):
+                report = push_sessions(uid, store, target, dry_run=False, only=set(only) or None)
+        else:
+            report = push_sessions(uid, store, target, dry_run=True, only=set(only) or None)
+    except AlreadyRunning as exc:
+        logger.error(f"läuft bereits (Lock {exc}) — abgebrochen")
+        raise typer.Exit(2)
+    raise typer.Exit(1 if report.errors else 0)

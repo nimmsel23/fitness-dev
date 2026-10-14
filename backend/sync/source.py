@@ -70,3 +70,16 @@ class FirestoreListener:
             _WatchHandle(watches).stop()
             raise
         return _WatchHandle(watches)
+
+
+class FirestoreTarget:
+    """Schreibziel für den Push: fitness/<uid>/sessions/<doc_id>."""
+
+    def _col(self, uid: str):
+        return _client().collection("fitness").document(uid).collection("sessions")
+
+    def fetch_all(self, uid: str) -> dict:
+        return {d.id: d.to_dict() or {} for d in self._col(uid).stream()}
+
+    def write(self, uid: str, doc_id: str, data: dict) -> None:
+        self._col(uid).document(doc_id).set(data)
