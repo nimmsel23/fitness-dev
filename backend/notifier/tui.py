@@ -19,6 +19,7 @@ from textual.screen import ModalScreen
 from textual.widgets import DataTable, Footer, Header, Input, Static
 
 from backend.core.store import SessionStore
+from backend.notifier.chronicle import Chronicle
 from backend.notifier.config import NotifyConfig
 from backend.notifier.detail import render_detail
 from backend.notifier.inbox import Entry, Inbox
@@ -42,11 +43,12 @@ class HelpScreen(ModalScreen):
         yield Static(Text(
             "WORKOUT-INBOX · TASTEN\n\n"
             "↑ ↓ / j k   Workout auswählen\n"
-            "Leertaste   Gesehen / neu umschalten\n"
-            "m           Gesehen + nächstes neues Workout\n"
-            "n           Nächstes neues Workout (zyklisch)\n"
-            "A           Sichtbare Workouts als gesehen markieren\n"
-            "u           Nur neue Workouts / alle\n"
+            "h / i       Chronik (letzte 5 Tage) / Inbox\n"
+            "Leertaste   Gesehen / neu umschalten (Inbox)\n"
+            "m           Gesehen + nächstes neues Workout (Inbox)\n"
+            "n           Nächstes neues Workout (Inbox, zyklisch)\n"
+            "A           Sichtbare Workouts gesehen (Inbox)\n"
+            "u           Nur neue Workouts / alle (Inbox)\n"
             "c           Klientenfilter wechseln\n"
             "/           Suche (Klient, Datum, Workout)\n"
             "d           Details groß / geteilte Ansicht\n"
@@ -76,6 +78,8 @@ class InboxApp(App):
     .details-only #list { display: none; }
     """
     BINDINGS = [
+        Binding("h", "chronicle", "Chronik"),
+        Binding("i", "inbox", "Inbox"),
         Binding("slash", "search", "Suche"),
         Binding("question_mark", "help", "Hilfe"),
         Binding("d", "detail", "Details"),
@@ -93,12 +97,15 @@ class InboxApp(App):
     ]
 
     def __init__(self, root: Path, config: NotifyConfig | None = None, *, inbox: Inbox | None = None,
-                 scratchpad: Scratchpad | None = None, poll_interval: float = 1.0):
+                 scratchpad: Scratchpad | None = None, poll_interval: float = 1.0,
+                 view: str = "chronicle", chronicle: Chronicle | None = None):
         super().__init__()
         self.root = Path(root)
         self.config = config or NotifyConfig()
         self.inbox = inbox or Inbox(notifier_dir(self.root))
         self.store = SessionStore(self.root)
+        self.chronicle = chronicle or Chronicle(self.root)
+        self.view = view
         self.scratchpad = scratchpad
         self.poll_interval = poll_interval
         self.auto_seen = self.config.auto_seen_seconds
@@ -154,7 +161,12 @@ class InboxApp(App):
         keep = keep if keep is not None else self.current_id()
         old_index = keep_index if keep_index is not None else self.table.cursor_row
         self._signature = self.inbox.signature()
-        self._all = self.inbox.entries()
+        if self.view == "chronicle":
+            self._signature = self.chronicle.signature()
+            self._all = self.chronicle.entries()
+        else:
+            self._all = self.inbox.entries()
+        self.table.border_title = "Chronik · letzte 5 Tage" if self.view == "chronicle" else "Workout-Inbox"
         entries = self._all
         if self.client_filter:
             entries = [e for e in entries if e.client == self.client_filter]
@@ -169,7 +181,7 @@ class InboxApp(App):
         table.clear()
         for e in entries:
             mark = Text("●", style="bold green") if e.unseen else Text(" ")
-            style = "bold" if e.unseen else "dim"
+            style = "bold" if e.unseen else ("" if self.view == "chronicle" else "dim")
             table.add_row(mark, Text(e.date, style=style), Text(e.client, style=style),
                           Text(_info(e), style=style), key=e.id)
         if entries:
@@ -190,15 +202,17 @@ class InboxApp(App):
             self._seen_timer = None
         self._shown_id = eid
         if entry is None:
-            renderable = Text("Keine Workouts.\n\nHier erscheinen neue Klienten-Workouts nach einem Pull mit --notify.\n"
-                              "Einrichtung prüfen: fitness-inbox doctor\n"
-                              "Benachrichtigungen aktivieren: fitness-inbox init"
-                              if not self._all else "Nichts in dieser Ansicht (Suche oder Filter mit u/c ändern).",
+            empty = "Keine Workouts in den letzten fünf Tagen.\n\nLokale Sessions werden nach dem Sync hier angezeigt."
+            if self.view == "inbox":
+                empty = ("Keine Workouts.\n\nHier erscheinen neue Klienten-Workouts nach einem Pull mit --notify.\n"
+                         "Einrichtung prüfen: fitness-inbox doctor\n")
+                empty += "Benachrichtigungen aktivieren: fitness-inbox init\nChronik der letzten fünf Tage: h"
+            renderable = Text(empty if not self._all else "Nichts in dieser Ansicht (Suche oder Filter mit u/c ändern).",
                               style="dim")
         else:
             session, error = self.store.read(entry.uid, entry.doc_id)
             renderable = render_detail(entry, session, error)
-            if session is not None and entry.unseen and self.auto_seen > 0:
+            if self.view == "inbox" and session is not None and entry.unseen and self.auto_seen > 0:
                 self._seen_timer = self.set_timer(self.auto_seen,
                     lambda eid=entry.id, marker=entry.marker: self._auto_seen(eid, marker))
         detail.update(renderable)
@@ -210,21 +224,29 @@ class InboxApp(App):
 
     def _update_status(self) -> None:
         unseen = sum(1 for e in self._all if e.unseen)
+        first = ("5 TAGE", "bold cyan") if self.view == "chronicle" else (f"● {unseen} NEU", "bold green")
         self.query_one("#overview", Static).update(Text.assemble(
-            (f"● {unseen} NEU", "bold green"), "    ",
+            first, "    ",
             (f"{len(self._all)} WORKOUTS", "bold"), "    ",
             (f"{len({e.uid for e in self._all})} KLIENTEN", "cyan"), "    ",
             (f"{len(self._entries)} in Ansicht", "dim")))
-        parts = ["Live · lokale Workout-Inbox"]
+        if self.view == "chronicle":
+            start, end = self.chronicle.period
+            parts = [f"Chronik · {start:%d.%m.}–{end:%d.%m.%Y}"]
+            if self.chronicle.skipped:
+                parts.append(f"{self.chronicle.skipped} unlesbare Sessions übersprungen")
+        else:
+            parts = ["Live · lokale Workout-Inbox"]
         if self.only_unseen:
             parts.append("Filter: nur Neue")
         if self.client_filter:
             parts.append(f"Klient: {self.client_filter}")
         if self.search_query:
             parts.append(f"Suche: {self.search_query}")
-        parts.append(f"Auto-gesehen: {self.auto_seen:g}s" if self.auto_seen > 0 else "Gesehen: manuell")
+        if self.view == "inbox":
+            parts.append(f"Auto-gesehen: {self.auto_seen:g}s" if self.auto_seen > 0 else "Gesehen: manuell")
         self.query_one("#status", Static).update("  ·  ".join(parts))
-        self.sub_title = f"{unseen} neu" if unseen else "alles gesehen"
+        self.sub_title = "Chronik · letzte 5 Tage" if self.view == "chronicle" else (f"{unseen} neu" if unseen else "alles gesehen")
 
     # --- Ereignisse ----------------------------------------------------------------
     def on_data_table_row_highlighted(self, event: DataTable.RowHighlighted) -> None:
@@ -232,18 +254,23 @@ class InboxApp(App):
             self._show_current()
 
     def _auto_seen(self, eid: str, marker: str) -> None:
-        if self.current_id() == eid and not isinstance(self.screen, ModalScreen):
+        if self.view == "inbox" and self.current_id() == eid and not isinstance(self.screen, ModalScreen):
             self.inbox.mark_seen([eid], expected={eid: marker})
             self.reload(keep=eid)
 
     def _poll(self) -> None:
         focus = take_focus_request(notifier_dir(self.root))
-        if self.inbox.signature() != self._signature or focus:
+        source = self.chronicle if self.view == "chronicle" else self.inbox
+        if source.signature() != self._signature or focus:
             self.reload()
         if focus:
             self._focus_entry(focus)
 
     def _focus_entry(self, eid: str) -> None:
+        if self.view != "inbox":
+            self.view = "inbox"
+            self.reload()
+            self.refresh_bindings()
         if self._entry(eid) is None and (self.only_unseen or self.client_filter or self.search_query):
             self.only_unseen, self.client_filter = False, None
             self.search_query = ""
@@ -257,6 +284,22 @@ class InboxApp(App):
         self.table.focus()
 
     # --- Aktionen ------------------------------------------------------------------
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        if action in {"toggle_seen", "seen_next", "next_unseen", "mark_all_seen", "toggle_unseen_only"}:
+            return self.view == "inbox"
+        return True
+
+    def action_chronicle(self) -> None:
+        self.view = "chronicle"
+        self.only_unseen = False
+        self.reload()
+        self.refresh_bindings()
+
+    def action_inbox(self) -> None:
+        self.view = "inbox"
+        self.reload()
+        self.refresh_bindings()
+
     def on_input_changed(self, event: Input.Changed) -> None:
         self.search_query = event.value.strip().casefold()
         self.reload()
@@ -287,6 +330,8 @@ class InboxApp(App):
         self.reload()
 
     def action_toggle_seen(self) -> None:
+        if self.view != "inbox":
+            return
         e = self._entry(self.current_id())
         if e is None:
             return
@@ -308,6 +353,8 @@ class InboxApp(App):
         self.notify("Nichts Neues mehr.", timeout=2)
 
     def action_seen_next(self) -> None:
+        if self.view != "inbox":
+            return
         e = self._entry(self.current_id())
         if e is None:
             return
@@ -318,6 +365,8 @@ class InboxApp(App):
         self.reload(keep=next_id, keep_index=idx)
 
     def action_mark_all_seen(self) -> None:
+        if self.view != "inbox":
+            return
         n = self.inbox.mark_seen([e.id for e in self._entries],
                                  expected={e.id: e.marker for e in self._entries})
         self.reload()

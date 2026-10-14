@@ -1,3 +1,7 @@
+# [x] Workout-Chronik der letzten fünf Tage in der TUI (2026-10-15)
+- Lokale Sessions direkt als Startansicht; h/i wechseln Chronik und Inbox.
+- Fünf reale Workouts sichtbar, Anzeige schreibgeschützt, 153 Tests grün.
+
 # [x] Workout-Inbox-TUI prüfen, verbessern und als Python-Paket installieren (2026-10-15)
 - Suche, Hilfe und adaptive Detailansicht; Navigation und Lesemarkierungen repariert.
 - Console-Entry-Point im Repo-PATH installiert; 145 Tests und Wheel-Start geprüft.

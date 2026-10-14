@@ -69,7 +69,8 @@ def render_detail(entry, session: dict | None, error: str | None = None) -> Rend
         meta.append(f"Stimmung {session['mood']}")
     if meta:
         parts.append(Text("  ·  ".join(meta), style="cyan"))
-    parts.append(Text(f"{'Neu eingegangen' if entry.action == 'angelegt' else 'Aktualisiert'}"
+    label = "Workout-Chronik" if entry.action == "chronik" else ("Neu eingegangen" if entry.action == "angelegt" else "Aktualisiert")
+    parts.append(Text(f"{label}"
                       f"  ·  Stand {entry.saved_at or '?'}  ·  rev {entry.rev}", style="dim"))
 
     notes = (session.get("notes") or "").strip()

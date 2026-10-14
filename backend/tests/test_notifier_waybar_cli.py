@@ -91,6 +91,18 @@ def test_kaputte_config_stoppt_mit_klarer_meldung(env):
     assert runner.invoke(cli_mod.app, ["doctor"]).exit_code == 1
 
 
+def test_cli_chronik_liest_bestehende_sessions_ohne_inbox(env):
+    from datetime import date
+    from backend.core.store import SessionStore
+    root = env / "data"
+    day = date.today().isoformat()
+    SessionStore(root).write("U1", day, {"date": day, "sessionMode": "strength"})
+    result = runner.invoke(cli_mod.app, ["list", "--chronicle", "--json", "--uid", "U1"])
+    assert result.exit_code == 0, result.output
+    assert [e["date"] for e in json.loads(result.output)] == [day]
+    assert not notifier_dir(root).exists()
+
+
 # --- Action-Helfer (Klick auf die Meldung) ---------------------------------------------------------
 class FakePad:
     shown = []

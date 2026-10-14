@@ -54,13 +54,14 @@ def _pad(root: Optional[Path]) -> Scratchpad:
 # --- Oberfläche ---------------------------------------------------------------------
 @app.command()
 def tui(root: Optional[Path] = RootOpt,
+        inbox_only: bool = typer.Option(False, "--inbox", help="Mit der Eingangs-Inbox statt der 5-Tage-Chronik starten"),
         scratchpad: bool = typer.Option(False, "--scratchpad", help="Escape blendet das Hyprland-Scratchpad aus")):
     """Workout-Inbox als TUI starten (im Terminal oder per Scratchpad)."""
     from backend.notifier.tui import InboxApp
 
     cfg = _config()
     pad = Scratchpad(cfg.scratchpad, root=_root(root)) if scratchpad else None
-    InboxApp(_root(root), cfg, scratchpad=pad).run()
+    InboxApp(_root(root), cfg, scratchpad=pad, view="inbox" if inbox_only else "chronicle").run()
 
 
 def _run_pad(action: str, root: Optional[Path], focus: Optional[str] = None):
@@ -112,9 +113,14 @@ def waybar_cmd(root: Optional[Path] = RootOpt,
 # --- Inbox-CLI -------------------------------------------------------------------------
 @app.command("list")
 def list_cmd(root: Optional[Path] = RootOpt, unseen: bool = typer.Option(False, "--unseen"),
-             uid: Optional[str] = typer.Option(None, "--uid"), as_json: bool = typer.Option(False, "--json")):
+             uid: Optional[str] = typer.Option(None, "--uid"), as_json: bool = typer.Option(False, "--json"),
+             chronicle: bool = typer.Option(False, "--chronicle", help="Workout-Chronik der letzten fünf Kalendertage")):
     """Einträge der Inbox anzeigen."""
-    entries = _inbox(root).entries(unseen_only=unseen, uid=uid)
+    if chronicle:
+        from backend.notifier.chronicle import Chronicle
+        entries = [] if unseen else Chronicle(_root(root)).entries(uid=uid)
+    else:
+        entries = _inbox(root).entries(unseen_only=unseen, uid=uid)
     if as_json:
         typer.echo(json.dumps([Inbox.as_dict(None, e) for e in entries], ensure_ascii=False, indent=2))
         return

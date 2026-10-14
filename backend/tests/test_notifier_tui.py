@@ -47,7 +47,7 @@ def three(root):
 
 def drive(root, scenario, *, config=None, scratchpad=None, poll=0.1):
     async def main():
-        app = InboxApp(root, config or NotifyConfig(auto_seen_seconds=0), scratchpad=scratchpad, poll_interval=poll)
+        app = InboxApp(root, config or NotifyConfig(auto_seen_seconds=0), scratchpad=scratchpad, poll_interval=poll, view="inbox")
         async with app.run_test(size=SIZE) as pilot:
             await pilot.pause()
             return await scenario(app, pilot)

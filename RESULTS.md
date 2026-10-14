@@ -1,3 +1,21 @@
+# Fünf-Tage-Workout-Chronik als TUI-Startansicht ergänzt (2026-10-15)
+
+- `backend/notifier/chronicle.py` liest Sessions direkt aus dem lokalen
+  SessionStore für heute und die vier vorherigen Kalendertage, neueste zuerst.
+  Namensauflösung über Klienten-Registry, eigene Sessions eingeschlossen.
+- `fitness-inbox tui` startet mit Chronik; `h` Chronik, `i` Eingangs-Inbox,
+  `--inbox` für direkten Inbox-Start. Suche, Personenfilter und Details in
+  beiden Ansichten; Lesemarkierungen und Neu-Filter nur in der Inbox.
+- Stat-Polling erkennt neue, geänderte und entfernte Sessions sowie den
+  Tageswechsel. Chronik erzeugt keine Inbox und verändert keine Laufzeitdaten.
+- CLI: `fitness-inbox list --chronicle [--json] [--uid UID]`.
+- Verifiziert: 153 Tests; installiertes Kommando aus `/tmp`; installierte
+  TUI zeigt alle fünf realen lokalen Workouts vom 11.–15.10. für drei Personen
+  mit lesbaren Details. Session-Inhalte und mtimes vor/nach der Anzeige
+  identisch; keine Notifier-Dateien erzeugt. Wheel mit Chronik gebaut.
+
+---
+
 # Workout-Inbox-TUI verbessert und als Python-Kommando installiert (2026-10-15)
 
 - `fitness-inbox` als Console-Entry-Point in `fitness-agent`; `backend` wird mit

@@ -70,6 +70,19 @@ Klienten werden über slug, Name oder UID gefunden. Fehlerhafte Werte ergeben ei
 
 ## Scratchpad-TUI
 
+`fitness-inbox tui` startet mit der **Chronik der letzten fünf Kalendertage**
+(heute und vier Tage davor). Sie liest vorhandene lokale Sessions aus
+`<root>/users/<uid>/sessions/*.json`, unabhängig von Notification-Eingängen.
+Sortiert wird nach Workout-Datum, neueste zuerst. Klientennamen kommen aus
+`~/Klienten/*/client.json`; eigene Coach-Sessions sind ebenfalls enthalten.
+Neue, geänderte und entfernte Session-Dateien werden beim Polling erkannt.
+Die Chronik erzeugt keine Inbox-Einträge und ändert keine Gesehen-Markierungen.
+
+`h` zeigt die Chronik, `i` die Inbox. Gesehen/Neu-Aktionen und der Neu-Filter
+sind nur in der Inbox aktiv. `fitness-inbox tui --inbox` startet direkt dort.
+Die Chronik lässt sich auch mit `fitness-inbox list --chronicle` oder
+`fitness-inbox list --chronicle --json --uid <uid>` lesen.
+
 `fitness-inbox toggle` zeigt/versteckt die Inbox-TUI in `special:S-fitness` (Namensschema deiner
 `S-term`/`S-music`/`S-files`). Beim ersten Aufruf wird sie gestartet (`foot --app-id fitness-inbox`,
 schwebend, 70 % × 80 %, zentriert); danach bleibt sie im Hintergrund laufen und aktualisiert sich selbst
@@ -78,6 +91,7 @@ schwebend, 70 % × 80 %, zentriert); danach bleibt sie im Hintergrund laufen und
 | Taste | Aktion |
 |---|---|
 | ↑ ↓ / j k | Navigation |
+| h / i | Chronik der letzten fünf Tage / Eingangs-Inbox |
 | Leertaste | gesehen ⇄ neu |
 | m | gesehen + zum nächsten Neuen |
 | n | nächstes Neues (zyklisch) |
@@ -102,7 +116,7 @@ Anzeige eingegangene neue Revision bleibt ungesehen, bis sie angezeigt wird.
 `fitness-inbox tui` läuft ohne Hyprland. Der Scratchpad-Launcher übergibt
 `tui --scratchpad`, damit Escape dort nur das Fenster ausblendet.
 
-Eine leere Inbox zeigt Einrichtungshinweise. Sie ist eine Eingangsübersicht
+Eine leere Inbox zeigt Einrichtungshinweise. Die Eingangs-Inbox ist eine Eingangsübersicht
 für neue/aktualisierte Workouts beim Pull mit `--notify`, kein Session-Archiv:
 `init` allein trägt vorhandene Sessions nicht nachträglich ein.
 
