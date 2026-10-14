@@ -76,5 +76,55 @@ class PhotoTests(unittest.TestCase):
         self.assertIn('authorization', response.headers['access-control-allow-headers'])
 
 
+class DevUidBypassTests(unittest.TestCase):
+    """Lokaler Dev-Bypass (x-fitness-uid ohne Token) — nur per Env-Flag, nie hinter Proxy."""
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.env = {'FITNESS_SIXPACK_PHOTOS_DIR': self.temp.name}
+        verifier = patch.object(photos, 'verify_photo_token', side_effect=auth.InvalidIdTokenError('bad token'))
+        verifier.start(); self.addCleanup(verifier.stop)
+        app = FastAPI()
+        app.include_router(photos.router)
+        self.client = TestClient(app)
+        self.params = {'filename': 'photo.png', 'id': '12345678-1234-1234-1234-123456789abc', 'date': '2026-10-13T12:00:00.000Z'}
+
+    def request(self, method, url, flag='1', **kwargs):
+        env = {**self.env, **({'FITNESS_SIXPACK_DEV_UID_AUTH': flag} if flag is not None else {})}
+        with patch.dict(os.environ, env):
+            return self.client.request(method, url, **kwargs)
+
+    def upload(self, uid='local', **kwargs):
+        headers = {'x-fitness-uid': uid, 'Content-Type': 'image/png', **kwargs.pop('headers', {})}
+        return self.request('POST', '/sixpack/photos', params=self.params, headers=headers, content=b'image bytes', **kwargs)
+
+    def test_off_by_default(self):
+        for flag in (None, '', '0', 'true'):
+            self.assertEqual(self.upload(flag=flag).status_code, 401, flag)
+            self.assertEqual(self.request('GET', '/sixpack/photos', flag=flag, headers={'x-fitness-uid': 'local'}).status_code, 401, flag)
+
+    def test_enabled_roundtrip_and_isolation(self):
+        saved = self.upload()
+        self.assertEqual(saved.status_code, 200, saved.text)
+        name = saved.json()['filename']
+        listed = self.request('GET', '/sixpack/photos', headers={'x-fitness-uid': 'local'}).json()
+        self.assertEqual((listed['uid'], len(listed['photos'])), ('local', 1))
+        image = self.request('GET', f'/sixpack-photos/local/{name}', headers={'x-fitness-uid': 'local'})
+        self.assertEqual(image.content, b'image bytes')
+        self.assertEqual(self.request('GET', '/sixpack/photos', headers={'x-fitness-uid': 'other'}).json()['photos'], [])
+        self.assertEqual(self.request('GET', f'/sixpack-photos/local/{name}', headers={'x-fitness-uid': 'other'}).status_code, 403)
+        self.assertEqual(self.request('GET', '/sixpack/photos?uid=other', headers={'x-fitness-uid': 'local'}).status_code, 403)
+
+    def test_never_behind_proxy_or_with_bearer_or_bad_uid(self):
+        for header in ('x-forwarded-for', 'x-forwarded-host', 'forwarded'):
+            self.assertEqual(self.upload(headers={header: '100.64.0.1'}).status_code, 401, header)
+        # Bearer-Token wird immer geprüft, x-fitness-uid zählt dann nicht
+        self.assertEqual(self.request('GET', '/sixpack/photos', headers={'authorization': 'Bearer forged', 'x-fitness-uid': 'local'}).status_code, 401)
+        for bad in ('../x', 'a/b', 'x' * 129, ''):
+            self.assertEqual(self.request('GET', '/sixpack/photos', headers={'x-fitness-uid': bad}).status_code, 401, bad)
+        self.assertEqual(list(Path(self.temp.name).rglob('*')), [])
+
+
 if __name__ == '__main__':
     unittest.main()

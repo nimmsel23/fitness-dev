@@ -29,7 +29,34 @@ def verify_photo_token(token):
     return auth.verify_id_token(token, app=app, check_revoked=True)
 
 
+def dev_uid_auth_enabled():
+    """Lokaler Dev-Bypass: ohne Firebase-Token (Local-Modus, uid "local") darf der
+    Client sich per x-fitness-uid ausweisen. Bewusst nur per Env-Flag aktivierbar
+    (Default AUS) — im Prod-Prozess hinter dem Funnel darf das Flag nicht gesetzt sein."""
+    return os.getenv('FITNESS_SIXPACK_DEV_UID_AUTH', '').strip() == '1'
+
+
+def dev_uid(request: Request):
+    """uid aus x-fitness-uid, nur im Dev-Bypass und nur ohne Authorization-Header.
+    Zusätzliche Sperre: Requests, die über einen Proxy kamen (x-forwarded-*,
+    Funnel/Serve), werden nie per Bypass akzeptiert — auch nicht bei gesetztem Flag."""
+    if not dev_uid_auth_enabled() or request.headers.get('authorization'):
+        return None
+    if any(name.startswith('x-forwarded-') or name == 'forwarded' for name in request.headers.keys()):
+        return None
+    uid = request.headers.get('x-fitness-uid', '')
+    if not re.fullmatch(r'[\w-]{1,128}', uid, re.ASCII):
+        return None
+    supplied = request.query_params.get('uid')
+    if supplied and supplied != uid:
+        raise HTTPException(403, 'forbidden')
+    return uid
+
+
 def current_user(request: Request):
+    bypass = dev_uid(request)
+    if bypass:
+        return bypass
     match = re.fullmatch(r'Bearer ([^\s]+)', request.headers.get('authorization', ''), re.I)
     if not match:
         raise HTTPException(401, 'authentication_required', headers={'Cache-Control': 'no-store'})
