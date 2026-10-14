@@ -1,0 +1,97 @@
+"""Lokaler Session-Speicher: ~/.aos/fitness/users/<uid>/sessions/<doc_id>.json.
+
+* doc_id wird als Dateiname validiert (kommt aus Firestore, nie blind vertrauen).
+* Schreiben ist atomar (tmp + os.replace). Der tmp-Name `.<name>.tmp` passt
+  nicht auf den Session-Dateinamen-Regex der Watcher und wird dort ignoriert.
+* Vor dem Ersetzen wird die bisherige Fassung nach
+  `<root>/.fitsync/prev/<uid>/<doc_id>.json` gesichert (letzte ersetzte Version).
+"""
+from __future__ import annotations
+
+import json
+import os
+import re
+import shutil
+from datetime import date, datetime
+from pathlib import Path
+from typing import Any
+
+_DOC_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.\-]*$")
+_SESSION_FILE_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})(?:__(.+))?\.json$")
+
+
+class InvalidDocId(ValueError):
+    pass
+
+
+def jsonable(value: Any) -> Any:
+    """Rekursiv JSON-tauglich machen (Firestore-Timestamps → ISO-String)."""
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    if isinstance(value, dict):
+        return {str(k): jsonable(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [jsonable(v) for v in value]
+    return value
+
+
+def check_doc_id(doc_id: str) -> str:
+    if not _DOC_ID_RE.match(doc_id) or ".." in doc_id:
+        raise InvalidDocId(doc_id)
+    return doc_id
+
+
+class SessionStore:
+    def __init__(self, root: Path):
+        self.root = Path(root)
+
+    def sessions_dir(self, uid: str) -> Path:
+        return self.root / "users" / check_doc_id(uid) / "sessions"
+
+    def path(self, uid: str, doc_id: str) -> Path:
+        return self.sessions_dir(uid) / f"{check_doc_id(doc_id)}.json"
+
+    def read(self, uid: str, doc_id: str) -> tuple[dict | None, str | None]:
+        """(daten, fehler): (None, None) = nicht vorhanden, (None, msg) = defekt."""
+        p = self.path(uid, doc_id)
+        if not p.exists():
+            return None, None
+        try:
+            data = json.loads(p.read_text())
+        except Exception as exc:
+            return None, f"{type(exc).__name__}: {exc}"
+        if not isinstance(data, dict):
+            return None, "kein JSON-Objekt"
+        return data, None
+
+    def list_ids(self, uid: str) -> set[str]:
+        d = self.sessions_dir(uid)
+        if not d.is_dir():
+            return set()
+        return {p.name.removesuffix(".json") for p in d.iterdir() if _SESSION_FILE_RE.match(p.name)}
+
+    def _backup(self, uid: str, doc_id: str) -> Path | None:
+        src = self.path(uid, doc_id)
+        if not src.exists():
+            return None
+        dst = self.root / ".fitsync" / "prev" / uid / f"{doc_id}.json"
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dst)
+        return dst
+
+    def quarantine(self, uid: str, doc_id: str) -> Path:
+        """Defekte lokale Datei beiseitelegen (statt sie stumm zu überschreiben)."""
+        src = self.path(uid, doc_id)
+        dst = src.with_name(src.name + ".corrupt")
+        os.replace(src, dst)
+        return dst
+
+    def write(self, uid: str, doc_id: str, data: dict[str, Any]) -> Path | None:
+        """Schreibt atomar, gibt den Pfad der Sicherung der Vorversion zurück (oder None)."""
+        target = self.path(uid, doc_id)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        backup = self._backup(uid, doc_id)
+        tmp = target.with_name(f".{target.name}.tmp")
+        tmp.write_text(json.dumps(jsonable(data), indent=2, ensure_ascii=False))
+        os.replace(tmp, target)
+        return backup
