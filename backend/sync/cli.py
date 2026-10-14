@@ -10,9 +10,8 @@ from loguru import logger
 
 from backend.sync import logsetup
 from backend.core.clients import load_clients
-from backend.sync.lock import AlreadyRunning, single_instance
-from backend.sync.pull import pull_sessions
-from backend.core.store import SessionStore
+from backend.sync.lock import AlreadyRunning
+from backend.sync.runner import resolve_targets, run_pull
 
 sync_app = typer.Typer(no_args_is_help=True, help="Firestore ↔ lokal (Fitness Sync)")
 pull_app = typer.Typer(no_args_is_help=True, help="Daten aus Firestore holen")
@@ -44,45 +43,15 @@ def pull_sessions_cmd(
     verbose: bool = typer.Option(False, "-v", "--verbose", help="auch übersprungene Dokumente auf der Konsole"),
 ):
     """Sessions aus Firestore nach <root>/users/<uid>/sessions holen."""
-    from backend.sync import notify
-    from backend.sync import source
-
     registry = load_clients()
-    uids = list(uid)
-    if clients:
-        uids += [u for u, c in registry.items() if not c.is_coach]
-    if not uids:
-        uids = [resolve_uid(None)]
-    uids = list(dict.fromkeys(uids))
+    uids = resolve_targets(list(uid), clients, registry) or [resolve_uid(None)]
 
     jsonl = logsetup.setup(log_dir or root / "logs", verbose)
     logger.info(f"pull sessions uids={len(uids)} root={root} dry_run={dry_run} notify={notify_} log={jsonl}")
-    store = SessionStore(root)
-
-    def run_all() -> int:
-        errors = 0
-        for u in uids:
-            report = pull_sessions(u, source.firestore_sessions(u), store, dry_run=dry_run)
-            errors += report.errors
-            client = registry.get(u)
-            if notify_ and client and client.is_coach:
-                logger.debug(f"notify {u[:8]}: Coach-UID, eigene Workouts werden nicht gemeldet")
-            elif notify_:
-                try:  # eine Meldung darf das Pullen der übrigen Klienten nie verhindern
-                    notify.notify_changes(client.name if client else u[:8], u, report.changes,
-                                          send=notify.send_desktop, dry_run=dry_run)
-                except Exception as exc:
-                    errors += 1
-                    logger.error(f"notify {u[:8]} fehlgeschlagen: {type(exc).__name__}: {exc}")
-        return errors
-
     try:
-        if dry_run:  # schreibt nichts -> kein Lock nötig
-            errors = run_all()
-        else:
-            with single_instance(root / ".fitsync" / "fitsync.lock"):
-                errors = run_all()
+        outcome = run_pull(root=root, uids=uids, registry=registry, notify_=notify_, dry_run=dry_run)
     except AlreadyRunning as exc:
         logger.error(f"läuft bereits (Lock {exc}) — abgebrochen")
         raise typer.Exit(2)
+    errors = outcome.errors
     raise typer.Exit(1 if errors else 0)

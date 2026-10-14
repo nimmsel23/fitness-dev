@@ -8,10 +8,12 @@
 """
 from __future__ import annotations
 
+import fcntl
 import json
 import os
 import re
 import shutil
+from contextlib import contextmanager
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
@@ -44,6 +46,19 @@ def check_doc_id(doc_id: str) -> str:
 class SessionStore:
     def __init__(self, root: Path):
         self.root = Path(root)
+
+    @contextmanager
+    def write_lock(self):
+        """Kurzer, blockierender Lock um Lesen-Prüfen-Schreiben. Schützt vor Lost-Updates
+        zwischen API-Speichern und laufendem Pull (getrennt vom Ein-Instanz-Lock des Syncs)."""
+        lock_file = self.root / ".fitsync" / "write.lock"
+        lock_file.parent.mkdir(parents=True, exist_ok=True)
+        with open(lock_file, "w") as fh:
+            fcntl.flock(fh, fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(fh, fcntl.LOCK_UN)
 
     def sessions_dir(self, uid: str) -> Path:
         return self.root / "users" / check_doc_id(uid) / "sessions"
