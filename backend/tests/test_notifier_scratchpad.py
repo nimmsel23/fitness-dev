@@ -54,7 +54,8 @@ def test_show_startet_die_tui_und_blendet_ein(tmp_path):
     assert d[0][0] == "exec" and d[1] == ["togglespecialworkspace", "S-fitness"] and d[2][0] == "focuswindow"
     cmd = d[0][1]
     assert cmd.startswith("[workspace special:S-fitness silent;float;size 70% 80%;center] foot --app-id fitness-inbox -e sh -c ")
-    assert "backend.notifier tui --root" in cmd and str(tmp_path / "repo") in cmd
+    assert "backend.notifier tui --scratchpad --root" in cmd
+    assert "cd " not in cmd  # funktioniert auch aus einem installierten Wheel
     assert fake.visible
 
 

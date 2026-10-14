@@ -98,8 +98,8 @@ class Scratchpad:
     # --- Aktionen ----------------------------------------------------------------
     def launch_command(self) -> str:
         cfg = self.cfg
-        inner = f"cd {shlex.quote(str(self.repo_root))} && exec {shlex.quote(sys.executable)} " \
-                f"-m backend.notifier tui --root {shlex.quote(str(self.root))}"
+        inner = f"exec {shlex.quote(sys.executable)} " \
+                f"-m backend.notifier tui --scratchpad --root {shlex.quote(str(self.root))}"
         rules = f"[workspace {self.workspace} silent;float;size {cfg.width_pct}% {cfg.height_pct}%;center]"
         return f"{rules} {shlex.join(terminal_argv(cfg, ['sh', '-c', inner]))}"
 

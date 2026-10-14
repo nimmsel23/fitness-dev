@@ -1,5 +1,3 @@
 #!/bin/sh
-# Fitness-Inbox: Scratchpad-TUI, Waybar-Badge, Inbox-CLI (Wrapper um `python3 -m backend.notifier`).
-# Auf den PATH legen, z. B.:  ln -s ~/fitness-dev/backend/notifier/bin/fitness-inbox ~/.local/bin/fitness-inbox
-cd "$(dirname "$(readlink -f "$0")")/../../.." || exit 1
-exec python3 -m backend.notifier "$@"
+# Kompatibilitätsweg zum installierten Python-Entry-Point im Repo-bin.
+exec "$(dirname "$(readlink -f "$0")")/../../../bin/fitness-inbox" "$@"

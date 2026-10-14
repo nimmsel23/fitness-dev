@@ -116,7 +116,7 @@ class Inbox:
             self._save(state)
             return True
 
-    def mark_seen(self, ids: list[str]) -> int:
+    def mark_seen(self, ids: list[str], *, expected: dict[str, str] | None = None) -> int:
         with self._locked():
             state = self._load()
             n = 0
@@ -125,6 +125,9 @@ class Inbox:
                 if raw is None:
                     continue
                 m = marker_of(raw.get("saved_at"), raw.get("rev"))
+                # Eine während der Anzeige eingegangene Revision bleibt neu.
+                if expected is not None and expected.get(eid) != m:
+                    continue
                 if state["seen"].get(eid) != m:
                     state["seen"][eid] = m
                     n += 1

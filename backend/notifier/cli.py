@@ -53,12 +53,14 @@ def _pad(root: Optional[Path]) -> Scratchpad:
 
 # --- Oberfläche ---------------------------------------------------------------------
 @app.command()
-def tui(root: Optional[Path] = RootOpt):
+def tui(root: Optional[Path] = RootOpt,
+        scratchpad: bool = typer.Option(False, "--scratchpad", help="Escape blendet das Hyprland-Scratchpad aus")):
     """Workout-Inbox als TUI starten (im Terminal oder per Scratchpad)."""
     from backend.notifier.tui import InboxApp
 
     cfg = _config()
-    InboxApp(_root(root), cfg, scratchpad=Scratchpad(cfg.scratchpad, root=_root(root))).run()
+    pad = Scratchpad(cfg.scratchpad, root=_root(root)) if scratchpad else None
+    InboxApp(_root(root), cfg, scratchpad=pad).run()
 
 
 def _run_pad(action: str, root: Optional[Path], focus: Optional[str] = None):
@@ -231,3 +233,7 @@ def wait_action(payload: str = typer.Option(..., "--payload")):
     except Exception as exc:
         logger.error(f"Action '{action}' fehlgeschlagen: {exc}")
         raise typer.Exit(1)
+
+
+def main() -> None:
+    app()

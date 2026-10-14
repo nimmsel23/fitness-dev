@@ -1,3 +1,8 @@
+# [x] Workout-Inbox-TUI prüfen, verbessern und als Python-Paket installieren (2026-10-15)
+- Suche, Hilfe und adaptive Detailansicht; Navigation und Lesemarkierungen repariert.
+- Console-Entry-Point im Repo-PATH installiert; 145 Tests und Wheel-Start geprüft.
+- Details: RESULTS.md und backend/notifier/README.md.
+
 
 # [x] 6Pack-Integration (2026-10-11)
 - Doppelten Ordner entfernen: echtes Submodule unter `6pack/`, direkte Imports,

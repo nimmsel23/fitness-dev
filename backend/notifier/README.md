@@ -10,8 +10,25 @@ fitness-inbox init        # schreibt ~/.config/fitness-sync/notify.yaml (aktivie
 fitness-inbox doctor      # prüft notify-send, swaync, Terminal, Hyprland, Config
 ```
 
-`fitness-inbox` ist der Wrapper `backend/notifier/bin/fitness-inbox` (= `python3 -m backend.notifier`);
-auf den PATH legen: `ln -s ~/fitness-dev/backend/notifier/bin/fitness-inbox ~/.local/bin/fitness-inbox`.
+`fitness-inbox` ist ein Python-Console-Entry-Point des Pakets `fitness-agent`.
+Das Paket enthält auch `backend`; Textual und alle weiteren Abhängigkeiten stehen
+in der Root-`pyproject.toml`. Der Befehl liegt über einen Symlink in
+`~/fitness-dev/bin` (bereits im Shell-PATH). Der alte Pfad
+`backend/notifier/bin/fitness-inbox` leitet zum installierten Befehl weiter.
+
+In der vorhandenen uv-Tool-Umgebung installieren/aktualisieren:
+
+```sh
+cd ~/fitness-dev
+uv pip install --python ~/.local/share/uv/tools/fitness-agent/bin/python --editable .
+ln -s ~/.local/share/uv/tools/fitness-agent/bin/fitness-inbox bin/fitness-inbox # einmalig
+fitness-inbox tui
+```
+
+Bei einer frischen Installation eine Python-Venv mit `uv venv` anlegen, das
+Paket mit `uv pip install --python <venv>/bin/python --editable .` installieren
+und `bin/fitness-inbox` auf deren Console-Entry-Point verlinken. Das Kommando
+funktioniert aus jedem Arbeitsverzeichnis; ein Wheel braucht keinen Checkout.
 
 **Ohne `notify.yaml` bleibt alles wie vorher** (einfache Meldung, keine Inbox). Mit der Datei wirkt
 `python3 -m backend sync pull sessions --clients --notify` automatisch im reichen Modus.
@@ -64,15 +81,30 @@ schwebend, 70 % × 80 %, zentriert); danach bleibt sie im Hintergrund laufen und
 | Leertaste | gesehen ⇄ neu |
 | m | gesehen + zum nächsten Neuen |
 | n | nächstes Neues (zyklisch) |
-| A | alle gesehen (bei aktivem Klienten-Filter nur dieser) |
+| A | alle sichtbaren Workouts gesehen (beachtet auch Suche und Klientenfilter) |
 | u | nur Neue |
 | c | Klienten-Filter durchschalten |
 | r | neu laden |
-| Esc | Scratchpad ausblenden |
+| / | Suche nach Klient, Datum, Workout (Enter zurück zur Liste, Esc löscht Suche) |
+| d | Details groß / geteilte Ansicht |
+| ? | Tastenhilfe |
+| Tab / Bild ↑ ↓ | Details fokussieren / scrollen |
+| Esc | Suchfeld verlassen, große Details schließen; sonst Terminal-TUI beenden bzw. Scratchpad ausblenden |
 | q | TUI beenden |
 
 Beim Anzeigen wird ein Eintrag nach `auto_seen_seconds` (2 s) automatisch gesehen (`0` = aus).
 Die Detailansicht zeigt Übungen mit Sätzen (`8 @ 5 · 7`), Notizen, Aktivität/Muskeln, Effort, Dauer.
+Unter 100 Terminalspalten stehen Liste und Details untereinander. Die Kopfzeile
+zeigt neue Workouts, Gesamtzahl, Klienten und Treffer in der aktuellen Ansicht.
+Fehlende Session-Dateien werden nicht automatisch gesehen. Eine während der
+Anzeige eingegangene neue Revision bleibt ungesehen, bis sie angezeigt wird.
+
+`fitness-inbox tui` läuft ohne Hyprland. Der Scratchpad-Launcher übergibt
+`tui --scratchpad`, damit Escape dort nur das Fenster ausblendet.
+
+Eine leere Inbox zeigt Einrichtungshinweise. Sie ist eine Eingangsübersicht
+für neue/aktualisierte Workouts beim Pull mit `--notify`, kein Session-Archiv:
+`init` allein trägt vorhandene Sessions nicht nachträglich ein.
 
 Hyprland: verwendet die **klassischen Dispatcher** (`exec`, `togglespecialworkspace`, …), die bei dir mit
 hyprlang-Config funktionieren (geprüft, Hyprland 0.56.2). Bei einer Lua-Config melden sie „Invalid dispatcher"

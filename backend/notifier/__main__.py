@@ -1,3 +1,3 @@
-from backend.notifier.cli import app
+from backend.notifier.cli import main
 
-app()
+main()

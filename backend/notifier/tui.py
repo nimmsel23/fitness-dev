@@ -14,7 +14,9 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, VerticalScroll
 from textual.coordinate import Coordinate
-from textual.widgets import DataTable, Footer, Header, Static
+from textual.events import Resize
+from textual.screen import ModalScreen
+from textual.widgets import DataTable, Footer, Header, Input, Static
 
 from backend.core.store import SessionStore
 from backend.notifier.config import NotifyConfig
@@ -29,25 +31,64 @@ def _info(e: Entry) -> str:
     return first.split(" · ", 1)[1] if " · " in first else first
 
 
-class InboxApp(App):
-    TITLE = "Fitness Sync — Workout-Inbox"
+class HelpScreen(ModalScreen):
+    BINDINGS = [("escape,q,question_mark", "dismiss", "Zurück")]
     CSS = """
+    HelpScreen { align: center middle; background: $background 80%; }
+    #help { width: 66; height: auto; padding: 1 3; border: round $accent; background: $surface; }
+    """
+
+    def compose(self) -> ComposeResult:
+        yield Static(Text(
+            "WORKOUT-INBOX · TASTEN\n\n"
+            "↑ ↓ / j k   Workout auswählen\n"
+            "Leertaste   Gesehen / neu umschalten\n"
+            "m           Gesehen + nächstes neues Workout\n"
+            "n           Nächstes neues Workout (zyklisch)\n"
+            "A           Sichtbare Workouts als gesehen markieren\n"
+            "u           Nur neue Workouts / alle\n"
+            "c           Klientenfilter wechseln\n"
+            "/           Suche (Klient, Datum, Workout)\n"
+            "d           Details groß / geteilte Ansicht\n"
+            "Tab         Zwischen Liste, Suche und Details wechseln\n"
+            "Bild ↑ ↓    Details scrollen (Details fokussieren)\n"
+            "r           Daten neu laden\n"
+            "Esc         Suche verlassen / ausblenden / beenden\n"
+            "q           Beenden\n\n"
+            "Esc schließt diese Hilfe."), id="help")
+
+
+class InboxApp(App):
+    TITLE = "FITNESS · Workout-Inbox"
+    CSS = """
+    Screen { background: $background; }
+    #overview { height: 3; padding: 0 2; content-align: left middle; background: $primary 15%; }
+    #search { height: 3; margin: 0 1; border: round $primary; }
     #body { height: 1fr; }
-    #list { width: 52%; }
-    #detail { width: 1fr; padding: 0 1; border-left: tall $primary; }
-    #status { height: 1; padding: 0 1; color: $text-muted; }
+    #list { width: 46%; height: 1fr; border: round $primary; margin: 0 0 0 1; }
+    #list:focus { border: round $accent; }
+    #detail { width: 1fr; padding: 1 2; margin: 0 1; border: round $primary; }
+    #detail:focus { border: round $accent; }
+    #status { height: 1; padding: 0 2; color: $text-muted; }
+    .compact #body { layout: vertical; }
+    .compact #list { width: 1fr; height: 42%; margin: 0 1; }
+    .compact #detail { width: 1fr; height: 1fr; }
+    .details-only #list { display: none; }
     """
     BINDINGS = [
+        Binding("slash", "search", "Suche"),
+        Binding("question_mark", "help", "Hilfe"),
+        Binding("d", "detail", "Details"),
         Binding("j", "cursor_down", "↓", show=False),
         Binding("k", "cursor_up", "↑", show=False),
         Binding("space", "toggle_seen", "Gesehen ⇄ Neu"),
-        Binding("m", "seen_next", "Gesehen + weiter"),
-        Binding("n", "next_unseen", "Nächstes Neues"),
-        Binding("A", "mark_all_seen", "Alle gesehen"),
+        Binding("m", "seen_next", "Gesehen + weiter", show=False),
+        Binding("n", "next_unseen", "Nächstes Neues", show=False),
+        Binding("A", "mark_all_seen", "Ansicht gesehen", show=False),
         Binding("u", "toggle_unseen_only", "Nur Neue"),
-        Binding("c", "cycle_client", "Klient"),
-        Binding("r", "reload", "Neu laden"),
-        Binding("escape", "hide", "Ausblenden"),
+        Binding("c", "cycle_client", "Klient", show=False),
+        Binding("r", "reload", "Neu laden", show=False),
+        Binding("escape", "hide", "Zurück", show=False),
         Binding("q", "quit", "Beenden"),
     ]
 
@@ -63,6 +104,7 @@ class InboxApp(App):
         self.auto_seen = self.config.auto_seen_seconds
         self.only_unseen = False
         self.client_filter: str | None = None
+        self.search_query = ""
         self.last_detail_plain = ""
         self._entries: list[Entry] = []
         self._all: list[Entry] = []
@@ -73,15 +115,19 @@ class InboxApp(App):
     # --- Aufbau ------------------------------------------------------------------
     def compose(self) -> ComposeResult:
         yield Header()
+        yield Static("", id="overview", markup=False)
+        yield Input(placeholder="/ Suche nach Klient, Datum oder Workout …", id="search")
         with Horizontal(id="body"):
             yield DataTable(id="list", cursor_type="row", zebra_stripes=True)
             with VerticalScroll(id="detail"):
                 yield Static("", id="detail-text")
-        yield Static("", id="status")
+        yield Static("", id="status", markup=False)
         yield Footer()
 
     def on_mount(self) -> None:
         table = self.table
+        table.border_title = "Workouts"
+        self.query_one("#detail", VerticalScroll).border_title = "Workout-Details"
         table.add_column("", width=2)
         table.add_column("Datum", width=10)
         table.add_column("Klient", width=14)
@@ -89,6 +135,9 @@ class InboxApp(App):
         self.reload()
         table.focus()
         self.set_interval(self.poll_interval, self._poll)
+
+    def on_resize(self, event: Resize) -> None:
+        self.screen.set_class(event.size.width < 100, "compact")
 
     @property
     def table(self) -> DataTable:
@@ -111,6 +160,9 @@ class InboxApp(App):
             entries = [e for e in entries if e.client == self.client_filter]
         if self.only_unseen:
             entries = [e for e in entries if e.unseen]
+        if self.search_query:
+            entries = [e for e in entries if self.search_query in
+                       f"{e.client} {e.date} {e.summary} {e.mode}".casefold()]
         self._entries = entries
 
         table = self.table
@@ -138,13 +190,17 @@ class InboxApp(App):
             self._seen_timer = None
         self._shown_id = eid
         if entry is None:
-            renderable = Text("Keine Workouts." if not self._all else "Nichts in dieser Ansicht (Filter mit u/c ändern).",
+            renderable = Text("Keine Workouts.\n\nHier erscheinen neue Klienten-Workouts nach einem Pull mit --notify.\n"
+                              "Einrichtung prüfen: fitness-inbox doctor\n"
+                              "Benachrichtigungen aktivieren: fitness-inbox init"
+                              if not self._all else "Nichts in dieser Ansicht (Suche oder Filter mit u/c ändern).",
                               style="dim")
         else:
             session, error = self.store.read(entry.uid, entry.doc_id)
             renderable = render_detail(entry, session, error)
-            if entry.unseen and self.auto_seen > 0:
-                self._seen_timer = self.set_timer(self.auto_seen, lambda eid=entry.id: self._auto_seen(eid))
+            if session is not None and entry.unseen and self.auto_seen > 0:
+                self._seen_timer = self.set_timer(self.auto_seen,
+                    lambda eid=entry.id, marker=entry.marker: self._auto_seen(eid, marker))
         detail.update(renderable)
         buf = io.StringIO()
         Console(file=buf, width=100, force_terminal=False, color_system=None).print(renderable)
@@ -154,11 +210,19 @@ class InboxApp(App):
 
     def _update_status(self) -> None:
         unseen = sum(1 for e in self._all if e.unseen)
-        parts = [f"{unseen} neu", f"{len(self._all)} gesamt"]
+        self.query_one("#overview", Static).update(Text.assemble(
+            (f"● {unseen} NEU", "bold green"), "    ",
+            (f"{len(self._all)} WORKOUTS", "bold"), "    ",
+            (f"{len({e.uid for e in self._all})} KLIENTEN", "cyan"), "    ",
+            (f"{len(self._entries)} in Ansicht", "dim")))
+        parts = ["Live · lokale Workout-Inbox"]
         if self.only_unseen:
             parts.append("Filter: nur Neue")
         if self.client_filter:
             parts.append(f"Klient: {self.client_filter}")
+        if self.search_query:
+            parts.append(f"Suche: {self.search_query}")
+        parts.append(f"Auto-gesehen: {self.auto_seen:g}s" if self.auto_seen > 0 else "Gesehen: manuell")
         self.query_one("#status", Static).update("  ·  ".join(parts))
         self.sub_title = f"{unseen} neu" if unseen else "alles gesehen"
 
@@ -167,9 +231,9 @@ class InboxApp(App):
         if event.row_key is not None and event.row_key.value != self._shown_id:
             self._show_current()
 
-    def _auto_seen(self, eid: str) -> None:
-        if self.current_id() == eid:
-            self.inbox.mark_seen([eid])
+    def _auto_seen(self, eid: str, marker: str) -> None:
+        if self.current_id() == eid and not isinstance(self.screen, ModalScreen):
+            self.inbox.mark_seen([eid], expected={eid: marker})
             self.reload(keep=eid)
 
     def _poll(self) -> None:
@@ -180,8 +244,10 @@ class InboxApp(App):
             self._focus_entry(focus)
 
     def _focus_entry(self, eid: str) -> None:
-        if self._entry(eid) is None and (self.only_unseen or self.client_filter):
+        if self._entry(eid) is None and (self.only_unseen or self.client_filter or self.search_query):
             self.only_unseen, self.client_filter = False, None
+            self.search_query = ""
+            self.query_one("#search", Input).value = ""
             self.reload()
         for idx, e in enumerate(self._entries):
             if e.id == eid:
@@ -191,6 +257,26 @@ class InboxApp(App):
         self.table.focus()
 
     # --- Aktionen ------------------------------------------------------------------
+    def on_input_changed(self, event: Input.Changed) -> None:
+        self.search_query = event.value.strip().casefold()
+        self.reload()
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        self.table.focus()
+
+    def action_search(self) -> None:
+        self.query_one("#search", Input).focus()
+
+    def action_help(self) -> None:
+        self.push_screen(HelpScreen())
+
+    def action_detail(self) -> None:
+        self.screen.toggle_class("details-only")
+        if self.screen.has_class("details-only"):
+            self.query_one("#detail", VerticalScroll).focus()
+        else:
+            self.table.focus()
+
     def action_cursor_down(self) -> None:
         self.table.action_cursor_down()
 
@@ -204,7 +290,10 @@ class InboxApp(App):
         e = self._entry(self.current_id())
         if e is None:
             return
-        (self.inbox.mark_unseen if not e.unseen else self.inbox.mark_seen)([e.id])
+        if e.unseen:
+            self.inbox.mark_seen([e.id], expected={e.id: e.marker})
+        else:
+            self.inbox.mark_unseen([e.id])
         self.reload(keep=e.id, keep_index=self.table.cursor_row)
 
     def action_next_unseen(self) -> None:
@@ -223,15 +312,14 @@ class InboxApp(App):
         if e is None:
             return
         idx = self.table.cursor_row
-        self.inbox.mark_seen([e.id])
-        self.reload(keep=e.id, keep_index=idx)
-        self.action_next_unseen()
+        following = self._entries[idx + 1:] + self._entries[:idx]
+        next_id = next((item.id for item in following if item.unseen), e.id)
+        self.inbox.mark_seen([e.id], expected={e.id: e.marker})
+        self.reload(keep=next_id, keep_index=idx)
 
     def action_mark_all_seen(self) -> None:
-        uid = None
-        if self.client_filter:
-            uid = next((e.uid for e in self._all if e.client == self.client_filter), None)
-        n = self.inbox.mark_all_seen(uid=uid)
+        n = self.inbox.mark_seen([e.id for e in self._entries],
+                                 expected={e.id: e.marker for e in self._entries})
         self.reload()
         self.notify(f"{n} als gesehen markiert.", timeout=2)
 
@@ -247,6 +335,13 @@ class InboxApp(App):
         self.reload()
 
     def action_hide(self) -> None:
+        if isinstance(self.focused, Input):
+            self.query_one("#search", Input).value = ""
+            self.table.focus()
+            return
+        if self.screen.has_class("details-only"):
+            self.action_detail()
+            return
         if self.scratchpad is None:
             self.exit()
             return

@@ -10,6 +10,8 @@ from backend.notifier.inbox import Inbox
 from backend.notifier.paths import notifier_dir
 from backend.notifier.scratchpad import HyprError, request_focus
 from backend.notifier.tui import InboxApp
+from textual.widgets import Input
+from textual.containers import VerticalScroll
 
 SIZE = (120, 36)
 
@@ -245,5 +247,113 @@ def test_q_beendet(root):
 
     async def scenario(app, pilot):
         await pilot.press("q"); await pilot.pause()
+
+    drive(root, scenario)
+
+
+def test_m_im_neu_filter_ueberspringt_keinen_eintrag(root):
+    ib = three(root)
+
+    async def scenario(app, pilot):
+        await pilot.press("u", "m")
+        await pilot.pause()
+        assert app.current_id() == "U2/2026-10-13"
+        assert app.table.row_count == 2 and ib.unseen_count() == 2
+        await pilot.press("m")
+        await pilot.pause()
+        assert app.current_id() == "U1/2026-10-12"
+
+    drive(root, scenario)
+
+
+def test_suche_und_escape(root):
+    three(root)
+
+    async def scenario(app, pilot):
+        await pilot.press("slash")
+        await pilot.press(*list("Simon"))
+        await pilot.pause()
+        assert app.table.row_count == 1 and app.current_id() == "U2/2026-10-13"
+        await pilot.press("escape")
+        await pilot.pause()
+        assert app.is_running and app.table.row_count == 3
+        assert app.focused is app.table
+
+    drive(root, scenario)
+
+
+def test_A_markiert_nur_suchergebnisse_auch_bei_gleichem_namen(root):
+    ib = seed(root, [
+        ("U1", "Alex", "2026-10-14", session("2026-10-14")),
+        ("U2", "Alex", "2026-10-13", session("2026-10-13")),
+        ("U3", "Simon", "2026-10-12", session("2026-10-12")),
+    ])
+
+    async def scenario(app, pilot):
+        await pilot.press("c", "A")
+        await pilot.pause()
+        assert [e.uid for e in ib.entries(unseen_only=True)] == ["U3"]
+        await pilot.press("c", "slash", *list("kein Treffer"), "enter", "A")
+        await pilot.pause()
+        assert ib.unseen_count() == 1
+
+    drive(root, scenario)
+
+
+def test_waehrend_anzeige_eingegangene_revision_bleibt_neu(root):
+    ib = three(root)
+
+    async def scenario(app, pilot):
+        shown = app._entry(app.current_id())
+        seed(root, [("U1", "Matthias", "2026-10-14",
+                     session("2026-10-14", rev=2, saved_at="2026-10-14T12:00:00+00:00"))])
+        app._auto_seen(shown.id, shown.marker)
+        assert ib.get(shown.id).unseen
+
+    drive(root, scenario, poll=60)
+
+
+def test_fehlende_details_werden_nicht_automatisch_gesehen(root):
+    ib = seed(root, [("U1", "Matthias", "2026-10-14", None)])
+
+    async def scenario(app, pilot):
+        await pilot.pause(0.3)
+        assert ib.unseen_count() == 1
+
+    drive(root, scenario, config=NotifyConfig(auto_seen_seconds=0.1))
+
+
+def test_details_hilfe_und_kleine_terminalgroesse(root):
+    three(root)
+
+    async def scenario(app, pilot):
+        await pilot.resize_terminal(80, 24)
+        await pilot.pause()
+        assert app.screen.has_class("compact")
+        assert app.table.size.height > 0
+        await pilot.press("d")
+        await pilot.pause()
+        assert app.screen.has_class("details-only")
+        assert isinstance(app.focused, VerticalScroll)
+        await pilot.press("escape", "question_mark")
+        await pilot.pause()
+        assert app.screen.__class__.__name__ == "HelpScreen"
+        seed(root, [("U4", "Demo", "2026-10-15", session("2026-10-15"))])
+        await pilot.pause(0.3)
+        assert app.table.row_count == 4  # Polling läuft auch mit offener Hilfe
+        await pilot.press("escape")
+        await pilot.pause()
+        assert app.current_id() == "U1/2026-10-14"
+
+    drive(root, scenario)
+
+
+def test_escape_im_normalen_terminal_beendet(root):
+    three(root)
+
+    async def scenario(app, pilot):
+        await pilot.press("escape")
+        await pilot.pause()
+        assert not app.is_running
 
     drive(root, scenario)
