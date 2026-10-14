@@ -12,6 +12,9 @@ import { db } from "../../../firebase.js";
 import { getStaticMuscle, getStaticMuscleDocs } from "../../kb/muscles.js";
 import { normalizeExerciseRecord } from "../shared/exercise.js";
 import { EXERCISE_BULK_DATA } from "./exerciseBulkData.generated.js";
+import {
+  getMirrorExercise, isLegacyYuhonasId, mergeRanked, searchMirrors,
+} from "../../exerciseDbs/search.js";
 import { PUSH_EXERCISES } from "./push.generated.js";
 import { PULL_EXERCISES } from "./pull.generated.js";
 import { LEGS_EXERCISES } from "./legs.generated.js";
@@ -30,8 +33,14 @@ const _BULK_IDS = new Set(EXERCISE_BULK_DATA.map((ex) => ex.exercise_id || ex.id
 
 export async function getExercise(exerciseId) {
   const snap = await getDoc(doc(db, "fitness", "kb", "exercises", exerciseId));
-  if (!snap.exists()) return null;
-  return snap.data();
+  const found = snap.exists() ? snap.data() : null;
+  // yuhonas_*-IDs: Daten aus dem Geräte-Mirror statt aus dem alten Bulk-Doc,
+  // außer der Katalog hat einen kuratierten Eintrag. Ohne Mirror: Rückfall.
+  if (isLegacyYuhonasId(exerciseId) && !(found && _isCurated(found))) {
+    const mirrored = await getMirrorExercise(exerciseId).catch(() => null);
+    if (mirrored) return mirrored;
+  }
+  return found;
 }
 
 export async function getAllExercises() {
@@ -57,12 +66,14 @@ export async function saveExercise(exerciseId, data) {
     updated_at: serverTimestamp(),
   }, { merge: true });
   _searchCache = null;
+  _searchCacheMirror = null;
   return { ok: true, id: exId };
 }
 
 // Client-side fuzzy search — Firestore has no full-text index.
 // Load once, cache in module scope, score in browser.
 let _searchCache = null;
+let _searchCacheMirror = null;
 
 const DEFAULT_SESSION_SOURCES = { wger: true, yuhonas: true, coach: true };
 
@@ -89,17 +100,49 @@ function _getExerciseSource(ex) {
   return "coach";
 }
 
-export async function searchExercises(query, limit = 12) {
+// Alte yuhonas-Bulk-Records (unreviewed_yuhonas.yml → EXERCISE_BULK_DATA) —
+// im Mirror-Modus (Session/Plan) ersetzt durch den Geräte-Mirror.
+function _isLegacyYuhonasBulk(ex) {
+  return isLegacyYuhonasId(ex.exercise_id || ex.id) && (ex.tags || []).includes("yuhonas");
+}
+
+function _isCurated(ex) {
+  return _isExpert(ex) || ex.source === "inbox";
+}
+
+async function _getSearchPool(useMirror) {
+  if (!useMirror) {
+    if (!_searchCache) {
+      const curated = await _getCuratedExercises();
+      _searchCache = [...EXERCISE_BULK_DATA, ...curated];
+    }
+    return _searchCache;
+  }
+  if (!_searchCacheMirror) {
+    const bulk = EXERCISE_BULK_DATA.filter((ex) => !_isLegacyYuhonasBulk(ex));
+    const bulkIds = new Set(bulk.map((ex) => ex.exercise_id || ex.id));
+    const snap = await getDocs(collection(db, "fitness", "kb", "exercises"));
+    const curated = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .filter((ex) => !bulkIds.has(ex.exercise_id || ex.id))
+      // Alte yuhonas_*-Bulk-Docs in Firestore fallen weg, kuratierte Drafts bleiben.
+      .filter((ex) => !isLegacyYuhonasId(ex.exercise_id || ex.id) || _isCurated(ex));
+    _searchCacheMirror = [...bulk, ...curated];
+  }
+  return _searchCacheMirror;
+}
+
+// opts.mirror = true (Session/Plan): yuhonas-Treffer kommen aus dem Geräte-Mirror
+// (lib/exerciseDbs). Ohne Flag (Coach-Katalog) bleibt das bisherige Verhalten.
+export async function searchExercises(query, limit = 12, opts = {}) {
   const q = String(query || "").trim();
   if (!q) return { ok: true, results: [], query: q, suggestions: [] };
-  if (!_searchCache) {
-    const curated = await _getCuratedExercises();
-    _searchCache = [...EXERCISE_BULK_DATA, ...curated];
-  }
+  const useMirror = !!opts.mirror;
+  const searchPool = await _getSearchPool(useMirror);
 
   const sources = _loadSessionSources();
-  const superseded = _buildSupersededExternalRefs(_searchCache);
-  const pool = _searchCache.filter((ex) => {
+  const superseded = _buildSupersededExternalRefs(searchPool);
+  const pool = searchPool.filter((ex) => {
     if (_isSupersededExternalExercise(ex, superseded)) return false;
     const source = _getExerciseSource(ex);
     return sources[source] !== false;
@@ -107,7 +150,7 @@ export async function searchExercises(query, limit = 12) {
 
   const qn = _normalize(q);
   const qTokens = qn.split(" ").filter(Boolean);
-  const scored = pool.map((ex) => {
+  const scoredAll = pool.map((ex) => {
     if (ex.merged_into || ex.superseded_by) return { ex, score: 0 };
     const hay = [ex.display_name, ex.german, ex.english, ex.name, ex.exercise_id, ex.id, ...(ex.aliases || []), ...(ex.search_aliases || []), ...(ex.tags || [])].map(_normalize);
     let score = 0;
@@ -117,16 +160,27 @@ export async function searchExercises(query, limit = 12) {
     else if (qTokens.length > 1 && qTokens.every((t) => hay.some((h) => h.includes(t)))) score = 50;
     else if (qTokens.some((t) => hay.some((h) => h.includes(t))))                     score = 20;
     return { ex, score };
-  }).filter((x) => x.score > 0).sort((a, b) => b.score - a.score).slice(0, limit);
+  }).filter((x) => x.score > 0).sort((a, b) => b.score - a.score);
 
-  const results = scored.map(({ ex }) => normalizeExerciseRecord({
+  const toRecord = (ex) => normalizeExerciseRecord({
     ...ex,
     id: ex.exercise_id || ex.id,
     name: ex.display_name || ex.german || ex.name || ex.exercise_id || ex.id,
     source: _getExerciseSource(ex),
-  }));
+  });
+
+  let results;
+  let mirrorMissing = [];
+  if (useMirror) {
+    const { results: hits, missing } = await searchMirrors(q, { enabled: sources, skipIds: superseded.yuhonas });
+    mirrorMissing = missing;
+    const catalogHits = scoredAll.map(({ ex, score }) => ({ record: toRecord(ex), score }));
+    results = mergeRanked([], [...catalogHits, ...hits], q, limit).map((ex) => normalizeExerciseRecord(ex));
+  } else {
+    results = scoredAll.slice(0, limit).map(({ ex }) => toRecord(ex));
+  }
   return {
-    ok: true, source: "firestore", query: q, results,
+    ok: true, source: "firestore", query: q, results, mirrorMissing,
     suggestions: results.slice(0, 3).map((r) => ({ canonical_id: r.id, display_name: r.name })),
   };
 }

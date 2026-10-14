@@ -44,3 +44,4 @@ src/lib/coachNotesData.generated.js
 
 # User-Daten: 6Pack Progress-Fotos (lokal gespeichert, nicht ins Repo)
 public/sixpack-photos/
+.claude/hooks/*.log

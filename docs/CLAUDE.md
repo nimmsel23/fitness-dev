@@ -30,7 +30,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   `~/vitalos/bin/vos-release fitness`, verifiziert + branch-Fix
   2026-08-22). Er pusht `~/fitness-dev`s `dev`-Branch, mergt ihn in den
   `~/vitalos/fitness-app`-Worktree, pusht dort — was den Post-Push-Hook
-  triggert (`npm run firebase`: KB-Data-Rebuild → `vite build --mode
+  triggert (`pnpm run firebase`: KB-Data-Rebuild → `vite build --mode
   firebase` → stamp-sw → snapshot → `firebase deploy --only hosting` nach
   `fitness-aos.web.app`) — und bumpt danach den Submodule-Pointer im
   `~/vitalos`-Parent-Repo. `vos-release` deckt neben `fitness` auch fuel/
@@ -68,7 +68,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   dem man nachfragt, sondern der Normalfall.
 - **`fitness-dev.service` ist im Normalfall `disabled`/`inactive`**
   (verifiziert 2026-08-31, `systemctl --user status fitness-dev.service`)
-  — der Dev-Server läuft praktisch immer manuell (`npm run dev` /
+  — der Dev-Server läuft praktisch immer manuell (`pnpm run dev` /
   `scripts/dev-runner.mjs` in einem Terminal), nicht als Service. Vor
   Live-Tests gegen :9100 IMMER verifizieren ob überhaupt etwas läuft
   (`curl`/`systemctl status`), nicht annehmen. Und: `server.mjs` als
@@ -111,7 +111,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   die frühestens beim nächsten tatsächlichen `git push` nach `master` greift
   (der eigentliche Deploy-Trigger bleibt dieser spätere, separate `push`-
   Befehl, den der User ohnehin selbst auslöst). Deploy-Bestätigung bleibt
-  Pflicht für: `firebase deploy`, `npm run firebase`/`build:firebase &&
+  Pflicht für: `firebase deploy`, `pnpm run firebase`/`build:firebase &&
   deploy`, `git push` nach `master` selbst, `fitness-catalog push` (Prod-
   KB-Sync) — nicht für das bloße Freischalten eines bereits geschriebenen,
   gereviewten Hooks. (2026-08-14, nach einem Fall wo der Auto-Mode-
@@ -265,8 +265,8 @@ mit. Zwei Ebenen, bewusst nicht identisch tief dokumentiert:
 | `systemctl --user status fitness-enricher.service` | Status des dauerhaften Enrichment-Watchers |
 | `fitness session today` | Heutige Session anzeigen |
 | `fitness coverage -d DAYS` | Muskelabdeckung der letzten N Tage |
-| `cd pwa && npm run dev` | Firebase PWA Dev-Server |
-| `cd pwa && npm run deploy` | Firebase PWA bauen + deployen |
+| `pnpm run build:firebase` | Firebase-PWA-Build (`vite build --mode firebase` → `dist-firebase/`) — kein eigenes `pwa/`-Verzeichnis mehr, Scripts liegen im Root-`package.json` |
+| `pnpm run firebase` | Firebase-PWA bauen + deployen (`build:firebase && deploy:firebase`) |
 
 Weitere Dispatcher (fitness-devctl/fitness-prodctl/fitnessctl): `../fitness/CLAUDE.md`.
 
@@ -341,7 +341,7 @@ gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
   basiertes Firestore-Konfliktmodell (Details: `docs/ARCHITECTURE.md`)
 - ✅ Gmail-Pipeline (bin/fitness-mail, Fitbit-Daten)
 - ✅ Firestore Sync + PWA Offline-Unterstützung (SW + IndexedDB offline-queue)
-- ✅ Firebase PWA: `npm run build:firebase` → `~/fitness/dist-firebase/`
+- ✅ Firebase PWA: `pnpm run build:firebase` → `~/fitness/dist-firebase/`
 - ✅ anatomy-kb Integration (Git Subtree, :9200)
 - ✅ Exercise-Insight-Modal zeigt bei fehlender Lesson echte wger/yuhonas-
   Rohdaten statt erfundenem Keyword-Fallback-Text (Details: `../src/CLAUDE.md`)
@@ -356,6 +356,8 @@ gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
   unter Fitness. Die eigenständigen Arbeitsrepos heißen weiterhin
   `~/6pack-dev`, `~/plan-dev`, `~/coach-dev`.
   `@vos/cross-app-aliases` nutzt `link:` für seine pfadbasierte Auflösung.
+  Ein Workspace-Override wendet diese lokale Quelle auch auf Coach/Plan an;
+  deren optionale Abhängigkeit ist damit im Frozen-Lockfile vollständig.
   Fitness-Package-Skripte und Build-Hooks nutzen `pnpm run`; Tailwind scannt
   6Pack-Quellen ohne dessen Dependencies.
 - ⏳ Coach-Tab-Gesamtaufräumung (`views/Coach/`, 5 Sub-Tabs, ~1000 Zeilen) —

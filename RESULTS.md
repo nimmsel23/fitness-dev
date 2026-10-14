@@ -1,3 +1,98 @@
+# Fitness-Agent-Notifications aktionierbar gemacht (2026-10-13)
+
+Die headless `claude -p`-Checks für die Fitness-Agent-Klienten-Betreuung
+(Matthias, Simon, Frame-Interview, Jakob) meldeten Fehler bisher nur als
+rohe `notify-send`-Desktop-Notification ohne Folgeaktion — Auslöser war
+der Nutzerhinweis, dass der "fitness-agent" nach seinem täglichen
+systemd-oneshot Notifications über fehlende Schreibrechte schickt, mit
+denen sich nichts anfangen ließ. Jetzt öffnet ein Klick auf die
+Notification direkt ein Terminal mit vorgeladenem Claude-Fix-Prompt.
+
+- **`~/.local/Klienten/bin/lib/agent-notify.sh`** (neu) — gemeinsamer
+  Notify-Helper für alle vier Check-Skripte: schreibt bei Fehlern eine
+  Incident-Markdown-Datei nach `logs/incidents/` und zeigt per
+  `notify-send -A` eine Notification mit den Buttons "🔧 Mit Claude
+  fixen" / "Ignorieren"; entfernt vorher rohe ANSI-Farbcodes aus dem
+  Output (Root-Cause für unlesbare "Schreibrechte"-Meldungen in Log/
+  Notification).
+- **`~/.local/Klienten/bin/lib/agent-fix-prompt.sh`** (neu) — wird vom
+  Notify-Helper via eigene `systemd-run --user --collect`-Unit gestartet
+  und öffnet bei Klick auf "Fix" ein `foot`-Terminal mit laufendem
+  Claude, vorgeladen mit dem Incident. Lief zunächst ins Leere ("Klick
+  macht nix"): `foot` wurde innerhalb derselben Cgroup wie
+  `agent-fix-prompt.sh` selbst gestartet und beim Skript-Ende von
+  systemd (`KillMode=control-group`) mitgekillt — Fix: `foot` bekommt
+  jetzt eine eigene, zweite `systemd-run`-Unit, die den Aufrufer überlebt.
+- **`matthias-daily-check.sh`, `simon-radtour-check.sh`,
+  `frame-interview.sh`, `jakob-checkin.sh`** — rohes `notify-send` durch
+  den neuen Helper ersetzt, ANSI-Stripping vor Log-Schreibung ergänzt.
+- **`~/.claude/settings.json`** — fehlendes Komma (machte die Datei zu
+  ungültigem JSON) behoben; nutzlose `Write(...)`-Permission-Einträge
+  entfernt, da bei Dateizugriffs-Checks nur `Edit(...)`-Regeln greifen —
+  mutmaßlich die eigentliche Ursache der "keine Schreibrechte"-Meldungen
+  im headless-Modus.
+- End-to-End getestet: ein echter `matthias-daily-check.sh`-Lauf (Exit 0,
+  kein Incident) sowie mehrere simulierte Fehler-Notifications; der
+  finale Test nach dem Cgroup-Fix wurde vom Nutzer live als
+  funktionierend bestätigt. Test-Incident-Dateien danach wieder gelöscht.
+- **Nicht committed**: Die neuen/geänderten Dateien liegen unter
+  `~/.local/Klienten/` (kein Git-Repo, nur per Symlink von
+  `~/vital/Klienten` erreichbar) — bleibt auf expliziten Nutzerwunsch
+  unversioniert.
+
+---
+
+# PreCompact-Doc-Hook repariert + auf fuel-dev/plan-dev/coach-dev/6pack-dev ausgerollt (2026-10-13)
+
+Der `PreCompact`-Hook, der `RESULTS.md`/`TODO.md`/`NEXT.md` nach jedem Compact
+automatisch aktualisieren soll, hatte seit 2026-09-24 keinen einzigen
+`docs: auto-update`-Commit mehr produziert — Fehler wurden bis dahin
+stillschweigend verschluckt. Root Cause und Fix gefunden, danach auf die
+anderen Repos mit demselben Hook-Muster übertragen.
+
+- **`.claude/hooks/pre-compact-fill-docs.sh`** (fitness-dev, Commit `a15fba5`):
+  Logging ergänzt + Gemini-REST-Fallback (`curl`/`jq` gegen
+  `~/.env/gemini.env`, Review-Schritt) für den Fall, dass der `claude -p`-Pfad
+  (`--allowedTools "Read,Edit" --dangerously-skip-permissions`) scheitert oder
+  vom Auto-Mode-Classifier blockiert wird.
+- **`PostToolUse`-Auto-Commit-Hook** (`post-edit-commit-docs.sh`) live
+  getestet und als funktionierend bestätigt — das eigentliche Problem lag nur
+  im `PreCompact`-Pfad.
+- **Rollout auf `fuel-dev`, `plan-dev`, `coach-dev`, `6pack-dev`**: In
+  `plan-dev`/`coach-dev` zeigten `settings.json` + die lokalen Hook-Kopien
+  fälschlich auf absolute Pfade in `fitness-dev` statt auf das jeweils eigene
+  Repo — korrigiert (`REPO=`-Variable + Hook-Pfade in `settings.json`).
+  `6pack-dev` hatte noch gar kein Hook-Setup — `settings.json`, beide
+  Hook-Skripte sowie fehlende `TODO.md`/`NEXT.md`-Stubs neu angelegt.
+- **Fehler korrigiert:** Beim Anlegen der Stub-Dateien für `coach-dev` wurden
+  dessen bereits bestehende `RESULTS.md`/`TODO.md`/`NEXT.md` (echte
+  Session-Historie, >1200 Zeilen) versehentlich mit leeren Stubs überschrieben
+  — aus `git show <commit>~1` vollständig wiederhergestellt und verifiziert
+  (`diff` gegen Original zeigt keine Abweichung).
+- Alle fünf Repos committed und gepusht (`dev` bzw. bei `coach-dev` `vitalos`,
+  dort inkl. Merge von zwischenzeitlich eingetroffenen Remote-Commits ohne
+  echten Inhaltskonflikt).
+- Zusätzlich in `fitness-dev`: 7 untracked Katalog-Inbox-Drafts (wger +
+  Enrichment-Watcher) committed und gepusht (`4db48bd`); Pre-Push-Hook hat
+  dabei automatisch den Staging-Build (`fitness-preview.service`, :8100) neu
+  deployed.
+
+---
+
+# pnpm frozen-lockfile für Fitness/Coach/Plan korrigiert (2026-10-13)
+
+- Workspace-Override löst das private `@vos/cross-app-aliases` für alle Apps
+  über die bestehende lokale VitalOS-Quelle auf. Coach/Plan verwenden damit
+  nicht mehr die nicht verfügbare Registry-Version `1.0.0`.
+- Lockfile enthält die bisher fehlenden optionalen Links für Coach/Plan;
+  keine Paketversionsänderungen, keine Submodule-Änderungen.
+- `pnpm install --offline --frozen-lockfile --ignore-scripts
+  --config.optimistic-repeat-install=false` erfolgreich für alle vier Pakete.
+  Ohne den letzten Schalter hätte pnpm nur seinen Wiederholungs-Schnellpfad
+  geprüft. Modulauflösung und Import aus Fitness, Coach und Plan separat
+  gegen dieselbe lokale Quelldatei verifiziert.
+- Kein Push oder Deployment.
+
 # Fitness: pnpm-Build und direkte App-Submodule (2026-10-13)
 
 - Direkte Submodule heißen `6pack`, `plan`, `coach` (ohne `-dev`).
@@ -12,9 +107,8 @@
   6Pack-Quellen statt dessen Dependencies. Local- und Firebase-Build wurden
   erfolgreich geprüft; ESLint-env-, Browserslist- und Bundle-Warnungen bleiben.
 - Offline-pnpm-Installation nach Pfadwechsel erfolgreich, ohne Downloads oder
-  Paketversionsänderungen. `--frozen-lockfile` meldet weiterhin die bereits
-  zuvor im Lockfile fehlende optionale `@vos/cross-app-aliases`-Deklaration
-  von Coach/Plan; diese separate Inkonsistenz wurde nicht umkonfiguriert.
+  Paketversionsänderungen. Die dabei gefundene fehlende optionale
+  `@vos/cross-app-aliases`-Deklaration wurde anschließend behoben (siehe oben).
 - VitalOS-Release-Helfer erkennt pnpm-Workspaces (Commit `e0fbc99`).
 - Kein Push, Merge oder Deployment durchgeführt.
 

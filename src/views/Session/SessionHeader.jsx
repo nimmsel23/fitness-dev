@@ -22,6 +22,7 @@ export default function CalmHeader({
   hint,
   daySessions, sessionId, selectSession, onNew, onDelete,
   sessionMode, setSessionMode, block, activity,
+  gateBar = null,
 }) {
   const { today, allDays, stripRef, dateInputRef, dateLabel, goBack, goFwd, jumpToDate } =
     useDayStrip({ date, setDate, rollingDays });
@@ -81,6 +82,11 @@ export default function CalmHeader({
           </button>
         </div>
       </div>
+
+      {/* Live-Counter des Session-Gates (SessionGateBar.jsx) — im sticky
+          Header, damit Zeit/Zähler beim Scrollen durch die Übungen sichtbar
+          bleiben. */}
+      {gateBar}
 
       {/* Day strip — echt scrollbar/wischbar statt festem 7-Tage-Fenster
           (User-Feedback 2026-09-06), Chevrons bleiben als Komfort-Sprung

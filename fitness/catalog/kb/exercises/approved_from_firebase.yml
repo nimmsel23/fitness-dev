@@ -1,34 +1,8 @@
 name: approved_from_firebase
 description: Coach-approved via Firebase Inbox
 exercises:
-- name: Klimmzug im Obergriff
-  german: Klimmzug im Obergriff
-  review_state:
-    status: approved
-  tags:
-  - expert
-  - back
-  - pull
-  - bodyweight
-  - calisthenics
-  - vertical_pull
-  - grip_strength
-  english: Pull-Up
-  type: compound
-  id: '020'
-  category: pull
-  origin:
+- origin:
     yuhonas:
-      tags:
-      - unreviewed
-      - yuhonas
-      exercise_id: yuhonas_pullups
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      secondary_muscles:
-      - biceps
-      - middle_back
       equipment:
       - body only
       coaching_notes:
@@ -51,22 +25,52 @@ exercises:
         your torso back to the starting position when your arms are fully extended
         and the lats are fully stretched.
       - Repeat this motion for the prescribed amount of repetitions.
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      exercise_id: yuhonas_pullups
+      category: strength
+      secondary_muscles:
+      - biceps
+      - middle_back
+      display_name: Pullups
+      yuhonas_id: Pullups
       primary_muscles:
       - lats
-      category: strength
-      yuhonas_id: Pullups
-      display_name: Pullups
+      tags:
+      - unreviewed
+      - yuhonas
     type: merged_external
+    wger:
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      wger_id: 821
     source_refs:
       yuhonas:
       - Pullups
       wger:
       - '821'
-    wger:
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      wger_id: 821
+  name: Klimmzug im Obergriff
+  schema_version: 2026-08-12.exercise-v1
+  source: approved
+  category: pull
+  _hash: ca0502729ca8a8da6745ff2289218fa2
+  common_errors:
+  - Mit Kipping, Beinschwung oder Hüftschwung arbeiten statt jede Wiederholung aus
+    dem Hang kontrolliert einzuleiten.
+  - Aus einem passiven Hang hart anziehen, ohne zuerst Spannung im Schultergürtel
+    aufzubauen.
+  - Die Schultern zu den Ohren ziehen und damit Scapula-Depression und stabile Schultermechanik
+    zu verlieren.
+  - Nur das Kinn irgendwie über die Stange bringen, während Brustkorb, Schulterposition
+    und Zuglinie kollabieren.
+  - 'Halbe Wiederholungen machen: unten nicht ausstrecken oder oben zu früh abbrechen.'
+  - Den Kopf nach vorne zur Stange schieben statt den Körper zur Stange zu ziehen.
+  - Ins Hohlkreuz fallen oder die Rippen aufklappen lassen, wodurch der Rumpf instabil
+    wird und die Kraftübertragung leidet.
+  - Zu breit greifen und dadurch ROM, Schultermechanik und saubere Ellbogenführung
+    unnötig verschlechtern.
   variations:
   - assisted_pull_up
   - band_assisted_pull_up
@@ -74,7 +78,20 @@ exercises:
   - wide_grip_pull_up
   - neutral_grip_pull_up
   - scapular_pull_up
-  wger_id: 821
+  secondary_muscles:
+  - 202c_trapezius_lower
+  - 202b_trapezius_middle
+  - 205_rhomboids
+  - 402_biceps_brachii
+  - 403_brachialis
+  - 404_brachioradialis
+  search_aliases:
+  - Pullups
+  - yuhonas_pullups
+  - Klimmzug an Leiste
+  - wger_821
+  - Klimmzug im Obergriff
+  - Pull-Up
   aliases:
   - Klimmzug
   - Klimmzüge
@@ -89,16 +106,19 @@ exercises:
   - Pull-Ups
   - Standard Pull-up
   - Pronated Pull-up
-  search_aliases:
-  - Pullups
-  - yuhonas_pullups
-  - Klimmzug an Leiste
-  - wger_821
-  - Klimmzug im Obergriff
-  - Pull-Up
-  source: approved
-  exercise_id: '020'
-  schema_version: 2026-08-12.exercise-v1
+  equipment:
+  - bodyweight
+  - pull_up_bar
+  english: Pull-Up
+  tags:
+  - expert
+  - back
+  - pull
+  - bodyweight
+  - calisthenics
+  - vertical_pull
+  - grip_strength
+  id: '020'
   coaching_notes:
   - 'Starte aus einem aktiven Hang: Hals lang, Rippen unten, Schulterblätter zuerst
     sanft nach unten setzen statt passiv in den Schultern zu hängen.'
@@ -116,34 +136,13 @@ exercises:
     Schulterkontrolle, Kraftaufbau und Positionsgefühl im Hang.
   - Der Obergriff verlagert die Belastung etwas stärker auf Latissimus, Teres major
     und oberen Rücken und etwas weniger auf den Bizeps als beim Chin-Up.
-  secondary_muscles:
-  - 202c_trapezius_lower
-  - 202b_trapezius_middle
-  - 205_rhomboids
-  - 402_biceps_brachii
-  - 403_brachialis
-  - 404_brachioradialis
-  equipment:
-  - bodyweight
-  - pull_up_bar
-  wger_muscle_ids:
-    primary: []
-    secondary: []
+  exercise_id: '020'
   external_ids:
     yuhonas:
     - Pullups
     wger:
     - 821
-  primary_muscles:
-  - 201_latissimus_dorsi
-  - 207_teres_major
-  stabilizers:
-  - 304_rotator_cuff
-  - 405_forearm_flexors
-  - 504_transverse_abdominis
-  - 501_rectus_abdominis
-  - 206_erector_spinae
-  - 507_multifidus
+  type: compound
   movements:
   - vertical
   - shoulder_adduction
@@ -151,20 +150,21 @@ exercises:
   - elbow_flexion
   - scapular_depression
   - scapular_downward_rotation
-  _hash: ca0502729ca8a8da6745ff2289218fa2
+  wger_muscle_ids:
+    secondary: []
+    primary: []
+  stabilizers:
+  - 304_rotator_cuff
+  - 405_forearm_flexors
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  - 206_erector_spinae
+  - 507_multifidus
+  german: Klimmzug im Obergriff
+  review_state:
+    status: approved
+  wger_id: 821
   display_name: Klimmzug im Obergriff
-  common_errors:
-  - Mit Kipping, Beinschwung oder Hüftschwung arbeiten statt jede Wiederholung aus
-    dem Hang kontrolliert einzuleiten.
-  - Aus einem passiven Hang hart anziehen, ohne zuerst Spannung im Schultergürtel
-    aufzubauen.
-  - Die Schultern zu den Ohren ziehen und damit Scapula-Depression und stabile Schultermechanik
-    zu verlieren.
-  - Nur das Kinn irgendwie über die Stange bringen, während Brustkorb, Schulterposition
-    und Zuglinie kollabieren.
-  - 'Halbe Wiederholungen machen: unten nicht ausstrecken oder oben zu früh abbrechen.'
-  - Den Kopf nach vorne zur Stange schieben statt den Körper zur Stange zu ziehen.
-  - Ins Hohlkreuz fallen oder die Rippen aufklappen lassen, wodurch der Rumpf instabil
-    wird und die Kraftübertragung leidet.
-  - Zu breit greifen und dadurch ROM, Schultermechanik und saubere Ellbogenführung
-    unnötig verschlechtern.
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 207_teres_major

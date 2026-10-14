@@ -3,6 +3,9 @@ packages:
   - "6pack"
   - "coach"
   - "plan"
+overrides:
+  # Privates VitalOS-Paket: auch in Coach/Plan lokal statt aus der Registry.
+  '@vos/cross-app-aliases': link:../vitalos/packages/cross-app-aliases
 allowBuilds:
   '@firebase/util': true
   better-sqlite3: true
