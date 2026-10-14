@@ -27,3 +27,26 @@ def read_events(log_dir: Path, *, limit: int = 100, event: str | None = None, ui
             if level and e.get("level") != level.upper(): continue
             out.append(e)
     return list(out)
+
+
+def daemon_status(root: Path) -> dict[str, Any]:
+    """Status des Sync-Daemons aus `<root>/.fitsync/daemon-status.json` (vom Daemon geschrieben).
+    `alive` prüft, ob die PID noch existiert — ein abgestürzter Daemon hinterlässt sonst "running: true"."""
+    import os
+
+    path = root / ".fitsync" / "daemon-status.json"
+    try:
+        data = json.loads(path.read_text())
+    except Exception:
+        return {"running": False, "alive": False, "reason": "kein Status (Daemon lief nie oder nutzt --dry-run)"}
+    alive = False
+    pid = data.get("pid")
+    if data.get("running") and isinstance(pid, int):
+        try:
+            os.kill(pid, 0)
+            alive = True
+        except ProcessLookupError:
+            alive = False
+        except PermissionError:
+            alive = True
+    return {**data, "alive": alive}

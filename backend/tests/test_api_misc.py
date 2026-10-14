@@ -120,3 +120,17 @@ def test_sync_log_liest_strukturierte_events(sync_env):
     assert events and events[-1]["action"] == "angelegt"
     assert client.get("/api/sync/log", params={"event": "summary"}).json()[-1]["angelegt"] == 1
     assert client.get("/api/sync/log", params={"action": "gibtsnicht"}).json() == []
+
+
+def test_sync_status_ohne_und_mit_daemon(env):
+    import os
+
+    client, settings, _ = env
+    assert client.get("/api/sync/status").json()["alive"] is False
+    status = settings.data_root / ".fitsync" / "daemon-status.json"
+    status.parent.mkdir(parents=True)
+    status.write_text(json.dumps({"running": True, "pid": os.getpid(), "counts": {"events": 3}}))
+    r = client.get("/api/sync/status").json()
+    assert r["alive"] is True and r["counts"] == {"events": 3}
+    status.write_text(json.dumps({"running": True, "pid": 2 ** 22 + 12345}))     # abgestürzt: running, aber PID weg
+    assert client.get("/api/sync/status").json()["alive"] is False

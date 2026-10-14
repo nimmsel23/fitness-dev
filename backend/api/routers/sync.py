@@ -36,3 +36,9 @@ def log(settings: Settings = Depends(get_settings), limit: int = Query(100, ge=1
         event: str | None = None, uid: str | None = None, action: str | None = None, level: str | None = None):
     """Strukturierte Sync-Events (JSONL), neueste zuletzt."""
     return logread.read_events(settings.log_dir, limit=limit, event=event, uid=uid, action=action, level=level)
+
+
+@router.get("/status")
+def status(settings: Settings = Depends(get_settings)):
+    """Läuft der Sync-Daemon? (Status-Datei + PID-Prüfung, Zähler, letzte Aktivität)"""
+    return logread.daemon_status(settings.data_root)
