@@ -69,8 +69,24 @@ unberührt als eigenes Projekt.
   (~1 MB, CORS offen, Unlicense). Version = letzter Commit auf diese Datei
   (GitHub-API, 60/h/IP — bei Limit Fallback auf `main` ohne Version).
   Bilder weiter per jsDelivr-CDN (`lib/yuhonasImage.js`), noch nicht offline.
-- Nicht angebunden (bewusst): Session-Suche (`searchExercises`) nutzt weiter
-  `EXERCISE_BULK_DATA`/API, nicht den Mirror.
+- **Bilder offline:** `lib/exerciseDbs/images.js` + `useImageMirror.js` legen die
+  Bild-URLs aller geladenen Quellen in die Cache API (`fitness-exercise-images`,
+  fortsetzbar, 6 parallel, Button im Atlas unter „Quellen“). Ausgeliefert vom
+  Service Worker (`public/sw.js`: `IMG_CACHE`/`IMG_HOSTS`, cache-first). ⚠️ Der
+  `activate`-Handler räumt alle Caches außer `CACHE` und `IMG_CACHE` weg —
+  neuer Cache-Name dort ebenfalls ausnehmen. Neue DB mit anderem CDN: Host in
+  `IMG_HOSTS` ergänzen.
+- **Session/Plan nutzen den Mirror statt `unreviewed_yuhonas`:**
+  `searchExercises(q, limit, { mirror: true })` (Session-Overlay, Plan-Suche)
+  entfernt die alten `yuhonas_*`-Bulk-Records des Katalogs (lokal: API-Zeilen,
+  Firebase: `EXERCISE_BULK_DATA`/Firestore-Docs) und mischt Mirror-Treffer per
+  `lib/exerciseDbs/search.js` ein. Exercise-IDs bleiben identisch
+  (`yuhonas_<id lowercase>`, alle 873 verifiziert) → bestehende Sessions/Pläne
+  gültig. Kuratierte Katalog-Drafts mit `yuhonas_*`-ID (Expert/Inbox) behalten
+  Vorrang. `getExercise('yuhonas_*')` liest ebenfalls aus dem Mirror (Rückfall:
+  Katalog-Record, falls Mirror fehlt). Ohne geladenen Mirror zeigt die
+  Session-Suche keine yuhonas-Treffer, sondern einen Hinweis → Atlas.
+  Ohne `mirror`-Flag (Coach-`CatalogBrowser`) bleibt das alte Verhalten.
 
 ---
 

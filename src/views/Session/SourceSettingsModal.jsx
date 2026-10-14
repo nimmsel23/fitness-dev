@@ -11,7 +11,7 @@ import {
 
 const SOURCES = [
   { key: 'wger',    label: 'wger',         desc: '~800 Übungen · Standard',       experimental: false },
-  { key: 'yuhonas', label: 'yuhonas',       desc: '~800 Übungen · Bilder & GIFs',  experimental: false },
+  { key: 'yuhonas', label: 'yuhonas',       desc: '~870 Übungen · Geräte-Mirror (Atlas → Quellen)',  experimental: false },
   { key: 'coach',   label: 'VitalOS Catalog', desc: 'Kuratiert · Anatomie-Detail',   experimental: true  },
 ];
 const DEFAULTS = { wger: true, yuhonas: true, coach: true };

@@ -7,7 +7,7 @@ import { yuhonasImageUrl } from '../yuhonasImage.js'
 // zusätzlicher Eintrag eingehängt, der Rest (IndexedDB, Hook, UI) bleibt gleich.
 //
 // Gemeinsame Form (normalize):
-//   { uid, source, id, name, category, level, force, mechanic, equipment,
+//   { uid, source, id, exerciseId, name, category, level, force, mechanic, equipment,
 //     primary[], secondary[], steps[], images[] }
 
 const YUHONAS_REPO = 'yuhonas/free-exercise-db'
@@ -55,6 +55,9 @@ function yuhonasNormalize(raw) {
   const frames = Array.isArray(raw.images) && raw.images.length ? raw.images : [0, 1]
   return {
     uid: `yuhonas:${raw.id}`,
+    // Gleiche ID wie der frühere Katalog-Import (importer.py: safe_id) — bestehende
+    // Session-/Plan-Einträge mit `yuhonas_*`-IDs bleiben damit gültig.
+    exerciseId: `yuhonas_${String(raw.id).toLowerCase().replace(/ /g, '_')}`,
     source: 'yuhonas',
     id: raw.id,
     name: raw.name,
@@ -78,6 +81,7 @@ export const EXERCISE_DB_SOURCES = [
     repoUrl: `https://github.com/${YUHONAS_REPO}`,
     license: 'Unlicense (Public Domain)',
     description: 'Offene Übungsdatenbank mit Anleitung, Level, Equipment und zwei Bildframes je Übung.',
+    imageHint: 'grob 100 MB',
     latest: yuhonasLatest,
     download: yuhonasDownload,
     normalize: yuhonasNormalize,

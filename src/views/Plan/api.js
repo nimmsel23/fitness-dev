@@ -93,7 +93,7 @@ export const api = {
       const params = new URLSearchParams(path.split('?')[1] || '')
       const q = params.get('q') || ''
       const limit = Number(params.get('limit')) || 12
-      const res = await dbSearch(q, limit)
+      const res = await dbSearch(q, limit, { mirror: true })
       const results = (res?.results || []).map(ex => ({
         id: ex.id || ex.exercise_id,
         name: ex.name || ex.display_name,

@@ -3,6 +3,13 @@
 
 const CACHE = 'fitness-v0' // Platzhalter — echte Version wird post-build in dist-firebase gestempelt (scripts/stamp-sw.mjs), nie hier committed.
 
+// Offline gespiegelte Übungsbilder (Atlas, lib/exerciseDbs/images.js). Eigener,
+// versionsunabhängiger Cache — activate unten darf ihn nie wegräumen, sonst wäre
+// jedes App-Update ein Verlust von ~100 MB. Cross-Origin-Hosts, deren Bilder
+// gespiegelt werden können, hier eintragen (neue Übungs-DB mit anderem CDN).
+const IMG_CACHE = 'fitness-exercise-images'
+const IMG_HOSTS = ['cdn.jsdelivr.net']
+
 const STATIC = [
   '/',
   '/index.html',
@@ -46,7 +53,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(ks =>
-      Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      Promise.all(ks.filter(k => k !== CACHE && k !== IMG_CACHE).map(k => caches.delete(k)))
     )
   )
   self.clients.claim()
@@ -55,8 +62,19 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request
   const url = new URL(req.url)
-  if (url.origin !== self.location.origin) return
   if (req.method !== 'GET') return
+
+  // Gespiegelte Übungsbilder: Cache zuerst, bei Fehlen normal übers Netz.
+  if (req.destination === 'image' && IMG_HOSTS.includes(url.host)) {
+    e.respondWith((async () => {
+      const cache = await caches.open(IMG_CACHE)
+      const hit = await cache.match(req, { ignoreVary: true })
+      return hit || fetch(req)
+    })())
+    return
+  }
+
+  if (url.origin !== self.location.origin) return
 
   const path = url.pathname
 

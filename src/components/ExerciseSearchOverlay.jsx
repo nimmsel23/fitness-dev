@@ -17,6 +17,7 @@ const SOURCE_LABELS = {
 export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
+  const [mirrorMissing, setMirrorMissing] = useState([])
   const [loading, setLoading] = useState(false)
   const [recents, setRecents] = useState([])
   const [program, setProgram] = useState([])
@@ -92,7 +93,9 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
     const runSearch = async () => {
       setLoading(true)
       try {
-        const data = await searchExercises(query, 25)
+        // mirror: yuhonas kommt aus dem Geräte-Mirror (Atlas → Quellen), nicht aus den alten Katalog-Bulk-Daten
+        const data = await searchExercises(query, 25, { mirror: true })
+        setMirrorMissing(data?.mirrorMissing || [])
         const filtered = filterByLanguage(data?.results || [], langFilter)
         setResults(filtered)
         setSelectedIndex(filtered.length > 0 ? 0 : -1)
@@ -232,6 +235,16 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim">Suchergebnisse</h3>
                 <span className="text-[10px] font-bold text-fit-accent bg-fit-accent/10 px-2 py-0.5 rounded-full font-mono">{results.length}</span>
               </div>
+
+              {mirrorMissing.includes('yuhonas') && (
+                <button
+                  type="button"
+                  onClick={() => { onClose(); window.location.hash = '#atlas' }}
+                  className="w-full text-left px-4 py-3 rounded-2xl border border-dashed border-fit-accent/40 bg-fit-accent/5 text-[11px] font-bold text-fit-muted hover:text-fit-ink transition-colors"
+                >
+                  yuhonas-DB ist nicht auf diesem Gerät — im Atlas unter „Quellen“ laden, dann erscheinen die Treffer hier.
+                </button>
+              )}
 
               {results.length > 0 ? (
                 <div className="space-y-1.5">
