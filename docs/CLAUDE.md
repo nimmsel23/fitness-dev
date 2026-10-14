@@ -180,6 +180,17 @@ um den Katalog zu erweitern), kein eigenständiges Backend. Details:
 
 ---
 
+## Backend (neu) — `backend/`
+
+Neues, schlankes Python-Backend (FastAPI + Firestore-Sync + Desktop-Meldungen), Ziel-Port 9150, nur 127.0.0.1,
+läuft standalone vom Repo-Root: `python3 -m backend serve` · `python3 -m backend sync pull|run|push sessions`.
+Details, Routen und Entscheidungen: `backend/README.md`. Kernpunkte: kein SQLite (die alte `training_history`
+hat keine UID-Spalte → Klienten kollidieren), JSON unter `~/.aos/fitness/users/<uid>/sessions/` ist die Quelle,
+eine Konfliktfunktion `decide()` für Pull/Daemon/Push, Löschen lokal mit Tombstone, `sync push` ist standardmäßig
+Dry-Run. Unit-Vorschläge unter `backend/deploy/` sind **nicht aktiv** — `fitness-api.service` (:9150) und
+`fitness-firestore-daemon.service` sind seit 2026-10-15 auf Wunsch gestoppt, dürfen nie parallel zu den neuen
+Prozessen auf denselben Daten schreiben. Frontend-Fork: `frontend/`, Notifications: `backend/notifier/`.
+
 ## Backend — Server-Rollen auf einen Blick
 
 | Datei | Port | Typ | Rolle |
