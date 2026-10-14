@@ -64,8 +64,14 @@ jobs:
           node-version: 22
           cache: pnpm
 
+      # Bewusst NICHT --frozen-lockfile: dieser Workflow nutzt das Lockfile von
+      # vitalos (master), setzt aber fitness-app auf den dev-Commit. Die
+      # package.json von dev weicht gewollt ab (@vos/cross-app-aliases als
+      # link:../vitalos/... statt workspace:*, siehe c524f9b), das Preview-
+      # Lockfile kann also nie exakt passen. Prod (deploy-vitalos.yml) bleibt
+      # strikt frozen.
       - name: Install (Workspaces)
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Firebase config bereitstellen (fitness-app/firebase.config.js ist gitignored)
         run: |
