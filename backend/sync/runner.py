@@ -33,6 +33,9 @@ def run_pull(
     from backend.sync import notify, source  # Modul-Attribute zur Laufzeit lesen (Tests patchen sie)
 
     store = SessionStore(root)
+    # Reicher Modus (Inbox, Actions, Ruhezeiten …) nur mit ~/.config/fitness-sync/notify.yaml, s. backend/notifier
+    from backend.notifier.hub import from_config as notifier_hub
+    hub = notifier_hub(root) if notify_ else None
 
     def run_all() -> PullOutcome:
         outcome = PullOutcome()
@@ -46,7 +49,7 @@ def run_pull(
             elif notify_:
                 try:  # eine Meldung darf das Pullen der übrigen Klienten nie verhindern
                     notify.notify_changes(client.name if client else u[:8], u, report.changes,
-                                          send=notify.send_desktop, dry_run=dry_run)
+                                          send=notify.send_desktop, dry_run=dry_run, hub=hub)
                 except Exception as exc:
                     outcome.errors += 1
                     logger.error(f"notify {u[:8]} fehlgeschlagen: {type(exc).__name__}: {exc}")
