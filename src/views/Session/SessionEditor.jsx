@@ -12,6 +12,7 @@ import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from 
 import SessionModalsLayer from './SessionModalsLayer.jsx';
 import SessionSlots from './SessionSlots.jsx';
 import SessionHeader from './SessionHeader';
+import SessionGateBar from './SessionGateBar.jsx';
 import SplitPicker from './SplitPicker';
 import SplitPlanSheet from './SplitPlanSheet.jsx';
 import EffortPicker from './EffortPicker';
@@ -175,6 +176,16 @@ export default function SessionEditor({
         onNew={handleNewSession} onDelete={handleDeleteSession}
         sessionMode={sessionMode} setSessionMode={setSessionMode}
         block={block} activity={activity}
+        gateBar={
+          <SessionGateBar
+            sessionGate={sessionGate}
+            exercises={exercises}
+            isToday={date === localToday()}
+            onOpenGate={() => setActiveModal('gate')}
+            onStart={() => startSessionGate()}
+            onStop={stopSessionGate}
+          />
+        }
       />
 
       {/* Split-Auswahl — 1 Klick, direkt unter dem Datumspicker statt hinter "Weitere Details" */}
