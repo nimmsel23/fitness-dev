@@ -19,14 +19,21 @@ class InvalidRange(ValueError):
     pass
 
 
-@lru_cache(maxsize=1)
 def _resources() -> dict[str, Any]:
-    """Teure KB-Daten einmal laden (Übungsindex, Taxonomie, Regionen, Regeln)."""
-    from fitness.catalog.core.resolver import build_exercise_index
+    """KB-Daten (Übungsindex, Taxonomie, Regionen, Regeln); neu geladen, sobald sich die KB-Dateien ändern."""
+    from backend.catalog.index import kb_fingerprint
+
+    return _load_resources(kb_fingerprint())
+
+
+@lru_cache(maxsize=1)
+def _load_resources(_kb_fingerprint: str) -> dict[str, Any]:
+    from backend.catalog.index import get_records
     from fitness.catalog.coverage import load_coverage_rules, load_muscle_region_index, load_muscle_taxonomy
 
     return {
-        "records": build_exercise_index(),
+        # lokale Records (identisch zu build_exercise_index) + yuhonas direkt für lokal unbekannte IDs
+        "records": get_records(include_yuhonas=True),
         "taxonomy": load_muscle_taxonomy(),
         "region_index": load_muscle_region_index(),
         "rules": load_coverage_rules(),
@@ -34,7 +41,7 @@ def _resources() -> dict[str, Any]:
 
 
 def reset_cache() -> None:
-    _resources.cache_clear()
+    _load_resources.cache_clear()
 
 
 def _entries(store: SessionStore, uid: str, date_from: str, date_to: str) -> tuple[list[dict], int]:
