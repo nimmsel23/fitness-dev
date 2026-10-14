@@ -55,6 +55,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def _ex(_: Request, exc):
         return _err(404, f"Übung nicht gefunden: {exc}")
 
+    @app.exception_handler(catalog_svc.YuhonasUnavailable)
+    async def _yuh(_: Request, exc):
+        return _err(503, f"yuhonas-Quelle nicht verfügbar: {exc}")
+
     @app.exception_handler(Exception)
     async def _unexpected(request: Request, exc: Exception):
         # Details nur ins Log, nach außen nur eine Fehler-ID
