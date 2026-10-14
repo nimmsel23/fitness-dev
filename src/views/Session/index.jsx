@@ -15,7 +15,7 @@ import PlanView from '../Plan/index.jsx';
 import WorkoutTimerCard from './WorkoutTimerCard.jsx';
 import SixPackPromiseCard from '../../../6pack/SixPackPromiseCard.jsx';
 import { getAllCoachingNotes } from '../../lib/coachNotes';
-import { getUid } from '@db';
+import { getUid, getIdToken } from '@db';
 import SkillsCard from '../../../Skills/SkillsCard.jsx';
 import TodayPlan, { useTodayPlan } from './TodayPlan.jsx';
 import { isSessionGateActive } from '../../lib/sessionGate.js';
@@ -67,7 +67,9 @@ export default function Session({
 
   if (subTab === 'timer') {
     const uid = (() => { try { return getUid(); } catch { return null; } })();
-    return <SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} />;
+    // getIdToken: Firebase-ID-Token (Firestore-Build) bzw. null (Local-Modus →
+    // 6Pack fällt auf den lokalen x-fitness-uid-Dev-Pfad zurück).
+    return <SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} getIdToken={getIdToken} />;
   }
 
   if (subTab === 'skills') {

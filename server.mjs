@@ -366,7 +366,7 @@ function buildOpenApiSpec() {
   };
 }
 // Local progress photos: runtime files stay outside public/build assets.
-app.route('/', sixpackPhotoRoutes());
+app.route('/', sixpackPhotoRoutes({ pythonBase: PYTHON_BASE }));
 
 // ── Strava-Live-Import (Radtouren-Tab, OAuth2) ──────────────────────────────
 // Routen ausgelagert in server/routes/strava.mjs (Hono-Sub-Router), Logik in

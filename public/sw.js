@@ -62,6 +62,8 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request
   const url = new URL(req.url)
+  // Private photos and authenticated requests must never enter shared caches.
+  if (req.headers.has('authorization') || /\/sixpack(?:\/photos|-photos)/.test(url.pathname)) return
   if (req.method !== 'GET') return
 
   // Gespiegelte Übungsbilder: Cache zuerst, bei Fehlen normal übers Netz.
