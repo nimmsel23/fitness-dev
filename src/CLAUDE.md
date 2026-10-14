@@ -16,6 +16,7 @@ Python-Backend-Details: `../fitness/CLAUDE.md` (API/Dispatcher) und
 | `journal` | Journal | `views/Journal/` | Text-Notizen |
 | `review` | Review | `views/WeeklyReview/` | Charts + Wochenrückblick |
 | `learn` | Lernen | `views/Learn/` | Anatomie-Lehre (aus `fitness/catalog/kb/`) |
+| `atlas` | Atlas | `views/Exercises/` | Übersicht über alle lokal gespiegelten Übungs-DBs (siehe unten), unabhängig von Learn |
 | `settings` | Setup | `views/Settings/` | Themes, Split, Nav-Modus etc. |
 
 **Versteckte Views** (nicht in Nav, per URL erreichbar): `views/Coach/`
@@ -40,6 +41,36 @@ Geplante Umstellung (noch nicht umgesetzt): `App.jsx` auf
 `Habits`/`Journal`-Views nutzen an vielen Stellen hartcodierte Fuel-Branding-
 Klassen (`text-orange-400` etc.) statt `fit-*`-Tokens — unabhängig vom
 Symlink-Thema, muss in `habits-dev`/`journal-dev` selbst gefixt werden.
+
+---
+
+## Übungs-DB-Mirror + Atlas-Tab (2026-10-14)
+
+**Prinzip:** Eine externe Übungs-DB wird nicht über den Catalog umgebaut (der
+YAML-Weg `unreviewed_yuhonas.yml` verliert Felder: `level`/`force`/`mechanic`,
+3 von 876 Einträgen fehlen), sondern **1:1 aus ihrem Git-Repo** auf das
+jeweilige Gerät gespiegelt. Der Catalog (`fitness/catalog/`) bleibt davon
+unberührt als eigenes Projekt.
+
+- `lib/exerciseDbs/sources.js` — Registry. Pro Quelle: `download()` (Rohdaten +
+  Commit-SHA als Version), `latest()` (Update-Check), `normalize()` (Rohform →
+  gemeinsame Anzeigeform). **Neue DB = ein weiterer Registry-Eintrag**, sonst
+  nichts anfassen.
+- `lib/exerciseDbs/idb.js` / `mirror.js` — IndexedDB `fitness-exercise-mirror`
+  (`data` = Rohdaten unverändert, `meta` = Status). "Vom Nutzer verwendet" =
+  auf diesem Gerät geladen. Normalisierung erst beim Lesen.
+- `lib/exerciseDbs/useExerciseMirrors.js` — Hook (Status, Items, Laden/
+  Entfernen, einmaliger Update-Check im Hintergrund).
+- `views/Exercises/` — Atlas-Tab. Liest **nur** aus dem Mirror (offline-fähig),
+  Facetten mit disjunktiven Zählern, Detail-Sheet mit Start-/Endframe. Hängt
+  Catalog-Einträge (kuratiert/Inbox) per `yuhonas_id` an → deutscher Name +
+  Sprung in `ExerciseInsightModal`.
+- **yuhonas:** `raw.githubusercontent.com/yuhonas/free-exercise-db/<sha>/dist/exercises.json`
+  (~1 MB, CORS offen, Unlicense). Version = letzter Commit auf diese Datei
+  (GitHub-API, 60/h/IP — bei Limit Fallback auf `main` ohne Version).
+  Bilder weiter per jsDelivr-CDN (`lib/yuhonasImage.js`), noch nicht offline.
+- Nicht angebunden (bewusst): Session-Suche (`searchExercises`) nutzt weiter
+  `EXERCISE_BULK_DATA`/API, nicht den Mirror.
 
 ---
 

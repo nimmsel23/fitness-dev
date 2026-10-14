@@ -1,4 +1,4 @@
-import { Dumbbell, Brain, BarChart3, Settings2, CalendarDays, ClipboardList, History, LibraryBig, Microscope, HelpCircle, Layers, Zap, Crosshair, TimerReset, Sparkles, Bike } from "lucide-react";
+import { Dumbbell, Brain, BarChart3, Settings2, CalendarDays, ClipboardList, History, LibraryBig, Microscope, HelpCircle, Layers, Zap, Crosshair, TimerReset, Sparkles, Bike, LayoutGrid } from "lucide-react";
 
 const baseItems = [
   { id: 'session',  label: 'Training', Icon: Dumbbell,  sub: [
@@ -25,6 +25,11 @@ const baseItems = [
     { id: 'anatomy',   label: 'Anatomie', Icon: Microscope },
     { id: 'quiz',      label: 'Quiz',     Icon: HelpCircle },
   ]},
+  // Atlas: Übersicht über alle lokal gespiegelten Übungs-DBs (Mirror in
+  // IndexedDB, siehe lib/exerciseDbs/) — bewusst unabhängig vom Learn-Tab.
+  // Position 4 (nach session/review/learn): getNavItems() fügt den dynamischen
+  // Fokus/Anamnese-Eintrag per slice(0,3) davor ein.
+  { id: 'atlas',    label: 'Atlas',    Icon: LayoutGrid },
   // Eigener Haupt-Tab, kein Subtab von WeeklyReview/Muscles — Radtouren waren
   // bisher nur ein kleines Cardio-Addon im Session-Modal, sollen aber als
   // vollwertiger, gleichrangiger Bereich neben dem Krafttraining stehen
