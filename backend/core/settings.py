@@ -13,6 +13,7 @@ class Settings:
     klienten_dir: Path     # ~/Klienten/*/client.json
     host: str
     port: int
+    frontend_dist: Path | None = None   # gebautes Frontend (index.html + assets); None = nicht ausliefern
 
     @property
     def is_loopback(self) -> bool:
@@ -31,4 +32,5 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
         klienten_dir=Path(env.get("FITNESS_KLIENTEN_DIR") or home / "Klienten"),
         host=env.get("FITNESS_HOST") or "127.0.0.1",
         port=int(env.get("FITNESS_PYTHON_PORT") or env.get("FITNESS_PORT") or 9150),
+        frontend_dist=Path(env.get("FITNESS_FRONTEND_DIST") or Path(__file__).resolve().parents[2] / "frontend" / "dist"),
     )

@@ -3,8 +3,9 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
 from backend.api.routers import analytics, catalog, clients, health, plan, sessions, sync
@@ -63,4 +64,24 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     for r in (health, clients, sessions, analytics, plan, catalog, sync):
         app.include_router(r.router, prefix="/api")
+    _mount_frontend(app, settings)
     return app
+
+
+def _mount_frontend(app: FastAPI, settings: Settings) -> None:
+    """Gebautes Frontend ausliefern (falls vorhanden) — nach den /api-Routen, mit SPA-Fallback."""
+    dist = settings.frontend_dist
+    if not dist or not (dist / "index.html").is_file():
+        return
+    dist = dist.resolve()
+    if (dist / "assets").is_dir():
+        app.mount("/assets", StaticFiles(directory=dist / "assets"), name="assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def spa(full_path: str):
+        if full_path == "api" or full_path.startswith("api/"):
+            raise HTTPException(404, "Route nicht gefunden")      # unbekannte API-Routen nie als HTML beantworten
+        candidate = (dist / full_path).resolve()
+        if full_path and candidate.is_file() and candidate.is_relative_to(dist):
+            return FileResponse(candidate)
+        return FileResponse(dist / "index.html")
