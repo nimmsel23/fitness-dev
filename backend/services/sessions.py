@@ -36,6 +36,14 @@ def parse_doc_id(doc_id: str) -> tuple[str, str | None]:
     return m.group(1), m.group(2)
 
 
+def _activity(data: dict[str, Any]) -> dict[str, Any] | None:
+    """Kurzform der Cardio-/Aktivitätsdaten (44 von 80 Sessions haben nur `activity`, keine exercises)."""
+    a = data.get("activity")
+    if not isinstance(a, dict) or not a.get("type"):
+        return None
+    return {k: a[k] for k in ("type", "duration", "intensity", "distanceKm") if a.get(k) not in (None, "")}
+
+
 def summarize(doc_id: str, data: dict[str, Any]) -> dict[str, Any]:
     day, sid = parse_doc_id(doc_id)
     return {
@@ -48,6 +56,7 @@ def summarize(doc_id: str, data: dict[str, Any]) -> dict[str, Any]:
         "exercises": len(data.get("exercises") or []),
         "effort": data.get("effort"),
         "duration": data.get("duration") or None,
+        "activity": _activity(data),
         "rev": rev_of(data),
         "saved_at": data.get("saved_at"),
     }

@@ -23,6 +23,7 @@ class SessionSummary(BaseModel):
     exercises: int
     effort: int | float | str | None = None
     duration: str | None = None
+    activity: dict | None = None
     rev: int
     saved_at: str | None = None
 

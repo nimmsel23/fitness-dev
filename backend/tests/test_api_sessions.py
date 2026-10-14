@@ -97,3 +97,13 @@ def test_parallele_saves_gehen_nicht_verloren(env):
         codes = list(pool.map(lambda i: put(client, "2026-10-14", {"n": i}).status_code, range(8)))
     assert codes == [200] * 8
     assert client.get(f"/api/users/{KLIENT}/sessions/2026-10-14").json()["rev"] == 8
+
+
+def test_zusammenfassung_enthaelt_aktivitaet_bei_cardio(env):
+    client, _, store = env
+    store.write(KLIENT, "2026-05-26", {"date": "2026-05-26", "sessionMode": "cardio",
+                                       "activity": {"type": "swimming", "intensity": 5, "duration": "25", "notes": "x"}})
+    store.write(KLIENT, "2026-05-27", {"date": "2026-05-27", "sessionMode": "strength", "activity": {}})
+    rows = {s["doc_id"]: s for s in client.get(f"/api/users/{KLIENT}/sessions").json()}
+    assert rows["2026-05-26"]["activity"] == {"type": "swimming", "duration": "25", "intensity": 5}  # ohne notes
+    assert rows["2026-05-27"]["activity"] is None
