@@ -19,6 +19,12 @@ const STATIC = [
 
 // GET-Pfade die stale-while-revalidate bekommen
 const SWR_PREFIXES = [
+  // Neues Python-Backend (/api/*): Lesezugriffe SWR. Alles andere unter /api/ (z.B. /api/sync/*)
+  // wird unten gar nicht abgefangen (Netz) — NICHT in die cache-first-Regel für Assets fallen lassen.
+  '/api/users',
+  '/api/clients',
+  '/api/plan',
+  '/api/catalog',
   '/session',
   '/coverage',
   '/fitness/weekly',
@@ -104,6 +110,9 @@ self.addEventListener('fetch', e => {
     return
   }
 
+  // Übrige /api/-Routen (sync, health, ...) → nie cachen, direkt ans Netz
+  if (path.startsWith('/api/')) return
+
   // Navigations → network-first, app-shell fallback
   if (req.mode === 'navigate') {
     e.respondWith(
@@ -183,6 +192,7 @@ async function flushFromSW() {
   if (!db) return
   const items = await idbGetAll(db, 'queue')
   for (const item of items) {
+    if (item.conflict) continue   // wartet auf manuelle Auflösung (siehe offline-queue.js)
     try {
       const res = await fetch(item.url, {
         method: item.method,
@@ -190,6 +200,14 @@ async function flushFromSW() {
         body: item.body,
       })
       if (!res.ok && res.status >= 500) break
+      if (res.status === 409) {
+        // Konflikt: Offline-Stand nicht verwerfen, als conflict markieren und Seiten informieren.
+        const body = await res.clone().json().catch(() => ({}))
+        await idbPut(db, 'queue', { ...item, conflict: true, conflict_at: Date.now(), current_rev: body?.current_rev ?? null })
+        const pages = await self.clients.matchAll({ includeUncontrolled: true })
+        pages.forEach(c => c.postMessage({ type: 'fitness:queue-conflict', id: item.id, url: item.url, current_rev: body?.current_rev ?? null }))
+        continue
+      }
       await idbDelete(db, 'queue', item.id)
     } catch {
       break // noch offline, nächster Sync-Event
@@ -219,6 +237,16 @@ function idbGetAll(db, store) {
       r.onsuccess = () => resolve(r.result || [])
       r.onerror = () => resolve([])
     } catch { resolve([]) }
+  })
+}
+
+function idbPut(db, store, item) {
+  return new Promise(resolve => {
+    try {
+      const r = db.transaction(store, 'readwrite').objectStore(store).put(item)
+      r.onsuccess = () => resolve()
+      r.onerror = () => resolve()
+    } catch { resolve() }
   })
 }
 

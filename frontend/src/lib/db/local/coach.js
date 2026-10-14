@@ -1,4 +1,5 @@
 import { api } from "./core";
+import { backend } from "../../api/index.js";
 
 // ── Coach-Tab: globaler Feed aller Klienten-Workouts + Profile ───────────────
 
@@ -87,8 +88,9 @@ export async function saveClientHabitCycleConfig(clientUid, config) {
 
 export async function getAllUserProfiles() {
   try {
-    const data = await api.get('/fitness/coach/profiles');
-    return data?.profiles || {};
+    // → neues Backend: GET /api/clients (Registry ~/Klienten); Format wie früher {uid: {displayName, uid, slug}}
+    const clients = await backend.clients();
+    return Object.fromEntries(clients.map((c) => [c.uid, { displayName: c.name, uid: c.uid, slug: c.slug }]));
   } catch {
     return {};
   }

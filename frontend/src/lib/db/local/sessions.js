@@ -1,6 +1,8 @@
 import { api, localToday } from "./core";
 import { num } from "./utils";
 import { clearMonthlyReportCache } from "../../reportCache";
+import { backend } from "../../api/client.js";
+import { loadSession, persistSession, loadSessionsForDate, loadRecentSessions } from "../../api/sessionAdapter.js";
 
 function exerciseSets(exercise) {
   if (Array.isArray(exercise?.setsArray) && exercise.setsArray.length > 0) return exercise.setsArray;
@@ -19,39 +21,38 @@ function normalizeGhostSet(set = {}, index = 0) {
   };
 }
 
+// → neues Backend: GET /api/users/{uid}/sessions/{doc_id}
 export async function getSession(date = localToday(), id = null) {
   try {
-    const qs = id ? `?date=${date}&id=${encodeURIComponent(id)}` : `?date=${date}`;
-    const data = await api.get(`/session${qs}`);
-    return data?.data || null;
+    return (await loadSession(date, id)) || null;   // 404/Fehler → null (wie bisher)
   } catch {
     return null;
   }
 }
 
+// → neues Backend: PUT /api/users/{uid}/sessions/{doc_id} (rev-Konfliktschutz; wirft RevConflictError bei 409)
 export async function saveSession(date = localToday(), sessionData, id = null) {
-  const qs = id ? `?date=${date}&id=${encodeURIComponent(id)}` : `?date=${date}`;
-  const res = await api.post(`/session${qs}`, sessionData || {});
+  const res = await persistSession(date, sessionData || {}, id);
   clearMonthlyReportCache();
-  // sqliteSync durchreichen (server.mjs signalisiert damit einen verzögerten,
-  // nicht-fatalen SQLite-Sync — der JSON-Save selbst war erfolgreich).
   return {
     ok: true,
     queued: res?.queued === true,
     offline: res?.offline === true,
-    sqliteSync: res?.sqliteSync !== false,
+    sqliteSync: true,          // das neue Backend hat keinen SQLite-Spiegel mehr (JSON ist die Quelle)
+    rev: typeof res?.rev === "number" ? res.rev : undefined,
   };
 }
 
+// → neues Backend: GET /api/users/{uid}/sessions?since=<date> + je Treffer GET .../{doc_id}
 export async function listSessionsForDate(date = localToday()) {
   try {
-    const data = await api.get(`/sessions?date=${date}`);
-    return data?.sessions || [];
+    return await loadSessionsForDate(date);
   } catch {
     return [];
   }
 }
 
+// BACKEND-LÜCKE (docs/BACKEND-GAPS.md #1): kein DELETE im neuen Backend — läuft weiter über die Legacy-Route.
 export async function deleteSession(date = localToday(), id = null) {
   const qs = id ? `?date=${date}&id=${encodeURIComponent(id)}` : `?date=${date}`;
   await api.delete(`/session${qs}`);
@@ -59,6 +60,7 @@ export async function deleteSession(date = localToday(), id = null) {
   return { ok: true };
 }
 
+// BACKEND-LÜCKE (#2): DELETE /session/activity hat kein Pendant im neuen Backend.
 // Entfernt einen einzelnen Finisher aus activityAddons, ohne die gesamte
 // (Kraft-)Session zu löschen. Node proxied das an fitness-api (Python) —
 // dort lebt die Merge/Addon-Logik, siehe firestore/sessions.js für den
@@ -72,10 +74,10 @@ export async function deleteActivityAddon(date = localToday(), index) {
   }
 }
 
+// → neues Backend: GET /api/users/{uid}/sessions?limit=n + je Treffer die volle Session (N+1, siehe BACKEND-GAPS #3)
 export async function getRecentSessions(n = 10) {
   try {
-    const data = await api.get(`/session/history?limit=${n}`);
-    return data?.sessions || [];
+    return await loadRecentSessions(n);
   } catch {
     return [];
   }
@@ -217,11 +219,12 @@ export async function savePlan(plan) {
 export async function getPlanSuggestion(params) {
   try {
     if (typeof params === 'string' || !params) {
+      // BACKEND-LÜCKE (#4): GET /plan/today hat kein Pendant im neuen Backend.
       const data = await api.get(`/plan/today?date=${params || localToday()}`);
       return data?.suggestion || null;
     }
-    const qs = new URLSearchParams(params).toString();
-    return await api.get(`/fitness/plan?${qs}`);
+    // → neues Backend: GET /api/plan (liefert den Plan direkt; alte Route kapselte ihn als {ok, plan})
+    return { ok: true, plan: await backend.plan(params) };
   } catch {
     return null;
   }

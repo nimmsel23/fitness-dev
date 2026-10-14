@@ -13,6 +13,7 @@ export default defineConfig({
   build: { outDir: 'dist', emptyOutDir: true },
   server: {
     port: Number(process.env.FITNESS_CATALOG_UI_PORT || 5912),
+    host: process.env.FITNESS_FRONTEND_HOST || '127.0.0.1',
     strictPort: true,
     proxy: {
       '/api': API,

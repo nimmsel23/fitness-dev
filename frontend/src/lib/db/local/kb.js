@@ -1,4 +1,5 @@
 import { api } from "./core";
+import { backend, ApiError } from "../../api/index.js";
 import { normalizeExerciseRecord } from "../shared/exercise.js";
 import { getStaticMuscle, getStaticMuscleDocs } from "../../kb/muscles.js";
 import {
@@ -19,9 +20,10 @@ function loadSessionSources() {
 export async function getExercise(exerciseId) {
   let found = null;
   try {
-    const data = await api.get("/fitness/exercises/all");
-    found = (data?.exercises || []).find((ex) => String(ex.exercise_id || ex.id) === String(exerciseId)) || null;
-  } catch {
+    // → neues Backend: GET /api/catalog/exercises/{id} (404 → nicht gefunden)
+    found = await backend.getExercise(exerciseId);
+  } catch (e) {
+    if (!(e instanceof ApiError && e.status === 404)) console.warn("getExercise:", e?.message);
     found = null;
   }
   // yuhonas_*-IDs: kuratierte Katalog-Einträge (Expert/Inbox) behalten Vorrang,
@@ -35,6 +37,8 @@ export async function getExercise(exerciseId) {
   return found;
 }
 
+// BACKEND-LÜCKE (#5): GET /fitness/exercises/all (kompletter Katalog) hat kein Pendant im neuen Backend
+// (/api/catalog/exercises liefert max. 50 Treffer einer Suche). Betrifft getAllExercises + die Auswertungen.
 export async function getAllExercises() {
   try {
     const data = await api.get("/fitness/exercises/all");
@@ -83,9 +87,10 @@ export async function searchExercises(query, limit = 12, opts = {}) {
   if (!q) return { ok: true, results: [], query: q, suggestions: [] };
   try {
     const sources = loadSessionSources();
-    const active = Object.entries(sources).filter(([, v]) => v).map(([k]) => k).join(',') || 'wger';
     const fetchLimit = opts.mirror ? Math.min(limit * 3, 50) : limit;
-    const data = await api.get(`/fitness/search?q=${encodeURIComponent(q)}&limit=${fetchLimit}&sources=${active}`);
+    // → neues Backend: GET /api/catalog/exercises?q=&limit= (kein `sources`-Filter mehr: die Quellen
+    //   wger/yuhonas kommen über den Geräte-Mirror bzw. serverseitig direkt, siehe BACKEND-GAPS #6)
+    const data = { ok: true, query: q, ...(await backend.searchExercises(q, fetchLimit)) };
     if (!opts.mirror) {
       if (!data) return { ok: false, results: [], query: q };
       return {

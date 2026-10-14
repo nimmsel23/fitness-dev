@@ -73,6 +73,10 @@
     return req((await store('queue', 'readonly')).getAll())
   }
 
+  async function queuePut(item) {
+    return req((await store('queue', 'readwrite')).put(item))
+  }
+
   async function queueDelete(id) {
     return req((await store('queue', 'readwrite')).delete(id))
   }
@@ -99,7 +103,9 @@
     if (!items.length) return { ok: true, flushed: 0, failed: 0 }
     let flushed = 0, failed = 0
     const flushedItems = []
+    let conflicts = 0
     for (const item of items) {
+      if (item.conflict) continue   // wartet auf manuelle Auflösung, nicht erneut senden
       try {
         const res = await fetch(item.url, {
           method: item.method,
@@ -107,6 +113,17 @@
           body: item.body,
         })
         if (!res.ok && res.status >= 500) throw new Error(`http_${res.status}`)
+        if (res.status === 409) {
+          // Konflikt (neues Backend: PUT mit veralteter rev). Der Offline-Stand darf NICHT stillschweigend
+          // verworfen werden: Eintrag bleibt in der Queue, als conflict markiert, und wird nicht mehr abgespielt.
+          const body = await res.clone().json().catch(() => ({}))
+          await queuePut({ ...item, conflict: true, conflict_at: Date.now(), current_rev: body?.current_rev ?? null })
+          conflicts++
+          window.dispatchEvent(new CustomEvent('fitness:queue-conflict', {
+            detail: { id: item.id, method: item.method, url: item.url, current_rev: body?.current_rev ?? null },
+          }))
+          continue
+        }
         await queueDelete(item.id)
         flushed++
         flushedItems.push({ id: item.id, method: item.method, url: item.url })
@@ -120,7 +137,7 @@
         detail: { flushed, failed, items: flushedItems },
       }))
     }
-    return { ok: failed === 0, flushed, failed }
+    return { ok: failed === 0, flushed, failed, conflicts }
   }
 
   async function tryRegisterSync() {

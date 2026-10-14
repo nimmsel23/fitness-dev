@@ -77,14 +77,18 @@ export default defineConfig(async ({ mode }) => {
     },
     server: {
       port: Number(process.env.FITNESS_FRONTEND_PORT || 5911),
+      host: process.env.FITNESS_FRONTEND_HOST || '127.0.0.1',   // nur lokal (kein Auth im Backend dahinter)
       strictPort: true,
       fs: {
         // Dev-Server darf Dateien außerhalb von frontend/ ausliefern: KB-YAML (?raw) und Sibling-Repos.
+        // Freigabe aus den TATSÄCHLICH aufgelösten Alias-Pfaden ableiten (kann ~/vitalos/<name>-app statt
+        // ~/<name>-dev sein) — sonst liefert der Dev-Server z.B. @relax/... mit 403 aus.
         allow: [
           __dirname,
           KB_DIR,
           siblingDir('relax-dev', 'relax-app'),
           siblingDir('learn-dev', 'learn-app'),
+          ...Object.values(crossAppAliases),
         ],
       },
       watch: {

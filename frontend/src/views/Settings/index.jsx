@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Settings2 } from "lucide-react";
 import { api, isLocalMode } from "@db";
+import { backend } from "../../lib/api/index.js";
 import AppearanceSection from "./AppearanceSection";
 import TrainingSection from "./TrainingSection";
 import UpdateSection from "./UpdateSection";
@@ -94,10 +95,12 @@ export default function Settings() {
     }
     if (!api) return;
     let alive = true;
-    api.get('/health').then(d => alive && setHealth(d)).catch(() => alive && setHealth({ ok: false }))
+    // → neues Backend: GET /api/health
+    backend.health().then(d => alive && setHealth(d)).catch(() => alive && setHealth({ ok: false }))
     fetch('http://localhost/api/v2/language/?format=json')
       .then(r => alive && setWger(r.ok))
       .catch(() => alive && setWger(false))
+    // BACKEND-LÜCKE (#7): /firestore/status + /firestore/sync (Push nach Firestore) — kein Pendant
     api.get('/firestore/status').then(d => alive && setFirestoreStatus(d)).catch(() => alive && setFirestoreStatus({ ok: false }))
     return () => { alive = false }
   }, [])
