@@ -5,6 +5,7 @@ import re
 from datetime import datetime, timezone
 from typing import Any
 
+from backend.core import tombstones
 from backend.core.conflict import rev_of
 from backend.core.store import SessionStore
 
@@ -62,8 +63,11 @@ def summarize(doc_id: str, data: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def list_sessions(store: SessionStore, uid: str, *, limit: int = 50, since: str | None = None) -> list[dict[str, Any]]:
-    """Neueste zuerst. Defekte/nicht parsebare Dateien werden übersprungen (nicht fatal)."""
+def list_sessions(
+    store: SessionStore, uid: str, *, limit: int = 50, since: str | None = None, full: bool = False
+) -> list[dict[str, Any]]:
+    """Neueste zuerst. Defekte/nicht parsebare Dateien werden übersprungen (nicht fatal).
+    full=True liefert die kompletten Sessions (plus doc_id) statt der Zusammenfassungen."""
     out = []
     for doc_id in store.list_ids(uid):
         data, err = store.read(uid, doc_id)
@@ -72,9 +76,11 @@ def list_sessions(store: SessionStore, uid: str, *, limit: int = 50, since: str 
         item = summarize(doc_id, data)
         if since and str(item["date"]) < since:
             continue
-        out.append(item)
-    out.sort(key=lambda s: (str(s["date"]), str(s["saved_at"] or "")), reverse=True)
-    return out[:limit]
+        out.append((item, data))
+    out.sort(key=lambda p: (str(p[0]["date"]), str(p[0]["saved_at"] or "")), reverse=True)
+    if full:
+        return [{**data, "doc_id": item["doc_id"]} for item, data in out[:limit]]
+    return [item for item, _ in out[:limit]]
 
 
 def get_session(store: SessionStore, uid: str, doc_id: str) -> dict[str, Any]:
@@ -113,11 +119,38 @@ def save_session(
         stored, err = store.read(uid, doc_id)
         if err:
             raise StoredSessionCorrupt(f"{doc_id}: {err}")
+        tomb = tombstones.load(store.root, uid).get(doc_id)
+        tomb_rev = int(tomb["rev"]) if tomb else 0
         stored_rev = rev_of(stored) if stored else 0
-        if expected is not None and expected != stored_rev:
+        if stored is None and tomb:
+            # Neuanlage nach Löschen: Basis 0 oder die gelöschte rev sind beide ok
+            if expected is not None and expected not in (0, tomb_rev):
+                raise RevConflict(tomb_rev)
+        elif expected is not None and expected != stored_rev:
             raise RevConflict(stored_rev)
-        new = {**body, "date": day, "rev": stored_rev + 1, "saved_at": now.isoformat()}
+        # rev läuft nach einem Löschen weiter, sonst würde der alte Firestore-Stand (höhere rev) gewinnen
+        new = {**body, "date": day, "rev": max(stored_rev, tomb_rev) + 1, "saved_at": now.isoformat()}
         if sid and not new.get("session_id"):
             new["session_id"] = sid
         store.write(uid, doc_id, new)
+        if tomb:
+            tombstones.remove(store.root, uid, doc_id)
     return new
+
+
+def delete_session(
+    store: SessionStore, uid: str, doc_id: str, *, expected_rev: int | None = None, now: datetime | None = None
+) -> dict[str, Any]:
+    """Löscht lokal (Papierkorb, wiederherstellbar) und setzt einen Tombstone, damit der nächste
+    Pull die Session nicht wiederherstellt. Firestore wird dabei NICHT angefasst."""
+    parse_doc_id(doc_id)
+    with store.write_lock():
+        stored, err = store.read(uid, doc_id)
+        if stored is None and not err:
+            raise SessionNotFound(doc_id)
+        rev = rev_of(stored) if stored else 0      # defekte Datei: Aufräumen erlaubt
+        if expected_rev is not None and stored is not None and expected_rev != rev:
+            raise RevConflict(rev)
+        trash = store.trash(uid, doc_id)
+        tombstones.add(store.root, uid, doc_id, rev, now)
+    return {"deleted": doc_id, "rev": rev, "trash": str(trash)}

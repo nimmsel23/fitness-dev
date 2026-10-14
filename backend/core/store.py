@@ -14,7 +14,7 @@ import os
 import re
 import shutil
 from contextlib import contextmanager
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -99,6 +99,16 @@ class SessionStore:
         src = self.path(uid, doc_id)
         dst = src.with_name(src.name + ".corrupt")
         os.replace(src, dst)
+        return dst
+
+    def trash(self, uid: str, doc_id: str) -> Path:
+        """Session in den Papierkorb verschieben (wiederherstellbar):
+        `<root>/.fitsync/trash/<uid>/<doc_id>.<UTC-Zeit>.json`."""
+        src = self.path(uid, doc_id)
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+        dst = self.root / ".fitsync" / "trash" / uid / f"{doc_id}.{stamp}.json"
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        os.replace(src, dst)        # FileNotFoundError, wenn es die Session nicht gibt
         return dst
 
     def write(self, uid: str, doc_id: str, data: dict[str, Any]) -> Path | None:

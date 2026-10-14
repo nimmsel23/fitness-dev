@@ -8,6 +8,7 @@ from typing import Any, Iterable
 
 from loguru import logger
 
+from backend.core import tombstones
 from backend.core.conflict import Decision, decide, rev_of
 from backend.core.store import InvalidDocId, SessionStore, check_doc_id, jsonable
 
@@ -76,6 +77,14 @@ def _pull_one(uid: str, doc_id: str, doc: RemoteDoc, store: SessionStore, report
               reason="lokal_defekt", dry_run=dry_run, direction=direction)
         local = None
 
+    tomb = tombstones.load(store.root, uid).get(doc_id) if local is None else None
+    if tomb and rev_of(remote) <= int(tomb.get("rev", 0)):
+        report.counts["übersprungen"] += 1
+        _emit("INFO", uid, doc_id, "übersprungen",
+              f"lokal gelöscht (Tombstone rev {tomb.get('rev', 0)}), remote rev {rev_of(remote)} nicht neuer",
+              reason="tombstone", rev_remote=rev_of(remote), dry_run=dry_run, direction=direction)
+        return
+
     decision: Decision = decide(local, remote)
     facts = dict(reason=decision.reason, rev_remote=rev_of(remote),
                  rev_local=None if local is None else rev_of(local),
@@ -91,6 +100,8 @@ def _pull_one(uid: str, doc_id: str, doc: RemoteDoc, store: SessionStore, report
     action = "angelegt" if local is None else "aktualisiert"
     if not dry_run:
         backup = store.write(uid, doc_id, remote)
+        if tomb:
+            tombstones.remove(store.root, uid, doc_id)   # neuere remote rev: Session ist wieder da
         facts["backup"] = None if backup is None else str(backup)
     report.counts[action] += 1
     report.changes.append(Change(uid, doc_id, action, remote))

@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
-from backend.api.routers import analytics, catalog, clients, health, plan, sessions, sync
+from backend.api.routers import analytics, catalog, clients, health, plan, sessions, sync, user_plan
 from backend.core.settings import Settings, load_settings
 from backend.core.store import SessionStore
 from backend.services import analytics as analytics_svc
@@ -62,7 +62,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         logger.bind(event="error", error_id=error_id, path=request.url.path).exception(f"unerwarteter Fehler {error_id}")
         return _err(500, "interner Fehler", error_id=error_id)
 
-    for r in (health, clients, sessions, analytics, plan, catalog, sync):
+    for r in (health, clients, sessions, analytics, plan, user_plan, catalog, sync):
         app.include_router(r.router, prefix="/api")
     _mount_frontend(app, settings)
     return app

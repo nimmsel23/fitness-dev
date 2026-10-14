@@ -28,3 +28,65 @@ def build(template: str | None = None, split: str | None = None, day: str | None
             raise UnknownTemplate(msg) from None
         raise
     return dataclasses.asdict(result) if dataclasses.is_dataclass(result) else dict(result)
+
+
+# ---- Tagesvorschlag (Rotation nach der zuletzt geloggten Einheit) ----------------------------
+_DOW_DE = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"]
+# Fallback ohne Plan — aus dem alten Backend übernommen (fitness/api/routers/coaching.py)
+_FALLBACK_PLAN = {
+    "Mo": ("Push", ["Incline Dumbbell Press", "Dips", "Lateral Raise", "Cable Fly", "Triceps Extension"]),
+    "Di": ("Pull", ["Pull-Up", "Row", "Lat Pulldown", "Face Pull", "Biceps Curl"]),
+    "Mi": ("Legs", ["Squat", "Romanian Deadlift", "Lunge", "Leg Curl", "Calf Raise"]),
+    "Do": ("Upper", ["Bench Press", "Row", "Overhead Press", "Pulldown", "Curl"]),
+    "Fr": ("Lower", ["Deadlift", "Split Squat", "Hip Thrust", "Leg Curl", "Calf Raise"]),
+    "Sa": ("Full Body", ["Squat", "Press", "Row", "Hinge", "Carry"]),
+    "So": ("Recovery", ["Mobility", "Walk", "Core Breathing"]),
+}
+
+
+def _read_plan(store, uid: str, is_coach: bool) -> tuple[dict | None, str | None]:
+    """Eigener Plan des Nutzers; der alte globale `plan.json` gehört dem Coach und wird nur dort
+    verwendet (früher bekam jeder Klient den Plan des Coaches vorgeschlagen)."""
+    import json
+
+    candidates = [(store.root / "users" / uid / "plan.json", "user")]
+    if is_coach:
+        candidates.append((store.root / "plan.json", "global"))
+    for path, label in candidates:
+        try:
+            data = json.loads(path.read_text())
+        except Exception:
+            continue
+        if isinstance(data, dict) and data.get("einheiten"):
+            return data, label
+    return None, None
+
+
+def today(store, uid: str, *, is_coach: bool = False, day: str | None = None) -> dict[str, Any]:
+    from datetime import date as _date, datetime
+
+    day = day or _date.today().isoformat()
+    try:
+        weekday = datetime.fromisoformat(day + "T12:00:00").weekday()
+    except ValueError:
+        raise ValueError(f"ungültiges Datum: {day!r}") from None
+
+    last_block = last_logged_at = None
+    for doc_id in sorted(store.list_ids(uid), reverse=True):
+        data, _err = store.read(uid, doc_id)
+        if data and data.get("block"):
+            last_block, last_logged_at = data["block"], data.get("date") or doc_id.split("__")[0]
+            break
+
+    plan, source = _read_plan(store, uid, is_coach)
+    if plan:
+        units = plan["einheiten"]
+        last_idx = next((i for i, e in enumerate(units) if e.get("name") == last_block), -1)
+        nxt = units[(last_idx + 1) % len(units)]
+        exercises = [u["name"] for a in nxt.get("abschnitte", []) for u in (a.get("übungen") or a.get("uebungen") or [])]
+        return {"source": f"plan:{source}", "suggestion": {"block": nxt["name"], "exercises": exercises,
+                                                           "lastBlock": last_block, "lastLoggedAt": last_logged_at}}
+    dow = _DOW_DE[(weekday + 1) % 7]
+    block, exercises = _FALLBACK_PLAN.get(dow, ("Full Body", ["Squat", "Press", "Row"]))
+    return {"source": "fallback", "suggestion": {"day": dow, "block": block, "exercises": exercises,
+                                                 "lastBlock": last_block, "lastLoggedAt": last_logged_at}}
