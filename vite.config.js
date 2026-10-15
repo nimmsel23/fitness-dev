@@ -38,6 +38,28 @@ async function resolveCrossAppAliases() {
   }
 }
 
+// Solo-Build (mode 'training'): Views, die dort unerreichbar sind, durch einen leeren
+// Platzhalter ersetzen, damit sie samt Abhängigkeiten nicht im Bundle landen. Bewusst
+// ein Build-Plugin statt lazy()-Imports: so bleibt die normale App unverändert.
+const SOLO_STUBS = [
+  { importer: /[\\/]src[\\/]App\.jsx$/, source: /^(\.\/views\/(WeeklyReview|Touren|Exercises|Settings|Anamnese|Fokus|Inbox)\/|@learn\/views\/Learn\/)/ },
+  { importer: /[\\/]views[\\/]Session[\\/]index\.jsx$/, source: /^\.\.\/Plan\/index\.jsx$/ },
+  // ~1,8 MB wger/yuhonas-Rohimport; yuhonas liefert dort der Geräte-Mirror
+  { importer: /[\\/]lib[\\/]db[\\/]firestore[\\/]kb\.js$/, source: /^\.\/exerciseBulkData\.generated\.js$/, target: 'src/solo-bulk-stub.js' },
+]
+function soloStubPlugin() {
+  const defaultStub = resolve(__dirname, 'src/solo-stub.jsx')
+  return {
+    name: 'solo-stub-views',
+    enforce: 'pre',
+    resolveId(source, importer) {
+      if (!importer) return null
+      const hit = SOLO_STUBS.find((r) => r.importer.test(importer) && r.source.test(source))
+      return hit ? (hit.target ? resolve(__dirname, hit.target) : defaultStub) : null
+    },
+  }
+}
+
 export default defineConfig(async ({ mode }) => {
   const isFirebase = mode === 'firebase' || mode === 'coach' || mode === 'training'
   const isCoach = mode === 'coach'
@@ -50,7 +72,7 @@ export default defineConfig(async ({ mode }) => {
     // Präfix (z.B. /fitness-dev/) fälschlich zur Domain-Wurzel auf (404 →
     // Whitescreen). Core4/Door/Game/Fuel haben denselben Fix schon.
     base: './',
-    plugins: [react()],
+    plugins: [react(), ...(isTraining ? [soloStubPlugin()] : [])],
     resolve: {
       preserveSymlinks: true,
       alias: {

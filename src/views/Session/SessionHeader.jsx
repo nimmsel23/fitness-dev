@@ -9,7 +9,9 @@
  * title row + day-strip + hint-banner render directly here.
  */
 
-import { ChevronLeft, ChevronRight, CalendarDays, Save, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight, CalendarDays, MoreHorizontal, Save, Zap } from 'lucide-react';
+import { IS_SOLO } from '../../constants/NavigationItems.js';
 import { useDayStrip } from './useDayStrip';
 import { blockColor, DAY_LABELS, parseLocalDate } from './utils';
 import { sessionHasLoggedWorkout } from '../../lib/sessionGate.js';
@@ -27,6 +29,23 @@ export default function CalmHeader({
 }) {
   const { today, allDays, stripRef, dateInputRef, dateLabel, goBack, goFwd, jumpToDate } =
     useDayStrip({ date, setDate, rollingDays });
+
+  // Solo-Build: Tagesleiste standardmäßig nur wenige Tage um das gewählte Datum,
+  // "…" links zoomt auf die volle, scrollbare Leiste. Session wird bei jedem
+  // Datumswechsel neu gemountet → nach der Auswahl klappt sie von selbst zu.
+  const [zoomedOut, setZoomedOut] = useState(false);
+  const compact = IS_SOLO && !zoomedOut;
+  const COMPACT_DAYS = 5;
+  const selIdx = Math.max(0, allDays.indexOf(date));
+  const compactStart = Math.max(0, Math.min(selIdx - Math.floor(COMPACT_DAYS / 2), allDays.length - COMPACT_DAYS));
+  const stripDays = compact ? allDays.slice(compactStart, compactStart + COMPACT_DAYS) : allDays;
+
+  // Beim Aufzoomen steht die frisch gerenderte lange Leiste sonst bei 0 (ältester Tag):
+  // useDayStrip zentriert nur bei Datumswechsel.
+  useEffect(() => {
+    if (!zoomedOut) return;
+    stripRef.current?.querySelector(`[data-date="${date}"]`)?.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }, [zoomedOut]);
 
   return (
     <div className="sticky top-0 z-30 px-3 pt-3 pb-2" style={{ background: 'var(--bg)' }}>
@@ -69,7 +88,7 @@ export default function CalmHeader({
               aria-hidden="true"
             />
           </button>
-          <SessionHeaderMenu onOpenSidebar={onOpenSidebar} onOpenSettings={onOpenSettings} />
+          <SessionHeaderMenu onOpenSidebar={onOpenSidebar} onOpenSettings={onOpenSettings} subTab={subTab} onSubNav={onSubNav} />
           <button
             onClick={onSave}
             disabled={saving}
@@ -93,11 +112,25 @@ export default function CalmHeader({
           (User-Feedback 2026-09-06), Chevrons bleiben als Komfort-Sprung
           für Maus-Nutzer ohne Trackpad/Touch, siehe useDayStrip.js. */}
       <div className="flex items-center gap-1 mb-3">
-        <button onClick={goBack} className="w-6 h-6 flex items-center justify-center shrink-0" style={{ color: 'var(--dim)' }}>
-          <ChevronLeft size={14} />
-        </button>
-        <div ref={stripRef} className="flex-1 flex gap-1 overflow-x-auto min-w-0 no-scrollbar">
-          {allDays.map(d => {
+        {IS_SOLO && (
+          <button
+            onClick={() => setZoomedOut(v => !v)}
+            className="w-6 h-6 flex items-center justify-center shrink-0"
+            style={{ color: zoomedOut ? 'var(--accent)' : 'var(--dim)' }}
+            title={zoomedOut ? 'Weniger Tage' : 'Mehr Tage'}
+            aria-label={zoomedOut ? 'Weniger Tage anzeigen' : 'Mehr Tage anzeigen'}
+            aria-pressed={zoomedOut}
+          >
+            <MoreHorizontal size={14} />
+          </button>
+        )}
+        {!compact && (
+          <button onClick={goBack} className="w-6 h-6 flex items-center justify-center shrink-0" style={{ color: 'var(--dim)' }}>
+            <ChevronLeft size={14} />
+          </button>
+        )}
+        <div ref={stripRef} className={`flex-1 flex gap-1 min-w-0 no-scrollbar ${compact ? 'justify-around overflow-x-hidden' : 'overflow-x-auto'}`}>
+          {stripDays.map(d => {
             const sess = recentSessions[d];
             const hasSess = sessionHasLoggedWorkout(sess);
             const isSelected = d === date;
@@ -109,7 +142,7 @@ export default function CalmHeader({
                 key={d}
                 data-date={d}
                 onClick={() => setDate(d)}
-                className="flex flex-col items-center gap-1 shrink-0 w-8 py-1"
+                className={`flex flex-col items-center gap-1 py-1 ${compact ? 'flex-1' : 'shrink-0 w-8'}`}
               >
                 <span className="text-[9px] font-medium" style={{ color: isSelected ? 'var(--accent)' : 'var(--dim)', opacity: isSelected ? 1 : 0.4 }}>
                   {DAY_LABELS[dateObj.getDay()]}
@@ -128,9 +161,11 @@ export default function CalmHeader({
             );
           })}
         </div>
-        <button onClick={goFwd} className="w-6 h-6 flex items-center justify-center shrink-0" style={{ color: 'var(--dim)' }}>
-          <ChevronRight size={14} />
-        </button>
+        {!compact && (
+          <button onClick={goFwd} className="w-6 h-6 flex items-center justify-center shrink-0" style={{ color: 'var(--dim)' }}>
+            <ChevronRight size={14} />
+          </button>
+        )}
       </div>
 
       {hint && (

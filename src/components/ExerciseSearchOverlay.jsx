@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Search, X, History, Zap, Dumbbell, Star, Plus } from 'lucide-react'
 import { searchExercises, getSessionHistory, getPlanSuggestion, toggleFavourite, getFavourites } from '@db'
+import { downloadMirror } from '../lib/exerciseDbs/mirror.js'
+import { IS_SOLO } from '../constants/NavigationItems.js'
 import {
   loadLanguageFilter, filterByLanguage, LANG_STORAGE_KEY,
 } from '../lib/exerciseLanguage.js'
@@ -18,6 +20,7 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [mirrorMissing, setMirrorMissing] = useState([])
+  const [mirrorLoading, setMirrorLoading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [recents, setRecents] = useState([])
   const [program, setProgram] = useState([])
@@ -108,6 +111,16 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
 
     return () => clearTimeout(debounceRef.current)
   }, [query, langFilter])
+
+  // Solo-Build hat keinen Atlas: yuhonas-Mirror (~1 MB, einmalig pro Gerät) direkt hier laden.
+  async function loadYuhonasHere() {
+    setMirrorLoading(true)
+    try {
+      await downloadMirror('yuhonas')
+      await rerunSearchRef.current?.()
+    } catch { /* Hinweis bleibt stehen, erneut tippen versucht es nochmal */ }
+    finally { setMirrorLoading(false) }
+  }
 
   const handleKeyDown = (e) => {
     if (results.length === 0) return
@@ -239,10 +252,13 @@ export default function ExerciseSearchOverlay({ onSelect, onClose, date }) {
               {mirrorMissing.includes('yuhonas') && (
                 <button
                   type="button"
-                  onClick={() => { onClose(); window.location.hash = '#atlas' }}
-                  className="w-full text-left px-4 py-3 rounded-2xl border border-dashed border-fit-accent/40 bg-fit-accent/5 text-[11px] font-bold text-fit-muted hover:text-fit-ink transition-colors"
+                  disabled={mirrorLoading}
+                  onClick={IS_SOLO ? loadYuhonasHere : () => { onClose(); window.location.hash = '#atlas' }}
+                  className="w-full text-left px-4 py-3 rounded-2xl border border-dashed border-fit-accent/40 bg-fit-accent/5 text-[11px] font-bold text-fit-muted hover:text-fit-ink transition-colors disabled:opacity-60"
                 >
-                  yuhonas-DB ist nicht auf diesem Gerät — im Atlas unter „Quellen“ laden, dann erscheinen die Treffer hier.
+                  {IS_SOLO
+                    ? (mirrorLoading ? 'yuhonas-DB wird geladen …' : 'yuhonas-DB ist nicht auf diesem Gerät — hier tippen zum Laden (ca. 1 MB, einmalig).')
+                    : 'yuhonas-DB ist nicht auf diesem Gerät — im Atlas unter „Quellen“ laden, dann erscheinen die Treffer hier.'}
                 </button>
               )}
 
