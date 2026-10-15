@@ -9,6 +9,8 @@
 
 // Gleiche Coach-UID wie in firestore.rules (isCoach). Per Env `COACH_UIDS`
 // (kommagetrennt) überschreibbar, z.B. für Tests oder einen zweiten Coach.
+const { renderTemplate } = require("./texts.js");
+
 const DEFAULT_COACH_UIDS = ["59ole36uNpNwml5H6VDYCXyCME92"];
 
 // Die Coach-Konsole ist eine eigene Hosting-Site (vos-coach, Repo coach-dev).
@@ -89,21 +91,27 @@ function shouldNotify({ uid, before, after, coaches = coachUids(), now = new Dat
   return { notify: false, reason: "unverändert" };
 }
 
-function clientLabel(name) {
+function clientLabel(name, fallback) {
   const text = String(name || "").trim();
-  return text ? text.split(/\s+/)[0] : "Klient";
+  return text ? text.split(/\s+/)[0] : fallback;
 }
 
 // Baut die FCM-Nachricht (nur data-Felder; der SW zeigt die Notification an).
-function buildMessage({ uid, sid, session, clientName, tokens, reason = "neu" }) {
-  const name = clientLabel(clientName);
+// `texts` = Abschnitt clientWorkout aus notifications.yaml (siehe texts.js).
+function buildMessage({ uid, sid, session, clientName, tokens, texts, reason = "neu" }) {
+  if (!texts) throw new Error("buildMessage: texts (clientWorkout aus notifications.yaml) fehlt");
+  const name = clientLabel(clientName, texts.nameFallback);
   const date = isoDay(session?.date) || "";
   const art = String(session?.trainingsart || "").trim();
-  const minutes = Number(session?.duration) > 0 ? `${Math.round(Number(session.duration))} min` : "";
-  const details = [art, minutes].filter(Boolean).join(" · ");
+  const minutes = Number(session?.duration) > 0
+    ? renderTemplate(texts.minutes, { minutes: Math.round(Number(session.duration)) })
+    : "";
+  const details = [art, minutes].filter(Boolean).join(texts.detailSeparator);
   const finished = reason === "abgeschlossen";
-  const title = `${name}: Workout ${finished ? "abgeschlossen" : "eingegangen"}`;
-  const body = details || (date ? `Session vom ${date}` : "Neue Session");
+  const title = renderTemplate(finished ? texts.titleFinished : texts.title, { name });
+  const body = details
+    ? renderTemplate(texts.body, { details, name, date })
+    : (date ? renderTemplate(texts.bodyDate, { date }) : texts.bodyFallback);
   const link = `${coachUrl()}/#/clients/${encodeURIComponent(uid)}${date ? `?date=${encodeURIComponent(date)}` : ""}`;
 
   return {

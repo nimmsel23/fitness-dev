@@ -2,10 +2,10 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const fs = require("fs");
 const path = require("path");
-const yaml = require("js-yaml");
 const strava = require("./strava.js");
 const clientWorkout = require("./clientWorkout.js");
 const pushPrefs = require("./pushPrefs.js");
+const { NOTIFICATIONS, renderTemplate } = require("./texts.js");
 
 admin.initializeApp();
 
@@ -52,12 +52,6 @@ const PPL_BUCKET_LABELS = {
   pull: "Pull",
   legs: "Legs",
 };
-
-const NOTIFICATIONS = yaml.load(fs.readFileSync(path.join(__dirname, "notifications.yaml"), "utf8"));
-
-function renderTemplate(str, vars = {}) {
-  return String(str || "").replace(/\{(\w+)\}/g, (_, key) => (vars[key] != null ? vars[key] : `{${key}}`));
-}
 
 function notificationText(type, vars = {}) {
   const entry = NOTIFICATIONS[type] || {};
@@ -445,7 +439,7 @@ exports.onClientWorkout = functions
 
       try {
         const message = clientWorkout.buildMessage({
-          uid, sid, session: after, clientName, tokens, reason: decision.reason,
+          uid, sid, session: after, clientName, tokens, reason: decision.reason, texts: NOTIFICATIONS.clientWorkout,
         });
         const response = await admin.messaging().sendEachForMulticast(message);
         const dead = clientWorkout.deadTokens(tokens, response.responses);
@@ -497,7 +491,7 @@ exports.sendTestPush = functions
     }
 
     await pushRef.set({ lastTestAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
-    const response = await admin.messaging().sendEachForMulticast(pushPrefs.buildTestMessage(kind, tokens));
+    const response = await admin.messaging().sendEachForMulticast(pushPrefs.buildTestMessage(kind, tokens, NOTIFICATIONS));
     const dead = clientWorkout.deadTokens(tokens, response.responses);
     if (dead.length > 0) {
       const cleanup = { tokens: admin.firestore.FieldValue.arrayRemove(...dead) };
