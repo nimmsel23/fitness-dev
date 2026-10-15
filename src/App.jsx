@@ -31,8 +31,8 @@ import { useSwipeNavigation } from './hooks/useSwipeNavigation'
 import { getStaticMuscleTaxonomy } from './lib/kb/muscles.js'
 
 const SESSION_SUB_TABS = new Set(['today', 'timer', 'skills', 'plan', 'history'])
-const REVIEW_SUB_TABS = new Set(['report', 'muscles', 'readiness', 'strength', 'verlauf'])
-const LEARN_SUB_TABS = new Set(['exercises', 'anatomy', 'quiz'])
+const REVIEW_SUB_TABS = new Set(['report', 'muscles', 'readiness', 'verlauf'])
+const LEARN_SUB_TABS = new Set(['exercises', 'anatomy', 'quiz', 'strength'])
 const FOCUS_LAYERS = new Set(['focus', 'anamnese', 'freedom'])
 
 function isIsoDate(value) {
@@ -98,6 +98,12 @@ function parseHashRoute({ resolveFlowTab, navMode }) {
   }
 
   if (next.tab === 'review') {
+    // Alter Deep-Link #review/strength: die Stärke-Matrix wohnt jetzt im Learn-Tab.
+    if (rawSub === 'strength') {
+      next.tab = 'learn'
+      next.subTab = 'strength'
+      return next
+    }
     if (REVIEW_SUB_TABS.has(rawSub) && rawSub !== 'report') next.subTab = rawSub
     return next
   }
