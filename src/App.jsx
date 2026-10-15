@@ -230,7 +230,7 @@ export default function App() {
 
     const timer = window.setTimeout(() => {
       setAuthGateTriggerCount((count) => count + 1);
-    }, 60000);
+    }, IS_SOLO ? 1500 : 60000);
 
     return () => {
       window.clearTimeout(timer);
@@ -464,6 +464,7 @@ export default function App() {
       <ErrorBoundary>
         <div className="app-shell isolate flex min-h-screen overflow-x-hidden w-full bg-fit-bg text-fit-ink font-sans transition-colors duration-500">
 
+        {!IS_SOLO && (
         <Sidebar
           tab={tab}
           navigate={navigate}
@@ -490,8 +491,9 @@ export default function App() {
             <RefreshCw size={14} /> Refresh
           </button>
         </Sidebar>
+        )}
 
-        <div className={`flex-1 min-w-0 transition-all duration-500 ease-in-out ${sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
+        <div className={`flex-1 min-w-0 transition-all duration-500 ease-in-out ${IS_SOLO ? '' : sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
           <main ref={mainRef} className={`relative min-w-0 ${navMode === 'tabs' && !IS_SOLO ? 'pb-28' : ''} sm:pb-10 lg:pb-16 min-h-[100dvh] overflow-x-hidden`}>
               {/* Background Gate - only mounted in home mode */}
               {navMode === 'home' && (
