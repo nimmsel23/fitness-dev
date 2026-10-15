@@ -93,7 +93,8 @@ export const SWIM_STYLE_PRIMARY_MUSCLES = {
  * Used by SessionHistory (Session tab) and ReviewHistory (WeeklyReview → Verlauf).
  */
 export function classifySession(session) {
-  const hasExercises = Array.isArray(session?.exercises) && session.exercises.length > 0;
+  // Index-Zeilen (workoutIndex) tragen nur exerciseCount statt der exercises-Liste.
+  const hasExercises = (Array.isArray(session?.exercises) && session.exercises.length > 0) || Number(session?.exerciseCount) > 0;
   const isActivity = !hasExercises && (session?.sessionMode === 'cardio' || !!session?.activity);
   const hasFinisher = hasExercises && !!session?.activity;
   const actType = session?.activity?.type;

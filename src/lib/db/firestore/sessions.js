@@ -13,6 +13,7 @@ import { todayISO } from "../shared/utils.js";
 import { getUid, hasAuthSession, pingBridge } from "./core.js";
 import { getAllExercises } from "./kb.js";
 import { updateAnalyticsDoc, scheduleWeeklyReportRefreshForDate } from "./analysis.js";
+import { indexUpsert, indexRemove } from "./workoutIndex.js";
 import { clearMonthlyReportCache } from "../../reportCache";
 import {
   getSession as getLocalSession,
@@ -30,6 +31,13 @@ import {
 } from "../local/sessions.js";
 
 // ── Sessions ──────────────────────────────────────────────────────────────────
+
+// Index-Pflege für Sessions älter als 7 Tage (siehe workoutIndex.js). Darf einen
+// Save/Delete nie scheitern lassen — der Index ist abgeleitet und wird bei der
+// nächsten Verdichtung ohnehin repariert.
+function reindex(fn) {
+  Promise.resolve().then(fn).catch((err) => console.warn("[workoutIndex] Update fehlgeschlagen", err));
+}
 
 function hasTrainingSignal(ex) {
   if (!ex || typeof ex !== "object") return false;
@@ -146,7 +154,9 @@ export async function saveSession(date = todayISO(), sessionData, id = null) {
     });
     if (id) {
       await deleteDoc(doc(db, "fitness", getUid(), "sessions", `${date}__${id}`));
+      reindex(() => indexRemove(`${date}__${id}`, date));
     }
+    reindex(() => indexUpsert(date, { ...merged, date }));
     pingBridge();
     updateAnalyticsDoc();
     scheduleWeeklyReportRefreshForDate(date).catch(() => {});
@@ -176,6 +186,7 @@ export async function saveSession(date = todayISO(), sessionData, id = null) {
     session_id: id || null,
     saved_at: serverTimestamp(),
   });
+  reindex(() => indexUpsert(targetId, { ...addonCarryOver, ...sessionData, date }));
   pingBridge();
   updateAnalyticsDoc(); // fire-and-forget
   scheduleWeeklyReportRefreshForDate(date).catch(() => {});
@@ -201,6 +212,7 @@ export async function deleteActivityAddon(date = todayISO(), index) {
     date,
     saved_at: serverTimestamp(),
   });
+  reindex(() => indexUpsert(date, { ...data, activityAddons: addons, activity: addons[0] || null, date }));
   pingBridge();
   updateAnalyticsDoc();
   scheduleWeeklyReportRefreshForDate(date).catch(() => {});
@@ -212,6 +224,7 @@ export async function deleteSession(date = todayISO(), id = null) {
   if (!hasAuthSession()) return deleteLocalSession(date, id);
   const targetId = id ? `${date}__${id}` : date;
   await deleteDoc(doc(db, "fitness", getUid(), "sessions", targetId));
+  reindex(() => indexRemove(targetId, date));
   pingBridge();
   updateAnalyticsDoc();
   scheduleWeeklyReportRefreshForDate(date).catch(() => {});
