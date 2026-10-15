@@ -36,8 +36,12 @@ export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHin
     navigate(id);
   }
 
+  // Der Default-Subtab 'today' heißt in der Bottom Nav "Training" (Tab-Label
+  // + Icon von session) — "Heute" taucht hier bewusst nicht mehr auf.
   const subEntry = ({ id, label, Icon }) => ({
-    id, label, Icon,
+    id,
+    label: id === 'today' ? sessionItem.label : label,
+    Icon: id === 'today' ? sessionItem.Icon : Icon,
     isActive: isSubActive(id),
     onClick: () => openPrimary(id),
   });
