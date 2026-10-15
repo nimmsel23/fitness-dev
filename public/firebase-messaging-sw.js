@@ -84,18 +84,23 @@ self.addEventListener("notificationclick", (event) => {
   if (event.action === "seen") return;
 
   const link = event.notification?.data?.link || DEFAULT_LINK;
+  // Klienten-Workouts verlinken auf die Coach-Site (andere Origin): dort ein
+  // schon offenes Fenster nutzen, sonst neues öffnen. Same-origin-Links
+  // behalten das bisherige Verhalten (irgendein offenes App-Fenster navigieren).
+  const target = new URL(link, self.location?.origin || "https://fitness-aos.web.app");
+  const sameOrigin = target.origin === (self.location?.origin || target.origin);
 
   event.waitUntil((async () => {
     const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     for (const client of clients) {
-      if ("focus" in client) {
-        try {
-          await client.navigate(link);
-        } catch {}
-        return client.focus();
-      }
+      if (!("focus" in client)) continue;
+      if (!sameOrigin && !String(client.url || "").startsWith(target.origin)) continue;
+      try {
+        await client.navigate(sameOrigin ? link : target.href);
+      } catch {}
+      return client.focus();
     }
-    if (self.clients.openWindow) return self.clients.openWindow(link);
+    if (self.clients.openWindow) return self.clients.openWindow(sameOrigin ? link : target.href);
     return null;
   })());
 });

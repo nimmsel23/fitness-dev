@@ -11,9 +11,17 @@
 // (kommagetrennt) überschreibbar, z.B. für Tests oder einen zweiten Coach.
 const DEFAULT_COACH_UIDS = ["59ole36uNpNwml5H6VDYCXyCME92"];
 
+// Die Coach-Konsole ist eine eigene Hosting-Site (vos-coach, Repo coach-dev).
+// Ihr Hash-Router (src/views/Coach/coachRoute.js) versteht #/clients/<uid>/<tab>?date=
+const DEFAULT_COACH_URL = "https://vos-coach.web.app";
+
 // Wie beim Desktop-Notifier (backend/sync/notify.py): ältere Sessions sind
 // Nachträge/Importe und keine Meldung wert.
 const MAX_AGE_DAYS = 3;
+
+function coachUrl(env = process.env) {
+  return String(env.COACH_URL || DEFAULT_COACH_URL).replace(/\/+$/, "");
+}
 
 function coachUids(env = process.env) {
   const raw = String(env.COACH_UIDS || "").split(",").map((s) => s.trim()).filter(Boolean);
@@ -96,7 +104,7 @@ function buildMessage({ uid, sid, session, clientName, tokens, reason = "neu" })
   const finished = reason === "abgeschlossen";
   const title = `${name}: Workout ${finished ? "abgeschlossen" : "eingegangen"}`;
   const body = details || (date ? `Session vom ${date}` : "Neue Session");
-  const link = `/#/coach?client=${encodeURIComponent(uid)}${date ? `&date=${encodeURIComponent(date)}` : ""}`;
+  const link = `${coachUrl()}/#/clients/${encodeURIComponent(uid)}${date ? `?date=${encodeURIComponent(date)}` : ""}`;
 
   return {
     data: {
@@ -137,6 +145,7 @@ module.exports = {
   MAX_AGE_DAYS,
   buildMessage,
   coachUids,
+  coachUrl,
   deadTokens,
   sessionHasSignal,
   shouldNotify,

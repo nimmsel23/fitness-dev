@@ -9,12 +9,13 @@ import { fileURLToPath } from 'node:url'
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const files = process.argv.slice(2).length ? process.argv.slice(2) : ['public/firebase-messaging-sw.js']
 
-function loadSw(file) {
+function loadSw(file, windows) {
   const shown = []
   const open = []
   const listeners = {}
   let onBackground = null
   const self = {
+    location: { origin: 'https://fitness-aos.web.app' },
     registration: {
       showNotification: async (title, options) => {
         shown.push({ title, options })
@@ -24,22 +25,26 @@ function loadSw(file) {
     },
     addEventListener: (type, fn) => { listeners[type] = fn },
     clients: {
-      matchAll: async () => [],
+      matchAll: async () => self.windows || [],
       openWindow: async (url) => { self.opened = url },
     },
   }
   const context = {
     self,
     importScripts: () => {},
+    URL,
     firebase: {
       initializeApp: () => {},
       messaging: () => ({ onBackgroundMessage: (fn) => { onBackground = fn } }),
     },
   }
   vm.runInNewContext(readFileSync(join(root, file), 'utf8'), context, { filename: file })
+  self.windows = windows
   return {
     shown,
     push: (data) => onBackground({ data }),
+    navigated: () => (windows || []).map((w) => w.navigatedTo),
+    focused: () => (windows || []).map((w) => w.focused),
     click: async (action, data) => {
       const waits = []
       let closed = false
@@ -118,5 +123,30 @@ for (const file of files) {
     assert.deepEqual(seen, { closed: true, opened: undefined })
     const opened = await sw.click('open', { link: '/#/coach?client=U1' })
     assert.deepEqual(opened, { closed: true, opened: '/#/coach?client=U1' })
+  })
+}
+
+const COACH = 'https://vos-coach.web.app/#/clients/U1?date=2026-10-15'
+const win = (url) => ({ url, navigatedTo: null, focused: false, focus() { this.focused = true }, async navigate(u) { this.navigatedTo = u } })
+for (const file of files) {
+  console.log(`\n${file} (Coach-Site)`)
+  const t = (name, fn) => fn().then(() => console.log(`  ✔ ${name}`), (e) => { console.error(`  ✘ ${name}\n`, e); process.exitCode = 1 })
+
+  await t('fremde Origin ohne offenes Coach-Fenster: neues Fenster, App-Fenster bleibt unberührt', async () => {
+    const app = win('https://fitness-aos.web.app/')
+    const sw = loadSw(file, [app])
+    const r = await sw.click('open', { link: COACH })
+    assert.equal(r.opened, COACH)
+    assert.equal(app.navigatedTo, null)
+    assert.equal(app.focused, false)
+  })
+
+  await t('offenes Coach-Fenster wird navigiert und fokussiert', async () => {
+    const coach = win('https://vos-coach.web.app/#/clients')
+    const sw = loadSw(file, [win('https://fitness-aos.web.app/'), coach])
+    const r = await sw.click('open', { link: COACH })
+    assert.equal(r.opened, undefined)
+    assert.equal(coach.navigatedTo, COACH)
+    assert.equal(coach.focused, true)
   })
 }

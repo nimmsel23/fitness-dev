@@ -5,6 +5,7 @@ const path = require("path");
 const yaml = require("js-yaml");
 const strava = require("./strava.js");
 const clientWorkout = require("./clientWorkout.js");
+const pushPrefs = require("./pushPrefs.js");
 
 admin.initializeApp();
 
@@ -432,9 +433,12 @@ exports.onClientWorkout = functions
     for (const coachUid of clientWorkout.coachUids()) {
       const pushRef = db.collection("fitness").doc(coachUid).collection("settings").doc("push");
       const pushData = (await pushRef.get()).data() || {};
-      if (!pushData.enabled) continue;
-      if (getEnabledTypes(pushData).clientWorkout === false) continue;
-      if (Array.isArray(pushData.mutedClients) && pushData.mutedClients.includes(uid)) continue;
+      // Schalter aus dem Notification-Panel (Setup-Tab): Typ, Klient stumm, Modus, Ruhezeit
+      const verdict = pushPrefs.allowsClientWorkout(pushData, uid, decision.reason);
+      if (!verdict.allow) {
+        results.push({ coachUid, skipped: verdict.why });
+        continue;
+      }
 
       const tokens = normalizeTokens(pushData);
       if (tokens.length === 0) continue;
@@ -467,6 +471,45 @@ function requireAuth(context) {
   if (!context.auth) throw new functions.https.HttpsError("unauthenticated", "Login erforderlich.");
   return context.auth.uid;
 }
+
+// Test-Push aus dem Notification-Panel: schickt an die eigenen Geräte (alle oder eines).
+exports.sendTestPush = functions
+  .region("europe-west1")
+  .https.onCall(async (data, context) => {
+    const uid = requireAuth(context);
+    const kind = pushPrefs.TEST_KINDS.includes(data?.kind) ? data.kind : "reminder";
+    const pushRef = admin.firestore().collection("fitness").doc(uid).collection("settings").doc("push");
+    const pushData = (await pushRef.get()).data() || {};
+
+    const wait = pushPrefs.testCooldownLeft(pushData.lastTestAt?.toMillis?.());
+    if (wait > 0) {
+      throw new functions.https.HttpsError("resource-exhausted", `Bitte ${Math.ceil(wait / 1000)} s warten.`);
+    }
+    // "clientWorkout" nur für den Coach (sonst würde ein Klient eine Coach-Demo sehen)
+    if (kind === "clientWorkout" && !clientWorkout.coachUids().includes(uid)) {
+      throw new functions.https.HttpsError("permission-denied", "Nur für den Coach.");
+    }
+
+    const all = normalizeTokens(pushData);
+    const tokens = data?.token ? all.filter((t) => t === data.token) : all;
+    if (tokens.length === 0) {
+      throw new functions.https.HttpsError("failed-precondition", "Kein registriertes Gerät.");
+    }
+
+    await pushRef.set({ lastTestAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    const response = await admin.messaging().sendEachForMulticast(pushPrefs.buildTestMessage(kind, tokens));
+    const dead = clientWorkout.deadTokens(tokens, response.responses);
+    if (dead.length > 0) {
+      const cleanup = { tokens: admin.firestore.FieldValue.arrayRemove(...dead) };
+      if (dead.includes(pushData.token)) cleanup.token = admin.firestore.FieldValue.delete();
+      if (Array.isArray(pushData.devices)) {
+        cleanup.devices = pushData.devices.filter((d) => !dead.includes(d.token));
+      }
+      await pushRef.set(cleanup, { merge: true });
+    }
+    return { sent: response.successCount, failed: response.failureCount, removed: dead.length };
+  });
+
 
 exports.stravaAuthorizeUrl = functions
   .region(strava.REGION)
