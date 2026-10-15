@@ -45,7 +45,7 @@ const baseItems = [
 
 // Solo-Build (vite --mode training → .env.training, vos-training.web.app): nur dieser
 // eine Haupt-Tab. Alles andere fällt über VALID_TABS/parseHashRoute auf ihn zurück.
-const SOLO_TAB = import.meta.env.VITE_SOLO_TAB || '';
+export const SOLO_TAB = import.meta.env.VITE_SOLO_TAB || '';
 export const IS_SOLO = Boolean(SOLO_TAB);
 
 export function getNavItems({ focusReady = false, devBypass = false } = {}) {

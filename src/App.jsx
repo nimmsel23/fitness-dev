@@ -12,7 +12,7 @@ import Inbox from './views/Inbox/index.js'
 import ExerciseInsightModal from './components/ExerciseInsightModal.jsx'
 import { isLocalMode, getAnatomy, getAllMuscles } from '@db'
 
-import { getNavItems, VALID_TABS, IS_SOLO } from './constants/NavigationItems.js'
+import { getNavItems, VALID_TABS, IS_SOLO, SOLO_TAB } from './constants/NavigationItems.js'
 
 import Sidebar from './components/layout/Sidebar.jsx'
 import MobileNav from './components/layout/MobileNav.jsx'
@@ -44,7 +44,7 @@ function localToday() {
 }
 
 function parseHashRoute({ resolveFlowTab, navMode }) {
-  const fallbackTab = resolveFlowTab(navMode === 'home' ? 'gate' : 'session')
+  const fallbackTab = resolveFlowTab(SOLO_TAB || (navMode === 'home' ? 'gate' : 'session'))
   const rawHash = window.location.hash.replace(/^#\/?/, '')
   const [pathPart = '', queryPart = ''] = rawHash.split('?')
   const [rawTab = '', rawSub = ''] = pathPart.split('/').filter(Boolean)
@@ -230,7 +230,7 @@ export default function App() {
 
     const timer = window.setTimeout(() => {
       setAuthGateTriggerCount((count) => count + 1);
-    }, IS_SOLO ? 1500 : 60000);
+    }, SOLO_TAB === 'session' ? 1500 : 60000); // Training braucht den Login zum Speichern; Atlas liest nur den Geräte-Mirror
 
     return () => {
       window.clearTimeout(timer);

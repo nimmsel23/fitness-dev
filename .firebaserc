@@ -10,6 +10,9 @@
         ],
         "training": [
           "vos-training"
+        ],
+        "atlas": [
+          "vos-atlas"
         ]
       }
     }
