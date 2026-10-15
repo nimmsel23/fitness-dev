@@ -1,7 +1,7 @@
 import { History, Timer, ChevronRight, Dumbbell, Activity } from 'lucide-react';
 import { getBlockColor as blockColor, ACTIVITY_ICONS, ACTIVITY_EMOJI, classifySession } from '../../constants/ActivityConstants';
 
-export default function ReviewHistory({ sessions, onOpenSession }) {
+export default function ReviewHistory({ sessions, onOpenSession, hasMore = false, onLoadMore }) {
   if (!sessions || sessions.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-32 opacity-30">
@@ -19,7 +19,7 @@ export default function ReviewHistory({ sessions, onOpenSession }) {
         const ActivityIcon = (!emoji && actType) ? (ACTIVITY_ICONS[actType] || Activity) : null;
         const color = blockColor(s.block, isActivity ? s.activity : null, s.sessionMode);
         return (
-          <button key={s.date || idx} onClick={() => onOpenSession?.(s.date)}
+          <button key={s.id || s.date || idx} onClick={() => onOpenSession?.(s.date)}
             className="w-full text-left px-6 py-4 rounded-3xl bg-fit-card border border-fit-line hover:border-accent/40 transition-all group hover:bg-accent/5">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -50,7 +50,7 @@ export default function ReviewHistory({ sessions, onOpenSession }) {
                   </div>
                 ) : (
                   <div className="text-[10px] font-black px-3 py-1.5 rounded-xl bg-fit-bg2 text-fit-muted uppercase tracking-widest border border-fit-line">
-                    {Array.isArray(s.exercises) ? s.exercises.length : 0} Ex
+                    {s.exerciseCount ?? (Array.isArray(s.exercises) ? s.exercises.length : 0)} Ex
                     {hasFinisher && s.activity?.duration && ` · ${s.activity.duration}m`}
                   </div>
                 )}
@@ -60,6 +60,14 @@ export default function ReviewHistory({ sessions, onOpenSession }) {
           </button>
         );
       })}
+      {hasMore && onLoadMore && (
+        <button
+          onClick={onLoadMore}
+          className="w-full py-3 rounded-2xl border border-fit-line text-[10px] font-black uppercase tracking-[0.2em] text-fit-muted hover:text-fit-accent hover:border-fit-accent/40 transition-colors"
+        >
+          Ältere laden
+        </button>
+      )}
     </div>
   );
 }

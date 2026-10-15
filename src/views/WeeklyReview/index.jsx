@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getMonthlyReport, exportFitnessData, getRecentSessions } from '@db';
+import { getMonthlyReport, exportFitnessData, getHistoryEntries } from '@db';
 import { BarChart3, Activity, History, Zap, Dumbbell } from 'lucide-react';
 import { readMonthlyReportCache, writeMonthlyReportCache, clearMonthlyReportCache } from '../../lib/reportCache';
 
@@ -14,7 +14,6 @@ import ReviewHistory from './ReviewHistory.jsx';
 import ReviewReadiness from './ReviewReadiness.jsx';
 import ReviewStrengthMatrix from './ReviewStrengthMatrix.jsx';
 import Muscles from '../Muscles/index.jsx';
-import { sessionHasLoggedWorkout } from '../../lib/sessionGate.js';
 
 const SUB_TABS = ['muscles', 'verlauf', 'readiness', 'strength'];
 const REVIEW_WINDOW_DAYS = 28;
@@ -25,18 +24,26 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
   const [loading, setLoading] = useState(false);
   const [toast, setToast]     = useState('');
   const [historySessions, setHistorySessions] = useState([]);
+  const [historyMonths, setHistoryMonths] = useState(6);
+  const [historyHasMore, setHistoryHasMore] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState(null); // null = gesamte 28 Tage, sonst Index in data.weeks
   const viewMode = SUB_TABS.includes(subTab) ? subTab : 'report';
 
+  // Verlauf liest die letzten 7 Tage live und alles Ältere aus dem Monats-Index
+  // (workoutIndex) — nicht mehr 60 volle Session-Docs pro Öffnen.
   useEffect(() => {
     if (viewMode !== 'verlauf') return;
-    getRecentSessions(60)
-      .then(s => setHistorySessions(Array.isArray(s) ? s.filter(sessionHasLoggedWorkout) : []))
+    getHistoryEntries({ months: historyMonths })
+      .then(({ entries, hasMore }) => {
+        setHistorySessions(Array.isArray(entries) ? entries : []);
+        setHistoryHasMore(!!hasMore);
+      })
       .catch(err => {
-        console.error('getRecentSessions failed', err);
+        console.error('getHistoryEntries failed', err);
         setHistorySessions([]);
+        setHistoryHasMore(false);
       });
-  }, [viewMode]);
+  }, [viewMode, historyMonths]);
 
   useEffect(() => {
     if (viewMode !== 'report') return;
@@ -124,7 +131,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
       ) : viewMode === 'strength' ? (
         <ReviewStrengthMatrix />
       ) : viewMode === 'verlauf' ? (
-        <ReviewHistory sessions={historySessions} onOpenSession={onOpenSession} />
+        <ReviewHistory sessions={historySessions} onOpenSession={onOpenSession} hasMore={historyHasMore} onLoadMore={() => setHistoryMonths(m => m + 6)} />
       ) : loading ? (
         <div className="flex flex-col items-center justify-center py-32 opacity-30">
           <div className="spinner mb-6" />
