@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Erzeugt die App-Icons der Solo-Builds (vos-training, vos-atlas) nach solo-icons/<mode>/.
+"""Erzeugt die App-Icons der Mini-Apps (training, atlas, sixpack, plan, coach) nach solo-icons/<app>/.
 
 Quelle ist das SVG je Modus; PNGs werden mit rsvg-convert gerendert und eingecheckt, damit
 der Build selbst kein rsvg braucht. Neu erzeugen: python3 scripts/solo-icons.py
@@ -43,7 +43,48 @@ def atlas(accent):
     return "".join(out)
 
 
-APPS = {"training": (training, "#e8a020"), "atlas": (atlas, "#35c2c8")}
+def sixpack(accent):
+    # 2×3 Blöcke = Sixpack
+    out = []
+    for row in range(3):
+        for col in range(2):
+            x, y = 148 + col * 116, 126 + row * 92
+            out.append(f'<rect x="{x}" y="{y}" width="100" height="76" rx="22" fill="{accent}"/>')
+    return "".join(out)
+
+
+def plan(accent):
+    # Clipboard mit Checkliste (zwei erledigt, eine offen)
+    out = [
+        f'<rect x="158" y="128" width="196" height="282" rx="30" fill="none" stroke="{accent}" stroke-width="16"/>',
+        f'<rect x="206" y="104" width="100" height="46" rx="14" fill="{accent}"/>',
+    ]
+    for i, y in enumerate((218, 280, 342)):
+        if i < 2:
+            out.append(f'<circle cx="204" cy="{y}" r="14" fill="{accent}"/>')
+        else:
+            out.append(f'<circle cx="204" cy="{y}" r="11" fill="none" stroke="{accent}" stroke-width="6" opacity="0.6"/>')
+        out.append(f'<rect x="236" y="{y - 7}" width="88" height="14" rx="7" fill="{accent}" opacity="{1 if i < 2 else 0.45}"/>')
+    return "".join(out)
+
+
+def coach(accent):
+    # Büste (Coach) mit Haken-Badge
+    return (
+        f'<circle cx="236" cy="206" r="56" fill="{accent}"/>'
+        f'<path d="M122 402C122 326 172 288 236 288C300 288 350 326 350 402Z" fill="{accent}"/>'
+        f'<circle cx="362" cy="156" r="48" fill="{BG}" stroke="{accent}" stroke-width="12"/>'
+        f'<path d="M340 156l16 16 28-32" fill="none" stroke="{accent}" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>'
+    )
+
+
+APPS = {
+    "training": (training, "#e8a020"),
+    "atlas": (atlas, "#35c2c8"),
+    "sixpack": (sixpack, "#e5192b"),
+    "plan": (plan, "#5b8cff"),
+    "coach": (coach, "#a78bfa"),
+}
 
 
 def svg(body, rounded):

@@ -4,12 +4,14 @@
 // public/manifest.json bleibt unberührt — nur der Build-Output wird umgeschrieben.
 import { readFileSync, writeFileSync, existsSync, copyFileSync } from "fs";
 import { resolve, dirname } from "path";
+import { injectSplash } from "./solo-splash.mjs";
 import { fileURLToPath } from "url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = resolve(root, process.argv[2] || "dist-training");
 const [, , , NAME = "VitalOS Training", SHORT = "Training", START = "/#session",
   DESC = "Krafttraining loggen — Session-Tab als eigene App"] = process.argv;
+const ACCENTS = { training: "#e8a020", atlas: "#35c2c8" };
 const manifestPath = resolve(outDir, "manifest.json");
 
 if (!existsSync(manifestPath)) {
@@ -56,6 +58,7 @@ if (existsSync(indexPath)) {
       .replace(/(<link rel="apple-touch-icon" href=")[^"]*(")/, "$1./icon-180.png$2")
       .replace(/(<meta name="apple-mobile-web-app-title" content=")[^"]*(")/, `$1${SHORT}$2`);
   }
+  html = injectSplash(html, { name: SHORT, accent: ACCENTS[mode] || "#e8a020", icon: "./icon-192.png" });
   writeFileSync(indexPath, html);
 }
 console.log(`🏋️  ${outDir}: Manifest + Titel auf "${NAME}" gesetzt`);
