@@ -8,13 +8,22 @@ import { MoreHorizontal, ChevronLeft } from 'lucide-react';
 // Lernen/Anamnese-Fokus/Setup) wandert hinter "•••" ganz rechts — ein Tap
 // tauscht die Icons derselben Zeile gegen die bisherigen Nav-Items aus
 // (keine zweite Zeile/kein Sheet), der Button wird dann zum "Zurück".
+// Timer/Skills sind selten gebraucht und liegen ebenfalls hinter "Mehr";
+// stattdessen steht Atlas (eigener Tab) in der Hauptreihe.
+const HIDDEN_SUBS = ['timer', 'skills'];
+const PRIMARY_TABS = ['atlas'];
+
 export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHint, navItems }) {
   const [showMore, setShowMore] = useState(false);
 
   const sessionItem = navItems.find((i) => i.id === 'session');
-  const primaryItems = sessionItem?.sub || [];
+  const sessionSubs = sessionItem?.sub || [];
   const isOnSession = tab === 'session';
-  const isOnOtherTab = !isOnSession;
+  const activeSub = subTab || 'today';
+  const isSubActive = (id) => isOnSession && activeSub === id;
+  const isOnHiddenSub = isSubActive('timer') || isSubActive('skills');
+  // "Mehr" leuchtet, wenn der aktive Ort nur dort erreichbar ist.
+  const isOnOtherTab = isOnHiddenSub || (!isOnSession && !PRIMARY_TABS.includes(tab));
 
   function openPrimary(subId) {
     setShowMore(false);
@@ -27,17 +36,28 @@ export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHin
     navigate(id);
   }
 
+  const subEntry = ({ id, label, Icon }) => ({
+    id, label, Icon,
+    isActive: isSubActive(id),
+    onClick: () => openPrimary(id),
+  });
+  const tabEntry = ({ id, label, Icon }) => ({
+    id, label, Icon,
+    isActive: tab === id,
+    onClick: () => openOther(id),
+  });
+
   const rowItems = showMore
-    ? navItems.map(({ id, label, Icon }) => ({
-        id, label, Icon,
-        isActive: tab === id,
-        onClick: () => openOther(id),
-      }))
-    : primaryItems.map(({ id, label, Icon }) => ({
-        id, label, Icon,
-        isActive: isOnSession && (subTab === id || (!subTab && id === 'today')),
-        onClick: () => openPrimary(id),
-      }));
+    ? [
+        ...sessionSubs.filter((i) => HIDDEN_SUBS.includes(i.id)).map(subEntry),
+        ...navItems
+          .filter((i) => i.id !== 'session' && !PRIMARY_TABS.includes(i.id))
+          .map(tabEntry),
+      ]
+    : [
+        ...sessionSubs.filter((i) => !HIDDEN_SUBS.includes(i.id)).map(subEntry),
+        ...navItems.filter((i) => PRIMARY_TABS.includes(i.id)).map(tabEntry),
+      ];
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-fit-card/90 backdrop-blur-2xl border-t border-fit-line/40">
