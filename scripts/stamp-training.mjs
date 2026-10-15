@@ -50,7 +50,7 @@ writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
 
 const indexPath = resolve(outDir, "index.html");
 if (existsSync(indexPath)) {
-  let html = readFileSync(indexPath, "utf8").replace(/<title>[^<]*<\/title>/, `<title>${NAME}</title>`);
+  let html = readFileSync(indexPath, "utf8").replace(/<title>[^<]*<\/title>/, `<title>${SHORT} - VitalOS</title>`);
   if (hasIcons) {
     html = html
       .replace(/(<link rel="apple-touch-icon" href=")[^"]*(")/, "$1./icon-180.png$2")
