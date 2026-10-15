@@ -19,6 +19,8 @@ import { getUid } from '@db';
 import SkillsCard from '../../../Skills/SkillsCard.jsx';
 import TodayPlan, { useTodayPlan } from './TodayPlan.jsx';
 import { isSessionGateActive } from '../../lib/sessionGate.js';
+import { logWorkoutAsSession } from '../../lib/logExternalWorkout.js';
+import SessionModeTabs from './SessionModeTabs.jsx';
 
 export default function Session({
   initialDate, initialDraft, onInspectExercise, onOpenSession,
@@ -65,20 +67,51 @@ export default function Session({
     );
   }
 
+  // Calisthenics (skills) und 6Pack (timer): abgeschlossene Workouts landen
+  // als eigene Session im Tages-Log. Die Kopfzeile mit Kraft/Ausdauer/
+  // Calisthenics/6Pack bleibt sichtbar, damit man zurück wechseln kann.
+  async function handleWorkoutComplete(workout) {
+    try {
+      const { date, id, sessionData } = await logWorkoutAsSession(workout);
+      if (date === session.date) {
+        session.setDaySessions(prev => [...prev, { ...sessionData, id, date }]);
+      }
+    } catch (err) {
+      console.error('Workout konnte nicht ins Session-Log geschrieben werden:', err);
+    }
+  }
+
+  const modeTabs = (
+    <div className="px-3 pt-3 pb-1 flex">
+      <SessionModeTabs
+        sessionMode={session.sessionMode} setSessionMode={session.setSessionMode}
+        subTab={subTab} onSubNav={onSubNav}
+      />
+    </div>
+  );
+
   if (subTab === 'timer') {
     const uid = (() => { try { return getUid(); } catch { return null; } })();
-    return <SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} />;
+    return (
+      <>
+        {modeTabs}
+        <SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} onWorkoutComplete={handleWorkoutComplete} />
+      </>
+    );
   }
 
   if (subTab === 'skills') {
     return (
-      <div
-        className="px-2 mt-3 space-y-4"
-        style={{ paddingBottom: 'calc(8rem + env(safe-area-inset-bottom))' }}
-      >
-        <SkillsCard />
-        <WorkoutTimerCard />
-      </div>
+      <>
+        {modeTabs}
+        <div
+          className="px-2 mt-3 space-y-4"
+          style={{ paddingBottom: 'calc(8rem + env(safe-area-inset-bottom))' }}
+        >
+          <SkillsCard onWorkoutComplete={handleWorkoutComplete} />
+          <WorkoutTimerCard />
+        </div>
+      </>
     );
   }
 

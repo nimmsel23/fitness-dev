@@ -1,20 +1,29 @@
 import { useState } from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, ChevronLeft } from 'lucide-react';
 
 // Training (session) ist der mit Abstand meistgenutzte Tab und startet
 // standardmäßig offen — deshalb erscheinen seine Subtabs (Heute/Timer/
 // Skills/Plan/History) direkt als primäre Reihe in der Bottom Nav statt
 // eines einzigen "Training"-Icons unter Gleichen. Alles andere (Review/
-// Lernen/Anamnese-Fokus/Setup) wandert hinter "•••" ganz rechts — dahinter
-// öffnet sich exakt die bisherige Nav-Bar-Zeile (gleiches Layout/Styling
-// wie vorher), nur als Sheet statt permanent sichtbar.
+// Lernen/Anamnese-Fokus/Setup) wandert hinter "•••" ganz rechts — ein Tap
+// tauscht die Icons derselben Zeile gegen die bisherigen Nav-Items aus
+// (keine zweite Zeile/kein Sheet), der Button wird dann zum "Zurück".
+// Timer/Skills sind selten gebraucht und liegen ebenfalls hinter "Mehr";
+// stattdessen steht Atlas (eigener Tab) in der Hauptreihe.
+const HIDDEN_SUBS = ['timer', 'skills'];
+const PRIMARY_TABS = ['atlas'];
+
 export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHint, navItems }) {
   const [showMore, setShowMore] = useState(false);
 
   const sessionItem = navItems.find((i) => i.id === 'session');
-  const primaryItems = sessionItem?.sub || [];
+  const sessionSubs = sessionItem?.sub || [];
   const isOnSession = tab === 'session';
-  const isOnOtherTab = !isOnSession;
+  const activeSub = subTab || 'today';
+  const isSubActive = (id) => isOnSession && activeSub === id;
+  const isOnHiddenSub = isSubActive('timer') || isSubActive('skills');
+  // "Mehr" leuchtet, wenn der aktive Ort nur dort erreichbar ist.
+  const isOnOtherTab = isOnHiddenSub || (!isOnSession && !PRIMARY_TABS.includes(tab));
 
   function openPrimary(subId) {
     setShowMore(false);
@@ -27,6 +36,33 @@ export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHin
     navigate(id);
   }
 
+  // Der Default-Subtab 'today' heißt in der Bottom Nav "Training" (Tab-Label
+  // + Icon von session) — "Heute" taucht hier bewusst nicht mehr auf.
+  const subEntry = ({ id, label, Icon }) => ({
+    id,
+    label: id === 'today' ? sessionItem.label : label,
+    Icon: id === 'today' ? sessionItem.Icon : Icon,
+    isActive: isSubActive(id),
+    onClick: () => openPrimary(id),
+  });
+  const tabEntry = ({ id, label, Icon }) => ({
+    id, label, Icon,
+    isActive: tab === id,
+    onClick: () => openOther(id),
+  });
+
+  const rowItems = showMore
+    ? [
+        ...sessionSubs.filter((i) => HIDDEN_SUBS.includes(i.id)).map(subEntry),
+        ...navItems
+          .filter((i) => i.id !== 'session' && !PRIMARY_TABS.includes(i.id))
+          .map(tabEntry),
+      ]
+    : [
+        ...sessionSubs.filter((i) => !HIDDEN_SUBS.includes(i.id)).map(subEntry),
+        ...navItems.filter((i) => PRIMARY_TABS.includes(i.id)).map(tabEntry),
+      ];
+
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-fit-card/90 backdrop-blur-2xl border-t border-fit-line/40">
       {/* Swipe direction indicator — thin accent line at top */}
@@ -38,62 +74,29 @@ export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHin
             : 'opacity-0'
       }`} />
 
-      {showMore && (
-        <div className="absolute bottom-full left-0 right-0 mb-1 px-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
-          <div className="bg-fit-card/95 backdrop-blur-2xl border border-fit-line/40 rounded-2xl px-2 pt-2 pb-2 shadow-2xl">
-            <div className="flex items-end justify-around">
-              {navItems.map(({ id, label, Icon }) => {
-                const isActive = tab === id;
-                return (
-                  <button
-                    key={id}
-                    onClick={() => openOther(id)}
-                    className="flex flex-col items-center gap-[5px] px-1 active:scale-90 transition-transform duration-150 min-w-[40px]"
-                  >
-                    <div className={`flex items-center justify-center rounded-2xl transition-all duration-300 ${
-                      isActive ? 'bg-fit-accent w-12 h-8 shadow-lg shadow-fit-accent/30' : 'w-10 h-8'
-                    }`}>
-                      <Icon size={isActive ? 17 : 19} className={isActive ? 'text-black stroke-[2.5]' : 'text-fit-dim stroke-[1.8]'} />
-                    </div>
-                    <span className={`text-[7.5px] font-black uppercase tracking-wide leading-none transition-all duration-300 ${
-                      isActive ? 'text-fit-accent opacity-100' : 'text-fit-dim opacity-50'
-                    }`}>
-                      {label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
       <div
         className="px-2 pt-2"
         style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
       >
         <div className="flex items-end justify-around">
-          {primaryItems.map(({ id: subId, label, Icon }) => {
-            const isActive = isOnSession && (subTab === subId || (!subTab && subId === 'today'));
-            return (
-              <button
-                key={subId}
-                onClick={() => openPrimary(subId)}
-                className="flex flex-col items-center gap-[5px] px-1 active:scale-90 transition-transform duration-150 min-w-[40px]"
-              >
-                <div className={`flex items-center justify-center rounded-2xl transition-all duration-300 ${
-                  isActive ? 'bg-fit-accent w-12 h-8 shadow-lg shadow-fit-accent/30' : 'w-10 h-8'
-                }`}>
-                  <Icon size={isActive ? 17 : 19} className={isActive ? 'text-black stroke-[2.5]' : 'text-fit-dim stroke-[1.8]'} />
-                </div>
-                <span className={`text-[7.5px] font-black uppercase tracking-wide leading-none transition-all duration-300 ${
-                  isActive ? 'text-fit-accent opacity-100' : 'text-fit-dim opacity-50'
-                }`}>
-                  {label}
-                </span>
-              </button>
-            );
-          })}
+          {rowItems.map(({ id, label, Icon, isActive, onClick }) => (
+            <button
+              key={id}
+              onClick={onClick}
+              className="flex flex-col items-center gap-[5px] px-1 active:scale-90 transition-transform duration-150 min-w-[40px]"
+            >
+              <div className={`flex items-center justify-center rounded-2xl transition-all duration-300 ${
+                isActive ? 'bg-fit-accent w-12 h-8 shadow-lg shadow-fit-accent/30' : 'w-10 h-8'
+              }`}>
+                <Icon size={isActive ? 17 : 19} className={isActive ? 'text-black stroke-[2.5]' : 'text-fit-dim stroke-[1.8]'} />
+              </div>
+              <span className={`text-[7.5px] font-black uppercase tracking-wide leading-none transition-all duration-300 ${
+                isActive ? 'text-fit-accent opacity-100' : 'text-fit-dim opacity-50'
+              }`}>
+                {label}
+              </span>
+            </button>
+          ))}
 
           <button
             onClick={() => setShowMore((v) => !v)}
@@ -102,12 +105,14 @@ export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHin
             <div className={`flex items-center justify-center rounded-2xl transition-all duration-300 ${
               showMore || isOnOtherTab ? 'bg-fit-accent w-12 h-8 shadow-lg shadow-fit-accent/30' : 'w-10 h-8'
             }`}>
-              <MoreHorizontal size={isOnOtherTab || showMore ? 17 : 19} className={showMore || isOnOtherTab ? 'text-black stroke-[2.5]' : 'text-fit-dim stroke-[1.8]'} />
+              {showMore
+                ? <ChevronLeft size={17} className="text-black stroke-[2.5]" />
+                : <MoreHorizontal size={isOnOtherTab ? 17 : 19} className={isOnOtherTab ? 'text-black stroke-[2.5]' : 'text-fit-dim stroke-[1.8]'} />}
             </div>
             <span className={`text-[7.5px] font-black uppercase tracking-wide leading-none transition-all duration-300 ${
               showMore || isOnOtherTab ? 'text-fit-accent opacity-100' : 'text-fit-dim opacity-50'
             }`}>
-              Mehr
+              {showMore ? 'Zurück' : 'Mehr'}
             </span>
           </button>
         </div>
