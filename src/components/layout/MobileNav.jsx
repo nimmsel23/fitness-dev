@@ -8,8 +8,9 @@ import { MoreHorizontal, ChevronLeft } from 'lucide-react';
 // Lernen/Anamnese-Fokus/Setup) wandert hinter "•••" ganz rechts — ein Tap
 // tauscht die Icons derselben Zeile gegen die bisherigen Nav-Items aus
 // (keine zweite Zeile/kein Sheet), der Button wird dann zum "Zurück".
-// Timer/Skills sind selten gebraucht und liegen ebenfalls hinter "Mehr";
-// stattdessen steht Atlas (eigener Tab) in der Hauptreihe.
+// Timer (6Pack) und Skills (Calisthenics) sind weder in der Hauptreihe noch
+// hinter "Mehr": sie werden im Training-Tab neben Kraft/Ausdauer angeboten
+// (SessionModeTabs). Atlas (eigener Tab) steht dafür in der Hauptreihe.
 const HIDDEN_SUBS = ['timer', 'skills'];
 const PRIMARY_TABS = ['atlas'];
 
@@ -21,9 +22,8 @@ export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHin
   const isOnSession = tab === 'session';
   const activeSub = subTab || 'today';
   const isSubActive = (id) => isOnSession && activeSub === id;
-  const isOnHiddenSub = isSubActive('timer') || isSubActive('skills');
   // "Mehr" leuchtet, wenn der aktive Ort nur dort erreichbar ist.
-  const isOnOtherTab = isOnHiddenSub || (!isOnSession && !PRIMARY_TABS.includes(tab));
+  const isOnOtherTab = !isOnSession && !PRIMARY_TABS.includes(tab);
 
   function openPrimary(subId) {
     setShowMore(false);
@@ -53,7 +53,6 @@ export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHin
 
   const rowItems = showMore
     ? [
-        ...sessionSubs.filter((i) => HIDDEN_SUBS.includes(i.id)).map(subEntry),
         ...navItems
           .filter((i) => i.id !== 'session' && !PRIMARY_TABS.includes(i.id))
           .map(tabEntry),
