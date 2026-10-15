@@ -14,23 +14,76 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
+const DEFAULT_LINK = "/?tab=session";
+const MAX_TRACKED_SIDS = 20;
+
+// Klienten-Workout (functions/clientWorkout.js): ein Tag pro Klient. Kommt ein
+// weiteres Workout desselben Klienten, bevor die Meldung weggewischt wurde,
+// wird sie zu "N neue Workouts" zusammengefasst statt zu stapeln. Ein Update
+// derselben Session (gleiche sid) ersetzt still, ohne erneut zu klingeln.
+async function showClientWorkout(data) {
+  const tag = data.tag || `client-workout-${data.clientUid || "unbekannt"}`;
+  const existing = await self.registration.getNotifications({ tag });
+  const previous = existing[0]?.data || {};
+  const known = Array.isArray(previous.sids) ? previous.sids : [];
+  const isNewSession = Boolean(data.sid) && !known.includes(data.sid);
+  const sids = isNewSession ? [...known, data.sid].slice(-MAX_TRACKED_SIDS) : known;
+  const count = Math.max(sids.length, 1);
+  const name = data.clientName || "Klient";
+
+  await self.registration.showNotification(
+    count > 1 ? `${name}: ${count} neue Workouts` : data.title || `${name}: Workout eingegangen`,
+    {
+      body: data.body || "Neue Session",
+      icon: "/icon-192.png",
+      badge: "/icon-192.png",
+      tag,
+      renotify: isNewSession && existing.length > 0,
+      actions: [
+        { action: "open", title: "Öffnen" },
+        { action: "seen", title: "Gesehen" },
+      ],
+      data: {
+        type: "clientWorkout",
+        link: data.link || DEFAULT_LINK,
+        clientUid: data.clientUid || "",
+        sid: data.sid || "",
+        sids,
+        count,
+      },
+    },
+  );
+}
+
+async function showReminder(payload) {
   const data = payload?.data || {};
   const title = data.title || payload?.notification?.title || "VitalOS";
   const body = data.body || payload?.notification?.body || "Zeit für deinen nächsten Check-in.";
-  const link = data.link || "/?tab=session";
+  const link = data.link || DEFAULT_LINK;
 
-  self.registration.showNotification(title, {
+  await self.registration.showNotification(title, {
     body,
     icon: "/icon-192.png",
     badge: "/icon-192.png",
+    // data.tag kommt von functions/index.js — gleicher Tag ersetzt die
+    // vorherige Notification statt zu stapeln (renotify bewusst aus).
+    tag: data.tag || "fitness-reminder",
+    renotify: false,
     data: { link, tab: data.tab || "session" },
   });
+}
+
+messaging.onBackgroundMessage((payload) => {
+  const data = payload?.data || {};
+  return data.type === "clientWorkout" ? showClientWorkout(data) : showReminder(payload);
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const link = event.notification?.data?.link || "/?tab=session";
+  // "Gesehen" schließt nur die Meldung, öffnet aber nichts.
+  if (event.action === "seen") return;
+
+  const link = event.notification?.data?.link || DEFAULT_LINK;
 
   event.waitUntil((async () => {
     const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
