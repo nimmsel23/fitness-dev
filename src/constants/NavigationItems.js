@@ -42,7 +42,12 @@ const baseItems = [
   { id: 'settings', label: 'Setup',    Icon: Settings2 },
 ];
 
+// Solo-Build (vite --mode training → .env.training, vos-training.web.app): nur dieser
+// eine Haupt-Tab. Alles andere fällt über VALID_TABS/parseHashRoute auf ihn zurück.
+const SOLO_TAB = import.meta.env.VITE_SOLO_TAB || '';
+
 export function getNavItems({ focusReady = false, devBypass = false } = {}) {
+  if (SOLO_TAB) return baseItems.filter((item) => item.id === SOLO_TAB);
   if (devBypass) {
     return [
       ...baseItems.slice(0, 3),
@@ -62,7 +67,7 @@ export function getNavItems({ focusReady = false, devBypass = false } = {}) {
 
 export const NAV_ITEMS = getNavItems();
 
-export const VALID_TABS = new Set([
+export const VALID_TABS = new Set(SOLO_TAB ? [SOLO_TAB] : [
   ...baseItems.map(item => item.id),
   'anamnese',
   'focus',

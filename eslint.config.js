@@ -3,6 +3,8 @@ import globals from 'globals';
 import reactPlugin from 'eslint-plugin-react';
 
 export default [
+  // Build-Ausgaben (z.B. 6pack/dist nach 'npm run deploy') sind minifiziert und nicht lintbar.
+  { ignores: ['**/dist/**', '**/dist-*/**', '**/.firebase/**'] },
   js.configs.recommended,
   {
     files: ['src/**/*.{js,jsx}', 'Skills/**/*.{js,jsx}', '6pack/**/*.{js,jsx}'],

@@ -10,6 +10,13 @@ const TYPE_LABELS = {
   restday: 'Rest-Day-Check (lange keine Session)',
 }
 
+// Nur für den Coach sinnvoll: functions/clientWorkout.js meldet neue Klienten-Workouts.
+// Gleiche UID wie firestore.rules (isCoach) und coach-main.jsx.
+const COACH_ONLY_TYPE_LABELS = {
+  clientWorkout: 'Klienten-Workouts (neue Session eines Klienten)',
+}
+const COACH_UIDS = new Set(['59ole36uNpNwml5H6VDYCXyCME92'])
+
 export default function NotificationsSection({ user }) {
   const { settings, permission, busy, enable, disable, updateTypes, updateReminderTime } = usePushNotifications(user)
 
@@ -60,7 +67,7 @@ export default function NotificationsSection({ user }) {
           </div>
 
           <div className="space-y-2">
-            {Object.entries(TYPE_LABELS).map(([key, label]) => (
+            {Object.entries(COACH_UIDS.has(user?.uid) ? { ...TYPE_LABELS, ...COACH_ONLY_TYPE_LABELS } : TYPE_LABELS).map(([key, label]) => (
               <label key={key} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-fit-bg2 border border-fit-line cursor-pointer">
                 <span className="text-xs font-medium text-fit-ink">{label}</span>
                 <input

@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
 const strava = require("./strava.js");
+const clientWorkout = require("./clientWorkout.js");
 
 admin.initializeApp();
 
@@ -19,6 +20,7 @@ const REMINDER_TYPES = {
   coverage: true,
   pplRatio: true,
   restday: true,
+  clientWorkout: true,
 };
 
 // Kanonische Muscle-Group-IDs für den Coverage-Alert. Bewusst hier
@@ -395,6 +397,67 @@ exports.onCoachFeedback = functions
 
     const text = notificationText("coachFeedback");
     return sendReminder(uid, tokens, text.title, newData.coachFeedback.substring(0, 100), text.link);
+  });
+
+// ── Klienten-Workout → Push an den Coach ─────────────────────────────────
+// Ein Klient speichert eine Session (fitness/{uid}/sessions/{sid}) → alle
+// Coach-Geräte mit aktivem Push bekommen eine Data-Message, die
+// firebase-messaging-sw.js anzeigt (Buttons, Gruppierung pro Klient).
+// Entscheidungslogik + Nachrichtenaufbau: clientWorkout.js (mit Tests).
+async function clientDisplayName(uid) {
+  try {
+    const user = await admin.auth().getUser(uid);
+    if (user.displayName) return user.displayName;
+  } catch (error) {
+    console.warn(`clientDisplayName(${uid}):`, error.code || error.message);
+  }
+  return "";
+}
+
+exports.onClientWorkout = functions
+  .region("europe-west1")
+  .firestore.document("fitness/{uid}/sessions/{sid}")
+  .onWrite(async (change, context) => {
+    const { uid, sid } = context.params;
+    const before = change.before.exists ? change.before.data() : null;
+    const after = change.after.exists ? change.after.data() : null;
+
+    const decision = clientWorkout.shouldNotify({ uid, before, after });
+    if (!decision.notify) return null;
+
+    const db = admin.firestore();
+    const clientName = await clientDisplayName(uid);
+    const results = [];
+
+    for (const coachUid of clientWorkout.coachUids()) {
+      const pushRef = db.collection("fitness").doc(coachUid).collection("settings").doc("push");
+      const pushData = (await pushRef.get()).data() || {};
+      if (!pushData.enabled) continue;
+      if (getEnabledTypes(pushData).clientWorkout === false) continue;
+      if (Array.isArray(pushData.mutedClients) && pushData.mutedClients.includes(uid)) continue;
+
+      const tokens = normalizeTokens(pushData);
+      if (tokens.length === 0) continue;
+
+      try {
+        const message = clientWorkout.buildMessage({
+          uid, sid, session: after, clientName, tokens, reason: decision.reason,
+        });
+        const response = await admin.messaging().sendEachForMulticast(message);
+        const dead = clientWorkout.deadTokens(tokens, response.responses);
+        if (dead.length > 0) {
+          // Abgemeldete Geräte aufräumen, sonst wächst die Token-Liste ewig.
+          const cleanup = { tokens: admin.firestore.FieldValue.arrayRemove(...dead) };
+          if (dead.includes(pushData.token)) cleanup.token = admin.firestore.FieldValue.delete();
+          await pushRef.set(cleanup, { merge: true });
+        }
+        results.push({ coachUid, sent: response.successCount, failed: response.failureCount, removed: dead.length });
+      } catch (error) {
+        console.error(`onClientWorkout: Push an Coach ${coachUid} fehlgeschlagen:`, error);
+        results.push({ coachUid, error: error.message });
+      }
+    }
+    return { uid, sid, reason: decision.reason, results };
   });
 
 // ── Strava-Live-Import (Radtouren-Tab, Prod/Firebase-PWA) ──────────────────
