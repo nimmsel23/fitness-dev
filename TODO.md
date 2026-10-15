@@ -116,3 +116,6 @@ Impuls hierzu: Klient:Matthias fehlende Ambition zum kontinuierlichen Loggen von
   optional Mehrfachauswahl; Dateiformat/Größe prüfen und pro Foto Upload- bzw.
   Offline-Status zeigen. Gemeinsames Selfies-Modul für lokale UI und PWA nutzen;
   Auswahl und Warteschlange immer an die aktive UID binden.
+
+## [x] 2026-10-16: nimmdaniel@gmail.com als Coach freischalten
+Coach-Zugang anhand der verifizierten Firebase-UID ergänzen und zentrale Rolle setzen.
