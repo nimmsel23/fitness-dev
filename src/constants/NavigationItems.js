@@ -17,13 +17,14 @@ const baseItems = [
   { id: 'review',   label: 'Review',   Icon: BarChart3, noDefaultSub: true, sub: [
     { id: 'muscles',   label: 'Muskeln',      Icon: Layers },
     { id: 'readiness', label: 'Readiness',    Icon: Zap },
-    { id: 'strength',  label: 'Stärke-Matrix',Icon: Dumbbell },
     { id: 'verlauf',   label: 'Verlauf',      Icon: History },
   ]},
   { id: 'learn',    label: 'Lernen',   Icon: Brain,     sub: [
     { id: 'exercises', label: 'Übungen',  Icon: LibraryBig },
     { id: 'anatomy',   label: 'Anatomie', Icon: Microscope },
     { id: 'quiz',      label: 'Quiz',     Icon: HelpCircle },
+    // Stärke-Matrix (1RM-Rechner) lebt seit 2026-10-15 im Learn-Tab (learn-dev: views/Learn/StrengthMatrix.jsx).
+    { id: 'strength',  label: 'Stärke',   Icon: Dumbbell },
   ]},
   // Atlas: Übersicht über alle lokal gespiegelten Übungs-DBs (Mirror in
   // IndexedDB, siehe lib/exerciseDbs/) — bewusst unabhängig vom Learn-Tab.
@@ -44,7 +45,8 @@ const baseItems = [
 
 // Solo-Build (vite --mode training → .env.training, vos-training.web.app): nur dieser
 // eine Haupt-Tab. Alles andere fällt über VALID_TABS/parseHashRoute auf ihn zurück.
-const SOLO_TAB = import.meta.env.VITE_SOLO_TAB || '';
+export const SOLO_TAB = import.meta.env.VITE_SOLO_TAB || '';
+export const IS_SOLO = Boolean(SOLO_TAB);
 
 export function getNavItems({ focusReady = false, devBypass = false } = {}) {
   if (SOLO_TAB) return baseItems.filter((item) => item.id === SOLO_TAB);

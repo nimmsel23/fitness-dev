@@ -21,6 +21,8 @@ import TodayPlan, { useTodayPlan } from './TodayPlan.jsx';
 import { isSessionGateActive } from '../../lib/sessionGate.js';
 import { logWorkoutAsSession } from '../../lib/logExternalWorkout.js';
 import SessionModeTabs from './SessionModeTabs.jsx';
+import { IS_SOLO } from '../../constants/NavigationItems.js';
+import { ChevronLeft } from 'lucide-react';
 
 export default function Session({
   initialDate, initialDraft, onInspectExercise, onOpenSession,
@@ -115,12 +117,28 @@ export default function Session({
     );
   }
 
-  if (subTab === 'plan') {
+  // Solo-Build: History hat dort keine Nav — eigener Rückweg zu "Heute".
+  const soloBack = IS_SOLO && (
+    <div className="px-3 pt-3">
+      <button
+        onClick={() => onSubNav?.('today')}
+        className="flex items-center gap-1 text-[11px] font-semibold"
+        style={{ color: 'var(--dim)' }}
+      >
+        <ChevronLeft size={14} /> Heute
+      </button>
+    </div>
+  );
+
+  // Solo-Build: Plan lebt dort auf vos-plan.web.app (Link im Header-Menü).
+  if (subTab === 'plan' && !IS_SOLO) {
     return <PlanView routeView={planView} routeId={planId} onRouteChange={onPlanRouteChange} />;
   }
 
   if (subTab === 'history') {
     return (
+      <>
+      {soloBack}
       <SessionHistory
         recentSessions={session.recentSessions}
         onOpenSession={onOpenSession}
@@ -136,6 +154,7 @@ export default function Session({
         hasMoreHistory={session.hasMoreHistory}
         onLoadMoreHistory={session.loadMoreHistory}
       />
+      </>
     );
   }
 

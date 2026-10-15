@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
-  buildMessage, coachUids, deadTokens, sessionHasSignal, shouldNotify, DEFAULT_COACH_UIDS,
+  buildMessage, coachUids, coachUrl, deadTokens, sessionHasSignal, shouldNotify, DEFAULT_COACH_UIDS,
 } = require("./clientWorkout.js");
 
 const NOW = new Date("2026-10-15T10:00:00Z");
@@ -51,6 +51,11 @@ test("Coach-eigene Sessions, Löschungen und alte Nachträge melden nicht", () =
   assert.equal(shouldNotify({ uid: KLIENT, before: null, after: mitInhalt({ date: "2026-10-12" }), now: NOW }).notify, true);
 });
 
+test("COACH_URL aus der Umgebung, ohne Schrägstrich am Ende", () => {
+  assert.equal(coachUrl({}), "https://vos-coach.web.app");
+  assert.equal(coachUrl({ COACH_URL: "https://example.test/" }), "https://example.test");
+});
+
 test("COACH_UIDS aus der Umgebung überschreibt den Standard", () => {
   assert.deepEqual(coachUids({}), DEFAULT_COACH_UIDS);
   assert.deepEqual(coachUids({ COACH_UIDS: " a , b " }), ["a", "b"]);
@@ -77,7 +82,7 @@ test("Abschluss-Titel und Fallbacks für Name/Inhalt", () => {
   });
   assert.equal(msg.data.title, "Klient: Workout abgeschlossen");
   assert.equal(msg.data.body, "Session vom 2026-10-15");
-  assert.ok(msg.data.link.includes(`client=${KLIENT}`) && msg.data.link.includes("date=2026-10-15"));
+  assert.equal(msg.data.link, `https://vos-coach.web.app/#/clients/${KLIENT}?date=2026-10-15`);
 });
 
 test("nur tote Tokens werden zum Entfernen vorgeschlagen", () => {

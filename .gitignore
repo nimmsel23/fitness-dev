@@ -5,6 +5,7 @@ functions/node_modules/
 dist/
 dist-firebase/
 dist-training/
+dist-atlas/
 dist-coach/
 dist-federation/
 .firebase/

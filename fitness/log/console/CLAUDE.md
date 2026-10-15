@@ -68,6 +68,33 @@ zweiter State-Speicher.
 3. ⏳ **Senden an Klient** (Telegram/Firestore) — noch nicht gebaut. Braucht 1+2
    als Voraussetzung: nur *freigegebene* (`status: approved`) Entwürfe sollten
    automatisiert rausgehen, sonst verschickt man ungeprüfte KI-Texte direkt.
+4. ✅ **Web-UI-Zugang für den Coach-Tab** (entstanden 2026-10-06 in `coach-dev`,
+   Backend-Teil am 2026-10-15 nach fitness-dev portiert): `fitness-log console`
+   bleibt der Endlos-Loop-Weg (Watcher + 30min-Gap-Zyklus + interaktive a/d/s-
+   Freigabe per TTY). Daneben gibt es einen UI-seitigen Zugang auf **dieselbe
+   Persistenz** — Einmal-Check statt Loop, Freigabe per Klick statt Tastendruck:
+   - `fitness/api/routers/coaching.py`: `GET /fitness/coach/gaps[?uid=]` (führt
+     `check_training_gap()` einmalig aus, persistiert Treffer über `save_draft()`
+     — identischer Pfad wie `gap_check.py`), `GET /fitness/coach/drafts[?uid=&status=]`
+     (wrapt `list_drafts()`), `POST /fitness/coach/drafts/{id}/review` (wrapt
+     `mark_status()`, Body `{uid, status: approved|dismissed}`).
+   - **uid-Validierung (nur hier, nicht im coach-dev-Original):** `uid` aus
+     Query/Body muss `[\w-]{1,128}` entsprechen, sonst `400 invalid_uid` —
+     `drafts_dir(uid)` macht `mkdir(parents=True)`, ohne Prüfung wäre `uid=../../x`
+     ein Path-Traversal (das Backend hängt hinter dem Funnel).
+   - `drafts.py::list_drafts()` liefert zusätzlich `id` (Dateiname ohne Endung)
+     pro Eintrag, `find_draft_path(uid, draft_id)` ist das Gegenstück für die
+     Review-Route (keine Pfade von außen, nur dieses ID-Format).
+   - **Frontend liegt nur in coach-dev:** `src/views/Coach/ClientInsights.jsx`,
+     Sub-Tab "KI-Insights" in `ClientsPanel.jsx`, Zugriff über
+     `lib/db/local|firestore/coach.js` (`LOCAL_FITNESS_API_BASE`). Der reine
+     Remote-Coach-Build (`MODE==="coach"`, `LOCAL_FITNESS_API_BASE=""`) liefert
+     bewusst leer statt Fehler — die KI-Calls + Datei-Persistenz brauchen den
+     lokalen Python-Prozess und sind nicht Firestore-portierbar (gleiche
+     Einschränkung wie `getInboxMergeCandidates()`).
+   - **Offen:** fitness-dev hat selbst keine Node-Proxy-Routen (`server.mjs`)
+     und keine UI dafür; coach-dev hatte `server.mjs`-Proxy-Routen (Node→Python,
+     Muster wie `/fitness/coach/macrocycles/*`).
 
 ---
 

@@ -42,3 +42,10 @@ Recovery-Modell — aufgetrennt + auf geteiltes Scoring umgestellt.
 2.  **Fetching**: `index.jsx` triggers a re-fetch via `db.js` (`getWeeklyReport`).
 3.  **Distribution**: Data is passed down to specialized presentational components.
 4.  **Navigation**: `ReviewSessionList` uses `onNavigate` to jump to specific session details in the main app.
+
+## Update 2026-10-15 — Stärke-Matrix ist nach Learn umgezogen
+
+Der SubTab `strength` (`ReviewStrengthMatrix.jsx`, 1RM-Rechner) existiert im Review nicht mehr.
+Die Komponente lebt jetzt im Learn-Tab (`learn-dev`: `src/views/Learn/StrengthMatrix.jsx`, Header-Tab
+„Stärke", Sub-Tab-ID `strength`). Alte Deep-Links `#review/strength` werden in `App.jsx`
+(`parseHashRoute`) auf `learn/strength` umgeleitet.

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getMonthlyReport, exportFitnessData, getHistoryEntries } from '@db';
-import { BarChart3, Activity, History, Zap, Dumbbell } from 'lucide-react';
+import { BarChart3, Activity, History, Zap } from 'lucide-react';
 import { readMonthlyReportCache, writeMonthlyReportCache, clearMonthlyReportCache } from '../../lib/reportCache';
 
 import ReviewHeader from './ReviewHeader';
@@ -12,10 +12,9 @@ import ReviewWeeksBreakdown from './ReviewWeeksBreakdown';
 import ReviewTopExercises from './ReviewTopExercises';
 import ReviewHistory from './ReviewHistory.jsx';
 import ReviewReadiness from './ReviewReadiness.jsx';
-import ReviewStrengthMatrix from './ReviewStrengthMatrix.jsx';
 import Muscles from '../Muscles/index.jsx';
 
-const SUB_TABS = ['muscles', 'verlauf', 'readiness', 'strength'];
+const SUB_TABS = ['muscles', 'verlauf', 'readiness'];
 const REVIEW_WINDOW_DAYS = 28;
 let monthlyReportCache = null; // schnellster Pfad: gleicher Tab, kein JSON.parse
 
@@ -112,7 +111,6 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
           { id: 'report',    icon: <BarChart3 size={14} />, label: 'Bericht' },
           { id: 'muscles',   icon: <Activity size={14} />,  label: 'Muskeln' },
           { id: 'readiness', icon: <Zap size={14} />,       label: 'Readiness' },
-          { id: 'strength',  icon: <Dumbbell size={14} />,  label: 'Stärke-Matrix' },
           { id: 'verlauf',   icon: <History size={14} />,   label: 'Verlauf' },
         ].map(({ id, icon, label }) => (
           <button key={id}
@@ -128,8 +126,6 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
         <Muscles gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} recentDays={recentDays} onInspectExercise={onInspectExercise} />
       ) : viewMode === 'readiness' ? (
         <ReviewReadiness />
-      ) : viewMode === 'strength' ? (
-        <ReviewStrengthMatrix />
       ) : viewMode === 'verlauf' ? (
         <ReviewHistory sessions={historySessions} onOpenSession={onOpenSession} hasMore={historyHasMore} onLoadMore={() => setHistoryMonths(m => m + 6)} />
       ) : loading ? (

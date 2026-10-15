@@ -38,10 +38,39 @@ async function resolveCrossAppAliases() {
   }
 }
 
+// Solo-Builds (mode 'training' | 'atlas'): Views, die dort unerreichbar sind, durch einen leeren
+// Platzhalter ersetzen, damit sie samt Abhängigkeiten nicht im Bundle landen. Bewusst
+// ein Build-Plugin statt lazy()-Imports: so bleibt die normale App unverändert.
+const SOLO_APP_VIEWS = ['Session', 'WeeklyReview', 'Touren', 'Exercises', 'Settings', 'Anamnese', 'Fokus', 'Inbox']
+const SOLO_KEEP = { training: ['Session'], atlas: ['Exercises'] }
+function soloStubs(mode) {
+  const stubbed = SOLO_APP_VIEWS.filter((v) => !SOLO_KEEP[mode].includes(v)).join('|')
+  return [
+    { importer: /[\\/]src[\\/]App\.jsx$/, source: new RegExp(`^(\\./views/(${stubbed})/|@learn/views/Learn/)`) },
+    // Plan lebt im Solo-Build auf vos-plan.web.app
+    { importer: /[\\/]views[\\/]Session[\\/]index\.jsx$/, source: /^\.\.\/Plan\/index\.jsx$/ },
+    // ~1,8 MB wger/yuhonas-Rohimport; yuhonas liefert dort der Geräte-Mirror
+    { importer: /[\\/]lib[\\/]db[\\/]firestore[\\/]kb\.js$/, source: /^\.\/exerciseBulkData\.generated\.js$/, target: 'src/solo-bulk-stub.js' },
+  ]
+}
+function soloStubPlugin(mode) {
+  const defaultStub = resolve(__dirname, 'src/solo-stub.jsx')
+  const rules = soloStubs(mode)
+  return {
+    name: 'solo-stub-views',
+    enforce: 'pre',
+    resolveId(source, importer) {
+      if (!importer) return null
+      const hit = rules.find((r) => r.importer.test(importer) && r.source.test(source))
+      return hit ? (hit.target ? resolve(__dirname, hit.target) : defaultStub) : null
+    },
+  }
+}
+
 export default defineConfig(async ({ mode }) => {
-  const isFirebase = mode === 'firebase' || mode === 'coach' || mode === 'training'
+  const isFirebase = mode === 'firebase' || mode === 'coach' || mode === 'training' || mode === 'atlas'
   const isCoach = mode === 'coach'
-  const isTraining = mode === 'training'
+  const isSolo = mode === 'training' || mode === 'atlas'
   const crossAppAliases = await resolveCrossAppAliases()
   delete crossAppAliases['@fuel']
 
@@ -50,7 +79,7 @@ export default defineConfig(async ({ mode }) => {
     // Präfix (z.B. /fitness-dev/) fälschlich zur Domain-Wurzel auf (404 →
     // Whitescreen). Core4/Door/Game/Fuel haben denselben Fix schon.
     base: './',
-    plugins: [react()],
+    plugins: [react(), ...(isSolo ? [soloStubPlugin(mode)] : [])],
     resolve: {
       preserveSymlinks: true,
       alias: {
@@ -116,7 +145,7 @@ export default defineConfig(async ({ mode }) => {
       },
     },
     build: {
-      outDir: isCoach ? 'dist-coach' : isTraining ? 'dist-training' : 'dist',
+      outDir: isCoach ? 'dist-coach' : isSolo ? `dist-${mode}` : 'dist',
       target: 'modules',
       rollupOptions: {
         input: isCoach ? resolve(__dirname, 'coach.html') : undefined,
