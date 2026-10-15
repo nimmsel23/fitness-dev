@@ -191,6 +191,13 @@ Dry-Run. Unit-Vorschläge unter `backend/deploy/` sind **nicht aktiv** — `fitn
 `fitness-firestore-daemon.service` sind seit 2026-10-15 auf Wunsch gestoppt, dürfen nie parallel zu den neuen
 Prozessen auf denselben Daten schreiben. Frontend-Fork: `frontend/`, Notifications: `backend/notifier/`.
 
+## Push-Benachrichtigungen (Klienten-Workout → Coach)
+
+Cloud Function `onClientWorkout` meldet dem Coach neue Klienten-Sessions per FCM; der Service Worker zeigt sie
+mit Buttons und Sammelmeldung pro Klient. Texte stehen in `functions/notifications.yaml`, Schalter im
+Setup-Tab (Notification-Panel). Der Coach-Tab läuft **standalone aus `~/coach-dev`** (`vos-coach.web.app`),
+dort liegt auch der Hash-Router. Details, Datenfluss, Deploy-Stand: `docs/PUSH-NOTIFICATIONS.md`.
+
 ## Backend — Server-Rollen auf einen Blick
 
 | Datei | Port | Typ | Rolle |

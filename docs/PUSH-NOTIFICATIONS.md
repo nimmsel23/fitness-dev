@@ -1,0 +1,79 @@
+# Push-Benachrichtigungen (FCM)
+
+Stand 2026-10-15. Zwei Wege: **Erinnerungen** an alle Nutzer (zeitgesteuert) und **Klienten-Workout → Coach**
+(ereignisgesteuert). Beide laufen als Firebase Cloud Functions (Projekt `fitness-aos`, Region `europe-west1`)
+und kommen als FCM-*Data*-Message im Service Worker `public/firebase-messaging-sw.js` an, der die
+Notification selbst anzeigt.
+
+```
+Klient speichert Session ──► Firestore fitness/{uid}/sessions/{sid}
+                                  │ onWrite
+                                  ▼
+                     onClientWorkout (functions/index.js)
+                       shouldNotify()      functions/clientWorkout.js
+                       allowsClientWorkout() functions/pushPrefs.js   ← Schalter aus dem Panel
+                       buildMessage()      Texte: functions/notifications.yaml
+                                  │ FCM sendEachForMulticast
+                                  ▼
+          Coach-Geräte (fitness/{coachUid}/settings/push → tokens[])
+                                  ▼
+          firebase-messaging-sw.js ── Klick ──► https://vos-coach.web.app/#/clients/<uid>
+```
+
+## Functions (`functions/`)
+
+| Datei | Aufgabe |
+|---|---|
+| `index.js` | Trigger/Callables: `scheduledPushReminders`, `onCoachFeedback`, **`onClientWorkout`**, **`sendTestPush`** (+ Strava) |
+| `clientWorkout.js` | Rein: wann wird gemeldet (`shouldNotify`), Nachricht bauen, tote Tokens erkennen |
+| `pushPrefs.js` | Rein: Ruhezeiten, stumme Klienten, Modus „nur abgeschlossene", Test-Nachrichten, Cooldown |
+| `texts.js` | Lädt `notifications.yaml`, setzt `{platzhalter}` ein |
+| `notifications.yaml` | **Alle Meldungstexte** (Erinnerungen, `clientWorkout`, `testReminder`, `testClientWorkout`) |
+
+Tests: `node --test functions/` (21 Tests, ohne Firebase). Textänderungen wirken erst nach
+`firebase deploy --only functions:onClientWorkout,functions:sendTestPush` (bzw. der jeweiligen Function).
+
+### Wann `onClientWorkout` meldet
+- Erstes Mal, dass die Session Inhalt hat (Sätze/Dauer/Effort/`done`), und noch einmal beim Abschluss
+  (`finishedAt`, `completed` oder `status: completed`). Autosave-Folgeschreibungen melden nicht.
+- Nie bei Coach-eigenen Sessions (`COACH_UIDS`, Standard = UID aus `firestore.rules`), gelöschten Sessions
+  oder Sessions, die mehr als 3 Tage alt sind (Nachträge/Importe).
+- Datenschutz: nur Vorname, Trainingsart, Dauer — **nie** Notizen, Gewichte, Übungsnamen (steht auf dem Sperrbildschirm).
+- Tote Tokens (`registration-token-not-registered`) werden aus `settings/push` entfernt.
+- Env: `COACH_UIDS` (kommagetrennt), `COACH_URL` (Standard `https://vos-coach.web.app`).
+
+### Einstellungen: `fitness/{uid}/settings/push`
+`enabled`, `tokens[]`, `token`, `devices[{token,label,addedAt}]`, `types{}`, `reminderTime`,
+`quietHours{enabled,start,end}` (Berliner Zeit, über Mitternacht erlaubt), `mutedClients[]`,
+`clientWorkoutMode` (`all` | `finished`), `lastTestAt` (Cooldown 10 s für `sendTestPush`).
+Ruhezeiten gelten nur für Klienten-Meldungen, nicht für die zeitgesteuerten Erinnerungen.
+
+## Service Worker (`public/firebase-messaging-sw.js`, Kopie in `frontend/public/`)
+- `data.type === "clientWorkout"`: ein Tag pro Klient (`client-workout-<uid>`); ein weiteres Workout vor dem
+  Wegwischen wird zur Sammelmeldung „N neue Workouts" (der Text steht im SW, nicht in der YAML). Gleiche `sid`
+  = Update ohne erneutes Klingeln. Buttons „Öffnen" / „Gesehen" („Gesehen" schließt nur).
+- Links auf eine andere Origin (Coach-Site) öffnen ein vorhandenes Coach-Fenster oder ein neues.
+- Alle übrigen Meldungen: wie bisher (Tag `fitness-reminder`, kein Renotify).
+- Test ohne Browser: `node scripts/test-push-sw.mjs public/firebase-messaging-sw.js frontend/public/firebase-messaging-sw.js`.
+
+## Notification-Panel (Setup-Tab)
+`src/views/Settings/NotificationsSection.jsx` + `src/hooks/usePushNotifications.js` (reine Logik in
+`src/hooks/pushSettings.js`, Test `node --test src/hooks/pushSettings.test.mjs`). Kopien in `frontend/src/`.
+Geräteliste (Dieses Gerät, entfernen, Test je Gerät), Erinnerungstypen, Ruhezeiten, Coach-Bereich
+(Klienten-Workouts, nur abgeschlossene, Klienten einzeln stumm, Demo-Meldung), Test an alle Geräte.
+Der Coach-Bereich erscheint nur für die Coach-UID.
+
+## Coach-Konsole (eigenes Repo `~/coach-dev`, Site `vos-coach.web.app`)
+Hash-Router `#/exercises`, `#/catalog`, `#/clients/<uid>/<tab>?date=` (Details: `src/views/Coach/ARCHITECTURE.md`
+in coach-dev). Die Coach-Konsole wird **standalone aus coach-dev** deployed, nicht aus `src/views/Coach` hier.
+
+## Deploy-Stand
+- Functions `onClientWorkout` und `sendTestPush` sind deployed (2026-10-15).
+- Panel + neuer Service Worker erst mit dem Haupt-App-Release (`fitness-release`), der Router erst mit dem
+  Coach-Deploy (Push von `vitalos` in `coach-app`).
+
+## Offen
+- `?date=` im Coach-Link wird gelesen, der Eintrag aber noch nicht hervorgehoben.
+- Kein Ende-zu-Ende-Test mit einem echten Klienten-Workout; Test-Push per Admin-SDK ging an 2 von 3 Geräten
+  (das dritte Token war tot).
+- Lint-Config kennt `functions/` nicht (Node-Globals).
