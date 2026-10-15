@@ -24,6 +24,10 @@ messaging.onBackgroundMessage((payload) => {
     body,
     icon: "/icon-192.png",
     badge: "/icon-192.png",
+    // data.tag kommt von functions/index.js — gleicher Tag ersetzt die
+    // vorherige Notification statt zu stapeln (renotify bewusst aus).
+    tag: data.tag || "fitness-reminder",
+    renotify: false,
     data: { link, tab: data.tab || "session" },
   });
 });
