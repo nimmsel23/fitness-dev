@@ -1,3 +1,46 @@
+# Fünf-Tage-Workout-Chronik als TUI-Startansicht ergänzt (2026-10-15)
+
+- `backend/notifier/chronicle.py` liest Sessions direkt aus dem lokalen
+  SessionStore für heute und die vier vorherigen Kalendertage, neueste zuerst.
+  Namensauflösung über Klienten-Registry, eigene Sessions eingeschlossen.
+- `fitness-inbox tui` startet mit Chronik; `h` Chronik, `i` Eingangs-Inbox,
+  `--inbox` für direkten Inbox-Start. Suche, Personenfilter und Details in
+  beiden Ansichten; Lesemarkierungen und Neu-Filter nur in der Inbox.
+- Stat-Polling erkennt neue, geänderte und entfernte Sessions sowie den
+  Tageswechsel. Chronik erzeugt keine Inbox und verändert keine Laufzeitdaten.
+- CLI: `fitness-inbox list --chronicle [--json] [--uid UID]`.
+- Verifiziert: 153 Tests; installiertes Kommando aus `/tmp`; installierte
+  TUI zeigt alle fünf realen lokalen Workouts vom 11.–15.10. für drei Personen
+  mit lesbaren Details. Session-Inhalte und mtimes vor/nach der Anzeige
+  identisch; keine Notifier-Dateien erzeugt. Wheel mit Chronik gebaut.
+
+---
+
+# Workout-Inbox-TUI verbessert und als Python-Kommando installiert (2026-10-15)
+
+- `fitness-inbox` als Console-Entry-Point in `fitness-agent`; `backend` wird mit
+  paketiert. Editable in der bestehenden uv-Tool-Venv installiert, Befehl über
+  `bin/fitness-inbox` im vorhandenen Repo-PATH. Alter Wrapper leitet weiter.
+- Suche (`/`), Tastenhilfe (`?`), große Details (`d`), Zähler, Fokusrahmen und
+  Layout untereinander unter 100 Spalten. Leere Inbox erklärt Einrichtung.
+- Fehler behoben: `m` überspringt im Neu-Filter kein Workout; `A` markiert nur
+  sichtbare Treffer (auch bei gleichen Klientennamen); Escape beendet normale
+  Terminal-TUI, Scratchpad nutzt explizit `--scratchpad`.
+- Gesehen-Markierungen prüfen die angezeigte saved_at/rev-Revision unter Lock;
+  zwischenzeitliche Updates bleiben neu. Fehlende Session-Dateien werden
+  nicht automatisch gesehen.
+- Wheel-Build folgt nicht mehr dem Katalog-State-Symlink: Fitness-Pythonmodule
+  per Dateiglob, benötigte Katalog-Configs explizit. Kein Laufzeitspeicher im
+  Wheel; Notifier und Logo enthalten.
+- Verifiziert: 145 Tests (Notifier, Sync-Notify, SessionStore), Wheel-Build,
+  separate Wheel-Installation und Headless-TUI aus `/tmp`, CLI/alter Wrapper,
+  `uv pip check`, visuelle Screenshots für 120x36 und 80x24. Live-Diagnose:
+  swaync und Hyprland erreichbar, notify.yaml vorhanden, Inbox 0 Einträge.
+- Kein echter Firestore-Pull / Popup-Klick ausgeführt; keine echten Workouts
+  als gesehen markiert. Neue Eingänge benötigen Pull mit `--notify`.
+
+---
+
 # Fitness-Agent-Notifications aktionierbar gemacht (2026-10-13)
 
 Die headless `claude -p`-Checks für die Fitness-Agent-Klienten-Betreuung

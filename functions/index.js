@@ -225,7 +225,7 @@ async function getOpenHabitsToday(userRef, date) {
     .filter((habit) => !habit.deleted && !doneIds.has(habit.uuid));
 }
 
-async function sendReminder(uid, tokens, title, body, link) {
+async function sendReminder(uid, tokens, title, body, link, tag = "fitness-reminder") {
   if (!tokens || tokens.length === 0) return { sentCount: 0, failureCount: 0 };
 
   try {
@@ -234,7 +234,7 @@ async function sendReminder(uid, tokens, title, body, link) {
         title,
         body,
         link: link || "/?tab=session",
-        tag: "fitness-reminder",
+        tag,
       },
       tokens,
     };
@@ -335,17 +335,32 @@ exports.scheduledPushReminders = functions
           }
         }
 
-        for (const notification of notifications) {
-          const result = await sendReminder(uid, tokens, notification.title, notification.body, notification.link);
+        // Aktiv-Workout-Hinweis bleibt eigener Push (zeitkritisch, eigener Tag);
+        // alle übrigen Reminder desselben Laufs gehen als EIN Digest raus —
+        // vorher kamen pro Lauf bis zu vier Pushes gleichzeitig (Workout/Restday,
+        // Coverage, PPL, Habit), und der SW hat sie ungetaggt gestapelt.
+        const active = notifications.filter((n) => n._sessionRef);
+        const digest = notifications.filter((n) => !n._sessionRef);
+
+        for (const notification of active) {
+          const result = await sendReminder(uid, tokens, notification.title, notification.body, notification.link, "fitness-active-workout");
           sentCount += result.sentCount || 0;
           failureCount += result.failureCount || 0;
-          if ((result.sentCount || 0) > 0 && notification._sessionRef) {
+          if ((result.sentCount || 0) > 0) {
             await notification._sessionRef.set({
               sessionGate: {
                 reminderSentAt: admin.firestore.FieldValue.serverTimestamp(),
               },
             }, { merge: true });
           }
+        }
+
+        if (digest.length > 0) {
+          const [primary, ...rest] = digest;
+          const body = [primary.body, ...rest.map((n) => `${n.title}: ${n.body}`)].join("\n");
+          const result = await sendReminder(uid, tokens, primary.title, body, primary.link);
+          sentCount += result.sentCount || 0;
+          failureCount += result.failureCount || 0;
         }
       }
 
