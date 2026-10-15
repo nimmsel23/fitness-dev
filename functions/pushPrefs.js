@@ -41,27 +41,32 @@ function allowsClientWorkout(pushData = {}, uid, reason, now = new Date()) {
 }
 
 // Test-Push: bewusst unverwechselbar ("Test"), damit er nie wie echte Klientendaten wirkt.
-function buildTestMessage(kind, tokens, coachUrl = "https://vos-coach.web.app") {
-  const isWorkout = kind === "clientWorkout";
-  return {
-    data: isWorkout
-      ? {
+// `texts` = ganze notifications.yaml (testReminder / testClientWorkout).
+function buildTestMessage(kind, tokens, texts, coachUrl = "https://vos-coach.web.app") {
+  if (!texts) throw new Error("buildTestMessage: texts (notifications.yaml) fehlt");
+  if (kind === "clientWorkout") {
+    return {
+      data: {
         type: "clientWorkout",
-        title: "Test: Workout eingegangen",
-        body: "Kraft · 45 min (Demo, kein echter Klient)",
+        title: texts.testClientWorkout.title,
+        body: texts.testClientWorkout.body,
         link: `${coachUrl.replace(/\/+$/, "")}/#/clients`,
         tag: "client-workout-test",
         clientUid: "test",
         clientName: "Test",
         sid: `test-${Date.now()}`,
         date: "",
-      }
-      : {
-        title: "Test: Reminder",
-        body: "So sehen normale Erinnerungen aus.",
-        link: "/?tab=session",
-        tag: "fitness-test",
       },
+      tokens,
+    };
+  }
+  return {
+    data: {
+      title: texts.testReminder.title,
+      body: texts.testReminder.body,
+      link: texts.testReminder.link || "/?tab=session",
+      tag: "fitness-test",
+    },
     tokens,
   };
 }

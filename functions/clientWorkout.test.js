@@ -1,4 +1,6 @@
 const test = require("node:test");
+const { NOTIFICATIONS } = require("./texts.js");
+const texts = NOTIFICATIONS.clientWorkout;
 const assert = require("node:assert/strict");
 const {
   buildMessage, coachUids, coachUrl, deadTokens, sessionHasSignal, shouldNotify, DEFAULT_COACH_UIDS,
@@ -63,6 +65,7 @@ test("COACH_UIDS aus der Umgebung überschreibt den Standard", () => {
 
 test("Nachricht enthält keine Notizen, Gewichte oder Übungsnamen", () => {
   const msg = buildMessage({
+    texts,
     uid: KLIENT, sid: "s1", clientName: "Matthias Muster", tokens: ["t1"],
     session: mitInhalt({ notes: "Knie zwickt, Arzttermin" }),
   });
@@ -77,6 +80,7 @@ test("Nachricht enthält keine Notizen, Gewichte oder Übungsnamen", () => {
 
 test("Abschluss-Titel und Fallbacks für Name/Inhalt", () => {
   const msg = buildMessage({
+    texts,
     uid: KLIENT, sid: "s1", clientName: "", tokens: [], reason: "abgeschlossen",
     session: { date: "2026-10-15", exercises: [{ done: true }] },
   });
@@ -92,4 +96,29 @@ test("nur tote Tokens werden zum Entfernen vorgeschlagen", () => {
     { success: false, error: { code: "messaging/internal-error" } },
   ];
   assert.deepEqual(deadTokens(["a", "b", "c"], responses), ["b"]);
+});
+
+test("Wortlaut kommt aus den übergebenen Texten (notifications.yaml), nicht aus dem Code", () => {
+  const eigene = {
+    ...texts, title: "{name} hat trainiert", body: "{details}!", minutes: "{minutes}'", detailSeparator: " / ",
+  };
+  const msg = buildMessage({
+    uid: KLIENT, sid: "s1", clientName: "Matthias Muster", tokens: [], texts: eigene,
+    session: mitInhalt(),
+  });
+  assert.equal(msg.data.title, "Matthias hat trainiert");
+  assert.equal(msg.data.body, "Kraft / 45'!");
+});
+
+test("fehlende Texte sind ein harter Fehler statt stiller Standardwerte", () => {
+  assert.throws(() => buildMessage({ uid: KLIENT, sid: "s", session: mitInhalt(), tokens: [] }), /texts/);
+});
+
+test("notifications.yaml enthält alle Schlüssel, die der Code braucht", () => {
+  for (const key of ["title", "titleFinished", "body", "bodyDate", "bodyFallback", "nameFallback", "minutes", "detailSeparator"]) {
+    assert.ok(typeof texts[key] === "string" && texts[key].length > 0, `clientWorkout.${key} fehlt in notifications.yaml`);
+  }
+  for (const key of ["testReminder", "testClientWorkout"]) {
+    assert.ok(NOTIFICATIONS[key]?.title && NOTIFICATIONS[key]?.body, `${key} fehlt in notifications.yaml`);
+  }
 });

@@ -1,4 +1,5 @@
 const test = require("node:test");
+const { NOTIFICATIONS } = require("./texts.js");
 const assert = require("node:assert/strict");
 const { allowsClientWorkout, buildTestMessage, isQuietNow, testCooldownLeft } = require("./pushPrefs.js");
 
@@ -49,12 +50,12 @@ test("Modus 'nur abgeschlossene'", () => {
 });
 
 test("Test-Nachrichten sind als Test erkennbar und enthalten keine Klientendaten", () => {
-  const w = buildTestMessage("clientWorkout", ["t"]);
+  const w = buildTestMessage("clientWorkout", ["t"], NOTIFICATIONS);
   assert.match(w.data.title, /^Test/);
   assert.equal(w.data.type, "clientWorkout");
   assert.equal(w.data.clientUid, "test");
   assert.match(w.data.sid, /^test-/);
-  const r = buildTestMessage("reminder", ["t"]);
+  const r = buildTestMessage("reminder", ["t"], NOTIFICATIONS);
   assert.match(r.data.title, /^Test/);
   assert.equal(r.data.type, undefined);
   assert.deepEqual(r.tokens, ["t"]);
