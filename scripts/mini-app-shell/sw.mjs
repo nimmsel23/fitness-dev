@@ -32,6 +32,7 @@ export function swConfig(appId, sw = {}, version) {
     imageCaches: [],
     keepCaches: [],
     notificationLink: "./",
+    notificationClick: true,
     ...sw,
     // Build-Zeit-Optionen gehören nicht in die Laufzeit-Config
     extra: undefined,

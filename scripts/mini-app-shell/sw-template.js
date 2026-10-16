@@ -3,7 +3,8 @@
 //
 // Strategien:
 //  - Navigation:        Netz zuerst (kurzes Timeout) → immer die neueste index.html, Cache nur als Rückfall.
-//  - Assets (gehasht):  Cache zuerst, bei Fehlen übers Netz nachladen (Laufzeit-Cache).
+//  - Assets (gehasht):  Cache zuerst, bei Fehlen übers Netz nachladen (Laufzeit-Cache); schlägt das offline fehl,
+//                       kommt index.html (SPA-Rückfall) — assetFallback:'none' liefert stattdessen einen Netzwerkfehler.
 //  - API swr:           stale-while-revalidate, offline → {ok:false, offline:true}.
 //  - API networkFirst:  Netz zuerst, Cache als Rückfall.
 //  - Bilder-Hosts:      eigener, versionsunabhängiger Cache (überlebt App-Updates).
@@ -115,7 +116,7 @@ self.addEventListener('fetch', (e) => {
   // Pfade, die nie gecacht werden (z. B. Sync-/Health-Endpunkte der API): direkt ans Netz, SW antwortet nicht
   if (hit(CFG.neverCache, path)) return
   if (path.includes(CFG.assetsPath || '/assets/') || CFG.cacheAllSameOrigin) {
-    e.respondWith(caches.match(req).then((h) => h || fetch(req).then((res) => put(req, res)).catch(() => caches.match(INDEX))))
+    e.respondWith(caches.match(req).then((h) => h || fetch(req).then((res) => put(req, res)).catch(() => (CFG.assetFallback === 'none' ? Response.error() : caches.match(INDEX)))))
   }
 })
 
@@ -126,8 +127,9 @@ self.addEventListener('message', (e) => {
   if (e.data.type === 'GET_VERSION' && e.source) e.source.postMessage({ type: 'VERSION', version: CACHE })
 })
 
-// Notification-Klick: vorhandenes Fenster fokussieren (und navigieren), sonst neu öffnen
-self.addEventListener('notificationclick', (e) => {
+// Notification-Klick: vorhandenes Fenster fokussieren (und navigieren), sonst neu öffnen.
+// Apps mit eigenem Klick-Handler (z. B. Fuel: Quick-Actions) setzen notificationClick:false und liefern ihn per extraFile.
+if (CFG.notificationClick !== false) self.addEventListener('notificationclick', (e) => {
   const target = (e.notification && e.notification.data && e.notification.data.link) || CFG.notificationLink || './'
   e.notification.close()
   e.waitUntil((async () => {
