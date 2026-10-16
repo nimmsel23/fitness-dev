@@ -1,3 +1,7 @@
+# Splash-Screen auch in der Fitness-Haupt-App (2026-10-16)
+
+- `cli.mjs splash` (neu im Paket) setzt Splash + Update-Loader in `dist/index.html` bzw. `dist-firebase/index.html` (`build`, `build:firebase:client`); Icon `/icon-192.png`, Name `Fitness`, Akzent aus `mini-app.json`. Geprüft am Firebase-Build (Splash vor `#root`, Icon-Pfad ok). Nicht auf Gerät gesehen.
+
 # Fitness-Haupt-SW auf das Mini-App-Shell-Template umgestellt (2026-10-16)
 
 - `mini-app.json` (Apps `fitness`, `frontend`) beschreibt den SW: Shell, 20/24 SWR-Präfixe, Übungsbilder-Cache, Background-Sync (`aos-offline-fitness`), Workout-Notifications. `public/sw.js` → `docs/archive/sw.fitness-main-v1.js`; Build-Skripte rufen `cli.mjs sw` statt `stamp-sw.mjs` (auch `build` → dist bekommt jetzt einen SW).

@@ -57,6 +57,9 @@
         ],
         "workoutLink": "./#session/today",
         "notificationLink": "./#session/today"
+      },
+      "splash": {
+        "icon": "/icon-192.png"
       }
     },
     "frontend": {
