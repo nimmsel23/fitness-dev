@@ -638,9 +638,12 @@ def cmd_clients(
 @app.command(name="console", help="Live-TUI: Klienten-Logs in Echtzeit + Zwei-KI-Analyse (Trainingsluecken, Auto-Feedback)")
 def cmd_console(
     gap_check_interval: int = typer.Option(1800, "--gap-interval", help="Sekunden zwischen Trainingsluecken-Checks"),
+    daemon: bool = typer.Option(True, "--daemon/--no-daemon", help="fitness-firestore-daemon mit der Console starten/stoppen (stoppt nur, wenn die Console ihn gestartet hat)"),
 ) -> None:
     from .console import run
-    run(gap_check_interval)
+    from .console.daemon import firestore_daemon
+    with firestore_daemon(daemon):
+        run(gap_check_interval)
 
 
 # ── drafts ────────────────────────────────────────────────────────────────────

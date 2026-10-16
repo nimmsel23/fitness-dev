@@ -147,3 +147,13 @@ Watcher beobachtet den **physischen** Pfad `runtime_root()/users`, NICHT
 `~/.aos/fitness/users/<uid>`, und watchdog/inotify folgt bei rekursivem Watch
 keinen Symlinks (gleicher Gotcha wie im Enrichment-Watcher,
 `fitness/catalog/api/watcher.py`).
+
+## Firestore-Daemon an die Console gekoppelt (seit 2026-10-16)
+
+`fitness-log console` startet `fitness-firestore-daemon.service` (user-scope), falls er nicht
+läuft, und stoppt ihn beim Beenden — auch bei Ctrl-C, Exception, SIGTERM/SIGHUP. Lief der
+Daemon schon vorher, bleibt er an. `--no-daemon` schaltet die Kopplung ab. Logik:
+`console/daemon.py::firestore_daemon()`. Ausgaben nur vor/nach dem Rich-Live. Der Daemon pullt
+beim Start einmal alle Dokumente (ADDED-Replay mit rev-Konfliktprüfung) und danach in
+Echtzeit — dadurch sieht der watchdog der Console neue Klienten-Daten. Gleiches Replay
+ohne Dauerprozess: `vos-firestore pull fitness|fuel` (`~/vitalos/bin`).
