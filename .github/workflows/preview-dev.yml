@@ -20,6 +20,10 @@ on:
       - 'scripts/build-sixpack-data.mjs'
       - 'package.json'
       - 'pnpm-lock.yaml'
+      - '!**/*.md'
+      - '!**/*.txt'
+      - '!**/*.bak*'
+      - '!docs/**'
   pull_request:
     branches: [vitalos, dev]
     paths:
@@ -29,6 +33,10 @@ on:
       - 'scripts/build-sixpack-data.mjs'
       - 'package.json'
       - 'pnpm-lock.yaml'
+      - '!**/*.md'
+      - '!**/*.txt'
+      - '!**/*.bak*'
+      - '!docs/**'
 
 jobs:
   preview:
@@ -94,6 +102,7 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_FITNESS_AOS || secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: fitness-aos
           entryPoint: fitness-app
+          target: client
           channelId: ${{ github.event_name != 'pull_request' && 'dev' || '' }}
           expires: 24h
 
