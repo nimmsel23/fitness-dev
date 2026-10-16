@@ -1,3 +1,11 @@
+# Fitness-Haupt-SW auf das Mini-App-Shell-Template umgestellt (2026-10-16)
+
+- `mini-app.json` (Apps `fitness`, `frontend`) beschreibt den SW: Shell, 20/24 SWR-Präfixe, Übungsbilder-Cache, Background-Sync (`aos-offline-fitness`), Workout-Notifications. `public/sw.js` → `docs/archive/sw.fitness-main-v1.js`; Build-Skripte rufen `cli.mjs sw` statt `stamp-sw.mjs` (auch `build` → dist bekommt jetzt einen SW).
+- Template erweitert (`~/vitalos/packages/mini-app-shell`): `neverCache` (Pfade, die der SW nicht anfasst), `sync.conflicts` (HTTP 409 → Eintrag als conflict markieren + Seiten melden), `navTimeoutMs: null` (unbegrenzt aufs Netz warten wie bisher), Navigationen werden auch als `index.html` abgelegt, neuer CLI-Befehl `sw` (nur SW + Manifest-Version).
+- Parität: `scripts/test-sw-parity.mjs` — 36 Szenarien online/offline + Lebenszyklus, alt vs. neu: 0 Abweichungen für beide Varianten (Gegenprobe mit absichtlich verstellter Config schlägt an). Bekannter, gewollter Unterschied: `activate` räumt nur Caches mit Präfix `fitness-` auf (vorher alle fremden).
+- Builds geprüft: `build:firebase:client`, `build:atlas` (SW syntaktisch ok, Stempel `fitness-v<build>`, Manifest-Version). `.githooks/pre-push` löst jetzt auch bei `mini-app.json`/`scripts/mini-app-shell/` aus.
+- NICHT getestet: SW-Update auf einem Gerät mit bestehender Installation (Cache `fitness-v<alt>` → `fitness-v<neu>`), Queue-Konfliktpfad (409).
+
 ## 2026-10-16: Plan-Snapshots und Bereitstellen im lokalen Python-Owner
 
 Die mit plan-dev entwickelten Router-Verträge in den tatsächlichen lokalen

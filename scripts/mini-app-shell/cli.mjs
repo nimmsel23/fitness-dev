@@ -7,7 +7,7 @@
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { stampApp } from "./stamp.mjs";
+import { stampApp, stampSw } from "./stamp.mjs";
 
 // Consumer-Repos bauen standalone (GitHub Actions, ohne vitalos) → das Paket wird in sie kopiert.
 // vendor <zielordner>          kopiert die Paketdateien (Ziel z. B. scripts/mini-app-shell)
@@ -37,8 +37,8 @@ function main(argv) {
   if (argv[0] === "vendor" && argv[1]) return vendor(argv[1], argv.includes("--check"));
   const [cmd, outDir, ...rest] = argv;
   const arg = (k) => (rest.includes(`--${k}`) ? rest[rest.indexOf(`--${k}`) + 1] : undefined);
-  if (cmd !== "stamp" || !outDir || !arg("app")) {
-    console.error("Aufruf: vos-mini-app stamp <outDir> --app <id> [--config mini-app.json]\n       vos-mini-app vendor <zielordner> [--check]");
+  if (!["stamp", "sw"].includes(cmd) || !outDir || !arg("app")) {
+    console.error("Aufruf: vos-mini-app stamp|sw <outDir> --app <id> [--config mini-app.json]   (sw = nur Service Worker + Manifest-Version)\n       vos-mini-app vendor <zielordner> [--check]");
     process.exit(1);
   }
   const cfgPath = resolve(arg("config") || "mini-app.json");
@@ -48,7 +48,8 @@ function main(argv) {
     console.error(`❌ App "${arg("app")}" fehlt in ${cfgPath} (vorhanden: ${Object.keys(cfg.apps || {}).join(", ") || "—"})`);
     process.exit(1);
   }
-  stampApp({ outDir, app: { id: arg("app"), ...cfg.defaults, ...app }, root: dirname(cfgPath) });
+  const full = { id: arg("app"), ...cfg.defaults, ...app };
+  (cmd === "sw" ? stampSw : stampApp)({ outDir, app: full, root: dirname(cfgPath) });
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) main(process.argv.slice(2));

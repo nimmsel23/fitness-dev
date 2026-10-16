@@ -103,3 +103,29 @@ export function stampApp({ outDir, app, root = process.cwd(), log = console.log 
   log(`✨ ${out}: ${app.short} — ${done.join(", ")}`);
   return { version, done };
 }
+
+// Nur den Service Worker (+ Versionsstempel im Manifest) erzeugen — für Apps, deren Manifest/HTML/Icons
+// unangetastet bleiben (z. B. die Fitness-Haupt-App). Ersetzt dort stamp-sw.mjs.
+export function stampSw({ outDir, app, root = process.cwd(), log = console.log }) {
+  if (!app.id) throw new Error("mini-app.json: id fehlt");
+  const out = resolve(outDir);
+  const sw = app.sw || {};
+  const version = newVersion();
+  const extra = sw.extraFile ? readFileSync(resolve(root, sw.extraFile), "utf8") : sw.extra || "";
+  const file = sw.file || "sw.js";
+  let cfg = sw;
+  if (sw.precacheAssets && existsSync(resolve(out, "assets"))) {
+    const assets = readdirSync(resolve(out, "assets")).map((n) => `./assets/${n}`);
+    cfg = { ...sw, shell: [...(sw.shell || ["./", "./index.html"]), ...assets] };
+  }
+  writeFileSync(resolve(out, file), buildSw({ appId: app.id, sw: cfg, version, extra }));
+  for (const mf of ["manifest.json", "manifest.webmanifest"]) {
+    const p = resolve(out, mf);
+    if (!existsSync(p)) continue;
+    const m = JSON.parse(readFileSync(p, "utf8"));
+    m.version = version;
+    writeFileSync(p, JSON.stringify(m, null, 2) + "\n");
+  }
+  log(`🔢 ${out}/${file}: CACHE → ${sw.prefix || `vos-${app.id}-`}v${version}`);
+  return { version };
+}

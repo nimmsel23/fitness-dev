@@ -3,7 +3,7 @@
 // Aufruf: node scripts/stamp-training.mjs <outDir> ["Name" "Kurzname" "/#start" "Beschreibung"]
 // public/manifest.json bleibt unberührt — nur der Build-Output wird umgeschrieben.
 // Manifest/Titel/Icons/Splash macht @vos/mini-app-shell (scripts/mini-app-shell/); der SW bleibt der
-// der Haupt-App (Push, Workout-Notifications) und wird von stamp-sw.mjs versioniert.
+// der Haupt-App (Push, Workout-Notifications) und wird von `mini-app-shell sw` (scripts/mini-app-shell/cli.mjs) versioniert.
 import { existsSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
