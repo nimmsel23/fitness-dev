@@ -12,7 +12,7 @@ import { stampApp } from "./stamp.mjs";
 // Consumer-Repos bauen standalone (GitHub Actions, ohne vitalos) → das Paket wird in sie kopiert.
 // vendor <zielordner>          kopiert die Paketdateien (Ziel z. B. scripts/mini-app-shell)
 // vendor <zielordner> --check  Exit 1, wenn die Kopie vom Paket abweicht (Drift)
-const VENDOR_FILES = ["package.json", "index.mjs", "splash.mjs", "register.mjs", "sw.mjs", "sw-template.js", "stamp.mjs", "cli.mjs"];
+const VENDOR_FILES = ["package.json", "index.mjs", "splash.mjs", "register.mjs", "sw.mjs", "sw-template.js", "stamp.mjs", "cli.mjs", "extras/workout-notifications.js"];
 
 function vendor(target, check) {
   const here = dirname(fileURLToPath(import.meta.url));
@@ -22,7 +22,7 @@ function vendor(target, check) {
     const a = readFileSync(resolve(here, f), "utf8");
     const b = existsSync(resolve(dst, f)) ? readFileSync(resolve(dst, f), "utf8") : null;
     if (a !== b) drift.push(f);
-    if (!check && a !== b) { mkdirSync(dst, { recursive: true }); copyFileSync(resolve(here, f), resolve(dst, f)); }
+    if (!check && a !== b) { mkdirSync(dirname(resolve(dst, f)), { recursive: true }); copyFileSync(resolve(here, f), resolve(dst, f)); }
   }
   if (check) {
     if (drift.length) { console.error(`❌ ${dst} weicht vom Paket ab: ${drift.join(", ")} — "vendor ${target}" neu ausführen`); process.exit(1); }
