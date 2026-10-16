@@ -11,6 +11,7 @@ const REMINDER_TYPES = [
   { key: 'coverage', label: 'Coverage-Alert', hint: 'Muskelgruppe seit 7 Tagen kaum trainiert' },
   { key: 'pplRatio', label: 'PPL-Ratio', hint: 'Push/Pull/Legs unter 15 % der 7-Tage-Coverage' },
   { key: 'restday', label: 'Rest-Day-Check', hint: 'Lange keine Session' },
+  { key: 'coachMessage', label: 'Nachrichten vom Coach', hint: 'Persönliche Mitteilungen deines Coaches' },
 ]
 
 // Nur für den Coach — functions/clientWorkout.js. Gleiche UID wie firestore.rules (isCoach).

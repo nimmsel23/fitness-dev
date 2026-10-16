@@ -41,6 +41,54 @@
 
 ---
 
+# Backend-Neubau `backend/` + `frontend/` in fitness-dev begonnen (2026-10-15)
+
+Auslöser war die Frage, wie fitness-dev als Webapp mit lokaler CLI/TUI neu
+aufzubauen wäre. Entschieden wurde: Python-Kern (FastAPI, Port 9150 bleibt),
+Vite-Frontend, Webapp als Hauptweg, TUI für die Coach-Arbeit, Firebase bleibt,
+Fuel bleibt komplett draußen. Ein zunächst angelegter Fork (`~/fitness-fork`,
+`config.py`-Aufteilung) und danach ein eigenständiges `~/fitsync` wurden
+verworfen bzw. in `backend/sync/` überführt — der Neubau läuft jetzt langsam
+direkt in `~/fitness-dev`, die Originale (`fitness/`, `src/`) bleiben
+unverändert.
+
+- **`backend/core/`, `backend/sync/`** (Commit `76451c0`) — aus `~/fitsync`
+  übernommen: eine Konfliktfunktion `core/conflict.decide()` (erst `rev`, dann
+  `saved_at`; Regression für den Matthias-Datenverlust), atomarer Session-Store
+  mit Backup unter `.fitsync/prev/`, Klienten-Registry, Firestore-Pull der
+  Sessions (`pull sessions`, `--clients`, `--dry-run`) mit JSONL-Log
+  (`~/.aos/fitness/logs/fitsync.jsonl`) und Lock. 42 Tests grün, per
+  Mutationstest gegen den alten Fehler verifiziert.
+- **Desktop-Notify für eingehende Klienten-Workouts** (`backend/sync/notify.py`,
+  `pull --clients --notify`) — Meldung „Fitness Sync" mit Fitness-Logo
+  (aus `public/icon-192.png`).
+- **`backend/api/`, `backend/services/`, `backend/sync/runner.py`** (Commit
+  `4bc84b7`) — FastAPI-Schicht mit Schemas und Fehlerabbildung, Session-Service
+  mit rev-Konfliktschutz (Save → 409 bei Konflikt), Auswertung (Coverage/Weekly)
+  pro UID direkt aus `~/.aos/fitness/users/<uid>/sessions/*.json`, Plan, gemeinsamer
+  Pull-Runner für CLI und API. Kein SQLite/Alembic im neuen Backend
+  (`training_history` hat keine UID-Spalte, Klienten-Zeilen kollidieren auf
+  `UNIQUE(date, session_id, exercise_id)`). Getestet wird auf Seitenport :9951.
+- **Commit `75ee3bf`** (parallel vom Backend-Agenten) — Session-Zusammenfassung
+  enthält Aktivität (Cardio); 44 von 80 Sessions haben nur `activity`.
+- **Subagenten gestartet** (je nur eigene Pfade, kein Push): Backend
+  (Integration, `sync run`/`sync push`-Dry-Run, README), Notifications
+  (`backend/notifier/`, Textual-TUI im Hyprland-Scratchpad, Waybar-Zähler),
+  Katalog (`backend/catalog/`, yuhonas direkt statt Import, Kaltstart
+  ~20 s → <5 s), Frontend (`frontend/` als Fork von `src/` + `catalog-ui/`).
+  Zum Stand dieser Notiz sind `backend/catalog/`, `backend/notifier/` und
+  `frontend/` noch uncommittet — Abschlussberichte lagen nicht vor.
+- **Gefundener Bug im Altbestand:** `GET`/`POST /fitness/plan` liefern 500, weil
+  `coaching.py` ein `dict` positional an die keyword-only `build_plan` übergibt.
+  Nur im verworfenen Fork behoben (`_plan_kwargs`), im Original **nicht** angefasst.
+  `template=ppl` in der CLAUDE.md ist veraltet (es gibt `push_day`, `pull…`).
+- **System:** `fitness-firestore-daemon.service` und `fitness-api.service` auf
+  Nutzerwunsch gestoppt (weiterhin `enabled`, starten beim nächsten Login/Boot).
+- **Memory** `project_fitsync_rebuild.md` mit den Festlegungen (Fuel draußen,
+  yuhonas direkt, kein wger, keine UID im SQLite) angelegt.
+
+---
+
 # Fitness-Agent-Notifications aktionierbar gemacht (2026-10-13)
 
 Die headless `claude -p`-Checks für die Fitness-Agent-Klienten-Betreuung
