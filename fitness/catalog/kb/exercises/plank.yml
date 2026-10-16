@@ -1,6 +1,6 @@
-name: inbox_plank
-description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Unterarmstütz'
-generated_at: '2026-08-22T08:49:36.994953+00:00'
+exercise_id: plank
+description: Expert details for Unterarmstütz
+approved_at: '2026-10-16T15:48:47.301358+00:00'
 exercises:
 - exercise_id: plank
   id: plank
@@ -72,7 +72,7 @@ exercises:
   - Unterarmstütz
   - Forearm Plank
   variations: []
-  source: unreviewed
+  source: expert
   search_aliases:
   - Plank
   - Front Plank
@@ -80,58 +80,29 @@ exercises:
   - Unterarmstütz
   schema_version: 2026-08-12.exercise-v1
   origin:
-    type: manual
-    source_refs: {}
-    wger:
-      exercise_id: wger_458
-      display_name: Plank
-      german: Plank
-      category: core
-      primary_muscles:
-      - 501_rectus_abdominis
-      - 502_obliquus_externus
-      - 503_obliquus_internus
-      secondary_muscles:
-      - 401_triceps_brachii
-      - 402_biceps_brachii
-      - 601_quadriceps_femoris
-      equipment:
-      - none (bodyweight exercise)
-      coaching_notes:
-      - Mit dem Bauch auf den Boden legen und den Körper mit Unterarmen und Zehen
-        abstützen. Beine, Rücken und Kopf sollten eine gerade Linie bilden.
-      tags:
-      - unreviewed
-      - wger
-      wger_id: 458
-      wger_muscle_ids:
-        primary:
-        - 14
-        - 6
-        secondary:
-        - 1
-        - 10
-        - 5
-    yuhonas:
-      exercise_id: yuhonas_plank
-      display_name: Plank
-      category: strength
-      primary_muscles:
-      - abdominals
-      secondary_muscles: []
-      equipment:
-      - body only
-      coaching_notes:
-      - Get into a prone position on the floor, supporting your weight on your toes
-        and your forearms. Your arms are bent and directly below the shoulder.
-      - Keep your body straight at all times, and hold this position as long as possible.
-        To increase difficulty, an arm or leg can be raised.
-      tags:
-      - unreviewed
-      - yuhonas
-      yuhonas_id: Plank
-      wger_muscle_ids:
-        primary: []
-        secondary: []
+    type: merged_external
+    source_refs:
+      wger:
+      - '458'
+      yuhonas:
+      - Plank
   review_state:
     status: approved
+    ai_reviewed: true
+    approved_at: '2026-10-16T15:48:47.301358+00:00'
+  approved_at: '2026-10-16T15:48:47.301358+00:00'
+  wger_id: 458
+  yuhonas_id: Plank
+  external_ids:
+    wger:
+    - 458
+    yuhonas:
+    - Plank
+  original_description:
+  - Mit dem Bauch auf den Boden legen und den Körper mit Unterarmen und Zehen abstützen.
+    Beine, Rücken und Kopf sollten eine gerade Linie bilden.
+  instructions:
+  - Get into a prone position on the floor, supporting your weight on your toes and
+    your forearms. Your arms are bent and directly below the shoulder.
+  - Keep your body straight at all times, and hold this position as long as possible.
+    To increase difficulty, an arm or leg can be raised.
