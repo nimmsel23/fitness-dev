@@ -380,3 +380,10 @@ gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
   6Pack-Quellen ohne dessen Dependencies.
 - ⏳ Coach-Tab-Gesamtaufräumung (`views/Coach/`, 5 Sub-Tabs, ~1000 Zeilen) —
   noch nicht begonnen, Details + Zielbild in `../src/CLAUDE.md`
+
+## Mini-Apps: Splash / Service Worker / Manifest (seit 2026-10-16)
+
+- Splash, Service Worker und SW-Register kommen aus `@vos/mini-app-shell` (SSOT `~/vitalos/packages/mini-app-shell`, hier vendored unter `scripts/mini-app-shell/` — nicht editieren, Aktualisieren/Drift: `node ~/vitalos/packages/mini-app-shell/cli.mjs vendor scripts/mini-app-shell [--check]`; Konfig `mini-app.json`).
+- Solo-Builds `training`/`atlas`: `scripts/stamp-training.mjs` → `stampApp` (Manifest, Titel `<Name> - VitalOS`, Icons aus `solo-icons/<mode>/`, Splash); der SW ist hier der Haupt-SW (`public/sw.js`).
+- 6pack/plan/coach werden in ihren eigenen Repos (`~/6pack-dev`, `~/plan-dev`, `~/coach-dev`, Branch `dev`) gebaut und per `vos-release` nach `vitalos` gebracht. Die Verzeichnisse `6pack/`, `coach/`, `plan/` hier sind nested Submodule auf **lokalen** Branches (`lokal`) — nicht dort arbeiten, nicht pushen.
+- Vor Push/Release: `vos-overview --plan`.

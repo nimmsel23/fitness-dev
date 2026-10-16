@@ -1,3 +1,17 @@
+# Mini-App-Shell: Splash + SW universalisiert, Solo-Builds umgestellt (2026-10-16)
+
+- Neues Paket `~/vitalos/packages/mini-app-shell` (`@vos/mini-app-shell`, keine Dependencies, 9 Tests): Splash mit Update-Loader,
+  generischer Service Worker (aus `mini-app.json`), SW-Register, `stamp`-/`vendor`-CLI. Gedacht für alle Mini-Apps aus fitness/fuel/relax.
+- fitness-dev: `scripts/stamp-training.mjs` ruft `stampApp` (training/atlas; SW bleibt der Haupt-SW, `mode: keep`, versioniert weiter `stamp-sw.mjs`);
+  `scripts/solo-splash.mjs` ist nur noch Shim (alter Import-Pfad bleibt). Vendored Paket unter `scripts/mini-app-shell/`.
+- 6pack/plan/coach migriert in ihren `~/<m>-dev`-Klonen auf `dev` (nicht hier!): `6pack-dev 34a2c8c/7049696`, `plan-dev 67e3c8f`, `coach-dev 7500de0`.
+  Dateinamen/Cache-Präfixe (`plan-sw.js`, `coach-sw.js`, `vos-plan-`, `vos-coach-`) blieben, damit bestehende Installationen updaten.
+- `6pack/`, `coach/`, `plan/` in diesem Repo (nested Submodule) sind **lokale Branches** (`lokal`, kein Upstream; `master` = `origin/master`).
+  Sie tragen überholte Commits (`59f832a`, `92414ca`, `5bd9dd1`). Die Pointer wurden auf Wunsch mit committet — **vor einem Push nicht
+  sinnvoll** (zeigen auf lokal-only Commits → CI „not our ref“); `vos-overview` zeigt das.
+- Gesamtüberblick/Push-Reihenfolge: `~/vitalos/bin/vos-overview [--plan|--sw]`. Übergabe: `~/vitalos/packages/mini-app-shell/REPORT.md`.
+- Nicht auf einem Gerät getestet (SW per vm-Sandbox + Syntaxcheck + Builds).
+
 # Fünf-Tage-Workout-Chronik als TUI-Startansicht ergänzt (2026-10-15)
 
 - `backend/notifier/chronicle.py` liest Sessions direkt aus dem lokalen
