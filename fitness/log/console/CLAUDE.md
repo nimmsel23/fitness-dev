@@ -187,3 +187,18 @@ Status: Daemon ● läuft · Entwürfe offen N · Gap-Check in mm:ss · Sortieru
   `journal_entries()`, `drafts_for()`, `daemon_state()`) ist UI-frei und einzeln testbar.
 - **Test ohne echte Daten:** App mit `App.run_test()` in einem isolierten `HOME` (Pfade folgen `$HOME`).
   Beispiel-Szenario mit 3 Fake-Klienten, Entwürfen, Sortierung, Freigabe und Filter lief grün.
+
+## Daemon-Ablösung (2026-10-16): `fitness-sync.service` statt `fitness-firestore-daemon.service`
+
+Die Console koppelt jetzt `fitness-sync.service` (`python -m backend sync run --notify`, Quelle
+`backend/deploy/fitness-sync.service`, nach `~/.config/systemd/user/` kopiert, **nicht enabled** —
+er läuft nur, solange die Console läuft). Die Unit hat `Conflicts=fitness-firestore-daemon.service`:
+beim Start stoppt systemd den alten Daemon, es schreibt immer nur EIN Sync-Prozess. Zusätzlich
+hält ein Lockfile (`<root>/.fitsync/fitsync.lock`) eine zweite Instanz draußen.
+
+**Abdeckung:** das neue Backend synchronisiert nur **Sessions** (Konfliktlogik `decide()`, Tombstones,
+keine SQLite). Nicht mehr live gespiegelt: Journal, Habits, Habit-Records, Habit-Journals (früher
+Daemon) und Nutrition/Supplements (Fuel, bewusst draußen). Diese Teile holt `vos-firestore pull
+fitness|fuel` auf Abruf (`p` in der Console) — ohne Dauerprozess und ohne dieselben Dateien wie der
+Session-Sync zu schreiben. Der alte `fitness.firestore.mirror` bleibt als Code im Repo, wird aber
+nicht mehr gestartet. `D` in der Console schaltet `fitness-sync.service` an/aus.

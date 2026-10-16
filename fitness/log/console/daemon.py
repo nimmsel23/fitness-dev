@@ -1,8 +1,12 @@
-"""Firestore-Daemon an die Lebensdauer der Console koppeln.
+"""Sync-Daemon an die Lebensdauer der Console koppeln.
 
 `fitness-log console` beobachtet Klienten-Sessions/Journal lokal (watchdog). Damit
 neue Klienten-Daten aus Firestore überhaupt lokal ankommen, läuft währenddessen der
-`fitness-firestore-daemon.service` (on_snapshot-Pull, user-scope):
+`fitness-sync.service` (backend/: `python -m backend sync run --notify`, on_snapshot
+auf fitness/<uid>/sessions, user-scope). Er ersetzt seit 2026-10-16 den alten
+`fitness-firestore-daemon.service` (fitness.firestore.mirror); dessen Unit hat
+`Conflicts=` auf den alten Daemon, systemd stoppt ihn also beim Start — es schreibt
+immer nur EIN Sync-Prozess auf die Daten.
 
   - Console startet  → Daemon starten, falls er nicht schon läuft
   - Console endet    → Daemon nur stoppen, wenn die Console ihn selbst gestartet hat
@@ -17,7 +21,8 @@ import signal
 import subprocess
 from contextlib import contextmanager
 
-UNIT = "fitness-firestore-daemon.service"
+UNIT = "fitness-sync.service"
+LEGACY_UNIT = "fitness-firestore-daemon.service"  # abgelöst, siehe Docstring
 
 
 def _systemctl(*args: str) -> subprocess.CompletedProcess:
@@ -35,6 +40,8 @@ def firestore_daemon(enabled: bool = True):
         if _is_active():
             print(f"[daemon] {UNIT} läuft bereits — bleibt nach der Console an")
         else:
+            if _systemctl("is-active", LEGACY_UNIT).stdout.strip() == "active":
+                print(f"[daemon] alter {LEGACY_UNIT} läuft — wird durch {UNIT} abgelöst (Conflicts=)")
             r = _systemctl("start", UNIT)
             if r.returncode == 0:
                 started = True
