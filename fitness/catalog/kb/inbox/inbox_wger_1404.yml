@@ -1,88 +1,125 @@
 name: inbox_wger_1404
 description: 'Proactively generated expert draft for: Seitheben und Frontheben mit
   Kurzhanteln'
-generated_at: '2026-09-22T11:23:35.426857+00:00'
-enriched_at: '2026-09-22T11:23:35.426857+00:00'
+generated_at: '2026-10-16T15:48:19.837403+00:00'
+enriched_at: '2026-10-16T15:48:19.837403+00:00'
 exercises:
-- exercise_id: wger_1404
-  id: wger_1404
-  name: Seitheben und Frontheben mit Kurzhanteln
-  display_name: Seitheben und Frontheben mit Kurzhanteln
-  german: Seitheben und Frontheben mit Kurzhanteln
-  english: Dumbbell Lateral and Front Raise Combo
-  category: push
-  equipment:
-  - dumbbell
-  primary_muscles:
-  - 301_anterior_deltoid
-  - 302_lateral_deltoid
-  secondary_muscles:
-  - 202a_trapezius_upper
-  - 105_serratus_anterior
-  stabilizers:
-  - 304_rotator_cuff
-  - 206_erector_spinae
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
-  - 401_triceps_brachii
-  movements:
-  - shoulder_abduction
-  - shoulder_flexion
-  - scapular_upward_rotation
-  - core_stability
-  - balance_control
-  coaching_notes:
-  - Stellen Sie sich aufrecht hin, die Füße schulterbreit auseinander, und halten
-    Sie in jeder Hand eine Kurzhantel. Die Handflächen zeigen zum Körper, die Kurzhanteln
-    liegen seitlich am Oberschenkel.
-  - Behalten Sie während der gesamten Übung eine leichte Beugung in den Ellbogengelenken
-    bei, um die Spannung auf den Schultern zu halten und die Gelenke zu schonen.
-  - 'Beginnen Sie mit dem Seitheben: Heben Sie die Kurzhanteln seitlich vom Körper
-    weg an. Die Bewegung sollte aus den Schultern kommen, nicht aus Schwung. Führen
-    Sie die Hanteln bis auf Schulterhöhe. Die Handflächen zeigen dabei nach unten.'
-  - Senken Sie die Kurzhanteln kontrolliert wieder seitlich am Körper ab. Die Handflächen
-    drehen sich dabei wieder zum Körper.
-  - 'Führen Sie unmittelbar danach das Frontheben aus: Heben Sie die Kurzhanteln vor
-    dem Körper an, bis sie sich auf Schulterhöhe befinden. Die Handflächen zeigen
-    dabei weiterhin nach unten.'
-  - Senken Sie die Kurzhanteln kontrolliert wieder vor dem Körper ab, bis sie die
-    Ausgangsposition erreichen. Dies ist eine Wiederholung.
-  - Achten Sie darauf, die Rumpfmuskulatur während der gesamten Bewegung stabil zu
-    halten, um ein Schwingen des Oberkörpers zu vermeiden.
-  common_errors:
-  - 'Schwungholen: Vermeiden Sie ein ruckartiges Anheben der Gewichte durch Einsatz
-    von Bein- oder Rückenschwung. Die Bewegung soll aus den Schultern kommen.'
-  - 'Zu hohe oder zu schnelle Ausführung: Die Hanteln sollten nicht über Schulterhöhe
-    angehoben werden, weder seitlich noch frontal. Eine zu schnelle Ausführung verringert
-    die Muskelspannung.'
-  - 'Gerade oder durchgestreckte Arme: Eine leichte Beugung im Ellbogen schützt die
-    Gelenke und sorgt für eine bessere Muskelkontraktion im Deltoid. Vollständig durchgestreckte
-    Arme können die Ellbogengelenke unnötig belasten.'
-  - 'Rundrücken oder Hohlkreuz: Achten Sie auf eine neutrale Wirbelsäulenposition.
-    Ein Rundrücken kann die Schultermechanik beeinträchtigen, ein Hohlkreuz den unteren
-    Rücken belasten.'
-  - 'Schultern hochziehen (Shrugs): Vermeiden Sie es, die Schultern zu den Ohren zu
-    ziehen. Die primäre Bewegung ist die Abduktion/Flexion der Schulter, nicht die
-    Elevation des Schultergürtels.'
-  - 'Mangelnde Kontrolle in der Abwärtsbewegung: Lassen Sie die Gewichte nicht einfach
-    fallen. Eine langsame, kontrollierte Abwärtsbewegung ist entscheidend für den
-    Muskelaufbau und die Gelenkgesundheit.'
-  tags:
-  - wger
+- name: Seitheben und Frontheben mit Kurzhanteln
   wger_id: 1404
   external_ids:
     wger:
     - 1404
-  variations: []
-  source: unreviewed
-  enriched_at: '2026-09-22T11:23:35.426857+00:00'
-  schema_version: 2026-08-12.exercise-v1
+    yuhonas:
+    - Side_Laterals_to_Front_Raise
+  id: wger_1404
+  display_name: Seitheben und Frontheben mit Kurzhanteln
+  exercise_id: wger_1404
+  english: Dumbbell Lateral Raise to Front Raise
   origin:
-    type: external
+    type: merged_external
     source_refs:
       wger:
       - '1404'
+      yuhonas:
+      - Side_Laterals_to_Front_Raise
+  german: Seitheben und Frontheben mit Kurzhanteln
+  category: push
+  equipment:
+  - dumbbell
+  primary_muscles:
+  - 302_lateral_deltoid
+  - 301_anterior_deltoid
+  secondary_muscles:
+  - 202a_trapezius_upper
+  - 105_serratus_anterior
+  stabilizers:
+  - 206_erector_spinae
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 504_transverse_abdominis
+  - 304_rotator_cuff
+  movements:
+  - shoulder_abduction
+  - shoulder_flexion
+  - scapular_upward_rotation
+  instructions:
+  - In a standing position, hold a pair of dumbbells at your side. This will be your
+    starting position.
+  - Keeping your elbows slightly bent, raise the weights directly in front of you
+    to shoulder height, avoiding any swinging or cheating.
+  - At the top of the exercise move the weights out in front of you, keeping your
+    arms extended.
+  - Lower the weights with a controlled motion.
+  - On the next repetition, raise the weights in front of you to shoulder height before
+    moving the weights laterally to your sides.
+  - Lower the weights to the starting position.
+  coaching_notes:
+  - Starte aufrecht stehend, Füße schulterbreit, Knie leicht gebeugt, Kurzhanteln
+    seitlich am Körper, Handflächen zum Körper gerichtet.
+  - Halte die Arme während der gesamten Übung nahezu gestreckt, mit einer leichten
+    Beugung im Ellenbogen, um das Gelenk zu schonen.
+  - '**Seitheben-Phase:** Hebe die Kurzhanteln seitlich vom Körper weg, bis die Arme
+    parallel zum Boden sind (Schulterhöhe). Führe die Bewegung kontrolliert aus den
+    Schultern, nicht durch Schwung. Die Handflächen zeigen dabei nach unten.'
+  - Senke die Kurzhanteln ebenso kontrolliert seitlich wieder in die Ausgangsposition
+    ab.
+  - '**Frontheben-Phase:** Direkt im Anschluss hebe die Kurzhanteln vor dem Körper
+    bis auf Schulterhöhe an. Die Handflächen zeigen dabei ebenfalls nach unten.'
+  - Senke die Kurzhanteln kontrolliert vor dem Körper wieder in die Ausgangsposition
+    ab.
+  - Diese Abfolge (Seitheben hoch/runter, Frontheben hoch/runter) zählt als eine Wiederholung,
+    wie in der Originalbeschreibung angegeben.
+  - Konzentriere dich auf die Isolation der Schultermuskulatur und vermeide es, den
+    Rücken zu krümmen oder zu stark ins Hohlkreuz zu gehen.
+  common_errors:
+  - '**Schwungholen:** Einsatz des Rückens oder der Beine, um die Gewichte zu heben.
+    Dies reduziert die Effektivität für die Schultermuskulatur und erhöht das Verletzungsrisiko.'
+  - '**Zu schwere Gewichte:** Die Wahl von Gewichten, die keine saubere und kontrollierte
+    Ausführung ermöglichen. Die Qualität der Bewegung ist wichtiger als das Gewicht.'
+  - '**Hochziehen mit dem Trapez:** Statt die Bewegung primär aus der Schulter zu
+    initiieren, wird der Nacken (Trapezius) übermäßig beansprucht, was zu Verspannungen
+    führen kann.'
+  - '**Unkontrollierte Absenkung:** Die Gewichte fallen lassen, anstatt sie kontrolliert
+    und langsam abzusenken. Dadurch wird der wichtige negative Teil der Bewegung (exzentrische
+    Phase) nicht effektiv genutzt.'
+  - '**Durchgestreckte oder zu stark gebeugte Ellenbogen:** Völlig durchgestreckte
+    Ellenbogen können die Gelenke belasten; zu stark gebeugte Ellenbogen verkürzen
+    den Hebelarm und reduzieren die Belastung der Zielmuskulatur. Eine leichte Beugung
+    beibehalten.'
+  - '**Rundrücken oder Hohlkreuz:** Eine falsche Körperhaltung, die den unteren Rücken
+    belastet und die Rumpfstabilität reduziert. Achte auf eine aktivierte Rumpfmuskulatur
+    und eine neutrale Wirbelsäulenposition.'
+  original_description:
+  - 'Stehe aufrecht und halte die Kurzhanteln seitlich am Körper
+
+    Halte die Arme nahezu vollständig gestreckt
+
+    Hebe die Kurzhanteln ohne Schwung seitlich bis auf Schulterhöhe an, Handflächen
+    nach unten
+
+    Senke die Kurzhanteln seitlich am Körper ab, Handflächen nach innen
+
+    Hebe die Kurzhanteln sofort vor dem Körper bis auf Schulterhöhe an, Handflächen
+    nach unten
+
+    Wieder absenken
+
+    Das ist eine Wiederholung'
+  wger_muscle_ids:
+    primary:
+    - 2
+    secondary: []
+  yuhonas_id: Side_Laterals_to_Front_Raise
+  tags:
+  - unreviewed
+  - wger
+  - yuhonas
+  - merged_external
+  variations: []
+  source: unreviewed
+  enriched_at: '2026-10-16T15:48:19.837403+00:00'
+  schema_version: 2026-08-12.exercise-v1
   review_state:
     status: draft
     ai_reviewed: false
-    enriched_at: '2026-09-22T11:23:35.426857+00:00'
+    enriched_at: '2026-10-16T15:48:19.837403+00:00'
