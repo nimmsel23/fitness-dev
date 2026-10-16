@@ -54,8 +54,12 @@ async def lifespan(app: FastAPI):
     fs_observers = []
     enrichment_observer = enrichment_loop_thread = enrichment_stop_event = None
     coach_bridge_thread = coach_bridge_stop = None
+    from fitness.coach.sync import external_worker_active
+
     if os.environ.get("FITNESS_SKIP_WATCHERS") == "1":
         logger.info("FITNESS_SKIP_WATCHERS=1 — Firestore-/Enrichment-Watcher übersprungen (laufen nur in Dev, :9150).")
+    elif external_worker_active():
+        logger.info("coach-sync.service läuft — Katalog-Listener, Coach-Bridge und Enrichment-Watcher übersprungen (nur ein Worker).")
     else:
         try:
             from fitness.firestore.mirror import start_catalog_watchers, start_userdata_watchers

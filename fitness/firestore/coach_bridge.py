@@ -64,7 +64,9 @@ def publish_inbox(db) -> None:
         ref.set({"candidates": candidates})
 
 
-def _execute_command(command: dict) -> dict:
+def _execute_command(command: dict, client=None) -> dict:
+    """`client`: optionaler httpx-kompatibler Client (coach-sync übergibt einen Starlette-TestClient →
+    Ausführung im Prozess ohne Port). Ohne Client wie bisher HTTP gegen 127.0.0.1:PORT."""
     action = command.get("action")
     item_id = command.get("item_id")
     if action not in ALLOWED_ACTIONS or not isinstance(item_id, str) or not item_id or "/" in item_id:
@@ -95,9 +97,13 @@ def _execute_command(command: dict) -> dict:
     elif action == "merge-duplicates":
         route += "/merge-duplicates"
 
-    with httpx.Client(base_url=f"http://127.0.0.1:{PORT}", timeout=180) as client:
+    if client is not None:
         response = client.request(method, route, json=body if method == "POST" else None, params=params)
-    response.raise_for_status()
+    else:
+        with httpx.Client(base_url=f"http://127.0.0.1:{PORT}", timeout=180) as http_client:
+            response = http_client.request(method, route, json=body if method == "POST" else None, params=params)
+    if response.status_code >= 400:
+        raise RuntimeError(f"{response.status_code} {response.text[:300]}")
     return response.json()
 
 
