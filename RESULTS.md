@@ -1700,3 +1700,9 @@ der lokale Server fehlt. `sendToInbox()` queued neue Items zuerst lokal ueber
 
 ## 2026-10-16: Zusätzlicher Coach-Account
 `nimmdaniel@gmail.com` (Firebase-UID `pJay0LeAwDN93Q4NT6i5FNxrQHH2`) in den Coach-Zugangsprüfungen ergänzt. Zentrale Firebase-Rolle `roles/pJay0LeAwDN93Q4NT6i5FNxrQHH2` auf `coach` gesetzt und zurückgelesen; gilt für alle Apps mit dem zentralen Ruleset. Bestehender Coach bleibt freigeschaltet. Kein Push oder Deployment.
+
+Abschlussprüfung: Der verpflichtende Pre-Commit-Hook hat den vollständigen
+Fitness-Standard-Build erfolgreich ausgeführt. Verwendet wurde die installierte
+pnpm-Version mit `npm_config_manage_package_manager_versions=false`, damit kein
+schreibgeschützter Engine-Store benötigt wird. Kein Hook wurde deaktiviert.
+Backend-Funktionscommit: `77d6963`; Plan-Frontend-Companion: `0643b99`.
