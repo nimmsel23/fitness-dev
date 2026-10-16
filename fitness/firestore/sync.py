@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from ._db import get_db, ts, UID, remote_wins
+from ._db import get_db, ts, UID, remote_wins, same_content
 from fitness.catalog.core.session_signal import exercise_has_training_signal
 from fitness.runtime.journal_store import upsert_entry as _journal_upsert
 
@@ -250,7 +250,12 @@ def push(uid: str | None = None, *, force: bool = False, dry_run: bool = False) 
             ref = None if db is None else db.collection("fitness").document(uid).collection("sessions").document(doc_id)
             remote = None if ref is None else ref.get()
             if remote and remote.exists and not force:
-                if remote_wins(local_data, remote.to_dict()):
+                remote_dict = remote.to_dict()
+                if remote_wins(local_data, remote_dict):
+                    skipped += 1
+                    continue
+                # Gleichstand: nichts neu schreiben (sonst bei jedem Lauf alle Sessions)
+                if same_content({**local_data, "date": actual_date}, remote_dict):
                     skipped += 1
                     continue
             if not dry_run:

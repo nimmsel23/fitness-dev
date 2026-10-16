@@ -1,3 +1,17 @@
+# Mini-App-Shell: Splash + SW universalisiert, Solo-Builds umgestellt (2026-10-16)
+
+- Neues Paket `~/vitalos/packages/mini-app-shell` (`@vos/mini-app-shell`, keine Dependencies, 9 Tests): Splash mit Update-Loader,
+  generischer Service Worker (aus `mini-app.json`), SW-Register, `stamp`-/`vendor`-CLI. Gedacht für alle Mini-Apps aus fitness/fuel/relax.
+- fitness-dev: `scripts/stamp-training.mjs` ruft `stampApp` (training/atlas; SW bleibt der Haupt-SW, `mode: keep`, versioniert weiter `stamp-sw.mjs`);
+  `scripts/solo-splash.mjs` ist nur noch Shim (alter Import-Pfad bleibt). Vendored Paket unter `scripts/mini-app-shell/`.
+- 6pack/plan/coach migriert in ihren `~/<m>-dev`-Klonen auf `dev` (nicht hier!): `6pack-dev 34a2c8c/7049696`, `plan-dev 67e3c8f`, `coach-dev 7500de0`.
+  Dateinamen/Cache-Präfixe (`plan-sw.js`, `coach-sw.js`, `vos-plan-`, `vos-coach-`) blieben, damit bestehende Installationen updaten.
+- `6pack/`, `coach/`, `plan/` in diesem Repo (nested Submodule) sind **lokale Branches** (`lokal`, kein Upstream; `master` = `origin/master`).
+  Sie tragen überholte Commits (`59f832a`, `92414ca`, `5bd9dd1`). Die Pointer wurden auf Wunsch mit committet — **vor einem Push nicht
+  sinnvoll** (zeigen auf lokal-only Commits → CI „not our ref“); `vos-overview` zeigt das.
+- Gesamtüberblick/Push-Reihenfolge: `~/vitalos/bin/vos-overview [--plan|--sw]`. Übergabe: `~/vitalos/packages/mini-app-shell/REPORT.md`.
+- Nicht auf einem Gerät getestet (SW per vm-Sandbox + Syntaxcheck + Builds).
+
 # Fünf-Tage-Workout-Chronik als TUI-Startansicht ergänzt (2026-10-15)
 
 - `backend/notifier/chronicle.py` liest Sessions direkt aus dem lokalen
@@ -38,6 +52,54 @@
   swaync und Hyprland erreichbar, notify.yaml vorhanden, Inbox 0 Einträge.
 - Kein echter Firestore-Pull / Popup-Klick ausgeführt; keine echten Workouts
   als gesehen markiert. Neue Eingänge benötigen Pull mit `--notify`.
+
+---
+
+# Backend-Neubau `backend/` + `frontend/` in fitness-dev begonnen (2026-10-15)
+
+Auslöser war die Frage, wie fitness-dev als Webapp mit lokaler CLI/TUI neu
+aufzubauen wäre. Entschieden wurde: Python-Kern (FastAPI, Port 9150 bleibt),
+Vite-Frontend, Webapp als Hauptweg, TUI für die Coach-Arbeit, Firebase bleibt,
+Fuel bleibt komplett draußen. Ein zunächst angelegter Fork (`~/fitness-fork`,
+`config.py`-Aufteilung) und danach ein eigenständiges `~/fitsync` wurden
+verworfen bzw. in `backend/sync/` überführt — der Neubau läuft jetzt langsam
+direkt in `~/fitness-dev`, die Originale (`fitness/`, `src/`) bleiben
+unverändert.
+
+- **`backend/core/`, `backend/sync/`** (Commit `76451c0`) — aus `~/fitsync`
+  übernommen: eine Konfliktfunktion `core/conflict.decide()` (erst `rev`, dann
+  `saved_at`; Regression für den Matthias-Datenverlust), atomarer Session-Store
+  mit Backup unter `.fitsync/prev/`, Klienten-Registry, Firestore-Pull der
+  Sessions (`pull sessions`, `--clients`, `--dry-run`) mit JSONL-Log
+  (`~/.aos/fitness/logs/fitsync.jsonl`) und Lock. 42 Tests grün, per
+  Mutationstest gegen den alten Fehler verifiziert.
+- **Desktop-Notify für eingehende Klienten-Workouts** (`backend/sync/notify.py`,
+  `pull --clients --notify`) — Meldung „Fitness Sync" mit Fitness-Logo
+  (aus `public/icon-192.png`).
+- **`backend/api/`, `backend/services/`, `backend/sync/runner.py`** (Commit
+  `4bc84b7`) — FastAPI-Schicht mit Schemas und Fehlerabbildung, Session-Service
+  mit rev-Konfliktschutz (Save → 409 bei Konflikt), Auswertung (Coverage/Weekly)
+  pro UID direkt aus `~/.aos/fitness/users/<uid>/sessions/*.json`, Plan, gemeinsamer
+  Pull-Runner für CLI und API. Kein SQLite/Alembic im neuen Backend
+  (`training_history` hat keine UID-Spalte, Klienten-Zeilen kollidieren auf
+  `UNIQUE(date, session_id, exercise_id)`). Getestet wird auf Seitenport :9951.
+- **Commit `75ee3bf`** (parallel vom Backend-Agenten) — Session-Zusammenfassung
+  enthält Aktivität (Cardio); 44 von 80 Sessions haben nur `activity`.
+- **Subagenten gestartet** (je nur eigene Pfade, kein Push): Backend
+  (Integration, `sync run`/`sync push`-Dry-Run, README), Notifications
+  (`backend/notifier/`, Textual-TUI im Hyprland-Scratchpad, Waybar-Zähler),
+  Katalog (`backend/catalog/`, yuhonas direkt statt Import, Kaltstart
+  ~20 s → <5 s), Frontend (`frontend/` als Fork von `src/` + `catalog-ui/`).
+  Zum Stand dieser Notiz sind `backend/catalog/`, `backend/notifier/` und
+  `frontend/` noch uncommittet — Abschlussberichte lagen nicht vor.
+- **Gefundener Bug im Altbestand:** `GET`/`POST /fitness/plan` liefern 500, weil
+  `coaching.py` ein `dict` positional an die keyword-only `build_plan` übergibt.
+  Nur im verworfenen Fork behoben (`_plan_kwargs`), im Original **nicht** angefasst.
+  `template=ppl` in der CLAUDE.md ist veraltet (es gibt `push_day`, `pull…`).
+- **System:** `fitness-firestore-daemon.service` und `fitness-api.service` auf
+  Nutzerwunsch gestoppt (weiterhin `enabled`, starten beim nächsten Login/Boot).
+- **Memory** `project_fitsync_rebuild.md` mit den Festlegungen (Fuel draußen,
+  yuhonas direkt, kein wger, keine UID im SQLite) angelegt.
 
 ---
 
@@ -1617,3 +1679,6 @@ Damit wird kein Expert-Exercise mehr ohne lokale YAML-Lineage erzeugt, nur weil
 der lokale Server fehlt. `sendToInbox()` queued neue Items zuerst lokal ueber
 `/fitness/inbox/queue`; Firestore wird nur noch als Offline-Warteschlange mit
 `sync_status: pending_local` genutzt, falls local nicht erreichbar ist.
+
+## 2026-10-16: Zusätzlicher Coach-Account
+`nimmdaniel@gmail.com` (Firebase-UID `pJay0LeAwDN93Q4NT6i5FNxrQHH2`) in den Coach-Zugangsprüfungen ergänzt. Zentrale Firebase-Rolle `roles/pJay0LeAwDN93Q4NT6i5FNxrQHH2` auf `coach` gesetzt und zurückgelesen; gilt für alle Apps mit dem zentralen Ruleset. Bestehender Coach bleibt freigeschaltet. Kein Push oder Deployment.

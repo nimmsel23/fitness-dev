@@ -1,9 +1,8 @@
-name: inbox_wger_659
-description: 'Zurueck zur Review geschickt (war faelschlich als expert getaggt): Trizeps
-  Seildrücken'
-generated_at: '2026-08-22T08:49:39.619495+00:00'
+exercise_id: triceps_pushdown
+description: Expert details for Trizeps Seildrücken
+approved_at: '2026-10-16T15:46:51.887166+00:00'
 exercises:
-- exercise_id: wger_659
+- exercise_id: triceps_pushdown
   display_name: Trizeps Seildrücken
   german: Trizeps Seildrücken
   english: Rope Triceps Pushdown
@@ -64,7 +63,7 @@ exercises:
     erhöht und die Übung instabil macht.
   wger_id: 659
   variations: []
-  source: unreviewed
+  source: expert
   external_ids:
     wger:
     - 659
@@ -76,45 +75,38 @@ exercises:
   - Rope Triceps Pushdown
   - Cable Rope Pushdown
   - Triceps Rope Pushdown
-  id: wger_659
+  id: triceps_pushdown
   schema_version: 2026-08-12.exercise-v1
   origin:
-    type: external
+    type: merged_external
     source_refs:
       wger:
       - '659'
-    wger:
-      wger_id: 659
-    yuhonas:
-      exercise_id: yuhonas_triceps_pushdown
-      display_name: Triceps Pushdown
-      category: strength
-      primary_muscles:
-      - triceps
-      secondary_muscles: []
-      equipment:
-      - cable
-      coaching_notes:
-      - Attach a straight or angled bar to a high pulley and grab with an overhand
-        grip (palms facing down) at shoulder width.
-      - Standing upright with the torso straight and a very small inclination forward,
-        bring the upper arms close to your body and perpendicular to the floor. The
-        forearms should be pointing up towards the pulley as they hold the bar. This
-        is your starting position.
-      - Using the triceps, bring the bar down until it touches the front of your thighs
-        and the arms are fully extended perpendicular to the floor. The upper arms
-        should always remain stationary next to your torso and only the forearms should
-        move. Exhale as you perform this movement.
-      - After a second hold at the contracted position, bring the bar slowly up to
-        the starting point. Breathe in as you perform this step.
-      - Repeat for the recommended amount of repetitions.
-      tags:
-      - unreviewed
-      - yuhonas
-      yuhonas_id: Triceps_Pushdown
-      wger_muscle_ids:
-        primary: []
-        secondary: []
+      yuhonas:
+      - Triceps_Pushdown
   review_state:
     status: approved
-    approved_at: '2026-07-28T06:01:06.387369+00:00'
+    approved_at: '2026-10-16T15:46:51.887166+00:00'
+    ai_reviewed: true
+  approved_at: '2026-10-16T15:46:51.887166+00:00'
+  yuhonas_id: Triceps_Pushdown
+  original_description:
+  - Stelle dich mit schulterbreitem Stand vor dem Kabelzug, beuge den Rücken sehr
+    leicht nach vorn und greife das Seil. Ziehe nun nach unten, wobei die Ellenbogen
+    sich während der ganzen Übung nicht von der Stelle bewegen sollen. Wenn die Arme
+    ausgestreckt sind, drehe die Hände nach außen. Gehe langsam zur Ausgansposition
+    zurück.
+  instructions:
+  - Attach a straight or angled bar to a high pulley and grab with an overhand grip
+    (palms facing down) at shoulder width.
+  - Standing upright with the torso straight and a very small inclination forward,
+    bring the upper arms close to your body and perpendicular to the floor. The forearms
+    should be pointing up towards the pulley as they hold the bar. This is your starting
+    position.
+  - Using the triceps, bring the bar down until it touches the front of your thighs
+    and the arms are fully extended perpendicular to the floor. The upper arms should
+    always remain stationary next to your torso and only the forearms should move.
+    Exhale as you perform this movement.
+  - After a second hold at the contracted position, bring the bar slowly up to the
+    starting point. Breathe in as you perform this step.
+  - Repeat for the recommended amount of repetitions.

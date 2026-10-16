@@ -531,3 +531,26 @@ pruefen.
 
 **Gemini-Review (potenzielle blinde Flecken, 2026-10-13):**
 *   **Ungeprüfte Annahme über Dateiinhalte:** Claude klassifiziert alle `inbox/*.yml` Dateien als "nichts Sensibles" basierend auf dem `head` einer einzelnen Datei und Zeilenzählungen (`wc -l`) für den Rest. Es gab keine weitere Inhaltsprüfung der anderen 60+ Dateien, die ebenfalls
+
+## Aus dem Backend-Neubau `backend/` + `frontend/` (2026-10-15, Commits `76451c0` + `4bc84b7` + `75ee3bf`)
+
+- **Subagenten-Ergebnisse ausstehend:** `backend/catalog/`, `backend/notifier/`
+  und `frontend/` waren beim Compact noch uncommittet; Abschlussberichte
+  einsammeln, Zusammenspiel prüfen (Lückenliste Frontend → Backend), dann
+  gebündelt nach `origin` pushen (bisher nichts gepusht).
+- **Auth offen:** Backend bindet nur auf 127.0.0.1 ohne Anmeldung. Sobald es
+  über den Funnel erreichbar sein soll, ist eine Firebase-Token-Prüfung nötig
+  (Entscheidung des Nutzers steht aus).
+- **Push nach Firestore offen:** nur als Dry-Run vorbereitet. Zu klären sind
+  die lokal neueren Sessions `2026-09-08` (rev 9) und `2026-09-09` (rev 2) der
+  Coach-UID (in Firestore kein `rev`).
+- **Dienste:** `fitness-api.service` und `fitness-firestore-daemon.service`
+  bleiben gestoppt, bis der Nutzer etwas anderes sagt; neue Units nur als
+  Vorschlag, nicht aktivieren. `disable --now` des Daemons wurde angeboten,
+  nicht entschieden.
+- **Plan-500 im Original** (`fitness/api/routers/coaching.py`,
+  `build_plan(params)` positional) ist unbehoben; Fix nur auf Nachfrage.
+- Noch zu prüfen: ob `?uid=` am Funnel ungeprüft vertraut wird (Datenschutz
+  Klientendaten); ob Coach-Ansichten im Firebase-Modus wirklich nur Firestore nutzen.
+- Echter Pull-Lauf auf dem Live-Verzeichnis `~/.aos/fitness/` nicht gemacht
+  (nur Dry-Run und Scratch-Lauf).

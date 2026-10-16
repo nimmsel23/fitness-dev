@@ -211,3 +211,35 @@ weiterhin als gemeinsames Set aus `~/vitalos` deployed.
 - Keine Vermischung von `fitness/coach/` Python-CLI und Coach-Webapp.
 - Keine Vermischung von `kb`-YAML-SSOT und generiertem `catalog`-Clientbundle.
 - Keine automatischen Writes in Runtime-Daten ohne klare User-/Klienten-Grenze.
+
+## Update 2026-10-16: `coach-sync.service` statt Bridge-Thread im :9150-API-Prozess
+
+**Befund:** Der Consumer der `coachCommands` lief nur als Thread in `fitness-api.service` (:9150) und rief per
+HTTP die eigenen Routen auf. Mit abgeschalteter API blieben alle Freigaben/Zusammenführungen auf `queued`
+(21 Stück seit 2026-10-15), das Frontend lief nach 190 s in `coach_command_timeout`. Lief die API, feuerte der
+Thread vor dem ersten Socket-Accept → `Connection refused` → Befehl endgültig `error` (kein Retry); beim Beenden
+mitten in der Arbeit blieben Befehle auf `processing` hängen.
+
+**Jetzt:** `fitness/coach/sync.py` (`python -m fitness.coach.sync run`), User-Unit `coach-sync.service`
+(Quelle `fitness/coach/deploy/coach-sync.service`, enabled). Ohne API-Server:
+- Befehle transaktional übernehmen (queued → processing mit 5-min-Lease), Inbox-Routen **im Prozess**
+  über Starlette-`TestClient` ausführen (kein Port, kein Startrennen), Ergebnis zurückschreiben.
+- Verwaiste `processing`-Befehle → `error` mit klarer Meldung, **nie** blind wiederholen (Approve/Delete/Merge
+  sind nicht idempotent). Befehle älter als `--max-age-hours` (6) werden nicht angefasst, nur gezählt;
+  `coach-sync drain --include-stale [--dry-run]` arbeitet sie bewusst ab.
+- Heartbeat `coachState/bridge` (`last_seen`, `queued`, `processing`, `stale`, `worker`) — die Coach-App kann
+  damit „Worker offline“ von echten Fehlern unterscheiden.
+- Inbox-Snapshot (`coachInbox`, `coachState/mergeCandidates`) nur bei Änderung bzw. alle 5 min (vorher alle 5 s).
+- Katalog-Listener (Firestore-Inbox → lokale YAMLs, freigegebene Übungen zurück) und Gemini-Enrichment-Watcher
+  laufen im selben Prozess (`--no-catalog` schaltet sie ab).
+- `fitness-api.service` überspringt seine Coach-Teile, solange `coach-sync.service` aktiv ist (ein Worker).
+
+Befehle: `coach-sync status` (Heartbeat + Zähler), `drain`, `run`. Erster Lauf 2026-10-16: 21 aufgestaute
+Freigaben abgearbeitet (21 ok), Selbsttest-Round-Trip 2,2 s.
+
+**Nebenfund:** `scripts/build-catalog.py` zeigte per Default auf das nicht mehr existierende `~/fitness/catalog/kb/…`
+→ der Katalog-Rebuild nach jedem Approve schlug still fehl. Default jetzt repo-relativ.
+
+**Offen (Coach-Frontend, ~/coach-dev):** `coachCommand()` blockiert bis zu 190 s. Besser: Befehl sofort quittieren
+(„in Warteschlange“), Fertigstellung per Live-Listener auf das Command-Dokument anzeigen, Heartbeat-Alter als
+Statuschip. Deploy von `vos-coach.web.app` nur nach ausdrücklicher Bestätigung.
