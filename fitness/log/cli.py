@@ -639,11 +639,16 @@ def cmd_clients(
 def cmd_console(
     gap_check_interval: int = typer.Option(1800, "--gap-interval", help="Sekunden zwischen Trainingsluecken-Checks"),
     daemon: bool = typer.Option(True, "--daemon/--no-daemon", help="fitness-firestore-daemon mit der Console starten/stoppen (stoppt nur, wenn die Console ihn gestartet hat)"),
+    classic: bool = typer.Option(False, "--classic", help="Alte Ein-Panel-Console (Rich) statt des Textual-Dashboards"),
 ) -> None:
-    from .console import run
     from .console.daemon import firestore_daemon
     with firestore_daemon(daemon):
-        run(gap_check_interval)
+        if classic:
+            from .console import run
+            run(gap_check_interval)
+        else:
+            from .console.tui import run_tui
+            run_tui(gap_check_interval)
 
 
 # ── drafts ────────────────────────────────────────────────────────────────────

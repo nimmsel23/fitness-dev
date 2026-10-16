@@ -157,3 +157,33 @@ Daemon schon vorher, bleibt er an. `--no-daemon` schaltet die Kopplung ab. Logik
 beim Start einmal alle Dokumente (ADDED-Replay mit rev-Konfliktprüfung) und danach in
 Echtzeit — dadurch sieht der watchdog der Console neue Klienten-Daten. Gleiches Replay
 ohne Dauerprozess: `vos-firestore pull fitness|fuel` (`~/vitalos/bin`).
+
+## Textual-Dashboard (Default seit 2026-10-16) — `console/tui.py` + `console/model.py`
+
+`fitness-log console` startet jetzt ein Textual-Dashboard; die alte Ein-Panel-Rich-Console
+bleibt mit `--classic` erhalten (`core.py::run`, unverändert).
+
+```
+Status: Daemon ● läuft · Entwürfe offen N · Gap-Check in mm:ss · Sortierung · Filter
+┌ Klienten (Name, Letzte, Tage, 28T, Block, Entw.) ┬ [1 Live][2 Session][3 Journal][4 Entwürfe] ┐
+```
+
+- **Klienten-Tabelle:** ein Eintrag pro Klient (Multi-UID dedupliziert), Ampel nach Tage-seit-letzter-
+  Session (≥3 gelb, ≥6 rot = `coach_ai.GAP_THRESHOLD_DAYS`; `freund`/`interessent` gedimmt),
+  Sessions der letzten 28 Tage, offene Entwürfe. `o` wechselt Sortierung (zuletzt aktiv / längste Pause / Name).
+- **1 Live:** Event-Feed (watchdog + Gap-Check wie bisher), `f` filtert auf den gewählten Klienten.
+- **2 Session:** Detail der Session des gewählten Klienten, `[`/`]` blättert durch die Historie.
+- **3 Journal:** letzte 5 Journal-Einträge.
+- **4 Entwürfe:** ALLE offenen KI-Entwürfe aus der Persistenz (auch aus früheren Läufen — die
+  klassische Console zeigte nur neu entstandene), `a` freigeben / `d` verwerfen (`drafts.mark_status`),
+  `c` Text kopieren (`wl-copy`, sonst OSC52), `h` Erledigte ein/aus. Senden an Klient bleibt Ausbaustufe 3.
+- **Aktionen:** `g` Gap-Check für den gewählten Klienten (auch `freund`), `G` alle, `p` Pull
+  (`vos-firestore pull fitness`, überschreibbar mit `FITNESS_CONSOLE_PULL_CMD`), `D` Daemon an/aus,
+  `r` neu laden, `q` beenden. Der Gap-Check-Zeitplan läuft in der TUI (`--gap-interval`), die
+  Restzeit steht in der Statuszeile; der erste Lauf startet nach 5 s.
+- **Sicherheit:** Kliententexte (Namen, Notizen, Orte, Journal) werden ausschließlich als `rich.Text`
+  gerendert, nie als Markup geparst.
+- **Datenschicht:** `model.py` (reine Funktionen: `clients()`, `session_files()`, `session_text()`,
+  `journal_entries()`, `drafts_for()`, `daemon_state()`) ist UI-frei und einzeln testbar.
+- **Test ohne echte Daten:** App mit `App.run_test()` in einem isolierten `HOME` (Pfade folgen `$HOME`).
+  Beispiel-Szenario mit 3 Fake-Klienten, Entwürfen, Sortierung, Freigabe und Filter lief grün.

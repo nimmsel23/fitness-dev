@@ -18,6 +18,6 @@ Module:
 
 `fitness/commands/log.py::cmd_console` ruft nur noch `run()` auf.
 """
-from .core import run
+from .core import run  # klassische Rich-Console (`fitness-log console --classic`)
 
-__all__ = ["run"]
+__all__ = ["run"]  # Textual-Dashboard: console.tui.run_tui (Default von `fitness-log console`)
