@@ -1,10 +1,9 @@
-name: inbox_wger_73
-description: 'Proactively generated expert draft for: Bankdrücken LH'
-generated_at: '2026-09-08T13:53:16.050513+00:00'
-enriched_at: '2026-09-08T13:53:16.050513+00:00'
+exercise_id: barbell_bench_press_-_medium_grip
+description: Expert details for Bankdrücken LH
+approved_at: '2026-10-16T15:46:38.400570+00:00'
 exercises:
-- exercise_id: wger_73
-  id: wger_73
+- exercise_id: barbell_bench_press_-_medium_grip
+  id: barbell_bench_press_-_medium_grip
   display_name: Bankdrücken LH
   german: Bankdrücken LH
   english: Barbell Bench Press - Medium Grip
@@ -119,7 +118,7 @@ exercises:
   - merged_external
   name: Bankdrücken LH
   variations: []
-  source: unreviewed
+  source: expert
   enriched_at: '2026-09-08T13:53:16.050513+00:00'
   schema_version: 2026-08-12.exercise-v1
   origin:
@@ -172,6 +171,13 @@ exercises:
       - Repeat the movement for the prescribed amount of repetitions.
       - When you are done, place the bar back in the rack.
   review_state:
-    status: draft
-    ai_reviewed: false
+    status: approved
+    ai_reviewed: true
     enriched_at: '2026-09-08T13:53:16.050513+00:00'
+    approved_at: '2026-10-16T15:46:38.400570+00:00'
+  approved_at: '2026-10-16T15:46:38.400570+00:00'
+  search_aliases:
+  - wger_73
+  - Barbell_Bench_Press_-_Medium_Grip
+  - Bankdrücken LH
+  - Barbell Bench Press - Medium Grip
