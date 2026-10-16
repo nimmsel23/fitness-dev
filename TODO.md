@@ -1,3 +1,9 @@
+## [x] 2026-10-16: Lokale Backend-Verträge für den Strong-Ausbau von Plan
+
+Workout-Start aus einem Plan-/Zuweisungs-Snapshot, Erhalt von Coach-Hinweisen
+und Katalog-Metadaten sowie explizites Bereitstellen von Trainingsplan-Entwürfen.
+Frontend-Integration und Produktdokumentation liegen in `~/plan-dev`.
+
 # [x] Workout-Chronik der letzten fünf Tage in der TUI (2026-10-15)
 - Lokale Sessions direkt als Startansicht; h/i wechseln Chronik und Inbox.
 - Fünf reale Workouts sichtbar, Anzeige schreibgeschützt, 153 Tests grün.

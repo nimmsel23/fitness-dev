@@ -1,3 +1,21 @@
+## 2026-10-16: Plan-Snapshots und Bereitstellen im lokalen Python-Owner
+
+Die mit plan-dev entwickelten Router-Verträge in den tatsächlichen lokalen
+Backend-Owner übernommen (vorherige Router-Stände waren bytegleich). Workouts
+können eine eigenständige `routine_snapshot` samt Plan-/Zuweisungsreferenzen
+starten. Hinweise, Anleitung, Equipment und explizite Null-Pause bleiben erhalten.
+Fehlende Routine-IDs liefern 404 statt eines unbemerkten leeren Workouts.
+Makrozyklen unterstützen Entwurfstatus und einen validierten Bereitstellen-Aufruf.
+Für relative Plan-Requests sind die Router zusätzlich unter `/api` registriert.
+Node leitet `/api/*` generisch ohne Pfadumschreibung an Python weiter; neue
+fachspezifische Node-Routen sind dafür nicht nötig. Der lokale JS-Adapter besitzt
+jetzt auch die zuvor fehlende PATCH-Methode.
+
+Prüfung: `python3 scripts/tests/test_plan_backend.py` gegen temporäre Dateien
+und isolierte Router-Konfiguration sowie `node scripts/tests/plan-proxy.test.mjs`
+für Methode, vollständigen Pfad, UID und PATCH-Body. Keine echten Laufzeitdaten geschrieben,
+keine Dienste neu gestartet, kein Push oder Deployment.
+
 # Mini-App-Shell: Splash + SW universalisiert, Solo-Builds umgestellt (2026-10-16)
 
 - Neues Paket `~/vitalos/packages/mini-app-shell` (`@vos/mini-app-shell`, keine Dependencies, 9 Tests): Splash mit Update-Loader,
