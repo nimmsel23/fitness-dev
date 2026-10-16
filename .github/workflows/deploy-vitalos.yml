@@ -19,6 +19,10 @@ on:
       - 'scripts/build-sixpack-data.mjs'
       - 'package.json'
       - 'pnpm-lock.yaml'
+      - '!**/*.md'
+      - '!**/*.txt'
+      - '!**/*.bak*'
+      - '!docs/**'
 
 jobs:
   deploy_live:

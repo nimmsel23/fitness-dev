@@ -20,6 +20,10 @@ on:
       - 'scripts/build-sixpack-data.mjs'
       - 'package.json'
       - 'pnpm-lock.yaml'
+      - '!**/*.md'
+      - '!**/*.txt'
+      - '!**/*.bak*'
+      - '!docs/**'
   pull_request:
     branches: [vitalos, dev]
     paths:
@@ -29,6 +33,10 @@ on:
       - 'scripts/build-sixpack-data.mjs'
       - 'package.json'
       - 'pnpm-lock.yaml'
+      - '!**/*.md'
+      - '!**/*.txt'
+      - '!**/*.bak*'
+      - '!docs/**'
 
 jobs:
   preview:
