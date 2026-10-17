@@ -530,8 +530,118 @@ exercises:
   - 302_lateral_deltoid
   - 202b_trapezius_middle
   - 202c_trapezius_lower
-- review_state:
+- primary_muscles:
+  - 303_posterior_deltoid
+  - 202b_trapezius_middle
+  - 205_rhomboids
+  type: compound
+  secondaryMuscles:
+  - 306_infraspinatus
+  - 307_teres_minor
+  - 202c_trapezius_lower
+  - 403_brachialis
+  - 404_brachioradialis
+  review_state:
     status: approved
+  aliases:
+  - kabel face pull
+  - face pull kabelzug
+  - seilzug zum gesicht
+  - rope face pull
+  - cable face pull
+  common_errors:
+  - Zu viel Gewicht zu wählen und den Satz mit Schwung aus dem Oberkörper oder mit
+    einem Rücklehnen abzuschließen, statt die Zugbewegung muskulär zu kontrollieren.
+  - Die Ellbogen absinken zu lassen, wodurch die Bewegung mehr zu einem normalen Rudern
+    wird und der Reiz auf hintere Schulter und Außenrotatoren deutlich sinkt.
+  - Das Seil nur zur Nase zu ziehen, ohne die Hände in der Endposition auseinanderzuführen;
+    dadurch geht ein wesentlicher Teil der Außenrotation verloren.
+  - Die Schultern zu den Ohren hochzuziehen, statt den Nacken lang zu halten und die
+    Schulterblätter kontrolliert nach hinten-unten arbeiten zu lassen.
+  - Den unteren Rücken zu überstrecken oder die Rippen aufzufächern, um mehr Bewegungsweg
+    vorzutäuschen; halten Sie Rumpf und Becken stabil.
+  - Die exzentrische Phase fallen zu lassen und die Spannung zwischen den Wiederholungen
+    komplett zu verlieren, anstatt die Rückführung bewusst zu bremsen.
+  - Den Kabelzug zu tief einzustellen, sodass der Bewegungswinkel nicht mehr zur Zielmuskulatur
+    passt und die Übung biomechanisch eher zu einem tiefen Ruderzug wird.
+  name: Face Pull
+  stabilizers:
+  - 504_transverse_abdominis
+  - 206_erector_spinae
+  - 507_multifidus
+  origin:
+    type: manual
+    wger:
+      primary_muscles:
+      - 202a_trapezius_upper
+      - 202b_trapezius_middle
+      - 202c_trapezius_lower
+      - 303_posterior_deltoid
+      wger_muscle_ids:
+        secondary: []
+        primary:
+        - 9
+      wger_id: 222
+      equipment: []
+      category: shoulders
+      exercise_id: wger_222
+      german: Face Pulls
+      tags:
+      - unreviewed
+      - wger
+      coaching_notes:
+      - 'Die Übung trainiert die Rückseite der Schulter.
+
+        Die Ausführung erfolgt mit dem Seil am Kabelzug. Beide Enden des Seils in
+        jeweils einer Hand halten, dabei die Schultern maximal vorwärts strecken und
+        das Kabel leicht gespannt halten (Ruheposition).
+
+        Dann das Seil auf das Gesicht zuziehen. Die Hände bewegen sich dabei so weit
+        wie möglich seitlicht am Kopf vorbei, die Schulter rotiert also nach hinten/außen.'
+      display_name: Face Pulls
+      secondary_muscles: []
+    yuhonas:
+      primary_muscles:
+      - shoulders
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      category: strength
+      equipment:
+      - cable
+      exercise_id: yuhonas_face_pull
+      yuhonas_id: Face_Pull
+      tags:
+      - unreviewed
+      - yuhonas
+      coaching_notes:
+      - Facing a high pulley with a rope or dual handles attached, pull the weight
+        directly towards your face, separating your hands as you do so. Keep your
+        upper arms parallel to the ground.
+      display_name: Face Pull
+      secondary_muscles:
+      - middle_back
+    source_refs: {}
+  source: approved
+  english: Face Pull
+  german: Face Pull am Kabel
+  id: face_pull
+  displayName: Face Pull am Kabel
+  display_name: Face Pull am Kabel
+  _hash: 92c3f8582258be5bba167caa93268a95
+  category: pull
+  equipment:
+  - cable
+  search_aliases:
+  - Face Pull
+  - Face Pulls
+  - Face Pull am Kabel
+  - Kabel Face Pull
+  - Rope Face Pull
+  - Cable Face Pull
+  exercise_id: face_pull
+  variations: []
+  schema_version: 2026-08-12.exercise-v1
   tags:
   - schultern
   - oberer_ruecken
@@ -542,96 +652,12 @@ exercises:
   - cable
   - horizontal_pull
   - unreviewed
-  primary_muscles:
-  - 303_posterior_deltoid
-  - 202b_trapezius_middle
-  - 205_rhomboids
-  secondaryMuscles:
-  - 306_infraspinatus
-  - 307_teres_minor
-  - 202c_trapezius_lower
-  - 403_brachialis
-  - 404_brachioradialis
-  search_aliases:
-  - Face Pull
-  - Face Pulls
-  - Face Pull am Kabel
-  - Kabel Face Pull
-  - Rope Face Pull
-  - Cable Face Pull
-  schema_version: 2026-08-12.exercise-v1
-  german: Face Pull am Kabel
-  stabilizers:
-  - 504_transverse_abdominis
-  - 206_erector_spinae
-  - 507_multifidus
-  category: pull
-  english: Face Pull
-  origin:
-    yuhonas:
-      tags:
-      - unreviewed
-      - yuhonas
-      display_name: Face Pull
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      equipment:
-      - cable
-      yuhonas_id: Face_Pull
-      exercise_id: yuhonas_face_pull
-      coaching_notes:
-      - Facing a high pulley with a rope or dual handles attached, pull the weight
-        directly towards your face, separating your hands as you do so. Keep your
-        upper arms parallel to the ground.
-      secondary_muscles:
-      - middle_back
-      primary_muscles:
-      - shoulders
-      category: strength
-    type: manual
-    source_refs: {}
-    wger:
-      tags:
-      - unreviewed
-      - wger
-      display_name: Face Pulls
-      wger_muscle_ids:
-        primary:
-        - 9
-        secondary: []
-      wger_id: 222
-      equipment: []
-      exercise_id: wger_222
-      coaching_notes:
-      - 'Die Übung trainiert die Rückseite der Schulter.
-
-        Die Ausführung erfolgt mit dem Seil am Kabelzug. Beide Enden des Seils in
-        jeweils einer Hand halten, dabei die Schultern maximal vorwärts strecken und
-        das Kabel leicht gespannt halten (Ruheposition).
-
-        Dann das Seil auf das Gesicht zuziehen. Die Hände bewegen sich dabei so weit
-        wie möglich seitlicht am Kopf vorbei, die Schulter rotiert also nach hinten/außen.'
-      secondary_muscles: []
-      german: Face Pulls
-      primary_muscles:
-      - 202a_trapezius_upper
-      - 202b_trapezius_middle
-      - 202c_trapezius_lower
-      - 303_posterior_deltoid
-      category: shoulders
   movements:
   - horizontal
   - shoulder_external_rotation
   - shoulder_horizontal_abduction
   - scapular_retraction
   - elbow_flexion
-  display_name: Face Pull am Kabel
-  equipment:
-  - cable
-  name: Face Pull
-  exercise_id: face_pull
-  displayName: Face Pull am Kabel
   coaching_notes:
   - Stellen Sie den Kabelzug ungefähr auf Augen- bis Stirnhöhe ein und verwenden Sie
     idealerweise ein Seil, damit sich die Hände am Ende der Zugphase frei nach außen
@@ -652,41 +678,16 @@ exercises:
   - Wählen Sie ein Gewicht, bei dem Sie die Ellbogenposition, die Außenrotation und
     die Schulterblattkontrolle sauber halten können; beim Face Pull ist Ausführung
     wichtiger als Last.
+  primaryMuscles:
+  - 303_posterior_deltoid
+  - 202b_trapezius_middle
+  - 205_rhomboids
   secondary_muscles:
   - 306_infraspinatus
   - 307_teres_minor
   - 202c_trapezius_lower
   - 403_brachialis
   - 404_brachioradialis
-  aliases:
-  - kabel face pull
-  - face pull kabelzug
-  - seilzug zum gesicht
-  - rope face pull
-  - cable face pull
-  type: compound
-  variations: []
-  primaryMuscles:
-  - 303_posterior_deltoid
-  - 202b_trapezius_middle
-  - 205_rhomboids
-  source: approved
-  common_errors:
-  - Zu viel Gewicht zu wählen und den Satz mit Schwung aus dem Oberkörper oder mit
-    einem Rücklehnen abzuschließen, statt die Zugbewegung muskulär zu kontrollieren.
-  - Die Ellbogen absinken zu lassen, wodurch die Bewegung mehr zu einem normalen Rudern
-    wird und der Reiz auf hintere Schulter und Außenrotatoren deutlich sinkt.
-  - Das Seil nur zur Nase zu ziehen, ohne die Hände in der Endposition auseinanderzuführen;
-    dadurch geht ein wesentlicher Teil der Außenrotation verloren.
-  - Die Schultern zu den Ohren hochzuziehen, statt den Nacken lang zu halten und die
-    Schulterblätter kontrolliert nach hinten-unten arbeiten zu lassen.
-  - Den unteren Rücken zu überstrecken oder die Rippen aufzufächern, um mehr Bewegungsweg
-    vorzutäuschen; halten Sie Rumpf und Becken stabil.
-  - Die exzentrische Phase fallen zu lassen und die Spannung zwischen den Wiederholungen
-    komplett zu verlieren, anstatt die Rückführung bewusst zu bremsen.
-  - Den Kabelzug zu tief einzustellen, sodass der Bewegungswinkel nicht mehr zur Zielmuskulatur
-    passt und die Übung biomechanisch eher zu einem tiefen Ruderzug wird.
-  id: face_pull
 - review_state:
     status: approved
   tags:
