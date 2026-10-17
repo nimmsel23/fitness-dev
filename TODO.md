@@ -129,3 +129,5 @@ Coach-Zugang anhand der verifizierten Firebase-UID ergänzen und zentrale Rolle 
 - [x] 6Pack Selfie-Cloud-Sync aus standalone dev in Fitness-Integration übernehmen und beide Build-Modi prüfen (agent/selfie-cloud).
 
 - [x] Alle Selfie-Arbeitsstände zusammenführen: Cloud als Sync-Ziel, vorhandenen Login/Galerie wiederverwenden, gesicherten Altbestand-Import und transparenten API-Proxy prüfen.
+
+- [x] 2026-10-17: Echten 6Pack-Selfie-Sync Handy → Laptop vom Nutzer bestätigen lassen und Abnahme dokumentieren.
