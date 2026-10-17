@@ -93,3 +93,6 @@ export async function updateUserProfile(uid, data) {
     return true;
   } catch { return false; }
 }
+
+// Geräteliste (users/{uid}/devices) gibt es nur im Firestore-Build.
+export async function registerDevice(_prefs) {}
