@@ -1537,8 +1537,8 @@ exercises:
   - Underhand Grip Pull-Up
   - Supinated Grip Pull-Up
   - Reverse Grip Pull-Up
-  english: Chin-Up
   german: Untergriff-Klimmzug
+  english: Chin-Up
   id: '021'
   display_name: Untergriff-Klimmzug
   instructions:
@@ -1652,6 +1652,7 @@ exercises:
       yuhonas:
       - Chin-Up
   yuhonas_id: Chin-Up
+  _hash: 78e5dfacb6c10ce473004b97e9748993
   category: pull
   search_aliases:
   - chin_up
@@ -1662,18 +1663,18 @@ exercises:
   - wger_152
   - Chin-Up
   - Untergriff-Klimmzug
-  variations:
-  - assisted_chin_up
-  - weighted_chin_up
-  - close_grip_chin_up
-  - negative_chin_up
-  name: Untergriff-Klimmzug
   stabilizers:
   - 304_rotator_cuff
   - 501_rectus_abdominis
   - 504_transverse_abdominis
   - 206_erector_spinae
   - 405_forearm_flexors
+  name: Untergriff-Klimmzug
+  variations:
+  - assisted_chin_up
+  - weighted_chin_up
+  - close_grip_chin_up
+  - negative_chin_up
   movements:
   - vertical
   - shoulder_adduction
