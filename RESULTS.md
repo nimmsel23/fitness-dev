@@ -1,3 +1,10 @@
+## 2026-10-17 — Selfie-Sync auf zwei echten Geräten bestätigt
+
+- Nutzer hat ein Foto am Handy in 6Pack hochgeladen und den erfolgreichen Abruf am Laptop bestätigt (gleicher Account, Selfies/Synchronisieren). Der angemeldete geräteübergreifende Cloud-Ablauf ist damit erstmals praktisch bestätigt; die frühere offene Geräteprüfung ist für diesen Ablauf erledigt.
+- Finales Ziel bleibt `sixpackSelfies/{uid}/photos/{id}` mit Eigentümer-Zugriff und UID-gebundener Browser-Queue. Der Laptop ist kein benötigter Sync-Server.
+- Veröffentlichter Stand: 6pack 21c804d, Fitness-Release d7499bf, VitalOS-Login-Fix 42e1168. VitalOS-/6pack-Production-CI grün (39028533456 / 39028533446), ausgelieferte Bundles geprüft.
+- Diese Nutzerbestätigung betrifft Upload und Anzeige zwischen den Geräten. Offline-Wiederanlauf, Server-Altbestand-Import und HEIC/Kamera-Varianten wurden dadurch nicht zusätzlich auf echten Geräten bestätigt. Keine persönlichen Bilder oder Tokens für die Dokumentation ausgelesen.
+
 ## 2026-10-17 — 6Pack-Agent-Anleitung integriert
 
 - 6pack-Gitlink übernimmt AGENTS.md mit Dateizuständigkeiten, finalem Foto-Sync, Test-/Auth-/Datenregeln und Source-/Fitness-/Release-Grenzen. Veraltete Deploy-Aussagen in dessen CLAUDE.md korrigiert.

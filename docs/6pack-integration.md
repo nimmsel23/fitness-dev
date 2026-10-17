@@ -60,3 +60,17 @@ Der aktive Mini-App-Service-Worker umgeht Auth-/no-store-Requests vor jedem Cach
 Die Source-Branches `agent/photo-auth` (lokal und Remote) sind in 6pack dev
 enthalten; Fitness vereinigt `agent/selfie-cloud` mit `agent/sixpack-photo-auth`.
 Der ältere `agent/sixpack-photo-local-sync` war bereits Vorfahr von Fitness dev.
+
+## Geräte-Abnahme am 2026-10-17
+
+Vom Nutzer bestätigt: Ein am Handy in 6Pack hochgeladenes Foto erscheint mit
+demselben Konto am Laptop unter Selfies nach der Synchronisierung. Damit ist
+der reale geräteübergreifende Upload-/Lese-Ablauf bestätigt, ergänzend zu den
+isolierten Auth-/Rules-/Galerie-Tests. Der Laptop muss dafür keinen Foto-Server
+bereitstellen. Vorhandener Server-Altbestand bleibt ein separater expliziter Import.
+
+Für VitalOS war zusätzlich zum Fitness-Release die Shell-Anbindung nötig:
+Commit `42e1168` aktualisiert `6pack-app` auf `21c804d` und reicht die bestehende
+Shell-UID weiter. Beide Production-Workflows waren erfolgreich. Frühere Hinweise
+auf einen ungeprüften Zwei-Geräte-Sync beschreiben den damaligen Zwischenstand;
+Offline-/HEIC-/Altbestand-Tests auf realen Geräten bleiben davon getrennt.
