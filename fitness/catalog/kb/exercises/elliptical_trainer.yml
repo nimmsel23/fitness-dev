@@ -1,10 +1,9 @@
-name: inbox_wger_962
-description: 'Proactively generated expert draft for: Crosstrainer'
-generated_at: '2026-10-12T10:26:46.586778+00:00'
-enriched_at: '2026-10-12T10:26:46.586778+00:00'
+exercise_id: elliptical_trainer
+description: Expert details for Crosstrainer
+approved_at: '2026-10-17T21:09:49.208985+00:00'
 exercises:
-- exercise_id: wger_962
-  id: wger_962
+- exercise_id: elliptical_trainer
+  id: elliptical_trainer
   name: Crosstrainer
   display_name: Crosstrainer
   german: Crosstrainer
@@ -96,15 +95,31 @@ exercises:
     wger:
     - 962
   variations: []
-  source: unreviewed
+  source: expert
   enriched_at: '2026-10-12T10:26:46.586778+00:00'
   schema_version: 2026-08-12.exercise-v1
   origin:
-    type: external
+    type: merged_external
     source_refs:
       wger:
       - '962'
+      yuhonas:
+      - Elliptical_Trainer
   review_state:
-    status: draft
-    ai_reviewed: false
+    status: approved
+    ai_reviewed: true
     enriched_at: '2026-10-12T10:26:46.586778+00:00'
+    approved_at: '2026-10-17T21:09:49.208985+00:00'
+  approved_at: '2026-10-17T21:09:49.208985+00:00'
+  search_aliases:
+  - wger_962
+  - Crosstrainer
+  - Elliptical Trainer
+  yuhonas_id: Elliptical_Trainer
+  instructions:
+  - To begin, step onto the elliptical and select the desired option from the menu.
+    Most ellipticals have a manual setting, or you can select a program to run. Typically,
+    you can enter your age and weight to estimate the amount of calories burned during
+    exercise. Elevation can be adjusted to change the intensity of the workout.
+  - The handles can be used to monitor your heart rate to help you stay at an appropriate
+    intensity.
