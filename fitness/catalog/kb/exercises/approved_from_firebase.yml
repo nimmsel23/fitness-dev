@@ -2186,8 +2186,8 @@ exercises:
 - review_state:
     status: approved
   type: isolation
-  primary_muscles:
-  - 101_pectoralis_major
+  secondaryMuscles:
+  - 301_anterior_deltoid
   variations: []
   aliases:
   - Cable Crossover
@@ -2209,6 +2209,8 @@ exercises:
     in der Brust verloren gehen.
   - Der Kopf schiebt nach vorn oder der untere Rücken wird überstreckt, weil die Rumpfspannung
     und Standstabilität fehlen.
+  primary_muscles:
+  - 101_pectoralis_major
   schema_version: 2026-08-12.exercise-v1
   origin:
     type: manual
@@ -2308,9 +2310,11 @@ exercises:
       secondary_muscles:
       - shoulders
     source_refs: {}
+  source: approved
+  german: Kabel-Crossover über Kreuz
   english: Cross-Body Cable Crossover
   id: cable_crossover_inner_x
-  german: Kabel-Crossover über Kreuz
+  displayName: Kabel-Crossover über Kreuz
   display_name: Kabel-Crossover über Kreuz
   category: push
   equipment:
@@ -2357,7 +2361,8 @@ exercises:
     ohne dass die Gewichte absetzen oder dich nach hinten ziehen.
   - Wähle ein Gewicht, bei dem du die Zugbahn sauber halten kannst und die Spannung
     durchgehend in der Brust statt im vorderen Schulterbereich spürst.
-  source: approved
+  primaryMuscles:
+  - 101_pectoralis_major
   secondary_muscles:
   - 301_anterior_deltoid
 - primary_muscles:
