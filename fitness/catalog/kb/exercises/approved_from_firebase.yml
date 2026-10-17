@@ -1684,11 +1684,25 @@ exercises:
   - scapular_depression
   - scapular_retraction
   - supinated_grip
-- primary_muscles:
-  - 601_quadriceps_femoris
-  type: compound
-  review_state:
+- review_state:
     status: approved
+  type: compound
+  stabilizers:
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  - 507_multifidus
+  - 505_quadratus_lumborum
+  - 206_erector_spinae
+  - 202a_trapezius_upper
+  - 202b_trapezius_middle
+  - 202c_trapezius_lower
+  - 205_rhomboids
+  - 301_anterior_deltoid
+  - 304_rotator_cuff
+  - 608_gluteus_medius
+  - 609_gluteus_minimus
+  - 702_soleus
+  - 701_gastrocnemius
   wger_muscle_ids:
     secondary:
     - 8
@@ -1715,7 +1729,7 @@ exercises:
     Knielinie zu halten.
   - Zu frühes Ausatmen in der Aufwärtsphase führt zum Kollaps im Rumpf und zu instabiler
     Stangenbahn.
-  schema_version: 2026-08-12.exercise-v1
+  wger_id: 257
   aliases:
   - Front Squat
   - Barbell Front Squat
@@ -1784,27 +1798,14 @@ exercises:
     source_refs:
       wger:
       - '257'
-  stabilizers:
-  - 504_transverse_abdominis
-  - 501_rectus_abdominis
-  - 507_multifidus
-  - 505_quadratus_lumborum
-  - 206_erector_spinae
-  - 202a_trapezius_upper
-  - 202b_trapezius_middle
-  - 202c_trapezius_lower
-  - 205_rhomboids
-  - 301_anterior_deltoid
-  - 304_rotator_cuff
-  - 608_gluteus_medius
-  - 609_gluteus_minimus
-  - 702_soleus
-  - 701_gastrocnemius
+  name: Frontkniebeuge
   english: Front Squat
-  id: '061'
   german: Frontkniebeuge
+  id: '061'
+  primary_muscles:
+  - 601_quadriceps_femoris
   display_name: Frontkniebeuge
-  wger_id: 257
+  _hash: 68e1b750dd9061083639ff3b8a63144d
   category: squat
   equipment:
   - barbell
@@ -1824,7 +1825,7 @@ exercises:
   - cross_grip_front_squat
   - dumbbell_front_squat
   - double_kettlebell_front_squat
-  name: Frontkniebeuge
+  schema_version: 2026-08-12.exercise-v1
   tags:
   - expert
   - legs
