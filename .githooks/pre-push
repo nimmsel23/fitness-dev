@@ -20,7 +20,7 @@ cd "$(git rev-parse --show-toplevel)"
 # sonst triggert der Hook sich bei jedem Push auf sich selbst (endlose
 # Bump-Spirale ohne echten Inhalt).
 SKIP='^cloud_chamber/|\.(md|txt|bak|bak2)$|^public/sw\.js$|^public/manifest\.json$|^dist-firebase/'
-TRIGGER='^(src/|public/|index.html$|vite.config.(js|ts|mjs)$|package.json$|firebase.json$|firestore.rules$|firestore.indexes.json$)'
+TRIGGER='^(src/|public/|index.html$|vite.config.(js|ts|mjs)$|package.json$|firebase.json$|mini-app.json$|scripts/mini-app-shell/|firestore.rules$|firestore.indexes.json$)'
 KB_TRIGGER='^fitness/catalog/kb/'
 # Backend-Aenderungen im dev-Branch -> ./deploy.sh staging (rsync nach
 # ~/.local/fitness + Neustart fitness-preview.service, :8100). Getrennt vom

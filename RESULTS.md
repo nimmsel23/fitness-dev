@@ -1,3 +1,35 @@
+## 2026-10-17 — 6Pack-Agent-Anleitung integriert
+
+- 6pack-Gitlink übernimmt AGENTS.md mit Dateizuständigkeiten, finalem Foto-Sync, Test-/Auth-/Datenregeln und Source-/Fitness-/Release-Grenzen. Veraltete Deploy-Aussagen in dessen CLAUDE.md korrigiert.
+- Vereinter Code ist auf 6pack dev/fitness und Fitness dev veröffentlicht. Lokales Staging :8100 aktiv; /api/sixpack/photos und Bildpfade ohne Token liefern 401. Firestore-Rules-CI und 6Pack-Preview-CI erfolgreich; Cloud-/Archiv-/Galerie-Tests und beide Fitness-Build-Modi bestanden.
+
+## 2026-10-17 — Selfie-Worktrees konsolidiert
+
+- Tatsächlicher Merge von `agent/sixpack-photo-auth` in `agent/selfie-cloud`; älterer Local-Sync war bereits in dev. 6pack dev vereinigt beide lokalen/Remote-Photo-Auth-Varianten mit Cloud-Sync, statt einen weiteren separaten Screen zu betreiben.
+- Authentifizierte FastAPI-Archiv-Routen übernommen; /api-Aliase für den vorhandenen generischen Proxy ergänzt. UID-Header-Bypass entfernt. Originale bleiben unberührt. Der neue Client schreibt direkt in privaten Firestore-Bereich, der Server dient dem expliziten, wiederholbaren Altbestand-Import.
+- Unsichere eigene Node-Foto-Routen entfernt. Allgemeiner API-Proxy erhält nun Token, Query, Binärbytes und Cache-Control unverändert. Aktiver Service-Worker erhält die private-fetch-Sperre aus dem SSOT-Paket.
+- Geprüft: fünf isolierte FastAPI-Tests, vorhandener Plan-Proxy-Test, binärer Proxy-Regressionstest, tatsächliche Galerie-Handler inkl. Queue-vor-Upload, Fehler/Quota und beschädigte Queue; Cloud-Client/Import-Regression sowie echter Firestore-Emulator mit Eigentümer-, Fremdnutzer-, Coach- und anonymen Zugriffen. Keine persönlichen Fotos für Tests verwendet.
+
+## 2026-10-17 — 6Pack Selfie-Cloud-Sync
+
+- Feature-Branch `agent/selfie-cloud` im Arbeitsbaum `.worktrees/antigravity`: 6pack-Integration auf `fitness` mit Source-Stand `cdf7396`, `.gitmodules` von altem `master` auf `fitness` korrigiert. Hauptarbeitsbaum `~/fitness-dev` auf dev bleibt unverändert.
+- Foto-Sync nutzt Firebase-Login und Firestore REST direkt, inklusive Google-Login im lokalen Selfies-Screen. Kein zusätzlicher Laptop-Dienst nötig. Bestehende Regeln gewähren Eigentümer und Coach Zugriff. Alte Server-Originale bleiben unangetastet; keine automatische Migration.
+- Vendored Mini-App-Shell vom App-Lint ausgenommen: deren Extra-Snippets erhalten CFG/SCOPE erst beim Generieren des Service Workers. Keine Vendor-Dateien geändert.
+- Geprüft: KB-6Pack-Generator, gesamtes App-Lint, lokale und Firebase-Vite-Builds; isolierte Selfie-REST-Regression auch im integrierten Submodul. Live anonymer Zugriff auf Foto-Collection ergibt HTTP 403. Echter angemeldeter Upload/Download zwischen zwei Geräten nicht geprüft.
+- Kein Push, Hosting-Deploy oder Staging-Deploy. Vorhandene lokale Preview auf 8100 ist inaktiv. Fremde Coach/Plan-Arbeitsbaumänderungen nicht gestaged.
+
+# Splash-Screen auch in der Fitness-Haupt-App (2026-10-16)
+
+- `cli.mjs splash` (neu im Paket) setzt Splash + Update-Loader in `dist/index.html` bzw. `dist-firebase/index.html` (`build`, `build:firebase:client`); Icon `/icon-192.png`, Name `Fitness`, Akzent aus `mini-app.json`. Geprüft am Firebase-Build (Splash vor `#root`, Icon-Pfad ok). Nicht auf Gerät gesehen.
+
+# Fitness-Haupt-SW auf das Mini-App-Shell-Template umgestellt (2026-10-16)
+
+- `mini-app.json` (Apps `fitness`, `frontend`) beschreibt den SW: Shell, 20/24 SWR-Präfixe, Übungsbilder-Cache, Background-Sync (`aos-offline-fitness`), Workout-Notifications. `public/sw.js` → `docs/archive/sw.fitness-main-v1.js`; Build-Skripte rufen `cli.mjs sw` statt `stamp-sw.mjs` (auch `build` → dist bekommt jetzt einen SW).
+- Template erweitert (`~/vitalos/packages/mini-app-shell`): `neverCache` (Pfade, die der SW nicht anfasst), `sync.conflicts` (HTTP 409 → Eintrag als conflict markieren + Seiten melden), `navTimeoutMs: null` (unbegrenzt aufs Netz warten wie bisher), Navigationen werden auch als `index.html` abgelegt, neuer CLI-Befehl `sw` (nur SW + Manifest-Version).
+- Parität: `scripts/test-sw-parity.mjs` — 36 Szenarien online/offline + Lebenszyklus, alt vs. neu: 0 Abweichungen für beide Varianten (Gegenprobe mit absichtlich verstellter Config schlägt an). Bekannter, gewollter Unterschied: `activate` räumt nur Caches mit Präfix `fitness-` auf (vorher alle fremden).
+- Builds geprüft: `build:firebase:client`, `build:atlas` (SW syntaktisch ok, Stempel `fitness-v<build>`, Manifest-Version). `.githooks/pre-push` löst jetzt auch bei `mini-app.json`/`scripts/mini-app-shell/` aus.
+- NICHT getestet: SW-Update auf einem Gerät mit bestehender Installation (Cache `fitness-v<alt>` → `fitness-v<neu>`), Queue-Konfliktpfad (409).
+
 ## 2026-10-16: Plan-Snapshots und Bereitstellen im lokalen Python-Owner
 
 Die mit plan-dev entwickelten Router-Verträge in den tatsächlichen lokalen

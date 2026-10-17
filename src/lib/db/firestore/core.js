@@ -76,6 +76,13 @@ export function getUid() {
   return currentUid;
 }
 
+// Frisches Firebase-ID-Token (SDK cached und erneuert selbst); null ohne Login.
+// Parity: local/core.js liefert immer null.
+export async function getIdToken() {
+  const user = auth.currentUser;
+  return user ? user.getIdToken() : null;
+}
+
 const DESKTOP_FITNESS_API_BASE = "http://127.0.0.1:6100/fitness";
 const FUNNEL_FITNESS_API_BASE = "https://ideapad.tail7a15d6.ts.net/fitness/fitness";
 const LOCAL_FITNESS_API_STORAGE_KEY = "fitness-local-api-base";

@@ -1,46 +1,10 @@
 name: approved_from_firebase
 description: Coach-approved via Firebase Inbox
 exercises:
-- tags:
-  - expert
-  - back
-  - pull
-  - bodyweight
-  - calisthenics
-  - vertical_pull
-  - grip_strength
-  review_state:
-    status: approved
-  _hash: ca0502729ca8a8da6745ff2289218fa2
-  coaching_notes:
-  - 'Starte aus einem aktiven Hang: Hals lang, Rippen unten, Schulterblätter zuerst
-    sanft nach unten setzen statt passiv in den Schultern zu hängen.'
-  - Denke daran, die Ellenbogen Richtung Flanken oder Hüfte zu ziehen. So bleibt der
-    Zug aus Latissimus und oberem Rücken statt nur aus den Armen.
-  - Halte den Körper als ruhige Linie von Kopf bis Fuß. Gesäß und Bauch leicht anspannen,
-    damit kein Hohlkreuz oder Beinschwung entsteht.
-  - 'Arbeite über die volle kontrollierte ROM: unten sauber strecken, oben den Brustkorb
-    zur Stange bringen, ohne die Spannung im Rumpf zu verlieren.'
-  - Führe den Obergriff mit stabilem Handgelenk und festem Griff aus. Die Stange soll
-    tief in der Hand liegen, damit du die Zuglinie sauber halten kannst.
-  - Lass die Schulterblätter während des Hochziehens nach unten und leicht nach hinten
-    arbeiten, ohne die Schultern zu den Ohren hochzuziehen.
-  - Steuere auch die Exzentrik bewusst. Ein langsames, sauberes Absenken verbessert
-    Schulterkontrolle, Kraftaufbau und Positionsgefühl im Hang.
-  - Der Obergriff verlagert die Belastung etwas stärker auf Latissimus, Teres major
-    und oberen Rücken und etwas weniger auf den Bizeps als beim Chin-Up.
-  search_aliases:
-  - Pullups
-  - yuhonas_pullups
-  - Klimmzug an Leiste
-  - wger_821
-  - Klimmzug im Obergriff
-  - Pull-Up
-  wger_id: 821
-  wger_muscle_ids:
-    primary: []
-    secondary: []
-  german: Klimmzug im Obergriff
+- primary_muscles:
+  - 201_latissimus_dorsi
+  - 207_teres_major
+  type: compound
   stabilizers:
   - 304_rotator_cuff
   - 405_forearm_flexors
@@ -48,22 +12,65 @@ exercises:
   - 501_rectus_abdominis
   - 206_erector_spinae
   - 507_multifidus
-  category: pull
-  english: Pull-Up
+  wger_muscle_ids:
+    secondary: []
+    primary: []
+  aliases:
+  - Klimmzug
+  - Klimmzüge
+  - Klimmzug Obergriff
+  - Klimmzug im Obergriff
+  - Obergriff Klimmzug
+  - Pull-up
+  - Pull-up (Overhand Grip)
+  - Pull Up
+  - Pull Ups
+  - Pull-Up
+  - Pull-Ups
+  - Standard Pull-up
+  - Pronated Pull-up
+  common_errors:
+  - Mit Kipping, Beinschwung oder Hüftschwung arbeiten statt jede Wiederholung aus
+    dem Hang kontrolliert einzuleiten.
+  - Aus einem passiven Hang hart anziehen, ohne zuerst Spannung im Schultergürtel
+    aufzubauen.
+  - Die Schultern zu den Ohren ziehen und damit Scapula-Depression und stabile Schultermechanik
+    zu verlieren.
+  - Nur das Kinn irgendwie über die Stange bringen, während Brustkorb, Schulterposition
+    und Zuglinie kollabieren.
+  - 'Halbe Wiederholungen machen: unten nicht ausstrecken oder oben zu früh abbrechen.'
+  - Den Kopf nach vorne zur Stange schieben statt den Körper zur Stange zu ziehen.
+  - Ins Hohlkreuz fallen oder die Rippen aufklappen lassen, wodurch der Rumpf instabil
+    wird und die Kraftübertragung leidet.
+  - Zu breit greifen und dadurch ROM, Schultermechanik und saubere Ellbogenführung
+    unnötig verschlechtern.
+  external_ids:
+    wger:
+    - 821
+    yuhonas:
+    - Pullups
+  name: Klimmzug im Obergriff
   origin:
     type: merged_external
+    wger:
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      wger_id: 821
     yuhonas:
+      primary_muscles:
+      - lats
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      category: strength
+      equipment:
+      - body only
+      exercise_id: yuhonas_pullups
+      yuhonas_id: Pullups
       tags:
       - unreviewed
       - yuhonas
-      display_name: Pullups
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      equipment:
-      - body only
-      yuhonas_id: Pullups
-      exercise_id: yuhonas_pullups
       coaching_notes:
       - 'Grab the pull-up bar with the palms facing forward using the prescribed grip.
         Note on grips: For a wide grip, your hands need to be spaced out at a distance
@@ -84,80 +91,35 @@ exercises:
         your torso back to the starting position when your arms are fully extended
         and the lats are fully stretched.
       - Repeat this motion for the prescribed amount of repetitions.
+      display_name: Pullups
       secondary_muscles:
       - biceps
       - middle_back
-      primary_muscles:
-      - lats
-      category: strength
     source_refs:
-      yuhonas:
-      - Pullups
       wger:
       - '821'
-    wger:
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      wger_id: 821
-  display_name: Klimmzug im Obergriff
-  movements:
-  - vertical
-  - shoulder_adduction
-  - shoulder_extension
-  - elbow_flexion
-  - scapular_depression
-  - scapular_downward_rotation
+      yuhonas:
+      - Pullups
+  wger_id: 821
+  german: Klimmzug im Obergriff
+  english: Pull-Up
   id: '020'
-  name: Klimmzug im Obergriff
-  common_errors:
-  - Mit Kipping, Beinschwung oder Hüftschwung arbeiten statt jede Wiederholung aus
-    dem Hang kontrolliert einzuleiten.
-  - Aus einem passiven Hang hart anziehen, ohne zuerst Spannung im Schultergürtel
-    aufzubauen.
-  - Die Schultern zu den Ohren ziehen und damit Scapula-Depression und stabile Schultermechanik
-    zu verlieren.
-  - Nur das Kinn irgendwie über die Stange bringen, während Brustkorb, Schulterposition
-    und Zuglinie kollabieren.
-  - 'Halbe Wiederholungen machen: unten nicht ausstrecken oder oben zu früh abbrechen.'
-  - Den Kopf nach vorne zur Stange schieben statt den Körper zur Stange zu ziehen.
-  - Ins Hohlkreuz fallen oder die Rippen aufklappen lassen, wodurch der Rumpf instabil
-    wird und die Kraftübertragung leidet.
-  - Zu breit greifen und dadurch ROM, Schultermechanik und saubere Ellbogenführung
-    unnötig verschlechtern.
+  review_state:
+    status: approved
+  display_name: Klimmzug im Obergriff
+  _hash: ca0502729ca8a8da6745ff2289218fa2
+  category: pull
   equipment:
   - bodyweight
   - pull_up_bar
-  primary_muscles:
-  - 201_latissimus_dorsi
-  - 207_teres_major
-  secondary_muscles:
-  - 202c_trapezius_lower
-  - 202b_trapezius_middle
-  - 205_rhomboids
-  - 402_biceps_brachii
-  - 403_brachialis
-  - 404_brachioradialis
-  aliases:
-  - Klimmzug
-  - Klimmzüge
-  - Klimmzug Obergriff
+  search_aliases:
+  - Pullups
+  - yuhonas_pullups
+  - Klimmzug an Leiste
+  - wger_821
   - Klimmzug im Obergriff
-  - Obergriff Klimmzug
-  - Pull-up
-  - Pull-up (Overhand Grip)
-  - Pull Up
-  - Pull Ups
   - Pull-Up
-  - Pull-Ups
-  - Standard Pull-up
-  - Pronated Pull-up
-  type: compound
-  external_ids:
-    yuhonas:
-    - Pullups
-    wger:
-    - 821
+  exercise_id: '020'
   variations:
   - assisted_pull_up
   - band_assisted_pull_up
@@ -165,9 +127,47 @@ exercises:
   - wide_grip_pull_up
   - neutral_grip_pull_up
   - scapular_pull_up
-  source: approved
   schema_version: 2026-08-12.exercise-v1
-  exercise_id: '020'
+  tags:
+  - expert
+  - back
+  - pull
+  - bodyweight
+  - calisthenics
+  - vertical_pull
+  - grip_strength
+  movements:
+  - vertical
+  - shoulder_adduction
+  - shoulder_extension
+  - elbow_flexion
+  - scapular_depression
+  - scapular_downward_rotation
+  coaching_notes:
+  - 'Starte aus einem aktiven Hang: Hals lang, Rippen unten, Schulterblätter zuerst
+    sanft nach unten setzen statt passiv in den Schultern zu hängen.'
+  - Denke daran, die Ellenbogen Richtung Flanken oder Hüfte zu ziehen. So bleibt der
+    Zug aus Latissimus und oberem Rücken statt nur aus den Armen.
+  - Halte den Körper als ruhige Linie von Kopf bis Fuß. Gesäß und Bauch leicht anspannen,
+    damit kein Hohlkreuz oder Beinschwung entsteht.
+  - 'Arbeite über die volle kontrollierte ROM: unten sauber strecken, oben den Brustkorb
+    zur Stange bringen, ohne die Spannung im Rumpf zu verlieren.'
+  - Führe den Obergriff mit stabilem Handgelenk und festem Griff aus. Die Stange soll
+    tief in der Hand liegen, damit du die Zuglinie sauber halten kannst.
+  - Lass die Schulterblätter während des Hochziehens nach unten und leicht nach hinten
+    arbeiten, ohne die Schultern zu den Ohren hochzuziehen.
+  - Steuere auch die Exzentrik bewusst. Ein langsames, sauberes Absenken verbessert
+    Schulterkontrolle, Kraftaufbau und Positionsgefühl im Hang.
+  - Der Obergriff verlagert die Belastung etwas stärker auf Latissimus, Teres major
+    und oberen Rücken und etwas weniger auf den Bizeps als beim Chin-Up.
+  source: approved
+  secondary_muscles:
+  - 202c_trapezius_lower
+  - 202b_trapezius_middle
+  - 205_rhomboids
+  - 402_biceps_brachii
+  - 403_brachialis
+  - 404_brachioradialis
 - review_state:
     status: approved
   tags:
@@ -1182,3 +1182,680 @@ exercises:
   source: approved
   schema_version: 2026-08-12.exercise-v1
   exercise_id: reissen_und_umsetzen
+- primary_muscles:
+  - 604a_biceps_femoris
+  - 604b_semitendinosus
+  - 604c_semimembranosus
+  - 603_gluteus_maximus
+  type: compound
+  review_state:
+    status: approved
+  wger_muscle_ids:
+    secondary:
+    - 16
+    primary:
+    - 11
+    - 8
+  aliases:
+  - Romanian Deadlift
+  - RDL
+  - Romanian DL
+  - Rumänisches Kreuzheben
+  - Kurzhantel RDL
+  - Langhantel RDL
+  common_errors:
+  - Zu starkes Beugen der Knie, wodurch die Übung biomechanisch in Richtung konventionelles
+    Kreuzheben oder Kniebeuge kippt.
+  - Die Hantel driftet vor den Körper, was den Hebel auf den unteren Rücken unnötig
+    vergrößert und oft zulasten der Hamstring-Spannung geht.
+  - Tiefe erzwingen, obwohl das Becken bereits nach hinten wegkippt oder der Rücken
+    einrundet.
+  - Oben hart ins Hohlkreuz drücken, statt die Wiederholung mit neutraler Wirbelsäule
+    und voller Hüftstreckung zu beenden.
+  - Aus den Armen ziehen oder die Schultern nach vorn hängen lassen, anstatt den Oberkörper
+    über Lat-Spannung und aktive Schulterblätter zu organisieren.
+  - Die Abwärtsphase fallen lassen und dadurch Kontrolle, Dehnungsspannung und reproduzierbare
+    Technik verlieren.
+  - Das Gewicht zu weit nach vorn auf die Zehen verlagern, wodurch Balance, Hüftmechanik
+    und Kraftübertragung schlechter werden.
+  wger_id: 507
+  variations:
+  - dumbbell_rdl
+  - single_leg_rdl
+  - barbell_rdl
+  origin:
+    type: external
+    wger:
+      wger_muscle_ids:
+        secondary:
+        - 16
+        primary:
+        - 11
+        - 8
+      wger_id: 507
+    yuhonas:
+      primary_muscles:
+      - hamstrings
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      category: strength
+      equipment:
+      - barbell
+      exercise_id: yuhonas_romanian_deadlift
+      yuhonas_id: Romanian_Deadlift
+      tags:
+      - unreviewed
+      - yuhonas
+      coaching_notes:
+      - 'Put a barbell in front of you on the ground and grab it using a pronated
+        (palms facing down) grip that a little wider than shoulder width. Tip: Depending
+        on the weight used, you may need wrist wraps to perform the exercise and also
+        a raised platform in order to allow for better range of motion.'
+      - Bend the knees slightly and keep the shins vertical, hips back and back straight.
+        This will be your starting position.
+      - 'Keeping your back and arms completely straight at all times, use your hips
+        to lift the bar as you exhale. Tip: The movement should not be fast but steady
+        and under control.'
+      - 'Once you are standing completely straight up, lower the bar by pushing the
+        hips back, only slightly bending the knees, unlike when squatting. Tip: Take
+        a deep breath at the start of the movement and keep your chest up. Hold your
+        breath as you lower and exhale as you complete the movement.'
+      - Repeat for the recommended amount of repetitions.
+      display_name: Romanian Deadlift
+      secondary_muscles:
+      - calves
+      - glutes
+      - lower_back
+    source_refs:
+      wger:
+      - '507'
+  name: Rumänisches Kreuzheben
+  english: Romanian Deadlift
+  id: 081
+  german: Rumänisches Kreuzheben
+  display_name: Rumänisches Kreuzheben
+  external_ids:
+    wger:
+    - 507
+  category: pull
+  equipment:
+  - barbell
+  - dumbbell
+  search_aliases:
+  - rdl
+  - romanian deadlift
+  - rumaenisches kreuzheben
+  - rumänisches kreuzheben
+  - wger_507
+  - Rumänisches Kreuzheben
+  - Romanian Deadlift
+  exercise_id: 081
+  stabilizers:
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 507_multifidus
+  - 201_latissimus_dorsi
+  - 202b_trapezius_middle
+  - 202c_trapezius_lower
+  - 405_forearm_flexors
+  - 608_gluteus_medius
+  - 609_gluteus_minimus
+  schema_version: 2026-08-12.exercise-v1
+  tags:
+  - expert
+  - legs
+  - hip_hinge
+  - posterior_chain
+  - hamstrings
+  - glutes
+  movements:
+  - hip_hinge
+  - hip_extension
+  - hamstring_lengthening
+  - spinal_anti_flexion
+  - isometric_knee_flexion
+  - scapular_depression
+  coaching_notes:
+  - 'Starte aus dem aufrechten Stand und breche die Bewegung zuerst über die Hüfte
+    ein: Gesäß aktiv nach hinten schieben, statt die Hantel über Kniebeugung abzusenken.'
+  - Halte die Knie nur leicht gebeugt und diesen Winkel über weite Teile der Wiederholung
+    nahezu konstant, damit die Last auf hinterer Kette und nicht auf einem Squat-Muster
+    bleibt.
+  - Führe die Hantel eng am Körper mit, damit der Lastarm kurz bleibt und die Spannung
+    in Hamstrings, Gluteus und Rückenstreckern sauber gehalten wird.
+  - Senke nur so tief ab, wie du Beckenposition und neutralen Rücken kontrollieren
+    kannst; die Tiefe wird durch Hüftbeweglichkeit bestimmt, nicht durch das Bedürfnis,
+    die Scheiben tiefer zu bringen.
+  - Spanne die Latissimus-Muskulatur an, als würdest du die Hantel zu dir heranziehen;
+    das stabilisiert Schultergürtel und Wirbelsäule unter Last.
+  - Druck über Mittelfuß und Ferse halten und beim Hochkommen die Hüfte kraftvoll
+    nach vorn führen, ohne am Ende in eine übertriebene Lendenstreckung zu fallen.
+  - Den exzentrischen Teil bewusst kontrollieren, damit die Hamstrings unter Länge
+    arbeiten; der Trainingsreiz entsteht hier stark über saubere Bremsarbeit, nicht
+    nur über das Aufrichten.
+  source: approved
+  secondary_muscles:
+  - 206_erector_spinae
+  - 602a_adductor_magnus
+- review_state:
+    status: approved
+  wger_muscle_ids:
+    secondary:
+    - 2
+    - 5
+    primary:
+    - 4
+  aliases:
+  - Schrägbankdrücken (KH)
+  - Schrägbankdrücken (Kurzhantel)
+  - Schrägbankdrücken Kurzhantel
+  - Kurzhantelschrägbankdrücken
+  - KH-Schrägbankdrücken
+  - Incline Dumbbell Press
+  - Incline DB Press
+  - Dumbbell Incline Press
+  - Incline Dumbbell Chest Press
+  english: Incline Dumbbell Press
+  german: Schrägbankdrücken mit Kurzhanteln
+  id: '041'
+  display_name: Schrägbankdrücken mit Kurzhanteln
+  instructions:
+  - Lie back on an incline bench with a dumbbell in each hand atop your thighs. The
+    palms of your hands will be facing each other.
+  - Then, using your thighs to help push the dumbbells up, lift the dumbbells one
+    at a time so that you can hold them at shoulder width.
+  - Once you have the dumbbells raised to shoulder width, rotate your wrists forward
+    so that the palms of your hands are facing away from you. This will be your starting
+    position.
+  - Be sure to keep full control of the dumbbells at all times. Then breathe out and
+    push the dumbbells up with your chest.
+  - Lock your arms at the top, hold for a second, and then start slowly lowering the
+    weight. Tip Ideally, lowering the weights should take about twice as long as raising
+    them.
+  - Repeat the movement for the prescribed amount of repetitions.
+  - When you are done, place the dumbbells back on your thighs and then on the floor.
+    This is the safest manner to release the dumbbells.
+  equipment:
+  - dumbbell
+  - incline_bench
+  exercise_id: '041'
+  original_description:
+  - Setze dich auf die Bank, die Füße sind fest auf dem Boden und geben Halt, der
+    Kopf liegt auf der Bank. Nehme die Hanteln in die Hand und drücke sie nach oben.
+    Bringe die Hanteln nach unten, bis sie neben der Brust sind. Drücke das Gewicht
+    wieder nach oben.
+  schema_version: 2026-08-12.exercise-v1
+  tags:
+  - expert
+  - chest
+  - dumbbell
+  - incline_press
+  - compound
+  - upper_chest
+  coaching_notes:
+  - Wähle in der Regel eine Bankneigung von etwa 30 bis 45 Grad; damit triffst du
+    die obere Brust deutlich, ohne die Übung unnötig in Richtung Schulterdrücken zu
+    verschieben.
+  - Setze Füße, Gesäß und oberen Rücken stabil auf und baue vor dem Ausheben Ganzkörperspannung
+    auf, damit der Oberkörper während des Satzes ruhig bleibt.
+  - Ziehe die Schulterblätter leicht nach hinten und unten und halte diese Position
+    kontrolliert, damit die Brust arbeiten kann und der Schulterkopf vorne nicht ausweicht.
+  - Führe die Kurzhanteln unten etwa auf Höhe der oberen Brust beziehungsweise knapp
+    außerhalb der Schulterlinie, statt sie zu tief oder zu weit Richtung Hals absinken
+    zu lassen.
+  - Lasse die Ellenbogen in einer natürlichen schrägen Linie unter den Hanteln arbeiten;
+    ein Winkel von ungefähr 45 bis 70 Grad zum Oberkörper ist meist deutlich gelenkschonender
+    als extremes Abspreizen.
+  - Drücke die Hanteln nicht senkrecht über das Gesicht, sondern in einer leicht bogenförmigen
+    Bahn über Schulter und Brustmitte, sodass Unterarm und Hantel in der Druckphase
+    sauber übereinander bleiben.
+  - Beende jede Wiederholung kurz vor dem harten Lockout, wenn du die Spannung gezielt
+    auf der Brust halten willst; verriegle nur dann vollständig, wenn die Trainingsabsicht
+    klar auf maximale Standardisierung oder Last ausgerichtet ist.
+  - 'Nutze den vollen kontrollierbaren Bewegungsumfang: tief genug für eine deutliche
+    Brustdehnung, aber nur so tief, wie du Schulterposition, Ellbogenpfad und Handgelenke
+    sauber stabil halten kannst.'
+  source: approved
+  secondary_muscles:
+  - 301_anterior_deltoid
+  - 401_triceps_brachii
+  - 105_serratus_anterior
+  primary_muscles:
+  - 102_pectoralis_major_clavicular
+  - 101_pectoralis_major
+  type: compound
+  external_ids:
+    wger:
+    - 537
+    yuhonas:
+    - Incline_Dumbbell_Press
+  wger_id: 537
+  common_errors:
+  - Die Bank zu steil einstellen, sodass die vordere Schulter die Hauptarbeit übernimmt
+    und der Reiz auf der oberen Brust deutlich sinkt.
+  - Die Schulterblätter beim Ablassen nach vorne kippen oder die Schultern hochziehen,
+    was die vordere Schulter unnötig belastet.
+  - Die Hanteln unten zu tief neben den Körper fallen lassen und dabei die passive
+    Schulterbeweglichkeit statt aktive Kontrolle zu nutzen.
+  - Die Ellenbogen starr im 90-Grad-Winkel abspreizen, wodurch die Schulter im unteren
+    Abschnitt oft unnötig gestresst wird.
+  - Die Hanteln oben gegeneinander schlagen oder Schwung aus dem Richtungswechsel
+    holen, statt die exzentrische Phase kontrolliert zu führen.
+  - Die Handgelenke nach hinten abknicken, sodass die Kraftlinie nicht mehr sauber
+    über Unterarm und Hantel verläuft.
+  - Mit den Füßen herumrutschen oder das Gesäß von der Bank lösen, um Wiederholungen
+    künstlich leichter zu machen.
+  - Zu kurz ablassen und dadurch den gedehnten unteren Arbeitsbereich der Brust fast
+    vollständig verschenken.
+  origin:
+    type: merged_external
+    wger:
+      original_description:
+      - Setze dich auf die Bank, die Füße sind fest auf dem Boden und geben Halt,
+        der Kopf liegt auf der Bank. Nehme die Hanteln in die Hand und drücke sie
+        nach oben. Bringe die Hanteln nach unten, bis sie neben der Brust sind. Drücke
+        das Gewicht wieder nach oben.
+      wger_muscle_ids:
+        secondary:
+        - 2
+        - 5
+        primary:
+        - 4
+      wger_id: 537
+    yuhonas:
+      instructions:
+      - Lie back on an incline bench with a dumbbell in each hand atop your thighs.
+        The palms of your hands will be facing each other.
+      - Then, using your thighs to help push the dumbbells up, lift the dumbbells
+        one at a time so that you can hold them at shoulder width.
+      - Once you have the dumbbells raised to shoulder width, rotate your wrists forward
+        so that the palms of your hands are facing away from you. This will be your
+        starting position.
+      - Be sure to keep full control of the dumbbells at all times. Then breathe out
+        and push the dumbbells up with your chest.
+      - Lock your arms at the top, hold for a second, and then start slowly lowering
+        the weight. Tip Ideally, lowering the weights should take about twice as long
+        as raising them.
+      - Repeat the movement for the prescribed amount of repetitions.
+      - When you are done, place the dumbbells back on your thighs and then on the
+        floor. This is the safest manner to release the dumbbells.
+      yuhonas_id: Incline_Dumbbell_Press
+    source_refs:
+      wger:
+      - '537'
+      yuhonas:
+      - Incline_Dumbbell_Press
+  yuhonas_id: Incline_Dumbbell_Press
+  category: push
+  search_aliases:
+  - incline_dumbbell_press
+  - incline_db_press
+  - dumbbell_incline_press
+  - schraegbankdruecken_kh
+  - schraegbankdruecken_kurzhantel
+  - kurzhantelschraegbankdruecken
+  - wger_537
+  - yuhonas_incline_dumbbell_press
+  - Incline_Dumbbell_Press
+  - Schrägbankdrücken mit Kurzhanteln
+  - Incline Dumbbell Press
+  stabilizers:
+  - 304_rotator_cuff
+  - 202b_trapezius_middle
+  - 202c_trapezius_lower
+  - 504_transverse_abdominis
+  - 507_multifidus
+  name: Schrägbankdrücken mit Kurzhanteln
+  variations:
+  - low_incline_dumbbell_press
+  - incline_barbell_press
+  - incline_machine_press
+  - neutral_grip_incline_dumbbell_press
+  movements:
+  - incline
+  - horizontal_press
+  - shoulder_horizontal_adduction
+  - shoulder_flexion
+  - elbow_extension
+- review_state:
+    status: approved
+  wger_muscle_ids:
+    secondary: []
+    primary: []
+  aliases:
+  - Klimmzug im Untergriff
+  - Untergriff Klimmzug
+  - Klimmzug Untergriff
+  - Klimmzüge im Untergriff
+  - enger Untergriff-Klimmzug
+  - Chin-Up
+  - Chin Up
+  - Chin-Ups
+  - Underhand Pull-Up
+  - Underhand Grip Pull-Up
+  - Supinated Grip Pull-Up
+  - Reverse Grip Pull-Up
+  english: Chin-Up
+  german: Untergriff-Klimmzug
+  id: '021'
+  display_name: Untergriff-Klimmzug
+  instructions:
+  - Grab the pull-up bar with the palms facing your torso and a grip closer than the
+    shoulder width.
+  - 'As you have both arms extended in front of you holding the bar at the chosen
+    grip width, keep your torso as straight as possible while creating a curvature
+    on your lower back and sticking your chest out. This is your starting position.
+    Tip: Keeping the torso as straight as possible maximizes biceps stimulation while
+    minimizing back involvement.'
+  - 'As you breathe out, pull your torso up until your head is around the level of
+    the pull-up bar. Concentrate on using the biceps muscles in order to perform the
+    movement. Keep the elbows close to your body. Tip: The upper torso should remain
+    stationary as it moves through space and only the arms should move. The forearms
+    should do no other work other than hold the bar.'
+  - After a second of squeezing the biceps in the contracted position, slowly lower
+    your torso back to the starting position; when your arms are fully extended. Breathe
+    in as you perform this portion of the movement.
+  - Repeat this motion for the prescribed amount of repetitions.
+  equipment:
+  - bodyweight
+  - pull_up_bar
+  exercise_id: '021'
+  original_description:
+  - Wie normale Klimmzüge, aber im Untergriff.
+  schema_version: 2026-08-12.exercise-v1
+  tags:
+  - expert
+  - back
+  - arms
+  - biceps
+  - bodyweight
+  - vertical_pull
+  - compound
+  coaching_notes:
+  - Greife etwa schulterbreit oder leicht enger im Untergriff, sodass die Handgelenke
+    gerade bleiben und die Ellenbogen sauber unter der Stange arbeiten können.
+  - 'Beginne im aktiven Hang: Schulterblätter leicht nach unten setzen, Rumpf anspannen
+    und die Beine ruhig halten, bevor die erste Zugphase startet.'
+  - Denke daran, die Ellenbogen nach unten Richtung Rippen zu ziehen, statt nur das
+    Kinn zur Stange vorzuschieben; so kommt der Zug aus Latissimus und Armbeugern.
+  - Halte Brustbein stolz und Rippen kontrolliert, damit du weder ins Hohlkreuz fällst
+    noch dich in eine lose Bananenform schwingst.
+  - Ziehe bis das Kinn klar über der Stange ist oder die obere Brust die Stange annähert,
+    ohne die Spannung in Schultergürtel und Rumpf zu verlieren.
+  - Senke dich kontrolliert in die volle Ellbogenstreckung zurück und nutze die exzentrische
+    Phase bewusst, statt unten einfach in die passive Schulterposition zu fallen.
+  source: approved
+  secondary_muscles:
+  - 207_teres_major
+  - 202b_trapezius_middle
+  - 202c_trapezius_lower
+  - 205_rhomboids
+  - 404_brachioradialis
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 402_biceps_brachii
+  - 403_brachialis
+  type: compound
+  external_ids:
+    wger:
+    - 152
+    yuhonas:
+    - Chin-Up
+  wger_id: 152
+  common_errors:
+  - Aus einem passiven Hang mit hochgezogenen Schultern anziehen, wodurch die Schulterblattkontrolle
+    und ein sauberer Kraftaufbau verloren gehen.
+  - Schwung aus Hüfte, Knien oder Kipping nutzen, statt jede Wiederholung aus ruhiger
+    Rumpfspannung und kontrolliertem Zug zu erzeugen.
+  - Das Kinn nur nach vorne schieben, um die Wiederholung künstlich zu beenden, obwohl
+    Brustkorb und Ellenbogen nicht sauber nach oben beziehungsweise unten geführt
+    wurden.
+  - Zu weit oder zu eng greifen, sodass Handgelenke einknicken und Ellenbogen unnötig
+    gereizt werden.
+  - Unten nicht vollständig strecken oder oben die Endposition abkürzen, wodurch Bewegungsumfang
+    und Trainingsreiz deutlich sinken.
+  - Beim Hochziehen die Rippen aufreißen und ins Hohlkreuz kippen, statt Becken und
+    Rumpf stabil zu halten.
+  origin:
+    type: merged_external
+    wger:
+      original_description:
+      - Wie normale Klimmzüge, aber im Untergriff.
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      wger_id: 152
+    yuhonas:
+      instructions:
+      - Grab the pull-up bar with the palms facing your torso and a grip closer than
+        the shoulder width.
+      - 'As you have both arms extended in front of you holding the bar at the chosen
+        grip width, keep your torso as straight as possible while creating a curvature
+        on your lower back and sticking your chest out. This is your starting position.
+        Tip: Keeping the torso as straight as possible maximizes biceps stimulation
+        while minimizing back involvement.'
+      - 'As you breathe out, pull your torso up until your head is around the level
+        of the pull-up bar. Concentrate on using the biceps muscles in order to perform
+        the movement. Keep the elbows close to your body. Tip: The upper torso should
+        remain stationary as it moves through space and only the arms should move.
+        The forearms should do no other work other than hold the bar.'
+      - After a second of squeezing the biceps in the contracted position, slowly
+        lower your torso back to the starting position; when your arms are fully extended.
+        Breathe in as you perform this portion of the movement.
+      - Repeat this motion for the prescribed amount of repetitions.
+      yuhonas_id: Chin-Up
+    source_refs:
+      wger:
+      - '152'
+      yuhonas:
+      - Chin-Up
+  yuhonas_id: Chin-Up
+  category: pull
+  search_aliases:
+  - chin_up
+  - chin-up
+  - untergriff_klimmzug
+  - klimmzug_untergriff
+  - yuhonas_chin-up
+  - wger_152
+  - Chin-Up
+  - Untergriff-Klimmzug
+  variations:
+  - assisted_chin_up
+  - weighted_chin_up
+  - close_grip_chin_up
+  - negative_chin_up
+  name: Untergriff-Klimmzug
+  stabilizers:
+  - 304_rotator_cuff
+  - 501_rectus_abdominis
+  - 504_transverse_abdominis
+  - 206_erector_spinae
+  - 405_forearm_flexors
+  movements:
+  - vertical
+  - shoulder_adduction
+  - shoulder_extension
+  - elbow_flexion
+  - scapular_depression
+  - scapular_retraction
+  - supinated_grip
+- primary_muscles:
+  - 601_quadriceps_femoris
+  type: compound
+  review_state:
+    status: approved
+  wger_muscle_ids:
+    secondary:
+    - 8
+    - 6
+    primary:
+    - 10
+  external_ids:
+    wger:
+    - 257
+  common_errors:
+  - Ellbogen sinken ab, wodurch die Stange nach vorne kippt und die Bewegung in eine
+    Good-Morning-Mechanik abrutscht.
+  - Die Hüfte schießt aus dem Loch zuerst hoch, sodass der Oberkörper stark nach vorne
+    fällt.
+  - Knie kollabieren nach innen, statt aktiv über dem zweiten bis dritten Zeh geführt
+    zu werden.
+  - Fersen heben ab oder der Druck wandert nur auf den Vorfuß, meist durch fehlende
+    Dorsalflexion oder verlorene Rumpfspannung.
+  - Die Stange wird mit den Händen getragen, statt auf den Schultern abgelegt zu sein,
+    was Handgelenke unnötig überlastet.
+  - Tiefe wird erzwungen, obwohl Becken, LWS oder Oberkörperposition dabei sichtbar
+    die Spannung verlieren.
+  - Im unteren Umkehrpunkt wird passiv gebounced, ohne Spannung in Rumpf, Fuß und
+    Knielinie zu halten.
+  - Zu frühes Ausatmen in der Aufwärtsphase führt zum Kollaps im Rumpf und zu instabiler
+    Stangenbahn.
+  schema_version: 2026-08-12.exercise-v1
+  aliases:
+  - Front Squat
+  - Barbell Front Squat
+  - Frontbeuge
+  - Frontbeugen
+  - Front-Kniebeuge
+  - Vordere Kniebeuge
+  origin:
+    type: external
+    wger:
+      wger_muscle_ids:
+        secondary:
+        - 8
+        - 6
+        primary:
+        - 10
+      wger_id: 257
+    yuhonas:
+      primary_muscles:
+      - quadriceps
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      category: strength
+      equipment:
+      - barbell
+      exercise_id: yuhonas_front_barbell_squat
+      yuhonas_id: Front_Barbell_Squat
+      tags:
+      - unreviewed
+      - yuhonas
+      coaching_notes:
+      - This exercise is best performed inside a squat rack for safety purposes. To
+        begin, first set the bar on a rack that best matches your height. Once the
+        correct height is chosen and the bar is loaded, bring your arms up under the
+        bar while keeping the elbows high and the upper arm slightly above parallel
+        to the floor. Rest the bar on top of the deltoids and cross your arms while
+        grasping the bar for total control.
+      - Lift the bar off the rack by first pushing with your legs and at the same
+        time straightening your torso.
+      - 'Step away from the rack and position your legs using a shoulder width medium
+        stance with the toes slightly pointed out. Keep your head up at all times
+        as looking down will get you off balance and also maintain a straight back.
+        This will be your starting position. (Note: For the purposes of this discussion
+        we will use the medium stance described above which targets overall development;
+        however you can choose any of the three stances described in the foot positioning
+        section).'
+      - 'Begin to slowly lower the bar by bending the knees as you maintain a straight
+        posture with the head up. Continue down until the angle between the upper
+        leg and the calves becomes slightly less than 90-degrees (which is the point
+        in which the upper legs are below parallel to the floor). Inhale as you perform
+        this portion of the movement. Tip: If you performed the exercise correctly,
+        the front of the knees should make an imaginary straight line with the toes
+        that is perpendicular to the front. If your knees are past that imaginary
+        line (if they are past your toes) then you are placing undue stress on the
+        knee and the exercise has been performed incorrectly.'
+      - Begin to raise the bar as you exhale by pushing the floor mainly with the
+        middle of your foot as you straighten the legs again and go back to the starting
+        position.
+      - Repeat for the recommended amount of repetitions.
+      display_name: Front Barbell Squat
+      secondary_muscles:
+      - calves
+      - glutes
+      - hamstrings
+    source_refs:
+      wger:
+      - '257'
+  stabilizers:
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  - 507_multifidus
+  - 505_quadratus_lumborum
+  - 206_erector_spinae
+  - 202a_trapezius_upper
+  - 202b_trapezius_middle
+  - 202c_trapezius_lower
+  - 205_rhomboids
+  - 301_anterior_deltoid
+  - 304_rotator_cuff
+  - 608_gluteus_medius
+  - 609_gluteus_minimus
+  - 702_soleus
+  - 701_gastrocnemius
+  english: Front Squat
+  id: '061'
+  german: Frontkniebeuge
+  display_name: Frontkniebeuge
+  wger_id: 257
+  category: squat
+  equipment:
+  - barbell
+  - squat_rack
+  search_aliases:
+  - front_squat
+  - barbell_front_squat
+  - front kniebeuge
+  - frontkniebeuge
+  - frontbeuge
+  - wger_257
+  - Frontkniebeuge
+  - Front Squat
+  exercise_id: '061'
+  variations:
+  - goblet_squat
+  - cross_grip_front_squat
+  - dumbbell_front_squat
+  - double_kettlebell_front_squat
+  name: Frontkniebeuge
+  tags:
+  - expert
+  - legs
+  - squat
+  - compound
+  - quad_dominant
+  - strength
+  - front_rack
+  movements:
+  - knee_flexion_extension
+  - hip_flexion_extension
+  - ankle_dorsiflexion
+  - front_rack_bracing
+  - thoracic_extension
+  - spinal_anti_flexion
+  coaching_notes:
+  - 'Baue zuerst ein sauberes Front-Rack: Stange liegt auf den vorderen Schultern,
+    nicht in den Händen; Ellbogen aktiv nach vorne-oben führen.'
+  - Atme tief in Bauch und Flanken ein und spanne den Rumpf vor jeder Wiederholung
+    hart an, damit der Oberkörper aufrecht bleibt.
+  - Setze dich zwischen die Hüften, während die Knie kontrolliert nach vorne über
+    die Zehen reisen; so bleibt die Last mittig über dem Fuß.
+  - Halte den Druck über Mittelfuß bis Ferse, ohne die Zehen zu verlieren; der ganze
+    Fuß bleibt belastet.
+  - Denke an Brustbein hoch und oberen Rücken lang, damit die Stange nicht nach vorne
+    abrollt.
+  - Gehe nur so tief, wie du Spannung, neutrale Wirbelsäule und stabile Fußposition
+    halten kannst.
+  - Drücke aus dem tiefsten Punkt gleichzeitig Boden weg und Ellbogen hoch, statt
+    die Hüfte zuerst nach hinten schießen zu lassen.
+  - Wenn Mobilität limitiert ist, priorisiere eine stabile Front-Rack- und Sprunggelenksposition
+    vor zusätzlicher Last.
+  source: approved
+  secondary_muscles:
+  - 603_gluteus_maximus
+  - 602_adductors
