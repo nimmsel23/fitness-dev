@@ -10,3 +10,7 @@
 	path = plan
 	url = git@github.com:nimmsel23/plan-dev.git
 	branch = master
+[submodule "Skills"]
+	path = Skills
+	url = git@github.com:nimmsel23/skills-dev.git
+	branch = fitness
