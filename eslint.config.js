@@ -4,7 +4,7 @@ import reactPlugin from 'eslint-plugin-react';
 
 export default [
   // Build-Ausgaben (z.B. 6pack/dist nach 'npm run deploy') sind minifiziert und nicht lintbar.
-  { ignores: ['**/dist/**', '**/dist-*/**', '**/.firebase/**', '6pack/scripts/mini-app-shell/**'] },
+  { ignores: ['**/dist/**', '**/dist-*/**', '**/.firebase/**', '6pack/scripts/mini-app-shell/**', 'Skills/scripts/mini-app-shell/**'] },
   js.configs.recommended,
   {
     files: ['src/**/*.{js,jsx}', 'Skills/**/*.{js,jsx}', '6pack/**/*.{js,jsx}'],
@@ -28,7 +28,7 @@ export default [
     },
   },
   {
-    files: ['6pack/**/*.mjs', '6pack/vite.config.js'],
+    files: ['6pack/**/*.mjs', '6pack/vite.config.js', 'Skills/**/*.mjs', 'Skills/vite.config.js'],
     languageOptions: { globals: { ...globals.node } },
   },
 ];

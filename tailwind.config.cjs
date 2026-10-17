@@ -24,7 +24,7 @@ module.exports = {
     // 6Pack-Komponenten liegen im Root; keine Dependencies/Builds scannen.
     "./6pack/*.{js,jsx,ts,tsx}",
     "./6pack/src/**/*.{js,jsx,ts,tsx}",
-    "./Skills/**/*.{js,jsx,ts,tsx}",
+    "./Skills/*.{js,jsx,ts,tsx}",
     siblingGlob("journal-dev", "journal-app"),
     siblingGlob("habits-dev", "habit-app"),
     siblingGlob("learn-dev", "learn-app"),

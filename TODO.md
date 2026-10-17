@@ -135,3 +135,5 @@ Coach-Zugang anhand der verifizierten Firebase-UID ergänzen und zentrale Rolle 
 - [x] 2026-10-17: 6pack-Übungen vor Workout-Start mit Muskelgrafik, Anleitung und Videos öffnen; gemeinsames Submodule und KB-Generator integriert.
 
 - [x] Offline-Cache über App-Updates erhalten: gemeinsame SW-Strategie, API-Migration, vollständiges Asset-Precache und sichere Installation.
+
+- [x] 2026-10-17: Skills/-Kopie durch direktes skills-dev-Submodule (fitness) ersetzen und Video-Runner integrieren.
