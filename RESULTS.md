@@ -1,3 +1,8 @@
+## 2026-10-17 — 6Pack-Agent-Anleitung integriert
+
+- 6pack-Gitlink übernimmt AGENTS.md mit Dateizuständigkeiten, finalem Foto-Sync, Test-/Auth-/Datenregeln und Source-/Fitness-/Release-Grenzen. Veraltete Deploy-Aussagen in dessen CLAUDE.md korrigiert.
+- Vereinter Code ist auf 6pack dev/fitness und Fitness dev veröffentlicht. Lokales Staging :8100 aktiv; /api/sixpack/photos und Bildpfade ohne Token liefern 401. Firestore-Rules-CI und 6Pack-Preview-CI erfolgreich; Cloud-/Archiv-/Galerie-Tests und beide Fitness-Build-Modi bestanden.
+
 ## 2026-10-17 — Selfie-Worktrees konsolidiert
 
 - Tatsächlicher Merge von `agent/sixpack-photo-auth` in `agent/selfie-cloud`; älterer Local-Sync war bereits in dev. 6pack dev vereinigt beide lokalen/Remote-Photo-Auth-Varianten mit Cloud-Sync, statt einen weiteren separaten Screen zu betreiben.
