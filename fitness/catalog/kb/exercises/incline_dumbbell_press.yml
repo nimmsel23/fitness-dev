@@ -1,9 +1,9 @@
-name: inbox_20260907_185946_6fe7bb
-description: 'Inbox queued for: Schrägbankdrücken KH'
-queued_at: '2026-09-07T18:59:46.920943'
+exercise_id: incline_dumbbell_press
+description: Expert details for Schrägbankdrücken KH
+approved_at: '2026-10-17T21:01:47.999338+00:00'
 exercises:
-- exercise_id: wger_537
-  id: wger_537
+- exercise_id: incline_dumbbell_press
+  id: incline_dumbbell_press
   display_name: Schrägbankdrücken KH
   german: Schrägbankdrücken KH
   english: Incline Dumbbell Press
@@ -117,5 +117,14 @@ exercises:
       - When you are done, place the dumbbells back on your thighs and then on the
         floor. This is the safest manner to release the dumbbells.
   review_state:
-    status: draft
-    ai_reviewed: false
+    status: approved
+    ai_reviewed: true
+    approved_at: '2026-10-17T21:01:47.999338+00:00'
+  stabilizers: []
+  source: expert
+  approved_at: '2026-10-17T21:01:47.999338+00:00'
+  search_aliases:
+  - wger_537
+  - Incline_Dumbbell_Press
+  - Schrägbankdrücken KH
+  - Incline Dumbbell Press
