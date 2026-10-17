@@ -1,3 +1,10 @@
+## 2026-10-17 — Selfie-Worktrees konsolidiert
+
+- Tatsächlicher Merge von `agent/sixpack-photo-auth` in `agent/selfie-cloud`; älterer Local-Sync war bereits in dev. 6pack dev vereinigt beide lokalen/Remote-Photo-Auth-Varianten mit Cloud-Sync, statt einen weiteren separaten Screen zu betreiben.
+- Authentifizierte FastAPI-Archiv-Routen übernommen; /api-Aliase für den vorhandenen generischen Proxy ergänzt. UID-Header-Bypass entfernt. Originale bleiben unberührt. Der neue Client schreibt direkt in privaten Firestore-Bereich, der Server dient dem expliziten, wiederholbaren Altbestand-Import.
+- Unsichere eigene Node-Foto-Routen entfernt. Allgemeiner API-Proxy erhält nun Token, Query, Binärbytes und Cache-Control unverändert. Aktiver Service-Worker erhält die private-fetch-Sperre aus dem SSOT-Paket.
+- Geprüft: fünf isolierte FastAPI-Tests, vorhandener Plan-Proxy-Test, binärer Proxy-Regressionstest, tatsächliche Galerie-Handler inkl. Queue-vor-Upload, Fehler/Quota und beschädigte Queue; Cloud-Client/Import-Regression sowie echter Firestore-Emulator mit Eigentümer-, Fremdnutzer-, Coach- und anonymen Zugriffen. Keine persönlichen Fotos für Tests verwendet.
+
 ## 2026-10-17 — 6Pack Selfie-Cloud-Sync
 
 - Feature-Branch `agent/selfie-cloud` im Arbeitsbaum `.worktrees/antigravity`: 6pack-Integration auf `fitness` mit Source-Stand `cdf7396`, `.gitmodules` von altem `master` auf `fitness` korrigiert. Hauptarbeitsbaum `~/fitness-dev` auf dev bleibt unverändert.

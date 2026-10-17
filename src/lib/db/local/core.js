@@ -56,6 +56,10 @@ export const api = {
 export { localToday } from '../shared/utils';
 
 export function getUid() { return "local"; }
+// Parity mit firestore/core.js: im Local-Modus gibt es kein Firebase-Token.
+// Konsumenten (z.B. 6Pack-Selfies) fallen dann auf den lokalen x-fitness-uid-
+// Dev-Pfad zurück (Backend: FITNESS_SIXPACK_DEV_UID_AUTH=1).
+export async function getIdToken() { return null; }
 export function isLocalMode() { return true; }
 
 export function watchAuth(callback) {

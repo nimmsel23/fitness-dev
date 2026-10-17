@@ -1,43 +1,29 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
-import os from 'node:os';
-import path from 'node:path';
-import { sixpackPhotoRoutes } from '../server/routes/sixpack-photos.mjs';
+import { Hono } from 'hono';
+import { registerPythonApi } from '../server/lib/python-proxy.mjs';
 
-const root = await mkdtemp(path.join(os.tmpdir(), 'fitness-photo-test-'));
-const app = sixpackPhotoRoutes({ root });
-const bytes = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aBtQAAAAASUVORK5CYII=', 'base64');
-async function upload({ uid = 'test-user', name = 'photo.png', date = '2026-10-12T12:30:00.000Z', id = '12345678-1234-1234-1234-123456789abc' } = {}) {
-  const form = new FormData();
-  form.append('photo', new Blob([bytes], { type: 'image/png' }), name);
-  form.append('id', id);
-  form.append('date', date);
-  return app.request('/sixpack/photos', { method: 'POST', headers: { 'x-fitness-uid': uid }, body: form });
-}
+const app = new Hono();
+registerPythonApi(app, 'http://python.invalid');
+const originalFetch = globalThis.fetch;
+const bytes = new Uint8Array([0, 128, 255, 13, 10]);
+const requests = [];
 try {
-  assert.deepEqual((await (await app.request('/sixpack/photos?uid=test-user')).json()).photos, []);
-  assert.equal((await app.request('/sixpack/photos')).status, 400);
-  const response = await upload();
-  assert.equal(response.status, 200);
-  const saved = await response.json();
-  const image = await app.request(saved.url);
-  assert.equal(image.headers.get('content-type'), 'image/png');
-  assert.deepEqual(Buffer.from(await image.arrayBuffer()), bytes);
-  assert.equal((await upload()).status, 200);
-  let photos = (await (await app.request('/sixpack/photos?uid=test-user')).json()).photos;
-  assert.equal(photos.length, 1, 'retries must not duplicate photos');
-  assert.equal(photos[0].date, '2026-10-12T12:30:00.000Z');
-  await upload({ date: '2026-10-13T12:30:00.000Z' });
-  photos = (await (await app.request('/sixpack/photos?uid=test-user')).json()).photos;
-  assert.equal(photos[0].date, '2026-10-13T12:30:00.000Z');
-  assert.deepEqual((await (await app.request('/sixpack/photos?uid=other-user')).json()).photos, []);
-  assert.equal((await upload({ uid: '../escape' })).status, 400);
-  assert.equal((await upload({ name: 'photo.html' })).status, 415);
-  assert.equal((await upload({ date: 'invalid' })).status, 400);
-  assert.equal((await upload({ id: '../../escape' })).status, 400);
-  assert.equal((await app.request('/sixpack/photos?uid=..')).status, 400);
-  assert.equal((await app.request('/sixpack-photos/test-user/missing.png')).status, 404);
-  console.log('SixPack photo API: upload, byte-exact download, retry deduplication, dates, user separation and validation passed.');
-} finally {
-  await rm(root, { recursive: true, force: true });
-}
+  globalThis.fetch = async (url, init) => {
+    requests.push({ url, init });
+    if (init.body) assert.deepEqual(new Uint8Array(await new Response(init.body).arrayBuffer()), bytes);
+    assert.equal(init.headers.get('authorization'), 'Bearer test-token');
+    return new Response(bytes, { headers: { 'Content-Type': 'image/png', 'Cache-Control': 'private, no-store' } });
+  };
+  const response = await app.request('/api/sixpack-photos/alice/test.png?a=1&a=2', { headers: { Authorization: 'Bearer test-token' } });
+  assert.deepEqual(new Uint8Array(await response.arrayBuffer()), bytes);
+  assert.equal(requests[0].url, 'http://python.invalid/api/sixpack-photos/alice/test.png?a=1&a=2');
+  assert.equal(response.headers.get('cache-control'), 'private, no-store');
+  assert.equal(response.headers.get('content-type'), 'image/png');
+  const saved = await app.request('/api/sixpack/photos', { method: 'POST', headers: { Authorization: 'Bearer test-token', 'Content-Type': 'image/png' }, body: bytes });
+  assert.equal(saved.status, 200);
+  assert.equal(requests[1].init.headers.get('content-type'), 'image/png');
+  assert.equal((await app.request('/sixpack/photos')).status, 404, 'no Node photo-specific route');
+  globalThis.fetch = async () => { throw Error('offline'); };
+  assert.equal((await app.request('/api/sixpack/photos')).status, 502);
+  console.log('Blind API proxy: unchanged path/query, token, binary request/response, no-store and failure passed.');
+} finally { globalThis.fetch = originalFetch; }

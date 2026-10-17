@@ -137,7 +137,10 @@ export function stampSplash({ outDir, app, log = console.log }) {
   const htmlPath = resolve(outDir, app.html || "index.html");
   if (!existsSync(htmlPath)) { log(`⚠️  ${htmlPath} nicht gefunden — kein Splash`); return { done: false }; }
   const opts = { name: app.short, accent: app.accent, icon: "./icon-192.png", ...(app.bg && { bg: app.bg }), ...(typeof app.splash === "object" && app.splash) };
-  writeFileSync(htmlPath, injectSplash(readFileSync(htmlPath, "utf8"), opts));
-  log(`✨ ${htmlPath}: Splash "${opts.name}" (${opts.icon})`);
+  let html = injectSplash(readFileSync(htmlPath, "utf8"), opts);
+  // optional auch die SW-Registrierung (wenn die App sie nicht selbst im Quell-HTML/JS macht): app.register
+  if (app.register) html = injectRegister(html, { swUrl: `./${(app.sw && app.sw.file) || "sw.js"}`, exposeRegistration: !!app.register.expose });
+  writeFileSync(htmlPath, html);
+  log(`✨ ${htmlPath}: Splash "${opts.name}" (${opts.icon})${app.register ? " + SW-Register" : ""}`);
   return { done: true };
 }

@@ -13,7 +13,6 @@ import { registerJournal } from "./server/routes/journal.mjs";
 import { registerFitnessData } from "./server/routes/fitness-data.mjs";
 import { registerFirestore } from "./server/routes/firestore.mjs";
 import fs from "node:fs";
-import { sixpackPhotoRoutes } from "./server/routes/sixpack-photos.mjs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -367,8 +366,6 @@ function buildOpenApiSpec() {
     paths,
   };
 }
-// Local progress photos: runtime files stay outside public/build assets.
-app.route('/', sixpackPhotoRoutes());
 
 // ── Strava-Live-Import (Radtouren-Tab, OAuth2) ──────────────────────────────
 // Routen ausgelagert in server/routes/strava.mjs (Hono-Sub-Router), Logik in

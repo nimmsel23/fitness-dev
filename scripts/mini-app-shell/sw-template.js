@@ -90,6 +90,8 @@ async function swr(req) {
 
 self.addEventListener('fetch', (e) => {
   const req = e.request
+  // Authenticated and explicitly private fetches must never enter a shared cache.
+  if (req.headers.has('authorization') || req.cache === 'no-store') return
   if (req.method !== 'GET') return
   const url = new URL(req.url)
 

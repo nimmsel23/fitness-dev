@@ -17,7 +17,7 @@ test('generic API proxy forwards method, complete path, client query and body to
     assert.equal(response.status, 200);
     assert.equal(observed.url, 'http://isolated-python.test/api/fitness/coach/macrocycles/client/plan?uid=client');
     assert.equal(observed.method, 'PATCH');
-    assert.equal(observed.headers['X-User-UID'], 'client');
-    assert.equal(JSON.parse(observed.body).status, 'published');
+    assert.equal(observed.headers.get('X-User-UID'), 'client');
+    assert.equal(JSON.parse(await new Response(observed.body).text()).status, 'published');
   } finally { globalThis.fetch = original; }
 });
