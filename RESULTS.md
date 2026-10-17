@@ -1,3 +1,9 @@
+## 2026-10-17 — 6pack: Übungsdetails vor dem Start
+
+- Direktes 6pack-Submodule um gemeinsame Detailansicht ergänzt: Tagesliste, Shuffle, gespeicherte Workouts und Learn. Rückkehr erhält die Liste; kein unbeabsichtigter Start.
+- Fitness-Generator liest primäre/sekundäre Muskeln und Visualisierungsregionen aus der eigenen KB und verwendet die gemeinsame Medien-Anreicherung. 20/21 öffentliche Demos, Any Ball BTB Pass offen.
+- ESLint, beide Vite-Build-Modi und tatsächliche Detail-/Navigationstests mit Fitness-Daten erfolgreich. Neuer Geräte-/Videotest noch offen. Details: docs/6pack-integration.md.
+
 ## 2026-10-17 — Selfie-Sync auf zwei echten Geräten bestätigt
 
 - Nutzer hat ein Foto am Handy in 6Pack hochgeladen und den erfolgreichen Abruf am Laptop bestätigt (gleicher Account, Selfies/Synchronisieren). Der angemeldete geräteübergreifende Cloud-Ablauf ist damit erstmals praktisch bestätigt; die frühere offene Geräteprüfung ist für diesen Ablauf erledigt.

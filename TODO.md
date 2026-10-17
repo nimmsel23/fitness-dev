@@ -131,3 +131,5 @@ Coach-Zugang anhand der verifizierten Firebase-UID ergänzen und zentrale Rolle 
 - [x] Alle Selfie-Arbeitsstände zusammenführen: Cloud als Sync-Ziel, vorhandenen Login/Galerie wiederverwenden, gesicherten Altbestand-Import und transparenten API-Proxy prüfen.
 
 - [x] 2026-10-17: Echten 6Pack-Selfie-Sync Handy → Laptop vom Nutzer bestätigen lassen und Abnahme dokumentieren.
+
+- [x] 2026-10-17: 6pack-Übungen vor Workout-Start mit Muskelgrafik, Anleitung und Videos öffnen; gemeinsames Submodule und KB-Generator integriert.
