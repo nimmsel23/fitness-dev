@@ -1188,21 +1188,16 @@ exercises:
   - 604c_semimembranosus
   - 603_gluteus_maximus
   type: compound
-  review_state:
-    status: approved
+  name: Rumänisches Kreuzheben
   wger_muscle_ids:
     secondary:
     - 16
     primary:
     - 11
     - 8
-  aliases:
-  - Romanian Deadlift
-  - RDL
-  - Romanian DL
-  - Rumänisches Kreuzheben
-  - Kurzhantel RDL
-  - Langhantel RDL
+  external_ids:
+    wger:
+    - 507
   common_errors:
   - Zu starkes Beugen der Knie, wodurch die Übung biomechanisch in Richtung konventionelles
     Kreuzheben oder Kniebeuge kippt.
@@ -1218,11 +1213,14 @@ exercises:
     Technik verlieren.
   - Das Gewicht zu weit nach vorn auf die Zehen verlagern, wodurch Balance, Hüftmechanik
     und Kraftübertragung schlechter werden.
+  aliases:
+  - Romanian Deadlift
+  - RDL
+  - Romanian DL
+  - Rumänisches Kreuzheben
+  - Kurzhantel RDL
+  - Langhantel RDL
   wger_id: 507
-  variations:
-  - dumbbell_rdl
-  - single_leg_rdl
-  - barbell_rdl
   origin:
     type: external
     wger:
@@ -1270,14 +1268,17 @@ exercises:
     source_refs:
       wger:
       - '507'
-  name: Rumänisches Kreuzheben
-  english: Romanian Deadlift
-  id: 081
+  variations:
+  - dumbbell_rdl
+  - single_leg_rdl
+  - barbell_rdl
   german: Rumänisches Kreuzheben
+  review_state:
+    status: approved
+  id: 081
+  english: Romanian Deadlift
   display_name: Rumänisches Kreuzheben
-  external_ids:
-    wger:
-    - 507
+  _hash: a8fea66f53e46ebc7f941d93178c8ef1
   category: pull
   equipment:
   - barbell
