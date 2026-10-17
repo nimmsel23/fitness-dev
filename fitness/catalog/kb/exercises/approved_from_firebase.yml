@@ -1357,8 +1357,8 @@ exercises:
   - Incline DB Press
   - Dumbbell Incline Press
   - Incline Dumbbell Chest Press
-  english: Incline Dumbbell Press
   german: Schrägbankdrücken mit Kurzhanteln
+  english: Incline Dumbbell Press
   id: '041'
   display_name: Schrägbankdrücken mit Kurzhanteln
   instructions:
@@ -1431,7 +1431,6 @@ exercises:
     - 537
     yuhonas:
     - Incline_Dumbbell_Press
-  wger_id: 537
   common_errors:
   - Die Bank zu steil einstellen, sodass die vordere Schulter die Hauptarbeit übernimmt
     und der Reiz auf der oberen Brust deutlich sinkt.
@@ -1449,6 +1448,7 @@ exercises:
     künstlich leichter zu machen.
   - Zu kurz ablassen und dadurch den gedehnten unteren Arbeitsbereich der Brust fast
     vollständig verschenken.
+  wger_id: 537
   origin:
     type: merged_external
     wger:
@@ -1488,6 +1488,7 @@ exercises:
       yuhonas:
       - Incline_Dumbbell_Press
   yuhonas_id: Incline_Dumbbell_Press
+  _hash: bbbc4315bb6111b3441fb2abcd66899a
   category: push
   search_aliases:
   - incline_dumbbell_press
