@@ -1751,3 +1751,6 @@ Fitness-Standard-Build erfolgreich ausgeführt. Verwendet wurde die installierte
 pnpm-Version mit `npm_config_manage_package_manager_versions=false`, damit kein
 schreibgeschützter Engine-Store benötigt wird. Kein Hook wurde deaktiviert.
 Backend-Funktionscommit: `77d6963`; Plan-Frontend-Companion: `0643b99`.
+
+## 2026-10-17 — Offline-Cache bei Updates
+Gemeinsame mini-app-shell erweitert bzw. aktualisiert: versionsunabhängiger öffentlicher API-Cache mit Migration, Asset-Precache standardmäßig aktiv, fehlgeschlagene Installation ersetzt bestehenden Worker nicht. IndexedDB/localStorage bleiben unverändert. Geprüft: 13 Shell-/Update-Tests, Private-Request-Test, Vendor-Parität. Kein Push/Release; kein physischer Geräte-Test.

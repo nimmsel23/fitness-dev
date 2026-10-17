@@ -91,7 +91,7 @@ export function stampApp({ outDir, app, root = process.cwd(), log = console.log 
     const extra = sw.extraFile ? readFileSync(resolve(root, sw.extraFile), "utf8") : sw.extra || "";
     const file = sw.file || "sw.js";
     let cfg = sw;
-    if (sw.precacheAssets && existsSync(resolve(out, "assets"))) {
+    if (sw.precacheAssets !== false && existsSync(resolve(out, "assets"))) {
       // alle gehashten Build-Assets beim Installieren vorladen (voll offline ab dem ersten Start)
       const assets = readdirSync(resolve(out, "assets")).map((n) => `./assets/${n}`);
       cfg = { ...sw, shell: [...(sw.shell || ["./", "./index.html"]), ...assets] };
@@ -114,7 +114,7 @@ export function stampSw({ outDir, app, root = process.cwd(), log = console.log }
   const extra = sw.extraFile ? readFileSync(resolve(root, sw.extraFile), "utf8") : sw.extra || "";
   const file = sw.file || "sw.js";
   let cfg = sw;
-  if (sw.precacheAssets && existsSync(resolve(out, "assets"))) {
+  if (sw.precacheAssets !== false && existsSync(resolve(out, "assets"))) {
     const assets = readdirSync(resolve(out, "assets")).map((n) => `./assets/${n}`);
     cfg = { ...sw, shell: [...(sw.shell || ["./", "./index.html"]), ...assets] };
   }
