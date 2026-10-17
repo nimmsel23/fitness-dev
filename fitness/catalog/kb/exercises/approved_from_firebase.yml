@@ -2365,16 +2365,14 @@ exercises:
   - 101_pectoralis_major
   secondary_muscles:
   - 301_anterior_deltoid
-- primary_muscles:
-  - 102_pectoralis_major_clavicular
+- secondaryMuscles:
+  - 301_anterior_deltoid
+  - 105_serratus_anterior
   type: isolation
+  primary_muscles:
+  - 102_pectoralis_major_clavicular
   review_state:
     status: approved
-  stabilizers:
-  - 304_rotator_cuff
-  - 504_transverse_abdominis
-  - 502_obliquus_externus
-  - 503_obliquus_internus
   aliases:
   - Cable Fly Low to High
   - Low Cable Fly
@@ -2383,7 +2381,6 @@ exercises:
   - Kabel-Flys von unten nach oben
   - Kabelzug obere Brust
   - Unterer Kabel-Crossover
-  wger_id: null
   common_errors:
   - Zu viel Gewicht, wodurch aus der geführten Fly-Bewegung ein unsauberes Ziehen
     oder Drücken mit Schwung wird.
@@ -2405,7 +2402,8 @@ exercises:
     an Isolation verliert.
   - Eine zu hohe Kabelposition wählen, wodurch der Zugwinkel eher zu einer normalen
     Fly-Variante als zur oberen-Brust-Betonung passt.
-  name: Low-to-High Cable Crossover
+  wger_id: null
+  variations: []
   origin:
     type: manual
     yuhonas:
@@ -2443,10 +2441,14 @@ exercises:
       secondary_muscles:
       - shoulders
     source_refs: {}
+  schema_version: 2026-08-12.exercise-v1
   german: Kabel-Crossover von unten nach oben
   id: cable_crossover_low_to_high
-  english: Low-to-High Cable Crossover
+  displayName: Kabel-Crossover von unten nach oben
   display_name: Kabel-Crossover von unten nach oben
+  english: Low-to-High Cable Crossover
+  primaryMuscles:
+  - 102_pectoralis_major_clavicular
   category: push
   equipment:
   - cable
@@ -2458,8 +2460,12 @@ exercises:
   - Incline Cable Fly
   - Low Cable Fly
   exercise_id: cable_crossover_low_to_high
-  variations: []
-  schema_version: 2026-08-12.exercise-v1
+  stabilizers:
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  name: Low-to-High Cable Crossover
   tags:
   - push
   - isolation
