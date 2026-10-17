@@ -125,3 +125,5 @@ Impuls hierzu: Klient:Matthias fehlende Ambition zum kontinuierlichen Loggen von
 
 ## [x] 2026-10-16: nimmdaniel@gmail.com als Coach freischalten
 Coach-Zugang anhand der verifizierten Firebase-UID ergänzen und zentrale Rolle setzen.
+
+- [x] 6Pack Selfie-Cloud-Sync aus standalone dev in Fitness-Integration übernehmen und beide Build-Modi prüfen (agent/selfie-cloud).

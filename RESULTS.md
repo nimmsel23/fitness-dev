@@ -1,3 +1,11 @@
+## 2026-10-17 — 6Pack Selfie-Cloud-Sync
+
+- Feature-Branch `agent/selfie-cloud` im Arbeitsbaum `.worktrees/antigravity`: 6pack-Integration auf `fitness` mit Source-Stand `cdf7396`, `.gitmodules` von altem `master` auf `fitness` korrigiert. Hauptarbeitsbaum `~/fitness-dev` auf dev bleibt unverändert.
+- Foto-Sync nutzt Firebase-Login und Firestore REST direkt, inklusive Google-Login im lokalen Selfies-Screen. Kein zusätzlicher Laptop-Dienst nötig. Bestehende Regeln gewähren Eigentümer und Coach Zugriff. Alte Server-Originale bleiben unangetastet; keine automatische Migration.
+- Vendored Mini-App-Shell vom App-Lint ausgenommen: deren Extra-Snippets erhalten CFG/SCOPE erst beim Generieren des Service Workers. Keine Vendor-Dateien geändert.
+- Geprüft: KB-6Pack-Generator, gesamtes App-Lint, lokale und Firebase-Vite-Builds; isolierte Selfie-REST-Regression auch im integrierten Submodul. Live anonymer Zugriff auf Foto-Collection ergibt HTTP 403. Echter angemeldeter Upload/Download zwischen zwei Geräten nicht geprüft.
+- Kein Push, Hosting-Deploy oder Staging-Deploy. Vorhandene lokale Preview auf 8100 ist inaktiv. Fremde Coach/Plan-Arbeitsbaumänderungen nicht gestaged.
+
 # Splash-Screen auch in der Fitness-Haupt-App (2026-10-16)
 
 - `cli.mjs splash` (neu im Paket) setzt Splash + Update-Loader in `dist/index.html` bzw. `dist-firebase/index.html` (`build`, `build:firebase:client`); Icon `/icon-192.png`, Name `Fitness`, Akzent aus `mini-app.json`. Geprüft am Firebase-Build (Splash vor `#root`, Icon-Pfad ok). Nicht auf Gerät gesehen.
