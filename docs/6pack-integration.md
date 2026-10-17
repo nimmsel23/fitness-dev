@@ -74,3 +74,18 @@ Commit `42e1168` aktualisiert `6pack-app` auf `21c804d` und reicht die bestehend
 Shell-UID weiter. Beide Production-Workflows waren erfolgreich. Frühere Hinweise
 auf einen ungeprüften Zwei-Geräte-Sync beschreiben den damaligen Zwischenstand;
 Offline-/HEIC-/Altbestand-Tests auf realen Geräten bleiben davon getrennt.
+
+## Übungsdetails vor dem Start (2026-10-17)
+
+Tagesliste, Shuffle und Favoriten öffnen gemeinsame Details aus dem direkten
+6pack-Submodule: Muskelgrafik, deutsche Ausführung/Fehler und Demo-Player. Die
+Rückkehr erhält den Workout-/Shuffle-Zustand. Start ist weiterhin explizit.
+`build-sixpack-data.mjs` verwendet `6pack/catalogContent.mjs`: Muskelregionen
+aus der lokalen Fitness-KB, öffentliche Videozuordnung aus dem 6pack-Katalog.
+Keine zusätzlichen Video- oder Muskel-ID-Mappings im Host pflegen.
+20/21 Übungen haben eine öffentliche Demo; Any Ball BTB Pass ist noch offen.
+Quellen und Medienvertrag: `6pack/docs/VIDEO_URLS.md`.
+
+Geprüft: Fitness ESLint, normaler und Firebase-Vite-Build sowie der tatsächliche
+6pack-Detail-/Navigations-Regressionstest mit den Fitness-generierten Daten.
+Neue Handy-Ansicht und externe Video-Wiedergabe noch nicht vom Nutzer abgenommen.
