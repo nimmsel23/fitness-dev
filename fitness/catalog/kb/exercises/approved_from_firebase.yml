@@ -688,45 +688,93 @@ exercises:
   - 202c_trapezius_lower
   - 403_brachialis
   - 404_brachioradialis
-- review_state:
+- primary_muscles:
+  - 601_quadriceps_femoris
+  type: compound
+  name: Beinpresse
+  review_state:
     status: approved
-  tags:
-  - machine
-  - compound
-  - quad-dominant
-  - lower-body
-  - strength
-  - hypertrophy
-  - legs
-  - leg_press
-  - unreviewed
-  id: leg_press
-  search_aliases:
-  - Beinpresse
-  - Schlitten-Beinpresse
-  - Leg Press
+  aliases:
   - Leg Press Machine
-  german: Beinpresse
+  - Machine Leg Press
+  - Plate-Loaded Leg Press
+  - 45 Degree Leg Press
+  - Schlitten-Beinpresse
+  wger_id: null
+  common_errors:
+  - Das Becken kippt im unteren Punkt nach hinten und der untere Rücken löst sich
+    von der Lehne, wodurch unnötiger Stress auf die Lendenwirbelsäule entsteht.
+  - Die Knie fallen nach innen oder weichen unkontrolliert nach außen aus, anstatt
+    sauber in Linie mit dem Fuß zu laufen.
+  - Der Bewegungsumfang wird künstlich verkürzt, obwohl mehr saubere Tiefe möglich
+    wäre, sodass Trainingsreiz und Gelenkkontrolle verschenkt werden.
+  - Oben werden die Knie hart durchgedrückt und die Spannung geht aus Quadrizeps und
+    Gesäß in eine passive Gelenkposition über.
+  - Der Schlitten wird in der unteren Position abgefedert oder mit Schwung umgekehrt,
+    statt die exzentrische Phase aktiv zu kontrollieren.
+  - Die Füße stehen zu hoch, zu tief oder asymmetrisch auf der Plattform, sodass Druckverteilung,
+    Kniepfad und Zielmuskulatur unnötig verfälscht werden.
+  - Das Gewicht ist zu schwer gewählt, sodass nur noch halbe Wiederholungen, Hüftverschiebungen
+    oder ein Verlust der Rumpfspannung möglich sind.
+  - Die Last wird einseitig über Vorfuß oder Fersen verschoben, wodurch Stabilität
+    verloren geht und die Kraftübertragung auf die Plattform schlechter wird.
   stabilizers:
   - 504_transverse_abdominis
   - 206_erector_spinae
   - 507_multifidus
-  category: squat
-  english: Leg Press
   origin:
     type: manual
+    wger:
+      primary_muscles:
+      - 601_quadriceps_femoris
+      - 603_gluteus_maximus
+      - 604a_biceps_femoris
+      - 604b_semitendinosus
+      - 604c_semimembranosus
+      - 701_gastrocnemius
+      wger_muscle_ids:
+        secondary:
+        - 7
+        - 8
+        primary:
+        - 11
+        - 7
+        - 8
+        - 10
+      category: legs
+      equipment: []
+      wger_id: 371
+      exercise_id: wger_371
+      german: Beinpresse
+      tags:
+      - unreviewed
+      - wger
+      coaching_notes:
+      - 'In die Maschine setzten und die Füße auf die Auflage stellen, der Abstand,
+        etwas mehr als schulterbreit. Die Füße sind etwas nach außen gedreht.
+
+        Das Gewicht wird so weit abgesenkt, dass die Knie einen rechten Winkel machen.
+        Sofort wird das Gewicht nach oben gedrückt. Die Knie zeigen etwas nach außen
+        und werden nie ganz ausgestreckt, die Bewegung bleibt immer flüssig, also
+        weder oben noch unten irgendwelche Pausen einlegen!'
+      display_name: Beinpresse
+      secondary_muscles:
+      - 603_gluteus_maximus
+      - 701_gastrocnemius
     yuhonas:
+      primary_muscles:
+      - quadriceps
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      category: strength
+      equipment:
+      - machine
+      exercise_id: yuhonas_leg_press
+      yuhonas_id: Leg_Press
       tags:
       - unreviewed
       - yuhonas
-      display_name: Leg Press
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      equipment:
-      - machine
-      yuhonas_id: Leg_Press
-      exercise_id: yuhonas_leg_press
       coaching_notes:
       - 'Using a leg press machine, sit down on the machine and place your legs on
         the platform directly in front of you at a medium (shoulder width) foot stance.
@@ -744,51 +792,38 @@ exercises:
       - Repeat for the recommended amount of repetitions and ensure to lock the safety
         pins properly once you are done. You do not want that platform falling on
         you fully loaded.
+      display_name: Leg Press
       secondary_muscles:
       - calves
       - glutes
       - hamstrings
-      primary_muscles:
-      - quadriceps
-      category: strength
     source_refs: {}
-    wger:
-      wger_muscle_ids:
-        primary:
-        - 11
-        - 7
-        - 8
-        - 10
-        secondary:
-        - 7
-        - 8
-      display_name: Beinpresse
-      tags:
-      - unreviewed
-      - wger
-      wger_id: 371
-      equipment: []
-      exercise_id: wger_371
-      primary_muscles:
-      - 601_quadriceps_femoris
-      - 603_gluteus_maximus
-      - 604a_biceps_femoris
-      - 604b_semitendinosus
-      - 604c_semimembranosus
-      - 701_gastrocnemius
-      secondary_muscles:
-      - 603_gluteus_maximus
-      - 701_gastrocnemius
-      german: Beinpresse
-      coaching_notes:
-      - 'In die Maschine setzten und die Füße auf die Auflage stellen, der Abstand,
-        etwas mehr als schulterbreit. Die Füße sind etwas nach außen gedreht.
-
-        Das Gewicht wird so weit abgesenkt, dass die Knie einen rechten Winkel machen.
-        Sofort wird das Gewicht nach oben gedrückt. Die Knie zeigen etwas nach außen
-        und werden nie ganz ausgestreckt, die Bewegung bleibt immer flüssig, also
-        weder oben noch unten irgendwelche Pausen einlegen!'
-      category: legs
+  english: Leg Press
+  german: Beinpresse
+  id: leg_press
+  display_name: Beinpresse
+  _hash: 40c7052b3937634d244ac1c7c2c40c36
+  category: squat
+  equipment:
+  - machine
+  search_aliases:
+  - Beinpresse
+  - Schlitten-Beinpresse
+  - Leg Press
+  - Leg Press Machine
+  exercise_id: leg_press
+  variations: []
+  schema_version: 2026-08-12.exercise-v1
+  tags:
+  - machine
+  - compound
+  - quad-dominant
+  - lower-body
+  - strength
+  - hypertrophy
+  - legs
+  - leg_press
+  - unreviewed
   movements:
   - knee_extension
   - knee_flexion
@@ -797,12 +832,6 @@ exercises:
   - bilateral
   - closed_chain
   - machine_guided
-  display_name: Beinpresse
-  equipment:
-  - machine
-  schema_version: 2026-08-12.exercise-v1
-  exercise_id: leg_press
-  wger_id: null
   coaching_notes:
   - Setze Becken und gesamten unteren Rücken stabil an die Lehne und halte diese Position
     über den kompletten Satz, damit die Kraft sauber über Hüfte und Knie auf die Plattform
@@ -823,41 +852,13 @@ exercises:
   - Wähle die Tiefe und Fußposition so, dass du den Quadrizeps belastest, ohne im
     unteren Umkehrpunkt die Position der Lendenwirbelsäule oder der Kniekontrolle
     zu verlieren.
+  source: approved
   secondary_muscles:
   - 603_gluteus_maximus
   - 602_adductors
   - 604a_biceps_femoris
   - 604b_semitendinosus
   - 604c_semimembranosus
-  aliases:
-  - Leg Press Machine
-  - Machine Leg Press
-  - Plate-Loaded Leg Press
-  - 45 Degree Leg Press
-  - Schlitten-Beinpresse
-  type: compound
-  variations: []
-  primary_muscles:
-  - 601_quadriceps_femoris
-  source: approved
-  name: Beinpresse
-  common_errors:
-  - Das Becken kippt im unteren Punkt nach hinten und der untere Rücken löst sich
-    von der Lehne, wodurch unnötiger Stress auf die Lendenwirbelsäule entsteht.
-  - Die Knie fallen nach innen oder weichen unkontrolliert nach außen aus, anstatt
-    sauber in Linie mit dem Fuß zu laufen.
-  - Der Bewegungsumfang wird künstlich verkürzt, obwohl mehr saubere Tiefe möglich
-    wäre, sodass Trainingsreiz und Gelenkkontrolle verschenkt werden.
-  - Oben werden die Knie hart durchgedrückt und die Spannung geht aus Quadrizeps und
-    Gesäß in eine passive Gelenkposition über.
-  - Der Schlitten wird in der unteren Position abgefedert oder mit Schwung umgekehrt,
-    statt die exzentrische Phase aktiv zu kontrollieren.
-  - Die Füße stehen zu hoch, zu tief oder asymmetrisch auf der Plattform, sodass Druckverteilung,
-    Kniepfad und Zielmuskulatur unnötig verfälscht werden.
-  - Das Gewicht ist zu schwer gewählt, sodass nur noch halbe Wiederholungen, Hüftverschiebungen
-    oder ein Verlust der Rumpfspannung möglich sind.
-  - Die Last wird einseitig über Vorfuß oder Fersen verschoben, wodurch Stabilität
-    verloren geht und die Kraftübertragung auf die Plattform schlechter wird.
 - review_state:
     status: approved
   tags:
