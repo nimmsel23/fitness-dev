@@ -2630,32 +2630,58 @@ exercises:
   - 301_anterior_deltoid
   - 105_serratus_anterior
   source: approved
-- external_ids:
-    wger:
-    - 1556
-    - 349
-  display_name: Seitheben am Kabelzug
-  review_state:
-    status: approved
-  aliases:
-  - Kabel-Seitheben
-  - Einarmiges Seitheben am Kabelzug
-  - Seitheben am Seilzug
-  - Cable Side Raise
-  - Single-Arm Cable Lateral Raise
-  - One-Arm Cable Lateral Raise
-  name: Seitheben am Kabelzug
-  wger_id: 1556
+- stabilizers:
+  - 304_rotator_cuff
+  - 202a_trapezius_upper
+  - 202c_trapezius_lower
+  - 105_serratus_anterior
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 608_gluteus_medius
+  common_errors:
+  - Zu viel Gewicht zu wählen und die Hantel mit Schwung, Beinimpuls oder Seitneigung
+    des Oberkörpers nach oben zu beschleunigen.
+  - Die Schulter während der Hebebewegung hochzuziehen, sodass der obere Trapezius
+    die Arbeit übernimmt und der Zielreiz auf dem seitlichen Deltoid sinkt.
+  - Den Arm durch deutliche Innenrotation anzuheben oder die Hand nach unten zu kippen,
+    statt das Schultergelenk neutral und stabil zu führen.
+  - Den Ellbogenwinkel ständig zu verändern und die Bewegung damit eher in eine Mischung
+    aus Seitheben und Zugbewegung zu verwandeln.
+  - Zu hoch zu heben, obwohl dabei die Spannung verloren geht oder die Schulterposition
+    unsauber wird. Mehr Höhe ist hier nicht automatisch besser.
+  - Das Gewicht unten einfach fallen zu lassen und dadurch die exzentrische Kontrolle
+    und den Vorteil der konstanten Kabelspannung zu verschenken.
+  - Den Arm zu weit hinter dem Körper oder in einer unnatürlichen Linie zu führen,
+    was die Schultermechanik häufig verschlechtert.
+  - Den Rumpf nicht zu stabilisieren, sodass du zur Gegenseite ausweichst oder ins
+    Hohlkreuz gehst, um die Wiederholung zu erleichtern.
+  - Mit dem Handgelenk oder Unterarm zu arbeiten, anstatt die Last über den Oberarm
+    und den seitlichen Deltoid zu bewegen.
+  - Die Bewegung hektisch auszuführen und jede Wiederholung anders zu starten, statt
+    eine konstante Zuglinie und reproduzierbare Technik beizubehalten.
+  type: isolation
+  exercise_id: cable_lateral_raise
   id: cable_lateral_raise
+  primary_muscles:
+  - 302_lateral_deltoid
   origin:
+    type: external
+    source_refs:
+      wger:
+      - '1556'
+      - '349'
+    wger:
+      wger_muscle_ids:
+        secondary: []
+        primary:
+        - 2
+      wger_id: 1556
     yuhonas:
-      equipment:
-      - cable
-      display_name: Cable Seated Lateral Raise
-      yuhonas_id: Cable_Seated_Lateral_Raise
-      tags:
-      - unreviewed
-      - yuhonas
+      category: strength
+      wger_muscle_ids:
+        secondary: []
+        primary: []
       coaching_notes:
       - Stand in the middle of two low pulleys that are opposite to each other and
         place a flat bench right behind you (in perpendicular fashion to you; the
@@ -2676,43 +2702,47 @@ exercises:
       - 'Repeat for the recommended amount of repetitions. Tip: Maintain upper arms
         perpendicular to torso and a fixed elbow position (10 degree to 30 degree
         angle) throughout exercise.'
-      wger_muscle_ids:
-        secondary: []
-        primary: []
+      equipment:
+      - cable
+      exercise_id: yuhonas_cable_seated_lateral_raise
       primary_muscles:
       - shoulders
-      exercise_id: yuhonas_cable_seated_lateral_raise
+      yuhonas_id: Cable_Seated_Lateral_Raise
+      display_name: Cable Seated Lateral Raise
       secondary_muscles:
       - middle_back
       - traps
-      category: strength
-    type: external
-    wger:
-      wger_muscle_ids:
-        secondary: []
-        primary:
-        - 2
-      wger_id: 1556
-    source_refs:
-      wger:
-      - '1556'
-      - '349'
-  wger_muscle_ids:
-    secondary: []
-    primary:
-    - 2
+      tags:
+      - unreviewed
+      - yuhonas
   movements:
   - shoulder_abduction
   - scapular_upward_rotation
   - scapular_control
   - glenohumeral_stability
   - anti_lateral_flexion
+  tags:
+  - isolation
+  - cable_machine
+  - hit_suitable
+  - shoulders
+  - shoulder_abduction
+  - unilateral
+  display_name: Seitheben am Kabelzug
   english: Cable Lateral Raise
-  secondary_muscles:
-  - 305_supraspinatus
-  - 301_anterior_deltoid
-  exercise_id: cable_lateral_raise
+  variations: []
+  schema_version: 2026-08-12.exercise-v1
   category: push
+  review_state:
+    status: approved
+  wger_muscle_ids:
+    primary:
+    - 2
+    secondary: []
+  external_ids:
+    wger:
+    - 1556
+    - 349
   coaching_notes:
   - Stelle dich seitlich zum Kabelzug und positioniere den Griff so, dass der Zug
     bereits in der unteren Position Spannung aufbaut. Das verbessert die Belastungskurve
@@ -2739,57 +2769,27 @@ exercises:
   - Wenn du einarmig arbeitest, kannst du dich mit der freien Hand leicht am Turm
     stabilisieren, um Kompensation zu reduzieren und den seitlichen Deltoid präziser
     zu treffen.
-  type: isolation
-  equipment:
-  - cable
-  schema_version: 2026-08-12.exercise-v1
-  german: Seitheben am Kabelzug
-  common_errors:
-  - Zu viel Gewicht zu wählen und die Hantel mit Schwung, Beinimpuls oder Seitneigung
-    des Oberkörpers nach oben zu beschleunigen.
-  - Die Schulter während der Hebebewegung hochzuziehen, sodass der obere Trapezius
-    die Arbeit übernimmt und der Zielreiz auf dem seitlichen Deltoid sinkt.
-  - Den Arm durch deutliche Innenrotation anzuheben oder die Hand nach unten zu kippen,
-    statt das Schultergelenk neutral und stabil zu führen.
-  - Den Ellbogenwinkel ständig zu verändern und die Bewegung damit eher in eine Mischung
-    aus Seitheben und Zugbewegung zu verwandeln.
-  - Zu hoch zu heben, obwohl dabei die Spannung verloren geht oder die Schulterposition
-    unsauber wird. Mehr Höhe ist hier nicht automatisch besser.
-  - Das Gewicht unten einfach fallen zu lassen und dadurch die exzentrische Kontrolle
-    und den Vorteil der konstanten Kabelspannung zu verschenken.
-  - Den Arm zu weit hinter dem Körper oder in einer unnatürlichen Linie zu führen,
-    was die Schultermechanik häufig verschlechtert.
-  - Den Rumpf nicht zu stabilisieren, sodass du zur Gegenseite ausweichst oder ins
-    Hohlkreuz gehst, um die Wiederholung zu erleichtern.
-  - Mit dem Handgelenk oder Unterarm zu arbeiten, anstatt die Last über den Oberarm
-    und den seitlichen Deltoid zu bewegen.
-  - Die Bewegung hektisch auszuführen und jede Wiederholung anders zu starten, statt
-    eine konstante Zuglinie und reproduzierbare Technik beizubehalten.
-  tags:
-  - isolation
-  - cable_machine
-  - hit_suitable
-  - shoulders
-  - shoulder_abduction
-  - unilateral
   search_aliases:
   - wger_1556
   - wger_349
   - Seitheben am Kabelzug
   - Cable Lateral Raise
-  primary_muscles:
-  - 302_lateral_deltoid
+  equipment:
+  - cable
+  german: Seitheben am Kabelzug
+  wger_id: 1556
+  name: Seitheben am Kabelzug
   source: approved
-  variations: []
-  stabilizers:
-  - 304_rotator_cuff
-  - 202a_trapezius_upper
-  - 202c_trapezius_lower
-  - 105_serratus_anterior
-  - 504_transverse_abdominis
-  - 502_obliquus_externus
-  - 503_obliquus_internus
-  - 608_gluteus_medius
+  secondary_muscles:
+  - 305_supraspinatus
+  - 301_anterior_deltoid
+  aliases:
+  - Kabel-Seitheben
+  - Einarmiges Seitheben am Kabelzug
+  - Seitheben am Seilzug
+  - Cable Side Raise
+  - Single-Arm Cable Lateral Raise
+  - One-Arm Cable Lateral Raise
 - name: Sitzendes Kabelrudern
   wger_id: null
   review_state:
