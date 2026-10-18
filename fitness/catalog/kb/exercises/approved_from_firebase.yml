@@ -2790,14 +2790,10 @@ exercises:
   - 502_obliquus_externus
   - 503_obliquus_internus
   - 608_gluteus_medius
-- review_state:
+- name: Sitzendes Kabelrudern
+  wger_id: null
+  review_state:
     status: approved
-  type: compound
-  primary_muscles:
-  - 201_latissimus_dorsi
-  - 202b_trapezius_middle
-  - 205_rhomboids
-  schema_version: 2026-08-12.exercise-v1
   aliases:
   - Rudern am Kabelzug
   - Kabelrudern
@@ -2805,42 +2801,55 @@ exercises:
   - Cable Row
   - Seated Cable Row
   - Seated Cable Row Machine
-  wger_id: null
-  common_errors:
-  - Den Oberkoerper stark nach hinten lehnen und die Wiederholung mit Schwung statt
-    mit Rueckenmuskulatur einleiten.
-  - Die Schultern am Endpunkt nach oben ziehen statt die Schulterblaetter nach hinten
-    unten zu kontrollieren.
-  - Den Griff zu hoch zur Brust ziehen, wodurch die Ellbogen auffaechern und der Zug
-    unsauber wird.
-  - In der exzentrischen Phase die Spannung verlieren und die Gewichte nach vorn ziehen
-    lassen.
-  - Mit rundem unteren Ruecken sitzen oder aus der Lendenwirbelsaeule in Flexion und
-    Extension arbeiten.
-  - Zu viel Gewicht waehlen, sodass der Bewegungsumfang verkuerzt wird und die Schulterblaetter
-    kaum noch arbeiten.
-  stabilizers:
-  - 304_rotator_cuff
-  - 504_transverse_abdominis
-  - 206_erector_spinae
-  - 507_multifidus
+  display_name: Sitzendes Kabelrudern
+  german: Sitzendes Kabelrudern
   origin:
     type: manual
-    wger:
-      primary_muscles:
-      - 201_latissimus_dorsi
+    yuhonas:
+      equipment:
+      - cable
+      yuhonas_id: Seated_Cable_Rows
+      display_name: Seated Cable Rows
+      tags:
+      - unreviewed
+      - yuhonas
+      coaching_notes:
+      - 'For this exercise you will need access to a low pulley row machine with a
+        V-bar. Note: The V-bar will enable you to have a neutral grip where the palms
+        of your hands face each other. To get into the starting position, first sit
+        down on the machine and place your feet on the front platform or crossbar
+        provided making sure that your knees are slightly bent and not locked.'
+      - Lean over as you keep the natural alignment of your back and grab the V-bar
+        handles.
+      - With your arms extended pull back until your torso is at a 90-degree angle
+        from your legs. Your back should be slightly arched and your chest should
+        be sticking out. You should be feeling a nice stretch on your lats as you
+        hold the bar in front of you. This is the starting position of the exercise.
+      - Keeping the torso stationary, pull the handles back towards your torso while
+        keeping the arms close to it until you touch the abdominals. Breathe out as
+        you perform that movement. At that point you should be squeezing your back
+        muscles hard. Hold that contraction for a second and slowly go back to the
+        original position while breathing in.
+      - Repeat for the recommended amount of repetitions.
       wger_muscle_ids:
         secondary: []
-        primary:
-        - 12
-      wger_id: 1442
+        primary: []
+      primary_muscles:
+      - middle_back
+      secondary_muscles:
+      - biceps
+      - lats
+      - shoulders
+      exercise_id: yuhonas_seated_cable_rows
+      category: strength
+    wger:
       equipment: []
-      category: back
-      exercise_id: wger_1442
-      german: Abwechselndes hohes Kabelrudern
+      display_name: Abwechselndes hohes Kabelrudern
+      wger_id: 1442
       tags:
       - unreviewed
       - wger
+      german: Abwechselndes hohes Kabelrudern
       coaching_notes:
       - 'Beginne,
 
@@ -2864,73 +2873,16 @@ exercises:
 
         rechten Hand. Wiederhole diese Bewegung auf der gegenüberliegenden Seite,
         mit dem rechten Fuß nach hinten gestellt.'
-      display_name: Abwechselndes hohes Kabelrudern
-      secondary_muscles: []
-    yuhonas:
-      primary_muscles:
-      - middle_back
       wger_muscle_ids:
         secondary: []
-        primary: []
-      category: strength
-      equipment:
-      - cable
-      exercise_id: yuhonas_seated_cable_rows
-      yuhonas_id: Seated_Cable_Rows
-      tags:
-      - unreviewed
-      - yuhonas
-      coaching_notes:
-      - 'For this exercise you will need access to a low pulley row machine with a
-        V-bar. Note: The V-bar will enable you to have a neutral grip where the palms
-        of your hands face each other. To get into the starting position, first sit
-        down on the machine and place your feet on the front platform or crossbar
-        provided making sure that your knees are slightly bent and not locked.'
-      - Lean over as you keep the natural alignment of your back and grab the V-bar
-        handles.
-      - With your arms extended pull back until your torso is at a 90-degree angle
-        from your legs. Your back should be slightly arched and your chest should
-        be sticking out. You should be feeling a nice stretch on your lats as you
-        hold the bar in front of you. This is the starting position of the exercise.
-      - Keeping the torso stationary, pull the handles back towards your torso while
-        keeping the arms close to it until you touch the abdominals. Breathe out as
-        you perform that movement. At that point you should be squeezing your back
-        muscles hard. Hold that contraction for a second and slowly go back to the
-        original position while breathing in.
-      - Repeat for the recommended amount of repetitions.
-      display_name: Seated Cable Rows
-      secondary_muscles:
-      - biceps
-      - lats
-      - shoulders
+        primary:
+        - 12
+      primary_muscles:
+      - 201_latissimus_dorsi
+      secondary_muscles: []
+      exercise_id: wger_1442
+      category: back
     source_refs: {}
-  english: Seated Cable Row
-  german: Sitzendes Kabelrudern
-  id: cable_row
-  display_name: Sitzendes Kabelrudern
-  category: pull
-  equipment:
-  - cable
-  search_aliases:
-  - Sitzendes Kabelrudern
-  - Rudern am Kabelzug
-  - Kabelrudern
-  - Seated Cable Row
-  - Cable Row
-  exercise_id: cable_row
-  variations: []
-  name: Sitzendes Kabelrudern
-  tags:
-  - back
-  - compound
-  - horizontal_pull
-  - cable
-  - strength
-  movements:
-  - horizontal
-  - shoulder_extension
-  - scapular_retraction
-  - elbow_flexion
   coaching_notes:
   - Aufrecht sitzen und den Brustkorb anheben, sodass die Wirbelsaeule waehrend der
     ganzen Wiederholung neutral bleibt.
@@ -2944,13 +2896,61 @@ exercises:
     protruieren, ohne die Spannung komplett zu verlieren.
   - Waehle ein Gewicht, bei dem du den Griff mit konstantem Tempo bewegen kannst statt
     den Oberkoerper nach hinten zu reissen.
-  source: approved
+  movements:
+  - horizontal
+  - shoulder_extension
+  - scapular_retraction
+  - elbow_flexion
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 202b_trapezius_middle
+  - 205_rhomboids
   secondary_muscles:
   - 207_teres_major
   - 303_posterior_deltoid
   - 402_biceps_brachii
   - 403_brachialis
   - 404_brachioradialis
+  exercise_id: cable_row
+  category: pull
+  source: approved
+  type: compound
+  equipment:
+  - cable
+  schema_version: 2026-08-12.exercise-v1
+  search_aliases:
+  - Sitzendes Kabelrudern
+  - Rudern am Kabelzug
+  - Kabelrudern
+  - Seated Cable Row
+  - Cable Row
+  common_errors:
+  - Den Oberkoerper stark nach hinten lehnen und die Wiederholung mit Schwung statt
+    mit Rueckenmuskulatur einleiten.
+  - Die Schultern am Endpunkt nach oben ziehen statt die Schulterblaetter nach hinten
+    unten zu kontrollieren.
+  - Den Griff zu hoch zur Brust ziehen, wodurch die Ellbogen auffaechern und der Zug
+    unsauber wird.
+  - In der exzentrischen Phase die Spannung verlieren und die Gewichte nach vorn ziehen
+    lassen.
+  - Mit rundem unteren Ruecken sitzen oder aus der Lendenwirbelsaeule in Flexion und
+    Extension arbeiten.
+  - Zu viel Gewicht waehlen, sodass der Bewegungsumfang verkuerzt wird und die Schulterblaetter
+    kaum noch arbeiten.
+  tags:
+  - back
+  - compound
+  - horizontal_pull
+  - cable
+  - strength
+  id: cable_row
+  variations: []
+  english: Seated Cable Row
+  stabilizers:
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 206_erector_spinae
+  - 507_multifidus
 - primary_muscles:
   - 201_latissimus_dorsi
   - 202b_trapezius_middle
