@@ -32,3 +32,14 @@ export function mergePushSettings(base = {}, patch = {}) {
     devices: Array.from(devices.values()),
   }
 }
+
+// Nur das aktuell identifizierte Gerät aktualisieren, fremde Geräte unverändert lassen.
+export function refreshPushDevice(settings, token, label) {
+  if (!token || !settings?.enabled) return settings
+  const existing = settings.devices?.find((device) => device.token === token)
+  if ((settings.tokens || []).includes(token) && existing?.label === label) return settings
+  return mergePushSettings(settings, {
+    token,
+    devices: [{ ...existing, token, label }],
+  })
+}

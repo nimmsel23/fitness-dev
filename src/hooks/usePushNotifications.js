@@ -3,7 +3,7 @@ import { isLocalMode, getPushSettings, savePushSettings } from '@db'
 import { getMessagingIfSupported, functionsInstance, httpsCallable } from '@cloud/firebase.js'
 import { getToken } from 'firebase/messaging'
 import { VAPID_KEY } from '@firebase-config'
-import { DEFAULT_QUIET_HOURS, describeDevice, mergePushSettings } from './pushSettings.js'
+import { DEFAULT_QUIET_HOURS, describeDevice, mergePushSettings, refreshPushDevice } from './pushSettings.js'
 
 export { DEFAULT_QUIET_HOURS, describeDevice, mergePushSettings }
 
@@ -26,9 +26,15 @@ export function usePushNotifications(user) {
     return () => { alive = false }
   }, [user])
 
+  const persist = useCallback(async (next) => {
+    setSettings(next)
+    await savePushSettings(next)
+    return next
+  }, [])
+
   // Welches der registrierten Geräte ist dieses? (nur wenn Push hier schon erlaubt ist)
   useEffect(() => {
-    if (isLocalMode() || !user || permission !== 'granted') return
+    if (isLocalMode() || !user || !settings || permission !== 'granted') return
     let alive = true
     ;(async () => {
       try {
@@ -38,21 +44,14 @@ export function usePushNotifications(user) {
         const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: registration })
         if (!alive) return
         setCurrentToken(token || null)
-        if (token && settings?.enabled && !(settings.tokens || []).includes(token)) {
-          await persist(mergePushSettings(settings, { token, tokens: [...(settings.tokens || []), token] }))
-        }
+        const next = refreshPushDevice(settings, token, describeDevice())
+        if (next !== settings) await persist(next)
       } catch {
         // Gerät nicht erkennbar → die Liste kommt ohne "Dieses Gerät"-Markierung aus
       }
     })()
     return () => { alive = false }
   }, [user, permission, settings, persist])
-
-  const persist = useCallback(async (next) => {
-    setSettings(next)
-    await savePushSettings(next)
-    return next
-  }, [])
 
   const enable = useCallback(async () => {
     if (isLocalMode() || !user) return
