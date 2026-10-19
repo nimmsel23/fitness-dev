@@ -688,15 +688,25 @@ exercises:
   - shoulder_horizontal_abduction
   - scapular_retraction
   - elbow_flexion
-- type: compound
+- id: leg_press
+  equipment:
+  - machine
+  movements:
+  - knee_extension
+  - knee_flexion
+  - hip_extension
+  - hip_flexion
+  - bilateral
+  - closed_chain
+  - machine_guided
+  primary_muscles:
+  - 601_quadriceps_femoris
+  wger_id: null
+  review_state:
+    status: approved
+  _hash: 40c7052b3937634d244ac1c7c2c40c36
   origin:
-    type: manual
-    source_refs: {}
     yuhonas:
-      category: strength
-      wger_muscle_ids:
-        primary: []
-        secondary: []
       coaching_notes:
       - 'Using a leg press machine, sit down on the machine and place your legs on
         the platform directly in front of you at a medium (shoulder width) foot stance.
@@ -715,21 +725,41 @@ exercises:
         pins properly once you are done. You do not want that platform falling on
         you fully loaded.
       exercise_id: yuhonas_leg_press
-      equipment:
-      - machine
       primary_muscles:
       - quadriceps
-      yuhonas_id: Leg_Press
-      display_name: Leg Press
       secondary_muscles:
       - calves
       - glutes
       - hamstrings
+      display_name: Leg Press
+      yuhonas_id: Leg_Press
+      wger_muscle_ids:
+        secondary: []
+        primary: []
       tags:
       - unreviewed
       - yuhonas
+      equipment:
+      - machine
+      category: strength
+    type: manual
+    source_refs: {}
     wger:
-      category: legs
+      german: Beinpresse
+      exercise_id: wger_371
+      equipment: []
+      primary_muscles:
+      - 601_quadriceps_femoris
+      - 603_gluteus_maximus
+      - 604a_biceps_femoris
+      - 604b_semitendinosus
+      - 604c_semimembranosus
+      - 701_gastrocnemius
+      wger_id: 371
+      secondary_muscles:
+      - 603_gluteus_maximus
+      - 701_gastrocnemius
+      display_name: Beinpresse
       wger_muscle_ids:
         secondary:
         - 7
@@ -739,6 +769,9 @@ exercises:
         - 7
         - 8
         - 10
+      tags:
+      - unreviewed
+      - wger
       coaching_notes:
       - 'In die Maschine setzten und die Füße auf die Auflage stellen, der Abstand,
         etwas mehr als schulterbreit. Die Füße sind etwas nach außen gedreht.
@@ -747,64 +780,28 @@ exercises:
         Sofort wird das Gewicht nach oben gedrückt. Die Knie zeigen etwas nach außen
         und werden nie ganz ausgestreckt, die Bewegung bleibt immer flüssig, also
         weder oben noch unten irgendwelche Pausen einlegen!'
-      german: Beinpresse
-      equipment: []
-      wger_id: 371
-      primary_muscles:
-      - 601_quadriceps_femoris
-      - 603_gluteus_maximus
-      - 604a_biceps_femoris
-      - 604b_semitendinosus
-      - 604c_semimembranosus
-      - 701_gastrocnemius
-      display_name: Beinpresse
-      exercise_id: wger_371
-      tags:
-      - unreviewed
-      - wger
-      secondary_muscles:
-      - 603_gluteus_maximus
-      - 701_gastrocnemius
+      category: legs
+  schema_version: 2026-08-12.exercise-v1
   stabilizers:
   - 504_transverse_abdominis
   - 206_erector_spinae
   - 507_multifidus
-  id: leg_press
+  german: Beinpresse
+  variations: []
   exercise_id: leg_press
-  display_name: Beinpresse
-  primary_muscles:
-  - 601_quadriceps_femoris
-  movements:
-  - knee_extension
-  - knee_flexion
-  - hip_extension
-  - hip_flexion
-  - bilateral
-  - closed_chain
-  - machine_guided
-  tags:
-  - machine
-  - compound
-  - quad-dominant
-  - lower-body
-  - strength
-  - hypertrophy
-  - legs
-  - leg_press
-  - unreviewed
   aliases:
   - Leg Press Machine
   - Machine Leg Press
   - Plate-Loaded Leg Press
   - 45 Degree Leg Press
   - Schlitten-Beinpresse
-  english: Leg Press
-  variations: []
-  schema_version: 2026-08-12.exercise-v1
-  category: squat
-  review_state:
-    status: approved
-  _hash: 40c7052b3937634d244ac1c7c2c40c36
+  type: compound
+  secondary_muscles:
+  - 603_gluteus_maximus
+  - 602_adductors
+  - 604a_biceps_femoris
+  - 604b_semitendinosus
+  - 604c_semimembranosus
   common_errors:
   - Das Becken kippt im unteren Punkt nach hinten und der untere Rücken löst sich
     von der Lehne, wodurch unnötiger Stress auf die Lendenwirbelsäule entsteht.
@@ -822,16 +819,25 @@ exercises:
     oder ein Verlust der Rumpfspannung möglich sind.
   - Die Last wird einseitig über Vorfuß oder Fersen verschoben, wodurch Stabilität
     verloren geht und die Kraftübertragung auf die Plattform schlechter wird.
-  name: Beinpresse
+  english: Leg Press
+  display_name: Beinpresse
   search_aliases:
   - Beinpresse
   - Schlitten-Beinpresse
   - Leg Press
   - Leg Press Machine
-  equipment:
+  source: approved
+  name: Beinpresse
+  tags:
   - machine
-  german: Beinpresse
-  wger_id: null
+  - compound
+  - quad-dominant
+  - lower-body
+  - strength
+  - hypertrophy
+  - legs
+  - leg_press
+  - unreviewed
   coaching_notes:
   - Setze Becken und gesamten unteren Rücken stabil an die Lehne und halte diese Position
     über den kompletten Satz, damit die Kraft sauber über Hüfte und Knie auf die Plattform
@@ -852,13 +858,7 @@ exercises:
   - Wähle die Tiefe und Fußposition so, dass du den Quadrizeps belastest, ohne im
     unteren Umkehrpunkt die Position der Lendenwirbelsäule oder der Kniekontrolle
     zu verlieren.
-  secondary_muscles:
-  - 603_gluteus_maximus
-  - 602_adductors
-  - 604a_biceps_femoris
-  - 604b_semitendinosus
-  - 604c_semimembranosus
-  source: approved
+  category: squat
 - type: isolation
   common_errors:
   - Das Becken sinkt ab und der untere Rücken fällt ins Hohlkreuz, wodurch die Belastung
