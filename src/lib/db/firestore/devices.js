@@ -12,6 +12,8 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../../firebase.js";
 import { getUid } from "./core.js";
 
+import { describeDevice } from "../../deviceInfo.js";
+
 const APP = "fitness";
 const DEVICE_ID_KEY = "fitness-device-id";
 
@@ -26,22 +28,6 @@ export function getDeviceId() {
   } catch {
     return null;
   }
-}
-
-function deviceLabel() {
-  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
-  const os = /Android/i.test(ua) ? "Android"
-    : /iPhone|iPad|iPod/i.test(ua) ? "iOS"
-    : /Windows/i.test(ua) ? "Windows"
-    : /Mac OS X/i.test(ua) ? "macOS"
-    : /Linux/i.test(ua) ? "Linux"
-    : "Gerät";
-  const browser = /Edg\//.test(ua) ? "Edge"
-    : /Firefox\//.test(ua) ? "Firefox"
-    : /Chrome\//.test(ua) ? "Chrome"
-    : /Safari\//.test(ua) ? "Safari"
-    : "Browser";
-  return `${os} · ${browser}`;
 }
 
 export async function getDevice() {
@@ -60,7 +46,7 @@ export async function registerDevice(prefs = null) {
     await setDoc(doc(db, "users", getUid(), "devices", id), {
       app: APP,
       ...(prefs ? { prefs: { [APP]: prefs } } : {}),
-      label: deviceLabel(),
+      label: describeDevice(),
       ...(existing?.registered_at ? {} : { registered_at: serverTimestamp() }),
       last_seen_at: serverTimestamp(),
     }, { merge: true });
