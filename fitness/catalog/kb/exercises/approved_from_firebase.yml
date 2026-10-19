@@ -1869,7 +1869,14 @@ exercises:
   - barbell
   - squat_rack
   category: squat
-- coaching_notes:
+- equipment:
+  - machine
+  movements:
+  - knee_extension
+  - open_chain
+  - seated
+  - single_joint
+  coaching_notes:
   - Stelle die Maschine so ein, dass die Kniegelenkachse exakt mit der Drehachse der
     Maschine fluchtet und das Polster knapp oberhalb des Sprunggelenks sitzt.
   - Spanne den Quadrizeps aktiv an und strecke das Knie kontrolliert, bis kurz vor
@@ -1880,33 +1887,28 @@ exercises:
     sauber aus der Knieextension kommen, nicht aus Schwung oder Ausweichen im Oberkörper.
   - Wähle eine ROM, in der du schmerzfrei arbeiten kannst, und halte Knie, Fuß und
     Oberschenkel in einer sauberen Linie über die gesamte Wiederholung.
-  type: isolation
-  equipment:
-  - machine
   primary_muscles:
   - 601_quadriceps_femoris
   wger_id: 851
-  movements:
-  - knee_extension
-  - open_chain
-  - seated
-  - single_joint
+  english: Leg Extension
   review_state:
     status: approved
-  common_errors:
-  - Zu hohes Trainingsgewicht, sodass die Wiederholung mit Schwung eingeleitet wird
-    statt mit sauberer Muskelspannung.
-  - Das Gewicht in der Abwärtsphase einfach fallen lassen und dadurch Spannung sowie
-    Gelenkkontrolle verlieren.
-  - Die Knie nicht korrekt zur Maschinenachse ausrichten, was unnötigen Druck auf
-    das Gelenk erzeugen kann.
-  - Am oberen Punkt hart ins Kniegelenk hineinschnappen, statt die Endstreckung muskulär
-    zu kontrollieren.
-  - Hüfte oder Gesäß vom Sitz abheben und mit dem Oberkörper ausweichen, um die letzten
-    Grade der Bewegung zu erzwingen.
-  emphasis_muscles: []
   origin:
     yuhonas:
+      equipment:
+      - machine
+      exercise_id: yuhonas_leg_extensions
+      primary_muscles:
+      - quadriceps
+      secondary_muscles: []
+      display_name: Leg Extensions
+      yuhonas_id: Leg_Extensions
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      tags:
+      - unreviewed
+      - yuhonas
       coaching_notes:
       - 'For this exercise you will need to use a leg extension machine. First choose
         your weight and sit on the machine with your legs under the pad (feet pointed
@@ -1924,20 +1926,6 @@ exercises:
       - Slowly lower the weight back to the original position as you inhale, ensuring
         that you do not go past the 90-degree angle limit.
       - Repeat for the recommended amount of times.
-      exercise_id: yuhonas_leg_extensions
-      primary_muscles:
-      - quadriceps
-      secondary_muscles: []
-      display_name: Leg Extensions
-      yuhonas_id: Leg_Extensions
-      wger_muscle_ids:
-        secondary: []
-        primary: []
-      tags:
-      - unreviewed
-      - yuhonas
-      equipment:
-      - machine
       category: strength
     type: merged_external
     source_refs:
@@ -1951,15 +1939,15 @@ exercises:
         primary:
         - 10
       wger_id: 851
+  emphasis_muscles: []
+  _hash: 3188e868e57cedad689328d5dc012c18
   schema_version: 2026-08-12.exercise-v1
   stabilizers:
   - 504_transverse_abdominis
   - 507_multifidus
   german: Beinstrecken
-  variations:
-  - single_leg_extension
-  - unilateral_leg_extension
   exercise_id: '401'
+  type: isolation
   external_ids:
     yuhonas:
     - Leg_Extensions
@@ -1972,12 +1960,25 @@ exercises:
   - Leg Extension Machine
   - Quadriceps Extension
   secondary_muscles: []
-  english: Leg Extension
+  common_errors:
+  - Zu hohes Trainingsgewicht, sodass die Wiederholung mit Schwung eingeleitet wird
+    statt mit sauberer Muskelspannung.
+  - Das Gewicht in der Abwärtsphase einfach fallen lassen und dadurch Spannung sowie
+    Gelenkkontrolle verlieren.
+  - Die Knie nicht korrekt zur Maschinenachse ausrichten, was unnötigen Druck auf
+    das Gelenk erzeugen kann.
+  - Am oberen Punkt hart ins Kniegelenk hineinschnappen, statt die Endstreckung muskulär
+    zu kontrollieren.
+  - Hüfte oder Gesäß vom Sitz abheben und mit dem Oberkörper ausweichen, um die letzten
+    Grade der Bewegung zu erzwingen.
+  display_name: Beinstrecken
   wger_muscle_ids:
     secondary: []
     primary:
     - 10
-  display_name: Beinstrecken
+  variations:
+  - single_leg_extension
+  - unilateral_leg_extension
   search_aliases:
   - leg_extension
   - leg_extension_machine
