@@ -1,8 +1,8 @@
 # Push-Benachrichtigungen (FCM)
 
-Stand 2026-10-15. Zwei Wege: **Erinnerungen** an alle Nutzer (zeitgesteuert) und **Klienten-Workout → Coach**
+Stand 2026-10-19. Zwei Wege: **Erinnerungen** an alle Nutzer (zeitgesteuert) und **Klienten-Workout → Coach**
 (ereignisgesteuert). Beide laufen als Firebase Cloud Functions (Projekt `fitness-aos`, Region `europe-west1`)
-und kommen als FCM-*Data*-Message im Service Worker `public/firebase-messaging-sw.js` an, der die
+und kommen als FCM-*Data*-Message im Fitness-Service-Worker `public/fitness-messaging-sw.js` an, der die
 Notification selbst anzeigt.
 
 ```
@@ -43,18 +43,28 @@ Tests: `node --test functions/` (21 Tests, ohne Firebase). Textänderungen wirke
 - Env: `COACH_UIDS` (kommagetrennt), `COACH_URL` (Standard `https://vos-coach.web.app`).
 
 ### Einstellungen: `fitness/{uid}/settings/push`
+Fitness liest und schreibt ausschließlich `apps.fitness` (VitalOS verwendet `apps.vitalos`). Die beiden
+Apps behalten dadurch getrennte Geräte-Token, Schalter und Erinnerungszustände, obwohl sie dasselbe
+Firestore-Dokument nutzen. Fitness-Payloads enthalten `app: "fitness"`; der Worker blendet andere Apps aus.
 `enabled`, `tokens[]`, `token`, `devices[{token,label,addedAt}]`, `types{}`, `reminderTime`,
 `quietHours{enabled,start,end}` (Berliner Zeit, über Mitternacht erlaubt), `mutedClients[]`,
 `clientWorkoutMode` (`all` | `finished`), `lastTestAt` (Cooldown 10 s für `sendTestPush`).
 Ruhezeiten gelten nur für Klienten-Meldungen, nicht für die zeitgesteuerten Erinnerungen.
 
-## Service Worker (`public/firebase-messaging-sw.js`, Kopie in `frontend/public/`)
+Der Rest-Day-Check berechnet den persönlichen Trainingsabstand aus den Abständen zwischen
+dokumentierten Trainingstagen (bis zu 120 Sessions). Er meldet erst bei 1,5× des Durchschnitts,
+mindestens nach 3 Tagen; bei weniger als zwei bekannten Trainingstagen gilt ein 7-Tage-Startwert.
+Pro letzter Session wird höchstens eine „Alles ok?“-Meldung gesendet. Ein neues Workout startet
+diesen Zyklus erneut.
+
+## Service Worker (`public/fitness-messaging-sw.js`, Kopie in `frontend/public/`)
 - `data.type === "clientWorkout"`: ein Tag pro Klient (`client-workout-<uid>`); ein weiteres Workout vor dem
   Wegwischen wird zur Sammelmeldung „N neue Workouts" (der Text steht im SW, nicht in der YAML). Gleiche `sid`
   = Update ohne erneutes Klingeln. Buttons „Öffnen" / „Gesehen" („Gesehen" schließt nur).
 - Links auf eine andere Origin (Coach-Site) öffnen ein vorhandenes Coach-Fenster oder ein neues.
 - Alle übrigen Meldungen: wie bisher (Tag `fitness-reminder`, kein Renotify).
-- Test ohne Browser: `node scripts/test-push-sw.mjs public/firebase-messaging-sw.js frontend/public/firebase-messaging-sw.js`.
+- Eigener Scope `/fitness-push/`; VitalOS registriert `/vitalos-push/` mit eigenem Worker.
+- Test ohne Browser: `node scripts/test-push-sw.mjs public/fitness-messaging-sw.js frontend/public/fitness-messaging-sw.js`.
 
 ## Notification-Panel (Setup-Tab)
 `src/views/Settings/NotificationsSection.jsx` + `src/hooks/usePushNotifications.js` (reine Logik in

@@ -1,8 +1,6 @@
-name: inbox_wger_1404
-description: 'Proactively generated expert draft for: Seitheben und Frontheben mit
-  Kurzhanteln'
-generated_at: '2026-10-16T15:48:19.837403+00:00'
-enriched_at: '2026-10-16T15:48:19.837403+00:00'
+exercise_id: dumbbell_raise
+description: Expert details for Seitheben und Frontheben mit Kurzhanteln
+approved_at: '2026-10-17T21:08:03.096384+00:00'
 exercises:
 - name: Seitheben und Frontheben mit Kurzhanteln
   wger_id: 1404
@@ -11,9 +9,9 @@ exercises:
     - 1404
     yuhonas:
     - Side_Laterals_to_Front_Raise
-  id: wger_1404
+  id: dumbbell_raise
   display_name: Seitheben und Frontheben mit Kurzhanteln
-  exercise_id: wger_1404
+  exercise_id: dumbbell_raise
   english: Dumbbell Lateral Raise to Front Raise
   origin:
     type: merged_external
@@ -116,10 +114,17 @@ exercises:
   - yuhonas
   - merged_external
   variations: []
-  source: unreviewed
+  source: expert
   enriched_at: '2026-10-16T15:48:19.837403+00:00'
   schema_version: 2026-08-12.exercise-v1
   review_state:
-    status: draft
-    ai_reviewed: false
+    status: approved
+    ai_reviewed: true
     enriched_at: '2026-10-16T15:48:19.837403+00:00'
+    approved_at: '2026-10-17T21:08:03.096384+00:00'
+  approved_at: '2026-10-17T21:08:03.096384+00:00'
+  search_aliases:
+  - wger_1404
+  - Side_Laterals_to_Front_Raise
+  - Seitheben und Frontheben mit Kurzhanteln
+  - Dumbbell Lateral Raise to Front Raise

@@ -1,7 +1,6 @@
-name: inbox_yuhonas_machine_triceps_extension
-description: 'Proactively generated expert draft for: Machine Triceps Extension'
-generated_at: '2026-09-22T11:24:05.735808+00:00'
-enriched_at: '2026-09-22T11:24:05.735808+00:00'
+exercise_id: yuhonas_machine_triceps_extension
+description: Expert details for Trizepsmaschine
+approved_at: '2026-10-17T21:10:38.693280+00:00'
 exercises:
 - exercise_id: yuhonas_machine_triceps_extension
   id: yuhonas_machine_triceps_extension
@@ -84,15 +83,25 @@ exercises:
     yuhonas:
     - Machine_Triceps_Extension
   variations: []
-  source: unreviewed
+  source: expert
   enriched_at: '2026-09-22T11:24:05.735808+00:00'
   schema_version: 2026-08-12.exercise-v1
   origin:
-    type: external
+    type: merged_external
     source_refs:
+      wger:
+      - '661'
       yuhonas:
       - Machine_Triceps_Extension
   review_state:
-    status: draft
-    ai_reviewed: false
+    status: approved
+    ai_reviewed: true
     enriched_at: '2026-09-22T11:24:05.735808+00:00'
+    approved_at: '2026-10-17T21:10:38.693280+00:00'
+  approved_at: '2026-10-17T21:10:38.693280+00:00'
+  search_aliases:
+  - yuhonas_machine_triceps_extension
+  - Machine_Triceps_Extension
+  - Trizepsmaschine
+  - Machine Triceps Extension
+  wger_id: 661

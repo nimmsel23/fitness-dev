@@ -1758,3 +1758,25 @@ Backend-Funktionscommit: `77d6963`; Plan-Frontend-Companion: `0643b99`.
 
 ## 2026-10-17 — Offline-Cache bei Updates
 Gemeinsame mini-app-shell erweitert bzw. aktualisiert: versionsunabhängiger öffentlicher API-Cache mit Migration, Asset-Precache standardmäßig aktiv, fehlgeschlagene Installation ersetzt bestehenden Worker nicht. IndexedDB/localStorage bleiben unverändert. Geprüft: 13 Shell-/Update-Tests, Private-Request-Test, Vendor-Parität. Kein Push/Release; kein physischer Geräte-Test.
+
+## 2026-10-19 — Personalisierter Rest-Day-Push
+
+Der „Alles ok?“-Push nutzt jetzt den durchschnittlichen Abstand zwischen den letzten
+abgeschlossenen Trainingstagen (bis zu 120 Sessions) und meldet erst bei 1,5× dieses
+Abstands, mindestens nach 3 Tagen. Bei zu wenig Historie gilt ein 7-Tage-Startwert.
+Pro letzter Session wird höchstens eine Meldung versendet; ein neues Workout setzt
+den Benachrichtigungszyklus zurück. Dokumentiert in `docs/PUSH-NOTIFICATIONS.md`.
+
+Geprüft: `node --check functions/index.js` und `git diff --check`. Keine Tests oder
+Firebase-Deploy ausgeführt.
+## 2026-10-19 — Fitness-Push von VitalOS getrennt
+
+Fitness speichert Push-Einstellungen und FCM-Tokens jetzt in `apps.fitness` des
+gemeinsamen Settings-Dokuments und sendet Tests sowie Workout-Notifications nur
+an diese Lane. Fitness nutzt `/fitness-messaging-sw.js` unter `/fitness-push/`;
+der Worker zeigt nur Payloads mit `app: "fitness"`. Vorhandene aktivierte
+Geräte registrieren beim nächsten Öffnen automatisch den neuen Worker und
+speichern ihr Token in der Fitness-Lane.
+
+Statische `node --check`-Prüfungen und `git diff --check` erfolgreich. Kein
+Testlauf und kein Firebase-Release.

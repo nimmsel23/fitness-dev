@@ -11,7 +11,10 @@ admin.initializeApp();
 
 const TIME_ZONE = "Europe/Berlin";
 const REMINDER_WINDOW_MINUTES = 5;
-const REST_DAY_THRESHOLD_DAYS = 3;
+const REST_DAY_MIN_THRESHOLD_DAYS = 3;
+const REST_DAY_COLD_START_DAYS = 7;
+const REST_DAY_HISTORY_LIMIT = 120;
+const REST_DAY_OVERDUE_FACTOR = 1.5;
 const COVERAGE_GAP_THRESHOLD = 1.0;
 const PPL_RATIO_ALERT_THRESHOLD = 0.15;
 const REMINDER_TYPES = {
@@ -162,18 +165,36 @@ async function getActiveWorkoutReminderCandidate(userRef, now = Date.now()) {
 }
 
 async function getDaysSinceLastCompletedTraining(userRef, todayDate) {
-  const snap = await userRef.collection("sessions").orderBy("date", "desc").limit(120).get();
+  const snap = await userRef.collection("sessions").orderBy("date", "desc").limit(REST_DAY_HISTORY_LIMIT).get();
   const today = new Date(`${todayDate}T12:00:00`);
+  const trainingDates = new Set();
   for (const doc of snap.docs) {
     const session = doc.data() || {};
     const date = session.date;
     if (!date) continue;
     const exercises = Array.isArray(session.exercises) ? session.exercises : [];
     if (!exercises.some((exercise) => exerciseHasTrainingSignal(exercise))) continue;
-    const last = new Date(`${date}T12:00:00`);
-    return Math.floor((today - last) / 86400000);
+    if (date < todayDate) trainingDates.add(date);
   }
-  return null;
+  const dates = Array.from(trainingDates).sort((a, b) => b.localeCompare(a));
+  if (dates.length === 0) return null;
+
+  const last = new Date(`${dates[0]}T12:00:00`);
+  const daysSince = Math.floor((today - last) / 86400000);
+  const intervals = [];
+  for (let i = 0; i < dates.length - 1; i += 1) {
+    const newer = new Date(`${dates[i]}T12:00:00`);
+    const older = new Date(`${dates[i + 1]}T12:00:00`);
+    intervals.push(Math.floor((newer - older) / 86400000));
+  }
+  const averageRestDays = intervals.length
+    ? intervals.reduce((sum, days) => sum + days, 0) / intervals.length
+    : REST_DAY_COLD_START_DAYS;
+  const thresholdDays = Math.max(
+    REST_DAY_MIN_THRESHOLD_DAYS,
+    Math.ceil(averageRestDays * REST_DAY_OVERDUE_FACTOR),
+  );
+  return { daysSince, lastSessionDate: dates[0], thresholdDays };
 }
 
 function getCoverageGaps(scores = {}, threshold = COVERAGE_GAP_THRESHOLD) {
@@ -228,6 +249,7 @@ async function sendReminder(uid, tokens, title, body, link, tag = "fitness-remin
   try {
     const message = {
       data: {
+        app: "fitness",
         title,
         body,
         link: link || "/?tab=session",
@@ -268,7 +290,8 @@ exports.scheduledPushReminders = functions
         const pushSnap = await userRef.collection("settings").doc("push").get();
         if (!pushSnap.exists) continue;
 
-        const data = pushSnap.data() || {};
+        const stored = pushSnap.data() || {};
+        const data = stored.apps?.fitness || {};
         if (!data.enabled) continue;
 
         const tokens = normalizeTokens(data);
@@ -292,9 +315,13 @@ exports.scheduledPushReminders = functions
         if (!isReminderDue(data.reminderTime, minutes) && notifications.length === 0) continue;
 
         if (types.restday) {
-          const daysSince = await getDaysSinceLastCompletedTraining(userRef, date);
-          if (daysSince != null && daysSince >= REST_DAY_THRESHOLD_DAYS) {
-            notifications.push(notificationText("restday", { days: daysSince }));
+          const restday = await getDaysSinceLastCompletedTraining(userRef, date);
+          const alreadyNotified = data.restdayLastNotifiedSessionDate === restday?.lastSessionDate;
+          if (restday && !alreadyNotified && restday.daysSince >= restday.thresholdDays) {
+            notifications.push({
+              ...notificationText("restday", { days: restday.daysSince }),
+              _restdaySessionDate: restday.lastSessionDate,
+            });
           }
         }
 
@@ -358,6 +385,12 @@ exports.scheduledPushReminders = functions
           const result = await sendReminder(uid, tokens, primary.title, body, primary.link);
           sentCount += result.sentCount || 0;
           failureCount += result.failureCount || 0;
+          const restday = digest.find((notification) => notification._restdaySessionDate);
+          if (restday && (result.sentCount || 0) > 0) {
+            await pushSnap.ref.set({
+              apps: { fitness: { restdayLastNotifiedSessionDate: restday._restdaySessionDate } },
+            }, { merge: true });
+          }
         }
       }
 
@@ -383,7 +416,8 @@ exports.onCoachFeedback = functions
 
     const db = admin.firestore();
     const pushDoc = await db.collection("fitness").doc(uid).collection("settings").doc("push").get();
-    const pushData = pushDoc.data() || {};
+    const stored = pushDoc.data() || {};
+    const pushData = stored.apps?.fitness || {};
 
     if (!pushData.enabled) return null;
 
@@ -426,7 +460,8 @@ exports.onClientWorkout = functions
 
     for (const coachUid of clientWorkout.coachUids()) {
       const pushRef = db.collection("fitness").doc(coachUid).collection("settings").doc("push");
-      const pushData = (await pushRef.get()).data() || {};
+      const stored = (await pushRef.get()).data() || {};
+      const pushData = stored.apps?.fitness || {};
       // Schalter aus dem Notification-Panel (Setup-Tab): Typ, Klient stumm, Modus, Ruhezeit
       const verdict = pushPrefs.allowsClientWorkout(pushData, uid, decision.reason);
       if (!verdict.allow) {
@@ -445,8 +480,8 @@ exports.onClientWorkout = functions
         const dead = clientWorkout.deadTokens(tokens, response.responses);
         if (dead.length > 0) {
           // Abgemeldete Geräte aufräumen, sonst wächst die Token-Liste ewig.
-          const cleanup = { tokens: admin.firestore.FieldValue.arrayRemove(...dead) };
-          if (dead.includes(pushData.token)) cleanup.token = admin.firestore.FieldValue.delete();
+          const cleanup = { apps: { fitness: { tokens: admin.firestore.FieldValue.arrayRemove(...dead) } } };
+          if (dead.includes(pushData.token)) cleanup.apps.fitness.token = admin.firestore.FieldValue.delete();
           await pushRef.set(cleanup, { merge: true });
         }
         results.push({ coachUid, sent: response.successCount, failed: response.failureCount, removed: dead.length });
@@ -473,7 +508,8 @@ exports.sendTestPush = functions
     const uid = requireAuth(context);
     const kind = pushPrefs.TEST_KINDS.includes(data?.kind) ? data.kind : "reminder";
     const pushRef = admin.firestore().collection("fitness").doc(uid).collection("settings").doc("push");
-    const pushData = (await pushRef.get()).data() || {};
+    const stored = (await pushRef.get()).data() || {};
+    const pushData = stored.apps?.fitness || {};
 
     const wait = pushPrefs.testCooldownLeft(pushData.lastTestAt?.toMillis?.());
     if (wait > 0) {
@@ -490,14 +526,14 @@ exports.sendTestPush = functions
       throw new functions.https.HttpsError("failed-precondition", "Kein registriertes Gerät.");
     }
 
-    await pushRef.set({ lastTestAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    await pushRef.set({ apps: { fitness: { lastTestAt: admin.firestore.FieldValue.serverTimestamp() } } }, { merge: true });
     const response = await admin.messaging().sendEachForMulticast(pushPrefs.buildTestMessage(kind, tokens, NOTIFICATIONS));
     const dead = clientWorkout.deadTokens(tokens, response.responses);
     if (dead.length > 0) {
-      const cleanup = { tokens: admin.firestore.FieldValue.arrayRemove(...dead) };
-      if (dead.includes(pushData.token)) cleanup.token = admin.firestore.FieldValue.delete();
+      const cleanup = { apps: { fitness: { tokens: admin.firestore.FieldValue.arrayRemove(...dead) } } };
+      if (dead.includes(pushData.token)) cleanup.apps.fitness.token = admin.firestore.FieldValue.delete();
       if (Array.isArray(pushData.devices)) {
-        cleanup.devices = pushData.devices.filter((d) => !dead.includes(d.token));
+        cleanup.apps.fitness.devices = pushData.devices.filter((d) => !dead.includes(d.token));
       }
       await pushRef.set(cleanup, { merge: true });
     }

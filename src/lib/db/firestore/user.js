@@ -68,7 +68,10 @@ export async function getPushSettings() {
       reminderTime: "18:00",
     };
   }
-  const data = snap.data() || {};
+  const stored = snap.data() || {};
+  const legacy = { ...stored, tokens: [], token: null };
+  delete legacy.apps;
+  const data = stored.apps?.fitness || legacy;
   const tokens = Array.from(new Set([
     ...(Array.isArray(data.tokens) ? data.tokens : []),
     ...(data.token ? [data.token] : []),
@@ -86,13 +89,12 @@ export async function getPushSettings() {
 export async function savePushSettings(settings) {
   if (!hasAuthSession()) return saveLocalPushSettings(settings);
   await setDoc(doc(db, "fitness", getUid(), "settings", "push"), {
-    ...settings,
-    tokens: Array.from(new Set([
-      ...(Array.isArray(settings?.tokens) ? settings.tokens : []),
-      ...(settings?.token ? [settings.token] : []),
-    ].filter(Boolean))),
+    apps: { fitness: {
+      ...settings,
+      tokens: Array.from(new Set([...(Array.isArray(settings?.tokens) ? settings.tokens : []), ...(settings?.token ? [settings.token] : [])].filter(Boolean))),
+    } },
     updated_at: serverTimestamp(),
-  });
+  }, { merge: true });
   return { ok: true };
 }
 

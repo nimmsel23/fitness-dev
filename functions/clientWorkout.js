@@ -116,6 +116,7 @@ function buildMessage({ uid, sid, session, clientName, tokens, texts, reason = "
 
   return {
     data: {
+      app: "fitness",
       type: "clientWorkout",
       title,
       body,

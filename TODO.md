@@ -137,3 +137,7 @@ Coach-Zugang anhand der verifizierten Firebase-UID ergänzen und zentrale Rolle 
 - [x] Offline-Cache über App-Updates erhalten: gemeinsame SW-Strategie, API-Migration, vollständiges Asset-Precache und sichere Installation.
 
 - [x] 2026-10-17: Skills/-Kopie durch direktes skills-dev-Submodule (fitness) ersetzen und Video-Runner integrieren.
+# [x] VitalOS/Fitness Push-Routing trennen (2026-10-19)
+- Eigene Firestore-Token-Lanes, Worker-Dateien und Scopes je App; App-Marker
+  verhindert, dass ein Worker Pushes der anderen App anzeigt.
+- Statische Syntax- und Diff-Prüfungen erfolgreich. Kein Firebase-Release.

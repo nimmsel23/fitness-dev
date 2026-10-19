@@ -1,7 +1,6 @@
-name: inbox_yuhonas_hammer_curls
-description: 'Proactively generated expert draft for: Hammer Curls'
-generated_at: '2026-09-08T13:59:38.269616+00:00'
-enriched_at: '2026-09-08T13:59:38.269616+00:00'
+exercise_id: yuhonas_hammer_curls
+description: Expert details for Kurzhantel-Kreuzkörper-Hammercurls
+approved_at: '2026-10-17T21:10:06.962359+00:00'
 exercises:
 - exercise_id: yuhonas_hammer_curls
   id: yuhonas_hammer_curls
@@ -96,7 +95,7 @@ exercises:
   - torso_stability
   - unilateral_movement
   variations: []
-  source: unreviewed
+  source: expert
   enriched_at: '2026-09-08T13:59:38.269616+00:00'
   schema_version: 2026-08-12.exercise-v1
   origin:
@@ -129,6 +128,16 @@ exercises:
         down to the starting position.
       - Repeat for the recommended amount of repetitions.
   review_state:
-    status: draft
-    ai_reviewed: false
+    status: approved
+    ai_reviewed: true
     enriched_at: '2026-09-08T13:59:38.269616+00:00'
+    approved_at: '2026-10-17T21:10:06.962359+00:00'
+  approved_at: '2026-10-17T21:10:06.962359+00:00'
+  search_aliases:
+  - yuhonas_hammer_curls
+  - wger_1458
+  - Hammer_Curls
+  - Kurzhantel-Kreuzkörper-Hammercurls
+  - Dumbbell Cross Body Hammer Curl
+  original_description:
+  - Dumbbell cross body biceps curls, works on the braccialis

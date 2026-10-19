@@ -7,8 +7,8 @@ import { DEFAULT_QUIET_HOURS, describeDevice, mergePushSettings } from './pushSe
 
 export { DEFAULT_QUIET_HOURS, describeDevice, mergePushSettings }
 
-const PUSH_SW_URL = '/firebase-messaging-sw.js'
-const PUSH_SW_SCOPE = '/firebase-push/'
+const PUSH_SW_URL = '/fitness-messaging-sw.js'
+const PUSH_SW_SCOPE = '/fitness-push/'
 
 export function usePushNotifications(user) {
   const [settings, setSettings] = useState(null)
@@ -33,16 +33,20 @@ export function usePushNotifications(user) {
     ;(async () => {
       try {
         const messaging = await getMessagingIfSupported()
-        const registration = await navigator.serviceWorker.getRegistration(PUSH_SW_SCOPE)
-        if (!messaging || !registration) return
+        if (!messaging) return
+        const registration = await navigator.serviceWorker.register(PUSH_SW_URL, { scope: PUSH_SW_SCOPE })
         const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: registration })
-        if (alive) setCurrentToken(token || null)
+        if (!alive) return
+        setCurrentToken(token || null)
+        if (token && settings?.enabled && !(settings.tokens || []).includes(token)) {
+          await persist(mergePushSettings(settings, { token, tokens: [...(settings.tokens || []), token] }))
+        }
       } catch {
         // Gerät nicht erkennbar → die Liste kommt ohne "Dieses Gerät"-Markierung aus
       }
     })()
     return () => { alive = false }
-  }, [user, permission])
+  }, [user, permission, settings, persist])
 
   const persist = useCallback(async (next) => {
     setSettings(next)
