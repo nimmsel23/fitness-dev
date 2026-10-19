@@ -1,10 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { DEFAULT_QUIET_HOURS, describeDevice, mergePushSettings } from './pushSettings.js'
+import { DEFAULT_QUIET_HOURS, describeDevice, mergePushSettings, refreshPushDevice } from './pushSettings.js'
 
 test('Gerätebeschreibung aus dem User-Agent', () => {
   assert.equal(describeDevice('Mozilla/5.0 (Linux; Android 14) AppleWebKit Chrome/120 Mobile Safari/537'), 'Chrome · Android')
-  assert.equal(describeDevice('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit Version/17 Safari/604'), 'Safari · iOS')
+  assert.equal(describeDevice('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit Version/17 Safari/604'), 'Safari · iPhone')
   assert.equal(describeDevice('Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0'), 'Firefox · Linux')
   assert.equal(describeDevice('Mozilla/5.0 (Windows NT 10.0) Chrome/120 Edg/120'), 'Edge · Windows')
   assert.equal(describeDevice(''), 'Browser · Gerät')
@@ -34,4 +34,22 @@ test('Patch überschreibt Panel-Felder, ohne Tokens zu verlieren', () => {
   assert.equal(next.quietHours.start, '21:00')
   assert.deepEqual(next.mutedClients, [])
   assert.equal(next.enabled, true)
+})
+
+test('Aktuelles Gerät erhält einen Namen; andere Geräte und Registrierungsdatum bleiben erhalten', () => {
+  const base = mergePushSettings({}, { enabled: true, tokens: ['a', 'b'], devices: [
+    { token: 'a', label: 'Gerät', addedAt: '2026-01-01' },
+    { token: 'b', label: 'Mein PC' },
+  ] })
+  const next = refreshPushDevice(base, 'a', 'Safari · iPhone')
+  assert.deepEqual(next.devices, [
+    { token: 'a', label: 'Safari · iPhone', addedAt: '2026-01-01' },
+    { token: 'b', label: 'Mein PC' },
+  ])
+  assert.equal(refreshPushDevice(next, 'a', 'Safari · iPhone'), next)
+  const legacy = refreshPushDevice({ enabled: true, tokens: ['a'] }, 'a', 'Safari · iPhone')
+  assert.equal(legacy.devices[0].label, 'Safari · iPhone')
+  const disabled = { ...base, enabled: false }
+  assert.equal(refreshPushDevice(disabled, 'a', 'Safari · iPhone'), disabled)
+  assert.equal(refreshPushDevice(base, null, 'Safari · iPhone'), base)
 })
