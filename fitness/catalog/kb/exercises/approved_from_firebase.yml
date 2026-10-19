@@ -3041,60 +3041,34 @@ exercises:
   equipment:
   - cable
   category: pull
-- type: isolation
-  common_errors:
-  - Die Oberarme wandern während der Wiederholungen nach hinten oder nach vorn, sodass
-    die Übung mehr zur Schulterbewegung wird.
-  - Die Ellbogen spreizen stark nach außen, was Spannung vom Trizeps nimmt und die
-    Gelenkbelastung erhöht.
-  - Das Gewicht wird zu schnell abgesenkt und unten nicht kontrolliert, wodurch die
-    exzentrische Arbeit verloren geht.
-  - Die Handgelenke knicken ab statt neutral zu bleiben, was die Kraftübertragung
-    verschlechtert.
-  - Mit Schwung aus Schulter oder Rumpf arbeiten, um den schwierigsten Bereich zu
-    überbrücken.
-  - Zu weit Richtung Gesicht oder Stirn führen, obwohl die gewählte Variante eine
-    sichere, reproduzierbare Hantelbahn neben oder leicht hinter den Kopf braucht.
-  - Oben aggressiv in die Ellbogen einrasten statt die Endposition muskulär zu kontrollieren.
-  - Zu schwer trainieren und dadurch Bewegungsradius, Ellbogenkontrolle und konstante
-    Spannung deutlich verlieren.
-  stabilizers:
-  - 301_anterior_deltoid
-  - 304_rotator_cuff
-  - 405_forearm_flexors
-  - 406_forearm_extensors
+- coaching_notes:
+  - Oberarme von Beginn bis Ende ruhig halten und die Bewegung fast ausschließlich
+    aus dem Ellbogengelenk ausführen.
+  - Ellbogen etwa schulterbreit bis leicht enger ausrichten und während des Satzes
+    kontrolliert in dieser Linie halten.
+  - Das Gewicht langsam hinter oder neben die Stirn absenken, sodass die Trizepsmuskulatur
+    unter Spannung bleibt und kein Fallenlassen entsteht.
+  - Am tiefsten Punkt eine kontrollierte Dehnung zulassen, ohne die Schulter nach
+    vorn kippen oder die Oberarme nach hinten wegdriften zu lassen.
+  - In der Streckphase aktiv bis kurz vor die volle Ellbogenstreckung arbeiten, ohne
+    die Gelenke hart einzurasten.
+  - Handgelenke neutral halten und die Hantel oder Stange fest, aber nicht verkrampft
+    führen.
+  - Brustkorb stabil halten, Nacken lang lassen und den Kopf ruhig auf der Bank positionieren.
+  - Ein moderates Gewicht wählen, das eine saubere exzentrische Phase und eine präzise
+    Ellbogenführung über alle Wiederholungen erlaubt.
   movements:
   - elbow_extension
   - elbow_flexion
   - shoulder_flexion
   - shoulder_stability
-  aliases:
-  - Skull Crushers
-  - French Press
-  - Trizepsstrecken liegend
-  - SZ-Trizepsdrücken
-  - Lying Triceps Extension
+  id: french_press
   primary_muscles:
   - 401_triceps_brachii
-  display_name: French Press
-  id: french_press
-  tags:
-  - triceps
-  - isolation
-  - arms
-  - elbow_extension
-  - free_weight
-  - dumbbell
-  - lying
-  - unreviewed
+  review_state:
+    status: approved
   origin:
-    type: manual
-    source_refs: {}
     yuhonas:
-      category: strength
-      wger_muscle_ids:
-        secondary: []
-        primary: []
       coaching_notes:
       - 'Lie on a flat bench and grasp the straight bar attachment of a low pulley
         with a narrow overhand grip. Tip: The easiest way to do this is to have someone
@@ -3108,23 +3082,26 @@ exercises:
         as you perform this portion of the movement.
       - Hold for a second at the contracted position and repeat for the recommended
         amount of repetitions.
-      equipment:
-      - cable
       exercise_id: yuhonas_cable_lying_triceps_extension
-      yuhonas_id: Cable_Lying_Triceps_Extension
-      display_name: Cable Lying Triceps Extension
       primary_muscles:
       - triceps
+      secondary_muscles: []
+      display_name: Cable Lying Triceps Extension
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      yuhonas_id: Cable_Lying_Triceps_Extension
       tags:
       - unreviewed
       - yuhonas
-      secondary_muscles: []
+      equipment:
+      - cable
+      category: strength
+    type: manual
+    source_refs: {}
     wger:
-      category: arms
-      wger_muscle_ids:
-        secondary: []
-        primary:
-        - 5
+      german: Liegendes Trizepsstrecken
+      exercise_id: wger_1436
       coaching_notes:
       - 'Die Ausgangsposition für diese
 
@@ -3152,47 +3129,58 @@ exercises:
         eingezogen, die Ellbogen eng am Kopf und deine Rumpfmuskulatur während
 
         der gesamten Bewegung aktiv.'
-      german: Liegendes Trizepsstrecken
-      equipment:
-      - barbell
-      - dumbbell
-      exercise_id: wger_1436
-      display_name: Liegendes Trizepsstrecken
-      wger_id: 1436
       primary_muscles:
       - 401_triceps_brachii
+      wger_id: 1436
       secondary_muscles: []
+      display_name: Liegendes Trizepsstrecken
+      wger_muscle_ids:
+        secondary: []
+        primary:
+        - 5
       tags:
       - unreviewed
       - wger
-  english: Lying Triceps Extension
-  variations: []
+      equipment:
+      - barbell
+      - dumbbell
+      category: arms
   schema_version: 2026-08-12.exercise-v1
-  category: push
-  review_state:
-    status: approved
-  exercise_id: french_press
-  coaching_notes:
-  - Oberarme von Beginn bis Ende ruhig halten und die Bewegung fast ausschließlich
-    aus dem Ellbogengelenk ausführen.
-  - Ellbogen etwa schulterbreit bis leicht enger ausrichten und während des Satzes
-    kontrolliert in dieser Linie halten.
-  - Das Gewicht langsam hinter oder neben die Stirn absenken, sodass die Trizepsmuskulatur
-    unter Spannung bleibt und kein Fallenlassen entsteht.
-  - Am tiefsten Punkt eine kontrollierte Dehnung zulassen, ohne die Schulter nach
-    vorn kippen oder die Oberarme nach hinten wegdriften zu lassen.
-  - In der Streckphase aktiv bis kurz vor die volle Ellbogenstreckung arbeiten, ohne
-    die Gelenke hart einzurasten.
-  - Handgelenke neutral halten und die Hantel oder Stange fest, aber nicht verkrampft
-    führen.
-  - Brustkorb stabil halten, Nacken lang lassen und den Kopf ruhig auf der Bank positionieren.
-  - Ein moderates Gewicht wählen, das eine saubere exzentrische Phase und eine präzise
-    Ellbogenführung über alle Wiederholungen erlaubt.
+  stabilizers:
+  - 301_anterior_deltoid
+  - 304_rotator_cuff
+  - 405_forearm_flexors
+  - 406_forearm_extensors
   german: French Press
-  equipment:
-  - dumbbell
-  - barbell
-  - cable
+  type: isolation
+  variations: []
+  aliases:
+  - Skull Crushers
+  - French Press
+  - Trizepsstrecken liegend
+  - SZ-Trizepsdrücken
+  - Lying Triceps Extension
+  exercise_id: french_press
+  common_errors:
+  - Die Oberarme wandern während der Wiederholungen nach hinten oder nach vorn, sodass
+    die Übung mehr zur Schulterbewegung wird.
+  - Die Ellbogen spreizen stark nach außen, was Spannung vom Trizeps nimmt und die
+    Gelenkbelastung erhöht.
+  - Das Gewicht wird zu schnell abgesenkt und unten nicht kontrolliert, wodurch die
+    exzentrische Arbeit verloren geht.
+  - Die Handgelenke knicken ab statt neutral zu bleiben, was die Kraftübertragung
+    verschlechtert.
+  - Mit Schwung aus Schulter oder Rumpf arbeiten, um den schwierigsten Bereich zu
+    überbrücken.
+  - Zu weit Richtung Gesicht oder Stirn führen, obwohl die gewählte Variante eine
+    sichere, reproduzierbare Hantelbahn neben oder leicht hinter den Kopf braucht.
+  - Oben aggressiv in die Ellbogen einrasten statt die Endposition muskulär zu kontrollieren.
+  - Zu schwer trainieren und dadurch Bewegungsradius, Ellbogenkontrolle und konstante
+    Spannung deutlich verlieren.
+  english: Lying Triceps Extension
+  display_name: French Press
+  secondary_muscles:
+  - 407_anconeus
   search_aliases:
   - French Press
   - Franzoesisches Druecken
@@ -3201,10 +3189,22 @@ exercises:
   - Skull Crusher
   - Skull Crushers
   - Trizepsstrecken liegend
-  name: French Press
-  secondary_muscles:
-  - 407_anconeus
   source: approved
+  name: French Press
+  tags:
+  - triceps
+  - isolation
+  - arms
+  - elbow_extension
+  - free_weight
+  - dumbbell
+  - lying
+  - unreviewed
+  equipment:
+  - dumbbell
+  - barbell
+  - cable
+  category: push
 - type: compound
   origin:
     type: manual
