@@ -48,6 +48,12 @@ Tests: `node --test functions/` (21 Tests, ohne Firebase). Textänderungen wirke
 `clientWorkoutMode` (`all` | `finished`), `lastTestAt` (Cooldown 10 s für `sendTestPush`).
 Ruhezeiten gelten nur für Klienten-Meldungen, nicht für die zeitgesteuerten Erinnerungen.
 
+Der Rest-Day-Check berechnet den persönlichen Trainingsabstand aus den Abständen zwischen
+dokumentierten Trainingstagen (bis zu 120 Sessions). Er meldet erst bei 1,5× des Durchschnitts,
+mindestens nach 3 Tagen; bei weniger als zwei bekannten Trainingstagen gilt ein 7-Tage-Startwert.
+Pro letzter Session wird höchstens eine „Alles ok?“-Meldung gesendet. Ein neues Workout startet
+diesen Zyklus erneut.
+
 ## Service Worker (`public/firebase-messaging-sw.js`, Kopie in `frontend/public/`)
 - `data.type === "clientWorkout"`: ein Tag pro Klient (`client-workout-<uid>`); ein weiteres Workout vor dem
   Wegwischen wird zur Sammelmeldung „N neue Workouts" (der Text steht im SW, nicht in der YAML). Gleiche `sid`
