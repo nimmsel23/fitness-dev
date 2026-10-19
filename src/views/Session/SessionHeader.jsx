@@ -48,7 +48,7 @@ export default function CalmHeader({
   }, [zoomedOut]);
 
   return (
-    <div className="sticky top-0 z-30 px-3 pt-3 pb-2" style={{ background: 'var(--bg)' }}>
+    <div className="session-header sticky top-0 z-30 px-3 pt-3 pb-2" style={{ background: 'var(--bg)' }}>
       {/* Title row */}
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="min-w-0">
@@ -66,7 +66,7 @@ export default function CalmHeader({
           )}
           <button
             onClick={() => dateInputRef.current?.showPicker?.() ?? dateInputRef.current?.click()}
-            className="relative w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+            className="relative w-11 h-11 rounded-full flex items-center justify-center transition-colors"
             style={{ color: 'var(--dim)' }}
             title="Datum wählen"
             aria-label="Datum wählen"
@@ -92,7 +92,7 @@ export default function CalmHeader({
           <button
             onClick={onSave}
             disabled={saving}
-            className="flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[11px] font-bold transition-all active:scale-95 disabled:opacity-50"
+            className="flex h-11 items-center gap-1.5 rounded-full px-3.5 text-[11px] font-bold transition-all active:scale-95 disabled:opacity-50"
             style={{ background: 'var(--accent)', color: '#000' }}
           >
             {saving
@@ -125,7 +125,7 @@ export default function CalmHeader({
           </button>
         )}
         {!compact && (
-          <button onClick={goBack} className="w-6 h-6 flex items-center justify-center shrink-0" style={{ color: 'var(--dim)' }}>
+          <button onClick={goBack} aria-label="Vorherige Tage" className="w-8 h-11 flex items-center justify-center shrink-0" style={{ color: 'var(--dim)' }}>
             <ChevronLeft size={14} />
           </button>
         )}
@@ -144,7 +144,7 @@ export default function CalmHeader({
                 onClick={() => setDate(d)}
                 className={`flex flex-col items-center gap-1 py-1 ${compact ? 'flex-1' : 'shrink-0 w-8'}`}
               >
-                <span className="text-[9px] font-medium" style={{ color: isSelected ? 'var(--accent)' : 'var(--dim)', opacity: isSelected ? 1 : 0.4 }}>
+                <span className="text-[10px] font-medium" style={{ color: isSelected ? 'var(--accent)' : 'var(--dim)' }}>
                   {DAY_LABELS[dateObj.getDay()]}
                 </span>
                 <span
@@ -152,7 +152,7 @@ export default function CalmHeader({
                   style={{
                     color: isSelected ? '#000' : hasSess ? color : 'var(--ink)',
                     background: isSelected ? 'var(--accent)' : 'transparent',
-                    opacity: isSelected ? 1 : (isToday || hasSess) ? 1 : 0.35,
+                    opacity: isSelected || isToday || hasSess ? 1 : 0.8,
                   }}
                 >
                   {hasSess && !isSelected ? '·' : dateObj.getDate()}
@@ -162,7 +162,7 @@ export default function CalmHeader({
           })}
         </div>
         {!compact && (
-          <button onClick={goFwd} className="w-6 h-6 flex items-center justify-center shrink-0" style={{ color: 'var(--dim)' }}>
+          <button onClick={goFwd} aria-label="Nächste Tage" className="w-8 h-11 flex items-center justify-center shrink-0" style={{ color: 'var(--dim)' }}>
             <ChevronRight size={14} />
           </button>
         )}

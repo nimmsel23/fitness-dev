@@ -43,6 +43,11 @@
   --scrollbar-width: 6px;
   --scrollbar-radius: 3px;
   --glass-border: rgba(255,255,255,0.05); /* Global glass border */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --mobile-nav-height: calc(4.5rem + var(--safe-bottom));
 
   /*
    * Overlay/Scrim — derived from the active theme's own --bg2 + --ink instead
@@ -139,6 +144,55 @@
 
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* iOS standalone uses viewport-fit=cover: reserve the status bar and
+   home indicator explicitly, including landscape side insets. Keep the
+   main element free of overflow-x:hidden so the session header can stick
+   to the document scroller instead of an unscrollable ancestor. */
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+.mobile-nav-inner {
+  padding: 0.5rem max(0.5rem, var(--safe-right))
+    calc(0.75rem + var(--safe-bottom)) max(0.5rem, var(--safe-left));
+}
+
+@media (max-width: 1023px) {
+  .app-shell {
+    padding: var(--safe-top) var(--safe-right) 0 var(--safe-left);
+  }
+
+  .app-main-with-nav {
+    padding-bottom: calc(var(--mobile-nav-height) + 1rem);
+  }
+
+  .app-home-sheet {
+    top: var(--safe-top);
+    left: var(--safe-left);
+    right: var(--safe-right);
+  }
+
+  .session-header {
+    top: var(--safe-top);
+  }
+
+  .session-header::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    height: var(--safe-top);
+    background: var(--bg);
+  }
+
+  /* The home sheet already starts below the safe area and scrolls itself. */
+  .app-home-sheet .session-header {
+    top: 0;
+  }
+}
 
 /* RPE-Slider (EffortPicker) — custom Thumb statt hässlichem Browser-Default */
 .rpe-range { -webkit-appearance: none; appearance: none; outline: none; }

@@ -34,12 +34,13 @@ export default function SessionModeTabs({ sessionMode, setSessionMode, subTab, o
   ];
 
   return (
-    <div className="ml-auto flex items-center gap-3 text-[11px] font-semibold shrink-0">
+    <div className="flex w-full min-w-0 flex-wrap items-center gap-x-3 text-[11px] font-semibold sm:ml-auto sm:w-auto">
       {tabs.map(({ key, label, Icon, color, active, go }) => (
         <button
           key={key}
           onClick={go}
-          className="flex items-center gap-1 pb-0.5"
+          aria-pressed={active}
+          className="flex min-h-11 items-center gap-1 pb-0.5 whitespace-nowrap"
           style={{
             color: active ? color : 'var(--dim)',
             borderBottom: active ? `2px solid ${color}` : '2px solid transparent',
