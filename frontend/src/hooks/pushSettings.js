@@ -2,21 +2,7 @@
 
 export const DEFAULT_QUIET_HOURS = { enabled: false, start: '22:00', end: '07:00' }
 
-// "Chrome · Android", "Safari · iOS" … — nur zur Wiedererkennung in der Geräteliste
-export function describeDevice(userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '') {
-  const ua = String(userAgent)
-  const os = /Android/i.test(ua) ? 'Android'
-    : /iPhone|iPad|iPod/i.test(ua) ? 'iOS'
-      : /Windows/i.test(ua) ? 'Windows'
-        : /Mac OS X/i.test(ua) ? 'macOS'
-          : /Linux/i.test(ua) ? 'Linux' : 'Gerät'
-  const browser = /Edg\//i.test(ua) ? 'Edge'
-    : /OPR\//i.test(ua) ? 'Opera'
-      : /Firefox|FxiOS/i.test(ua) ? 'Firefox'
-        : /Chrome|CriOS/i.test(ua) ? 'Chrome'
-          : /Safari/i.test(ua) ? 'Safari' : 'Browser'
-  return `${browser} · ${os}`
-}
+export { describeDevice } from '../lib/deviceInfo.js'
 
 export function mergePushSettings(base = {}, patch = {}) {
   const merged = { ...base, ...patch }

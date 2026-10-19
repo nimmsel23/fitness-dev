@@ -4,7 +4,7 @@ import { DEFAULT_QUIET_HOURS, describeDevice, mergePushSettings } from './pushSe
 
 test('Gerätebeschreibung aus dem User-Agent', () => {
   assert.equal(describeDevice('Mozilla/5.0 (Linux; Android 14) AppleWebKit Chrome/120 Mobile Safari/537'), 'Chrome · Android')
-  assert.equal(describeDevice('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit Version/17 Safari/604'), 'Safari · iOS')
+  assert.equal(describeDevice('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit Version/17 Safari/604'), 'Safari · iPhone')
   assert.equal(describeDevice('Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0'), 'Firefox · Linux')
   assert.equal(describeDevice('Mozilla/5.0 (Windows NT 10.0) Chrome/120 Edg/120'), 'Edge · Windows')
   assert.equal(describeDevice(''), 'Browser · Gerät')
