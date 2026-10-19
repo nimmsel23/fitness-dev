@@ -993,15 +993,59 @@ exercises:
   - scapular_protraction
   - shoulder_flexion
   - posterior_pelvic_tilt
-- type: compound
+- coaching_notes:
+  - 'Starte mit engem Kontakt zur Hantel: Mittelfuß unter der Stange, Brust angehoben,
+    Latissimus angespannt und der Oberkörperwinkel im ersten Zug möglichst konstant.'
+  - Beschleunige die Hantel aus den Beinen und der Hüfte, nicht aus den Armen. Die
+    Arme bleiben im Zug lang, bis die Streckung in Sprunggelenk, Knie und Hüfte abgeschlossen
+    ist.
+  - Im Umsetzen die Ellenbogen schnell und aggressiv nach vorn bringen, damit die
+    Hantel sauber auf den Schultern im Front Rack landet und nicht in den Händen hängen
+    bleibt.
+  - Für den Stoß zuerst einen kontrollierten, geraden Dip ausführen, dann explosiv
+    vertikal treiben. Der Impuls kommt aus den Beinen; die Arme vollenden nur die
+    Fixierung über Kopf.
+  - 'Überkopf eine stabile Linie herstellen: Stange über Mittelfuß, Rippen unten,
+    Gesäß angespannt und Schultergürtel aktiv nach oben rotiert. Erst vollständig
+    kontrollieren, dann die Füße wieder zusammenführen.'
+  - Die Bewegung ist hochtechnisch und ermüdungssensibel. Last nur steigern, wenn
+    Startposition, Rack-Position und Overhead-Fixierung unter Geschwindigkeit reproduzierbar
+    sauber bleiben.
+  category: pull
+  equipment:
+  - barbell
+  primary_muscles:
+  - 601_quadriceps_femoris
+  - 603_gluteus_maximus
+  - 202a_trapezius_upper
+  - 401_triceps_brachii
+  wger_id: null
+  review_state:
+    status: approved
+  _hash: 47f6f4b7585c79bd516b29f3ab6c79a7
   origin:
-    type: manual
-    source_refs: {}
     yuhonas:
-      category: olympic weightlifting
+      equipment:
+      - barbell
+      exercise_id: yuhonas_clean_and_jerk
+      primary_muscles:
+      - shoulders
+      secondary_muscles:
+      - abdominals
+      - glutes
+      - hamstrings
+      - lower_back
+      - quadriceps
+      - traps
+      - triceps
+      display_name: Clean and Jerk
+      yuhonas_id: Clean_and_Jerk
       wger_muscle_ids:
         secondary: []
         primary: []
+      tags:
+      - unreviewed
+      - yuhonas
       coaching_notes:
       - With a barbell on the floor close to the shins, take an overhand or hook grip
         just outside the legs. Lower your hips with the weight focused on the heels,
@@ -1039,31 +1083,28 @@ exercises:
         bar up will drive them down. The feet should be split, with one foot forward,
         and one foot back. Receive the bar with the arms locked out overhead. Return
         to a standing position.
-      exercise_id: yuhonas_clean_and_jerk
+      category: olympic weightlifting
+    type: manual
+    source_refs: {}
+    wger:
+      german: Umsetzen und Stoßen
+      exercise_id: wger_1686
       equipment:
       - barbell
       primary_muscles:
-      - shoulders
-      display_name: Clean and Jerk
-      yuhonas_id: Clean_and_Jerk
-      tags:
-      - unreviewed
-      - yuhonas
+      - 301_anterior_deltoid
+      wger_id: 1686
       secondary_muscles:
-      - abdominals
-      - glutes
-      - hamstrings
-      - lower_back
-      - quadriceps
-      - traps
-      - triceps
-    wger:
-      category: shoulders
+      - 601_quadriceps_femoris
+      display_name: Umsetzen und Stoßen
       wger_muscle_ids:
         secondary:
         - 10
         primary:
         - 2
+      tags:
+      - unreviewed
+      - wger
       coaching_notes:
       - 'Der erste Zug: Hebe die Stange vom Boden bis auf Kniehöhe, indem du aus den
         Beinen arbeitest und den Winkel deines Rückens konstant hältst.
@@ -1079,64 +1120,22 @@ exercises:
         Das senkrechte Drücken: Drücke die Stange in einer geraden Linie nach oben;
         dein Kopf sollte sich leicht nach vorne schieben, sobald die Stange deine
         Stirn passiert, um die volle Streckung zu erreichen.'
-      german: Umsetzen und Stoßen
-      equipment:
-      - barbell
-      wger_id: 1686
-      primary_muscles:
-      - 301_anterior_deltoid
-      display_name: Umsetzen und Stoßen
-      exercise_id: wger_1686
-      tags:
-      - unreviewed
-      - wger
-      secondary_muscles:
-      - 601_quadriceps_femoris
+      category: shoulders
+  schema_version: 2026-08-12.exercise-v1
   stabilizers:
   - 504_transverse_abdominis
   - 507_multifidus
   - 304_rotator_cuff
   - 608_gluteus_medius
   - 505_quadratus_lumborum
-  id: reissen_und_umsetzen
+  german: Umsetzen und Stoßen
   exercise_id: reissen_und_umsetzen
-  display_name: Umsetzen und Stoßen
-  primary_muscles:
-  - 601_quadriceps_femoris
-  - 603_gluteus_maximus
-  - 202a_trapezius_upper
-  - 401_triceps_brachii
-  movements:
-  - olympic_pull
-  - triple_extension
-  - hip_extension
-  - knee_extension
-  - ankle_plantarflexion
-  - shrug
-  - front_rack_catch
-  - dip_drive
-  - overhead_press
-  - overhead_lockout
-  - split_stance
-  tags:
-  - olympic_lifting
-  - olympic_lift
-  - explosive
-  - full_body
-  - power
-  - coordination
-  - technical
+  variations: []
   aliases:
   - clean_and_jerk
   - C&J
   - umsetzen_und_stossen
-  english: Clean and Jerk
-  variations: []
-  schema_version: 2026-08-12.exercise-v1
-  category: pull
-  review_state:
-    status: approved
-  _hash: 47f6f4b7585c79bd516b29f3ab6c79a7
+  type: compound
   common_errors:
   - Die Hantel zu früh mit den Armen reißen, wodurch der Beinschub verloren geht und
     der Zugweg unruhig oder bogenförmig wird.
@@ -1150,34 +1149,6 @@ exercises:
     gehen; das limitiert die Last und macht die Fixierung instabil.
   - Überkopf in ein Hohlkreuz fallen oder den Rumpf nicht verspannen, wodurch die
     Lendenwirbelsäule ausweicht und die Schulterposition unsicher wird.
-  name: Umsetzen und Stoßen
-  search_aliases:
-  - Umsetzen und Stoßen
-  - Umsetzen und Stossen
-  - Clean and Jerk
-  - C&J
-  equipment:
-  - barbell
-  german: Umsetzen und Stoßen
-  wger_id: null
-  coaching_notes:
-  - 'Starte mit engem Kontakt zur Hantel: Mittelfuß unter der Stange, Brust angehoben,
-    Latissimus angespannt und der Oberkörperwinkel im ersten Zug möglichst konstant.'
-  - Beschleunige die Hantel aus den Beinen und der Hüfte, nicht aus den Armen. Die
-    Arme bleiben im Zug lang, bis die Streckung in Sprunggelenk, Knie und Hüfte abgeschlossen
-    ist.
-  - Im Umsetzen die Ellenbogen schnell und aggressiv nach vorn bringen, damit die
-    Hantel sauber auf den Schultern im Front Rack landet und nicht in den Händen hängen
-    bleibt.
-  - Für den Stoß zuerst einen kontrollierten, geraden Dip ausführen, dann explosiv
-    vertikal treiben. Der Impuls kommt aus den Beinen; die Arme vollenden nur die
-    Fixierung über Kopf.
-  - 'Überkopf eine stabile Linie herstellen: Stange über Mittelfuß, Rippen unten,
-    Gesäß angespannt und Schultergürtel aktiv nach oben rotiert. Erst vollständig
-    kontrollieren, dann die Füße wieder zusammenführen.'
-  - Die Bewegung ist hochtechnisch und ermüdungssensibel. Last nur steigern, wenn
-    Startposition, Rack-Position und Overhead-Fixierung unter Geschwindigkeit reproduzierbar
-    sauber bleiben.
   secondary_muscles:
   - 604a_biceps_femoris
   - 604b_semitendinosus
@@ -1187,7 +1158,36 @@ exercises:
   - 202b_trapezius_middle
   - 701_gastrocnemius
   - 702_soleus
+  english: Clean and Jerk
+  display_name: Umsetzen und Stoßen
+  search_aliases:
+  - Umsetzen und Stoßen
+  - Umsetzen und Stossen
+  - Clean and Jerk
+  - C&J
   source: approved
+  name: Umsetzen und Stoßen
+  tags:
+  - olympic_lifting
+  - olympic_lift
+  - explosive
+  - full_body
+  - power
+  - coordination
+  - technical
+  id: reissen_und_umsetzen
+  movements:
+  - olympic_pull
+  - triple_extension
+  - hip_extension
+  - knee_extension
+  - ankle_plantarflexion
+  - shrug
+  - front_rack_catch
+  - dip_drive
+  - overhead_press
+  - overhead_lockout
+  - split_stance
 - category: pull
   id: 081
   equipment:
