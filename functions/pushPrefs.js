@@ -47,6 +47,7 @@ function buildTestMessage(kind, tokens, texts, coachUrl = "https://vos-coach.web
   if (kind === "clientWorkout") {
     return {
       data: {
+        app: "fitness",
         type: "clientWorkout",
         title: texts.testClientWorkout.title,
         body: texts.testClientWorkout.body,
@@ -62,6 +63,7 @@ function buildTestMessage(kind, tokens, texts, coachUrl = "https://vos-coach.web
   }
   return {
     data: {
+      app: "fitness",
       title: texts.testReminder.title,
       body: texts.testReminder.body,
       link: texts.testReminder.link || "/?tab=session",

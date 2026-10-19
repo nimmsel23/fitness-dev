@@ -1769,3 +1769,15 @@ den Benachrichtigungszyklus zurück. Dokumentiert in `docs/PUSH-NOTIFICATIONS.md
 
 Geprüft: `node --check functions/index.js` und `git diff --check`. Keine Tests oder
 Firebase-Deploy ausgeführt.
+## 2026-10-19 — Fitness-Push von VitalOS getrennt
+
+Fitness speichert Push-Einstellungen und FCM-Tokens jetzt in `apps.fitness` des
+gemeinsamen Settings-Dokuments und sendet Tests sowie Workout-Notifications nur
+an diese Lane. Fitness nutzt `/fitness-messaging-sw.js` unter `/fitness-push/`;
+der Worker zeigt nur Payloads mit `app: "fitness"`. Vorhandene aktivierte
+Geräte registrieren beim nächsten Öffnen automatisch den neuen Worker und
+speichern ihr Token in der Fitness-Lane.
+
+Statische `node --check`-Prüfungen und `git diff --check` erfolgreich. Kein
+Testlauf und kein Firebase-Release.
+

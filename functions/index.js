@@ -249,6 +249,7 @@ async function sendReminder(uid, tokens, title, body, link, tag = "fitness-remin
   try {
     const message = {
       data: {
+        app: "fitness",
         title,
         body,
         link: link || "/?tab=session",
@@ -289,7 +290,8 @@ exports.scheduledPushReminders = functions
         const pushSnap = await userRef.collection("settings").doc("push").get();
         if (!pushSnap.exists) continue;
 
-        const data = pushSnap.data() || {};
+        const stored = pushSnap.data() || {};
+        const data = stored.apps?.fitness || {};
         if (!data.enabled) continue;
 
         const tokens = normalizeTokens(data);
@@ -386,7 +388,7 @@ exports.scheduledPushReminders = functions
           const restday = digest.find((notification) => notification._restdaySessionDate);
           if (restday && (result.sentCount || 0) > 0) {
             await pushSnap.ref.set({
-              restdayLastNotifiedSessionDate: restday._restdaySessionDate,
+              apps: { fitness: { restdayLastNotifiedSessionDate: restday._restdaySessionDate } },
             }, { merge: true });
           }
         }
@@ -414,7 +416,8 @@ exports.onCoachFeedback = functions
 
     const db = admin.firestore();
     const pushDoc = await db.collection("fitness").doc(uid).collection("settings").doc("push").get();
-    const pushData = pushDoc.data() || {};
+    const stored = pushDoc.data() || {};
+    const pushData = stored.apps?.fitness || {};
 
     if (!pushData.enabled) return null;
 
@@ -457,7 +460,8 @@ exports.onClientWorkout = functions
 
     for (const coachUid of clientWorkout.coachUids()) {
       const pushRef = db.collection("fitness").doc(coachUid).collection("settings").doc("push");
-      const pushData = (await pushRef.get()).data() || {};
+      const stored = (await pushRef.get()).data() || {};
+      const pushData = stored.apps?.fitness || {};
       // Schalter aus dem Notification-Panel (Setup-Tab): Typ, Klient stumm, Modus, Ruhezeit
       const verdict = pushPrefs.allowsClientWorkout(pushData, uid, decision.reason);
       if (!verdict.allow) {
@@ -476,8 +480,8 @@ exports.onClientWorkout = functions
         const dead = clientWorkout.deadTokens(tokens, response.responses);
         if (dead.length > 0) {
           // Abgemeldete Geräte aufräumen, sonst wächst die Token-Liste ewig.
-          const cleanup = { tokens: admin.firestore.FieldValue.arrayRemove(...dead) };
-          if (dead.includes(pushData.token)) cleanup.token = admin.firestore.FieldValue.delete();
+          const cleanup = { apps: { fitness: { tokens: admin.firestore.FieldValue.arrayRemove(...dead) } } };
+          if (dead.includes(pushData.token)) cleanup.apps.fitness.token = admin.firestore.FieldValue.delete();
           await pushRef.set(cleanup, { merge: true });
         }
         results.push({ coachUid, sent: response.successCount, failed: response.failureCount, removed: dead.length });
@@ -504,7 +508,8 @@ exports.sendTestPush = functions
     const uid = requireAuth(context);
     const kind = pushPrefs.TEST_KINDS.includes(data?.kind) ? data.kind : "reminder";
     const pushRef = admin.firestore().collection("fitness").doc(uid).collection("settings").doc("push");
-    const pushData = (await pushRef.get()).data() || {};
+    const stored = (await pushRef.get()).data() || {};
+    const pushData = stored.apps?.fitness || {};
 
     const wait = pushPrefs.testCooldownLeft(pushData.lastTestAt?.toMillis?.());
     if (wait > 0) {
@@ -521,14 +526,14 @@ exports.sendTestPush = functions
       throw new functions.https.HttpsError("failed-precondition", "Kein registriertes Gerät.");
     }
 
-    await pushRef.set({ lastTestAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    await pushRef.set({ apps: { fitness: { lastTestAt: admin.firestore.FieldValue.serverTimestamp() } } }, { merge: true });
     const response = await admin.messaging().sendEachForMulticast(pushPrefs.buildTestMessage(kind, tokens, NOTIFICATIONS));
     const dead = clientWorkout.deadTokens(tokens, response.responses);
     if (dead.length > 0) {
-      const cleanup = { tokens: admin.firestore.FieldValue.arrayRemove(...dead) };
-      if (dead.includes(pushData.token)) cleanup.token = admin.firestore.FieldValue.delete();
+      const cleanup = { apps: { fitness: { tokens: admin.firestore.FieldValue.arrayRemove(...dead) } } };
+      if (dead.includes(pushData.token)) cleanup.apps.fitness.token = admin.firestore.FieldValue.delete();
       if (Array.isArray(pushData.devices)) {
-        cleanup.devices = pushData.devices.filter((d) => !dead.includes(d.token));
+        cleanup.apps.fitness.devices = pushData.devices.filter((d) => !dead.includes(d.token));
       }
       await pushRef.set(cleanup, { merge: true });
     }
