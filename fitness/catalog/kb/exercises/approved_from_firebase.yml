@@ -1188,35 +1188,40 @@ exercises:
   - 701_gastrocnemius
   - 702_soleus
   source: approved
-- stabilizers:
-  - 504_transverse_abdominis
-  - 502_obliquus_externus
-  - 503_obliquus_internus
-  - 507_multifidus
-  - 201_latissimus_dorsi
-  - 202b_trapezius_middle
-  - 202c_trapezius_lower
-  - 405_forearm_flexors
-  - 608_gluteus_medius
-  - 609_gluteus_minimus
+- category: pull
+  id: 081
+  equipment:
+  - barbell
+  - dumbbell
+  primary_muscles:
+  - 604a_biceps_femoris
+  - 604b_semitendinosus
+  - 604c_semimembranosus
+  - 603_gluteus_maximus
+  wger_id: 507
+  exercise_id: 081
+  review_state:
+    status: approved
+  _hash: a8fea66f53e46ebc7f941d93178c8ef1
   origin:
-    type: external
-    source_refs:
-      wger:
-      - '507'
-    wger:
-      wger_muscle_ids:
-        secondary:
-        - 16
-        primary:
-        - 11
-        - 8
-      wger_id: 507
     yuhonas:
-      category: strength
+      equipment:
+      - barbell
+      exercise_id: yuhonas_romanian_deadlift
+      primary_muscles:
+      - hamstrings
+      secondary_muscles:
+      - calves
+      - glutes
+      - lower_back
+      display_name: Romanian Deadlift
+      yuhonas_id: Romanian_Deadlift
       wger_muscle_ids:
-        primary: []
         secondary: []
+        primary: []
+      tags:
+      - unreviewed
+      - yuhonas
       coaching_notes:
       - 'Put a barbell in front of you on the ground and grab it using a pronated
         (palms facing down) grip that a little wider than shoulder width. Tip: Depending
@@ -1232,20 +1237,47 @@ exercises:
         a deep breath at the start of the movement and keep your chest up. Hold your
         breath as you lower and exhale as you complete the movement.'
       - Repeat for the recommended amount of repetitions.
-      equipment:
-      - barbell
-      exercise_id: yuhonas_romanian_deadlift
-      primary_muscles:
-      - hamstrings
-      yuhonas_id: Romanian_Deadlift
-      display_name: Romanian Deadlift
-      secondary_muscles:
-      - calves
-      - glutes
-      - lower_back
-      tags:
-      - unreviewed
-      - yuhonas
+      category: strength
+    type: external
+    source_refs:
+      wger:
+      - '507'
+    wger:
+      wger_muscle_ids:
+        secondary:
+        - 16
+        primary:
+        - 11
+        - 8
+      wger_id: 507
+  schema_version: 2026-08-12.exercise-v1
+  stabilizers:
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 507_multifidus
+  - 201_latissimus_dorsi
+  - 202b_trapezius_middle
+  - 202c_trapezius_lower
+  - 405_forearm_flexors
+  - 608_gluteus_medius
+  - 609_gluteus_minimus
+  german: Rumänisches Kreuzheben
+  type: compound
+  variations:
+  - dumbbell_rdl
+  - single_leg_rdl
+  - barbell_rdl
+  external_ids:
+    wger:
+    - 507
+  aliases:
+  - Romanian Deadlift
+  - RDL
+  - Romanian DL
+  - Rumänisches Kreuzheben
+  - Kurzhantel RDL
+  - Langhantel RDL
   common_errors:
   - Zu starkes Beugen der Knie, wodurch die Übung biomechanisch in Richtung konventionelles
     Kreuzheben oder Kniebeuge kippt.
@@ -1261,27 +1293,27 @@ exercises:
     Technik verlieren.
   - Das Gewicht zu weit nach vorn auf die Zehen verlagern, wodurch Balance, Hüftmechanik
     und Kraftübertragung schlechter werden.
-  aliases:
-  - Romanian Deadlift
-  - RDL
-  - Romanian DL
+  secondary_muscles:
+  - 206_erector_spinae
+  - 602a_adductor_magnus
+  english: Romanian Deadlift
+  wger_muscle_ids:
+    secondary:
+    - 16
+    primary:
+    - 11
+    - 8
+  display_name: Rumänisches Kreuzheben
+  search_aliases:
+  - rdl
+  - romanian deadlift
+  - rumaenisches kreuzheben
+  - rumänisches kreuzheben
+  - wger_507
   - Rumänisches Kreuzheben
-  - Kurzhantel RDL
-  - Langhantel RDL
-  exercise_id: 081
-  primary_muscles:
-  - 604a_biceps_femoris
-  - 604b_semitendinosus
-  - 604c_semimembranosus
-  - 603_gluteus_maximus
-  movements:
-  - hip_hinge
-  - hip_extension
-  - hamstring_lengthening
-  - spinal_anti_flexion
-  - isometric_knee_flexion
-  - scapular_depression
-  id: 081
+  - Romanian Deadlift
+  source: approved
+  name: Rumänisches Kreuzheben
   tags:
   - expert
   - legs
@@ -1289,23 +1321,6 @@ exercises:
   - posterior_chain
   - hamstrings
   - glutes
-  display_name: Rumänisches Kreuzheben
-  english: Romanian Deadlift
-  variations:
-  - dumbbell_rdl
-  - single_leg_rdl
-  - barbell_rdl
-  schema_version: 2026-08-12.exercise-v1
-  category: pull
-  review_state:
-    status: approved
-  _hash: a8fea66f53e46ebc7f941d93178c8ef1
-  wger_muscle_ids:
-    primary:
-    - 11
-    - 8
-    secondary:
-    - 16
   coaching_notes:
   - 'Starte aus dem aufrechten Stand und breche die Bewegung zuerst über die Hüfte
     ein: Gesäß aktiv nach hinten schieben, statt die Hantel über Kniebeugung abzusenken.'
@@ -1324,28 +1339,13 @@ exercises:
   - Den exzentrischen Teil bewusst kontrollieren, damit die Hamstrings unter Länge
     arbeiten; der Trainingsreiz entsteht hier stark über saubere Bremsarbeit, nicht
     nur über das Aufrichten.
-  german: Rumänisches Kreuzheben
-  equipment:
-  - barbell
-  - dumbbell
-  wger_id: 507
-  external_ids:
-    wger:
-    - 507
-  search_aliases:
-  - rdl
-  - romanian deadlift
-  - rumaenisches kreuzheben
-  - rumänisches kreuzheben
-  - wger_507
-  - Rumänisches Kreuzheben
-  - Romanian Deadlift
-  name: Rumänisches Kreuzheben
-  source: approved
-  secondary_muscles:
-  - 206_erector_spinae
-  - 602a_adductor_magnus
-  type: compound
+  movements:
+  - hip_hinge
+  - hip_extension
+  - hamstring_lengthening
+  - spinal_anti_flexion
+  - isometric_knee_flexion
+  - scapular_depression
 - equipment:
   - dumbbell
   - incline_bench
