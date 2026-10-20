@@ -16,6 +16,7 @@ on:
       - 'src/**'
       - '6pack'
       - '.gitmodules'
+      - 'Skills'
       - 'scripts/build-sixpack-data.mjs'
       - 'package.json'
       - 'pnpm-lock.yaml'
@@ -33,6 +34,11 @@ jobs:
         with:
           repository: nimmsel23/vitalos
           ref: master
+
+      - name: Private Skills submodule access
+        uses: ./.github/actions/skills-submodule-auth
+        with:
+          deploy-key: ${{ secrets.SKILLS_DEPLOY_KEY }}
 
       - name: Submodules via HTTPS + Token
         run: |
