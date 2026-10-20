@@ -52,6 +52,11 @@ jobs:
           repository: nimmsel23/vitalos
           ref: master
 
+      - name: Private Skills submodule access
+        uses: ./.github/actions/skills-submodule-auth
+        with:
+          deploy-key: ${{ secrets.SKILLS_DEPLOY_KEY }}
+
       - name: Submodules via HTTPS + Token
         run: |
           git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "git@github.com:"
