@@ -21,10 +21,9 @@ module.exports = {
   content: [
     "./index.html",
     "./src/**/*.{js,jsx,ts,tsx}",
-    // 6Pack-Komponenten liegen im Root; keine Dependencies/Builds scannen.
-    "./6pack/*.{js,jsx,ts,tsx}",
-    "./6pack/src/**/*.{js,jsx,ts,tsx}",
-    "./Skills/*.{js,jsx,ts,tsx}",
+    // Explizite View-Pfade dokumentieren die integrierten Tab-Quellen.
+    "./src/views/SixPack/*.{js,jsx,ts,tsx}",
+    "./src/views/Skills/*.{js,jsx,ts,tsx}",
     siblingGlob("journal-dev", "journal-app"),
     siblingGlob("habits-dev", "habit-app"),
     siblingGlob("learn-dev", "learn-app"),

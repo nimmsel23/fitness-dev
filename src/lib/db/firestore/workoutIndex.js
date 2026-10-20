@@ -26,7 +26,7 @@ import {
 
 import { db } from "../../../firebase.js";
 import { getUid } from "./core.js";
-import { indexCutoffDate, localDateOf, monthOf, toIndexEntry } from "../../../../6pack/workoutDoc.js";
+import { indexCutoffDate, localDateOf, monthOf, toIndexEntry } from "../../../views/SixPack/workoutDoc.js";
 
 const SCHEMA = 1;
 const CLOCK_SKEW_MS = 10 * 60 * 1000;

@@ -15,7 +15,6 @@ on:
     branches: [dev]
     paths:
       - 'src/**'
-      - '6pack'
       - '.gitmodules'
       - 'scripts/build-sixpack-data.mjs'
       - 'package.json'
@@ -28,7 +27,6 @@ on:
     branches: [vitalos, dev]
     paths:
       - 'src/**'
-      - '6pack'
       - '.gitmodules'
       - 'scripts/build-sixpack-data.mjs'
       - 'package.json'

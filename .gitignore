@@ -44,6 +44,7 @@ src/lib/db/firestore/push.generated.js
 src/lib/db/firestore/pull.generated.js
 src/lib/db/firestore/legs.generated.js
 src/lib/coachNotesData.generated.js
+src/views/SixPack/sixpackData.generated.js
 
 # User-Daten: 6Pack Progress-Fotos (lokal gespeichert, nicht ins Repo)
 public/sixpack-photos/
