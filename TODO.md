@@ -14,11 +14,10 @@ Frontend-Integration und Produktdokumentation liegen in `~/plan-dev`.
 - Details: RESULTS.md und backend/notifier/README.md.
 
 
-# [x] 6Pack-Integration (2026-10-11)
-- Doppelten Ordner entfernen: echtes Submodule unter `6pack/`, direkte Imports,
-  Fitness-KB-Generator unter `scripts/`; VitalOS-Branch-Zuordnung prüfen.
-- Submodule auf `fitness` führen; lokalen `dev`-Stand mit `npm run sync:6pack`
-  übernehmen, Fitness bauen und Pointer plus Laufzeitdateien committen.
+# [x] 6Pack-Integration (2026-10-20)
+- Tab nach `src/views/SixPack/` integriert, Fitness-KB-Generator und Session-
+  Imports auf die integrierten Quellen umgestellt; Submodule entfernt.
+- `~/6pack-dev` bleibt als eigenständiges Repo mit `dev` und `fitness`-Branch.
 
 # [NEW] Coach Office 
 Beispielfeature: Trainingsplanbesprechung zwischen Klient und Coach. Social Media Style. Comment-feed per Exercise
@@ -132,11 +131,11 @@ Coach-Zugang anhand der verifizierten Firebase-UID ergänzen und zentrale Rolle 
 
 - [x] 2026-10-17: Echten 6Pack-Selfie-Sync Handy → Laptop vom Nutzer bestätigen lassen und Abnahme dokumentieren.
 
-- [x] 2026-10-17: 6pack-Übungen vor Workout-Start mit Muskelgrafik, Anleitung und Videos öffnen; gemeinsames Submodule und KB-Generator integriert.
+- [x] 2026-10-17: 6pack-Übungen vor Workout-Start mit Muskelgrafik, Anleitung und Videos öffnen; KB-Generator integriert.
 
 - [x] Offline-Cache über App-Updates erhalten: gemeinsame SW-Strategie, API-Migration, vollständiges Asset-Precache und sichere Installation.
 
-- [x] 2026-10-17: Skills/-Kopie durch direktes skills-dev-Submodule (fitness) ersetzen und Video-Runner integrieren.
+- [x] 2026-10-17: Skills-Tab mit Video-Runner integriert; Fitness-Dateien liegen unter `src/views/Skills/`.
 # [x] VitalOS/Fitness Push-Routing trennen (2026-10-19)
 - Eigene Firestore-Token-Lanes, Worker-Dateien und Scopes je App; App-Marker
   verhindert, dass ein Worker Pushes der anderen App anzeigt.

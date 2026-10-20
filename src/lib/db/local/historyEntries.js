@@ -1,7 +1,7 @@
 // Lokaler Modus (SQLite via server.mjs): die Abfrage ist ohnehin lokal, ein
 // Index bringt nichts — gleiche Rückgabeform wie firestore/workoutIndex.js.
 import { getRecentSessions } from "./sessions.js";
-import { toIndexEntry } from "../../../../6pack/workoutDoc.js";
+import { toIndexEntry } from "../../../views/SixPack/workoutDoc.js";
 
 export async function getHistoryEntries({ months = 6 } = {}) {
   const n = months * 10;

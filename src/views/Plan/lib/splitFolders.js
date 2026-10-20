@@ -4,10 +4,9 @@
 // landet. Eine explizit gesetzte Kategorie hat immer Vorrang. Reine
 // Anzeige-Gruppierung — es wird nichts zurückgeschrieben.
 //
-// Wird auch vom Long-Press-Sheet im Session-Tab genutzt
+// Gleiches Keyword-Vokabular wie fitness-devs Long-Press-Sheet
 // (views/Session/SplitPlanSheet.jsx), damit ein Template dort unter
 // demselben Split auftaucht, unter dem es hier einsortiert ist.
-// Kopie in plan-dev (src/views/Plan/lib/splitFolders.js) mitpflegen.
 
 export const SPLIT_ORDER = ["Push", "Pull", "Legs", "Upper", "Lower", "Full"];
 

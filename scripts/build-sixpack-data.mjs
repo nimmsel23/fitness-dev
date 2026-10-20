@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Generiert 6pack/sixpackData.generated.js aus der KB
+// Generiert src/views/SixPack/sixpackData.generated.js aus der KB
 // (fitness/catalog/kb/exercises/6pack/ + /calisthenics/) — die KB bleibt SSOT,
 // dieses Skript ist der einzige Ort, der KB-Inhalte in JS dupliziert. Läuft
 // vor jedem Dev-Start und Build (predev/prebuild in package.json), damit neue
@@ -9,13 +9,13 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
-import { loadMuscles, exerciseContent } from '../6pack/catalogContent.mjs';
+import { loadMuscles, exerciseContent } from '../src/views/SixPack/catalogContent.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..');
 const SIXPACK_DIR = join(REPO_ROOT, 'fitness/catalog/kb/exercises/6pack');
 const CALISTHENICS_DIR = join(REPO_ROOT, 'fitness/catalog/kb/exercises/calisthenics');
-const OUT_FILE = join(REPO_ROOT, '6pack/sixpackData.generated.js');
+const OUT_FILE = join(REPO_ROOT, 'src/views/SixPack/sixpackData.generated.js');
 
 // Tag → grobe Learn/Shuffle-Kategorie. Neue Tags fallen auf 'lower' zurück
 // (häufigste Kategorie) statt den Build brechen zu lassen.

@@ -1,23 +1,17 @@
-# Skills: direkte Submodule-Integration
+# Skills integration
 
-Stand: 2026-10-17. `Skills/` ist ein Gitlink zu `nimmsel23/skills-dev`,
-Tracking-Branch `fitness`. Die frühere identische Kopie ist ersetzt.
-Entwicklungsquelle: `~/skills-dev/dev`. Fitness importiert unverändert
-`Skills/SkillsCard.jsx` und `Skills/skills.css`; neue Module kommen direkt
-aus diesem Checkout. Keine manuellen Dateikopien mehr.
+Fitness owns its in-app integration at `src/views/Skills/`; the Session tab
+imports the view from there. The standalone source remains in `~/skills-dev`
+(`dev` for app development, `fitness` for Fitness-facing integration). Fitness
+does not need a Skills Git submodule or workspace package to build the tab.
 
-1. In skills-dev entwickeln, testen, committen und dev pushen.
-2. Den geprüften Stand in den Branch fitness übernehmen und pushen.
-3. Skills/-Gitlink aktualisieren, Fitness prüfen und scoped committen.
-4. Fitness-dev pushen, in vitalos/fitness-app (Branch vitalos) übernehmen,
-   verschachtelte Submodule sync/update und Release-Branch pushen.
-5. VitalOS-Fitness-Pointer bumpen und pushen.
+The standalone repo has `origin` pointing to `nimmsel23/skills-dev` and a
+local `upstream` remote pointing to `nimmsel23/fitness-dev`. Keep `dev`
+tracking `origin/dev` and `fitness` tracking `origin/fitness`. Transfer changes
+between the standalone app and Fitness as reviewed source changes in
+`src/views/Skills/`, carrying along any component, style, data, or dependency
+updates required by the Fitness build.
 
-`deploy-fitness.yml` baut den Host. `deploy-skills.yml` im VitalOS-Meta-Repo
-baut denselben gepinnten `fitness-app/Skills`-Checkout als eigenständige App
-für vos-skills.web.app. Root-Workspace-Lockfile und Skills-Lockfile bleiben
-getrennt: Skills-CI installiert in dem verschachtelten Standalone-Paket.
-
-Prüfung: `node Skills/scripts/test-exercise-videos.mjs`, Fitness-Lint und
-normaler/Firebase-Build. Alle 65 Übungen haben Videos (50 native Loops,
-15 Tutorials); Details/Quellen in Skills/docs/EXERCISE-VIDEOS.md.
+CI builds Skills as part of the Fitness app through `src/**`; no nested
+standalone install or submodule initialization is needed. The separate
+`skills-dev` repo remains available for its own app workflow.
