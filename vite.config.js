@@ -152,7 +152,6 @@ export default defineConfig(async ({ mode }) => {
         output: {
           manualChunks: {
             react: ['react', 'react-dom'],
-            charts: ['recharts'],
             icons: ['lucide-react'],
             bodymap: ['react-body-highlighter'],
           },
