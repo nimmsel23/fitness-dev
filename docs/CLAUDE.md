@@ -368,16 +368,14 @@ gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
 - ⏳ AI Agent Workflow (Gemini → anatomy_teaching YAML-Generierung, laufend)
 - ⏳ Coverage-Granularität (primary/secondary/stabilizer) — teilweise
 - ⏳ Anatomie-Lehre für alle Übungen (~28 von ~50+ im Katalog)
-- ✅ pnpm-Workspace (2026-10-13): Root + `6pack`, `plan`, `coach` als
-  direkte Submodule ohne `-dev` im Verzeichnisnamen. Die zusätzliche
-  Plan-Einbindung innerhalb von Coach wurde entfernt; Plan bleibt direkt
-  unter Fitness. Die eigenständigen Arbeitsrepos heißen weiterhin
-  `~/6pack-dev`, `~/plan-dev`, `~/coach-dev`.
-  `@vos/cross-app-aliases` nutzt `link:` für seine pfadbasierte Auflösung.
-  Ein Workspace-Override wendet diese lokale Quelle auch auf Coach/Plan an;
-  deren optionale Abhängigkeit ist damit im Frozen-Lockfile vollständig.
-  Fitness-Package-Skripte und Build-Hooks nutzen `pnpm run`; Tailwind scannt
-  6Pack-Quellen ohne dessen Dependencies.
+- ✅ Fitness-Tabs integriert (2026-10-20): Plan, 6Pack und Skills liegen im
+  Fitness-Build unter `src/views/{Plan,SixPack,Skills}`. Ihre eigenständigen
+  Arbeitsrepos (`~/plan-dev`, `~/6pack-dev`, `~/skills-dev`) bleiben verfügbar;
+  Fitness hat keine Gitlinks oder Workspace-Importer für diese Apps mehr.
+  `dev` bleibt der App-Entwicklungsbranch, `fitness` der Fitness-Integrations-
+  branch. Vite/Firebase baut die Fitness-App direkt aus diesem Checkout.
+  `@vos/cross-app-aliases` nutzt weiterhin `link:` für seine pfadbasierte
+  Auflösung.
 - ⏳ Coach-Tab-Gesamtaufräumung (`views/Coach/`, 5 Sub-Tabs, ~1000 Zeilen) —
   noch nicht begonnen, Details + Zielbild in `../src/CLAUDE.md`
 
@@ -388,5 +386,7 @@ gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
 - **Haupt-Service-Worker ist generiert (seit 2026-10-16):** Quelle ist `mini-app.json` → App `fitness` (+ `frontend` für den Backend-Neubau-Fork) und das Template aus `@vos/mini-app-shell`. `public/sw.js` gibt es nicht mehr (archiviert: `docs/archive/sw.fitness-main-v1.js`); ältere Doku-Verweise auf `public/sw.js` meinen den generierten `sw.js`. Erzeugt wird er beim Build per `node scripts/mini-app-shell/cli.mjs sw <outDir> --app fitness` (ersetzt `stamp-sw.mjs`; `build`, `build:firebase:client`, `build:training`, `build:atlas`). Der Vite-Dev-Server liefert keinen SW mehr (kein Stale-Cache in der Entwicklung).
 - **Splash der Haupt-App (seit 2026-10-16):** `build` (→ `dist`) und `build:firebase:client` rufen zusätzlich `cli.mjs splash <outDir> --app fitness` (Splash + "Update wird geladen …"-Loader in `index.html`, Icon `/icon-192.png`, Akzent aus `mini-app.json`). Nicht im Dev-Server. Training/Atlas bekommen ihn über `stamp-training.mjs`.
 - **Änderungen am SW-Verhalten** in `mini-app.json` machen (SWR-Pfade, `neverCache`, Queue, Notifications) und danach `node scripts/mini-app-shell/cli.mjs parity --app fitness --old docs/archive/sw.fitness-main-v1.js` (bzw. `--app frontend --old frontend/public/sw.js`; `scripts/test-sw-parity.mjs` ist der Vorläufer, liefert dasselbe) laufen lassen — es spielt 36 Fetch-Szenarien (online/offline) plus Install/Activate/Messages gegen den archivierten Original-SW. Nicht abgedeckt: der Queue-Konfliktpfad (HTTP 409, nur Frontend-Fork).
-- 6pack/plan/coach werden in ihren eigenen Repos (`~/6pack-dev`, `~/plan-dev`, `~/coach-dev`, Branch `dev`) gebaut und per `vos-release` nach `vitalos` gebracht. Die Verzeichnisse `6pack/`, `coach/`, `plan/` hier sind nested Submodule auf **lokalen** Branches (`lokal`) — nicht dort arbeiten, nicht pushen.
+- 6Pack, Plan und Skills haben eigenständige Dev-Repos; ihre Fitness-Tabs werden
+  aus `src/views/` im Fitness-Repo gebaut. Coach bleibt im `src/views/Coach/`
+  integriert. Firebase Deploys laufen über den Fitness-Workflow.
 - Vor Push/Release: `vos-overview --plan`.
