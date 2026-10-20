@@ -128,6 +128,25 @@
           "/api/"
         ]
       }
+    },
+    "plan": {
+      "id": "plan",
+      "name": "VitalOS Plan",
+      "short": "Plan",
+      "description": "Trainingspläne bauen und verwalten",
+      "accent": "#5b8cff",
+      "iconDir": "solo-icons/plan",
+      "html": "index.html",
+      "manifest": "plan-manifest.webmanifest",
+      "start": "./",
+      "scope": "./",
+      "register": { "expose": true },
+      "sw": {
+        "file": "plan-sw.js",
+        "prefix": "vos-plan-",
+        "shell": ["./", "./index.html", "./plan-manifest.webmanifest"],
+        "extras": ["workout-notifications"]
+      }
     }
   }
 }

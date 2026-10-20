@@ -68,8 +68,9 @@ function soloStubPlugin(mode) {
 }
 
 export default defineConfig(async ({ mode }) => {
-  const isFirebase = mode === 'firebase' || mode === 'coach' || mode === 'training' || mode === 'atlas'
+  const isFirebase = mode === 'firebase' || mode === 'coach' || mode === 'training' || mode === 'atlas' || mode === 'plan'
   const isCoach = mode === 'coach'
+  const isPlan = mode === 'plan'
   const isSolo = mode === 'training' || mode === 'atlas'
   const crossAppAliases = await resolveCrossAppAliases()
   delete crossAppAliases['@fuel']
@@ -134,6 +135,7 @@ export default defineConfig(async ({ mode }) => {
         '/journal':   BACKEND,
         '/coverage':  BACKEND,
         '/plan':      BACKEND,
+        '/api':       BACKEND,
         '/blocks':    BACKEND,
         '/theme':     BACKEND,
         '/health':    BACKEND,
@@ -145,10 +147,10 @@ export default defineConfig(async ({ mode }) => {
       },
     },
     build: {
-      outDir: isCoach ? 'dist-coach' : isSolo ? `dist-${mode}` : 'dist',
+      outDir: isCoach ? 'dist-coach' : (isSolo || isPlan) ? `dist-${mode}` : 'dist',
       target: 'modules',
       rollupOptions: {
-        input: isCoach ? resolve(__dirname, 'coach.html') : undefined,
+        input: isCoach ? resolve(__dirname, 'coach.html') : isPlan ? resolve(__dirname, 'plan.html') : undefined,
         output: {
           manualChunks: {
             react: ['react', 'react-dom'],

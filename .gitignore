@@ -6,6 +6,7 @@ dist/
 dist-firebase/
 dist-training/
 dist-atlas/
+dist-plan/
 dist-coach/
 dist-federation/
 .firebase/
