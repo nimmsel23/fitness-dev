@@ -9,3 +9,15 @@
 - `~/vitalos` selbst ist die VitalOS-Shell. Ihr Produktionsbranch ist `master`; die Shell-CI deployed die Shell samt den dort gepinnten Submodule-Quellen.
 - Ein Branch-Push auf `dev` oder `vitalos` aktualisiert den Submodule-Gitlink im Meta-Repo nicht automatisch. Für einen neuen Shell-Quellstand muss der Pointer in `~/vitalos` aktualisiert werden.
 - `main` ist für diesen Ablauf nicht erforderlich. Branch-Namen und Ziele immer anhand des aktiven Workflows prüfen.
+
+## Plan-Integration
+
+- `~/plan-dev` auf `dev` ist die Quelle für die Plan-Mini-App. `fitness-dev/plan` ist kein aktueller Quellpfad mehr.
+- Beim Push von Plan-Änderungen synchronisiert der `plan-dev`-Pre-Push-Hook `src/views/Plan/` nach `fitness-dev/src/views/Plan/`. Der Publisher erstellt dort einen Commit und pusht `fitness-dev/dev`; dessen CI veröffentlicht die Preview.
+- Für Fitness-Prod geht der integrierte Stand von `fitness-dev/dev` in `~/vitalos/fitness-app` auf `vitalos`. Dessen CI deployt Fitness-Prod. Danach wird der gewünschte Commit als `fitness-app`-Gitlink in `~/vitalos` gepinnt; ein Push von `~/vitalos/master` deployed die Shell.
+
+## Plan-Integration
+
+- `~/plan-dev` auf `dev` ist die Quelle für die Plan-Mini-App. `fitness-dev/plan` ist kein aktueller Quellpfad mehr.
+- Beim Push von Plan-Änderungen synchronisiert der `plan-dev`-Pre-Push-Hook `src/views/Plan/` nach `fitness-dev/src/views/Plan/`. Der Publisher erstellt dort einen Commit und pusht `fitness-dev/dev`; dessen CI veröffentlicht die Preview.
+- Für Fitness-Prod geht der integrierte Stand von `fitness-dev/dev` in `~/vitalos/fitness-app` auf `vitalos`. Dessen CI deployt Fitness-Prod. Danach wird der gewünschte Commit als `fitness-app`-Gitlink in `~/vitalos` gepinnt; ein Push von `~/vitalos/master` deployed die Shell.
