@@ -5,7 +5,7 @@
 [submodule "plan-dev"]
 	path = plan
 	url = git@github.com:nimmsel23/plan-dev.git
-	branch = master
+	branch = dev
 [submodule "Skills"]
 	path = Skills
 	url = git@github.com:nimmsel23/skills-dev.git
