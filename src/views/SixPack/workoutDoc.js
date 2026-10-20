@@ -1,7 +1,7 @@
 // Gemeinsames Workout-Format für ALLE Apps, die in fitness/{uid}/sessions
 // schreiben (Fitness-App, Standalone-6Pack, …). Rein funktional, kein
 // Firebase-Import — darf deshalb von überall importiert werden (die Fitness-App
-// importiert diese Datei direkt aus dem Fitness-View.
+// importiert diese Datei direkt aus dem 6pack-Submodul).
 //
 // Ablage: fitness/{uid}/sessions/{date}__{source}-{runId}   (ein Doc pro Einheit)
 //   - Ein Schreiber pro Doc: jede App legt ihre Einheit neu an und fasst nie

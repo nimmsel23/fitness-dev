@@ -668,16 +668,20 @@ function RunnerScreen({ workout, onFinish, onBack }) {
     const start = context.currentTime + delay;
     oscillator.frequency.value = frequency;
     oscillator.type = 'sine';
-    gain.gain.setValueAtTime(0.12, start);
+    gain.gain.setValueAtTime(0.2, start);
     gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
     oscillator.connect(gain).connect(context.destination);
     oscillator.start(start);
     oscillator.stop(start + duration);
   }
 
-  // Start einer Übung/Pause: hoher, kurzer "Piep". Ende: tiefer, langer "Tüt".
+  // Start einer Übung/Pause: hoher, kurzer "Piep". Übungsende: klarer
+  // zweistufiger "Piep-Tüt"-Ton, damit der Abschluss auch neben Sprache hörbar bleibt.
   const startBeep = (delay = 0) => beep(990, { delay });
-  const endBeep = () => beep(440, { duration: 0.45 });
+  const endBeep = () => {
+    beep(660, { duration: 0.16 });
+    beep(440, { duration: 0.38, delay: 0.2 });
+  };
 
   // Beste verfügbare Stimme je Sprache: Online-/Premium-Stimmen (Google
   // "Natural", Apple "Enhanced"/"Premium") klingen deutlich weniger blechern
@@ -813,7 +817,10 @@ function RunnerScreen({ workout, onFinish, onBack }) {
     // Eine Übung/Pause ist gerade zu Ende gegangen (nicht der 5s-Wechsel).
     const itemEnded = previousStep !== null && !previousStep.endsWith(':true');
     if (itemEnded) endBeep();
-    if (state.done) return;
+    if (state.done) {
+      if ('speechSynthesis' in window) speak("Congratulations. You've completed today's workout.", 'en-US');
+      return;
+    }
     if (state.transition) {
       // Nächste Übung schon im Übergang ansagen, damit man sich in Position bringen kann.
       const nextIndex = state.itemIndex + 1;
