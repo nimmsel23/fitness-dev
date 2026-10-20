@@ -15,6 +15,9 @@ on:
     paths:
       - 'src/**'
       - '.gitmodules'
+      - 'plan'
+      - '6pack'
+      - 'Skills'
       - 'scripts/build-sixpack-data.mjs'
       - 'package.json'
       - 'pnpm-lock.yaml'

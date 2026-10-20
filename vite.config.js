@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { resolve } from 'path'
+import { dirname, isAbsolute, relative, resolve } from 'path'
 import { existsSync } from 'fs'
 
 const BACKEND = 'http://localhost:9150'
@@ -19,6 +19,60 @@ function siblingDir(devName, appName) {
     }
   }
   return resolve(__dirname, '..', devName)
+}
+
+// Mini-App implementations live in their own repositories. Fitness tracks
+// the approved integration commit of each repo as a Git submodule; this
+// resolver makes Fitness compile that checkout directly instead of a copied
+// view under src/views. Missing files fall back to Fitness-owned adapters.
+function miniAppSubmodulePlugin() {
+  const maps = [
+    {
+      local: resolve(__dirname, 'src/views/Plan'),
+      source: resolve(__dirname, 'plan/src/views/Plan'),
+    },
+    {
+      local: resolve(__dirname, 'src/views/SixPack'),
+      source: resolve(__dirname, '6pack'),
+    },
+    {
+      local: resolve(__dirname, 'src/views/Skills'),
+      source: resolve(__dirname, 'Skills'),
+    },
+  ]
+
+  return {
+    name: 'fitness-miniapp-submodule-source',
+    enforce: 'pre',
+    resolveId(source, importer) {
+      if (!importer || importer.startsWith('\0')) return null
+      const request = source.split('?')[0]
+      if (!request.startsWith('.') && !isAbsolute(request)) return null
+
+      const importerPath = importer.split('?')[0]
+      const target = isAbsolute(request)
+        ? request
+        : resolve(dirname(importerPath), request)
+
+      // Fitness generates this data from its own exercise KB before building;
+      // 6Pack's standalone source keeps the same import contract.
+      if (
+        importerPath.startsWith(`${resolve(__dirname, '6pack')}/`) &&
+        request === './sixpackData.generated.js'
+      ) {
+        const fitnessData = resolve(__dirname, 'src/views/SixPack/sixpackData.generated.js')
+        if (existsSync(fitnessData)) return fitnessData
+      }
+
+      for (const map of maps) {
+        const pathFromView = relative(map.local, target)
+        if (pathFromView === '..' || pathFromView.startsWith(`..${process.platform === 'win32' ? '\\' : '/'}`) || isAbsolute(pathFromView)) continue
+        const submoduleFile = resolve(map.source, pathFromView)
+        if (existsSync(submoduleFile)) return submoduleFile
+      }
+      return null
+    },
+  }
 }
 
 // SSOT für Cross-App-Aliase (@relax, @learn + interne Cross-DB-Exports)
@@ -80,7 +134,7 @@ export default defineConfig(async ({ mode }) => {
     // Präfix (z.B. /fitness-dev/) fälschlich zur Domain-Wurzel auf (404 →
     // Whitescreen). Core4/Door/Game/Fuel haben denselben Fix schon.
     base: './',
-    plugins: [react(), ...(isSolo ? [soloStubPlugin(mode)] : [])],
+    plugins: [react(), miniAppSubmodulePlugin(), ...(isSolo ? [soloStubPlugin(mode)] : [])],
     resolve: {
       preserveSymlinks: true,
       alias: {

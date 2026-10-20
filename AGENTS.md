@@ -1,23 +1,20 @@
-# AGENTS.md — Fitness Dev
+# Fitness Dev
 
 ## Repo- und Branch-Rollen
 
-- Dieses Repo ist die Entwicklungsquelle für die eigenständige Fitness-App. `dev` ist der Entwicklungsbranch; Qualifizierende Änderungen auf `dev` starten den CI-Preview-Deploy (siehe Pfadfilter in `preview-dev.yml`).
-- `vitalos` ist aktuell der Produktionsbranch der eigenständigen Fitness-App. Qualifizierende Änderungen auf `vitalos` starten den Fitness-Live-Deploy.
-- Im Meta-Repo `~/vitalos` liegt dasselbe Repo als Submodule `fitness-app`. Dieser Checkout liefert Quellcode für die Fitness-Subapp der VitalOS-Shell; der Meta-Repo-Gitlink pinnt dafür einen konkreten Commit.
-- Auch `~/vitalos/.github/workflows/deploy-fitness.yml` kann bei Änderungen am `fitness-app`-Gitlink einen Fitness-Deploy auslösen. Die beiden CI-Pfade getrennt prüfen.
-- `~/vitalos` selbst ist die VitalOS-Shell. Ihr Produktionsbranch ist `master`; die Shell-CI deployed die Shell samt den dort gepinnten Submodule-Quellen.
-- Ein Branch-Push auf `dev` oder `vitalos` aktualisiert den Submodule-Gitlink im Meta-Repo nicht automatisch. Für einen neuen Shell-Quellstand muss der Pointer in `~/vitalos` aktualisiert werden.
-- `main` ist für diesen Ablauf nicht erforderlich. Branch-Namen und Ziele immer anhand des aktiven Workflows prüfen.
+- `dev` ist der Entwicklungsbranch von `fitness-dev`; relevante Änderungen starten den CI-Preview-Deploy.
+- `vitalos` ist der Firebase-Release-Branch dieser Fitness-App.
+- In `~/vitalos` liegt dasselbe Repo als Submodul `fitness-app`; dessen Gitlink pinnt den Fitness-Commit, den die VitalOS-Shell verwendet.
+- Ein Push auf `dev` oder `vitalos` aktualisiert den `fitness-app`-Gitlink in `~/vitalos` nicht selbst. Für einen neuen Shell-Quellstand muss dieser Pointer separat aktualisiert werden.
 
-## Plan-Integration
+## Mini-App-Integration
 
-- `~/plan-dev` auf `dev` ist die Quelle für die Plan-Mini-App. `fitness-dev/plan` ist kein aktueller Quellpfad mehr.
-- Beim Push von Plan-Änderungen synchronisiert der `plan-dev`-Pre-Push-Hook `src/views/Plan/` nach `fitness-dev/src/views/Plan/`. Der Publisher erstellt dort einen Commit und pusht `fitness-dev/dev`; dessen CI veröffentlicht die Preview.
-- Für Fitness-Prod geht der integrierte Stand von `fitness-dev/dev` in `~/vitalos/fitness-app` auf `vitalos`. Dessen CI deployt Fitness-Prod. Danach wird der gewünschte Commit als `fitness-app`-Gitlink in `~/vitalos` gepinnt; ein Push von `~/vitalos/master` deployed die Shell.
+- `plan`, `6pack` und `Skills` sind direkte Submodule aus `plan-dev`, `6pack-dev` und `skills-dev`. `.gitmodules` verfolgt für alle den Integrationsbranch `fitness`.
+- Laufende Mini-App-Arbeit bleibt auf dem jeweiligen `dev`-Branch. Übernommene Änderungen werden in diesem Mini-App-Repo nach `fitness` gemerged. Anschließend wird der zugehörige Submodul-Pointer in `fitness-dev/dev` aktualisiert und gepusht.
+- `vite.config.js` löst Fitness-Imports für Plan, 6Pack und Skills gegen die ausgecheckten Submodule auf. Die standalone App-Releases bleiben eigene Workflows.
+- Die Preview- und Live-CI-Workflows checken `fitness-app` rekursiv aus, damit auch die drei verschachtelten Submodule verfügbar sind. Änderungen an `plan`, `6pack`, `Skills` oder `.gitmodules` müssen die jeweiligen Workflows triggern.
+- Für lokale Builds zuerst `git submodule update --init --recursive` ausführen. Es wird kein lokales Deployment ausgelöst.
 
-## Plan-Integration
+## Fitness-Release
 
-- `~/plan-dev` auf `dev` ist die Quelle für die Plan-Mini-App. `fitness-dev/plan` ist kein aktueller Quellpfad mehr.
-- Beim Push von Plan-Änderungen synchronisiert der `plan-dev`-Pre-Push-Hook `src/views/Plan/` nach `fitness-dev/src/views/Plan/`. Der Publisher erstellt dort einen Commit und pusht `fitness-dev/dev`; dessen CI veröffentlicht die Preview.
-- Für Fitness-Prod geht der integrierte Stand von `fitness-dev/dev` in `~/vitalos/fitness-app` auf `vitalos`. Dessen CI deployt Fitness-Prod. Danach wird der gewünschte Commit als `fitness-app`-Gitlink in `~/vitalos` gepinnt; ein Push von `~/vitalos/master` deployed die Shell.
+- Für Fitness-Prod wird `fitness-dev/dev` in `~/vitalos/fitness-app` auf den Branch `vitalos` übernommen. Danach wird der gewünschte `fitness-app`-Commit als Gitlink in `~/vitalos` aktualisiert; ein Push von `~/vitalos/master` deployed die Shell samt gepinnten Quellen.

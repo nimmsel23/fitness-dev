@@ -1,34 +1,56 @@
-# Mini-App Sync in Fitness
+# Mini-App-Integration in Fitness
 
-Pushes to `dev` in `6pack-dev`, `plan-dev`, or `skills-dev` can update the
-matching integrated Fitness view. The source repositories' versioned
-`.githooks/pre-push` hooks pass the exact commit being pushed to
-`scripts/publish-mini-app-to-fitness.mjs`.
+`plan`, `6pack` und `Skills` sind Git-Submodule aus den eigenständigen
+Repos `plan-dev`, `6pack-dev` und `skills-dev`. `.gitmodules` nennt für jedes
+Submodul den Branch `fitness` als Integrationslinie. Der konkrete Commit steht,
+wie bei jedem Submodul, im Gitlink des Fitness-Commits.
 
-The publisher checks that Fitness is on `dev`, the target view has no local
-changes, and Fitness `dev` matches `origin/dev`. It copies only the app view
-files, runs `pnpm run build:firebase`, commits only that view, and pushes
-Fitness `dev`. Fitness CI handles staging. It never calls the local
-`deploy.sh`.
+## Änderungsfluss
 
-| Source repo | Integrated source |
-| --- | --- |
-| `6pack-dev` | `src/views/SixPack/` |
-| `plan-dev` | `src/views/Plan/` |
-| `skills-dev` | `src/views/Skills/` |
+1. Mini-App-Änderungen entstehen auf dem jeweiligen `dev`-Branch. Dieser Stand
+   kann unabhängig für die Mini-App weitergebaut und released werden.
+2. Soll ein Stand in Fitness einfließen, wird er im Mini-App-Repo geprüft und
+   nach dessen Branch `fitness` gemerged.
+3. In `fitness-dev` wird das Submodul auf den gewünschten Commit von `fitness`
+   aktualisiert. Der Gitlink wird zusammen mit eventuellen Fitness-Anpassungen
+   committed und nach `fitness-dev/dev` gepusht.
+4. Fitness-CI checkt alle Submodule rekursiv aus, baut die integrierte App und
+   veröffentlicht die Preview. Für den späteren Release wird der Fitness-Stand
+   wie bisher nach `vitalos` übernommen.
 
-Only app code pushes trigger the sync; docs-only commits do not. If the
-Fitness publisher has not yet reached `~/fitness-dev`, the source hook warns
-and lets the standalone push continue. If the Fitness build or push fails,
-the source push is stopped so the two published app states do not silently
-drift.
+| Mini-App | Submodulpfad | Integrationsbranch |
+| --- | --- | --- |
+| Plan | `plan/` | `fitness` |
+| 6Pack | `6pack/` | `fitness` |
+| Skills | `Skills/` | `fitness` |
 
-Enable the hook in each source checkout once with:
+`vite.config.js` löst die integrierten View-Imports gegen die jeweiligen
+Submodule auf. Der Fitness-Build benötigt daher initialisierte Submodule:
 
 ```sh
-git config core.hooksPath .githooks
+git submodule update --init --recursive
 ```
 
-The Fitness target must be on `dev` and have no unpushed commits. Resolve any
-Fitness view edits before the next mini-app push so the publisher can update
-the integrated copy safely.
+Preview- und Live-Workflows müssen auf Änderungen an den Gitlink-Pfaden und an
+`.gitmodules` reagieren. Das lokale `deploy.sh` gehört nicht zu diesem Ablauf.
+
+Zuerst wird der freigegebene Stand im Mini-App-Repo übernommen und gepusht:
+
+```sh
+cd ~/plan-dev
+git switch fitness
+git pull --ff-only origin fitness
+git merge dev
+git push origin fitness
+```
+
+Dann wird der Submodul-Pointer in Fitness aktualisiert:
+
+```sh
+cd ~/fitness-dev
+git submodule update --remote plan
+pnpm run build:firebase
+git add plan
+git commit -m "chore(fitness): update Plan integration"
+git push origin dev
+```

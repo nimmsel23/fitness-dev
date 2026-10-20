@@ -28,7 +28,6 @@
     "deploy:firebase": "firebase deploy --only hosting:client",
     "firebase": "pnpm run build:firebase && pnpm run deploy:firebase",
     "build:training": "pnpm run build:kb-data && vite build --mode training --outDir dist-training && node scripts/mini-app-shell/cli.mjs sw dist-training --app fitness && node scripts/stamp-training.mjs dist-training && node scripts/snapshot.mjs dist-training",
-    "publish:mini-app": "node scripts/publish-mini-app-to-fitness.mjs",
     "build:plan": "pnpm run build:kb-data && vite build --mode plan --outDir dist-plan && node scripts/prepare-plan-dist.mjs dist-plan && node scripts/mini-app-shell/cli.mjs stamp dist-plan --app plan && node scripts/snapshot.mjs dist-plan",
     "deploy:training": "firebase deploy --only hosting:training",
     "deploy:plan": "firebase deploy --only hosting:plan",
