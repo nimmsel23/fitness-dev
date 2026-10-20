@@ -1,47 +1,21 @@
 exercise_id: cable_crossover_inner_x
 description: Expert details for Kabel-Crossover über Kreuz
-approved_at: '2026-10-17T21:02:58.250983+00:00'
+approved_at: '2026-10-17T21:03:34.244781+00:00'
 exercises:
-- exercise_id: cable_crossover_inner_x
-  id: cable_crossover_inner_x
-  name: Inner-X-Cable-Cross
-  display_name: Kabel-Crossover über Kreuz
-  german: Kabel-Crossover über Kreuz
-  english: Cross-Body Cable Crossover
-  category: push
-  type: isolation
-  movements:
-  - horizontal_adduction
-  - scapular_protraction
-  - isometric_core_stability
-  - cable
-  - peak_contraction
-  equipment:
-  - cable
-  primary_muscles:
+- primary_muscles:
   - 101_pectoralis_major
-  secondary_muscles:
-  - 301_anterior_deltoid
+  type: isolation
   stabilizers:
   - 304_rotator_cuff
   - 504_transverse_abdominis
   - 502_obliquus_externus
   - 503_obliquus_internus
-  coaching_notes:
-  - Stelle die Kabelrollen etwa auf Schulterhöhe ein, gehe mittig zwischen die Türme
-    und nimm einen versetzten, stabilen Stand ein.
-  - Hebe den Brustkorb an, halte die Schultern tief und hinten organisiert und bewahre
-    während der gesamten Wiederholung eine leichte Ellbogenbeugung.
-  - Führe die Arme in einer weiten Bogenbahn vor dem Körper zusammen, bis sich die
-    Hände leicht überkreuzen und die Brust aktiv maximal verkürzt.
-  - Die Bewegung kommt aus der horizontalen Adduktion im Schultergelenk, nicht aus
-    einem nachdrückenden Strecken der Ellbogen.
-  - Halte die Endposition für einen kurzen Moment, ohne die Schultern nach vorn hochzuziehen,
-    und spanne die Brust bewusst an.
-  - Lass die Griffe kontrolliert und unter Spannung in die gedehnte Position zurückkehren,
-    ohne dass die Gewichte absetzen oder dich nach hinten ziehen.
-  - Wähle ein Gewicht, bei dem du die Zugbahn sauber halten kannst und die Spannung
-    durchgehend in der Brust statt im vorderen Schulterbereich spürst.
+  schema_version: 2026-08-12.exercise-v1
+  aliases:
+  - Cable Crossover
+  - Cross Cable Fly
+  - Kabel-Fly über Kreuz
+  - Überkreuztes Cable Crossover
   common_errors:
   - Zu hohes Gewicht, wodurch die Ellbogen zunehmend strecken und die Übung eher zu
     einem Trizepsdrücken als zu einer Brustisolation wird.
@@ -57,6 +31,38 @@ exercises:
     in der Brust verloren gehen.
   - Der Kopf schiebt nach vorn oder der untere Rücken wird überstreckt, weil die Rumpfspannung
     und Standstabilität fehlen.
+  review_state:
+    status: approved
+    ai_reviewed: true
+    approved_at: '2026-10-17T21:03:34.244781+00:00'
+  primaryMuscles:
+  - 101_pectoralis_major
+  origin:
+    type: merged_external
+    source_refs:
+      wger:
+      - '1416'
+      yuhonas:
+      - Cable_Crossover
+  secondaryMuscles:
+  - 301_anterior_deltoid
+  german: Kabel-Crossover über Kreuz
+  english: Cross-Body Cable Crossover
+  id: cable_crossover_inner_x
+  displayName: Kabel-Crossover über Kreuz
+  display_name: Kabel-Crossover über Kreuz
+  category: push
+  equipment:
+  - cable
+  search_aliases:
+  - Kabel-Crossover über Kreuz
+  - Cross-Body Cable Crossover
+  - Cable Crossover
+  - Kabel-Fly über Kreuz
+  - Inner-X-Cable-Cross
+  exercise_id: cable_crossover_inner_x
+  variations: []
+  name: Inner-X-Cable-Cross
   tags:
   - chest_isolation
   - cable_workout
@@ -65,32 +71,31 @@ exercises:
   - horizontal_adduction
   - peak_contraction
   - cross_body
-  aliases:
-  - Cable Crossover
-  - Cross Cable Fly
-  - Kabel-Fly über Kreuz
-  - Überkreuztes Cable Crossover
-  variations: []
+  movements:
+  - horizontal_adduction
+  - scapular_protraction
+  - isometric_core_stability
+  - cable
+  - peak_contraction
+  coaching_notes:
+  - Stelle die Kabelrollen etwa auf Schulterhöhe ein, gehe mittig zwischen die Türme
+    und nimm einen versetzten, stabilen Stand ein.
+  - Hebe den Brustkorb an, halte die Schultern tief und hinten organisiert und bewahre
+    während der gesamten Wiederholung eine leichte Ellbogenbeugung.
+  - Führe die Arme in einer weiten Bogenbahn vor dem Körper zusammen, bis sich die
+    Hände leicht überkreuzen und die Brust aktiv maximal verkürzt.
+  - Die Bewegung kommt aus der horizontalen Adduktion im Schultergelenk, nicht aus
+    einem nachdrückenden Strecken der Ellbogen.
+  - Halte die Endposition für einen kurzen Moment, ohne die Schultern nach vorn hochzuziehen,
+    und spanne die Brust bewusst an.
+  - Lass die Griffe kontrolliert und unter Spannung in die gedehnte Position zurückkehren,
+    ohne dass die Gewichte absetzen oder dich nach hinten ziehen.
+  - Wähle ein Gewicht, bei dem du die Zugbahn sauber halten kannst und die Spannung
+    durchgehend in der Brust statt im vorderen Schulterbereich spürst.
   source: expert
-  search_aliases:
-  - Kabel-Crossover über Kreuz
-  - Cross-Body Cable Crossover
-  - Cable Crossover
-  - Kabel-Fly über Kreuz
-  - Inner-X-Cable-Cross
-  schema_version: 2026-08-12.exercise-v1
-  origin:
-    type: merged_external
-    source_refs:
-      wger:
-      - '1416'
-      yuhonas:
-      - Cable_Crossover
-  review_state:
-    status: approved
-    ai_reviewed: true
-    approved_at: '2026-10-17T21:02:58.250983+00:00'
-  approved_at: '2026-10-17T21:02:58.250983+00:00'
+  secondary_muscles:
+  - 301_anterior_deltoid
+  approved_at: '2026-10-17T21:03:34.244781+00:00'
   wger_id: 1416
   yuhonas_id: Cable_Crossover
   external_ids:

@@ -1,34 +1,94 @@
 exercise_id: cable_crossover_low_to_high
 description: Expert details for Kabel-Crossover von unten nach oben
-approved_at: '2026-10-17T21:03:16.844342+00:00'
+approved_at: '2026-10-17T21:04:24.077177+00:00'
 exercises:
-- exercise_id: cable_crossover_low_to_high
+- primary_muscles:
+  - 102_pectoralis_major_clavicular
+  type: isolation
+  review_state:
+    status: approved
+    ai_reviewed: true
+    approved_at: '2026-10-17T21:04:24.077177+00:00'
+  schema_version: 2026-08-12.exercise-v1
+  aliases:
+  - Cable Fly Low to High
+  - Low Cable Fly
+  - Incline Cable Fly
+  - Low-to-High Cable Fly
+  - Kabel-Flys von unten nach oben
+  - Kabelzug obere Brust
+  - Unterer Kabel-Crossover
+  common_errors:
+  - Zu viel Gewicht, wodurch aus der geführten Fly-Bewegung ein unsauberes Ziehen
+    oder Drücken mit Schwung wird.
+  - Die Ellbogen während der Wiederholung stark beugen oder strecken, wodurch Bizeps
+    und Trizeps unnötig viel Arbeit übernehmen.
+  - Die Schultern zu den Ohren hochziehen, statt die Schulterblätter kontrolliert
+    und ruhig zu halten.
+  - Ins Hohlkreuz ausweichen, um die Griffe höher zu bekommen, anstatt die Spannung
+    in der oberen Brust sauber zu erzeugen.
+  - Die Hände aktiv übereinander schlagen lassen und dadurch vorne die Spannung zu
+    verlieren.
+  - Die exzentrische Phase abkürzen und die Gewichte einfach zurückziehen lassen,
+    statt die Dehnung kontrolliert zu nutzen.
+  - Zu tief oder zu weit hinter den Körper öffnen, obwohl die Schulterposition dabei
+    instabil oder unangenehm wird.
+  - Die Bewegung aus den Händen zu denken, statt die Oberarme diagonal nach innen
+    oben zu führen.
+  - Den Kopf nach vorn schieben oder den Oberkörper stark mitdrehen, wodurch die Übung
+    an Isolation verliert.
+  - Eine zu hohe Kabelposition wählen, wodurch der Zugwinkel eher zu einer normalen
+    Fly-Variante als zur oberen-Brust-Betonung passt.
   wger_id: 1463
-  id: cable_crossover_low_to_high
-  name: Low-to-High Cable Crossover
-  display_name: Kabel-Crossover von unten nach oben
+  stabilizers:
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  origin:
+    type: merged_external
+    source_refs:
+      wger:
+      - '1463'
+      yuhonas:
+      - Low_Cable_Crossover
+  primaryMuscles:
+  - 102_pectoralis_major_clavicular
   german: Kabel-Crossover von unten nach oben
   english: Low-to-High Cable Crossover
+  id: cable_crossover_low_to_high
+  displayName: Kabel-Crossover von unten nach oben
+  display_name: Kabel-Crossover von unten nach oben
+  secondaryMuscles:
+  - 301_anterior_deltoid
+  - 105_serratus_anterior
   category: push
-  type: isolation
+  equipment:
+  - cable
+  search_aliases:
+  - Kabel-Crossover von unten nach oben
+  - Kabel-Flys von unten nach oben
+  - Low-to-High Cable Crossover
+  - Low-to-High Cable Fly
+  - Incline Cable Fly
+  - Low Cable Fly
+  exercise_id: cable_crossover_low_to_high
+  variations: []
+  name: Low-to-High Cable Crossover
+  tags:
+  - push
+  - isolation
+  - cable
+  - upper_chest
+  - fly
+  - clavicular_pec
+  - standing
   movements:
   - horizontal_adduction
   - shoulder_flexion
   - incline
   - scapular_protraction
   - anti_extension
-  equipment:
-  - cable
-  primary_muscles:
-  - 102_pectoralis_major_clavicular
-  secondary_muscles:
-  - 301_anterior_deltoid
-  - 105_serratus_anterior
-  stabilizers:
-  - 304_rotator_cuff
-  - 504_transverse_abdominis
-  - 502_obliquus_externus
-  - 503_obliquus_internus
   coaching_notes:
   - Stelle beide Kabel auf die unterste Position und wähle ein Gewicht, das dir eine
     saubere Bogenbewegung ohne Schwung erlaubt.
@@ -51,65 +111,11 @@ exercises:
     zusätzlicher Brustspannung erzeugst.
   - Atme beim Zusammenführen aus und beim kontrollierten Zurückführen ein, um Rumpfspannung
     und Bewegungsrhythmus sauber zu halten.
-  common_errors:
-  - Zu viel Gewicht, wodurch aus der geführten Fly-Bewegung ein unsauberes Ziehen
-    oder Drücken mit Schwung wird.
-  - Die Ellbogen während der Wiederholung stark beugen oder strecken, wodurch Bizeps
-    und Trizeps unnötig viel Arbeit übernehmen.
-  - Die Schultern zu den Ohren hochziehen, statt die Schulterblätter kontrolliert
-    und ruhig zu halten.
-  - Ins Hohlkreuz ausweichen, um die Griffe höher zu bekommen, anstatt die Spannung
-    in der oberen Brust sauber zu erzeugen.
-  - Die Hände aktiv übereinander schlagen lassen und dadurch vorne die Spannung zu
-    verlieren.
-  - Die exzentrische Phase abkürzen und die Gewichte einfach zurückziehen lassen,
-    statt die Dehnung kontrolliert zu nutzen.
-  - Zu tief oder zu weit hinter den Körper öffnen, obwohl die Schulterposition dabei
-    instabil oder unangenehm wird.
-  - Die Bewegung aus den Händen zu denken, statt die Oberarme diagonal nach innen
-    oben zu führen.
-  - Den Kopf nach vorn schieben oder den Oberkörper stark mitdrehen, wodurch die Übung
-    an Isolation verliert.
-  - Eine zu hohe Kabelposition wählen, wodurch der Zugwinkel eher zu einer normalen
-    Fly-Variante als zur oberen-Brust-Betonung passt.
-  tags:
-  - push
-  - isolation
-  - cable
-  - upper_chest
-  - fly
-  - clavicular_pec
-  - standing
-  aliases:
-  - Cable Fly Low to High
-  - Low Cable Fly
-  - Incline Cable Fly
-  - Low-to-High Cable Fly
-  - Kabel-Flys von unten nach oben
-  - Kabelzug obere Brust
-  - Unterer Kabel-Crossover
-  variations: []
   source: expert
-  search_aliases:
-  - Kabel-Crossover von unten nach oben
-  - Kabel-Flys von unten nach oben
-  - Low-to-High Cable Crossover
-  - Low-to-High Cable Fly
-  - Incline Cable Fly
-  - Low Cable Fly
-  schema_version: 2026-08-12.exercise-v1
-  origin:
-    type: merged_external
-    source_refs:
-      wger:
-      - '1463'
-      yuhonas:
-      - Low_Cable_Crossover
-  review_state:
-    status: approved
-    ai_reviewed: true
-    approved_at: '2026-10-17T21:03:16.844342+00:00'
-  approved_at: '2026-10-17T21:03:16.844342+00:00'
+  secondary_muscles:
+  - 301_anterior_deltoid
+  - 105_serratus_anterior
+  approved_at: '2026-10-17T21:04:24.077177+00:00'
   yuhonas_id: Low_Cable_Crossover
   external_ids:
     wger:
