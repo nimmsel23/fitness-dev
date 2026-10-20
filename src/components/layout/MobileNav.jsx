@@ -63,7 +63,7 @@ export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHin
       ];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-fit-card/90 backdrop-blur-2xl border-t border-fit-line/40">
+    <nav aria-label="Hauptnavigation" className="mobile-nav lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-fit-card/90 backdrop-blur-2xl border-t border-fit-line/40">
       {/* Swipe direction indicator — thin accent line at top */}
       <div className={`absolute top-0 left-0 right-0 h-[2px] transition-all duration-200 ${
         swipeHint === 'left'
@@ -74,23 +74,23 @@ export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHin
       }`} />
 
       <div
-        className="px-2 pt-2"
-        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+        className="mobile-nav-inner"
       >
-        <div className="flex items-end justify-around">
+        <div className="flex flex-wrap items-end justify-around">
           {rowItems.map(({ id, label, Icon, isActive, onClick }) => (
             <button
               key={id}
               onClick={onClick}
-              className="flex flex-col items-center gap-[5px] px-1 active:scale-90 transition-transform duration-150 min-w-[40px]"
+              aria-current={isActive ? 'page' : undefined}
+              className="min-h-12 flex flex-1 flex-col items-center justify-center gap-[5px] px-1 active:scale-90 transition-transform duration-150 min-w-[44px]"
             >
               <div className={`flex items-center justify-center rounded-2xl transition-all duration-300 ${
                 isActive ? 'bg-fit-accent w-12 h-8 shadow-lg shadow-fit-accent/30' : 'w-10 h-8'
               }`}>
                 <Icon size={isActive ? 17 : 19} className={isActive ? 'text-black stroke-[2.5]' : 'text-fit-dim stroke-[1.8]'} />
               </div>
-              <span className={`text-[7.5px] font-black uppercase tracking-wide leading-none transition-all duration-300 ${
-                isActive ? 'text-fit-accent opacity-100' : 'text-fit-dim opacity-50'
+              <span className={`text-[10px] font-bold leading-tight transition-all duration-300 ${
+                isActive ? 'text-fit-accent' : 'text-fit-dim'
               }`}>
                 {label}
               </span>
@@ -99,7 +99,9 @@ export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHin
 
           <button
             onClick={() => setShowMore((v) => !v)}
-            className="flex flex-col items-center gap-[5px] px-1 active:scale-90 transition-transform duration-150 min-w-[40px]"
+            aria-expanded={showMore}
+            aria-label={showMore ? 'Zurück zur Hauptnavigation' : 'Weitere Bereiche anzeigen'}
+            className="min-h-12 flex flex-1 flex-col items-center justify-center gap-[5px] px-1 active:scale-90 transition-transform duration-150 min-w-[44px]"
           >
             <div className={`flex items-center justify-center rounded-2xl transition-all duration-300 ${
               showMore || isOnOtherTab ? 'bg-fit-accent w-12 h-8 shadow-lg shadow-fit-accent/30' : 'w-10 h-8'
@@ -108,8 +110,8 @@ export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHin
                 ? <ChevronLeft size={17} className="text-black stroke-[2.5]" />
                 : <MoreHorizontal size={isOnOtherTab ? 17 : 19} className={isOnOtherTab ? 'text-black stroke-[2.5]' : 'text-fit-dim stroke-[1.8]'} />}
             </div>
-            <span className={`text-[7.5px] font-black uppercase tracking-wide leading-none transition-all duration-300 ${
-              showMore || isOnOtherTab ? 'text-fit-accent opacity-100' : 'text-fit-dim opacity-50'
+            <span className={`text-[10px] font-bold leading-tight transition-all duration-300 ${
+              showMore || isOnOtherTab ? 'text-fit-accent' : 'text-fit-dim'
             }`}>
               {showMore ? 'Zurück' : 'Mehr'}
             </span>

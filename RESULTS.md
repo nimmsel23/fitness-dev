@@ -1780,4 +1780,3 @@ speichern ihr Token in der Fitness-Lane.
 
 Statische `node --check`-Prüfungen und `git diff --check` erfolgreich. Kein
 Testlauf und kein Firebase-Release.
-

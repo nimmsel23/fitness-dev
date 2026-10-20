@@ -79,6 +79,7 @@ export default function SplitPicker({ block, setBlock, onLongPress }) {
           <button
             key={key}
             type="button"
+            aria-pressed={isActive}
             title={onLongPress ? `${key} · lange drücken für Pläne` : key}
             onMouseEnter={() => setHovered(key)}
             onMouseLeave={() => setHovered(null)}
@@ -99,7 +100,7 @@ export default function SplitPicker({ block, setBlock, onLongPress }) {
               if (firedRef.current) { firedRef.current = false; return; }
               setBlock(isActive ? '' : key);
             }}
-            className="group relative flex flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[9px] font-bold transition-all duration-200 ease-out active:scale-95 select-none [-webkit-touch-callout:none]"
+            className="group relative min-h-11 min-w-0 flex flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1.5 text-[10px] font-bold transition-all duration-200 ease-out active:scale-95 select-none [-webkit-touch-callout:none]"
             style={{
               background: isActive ? color : isHovered ? `${color}1a` : 'var(--card)',
               color: isActive ? '#000' : isHovered ? color : 'var(--dim)',

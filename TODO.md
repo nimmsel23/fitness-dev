@@ -141,4 +141,3 @@ Coach-Zugang anhand der verifizierten Firebase-UID ergänzen und zentrale Rolle 
 - Eigene Firestore-Token-Lanes, Worker-Dateien und Scopes je App; App-Marker
   verhindert, dass ein Worker Pushes der anderen App anzeigt.
 - Statische Syntax- und Diff-Prüfungen erfolgreich. Kein Firebase-Release.
-

@@ -462,7 +462,7 @@ export default function App() {
         }}
       />
       <ErrorBoundary>
-        <div className="app-shell isolate flex min-h-screen overflow-x-hidden w-full bg-fit-bg text-fit-ink font-sans transition-colors duration-500">
+        <div className="app-shell isolate flex min-h-screen overflow-x-clip w-full bg-fit-bg text-fit-ink font-sans transition-colors duration-500">
 
         {!IS_SOLO && (
         <Sidebar
@@ -494,7 +494,7 @@ export default function App() {
         )}
 
         <div className={`flex-1 min-w-0 transition-all duration-500 ease-in-out ${IS_SOLO ? '' : sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
-          <main ref={mainRef} className={`relative min-w-0 ${navMode === 'tabs' && !IS_SOLO ? 'pb-28' : ''} sm:pb-10 lg:pb-16 min-h-[100dvh] overflow-x-hidden`}>
+          <main ref={mainRef} className={`relative min-w-0 ${navMode === 'tabs' && !IS_SOLO ? 'app-main-with-nav' : ''} sm:pb-10 lg:pb-16 min-h-[100dvh]`}>
               {/* Background Gate - only mounted in home mode */}
               {navMode === 'home' && (
                 <div className={`transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] max-w-[1600px] mx-auto min-h-[100dvh] flex flex-col ${tab !== 'gate' ? 'scale-[0.98] opacity-30 blur-[2px] pointer-events-none' : 'scale-100 opacity-100'}`}>
@@ -505,7 +505,7 @@ export default function App() {
               {/* Foreground Sheet (or normal Tab content) */}
               <div 
                 className={`
-                  ${navMode === 'home' ? 'fixed inset-0 z-30 overflow-x-hidden transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]' : 'p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto'}
+                  ${navMode === 'home' ? 'app-home-sheet fixed inset-0 z-30 overflow-x-hidden transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]' : 'p-4 sm:p-10 lg:p-16 max-w-[1600px] mx-auto'}
                   ${navMode === 'home' && tab === 'gate' ? 'translate-y-full pointer-events-none' : 'translate-y-0'}
                 `}
               >

@@ -118,7 +118,7 @@
     "zustand": "^5.0.14"
   },
   "optionalDependencies": {
-    "@vos/cross-app-aliases": "link:../vitalos/packages/cross-app-aliases"
+    "@vos/cross-app-aliases": "workspace:*"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
@@ -132,8 +132,5 @@
     "tailwindcss": "^3.4.13",
     "vite": "^5.4.8",
     "vite-plugin-pwa": "^0.20.0"
-  },
-  "allowScripts": {
-    "better-sqlite3@12.10.0": true
   }
 }
