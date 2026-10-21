@@ -1,3 +1,17 @@
+# Session-Ende-Phänomen untersucht: Gate-Stop wird überschrieben (2026-10-21)
+
+Untersuchung, kein Code geändert. Der Stop-Pfad des Session-Gates ist korrekt; das gesetzte Ende geht durch spätere Saves verloren. Ursache aus Code und Daten abgeleitet, nicht per Log belegt.
+
+- **Analyse (read-only)**: `src/views/Session/useSessionGateController.js::stopSessionGate()` setzt `endedAt` und ruft `save()`; `useSession.js::buildSessionPayload()`, `src/lib/db/firestore/sessions.js`, `server/routes/session.mjs` und `fitness/api/routers/sessions.py` übernehmen das Gate unverändert.
+- **Datenstand (Operator-UID, Firestore read-only)**: 84 Session-Dokumente, nur 2 mit vollständigem `sessionGate` (2026-08-09, 2026-09-22). Auch 2026-10-11 hat kein Gate; lokale Kopie ebenso.
+- **Wahrscheinliche Ursache**: `saveSession()` nutzt `setDoc` ohne `merge`, `buildSessionPayload()` setzt `sessionGate` nur bei gesetztem Start/Ende, und `fitness/firestore/mirror.py::mirror_session()` kennt das Feld nicht.
+- **Nebenbefund**: `fitness/coach/client_session.py` schreibt `{"status": "completed", "startedAt": null, "endedAt": null}`.
+- **NEXT.md**: neuer Abschnitt „Session-Gate verliert Start/Ende durch Überschreiben (2026-10-21, offen)“ mit Befund, Ursachenhypothese und offenen Checkboxen.
+- **TODO.md**: Checkbox im Abschnitt „Session Gate“ ergänzt, die auf den NEXT.md-Abschnitt verweist.
+- **Git**: Beide Änderungen liegen bereits als `d64ee5d` (NEXT.md) und `b71e16b` (TODO.md) auf `dev`, durch einen Auto-Commit-Hook angelegt; noch nicht gepusht. Backups `NEXT.md.bak`/`TODO.md.bak` im Repo-Root (gitignored).
+
+---
+
 ## 2026-10-21 — Gemeinsamer Changelog
 
 Universalisierten VitalOS-Release-Dialog über vendorte Vite-Module eingebunden. Standalone mit eigener Bestätigung; eingebettet unterdrückt zugunsten des zentralen Shell-Dialogs.
