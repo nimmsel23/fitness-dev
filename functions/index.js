@@ -5,6 +5,7 @@ const path = require("path");
 const strava = require("./strava.js");
 const clientWorkout = require("./clientWorkout.js");
 const pushPrefs = require("./pushPrefs.js");
+const { sixpackReminderDecision } = require("./sixpackReminder.js");
 const { NOTIFICATIONS, renderTemplate } = require("./texts.js");
 
 admin.initializeApp();
@@ -24,6 +25,7 @@ const REMINDER_TYPES = {
   coverage: true,
   pplRatio: true,
   restday: true,
+  sixpack: true,
   clientWorkout: true,
 };
 
@@ -398,6 +400,56 @@ exports.scheduledPushReminders = functions
       return { sentCount, failureCount };
     } catch (error) {
       console.error("Error in scheduledPushReminders:", error);
+      return { error: error.message };
+    }
+  });
+
+// 6Pack-Erinnerung: Uhrzeit/An-Aus stammen aus users/{uid}/meta/sixpack
+// (settings.reminder, von der 6Pack-Karte geschrieben), Tokens/Ruhezeiten aus dem
+// Push-Panel. Gleicher Tag wie der lokale Reminder der App ("sixpack-reminder"),
+// damit eine geöffnete App nicht doppelt klingelt. Dedup pro Tag über
+// settings/push → apps.fitness.sixpackReminderLastDate (users/.../sixpack wird
+// vom Client komplett überschrieben, taugt dafür nicht).
+exports.scheduledSixpackReminders = functions
+  .region("europe-west1")
+  .pubsub.schedule("every 5 minutes")
+  .timeZone(TIME_ZONE)
+  .onRun(async () => {
+    const local = getLocalDateParts();
+    const db = admin.firestore();
+    let sentCount = 0;
+    let failureCount = 0;
+
+    try {
+      const userRefs = await db.collection("fitness").listDocuments();
+      for (const userRef of userRefs) {
+        const uid = userRef.id;
+        const programSnap = await db.collection("users").doc(uid).collection("meta").doc("sixpack").get();
+        if (!programSnap.exists) continue;
+        const program = programSnap.data() || {};
+        if (!program.settings?.reminder?.enabled) continue;
+
+        const pushSnap = await userRef.collection("settings").doc("push").get();
+        if (!pushSnap.exists) continue;
+        const pushData = pushSnap.data()?.apps?.fitness || {};
+        const tokens = normalizeTokens(pushData);
+        if (tokens.length === 0) continue;
+
+        const decision = sixpackReminderDecision({ program, pushData, local });
+        if (!decision.send) continue;
+
+        const text = notificationText("sixpack", decision.vars);
+        const result = await sendReminder(uid, tokens, text.title, text.body, text.link, "sixpack-reminder");
+        sentCount += result.sentCount || 0;
+        failureCount += result.failureCount || 0;
+        if ((result.sentCount || 0) > 0) {
+          await pushSnap.ref.set({ apps: { fitness: { sixpackReminderLastDate: local.date } } }, { merge: true });
+        }
+      }
+      console.log(`6Pack reminders: ${sentCount} sent, ${failureCount} failed`);
+      return { sentCount, failureCount };
+    } catch (error) {
+      console.error("Error in scheduledSixpackReminders:", error);
       return { error: error.message };
     }
   });
