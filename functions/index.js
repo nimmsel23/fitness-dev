@@ -25,7 +25,6 @@ const REMINDER_TYPES = {
   coverage: true,
   pplRatio: true,
   restday: true,
-  sixpack: true,
   clientWorkout: true,
 };
 
@@ -404,12 +403,12 @@ exports.scheduledPushReminders = functions
     }
   });
 
-// 6Pack-Erinnerung: Uhrzeit/An-Aus stammen aus users/{uid}/meta/sixpack
-// (settings.reminder, von der 6Pack-Karte geschrieben), Tokens/Ruhezeiten aus dem
-// Push-Panel. Gleicher Tag wie der lokale Reminder der App ("sixpack-reminder"),
-// damit eine geöffnete App nicht doppelt klingelt. Dedup pro Tag über
-// settings/push → apps.fitness.sixpackReminderLastDate (users/.../sixpack wird
-// vom Client komplett überschrieben, taugt dafür nicht).
+// 6Pack-Erinnerung — eigenständig, unabhängig vom Fitness-Push-Panel.
+// Uhrzeit/An-Aus: users/{uid}/meta/sixpack (settings.reminder, von der 6Pack-Karte).
+// Geräte: users/{uid}/meta/sixpackPush (tokens[], von der 6Pack-Karte registriert).
+// Dedup pro Tag: lastReminderDate im sixpackPush-Dokument (das Programm-Dokument wird
+// vom Client komplett überschrieben). Tag "sixpack-reminder" = wie die lokale Erinnerung,
+// damit eine geöffnete App nicht doppelt klingelt.
 exports.scheduledSixpackReminders = functions
   .region("europe-west1")
   .pubsub.schedule("every 5 minutes")
@@ -421,30 +420,38 @@ exports.scheduledSixpackReminders = functions
     let failureCount = 0;
 
     try {
-      const userRefs = await db.collection("fitness").listDocuments();
+      // Zugriff auf users/{uid}/meta/sixpack: listDocuments() findet auch Parent-Docs ohne eigene Felder.
+      const userRefs = await db.collection("users").listDocuments();
       for (const userRef of userRefs) {
-        const uid = userRef.id;
-        const programSnap = await db.collection("users").doc(uid).collection("meta").doc("sixpack").get();
+        const metaRef = userRef.collection("meta");
+        const programSnap = await metaRef.doc("sixpack").get();
         if (!programSnap.exists) continue;
         const program = programSnap.data() || {};
         if (!program.settings?.reminder?.enabled) continue;
 
-        const pushSnap = await userRef.collection("settings").doc("push").get();
-        if (!pushSnap.exists) continue;
-        const pushData = pushSnap.data()?.apps?.fitness || {};
-        const tokens = normalizeTokens(pushData);
-        if (tokens.length === 0) continue;
+        const pushSnap = await metaRef.doc("sixpackPush").get();
+        const push = pushSnap.exists ? pushSnap.data() || {} : null;
 
-        const decision = sixpackReminderDecision({ program, pushData, local });
+        const decision = sixpackReminderDecision({ program, push, local });
         if (!decision.send) continue;
 
         const text = notificationText("sixpack", decision.vars);
-        const result = await sendReminder(uid, tokens, text.title, text.body, text.link, "sixpack-reminder");
-        sentCount += result.sentCount || 0;
-        failureCount += result.failureCount || 0;
-        if ((result.sentCount || 0) > 0) {
-          await pushSnap.ref.set({ apps: { fitness: { sixpackReminderLastDate: local.date } } }, { merge: true });
-        }
+        const response = await admin.messaging().sendEachForMulticast({
+          data: { app: "sixpack", title: text.title, body: text.body, link: text.link, tag: "sixpack-reminder" },
+          tokens: push.tokens,
+        });
+        sentCount += response.successCount;
+        failureCount += response.failureCount;
+
+        // Ungültige Tokens (Gerät abgemeldet/App deinstalliert) entfernen.
+        const dead = push.tokens.filter((_, i) => {
+          const code = response.responses[i]?.error?.code;
+          return code === "messaging/registration-token-not-registered" || code === "messaging/invalid-registration-token";
+        });
+        const update = {};
+        if (response.successCount > 0) update.lastReminderDate = local.date;
+        if (dead.length > 0) update.tokens = admin.firestore.FieldValue.arrayRemove(...dead);
+        if (Object.keys(update).length > 0) await pushSnap.ref.set(update, { merge: true });
       }
       console.log(`6Pack reminders: ${sentCount} sent, ${failureCount} failed`);
       return { sentCount, failureCount };

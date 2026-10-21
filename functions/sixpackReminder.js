@@ -1,10 +1,8 @@
 // 6Pack-Training-Erinnerung (Push) — rein, ohne Firebase.
-// Quellen:
-//   users/{uid}/meta/sixpack          → Programm-Fortschritt + settings.reminder {enabled, time}
-//   fitness/{uid}/settings/push       → apps.fitness {enabled, tokens, types, quietHours}
+// Eigenständig für 6Pack — hängt NICHT am Fitness-Push-Panel. Quellen:
+//   users/{uid}/meta/sixpack      → Programm-Fortschritt + settings.reminder {enabled, time}
+//   users/{uid}/meta/sixpackPush  → tokens[] (von der 6Pack-Karte registriert), lastReminderDate
 // Gleiche Regeln wie die lokale Erinnerung in der App (6pack-dev/reminder.js).
-
-const { isQuietNow } = require("./pushPrefs.js");
 
 const REST_DAYS_IN_WEEK = [3, 7];
 const DAYS_PER_WEEK = 7;
@@ -21,21 +19,19 @@ function toMinutes(text) {
 }
 
 // Entscheidet, ob jetzt eine 6Pack-Erinnerung rausgehen soll.
-// `local` = { date: "YYYY-MM-DD", minutes } in Berliner Zeit (getLocalDateParts).
-function sixpackReminderDecision({ program, pushData, local, now = new Date() }) {
+// `push` = Dokument sixpackPush; `local` = { date: "YYYY-MM-DD", minutes } in Berliner Zeit (getLocalDateParts).
+function sixpackReminderDecision({ program, push, local }) {
   const no = (why) => ({ send: false, why });
   const reminder = program?.settings?.reminder;
   if (!reminder?.enabled) return no("aus");
-  if (!pushData?.enabled) return no("push-aus");
-  if (pushData.types?.sixpack === false) return no("typ-aus");
-  if (isQuietNow(pushData.quietHours, now)) return no("ruhezeit");
+  if (!Array.isArray(push?.tokens) || push.tokens.length === 0) return no("keine-geraete");
 
   const target = toMinutes(reminder.time);
   if (target == null) return no("zeit-ungueltig");
   const delta = local.minutes - target;
   if (delta < 0 || delta >= WINDOW_MINUTES) return no("nicht-faellig");
 
-  if (pushData.sixpackReminderLastDate === local.date) return no("schon-gesendet");
+  if (push.lastReminderDate === local.date) return no("schon-gesendet");
   if (program.lastCompletedOn === local.date) return no("heute-trainiert");
 
   const currentDay = Number(program.currentDay) || 1;

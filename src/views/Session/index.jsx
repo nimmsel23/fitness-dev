@@ -19,6 +19,7 @@ import { getUid, getSixpackProgram, saveSixpackProgram } from '@db';
 import SkillsCard from '../Skills/SkillsCard.jsx';
 import TodayPlan, { useTodayPlan } from './TodayPlan.jsx';
 import { isSessionGateActive } from '../../lib/sessionGate.js';
+import { enableSixpackPush } from '../../lib/sixpackPush.js';
 import { logWorkoutAsSession } from '../../lib/logExternalWorkout.js';
 import SessionModeTabs from './SessionModeTabs.jsx';
 import { IS_SOLO } from '../../constants/NavigationItems.js';
@@ -101,7 +102,7 @@ export default function Session({
     return (
       <>
         {modeTabs}
-        <SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} onWorkoutComplete={handleWorkoutComplete} loadRemoteProgram={loadSixpackProgram} saveRemoteProgram={saveSixpackProgramForUid} />
+        <SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} onWorkoutComplete={handleWorkoutComplete} loadRemoteProgram={loadSixpackProgram} saveRemoteProgram={saveSixpackProgramForUid} enablePush={enableSixpackPush} />
       </>
     );
   }

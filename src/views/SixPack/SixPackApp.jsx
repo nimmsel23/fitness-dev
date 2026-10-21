@@ -507,15 +507,25 @@ function ShuffleScreen({ onBack, onStart, favorites, onToggleFavorite, onOpenExe
   );
 }
 
-function SettingsScreen({ reminder, onChange, onBack }) {
+function SettingsScreen({ reminder, onChange, onBack, uid, enablePush }) {
   const [permission, setPermission] = useState(reminderSupported() ? Notification.permission : 'unsupported');
   const blocked = permission === 'denied' || permission === 'unsupported';
 
+  const [notice, setNotice] = useState('');
+
   async function toggle() {
+    setNotice('');
     if (reminder.enabled) return onChange({ ...reminder, enabled: false });
     const result = await requestReminderPermission();
     setPermission(result);
-    if (result === 'granted') onChange({ ...reminder, enabled: true });
+    if (result !== 'granted') return;
+    // Server-Push (auch bei geschlossener App): Gerät für 6Pack-Push registrieren.
+    // Scheitert das, bleibt die Erinnerung lokal aktiv und der Grund wird angezeigt.
+    if (enablePush) {
+      try { await enablePush(uid); }
+      catch (err) { setNotice(`${err?.message || 'Push-Registrierung fehlgeschlagen.'} Erinnerung läuft nur bei geöffneter App.`); }
+    }
+    onChange({ ...reminder, enabled: true });
   }
 
   return (
@@ -545,10 +555,11 @@ function SettingsScreen({ reminder, onChange, onBack }) {
           style={{ background: '#000', color: '#fff', border: '1px solid #333' }}
         />
       </div>
+      {notice && <div className="px-4 pt-3 text-[11px] font-bold" style={{ color: '#e2001a' }}>{notice}</div>}
       <div className="px-4 py-3 text-[11px] font-bold" style={{ color: 'var(--dim)' }}>
         {blocked
           ? 'Benachrichtigungen sind für diese App blockiert oder nicht verfügbar. Bitte in den Browser-/System-Einstellungen erlauben.'
-          : 'Erinnert dich zur gewählten Uhrzeit, wenn du heute noch nicht trainiert hast (nicht an Ruhetagen). Zuverlässig, solange die App geöffnet oder im Hintergrund aktiv ist.'}
+          : 'Erinnert dich zur gewählten Uhrzeit, wenn du heute noch nicht trainiert hast (nicht an Ruhetagen). Per Push auch bei geschlossener App, sobald dieses Gerät angemeldet und registriert ist.'}
       </div>
     </div>
   );
@@ -1150,7 +1161,7 @@ const CORE_HIIT_FINISHER = {
   finisher: true,
 };
 
-export default function SixPackPromiseCard({ onSubNav, coachingNotes = [], uid, onWorkoutComplete, loadRemoteProgram, saveRemoteProgram }) {
+export default function SixPackPromiseCard({ onSubNav, coachingNotes = [], uid, onWorkoutComplete, loadRemoteProgram, saveRemoteProgram, enablePush }) {
   const [program, setProgram] = useState(() => loadProgram());
   const [favorites, setFavorites] = useState(loadFavorites);
   const [adhocReturnScreen, setAdhocReturnScreen] = useState('shuffle');
@@ -1368,7 +1379,7 @@ export default function SixPackPromiseCard({ onSubNav, coachingNotes = [], uid, 
   return (
     <section className="rounded-[1.5rem] overflow-hidden" style={{ border: '1px solid var(--line)' }}>
         {screen === 'home' && <HomeScreen program={program} onOpenToday={() => openDay(program.currentDay)} onNav={setScreen} />}
-        {screen === 'settings' && <SettingsScreen reminder={reminder} onChange={changeReminder} onBack={goHome} />}
+        {screen === 'settings' && <SettingsScreen reminder={reminder} onChange={changeReminder} onBack={goHome} uid={uid} enablePush={enablePush} />}
         {screen === 'track' && <TrackScreen program={program} onBack={goHome} onOpenDay={openDay} onSetCurrent={setCurrentDay} />}
         {screen === 'learn' && <LearnScreen onBack={goHome} onOpenSkill={onSubNav ? openSkill : null} onOpenExercise={openExercise} onOpenNote={openNote} coachingNotes={coachingNotes} />}
         {screen === 'exercise' && (

@@ -4,7 +4,7 @@
 
 import {
   collection, doc, setDoc, getDoc, getDocs,
-  query, orderBy, limit, serverTimestamp,
+  query, orderBy, limit, serverTimestamp, arrayUnion,
 } from "firebase/firestore";
 
 import { db } from "../../../firebase.js";
@@ -209,5 +209,16 @@ export async function saveSixpackProgram(program) {
     ...JSON.parse(JSON.stringify(program)),
     saved_at: serverTimestamp(),
   });
+  return { ok: true };
+}
+
+// 6Pack-eigene Push-Geräte: users/{uid}/meta/sixpackPush {tokens[]} — unabhängig vom
+// Fitness-Push-Panel; liest scheduledSixpackReminders (functions/).
+export async function registerSixpackPushToken(token) {
+  if (!hasAuthSession()) throw new Error("Bitte zuerst anmelden.");
+  await setDoc(doc(db, "users", getUid(), "meta", "sixpackPush"), {
+    tokens: arrayUnion(token),
+    updated_at: serverTimestamp(),
+  }, { merge: true });
   return { ok: true };
 }
