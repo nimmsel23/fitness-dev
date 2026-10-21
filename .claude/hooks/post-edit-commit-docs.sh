@@ -54,11 +54,11 @@ cd "$REPO"
 git diff --quiet -- "$rel" 2>/dev/null && git diff --cached --quiet -- "$rel" 2>/dev/null && exit 0
 
 git add -- "$rel"
-git commit --quiet -m "$(cat <<EOF
+git commit --only --quiet -m "$(cat <<EOF
 docs: auto-update $rel
 
 Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
 EOF
-)" 2>/dev/null || true
+)" -- "$rel" 2>/dev/null || true
 
 exit 0
