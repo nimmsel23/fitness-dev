@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # PostToolUse hook (Edit|Write) — repo-lokal (identische Kopie in fitness-dev, coach-dev, plan-dev, 6pack-dev; REPO wird aus dem Skriptpfad abgeleitet). Committet
 # automatisch, sobald eine der Session-Handoff-/Doku-Dateien geändert
-# wurde: docs/CLAUDE.md, docs/BACKEND.md, ARCHITECTURE.md, docs/ARCHITECTURE.md,
-# AGENTS.md. TODO.md, RESULTS.md und NEXT.md
+# wurde: docs/*.md (ohne docs/.archiv/) sowie AGENTS/ARCHITECTURE/CLAUDE/CODEX/GEMINI.md
+# im ganzen Repo. TODO.md, RESULTS.md und NEXT.md
 # sind seit 2026-10-21 gitignored und werden hier nicht mehr committet.
 # Zweck: diese Dateien sollen nie unkommittiert liegen bleiben — weder
 # wenn der PreCompact-Hook sie nachfüllt, noch wenn Claude sie im
@@ -20,7 +20,6 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"   # repo-agnostisch: Skript liegt in <repo>/.claude/hooks/
 LOCK="$REPO/.claude/hooks/.commit-docs.lock"
-DOC_FILES=("docs/CLAUDE.md" "docs/BACKEND.md" "ARCHITECTURE.md" "docs/ARCHITECTURE.md" "AGENTS.md")
 
 input="$(cat)"
 file_path="$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty' 2>/dev/null || true)"
@@ -31,10 +30,16 @@ case "$file_path" in
   *) exit 0 ;;
 esac
 
+# Doku-Dateien: alle docs/*.md (ohne docs/.archiv/) und überall im Repo
+# AGENTS/ARCHITECTURE/CLAUDE/CODEX/GEMINI.md. Symlinks (CLAUDE.md -> docs/CLAUDE.md)
+# werden nicht separat committet, sonst entstünden Doppel-Commits.
 is_doc=0
-for f in "${DOC_FILES[@]}"; do
-  [ "$rel" = "$f" ] && is_doc=1 && break
-done
+case "$rel" in
+  docs/.archiv/*) ;;
+  docs/*.md) is_doc=1 ;;
+  *) case "$(basename "$rel")" in AGENTS.md|ARCHITECTURE.md|CLAUDE.md|CODEX.md|GEMINI.md) is_doc=1 ;; esac ;;
+esac
+[ -L "$REPO/$rel" ] && is_doc=0
 [ "$is_doc" -eq 1 ] || exit 0
 
 # Parallele Sessions sind in diesem Repo der Normalfall — Lock verhindert
