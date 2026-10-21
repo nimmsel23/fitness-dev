@@ -195,6 +195,43 @@ harmlos, aber unsauber.
 **Belege:** Firestore-Abfrage über Skript im Scratchpad
 (`/tmp/claude-1000/-home-alpha-fitness-dev/d5382fa2-f4ab-4daf-94cf-c97f3d6b46c2/scratchpad/gate_check.py`).
 
+## distanceKm geht bei Aktivitäts-Dedupe verloren (2026-10-21, offen)
+
+Verknüpft mit `~/TODO.md` → Abschnitt „distanceKm im Ausdauertraining-Session-JSON (2026-09-23)“.
+
+**Befund:** Die Dedupe-Signatur der Aktivitäts-Addons enthält `distanceKm` nicht.
+Dadurch wird ein Eintrag ohne `_source_id` verworfen, wenn Typ, Dauer, Notiz,
+Schwimmstil und Muskelziel schon vorhanden sind — auch wenn sich nur die Distanz
+unterscheidet.
+- Python: `fitness/api/routers/sessions.py::_addon_signature()` (Zeile ~84) und
+  `_append_activity_addon()` (Zeile ~94), Zweig ohne `source_id`.
+- JS (Parität): `src/lib/db/firestore/sessions.js::sameActivity()` (Zeile ~67)
+  und `mergeActivityAddon()` (Zeile ~75).
+
+**Repro (`_append_activity_addon` direkt, ohne `source_id`):**
+- Korrektur: `[cycling, '', 60]` + `[cycling, '', 64]` → bleibt bei `60`.
+- Zwei Touren: `[running, 30, 5]` + `[running, 30, 10]` → Summe `5.0` statt `15.0`
+  (`fitness/data.py::activity_distance_km()`, Zeile ~90).
+
+**Zweiter Befund, Kraft-Modus:** `src/views/Session/useSession.js::buildSessionPayload()`
+(Zeile ~218) speichert eine Aktivität außerhalb des Cardio-Modus nur mit gesetzter
+`duration`. Eine reine Distanz ohne Dauer geht beim Hauptsession-Save verloren.
+
+**Daten:** `~/.aos/fitness/users/Q6Hx0HZbtkRQEVesyY3NEmZRQEn2/fitness/sessions/2026-09-20.json`
+(Simons Radtour, `cycling`, `distanceKm: "64"`, `duration: ""`) sieht nach einer
+manuellen Nachpflege aus (Notiz beschreibt Tour und Schätzung). Ob im Alltag
+tatsächlich Korrekturen verloren gehen, ist nicht per Browser-Durchlauf oder Log belegt.
+Viele `running`-Einträge haben leere Dauer und Distanz (nicht ausgefüllt, kein Verlust).
+
+**Offen / Vorschläge:**
+- [ ] Browser-Durchlauf: Distanz korrigieren und speichern → Wert in der JSON prüfen.
+- [ ] Signatur um `distanceKm` erweitern (Python und JS identisch halten),
+      oder Korrekturen über `_source_id`/Ersetzen statt Verwerfen lösen.
+- [ ] Speicherbedingung in `buildSessionPayload()` um `distanceKm` ergänzen.
+- [ ] Regressionstests für beide Repro-Fälle (Python + JS).
+- [ ] Simon-Wunsch (Ø-/Max-Speed, Höhenmeter) in `ActivitySection.jsx` prüfen:
+      Felder für `cycling` sind laut Code vorhanden, aber nicht in den Daten belegt.
+
 ## Claude Handoff - Firebase Coach-Inbox / Fuel-Grenze (2026-09-06)
 
 Kontext: Der Coach-Tab ist die offene Baustelle. Inbox-Items kommen aus Firestore, lokale Source-/KB-Arbeit muss aber ueber den lokalen Fitness-Prod-Server auf Port 6100 laufen. Der Tailscale Funnel routet nun `/fitness/` auf `http://127.0.0.1:6100/`.
@@ -603,3 +640,8 @@ pruefen.
   Klientendaten); ob Coach-Ansichten im Firebase-Modus wirklich nur Firestore nutzen.
 - Echter Pull-Lauf auf dem Live-Verzeichnis `~/.aos/fitness/` nicht gemacht
   (nur Dry-Run und Scratch-Lauf).
+
+**Gemini-Review (potenzielle blinde Flecken, 2026-10-21):**
+*   **Unverifizierte Ursachenhypothesen**: Die "wahrscheinlichen Ursachen" für den `endedAt`-Verlust (z.B. `setDoc` ohne `merge`, `mirror.py` ignoriert Feld) wurden aus Codeanalyse abgeleitet, aber nicht durch Laufzeit-Debugging oder Log-Analyse *verifiziert*.
+*   **Ungeklärte Rolle des Nebenbefunds**: Der Fund in `client_session.py` (Setzen von `null` für Start/Ende) wird als "Nebenbefund" erwähnt, seine kausale Beziehung zum Hauptproblem des Überschreibens bleibt jedoch ungeprüft.
+*   **Fehlende Lösungsansätze/Verifikationsplan**: Die Session endet mit Dokumentations-Updates, ohne konkrete nächste Schritte zur Behebung der identifizierten Code-Probleme oder einen Plan zur empirischen Verifikation der Ursachen zu definieren.
