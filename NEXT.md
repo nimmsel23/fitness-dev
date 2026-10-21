@@ -189,6 +189,8 @@ harmlos, aber unsauber.
 - [ ] Coach-Placeholder in `client_session.py` bereinigen (kein `completed` ohne Zeiten).
 - [ ] Auto-Close für alte offene Sessions (siehe TODO) erst nach Klärung der
       Ursache angehen.
+- [ ] Die zwei auto-erzeugten Commits `d64ee5d` und `b71e16b` auf `dev` nach
+      `origin` pushen — erst nach ausdrücklicher Freigabe durch den Nutzer.
 
 **Belege:** Firestore-Abfrage über Skript im Scratchpad
 (`/tmp/claude-1000/-home-alpha-fitness-dev/d5382fa2-f4ab-4daf-94cf-c97f3d6b46c2/scratchpad/gate_check.py`).
