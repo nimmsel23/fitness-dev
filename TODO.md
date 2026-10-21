@@ -77,6 +77,12 @@ Beispielfeature: Trainingsplanbesprechung zwischen Klient und Coach. Social Medi
   - Offen: harter Fallback, der eine >N-Stunden-alte offene Session beim
     nächsten App-Open automatisch schließt/danach fragt (statt nur zu
     erinnern) — bisher nur die Erinnerung, kein Auto-Close.
+  - [ ] **Gate-Verlust durch Überschreiben (2026-10-21):** Stop-Pfad ist
+    korrekt, aber Start/Ende werden von späteren Saves überschrieben
+    (Firestore `setDoc` ohne merge, `buildSessionPayload` lässt das Gate weg,
+    Python-Mirror kennt `sessionGate` nicht). Nur 2 von 84 Operator-Sessions
+    haben ein vollständiges Gate. Details, Belege und offene Schritte:
+    → `NEXT.md`, Abschnitt „Session-Gate verliert Start/Ende durch Überschreiben“.
 - Today-Session zuerst als `Gym Session Gate`: großer Start-/Stop-Button, Trainingstag sofort loggen, manuelles Nachtragen bleibt darunter offen.
 - Während aktiver Session Thenics-artigen Guided Runner bauen:
   - Quelle: im `Plan`-Tab gepflegtes Workout oder Coach-Zuweisung, aber nicht erzwungen.
