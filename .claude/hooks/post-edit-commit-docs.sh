@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # PostToolUse hook (Edit|Write) — repo-lokal (identische Kopie in fitness-dev, coach-dev, plan-dev, 6pack-dev; REPO wird aus dem Skriptpfad abgeleitet). Committet
 # automatisch, sobald eine der Session-Handoff-/Doku-Dateien geändert
-# wurde: TODO.md, RESULTS.md, NEXT.md, docs/CLAUDE.md, docs/BACKEND.md.
+# wurde: docs/CLAUDE.md, docs/BACKEND.md. TODO.md, RESULTS.md und NEXT.md
+# sind seit 2026-10-21 gitignored und werden hier nicht mehr committet.
 # Zweck: diese Dateien sollen nie unkommittiert liegen bleiben — weder
 # wenn der PreCompact-Hook sie nachfüllt, noch wenn Claude sie im
 # laufenden Gespräch direkt editiert.
 #
-# Bewusst eng: kein `git add -A`, nur die exakt fünf Dateien unten. Kein
+# Bewusst eng: kein `git add -A`, nur die beiden Dateien unten. Kein
 # `git push` — Commits bleiben lokal, das Pushen bleibt ein bewusster,
 # separater Schritt (z.B. via fitness-release).
 #
@@ -18,7 +19,7 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"   # repo-agnostisch: Skript liegt in <repo>/.claude/hooks/
 LOCK="$REPO/.claude/hooks/.commit-docs.lock"
-DOC_FILES=("TODO.md" "RESULTS.md" "NEXT.md" "docs/CLAUDE.md" "docs/BACKEND.md")
+DOC_FILES=("docs/CLAUDE.md" "docs/BACKEND.md")
 
 input="$(cat)"
 file_path="$(printf '%s' "$input" | jq -r '.tool_input.file_path // empty' 2>/dev/null || true)"

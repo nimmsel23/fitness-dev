@@ -49,3 +49,8 @@ src/views/SixPack/sixpackData.generated.js
 # User-Daten: 6Pack Progress-Fotos (lokal gespeichert, nicht ins Repo)
 public/sixpack-photos/
 .claude/hooks/*.log
+
+# Session-Handoff (lokal, nicht versioniert — seit 2026-10-21)
+TODO.md
+NEXT.md
+RESULTS.md
