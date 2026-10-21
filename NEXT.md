@@ -146,6 +146,53 @@ ist*, dort steht *was im Makro insgesamt noch zu tun ist*.
     "Deploy VitalOS Shell") wurde nach `fitness-release` nicht mehr per `gh`
     gegengeprüft.
 
+## Session-Gate verliert Start/Ende durch Überschreiben (2026-10-21, offen)
+
+Verknüpft mit `TODO.md` → Abschnitt „Session Gate / Thenics-Runner“ (Bug/UX-Lücke).
+
+**Befund:** Der Stop-Pfad ist korrekt (`useSessionGateController.js::stopSessionGate()`
+→ `save()` mit `endedAt`; `buildSessionPayload()` übernimmt das Gate; Firestore-,
+Node- und Python-Pfad behalten das Feld). Das Gate geht danach verloren, weil
+spätere Saves es überschreiben.
+
+**Daten (Operator-UID `59ole36uNpNwml5H6VDYCXyCME92`, Firestore read-only geprüft):**
+- 84 Session-Dokumente, nur 2 mit vollständigem Gate (2026-08-09, 2026-09-22).
+- Alle übrigen haben kein `sessionGate`-Feld, auch 2026-10-11 (TODO-Beispiel).
+- Lokale Kopien (`~/.aos/fitness/users/59ole…/sessions/`) ebenso ohne Gate,
+  2026-10-11 zuletzt um 2026-10-15 19:51:28 UTC geschrieben (zeitgleich mit
+  Firestore) — spricht für einen Sync, der einen Stand ohne Gate in beide
+  Richtungen geschrieben hat.
+
+**Wahrscheinliche Ursache (nicht per Log belegt):**
+1. `src/lib/db/firestore/sessions.js::saveSession()` nutzt `setDoc(...)` ohne
+   `{ merge: true }` → vollständiges Überschreiben des Dokuments.
+2. `src/views/Session/useSession.js::buildSessionPayload()` setzt `sessionGate`
+   nur, wenn `startedAt`/`endedAt` gesetzt ist → ein Save aus einem Zustand
+   ohne Gate (anderes Gerät, älterer Tab, Sync) löscht ein gestartetes Gate.
+3. `fitness/firestore/mirror.py::mirror_session()` schreibt per `set()` und kennt
+   `sessionGate` nicht; `on_session()` zieht den Stand zurück in die lokale Datei.
+
+**Nebenbefund:** `fitness/coach/client_session.py:52` schreibt
+`{"status": "completed", "startedAt": null, "endedAt": null}`.
+`src/lib/sessionGate.js::normalizeSessionGate()` behält `status: completed` ohne
+Zeiten. Für die Core4-Verknüpfung (`functions/index.js:155`, prüft `endedAt`)
+harmlos, aber unsauber.
+
+**Offen / Vorschläge:**
+- [ ] Gate-Verlust reproduzieren: Start auf Gerät A, danach Save aus Tab/Gerät B
+      mit altem Stand → prüfen, ob `sessionGate` verschwindet.
+- [ ] Schreibstrategie festlegen: Gate nur über explizites Start/Stop ändern
+      (z. B. `merge: true` bzw. Gate-Feld ausklammern beim Save) — betrifft
+      `saveSession()` (Firestore) und `mirror_session()` (Python).
+- [ ] Sicherstellen, dass `mirror_session()`/`on_session()` das Gate nicht
+      verwerfen (Feld `sessionGate` durchreichen bzw. mergen).
+- [ ] Coach-Placeholder in `client_session.py` bereinigen (kein `completed` ohne Zeiten).
+- [ ] Auto-Close für alte offene Sessions (siehe TODO) erst nach Klärung der
+      Ursache angehen.
+
+**Belege:** Firestore-Abfrage über Skript im Scratchpad
+(`/tmp/claude-1000/-home-alpha-fitness-dev/d5382fa2-f4ab-4daf-94cf-c97f3d6b46c2/scratchpad/gate_check.py`).
+
 ## Claude Handoff - Firebase Coach-Inbox / Fuel-Grenze (2026-09-06)
 
 Kontext: Der Coach-Tab ist die offene Baustelle. Inbox-Items kommen aus Firestore, lokale Source-/KB-Arbeit muss aber ueber den lokalen Fitness-Prod-Server auf Port 6100 laufen. Der Tailscale Funnel routet nun `/fitness/` auf `http://127.0.0.1:6100/`.
