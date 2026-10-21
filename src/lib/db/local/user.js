@@ -96,3 +96,7 @@ export async function updateUserProfile(uid, data) {
 
 // Geräteliste (users/{uid}/devices) gibt es nur im Firestore-Build.
 export async function registerDevice(_prefs) {}
+
+// 6Pack-Fortschritt: im lokalen Modus liegt er nur im localStorage der 6Pack-Karte.
+export async function getSixpackProgram() { return null; }
+export async function saveSixpackProgram() { return { ok: true }; }

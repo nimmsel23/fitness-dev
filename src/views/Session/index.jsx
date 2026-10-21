@@ -15,7 +15,7 @@ import PlanView from '../Plan/index.jsx';
 import WorkoutTimerCard from './WorkoutTimerCard.jsx';
 import SixPackPromiseCard from '../SixPack/SixPackPromiseCard.jsx';
 import { getAllCoachingNotes } from '../../lib/coachNotes';
-import { getUid } from '@db';
+import { getUid, getSixpackProgram, saveSixpackProgram } from '@db';
 import SkillsCard from '../Skills/SkillsCard.jsx';
 import TodayPlan, { useTodayPlan } from './TodayPlan.jsx';
 import { isSessionGateActive } from '../../lib/sessionGate.js';
@@ -23,6 +23,10 @@ import { logWorkoutAsSession } from '../../lib/logExternalWorkout.js';
 import SessionModeTabs from './SessionModeTabs.jsx';
 import { IS_SOLO } from '../../constants/NavigationItems.js';
 import { ChevronLeft } from 'lucide-react';
+
+// 6Pack-Karte kennt @db nicht: Fortschritt/Settings kommen per Callback (stabile Referenzen).
+const loadSixpackProgram = () => getSixpackProgram();
+const saveSixpackProgramForUid = (_uid, program) => saveSixpackProgram(program);
 
 export default function Session({
   initialDate, initialDraft, onInspectExercise, onOpenSession,
@@ -97,7 +101,7 @@ export default function Session({
     return (
       <>
         {modeTabs}
-        <SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} onWorkoutComplete={handleWorkoutComplete} />
+        <SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} onWorkoutComplete={handleWorkoutComplete} loadRemoteProgram={loadSixpackProgram} saveRemoteProgram={saveSixpackProgramForUid} />
       </>
     );
   }

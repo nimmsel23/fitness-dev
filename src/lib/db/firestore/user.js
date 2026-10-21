@@ -19,6 +19,8 @@ import {
   getBodyEntry as getLocalBodyEntry,
   saveBodyEntry as saveLocalBodyEntry,
   getBodyEntries as getLocalBodyEntries,
+  getSixpackProgram as getLocalSixpackProgram,
+  saveSixpackProgram as saveLocalSixpackProgram,
 } from "../local/user.js";
 
 // ── Settings ──────────────────────────────────────────────────────────────────
@@ -189,4 +191,23 @@ export async function updateUserProfile(uid, data) {
     console.error("Fehler beim Speichern des Profils:", error);
     return false;
   }
+}
+
+// ── 6Pack-Programmfortschritt ─────────────────────────────────────────────────
+// users/{uid}/meta/sixpack (gleicher Pfad wie die Standalone-6Pack-App). Enthält
+// Tracker (currentDay, completedDays, …) und settings.reminder.
+
+export async function getSixpackProgram() {
+  if (!hasAuthSession()) return getLocalSixpackProgram();
+  const snap = await getDoc(doc(db, "users", getUid(), "meta", "sixpack"));
+  return snap.exists() ? snap.data() : null;
+}
+
+export async function saveSixpackProgram(program) {
+  if (!hasAuthSession()) return saveLocalSixpackProgram(program);
+  await setDoc(doc(db, "users", getUid(), "meta", "sixpack"), {
+    ...JSON.parse(JSON.stringify(program)),
+    saved_at: serverTimestamp(),
+  });
+  return { ok: true };
 }
