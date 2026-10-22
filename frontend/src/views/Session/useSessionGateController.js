@@ -72,6 +72,12 @@ export function useSessionGateController({ location, setLocation, duration, setD
   const [sessionGate, setSessionGate] = useState(() => normalizeSessionGate(null));
 
   async function startSessionGate() {
+    // Zentral statt nur in der Card: Start über die Header-Bar fragte bisher nie
+    // nach der Notification-Permission. Muss vor dem GPS-Await stehen, damit
+    // die Abfrage noch in der Tap-Geste passiert (iOS).
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      try { await Notification.requestPermission(); } catch {}
+    }
     const { position: gps, errorReason } = await getCurrentPosition();
     const geo = gps ? await resolveGeoLocation(gps.lat, gps.lng) : null;
     const nextGate = normalizeSessionGate({

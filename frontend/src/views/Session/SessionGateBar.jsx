@@ -8,13 +8,10 @@
  * Abschlusszahlen. Tap öffnet das Gate-Sheet, Stop beendet direkt.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Play, Square, CheckCircle2 } from 'lucide-react';
-import {
-  normalizeSessionGate,
-  getSessionGateElapsedMs,
-  formatSessionGateElapsed,
-} from '../../lib/sessionGate.js';
+import { normalizeSessionGate } from '../../lib/sessionGate.js';
+import { useGateElapsed } from './useGateElapsed.js';
 
 function toNumber(value) {
   const n = parseFloat(String(value ?? '').replace(',', '.'));
@@ -52,17 +49,10 @@ export default function SessionGateBar({ sessionGate, exercises, isToday, onOpen
   const gate = normalizeSessionGate(sessionGate);
   const active = gate.status === 'active';
   const completed = gate.status === 'completed';
-  const [nowMs, setNowMs] = useState(Date.now());
+  const { elapsedLabel } = useGateElapsed(gate);
   // startSessionGate() wartet auf den GPS-Fix (kann drinnen Sekunden dauern)
   // — ohne Busy-State wirkt der Tap wie ignoriert.
   const [starting, setStarting] = useState(false);
-
-  useEffect(() => {
-    setNowMs(Date.now());
-    if (!active) return undefined;
-    const timer = window.setInterval(() => setNowMs(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, [active, gate.startedAt]);
 
   const progress = useMemo(() => countSessionProgress(exercises), [exercises]);
 
@@ -86,8 +76,6 @@ export default function SessionGateBar({ sessionGate, exercises, isToday, onOpen
       </button>
     );
   }
-
-  const elapsedLabel = formatSessionGateElapsed(getSessionGateElapsedMs(gate, nowMs));
 
   return (
     <div
