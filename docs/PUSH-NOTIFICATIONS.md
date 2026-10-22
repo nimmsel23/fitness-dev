@@ -24,14 +24,15 @@ Klient speichert Session ──► Firestore fitness/{uid}/sessions/{sid}
 
 | Datei | Aufgabe |
 |---|---|
-| `index.js` | Trigger/Callables: `scheduledPushReminders`, `onCoachFeedback`, **`onClientWorkout`**, **`sendTestPush`** (+ Strava) |
+| `index.js` | Trigger/Callables: `scheduledFitnessPushReminders` (vorher `scheduledPushReminders`), `onCoachFeedback`, **`onClientWorkout`**, **`sendTestPush`** (+ Strava) |
 | `clientWorkout.js` | Rein: wann wird gemeldet (`shouldNotify`), Nachricht bauen, tote Tokens erkennen |
 | `pushPrefs.js` | Rein: Ruhezeiten, stumme Klienten, Modus „nur abgeschlossene", Test-Nachrichten, Cooldown |
 | `texts.js` | Lädt `notifications.yaml`, setzt `{platzhalter}` ein |
 | `notifications.yaml` | **Alle Meldungstexte** (Erinnerungen, `clientWorkout`, `testReminder`, `testClientWorkout`) |
 
 Tests: `node --test functions/` (21 Tests, ohne Firebase). Textänderungen wirken erst nach
-`firebase deploy --only functions:onClientWorkout,functions:sendTestPush` (bzw. der jeweiligen Function).
+`firebase deploy --only functions:fitness:onClientWorkout,functions:fitness:sendTestPush` (bzw. der jeweiligen Function).
+`firebase.json` führt die Functions seit `04f26a1` im Codebase `fitness` — Deploy-Ziele daher `functions:fitness:<name>`.
 
 ### Wann `onClientWorkout` meldet
 - Erstes Mal, dass die Session Inhalt hat (Sätze/Dauer/Effort/`done`), und noch einmal beim Abschluss
@@ -77,8 +78,23 @@ Der Coach-Bereich erscheint nur für die Coach-UID.
 Hash-Router `#/exercises`, `#/catalog`, `#/clients/<uid>/<tab>?date=` (Details: `src/views/Coach/ARCHITECTURE.md`
 in coach-dev). Die Coach-Konsole wird **standalone aus coach-dev** deployed, nicht aus `src/views/Coach` hier.
 
+## Erinnerung „Workout noch offen“ (`scheduledFitnessPushReminders`)
+- Läuft alle 5 Minuten (`europe-west1`) und schickt per FCM eine Erinnerung, wenn ein Gate
+  (`sessionGate.startedAt`, kein `endedAt`) länger als 1 Stunde läuft — auch bei geschlossener PWA.
+  Voraussetzungen: Session liegt in Firestore, Gerät ist für Push registriert, Schalter `activeWorkout` an.
+- Merker „schon erinnert“: `fitness/{uid}/settings/push` → `apps.fitness.activeWorkoutRemindedFor` (= `gate.startedAt`
+  des erinnerten Workouts). Früher stand er in `sessionGate.reminderSentAt` im Session-Dokument; der Client
+  speichert Sessions per `setDoc()` ohne `merge` und löschte ihn bei jedem Autosave → Erinnerung alle 5 Minuten.
+- Der lokale Browser-Reminder (`src/views/Session/useSessionGateLifecycle.js`, Tag `fitness-workout-hour-reminder`)
+  läuft zusätzlich, solange die App offen ist; Server-Push nutzt den Tag `fitness-active-workout`. Ob beide über die
+  zwei Service Worker hinweg einander ersetzen, ist nicht geprüft.
+- Deploy: `firebase deploy --only functions:fitness:scheduledFitnessPushReminders`. Wegen der Umbenennung bleibt die
+  alte `scheduledPushReminders` bestehen, bis sie gelöscht wird (`firebase functions:list` prüfen, dann
+  `firebase functions:delete scheduledPushReminders --region europe-west1`), sonst doppelte Erinnerungen.
+
 ## Deploy-Stand
 - Functions `onClientWorkout` und `sendTestPush` sind deployed (2026-10-15).
+- Der Merker-Fix für `scheduledFitnessPushReminders` (siehe oben) ist im Code (`dev`/`vitalos`), aber noch nicht deployed.
 - Panel + neuer Service Worker erst mit dem Haupt-App-Release (`fitness-release`), der Router erst mit dem
   Coach-Deploy (Push von `vitalos` in `coach-app`).
 
