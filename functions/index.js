@@ -269,7 +269,7 @@ async function sendReminder(uid, tokens, title, body, link, tag = "fitness-remin
   }
 }
 
-exports.scheduledPushReminders = functions
+exports.scheduledFitnessPushReminders = functions
   .region("europe-west1")
   .pubsub.schedule("every 5 minutes")
   .timeZone(TIME_ZONE)
