@@ -1,9 +1,10 @@
-import { normalizePlanExercise, YUHONAS_EXERCISES } from './catalog.js';
+import { normalizePlanExercise, loadYuhonasExercises } from './catalog.js';
 
-const byId = new Map(YUHONAS_EXERCISES.map((ex) => [ex.id, ex]));
-const byRef = new Map(YUHONAS_EXERCISES.map((ex) => [ex.yuhonas_id, ex]));
 // Adapt legacy coach assignments once, retaining source identity and prescriptions.
-export function assignedWorkoutBody(plan) {
+export async function assignedWorkoutBody(plan) {
+  const yuhonas = await loadYuhonasExercises();
+  const byId = new Map(yuhonas.map((ex) => [ex.id, ex]));
+  const byRef = new Map(yuhonas.map((ex) => [ex.yuhonas_id, ex]));
   const exercises = (plan.exercises || []).map((raw, order) => {
     const catalog = byId.get(raw.exercise_id) || byRef.get(raw.yuhonas_id) || {};
     const normalized = normalizePlanExercise({ ...catalog, ...raw, exercise_id: raw.exercise_id || catalog.id });

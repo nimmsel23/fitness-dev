@@ -1,15 +1,15 @@
-import { useState, useEffect, useRef } from 'react'
+import { lazy, Suspense, useState, useEffect, useRef } from 'react'
 import { RefreshCw } from 'lucide-react'
 import Session from './views/Session/index.jsx'
 import { useTodayGateWatcher } from './views/Session/useTodayGateWatcher.js'
-import Learn   from '@learn/views/Learn/index.jsx'
-import WeeklyReview from './views/WeeklyReview/index.jsx'
-import Touren from './views/Touren/index.jsx'
-import Exercises from './views/Exercises/index.jsx'
-import Settings from './views/Settings/index.jsx'
-import Anamnese from './views/Anamnese/index.jsx'
-import Fokus from './views/Fokus/index.jsx'
-import Inbox from './views/Inbox/index.js'
+const Learn = lazy(() => import('@learn/views/Learn/index.jsx'))
+const WeeklyReview = lazy(() => import('./views/WeeklyReview/index.jsx'))
+const Touren = lazy(() => import('./views/Touren/index.jsx'))
+const Exercises = lazy(() => import('./views/Exercises/index.jsx'))
+const Settings = lazy(() => import('./views/Settings/index.jsx'))
+const Anamnese = lazy(() => import('./views/Anamnese/index.jsx'))
+const Fokus = lazy(() => import('./views/Fokus/index.jsx'))
+const Inbox = lazy(() => import('./views/Inbox/index.js'))
 import ExerciseInsightModal from './components/ExerciseInsightModal.jsx'
 import { isLocalMode, getAnatomy, getAllMuscles } from '@db'
 
@@ -527,6 +527,7 @@ export default function App() {
                   )}
                   <div key={tab} className={`${navMode === 'home' && tab !== 'gate' ? 'p-4 pb-20 sm:p-10' : ''} animate-in fade-in ${slideDirection === 'left' ? 'slide-in-from-right-8' : slideDirection === 'right' ? 'slide-in-from-left-8' : 'slide-in-from-bottom-4'} duration-500`}>
                       {/* Render content */}
+                      <Suspense fallback={null}>
                       {tab === 'session'  && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} onOpenSession={openSession} recentDays={recentDays} coverageThreshold={coverageThreshold} subTab={subTab} onDateChange={setSessionDate} onSubNav={navigateSub} planView={planView} planId={planId} onPlanRouteChange={(view, id) => { setPlanView(view); setPlanId(id); }} gateAutoOpenFlag={gateAutoOpenFlag} onGateAutoOpenConsumed={() => setGateAutoOpenFlag(false)} />}
                       {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} subTab={subTab} onSubNav={navigateSub} />}
                       {tab === 'learn'    && <Learn subTab={subTab} />}
@@ -546,6 +547,7 @@ export default function App() {
                       {tab === 'anamnese' && <Anamnese />}
                       {tab === 'focus'    && <Fokus initialLayer={focusLayer} onLayerChange={navigateFocusLayer} />}
                       {tab === 'settings' && <Settings />}
+                      </Suspense>
                   </div>
                 </div>
               </div>

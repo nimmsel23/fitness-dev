@@ -207,10 +207,20 @@ export default defineConfig(async ({ mode }) => {
       rollupOptions: {
         input: isCoach ? resolve(__dirname, 'coach.html') : isPlan ? resolve(__dirname, 'plan.html') : undefined,
         output: {
-          manualChunks: {
-            react: ['react', 'react-dom'],
-            icons: ['lucide-react'],
-            bodymap: ['react-body-highlighter'],
+          // Vendor-Pakete in eigene, getrennt gecachte Chunks: ein App-Update lädt
+          // so nicht jedes Mal Firebase/Charts neu. Per Funktion statt Objekt, weil
+          // die Pakete transitive Abhängigkeiten haben (@firebase/*, d3-*, ...).
+          manualChunks(id) {
+            const m = id.match(/[\\/]node_modules[\\/](?:\.pnpm[\\/][^\\/]+[\\/]node_modules[\\/])?((?:@[^\\/]+[\\/])?[^\\/]+)/)
+            if (!m) return undefined
+            const pkg = m[1].replace(/\\/g, '/')
+            if (pkg === 'react' || pkg === 'react-dom' || pkg === 'scheduler') return 'react'
+            if (pkg === 'lucide-react') return 'icons'
+            if (pkg === 'react-body-highlighter') return 'bodymap'
+            if (pkg === 'firebase' || pkg.startsWith('@firebase/')) return 'firebase'
+            if (pkg === 'recharts' || pkg.startsWith('d3-') || pkg === 'victory-vendor' || pkg === 'internmap'
+              || pkg === 'decimal.js-light' || pkg === 'es-toolkit') return 'charts'
+            return undefined
           },
         },
       },

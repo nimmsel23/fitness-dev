@@ -1,5 +1,5 @@
 // Same imported Yuhonas records used by the existing KB; no second downloader.
-import { EXERCISE_BULK_DATA } from '../../../lib/db/firestore/exerciseBulkData.generated.js';
+// Das Bulk-Modul (~1,8 MB) wird erst bei Bedarf per dynamic import geladen.
 
 const list = (value) => Array.isArray(value) ? value : value ? [value] : [];
 export function normalizePlanExercise(raw = {}) {
@@ -19,10 +19,18 @@ export function normalizePlanExercise(raw = {}) {
       : equipment.some((e) => /body only|bodyweight/i.test(e)) ? 'bodyweight_reps' : 'weight_reps'),
   };
 }
-export const YUHONAS_EXERCISES = EXERCISE_BULK_DATA.filter((ex) => ex.yuhonas_id).map(normalizePlanExercise);
+let _yuhonasPromise = null;
+export function loadYuhonasExercises() {
+  if (!_yuhonasPromise) {
+    _yuhonasPromise = import('../../../lib/db/firestore/exerciseBulkData.generated.js')
+      .then((m) => m.EXERCISE_BULK_DATA.filter((ex) => ex.yuhonas_id).map(normalizePlanExercise))
+      .catch((err) => { _yuhonasPromise = null; throw err; });
+  }
+  return _yuhonasPromise;
+}
 
-export function mergeCatalog(curated = []) {
-  const byRef = new Map(YUHONAS_EXERCISES.map((ex) => [ex.yuhonas_id, ex]));
+export function mergeCatalog(yuhonas = [], curated = []) {
+  const byRef = new Map(yuhonas.map((ex) => [ex.yuhonas_id, ex]));
   const others = [];
   for (const raw of curated) {
     const ex = normalizePlanExercise(raw);

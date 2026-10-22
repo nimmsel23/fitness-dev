@@ -11,7 +11,6 @@ import {
 import { db } from "../../../firebase.js";
 import { getStaticMuscle, getStaticMuscleDocs } from "../../kb/muscles.js";
 import { normalizeExerciseRecord } from "../shared/exercise.js";
-import { EXERCISE_BULK_DATA } from "./exerciseBulkData.generated.js";
 import {
   getMirrorExercise, isLegacyYuhonasId, mergeRanked, searchMirrors,
 } from "../../exerciseDbs/search.js";
@@ -27,7 +26,21 @@ export { getFavourites, toggleFavourite } from "../shared/favourites.js";
 // doppelt im Suchindex landen und nicht bei jeder Suche live nachgeladen
 // werden müssen — nur der kleine, aktiv wachsende kuratierte/expert-Teil
 // kommt noch aus Firestore. KB-YAML bleibt SSOT, siehe src/CLAUDE.md.
-const _BULK_IDS = new Set(EXERCISE_BULK_DATA.map((ex) => ex.exercise_id || ex.id));
+//
+// Das Bulk-Modul (~1,8 MB) liegt nicht im Haupt-Bundle, sondern wird beim
+// ersten Zugriff (Suche) per dynamic import nachgeladen und danach gecacht.
+let _bulkPromise = null;
+function _loadBulk() {
+  if (!_bulkPromise) {
+    _bulkPromise = import("./exerciseBulkData.generated.js")
+      .then((m) => ({
+        data: m.EXERCISE_BULK_DATA,
+        ids: new Set(m.EXERCISE_BULK_DATA.map((ex) => ex.exercise_id || ex.id)),
+      }))
+      .catch((err) => { _bulkPromise = null; throw err; });
+  }
+  return _bulkPromise;
+}
 
 // ── Exercises ─────────────────────────────────────────────────────────────────
 
@@ -52,10 +65,11 @@ export async function getAllExercises() {
 // Client-Bundle liegen (EXERCISE_BULK_DATA) — vermeidet, ~1700 Docs live zu
 // laden, nur um sie danach wegzufiltern.
 async function _getCuratedExercises() {
+  const { ids } = await _loadBulk();
   const snap = await getDocs(collection(db, "fitness", "kb", "exercises"));
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }))
-    .filter((ex) => !_BULK_IDS.has(ex.exercise_id || ex.id));
+    .filter((ex) => !ids.has(ex.exercise_id || ex.id));
 }
 
 export async function saveExercise(exerciseId, data) {
@@ -113,13 +127,14 @@ function _isCurated(ex) {
 async function _getSearchPool(useMirror) {
   if (!useMirror) {
     if (!_searchCache) {
-      const curated = await _getCuratedExercises();
-      _searchCache = [...EXERCISE_BULK_DATA, ...curated];
+      const [{ data }, curated] = await Promise.all([_loadBulk(), _getCuratedExercises()]);
+      _searchCache = [...data, ...curated];
     }
     return _searchCache;
   }
   if (!_searchCacheMirror) {
-    const bulk = EXERCISE_BULK_DATA.filter((ex) => !_isLegacyYuhonasBulk(ex));
+    const { data } = await _loadBulk();
+    const bulk = data.filter((ex) => !_isLegacyYuhonasBulk(ex));
     const bulkIds = new Set(bulk.map((ex) => ex.exercise_id || ex.id));
     const snap = await getDocs(collection(db, "fitness", "kb", "exercises"));
     const curated = snap.docs
