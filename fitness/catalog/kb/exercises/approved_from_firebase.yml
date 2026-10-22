@@ -2635,14 +2635,49 @@ exercises:
   - Die Schultern hochzuziehen und den Nacken anzuspannen, anstatt die Bewegung aus
     Brust und kontrollierter Schulterführung zu organisieren.
   category: push
-- movements:
-  - shoulder_abduction
-  - scapular_upward_rotation
-  - scapular_control
-  - glenohumeral_stability
-  - anti_lateral_flexion
-  equipment:
+- equipment:
   - cable
+  secondary_muscles:
+  - 305_supraspinatus
+  - 301_anterior_deltoid
+  type: isolation
+  tags:
+  - isolation
+  - cable_machine
+  - hit_suitable
+  - shoulders
+  - shoulder_abduction
+  - unilateral
+  _hash: 2424d510bc87c296109a8baddaaf669c
+  german: Seitheben am Kabelzug
+  source: approved
+  review_state:
+    status: approved
+  primary_muscles:
+  - 302_lateral_deltoid
+  aliases:
+  - Kabel-Seitheben
+  - Einarmiges Seitheben am Kabelzug
+  - Seitheben am Seilzug
+  - Cable Side Raise
+  - Single-Arm Cable Lateral Raise
+  - One-Arm Cable Lateral Raise
+  name: Seitheben am Kabelzug
+  stabilizers:
+  - 304_rotator_cuff
+  - 202a_trapezius_upper
+  - 202c_trapezius_lower
+  - 105_serratus_anterior
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 608_gluteus_medius
+  schema_version: 2026-08-12.exercise-v1
+  search_aliases:
+  - wger_1556
+  - wger_349
+  - Seitheben am Kabelzug
+  - Cable Lateral Raise
   coaching_notes:
   - Stelle dich seitlich zum Kabelzug und positioniere den Griff so, dass der Zug
     bereits in der unteren Position Spannung aufbaut. Das verbessert die Belastungskurve
@@ -2669,31 +2704,38 @@ exercises:
   - Wenn du einarmig arbeitest, kannst du dich mit der freien Hand leicht am Turm
     stabilisieren, um Kompensation zu reduzieren und den seitlichen Deltoid präziser
     zu treffen.
-  primary_muscles:
-  - 302_lateral_deltoid
-  wger_id: 1556
+  display_name: Seitheben am Kabelzug
   english: Cable Lateral Raise
-  review_state:
-    status: approved
-  exercise_id: cable_lateral_raise
+  external_ids:
+    wger:
+    - 1556
+    - 349
+  wger_id: 1556
+  wger_muscle_ids:
+    secondary: []
+    primary:
+    - 2
+  id: cable_lateral_raise
+  variations: []
+  movements:
+  - shoulder_abduction
+  - scapular_upward_rotation
+  - scapular_control
+  - glenohumeral_stability
+  - anti_lateral_flexion
   origin:
-    yuhonas:
-      equipment:
-      - cable
-      exercise_id: yuhonas_cable_seated_lateral_raise
-      primary_muscles:
-      - shoulders
-      secondary_muscles:
-      - middle_back
-      - traps
-      display_name: Cable Seated Lateral Raise
-      yuhonas_id: Cable_Seated_Lateral_Raise
+    type: external
+    source_refs:
+      wger:
+      - '1556'
+      - '349'
+    wger:
       wger_muscle_ids:
         secondary: []
-        primary: []
-      tags:
-      - unreviewed
-      - yuhonas
+        primary:
+        - 2
+      wger_id: 1556
+    yuhonas:
       coaching_notes:
       - Stand in the middle of two low pulleys that are opposite to each other and
         place a flat bench right behind you (in perpendicular fashion to you; the
@@ -2714,42 +2756,24 @@ exercises:
       - 'Repeat for the recommended amount of repetitions. Tip: Maintain upper arms
         perpendicular to torso and a fixed elbow position (10 degree to 30 degree
         angle) throughout exercise.'
-      category: strength
-    type: external
-    source_refs:
-      wger:
-      - '1556'
-      - '349'
-    wger:
+      secondary_muscles:
+      - middle_back
+      - traps
+      tags:
+      - unreviewed
+      - yuhonas
+      display_name: Cable Seated Lateral Raise
       wger_muscle_ids:
         secondary: []
-        primary:
-        - 2
-      wger_id: 1556
-  schema_version: 2026-08-12.exercise-v1
-  stabilizers:
-  - 304_rotator_cuff
-  - 202a_trapezius_upper
-  - 202c_trapezius_lower
-  - 105_serratus_anterior
-  - 504_transverse_abdominis
-  - 502_obliquus_externus
-  - 503_obliquus_internus
-  - 608_gluteus_medius
-  german: Seitheben am Kabelzug
-  type: isolation
-  variations: []
-  aliases:
-  - Kabel-Seitheben
-  - Einarmiges Seitheben am Kabelzug
-  - Seitheben am Seilzug
-  - Cable Side Raise
-  - Single-Arm Cable Lateral Raise
-  - One-Arm Cable Lateral Raise
-  external_ids:
-    wger:
-    - 1556
-    - 349
+        primary: []
+      primary_muscles:
+      - shoulders
+      yuhonas_id: Cable_Seated_Lateral_Raise
+      exercise_id: yuhonas_cable_seated_lateral_raise
+      equipment:
+      - cable
+      category: strength
+  exercise_id: cable_lateral_raise
   common_errors:
   - Zu viel Gewicht zu wählen und die Hantel mit Schwung, Beinimpuls oder Seitneigung
     des Oberkörpers nach oben zu beschleunigen.
@@ -2771,29 +2795,6 @@ exercises:
     und den seitlichen Deltoid zu bewegen.
   - Die Bewegung hektisch auszuführen und jede Wiederholung anders zu starten, statt
     eine konstante Zuglinie und reproduzierbare Technik beizubehalten.
-  display_name: Seitheben am Kabelzug
-  wger_muscle_ids:
-    secondary: []
-    primary:
-    - 2
-  secondary_muscles:
-  - 305_supraspinatus
-  - 301_anterior_deltoid
-  search_aliases:
-  - wger_1556
-  - wger_349
-  - Seitheben am Kabelzug
-  - Cable Lateral Raise
-  source: approved
-  name: Seitheben am Kabelzug
-  tags:
-  - isolation
-  - cable_machine
-  - hit_suitable
-  - shoulders
-  - shoulder_abduction
-  - unilateral
-  id: cable_lateral_raise
   category: push
 - category: pull
   id: cable_row
