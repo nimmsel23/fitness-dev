@@ -13,7 +13,10 @@ import SessionEditor from './SessionEditor';
 import SessionHistory from './SessionHistory';
 import PlanView from '../Plan/index.jsx';
 import WorkoutTimerCard from './WorkoutTimerCard.jsx';
+import { logWorkoutAsSession } from '../../lib/logExternalWorkout.js';
 import SessionModeTabs from './SessionModeTabs.jsx';
+import { IS_SOLO } from '../../constants/NavigationItems.js';
+import { ChevronLeft } from 'lucide-react';
 import SixPackPromiseCard from '../../../6pack/SixPackPromiseCard.jsx';
 import { getAllCoachingNotes } from '../../lib/coachNotes';
 import { getUid } from '@db';
@@ -66,6 +69,20 @@ export default function Session({
     );
   }
 
+  // Calisthenics (skills) und 6Pack (timer): abgeschlossene Workouts landen
+  // als eigene Session im Tages-Log. Die Kopfzeile mit Kraft/Ausdauer/
+  // Calisthenics/6Pack bleibt sichtbar, damit man zurück wechseln kann.
+  async function handleWorkoutComplete(workout) {
+    try {
+      const { date, id, sessionData } = await logWorkoutAsSession(workout);
+      if (date === session.date) {
+        session.setDaySessions(prev => [...prev, { ...sessionData, id, date }]);
+      }
+    } catch (err) {
+      console.error('Workout konnte nicht ins Session-Log geschrieben werden:', err);
+    }
+  }
+
   const modeTabs = (
     <div className="px-3 pt-3 pb-1 flex">
       <SessionModeTabs
@@ -80,7 +97,7 @@ export default function Session({
     return (
       <>
         {modeTabs}
-        <SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} />
+        <SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} onWorkoutComplete={handleWorkoutComplete} />
       </>
     );
   }
@@ -93,19 +110,35 @@ export default function Session({
           className="px-2 mt-3 space-y-4"
           style={{ paddingBottom: 'calc(8rem + env(safe-area-inset-bottom))' }}
         >
-          <SkillsCard />
+          <SkillsCard onWorkoutComplete={handleWorkoutComplete} />
           <WorkoutTimerCard />
         </div>
       </>
     );
   }
 
-  if (subTab === 'plan') {
+  // Solo-Build: History hat dort keine Nav — eigener Rückweg zu "Heute".
+  const soloBack = IS_SOLO && (
+    <div className="px-3 pt-3">
+      <button
+        onClick={() => onSubNav?.('today')}
+        className="flex items-center gap-1 text-[11px] font-semibold"
+        style={{ color: 'var(--dim)' }}
+      >
+        <ChevronLeft size={14} /> Heute
+      </button>
+    </div>
+  );
+
+  // Solo-Build: Plan lebt dort auf vos-plan.web.app (Link im Header-Menü).
+  if (subTab === 'plan' && !IS_SOLO) {
     return <PlanView routeView={planView} routeId={planId} onRouteChange={onPlanRouteChange} />;
   }
 
   if (subTab === 'history') {
     return (
+      <>
+      {soloBack}
       <SessionHistory
         recentSessions={session.recentSessions}
         onOpenSession={onOpenSession}
@@ -121,6 +154,7 @@ export default function Session({
         hasMoreHistory={session.hasMoreHistory}
         onLoadMoreHistory={session.loadMoreHistory}
       />
+      </>
     );
   }
 
