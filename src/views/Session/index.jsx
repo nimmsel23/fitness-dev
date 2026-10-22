@@ -6,17 +6,17 @@
  * index.jsx went from 860 lines → ~60 lines. 
  */
 
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { localToday } from '@utils';
 import { useSession } from './useSession';
 import SessionEditor from './SessionEditor';
 import SessionHistory from './SessionHistory';
-import PlanView from '../Plan/index.jsx';
+const PlanView = lazy(() => import('../Plan/index.jsx'));
 import WorkoutTimerCard from './WorkoutTimerCard.jsx';
-import SixPackPromiseCard from '../SixPack/SixPackPromiseCard.jsx';
+const SixPackPromiseCard = lazy(() => import('../SixPack/SixPackPromiseCard.jsx'));
 import { getAllCoachingNotes } from '../../lib/coachNotes';
 import { getUid, getSixpackProgram, saveSixpackProgram } from '@db';
-import SkillsCard from '../Skills/SkillsCard.jsx';
+const SkillsCard = lazy(() => import('../Skills/SkillsCard.jsx'));
 import TodayPlan, { useTodayPlan } from './TodayPlan.jsx';
 import { isSessionGateActive } from '../../lib/sessionGate.js';
 import { enableSixpackPush } from '../../lib/sixpackPush.js';
@@ -107,7 +107,7 @@ export default function Session({
     return (
       <>
         {modeTabs}
-        <SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} onWorkoutComplete={handleWorkoutComplete} loadRemoteProgram={loadSixpackProgram} saveRemoteProgram={saveSixpackProgramForUid} enablePush={enableSixpackPush} />
+        <Suspense fallback={null}><SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} onWorkoutComplete={handleWorkoutComplete} loadRemoteProgram={loadSixpackProgram} saveRemoteProgram={saveSixpackProgramForUid} enablePush={enableSixpackPush} /></Suspense>
       </>
     );
   }
@@ -120,7 +120,7 @@ export default function Session({
           className="px-2 mt-3 space-y-4"
           style={{ paddingBottom: 'calc(8rem + env(safe-area-inset-bottom))' }}
         >
-          <SkillsCard onWorkoutComplete={handleWorkoutComplete} />
+          <Suspense fallback={null}><SkillsCard onWorkoutComplete={handleWorkoutComplete} /></Suspense>
           <WorkoutTimerCard />
         </div>
       </>
@@ -142,7 +142,7 @@ export default function Session({
 
   // Solo-Build: Plan lebt dort auf vos-plan.web.app (Link im Header-Menü).
   if (subTab === 'plan' && !IS_SOLO) {
-    return <PlanView routeView={planView} routeId={planId} onRouteChange={onPlanRouteChange} />;
+    return <Suspense fallback={null}><PlanView routeView={planView} routeId={planId} onRouteChange={onPlanRouteChange} /></Suspense>;
   }
 
   if (subTab === 'history') {
