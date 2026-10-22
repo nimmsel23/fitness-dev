@@ -52,7 +52,7 @@ export default function SessionEditor({
   daySessions, sessionId,
   activeModal, setActiveModal,
   rollingDays,
-  toast,
+  toast, toastAction,
   // Handlers
   save, selectSession, handleNewSession, handleDeleteSession,
   startSessionGate, stopSessionGate,
@@ -286,7 +286,7 @@ export default function SessionEditor({
       </div>
 
       {/* Toast */}
-      <SessionToast toast={toast} />
+      <SessionToast toast={toast} toastAction={toastAction} />
 
       {/* Floating save FAB (mobile) */}
       <SessionSaveFab dirty={dirty} autoSaveLabel={autoSaveLabel} saving={saving} onSave={save} />

@@ -1,10 +1,11 @@
 /**
  * SessionModeAndPills — session pills (multi-session switcher, "+"/delete)
- * plus the Kraft/Ausdauer mode underline-tabs, merged into one quiet row.
+ * plus the Kraft/Ausdauer/Calisthenics/6Pack underline-tabs (SessionModeTabs), merged into one quiet row.
  * Extracted 1:1 out of SessionHeader.jsx, no behavior change.
  */
 
-import { Dumbbell, Activity, Plus, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
+import SessionModeTabs from './SessionModeTabs.jsx';
 import { blockColor } from './utils';
 import { classifySession, ACTIVITY_LABELS } from '../../constants/ActivityConstants';
 
@@ -21,6 +22,7 @@ function liveSessionLabel(sessionMode, block, activityType) {
 export default function SessionModeAndPills({
   daySessions, sessionId, selectSession, onNew, onDelete,
   sessionMode, setSessionMode, block, activity,
+  subTab, onSubNav,
 }) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
@@ -68,28 +70,10 @@ export default function SessionModeAndPills({
         </div>
       )}
 
-      <div className="ml-auto flex items-center gap-3 text-[11px] font-semibold shrink-0">
-        <button
-          onClick={() => setSessionMode('strength')}
-          className="flex items-center gap-1 pb-0.5"
-          style={{
-            color: sessionMode === 'strength' ? 'var(--accent)' : 'var(--dim)',
-            borderBottom: sessionMode === 'strength' ? '2px solid var(--accent)' : '2px solid transparent',
-          }}
-        >
-          <Dumbbell size={12} /> Kraft
-        </button>
-        <button
-          onClick={() => setSessionMode('cardio')}
-          className="flex items-center gap-1 pb-0.5"
-          style={{
-            color: sessionMode === 'cardio' ? 'var(--orange)' : 'var(--dim)',
-            borderBottom: sessionMode === 'cardio' ? '2px solid var(--orange)' : '2px solid transparent',
-          }}
-        >
-          <Activity size={12} /> Ausdauer
-        </button>
-      </div>
+      <SessionModeTabs
+        sessionMode={sessionMode} setSessionMode={setSessionMode}
+        subTab={subTab} onSubNav={onSubNav}
+      />
     </div>
   );
 }

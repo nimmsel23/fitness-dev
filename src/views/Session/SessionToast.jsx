@@ -8,7 +8,7 @@
  * redundant, easy-to-desync clear racing the one in useSession.js. It only
  * renders whatever `toast` currently holds.
  */
-export default function SessionToast({ toast }) {
+export default function SessionToast({ toast, toastAction = null }) {
   if (!toast) return null;
   return (
     <div
@@ -20,6 +20,15 @@ export default function SessionToast({ toast }) {
       }}
     >
       {toast}
+      {toastAction && (
+        <button
+          onClick={toastAction.onClick}
+          className="ml-3 underline underline-offset-2"
+          style={{ color: 'var(--ink)' }}
+        >
+          {toastAction.label}
+        </button>
+      )}
     </div>
   );
 }

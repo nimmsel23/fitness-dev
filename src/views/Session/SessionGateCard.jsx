@@ -1,83 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Play, Square, Clock3, CheckCircle2, PencilLine, CalendarDays, ClipboardList, History, TimerReset, Sparkles } from 'lucide-react';
 import {
   normalizeSessionGate,
   isSessionGateActive,
   isSessionGateCompleted,
-  getSessionGateElapsedMs,
-  formatSessionGateElapsed,
 } from '../../lib/sessionGate.js';
-
-const NOTIFICATION_TAG = 'fitness-workout-session';
-const HOUR_REMINDER_TAG = 'fitness-workout-hour-reminder';
-const HOUR_REMINDER_MS = 60 * 60 * 1000;
-// localStorage statt In-Memory-Ref: die Session kann eine App-Session
-// überleben (Reload, Tab-Kill) — ohne Persistenz würde der Reminder bei
-// jedem Reopen erneut feuern, solange >1h aktiv ist.
-const HOUR_REMINDER_STORAGE_KEY = 'fitness-workout-hour-reminder-sent-for';
-
-async function sendSessionGateNotification(sessionGate, date) {
-  if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
-  if (!('serviceWorker' in navigator) || typeof Notification === 'undefined') return;
-
-  const gate = normalizeSessionGate(sessionGate);
-  const registration = window.__swRegistration || await navigator.serviceWorker.getRegistration();
-  if (!registration?.active) return;
-
-  if (Notification.permission !== 'granted') {
-    if (!gate.startedAt) {
-      registration.active.postMessage({ type: 'CLEAR_WORKOUT_TIMER_NOTIFICATION', tag: NOTIFICATION_TAG });
-    }
-    return;
-  }
-
-  if (!gate.startedAt) {
-    registration.active.postMessage({ type: 'CLEAR_WORKOUT_TIMER_NOTIFICATION', tag: NOTIFICATION_TAG });
-    registration.active.postMessage({ type: 'CLEAR_WORKOUT_TIMER_NOTIFICATION', tag: HOUR_REMINDER_TAG });
-    return;
-  }
-
-  const elapsedLabel = formatSessionGateElapsed(getSessionGateElapsedMs(gate));
-  registration.active.postMessage({
-    type: 'SHOW_WORKOUT_TIMER_NOTIFICATION',
-    tag: NOTIFICATION_TAG,
-    title: isSessionGateActive(gate) ? 'Workout läuft' : 'Workout geloggt',
-    body: isSessionGateActive(gate)
-      ? `Stoppuhr: ${elapsedLabel} · Tippen zum Zurückkehren`
-      : `Zeit: ${elapsedLabel} · Details können später nachgetragen werden`,
-    date,
-    active: isSessionGateActive(gate),
-  });
-}
-
-// Eigene, nicht-stille Erinnerung ab 1h aktiver Session (anders als die
-// laufende Stoppuhr-Notification oben, die bewusst `silent: true` ist, damit
-// sie nicht alle 30s piept). Grund: Sessions werden faktisch nie bewusst
-// beendet (sessionGate.endedAt bleibt null), wodurch das Workout nie als
-// Core4-Fitness zählt — siehe TODO.md "Bug/UX-Lücke" vom 2026-10-12.
-async function sendHourReminderNotification(date) {
-  if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
-  if (!('serviceWorker' in navigator) || typeof Notification === 'undefined') return;
-  if (Notification.permission !== 'granted') return;
-  const registration = window.__swRegistration || await navigator.serviceWorker.getRegistration();
-  if (!registration?.active) return;
-  registration.active.postMessage({
-    type: 'SHOW_WORKOUT_HOUR_REMINDER',
-    tag: HOUR_REMINDER_TAG,
-    title: 'Workout läuft seit über 1 Stunde',
-    body: 'Fertig? Session beenden — sonst zählt sie nicht für Core4.',
-    date,
-  });
-}
-
-function checkHourReminder(gate, date) {
-  if (!gate.startedAt || getSessionGateElapsedMs(gate) < HOUR_REMINDER_MS) return;
-  let sentFor = null;
-  try { sentFor = window.localStorage.getItem(HOUR_REMINDER_STORAGE_KEY); } catch {}
-  if (sentFor === gate.startedAt) return;
-  try { window.localStorage.setItem(HOUR_REMINDER_STORAGE_KEY, gate.startedAt); } catch {}
-  sendHourReminderNotification(date).catch(() => {});
-}
+import { useGateElapsed } from './useGateElapsed.js';
+import { gateTone, GATE_STOP_STYLE } from './gateTone.js';
+import GateIdleSuggestion from './GateIdleSuggestion.jsx';
 
 const SESSION_NAV_ITEMS = [
   { id: 'today', label: 'Session', code: '01', Icon: CalendarDays },
@@ -96,7 +26,7 @@ const RING_C = 2 * Math.PI * RING_R;
 
 function StatusEyebrow({ active, completed }) {
   const label = active ? 'LIVE · TRACKING' : completed ? 'GATE GESCHLOSSEN' : 'GATE BEREIT';
-  const color = active ? 'var(--accent)' : completed ? '#34d399' : 'var(--dim)';
+  const color = gateTone({ status: active ? 'active' : completed ? 'completed' : 'idle' }).color;
   return (
     <div className="flex items-center gap-2">
       <span
@@ -122,7 +52,6 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
   const gate = normalizeSessionGate(sessionGate);
   const active = isSessionGateActive(gate);
   const completed = isSessionGateCompleted(gate);
-  const [nowMs, setNowMs] = useState(Date.now());
   // Sichtbarer Status statt stillem No-op: `sendSessionGateNotification()`
   // bricht bei fehlender Permission unauffällig ab — ohne diese Anzeige hat
   // der User keine Chance zu sehen, dass genau das der Grund für "keine
@@ -134,12 +63,6 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
 
   useEffect(() => {
     if (!active) return undefined;
-    const timer = window.setInterval(() => setNowMs(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, [active]);
-
-  useEffect(() => {
-    if (!active) return undefined;
     function refreshNotifStatus() {
       setNotifStatus(typeof Notification === 'undefined' ? 'unsupported' : Notification.permission);
     }
@@ -148,65 +71,18 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
     return () => document.removeEventListener('visibilitychange', refreshNotifStatus);
   }, [active]);
 
-  useEffect(() => {
-    setNowMs(Date.now());
-  }, [gate.startedAt, gate.endedAt, gate.status]);
-
-  useEffect(() => {
-    function runChecks() {
-      sendSessionGateNotification(gate, date).catch(() => {});
-      if (active) checkHourReminder(gate, date);
-    }
-    // Sofort prüfen (nicht erst nach 30s) — deckt den Fall ab, dass die App
-    // erst wieder geöffnet wird, nachdem die Session längst >1h aktiv ist.
-    runChecks();
-    if (!active) return undefined;
-    const notificationTimer = window.setInterval(runChecks, 30000);
-    // iOS suspendiert setInterval im Hintergrund fast sofort (Screen-Lock,
-    // App-Wechsel) — der 30s-Timer läuft dort effektiv nicht während der
-    // "Handy weg"-Phase, die dieses Feature eigentlich abdecken soll. Beim
-    // Zurückkehren in den Vordergrund (Screen an, App wieder aktiv) sofort
-    // nachholen, statt auf den nächsten (ggf. nie kommenden) Tick zu warten.
-    function onVisible() {
-      if (document.visibilityState === 'visible') runChecks();
-    }
-    document.addEventListener('visibilitychange', onVisible);
-    window.addEventListener('focus', onVisible);
-    return () => {
-      window.clearInterval(notificationTimer);
-      document.removeEventListener('visibilitychange', onVisible);
-      window.removeEventListener('focus', onVisible);
-    };
-  }, [active, completed, gate, date]);
-
-  const elapsedMs = getSessionGateElapsedMs(gate, nowMs);
-  const elapsedLabel = useMemo(() => formatSessionGateElapsed(elapsedMs), [elapsedMs]);
+  // Notifications/1h-Reminder laufen in useSessionGateLifecycle (SessionEditor),
+  // nicht hier — die Card existiert nur, solange das Sheet offen ist.
+  const { elapsedMs, elapsedLabel } = useGateElapsed(gate);
   const ringProgress = gate.startedAt ? Math.min(1, elapsedMs / RING_REFERENCE_MS) : 0;
   const ringOffset = RING_C * (1 - ringProgress);
-  const ringColor = active ? 'var(--accent)' : completed ? '#34d399' : 'var(--line)';
-
-  async function handleStart() {
-    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
-      try { await Notification.requestPermission(); } catch {}
-    }
-    await onStart?.();
-  }
+  const tone = gateTone(gate);
+  const ringColor = active || completed ? tone.color : 'var(--line)';
 
   return (
     <section
       className={`rounded-3xl p-4 sm:p-6 overflow-hidden relative ${active ? 'session-gate-stripes' : ''}`}
-      style={{
-        background: active
-          ? 'rgba(200,255,0,0.05)'
-          : completed
-            ? 'rgba(52,211,153,0.05)'
-            : 'var(--card)',
-        border: active
-          ? '1px solid rgba(200,255,0,0.3)'
-          : completed
-            ? '1px solid rgba(52,211,153,0.25)'
-            : '1px solid var(--line)',
-      }}
+      style={{ background: tone.bg, border: tone.border }}
     >
       {!active && !completed && (
         <div
@@ -258,10 +134,12 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
                 : 'Start heißt nur: Session läuft. Erst beim Beenden gilt das Workout als wirklich done und geloggt.'}
           </p>
 
+          <GateIdleSuggestion sessionGate={gate} onStop={onStop} className="mt-3" />
+
           <div className="flex flex-wrap items-stretch gap-2.5 mt-4">
             {!active ? (
               <button
-                onClick={handleStart}
+                onClick={() => onStart?.()}
                 className="flex-1 sm:flex-none sm:min-w-[15rem] h-12 px-6 rounded-full flex items-center justify-center gap-2.5 text-sm font-bold transition-all hover:scale-[1.01] active:scale-95"
                 style={{ background: 'var(--accent)', color: '#000' }}
               >
@@ -270,9 +148,9 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
               </button>
             ) : (
               <button
-                onClick={onStop}
+                onClick={() => onStop?.()}
                 className="flex-1 sm:flex-none sm:min-w-[15rem] h-12 px-6 rounded-full flex items-center justify-center gap-2.5 text-sm font-bold transition-all hover:scale-[1.01] active:scale-95"
-                style={{ background: '#fb923c', color: '#120c00' }}
+                style={GATE_STOP_STYLE}
               >
                 <Square size={16} strokeWidth={2.5} />
                 Workout beenden

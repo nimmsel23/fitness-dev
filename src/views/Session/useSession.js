@@ -42,6 +42,7 @@ import { getRollingDays } from './utils';
 import { useExerciseList } from './useExerciseList.js';
 import { useSessionActivity } from './useSessionActivity.js';
 import { useSessionSlots } from './useSessionSlots.js';
+import { markGateActivity } from '../../lib/gateActivity.js';
 import { useSessionGateController } from './useSessionGateController.js';
 import { useSessionHistory } from './useSessionHistory.js';
 import { useSessionRuntimeSync } from './useSessionRuntimeSync.js';
@@ -60,6 +61,8 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   const [coachFeedback, setCoachFeedback] = useState('');
   const [saving, setSaving]         = useState(false);
   const [toast, setToast]           = useState('');
+  const [toastAction, setToastAction] = useState(null);
+  const toastTimerRef = useRef(null);
   const [hint, setHint]             = useState(null);
   const [gaps, setGaps]             = useState([]);
   const [daySessions, setDaySessions] = useState([]);
@@ -96,7 +99,14 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   const rollingDays = getRollingDays(365);
 
   // ── Toast ─────────────────────────────────────────────────────
-  function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 2200); }
+  // action: optional { label, onClick } — z.B. "Rückgängig" nach Workout beenden.
+  function showToast(msg, action = null) {
+    setToast(msg);
+    setToastAction(action);
+    // Alten Timer verwerfen, sonst löscht der "Gespeichert"-Timer den Undo-Toast zu früh.
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => { setToast(''); setToastAction(null); }, action ? 6000 : 2200);
+  }
 
   // Debounced Save: reine dirty=true-Markierung hat bislang NICHT automatisch
   // gespeichert — echte Saves liefen nur bei Tab-Wechsel/Datumswechsel/Unmount.
@@ -105,6 +115,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   // Removes) verloren. Jetzt: 1.5s nach der letzten Änderung wird tatsächlich
   // gespeichert, unabhängig von Tab-Lifecycle-Events.
   function scheduleAutoSave() {
+    markGateActivity();
     setDirty(true);
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     autoSaveTimerRef.current = setTimeout(() => {
@@ -340,7 +351,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     notes, setNotes,
     coachFeedback,
     saving,
-    toast, showToast,
+    toast, toastAction, showToast,
     quickInput, setQuickInput,
     restHours,
     activity, setActivity,

@@ -8,13 +8,12 @@
  * Abschlusszahlen. Tap öffnet das Gate-Sheet, Stop beendet direkt.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Play, Square, CheckCircle2 } from 'lucide-react';
-import {
-  normalizeSessionGate,
-  getSessionGateElapsedMs,
-  formatSessionGateElapsed,
-} from '../../lib/sessionGate.js';
+import { normalizeSessionGate } from '../../lib/sessionGate.js';
+import { useGateElapsed } from './useGateElapsed.js';
+import { gateTone, GATE_STOP_STYLE } from './gateTone.js';
+import GateIdleSuggestion from './GateIdleSuggestion.jsx';
 
 function toNumber(value) {
   const n = parseFloat(String(value ?? '').replace(',', '.'));
@@ -52,17 +51,11 @@ export default function SessionGateBar({ sessionGate, exercises, isToday, onOpen
   const gate = normalizeSessionGate(sessionGate);
   const active = gate.status === 'active';
   const completed = gate.status === 'completed';
-  const [nowMs, setNowMs] = useState(Date.now());
+  const { elapsedLabel } = useGateElapsed(gate);
+  const tone = gateTone(gate);
   // startSessionGate() wartet auf den GPS-Fix (kann drinnen Sekunden dauern)
   // — ohne Busy-State wirkt der Tap wie ignoriert.
   const [starting, setStarting] = useState(false);
-
-  useEffect(() => {
-    setNowMs(Date.now());
-    if (!active) return undefined;
-    const timer = window.setInterval(() => setNowMs(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, [active, gate.startedAt]);
 
   const progress = useMemo(() => countSessionProgress(exercises), [exercises]);
 
@@ -87,14 +80,13 @@ export default function SessionGateBar({ sessionGate, exercises, isToday, onOpen
     );
   }
 
-  const elapsedLabel = formatSessionGateElapsed(getSessionGateElapsedMs(gate, nowMs));
-
   return (
+    <div className="mb-3">
     <div
-      className="mb-3 flex items-center gap-3 rounded-2xl pl-3 pr-1.5 py-1.5"
+      className="flex items-center gap-3 rounded-2xl pl-3 pr-1.5 py-1.5"
       style={{
-        background: active ? 'rgba(200,255,0,0.06)' : 'rgba(52,211,153,0.06)',
-        border: active ? '1px solid rgba(200,255,0,0.3)' : '1px solid rgba(52,211,153,0.25)',
+        background: tone.bg,
+        border: tone.border,
       }}
     >
       <button onClick={onOpenGate} className="flex flex-1 items-center gap-3 min-w-0 text-left" aria-label="Session-Gate öffnen">
@@ -105,7 +97,7 @@ export default function SessionGateBar({ sessionGate, exercises, isToday, onOpen
               style={{ width: 6, height: 6, borderRadius: 9999, background: 'var(--accent)', boxShadow: '0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent)' }}
             />
           ) : (
-            <CheckCircle2 size={13} style={{ color: '#34d399' }} />
+            <CheckCircle2 size={13} style={{ color: tone.color }} />
           )}
           <span className="font-mono font-bold tabular-nums text-lg leading-none" style={{ color: 'var(--ink)' }}>
             {elapsedLabel}
@@ -119,15 +111,17 @@ export default function SessionGateBar({ sessionGate, exercises, isToday, onOpen
       </button>
       {active && (
         <button
-          onClick={onStop}
+          onClick={() => onStop?.()}
           className="shrink-0 h-8 px-3 rounded-full flex items-center gap-1.5 text-[11px] font-bold transition-all active:scale-95"
-          style={{ background: '#fb923c', color: '#120c00' }}
+          style={GATE_STOP_STYLE}
           aria-label="Workout beenden"
         >
           <Square size={11} strokeWidth={2.5} />
           Stop
         </button>
       )}
+    </div>
+    <GateIdleSuggestion sessionGate={gate} onStop={onStop} className="mt-1.5" />
     </div>
   );
 }
