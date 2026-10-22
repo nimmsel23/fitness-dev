@@ -14,6 +14,8 @@
     "build": "pnpm run lint && vite build",
     "build:catalog": "pnpm --filter catalog-ui build",
     "build:all": "pnpm run build && pnpm run build:catalog",
+    "build:training": "pnpm run build:kb-data && vite build --mode training --outDir dist-training && node scripts/mini-app-shell/cli.mjs sw dist-training --app frontend && node scripts/stamp-training.mjs dist-training && node scripts/snapshot.mjs dist-training",
+    "build:atlas": "pnpm run build:kb-data && vite build --mode atlas --outDir dist-atlas && node scripts/mini-app-shell/cli.mjs sw dist-atlas --app frontend && node scripts/stamp-training.mjs dist-atlas \"VitalOS Atlas\" Atlas \"/#atlas\" \"Übungsdatenbank durchsuchen — Atlas als eigene App\" && node scripts/snapshot.mjs dist-atlas",
     "build:coach": "vite build --mode coach",
     "prebuild:firebase": "pnpm run build:kb-data",
     "build:firebase": "vite build --mode firebase --outDir dist-firebase && node scripts/stamp-sw.mjs dist-firebase",

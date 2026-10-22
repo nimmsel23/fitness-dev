@@ -12,7 +12,7 @@ import Inbox from './views/Inbox/index.js'
 import ExerciseInsightModal from './components/ExerciseInsightModal.jsx'
 import { isLocalMode, getAnatomy, getAllMuscles } from '@db'
 
-import { getNavItems, VALID_TABS } from './constants/NavigationItems.js'
+import { getNavItems, VALID_TABS, IS_SOLO, SOLO_TAB } from './constants/NavigationItems.js'
 
 import Sidebar from './components/layout/Sidebar.jsx'
 import MobileNav from './components/layout/MobileNav.jsx'
@@ -44,7 +44,7 @@ function localToday() {
 }
 
 function parseHashRoute({ resolveFlowTab, navMode }) {
-  const fallbackTab = resolveFlowTab(navMode === 'home' ? 'gate' : 'session')
+  const fallbackTab = resolveFlowTab(SOLO_TAB || (navMode === 'home' ? 'gate' : 'session'))
   const rawHash = window.location.hash.replace(/^#\/?/, '')
   const [pathPart = '', queryPart = ''] = rawHash.split('?')
   const [rawTab = '', rawSub = ''] = pathPart.split('/').filter(Boolean)
@@ -224,7 +224,7 @@ export default function App() {
 
     const timer = window.setTimeout(() => {
       setAuthGateTriggerCount((count) => count + 1);
-    }, 60000);
+    }, SOLO_TAB === 'session' ? 1500 : 60000); // Training braucht den Login zum Speichern; Atlas liest nur den Geräte-Mirror
 
     return () => {
       window.clearTimeout(timer);
@@ -458,6 +458,7 @@ export default function App() {
       <ErrorBoundary>
         <div className="app-shell isolate flex min-h-screen overflow-x-hidden w-full bg-fit-bg text-fit-ink font-sans transition-colors duration-500">
 
+        {!IS_SOLO && (
         <Sidebar
           tab={tab}
           navigate={navigate}
@@ -484,9 +485,10 @@ export default function App() {
             <RefreshCw size={14} /> Refresh
           </button>
         </Sidebar>
+        )}
 
-        <div className={`flex-1 min-w-0 transition-all duration-500 ease-in-out ${sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
-          <main ref={mainRef} className={`relative min-w-0 ${navMode === 'tabs' ? 'pb-28' : ''} sm:pb-10 lg:pb-16 min-h-[100dvh] overflow-x-hidden`}>
+        <div className={`flex-1 min-w-0 transition-all duration-500 ease-in-out ${IS_SOLO ? '' : sidebarPinned ? 'lg:ml-[280px]' : 'lg:ml-24'}`}>
+          <main ref={mainRef} className={`relative min-w-0 ${navMode === 'tabs' && !IS_SOLO ? 'pb-28' : ''} sm:pb-10 lg:pb-16 min-h-[100dvh] overflow-x-hidden`}>
               {/* Background Gate - only mounted in home mode */}
               {navMode === 'home' && (
                 <div className={`transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] max-w-[1600px] mx-auto min-h-[100dvh] flex flex-col ${tab !== 'gate' ? 'scale-[0.98] opacity-30 blur-[2px] pointer-events-none' : 'scale-100 opacity-100'}`}>
@@ -539,7 +541,7 @@ export default function App() {
               </div>
             </main>
 
-            {navMode === 'tabs' && <MobileNav tab={tab} subTab={subTab} navigate={navigate} navigateSub={navigateSub} swipeHint={swipeHint} navItems={navItems} />}
+            {navMode === 'tabs' && !IS_SOLO && <MobileNav tab={tab} subTab={subTab} navigate={navigate} navigateSub={navigateSub} swipeHint={swipeHint} navItems={navItems} />}
           </div>
         </div>
       </ErrorBoundary>
