@@ -22,8 +22,8 @@ export async function getMacrocycle(clientUid, cycleId) {
   }
 }
 
-export async function createMacrocycle(clientUid, { name, coachUid, totalWeeks, status = 'published' }) {
-  const data = await api.post(base(clientUid), { name, coachUid, totalWeeks, status });
+export async function createMacrocycle(clientUid, { name, coachUid, totalWeeks, status = "published", description = "" }) {
+  const data = await api.post(base(clientUid), { name, coachUid, totalWeeks, status, description });
   return data?.macrocycle || null;
 }
 
@@ -32,8 +32,8 @@ export async function deleteMacrocycle(clientUid, cycleId) {
   return true;
 }
 
-export async function addRoutine(clientUid, cycleId, { label, isDeload, restHoursAfter, targetCount, targetPeriodDays, sourceTemplateId, exercises = [] }) {
-  const data = await api.post(`${base(clientUid)}/${encodeURIComponent(cycleId)}/routines`, { label, isDeload, restHoursAfter, targetCount, targetPeriodDays, sourceTemplateId, exercises });
+export async function addRoutine(clientUid, cycleId, { label, isDeload, restHoursAfter, targetCount, targetPeriodDays, sourceTemplateId, exercises = [], weekdays = [] }) {
+  const data = await api.post(`${base(clientUid)}/${encodeURIComponent(cycleId)}/routines`, { label, isDeload, restHoursAfter, targetCount, targetPeriodDays, sourceTemplateId, exercises, weekdays });
   return data?.macrocycle || null;
 }
 
@@ -61,7 +61,24 @@ export async function getLastPerformance(clientUid, cycleId, routineId) {
   }
 }
 
-export async function publishMacrocycle(clientUid, cycleId) {
-  const data = await api.patch(`${base(clientUid)}/${encodeURIComponent(cycleId)}`, { status: 'published' });
+// Veröffentlichen legt eine Version an (message = Commit-Nachricht).
+export async function publishMacrocycle(clientUid, cycleId, { message = '', author = null } = {}) {
+  const data = await api.patch(`${base(clientUid)}/${encodeURIComponent(cycleId)}`, { status: 'published', message, author });
+  return data?.macrocycle || null;
+}
+
+export async function listPlanVersions(clientUid, cycleId) {
+  const data = await api.get(`${base(clientUid)}/${encodeURIComponent(cycleId)}/versions`);
+  return data?.versions || [];
+}
+
+export async function restorePlanVersion(clientUid, cycleId, versionId) {
+  const data = await api.post(`${base(clientUid)}/${encodeURIComponent(cycleId)}/restore`, { version: versionId });
+  return data?.macrocycle || null;
+}
+
+// Name, Coach-Hinweis (description) oder Status (draft/published) ändern.
+export async function updateMacrocycle(clientUid, cycleId, patch) {
+  const data = await api.patch(`${base(clientUid)}/${encodeURIComponent(cycleId)}`, patch);
   return data?.macrocycle || null;
 }

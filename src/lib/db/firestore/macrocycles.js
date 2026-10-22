@@ -1,4 +1,5 @@
 import { db } from '../../../firebase.js'
+import { snapshotOf, sameSnapshot } from '../../../views/Plan/lib/planVersions.js'
 import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, query, orderBy } from 'firebase/firestore'
 
 // Makrozyklen — Firestore-Pendant. Collection: fitness/{clientUid}/macrocycles/{id}
@@ -62,11 +63,11 @@ export async function getMacrocycle(clientUid, cycleId) {
   }
 }
 
-export async function createMacrocycle(clientUid, { name, coachUid, totalWeeks, status = 'published' }) {
+export async function createMacrocycle(clientUid, { name, coachUid, totalWeeks, status = "published", description = "" }) {
   try {
     const ref = doc(collection(db, 'fitness', clientUid, 'macrocycles'))
     const record = {
-      name, clientUid, coachUid, status,
+      name, clientUid, coachUid, status, description,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       totalWeeks: Number(totalWeeks) || 10,
@@ -90,7 +91,7 @@ export async function deleteMacrocycle(clientUid, cycleId) {
   }
 }
 
-export async function addRoutine(clientUid, cycleId, { label, isDeload, restHoursAfter, targetCount, targetPeriodDays, sourceTemplateId, exercises = [] }) {
+export async function addRoutine(clientUid, cycleId, { label, isDeload, restHoursAfter, targetCount, targetPeriodDays, sourceTemplateId, exercises = [], weekdays = [] }) {
   try {
     const m = await loadDoc(clientUid, cycleId)
     if (!m) return null
@@ -102,6 +103,7 @@ export async function addRoutine(clientUid, cycleId, { label, isDeload, restHour
       targetCount: Number(targetCount) || 0,
       targetPeriodDays: Number(targetPeriodDays) || 0,
       sourceTemplateId: sourceTemplateId || null,
+      weekdays: Array.isArray(weekdays) ? weekdays : [],
       exercises,
     }]
     return await saveDoc(clientUid, m)
@@ -158,11 +160,50 @@ export async function getLastPerformance(clientUid, cycleId, routineId) {
   }
 }
 
-// Explicit publication of a client plan; existing records without status stay visible.
-export async function publishMacrocycle(clientUid, cycleId) {
-  const macrocycle = await loadDoc(clientUid, cycleId)
-  if (!macrocycle?.routines?.length || macrocycle.routines.some((routine) => !routine.exercises?.length)) {
-    throw new Error('Jede Einheit braucht Übungen, bevor du den Plan bereitstellst.')
+// Veröffentlichen = Commit: unveränderlicher Snapshot unter versions/vN + `published` am Plan.
+// Klienten lesen `published`; der Plan selbst bleibt der Arbeitsstand des Coaches.
+export async function publishMacrocycle(clientUid, cycleId, { message = '', author = null } = {}) {
+  const m = await loadDoc(clientUid, cycleId);
+  if (!m?.routines?.length || m.routines.some((r) => !r.exercises?.length)) throw new Error('Jede Einheit braucht Übungen, bevor du den Plan bereitstellst.');
+  const snap = snapshotOf(m);
+  const same = m.published && sameSnapshot(snap, m.published);
+  if (same && m.status === 'published') throw new Error('Keine Änderungen seit der letzten Version.');
+  const next = { ...m, status: 'published', publishedAt: new Date().toISOString() };
+  if (!same) {
+    const number = (m.headVersion || 0) + 1;
+    const text = String(message || '').trim().slice(0, 200) || (number === 1 ? 'Erste Version' : 'Aktualisiert');
+    const record = { id: `v${number}`, number, message: text, createdAt: next.publishedAt, author: author || m.coachUid || null, parent: number > 1 ? `v${number - 1}` : null, snapshot: JSON.parse(JSON.stringify(snap)) };
+    await setDoc(doc(db, 'fitness', clientUid, 'macrocycles', cycleId, 'versions', record.id), record);
+    Object.assign(next, { published: record.snapshot, headVersion: number, headMessage: text });
   }
-  return saveDoc(clientUid, { ...macrocycle, status: 'published', publishedAt: new Date().toISOString() })
+  return saveDoc(clientUid, next);
+}
+
+export async function listPlanVersions(clientUid, cycleId) {
+  const snap = await getDocs(collection(db, 'fitness', clientUid, 'macrocycles', cycleId, 'versions'));
+  return snap.docs.map((d) => d.data()).sort((x, y) => x.number - y.number);
+}
+
+// Arbeitsstand auf eine frühere Version setzen (Git: checkout); Historie bleibt unberührt.
+export async function restorePlanVersion(clientUid, cycleId, versionId) {
+  const snap = await getDoc(doc(db, 'fitness', clientUid, 'macrocycles', cycleId, 'versions', versionId));
+  if (!snap.exists()) throw new Error('Version nicht gefunden.');
+  const m = await loadDoc(clientUid, cycleId);
+  if (!m) return null;
+  return saveDoc(clientUid, { ...m, ...JSON.parse(JSON.stringify(snap.data().snapshot)) });
+}
+
+// Name, Coach-Hinweis (description) oder Status (draft/published) ändern.
+export async function updateMacrocycle(clientUid, cycleId, patch) {
+  const m = await loadDoc(clientUid, cycleId);
+  if (!m) return null;
+  const next = { ...m };
+  if (patch.status === 'published') return publishMacrocycle(clientUid, cycleId, patch);
+  if (patch.status === 'draft') next.status = 'draft';
+  if (typeof patch.name === 'string') {
+    if (!patch.name.trim()) throw new Error('Name erforderlich.');
+    next.name = patch.name.trim();
+  }
+  if (typeof patch.description === 'string') next.description = patch.description.trim().slice(0, 2000);
+  return saveDoc(clientUid, next);
 }
