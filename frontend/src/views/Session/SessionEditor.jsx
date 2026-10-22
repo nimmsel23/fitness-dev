@@ -24,7 +24,6 @@ import SessionToast from './SessionToast.jsx';
 import SessionSaveFab from './SessionSaveFab.jsx';
 import SessionSidebar from './SessionSidebar';
 import { normalizeSessionGate } from '../../lib/sessionGate.js';
-import { useSessionGateLifecycle } from './useSessionGateLifecycle.js';
 import { inferBlockFromExercises } from './utils';
 import { localToday } from '@utils';
 
@@ -82,9 +81,6 @@ export default function SessionEditor({
     );
   }
   const gpsMapsUrl = normalizeSessionGate(sessionGate).gps?.mapsUrl || null;
-
-  // Notifications/1h-Reminder unabhängig davon, ob das Gate-Sheet offen ist.
-  useSessionGateLifecycle(sessionGate, date);
 
   // Session Gate ist kein inline Card-Element mehr, sondern ein echtes Sheet
   // über dem Training-Haupttab: "Heute" in der Nav-Bar (SessionGateCard.jsx

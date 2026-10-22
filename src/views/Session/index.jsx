@@ -19,6 +19,7 @@ import { getUid } from '@db';
 import SkillsCard from '../Skills/SkillsCard.jsx';
 import TodayPlan, { useTodayPlan } from './TodayPlan.jsx';
 import { isSessionGateActive } from '../../lib/sessionGate.js';
+import { useSessionGateLifecycle } from './useSessionGateLifecycle.js';
 import { logWorkoutAsSession } from '../../lib/logExternalWorkout.js';
 import SessionModeTabs from './SessionModeTabs.jsx';
 import { IS_SOLO } from '../../constants/NavigationItems.js';
@@ -31,6 +32,10 @@ export default function Session({
   gateAutoOpenFlag, onGateAutoOpenConsumed,
 }) {
   const session = useSession({ initialDate, initialDraft, recentDays, coverageThreshold, onDateChange });
+  // Notifications/1h-Reminder für alle Session-Sub-Tabs (Editor, Verlauf, Timer,
+  // Skills, Plan) — nicht nur solange Editor oder Gate-Sheet offen sind. Auf
+  // anderen Haupt-Tabs übernimmt useTodayGateWatcher (App.jsx).
+  useSessionGateLifecycle(session.sessionGate, session.date);
   const { loading: planLoading, cycle, nextRoutine, lastPerformance, clientUid, reload } = useTodayPlan();
   const [logFreely, setLogFreely] = useState(false);
 

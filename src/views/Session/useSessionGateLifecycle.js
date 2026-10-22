@@ -8,6 +8,7 @@
  * Stoppuhr-Notification noch den 1h-Reminder. Der Hook hängt jetzt im
  * SessionEditor und läuft unabhängig davon, welche Oberfläche offen ist.
  *
+ * `enabled=false` schaltet den Hook ab (z.B. wenn useTodayGateWatcher zuständig ist).
  * Nur für HEUTE: Auf anderen Tagen würde "Workout geloggt" für eine alte
  * Session erscheinen bzw. ein fehlendes Gate die Notification von heute löschen.
  */
@@ -92,10 +93,10 @@ function checkHourReminder(gate, date) {
   sendHourReminderNotification(date).catch(() => {});
 }
 
-export function useSessionGateLifecycle(sessionGate, date) {
+export function useSessionGateLifecycle(sessionGate, date, enabled = true) {
   const gate = normalizeSessionGate(sessionGate);
   const active = isSessionGateActive(gate);
-  const isToday = date === localToday();
+  const isToday = enabled && date === localToday();
 
   // Abhängigkeiten über die Gate-Felder statt über das (bei jedem Render neu
   // normalisierte) Objekt, sonst läuft der Effekt bei jedem Render erneut.

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { RefreshCw } from 'lucide-react'
 import Session from './views/Session/index.jsx'
+import { useTodayGateWatcher } from './views/Session/useTodayGateWatcher.js'
 import Learn   from '@learn/views/Learn/index.jsx'
 import WeeklyReview from './views/WeeklyReview/index.jsx'
 import Touren from './views/Touren/index.jsx'
@@ -253,6 +254,9 @@ export default function App() {
       setShowAuthGateModal(true);
     }
   }, [user, authGateTriggerCount, authGateDismissedAt]);
+
+  // Stoppuhr-Notification/1h-Reminder auch auf anderen Haupt-Tabs weiterlaufen lassen.
+  useTodayGateWatcher(tab !== 'session')
 
   const navigateToTab = (newTabId) => {
     const targetTabId = resolveFlowTab(newTabId);
