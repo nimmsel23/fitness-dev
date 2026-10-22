@@ -1,6 +1,6 @@
 import { isLocalMode } from '@db'
 import { searchExercises as dbSearch } from '@db'
-import { filterCatalog, mergeCatalog } from './lib/catalog.js'
+import { filterCatalog, mergeCatalog, loadYuhonasExercises } from './lib/catalog.js'
 import * as fsRoutines from '../../lib/db/firestore/routines.js'
 import * as fsWorkouts from '../../lib/db/firestore/workouts.js'
 
@@ -112,7 +112,8 @@ return {
           curated = result?.results || [];
         } catch {} finally { clearTimeout(timeout); }
       }
-      const results = filterCatalog(mergeCatalog(curated), { q }).slice(0, limit);
+      const yuhonas = await loadYuhonasExercises();
+      const results = filterCatalog(mergeCatalog(yuhonas, curated), { q }).slice(0, limit);
       return { results }
     }
 
