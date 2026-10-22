@@ -143,7 +143,11 @@ function parseIsoMillis(value) {
   return Number.isFinite(ms) ? ms : null;
 }
 
-async function getActiveWorkoutReminderCandidate(userRef, now = Date.now()) {
+// remindedFor: gate.startedAt des Workouts, für das schon erinnert wurde. Der Merker
+// liegt bewusst im Push-Dokument (apps.fitness.activeWorkoutRemindedFor), nicht in der
+// Session: der Client speichert Sessions per setDoc() ohne merge und löschte
+// sessionGate.reminderSentAt bei jedem Autosave -> Erinnerung alle 5 Minuten.
+async function getActiveWorkoutReminderCandidate(userRef, now = Date.now(), remindedFor = null) {
   const snap = await userRef.collection("sessions").orderBy("date", "desc").limit(20).get();
   let candidate = null;
 
@@ -154,10 +158,11 @@ async function getActiveWorkoutReminderCandidate(userRef, now = Date.now()) {
     if (!startedAtMs) continue;
     if (gate.endedAt) continue;
     if (gate.reminderSentAt) continue;
+    if (remindedFor && remindedFor === gate.startedAt) continue;
     const elapsedMs = now - startedAtMs;
     if (elapsedMs < 60 * 60 * 1000) continue;
     if (!candidate || startedAtMs > candidate.startedAtMs) {
-      candidate = { ref: doc.ref, data, startedAtMs, elapsedMs };
+      candidate = { ref: doc.ref, data, startedAtMs, elapsedMs, startedAt: gate.startedAt };
     }
   }
 
@@ -302,12 +307,13 @@ exports.scheduledPushReminders = functions
         let coverageScores = null;
 
         if (types.activeWorkout) {
-          const candidate = await getActiveWorkoutReminderCandidate(userRef);
+          const candidate = await getActiveWorkoutReminderCandidate(userRef, Date.now(), data.activeWorkoutRemindedFor || null);
           if (candidate) {
             const elapsedMinutes = Math.max(60, Math.round(candidate.elapsedMs / 60000));
             notifications.push({
               ...notificationText("activeWorkout", { minutes: elapsedMinutes }),
               _sessionRef: candidate.ref,
+              _gateStartedAt: candidate.startedAt,
             });
           }
         }
@@ -371,10 +377,8 @@ exports.scheduledPushReminders = functions
           sentCount += result.sentCount || 0;
           failureCount += result.failureCount || 0;
           if ((result.sentCount || 0) > 0) {
-            await notification._sessionRef.set({
-              sessionGate: {
-                reminderSentAt: admin.firestore.FieldValue.serverTimestamp(),
-              },
+            await pushSnap.ref.set({
+              apps: { fitness: { activeWorkoutRemindedFor: notification._gateStartedAt } },
             }, { merge: true });
           }
         }
