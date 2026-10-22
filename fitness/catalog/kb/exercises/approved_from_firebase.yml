@@ -2508,7 +2508,47 @@ exercises:
   - incline
   - scapular_protraction
   - anti_extension
-- coaching_notes:
+- exercise_id: cable_crossover_high_to_low
+  secondary_muscles:
+  - 101_pectoralis_major
+  - 301_anterior_deltoid
+  - 105_serratus_anterior
+  display_name: Kabel-Crossover von oben nach unten
+  _hash: a2d6a45dd921331f73049bdad7765dfd
+  source: approved
+  tags:
+  - pec-focus
+  - chest-isolation
+  - cable-work
+  - horizontal-adduction
+  - finisher
+  - chest
+  - decline_horizontal_adduction
+  - lower-chest-bias
+  - unreviewed
+  english: High-to-Low Cable Crossover
+  search_aliases:
+  - Kabel-Crossover von oben nach unten
+  - Kabelzug Flys von oben nach unten
+  - High-to-Low Cable Crossover
+  - High-to-Low Cable Fly
+  - High-To-Low Cable Cross
+  aliases:
+  - high-low cable fly
+  - cable cross-over high to low
+  - cable pec crossover
+  - high to low cable fly
+  - kabel fly von oben nach unten
+  - kabel crossover oben unten
+  schema_version: 2026-08-12.exercise-v1
+  stabilizers:
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  german: Kabel-Crossover von oben nach unten
+  review_state:
+    status: approved
+  coaching_notes:
   - Stelle die Kabelrollen oberhalb der Schulterhöhe ein und nimm einen kleinen Ausfallschritt,
     damit du stabil stehst und die Seile dich nicht nach hinten ziehen.
   - Halte in beiden Armen eine leichte, feste Ellbogenbeugung und bewahre diesen Winkel
@@ -2526,13 +2566,12 @@ exercises:
     wird.
   - Halte die Endposition kurz mit bewusstem Brust-Squeeze, ohne die Griffe gegeneinander
     zu schlagen oder durch Schwung über die eigentliche Kontraktion hinauszuziehen.
-  category: push
-  equipment:
-  - cable
+  name: High-to-Low Cable Crossover
   primary_muscles:
   - 103_pectoralis_major_sternal
-  review_state:
-    status: approved
+  type: isolation
+  id: cable_crossover_high_to_low
+  variations: []
   origin:
     source_refs: {}
     type: manual
@@ -2554,38 +2593,30 @@ exercises:
         to use the same arc of motion used to lower the weights.
       - Hold for a second at the starting position and repeat the movement for the
         prescribed amount of repetitions.
-      exercise_id: yuhonas_cable_crossover
-      primary_muscles:
-      - chest
       secondary_muscles:
       - shoulders
-      display_name: Cable Crossover
-      yuhonas_id: Cable_Crossover
-      wger_muscle_ids:
-        secondary: []
-        primary: []
       tags:
       - unreviewed
       - yuhonas
+      display_name: Cable Crossover
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      primary_muscles:
+      - chest
+      yuhonas_id: Cable_Crossover
       equipment:
       - cable
+      exercise_id: yuhonas_cable_crossover
       category: strength
-  schema_version: 2026-08-12.exercise-v1
-  stabilizers:
-  - 304_rotator_cuff
-  - 504_transverse_abdominis
-  - 502_obliquus_externus
-  german: Kabel-Crossover von oben nach unten
-  exercise_id: cable_crossover_high_to_low
-  type: isolation
-  aliases:
-  - high-low cable fly
-  - cable cross-over high to low
-  - cable pec crossover
-  - high to low cable fly
-  - kabel fly von oben nach unten
-  - kabel crossover oben unten
-  variations: []
+  movements:
+  - decline
+  - horizontal_adduction
+  - shoulder_adduction
+  - shoulder_extension
+  - scapular_protraction
+  equipment:
+  - cable
   common_errors:
   - Zu schweres Gewicht, sodass die Bewegung zu einem ganzen Oberkörperzug wird und
     der Fokus von der Brust auf Schwung und Schultern kippt.
@@ -2601,37 +2632,7 @@ exercises:
     lassen, wodurch die exzentrische Kontrolle und der Muskelreiz sinken.
   - Die Schultern hochzuziehen und den Nacken anzuspannen, anstatt die Bewegung aus
     Brust und kontrollierter Schulterführung zu organisieren.
-  display_name: Kabel-Crossover von oben nach unten
-  english: High-to-Low Cable Crossover
-  secondary_muscles:
-  - 101_pectoralis_major
-  - 301_anterior_deltoid
-  - 105_serratus_anterior
-  search_aliases:
-  - Kabel-Crossover von oben nach unten
-  - Kabelzug Flys von oben nach unten
-  - High-to-Low Cable Crossover
-  - High-to-Low Cable Fly
-  - High-To-Low Cable Cross
-  source: approved
-  name: High-to-Low Cable Crossover
-  tags:
-  - pec-focus
-  - chest-isolation
-  - cable-work
-  - horizontal-adduction
-  - finisher
-  - chest
-  - decline_horizontal_adduction
-  - lower-chest-bias
-  - unreviewed
-  id: cable_crossover_high_to_low
-  movements:
-  - decline
-  - horizontal_adduction
-  - shoulder_adduction
-  - shoulder_extension
-  - scapular_protraction
+  category: push
 - movements:
   - shoulder_abduction
   - scapular_upward_rotation
