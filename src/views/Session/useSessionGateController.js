@@ -30,6 +30,7 @@
 import { normalizeSessionGate, estimateDurationMinutes } from '../../lib/sessionGate.js';
 import { resolveGeoLocation } from '../../lib/geoLocate.js';
 import { useState } from 'react';
+import { markGateActivity } from '../../lib/gateActivity.js';
 
 // GPS-Fix drinnen (Gym, Beton/Stahl) dauert oft länger als ein knapper
 // Timeout erlaubt — jeder Fehler (Timeout, Denial, Unavailable) lief bisher
@@ -72,6 +73,12 @@ export function useSessionGateController({ location, setLocation, duration, setD
   const [sessionGate, setSessionGate] = useState(() => normalizeSessionGate(null));
 
   async function startSessionGate() {
+    // Zentral statt nur in der Card: Start über die Header-Bar fragte bisher nie
+    // nach der Notification-Permission. Muss vor dem GPS-Await stehen, damit
+    // die Abfrage noch in der Tap-Geste passiert (iOS).
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      try { await Notification.requestPermission(); } catch {}
+    }
     const { position: gps, errorReason } = await getCurrentPosition();
     const geo = gps ? await resolveGeoLocation(gps.lat, gps.lng) : null;
     const nextGate = normalizeSessionGate({
@@ -83,6 +90,7 @@ export function useSessionGateController({ location, setLocation, duration, setD
     // Vorhandenen manuellen Location-Text nie überschreiben — nur befüllen, wenn leer.
     const nextLocation = (!location.trim() && geo?.label) ? geo.label : undefined;
     setSessionGate(nextGate);
+    markGateActivity();
     if (nextLocation) setLocation(nextLocation);
     setDirty(false);
     await save(false, { sessionGate: nextGate, location: nextLocation });
@@ -93,20 +101,38 @@ export function useSessionGateController({ location, setLocation, duration, setD
     }
   }
 
-  async function stopSessionGate() {
+  // opts.endedAt: rückdatiertes Ende (Idle-Vorschlag). Nur gültig, wenn es nach
+  // dem Start liegt und nicht in der Zukunft. Ein Klick-Event als Argument
+  // (onClick={stopSessionGate}) wird ignoriert.
+  async function stopSessionGate(opts) {
     const baseGate = normalizeSessionGate(sessionGate);
     if (!baseGate.startedAt) return;
+    const requested = typeof opts?.endedAt === 'string' ? Date.parse(opts.endedAt) : NaN;
+    const startMs = Date.parse(baseGate.startedAt);
+    const endedAt = Number.isFinite(requested) && requested > startMs && requested <= Date.now()
+      ? new Date(requested).toISOString()
+      : new Date().toISOString();
     const nextGate = normalizeSessionGate({
       status: 'completed',
       startedAt: baseGate.startedAt,
-      endedAt: new Date().toISOString(),
+      endedAt,
     });
+    const prevDuration = duration;
     const nextDuration = duration || estimateDurationMinutes(nextGate);
     setSessionGate(nextGate);
     if (nextDuration && nextDuration !== duration) setDuration(nextDuration);
     setDirty(false);
     await save(false, { sessionGate: nextGate, duration: nextDuration });
-    showToast('Workout beendet');
+    showToast('Workout beendet', { label: 'Rückgängig', onClick: () => reopenSessionGate(baseGate, prevDuration) });
+  }
+
+  // Undo für Stop: Gate wieder auf den Stand vor dem Beenden setzen.
+  async function reopenSessionGate(prevGate, prevDuration) {
+    setSessionGate(prevGate);
+    setDuration(prevDuration);
+    setDirty(false);
+    await save(false, { sessionGate: prevGate, duration: prevDuration });
+    showToast('Workout läuft weiter');
   }
 
   return { sessionGate, setSessionGate, startSessionGate, stopSessionGate };
