@@ -2373,10 +2373,37 @@ exercises:
   secondary_muscles:
   - 301_anterior_deltoid
   - 105_serratus_anterior
-  category: push
+  movements:
+  - horizontal_adduction
+  - shoulder_flexion
+  - incline
+  - scapular_protraction
+  - anti_extension
+  displayName: Kabel-Crossover von unten nach oben
+  _hash: efad7f694087aea0fcde3332aa84a63a
+  source: approved
+  german: Kabel-Crossover von unten nach oben
+  english: Low-to-High Cable Crossover
   primary_muscles:
   - 102_pectoralis_major_clavicular
-  wger_id: null
+  aliases:
+  - Cable Fly Low to High
+  - Low Cable Fly
+  - Incline Cable Fly
+  - Low-to-High Cable Fly
+  - Kabel-Flys von unten nach oben
+  - Kabelzug obere Brust
+  - Unterer Kabel-Crossover
+  review_state:
+    status: approved
+  primaryMuscles:
+  - 102_pectoralis_major_clavicular
+  stabilizers:
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  name: Low-to-High Cable Crossover
   coaching_notes:
   - Stelle beide Kabel auf die unterste Position und wähle ein Gewicht, das dir eine
     saubere Bogenbewegung ohne Schwung erlaubt.
@@ -2399,29 +2426,31 @@ exercises:
     zusätzlicher Brustspannung erzeugst.
   - Atme beim Zusammenführen aus und beim kontrollierten Zurückführen ein, um Rumpfspannung
     und Bewegungsrhythmus sauber zu halten.
-  review_state:
-    status: approved
-  english: Low-to-High Cable Crossover
-  displayName: Kabel-Crossover von unten nach oben
+  tags:
+  - push
+  - isolation
+  - cable
+  - upper_chest
+  - fly
+  - clavicular_pec
+  - standing
+  display_name: Kabel-Crossover von unten nach oben
+  schema_version: 2026-08-12.exercise-v1
+  search_aliases:
+  - Kabel-Crossover von unten nach oben
+  - Kabel-Flys von unten nach oben
+  - Low-to-High Cable Crossover
+  - Low-to-High Cable Fly
+  - Incline Cable Fly
+  - Low Cable Fly
+  wger_id: null
+  type: isolation
+  id: cable_crossover_low_to_high
+  variations: []
   origin:
-    source_refs: {}
     type: manual
+    source_refs: {}
     yuhonas:
-      equipment:
-      - cable
-      exercise_id: yuhonas_cable_crossover
-      primary_muscles:
-      - chest
-      secondary_muscles:
-      - shoulders
-      display_name: Cable Crossover
-      wger_muscle_ids:
-        secondary: []
-        primary: []
-      yuhonas_id: Cable_Crossover
-      tags:
-      - unreviewed
-      - yuhonas
       coaching_notes:
       - To get yourself into the starting position, place the pulleys on a high position
         (above your head), select the resistance to be used and hold the pulleys in
@@ -2439,26 +2468,25 @@ exercises:
         to use the same arc of motion used to lower the weights.
       - Hold for a second at the starting position and repeat the movement for the
         prescribed amount of repetitions.
+      secondary_muscles:
+      - shoulders
+      display_name: Cable Crossover
+      tags:
+      - unreviewed
+      - yuhonas
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      primary_muscles:
+      - chest
+      yuhonas_id: Cable_Crossover
+      exercise_id: yuhonas_cable_crossover
+      equipment:
+      - cable
       category: strength
-  schema_version: 2026-08-12.exercise-v1
-  stabilizers:
-  - 304_rotator_cuff
-  - 504_transverse_abdominis
-  - 502_obliquus_externus
-  - 503_obliquus_internus
-  german: Kabel-Crossover von unten nach oben
-  variations: []
   secondaryMuscles:
   - 301_anterior_deltoid
   - 105_serratus_anterior
-  aliases:
-  - Cable Fly Low to High
-  - Low Cable Fly
-  - Incline Cable Fly
-  - Low-to-High Cable Fly
-  - Kabel-Flys von unten nach oben
-  - Kabelzug obere Brust
-  - Unterer Kabel-Crossover
   exercise_id: cable_crossover_low_to_high
   common_errors:
   - Zu viel Gewicht, wodurch aus der geführten Fly-Bewegung ein unsauberes Ziehen
@@ -2481,34 +2509,7 @@ exercises:
     an Isolation verliert.
   - Eine zu hohe Kabelposition wählen, wodurch der Zugwinkel eher zu einer normalen
     Fly-Variante als zur oberen-Brust-Betonung passt.
-  display_name: Kabel-Crossover von unten nach oben
-  primaryMuscles:
-  - 102_pectoralis_major_clavicular
-  type: isolation
-  search_aliases:
-  - Kabel-Crossover von unten nach oben
-  - Kabel-Flys von unten nach oben
-  - Low-to-High Cable Crossover
-  - Low-to-High Cable Fly
-  - Incline Cable Fly
-  - Low Cable Fly
-  source: approved
-  name: Low-to-High Cable Crossover
-  tags:
-  - push
-  - isolation
-  - cable
-  - upper_chest
-  - fly
-  - clavicular_pec
-  - standing
-  id: cable_crossover_low_to_high
-  movements:
-  - horizontal_adduction
-  - shoulder_flexion
-  - incline
-  - scapular_protraction
-  - anti_extension
+  category: push
 - exercise_id: cable_crossover_high_to_low
   secondary_muscles:
   - 101_pectoralis_major
