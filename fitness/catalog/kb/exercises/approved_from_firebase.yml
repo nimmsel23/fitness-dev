@@ -1869,13 +1869,37 @@ exercises:
   - Zu frühes Ausatmen in der Aufwärtsphase führt zum Kollaps im Rumpf und zu instabiler
     Stangenbahn.
   category: squat
-- equipment:
-  - machine
+- exercise_id: '401'
+  secondary_muscles: []
+  type: isolation
   movements:
   - knee_extension
   - open_chain
   - seated
   - single_joint
+  display_name: Beinstrecken
+  _hash: 3188e868e57cedad689328d5dc012c18
+  source: approved
+  german: Beinstrecken
+  schema_version: 2026-08-12.exercise-v1
+  external_ids:
+    yuhonas:
+    - Leg_Extensions
+    wger:
+    - 851
+  aliases:
+  - Beinstrecker
+  - Kniestrecker
+  - Leg Extension
+  - Leg Extension Machine
+  - Quadriceps Extension
+  name: Beinstrecken
+  stabilizers:
+  - 504_transverse_abdominis
+  - 507_multifidus
+  english: Leg Extension
+  review_state:
+    status: approved
   coaching_notes:
   - Stelle die Maschine so ein, dass die Kniegelenkachse exakt mit der Drehachse der
     Maschine fluchtet und das Polster knapp oberhalb des Sprunggelenks sitzt.
@@ -1889,26 +1913,47 @@ exercises:
     Oberschenkel in einer sauberen Linie über die gesamte Wiederholung.
   primary_muscles:
   - 601_quadriceps_femoris
+  tags:
+  - expert
+  - legs
+  - quadriceps
+  - isolation
+  - machine
+  - knee_extension
+  search_aliases:
+  - leg_extension
+  - leg_extension_machine
+  - quadriceps_extension
+  - knee_extension
+  - wger_851
+  - yuhonas_leg_extensions
+  - Leg_Extensions
+  - Beinstrecken
+  - Leg Extension
   wger_id: 851
-  english: Leg Extension
-  review_state:
-    status: approved
+  wger_muscle_ids:
+    secondary: []
+    primary:
+    - 10
+  id: '401'
+  variations:
+  - single_leg_extension
+  - unilateral_leg_extension
+  emphasis_muscles: []
   origin:
-    yuhonas:
-      equipment:
-      - machine
-      exercise_id: yuhonas_leg_extensions
-      primary_muscles:
-      - quadriceps
-      secondary_muscles: []
-      display_name: Leg Extensions
-      yuhonas_id: Leg_Extensions
+    type: merged_external
+    source_refs:
+      wger:
+      - '851'
+      yuhonas:
+      - Leg_Extensions
+    wger:
       wger_muscle_ids:
         secondary: []
-        primary: []
-      tags:
-      - unreviewed
-      - yuhonas
+        primary:
+        - 10
+      wger_id: 851
+    yuhonas:
       coaching_notes:
       - 'For this exercise you will need to use a leg extension machine. First choose
         your weight and sit on the machine with your legs under the pad (feet pointed
@@ -1926,40 +1971,23 @@ exercises:
       - Slowly lower the weight back to the original position as you inhale, ensuring
         that you do not go past the 90-degree angle limit.
       - Repeat for the recommended amount of times.
-      category: strength
-    type: merged_external
-    source_refs:
-      yuhonas:
-      - Leg_Extensions
-      wger:
-      - '851'
-    wger:
+      secondary_muscles: []
+      tags:
+      - unreviewed
+      - yuhonas
+      display_name: Leg Extensions
       wger_muscle_ids:
         secondary: []
-        primary:
-        - 10
-      wger_id: 851
-  emphasis_muscles: []
-  _hash: 3188e868e57cedad689328d5dc012c18
-  schema_version: 2026-08-12.exercise-v1
-  stabilizers:
-  - 504_transverse_abdominis
-  - 507_multifidus
-  german: Beinstrecken
-  exercise_id: '401'
-  type: isolation
-  external_ids:
-    yuhonas:
-    - Leg_Extensions
-    wger:
-    - 851
-  aliases:
-  - Beinstrecker
-  - Kniestrecker
-  - Leg Extension
-  - Leg Extension Machine
-  - Quadriceps Extension
-  secondary_muscles: []
+        primary: []
+      primary_muscles:
+      - quadriceps
+      yuhonas_id: Leg_Extensions
+      equipment:
+      - machine
+      exercise_id: yuhonas_leg_extensions
+      category: strength
+  equipment:
+  - machine
   common_errors:
   - Zu hohes Trainingsgewicht, sodass die Wiederholung mit Schwung eingeleitet wird
     statt mit sauberer Muskelspannung.
@@ -1971,34 +1999,6 @@ exercises:
     zu kontrollieren.
   - Hüfte oder Gesäß vom Sitz abheben und mit dem Oberkörper ausweichen, um die letzten
     Grade der Bewegung zu erzwingen.
-  display_name: Beinstrecken
-  wger_muscle_ids:
-    secondary: []
-    primary:
-    - 10
-  variations:
-  - single_leg_extension
-  - unilateral_leg_extension
-  search_aliases:
-  - leg_extension
-  - leg_extension_machine
-  - quadriceps_extension
-  - knee_extension
-  - wger_851
-  - yuhonas_leg_extensions
-  - Leg_Extensions
-  - Beinstrecken
-  - Leg Extension
-  source: approved
-  name: Beinstrecken
-  tags:
-  - expert
-  - legs
-  - quadriceps
-  - isolation
-  - machine
-  - knee_extension
-  id: '401'
   category: squat
 - id: cable_crossover
   coaching_notes:
