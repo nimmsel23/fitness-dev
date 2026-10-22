@@ -108,6 +108,18 @@ für granulare Highlighter: `wger_id` als Signal reicht nur für die grobe
 RBH-Ebene — z.B. hat die Rotatorenmanschette keine eigene `wger_id`, das
 `parent`-Feld deckt das ab.
 
+**Muskel-IDs (FMA, seit 2026-10-22):** Nummerierte Muskel-YAMLs in
+`kb/muscles/**` tragen `fma_id: FMA:<nummer>` (Foundational Model of Anatomy,
+abgefragt über die EBI-OLS-API). Die FMA-ID ist die eindeutige Identität eines
+Muskels; Aliase sind nur Eingabehilfen. Grund: `medialer kopf`/`lateraler kopf`
+bezeichnen bei Trizeps und Wade verschiedene Muskeln, deshalb wurden diese
+Aliase entfernt (Commit `2492ae2`). Die Zuordnung ist für 52 Muskeln gesetzt;
+Sammelbegriffe und Teilregionen ohne eindeutiges Whole-Muscle-Konzept in FMA
+(Trapezius-Teile, Deltoid-Köpfe, Obliquen, Erector spinae, Adduktoren-Gruppe,
+Quadriceps- und Hamstring-Gruppe) haben bewusst kein `fma_id`. Neue Muskeln:
+Konzept in FMA suchen (`https://www.ebi.ac.uk/ols4/api/search?q=<name>&ontology=fma`)
+und das Whole-Muscle-Konzept wählen, nicht das Oberflächen- oder Sehnen-Konzept.
+
 ---
 
 ## Datenquellen-Integration
