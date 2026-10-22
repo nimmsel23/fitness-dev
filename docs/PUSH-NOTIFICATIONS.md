@@ -94,7 +94,7 @@ in coach-dev). Die Coach-Konsole wird **standalone aus coach-dev** deployed, nic
 
 ## Deploy-Stand
 - Functions `onClientWorkout` und `sendTestPush` sind deployed (2026-10-15).
-- Der Merker-Fix für `scheduledFitnessPushReminders` (siehe oben) ist im Code (`dev`/`vitalos`), aber noch nicht deployed.
+- Der Merker-Fix für `scheduledFitnessPushReminders` (siehe oben) ist deployed (2026-10-22, `functions:fitness:scheduledFitnessPushReminders`). Ob der Push danach wirklich nur einmal pro Workout kommt, ist noch nicht an einem echten Workout geprüft.
 - Panel + neuer Service Worker erst mit dem Haupt-App-Release (`fitness-release`), der Router erst mit dem
   Coach-Deploy (Push von `vitalos` in `coach-app`).
 

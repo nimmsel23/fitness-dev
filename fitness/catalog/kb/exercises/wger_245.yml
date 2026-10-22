@@ -1,93 +1,27 @@
 exercise_id: wger_245
-description: Expert details for Kurzhantel Stirndrücken
-approved_at: '2026-10-16T15:47:12.705994+00:00'
+description: Expert details for Frenchpress KH
+approved_at: '2026-10-22T21:05:58.046878+00:00'
 exercises:
-- english: Dumbbell Skullcrusher
-  display_name: Kurzhantel Stirndrücken
-  german: Kurzhantel Stirndrücken
-  wger_muscle_ids:
-    secondary: []
-    primary:
-    - 5
-  source_snapshot:
-    wger:
-      wger_muscle_ids:
-        secondary: []
-        primary:
-        - 5
-      wger_id: 245
-      original_description:
-      - 'Nehme die Hanteln in die Hand, lege dich auf eine Bank und stelle dich so
-        hin, dass ca. 1/4 des Kopfes nicht mehr auf der Bank liegt. Strecke die Arme
-        aus und lasse nun mit einem Bogen die Gewichte runter. Wenn die Hanteln knapp
-        über die Stirn sind, drücke sie wieder nach oben.
-
-        Es ist wichtig die Ellenbogen während der ganzen Übung wenig zu bewegen, damit
-        die Trizeps die Arbeit machen.'
-  wger_id: 245
+- exercise_id: wger_245
   id: wger_245
   name: Frenchpress KH
-  exercise_id: wger_245
-  external_ids:
-    wger:
-    - 245
-    yuhonas:
-    - EZ-Bar_Skullcrusher
-  origin:
-    type: merged_external
-    source_refs:
-      wger:
-      - '245'
-      yuhonas:
-      - EZ-Bar_Skullcrusher
-  category: push
+  display_name: Frenchpress KH
+  german: Frenchpress KH
+  english: Frenchpress KH
+  category: arms
   equipment:
   - bench
   - dumbbell
   primary_muscles:
   - 401_triceps_brachii
-  secondary_muscles: []
-  stabilizers:
-  - 304_rotator_cuff
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
-  - 504_transverse_abdominis
-  - 206_erector_spinae
   coaching_notes:
-  - Lege dich auf eine flache Hantelbank, die Füße fest auf dem Boden. Nimm die Kurzhanteln
-    in einen neutralen Griff (Handflächen zueinander) oder Obergriff (Handflächen
-    zu den Füßen) und strecke die Arme senkrecht über deiner Brust aus.
-  - Für eine intensivere Dehnung der langen Trizeps-Kopfes kann der Kopf leicht über
-    das Ende der Bank hinausragen, um die Hanteln tiefer hinter den Kopf senken zu
-    können.
-  - Senke die Kurzhanteln langsam und kontrolliert durch Beugen der Ellenbogen in
-    einem Bogen in Richtung Stirn oder leicht hinter den Kopf. Halte die Oberarme
-    dabei relativ ruhig und fixiert.
-  - Drücke die Hanteln über die Kraft deiner Trizeps zurück in die Ausgangsposition,
-    strecke die Ellenbogen vollständig durch und spanne den Trizeps am obersten Punkt
-    fest an.
-  - Atme während des Absenkens ein und beim Hochdrücken aus.
-  - Halte die Ellenbogen während der gesamten Bewegung stabil und versuche, sie nicht
-    übermäßig nach außen spreizen zu lassen.
-  common_errors:
-  - '**Abspreizen der Ellenbogen:** Wenn die Ellenbogen zu stark nach außen zeigen,
-    wird der Trizeps weniger effektiv trainiert und die Schultergelenke können unnötig
-    belastet werden.'
-  - '**Miteinsatz des Oberarms:** Wenn die Oberarme mitbewegt werden (Schultergelenk
-    beugt sich mit), wird die Übung zu einem engen Bankdrücken, was die Trizeps-Isolation
-    reduziert. Die Oberarme sollten so fixiert wie möglich bleiben.'
-  - '**Zu hohes Gewicht:** Die Verwendung von zu schweren Gewichten führt oft zu unsauberer
-    Technik, verkürztem Bewegungsumfang und erhöhtem Verletzungsrisiko für Ellenbogen
-    und Schultern.'
-  - '**Unvollständiger Bewegungsumfang:** Wenn die Ellenbogen nicht ausreichend gebeugt
-    werden (beim Absenken) oder nicht vollständig gestreckt werden (beim Hochdrücken),
-    wird der volle Trainingseffekt des Trizeps reduziert.'
-  - '**Hohlkreuz:** Ein übermäßiges Hohlkreuz auf der Bank kann den unteren Rücken
-    belasten. Die Bauchmuskulatur sollte angespannt werden, um den Rumpf zu stabilisieren.'
-  movements:
-  - elbow_extension
-  - shoulder_stabilization
-  - core_stabilization
+  - 'Nehme die Hanteln in die Hand, lege dich auf eine Bank und stelle dich so hin,
+    dass ca. 1/4 des Kopfes nicht mehr auf der Bank liegt. Strecke die Arme aus und
+    lasse nun mit einem Bogen die Gewichte runter. Wenn die Hanteln knapp über die
+    Stirn sind, drücke sie wieder nach oben.
+
+    Es ist wichtig die Ellenbogen während der ganzen Übung wenig zu bewegen, damit
+    die Trizeps die Arbeit machen.'
   original_description:
   - 'Nehme die Hanteln in die Hand, lege dich auf eine Bank und stelle dich so hin,
     dass ca. 1/4 des Kopfes nicht mehr auf der Bank liegt. Strecke die Arme aus und
@@ -99,23 +33,49 @@ exercises:
   tags:
   - unreviewed
   - wger
-  variations: []
-  source: expert
-  enriched_at: '2026-10-08T11:47:55.548361+00:00'
+  wger_id: 245
+  wger_muscle_ids:
+    primary:
+    - 5
+    secondary: []
+  external_ids:
+    wger:
+    - 245
   schema_version: 2026-08-12.exercise-v1
+  origin:
+    type: merged_external
+    source_refs:
+      wger:
+      - '245'
+      yuhonas:
+      - EZ-Bar_Skullcrusher
+  source_snapshot:
+    wger:
+      wger_id: 245
+      wger_muscle_ids:
+        primary:
+        - 5
+        secondary: []
+      original_description:
+      - 'Nehme die Hanteln in die Hand, lege dich auf eine Bank und stelle dich so
+        hin, dass ca. 1/4 des Kopfes nicht mehr auf der Bank liegt. Strecke die Arme
+        aus und lasse nun mit einem Bogen die Gewichte runter. Wenn die Hanteln knapp
+        über die Stirn sind, drücke sie wieder nach oben.
+
+        Es ist wichtig die Ellenbogen während der ganzen Übung wenig zu bewegen, damit
+        die Trizeps die Arbeit machen.'
   review_state:
     status: approved
     ai_reviewed: true
-    enriched_at: '2026-10-08T11:47:55.548361+00:00'
-    approved_at: '2026-10-16T15:47:12.705994+00:00'
-  yuhonas_id: EZ-Bar_Skullcrusher
-  approved_at: '2026-10-16T15:47:12.705994+00:00'
+    approved_at: '2026-10-22T21:05:58.046878+00:00'
+  secondary_muscles: []
+  stabilizers: []
+  source: expert
+  approved_at: '2026-10-22T21:05:58.046878+00:00'
   search_aliases:
   - wger_245
-  - EZ-Bar_Skullcrusher
-  - Kurzhantel Stirndrücken
-  - Dumbbell Skullcrusher
   - Frenchpress KH
+  yuhonas_id: EZ-Bar_Skullcrusher
   instructions:
   - Using a close grip, lift the EZ bar and hold it with your elbows in as you lie
     on the bench. Your arms should be perpendicular to the floor. This will be your
