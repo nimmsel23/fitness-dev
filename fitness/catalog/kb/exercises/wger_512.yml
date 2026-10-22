@@ -1,6 +1,6 @@
-name: inbox_20260917_164557_982c4a
-description: 'Inbox queued for: Rudern Sitzend, Eng'
-queued_at: '2026-09-17T16:45:57.568397'
+exercise_id: wger_512
+description: Expert details for Rudern Sitzend, Eng
+approved_at: '2026-10-22T21:06:25.222385+00:00'
 exercises:
 - exercise_id: wger_512
   id: wger_512
@@ -48,5 +48,13 @@ exercises:
         der Rücken aufgerichtet und die Ellbogen so weit wie möglich nach hinten gezogen
         werden
   review_state:
-    status: draft
-    ai_reviewed: false
+    status: approved
+    ai_reviewed: true
+    approved_at: '2026-10-22T21:06:25.222385+00:00'
+  secondary_muscles: []
+  stabilizers: []
+  source: expert
+  approved_at: '2026-10-22T21:06:25.222385+00:00'
+  search_aliases:
+  - wger_512
+  - Rudern Sitzend, Eng
