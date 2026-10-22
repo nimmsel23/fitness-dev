@@ -352,7 +352,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     hasMoreHistory, loadMoreHistory,
     hint, gaps,
     prevMap,
-    daySessions,
+    daySessions, setDaySessions,
     sessionId,
     autoSaveLabel,
     dirty,

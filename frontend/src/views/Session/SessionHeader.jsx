@@ -46,7 +46,7 @@ export default function CalmHeader({
           )}
           <button
             onClick={() => dateInputRef.current?.showPicker?.() ?? dateInputRef.current?.click()}
-            className="relative w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+            className="relative w-11 h-11 rounded-full flex items-center justify-center transition-colors"
             style={{ color: 'var(--dim)' }}
             title="Datum wählen"
             aria-label="Datum wählen"
@@ -72,7 +72,7 @@ export default function CalmHeader({
           <button
             onClick={onSave}
             disabled={saving}
-            className="flex h-8 items-center gap-1.5 rounded-full px-3.5 text-[11px] font-bold transition-all active:scale-95 disabled:opacity-50"
+            className="flex h-11 items-center gap-1.5 rounded-full px-3.5 text-[11px] font-bold transition-all active:scale-95 disabled:opacity-50"
             style={{ background: 'var(--accent)', color: '#000' }}
           >
             {saving
@@ -92,7 +92,7 @@ export default function CalmHeader({
           (User-Feedback 2026-09-06), Chevrons bleiben als Komfort-Sprung
           für Maus-Nutzer ohne Trackpad/Touch, siehe useDayStrip.js. */}
       <div className="flex items-center gap-1 mb-3">
-        <button onClick={goBack} className="w-6 h-6 flex items-center justify-center shrink-0" style={{ color: 'var(--dim)' }}>
+        <button onClick={goBack} aria-label="Vorherige Tage" className="w-8 h-11 flex items-center justify-center shrink-0" style={{ color: 'var(--dim)' }}>
           <ChevronLeft size={14} />
         </button>
         <div ref={stripRef} className="flex-1 flex gap-1 overflow-x-auto min-w-0 no-scrollbar">
@@ -127,7 +127,7 @@ export default function CalmHeader({
             );
           })}
         </div>
-        <button onClick={goFwd} className="w-6 h-6 flex items-center justify-center shrink-0" style={{ color: 'var(--dim)' }}>
+        <button onClick={goFwd} aria-label="Nächste Tage" className="w-8 h-11 flex items-center justify-center shrink-0" style={{ color: 'var(--dim)' }}>
           <ChevronRight size={14} />
         </button>
       </div>

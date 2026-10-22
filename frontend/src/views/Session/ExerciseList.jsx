@@ -100,12 +100,12 @@ export default function ExerciseList({
 
           {/* Empty state */}
           {safe.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 rounded-2xl" style={{ border: '1px dashed var(--line)' }}>
+            <div className="flex flex-col items-center justify-center px-3 py-6 sm:py-12 text-center rounded-2xl" style={{ border: '1px dashed var(--line)' }}>
               <Dumbbell size={20} style={{ color: 'var(--dim)', opacity: 0.4 }} className="mb-2" />
-              <p className="text-sm font-semibold" style={{ color: 'var(--dim)' }}>
+              <p className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>
                 Noch keine Übungen
               </p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--dim)', opacity: 0.5 }}>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--dim)' }}>
                 Übung hinzufügen oder Quick-Input nutzen
               </p>
             </div>
@@ -122,7 +122,7 @@ export default function ExerciseList({
           style={{
             background: 'var(--accent)',
             color: '#000',
-            boxShadow: '0 6px 20px -4px rgba(200,255,0,0.3)',
+            boxShadow: '0 6px 20px -4px var(--accent-glow)',
           }}
         >
           <div className="flex items-center gap-2.5">
@@ -140,7 +140,8 @@ export default function ExerciseList({
             onChange={e => setQuickInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addQuick()}
             placeholder="Quick: bench 3×8@80"
-            className="flex-1 px-4 py-3 rounded-xl font-mono text-[12px] outline-none transition-all"
+            aria-label="Übung als Quick-Input eingeben"
+            className="min-w-0 flex-1 px-4 py-3 rounded-xl font-mono text-base outline-none transition-all"
             style={{
               background: 'var(--card)',
               border: '1px solid var(--line)',
@@ -151,7 +152,8 @@ export default function ExerciseList({
           />
           <button
             onClick={addQuick}
-            className="w-12 h-12 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+            aria-label="Quick-Input hinzufügen"
+            className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95"
             style={{
               background: 'var(--bg2)',
               border: '1px solid var(--line)',
