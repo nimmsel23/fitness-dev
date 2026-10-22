@@ -26,6 +26,7 @@ const ACTIVITY_TYPES = [
   { value: 'hiit',      label: 'HIIT',        icon: '⚡' },
   { value: 'walking',   label: 'Spazieren',   icon: '🚶' },
   { value: 'parkour',   label: 'Parkour',     icon: '🤾' },
+  { value: 'crossfit',  label: 'Crossfit',    icon: '🏋️' },
   { value: 'beachvolleyball', label: 'Beachvolleyball', icon: '🏐' },
 ];
 
