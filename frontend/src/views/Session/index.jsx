@@ -13,6 +13,7 @@ import SessionEditor from './SessionEditor';
 import SessionHistory from './SessionHistory';
 import PlanView from '../Plan/index.jsx';
 import WorkoutTimerCard from './WorkoutTimerCard.jsx';
+import SessionModeTabs from './SessionModeTabs.jsx';
 import SixPackPromiseCard from '../../../6pack/SixPackPromiseCard.jsx';
 import { getAllCoachingNotes } from '../../lib/coachNotes';
 import { getUid } from '@db';
@@ -65,20 +66,37 @@ export default function Session({
     );
   }
 
+  const modeTabs = (
+    <div className="px-3 pt-3 pb-1 flex">
+      <SessionModeTabs
+        sessionMode={session.sessionMode} setSessionMode={session.setSessionMode}
+        subTab={subTab} onSubNav={onSubNav}
+      />
+    </div>
+  );
+
   if (subTab === 'timer') {
     const uid = (() => { try { return getUid(); } catch { return null; } })();
-    return <SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} />;
+    return (
+      <>
+        {modeTabs}
+        <SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} />
+      </>
+    );
   }
 
   if (subTab === 'skills') {
     return (
-      <div
-        className="px-2 mt-3 space-y-4"
-        style={{ paddingBottom: 'calc(8rem + env(safe-area-inset-bottom))' }}
-      >
-        <SkillsCard />
-        <WorkoutTimerCard />
-      </div>
+      <>
+        {modeTabs}
+        <div
+          className="px-2 mt-3 space-y-4"
+          style={{ paddingBottom: 'calc(8rem + env(safe-area-inset-bottom))' }}
+        >
+          <SkillsCard />
+          <WorkoutTimerCard />
+        </div>
+      </>
     );
   }
 

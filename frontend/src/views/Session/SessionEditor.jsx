@@ -176,6 +176,7 @@ export default function SessionEditor({
         onNew={handleNewSession} onDelete={handleDeleteSession}
         sessionMode={sessionMode} setSessionMode={setSessionMode}
         block={block} activity={activity}
+        subTab={currentSubTab} onSubNav={onSubNav}
         gateBar={
           <SessionGateBar
             sessionGate={sessionGate}

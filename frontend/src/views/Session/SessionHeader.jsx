@@ -22,6 +22,7 @@ export default function CalmHeader({
   hint,
   daySessions, sessionId, selectSession, onNew, onDelete,
   sessionMode, setSessionMode, block, activity,
+  subTab, onSubNav,
   gateBar = null,
 }) {
   const { today, allDays, stripRef, dateInputRef, dateLabel, goBack, goFwd, jumpToDate } =
@@ -149,6 +150,7 @@ export default function CalmHeader({
         sessionMode={sessionMode}
         setSessionMode={setSessionMode}
         block={block} activity={activity}
+        subTab={subTab} onSubNav={onSubNav}
       />
     </div>
   );
