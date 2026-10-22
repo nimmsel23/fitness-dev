@@ -6,6 +6,7 @@ import {
   isSessionGateCompleted,
 } from '../../lib/sessionGate.js';
 import { useGateElapsed } from './useGateElapsed.js';
+import { gateTone, GATE_STOP_STYLE } from './gateTone.js';
 
 const SESSION_NAV_ITEMS = [
   { id: 'today', label: 'Session', code: '01', Icon: CalendarDays },
@@ -24,7 +25,7 @@ const RING_C = 2 * Math.PI * RING_R;
 
 function StatusEyebrow({ active, completed }) {
   const label = active ? 'LIVE · TRACKING' : completed ? 'GATE GESCHLOSSEN' : 'GATE BEREIT';
-  const color = active ? 'var(--accent)' : completed ? '#34d399' : 'var(--dim)';
+  const color = gateTone({ status: active ? 'active' : completed ? 'completed' : 'idle' }).color;
   return (
     <div className="flex items-center gap-2">
       <span
@@ -74,23 +75,13 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
   const { elapsedMs, elapsedLabel } = useGateElapsed(gate);
   const ringProgress = gate.startedAt ? Math.min(1, elapsedMs / RING_REFERENCE_MS) : 0;
   const ringOffset = RING_C * (1 - ringProgress);
-  const ringColor = active ? 'var(--accent)' : completed ? '#34d399' : 'var(--line)';
+  const tone = gateTone(gate);
+  const ringColor = active || completed ? tone.color : 'var(--line)';
 
   return (
     <section
       className={`rounded-3xl p-4 sm:p-6 overflow-hidden relative ${active ? 'session-gate-stripes' : ''}`}
-      style={{
-        background: active
-          ? 'rgba(200,255,0,0.05)'
-          : completed
-            ? 'rgba(52,211,153,0.05)'
-            : 'var(--card)',
-        border: active
-          ? '1px solid rgba(200,255,0,0.3)'
-          : completed
-            ? '1px solid rgba(52,211,153,0.25)'
-            : '1px solid var(--line)',
-      }}
+      style={{ background: tone.bg, border: tone.border }}
     >
       {!active && !completed && (
         <div
@@ -156,7 +147,7 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
               <button
                 onClick={onStop}
                 className="flex-1 sm:flex-none sm:min-w-[15rem] h-12 px-6 rounded-full flex items-center justify-center gap-2.5 text-sm font-bold transition-all hover:scale-[1.01] active:scale-95"
-                style={{ background: '#fb923c', color: '#120c00' }}
+                style={GATE_STOP_STYLE}
               >
                 <Square size={16} strokeWidth={2.5} />
                 Workout beenden
