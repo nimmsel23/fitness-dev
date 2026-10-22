@@ -24,5 +24,5 @@ export function useGateElapsed(sessionGate) {
   }, [active, gate.startedAt, gate.endedAt, gate.status]);
 
   const elapsedMs = getSessionGateElapsedMs(gate, nowMs);
-  return { elapsedMs, elapsedLabel: formatSessionGateElapsed(elapsedMs) };
+  return { nowMs, elapsedMs, elapsedLabel: formatSessionGateElapsed(elapsedMs) };
 }

@@ -13,6 +13,7 @@ import { Play, Square, CheckCircle2 } from 'lucide-react';
 import { normalizeSessionGate } from '../../lib/sessionGate.js';
 import { useGateElapsed } from './useGateElapsed.js';
 import { gateTone, GATE_STOP_STYLE } from './gateTone.js';
+import GateIdleSuggestion from './GateIdleSuggestion.jsx';
 
 function toNumber(value) {
   const n = parseFloat(String(value ?? '').replace(',', '.'));
@@ -80,8 +81,9 @@ export default function SessionGateBar({ sessionGate, exercises, isToday, onOpen
   }
 
   return (
+    <div className="mb-3">
     <div
-      className="mb-3 flex items-center gap-3 rounded-2xl pl-3 pr-1.5 py-1.5"
+      className="flex items-center gap-3 rounded-2xl pl-3 pr-1.5 py-1.5"
       style={{
         background: tone.bg,
         border: tone.border,
@@ -109,7 +111,7 @@ export default function SessionGateBar({ sessionGate, exercises, isToday, onOpen
       </button>
       {active && (
         <button
-          onClick={onStop}
+          onClick={() => onStop?.()}
           className="shrink-0 h-8 px-3 rounded-full flex items-center gap-1.5 text-[11px] font-bold transition-all active:scale-95"
           style={GATE_STOP_STYLE}
           aria-label="Workout beenden"
@@ -118,6 +120,8 @@ export default function SessionGateBar({ sessionGate, exercises, isToday, onOpen
           Stop
         </button>
       )}
+    </div>
+    <GateIdleSuggestion sessionGate={gate} onStop={onStop} className="mt-1.5" />
     </div>
   );
 }

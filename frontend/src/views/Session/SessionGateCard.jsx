@@ -7,6 +7,7 @@ import {
 } from '../../lib/sessionGate.js';
 import { useGateElapsed } from './useGateElapsed.js';
 import { gateTone, GATE_STOP_STYLE } from './gateTone.js';
+import GateIdleSuggestion from './GateIdleSuggestion.jsx';
 
 const SESSION_NAV_ITEMS = [
   { id: 'today', label: 'Session', code: '01', Icon: CalendarDays },
@@ -133,6 +134,8 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
                 : 'Start heißt nur: Session läuft. Erst beim Beenden gilt das Workout als wirklich done und geloggt.'}
           </p>
 
+          <GateIdleSuggestion sessionGate={gate} onStop={onStop} className="mt-3" />
+
           <div className="flex flex-wrap items-stretch gap-2.5 mt-4">
             {!active ? (
               <button
@@ -145,7 +148,7 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
               </button>
             ) : (
               <button
-                onClick={onStop}
+                onClick={() => onStop?.()}
                 className="flex-1 sm:flex-none sm:min-w-[15rem] h-12 px-6 rounded-full flex items-center justify-center gap-2.5 text-sm font-bold transition-all hover:scale-[1.01] active:scale-95"
                 style={GATE_STOP_STYLE}
               >
