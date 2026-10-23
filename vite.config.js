@@ -101,7 +101,7 @@ const SOLO_KEEP = { training: ['Session'], atlas: ['Exercises'] }
 function soloStubs(mode) {
   const stubbed = SOLO_APP_VIEWS.filter((v) => !SOLO_KEEP[mode].includes(v)).join('|')
   return [
-    { importer: /[\\/]src[\\/]App\.jsx$/, source: new RegExp(`^(\\./views/(${stubbed})/|@learn/views/Learn/)`) },
+    { importer: /[\\/]src[\\/]App\.jsx$/, source: new RegExp(`^(\\./views/(${stubbed})/index\\.jsx?$|@learn/views/Learn/)`) },
     // Plan lebt im Solo-Build auf vos-plan.web.app
     { importer: /[\\/]views[\\/]Session[\\/]index\.jsx$/, source: /^\.\.\/Plan\/index\.jsx$/ },
     // ~1,8 MB wger/yuhonas-Rohimport; yuhonas liefert dort der Geräte-Mirror
