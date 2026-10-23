@@ -444,6 +444,8 @@ def _write_inbox_draft(ex: dict[str, Any]) -> Path:
         "exercises": [ex],
     }
     target.write_text(yaml.dump(doc, allow_unicode=True, sort_keys=False, default_flow_style=False), encoding="utf-8")
+    from fitness.catalog.agent.inbox_actions import commit_inbox_draft
+    commit_inbox_draft(target)
     return target
 
 

@@ -208,6 +208,8 @@ async def inbox_queue(request: Request):
         "queued_at": datetime.utcnow().isoformat(),
         "exercises": [seed],
     }, allow_unicode=True, sort_keys=False))
+    from fitness.catalog.agent.inbox_actions import commit_inbox_draft
+    commit_inbox_draft(f)
     return {"ok": True, "id": item_id}
 
 

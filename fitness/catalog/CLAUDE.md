@@ -96,6 +96,13 @@ fitness/catalog/
 └─ tests/                          — Pytest-Suite (resolver, coverage, planner, teaching, weekly)
 ```
 
+`kb/inbox/*.yml` ist versionierte Catalog-Quelle und wird nicht ignoriert.
+Draft-Erzeuger (Session-Enrichment, Queue, Reimport und `new-draft`) committen
+jeweils nur die neu geschriebene Draft-Datei automatisch; Graveyard-Restore
+committet zusätzlich die aktualisierte Tombstone-Registry. Ein Auto-Commit
+approved den Draft nicht und pusht/deployt nichts. Schlägt Git fehl, bleibt der
+Draft lokal erhalten und der Writer protokolliert den Fehler.
+
 `kb/maps/` existiert **nicht** (nie existiert) — `aliases.yml`/`wger_mapping.yml`
 liegen in `kb/registry/`. Bei neuen `load_catalog_yaml()`-Aufrufen: Pfad immer
 gegen `ls kb/` verifizieren, nicht vom Funktionsnamen ausgehen (`except
