@@ -195,6 +195,8 @@ async def coach_feedback(body: CoachFeedbackRequest):
 # ── Plan & Blocks ────────────────────────────────────────────────────────────
 @router.get("/plan/today")
 def plan_today(request: Request, date_: str = Query(None, alias="date")):
+    from fitness.runtime.session_store import parse_session_doc_id, session_order_key
+
     day = date_ or _today()
     uid = _uid_from_request(request)
     plan = _read_json(RUNTIME / "plan.json")
@@ -204,12 +206,24 @@ def plan_today(request: Request, date_: str = Query(None, alias="date")):
     sess_dir = SESS_ROOT / uid / "sessions"
     last_block, last_logged_at = None, None
     if sess_dir.exists():
-        for f in sorted(sess_dir.glob("*.json"), reverse=True):
+        candidates = []
+        for f in sess_dir.glob("*.json"):
+            try:
+                parse_session_doc_id(f.stem)
+            except ValueError:
+                continue
             sess = _read_json(f)
-            if sess and sess.get("block"):
-                last_block = sess["block"]
-                last_logged_at = sess.get("date") or f.name.removesuffix(".json").split("__")[0]
-                break
+            if not isinstance(sess, dict) or not sess.get("block"):
+                continue
+            try:
+                mtime_ns = f.stat().st_mtime_ns
+            except OSError:
+                mtime_ns = 0
+            candidates.append((session_order_key(f.stem, sess, mtime_ns=mtime_ns), f, sess))
+        if candidates:
+            _key, latest_file, latest = max(candidates, key=lambda item: item[0])
+            last_block = latest["block"]
+            last_logged_at = latest.get("date") or latest_file.stem.split("__", 1)[0]
 
     # Rotation statt Wochentag-Matching: nächste Einheit nach der zuletzt geloggten.
     if einheiten:

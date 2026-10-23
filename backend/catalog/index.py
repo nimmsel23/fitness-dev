@@ -40,16 +40,19 @@ def _stat_sig(path: Path) -> str:
 
 
 def kb_fingerprint() -> str:
-    """Hash über alles, was `build_exercise_index()` liest (gleiche Dateimenge wie der Loader)."""
+    """Hash über die KB-Dateien für Exercise-Index und gecachte Coverage-Ressourcen."""
     from fitness.catalog.core import resolver
     from fitness.catalog.core.loader import catalog_path, iter_catalog_yaml_files
 
     kb_root = catalog_path("exercises").parent
     h = hashlib.sha256()
     h.update(f"schema={CACHE_SCHEMA}\n".encode())
-    for rel in ("exercises", "inbox"):
+    for rel in ("exercises", "inbox", "muscles"):
         for f in iter_catalog_yaml_files(rel):
             h.update(f"{f.relative_to(kb_root)}|{_stat_sig(f)}\n".encode())
+    for rel in ("muscle_index.yml", "rules/muscle_coverage_rules.yml"):
+        f = kb_root / rel
+        h.update(f"{rel}|{_stat_sig(f)}\n".encode())
     # "Durchlauf 3" des alten Index liest <kb>/../yuhonas, falls es existiert — dann mit einbeziehen
     legacy_dir = kb_root.parent / "yuhonas"
     h.update(f"legacy_yuhonas_dir={legacy_dir.exists()}:{_stat_sig(legacy_dir)}\n".encode())

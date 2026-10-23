@@ -64,6 +64,7 @@ def _read_plan(store, uid: str, is_coach: bool) -> tuple[dict | None, str | None
 
 def today(store, uid: str, *, is_coach: bool = False, day: str | None = None) -> dict[str, Any]:
     from datetime import date as _date, datetime
+    from fitness.runtime.session_store import session_order_key
 
     day = day or _date.today().isoformat()
     try:
@@ -72,11 +73,21 @@ def today(store, uid: str, *, is_coach: bool = False, day: str | None = None) ->
         raise ValueError(f"ungültiges Datum: {day!r}") from None
 
     last_block = last_logged_at = None
-    for doc_id in sorted(store.list_ids(uid), reverse=True):
+    candidates = []
+    for doc_id in store.list_ids(uid):
         data, _err = store.read(uid, doc_id)
         if data and data.get("block"):
-            last_block, last_logged_at = data["block"], data.get("date") or doc_id.split("__")[0]
-            break
+            try:
+                mtime_ns = store.path(uid, doc_id).stat().st_mtime_ns
+            except OSError:
+                mtime_ns = 0
+            candidates.append((doc_id, data, mtime_ns))
+    if candidates:
+        _doc_id, latest, _mtime = max(
+            candidates, key=lambda item: session_order_key(item[0], item[1], mtime_ns=item[2])
+        )
+        last_block = latest["block"]
+        last_logged_at = latest.get("date") or _doc_id.split("__", 1)[0]
 
     plan, source = _read_plan(store, uid, is_coach)
     if plan:

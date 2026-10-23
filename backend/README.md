@@ -59,3 +59,15 @@ POST   /api/sync/pull      GET /api/sync/log, /api/sync/status
 
 - Cardio-Sessions (`activity`) zählen nicht in die Muskel-Coverage (wie bisher).
 - Die alte Pfadsemantik des Frontends (`/session`, `/fitness/...`) wird bewusst nicht nachgebaut; `frontend/` nutzt `/api/...`.
+
+## Refactor-Invarianten
+
+- Session-Datumswerte müssen echte Kalendertage im Format `YYYY-MM-DD` sein. UIDs und Sidecar-IDs bleiben einzelne,
+  sichere Dateinamenbestandteile; dieselben Regeln gelten für das ältere `fitness/`-API.
+- „Letzte Session“ richtet sich nach `saved_at`, danach nach Session-Datum und lokalem Datei-Zeitstempel. Die
+  Sidecar-ID ist nur der letzte stabile Gleichstands-Fallback für die Planrotation.
+- Der Coverage-Cache wird durch alle verwendeten KB-Quellen invalidiert: Übungen, Inbox, Muskeldateien,
+  `muscle_index.yml` und `rules/muscle_coverage_rules.yml`.
+- Der Plan-Generator baut den Exercise-Index einmal pro Plan und reicht ihn an die Coverage-Berechnung weiter.
+  Die gemeinsamen Dateiregeln und Sortierlogik liegen im Root-Paket `fitness.runtime`; Planner und Coverage
+  liegen in `fitness.catalog`.

@@ -32,7 +32,7 @@ def build_plan(*, template: str | None = None, split: str | None = None, day: st
     exercise_ids = set(records_by_id)
     selected_ids: set[str] = set()
     slots = build_slots(template_def, exercise_ids, selected_ids)
-    coverage_summary = build_coverage_summary(slots, rules)
+    coverage_summary = build_coverage_summary(slots, rules, records=records)
     exercises = [
         exercise_record_to_frontend_dict(records_by_id[exercise_id])
         for exercise_id in (slot["selected_exercise"] for slot in slots)
@@ -151,7 +151,17 @@ def build_slots(template_def: dict[str, Any], exercise_ids: set[str], selected_i
     return slots
 
 
-def build_coverage_summary(slots: list[dict[str, Any]], rules: dict[str, Any]) -> dict[str, Any]:
+def build_coverage_summary(
+    slots: list[dict[str, Any]], rules: dict[str, Any], *, records: list | None = None
+) -> dict[str, Any]:
+    from fitness.catalog.coverage import (
+        load_coverage_rules, load_muscle_region_index, load_muscle_taxonomy,
+    )
+
+    records = records if records is not None else build_exercise_index()
+    taxonomy = load_muscle_taxonomy()
+    region_index = load_muscle_region_index()
+    coverage_rules = load_coverage_rules()
     coverage_defaults = rules.get("coverage_defaults", {})
     default_sets = 1
     default_rpe = 8
@@ -168,7 +178,10 @@ def build_coverage_summary(slots: list[dict[str, Any]], rules: dict[str, Any]) -
     selected_details: list[dict[str, Any]] = []
 
     for exercise_id in selected_exercises:
-        coverage = calculate_coverage(exercise_id, default_sets, default_rpe)
+        coverage = calculate_coverage(
+            exercise_id, default_sets, default_rpe,
+            records=records, taxonomy=taxonomy, region_index=region_index, rules=coverage_rules,
+        )
         selected_details.append(
             {
                 "exercise": coverage["exercise_id"],
