@@ -1,15 +1,13 @@
 """Sessions: Listen, Lesen, Speichern (JSON ist die Quelle, rev-Konfliktschutz)."""
 from __future__ import annotations
 
-import re
 from datetime import datetime, timezone
 from typing import Any
 
 from backend.core import tombstones
 from backend.core.conflict import rev_of
 from backend.core.store import SessionStore
-
-_DOC_ID_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})(?:__([A-Za-z0-9_.\-]+))?$")
+from fitness.runtime.session_store import parse_session_doc_id
 
 
 class SessionNotFound(LookupError):
@@ -31,10 +29,10 @@ class StoredSessionCorrupt(RuntimeError):
 
 
 def parse_doc_id(doc_id: str) -> tuple[str, str | None]:
-    m = _DOC_ID_RE.match(doc_id)
-    if not m:
-        raise InvalidSession(f"ungültige Session-ID: {doc_id!r} (erwartet YYYY-MM-DD oder YYYY-MM-DD__<id>)")
-    return m.group(1), m.group(2)
+    try:
+        return parse_session_doc_id(doc_id)
+    except ValueError:
+        raise InvalidSession(f"ungültige Session-ID: {doc_id!r} (erwartet YYYY-MM-DD oder YYYY-MM-DD__<id>)") from None
 
 
 def _activity(data: dict[str, Any]) -> dict[str, Any] | None:

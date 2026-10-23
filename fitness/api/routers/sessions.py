@@ -11,6 +11,9 @@ from fitness.api.config import (
 from db.schemas import SessionResponse, SyncRequest, SyncResponse
 from fitness.firestore.mirror import mirror_session
 from fitness.catalog.core.session_signal import exercise_has_training_signal
+from fitness.runtime.session_store import (
+    parse_session_doc_id, session_order_key, validate_session_date, validate_session_id,
+)
 
 router = APIRouter()
 
@@ -22,6 +25,24 @@ def _require_uid(request: Request) -> str:
     if not uid or uid == "default":
         raise HTTPException(400, detail="uid Pflicht. Aktive UID fehlt; via ?uid=... oder X-User-UID Header senden.")
     return uid
+
+
+def _valid_day(value: str) -> str:
+    try:
+        return validate_session_date(value)
+    except ValueError as exc:
+        raise HTTPException(422, detail=str(exc)) from None
+
+
+def _valid_id(value: str | None) -> str | None:
+    try:
+        return validate_session_id(value)
+    except ValueError as exc:
+        raise HTTPException(422, detail=str(exc)) from None
+
+
+def _session_path(uid: str, day: str, sid: str | None):
+    return _session_file(uid, _valid_day(day), _valid_id(sid))
 
 
 def _performed_exercises(session: dict[str, Any]) -> list[dict[str, Any]]:
@@ -140,18 +161,20 @@ def _merge_activity_addon(base: dict[str, Any], incoming: dict[str, Any], source
 @router.get("/session", response_model=SessionResponse)
 def session_get(request: Request, date_: str = Query(None, alias="date"), id: str | None = None):
     uid  = _uid_from_request(request)
-    day  = date_ or _today()
-    data = _read_json(_session_file(uid, day, id))
+    day  = _valid_day(date_ or _today())
+    id = _valid_id(id)
+    data = _read_json(_session_path(uid, day, id))
     return SessionResponse(ok=True, session=data, date=day)
 
 @router.post("/session")
 async def session_post(request: Request, date_: str = Query(None, alias="date"), id: str | None = None):
     uid  = _require_uid(request)
-    day  = date_ or _today()
+    day  = _valid_day(date_ or _today())
+    id = _valid_id(id)
     body = await request.json()
 
     if _is_activity_only(body):
-        canonical = _session_file(uid, day, None)
+        canonical = _session_path(uid, day, None)
         existing = _read_json(canonical, {}) if canonical.exists() else {}
         base = existing if isinstance(existing, dict) and existing else {**body, "exercises": []}
         session = _freeze_snapshot({
@@ -162,7 +185,7 @@ async def session_post(request: Request, date_: str = Query(None, alias="date"),
         })
         _write_json(canonical, session)
         if id:
-            sidecar = _session_file(uid, day, id)
+            sidecar = _session_path(uid, day, id)
             if sidecar.exists():
                 sidecar.unlink()
         _sync_session_to_db(day, session, None)
@@ -177,7 +200,7 @@ async def session_post(request: Request, date_: str = Query(None, alias="date"),
     # das nächste Tippen in der Hauptsession still einen bereits geloggten
     # Finisher (siehe _merge_activity_addon oben).
     if id is None:
-        canonical = _session_file(uid, day, None)
+        canonical = _session_path(uid, day, None)
         existing = _read_json(canonical, {}) if canonical.exists() else {}
         existing_addons = existing.get("activityAddons") if isinstance(existing, dict) else None
 
@@ -201,7 +224,7 @@ async def session_post(request: Request, date_: str = Query(None, alias="date"),
 
     session = _freeze_snapshot({**body, "date": day, "session_id": id, "saved_at": datetime.utcnow().isoformat()})
     n_ex = len(session.get("exercises", []))
-    _write_json(_session_file(uid, day, id), session)
+    _write_json(_session_path(uid, day, id), session)
     _sync_session_to_db(day, session, id)
     asyncio.get_event_loop().run_in_executor(None, mirror_session, day, session, uid)
     asyncio.get_event_loop().run_in_executor(None, _queue_unreviewed_enrichment, session)
@@ -214,8 +237,8 @@ async def session_delete_activity(request: Request, date_: str = Query(None, ali
     gesamte (Kraft-)Session zu löschen. Gegenstück zum Merge in
     _merge_activity_addon oben — bisher gab es keinen Weg zurück."""
     uid = _require_uid(request)
-    day = date_ or _today()
-    canonical = _session_file(uid, day, None)
+    day = _valid_day(date_ or _today())
+    canonical = _session_path(uid, day, None)
     existing = _read_json(canonical, {})
     if not isinstance(existing, dict) or not existing:
         raise HTTPException(404, detail="not_found")
@@ -235,8 +258,9 @@ async def session_delete_activity(request: Request, date_: str = Query(None, ali
 @router.delete("/session")
 def session_delete(request: Request, date_: str = Query(None, alias="date"), id: str | None = None):
     uid = _require_uid(request)
-    day = date_ or _today()
-    f   = _session_file(uid, day, id)
+    day = _valid_day(date_ or _today())
+    id = _valid_id(id)
+    f   = _session_path(uid, day, id)
     if f.exists():
         f.unlink()
         logger.info(f"session deleted  {uid}/{day}")
@@ -245,13 +269,18 @@ def session_delete(request: Request, date_: str = Query(None, alias="date"), id:
 @router.get("/sessions")
 def sessions_list(request: Request, date_: str = Query(None, alias="date")):
     uid = _uid_from_request(request)
-    day = date_ or _today()
+    day = _valid_day(date_ or _today())
     d   = SESS_ROOT / uid / "sessions"
     if not d.exists():
         return {"ok": True, "sessions": []}
     sessions = []
     for f in sorted(d.glob(f"{day}*.json")):
-        meta_day, meta_sid = _parse_session_fname(f.name)
+        try:
+            meta_day, meta_sid = parse_session_doc_id(f.stem)
+        except ValueError:
+            continue
+        if meta_day != day:
+            continue
         data = _read_json(f, {})
         entry = dict(data)
         entry.update({
@@ -271,11 +300,25 @@ def session_history(request: Request, limit: int = 10):
     d     = SESS_ROOT / uid / "sessions"
     if not d.exists():
         return {"ok": True, "sessions": []}
-    files = sorted(d.glob("*.json"), reverse=True)[:limit]
-    out   = []
-    for f in files:
+    records = []
+    for f in d.glob("*.json"):
+        try:
+            parse_session_doc_id(f.stem)
+        except ValueError:
+            continue
+        data = _read_json(f)
+        if not isinstance(data, dict):
+            continue
+        try:
+            mtime_ns = f.stat().st_mtime_ns
+        except OSError:
+            mtime_ns = 0
+        records.append((session_order_key(f.stem, data, mtime_ns=mtime_ns), f, data))
+    records.sort(reverse=True, key=lambda item: item[0])
+    out = []
+    for _key, f, data in records[:limit]:
         meta_day, meta_sid = _parse_session_fname(f.name)
-        out.append({"date": meta_day, "id": meta_sid, **(_read_json(f) or {})})
+        out.append({"date": meta_day, "id": meta_sid, **data})
     return {"ok": True, "sessions": out}
 
 @router.get("/session/latest")
@@ -284,17 +327,32 @@ def session_latest(request: Request):
     d     = SESS_ROOT / uid / "sessions"
     if not d.exists():
         raise HTTPException(404)
-    files = sorted(d.glob("*.json"), reverse=True)
-    if not files:
+    records = []
+    for f in d.glob("*.json"):
+        try:
+            parse_session_doc_id(f.stem)
+        except ValueError:
+            continue
+        data = _read_json(f)
+        if not isinstance(data, dict):
+            continue
+        try:
+            mtime_ns = f.stat().st_mtime_ns
+        except OSError:
+            mtime_ns = 0
+        records.append((session_order_key(f.stem, data, mtime_ns=mtime_ns), f, data))
+    if not records:
         raise HTTPException(404)
-    data = _read_json(files[0])
-    day, _ = _parse_session_fname(files[0].name)
+    _key, file, data = max(records, key=lambda item: item[0])
+    day, _ = _parse_session_fname(file.name)
     return {"ok": True, "session": {"date": day, "data": data}}
 
 @router.delete("/session/{date_path}")
 def session_delete_by_date(date_path: str, request: Request, id: str | None = None):
     uid = _require_uid(request)
-    f   = _session_file(uid, date_path, id)
+    date_path = _valid_day(date_path)
+    id = _valid_id(id)
+    f   = _session_path(uid, date_path, id)
     if f.exists():
         f.unlink()
         logger.info(f"session deleted  {uid}/{date_path}")
@@ -302,12 +360,13 @@ def session_delete_by_date(date_path: str, request: Request, id: str | None = No
 
 @router.post("/internal/sync/session", response_model=SyncResponse)
 async def internal_sync_session(body: SyncRequest):
+    day = _valid_day(body.date)
     try:
-        n = _sync_session_to_db(body.date, body.session, session_id=body.session_id)
-        return SyncResponse(ok=True, synced=n, date=body.date)
+        n = _sync_session_to_db(day, body.session, session_id=body.session_id)
+        return SyncResponse(ok=True, synced=n, date=day)
     except Exception as exc:
         logger.error(f"internal_sync_session: {exc}")
-        return SyncResponse(ok=False, synced=0, date=body.date)
+        return SyncResponse(ok=False, synced=0, date=day)
 
 @router.get("/fitness/clients")
 def clients(request: Request):

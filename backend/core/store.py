@@ -17,6 +17,7 @@ from contextlib import contextmanager
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
+from fitness.runtime.session_store import parse_session_doc_id, validate_session_date, validate_session_id
 
 _DOC_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.\-]*$")
 _SESSION_FILE_RE = re.compile(r"^(\d{4}-\d{2}-\d{2})(?:__(.+))?\.json$")
@@ -64,7 +65,12 @@ class SessionStore:
         return self.root / "users" / check_doc_id(uid) / "sessions"
 
     def path(self, uid: str, doc_id: str) -> Path:
-        return self.sessions_dir(uid) / f"{check_doc_id(doc_id)}.json"
+        doc_id = check_doc_id(doc_id)
+        try:
+            parse_session_doc_id(doc_id)
+        except ValueError:
+            raise InvalidDocId(doc_id) from None
+        return self.sessions_dir(uid) / f"{doc_id}.json"
 
     def read(self, uid: str, doc_id: str) -> tuple[dict | None, str | None]:
         """(daten, fehler): (None, None) = nicht vorhanden, (None, msg) = defekt."""
@@ -83,7 +89,18 @@ class SessionStore:
         d = self.sessions_dir(uid)
         if not d.is_dir():
             return set()
-        return {p.name.removesuffix(".json") for p in d.iterdir() if _SESSION_FILE_RE.match(p.name)}
+        ids = set()
+        for path in d.iterdir():
+            match = _SESSION_FILE_RE.match(path.name)
+            if not match:
+                continue
+            try:
+                validate_session_date(match.group(1))
+                validate_session_id(match.group(2))
+            except ValueError:
+                continue
+            ids.add(path.name.removesuffix(".json"))
+        return ids
 
     def _backup(self, uid: str, doc_id: str) -> Path | None:
         src = self.path(uid, doc_id)

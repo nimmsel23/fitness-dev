@@ -11,6 +11,7 @@ from loguru import logger
 from backend.core import tombstones
 from backend.core.conflict import Decision, decide, rev_of
 from backend.core.store import InvalidDocId, SessionStore, check_doc_id, jsonable
+from fitness.runtime.session_store import parse_session_doc_id
 
 
 @dataclass
@@ -118,9 +119,15 @@ def pull_one_checked(
     doc_id unbrauchbar war. Ein Fehler stoppt nie den Aufrufer."""
     try:
         check_doc_id(doc.id)
+        parse_session_doc_id(doc.id)
     except InvalidDocId:
         report.counts["fehler"] += 1
         _emit("ERROR", uid, doc.id, "fehler", "ungültige doc_id, nicht als Dateiname verwendbar",
+              dry_run=dry_run, direction=direction)
+        return False
+    except ValueError:
+        report.counts["fehler"] += 1
+        _emit("ERROR", uid, doc.id, "fehler", "ungültige Session-ID (erwartet YYYY-MM-DD oder YYYY-MM-DD__<id>)",
               dry_run=dry_run, direction=direction)
         return False
     try:

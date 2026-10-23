@@ -203,6 +203,17 @@ kb-sync                     # KB → Firestore
 
 Bei Konflikten gewinnt immer `custom_yaml`.
 
+## Backend-Refactor und gemeinsame Datenregeln
+
+`backend/` nutzt die Root-Pakete `fitness.runtime` und `fitness.catalog` weiter. Session-Datumswerte werden dort
+als echte ISO-Kalendertage validiert; UIDs und Sidecar-IDs bleiben sichere einzelne Dateinamenbestandteile. Die Auswahl der
+letzten Einheit sortiert nach `saved_at`, ersatzweise Session-Datum und Datei-Zeitstempel; die Sidecar-ID ist nur
+der letzte stabile Gleichstands-Fallback.
+
+Der Backend-Coverage-Cache muss alle tatsächlich geladenen KB-Quellen fingerprinten: Exercises, Inbox, Muskel-
+YAMLs, `muscle_index.yml` und `rules/muscle_coverage_rules.yml`. Beim Planbau wird der Exercise-Index aus diesem
+Root-Katalog einmal erstellt und für alle ausgewählten Übungen wiederverwendet.
+
 ---
 
 ## Frontend-Integration

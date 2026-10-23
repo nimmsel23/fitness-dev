@@ -6,6 +6,7 @@ import asyncio
 from pathlib import Path
 from datetime import date, datetime, timedelta
 from typing import Any
+from fastapi import HTTPException
 from loguru import logger
 
 # ── Sys-Path for local modules ────────────────────────────────────────────────
@@ -18,6 +19,7 @@ if _FUEL_DEV.exists():
 
 # ── Core Paths ────────────────────────────────────────────────────────────────
 from fitness.catalog.core.paths import runtime_root
+from fitness.runtime.session_store import validate_runtime_uid, validate_session_date, validate_session_id
 
 PORT     = int(os.environ.get("FITNESS_PYTHON_PORT", os.environ.get("FITNESS_PORT", 9150)))
 HOST     = os.environ.get("FITNESS_HOST", "127.0.0.1")
@@ -143,10 +145,17 @@ def _active_uid_fallback() -> str | None:
 def _uid_from_request(request) -> str:
     uid = (request.query_params.get("uid") or request.headers.get("X-User-UID") or "").strip()
     if uid and uid != "default":
-        return _resolve_client_ref(uid) or uid
-    return _active_uid_fallback() or "default"
+        uid = _resolve_client_ref(uid) or uid
+    else:
+        uid = _active_uid_fallback() or "default"
+    try:
+        return validate_runtime_uid(uid)
+    except ValueError as exc:
+        raise HTTPException(422, detail=str(exc)) from None
 
 def _session_file(uid: str, day: str, sid: str | None) -> Path:
+    day = validate_session_date(day)
+    sid = validate_session_id(sid)
     fname = f"{day}__{sid}.json" if sid else f"{day}.json"
     return SESS_ROOT / uid / "sessions" / fname
 
