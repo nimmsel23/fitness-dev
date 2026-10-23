@@ -36,11 +36,14 @@ def _git_repo_root(start: Path) -> Path | None:
 
 
 def _git_commit_paths(paths: list[Path], message: str) -> bool:
-    """Committet exakt die uebergebenen Pfade (bewusst KEIN `git add -A`)
-    direkt nach einer Inbox-Aktion (approve/delete). Grund: liegen diese
-    Aenderungen unstaged herum, landen sie erfahrungsgemaess spaeter in einem
-    unrelated Commit einer anderen parallel laufenden Session (falsche
-    Attribution, siehe fitness-dev/CLAUDE.md-Gotcha zu paralleler Nutzung).
+    """Committet exakt die uebergebenen Pfade (bewusst KEIN `git add -A`).
+
+    Inbox-Drafts sind versionierte KB-Daten. Werden neue Drafts nur geschrieben,
+    bleiben sie unstaged und koennen spaeter versehentlich in einem unrelated
+    Commit einer parallelen Session landen. Darum committet jeder Writer seine
+    konkreten Dateien direkt. Approval/Reject nutzen denselben Weg fuer ihre
+    Datei- und Registry-Aenderungen.
+
     Best-effort: Git-Fehler werden geloggt, nie geworfen - ein Commit-Problem
     darf die eigentliche Inbox-Aktion nie blockieren oder rueckgaengig machen.
     """
@@ -74,6 +77,11 @@ def _git_commit_paths(paths: list[Path], message: str) -> bool:
     except Exception as e:
         logger.error(f"Auto-Commit fehlgeschlagen: {e}")
         return False
+
+
+def commit_inbox_draft(path: Path) -> bool:
+    """Commite genau einen geschriebenen KB-Inbox-Draft, ohne Push/Approval."""
+    return _git_commit_paths([path], f"chore(catalog): save inbox draft {path.stem}")
 
 
 def _rebuild_runtime_catalog() -> None:
@@ -369,6 +377,10 @@ def restore_inbox_tombstone(tombstone_id: str) -> Path:
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(yaml.dump(wrapper, allow_unicode=True, sort_keys=False), encoding="utf-8")
     remove_inbox_tombstone(stem)
+    _git_commit_paths(
+        [target, tombstones_path()],
+        f"chore(catalog): restore inbox draft {target.stem}",
+    )
     return target
 
 
@@ -694,6 +706,7 @@ def create_inbox_draft(
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(yaml.safe_dump(doc, allow_unicode=True, sort_keys=False), encoding="utf-8")
     logger.success(f"Inbox-Draft angelegt: {target.name}")
+    commit_inbox_draft(target)
     return target
 
 

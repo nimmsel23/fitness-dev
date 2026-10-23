@@ -16,7 +16,7 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler, FileCreatedEvent
 
 from fitness.catalog.core.paths import DATA_DIR, runtime_root
-from fitness.catalog.agent.inbox_actions import is_inbox_tombstoned
+from fitness.catalog.agent.inbox_actions import commit_inbox_draft, is_inbox_tombstoned
 from fitness.catalog.api.firestore_push import run_kb_sync
 from fitness.catalog.core.exercise_schema import apply_exercise_schema
 from fitness.catalog.core.inbox_pipeline import build_inbox_draft_seed, preserve_reenrich_provenance
@@ -221,6 +221,7 @@ def save_inbox_draft(target_file: Path, data: dict, description: str):
         yaml.safe_dump(wrapper, f, allow_unicode=True, sort_keys=False)
     
     logger.success(f"Generated expert draft: {target_file.name}")
+    commit_inbox_draft(target_file)
     try:
         run_kb_sync()
     except Exception: pass
