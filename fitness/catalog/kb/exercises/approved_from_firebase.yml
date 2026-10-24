@@ -1691,27 +1691,42 @@ exercises:
   - wger_152
   - Chin-Up
   - Untergriff-Klimmzug
-- equipment:
+- german: Frontkniebeuge
+  category: squat
+  _hash: 68e1b750dd9061083639ff3b8a63144d
+  type: compound
+  equipment:
   - barbell
   - squat_rack
-  secondary_muscles:
-  - 603_gluteus_maximus
-  - 602_adductors
-  type: compound
-  display_name: Frontkniebeuge
-  _hash: 68e1b750dd9061083639ff3b8a63144d
-  source: approved
-  german: Frontkniebeuge
-  schema_version: 2026-08-12.exercise-v1
-  search_aliases:
-  - front_squat
-  - barbell_front_squat
-  - front kniebeuge
-  - frontkniebeuge
-  - frontbeuge
-  - wger_257
-  - Frontkniebeuge
-  - Front Squat
+  common_errors:
+  - Ellbogen sinken ab, wodurch die Stange nach vorne kippt und die Bewegung in eine
+    Good-Morning-Mechanik abrutscht.
+  - Die Hüfte schießt aus dem Loch zuerst hoch, sodass der Oberkörper stark nach vorne
+    fällt.
+  - Knie kollabieren nach innen, statt aktiv über dem zweiten bis dritten Zeh geführt
+    zu werden.
+  - Fersen heben ab oder der Druck wandert nur auf den Vorfuß, meist durch fehlende
+    Dorsalflexion oder verlorene Rumpfspannung.
+  - Die Stange wird mit den Händen getragen, statt auf den Schultern abgelegt zu sein,
+    was Handgelenke unnötig überlastet.
+  - Tiefe wird erzwungen, obwohl Becken, LWS oder Oberkörperposition dabei sichtbar
+    die Spannung verlieren.
+  - Im unteren Umkehrpunkt wird passiv gebounced, ohne Spannung in Rumpf, Fuß und
+    Knielinie zu halten.
+  - Zu frühes Ausatmen in der Aufwärtsphase führt zum Kollaps im Rumpf und zu instabiler
+    Stangenbahn.
+  movements:
+  - knee_flexion_extension
+  - hip_flexion_extension
+  - ankle_dorsiflexion
+  - front_rack_bracing
+  - thoracic_extension
+  - spinal_anti_flexion
+  variations:
+  - goblet_squat
+  - cross_grip_front_squat
+  - dumbbell_front_squat
+  - double_kettlebell_front_squat
   aliases:
   - Front Squat
   - Barbell Front Squat
@@ -1719,27 +1734,6 @@ exercises:
   - Frontbeugen
   - Front-Kniebeuge
   - Vordere Kniebeuge
-  primary_muscles:
-  - 601_quadriceps_femoris
-  stabilizers:
-  - 504_transverse_abdominis
-  - 501_rectus_abdominis
-  - 507_multifidus
-  - 505_quadratus_lumborum
-  - 206_erector_spinae
-  - 202a_trapezius_upper
-  - 202b_trapezius_middle
-  - 202c_trapezius_lower
-  - 205_rhomboids
-  - 301_anterior_deltoid
-  - 304_rotator_cuff
-  - 608_gluteus_medius
-  - 609_gluteus_minimus
-  - 702_soleus
-  - 701_gastrocnemius
-  external_ids:
-    wger:
-    - 257
   tags:
   - expert
   - legs
@@ -1748,52 +1742,20 @@ exercises:
   - quad_dominant
   - strength
   - front_rack
-  coaching_notes:
-  - 'Baue zuerst ein sauberes Front-Rack: Stange liegt auf den vorderen Schultern,
-    nicht in den Händen; Ellbogen aktiv nach vorne-oben führen.'
-  - Atme tief in Bauch und Flanken ein und spanne den Rumpf vor jeder Wiederholung
-    hart an, damit der Oberkörper aufrecht bleibt.
-  - Setze dich zwischen die Hüften, während die Knie kontrolliert nach vorne über
-    die Zehen reisen; so bleibt die Last mittig über dem Fuß.
-  - Halte den Druck über Mittelfuß bis Ferse, ohne die Zehen zu verlieren; der ganze
-    Fuß bleibt belastet.
-  - Denke an Brustbein hoch und oberen Rücken lang, damit die Stange nicht nach vorne
-    abrollt.
-  - Gehe nur so tief, wie du Spannung, neutrale Wirbelsäule und stabile Fußposition
-    halten kannst.
-  - Drücke aus dem tiefsten Punkt gleichzeitig Boden weg und Ellbogen hoch, statt
-    die Hüfte zuerst nach hinten schießen zu lassen.
-  - Wenn Mobilität limitiert ist, priorisiere eine stabile Front-Rack- und Sprunggelenksposition
-    vor zusätzlicher Last.
-  english: Front Squat
-  review_state:
-    status: approved
-  name: Frontkniebeuge
+  exercise_id: '061'
+  external_ids:
+    wger:
+    - 257
+  display_name: Frontkniebeuge
   wger_id: 257
-  wger_muscle_ids:
-    secondary:
-    - 8
-    - 6
-    primary:
-    - 10
-  id: '061'
-  variations:
-  - goblet_squat
-  - cross_grip_front_squat
-  - dumbbell_front_squat
-  - double_kettlebell_front_squat
-  movements:
-  - knee_flexion_extension
-  - hip_flexion_extension
-  - ankle_dorsiflexion
-  - front_rack_bracing
-  - thoracic_extension
-  - spinal_anti_flexion
+  primary_muscles:
+  - 601_quadriceps_femoris
+  source: approved
   origin:
+    type: external
     source_refs:
       wger:
       - '257'
-    type: external
     wger:
       wger_muscle_ids:
         secondary:
@@ -1803,6 +1765,14 @@ exercises:
         - 10
       wger_id: 257
     yuhonas:
+      yuhonas_id: Front_Barbell_Squat
+      category: strength
+      equipment:
+      - barbell
+      secondary_muscles:
+      - calves
+      - glutes
+      - hamstrings
       coaching_notes:
       - This exercise is best performed inside a squat rack for safety purposes. To
         begin, first set the bar on a rack that best matches your height. Once the
@@ -1832,43 +1802,73 @@ exercises:
         middle of your foot as you straighten the legs again and go back to the starting
         position.
       - Repeat for the recommended amount of repetitions.
-      secondary_muscles:
-      - calves
-      - glutes
-      - hamstrings
-      display_name: Front Barbell Squat
       tags:
       - unreviewed
       - yuhonas
+      exercise_id: yuhonas_front_barbell_squat
       wger_muscle_ids:
         secondary: []
         primary: []
+      display_name: Front Barbell Squat
       primary_muscles:
       - quadriceps
-      yuhonas_id: Front_Barbell_Squat
-      equipment:
-      - barbell
-      exercise_id: yuhonas_front_barbell_squat
-      category: strength
-  exercise_id: '061'
-  common_errors:
-  - Ellbogen sinken ab, wodurch die Stange nach vorne kippt und die Bewegung in eine
-    Good-Morning-Mechanik abrutscht.
-  - Die Hüfte schießt aus dem Loch zuerst hoch, sodass der Oberkörper stark nach vorne
-    fällt.
-  - Knie kollabieren nach innen, statt aktiv über dem zweiten bis dritten Zeh geführt
-    zu werden.
-  - Fersen heben ab oder der Druck wandert nur auf den Vorfuß, meist durch fehlende
-    Dorsalflexion oder verlorene Rumpfspannung.
-  - Die Stange wird mit den Händen getragen, statt auf den Schultern abgelegt zu sein,
-    was Handgelenke unnötig überlastet.
-  - Tiefe wird erzwungen, obwohl Becken, LWS oder Oberkörperposition dabei sichtbar
-    die Spannung verlieren.
-  - Im unteren Umkehrpunkt wird passiv gebounced, ohne Spannung in Rumpf, Fuß und
-    Knielinie zu halten.
-  - Zu frühes Ausatmen in der Aufwärtsphase führt zum Kollaps im Rumpf und zu instabiler
-    Stangenbahn.
-  category: squat
+  stabilizers:
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  - 507_multifidus
+  - 505_quadratus_lumborum
+  - 206_erector_spinae
+  - 202a_trapezius_upper
+  - 202b_trapezius_middle
+  - 202c_trapezius_lower
+  - 205_rhomboids
+  - 301_anterior_deltoid
+  - 304_rotator_cuff
+  - 608_gluteus_medius
+  - 609_gluteus_minimus
+  - 702_soleus
+  - 701_gastrocnemius
+  id: '061'
+  coaching_notes:
+  - 'Baue zuerst ein sauberes Front-Rack: Stange liegt auf den vorderen Schultern,
+    nicht in den Händen; Ellbogen aktiv nach vorne-oben führen.'
+  - Atme tief in Bauch und Flanken ein und spanne den Rumpf vor jeder Wiederholung
+    hart an, damit der Oberkörper aufrecht bleibt.
+  - Setze dich zwischen die Hüften, während die Knie kontrolliert nach vorne über
+    die Zehen reisen; so bleibt die Last mittig über dem Fuß.
+  - Halte den Druck über Mittelfuß bis Ferse, ohne die Zehen zu verlieren; der ganze
+    Fuß bleibt belastet.
+  - Denke an Brustbein hoch und oberen Rücken lang, damit die Stange nicht nach vorne
+    abrollt.
+  - Gehe nur so tief, wie du Spannung, neutrale Wirbelsäule und stabile Fußposition
+    halten kannst.
+  - Drücke aus dem tiefsten Punkt gleichzeitig Boden weg und Ellbogen hoch, statt
+    die Hüfte zuerst nach hinten schießen zu lassen.
+  - Wenn Mobilität limitiert ist, priorisiere eine stabile Front-Rack- und Sprunggelenksposition
+    vor zusätzlicher Last.
+  secondary_muscles:
+  - 603_gluteus_maximus
+  - 602_adductors
+  english: Front Squat
+  wger_muscle_ids:
+    secondary:
+    - 8
+    - 6
+    primary:
+    - 10
+  schema_version: 2026-08-12.exercise-v1
+  review_state:
+    status: approved
+  search_aliases:
+  - front_squat
+  - barbell_front_squat
+  - front kniebeuge
+  - frontkniebeuge
+  - frontbeuge
+  - wger_257
+  - Frontkniebeuge
+  - Front Squat
+  name: Frontkniebeuge
 - exercise_id: '401'
   secondary_muscles: []
   type: isolation
