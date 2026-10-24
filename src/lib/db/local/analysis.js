@@ -2,6 +2,7 @@ import { api } from "./core";
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants";
 import { muscleToGroupIds, getMuscleGroupsForGaps, buildMuscleBalanceInsights, muscleToRegion } from "../shared/muscle";
 import { computeMuscleScores } from "../../superkompensation.js";
+import { ACTIVITY_WEIGHT, GAP_THRESHOLD, effortFactor, blockComplexMuscles } from "../shared/scoring.js";
 
 const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
 
@@ -11,20 +12,25 @@ const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
 // secondary. Spiegel von server.mjs::sessionHits / coaching.py::_exercise_hits.
 function sessionHits(sess, kbMap) {
   const rows = [];
+  const eff = effortFactor(sess);
   for (const ex of (sess.exercises || [])) {
     const exName = ex.name || ex.exercise_id || "";
     const kbEx = kbMap.get(exName.toLowerCase());
     const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
     const secondary = (ex.secondaryMuscles?.length ? ex.secondaryMuscles : null) || kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [];
     const stabilizers = (ex.stabilizers?.length ? ex.stabilizers : null) || kbEx?.stabilizers || [];
-    primary.forEach(m => rows.push([m, exName, ROLE_W.primary]));
-    secondary.forEach(m => rows.push([m, exName, ROLE_W.secondary]));
-    stabilizers.forEach(m => rows.push([m, exName, ROLE_W.stabilizer]));
+    primary.forEach(m => rows.push([m, exName, ROLE_W.primary * eff]));
+    secondary.forEach(m => rows.push([m, exName, ROLE_W.secondary * eff]));
+    stabilizers.forEach(m => rows.push([m, exName, ROLE_W.stabilizer * eff]));
   }
   const actMuscles = sess.activity?.muscles
     || (sess.activity?.type ? ACTIVITY_MUSCLE_GROUPS[sess.activity.type] : null) || [];
   const actPrimary = new Set(sess.activity?.primaryMuscles || []);
-  actMuscles.forEach(m => rows.push([m, null, actPrimary.has(m) ? ROLE_W.primary : ROLE_W.secondary]));
+  actMuscles.forEach(m => rows.push([m, null, (actPrimary.has(m) ? ROLE_W.primary : ROLE_W.secondary) * ACTIVITY_WEIGHT]));
+  // Nur Split-Chip, keine Übungen: ganzer Komplex pauschal als primary.
+  if (!(sess.exercises || []).length) {
+    blockComplexMuscles(sess.block).forEach(m => rows.push([m, null, ROLE_W.primary * eff]));
+  }
   return rows;
 }
 
@@ -141,7 +147,7 @@ function computeReport(dates, { history, kbMap, historyWithMuscles, topExMap }) 
   }
 
   const allGroups = getMuscleGroupsForGaps().map(g => g.id);
-  const gaps = allGroups.filter(g => (bodyRegionScores[g] || 0) < 1);
+  const gaps = allGroups.filter(g => (bodyRegionScores[g] || 0) < GAP_THRESHOLD);
   const totalExercises = sessions.reduce((sum, s) => sum + (s.exercise_count || 0), 0);
   const effortValues = sessions.map(s => s.effort).filter(e => e && Number(e) > 0);
   const avgEffort = effortValues.length > 0 ? Math.round(effortValues.reduce((a, b) => a + Number(b), 0) / effortValues.length * 10) / 10 : null;
@@ -273,7 +279,7 @@ export async function getMuscleCoverage(days = 7) {
   return bodyRegionScores;
 }
 
-export async function getCoverageGaps(days = 7, threshold = 1.0) {
+export async function getCoverageGaps(days = 7, threshold = GAP_THRESHOLD) {
   const hits = await getMuscleCoverage(days);
   return getMuscleGroupsForGaps()
     .filter(g => (hits[g.id] || 0) < threshold)

@@ -27,6 +27,7 @@ import {
 import { getProgressTrend as getLocalProgressTrend } from "../local/sessions.js";
 import { computeMuscleScores } from "../../superkompensation.js";
 import { muscleToRegion } from "../shared/muscle.js";
+import { ACTIVITY_WEIGHT, GAP_THRESHOLD, effortFactor, blockComplexMuscles } from "../shared/scoring.js";
 
 export { ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds };
 
@@ -50,20 +51,25 @@ const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
 // funktionsfähig, nur ohne Fallback).
 function normalizedSessionHits(session, kbMap = null) {
   const rows = [];
+  const eff = effortFactor(session);
   for (const ex of (Array.isArray(session.exercises) ? session.exercises : [])) {
     const exName = ex.name || ex.exercise_id || "";
     const kbEx = kbMap?.get(exName.toLowerCase());
     const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
     const secondary = (ex.secondaryMuscles?.length ? ex.secondaryMuscles : null) || kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [];
     const stabilizers = (ex.stabilizers?.length ? ex.stabilizers : null) || kbEx?.stabilizers || [];
-    primary.forEach((m) => rows.push([m, exName, ROLE_W.primary]));
-    secondary.forEach((m) => rows.push([m, exName, ROLE_W.secondary]));
-    stabilizers.forEach((m) => rows.push([m, exName, ROLE_W.stabilizer]));
+    primary.forEach((m) => rows.push([m, exName, ROLE_W.primary * eff]));
+    secondary.forEach((m) => rows.push([m, exName, ROLE_W.secondary * eff]));
+    stabilizers.forEach((m) => rows.push([m, exName, ROLE_W.stabilizer * eff]));
   }
   const actPrimary = new Set(session.activity?.primaryMuscles || []);
   (session.activity?.muscles || []).forEach((m) =>
-    rows.push([m, null, actPrimary.has(m) ? ROLE_W.primary : ROLE_W.secondary])
+    rows.push([m, null, (actPrimary.has(m) ? ROLE_W.primary : ROLE_W.secondary) * ACTIVITY_WEIGHT])
   );
+  // Nur Split-Chip, keine Übungen: ganzer Komplex pauschal als primary.
+  if (!(Array.isArray(session.exercises) && session.exercises.length)) {
+    blockComplexMuscles(session.block).forEach((m) => rows.push([m, null, ROLE_W.primary * eff]));
+  }
   const best = new Map();
   for (const [m, exName, w] of rows) {
     const cur = best.get(m);
@@ -150,7 +156,7 @@ export async function getMuscleCoverage(days = 7) {
   return hits;
 }
 
-export async function getCoverageGaps(days = 7, threshold = 1.0) {
+export async function getCoverageGaps(days = 7, threshold = GAP_THRESHOLD) {
   if (!hasAuthSession()) return getLocalCoverageGaps(days, threshold);
   const hits = await getMuscleCoverage(days);
   return getMuscleGroupsForGaps()
@@ -352,16 +358,16 @@ async function buildWeeklyReportData(selector = "current") {
         muscleToGroupIds(m, exName).forEach((gid) => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; hasMapped = true; });
       });
       for (const m of primary) {
-        muscleToGroupIds(m, exName).forEach((gid) => { muscleScores[m] = (muscleScores[m] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; hasMapped = true; });
+        muscleToGroupIds(m, exName).forEach((gid) => { muscleScores[m] = (muscleScores[m] || 0) + 1; hasMapped = true; });
       }
       for (const m of secondary) {
-        muscleToGroupIds(m, exName).forEach((gid) => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.7; hasMapped = true; });
+        muscleToGroupIds(m, exName).forEach(() => { hasMapped = true; });
       }
       for (const m of stabilizers) {
-        muscleToGroupIds(m, exName).forEach((gid) => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 0.4; hasMapped = true; });
+        muscleToGroupIds(m, exName).forEach(() => { hasMapped = true; });
       }
       if (!hasMapped && exName) {
-        muscleToGroupIds("", exName).forEach((gid) => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1; });
+        muscleToGroupIds("", exName).forEach((gid) => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; });
       }
     }
 
@@ -373,9 +379,13 @@ async function buildWeeklyReportData(selector = "current") {
         ACTIVITY_MUSCLE_MAPPING[sess.activity.type].muscles.forEach((m) => {
           muscleToGroupIds(m).forEach((gid) => {
             sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
-            bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + 1;
           });
         });
+      }
+      // Score einheitlich über normalizedSessionHits (RPE-skaliert, Cardio leichter,
+      // Split-Chip ohne Übungen = ganzer Komplex), wie Monats-/Rolling-Auswertung.
+      for (const [m, exName, w] of normalizedSessionHits(sess)) {
+        muscleToGroupIds(m, exName).forEach((gid) => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + w; });
       }
       const muscleRecovery = {};
       for (const gid of Object.keys(sessGroupsCount)) {
@@ -391,7 +401,7 @@ async function buildWeeklyReportData(selector = "current") {
   }
 
   const allGroups = getMuscleGroupsForGaps().map((g) => g.id);
-  const gaps = allGroups.filter((g) => (bodyRegionScores[g] || 0) < 1);
+  const gaps = allGroups.filter((g) => (bodyRegionScores[g] || 0) < GAP_THRESHOLD);
 
   const efforts = sessions.map((s) => s.effort).filter((e) => typeof e === "number");
   const avgEffort = efforts.length > 0 ? Math.round((efforts.reduce((a, b) => a + b, 0) / efforts.length) * 10) / 10 : null;
@@ -558,7 +568,7 @@ export async function getMonthlyReport(days = 28) {
 
   const overall = aggregate(dates);
   const allGroups = getMuscleGroupsForGaps().map((g) => g.id);
-  const gaps = allGroups.filter((g) => (overall.bodyRegionScores[g] || 0) < 1);
+  const gaps = allGroups.filter((g) => (overall.bodyRegionScores[g] || 0) < GAP_THRESHOLD);
 
   const weeks = [];
   for (let start = dates.length - 7; start > -7; start -= 7) {
@@ -571,7 +581,7 @@ export async function getMonthlyReport(days = 28) {
       session_count: wk.sessionCount,
       avg_effort: wk.avgEffort,
       body_region_scores: wk.bodyRegionScores,
-      missing_regions: allGroups.filter((g) => (wk.bodyRegionScores[g] || 0) < 1),
+      missing_regions: allGroups.filter((g) => (wk.bodyRegionScores[g] || 0) < GAP_THRESHOLD),
     });
   }
   // Schleife läuft bereits jüngste→älteste 7-Tage-Chunk zuerst (start zählt
