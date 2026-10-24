@@ -202,6 +202,7 @@ async function loadReportContext() {
       const secondary = ex.secondaryMuscles || [];
       [...primary, ...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => groups.add(gid)));
     }
+    if (!(s.exercises || []).length) blockComplexMuscles(s.block).forEach((m) => muscleToGroupIds(m).forEach((gid) => groups.add(gid)));
     return { date: s.date, groups: [...groups] };
   }).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 

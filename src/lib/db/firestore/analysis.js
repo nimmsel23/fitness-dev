@@ -315,6 +315,7 @@ async function buildWeeklyReportData(selector = "current") {
         muscleToGroupIds(m).forEach((gid) => groups.add(gid));
       });
     }
+    if (!(s.exercises || []).length) blockComplexMuscles(s.block).forEach((m) => muscleToGroupIds(m).forEach((gid) => groups.add(gid)));
     return { date: s.date, groups: [...groups] };
   }).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
@@ -381,6 +382,10 @@ async function buildWeeklyReportData(selector = "current") {
             sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1;
           });
         });
+      }
+      // Chip-only: Komplex zählt auch für die Regeneration (muscle_recovery) der Folge-Sessions.
+      if (!(Array.isArray(sess.exercises) && sess.exercises.length)) {
+        blockComplexMuscles(sess.block).forEach((m) => muscleToGroupIds(m).forEach((gid) => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; }));
       }
       // Score einheitlich über normalizedSessionHits (RPE-skaliert, Cardio leichter,
       // Split-Chip ohne Übungen = ganzer Komplex), wie Monats-/Rolling-Auswertung.
