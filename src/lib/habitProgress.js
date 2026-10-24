@@ -103,14 +103,15 @@ export function pickNextRoutine(routines, workouts) {
 // des Ziels) — `targetCycles` ist nur eine Anzeige-Markierung, kein Cutoff.
 // Bewusst KEIN neues Datenfeld an Session/Routine nötig: `session.block`
 // existiert bereits (SplitPicker), hier nur ausgelesen + normalisiert.
-import { normalizeBlock } from "../views/Session/utils";
+import { normalizeBlock, coveredBlocks } from "../views/Session/utils";
 
 export function computeSplitCycleProgress(sessions, tags, targetCycles = 0) {
   const wantedTags = (tags || []).map(normalizeBlock).filter(Boolean);
   const counts = Object.fromEntries(wantedTags.map((t) => [t, 0]));
   for (const s of sessions || []) {
-    const tag = normalizeBlock(s?.block);
-    if (tag && tag in counts) counts[tag]++;
+    for (const tag of coveredBlocks(s)) {
+      if (tag in counts) counts[tag]++;
+    }
   }
   const cyclesCompleted = wantedTags.length > 0
     ? Math.min(...wantedTags.map((t) => counts[t]))
@@ -130,7 +131,7 @@ export function getRecentBlockDays(tag, sessions, days = 14) {
   const wantedTag = normalizeBlock(tag);
   const doneDates = new Set(
     (sessions || [])
-      .filter((s) => normalizeBlock(s?.block) === wantedTag && s?.date)
+      .filter((s) => coveredBlocks(s).has(wantedTag) && s?.date)
       .map((s) => String(s.date).slice(0, 10))
   );
   const out = [];

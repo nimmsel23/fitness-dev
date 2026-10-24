@@ -3,9 +3,11 @@ import { ArrowLeftRight } from 'lucide-react';
 // Grobe Push/Pull/Legs-Zuordnung der granularen KB-Regionen (chest.yml,
 // upper_back.yml etc., siehe shared/muscle.js::getMuscleGroups()) — bewusst
 // simpel gehalten (keine Gewichtung), nur zur groben Split-Balance-Kontrolle.
+// Rein muskelbasiert: Kraft-Übungen UND Cardio-Activities (session.activity.muscles)
+// fließen über body_region_scores ein — Crossfit/Klettern/Rudern zählen so für Pull.
 const PPL_GROUPS = {
   push: { label: 'Push', regions: ['chest', 'shoulders', 'triceps'] },
-  pull: { label: 'Pull', regions: ['upper_back', 'middle_back', 'lower_back', 'rhomboids', 'biceps'] },
+  pull: { label: 'Pull', regions: ['upper_back', 'middle_back', 'lower_back', 'rhomboids', 'biceps', 'forearms', 'back'] },
   legs: { label: 'Legs', regions: ['quadriceps', 'hamstrings', 'glutes', 'calves', 'adductors', 'abductors', 'iliopsoas'] },
 };
 

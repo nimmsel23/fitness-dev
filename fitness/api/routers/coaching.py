@@ -38,6 +38,23 @@ _FALLBACK_PLAN = {
     "So": ("Recovery",  ["Mobility", "Walk", "Core Breathing"]),
 }
 _ROLE_W = {"primary": 1.0, "secondary": 0.5, "stabilizer": 0.2}
+# Spiegel von src/lib/db/shared/scoring.js: Kraft × RPE/10, Cardio leichter,
+# Split-Chip ohne Übungen = ganzer Muskelkomplex pauschal als primary.
+_ACTIVITY_WEIGHT = 0.5
+_PUSH = ["chest", "shoulders", "triceps"]
+_PULL = ["upper_back", "middle_back", "biceps"]
+_LEGS = ["quadriceps", "hamstrings", "glutes", "calves"]
+_BLOCK_MUSCLES = {
+    "push": _PUSH, "pull": _PULL, "legs": _LEGS,
+    "upper": _PUSH + _PULL, "lower": _LEGS, "full": _PUSH + _PULL + _LEGS + ["abs"],
+}
+
+def _effort_factor(sess: dict) -> float:
+    try:
+        rpe = float((sess or {}).get("effort"))
+    except (TypeError, ValueError):
+        return 1.0
+    return min(rpe, 10.0) / 10.0 if rpe > 0 else 1.0
 
 def _today() -> str:
     return date.today().isoformat()
@@ -48,20 +65,25 @@ def _exercise_hits(sess: dict) -> list[tuple[str, str, float]]:
     Activities fehlten hier zuvor komplett, dadurch trug z.B. Brustschwimmen
     nichts zur Brust-Coverage bei."""
     rows: list[tuple[str, str, float]] = []
+    eff = _effort_factor(sess)
     for ex in (sess or {}).get("exercises", []):
         for role, muscles in (
             ("primary",    ex.get("primaryMuscles") or ex.get("primary_muscles") or []),
             ("secondary",  ex.get("secondaryMuscles") or ex.get("secondary_muscles") or []),
             ("stabilizer", ex.get("stabilizers") or []),
         ):
-            w = _ROLE_W[role]
+            w = _ROLE_W[role] * eff
             for m in muscles:
                 rows.append((cov_module.normalize_muscle_id(m), role, w))
     activity = (sess or {}).get("activity") or {}
     act_primary = set(activity.get("primaryMuscles") or [])
     for m in (activity.get("muscles") or []):
         role = "primary" if m in act_primary else "secondary"
-        rows.append((cov_module.normalize_muscle_id(m), role, _ROLE_W[role]))
+        rows.append((cov_module.normalize_muscle_id(m), role, _ROLE_W[role] * _ACTIVITY_WEIGHT))
+    if not (sess or {}).get("exercises"):
+        block = str((sess or {}).get("block") or "").strip().lower()
+        for m in _BLOCK_MUSCLES.get("full" if block == "full body" else block, []):
+            rows.append((cov_module.normalize_muscle_id(m), "primary", _ROLE_W["primary"] * eff))
     return rows
 
 def _normalized_session_hits(sess: dict) -> list[tuple[str, str, float]]:

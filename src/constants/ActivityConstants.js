@@ -45,7 +45,7 @@ export const ACTIVITY_MUSCLE_DEFAULTS = Object.fromEntries(
 export const MUSCLE_TARGET_GROUPS = {
   core:  ['core'],
   legs:  ['quadriceps', 'hamstrings', 'glutes', 'calves'],
-  full:  ['chest', 'back', 'shoulders', 'arms', 'core', 'quadriceps', 'hamstrings', 'glutes'],
+  full:  ['chest', 'upper_back', 'middle_back', 'shoulders', 'biceps', 'triceps', 'abs', 'quadriceps', 'hamstrings', 'glutes'],
 };
 
 // Single source of truth: welche Muskelgruppen jede Cardio-/Activity-Art trifft.

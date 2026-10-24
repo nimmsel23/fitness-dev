@@ -188,6 +188,20 @@ function defaultBlocks() {
 }
 
 const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
+// Spiegel von src/lib/db/shared/scoring.js: Kraft × RPE/10, Cardio leichter,
+// Split-Chip ohne Übungen = ganzer Muskelkomplex pauschal als primary.
+const ACTIVITY_WEIGHT = 0.5;
+const _PUSH = ["chest", "shoulders", "triceps"];
+const _PULL = ["upper_back", "middle_back", "biceps"];
+const _LEGS = ["quadriceps", "hamstrings", "glutes", "calves"];
+const BLOCK_MUSCLES = {
+  push: _PUSH, pull: _PULL, legs: _LEGS,
+  upper: [..._PUSH, ..._PULL], lower: _LEGS, full: [..._PUSH, ..._PULL, ..._LEGS, "abs"],
+};
+function effortFactor(sess) {
+  const rpe = Number(sess?.effort);
+  return Number.isFinite(rpe) && rpe > 0 ? Math.min(rpe, 10) / 10 : 1;
+}
 
 // Rohe (Muskel, Rolle, Gewicht)-Treffer einer Session, aus geloggten Übungen
 // UND einem geloggten Cardio/Activity-Finisher (activity.muscles[], bereits
@@ -195,18 +209,23 @@ const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
 // Hauptmover, z.B. Brust beim Brustschwimmen — Rest bleibt secondary).
 function sessionHits(sess) {
   const rows = [];
+  const eff = effortFactor(sess);
   for (const ex of (sess?.exercises || [])) {
     const pm = ex.primary_muscles || ex.primaryMuscles || [];
     const sm = ex.secondary_muscles || ex.secondaryMuscles || [];
     const st = ex.stabilizers || [];
-    for (const m of pm) rows.push([m, "primary", ROLE_W.primary]);
-    for (const m of sm) rows.push([m, "secondary", ROLE_W.secondary]);
-    for (const m of st) rows.push([m, "stabilizer", ROLE_W.stabilizer]);
+    for (const m of pm) rows.push([m, "primary", ROLE_W.primary * eff]);
+    for (const m of sm) rows.push([m, "secondary", ROLE_W.secondary * eff]);
+    for (const m of st) rows.push([m, "stabilizer", ROLE_W.stabilizer * eff]);
   }
   const actPrimary = new Set(sess?.activity?.primaryMuscles || []);
   for (const m of (sess?.activity?.muscles || [])) {
     const role = actPrimary.has(m) ? "primary" : "secondary";
-    rows.push([m, role, ROLE_W[role]]);
+    rows.push([m, role, ROLE_W[role] * ACTIVITY_WEIGHT]);
+  }
+  if (!(sess?.exercises || []).length) {
+    const b = String(sess?.block || "").trim().toLowerCase();
+    for (const m of (BLOCK_MUSCLES[b === "full body" ? "full" : b] || [])) rows.push([m, "primary", ROLE_W.primary * eff]);
   }
   return rows;
 }
