@@ -8,6 +8,7 @@ import ReviewOverview from './ReviewOverview';
 import ReviewInsights from './ReviewInsights';
 import ReviewMuscleImpact from './ReviewMuscleImpact';
 import ReviewPPLBalance from './ReviewPPLBalance';
+import ReviewDeload from './ReviewDeload';
 import ReviewWeeksBreakdown from './ReviewWeeksBreakdown';
 import ReviewTopExercises from './ReviewTopExercises';
 import ReviewHistory from './ReviewHistory.jsx';
@@ -141,6 +142,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
               totalExercises={data.total_exercises}
               avgEffort={data.avg_effort}
             />
+            <ReviewDeload weeks={data.weeks} />
             <ReviewInsights
               recommendations={data.recommendations}
               missingRegions={missingRegions}
