@@ -7,7 +7,7 @@
  */
 
 import { Plus, X } from 'lucide-react';
-import { ACTIVITY_MUSCLE_DEFAULTS, MUSCLE_TARGET_GROUPS } from '../../constants/ActivityConstants';
+import { ACTIVITY_MUSCLE_DEFAULTS, ACTIVITY_MUSCLE_GROUPS, MUSCLE_TARGET_GROUPS } from '../../constants/ActivityConstants';
 import { ACTIVITY_TYPES } from '../../constants/activities';
 
 const MUSCLE_TARGETS = [
@@ -77,7 +77,10 @@ export default function ActivityAddon({ hasActivity, setHasActivity, activity, s
                 key={t.value}
                 onClick={() => {
                   const target = ACTIVITY_MUSCLE_DEFAULTS[t.value] || 'full';
-                  setActivity({ ...activity, type: t.value, muscleTarget: target, muscles: MUSCLE_TARGET_GROUPS[target] });
+                  // Nur HIIT wählt seine Muskeln über das Ziel; alle anderen Typen haben feste Muskeln,
+                  // die in die Coverage und die PPL-Balance einfließen (z. B. Crossfit: upper_back, forearms).
+                  const muscles = t.value === 'hiit' ? MUSCLE_TARGET_GROUPS[target] : (ACTIVITY_MUSCLE_GROUPS[t.value] || MUSCLE_TARGET_GROUPS[target]);
+                  setActivity({ ...activity, type: t.value, muscleTarget: target, muscles });
                 }}
                 title={t.label}
                 className={`flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl border transition-all ${
