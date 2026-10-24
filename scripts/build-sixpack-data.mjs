@@ -16,6 +16,8 @@ const REPO_ROOT = join(__dirname, '..');
 const SIXPACK_DIR = join(REPO_ROOT, 'fitness/catalog/kb/exercises/6pack');
 const CALISTHENICS_DIR = join(REPO_ROOT, 'fitness/catalog/kb/exercises/calisthenics');
 const OUT_FILE = join(REPO_ROOT, 'src/views/SixPack/sixpackData.generated.js');
+// Eigene Clips (public/videos/<exercise_id>.mp4) ersetzen die Katalog-Demo, siehe 6pack-dev docs/VIDEO_URLS.md.
+const CLIPS_DIR = join(REPO_ROOT, 'public/videos');
 
 // Tag → grobe Learn/Shuffle-Kategorie. Neue Tags fallen auf 'lower' zurück
 // (häufigste Kategorie) statt den Build brechen zu lassen.
@@ -67,7 +69,7 @@ function buildExercises() {
     exercises[ex.id] = {
       id: ex.id,
       name: ex.name,
-      ...exerciseContent(ex, muscles),
+      ...exerciseContent(ex, muscles, CLIPS_DIR),
       category,
       focusLabel: CATEGORY_LABELS[category] || 'Core',
       ...(ex.video_url ? { videoUrl: ex.video_url } : {}),
