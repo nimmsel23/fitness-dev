@@ -77,7 +77,7 @@ export default function ActivitySection({ activity, setActivity }) {
         <div className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-3 ml-1">
           Art der Aktivität
         </div>
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {ACTIVITY_TYPES.map(t => {
             const isActive = activity.type === t.value;
             return (
@@ -90,14 +90,14 @@ export default function ActivitySection({ activity, setActivity }) {
                   next.primaryMuscles = primaryMusclesForActivity(t.value, next);
                   setActivity(next);
                 }}
-                className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-full border transition-all ${
                   isActive
                     ? 'border-fit-orange bg-fit-orange/10 shadow-lg shadow-orange/10'
                     : 'border-fit-line bg-fit-bg2 hover:border-fit-orange/30 hover:bg-fit-orange/5'
                 }`}
               >
-                <span className="text-xl leading-none">{t.icon}</span>
-                <span className={`text-[9px] font-black uppercase tracking-wider leading-tight text-center ${
+                <span className="text-base leading-none">{t.icon}</span>
+                <span className={`text-[9px] font-black uppercase tracking-wider leading-tight whitespace-nowrap ${
                   isActive ? 'text-fit-orange' : 'text-fit-dim'
                 }`}>
                   {t.label}
