@@ -65,6 +65,34 @@ export function inferBlockFromExercises(exercises) {
   return null;
 }
 
+/**
+ * Welche Split-Tags eine Session für den Zyklus-Zähler abdeckt. Der gewählte
+ * Block zählt immer; eine Full-Body-Session zählt zusätzlich für jeden Tag,
+ * dessen Muskeln die Übungen tatsächlich beansprucht haben (Push, Pull, Legs,
+ * Upper = Push+Pull, Lower = Legs). Cardio-Activities zählen bewusst nicht:
+ * sie sind kein Kraft-Slot (höchstens Deload, siehe ACTIVITY-Regeln).
+ */
+export function coveredBlocks(session) {
+  const tags = new Set();
+  const own = normalizeBlock(session?.block);
+  if (own) tags.add(own);
+  if (own !== 'full') return tags;
+  let hasPush = false, hasPull = false, hasLegs = false;
+  for (const ex of (Array.isArray(session?.exercises) ? session.exercises : [])) {
+    for (const m of [...(ex.primaryMuscles || []), ...(ex.secondaryMuscles || [])]) {
+      const c = classifyMuscle(m);
+      if (c === 'push') hasPush = true;
+      else if (c === 'pull') hasPull = true;
+      else if (c === 'legs') hasLegs = true;
+    }
+  }
+  if (hasPush) tags.add('push');
+  if (hasPull) tags.add('pull');
+  if (hasLegs) { tags.add('legs'); tags.add('lower'); }
+  if (hasPush && hasPull) tags.add('upper');
+  return tags;
+}
+
 export function getRollingDays(count) {
   const dates = [];
   const today = new Date();
