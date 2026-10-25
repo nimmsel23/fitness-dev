@@ -689,11 +689,6 @@ exercises:
   - scapular_retraction
   - elbow_flexion
 - german: Beinpresse
-  category: squat
-  _hash: 40c7052b3937634d244ac1c7c2c40c36
-  type: compound
-  equipment:
-  - machine
   common_errors:
   - Das Becken kippt im unteren Punkt nach hinten und der untere Rücken löst sich
     von der Lehne, wodurch unnötiger Stress auf die Lendenwirbelsäule entsteht.
@@ -711,43 +706,16 @@ exercises:
     oder ein Verlust der Rumpfspannung möglich sind.
   - Die Last wird einseitig über Vorfuß oder Fersen verschoben, wodurch Stabilität
     verloren geht und die Kraftübertragung auf die Plattform schlechter wird.
-  movements:
-  - knee_extension
-  - knee_flexion
-  - hip_extension
-  - hip_flexion
-  - bilateral
-  - closed_chain
-  - machine_guided
-  aliases:
-  - Leg Press Machine
-  - Machine Leg Press
-  - Plate-Loaded Leg Press
-  - 45 Degree Leg Press
-  - Schlitten-Beinpresse
+  name: Beinpresse
   variations: []
-  tags:
-  - machine
-  - compound
-  - quad-dominant
-  - lower-body
-  - strength
-  - hypertrophy
-  - legs
-  - leg_press
-  - unreviewed
-  exercise_id: leg_press
-  wger_id: null
-  primary_muscles:
-  - 601_quadriceps_femoris
-  source: approved
+  stabilizers:
+  - 504_transverse_abdominis
+  - 206_erector_spinae
+  - 507_multifidus
   origin:
-    source_refs: {}
-    type: manual
     wger:
-      german: Beinpresse
-      category: legs
-      equipment: []
+      display_name: Beinpresse
+      exercise_id: wger_371
       secondary_muscles:
       - 603_gluteus_maximus
       - 701_gastrocnemius
@@ -762,18 +730,6 @@ exercises:
       tags:
       - unreviewed
       - wger
-      exercise_id: wger_371
-      wger_muscle_ids:
-        secondary:
-        - 7
-        - 8
-        primary:
-        - 11
-        - 7
-        - 8
-        - 10
-      display_name: Beinpresse
-      wger_id: 371
       primary_muscles:
       - 601_quadriceps_femoris
       - 603_gluteus_maximus
@@ -781,12 +737,23 @@ exercises:
       - 604b_semitendinosus
       - 604c_semimembranosus
       - 701_gastrocnemius
+      equipment: []
+      wger_muscle_ids:
+        primary:
+        - 11
+        - 7
+        - 8
+        - 10
+        secondary:
+        - 7
+        - 8
+      german: Beinpresse
+      wger_id: 371
+      category: legs
+    source_refs: {}
     yuhonas:
-      primary_muscles:
-      - quadriceps
-      category: strength
-      equipment:
-      - machine
+      display_name: Leg Press
+      exercise_id: yuhonas_leg_press
       secondary_muscles:
       - calves
       - glutes
@@ -811,18 +778,33 @@ exercises:
       tags:
       - unreviewed
       - yuhonas
-      exercise_id: yuhonas_leg_press
-      wger_muscle_ids:
-        secondary: []
-        primary: []
-      display_name: Leg Press
+      primary_muscles:
+      - quadriceps
       yuhonas_id: Leg_Press
-  stabilizers:
-  - 504_transverse_abdominis
-  - 206_erector_spinae
-  - 507_multifidus
-  id: leg_press
-  display_name: Beinpresse
+      wger_muscle_ids:
+        primary: []
+        secondary: []
+      equipment:
+      - machine
+      category: strength
+    type: manual
+  secondary_muscles:
+  - 603_gluteus_maximus
+  - 602_adductors
+  - 604a_biceps_femoris
+  - 604b_semitendinosus
+  - 604c_semimembranosus
+  exercise_id: leg_press
+  tags:
+  - machine
+  - compound
+  - quad-dominant
+  - lower-body
+  - strength
+  - hypertrophy
+  - legs
+  - leg_press
+  - unreviewed
   coaching_notes:
   - Setze Becken und gesamten unteren Rücken stabil an die Lehne und halte diese Position
     über den kompletten Satz, damit die Kraft sauber über Hüfte und Knie auf die Plattform
@@ -843,22 +825,40 @@ exercises:
   - Wähle die Tiefe und Fußposition so, dass du den Quadrizeps belastest, ohne im
     unteren Umkehrpunkt die Position der Lendenwirbelsäule oder der Kniekontrolle
     zu verlieren.
-  english: Leg Press
-  review_state:
-    status: approved
-  schema_version: 2026-08-12.exercise-v1
-  secondary_muscles:
-  - 603_gluteus_maximus
-  - 602_adductors
-  - 604a_biceps_femoris
-  - 604b_semitendinosus
-  - 604c_semimembranosus
+  id: leg_press
   search_aliases:
   - Beinpresse
   - Schlitten-Beinpresse
   - Leg Press
   - Leg Press Machine
-  name: Beinpresse
+  category: squat
+  aliases:
+  - Leg Press Machine
+  - Machine Leg Press
+  - Plate-Loaded Leg Press
+  - 45 Degree Leg Press
+  - Schlitten-Beinpresse
+  english: Leg Press
+  display_name: Beinpresse
+  wger_id: null
+  review_state:
+    status: approved
+  type: compound
+  equipment:
+  - machine
+  schema_version: 2026-08-12.exercise-v1
+  primary_muscles:
+  - 601_quadriceps_femoris
+  _hash: 40c7052b3937634d244ac1c7c2c40c36
+  source: approved
+  movements:
+  - knee_extension
+  - knee_flexion
+  - hip_extension
+  - hip_flexion
+  - bilateral
+  - closed_chain
+  - machine_guided
 - german: Unterarmstütz
   category: carry
   _hash: c1f9e5ef15c6663bd7858cebaceb04ba
