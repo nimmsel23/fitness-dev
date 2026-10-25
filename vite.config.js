@@ -1,8 +1,8 @@
 import { vosChangelog } from './scripts/vos-changelog/vos-changelog-vite.mjs'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { dirname, isAbsolute, relative, resolve } from 'path'
-import { existsSync } from 'fs'
+import { dirname, isAbsolute, relative, resolve, sep } from 'path'
+import { existsSync, statSync } from 'fs'
 
 const BACKEND = 'http://localhost:9150'
 
@@ -63,6 +63,22 @@ function miniAppSubmodulePlugin() {
       ) {
         const fitnessData = resolve(__dirname, 'src/views/SixPack/sixpackData.generated.js')
         if (existsSync(fitnessData)) return fitnessData
+      }
+
+      // Der Plan-Checkout bringt ein eigenes, abweichendes Fitness-Gerüst mit
+      // (contexts, lib, components, hooks …). Importe daraus gehören zu den
+      // Fitness-Gegenstücken, sonst entstehen zwei UserContext-Instanzen und der
+      // Plan-Tab bricht ohne Provider ab.
+      const planSrc = resolve(__dirname, 'plan/src')
+      const planViews = resolve(planSrc, 'views/Plan')
+      if (importerPath.startsWith(`${planViews}${sep}`)) {
+        const rel = relative(planSrc, target)
+        if (rel && !rel.startsWith('..') && !isAbsolute(rel) && !(target === planViews || target.startsWith(`${planViews}${sep}`))) {
+          const own = resolve(__dirname, 'src', rel)
+          for (const candidate of [own, `${own}.js`, `${own}.jsx`, `${own}/index.js`, `${own}/index.jsx`]) {
+            if (existsSync(candidate) && statSync(candidate).isFile()) return candidate
+          }
+        }
       }
 
       for (const map of maps) {
