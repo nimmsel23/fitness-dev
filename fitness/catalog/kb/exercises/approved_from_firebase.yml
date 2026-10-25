@@ -2958,40 +2958,28 @@ exercises:
   - shoulder_extension
   - scapular_retraction
   - elbow_flexion
-- german: Sitzendes Kabelrudern enger Griff
-  category: pull
-  _hash: e9521d560a330200e187ce3133d3373b
-  type: compound
+- _hash: e9521d560a330200e187ce3133d3373b
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 202b_trapezius_middle
+  - 205_rhomboids
   variations: []
-  common_errors:
-  - Den Oberkoerper nach hinten werfen, um das Gewicht mit Schwung statt mit Rueckenmuskulatur
-    zu bewegen.
-  - Die Ellbogen nach aussen auffaechern, wodurch aus dem engen Rudern eher eine breit
-    gefuehrte Zugvariante wird.
-  - Die Schultern nach oben ziehen und Spannung im Nacken aufbauen statt die Schulterblaetter
-    kontrolliert nach hinten zu bewegen.
-  - Nur mit den Armen ziehen und die Schulterblattbewegung fast komplett weglassen.
-  - Am Endpunkt zu kurz bleiben und weder Ellbogen noch Schulterblaetter voll nach
-    hinten fuehren.
-  - In der Rueckfuehrung das Gewicht fallen lassen und dadurch Spannung, Position
-    und Bewegungsqualitaet verlieren.
-  - Mit gebeugten Handgelenken oder abgeknicktem Unterarm ziehen statt den Griff neutral
-    und stabil zu fuehren.
-  aliases:
-  - Sitzendes enges Kabelrudern
-  - Enges sitzendes Kabelrudern
-  - Narrow-Grip Seated Cable Row
-  - Close-Grip Cable Row
-  - Close-Neutral Seated Cable Row
-  equipment:
-  - cable
-  movements:
-  - horizontal
-  - shoulder_extension
-  - scapular_retraction
-  - elbow_flexion
-  - close_grip
-  - neutral_grip
+  name: Sitzendes Kabelrudern enger Griff
+  stabilizers:
+  - 304_rotator_cuff
+  - 206_erector_spinae
+  - 504_transverse_abdominis
+  - 507_multifidus
+  origin:
+    source_refs: {}
+    type: manual
+  secondary_muscles:
+  - 207_teres_major
+  - 303_posterior_deltoid
+  - 402_biceps_brachii
+  - 403_brachialis
+  - 404_brachioradialis
+  exercise_id: cable_row_close_grip
   tags:
   - rowing
   - horizontal_pull
@@ -3002,23 +2990,6 @@ exercises:
   - cable
   - close_grip
   - unreviewed
-  exercise_id: cable_row_close_grip
-  primary_muscles:
-  - 201_latissimus_dorsi
-  - 202b_trapezius_middle
-  - 205_rhomboids
-  source: approved
-  origin:
-    type: manual
-    source_refs: {}
-  stabilizers:
-  - 304_rotator_cuff
-  - 206_erector_spinae
-  - 504_transverse_abdominis
-  - 507_multifidus
-  id: cable_row_close_grip
-  review_state:
-    status: approved
   coaching_notes:
   - Setz dich aufrecht hin, heb das Brustbein leicht an und halte die Wirbelsaeule
     waehrend der ganzen Wiederholung neutral.
@@ -3034,21 +3005,50 @@ exercises:
     Schulterblatt-Protraktion, ohne die Lendenwirbelsaeule einzurunden.
   - Nutze einen Griff und eine Sitzposition, bei denen Unterarme und Kabel in der
     Zugphase moeglichst in einer geraden Linie bleiben.
-  english: Close-Grip Seated Cable Row
-  secondary_muscles:
-  - 207_teres_major
-  - 303_posterior_deltoid
-  - 402_biceps_brachii
-  - 403_brachialis
-  - 404_brachioradialis
-  schema_version: 2026-08-12.exercise-v1
-  display_name: Sitzendes Kabelrudern enger Griff
-  name: Sitzendes Kabelrudern enger Griff
+  id: cable_row_close_grip
   search_aliases:
   - Sitzendes Kabelrudern enger Griff
   - Sitzendes enges Kabelrudern
   - Close-Grip Seated Cable Row
   - Narrow-Grip Seated Cable Row
+  category: pull
+  aliases:
+  - Sitzendes enges Kabelrudern
+  - Enges sitzendes Kabelrudern
+  - Narrow-Grip Seated Cable Row
+  - Close-Grip Cable Row
+  - Close-Neutral Seated Cable Row
+  english: Close-Grip Seated Cable Row
+  display_name: Sitzendes Kabelrudern enger Griff
+  review_state:
+    status: approved
+  type: compound
+  equipment:
+  - cable
+  schema_version: 2026-08-12.exercise-v1
+  german: Sitzendes Kabelrudern enger Griff
+  common_errors:
+  - Den Oberkoerper nach hinten werfen, um das Gewicht mit Schwung statt mit Rueckenmuskulatur
+    zu bewegen.
+  - Die Ellbogen nach aussen auffaechern, wodurch aus dem engen Rudern eher eine breit
+    gefuehrte Zugvariante wird.
+  - Die Schultern nach oben ziehen und Spannung im Nacken aufbauen statt die Schulterblaetter
+    kontrolliert nach hinten zu bewegen.
+  - Nur mit den Armen ziehen und die Schulterblattbewegung fast komplett weglassen.
+  - Am Endpunkt zu kurz bleiben und weder Ellbogen noch Schulterblaetter voll nach
+    hinten fuehren.
+  - In der Rueckfuehrung das Gewicht fallen lassen und dadurch Spannung, Position
+    und Bewegungsqualitaet verlieren.
+  - Mit gebeugten Handgelenken oder abgeknicktem Unterarm ziehen statt den Griff neutral
+    und stabil zu fuehren.
+  source: approved
+  movements:
+  - horizontal
+  - shoulder_extension
+  - scapular_retraction
+  - elbow_flexion
+  - close_grip
+  - neutral_grip
 - german: French Press
   category: push
   _hash: a2f70b0afc23e5b0b24444cccad081e7
