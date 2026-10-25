@@ -1,35 +1,10 @@
 name: approved_from_firebase
 description: Coach-approved via Firebase Inbox
 exercises:
-- german: Klimmzug im Obergriff
-  category: pull
-  _hash: ca0502729ca8a8da6745ff2289218fa2
-  type: compound
-  equipment:
-  - bodyweight
-  - pull_up_bar
-  common_errors:
-  - Mit Kipping, Beinschwung oder Hüftschwung arbeiten statt jede Wiederholung aus
-    dem Hang kontrolliert einzuleiten.
-  - Aus einem passiven Hang hart anziehen, ohne zuerst Spannung im Schultergürtel
-    aufzubauen.
-  - Die Schultern zu den Ohren ziehen und damit Scapula-Depression und stabile Schultermechanik
-    zu verlieren.
-  - Nur das Kinn irgendwie über die Stange bringen, während Brustkorb, Schulterposition
-    und Zuglinie kollabieren.
-  - 'Halbe Wiederholungen machen: unten nicht ausstrecken oder oben zu früh abbrechen.'
-  - Den Kopf nach vorne zur Stange schieben statt den Körper zur Stange zu ziehen.
-  - Ins Hohlkreuz fallen oder die Rippen aufklappen lassen, wodurch der Rumpf instabil
-    wird und die Kraftübertragung leidet.
-  - Zu breit greifen und dadurch ROM, Schultermechanik und saubere Ellbogenführung
-    unnötig verschlechtern.
-  movements:
-  - vertical
-  - shoulder_adduction
-  - shoulder_extension
-  - elbow_flexion
-  - scapular_depression
-  - scapular_downward_rotation
+- type: compound
+  wger_muscle_ids:
+    primary: []
+    secondary: []
   variations:
   - assisted_pull_up
   - band_assisted_pull_up
@@ -37,60 +12,35 @@ exercises:
   - wide_grip_pull_up
   - neutral_grip_pull_up
   - scapular_pull_up
-  aliases:
-  - Klimmzug
-  - Klimmzüge
-  - Klimmzug Obergriff
-  - Klimmzug im Obergriff
-  - Obergriff Klimmzug
-  - Pull-up
-  - Pull-up (Overhand Grip)
-  - Pull Up
-  - Pull Ups
-  - Pull-Up
-  - Pull-Ups
-  - Standard Pull-up
-  - Pronated Pull-up
-  tags:
-  - expert
-  - back
-  - pull
-  - bodyweight
-  - calisthenics
-  - vertical_pull
-  - grip_strength
+  name: Klimmzug im Obergriff
+  stabilizers:
+  - 304_rotator_cuff
+  - 405_forearm_flexors
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  - 206_erector_spinae
+  - 507_multifidus
   exercise_id: '020'
-  external_ids:
-    wger:
-    - 821
-    yuhonas:
-    - Pullups
-  display_name: Klimmzug im Obergriff
-  wger_id: 821
-  primary_muscles:
-  - 201_latissimus_dorsi
-  - 207_teres_major
-  source: approved
+  secondary_muscles:
+  - 202c_trapezius_lower
+  - 202b_trapezius_middle
+  - 205_rhomboids
+  - 402_biceps_brachii
+  - 403_brachialis
+  - 404_brachioradialis
   origin:
+    wger:
+      wger_muscle_ids:
+        primary: []
+        secondary: []
+      wger_id: 821
     source_refs:
       wger:
       - '821'
       yuhonas:
       - Pullups
-    type: merged_external
-    wger:
-      wger_muscle_ids:
-        secondary: []
-        primary: []
-      wger_id: 821
     yuhonas:
-      yuhonas_id: Pullups
-      category: strength
-      equipment:
-      - body only
-      secondary_muscles:
-      - biceps
-      - middle_back
+      display_name: Pullups
       coaching_notes:
       - 'Grab the pull-up bar with the palms facing forward using the prescribed grip.
         Note on grips: For a wide grip, your hands need to be spaced out at a distance
@@ -111,24 +61,31 @@ exercises:
         your torso back to the starting position when your arms are fully extended
         and the lats are fully stretched.
       - Repeat this motion for the prescribed amount of repetitions.
+      secondary_muscles:
+      - biceps
+      - middle_back
+      exercise_id: yuhonas_pullups
       tags:
       - unreviewed
       - yuhonas
-      exercise_id: yuhonas_pullups
+      yuhonas_id: Pullups
+      equipment:
+      - body only
       wger_muscle_ids:
-        secondary: []
         primary: []
-      display_name: Pullups
+        secondary: []
       primary_muscles:
       - lats
-  stabilizers:
-  - 304_rotator_cuff
-  - 405_forearm_flexors
-  - 504_transverse_abdominis
-  - 501_rectus_abdominis
-  - 206_erector_spinae
-  - 507_multifidus
-  id: '020'
+      category: strength
+    type: merged_external
+  tags:
+  - expert
+  - back
+  - pull
+  - bodyweight
+  - calisthenics
+  - vertical_pull
+  - grip_strength
   coaching_notes:
   - 'Starte aus einem aktiven Hang: Hals lang, Rippen unten, Schulterblätter zuerst
     sanft nach unten setzen statt passiv in den Schultern zu hängen.'
@@ -146,20 +103,12 @@ exercises:
     Schulterkontrolle, Kraftaufbau und Positionsgefühl im Hang.
   - Der Obergriff verlagert die Belastung etwas stärker auf Latissimus, Teres major
     und oberen Rücken und etwas weniger auf den Bizeps als beim Chin-Up.
-  secondary_muscles:
-  - 202c_trapezius_lower
-  - 202b_trapezius_middle
-  - 205_rhomboids
-  - 402_biceps_brachii
-  - 403_brachialis
-  - 404_brachioradialis
-  english: Pull-Up
-  wger_muscle_ids:
-    secondary: []
-    primary: []
-  schema_version: 2026-08-12.exercise-v1
-  review_state:
-    status: approved
+  _hash: ca0502729ca8a8da6745ff2289218fa2
+  external_ids:
+    wger:
+    - 821
+    yuhonas:
+    - Pullups
   search_aliases:
   - Pullups
   - yuhonas_pullups
@@ -167,7 +116,58 @@ exercises:
   - wger_821
   - Klimmzug im Obergriff
   - Pull-Up
-  name: Klimmzug im Obergriff
+  id: '020'
+  category: pull
+  aliases:
+  - Klimmzug
+  - Klimmzüge
+  - Klimmzug Obergriff
+  - Klimmzug im Obergriff
+  - Obergriff Klimmzug
+  - Pull-up
+  - Pull-up (Overhand Grip)
+  - Pull Up
+  - Pull Ups
+  - Pull-Up
+  - Pull-Ups
+  - Standard Pull-up
+  - Pronated Pull-up
+  english: Pull-Up
+  display_name: Klimmzug im Obergriff
+  wger_id: 821
+  review_state:
+    status: approved
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 207_teres_major
+  equipment:
+  - bodyweight
+  - pull_up_bar
+  german: Klimmzug im Obergriff
+  schema_version: 2026-08-12.exercise-v1
+  common_errors:
+  - Mit Kipping, Beinschwung oder Hüftschwung arbeiten statt jede Wiederholung aus
+    dem Hang kontrolliert einzuleiten.
+  - Aus einem passiven Hang hart anziehen, ohne zuerst Spannung im Schultergürtel
+    aufzubauen.
+  - Die Schultern zu den Ohren ziehen und damit Scapula-Depression und stabile Schultermechanik
+    zu verlieren.
+  - Nur das Kinn irgendwie über die Stange bringen, während Brustkorb, Schulterposition
+    und Zuglinie kollabieren.
+  - 'Halbe Wiederholungen machen: unten nicht ausstrecken oder oben zu früh abbrechen.'
+  - Den Kopf nach vorne zur Stange schieben statt den Körper zur Stange zu ziehen.
+  - Ins Hohlkreuz fallen oder die Rippen aufklappen lassen, wodurch der Rumpf instabil
+    wird und die Kraftübertragung leidet.
+  - Zu breit greifen und dadurch ROM, Schultermechanik und saubere Ellbogenführung
+    unnötig verschlechtern.
+  source: approved
+  movements:
+  - vertical
+  - shoulder_adduction
+  - shoulder_extension
+  - elbow_flexion
+  - scapular_depression
+  - scapular_downward_rotation
 - german: Außenrotation am Kabelzug
   category: pull
   _hash: da9f6916ef56a9099e40d3d117ddd078
