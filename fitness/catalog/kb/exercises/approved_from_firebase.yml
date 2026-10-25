@@ -2185,64 +2185,20 @@ exercises:
   - isometric_elbow_flexion
   - isometric_trunk_stabilization
   - cable
-- german: Kabel-Crossover über Kreuz
-  category: push
-  _hash: 7a7dc68e51143901b658b7d2fc3fa846
-  type: isolation
-  equipment:
-  - cable
-  common_errors:
-  - Zu hohes Gewicht, wodurch die Ellbogen zunehmend strecken und die Übung eher zu
-    einem Trizepsdrücken als zu einer Brustisolation wird.
-  - Die Schultern wandern nach oben oder nach vorn, was die Belastung aus der Brust
-    in den Nacken und die vordere Schulter verschiebt.
-  - Zu kurze Bewegungsamplitude, bei der weder eine saubere Dehnung in der Startposition
-    noch eine volle Kontraktion in der Endposition erreicht wird.
-  - Schwung aus Oberkörper oder Hüfte, statt die Wiederholung kontrolliert aus dem
-    Schultergelenk zu führen.
-  - Zu starkes Beugen oder Verändern des Ellbogenwinkels während der Wiederholung,
-    wodurch die Belastung unnötig auf Arme und Gelenke verlagert wird.
-  - Die exzentrische Phase wird fallen gelassen, sodass Spannung, Kontrolle und Dehnungsreiz
-    in der Brust verloren gehen.
-  - Der Kopf schiebt nach vorn oder der untere Rücken wird überstreckt, weil die Rumpfspannung
-    und Standstabilität fehlen.
-  movements:
-  - horizontal_adduction
-  - scapular_protraction
-  - isometric_core_stability
-  - cable
-  - peak_contraction
-  displayName: Kabel-Crossover über Kreuz
-  name: Inner-X-Cable-Cross
-  tags:
-  - chest_isolation
-  - cable_workout
-  - muscle_building
-  - chest
-  - horizontal_adduction
-  - peak_contraction
-  - cross_body
-  exercise_id: cable_crossover_inner_x
-  variations: []
-  aliases:
-  - Cable Crossover
-  - Cross Cable Fly
-  - Kabel-Fly über Kreuz
-  - Überkreuztes Cable Crossover
+- _hash: 7a7dc68e51143901b658b7d2fc3fa846
   primary_muscles:
   - 101_pectoralis_major
-  source: approved
   secondaryMuscles:
   - 301_anterior_deltoid
+  variations: []
+  stabilizers:
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
   origin:
-    type: manual
-    source_refs: {}
     wger:
-      german: Omni Cable Crossover
-      category: chest
-      equipment:
-      - sz-bar
-      secondary_muscles: []
+      wger_id: 1440
       coaching_notes:
       - 'Passe die Gewichte je nach
 
@@ -2286,34 +2242,25 @@ exercises:
         du
 
         beide Brustbereiche effektiv ansprichst.'
+      secondary_muscles: []
+      exercise_id: wger_1440
       tags:
       - unreviewed
       - wger
-      exercise_id: wger_1440
+      equipment:
+      - sz-bar
+      display_name: Omni Cable Crossover
       wger_muscle_ids:
-        secondary: []
         primary:
         - 4
-      display_name: Omni Cable Crossover
-      wger_id: 1440
+        secondary: []
       primary_muscles:
       - 101_pectoralis_major
+      german: Omni Cable Crossover
+      category: chest
+    type: manual
     yuhonas:
-      primary_muscles:
-      - chest
-      category: strength
-      equipment:
-      - cable
-      secondary_muscles:
-      - shoulders
       display_name: Cable Crossover
-      tags:
-      - unreviewed
-      - yuhonas
-      exercise_id: yuhonas_cable_crossover
-      wger_muscle_ids:
-        secondary: []
-        primary: []
       coaching_notes:
       - To get yourself into the starting position, place the pulleys on a high position
         (above your head), select the resistance to be used and hold the pulleys in
@@ -2331,14 +2278,33 @@ exercises:
         to use the same arc of motion used to lower the weights.
       - Hold for a second at the starting position and repeat the movement for the
         prescribed amount of repetitions.
+      secondary_muscles:
+      - shoulders
+      exercise_id: yuhonas_cable_crossover
+      tags:
+      - unreviewed
+      - yuhonas
       yuhonas_id: Cable_Crossover
-  stabilizers:
-  - 304_rotator_cuff
-  - 504_transverse_abdominis
-  - 502_obliquus_externus
-  - 503_obliquus_internus
+      primary_muscles:
+      - chest
+      wger_muscle_ids:
+        primary: []
+        secondary: []
+      equipment:
+      - cable
+      category: strength
+    source_refs: {}
   secondary_muscles:
   - 301_anterior_deltoid
+  exercise_id: cable_crossover_inner_x
+  tags:
+  - chest_isolation
+  - cable_workout
+  - muscle_building
+  - chest
+  - horizontal_adduction
+  - peak_contraction
+  - cross_body
   coaching_notes:
   - Stelle die Kabelrollen etwa auf Schulterhöhe ein, gehe mittig zwischen die Türme
     und nimm einen versetzten, stabilen Stand ein.
@@ -2354,11 +2320,7 @@ exercises:
     ohne dass die Gewichte absetzen oder dich nach hinten ziehen.
   - Wähle ein Gewicht, bei dem du die Zugbahn sauber halten kannst und die Spannung
     durchgehend in der Brust statt im vorderen Schulterbereich spürst.
-  review_state:
-    status: approved
-  english: Cross-Body Cable Crossover
-  display_name: Kabel-Crossover über Kreuz
-  schema_version: 2026-08-12.exercise-v1
+  displayName: Kabel-Crossover über Kreuz
   id: cable_crossover_inner_x
   search_aliases:
   - Kabel-Crossover über Kreuz
@@ -2366,8 +2328,46 @@ exercises:
   - Cable Crossover
   - Kabel-Fly über Kreuz
   - Inner-X-Cable-Cross
+  name: Inner-X-Cable-Cross
+  category: push
   primaryMuscles:
   - 101_pectoralis_major
+  english: Cross-Body Cable Crossover
+  aliases:
+  - Cable Crossover
+  - Cross Cable Fly
+  - Kabel-Fly über Kreuz
+  - Überkreuztes Cable Crossover
+  display_name: Kabel-Crossover über Kreuz
+  review_state:
+    status: approved
+  type: isolation
+  equipment:
+  - cable
+  german: Kabel-Crossover über Kreuz
+  schema_version: 2026-08-12.exercise-v1
+  common_errors:
+  - Zu hohes Gewicht, wodurch die Ellbogen zunehmend strecken und die Übung eher zu
+    einem Trizepsdrücken als zu einer Brustisolation wird.
+  - Die Schultern wandern nach oben oder nach vorn, was die Belastung aus der Brust
+    in den Nacken und die vordere Schulter verschiebt.
+  - Zu kurze Bewegungsamplitude, bei der weder eine saubere Dehnung in der Startposition
+    noch eine volle Kontraktion in der Endposition erreicht wird.
+  - Schwung aus Oberkörper oder Hüfte, statt die Wiederholung kontrolliert aus dem
+    Schultergelenk zu führen.
+  - Zu starkes Beugen oder Verändern des Ellbogenwinkels während der Wiederholung,
+    wodurch die Belastung unnötig auf Arme und Gelenke verlagert wird.
+  - Die exzentrische Phase wird fallen gelassen, sodass Spannung, Kontrolle und Dehnungsreiz
+    in der Brust verloren gehen.
+  - Der Kopf schiebt nach vorn oder der untere Rücken wird überstreckt, weil die Rumpfspannung
+    und Standstabilität fehlen.
+  source: approved
+  movements:
+  - horizontal_adduction
+  - scapular_protraction
+  - isometric_core_stability
+  - cable
+  - peak_contraction
 - german: Kabel-Crossover von unten nach oben
   displayName: Kabel-Crossover von unten nach oben
   _hash: efad7f694087aea0fcde3332aa84a63a
