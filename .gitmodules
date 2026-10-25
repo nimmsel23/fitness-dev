@@ -1,7 +1,7 @@
 [submodule "plan"]
 	path = plan
 	url = git@github.com:nimmsel23/plan-dev.git
-	branch = dev
+	branch = fitness
 [submodule "6pack"]
 	path = 6pack
 	url = git@github.com:nimmsel23/6pack-dev.git
