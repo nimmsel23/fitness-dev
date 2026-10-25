@@ -23,6 +23,7 @@ import { enableSixpackPush } from '../../lib/sixpackPush.js';
 import { useSessionGateLifecycle } from './useSessionGateLifecycle.js';
 import { logWorkoutAsSession } from '../../lib/logExternalWorkout.js';
 import SessionModeTabs from './SessionModeTabs.jsx';
+import SixPackFrame from './SixPackFrame.jsx';
 import { IS_SOLO } from '../../constants/NavigationItems.js';
 import { ChevronLeft } from 'lucide-react';
 
@@ -107,7 +108,7 @@ export default function Session({
     return (
       <>
         {modeTabs}
-        <Suspense fallback={null}><SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} onWorkoutComplete={handleWorkoutComplete} loadRemoteProgram={loadSixpackProgram} saveRemoteProgram={saveSixpackProgramForUid} enablePush={enableSixpackPush} /></Suspense>
+        <SixPackFrame><Suspense fallback={null}><SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} onWorkoutComplete={handleWorkoutComplete} loadRemoteProgram={loadSixpackProgram} saveRemoteProgram={saveSixpackProgramForUid} enablePush={enableSixpackPush} /></Suspense></SixPackFrame>
       </>
     );
   }
