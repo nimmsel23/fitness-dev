@@ -21,9 +21,14 @@ module.exports = {
   content: [
     "./index.html",
     "./src/**/*.{js,jsx,ts,tsx}",
-    // Explizite View-Pfade dokumentieren die integrierten Tab-Quellen.
-    "./src/views/SixPack/*.{js,jsx,ts,tsx}",
-    "./src/views/Skills/*.{js,jsx,ts,tsx}",
+    // Plan, 6Pack und Skills kommen als Submodule (src/views/{Plan,SixPack,Skills}
+    // sind nicht mehr eingecheckt) — ihre Klassen müssen direkt aus dem Checkout gescannt werden.
+    "./plan/src/views/Plan/**/*.{js,jsx,ts,tsx}",
+    "./6pack/**/*.{js,jsx,ts,tsx}",
+    "./Skills/**/*.{js,jsx,ts,tsx}",
+    "!./6pack/node_modules/**",
+    "!./6pack/android/**",
+    "!./Skills/node_modules/**",
     siblingGlob("journal-dev", "journal-app"),
     siblingGlob("habits-dev", "habit-app"),
     siblingGlob("learn-dev", "learn-app"),

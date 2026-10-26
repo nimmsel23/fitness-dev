@@ -6,7 +6,7 @@ import vm from 'node:vm';
 import { webcrypto } from 'node:crypto';
 import { transformWithEsbuild } from 'vite';
 
-const file = new URL(process.env.SIXPACK_GALLERY_FILE || '../src/views/SixPack/SelfiesGallery.jsx', import.meta.url);
+const file = new URL(process.env.SIXPACK_GALLERY_FILE || '../6pack/SelfiesGallery.jsx', import.meta.url);
 const source = (await readFile(file, 'utf8')).replace('import.meta.env.VITE_SIXPACK_API_BASE', "''");
 const { code } = await transformWithEsbuild(source, file.pathname, { loader: 'jsx', format: 'cjs', jsxFactory: 'h' });
 function harness({ online = true, quota = false, corrupt = false } = {}) {

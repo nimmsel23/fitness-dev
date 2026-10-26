@@ -1,6 +1,6 @@
 /* Dark Themes */
-@import "./views/SixPack/sixpack.css";
-@import "./views/Skills/skills.css";
+@import "../6pack/sixpack.css";
+@import "../Skills/skills.css";
 @import "./styles/themes/nordic.css";
 @import "./styles/themes/dracula.css";
 @import "./styles/themes/mocha.css";
