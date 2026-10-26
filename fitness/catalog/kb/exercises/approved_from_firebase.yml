@@ -340,94 +340,12 @@ exercises:
   - Beenden Sie die Wiederholung dort, wo Sie die Außenrotation noch ohne Schulterhochziehen,
     Hohlkreuz oder Ellbogenverlust sauber kontrollieren können.
   id: cable_external_rotation
-- _hash: 3b9e96dc59b29bd6af23e0b4d515d695
-  equipment:
-  - barbell
-  variations: []
-  name: Snatch
-  stabilizers:
-  - 304_rotator_cuff
-  - 105_serratus_anterior
-  - 501_rectus_abdominis
-  - 502_obliquus_externus
-  - 503_obliquus_internus
-  - 504_transverse_abdominis
-  - 507_multifidus
-  - 608_gluteus_medius
-  - 609_gluteus_minimus
-  exercise_id: clean_snatch
-  secondary_muscles:
-  - 604a_biceps_femoris
-  - 604b_semitendinosus
-  - 604c_semimembranosus
-  - 206_erector_spinae
-  - 201_latissimus_dorsi
-  - 301_anterior_deltoid
-  - 302_lateral_deltoid
-  - 202b_trapezius_middle
-  - 202c_trapezius_lower
-  coaching_notes:
-  - 'Starte mit dem ganzen Fuß im Druck und halte den Oberkörper über dem ersten Zug
-    ruhig: Die Hüfte und Schultern steigen zunächst gemeinsam, damit der Rückenwinkel
-    bis knapp über das Knie stabil bleibt.'
-  - Führe die Stange im ersten und zweiten Zug eng am Körper nach oben. Aktive Lat-Spannung
-    hält die Bahn vertikal und verhindert, dass die Hantel nach vorn wegschwingt.
-  - Beschleunige nicht zu früh mit den Armen. Erst wenn Hüfte, Knie und Sprunggelenk
-    explosiv gestreckt sind, folgt der aktive Zug nach oben und unmittelbar danach
-    das schnelle Untertauchen unter die Stange.
-  - Denke beim Umsetzen unter die Hantel nicht an 'hochziehen', sondern an 'schnell
-    nach unten'. Der erfolgreiche Snatch wird vor allem durch präzises Timing und
-    aggressives Unterziehen entschieden, nicht durch Armkraft.
-  - Fange die Hantel mit aktivem Lockout, nach oben rotierenden Schulterblättern und
-    stabilem Rumpf. Die Achseln zeigen leicht nach vorn, damit Schultergürtel und
-    Rotatorenmanschette die Überkopfposition sicher verriegeln.
-  - Im Catch sofort Spannung in Rumpf und Hüfte halten und die Tiefe kontrolliert
-    annehmen. Eine stabile tiefe Überkopfkniebeuge ist Teil der Zielposition, nicht
-    nur das Ende des Abfangens.
-  - Stehe aus der tiefen Position erst auf, wenn die Hantel vollständig kontrolliert
-    über dem Mittelfuß balanciert ist. Priorität hat Stabilität über der Körpermitte,
-    nicht das übereilte Aufrichten.
-  tags:
-  - olympic_lift
-  - explosive
-  - power
-  - full_body
-  - strength
-  - weightlifting
-  - posterior_chain
-  - legs
-  - olympic_pull
-  - unreviewed
+- id: clean_snatch
   origin:
-    wger:
-      display_name: Reißen (Snatch)
-      coaching_notes:
-      - Stelle dich mit hüftbreitem Stand und den Schienbeinen an der Stange auf.
-        Greife die Stange im doppelten Schulterbreiten-Abstand und drücke, während
-        du den unteren Rücken gerade hältst, die Fersen in den Boden, um die Stange
-        anzuheben. Wenn sie über deinen Knien ist, streckst du explosiv die Hüfte
-        und ziehst die Schultern hoch. Lass den Schwung das Gewicht über den Kopf
-        tragen.
-      secondary_muscles: []
-      wger_id: 599
-      tags:
-      - unreviewed
-      - wger
-      primary_muscles:
-      - 301_anterior_deltoid
+    yuhonas:
+      yuhonas_id: Snatch
       equipment:
       - barbell
-      wger_muscle_ids:
-        primary:
-        - 2
-        secondary: []
-      german: Reißen (Snatch)
-      exercise_id: wger_599
-      category: shoulders
-    source_refs: {}
-    yuhonas:
-      display_name: Snatch
-      exercise_id: yuhonas_snatch
       secondary_muscles:
       - biceps
       - glutes
@@ -436,6 +354,13 @@ exercises:
       - shoulders
       - traps
       - triceps
+      tags:
+      - unreviewed
+      - yuhonas
+      wger_muscle_ids:
+        primary: []
+        secondary: []
+      exercise_id: yuhonas_snatch
       coaching_notes:
       - Place your feet at a shoulder width stance with the barbell resting right
         above the connection between the toes and the rest of the foot.
@@ -457,47 +382,68 @@ exercises:
       - Finalize the movement by rising up out of the squat position to finish the
         lift. At the end of the lift both feet should be on line and the arms fully
         extended holding the barbell overhead.
-      tags:
-      - unreviewed
-      - yuhonas
+      display_name: Snatch
+      category: olympic weightlifting
       primary_muscles:
       - quadriceps
+    type: manual
+    wger:
       equipment:
       - barbell
+      secondary_muscles: []
+      tags:
+      - unreviewed
+      - wger
       wger_muscle_ids:
-        primary: []
+        primary:
+        - 2
         secondary: []
-      yuhonas_id: Snatch
-      category: olympic weightlifting
-    type: manual
-  id: clean_snatch
-  search_aliases:
-  - Reißen
-  - Reissen
-  - Snatch
-  - Olympic Snatch
-  - Full Snatch
-  - Squat Snatch
-  - Clean Snatch
-  category: pull
-  aliases:
-  - Olympic Snatch
-  - Full Snatch
-  - Squat Snatch
-  - Reissen
-  english: Snatch
-  wger_id: null
-  display_name: Reißen
-  review_state:
-    status: approved
-  type: compound
-  primary_muscles:
-  - 601_quadriceps_femoris
-  - 603_gluteus_maximus
-  - 202a_trapezius_upper
-  - 701_gastrocnemius
-  schema_version: 2026-08-12.exercise-v1
-  german: Reißen
+      german: Reißen (Snatch)
+      exercise_id: wger_599
+      coaching_notes:
+      - Stelle dich mit hüftbreitem Stand und den Schienbeinen an der Stange auf.
+        Greife die Stange im doppelten Schulterbreiten-Abstand und drücke, während
+        du den unteren Rücken gerade hältst, die Fersen in den Boden, um die Stange
+        anzuheben. Wenn sie über deinen Knien ist, streckst du explosiv die Hüfte
+        und ziehst die Schultern hoch. Lass den Schwung das Gewicht über den Kopf
+        tragen.
+      display_name: Reißen (Snatch)
+      category: shoulders
+      wger_id: 599
+      primary_muscles:
+      - 301_anterior_deltoid
+    source_refs: {}
+  stabilizers:
+  - 304_rotator_cuff
+  - 105_serratus_anterior
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 504_transverse_abdominis
+  - 507_multifidus
+  - 608_gluteus_medius
+  - 609_gluteus_minimus
+  secondary_muscles:
+  - 604a_biceps_femoris
+  - 604b_semitendinosus
+  - 604c_semimembranosus
+  - 206_erector_spinae
+  - 201_latissimus_dorsi
+  - 301_anterior_deltoid
+  - 302_lateral_deltoid
+  - 202b_trapezius_middle
+  - 202c_trapezius_lower
+  tags:
+  - olympic_lift
+  - explosive
+  - power
+  - full_body
+  - strength
+  - weightlifting
+  - posterior_chain
+  - legs
+  - olympic_pull
+  - unreviewed
   common_errors:
   - Die Hüfte schießt direkt vom Boden nach oben, während die Schultern zurückbleiben.
     Dadurch verlierst du den Beindruck im ersten Zug und die Stange driftet früh nach
@@ -517,7 +463,11 @@ exercises:
     kontrollierbar.
   - Der Blick geht zu früh hoch oder der Brustkorb kollabiert in der tiefen Position.
     Beides verschlechtert die Rumpfspannung und destabilisiert die Hantel über Kopf.
-  source: approved
+  _hash: 3b9e96dc59b29bd6af23e0b4d515d695
+  schema_version: 2026-08-12.exercise-v1
+  display_name: Reißen
+  category: pull
+  wger_id: null
   movements:
   - olympic_pull
   - triple_extension
@@ -530,6 +480,56 @@ exercises:
   - shoulder_abduction
   - scapular_upward_rotation
   - overhead_stability
+  type: compound
+  review_state:
+    status: approved
+  equipment:
+  - barbell
+  variations: []
+  primary_muscles:
+  - 601_quadriceps_femoris
+  - 603_gluteus_maximus
+  - 202a_trapezius_upper
+  - 701_gastrocnemius
+  english: Snatch
+  search_aliases:
+  - Reißen
+  - Reissen
+  - Snatch
+  - Olympic Snatch
+  - Full Snatch
+  - Squat Snatch
+  - Clean Snatch
+  aliases:
+  - Olympic Snatch
+  - Full Snatch
+  - Squat Snatch
+  - Reissen
+  german: Reißen
+  exercise_id: clean_snatch
+  source: approved
+  coaching_notes:
+  - 'Starte mit dem ganzen Fuß im Druck und halte den Oberkörper über dem ersten Zug
+    ruhig: Die Hüfte und Schultern steigen zunächst gemeinsam, damit der Rückenwinkel
+    bis knapp über das Knie stabil bleibt.'
+  - Führe die Stange im ersten und zweiten Zug eng am Körper nach oben. Aktive Lat-Spannung
+    hält die Bahn vertikal und verhindert, dass die Hantel nach vorn wegschwingt.
+  - Beschleunige nicht zu früh mit den Armen. Erst wenn Hüfte, Knie und Sprunggelenk
+    explosiv gestreckt sind, folgt der aktive Zug nach oben und unmittelbar danach
+    das schnelle Untertauchen unter die Stange.
+  - Denke beim Umsetzen unter die Hantel nicht an 'hochziehen', sondern an 'schnell
+    nach unten'. Der erfolgreiche Snatch wird vor allem durch präzises Timing und
+    aggressives Unterziehen entschieden, nicht durch Armkraft.
+  - Fange die Hantel mit aktivem Lockout, nach oben rotierenden Schulterblättern und
+    stabilem Rumpf. Die Achseln zeigen leicht nach vorn, damit Schultergürtel und
+    Rotatorenmanschette die Überkopfposition sicher verriegeln.
+  - Im Catch sofort Spannung in Rumpf und Hüfte halten und die Tiefe kontrolliert
+    annehmen. Eine stabile tiefe Überkopfkniebeuge ist Teil der Zielposition, nicht
+    nur das Ende des Abfangens.
+  - Stehe aus der tiefen Position erst auf, wenn die Hantel vollständig kontrolliert
+    über dem Mittelfuß balanciert ist. Priorität hat Stabilität über der Körpermitte,
+    nicht das übereilte Aufrichten.
+  name: Snatch
 - type: compound
   _hash: 92c3f8582258be5bba167caa93268a95
   name: Face Pull
