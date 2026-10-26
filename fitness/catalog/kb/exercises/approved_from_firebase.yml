@@ -1691,56 +1691,32 @@ exercises:
     ohne die Spannung in Schultergürtel und Rumpf zu verlieren.
   - Senke dich kontrolliert in die volle Ellbogenstreckung zurück und nutze die exzentrische
     Phase bewusst, statt unten einfach in die passive Schulterposition zu fallen.
-- equipment:
-  - barbell
-  - squat_rack
-  _hash: 68e1b750dd9061083639ff3b8a63144d
-  name: Frontkniebeuge
-  wger_muscle_ids:
-    primary:
-    - 10
-    secondary:
-    - 8
-    - 6
-  stabilizers:
-  - 504_transverse_abdominis
-  - 501_rectus_abdominis
-  - 507_multifidus
-  - 505_quadratus_lumborum
-  - 206_erector_spinae
-  - 202a_trapezius_upper
-  - 202b_trapezius_middle
-  - 202c_trapezius_lower
-  - 205_rhomboids
-  - 301_anterior_deltoid
-  - 304_rotator_cuff
-  - 608_gluteus_medius
-  - 609_gluteus_minimus
-  - 702_soleus
-  - 701_gastrocnemius
-  exercise_id: '061'
-  secondary_muscles:
-  - 603_gluteus_maximus
-  - 602_adductors
+- id: '061'
   origin:
     wger:
+      wger_id: 257
       wger_muscle_ids:
         primary:
         - 10
         secondary:
         - 8
         - 6
-      wger_id: 257
-    source_refs:
-      wger:
-      - '257'
+    type: external
     yuhonas:
-      display_name: Front Barbell Squat
-      exercise_id: yuhonas_front_barbell_squat
+      yuhonas_id: Front_Barbell_Squat
+      equipment:
+      - barbell
       secondary_muscles:
       - calves
       - glutes
       - hamstrings
+      tags:
+      - unreviewed
+      - yuhonas
+      wger_muscle_ids:
+        primary: []
+        secondary: []
+      exercise_id: yuhonas_front_barbell_squat
       coaching_notes:
       - This exercise is best performed inside a squat rack for safety purposes. To
         begin, first set the bar on a rack that best matches your height. Once the
@@ -1770,80 +1746,33 @@ exercises:
         middle of your foot as you straighten the legs again and go back to the starting
         position.
       - Repeat for the recommended amount of repetitions.
-      tags:
-      - unreviewed
-      - yuhonas
+      display_name: Front Barbell Squat
       primary_muscles:
       - quadriceps
-      yuhonas_id: Front_Barbell_Squat
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      equipment:
-      - barbell
       category: strength
-    type: external
-  tags:
-  - expert
-  - legs
-  - squat
-  - compound
-  - quad_dominant
-  - strength
-  - front_rack
-  coaching_notes:
-  - 'Baue zuerst ein sauberes Front-Rack: Stange liegt auf den vorderen Schultern,
-    nicht in den Händen; Ellbogen aktiv nach vorne-oben führen.'
-  - Atme tief in Bauch und Flanken ein und spanne den Rumpf vor jeder Wiederholung
-    hart an, damit der Oberkörper aufrecht bleibt.
-  - Setze dich zwischen die Hüften, während die Knie kontrolliert nach vorne über
-    die Zehen reisen; so bleibt die Last mittig über dem Fuß.
-  - Halte den Druck über Mittelfuß bis Ferse, ohne die Zehen zu verlieren; der ganze
-    Fuß bleibt belastet.
-  - Denke an Brustbein hoch und oberen Rücken lang, damit die Stange nicht nach vorne
-    abrollt.
-  - Gehe nur so tief, wie du Spannung, neutrale Wirbelsäule und stabile Fußposition
-    halten kannst.
-  - Drücke aus dem tiefsten Punkt gleichzeitig Boden weg und Ellbogen hoch, statt
-    die Hüfte zuerst nach hinten schießen zu lassen.
-  - Wenn Mobilität limitiert ist, priorisiere eine stabile Front-Rack- und Sprunggelenksposition
-    vor zusätzlicher Last.
-  variations:
-  - goblet_squat
-  - cross_grip_front_squat
-  - dumbbell_front_squat
-  - double_kettlebell_front_squat
-  external_ids:
-    wger:
-    - 257
-  search_aliases:
-  - front_squat
-  - barbell_front_squat
-  - front kniebeuge
-  - frontkniebeuge
-  - frontbeuge
-  - wger_257
-  - Frontkniebeuge
-  - Front Squat
-  id: '061'
-  category: squat
-  aliases:
-  - Front Squat
-  - Barbell Front Squat
-  - Frontbeuge
-  - Frontbeugen
-  - Front-Kniebeuge
-  - Vordere Kniebeuge
-  english: Front Squat
-  display_name: Frontkniebeuge
-  wger_id: 257
-  review_state:
-    status: approved
-  type: compound
-  primary_muscles:
-  - 601_quadriceps_femoris
-  schema_version: 2026-08-12.exercise-v1
-  german: Frontkniebeuge
+    source_refs:
+      wger:
+      - '257'
+  stabilizers:
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  - 507_multifidus
+  - 505_quadratus_lumborum
+  - 206_erector_spinae
+  - 202a_trapezius_upper
+  - 202b_trapezius_middle
+  - 202c_trapezius_lower
+  - 205_rhomboids
+  - 301_anterior_deltoid
+  - 304_rotator_cuff
+  - 608_gluteus_medius
+  - 609_gluteus_minimus
+  - 702_soleus
+  - 701_gastrocnemius
+  secondary_muscles:
+  - 603_gluteus_maximus
+  - 602_adductors
+  _hash: 68e1b750dd9061083639ff3b8a63144d
   common_errors:
   - Ellbogen sinken ab, wodurch die Stange nach vorne kippt und die Bewegung in eine
     Good-Morning-Mechanik abrutscht.
@@ -1861,7 +1790,28 @@ exercises:
     Knielinie zu halten.
   - Zu frühes Ausatmen in der Aufwärtsphase führt zum Kollaps im Rumpf und zu instabiler
     Stangenbahn.
-  source: approved
+  wger_muscle_ids:
+    primary:
+    - 10
+    secondary:
+    - 8
+    - 6
+  tags:
+  - expert
+  - legs
+  - squat
+  - compound
+  - quad_dominant
+  - strength
+  - front_rack
+  schema_version: 2026-08-12.exercise-v1
+  external_ids:
+    wger:
+    - 257
+  display_name: Frontkniebeuge
+  wger_id: 257
+  primary_muscles:
+  - 601_quadriceps_femoris
   movements:
   - knee_flexion_extension
   - hip_flexion_extension
@@ -1869,6 +1819,56 @@ exercises:
   - front_rack_bracing
   - thoracic_extension
   - spinal_anti_flexion
+  source: approved
+  search_aliases:
+  - front_squat
+  - barbell_front_squat
+  - front kniebeuge
+  - frontkniebeuge
+  - frontbeuge
+  - wger_257
+  - Frontkniebeuge
+  - Front Squat
+  equipment:
+  - barbell
+  - squat_rack
+  review_state:
+    status: approved
+  variations:
+  - goblet_squat
+  - cross_grip_front_squat
+  - dumbbell_front_squat
+  - double_kettlebell_front_squat
+  type: compound
+  category: squat
+  aliases:
+  - Front Squat
+  - Barbell Front Squat
+  - Frontbeuge
+  - Frontbeugen
+  - Front-Kniebeuge
+  - Vordere Kniebeuge
+  german: Frontkniebeuge
+  exercise_id: '061'
+  english: Front Squat
+  coaching_notes:
+  - 'Baue zuerst ein sauberes Front-Rack: Stange liegt auf den vorderen Schultern,
+    nicht in den Händen; Ellbogen aktiv nach vorne-oben führen.'
+  - Atme tief in Bauch und Flanken ein und spanne den Rumpf vor jeder Wiederholung
+    hart an, damit der Oberkörper aufrecht bleibt.
+  - Setze dich zwischen die Hüften, während die Knie kontrolliert nach vorne über
+    die Zehen reisen; so bleibt die Last mittig über dem Fuß.
+  - Halte den Druck über Mittelfuß bis Ferse, ohne die Zehen zu verlieren; der ganze
+    Fuß bleibt belastet.
+  - Denke an Brustbein hoch und oberen Rücken lang, damit die Stange nicht nach vorne
+    abrollt.
+  - Gehe nur so tief, wie du Spannung, neutrale Wirbelsäule und stabile Fußposition
+    halten kannst.
+  - Drücke aus dem tiefsten Punkt gleichzeitig Boden weg und Ellbogen hoch, statt
+    die Hüfte zuerst nach hinten schießen zu lassen.
+  - Wenn Mobilität limitiert ist, priorisiere eine stabile Front-Rack- und Sprunggelenksposition
+    vor zusätzlicher Last.
+  name: Frontkniebeuge
 - german: Beinstrecken
   common_errors:
   - Zu hohes Trainingsgewicht, sodass die Wiederholung mit Schwung eingeleitet wird
