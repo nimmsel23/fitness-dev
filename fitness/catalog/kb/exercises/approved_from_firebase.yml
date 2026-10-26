@@ -2185,20 +2185,21 @@ exercises:
   - Wähle ein Gewicht, bei dem du den Zielmuskel klar spürst und die exzentrische
     Phase sauber abbremsen kannst.
   id: cable_crossover
-- _hash: 7a7dc68e51143901b658b7d2fc3fa846
-  primary_muscles:
-  - 101_pectoralis_major
-  secondaryMuscles:
-  - 301_anterior_deltoid
-  variations: []
-  stabilizers:
-  - 304_rotator_cuff
-  - 504_transverse_abdominis
-  - 502_obliquus_externus
-  - 503_obliquus_internus
+- name: Inner-X-Cable-Cross
   origin:
     wger:
-      wger_id: 1440
+      equipment:
+      - sz-bar
+      secondary_muscles: []
+      tags:
+      - unreviewed
+      - wger
+      wger_muscle_ids:
+        primary:
+        - 4
+        secondary: []
+      german: Omni Cable Crossover
+      exercise_id: wger_1440
       coaching_notes:
       - 'Passe die Gewichte je nach
 
@@ -2242,25 +2243,25 @@ exercises:
         du
 
         beide Brustbereiche effektiv ansprichst.'
-      secondary_muscles: []
-      exercise_id: wger_1440
-      tags:
-      - unreviewed
-      - wger
-      equipment:
-      - sz-bar
       display_name: Omni Cable Crossover
-      wger_muscle_ids:
-        primary:
-        - 4
-        secondary: []
+      category: chest
       primary_muscles:
       - 101_pectoralis_major
-      german: Omni Cable Crossover
-      category: chest
+      wger_id: 1440
     type: manual
     yuhonas:
-      display_name: Cable Crossover
+      yuhonas_id: Cable_Crossover
+      equipment:
+      - cable
+      secondary_muscles:
+      - shoulders
+      tags:
+      - unreviewed
+      - yuhonas
+      wger_muscle_ids:
+        primary: []
+        secondary: []
+      exercise_id: yuhonas_cable_crossover
       coaching_notes:
       - To get yourself into the starting position, place the pulleys on a high position
         (above your head), select the resistance to be used and hold the pulleys in
@@ -2278,25 +2279,18 @@ exercises:
         to use the same arc of motion used to lower the weights.
       - Hold for a second at the starting position and repeat the movement for the
         prescribed amount of repetitions.
-      secondary_muscles:
-      - shoulders
-      exercise_id: yuhonas_cable_crossover
-      tags:
-      - unreviewed
-      - yuhonas
-      yuhonas_id: Cable_Crossover
+      display_name: Cable Crossover
+      category: strength
       primary_muscles:
       - chest
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      equipment:
-      - cable
-      category: strength
     source_refs: {}
+  stabilizers:
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
   secondary_muscles:
   - 301_anterior_deltoid
-  exercise_id: cable_crossover_inner_x
   tags:
   - chest_isolation
   - cable_workout
@@ -2305,47 +2299,6 @@ exercises:
   - horizontal_adduction
   - peak_contraction
   - cross_body
-  coaching_notes:
-  - Stelle die Kabelrollen etwa auf Schulterhöhe ein, gehe mittig zwischen die Türme
-    und nimm einen versetzten, stabilen Stand ein.
-  - Hebe den Brustkorb an, halte die Schultern tief und hinten organisiert und bewahre
-    während der gesamten Wiederholung eine leichte Ellbogenbeugung.
-  - Führe die Arme in einer weiten Bogenbahn vor dem Körper zusammen, bis sich die
-    Hände leicht überkreuzen und die Brust aktiv maximal verkürzt.
-  - Die Bewegung kommt aus der horizontalen Adduktion im Schultergelenk, nicht aus
-    einem nachdrückenden Strecken der Ellbogen.
-  - Halte die Endposition für einen kurzen Moment, ohne die Schultern nach vorn hochzuziehen,
-    und spanne die Brust bewusst an.
-  - Lass die Griffe kontrolliert und unter Spannung in die gedehnte Position zurückkehren,
-    ohne dass die Gewichte absetzen oder dich nach hinten ziehen.
-  - Wähle ein Gewicht, bei dem du die Zugbahn sauber halten kannst und die Spannung
-    durchgehend in der Brust statt im vorderen Schulterbereich spürst.
-  displayName: Kabel-Crossover über Kreuz
-  id: cable_crossover_inner_x
-  search_aliases:
-  - Kabel-Crossover über Kreuz
-  - Cross-Body Cable Crossover
-  - Cable Crossover
-  - Kabel-Fly über Kreuz
-  - Inner-X-Cable-Cross
-  name: Inner-X-Cable-Cross
-  category: push
-  primaryMuscles:
-  - 101_pectoralis_major
-  english: Cross-Body Cable Crossover
-  aliases:
-  - Cable Crossover
-  - Cross Cable Fly
-  - Kabel-Fly über Kreuz
-  - Überkreuztes Cable Crossover
-  display_name: Kabel-Crossover über Kreuz
-  review_state:
-    status: approved
-  type: isolation
-  equipment:
-  - cable
-  german: Kabel-Crossover über Kreuz
-  schema_version: 2026-08-12.exercise-v1
   common_errors:
   - Zu hohes Gewicht, wodurch die Ellbogen zunehmend strecken und die Übung eher zu
     einem Trizepsdrücken als zu einer Brustisolation wird.
@@ -2361,13 +2314,60 @@ exercises:
     in der Brust verloren gehen.
   - Der Kopf schiebt nach vorn oder der untere Rücken wird überstreckt, weil die Rumpfspannung
     und Standstabilität fehlen.
-  source: approved
+  secondaryMuscles:
+  - 301_anterior_deltoid
+  _hash: 7a7dc68e51143901b658b7d2fc3fa846
+  schema_version: 2026-08-12.exercise-v1
+  display_name: Kabel-Crossover über Kreuz
+  primary_muscles:
+  - 101_pectoralis_major
+  primaryMuscles:
+  - 101_pectoralis_major
   movements:
   - horizontal_adduction
   - scapular_protraction
   - isometric_core_stability
   - cable
   - peak_contraction
+  type: isolation
+  review_state:
+    status: approved
+  equipment:
+  - cable
+  source: approved
+  category: push
+  variations: []
+  search_aliases:
+  - Kabel-Crossover über Kreuz
+  - Cross-Body Cable Crossover
+  - Cable Crossover
+  - Kabel-Fly über Kreuz
+  - Inner-X-Cable-Cross
+  aliases:
+  - Cable Crossover
+  - Cross Cable Fly
+  - Kabel-Fly über Kreuz
+  - Überkreuztes Cable Crossover
+  german: Kabel-Crossover über Kreuz
+  exercise_id: cable_crossover_inner_x
+  displayName: Kabel-Crossover über Kreuz
+  coaching_notes:
+  - Stelle die Kabelrollen etwa auf Schulterhöhe ein, gehe mittig zwischen die Türme
+    und nimm einen versetzten, stabilen Stand ein.
+  - Hebe den Brustkorb an, halte die Schultern tief und hinten organisiert und bewahre
+    während der gesamten Wiederholung eine leichte Ellbogenbeugung.
+  - Führe die Arme in einer weiten Bogenbahn vor dem Körper zusammen, bis sich die
+    Hände leicht überkreuzen und die Brust aktiv maximal verkürzt.
+  - Die Bewegung kommt aus der horizontalen Adduktion im Schultergelenk, nicht aus
+    einem nachdrückenden Strecken der Ellbogen.
+  - Halte die Endposition für einen kurzen Moment, ohne die Schultern nach vorn hochzuziehen,
+    und spanne die Brust bewusst an.
+  - Lass die Griffe kontrolliert und unter Spannung in die gedehnte Position zurückkehren,
+    ohne dass die Gewichte absetzen oder dich nach hinten ziehen.
+  - Wähle ein Gewicht, bei dem du die Zugbahn sauber halten kannst und die Spannung
+    durchgehend in der Brust statt im vorderen Schulterbereich spürst.
+  english: Cross-Body Cable Crossover
+  id: cable_crossover_inner_x
 - schema_version: 2026-08-12.exercise-v1
   common_errors:
   - Zu viel Gewicht, wodurch aus der geführten Fly-Bewegung ein unsauberes Ziehen
