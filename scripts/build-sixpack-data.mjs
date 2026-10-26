@@ -5,11 +5,11 @@
 // vor jedem Dev-Start und Build (predev/prebuild in package.json), damit neue
 // Exercises/Workouts/Skills ohne Code-Änderung auftauchen, sobald sie in der
 // KB liegen.
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import yaml from 'js-yaml';
-import { loadMuscles, exerciseContent } from '../src/views/SixPack/catalogContent.mjs';
+import { loadMuscles, exerciseContent } from '../6pack/catalogContent.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..');
@@ -173,5 +173,7 @@ export const SIXPACK_VERIFIED_WORKOUTS = ${JSON.stringify(workouts, null, 2)};
 export const SIXPACK_CALISTHENICS_SKILLS = ${JSON.stringify(skills, null, 2)};
 `;
 
+// src/views/SixPack ist nicht mehr eingecheckt (Code kommt aus dem 6pack-Submodul).
+mkdirSync(dirname(OUT_FILE), { recursive: true });
 writeFileSync(OUT_FILE, out);
 console.log(`sixpackData.generated.js geschrieben: ${Object.keys(exercises).length} Exercises, ${Object.keys(workouts).length} Workout-Tage, ${skills.length} Skills.`);
