@@ -1,0 +1,36 @@
+version: 2
+updates:
+  # GitHub Actions in den Workflows (Versions-Tags -> aktuelle Releases)
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Vienna
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # npm-Abhängigkeiten (pnpm-lock.yaml); Minor/Patch gebündelt, Majors einzeln
+  - package-ecosystem: npm
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: Europe/Vienna
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: deps
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
