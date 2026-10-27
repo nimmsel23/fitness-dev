@@ -1,0 +1,76 @@
+# Check für Fitness: Lint + Build auf jedem PR/dev-Push, ohne Deploy.
+#
+# Gleicher Aufbau wie preview-dev.yml (Meta-Repo vitalos liefert die Nachbar-
+# Repos, dieses Submodul wird auf den geprüften Commit gesetzt), aber ohne
+# Pfadfilter, ohne Secrets für Firebase und ohne Preview – so wird jeder PR
+# (auch Dependabot, Doku ausgenommen) geprüft, bevor er nach vitalos wandert.
+
+name: Check (Fitness)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [vitalos, dev]
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout vitalos (Meta-Repo, liefert Nachbar-Repos)
+        uses: actions/checkout@v4
+        with:
+          repository: nimmsel23/vitalos
+          ref: master
+
+      - name: Private Skills submodule access
+        uses: ./.github/actions/skills-submodule-auth
+        with:
+          deploy-key: ${{ secrets.SKILLS_DEPLOY_KEY }}
+
+      - name: Submodules via HTTPS + Token
+        run: |
+          git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "git@github.com:"
+          git submodule sync
+          git submodule update --init --recursive
+
+      - name: fitness-app auf den geprüften Commit setzen
+        run: |
+          cd fitness-app
+          SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          git fetch origin "$SHA"
+          git checkout "$SHA"
+          git submodule sync --recursive
+          git submodule update --init --recursive
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.3.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # nicht --frozen-lockfile: Lockfile kommt vom Meta-Repo, die package.json
+      # von fitness-app weicht gewollt ab (siehe Kommentar in preview-dev.yml)
+      - name: Install (Workspaces)
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Lint
+        run: pnpm --filter ./fitness-app run lint
+
+      - name: Firebase config bereitstellen (gitignored, Platzhalter genügt zum Bauen)
+        run: cp firebase.config.js fitness-app/firebase.config.js
+
+      - name: Build Fitness
+        run: pnpm --filter ./fitness-app run build:firebase
