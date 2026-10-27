@@ -1,0 +1,44 @@
+# Auto-Merge bei grünem Check:
+#   - Dependabot-PRs (-> dev): Squash
+#   - Release-PR dev -> vitalos (vos-release-pr): Merge-Commit (kein Squash, sonst driftet dev),
+#     danach wird deploy-vitalos.yml per workflow_dispatch gestartet, weil ein Merge mit
+#     GITHUB_TOKEN keinen push-Trigger auslöst.
+# Rot bleibt liegen. Läuft als workflow_run im Kontext des Default-Branch und checkt nie
+# PR-Code aus.
+
+name: Auto-Merge (grüner Check)
+
+on:
+  workflow_run:
+    workflows: ["Check (Fitness)"]
+    types: [completed]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  merge:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      (github.event.workflow_run.head_branch == 'dev' ||
+       startsWith(github.event.workflow_run.head_branch, 'dependabot/'))
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      BRANCH: ${{ github.event.workflow_run.head_branch }}
+      SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - name: Mergen, wenn der grüne Lauf dem aktuellen PR-Stand entspricht
+        run: |
+          if [ "$BRANCH" = dev ]; then base=vitalos; flag=--merge; else base=dev; flag="--squash --delete-branch"; fi
+          pr=$(gh pr list -R "$REPO" --head "$BRANCH" --base "$base" --state open --json number,headRefOid \
+            --jq ".[] | select(.headRefOid == \"$SHA\") | .number")
+          [ -n "$pr" ] || { echo "Kein offener PR mit Stand $SHA (veraltet oder schon gemergt)."; exit 0; }
+          gh pr merge "$pr" -R "$REPO" $flag
+          if [ "$base" = vitalos ]; then
+            gh workflow run deploy-vitalos.yml -R "$REPO" --ref vitalos
+          fi
