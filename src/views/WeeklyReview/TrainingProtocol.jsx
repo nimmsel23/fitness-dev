@@ -3,9 +3,11 @@ import { FileText, Printer } from 'lucide-react';
 import { getSessionHistory } from '@db';
 
 // Trainingsprotokoll — Pendant zum Ernährungsprotokoll in fuel-dev
-// (NutritionReportView): abgabefertiges 7-/14-/28-Tage-Protokoll als weißes
-// Blatt, Ausgabe per window.print() ("Als PDF speichern"). Tabelle je Tag:
-// Übung, Sätze (Wdh × kg), Tagesvolumen.
+// (NutritionReportView): abgabefertiges Protokoll als weißes Blatt, Ausgabe per
+// window.print() ("Als PDF speichern"). Die Pflichtaufgabe verlangt N (40)
+// Einheiten ohne festen Zeitraum: ab einem Anker-Datum zählen die N Einheiten
+// davor (inkl. Anker-Tag) bzw. danach. Tabelle je Tag: Übung, Sätze (Wdh × kg),
+// Tagesvolumen.
 
 const DAY_NAMES = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
 const NAME_STORAGE_KEY = 'fitness-report-name';
@@ -45,9 +47,9 @@ function volume(ex) {
 }
 
 export default function TrainingProtocol() {
-  const [preset, setPreset] = useState('14');
-  const [toIso, setToIso] = useState(isoToday());
-  const [fromIso, setFromIso] = useState(shiftIso(isoToday(), -13));
+  const [direction, setDirection] = useState('before'); // before = die N Einheiten bis Datum, after = ab Datum
+  const [anchorIso, setAnchorIso] = useState(isoToday());
+  const [count, setCount] = useState(40);
   const [sessions, setSessions] = useState(null);
   const [name, setName] = useState(() => {
     try { return localStorage.getItem(NAME_STORAGE_KEY) || ''; } catch { return ''; }
@@ -55,36 +57,33 @@ export default function TrainingProtocol() {
 
   useEffect(() => {
     let alive = true;
-    getSessionHistory(400)
+    getSessionHistory(2000)
       .then((h) => { if (alive) setSessions(Array.isArray(h) ? h : []); })
       .catch(() => { if (alive) setSessions([]); });
     return () => { alive = false; };
   }, []);
 
-  const applyPreset = (v) => {
-    setPreset(v);
-    if (v !== 'custom') {
-      const today = isoToday();
-      setToIso(today);
-      setFromIso(shiftIso(today, -(Number(v) - 1)));
-    }
-  };
   const changeName = (v) => {
     setName(v);
     try { localStorage.setItem(NAME_STORAGE_KEY, v); } catch { /* ignore */ }
   };
 
+  const picked = useMemo(() => {
+    const n = Math.max(1, Math.min(500, Math.floor(Number(count)) || 40));
+    const sorted = (sessions || []).filter((s) => s?.date).sort((a, b) => a.date.localeCompare(b.date));
+    return direction === 'before'
+      ? sorted.filter((s) => s.date <= anchorIso).slice(-n)
+      : sorted.filter((s) => s.date >= anchorIso).slice(0, n);
+  }, [sessions, direction, anchorIso, count]);
+
   const days = useMemo(() => {
-    const inRange = (sessions || [])
-      .filter((s) => s?.date && s.date >= fromIso && s.date <= toIso)
-      .sort((a, b) => a.date.localeCompare(b.date));
     const byDate = new Map();
-    for (const s of inRange) {
+    for (const s of picked) {
       if (!byDate.has(s.date)) byDate.set(s.date, []);
       byDate.get(s.date).push(s);
     }
     return [...byDate.entries()];
-  }, [sessions, fromIso, toIso]);
+  }, [picked]);
 
   const summary = useMemo(() => {
     let sets = 0, vol = 0, exercises = 0;
@@ -96,7 +95,8 @@ export default function TrainingProtocol() {
     return { sessions: days.reduce((a, [, l]) => a + l.length, 0), days: days.length, exercises, sets, vol };
   }, [days]);
 
-  const dayCount = Math.max(0, Math.round((new Date(toIso) - new Date(fromIso)) / 86400000) + 1);
+  const fromIso = picked[0]?.date || anchorIso;
+  const toIso = picked[picked.length - 1]?.date || anchorIso;
 
   return (
     <div className="space-y-6">
@@ -105,27 +105,25 @@ export default function TrainingProtocol() {
           <FileText className="h-6 w-6 text-fit-accent" />
           <div>
             <h2 className="text-xl font-bold tracking-tight">Trainingsprotokoll</h2>
-            <p className="text-sm text-fit-dim">Abgabefertiges Protokoll (7 / 14 / 28 Tage). Zeitraum wählen, dann drucken bzw. als PDF speichern.</p>
+            <p className="text-sm text-fit-dim">Abgabefertiges Protokoll über eine feste Anzahl Einheiten (Pflichtaufgabe: 40). Datum und Richtung wählen, dann drucken bzw. als PDF speichern.</p>
           </div>
         </div>
         <div className="flex flex-wrap items-end gap-4">
           <div className="flex gap-2">
-            {[['7', '7 Tage'], ['14', '14 Tage'], ['28', '28 Tage'], ['custom', 'Frei']].map(([v, l]) => (
-              <button key={v} onClick={() => applyPreset(v)}
-                className={`rounded-full px-3 py-1.5 text-sm font-semibold transition ${preset === v ? 'bg-fit-accent text-black' : 'border border-fit-line text-fit-dim hover:text-ink'}`}>
+            {[['before', 'Vorherige Einheiten'], ['after', 'Folgende Einheiten']].map(([v, l]) => (
+              <button key={v} onClick={() => setDirection(v)}
+                className={`rounded-full px-3 py-1.5 text-sm font-semibold transition ${direction === v ? 'bg-fit-accent text-black' : 'border border-fit-line text-fit-dim hover:text-ink'}`}>
                 {l}
               </button>
             ))}
           </div>
-          <label className="grid gap-1 text-xs text-fit-dim">Von
-            <input type="date" value={fromIso} max={toIso}
-              onChange={(e) => { setPreset('custom'); setFromIso(e.target.value); }}
+          <label className="grid gap-1 text-xs text-fit-dim">{direction === 'before' ? 'Bis Datum (inkl.)' : 'Ab Datum (inkl.)'}
+            <input type="date" value={anchorIso} onChange={(e) => setAnchorIso(e.target.value)}
               className="rounded-2xl border border-fit-line bg-transparent px-3 py-2 text-sm text-ink" />
           </label>
-          <label className="grid gap-1 text-xs text-fit-dim">Bis
-            <input type="date" value={toIso} min={fromIso}
-              onChange={(e) => { setPreset('custom'); setToIso(e.target.value); }}
-              className="rounded-2xl border border-fit-line bg-transparent px-3 py-2 text-sm text-ink" />
+          <label className="grid gap-1 text-xs text-fit-dim">Einheiten
+            <input type="number" min={1} max={500} value={count} onChange={(e) => setCount(e.target.value)}
+              className="w-24 rounded-2xl border border-fit-line bg-transparent px-3 py-2 text-sm text-ink" />
           </label>
           <label className="grid gap-1 text-xs text-fit-dim flex-1 min-w-[200px]">Name (auf dem Protokoll)
             <input type="text" value={name} placeholder="Vor- und Nachname" onChange={(e) => changeName(e.target.value)}
@@ -136,7 +134,7 @@ export default function TrainingProtocol() {
             <Printer className="h-4 w-4" /> Drucken / als PDF
           </button>
         </div>
-        <p className="text-xs text-fit-dim">{dayCount} Kalendertage · {summary.days} Trainingstage im Zeitraum.</p>
+        <p className="text-xs text-fit-dim">{summary.sessions} von {Math.max(1, Math.floor(Number(count)) || 40)} gewünschten Einheiten gefunden ({summary.days} Trainingstage).</p>
       </div>
 
       <div className="report-sheet mx-auto max-w-[820px] rounded-2xl p-10">
@@ -147,7 +145,7 @@ export default function TrainingProtocol() {
             <header style={{ borderBottom: '2px solid #14181f', paddingBottom: 10, marginBottom: 12 }}>
               <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>Trainingsprotokoll</h1>
               <p style={{ margin: '8px 0 0' }}><strong>Name:</strong> {name || '—'}</p>
-              <p style={{ margin: '2px 0 0' }}><strong>Zeitraum:</strong> {fmtDE(fromIso)} – {fmtDE(toIso)} ({dayCount} Tage)</p>
+              <p style={{ margin: '2px 0 0' }}><strong>Umfang:</strong> {summary.sessions} Einheiten · {summary.sessions ? `${fmtDE(fromIso)} – ${fmtDE(toIso)}` : '—'}</p>
             </header>
 
             <section>
@@ -164,7 +162,7 @@ export default function TrainingProtocol() {
             </section>
 
             {days.length === 0 && (
-              <p style={{ fontStyle: 'italic', color: '#6b7280', marginTop: 18 }}>Keine Einheiten im Zeitraum protokolliert.</p>
+              <p style={{ fontStyle: 'italic', color: '#6b7280', marginTop: 18 }}>Keine Einheiten gefunden.</p>
             )}
 
             {days.map(([iso, list], i) => (
