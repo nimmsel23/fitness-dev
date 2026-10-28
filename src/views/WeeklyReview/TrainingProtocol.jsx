@@ -8,8 +8,8 @@ import { estimateDurationMinutes } from '../../lib/sessionGate.js';
 // (NutritionReportView): abgabefertiges Protokoll als weißes Blatt, Ausgabe per
 // window.print() ("Als PDF speichern"). Die Pflichtaufgabe verlangt N (40)
 // Einheiten ohne festen Zeitraum: ab einem Anker-Datum zählen die N Einheiten
-// davor (inkl. Anker-Tag) bzw. danach. Tabelle je Tag: Übung, Sätze (Wdh × kg),
-// Tagesvolumen.
+// davor (inkl. Anker-Tag) bzw. danach. Gezählt werden nur Kraft/Hypertrophie;
+// das Blatt enthält je Einheit nur Datum, Art, Ort und Dauer (keine Übungen/Sätze).
 
 const DAY_NAMES = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
 const NAME_STORAGE_KEY = 'fitness-report-name';
@@ -18,32 +18,11 @@ function isoToday() {
   const d = new Date();
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 }
-function shiftIso(iso, days) {
-  const d = new Date(`${iso}T12:00:00`);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().slice(0, 10);
-}
 function fmtDE(iso) {
   const d = new Date(`${iso}T12:00:00`);
   return `${DAY_NAMES[d.getDay()]}, ${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
 }
-const num = (v) => Number(v) || 0;
-const r1 = (v) => Math.round(num(v) * 10) / 10;
 
-function setsOf(ex) {
-  if (Array.isArray(ex?.setsArray) && ex.setsArray.length) return ex.setsArray;
-  if (Array.isArray(ex?.sets) && ex.sets.length) return ex.sets;
-  return [];
-}
-function exName(ex) {
-  return ex?.name || ex?.exercise_name || ex?.exercise_id || ex?.id || 'Übung';
-}
-function fmtSet(s) {
-  const reps = s.reps ?? s.rep;
-  const w = num(s.weight);
-  if (reps == null && !w) return s.duration ? `${s.duration} s` : '–';
-  return w ? `${reps ?? '?'}×${r1(w)}` : `${reps ?? '?'}`;
-}
 // Art = gewählte Trainingsart, sonst Aktivitätstyp (Ausdauer) bzw. Kraft.
 function sessionArt(s) {
   if (s?.trainingsart) return s.trainingsart;
@@ -58,9 +37,7 @@ function sessionMinutes(s) {
   if (!s?.sessionGate?.endedAt) return 0;
   try { return Number(estimateDurationMinutes(s.sessionGate)) || 0; } catch { return 0; }
 }
-function volume(ex) {
-  return setsOf(ex).reduce((a, s) => a + num(s.reps) * num(s.weight), 0);
-}
+const COUNTED_ART = new Set(['Kraft', 'Hypertrophie']);
 
 export default function TrainingProtocol() {
   const [direction, setDirection] = useState('before'); // before = die N Einheiten bis Datum, after = ab Datum
@@ -88,7 +65,7 @@ export default function TrainingProtocol() {
   const days = useMemo(() => {
     const n = Math.max(1, Math.min(500, Math.floor(Number(count)) || 40));
     const byDate = new Map();
-    for (const s of (sessions || []).filter((x) => x?.date).sort((a, b) => a.date.localeCompare(b.date))) {
+    for (const s of (sessions || []).filter((x) => x?.date && COUNTED_ART.has(sessionArt(x))).sort((a, b) => a.date.localeCompare(b.date))) {
       if (!byDate.has(s.date)) byDate.set(s.date, []);
       byDate.get(s.date).push(s);
     }
@@ -98,18 +75,10 @@ export default function TrainingProtocol() {
       : all.filter(([d]) => d >= anchorIso).slice(0, n);
   }, [sessions, direction, anchorIso, count]);
 
-  const summary = useMemo(() => {
-    let sets = 0, vol = 0, exercises = 0, minutes = 0;
-    for (const [, list] of days) for (const s of list) {
-      minutes += sessionMinutes(s);
-      for (const ex of s.exercises || []) {
-        exercises += 1;
-        sets += setsOf(ex).length;
-        vol += volume(ex);
-      }
-    }
-    return { days: days.length, exercises, sets, vol, minutes };
-  }, [days]);
+  const summary = useMemo(() => ({
+    days: days.length,
+    minutes: days.reduce((a, [, list]) => a + list.reduce((m, s) => m + sessionMinutes(s), 0), 0),
+  }), [days]);
 
   const fromIso = days[0]?.[0] || anchorIso;
   const toIso = days[days.length - 1]?.[0] || anchorIso;
@@ -164,61 +133,40 @@ export default function TrainingProtocol() {
               <p style={{ margin: '2px 0 0' }}><strong>Umfang:</strong> {summary.days} Einheiten · {summary.days ? `${fmtDE(fromIso)} – ${fmtDE(toIso)}` : '—'}</p>
             </header>
 
-            <section>
-              <h2 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 6px' }}>Auswertung</h2>
-              <table>
+            {days.length === 0 ? (
+              <p style={{ fontStyle: 'italic', color: '#6b7280', marginTop: 18 }}>Keine Einheiten gefunden.</p>
+            ) : (
+              <table style={{ marginTop: 12 }}>
+                <thead>
+                  <tr>
+                    <th style={{ width: '6%' }}>Nr.</th>
+                    <th style={{ width: '24%' }}>Datum</th>
+                    <th style={{ width: '18%' }}>Art</th>
+                    <th>Ort</th>
+                    <th className="num" style={{ width: '14%' }}>Dauer</th>
+                  </tr>
+                </thead>
                 <tbody>
-                  <tr><td>Einheiten (Trainingstage)</td><td className="num">{summary.days}</td></tr>
-                  <tr><td>Trainingsdauer gesamt</td><td className="num">{summary.minutes} min</td></tr>
-                  <tr><td>Übungen gesamt</td><td className="num">{summary.exercises}</td></tr>
-                  <tr><td>Sätze gesamt</td><td className="num">{summary.sets}</td></tr>
-                  <tr><td>Gesamtvolumen (Wdh × kg)</td><td className="num">{Math.round(summary.vol)} kg</td></tr>
+                  {days.map(([iso, list], i) => {
+                    const uniq = (arr) => [...new Set(arr.filter(Boolean))];
+                    const min = list.reduce((m, s) => m + sessionMinutes(s), 0);
+                    return (
+                      <tr key={iso}>
+                        <td className="num">{i + 1}</td>
+                        <td>{fmtDE(iso)}</td>
+                        <td>{uniq(list.map(sessionArt)).join(', ')}</td>
+                        <td>{uniq(list.map((s) => s.location)).join('; ') || '–'}</td>
+                        <td className="num">{min ? `${min} min` : '–'}</td>
+                      </tr>
+                    );
+                  })}
+                  <tr className="day-total">
+                    <td colSpan={4}>Gesamt ({summary.days} Einheiten)</td>
+                    <td className="num">{summary.minutes} min</td>
+                  </tr>
                 </tbody>
               </table>
-            </section>
-
-            {days.length === 0 && (
-              <p style={{ fontStyle: 'italic', color: '#6b7280', marginTop: 18 }}>Keine Einheiten gefunden.</p>
             )}
-
-            {days.map(([iso, list], i) => (
-              <section key={iso} className={`report-day${i > 0 && i % 3 === 0 ? ' report-page-break' : ''}`} style={{ marginTop: 18 }}>
-                <h3 style={{ fontSize: 13, fontWeight: 700, margin: '0 0 4px' }}>{fmtDE(iso)}</h3>
-                {list.map((s, si) => {
-                  const exs = s.exercises || [];
-                  const total = exs.reduce((a, ex) => a + volume(ex), 0);
-                  return (
-                    <div key={s.id || si} style={{ marginBottom: 8 }}>
-                    <p style={{ margin: '0 0 3px' }}>
-                      <strong>Art:</strong> {sessionArt(s)} · <strong>Ort:</strong> {s.location || '–'} · <strong>Dauer:</strong> {sessionMinutes(s) ? `${sessionMinutes(s)} min` : '–'}
-                    </p>
-                    <table>
-                      <thead>
-                        <tr>
-                          <th style={{ width: '34%' }}>Übung{s.block ? ` (${s.block})` : ''}</th>
-                          <th>Sätze (Wdh×kg)</th>
-                          <th className="num" style={{ width: '14%' }}>Volumen</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {exs.map((ex, ei) => (
-                          <tr key={ex.exercise_id || ex.id || ei}>
-                            <td>{exName(ex)}</td>
-                            <td>{setsOf(ex).map(fmtSet).join(' · ') || '–'}</td>
-                            <td className="num">{Math.round(volume(ex)) || '–'}</td>
-                          </tr>
-                        ))}
-                        <tr className="day-total">
-                          <td colSpan={2}>Gesamt</td>
-                          <td className="num">{Math.round(total)} kg</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                    </div>
-                  );
-                })}
-              </section>
-            ))}
 
             <footer style={{ marginTop: 24, paddingTop: 8, borderTop: '1px solid #c8ccd4', color: '#6b7280' }}>
               Erstellt am {fmtDE(isoToday())} · Fitness
