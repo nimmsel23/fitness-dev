@@ -68,22 +68,19 @@ export default function TrainingProtocol() {
     try { localStorage.setItem(NAME_STORAGE_KEY, v); } catch { /* ignore */ }
   };
 
-  const picked = useMemo(() => {
-    const n = Math.max(1, Math.min(500, Math.floor(Number(count)) || 40));
-    const sorted = (sessions || []).filter((s) => s?.date).sort((a, b) => a.date.localeCompare(b.date));
-    return direction === 'before'
-      ? sorted.filter((s) => s.date <= anchorIso).slice(-n)
-      : sorted.filter((s) => s.date >= anchorIso).slice(0, n);
-  }, [sessions, direction, anchorIso, count]);
-
+  // Ein Trainingstag = eine Einheit (Pflichtaufgabe), auch bei mehreren Sessions am Tag.
   const days = useMemo(() => {
+    const n = Math.max(1, Math.min(500, Math.floor(Number(count)) || 40));
     const byDate = new Map();
-    for (const s of picked) {
+    for (const s of (sessions || []).filter((x) => x?.date).sort((a, b) => a.date.localeCompare(b.date))) {
       if (!byDate.has(s.date)) byDate.set(s.date, []);
       byDate.get(s.date).push(s);
     }
-    return [...byDate.entries()];
-  }, [picked]);
+    const all = [...byDate.entries()];
+    return direction === 'before'
+      ? all.filter(([d]) => d <= anchorIso).slice(-n)
+      : all.filter(([d]) => d >= anchorIso).slice(0, n);
+  }, [sessions, direction, anchorIso, count]);
 
   const summary = useMemo(() => {
     let sets = 0, vol = 0, exercises = 0;
@@ -92,11 +89,11 @@ export default function TrainingProtocol() {
       sets += setsOf(ex).length;
       vol += volume(ex);
     }
-    return { sessions: days.reduce((a, [, l]) => a + l.length, 0), days: days.length, exercises, sets, vol };
+    return { days: days.length, exercises, sets, vol };
   }, [days]);
 
-  const fromIso = picked[0]?.date || anchorIso;
-  const toIso = picked[picked.length - 1]?.date || anchorIso;
+  const fromIso = days[0]?.[0] || anchorIso;
+  const toIso = days[days.length - 1]?.[0] || anchorIso;
 
   return (
     <div className="space-y-6">
@@ -134,7 +131,7 @@ export default function TrainingProtocol() {
             <Printer className="h-4 w-4" /> Drucken / als PDF
           </button>
         </div>
-        <p className="text-xs text-fit-dim">{summary.sessions} von {Math.max(1, Math.floor(Number(count)) || 40)} gewünschten Einheiten gefunden ({summary.days} Trainingstage).</p>
+        <p className="text-xs text-fit-dim">{summary.days} von {Math.max(1, Math.floor(Number(count)) || 40)} gewünschten Einheiten gefunden (1 Trainingstag = 1 Einheit).</p>
       </div>
 
       <div className="report-sheet mx-auto max-w-[820px] rounded-2xl p-10">
@@ -145,15 +142,14 @@ export default function TrainingProtocol() {
             <header style={{ borderBottom: '2px solid #14181f', paddingBottom: 10, marginBottom: 12 }}>
               <h1 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>Trainingsprotokoll</h1>
               <p style={{ margin: '8px 0 0' }}><strong>Name:</strong> {name || '—'}</p>
-              <p style={{ margin: '2px 0 0' }}><strong>Umfang:</strong> {summary.sessions} Einheiten · {summary.sessions ? `${fmtDE(fromIso)} – ${fmtDE(toIso)}` : '—'}</p>
+              <p style={{ margin: '2px 0 0' }}><strong>Umfang:</strong> {summary.days} Einheiten · {summary.days ? `${fmtDE(fromIso)} – ${fmtDE(toIso)}` : '—'}</p>
             </header>
 
             <section>
               <h2 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 6px' }}>Auswertung</h2>
               <table>
                 <tbody>
-                  <tr><td>Trainingstage</td><td className="num">{summary.days}</td></tr>
-                  <tr><td>Einheiten</td><td className="num">{summary.sessions}</td></tr>
+                  <tr><td>Einheiten (Trainingstage)</td><td className="num">{summary.days}</td></tr>
                   <tr><td>Übungen gesamt</td><td className="num">{summary.exercises}</td></tr>
                   <tr><td>Sätze gesamt</td><td className="num">{summary.sets}</td></tr>
                   <tr><td>Gesamtvolumen (Wdh × kg)</td><td className="num">{Math.round(summary.vol)} kg</td></tr>
