@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FileText, Printer } from 'lucide-react';
 import { getSessionHistory } from '@db';
 import { classifySession } from '../../constants/ActivityConstants';
-import { estimateDurationMinutes } from '../../lib/sessionGate.js';
+import { estimateDurationMinutes, normalizeSessionGate } from '../../lib/sessionGate.js';
 
 // Trainingsprotokoll — Pendant zum Ernährungsprotokoll in fuel-dev
 // (NutritionReportView): abgabefertiges Protokoll als weißes Blatt, Ausgabe per
@@ -33,8 +33,8 @@ function sessionArt(s) {
 function sessionMinutes(s) {
   const direct = Number(s?.duration);
   if (direct > 0) return Math.round(direct);
-  // nur beendete Stoppuhr — eine nie gestoppte würde bis „jetzt" weiterzählen
-  if (!s?.sessionGate?.endedAt) return 0;
+  // nur beendete Stoppuhr (nie gestoppte gilt nach 3 h automatisch als beendet)
+  if (!normalizeSessionGate(s?.sessionGate).endedAt) return 0;
   try { return Number(estimateDurationMinutes(s.sessionGate)) || 0; } catch { return 0; }
 }
 const COUNTED_ART = new Set(['Kraft', 'Hypertrophie']);

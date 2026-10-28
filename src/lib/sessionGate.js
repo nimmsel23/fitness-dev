@@ -1,9 +1,20 @@
-export function normalizeSessionGate(value) {
+// Eine Session endet spätestens nach 3 h: ein vergessenes Stoppen lässt die
+// Stoppuhr nicht endlos weiterlaufen, sondern gilt ab dann als beendet (Ende =
+// Start + 3 h).
+export const MAX_SESSION_GATE_MS = 3 * 60 * 60 * 1000;
+
+export function normalizeSessionGate(value, nowMs = Date.now()) {
   if (!value || typeof value !== 'object') {
     return { status: 'idle', startedAt: null, endedAt: null, gps: null };
   }
   const startedAt = value.startedAt || null;
-  const endedAt = value.endedAt || null;
+  let endedAt = value.endedAt || null;
+  if (startedAt && !endedAt) {
+    const startMs = Date.parse(startedAt);
+    if (Number.isFinite(startMs) && nowMs - startMs >= MAX_SESSION_GATE_MS) {
+      endedAt = new Date(startMs + MAX_SESSION_GATE_MS).toISOString();
+    }
+  }
   const gps = value.gps && typeof value.gps === 'object' ? {
     lat: Number.isFinite(Number(value.gps.lat)) ? Number(value.gps.lat) : null,
     lng: Number.isFinite(Number(value.gps.lng)) ? Number(value.gps.lng) : null,
@@ -37,7 +48,7 @@ export function sessionHasLoggedWorkout(session) {
 }
 
 export function getSessionGateElapsedMs(sessionGate, nowMs = Date.now()) {
-  const gate = normalizeSessionGate(sessionGate);
+  const gate = normalizeSessionGate(sessionGate, nowMs);
   if (!gate.startedAt) return 0;
   const startMs = Date.parse(gate.startedAt);
   if (!Number.isFinite(startMs)) return 0;
