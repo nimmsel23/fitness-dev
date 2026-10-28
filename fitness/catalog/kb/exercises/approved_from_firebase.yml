@@ -2635,69 +2635,15 @@ exercises:
   - High-To-Low Cable Cross
   english: High-to-Low Cable Crossover
   category: push
-- id: cable_lateral_raise
-  origin:
-    yuhonas:
-      yuhonas_id: Cable_Seated_Lateral_Raise
-      equipment:
-      - cable
-      secondary_muscles:
-      - middle_back
-      - traps
-      tags:
-      - unreviewed
-      - yuhonas
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      exercise_id: yuhonas_cable_seated_lateral_raise
-      coaching_notes:
-      - Stand in the middle of two low pulleys that are opposite to each other and
-        place a flat bench right behind you (in perpendicular fashion to you; the
-        narrow edge of the bench should be the one behind you). Select the weight
-        to be used on each pulley.
-      - Now sit at the edge of the flat bench behind you with your feet placed in
-        front of your knees.
-      - Bend forward while keeping your back flat and rest your torso on the thighs.
-      - Have someone give you the single handles attached to the pulleys. Grasp the
-        left pulley with the right hand and the right pulley with the left after you
-        select your weight. The pulleys should run under your knees and your arms
-        will be extended with palms facing each other and a slight bend at the elbows.
-        This will be the starting position.
-      - While keeping the arms stationary, raise the upper arms to the sides until
-        they are parallel to the floor and at shoulder height. Exhale during the execution
-        of this movement and hold the contraction for a second.
-      - Slowly lower your arms to the starting position as you inhale.
-      - 'Repeat for the recommended amount of repetitions. Tip: Maintain upper arms
-        perpendicular to torso and a fixed elbow position (10 degree to 30 degree
-        angle) throughout exercise.'
-      display_name: Cable Seated Lateral Raise
-      category: strength
-      primary_muscles:
-      - shoulders
-    type: external
-    wger:
-      wger_id: 1556
-      wger_muscle_ids:
-        primary:
-        - 2
-        secondary: []
-    source_refs:
-      wger:
-      - '1556'
-      - '349'
-  stabilizers:
-  - 304_rotator_cuff
-  - 202a_trapezius_upper
-  - 202c_trapezius_lower
-  - 105_serratus_anterior
-  - 504_transverse_abdominis
-  - 502_obliquus_externus
-  - 503_obliquus_internus
-  - 608_gluteus_medius
-  secondary_muscles:
-  - 305_supraspinatus
-  - 301_anterior_deltoid
+- aliases:
+  - Kabel-Seitheben
+  - Einarmiges Seitheben am Kabelzug
+  - Seitheben am Seilzug
+  - Cable Side Raise
+  - Single-Arm Cable Lateral Raise
+  - One-Arm Cable Lateral Raise
+  id: cable_lateral_raise
+  variations: []
   common_errors:
   - Zu viel Gewicht zu wählen und die Hantel mit Schwung, Beinimpuls oder Seitneigung
     des Oberkörpers nach oben zu beschleunigen.
@@ -2719,56 +2665,28 @@ exercises:
     und den seitlichen Deltoid zu bewegen.
   - Die Bewegung hektisch auszuführen und jede Wiederholung anders zu starten, statt
     eine konstante Zuglinie und reproduzierbare Technik beizubehalten.
-  external_ids:
-    wger:
-    - 1556
-    - 349
-  wger_muscle_ids:
-    primary:
-    - 2
-    secondary: []
-  _hash: 2424d510bc87c296109a8baddaaf669c
-  schema_version: 2026-08-12.exercise-v1
-  tags:
-  - isolation
-  - cable_machine
-  - hit_suitable
-  - shoulders
-  - shoulder_abduction
-  - unilateral
-  display_name: Seitheben am Kabelzug
-  primary_muscles:
-  - 302_lateral_deltoid
-  english: Cable Lateral Raise
+  german: Seitheben am Kabelzug
+  exercise_id: cable_lateral_raise
+  review_state:
+    status: approved
+  name: Seitheben am Kabelzug
+  stabilizers:
+  - 304_rotator_cuff
+  - 202a_trapezius_upper
+  - 202c_trapezius_lower
+  - 105_serratus_anterior
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 608_gluteus_medius
+  equipment:
+  - cable
   movements:
   - shoulder_abduction
   - scapular_upward_rotation
   - scapular_control
   - glenohumeral_stability
   - anti_lateral_flexion
-  variations: []
-  review_state:
-    status: approved
-  equipment:
-  - cable
-  source: approved
-  wger_id: 1556
-  type: isolation
-  search_aliases:
-  - wger_1556
-  - wger_349
-  - Seitheben am Kabelzug
-  - Cable Lateral Raise
-  aliases:
-  - Kabel-Seitheben
-  - Einarmiges Seitheben am Kabelzug
-  - Seitheben am Seilzug
-  - Cable Side Raise
-  - Single-Arm Cable Lateral Raise
-  - One-Arm Cable Lateral Raise
-  german: Seitheben am Kabelzug
-  exercise_id: cable_lateral_raise
-  category: push
   coaching_notes:
   - Stelle dich seitlich zum Kabelzug und positioniere den Griff so, dass der Zug
     bereits in der unteren Position Spannung aufbaut. Das verbessert die Belastungskurve
@@ -2795,7 +2713,89 @@ exercises:
   - Wenn du einarmig arbeitest, kannst du dich mit der freien Hand leicht am Turm
     stabilisieren, um Kompensation zu reduzieren und den seitlichen Deltoid präziser
     zu treffen.
-  name: Seitheben am Kabelzug
+  schema_version: 2026-08-12.exercise-v1
+  _hash: 2424d510bc87c296109a8baddaaf669c
+  secondary_muscles:
+  - 305_supraspinatus
+  - 301_anterior_deltoid
+  wger_muscle_ids:
+    primary:
+    - 2
+    secondary: []
+  tags:
+  - isolation
+  - cable_machine
+  - hit_suitable
+  - shoulders
+  - shoulder_abduction
+  - unilateral
+  display_name: Seitheben am Kabelzug
+  source: approved
+  origin:
+    type: external
+    yuhonas:
+      secondary_muscles:
+      - middle_back
+      - traps
+      wger_muscle_ids:
+        primary: []
+        secondary: []
+      display_name: Cable Seated Lateral Raise
+      yuhonas_id: Cable_Seated_Lateral_Raise
+      primary_muscles:
+      - shoulders
+      tags:
+      - unreviewed
+      - yuhonas
+      exercise_id: yuhonas_cable_seated_lateral_raise
+      equipment:
+      - cable
+      coaching_notes:
+      - Stand in the middle of two low pulleys that are opposite to each other and
+        place a flat bench right behind you (in perpendicular fashion to you; the
+        narrow edge of the bench should be the one behind you). Select the weight
+        to be used on each pulley.
+      - Now sit at the edge of the flat bench behind you with your feet placed in
+        front of your knees.
+      - Bend forward while keeping your back flat and rest your torso on the thighs.
+      - Have someone give you the single handles attached to the pulleys. Grasp the
+        left pulley with the right hand and the right pulley with the left after you
+        select your weight. The pulleys should run under your knees and your arms
+        will be extended with palms facing each other and a slight bend at the elbows.
+        This will be the starting position.
+      - While keeping the arms stationary, raise the upper arms to the sides until
+        they are parallel to the floor and at shoulder height. Exhale during the execution
+        of this movement and hold the contraction for a second.
+      - Slowly lower your arms to the starting position as you inhale.
+      - 'Repeat for the recommended amount of repetitions. Tip: Maintain upper arms
+        perpendicular to torso and a fixed elbow position (10 degree to 30 degree
+        angle) throughout exercise.'
+      category: strength
+    source_refs:
+      wger:
+      - '1556'
+      - '349'
+    wger:
+      wger_muscle_ids:
+        primary:
+        - 2
+        secondary: []
+      wger_id: 1556
+  primary_muscles:
+  - 302_lateral_deltoid
+  external_ids:
+    wger:
+    - 1556
+    - 349
+  type: isolation
+  search_aliases:
+  - wger_1556
+  - wger_349
+  - Seitheben am Kabelzug
+  - Cable Lateral Raise
+  wger_id: 1556
+  english: Cable Lateral Raise
+  category: push
 - id: cable_row
   origin:
     yuhonas:
