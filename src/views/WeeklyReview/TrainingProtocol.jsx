@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FileText, Printer } from 'lucide-react';
 import { getSessionHistory } from '@db';
+import { classifySession } from '../../constants/ActivityConstants';
+import { estimateDurationMinutes } from '../../lib/sessionGate.js';
 
 // Trainingsprotokoll — Pendant zum Ernährungsprotokoll in fuel-dev
 // (NutritionReportView): abgabefertiges Protokoll als weißes Blatt, Ausgabe per
@@ -41,6 +43,20 @@ function fmtSet(s) {
   const w = num(s.weight);
   if (reps == null && !w) return s.duration ? `${s.duration} s` : '–';
   return w ? `${reps ?? '?'}×${r1(w)}` : `${reps ?? '?'}`;
+}
+// Art = gewählte Trainingsart, sonst Aktivitätstyp (Ausdauer) bzw. Kraft.
+function sessionArt(s) {
+  if (s?.trainingsart) return s.trainingsart;
+  const { isActivity, label } = classifySession(s);
+  return isActivity ? label : 'Kraft';
+}
+// Dauer in Minuten: gespeicherter Wert, sonst aus der Workout-Stoppuhr.
+function sessionMinutes(s) {
+  const direct = Number(s?.duration);
+  if (direct > 0) return Math.round(direct);
+  // nur beendete Stoppuhr — eine nie gestoppte würde bis „jetzt" weiterzählen
+  if (!s?.sessionGate?.endedAt) return 0;
+  try { return Number(estimateDurationMinutes(s.sessionGate)) || 0; } catch { return 0; }
 }
 function volume(ex) {
   return setsOf(ex).reduce((a, s) => a + num(s.reps) * num(s.weight), 0);
@@ -83,13 +99,16 @@ export default function TrainingProtocol() {
   }, [sessions, direction, anchorIso, count]);
 
   const summary = useMemo(() => {
-    let sets = 0, vol = 0, exercises = 0;
-    for (const [, list] of days) for (const s of list) for (const ex of s.exercises || []) {
-      exercises += 1;
-      sets += setsOf(ex).length;
-      vol += volume(ex);
+    let sets = 0, vol = 0, exercises = 0, minutes = 0;
+    for (const [, list] of days) for (const s of list) {
+      minutes += sessionMinutes(s);
+      for (const ex of s.exercises || []) {
+        exercises += 1;
+        sets += setsOf(ex).length;
+        vol += volume(ex);
+      }
     }
-    return { days: days.length, exercises, sets, vol };
+    return { days: days.length, exercises, sets, vol, minutes };
   }, [days]);
 
   const fromIso = days[0]?.[0] || anchorIso;
@@ -150,6 +169,7 @@ export default function TrainingProtocol() {
               <table>
                 <tbody>
                   <tr><td>Einheiten (Trainingstage)</td><td className="num">{summary.days}</td></tr>
+                  <tr><td>Trainingsdauer gesamt</td><td className="num">{summary.minutes} min</td></tr>
                   <tr><td>Übungen gesamt</td><td className="num">{summary.exercises}</td></tr>
                   <tr><td>Sätze gesamt</td><td className="num">{summary.sets}</td></tr>
                   <tr><td>Gesamtvolumen (Wdh × kg)</td><td className="num">{Math.round(summary.vol)} kg</td></tr>
@@ -168,7 +188,11 @@ export default function TrainingProtocol() {
                   const exs = s.exercises || [];
                   const total = exs.reduce((a, ex) => a + volume(ex), 0);
                   return (
-                    <table key={s.id || si} style={{ marginBottom: 8 }}>
+                    <div key={s.id || si} style={{ marginBottom: 8 }}>
+                    <p style={{ margin: '0 0 3px' }}>
+                      <strong>Art:</strong> {sessionArt(s)} · <strong>Ort:</strong> {s.location || '–'} · <strong>Dauer:</strong> {sessionMinutes(s) ? `${sessionMinutes(s)} min` : '–'}
+                    </p>
+                    <table>
                       <thead>
                         <tr>
                           <th style={{ width: '34%' }}>Übung{s.block ? ` (${s.block})` : ''}</th>
@@ -190,6 +214,7 @@ export default function TrainingProtocol() {
                         </tr>
                       </tbody>
                     </table>
+                    </div>
                   );
                 })}
               </section>
