@@ -73,3 +73,29 @@ export function estimateDurationMinutes(sessionGate) {
   if (elapsedMs <= 0) return '';
   return String(Math.max(1, Math.round(elapsedMs / 60000)));
 }
+
+// Manuelle Eingabe von Beginn/Ende (HH:MM am Session-Tag) — Pendant zu dem, was
+// Start/Stopp der Stoppuhr automatisch setzen. Liefert null bei ungültiger Eingabe.
+export function sessionGateTimeToHHMM(iso) {
+  const ms = Date.parse(iso || '');
+  if (!Number.isFinite(ms)) return '';
+  const d = new Date(ms);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+export function buildManualSessionGate(date, startHHMM, endHHMM, prevGate) {
+  const prev = normalizeSessionGate(prevGate);
+  const toMs = (hhmm) => (/^\d{2}:\d{2}$/.test(hhmm || '') ? Date.parse(`${date}T${hhmm}:00`) : NaN);
+  const startMs = toMs(startHHMM);
+  if (!Number.isFinite(startMs)) return null;
+  const endMs = toMs(endHHMM);
+  if (Number.isFinite(endMs)) {
+    if (endMs <= startMs) return null;
+    return normalizeSessionGate({ startedAt: new Date(startMs).toISOString(), endedAt: new Date(endMs).toISOString(), gps: prev.gps });
+  }
+  // Nur Beginn: nur für eine laufende Stoppuhr (Start korrigieren), nie in der Zukunft.
+  if (prev.startedAt && !prev.endedAt && startMs <= Date.now()) {
+    return normalizeSessionGate({ startedAt: new Date(startMs).toISOString(), endedAt: null, gps: prev.gps });
+  }
+  return null;
+}
