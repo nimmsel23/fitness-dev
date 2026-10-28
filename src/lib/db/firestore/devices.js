@@ -8,7 +8,11 @@
  * daher zwei Einträge.
  */
 
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import {
+  doc,
+  serverTimestamp,
+} from "firebase/firestore";
+import { getDoc, setDoc } from "./offline.js";
 import { db } from "../../../firebase.js";
 import { getUid } from "./core.js";
 

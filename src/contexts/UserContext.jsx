@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { watchAuth, signIn, signInEmail, signUpEmail, signOut, getUserProfile, registerDevice } from '@db';
+import { deferStart } from '../lib/db/firestore/offline.js';
 
 const UserContext = createContext();
 
@@ -87,7 +88,7 @@ export function UserProvider({ children }) {
   useEffect(() => {
     async function fetchProfile() {
       if (!user || !user.uid) return;
-      registerDevice();
+      deferStart(() => registerDevice());
       try {
         const data = await getUserProfile(user.uid);
         if (data) {
