@@ -3,9 +3,15 @@
  */
 
 import {
-  collection, doc, setDoc, getDoc, getDocs,
-  query, orderBy, limit, serverTimestamp, arrayUnion,
+  collection,
+  doc,
+  query,
+  orderBy,
+  limit,
+  serverTimestamp,
+  arrayUnion,
 } from "firebase/firestore";
+import { setDoc, getDoc, getDocs } from "./offline.js";
 
 import { db } from "../../../firebase.js";
 import { getUid, hasAuthSession } from "./core.js";

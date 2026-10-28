@@ -45,12 +45,8 @@
             })
           })
         }).catch(() => {})
-        let reloading = false
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          if (reloading) return
-          reloading = true
-          window.location.reload()
-        })
+        // Offline-first: kein automatisches Neuladen (auch nicht mitten im Training). Neue Versionen melden
+        // 'sw-update-available' → PwaUpdateBanner ("Neue Version verfügbar") lädt erst auf Tipp neu.
       }
     </script>
   </body>

@@ -20,9 +20,17 @@
  */
 
 import {
-  collection, doc, getDoc, getDocs, setDoc, writeBatch, query, where, orderBy, limit,
-  documentId, deleteField, Timestamp,
+  collection,
+  doc,
+  query,
+  where,
+  orderBy,
+  limit,
+  documentId,
+  deleteField,
+  Timestamp,
 } from "firebase/firestore";
+import { getDoc, getDocs, setDoc, writeBatch } from "./offline.js";
 
 import { db } from "../../../firebase.js";
 import { getUid } from "./core.js";

@@ -15,7 +15,6 @@
           "./manifest.json"
         ],
         "cacheAllSameOrigin": true,
-        "navTimeoutMs": null,
         "api": {
           "swr": [
             "/session",
