@@ -47,7 +47,13 @@ async def lifespan(app: FastAPI):
     # Watcher-Instanzen (Dev :9150 + Staging :8100 + Prod :6100) auf dieselben
     # Firestore-Collections hoeren und in dieselben lokalen Dateien schreiben -
     # genau das Multi-Writer-Problem, das diese Session an anderer Stelle schon
-    # beheben musste. Nur eine Instanz (Dev) soll Firestore-Events verarbeiten.
+    # beheben musste. Nur eine Instanz soll Nutzerdaten (Sessions/Journal/Habits)
+    # spiegeln: seit 2026-10-29 ausschließlich Staging (:8100) per
+    # FITNESS_SYNC_OWNER=1 — Dev (:9150/:9100) und Prod synchronisieren nie.
+    # Hintergrund: Dev ist seit dem Umbau auf coach-api/coach-sync (2026-10-21)
+    # kein Sync-Prozess mehr; dadurch landeten keine Sessions mehr lokal und
+    # Core4 (sync/workouts.py) sah keine Workouts. Katalog/Inbox/Enrichment
+    # gehören weiter coach-sync (external_worker_active()).
     # Bewusst ein eigenes Flag statt FITNESS_ENV=prod zu ueberladen — Watcher-
     # Besitz (hier) und Prod-Kontext (run_kb_sync()-Guard) sind zwei getrennte
     # Fragen, auch wenn beide aktuell nur auf der Prod-Unit zusammenfallen.
@@ -57,14 +63,16 @@ async def lifespan(app: FastAPI):
     coach_bridge_thread = coach_bridge_stop = None
     from fitness.coach.sync import external_worker_active
 
+    sync_owner = os.environ.get("FITNESS_SYNC_OWNER") == "1"
+
     if os.environ.get("FITNESS_SKIP_WATCHERS") == "1":
         logger.info("FITNESS_SKIP_WATCHERS=1 — Firestore-/Enrichment-Watcher übersprungen (laufen nur in Dev, :9150).")
     elif external_worker_active():
         logger.info("coach-sync.service läuft — Katalog-Listener, Coach-Bridge und Enrichment-Watcher übersprungen (nur ein Worker).")
     else:
         try:
-            from fitness.firestore.mirror import start_catalog_watchers, start_userdata_watchers
-            watchers = start_catalog_watchers() + start_userdata_watchers()
+            from fitness.firestore.mirror import start_catalog_watchers
+            watchers = start_catalog_watchers()
         except Exception as e:
             logger.warning(f"Firestore-Watchers nicht gestartet: {e}")
         try:
@@ -84,22 +92,30 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"Enrichment-Watcher nicht gestartet: {e}")
 
-        # Lokale Filesystem-Watcher (watchdog, kein Firestore on_snapshot):
-        # spiegeln manuelle/skriptgetriebene Änderungen an Session-JSONs bzw.
-        # kb/muscles/-YAMLs automatisch nach Firestore, statt nur beim
-        # regulären API-Save (mirror_session) bzw. beim nächsten `git push`
-        # (pre-push-Hook-Fallback). Siehe fitness/firestore/local_watch.py
-        # und fitness/catalog/api/muscle_watcher.py.
-        try:
-            from fitness.firestore.local_watch import start_session_file_watcher
-            fs_observers.append(start_session_file_watcher())
-        except Exception as e:
-            logger.warning(f"Session-Filesystem-Watcher nicht gestartet: {e}")
+        # Lokaler Filesystem-Watcher für kb/muscles/-YAMLs (Katalog, kein Nutzerdaten-Sync),
+        # siehe fitness/catalog/api/muscle_watcher.py. Der Session-JSON-Watcher
+        # (local_watch.py) gehört zum Sync-Besitzer, siehe unten.
         try:
             from fitness.catalog.api.muscle_watcher import start_muscle_kb_watcher
             fs_observers.append(start_muscle_kb_watcher())
         except Exception as e:
             logger.warning(f"Muscle-KB-Filesystem-Watcher nicht gestartet: {e}")
+
+    if sync_owner:
+        # Einziger Nutzerdaten-Sync (Staging): Firestore → lokal (Sessions/Journal/Habits,
+        # Ziel ~/.aos/users/<uid>/fitness/ — von dort loggt Core4 Fitness automatisch)
+        # und lokale Session-JSONs → Firestore (watchdog, siehe local_watch.py).
+        try:
+            from fitness.firestore.mirror import start_userdata_watchers
+            watchers += start_userdata_watchers()
+        except Exception as e:
+            logger.warning(f"Nutzerdaten-Watcher nicht gestartet: {e}")
+        try:
+            from fitness.firestore.local_watch import start_session_file_watcher
+            fs_observers.append(start_session_file_watcher())
+        except Exception as e:
+            logger.warning(f"Session-Filesystem-Watcher nicht gestartet: {e}")
+        logger.info("FITNESS_SYNC_OWNER=1 — dieser Prozess ist der einzige Nutzerdaten-Sync.")
 
     yield
 

@@ -59,7 +59,7 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   relevant=$(echo "$changed" | grep -Ev "$SKIP" || true)
 
   if [ "$branch" = "dev" ] && [ -n "$relevant" ]; then
-    echo "💡 Tipp: für den kompletten dev->vitalos->vitalos-Flow gibt es ~/vitalos/bin/fitness-release (vos-release fitness --help)." >&2
+    echo "💡 Release: dev → master per PR mit 'vos-release-pr fitness' (Check, Auto-Merge, Live per CI); master → vitalos (Shell) mit 'fitness-release'. Doku: ~/vitalos/docs/DEPLOYMENT.md" >&2
   fi
 
   if [ "$branch" = "dev" ] && echo "$changed" | grep -Ev "$SKIP" | grep -Eq "$BACKEND_TRIGGER"; then

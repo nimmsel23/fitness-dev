@@ -298,6 +298,7 @@ Environment=FITNESS_ENV=staging
 Environment=FITNESS_PYTHON_PORT=$PORT
 Environment=FITNESS_DATA_DIR=$HOME/.aos/fitness
 Environment=FITNESS_SKIP_WATCHERS=1
+Environment=FITNESS_SYNC_OWNER=1
 
 [Install]
 WantedBy=default.target
