@@ -1691,19 +1691,8 @@ exercises:
   - pull_up_bar
   review_state:
     status: approved
-- aliases:
-  - Front Squat
-  - Barbell Front Squat
-  - Frontbeuge
-  - Frontbeugen
-  - Front-Kniebeuge
-  - Vordere Kniebeuge
-  german: Frontkniebeuge
-  variations:
-  - goblet_squat
-  - cross_grip_front_squat
-  - dumbbell_front_squat
-  - double_kettlebell_front_squat
+- german: Frontkniebeuge
+  display_name: Frontkniebeuge
   common_errors:
   - Ellbogen sinken ab, wodurch die Stange nach vorne kippt und die Bewegung in eine
     Good-Morning-Mechanik abrutscht.
@@ -1721,17 +1710,19 @@ exercises:
     Knielinie zu halten.
   - Zu frühes Ausatmen in der Aufwärtsphase führt zum Kollaps im Rumpf und zu instabiler
     Stangenbahn.
-  id: '061'
-  tags:
-  - expert
-  - legs
-  - squat
-  - compound
-  - quad_dominant
-  - strength
-  - front_rack
-  review_state:
-    status: approved
+  source: approved
+  variations:
+  - goblet_squat
+  - cross_grip_front_squat
+  - dumbbell_front_squat
+  - double_kettlebell_front_squat
+  english: Front Squat
+  type: compound
+  primary_muscles:
+  - 601_quadriceps_femoris
+  secondary_muscles:
+  - 603_gluteus_maximus
+  - 602_adductors
   name: Frontkniebeuge
   stabilizers:
   - 504_transverse_abdominis
@@ -1749,9 +1740,15 @@ exercises:
   - 609_gluteus_minimus
   - 702_soleus
   - 701_gastrocnemius
-  equipment:
-  - barbell
-  - squat_rack
+  category: squat
+  exercise_id: '061'
+  aliases:
+  - Front Squat
+  - Barbell Front Squat
+  - Frontbeuge
+  - Frontbeugen
+  - Front-Kniebeuge
+  - Vordere Kniebeuge
   movements:
   - knee_flexion_extension
   - hip_flexion_extension
@@ -1759,58 +1756,42 @@ exercises:
   - front_rack_bracing
   - thoracic_extension
   - spinal_anti_flexion
-  coaching_notes:
-  - 'Baue zuerst ein sauberes Front-Rack: Stange liegt auf den vorderen Schultern,
-    nicht in den Händen; Ellbogen aktiv nach vorne-oben führen.'
-  - Atme tief in Bauch und Flanken ein und spanne den Rumpf vor jeder Wiederholung
-    hart an, damit der Oberkörper aufrecht bleibt.
-  - Setze dich zwischen die Hüften, während die Knie kontrolliert nach vorne über
-    die Zehen reisen; so bleibt die Last mittig über dem Fuß.
-  - Halte den Druck über Mittelfuß bis Ferse, ohne die Zehen zu verlieren; der ganze
-    Fuß bleibt belastet.
-  - Denke an Brustbein hoch und oberen Rücken lang, damit die Stange nicht nach vorne
-    abrollt.
-  - Gehe nur so tief, wie du Spannung, neutrale Wirbelsäule und stabile Fußposition
-    halten kannst.
-  - Drücke aus dem tiefsten Punkt gleichzeitig Boden weg und Ellbogen hoch, statt
-    die Hüfte zuerst nach hinten schießen zu lassen.
-  - Wenn Mobilität limitiert ist, priorisiere eine stabile Front-Rack- und Sprunggelenksposition
-    vor zusätzlicher Last.
-  schema_version: 2026-08-12.exercise-v1
-  _hash: 68e1b750dd9061083639ff3b8a63144d
-  secondary_muscles:
-  - 603_gluteus_maximus
-  - 602_adductors
-  wger_muscle_ids:
-    primary:
-    - 10
-    secondary:
-    - 8
-    - 6
-  primary_muscles:
-  - 601_quadriceps_femoris
-  display_name: Frontkniebeuge
-  exercise_id: '061'
+  tags:
+  - expert
+  - legs
+  - squat
+  - compound
+  - quad_dominant
+  - strength
+  - front_rack
+  search_aliases:
+  - front_squat
+  - barbell_front_squat
+  - front kniebeuge
+  - frontkniebeuge
+  - frontbeuge
+  - wger_257
+  - Frontkniebeuge
+  - Front Squat
   origin:
-    type: external
+    source_refs:
+      wger:
+      - '257'
     yuhonas:
-      secondary_muscles:
-      - calves
-      - glutes
-      - hamstrings
-      wger_muscle_ids:
-        primary: []
-        secondary: []
       display_name: Front Barbell Squat
       tags:
       - unreviewed
       - yuhonas
+      wger_muscle_ids:
+        primary: []
+        secondary: []
       primary_muscles:
       - quadriceps
-      exercise_id: yuhonas_front_barbell_squat
+      secondary_muscles:
+      - calves
+      - glutes
+      - hamstrings
       yuhonas_id: Front_Barbell_Squat
-      equipment:
-      - barbell
       coaching_notes:
       - This exercise is best performed inside a squat rack for safety purposes. To
         begin, first set the bar on a rack that best matches your height. Once the
@@ -1840,10 +1821,10 @@ exercises:
         middle of your foot as you straighten the legs again and go back to the starting
         position.
       - Repeat for the recommended amount of repetitions.
+      equipment:
+      - barbell
       category: strength
-    source_refs:
-      wger:
-      - '257'
+      exercise_id: yuhonas_front_barbell_squat
     wger:
       wger_muscle_ids:
         primary:
@@ -1852,23 +1833,42 @@ exercises:
         - 8
         - 6
       wger_id: 257
-  source: approved
-  type: compound
+    type: external
+  wger_muscle_ids:
+    primary:
+    - 10
+    secondary:
+    - 8
+    - 6
+  _hash: 68e1b750dd9061083639ff3b8a63144d
+  id: '061'
+  review_state:
+    status: approved
   external_ids:
     wger:
     - 257
-  search_aliases:
-  - front_squat
-  - barbell_front_squat
-  - front kniebeuge
-  - frontkniebeuge
-  - frontbeuge
-  - wger_257
-  - Frontkniebeuge
-  - Front Squat
+  equipment:
+  - barbell
+  - squat_rack
   wger_id: 257
-  english: Front Squat
-  category: squat
+  schema_version: 2026-08-12.exercise-v1
+  coaching_notes:
+  - 'Baue zuerst ein sauberes Front-Rack: Stange liegt auf den vorderen Schultern,
+    nicht in den Händen; Ellbogen aktiv nach vorne-oben führen.'
+  - Atme tief in Bauch und Flanken ein und spanne den Rumpf vor jeder Wiederholung
+    hart an, damit der Oberkörper aufrecht bleibt.
+  - Setze dich zwischen die Hüften, während die Knie kontrolliert nach vorne über
+    die Zehen reisen; so bleibt die Last mittig über dem Fuß.
+  - Halte den Druck über Mittelfuß bis Ferse, ohne die Zehen zu verlieren; der ganze
+    Fuß bleibt belastet.
+  - Denke an Brustbein hoch und oberen Rücken lang, damit die Stange nicht nach vorne
+    abrollt.
+  - Gehe nur so tief, wie du Spannung, neutrale Wirbelsäule und stabile Fußposition
+    halten kannst.
+  - Drücke aus dem tiefsten Punkt gleichzeitig Boden weg und Ellbogen hoch, statt
+    die Hüfte zuerst nach hinten schießen zu lassen.
+  - Wenn Mobilität limitiert ist, priorisiere eine stabile Front-Rack- und Sprunggelenksposition
+    vor zusätzlicher Last.
 - aliases:
   - Beinstrecker
   - Kniestrecker
