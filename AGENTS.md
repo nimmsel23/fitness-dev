@@ -17,7 +17,7 @@
 
 ## Fitness-Release
 
-- Für Fitness-Prod wird `fitness-dev/dev` in `~/vitalos/fitness-app` auf den Branch `vitalos` übernommen. Danach wird der gewünschte `fitness-app`-Commit als Gitlink in `~/vitalos` aktualisiert; ein Push von `~/vitalos/master` deployed die Shell samt gepinnten Quellen.
+- Für Fitness-Prod läuft der Weg `dev` → `master` (PR, `vos-release-pr fitness`) → `vitalos` (`fitness-release`, mergt `origin/master` in `~/vitalos/fitness-app` auf `vitalos`). Danach wird der `fitness-app`-Commit als Gitlink in `~/vitalos` aktualisiert; ein Push von `~/vitalos/master` deployed die Shell samt gepinnten Quellen. Details im Block `release-weg` unten.
 
 <!-- release-weg:start -->
 ## Release-Weg und Branches (Fitness)
