@@ -1188,33 +1188,57 @@ exercises:
   wger_id: null
   english: Clean and Jerk
   category: pull
-- aliases:
+- german: Rumänisches Kreuzheben
+  variations:
+  - dumbbell_rdl
+  - single_leg_rdl
+  - barbell_rdl
+  common_errors:
+  - Zu starkes Beugen der Knie, wodurch die Übung biomechanisch in Richtung konventionelles
+    Kreuzheben oder Kniebeuge kippt.
+  - Die Hantel driftet vor den Körper, was den Hebel auf den unteren Rücken unnötig
+    vergrößert und oft zulasten der Hamstring-Spannung geht.
+  - Tiefe erzwingen, obwohl das Becken bereits nach hinten wegkippt oder der Rücken
+    einrundet.
+  - Oben hart ins Hohlkreuz drücken, statt die Wiederholung mit neutraler Wirbelsäule
+    und voller Hüftstreckung zu beenden.
+  - Aus den Armen ziehen oder die Schultern nach vorn hängen lassen, anstatt den Oberkörper
+    über Lat-Spannung und aktive Schulterblätter zu organisieren.
+  - Die Abwärtsphase fallen lassen und dadurch Kontrolle, Dehnungsspannung und reproduzierbare
+    Technik verlieren.
+  - Das Gewicht zu weit nach vorn auf die Zehen verlagern, wodurch Balance, Hüftmechanik
+    und Kraftübertragung schlechter werden.
+  source: approved
+  display_name: Rumänisches Kreuzheben
+  external_ids:
+    wger:
+    - 507
+  type: compound
+  primary_muscles:
+  - 604a_biceps_femoris
+  - 604b_semitendinosus
+  - 604c_semimembranosus
+  - 603_gluteus_maximus
+  secondary_muscles:
+  - 206_erector_spinae
+  - 602a_adductor_magnus
+  name: Rumänisches Kreuzheben
+  movements:
+  - hip_hinge
+  - hip_extension
+  - hamstring_lengthening
+  - spinal_anti_flexion
+  - isometric_knee_flexion
+  - scapular_depression
+  category: pull
+  exercise_id: 081
+  aliases:
   - Romanian Deadlift
   - RDL
   - Romanian DL
   - Rumänisches Kreuzheben
   - Kurzhantel RDL
   - Langhantel RDL
-  source: approved
-  variations:
-  - dumbbell_rdl
-  - single_leg_rdl
-  - barbell_rdl
-  german: Rumänisches Kreuzheben
-  id: 081
-  tags:
-  - expert
-  - legs
-  - hip_hinge
-  - posterior_chain
-  - hamstrings
-  - glutes
-  primary_muscles:
-  - 604a_biceps_femoris
-  - 604b_semitendinosus
-  - 604c_semimembranosus
-  - 603_gluteus_maximus
-  name: Rumänisches Kreuzheben
   stabilizers:
   - 504_transverse_abdominis
   - 502_obliquus_externus
@@ -1226,36 +1250,36 @@ exercises:
   - 405_forearm_flexors
   - 608_gluteus_medius
   - 609_gluteus_minimus
-  equipment:
-  - barbell
-  - dumbbell
-  movements:
+  tags:
+  - expert
+  - legs
   - hip_hinge
-  - hip_extension
-  - hamstring_lengthening
-  - spinal_anti_flexion
-  - isometric_knee_flexion
-  - scapular_depression
+  - posterior_chain
+  - hamstrings
+  - glutes
+  wger_muscle_ids:
+    primary:
+    - 11
+    - 8
+    secondary:
+    - 16
   origin:
     type: external
     yuhonas:
+      display_name: Romanian Deadlift
+      wger_muscle_ids:
+        primary: []
+        secondary: []
+      tags:
+      - unreviewed
+      - yuhonas
+      primary_muscles:
+      - hamstrings
       secondary_muscles:
       - calves
       - glutes
       - lower_back
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      display_name: Romanian Deadlift
-      exercise_id: yuhonas_romanian_deadlift
-      primary_muscles:
-      - hamstrings
       yuhonas_id: Romanian_Deadlift
-      tags:
-      - unreviewed
-      - yuhonas
-      equipment:
-      - barbell
       coaching_notes:
       - 'Put a barbell in front of you on the ground and grab it using a pronated
         (palms facing down) grip that a little wider than shoulder width. Tip: Depending
@@ -1271,10 +1295,10 @@ exercises:
         a deep breath at the start of the movement and keep your chest up. Hold your
         breath as you lower and exhale as you complete the movement.'
       - Repeat for the recommended amount of repetitions.
+      equipment:
+      - barbell
       category: strength
-    source_refs:
-      wger:
-      - '507'
+      exercise_id: yuhonas_romanian_deadlift
     wger:
       wger_muscle_ids:
         primary:
@@ -1283,17 +1307,25 @@ exercises:
         secondary:
         - 16
       wger_id: 507
-  schema_version: 2026-08-12.exercise-v1
+    source_refs:
+      wger:
+      - '507'
+  search_aliases:
+  - rdl
+  - romanian deadlift
+  - rumaenisches kreuzheben
+  - rumänisches kreuzheben
+  - wger_507
+  - Rumänisches Kreuzheben
+  - Romanian Deadlift
   _hash: a8fea66f53e46ebc7f941d93178c8ef1
-  secondary_muscles:
-  - 206_erector_spinae
-  - 602a_adductor_magnus
-  wger_muscle_ids:
-    primary:
-    - 11
-    - 8
-    secondary:
-    - 16
+  id: 081
+  english: Romanian Deadlift
+  schema_version: 2026-08-12.exercise-v1
+  equipment:
+  - barbell
+  - dumbbell
+  wger_id: 507
   coaching_notes:
   - 'Starte aus dem aufrechten Stand und breche die Bewegung zuerst über die Hüfte
     ein: Gesäß aktiv nach hinten schieben, statt die Hantel über Kniebeugung abzusenken.'
@@ -1312,40 +1344,8 @@ exercises:
   - Den exzentrischen Teil bewusst kontrollieren, damit die Hamstrings unter Länge
     arbeiten; der Trainingsreiz entsteht hier stark über saubere Bremsarbeit, nicht
     nur über das Aufrichten.
-  display_name: Rumänisches Kreuzheben
   review_state:
     status: approved
-  common_errors:
-  - Zu starkes Beugen der Knie, wodurch die Übung biomechanisch in Richtung konventionelles
-    Kreuzheben oder Kniebeuge kippt.
-  - Die Hantel driftet vor den Körper, was den Hebel auf den unteren Rücken unnötig
-    vergrößert und oft zulasten der Hamstring-Spannung geht.
-  - Tiefe erzwingen, obwohl das Becken bereits nach hinten wegkippt oder der Rücken
-    einrundet.
-  - Oben hart ins Hohlkreuz drücken, statt die Wiederholung mit neutraler Wirbelsäule
-    und voller Hüftstreckung zu beenden.
-  - Aus den Armen ziehen oder die Schultern nach vorn hängen lassen, anstatt den Oberkörper
-    über Lat-Spannung und aktive Schulterblätter zu organisieren.
-  - Die Abwärtsphase fallen lassen und dadurch Kontrolle, Dehnungsspannung und reproduzierbare
-    Technik verlieren.
-  - Das Gewicht zu weit nach vorn auf die Zehen verlagern, wodurch Balance, Hüftmechanik
-    und Kraftübertragung schlechter werden.
-  exercise_id: 081
-  type: compound
-  external_ids:
-    wger:
-    - 507
-  search_aliases:
-  - rdl
-  - romanian deadlift
-  - rumaenisches kreuzheben
-  - rumänisches kreuzheben
-  - wger_507
-  - Rumänisches Kreuzheben
-  - Romanian Deadlift
-  wger_id: 507
-  english: Romanian Deadlift
-  category: pull
 - variations:
   - low_incline_dumbbell_press
   - incline_barbell_press
