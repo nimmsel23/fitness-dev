@@ -859,11 +859,8 @@ exercises:
   review_state:
     status: approved
   schema_version: 2026-08-12.exercise-v1
-- aliases:
-  - Plank
-  - Front Plank
-  - Unterarmstütz
-  - Forearm Plank
+- german: Unterarmstütz
+  display_name: Unterarmstütz
   common_errors:
   - Das Becken sinkt ab und der untere Rücken fällt ins Hohlkreuz, wodurch die Belastung
     von der Rumpfmuskulatur auf passive Strukturen verlagert wird.
@@ -877,21 +874,17 @@ exercises:
     Spannung kontrolliert weiterzuatmen.
   - Die Haltedauer wird über Technik priorisiert, obwohl die Übung biomechanisch nur
     mit sauberer Anti-Extensionskontrolle sinnvoll ist.
-  variations: []
   source: approved
-  id: plank
-  exercise_id: plank
-  review_state:
-    status: approved
+  variations: []
+  type: isolation
+  primary_muscles:
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  secondary_muscles:
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 603_gluteus_maximus
   name: Plank
-  stabilizers:
-  - 105_serratus_anterior
-  - 301_anterior_deltoid
-  - 304_rotator_cuff
-  - 206_erector_spinae
-  - 507_multifidus
-  equipment:
-  - bodyweight
   movements:
   - anti_extension
   - bracing
@@ -899,6 +892,90 @@ exercises:
   - scapular_protraction
   - shoulder_flexion
   - posterior_pelvic_tilt
+  category: carry
+  exercise_id: plank
+  aliases:
+  - Plank
+  - Front Plank
+  - Unterarmstütz
+  - Forearm Plank
+  stabilizers:
+  - 105_serratus_anterior
+  - 301_anterior_deltoid
+  - 304_rotator_cuff
+  - 206_erector_spinae
+  - 507_multifidus
+  tags:
+  - core
+  - abs
+  - stability
+  - bodyweight_workout
+  - trunk
+  - anti_extension
+  - isometric
+  search_aliases:
+  - Plank
+  - Front Plank
+  - Forearm Plank
+  - Unterarmstütz
+  origin:
+    type: manual
+    yuhonas:
+      display_name: Plank
+      wger_muscle_ids:
+        primary: []
+        secondary: []
+      tags:
+      - unreviewed
+      - yuhonas
+      primary_muscles:
+      - abdominals
+      yuhonas_id: Plank
+      secondary_muscles: []
+      coaching_notes:
+      - Get into a prone position on the floor, supporting your weight on your toes
+        and your forearms. Your arms are bent and directly below the shoulder.
+      - Keep your body straight at all times, and hold this position as long as possible.
+        To increase difficulty, an arm or leg can be raised.
+      equipment:
+      - body only
+      category: strength
+      exercise_id: yuhonas_plank
+    wger:
+      german: Plank
+      display_name: Plank
+      tags:
+      - unreviewed
+      - wger
+      wger_muscle_ids:
+        primary:
+        - 14
+        - 6
+        secondary:
+        - 1
+        - 10
+        - 5
+      primary_muscles:
+      - 501_rectus_abdominis
+      - 502_obliquus_externus
+      - 503_obliquus_internus
+      secondary_muscles:
+      - 401_triceps_brachii
+      - 402_biceps_brachii
+      - 601_quadriceps_femoris
+      coaching_notes:
+      - Mit dem Bauch auf den Boden legen und den Körper mit Unterarmen und Zehen
+        abstützen. Beine, Rücken und Kopf sollten eine gerade Linie bilden.
+      equipment:
+      - none (bodyweight exercise)
+      wger_id: 458
+      category: core
+      exercise_id: wger_458
+    source_refs: {}
+  _hash: c1f9e5ef15c6663bd7858cebaceb04ba
+  review_state:
+    status: approved
+  id: plank
   coaching_notes:
   - Spannen Sie Bauch, Gesäß und Oberschenkel gleichzeitig an, als wollten Sie den
     Boden mit den Unterarmen nach hinten ziehen und die Füße nach vorne schieben.
@@ -912,87 +989,10 @@ exercises:
     im Rumpf zu verlieren.
   - Beenden Sie den Satz, sobald die Beckenposition oder Rumpfspannung nicht mehr
     sauber gehalten werden kann.
+  equipment:
+  - bodyweight
   schema_version: 2026-08-12.exercise-v1
-  _hash: c1f9e5ef15c6663bd7858cebaceb04ba
-  secondary_muscles:
-  - 502_obliquus_externus
-  - 503_obliquus_internus
-  - 603_gluteus_maximus
-  origin:
-    type: manual
-    yuhonas:
-      secondary_muscles: []
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      display_name: Plank
-      yuhonas_id: Plank
-      primary_muscles:
-      - abdominals
-      exercise_id: yuhonas_plank
-      tags:
-      - unreviewed
-      - yuhonas
-      equipment:
-      - body only
-      coaching_notes:
-      - Get into a prone position on the floor, supporting your weight on your toes
-        and your forearms. Your arms are bent and directly below the shoulder.
-      - Keep your body straight at all times, and hold this position as long as possible.
-        To increase difficulty, an arm or leg can be raised.
-      category: strength
-    source_refs: {}
-    wger:
-      secondary_muscles:
-      - 401_triceps_brachii
-      - 402_biceps_brachii
-      - 601_quadriceps_femoris
-      wger_muscle_ids:
-        primary:
-        - 14
-        - 6
-        secondary:
-        - 1
-        - 10
-        - 5
-      german: Plank
-      display_name: Plank
-      tags:
-      - unreviewed
-      - wger
-      primary_muscles:
-      - 501_rectus_abdominis
-      - 502_obliquus_externus
-      - 503_obliquus_internus
-      exercise_id: wger_458
-      wger_id: 458
-      equipment:
-      - none (bodyweight exercise)
-      coaching_notes:
-      - Mit dem Bauch auf den Boden legen und den Körper mit Unterarmen und Zehen
-        abstützen. Beine, Rücken und Kopf sollten eine gerade Linie bilden.
-      category: core
-  german: Unterarmstütz
-  display_name: Unterarmstütz
-  tags:
-  - core
-  - abs
-  - stability
-  - bodyweight_workout
-  - trunk
-  - anti_extension
-  - isometric
-  primary_muscles:
-  - 504_transverse_abdominis
-  - 501_rectus_abdominis
-  type: isolation
-  search_aliases:
-  - Plank
-  - Front Plank
-  - Forearm Plank
-  - Unterarmstütz
   english: Plank
-  category: carry
 - aliases:
   - clean_and_jerk
   - C&J
