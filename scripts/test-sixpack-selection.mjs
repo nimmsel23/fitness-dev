@@ -1,12 +1,14 @@
 // Execute the actual JSX event handlers with a minimal hook/storage harness.
 // This covers selection processing; native OS pickers still need a device test.
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import { webcrypto } from 'node:crypto';
 import { transformWithEsbuild } from 'vite';
 
-const file = new URL(process.env.SIXPACK_GALLERY_FILE || '../6pack/SelfiesGallery.jsx', import.meta.url);
+const sixpackRoot = ['6pack-app', '6pack-dev'].map((n) => new URL(`../../${n}/`, import.meta.url)).find((u) => existsSync(u)) || new URL('../6pack/', import.meta.url);
+const file = process.env.SIXPACK_GALLERY_FILE ? new URL(process.env.SIXPACK_GALLERY_FILE, import.meta.url) : new URL('SelfiesGallery.jsx', sixpackRoot);
 const source = (await readFile(file, 'utf8')).replace('import.meta.env.VITE_SIXPACK_API_BASE', "''");
 const { code } = await transformWithEsbuild(source, file.pathname, { loader: 'jsx', format: 'cjs', jsxFactory: 'h' });
 function harness({ online = true, quota = false, corrupt = false } = {}) {

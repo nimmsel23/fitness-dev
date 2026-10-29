@@ -5,14 +5,16 @@
 // vor jedem Dev-Start und Build (predev/prebuild in package.json), damit neue
 // Exercises/Workouts/Skills ohne Code-Änderung auftauchen, sobald sie in der
 // KB liegen.
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import yaml from 'js-yaml';
-import { loadMuscles, exerciseContent } from '../6pack/catalogContent.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..');
+// 6Pack-Quelle: Nachbar-Checkout (~/6pack-dev bzw. im vitalos-Workspace 6pack-app), sonst verschachteltes ./6pack.
+const SIXPACK_SRC = ['6pack-app', '6pack-dev'].map((n) => join(REPO_ROOT, '..', n)).find(existsSync) || join(REPO_ROOT, '6pack');
+const { loadMuscles, exerciseContent } = await import(pathToFileURL(join(SIXPACK_SRC, 'catalogContent.mjs')).href);
 const SIXPACK_DIR = join(REPO_ROOT, 'fitness/catalog/kb/exercises/6pack');
 const CALISTHENICS_DIR = join(REPO_ROOT, 'fitness/catalog/kb/exercises/calisthenics');
 const OUT_FILE = join(REPO_ROOT, 'src/views/SixPack/sixpackData.generated.js');
