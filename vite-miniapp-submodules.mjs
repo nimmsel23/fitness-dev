@@ -12,31 +12,60 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 // the approved integration commit of each repo as a Git submodule; this
 // resolver makes Fitness compile that checkout directly instead of a copied
 // view under src/views. Missing files fall back to Fitness-owned adapters.
+//
+// Quelle je Mini-App, in dieser Reihenfolge: Nachbar-Checkout neben `root`
+// (`../plan-dev` in ~/fitness-dev, `../plan-app` im vitalos-Workspace), sonst der
+// verschachtelte Submodul-Ordner unter `root` (bisheriger Weg).
+function firstExisting(root, siblings, nested) {
+  for (const name of siblings) {
+    const dir = resolve(root, '..', name)
+    if (existsSync(dir)) return dir
+  }
+  return resolve(root, nested)
+}
+
 export function miniAppSubmodulePlugin(root = __dirname) {
+  const planRoot = firstExisting(root, ['plan-app', 'plan-dev'], 'plan')
+  const sixpackRoot = firstExisting(root, ['6pack-app', '6pack-dev'], '6pack')
+  const skillsRoot = firstExisting(root, ['skills-app', 'skills-dev'], 'Skills')
+
   const maps = [
     {
       local: resolve(root, 'src/views/Plan'),
-      source: resolve(root, 'plan/src/views/Plan'),
+      source: resolve(planRoot, 'src/views/Plan'),
     },
     {
       local: resolve(root, 'src/views/SixPack'),
-      source: resolve(root, '6pack'),
+      source: sixpackRoot,
     },
     {
       local: resolve(root, 'src/views/Skills'),
-      source: resolve(root, 'Skills'),
+      source: skillsRoot,
     },
   ]
 
   return {
     name: 'fitness-miniapp-submodule-source',
     enforce: 'pre',
-    resolveId(source, importer) {
+    async resolveId(source, importer) {
       if (!importer || importer.startsWith('\0')) return null
       const request = source.split('?')[0]
-      if (!request.startsWith('.') && !isAbsolute(request)) return null
-
       const importerPath = importer.split('?')[0]
+
+      // Pakete der Mini-App-Quellen kommen aus dem node_modules von `root` (eine
+      // Instanz von react, recharts, firebase …), nicht aus dem des Nachbar-Checkouts:
+      // dort fehlen sie oder liegen doppelt vor.
+      if (!request.startsWith('.') && !isAbsolute(request)) {
+        if (
+          !importerPath.includes(`${sep}node_modules${sep}`) &&
+          [planRoot, sixpackRoot, skillsRoot].some((dir) => importerPath.startsWith(`${dir}${sep}`))
+        ) {
+          const hit = await this.resolve(source, resolve(root, 'package.json'), { skipSelf: true })
+          if (hit) return hit
+        }
+        return null
+      }
+
       const target = isAbsolute(request)
         ? request
         : resolve(dirname(importerPath), request)
@@ -44,7 +73,7 @@ export function miniAppSubmodulePlugin(root = __dirname) {
       // Fitness generates this data from its own exercise KB before building;
       // 6Pack's standalone source keeps the same import contract.
       if (
-        importerPath.startsWith(`${resolve(root, '6pack')}/`) &&
+        importerPath.startsWith(`${sixpackRoot}/`) &&
         request === './sixpackData.generated.js'
       ) {
         const fitnessData = resolve(root, 'src/views/SixPack/sixpackData.generated.js')
@@ -55,7 +84,7 @@ export function miniAppSubmodulePlugin(root = __dirname) {
       // (contexts, lib, components, hooks …). Importe daraus gehören zu den
       // Fitness-Gegenstücken, sonst entstehen zwei UserContext-Instanzen und der
       // Plan-Tab bricht ohne Provider ab.
-      const planSrc = resolve(root, 'plan/src')
+      const planSrc = resolve(planRoot, 'src')
       const planViews = resolve(planSrc, 'views/Plan')
       if (importerPath.startsWith(`${planViews}${sep}`)) {
         const rel = relative(planSrc, target)
