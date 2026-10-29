@@ -34,11 +34,11 @@ jobs:
     steps:
       - name: Mergen, wenn der grüne Lauf dem aktuellen PR-Stand entspricht
         run: |
-          if [ "$BRANCH" = dev ]; then base=vitalos; flag=--merge; else base=dev; flag="--squash --delete-branch"; fi
+          if [ "$BRANCH" = dev ]; then base=master; flag=--merge; else base=dev; flag="--squash --delete-branch"; fi
           pr=$(gh pr list -R "$REPO" --head "$BRANCH" --base "$base" --state open --json number,headRefOid \
             --jq ".[] | select(.headRefOid == \"$SHA\") | .number")
           [ -n "$pr" ] || { echo "Kein offener PR mit Stand $SHA (veraltet oder schon gemergt)."; exit 0; }
           gh pr merge "$pr" -R "$REPO" $flag
-          if [ "$base" = vitalos ]; then
-            gh workflow run deploy-master.yml -R "$REPO" --ref vitalos
+          if [ "$base" = master ]; then
+            gh workflow run deploy-master.yml -R "$REPO" --ref master
           fi
