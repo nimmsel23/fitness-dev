@@ -1346,18 +1346,7 @@ exercises:
   wger_id: 507
   english: Romanian Deadlift
   category: pull
-- aliases:
-  - Schrägbankdrücken (KH)
-  - Schrägbankdrücken (Kurzhantel)
-  - Schrägbankdrücken Kurzhantel
-  - Kurzhantelschrägbankdrücken
-  - KH-Schrägbankdrücken
-  - Incline Dumbbell Press
-  - Incline DB Press
-  - Dumbbell Incline Press
-  - Incline Dumbbell Chest Press
-  german: Schrägbankdrücken mit Kurzhanteln
-  variations:
+- variations:
   - low_incline_dumbbell_press
   - incline_barbell_press
   - incline_machine_press
@@ -1379,24 +1368,58 @@ exercises:
     künstlich leichter zu machen.
   - Zu kurz ablassen und dadurch den gedehnten unteren Arbeitsbereich der Brust fast
     vollständig verschenken.
-  original_description:
-  - Setze dich auf die Bank, die Füße sind fest auf dem Boden und geben Halt, der
-    Kopf liegt auf der Bank. Nehme die Hanteln in die Hand und drücke sie nach oben.
-    Bringe die Hanteln nach unten, bis sie neben der Brust sind. Drücke das Gewicht
-    wieder nach oben.
+  source: approved
   primary_muscles:
   - 102_pectoralis_major_clavicular
   - 101_pectoralis_major
-  exercise_id: '041'
-  stabilizers:
-  - 304_rotator_cuff
-  - 202b_trapezius_middle
-  - 202c_trapezius_lower
-  - 504_transverse_abdominis
-  - 507_multifidus
-  equipment:
+  yuhonas_id: Incline_Dumbbell_Press
+  secondary_muscles:
+  - 301_anterior_deltoid
+  - 401_triceps_brachii
+  - 105_serratus_anterior
+  name: Schrägbankdrücken mit Kurzhanteln
+  movements:
+  - incline
+  - horizontal_press
+  - shoulder_horizontal_adduction
+  - shoulder_flexion
+  - elbow_extension
+  category: push
+  aliases:
+  - Schrägbankdrücken (KH)
+  - Schrägbankdrücken (Kurzhantel)
+  - Schrägbankdrücken Kurzhantel
+  - Kurzhantelschrägbankdrücken
+  - KH-Schrägbankdrücken
+  - Incline Dumbbell Press
+  - Incline DB Press
+  - Dumbbell Incline Press
+  - Incline Dumbbell Chest Press
+  wger_muscle_ids:
+    primary:
+    - 4
+    secondary:
+    - 2
+    - 5
+  search_aliases:
+  - incline_dumbbell_press
+  - incline_db_press
+  - dumbbell_incline_press
+  - schraegbankdruecken_kh
+  - schraegbankdruecken_kurzhantel
+  - kurzhantelschraegbankdruecken
+  - wger_537
+  - yuhonas_incline_dumbbell_press
+  - Incline_Dumbbell_Press
+  - Schrägbankdrücken mit Kurzhanteln
+  - Incline Dumbbell Press
+  tags:
+  - expert
+  - chest
   - dumbbell
-  - incline_bench
+  - incline_press
+  - compound
+  - upper_chest
   coaching_notes:
   - Wähle in der Regel eine Bankneigung von etwa 30 bis 45 Grad; damit triffst du
     die obere Brust deutlich, ohne die Übung unnötig in Richtung Schulterdrücken zu
@@ -1420,11 +1443,19 @@ exercises:
   - 'Nutze den vollen kontrollierbaren Bewegungsumfang: tief genug für eine deutliche
     Brustdehnung, aber nur so tief, wie du Schulterposition, Ellbogenpfad und Handgelenke
     sauber stabil halten kannst.'
-  schema_version: 2026-08-12.exercise-v1
-  secondary_muscles:
-  - 301_anterior_deltoid
-  - 401_triceps_brachii
-  - 105_serratus_anterior
+  external_ids:
+    yuhonas:
+    - Incline_Dumbbell_Press
+    wger:
+    - 537
+  wger_id: 537
+  original_description:
+  - Setze dich auf die Bank, die Füße sind fest auf dem Boden und geben Halt, der
+    Kopf liegt auf der Bank. Nehme die Hanteln in die Hand und drücke sie nach oben.
+    Bringe die Hanteln nach unten, bis sie neben der Brust sind. Drücke das Gewicht
+    wieder nach oben.
+  german: Schrägbankdrücken mit Kurzhanteln
+  display_name: Schrägbankdrücken mit Kurzhanteln
   instructions:
   - Lie back on an incline bench with a dumbbell in each hand atop your thighs. The
     palms of your hands will be facing each other.
@@ -1441,34 +1472,20 @@ exercises:
   - Repeat the movement for the prescribed amount of repetitions.
   - When you are done, place the dumbbells back on your thighs and then on the floor.
     This is the safest manner to release the dumbbells.
-  external_ids:
-    yuhonas:
-    - Incline_Dumbbell_Press
-    wger:
-    - 537
-  english: Incline Dumbbell Press
-  category: push
-  id: '041'
-  source: approved
-  tags:
-  - expert
-  - chest
-  - dumbbell
-  - incline_press
-  - compound
-  - upper_chest
-  review_state:
-    status: approved
-  name: Schrägbankdrücken mit Kurzhanteln
-  yuhonas_id: Incline_Dumbbell_Press
-  movements:
-  - incline
-  - horizontal_press
-  - shoulder_horizontal_adduction
-  - shoulder_flexion
-  - elbow_extension
+  type: compound
+  stabilizers:
+  - 304_rotator_cuff
+  - 202b_trapezius_middle
+  - 202c_trapezius_lower
+  - 504_transverse_abdominis
+  - 507_multifidus
+  exercise_id: '041'
   origin:
-    type: merged_external
+    source_refs:
+      yuhonas:
+      - Incline_Dumbbell_Press
+      wger:
+      - '537'
     yuhonas:
       yuhonas_id: Incline_Dumbbell_Press
       instructions:
@@ -1487,11 +1504,6 @@ exercises:
       - Repeat the movement for the prescribed amount of repetitions.
       - When you are done, place the dumbbells back on your thighs and then on the
         floor. This is the safest manner to release the dumbbells.
-    source_refs:
-      yuhonas:
-      - Incline_Dumbbell_Press
-      wger:
-      - '537'
     wger:
       original_description:
       - Setze dich auf die Bank, die Füße sind fest auf dem Boden und geben Halt,
@@ -1505,28 +1517,16 @@ exercises:
         - 2
         - 5
       wger_id: 537
+    type: merged_external
   _hash: bbbc4315bb6111b3441fb2abcd66899a
-  wger_muscle_ids:
-    primary:
-    - 4
-    secondary:
-    - 2
-    - 5
-  display_name: Schrägbankdrücken mit Kurzhanteln
-  type: compound
-  search_aliases:
-  - incline_dumbbell_press
-  - incline_db_press
-  - dumbbell_incline_press
-  - schraegbankdruecken_kh
-  - schraegbankdruecken_kurzhantel
-  - kurzhantelschraegbankdruecken
-  - wger_537
-  - yuhonas_incline_dumbbell_press
-  - Incline_Dumbbell_Press
-  - Schrägbankdrücken mit Kurzhanteln
-  - Incline Dumbbell Press
-  wger_id: 537
+  review_state:
+    status: approved
+  english: Incline Dumbbell Press
+  schema_version: 2026-08-12.exercise-v1
+  equipment:
+  - dumbbell
+  - incline_bench
+  id: '041'
 - variations:
   - assisted_chin_up
   - weighted_chin_up
