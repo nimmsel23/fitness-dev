@@ -27,7 +27,7 @@ on:
       - '!**/*.bak*'
       - '!docs/**'
   pull_request:
-    branches: [vitalos, dev]
+    branches: [vitalos, master, dev]
     paths:
       - 'src/**'
       - '.gitmodules'
