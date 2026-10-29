@@ -24,7 +24,7 @@ import ActivityAddonHistory from './ActivityAddonHistory.jsx';
 import SessionToast from './SessionToast.jsx';
 import SessionSaveFab from './SessionSaveFab.jsx';
 import SessionSidebar from './SessionSidebar';
-import { normalizeSessionGate } from '../../lib/sessionGate.js';
+import { normalizeSessionGate, sessionGateTimeToHHMM, buildManualSessionGate, estimateDurationMinutes } from '../../lib/sessionGate.js';
 import { inferBlockFromExercises } from './utils';
 import { localToday } from '@utils';
 
@@ -45,7 +45,7 @@ export default function SessionEditor({
   activity, setActivity,
   hasActivity, setHasActivity,
   activityAddons, removeActivityAddon,
-  sessionGate,
+  sessionGate, setSessionGate,
   slots, addSlot, removeSlot, updateSlot, reorderSlots,
   recentSessions,
   hint,
@@ -84,6 +84,21 @@ export default function SessionEditor({
     );
   }
   const gpsMapsUrl = normalizeSessionGate(sessionGate).gps?.mapsUrl || null;
+  // Beginn/Ende manuell setzen (wie es Start/Stopp der Stoppuhr automatisch tun);
+  // die Dauer folgt daraus, solange sie leer oder noch der alte Automatik-Wert ist.
+  const gateTimes = {
+    start: sessionGateTimeToHHMM(normalizeSessionGate(sessionGate).startedAt),
+    end: sessionGateTimeToHHMM(normalizeSessionGate(sessionGate).endedAt),
+    onChange: (start, end) => {
+      const next = buildManualSessionGate(date, start, end, sessionGate);
+      if (!next) return;
+      const prevAuto = estimateDurationMinutes(sessionGate);
+      setSessionGate(next);
+      const nextAuto = estimateDurationMinutes(next);
+      if (next.endedAt && nextAuto && (!duration || String(duration) === prevAuto)) setDuration(nextAuto);
+      scheduleAutoSave();
+    },
+  };
 
   // Session Gate ist kein inline Card-Element mehr, sondern ein echtes Sheet
   // über dem Training-Haupttab: "Heute" in der Nav-Bar (SessionGateCard.jsx
@@ -280,7 +295,7 @@ export default function SessionEditor({
               <SessionSidebar
                 location={location} setLocation={v => { setLocation(v); scheduleAutoSave(); }}
                 duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
-                gpsMapsUrl={gpsMapsUrl}
+                gpsMapsUrl={gpsMapsUrl} gateTimes={gateTimes}
                 trainingsart={trainingsart} setTrainingsart={v => { setTrainingsart(v); scheduleAutoSave(); }}
                 notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
                 onDownload={handleDownload}
@@ -305,7 +320,7 @@ export default function SessionEditor({
         onClose={() => setActiveModal(null)}
         location={location} setLocation={v => { setLocation(v); scheduleAutoSave(); }}
         duration={duration} setDuration={v => { setDuration(v); scheduleAutoSave(); }}
-        gpsMapsUrl={gpsMapsUrl}
+        gpsMapsUrl={gpsMapsUrl} gateTimes={gateTimes}
         trainingsart={trainingsart} setTrainingsart={v => { setTrainingsart(v); scheduleAutoSave(); }}
         notes={notes} setNotes={v => { setNotes(v); scheduleAutoSave(); }}
         onDownload={handleDownload}

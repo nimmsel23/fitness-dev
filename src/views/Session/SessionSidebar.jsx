@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Download, MapPin, Clock, Activity, Target, FileText, Info, X, Brain, Navigation } from 'lucide-react';
 import SectionHeader from './SectionHeader';
 
@@ -5,11 +6,17 @@ const TRAININGSART_OPTIONS = ['Kraft', 'Hypertrophie', 'Ausdauer'];
 
 export default function SessionSidebar({
   location, setLocation, duration, setDuration,
-  gpsMapsUrl,
+  gpsMapsUrl, gateTimes,
   trainingsart, setTrainingsart,
   notes, setNotes, onDownload,
   onExportObsidian, onClose, coachFeedback = ""
 }) {
+  const [startVal, setStartVal] = useState(gateTimes?.start || '');
+  const [endVal, setEndVal] = useState(gateTimes?.end || '');
+  useEffect(() => { setStartVal(gateTimes?.start || ''); setEndVal(gateTimes?.end || ''); }, [gateTimes?.start, gateTimes?.end]);
+  const timesInvalid = !!(startVal && endVal && endVal <= startVal);
+  const changeTimes = (start, end) => { setStartVal(start); setEndVal(end); gateTimes?.onChange(start, end); };
+
   return (
     <aside className="space-y-6">
       {onClose && (
@@ -45,6 +52,21 @@ export default function SessionSidebar({
               )}
             </div>
           </div>
+
+          {gateTimes && (
+            <div className="group">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-2 block ml-1 flex items-center gap-2">
+                <Clock size={12} /> Beginn / Ende
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <input type="time" value={startVal} aria-label="Beginn" onChange={e => changeTimes(e.target.value, endVal)}
+                  className="w-full p-4 rounded-2xl border text-sm font-bold bg-fit-bg2 border-fit-line text-fit-ink focus:border-accent focus:bg-card outline-none transition-all" />
+                <input type="time" value={endVal} aria-label="Ende" onChange={e => changeTimes(startVal, e.target.value)}
+                  className="w-full p-4 rounded-2xl border text-sm font-bold bg-fit-bg2 border-fit-line text-fit-ink focus:border-accent focus:bg-card outline-none transition-all" />
+              </div>
+              {timesInvalid && <p className="mt-2 ml-1 text-[11px] font-semibold text-red-400">Ende muss nach dem Beginn liegen.</p>}
+            </div>
+          )}
 
           <div className="relative group">
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-2 block ml-1 flex items-center gap-2">

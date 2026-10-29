@@ -6,7 +6,7 @@ import SessionSidebar from './SessionSidebar';
 export default function SidebarSheet({
   onClose,
   location, setLocation, duration, setDuration,
-  gpsMapsUrl,
+  gpsMapsUrl, gateTimes,
   trainingsart, setTrainingsart,
   notes, setNotes,
   onDownload, onExportObsidian, coachFeedback = ""
@@ -29,7 +29,7 @@ export default function SidebarSheet({
         <SessionSidebar
           location={location} setLocation={setLocation}
           duration={duration} setDuration={setDuration}
-          gpsMapsUrl={gpsMapsUrl}
+          gpsMapsUrl={gpsMapsUrl} gateTimes={gateTimes}
           trainingsart={trainingsart} setTrainingsart={setTrainingsart}
           notes={notes} setNotes={setNotes}
           onDownload={onDownload}
