@@ -47,6 +47,19 @@ export function miniAppSubmodulePlugin(root = __dirname) {
   return {
     name: 'fitness-miniapp-submodule-source',
     enforce: 'pre',
+    // CSS-/Asset-Importe der Mini-Apps ohne feste Relativpfade: `@import "@vos-6pack/sixpack.css"`
+    // (postcss-import löst sie über resolve.alias auf, resolveId-Hooks sehen sie nicht).
+    config() {
+      return {
+        resolve: {
+          alias: [
+            { find: /^@vos-6pack\//, replacement: `${sixpackRoot}/` },
+            { find: /^@vos-skills\//, replacement: `${skillsRoot}/` },
+            { find: /^@vos-plan\//, replacement: `${planRoot}/` },
+          ],
+        },
+      }
+    },
     async resolveId(source, importer) {
       if (!importer || importer.startsWith('\0')) return null
       const request = source.split('?')[0]

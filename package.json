@@ -44,7 +44,7 @@
     "deploy:preview": "pnpm run build:firebase && node scripts/deploy-preview.mjs",
     "deploy:prev": "pnpm run deploy:preview",
     "build:prev": "pnpm run deploy:preview",
-    "build:plan-data": "node plan/scripts/exercise-data.mjs"
+    "build:plan-data": "node scripts/build-plan-data.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.3",
