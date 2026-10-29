@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getMonthlyReport, exportFitnessData, getHistoryEntries } from '@db';
-import { BarChart3, Activity, History, Zap } from 'lucide-react';
+import { BarChart3, Activity, History, Zap, FileText } from 'lucide-react';
 import { readMonthlyReportCache, writeMonthlyReportCache, clearMonthlyReportCache } from '../../lib/reportCache';
 
 import ReviewHeader from './ReviewHeader';
@@ -14,8 +14,9 @@ import ReviewTopExercises from './ReviewTopExercises';
 import ReviewHistory from './ReviewHistory.jsx';
 import ReviewReadiness from './ReviewReadiness.jsx';
 import Muscles from '../Muscles/index.jsx';
+import TrainingProtocol from './TrainingProtocol.jsx';
 
-const SUB_TABS = ['muscles', 'verlauf', 'readiness'];
+const SUB_TABS = ['muscles', 'verlauf', 'readiness', 'protokoll'];
 const REVIEW_WINDOW_DAYS = 28;
 let monthlyReportCache = null; // schnellster Pfad: gleicher Tab, kein JSON.parse
 
@@ -113,6 +114,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
           { id: 'muscles',   icon: <Activity size={14} />,  label: 'Muskeln' },
           { id: 'readiness', icon: <Zap size={14} />,       label: 'Readiness' },
           { id: 'verlauf',   icon: <History size={14} />,   label: 'Verlauf' },
+          { id: 'protokoll', icon: <FileText size={14} />,  label: 'Protokoll' },
         ].map(({ id, icon, label }) => (
           <button key={id}
             onClick={() => onSubNav?.(id)}
@@ -125,6 +127,8 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
 
       {viewMode === 'muscles' ? (
         <Muscles gender={gender} muscleLanguage={muscleLanguage} taxonomy={taxonomy} recentDays={recentDays} onInspectExercise={onInspectExercise} />
+      ) : viewMode === 'protokoll' ? (
+        <TrainingProtocol />
       ) : viewMode === 'readiness' ? (
         <ReviewReadiness />
       ) : viewMode === 'verlauf' ? (

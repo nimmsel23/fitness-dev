@@ -17,7 +17,7 @@ import { useEscapeKey } from '../../hooks/useEscapeKey.js';
 export default function SessionModalsLayer({
   activeModal, onClose,
   // sidebar
-  location, setLocation, duration, setDuration, gpsMapsUrl,
+  location, setLocation, duration, setDuration, gpsMapsUrl, gateTimes,
   trainingsart, setTrainingsart, notes, setNotes,
   onDownload, onExportObsidian, coachFeedback,
   // gate
@@ -51,7 +51,7 @@ export default function SessionModalsLayer({
           onClose={onClose}
           location={location} setLocation={setLocation}
           duration={duration} setDuration={setDuration}
-          gpsMapsUrl={gpsMapsUrl}
+          gpsMapsUrl={gpsMapsUrl} gateTimes={gateTimes}
           trainingsart={trainingsart} setTrainingsart={setTrainingsart}
           notes={notes} setNotes={setNotes}
           onDownload={onDownload}
