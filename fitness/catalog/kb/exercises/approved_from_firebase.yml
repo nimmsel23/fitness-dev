@@ -2796,82 +2796,30 @@ exercises:
   name: Seitheben am Kabelzug
   review_state:
     status: approved
-- german: Sitzendes Kabelrudern
-  variations: []
-  common_errors:
-  - Den Oberkoerper stark nach hinten lehnen und die Wiederholung mit Schwung statt
-    mit Rueckenmuskulatur einleiten.
-  - Die Schultern am Endpunkt nach oben ziehen statt die Schulterblaetter nach hinten
-    unten zu kontrollieren.
-  - Den Griff zu hoch zur Brust ziehen, wodurch die Ellbogen auffaechern und der Zug
-    unsauber wird.
-  - In der exzentrischen Phase die Spannung verlieren und die Gewichte nach vorn ziehen
-    lassen.
-  - Mit rundem unteren Ruecken sitzen oder aus der Lendenwirbelsaeule in Flexion und
-    Extension arbeiten.
-  - Zu viel Gewicht waehlen, sodass der Bewegungsumfang verkuerzt wird und die Schulterblaetter
-    kaum noch arbeiten.
-  source: approved
-  display_name: Sitzendes Kabelrudern
-  type: compound
-  primary_muscles:
-  - 201_latissimus_dorsi
-  - 202b_trapezius_middle
-  - 205_rhomboids
+- type: compound
   secondary_muscles:
   - 207_teres_major
   - 303_posterior_deltoid
   - 402_biceps_brachii
   - 403_brachialis
   - 404_brachioradialis
-  name: Sitzendes Kabelrudern
-  stabilizers:
-  - 304_rotator_cuff
-  - 504_transverse_abdominis
-  - 206_erector_spinae
-  - 507_multifidus
-  category: pull
-  exercise_id: cable_row
-  aliases:
-  - Rudern am Kabelzug
-  - Kabelrudern
-  - Sitzendes Kabelrudern
-  - Cable Row
-  - Seated Cable Row
-  - Seated Cable Row Machine
-  movements:
-  - horizontal
-  - shoulder_extension
-  - scapular_retraction
-  - elbow_flexion
-  search_aliases:
-  - Sitzendes Kabelrudern
-  - Rudern am Kabelzug
-  - Kabelrudern
-  - Seated Cable Row
-  - Cable Row
-  tags:
-  - back
-  - compound
-  - horizontal_pull
-  - cable
-  - strength
   origin:
     source_refs: {}
     yuhonas:
-      display_name: Seated Cable Rows
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      exercise_id: yuhonas_seated_cable_rows
+      primary_muscles:
+      - middle_back
       tags:
       - unreviewed
       - yuhonas
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      primary_muscles:
-      - middle_back
       secondary_muscles:
       - biceps
       - lats
       - shoulders
+      display_name: Seated Cable Rows
       yuhonas_id: Seated_Cable_Rows
       coaching_notes:
       - 'For this exercise you will need access to a low pulley row machine with a
@@ -2891,23 +2839,23 @@ exercises:
         muscles hard. Hold that contraction for a second and slowly go back to the
         original position while breathing in.
       - Repeat for the recommended amount of repetitions.
+      category: strength
       equipment:
       - cable
-      category: strength
-      exercise_id: yuhonas_seated_cable_rows
     wger:
-      german: Abwechselndes hohes Kabelrudern
-      display_name: Abwechselndes hohes Kabelrudern
-      tags:
-      - unreviewed
-      - wger
+      secondary_muscles: []
+      exercise_id: wger_1442
       wger_muscle_ids:
         primary:
         - 12
         secondary: []
+      display_name: Abwechselndes hohes Kabelrudern
+      wger_id: 1442
+      tags:
+      - unreviewed
+      - wger
       primary_muscles:
       - 201_latissimus_dorsi
-      secondary_muscles: []
       coaching_notes:
       - 'Beginne,
 
@@ -2931,19 +2879,34 @@ exercises:
 
         rechten Hand. Wiederhole diese Bewegung auf der gegenüberliegenden Seite,
         mit dem rechten Fuß nach hinten gestellt.'
-      equipment: []
-      wger_id: 1442
+      german: Abwechselndes hohes Kabelrudern
       category: back
-      exercise_id: wger_1442
+      equipment: []
     type: manual
+  common_errors:
+  - Den Oberkoerper stark nach hinten lehnen und die Wiederholung mit Schwung statt
+    mit Rueckenmuskulatur einleiten.
+  - Die Schultern am Endpunkt nach oben ziehen statt die Schulterblaetter nach hinten
+    unten zu kontrollieren.
+  - Den Griff zu hoch zur Brust ziehen, wodurch die Ellbogen auffaechern und der Zug
+    unsauber wird.
+  - In der exzentrischen Phase die Spannung verlieren und die Gewichte nach vorn ziehen
+    lassen.
+  - Mit rundem unteren Ruecken sitzen oder aus der Lendenwirbelsaeule in Flexion und
+    Extension arbeiten.
+  - Zu viel Gewicht waehlen, sodass der Bewegungsumfang verkuerzt wird und die Schulterblaetter
+    kaum noch arbeiten.
+  display_name: Sitzendes Kabelrudern
   _hash: eccfe6511799a46a52a8d077423ea13a
-  review_state:
-    status: approved
-  english: Seated Cable Row
-  schema_version: 2026-08-12.exercise-v1
-  equipment:
-  - cable
-  wger_id: null
+  aliases:
+  - Rudern am Kabelzug
+  - Kabelrudern
+  - Sitzendes Kabelrudern
+  - Cable Row
+  - Seated Cable Row
+  - Seated Cable Row Machine
+  variations: []
+  id: cable_row
   coaching_notes:
   - Aufrecht sitzen und den Brustkorb anheben, sodass die Wirbelsaeule waehrend der
     ganzen Wiederholung neutral bleibt.
@@ -2957,7 +2920,44 @@ exercises:
     protruieren, ohne die Spannung komplett zu verlieren.
   - Waehle ein Gewicht, bei dem du den Griff mit konstantem Tempo bewegen kannst statt
     den Oberkoerper nach hinten zu reissen.
-  id: cable_row
+  equipment:
+  - cable
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 202b_trapezius_middle
+  - 205_rhomboids
+  exercise_id: cable_row
+  movements:
+  - horizontal
+  - shoulder_extension
+  - scapular_retraction
+  - elbow_flexion
+  tags:
+  - back
+  - compound
+  - horizontal_pull
+  - cable
+  - strength
+  wger_id: null
+  english: Seated Cable Row
+  search_aliases:
+  - Sitzendes Kabelrudern
+  - Rudern am Kabelzug
+  - Kabelrudern
+  - Seated Cable Row
+  - Cable Row
+  source: approved
+  stabilizers:
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 206_erector_spinae
+  - 507_multifidus
+  schema_version: 2026-08-12.exercise-v1
+  german: Sitzendes Kabelrudern
+  name: Sitzendes Kabelrudern
+  category: pull
+  review_state:
+    status: approved
 - german: Sitzendes Kabelrudern enger Griff
   variations: []
   common_errors:
