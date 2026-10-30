@@ -2958,8 +2958,16 @@ exercises:
   category: pull
   review_state:
     status: approved
-- german: Sitzendes Kabelrudern enger Griff
-  variations: []
+- category: pull
+  secondary_muscles:
+  - 207_teres_major
+  - 303_posterior_deltoid
+  - 402_biceps_brachii
+  - 403_brachialis
+  - 404_brachioradialis
+  origin:
+    source_refs: {}
+    type: manual
   common_errors:
   - Den Oberkoerper nach hinten werfen, um das Gewicht mit Schwung statt mit Rueckenmuskulatur
     zu bewegen.
@@ -2974,61 +2982,16 @@ exercises:
     und Bewegungsqualitaet verlieren.
   - Mit gebeugten Handgelenken oder abgeknicktem Unterarm ziehen statt den Griff neutral
     und stabil zu fuehren.
-  source: approved
   display_name: Sitzendes Kabelrudern enger Griff
-  type: compound
-  primary_muscles:
-  - 201_latissimus_dorsi
-  - 202b_trapezius_middle
-  - 205_rhomboids
-  secondary_muscles:
-  - 207_teres_major
-  - 303_posterior_deltoid
-  - 402_biceps_brachii
-  - 403_brachialis
-  - 404_brachioradialis
-  name: Sitzendes Kabelrudern enger Griff
-  movements:
-  - horizontal
-  - shoulder_extension
-  - scapular_retraction
-  - elbow_flexion
-  - close_grip
-  - neutral_grip
-  category: pull
-  exercise_id: cable_row_close_grip
+  _hash: e9521d560a330200e187ce3133d3373b
   aliases:
   - Sitzendes enges Kabelrudern
   - Enges sitzendes Kabelrudern
   - Narrow-Grip Seated Cable Row
   - Close-Grip Cable Row
   - Close-Neutral Seated Cable Row
-  stabilizers:
-  - 304_rotator_cuff
-  - 206_erector_spinae
-  - 504_transverse_abdominis
-  - 507_multifidus
-  search_aliases:
-  - Sitzendes Kabelrudern enger Griff
-  - Sitzendes enges Kabelrudern
-  - Close-Grip Seated Cable Row
-  - Narrow-Grip Seated Cable Row
-  tags:
-  - rowing
-  - horizontal_pull
-  - back
-  - latissimus
-  - scapular_retraction
-  - seated
-  - cable
-  - close_grip
-  - unreviewed
-  origin:
-    source_refs: {}
-    type: manual
-  _hash: e9521d560a330200e187ce3133d3373b
   id: cable_row_close_grip
-  english: Close-Grip Seated Cable Row
+  variations: []
   coaching_notes:
   - Setz dich aufrecht hin, heb das Brustbein leicht an und halte die Wirbelsaeule
     waehrend der ganzen Wiederholung neutral.
@@ -3046,7 +3009,44 @@ exercises:
     Zugphase moeglichst in einer geraden Linie bleiben.
   equipment:
   - cable
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 202b_trapezius_middle
+  - 205_rhomboids
+  exercise_id: cable_row_close_grip
+  movements:
+  - horizontal
+  - shoulder_extension
+  - scapular_retraction
+  - elbow_flexion
+  - close_grip
+  - neutral_grip
+  tags:
+  - rowing
+  - horizontal_pull
+  - back
+  - latissimus
+  - scapular_retraction
+  - seated
+  - cable
+  - close_grip
+  - unreviewed
+  english: Close-Grip Seated Cable Row
+  search_aliases:
+  - Sitzendes Kabelrudern enger Griff
+  - Sitzendes enges Kabelrudern
+  - Close-Grip Seated Cable Row
+  - Narrow-Grip Seated Cable Row
+  source: approved
   schema_version: 2026-08-12.exercise-v1
+  stabilizers:
+  - 304_rotator_cuff
+  - 206_erector_spinae
+  - 504_transverse_abdominis
+  - 507_multifidus
+  german: Sitzendes Kabelrudern enger Griff
+  name: Sitzendes Kabelrudern enger Griff
+  type: compound
   review_state:
     status: approved
 - german: French Press
