@@ -12,24 +12,12 @@ import { useSession } from './useSession';
 import SessionEditor from './SessionEditor';
 import SessionHistory from './SessionHistory';
 const PlanView = lazy(() => import('../Plan/index.jsx'));
-import WorkoutTimerCard from './WorkoutTimerCard.jsx';
-const SixPackPromiseCard = lazy(() => import('../SixPack/SixPackPromiseCard.jsx'));
-import { getAllCoachingNotes } from '../../lib/coachNotes';
-import { getUid, getSixpackProgram, saveSixpackProgram } from '@db';
-const SkillsCard = lazy(() => import('../Skills/SkillsCard.jsx'));
 import TodayPlan, { useTodayPlan } from './TodayPlan.jsx';
 import { isSessionGateActive } from '../../lib/sessionGate.js';
-import { enableSixpackPush } from '../../lib/sixpackPush.js';
 import { useSessionGateLifecycle } from './useSessionGateLifecycle.js';
-import { logWorkoutAsSession } from '../../lib/logExternalWorkout.js';
 import SessionModeTabs from './SessionModeTabs.jsx';
-import SixPackFrame from './SixPackFrame.jsx';
 import { IS_SOLO } from '../../constants/NavigationItems.js';
 import { ChevronLeft } from 'lucide-react';
-
-// 6Pack-Karte kennt @db nicht: Fortschritt/Settings kommen per Callback (stabile Referenzen).
-const loadSixpackProgram = () => getSixpackProgram();
-const saveSixpackProgramForUid = (_uid, program) => saveSixpackProgram(program);
 
 export default function Session({
   initialDate, initialDraft, onInspectExercise, onOpenSession,
@@ -38,8 +26,8 @@ export default function Session({
   gateAutoOpenFlag, onGateAutoOpenConsumed,
 }) {
   const session = useSession({ initialDate, initialDraft, recentDays, coverageThreshold, onDateChange });
-  // Notifications/1h-Reminder für alle Session-Sub-Tabs (Editor, Verlauf, Timer,
-  // Skills, Plan) — nicht nur solange Editor oder Gate-Sheet offen sind. Auf
+  // Notifications/1h-Reminder für alle Session-Sub-Tabs (Editor, Verlauf,
+  // Plan) — nicht nur solange das Gate-Sheet offen ist. Auf
   // anderen Haupt-Tabs übernimmt useTodayGateWatcher (App.jsx).
   useSessionGateLifecycle(session.sessionGate, session.date);
   const { loading: planLoading, cycle, nextRoutine, lastPerformance, clientUid, reload } = useTodayPlan();
@@ -80,20 +68,6 @@ export default function Session({
     );
   }
 
-  // Calisthenics (skills) und 6Pack (timer): abgeschlossene Workouts landen
-  // als eigene Session im Tages-Log. Die Kopfzeile mit Kraft/Ausdauer/
-  // Calisthenics/6Pack bleibt sichtbar, damit man zurück wechseln kann.
-  async function handleWorkoutComplete(workout) {
-    try {
-      const { date, id, sessionData } = await logWorkoutAsSession(workout);
-      if (date === session.date) {
-        session.setDaySessions(prev => [...prev, { ...sessionData, id, date }]);
-      }
-    } catch (err) {
-      console.error('Workout konnte nicht ins Session-Log geschrieben werden:', err);
-    }
-  }
-
   const modeTabs = (
     <div className="px-3 pt-3 pb-1 flex">
       <SessionModeTabs
@@ -102,31 +76,6 @@ export default function Session({
       />
     </div>
   );
-
-  if (subTab === 'timer') {
-    const uid = (() => { try { return getUid(); } catch { return null; } })();
-    return (
-      <>
-        {modeTabs}
-        <SixPackFrame><Suspense fallback={null}><SixPackPromiseCard onSubNav={onSubNav} coachingNotes={getAllCoachingNotes()} uid={uid} onWorkoutComplete={handleWorkoutComplete} loadRemoteProgram={loadSixpackProgram} saveRemoteProgram={saveSixpackProgramForUid} enablePush={enableSixpackPush} /></Suspense></SixPackFrame>
-      </>
-    );
-  }
-
-  if (subTab === 'skills') {
-    return (
-      <>
-        {modeTabs}
-        <div
-          className="px-2 mt-3 space-y-4"
-          style={{ paddingBottom: 'calc(8rem + env(safe-area-inset-bottom))' }}
-        >
-          <Suspense fallback={null}><SkillsCard onWorkoutComplete={handleWorkoutComplete} /></Suspense>
-          <WorkoutTimerCard />
-        </div>
-      </>
-    );
-  }
 
   // Solo-Build: History hat dort keine Nav — eigener Rückweg zu "Heute".
   const soloBack = IS_SOLO && (

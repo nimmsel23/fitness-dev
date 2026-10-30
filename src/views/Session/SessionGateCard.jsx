@@ -13,8 +13,8 @@ const SESSION_NAV_ITEMS = [
   { id: 'today', label: 'Session', code: '01', Icon: CalendarDays },
   { id: 'plan', label: 'Plan', code: '02', Icon: ClipboardList, comingSoon: true },
   { id: 'history', label: 'Verlauf', code: '03', Icon: History },
-  { id: 'timer', label: '6 Pack', code: '04', Icon: TimerReset, comingSoon: true },
-  { id: 'skills', label: 'Skills', code: '05', Icon: Sparkles, comingSoon: true },
+  { id: 'timer', label: '6Pack-App', code: '04', Icon: TimerReset },
+  { id: 'skills', label: 'Skills-App', code: '05', Icon: Sparkles },
 ];
 
 // Ring füllt sich sichtbar über eine 90-Minuten-Referenzsession, läuft danach
@@ -185,7 +185,7 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
           BEREICHE
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-          {SESSION_NAV_ITEMS.map(({ id, label, code, Icon, comingSoon }) => {
+          {SESSION_NAV_ITEMS.map(({ id, label, code, Icon }) => {
             const selected = (currentSubTab || 'today') === id;
             return (
               <button
@@ -212,14 +212,6 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
                     {label}
                   </span>
                 </div>
-                {comingSoon && (
-                  <span
-                    className="mt-1 inline-block text-[9px] font-medium px-1.5 py-0.5 rounded-full"
-                    style={{ background: 'var(--bg)', color: 'var(--dim)', opacity: 0.7 }}
-                  >
-                    Bald
-                  </span>
-                )}
               </button>
             );
           })}
