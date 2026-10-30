@@ -1869,84 +1869,28 @@ exercises:
   category: squat
   review_state:
     status: approved
-- german: Beinstrecken
-  variations:
-  - single_leg_extension
-  - unilateral_leg_extension
-  common_errors:
-  - Zu hohes Trainingsgewicht, sodass die Wiederholung mit Schwung eingeleitet wird
-    statt mit sauberer Muskelspannung.
-  - Das Gewicht in der Abwärtsphase einfach fallen lassen und dadurch Spannung sowie
-    Gelenkkontrolle verlieren.
-  - Die Knie nicht korrekt zur Maschinenachse ausrichten, was unnötigen Druck auf
-    das Gelenk erzeugen kann.
-  - Am oberen Punkt hart ins Kniegelenk hineinschnappen, statt die Endstreckung muskulär
-    zu kontrollieren.
-  - Hüfte oder Gesäß vom Sitz abheben und mit dem Oberkörper ausweichen, um die letzten
-    Grade der Bewegung zu erzwingen.
-  source: approved
-  display_name: Beinstrecken
-  coaching_notes:
-  - Stelle die Maschine so ein, dass die Kniegelenkachse exakt mit der Drehachse der
-    Maschine fluchtet und das Polster knapp oberhalb des Sprunggelenks sitzt.
-  - Spanne den Quadrizeps aktiv an und strecke das Knie kontrolliert, bis kurz vor
-    die harte Endstellung, ohne das Gelenk aggressiv zu verriegeln.
-  - Senke das Gewicht langsam und geführt ab, damit der Quadrizeps auch in der exzentrischen
-    Phase unter Spannung bleibt.
-  - Halte Gesäß, unteren Rücken und Oberschenkel stabil am Sitz; die Bewegung soll
-    sauber aus der Knieextension kommen, nicht aus Schwung oder Ausweichen im Oberkörper.
-  - Wähle eine ROM, in der du schmerzfrei arbeiten kannst, und halte Knie, Fuß und
-    Oberschenkel in einer sauberen Linie über die gesamte Wiederholung.
-  id: '401'
-  type: isolation
-  primary_muscles:
-  - 601_quadriceps_femoris
+- type: isolation
   secondary_muscles: []
-  name: Beinstrecken
-  movements:
-  - knee_extension
-  - open_chain
-  - seated
-  - single_joint
-  category: squat
-  exercise_id: '401'
-  aliases:
-  - Beinstrecker
-  - Kniestrecker
-  - Leg Extension
-  - Leg Extension Machine
-  - Quadriceps Extension
-  stabilizers:
-  - 504_transverse_abdominis
-  - 507_multifidus
-  wger_muscle_ids:
-    primary:
-    - 10
-    secondary: []
-  search_aliases:
-  - leg_extension
-  - leg_extension_machine
-  - quadriceps_extension
-  - knee_extension
-  - wger_851
-  - yuhonas_leg_extensions
-  - Leg_Extensions
-  - Beinstrecken
-  - Leg Extension
   origin:
-    type: merged_external
+    wger:
+      wger_muscle_ids:
+        secondary: []
+        primary:
+        - 10
+      wger_id: 851
     yuhonas:
+      secondary_muscles: []
+      exercise_id: yuhonas_leg_extensions
+      primary_muscles:
+      - quadriceps
       display_name: Leg Extensions
+      wger_muscle_ids:
+        secondary: []
+        primary: []
       tags:
       - unreviewed
       - yuhonas
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      primary_muscles:
-      - quadriceps
       yuhonas_id: Leg_Extensions
-      secondary_muscles: []
       coaching_notes:
       - 'For this exercise you will need to use a leg extension machine. First choose
         your weight and sit on the machine with your legs under the pad (feet pointed
@@ -1964,21 +1908,60 @@ exercises:
       - Slowly lower the weight back to the original position as you inhale, ensuring
         that you do not go past the 90-degree angle limit.
       - Repeat for the recommended amount of times.
+      category: strength
       equipment:
       - machine
-      category: strength
-      exercise_id: yuhonas_leg_extensions
-    wger:
-      wger_muscle_ids:
-        primary:
-        - 10
-        secondary: []
-      wger_id: 851
     source_refs:
-      yuhonas:
-      - Leg_Extensions
       wger:
       - '851'
+      yuhonas:
+      - Leg_Extensions
+    type: merged_external
+  _hash: 3188e868e57cedad689328d5dc012c18
+  display_name: Beinstrecken
+  common_errors:
+  - Zu hohes Trainingsgewicht, sodass die Wiederholung mit Schwung eingeleitet wird
+    statt mit sauberer Muskelspannung.
+  - Das Gewicht in der Abwärtsphase einfach fallen lassen und dadurch Spannung sowie
+    Gelenkkontrolle verlieren.
+  - Die Knie nicht korrekt zur Maschinenachse ausrichten, was unnötigen Druck auf
+    das Gelenk erzeugen kann.
+  - Am oberen Punkt hart ins Kniegelenk hineinschnappen, statt die Endstreckung muskulär
+    zu kontrollieren.
+  - Hüfte oder Gesäß vom Sitz abheben und mit dem Oberkörper ausweichen, um die letzten
+    Grade der Bewegung zu erzwingen.
+  schema_version: 2026-08-12.exercise-v1
+  aliases:
+  - Beinstrecker
+  - Kniestrecker
+  - Leg Extension
+  - Leg Extension Machine
+  - Quadriceps Extension
+  coaching_notes:
+  - Stelle die Maschine so ein, dass die Kniegelenkachse exakt mit der Drehachse der
+    Maschine fluchtet und das Polster knapp oberhalb des Sprunggelenks sitzt.
+  - Spanne den Quadrizeps aktiv an und strecke das Knie kontrolliert, bis kurz vor
+    die harte Endstellung, ohne das Gelenk aggressiv zu verriegeln.
+  - Senke das Gewicht langsam und geführt ab, damit der Quadrizeps auch in der exzentrischen
+    Phase unter Spannung bleibt.
+  - Halte Gesäß, unteren Rücken und Oberschenkel stabil am Sitz; die Bewegung soll
+    sauber aus der Knieextension kommen, nicht aus Schwung oder Ausweichen im Oberkörper.
+  - Wähle eine ROM, in der du schmerzfrei arbeiten kannst, und halte Knie, Fuß und
+    Oberschenkel in einer sauberen Linie über die gesamte Wiederholung.
+  id: '401'
+  variations:
+  - single_leg_extension
+  - unilateral_leg_extension
+  equipment:
+  - machine
+  emphasis_muscles: []
+  wger_muscle_ids:
+    secondary: []
+    primary:
+    - 10
+  exercise_id: '401'
+  primary_muscles:
+  - 601_quadriceps_femoris
   tags:
   - expert
   - legs
@@ -1986,20 +1969,37 @@ exercises:
   - isolation
   - machine
   - knee_extension
-  english: Leg Extension
-  review_state:
-    status: approved
-  _hash: 3188e868e57cedad689328d5dc012c18
-  schema_version: 2026-08-12.exercise-v1
-  emphasis_muscles: []
   wger_id: 851
+  movements:
+  - knee_extension
+  - open_chain
+  - seated
+  - single_joint
   external_ids:
-    yuhonas:
-    - Leg_Extensions
     wger:
     - 851
-  equipment:
-  - machine
+    yuhonas:
+    - Leg_Extensions
+  search_aliases:
+  - leg_extension
+  - leg_extension_machine
+  - quadriceps_extension
+  - knee_extension
+  - wger_851
+  - yuhonas_leg_extensions
+  - Leg_Extensions
+  - Beinstrecken
+  - Leg Extension
+  source: approved
+  stabilizers:
+  - 504_transverse_abdominis
+  - 507_multifidus
+  english: Leg Extension
+  german: Beinstrecken
+  name: Beinstrecken
+  category: squat
+  review_state:
+    status: approved
 - german: Kabel-Crossover
   variations: []
   common_errors:
