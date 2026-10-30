@@ -9,11 +9,11 @@
 
 ## Mini-App-Integration
 
-- `plan`, `6pack` und `Skills` sind direkte Submodule aus `plan-dev`, `6pack-dev` und `skills-dev`. `.gitmodules` verfolgt für alle den Integrationsbranch `fitness`.
-- Laufende Mini-App-Arbeit bleibt auf dem jeweiligen `dev`-Branch. Übernommene Änderungen werden in diesem Mini-App-Repo nach `fitness` gemerged. Anschließend wird der zugehörige Submodul-Pointer in `fitness-dev/dev` aktualisiert und gepusht.
-- `vite.config.js` löst Fitness-Imports für Plan, 6Pack und Skills gegen die ausgecheckten Submodule auf. Die standalone App-Releases bleiben eigene Workflows.
-- Die Preview- und Live-CI-Workflows checken `fitness-app` rekursiv aus, damit auch die drei verschachtelten Submodule verfügbar sind. Änderungen an `plan`, `6pack`, `Skills` oder `.gitmodules` müssen die jeweiligen Workflows triggern.
-- Für lokale Builds zuerst `git submodule update --init --recursive` ausführen. Es wird kein lokales Deployment ausgelöst.
+- Plan ist die Quelle für Trainingsplan-/Programmeditor und Planlogik. Coach nutzt einen eigenen Pin unter `coach-dev/modules/plan`; daraus folgt kein automatisches Fitness-Update.
+- `vite-miniapp-submodules.mjs` löst die Mini-App-Quellen derzeit zuerst über benachbarte Checkouts auf (`plan-app`/`plan-dev`, entsprechend 6Pack/Skills); historische verschachtelte Pfade bleiben Fallbacks. In diesem Checkout existiert derzeit keine `.gitmodules` und kein Plan-Gitlink.
+- Vor Builds und Übernahmen den tatsächlich aufgelösten Quellcheckout samt Commit prüfen. Nicht allein aus alten Submodul-Anweisungen auf den aktuellen Stand schließen.
+- Standalone-Releases, Coach-Plan-Pointer, Fitness-Integration und VitalOS-Shell-Pointer sind getrennte Schritte.
+- Details zur Zuständigkeit: `docs/PLAN-OWNERSHIP.md`.
 
 ## Fitness-Release
 
