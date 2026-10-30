@@ -3049,80 +3049,23 @@ exercises:
   type: compound
   review_state:
     status: approved
-- german: French Press
-  variations: []
-  common_errors:
-  - Die Oberarme wandern während der Wiederholungen nach hinten oder nach vorn, sodass
-    die Übung mehr zur Schulterbewegung wird.
-  - Die Ellbogen spreizen stark nach außen, was Spannung vom Trizeps nimmt und die
-    Gelenkbelastung erhöht.
-  - Das Gewicht wird zu schnell abgesenkt und unten nicht kontrolliert, wodurch die
-    exzentrische Arbeit verloren geht.
-  - Die Handgelenke knicken ab statt neutral zu bleiben, was die Kraftübertragung
-    verschlechtert.
-  - Mit Schwung aus Schulter oder Rumpf arbeiten, um den schwierigsten Bereich zu
-    überbrücken.
-  - Zu weit Richtung Gesicht oder Stirn führen, obwohl die gewählte Variante eine
-    sichere, reproduzierbare Hantelbahn neben oder leicht hinter den Kopf braucht.
-  - Oben aggressiv in die Ellbogen einrasten statt die Endposition muskulär zu kontrollieren.
-  - Zu schwer trainieren und dadurch Bewegungsradius, Ellbogenkontrolle und konstante
-    Spannung deutlich verlieren.
-  source: approved
-  display_name: French Press
-  type: isolation
-  primary_muscles:
-  - 401_triceps_brachii
+- name: French Press
   secondary_muscles:
   - 407_anconeus
-  name: French Press
-  stabilizers:
-  - 301_anterior_deltoid
-  - 304_rotator_cuff
-  - 405_forearm_flexors
-  - 406_forearm_extensors
-  category: push
-  exercise_id: french_press
-  aliases:
-  - Skull Crushers
-  - French Press
-  - Trizepsstrecken liegend
-  - SZ-Trizepsdrücken
-  - Lying Triceps Extension
-  movements:
-  - elbow_extension
-  - elbow_flexion
-  - shoulder_flexion
-  - shoulder_stability
-  tags:
-  - triceps
-  - isolation
-  - arms
-  - elbow_extension
-  - free_weight
-  - dumbbell
-  - lying
-  - unreviewed
-  search_aliases:
-  - French Press
-  - Franzoesisches Druecken
-  - Französisches Drücken
-  - Lying Triceps Extension
-  - Skull Crusher
-  - Skull Crushers
-  - Trizepsstrecken liegend
   origin:
     source_refs: {}
     yuhonas:
+      secondary_muscles: []
+      exercise_id: yuhonas_cable_lying_triceps_extension
+      primary_muscles:
+      - triceps
       display_name: Cable Lying Triceps Extension
-      wger_muscle_ids:
-        primary: []
-        secondary: []
       tags:
       - unreviewed
       - yuhonas
-      primary_muscles:
-      - triceps
-      secondary_muscles: []
+      wger_muscle_ids:
+        primary: []
+        secondary: []
       yuhonas_id: Cable_Lying_Triceps_Extension
       coaching_notes:
       - 'Lie on a flat bench and grasp the straight bar attachment of a low pulley
@@ -3137,23 +3080,23 @@ exercises:
         as you perform this portion of the movement.
       - Hold for a second at the contracted position and repeat for the recommended
         amount of repetitions.
+      category: strength
       equipment:
       - cable
-      category: strength
-      exercise_id: yuhonas_cable_lying_triceps_extension
     wger:
-      german: Liegendes Trizepsstrecken
+      secondary_muscles: []
+      exercise_id: wger_1436
+      primary_muscles:
+      - 401_triceps_brachii
+      tags:
+      - unreviewed
+      - wger
+      wger_id: 1436
       display_name: Liegendes Trizepsstrecken
       wger_muscle_ids:
         primary:
         - 5
         secondary: []
-      tags:
-      - unreviewed
-      - wger
-      primary_muscles:
-      - 401_triceps_brachii
-      secondary_muscles: []
       coaching_notes:
       - 'Die Ausgangsposition für diese
 
@@ -3181,23 +3124,38 @@ exercises:
         eingezogen, die Ellbogen eng am Kopf und deine Rumpfmuskulatur während
 
         der gesamten Bewegung aktiv.'
+      german: Liegendes Trizepsstrecken
+      category: arms
       equipment:
       - barbell
       - dumbbell
-      wger_id: 1436
-      category: arms
-      exercise_id: wger_1436
     type: manual
+  common_errors:
+  - Die Oberarme wandern während der Wiederholungen nach hinten oder nach vorn, sodass
+    die Übung mehr zur Schulterbewegung wird.
+  - Die Ellbogen spreizen stark nach außen, was Spannung vom Trizeps nimmt und die
+    Gelenkbelastung erhöht.
+  - Das Gewicht wird zu schnell abgesenkt und unten nicht kontrolliert, wodurch die
+    exzentrische Arbeit verloren geht.
+  - Die Handgelenke knicken ab statt neutral zu bleiben, was die Kraftübertragung
+    verschlechtert.
+  - Mit Schwung aus Schulter oder Rumpf arbeiten, um den schwierigsten Bereich zu
+    überbrücken.
+  - Zu weit Richtung Gesicht oder Stirn führen, obwohl die gewählte Variante eine
+    sichere, reproduzierbare Hantelbahn neben oder leicht hinter den Kopf braucht.
+  - Oben aggressiv in die Ellbogen einrasten statt die Endposition muskulär zu kontrollieren.
+  - Zu schwer trainieren und dadurch Bewegungsradius, Ellbogenkontrolle und konstante
+    Spannung deutlich verlieren.
+  display_name: French Press
   _hash: a2f70b0afc23e5b0b24444cccad081e7
+  aliases:
+  - Skull Crushers
+  - French Press
+  - Trizepsstrecken liegend
+  - SZ-Trizepsdrücken
+  - Lying Triceps Extension
+  variations: []
   id: french_press
-  english: Lying Triceps Extension
-  schema_version: 2026-08-12.exercise-v1
-  equipment:
-  - dumbbell
-  - barbell
-  - cable
-  review_state:
-    status: approved
   coaching_notes:
   - Oberarme von Beginn bis Ende ruhig halten und die Bewegung fast ausschließlich
     aus dem Ellbogengelenk ausführen.
@@ -3214,6 +3172,48 @@ exercises:
   - Brustkorb stabil halten, Nacken lang lassen und den Kopf ruhig auf der Bank positionieren.
   - Ein moderates Gewicht wählen, das eine saubere exzentrische Phase und eine präzise
     Ellbogenführung über alle Wiederholungen erlaubt.
+  equipment:
+  - dumbbell
+  - barbell
+  - cable
+  primary_muscles:
+  - 401_triceps_brachii
+  exercise_id: french_press
+  movements:
+  - elbow_extension
+  - elbow_flexion
+  - shoulder_flexion
+  - shoulder_stability
+  tags:
+  - triceps
+  - isolation
+  - arms
+  - elbow_extension
+  - free_weight
+  - dumbbell
+  - lying
+  - unreviewed
+  english: Lying Triceps Extension
+  search_aliases:
+  - French Press
+  - Franzoesisches Druecken
+  - Französisches Drücken
+  - Lying Triceps Extension
+  - Skull Crusher
+  - Skull Crushers
+  - Trizepsstrecken liegend
+  source: approved
+  stabilizers:
+  - 301_anterior_deltoid
+  - 304_rotator_cuff
+  - 405_forearm_flexors
+  - 406_forearm_extensors
+  schema_version: 2026-08-12.exercise-v1
+  type: isolation
+  category: push
+  german: French Press
+  review_state:
+    status: approved
 - german: Push Press
   variations:
   - Langhantel Push Press
