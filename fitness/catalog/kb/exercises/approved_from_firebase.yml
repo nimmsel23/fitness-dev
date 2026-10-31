@@ -859,67 +859,15 @@ exercises:
   - Plate-Loaded Leg Press
   - 45 Degree Leg Press
   - Schlitten-Beinpresse
-- category: carry
-  secondary_muscles:
-  - 502_obliquus_externus
-  - 503_obliquus_internus
-  - 603_gluteus_maximus
-  origin:
-    source_refs: {}
-    yuhonas:
-      secondary_muscles: []
-      exercise_id: yuhonas_plank
-      primary_muscles:
-      - abdominals
-      display_name: Plank
-      tags:
-      - unreviewed
-      - yuhonas
-      wger_muscle_ids:
-        secondary: []
-        primary: []
-      yuhonas_id: Plank
-      coaching_notes:
-      - Get into a prone position on the floor, supporting your weight on your toes
-        and your forearms. Your arms are bent and directly below the shoulder.
-      - Keep your body straight at all times, and hold this position as long as possible.
-        To increase difficulty, an arm or leg can be raised.
-      category: strength
-      equipment:
-      - body only
-    wger:
-      secondary_muscles:
-      - 401_triceps_brachii
-      - 402_biceps_brachii
-      - 601_quadriceps_femoris
-      exercise_id: wger_458
-      wger_muscle_ids:
-        secondary:
-        - 1
-        - 10
-        - 5
-        primary:
-        - 14
-        - 6
-      tags:
-      - unreviewed
-      - wger
-      wger_id: 458
-      display_name: Plank
-      primary_muscles:
-      - 501_rectus_abdominis
-      - 502_obliquus_externus
-      - 503_obliquus_internus
-      coaching_notes:
-      - Mit dem Bauch auf den Boden legen und den Körper mit Unterarmen und Zehen
-        abstützen. Beine, Rücken und Kopf sollten eine gerade Linie bilden.
-      german: Plank
-      category: core
-      equipment:
-      - none (bodyweight exercise)
-    type: manual
-  _hash: c1f9e5ef15c6663bd7858cebaceb04ba
-  display_name: Unterarmstütz
+- id: plank
+  name: Plank
+  movements:
+  - anti_extension
+  - bracing
+  - isometric
+  - scapular_protraction
+  - shoulder_flexion
+  - posterior_pelvic_tilt
   common_errors:
   - Das Becken sinkt ab und der untere Rücken fällt ins Hohlkreuz, wodurch die Belastung
     von der Rumpfmuskulatur auf passive Strukturen verlagert wird.
@@ -933,11 +881,66 @@ exercises:
     Spannung kontrolliert weiterzuatmen.
   - Die Haltedauer wird über Technik priorisiert, obwohl die Übung biomechanisch nur
     mit sauberer Anti-Extensionskontrolle sinnvoll ist.
-  aliases:
-  - Plank
-  - Front Plank
-  - Unterarmstütz
-  - Forearm Plank
+  origin:
+    yuhonas:
+      exercise_id: yuhonas_plank
+      primary_muscles:
+      - abdominals
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      yuhonas_id: Plank
+      display_name: Plank
+      equipment:
+      - body only
+      secondary_muscles: []
+      coaching_notes:
+      - Get into a prone position on the floor, supporting your weight on your toes
+        and your forearms. Your arms are bent and directly below the shoulder.
+      - Keep your body straight at all times, and hold this position as long as possible.
+        To increase difficulty, an arm or leg can be raised.
+      tags:
+      - unreviewed
+      - yuhonas
+      category: strength
+    source_refs: {}
+    type: manual
+    wger:
+      exercise_id: wger_458
+      german: Plank
+      wger_id: 458
+      wger_muscle_ids:
+        secondary:
+        - 1
+        - 10
+        - 5
+        primary:
+        - 14
+        - 6
+      primary_muscles:
+      - 501_rectus_abdominis
+      - 502_obliquus_externus
+      - 503_obliquus_internus
+      display_name: Plank
+      equipment:
+      - none (bodyweight exercise)
+      secondary_muscles:
+      - 401_triceps_brachii
+      - 402_biceps_brachii
+      - 601_quadriceps_femoris
+      coaching_notes:
+      - Mit dem Bauch auf den Boden legen und den Körper mit Unterarmen und Zehen
+        abstützen. Beine, Rücken und Kopf sollten eine gerade Linie bilden.
+      tags:
+      - unreviewed
+      - wger
+      category: core
+  schema_version: 2026-08-12.exercise-v1
+  primary_muscles:
+  - 504_transverse_abdominis
+  - 501_rectus_abdominis
+  type: isolation
+  exercise_id: plank
   coaching_notes:
   - Spannen Sie Bauch, Gesäß und Oberschenkel gleichzeitig an, als wollten Sie den
     Boden mit den Unterarmen nach hinten ziehen und die Füße nach vorne schieben.
@@ -951,21 +954,6 @@ exercises:
     im Rumpf zu verlieren.
   - Beenden Sie den Satz, sobald die Beckenposition oder Rumpfspannung nicht mehr
     sauber gehalten werden kann.
-  variations: []
-  id: plank
-  equipment:
-  - bodyweight
-  primary_muscles:
-  - 504_transverse_abdominis
-  - 501_rectus_abdominis
-  exercise_id: plank
-  movements:
-  - anti_extension
-  - bracing
-  - isometric
-  - scapular_protraction
-  - shoulder_flexion
-  - posterior_pelvic_tilt
   tags:
   - core
   - abs
@@ -974,25 +962,37 @@ exercises:
   - trunk
   - anti_extension
   - isometric
-  english: Plank
+  category: carry
+  german: Unterarmstütz
+  review_state:
+    status: approved
+  variations: []
   search_aliases:
   - Plank
   - Front Plank
   - Forearm Plank
   - Unterarmstütz
-  source: approved
+  display_name: Unterarmstütz
+  _hash: c1f9e5ef15c6663bd7858cebaceb04ba
+  equipment:
+  - bodyweight
   stabilizers:
   - 105_serratus_anterior
   - 301_anterior_deltoid
   - 304_rotator_cuff
   - 206_erector_spinae
   - 507_multifidus
-  schema_version: 2026-08-12.exercise-v1
-  type: isolation
-  name: Plank
-  german: Unterarmstütz
-  review_state:
-    status: approved
+  english: Plank
+  source: approved
+  secondary_muscles:
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 603_gluteus_maximus
+  aliases:
+  - Plank
+  - Front Plank
+  - Unterarmstütz
+  - Forearm Plank
 - name: Umsetzen und Stoßen
   secondary_muscles:
   - 604a_biceps_femoris
