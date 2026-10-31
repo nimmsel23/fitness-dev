@@ -169,7 +169,7 @@ class CoachWorker:
                 doc.reference.update({"status": "done", "result": result, "finished_at": _now(), "lease_until": None})
                 self.stats["done"] += 1
                 logger.success(f"✓ {label}")
-                if c.get("action") != "duplicates":
+                if c.get("action") != "duplicates" and (c.get("payload") or {}).get("operation") not in {"search", "inspect"}:
                     self.publish(force=True)
             except Exception as exc:
                 self.stats["error"] += 1

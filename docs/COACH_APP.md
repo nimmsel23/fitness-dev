@@ -268,3 +268,25 @@ No replacement service or port, no automatic approvals or plan publication.
 Re-enrichment now writes into the selected inbox file ID rather than creating
 a second exercise-ID-based draft. An empty model response returns 502 even if
 an older file exists; stale content can no longer masquerade as a new result.
+
+## 2026-10-31 — Correctable source assignments
+
+Coach can inspect, search, replace and remove source links in the inbox and
+approved single-exercise files. Raw source search includes variants hidden by
+normal curated-catalog deduplication. These operations use existing `link-source`
+commands with `operation=inspect|search|set`, preserving deployed command rules.
+Search/inspect are read-only and skip the worker's inbox publication step.
+
+A set operation replaces that source's IDs instead of appending to stale IDs.
+`source_selection` stores explicit source IDs, or null for deliberate no-link.
+Selection is honored by source inference, resolver, enrichment provenance and
+schema/approval. Removing a proposal blocks automatic reconnection for that
+source until the coach chooses an alternative. Existing AI content is marked
+`source_review_required`; on pipeline restart this bypasses mixed expert content.
+Fuzzy matches use a full-name ratio and remain proposals; automatic name links
+require an exact normalized name. Explicit source IDs remain supported.
+
+Approved edits back up the file, commit only its path, update the corresponding
+Firestore KB document and rebuild the local catalog. Existing exercise IDs and
+workout references are retained. No automatic re-enrichment or approval occurs.
+Validation: source-selection/route/schema and existing enrichment/inbox tests.
