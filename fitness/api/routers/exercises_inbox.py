@@ -284,7 +284,6 @@ def inbox_delete(id: str):
 async def inbox_reenrich(id: str, request: Request):
     from fitness.catalog.agent.gemini import load_gemini_key
     from fitness.catalog.api.watcher import process_inbox_file_virtual, _write_back_to_firestore_inbox
-    from fitness.catalog.core.paths import DATA_DIR
     from fitness.catalog.core.resolver import resolve_query
 
     body = await request.json()
@@ -299,8 +298,12 @@ async def inbox_reenrich(id: str, request: Request):
         resolution = resolve_query(display_name)
         exercise_id = resolution.canonical_id if resolution.matched else display_name
 
+    # Re-enrich the selected local entry, preserving its identity in coachInbox.
+    if not id or "/" in id or "\\" in id or id in {".", ".."}:
+        raise HTTPException(400, detail="invalid_inbox_id")
+    target_file = INBOX_DIR / f"{id}.yml"
     api_key = load_gemini_key()
-    process_inbox_file_virtual(
+    draft_path = process_inbox_file_virtual(
         exercise_id,
         display_name,
         api_key,
@@ -308,11 +311,10 @@ async def inbox_reenrich(id: str, request: Request):
         feedback=feedback,
         current_data=current_data if isinstance(current_data, dict) else None,
         restart_pipeline=True,
+        target_file=target_file,
     )
 
-    safe_name = str(exercise_id).lower().replace(" ", "_")
-    draft_path = DATA_DIR / "inbox" / f"inbox_{safe_name}.yml"
-    if not draft_path.exists():
+    if draft_path is None or not draft_path.exists():
         raise HTTPException(502, detail="gemini_enrichment_failed")
 
     enriched_doc = yaml.safe_load(draft_path.read_text()) or {}

@@ -83,7 +83,7 @@ class Executor:
 
         api = FastAPI()
         api.include_router(exercises_inbox.router)
-        self.client = TestClient(api, raise_server_exceptions=False)
+        self.client = TestClient(api, raise_server_exceptions=True)
 
     def run(self, command: dict) -> dict:
         from fitness.firestore.coach_bridge import _execute_command
@@ -108,6 +108,7 @@ class CoachWorker:
         self._sig: str | None = None
         self._last_publish = 0.0
         self.stats = {"done": 0, "error": 0}
+        self.last_error: dict | None = None
 
     # ── Befehle ───────────────────────────────────────────────────────────────
 
@@ -172,7 +173,9 @@ class CoachWorker:
                     self.publish(force=True)
             except Exception as exc:
                 self.stats["error"] += 1
-                logger.error(f"✗ {label}: {exc}")
+                self.last_error = {"command_id": doc.id, "action": c.get("action"),
+                                   "item_id": c.get("item_id"), "message": str(exc)[:500], "at": _now()}
+                logger.exception(f"✗ {label}: {exc}")
                 doc.reference.update({"status": "error", "error": str(exc)[:500], "finished_at": _now(), "lease_until": None})
             done += 1
         return done, stale
@@ -210,6 +213,7 @@ class CoachWorker:
             "last_seen": self.fb.SERVER_TIMESTAMP, "worker": self.worker, "started_at": self.started_at,
             "version": VERSION, "queued": counts["queued"], "processing": counts["processing"], "stale": stale,
             "done_since_start": self.stats["done"], "errors_since_start": self.stats["error"],
+            "last_error": self.last_error,
         })
 
 

@@ -184,7 +184,7 @@ def build_inbox_draft_seed(
     overlay_fields = REENRICH_OVERLAY_FIELDS if restart else QUEUE_OVERLAY_FIELDS
     overlay = _pick_fields(payload, overlay_fields)
     canonical_seed = _canonical_record_seed(display_name, exercise_id)
-    external_seed = build_external_seed(display_name, exercise_id)
+    external_seed = build_external_seed(display_name, exercise_id) or {}
     if restart:
         merged = _merge_layers(overlay, canonical_seed, external_seed)
         if not _is_empty(external_seed.get("external_ids")):

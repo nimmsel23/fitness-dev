@@ -243,3 +243,28 @@ Freigaben abgearbeitet (21 ok), Selbsttest-Round-Trip 2,2 s.
 **Offen (Coach-Frontend, ~/coach-dev):** `coachCommand()` blockiert bis zu 190 s. Besser: Befehl sofort quittieren
 („in Warteschlange“), Fertigstellung per Live-Listener auf das Command-Dokument anzeigen, Heartbeat-Alter als
 Statuschip. Deploy von `vos-coach.web.app` nur nach ausdrücklicher Bestätigung.
+
+## 2026-10-31: Re-enrichment fix and Coach upstream restoration
+
+A manual inbox exercise without an external source match could produce
+`AttributeError: NoneType ... get` in `build_inbox_draft_seed` before reaching
+Gemini. Treat missing external seeds as empty; preserve origin/external IDs.
+`coach-sync` propagates in-process route exceptions and logs tracebacks instead
+of hiding them behind a generic HTTP 500. Its heartbeat now includes `last_error`
+and failure counts; Coach displays these separately from online status.
+
+Coach's configured Fitness upstream remains `127.0.0.1:8100`. The existing
+`fitness-preview.service` had stopped and referenced an old deployment with a
+broken KB symlink after the dev-directory move. Repo unit:
+`fitness/coach/deploy/fitness-preview.service`. It uses the installed editable
+fitness-agent interpreter and `~/dev/fitness-dev`, matching coach-sync's catalog.
+Install the unit as a symlink under `~/.config/systemd/user`, daemon-reload, start.
+`FITNESS_SKIP_WATCHERS=1` prevents duplicate catalog workers;
+`FITNESS_SYNC_OWNER=1` retains this service's existing user-data sync ownership
+(the separate fitness-sync service is inactive). This is a source-based domain
+API for Coach; it is separate from the self-contained /opt product deploy.
+No replacement service or port, no automatic approvals or plan publication.
+
+Re-enrichment now writes into the selected inbox file ID rather than creating
+a second exercise-ID-based draft. An empty model response returns 502 even if
+an older file exists; stale content can no longer masquerade as a new result.
