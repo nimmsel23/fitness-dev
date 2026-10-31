@@ -2000,67 +2000,18 @@ exercises:
     secondary: []
     primary:
     - 10
-- _hash: 089ccd544ebded5ec0e8d711e0e91401
-  type: isolation
-  display_name: Kabel-Crossover
-  stabilizers:
-  - 504_transverse_abdominis
-  - 502_obliquus_externus
-  - 503_obliquus_internus
-  - 507_multifidus
-  aliases:
-  - Kabelzug-Überkreuzung
-  - Kabel Crossover
-  - Cable Fly
-  - Standing Cable Fly
-  - Überkreuzung am Kabelzug
-  english: Cable Crossover
-  primary_muscles:
-  - 101_pectoralis_major
-  name: Cable Crossover
-  variations: []
-  exercise_id: cable_crossover
-  tags:
-  - chest_isolation
-  - fly_pattern
-  - cable_exercise
-  - horizontal_adduction
-  - pec_contraction
-  - chest
-  coaching_notes:
-  - 'Stelle die Kabel so ein, dass der Zugwinkel zu der Brustregion passt, die du
-    betonen willst: hoch nach tief eher sternal, mittig eher gesamter Brustkorb, tief
-    nach hoch eher clavicular.'
-  - Nimm eine stabile Split- oder Parallelstellung ein und richte Brustbein und Rippen
-    kontrolliert auf, ohne ins Hohlkreuz zu fallen.
-  - Halte die Ellbogen über die ganze Bewegung leicht gebeugt und behalte diesen Winkel
-    konstant; die Bewegung kommt aus dem Schultergelenk, nicht aus aktivem Drücken
-    mit dem Trizeps.
-  - Führe die Griffe in einem weiten Bogen zusammen, als würdest du die Oberarme vor
-    dem Brustkorb umarmen, statt die Hände einfach nur nach vorn zu schieben.
-  - Lass die Brust in der Dehnung arbeiten, aber stoppe bevor die Schulter nach vorn
-    kippt oder du Spannung im vorderen Schultergelenk verlierst.
-  - Bringe die Hände vor dem Körper kontrolliert zusammen und halte die Endposition
-    kurz, ohne die Schultern hochzuziehen oder den Nacken anzuspannen.
-  - Halte den Rumpf ruhig und vermeide Rotation; beide Seiten sollen mit gleicher
-    Bahn und gleicher Geschwindigkeit arbeiten.
-  - Wähle ein Gewicht, bei dem du den Zielmuskel klar spürst und die exzentrische
-    Phase sauber abbremsen kannst.
+- secondary_muscles:
+  - 301_anterior_deltoid
+  - 105_serratus_anterior
   origin:
     wger:
-      german: Omni Cable Crossover
-      category: chest
-      wger_muscle_ids:
-        primary:
-        - 4
-        secondary: []
-      display_name: Omni Cable Crossover
-      equipment:
-      - sz-bar
-      wger_id: 1440
       secondary_muscles: []
+      display_name: Omni Cable Crossover
       primary_muscles:
       - 101_pectoralis_major
+      tags:
+      - unreviewed
+      - wger
       coaching_notes:
       - 'Passe die Gewichte je nach
 
@@ -2104,23 +2055,26 @@ exercises:
         du
 
         beide Brustbereiche effektiv ansprichst.'
-      exercise_id: wger_1440
-      tags:
-      - unreviewed
-      - wger
-    source_refs: {}
-    yuhonas:
-      category: strength
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      display_name: Cable Crossover
+      category: chest
+      wger_id: 1440
+      german: Omni Cable Crossover
       equipment:
-      - cable
-      primary_muscles:
-      - chest
+      - sz-bar
+      exercise_id: wger_1440
+      wger_muscle_ids:
+        secondary: []
+        primary:
+        - 4
+    yuhonas:
       secondary_muscles:
       - shoulders
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      tags:
+      - unreviewed
+      - yuhonas
+      category: strength
       yuhonas_id: Cable_Crossover
       coaching_notes:
       - To get yourself into the starting position, place the pulleys on a high position
@@ -2139,12 +2093,80 @@ exercises:
         to use the same arc of motion used to lower the weights.
       - Hold for a second at the starting position and repeat the movement for the
         prescribed amount of repetitions.
-      tags:
-      - unreviewed
-      - yuhonas
       exercise_id: yuhonas_cable_crossover
+      display_name: Cable Crossover
+      equipment:
+      - cable
+      primary_muscles:
+      - chest
+    source_refs: {}
     type: manual
   german: Kabel-Crossover
+  english: Cable Crossover
+  _hash: 089ccd544ebded5ec0e8d711e0e91401
+  coaching_notes:
+  - 'Stelle die Kabel so ein, dass der Zugwinkel zu der Brustregion passt, die du
+    betonen willst: hoch nach tief eher sternal, mittig eher gesamter Brustkorb, tief
+    nach hoch eher clavicular.'
+  - Nimm eine stabile Split- oder Parallelstellung ein und richte Brustbein und Rippen
+    kontrolliert auf, ohne ins Hohlkreuz zu fallen.
+  - Halte die Ellbogen über die ganze Bewegung leicht gebeugt und behalte diesen Winkel
+    konstant; die Bewegung kommt aus dem Schultergelenk, nicht aus aktivem Drücken
+    mit dem Trizeps.
+  - Führe die Griffe in einem weiten Bogen zusammen, als würdest du die Oberarme vor
+    dem Brustkorb umarmen, statt die Hände einfach nur nach vorn zu schieben.
+  - Lass die Brust in der Dehnung arbeiten, aber stoppe bevor die Schulter nach vorn
+    kippt oder du Spannung im vorderen Schultergelenk verlierst.
+  - Bringe die Hände vor dem Körper kontrolliert zusammen und halte die Endposition
+    kurz, ohne die Schultern hochzuziehen oder den Nacken anzuspannen.
+  - Halte den Rumpf ruhig und vermeide Rotation; beide Seiten sollen mit gleicher
+    Bahn und gleicher Geschwindigkeit arbeiten.
+  - Wähle ein Gewicht, bei dem du den Zielmuskel klar spürst und die exzentrische
+    Phase sauber abbremsen kannst.
+  category: push
+  name: Cable Crossover
+  aliases:
+  - Kabelzug-Überkreuzung
+  - Kabel Crossover
+  - Cable Fly
+  - Standing Cable Fly
+  - Überkreuzung am Kabelzug
+  exercise_id: cable_crossover
+  search_aliases:
+  - Kabel-Crossover
+  - Kabel Crossover
+  - Kabelzug-Überkreuzung
+  - Cable Crossover
+  - Cable Fly
+  - Standing Cable Fly
+  equipment:
+  - cable
+  schema_version: 2026-08-12.exercise-v1
+  primary_muscles:
+  - 101_pectoralis_major
+  stabilizers:
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 507_multifidus
+  source: approved
+  tags:
+  - chest_isolation
+  - fly_pattern
+  - cable_exercise
+  - horizontal_adduction
+  - pec_contraction
+  - chest
+  variations: []
+  id: cable_crossover
+  display_name: Kabel-Crossover
+  movements:
+  - shoulder_horizontal_adduction
+  - horizontal_adduction
+  - scapular_protraction
+  - isometric_elbow_flexion
+  - isometric_trunk_stabilization
+  - cable
   common_errors:
   - Die Griffe mit Schwung zusammenwerfen, statt die Brust kontrolliert durch den
     gesamten Bewegungsbogen arbeiten zu lassen.
@@ -2160,31 +2182,9 @@ exercises:
     zu adduzieren.
   - Den Zugwinkel zufällig wählen und dann eine andere Brustregion erwarten, als die
     eingestellte Seilbahn tatsächlich belastet.
-  category: push
-  source: approved
-  search_aliases:
-  - Kabel-Crossover
-  - Kabel Crossover
-  - Kabelzug-Überkreuzung
-  - Cable Crossover
-  - Cable Fly
-  - Standing Cable Fly
-  equipment:
-  - cable
+  type: isolation
   review_state:
     status: approved
-  secondary_muscles:
-  - 301_anterior_deltoid
-  - 105_serratus_anterior
-  movements:
-  - shoulder_horizontal_adduction
-  - horizontal_adduction
-  - scapular_protraction
-  - isometric_elbow_flexion
-  - isometric_trunk_stabilization
-  - cable
-  schema_version: 2026-08-12.exercise-v1
-  id: cable_crossover
 - _hash: 7a7dc68e51143901b658b7d2fc3fa846
   type: isolation
   display_name: Kabel-Crossover über Kreuz
