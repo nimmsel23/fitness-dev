@@ -1,97 +1,26 @@
 name: inbox_yuhonas_bench_dips
-description: 'Proactively generated expert draft for: Bench Dips'
-generated_at: '2026-08-17T08:30:35.026011+00:00'
-enriched_at: '2026-08-17T08:30:35.026011+00:00'
+description: 'Proactively generated expert draft for: Dips'
+generated_at: '2026-10-31T14:24:21.478472+00:00'
+enriched_at: '2026-10-31T14:24:21.478472+00:00'
 exercises:
-- exercise_id: yuhonas_bench_dips
-  id: yuhonas_bench_dips
-  display_name: Dips
+- id: yuhonas_bench_dips
   german: Dips
-  english: Bench Dips
-  category: push
-  equipment:
-  - bench
-  - bodyweight
-  primary_muscles:
-  - 401_triceps_brachii
-  - 101_pectoralis_major
-  secondary_muscles:
-  - 301_anterior_deltoid
-  - 302_lateral_deltoid
-  stabilizers:
-  - 202a_trapezius_upper
-  - 105_serratus_anterior
-  - 501_rectus_abdominis
-  movements:
-  - elbow_flexion
-  - elbow_extension
-  - shoulder_extension
-  - scapular_depression
-  - bodyweight_control
-  coaching_notes:
-  - Platziere eine Bank hinter dir in Schulterhöhe. Greife die Vorderkante der Bank
-    mit schulterbreitem Griff, Handflächen zeigen nach unten. Strecke die Arme vollständig
-    aus und deine Füße sind auf dem Boden oder auf einer zweiten Bank für mehr Widerstand.
-  - Senke deinen Körper kontrolliert ab, indem du die Ellenbogen beugst. Die Ellenbogen
-    sollten nah am Körper bleiben und nach hinten zeigen, nicht nach außen. Gehe so
-    tief, dass deine Ellenbogen einen Winkel von etwa 90 Grad erreichen oder leicht
-    darunter.
-  - Achte darauf, dass die Schultern nicht nach oben zum Ohr hochgezogen werden. Halte
-    die Schulterblattstabilität während der gesamten Bewegung aufrecht.
-  - Drücke durch die Kraft deiner Trizepse und deine Brustmuskulatur, um dich wieder
-    in die Ausgangsposition zu bringen. Strecke die Arme fast vollständig aus, halte
-    aber eine leichte Flexion in den Ellenbogen um die Spannung zu bewahren.
-  - Atme während der exzentrischen Phase (Absenken) ein und während der konzentrischen
-    Phase (Hochdrücken) aus. Führe die Bewegung immer kontrolliert durch, nicht explosiv.
-  - 'Für eine erhöhte Brustbetonung: Lehne deinen Oberkörper leicht nach vorne und
-    positioniere deine Füße näher unter dir. Für maximale Trizepsbetonung: Halte deinen
-    Oberkörper aufrecht und deine Ellenbogen dicht am Körper.'
-  - Anfänger können mit den Füßen auf dem Boden beginnen oder ein Bein anheben. Fortgeschrittene
-    können beide Beine auf einer Bank ablegen oder Gewicht auf dem Schoß balancieren.
-  common_errors:
-  - 'Ellenbogen zu weit nach außen spreizen: Dies reduziert die Trizepsaktivierung
-    und belastet die Schulter unangemessen. Halte die Ellenbogen immer eng am Körper.'
-  - 'Zu flache Bewegungsamplitude: Viele führen nur eine halbe Bewegung aus. Gehe
-    so tief wie möglich (bis etwa 90 Grad Ellenbogenwinkel) um maximale Muskelaktivierung
-    zu erreichen.'
-  - 'Schultern nach oben hochziehen während der Bewegung: Dies deutet auf unzureichende
-    Scapula-Stabilität hin. Halte die Schultern bewusst entspannt und senk sie ab.'
-  - 'Explosive oder ruckartige Bewegungen: Dies erhöht das Verletzungsrisiko und reduziert
-    die Effektivität. Führe die Bewegung langsam und kontrolliert aus, mit 2-3 Sekunden
-    für beide Phasen.'
-  - 'Hände zu weit auseinander platzieren: Ein zu breiter Griff macht die Übung weniger
-    effektiv. Verwende Schulterbr breite oder leicht schmalere Griffweite.'
-  - 'Den Kopf nach unten oder hinten neigen: Dies kann zu Nackenverspannungen führen.
-    Blicke nach vorne und halte den Nacken neutral während der gesamten Bewegung.'
-  - 'Die Arme vollständig lockern oben: Dies nimmt die Spannung aus den Muskeln. Halte
-    eine leichte Flexion in den Ellenbogen beibehalt, ohne sie ganz durchzustrecken.'
-  - 'Hüften zu nah an der Bank: Dies reduziert die Bewegungsamplitude. Positioniere
-    deine Hüften mindestens eine Fußlänge von der Bank weg.'
-  - 'Keine Atemkontrolle: Unkontrolliertes Atmen reduziert Stabilität und Kraft. Synchronisiere
-    immer deine Atmung mit der Bewegung: einatmen beim Absenken, ausatmen beim Hochdrücken.'
-  wger_id: 194
+  exercise_id: yuhonas_bench_dips
   wger_muscle_ids:
     primary:
     - 4
     - 5
     secondary:
     - 5
+  wger_id: 194
   yuhonas_id: Bench_Dips
+  display_name: Dips
   external_ids:
     wger:
     - 194
     yuhonas:
     - Bench_Dips
-  tags:
-  - reviewed
-  - expert_tier
-  - wger
-  - yuhonas
-  - merged_external
-  variations: []
-  source: unreviewed
-  enriched_at: '2026-08-17T08:30:35.026011+00:00'
-  schema_version: 2026-08-12.exercise-v1
+  english: Bench Dips
   origin:
     type: merged_external
     source_refs:
@@ -99,17 +28,91 @@ exercises:
       - '194'
       yuhonas:
       - Bench_Dips
-    wger:
-      wger_id: 194
-      wger_muscle_ids:
-        primary:
-        - 4
-        - 5
-        secondary:
-        - 5
-    yuhonas:
-      yuhonas_id: Bench_Dips
+  category: push
+  equipment:
+  - bench
+  - body only
+  primary_muscles:
+  - 401_triceps_brachii
+  - 103_pectoralis_major_sternal
+  secondary_muscles:
+  - 301_anterior_deltoid
+  - 102_pectoralis_major_clavicular
+  stabilizers:
+  - 202b_trapezius_middle
+  - 202c_trapezius_lower
+  - 205_rhomboids
+  - 501_rectus_abdominis
+  - 502_obliquus_externus
+  - 405_forearm_flexors
+  instructions:
+  - For this exercise you will need to place a bench behind your back. With the bench
+    perpendicular to your body, and while looking away from it, hold on to the bench
+    on its edge with the hands fully extended, separated at shoulder width. The legs
+    will be extended forward, bent at the waist and perpendicular to your torso. This
+    will be your starting position.
+  - 'Slowly lower your body as you inhale by bending at the elbows until you lower
+    yourself far enough to where there is an angle slightly smaller than 90 degrees
+    between the upper arm and the forearm. Tip: Keep the elbows as close as possible
+    throughout the movement. Forearms should always be pointing down.'
+  - Using your triceps to bring your torso up again, lift yourself back to the starting
+    position.
+  - Repeat for the recommended amount of repetitions.
+  coaching_notes:
+  - '**Vorbereitung:** Positioniere deine Hände schulterbreit am Rand der Bank, Finger
+    nach vorne oder leicht zur Seite. Strecke deine Beine nach vorne aus, die Fersen
+    bleiben am Boden oder du erhöhst die Intensität, indem du sie auf eine andere
+    Erhöhung legst.'
+  - '**Körperspannung:** Halte deinen Rumpf stabil und die Bauchmuskeln leicht angespannt,
+    um ein Hohlkreuz zu vermeiden. Die Schultern bleiben während der gesamten Bewegung
+    stabil und werden nicht hochgezogen.'
+  - '**Abwärtsbewegung:** Senke deinen Körper langsam und kontrolliert ab, indem du
+    die Ellbogen beugst. Die Ellbogen zeigen dabei nach hinten und bleiben eng am
+    Körper. Gehe so tief, bis deine Oberarme parallel zum Boden sind oder ein 90-Grad-Winkel
+    im Ellbogengelenk entsteht.'
+  - '**Aufwärtsbewegung:** Drücke dich primär über deine Trizeps- und Brustmuskulatur
+    nach oben, bis deine Arme fast vollständig gestreckt sind. Vermeide ein vollständiges
+    Durchstrecken der Ellbogen, um die Spannung auf den Muskeln zu halten.'
+  - '**Atmung:** Atme beim Absenken des Körpers ein und beim Hochdrücken aus.'
+  common_errors:
+  - '**Ellbogen nach außen:** Das Abspreizen der Ellbogen nach außen belastet die
+    Schultergelenke unnötig und reduziert die Effektivität für Trizeps und Brust.
+    Halte die Ellbogen eng am Körper und lass sie nach hinten zeigen.'
+  - '**Schultern hochziehen:** Ein Hochziehen der Schultern zu den Ohren während der
+    Bewegung überlastet die Nackenmuskulatur und kann zu Schulterbeschwerden führen.
+    Halte die Schultern tief und stabil (Scapular Depression).'
+  - '**Zu tief gehen:** Ein zu weites Absenken des Körpers (unter 90 Grad im Ellbogengelenk)
+    kann die vorderen Schulterkapseln stark überdehnen und das Verletzungsrisiko erhöhen.
+    Halte die Tiefe kontrolliert.'
+  - '**Hohlkreuz:** Ein starkes Hohlkreuz während der Übung deutet auf mangelnde Rumpfspannung
+    hin. Aktiviere deine Bauchmuskeln, um den Rücken zu stabilisieren und eine neutrale
+    Wirbelsäulenposition beizubehalten.'
+  - '**Schwung nutzen:** Die Bewegung sollte kontrolliert und ohne Schwung ausgeführt
+    werden, um die Zielmuskulatur optimal zu beanspruchen und das Verletzungsrisiko
+    zu minimieren.'
+  original_description:
+  - Greife die Stangen an einer engen Stelle und drücke dich hoch. Strecke dabei die
+    Arme nicht ganz aus, dann bleiben während des gesamten Bewegungablaufs die Muskeln
+    immer unter Spannung. Beuge nun die Arme und gehe so tief wie möglich runter,
+    die Ellenbogen zeigen nach hinten. Du kannst an dieser Stelle einige Sekunden
+    bleiben, bevor du die Übung weitermachst.
+  tags:
+  - unreviewed
+  - wger
+  - yuhonas
+  - merged_external
+  name: Dips
+  movements:
+  - elbow_extension
+  - shoulder_extension
+  - scapular_depression
+  - scapular_retraction
+  - bodyweight_movement
+  variations: []
+  source: unreviewed
+  enriched_at: '2026-10-31T14:24:21.478472+00:00'
+  schema_version: 2026-08-12.exercise-v1
   review_state:
     status: draft
     ai_reviewed: false
-    enriched_at: '2026-08-17T08:30:35.026011+00:00'
+    enriched_at: '2026-10-31T14:24:21.478472+00:00'
