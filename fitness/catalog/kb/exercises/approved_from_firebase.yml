@@ -688,23 +688,94 @@ exercises:
   - 303_posterior_deltoid
   - 202b_trapezius_middle
   - 205_rhomboids
-- _hash: 40c7052b3937634d244ac1c7c2c40c36
-  aliases:
-  - Leg Press Machine
-  - Machine Leg Press
-  - Plate-Loaded Leg Press
-  - 45 Degree Leg Press
-  - Schlitten-Beinpresse
-  display_name: Beinpresse
-  stabilizers:
-  - 504_transverse_abdominis
-  - 206_erector_spinae
-  - 507_multifidus
-  primary_muscles:
-  - 601_quadriceps_femoris
+- secondary_muscles:
+  - 603_gluteus_maximus
+  - 602_adductors
+  - 604a_biceps_femoris
+  - 604b_semitendinosus
+  - 604c_semimembranosus
+  origin:
+    wger:
+      secondary_muscles:
+      - 603_gluteus_maximus
+      - 701_gastrocnemius
+      primary_muscles:
+      - 601_quadriceps_femoris
+      - 603_gluteus_maximus
+      - 604a_biceps_femoris
+      - 604b_semitendinosus
+      - 604c_semimembranosus
+      - 701_gastrocnemius
+      german: Beinpresse
+      tags:
+      - unreviewed
+      - wger
+      coaching_notes:
+      - 'In die Maschine setzten und die Füße auf die Auflage stellen, der Abstand,
+        etwas mehr als schulterbreit. Die Füße sind etwas nach außen gedreht.
+
+        Das Gewicht wird so weit abgesenkt, dass die Knie einen rechten Winkel machen.
+        Sofort wird das Gewicht nach oben gedrückt. Die Knie zeigen etwas nach außen
+        und werden nie ganz ausgestreckt, die Bewegung bleibt immer flüssig, also
+        weder oben noch unten irgendwelche Pausen einlegen!'
+      category: legs
+      display_name: Beinpresse
+      exercise_id: wger_371
+      equipment: []
+      wger_id: 371
+      wger_muscle_ids:
+        secondary:
+        - 7
+        - 8
+        primary:
+        - 11
+        - 7
+        - 8
+        - 10
+    source_refs: {}
+    yuhonas:
+      secondary_muscles:
+      - calves
+      - glutes
+      - hamstrings
+      primary_muscles:
+      - quadriceps
+      tags:
+      - unreviewed
+      - yuhonas
+      category: strength
+      yuhonas_id: Leg_Press
+      coaching_notes:
+      - 'Using a leg press machine, sit down on the machine and place your legs on
+        the platform directly in front of you at a medium (shoulder width) foot stance.
+        (Note: For the purposes of this discussion we will use the medium stance described
+        above which targets overall development; however you can choose any of the
+        three stances described in the foot positioning section).'
+      - 'Lower the safety bars holding the weighted platform in place and press the
+        platform all the way up until your legs are fully extended in front of you.
+        Tip: Make sure that you do not lock your knees. Your torso and the legs should
+        make a perfect 90-degree angle. This will be your starting position.'
+      - As you inhale, slowly lower the platform until your upper and lower legs make
+        a 90-degree angle.
+      - Pushing mainly with the heels of your feet and using the quadriceps go back
+        to the starting position as you exhale.
+      - Repeat for the recommended amount of repetitions and ensure to lock the safety
+        pins properly once you are done. You do not want that platform falling on
+        you fully loaded.
+      exercise_id: yuhonas_leg_press
+      display_name: Leg Press
+      equipment:
+      - machine
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+    type: manual
+  review_state:
+    status: approved
   english: Leg Press
   type: compound
-  name: Beinpresse
+  display_name: Beinpresse
+  category: squat
   coaching_notes:
   - Setze Becken und gesamten unteren Rücken stabil an die Lehne und halte diese Position
     über den kompletten Satz, damit die Kraft sauber über Hüfte und Knie auf die Plattform
@@ -725,6 +796,30 @@ exercises:
   - Wähle die Tiefe und Fußposition so, dass du den Quadrizeps belastest, ohne im
     unteren Umkehrpunkt die Position der Lendenwirbelsäule oder der Kniekontrolle
     zu verlieren.
+  name: Beinpresse
+  aliases:
+  - Leg Press Machine
+  - Machine Leg Press
+  - Plate-Loaded Leg Press
+  - 45 Degree Leg Press
+  - Schlitten-Beinpresse
+  search_aliases:
+  - Beinpresse
+  - Schlitten-Beinpresse
+  - Leg Press
+  - Leg Press Machine
+  stabilizers:
+  - 504_transverse_abdominis
+  - 206_erector_spinae
+  - 507_multifidus
+  equipment:
+  - machine
+  schema_version: 2026-08-12.exercise-v1
+  primary_muscles:
+  - 601_quadriceps_femoris
+  exercise_id: leg_press
+  source: approved
+  variations: []
   tags:
   - machine
   - compound
@@ -735,14 +830,16 @@ exercises:
   - legs
   - leg_press
   - unreviewed
-  exercise_id: leg_press
-  variations: []
-  search_aliases:
-  - Beinpresse
-  - Schlitten-Beinpresse
-  - Leg Press
-  - Leg Press Machine
+  id: leg_press
   german: Beinpresse
+  movements:
+  - knee_extension
+  - knee_flexion
+  - hip_extension
+  - hip_flexion
+  - bilateral
+  - closed_chain
+  - machine_guided
   common_errors:
   - Das Becken kippt im unteren Punkt nach hinten und der untere Rücken löst sich
     von der Lehne, wodurch unnötiger Stress auf die Lendenwirbelsäule entsteht.
@@ -760,105 +857,8 @@ exercises:
     oder ein Verlust der Rumpfspannung möglich sind.
   - Die Last wird einseitig über Vorfuß oder Fersen verschoben, wodurch Stabilität
     verloren geht und die Kraftübertragung auf die Plattform schlechter wird.
-  category: squat
-  source: approved
-  origin:
-    wger:
-      german: Beinpresse
-      category: legs
-      wger_muscle_ids:
-        primary:
-        - 11
-        - 7
-        - 8
-        - 10
-        secondary:
-        - 7
-        - 8
-      display_name: Beinpresse
-      primary_muscles:
-      - 601_quadriceps_femoris
-      - 603_gluteus_maximus
-      - 604a_biceps_femoris
-      - 604b_semitendinosus
-      - 604c_semimembranosus
-      - 701_gastrocnemius
-      wger_id: 371
-      secondary_muscles:
-      - 603_gluteus_maximus
-      - 701_gastrocnemius
-      equipment: []
-      coaching_notes:
-      - 'In die Maschine setzten und die Füße auf die Auflage stellen, der Abstand,
-        etwas mehr als schulterbreit. Die Füße sind etwas nach außen gedreht.
-
-        Das Gewicht wird so weit abgesenkt, dass die Knie einen rechten Winkel machen.
-        Sofort wird das Gewicht nach oben gedrückt. Die Knie zeigen etwas nach außen
-        und werden nie ganz ausgestreckt, die Bewegung bleibt immer flüssig, also
-        weder oben noch unten irgendwelche Pausen einlegen!'
-      exercise_id: wger_371
-      tags:
-      - unreviewed
-      - wger
-    type: manual
-    yuhonas:
-      category: strength
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      yuhonas_id: Leg_Press
-      primary_muscles:
-      - quadriceps
-      display_name: Leg Press
-      secondary_muscles:
-      - calves
-      - glutes
-      - hamstrings
-      equipment:
-      - machine
-      coaching_notes:
-      - 'Using a leg press machine, sit down on the machine and place your legs on
-        the platform directly in front of you at a medium (shoulder width) foot stance.
-        (Note: For the purposes of this discussion we will use the medium stance described
-        above which targets overall development; however you can choose any of the
-        three stances described in the foot positioning section).'
-      - 'Lower the safety bars holding the weighted platform in place and press the
-        platform all the way up until your legs are fully extended in front of you.
-        Tip: Make sure that you do not lock your knees. Your torso and the legs should
-        make a perfect 90-degree angle. This will be your starting position.'
-      - As you inhale, slowly lower the platform until your upper and lower legs make
-        a 90-degree angle.
-      - Pushing mainly with the heels of your feet and using the quadriceps go back
-        to the starting position as you exhale.
-      - Repeat for the recommended amount of repetitions and ensure to lock the safety
-        pins properly once you are done. You do not want that platform falling on
-        you fully loaded.
-      tags:
-      - unreviewed
-      - yuhonas
-      exercise_id: yuhonas_leg_press
-    source_refs: {}
-  equipment:
-  - machine
-  review_state:
-    status: approved
-  secondary_muscles:
-  - 603_gluteus_maximus
-  - 602_adductors
-  - 604a_biceps_femoris
-  - 604b_semitendinosus
-  - 604c_semimembranosus
-  movements:
-  - knee_extension
-  - knee_flexion
-  - hip_extension
-  - hip_flexion
-  - bilateral
-  - closed_chain
-  - machine_guided
+  _hash: 40c7052b3937634d244ac1c7c2c40c36
   wger_id: null
-  schema_version: 2026-08-12.exercise-v1
-  id: leg_press
 - _hash: c1f9e5ef15c6663bd7858cebaceb04ba
   type: isolation
   display_name: Unterarmstütz
