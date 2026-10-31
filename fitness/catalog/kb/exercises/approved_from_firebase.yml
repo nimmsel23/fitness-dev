@@ -1869,28 +1869,31 @@ exercises:
   - Frontbeugen
   - Front-Kniebeuge
   - Vordere Kniebeuge
-- type: isolation
-  secondary_muscles: []
-  origin:
-    wger:
-      wger_muscle_ids:
-        secondary: []
-        primary:
-        - 10
-      wger_id: 851
+- external_ids:
     yuhonas:
-      secondary_muscles: []
+    - Leg_Extensions
+    wger:
+    - 851
+  name: Beinstrecken
+  id: '401'
+  wger_id: 851
+  wger_muscle_ids:
+    secondary: []
+    primary:
+    - 10
+  origin:
+    yuhonas:
       exercise_id: yuhonas_leg_extensions
       primary_muscles:
       - quadriceps
       display_name: Leg Extensions
+      yuhonas_id: Leg_Extensions
       wger_muscle_ids:
         secondary: []
         primary: []
-      tags:
-      - unreviewed
-      - yuhonas
-      yuhonas_id: Leg_Extensions
+      equipment:
+      - machine
+      secondary_muscles: []
       coaching_notes:
       - 'For this exercise you will need to use a leg extension machine. First choose
         your weight and sit on the machine with your legs under the pad (feet pointed
@@ -1908,17 +1911,23 @@ exercises:
       - Slowly lower the weight back to the original position as you inhale, ensuring
         that you do not go past the 90-degree angle limit.
       - Repeat for the recommended amount of times.
+      tags:
+      - unreviewed
+      - yuhonas
       category: strength
-      equipment:
-      - machine
     source_refs:
-      wger:
-      - '851'
       yuhonas:
       - Leg_Extensions
+      wger:
+      - '851'
     type: merged_external
-  _hash: 3188e868e57cedad689328d5dc012c18
-  display_name: Beinstrecken
+    wger:
+      wger_id: 851
+      wger_muscle_ids:
+        secondary: []
+        primary:
+        - 10
+  schema_version: 2026-08-12.exercise-v1
   common_errors:
   - Zu hohes Trainingsgewicht, sodass die Wiederholung mit Schwung eingeleitet wird
     statt mit sauberer Muskelspannung.
@@ -1930,13 +1939,15 @@ exercises:
     zu kontrollieren.
   - Hüfte oder Gesäß vom Sitz abheben und mit dem Oberkörper ausweichen, um die letzten
     Grade der Bewegung zu erzwingen.
-  schema_version: 2026-08-12.exercise-v1
-  aliases:
-  - Beinstrecker
-  - Kniestrecker
-  - Leg Extension
-  - Leg Extension Machine
-  - Quadriceps Extension
+  primary_muscles:
+  - 601_quadriceps_femoris
+  type: isolation
+  movements:
+  - knee_extension
+  - open_chain
+  - seated
+  - single_joint
+  german: Beinstrecken
   coaching_notes:
   - Stelle die Maschine so ein, dass die Kniegelenkachse exakt mit der Drehachse der
     Maschine fluchtet und das Polster knapp oberhalb des Sprunggelenks sitzt.
@@ -1948,20 +1959,6 @@ exercises:
     sauber aus der Knieextension kommen, nicht aus Schwung oder Ausweichen im Oberkörper.
   - Wähle eine ROM, in der du schmerzfrei arbeiten kannst, und halte Knie, Fuß und
     Oberschenkel in einer sauberen Linie über die gesamte Wiederholung.
-  id: '401'
-  variations:
-  - single_leg_extension
-  - unilateral_leg_extension
-  equipment:
-  - machine
-  emphasis_muscles: []
-  wger_muscle_ids:
-    secondary: []
-    primary:
-    - 10
-  exercise_id: '401'
-  primary_muscles:
-  - 601_quadriceps_femoris
   tags:
   - expert
   - legs
@@ -1969,17 +1966,13 @@ exercises:
   - isolation
   - machine
   - knee_extension
-  wger_id: 851
-  movements:
-  - knee_extension
-  - open_chain
-  - seated
-  - single_joint
-  external_ids:
-    wger:
-    - 851
-    yuhonas:
-    - Leg_Extensions
+  category: squat
+  exercise_id: '401'
+  review_state:
+    status: approved
+  variations:
+  - single_leg_extension
+  - unilateral_leg_extension
   search_aliases:
   - leg_extension
   - leg_extension_machine
@@ -1990,16 +1983,23 @@ exercises:
   - Leg_Extensions
   - Beinstrecken
   - Leg Extension
-  source: approved
+  emphasis_muscles: []
+  _hash: 3188e868e57cedad689328d5dc012c18
+  equipment:
+  - machine
   stabilizers:
   - 504_transverse_abdominis
   - 507_multifidus
   english: Leg Extension
-  german: Beinstrecken
-  name: Beinstrecken
-  category: squat
-  review_state:
-    status: approved
+  source: approved
+  secondary_muscles: []
+  aliases:
+  - Beinstrecker
+  - Kniestrecker
+  - Leg Extension
+  - Leg Extension Machine
+  - Quadriceps Extension
+  display_name: Beinstrecken
 - category: push
   secondary_muscles:
   - 301_anterior_deltoid
