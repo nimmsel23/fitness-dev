@@ -1,7 +1,6 @@
-name: inbox_yuhonas_bench_dips
-description: 'Proactively generated expert draft for: Dips'
-generated_at: '2026-10-31T14:24:21.478472+00:00'
-enriched_at: '2026-10-31T14:24:21.478472+00:00'
+exercise_id: yuhonas_bench_dips
+description: Expert details for Dips
+approved_at: '2026-10-31T14:40:48.356973+00:00'
 exercises:
 - id: yuhonas_bench_dips
   german: Dips
@@ -109,10 +108,18 @@ exercises:
   - scapular_retraction
   - bodyweight_movement
   variations: []
-  source: unreviewed
+  source: expert
   enriched_at: '2026-10-31T14:24:21.478472+00:00'
   schema_version: 2026-08-12.exercise-v1
   review_state:
-    status: draft
-    ai_reviewed: false
+    status: approved
+    ai_reviewed: true
     enriched_at: '2026-10-31T14:24:21.478472+00:00'
+    approved_at: '2026-10-31T14:40:48.356973+00:00'
+  approved_at: '2026-10-31T14:40:48.356973+00:00'
+  search_aliases:
+  - yuhonas_bench_dips
+  - wger_194
+  - Bench_Dips
+  - Dips
+  - Bench Dips
