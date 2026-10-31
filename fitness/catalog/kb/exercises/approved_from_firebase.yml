@@ -2510,69 +2510,22 @@ exercises:
     status: approved
   type: isolation
   id: cable_crossover_low_to_high
-- _hash: a2d6a45dd921331f73049bdad7765dfd
-  type: isolation
-  display_name: Kabel-Crossover von oben nach unten
-  stabilizers:
-  - 304_rotator_cuff
-  - 504_transverse_abdominis
-  - 502_obliquus_externus
-  aliases:
-  - high-low cable fly
-  - cable cross-over high to low
-  - cable pec crossover
-  - high to low cable fly
-  - kabel fly von oben nach unten
-  - kabel crossover oben unten
-  english: High-to-Low Cable Crossover
-  primary_muscles:
-  - 103_pectoralis_major_sternal
-  name: High-to-Low Cable Crossover
-  variations: []
-  tags:
-  - pec-focus
-  - chest-isolation
-  - cable-work
-  - horizontal-adduction
-  - finisher
-  - chest
-  - decline_horizontal_adduction
-  - lower-chest-bias
-  - unreviewed
-  coaching_notes:
-  - Stelle die Kabelrollen oberhalb der Schulterhöhe ein und nimm einen kleinen Ausfallschritt,
-    damit du stabil stehst und die Seile dich nicht nach hinten ziehen.
-  - Halte in beiden Armen eine leichte, feste Ellbogenbeugung und bewahre diesen Winkel
-    über den ganzen Satz, damit die Spannung auf der Brust bleibt und nicht zum Trizeps
-    oder Ellenbogen wandert.
-  - Ziehe die Griffe in einem bogenförmigen Verlauf vor dem Körper nach unten und
-    innen, als würdest du die unteren Brustfasern aktiv zusammenführen.
-  - Lass die Brust stolz, die Rippen kontrolliert und die Schultern tief; die Schulterblätter
-    sollen stabil bleiben und am Ende nur natürlich mit nach vorn gleiten, nicht aggressiv
-    nach vorne kippen.
-  - Stoppe die exzentrische Phase dort, wo du noch Zug auf der Brust hältst und die
-    Schultervorderseite nicht in eine passive Dehnung gezogen wird.
-  - Atme beim Zusammenführen kraftvoll aus, spanne Bauch und Gesäß leicht an und vermeide
-    jedes Nachgeben im Rumpf, damit die Kraft sauber in die Arme und Brust übertragen
-    wird.
-  - Halte die Endposition kurz mit bewusstem Brust-Squeeze, ohne die Griffe gegeneinander
-    zu schlagen oder durch Schwung über die eigentliche Kontraktion hinauszuziehen.
-  exercise_id: cable_crossover_high_to_low
+- secondary_muscles:
+  - 101_pectoralis_major
+  - 301_anterior_deltoid
+  - 105_serratus_anterior
   origin:
-    type: manual
     yuhonas:
-      category: strength
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      display_name: Cable Crossover
-      primary_muscles:
-      - chest
-      yuhonas_id: Cable_Crossover
       secondary_muscles:
       - shoulders
-      equipment:
-      - cable
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      tags:
+      - unreviewed
+      - yuhonas
+      category: strength
+      yuhonas_id: Cable_Crossover
       coaching_notes:
       - To get yourself into the starting position, place the pulleys on a high position
         (above your head), select the resistance to be used and hold the pulleys in
@@ -2591,11 +2544,79 @@ exercises:
       - Hold for a second at the starting position and repeat the movement for the
         prescribed amount of repetitions.
       exercise_id: yuhonas_cable_crossover
-      tags:
-      - unreviewed
-      - yuhonas
+      display_name: Cable Crossover
+      equipment:
+      - cable
+      primary_muscles:
+      - chest
     source_refs: {}
+    type: manual
+  display_name: Kabel-Crossover von oben nach unten
+  english: High-to-Low Cable Crossover
+  _hash: a2d6a45dd921331f73049bdad7765dfd
+  coaching_notes:
+  - Stelle die Kabelrollen oberhalb der Schulterhöhe ein und nimm einen kleinen Ausfallschritt,
+    damit du stabil stehst und die Seile dich nicht nach hinten ziehen.
+  - Halte in beiden Armen eine leichte, feste Ellbogenbeugung und bewahre diesen Winkel
+    über den ganzen Satz, damit die Spannung auf der Brust bleibt und nicht zum Trizeps
+    oder Ellenbogen wandert.
+  - Ziehe die Griffe in einem bogenförmigen Verlauf vor dem Körper nach unten und
+    innen, als würdest du die unteren Brustfasern aktiv zusammenführen.
+  - Lass die Brust stolz, die Rippen kontrolliert und die Schultern tief; die Schulterblätter
+    sollen stabil bleiben und am Ende nur natürlich mit nach vorn gleiten, nicht aggressiv
+    nach vorne kippen.
+  - Stoppe die exzentrische Phase dort, wo du noch Zug auf der Brust hältst und die
+    Schultervorderseite nicht in eine passive Dehnung gezogen wird.
+  - Atme beim Zusammenführen kraftvoll aus, spanne Bauch und Gesäß leicht an und vermeide
+    jedes Nachgeben im Rumpf, damit die Kraft sauber in die Arme und Brust übertragen
+    wird.
+  - Halte die Endposition kurz mit bewusstem Brust-Squeeze, ohne die Griffe gegeneinander
+    zu schlagen oder durch Schwung über die eigentliche Kontraktion hinauszuziehen.
+  category: push
+  name: High-to-Low Cable Crossover
+  aliases:
+  - high-low cable fly
+  - cable cross-over high to low
+  - cable pec crossover
+  - high to low cable fly
+  - kabel fly von oben nach unten
+  - kabel crossover oben unten
+  exercise_id: cable_crossover_high_to_low
+  schema_version: 2026-08-12.exercise-v1
+  equipment:
+  - cable
+  stabilizers:
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 502_obliquus_externus
+  primary_muscles:
+  - 103_pectoralis_major_sternal
+  search_aliases:
+  - Kabel-Crossover von oben nach unten
+  - Kabelzug Flys von oben nach unten
+  - High-to-Low Cable Crossover
+  - High-to-Low Cable Fly
+  - High-To-Low Cable Cross
+  source: approved
+  tags:
+  - pec-focus
+  - chest-isolation
+  - cable-work
+  - horizontal-adduction
+  - finisher
+  - chest
+  - decline_horizontal_adduction
+  - lower-chest-bias
+  - unreviewed
+  variations: []
+  id: cable_crossover_high_to_low
   german: Kabel-Crossover von oben nach unten
+  movements:
+  - decline
+  - horizontal_adduction
+  - shoulder_adduction
+  - shoulder_extension
+  - scapular_protraction
   common_errors:
   - Zu schweres Gewicht, sodass die Bewegung zu einem ganzen Oberkörperzug wird und
     der Fokus von der Brust auf Schwung und Schultern kippt.
@@ -2611,30 +2632,9 @@ exercises:
     lassen, wodurch die exzentrische Kontrolle und der Muskelreiz sinken.
   - Die Schultern hochzuziehen und den Nacken anzuspannen, anstatt die Bewegung aus
     Brust und kontrollierter Schulterführung zu organisieren.
-  category: push
-  source: approved
-  search_aliases:
-  - Kabel-Crossover von oben nach unten
-  - Kabelzug Flys von oben nach unten
-  - High-to-Low Cable Crossover
-  - High-to-Low Cable Fly
-  - High-To-Low Cable Cross
-  equipment:
-  - cable
+  type: isolation
   review_state:
     status: approved
-  secondary_muscles:
-  - 101_pectoralis_major
-  - 301_anterior_deltoid
-  - 105_serratus_anterior
-  movements:
-  - decline
-  - horizontal_adduction
-  - shoulder_adduction
-  - shoulder_extension
-  - scapular_protraction
-  schema_version: 2026-08-12.exercise-v1
-  id: cable_crossover_high_to_low
 - _hash: 2424d510bc87c296109a8baddaaf669c
   wger_muscle_ids:
     primary:
