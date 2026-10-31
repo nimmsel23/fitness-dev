@@ -290,3 +290,18 @@ Approved edits back up the file, commit only its path, update the corresponding
 Firestore KB document and rebuild the local catalog. Existing exercise IDs and
 workout references are retained. No automatic re-enrichment or approval occurs.
 Validation: source-selection/route/schema and existing enrichment/inbox tests.
+
+## 2026-10-31 — Catalog snapshot replay without Git churn
+
+`on_kb_exercises` compares semantic exercise content before touching the local
+approved mirror. Dictionary key order and transport-only `_hash`, `updated_at`
+and `synced_at` fields do not count as catalog changes. Approval timestamps and
+nested dates remain serializable catalog data. Unchanged initial/reconnected
+snapshots do not rewrite files, remove review drafts, commit or rebuild.
+Actual changes in one callback share one mirror write, one scoped commit and
+one runtime-catalog rebuild. A lock serializes callback writes.
+
+Verification: six regression tests; actual 22 approved Firestore documents
+replayed against a temporary copy four times, with zero writes/commits/rebuilds.
+The service was already stopped and disabled at 17:00:37; this change preserves
+that operational state. The next start loads the fix. No history rewriting/push.
