@@ -305,3 +305,14 @@ Verification: six regression tests; actual 22 approved Firestore documents
 replayed against a temporary copy four times, with zero writes/commits/rebuilds.
 The service was already stopped and disabled at 17:00:37; this change preserves
 that operational state. The next start loads the fix. No history rewriting/push.
+
+## 2026-10-31 — Coach CLI namespace
+
+Coach-owned Python dispatcher: `~/dev/coach-dev/bin/coach`. Examples:
+`coach clients matthias --days 30`, `coach fitness-log clients --help`,
+`coach console`, `coach drafts`, `coach workout --help`, `coach catalog --help`,
+`coach inbox --help`, `coach sync status`, `coach data-sync --help`.
+The dispatcher uses the existing fitness-agent uv environment and this sibling
+Fitness source; no implementation or mutable data is copied into Coach.
+Standalone fitness-* commands remain compatible. Full mapping:
+`~/dev/coach-dev/docs/COACH-CLI.md`.
