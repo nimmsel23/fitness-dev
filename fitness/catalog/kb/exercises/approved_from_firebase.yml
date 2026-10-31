@@ -688,145 +688,23 @@ exercises:
   - horizontal_pull
   - unreviewed
   id: face_pull
-- common_errors:
-  - Das Becken kippt im unteren Punkt nach hinten und der untere Rücken löst sich
-    von der Lehne, wodurch unnötiger Stress auf die Lendenwirbelsäule entsteht.
-  - Die Knie fallen nach innen oder weichen unkontrolliert nach außen aus, anstatt
-    sauber in Linie mit dem Fuß zu laufen.
-  - Der Bewegungsumfang wird künstlich verkürzt, obwohl mehr saubere Tiefe möglich
-    wäre, sodass Trainingsreiz und Gelenkkontrolle verschenkt werden.
-  - Oben werden die Knie hart durchgedrückt und die Spannung geht aus Quadrizeps und
-    Gesäß in eine passive Gelenkposition über.
-  - Der Schlitten wird in der unteren Position abgefedert oder mit Schwung umgekehrt,
-    statt die exzentrische Phase aktiv zu kontrollieren.
-  - Die Füße stehen zu hoch, zu tief oder asymmetrisch auf der Plattform, sodass Druckverteilung,
-    Kniepfad und Zielmuskulatur unnötig verfälscht werden.
-  - Das Gewicht ist zu schwer gewählt, sodass nur noch halbe Wiederholungen, Hüftverschiebungen
-    oder ein Verlust der Rumpfspannung möglich sind.
-  - Die Last wird einseitig über Vorfuß oder Fersen verschoben, wodurch Stabilität
-    verloren geht und die Kraftübertragung auf die Plattform schlechter wird.
-  schema_version: 2026-08-12.exercise-v1
-  _hash: 40c7052b3937634d244ac1c7c2c40c36
-  id: leg_press
+- _hash: 40c7052b3937634d244ac1c7c2c40c36
+  aliases:
+  - Leg Press Machine
+  - Machine Leg Press
+  - Plate-Loaded Leg Press
+  - 45 Degree Leg Press
+  - Schlitten-Beinpresse
   display_name: Beinpresse
-  equipment:
-  - machine
-  german: Beinpresse
   stabilizers:
   - 504_transverse_abdominis
   - 206_erector_spinae
   - 507_multifidus
-  search_aliases:
-  - Beinpresse
-  - Schlitten-Beinpresse
-  - Leg Press
-  - Leg Press Machine
-  wger_id: null
-  movements:
-  - knee_extension
-  - knee_flexion
-  - hip_extension
-  - hip_flexion
-  - bilateral
-  - closed_chain
-  - machine_guided
-  english: Leg Press
   primary_muscles:
   - 601_quadriceps_femoris
-  variations: []
-  review_state:
-    status: approved
-  category: squat
-  exercise_id: leg_press
-  origin:
-    source_refs: {}
-    type: manual
-    yuhonas:
-      primary_muscles:
-      - quadriceps
-      display_name: Leg Press
-      category: strength
-      wger_muscle_ids:
-        secondary: []
-        primary: []
-      exercise_id: yuhonas_leg_press
-      yuhonas_id: Leg_Press
-      tags:
-      - unreviewed
-      - yuhonas
-      coaching_notes:
-      - 'Using a leg press machine, sit down on the machine and place your legs on
-        the platform directly in front of you at a medium (shoulder width) foot stance.
-        (Note: For the purposes of this discussion we will use the medium stance described
-        above which targets overall development; however you can choose any of the
-        three stances described in the foot positioning section).'
-      - 'Lower the safety bars holding the weighted platform in place and press the
-        platform all the way up until your legs are fully extended in front of you.
-        Tip: Make sure that you do not lock your knees. Your torso and the legs should
-        make a perfect 90-degree angle. This will be your starting position.'
-      - As you inhale, slowly lower the platform until your upper and lower legs make
-        a 90-degree angle.
-      - Pushing mainly with the heels of your feet and using the quadriceps go back
-        to the starting position as you exhale.
-      - Repeat for the recommended amount of repetitions and ensure to lock the safety
-        pins properly once you are done. You do not want that platform falling on
-        you fully loaded.
-      secondary_muscles:
-      - calves
-      - glutes
-      - hamstrings
-      equipment:
-      - machine
-    wger:
-      secondary_muscles:
-      - 603_gluteus_maximus
-      - 701_gastrocnemius
-      wger_muscle_ids:
-        secondary:
-        - 7
-        - 8
-        primary:
-        - 11
-        - 7
-        - 8
-        - 10
-      display_name: Beinpresse
-      category: legs
-      primary_muscles:
-      - 601_quadriceps_femoris
-      - 603_gluteus_maximus
-      - 604a_biceps_femoris
-      - 604b_semitendinosus
-      - 604c_semimembranosus
-      - 701_gastrocnemius
-      exercise_id: wger_371
-      german: Beinpresse
-      tags:
-      - unreviewed
-      - wger
-      coaching_notes:
-      - 'In die Maschine setzten und die Füße auf die Auflage stellen, der Abstand,
-        etwas mehr als schulterbreit. Die Füße sind etwas nach außen gedreht.
-
-        Das Gewicht wird so weit abgesenkt, dass die Knie einen rechten Winkel machen.
-        Sofort wird das Gewicht nach oben gedrückt. Die Knie zeigen etwas nach außen
-        und werden nie ganz ausgestreckt, die Bewegung bleibt immer flüssig, also
-        weder oben noch unten irgendwelche Pausen einlegen!'
-      equipment: []
-      wger_id: 371
-  source: approved
-  name: Beinpresse
+  english: Leg Press
   type: compound
-  tags:
-  - machine
-  - compound
-  - quad-dominant
-  - lower-body
-  - strength
-  - hypertrophy
-  - legs
-  - leg_press
-  - unreviewed
+  name: Beinpresse
   coaching_notes:
   - Setze Becken und gesamten unteren Rücken stabil an die Lehne und halte diese Position
     über den kompletten Satz, damit die Kraft sauber über Hüfte und Knie auf die Plattform
@@ -847,18 +725,140 @@ exercises:
   - Wähle die Tiefe und Fußposition so, dass du den Quadrizeps belastest, ohne im
     unteren Umkehrpunkt die Position der Lendenwirbelsäule oder der Kniekontrolle
     zu verlieren.
+  tags:
+  - machine
+  - compound
+  - quad-dominant
+  - lower-body
+  - strength
+  - hypertrophy
+  - legs
+  - leg_press
+  - unreviewed
+  exercise_id: leg_press
+  variations: []
+  search_aliases:
+  - Beinpresse
+  - Schlitten-Beinpresse
+  - Leg Press
+  - Leg Press Machine
+  german: Beinpresse
+  common_errors:
+  - Das Becken kippt im unteren Punkt nach hinten und der untere Rücken löst sich
+    von der Lehne, wodurch unnötiger Stress auf die Lendenwirbelsäule entsteht.
+  - Die Knie fallen nach innen oder weichen unkontrolliert nach außen aus, anstatt
+    sauber in Linie mit dem Fuß zu laufen.
+  - Der Bewegungsumfang wird künstlich verkürzt, obwohl mehr saubere Tiefe möglich
+    wäre, sodass Trainingsreiz und Gelenkkontrolle verschenkt werden.
+  - Oben werden die Knie hart durchgedrückt und die Spannung geht aus Quadrizeps und
+    Gesäß in eine passive Gelenkposition über.
+  - Der Schlitten wird in der unteren Position abgefedert oder mit Schwung umgekehrt,
+    statt die exzentrische Phase aktiv zu kontrollieren.
+  - Die Füße stehen zu hoch, zu tief oder asymmetrisch auf der Plattform, sodass Druckverteilung,
+    Kniepfad und Zielmuskulatur unnötig verfälscht werden.
+  - Das Gewicht ist zu schwer gewählt, sodass nur noch halbe Wiederholungen, Hüftverschiebungen
+    oder ein Verlust der Rumpfspannung möglich sind.
+  - Die Last wird einseitig über Vorfuß oder Fersen verschoben, wodurch Stabilität
+    verloren geht und die Kraftübertragung auf die Plattform schlechter wird.
+  category: squat
+  source: approved
+  origin:
+    wger:
+      german: Beinpresse
+      category: legs
+      wger_muscle_ids:
+        primary:
+        - 11
+        - 7
+        - 8
+        - 10
+        secondary:
+        - 7
+        - 8
+      display_name: Beinpresse
+      primary_muscles:
+      - 601_quadriceps_femoris
+      - 603_gluteus_maximus
+      - 604a_biceps_femoris
+      - 604b_semitendinosus
+      - 604c_semimembranosus
+      - 701_gastrocnemius
+      wger_id: 371
+      secondary_muscles:
+      - 603_gluteus_maximus
+      - 701_gastrocnemius
+      equipment: []
+      coaching_notes:
+      - 'In die Maschine setzten und die Füße auf die Auflage stellen, der Abstand,
+        etwas mehr als schulterbreit. Die Füße sind etwas nach außen gedreht.
+
+        Das Gewicht wird so weit abgesenkt, dass die Knie einen rechten Winkel machen.
+        Sofort wird das Gewicht nach oben gedrückt. Die Knie zeigen etwas nach außen
+        und werden nie ganz ausgestreckt, die Bewegung bleibt immer flüssig, also
+        weder oben noch unten irgendwelche Pausen einlegen!'
+      exercise_id: wger_371
+      tags:
+      - unreviewed
+      - wger
+    type: manual
+    yuhonas:
+      category: strength
+      wger_muscle_ids:
+        primary: []
+        secondary: []
+      yuhonas_id: Leg_Press
+      primary_muscles:
+      - quadriceps
+      display_name: Leg Press
+      secondary_muscles:
+      - calves
+      - glutes
+      - hamstrings
+      equipment:
+      - machine
+      coaching_notes:
+      - 'Using a leg press machine, sit down on the machine and place your legs on
+        the platform directly in front of you at a medium (shoulder width) foot stance.
+        (Note: For the purposes of this discussion we will use the medium stance described
+        above which targets overall development; however you can choose any of the
+        three stances described in the foot positioning section).'
+      - 'Lower the safety bars holding the weighted platform in place and press the
+        platform all the way up until your legs are fully extended in front of you.
+        Tip: Make sure that you do not lock your knees. Your torso and the legs should
+        make a perfect 90-degree angle. This will be your starting position.'
+      - As you inhale, slowly lower the platform until your upper and lower legs make
+        a 90-degree angle.
+      - Pushing mainly with the heels of your feet and using the quadriceps go back
+        to the starting position as you exhale.
+      - Repeat for the recommended amount of repetitions and ensure to lock the safety
+        pins properly once you are done. You do not want that platform falling on
+        you fully loaded.
+      tags:
+      - unreviewed
+      - yuhonas
+      exercise_id: yuhonas_leg_press
+    source_refs: {}
+  equipment:
+  - machine
+  review_state:
+    status: approved
   secondary_muscles:
   - 603_gluteus_maximus
   - 602_adductors
   - 604a_biceps_femoris
   - 604b_semitendinosus
   - 604c_semimembranosus
-  aliases:
-  - Leg Press Machine
-  - Machine Leg Press
-  - Plate-Loaded Leg Press
-  - 45 Degree Leg Press
-  - Schlitten-Beinpresse
+  movements:
+  - knee_extension
+  - knee_flexion
+  - hip_extension
+  - hip_flexion
+  - bilateral
+  - closed_chain
+  - machine_guided
+  wger_id: null
+  schema_version: 2026-08-12.exercise-v1
+  id: leg_press
 - common_errors:
   - Das Becken sinkt ab und der untere Rücken fällt ins Hohlkreuz, wodurch die Belastung
     von der Rumpfmuskulatur auf passive Strukturen verlagert wird.
