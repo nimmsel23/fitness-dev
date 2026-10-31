@@ -3214,40 +3214,66 @@ exercises:
     Spannung deutlich verlieren.
   type: isolation
   _hash: a2f70b0afc23e5b0b24444cccad081e7
-- _hash: eaafdd0028fa66655a151e153fc978d2
-  aliases:
-  - Stoßdrücken
-  - Schulterdrücken mit Beinschwung
-  - Schulterdrücken mit Hüftschwung
-  - Power Press
-  display_name: Push Press
-  primary_muscles:
-  - 301_anterior_deltoid
-  - 401_triceps_brachii
-  - 601_quadriceps_femoris
-  - 603_gluteus_maximus
-  type: compound
+- secondary_muscles:
+  - 302_lateral_deltoid
+  - 102_pectoralis_major_clavicular
+  - 701_gastrocnemius
+  - 702_soleus
+  origin:
+    wger:
+      secondary_muscles:
+      - 603_gluteus_maximus
+      primary_muscles:
+      - 202a_trapezius_upper
+      - 202b_trapezius_middle
+      - 202c_trapezius_lower
+      - 303_posterior_deltoid
+      exercise_id: wger_478
+      tags:
+      - unreviewed
+      - wger
+      coaching_notes:
+      - Bringe deine Kurzhanteln im Cleanen auf deine Schultern, die Handflächen zeigen
+        nach innen. Atme ein und spanne deinen Rumpf an. (Bild 1) Gehe in die Knie
+        und nutze deine Beine, um die Kurzhanteln (Bild 2) über den Kopf zu drücken.
+        Senke sie kontrolliert und in langsamem Tempo wieder zu deinen Schultern ab
+        und wiederhole.
+      category: shoulders
+      wger_id: 478
+      display_name: Push Press
+      equipment: []
+      german: Push Press
+      wger_muscle_ids:
+        secondary:
+        - 8
+        primary:
+        - 9
+    source_refs: {}
+    yuhonas:
+      secondary_muscles:
+      - quadriceps
+      - triceps
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      tags:
+      - unreviewed
+      - yuhonas
+      category: olympic weightlifting
+      yuhonas_id: Push_Press
+      coaching_notes: []
+      display_name: Push Press
+      exercise_id: yuhonas_push_press
+      equipment:
+      - barbell
+      primary_muscles:
+      - shoulders
+    type: manual
+  review_state:
+    status: approved
   english: Push Press
-  stabilizers:
-  - 105_serratus_anterior
-  - 304_rotator_cuff
-  - 504_transverse_abdominis
-  - 206_erector_spinae
-  - 507_multifidus
-  name: Push Press
-  variations:
-  - Langhantel Push Press
-  - Kurzhantel Push Press
-  - Einarmiger Kurzhantel Push Press
-  tags:
-  - power
-  - functional
-  - compound
-  - hip_drive
-  - vertical_press
-  - overhead
-  - explosive
-  exercise_id: schulterdruecken_mit_hueftschwung
+  type: compound
+  wger_id: null
   coaching_notes:
   - Starte aus einem festen Rack mit aufgerichtetem Oberkörper, gespanntem Rumpf und
     der Last über dem Mittelfuß.
@@ -3263,8 +3289,60 @@ exercises:
     kontrolliert und sauber in die Rack-Position zurück.'
   - Bei Kurzhanteln beide Seiten synchron antreiben und verhindern, dass eine Schulter
     früher ausdreht oder höher endet als die andere.
+  category: push
+  schema_version: 2026-08-12.exercise-v1
+  stabilizers:
+  - 105_serratus_anterior
+  - 304_rotator_cuff
+  - 504_transverse_abdominis
+  - 206_erector_spinae
+  - 507_multifidus
+  search_aliases:
+  - Push Press
+  - Stoßdrücken
+  - Schulterdrücken mit Beinschwung
+  - Schulterdrücken mit Hüftschwung
+  - Power Press
+  aliases:
+  - Stoßdrücken
+  - Schulterdrücken mit Beinschwung
+  - Schulterdrücken mit Hüftschwung
+  - Power Press
+  equipment:
+  - dumbbell
+  - barbell
+  name: Push Press
+  primary_muscles:
+  - 301_anterior_deltoid
+  - 401_triceps_brachii
+  - 601_quadriceps_femoris
+  - 603_gluteus_maximus
+  exercise_id: schulterdruecken_mit_hueftschwung
   source: approved
-  german: Push Press
+  variations:
+  - Langhantel Push Press
+  - Kurzhantel Push Press
+  - Einarmiger Kurzhantel Push Press
+  tags:
+  - power
+  - functional
+  - compound
+  - hip_drive
+  - vertical_press
+  - overhead
+  - explosive
+  id: schulterdruecken_mit_hueftschwung
+  display_name: Push Press
+  movements:
+  - vertical
+  - overhead_press
+  - elbow_extension
+  - shoulder_flexion
+  - scapular_upward_rotation
+  - hip_extension
+  - knee_extension
+  - ankle_plantarflexion
+  - triple_extension
   common_errors:
   - Zu tiefer Dip, der die Bewegung eher zu einer Frontkniebeuge mit anschließendem
     Pressen macht und den Rebound verschlechtert.
@@ -3279,83 +3357,5 @@ exercises:
     die Last bleibt vor dem Körper.'
   - Kopf wird nur nach hinten gelegt, aber danach nicht wieder unter die Hantel gebracht,
     sodass keine stabile Überkopfposition entsteht.
-  category: push
-  origin:
-    wger:
-      german: Push Press
-      category: shoulders
-      wger_muscle_ids:
-        primary:
-        - 9
-        secondary:
-        - 8
-      display_name: Push Press
-      equipment: []
-      wger_id: 478
-      secondary_muscles:
-      - 603_gluteus_maximus
-      primary_muscles:
-      - 202a_trapezius_upper
-      - 202b_trapezius_middle
-      - 202c_trapezius_lower
-      - 303_posterior_deltoid
-      coaching_notes:
-      - Bringe deine Kurzhanteln im Cleanen auf deine Schultern, die Handflächen zeigen
-        nach innen. Atme ein und spanne deinen Rumpf an. (Bild 1) Gehe in die Knie
-        und nutze deine Beine, um die Kurzhanteln (Bild 2) über den Kopf zu drücken.
-        Senke sie kontrolliert und in langsamem Tempo wieder zu deinen Schultern ab
-        und wiederhole.
-      exercise_id: wger_478
-      tags:
-      - unreviewed
-      - wger
-    source_refs: {}
-    yuhonas:
-      category: olympic weightlifting
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      display_name: Push Press
-      primary_muscles:
-      - shoulders
-      yuhonas_id: Push_Press
-      secondary_muscles:
-      - quadriceps
-      - triceps
-      equipment:
-      - barbell
-      coaching_notes: []
-      tags:
-      - unreviewed
-      - yuhonas
-      exercise_id: yuhonas_push_press
-    type: manual
-  search_aliases:
-  - Push Press
-  - Stoßdrücken
-  - Schulterdrücken mit Beinschwung
-  - Schulterdrücken mit Hüftschwung
-  - Power Press
-  equipment:
-  - dumbbell
-  - barbell
-  wger_id: null
-  secondary_muscles:
-  - 302_lateral_deltoid
-  - 102_pectoralis_major_clavicular
-  - 701_gastrocnemius
-  - 702_soleus
-  movements:
-  - vertical
-  - overhead_press
-  - elbow_extension
-  - shoulder_flexion
-  - scapular_upward_rotation
-  - hip_extension
-  - knee_extension
-  - ankle_plantarflexion
-  - triple_extension
-  review_state:
-    status: approved
-  schema_version: 2026-08-12.exercise-v1
-  id: schulterdruecken_mit_hueftschwung
+  _hash: eaafdd0028fa66655a151e153fc978d2
+  german: Push Press
