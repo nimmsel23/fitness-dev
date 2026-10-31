@@ -168,10 +168,7 @@ exercises:
       wger_muscle_ids:
         primary: []
         secondary: []
-- id: cable_external_rotation
-  name: External Cable Rotations
-  wger_id: null
-  common_errors:
+- common_errors:
   - Zu hohes Gewicht, sodass die Bewegung über Schwung statt über die Außenrotatoren
     erzeugt wird.
   - Der Ellenbogen löst sich vom Oberkörper oder wandert nach hinten, wodurch die
@@ -186,57 +183,97 @@ exercises:
     gehalten werden kann.
   - Den Oberarm nach vorn schieben oder das Schulterblatt nach vorn kippen lassen,
     statt den Humeruskopf zentriert zu kontrollieren.
+  equipment:
+  - cable
+  variations:
+  - Cable External Rotation with Towel Support
+  - Half-Kneeling Cable External Rotation
+  - Standing Single-Arm Cable External Rotation
+  id: cable_external_rotation
+  type: isolation
+  search_aliases:
+  - Außenrotation am Kabelzug
+  - Cable External Rotation
+  - External Cable Rotations
+  - Shoulder External Rotation
+  - Cable Shoulder External Rotation
+  - Kabelzug-Außenrotation
+  german: Außenrotation am Kabelzug
+  schema_version: 2026-08-12.exercise-v1
+  movements:
+  - shoulder_external_rotation
+  - glenohumeral_external_rotation
+  - scapular_stability
+  - anti_trunk_rotation
+  - elbow_isometric_flexion
+  - unilateral_control
+  - rotator_cuff
+  exercise_id: cable_external_rotation
+  review_state:
+    status: approved
+  stabilizers:
+  - 305_supraspinatus
+  - 308_subscapularis
+  - 202b_trapezius_middle
+  - 202c_trapezius_lower
+  - 205_rhomboids
+  - 502_obliquus_externus
+  - 503_obliquus_internus
+  - 504_transverse_abdominis
+  _hash: da9f6916ef56a9099e40d3d117ddd078
+  category: pull
+  display_name: Außenrotation am Kabelzug
+  coaching_notes:
+  - Stellen Sie sich seitlich zum Kabelzug, sodass der arbeitende Arm weiter vom Turm
+    entfernt ist, und positionieren Sie den Griff etwa auf Ellenbogenhöhe.
+  - Ziehen Sie die Schulter sanft nach hinten unten und halten Sie das Schulterblatt
+    ruhig, ohne es während der Bewegung nach vorn kippen zu lassen.
+  - Klemmen Sie den Oberarm eng an den Körper und halten Sie den Ellenbogen konstant
+    bei ungefähr 90 Grad Beugung.
+  - Starten Sie aus der Innenrotation und drehen Sie den Unterarm kontrolliert nach
+    außen, während Oberarm, Schulter und Rumpf stabil bleiben.
+  - Bewegen Sie nur im Schultergelenk; denken Sie daran, den Oberarmkopf zentriert
+    in der Pfanne zu halten statt Reichweite über Ausweichbewegungen zu erzwingen.
+  - Arbeiten Sie mit leichtem bis moderatem Widerstand und einer sauberen Exzentrik,
+    damit die Rotatorenmanschette die gesamte Bewegung kontrollieren kann.
+  - Atmen Sie ruhig aus, wenn Sie nach außen rotieren, und spannen Sie Bauch und Rumpf
+    leicht an, um ein Mitdrehen des Oberkörpers zu verhindern.
+  - Beenden Sie die Wiederholung dort, wo Sie die Außenrotation noch ohne Schulterhochziehen,
+    Hohlkreuz oder Ellbogenverlust sauber kontrollieren können.
+  secondary_muscles:
+  - 303_posterior_deltoid
+  primary_muscles:
+  - 306_infraspinatus
+  - 307_teres_minor
+  wger_id: null
+  aliases:
+  - Cable Rotator Cuff
+  - Shoulder External Rotation
+  - Cable Shoulder External Rotation
+  - Kabelzug-Außenrotation
+  - Außenrotation Schulter am Kabelzug
+  tags:
+  - rotator_cuff
+  - shoulder_health
+  - rehabilitation
+  - prehab
+  - athletic_performance
+  - shoulders
+  - shoulder_external_rotation
+  - infraspinatus
+  - teres_minor
+  - unreviewed
+  name: External Cable Rotations
+  source: approved
+  english: Cable External Rotation
   origin:
-    source_refs: {}
-    yuhonas:
-      exercise_id: yuhonas_external_rotation
-      primary_muscles:
-      - shoulders
-      wger_muscle_ids:
-        secondary: []
-        primary: []
-      yuhonas_id: External_Rotation
-      display_name: External Rotation
-      equipment:
-      - dumbbell
-      secondary_muscles: []
-      coaching_notes:
-      - Lie sideways on a flat bench with one arm holding a dumbbell and the other
-        hand on top of the bench folded so that you can rest your head on it.
-      - 'Bend the elbows of the arm holding the dumbbell so that it creates a 90-degree
-        angle between the upper arm and the forearm. Tip: Keep the arm parallel to
-        your torso.'
-      - 'Now bend the elbow while keeping the upper arm stationary. In this manner,
-        the forearm will be parallel to the floor and perpendicular to your torso
-        (Tip: So the forearm will be directly in front of you). The upper arm will
-        be stationary by your torso and should be parallel to the floor (aligned with
-        your torso at all times). This will be your starting position.'
-      - As you breathe out, externally rotate your forearm so that the dumbbell is
-        lifted up in a semicircle motion as you maintain the 90 degree angle bend
-        between the upper arms and the forearm. You will continue this external rotation
-        until the forearm is perpendicular to the floor and the torso pointing towards
-        the ceiling. At this point you will hold the contraction for a second.
-      - As you breathe in, slowly go back to the starting position.
-      - Repeat for the recommended amount of repetitions and then switch to the other
-        arm.
-      tags:
-      - unreviewed
-      - yuhonas
-      category: strength
     type: manual
     wger:
-      secondary_muscles: []
-      exercise_id: wger_142
-      wger_id: 142
-      wger_muscle_ids:
-        secondary: []
-        primary:
-        - 2
-      display_name: Außenrotation am Kabelzug
+      equipment: []
       primary_muscles:
       - 304_rotator_cuff
-      equipment: []
-      german: Außenrotation am Kabelzug
+      category: shoulders
+      wger_id: 142
       coaching_notes:
       - 'Schritte:
 
@@ -256,90 +293,53 @@ exercises:
         zurück.
 
         Wiederhole dies für so viele Wiederholungen und Sätze wie gewünscht.'
+      german: Außenrotation am Kabelzug
+      secondary_muscles: []
+      display_name: Außenrotation am Kabelzug
       tags:
       - unreviewed
       - wger
-      category: shoulders
-  schema_version: 2026-08-12.exercise-v1
-  primary_muscles:
-  - 306_infraspinatus
-  - 307_teres_minor
-  movements:
-  - shoulder_external_rotation
-  - glenohumeral_external_rotation
-  - scapular_stability
-  - anti_trunk_rotation
-  - elbow_isometric_flexion
-  - unilateral_control
-  - rotator_cuff
-  type: isolation
-  german: Außenrotation am Kabelzug
-  coaching_notes:
-  - Stellen Sie sich seitlich zum Kabelzug, sodass der arbeitende Arm weiter vom Turm
-    entfernt ist, und positionieren Sie den Griff etwa auf Ellenbogenhöhe.
-  - Ziehen Sie die Schulter sanft nach hinten unten und halten Sie das Schulterblatt
-    ruhig, ohne es während der Bewegung nach vorn kippen zu lassen.
-  - Klemmen Sie den Oberarm eng an den Körper und halten Sie den Ellenbogen konstant
-    bei ungefähr 90 Grad Beugung.
-  - Starten Sie aus der Innenrotation und drehen Sie den Unterarm kontrolliert nach
-    außen, während Oberarm, Schulter und Rumpf stabil bleiben.
-  - Bewegen Sie nur im Schultergelenk; denken Sie daran, den Oberarmkopf zentriert
-    in der Pfanne zu halten statt Reichweite über Ausweichbewegungen zu erzwingen.
-  - Arbeiten Sie mit leichtem bis moderatem Widerstand und einer sauberen Exzentrik,
-    damit die Rotatorenmanschette die gesamte Bewegung kontrollieren kann.
-  - Atmen Sie ruhig aus, wenn Sie nach außen rotieren, und spannen Sie Bauch und Rumpf
-    leicht an, um ein Mitdrehen des Oberkörpers zu verhindern.
-  - Beenden Sie die Wiederholung dort, wo Sie die Außenrotation noch ohne Schulterhochziehen,
-    Hohlkreuz oder Ellbogenverlust sauber kontrollieren können.
-  tags:
-  - rotator_cuff
-  - shoulder_health
-  - rehabilitation
-  - prehab
-  - athletic_performance
-  - shoulders
-  - shoulder_external_rotation
-  - infraspinatus
-  - teres_minor
-  - unreviewed
-  category: pull
-  exercise_id: cable_external_rotation
-  review_state:
-    status: approved
-  variations:
-  - Cable External Rotation with Towel Support
-  - Half-Kneeling Cable External Rotation
-  - Standing Single-Arm Cable External Rotation
-  display_name: Außenrotation am Kabelzug
-  search_aliases:
-  - Außenrotation am Kabelzug
-  - Cable External Rotation
-  - External Cable Rotations
-  - Shoulder External Rotation
-  - Cable Shoulder External Rotation
-  - Kabelzug-Außenrotation
-  _hash: da9f6916ef56a9099e40d3d117ddd078
-  stabilizers:
-  - 305_supraspinatus
-  - 308_subscapularis
-  - 202b_trapezius_middle
-  - 202c_trapezius_lower
-  - 205_rhomboids
-  - 502_obliquus_externus
-  - 503_obliquus_internus
-  - 504_transverse_abdominis
-  equipment:
-  - cable
-  english: Cable External Rotation
-  source: approved
-  secondary_muscles:
-  - 303_posterior_deltoid
-  aliases:
-  - Cable Rotator Cuff
-  - Shoulder External Rotation
-  - Cable Shoulder External Rotation
-  - Kabelzug-Außenrotation
-  - Außenrotation Schulter am Kabelzug
+      exercise_id: wger_142
+      wger_muscle_ids:
+        primary:
+        - 2
+        secondary: []
+    source_refs: {}
+    yuhonas:
+      equipment:
+      - dumbbell
+      primary_muscles:
+      - shoulders
+      category: strength
+      display_name: External Rotation
+      coaching_notes:
+      - Lie sideways on a flat bench with one arm holding a dumbbell and the other
+        hand on top of the bench folded so that you can rest your head on it.
+      - 'Bend the elbows of the arm holding the dumbbell so that it creates a 90-degree
+        angle between the upper arm and the forearm. Tip: Keep the arm parallel to
+        your torso.'
+      - 'Now bend the elbow while keeping the upper arm stationary. In this manner,
+        the forearm will be parallel to the floor and perpendicular to your torso
+        (Tip: So the forearm will be directly in front of you). The upper arm will
+        be stationary by your torso and should be parallel to the floor (aligned with
+        your torso at all times). This will be your starting position.'
+      - As you breathe out, externally rotate your forearm so that the dumbbell is
+        lifted up in a semicircle motion as you maintain the 90 degree angle bend
+        between the upper arms and the forearm. You will continue this external rotation
+        until the forearm is perpendicular to the floor and the torso pointing towards
+        the ceiling. At this point you will hold the contraction for a second.
+      - As you breathe in, slowly go back to the starting position.
+      - Repeat for the recommended amount of repetitions and then switch to the other
+        arm.
+      yuhonas_id: External_Rotation
+      secondary_muscles: []
+      tags:
+      - unreviewed
+      - yuhonas
+      exercise_id: yuhonas_external_rotation
+      wger_muscle_ids:
+        primary: []
+        secondary: []
 - id: clean_snatch
   name: Snatch
   wger_id: null
