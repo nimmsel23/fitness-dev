@@ -3214,64 +3214,13 @@ exercises:
   - Trizepsstrecken liegend
   - SZ-Trizepsdrücken
   - Lying Triceps Extension
-- type: compound
-  secondary_muscles:
-  - 302_lateral_deltoid
-  - 102_pectoralis_major_clavicular
-  - 701_gastrocnemius
-  - 702_soleus
-  origin:
-    source_refs: {}
-    yuhonas:
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      exercise_id: yuhonas_push_press
-      primary_muscles:
-      - shoulders
-      tags:
-      - unreviewed
-      - yuhonas
-      secondary_muscles:
-      - quadriceps
-      - triceps
-      display_name: Push Press
-      yuhonas_id: Push_Press
-      coaching_notes: []
-      category: olympic weightlifting
-      equipment:
-      - barbell
-    wger:
-      primary_muscles:
-      - 202a_trapezius_upper
-      - 202b_trapezius_middle
-      - 202c_trapezius_lower
-      - 303_posterior_deltoid
-      exercise_id: wger_478
-      secondary_muscles:
-      - 603_gluteus_maximus
-      display_name: Push Press
-      wger_id: 478
-      tags:
-      - unreviewed
-      - wger
-      wger_muscle_ids:
-        secondary:
-        - 8
-        primary:
-        - 9
-      coaching_notes:
-      - Bringe deine Kurzhanteln im Cleanen auf deine Schultern, die Handflächen zeigen
-        nach innen. Atme ein und spanne deinen Rumpf an. (Bild 1) Gehe in die Knie
-        und nutze deine Beine, um die Kurzhanteln (Bild 2) über den Kopf zu drücken.
-        Senke sie kontrolliert und in langsamem Tempo wieder zu deinen Schultern ab
-        und wiederhole.
-      german: Push Press
-      category: shoulders
-      equipment: []
-    type: manual
-  _hash: eaafdd0028fa66655a151e153fc978d2
-  display_name: Push Press
+- id: schulterdruecken_mit_hueftschwung
+  name: Push Press
+  primary_muscles:
+  - 301_anterior_deltoid
+  - 401_triceps_brachii
+  - 601_quadriceps_femoris
+  - 603_gluteus_maximus
   common_errors:
   - Zu tiefer Dip, der die Bewegung eher zu einer Frontkniebeuge mit anschließendem
     Pressen macht und den Rebound verschlechtert.
@@ -3286,11 +3235,70 @@ exercises:
     die Last bleibt vor dem Körper.'
   - Kopf wird nur nach hinten gelegt, aber danach nicht wieder unter die Hantel gebracht,
     sodass keine stabile Überkopfposition entsteht.
-  aliases:
-  - Stoßdrücken
-  - Schulterdrücken mit Beinschwung
-  - Schulterdrücken mit Hüftschwung
-  - Power Press
+  origin:
+    source_refs: {}
+    yuhonas:
+      exercise_id: yuhonas_push_press
+      primary_muscles:
+      - shoulders
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      yuhonas_id: Push_Press
+      display_name: Push Press
+      equipment:
+      - barbell
+      secondary_muscles:
+      - quadriceps
+      - triceps
+      coaching_notes: []
+      tags:
+      - unreviewed
+      - yuhonas
+      category: olympic weightlifting
+    type: manual
+    wger:
+      german: Push Press
+      secondary_muscles:
+      - 603_gluteus_maximus
+      wger_id: 478
+      display_name: Push Press
+      wger_muscle_ids:
+        secondary:
+        - 8
+        primary:
+        - 9
+      primary_muscles:
+      - 202a_trapezius_upper
+      - 202b_trapezius_middle
+      - 202c_trapezius_lower
+      - 303_posterior_deltoid
+      equipment: []
+      exercise_id: wger_478
+      coaching_notes:
+      - Bringe deine Kurzhanteln im Cleanen auf deine Schultern, die Handflächen zeigen
+        nach innen. Atme ein und spanne deinen Rumpf an. (Bild 1) Gehe in die Knie
+        und nutze deine Beine, um die Kurzhanteln (Bild 2) über den Kopf zu drücken.
+        Senke sie kontrolliert und in langsamem Tempo wieder zu deinen Schultern ab
+        und wiederhole.
+      tags:
+      - unreviewed
+      - wger
+      category: shoulders
+  schema_version: 2026-08-12.exercise-v1
+  wger_id: null
+  movements:
+  - vertical
+  - overhead_press
+  - elbow_extension
+  - shoulder_flexion
+  - scapular_upward_rotation
+  - hip_extension
+  - knee_extension
+  - ankle_plantarflexion
+  - triple_extension
+  type: compound
+  exercise_id: schulterdruecken_mit_hueftschwung
   coaching_notes:
   - Starte aus einem festen Rack mit aufgerichtetem Oberkörper, gespanntem Rumpf und
     der Last über dem Mittelfuß.
@@ -3306,30 +3314,6 @@ exercises:
     kontrolliert und sauber in die Rack-Position zurück.'
   - Bei Kurzhanteln beide Seiten synchron antreiben und verhindern, dass eine Schulter
     früher ausdreht oder höher endet als die andere.
-  variations:
-  - Langhantel Push Press
-  - Kurzhantel Push Press
-  - Einarmiger Kurzhantel Push Press
-  id: schulterdruecken_mit_hueftschwung
-  equipment:
-  - dumbbell
-  - barbell
-  primary_muscles:
-  - 301_anterior_deltoid
-  - 401_triceps_brachii
-  - 601_quadriceps_femoris
-  - 603_gluteus_maximus
-  exercise_id: schulterdruecken_mit_hueftschwung
-  movements:
-  - vertical
-  - overhead_press
-  - elbow_extension
-  - shoulder_flexion
-  - scapular_upward_rotation
-  - hip_extension
-  - knee_extension
-  - ankle_plantarflexion
-  - triple_extension
   tags:
   - power
   - functional
@@ -3338,24 +3322,40 @@ exercises:
   - vertical_press
   - overhead
   - explosive
-  wger_id: null
-  english: Push Press
+  category: push
+  german: Push Press
+  review_state:
+    status: approved
+  variations:
+  - Langhantel Push Press
+  - Kurzhantel Push Press
+  - Einarmiger Kurzhantel Push Press
   search_aliases:
   - Push Press
   - Stoßdrücken
   - Schulterdrücken mit Beinschwung
   - Schulterdrücken mit Hüftschwung
   - Power Press
-  source: approved
-  schema_version: 2026-08-12.exercise-v1
+  display_name: Push Press
+  _hash: eaafdd0028fa66655a151e153fc978d2
   stabilizers:
   - 105_serratus_anterior
   - 304_rotator_cuff
   - 504_transverse_abdominis
   - 206_erector_spinae
   - 507_multifidus
-  german: Push Press
-  category: push
-  name: Push Press
-  review_state:
-    status: approved
+  equipment:
+  - dumbbell
+  - barbell
+  english: Push Press
+  source: approved
+  secondary_muscles:
+  - 302_lateral_deltoid
+  - 102_pectoralis_major_clavicular
+  - 701_gastrocnemius
+  - 702_soleus
+  aliases:
+  - Stoßdrücken
+  - Schulterdrücken mit Beinschwung
+  - Schulterdrücken mit Hüftschwung
+  - Power Press
