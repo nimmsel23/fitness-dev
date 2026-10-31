@@ -12,21 +12,16 @@ exercises:
     secondary:
     - 5
   wger_id: 194
-  yuhonas_id: Bench_Dips
   display_name: Dips
   external_ids:
     wger:
     - 194
-    yuhonas:
-    - Bench_Dips
   english: Bench Dips
   origin:
-    type: merged_external
+    type: external
     source_refs:
       wger:
       - '194'
-      yuhonas:
-      - Bench_Dips
   category: push
   equipment:
   - bench
@@ -118,8 +113,9 @@ exercises:
     approved_at: '2026-10-31T14:40:48.356973+00:00'
   approved_at: '2026-10-31T14:40:48.356973+00:00'
   search_aliases:
-  - yuhonas_bench_dips
   - wger_194
-  - Bench_Dips
   - Dips
   - Bench Dips
+  source_selection:
+    yuhonas: null
+  source_review_required: true
