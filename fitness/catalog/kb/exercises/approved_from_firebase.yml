@@ -1708,45 +1708,20 @@ exercises:
     Knielinie zu halten.
   - Zu frühes Ausatmen in der Aufwärtsphase führt zum Kollaps im Rumpf und zu instabiler
     Stangenbahn.
-  equipment:
-  - barbell
-  - squat_rack
-  variations:
-  - goblet_squat
-  - cross_grip_front_squat
-  - dumbbell_front_squat
-  - double_kettlebell_front_squat
-  id: '061'
-  type: compound
-  external_ids:
-    wger:
-    - 257
-  tags:
-  - expert
-  - legs
-  - squat
-  - compound
-  - quad_dominant
-  - strength
-  - front_rack
-  schema_version: 2026-08-12.exercise-v1
-  german: Frontkniebeuge
-  movements:
-  - knee_flexion_extension
-  - hip_flexion_extension
-  - ankle_dorsiflexion
-  - front_rack_bracing
-  - thoracic_extension
-  - spinal_anti_flexion
-  exercise_id: '061'
   wger_muscle_ids:
-    primary:
-    - 10
     secondary:
     - 8
     - 6
-  review_state:
-    status: approved
+    primary:
+    - 10
+  id: '061'
+  display_name: Frontkniebeuge
+  _hash: 68e1b750dd9061083639ff3b8a63144d
+  schema_version: 2026-08-12.exercise-v1
+  german: Frontkniebeuge
+  equipment:
+  - barbell
+  - squat_rack
   stabilizers:
   - 504_transverse_abdominis
   - 501_rectus_abdominis
@@ -1763,33 +1738,6 @@ exercises:
   - 609_gluteus_minimus
   - 702_soleus
   - 701_gastrocnemius
-  primary_muscles:
-  - 601_quadriceps_femoris
-  category: squat
-  wger_id: 257
-  coaching_notes:
-  - 'Baue zuerst ein sauberes Front-Rack: Stange liegt auf den vorderen Schultern,
-    nicht in den Händen; Ellbogen aktiv nach vorne-oben führen.'
-  - Atme tief in Bauch und Flanken ein und spanne den Rumpf vor jeder Wiederholung
-    hart an, damit der Oberkörper aufrecht bleibt.
-  - Setze dich zwischen die Hüften, während die Knie kontrolliert nach vorne über
-    die Zehen reisen; so bleibt die Last mittig über dem Fuß.
-  - Halte den Druck über Mittelfuß bis Ferse, ohne die Zehen zu verlieren; der ganze
-    Fuß bleibt belastet.
-  - Denke an Brustbein hoch und oberen Rücken lang, damit die Stange nicht nach vorne
-    abrollt.
-  - Gehe nur so tief, wie du Spannung, neutrale Wirbelsäule und stabile Fußposition
-    halten kannst.
-  - Drücke aus dem tiefsten Punkt gleichzeitig Boden weg und Ellbogen hoch, statt
-    die Hüfte zuerst nach hinten schießen zu lassen.
-  - Wenn Mobilität limitiert ist, priorisiere eine stabile Front-Rack- und Sprunggelenksposition
-    vor zusätzlicher Last.
-  display_name: Frontkniebeuge
-  _hash: 68e1b750dd9061083639ff3b8a63144d
-  secondary_muscles:
-  - 603_gluteus_maximus
-  - 602_adductors
-  source: approved
   search_aliases:
   - front_squat
   - barbell_front_squat
@@ -1799,35 +1747,44 @@ exercises:
   - wger_257
   - Frontkniebeuge
   - Front Squat
-  name: Frontkniebeuge
-  aliases:
-  - Front Squat
-  - Barbell Front Squat
-  - Frontbeuge
-  - Frontbeugen
-  - Front-Kniebeuge
-  - Vordere Kniebeuge
+  wger_id: 257
+  movements:
+  - knee_flexion_extension
+  - hip_flexion_extension
+  - ankle_dorsiflexion
+  - front_rack_bracing
+  - thoracic_extension
+  - spinal_anti_flexion
   english: Front Squat
+  primary_muscles:
+  - 601_quadriceps_femoris
+  variations:
+  - goblet_squat
+  - cross_grip_front_squat
+  - dumbbell_front_squat
+  - double_kettlebell_front_squat
+  review_state:
+    status: approved
+  category: squat
+  exercise_id: '061'
   origin:
     source_refs:
       wger:
       - '257'
-    wger:
-      wger_id: 257
-      wger_muscle_ids:
-        primary:
-        - 10
-        secondary:
-        - 8
-        - 6
     type: external
     yuhonas:
-      equipment:
-      - barbell
       primary_muscles:
       - quadriceps
+      display_name: Front Barbell Squat
       category: strength
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      exercise_id: yuhonas_front_barbell_squat
       yuhonas_id: Front_Barbell_Squat
+      tags:
+      - unreviewed
+      - yuhonas
       coaching_notes:
       - This exercise is best performed inside a squat rack for safety purposes. To
         begin, first set the bar on a rack that best matches your height. Once the
@@ -1857,18 +1814,61 @@ exercises:
         middle of your foot as you straighten the legs again and go back to the starting
         position.
       - Repeat for the recommended amount of repetitions.
-      display_name: Front Barbell Squat
+      equipment:
+      - barbell
       secondary_muscles:
       - calves
       - glutes
       - hamstrings
-      tags:
-      - unreviewed
-      - yuhonas
-      exercise_id: yuhonas_front_barbell_squat
+    wger:
       wger_muscle_ids:
-        primary: []
-        secondary: []
+        secondary:
+        - 8
+        - 6
+        primary:
+        - 10
+      wger_id: 257
+  source: approved
+  name: Frontkniebeuge
+  type: compound
+  tags:
+  - expert
+  - legs
+  - squat
+  - compound
+  - quad_dominant
+  - strength
+  - front_rack
+  external_ids:
+    wger:
+    - 257
+  coaching_notes:
+  - 'Baue zuerst ein sauberes Front-Rack: Stange liegt auf den vorderen Schultern,
+    nicht in den Händen; Ellbogen aktiv nach vorne-oben führen.'
+  - Atme tief in Bauch und Flanken ein und spanne den Rumpf vor jeder Wiederholung
+    hart an, damit der Oberkörper aufrecht bleibt.
+  - Setze dich zwischen die Hüften, während die Knie kontrolliert nach vorne über
+    die Zehen reisen; so bleibt die Last mittig über dem Fuß.
+  - Halte den Druck über Mittelfuß bis Ferse, ohne die Zehen zu verlieren; der ganze
+    Fuß bleibt belastet.
+  - Denke an Brustbein hoch und oberen Rücken lang, damit die Stange nicht nach vorne
+    abrollt.
+  - Gehe nur so tief, wie du Spannung, neutrale Wirbelsäule und stabile Fußposition
+    halten kannst.
+  - Drücke aus dem tiefsten Punkt gleichzeitig Boden weg und Ellbogen hoch, statt
+    die Hüfte zuerst nach hinten schießen zu lassen.
+  - Wenn Mobilität limitiert ist, priorisiere eine stabile Front-Rack- und Sprunggelenksposition
+    vor zusätzlicher Last.
+  secondary_muscles:
+  - 603_gluteus_maximus
+  - 602_adductors
+  aliases:
+  - Front Squat
+  - Barbell Front Squat
+  - Frontbeuge
+  - Frontbeugen
+  - Front-Kniebeuge
+  - Vordere Kniebeuge
 - external_ids:
     wger:
     - 851
