@@ -1,6 +1,6 @@
 """coach-sync — Coach-Seite des Firestore-Syncs, ohne API-Server (`coach-sync.service`).
 
-Die gehostete Coach-App (vos-coach.web.app, ~/coach-dev) schreibt Aktionen als
+Die gehostete Coach-App (vos-coach.web.app, ~/dev/coach-dev) schreibt Aktionen als
 `coachCommands/*` (Status `queued`) und liest `coachInbox/*` + `coachState/*`. Bisher
 verarbeitete das ein Thread im :9150-API-Prozess (`fitness/firestore/coach_bridge.py`),
 der per HTTP seine eigenen Routen aufrief. Läuft dieser Prozess nicht, bleiben Befehle
