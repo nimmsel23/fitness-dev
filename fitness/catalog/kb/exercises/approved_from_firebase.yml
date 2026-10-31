@@ -1869,64 +1869,22 @@ exercises:
     - 6
     primary:
     - 10
-- _hash: 3188e868e57cedad689328d5dc012c18
-  type: isolation
-  display_name: Beinstrecken
-  stabilizers:
-  - 504_transverse_abdominis
-  - 507_multifidus
-  external_ids:
-    wger:
-    - 851
-    yuhonas:
-    - Leg_Extensions
-  english: Leg Extension
-  wger_muscle_ids:
-    primary:
-    - 10
-    secondary: []
-  name: Beinstrecken
-  coaching_notes:
-  - Stelle die Maschine so ein, dass die Kniegelenkachse exakt mit der Drehachse der
-    Maschine fluchtet und das Polster knapp oberhalb des Sprunggelenks sitzt.
-  - Spanne den Quadrizeps aktiv an und strecke das Knie kontrolliert, bis kurz vor
-    die harte Endstellung, ohne das Gelenk aggressiv zu verriegeln.
-  - Senke das Gewicht langsam und geführt ab, damit der Quadrizeps auch in der exzentrischen
-    Phase unter Spannung bleibt.
-  - Halte Gesäß, unteren Rücken und Oberschenkel stabil am Sitz; die Bewegung soll
-    sauber aus der Knieextension kommen, nicht aus Schwung oder Ausweichen im Oberkörper.
-  - Wähle eine ROM, in der du schmerzfrei arbeiten kannst, und halte Knie, Fuß und
-    Oberschenkel in einer sauberen Linie über die gesamte Wiederholung.
-  tags:
-  - expert
-  - legs
-  - quadriceps
-  - isolation
-  - machine
-  - knee_extension
-  exercise_id: '401'
-  primary_muscles:
-  - 601_quadriceps_femoris
+- secondary_muscles: []
   origin:
     wger:
+      wger_id: 851
       wger_muscle_ids:
+        secondary: []
         primary:
         - 10
-        secondary: []
-      wger_id: 851
-    type: merged_external
     yuhonas:
-      category: strength
-      wger_muscle_ids:
-        primary: []
-        secondary: []
-      yuhonas_id: Leg_Extensions
-      primary_muscles:
-      - quadriceps
-      equipment:
-      - machine
       secondary_muscles: []
-      display_name: Leg Extensions
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      tags:
+      - unreviewed
+      - yuhonas
       coaching_notes:
       - 'For this exercise you will need to use a leg extension machine. First choose
         your weight and sit on the machine with your legs under the pad (feet pointed
@@ -1944,16 +1902,88 @@ exercises:
       - Slowly lower the weight back to the original position as you inhale, ensuring
         that you do not go past the 90-degree angle limit.
       - Repeat for the recommended amount of times.
+      yuhonas_id: Leg_Extensions
+      category: strength
       exercise_id: yuhonas_leg_extensions
-      tags:
-      - unreviewed
-      - yuhonas
+      display_name: Leg Extensions
+      equipment:
+      - machine
+      primary_muscles:
+      - quadriceps
     source_refs:
       wger:
       - '851'
       yuhonas:
       - Leg_Extensions
+    type: merged_external
+  external_ids:
+    wger:
+    - 851
+    yuhonas:
+    - Leg_Extensions
+  emphasis_muscles: []
+  english: Leg Extension
+  wger_id: 851
+  _hash: 3188e868e57cedad689328d5dc012c18
+  category: squat
+  display_name: Beinstrecken
+  schema_version: 2026-08-12.exercise-v1
+  aliases:
+  - Beinstrecker
+  - Kniestrecker
+  - Leg Extension
+  - Leg Extension Machine
+  - Quadriceps Extension
+  exercise_id: '401'
+  search_aliases:
+  - leg_extension
+  - leg_extension_machine
+  - quadriceps_extension
+  - knee_extension
+  - wger_851
+  - yuhonas_leg_extensions
+  - Leg_Extensions
+  - Beinstrecken
+  - Leg Extension
+  equipment:
+  - machine
+  stabilizers:
+  - 504_transverse_abdominis
+  - 507_multifidus
+  primary_muscles:
+  - 601_quadriceps_femoris
+  coaching_notes:
+  - Stelle die Maschine so ein, dass die Kniegelenkachse exakt mit der Drehachse der
+    Maschine fluchtet und das Polster knapp oberhalb des Sprunggelenks sitzt.
+  - Spanne den Quadrizeps aktiv an und strecke das Knie kontrolliert, bis kurz vor
+    die harte Endstellung, ohne das Gelenk aggressiv zu verriegeln.
+  - Senke das Gewicht langsam und geführt ab, damit der Quadrizeps auch in der exzentrischen
+    Phase unter Spannung bleibt.
+  - Halte Gesäß, unteren Rücken und Oberschenkel stabil am Sitz; die Bewegung soll
+    sauber aus der Knieextension kommen, nicht aus Schwung oder Ausweichen im Oberkörper.
+  - Wähle eine ROM, in der du schmerzfrei arbeiten kannst, und halte Knie, Fuß und
+    Oberschenkel in einer sauberen Linie über die gesamte Wiederholung.
+  review_state:
+    status: approved
+  source: approved
+  name: Beinstrecken
+  tags:
+  - expert
+  - legs
+  - quadriceps
+  - isolation
+  - machine
+  - knee_extension
+  variations:
+  - single_leg_extension
+  - unilateral_leg_extension
+  id: '401'
   german: Beinstrecken
+  movements:
+  - knee_extension
+  - open_chain
+  - seated
+  - single_joint
   common_errors:
   - Zu hohes Trainingsgewicht, sodass die Wiederholung mit Schwung eingeleitet wird
     statt mit sauberer Muskelspannung.
@@ -1965,41 +1995,11 @@ exercises:
     zu kontrollieren.
   - Hüfte oder Gesäß vom Sitz abheben und mit dem Oberkörper ausweichen, um die letzten
     Grade der Bewegung zu erzwingen.
-  category: squat
-  source: approved
-  aliases:
-  - Beinstrecker
-  - Kniestrecker
-  - Leg Extension
-  - Leg Extension Machine
-  - Quadriceps Extension
-  variations:
-  - single_leg_extension
-  - unilateral_leg_extension
-  equipment:
-  - machine
-  wger_id: 851
-  secondary_muscles: []
-  movements:
-  - knee_extension
-  - open_chain
-  - seated
-  - single_joint
-  emphasis_muscles: []
-  schema_version: 2026-08-12.exercise-v1
-  review_state:
-    status: approved
-  search_aliases:
-  - leg_extension
-  - leg_extension_machine
-  - quadriceps_extension
-  - knee_extension
-  - wger_851
-  - yuhonas_leg_extensions
-  - Leg_Extensions
-  - Beinstrecken
-  - Leg Extension
-  id: '401'
+  type: isolation
+  wger_muscle_ids:
+    secondary: []
+    primary:
+    - 10
 - _hash: 089ccd544ebded5ec0e8d711e0e91401
   type: isolation
   display_name: Kabel-Crossover
