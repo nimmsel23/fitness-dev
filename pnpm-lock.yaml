@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@vos/cross-app-aliases': link:../vitalos/packages/cross-app-aliases
+  '@vos/cross-app-aliases': link:../../vitalos/packages/cross-app-aliases
 
 importers:
 
@@ -182,6 +182,9 @@ importers:
       pino-pretty:
         specifier: ^13.2.0
         version: 13.2.0
+      re2js:
+        specifier: ^2.9.0
+        version: 2.9.0
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -269,8 +272,8 @@ importers:
         version: 0.20.5(vite@5.4.21(@types/node@26.6.5)(terser@5.51.2))(workbox-build@7.4.1(@types/babel__core@7.20.5))(workbox-window@7.4.1)
     optionalDependencies:
       '@vos/cross-app-aliases':
-        specifier: link:../vitalos/packages/cross-app-aliases
-        version: link:../vitalos/packages/cross-app-aliases
+        specifier: link:../../vitalos/packages/cross-app-aliases
+        version: link:../../vitalos/packages/cross-app-aliases
 
 packages:
 
