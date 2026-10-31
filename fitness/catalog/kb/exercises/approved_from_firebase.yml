@@ -1527,42 +1527,11 @@ exercises:
   - Dumbbell Incline Press
   - Incline Dumbbell Chest Press
   name: Schrägbankdrücken mit Kurzhanteln
-- equipment:
-  - bodyweight
-  - pull_up_bar
-  schema_version: 2026-08-12.exercise-v1
-  movements:
-  - vertical
-  - shoulder_adduction
-  - shoulder_extension
-  - elbow_flexion
-  - scapular_depression
-  - scapular_retraction
-  - supinated_grip
-  exercise_id: '021'
+- schema_version: 2026-08-12.exercise-v1
   wger_muscle_ids:
-    primary: []
     secondary: []
-  _hash: 78e5dfacb6c10ce473004b97e9748993
-  primary_muscles:
-  - 201_latissimus_dorsi
-  - 402_biceps_brachii
-  - 403_brachialis
-  wger_id: 152
-  coaching_notes:
-  - Greife etwa schulterbreit oder leicht enger im Untergriff, sodass die Handgelenke
-    gerade bleiben und die Ellenbogen sauber unter der Stange arbeiten können.
-  - 'Beginne im aktiven Hang: Schulterblätter leicht nach unten setzen, Rumpf anspannen
-    und die Beine ruhig halten, bevor die erste Zugphase startet.'
-  - Denke daran, die Ellenbogen nach unten Richtung Rippen zu ziehen, statt nur das
-    Kinn zur Stange vorzuschieben; so kommt der Zug aus Latissimus und Armbeugern.
-  - Halte Brustbein stolz und Rippen kontrolliert, damit du weder ins Hohlkreuz fällst
-    noch dich in eine lose Bananenform schwingst.
-  - Ziehe bis das Kinn klar über der Stange ist oder die obere Brust die Stange annähert,
-    ohne die Spannung in Schultergürtel und Rumpf zu verlieren.
-  - Senke dich kontrolliert in die volle Ellbogenstreckung zurück und nutze die exzentrische
-    Phase bewusst, statt unten einfach in die passive Schulterposition zu fallen.
-  display_name: Untergriff-Klimmzug
+    primary: []
+  id: '021'
   common_errors:
   - Aus einem passiven Hang mit hochgezogenen Schultern anziehen, wodurch die Schulterblattkontrolle
     und ein sauberer Kraftaufbau verloren gehen.
@@ -1577,41 +1546,31 @@ exercises:
     und Trainingsreiz deutlich sinken.
   - Beim Hochziehen die Rippen aufreißen und ins Hohlkreuz kippen, statt Becken und
     Rumpf stabil zu halten.
-  tags:
-  - expert
-  - back
-  - arms
-  - biceps
-  - bodyweight
-  - vertical_pull
-  - compound
-  search_aliases:
-  - chin_up
-  - chin-up
-  - untergriff_klimmzug
-  - klimmzug_untergriff
-  - yuhonas_chin-up
-  - wger_152
-  - Chin-Up
-  - Untergriff-Klimmzug
-  source: approved
-  english: Chin-Up
+  german: Untergriff-Klimmzug
+  wger_id: 152
+  movements:
+  - vertical
+  - shoulder_adduction
+  - shoulder_extension
+  - elbow_flexion
+  - scapular_depression
+  - scapular_retraction
+  - supinated_grip
+  type: compound
+  variations:
+  - assisted_chin_up
+  - weighted_chin_up
+  - close_grip_chin_up
+  - negative_chin_up
+  exercise_id: '021'
   origin:
-    type: merged_external
-    wger:
-      original_description:
-      - Wie normale Klimmzüge, aber im Untergriff.
-      wger_id: 152
-      wger_muscle_ids:
-        primary: []
-        secondary: []
     source_refs:
-      wger:
-      - '152'
       yuhonas:
       - Chin-Up
+      wger:
+      - '152'
+    type: merged_external
     yuhonas:
-      yuhonas_id: Chin-Up
       instructions:
       - Grab the pull-up bar with the palms facing your torso and a grip closer than
         the shoulder width.
@@ -1629,13 +1588,22 @@ exercises:
         lower your torso back to the starting position; when your arms are fully extended.
         Breathe in as you perform this portion of the movement.
       - Repeat this motion for the prescribed amount of repetitions.
-  variations:
-  - assisted_chin_up
-  - weighted_chin_up
-  - close_grip_chin_up
-  - negative_chin_up
-  id: '021'
-  type: compound
+      yuhonas_id: Chin-Up
+    wger:
+      wger_muscle_ids:
+        secondary: []
+        primary: []
+      original_description:
+      - Wie normale Klimmzüge, aber im Untergriff.
+      wger_id: 152
+  source: approved
+  name: Untergriff-Klimmzug
+  yuhonas_id: Chin-Up
+  external_ids:
+    yuhonas:
+    - Chin-Up
+    wger:
+    - 152
   instructions:
   - Grab the pull-up bar with the palms facing your torso and a grip closer than the
     shoulder width.
@@ -1653,30 +1621,63 @@ exercises:
     your torso back to the starting position; when your arms are fully extended. Breathe
     in as you perform this portion of the movement.
   - Repeat this motion for the prescribed amount of repetitions.
-  german: Untergriff-Klimmzug
-  original_description:
-  - Wie normale Klimmzüge, aber im Untergriff.
-  review_state:
-    status: approved
-  stabilizers:
-  - 304_rotator_cuff
-  - 501_rectus_abdominis
-  - 504_transverse_abdominis
-  - 206_erector_spinae
-  - 405_forearm_flexors
-  category: pull
   secondary_muscles:
   - 207_teres_major
   - 202b_trapezius_middle
   - 202c_trapezius_lower
   - 205_rhomboids
   - 404_brachioradialis
-  yuhonas_id: Chin-Up
-  external_ids:
-    wger:
-    - 152
-    yuhonas:
-    - Chin-Up
+  _hash: 78e5dfacb6c10ce473004b97e9748993
+  display_name: Untergriff-Klimmzug
+  stabilizers:
+  - 304_rotator_cuff
+  - 501_rectus_abdominis
+  - 504_transverse_abdominis
+  - 206_erector_spinae
+  - 405_forearm_flexors
+  search_aliases:
+  - chin_up
+  - chin-up
+  - untergriff_klimmzug
+  - klimmzug_untergriff
+  - yuhonas_chin-up
+  - wger_152
+  - Chin-Up
+  - Untergriff-Klimmzug
+  english: Chin-Up
+  primary_muscles:
+  - 201_latissimus_dorsi
+  - 402_biceps_brachii
+  - 403_brachialis
+  original_description:
+  - Wie normale Klimmzüge, aber im Untergriff.
+  review_state:
+    status: approved
+  category: pull
+  tags:
+  - expert
+  - back
+  - arms
+  - biceps
+  - bodyweight
+  - vertical_pull
+  - compound
+  coaching_notes:
+  - Greife etwa schulterbreit oder leicht enger im Untergriff, sodass die Handgelenke
+    gerade bleiben und die Ellenbogen sauber unter der Stange arbeiten können.
+  - 'Beginne im aktiven Hang: Schulterblätter leicht nach unten setzen, Rumpf anspannen
+    und die Beine ruhig halten, bevor die erste Zugphase startet.'
+  - Denke daran, die Ellenbogen nach unten Richtung Rippen zu ziehen, statt nur das
+    Kinn zur Stange vorzuschieben; so kommt der Zug aus Latissimus und Armbeugern.
+  - Halte Brustbein stolz und Rippen kontrolliert, damit du weder ins Hohlkreuz fällst
+    noch dich in eine lose Bananenform schwingst.
+  - Ziehe bis das Kinn klar über der Stange ist oder die obere Brust die Stange annähert,
+    ohne die Spannung in Schultergürtel und Rumpf zu verlieren.
+  - Senke dich kontrolliert in die volle Ellbogenstreckung zurück und nutze die exzentrische
+    Phase bewusst, statt unten einfach in die passive Schulterposition zu fallen.
+  equipment:
+  - bodyweight
+  - pull_up_bar
   aliases:
   - Klimmzug im Untergriff
   - Untergriff Klimmzug
@@ -1690,7 +1691,6 @@ exercises:
   - Underhand Grip Pull-Up
   - Supinated Grip Pull-Up
   - Reverse Grip Pull-Up
-  name: Untergriff-Klimmzug
 - common_errors:
   - Ellbogen sinken ab, wodurch die Stange nach vorne kippt und die Bewegung in eine
     Good-Morning-Mechanik abrutscht.
