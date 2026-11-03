@@ -11,6 +11,7 @@ Wochenrückblick-Tab der Fitness-App: zeigt Report (Sessions, Muskelbelastung, I
 | `ReviewOverview.jsx` | Session-Count-Kachel |
 | `ReviewInsights.jsx` | Recommendations-Liste + Coverage-Gap-Badges + Erfolgs-Banner |
 | `ReviewMuscleImpact.jsx` | Muskelregionen mit relativem Score und Balken-Visualisierung |
+| `ReviewMuscleVolume.jsx` | Pro Muskelregion protokollierte Arbeitsätze, getrennt nach direkt/indirekt; Aufwärm- und Leer-Sätze zählen nicht |
 | `ReviewSessionList.jsx` | Sessions chronologisch (reversed), klickbar → onNavigate, Recovery-Badges |
 | `ReviewTopExercises.jsx` | Top-6-Übungen, Klick → onInspectExercise (mit Prop-Normalisierung) |
 | `ReviewAnatomyLayer.jsx` | Trainingswoche als angewandte Anatomie — Top-Übungen mit aufklappbaren Teaching-Karten |
@@ -31,6 +32,7 @@ Wochenrückblick-Tab der Fitness-App: zeigt Report (Sessions, Muskelbelastung, I
 
 **Derived state (inline in index.jsx, keine eigenen State-Variablen):**
 - `regionEntries` — `Object.entries(data?.body_region_scores || {}).sort((a,b) => b[1] - a[1])` — sortierte Muskelscores, als Prop an ReviewMuscleImpact
+- `selectedData.muscle_set_volume` — primäre/sekundäre Arbeitsätze für den ausgewählten 28-Tage-Zeitraum oder Wochenblock; lokale und Firebase-Berechnung teilen dieselbe Funktion
 - `missingRegions` — `data?.missing_regions || []` — an ReviewInsights
 
 **Props-Kette:**

@@ -9,6 +9,7 @@ import ReviewHeader from './ReviewHeader';
 import ReviewOverview from './ReviewOverview';
 import ReviewInsights from './ReviewInsights';
 import ReviewMuscleImpact from './ReviewMuscleImpact';
+import ReviewMuscleVolume from './ReviewMuscleVolume';
 import ReviewPPLBalance from './ReviewPPLBalance';
 import ReviewDeload from './ReviewDeload';
 import ReviewWeeksBreakdown from './ReviewWeeksBreakdown';
@@ -162,6 +163,13 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
             <ReviewWeeksBreakdown weeks={data.weeks} selectedIndex={selectedWeek} onSelect={setSelectedWeek} />
 
             <ReviewPPLBalance bodyRegionScores={selectedData?.body_region_scores} />
+
+            <ReviewMuscleVolume
+              muscleSetVolume={selectedData?.muscle_set_volume}
+              unmappedWorkingSets={selectedData?.unmapped_working_sets}
+              muscleLanguage={muscleLanguage}
+              taxonomy={taxonomy}
+            />
 
             <ReviewMuscleImpact regionEntries={regionEntries} muscleLanguage={muscleLanguage} taxonomy={taxonomy} />
 
