@@ -42,3 +42,44 @@ Umdatieren und Löschen bleiben dort; das Logbuch ist rein lesend und öffnet Se
 - Kein Live-Gym-Bezug: alles nachträglich geloggt, keine Echtzeit-Annahmen.
 - Keine Vereinheitlichung mit History/Review-Verlauf — Logbuch ist eine eigene Linse, die
   Chronik-Linse ist bewusst eine reduzierte Kopie.
+
+## Update 2026-11-04 — Daten kommen aus Monats-Digests statt aus allen Sessions
+
+`useLogbook.js` ruft `getLogbookSessions()` (`@db`) statt `getSessionHistory(2000)`.
+
+- **Firestore** (`lib/db/firestore/workoutIndex.js`): `fitness/{uid}/logbookDigest/{YYYY-MM}` →
+  `{ docs: { [sessionDocId]: Digest } }`, `_meta` → `{ schema, builtAtMs, builtThrough }`. Gleiche
+  Monats-Pools und gleiche Pflege wie der `workoutIndex` (`indexUpsert`/`indexRemove`/Verdichtung
+  inkl. Nachzügler über `saved_at`). Gelesen werden alle Monats-Docs (≈ 1 Read pro Monat) plus die
+  letzten 7 Tage live aus `sessions`.
+- **Digest** = `sessionToDigest()` in `logbookStats.js`: Warm-ups raus, Alt-Format zu `setsArray`,
+  je Übung nur id/Name/Muskeln, je Session Datum/Block/Activity/Modus/Ort/Gate-Zeiten. Er ist selbst
+  ein gültiger `buildLogbook`-Input, die Auswertung bleibt also unverändert (Test: „Digest: …").
+- **Aufbau**: fehlt `_meta` oder passt `schema` nicht (`LOGBOOK_DIGEST_SCHEMA`), liest das Logbuch
+  einmal wie bisher die volle Historie und baut den Digest im Hintergrund (`rebuildLogbookDigest()`).
+  Schema-Änderung am Digest = Konstante erhöhen, dann baut sich alles von selbst neu.
+- **Lokal** (`lib/db/local/historyEntries.js`): unverändert `getSessionHistory(2000)`, kein Digest.
+- Grenzen: In Firestore gelöschte Sessions außerhalb der App bleiben im Digest, bis
+  `rebuildLogbookDigest()` läuft (gleiche Einschränkung wie der Index). Die Rules decken
+  `fitness/{uid}/**` bereits ab.
+- Nächste Abnehmer für das gleiche Pool-Muster: Review (`TrainingProtocol`, Monatsbericht),
+  Recovery/Superkompensation, `getExerciseHistory`, Touren.
+
+### Weitere Abnehmer (2026-11-04, gleicher Tag)
+
+- **Digest Schema 2** trägt zusätzlich `duration`, `trainingsart`, `effort`, `activityAddons`. Neuer
+  Reader `getDigestSessions({ sinceDate })` (`workoutIndex.js`), `getLogbookSessions()` ist der
+  Alias für die komplette Historie.
+- **Trainingsprotokoll** (`WeeklyReview/TrainingProtocol.jsx`): `getLogbookSessions()` statt `getSessionHistory(2000)`.
+- **Touren** (`firestore/tours.js`): Digest-Monate im Fenster statt jeder Session (ohne Login weiter alter Pfad).
+- **Wochen-/Monatsbericht** (`firestore/analysis.js`): Sessions je Tag kommen aus dem schon geladenen
+  `getSessionHistory(120)` (`sessionsByDateFromHistory`) statt einer Query pro Tag (7× bzw. 28×);
+  nur Tage älter als das Fenster (alte Wochen-Selektoren) fragen einzeln ab.
+- **`getSessionHistory(days)`** (`firestore/sessions.js`) hat einen 60-s-Cache mit Single-Flight:
+  Recovery, Berichte, Analytics-Update und `getExerciseHistory` teilen sich dasselbe Fenster.
+  Jeder Schreibweg (`saveSession`, `deleteSession`, `deleteActivityAddon`) leert ihn vor dem
+  Analytics-/Report-Refresh. Fremd geschriebene Sessions (anderes Gerät) erscheinen nach ≤ 60 s.
+- **Bewusst nicht auf den Digest gestellt:** `getExerciseHistory`/`getLastExercisePerformance`/
+  `getProgressTrend` (Geister-Sätze brauchen Warm-ups/Distanz/Dauer, Fenster nur 28–90 Tage) und
+  Dashboard/Heute (lesen schon `analytics/dashboard`). Learn liest keine Sessions, nur
+  `getLatestSession()` (1 Doc) und den KB-Katalog (`getAllExercises()`, siehe `src/CLAUDE.md`).

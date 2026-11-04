@@ -1,6 +1,6 @@
 // Lokaler Modus (SQLite via server.mjs): die Abfrage ist ohnehin lokal, ein
 // Index bringt nichts — gleiche Rückgabeform wie firestore/workoutIndex.js.
-import { getRecentSessions } from "./sessions.js";
+import { getRecentSessions, getSessionHistory } from "./sessions.js";
 import { toIndexEntry } from "../../../views/SixPack/workoutDoc.js";
 
 export async function getHistoryEntries({ months = 6 } = {}) {
@@ -12,3 +12,14 @@ export async function getHistoryEntries({ months = 6 } = {}) {
   return { entries, hasMore: (sessions?.length || 0) >= n };
 }
 export async function compactWorkoutIndex() { return { processed: 0 }; }
+
+// Logbuch: lokal ist die Abfrage ohnehin lokal — kein Digest nötig (n = Anzahl Sessions).
+export async function getLogbookSessions() {
+  return getSessionHistory(2000);
+}
+
+// Digest-Gegenstück: lokal liegt alles in der lokalen Abfrage, sinceDate wird nur gefiltert.
+export async function getDigestSessions({ sinceDate = null } = {}) {
+  const list = await getSessionHistory(2000);
+  return sinceDate ? (Array.isArray(list) ? list : []).filter((s) => s?.date && s.date >= sinceDate) : list;
+}
