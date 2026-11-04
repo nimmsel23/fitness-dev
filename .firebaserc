@@ -14,8 +14,23 @@
         "atlas": [
           "vos-atlas"
         ],
-        "plan": [
-          "vos-plan"
+        "logbuch": [
+          "vos-logbuch"
+        ],
+        "review": [
+          "vos-review"
+        ],
+        "touren": [
+          "vos-touren"
+        ],
+        "setup": [
+          "vos-setup"
+        ],
+        "anamnese": [
+          "vos-anamnese"
+        ],
+        "fokus": [
+          "vos-fokus"
         ]
       }
     }
