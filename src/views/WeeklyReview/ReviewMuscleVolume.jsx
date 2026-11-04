@@ -6,7 +6,7 @@ function formatSets(value) {
   return Number(value || 0).toLocaleString('de-AT', { maximumFractionDigits: 1 });
 }
 
-export default function ReviewMuscleVolume({ muscleSetVolume = {}, unmappedWorkingSets = 0, muscleLanguage = 'de', taxonomy = null }) {
+export default function ReviewMuscleVolume({ muscleSetVolume = {}, unmappedWorkingSets = 0, unmappedExercises = [], muscleLanguage = 'de', taxonomy = null }) {
   const groups = Object.entries(muscleSetVolume)
     .map(([id, values]) => ({
       id,
@@ -58,6 +58,10 @@ export default function ReviewMuscleVolume({ muscleSetVolume = {}, unmappedWorki
       {unmappedWorkingSets > 0 && (
         <p className="text-[10px] mt-2" style={{ color: 'var(--dim)', opacity: 0.6 }}>
           {formatSets(unmappedWorkingSets)} Arbeitssätze ohne Muskelzuordnung
+          {Array.isArray(unmappedExercises) && unmappedExercises.length > 0 && (
+            <>: {unmappedExercises.slice(0, 5).map((ex) => `${ex.name} (${formatSets(ex.sets)})`).join(', ')}
+              {unmappedExercises.length > 5 ? ` und ${unmappedExercises.length - 5} weitere` : ''}</>
+          )}
         </p>
       )}
     </section>

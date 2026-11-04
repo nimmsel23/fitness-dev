@@ -167,6 +167,7 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
             <ReviewMuscleVolume
               muscleSetVolume={selectedData?.muscle_set_volume}
               unmappedWorkingSets={selectedData?.unmapped_working_sets}
+              unmappedExercises={selectedData?.unmapped_exercises}
               muscleLanguage={muscleLanguage}
               taxonomy={taxonomy}
             />

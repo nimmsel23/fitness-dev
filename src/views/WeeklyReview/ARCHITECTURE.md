@@ -58,3 +58,5 @@ Der SubTab `strength` (`ReviewStrengthMatrix.jsx`, 1RM-Rechner) existiert im Rev
 Die Komponente lebt jetzt im Learn-Tab (`learn-dev`: `src/views/Learn/StrengthMatrix.jsx`, Header-Tab
 „Stärke", Sub-Tab-ID `strength`). Alte Deep-Links `#review/strength` werden in `App.jsx`
 (`parseHashRoute`) auf `learn/strength` umgeleitet.
+
+- `unmapped_exercises` (Report, lokal und Firestore, pro Woche und gesamt): Übungen mit Arbeitssätzen, aber ohne Muskelzuordnung (`{exercise_id, name, sets}`, absteigend nach Sätzen). `ReviewMuscleVolume` zeigt die ersten fünf unter dem Hinweis zu `unmapped_working_sets`. Test: `src/lib/db/shared/muscleSetVolume.test.mjs` (Aufruf im Dateikopf).
