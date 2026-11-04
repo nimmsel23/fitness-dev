@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
-import { getMonthlyReport, exportFitnessData, getHistoryEntries } from '@db';
-import { BarChart3, Activity, History, Zap, FileText } from 'lucide-react';
-import { readMonthlyReportCache, writeMonthlyReportCache, clearMonthlyReportCache } from '../../lib/reportCache';
+import { getMonthlyReport, exportFitnessData } from '@db';
+import { BarChart3, Activity, Zap, FileText } from 'lucide-react';
+import { readMonthlyReportCache, writeMonthlyReportCache, clearMonthlyReportCache, reportCacheRevision } from '../../lib/reportCache';
+import { useUser } from '../../contexts/UserContext.jsx';
+import { todayISO } from '../../lib/db/shared/utils.js';
 
 import ReviewHeader from './ReviewHeader';
 import ReviewOverview from './ReviewOverview';
@@ -11,72 +13,54 @@ import ReviewPPLBalance from './ReviewPPLBalance';
 import ReviewDeload from './ReviewDeload';
 import ReviewWeeksBreakdown from './ReviewWeeksBreakdown';
 import ReviewTopExercises from './ReviewTopExercises';
-import ReviewHistory from './ReviewHistory.jsx';
 import ReviewReadiness from './ReviewReadiness.jsx';
 import Muscles from '../Muscles/index.jsx';
 import TrainingProtocol from './TrainingProtocol.jsx';
 
-const SUB_TABS = ['muscles', 'verlauf', 'readiness', 'protokoll'];
+const SUB_TABS = ['muscles', 'readiness', 'protokoll'];
 const REVIEW_WINDOW_DAYS = 28;
-let monthlyReportCache = null; // schnellster Pfad: gleicher Tab, kein JSON.parse
-
 export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleLanguage = 'de', taxonomy = null, gender = 'male', recentDays = 10, subTab = null, onSubNav }) {
-  const [data, setData]       = useState(null);
+  const { user } = useUser();
+  const cacheOwner = user?.uid || 'local';
+  const [reportState, setReportState] = useState(null);
+  const data = reportState?.owner === cacheOwner && reportState.day === todayISO() ? reportState.data : null;
   const [loading, setLoading] = useState(false);
   const [toast, setToast]     = useState('');
-  const [historySessions, setHistorySessions] = useState([]);
-  const [historyMonths, setHistoryMonths] = useState(6);
-  const [historyHasMore, setHistoryHasMore] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState(null); // null = gesamte 28 Tage, sonst Index in data.weeks
   const viewMode = SUB_TABS.includes(subTab) ? subTab : 'report';
-
-  // Verlauf liest die letzten 7 Tage live und alles Ältere aus dem Monats-Index
-  // (workoutIndex) — nicht mehr 60 volle Session-Docs pro Öffnen.
-  useEffect(() => {
-    if (viewMode !== 'verlauf') return;
-    getHistoryEntries({ months: historyMonths })
-      .then(({ entries, hasMore }) => {
-        setHistorySessions(Array.isArray(entries) ? entries : []);
-        setHistoryHasMore(!!hasMore);
-      })
-      .catch(err => {
-        console.error('getHistoryEntries failed', err);
-        setHistorySessions([]);
-        setHistoryHasMore(false);
-      });
-  }, [viewMode, historyMonths]);
 
   useEffect(() => {
     if (viewMode !== 'report') return;
 
-    if (monthlyReportCache) {
-      setData(monthlyReportCache);
-      setLoading(false);
-      return;
-    }
-
-    const cached = readMonthlyReportCache();
+    let active = true;
+    const day = todayISO();
+    const cached = readMonthlyReportCache(cacheOwner, day);
     if (cached) {
-      monthlyReportCache = cached;
-      setData(cached);
+      setReportState({ owner: cacheOwner, day, data: cached });
       setLoading(false);
       return;
     }
 
     setLoading(true);
-    getMonthlyReport(REVIEW_WINDOW_DAYS)
-      .then(d => {
-        const next = d || null;
-        monthlyReportCache = next;
-        if (next) writeMonthlyReportCache(next);
-        setData(next);
-      })
+    const load = async () => {
+      let startRevision = reportCacheRevision();
+      let next = await getMonthlyReport(REVIEW_WINDOW_DAYS);
+      if (startRevision !== reportCacheRevision()) {
+        startRevision = reportCacheRevision();
+        next = await getMonthlyReport(REVIEW_WINDOW_DAYS);
+      }
+      if (!active || startRevision !== reportCacheRevision() || day !== todayISO()) return;
+      if (next) writeMonthlyReportCache(next, cacheOwner, day);
+      setReportState({ owner: cacheOwner, day, data: next || null });
+    };
+    load()
       .catch(err => {
         console.error('getMonthlyReport failed', err);
-        setData(null);
+        if (active) setReportState(null);
       })
-      .finally(() => setLoading(false));
-  }, [viewMode]);
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [viewMode, cacheOwner]);
 
   async function exportWeekly() {
     try {
@@ -85,7 +69,6 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
         week_selector: 'current',
         force: true,
       })
-      monthlyReportCache = null
       clearMonthlyReportCache()
       setToast(result?.path ? `Export: ${result.path}` : 'Exportiert')
     } catch {
@@ -113,7 +96,6 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
           { id: 'report',    icon: <BarChart3 size={14} />, label: 'Bericht' },
           { id: 'muscles',   icon: <Activity size={14} />,  label: 'Muskeln' },
           { id: 'readiness', icon: <Zap size={14} />,       label: 'Readiness' },
-          { id: 'verlauf',   icon: <History size={14} />,   label: 'Verlauf' },
           { id: 'protokoll', icon: <FileText size={14} />,  label: 'Protokoll' },
         ].map(({ id, icon, label }) => (
           <button key={id}
@@ -131,8 +113,6 @@ export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleL
         <TrainingProtocol />
       ) : viewMode === 'readiness' ? (
         <ReviewReadiness />
-      ) : viewMode === 'verlauf' ? (
-        <ReviewHistory sessions={historySessions} onOpenSession={onOpenSession} hasMore={historyHasMore} onLoadMore={() => setHistoryMonths(m => m + 6)} />
       ) : loading ? (
         <div className="flex flex-col items-center justify-center py-32 opacity-30">
           <div className="spinner mb-6" />

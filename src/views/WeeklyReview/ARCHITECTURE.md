@@ -9,7 +9,7 @@ This folder contains the modularized components for the Weekly Performance Revie
 - **`ReviewOverview.jsx`**: Displays core metrics like total session count and volume/recovery focus (HIT mode).
 - **`ReviewInsights.jsx`**: Shows textual recommendations and lists "Coverage Gaps" (untrained muscle regions).
 - **`ReviewMuscleImpact.jsx`**: Visualizes relative muscle load using bar charts.
-- **`ReviewSessionList.jsx`**: A chronological list of sessions with date cards and recovery indicators.
+- **`ReviewSessionList.jsx`**: A chronological list of sessions with date cards and recovery indicators. Its navigation callback includes the selected session as a third argument, so workouts on the same date stay distinct.
 - **`ReviewTopExercises.jsx`**: Displays the most frequent exercises of the week with deep-dive inspection (Coaching Notes, Errors).
 - **`utils.js`**: Helper functions like `formatRecovery`.
 
@@ -37,6 +37,8 @@ Recovery-Modell — aufgetrennt + auf geteiltes Scoring umgestellt.
 - **Deep Inspection**: Clicking an exercise in `ReviewTopExercises` opens a full biomechanical profile including coaching notes and common errors.
 
 ## Data Flow
+
+The rolling monthly report cache is scoped to the signed-in user and local calendar day; saving or deleting a session invalidates it. A pending calculation is discarded or retried if invalidated during loading.
 
 1.  **Selection**: User changes the `week` in `ReviewHeader`.
 2.  **Fetching**: `index.jsx` triggers a re-fetch via `db.js` (`getWeeklyReport`).

@@ -1,11 +1,13 @@
 import { api } from "./core";
 import { ACTIVITY_MUSCLE_GROUPS } from "../../../constants/ActivityConstants";
 import { muscleToGroupIds, getMuscleGroupsForGaps, buildMuscleBalanceInsights, muscleToRegion } from "../shared/muscle";
-import { computeMuscleScores } from "../../superkompensation.js";
+import { computeMuscleScores, RECOVERY_ANALYSIS_VERSION } from "../../superkompensation.js";
 import { ACTIVITY_WEIGHT, GAP_THRESHOLD, effortFactor, blockComplexMuscles } from "../shared/scoring.js";
 import { todayISO } from "../shared/utils.js";
-import { addDaysISO, mondayOfISO, weekDatesFromMonday, rollingDatesISO, isoWeekDatesForSelector } from "../shared/dates.js";
+import { addDaysISO, mondayOfISO, weekDatesFromMonday, rollingDatesISO, isoWeekDatesForSelector, sessionsInRollingWindow } from "../shared/dates.js";
 import { buildKbMap, findKbExercise, augmentKbMapWithMirror } from "../shared/kbLookup.js";
+import { sessionsForDates } from "../shared/reportSessions.js";
+import { buildReportRecoveryIndex, reportRecoveryHours } from "../shared/reportRecovery.js";
 
 const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
 
@@ -94,9 +96,8 @@ function computeReport(dates, { history, kbMap, historyWithMuscles, topExMap }) 
   const muscleScores = {};
   const allExercises = [];
 
-  for (const date of dates) {
-    const sess = history.find(h => h.date === date);
-    if (!sess) continue;
+  for (const sess of sessionsForDates(history, dates)) {
+    const date = sess.date;
     const sessGroupsCount = {};
     for (const ex of (sess.exercises || [])) {
       const exName = ex.name || ex.exercise_id || "";
@@ -120,14 +121,7 @@ function computeReport(dates, { history, kbMap, historyWithMuscles, topExMap }) 
         bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + w;
       });
     }
-    const muscleRecovery = {};
-    for (const gid of Object.keys(sessGroupsCount)) {
-      const lastSess = historyWithMuscles.find(h => h.date < date && h.groups.includes(gid));
-      if (lastSess) {
-        const d1 = new Date(date), d2 = new Date(lastSess.date);
-        muscleRecovery[gid] = Math.round((d1 - d2) / (1000 * 60 * 60));
-      }
-    }
+    const muscleRecovery = reportRecoveryHours(date, Object.keys(sessGroupsCount), historyWithMuscles);
     sessions.push({ ...sess, exercise_count: sess.exercises?.length || 0, muscle_recovery: muscleRecovery });
   }
 
@@ -179,17 +173,7 @@ async function loadReportContext() {
   await augmentKbMapWithMirror(kbMap, history);
 
   // Pre-build muscle group index over full history for recovery calculation
-  const historyWithMuscles = history.map(s => {
-    const groups = new Set();
-    for (const ex of (s.exercises || [])) {
-      const exName = ex.name || ex.exercise_id || "";
-      const primary = ex.primaryMuscles || [];
-      const secondary = ex.secondaryMuscles || [];
-      [...primary, ...secondary].forEach(m => muscleToGroupIds(m, exName).forEach(gid => groups.add(gid)));
-    }
-    if (!(s.exercises || []).length) blockComplexMuscles(s.block).forEach((m) => muscleToGroupIds(m).forEach((gid) => groups.add(gid)));
-    return { date: s.date, groups: [...groups] };
-  }).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const historyWithMuscles = buildReportRecoveryIndex(history, (s) => normalizedSessionHits(s, kbMap), muscleToGroupIds);
 
   // "Top Exercises" bewusst über die volle Historie (bis zu 120 Sessions),
   // nicht nur die aktuelle Perioden-Auswahl — sonst zeigt der Report bei
@@ -256,7 +240,7 @@ export async function getMuscleCoverage(days = 7) {
   await augmentKbMapWithMirror(kbMap, history);
 
   const bodyRegionScores = {};
-  const sessionsInWindow = history.filter(s => s.date && s.date >= cutoffDate);
+  const sessionsInWindow = history.filter(s => s.date && s.date >= cutoffDate && s.date <= todayISO());
 
   for (const sess of sessionsInWindow) {
     for (const [m, exName, w] of normalizedSessionHits(sess, kbMap)) {
@@ -318,10 +302,11 @@ export async function getRecoveryAnalytics(days = 28) {
   const kbMap = buildKbMap(kbExercises);
   await augmentKbMapWithMirror(kbMap, safeSessions);
 
-  const cutoffStr = addDaysISO(todayISO(), -days);
-  const sessionsInRange = safeSessions.filter((session) => session.date && session.date >= cutoffStr);
+  const cutoffStr = addDaysISO(todayISO(), -(days - 1));
+  const sessionsInRange = sessionsInRollingWindow(safeSessions, days);
   return {
     ok: true,
+    analysis_version: RECOVERY_ANALYSIS_VERSION,
     days,
     cutoff_date: cutoffStr,
     updated_at: new Date().toISOString(),

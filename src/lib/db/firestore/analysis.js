@@ -12,11 +12,13 @@ import {
 import { setDoc, getDoc, getDocs } from "./offline.js";
 
 import { db } from "../../../firebase.js";
-import { num, todayISO } from "../shared/utils.js";
+import { todayISO } from "../shared/utils.js";
 import {
-  addDaysISO, toISODate, rollingDatesISO, isoWeekDatesForSelector, isoWeekSelectorForDate,
+  addDaysISO, toISODate, rollingDatesISO, isoWeekDatesForSelector, isoWeekSelectorForDate, sessionsInRollingWindow,
 } from "../shared/dates.js";
 import { buildKbMap, findKbExercise, augmentKbMapWithMirror } from "../shared/kbLookup.js";
+import { buildReportRecoveryIndex, reportRecoveryHours } from "../shared/reportRecovery.js";
+import { calculateProgressTrend } from "../shared/progressTrend.js";
 import { DAILY_WINDOW_DAYS, sumDailyScores, dailyScoresFromSessions } from "../shared/coverageWindow.js";
 import {
   ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds,
@@ -34,13 +36,14 @@ import {
   getMuscleCoverage as getLocalMuscleCoverage,
 } from "../local/analysis.js";
 import { getProgressTrend as getLocalProgressTrend } from "../local/sessions.js";
-import { computeMuscleScores } from "../../superkompensation.js";
+import { computeMuscleScores, RECOVERY_ANALYSIS_VERSION } from "../../superkompensation.js";
 import { muscleToRegion } from "../shared/muscle.js";
 import { ACTIVITY_WEIGHT, GAP_THRESHOLD, effortFactor, blockComplexMuscles } from "../shared/scoring.js";
 
 export { ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds };
 
 const pendingWeeklyRefreshes = new Map();
+const WEEKLY_REPORT_VERSION = 2;
 
 const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
 
@@ -266,10 +269,11 @@ async function buildRecoveryAnalyticsData(days = 28) {
   const kbMap = buildKbMap(kbExercises);
   await augmentKbMapWithMirror(kbMap, safeSessions);
 
-  const cutoffStr = addDaysISO(todayISO(), -days);
-  const sessionsInRange = safeSessions.filter((session) => session.date && session.date >= cutoffStr);
+  const cutoffStr = addDaysISO(todayISO(), -(days - 1));
+  const sessionsInRange = sessionsInRollingWindow(safeSessions, days);
   return {
     ok: true,
+    analysis_version: RECOVERY_ANALYSIS_VERSION,
     days,
     cutoff_date: cutoffStr,
     updated_at: new Date().toISOString(),
@@ -292,8 +296,9 @@ export async function getRecoveryAnalytics(days = 28) {
     const snap = await getDoc(doc(db, "fitness", getUid(), "analytics", "dashboard"));
     if (snap.exists()) {
       const data = snap.data() || {};
-      const field = days <= 7 ? "recovery_7_days" : days <= 14 ? "recovery_14_days" : "recovery_28_days";
-      if (data[field] && writtenToday(data[field].updated_at)) return data[field];
+      const field = { 7: "recovery_7_days", 14: "recovery_14_days", 28: "recovery_28_days" }[days];
+      const cached = field && data[field];
+      if (cached?.analysis_version === RECOVERY_ANALYSIS_VERSION && cached.days === days && writtenToday(cached.updated_at)) return cached;
     }
   } catch (e) {
     console.warn("Failed to fetch cached recovery analytics", e);
@@ -341,26 +346,13 @@ async function buildWeeklyReportData(selector = "current") {
     : [];
   await augmentKbMapWithMirror(kbMap, safeHistory);
 
-  const historyWithMuscles = safeHistory.map((s) => {
-    const groups = new Set();
-    for (const ex of (s.exercises || [])) {
-      const primary = ex.primaryMuscles || [];
-      const secondary = ex.secondaryMuscles || [];
-      const exName = ex.name || ex.exercise_id || "";
-      let hasMapped = false;
-      [...primary, ...secondary].forEach((m) => {
-        muscleToGroupIds(m, exName).forEach((gid) => { groups.add(gid); hasMapped = true; });
-      });
-      if (!hasMapped && exName) muscleToGroupIds("", exName).forEach((gid) => groups.add(gid));
+  const historyWithMuscles = buildReportRecoveryIndex(safeHistory, (s) => {
+    const hits = normalizedSessionHits(s, kbMap);
+    if (!s.activity?.muscles?.length) {
+      for (const muscle of ACTIVITY_MUSCLE_MAPPING[s.activity?.type]?.muscles || []) hits.push([muscle, null, ACTIVITY_WEIGHT]);
     }
-    if (s.activity && ACTIVITY_MUSCLE_MAPPING[s.activity.type]) {
-      ACTIVITY_MUSCLE_MAPPING[s.activity.type].muscles.forEach((m) => {
-        muscleToGroupIds(m).forEach((gid) => groups.add(gid));
-      });
-    }
-    if (!(s.exercises || []).length) blockComplexMuscles(s.block).forEach((m) => muscleToGroupIds(m).forEach((gid) => groups.add(gid)));
-    return { date: s.date, groups: [...groups] };
-  }).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    return hits;
+  }, muscleToGroupIds);
 
   const sessions = [];
   let entriesCount = 0;
@@ -393,7 +385,10 @@ async function buildWeeklyReportData(selector = "current") {
     const sessGroupsCount = {};
 
     for (const ex of (Array.isArray(sess.exercises) ? sess.exercises : [])) {
-      const primary = ex.primaryMuscles || [], secondary = ex.secondaryMuscles || [], stabilizers = ex.stabilizers || [];
+      const kbEx = findKbExercise(kbMap, ex);
+      const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
+      const secondary = (ex.secondaryMuscles?.length ? ex.secondaryMuscles : null) || kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [];
+      const stabilizers = (ex.stabilizers?.length ? ex.stabilizers : null) || kbEx?.stabilizers || [];
       const exName = ex.name || ex.exercise_id || "";
       hasDoneExercises = true; entriesCount++;
       allExercises.push({ name: exName, primaryMuscles: primary });
@@ -433,16 +428,12 @@ async function buildWeeklyReportData(selector = "current") {
       // Score einheitlich über normalizedSessionHits (RPE-skaliert, Cardio leichter,
       // Split-Chip ohne Übungen = ganzer Komplex), wie Monats-/Rolling-Auswertung.
       for (const [m, exName, w] of normalizedSessionHits(sess, kbMap)) {
-        muscleToGroupIds(m, exName).forEach((gid) => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + w; });
+        muscleToGroupIds(m, exName).forEach((gid) => {
+          bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + w;
+          sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + w;
+        });
       }
-      const muscleRecovery = {};
-      for (const gid of Object.keys(sessGroupsCount)) {
-        const lastSessionWithGroup = historyWithMuscles.find((h) => h.date < date && h.groups.includes(gid));
-        if (lastSessionWithGroup) {
-          const d1 = new Date(date), d2 = new Date(lastSessionWithGroup.date);
-          muscleRecovery[gid] = Math.round((d1 - d2) / (1000 * 60 * 60));
-        }
-      }
+      const muscleRecovery = reportRecoveryHours(date, Object.keys(sessGroupsCount), historyWithMuscles);
       sessions.push({ ...sess, block: autoSplit, exercise_count: sess.exercises?.length || 0, muscle_recovery: muscleRecovery });
     }
     }
@@ -456,6 +447,7 @@ async function buildWeeklyReportData(selector = "current") {
 
   return {
     ok: true,
+    report_version: WEEKLY_REPORT_VERSION,
     week: resolveWeekSelector(selector),
     requested_week: selector,
     week_dates: dates,
@@ -530,7 +522,7 @@ export async function getWeeklyReport(selector = "current") {
       const cached = snap.data();
       // "current" ist ein rollendes 7-Tage-Fenster: der Cache stammt vom Tag
       // des letzten Speicherns und wäre am nächsten Tag um Tage verschoben.
-      if (selector !== "current" || writtenToday(cached?.updated_at)) return cached;
+      if (cached?.report_version === WEEKLY_REPORT_VERSION && cached.requested_week === selector && (selector !== "current" || writtenToday(cached?.updated_at))) return cached;
     }
   } catch (e) {
     console.warn("Failed to fetch cached weekly report", e);
@@ -658,38 +650,8 @@ export async function getMonthlyReport(days = 28) {
 
 // ── Progress trend ────────────────────────────────────────────────────────────
 
-export async function getProgressTrend(exerciseName, lastN = 4) {
-  if (!hasAuthSession()) return getLocalProgressTrend(exerciseName, lastN);
+export async function getProgressTrend(exercise, lastN = 4) {
+  if (!hasAuthSession()) return getLocalProgressTrend(exercise, lastN);
   const history = await getSessionHistory(lastN * 7);
-  const safeHistory = Array.isArray(history)
-    ? history.filter(Boolean).map((s) => ({ ...s, exercises: Array.isArray(s.exercises) ? s.exercises : [] }))
-    : [];
-
-  const sessions = safeHistory
-    .filter((s) => s.exercises.some((ex) => ex.name === exerciseName))
-    .sort((a, b) => b.date.localeCompare(a.date));
-
-  if (sessions.length < 2) return { status: "neutral", message: "Nicht genug Daten" };
-
-  const values = sessions.map((s) => {
-    const ex = s.exercises.find((e) => e.name === exerciseName);
-    if (!ex) return null;
-    if (Array.isArray(ex.setsArray)) {
-      const weights = ex.setsArray.map((s) => num(s.weight)).filter((w) => w !== null);
-      return weights.length > 0 ? Math.max(...weights) : null;
-    }
-    return num(ex.weight);
-  }).filter((v) => v !== null && v > 0);
-
-  if (values.length < 2) return { status: "neutral", message: "Zu wenig Daten" };
-
-  const current = values[0];
-  const previous = values.slice(1, lastN);
-  const avgPrevious = previous.reduce((a, b) => a + b, 0) / previous.length;
-  if (avgPrevious === 0) return { status: "neutral" };
-
-  const pctChange = ((current - avgPrevious) / avgPrevious) * 100;
-  if (pctChange > 2)  return { status: "up",      change: pctChange.toFixed(1) };
-  if (pctChange < -2) return { status: "down",    change: pctChange.toFixed(1) };
-  return                   { status: "neutral", change: pctChange.toFixed(1) };
+  return calculateProgressTrend(history, exercise, lastN);
 }
