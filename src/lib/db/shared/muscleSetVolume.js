@@ -30,7 +30,7 @@ export function countWorkingSets(exercise) {
  * Adds performed sets by muscle region. Primary work counts as 1 set and
  * secondary work as 0.5 effective sets; stabilizers are intentionally omitted.
  */
-export function addExerciseMuscleSetVolume(volume, exercise, kbExercise = null) {
+export function addExerciseMuscleSetVolume(volume, exercise, kbExercise = null, unmappedExercises = null) {
   const sets = countWorkingSets(exercise);
   if (!sets) return 0;
 
@@ -51,5 +51,16 @@ export function addExerciseMuscleSetVolume(volume, exercise, kbExercise = null) 
     volume[region] = entry;
   }
 
-  return regions.size ? 0 : sets;
+  if (regions.size) return 0;
+
+  const id = String(exercise?.exercise_id || exercise?.id || exercise?.name || 'unbekannte Übung');
+  const existing = unmappedExercises?.[id];
+  if (unmappedExercises) {
+    unmappedExercises[id] = {
+      exercise_id: exercise?.exercise_id || exercise?.id || null,
+      name: exercise?.name || exercise?.displayName || id,
+      sets: (existing?.sets || 0) + sets,
+    };
+  }
+  return sets;
 }

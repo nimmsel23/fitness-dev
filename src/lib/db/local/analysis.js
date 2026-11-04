@@ -96,6 +96,7 @@ function computeReport(dates, { history, kbMap, historyWithMuscles, topExMap }) 
   const bodyRegionScores = {};
   const muscleScores = {};
   const muscleSetVolume = {};
+  const unmappedExercises = {};
   let unmappedWorkingSets = 0;
   const allExercises = [];
 
@@ -109,7 +110,7 @@ function computeReport(dates, { history, kbMap, historyWithMuscles, topExMap }) 
       // damit gelöschte/umbenannte Katalog-Einträge keine alten Sessions kaputtmachen.
       const kbEx = findKbExercise(kbMap, ex);
       const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
-      unmappedWorkingSets += addExerciseMuscleSetVolume(muscleSetVolume, ex, kbEx);
+      unmappedWorkingSets += addExerciseMuscleSetVolume(muscleSetVolume, ex, kbEx, unmappedExercises);
       allExercises.push({ name: exName, primaryMuscles: primary });
       // muscleScores bleibt eine reine Übungs-Häufigkeit (wie oft dieser Muskel
       // als primary vorkommt), unabhängig von der Session-Budget-Normalisierung
@@ -145,6 +146,7 @@ function computeReport(dates, { history, kbMap, historyWithMuscles, topExMap }) 
     muscle_scores: muscleScores,
     muscle_set_volume: muscleSetVolume,
     unmapped_working_sets: unmappedWorkingSets,
+    unmapped_exercises: Object.values(unmappedExercises).sort((a, b) => b.sets - a.sets),
     body_region_scores: bodyRegionScores,
     missing_regions: gaps,
     recommendations: [
@@ -223,6 +225,7 @@ export async function getMonthlyReport(days = 28) {
       body_region_scores: weekReport.body_region_scores,
       muscle_set_volume: weekReport.muscle_set_volume,
       unmapped_working_sets: weekReport.unmapped_working_sets,
+      unmapped_exercises: weekReport.unmapped_exercises,
       missing_regions: weekReport.missing_regions,
     });
   }
