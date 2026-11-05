@@ -31,6 +31,12 @@ Skills und 6Pack sind aus der Fitness-Session herausgelöst. Die Session bietet 
 | Dritte Datenquelle: Plan-Tab hat zusätzlich 14 "Skill: <Name>"-Routinen (Strong-Modell, `category: "calisthenics-skill"`), die aus denselben Skills generiert wurden — listen aber alle Progressionsstufen einer Skill gleichzeitig als flache Übungsliste statt stage-aware wie SkillsCard. Komplett unsynchronisiert mit #1/#2 (siehe Task "Skills/6Pack Learn-Tab-Überschneidung", Konsolidierung noch offen). |
 | `SessionEditor.jsx` | `SessionGateCard` ist kein inline Card-Element mehr, sondern ein Sheet (Portal, Bottom-Sheet), das öffnet wenn `currentSubTab === 'today'` (Nav-Klick auf "Heute"/"Session") — Editor bleibt darunter jederzeit erreichbar |
 
+- **Gate-Portal** (2026-11-05) — `GatePortalGrid` (Suche, Kürzel `/` `1`–`9`, Zuletzt genutzt, Ziele über alle Tabs), Kraft/Ausdauer + Split-Chips im Gate, Hub-Modus per Hochziehen, KEIN Auto-Open mehr. Per Browser-Harness (Firefox headless, echte Komponente) geprüft: Zähler, Suche, Enter/Kürzel, Recent, Chips, Modus-Toggle, Hub-Geste, Sheet-Schließen bei Hash-Navigation.
+- **Hub-Einstieg** — Bottom-Nav-Button `Hub` (App.openHub → gateAutoOpenFlag → activeModal 'hub'), Split-Chip im Session-Tab nur Anzeige, Long-Press→Pläne im Gate. Per Browser-Harness geprüft, zusätzlich in der laufenden App (echte index.html, Firefox headless): Hub-Button (Sidebar/Nav) → Hub-Modus, kein Auto-Open, Navigation Lernen. Desktop-Sidebar hat ebenfalls einen Hub-Eintrag; Coach-Klienten mit Plan-Zyklus sehen bei Hub-Wunsch direkt den Editor (nicht TodayPlan).
+- **Dock** — Nav hochwischen → Sheet (flag 'gate'), Hub-Leiste im Sheet statt Nav, weiter hoch → Hub-Vollbild. Im Browser (390 px iframe, simulierte Touch-Events) geprüft; echter Finger nicht.
+- **Karte "Nächster Plan"** (`GateNextPlanCard.jsx`) — heutige Routine aus dem Zyklus (`useTodayPlan`) per Tipp in die Session übernehmen (`addFromTemplate`), ohne Plan-Tab. Rendert nichts ohne Zyklus; ohne Zyklus-Datensatz nicht live geprüft (Dock-Test läuft ohne Absturz).
+- **Splits Shoulders/Arms** — Autoerkennung nur über Primärmuskeln (`utils.js::inferBlockFromExercises`).
+
 ## Auffälligkeiten (2026-10-13)
 - **Gefixt:** Push-Notification zur laufenden Workout-Stoppuhr führte beim
   Antippen ins Leere — kein Weg, die Session zu beenden, `sessionGate.endedAt`

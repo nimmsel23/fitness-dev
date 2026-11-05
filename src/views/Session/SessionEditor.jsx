@@ -13,7 +13,6 @@ import SessionModalsLayer from './SessionModalsLayer.jsx';
 import SessionSlots from './SessionSlots.jsx';
 import SessionHeader from './SessionHeader';
 import SessionGateBar from './SessionGateBar.jsx';
-import SplitPicker from './SplitPicker';
 // Zieht Plan-API + Übungskatalog (inkl. ~1,8 MB Bulk-Daten) nach — erst beim ersten Long-Press laden.
 const SplitPlanSheet = lazy(() => import('./SplitPlanSheet.jsx'));
 import EffortPicker from './EffortPicker';
@@ -21,11 +20,13 @@ import ExerciseList from './ExerciseList';
 import CardioSection from './CardioSection.jsx';
 import ActivityAddon from './ActivityAddon';
 import ActivityAddonHistory from './ActivityAddonHistory.jsx';
+import { withLastPerformance } from '../Plan/lib/sessionDraft.js';
+import TemplateLauncher from './TemplateLauncher.jsx';
 import SessionToast from './SessionToast.jsx';
 import SessionSaveFab from './SessionSaveFab.jsx';
 import SessionSidebar from './SessionSidebar';
 import { normalizeSessionGate, sessionGateTimeToHHMM, buildManualSessionGate, estimateDurationMinutes } from '../../lib/sessionGate.js';
-import { inferBlockFromExercises } from './utils';
+import { inferBlockFromExercises, blockColor } from './utils';
 import { localToday } from '@utils';
 
 export default function SessionEditor({
@@ -83,6 +84,16 @@ export default function SessionEditor({
         : 'Alle Übungen sind schon in der Session'
     );
   }
+  // "Nächster Plan"-Karte im Gate-Sheet: Routine ohne Split-Wechsel in die Session übernehmen.
+  function applyNextRoutine(routine) {
+    const list = routine?.exercises || [];
+    const added = addFromTemplate?.(list) || 0;
+    exerciseOps?.onToast?.(
+      !list.length ? `${routine?.label || routine?.name || 'Plan'} hat keine Übungen`
+        : added ? `+ ${added} Übungen aus „${routine?.label || routine?.name}"`
+        : 'Alle Übungen sind schon in der Session'
+    );
+  }
   const gpsMapsUrl = normalizeSessionGate(sessionGate).gps?.mapsUrl || null;
   // Beginn/Ende manuell setzen (wie es Start/Stopp der Stoppuhr automatisch tun);
   // die Dauer folgt daraus, solange sie leer oder noch der alte Automatik-Wert ist.
@@ -115,11 +126,12 @@ export default function SessionEditor({
     // Zusätzliche Absicherung neben dem date-Check in App.jsx (Race
     // zwischen Flag-Konsum und Remount): Gate nie öffnen, wenn das
     // aktuell angezeigte Datum nicht heute ist.
-    if (gateAutoOpenFlag && date === localToday()) {
-      setActiveModal('gate');
-    }
+    // Kein Auto-Open beim Tab-Wechsel mehr (User-Feedback 2026-11-05: reflexhaft
+    // weggewischt). Das Flag kommt nur noch vom Bottom-Nav-"Hub"-Button (App.openHub)
+    // und öffnet das Gate direkt im Hub-Modus; sonst über die Gate-Leiste im Header.
+    if (gateAutoOpenFlag && date === localToday()) setActiveModal(gateAutoOpenFlag === 'gate' ? 'gate' : 'hub');
     if (gateAutoOpenFlag) onGateAutoOpenConsumed?.();
-  }, []);
+  }, [gateAutoOpenFlag]);
 
   // Split-Autoerkennung: solange der User selbst noch keinen Split gewählt
   // hat (block === ''), leitet sie den Split aus den bereits eingetragenen
@@ -207,14 +219,21 @@ export default function SessionEditor({
         }
       />
 
-      {/* Split-Auswahl — 1 Klick, direkt unter dem Datumspicker statt hinter "Weitere Details" */}
+      {/* Split-Anzeige — die Auswahl (Chips, Long-Press → Pläne) liegt im Gate; hier genügt die
+          Autoerkennung aus den geloggten Übungen. Tap öffnet das Gate zum Ändern. */}
       {sessionMode === 'strength' && (
         <div className="px-3 mt-1.5 mb-1.5">
-          <SplitPicker
-            block={block}
-            setBlock={v => { setBlock(v); scheduleAutoSave(); }}
-            onLongPress={addFromTemplate ? setPlanSplit : undefined}
-          />
+          <button
+            type="button"
+            onClick={() => setActiveModal('gate')}
+            className="flex items-center gap-2 h-8 px-3 rounded-full text-[11px] font-bold active:scale-95 transition-all"
+            style={{ background: 'var(--card)', border: '1px solid var(--line)', color: block ? blockColor(block) : 'var(--dim)' }}
+            aria-label="Split im Gate ändern"
+          >
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: block ? blockColor(block) : 'var(--dim)' }} />
+            {block ? `Split: ${block}` : 'Split: automatisch'}
+            <span style={{ color: 'var(--dim)', opacity: 0.7 }}>· ändern</span>
+          </button>
         </div>
       )}
       {planSheetLoaded && (
@@ -229,6 +248,12 @@ export default function SessionEditor({
       </div>
 
       <div className="px-2 space-y-4 mt-1">
+        {sessionMode === 'strength' && exerciseOps.appendDraft && (
+          <details className="rounded-lg border border-fit-line/40 px-3 py-2">
+            <summary className="min-h-[44px] cursor-pointer text-xs font-black uppercase text-fit-dim leading-[44px]">Workout / Vorlage laden</summary>
+            <div className="pb-2"><TemplateLauncher onLoadDraft={(d) => exerciseOps.appendDraft(withLastPerformance(d, prevMap))} /></div>
+          </details>
+        )}
         {sessionMode === 'strength' ? (
           <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             {/* Basis-Übungsliste = impliziter erster Abschnitt der Session
@@ -329,6 +354,11 @@ export default function SessionEditor({
         date={date}
         sessionGate={sessionGate}
         currentSubTab={currentSubTab}
+        exercises={exercises}
+        sessionMode={sessionMode} setSessionMode={setSessionMode}
+        block={block} setBlock={v => { setBlock(v); scheduleAutoSave(); }}
+        onApplyRoutine={addFromTemplate ? applyNextRoutine : undefined}
+        onSplitLongPress={addFromTemplate ? (k) => { setActiveModal(null); setPlanSplit(k); } : undefined}
         onSubNav={onSubNav}
         onStartGate={() => { startSessionGate(); setActiveModal(null); }}
         onStopGate={stopSessionGate}
