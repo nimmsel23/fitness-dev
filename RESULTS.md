@@ -1,3 +1,31 @@
+# Fitness-Dev: App-Portal (docs/apps.html) und Fix leere Fokus-/Anamnese-Mini-App (2026-11-05)
+
+Für alle Mini-Apps gibt es jetzt eine aus den vorhandenen Manifesten erzeugte Übersicht. Dabei fiel auf, dass `vos-fokus` nur Hintergrund und Login zeigte; die Ursache liegt in der Flow-Weiterleitung und ist behoben (committed und auf `dev` gepusht, noch nicht per `vos-ship fitness` live).
+
+- **`scripts/portal.mjs`, `docs/apps.html`, `docs/apps.json`** (`b43afeb`, `7f821bb`): Das Skript liest `scripts/miniapps.json`, `mini-app.json` und `.firebaserc` und erzeugt eine durchsuchbare Karten-Übersicht mit Name, Zweck und Site-Link. Das Skript stammt aus `~/vitalos/scripts/vos-portal.mjs` und wird von `~/vitalos/bin/vos-portal` in jedes Repo kopiert; `--check` prüft nur auf veraltete Dateien. Eine eigene Registry ist nicht nötig.
+- **`src/App.jsx`** (`679b53e`): `resolveFlowTab` leitete den Fokus-Tab auf die Anamnese um, solange keine Hits gesetzt waren. Im Fokus-Solo-Build ist der Anamnese-View ausgestubbt, daher blieb die Seite leer. In Solo-Builds entfällt die Weiterleitung jetzt (`if (devBypassFlow || IS_SOLO) return id`), Fokus zeigt „Noch keine Hits gesetzt“. Der Gegenfall (`vos-anamnese` leitet bei ausgefüllten Hits auf Fokus um) ist mit demselben Fix behoben, aber ungetestet. Verifiziert nur per `pnpm run build:miniapp fokus`, nicht im Browser.
+- **`CLAUDE.md`** (`ce477b9`): Backend-Abschnitte nach `fitness-backend` ausgelagert, Hinweisblock ergänzt.
+
+---
+
+# Fitness-Dev: Mini-Apps als Unterpfade, eigener Cache-Präfix und Master-Deploy (2026-11-05)
+
+Die `fitness-dev`-App wurde um die Möglichkeit erweitert, Mini-Apps als Unterpfade unter einer gemeinsamen Origin (`fitness-aos.web.app/<id>/`) zu hosten. Ein neuer Build-Workflow und Skripte wurden implementiert, um dies zu unterstützen, inklusive eines eigenen Cache-Präfixes für jede Unterpfad-App, um Cache-Kollisionen zu vermeiden. Diese Änderungen wurden in `fitness-dev` committed und der `dev`-Branch erfolgreich gepusht.
+
+-   **`7dbb987` feat(origin) Commit
+
+# Fitness-Dev: Mini-Apps als Unterpfade, eigener Cache-Präfix (2026-11-05)
+
+Die `fitness-dev`-App wurde um die Möglichkeit erweitert, Mini-Apps als Unterpfade unter einer gemeinsamen Origin (`fitness-aos.web.app/<id>/`) zu hosten. Ein neuer Build-Workflow und Skripte wurden implementiert, um dies zu unterstützen, inklusive eines eigenen Cache-Präfixes für jede Unterpfad-App, um Cache-Kollisionen zu vermeiden.
+
+-   **`7dbb987` feat(origin) Commit**: Implementierung der Unterpfad-Struktur, eigener Cache-Präfixe (`vos-<id>-`
+
+# Fitness-Dev: Mini-Apps als Unterpfade, eigener Cache-Präfix (2026-11-05)
+
+Die `fitness-dev`-App wurde um die Möglichkeit erweitert, Mini-Apps als Unterpfade unter einer gemeinsamen Origin (`fitness-aos.web.app/<id>/`) zu hosten. Ein neuer Build-Workflow und Skripte wurden implementiert, um dies zu unterstützen, inklusive eines eigenen Cache-Präfixes für jede Unterpfad-App, um Cache-Kollisionen zu vermeiden.
+
+-   **`7dbb987` feat(origin) Commit**: Implementierung der Unterpfad-Struktur, eigener Cache-Präfixe und des neuen Merge
+
 # Fitness-Release dev → master → vitalos, Firebase-Konto (2026-11-04)
 
 Release der Logbuch- und Mini-App-Änderungen über `vos-ship fitness`: PR #40 (`dev` → `master`) wurde gemergt und der Standalone-Live-Deploy lief grün. Der Schritt `vos-release` (`master` → `vitalos`) scheiterte zunächst am Pre-Push-Hook von `fitness-app`, weil die lokale Firebase-Anmeldung für `fitness-aos` keine Berechtigung hatte.

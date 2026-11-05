@@ -1,21 +1,24 @@
 /**
  * Logbuch — Makro-Gegenstück zum Einzelsession-Tab (Training → Logbuch).
  *
- * Vier Linsen auf dieselben Daten:
+ * Fünf Linsen auf dieselben Daten:
  *  - Kodex    alle Übungen mit zuletzt / Gipfel / Abstand + Gipfel-Profil
  *  - Rekorde  Chronik aller Bestleistungen
  *  - Rhythmus Stempelkarte Übung × Woche
+ *  - Muskeln  Arbeitssätze je Muskel × Woche
  *  - Chronik  Wochen-Timeline (abgeleitet vom History-Tab, der unverändert bleibt)
  */
 
-import { useEffect, useMemo, useState } from 'react';
-import { Search, Mountain, Grid3x3, Trophy, CalendarRange, ChevronLeft } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Search, Mountain, Grid3x3, Trophy, CalendarRange, ChevronLeft, Activity, RefreshCw } from 'lucide-react';
 import { useLogbook } from './useLogbook.js';
 import ExerciseCodex from './ExerciseCodex.jsx';
 import RecordChronicle from './RecordChronicle.jsx';
 import RhythmGrid from './RhythmGrid.jsx';
 import WeekChronik from './WeekChronik.jsx';
+import MuscleLoad from './MuscleLoad.jsx';
 import { fmtNum, addDays } from './logbookStats.js';
+import { parseLogbuchHash, logbuchHash } from './logbuchRoute.js';
 import { IS_SOLO } from '../../constants/NavigationItems.js';
 
 const LENSES = [
@@ -23,6 +26,7 @@ const LENSES = [
   { id: 'rekorde', label: 'Rekorde', Icon: Trophy },
   { id: 'rhythmus', label: 'Rhythmus', Icon: Grid3x3 },
   { id: 'chronik', label: 'Chronik', Icon: CalendarRange },
+  { id: 'muskeln', label: 'Muskeln', Icon: Activity },
 ];
 const STATUS_FILTERS = [
   ['alle', 'Alle'], ['gipfel', 'Am Gipfel'], ['nah', 'Nah dran'], ['tal', 'Im Tal'], ['schlaeft', 'Schläft'],
@@ -42,6 +46,8 @@ const chip = (active) => ({
 });
 
 function readLens() {
+  const fromUrl = parseLogbuchHash(window.location.hash).lens;
+  if (fromUrl) return fromUrl;
   try {
     const v = localStorage.getItem(LS_LENS);
     return LENSES.some((l) => l.id === v) ? v : 'kodex';
@@ -59,7 +65,7 @@ function Kpi({ label, value, sub }) {
 }
 
 export default function Logbuch({ onOpenSession, onInspectExercise, onSubNav }) {
-  const { loading, error, book, today } = useLogbook();
+  const { loading, error, book, today, rebuild, rebuilding } = useLogbook();
   const [lens, setLensState] = useState(readLens);
   const [query, setQuery] = useState('');
   const [block, setBlock] = useState('alle');
@@ -67,7 +73,7 @@ export default function Logbuch({ onOpenSession, onInspectExercise, onSubNav }) 
   const [sort, setSort] = useState('zuletzt');
   const [range, setRange] = useState('alles');
   const [weekCount, setWeekCount] = useState(26);
-  const [expandedKey, setExpandedKey] = useState(null);
+  const [expandedKey, setExpandedKey] = useState(() => parseLogbuchHash(window.location.hash).ex);
 
   const setLens = (id) => {
     setLensState(id);
@@ -114,9 +120,34 @@ export default function Logbuch({ onOpenSession, onInspectExercise, onSubNav }) 
     setTimeout(() => document.getElementById(`codex-${key}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
   };
 
-  useEffect(() => { if (expandedKey && !filtered.some((e) => e.key === expandedKey)) setExpandedKey(null); }, [filtered, expandedKey]);
+  useEffect(() => { if (!loading && expandedKey && !filtered.some((e) => e.key === expandedKey)) setExpandedKey(null); }, [filtered, expandedKey, loading]);
 
-  const showFilters = lens === 'kodex' || lens === 'rhythmus';
+  // Deep-Link: Linse und aufgeklappte Übung in der URL spiegeln (ersetzt, kein Verlaufseintrag)…
+  useEffect(() => {
+    const target = logbuchHash(lens, expandedKey);
+    if (window.location.hash.startsWith('#session/logbuch') && window.location.hash !== target) history.replaceState(null, '', target);
+  }, [lens, expandedKey]);
+
+  // …und umgekehrt: ein Link auf dieselbe Seite (z. B. aus einer Meldung) wechselt die Linse.
+  useEffect(() => {
+    const onHash = () => {
+      const { lens: l, ex } = parseLogbuchHash(window.location.hash);
+      if (l) setLensState(l);
+      if (l === 'kodex') setExpandedKey(ex);
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  // Beim ersten Laden zur verlinkten Übung scrollen.
+  const scrolledToLink = useRef(false);
+  useEffect(() => {
+    if (loading || scrolledToLink.current || !expandedKey) return;
+    scrolledToLink.current = true;
+    setTimeout(() => document.getElementById(`codex-${expandedKey}`)?.scrollIntoView({ block: 'center' }), 80);
+  }, [loading, expandedKey]);
+
+  const showFilters = lens === 'kodex' || lens === 'rhythmus' || lens === 'muskeln';
 
   return (
     <div className="px-3 pb-32 pt-3">
@@ -126,7 +157,14 @@ export default function Logbuch({ onOpenSession, onInspectExercise, onSubNav }) 
         </button>
       )}
 
-      <header className="mb-3">
+      <header className="mb-3 relative">
+        <button
+          onClick={rebuild} disabled={rebuilding || loading}
+          className="absolute right-0 top-0 p-1.5 rounded-xl disabled:opacity-40" style={{ color: 'var(--dim)' }}
+          title="Logbuch neu aufbauen (wenn Sessions außerhalb der App geändert oder gelöscht wurden)" aria-label="Logbuch neu aufbauen"
+        >
+          <RefreshCw size={13} className={rebuilding ? 'animate-spin' : ''} />
+        </button>
         <h2 className="text-[11px] font-black uppercase tracking-[0.3em]" style={dim(0.6)}>Logbuch</h2>
         <p className="text-[10px] font-bold" style={dim(0.45)}>
           {book.firstDate ? `Alles seit ${new Date(`${book.firstDate}T12:00:00`).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}` : 'Noch keine Einträge'}
@@ -214,6 +252,7 @@ export default function Logbuch({ onOpenSession, onInspectExercise, onSubNav }) 
           )}
           {lens === 'rekorde' && <RecordChronicle records={book.records} onOpenSession={onOpenSession} onFocusExercise={focusExercise} />}
           {lens === 'rhythmus' && <RhythmGrid exercises={filtered} today={today} weekCount={weekCount} onFocusExercise={focusExercise} />}
+          {lens === 'muskeln' && <MuscleLoad exercises={filtered} today={today} weekCount={weekCount} />}
           {lens === 'chronik' && <WeekChronik dayRows={book.dayRows} today={today} onOpenSession={onOpenSession} />}
         </>
       )}

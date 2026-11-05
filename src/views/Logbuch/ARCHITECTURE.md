@@ -83,3 +83,29 @@ Umdatieren und Löschen bleiben dort; das Logbuch ist rein lesend und öffnet Se
   `getProgressTrend` (Geister-Sätze brauchen Warm-ups/Distanz/Dauer, Fenster nur 28–90 Tage) und
   Dashboard/Heute (lesen schon `analytics/dashboard`). Learn liest keine Sessions, nur
   `getLatestSession()` (1 Doc) und den KB-Katalog (`getAllExercises()`, siehe `src/CLAUDE.md`).
+
+## Update 2026-11-05 — fünfte Linse „Muskeln"
+
+`MuscleLoad.jsx` + `muscleWeekly()` (`logbookStats.js`): Arbeitssätze je Hauptmuskel × Woche
+(13/26/52 Wochen, gleiche Filter wie Rhythmus), rechts Summe der letzten 4 Wochen mit Ø pro Woche.
+Datenquelle ist `exercise.muscles` (aus `primaryMuscles`, steckt schon im Digest — kein Schema-Wechsel).
+Aufwärmsätze zählen nicht, Übungen ohne Muskel stehen unter „Ohne Zuordnung". Ein Satz zählt
+für jeden Hauptmuskel der Übung voll (keine Gewichtung nach Sekundärmuskeln).
+
+## Update 2026-11-05 — Digest-Abweichungen abfangen
+
+Sessions, die außerhalb der App geändert oder gelöscht werden (Skripte wie `mirror_session()`, Konsole),
+kennt der Digest nicht. Dagegen:
+- **Knopf „Logbuch neu aufbauen"** (Kreispfeil im Logbuch-Kopf, `refreshLogbookDigest()`): baut den Digest
+  aus den Sessions neu und lädt danach neu. Lokal ein No-op.
+- **Monatlicher Auto-Neuaufbau**: ist `_meta.builtAtMs` älter als 30 Tage, startet `getDigestSessions()`
+  den Neuaufbau im Hintergrund (single-flight, die Anzeige nutzt solange den vorhandenen Digest).
+- `rebuildLogbookDigest()` löscht jetzt auch Monats-Docs, zu denen keine Session mehr existiert.
+
+## Update 2026-11-05 — Deep-Links
+
+`#session/logbuch/<linse>` (`kodex|rekorde|rhythmus|muskeln|chronik`), im Kodex zusätzlich
+`?ex=<Übungs-Key>` (klappt die Übung auf und scrollt hin, z. B. `#session/logbuch/kodex?ex=id%3Abench`).
+`logbuchRoute.js` parst/baut den Hash; die URL ist die einzige Quelle: `App.jsx` (`buildHashRoute`)
+lässt Linse/Übung beim Neuschreiben stehen, das Logbuch spiegelt jeden Wechsel per `replaceState`
+zurück und reagiert auf `hashchange`. Ohne Linse im Link gilt weiter die zuletzt gewählte (localStorage).
