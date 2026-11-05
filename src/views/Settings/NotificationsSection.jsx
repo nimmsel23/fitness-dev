@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Bell, BellOff, BellRing, Moon, Send, Smartphone, Trash2, Users, Volume2, VolumeX } from 'lucide-react'
 import { getAllUserProfiles } from '@db'
-import { DEFAULT_QUIET_HOURS, usePushNotifications } from '../../hooks/usePushNotifications.js'
+import { DEFAULT_QUIET_HOURS, usePushNotifications, appNameFromOrigin, likelyDuplicateTokens, formatLastSeen, isStaleDevice, activeDeviceCount } from '../../hooks/usePushNotifications.js'
 
 // Erinnerungen für alle Nutzer — functions/index.js (scheduledPushReminders)
 const REMINDER_TYPES = [
@@ -112,7 +112,7 @@ function CoachClients({ settings, update, busy }) {
 export default function NotificationsSection({ user }) {
   const {
     settings, permission, busy, notice, currentToken,
-    enable, disable, update, updateTypes, updateReminderTime, removeDevice, sendTest,
+    enable, disable, update, updateTypes, updateReminderTime, removeDevice, pauseDevice, sendTest,
   } = usePushNotifications(user)
   const isCoach = COACH_UIDS.has(user?.uid)
 
@@ -123,6 +123,13 @@ export default function NotificationsSection({ user }) {
     ? settings.devices
     : (settings?.tokens || []).map((token) => ({ token, label: 'Gerät (älter)', addedAt: null }))
 
+  const duplicates = likelyDuplicateTokens(devices)
+  const sortedDevices = [...devices].sort((a, b) => {
+    if (a.token === currentToken) return -1
+    if (b.token === currentToken) return 1
+    return (Date.parse(b.lastSeenAt || '') || 0) - (Date.parse(a.lastSeenAt || '') || 0)
+  })
+
   return (
     <section className="card p-6 space-y-6 animate-in fade-in slide-in-from-left-4 duration-500">
       <div className="flex items-center gap-3">
@@ -132,11 +139,13 @@ export default function NotificationsSection({ user }) {
         <div className="flex-1">
           <h3 className="text-base font-semibold text-fit-ink">Benachrichtigungen</h3>
           <div className="text-xs text-fit-dim" style={{ opacity: 0.6 }}>
-            {settings?.enabled ? `Aktiv auf ${devices.length} Gerät${devices.length === 1 ? '' : 'en'}` : 'Deaktiviert'}
+            {settings?.enabled
+              ? `Für alle deine Geräte an · ${activeDeviceCount(settings)} von ${devices.length} Gerät${devices.length === 1 ? '' : 'en'} aktiv`
+              : 'Für alle deine Geräte aus'}
           </div>
         </div>
         {settings?.enabled && (
-          <button onClick={disable} disabled={busy} className={smallButton}>Alle aus</button>
+          <button onClick={disable} disabled={busy} className={smallButton}>Für alle Geräte aus</button>
         )}
       </div>
 
@@ -165,25 +174,46 @@ export default function NotificationsSection({ user }) {
           disabled={busy || permission === 'denied'}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-fit-accent text-black rounded-xl font-semibold text-xs hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer"
         >
-          <Bell size={14} /> {busy ? 'Aktiviere…' : 'Benachrichtigungen auf diesem Gerät aktivieren'}
+          <Bell size={14} /> {busy ? 'Aktiviere…' : 'Benachrichtigungen einschalten (gilt für alle deine Geräte)'}
         </button>
       ) : (
         <div className="space-y-6">
-          <Group icon={Smartphone} title="Geräte" hint="Jedes Gerät, das Push empfängt. Entfernte Geräte melden sich beim nächsten Aktivieren neu an.">
-            {devices.map((device) => (
+          <Group icon={Smartphone} title="Geräte" hint="Der Schalter oben gilt für alle Geräte. Hier schaltest du einzelne Geräte (z. B. ein altes iPhone) stumm oder entfernst sie.">
+            {sortedDevices.map((device) => (
               <div key={device.token} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-fit-bg2 border border-fit-line">
                 <div className="min-w-0">
                   <div className="text-xs font-medium text-fit-ink truncate">
                     {device.label || 'Gerät'}
+                    {appNameFromOrigin(device.origin) && (
+                      <span className="ml-2 text-[10px] font-semibold text-fit-dim bg-fit-line/40 px-1.5 py-0.5 rounded">{appNameFromOrigin(device.origin)}</span>
+                    )}
                     {device.token === currentToken && (
                       <span className="ml-2 text-[10px] font-semibold text-fit-accent bg-fit-accent/10 px-1.5 py-0.5 rounded">Dieses Gerät</span>
                     )}
                   </div>
-                  {formatAdded(device.addedAt) && (
-                    <div className="text-[11px] text-fit-dim" style={{ opacity: 0.7 }}>seit {formatAdded(device.addedAt)}</div>
+                  <div className="text-[11px] text-fit-dim" style={{ opacity: 0.7 }}>
+                    {[
+                      device.screen,
+                      formatAdded(device.addedAt) && `seit ${formatAdded(device.addedAt)}`,
+                      formatLastSeen(device.lastSeenAt) ? `zuletzt aktiv ${formatLastSeen(device.lastSeenAt)}` : 'zuletzt aktiv: unbekannt',
+                    ].filter(Boolean).join(' · ')}
+                  </div>
+                  {isStaleDevice(device) && (
+                    <div className="text-[11px] text-fit-accent" style={{ opacity: 0.9 }}>Lange nicht gesehen – vermutlich ein altes Gerät</div>
+                  )}
+                  {duplicates.has(device.token) && device.token !== currentToken && (
+                    <div className="text-[11px] text-fit-accent" style={{ opacity: 0.9 }}>
+                      {duplicates.get(device.token) === 'apps'
+                        ? 'Gleiches Gerät, andere App – Meldungen kommen evtl. doppelt'
+                        : 'Gleiche Gerätebeschreibung – evtl. altes oder doppeltes Gerät (Test senden zeigt, wo es ankommt)'}
+                    </div>
                   )}
                 </div>
                 <div className="flex gap-2 shrink-0">
+                  <label className="flex items-center gap-1.5 text-[11px] text-fit-dim cursor-pointer" title="Nur dieses Gerät ein- oder ausschalten">
+                    <Switch checked={device.paused !== true} onChange={(v) => pauseDevice(device.token, !v)} disabled={busy} />
+                    {device.paused === true ? 'Pausiert' : 'Aktiv'}
+                  </label>
                   <button onClick={() => sendTest('reminder', device.token)} disabled={busy} className={smallButton} title="Test an dieses Gerät">
                     <Send size={12} /> Test
                   </button>
