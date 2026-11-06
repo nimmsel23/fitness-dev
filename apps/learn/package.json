@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "body-muscles": "^1.0.0",
-    "firebase": "^11.0.1",
+    "firebase": "^13.1.0",
     "lucide-react": "^0.451.0",
     "react": ">=18",
     "react-body-highlighter": "^2.0.5",
