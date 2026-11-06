@@ -29,22 +29,22 @@ exercises:
   - 401_triceps_brachii
   - 105_serratus_anterior
   - 202a_trapezius_upper
+  secondary_muscles: []
+  stabilizers:
+  - 206_erector_spinae
+  - 304_rotator_cuff
+  - 405_forearm_flexors
+  - 406_forearm_extensors
   - 501_rectus_abdominis
   - 502_obliquus_externus
   - 503_obliquus_internus
-  - 603_gluteus_maximus
-  - 601_quadriceps_femoris
-  secondary_muscles:
-  - 206_erector_spinae
-  - 701_gastrocnemius
-  - 702_soleus
-  stabilizers:
-  - 304_rotator_cuff
   - 504_transverse_abdominis
   - 507_multifidus
   - 508_pelvic_floor
-  - 405_forearm_flexors
-  - 406_forearm_extensors
+  - 601_quadriceps_femoris
+  - 603_gluteus_maximus
+  - 701_gastrocnemius
+  - 702_soleus
   movements:
   - shoulder_flexion
   - elbow_extension
