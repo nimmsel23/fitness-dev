@@ -5,9 +5,9 @@ enriched_at: '2026-11-06T02:32:05.394169+00:00'
 exercises:
 - exercise_id: yoga_kopfstand
   id: yoga_kopfstand
-  german: Kopfstand
-  display_name: Kopfstand
-  english: Yoga Headstand
+  german: Yoga Kopfstand (Sirsasana)
+  display_name: Yoga Kopfstand (Sirsasana)
+  english: Yoga Headstand (Sirsasana)
   category: push
   primary_muscles:
   - 501_rectus_abdominis
@@ -87,3 +87,4 @@ exercises:
     status: draft
     ai_reviewed: false
     enriched_at: '2026-11-06T02:32:05.394169+00:00'
+  name: Yoga Kopfstand (Sirsasana)
