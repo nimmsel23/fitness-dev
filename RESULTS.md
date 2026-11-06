@@ -1,3 +1,27 @@
+# Katalog-Korrekturen und Ownership-Abgabe an coach-dev (2026-11-06)
+
+Nachtsession: Die letzten Katalog-Pflegearbeiten in fitness-dev selbst — danach ging
+die Katalog-Ownership per Beschluss an coach-dev ueber. fitness-dev bleibt Owner des
+Fitness-Clients (PWA, Session, Logbuch) und Konsum ent der Katalogdaten; die
+fitness/catalog/kb hier ist ab sofort eine veraltete Kopie und wird nicht mehr
+bearbeitet.
+
+-   **`fitness/catalog/kb/inbox/`** (`8c4f9d9`): Kopfstand (yoga_kopfstand, origin:
+    expert, ankerfrei — kein Rohquellen-Treffer) und Handstand (wger 1472) als
+    getrennte Identitaeten statt zwei Drafts unter einer exercise_id.
+-   **`fitness/catalog/kb/exercises/020.yml`** (`765cfc3`): Klimmzug im Obergriff vom
+    Yuhonas-Pullups-Anker entkoppelt (yuhonas beschreibt alle Griffvarianten; Anker
+    gehoert dem eigenen Kanonischen yuhonas_pullups). wger 821 bleibt.
+-   **`inbox_..._cc51fb`/`_3b9447`** (`0f94a34`, `17ad02b`, `7148142`): Muskel-Rollen-
+    Splits fuer beide Inversions-Halte-Uebungen (Schulterguertel prim, Koerperlinie
+    Stabilizers) und konsequenter Anzeigename "Yoga Kopfstand (Sirsasana)".
+-   **Context**: Reenrichment-Beweis — Worker verarbeitete Handstand in 25 s inkl.
+    Auto-Commit (`c733d95`). Danach Spiegelung der KB nach coach-dev
+    (dort f3c6e600), Worker-Umzug via FITNESS_AGENT_KB/PYTHONPATH auf den Coach-Baum
+    und Komplett-Veredelung aller 13 Drafts im Coach-Repo. Komplett-Gate fuer neue
+    Drafts liegt in coach-dev (process_inbox_file).
+
+---
 # Fitness-Dev: Logbuch-Digests statt Voll-Read, Linse „Muskeln", Deep-Links, FF-Automatik (2026-11-05)
 
 Ausgangspunkt war der Wunsch, dass Logbuch und Review nicht bei jedem Öffnen alle Sessions aus Firestore lesen und neu summieren. Umgesetzt wurde ein monatliches Digest-Rollup (`fitness/{uid}/logbookDigest/{YYYY-MM}`), auf das die Abnehmer umgestellt wurden; danach kamen die Linse „Muskeln", ein Digest-Neuaufbau und Deep-Links dazu. Alles liegt auf `dev`, ist per `vos-release-pr fitness` (u. a. PR #42) nach `master` und per `fitness-release` nach `vitalos` ausgeliefert. Geprüft wurden ESLint, die Logbuch-Tests und `vite build --mode firebase`; gegen echte Firestore-Daten und im Browser wurde nichts getestet.
