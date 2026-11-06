@@ -7,7 +7,7 @@
   "scripts": {
     "predev": "pnpm run build:kb-data",
     "dev": "node scripts/dev-runner.mjs",
-    "start": "node ../fitness-backend/server.mjs",
+    "start": "node ../backend/server.mjs",
     "fitness:routines": "node scripts/fitness-routines.mjs",
     "ui:dev": "vite",
     "lint": "eslint src/ --ext .js,.jsx",
@@ -47,7 +47,8 @@
     "deploy:preview": "pnpm run build:firebase && node scripts/deploy-preview.mjs",
     "deploy:prev": "pnpm run deploy:preview",
     "build:prev": "pnpm run deploy:preview",
-    "build:plan-data": "node scripts/build-plan-data.mjs"
+    "build:plan-data": "node scripts/build-plan-data.mjs",
+    "build:learn": "cd apps/learn && node scripts/ensure-kb-data.mjs && VITE_APP_MODE=client node ../../node_modules/vite/bin/vite.js build --mode firebase --config vite.config.js"
   },
   "dependencies": {
     "@capacitor/core": "^8.6.0",
@@ -125,7 +126,6 @@
     "eslint": "^9.39.4",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^17.13.0",
-    "nodemon": "^3.1.10",
     "postcss": "^8.5.32",
     "tailwindcss": "^4.3.3",
     "vite": "^6.4.5",

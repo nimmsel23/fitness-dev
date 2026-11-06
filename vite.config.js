@@ -27,15 +27,11 @@ function siblingDir(devName, appName) {
 }
 
 
-// Cross-App-Aliase: fitness braucht genau zwei (@relax, @learn) und löst sie über
-// die Nachbar-Checkouts auf (siblingDir) — in jedem Kontext gleich: ~/dev/<x>-dev,
-// ~/vitalos/<x>-app (Meta-Checkout, CI) oder daneben. Das frühere Paket
-// @vos/cross-app-aliases wurde entfernt: es lieferte 17 Aliase, genutzt wurden zwei,
-// und sein pfadabhängiger link: ließ den Lockfile je nach Installationsort kippen.
+// Learn gehört zu Fitness; Relax bleibt ein Nachbar-Checkout.
 function resolveCrossAppAliases() {
   return {
     '@relax': resolve(siblingDir('relax-dev', 'relax-app'), 'src'),
-    '@learn': resolve(siblingDir('learn-dev', 'learn-app'), 'src'),
+    '@learn': resolve(__dirname, 'src'),
   }
 }
 

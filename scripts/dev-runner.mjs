@@ -1,6 +1,9 @@
 // Starts both the API server and Vite in parallel for dev mode.
 import { spawn } from 'child_process'
 import { createConnection } from 'net'
+import { fileURLToPath } from 'node:url'
+
+const backendRoot = fileURLToPath(new URL('../../backend/', import.meta.url))
 
 function run(cmd, args, env = {}) {
   const p = spawn(cmd, args, {
@@ -25,9 +28,9 @@ const API_PORT = Number(process.env.FITNESS_NODE_PORT || 9100)
 const alreadyRunning = await portInUse(API_PORT)
 
 if (alreadyRunning) {
-  console.log(`[dev-runner] fitness-backend/server.mjs already running on :${API_PORT} — skipping nodemon`)
+  console.log(`[dev-runner] backend/server.mjs already running on :${API_PORT} — keeping the existing API process`)
 } else {
-  run('node', ['node_modules/.bin/nodemon', '--watch', '../fitness-backend', '--ext', 'mjs', '--signal', 'SIGTERM', '../fitness-backend/server.mjs'])
+  run('npm', ['--prefix', backendRoot, 'run', 'dev'])
 }
 
 const vite = run('node', ['node_modules/.bin/vite'], { VITE_API_BASE: '' })

@@ -48,6 +48,6 @@ The rolling monthly report cache is scoped to the signed-in user and local calen
 ## Update 2026-10-15 — Stärke-Matrix ist nach Learn umgezogen
 
 Der SubTab `strength` (`ReviewStrengthMatrix.jsx`, 1RM-Rechner) existiert im Review nicht mehr.
-Die Komponente lebt jetzt im Learn-Tab (`learn-dev`: `src/views/Learn/StrengthMatrix.jsx`, Header-Tab
+Die Komponente lebt jetzt im Learn-Tab (`fitness-dev`: `src/views/Learn/StrengthMatrix.jsx`, Header-Tab
 „Stärke", Sub-Tab-ID `strength`). Alte Deep-Links `#review/strength` werden in `App.jsx`
 (`parseHashRoute`) auf `learn/strength` umgeleitet.

@@ -23,7 +23,7 @@ const baseItems = [
     { id: 'exercises', label: 'Übungen',  Icon: LibraryBig },
     { id: 'anatomy',   label: 'Anatomie', Icon: Microscope },
     { id: 'quiz',      label: 'Quiz',     Icon: HelpCircle },
-    // Stärke-Matrix (1RM-Rechner) lebt seit 2026-10-15 im Learn-Tab (learn-dev: views/Learn/StrengthMatrix.jsx).
+    // Stärke-Matrix (1RM-Rechner) lebt seit 2026-10-15 im Learn-Tab (Fitness: src/views/Learn/StrengthMatrix.jsx).
     { id: 'strength',  label: 'Stärke',   Icon: Dumbbell },
   ]},
   // Atlas: Übersicht über alle lokal gespiegelten Übungs-DBs (Mirror in

@@ -8,7 +8,7 @@
  * Tageswerte lassen sich dagegen zu jedem Zeitpunkt korrekt aufsummieren
  * (Client UND Cloud Function).
  *
- * Gleiche Logik gespiegelt in functions/coverageWindow.js (CommonJS, eigene Tests).
+ * Gleiche Logik gespiegelt in backend/functions/fitness/coverageWindow.js (CommonJS, eigene Tests).
  */
 
 export const DAILY_WINDOW_DAYS = 28;

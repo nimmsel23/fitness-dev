@@ -1,0 +1,73 @@
+/* Theme-Definition kommt aus der Fitness-App (eine Quelle, kein Drift). Learn läuft
+   standalone im Nordic-Theme (index.html: data-theme="nordic"). */
+@import "@fitness/styles/themes/nordic.css";
+
+@import "tailwindcss";
+@config "../tailwind.config.cjs";
+
+/* Strukturelle (nicht-thematische) Variablen — aus fitness-dev/src/styles.css, soweit Learn
+   sie braucht (Scrim und Accent-Subtle werden von AnatomyDetailModal/PlanBuilder genutzt). */
+:root {
+  color-scheme: dark;
+  font-family: Inter, system-ui, sans-serif;
+  --radius-sm: 0.5rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --scrim: color-mix(in srgb, var(--bg2) 55%, var(--ink) 45%);
+  --surface-selected: color-mix(in srgb, var(--accent) 8%, var(--card));
+  --accent-subtle: color-mix(in srgb, var(--accent) 10%, transparent);
+  --accent-subtle-hover: color-mix(in srgb, var(--accent) 16%, transparent);
+  --accent-border: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* Eintritts-Animationen: tailwindcss-animate ist nicht installiert, die Klassen
+   (animate-in fade-in slide-in-from-bottom duration-300) brauchen eigene CSS. */
+@keyframes fitFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fitSlideInFromBottom {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation-fill-mode: both; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-in.fade-in { animation-name: fitFadeIn; animation-timing-function: ease-out; }
+.animate-in.slide-in-from-bottom { animation-name: fitSlideInFromBottom; }
+.animate-in.duration-200 { animation-duration: 200ms; }
+.animate-in.duration-300 { animation-duration: 300ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-in { animation: none; }
+}
+
+/* Karten-Grundstil (in der Fitness-App trägt .card keine Basisregel, Learn nutzt sie als Panel) */
+.card {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+
+.hide-scrollbar { scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+.spinner {
+  width: 14px; height: 14px;
+  border: 2px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

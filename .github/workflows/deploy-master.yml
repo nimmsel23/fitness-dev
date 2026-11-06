@@ -9,15 +9,15 @@
 #
 # Layout (Geschwister nebeneinander, wie lokal unter ~/dev):
 #   fitness-dev/   dieser Checkout (der Commit, der den Lauf ausgelöst hat)
-#   plan-dev/ 6pack-dev/ skills-dev/ learn-dev/ relax-dev/   jeweils `master`
+#   plan-dev/ 6pack-dev/ skills-dev/ relax-dev/   jeweils `master`
 # Der Fitness-Build kompiliert diese fünf Nachbarn mit (vite-miniapp-submodules.mjs: Plan/6Pack/Skills;
-# vite.config.js: @relax/@learn per siblingDir()). Jedes Repo bekommt seine EIGENEN Abhängigkeiten aus
+# vite.config.js: @relax per siblingDir(), @learn lokal). Jedes Repo bekommt seine EIGENEN Abhängigkeiten aus
 # seinem eigenen Lockfile (ein gemeinsamer node_modules-Symlink scheiterte: die Nachbarn brauchen teils
 # andere Versionen, z. B. js-yaml 4 mit Default-Export gegen js-yaml 5 in fitness-dev). Doppelte
 # react-/firebase-Kopien verhindert resolve.dedupe in vite.config.js. --ignore-scripts: keine nativen
 # Builds (z. B. better-sqlite3 in relax-dev) — der Firebase-Build braucht sie nicht.
 #
-# Voraussetzung: jedes Nachbar-Repo ist auf master mit `pnpm install --frozen-lockfile` standalone
+# Voraussetzung: jedes Nachbar-Repo ist auf master mit `pnpm install --no-frozen-lockfile` standalone
 # installierbar (siehe docs/DEPLOY.md).
 #
 # Auslöser und Sicherheit:
@@ -72,7 +72,7 @@ jobs:
       - name: Checkout Nachbarn (${{ env.NEIGHBOR_REF }})
         run: |
           set -euo pipefail
-          for repo in plan-dev 6pack-dev skills-dev learn-dev relax-dev; do
+          for repo in plan-dev 6pack-dev skills-dev relax-dev; do
             git clone --depth 1 --branch "$NEIGHBOR_REF" "https://github.com/nimmsel23/${repo}.git" "$repo"
             echo "$repo @ $(git -C "$repo" rev-parse --short HEAD)"
           done
@@ -90,12 +90,12 @@ jobs:
       # Eigener Lockfile von fitness-dev, frozen: was lokal/im PR-Check getestet wurde, ist, was gebaut wird.
       - name: Install (fitness-dev, eigener Lockfile)
         working-directory: fitness-dev
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Install Nachbarn (je eigener Lockfile)
         run: |
           set -euo pipefail
-          for repo in plan-dev 6pack-dev skills-dev learn-dev relax-dev; do
+          for repo in plan-dev 6pack-dev skills-dev relax-dev; do
             echo "::group::$repo"
             if [ -f "$repo/pnpm-lock.yaml" ]; then
               # Ein overrides-Block im Lockfile (z. B. @grpc/grpc-js) muss auch in der Konfiguration stehen; pnpm 11 liest
@@ -103,7 +103,7 @@ jobs:
               if grep -q '^overrides:' "$repo/pnpm-lock.yaml" && [ ! -f "$repo/pnpm-workspace.yaml" ]; then
                 sed -n '/^overrides:/,/^$/p' "$repo/pnpm-lock.yaml" > "$repo/pnpm-workspace.yaml"
               fi
-              (cd "$repo" && pnpm install --frozen-lockfile --ignore-scripts)
+              (cd "$repo" && pnpm install --no-frozen-lockfile --ignore-scripts)
             elif [ -f "$repo/package.json" ]; then
               echo "::warning::$repo hat keinen pnpm-lock.yaml — Install ohne Lockfile"
               (cd "$repo" && pnpm install --no-frozen-lockfile --ignore-scripts)
@@ -142,6 +142,10 @@ jobs:
           ls dist-firebase | head -20
           echo "DO_DEPLOY=$DO_DEPLOY"
 
+      - name: Build Learn from Fitness-owned sources
+        working-directory: fitness-dev
+        run: pnpm run build:learn
+
       - name: Deploy Live
         if: env.DO_DEPLOY == 'true'
         id: firebase_deploy
@@ -153,6 +157,15 @@ jobs:
           entryPoint: fitness-dev
           target: client
           channelId: live
+
+      - name: Deploy Learn Hosting
+        if: env.DO_DEPLOY == 'true'
+        working-directory: fitness-dev
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_FITNESS_AOS }}
+        run: |
+          printf '%s' "$FIREBASE_SA" > "$RUNNER_TEMP/learn-sa.json"
+          GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/learn-sa.json" npx firebase-tools@latest deploy --only hosting:learn --project fitness-aos --non-interactive
 
       - name: Branch vitalos auf master vorspulen (Fast-Forward, Release-Branch der Shell)
         if: env.DO_DEPLOY == 'true' && success()
