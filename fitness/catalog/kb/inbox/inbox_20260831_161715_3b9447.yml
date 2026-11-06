@@ -1,16 +1,13 @@
 name: inbox_20260831_161715_3b9447
-description: 'Proactively generated expert draft for: Yoga Headstand'
+description: 'Proactively generated expert draft for: Yoga Kopfstand (Sirsasana)'
 generated_at: '2026-11-01T17:07:27.456731+00:00'
 enriched_at: '2026-11-01T17:07:27.456731+00:00'
 exercises:
-- id: inbox_yoga_headstand
-  name: Yoga Headstand
+- id: yoga_kopfstand
+  name: Yoga Kopfstand (Sirsasana)
   origin:
-    type: external
-    source_refs:
-      wger:
-      - '1472'
-  exercise_id: inbox_yoga_headstand
+    type: expert
+  exercise_id: yoga_kopfstand
   display_name: Kopfstand
   german: Kopfstand
   english: Yoga Headstand
@@ -91,20 +88,10 @@ exercises:
   - 'Angespannte Schultern: Die Schultern sollten von den Ohren weggezogen und aktiv
     nach unten gedrückt werden, um den Nacken zu entlasten und Stabilität im Schultergürtel
     zu gewährleisten.'
-  original_description:
-  - Handstand free standing by pressing arms into the ground and contracting core
-    and glutes
-  wger_id: 1472
-  wger_muscle_ids:
-    primary:
-    - 2
-    secondary: []
-  external_ids:
-    wger:
-    - 1472
   tags:
   - unreviewed
-  - wger
+  - expert
+  - yoga
   variations: []
   source: unreviewed
   enriched_at: '2026-11-01T17:07:27.456731+00:00'
@@ -113,3 +100,6 @@ exercises:
     status: draft
     ai_reviewed: false
     enriched_at: '2026-11-01T17:07:27.456731+00:00'
+  description_note: Kopfstand (Sirsasana) ist NICHT in wger/yuhonas vorhanden (find-source
+    ohne Treffer) — daher Anker-frei als Expert-Ubung. wger 1472 = Handstand und gehoert
+    zum separaten Handstand-Draft.

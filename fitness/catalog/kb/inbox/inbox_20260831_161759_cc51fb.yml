@@ -6,7 +6,7 @@ exercises:
 - german: Handstand
   display_name: Handstand
   english: Handstand
-  name: Yoga Headstand
+  name: Handstand
   wger_muscle_ids:
     secondary: []
     primary:
@@ -20,8 +20,8 @@ exercises:
   external_ids:
     wger:
     - 1472
-  exercise_id: inbox_yoga_headstand
-  id: inbox_yoga_headstand
+  exercise_id: handstand
+  id: handstand
   category: push
   primary_muscles:
   - 301_anterior_deltoid
