@@ -13,32 +13,32 @@ exercises:
   english: Yoga Headstand
   category: push
   primary_muscles:
+  - 301_anterior_deltoid
+  - 302_lateral_deltoid
+  - 303_posterior_deltoid
+  secondary_muscles: []
+  stabilizers:
+  - 105_serratus_anterior
+  - 202b_trapezius_middle
+  - 202c_trapezius_lower
+  - 206_erector_spinae
+  - 304_rotator_cuff
+  - 401_triceps_brachii
+  - 405_forearm_flexors
   - 501_rectus_abdominis
   - 502_obliquus_externus
   - 503_obliquus_internus
   - 504_transverse_abdominis
-  - 301_anterior_deltoid
-  - 302_lateral_deltoid
-  - 303_posterior_deltoid
-  - 206_erector_spinae
-  - 603_gluteus_maximus
-  secondary_muscles:
+  - 506_diaphragm
+  - 507_multifidus
+  - 508_pelvic_floor
   - 601_quadriceps_femoris
+  - 603_gluteus_maximus
   - 604_hamstrings
-  - 701_gastrocnemius
-  - 702_soleus
-  - 401_triceps_brachii
-  stabilizers:
-  - 304_rotator_cuff
-  - 105_serratus_anterior
-  - 202b_trapezius_middle
-  - 202c_trapezius_lower
   - 608_gluteus_medius
   - 609_gluteus_minimus
-  - 506_diaphragm
-  - 508_pelvic_floor
-  - 507_multifidus
-  - 405_forearm_flexors
+  - 701_gastrocnemius
+  - 702_soleus
   movements:
   - vertical_push
   - isometric_hold
