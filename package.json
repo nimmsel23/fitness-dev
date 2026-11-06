@@ -126,7 +126,6 @@
     "eslint": "^9.39.4",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^17.13.0",
-    "nodemon": "^3.1.10",
     "postcss": "^8.5.32",
     "tailwindcss": "^4.3.3",
     "vite": "^6.4.5",

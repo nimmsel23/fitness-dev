@@ -28,7 +28,7 @@ updates:
   directories:
   - /
   - /catalog-ui
-  - /functions
+  - /apps/learn
   target-branch: dev
   cooldown:
     default-days: 7
