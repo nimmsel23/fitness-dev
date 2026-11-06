@@ -1,3 +1,7 @@
+## Zusammenführung seit 2026-11-06
+
+Learn gehört jetzt zu diesem Repo (`apps/learn`). Node-Backend-Entwicklung gehört ausschließlich nach `~/dev/backend/`. Siehe `docs/CONSOLIDATION.md`; alte Backend-/Release-Stände werden nicht mehr fachlich erweitert.
+
 # Fitness Dev
 
 ## Repo- und Branch-Rollen

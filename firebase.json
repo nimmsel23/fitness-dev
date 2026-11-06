@@ -1,10 +1,5 @@
 {
-  "_note": "Firestore rules SSOT = ~/vitalos/firestore.rules — NEVER add a firestore block here or deploy rules from fitness-dev. Only vitalos deploys rules.",
-  "functions": {
-    "codebase": "fitness",
-    "source": "functions",
-    "runtime": "nodejs22"
-  },
+  "_note": "Firestore rules SSOT = ~/vitalos/firestore.rules \u2014 NEVER add a firestore block here or deploy rules from fitness-dev. Only vitalos deploys rules.",
   "hosting": [
     {
       "target": "client",
@@ -42,11 +37,21 @@
         },
         {
           "source": "/fitness-messaging-sw.js",
-          "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
         },
         {
           "source": "/videos/**",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=3600"
+            }
+          ]
         }
       ]
     },
@@ -329,6 +334,50 @@
           ]
         }
       ]
+    },
+    {
+      "public": "apps/learn/dist-firebase",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "/**",
+          "headers": [
+            {
+              "key": "Cross-Origin-Opener-Policy",
+              "value": "same-origin-allow-popups"
+            }
+          ]
+        },
+        {
+          "source": "/sw.js",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache"
+            }
+          ]
+        },
+        {
+          "source": "**/*.@(js|css|woff2)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "max-age=31536000, immutable"
+            }
+          ]
+        }
+      ],
+      "target": "learn"
     }
   ]
 }

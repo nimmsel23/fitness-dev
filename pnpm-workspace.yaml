@@ -1,4 +1,5 @@
 packages:
+  - apps/learn
   - "."
 allowBuilds:
   '@firebase/util': true
