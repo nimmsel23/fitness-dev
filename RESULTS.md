@@ -175,3 +175,10 @@ Firebase-Log von sendTestPush: `TypeError: admin.firestore is not a function` (H
   unsicherer Akzentzeichen-Sprachfilter wurden verworfen.
 
 - 2026-11-05: Changelog fehlte nach CI-Live-Deploys — automerge startet deploy-master.yml per workflow_dispatch (kein Push-Event mit Commits), der Checkout war flach (depth 1), `git log parent..HEAD` lief ins Leere → keine release-info.json. Fix: `fetch-depth: 0` im Checkout von fitness-dev (deploy-master.yml).
+
+
+## 2026-11-07 — Gemini CI-Agent aktiviert
+
+- Agent-Workflow und lokale Trigger für `fitness-dev` auf `dev` eingerichtet; `GEMINI_API_KEY` als Actions-Secret gesetzt.
+- `Check`/Preview und Agent-Run [42405239691](https://github.com/nimmsel23/fitness-dev/actions/runs/42405239691) waren auf Commit `64a0d748` grün. Dieser Lauf war ein No-op auf einem erfolgreichen Check; ein roter Code-Fehler wurde noch nicht absichtlich simuliert.
+- Pushes und PR-Merges verwenden die eng berechtigte `GITHUB_TOKEN`-Workflow-Berechtigung; kein separates `SYNC_TOKEN` erforderlich.
