@@ -155,7 +155,11 @@ export default defineConfig(async ({ mode }) => {
     },
     build: {
       outDir: isCoach ? 'dist-coach' : (isSolo || isPlan) ? `dist-${mode}` : 'dist',
-      target: 'modules',
+      // Vite 8 (Rolldown) kennt das alte Kuerzel 'modules' nicht mehr
+      // ([BUNDLER_INITIALIZE_ERROR] Invalid target 'modules'). Wir setzen die
+      // Browserliste, die 'modules' in Vite <=6 genau definierte — Build-
+      // Ergebnis bleibt damit deckungsgleich mit dem letzten gruenen Stand.
+      target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
       rollupOptions: {
         input: isCoach ? resolve(__dirname, 'coach.html') : isPlan ? resolve(__dirname, 'plan.html') : undefined,
         output: {
