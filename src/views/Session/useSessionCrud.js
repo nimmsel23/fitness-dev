@@ -30,6 +30,7 @@ export function useSessionCrud({
   setCoachFeedback, setTrainingsart, setSessionMode,
   setActivity, setHasActivity, setActivityAddons,
   setSlots, setSessionGate,
+  onLoaded,
 }) {
   // ── Load / Reset ─────────────────────────────────────────────
   const loadSessionData = (d) => {
@@ -59,6 +60,7 @@ export function useSessionCrud({
     setActivityAddons(Array.isArray(d.activityAddons) ? d.activityAddons : []);
     setSlots(Array.isArray(d.slots) ? d.slots : []);
     setSessionGate(normalizeSessionGate(d.sessionGate));
+    onLoaded?.(d || null);
   };
 
   const resetSessionData = () => {
@@ -76,6 +78,7 @@ export function useSessionCrud({
     setActivityAddons([]);
     setSlots([]);
     setSessionGate(normalizeSessionGate(null));
+    onLoaded?.(null);
   };
 
   const selectSession = (id) => {

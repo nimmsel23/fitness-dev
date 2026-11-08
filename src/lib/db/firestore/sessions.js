@@ -22,6 +22,7 @@ import { getAllExercises } from "./kb.js";
 import { updateAnalyticsDoc, scheduleWeeklyReportRefreshForDate } from "./analysis.js";
 import { indexUpsert, indexRemove } from "./workoutIndex.js";
 import { clearMonthlyReportCache } from "../../reportCache";
+import { commitSessionMove } from "../../moveSessionDate.js";
 import {
   getSession as getLocalSession,
   saveSession as saveLocalSession,
@@ -35,6 +36,7 @@ import {
   buildWorkoutFromRoutine as getLocalBuildWorkoutFromRoutine,
   getPlan as getLocalPlan,
   savePlan as saveLocalPlan,
+  relocateSession as relocateLocalSession,
 } from "../local/sessions.js";
 
 // ── Sessions ──────────────────────────────────────────────────────────────────
@@ -229,6 +231,42 @@ export async function deleteActivityAddon(date = todayISO(), index) {
   scheduleWeeklyReportRefreshForDate(date).catch(() => {});
   clearMonthlyReportCache();
   return { ok: true, activityAddons: addons };
+}
+
+function sessionDocId(date, id) {
+  return id ? `${date}__${id}` : date;
+}
+
+// Datumskorrektur ohne den Activity-Merge von saveSession(): der würde eine
+// Dauer-Einheit (6Pack, Tour) in das kanonische Tagesdokument falten und die
+// Kennung verwerfen. Erst das Zieldokument, dann das alte löschen.
+export async function relocateSession(oldDate, sessionId, session, newDate) {
+  if (!hasAuthSession()) return relocateLocalSession(oldDate, sessionId, session, newDate);
+  const record = { ...(session || {}), id: sessionId ?? session?.id ?? null, date: oldDate || session?.date };
+  return commitSessionMove({
+    session: record,
+    newDate,
+    readTarget: async (date, id) => {
+      const snap = await getDoc(doc(db, "fitness", getUid(), "sessions", sessionDocId(date, id)));
+      return snap.exists() ? (snap.data() || {}) : null;
+    },
+    writeSession: async (date, data, id) => {
+      const docId = sessionDocId(date, id);
+      const payload = { ...data, date, session_id: id || null };
+      delete payload.saved_at;
+      await setDoc(doc(db, "fitness", getUid(), "sessions", docId), {
+        ...payload,
+        saved_at: serverTimestamp(),
+      });
+      reindex(() => indexUpsert(docId, payload));
+      invalidateHistoryCache();
+      clearMonthlyReportCache();
+      scheduleWeeklyReportRefreshForDate(date).catch(() => {});
+      updateAnalyticsDoc();
+      pingBridge();
+    },
+    deleteSession: (date, id) => deleteSession(date, id),
+  });
 }
 
 export async function deleteSession(date = todayISO(), id = null) {

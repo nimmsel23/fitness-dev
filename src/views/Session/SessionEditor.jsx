@@ -60,6 +60,7 @@ export default function SessionEditor({
   addFromTemplate,
   exerciseOps,
   exportObsidian, handleDownload, scheduleAutoSave,
+  correctSessionDate, dateMoveBusy, canCorrectDate,
   onInspectExercise,
   currentSubTab,
   onSubNav,
@@ -301,6 +302,10 @@ export default function SessionEditor({
                 onDownload={handleDownload}
                 onExportObsidian={exportObsidian}
                 coachFeedback={coachFeedback}
+                date={date}
+                onCorrectDate={correctSessionDate}
+                dateMoveBusy={dateMoveBusy}
+                canCorrectDate={canCorrectDate}
               />
             </div>
           )}
@@ -326,6 +331,9 @@ export default function SessionEditor({
         onDownload={handleDownload}
         onExportObsidian={exportObsidian}
         coachFeedback={coachFeedback}
+        onCorrectDate={correctSessionDate}
+        dateMoveBusy={dateMoveBusy}
+        canCorrectDate={canCorrectDate}
         date={date}
         sessionGate={sessionGate}
         currentSubTab={currentSubTab}
