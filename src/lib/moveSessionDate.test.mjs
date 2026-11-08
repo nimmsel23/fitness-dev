@@ -1,3 +1,5 @@
+import process from "node:process";
+
 process.env.TZ = "Europe/Vienna";
 
 import { test } from "node:test";
