@@ -20,6 +20,7 @@ export default function SessionModalsLayer({
   location, setLocation, duration, setDuration, gpsMapsUrl, gateTimes,
   trainingsart, setTrainingsart, notes, setNotes,
   onDownload, onExportObsidian, coachFeedback,
+  onCorrectDate, dateMoveBusy, canCorrectDate,
   // gate
   date, sessionGate, currentSubTab, exercises, sessionMode, setSessionMode, block, setBlock, onSplitLongPress, onApplyRoutine, onSubNav, onStartGate, onStopGate,
 }) {
@@ -57,6 +58,10 @@ export default function SessionModalsLayer({
           onDownload={onDownload}
           onExportObsidian={onExportObsidian}
           coachFeedback={coachFeedback}
+          date={date}
+          onCorrectDate={onCorrectDate}
+          dateMoveBusy={dateMoveBusy}
+          canCorrectDate={canCorrectDate}
         />
       )}
 

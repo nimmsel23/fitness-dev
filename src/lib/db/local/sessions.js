@@ -2,6 +2,7 @@ import { api, localToday } from "./core";
 import { calculateProgressTrend } from "../shared/progressTrend.js";
 import { withDataOrigin, tagListDataOrigin, withoutDataOrigin, DATA_ORIGIN_LOCAL } from "../shared/origin.js";
 import { clearMonthlyReportCache } from "../../reportCache";
+import { commitSessionMove } from "../../moveSessionDate.js";
 
 function exerciseSets(exercise) {
   if (Array.isArray(exercise?.setsArray) && exercise.setsArray.length > 0) return exercise.setsArray;
@@ -58,6 +59,28 @@ export async function deleteSession(date = localToday(), id = null) {
   await api.delete(`/session${qs}`);
   clearMonthlyReportCache();
   return { ok: true };
+}
+
+// Gleicher Vertrag wie firestore/sessions.js::relocateSession. 404 auf der
+// Zielabfrage heißt "frei"; jeder andere Lesefehler bricht ab, bevor geschrieben wird.
+export async function relocateSession(oldDate, sessionId, session, newDate) {
+  const record = { ...(session || {}), id: sessionId ?? session?.id ?? null, date: oldDate || session?.date };
+  return commitSessionMove({
+    session: record,
+    newDate,
+    readTarget: async (date, id) => {
+      const qs = id ? `?date=${date}&id=${encodeURIComponent(id)}` : `?date=${date}`;
+      try {
+        const data = await api.get(`/session${qs}`);
+        return data?.data || null;
+      } catch (err) {
+        if (String(err?.message || "").includes("404")) return null;
+        throw err;
+      }
+    },
+    writeSession: (date, data, id) => saveSession(date, data, id),
+    deleteSession: (date, id) => deleteSession(date, id),
+  });
 }
 
 // Entfernt einen einzelnen Finisher aus activityAddons, ohne die gesamte

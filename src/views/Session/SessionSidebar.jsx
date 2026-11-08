@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Download, MapPin, Clock, Activity, Target, FileText, Info, X, Brain, Navigation } from 'lucide-react';
+import { Download, MapPin, Clock, Activity, Target, FileText, Info, X, Brain, Navigation, CalendarDays } from 'lucide-react';
 import SectionHeader from './SectionHeader';
 
 const TRAININGSART_OPTIONS = ['Kraft', 'Hypertrophie', 'Ausdauer'];
@@ -9,13 +9,16 @@ export default function SessionSidebar({
   gpsMapsUrl, gateTimes,
   trainingsart, setTrainingsart,
   notes, setNotes, onDownload,
-  onExportObsidian, onClose, coachFeedback = ""
+  onExportObsidian, onClose, coachFeedback = "",
+  date = "", onCorrectDate, dateMoveBusy = false, canCorrectDate = false,
 }) {
   const [startVal, setStartVal] = useState(gateTimes?.start || '');
   const [endVal, setEndVal] = useState(gateTimes?.end || '');
   useEffect(() => { setStartVal(gateTimes?.start || ''); setEndVal(gateTimes?.end || ''); }, [gateTimes?.start, gateTimes?.end]);
   const timesInvalid = !!(startVal && endVal && endVal <= startVal);
   const changeTimes = (start, end) => { setStartVal(start); setEndVal(end); gateTimes?.onChange(start, end); };
+  const [moveDate, setMoveDate] = useState(date || '');
+  useEffect(() => { setMoveDate(date || ''); }, [date]);
 
   return (
     <aside className="space-y-6">
@@ -78,6 +81,22 @@ export default function SessionSidebar({
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-fit-dim/30 uppercase tracking-widest">MIN</span>
             </div>
           </div>
+
+          {canCorrectDate && (
+            <div className="group">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-2 block ml-1 flex items-center gap-2">
+                <CalendarDays size={12} /> Trainingsdatum
+              </label>
+              <input type="date" value={moveDate} aria-label="Trainingsdatum" onChange={e => setMoveDate(e.target.value)}
+                className="w-full p-4 rounded-2xl border text-sm font-bold bg-fit-bg2 border-fit-line text-fit-ink focus:border-accent focus:bg-card outline-none transition-all" />
+              <p className="mt-2 ml-1 text-[11px] font-medium text-fit-dim/70">Die Einheit bleibt dieselbe. Beginn und Ende behalten die Uhrzeit.</p>
+              <button type="button" disabled={!moveDate || moveDate === date || dateMoveBusy}
+                onClick={() => onCorrectDate?.(moveDate)}
+                className="mt-3 w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.14em] bg-fit-accent text-black disabled:opacity-40">
+                {dateMoveBusy ? 'Verschiebt…' : 'Datum korrigieren'}
+              </button>
+            </div>
+          )}
 
           <div className="group">
             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-fit-dim/40 mb-2 block ml-1 flex items-center gap-2">

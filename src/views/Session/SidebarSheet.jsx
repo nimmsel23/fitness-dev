@@ -9,7 +9,8 @@ export default function SidebarSheet({
   gpsMapsUrl, gateTimes,
   trainingsart, setTrainingsart,
   notes, setNotes,
-  onDownload, onExportObsidian, coachFeedback = ""
+  onDownload, onExportObsidian, coachFeedback = "",
+  date, onCorrectDate, dateMoveBusy, canCorrectDate,
 }) {
   // Auf lg ist das Sheet ein rechter Drawer — dort keine Wisch-Geste
   const backdropRef = useRef(null);
@@ -36,6 +37,10 @@ export default function SidebarSheet({
           onExportObsidian={onExportObsidian}
           onClose={onClose}
           coachFeedback={coachFeedback}
+          date={date}
+          onCorrectDate={onCorrectDate}
+          dateMoveBusy={dateMoveBusy}
+          canCorrectDate={canCorrectDate}
         />
         <div className="h-8" />
       </div>

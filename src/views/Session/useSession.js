@@ -48,8 +48,29 @@ import { useSessionHistory } from './useSessionHistory.js';
 import { useSessionRuntimeSync } from './useSessionRuntimeSync.js';
 import { useSessionCrud } from './useSessionCrud.js';
 import { useSessionExport } from './useSessionExport.js';
+import { overlayEditorFields, prepareMovedSession } from '../../lib/moveSessionDate.js';
+import { relocateSession } from '@db';
 
 import { mergeDraftIntoExercises } from '../Plan/lib/sessionDraft.js';
+
+const PENDING_SESSION_KEY = 'fitness-pending-session-id';
+
+function consumePendingSessionId() {
+  try {
+    if (sessionStorage.getItem(PENDING_SESSION_KEY) === null) return null;
+    const raw = sessionStorage.getItem(PENDING_SESSION_KEY);
+    sessionStorage.removeItem(PENDING_SESSION_KEY);
+    return raw || null;
+  } catch {
+    return null;
+  }
+}
+
+function rememberPendingSessionId(sessionId) {
+  try {
+    sessionStorage.setItem(PENDING_SESSION_KEY, sessionId == null ? '' : String(sessionId));
+  } catch { /* Auswahl nach dem Remount ist dann die erste Einheit des Zieltags. */ }
+}
 
 export function useSession({ initialDate, initialDraft, recentDays = 7, coverageThreshold = 1.0, onDateChange = null }) {
   const draftAppliedRef = useRef(false);
@@ -69,7 +90,10 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   const [hint, setHint]             = useState(null);
   const [gaps, setGaps]             = useState([]);
   const [daySessions, setDaySessions] = useState([]);
-  const [sessionId, setSessionId]   = useState(null);
+  const [sessionId, setSessionId]   = useState(consumePendingSessionId);
+  const [dateMoveBusy, setDateMoveBusy] = useState(false);
+  const loadedRef = useRef(null);
+  const movingRef = useRef(false);
   const [autoSaveLabel, setAutoSaveLabel] = useState('');
   const [dirty, setDirty]           = useState(false);
   const [showMap, setShowMap]       = useState(false);
@@ -118,6 +142,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   // Removes) verloren. Jetzt: 1.5s nach der letzten Änderung wird tatsächlich
   // gespeichert, unabhängig von Tab-Lifecycle-Events.
   function scheduleAutoSave() {
+    if (movingRef.current) return;
     markGateActivity();
     setDirty(true);
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
@@ -175,6 +200,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     setCoachFeedback, setTrainingsart, setSessionMode,
     setActivity, setHasActivity, setActivityAddons,
     setSlots, setSessionGate,
+    onLoaded: (session) => { loadedRef.current = session; },
   });
 
   // ── Day sessions + hints ──────────────────────────────────────
@@ -241,6 +267,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
   }
 
   async function save(silent = false, overrides = {}) {
+    if (movingRef.current) return;
     if (!silent) setSaving(true);
     savingRef.current = true;
     const savedDate = date;
@@ -319,6 +346,59 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     };
   }, []);
 
+  async function correctSessionDate(newDate) {
+    if (movingRef.current) return;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(newDate || '')) || newDate === date) return;
+    movingRef.current = true;
+    setDateMoveBusy(true);
+    if (autoSaveTimerRef.current) { clearTimeout(autoSaveTimerRef.current); autoSaveTimerRef.current = null; }
+    dirtyRef.current = false;
+    setDirty(false);
+    const editor = overlayEditorFields(loadedRef.current, {
+      id: sessionId,
+      date,
+      block,
+      exercises,
+      effort,
+      location,
+      duration,
+      notes,
+      trainingsart,
+      sessionMode,
+      hasActivity,
+      activity,
+      slots,
+      sessionGate,
+      coachFeedback,
+      activityAddons,
+    });
+    try {
+      if (loadedRef.current) {
+        await relocateSession(date, sessionId, editor, newDate);
+      } else {
+        await saveSession(newDate, prepareMovedSession(editor, newDate).data, sessionId);
+      }
+      clearSessionRuntimeDraft(date, sessionId);
+      rememberPendingSessionId(sessionId);
+      showToast(`Datum → ${newDate}`);
+      setDateState(newDate);
+      onDateChange?.(newDate);
+    } catch (err) {
+      if (err?.code === 'copied-not-deleted') {
+        clearSessionRuntimeDraft(date, sessionId);
+        showToast('Neue Kopie gespeichert. Die alte Einheit ließ sich nicht löschen — nichts ist verloren.');
+      } else if (err?.code === 'target-occupied') {
+        showToast('An diesem Tag gibt es schon eine Einheit mit derselben Kennung.');
+      } else {
+        console.error('Datumskorrektur fehlgeschlagen:', err);
+        showToast('Datum konnte nicht geändert werden.');
+      }
+    } finally {
+      movingRef.current = false;
+      setDateMoveBusy(false);
+    }
+  }
+
   const { exportObsidian, handleDownload, moveSessionToDate } = useSessionExport({
     date, block, exercises, effort, location, duration, notes,
     recentSessions, setRecentSessions, setReDateEntry, showToast,
@@ -386,7 +466,12 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     save, selectSession, handleNewSession, handleDeleteSession, deleteSessionAtDate,
     startSessionGate, stopSessionGate,
     addEx, addFromTemplate, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, moveExercise, removeEx,
-    exportObsidian, handleDownload, moveSessionToDate,
+    exportObsidian, handleDownload, moveSessionToDate, correctSessionDate, dateMoveBusy,
+    canCorrectDate: Boolean(loadedRef.current) || sessionHasLoggedWorkout({
+      exercises, block,
+      activity: (sessionMode === 'cardio' || hasActivity) ? activity : null,
+      sessionGate,
+    }),
     scheduleAutoSave,
     // Gebündelte Übungs-Mutations-Handler + Quick-Input-State für
     // ExerciseList/SessionSlots (vorher 11 einzeln durchgereichte Props,
