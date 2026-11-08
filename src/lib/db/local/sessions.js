@@ -1,5 +1,6 @@
 import { api, localToday } from "./core";
 import { calculateProgressTrend } from "../shared/progressTrend.js";
+import { withDataOrigin, tagListDataOrigin, withoutDataOrigin, DATA_ORIGIN_LOCAL } from "../shared/origin.js";
 import { clearMonthlyReportCache } from "../../reportCache";
 
 function exerciseSets(exercise) {
@@ -23,7 +24,7 @@ export async function getSession(date = localToday(), id = null) {
   try {
     const qs = id ? `?date=${date}&id=${encodeURIComponent(id)}` : `?date=${date}`;
     const data = await api.get(`/session${qs}`);
-    return data?.data || null;
+    return withDataOrigin(data?.data || null, DATA_ORIGIN_LOCAL);
   } catch {
     return null;
   }
@@ -31,7 +32,7 @@ export async function getSession(date = localToday(), id = null) {
 
 export async function saveSession(date = localToday(), sessionData, id = null) {
   const qs = id ? `?date=${date}&id=${encodeURIComponent(id)}` : `?date=${date}`;
-  const res = await api.post(`/session${qs}`, sessionData || {});
+  const res = await api.post(`/session${qs}`, withoutDataOrigin(sessionData || {}));
   clearMonthlyReportCache();
   // sqliteSync durchreichen (server.mjs signalisiert damit einen verzögerten,
   // nicht-fatalen SQLite-Sync — der JSON-Save selbst war erfolgreich).
@@ -46,7 +47,7 @@ export async function saveSession(date = localToday(), sessionData, id = null) {
 export async function listSessionsForDate(date = localToday()) {
   try {
     const data = await api.get(`/sessions?date=${date}`);
-    return data?.sessions || [];
+    return tagListDataOrigin(data?.sessions || [], DATA_ORIGIN_LOCAL);
   } catch {
     return [];
   }
@@ -75,7 +76,7 @@ export async function deleteActivityAddon(date = localToday(), index) {
 export async function getRecentSessions(n = 10) {
   try {
     const data = await api.get(`/session/history?limit=${n}`);
-    return data?.sessions || [];
+    return tagListDataOrigin(data?.sessions || [], DATA_ORIGIN_LOCAL);
   } catch {
     return [];
   }

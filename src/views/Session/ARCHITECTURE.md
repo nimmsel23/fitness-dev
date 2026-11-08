@@ -154,3 +154,12 @@ weitergeleitet. VitalOS fängt dieselben IDs am Shell-Adapter ab und öffnet
 seine lokalen SixPack-/Skills-Wrapper. Das Eintragen abgeschlossener
 App-Workouts ins Fitness-Tageslog bleibt eine Funktion des VitalOS-Shell-
 Adapters.
+
+## Update 2026-11-08 — Datenquelle-Kennzeichnung (HOTLIST task 115)
+
+`SessionHeader.jsx` zeigt neben der Datumszeile einen Cloud/Lokal-Badge, wenn
+die Tages-Session(s) ein additives `_origin` tragen (gesetzt in `src/lib/db/`
+seit HOTLIST task 115: `listSessionsForDate`/`getSession`/`getSessionHistory`/
+`getDigestSessions` taggen Cloud-Rückgaben, die lokalen Gegenstücke setzen
+`local`; Schreibwege strippen `_origin`, damit es nie persistiert). Leerer
+Tag → kein Badge. Kein Änderung am Datenfluss sonst.

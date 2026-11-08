@@ -109,3 +109,11 @@ kennt der Digest nicht. Dagegen:
 `logbuchRoute.js` parst/baut den Hash; die URL ist die einzige Quelle: `App.jsx` (`buildHashRoute`)
 lässt Linse/Übung beim Neuschreiben stehen, das Logbuch spiegelt jeden Wechsel per `replaceState`
 zurück und reagiert auf `hashchange`. Ohne Linse im Link gilt weiter die zuletzt gewählte (localStorage).
+
+## Update 2026-11-08 — Datenquelle-Kennzeichnung (HOTLIST task 115)
+
+`useLogbook.js` leitet aus der `_origin`-Markierung der geladenen Digest-Sessions
+(additiv, gesetzt in `src/lib/db/` seit HOTLIST task 115) einen `dataOrigin`
+(`cloud` | `local`) ab und gibt ihn zurück; `index.jsx` zeigt ihn als kleinen
+Badge in der Kopfzeile (Tooltip: Cloud = Firestore-Monats-Digests, Lokal =
+offline/lokale API). Reine Anzeige, keine Änderung an Laden/Aggregieren.

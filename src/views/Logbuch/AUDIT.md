@@ -26,3 +26,9 @@ Makro-Sicht auf alle Sessions: pro Übung zuletzt/Gipfel/Rekorde, Rhythmus über
   Modus `load` — der Score ist dann das Körpergewicht-1RM, nicht die Wiederholungszahl.
 - `getSessionHistory(2000)` ist lokal ein Sessions-Limit, in Firestore ein Tage-Limit.
 - Kodex rendert alle Übungen ohne Virtualisierung — bei mehreren hundert Übungen Pagination ergänzen.
+
+## Update 2026-11-08 — Datenquelle-Kennzeichnung (HOTLIST task 115)
+
+Kopfzeile zeigt jetzt Cloud/Lokal-Badge aus `useLogbook().dataOrigin`
+(`_origin` der Digest-Sessions, gesetzt im `@db`-Barrel). Offen bewusst:
+Badge nur, wenn Sessions geladen sind (leeres Logbuch → keine Angabe).

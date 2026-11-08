@@ -16,6 +16,7 @@ import { setDoc, getDoc, getDocs, deleteDoc } from "./offline.js";
 
 import { db } from "../../../firebase.js";
 import { todayISO } from "../shared/utils.js";
+import { withDataOrigin, tagListDataOrigin, withoutDataOrigin, DATA_ORIGIN_CLOUD } from "../shared/origin.js";
 import { getUid, hasAuthSession, pingBridge } from "./core.js";
 import { getAllExercises } from "./kb.js";
 import { updateAnalyticsDoc, scheduleWeeklyReportRefreshForDate } from "./analysis.js";
@@ -129,9 +130,9 @@ export async function getSession(date = todayISO(), id = null) {
   if (!hasAuthSession()) return getLocalSession(date, id);
   const targetId = id ? `${date}__${id}` : date;
   const snap = await getDoc(doc(db, "fitness", getUid(), "sessions", targetId));
-  if (!snap.exists()) return { date, block: "", exercises: [], effort: null, mood: "", notes: "" };
+  if (!snap.exists()) return withDataOrigin({ date, block: "", exercises: [], effort: null, mood: "", notes: "" }, DATA_ORIGIN_CLOUD);
   const data = snap.data() || {};
-  return {
+  return withDataOrigin({
     date: data.date || date,
     block: "",
     effort: null,
@@ -140,10 +141,11 @@ export async function getSession(date = todayISO(), id = null) {
     ...data,
     id: id || null,
     exercises: Array.isArray(data.exercises) ? data.exercises : [],
-  };
+  }, DATA_ORIGIN_CLOUD);
 }
 
 export async function saveSession(date = todayISO(), sessionData, id = null) {
+  sessionData = withoutDataOrigin(sessionData);
   if (!hasAuthSession()) return saveLocalSession(date, sessionData, id);
   if (isActivityOnly(sessionData)) {
     const canonicalRef = doc(db, "fitness", getUid(), "sessions", date);
@@ -249,7 +251,7 @@ export async function listSessionsForDate(date = todayISO()) {
     where("date", "==", date)
   );
   const snap = await getDocs(q);
-  return snap.docs.map((d) => {
+  return tagListDataOrigin(snap.docs.map((d) => {
     const data = d.data() || {};
     const suffix = d.id.includes("__") ? d.id.split("__")[1] : null;
     return {
@@ -260,7 +262,7 @@ export async function listSessionsForDate(date = todayISO()) {
       ...data,
       exercises: Array.isArray(data.exercises) ? data.exercises : [],
     };
-  }).sort((a, b) => String(a.saved_at).localeCompare(String(b.saved_at)));
+  }).sort((a, b) => String(a.saved_at).localeCompare(String(b.saved_at))), DATA_ORIGIN_CLOUD);
 }
 
 export async function getRecentSessions(n = 10) {
@@ -271,7 +273,7 @@ export async function getRecentSessions(n = 10) {
     limit(n),
   );
   const snap = await getDocs(q);
-  return snap.docs
+  return tagListDataOrigin(snap.docs
     .map((d) => {
       const data = d.data() || {};
       const suffix = d.id.includes("__") ? d.id.split("__")[1] : null;
@@ -281,7 +283,7 @@ export async function getRecentSessions(n = 10) {
         exercises: Array.isArray(data.exercises) ? data.exercises : [],
       };
     })
-    .filter(Boolean);
+    .filter(Boolean), DATA_ORIGIN_CLOUD);
 }
 
 export async function getLatestSession() {
@@ -308,11 +310,11 @@ export async function getSessionHistory(days = 90) {
   if (!hasAuthSession()) return getLocalSessionHistory(days);
   const key = `${getUid()}:${days}`;
   const hit = historyCache.get(key);
-  if (hit && Date.now() - hit.at < HISTORY_TTL_MS) return copyHistory(await hit.promise);
+  if (hit && Date.now() - hit.at < HISTORY_TTL_MS) return tagListDataOrigin(copyHistory(await hit.promise), DATA_ORIGIN_CLOUD);
   const promise = fetchSessionHistory(days);
   historyCache.set(key, { at: Date.now(), promise });
   try {
-    return copyHistory(await promise);
+    return tagListDataOrigin(copyHistory(await promise), DATA_ORIGIN_CLOUD);
   } catch (err) {
     if (historyCache.get(key)?.promise === promise) historyCache.delete(key);
     throw err;

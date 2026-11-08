@@ -1,3 +1,10 @@
+## 2026-11-08 — Dashboard-Datenquelle: Cloud vs. lokal kennzeichnen
+
+- HOTLIST 2026-11-07 „Fitness Dashboard: Cloud vs. local unterscheiden" (task 115, Org-Task 20) umgesetzt: Lese-Rückgaben des `@db`-Barrels tragen additives `_origin: 'cloud' | 'local'` (neu `src/lib/db/shared/origin.js`) — `getSession`/`listSessionsForDate`/`getRecentSessions`/`getSessionHistory` in beiden Layern plus `getDigestSessions` (Firestore-Digest). Bestehende Felder (insb. `source` im Katalog-Kontext) unberührt.
+- Schreibwege strippen `_origin` (`withoutDataOrigin`-Guard in lokal + Firestore `saveSession`), damit der reine Anzeige-Marker nie persistiert; 4 Helper-Unit-Tests grün.
+- Sichtbarkeit: Badge neben der Datumszeile im `SessionHeader` (Herkunft des geladenen Tages) und im Logbuch-Kopf (`useLogbook().dataOrigin`, Digest-Herkunft); leerer Tag/leeres Logbuch → kein Badge. View-Doku nachgezogen (Session/ARCHITECTURE, Logbuch/ARCHITECTURE+AUDIT; Regel aus `views/Logbuch/AGENTS.md`).
+- Prüfung: 13 Logbuch-Regressionstests + 4 Helper-Tests grün; `esbuild`-Syntaxcheck der JSX-/JS-Dateien grün. `firestore/offline.test.mjs` scheitert identisch auf jungfräulichem `origin/dev` (Bestandsbefund, Firebase-Env). Kein `master`/Force/Store/Deploy von Hand; Veröffentlichung siehe AL-LOG-Tagessektion.
+
 ## 2026-11-07 — CI-Agent-Fix: gh pr list Feld korrigiert
 
 - Journal-Run 42416606547 scheiterte vor Gemini: GitHub CLI meldete `Unknown JSON field: baseRepository`; `gh pr list` beendete den Analyse-Step mit Exit 1. Kein Gemini-API-Key-Fehler.

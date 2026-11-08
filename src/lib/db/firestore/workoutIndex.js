@@ -35,6 +35,7 @@ import { getDoc, getDocs, setDoc, writeBatch } from "./offline.js";
 import { db } from "../../../firebase.js";
 import { getUid, hasAuthSession } from "./core.js";
 import { getSessionHistory as getLocalSessionHistory } from "../local/sessions.js";
+import { tagListDataOrigin, DATA_ORIGIN_CLOUD } from "../shared/origin.js";
 import { indexCutoffDate, localDateOf, monthOf, toIndexEntry } from "../../../views/SixPack/workoutDoc.js";
 import { sessionToDigest, LOGBOOK_DIGEST_SCHEMA } from "../../../views/Logbuch/logbookStats.js";
 
@@ -285,7 +286,7 @@ export async function getDigestSessions({ sinceDate = null } = {}) {
       from = localDateOf(d);
     }
     const snap = await getDocs(query(sessionsCol(), where("date", ">=", from), orderBy("date", "desc")));
-    return snap.docs.map((d) => sessionFromDoc(d.id, d.data() || {}));
+    return tagListDataOrigin(snap.docs.map((d) => sessionFromDoc(d.id, d.data() || {})), DATA_ORIGIN_CLOUD);
   }
 
   try { await compactWorkoutIndex(); } catch (err) { console.warn("[workoutIndex] Verdichtung fehlgeschlagen", err); }
@@ -308,7 +309,7 @@ export async function getDigestSessions({ sinceDate = null } = {}) {
       sessions.push(sessionFromDoc(id, digest));
     });
   });
-  return sessions;
+  return tagListDataOrigin(sessions, DATA_ORIGIN_CLOUD);
 }
 
 /** Komplette Historie fürs Logbuch / Trainingsprotokoll. */

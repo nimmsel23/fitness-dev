@@ -65,7 +65,7 @@ function Kpi({ label, value, sub }) {
 }
 
 export default function Logbuch({ onOpenSession, onInspectExercise, onSubNav }) {
-  const { loading, error, book, today, rebuild, rebuilding } = useLogbook();
+  const { loading, error, book, today, rebuild, rebuilding, dataOrigin } = useLogbook();
   const [lens, setLensState] = useState(readLens);
   const [query, setQuery] = useState('');
   const [block, setBlock] = useState('alle');
@@ -166,7 +166,16 @@ export default function Logbuch({ onOpenSession, onInspectExercise, onSubNav }) 
           <RefreshCw size={13} className={rebuilding ? 'animate-spin' : ''} />
         </button>
         <h2 className="text-[11px] font-black uppercase tracking-[0.3em]" style={dim(0.6)}>Logbuch</h2>
-        <p className="text-[10px] font-bold" style={dim(0.45)}>
+        <p className="text-[10px] font-bold flex items-center gap-1.5" style={dim(0.45)}>
+          {dataOrigin && (
+            <span
+              className="text-[8px] font-bold uppercase tracking-[0.15em] px-1.5 py-[2px] rounded shrink-0"
+              style={{ color: 'var(--dim)', background: 'var(--bg2)', border: '1px solid var(--line)' }}
+              title={dataOrigin === 'cloud' ? 'Datenquelle: Cloud (Firestore-Monats-Digests)' : 'Datenquelle: Lokal (offline / lokale API)'}
+            >
+              {dataOrigin === 'cloud' ? 'Cloud' : 'Lokal'}
+            </span>
+          )}
           {book.firstDate ? `Alles seit ${new Date(`${book.firstDate}T12:00:00`).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}` : 'Noch keine Einträge'}
         </p>
       </header>

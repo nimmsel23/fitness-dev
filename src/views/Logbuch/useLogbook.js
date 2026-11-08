@@ -14,6 +14,9 @@ import { buildLogbook } from './logbookStats.js';
 
 export function useLogbook() {
   const [state, setState] = useState({ loading: true, error: false, sessions: [] });
+  // HOTLIST 2026-11-07 (task 115): `_origin` der geladenen Digest-Sessions —
+  // 'cloud' | 'local', null solange nichts geladen/leer.
+  const [dataOrigin, setDataOrigin] = useState(null);
 
   const [reloadTick, setReloadTick] = useState(0);
   const [rebuilding, setRebuilding] = useState(false);
@@ -33,13 +36,14 @@ export function useLogbook() {
       .then((h) => {
         if (!alive) return;
         const list = Array.isArray(h) ? h : [];
+        setDataOrigin(list.find((s) => s?._origin)?._origin || null);
         setState({ loading: false, error: false, sessions: mergeSessionRuntimeDraftsIntoHistory(list) });
       })
-      .catch(() => { if (alive) setState({ loading: false, error: true, sessions: [] }); });
+      .catch(() => { if (alive) { setDataOrigin(null); setState({ loading: false, error: true, sessions: [] }); } });
     return () => { alive = false; };
   }, [reloadTick]);
 
   const today = localToday();
   const book = useMemo(() => buildLogbook(state.sessions, today), [state.sessions, today]);
-  return { loading: state.loading, error: state.error, book, today, rebuild, rebuilding };
+  return { loading: state.loading, error: state.error, book, today, rebuild, rebuilding, dataOrigin };
 }

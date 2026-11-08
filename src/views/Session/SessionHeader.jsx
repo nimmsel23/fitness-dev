@@ -30,6 +30,11 @@ export default function CalmHeader({
   const { today, allDays, stripRef, dateInputRef, dateLabel, goBack, goFwd, jumpToDate } =
     useDayStrip({ date, setDate, rollingDays });
 
+  // HOTLIST 2026-11-07 (task 115): Datenquelle des geladenen Tages kenntlich
+  // machen — Lese-Rueckgaben des @db-Barrels tragen additives `_origin:
+  // 'cloud' | 'local'` (src/lib/db/shared/origin.js). Leerer Tag → kein Badge.
+  const dayOrigin = daySessions?.find?.((s) => s?._origin)?._origin || null;
+
   // Solo-Build: Tagesleiste standardmäßig nur wenige Tage um das gewählte Datum,
   // "…" links zoomt auf die volle, scrollbare Leiste. Session wird bei jedem
   // Datumswechsel neu gemountet → nach der Auswahl klappt sie von selbst zu.
@@ -55,7 +60,18 @@ export default function CalmHeader({
           <div className="text-[10px] font-semibold tracking-wide" style={{ color: 'var(--dim)', opacity: 0.55 }}>
             Session
           </div>
-          <div className="text-base font-bold truncate" style={{ color: 'var(--ink)' }}>{dateLabel}</div>
+          <div className="text-base font-bold truncate flex items-center gap-1.5" style={{ color: 'var(--ink)' }}>
+            {dateLabel}
+            {dayOrigin && (
+              <span
+                className="text-[8px] font-bold uppercase tracking-[0.15em] px-1.5 py-[2px] rounded shrink-0"
+                style={{ color: 'var(--dim)', background: 'var(--bg2)', border: '1px solid var(--line)' }}
+                title={dayOrigin === 'cloud' ? 'Datenquelle: Cloud (Firestore)' : 'Datenquelle: Lokal (offline / lokale API)'}
+              >
+                {dayOrigin === 'cloud' ? 'Cloud' : 'Lokal'}
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           {dirty && !autoSaveLabel && (
