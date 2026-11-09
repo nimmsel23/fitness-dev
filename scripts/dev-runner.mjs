@@ -11,15 +11,21 @@ function run(cmd, args, env = {}) {
     shell: false,
     env: { ...process.env, ...env },
   })
-  p.on('error', err => { console.error(`[${cmd}]`, err.message); process.exit(1) })
+  p.on('error', (err) => {
+    console.error(`[${cmd}]`, err.message)
+    process.exit(1)
+  })
   return p
 }
 
 function portInUse(port) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const c = createConnection({ port, host: '127.0.0.1' })
-    c.on('connect', () => { c.destroy(); resolve(true) })
-    c.on('error',   () => resolve(false))
+    c.on('connect', () => {
+      c.destroy()
+      resolve(true)
+    })
+    c.on('error', () => resolve(false))
   })
 }
 
@@ -35,5 +41,9 @@ if (alreadyRunning) {
 
 const vite = run('node', ['node_modules/.bin/vite'], { VITE_API_BASE: '' })
 
-process.on('SIGTERM', () => { vite.kill() })
-process.on('SIGINT',  () => { vite.kill() })
+process.on('SIGTERM', () => {
+  vite.kill()
+})
+process.on('SIGINT', () => {
+  vite.kill()
+})

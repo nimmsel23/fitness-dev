@@ -48,7 +48,12 @@
     "deploy:prev": "pnpm run deploy:preview",
     "build:prev": "pnpm run deploy:preview",
     "build:plan-data": "node scripts/build-plan-data.mjs",
-    "build:learn": "cd apps/learn && node scripts/ensure-kb-data.mjs && VITE_APP_MODE=client node ../../node_modules/vite/bin/vite.js build --mode firebase --config vite.config.js"
+    "build:learn": "cd apps/learn && node scripts/ensure-kb-data.mjs && VITE_APP_MODE=client node ../../node_modules/vite/bin/vite.js build --mode firebase --config vite.config.js",
+    "tooling:biome": "pnpm dlx @biomejs/biome@2.6.6 check --formatter-enabled=true --linter-enabled=false --no-errors-on-unmatched scripts",
+    "tooling:knip": "pnpm dlx knip@6.44.2 --no-progress",
+    "tooling:check": "pnpm run tooling:biome && pnpm run tooling:knip",
+    "test": "node --test scripts/smoke.test.mjs",
+    "tooling:biome:lint": "pnpm dlx @biomejs/biome@2.6.6 check --formatter-enabled=true --linter-enabled=true --no-errors-on-unmatched scripts"
   },
   "dependencies": {
     "@capacitor/core": "^8.6.0",
@@ -66,7 +71,7 @@
     "@firebase/installations": "^0.6.24",
     "@firebase/logger": "^0.5.2",
     "@firebase/messaging": "^0.13.3",
-    "@firebase/util": "^1.15.3",
+    "@firebase/util": "^1.12.1",
     "@firebase/webchannel-wrapper": "^1.0.7",
     "@reduxjs/toolkit": "^2.13.0",
     "@standard-schema/spec": "^1.1.0",
@@ -132,5 +137,8 @@
     "tailwindcss": "^4.3.3",
     "vite": "^8.3.5",
     "vite-plugin-pwa": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=22.13"
   }
 }
