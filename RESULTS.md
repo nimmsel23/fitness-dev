@@ -1,3 +1,8 @@
+## 2026-11-09 — Bulk-Build: Yuhonas aus Vendor-JSON
+
+- `build-exercise-bulk-data.mjs` liest `vendor/free-exercise-db/dist/exercises.json`.
+- `unreviewed_yuhonas.yml` entfällt (KB-Dump entfernt).
+
 ## 2026-11-09 — CI: KB aus coach-dev einhängen
 
 Nach Entfernen von fitness/ braucht Check/Preview/Live-Deploy den KB-Symlink aus coach-dev.
