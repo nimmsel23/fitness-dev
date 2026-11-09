@@ -20,3 +20,19 @@ _Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen sta
 - Erledigt: Org-Task 20 / HOTLIST 115 (uuid 5cb68a91-909b-4871-b3ee-aaad3d69985a, CEO-Freigabe 2026-11-07) umgesetzt — additives `_origin: 'cloud'|'local'` auf den Session-/Digest-Lesepfaden (src/lib/db/shared/origin.js + local/firestore sessions/workoutIndex), Badge in SessionHeader + Logbuch-Kopf, `_origin` wird beim Schreiben gestrippt; View-Doku (Session/ARCHITECTURE, Logbuch/ARCHITECTURE+AUDIT). Commit `b6e2b74` (+ dieser AL-LOG-Commit) auf `dev`. Tests: origin.test.mjs 4/4, Logbuch 13/13, Pre-Commit `eslint src/` grün.
 - Offen/Weiter: Check (Fitness) auf `dev` angestoßen — Run-Nachweis im Abteilungslog (fitness-dev.log, Lauf 2026-11-08); Auto-Promote → Live-Deploy erst über Release-PR (keine offen, keine ohne Freigabe angelegt). Org-Task 20 bleibt offen bis Abnahme (CI + Live-Deploy grün).
 - Blocker: keine. Nebenbefunde: `firestore/offline.test.mjs` scheitert vorbefindet auch auf origin/dev (nicht durch diesen Lauf); Checkout-`dev` 43 Commits hinter origin/dev, Lokal-Commit `7339cf2` nur lokal; `M docs/CLAUDE.md` fremd-uncommittet, nur gemeldet, unberührt. Deviation: Commit-Trailer Mistral Vibe statt Guide-Vorgabe Claude (Lauf lief unter Vibe).
+
+## 2026-11-09 (Montag) — Abteilungsleiter-Lauf
+
+_Automatik (vos-al-log Vorlage 2026-11-09):_
+- Commits seit 2026-11-08: (keine Commits seit 2026-11-08 02:00 — lauftypischer Erstlauf oder nichts gemergt)
+- Offene PRs: (keine offenen PRs / gh nicht verfuegbar)
+- CI (letzte Läufe): completed	success	PR-AutoMerge (Dependabot -> dev)	PR-AutoMerge (Dependabot -> dev)	master	schedule	42551321603	8s	2026-11-09T02:30:30Z
+completed	success	Auto-Promote dev -> master (Check (Fitness))	Auto-Promote dev -> master (Check (Fitness))	master	schedule	42548768661	9s	2026-11-09T02:03:12Z
+completed	success	Merge-Agent	Merge-Agent	master	schedule	42548450611	7s	2026-11-09T01:59:48Z
+- Arbeitsbaum: 1 uncommittete Pfade
+
+_Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen statt Erzählung):_
+- Erledigt: Org-Task 28 (uuid 7bf1db9e) — HOTLIST-115 Release-Kette verifiziert: `b6e2b74`/`fca8d65` in `origin/master`; Auto-Promote success `42451968570` (2026-11-08T05:44:57Z); Live Deploy success `42451980353` headSha `fca8d65`; Check zuvor grün `42441867294`/`42441867309`. Org-Task 20 (uuid 5cb68a91) + Task 28 geschlossen. turn_limit-Nachtrag 08.11. hiermit nachgezogen.
+- Offen/Weiter: Org-Task 18 (uuid ca183b8c) RESULTS.md `.gitignore`-Eintrag entfernen (Tracking bleibt); Checkout `dev` lokal 56 hinter `origin/dev`, Lokal-Commit `7339cf2` nur lokal; `M docs/CLAUDE.md` fremd, unberührt. Dependabot-Commits auf `origin/dev` (u. a. `e7bf63e`) noch nicht auf `master` (Auto-Promote zuletzt oft skipped).
+- Blocker: keine. AUTOMATION: Release-Abnahme (Check/Promote/Live-Deploy zu Commit) manuell per `gh run list/view` — Vorschlag `vos-al-release-check <repo> <sha>` — Ersparnis ~5–10 Min/AL-Lauf.
+
