@@ -1,3 +1,8 @@
+## 2026-11-09 — anatomy-kb Ownership → Coach
+
+- Baum nach `~/dev/coach-dev/anatomy-kb/` verschoben; hier nur noch Symlink.
+- Skills unter `skills/{anatomy,fitness}-agent/` → Redirect auf Coach-Canonical.
+
 ## 2026-11-09 — Learn 3D: BodyParts3D
 
 - KB: `vendor/bodyparts3d/` Indexes + `registry/bp3d_kb_map.yml/.json` (catalog→FMA→OBJ).
