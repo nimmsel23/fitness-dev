@@ -18,8 +18,8 @@ Stand: 2026-11-09. Ehrliche Bestandsaufnahme (Repo + App), kein Wunschdenken.
 - Prod: Firebase-direkt (`@db` → Firestore), kein Server nötig
 - Dev: optional Proxy/Mock; `fitness-dev.service` derzeit **inactive**
 - Views inkl. Digest-Logbuch, Cloud/Local-Origin-Badge (Nov 2026)
-- Yuhonas CDN **gepinnt** (`yuhonas.ref` / `src/lib/yuhonas.pin.js`, gleicher SHA
-  wie plan-dev) — nicht mehr floating `@main`
+- Yuhonas CDN **gepinnt** (Atlas-Verbandspflaster für stabilen Betrieb; Expert-KB
+  = `kb/exercises` nach Inbox-Gate, kommt per Build als JS — nicht App-Kernpflege)
 - Plan kommt als Miniapp/Overlay (Sibling `plan-dev` / `fitness.ref`-Pin)
 
 ## Backend / Daten (fremd, konsumiert)

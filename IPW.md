@@ -38,8 +38,8 @@ Sonntags: Wochenbild verständlich — genug für Motivation, nicht für Datenba
 1. Ein neuer Klient trainiert in &lt;5 Minuten ohne Entwickler-Hilfe.
 2. Kein Support-Ticket „Plan fehlt / doppeltes Workout / falsche Übung“.
 3. Coach ändert Plan → Klient sieht nur die freigegebene Wahrheit.
-4. Yuhonas-/KB-Bilder und Namen wirken kuratiert, nicht wie Wiki-Müll.
-5. Repo enthält UI + Firebase-Verträge — Tooling lebt woanders.
+4. Freigegebene KB (Build-JS) trägt Detail-Features; Yuhonas bleibt nur Atlas-Fallback.
+5. Repo enthält UI + Firebase-Verträge — Catalog/Inbox lebt bei Coach.
 
 ## Vom FRAME hierher
 
