@@ -1,6 +1,7 @@
 # CLAUDE.md
 
-> **Node-Backend ausgelagert (2026-11-04):** `server.mjs` und Server-Code liegen in `~/dev/fitness-backend`. Dev-Scripts (`dev`/`start`) rufen `../fitness-backend/server.mjs` auf; Server-Doku in dessen `CLAUDE.md`. Dependencies dort pflegen, nicht hier.
+> **Node-Backend:** `~/dev/backend`. **Python `backend/` hier:** nicht per Subtree
+> extrahiert — behalten. Details: `docs/BACKEND-MOVED.md`.
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -190,16 +191,14 @@ um den Katalog zu erweitern), kein eigenständiges Backend. Details:
 
 ---
 
-## Backend (neu) — `backend/`
 
-Neues, schlankes Python-Backend (FastAPI + Firestore-Sync + Desktop-Meldungen), Ziel-Port 9150, nur 127.0.0.1,
-läuft standalone vom Repo-Root: `python3 -m backend serve` · `python3 -m backend sync pull|run|push sessions`.
-Details, Routen und Entscheidungen: `backend/README.md`. Kernpunkte: kein SQLite (die alte `training_history`
-hat keine UID-Spalte → Klienten kollidieren), JSON unter `~/.aos/fitness/users/<uid>/sessions/` ist die Quelle,
-eine Konfliktfunktion `decide()` für Pull/Daemon/Push, Löschen lokal mit Tombstone, `sync push` ist standardmäßig
-Dry-Run. Unit-Vorschläge unter `backend/deploy/` sind **nicht aktiv** — `fitness-api.service` (:9150) und
-`fitness-firestore-daemon.service` sind seit 2026-10-15 auf Wunsch gestoppt, dürfen nie parallel zu den neuen
-Prozessen auf denselben Daten schreiben. Frontend-Fork: `frontend/`, Notifications: `backend/notifier/`.
+## Backend
+
+- **Node:** `~/dev/backend` (ausgelagert).
+- **Coach-:9150 / Catalog-API:** `coach-dev` (anderer Stack).
+- **Python `backend/` in diesem Repo:** noch hier — **nicht** per Subtree
+  extrahiert (sync/notifier/pusher u. a.). Nicht löschen. Siehe
+  `docs/BACKEND-MOVED.md`.
 
 ## Push-Benachrichtigungen (Klienten-Workout → Coach)
 
@@ -210,7 +209,9 @@ dort liegt auch der Hash-Router. Details, Datenfluss, Deploy-Stand: `docs/PUSH-N
 
 ## Backend — Server-Rollen
 
-Der Node-Dev-Server (`server.mjs`, Hono, :9100, Swagger/Zod-Autodoc, Session-Storage) liegt in `~/dev/fitness-backend` (Doku dort in `CLAUDE.md`). Prod-Backend bleibt `fitness/api/main.py` (:9150, Python/FastAPI). Rollen-Tabelle und Datenpfade stehen im Backend-Repo.
+Node-Dev: `~/dev/backend`. Coach-/Catalog-API `:9150`: `coach-dev`. Nested
+Python-`backend/` hier: eigenes Paket, kein Subtree-Split — Details
+`docs/BACKEND-MOVED.md`.
 
 ## Commands
 

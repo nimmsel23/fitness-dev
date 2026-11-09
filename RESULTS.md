@@ -1,3 +1,9 @@
+## 2026-11-09 — Python-backend/ bleibt (kein Subtree)
+
+- Nested `backend/` war Verdacht „Kopie nach Node-Split“ — faktisch **eigenes**
+  Python-Paket (notifier/pusher/sync), nicht in coach-dev abgebildet.
+- Wiederhergestellt; Doku: `docs/BACKEND-MOVED.md`. Node-SOT weiter `~/dev/backend`.
+
 ## 2026-11-09 — Vite-8-Nachzug: test-sixpack-selection ohne transformWithEsbuild
 
 - `scripts/test-sixpack-selection.mjs` nutzt `esbuild.transform`; Dev-Dep `esbuild ^0.27.7` (Vite 8 liefert den Vite-Reexport nicht mehr).

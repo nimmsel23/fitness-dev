@@ -2,7 +2,11 @@
 
 `learn` gehört zu `fitness-dev`. Die eigenständig installierbare PWA bleibt unter `apps/learn` erhalten; Einstieg: `npm run build:learn`. Die Hosting-Zuordnung ist im Firebase-Manifest dieses Repos hinterlegt. Kein Deploy wurde ausgeführt.
 
-Der Node-Backend-Quellstand liegt in `~/dev/backend/`: Hono-Server am Repo-Root, Cloud Functions unter `functions/fitness` und `functions/journal`, TaskChampion-CORS-Proxy unter `scripts/`. Der bisherige Hono-Startpfad bleibt bis zum gemeinsamen Backend-Release kompatibel. Functions-Quellen und Paket-Manifeste liegen ausschließlich im Backend; die alten Frontend-Ordner behalten nur unbearbeitete Konfigurations-/Lockfile-Reste. Neue Backend-Änderungen ausschließlich dort. Die Functions-Deployment-Blöcke wurden aus den Frontend-Manifesten entfernt.
+Der Node-Backend-Quellstand liegt in `~/dev/backend/`: Hono-Server am Repo-Root, Cloud Functions unter `functions/fitness` und `functions/journal`, TaskChampion-CORS-Proxy unter `scripts/`. Der bisherige Hono-Startpfad bleibt bis zum gemeinsamen Backend-Release kompatibel. Functions-Quellen und Paket-Manifeste liegen ausschließlich im Backend; die alten Frontend-Ordner behalten nur unbearbeitete Konfigurations-/Lockfile-Reste. Neue Node-/Functions-Änderungen ausschließlich dort. Die Functions-Deployment-Blöcke wurden aus den Frontend-Manifesten entfernt.
+
+Das nested Python-`backend/` in diesem Repo (sync/notifier/pusher, …) wurde **nicht**
+per Subtree ausgelagert und bleibt hier — siehe `docs/BACKEND-MOVED.md`. Coach-:9150
+ist ein anderer Stack.
 
 Lockfiles werden auf ausdrücklichen Nutzerwunsch in diesem Schritt nicht bearbeitet. Workspace-Installationen in den angepassten Standalone-Workflows verwenden deshalb vorerst `--no-frozen-lockfile`. Backend-Tests werden in diesem Schritt nicht ausgeführt. Die Frontend-CI führt nur Frontend-Tests aus; Functions-Testdateien gehören zum gemeinsamen Backend. Backend-CI folgt mit dessen Release.
 
