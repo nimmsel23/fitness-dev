@@ -77,22 +77,21 @@ jobs:
             echo "$repo @ $(git -C "$repo" rev-parse --short HEAD)"
           done
 
-      - name: Checkout coach-dev (KB-SOT)
+      - name: Checkout fitness KB (SOT)
         uses: actions/checkout@v7
         with:
-          repository: nimmsel23/coach-dev
-          ref: dev
-          path: coach-dev
-          token: ${{ secrets.SYNC_TOKEN || github.token }}
+          repository: nimmsel23/fitness
+          ref: main
+          path: fitness-kb
 
-      - name: KB aus coach-dev einhängen
+      - name: KB einhängen
         run: |
           set -euo pipefail
-          # KB-SOT (fitness/catalog/kb) liegt in coach-dev — fitness-dev hat das Python-Paket entfernt.
+          # KB-SOT ist nimmsel23/fitness (in coach-dev nur als Submodul).
           mkdir -p fitness-dev/fitness/catalog
-          ln -sfn "$GITHUB_WORKSPACE/coach-dev/fitness/catalog/kb" fitness-dev/fitness/catalog/kb
+          ln -sfn "$GITHUB_WORKSPACE/fitness-kb" fitness-dev/fitness/catalog/kb
           test -d fitness-dev/fitness/catalog/kb/exercises/6pack
-          echo "KB @ $(git -C coach-dev rev-parse --short HEAD)"
+          echo "KB @ $(git -C fitness-kb rev-parse --short HEAD)"
 
       - uses: pnpm/action-setup@v6
         with:

@@ -52,22 +52,21 @@ jobs:
           git submodule sync --recursive
           git submodule update --init --recursive
 
-      # KB-SOT liegt in coach-dev (fitness/catalog/kb); fitness-dev hat das Python-Paket entfernt.
-      - name: Checkout coach-dev (KB-SOT)
+      # KB-SOT ist nimmsel23/fitness (in coach-dev nur als Submodul fitness/catalog/kb).
+      - name: Checkout fitness KB (SOT)
         uses: actions/checkout@v7
         with:
-          repository: nimmsel23/coach-dev
-          ref: dev
-          path: coach-dev
-          token: ${{ secrets.SYNC_TOKEN || github.token }}
+          repository: nimmsel23/fitness
+          ref: main
+          path: fitness-kb
 
-      - name: KB aus coach-dev einhängen
+      - name: KB einhängen
         run: |
           set -euo pipefail
           mkdir -p fitness-app/fitness/catalog
-          ln -sfn "$GITHUB_WORKSPACE/coach-dev/fitness/catalog/kb" fitness-app/fitness/catalog/kb
+          ln -sfn "$GITHUB_WORKSPACE/fitness-kb" fitness-app/fitness/catalog/kb
           test -d fitness-app/fitness/catalog/kb/exercises/6pack
-          echo "KB @ $(git -C coach-dev rev-parse --short HEAD)"
+          echo "KB @ $(git -C fitness-kb rev-parse --short HEAD)"
 
       - uses: pnpm/action-setup@v6
         with:
@@ -100,7 +99,7 @@ jobs:
             fitness-app/src/lib/db/shared/nonExercises.generated.js
             fitness-app/src/lib/coachNotesData.generated.js
             fitness-app/src/views/SixPack/sixpackData.generated.js
-          key: kb-data-${{ runner.os }}-${{ hashFiles('coach-dev/fitness/catalog/kb/**') }}
+          key: kb-data-${{ runner.os }}-${{ hashFiles('fitness-kb/**') }}
           restore-keys: kb-data-${{ runner.os }}-
 
       - name: Build Fitness
