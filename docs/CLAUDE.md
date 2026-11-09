@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 > **Backend-SOT:** Node + Python in `~/dev/backend` (`fitness/backend/` = Python).
-> Hier nur Symlink `backend`. Details: `docs/BACKEND-MOVED.md`.
+> Kein `backend/`-Ordner mehr in diesem Repo. Details: `docs/BACKEND-MOVED.md`.
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -195,7 +195,7 @@ um den Katalog zu erweitern), kein eigenständiges Backend. Details:
 ## Backend
 
 - **Node:** `~/dev/backend` (Repo-Root).
-- **Python:** `~/dev/backend/fitness/backend` — hier nur Symlink `backend` → dorthin.
+- **Python:** `~/dev/backend/fitness/backend` (nicht mehr in diesem Repo).
 - **Coach-:9150 / Catalog-API:** `coach-dev` (anderer Stack).
 - Details: `docs/BACKEND-MOVED.md`.
 

@@ -184,8 +184,6 @@ RSYNC_RUNTIME=(
   --include '/fitness/catalog/data_source_priority.yml'
   --include '/fitness/catalog/py.typed'
   --include '/fitness/' --include '/fitness/**/' --include '/fitness/**.py'
-  --include '/backend/sync/assets/logo.png'
-  --include '/backend/' --include '/backend/**/' --include '/backend/**.py'
   --include '/db/' --include '/db/**/' --include '/db/**.py'
   --include '/anatomy-kb/' --include '/anatomy-kb/anatomy_kb/'
   --include '/anatomy-kb/anatomy_kb/**/' --include '/anatomy-kb/anatomy_kb/**.py'
@@ -210,6 +208,18 @@ msg "📦 Syncing runtime files from $SOURCE → $DEST"
 # --delete-excluded removes old source/build-tool leftovers; P rules above
 # explicitly protect installed environments, configuration and runtime links.
 run_cmd rsync -aL --delete --delete-excluded "${RSYNC_RUNTIME[@]}" "$SOURCE/" "$DEST/"
+
+# Python-Paket (sync/notifier/pusher) SOT: ~/dev/backend/fitness/backend — nicht mehr im Frontend-Repo.
+FITNESS_PY_BACKEND="${FITNESS_PY_BACKEND:-$(dirname "$DEV_SOURCE")/backend/fitness/backend}"
+if [[ -d "$FITNESS_PY_BACKEND" ]]; then
+  msg "📦 Syncing Python backend from $FITNESS_PY_BACKEND → $DEST/backend"
+  run_cmd mkdir -p "$DEST/backend"
+  run_cmd rsync -a --delete \
+    --exclude '__pycache__' --exclude '*.pyc' --exclude '.venv' --exclude 'tests' \
+    "$FITNESS_PY_BACKEND/" "$DEST/backend/"
+else
+  msg "⚠️  FITNESS_PY_BACKEND fehlt ($FITNESS_PY_BACKEND) — sync/notifier nicht mitdeployt"
+fi
 
 # Central laptop-owned data survives deployments and removal of source repos.
 # Seed only missing files; never overwrite local approvals/enrichment.

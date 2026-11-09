@@ -1,3 +1,7 @@
+## 2026-11-09 — kein Backend-Symlink mehr
+
+- `backend/`-Symlink entfernt; Python-SOT nur `~/dev/backend/fitness/backend`. `deploy.sh` synct von dort.
+
 ## 2026-11-09 — Python-backend → ~/dev/backend/fitness/backend
 
 - Inhalt verschoben; `backend` hier = Symlink. Node unverändert Repo-Root von `~/dev/backend`.

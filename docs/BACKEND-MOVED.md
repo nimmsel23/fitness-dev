@@ -9,10 +9,13 @@ Hono/`server.mjs`, Cloud Functions: SOT in `~/dev/backend`.
 
 ## Python → `~/dev/backend/fitness/backend`
 
-Das ehemalige nested `fitness-dev/backend/` (FastAPI, sync/notifier/pusher, …)
-liegt jetzt unter **`~/dev/backend/fitness/backend`**.
+Ehemals nested hier. Kein Symlink mehr in diesem Repo.
 
-In diesem Repo ist `backend` ein **Symlink** dorthin, damit
-`python3 -m backend …` vom Repo-Root weitergeht.
+```bash
+cd ~/dev/backend/fitness && python3 -m backend serve
+```
 
-Coach-:9150 / `coach-dev` bleibt ein **anderer** Stack — nicht dasselbe Paket.
+`deploy.sh` synct das Paket aus `FITNESS_PY_BACKEND` (Default
+`../backend/fitness/backend`) nach Staging/`DEST/backend`.
+
+Coach-:9150 / `coach-dev` bleibt ein **anderer** Stack.
