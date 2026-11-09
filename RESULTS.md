@@ -1,3 +1,11 @@
+## 2026-11-09 — Backend-Breakthrough + Yuhonas-Pin
+
+- `docs/ARCHITECTURE.md` / Root-`ARCHITECTURE.md`: Breakthrough (Klient-Rolle,
+  KB in `~/dev/fitness`, API in Coach, Plan-Brücke).
+- Yuhonas CDN nicht mehr `@main`: `yuhonas.ref` + `src/lib/yuhonas.pin.js`
+  (gleicher SHA wie plan-dev); `yuhonasImage.js` / `exerciseDbs/sources.js`
+  nutzen den Pin. Vendor-Vollklon optional (liegt in plan-dev).
+
 ## 2026-11-08 — Dashboard-Datenquelle: Cloud vs. lokal kennzeichnen
 
 - HOTLIST 2026-11-07 „Fitness Dashboard: Cloud vs. local unterscheiden" (task 115, Org-Task 20) umgesetzt: Lese-Rückgaben des `@db`-Barrels tragen additives `_origin: 'cloud' | 'local'` (neu `src/lib/db/shared/origin.js`) — `getSession`/`listSessionsForDate`/`getRecentSessions`/`getSessionHistory` in beiden Layern plus `getDigestSessions` (Firestore-Digest). Bestehende Felder (insb. `source` im Katalog-Kontext) unberührt.
