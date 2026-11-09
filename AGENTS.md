@@ -88,3 +88,7 @@ Verbindlich fuer alle Agenten (Vibe, Claude, Codex, Gemini) in Org-Kontexten
 8. Uebersicht/Rang: `TASKRC=~/.local/state/vitalos-org/taskrc \
    ~/.org/venv/bin/python ~/aos/bin/aos door plan quadrants --json`
    (Eisenhower-Sicht Q1–Q4).
+
+## Python-`fitness.*` (Stand 2026-11-09)
+
+SOT: `~/dev/coach-dev/fitness` — dieses Repo hält **keine** Kopie mehr (war ~identisch, 174/176). `deploy.sh` synct aus Coach. Sessions-Backend: `~/dev/backend/fitness/backend`.

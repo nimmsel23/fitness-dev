@@ -1,22 +1,20 @@
-# Backend-Auslagerung
+# Backend- / Python-Auslagerung
 
 Stand: 2026-11-09.
 
-## Node → `~/dev/backend` (Root)
+## Node → `~/dev/backend`
 
-Hono/`server.mjs`, Cloud Functions: SOT in `~/dev/backend`.
-`package.json`/`dev-runner` zeigen auf `../backend/server.mjs`.
+Hono/`server.mjs`, Cloud Functions.
 
-## Python → `~/dev/backend/fitness/backend`
+## `fitness.*` Package → `~/dev/coach-dev/fitness`
 
-Kein `backend/` mehr in diesem Repo.
+Keine Kopie mehr in diesem Repo (war fast bytegleich). `deploy.sh` setzt
+`FITNESS_PY_PKG` (Default Coach).
 
-```bash
-cd ~/dev/backend/fitness && python3 -m backend serve
-```
+## Sessions-Python → `~/dev/backend/fitness/backend`
 
-**Coach übernimmt den Mount:** `coach-api.service` lädt dasselbe Paket unter
-`/fitness-api` (`COACH_FITNESS_BACKEND_ROOT=~/dev/backend/fitness`). Inbox/Catalog
-bleiben `coach-dev/fitness.api` — anderer Router-Stack im selben Prozess.
+Coach mountet unter `/fitness-api`. `deploy.sh` synct nach Staging/`DEST/backend`.
 
-`deploy.sh` synct das Paket aus `FITNESS_PY_BACKEND` nach Staging/`DEST/backend`.
+## Plan
+
+`plan-dev` hat kein Python-`fitness`-Paket mehr.

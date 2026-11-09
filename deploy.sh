@@ -173,21 +173,16 @@ RSYNC_RUNTIME=(
   --filter 'P /.venv/***'
   --filter 'P /.env*'
   --filter 'P /data/***'
-  --filter 'P /fitness/catalog/kb/***'
-  --filter 'P /fitness/catalog/state/***'
+  --filter 'P /fitness/***'
+  --filter 'P /backend/***'
   --exclude '__pycache__' --exclude '*.pyc' --exclude 'tests'
   --exclude '.git' --exclude 'node_modules' --exclude '.venv'
-  --exclude '/fitness/catalog/kb' --exclude '/fitness/catalog/state'
   --include '/dist/***'
-  --include '/fitness/catalog/dist/***'
-  --include '/fitness/catalog/config.yml'
-  --include '/fitness/catalog/data_source_priority.yml'
-  --include '/fitness/catalog/py.typed'
-  --include '/fitness/' --include '/fitness/**/' --include '/fitness/**.py'
   --include '/db/' --include '/db/**/' --include '/db/**.py'
   --include '/anatomy-kb/' --include '/anatomy-kb/anatomy_kb/'
   --include '/anatomy-kb/anatomy_kb/**/' --include '/anatomy-kb/anatomy_kb/**.py'
   --include '/scripts/' --include '/scripts/build-catalog.py'
+  --include '/deploy/' --include '/deploy/runtime-pyproject.toml'
   --include '/pyproject.toml' --include '/README.md'
   --exclude '*'
 )
@@ -209,7 +204,17 @@ msg "📦 Syncing runtime files from $SOURCE → $DEST"
 # explicitly protect installed environments, configuration and runtime links.
 run_cmd rsync -aL --delete --delete-excluded "${RSYNC_RUNTIME[@]}" "$SOURCE/" "$DEST/"
 
-# Python-Paket (sync/notifier/pusher) SOT: ~/dev/backend/fitness/backend — nicht mehr im Frontend-Repo.
+# fitness.* Package-SOT: coach-dev (fitness-dev hatte nur eine 174/176-Kopie).
+FITNESS_PY_PKG="${FITNESS_PY_PKG:-$HOME/dev/coach-dev/fitness}"
+[[ -d "$FITNESS_PY_PKG" ]] || die "fitness-Paket fehlt: $FITNESS_PY_PKG (Coach-SOT)"
+msg "📦 Syncing fitness package from $FITNESS_PY_PKG → $DEST/fitness"
+run_cmd mkdir -p "$DEST/fitness"
+run_cmd rsync -a --delete \
+  --exclude '__pycache__' --exclude '*.pyc' --exclude '.venv' --exclude 'tests' \
+  --exclude 'catalog/kb' --exclude 'catalog/state' \
+  "$FITNESS_PY_PKG/" "$DEST/fitness/"
+
+# Python backend (sync/notifier/pusher) SOT: ~/dev/backend/fitness/backend
 FITNESS_PY_BACKEND="${FITNESS_PY_BACKEND:-$(dirname "$DEV_SOURCE")/backend/fitness/backend}"
 if [[ -d "$FITNESS_PY_BACKEND" ]]; then
   msg "📦 Syncing Python backend from $FITNESS_PY_BACKEND → $DEST/backend"
@@ -228,8 +233,8 @@ STATE_SOURCE="$HOME/.aos/fitness/agent-state"
 KB_LINK="$DEST/fitness/catalog/kb"
 STATE_LINK="$DEST/fitness/catalog/state"
 mkdir -p "$KB_SOURCE" "$STATE_SOURCE"
-SEED_KB="$SOURCE/fitness/catalog/kb"
-[[ -d "$SEED_KB" ]] || SEED_KB="$DEV_SOURCE/fitness/catalog/kb"
+SEED_KB="$HOME/dev/fitness"
+[[ -d "$SEED_KB" ]] || SEED_KB="$FITNESS_PY_PKG/catalog/kb"
 if [[ -d "$SEED_KB" && "$(realpath "$SEED_KB")" != "$(realpath "$KB_SOURCE")" ]]; then
   rsync -aL --ignore-existing --exclude '.git' --exclude '__pycache__' "$SEED_KB/" "$KB_SOURCE/"
 fi
@@ -242,6 +247,13 @@ for link in "$KB_LINK" "$STATE_LINK"; do
     die "Existing data directory $link must be migrated to ~/.aos/fitness before deployment"
   fi
 done
+
+# Runtime-Pyproject kennt die gesyncten fitness/ + backend/-Bäume.
+if [[ -f "$DEST/deploy/runtime-pyproject.toml" ]]; then
+  run_cmd cp "$DEST/deploy/runtime-pyproject.toml" "$DEST/pyproject.toml"
+elif [[ -f "$SOURCE/deploy/runtime-pyproject.toml" ]]; then
+  run_cmd cp "$SOURCE/deploy/runtime-pyproject.toml" "$DEST/pyproject.toml"
+fi
 
 msg "📦 Installing Python runtime (no Node/Vite installation)"
 (

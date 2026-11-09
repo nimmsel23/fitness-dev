@@ -1,0 +1,61 @@
+# Staging/Prod-Manifest: nach rsync von coach-dev/fitness + backend/fitness/backend.
+# Nicht für den nackten fitness-dev-Checkout (dort fehlt fitness/).
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project]
+name = "fitness-agent"
+version = "0.1.0"
+description = "Assembled fitness runtime (coach fitness.* + backend package)"
+requires-python = ">=3.11"
+dependencies = [
+    "PyYAML>=6.0.3",
+    "fastapi>=0.162.0",
+    "uvicorn[standard]>=0.54.0",
+    "httpx>=0.28.1",
+    "rich>=15.0.0",
+    "loguru>=0.7.3",
+    "watchdog>=7.0.0",
+    "wasabi>=1.1.3",
+    "typer>=0.27.3",
+    "tqdm>=4.70.1",
+    "halo>=0.0.31",
+    "typing-extensions>=4.16.0",
+    "firebase-admin>=7.7.0",
+    "rapidfuzz>=3.14.6",
+    "textual>=8.2.8",
+    "pandas>=3.1.0",
+    "sqlalchemy>=2.1.6",
+    "alembic>=1.20.1",
+    "aiohttp>=3.14.5",
+]
+
+[project.scripts]
+fitness              = "fitness.cli:main"
+fitness-log          = "fitness.log.cli:main"
+fitness-tui          = "fitness.tui.cli:main"
+fitness-inbox        = "backend.notifier.cli:main"
+fitness-push         = "backend.pusher.cli:main"
+fitness-activity     = "fitness.activity.cli:main"
+fitness-mail         = "fitness.mail.cli:main"
+fitness-sync         = "fitness.sync.cli:main"
+firestore-sync       = "fitness.firestore.sync_cli:main"
+fitness-catalog      = "fitness.catalog.cli:main"
+fitness-catalog-api  = "fitness.api.main:main"
+fitness-api          = "fitness.api.main:main"
+anatomy-agent        = "anatomy_kb.cli:main"
+
+[tool.poetry]
+packages = [
+    { include = "fitness/**/*.py" },
+    { include = "backend/**/*.py" },
+    { include = "db" },
+    { include = "anatomy_kb", from = "anatomy-kb" },
+]
+include = [
+    { path = "fitness/catalog/config.yml", format = ["sdist", "wheel"] },
+    { path = "fitness/catalog/data_source_priority.yml", format = ["sdist", "wheel"] },
+    { path = "fitness/catalog/py.typed", format = ["sdist", "wheel"] },
+]
+exclude = ["fitness/catalog/state", "fitness/catalog/kb", "backend/tests"]

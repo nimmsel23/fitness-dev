@@ -1,3 +1,9 @@
+## 2026-11-09 — fitness.* Fork entfernt
+
+- `fitness/` war 174/176 identisch mit `coach-dev/fitness` (Coach neuer bei Workouts/Watcher).
+- Archiv: `~/dev/_archive/2026-11-09-fitness-dev-fitness-fork`. Deploy synct aus Coach.
+- Plan hat kein Python-`fitness` mehr.
+
 ## 2026-11-09 — Remote-vitalos gelöscht; Pre-Push ohne vitalos-Deploy
 
 `origin/vitalos` entfernt. Pre-Push: kein lokaler Firebase-Deploy mehr auf Branch vitalos; Reminder/Build auf `dev`.
