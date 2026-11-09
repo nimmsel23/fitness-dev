@@ -18,8 +18,7 @@ Stand: 2026-11-09. Ehrliche Bestandsaufnahme (Repo + App), kein Wunschdenken.
 - Prod: Firebase-direkt (`@db` → Firestore), kein Server nötig
 - Dev: optional Proxy/Mock; `fitness-dev.service` derzeit **inactive**
 - Views inkl. Digest-Logbuch, Cloud/Local-Origin-Badge (Nov 2026)
-- **Atlas-Tab:** aktive Übungs-DB anzeigen und ins IndexedDB laden; Default-Quelle
-  Yuhonas (Pin/CDN). Expert-KB = `kb/exercises` nach Inbox-Gate → Build-JS
+- Übungs-Default: Yuhonas-Pin (Pflaster). Expert-KB = `kb/exercises` nach Inbox → Build-JS
 - Plan kommt als Miniapp/Overlay (Sibling `plan-dev` / `fitness.ref`-Pin)
 
 ## Backend / Daten (fremd, konsumiert)
