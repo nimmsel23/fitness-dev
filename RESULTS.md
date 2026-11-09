@@ -1,3 +1,8 @@
+## 2026-11-09 — Shell-Pin auf origin/master (CI/AGENTS)
+
+CI: kein Auto-Vorspulen von `vitalos` mehr; Merge-Agent nur `master`; PR-Checks
+auf `[master, dev]`. AGENTS Release-Weg: `dev → master` + Shell-Pin.
+
 ## 2026-11-09 — kein Backend-Symlink mehr
 
 - `backend/`-Symlink entfernt; Python-SOT nur `~/dev/backend/fitness/backend`. `deploy.sh` synct von dort.

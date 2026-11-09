@@ -40,7 +40,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   `master`→`vitalos`-Merge + Deploy** (dünner Wrapper um
   `~/vitalos/bin/vos-release fitness`, verifiziert + branch-Fix
   2026-08-22). Er pusht `~/fitness-dev`s `dev`-Branch, mergt ihn in den
-  `~/vitalos/fitness-app`-Worktree, pusht dort — was den Post-Push-Hook
+  `~/vitalos/fitness-app`-Worktree, pinnt origin/master — der alte Post-Push-Hook
   triggert (`pnpm run firebase`: KB-Data-Rebuild → `vite build --mode
   firebase` → stamp-sw → snapshot → `firebase deploy --only hosting` nach
   `fitness-aos.web.app`) — und bumpt danach den Submodule-Pointer im
@@ -61,10 +61,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `~/vitalos/fitness-app` ist ein Git-**Worktree** von `~/fitness-dev`
   (`git worktree list` zeigt alle) — kein separater Clone. Der dort
   ausgecheckte Branch heißt **`vitalos`**, nicht mehr `master`
-  (umbenannt, `origin/HEAD` zeigt entsprechend auf `origin/vitalos`;
+  (umbenannt, `origin/HEAD` zeigt auf `origin/master` (Shell-Pin-Quelle);
   `~/vitalos/bin/vos-release` kannte diesen Rename bis 2026-08-22 nicht und
   scheiterte mit "Expected ... on branch master, found vitalos" — dort per
-  `TARGET_BRANCHES[fitness]="vitalos"` gefixt, andere Module in
+  `TARGET_BRANCHES[fitness]="master"` gefixt, andere Module in
   `vos-release` sind weiterhin `master`). **Dient nur dem `vitalos`-Merge +
   dem Firebase-Build/Deploy** — kein einziger laufender lokaler Server zeigt
   dorthin. Der eigentliche Dev-Server (Node `fitness-dev.service` :9100 +

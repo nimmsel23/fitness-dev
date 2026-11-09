@@ -3,7 +3,7 @@
 # Gleicher Aufbau wie preview-dev.yml (Meta-Repo vitalos liefert die Nachbar-
 # Repos, dieses Submodul wird auf den geprüften Commit gesetzt), aber ohne
 # Pfadfilter, ohne Secrets für Firebase und ohne Preview – so wird jeder PR
-# (auch Dependabot, Doku ausgenommen) geprüft, bevor er nach vitalos wandert.
+# (auch Dependabot, Doku ausgenommen) geprüft, bevor er nach master (Standalone/Shell-Pin) wandert.
 
 name: Check (Fitness)
 
@@ -12,7 +12,7 @@ on:
   push:
     branches: [dev]
   pull_request:
-    branches: [vitalos, master, dev]
+    branches: [master, dev]
 
 concurrency:
   group: check-${{ github.ref }}

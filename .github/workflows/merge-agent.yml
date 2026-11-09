@@ -1,12 +1,12 @@
 name: Merge-Agent
 
 # Automatisches Mergen offener PRs auf die Ziel-Branches (TARGET_BRANCHES,
-# z. B. "vitalos master" fuer die Sync-PRs master -> vitalos). Der Agent weist
+# Ziel: master (Standalone + Shell-Pin-Quelle). Der Agent weist
 # keine PRs ab und closed nie einen PR: mergebar + vorhandene Checks gruen
 # (oder keine Checks) -> Squash-Merge; Konflikte -> gh pr update-branch, sonst
 # nur ein [merge-agent]-Kommentar (einmalig pro PR).
 # Head-Branch wird nur bei dependabot/* nach dem Merge geloescht (niemals
-# master/dev/vitalos/main - die Sync-PRs haben master als Head!).
+# master/dev/main — Dependabot-Heads werden nach Merge geloescht).
 # Trigger: pull_request, Cron alle 15 Min. (nur auf dem Default-Branch aktiv),
 # workflow_dispatch. Cron als Minutenliste, weil GitHub "*/15 * * * *" als
 # ungueltig ablehnt und das ganze Workflow-File dann nicht mehr laedt.
@@ -29,7 +29,7 @@ permissions:
   issues: write
 
 env:
-  TARGET_BRANCHES: "vitalos master"
+  TARGET_BRANCHES: "master"
   GH_TOKEN: ${{ secrets.SYNC_TOKEN || github.token }}
 
 jobs:

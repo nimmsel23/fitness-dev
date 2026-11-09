@@ -33,7 +33,7 @@ done
 remote_sha=$(git -C "$REPO" ls-remote origin refs/heads/dev | cut -f1)
 [ "$remote_sha" = "$SHA" ] || { echo "[ship-after-push] Push nicht angekommen (origin/dev=$remote_sha) — abgebrochen."; exit 0; }
 
-# 2. Release dev -> master -> vitalos
+# 2. Release dev -> Shell-Pin (vos-release)
 cd "$REPO" || fail "Repo nicht gefunden: $REPO"
 vos-ship fitness --yes || fail "vos-ship fitness gescheitert"
 
