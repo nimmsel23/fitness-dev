@@ -105,8 +105,10 @@ export async function getIdToken() {
   return user ? user.getIdToken() : null;
 }
 
-const DESKTOP_FITNESS_API_BASE = "http://127.0.0.1:6100/fitness";
-const FUNNEL_FITNESS_API_BASE = "https://ideapad.tail7a15d6.ts.net/fitness/fitness";
+// Funnel `/fitness` → `:9150/fitness/` (Prefix schon im Serve-Pfad).
+// Früher `:6100` Root → damals brauchte die Base `/fitness/fitness`.
+const DESKTOP_FITNESS_API_BASE = "http://127.0.0.1:9150/fitness";
+const FUNNEL_FITNESS_API_BASE = "https://ideapad.tail7a15d6.ts.net/fitness";
 const LOCAL_FITNESS_API_STORAGE_KEY = "fitness-local-api-base";
 
 function cleanApiBase(value) {
