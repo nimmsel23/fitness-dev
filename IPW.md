@@ -38,7 +38,8 @@ Sonntags: Wochenbild verständlich — genug für Motivation, nicht für Datenba
 1. Ein neuer Klient trainiert in &lt;5 Minuten ohne Entwickler-Hilfe.
 2. Kein Support-Ticket „Plan fehlt / doppeltes Workout / falsche Übung“.
 3. Coach ändert Plan → Klient sieht nur die freigegebene Wahrheit.
-4. Freigegebene KB (Build-JS) trägt Detail-Features; Yuhonas bleibt nur Atlas-Fallback.
+4. Freigegebene KB (Build-JS) trägt Detail-Features; Atlas spiegelt die aktive DB
+   (heute Yuhonas) zuverlässig ins IndexedDB.
 5. Repo enthält UI + Firebase-Verträge — Catalog/Inbox lebt bei Coach.
 
 ## Vom FRAME hierher
