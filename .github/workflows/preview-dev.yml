@@ -83,11 +83,17 @@ jobs:
           git submodule sync --recursive
           git submodule update --init --recursive
 
+      - name: Checkout coach-dev (KB-SOT)
+        uses: actions/checkout@v7
+        with:
+          repository: nimmsel23/coach-dev
+          ref: dev
+          path: coach-dev
+          token: ${{ secrets.SYNC_TOKEN || github.token }}
+
       - name: KB aus coach-dev einhängen
         run: |
           set -euo pipefail
-          git clone --depth 1 --branch dev \
-            "https://x-access-token:${{ secrets.SYNC_TOKEN || github.token }}@github.com/nimmsel23/coach-dev.git" coach-dev
           mkdir -p fitness-app/fitness/catalog
           ln -sfn "$GITHUB_WORKSPACE/coach-dev/fitness/catalog/kb" fitness-app/fitness/catalog/kb
           test -d fitness-app/fitness/catalog/kb/exercises/6pack
