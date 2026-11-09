@@ -19,12 +19,9 @@ const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 const STAMP_FILE = join(REPO, '.cache/kb-data/stamps.json');
 const FORCE = process.argv.includes('--force') || process.env.KB_DATA_FORCE === '1';
 
-// Nachbar-Checkouts wie in den Einzel-Skripten (build-sixpack-data.mjs, build-plan-data.mjs)
-const sibling = (names) => {
-  const dir = names.map((n) => join(REPO, '..', n)).find(existsSync);
-  if (!dir) throw new Error(`Checkout fehlt: ${names.map((n) => join(REPO, '..', n)).join(' | ')}`);
-  return dir;
-};
+// Nachbar-Checkouts wie in den Einzel-Skripten (build-sixpack-data.mjs, build-plan-data.mjs).
+// Weich: fehlt der Nachbar (schlanke CI), wird der abhängige Schritt übersprungen.
+const sibling = (names) => names.map((n) => join(REPO, '..', n)).find(existsSync) || null;
 const SIXPACK = sibling(['6pack-app', '6pack-dev']);
 const PLAN = sibling(['plan-app', 'plan-dev']);
 
@@ -63,7 +60,7 @@ const r = (...p) => join(REPO, ...p);
 const KB = r('fitness/catalog/kb');
 
 const STEPS = [
-  {
+  SIXPACK && {
     name: 'sixpack-data',
     script: r('scripts/build-sixpack-data.mjs'),
     inputs: [r('scripts/build-sixpack-data.mjs'), join(KB, 'exercises/6pack'), join(KB, 'exercises/calisthenics'), join(KB, 'muscles'), r('public/videos'), SIXPACK],
@@ -81,15 +78,15 @@ const STEPS = [
     inputs: [r('scripts/build-coaching-notes.mjs'), join(KB, 'coaching_notes')],
     outputs: [r('src/lib/coachNotesData.generated.js')],
   },
-  {
-    // Der Plan-Checkout liest und schreibt seinen eigenen Baum (REPO_ROOT = Plan-Wurzel),
-    // nicht den von fitness-dev.
+  // Plan-Checkout schreibt in seinen eigenen Baum. In Meta-CI kann plan-app
+  // hinter fitness-dev liegen (alte bulk-Skripte) — dann Skip statt rot.
+  PLAN && process.env.KB_DATA_SKIP_PLAN !== '1' && {
     name: 'plan-data',
     script: r('scripts/build-plan-data.mjs'),
     inputs: [r('scripts/build-plan-data.mjs'), join(PLAN, 'scripts'), join(PLAN, 'fitness/catalog/kb/exercises'), join(PLAN, 'fitness/catalog/kb/registry/non_exercises.yml'), join(PLAN, 'src/lib/db/shared/nonExercises.js')],
     outputs: ['exerciseBulkData', 'push', 'pull', 'legs'].map((n) => join(PLAN, `src/lib/db/firestore/${n}.generated.js`)),
   },
-];
+].filter(Boolean);
 
 let stamps = {};
 try { stamps = JSON.parse(readFileSync(STAMP_FILE, 'utf8')); } catch { /* kein Stempel: alles läuft */ }

@@ -105,3 +105,6 @@ jobs:
 
       - name: Build Fitness
         run: pnpm --filter ./fitness-app run build:firebase
+        env:
+          # plan-app-Pin im Meta kann hinter fitness-dev liegen (alte bulk-Skripte).
+          KB_DATA_SKIP_PLAN: "1"

@@ -129,6 +129,8 @@ jobs:
 
       - name: Build Fitness
         run: pnpm --filter ./fitness-app run build:firebase
+        env:
+          KB_DATA_SKIP_PLAN: "1"
 
       - name: Deploy Preview Channel
         id: firebase_deploy
