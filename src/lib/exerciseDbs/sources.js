@@ -1,4 +1,5 @@
 import { yuhonasImageUrl } from '../yuhonasImage.js'
+import { YUHONAS_COMMIT } from '../yuhonas.pin.js'
 
 // Registry der Übungs-Datenbanken, die ein Gerät lokal spiegeln kann.
 // Jede Quelle liefert die Rohdaten 1:1 aus ihrem Git-Repo (kein Umbau, keine
@@ -33,7 +34,8 @@ async function yuhonasLatest() {
 
 async function yuhonasDownload() {
   const latest = await yuhonasLatest()
-  const ref = latest?.version || 'main'
+  // Prefer pinned commit (vendor/yuhonas.ref); latest() only for optional upgrades.
+  const ref = YUHONAS_COMMIT || latest?.version || 'main'
   const url = `https://raw.githubusercontent.com/${YUHONAS_REPO}/${ref}/${YUHONAS_FILE}`
   const res = await fetch(url)
   if (!res.ok) throw new Error(`Download fehlgeschlagen (HTTP ${res.status})`)

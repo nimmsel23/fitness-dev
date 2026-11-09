@@ -1,6 +1,7 @@
-// jsDelivr GitHub-CDN statt lokalem Bild-Spiegel — Repo ist public,
-// kein Storage-/Deploy-Aufwand für ~200MB Bilder nötig (siehe fitness/catalog/CLAUDE.md).
-const CDN_BASE = "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises";
+import { YUHONAS_CDN_EXERCISES } from './yuhonas.pin.js';
+
+// jsDelivr at pinned SHA — bump via: node scripts/sync-yuhonas-pin.mjs
+const CDN_BASE = YUHONAS_CDN_EXERCISES;
 
 export function yuhonasImageUrl(ex, frame = 0) {
   const ref = ex?.yuhonas_id || ex?.external_ids?.yuhonas?.[0];
