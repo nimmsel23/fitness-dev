@@ -77,6 +77,17 @@ jobs:
             echo "$repo @ $(git -C "$repo" rev-parse --short HEAD)"
           done
 
+      - name: KB aus coach-dev einhängen
+        run: |
+          set -euo pipefail
+          # KB-SOT (fitness/catalog/kb) liegt in coach-dev — fitness-dev hat das Python-Paket entfernt.
+          git clone --depth 1 --branch master \
+            "https://x-access-token:${{ secrets.SYNC_TOKEN || github.token }}@github.com/nimmsel23/coach-dev.git" coach-dev
+          mkdir -p fitness-dev/fitness/catalog
+          ln -sfn "$GITHUB_WORKSPACE/coach-dev/fitness/catalog/kb" fitness-dev/fitness/catalog/kb
+          test -d fitness-dev/fitness/catalog/kb/exercises/6pack
+          echo "KB @ $(git -C coach-dev rev-parse --short HEAD)"
+
       - uses: pnpm/action-setup@v6
         with:
           version: 11.3.0

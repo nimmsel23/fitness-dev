@@ -1,3 +1,7 @@
+## 2026-11-09 — CI: KB aus coach-dev einhängen
+
+Nach Entfernen von fitness/ braucht Check/Preview/Live-Deploy den KB-Symlink aus coach-dev.
+
 ## 2026-11-09 — Funnel-API-Base ohne `/fitness/fitness`
 
 - `src/lib/db/firestore/core.js`: Funnel-Base `…/fitness`, Desktop `:9150/fitness`.

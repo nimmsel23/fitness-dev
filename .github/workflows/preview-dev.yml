@@ -83,6 +83,15 @@ jobs:
           git submodule sync --recursive
           git submodule update --init --recursive
 
+      - name: KB aus coach-dev einhängen
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch master \
+            "https://x-access-token:${{ secrets.SYNC_TOKEN || github.token }}@github.com/nimmsel23/coach-dev.git" coach-dev
+          mkdir -p fitness-app/fitness/catalog
+          ln -sfn "$GITHUB_WORKSPACE/coach-dev/fitness/catalog/kb" fitness-app/fitness/catalog/kb
+          test -d fitness-app/fitness/catalog/kb/exercises/6pack
+
       - uses: pnpm/action-setup@v6
         with:
           version: 11.3.0
