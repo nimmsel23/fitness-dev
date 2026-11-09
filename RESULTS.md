@@ -1,3 +1,8 @@
+## 2026-11-09 — RESULTS.md aus .gitignore (Org-Task ca183b8c)
+
+- CEO-Ruling 2026-11-07: `RESULTS.md` bleibt getrackt; Eintrag aus `.gitignore` entfernt (Kommentar: Session-Handoff nur noch TODO/NEXT lokal).
+- Org-Task `ca183b8c` geschlossen; AL-LOG 2026-11-09 nachgezogen.
+
 ## 2026-11-09 — Python-backend/ bleibt (kein Subtree)
 
 - Nested `backend/` war Verdacht „Kopie nach Node-Split“ — faktisch **eigenes**
