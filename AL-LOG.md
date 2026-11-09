@@ -32,7 +32,7 @@ completed	success	Merge-Agent	Merge-Agent	master	schedule	42548450611	7s	2026-11
 - Arbeitsbaum: 1 uncommittete Pfade
 
 _Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen statt Erzählung):_
-- Erledigt: Org-Task 28 (uuid 7bf1db9e) — HOTLIST-115 Release-Kette verifiziert: `b6e2b74`/`fca8d65` in `origin/master`; Auto-Promote success `42451968570` (2026-11-08T05:44:57Z); Live Deploy success `42451980353` headSha `fca8d65`; Check zuvor grün `42441867294`/`42441867309`. Org-Task 20 (uuid 5cb68a91) + Task 28 geschlossen. turn_limit-Nachtrag 08.11. hiermit nachgezogen.
-- Offen/Weiter: Org-Task 18 (uuid ca183b8c) RESULTS.md `.gitignore`-Eintrag entfernen (Tracking bleibt); Checkout `dev` lokal 56 hinter `origin/dev`, Lokal-Commit `7339cf2` nur lokal; `M docs/CLAUDE.md` fremd, unberührt. Dependabot-Commits auf `origin/dev` (u. a. `e7bf63e`) noch nicht auf `master` (Auto-Promote zuletzt oft skipped).
-- Blocker: keine. AUTOMATION: Release-Abnahme (Check/Promote/Live-Deploy zu Commit) manuell per `gh run list/view` — Vorschlag `vos-al-release-check <repo> <sha>` — Ersparnis ~5–10 Min/AL-Lauf.
+- Erledigt: Org-Task 18 (uuid ca183b8c) — `RESULTS.md` aus `.gitignore` entfernt (Tracking bleibt, CEO-Ruling 2026-11-07); RESULTS/NEXT/AL-LOG mitgezogen auf `68d9428`. Vormittag: Org-Task 28/20 Release-Abnahme HOTLIST-115 (`dc73fd3`; Auto-Promote `42451968570`, Live Deploy `42451980353` @ `fca8d65`).
+- Offen/Weiter: fitness-dev Org-Queue leer; Check (Fitness) nach diesem Push abwarten. Basis `68d9428` (backend/ bleibt, BACKEND-MOVED). Gemini-CI-Agent echter Rotlauf + GitHub Pages `/docs` bleiben NEXT.
+- Blocker: keine. AUTOMATION: parallele Auto-Commits auf RESULTS/NEXT divergierten vom Worktree — Vorschlag Hook nur auf ausgechecktem Branch `dev` — Ersparnis ~5 Min Rebase/Neuaufsetzen.
 

@@ -52,10 +52,9 @@ src/views/SixPack/sixpackData.generated.js
 public/sixpack-photos/
 .claude/hooks/*.log
 
-# Session-Handoff (lokal, nicht versioniert — seit 2026-10-21)
+# Session-Handoff (TODO/NEXT lokal; RESULTS.md getrackt — CEO-Ruling 2026-11-07)
 TODO.md
 NEXT.md
-RESULTS.md
 .cache/
 
 # TWA (Android): Build-Artefakte und Schlüssel-Symlink
