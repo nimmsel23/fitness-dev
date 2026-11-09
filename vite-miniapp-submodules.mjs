@@ -15,12 +15,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 //
 // Quelle je Mini-App: Nachbar-Checkout neben `root` (`../plan-app` im vitalos-Workspace,
 // `../plan-dev` in ~/dev bzw. in der CI). Kein verschachtelter Fallback mehr.
+// Weich: fehlt der Nachbar (schlanke Journal/Habits-CI), wird diese Mini-App
+// übersprungen — Fitness-Live-Deploy klont die Nachbarn und behält volle Maps.
 function firstExisting(root, siblings) {
   for (const name of siblings) {
     const dir = resolve(root, '..', name)
     if (existsSync(dir)) return dir
   }
-  throw new Error(`Mini-App-Checkout fehlt: ${siblings.map((n) => resolve(root, '..', n)).join(' | ')}`)
+  return null
 }
 
 export function miniAppSubmodulePlugin(root = __dirname) {
@@ -29,19 +31,21 @@ export function miniAppSubmodulePlugin(root = __dirname) {
   const skillsRoot = firstExisting(root, ['skills-app', 'skills-dev'])
 
   const maps = [
-    {
+    planRoot && {
       local: resolve(root, 'src/views/Plan'),
       source: resolve(planRoot, 'src/views/Plan'),
     },
-    {
+    sixpackRoot && {
       local: resolve(root, 'src/views/SixPack'),
       source: sixpackRoot,
     },
-    {
+    skillsRoot && {
       local: resolve(root, 'src/views/Skills'),
       source: skillsRoot,
     },
-  ]
+  ].filter(Boolean)
+
+  const neighborRoots = [planRoot, sixpackRoot, skillsRoot].filter(Boolean)
 
   return {
     name: 'fitness-miniapp-submodule-source',
@@ -49,15 +53,11 @@ export function miniAppSubmodulePlugin(root = __dirname) {
     // CSS-/Asset-Importe der Mini-Apps ohne feste Relativpfade: `@import "@vos-6pack/sixpack.css"`
     // (postcss-import löst sie über resolve.alias auf, resolveId-Hooks sehen sie nicht).
     config() {
-      return {
-        resolve: {
-          alias: [
-            { find: /^@vos-6pack\//, replacement: `${sixpackRoot}/` },
-            { find: /^@vos-skills\//, replacement: `${skillsRoot}/` },
-            { find: /^@vos-plan\//, replacement: `${planRoot}/` },
-          ],
-        },
-      }
+      const alias = []
+      if (sixpackRoot) alias.push({ find: /^@vos-6pack\//, replacement: `${sixpackRoot}/` })
+      if (skillsRoot) alias.push({ find: /^@vos-skills\//, replacement: `${skillsRoot}/` })
+      if (planRoot) alias.push({ find: /^@vos-plan\//, replacement: `${planRoot}/` })
+      return { resolve: { alias } }
     },
     async resolveId(source, importer) {
       if (!importer || importer.startsWith('\0')) return null
@@ -70,7 +70,7 @@ export function miniAppSubmodulePlugin(root = __dirname) {
       if (!request.startsWith('.') && !isAbsolute(request)) {
         if (
           !importerPath.includes(`${sep}node_modules${sep}`) &&
-          [planRoot, sixpackRoot, skillsRoot].some((dir) => importerPath.startsWith(`${dir}${sep}`))
+          neighborRoots.some((dir) => importerPath.startsWith(`${dir}${sep}`))
         ) {
           const hit = await this.resolve(source, resolve(root, 'package.json'), { skipSelf: true })
           if (hit) return hit
@@ -85,6 +85,7 @@ export function miniAppSubmodulePlugin(root = __dirname) {
       // Fitness generates this data from its own exercise KB before building;
       // 6Pack's standalone source keeps the same import contract.
       if (
+        sixpackRoot &&
         importerPath.startsWith(`${sixpackRoot}/`) &&
         request === './sixpackData.generated.js'
       ) {
@@ -96,14 +97,16 @@ export function miniAppSubmodulePlugin(root = __dirname) {
       // (contexts, lib, components, hooks …). Importe daraus gehören zu den
       // Fitness-Gegenstücken, sonst entstehen zwei UserContext-Instanzen und der
       // Plan-Tab bricht ohne Provider ab.
-      const planSrc = resolve(planRoot, 'src')
-      const planViews = resolve(planSrc, 'views/Plan')
-      if (importerPath.startsWith(`${planViews}${sep}`)) {
-        const rel = relative(planSrc, target)
-        if (rel && !rel.startsWith('..') && !isAbsolute(rel) && !(target === planViews || target.startsWith(`${planViews}${sep}`))) {
-          const own = resolve(root, 'src', rel)
-          for (const candidate of [own, `${own}.js`, `${own}.jsx`, `${own}/index.js`, `${own}/index.jsx`]) {
-            if (existsSync(candidate) && statSync(candidate).isFile()) return candidate
+      if (planRoot) {
+        const planSrc = resolve(planRoot, 'src')
+        const planViews = resolve(planSrc, 'views/Plan')
+        if (importerPath.startsWith(`${planViews}${sep}`)) {
+          const rel = relative(planSrc, target)
+          if (rel && !rel.startsWith('..') && !isAbsolute(rel) && !(target === planViews || target.startsWith(`${planViews}${sep}`))) {
+            const own = resolve(root, 'src', rel)
+            for (const candidate of [own, `${own}.js`, `${own}.jsx`, `${own}/index.js`, `${own}/index.jsx`]) {
+              if (existsSync(candidate) && statSync(candidate).isFile()) return candidate
+            }
           }
         }
       }
