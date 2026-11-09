@@ -1,22 +1,18 @@
-# Backend: was ausgelagert ist — und was nicht
+# Backend-Auslagerung
 
 Stand: 2026-11-09.
 
-## Node → `~/dev/backend` (ausgelagert)
+## Node → `~/dev/backend` (Root)
 
 Hono/`server.mjs`, Cloud Functions: SOT in `~/dev/backend`.
-Nach Extraktion gehört der Node-Prefix **nicht** mehr in dieses Repo
-(idealerweise per `git subtree split`, danach Prefix im Parent löschen — nicht nur kopieren).
+`package.json`/`dev-runner` zeigen auf `../backend/server.mjs`.
 
-## Python `backend/` → **noch hier** (nicht sauber extrahiert)
+## Python → `~/dev/backend/fitness/backend`
 
-`fitness-dev/backend/` (FastAPI-Paket, sync/notifier/pusher, …) wurde **nicht**
-zuverlässig per Subtree in ein eigenes Repo gezogen. Coach-:9150 /
-`coach-dev/fitness/api` ist ein **anderer** Stack — nicht bytegleich mit diesem
-Baum (u. a. notifier/pusher/sync fehlen dort).
+Das ehemalige nested `fitness-dev/backend/` (FastAPI, sync/notifier/pusher, …)
+liegt jetzt unter **`~/dev/backend/fitness/backend`**.
 
-Solange kein Subtree-Split + Remote existiert: **dieses `backend/` ist die
-Arbeitskopie** — nicht löschen, nicht als „tote Kopie vom Node-Backend“ behandeln.
+In diesem Repo ist `backend` ein **Symlink** dorthin, damit
+`python3 -m backend …` vom Repo-Root weitergeht.
 
-Archiv-Spiegel (forensisch):  
-`~/dev/_archive/2026-11-09-nested-backend-copies/fitness-dev-backend`
+Coach-:9150 / `coach-dev` bleibt ein **anderer** Stack — nicht dasselbe Paket.

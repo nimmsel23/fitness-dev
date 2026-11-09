@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-> **Node-Backend:** `~/dev/backend`. **Python `backend/` hier:** nicht per Subtree
-> extrahiert — behalten. Details: `docs/BACKEND-MOVED.md`.
+> **Backend-SOT:** Node + Python in `~/dev/backend` (`fitness/backend/` = Python).
+> Hier nur Symlink `backend`. Details: `docs/BACKEND-MOVED.md`.
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -194,11 +194,10 @@ um den Katalog zu erweitern), kein eigenständiges Backend. Details:
 
 ## Backend
 
-- **Node:** `~/dev/backend` (ausgelagert).
+- **Node:** `~/dev/backend` (Repo-Root).
+- **Python:** `~/dev/backend/fitness/backend` — hier nur Symlink `backend` → dorthin.
 - **Coach-:9150 / Catalog-API:** `coach-dev` (anderer Stack).
-- **Python `backend/` in diesem Repo:** noch hier — **nicht** per Subtree
-  extrahiert (sync/notifier/pusher u. a.). Nicht löschen. Siehe
-  `docs/BACKEND-MOVED.md`.
+- Details: `docs/BACKEND-MOVED.md`.
 
 ## Push-Benachrichtigungen (Klienten-Workout → Coach)
 
@@ -209,9 +208,8 @@ dort liegt auch der Hash-Router. Details, Datenfluss, Deploy-Stand: `docs/PUSH-N
 
 ## Backend — Server-Rollen
 
-Node-Dev: `~/dev/backend`. Coach-/Catalog-API `:9150`: `coach-dev`. Nested
-Python-`backend/` hier: eigenes Paket, kein Subtree-Split — Details
-`docs/BACKEND-MOVED.md`.
+Node-Dev: `~/dev/backend`. Python: `~/dev/backend/fitness/backend`.
+Coach-/Catalog-API `:9150`: `coach-dev`. Details `docs/BACKEND-MOVED.md`.
 
 ## Commands
 

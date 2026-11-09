@@ -1,3 +1,0 @@
-#!/bin/sh
-# Kompatibilitätsweg zum installierten Python-Entry-Point im Repo-bin.
-exec "$(dirname "$(readlink -f "$0")")/../../../bin/fitness-inbox" "$@"
