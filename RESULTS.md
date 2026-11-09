@@ -1,7 +1,6 @@
-## 2026-11-09 — anatomy-kb Ownership → Coach
+## 2026-11-09 — anatomy-kb → shared Backend
 
-- Baum nach `~/dev/coach-dev/anatomy-kb/` verschoben; hier nur noch Symlink.
-- Skills unter `skills/{anatomy,fitness}-agent/` → Redirect auf Coach-Canonical.
+- SOT: `~/dev/backend/fitness/anatomy-kb/`; hier und in coach-dev nur Symlinks.
 
 ## 2026-11-09 — Learn 3D: BodyParts3D
 
