@@ -32,7 +32,7 @@ completed	success	Merge-Agent	Merge-Agent	master	schedule	42548450611	7s	2026-11
 - Arbeitsbaum: 1 uncommittete Pfade
 
 _Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen statt Erzählung):_
-- Erledigt: Org-Task 18 (uuid ca183b8c) — `RESULTS.md` aus `.gitignore` entfernt (Tracking bleibt, CEO-Ruling 2026-11-07); RESULTS/NEXT/AL-LOG mitgezogen auf `68d9428`. Vormittag: Org-Task 28/20 Release-Abnahme HOTLIST-115 (`dc73fd3`; Auto-Promote `42451968570`, Live Deploy `42451980353` @ `fca8d65`).
-- Offen/Weiter: fitness-dev Org-Queue leer; Check (Fitness) nach diesem Push abwarten. Basis `68d9428` (backend/ bleibt, BACKEND-MOVED). Gemini-CI-Agent echter Rotlauf + GitHub Pages `/docs` bleiben NEXT.
+- Erledigt: Org-Task 18 (uuid ca183b8c) — `RESULTS.md` aus `.gitignore` entfernt (Tracking bleibt, CEO-Ruling 2026-11-07); Commit `57b2c4f` (+ Auto `845cdb9`/`6630c03` RESULTS/NEXT) auf `origin/dev`. Vormittag: Org-Task 28/20 HOTLIST-115 (`dc73fd3`; Auto-Promote `42451968570`, Live Deploy `42451980353` @ `fca8d65`).
+- Offen/Weiter: fitness-dev Org-Queue leer; Check (Fitness) für `57b2c4f` abwarten. Basis `68d9428` (backend/ bleibt). Gemini-CI-Agent echter Rotlauf + GitHub Pages `/docs` bleiben NEXT.
 - Blocker: keine. AUTOMATION: parallele Auto-Commits auf RESULTS/NEXT divergierten vom Worktree — Vorschlag Hook nur auf ausgechecktem Branch `dev` — Ersparnis ~5 Min Rebase/Neuaufsetzen.
 
