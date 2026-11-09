@@ -1,3 +1,7 @@
+## 2026-11-09 — Remote-vitalos gelöscht; Pre-Push ohne vitalos-Deploy
+
+`origin/vitalos` entfernt. Pre-Push: kein lokaler Firebase-Deploy mehr auf Branch vitalos; Reminder/Build auf `dev`.
+
 ## 2026-11-09 — Coach mountet shared Fitness-Python
 
 - SOT bleibt `~/dev/backend/fitness/backend`; Coach default Root dorthin.
