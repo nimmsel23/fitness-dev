@@ -1,3 +1,7 @@
+## 2026-11-09 — CLAUDE-Orientierung ohne Fitness-Fork
+
+- Header/Backend-Sektion zeigen auf coach-dev + backend SOT.
+
 ## 2026-11-09 — fitness.* Fork entfernt
 
 - `fitness/` war 174/176 identisch mit `coach-dev/fitness` (Coach neuer bei Workouts/Watcher).

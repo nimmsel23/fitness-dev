@@ -4,8 +4,9 @@
 
 Der Node-Backend-Quellstand liegt in `~/dev/backend/`: Hono-Server am Repo-Root, Cloud Functions unter `functions/fitness` und `functions/journal`, TaskChampion-CORS-Proxy unter `scripts/`. Der bisherige Hono-Startpfad bleibt bis zum gemeinsamen Backend-Release kompatibel. Functions-Quellen und Paket-Manifeste liegen ausschließlich im Backend; die alten Frontend-Ordner behalten nur unbearbeitete Konfigurations-/Lockfile-Reste. Neue Node-/Functions-Änderungen ausschließlich dort. Die Functions-Deployment-Blöcke wurden aus den Frontend-Manifesten entfernt.
 
-Python-`backend/` (sync/notifier/pusher, …) liegt unter `~/dev/backend/fitness/backend`
-(kein Symlink hier). Coach-:9150 ist ein anderer Stack — siehe `docs/BACKEND-MOVED.md`.
+Python: `fitness.*` = `coach-dev/fitness` (Deploy synct); Sessions-`backend/` =
+`~/dev/backend/fitness/backend` (Coach mount `/fitness-api`). Siehe
+`docs/BACKEND-MOVED.md` und `~/dev/coach-dev/docs/OWNERSHIP-MAP.md`.
 
 Lockfiles werden auf ausdrücklichen Nutzerwunsch in diesem Schritt nicht bearbeitet. Workspace-Installationen in den angepassten Standalone-Workflows verwenden deshalb vorerst `--no-frozen-lockfile`. Backend-Tests werden in diesem Schritt nicht ausgeführt. Die Frontend-CI führt nur Frontend-Tests aus; Functions-Testdateien gehören zum gemeinsamen Backend. Backend-CI folgt mit dessen Release.
 

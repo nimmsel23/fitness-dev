@@ -1,17 +1,18 @@
 # CLAUDE.md
 
-> **Backend-SOT:** Node + Python in `~/dev/backend` (`fitness/backend/` = Python).
-> Kein `backend/`-Ordner mehr in diesem Repo. Details: `docs/BACKEND-MOVED.md`.
+> **Orientierung:** PWA hier. `fitness.*` = `~/dev/coach-dev/fitness`.
+> Sessions-Python = `~/dev/backend/fitness/backend` (Coach `/fitness-api`).
+> Node = `~/dev/backend`. Map: `~/dev/coach-dev/docs/OWNERSHIP-MAP.md`.
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **Sub-Docs (lies mit, je nach Bereich):**
-- `../fitness/CLAUDE.md` — Python-Backend (Prod-API :9150, Dispatcher, Alembic, Packages)
-- `../fitness/catalog/CLAUDE.md` — Katalog-/KB-Tool-Set (Sub-Package von `fitness/`: KB-Struktur, Coverage-Formel, Gemini-Enrichment)
+- `~/dev/coach-dev/fitness/CLAUDE.md` — Python-`fitness.*` (SOT, nicht mehr hier)
+- `~/dev/coach-dev/fitness/catalog/CLAUDE.md` — Catalog/KB-Tooling
 - `../src/CLAUDE.md` — React-Frontend (Tabs/Views, DB-Layer, Body-Highlighter, PWA/Offline, Session-JSON-Format)
 - `../anatomy-kb/CLAUDE.md` — Muskel-Anatomie-KB (Git Subtree, :9200)
 - `DEPLOY.md` — Release-Weg (`fitness-ship`), Lockfile-Stolpersteine, Standalone-Deploy ohne Meta-Repo, Shell-Kopplung, Fehlerbild→Ursache
-- `BACKEND.md` — server.mjs API-Autodoc (Swagger/OpenAPI) + Zod-Validierung, Node↔Python-Routen-Parität
+- `docs/BACKEND-MOVED.md` — wo Node/Python/`fitness.*` liegen
 
 ---
 
@@ -106,10 +107,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   reicht, `vitalos` muss dafür nicht angerührt werden.
   Push von `vitalos` passiert aus `~/vitalos/fitness-app` heraus (`git push`),
   nicht aus `~/fitness-dev` — von dort ist `vitalos` ja nicht ausgecheckt.
-- Live-KB-Pfad ist `fitness/catalog/kb/`. `catalog` ist Symlink darauf
-  (`catalog -> fitness/catalog`), `fitness_cli` Symlink auf `fitness` — kein
-  separater Alt-Baum mehr, alle drei Pfade sind identisch. Details zur
-  Katalog-Struktur: `../fitness/catalog/CLAUDE.md`.
+- KB-Daten-SOT: `~/dev/fitness` (auch Coach-Submodul `fitness/catalog/kb`).
+  Package-`fitness.*` und Catalog-CLI: `~/dev/coach-dev/fitness` — **nicht**
+  mehr in diesem Repo. Details: `../docs/BACKEND-MOVED.md`.
 - CLI-Binary heißt `fitness-catalog` (uv-Tool unter
   `~/.local/share/uv/tools/fitness-agent/bin/`), NICHT `fitness-agent` — die
   Skill-Doku ist hier veraltet. Domain-Dispatcher `fitness agent <cmd>` ruft
@@ -194,10 +194,11 @@ um den Katalog zu erweitern), kein eigenständiges Backend. Details:
 
 ## Backend
 
-- **Node:** `~/dev/backend` (Repo-Root).
-- **Python:** `~/dev/backend/fitness/backend` (nicht mehr in diesem Repo).
-- **Coach-:9150 / Catalog-API:** `coach-dev` (anderer Stack).
-- Details: `docs/BACKEND-MOVED.md`.
+- **Node:** `~/dev/backend`.
+- **`fitness.*`:** `~/dev/coach-dev/fitness` (Deploy synct hierher).
+- **Sessions-Python:** `~/dev/backend/fitness/backend` → Coach `/fitness-api`.
+- **Inbox/Catalog-HTTP:** `coach-dev` `:9150` (`fitness.api`).
+- Details: `docs/BACKEND-MOVED.md`, Ownership-Map in coach-dev.
 
 ## Push-Benachrichtigungen (Klienten-Workout → Coach)
 
