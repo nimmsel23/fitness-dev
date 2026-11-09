@@ -9,6 +9,8 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - rimraf@6.1.4
 overrides:
+  # 4.68.1 war zu frisch für pnpm minimumReleaseAge (24h) → Live Deploy rot
+  rollup: 4.68.0
   '@grpc/grpc-js@<1.13.6': '^1.14.6'
   'brace-expansion@<1.1.20': '^1.1.20'
   'brace-expansion@>=2.0.0 <2.1.7': '^2.1.7'
