@@ -1,3 +1,4 @@
+- ~~Vite-8 test-sixpack-selection~~: esbuild.transform statt transformWithEsbuild.
 # CI-Agent — offener Betriebspunkt
 
 - [x] `GEMINI_API_KEY` als Actions-Secret gesetzt; Agent und grüner Cloud-Lauf verifiziert. Ein echter roter Code-Reparaturlauf bleibt offen.

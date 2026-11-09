@@ -1,3 +1,8 @@
+## 2026-11-09 — Vite-8-Nachzug: test-sixpack-selection ohne transformWithEsbuild
+
+- `scripts/test-sixpack-selection.mjs` nutzt `esbuild.transform`; Dev-Dep `esbuild ^0.27.7` (Vite 8 liefert den Vite-Reexport nicht mehr).
+- `build.target`-Fix (`87d349c`) war schon da; dieser Nachzug schließt die zweite Vite-8-Landmine.
+
 ## 2026-11-09 — Backend-Breakthrough + Yuhonas-Pin
 
 - `docs/ARCHITECTURE.md` / Root-`ARCHITECTURE.md`: Breakthrough (Klient-Rolle,
