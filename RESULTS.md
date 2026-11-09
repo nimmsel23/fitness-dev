@@ -1,3 +1,8 @@
+## 2026-11-09 — Funnel-API-Base ohne `/fitness/fitness`
+
+- `src/lib/db/firestore/core.js`: Funnel-Base `…/fitness`, Desktop `:9150/fitness`.
+- Doppelpfad war Rest vom alten Funnel-auf-`:6100`-Root.
+
 ## 2026-11-09 — CLAUDE-Orientierung ohne Fitness-Fork
 
 - Header/Backend-Sektion zeigen auf coach-dev + backend SOT.
