@@ -1,3 +1,8 @@
+## 2026-11-09 — CI: rollup 4.68.0 Pin + soft kb-data
+
+- `rollup: 4.68.0` Override: 4.68.1 scheiterte an pnpm `minimumReleaseAge` (Live Deploy).
+- `build-kb-data.mjs`: Nachbarn soft; `KB_DATA_SKIP_PLAN=1` in Check/Preview (Meta-Pin kann alt sein).
+
 ## 2026-11-09 — anatomy-kb → shared Backend
 
 - SOT: `~/dev/backend/fitness/anatomy-kb/`; hier und in coach-dev nur Symlinks.
