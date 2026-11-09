@@ -1,3 +1,9 @@
+## 2026-11-09 — Learn 3D: BodyParts3D
+
+- KB: `vendor/bodyparts3d/` Indexes + `registry/bp3d_kb_map.yml/.json` (catalog→FMA→OBJ).
+- Learn: 2D/3D-Toggle in `AnatomyExplorer`; `BodyParts3DMesh` (three@0.170) lädt `public/anatomy/bp3d/*.obj`.
+- Fetch: `~/dev/fitness/scripts/fetch_bodyparts3d_meshes.sh …/public/anatomy/bp3d`.
+
 ## 2026-11-09 — Bulk-Build: Yuhonas aus Vendor-JSON
 
 - `build-exercise-bulk-data.mjs` liest `vendor/free-exercise-db/dist/exercises.json`.
