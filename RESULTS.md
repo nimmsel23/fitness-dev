@@ -1,3 +1,7 @@
+## 2026-11-09 — CI: soft Mini-App-Nachbarn im Vite-Plugin
+
+- `vite-miniapp-submodules.mjs`: fehlende plan/6pack/skills → Skip statt Throw (Journal/Habits-CI).
+
 ## 2026-11-09 — CI: rollup 4.68.0 Pin + soft kb-data
 
 - `rollup: 4.68.0` Override: 4.68.1 scheiterte an pnpm `minimumReleaseAge` (Live Deploy).
