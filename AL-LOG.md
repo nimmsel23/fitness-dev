@@ -61,6 +61,6 @@ completed	success	Live Deploy (Fitness master)	Live Deploy (Fitness master)	mast
 - Arbeitsbaum: 6 uncommittete Pfade
 
 _Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen statt Erzählung):_
-- Erledigt: Learn-3D Docs — `src/views/Learn/ARCHITECTURE.md` + `AUDIT.md` um BodyParts3DMesh / 2D·3D-Toggle / bp3dMap / statische three-Imports nachgezogen (NEXT Gemini-Review-Lücke). Commit folgt auf `dev` (+ dieser AL-LOG). CI zuletzt grün: Check `42736901020`, Auto-Promote `42737089092`, Live Deploy `42737114996` @ `a267062`.
+- Erledigt: Learn-3D Docs — `src/views/Learn/ARCHITECTURE.md` + `AUDIT.md` um BodyParts3DMesh / 2D·3D-Toggle / bp3dMap / statische three-Imports nachgezogen (NEXT Gemini-Review-Lücke). Commit `506cc02` auf `dev`. CI zuletzt grün: Check `42736901020`, Auto-Promote `42737089092`, Live Deploy `42737114996` @ `a267062`.
 - Offen/Weiter: Learn-3D Mesh-Lücken Abs/Lat/Rotator-Cuff; `bp3dMap.json` in `build:kb-data`; Gemini-CI echter Rotlauf + Pages `/docs` (NEXT). Org-Queue fitness-dev leer. Feature-Freeze bis 2027-02-07.
 - Blocker: keine. Fremd-WIP im Checkout (`deploy.sh`, skills/*, `fitness/catalog/`, NEXT/RESULTS) unberührt. AUTOMATION: vos-al-log-Vorlage nur im Checkout, nicht im Temp-Worktree — Prefill vor AL-Commit syncen — ~2 Min/Lauf.
