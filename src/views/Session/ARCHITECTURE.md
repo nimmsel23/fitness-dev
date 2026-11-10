@@ -5,10 +5,12 @@ Workout-Journal für Kraft- und Ausdauertraining. Zwei Session-Modi, Multi-Sessi
 **Produktvertrag (Owner 2026-11-10):** Der Session-Tab ist **nicht** für Live-Logging
 im Gym. Er dient dem **nachträglichen** Eintragen (Garderobe, abends, „was habe ich
 gemacht“) — Batch/retrospektiv. Features, die Stoppuhr-Live-Sätze, „jetzt trainieren“-
-Zwangsflows oder Habit-Abhaken ohne Log voraussetzen, verfehlen den Zweck. Bekanntes
-Fehlbild: `TodayPlan.jsx` ersetzt bei aktivem Makrozyklus den Editor durch einen
-Habit-Screen („erledigt“ ohne Sätze) — das ist für diesen Vertrag falsch; Plan soll
-Vorgaben in den Editor speisen, nicht den Journal-Flow ersetzen.
+Zwangsflows oder Habit-Abhaken ohne Log voraussetzen, verfehlen den Zweck.
+
+**Plan-Verzweigung (2026-11-10):** Bei aktivem Makrozyklus öffnet das SessionGate
+zuerst als Wahl: **Plan übernehmen** (Draft mit Zielnotizen in den Editor) oder
+**Manuell loggen**. `TodayPlan.jsx` ist nur noch der Hook `useTodayPlan`; der alte
+Habit-Screen ersetzt den Editor nicht mehr. UI: `GateNextPlanCard.jsx`.
 
 ## Komponenten
 
