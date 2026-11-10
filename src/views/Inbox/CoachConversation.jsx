@@ -1,7 +1,7 @@
 import { readConversationDraft, saveConversationDraft } from '../../lib/conversationDrafts.js';
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { loadCoachMessagePlan, markCoachConversationRead, sendCoachMessage, watchCoachMessages } from '../../lib/coachConversation.js';
-const PlanDocument = lazy(() => import('@vos-plan/src/views/Plan/PlanDocument.jsx'));
+import PlanDocument from '@vos-plan/src/views/Plan/PlanDocument.jsx';
 
 const millis = (value) => value?.toMillis?.() || 0;
 const time = (value) => value?.toDate?.().toLocaleString('de-AT') || 'Wird gesendet…';
@@ -73,7 +73,7 @@ export default function CoachConversation({ uid }) {
     finally { setSending(false); }
   }
   const seenAt = Math.max(0, ...Object.entries(state.readers).filter(([reader]) => reader !== uid).map(([, value]) => millis(value.lastReadAt)));
-  if (planView) return <div className="space-y-4"><button type="button" className="min-h-[44px] rounded-xl border border-fit-line px-4" onClick={() => setPlanView(null)}>← Zurück zu den Nachrichten</button><Suspense fallback={<p role="status">Plan lädt…</p>}><PlanDocument plan={planView} /></Suspense></div>;
+  if (planView) return <div className="space-y-4"><button type="button" className="min-h-[44px] rounded-xl border border-fit-line px-4" onClick={() => setPlanView(null)}>← Zurück zu den Nachrichten</button><PlanDocument plan={planView} /></div>;
   return <section className="space-y-4" aria-label="Gespräch mit deinem Coach">
     {state.fromCache && <p role="status" className="text-sm text-fit-dim">Lokaler Stand · Verbindung wird abgeglichen.</p>}
     {error && <p role="alert" className="text-sm text-fit-red">{error}</p>}

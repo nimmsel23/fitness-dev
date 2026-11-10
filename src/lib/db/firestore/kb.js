@@ -21,29 +21,22 @@ import {
 import { PUSH_EXERCISES } from "./push.generated.js";
 import { PULL_EXERCISES } from "./pull.generated.js";
 import { LEGS_EXERCISES } from "./legs.generated.js";
+import { EXERCISE_BULK_DATA } from "./exerciseBulkData.generated.js";
 export { getFavourites, toggleFavourite } from "../shared/favourites.js";
 
 // EXERCISE_BULK_DATA (scripts/build-exercise-bulk-data.mjs, aus
 // unreviewed_wger.yml/unreviewed_yuhonas.yml) deckt den statischen,
 // praktisch nie wechselnden Rohimport-Teil des Katalogs ab (~1700 Übungen).
 // Diese IDs werden aus dem Firestore-Fetch rausgefiltert, damit sie nicht
-// doppelt im Suchindex landen und nicht bei jeder Suche live nachgeladen
-// werden müssen — nur der kleine, aktiv wachsende kuratierte/expert-Teil
-// kommt noch aus Firestore. KB-YAML bleibt SSOT, siehe src/CLAUDE.md.
-//
-// Das Bulk-Modul (~1,8 MB) liegt nicht im Haupt-Bundle, sondern wird beim
-// ersten Zugriff (Suche) per dynamic import nachgeladen und danach gecacht.
-let _bulkPromise = null;
+// doppelt im Suchindex landen — nur der kleine, aktiv wachsende
+// kuratierte/expert-Teil kommt noch aus Firestore. KB-YAML bleibt SSOT.
+// Statischer Import (Owner: keine dynamic imports in diesem Repo).
+const _bulk = {
+  data: EXERCISE_BULK_DATA,
+  ids: new Set(EXERCISE_BULK_DATA.map((ex) => ex.exercise_id || ex.id)),
+};
 function _loadBulk() {
-  if (!_bulkPromise) {
-    _bulkPromise = import("./exerciseBulkData.generated.js")
-      .then((m) => ({
-        data: m.EXERCISE_BULK_DATA,
-        ids: new Set(m.EXERCISE_BULK_DATA.map((ex) => ex.exercise_id || ex.id)),
-      }))
-      .catch((err) => { _bulkPromise = null; throw err; });
-  }
-  return _bulkPromise;
+  return Promise.resolve(_bulk);
 }
 
 // ── Exercises ─────────────────────────────────────────────────────────────────

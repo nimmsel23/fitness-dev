@@ -17,6 +17,8 @@
  * den noch unfertigen Katalog überbrückt) wird nur als letzter Fallback befragt.
  */
 
+import { getMirrorMuscleIndex } from "../../exerciseDbs/search.js";
+
 export function foldName(s) {
   return String(s || "")
     .toLowerCase()
@@ -156,6 +158,5 @@ function reportUnresolved(names) {
 }
 
 async function defaultMirrorIndex() {
-  const mod = await import("../../exerciseDbs/search.js");
-  return mod.getMirrorMuscleIndex();
+  return getMirrorMuscleIndex();
 }

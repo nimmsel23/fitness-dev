@@ -6,15 +6,14 @@
  * No inline history, no inline plan — those are separate sub-tabs.
  */
 
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import SessionModalsLayer from './SessionModalsLayer.jsx';
 import SessionSlots from './SessionSlots.jsx';
 import SessionHeader from './SessionHeader';
 import SessionGateBar from './SessionGateBar.jsx';
-// Zieht Plan-API + Übungskatalog (inkl. ~1,8 MB Bulk-Daten) nach — erst beim ersten Long-Press laden.
-const SplitPlanSheet = lazy(() => import('./SplitPlanSheet.jsx'));
+import SplitPlanSheet from './SplitPlanSheet.jsx';
 import EffortPicker from './EffortPicker';
 import ExerciseList from './ExerciseList';
 import CardioSection from './CardioSection.jsx';
@@ -70,8 +69,6 @@ export default function SessionEditor({
   const [showInlineDetails, setShowInlineDetails] = useState(false);
   // Long-Press auf einen Split-Chip → passende Plan-Vorlagen (SplitPlanSheet)
   const [planSplit, setPlanSplit] = useState(null);
-  const [planSheetLoaded, setPlanSheetLoaded] = useState(false);
-  useEffect(() => { if (planSplit) setPlanSheetLoaded(true); }, [planSplit]);
 
   function applyPlanTemplate(split, routine) {
     if (block !== split) { setBlock(split); scheduleAutoSave(); }
@@ -218,10 +215,8 @@ export default function SessionEditor({
         }
       />
 
-      {planSheetLoaded && (
-        <Suspense fallback={null}>
-          <SplitPlanSheet split={planSplit} onClose={() => setPlanSplit(null)} onPick={applyPlanTemplate} />
-        </Suspense>
+      {planSplit && (
+        <SplitPlanSheet split={planSplit} onClose={() => setPlanSplit(null)} onPick={applyPlanTemplate} />
       )}
 
       {/* RPE — ebenfalls prominent statt hinter "Details & Notizen" versteckt */}
