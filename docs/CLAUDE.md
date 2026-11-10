@@ -323,6 +323,10 @@ gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
   und keine `.gitmodules` in diesem Checkout. `@vos/cross-app-aliases` ist
   seit 2026-11-01 **entfernt** (Relax über `siblingDir()` in
   `vite.config.js`; Learn gehört zu Fitness). Details: `docs/PLAN-OWNERSHIP.md`.
+- ✅ **Keine Dynamic Imports** (2026-11-10, Owner): `React.lazy` /
+  `import()` für Views/Plan/three/Bulk entfernt → statische Imports.
+  `rolldown` auf `1.2.16` gepinnt (1.3 brach `__VITE_PRELOAD__`-Marker).
+  Regel: `AGENTS.md`.
 - ⏳ Coach-Tab-Gesamtaufräumung (`views/Coach/`, 5 Sub-Tabs, ~1000 Zeilen) —
   noch nicht begonnen, Details + Zielbild in `../src/CLAUDE.md`
 
