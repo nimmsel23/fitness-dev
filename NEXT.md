@@ -1,9 +1,6 @@
 - ~~Vite-8 test-sixpack-selection~~: esbuild.transform statt transformWithEsbuild.
 - ~~RESULTS.md aus `.gitignore`~~: Org-Task `ca183b8c` (CEO-Ruling 2026-11-07), Tracking bleibt.
-<<<<<<< HEAD
 - [x] Learn-3D: `ARCHITECTURE.md`/`AUDIT.md` für BodyParts3D-Viewer nachgezogen (AL 2026-11-10).
-=======
->>>>>>> e93b206 (docs: auto-update NEXT.md)
 - [ ] Learn-3D: fehlende BP3D-Muskeln (Abs/Lat/Rotator-Cuff) — Fallback oder andere Mesh-Quelle; Mesh-Click → Muscle-Detail.
 - [ ] `bp3dMap.json` in `build:kb-data` aus KB regenerieren (statt Hand-Copy).
 # CI-Agent — offener Betriebspunkt
@@ -19,14 +16,4 @@
 - [ ] GitHub Pages fuer `fitness-dev` auf Branch `dev`, Ordner `/docs` prüfen/aktivieren; Pages-Admin-Einstellungen sind über die aktuelle GitHub-Schnittstelle nicht erreichbar.
 - [ ] Gemini-Reparaturpfad nach dem Feld-Fix anhand eines isolierten roten Checks verifizieren: Diagnose, Commit, Check-Neustart und nachgelagerter Deploy.
 
-<<<<<<< HEAD
-- [ ] Session Gate: Flow anpassen, sodass das Gate zuerst als Verzweigung dient (Plan übernehmen oder manuell loggen), bevor `TodayPlan` oder der Editor angezeigt wird.
-=======
-- [x] Session Gate: Flow anpassen — Gate zuerst als Verzweigung (Plan übernehmen / manuell); TodayPlan-Hijack entfernt.
-- [ ] Learn-3D: `ARCHITECTURE.md` und `AUDIT.md` für den 3D-Viewer nachziehen.
-
-**Gemini-Review (potenzielle blinde Flecken, 2026-11-10):**
-*   Der angefragte Flow, das `SessionGate` *vor* `TodayPlan` zu schalten, um die Wahl zwischen Plan übernehmen oder manuell loggen zu ermöglichen, wurde begonnen, aber nicht umgesetzt und fehlt in der Zusammenfassung.
-*   Die Dokumentation für die neu eingecheckten Learn-3D-Komponenten (`ARCHITECTURE.md`/`AUDIT.md`) wurde laut eigener Aussage nicht nachgezogen, was in der Zusammenfassung nicht erwähnt wird.
-*   Die Konsequenz der Umstellung auf rein statische Imports – ein größeres Initial-Bundle (~4.7 MB) – wird in der Zusammenfassung nicht explizit als bewusster Trade-off aufgeführt.
->>>>>>> e93b206 (docs: auto-update NEXT.md)
+- [x] Session Gate: Flow anpassen — Gate zuerst als Verzweigung (Plan übernehmen / manuell); TodayPlan optional in Settings.
