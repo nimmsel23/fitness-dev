@@ -1,3 +1,8 @@
+# Vite-Preload-Marker Guard (2026-11-10)
+
+- Defense-in-depth zu Rolldown-Pin `1.2.16` + „Keine Dynamic Imports“: Plugin `fix-vite-preload-markers` (Root + Learn), Safety-Skript nach Vite-Build, `verify-dist` failt bei bare Hex nach `mapDeps`.
+- Anlass: derselbe Rolldown-1.3.0-Bug hat vos-coach.web.app killt.
+
 # TodayPlan als Settings-Option + SessionGate-Default (2026-11-10)
 
 - Default: SessionGate zuerst (Plan übernehmen / manuell); `GateNextPlanCard` speist Drafts in den Editor.
