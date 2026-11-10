@@ -1,0 +1,444 @@
+{
+  "attribution": "BodyParts3D, © The Database Center for Life Science licensed under CC Attribution 4.0 International",
+  "license": "CC-BY-4.0",
+  "meshBase": "anatomy/bp3d/",
+  "byCatalogId": {
+    "506_diaphragm": {
+      "label_de": "Zwerchfell",
+      "label_en": "Diaphragm",
+      "fma_id": "FMA:13295",
+      "objs": [
+        "FJ3131.obj"
+      ]
+    },
+    "401_triceps_brachii": {
+      "label_de": "Trizeps",
+      "label_en": "Triceps",
+      "fma_id": "FMA:37688",
+      "objs": [
+        "FJ1479.obj",
+        "FJ1479M.obj",
+        "FJ1480.obj",
+        "FJ1480M.obj",
+        "FJ1477.obj",
+        "FJ1477M.obj"
+      ]
+    },
+    "401a_triceps_long_head": {
+      "label_de": "Trizeps (Langer Kopf)",
+      "label_en": "Triceps (Long Head)",
+      "fma_id": "FMA:37692",
+      "objs": [
+        "FJ1479.obj",
+        "FJ1479M.obj"
+      ]
+    },
+    "401b_triceps_lateral_head": {
+      "label_de": "Trizeps (Lateraler Kopf)",
+      "label_en": "Triceps (Lateral Head)",
+      "fma_id": "FMA:37694",
+      "objs": [
+        "FJ1477.obj",
+        "FJ1477M.obj"
+      ]
+    },
+    "401c_triceps_medial_head": {
+      "label_de": "Trizeps (Medialer Kopf)",
+      "label_en": "Triceps (Medial Head)",
+      "fma_id": "FMA:37693",
+      "objs": [
+        "FJ1480.obj",
+        "FJ1480M.obj"
+      ]
+    },
+    "402_biceps_brachii": {
+      "label_de": "Bizeps",
+      "label_en": "Biceps",
+      "fma_id": "FMA:37670",
+      "objs": [
+        "FJ1512.obj",
+        "FJ1512M.obj",
+        "FJ1478.obj",
+        "FJ1478M.obj"
+      ]
+    },
+    "403_brachialis": {
+      "label_de": "Armbeuger",
+      "label_en": "Brachialis",
+      "fma_id": "FMA:37667",
+      "objs": [
+        "FJ1486.obj",
+        "FJ1486M.obj"
+      ]
+    },
+    "404_brachioradialis": {
+      "label_de": "Oberarmspeichenmuskel",
+      "label_en": "Brachioradialis",
+      "fma_id": "FMA:38485",
+      "objs": [
+        "FJ1487.obj",
+        "FJ1487M.obj"
+      ]
+    },
+    "405a_flexor_digitorum_superficialis": {
+      "label_de": "Oberflächlicher Fingerbeuger",
+      "label_en": "Flexor Digitorum Superficialis",
+      "fma_id": "FMA:38469",
+      "objs": [
+        "FJ1475.obj",
+        "FJ1475M.obj",
+        "FJ1499.obj",
+        "FJ1499M.obj"
+      ]
+    },
+    "405b_flexor_carpi_ulnaris": {
+      "label_de": "Ellenseitiger Handbeuger",
+      "label_en": "Flexor Carpi Ulnaris",
+      "fma_id": "FMA:38465",
+      "objs": [
+        "FJ1473.obj",
+        "FJ1473M.obj",
+        "FJ1518.obj",
+        "FJ1518M.obj"
+      ]
+    },
+    "405c_flexor_carpi_radialis": {
+      "label_de": "Speichenseitiger Handbeuger",
+      "label_en": "Flexor Carpi Radialis",
+      "fma_id": "FMA:38459",
+      "objs": [
+        "FJ1496.obj",
+        "FJ1496M.obj"
+      ]
+    },
+    "405d_palmaris_longus": {
+      "label_de": "Langer Hohlhandmuskel",
+      "label_en": "Palmaris Longus",
+      "fma_id": "FMA:38462",
+      "objs": [
+        "FJ1502.obj",
+        "FJ1502M.obj"
+      ]
+    },
+    "406a_extensor_digitorum": {
+      "label_de": "Fingerstrecker",
+      "label_en": "Extensor Digitorum",
+      "fma_id": "FMA:38500",
+      "objs": [
+        "FJ1492.obj",
+        "FJ1492M.obj"
+      ]
+    },
+    "406b_extensor_carpi_radialis_longus": {
+      "label_de": "Langer speichenseitiger Handstrecker",
+      "label_en": "Extensor Carpi Radialis Longus",
+      "fma_id": "FMA:38494",
+      "objs": [
+        "FJ1490.obj",
+        "FJ1490M.obj"
+      ]
+    },
+    "406c_extensor_carpi_radialis_brevis": {
+      "label_de": "Kurzer speichenseitiger Handstrecker",
+      "label_en": "Extensor Carpi Radialis Brevis",
+      "fma_id": "FMA:38497",
+      "objs": [
+        "FJ1489.obj",
+        "FJ1489M.obj"
+      ]
+    },
+    "406d_extensor_carpi_ulnaris": {
+      "label_de": "Ellenseitiger Handstrecker",
+      "label_en": "Extensor Carpi Ulnaris",
+      "fma_id": "FMA:38506",
+      "objs": [
+        "FJ1472.obj",
+        "FJ1472M.obj",
+        "FJ1517.obj",
+        "FJ1517M.obj"
+      ]
+    },
+    "407_anconeus": {
+      "label_de": "Knorrenmuskel",
+      "label_en": "Anconeus",
+      "fma_id": "FMA:37704",
+      "objs": [
+        "FJ1485.obj",
+        "FJ1485M.obj"
+      ]
+    },
+    "202_trapezius": {
+      "label_de": "Trapezmuskel",
+      "label_en": "Traps",
+      "fma_id": "FMA:9626",
+      "objs": [
+        "FJ1520.obj",
+        "FJ1520M.obj",
+        "FJ1554.obj",
+        "FJ1554M.obj",
+        "FJ1521.obj",
+        "FJ1521M.obj"
+      ]
+    },
+    "207_teres_major": {
+      "label_de": "Großer Rundmuskel",
+      "label_en": "Teres Major",
+      "fma_id": "FMA:32549",
+      "objs": [
+        "FJ1507.obj",
+        "FJ1507M.obj"
+      ]
+    },
+    "701a_gastrocnemius_medial": {
+      "label_de": "Zwillingswadenmuskel (Medialer Kopf)",
+      "label_en": "Calves (Medial Head)",
+      "fma_id": "FMA:45956",
+      "objs": [
+        "FJ1397.obj",
+        "FJ1397M.obj"
+      ]
+    },
+    "701b_gastrocnemius_lateral": {
+      "label_de": "Zwillingswadenmuskel (Lateraler Kopf)",
+      "label_en": "Calves (Lateral Head)",
+      "fma_id": "FMA:45959",
+      "objs": [
+        "FJ1394.obj",
+        "FJ1394M.obj"
+      ]
+    },
+    "702_soleus": {
+      "label_de": "Schollenmuskel",
+      "label_en": "Calves (Lower)",
+      "fma_id": "FMA:22542",
+      "objs": [
+        "FJ1437.obj",
+        "FJ1437M.obj"
+      ]
+    },
+    "703_tibialis_anterior": {
+      "label_de": "Vorderer Schienbeinmuskel",
+      "label_en": "Tibialis",
+      "fma_id": "FMA:22532",
+      "objs": [
+        "FJ1439.obj",
+        "FJ1439M.obj"
+      ]
+    },
+    "101_pectoralis_major": {
+      "label_de": "Großer Brustmuskel",
+      "label_en": "Chest (Large)",
+      "fma_id": "FMA:9627",
+      "objs": [
+        "FJ1447.obj",
+        "FJ1447M.obj",
+        "FJ1464.obj",
+        "FJ1464M.obj",
+        "FJ1446.obj",
+        "FJ1446M.obj"
+      ]
+    },
+    "102_pectoralis_major_clavicular": {
+      "label_de": "Oberer Brustmuskel",
+      "label_en": "Upper Chest",
+      "fma_id": "FMA:34687",
+      "objs": [
+        "FJ1447.obj",
+        "FJ1447M.obj"
+      ]
+    },
+    "103_pectoralis_major_sternal": {
+      "label_de": "Unterer/Sternaler Brustmuskel",
+      "label_en": "Lower Chest (Sternocostal)",
+      "fma_id": "FMA:34688",
+      "objs": [
+        "FJ1464.obj",
+        "FJ1464M.obj"
+      ]
+    },
+    "104_pectoralis_minor": {
+      "label_de": "Kleiner Brustmuskel",
+      "label_en": "Chest (Small)",
+      "fma_id": "FMA:13109",
+      "objs": [
+        "FJ1456.obj",
+        "FJ1456M.obj"
+      ]
+    },
+    "105_serratus_anterior": {
+      "label_de": "Vorderer Sägemuskel",
+      "label_en": "Serratus",
+      "fma_id": "FMA:13397",
+      "objs": [
+        "FJ1459.obj",
+        "FJ1459M.obj"
+      ]
+    },
+    "601a_rectus_femoris": {
+      "label_de": "Gerader Oberschenkelmuskel",
+      "label_en": "Quads (Rectus)",
+      "fma_id": "FMA:22430",
+      "objs": [
+        "FJ1433.obj",
+        "FJ1433M.obj"
+      ]
+    },
+    "601b_vastus_lateralis": {
+      "label_de": "Äußerer breiter Oberschenkelmuskel",
+      "label_en": "Quads (Outer)",
+      "fma_id": "FMA:22431",
+      "objs": [
+        "FJ1442.obj",
+        "FJ1442M.obj"
+      ]
+    },
+    "601c_vastus_medialis": {
+      "label_de": "Innerer breiter Oberschenkelmuskel",
+      "label_en": "Quads (Inner)",
+      "fma_id": "FMA:22432",
+      "objs": [
+        "FJ1443.obj",
+        "FJ1443M.obj"
+      ]
+    },
+    "601d_vastus_intermedius": {
+      "label_de": "Mittlerer breiter Oberschenkelmuskel",
+      "label_en": "Quads (Middle)",
+      "fma_id": "FMA:22433",
+      "objs": [
+        "FJ1441.obj",
+        "FJ1441M.obj"
+      ]
+    },
+    "602a_adductor_magnus": {
+      "label_de": "Großer Adduktorenmuskel",
+      "label_en": "Adductor Magnus",
+      "fma_id": "FMA:22443",
+      "objs": [
+        "FJ1403.obj",
+        "FJ1403M.obj"
+      ]
+    },
+    "602b_adductor_longus": {
+      "label_de": "Langer Adduktorenmuskel",
+      "label_en": "Adductor Longus",
+      "fma_id": "FMA:22441",
+      "objs": [
+        "FJ1402.obj",
+        "FJ1402M.obj"
+      ]
+    },
+    "602c_adductor_brevis": {
+      "label_de": "Kurzer Adduktorenmuskel",
+      "label_en": "Adductor Brevis",
+      "fma_id": "FMA:22442",
+      "objs": [
+        "FJ1401.obj",
+        "FJ1401M.obj"
+      ]
+    },
+    "603_gluteus_maximus": {
+      "label_de": "Großer Gesäßmuskel",
+      "label_en": "Glutes",
+      "fma_id": "FMA:22314",
+      "objs": [
+        "FJ1418.obj",
+        "FJ1418M.obj"
+      ]
+    },
+    "604a_biceps_femoris": {
+      "label_de": "Zweiköpfiger Oberschenkelmuskel",
+      "label_en": "Hamstrings (Outer)",
+      "fma_id": "FMA:22356",
+      "objs": [
+        "FJ1395.obj",
+        "FJ1395M.obj",
+        "FJ1444.obj",
+        "FJ1444M.obj"
+      ]
+    },
+    "604b_semitendinosus": {
+      "label_de": "Halbsehniger Muskel",
+      "label_en": "Hamstrings (Inner)",
+      "fma_id": "FMA:22357",
+      "objs": [
+        "FJ1436.obj",
+        "FJ1436M.obj"
+      ]
+    },
+    "604c_semimembranosus": {
+      "label_de": "Halbmembranöser Muskel",
+      "label_en": "Hamstrings (Deep)",
+      "fma_id": "FMA:22438",
+      "objs": [
+        "FJ1435.obj",
+        "FJ1435M.obj"
+      ]
+    },
+    "607_iliopsoas": {
+      "label_de": "Hüftbeuger",
+      "label_en": "Hip Flexor",
+      "fma_id": "FMA:64918",
+      "objs": [
+        "FJ1431.obj",
+        "FJ1431M.obj",
+        "FJ1422.obj",
+        "FJ1422M.obj"
+      ]
+    },
+    "608_gluteus_medius": {
+      "label_de": "Mittlerer Gesäßmuskel",
+      "label_en": "Side Glutes",
+      "fma_id": "FMA:22315",
+      "objs": [
+        "FJ1419.obj",
+        "FJ1419M.obj"
+      ]
+    },
+    "609_gluteus_minimus": {
+      "label_de": "Kleiner Gesäßmuskel",
+      "label_en": "Glutes (Minor)",
+      "fma_id": "FMA:22317",
+      "objs": [
+        "FJ1420.obj",
+        "FJ1420M.obj"
+      ]
+    },
+    "305_supraspinatus": {
+      "label_de": "Obergrätenmuskel",
+      "label_en": "Supraspinatus",
+      "fma_id": "FMA:9629",
+      "objs": [
+        "FJ1506.obj",
+        "FJ1506M.obj"
+      ]
+    },
+    "306_infraspinatus": {
+      "label_de": "Untergrätenmuskel",
+      "label_en": "Infraspinatus",
+      "fma_id": "FMA:32546",
+      "objs": [
+        "FJ1500.obj",
+        "FJ1500M.obj"
+      ]
+    },
+    "307_teres_minor": {
+      "label_de": "Kleiner Rundmuskel",
+      "label_en": "Teres Minor",
+      "fma_id": "FMA:32550",
+      "objs": [
+        "FJ1508.obj",
+        "FJ1508M.obj"
+      ]
+    },
+    "308_subscapularis": {
+      "label_de": "Unterschulterblattmuskel",
+      "label_en": "Subscapularis",
+      "fma_id": "FMA:13413",
+      "objs": [
+        "FJ1504.obj",
+        "FJ1504M.obj"
+      ]
+    }
+  }
+}
