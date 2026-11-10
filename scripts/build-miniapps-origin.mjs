@@ -43,6 +43,7 @@ for (const app of list) {
   // start aus der Tabelle ("/#session/logbuch") -> "/<id>/#session/logbuch"
   const start = scope + app.start.replace(/^\//, '')
   run(`vite build --mode ${app.id} --outDir ${out}`, { VITE_SOLO_TAB: app.tab })
+  run(`node scripts/fix-vite-preload-markers.mjs ${out}`)
   const htmlPath = resolve(root, out, 'index.html')
   const html = readFileSync(htmlPath, 'utf8')
   if (!html.includes("register('/sw.js')")) {

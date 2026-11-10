@@ -33,6 +33,17 @@ for (const [name, kind] of must) {
     }
   }
 }
+// Vite 8 / Rolldown: bare Hex nach __vite__mapDeps([...]) → Parse-Crash (vos-coach 2026-11-10).
+const assetsDir = path.join(dir, 'assets')
+const corruptRe = /__vite__mapDeps\(\[[\d,]*\]\)[0-9a-f]{32}/
+if (fs.existsSync(assetsDir)) {
+  for (const name of fs.readdirSync(assetsDir)) {
+    if (!name.endsWith('.js')) continue
+    const txt = fs.readFileSync(path.join(assetsDir, name), 'utf8')
+    if (corruptRe.test(txt)) errors.push(`Vite-Preload-Marker-Hash in assets/${name} (fix-vite-preload-markers fehlt/fehlgeschlagen)`)
+  }
+}
+
 if (errors.length) {
   console.error(`❌ verify-dist (${dir}):\n  - ${errors.join('\n  - ')}`)
   process.exit(1)

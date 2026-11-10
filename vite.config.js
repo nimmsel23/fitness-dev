@@ -63,6 +63,25 @@ function soloStubPlugin(mode) {
   }
 }
 
+// Rolldown uniquifiziert Preload-Marker als __VITE_PRELOAD__<32hex>. Vite 8.3.x
+// ersetzt nur "__VITE_PRELOAD__" und lässt den Hash als Syntaxfehler stehen
+// (vos-coach.web.app-Ausfall 2026-11-10). Safety-Net: scripts/fix-vite-preload-markers.mjs.
+function fixVitePreloadMarkers() {
+  const HASHED_MARKER = /__VITE_PRELOAD__[0-9a-f]{32}/g
+  return {
+    name: 'fix-vite-preload-markers',
+    generateBundle: {
+      order: 'pre',
+      handler(_opts, bundle) {
+        for (const chunk of Object.values(bundle)) {
+          if (chunk.type !== 'chunk' || !chunk.code.includes('__VITE_PRELOAD__')) continue
+          chunk.code = chunk.code.replace(HASHED_MARKER, '__VITE_PRELOAD__')
+        }
+      },
+    },
+  }
+}
+
 export default defineConfig(async ({ mode }) => {
   const isFirebase = mode === 'firebase' || mode === 'coach' || mode in MINIAPPS || mode === 'plan'
   const isCoach = mode === 'coach'
@@ -75,7 +94,13 @@ export default defineConfig(async ({ mode }) => {
     // Präfix (z.B. /fitness-dev/) fälschlich zur Domain-Wurzel auf (404 →
     // Whitescreen). Core4/Door/Game/Fuel haben denselben Fix schon.
     base: './',
-    plugins: [vosChangelog({ appId: isSolo || isPlan ? mode : 'fitness', appName: isSolo || isPlan ? (MINIAPPS[mode]?.short || 'Plan') : 'Fitness', accent: '#60a5fa' }), react(), miniAppSubmodulePlugin(), ...(isSolo ? [soloStubPlugin(mode)] : [])],
+    plugins: [
+      vosChangelog({ appId: isSolo || isPlan ? mode : 'fitness', appName: isSolo || isPlan ? (MINIAPPS[mode]?.short || 'Plan') : 'Fitness', accent: '#60a5fa' }),
+      react(),
+      fixVitePreloadMarkers(),
+      miniAppSubmodulePlugin(),
+      ...(isSolo ? [soloStubPlugin(mode)] : []),
+    ],
     resolve: {
       preserveSymlinks: true,
       alias: {

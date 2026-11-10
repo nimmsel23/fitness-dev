@@ -14,6 +14,23 @@ const BACKEND     = 'http://localhost:9150'
 // derselbe Resolver wie in fitness/habits/Shell, sonst bricht der Build (workoutDoc.js nicht auflösbar).
 const { miniAppSubmodulePlugin } = await import(pathToFileURL(resolve(FITNESS_DEV, 'vite-miniapp-submodules.mjs')).href)
 
+// Rolldown: __VITE_PRELOAD__<32hex>; Vite 8.3.x ersetzt nur den Prefix → SyntaxError.
+function fixVitePreloadMarkers() {
+  const HASHED_MARKER = /__VITE_PRELOAD__[0-9a-f]{32}/g
+  return {
+    name: 'fix-vite-preload-markers',
+    generateBundle: {
+      order: 'pre',
+      handler(_opts, bundle) {
+        for (const chunk of Object.values(bundle)) {
+          if (chunk.type !== 'chunk' || !chunk.code.includes('__VITE_PRELOAD__')) continue
+          chunk.code = chunk.code.replace(HASHED_MARKER, '__VITE_PRELOAD__')
+        }
+      },
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => {
   const isFirebase = mode === 'firebase'
   return {
@@ -22,6 +39,7 @@ export default defineConfig(({ mode }) => {
     plugins: [vosChangelog({ appId: 'learn', appName: 'Learn', accent: '#fb923c' }),
       miniAppSubmodulePlugin(FITNESS_DEV),
       react(),
+      fixVitePreloadMarkers(),
       // Ersetzt den hartkodierten public/sw.js (learn-vos-v1, nie gebumpt) —
       // workbox precached mit Content-Hashes, Versionierung passiert von selbst.
       // Manifest bleibt public/manifest.json (bereits verlinkt in index.html).
