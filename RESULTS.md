@@ -1,3 +1,8 @@
+# 2026-11-10 — AL: tooling:biome Format-Fix (CTO-Hit 175b5162)
+
+- `scripts/verify-dist.mjs`: Preload-Marker-`errors.push`-Zeile biome-konform umgebrochen.
+- Behebt Check-Rot `42750194503` @ `52bc1da` (`tooling:biome` Format).
+
 # Vite-Preload-Marker Guard (2026-11-10)
 
 - Defense-in-depth zu Rolldown-Pin `1.2.16` + „Keine Dynamic Imports“: Plugin `fix-vite-preload-markers` (Root + Learn), Safety-Skript nach Vite-Build, `verify-dist` failt bei bare Hex nach `mapDeps`.
