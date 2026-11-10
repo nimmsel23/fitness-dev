@@ -312,15 +312,17 @@ gibt den deutschen Anzeigenamen zurück (`"Rücken"`).
 - ⏳ AI Agent Workflow (Gemini → anatomy_teaching YAML-Generierung, laufend)
 - ⏳ Coverage-Granularität (primary/secondary/stabilizer) — teilweise
 - ⏳ Anatomie-Lehre für alle Übungen (~28 von ~50+ im Katalog)
-- ✅ Fitness-Tabs integriert (2026-10-20): Plan, 6Pack und Skills liegen im
-  Fitness-Build unter `src/views/{Plan,SixPack,Skills}`. Ihre eigenständigen
-  Arbeitsrepos (`~/plan-dev`, `~/6pack-dev`, `~/skills-dev`) bleiben verfügbar;
-  Fitness hat keine Gitlinks oder Workspace-Importer für diese Apps mehr.
-  `dev` bleibt der App-Entwicklungsbranch, `fitness` der Fitness-Integrations-
-  branch. Vite/Firebase baut die Fitness-App direkt aus diesem Checkout.
-  `@vos/cross-app-aliases` ist seit 2026-11-01 **entfernt** (nur `@relax`/`@learn`
-  gebraucht, Auflösung über `siblingDir()` in `vite.config.js`; der pfadabhängige
-  `link:` ließ den Lockfile je nach Installationsort kippen).
+- ✅ Fitness-Tabs integriert (2026-10-20, Resolver-Stand 2026-11-10): Plan,
+  6Pack und Skills sind **keine** eingecheckten Kopien unter
+  `src/views/{Plan,SixPack,Skills}`. `vite-miniapp-submodules.mjs` mappt
+  Importe `views/Plan|…` und Aliase `@vos-plan/` / `@vos-6pack/` /
+  `@vos-skills/` auf Nachbar-Checkouts (`plan-app`/`plan-dev`, analog
+  6Pack/Skills). Lokal existiert `src/views/Plan` nicht; SixPack hält hier
+  nur Fitness-eigene Build-Artefakte (z. B. `sixpackData.generated.js`).
+  SOT bleibt `~/plan-dev` / `~/6pack-dev` / `~/skills-dev`. Kein Plan-Gitlink
+  und keine `.gitmodules` in diesem Checkout. `@vos/cross-app-aliases` ist
+  seit 2026-11-01 **entfernt** (Relax über `siblingDir()` in
+  `vite.config.js`; Learn gehört zu Fitness). Details: `docs/PLAN-OWNERSHIP.md`.
 - ⏳ Coach-Tab-Gesamtaufräumung (`views/Coach/`, 5 Sub-Tabs, ~1000 Zeilen) —
   noch nicht begonnen, Details + Zielbild in `../src/CLAUDE.md`
 
