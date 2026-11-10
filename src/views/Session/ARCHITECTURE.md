@@ -7,10 +7,10 @@ im Gym. Er dient dem **nachträglichen** Eintragen (Garderobe, abends, „was ha
 gemacht“) — Batch/retrospektiv. Features, die Stoppuhr-Live-Sätze, „jetzt trainieren“-
 Zwangsflows oder Habit-Abhaken ohne Log voraussetzen, verfehlen den Zweck.
 
-**Plan-Verzweigung (2026-11-10):** Bei aktivem Makrozyklus öffnet das SessionGate
-zuerst als Wahl: **Plan übernehmen** (Draft mit Zielnotizen in den Editor) oder
-**Manuell loggen**. `TodayPlan.jsx` ist nur noch der Hook `useTodayPlan`; der alte
-Habit-Screen ersetzt den Editor nicht mehr. UI: `GateNextPlanCard.jsx`.
+**Plan-Verzweigung (2026-11-10):** Default bei aktivem Makrozyklus: SessionGate
+zuerst als Wahl (**Plan übernehmen** / **Manuell loggen**, `GateNextPlanCard`).
+Optionaler Habit-Screen `TodayPlan` über Settings → Trainings-Präferenzen →
+**TodayPlan-Screen** (`fitness-todayPlanScreen`, default aus).
 
 ## Komponenten
 
@@ -116,11 +116,10 @@ beide gefixt:
    Dashboard/Review-Links). `notificationclick`-Fallback war ebenfalls
    `/#session`. Alle drei zeigen jetzt fest auf `/#session/today` — der
    einzige Hash, der `subTab='today'` setzt und damit das Gate öffnet.
-2. `src/views/Session/index.jsx`: Selbst mit korrektem Hash verdrängte
-   `TodayPlan` (gate-unwissend) weiterhin den `SessionEditor`/das Gate,
-   solange ein Klient einen aktiven Coach-Plan-Zyklus hat. Fix: der
-   `isTodayTab`-Zweig prüft jetzt zusätzlich `isSessionGateActive(session.sessionGate)`
-   und lässt `TodayPlan` bei aktivem Gate nicht mehr zum Zug kommen.
+2. `src/views/Session/index.jsx`: Der frühere `TodayPlan`-Hijack ist entfernt.
+   Bei aktivem Makrozyklus öffnet der Editor das Gate als Plan/Manuell-Wahl
+   (`openPlanGate` → `SessionEditor`); eine laufende Session landet damit
+   immer im Editor/Gate, nie mehr in einem Habit-Ersatzscreen.
 
 ## Multi-Session pro Tag
 
