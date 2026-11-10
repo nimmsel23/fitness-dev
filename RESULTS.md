@@ -1,3 +1,25 @@
+# 2026-11-10
+
+- Major deps: React 19.3 / Vite 8.3.6 / Firebase 13.2; age excludes quoted; manualChunks path-normalize for Rolldown; eslint preserve-caught-error in fit.js.
+
+- 2026-11-10: chore(deps) major stack align — React 19 / Vite 8.3.6 / plugin-react 6.2.1 / Firebase 13 (age-safe pins, pnpm-workspace overrides).
+
+## 2026-11-10 — backend/ = Sammelordner, fitness-Paket darin
+
+- Layout: `coach-dev/backend/fitness/` (+ später `fuel/` …).
+- `import fitness` über `PYTHONPATH=…/backend`. Symlinks `fitness` → `backend/fitness`.
+- Kein Dienst-Restart.
+
+## 2026-11-10 — backend/ als normaler Ordner
+
+- `fitness-backend/` weg; Sessions-Code = `~/dev/coach-dev/backend/`.
+- `COACH_FITNESS_BACKEND_ROOT` Default = `~/dev/coach-dev`. Kein Dienst-Restart.
+
+## 2026-11-09 — Sessions-SOT + anatomy-kb → Coach
+
+- `deploy.sh` `FITNESS_PY_BACKEND` → `~/dev/coach-dev/fitness-backend/backend`.
+- `anatomy-kb` Symlink → `~/dev/coach-dev/anatomy-kb` (nicht mehr backend).
+
 ## 2026-11-09 — deps: minor/patch Upgrades
 
 - `npm-check-updates --target minor` + Lockfile; `packageManager` bleibt pnpm@11.3.0; `@firebase/util` ^1.12.1.

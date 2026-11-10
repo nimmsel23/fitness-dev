@@ -24,7 +24,7 @@ export async function parseFitFile(file) {
   try {
     data = await parser.parseAsync(buffer);
   } catch (err) {
-    throw new Error(`FIT konnte nicht gelesen werden: ${typeof err === 'string' ? err : err?.message || 'unbekannter Fehler'}`);
+    throw new Error(`FIT konnte nicht gelesen werden: ${typeof err === 'string' ? err : err?.message || 'unbekannter Fehler'}`, { cause: err });
   }
 
   const session = Array.isArray(data?.sessions) ? data.sessions[0] : null;
