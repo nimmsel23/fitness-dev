@@ -11,8 +11,9 @@ Interaktiver Lern-Tab für Übungsbibliothek, Anatomie-Teaching, interaktive Bod
 | `ExerciseLibrary.jsx` | Suchfeld + "Zuletzt Trainiert"-Chips + scrollbare Übungsliste (max 80 Einträge) |
 | `AnatDetail.jsx` | Detail-Panel für gewählte Übung: Muskelgruppen, Erklärung, Coaching Notes, Biomechanik |
 | `ExplorerHeader.jsx` | Tab-Switcher (Übungen / Explorer / Quiz) mit konditionellem Quiz-Button |
-| `AnatomyExplorer.jsx` | Interaktive Body-Map (Anterior/Posterior-Toggle), Muskel-Klick → AnatomyDetailModal |
+| `AnatomyExplorer.jsx` | Body-Map mit 2D/3D-Toggle; 2D Anterior/Posterior + Muskel-Klick → AnatomyDetailModal; 3D → BodyParts3DMesh |
 | `BodyMusclesMap.jsx` | React-Wrapper für `body-muscles`-Library (70+ Regionen, Intensity-Highlighting via `useMuscleMap()`) |
+| `BodyParts3DMesh.jsx` | three.js OBJ-Viewer (statische Imports); Map `src/data/bp3dMap.json` → `public/anatomy/bp3d/*.obj` |
 | `QuizMode.jsx` | Eigenständige Quiz-Komponente: Flashcard-Quiz auf Übungen der letzten Session |
 
 ## Datenfluss
@@ -43,8 +44,9 @@ Interaktiver Lern-Tab für Übungsbibliothek, Anatomie-Teaching, interaktive Bod
   - `ExerciseLibrary` ← `exercises`, `selected`, `setSelected` (mit `queueForEnrichment`-Seiteneffekt), `q`, `setQ`, `recent`, `loading`
   - `AnatDetail` ← `ex` (selected), `anatomy`, `loading` (anatLoading), `isEmbedded` (true Desktop / false Mobile), `onBack`
   - `ExplorerHeader` ← `viewMode`, `setViewMode`, `onStartQuiz`, `hasRecent`
-  - `AnatomyExplorer` ← `exercises`, `onMuscleClick` (→ setzt `selectedMuscleId`)
-  - `BodyMusclesMap` ← `side`, `exercises`, `onMuscleClick`
+  - `AnatomyExplorer` ← `selectedExercise`, `onMuscleClick` (→ setzt `selectedMuscleId`; nur 2D)
+  - `BodyMusclesMap` ← `side`, `selectedExercise`, `onMuscleClick`
+  - `BodyParts3DMesh` ← `catalogId`, `highlightIds` (aus Primär-/Sekundärmuskeln der gewählten Übung)
   - `AnatomyDetailModal` ← `muscleId`, `muscleData`, `loading`, `onClose`, `muscleLanguage`, `taxonomy`
   - `Muscles` (aus `../Muscles/`) ← `gender`, `muscleLanguage`, `taxonomy`
   - `PlanBuilder` ← `onInspectExercise`
@@ -60,12 +62,16 @@ Interaktiver Lern-Tab für Übungsbibliothek, Anatomie-Teaching, interaktive Bod
 - **`'explorer'`-Mode im Header hat keine eigene Früh-Return-Logik** — fällt durch in den default `return`-Zweig wo `AnatomyExplorer` gerendert wird (nicht `'library'` → else-Branch). Implizite Kontrolle, keine explizite Fallunterscheidung.
 - **BodyMusclesMap-Initialisierung einmalig** (`useEffect` mit leerem Dependency-Array) — `side` und `highlightedMuscles` werden über separate `update()`-Calls gesetzt. Destroy im Cleanup.
 - **Intensity-Mapping in `BodyMusclesMap`:** nutzt `useMuscleMap()` Hook (Slug-Tabelle aus YAML) — ohne diesen Hook kein Muscle-Highlighting. `.bak`-Version hatte noch einen hartcodierten `BODY_MUSCLES_SLUGS` ohne Hook.
+- **3D-Viewer ist anzeigend, nicht navigierend:** kein Mesh-Picking → `onMuscleClick`/`AnatomyDetailModal`; Auswahl kommt nur über Library/`selectedExercise`.
+- **three.js nur statisch** in `BodyParts3DMesh.jsx` — Dynamic Import/React.lazy verboten (Repo-Regel); Cleanup dispose Renderer + Context Loss.
 - **Library begrenzt auf 80 Einträge** (`filtered.slice(0, 80)`) — Performance-Limit, kein Paging.
 - **`getLatestSession()` vs `getAllExercises()`:** Werden beide parallel beim Mount gefeuert (kein await-await).
 
 ## Auffälligkeiten
 - **`'analysis'`-Mode existiert nicht**: War geplant (Muscles-Einbettung), wurde nie implementiert. ViewMode hat `'library'` / `'explorer'` / `'quiz'` / `'strength'`.
-- **`AnatomyDetailModal`** wird nur noch im `explorer`-Modus gerendert (vorher in jedem Modus).
+- **`AnatomyDetailModal`** wird nur noch im `explorer`-Modus gerendert (vorher in jedem Modus) und greift nur im 2D-Zweig.
+- **BodyParts3D-Lücken:** Abs/Lat/Rotator-Cuff fehlen im Upstream-Map; UI zeigt dann Empty-/Error-Zustand + Fetch-Hinweis. `bp3dMap.json` noch Hand-Copy statt `build:kb-data`-Schritt.
+- **Initial-Bundle:** statisches three erhöht die Learn-/Fitness-Last spürbar — bewusster Trade-off gegen Preload-Brüche.
 - **`QuizMode` bekommt `exercises={recent}`** — wenn `recent` leer ist (erste Nutzung, keine Session) zeigt QuizMode sofort "Keine Quiz-Fragen verfügbar". Kein Pre-Check vor Moduswechsel (der Quiz-Button wird zwar nur bei `hasRecent` gezeigt, aber `recent` könnte nachträglich leer sein wenn `getLatestSession()` noch läuft).
 - **`anatomy`-Initialstate ist `null`**, aber der `useEffect` setzt ihn bei fehlendem `selected` auf `{}` — `AnatDetail` bekommt also erst `null`, dann `{}`. `AnatDetail` behandelt beide gleich (kein expliziter `null`-Check, alle Felder via optional chaining).
 - **Kein Debounce auf Suchfeld** — bei jedem Keystroke wird `filtered` neu berechnet. Bei 80+ Übungen unkritisch.

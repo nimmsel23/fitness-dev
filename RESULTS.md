@@ -1,3 +1,7 @@
+# 2026-11-10 — AL: Learn-3D View-Docs
+
+- `src/views/Learn/ARCHITECTURE.md` + `AUDIT.md`: BodyParts3DMesh, 2D/3D-Toggle, bp3dMap/OBJ-Pfad, statische three-Imports, bekannte Mesh-Lücken dokumentiert (Feature-Freeze Docs).
+
 # 2026-11-10
 
 - Major deps: React 19.3 / Vite 8.3.6 / Firebase 13.2; age excludes quoted; manualChunks path-normalize for Rolldown; eslint preserve-caught-error in fit.js.

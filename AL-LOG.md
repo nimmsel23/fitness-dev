@@ -36,3 +36,31 @@ _Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen sta
 - Offen/Weiter: Check (Fitness) rot `42642543613` @ `96bcf99` und `42642272691` @ `68d9428` — `build:kb-data` / plan-app `FITNESS_KB_DIR` (KB-Pfad). Org-Queue fitness-dev leer; KB-CI-Fix nächster Lauf. Gemini-Rotlauf + Pages `/docs` bleiben NEXT.
 - Blocker: Auto-Promote blockiert durch roten Check (KB-Pfad, nicht durch diesen gitignore-Change). AUTOMATION: Hook-Auto-Commits RESULTS/NEXT divergierten vom Temp-Worktree — nur auf Branch `dev` feuern — ~5 Min.
 
+## 2026-11-10 (Dienstag) — Abteilungsleiter-Lauf
+
+_Automatik (vos-al-log Vorlage 2026-11-10):_
+- Commits seit 2026-11-08: a267062 feat(learn): BodyParts3D mesh viewer with static three.js import
+ee0f790 fix(build): drop React.lazy/dynamic import — static loads only
+3c1d9ac docs: auto-update docs/CLAUDE.md
+8521c2e docs: auto-update AGENTS.md
+982b591 docs: auto-update src/views/Session/ARCHITECTURE.md
+61f54f8 docs: auto-update src/views/Coach/ARCHITECTURE.md
+9d59b91 docs: auto-update docs/PLAN-OWNERSHIP.md
+e4aea01 docs: auto-update AGENTS.md
+1737415 docs: auto-update docs/CLAUDE.md
+db7257c chore(deps): pin learn app to Vite 8.3.6 / plugin-react 6.2.1
+74e3208 chore(deps): major upgrades to React 19 / Vite 8 / Firebase 13
+34b1894 chore(deps): minor/patch upgrades (age-safe pins)
+43a73f1 chore(tooling): engines, Biome scripts-format, knip, smoke in Check
+3eacda7 fix(deps): three@0.170.0 in package.json (Lockfile war voraus)
+dea3584 fix(ci): miniApp-Plugin soft bei fehlenden Nachbarn
+- Offene PRs: (keine offenen PRs / gh nicht verfuegbar)
+- CI (letzte Läufe): completed	success	Merge-Agent	Merge-Agent	master	schedule	42744638222	7s	2026-11-10T02:42:58Z
+completed	success	Gemini CI Agent	Gemini CI Agent	master	workflow_run	42737135245	11s	2026-11-10T01:37:49Z
+completed	success	Live Deploy (Fitness master)	Live Deploy (Fitness master)	master	workflow_dispatch	42737114996	2m27s	2026-11-10T01:37:39Z
+- Arbeitsbaum: 6 uncommittete Pfade
+
+_Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen statt Erzählung):_
+- Erledigt: Learn-3D Docs — `src/views/Learn/ARCHITECTURE.md` + `AUDIT.md` um BodyParts3DMesh / 2D·3D-Toggle / bp3dMap / statische three-Imports nachgezogen (NEXT Gemini-Review-Lücke). Commit folgt auf `dev` (+ dieser AL-LOG). CI zuletzt grün: Check `42736901020`, Auto-Promote `42737089092`, Live Deploy `42737114996` @ `a267062`.
+- Offen/Weiter: Learn-3D Mesh-Lücken Abs/Lat/Rotator-Cuff; `bp3dMap.json` in `build:kb-data`; Gemini-CI echter Rotlauf + Pages `/docs` (NEXT). Org-Queue fitness-dev leer. Feature-Freeze bis 2027-02-07.
+- Blocker: keine. Fremd-WIP im Checkout (`deploy.sh`, skills/*, `fitness/catalog/`, NEXT/RESULTS) unberührt. AUTOMATION: vos-al-log-Vorlage nur im Checkout, nicht im Temp-Worktree — Prefill vor AL-Commit syncen — ~2 Min/Lauf.

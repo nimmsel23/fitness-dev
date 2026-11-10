@@ -10,15 +10,16 @@ Interaktiver Lern-Tab: Übungsbibliothek, Anatomie-Teaching, Body-Map-Explorer, 
 - **`ExerciseLibrary.jsx`**: Suchfeld + "Zuletzt Trainiert"-Chips + scrollbare Übungsliste (max 80 Einträge).
 - **`AnatDetail.jsx`**: Detail-Panel für gewählte Übung — Muskelgruppen, Coaching Notes, Biomechanik. Desktop = sticky Sidebar, Mobile = Full-Screen-Overlay.
 - **`ExplorerHeader.jsx`**: Tab-Switcher zwischen den Modi. Quiz-Button nur sichtbar wenn `hasRecent === true`.
-- **`AnatomyExplorer.jsx`**: Interaktive Body-Map (Anterior/Posterior). Muskel-Klick öffnet `AnatomyDetailModal`.
+- **`AnatomyExplorer.jsx`**: Interaktive Body-Map mit 2D/3D-Toggle. 2D = Anterior/Posterior + `BodyMusclesMap` (Muskel-Klick → `AnatomyDetailModal`). 3D = `BodyParts3DMesh` (OrbitControls, kein Mesh-Click → Detail).
 - **`BodyMusclesMap.jsx`**: React-Wrapper für `body-muscles`-Library (70+ Regionen, Intensity-Highlighting via `useMuscleMap()` Hook aus `src/lib/muscleMap.js`).
+- **`BodyParts3DMesh.jsx`**: Statischer three.js-Viewer (`three` + `OBJLoader` + `OrbitControls`, kein `React.lazy`/`import()`). Lädt OBJs aus `public/anatomy/bp3d/` laut `src/data/bp3dMap.json` (catalog-ID → FMA → OBJ-Liste; Attribution CC BY 4.0 DBCLS).
 
 ## View-Modi
 
 | Modi-ID | Inhalt |
 |---------|--------|
 | `library` | Suchbare Übungsliste + AnatDetail-Sidebar |
-| `explorer` | Interaktive Body-Map (AnatomyExplorer + BodyMusclesMap) |
+| `explorer` | Body-Map: 2D (`BodyMusclesMap`) oder 3D (`BodyParts3DMesh`) |
 | `quiz` | Anatomie-Quiz basierend auf Übungen der letzten Session |
 | `strength` | Stärke-Matrix (`StrengthMatrix.jsx`, 1RM-Rechner) |
 
@@ -31,11 +32,18 @@ Eigene Datei `QuizMode.jsx`. Läuft auf `recent` (Übungen der letzten Session),
 1. Mount: `getAllExercises()` + `getLatestSession()` parallel
 2. Übung gewählt: `getAnatomy(exercise_id)` → `anatomy`-State → `AnatDetail`
 3. Nicht-Expert-Übung gewählt: `queueForEnrichment(ex)` fire-and-forget
-4. Muskel-Klick in Body-Map: `getMuscle(muscleId)` → `AnatomyDetailModal`
+4. Muskel-Klick in 2D-Body-Map: `getMuscle(muscleId)` → `AnatomyDetailModal`
+5. Explorer 3D: `selectedExercise`-Primär-/Sekundärmuskeln (catalog-IDs) → `BodyParts3DMesh` (`catalogId`/`highlightIds`); Mesh-Lookup nur lokal über `bp3dMap.json`, kein API-Call
+
+## BodyParts3D (3D-Explorer)
+
+- **Map-SOT:** KB `catalog/kb/registry/bp3d_kb_map.yml|.json` → App-Kopie `src/data/bp3dMap.json` (Hand-Copy; Regeneration über `build:kb-data` noch offen, siehe NEXT.md).
+- **Meshes:** `public/anatomy/bp3d/FJ####.obj`; Nachzug lokal via `scripts/fetch_bodyparts3d_meshes.sh` (bzw. Fitness-KB-Skript). Upstream deckt ~46 Muskeln; Abs/Lat/Rotator-Cuff fehlen.
+- **Import-Regel:** three.js und Loader **statisch** (Owner: keine Dynamic Imports). Bundle-Trade-off bewusst größer (~MB-Klasse three).
 
 ## Synergy mit Anatomy-KB
 
-Primärer Consumer der biomechanischen Daten aus `~/anatomy-kb`. Teaching-YAMLs aus `catalog/kb/anatomy_teaching/` fließen via `/exercise/:id/teaching`-Endpoint in `AnatDetail`.
+Primärer Consumer der biomechanischen Daten aus `~/anatomy-kb`. Teaching-YAMLs aus `catalog/kb/anatomy_teaching/` fließen via `/exercise/:id/teaching`-Endpoint in `AnatDetail`. BodyParts3D-Meshes sind separat (FMA-Index, nicht anatomy-kb).
 
 ## Styling (Standalone-Build)
 
