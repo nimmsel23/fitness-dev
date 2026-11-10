@@ -11,6 +11,17 @@ Learn gehört jetzt zu diesem Repo (`apps/learn`). Node-Backend-Entwicklung geh�
 - In `~/vitalos` liegt dasselbe Repo als Submodul `fitness-app`; dessen Gitlink pinnt den Fitness-Commit, den die VitalOS-Shell verwendet.
 - Ein Push auf `dev` oder `vitalos` aktualisiert den `fitness-app`-Gitlink in `~/vitalos` nicht selbst. Für einen neuen Shell-Quellstand muss dieser Pointer separat aktualisiert werden.
 
+## Keine Dynamic Imports (Owner-Regel)
+
+- **`React.lazy()` und `import()` zur Laufzeit sind in diesem Repo verboten** für Views, Sheets, Plan und schwere Libs (three, Bulk-Daten). Agenten dürfen sie nicht „zur Bundle-Optimierung“ wiedereinbauen — Live bricht daran regelmäßig (Vite-Preload/`__VITE_PRELOAD__`-Marker, Rolldown-Skew).
+- Immer **statische** `import … from '…'`. Bundle-Größe ist nachrangig gegenüber einem funktionierenden Plan-/Tab-Load.
+- Ausnahme nur mit expliziter Owner-Freigabe. `rolldown` bleibt auf Vite-kompatiblem `1.2.x` gepinnt (`pnpm-workspace.yaml`); nicht auf 1.3+ heben ohne Vite-Fix für gehashte Preload-Marker.
+
+## Session-Produktvertrag
+
+- Der Session-Tab ist ein **nachträgliches** Workout-Journal (Garderobe/abends), **kein** Live-Gym-Logger. Agenten dürfen keine Features darauf bauen, die Live-Sätze, Stoppuhr-Pflicht oder Habit-Abhaken ohne Log voraussetzen. Details: `src/views/Session/ARCHITECTURE.md`, `src/views/Session/AUDIT.md`.
+- `TodayPlan.jsx` (Makrozyklus ersetzt „Heute“) gilt als verfehltes Ist — Plan soll Vorgaben in den Editor speisen, nicht den Journal-Flow blockieren. Siehe `docs/PLAN-OWNERSHIP.md`.
+
 ## Mini-App-Integration
 
 - Plan ist die Quelle für Trainingsplan-/Programmeditor und Planlogik. Coach nutzt einen eigenen Pin unter `coach-dev/modules/plan`; daraus folgt kein automatisches Fitness-Update.
