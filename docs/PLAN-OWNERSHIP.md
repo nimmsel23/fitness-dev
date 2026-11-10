@@ -1,22 +1,33 @@
 # Plan-Quelle und Coach-Einbindung
 
-Stand: 2026-10-30.
+Stand: 2026-11-10.
 
 - `~/plan-dev` besitzt Trainingsplan-/Programmeditor und Planlogik. Änderungen
-  daran werden dort implementiert; Fitness pflegt keinen zweiten Editor.
+  daran werden dort implementiert; Fitness pflegt keinen zweiten Editor und
+  keine eingecheckte Kopie unter `src/views/Plan`.
 - Coach nutzt diesen Code über sein gepinntes Submodul `modules/plan`. Dort
   werden geprüfte Plan-Commits bewusst übernommen; Rollen und Klientenwahl
   bleiben Coach-Aufgaben.
 - Fitness ist ein separater Verbraucher. `vite-miniapp-submodules.mjs` sucht
-  derzeit zuerst benachbarte `plan-app`-/`plan-dev`-Checkouts und erst danach den
-  historischen verschachtelten `plan`-Pfad. Im geprüften `fitness-dev/dev` gibt
-  es derzeit keinen Plan-Gitlink und keine `.gitmodules`.
+  benachbarte `plan-app`-/`plan-dev`-Checkouts (daneben analog 6Pack/Skills)
+  und mappt `src/views/Plan/…` sowie `@vos-plan/…` dorthin. Es gibt keinen
+  verschachtelten Fallback-Pfad und in diesem Checkout weder Plan-Gitlink
+  noch `.gitmodules`. Fehlt der Nachbar (schlanke CI), wird die Mini-App
+  übersprungen; Fitness-Live-Deploy klont die Nachbarn.
 - Ein Coach-Pointer-Bump aktualisiert Fitness, die eigenständige Plan-Website
   und den VitalOS-Shell-Pointer nicht. Für Builds/Übernahmen immer den tatsächlich
   aufgelösten Plan-Checkout und dessen Commit prüfen.
 - Klientenpläne bleiben unter `fitness/{uid}/macrocycles`, Workout-Vorlagen unter
   `routines` mit Übungs-Subcollections, Trainingslogs unter `workouts`. Entwurf,
   veröffentlichter Snapshot und absolvierte Trainings bleiben getrennt.
+
+### Was Fitness wo zeigt
+
+| Oberfläche | Komponente | Rolle |
+|---|---|---|
+| Session-Tab (aktiver Makrozyklus) | `views/Session/TodayPlan.jsx` (+ Gate-Karte `GateNextPlanCard`) | Habit-artige „nächste Routine“ aus `macrocycles`; Übernehmen → Session-Draft. **Nicht** `PlanDocument`. |
+| Inbox / Coach-Gespräch | `PlanDocument.jsx` aus plan-dev via `@vos-plan/` | Lesbares/druckbares Planblatt zu einer Nachricht mit Planbezug. |
+| Solo-Plan-Site / Plan-Modus | `StrongApp.jsx` (`plan-main.jsx`) | Eigenständiger Plan-Editor auf vos-plan. |
 
 Details: `plan-dev/docs/PLAN-COACH-INTEGRATION.md` und
 `coach-dev/docs/COACH-PLAN-WORKFLOW.md`. Dieser Dokumentationsstand ändert keine
