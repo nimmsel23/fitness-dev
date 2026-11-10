@@ -1,6 +1,37 @@
+# TodayPlan als Settings-Option + SessionGate-Default (2026-11-10)
+
+- Default: SessionGate zuerst (Plan übernehmen / manuell); `GateNextPlanCard` speist Drafts in den Editor.
+- Settings → Trainings-Präferenzen: Toggle **TodayPlan-Screen** (`fitness-todayPlanScreen`, default aus) für den optionalen Habit-Screen.
+- Docs: Session `ARCHITECTURE`/`AUDIT`, `PLAN-OWNERSHIP`, `AGENTS`, `NEXT`.
+
 # 2026-11-10 — AL: Learn-3D View-Docs
 
 - `src/views/Learn/ARCHITECTURE.md` + `AUDIT.md`: BodyParts3DMesh, 2D/3D-Toggle, bp3dMap/OBJ-Pfad, statische three-Imports, bekannte Mesh-Lücken dokumentiert (Feature-Freeze Docs).
+
+# Plan-Tab-Fix, Dynamic Imports entfernt und Docs aktualisiert (2026-11-10)
+
+Ein `SyntaxError` im Plan-Tab wurde durch einen `rolldown`-Versionskonflikt verursacht, der `__VITE_PRELOAD__`-Marker beschädigte. Dies führte zur Entscheidung, alle `React.lazy` und dynamischen `import()`-Aufrufe zu entfernen und die Dokumentation zu aktualisieren, um zukünftige Probleme zu vermeiden. Zusätzlich wurden die Learn-3D-Komponenten und Assets eingecheckt.
+
+- **`pnpm-workspace.yaml`**: `rolldown` von `1.3.0` auf `1.2.16` gepinnt, um `__VITE_PRELOAD__`-Marker-Fehler zu beheben.
+- **`AGENTS.md` (fitness-dev & plan-dev)**: Neue Owner-Regel "Keine Dynamic Imports" hinzugefügt; Session-Produktvertrag präzisiert (retrospektives Journal, nicht Live-Logging).
+- **`docs/CLAUDE.md`**: Updates zur Mini-App-Integration (keine eingecheckten Kopien, Resolver-Mapping) und zur neuen Regel "Keine Dynamic Imports".
+- **`docs/PLAN-OWNERSHIP.md`**: Aktualisierung der Plan-Quellenbeschreibung und des Session-Tab-Verhaltens (`TodayPlan.jsx` als verfehltes Ist).
+- **`src/views/Coach/ARCHITECTURE.md`**: Aktualisierung der Plan-Zuweisung und der Rolle von `TodayPlan.jsx` im Session-Tab.
+- **`src/views/Session/ARCHITECTURE.md`**: Produktvertrag für den Session-Tab hinzugefügt (nachträgliches Logging, nicht Live-Gym).
+- **`src/App.jsx`**: Alle `React.lazy` Imports für Views (Learn, WeeklyReview, Touren, Exercises, Settings, Anamnese, Fokus, Inbox) entfernt und durch statische Imports ersetzt; `Suspense` entfernt.
+- **`src/views/Session/index.jsx`**: `React.lazy` Imports für `PlanView` und `Logbuch` entfernt und durch statische Imports ersetzt; `Suspense` entfernt.
+- **`src/views/Session/SessionEditor.jsx`**: `React.lazy` Import für `SplitPlanSheet` entfernt und durch statischen Import ersetzt; `Suspense` und `planSheetLoaded` State entfernt.
+- **`src/views/Inbox/CoachConversation.jsx`**: `React.lazy` Import für `PlanDocument` entfernt und durch statischen Import ersetzt; `Suspense` entfernt.
+- **`src/views/Learn/AnatomyExplorer.jsx`**: `React.lazy` Import für `BodyParts3DMesh` entfernt und durch statischen Import ersetzt; `Suspense` entfernt.
+- **`src/views/Learn/BodyParts3DMesh.jsx`**: `three`, `OBJLoader`, `OrbitControls` von dynamischem Import auf statischen Import umgestellt.
+- **`src/lib/db/firestore/kb.js`**: Dynamischer Import für `exerciseBulkData.generated.js` entfernt und durch statischen Import ersetzt.
+- **`src/lib/db/shared/kbLookup.js`**: Dynamischer Import für `search.js` entfernt und durch statischen Import ersetzt.
+- **`plan-dev/src/views/Plan/components/ExerciseSearch.jsx`**: Dynamischer Import für `api.js` entfernt und durch statischen Import ersetzt.
+- **`plan-dev/src/views/Plan/components/PlanCard.jsx`**: `React.lazy` Import für `PlanFeedback` entfernt und durch statischen Import ersetzt; `Suspense` entfernt.
+- **`fitness-dev` & `plan-dev`**: Alle relevanten Code- und Doku-Änderungen wurden in den jeweiligen Repos committed und nach `dev` gepusht (`fitness-dev` `ee0f790`, `plan-dev` `60dab8fe`).
+- **`public/anatomy/` (fitness-dev)**: BodyParts3D OBJ-Meshes und `bp3dMap.json` wurden eingecheckt und gepusht (`fitness-dev` `a267062`), nachdem der `.gitignore`-Eintrag für `.obj`-Dateien entfernt wurde.
+---
+
 
 # 2026-11-10
 
