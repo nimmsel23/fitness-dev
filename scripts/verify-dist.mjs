@@ -40,7 +40,8 @@ if (fs.existsSync(assetsDir)) {
   for (const name of fs.readdirSync(assetsDir)) {
     if (!name.endsWith('.js')) continue
     const txt = fs.readFileSync(path.join(assetsDir, name), 'utf8')
-    if (corruptRe.test(txt)) errors.push(`Vite-Preload-Marker-Hash in assets/${name} (fix-vite-preload-markers fehlt/fehlgeschlagen)`)
+    if (corruptRe.test(txt))
+      errors.push(`Vite-Preload-Marker-Hash in assets/${name} (fix-vite-preload-markers fehlt/fehlgeschlagen)`)
   }
 }
 
