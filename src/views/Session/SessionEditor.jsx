@@ -65,10 +65,21 @@ export default function SessionEditor({
   onSubNav,
   gateAutoOpenFlag,
   onGateAutoOpenConsumed,
+  openPlanGate = false,
 }) {
   const [showInlineDetails, setShowInlineDetails] = useState(false);
   // Long-Press auf einen Split-Chip → passende Plan-Vorlagen (SplitPlanSheet)
   const [planSplit, setPlanSplit] = useState(null);
+
+  function planChoiceKey() {
+    return `fitness-session-plan-choice:${date}`;
+  }
+  function rememberPlanChoice(kind) {
+    try { sessionStorage.setItem(planChoiceKey(), kind); } catch { /* private mode */ }
+  }
+  function hasPlanChoice() {
+    try { return Boolean(sessionStorage.getItem(planChoiceKey())); } catch { return false; }
+  }
 
   function applyPlanTemplate(split, routine) {
     if (block !== split) { setBlock(split); scheduleAutoSave(); }
@@ -80,15 +91,30 @@ export default function SessionEditor({
         : 'Alle Übungen sind schon in der Session'
     );
   }
-  // "Nächster Plan"-Karte im Gate-Sheet: Routine ohne Split-Wechsel in die Session übernehmen.
-  function applyNextRoutine(routine) {
-    const list = routine?.exercises || [];
+  // Gate-Verzweigung „Plan übernehmen": Draft {block, exercises} (Zielnotizen / letztes Mal).
+  function applyNextRoutine(draftOrRoutine) {
+    const list = draftOrRoutine?.exercises || [];
+    if (draftOrRoutine && 'block' in draftOrRoutine) {
+      if (draftOrRoutine.block) { setBlock(draftOrRoutine.block); scheduleAutoSave(); }
+      if (!list.length) {
+        exerciseOps?.onToast?.(`${draftOrRoutine.block || 'Plan'} hat keine Übungen`);
+        return;
+      }
+      exerciseOps?.appendDraft?.(draftOrRoutine);
+      rememberPlanChoice('plan');
+      return;
+    }
     const added = addFromTemplate?.(list) || 0;
+    rememberPlanChoice('plan');
     exerciseOps?.onToast?.(
-      !list.length ? `${routine?.label || routine?.name || 'Plan'} hat keine Übungen`
-        : added ? `+ ${added} Übungen aus „${routine?.label || routine?.name}"`
+      !list.length ? `${draftOrRoutine?.label || draftOrRoutine?.name || 'Plan'} hat keine Übungen`
+        : added ? `+ ${added} Übungen aus „${draftOrRoutine?.label || draftOrRoutine?.name}"`
         : 'Alle Übungen sind schon in der Session'
     );
+  }
+  function logManually() {
+    rememberPlanChoice('manual');
+    setActiveModal(null);
   }
   const gpsMapsUrl = normalizeSessionGate(sessionGate).gps?.mapsUrl || null;
   // Beginn/Ende manuell setzen (wie es Start/Stopp der Stoppuhr automatisch tun);
@@ -128,6 +154,20 @@ export default function SessionEditor({
     if (gateAutoOpenFlag && date === localToday()) setActiveModal(gateAutoOpenFlag === 'gate' ? 'gate' : 'hub');
     if (gateAutoOpenFlag) onGateAutoOpenConsumed?.();
   }, [gateAutoOpenFlag]);
+
+  // Bei aktivem Makrozyklus: Gate als Plan/Manuell-Verzweigung öffnen,
+  // solange heute noch keine Wahl und die Session noch leer ist.
+  // `exercises.length` in deps: nach async Hydrate mit bestehenden Übungen
+  // nicht mehr öffnen (Choice = existing).
+  useEffect(() => {
+    if (!openPlanGate || date !== localToday()) return;
+    if (hasPlanChoice()) return;
+    if ((exercises || []).length > 0) {
+      rememberPlanChoice('existing');
+      return;
+    }
+    setActiveModal('gate');
+  }, [openPlanGate, date, exercises.length]);
 
   // Split-Autoerkennung: solange der User selbst noch keinen Split gewählt
   // hat (block === ''), leitet sie den Split aus den bereits eingetragenen
@@ -335,7 +375,8 @@ export default function SessionEditor({
         exercises={exercises}
         sessionMode={sessionMode} setSessionMode={setSessionMode}
         block={block} setBlock={v => { setBlock(v); scheduleAutoSave(); }}
-        onApplyRoutine={addFromTemplate ? applyNextRoutine : undefined}
+        onApplyRoutine={applyNextRoutine}
+        onManualLog={logManually}
         onSplitLongPress={addFromTemplate ? (k) => { setActiveModal(null); setPlanSplit(k); } : undefined}
         onSubNav={onSubNav}
         onStartGate={() => { startSessionGate(); setActiveModal(null); }}

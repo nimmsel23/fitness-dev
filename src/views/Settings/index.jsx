@@ -21,6 +21,7 @@ export default function Settings({ hideAppearance = false } = {}) {
     layoutScale, setLayoutScale,
     recentDays, setRecentDays,
     coverageThreshold, setCoverageThreshold,
+    todayPlanScreen, setTodayPlanScreen,
     showAdvanced, setShowAdvanced,
     themeMode, setModeState, circLight, setCircLight, circDark, setCircDark,
     theme, setThemeState,
@@ -141,6 +142,7 @@ export default function Settings({ hideAppearance = false } = {}) {
           cycleLength={cycleLength} setCycleLength={setCycleLength}
           recentDays={recentDays} setRecentDays={setRecentDays}
           coverageThreshold={coverageThreshold} setCoverageThreshold={setCoverageThreshold}
+          todayPlanScreen={todayPlanScreen} setTodayPlanScreen={setTodayPlanScreen}
         />
       </div>
 

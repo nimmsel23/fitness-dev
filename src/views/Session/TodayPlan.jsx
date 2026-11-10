@@ -1,3 +1,9 @@
+/**
+ * useTodayPlan — aktiver Makrozyklus + nächste Routine.
+ * TodayPlan — optionaler Habit-Screen (Settings → TodayPlan-Screen).
+ * Default-Flow: SessionGate → GateNextPlanCard (Plan/Manuell).
+ */
+
 import { useState, useEffect } from 'react'
 import { Dumbbell, Check } from 'lucide-react'
 import { useUser } from '../../contexts/UserContext'
@@ -8,11 +14,6 @@ import { routineToSessionDraft, prescriptionText, lastPerformanceMap, withLastPe
 import TemplateLauncher from './TemplateLauncher.jsx'
 import { getSessionHistory, watchAuth, listMacrocycles, getMacrocycle, completeRoutine, getLastPerformance } from '@db'
 
-// Habit-artig: Coach legt eine rotierende Liste von Routinen an (Push/Pull/
-// Legs o.ä.), kein Kalender/Wochentag. Der Klient sieht immer nur "die
-// nächste dran" (Rotation nach Anzahl Completions, nicht nach Datum) und
-// tippt sie ab wie einen Habit — Details (Übungen/Sätze/Wdh) bleiben
-// sichtbar, nur die Bedienung ist so simpel wie ein Habit-Tracker.
 export function useTodayPlan() {
   const userContext = useUser()
   const [authUser, setAuthUser] = useState(null)

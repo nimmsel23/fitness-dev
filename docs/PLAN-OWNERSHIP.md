@@ -25,8 +25,8 @@ Stand: 2026-11-10.
 
 | Oberfläche | Komponente | Rolle |
 |---|---|---|
-| Session-Tab (Soll) | Editor + Plan als Vorlage | Session = **nachträgliches** Journal (nicht Live-Gym). Plan speist Übungs-/Vorgabe-Drafts in den Editor. |
-| Session-Tab (Ist, verfehlt) | `TodayPlan.jsx` (+ `GateNextPlanCard`) | Habit-Screen ersetzt bei aktivem Makrozyklus den Editor; „erledigt“ ohne Sätze. Owner: zurückgeblieben, Zweck verfehlt — ersetzen/abbauen, nicht ausbauen. |
+| Session-Tab (Default) | Editor + SessionGate (`GateNextPlanCard`) | Bei Makrozyklus: Gate zuerst → Plan-Draft oder manuell. |
+| Session-Tab (Opt-in) | `TodayPlan.jsx` Habit-Screen | Settings → **TodayPlan-Screen**; ersetzt „Heute“ bei Makrozyklus. |
 | Inbox / Coach-Gespräch | `PlanDocument.jsx` aus plan-dev via `@vos-plan/` | Lesbares/druckbares Planblatt zu einer Nachricht mit Planbezug. |
 | Solo-Plan-Site / Plan-Modus | `StrongApp.jsx` (`plan-main.jsx`) | Eigenständiger Plan-Editor auf vos-plan. |
 

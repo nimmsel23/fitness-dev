@@ -1,9 +1,8 @@
 /**
  * Session — Thin sub-tab router.
  *
- * All state lives in useSession hook.
- * Routes between: editor (today) / history / plan.
- * index.jsx went from 860 lines → ~60 lines. 
+ * Default: Editor + SessionGate als Plan/Manuell-Verzweigung.
+ * Optional (Settings → TodayPlan-Screen): Habit-Übersicht bei Makrozyklus.
  */
 
 import { useState } from 'react';
@@ -16,7 +15,7 @@ import Logbuch from '../Logbuch/index.jsx';
 import TodayPlan, { useTodayPlan } from './TodayPlan.jsx';
 import { isSessionGateActive } from '../../lib/sessionGate.js';
 import { useSessionGateLifecycle } from './useSessionGateLifecycle.js';
-import SessionModeTabs from './SessionModeTabs.jsx';
+import { useSettings } from '../../contexts/SettingsContext';
 import { IS_SOLO } from '../../constants/NavigationItems.js';
 import { ChevronLeft } from 'lucide-react';
 
@@ -27,36 +26,26 @@ export default function Session({
   gateAutoOpenFlag, onGateAutoOpenConsumed,
 }) {
   const session = useSession({ initialDate, initialDraft, recentDays, coverageThreshold, onDateChange });
-  // Notifications/1h-Reminder für alle Session-Sub-Tabs (Editor, Verlauf,
-  // Plan) — nicht nur solange das Gate-Sheet offen ist. Auf
-  // anderen Haupt-Tabs übernimmt useTodayGateWatcher (App.jsx).
   useSessionGateLifecycle(session.sessionGate, session.date);
+  const { todayPlanScreen } = useSettings();
   const { loading: planLoading, cycle, nextRoutine, lastPerformance, clientUid, reload } = useTodayPlan();
   const [logFreely, setLogFreely] = useState(false);
 
-  // BUGFIX 2026-09-05 (Klient Matthias — "stuck in Oktober 2025"): isTodayTab
-  // prüfte bisher NUR subTab, nicht das tatsächliche Datum. `!subTab` ist aber
-  // auch bei einem expliziten Datums-Deep-Link true (parseHashRoute() setzt
-  // subTab dort nie), UND jeder Datumswechsel remountet den ganzen <Session>-
-  // Baum (App.jsx: key={sessionDate}), was das lokale `logFreely` zurücksetzt.
-  // Ergebnis: sobald ein Klient mit aktivem Coach-Plan (cycle+nextRoutine) den
-  // Date-Picker benutzt, springt die App bei JEDEM Datumswechsel zurück auf
-  // diesen TodayPlan-Screen (der selbst komplett datums-blind ist, kein
-  // Date-Picker, keine SessionHeader) — Endlosschleife, kein Weg zurück zum
-  // Editor für ein beliebiges Datum. Fix: Gate nur, wenn tatsächlich HEUTE
-  // aktiv ist — TodayPlan ist ohnehin ein reiner "heute"-Habit-Screen, für
-  // jedes andere Datum ist der normale Editor korrekt.
   const isTodayTab = (subTab === 'today' || !subTab) && session.date === localToday();
-  // Ein aktiver Gate (Workout läuft bereits, siehe SessionGateCard) darf nie
-  // vom TodayPlan-Habit-Screen verdrängt werden — TodayPlan kennt den Gate
-  // nicht und bietet keinen Weg, eine laufende Session zu beenden. Ohne
-  // diese Ausnahme landete z.B. ein Klick auf die "Workout läuft"-Push-
-  // Notification (die gezielt auf #session/today verlinkt, um das Gate-Sheet
-  // zu öffnen) bei Klienten mit aktivem Coach-Plan-Zyklus trotzdem auf
-  // TodayPlan — Sackgasse ohne "Workout beenden"-Button (Bug/UX-Lücke aus
-  // TODO.md, 2026-10-12).
   const gateActive = isSessionGateActive(session.sessionGate);
-  if (isTodayTab && !planLoading && cycle && nextRoutine && !logFreely && !gateActive && !gateAutoOpenFlag && !initialDraft) {
+
+  // Opt-in Habit-Screen (Settings). Sonst Gate-Verzweigung im Editor.
+  if (
+    todayPlanScreen
+    && isTodayTab
+    && !planLoading
+    && cycle
+    && nextRoutine
+    && !logFreely
+    && !gateActive
+    && !gateAutoOpenFlag
+    && !initialDraft
+  ) {
     return (
       <TodayPlan
         cycle={cycle}
@@ -70,16 +59,15 @@ export default function Session({
     );
   }
 
-  const modeTabs = (
-    <div className="px-3 pt-3 pb-1 flex">
-      <SessionModeTabs
-        sessionMode={session.sessionMode} setSessionMode={session.setSessionMode}
-        subTab={subTab} onSubNav={onSubNav}
-      />
-    </div>
+  const openPlanGate = Boolean(
+    !todayPlanScreen
+    && isTodayTab
+    && !planLoading
+    && cycle
+    && nextRoutine
+    && !initialDraft
   );
 
-  // Solo-Build: History hat dort keine Nav — eigener Rückweg zu "Heute".
   const soloBack = IS_SOLO && (
     <div className="px-3 pt-3">
       <button
@@ -92,12 +80,10 @@ export default function Session({
     </div>
   );
 
-  // Solo-Build: Plan lebt dort auf vos-plan.web.app (Link im Header-Menü).
   if (subTab === 'plan' && !IS_SOLO) {
     return <PlanView routeView={planView} routeId={planId} onRouteChange={onPlanRouteChange} />;
   }
 
-  // Logbuch = Makro-Gegenstück zum Einzelsession-Tab; lädt seine Historie selbst.
   if (subTab === 'logbuch' || subTab === 'history') {
     return (
       <Logbuch onOpenSession={onOpenSession} onInspectExercise={onInspectExercise} onSubNav={onSubNav} />
@@ -127,7 +113,6 @@ export default function Session({
     );
   }
 
-  // Default: today / session editor
   return (
       <SessionEditor
         {...session}
@@ -136,6 +121,7 @@ export default function Session({
         onSubNav={onSubNav}
         gateAutoOpenFlag={gateAutoOpenFlag}
         onGateAutoOpenConsumed={onGateAutoOpenConsumed}
+        openPlanGate={openPlanGate}
       />
   );
 }

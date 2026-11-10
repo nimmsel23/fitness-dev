@@ -29,6 +29,8 @@ export function createSettingsStore(prefix, extraFields = {}) {
     showAdvanced:      [key('showAdvanced'),      () => ls(key('showAdvanced'), 'false') === 'true'],
     sidebarPinned:     [key('sidebarPinned'),     () => ls(key('sidebarPinned'), 'true') !== 'false'],
     swipeEnabled:      [key('swipeEnabled'),      () => ls(key('swipeEnabled'), 'false') === 'true'],
+    // Optionaler Habit-Screen bei Makrozyklus (sonst: SessionGate Plan/Manuell).
+    todayPlanScreen:   [key('todayPlanScreen'),   () => ls(key('todayPlanScreen'), 'false') === 'true'],
     muscleLanguage:    [key('muscleLanguage'),    () => ls(key('muscleLanguage'), 'de')],
     navMode:           [key('navMode'),           () => ls(key('navMode'), 'tabs')],
     // Konsumenten (z.B. vitalos-Shell) können zusätzliche, app-eigene Felder

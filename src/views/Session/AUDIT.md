@@ -34,7 +34,7 @@ Skills und 6Pack sind aus der Fitness-Session herausgelöst. Die Session bietet 
 - **Gate-Portal** (2026-11-05) — `GatePortalGrid` (Suche, Kürzel `/` `1`–`9`, Zuletzt genutzt, Ziele über alle Tabs), Kraft/Ausdauer + Split-Chips im Gate, Hub-Modus per Hochziehen, KEIN Auto-Open mehr. Per Browser-Harness (Firefox headless, echte Komponente) geprüft: Zähler, Suche, Enter/Kürzel, Recent, Chips, Modus-Toggle, Hub-Geste, Sheet-Schließen bei Hash-Navigation.
 - **Hub-Einstieg** — Bottom-Nav-Button `Hub` (App.openHub → gateAutoOpenFlag → activeModal 'hub'), Split-Chip im Session-Tab nur Anzeige, Long-Press→Pläne im Gate. Per Browser-Harness geprüft, zusätzlich in der laufenden App (echte index.html, Firefox headless): Hub-Button (Sidebar/Nav) → Hub-Modus, kein Auto-Open, Navigation Lernen. Desktop-Sidebar hat ebenfalls einen Hub-Eintrag; Coach-Klienten mit Plan-Zyklus sehen bei Hub-Wunsch direkt den Editor (nicht TodayPlan).
 - **Dock** — Nav hochwischen → Sheet (flag 'gate'), Hub-Leiste im Sheet statt Nav, weiter hoch → Hub-Vollbild. Im Browser (390 px iframe, simulierte Touch-Events) geprüft; echter Finger nicht.
-- **Karte "Nächster Plan"** (`GateNextPlanCard.jsx`) — heutige Routine aus dem Zyklus (`useTodayPlan`) per Tipp in die Session übernehmen (`addFromTemplate`), ohne Plan-Tab. Rendert nichts ohne Zyklus; ohne Zyklus-Datensatz nicht live geprüft (Dock-Test läuft ohne Absturz).
+- **Karte "Nächster Plan"** (`GateNextPlanCard.jsx`, 2026-11-10) — Gate-Verzweigung: Plan-Draft übernehmen oder manuell loggen. `TodayPlan`-Habit-Screen entfernt; Hook `useTodayPlan` bleibt.
 - **Splits Shoulders/Arms** — Autoerkennung nur über Primärmuskeln (`utils.js::inferBlockFromExercises`).
 
 ## Auffälligkeiten (2026-10-13)
@@ -46,11 +46,8 @@ Skills und 6Pack sind aus der Fitness-Session herausgelöst. Die Session bietet 
   was `App.jsx::parseHashRoute()` absichtlich als gate-loses Deep-Link
   behandelt (Fix 2026-09-07 für Dashboard/Review-Links) — jetzt fest auf
   `/#session/today` umgestellt (einziger Hash, der `subTab='today'` setzt
-  und damit das Gate öffnet). (2) `src/views/Session/index.jsx` ließ
-  selbst bei korrektem Hash den gate-unwissenden `TodayPlan`-Screen
-  weiterhin den `SessionEditor` verdrängen, wenn ein Klient einen aktiven
-  Coach-Plan-Zyklus hat — jetzt per `isSessionGateActive(session.sessionGate)`
-  ausgenommen, solange ein Gate läuft.
+  und damit das Gate öffnet). (2) `TodayPlan`-Hijack entfernt (2026-11-10);
+  Editor + Gate bleiben die einzige Today-Bahn.
 
 ## Auffälligkeiten (2026-09-05)
 - **Dual-DB-Layer (`@db`-Alias) — vier konkurrierende SOTs, keine dokumentierte

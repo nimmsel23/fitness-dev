@@ -20,7 +20,7 @@ Learn gehört jetzt zu diesem Repo (`apps/learn`). Node-Backend-Entwicklung geh�
 ## Session-Produktvertrag
 
 - Der Session-Tab ist ein **nachträgliches** Workout-Journal (Garderobe/abends), **kein** Live-Gym-Logger. Agenten dürfen keine Features darauf bauen, die Live-Sätze, Stoppuhr-Pflicht oder Habit-Abhaken ohne Log voraussetzen. Details: `src/views/Session/ARCHITECTURE.md`, `src/views/Session/AUDIT.md`.
-- `TodayPlan.jsx` (Makrozyklus ersetzt „Heute“) gilt als verfehltes Ist — Plan soll Vorgaben in den Editor speisen, nicht den Journal-Flow blockieren. Siehe `docs/PLAN-OWNERSHIP.md`.
+- Bei aktivem Makrozyklus: SessionGate zuerst (Plan übernehmen / manuell). Optional Habit-Screen über Settings → TodayPlan-Screen. Siehe `docs/PLAN-OWNERSHIP.md`.
 
 ## Mini-App-Integration
 

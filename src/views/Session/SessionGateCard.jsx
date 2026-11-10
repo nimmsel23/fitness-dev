@@ -59,7 +59,7 @@ function TodayCounters({ exercises }) {
   );
 }
 
-export default function SessionGateCard({ date, sessionGate, currentSubTab = null, exercises = [], sessionMode = 'strength', setSessionMode, block = '', setBlock, onSplitLongPress, onApplyRoutine, hub = false, onSubNav, onLeave, onStart, onStop }) {
+export default function SessionGateCard({ date, sessionGate, currentSubTab = null, exercises = [], sessionMode = 'strength', setSessionMode, block = '', setBlock, onSplitLongPress, onApplyRoutine, onManualLog, hub = false, onSubNav, onLeave, onStart, onStop }) {
   const gate = normalizeSessionGate(sessionGate);
   const active = isSessionGateActive(gate);
   const completed = isSessionGateCompleted(gate);
@@ -135,14 +135,14 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
         <div className="flex-1 min-w-0 w-full">
           <StatusEyebrow active={active} completed={completed} />
           <h3 className="text-lg sm:text-xl font-bold mt-1.5" style={{ color: 'var(--ink)' }}>
-            {active ? 'Im Gym. Handy weg.' : completed ? 'Workout ist geloggt.' : 'Workout schnell starten.'}
+            {active ? 'Session läuft.' : completed ? 'Workout ist geloggt.' : 'Was hast du trainiert?'}
           </h3>
           <p className="text-[13px] mt-1 max-w-xl" style={{ color: 'var(--dim)', opacity: 0.75 }}>
             {active
-              ? 'Die Zeit läuft bereits. Das eigentliche Tracking kann komplett später passieren.'
+              ? 'Zeit läuft mit. Sätze und Details trägst du nach — Garderobe oder abends.'
               : completed
                 ? 'Der Trainingstag steht. Unten kannst du Übungen und Details in Ruhe nachtragen.'
-                : 'Start heißt nur: Session läuft. Erst beim Beenden gilt das Workout als wirklich done und geloggt.'}
+                : 'Optional Zeit starten. Übungen trägst du nachträglich ein — kein Live-Logging im Gym.'}
           </p>
 
           <GateIdleSuggestion sessionGate={gate} onStop={onStop} className="mt-3" />
@@ -194,7 +194,8 @@ export default function SessionGateCard({ date, sessionGate, currentSubTab = nul
       {onApplyRoutine && !completed && (
         <GateNextPlanCard
           className="relative mt-5"
-          onApply={async (routine) => { await onApplyRoutine(routine); onLeave?.(); }}
+          onApply={async (draft) => { await onApplyRoutine(draft); onLeave?.(); }}
+          onManual={() => { onManualLog?.(); onLeave?.(); }}
         />
       )}
 

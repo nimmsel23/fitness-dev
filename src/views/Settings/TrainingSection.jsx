@@ -9,6 +9,7 @@ export default function TrainingSection({
   cycleLength, setCycleLength,
   recentDays, setRecentDays,
   coverageThreshold, setCoverageThreshold,
+  todayPlanScreen, setTodayPlanScreen,
 }) {
   const [slidersOpen, setSlidersOpen] = useState(false);
 
@@ -22,6 +23,24 @@ export default function TrainingSection({
        </div>
 
        <div className="space-y-6">
+          <div className="flex items-center justify-between gap-4">
+             <div className="min-w-0">
+                <div className="text-sm font-semibold text-fit-ink">TodayPlan-Screen</div>
+                <div className="text-xs" style={{ color: 'var(--dim)', opacity: 0.6 }}>
+                  Bei aktivem Plan-Zyklus Habit-Übersicht statt SessionGate-Wahl
+                </div>
+             </div>
+             <button
+               type="button"
+               role="switch"
+               aria-checked={todayPlanScreen}
+               onClick={() => setTodayPlanScreen(!todayPlanScreen)}
+               className={`shrink-0 w-12 h-6 rounded-full transition-colors relative border ${todayPlanScreen ? 'bg-fit-accent border-fit-accent' : 'bg-fit-bg2 border-fit-line'}`}
+             >
+               <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${todayPlanScreen ? 'left-7' : 'left-1'}`} />
+             </button>
+          </div>
+
           <SegmentedControl
             label="Trainings-Split"
             options={[
