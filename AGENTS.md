@@ -14,8 +14,8 @@ Learn gehört jetzt zu diesem Repo (`apps/learn`). Node-Backend-Entwicklung geh�
 ## Mini-App-Integration
 
 - Plan ist die Quelle für Trainingsplan-/Programmeditor und Planlogik. Coach nutzt einen eigenen Pin unter `coach-dev/modules/plan`; daraus folgt kein automatisches Fitness-Update.
-- `vite-miniapp-submodules.mjs` löst die Mini-App-Quellen derzeit zuerst über benachbarte Checkouts auf (`plan-app`/`plan-dev`, entsprechend 6Pack/Skills); historische verschachtelte Pfade bleiben Fallbacks. In diesem Checkout existiert derzeit keine `.gitmodules` und kein Plan-Gitlink.
-- Vor Builds und Übernahmen den tatsächlich aufgelösten Quellcheckout samt Commit prüfen. Nicht allein aus alten Submodul-Anweisungen auf den aktuellen Stand schließen.
+- `vite-miniapp-submodules.mjs` löst Plan/6Pack/Skills **nur** über benachbarte Checkouts auf (`plan-app`/`plan-dev`, analog 6Pack/Skills) — kein verschachtelter Fallback, kein Gitlink, keine `.gitmodules` in diesem Checkout. `src/views/Plan` und `src/views/Skills` existieren hier nicht; Imports wie `../Plan/…` und `@vos-plan/…` zeigen zur Laufzeit auf den Sibling.
+- Vor Builds und Übernahmen den tatsächlich aufgelösten Quellcheckout samt Commit prüfen. Nicht allein aus alten Submodul-Anweisungen oder aus `src/views/Plan`-Pfaden in Importen auf eine lokale Kopie schließen.
 - Standalone-Releases, Coach-Plan-Pointer, Fitness-Integration und VitalOS-Shell-Pointer sind getrennte Schritte.
 - Details zur Zuständigkeit: `docs/PLAN-OWNERSHIP.md`.
 
@@ -91,4 +91,4 @@ Verbindlich fuer alle Agenten (Vibe, Claude, Codex, Gemini) in Org-Kontexten
 
 ## Python-`fitness.*` (Stand 2026-11-09)
 
-SOT: `~/dev/coach-dev/fitness` — dieses Repo hält **keine** Kopie mehr (war ~identisch, 174/176). `deploy.sh` synct aus Coach. Sessions-Backend: `~/dev/backend/fitness/backend`.
+SOT: `~/dev/coach-dev/fitness` — dieses Repo hält **keine** Kopie mehr (war ~identisch, 174/176). `deploy.sh` synct aus Coach. Sessions-Backend: `~/dev/coach-dev/backend`. anatomy-kb Symlink → coach-dev.
