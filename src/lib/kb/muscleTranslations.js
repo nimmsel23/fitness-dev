@@ -314,21 +314,36 @@ export function saveMuscleDetail(value) {
   localStorage.setItem(MUSCLE_DETAIL_KEY, value);
 }
 
+// Nummern-Schema gemäß fitness/catalog/muscle_index.yml (kanonisch):
+// 1xx Brust, 2xx Rücken, 3xx Schulter, 4xx Arme (401=Trizeps, 402=Bizeps,
+// 403=Brachialis), 5xx Rumpf, 6xx Beine (601=Quadrizeps, 603=Gluteus Max.,
+// 604=Hamstrings, 607=Iliopsoas, 608/609=Gluteus Med./Min.), 7xx Waden.
+// RBH hat keine eigenen Slugs für Rhomboids/Teres/Lats-Unterteilung —
+// diese rollen auf die übergeordnete SVG-Form (latissimus/upper-back).
 const RBH_SLUG_BY_NUMERIC_ID = {
   100: 'chest', 101: 'chest', 102: 'chest', 103: 'chest', 104: 'chest', 105: 'chest',
+  200: 'upper-back', 201: 'latissimus', 205: 'upper-back', 207: 'latissimus', 208: 'lower-back',
   202: 'trapezius', 203: 'trapezius', 204: 'trapezius',
   206: 'lower-back',
-  301: 'front-deltoids', 303: 'back-deltoids',
-  401: 'triceps',
+  300: 'front-deltoids',
+  301: 'front-deltoids', 302: 'front-deltoids', 303: 'back-deltoids',
+  304: 'front-deltoids', 305: 'front-deltoids', 306: 'back-deltoids', 307: 'back-deltoids', 308: 'front-deltoids',
+  400: 'biceps',
+  401: 'triceps', 4011: 'triceps', 4012: 'triceps', 4013: 'triceps',
   402: 'biceps', 403: 'biceps',
   404: 'forearm', 405: 'forearm', 406: 'forearm', 407: 'forearm',
-  501: 'abs', 504: 'abs', 506: 'abs', 507: 'abs', 508: 'abs',
+  500: 'abs',
+  501: 'abs', 504: 'abs', 505: 'lower-back', 506: 'abs', 507: 'abs', 508: 'abs',
   502: 'obliques', 503: 'obliques',
-  601: 'quadriceps',
+  600: 'quadriceps',
+  601: 'quadriceps', 6011: 'quadriceps', 6012: 'quadriceps', 6013: 'quadriceps', 6014: 'quadriceps',
   602: 'adductor',
   603: 'gluteal', 608: 'gluteal', 609: 'gluteal',
-  604: 'hamstring', 605: 'hamstring', 606: 'hamstring',
-  701: 'calves', 702: 'calves',
+  604: 'hamstring', 6041: 'hamstring', 6042: 'hamstring', 6043: 'hamstring',
+  605: 'hamstring', 606: 'hamstring', 607: 'adductor',
+  610: 'adductor', 611: 'adductor', 612: 'gluteal',
+  701: 'calves', 7011: 'calves', 7012: 'calves',
+  702: 'calves', 703: 'calves',
 };
 
 const RBH_SLUG_BY_WORD = {
@@ -345,6 +360,22 @@ const RBH_SLUG_BY_WORD = {
   trapezius: 'trapezius',
   upper_back: 'upper-back',
   abductors: 'abductors',
+  // Freitext-Aliase (Yuhonas-Vokabular, Sessions ohne kanonische IDs):
+  shoulders: 'front-deltoids',
+  back: 'upper-back',
+  lats: 'latissimus',
+  latissimus: 'latissimus',
+  lower_back: 'lower-back',
+  middle_back: 'upper-back',
+  rhomboids: 'upper-back',
+  forearm: 'forearm',
+  hamstring: 'hamstring',
+  quads: 'quadriceps',
+  gluteal: 'gluteal',
+  adductor: 'adductor',
+  adductors: 'adductor',
+  core: 'abs',
+  abdominal: 'abs',
 };
 
 export function muscleToRbhSlug(raw) {
