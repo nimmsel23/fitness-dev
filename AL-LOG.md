@@ -93,6 +93,6 @@ completed	success	Auto-Promote dev -> master (Check (Fitness))	Auto-Promote dev 
 - Arbeitsbaum: 7 uncommittete Pfade
 
 _Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen statt Erzählung):_
-- Erledigt: `bp3dMap.json` → `build:kb-data` — `scripts/build-bp3d-map.mjs` + Step in `build-kb-data.mjs` / `build:bp3d-map`; Learn ARCHITECTURE/AUDIT; NEXT/RESULTS (`6d0c265`/`c434135`). Dieser AL-LOG-Commit auf `dev`.
+- Erledigt: `bp3dMap.json` → `build:kb-data` — `scripts/build-bp3d-map.mjs` + Step in `build-kb-data.mjs` / `build:bp3d-map`; Learn ARCHITECTURE/AUDIT; NEXT/RESULTS (`6d0c265`/`c434135`). Commit `baf87a5` auf `dev`.
 - Offen/Weiter: Learn-3D Mesh-Lücken Abs/Lat/Rotator-Cuff; Gemini-CI echter Rotlauf + Pages `/docs`; Vite/Rolldown Sibling-Pin 1.2.16 (NEXT). Org-Queue fitness-dev leer. Feature-Freeze bis 2027-02-07.
 - Blocker: keine. Fremd-WIP Checkout (`deploy.sh`, skills/*, `fitness/catalog/`, portal.mjs) unberührt. AUTOMATION: vos-al-log Prefill nur Checkout → vor AL-Commit in Temp-WT syncen — ~2 Min/Lauf.
