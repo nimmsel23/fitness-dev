@@ -1,3 +1,9 @@
+# 2026-11-11 — AL: Checkout-Sync Org 903f1fbe
+
+- Haupt-Checkout ff `52bc1da`→`09c0953` (=origin/dev); AL-LOG 11.11. gefüllt verifiziert.
+- Fremd-WIP unberührt (Pathspec-Stash NEXT/RESULTS); kein Produktcode.
+- Org-Task `903f1fbe` done. Check `42951630568` / Promote `42951785004` / Live `42951805997`.
+
 # 2026-11-11 — AL: bp3dMap → build:kb-data
 
 - `scripts/build-bp3d-map.mjs`: KB `registry/bp3d_kb_map.json` → `src/data/bp3dMap.json` (soft-skip ohne KB-Link).
