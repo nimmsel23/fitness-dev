@@ -93,6 +93,6 @@ completed	success	Auto-Promote dev -> master (Check (Fitness))	Auto-Promote dev 
 - Arbeitsbaum: 7 uncommittete Pfade
 
 _Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen statt Erzählung):_
-- Erledigt: `bp3dMap.json` → `build:kb-data` — `baf87a5` + biome-Format `build-kb-data.mjs` (Follow-up); Learn ARCHITECTURE/AUDIT; NEXT/RESULTS (`6d0c265`/`c434135`). Rot-Check `42951393612` (tooling:biome) behoben in Follow-up-Commit.
+- Erledigt: `bp3dMap.json` → `build:kb-data` — `baf87a5` + biome-Format `build-kb-data.mjs` (Follow-up); Learn ARCHITECTURE/AUDIT; NEXT/RESULTS (`6d0c265`/`c434135`). Rot-Check `42951393612` (tooling:biome) behoben in Follow-up .
 - Offen/Weiter: Learn-3D Mesh-Lücken Abs/Lat/Rotator-Cuff; Gemini-CI echter Rotlauf + Pages `/docs`; Vite/Rolldown Sibling-Pin 1.2.16 (NEXT). Org-Queue fitness-dev leer. Feature-Freeze bis 2027-02-07.
 - Blocker: keine (Auto-Promote war durch `42951393612` skipped; Follow-up soll Promote wieder freigeben). Fremd-WIP Checkout unberührt. AUTOMATION: vos-al-log Prefill nur Checkout → vor AL-Commit in Temp-WT syncen — ~2 Min/Lauf.
