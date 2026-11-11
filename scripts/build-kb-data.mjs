@@ -110,10 +110,7 @@ const STEPS = [
   {
     name: 'bp3d-map',
     script: r('scripts/build-bp3d-map.mjs'),
-    inputs: [
-      r('scripts/build-bp3d-map.mjs'),
-      join(KB, 'registry/bp3d_kb_map.json'),
-    ],
+    inputs: [r('scripts/build-bp3d-map.mjs'), join(KB, 'registry/bp3d_kb_map.json')],
     outputs: [r('src/data/bp3dMap.json')],
   },
 
