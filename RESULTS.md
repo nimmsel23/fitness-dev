@@ -1,3 +1,9 @@
+## 2026-11-11 — CI Simplicity: remove Gemini/Merge-Agent
+
+- Removed: gemini-ci-repair.yml merge-agent.yml
+- Spine bleibt: Check → automerge-pr (Dependabot) → automerge (dev→master) → Deploy.
+- Owner: complexity only in vitalos/prod (CI.md Kopf).
+
 # 2026-11-11 — AL: Checkout-Sync Org 903f1fbe
 
 - Haupt-Checkout ff `52bc1da`→`09c0953` (=origin/dev); AL-LOG 11.11. gefüllt verifiziert.
@@ -14,6 +20,16 @@
 
 - `scripts/verify-dist.mjs`: Preload-Marker-`errors.push`-Zeile biome-konform umgebrochen.
 - Behebt Check-Rot `42750194503` @ `52bc1da` (`tooling:biome` Format).
+
+# Vite-Preload-Marker Guard (2026-11-10)
+
+- Defense-in-depth zu Rolldown-Pin `1.2.16` + „Keine Dynamic Imports“: Plugin `fix-vite-preload-markers` (Root + Learn), Safety-Skript nach Vite-Build, `verify-dist` failt bei bare Hex nach `mapDeps`.
+- Anlass: derselbe Rolldown-1.3.0-Bug hat vos-coach.web.app killt.
+
+# TodayPlan als Settings-Option + SessionGate-Default (2026-11-10)
+
+- Default: SessionGate zuerst (Plan übernehmen / manuell); `GateNextPlanCard` speist Drafts in den Editor.
+- Settings → Trainings-Präferenzen: Toggle **TodayPlan-Screen** (`fitness-todayPlanScreen`, default aus) für den
 
 # Vite-Preload-Marker Guard (2026-11-10)
 
