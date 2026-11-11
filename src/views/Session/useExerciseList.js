@@ -24,6 +24,7 @@
 
 import { useState } from 'react';
 import { getExercise, normalizeExerciseRecord, parseQuick, queueForEnrichment } from '@db';
+import { parseWorkoutNotation, notationToSets, formatNotation } from '../../lib/workoutNotation.js';
 import { slugify } from './utils';
 import { mergeDraftIntoExercises } from '../Plan/lib/sessionDraft.js';
 
@@ -156,11 +157,34 @@ export function useExerciseList({ scheduleAutoSave, showToast, saveRef, setDirty
 
   function addQuick() {
     if (!quickInput.trim()) return;
-    const parsed = parseQuick(quickInput);
-    if (parsed) {
+    // 1. Workout-Notation (Liftosaur-inspiriert): "Bankdrücken 3x8-12 @60 +2.5 /2m"
+    const notation = parseWorkoutNotation(quickInput);
+    if (notation) {
       // parseQuick liefert keine id — ohne die wären Quick-Adds nicht von
       // updateEx/removeEx/DnD adressierbar (id ist der Sortable-/Dedup-Key
       // aller Übungen dieser Session, siehe addEx()).
+      const id = `inbox_${slugify(notation.name)}`;
+      const ex = {
+        id,
+        name: notation.name,
+        // Reps-Band ("8-12") und Progressions-Hinweis wandern in die Sätze bzw.
+        // die Notiz — das Set-Grid zeigt Freitext, "8-12" bleibt editierbar.
+        setsArray: notationToSets(notation),
+        note: [notation.note, notation.restSec ? `Pause ${notation.restSec}s` : ''].filter(Boolean).join(' · '),
+        primaryMuscles: [],
+        secondaryMuscles: [],
+        source: 'inbox',
+        slotId: null,
+      };
+      setExercises(prev => [...prev, ex]);
+      setQuickInput('');
+      showToast(`+ ${formatNotation(notation)}`);
+      setTimeout(() => { saveRef.current?.(true); setDirty(false); }, 0);
+      return;
+    }
+    // 2. Klassisches Quick-Format (Fallback): "Bankdrücken 3x10 @80"
+    const parsed = parseQuick(quickInput);
+    if (parsed) {
       const id = `inbox_${slugify(parsed.name)}`;
       const ex = { ...parsed, id, source: 'inbox', slotId: null };
       setExercises(prev => [...prev, ex]);

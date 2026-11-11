@@ -140,8 +140,8 @@ export default function ExerciseList({
             value={quickInput}
             onChange={e => setQuickInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && addQuick()}
-            placeholder="Quick: bench 3×8@80"
-            aria-label="Übung als Quick-Input eingeben"
+            placeholder="Notation: Bankdrücken 3x8-12 @60 +2.5 /2m"
+            aria-label="Übung als Notation oder Quick-Input eingeben"
             className="min-w-0 flex-1 px-4 py-3 rounded-xl font-mono text-base outline-none transition-all"
             style={{
               background: 'var(--card)',

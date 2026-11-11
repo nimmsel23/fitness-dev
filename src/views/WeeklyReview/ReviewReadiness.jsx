@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Zap, Activity, CheckCircle2 } from 'lucide-react';
 import { getRecoveryAnalytics } from '@db';
+import RecoveryTimeline from '../../components/RecoveryTimeline.jsx';
+import { broadGroupWindows } from '../../lib/recoveryWindows.js';
 
 // Grobe UI-Sammelgruppen für die Recovery-Karten — bündelt die 16 feinen
 // KB-Regionen aus computeMuscleScores() auf 5 lesbare Kacheln. Bewusst
@@ -70,6 +72,17 @@ export default function ReviewReadiness() {
     return [...groupStatuses].sort((a, b) => b.pct - a.pct)[0];
   }, [groupStatuses]);
 
+  // Konkrete Superkompensations-Fenster: gleiche lastSeen-Daten wie die
+  // Phasen-Berechnung, übersetzt in "wann ist genug Zeit vergangen".
+  const groupWindows = useMemo(() => {
+    const seen = hitAnalysis.lastSeen || {};
+    return broadGroupWindows(seen, BROAD_GROUPS);
+  }, [hitAnalysis]);
+
+  // Sortierte Ansicht: Gruppe mit dem am weitesten geöffneten Super-Fenster
+  // zuerst — das ist die heutige Trainings-Empfehlung.
+  const bestGroup = groupWindows.length ? groupWindows[0] : null;
+
   // ACWR (Acute:Chronic Workload Ratio) — Trainingslast (Effort × Übungsanzahl
   // je Session, RPE-basierte Load-Näherung) der letzten 7 Tage im Verhältnis
   // zum 4-Wochen-Schnitt derselben Größe. 0.8–1.3 gilt gemeinhin als
@@ -137,6 +150,24 @@ export default function ReviewReadiness() {
         </div>
       </div>
 
+      {/* Superkompensations-Fenster: heutige Empfehlung */}
+      {bestGroup && bestGroup.hasData && (
+        <div className="card p-6 border-fit-accent/25 bg-gradient-to-b from-card to-bg2">
+          <div className="label-caps mb-3 flex items-center gap-2 text-fit-accent">
+            <Zap size={14} />
+            Superkompensations-Fenster
+          </div>
+          <p className="text-sm font-bold text-fit-ink">
+            {bestGroup.window.phase === 'super'
+              ? `Jetzt optimal: ${bestGroup.label} trainieren`
+              : bestGroup.window.phase === 'recovering'
+                ? `Als Nächstes dran: ${bestGroup.label}`
+                : `Noch nicht optimal: ${bestGroup.label}`}
+          </p>
+          <p className="text-xs text-fit-dim mt-1 leading-relaxed">{bestGroup.window.advice}</p>
+        </div>
+      )}
+
       {/* Muscle Recovery Status Matrix */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -177,6 +208,27 @@ export default function ReviewReadiness() {
                     style={{ width: `${m.pct}%` }}
                   />
                 </div>
+                {/* Superkompensations-Fenster statt abstraktem Balken:
+                    konkreter Marker + "wann trainieren"-Empfehlung */}
+                {(() => {
+                  const win = groupWindows.find((g) => g.id === m.id);
+                  if (!win?.hasData) {
+                    return (
+                      <p className="text-[9px] text-fit-dim/60 mt-2 italic">
+                        Noch keine Belastung geloggt — Fenster unbekannt
+                      </p>
+                    );
+                  }
+                  return (
+                    <div className="mt-3">
+                      <RecoveryTimeline
+                        hours={win.freshest?.hours ?? Infinity}
+                        type={win.freshest?.type || 'strength'}
+                        compact={false}
+                      />
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           ))}
