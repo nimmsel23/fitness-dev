@@ -1,3 +1,9 @@
+# 2026-11-11 — AL: bp3dMap → build:kb-data
+
+- `scripts/build-bp3d-map.mjs`: KB `registry/bp3d_kb_map.json` → `src/data/bp3dMap.json` (soft-skip ohne KB-Link).
+- In `build-kb-data.mjs` als Step `bp3d-map`; npm-Script `build:bp3d-map`.
+- Learn `ARCHITECTURE`/`AUDIT` + NEXT abgehakt (Feature-Freeze Wartung).
+
 # 2026-11-10 — AL: tooling:biome Format-Fix (CTO-Hit 175b5162)
 
 - `scripts/verify-dist.mjs`: Preload-Marker-`errors.push`-Zeile biome-konform umgebrochen.
