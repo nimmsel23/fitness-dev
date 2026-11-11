@@ -72,8 +72,8 @@ export function watchAuth(callback) {
 // import the same names in both modes. No-ops in local; you're already
 // "signed in" as the Local Host stub returned by watchAuth above.
 export async function signIn()                  { return { ok: true }; }
-export async function signInEmail(email, pw)    { return { ok: true }; }
-export async function signUpEmail(email, pw, n) { return { ok: true }; }
+export async function signInEmail(_email, _pw)    { return { ok: true }; }
+export async function signUpEmail(_email, _pw, _n) { return { ok: true }; }
 export async function signOut()                 { return { ok: true }; }
 
 // Stubs mit Firebase-Parity — App.jsx + Plan/api.js erwarten auth + db Exports

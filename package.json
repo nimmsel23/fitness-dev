@@ -53,7 +53,7 @@
     "tooling:biome": "pnpm dlx @biomejs/biome@2.6.6 check --formatter-enabled=true --linter-enabled=false --no-errors-on-unmatched scripts",
     "tooling:knip": "pnpm dlx knip@6.44.2 --no-progress",
     "tooling:check": "pnpm run tooling:biome && pnpm run tooling:knip",
-    "test": "node --test scripts/smoke.test.mjs",
+    "test": "node --test scripts/smoke.test.mjs src",
     "tooling:biome:lint": "pnpm dlx @biomejs/biome@2.6.6 check --formatter-enabled=true --linter-enabled=true --no-errors-on-unmatched scripts"
   },
   "dependencies": {

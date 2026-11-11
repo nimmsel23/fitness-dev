@@ -18,7 +18,11 @@ export default [
     settings: { react: { version: 'detect' } },
     rules: {
       'no-undef': 'error',
-      'no-unused-vars': 'off',
+      'no-unused-vars': ['error', {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+      }],
       'no-empty': 'off',             // catch {} ist in React-Code üblich
       'no-unsafe-finally': 'warn',
       'no-dupe-keys': 'error',

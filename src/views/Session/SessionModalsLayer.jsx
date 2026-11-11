@@ -58,8 +58,7 @@ export default function SessionModalsLayer({
           onDownload={onDownload}
           onExportObsidian={onExportObsidian}
           coachFeedback={coachFeedback}
-          date={date}
-          onCorrectDate={onCorrectDate}
+            onCorrectDate={onCorrectDate}
           dateMoveBusy={dateMoveBusy}
           canCorrectDate={canCorrectDate}
         />

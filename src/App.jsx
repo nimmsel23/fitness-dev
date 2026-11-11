@@ -205,7 +205,7 @@ function buildHashRoute({ tab, subTab, sessionDate, focusLayer, planView, planId
 export default function App() {
   const {
     user, authLoading,
-    gender, split, cycleLength, defaultLocation,
+    gender,
     hit1Fact, hit1Obstacle, hit1Strike, hit1Responsibility,
     hit2Fact, hit2Obstacle, hit2Strike, hit2Responsibility,
     hit3Fact, hit3Obstacle, hit3Strike, hit3Responsibility,
@@ -215,13 +215,11 @@ export default function App() {
   const devBypassFlow = isLocalMode();
 
   const {
-    theme, setThemeState, themeMode, setModeState,
-    circDark, setCircDark, circLight, setCircLight,
-    recentDays, setRecentDays,
-    coverageThreshold, setCoverageThreshold, showAdvanced, setShowAdvanced,
+    recentDays,
+    coverageThreshold,
     sidebarPinned, setSidebarPinned,
-    swipeEnabled, setSwipeEnabled, muscleLanguage, setMuscleLanguage,
-    navMode, setNavMode
+    swipeEnabled, muscleLanguage,
+    navMode
   } = useSettings();
 
   const hasCompleteHit = (...values) => values.every((value) => value?.trim());
@@ -653,7 +651,7 @@ export default function App() {
                       {/* Render content — static imports only (no React.lazy) */}
                       {(tab === 'session' || sheetMode) && <Session key={sessionDate || 'today'} initialDate={sessionDate} initialDraft={sessionDraft} onInspectExercise={inspectExercise} onOpenSession={openSession} recentDays={recentDays} coverageThreshold={coverageThreshold} subTab={sheetMode ? null : subTab} onDateChange={setSessionDate} onSubNav={navigateSub} planView={planView} planId={planId} onPlanRouteChange={(view, id) => { setPlanView(view); setPlanId(id); }} gateAutoOpenFlag={sheetMode ? false : gateAutoOpenFlag} onGateAutoOpenConsumed={() => setGateAutoOpenFlag(false)} />}
                       {!sheetMode && (<>
-                      {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} subTab={subTab} onSubNav={navigateSub} />}
+                      {tab === 'review'   && <WeeklyReview onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} subTab={subTab} onSubNav={navigateSub} />}
                       {tab === 'learn'    && <Learn subTab={subTab} />}
                       {tab === 'touren'   && <Touren onOpenSession={openSession} />}
                       {tab === 'atlas'    && <Exercises onInspectExercise={inspectExercise} />}
@@ -681,7 +679,7 @@ export default function App() {
           </div>
         </div>
         <TabSheet open={sheetMode} title={navItems.find((i) => i.id === tab)?.label || (tab === 'inbox' ? 'Nachrichten' : '')} onClose={() => navigate('session')}>
-                      {tab === 'review'   && <WeeklyReview onOpenSession={openSession} onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} subTab={subTab} onSubNav={navigateSub} />}
+                      {tab === 'review'   && <WeeklyReview onInspectExercise={inspectExercise} muscleLanguage={muscleLanguage} taxonomy={taxonomy} gender={gender} recentDays={recentDays} subTab={subTab} onSubNav={navigateSub} />}
                       {tab === 'learn'    && <Learn subTab={subTab} />}
                       {tab === 'touren'   && <Touren onOpenSession={openSession} />}
                       {tab === 'atlas'    && <Exercises onInspectExercise={inspectExercise} />}

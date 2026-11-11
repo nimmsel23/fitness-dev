@@ -1,6 +1,3 @@
-export function todayISO() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-export function localToday() { return todayISO(); }
+// Dünner Re-Export: identische Implementierung wie src/lib/db/shared/utils.js
+// (SSOT) — verhindert driftende Duplikate der Datums-Helfer.
+export { todayISO, localToday } from './db/shared/utils.js';

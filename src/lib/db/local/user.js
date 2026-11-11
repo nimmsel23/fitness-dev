@@ -1,4 +1,4 @@
-import { api, localToday } from "./core";
+import { api } from "./core";
 
 const LOCAL_KEYS = {
   settings: "fitness-local-settings",

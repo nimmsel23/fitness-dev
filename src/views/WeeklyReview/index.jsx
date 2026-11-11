@@ -19,7 +19,7 @@ import TrainingProtocol from './TrainingProtocol.jsx';
 
 const SUB_TABS = ['muscles', 'readiness', 'protokoll'];
 const REVIEW_WINDOW_DAYS = 28;
-export default function WeeklyReview({ onOpenSession, onInspectExercise, muscleLanguage = 'de', taxonomy = null, gender = 'male', recentDays = 10, subTab = null, onSubNav }) {
+export default function WeeklyReview({ onInspectExercise, muscleLanguage = 'de', taxonomy = null, gender = 'male', recentDays = 10, subTab = null, onSubNav }) {
   const { user } = useUser();
   const cacheOwner = user?.uid || 'local';
   const [reportState, setReportState] = useState(null);

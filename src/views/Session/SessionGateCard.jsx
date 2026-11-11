@@ -59,7 +59,7 @@ function TodayCounters({ exercises }) {
   );
 }
 
-export default function SessionGateCard({ date, sessionGate, currentSubTab = null, exercises = [], sessionMode = 'strength', setSessionMode, block = '', setBlock, onSplitLongPress, onApplyRoutine, onManualLog, hub = false, onSubNav, onLeave, onStart, onStop }) {
+export default function SessionGateCard({ sessionGate, currentSubTab = null, exercises = [], sessionMode = 'strength', setSessionMode, block = '', setBlock, onSplitLongPress, onApplyRoutine, onManualLog, hub = false, onSubNav, onLeave, onStart, onStop }) {
   const gate = normalizeSessionGate(sessionGate);
   const active = isSessionGateActive(gate);
   const completed = isSessionGateCompleted(gate);

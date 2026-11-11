@@ -419,7 +419,7 @@ async function buildWeeklyReportData(selector = "current") {
         muscleToGroupIds(m, exName).forEach((gid) => { sessGroupsCount[gid] = (sessGroupsCount[gid] || 0) + 1; hasMapped = true; });
       });
       for (const m of primary) {
-        muscleToGroupIds(m, exName).forEach((gid) => { muscleScores[m] = (muscleScores[m] || 0) + 1; hasMapped = true; });
+        muscleToGroupIds(m, exName).forEach(() => { muscleScores[m] = (muscleScores[m] || 0) + 1; hasMapped = true; });
       }
       for (const m of secondary) {
         muscleToGroupIds(m, exName).forEach(() => { hasMapped = true; });

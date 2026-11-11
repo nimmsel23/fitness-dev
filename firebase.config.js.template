@@ -8,3 +8,7 @@ export const config = {
   messagingSenderId: "",
   appId: "",
 };
+
+// Web-Push-VAPID-Key (Firebase Console → Cloud Messaging → Web-Push-Zertifikate).
+// Wird von src/hooks/usePushNotifications.js via '@firebase-config' importiert.
+export const VAPID_KEY = "";

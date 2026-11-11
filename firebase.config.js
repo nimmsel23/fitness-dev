@@ -1,11 +1,12 @@
-// fitness-aos Firebase project — shared Firestore + Auth
+// Kopieren nach firebase.config.js und Werte eintragen
+// firebase apps:sdkconfig WEB <appId> --project fitness-aos
 export const config = {
-  apiKey:            "AIzaSyD1hvp2UYrvizLOzoSqOX-bwRWcCpJVAlg",
-  authDomain:        "fitness-aos.firebaseapp.com",
-  projectId:         "fitness-aos",
-  storageBucket:     "fitness-aos.firebasestorage.app",
-  messagingSenderId: "842575255284",
-  appId:             "1:842575255284:web:65c4831683a893c110f0a1",
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: "",
 };
 
-export const VAPID_KEY = "BLO5LBXVHXR4HS5sHyHLwl5n3iXURypO3ZSCh4Ser-itoQTmO3bhnawqEWP913PzBx31cHExbkuodvIqLjPzvd0";
+export const VAPID_KEY = "";

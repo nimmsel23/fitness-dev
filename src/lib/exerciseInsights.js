@@ -88,7 +88,6 @@ function inferMovement(ex) {
     ? cleanList(ex.original_description).join(' ')
     : String(ex?.original_description || ex?.description || '').trim()
   const rawCoachingNotes = cleanList(ex?.coaching_notes).join(' ')
-  const primary = cleanList(ex?.primaryMuscles)
   const fallbackLesson = description || instructions.join(' ') || rawCoachingNotes
 
   return {

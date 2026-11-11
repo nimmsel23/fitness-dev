@@ -1,5 +1,3 @@
-import { localToday } from "@utils";
-
 export default function AppGate({ navigate, navItems }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-fit-bg to-fit-bg2 text-fit-ink">

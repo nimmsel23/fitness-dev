@@ -1,18 +1,27 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+import { dirname, join, sep } from "node:path";
 import * as yaml from "js-yaml";
 import { buildKbMap, findKbExercise } from "./kbLookup.js";
 
-// Echte Entwurfs-Einträge aus dem Katalog (kb/inbox), keine Test-Attrappen.
+// Echte Katalog-Einträge, keine Test-Attrappen. Einträge wandern im KB-Leben
+// von inbox/inbox_<id>.yml nach exercises/<id>.yml (Review/Approval) — der Test
+// löst beide Orte auf, statt auf einen fixen Pfad zu bestehen.
 const here = dirname(fileURLToPath(import.meta.url));
+const KB = join(here, "../../../../fitness/catalog/kb");
 const IDS = ["back_squat", "machine_chest_press", "incline_chest_press_machine", "samurai_extension"];
-const kb = IDS.map((id) =>
-  yaml.load(readFileSync(join(here, `../../../../fitness/catalog/kb/inbox/inbox_${id}.yml`), "utf8")).exercises[0],
-);
-const map = buildKbMap(kb);
+const kb = IDS.map((id) => {
+  const candidates = [join(KB, `inbox/inbox_${id}.yml`), join(KB, `exercises/${id}.yml`)];
+  const file = candidates.find((c) => existsSync(c));
+  assert.ok(file, `KB-Eintrag fehlt: ${candidates.join(" oder ")}`);
+  return {
+    approved: file.includes(`${sep}exercises${sep}`),
+    exercise: yaml.load(readFileSync(file, "utf8")).exercises[0],
+  };
+});
+const map = buildKbMap(kb.map((e) => e.exercise));
 
 test("die vier Session-Namen lösen auf ihren Katalogeintrag auf", () => {
   const cases = [
@@ -39,9 +48,10 @@ test("ID 'inbox_brustmaschine' aus Sessions greift bewusst nicht (Name entscheid
   assert.equal(hit?.exercise_id, "incline_chest_press_machine");
 });
 
-test("Entwürfe sind ehrlich als Entwurf markiert, nicht expert", () => {
-  for (const ex of kb) {
-    assert.equal(ex.review_state.status, "draft");
-    assert.ok(!(ex.tags || []).includes("expert"));
+test("Review-Status ist ehrlich: Inbox = Entwurf, exercises/ = approved", () => {
+  for (const { approved, exercise: ex } of kb) {
+    assert.equal(ex.review_state.status, approved ? "approved" : "draft");
+    if (approved) assert.ok(ex.approved_at, "approved-Eintrag trägt approved_at");
+    else assert.ok(!(ex.tags || []).includes("expert"));
   }
 });

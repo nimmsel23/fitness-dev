@@ -86,6 +86,11 @@ jobs:
       - name: Lint
         run: pnpm --filter ./fitness-app run lint
 
+      # Unit-Tests in src/ (node --test). Läuft nach dem KB-Einhängen, weil
+      # exampleEntries/nonExercises-Tests KB-YML-Daten lesen.
+      - name: Unit tests
+        run: pnpm --filter ./fitness-app test
+
       - name: Tooling (Biome format scripts/)
         run: pnpm --filter ./fitness-app run tooling:biome
 

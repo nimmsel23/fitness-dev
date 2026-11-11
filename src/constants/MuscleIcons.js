@@ -3,7 +3,6 @@ import {
   Dumbbell, 
   ArrowUpCircle, 
   ArrowDownCircle, 
-  User, 
   Activity, 
   Target,
   Circle,
