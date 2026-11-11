@@ -4,7 +4,7 @@
 - [ ] Vite/Rolldown: Preload-Guard behalten; Pin `1.2.16` nicht ohne Check auf 1.3+; Sibling-Repos (6pack/fuel/relax/plan) noch auf 1.3.0 — Guard/Pin nachziehen.
 - [x] Learn-3D: `ARCHITECTURE.md`/`AUDIT.md` für BodyParts3D-Viewer nachgezogen (AL 2026-11-10).
 - [ ] Learn-3D: fehlende BP3D-Muskeln (Abs/Lat/Rotator-Cuff) — Fallback oder andere Mesh-Quelle; Mesh-Click → Muscle-Detail.
-- [ ] `bp3dMap.json` in `build:kb-data` aus KB regenerieren (statt Hand-Copy).
+- [x] `bp3dMap.json` in `build:kb-data` aus KB regenerieren (statt Hand-Copy) — AL 2026-11-11, `build-bp3d-map.mjs`.
 # CI-Agent — offener Betriebspunkt
 
 - [x] `GEMINI_API_KEY` als Actions-Secret gesetzt; Agent und grüner Cloud-Lauf verifiziert. Ein echter roter Code-Reparaturlauf bleibt offen.
