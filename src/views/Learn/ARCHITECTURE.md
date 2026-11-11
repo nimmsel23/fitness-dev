@@ -37,7 +37,7 @@ Eigene Datei `QuizMode.jsx`. Läuft auf `recent` (Übungen der letzten Session),
 
 ## BodyParts3D (3D-Explorer)
 
-- **Map-SOT:** KB `catalog/kb/registry/bp3d_kb_map.yml|.json` → App-Kopie `src/data/bp3dMap.json` (Hand-Copy; Regeneration über `build:kb-data` noch offen, siehe NEXT.md).
+- **Map-SOT:** KB `catalog/kb/registry/bp3d_kb_map.yml|.json` → App-Kopie `src/data/bp3dMap.json` via `scripts/build-bp3d-map.mjs` (`build:kb-data` / `build:bp3d-map`; soft-skip wenn KB-Link fehlt).
 - **Meshes:** `public/anatomy/bp3d/FJ####.obj`; Nachzug lokal via `scripts/fetch_bodyparts3d_meshes.sh` (bzw. Fitness-KB-Skript). Upstream deckt ~46 Muskeln; Abs/Lat/Rotator-Cuff fehlen.
 - **Import-Regel:** three.js und Loader **statisch** (Owner: keine Dynamic Imports). Bundle-Trade-off bewusst größer (~MB-Klasse three).
 

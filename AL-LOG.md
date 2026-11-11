@@ -67,3 +67,32 @@ _Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen sta
 - Erledigt: CTO-Hit Org `175b5162` done — `scripts/verify-dist.mjs` biome-Format; Commit `8518b24` auf `dev`. Check `42841947220` grün (Rot `42750194503` @ `52bc1da`); Auto-Promote `42842231966`; Live Deploy `42842265398` angestoßen.
 - Offen/Weiter: Learn-3D Mesh-Lücken Abs/Lat/Rotator-Cuff; `bp3dMap.json`→`build:kb-data`; Gemini-CI echter Rotlauf + Pages `/docs` (NEXT). Feature-Freeze bis 2027-02-07. Org-Queue fitness-dev 100% (0 offen).
 - Blocker: keine. Fremd-WIP Checkout (`deploy.sh`, skills/*, `fitness/catalog/`) unberührt. AUTOMATION: vos-al-log Prefill nur Checkout → vor AL-Commit in Temp-WT syncen — ~2 Min/Lauf.
+
+## 2026-11-11 (Mittwoch) — Abteilungsleiter-Lauf
+
+_Automatik (vos-al-log Vorlage 2026-11-11):_
+- Commits seit 2026-11-08: 52bc1da fix(build): guard Vite preload markers against Rolldown hashes
+0fb14ac fix(session): Gate zuerst für Plan/Manuell, TodayPlan optional in Settings
+1e0ae8b docs: auto-update src/views/Session/ARCHITECTURE.md
+aba7f22 docs: auto-update NEXT.md
+7bcae8a docs: auto-update RESULTS.md
+b0b5fc6 docs: auto-update NEXT.md
+070c929 docs: auto-update NEXT.md
+7017b09 docs: auto-update RESULTS.md
+e41736a docs: auto-update NEXT.md
+4f38f42 docs: auto-update src/views/Coach/ARCHITECTURE.md
+4070c1a docs: auto-update NEXT.md
+df1b4cb docs: auto-update src/views/Session/ARCHITECTURE.md
+1b17504 docs(al): AL-LOG SHA 506cc02 + NEXT Learn-3D Docs abgehakt
+506cc02 docs(learn): BodyParts3D in ARCHITECTURE/AUDIT + AL-LOG 2026-11-10
+365c456 docs: auto-update NEXT.md
+- Offene PRs: (keine offenen PRs / gh nicht verfuegbar)
+- CI (letzte Läufe): completed	success	Merge-Agent	Merge-Agent	master	schedule	42949079339	7s	2026-11-11T02:53:41Z
+completed	success	PR-AutoMerge (Dependabot -> dev)	PR-AutoMerge (Dependabot -> dev)	master	schedule	42936762331	8s	2026-11-11T01:08:45Z
+completed	success	Auto-Promote dev -> master (Check (Fitness))	Auto-Promote dev -> master (Check (Fitness))	master	schedule	42933445944	11s	2026-11-11T00:42:23Z
+- Arbeitsbaum: 7 uncommittete Pfade
+
+_Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen statt Erzählung):_
+- Erledigt: `bp3dMap.json` → `build:kb-data` — `scripts/build-bp3d-map.mjs` + Step in `build-kb-data.mjs` / `build:bp3d-map`; Learn ARCHITECTURE/AUDIT; NEXT/RESULTS (`6d0c265`/`c434135`). Dieser AL-LOG-Commit auf `dev`.
+- Offen/Weiter: Learn-3D Mesh-Lücken Abs/Lat/Rotator-Cuff; Gemini-CI echter Rotlauf + Pages `/docs`; Vite/Rolldown Sibling-Pin 1.2.16 (NEXT). Org-Queue fitness-dev leer. Feature-Freeze bis 2027-02-07.
+- Blocker: keine. Fremd-WIP Checkout (`deploy.sh`, skills/*, `fitness/catalog/`, portal.mjs) unberührt. AUTOMATION: vos-al-log Prefill nur Checkout → vor AL-Commit in Temp-WT syncen — ~2 Min/Lauf.

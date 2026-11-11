@@ -107,6 +107,16 @@ const STEPS = [
     inputs: [r('scripts/build-coaching-notes.mjs'), join(KB, 'coaching_notes')],
     outputs: [r('src/lib/coachNotesData.generated.js')],
   },
+  {
+    name: 'bp3d-map',
+    script: r('scripts/build-bp3d-map.mjs'),
+    inputs: [
+      r('scripts/build-bp3d-map.mjs'),
+      join(KB, 'registry/bp3d_kb_map.json'),
+    ],
+    outputs: [r('src/data/bp3dMap.json')],
+  },
+
   // Plan-Checkout schreibt in seinen eigenen Baum. In Meta-CI kann plan-app
   // hinter fitness-dev liegen (alte bulk-Skripte) — dann Skip statt rot.
   PLAN &&

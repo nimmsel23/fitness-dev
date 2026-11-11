@@ -70,7 +70,7 @@ Interaktiver Lern-Tab für Übungsbibliothek, Anatomie-Teaching, interaktive Bod
 ## Auffälligkeiten
 - **`'analysis'`-Mode existiert nicht**: War geplant (Muscles-Einbettung), wurde nie implementiert. ViewMode hat `'library'` / `'explorer'` / `'quiz'` / `'strength'`.
 - **`AnatomyDetailModal`** wird nur noch im `explorer`-Modus gerendert (vorher in jedem Modus) und greift nur im 2D-Zweig.
-- **BodyParts3D-Lücken:** Abs/Lat/Rotator-Cuff fehlen im Upstream-Map; UI zeigt dann Empty-/Error-Zustand + Fetch-Hinweis. `bp3dMap.json` noch Hand-Copy statt `build:kb-data`-Schritt.
+- **BodyParts3D-Lücken:** Abs/Lat/Rotator-Cuff fehlen im Upstream-Map; UI zeigt dann Empty-/Error-Zustand + Fetch-Hinweis. `bp3dMap.json` wird über `build:kb-data` aus der KB-Registry regeneriert (`build-bp3d-map.mjs`).
 - **Initial-Bundle:** statisches three erhöht die Learn-/Fitness-Last spürbar — bewusster Trade-off gegen Preload-Brüche.
 - **`QuizMode` bekommt `exercises={recent}`** — wenn `recent` leer ist (erste Nutzung, keine Session) zeigt QuizMode sofort "Keine Quiz-Fragen verfügbar". Kein Pre-Check vor Moduswechsel (der Quiz-Button wird zwar nur bei `hasRecent` gezeigt, aber `recent` könnte nachträglich leer sein wenn `getLatestSession()` noch läuft).
 - **`anatomy`-Initialstate ist `null`**, aber der `useEffect` setzt ihn bei fehlendem `selected` auf `{}` — `AnatDetail` bekommt also erst `null`, dann `{}`. `AnatDetail` behandelt beide gleich (kein expliziter `null`-Check, alle Felder via optional chaining).
