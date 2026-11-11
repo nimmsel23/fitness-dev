@@ -1,5 +1,7 @@
 ## Zusammenführung seit 2026-11-06
 
+**Simplicity (Owner 2026-11-11):** So simpel wie möglich. Ausnahme nur `vitalos/prod`. CI-Spine: Check → automerge-pr → automerge → Deploy (CI.md §1).
+
 Learn gehört jetzt zu diesem Repo (`apps/learn`). Node-Backend-Entwicklung gehört ausschließlich nach `~/dev/backend/`. Siehe `docs/CONSOLIDATION.md`; alte Backend-/Release-Stände werden nicht mehr fachlich erweitert.
 
 # Fitness Dev
