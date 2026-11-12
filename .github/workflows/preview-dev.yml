@@ -68,11 +68,15 @@ jobs:
         with:
           deploy-key: ${{ secrets.SKILLS_DEPLOY_KEY }}
 
+      # Nur die Top-Level-Submodule. Nicht --recursive: journal-app pinnt
+      # private aos-* Repos, die der Token nicht sieht und die dieses Preview
+      # nicht braucht (gleicher Abbruch wie Check, Run 43227437574).
+      # deploy-master.yml klont die Nachbarn ebenfalls ohne Verschachtelung.
       - name: Submodules via HTTPS + Token
         run: |
           git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "git@github.com:"
           git submodule sync
-          git submodule update --init --recursive
+          git submodule update --init
 
       - name: fitness-app auf den ausgelösten Commit setzen
         run: |
@@ -80,8 +84,8 @@ jobs:
           SHA="${{ github.event.pull_request.head.sha || github.sha }}"
           git fetch origin "$SHA"
           git checkout "$SHA"
-          git submodule sync --recursive
-          git submodule update --init --recursive
+          git submodule sync
+          git submodule update --init
 
       - name: Checkout fitness KB (SOT)
         uses: actions/checkout@v7
