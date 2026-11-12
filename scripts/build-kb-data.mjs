@@ -10,7 +10,16 @@
 // Stempel: .cache/kb-data/stamps.json (gitignored). Die Eingaben jedes Schritts sind unten
 // aufgelistet; fehlt dort etwas, wird der Schritt zu selten ausgeführt — dann hier ergänzen.
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  symlinkSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
