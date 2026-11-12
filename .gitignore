@@ -73,3 +73,6 @@ twa/gradle.properties
 twa/manifest-checksum.txt
 twa/store_icon.png
 
+
+# KB-SOT nimmsel23/fitness, lokal/CI per Symlink eingehängt
+fitness/catalog/kb

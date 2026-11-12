@@ -10,7 +10,7 @@
 // Stempel: .cache/kb-data/stamps.json (gitignored). Die Eingaben jedes Schritts sind unten
 // aufgelistet; fehlt dort etwas, wird der Schritt zu selten ausgeführt — dann hier ergänzen.
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
@@ -71,6 +71,30 @@ function hashInputs(paths) {
 
 const r = (...p) => join(REPO, ...p)
 const KB = r('fitness/catalog/kb')
+
+// KB-SOT ist nimmsel23/fitness (seit 710fd66 nicht mehr in diesem Repo). Die CI hängt es
+// per Symlink ein; lokal machen wir dasselbe automatisch, sobald ein Klon gefunden wird
+// (FITNESS_KB, ~/dev/fitness, ../fitness). Ohne KB bricht der erste Schritt mit ENOENT ab.
+if (!existsSync(join(KB, 'exercises'))) {
+  const home = process.env.HOME || ''
+  const candidates = [process.env.FITNESS_KB, join(home, 'dev/fitness'), join(REPO, '..', 'fitness')]
+  const found = candidates.find((p) => p && existsSync(join(p, 'exercises/6pack')))
+  if (found) {
+    mkdirSync(dirname(KB), { recursive: true })
+    try {
+      unlinkSync(KB)
+    } catch {
+      /* kein alter (kaputter) Link */
+    }
+    symlinkSync(found, KB)
+    console.log(`kb-data: KB eingehängt → ${found}`)
+  } else {
+    console.error(
+      'kb-data: KB fehlt (fitness/catalog/kb). Klon von nimmsel23/fitness nach ~/dev/fitness legen oder FITNESS_KB setzen.',
+    )
+    process.exit(1)
+  }
+}
 
 const STEPS = [
   SIXPACK && {
