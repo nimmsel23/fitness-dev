@@ -18,8 +18,10 @@ import { useSessionGateLifecycle } from './useSessionGateLifecycle.js';
 import { useSettings } from '../../contexts/SettingsContext';
 import { IS_SOLO } from '../../constants/NavigationItems.js';
 import { ChevronLeft } from 'lucide-react';
+import { resolveInShell } from './externalSessionApps.js';
+import { SessionShellProvider } from './sessionShell.jsx';
 
-export default function Session({
+function SessionView({
   initialDate, initialDraft, onInspectExercise, onOpenSession,
   recentDays = 7, coverageThreshold = 1.0, subTab, onDateChange, onSubNav,
   planView, planId, onPlanRouteChange,
@@ -123,5 +125,16 @@ export default function Session({
         onGateAutoOpenConsumed={onGateAutoOpenConsumed}
         openPlanGate={openPlanGate}
       />
+  );
+}
+
+// `shell` und `embedded` sind optional. Fehlt beides, gilt die Shell, solange
+// App.jsx diesen Bundle nicht als Standalone markiert hat. Ein gesetztes
+// Boolean gewinnt; `shell` vor `embedded`.
+export default function Session(props) {
+  return (
+    <SessionShellProvider inShell={resolveInShell(props)}>
+      <SessionView {...props} />
+    </SessionShellProvider>
   );
 }
