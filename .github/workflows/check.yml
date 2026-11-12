@@ -37,11 +37,18 @@ jobs:
         with:
           deploy-key: ${{ secrets.SKILLS_DEPLOY_KEY }}
 
+      # Nur die Top-Level-Submodule (Nachbar-Repos). Nicht --recursive:
+      # journal-app pinnt die privaten Repos aos-core4, aos-door, aos-game und
+      # aos-voice. Der GITHUB_TOKEN sieht sie nicht ("Repository not found",
+      # Run 43227437574) und der Fitness-Check nutzt sie nicht.
+      # deploy-master.yml klont die Nachbarn ebenfalls ohne verschachtelte
+      # Submodule. journal-app selbst bleibt ausgecheckt, damit der
+      # Workspace-Install das Paket findet.
       - name: Submodules via HTTPS + Token
         run: |
           git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf "git@github.com:"
           git submodule sync
-          git submodule update --init --recursive
+          git submodule update --init
 
       - name: fitness-app auf den geprüften Commit setzen
         run: |
@@ -49,8 +56,10 @@ jobs:
           SHA="${{ github.event.pull_request.head.sha || github.sha }}"
           git fetch origin "$SHA"
           git checkout "$SHA"
-          git submodule sync --recursive
-          git submodule update --init --recursive
+          # Dieses Repo hat keine .gitmodules. Trotzdem nicht rekursiv, damit
+          # ein späteres verschachteltes Privat-Repo den Check nicht kippt.
+          git submodule sync
+          git submodule update --init
 
       # KB-SOT ist nimmsel23/fitness (in coach-dev nur als Submodul fitness/catalog/kb).
       - name: Checkout fitness KB (SOT)
