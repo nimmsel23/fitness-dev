@@ -6,6 +6,7 @@
 - [ ] Learn-3D: fehlende BP3D-Muskeln (Abs/Lat/Rotator-Cuff) — Fallback oder andere Mesh-Quelle; Mesh-Click → Muscle-Detail.
 - [x] `bp3dMap.json` in `build:kb-data` aus KB regenerieren (statt Hand-Copy) — AL 2026-11-11, `build-bp3d-map.mjs`.
 - [x] Org `903f1fbe`: Haupt-Checkout hinter origin/dev syncen + AL-LOG 11.11. verifizieren — AL 2026-11-11.
+- [x] CTO-Nacht `c1f9b6ce` Port: `automerge-pr.yml` Dependabot base=master→dev Retarget (journal-SSOT) — AL 2026-11-12.
 # CI-Agent — offener Betriebspunkt
 
 - [x] `GEMINI_API_KEY` als Actions-Secret gesetzt; Agent und grüner Cloud-Lauf verifiziert. Ein echter roter Code-Reparaturlauf bleibt offen.

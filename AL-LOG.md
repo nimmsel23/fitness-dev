@@ -99,3 +99,32 @@ _Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen sta
 - Erledigt: Org `903f1fbe` — Haupt-Checkout ff `52bc1da`→`09c0953` (=origin/dev); AL-LOG 11.11. gefüllt verifiziert (bp3dMap-Lauf). Check `42951630568`, Auto-Promote `42951785004`, Live Deploy `42951805997`.
 - Offen/Weiter: Learn-3D Mesh-Lücken Abs/Lat/Rotator-Cuff; Gemini-CI echter Rotlauf + Pages `/docs`; Sibling Rolldown-Pin 1.2.16 (NEXT). Feature-Freeze bis 2027-02-07. Org-Queue leer nach Task-done.
 - Blocker: keine. Fremd-WIP Checkout (`deploy.sh`, skills/*, `fitness/catalog/`, NEXT/RESULTS) unberührt. AUTOMATION: Prefill hinter origin leert Erledigt-Zeilen — vor Prefill `git merge --ff-only origin/dev` erzwingen — ~3 Min/Lauf.
+
+## 2026-11-12 (Donnerstag) — Abteilungsleiter-Lauf
+
+_Automatik (vos-al-log Vorlage 2026-11-12):_
+- Commits seit 2026-11-08: 5e9c9ce style(scripts): biome-format build-kb-data for Check
+0a5224c fix(build): KB aus ~/dev/fitness automatisch einhängen (lokaler Build wie CI)
+376faf0 Merge origin/master into dev (fc72c5e, #104)
+9e0f584 fix(ci): Unit-Tests per Glob statt Verzeichnis-Argument (#104)
+fc72c5e ci: restore Gemini + Merge-Agent on master (full automation)
+7ca2bbc ci: restore Gemini repair + Merge-Agent (full automation)
+fb0da1f fix(highlighter): fehlende Muskel-IDs + Freitext-Aliase im RBH-Mapping
+13675db feat(core): Superkompensations-Fenster + Workout-Notation
+967a8f7 feat(auth): Login-Portal als Game-Boy-Konsole
+8dc6219 chore(src): toten Code entfernen, no-unused-vars aktivieren, Unit-Tests in CI
+c8c5e96 docs(agents): simplicity pointer — CI.md §1 spine
+8388507 ci: drop Gemini repair and Merge-Agent (simplicity)
+5639c83 docs(al): AL-LOG 2026-11-11 — Checkout-Sync Org 903f1fbe
+61ca934 docs: auto-update NEXT.md
+faf9273 docs: auto-update RESULTS.md
+- Offene PRs: (keine offenen PRs / gh nicht verfuegbar)
+- CI (letzte Läufe): completed	success	Gemini CI Agent	Gemini CI Agent	master	workflow_run	43235988645	10s	2026-11-12T14:19:29Z
+completed	success	fix(ci): Check ohne rekursive journal-app Submodule (#107)	Auto-Promote dev -> master (Check (Fitness))	master	push	43235566203	13s	2026-11-12T14:16:59Z
+completed	success	fix(ci): Check ohne rekursive journal-app Submodule (#107)	Live Deploy (Fitness master)	master	push	43235566002	2m27s	2026-11-12T14:16:59Z
+- Arbeitsbaum: 8 uncommittete Pfade
+
+_Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen statt Erzählung):_
+- Erledigt: CTO-Nacht Port Org `c1f9b6ce` — `.github/workflows/automerge-pr.yml` journal-SSOT Retarget (nur `dependabot/*`, base=master→dev vor Squash); RESULTS/NEXT. Commit folgt auf `dev`.
+- Offen/Weiter: Learn-3D Mesh-Lücken Abs/Lat/Rotator-Cuff; Gemini-CI echter Rotlauf + Pages `/docs`; Sibling Rolldown-Pin 1.2.16 (NEXT). Org-Queue fitness-dev leer. Feature-Freeze bis 2027-02-07. Fleet-Restport `c1f9b6ce` (fuel/relax/skills/plan/6pack/coach) CTO.
+- Blocker: keine. Fremd-WIP Checkout (8 Pfade: deploy.sh, docs/apps.*, portal.mjs, skills/*, UserContext.jsx, NEXT) unberührt. Checkout 3 hinter origin/dev vor Lauf.
