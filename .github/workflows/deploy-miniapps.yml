@@ -127,6 +127,23 @@ jobs:
             echo "$repo @ $(git -C "$repo" rev-parse --short HEAD)"
           done
 
+      - name: Checkout fitness KB (SOT)
+        uses: actions/checkout@v7
+        with:
+          repository: nimmsel23/fitness
+          ref: main
+          path: fitness-kb
+          submodules: recursive
+
+      - name: KB einhängen
+        run: |
+          set -euo pipefail
+          # KB-SOT ist nimmsel23/fitness (in coach-dev nur als Submodul).
+          mkdir -p fitness-dev/fitness/catalog
+          ln -sfn "$GITHUB_WORKSPACE/fitness-kb" fitness-dev/fitness/catalog/kb
+          test -d fitness-dev/fitness/catalog/kb/exercises/6pack
+          echo "KB @ $(git -C fitness-kb rev-parse --short HEAD)"
+
       - uses: pnpm/action-setup@v6
         with:
           version: 11.3.0
