@@ -125,6 +125,6 @@ completed	success	fix(ci): Check ohne rekursive journal-app Submodule (#107)	Liv
 - Arbeitsbaum: 8 uncommittete Pfade
 
 _Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen statt Erzählung):_
-- Erledigt: CTO-Nacht Port Org `c1f9b6ce` — `.github/workflows/automerge-pr.yml` journal-SSOT Retarget (nur `dependabot/*`, base=master→dev vor Squash); RESULTS/NEXT. Commit folgt auf `dev`.
+- Erledigt: CTO-Nacht Port Org `c1f9b6ce` — `.github/workflows/automerge-pr.yml` journal-SSOT Retarget (nur `dependabot/*`, base=master→dev vor Squash); RESULTS/NEXT. Commit `8c29238` auf `dev`. Check `43245355551` success; Auto-Promote `43245566054`.
 - Offen/Weiter: Learn-3D Mesh-Lücken Abs/Lat/Rotator-Cuff; Gemini-CI echter Rotlauf + Pages `/docs`; Sibling Rolldown-Pin 1.2.16 (NEXT). Org-Queue fitness-dev leer. Feature-Freeze bis 2027-02-07. Fleet-Restport `c1f9b6ce` (fuel/relax/skills/plan/6pack/coach) CTO.
-- Blocker: keine. Fremd-WIP Checkout (8 Pfade: deploy.sh, docs/apps.*, portal.mjs, skills/*, UserContext.jsx, NEXT) unberührt. Checkout 3 hinter origin/dev vor Lauf.
+- Blocker: keine. Fremd-WIP Checkout (deploy.sh, docs/apps.*, portal.mjs, skills/*, UserContext.jsx, NEXT) unberührt. Checkout war 3 hinter origin/dev.
