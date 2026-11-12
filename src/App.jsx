@@ -17,6 +17,7 @@ import { isLocalMode, getAnatomy, getAllMuscles } from '@db'
 import { getMessagingIfSupported } from '@cloud/firebase.js'
 
 import { getNavItems, VALID_TABS, IS_SOLO, SOLO_TAB } from './constants/NavigationItems.js'
+import { markStandaloneHost } from './views/Session/externalSessionApps.js'
 
 import Sidebar from './components/layout/Sidebar.jsx'
 import MobileNav from './components/layout/MobileNav.jsx'
@@ -38,6 +39,11 @@ import { getStaticMuscleTaxonomy } from './lib/kb/muscles.js'
 import { recordFitnessUsage } from './lib/traction.js'
 
 import { parseLogbuchHash, logbuchHash } from './views/Logbuch/logbuchRoute.js'
+
+// Die VitalOS-Shell mountet diese Datei nicht (sie rendert Session direkt).
+// 6Pack/Skills sind hier externe Apps; in der Shell lokale Tabs.
+markStandaloneHost()
+
 const SESSION_SUB_TABS = new Set(['today', 'timer', 'skills', 'plan', 'logbuch'])
 const REVIEW_SUB_TABS = new Set(['report', 'muscles', 'readiness', 'protokoll'])
 // History/Verlauf sind im Logbuch aufgegangen; alte Links (#session/history, #review/verlauf) landen dort.

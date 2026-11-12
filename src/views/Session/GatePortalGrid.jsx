@@ -10,10 +10,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CalendarDays, ClipboardList, TimerReset, Sparkles, BookOpen, BarChart3, Brain,
-  LayoutGrid, Bike, Settings2, History, Search, ChevronUp,
+  LayoutGrid, Bike, Settings2, History, Search, ChevronUp, ExternalLink,
 } from 'lucide-react';
 import { localToday } from '@utils';
 import { IS_SOLO } from '../../constants/NavigationItems.js';
+import { externalSessionCopy } from './externalSessionApps.js';
+import { useInShell } from './sessionShell.jsx';
 
 const RECENT_KEY = 'fitness-gate-portal-recent';
 const RECENT_MAX = 3;
@@ -25,14 +27,27 @@ function yesterdayIso() {
   return `${dt.getFullYear()}-${p(dt.getMonth() + 1)}-${p(dt.getDate())}`;
 }
 
+function portalApp(id, hint, DomainIcon, keywords, shell) {
+  const copy = externalSessionCopy(id, { shell });
+  return {
+    id,
+    label: copy.label,
+    hint,
+    Icon: copy.external ? ExternalLink : DomainIcon,
+    kind: 'sub',
+    keywords,
+  };
+}
+
 // kind 'sub' → onSubNav(id) im Session-Tab, kind 'hash' → globale Hash-Route (App.jsx parst sie).
-export function buildPortalEntries() {
+// shell: 6Pack/Skills sind In-Shell-Tabs. Standalone: ExternalLink und „…-App“.
+export function buildPortalEntries({ shell = false } = {}) {
   const session = [
     { id: 'today', label: 'Session', hint: 'Heute loggen', Icon: CalendarDays, kind: 'sub', keywords: 'training heute log' },
     { id: 'plan', label: 'Plan', hint: 'Routinen & Pläne', Icon: ClipboardList, kind: 'sub', keywords: 'routine workout' },
     { id: 'logbuch', label: 'Logbuch', hint: 'Chronik & Verlauf', Icon: BookOpen, kind: 'sub', keywords: 'history verlauf woche' },
-    { id: 'timer', label: '6Pack-App', hint: 'Timer', Icon: TimerReset, kind: 'sub', keywords: 'timer stoppuhr' },
-    { id: 'skills', label: 'Skills-App', hint: 'Skills üben', Icon: Sparkles, kind: 'sub', keywords: 'skill calisthenics' },
+    portalApp('timer', 'Timer', TimerReset, 'timer stoppuhr 6pack 6pack-app', shell),
+    portalApp('skills', 'Skills üben', Sparkles, 'skill calisthenics skills skills-app', shell),
   ];
   const yesterday = { id: 'yesterday', label: 'Gestern', hint: 'Nachtragen', Icon: History, kind: 'hash', hash: `#session/${yesterdayIso()}`, keywords: 'nachtragen datum vergessen' };
   if (IS_SOLO) return [...session, yesterday];
@@ -77,7 +92,8 @@ const BAR_DEFAULT = ['today', 'plan', 'logbuch', 'review', 'learn'];
  * Hub voll auf (`onExpand`). Nur mobil (lg:hidden), Desktop nutzt das Raster im Sheet.
  */
 export function GateHubBar({ currentSubTab, onSubNav, onLeave, onExpand }) {
-  const entries = useMemo(buildPortalEntries, []);
+  const inShell = useInShell();
+  const entries = useMemo(() => buildPortalEntries({ shell: inShell }), [inShell]);
   const recent = readRecent();
   const ids = [...recent, ...BAR_DEFAULT].filter((id, i, a) => a.indexOf(id) === i);
   const items = ids.map((id) => entries.find((e) => e.id === id)).filter(Boolean).slice(0, BAR_MAX);
@@ -127,10 +143,11 @@ export function GateHubBar({ currentSubTab, onSubNav, onLeave, onExpand }) {
 }
 
 export default function GatePortalGrid({ currentSubTab, onSubNav, onLeave, hub = false }) {
+  const inShell = useInShell();
   const [query, setQuery] = useState('');
   const [recent, setRecent] = useState(readRecent);
   const inputRef = useRef(null);
-  const entries = useMemo(buildPortalEntries, []);
+  const entries = useMemo(() => buildPortalEntries({ shell: inShell }), [inShell]);
 
   const q = query.trim().toLowerCase();
   const visible = useMemo(() => {

@@ -1,10 +1,26 @@
-import { BookOpen, Dumbbell, Brain, BarChart3, Settings2, CalendarDays, ClipboardList, LibraryBig, Microscope, HelpCircle, Layers, Zap, Crosshair, TimerReset, Sparkles, Bike, LayoutGrid, FileText } from "lucide-react";
+import { BookOpen, Dumbbell, Brain, BarChart3, Settings2, CalendarDays, ClipboardList, LibraryBig, Microscope, HelpCircle, Layers, Zap, Crosshair, TimerReset, Sparkles, Bike, LayoutGrid, FileText, ExternalLink } from "lucide-react";
+import { externalSessionCopy } from "../views/Session/externalSessionApps.js";
+
+function applySessionHost(items, shell) {
+  return items.map((item) => {
+    if (item.id !== 'session' || !Array.isArray(item.sub)) return item;
+    return {
+      ...item,
+      sub: item.sub.map((entry) => {
+        const copy = externalSessionCopy(entry.id, { shell });
+        if (!copy) return entry;
+        if (!copy.external) return { ...entry, label: copy.label };
+        return { ...entry, label: copy.label, Icon: ExternalLink };
+      }),
+    };
+  });
+}
 
 const baseItems = [
   { id: 'session',  label: 'Training', Icon: Dumbbell,  sub: [
     { id: 'today',   label: 'Heute',    Icon: CalendarDays },
-    { id: 'timer',   label: '6Pack-App', Icon: TimerReset },
-    { id: 'skills',  label: 'Skills-App', Icon: Sparkles },
+    { id: 'timer',   label: '6Pack', Icon: TimerReset },
+    { id: 'skills',  label: 'Skills', Icon: Sparkles },
     { id: 'plan',    label: 'Plan',     Icon: ClipboardList },
     { id: 'logbuch', label: 'Logbuch',  Icon: BookOpen },
   ]},
@@ -48,26 +64,30 @@ const baseItems = [
 export const SOLO_TAB = import.meta.env.VITE_SOLO_TAB || '';
 export const IS_SOLO = Boolean(SOLO_TAB);
 
-export function getNavItems({ focusReady = false, devBypass = false } = {}) {
-  if (SOLO_TAB) return [...baseItems, { id: 'anamnese', label: 'Anamnese', Icon: ClipboardList }, { id: 'focus', label: 'Fokus', Icon: Crosshair }].filter((item) => item.id === SOLO_TAB);
+// shell default false: Fitness-Standalone (App.jsx) zeigt „6Pack-App“ /
+// „Skills-App“ mit ExternalLink. Die VitalOS-Shell importiert NAV_ITEMS
+// (vitalos src/shell/NavigationItems.js) und bekommt die plain Labels.
+export function getNavItems({ focusReady = false, devBypass = false, shell = false } = {}) {
+  const items = applySessionHost(baseItems, shell);
+  if (SOLO_TAB) return [...items, { id: 'anamnese', label: 'Anamnese', Icon: ClipboardList }, { id: 'focus', label: 'Fokus', Icon: Crosshair }].filter((item) => item.id === SOLO_TAB);
   if (devBypass) {
     return [
-      ...baseItems.slice(0, 3),
+      ...items.slice(0, 3),
       { id: 'anamnese', label: 'Anamnese', Icon: ClipboardList },
       { id: 'focus', label: 'Fokus', Icon: Crosshair },
-      ...baseItems.slice(3),
+      ...items.slice(3),
     ];
   }
   return [
-    ...baseItems.slice(0, 3),
+    ...items.slice(0, 3),
     focusReady
       ? { id: 'focus', label: 'Fokus', Icon: Crosshair }
       : { id: 'anamnese', label: 'Anamnese', Icon: ClipboardList },
-    ...baseItems.slice(3),
+    ...items.slice(3),
   ];
 }
 
-export const NAV_ITEMS = getNavItems();
+export const NAV_ITEMS = getNavItems({ shell: true });
 
 export const VALID_TABS = new Set(SOLO_TAB ? [SOLO_TAB] : [
   ...baseItems.map(item => item.id),
