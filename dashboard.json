@@ -1,15 +1,15 @@
 {
  "evidence": {
-  "generated_at": "2026-11-13T00:08:47+00:00",
+  "generated_at": "2026-11-13T00:13:09+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-13T00:08:22Z",
+   "pushed_at": "2026-11-13T00:12:51Z",
    "default_branch": "master",
    "visibility": "public",
-   "pages_url": null
+   "pages_url": "https://nimmsel23.github.io/fitness-dev/"
   },
   "package": {
    "name": "fitness-dev",
@@ -20,11 +20,17 @@
    "has_dev": true,
    "dev_behind": 0,
    "dev_ahead": 1,
-   "oldest_unpromoted": "2026-11-13T01:08:21+01:00",
-   "dev_head": "04b73444 2026-11-13T01:08:21+01:00",
-   "master_head": "e729fd96 2026-11-12T16:17:10+01:00"
+   "oldest_unpromoted": "2026-11-13T01:12:33+01:00",
+   "dev_head": "0c3c682a 2026-11-13T01:12:33+01:00",
+   "master_head": "04b73444 2026-11-13T01:08:21+01:00"
   },
   "commits": [
+   {
+    "sha": "0c3c682a",
+    "date": "2026-11-13T01:12:33+01:00",
+    "author": "Alpha",
+    "subject": "fix(fitness): useUser ohne Provider in der Shell, Backend-Pfad + Skills nach coach-dev"
+   },
    {
     "sha": "04b73444",
     "date": "2026-11-13T01:08:21+01:00",
@@ -138,12 +144,6 @@
     "date": "2026-11-11T19:11:22+01:00",
     "author": "Alpha",
     "subject": "ci: drop Gemini repair and Merge-Agent (simplicity)"
-   },
-   {
-    "sha": "5639c830",
-    "date": "2026-11-11T16:12:48+01:00",
-    "author": "Alpha",
-    "subject": "docs(al): AL-LOG 2026-11-11 — Checkout-Sync Org 903f1fbe"
    }
   ],
   "activity": [
@@ -229,28 +229,68 @@
    },
    {
     "day": "2026-11-13",
-    "n": 1
+    "n": 2
    }
   ],
   "workflows": [
+   {
+    "name": "Preview (Fitness dev)",
+    "branch": "dev",
+    "event": "push",
+    "status": "in_progress",
+    "conclusion": null,
+    "created_at": "2026-11-13T00:12:53Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43335251192",
+    "sha": "0c3c682"
+   },
    {
     "name": "Check (Fitness)",
     "branch": "dev",
     "event": "push",
     "status": "in_progress",
     "conclusion": null,
-    "created_at": "2026-11-13T00:08:24Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43334634683",
+    "created_at": "2026-11-13T00:12:53Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43335251035",
+    "sha": "0c3c682"
+   },
+   {
+    "name": "Live Deploy (Fitness master)",
+    "branch": "master",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-13T00:10:00Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43334852238",
     "sha": "04b7344"
    },
    {
     "name": "PR-AutoMerge (Dependabot -> dev)",
     "branch": "master",
-    "event": "schedule",
+    "event": "workflow_run",
+    "status": "completed",
+    "conclusion": "skipped",
+    "created_at": "2026-11-13T00:09:39Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43334803722",
+    "sha": "e729fd9"
+   },
+   {
+    "name": "Auto-Promote dev -> master (Check (Fitness))",
+    "branch": "master",
+    "event": "workflow_run",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-12T23:25:21Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43328719524",
+    "created_at": "2026-11-13T00:09:39Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43334803640",
+    "sha": "e729fd9"
+   },
+   {
+    "name": "Gemini CI Agent",
+    "branch": "master",
+    "event": "workflow_run",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-13T00:09:39Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43334803597",
     "sha": "e729fd9"
    },
    {
@@ -262,36 +302,6 @@
     "created_at": "2026-11-12T22:42:50Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43322428326",
     "sha": "e729fd9"
-   },
-   {
-    "name": "Auto-Promote dev -> master (Check (Fitness))",
-    "branch": "master",
-    "event": "schedule",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-12T20:03:45Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43296494336",
-    "sha": "e729fd9"
-   },
-   {
-    "name": "Live Deploy (Fitness master)",
-    "branch": "master",
-    "event": "workflow_dispatch",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-12T15:19:00Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43246456609",
-    "sha": "e729fd9"
-   },
-   {
-    "name": "Gemini CI Agent",
-    "branch": "master",
-    "event": "workflow_run",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-12T15:18:46Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43246415096",
-    "sha": "e660e22"
    },
    {
     "name": "Merge-Agent",
@@ -402,16 +412,6 @@
     "created_at": "2026-11-12T10:44:23Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43203003564",
     "sha": "01c6881"
-   },
-   {
-    "name": "Preview (Fitness dev)",
-    "branch": "dev",
-    "event": "push",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-12T06:34:47Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43169110559",
-    "sha": "376faf0"
    }
   ],
   "issues": [
@@ -443,34 +443,34 @@
   "status": "green",
   "signals": [],
   "ai": {
-   "headline": "Fitness-dev: Living Dashboard Feature in Entwicklung, CI-Check läuft",
-   "lage": "Der `dev`-Branch ist mit einem neuen Feature-Commit (`04b73444`) zum Living Dashboard als GitHub Page einen Commit vor `master`. Ein `Check (Fitness)`-Workflow für diesen Commit ist aktuell in Bearbeitung. Zuletzt wurden mehrere CI-Fixes und Dokumentationsaktualisierungen auf `master` erfolgreich deployed.",
+   "headline": "Living Dashboard auf Master deployed, dev-Branch mit neuem Fix in CI",
+   "lage": "Der `master`-Branch enthält nun das Feature \"Living Dashboard als GitHub Page\" (Commit `04b73444`) und wurde erfolgreich deployed. Der `dev`-Branch ist mit Commit `0c3c682a` (Fix für `useUser` und Backend-Pfade) einen Commit vor `master`. Für diesen `dev`-Head laufen aktuell die Workflows `Check (Fitness)` und `Preview (Fitness dev)`.",
    "auffaelligkeiten": [
     {
-     "level": "hoch",
-     "text": "Der `Check (Fitness)`-Workflow auf dem `dev`-Branch für Commit `04b73444` ist aktuell `in_progress`. Sein Abschluss ist entscheidend für die Stabilität des `dev`-Branches."
+     "level": "mittel",
+     "text": "Die GitHub Pages-Einstellungen für `fitness-dev` auf dem `dev`-Branch können laut `NEXT.md` über die aktuelle GitHub-Schnittstelle nicht erreicht werden, was die Prüfung/Aktivierung erschwert."
     },
     {
      "level": "mittel",
-     "text": "Issue #104 bezüglich rotem CI und Branch-Divergenz wurde durch den Merge-Commit `376faf04` adressiert. Die Vielzahl der jüngsten `fix(ci)`-Commits deutet auf eine Phase erhöhter CI-Wartung hin."
+     "text": "Der vollständige Reparaturpfad des Gemini CI Agent muss noch anhand eines isolierten roten Checks verifiziert werden, wie in `NEXT.md` vermerkt."
     },
     {
      "level": "info",
-     "text": "Die `NEXT.md` listet noch offene Punkte zur Verifizierung des Gemini CI Agent Reparaturpfads und zur Aktivierung von GitHub Pages für `fitness-dev` auf dem `dev`-Branch."
+     "text": "Issue #104, das einen roten `Check (Fitness)` und `dev`/`master`-Divergenz thematisierte, scheint durch die jüngsten erfolgreichen CI-Läufe und Merges behoben, ist aber in der Evidenz nicht als geschlossen markiert."
     }
    ],
    "naechste_schritte": [
-    "Überwachen des laufenden `Check (Fitness)`-Workflows für Commit `04b73444`.",
-    "Prüfen der GitHub Pages-Einstellungen für `fitness-dev` auf dem `dev`-Branch.",
-    "Verifizieren des Gemini CI Agent Reparaturpfads anhand eines isolierten roten Checks."
+    "Überwachen der laufenden `Check (Fitness)` und `Preview (Fitness dev)` Workflows für Commit `0c3c682a`.",
+    "Prüfen der GitHub Pages-Einstellungen für `fitness-dev` auf dem `dev`-Branch, um die Funktionalität des Living Dashboards sicherzustellen.",
+    "Verifizieren des Gemini CI Agent Reparaturpfads anhand eines isolierten roten Checks, wie in `NEXT.md` beschrieben."
    ],
-   "veraendert": "Dies ist die erste Einschätzung für das Repository.",
+   "veraendert": "Das \"Living Dashboard als GitHub Page\" Feature (Commit `04b73444`) wurde erfolgreich auf den `master`-Branch deployed, und der `dev`-Branch ist mit einem neuen Fix-Commit (`0c3c682a`) weiterentwickelt worden.",
    "fragen": [
-    "Soll GitHub Pages für `fitness-dev` auf dem `dev`-Branch aktiviert werden, wie in `NEXT.md` vermerkt?",
-    "Gibt es einen Plan, den Gemini-Reparaturpfad mit einem absichtlich herbeigeführten roten CI-Lauf zu verifizieren?"
+    "Soll Issue #104 geschlossen werden, da die genannten Probleme (roter Check, Divergenz) durch aktuelle Commits und erfolgreiche CI-Läufe behoben scheinen?",
+    "Gibt es eine Präferenz für die Priorisierung der \"potenziellen blinden Flecken\" aus dem Gemini-Review in `NEXT.md` (TodayPlan-Stabilität, sessionStorage-Persistenz, ungenutzter TemplateLauncher)?"
    ],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-13T00:08:49+00:00"
+  "ai_at": "2026-11-13T00:13:11+00:00"
  }
 }
