@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-13T02:23:09+00:00",
+  "generated_at": "2026-11-13T02:29:19+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-13T02:22:43Z",
+   "pushed_at": "2026-11-13T02:29:02Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -19,12 +19,18 @@
    "main": "master",
    "has_dev": true,
    "dev_behind": 0,
-   "dev_ahead": 2,
-   "oldest_unpromoted": "2026-11-13T01:12:33+01:00",
-   "dev_head": "8cc373a8 2026-11-13T03:21:56+01:00",
-   "master_head": "04b73444 2026-11-13T01:08:21+01:00"
+   "dev_ahead": 1,
+   "oldest_unpromoted": "2026-11-13T03:28:02+01:00",
+   "dev_head": "d7d92f87 2026-11-13T03:28:02+01:00",
+   "master_head": "8cc373a8 2026-11-13T03:21:56+01:00"
   },
   "commits": [
+   {
+    "sha": "d7d92f87",
+    "date": "2026-11-13T03:28:02+01:00",
+    "author": "Alpha",
+    "subject": "docs(next): mark issue #104 resolved and closed"
+   },
    {
     "sha": "8cc373a8",
     "date": "2026-11-13T03:21:56+01:00",
@@ -138,12 +144,6 @@
     "date": "2026-11-11T20:05:33Z",
     "author": "nimmdaniel",
     "subject": "chore(src): toten Code entfernen, no-unused-vars aktivieren, Unit-Tests in CI"
-   },
-   {
-    "sha": "c8c5e96f",
-    "date": "2026-11-11T19:14:16+01:00",
-    "author": "Alpha",
-    "subject": "docs(agents): simplicity pointer — CI.md §1 spine"
    }
   ],
   "activity": [
@@ -229,7 +229,7 @@
    },
    {
     "day": "2026-11-13",
-    "n": 3
+    "n": 4
    }
   ],
   "workflows": [
@@ -239,28 +239,28 @@
     "event": "push",
     "status": "in_progress",
     "conclusion": null,
-    "created_at": "2026-11-13T02:22:46Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43351747260",
+    "created_at": "2026-11-13T02:29:04Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43352477399",
+    "sha": "d7d92f8"
+   },
+   {
+    "name": "Live Deploy (Fitness master)",
+    "branch": "master",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-13T02:24:00Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43351893553",
     "sha": "8cc373a"
    },
    {
     "name": "Auto-Promote dev -> master (Check (Fitness))",
     "branch": "master",
-    "event": "schedule",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-13T01:10:45Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43342902141",
-    "sha": "04b7344"
-   },
-   {
-    "name": "Gemini CI Agent",
-    "branch": "master",
     "event": "workflow_run",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-13T00:14:45Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43335503677",
+    "created_at": "2026-11-13T02:23:50Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43351875274",
     "sha": "04b7344"
    },
    {
@@ -269,8 +269,18 @@
     "event": "workflow_run",
     "status": "completed",
     "conclusion": "skipped",
-    "created_at": "2026-11-13T00:13:43Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43335362547",
+    "created_at": "2026-11-13T02:23:50Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43351875140",
+    "sha": "04b7344"
+   },
+   {
+    "name": "Gemini CI Agent",
+    "branch": "master",
+    "event": "workflow_run",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-13T02:23:50Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43351875056",
     "sha": "04b7344"
    },
    {
@@ -282,16 +292,6 @@
     "created_at": "2026-11-13T00:12:53Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43335251192",
     "sha": "0c3c682"
-   },
-   {
-    "name": "Live Deploy (Fitness master)",
-    "branch": "master",
-    "event": "workflow_dispatch",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-13T00:10:00Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43334852238",
-    "sha": "04b7344"
    },
    {
     "name": "Merge-Agent",
@@ -414,17 +414,7 @@
     "sha": "01c6881"
    }
   ],
-  "issues": [
-   {
-    "number": 104,
-    "title": "[fitness] Check (Fitness) rot + dev/master divergiert + Queue-Leichen",
-    "created_at": "2026-11-12T06:32:27Z",
-    "updated_at": "2026-11-12T14:24:52Z",
-    "labels": [],
-    "url": "https://github.com/nimmsel23/fitness-dev/issues/104",
-    "author": "nimmdaniel"
-   }
-  ],
+  "issues": [],
   "pulls": [],
   "live_sites": [
    "https://fitness-aos.web.app",
@@ -443,38 +433,33 @@
   "status": "green",
   "signals": [],
   "ai": {
-   "headline": "dev-Branch zwei Commits vor master, Check (Fitness) für neuesten Commit läuft",
-   "lage": "Der `master`-Branch ist weiterhin auf Commit `04b73444` mit dem Living Dashboard deployed. Der `dev`-Branch ist nun mit Commit `8cc373a8` (Fix für Biome-Formatierung, adressiert Issue #104) zwei Commits vor `master`. Für den aktuellen `dev`-Head (`8cc373a8`) läuft der Workflow `Check (Fitness)`. Der `Preview (Fitness dev)` Workflow für den vorherigen `dev`-Head (`0c3c682a`) ist erfolgreich abgeschlossen.",
+   "headline": "dev-Branch einen Commit vor master, Check (Fitness) für dev läuft",
+   "lage": "Der `master`-Branch ist nun auf Commit `8cc373a8` (Fix für Biome-Formatierung, adressiert Issue #104) und wurde erfolgreich deployed. Der `dev`-Branch ist mit Commit `d7d92f87` (Markierung von Issue #104 als gelöst und geschlossen) einen Commit vor `master`. Für den aktuellen `dev`-Head (`d7d92f87`) läuft der Workflow `Check (Fitness)`.",
    "auffaelligkeiten": [
     {
-     "level": "hoch",
-     "text": "Der Workflow `Check (Fitness)` für den neuesten `dev`-Commit `8cc373a` ist noch `in_progress`."
+     "level": "mittel",
+     "text": "Der `dev`-Branch ist einen Commit (`d7d92f87`) vor `master` (`8cc373a8`), obwohl in `NEXT.md` vermerkt ist, dass Issue #104 geschlossen ist und `dev=master` sein sollte."
+    },
+    {
+     "level": "mittel",
+     "text": "Die GitHub Pages-Einstellungen für `fitness-dev` auf dem `dev`-Branch sind laut `NEXT.md` nicht über die aktuelle GitHub-Schnittstelle erreichbar und müssen geprüft/aktiviert werden."
     },
     {
      "level": "info",
-     "text": "Issue #104 ist in `NEXT.md` als behoben markiert, es sind jedoch noch 6 Geister-Runs manuell abzubrechen."
-    },
-    {
-     "level": "info",
-     "text": "Die Prüfung/Aktivierung von GitHub Pages für `fitness-dev` auf dem `dev`-Branch ist laut `NEXT.md` noch offen."
-    },
-    {
-     "level": "info",
-     "text": "Die Verifizierung des Gemini CI Agent Reparaturpfads ist laut `NEXT.md` noch offen."
+     "text": "Der `Check (Fitness)` Workflow für den aktuellen `dev`-Head `d7d92f87` ist noch 'in_progress'."
     }
    ],
    "naechste_schritte": [
-    "Überwachen des laufenden `Check (Fitness)` Workflows für Commit `8cc373a8`.",
-    "Abbrechen der 6 Geister-Runs für Issue #104 im GitHub Actions UI.",
-    "Prüfen der GitHub Pages-Einstellungen für `fitness-dev` auf dem `dev`-Branch."
+    "Überwachen des laufenden `Check (Fitness)` Workflows für Commit `d7d92f87`.",
+    "Prüfen der GitHub Pages-Einstellungen für `fitness-dev` auf dem `dev`-Branch, wie in `NEXT.md` erwähnt.",
+    "Verifizieren, ob der `dev`-Branch (`d7d92f87`) nach dem erfolgreichen `Check` wie in `NEXT.md` beschrieben automatisch auf `master` promotet werden soll."
    ],
-   "veraendert": "Der `dev`-Branch hat einen weiteren Commit (`8cc373a8`) erhalten, der Issue #104 adressiert, und ist nun zwei Commits vor `master`; der `Preview (Fitness dev)` Workflow für den vorherigen `dev`-Head (`0c3c682a`) ist erfolgreich abgeschlossen.",
+   "veraendert": "Der `master`-Branch wurde auf Commit `8cc373a8` aktualisiert und `dev` ist nun einen Commit vor `master`, wobei für den aktuellen `dev`-Head (`d7d92f87`) ein `Check (Fitness)` Workflow läuft.",
    "fragen": [
-    "Soll Issue #104 nach dem Abbrechen der Geister-Runs geschlossen werden?",
-    "Wann soll der Gemini CI Agent Reparaturpfad verifiziert werden?"
+    "Welche Schritte sind erforderlich, um die GitHub Pages-Einstellungen für `fitness-dev` auf dem `dev`-Branch zu prüfen und zu aktivieren, wenn die Admin-Einstellungen nicht direkt zugänglich sind?"
    ],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-13T02:23:11+00:00"
+  "ai_at": "2026-11-13T02:29:21+00:00"
  }
 }
