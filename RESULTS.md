@@ -1,3 +1,8 @@
+# 2026-11-13 — AL: tooling:biome Format-Fix portal.mjs (Issue #104)
+
+- `scripts/portal.mjs` mit `@biomejs/biome@2.6.6` formatiert.
+- `tooling:biome` und `pnpm test` (118 Tests) lokal grün verifiziert; Check-Rot (Run 43335251035) behoben für Auto-Promote dev→master.
+
 # 2026-11-12 — AL: automerge-pr Dependabot Retarget (Org c1f9b6ce Port)
 
 - journal-SSOT: vor Squash Dependabot-PRs mit `base=master` auf `base=dev` retargeten (nur `dependabot/*`).
