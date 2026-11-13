@@ -128,3 +128,32 @@ _Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen sta
 - Erledigt:
 - Offen/Weiter:
 - Blocker:
+
+## 2026-11-13 (Freitag) — Abteilungsleiter-Lauf
+
+_Automatik (vos-al-log Vorlage 2026-11-13):_
+- Commits seit 2026-11-08: d7d92f8 docs(next): mark issue #104 resolved and closed
+8cc373a style(scripts): format portal.mjs with biome (fixes #104 CI check)
+0c3c682 fix(fitness): useUser ohne Provider in der Shell, Backend-Pfad + Skills nach coach-dev
+04b7344 feat(ci): Living Dashboard als GitHub Page
+e729fd9 docs(al): AL-LOG 2026-11-12 Live Deploy 43245597120
+e660e22 docs(al): AL-LOG 2026-11-12 — automerge Retarget 8c29238
+8c29238 fix(ci): Dependabot base=master→dev Retarget vor Squash (Org c1f9b6ce)
+c9333e1 fix(ci): Check ohne rekursive journal-app Submodule (#107)
+99f62f2 fix(ci): KB-Checkout in deploy-miniapps (wie deploy-master) (#106)
+37e7706 fix(session): plain 6Pack/Skills labels inside the VitalOS shell (#105)
+5e9c9ce style(scripts): biome-format build-kb-data for Check
+0a5224c fix(build): KB aus ~/dev/fitness automatisch einhängen (lokaler Build wie CI)
+376faf0 Merge origin/master into dev (fc72c5e, #104)
+9e0f584 fix(ci): Unit-Tests per Glob statt Verzeichnis-Argument (#104)
+fc72c5e ci: restore Gemini + Merge-Agent on master (full automation)
+- Offene PRs: (keine offenen PRs / gh nicht verfuegbar)
+- CI (letzte Läufe): completed	success	Merge-Agent	Merge-Agent	master	schedule	43355507857	10s	2026-11-13T02:55:55Z
+completed	success	Live Deploy (Fitness master)	Live Deploy (Fitness master)	master	workflow_dispatch	43352658139	1m46s	2026-11-13T02:30:36Z
+completed	success	Auto-Promote dev -> master (Check (Fitness))	Auto-Promote dev -> master (Check (Fitness))	master	workflow_run	43352634418	13s	2026-11-13T02:30:25Z
+- Arbeitsbaum: 1 uncommittete Pfade
+
+_Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen statt Erzählung):_
+- Erledigt: Ursache für #104-Wiederholung abgestellt: `vos-portal` überschreibt `scripts/portal.mjs` unformatiert. Fix: `biome.json` `!scripts/portal.mjs`, Kopie = Meta `9f64107` (nur Format-Diff); Commit „fix(ci): portal.mjs aus biome“ auf `origin/dev` (+ auto `f2436fe`/`3558436`).
+- Offen/Weiter: Learn-3D Mesh-Lücken; Gemini-Rotlauf-Verifikation; Pages `/docs`; Sibling Rolldown-Pin 1.2.16. Org-Queue fitness-dev leer.
+- Blocker: keiner. AUTOMATION: portal.mjs-Formatfix nach jedem `vos-portal` — Meta-Quelle `~/vitalos/scripts/vos-portal.mjs` einmal biome-formatieren (CTO) — spart wiederkehrende Rot-Checks.
