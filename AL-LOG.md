@@ -154,6 +154,6 @@ completed	success	Auto-Promote dev -> master (Check (Fitness))	Auto-Promote dev 
 - Arbeitsbaum: 1 uncommittete Pfade
 
 _Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen statt Erzählung):_
-- Erledigt: Ursache für #104-Wiederholung abgestellt: `vos-portal` überschreibt `scripts/portal.mjs` unformatiert. Fix: `biome.json` `!scripts/portal.mjs`, Kopie = Meta `9f64107` (nur Format-Diff); Commit „fix(ci): portal.mjs aus biome“ auf `origin/dev` (+ auto `f2436fe`/`3558436`).
+- Erledigt: Ursache für #104-Wiederholung abgestellt: `vos-portal` überschreibt `scripts/portal.mjs` unformatiert. Fix: `biome.json` `!scripts/portal.mjs`, Kopie = Meta `9f64107` (nur Format-Diff); Commit `4a8ff8b` auf `origin/dev` (+ auto `f2436fe`/`3558436`); Check `43357375203`, Auto-Promote `43357483391`, Live Deploy `43357502632` grün.
 - Offen/Weiter: Learn-3D Mesh-Lücken; Gemini-Rotlauf-Verifikation; Pages `/docs`; Sibling Rolldown-Pin 1.2.16. Org-Queue fitness-dev leer.
 - Blocker: keiner. AUTOMATION: portal.mjs-Formatfix nach jedem `vos-portal` — Meta-Quelle `~/vitalos/scripts/vos-portal.mjs` einmal biome-formatieren (CTO) — spart wiederkehrende Rot-Checks.
