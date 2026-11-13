@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-13T03:12:41+00:00",
+  "generated_at": "2026-11-13T03:16:04+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-13T03:12:20Z",
+   "pushed_at": "2026-11-13T03:15:46Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -19,12 +19,18 @@
    "main": "master",
    "has_dev": true,
    "dev_behind": 0,
-   "dev_ahead": 3,
-   "oldest_unpromoted": "2026-11-13T04:11:40+01:00",
-   "dev_head": "4a8ff8b8 2026-11-13T04:12:16+01:00",
-   "master_head": "d7d92f87 2026-11-13T03:28:02+01:00"
+   "dev_ahead": 1,
+   "oldest_unpromoted": "2026-11-13T04:15:43+01:00",
+   "dev_head": "a9cd5206 2026-11-13T04:15:43+01:00",
+   "master_head": "4a8ff8b8 2026-11-13T04:12:16+01:00"
   },
   "commits": [
+   {
+    "sha": "a9cd5206",
+    "date": "2026-11-13T04:15:43+01:00",
+    "author": "Alpha",
+    "subject": "docs(al): AL-LOG 2026-11-13 — 4a8ff8b, Check/Promote/Live Deploy grün"
+   },
    {
     "sha": "4a8ff8b8",
     "date": "2026-11-13T04:12:16+01:00",
@@ -138,12 +144,6 @@
     "date": "2026-11-12T02:18:39+01:00",
     "author": "Alpha",
     "subject": "ci: restore Gemini repair + Merge-Agent (full automation)"
-   },
-   {
-    "sha": "fb0da1f4",
-    "date": "2026-11-11T20:51:10Z",
-    "author": "nimmdaniel",
-    "subject": "fix(highlighter): fehlende Muskel-IDs + Freitext-Aliase im RBH-Mapping"
    }
   ],
   "activity": [
@@ -229,7 +229,7 @@
    },
    {
     "day": "2026-11-13",
-    "n": 7
+    "n": 8
    }
   ],
   "workflows": [
@@ -239,9 +239,49 @@
     "event": "push",
     "status": "in_progress",
     "conclusion": null,
-    "created_at": "2026-11-13T03:12:22Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43357375203",
+    "created_at": "2026-11-13T03:15:48Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43357775872",
+    "sha": "a9cd520"
+   },
+   {
+    "name": "Live Deploy (Fitness master)",
+    "branch": "master",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-13T03:13:30Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43357502632",
     "sha": "4a8ff8b"
+   },
+   {
+    "name": "Gemini CI Agent",
+    "branch": "master",
+    "event": "workflow_run",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-13T03:13:20Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43357483467",
+    "sha": "d7d92f8"
+   },
+   {
+    "name": "PR-AutoMerge (Dependabot -> dev)",
+    "branch": "master",
+    "event": "workflow_run",
+    "status": "completed",
+    "conclusion": "skipped",
+    "created_at": "2026-11-13T03:13:20Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43357483444",
+    "sha": "d7d92f8"
+   },
+   {
+    "name": "Auto-Promote dev -> master (Check (Fitness))",
+    "branch": "master",
+    "event": "workflow_run",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-13T03:13:20Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43357483391",
+    "sha": "d7d92f8"
    },
    {
     "name": "Merge-Agent",
@@ -252,46 +292,6 @@
     "created_at": "2026-11-13T02:55:55Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43355507857",
     "sha": "d7d92f8"
-   },
-   {
-    "name": "Live Deploy (Fitness master)",
-    "branch": "master",
-    "event": "workflow_dispatch",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-13T02:30:36Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43352658139",
-    "sha": "d7d92f8"
-   },
-   {
-    "name": "Auto-Promote dev -> master (Check (Fitness))",
-    "branch": "master",
-    "event": "workflow_run",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-13T02:30:25Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43352634418",
-    "sha": "8cc373a"
-   },
-   {
-    "name": "PR-AutoMerge (Dependabot -> dev)",
-    "branch": "master",
-    "event": "workflow_run",
-    "status": "completed",
-    "conclusion": "skipped",
-    "created_at": "2026-11-13T02:30:25Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43352634352",
-    "sha": "8cc373a"
-   },
-   {
-    "name": "Gemini CI Agent",
-    "branch": "master",
-    "event": "workflow_run",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-13T02:30:25Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43352634335",
-    "sha": "8cc373a"
    },
    {
     "name": "Preview (Fitness dev)",
@@ -433,33 +433,30 @@
   "status": "green",
   "signals": [],
   "ai": {
-   "headline": "dev ist 3 Commits vor master, Check (Fitness) für dev läuft",
-   "lage": "Der `master`-Branch ist auf Commit `d7d92f87` (Markierung von Issue #104 als gelöst und geschlossen) und wurde erfolgreich deployed. Der `dev`-Branch ist mit Commit `4a8ff8b8` (Fix für `portal.mjs` aus Biome) drei Commits vor `master`. Für den aktuellen `dev`-Head (`4a8ff8b8`) läuft der Workflow `Check (Fitness)`.",
+   "headline": "Master aktualisiert und deployed, dev einen Commit voraus mit laufendem Check",
+   "lage": "Der `master`-Branch ist auf Commit `4a8ff8b8` (Fix für `portal.mjs`) und wurde erfolgreich deployed. Der `dev`-Branch ist mit Commit `a9cd5206` einen Commit vor `master`. Für den aktuellen `dev`-Head läuft der Workflow `Check (Fitness)`.",
    "auffaelligkeiten": [
     {
      "level": "info",
-     "text": "Der `master`-Branch wurde erfolgreich auf `d7d92f87` deployed, nachdem der `Auto-Promote dev -> master` Workflow für den vorherigen `master`-Head `8cc373a` erfolgreich war."
+     "text": "Der `Live Deploy (Fitness master)` Workflow für Commit `4a8ff8b` wurde erfolgreich abgeschlossen."
     },
     {
      "level": "info",
-     "text": "Der `dev`-Branch enthält nun einen Fix für die Wiederholungsursache von Issue #104 (`4a8ff8b8`), die `portal.mjs` aus der Biome-Formatierung ausschließt."
+     "text": "Der `Auto-Promote dev -> master (Check (Fitness))` Workflow für Commit `d7d92f8` wurde erfolgreich abgeschlossen."
     },
     {
-     "level": "mittel",
-     "text": "Die GitHub Pages-Einstellungen für `fitness-dev` auf dem `dev`-Branch können über die aktuelle GitHub-Schnittstelle nicht erreicht werden, was die Verifizierung der `NEXT.md`-Anforderung erschwert."
+     "level": "info",
+     "text": "Der `Check (Fitness)` Workflow für den aktuellen `dev`-Head `a9cd520` ist aktiv."
     }
    ],
    "naechste_schritte": [
-    "Überwachen des laufenden `Check (Fitness)` Workflows für Commit `4a8ff8b8`.",
-    "Prüfen der GitHub Pages-Einstellungen für `fitness-dev` auf dem `dev`-Branch, sobald die Admin-Einstellungen zugänglich sind, um die Veröffentlichung zu verifizieren."
+    "Überwachen des laufenden `Check (Fitness)` Workflows für Commit `a9cd5206`.",
+    "Prüfen der GitHub Pages-Einstellungen für `fitness-dev` auf dem `dev`-Branch, sobald die Admin-Einstellungen zugänglich sind."
    ],
-   "veraendert": "Der `master`-Branch wurde auf `d7d92f87` aktualisiert, und `dev` ist nun mit `4a8ff8b8` drei Commits voraus, während der `Check (Fitness)` für den neuen `dev`-Head läuft.",
-   "fragen": [
-    "Soll der `dev`-Branch (`4a8ff8b8`) nach erfolgreichem `Check (Fitness)` automatisch auf `master` promotet werden, oder ist eine manuelle Überprüfung erforderlich?",
-    "Welche Schritte sind zur Behebung der Unerreichbarkeit der GitHub Pages-Admin-Einstellungen für `fitness-dev` zu unternehmen?"
-   ],
+   "veraendert": "Der `master`-Branch wurde auf Commit `4a8ff8b8` aktualisiert und erfolgreich deployed, wodurch der `dev`-Branch nun einen Commit vor `master` liegt, statt drei.",
+   "fragen": [],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-13T03:12:44+00:00"
+  "ai_at": "2026-11-13T03:16:06+00:00"
  }
 }
