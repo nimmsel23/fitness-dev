@@ -1,5 +1,6 @@
 - [x] Issue #104: Biome-Formatierung scripts/portal.mjs behoben (Check grün, dev→master Auto-Promote freigegeben)
 - [x] Issue #104: geschlossen (dev=master, Check & Live Deploy grün)
+- [x] #104 Wiederholungsursache: `vos-portal` kopiert `~/vitalos/scripts/vos-portal.mjs` unformatiert nach `scripts/portal.mjs` → `biome.json` nimmt die verteilte Kopie aus; Kopie = Meta-SOT `9f64107` (AL 2026-11-13).
 - ~~Vite-8 test-sixpack-selection~~: esbuild.transform statt transformWithEsbuild.
 - ~~RESULTS.md aus `.gitignore`~~: Org-Task `ca183b8c` (CEO-Ruling 2026-11-07), Tracking bleibt.
 - [x] CTO-Hit `175b5162`: biome format `scripts/verify-dist.mjs` (Check-Rot `42750194503` @ `52bc1da`) — AL 2026-11-10.
