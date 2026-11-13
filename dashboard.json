@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-13T03:16:04+00:00",
+  "generated_at": "2026-11-13T12:37:17+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-13T03:15:46Z",
+   "pushed_at": "2026-11-13T03:17:05Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -19,10 +19,10 @@
    "main": "master",
    "has_dev": true,
    "dev_behind": 0,
-   "dev_ahead": 1,
-   "oldest_unpromoted": "2026-11-13T04:15:43+01:00",
+   "dev_ahead": 0,
+   "oldest_unpromoted": null,
    "dev_head": "a9cd5206 2026-11-13T04:15:43+01:00",
-   "master_head": "4a8ff8b8 2026-11-13T04:12:16+01:00"
+   "master_head": "a9cd5206 2026-11-13T04:15:43+01:00"
   },
   "commits": [
    {
@@ -149,7 +149,7 @@
   "activity": [
    {
     "day": "2026-10-24",
-    "n": 35
+    "n": 2
    },
    {
     "day": "2026-10-25",
@@ -234,13 +234,33 @@
   ],
   "workflows": [
    {
-    "name": "Check (Fitness)",
-    "branch": "dev",
-    "event": "push",
-    "status": "in_progress",
-    "conclusion": null,
-    "created_at": "2026-11-13T03:15:48Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43357775872",
+    "name": "Merge-Agent",
+    "branch": "master",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-13T10:27:32Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43409202500",
+    "sha": "a9cd520"
+   },
+   {
+    "name": "Auto-Promote dev -> master (Check (Fitness))",
+    "branch": "master",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-13T08:06:58Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43390687442",
+    "sha": "a9cd520"
+   },
+   {
+    "name": "PR-AutoMerge (Dependabot -> dev)",
+    "branch": "master",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-13T06:00:34Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43375712014",
     "sha": "a9cd520"
    },
    {
@@ -249,9 +269,9 @@
     "event": "workflow_dispatch",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-13T03:13:30Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43357502632",
-    "sha": "4a8ff8b"
+    "created_at": "2026-11-13T03:17:06Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43357921264",
+    "sha": "a9cd520"
    },
    {
     "name": "Gemini CI Agent",
@@ -259,39 +279,19 @@
     "event": "workflow_run",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-13T03:13:20Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43357483467",
-    "sha": "d7d92f8"
+    "created_at": "2026-11-13T03:16:57Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43357902857",
+    "sha": "4a8ff8b"
    },
    {
-    "name": "PR-AutoMerge (Dependabot -> dev)",
-    "branch": "master",
-    "event": "workflow_run",
-    "status": "completed",
-    "conclusion": "skipped",
-    "created_at": "2026-11-13T03:13:20Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43357483444",
-    "sha": "d7d92f8"
-   },
-   {
-    "name": "Auto-Promote dev -> master (Check (Fitness))",
-    "branch": "master",
-    "event": "workflow_run",
+    "name": "Check (Fitness)",
+    "branch": "dev",
+    "event": "push",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-13T03:13:20Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43357483391",
-    "sha": "d7d92f8"
-   },
-   {
-    "name": "Merge-Agent",
-    "branch": "master",
-    "event": "schedule",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-13T02:55:55Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43355507857",
-    "sha": "d7d92f8"
+    "created_at": "2026-11-13T03:15:48Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43357775872",
+    "sha": "a9cd520"
    },
    {
     "name": "Preview (Fitness dev)",
@@ -433,30 +433,29 @@
   "status": "green",
   "signals": [],
   "ai": {
-   "headline": "Master aktualisiert und deployed, dev einen Commit voraus mit laufendem Check",
-   "lage": "Der `master`-Branch ist auf Commit `4a8ff8b8` (Fix für `portal.mjs`) und wurde erfolgreich deployed. Der `dev`-Branch ist mit Commit `a9cd5206` einen Commit vor `master`. Für den aktuellen `dev`-Head läuft der Workflow `Check (Fitness)`.",
+   "headline": "Dev und Master synchronisiert, alle Checks und Deployments erfolgreich",
+   "lage": "Der `dev`-Branch wurde erfolgreich auf den `master`-Branch promoted und deployed. Beide Branches sind nun auf Commit `a9cd5206` synchronisiert. Alle relevanten Workflows, inklusive `Check (Fitness)` und `Live Deploy (Fitness master)`, sind erfolgreich durchgelaufen.",
    "auffaelligkeiten": [
     {
-     "level": "info",
-     "text": "Der `Live Deploy (Fitness master)` Workflow für Commit `4a8ff8b` wurde erfolgreich abgeschlossen."
+     "level": "mittel",
+     "text": "NEXT.md listet weiterhin offene Punkte bezüglich der Verifizierung des Gemini-Reparaturpfads und der Aktivierung der GitHub Pages für den `dev`-Branch."
     },
     {
      "level": "info",
-     "text": "Der `Auto-Promote dev -> master (Check (Fitness))` Workflow für Commit `d7d92f8` wurde erfolgreich abgeschlossen."
-    },
-    {
-     "level": "info",
-     "text": "Der `Check (Fitness)` Workflow für den aktuellen `dev`-Head `a9cd520` ist aktiv."
+     "text": "Issue #104 bezüglich `portal.mjs` und Biome-Formatierung wurde mit Commit `4a8ff8b8` behoben und ist nun geschlossen."
     }
    ],
    "naechste_schritte": [
-    "Überwachen des laufenden `Check (Fitness)` Workflows für Commit `a9cd5206`.",
-    "Prüfen der GitHub Pages-Einstellungen für `fitness-dev` auf dem `dev`-Branch, sobald die Admin-Einstellungen zugänglich sind."
+    "Prüfen der GitHub Pages-Einstellungen für `fitness-dev` auf dem `dev`-Branch, sobald die Admin-Einstellungen zugänglich sind.",
+    "Beobachten eines echten roten CI-Laufs, um den Gemini-Reparaturpfad zu verifizieren."
    ],
-   "veraendert": "Der `master`-Branch wurde auf Commit `4a8ff8b8` aktualisiert und erfolgreich deployed, wodurch der `dev`-Branch nun einen Commit vor `master` liegt, statt drei.",
-   "fragen": [],
+   "veraendert": "Der `dev`-Branch war einen Commit vor `master` und hatte einen laufenden Check; nun sind `dev` und `master` synchronisiert, und alle Checks sowie das Live Deploy sind erfolgreich abgeschlossen.",
+   "fragen": [
+    "Wann ist der Zugriff auf die GitHub Pages-Admin-Einstellungen für `fitness-dev` auf dem `dev`-Branch möglich?",
+    "Soll ein isolierter roter Check provoziert werden, um den Gemini-Reparaturpfad zu verifizieren?"
+   ],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-13T03:16:06+00:00"
+  "ai_at": "2026-11-13T12:37:19+00:00"
  }
 }
