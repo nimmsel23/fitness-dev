@@ -1,3 +1,8 @@
+# 2026-11-13 — AL: #104-Wiederholung abgestellt (portal.mjs aus biome)
+
+- Ursache: `~/vitalos/bin/vos-portal` überschreibt `scripts/portal.mjs` bei jedem Lauf mit der unformatierten Meta-Quelle → Check rot / Dauer-`M` im Checkout.
+- `biome.json`: `!scripts/portal.mjs` (verteilte Kopie, SOT `~/vitalos/scripts/vos-portal.mjs`); Kopie = Meta `9f64107` committed (Diff vs. vorher nur Formatierung, normalisiert geprüft).
+
 # 2026-11-13 — AL: tooling:biome Format-Fix portal.mjs (Issue #104)
 
 - `scripts/portal.mjs` mit `@biomejs/biome@2.6.6` formatiert.
