@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { watchAuth, signIn, signInEmail, signUpEmail, signOut, getUserProfile, registerDevice } from '@db';
 import { deferStart } from '../lib/db/firestore/offline.js';
 
@@ -290,4 +290,26 @@ export function UserProvider({ children }) {
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
-export const useUser = () => useContext(UserContext);
+// In der VitalOS-Shell hängt der Provider der Shell (eigene Kontext-Instanz) über der App; die hier
+// importierten Views (WeeklyReview, Plan, …) sehen ihn nicht und bekamen `undefined` -> Absturz
+// ("Cannot destructure property 'user'"). Ohne Provider liefert useUser deshalb einen schlanken
+// Ersatz aus dem Auth-Listener (gleiches Muster wie useTodayPlan). Mit Provider ändert sich nichts.
+function useProviderlessUser(enabled) {
+  const [state, setState] = useState({ user: null, authLoading: enabled });
+  useEffect(() => {
+    if (!enabled) return undefined;
+    return watchAuth((u) => setState({ user: u, authLoading: false }));
+  }, [enabled]);
+  return useMemo(() => (enabled ? {
+    user: state.user,
+    authLoading: state.authLoading,
+    gender: localStorage.getItem('fitness-gender') || 'm',
+    signIn, signInEmail, signUpEmail, signOut,
+  } : null), [enabled, state]);
+}
+
+export function useUser() {
+  const context = useContext(UserContext);
+  const fallback = useProviderlessUser(context == null);
+  return context ?? fallback;
+}

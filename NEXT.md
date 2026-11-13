@@ -26,3 +26,8 @@
 *   ~~SessionGate vor TodayPlan~~ — erledigt (Gate = Plan/Manuell; TodayPlan opt-in Settings).
 *   ~~Learn-3D `ARCHITECTURE.md`/`AUDIT.md`~~ — erledigt.
 *   Static Imports → größeres Initial-Bundle (~4.7 MB) bewusst.
+
+**Gemini-Review (potenzielle blinde Flecken, 2026-11-10):**
+*   **Ungetestete Stabilität des wiederhergestellten `TodayPlan`-Screens:** Die Wiedereinführung des `TodayPlan`-Habit-Screens als optionale Einstellung wurde nicht mit einem echten Plan-Klienten getestet, was angesichts früherer Bugs in dieser Komponente ein Risiko darstellt.
+*   **Implizite Annahme zur `sessionStorage`-Persistenz:** Die Speicherung der Plan-/Manuell-Wahl in `sessionStorage` ist flüchtig (z.B. bei Inkognito-Modus oder Browserdaten-Löschung), was nicht als Trade-off oder Edge-Case in der Zusammenfassung erwähnt wird.
+*   **Ungenutzter `TemplateLauncher`:** Die im Code als "hängt tot rum, unangetastet" markierte Komponente `TemplateLauncher` wurde nicht im Rahmen der Session-Flow-Anpassungen oder im `RESULTS.md` adressiert.

@@ -214,8 +214,8 @@ run_cmd rsync -a --delete \
   --exclude 'catalog/kb' --exclude 'catalog/state' \
   "$FITNESS_PY_PKG/" "$DEST/fitness/"
 
-# Python backend (sync/notifier/pusher) SOT: ~/dev/backend/fitness/backend
-FITNESS_PY_BACKEND="${FITNESS_PY_BACKEND:-$(dirname "$DEV_SOURCE")/backend/fitness/backend}"
+# Python backend (sync/notifier/pusher) SOT: ~/dev/coach-dev/backend/fitness
+FITNESS_PY_BACKEND="${FITNESS_PY_BACKEND:-$(dirname "$DEV_SOURCE")/coach-dev/backend/fitness}"
 if [[ -d "$FITNESS_PY_BACKEND" ]]; then
   msg "📦 Syncing Python backend from $FITNESS_PY_BACKEND → $DEST/backend"
   run_cmd mkdir -p "$DEST/backend"
