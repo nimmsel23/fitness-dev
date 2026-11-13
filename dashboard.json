@@ -1,0 +1,476 @@
+{
+ "evidence": {
+  "generated_at": "2026-11-13T00:08:47+00:00",
+  "repo": "nimmsel23/fitness-dev",
+  "meta": {
+   "name": "fitness-dev",
+   "description": null,
+   "html_url": "https://github.com/nimmsel23/fitness-dev",
+   "pushed_at": "2026-11-13T00:08:22Z",
+   "default_branch": "master",
+   "visibility": "public",
+   "pages_url": null
+  },
+  "package": {
+   "name": "fitness-dev",
+   "version": "3.0.0"
+  },
+  "branches": {
+   "main": "master",
+   "has_dev": true,
+   "dev_behind": 0,
+   "dev_ahead": 1,
+   "oldest_unpromoted": "2026-11-13T01:08:21+01:00",
+   "dev_head": "04b73444 2026-11-13T01:08:21+01:00",
+   "master_head": "e729fd96 2026-11-12T16:17:10+01:00"
+  },
+  "commits": [
+   {
+    "sha": "04b73444",
+    "date": "2026-11-13T01:08:21+01:00",
+    "author": "Alpha",
+    "subject": "feat(ci): Living Dashboard als GitHub Page"
+   },
+   {
+    "sha": "e729fd96",
+    "date": "2026-11-12T16:17:10+01:00",
+    "author": "Alpha",
+    "subject": "docs(al): AL-LOG 2026-11-12 Live Deploy 43245597120"
+   },
+   {
+    "sha": "e660e220",
+    "date": "2026-11-12T16:14:50+01:00",
+    "author": "Alpha",
+    "subject": "docs(al): AL-LOG 2026-11-12 — automerge Retarget 8c29238"
+   },
+   {
+    "sha": "8c29238f",
+    "date": "2026-11-12T16:12:50+01:00",
+    "author": "Alpha",
+    "subject": "fix(ci): Dependabot base=master→dev Retarget vor Squash (Org c1f9b6ce)"
+   },
+   {
+    "sha": "c9333e1d",
+    "date": "2026-11-12T14:16:55Z",
+    "author": "nimmsel23",
+    "subject": "fix(ci): Check ohne rekursive journal-app Submodule (#107)"
+   },
+   {
+    "sha": "99f62f22",
+    "date": "2026-11-12T14:42:23+01:00",
+    "author": "nimmsel23",
+    "subject": "fix(ci): KB-Checkout in deploy-miniapps (wie deploy-master) (#106)"
+   },
+   {
+    "sha": "37e77068",
+    "date": "2026-11-12T14:14:17+01:00",
+    "author": "nimmsel23",
+    "subject": "fix(session): plain 6Pack/Skills labels inside the VitalOS shell (#105)"
+   },
+   {
+    "sha": "5e9c9ce0",
+    "date": "2026-11-12T12:29:33+01:00",
+    "author": "Alpha",
+    "subject": "style(scripts): biome-format build-kb-data for Check"
+   },
+   {
+    "sha": "0a5224c8",
+    "date": "2026-11-12T11:03:02+01:00",
+    "author": "Alpha",
+    "subject": "fix(build): KB aus ~/dev/fitness automatisch einhängen (lokaler Build wie CI)"
+   },
+   {
+    "sha": "376faf04",
+    "date": "2026-11-12T06:34:44Z",
+    "author": "nimmdaniel",
+    "subject": "Merge origin/master into dev (fc72c5e, #104)"
+   },
+   {
+    "sha": "9e0f584b",
+    "date": "2026-11-12T06:34:44Z",
+    "author": "nimmdaniel",
+    "subject": "fix(ci): Unit-Tests per Glob statt Verzeichnis-Argument (#104)"
+   },
+   {
+    "sha": "fc72c5e8",
+    "date": "2026-11-12T02:27:04+01:00",
+    "author": "Alpha",
+    "subject": "ci: restore Gemini + Merge-Agent on master (full automation)"
+   },
+   {
+    "sha": "7ca2bbc5",
+    "date": "2026-11-12T02:18:39+01:00",
+    "author": "Alpha",
+    "subject": "ci: restore Gemini repair + Merge-Agent (full automation)"
+   },
+   {
+    "sha": "fb0da1f4",
+    "date": "2026-11-11T20:51:10Z",
+    "author": "nimmdaniel",
+    "subject": "fix(highlighter): fehlende Muskel-IDs + Freitext-Aliase im RBH-Mapping"
+   },
+   {
+    "sha": "13675db9",
+    "date": "2026-11-11T20:48:46Z",
+    "author": "nimmdaniel",
+    "subject": "feat(core): Superkompensations-Fenster + Workout-Notation"
+   },
+   {
+    "sha": "967a8f78",
+    "date": "2026-11-11T20:38:39Z",
+    "author": "nimmdaniel",
+    "subject": "feat(auth): Login-Portal als Game-Boy-Konsole"
+   },
+   {
+    "sha": "8dc62194",
+    "date": "2026-11-11T20:05:33Z",
+    "author": "nimmdaniel",
+    "subject": "chore(src): toten Code entfernen, no-unused-vars aktivieren, Unit-Tests in CI"
+   },
+   {
+    "sha": "c8c5e96f",
+    "date": "2026-11-11T19:14:16+01:00",
+    "author": "Alpha",
+    "subject": "docs(agents): simplicity pointer — CI.md §1 spine"
+   },
+   {
+    "sha": "8388507a",
+    "date": "2026-11-11T19:11:22+01:00",
+    "author": "Alpha",
+    "subject": "ci: drop Gemini repair and Merge-Agent (simplicity)"
+   },
+   {
+    "sha": "5639c830",
+    "date": "2026-11-11T16:12:48+01:00",
+    "author": "Alpha",
+    "subject": "docs(al): AL-LOG 2026-11-11 — Checkout-Sync Org 903f1fbe"
+   }
+  ],
+  "activity": [
+   {
+    "day": "2026-10-24",
+    "n": 35
+   },
+   {
+    "day": "2026-10-25",
+    "n": 33
+   },
+   {
+    "day": "2026-10-26",
+    "n": 32
+   },
+   {
+    "day": "2026-10-27",
+    "n": 3
+   },
+   {
+    "day": "2026-10-28",
+    "n": 30
+   },
+   {
+    "day": "2026-10-29",
+    "n": 42
+   },
+   {
+    "day": "2026-10-30",
+    "n": 25
+   },
+   {
+    "day": "2026-10-31",
+    "n": 130
+   },
+   {
+    "day": "2026-11-01",
+    "n": 54
+   },
+   {
+    "day": "2026-11-02",
+    "n": 19
+   },
+   {
+    "day": "2026-11-03",
+    "n": 10
+   },
+   {
+    "day": "2026-11-04",
+    "n": 29
+   },
+   {
+    "day": "2026-11-05",
+    "n": 71
+   },
+   {
+    "day": "2026-11-06",
+    "n": 43
+   },
+   {
+    "day": "2026-11-07",
+    "n": 19
+   },
+   {
+    "day": "2026-11-08",
+    "n": 4
+   },
+   {
+    "day": "2026-11-09",
+    "n": 52
+   },
+   {
+    "day": "2026-11-10",
+    "n": 30
+   },
+   {
+    "day": "2026-11-11",
+    "n": 15
+   },
+   {
+    "day": "2026-11-12",
+    "n": 12
+   },
+   {
+    "day": "2026-11-13",
+    "n": 1
+   }
+  ],
+  "workflows": [
+   {
+    "name": "Check (Fitness)",
+    "branch": "dev",
+    "event": "push",
+    "status": "in_progress",
+    "conclusion": null,
+    "created_at": "2026-11-13T00:08:24Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43334634683",
+    "sha": "04b7344"
+   },
+   {
+    "name": "PR-AutoMerge (Dependabot -> dev)",
+    "branch": "master",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T23:25:21Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43328719524",
+    "sha": "e729fd9"
+   },
+   {
+    "name": "Merge-Agent",
+    "branch": "master",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T22:42:50Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43322428326",
+    "sha": "e729fd9"
+   },
+   {
+    "name": "Auto-Promote dev -> master (Check (Fitness))",
+    "branch": "master",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T20:03:45Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43296494336",
+    "sha": "e729fd9"
+   },
+   {
+    "name": "Live Deploy (Fitness master)",
+    "branch": "master",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T15:19:00Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43246456609",
+    "sha": "e729fd9"
+   },
+   {
+    "name": "Gemini CI Agent",
+    "branch": "master",
+    "event": "workflow_run",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T15:18:46Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43246415096",
+    "sha": "e660e22"
+   },
+   {
+    "name": "Merge-Agent",
+    "branch": "cursor/check-skip-nested-submodules-ba84",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T14:13:05Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43234899131",
+    "sha": "27914f0"
+   },
+   {
+    "name": "Check (Fitness)",
+    "branch": "cursor/check-skip-nested-submodules-ba84",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T14:13:05Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43234899008",
+    "sha": "27914f0"
+   },
+   {
+    "name": "Gemini CI Agent",
+    "branch": "cursor/check-skip-nested-submodules-ba84",
+    "event": "pull_request_target",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T14:13:05Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43234898970",
+    "sha": "27914f0"
+   },
+   {
+    "name": "Live Deploy (Mini-Apps je Tab)",
+    "branch": "master",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T13:42:26Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43229852187",
+    "sha": "99f62f2"
+   },
+   {
+    "name": "Merge-Agent",
+    "branch": "cursor/miniapps-kb-checkout",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T13:27:16Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43227437634",
+    "sha": "ea51d17"
+   },
+   {
+    "name": "Check (Fitness)",
+    "branch": "cursor/miniapps-kb-checkout",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "failure",
+    "created_at": "2026-11-12T13:27:16Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43227437574",
+    "sha": "ea51d17"
+   },
+   {
+    "name": "Gemini CI Agent",
+    "branch": "cursor/miniapps-kb-checkout",
+    "event": "pull_request_target",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T13:27:16Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43227437362",
+    "sha": "ea51d17"
+   },
+   {
+    "name": "Check (Fitness)",
+    "branch": "cursor/shell-session-app-labels-36b5",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T10:44:23Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43203004401",
+    "sha": "01c6881"
+   },
+   {
+    "name": "Merge-Agent",
+    "branch": "cursor/shell-session-app-labels-36b5",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T10:44:23Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43203004179",
+    "sha": "01c6881"
+   },
+   {
+    "name": "Preview (Fitness dev)",
+    "branch": "cursor/shell-session-app-labels-36b5",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T10:44:23Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43203004164",
+    "sha": "01c6881"
+   },
+   {
+    "name": "Gemini CI Agent",
+    "branch": "cursor/shell-session-app-labels-36b5",
+    "event": "pull_request_target",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T10:44:23Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43203003564",
+    "sha": "01c6881"
+   },
+   {
+    "name": "Preview (Fitness dev)",
+    "branch": "dev",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-12T06:34:47Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43169110559",
+    "sha": "376faf0"
+   }
+  ],
+  "issues": [
+   {
+    "number": 104,
+    "title": "[fitness] Check (Fitness) rot + dev/master divergiert + Queue-Leichen",
+    "created_at": "2026-11-12T06:32:27Z",
+    "updated_at": "2026-11-12T14:24:52Z",
+    "labels": [],
+    "url": "https://github.com/nimmsel23/fitness-dev/issues/104",
+    "author": "nimmdaniel"
+   }
+  ],
+  "pulls": [],
+  "live_sites": [
+   "https://fitness-aos.web.app",
+   "https://learn-vos.web.app",
+   "https://vos-anamnese.web.app",
+   "https://vos-atlas.web.app",
+   "https://vos-fokus.web.app",
+   "https://vos-logbuch.web.app",
+   "https://vos-review.web.app",
+   "https://vos-setup.web.app",
+   "https://vos-touren.web.app",
+   "https://vos-training.web.app"
+  ]
+ },
+ "assessment": {
+  "status": "green",
+  "signals": [],
+  "ai": {
+   "headline": "Fitness-dev: Living Dashboard Feature in Entwicklung, CI-Check läuft",
+   "lage": "Der `dev`-Branch ist mit einem neuen Feature-Commit (`04b73444`) zum Living Dashboard als GitHub Page einen Commit vor `master`. Ein `Check (Fitness)`-Workflow für diesen Commit ist aktuell in Bearbeitung. Zuletzt wurden mehrere CI-Fixes und Dokumentationsaktualisierungen auf `master` erfolgreich deployed.",
+   "auffaelligkeiten": [
+    {
+     "level": "hoch",
+     "text": "Der `Check (Fitness)`-Workflow auf dem `dev`-Branch für Commit `04b73444` ist aktuell `in_progress`. Sein Abschluss ist entscheidend für die Stabilität des `dev`-Branches."
+    },
+    {
+     "level": "mittel",
+     "text": "Issue #104 bezüglich rotem CI und Branch-Divergenz wurde durch den Merge-Commit `376faf04` adressiert. Die Vielzahl der jüngsten `fix(ci)`-Commits deutet auf eine Phase erhöhter CI-Wartung hin."
+    },
+    {
+     "level": "info",
+     "text": "Die `NEXT.md` listet noch offene Punkte zur Verifizierung des Gemini CI Agent Reparaturpfads und zur Aktivierung von GitHub Pages für `fitness-dev` auf dem `dev`-Branch."
+    }
+   ],
+   "naechste_schritte": [
+    "Überwachen des laufenden `Check (Fitness)`-Workflows für Commit `04b73444`.",
+    "Prüfen der GitHub Pages-Einstellungen für `fitness-dev` auf dem `dev`-Branch.",
+    "Verifizieren des Gemini CI Agent Reparaturpfads anhand eines isolierten roten Checks."
+   ],
+   "veraendert": "Dies ist die erste Einschätzung für das Repository.",
+   "fragen": [
+    "Soll GitHub Pages für `fitness-dev` auf dem `dev`-Branch aktiviert werden, wie in `NEXT.md` vermerkt?",
+    "Gibt es einen Plan, den Gemini-Reparaturpfad mit einem absichtlich herbeigeführten roten CI-Lauf zu verifizieren?"
+   ],
+   "model": "gemini-2.5-flash"
+  },
+  "ai_at": "2026-11-13T00:08:49+00:00"
+ }
+}
