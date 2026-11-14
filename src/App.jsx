@@ -19,7 +19,7 @@ import { getMessagingIfSupported } from '@cloud/firebase.js'
 import { getNavItems, VALID_TABS, IS_SOLO, SOLO_TAB } from './constants/NavigationItems.js'
 import { markStandaloneHost } from './views/Session/externalSessionApps.js'
 // Core Skills (Skills + 6Pack) eingebettet statt Absprung auf vos-skills/vos-6pack — gleiche Origin, gleicher Login.
-const CoreSkills = lazy(() => import('./views/Skills/CoreSkills.jsx'))
+const CoreSkills = lazy(() => import('./views/Skills/index.jsx'))
 const CORE_SKILLS_ROUTE = { skills: '', timer: 'sixpack' }
 
 import Sidebar from './components/layout/Sidebar.jsx'
