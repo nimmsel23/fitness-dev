@@ -20,7 +20,7 @@
 
 - [ ] Einen echten roten, code-behebbaren CI-Lauf beobachten und bestätigen, dass Reparatur-Commit, grüner Check und vorgesehener Promote/Deploy enden.
 - [ ] Fehler außerhalb des Codes (fehlende Deploy-Credentials, externe Dienste, Runner-Ausfälle) separat als Diagnose melden; keine ungeprüften Änderungen an Secrets oder Deploy-Konfiguration.
-- [ ] GitHub Pages fuer `fitness-dev` auf Branch `dev`, Ordner `/docs` prüfen/aktivieren; Pages-Admin-Einstellungen sind über die aktuelle GitHub-Schnittstelle nicht erreichbar.
+- [x] GitHub Pages `fitness-dev`: aktiv, `build_type: workflow` (Quelle GitHub Actions statt Branch `dev`/`/docs`, seit `04b7344` Living Dashboard). `https://nimmsel23.github.io/fitness-dev/` = Dashboard (200), `docs/*.md` als Jekyll-Seiten erreichbar (`DEPLOY.html`/`ARCHITECTURE.html`/`PLAN-OWNERSHIP.html` 200); Dashboard-Lauf `43426678850` grün — AL 2026-11-14.
 - [ ] Gemini-Reparaturpfad nach dem Feld-Fix anhand eines isolierten roten Checks verifizieren: Diagnose, Commit, Check-Neustart und nachgelagerter Deploy.
 
 - [x] Session Gate: Flow anpassen — Gate zuerst als Verzweigung (Plan übernehmen / manuell); TodayPlan optional in Settings.

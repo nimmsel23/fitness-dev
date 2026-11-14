@@ -157,3 +157,32 @@ _Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen sta
 - Erledigt: Ursache für #104-Wiederholung abgestellt: `vos-portal` überschreibt `scripts/portal.mjs` unformatiert. Fix: `biome.json` `!scripts/portal.mjs`, Kopie = Meta `9f64107` (nur Format-Diff); Commit `4a8ff8b` auf `origin/dev` (+ auto `f2436fe`/`3558436`); Check `43357375203`, Auto-Promote `43357483391`, Live Deploy `43357502632` grün.
 - Offen/Weiter: Learn-3D Mesh-Lücken; Gemini-Rotlauf-Verifikation; Pages `/docs`; Sibling Rolldown-Pin 1.2.16. Org-Queue fitness-dev leer.
 - Blocker: keiner. AUTOMATION: portal.mjs-Formatfix nach jedem `vos-portal` — Meta-Quelle `~/vitalos/scripts/vos-portal.mjs` einmal biome-formatieren (CTO) — spart wiederkehrende Rot-Checks.
+
+## 2026-11-14 (Samstag) — Abteilungsleiter-Lauf
+
+_Automatik (vos-al-log Vorlage 2026-11-14):_
+- Commits seit 2026-11-08: a9cd520 docs(al): AL-LOG 2026-11-13 — 4a8ff8b, Check/Promote/Live Deploy grün
+4a8ff8b fix(ci): portal.mjs aus biome nehmen (#104-Wiederholung)
+3558436 docs: auto-update RESULTS.md
+f2436fe docs: auto-update NEXT.md
+d7d92f8 docs(next): mark issue #104 resolved and closed
+8cc373a style(scripts): format portal.mjs with biome (fixes #104 CI check)
+0c3c682 fix(fitness): useUser ohne Provider in der Shell, Backend-Pfad + Skills nach coach-dev
+04b7344 feat(ci): Living Dashboard als GitHub Page
+e729fd9 docs(al): AL-LOG 2026-11-12 Live Deploy 43245597120
+e660e22 docs(al): AL-LOG 2026-11-12 — automerge Retarget 8c29238
+8c29238 fix(ci): Dependabot base=master→dev Retarget vor Squash (Org c1f9b6ce)
+c9333e1 fix(ci): Check ohne rekursive journal-app Submodule (#107)
+99f62f2 fix(ci): KB-Checkout in deploy-miniapps (wie deploy-master) (#106)
+37e7706 fix(session): plain 6Pack/Skills labels inside the VitalOS shell (#105)
+5e9c9ce style(scripts): biome-format build-kb-data for Check
+- Offene PRs: (keine offenen PRs / gh nicht verfuegbar)
+- CI (letzte Läufe): completed	success	Auto-Promote dev -> master (Check (Fitness))	Auto-Promote dev -> master (Check (Fitness))	master	schedule	43546634074	9s	2026-11-14T02:30:00Z
+completed	success	PR-AutoMerge (Dependabot -> dev)	PR-AutoMerge (Dependabot -> dev)	master	schedule	43544619615	7s	2026-11-14T02:08:34Z
+completed	success	Merge-Agent	Merge-Agent	master	schedule	43526028550	7s	2026-11-13T23:17:44Z
+- Arbeitsbaum: sauber
+
+_Vom AL ausfüllen (knapp & belegbar, je 1–3 Zeilen, Commit-/PR-Referenzen statt Erzählung):_
+- Erledigt: NEXT „Pages `/docs`" geschlossen — Pages aktiv via Actions (`04b7344`), Startseite Dashboard + `docs/*.html` je 200, Dashboard-Lauf `43426678850` grün; NEXT.md im selben AL-Commit auf `dev`.
+- Offen/Weiter: Learn-3D Mesh-Lücken (Abs/Lat/Rotator-Cuff); Gemini-Reparaturpfad an echtem Rot-Check; Sibling Rolldown-Pin 1.2.x (6pack/fuel/relax/plan); CTO: Meta-`vos-portal.mjs` biome-formatieren. Feature-Freeze bis 2027-02-07, Org-Queue leer.
+- Blocker: keiner.
