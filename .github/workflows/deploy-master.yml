@@ -9,13 +9,13 @@
 #
 # Layout (Geschwister nebeneinander, wie lokal unter ~/dev):
 #   fitness-dev/   dieser Checkout (der Commit, der den Lauf ausgelöst hat)
-#   plan-dev/ 6pack-dev/ skills-dev/ relax-dev/   jeweils `master`
-# Der Fitness-Build kompiliert diese fünf Nachbarn mit (vite-miniapp-submodules.mjs: Plan/6Pack/Skills;
-# vite.config.js: @relax per siblingDir(), @learn lokal). Jedes Repo bekommt seine EIGENEN Abhängigkeiten aus
+#   plan-dev/ 6pack-dev/ skills-dev/   jeweils `master`
+# Der Fitness-Build kompiliert diese drei Nachbarn mit (vite-miniapp-submodules.mjs: Plan/6Pack/Skills;
+# @learn lokal; Relax gehört zu journal, nicht zu Fitness). Jedes Repo bekommt seine EIGENEN Abhängigkeiten aus
 # seinem eigenen Lockfile (ein gemeinsamer node_modules-Symlink scheiterte: die Nachbarn brauchen teils
 # andere Versionen, z. B. js-yaml 4 mit Default-Export gegen js-yaml 5 in fitness-dev). Doppelte
 # react-/firebase-Kopien verhindert resolve.dedupe in vite.config.js. --ignore-scripts: keine nativen
-# Builds (z. B. better-sqlite3 in relax-dev) — der Firebase-Build braucht sie nicht.
+# Builds — der Firebase-Build braucht sie nicht.
 #
 # Voraussetzung: jedes Nachbar-Repo ist auf master mit `pnpm install --no-frozen-lockfile` standalone
 # installierbar (siehe docs/DEPLOY.md).
@@ -72,7 +72,7 @@ jobs:
       - name: Checkout Nachbarn (${{ env.NEIGHBOR_REF }})
         run: |
           set -euo pipefail
-          for repo in plan-dev 6pack-dev skills-dev relax-dev; do
+          for repo in plan-dev 6pack-dev skills-dev; do
             git clone --depth 1 --branch "$NEIGHBOR_REF" "https://github.com/nimmsel23/${repo}.git" "$repo"
             echo "$repo @ $(git -C "$repo" rev-parse --short HEAD)"
           done
@@ -112,7 +112,7 @@ jobs:
       - name: Install Nachbarn (je eigener Lockfile)
         run: |
           set -euo pipefail
-          for repo in plan-dev 6pack-dev skills-dev relax-dev; do
+          for repo in plan-dev 6pack-dev skills-dev; do
             echo "::group::$repo"
             if [ -f "$repo/pnpm-lock.yaml" ]; then
               # Ein overrides-Block im Lockfile (z. B. @grpc/grpc-js) muss auch in der Konfiguration stehen; pnpm 11 liest

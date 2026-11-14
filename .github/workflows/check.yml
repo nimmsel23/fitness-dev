@@ -61,14 +61,14 @@ jobs:
           git submodule sync
           git submodule update --init
 
-      # Skills, 6Pack, Plan, Relax sind Geschwister von Fitness: gleicher Branch wie der Lauf
+      # Skills, 6Pack, Plan sind Geschwister von Fitness: gleicher Branch wie der Lauf
       # (dev-Push → dev, PR → Ziel-Branch), nicht der vitalos-Pin.
-      - name: Geschwister skills/6pack/plan/relax auf den passenden Branch
+      - name: Geschwister skills/6pack/plan auf den passenden Branch
         run: |
           set -euo pipefail
           B="${{ github.base_ref || github.ref_name }}"
           [[ "$B" == master || "$B" == dev ]] || B=dev
-          for app in skills-app 6pack-app plan-app relax-app; do
+          for app in skills-app 6pack-app plan-app; do
             git -C "$app" fetch -q origin "$B"
             git -C "$app" checkout -q --detach FETCH_HEAD
             echo "$app @ $B $(git -C "$app" rev-parse --short HEAD)"
