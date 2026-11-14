@@ -8,7 +8,7 @@ import { addDaysISO, mondayOfISO, weekDatesFromMonday, rollingDatesISO, isoWeekD
 import { buildKbMap, findKbExercise, augmentKbMapWithMirror } from "../shared/kbLookup.js";
 import { sessionsForDates } from "../shared/reportSessions.js";
 import { buildReportRecoveryIndex, reportRecoveryHours } from "../shared/reportRecovery.js";
-import { addExerciseMuscleSetVolume } from "../shared/muscleSetVolume.js";
+import { addExerciseMuscleLoad } from "../shared/muscleSetVolume.js";
 
 const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
 
@@ -97,7 +97,7 @@ function computeReport(dates, { history, kbMap, historyWithMuscles, topExMap }) 
   const muscleScores = {};
   const muscleSetVolume = {};
   const unmappedExercises = {};
-  let unmappedWorkingSets = 0;
+  let unmappedHits = 0;
   const allExercises = [];
 
   for (const sess of sessionsForDates(history, dates)) {
@@ -110,7 +110,7 @@ function computeReport(dates, { history, kbMap, historyWithMuscles, topExMap }) 
       // damit gelöschte/umbenannte Katalog-Einträge keine alten Sessions kaputtmachen.
       const kbEx = findKbExercise(kbMap, ex);
       const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
-      unmappedWorkingSets += addExerciseMuscleSetVolume(muscleSetVolume, ex, kbEx, unmappedExercises);
+      unmappedHits += addExerciseMuscleLoad(muscleSetVolume, ex, kbEx, unmappedExercises);
       allExercises.push({ name: exName, primaryMuscles: primary });
       // muscleScores bleibt eine reine Übungs-Häufigkeit (wie oft dieser Muskel
       // als primary vorkommt), unabhängig von der Session-Budget-Normalisierung
@@ -145,8 +145,8 @@ function computeReport(dates, { history, kbMap, historyWithMuscles, topExMap }) 
     sessions,
     muscle_scores: muscleScores,
     muscle_set_volume: muscleSetVolume,
-    unmapped_working_sets: unmappedWorkingSets,
-    unmapped_exercises: Object.values(unmappedExercises).sort((a, b) => b.sets - a.sets),
+    unmapped_hits: unmappedHits,
+    unmapped_exercises: Object.values(unmappedExercises).sort((a, b) => b.hits - a.hits),
     body_region_scores: bodyRegionScores,
     missing_regions: gaps,
     recommendations: [
@@ -224,7 +224,7 @@ export async function getMonthlyReport(days = 28) {
       avg_effort: weekReport.avg_effort,
       body_region_scores: weekReport.body_region_scores,
       muscle_set_volume: weekReport.muscle_set_volume,
-      unmapped_working_sets: weekReport.unmapped_working_sets,
+      unmapped_hits: weekReport.unmapped_hits,
       unmapped_exercises: weekReport.unmapped_exercises,
       missing_regions: weekReport.missing_regions,
     });

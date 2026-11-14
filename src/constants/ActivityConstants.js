@@ -1,4 +1,4 @@
-import { ACTIVITY_TYPES } from './activities';
+import { ACTIVITY_TYPES } from './activities/index.js';
 
 // Strength split colors (kept as-is, not activity-type dependent)
 const STRENGTH_SPLIT_COLORS = {

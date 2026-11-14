@@ -39,12 +39,12 @@ import { getProgressTrend as getLocalProgressTrend } from "../local/sessions.js"
 import { computeMuscleScores, RECOVERY_ANALYSIS_VERSION } from "../../superkompensation.js";
 import { muscleToRegion } from "../shared/muscle.js";
 import { ACTIVITY_WEIGHT, GAP_THRESHOLD, effortFactor, blockComplexMuscles } from "../shared/scoring.js";
-import { addExerciseMuscleSetVolume } from "../shared/muscleSetVolume.js";
+import { addExerciseMuscleLoad } from "../shared/muscleSetVolume.js";
 
 export { ACTIVITY_MUSCLE_MAPPING, muscleToGroupIds };
 
 const pendingWeeklyRefreshes = new Map();
-const WEEKLY_REPORT_VERSION = 3;
+const WEEKLY_REPORT_VERSION = 4;
 
 const ROLE_W = { primary: 1, secondary: 0.5, stabilizer: 0.2 };
 
@@ -379,7 +379,7 @@ async function buildWeeklyReportData(selector = "current") {
   const sessions = [];
   let entriesCount = 0;
   const muscleScores = {}, muscleSetVolume = {}, bodyRegionScores = {}, topExMap = {};
-  let unmappedWorkingSets = 0;
+  let unmappedHits = 0;
   const unmappedExercises = {};
   const allExercises = [];
 
@@ -415,7 +415,7 @@ async function buildWeeklyReportData(selector = "current") {
       const secondary = (ex.secondaryMuscles?.length ? ex.secondaryMuscles : null) || kbEx?.secondary_muscles || kbEx?.secondaryMuscles || [];
       const stabilizers = (ex.stabilizers?.length ? ex.stabilizers : null) || kbEx?.stabilizers || [];
       const exName = ex.name || ex.exercise_id || "";
-      unmappedWorkingSets += addExerciseMuscleSetVolume(muscleSetVolume, ex, kbEx, unmappedExercises);
+      unmappedHits += addExerciseMuscleLoad(muscleSetVolume, ex, kbEx, unmappedExercises);
       hasDoneExercises = true; entriesCount++;
       allExercises.push({ name: exName, primaryMuscles: primary });
       let hasMapped = false;
@@ -481,7 +481,7 @@ async function buildWeeklyReportData(selector = "current") {
     entries_count: entriesCount,
     total_exercises: entriesCount, avg_effort: avgEffort,
     sessions, muscle_scores: muscleScores, muscle_set_volume: muscleSetVolume,
-    unmapped_working_sets: unmappedWorkingSets, unmapped_exercises: Object.values(unmappedExercises).sort((a, b) => b.sets - a.sets), body_region_scores: bodyRegionScores, missing_regions: gaps,
+    unmapped_hits: unmappedHits, unmapped_exercises: Object.values(unmappedExercises).sort((a, b) => b.hits - a.hits), body_region_scores: bodyRegionScores, missing_regions: gaps,
     top_exercises: Object.entries(topExMap).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ display_name: name, count })),
     recommendations: [
       // Roher Gap-Dump entfernt — dieselben `gaps` erscheinen bereits übersetzt
@@ -600,7 +600,7 @@ export async function getMonthlyReport(days = 28) {
     const allExercises = [];
     let sessionCount = 0;
     let exerciseCount = 0;
-    let unmappedWorkingSets = 0;
+    let unmappedHits = 0;
     const unmappedExercises = {};
     const efforts = [];
     for (const date of dateSlice) {
@@ -617,7 +617,7 @@ export async function getMonthlyReport(days = 28) {
           const primary = (ex.primaryMuscles?.length ? ex.primaryMuscles : null) || kbEx?.primary_muscles || kbEx?.primaryMuscles || [];
           allExercises.push({ name: exName, primaryMuscles: primary });
           primary.forEach((m) => { muscleScores[m] = (muscleScores[m] || 0) + 1; });
-          unmappedWorkingSets += addExerciseMuscleSetVolume(muscleSetVolume, ex, kbEx, unmappedExercises);
+          unmappedHits += addExerciseMuscleLoad(muscleSetVolume, ex, kbEx, unmappedExercises);
         }
         for (const [m, exName, w] of normalizedSessionHits(sess, kbMap)) {
           muscleToGroupIds(m, exName).forEach((gid) => { bodyRegionScores[gid] = (bodyRegionScores[gid] || 0) + w; });
@@ -625,7 +625,7 @@ export async function getMonthlyReport(days = 28) {
       }
     }
     const avgEffort = efforts.length > 0 ? Math.round((efforts.reduce((a, b) => a + b, 0) / efforts.length) * 10) / 10 : null;
-    return { bodyRegionScores, muscleScores, muscleSetVolume, unmappedWorkingSets, unmappedExercises: Object.values(unmappedExercises).sort((a, b) => b.sets - a.sets), allExercises, sessionCount, exerciseCount, avgEffort };
+    return { bodyRegionScores, muscleScores, muscleSetVolume, unmappedHits, unmappedExercises: Object.values(unmappedExercises).sort((a, b) => b.hits - a.hits), allExercises, sessionCount, exerciseCount, avgEffort };
   }
 
   const overall = aggregate(dates);
@@ -644,7 +644,7 @@ export async function getMonthlyReport(days = 28) {
       avg_effort: wk.avgEffort,
       body_region_scores: wk.bodyRegionScores,
       muscle_set_volume: wk.muscleSetVolume,
-      unmapped_working_sets: wk.unmappedWorkingSets,
+      unmapped_hits: wk.unmappedHits,
       unmapped_exercises: wk.unmappedExercises,
       missing_regions: allGroups.filter((g) => (wk.bodyRegionScores[g] || 0) < GAP_THRESHOLD),
     });
@@ -661,7 +661,7 @@ export async function getMonthlyReport(days = 28) {
     avg_effort: overall.avgEffort,
     muscle_scores: overall.muscleScores,
     muscle_set_volume: overall.muscleSetVolume,
-    unmapped_working_sets: overall.unmappedWorkingSets,
+    unmapped_hits: overall.unmappedHits,
     unmapped_exercises: overall.unmappedExercises,
     body_region_scores: overall.bodyRegionScores,
     missing_regions: gaps,

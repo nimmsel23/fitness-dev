@@ -9,7 +9,7 @@ This folder contains the modularized components for the Weekly Performance Revie
 - **`ReviewOverview.jsx`**: Displays core metrics like total session count and volume/recovery focus (HIT mode).
 - **`ReviewInsights.jsx`**: Shows textual recommendations and lists "Coverage Gaps" (untrained muscle regions).
 - **`ReviewMuscleImpact.jsx`**: Visualizes relative muscle load using bar charts.
-- **`ReviewMuscleVolume.jsx`**: Shows performed working sets by muscle region, split into direct and indirect effective sets; warm-ups and blank set rows are excluded.
+- **`ReviewMuscleLoad.jsx`**: Shows the load (not the volume) per muscle region: one exercise = one hit, split into direct (1) and indirect (0.5). Warns in amber when an exercise has more than `SETS_RECOVERY_WARN` sets (possibly too much volume to recover before the next session).
 - **`ReviewSessionList.jsx`**: A chronological list of sessions with date cards and recovery indicators. Its navigation callback includes the selected session as a third argument, so workouts on the same date stay distinct.
 - **`ReviewTopExercises.jsx`**: Displays the most frequent exercises of the week with deep-dive inspection (Coaching Notes, Errors).
 - **`utils.js`**: Helper functions like `formatRecovery`.
@@ -41,11 +41,21 @@ Recovery-Modell — aufgetrennt + auf geteiltes Scoring umgestellt.
 
 The rolling monthly report cache is scoped to the signed-in user and local calendar day; saving or deleting a session invalidates it. A pending calculation is discarded or retried if invalidated during loading.
 
-The report carries `muscle_set_volume` for the selected 28-day window and each
-7-day chunk. Local and Firestore paths use the same shared calculation: primary
-muscles count as 1 effective set, secondary muscles as 0.5, stabilizers are
-excluded, and only logged non-warm-up sets count. Exercises without mapped
-muscles are reported separately as `unmapped_working_sets`.
+The report carries `muscle_set_volume` (per region: `primary_hits`, `secondary_hits`,
+`effective_hits`, `max_sets`, `high_volume_exercises`) for the selected 28-day window and
+each 7-day chunk. Local and Firestore paths use the same shared calculation
+(`shared/muscleSetVolume.js::addExerciseMuscleLoad`).
+
+**Konzept (Owner 2026-11-14): One Set to Failure, Recovery statt Volumen.** The app does
+not rate the volume of a session but the recovery between sessions. Every logged exercise
+is exactly one hit per muscle region (direct 1, indirect 0.5, stabilizers excluded),
+independent of the number of sets; drop sets belong to the set before them. One set is
+not worse than two — more sets turn strength into strength endurance. The set count is
+only a warning threshold: `high_volume_exercises` counts exercises that hit the region
+directly with more than `SETS_RECOVERY_WARN` (3) sets, and the UI then warns that the
+volume may be too high for adequate recovery until the next training. HIT exercises
+without set tracking (`isHIT`/`done`) count as one hit. Exercises without mapped
+muscles are reported separately as `unmapped_hits`.
 
 1.  **Selection**: User changes the `week` in `ReviewHeader`.
 2.  **Fetching**: `index.jsx` triggers a re-fetch via `db.js` (`getWeeklyReport`).
@@ -59,4 +69,4 @@ Die Komponente lebt jetzt im Learn-Tab (`fitness-dev`: `src/views/Learn/Strength
 „Stärke", Sub-Tab-ID `strength`). Alte Deep-Links `#review/strength` werden in `App.jsx`
 (`parseHashRoute`) auf `learn/strength` umgeleitet.
 
-- `unmapped_exercises` (Report, lokal und Firestore, pro Woche und gesamt): Übungen mit Arbeitssätzen, aber ohne Muskelzuordnung (`{exercise_id, name, sets}`, absteigend nach Sätzen). `ReviewMuscleVolume` zeigt die ersten fünf unter dem Hinweis zu `unmapped_working_sets`. Test: `src/lib/db/shared/muscleSetVolume.test.mjs` (Aufruf im Dateikopf).
+- `unmapped_exercises` (Report, lokal und Firestore, pro Woche und gesamt): Übungen ohne Muskelzuordnung (`{exercise_id, name, hits}`, absteigend nach Treffern). `ReviewMuscleLoad` zeigt die ersten fünf unter dem Hinweis zu `unmapped_hits`. Test: `src/lib/db/shared/muscleSetVolume.test.mjs` (läuft direkt unter `node --test`; dafür tragen `constants/ActivityConstants.js` und `constants/activities/index.js` jetzt `.js`-Endungen).

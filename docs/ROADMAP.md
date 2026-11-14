@@ -39,7 +39,7 @@ Exercise Library (YAML Katalog)
 ### Phase 2 — Ausbildung (Fitnesstrainer-Module)
 - [ ] Trainingsplan-Builder (PPL, Upper/Lower — aus program_rules.yml)
 - [ ] Progression Tracking (Double Progression, Deload-Erkennung)
-- [x] Weekly Review mit Volumen-Analyse pro Muskelgruppe (protokollierte Arbeitssätze, direkte und gewichtete indirekte Sätze)
+- [x] Weekly Review: Belastung pro Muskelgruppe (eine Übung = eine Belastung, One Set to Failure) mit Erholungs-Warnung bei zu vielen Sätzen
 - [ ] Obsidian Export pro Session (Anatomy Teaching integriert)
 
 ### Phase 3 — Personaltrainer + Prävention

@@ -1,16 +1,16 @@
-import Laufen from './Laufen';
-import Radfahren from './Radfahren';
-import Rudern from './Rudern';
-import Spazieren from './Spazieren';
-import Schwimmen from './Schwimmen';
-import Wandern from './Wandern';
-import Klettern from './Klettern';
-import Yoga from './Yoga';
-import Stretching from './Stretching';
-import HIIT from './HIIT';
-import Parkour from './Parkour';
-import Crossfit from './Crossfit';
-import Beachvolleyball from './Beachvolleyball';
+import Laufen from './Laufen.js';
+import Radfahren from './Radfahren.js';
+import Rudern from './Rudern.js';
+import Spazieren from './Spazieren.js';
+import Schwimmen from './Schwimmen.js';
+import Wandern from './Wandern.js';
+import Klettern from './Klettern.js';
+import Yoga from './Yoga.js';
+import Stretching from './Stretching.js';
+import HIIT from './HIIT.js';
+import Parkour from './Parkour.js';
+import Crossfit from './Crossfit.js';
+import Beachvolleyball from './Beachvolleyball.js';
 
 export const ACTIVITY_TYPES = [
   Laufen,
