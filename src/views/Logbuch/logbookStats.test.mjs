@@ -143,7 +143,7 @@ test('Digest trägt Dauer, Trainingsart, Finisher-Addons und Gate-Zeiten (Protok
   assert.equal(d.notes, undefined);
 });
 
-test('Muskel-Volumen: Arbeitssätze je Muskel und Woche, Warm-ups zählen nicht', () => {
+test('Muskel-Belastung: eine Übung = eine Belastung, Satzzahl nur als Warnung', () => {
   const book = buildLogbook([
     bench('2026-09-08', [{ reps: '10', weight: '40', setType: 'warmup' }, { reps: '5', weight: '80' }, { reps: '5', weight: '80' }], { primaryMuscles: ['Brust'] }),
     bench('2026-09-15', [{ reps: '5', weight: '82' }], { primaryMuscles: ['Brust'] }),
@@ -151,7 +151,22 @@ test('Muskel-Volumen: Arbeitssätze je Muskel und Woche, Warm-ups zählen nicht'
   const rows = muscleWeekly(book.exercises, weekWindow('2026-09-17', 4));
   assert.equal(rows.length, 1);
   assert.equal(rows[0].muscle, 'Brust');
-  assert.deepEqual(rows[0].cells.map((c) => c.sets), [0, 0, 2, 1]);
-  assert.equal(rows[0].total, 3);
-  assert.equal(rows[0].last4, 3);
+  assert.deepEqual(rows[0].cells.map((c) => c.hits), [0, 0, 1, 1], 'zwei Sätze zählen wie einer');
+  assert.equal(rows[0].total, 2);
+  assert.equal(rows[0].last4, 2);
+  assert.equal(rows[0].warn, false);
+});
+
+test('Muskel-Belastung: Dropsätze zählen zum Satz, viele Sätze warnen', () => {
+  const sets = (n) => Array.from({ length: n }, () => ({ reps: '8', weight: '60' }));
+  const drops = [{ reps: '8', weight: '60' }, { reps: '4', weight: '45', setType: 'drop' }, { reps: '3', weight: '30', setType: 'drop' }, { reps: '2', weight: '20', setType: 'drop' }];
+  const win = weekWindow('2026-09-17', 4);
+  const calm = muscleWeekly(buildLogbook([bench('2026-09-15', drops, { primaryMuscles: ['Brust'] })], '2026-09-17').exercises, win);
+  assert.equal(calm[0].warn, false, 'Dropsätze lösen keine Volumen-Warnung aus');
+  const three = muscleWeekly(buildLogbook([bench('2026-09-15', sets(3), { primaryMuscles: ['Brust'] })], '2026-09-17').exercises, win);
+  assert.equal(three[0].warn, false);
+  const four = muscleWeekly(buildLogbook([bench('2026-09-15', sets(4), { primaryMuscles: ['Brust'] })], '2026-09-17').exercises, win);
+  assert.equal(four[0].warn, true);
+  assert.equal(four[0].cells[3].warn, true);
+  assert.equal(four[0].total, 1, 'vier Sätze bleiben eine Belastung');
 });

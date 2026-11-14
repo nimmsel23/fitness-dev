@@ -5,7 +5,7 @@
  *  - Kodex    alle Übungen mit zuletzt / Gipfel / Abstand + Gipfel-Profil
  *  - Rekorde  Chronik aller Bestleistungen
  *  - Rhythmus Stempelkarte Übung × Woche
- *  - Muskeln  Arbeitssätze je Muskel × Woche
+ *  - Muskeln  Belastung je Muskel × Woche
  *  - Chronik  Wochen-Timeline (abgeleitet vom History-Tab, der unverändert bleibt)
  */
 

@@ -1,12 +1,17 @@
 /**
- * MuscleLoad — Arbeitssätze je Hauptmuskel (Zeilen) × Woche (Spalten).
- * Zellfarbe = Sätze der Woche relativ zur stärksten Woche dieses Muskels,
- * rechts "4 Wo." = Sätze der letzten vier Wochen (Ø pro Woche). Aufwärmsätze
- * zählen nicht; Übungen ohne Muskel-Zuordnung stehen unter "Ohne Zuordnung".
+ * MuscleLoad — Belastung je Hauptmuskel (Zeilen) × Woche (Spalten).
+ * Eine Übung = eine Belastung, egal wie viele Sätze (One Set to Failure,
+ * Dropsätze gehören zum Satz). Zellfarbe = Belastungen der Woche relativ zur
+ * stärksten Woche dieses Muskels, rechts "4 Wo." = Belastungen der letzten
+ * vier Wochen (Ø pro Woche). Mehr als LOGBOOK_SETS_WARN Sätze markieren die
+ * Zelle bernsteinfarben: möglicherweise zu viel Volumen für die Erholung bis
+ * zum nächsten Training. Übungen ohne Muskel-Zuordnung: "Ohne Zuordnung".
  */
 
 import { useEffect, useMemo, useRef } from 'react';
-import { weekWindow, muscleWeekly, parseDay, fmtNum, NO_MUSCLE } from './logbookStats.js';
+import { weekWindow, muscleWeekly, parseDay, fmtNum, NO_MUSCLE, LOGBOOK_SETS_WARN } from './logbookStats.js';
+
+const WARN = '#f59e0b';
 
 const CELL = 16;
 const GAP = 3;
@@ -54,7 +59,7 @@ export default function MuscleLoad({ exercises, today, weekCount }) {
             <div className="ml-3 text-[8px] font-black uppercase whitespace-nowrap" style={dim(0.45)}>4 Wo. · Ø/Wo.</div>
           </div>
           {rows.map((r) => {
-            const max = Math.max(...r.cells.map((c) => c.sets), 1);
+            const max = Math.max(...r.cells.map((c) => c.hits), 1);
             return (
               <div key={r.muscle} className="flex items-center" style={{ height: CELL + GAP + 2 }}>
                 <div
@@ -68,19 +73,22 @@ export default function MuscleLoad({ exercises, today, weekCount }) {
                   {r.cells.map((c) => (
                     <div
                       key={c.week}
-                      title={c.sets ? `${r.muscle} · Woche ab ${c.week} · ${c.sets} Sätze` : undefined}
+                      title={c.hits ? `${r.muscle} · Woche ab ${c.week} · ${c.hits} Belastung${c.hits === 1 ? '' : 'en'}${c.warn ? ` · viele Sätze (> ${LOGBOOK_SETS_WARN}): Erholung prüfen` : ''}` : undefined}
                       style={{
                         width: CELL, height: CELL, borderRadius: 4,
-                        background: c.sets
-                          ? `color-mix(in srgb, var(--accent) ${Math.round(22 + (c.sets / max) * 78)}%, transparent)`
+                        background: c.hits
+                          ? `color-mix(in srgb, var(--accent) ${Math.round(22 + (c.hits / max) * 78)}%, transparent)`
                           : 'var(--bg2)',
-                        opacity: c.sets ? 1 : 0.5,
+                        opacity: c.hits ? 1 : 0.5,
+                        outline: c.warn ? `2px solid ${WARN}` : undefined,
+                        outlineOffset: c.warn ? -2 : undefined,
                       }}
                     />
                   ))}
                 </div>
                 <div className="ml-3 text-[10px] font-black whitespace-nowrap" style={{ color: 'var(--ink)' }}>
                   {r.last4} <span style={dim(0.5)}>· {fmtNum(r.last4 / 4, 1)}</span>
+                  {r.warn && <span style={{ color: WARN }} title="Viele Sätze in den letzten 4 Wochen — Erholung prüfen"> ⚠</span>}
                 </div>
               </div>
             );
@@ -88,8 +96,13 @@ export default function MuscleLoad({ exercises, today, weekCount }) {
         </div>
       </div>
       <div className="mt-3 px-1 text-[9px] font-bold uppercase tracking-widest" style={dim(0.5)}>
-        Arbeitssätze je Hauptmuskel · je dunkler, desto mehr Sätze in dieser Woche (relativ zum Muskel)
+        Belastung je Hauptmuskel · eine Übung = eine Belastung, Sätze zählen nicht · je dunkler, desto häufiger belastet (relativ zum Muskel)
       </div>
+      {rows.some((r) => r.warn) && (
+        <div className="mt-2 px-1 text-[10px] font-bold leading-snug" style={{ color: WARN }} role="alert">
+          ⚠ Orange Rahmen: mehr als {LOGBOOK_SETS_WARN} Sätze bei einer Übung — möglicherweise zu viel Volumen für eine angemessene Erholung bis zum nächsten Training (eher Kraftausdauer als Kraft). Ein Satz bis zum Versagen reicht.
+        </div>
+      )}
     </div>
   );
 }

@@ -58,7 +58,9 @@ function rawSets(ex) {
   if (Array.isArray(ex?.setsArray) && ex.setsArray.length) {
     return ex.setsArray
       .filter((s) => s && s.setType !== 'warmup')
-      .map((s) => ({ reps: num(s.reps), weight: num(s.weight) }));
+      .map((s) => (s.setType === 'drop'
+        ? { reps: num(s.reps), weight: num(s.weight), drop: true }
+        : { reps: num(s.reps), weight: num(s.weight) }));
   }
   const reps = num(ex?.reps);
   const weight = num(ex?.weight);
@@ -68,7 +70,7 @@ function rawSets(ex) {
 }
 
 // ── Digest (Monats-Rollup in Firestore) ────────────────────────────────────
-export const LOGBOOK_DIGEST_SCHEMA = 2;
+export const LOGBOOK_DIGEST_SCHEMA = 3; // 3: Dropsätze tragen `drop: true`
 
 /**
  * Verdichtet ein Session-Doc auf genau die Felder, die buildLogbook liest
@@ -323,13 +325,21 @@ export function weeklyIntensity(exercise, weeks) {
   });
 }
 
-// ── Muskel-Volumen ─────────────────────────────────────────────────────────
+// ── Muskel-Belastung ───────────────────────────────────────────────────────
 /**
- * Arbeitssätze je Hauptmuskel und Woche (Aufwärmsätze zählen nicht, `entry.setCount`).
+ * Belastung je Hauptmuskel und Woche — NICHT Volumen. VitalOS bewertet die
+ * Erholung zwischen den Sessions (One Set to Failure): jede Übung-Einheit ist
+ * genau EINE Belastung je Hauptmuskel, egal wie viele Sätze. Ein Satz ist nie
+ * schlechter als zwei; Dropsätze gehören zum Satz davor. Die Satzzahl
+ * (`entry.setCount` ohne Dropsätze) dient nur als Warnschwelle: mehr als
+ * `LOGBOOK_SETS_WARN` Sätze setzen `warn` an Zelle und Zeile (Erholung bis zum
+ * nächsten Training fraglich, eher Kraftausdauer). Aufwärmsätze zählen nicht.
  * Übungen ohne `primaryMuscles` laufen unter "Ohne Zuordnung".
- * Ergebnis: [{ muscle, cells:[{week, sets}], total, last4 }] nach `total` absteigend.
+ * Ergebnis: [{ muscle, cells:[{week, hits, warn}], total, last4, warn }]
+ * nach `total` absteigend.
  */
 export const NO_MUSCLE = 'Ohne Zuordnung';
+export const LOGBOOK_SETS_WARN = 3; // gleiche Schwelle wie SETS_RECOVERY_WARN im Review
 export function muscleWeekly(exercises, weeks) {
   const idx = new Map(weeks.map((w, i) => [w, i]));
   const rows = new Map();
@@ -338,12 +348,15 @@ export function muscleWeekly(exercises, weeks) {
     for (const e of ex.entries) {
       const i = idx.get(mondayOf(e.date));
       if (i == null) continue;
+      const sets = e.sets.filter((s) => !s.drop).length || 1;
+      const heavy = sets > LOGBOOK_SETS_WARN;
       for (const m of muscles) {
         let r = rows.get(m);
-        if (!r) { r = { muscle: m, cells: weeks.map((w) => ({ week: w, sets: 0 })), total: 0, last4: 0 }; rows.set(m, r); }
-        r.cells[i].sets += e.setCount;
-        r.total += e.setCount;
-        if (i >= weeks.length - 4) r.last4 += e.setCount;
+        if (!r) { r = { muscle: m, cells: weeks.map((w) => ({ week: w, hits: 0, warn: false })), total: 0, last4: 0, warn: false }; rows.set(m, r); }
+        r.cells[i].hits += 1;
+        r.total += 1;
+        if (i >= weeks.length - 4) r.last4 += 1;
+        if (heavy) { r.cells[i].warn = true; if (i >= weeks.length - 4) r.warn = true; }
       }
     }
   }

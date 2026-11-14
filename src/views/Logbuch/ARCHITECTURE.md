@@ -84,13 +84,22 @@ Umdatieren und Löschen bleiben dort; das Logbuch ist rein lesend und öffnet Se
   Dashboard/Heute (lesen schon `analytics/dashboard`). Learn liest keine Sessions, nur
   `getLatestSession()` (1 Doc) und den KB-Katalog (`getAllExercises()`, siehe `src/CLAUDE.md`).
 
-## Update 2026-11-05 — fünfte Linse „Muskeln"
+## Update 2026-11-05 — fünfte Linse „Muskeln" (umgestellt 2026-11-14: Belastung statt Sätze)
 
-`MuscleLoad.jsx` + `muscleWeekly()` (`logbookStats.js`): Arbeitssätze je Hauptmuskel × Woche
+`MuscleLoad.jsx` + `muscleWeekly()` (`logbookStats.js`): **Belastung** je Hauptmuskel × Woche
 (13/26/52 Wochen, gleiche Filter wie Rhythmus), rechts Summe der letzten 4 Wochen mit Ø pro Woche.
-Datenquelle ist `exercise.muscles` (aus `primaryMuscles`, steckt schon im Digest — kein Schema-Wechsel).
-Aufwärmsätze zählen nicht, Übungen ohne Muskel stehen unter „Ohne Zuordnung". Ein Satz zählt
-für jeden Hauptmuskel der Übung voll (keine Gewichtung nach Sekundärmuskeln).
+Datenquelle ist `exercise.muscles` (aus `primaryMuscles`, steckt schon im Digest).
+Übungen ohne Muskel stehen unter „Ohne Zuordnung"; keine Gewichtung nach Sekundärmuskeln.
+
+**Konzept (Owner 2026-11-14): One Set to Failure, Recovery statt Volumen.** Die App bewertet die
+Erholung zwischen den Sessions, nicht das Volumen einer Session. Jede Übung einer Session ist
+genau EINE Belastung je Hauptmuskel (`cells[].hits`), egal wie viele Sätze — ein Satz ist nie
+schlechter als zwei, Dropsätze gehören zum Satz davor. Aufwärmsätze zählen nicht. Die Satzzahl
+(ohne Dropsätze) ist nur Warnschwelle: mehr als `LOGBOOK_SETS_WARN` (3, wie
+`SETS_RECOVERY_WARN` im Review) setzt `warn` an Zelle (oranger Rahmen) und Zeile (⚠ bei „4 Wo.")
+plus Hinweis „möglicherweise zu viel Volumen für die Erholung bis zum nächsten Training".
+Dafür trägt `rawSets()` Dropsätze additiv als `drop: true`; `LOGBOOK_DIGEST_SCHEMA` ist deshalb 3
+(alte Digests werden neu aufgebaut, bis dahin zählen Dropsätze in der Warnung als Sätze).
 
 ## Update 2026-11-05 — Digest-Abweichungen abfangen
 
