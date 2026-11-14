@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-14T11:45:11+00:00",
+  "generated_at": "2026-11-14T18:45:12+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-14T05:27:25Z",
+   "pushed_at": "2026-11-14T18:44:53Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -19,12 +19,36 @@
    "main": "master",
    "has_dev": true,
    "dev_behind": 0,
-   "dev_ahead": 0,
-   "oldest_unpromoted": null,
-   "dev_head": "c3f9a6e4 2026-11-14T06:26:14+01:00",
+   "dev_ahead": 4,
+   "oldest_unpromoted": "2026-11-14T19:43:04+01:00",
+   "dev_head": "21dfc200 2026-11-14T19:43:04+01:00",
    "master_head": "c3f9a6e4 2026-11-14T06:26:14+01:00"
   },
   "commits": [
+   {
+    "sha": "21dfc200",
+    "date": "2026-11-14T19:43:04+01:00",
+    "author": "Alpha",
+    "subject": "feat(session): /skills, /core, #core öffnen Core Skills"
+   },
+   {
+    "sha": "c08dffb2",
+    "date": "2026-11-14T19:43:04+01:00",
+    "author": "Alpha",
+    "subject": "fix(nav): Hub nur im Sheet — mit Sheet keine Bottom-Nav, ohne Sheet Nav ohne Hub-Button"
+   },
+   {
+    "sha": "520c73f3",
+    "date": "2026-11-14T19:43:04+01:00",
+    "author": "Alpha",
+    "subject": "feat(session): Core Skills (Skills + 6Pack) eingebettet statt Absprung"
+   },
+   {
+    "sha": "4d39fdc5",
+    "date": "2026-11-14T19:43:04+01:00",
+    "author": "Alpha",
+    "subject": "feat(learn): add settings route for language and account"
+   },
    {
     "sha": "c3f9a6e4",
     "date": "2026-11-14T06:26:14+01:00",
@@ -120,30 +144,6 @@
     "date": "2026-11-12T14:16:55Z",
     "author": "nimmsel23",
     "subject": "fix(ci): Check ohne rekursive journal-app Submodule (#107)"
-   },
-   {
-    "sha": "99f62f22",
-    "date": "2026-11-12T14:42:23+01:00",
-    "author": "nimmsel23",
-    "subject": "fix(ci): KB-Checkout in deploy-miniapps (wie deploy-master) (#106)"
-   },
-   {
-    "sha": "37e77068",
-    "date": "2026-11-12T14:14:17+01:00",
-    "author": "nimmsel23",
-    "subject": "fix(session): plain 6Pack/Skills labels inside the VitalOS shell (#105)"
-   },
-   {
-    "sha": "5e9c9ce0",
-    "date": "2026-11-12T12:29:33+01:00",
-    "author": "Alpha",
-    "subject": "style(scripts): biome-format build-kb-data for Check"
-   },
-   {
-    "sha": "0a5224c8",
-    "date": "2026-11-12T11:03:02+01:00",
-    "author": "Alpha",
-    "subject": "fix(build): KB aus ~/dev/fitness automatisch einhängen (lokaler Build wie CI)"
    }
   ],
   "activity": [
@@ -229,18 +229,38 @@
    },
    {
     "day": "2026-11-14",
-    "n": 4
+    "n": 8
    }
   ],
   "workflows": [
+   {
+    "name": "Preview (Fitness dev)",
+    "branch": "dev",
+    "event": "push",
+    "status": "in_progress",
+    "conclusion": null,
+    "created_at": "2026-11-14T18:44:55Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43628315676",
+    "sha": "21dfc20"
+   },
+   {
+    "name": "Check (Fitness)",
+    "branch": "dev",
+    "event": "push",
+    "status": "in_progress",
+    "conclusion": null,
+    "created_at": "2026-11-14T18:44:55Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43628315615",
+    "sha": "21dfc20"
+   },
    {
     "name": "Merge-Agent",
     "branch": "master",
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-14T10:44:59Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43586735211",
+    "created_at": "2026-11-14T16:44:11Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43617220593",
     "sha": "c3f9a6e"
    },
    {
@@ -249,8 +269,8 @@
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-14T09:59:27Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43583101873",
+    "created_at": "2026-11-14T16:30:15Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43615943998",
     "sha": "c3f9a6e"
    },
    {
@@ -259,8 +279,8 @@
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-14T09:30:04Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43580829082",
+    "created_at": "2026-11-14T16:09:40Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43614070734",
     "sha": "c3f9a6e"
    },
    {
@@ -281,26 +301,6 @@
     "conclusion": "success",
     "created_at": "2026-11-14T05:27:27Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43561614435",
-    "sha": "c3f9a6e"
-   },
-   {
-    "name": "Check (Fitness)",
-    "branch": "dev",
-    "event": "push",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-14T05:26:20Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43561528387",
-    "sha": "c3f9a6e"
-   },
-   {
-    "name": "Preview (Fitness dev)",
-    "branch": "dev",
-    "event": "push",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-14T05:26:20Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43561528170",
     "sha": "c3f9a6e"
    }
   ],
@@ -323,34 +323,41 @@
   "status": "green",
   "signals": [],
   "ai": {
-   "headline": "Dev/Master synchronisiert, Promotion erfolgreich, Gemini-Prüfung offen",
-   "lage": "Der `dev`-Branch und `master`-Branch sind nun auf Commit `c3f9a6e4` synchronisiert, was die erfolgreiche Promotion des neuesten Features \"Muskel-Linse zählt Belastung statt Sätze\" bestätigt. Alle zugehörigen CI-Läufe für `c3f9a6e4` auf `dev` und `master` wurden erfolgreich abgeschlossen. Die Verifizierung des Gemini-Reparaturpfads durch einen echten roten CI-Lauf steht noch aus, wie in `NEXT.md` vermerkt.",
+   "headline": "Dev 4 Commits voraus, CI aktiv, Gemini-Prüfung und TodayPlan-Stabilität offen",
+   "lage": "Der `dev`-Branch ist mit vier neuen Feature-Commits (`21dfc200`, `c08dffb2`, `520c73f3`, `4d39fdc5`) dem `master`-Branch voraus. Die zugehörigen CI-Läufe \"Preview (Fitness dev)\" und \"Check (Fitness)\" für `dev` sind aktuell in Bearbeitung. Die Verifizierung des Gemini-Reparaturpfads durch einen echten roten CI-Lauf und die Stabilität des `TodayPlan`-Screens sind weiterhin offen.",
    "auffaelligkeiten": [
     {
      "level": "hoch",
-     "text": "Die Verifizierung des Gemini-Reparaturpfads durch einen echten roten, code-behebbaren CI-Lauf ist noch offen, wie in `NEXT.md` gefordert."
+     "text": "Der `dev`-Branch ist 4 Commits vor `master` (Head `21dfc200`), was eine Abweichung vom synchronisierten Zustand der letzten Einschätzung darstellt."
     },
     {
      "level": "mittel",
-     "text": "Die Stabilität des wiederhergestellten `TodayPlan`-Screens wurde nicht mit einem echten Plan-Klienten getestet, was ein Risiko darstellt."
+     "text": "Die CI-Läufe \"Preview (Fitness dev)\" und \"Check (Fitness)\" für den `dev`-Branch sind aktuell in Bearbeitung und ihr Abschluss steht aus."
+    },
+    {
+     "level": "mittel",
+     "text": "Die Verifizierung des Gemini-Reparaturpfads durch einen echten roten, code-behebbaren CI-Lauf ist laut `NEXT.md` noch offen."
+    },
+    {
+     "level": "mittel",
+     "text": "Die Stabilität des `TodayPlan`-Screens wurde nach Wiedereinführung nicht mit einem echten Plan-Klienten getestet, was ein Risiko darstellt (`NEXT.md`)."
     },
     {
      "level": "info",
-     "text": "Die `HabitJournalModal.jsx` in `fitness-dev` ist eine verwaiste Kopie und kann entfernt werden, da die Implementierung im Sibling-Repo `habits-dev` liegt."
+     "text": "Die verwaiste Datei `HabitJournalModal.jsx` ist weiterhin in `docs/TODO.md` als zu entfernende Komponente aufgeführt."
     }
    ],
    "naechste_schritte": [
     "Verifizieren des Gemini-Reparaturpfads durch einen echten roten, code-behebbaren CI-Lauf.",
     "Testen der Stabilität des `TodayPlan`-Screens mit einem echten Plan-Klienten.",
-    "Entfernen der verwaisten `HabitJournalModal.jsx` aus `fitness-dev`."
+    "Entfernen der verwaisten `HabitJournalModal.jsx` aus `fitness-dev/src/components/`."
    ],
-   "veraendert": "Gegenüber der letzten Einschätzung sind `dev` und `master` nun auf Commit `c3f9a6e4` synchronisiert, und alle zuvor laufenden CI-Workflows sind erfolgreich abgeschlossen.",
+   "veraendert": "Gegenüber der letzten Einschätzung ist der `dev`-Branch nun 4 Commits (`21dfc200` bis `4d39fdc5`) dem `master`-Branch voraus, anstatt synchronisiert zu sein.",
    "fragen": [
-    "Soll der im Code als \"hängt tot rum\" markierte `TemplateLauncher` entfernt oder eine Nutzung evaluiert werden?",
-    "Ist die flüchtige `sessionStorage`-Persistenz für die Plan-/Manuell-Wahl ein akzeptierter Trade-off oder soll eine dauerhaftere Lösung geprüft werden?"
+    "Soll die ungenutzte Komponente `TemplateLauncher` entfernt oder in den Session-Flow integriert werden?"
    ],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-14T11:45:13+00:00"
+  "ai_at": "2026-11-14T18:45:15+00:00"
  }
 }
