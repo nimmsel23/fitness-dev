@@ -117,9 +117,10 @@ function parseHashRoute({ resolveFlowTab, navMode }) {
 
   // Older standalone links used #timer or #skills rather than
   // #session/<subtab>. Normalize them to the redirect path below.
-  if (EXTERNAL_SESSION_APPS[rawTab] || rawTab === 'sixpack' || rawTab === '6pack') {
+  const coreAlias = { sixpack: 'timer', '6pack': 'timer', core: 'skills', coreskills: 'skills' }[rawTab]
+  if (EXTERNAL_SESSION_APPS[rawTab] || coreAlias) {
     next.tab = 'session';
-    next.subTab = EXTERNAL_SESSION_APPS[rawTab] ? rawTab : 'timer';
+    next.subTab = coreAlias || rawTab;
     return next;
   }
 

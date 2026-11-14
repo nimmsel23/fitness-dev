@@ -5,7 +5,8 @@
       "target": "client",
       "public": "dist-firebase",
       "redirects": [
-        { "source": "/@(6pack|sixpack)", "destination": "/#session/timer", "type": 302 }
+        { "source": "/@(6pack|sixpack)", "destination": "/#session/timer", "type": 302 },
+        { "source": "/@(skills|core|coreskills)", "destination": "/#session/skills", "type": 302 }
       ],
       "ignore": [
         "firebase.json",
