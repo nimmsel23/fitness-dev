@@ -1,9 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useSyncExternalStore } from 'react'
 import { GraduationCap, LogIn, Loader } from 'lucide-react'
 import { watchAuth, signIn, isLocalMode } from '@db'
+import { useSettingsStore } from '@learn/store/index.js'
+import LearnSettings from './LearnSettings.jsx'
 import Learn from '@learn/views/Learn/index.jsx'
 
+const subscribeRoute = cb => { window.addEventListener('hashchange', cb); return () => window.removeEventListener('hashchange', cb) }
 export default function App() {
+  const muscleLanguage = useSettingsStore(s => s.muscleLanguage)
+  const settingsOpen = useSyncExternalStore(subscribeRoute, () => /^#\/?(?:settings|setup)(?:\/|$)/.test(location.hash), () => false)
   const [user, setUser]       = useState(undefined)
   const [signing, setSigning] = useState(false)
 
@@ -35,7 +40,8 @@ export default function App() {
 
   return (
     <div className="min-h-[100dvh] bg-fit-bg text-fit-ink font-sans pt-[var(--safe-top)]">
-      <Learn />
+      <a className="block p-4 text-right" href={settingsOpen ? '#' : '#settings'}>{settingsOpen ? 'Zurück zu Learn' : 'Setup'}</a>
+      {settingsOpen ? <LearnSettings user={user} /> : <Learn muscleLanguage={muscleLanguage} />}
     </div>
   )
 }
