@@ -9,6 +9,7 @@ This folder contains the modularized components for the Weekly Performance Revie
 - **`ReviewOverview.jsx`**: Displays core metrics like total session count and volume/recovery focus (HIT mode).
 - **`ReviewInsights.jsx`**: Shows textual recommendations and lists "Coverage Gaps" (untrained muscle regions).
 - **`ReviewMuscleImpact.jsx`**: Visualizes relative muscle load using bar charts.
+- **`ReviewMuscleVolume.jsx`**: Shows performed working sets by muscle region, split into direct and indirect effective sets; warm-ups and blank set rows are excluded.
 - **`ReviewSessionList.jsx`**: A chronological list of sessions with date cards and recovery indicators. Its navigation callback includes the selected session as a third argument, so workouts on the same date stay distinct.
 - **`ReviewTopExercises.jsx`**: Displays the most frequent exercises of the week with deep-dive inspection (Coaching Notes, Errors).
 - **`utils.js`**: Helper functions like `formatRecovery`.
@@ -40,6 +41,12 @@ Recovery-Modell — aufgetrennt + auf geteiltes Scoring umgestellt.
 
 The rolling monthly report cache is scoped to the signed-in user and local calendar day; saving or deleting a session invalidates it. A pending calculation is discarded or retried if invalidated during loading.
 
+The report carries `muscle_set_volume` for the selected 28-day window and each
+7-day chunk. Local and Firestore paths use the same shared calculation: primary
+muscles count as 1 effective set, secondary muscles as 0.5, stabilizers are
+excluded, and only logged non-warm-up sets count. Exercises without mapped
+muscles are reported separately as `unmapped_working_sets`.
+
 1.  **Selection**: User changes the `week` in `ReviewHeader`.
 2.  **Fetching**: `index.jsx` triggers a re-fetch via `db.js` (`getWeeklyReport`).
 3.  **Distribution**: Data is passed down to specialized presentational components.
@@ -51,3 +58,5 @@ Der SubTab `strength` (`ReviewStrengthMatrix.jsx`, 1RM-Rechner) existiert im Rev
 Die Komponente lebt jetzt im Learn-Tab (`fitness-dev`: `src/views/Learn/StrengthMatrix.jsx`, Header-Tab
 „Stärke", Sub-Tab-ID `strength`). Alte Deep-Links `#review/strength` werden in `App.jsx`
 (`parseHashRoute`) auf `learn/strength` umgeleitet.
+
+- `unmapped_exercises` (Report, lokal und Firestore, pro Woche und gesamt): Übungen mit Arbeitssätzen, aber ohne Muskelzuordnung (`{exercise_id, name, sets}`, absteigend nach Sätzen). `ReviewMuscleVolume` zeigt die ersten fünf unter dem Hinweis zu `unmapped_working_sets`. Test: `src/lib/db/shared/muscleSetVolume.test.mjs` (Aufruf im Dateikopf).
