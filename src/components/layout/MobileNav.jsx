@@ -1,6 +1,6 @@
 import UnreadBadge from '../UnreadBadge.jsx';
 import { useRef, useState } from 'react';
-import { MessageSquare, MoreHorizontal, ChevronLeft, LayoutGrid } from 'lucide-react';
+import { MessageSquare, MoreHorizontal, ChevronLeft } from 'lucide-react';
 
 // Training (session) ist der mit Abstand meistgenutzte Tab und startet
 // standardmäßig offen — deshalb erscheinen seine Subtabs (Heute/Timer/
@@ -15,7 +15,7 @@ import { MessageSquare, MoreHorizontal, ChevronLeft, LayoutGrid } from 'lucide-r
 const HIDDEN_SUBS = ['timer', 'skills'];
 const PRIMARY_TABS = ['atlas'];
 
-export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHint, navItems, inboxUnread, onOpenHub, onOpenSheet }) {
+export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHint, navItems, inboxUnread, onOpenSheet }) {
   const [showMore, setShowMore] = useState(false);
   // Die Leiste ist die eingeklappte Unterkante des Gate-Sheets: nach oben wischen (oder den
   // Griff tippen) zieht das Sheet heraus; dort ersetzt die Hub-Leiste diese Nav.
@@ -70,16 +70,23 @@ export default function MobileNav({ tab, subTab, navigate, navigateSub, swipeHin
         tabEntry({ id: 'inbox', label: 'Nachrichten', Icon: MessageSquare }),
       ]
     : [
-        // Plan/Logbuch/Timer/Skills + alle Tabs liegen im Hub (Gate-Sheet, hochziehbar);
-        // die Leiste behält nur Training, den Hub-Einstieg und Atlas.
-        ...(onOpenHub
-          ? [
-              ...sessionSubs.filter((i) => i.id === 'today').map(subEntry),
-              { id: 'hub', label: 'Hub', Icon: LayoutGrid, isActive: false, onClick: () => { setShowMore(false); onOpenHub(); } },
-            ]
-          : sessionSubs.filter((i) => !HIDDEN_SUBS.includes(i.id)).map(subEntry)),
+        // Ohne Sheet: klassische Bottom-Nav, kein Hub-Button (Hub gibt es nur im Sheet).
+        ...sessionSubs.filter((i) => !HIDDEN_SUBS.includes(i.id)).map(subEntry),
         ...navItems.filter((i) => PRIMARY_TABS.includes(i.id)).map(tabEntry),
       ];
+
+  // Mit Sheet ersetzt der Hub die Bottom-Nav: keine Leiste, nur der Griff zum Hochziehen.
+  if (onOpenSheet) return (
+    <div
+      onTouchStart={onDragStart}
+      onTouchEnd={onDragEnd}
+      className="lg:hidden fixed bottom-0 left-0 right-0 z-40 h-6 flex items-start justify-center pb-[env(safe-area-inset-bottom)]"
+    >
+      <button type="button" onClick={onOpenSheet} aria-label="Hub hochziehen" className="h-6 w-24 flex items-start justify-center pt-2">
+        <span className="block h-1 w-10 rounded-full bg-fit-line" />
+      </button>
+    </div>
+  );
 
   return (
     <nav
