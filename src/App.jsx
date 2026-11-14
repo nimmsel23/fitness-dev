@@ -1,5 +1,5 @@
 import { useCoachUnread } from './hooks/useCoachUnread.js'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { onMessage } from 'firebase/messaging'
 import { RefreshCw } from 'lucide-react'
 import Session from './views/Session/index.jsx'
@@ -18,6 +18,9 @@ import { getMessagingIfSupported } from '@cloud/firebase.js'
 
 import { getNavItems, VALID_TABS, IS_SOLO, SOLO_TAB } from './constants/NavigationItems.js'
 import { markStandaloneHost } from './views/Session/externalSessionApps.js'
+// Core Skills (Skills + 6Pack) eingebettet statt Absprung auf vos-skills/vos-6pack — gleiche Origin, gleicher Login.
+const CoreSkills = lazy(() => import('./views/Skills/CoreSkills.jsx'))
+const CORE_SKILLS_ROUTE = { skills: '', timer: 'sixpack' }
 
 import Sidebar from './components/layout/Sidebar.jsx'
 import MobileNav from './components/layout/MobileNav.jsx'
@@ -114,9 +117,9 @@ function parseHashRoute({ resolveFlowTab, navMode }) {
 
   // Older standalone links used #timer or #skills rather than
   // #session/<subtab>. Normalize them to the redirect path below.
-  if (EXTERNAL_SESSION_APPS[rawTab]) {
+  if (EXTERNAL_SESSION_APPS[rawTab] || rawTab === 'sixpack' || rawTab === '6pack') {
     next.tab = 'session';
-    next.subTab = rawTab;
+    next.subTab = EXTERNAL_SESSION_APPS[rawTab] ? rawTab : 'timer';
     return next;
   }
 
@@ -367,10 +370,10 @@ export default function App() {
 
   // Legacy session deep links now open the standalone apps. The embedded
   // VitalOS Shell handles these IDs separately and routes to its local wrappers.
+  // skills/timer öffnen Core Skills eingebettet (siehe CoreSkills unten), kein Absprung mehr.
+  const [coreSkillsRoute, setCoreSkillsRoute] = useState(null)
   useEffect(() => {
-    if (tab !== 'session') return;
-    const target = EXTERNAL_SESSION_APPS[subTab];
-    if (target) window.location.replace(target);
+    if (tab === 'session' && subTab in CORE_SKILLS_ROUTE) setCoreSkillsRoute(CORE_SKILLS_ROUTE[subTab])
   }, [tab, subTab]);
 
   // Stoppuhr-Notification/1h-Reminder auch auf anderen Haupt-Tabs weiterlaufen lassen.
@@ -406,11 +409,6 @@ export default function App() {
 
   function navigate(id) { navigateToTab(id) }
   function navigateSub(id) {
-    const target = EXTERNAL_SESSION_APPS[id];
-    if (target) {
-      window.location.assign(target);
-      return;
-    }
     setSubTab(id);
   }
   function navigateFocusLayer(id) { setFocusLayer(id) }
@@ -562,6 +560,13 @@ export default function App() {
     <div className="min-h-screen flex items-center justify-center bg-fit-bg">
       <div className="text-fit-dim text-xs font-black uppercase tracking-widest">…</div>
     </div>
+  );
+
+  // Core Skills vollflächig, ohne Fitness-Header/Datepicker/Nav.
+  if (tab === 'session' && subTab in CORE_SKILLS_ROUTE && coreSkillsRoute !== null) return (
+    <Suspense fallback={<div className="min-h-screen bg-fit-bg" />}>
+      <CoreSkills route={coreSkillsRoute} onRouteChange={setCoreSkillsRoute} onClose={() => { setCoreSkillsRoute(null); setSubTab('today'); }} />
+    </Suspense>
   );
 
   return (

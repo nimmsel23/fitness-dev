@@ -31,6 +31,8 @@ function siblingDir(devName, appName) {
 function resolveCrossAppAliases() {
   return {
     '@relax': resolve(siblingDir('relax-dev', 'relax-app'), 'src'),
+    // Core Skills (skills-dev) importiert 6Pack über diesen Alias.
+    '@vos-sixpack': siblingDir('6pack-dev', '6pack-app'),
     '@learn': resolve(__dirname, 'src'),
   }
 }
