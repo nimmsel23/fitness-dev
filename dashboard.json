@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-14T05:08:24+00:00",
+  "generated_at": "2026-11-14T05:26:44+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-14T05:08:05Z",
+   "pushed_at": "2026-11-14T05:26:18Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -19,12 +19,18 @@
    "main": "master",
    "has_dev": true,
    "dev_behind": 0,
-   "dev_ahead": 5,
-   "oldest_unpromoted": "2026-11-04T00:58:22+01:00",
-   "dev_head": "30017772 2026-11-14T06:07:52+01:00",
-   "master_head": "fda89c65 2026-11-14T04:11:20+01:00"
+   "dev_ahead": 1,
+   "oldest_unpromoted": "2026-11-14T06:26:14+01:00",
+   "dev_head": "c3f9a6e4 2026-11-14T06:26:14+01:00",
+   "master_head": "30017772 2026-11-14T06:07:52+01:00"
   },
   "commits": [
+   {
+    "sha": "c3f9a6e4",
+    "date": "2026-11-14T06:26:14+01:00",
+    "author": "Alpha",
+    "subject": "fix(logbuch): Muskel-Linse zählt Belastung statt Sätze (One Set to Failure)"
+   },
    {
     "sha": "30017772",
     "date": "2026-11-14T06:07:52+01:00",
@@ -138,12 +144,6 @@
     "date": "2026-11-12T11:03:02+01:00",
     "author": "Alpha",
     "subject": "fix(build): KB aus ~/dev/fitness automatisch einhängen (lokaler Build wie CI)"
-   },
-   {
-    "sha": "376faf04",
-    "date": "2026-11-12T06:34:44Z",
-    "author": "nimmdaniel",
-    "subject": "Merge origin/master into dev (fc72c5e, #104)"
    }
   ],
   "activity": [
@@ -229,29 +229,69 @@
    },
    {
     "day": "2026-11-14",
-    "n": 3
+    "n": 4
    }
   ],
   "workflows": [
-   {
-    "name": "Preview (Fitness dev)",
-    "branch": "dev",
-    "event": "push",
-    "status": "in_progress",
-    "conclusion": null,
-    "created_at": "2026-11-14T05:08:08Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43560035305",
-    "sha": "3001777"
-   },
    {
     "name": "Check (Fitness)",
     "branch": "dev",
     "event": "push",
     "status": "in_progress",
     "conclusion": null,
-    "created_at": "2026-11-14T05:08:08Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43560035303",
+    "created_at": "2026-11-14T05:26:20Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43561528387",
+    "sha": "c3f9a6e"
+   },
+   {
+    "name": "Preview (Fitness dev)",
+    "branch": "dev",
+    "event": "push",
+    "status": "in_progress",
+    "conclusion": null,
+    "created_at": "2026-11-14T05:26:20Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43561528170",
+    "sha": "c3f9a6e"
+   },
+   {
+    "name": "Gemini CI Agent",
+    "branch": "master",
+    "event": "workflow_run",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-14T05:09:43Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43560165801",
     "sha": "3001777"
+   },
+   {
+    "name": "Live Deploy (Fitness master)",
+    "branch": "master",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-14T05:09:23Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43560139282",
+    "sha": "3001777"
+   },
+   {
+    "name": "PR-AutoMerge (Dependabot -> dev)",
+    "branch": "master",
+    "event": "workflow_run",
+    "status": "completed",
+    "conclusion": "skipped",
+    "created_at": "2026-11-14T05:09:12Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43560123789",
+    "sha": "fda89c6"
+   },
+   {
+    "name": "Auto-Promote dev -> master (Check (Fitness))",
+    "branch": "master",
+    "event": "workflow_run",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-14T05:09:12Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43560123775",
+    "sha": "fda89c6"
    },
    {
     "name": "Merge-Agent",
@@ -262,46 +302,6 @@
     "created_at": "2026-11-14T03:25:38Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43551577233",
     "sha": "fda89c6"
-   },
-   {
-    "name": "Live Deploy (Fitness master)",
-    "branch": "master",
-    "event": "workflow_dispatch",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-14T03:12:34Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43550411937",
-    "sha": "fda89c6"
-   },
-   {
-    "name": "Gemini CI Agent",
-    "branch": "master",
-    "event": "workflow_run",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-14T03:12:24Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43550398199",
-    "sha": "a9cd520"
-   },
-   {
-    "name": "Auto-Promote dev -> master (Check (Fitness))",
-    "branch": "master",
-    "event": "workflow_run",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-14T03:12:24Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43550398167",
-    "sha": "a9cd520"
-   },
-   {
-    "name": "PR-AutoMerge (Dependabot -> dev)",
-    "branch": "master",
-    "event": "workflow_run",
-    "status": "completed",
-    "conclusion": "skipped",
-    "created_at": "2026-11-14T03:12:24Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43550398152",
-    "sha": "a9cd520"
    },
    {
     "name": "Merge-Agent",
@@ -342,36 +342,6 @@
     "created_at": "2026-11-12T13:42:26Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43229852187",
     "sha": "99f62f2"
-   },
-   {
-    "name": "Merge-Agent",
-    "branch": "cursor/miniapps-kb-checkout",
-    "event": "pull_request",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-12T13:27:16Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43227437634",
-    "sha": "ea51d17"
-   },
-   {
-    "name": "Check (Fitness)",
-    "branch": "cursor/miniapps-kb-checkout",
-    "event": "pull_request",
-    "status": "completed",
-    "conclusion": "failure",
-    "created_at": "2026-11-12T13:27:16Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43227437574",
-    "sha": "ea51d17"
-   },
-   {
-    "name": "Gemini CI Agent",
-    "branch": "cursor/miniapps-kb-checkout",
-    "event": "pull_request_target",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-12T13:27:16Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43227437362",
-    "sha": "ea51d17"
    }
   ],
   "issues": [],
@@ -390,43 +360,32 @@
   ]
  },
  "assessment": {
-  "status": "yellow",
-  "signals": [
-   {
-    "level": "yellow",
-    "key": "promote",
-    "text": "5 Commit(s) auf dev seit 10.2 Tagen nicht auf master promotet"
-   }
-  ],
+  "status": "green",
+  "signals": [],
   "ai": {
-   "headline": "Dev-Branch 5 Commits voraus, CI-Läufe aktiv, Promote-Rückstand",
-   "lage": "Der `dev`-Branch ist mit Commit `30017772` fünf Commits vor dem `master`-Branch, der auf `fda89c65` steht. Zwei Workflows (`Preview (Fitness dev)`, `Check (Fitness)`) laufen aktuell auf `dev` für den neuesten Commit `30017772`. Der `master`-Branch wurde mit `fda89c65` aktualisiert, was die Verifizierung der GitHub Pages einschließt.",
+   "headline": "Dev-Branch 1 Commit voraus, Master aktualisiert, CI-Läufe aktiv",
+   "lage": "Der `master`-Branch wurde auf Commit `30017772` aktualisiert, wodurch der Promote-Rückstand behoben ist. Der `dev`-Branch ist nun mit Commit `c3f9a6e4` einen Commit vor `master`. Zwei Workflows (`Preview (Fitness dev)`, `Check (Fitness)`) laufen aktuell auf `dev` für den neuesten Commit `c3f9a6e4`.",
    "auffaelligkeiten": [
     {
-     "level": "mittel",
-     "text": "5 Commit(s) auf `dev` seit 10.2 Tagen nicht auf `master` promotet, beginnend mit dem ältesten unpromoteten Commit vom 2026-11-04T00:58:22+01:00."
-    },
-    {
-     "level": "mittel",
-     "text": "Die Gemini-Review-Punkte in `NEXT.md` bezüglich 'Ungetestete Stabilität des wiederhergestellten `TodayPlan`-Screens' und 'Implizite Annahme zur `sessionStorage`-Persistenz' sind weiterhin unadressiert."
-    },
-    {
      "level": "info",
-     "text": "Zwei Workflows (`Preview (Fitness dev)` Run `43560035305`, `Check (Fitness)` Run `43560035303`) laufen aktuell auf `dev` für den neuesten Commit `30017772`."
+     "text": "Die Workflows `Check (Fitness)` (Run `43561528387`) und `Preview (Fitness dev)` (Run `43561528170`) laufen für den neuesten `dev`-Commit `c3f9a6e4`."
+    },
+    {
+     "level": "mittel",
+     "text": "Die vollständige Verifizierung des Gemini-Reparaturpfads durch einen echten roten, code-behebbaren CI-Lauf ist laut `NEXT.md` noch offen."
     }
    ],
    "naechste_schritte": [
-    "Beobachten der laufenden `Preview (Fitness dev)` (Run `43560035305`) und `Check (Fitness)` (Run `43560035303`) Workflows auf `dev`.",
-    "Planen der Promotion der 5 `dev`-Commits auf `master`, um den Promote-Rückstand zu beheben.",
+    "Beobachten der laufenden `Preview (Fitness dev)` (Run `43561528170`) und `Check (Fitness)` (Run `43561528387`) Workflows auf `dev`.",
+    "Planen der Promotion des `dev`-Commits `c3f9a6e4` auf `master` nach erfolgreichen CI-Läufen.",
     "Verifizieren des Gemini-Reparaturpfads durch einen echten roten, code-behebbaren CI-Lauf, wie in `NEXT.md` gefordert."
    ],
-   "veraendert": "Der `dev`-Branch ist nun 5 Commits vor `master` (zuvor 1 Commit), und der `master`-Branch wurde auf `fda89c65` aktualisiert, was die GitHub Pages Verifizierung einschließt.",
+   "veraendert": "Der `dev`-Branch wurde auf `master` promotet, wodurch der vorherige Rückstand von fünf Commits behoben ist und `master` nun auf `30017772` steht.",
    "fragen": [
-    "Wie sollen die ungetestete Stabilität des `TodayPlan`-Screens und die implizite Annahme zur `sessionStorage`-Persistenz (Gemini-Review) adressiert werden?",
-    "Soll der Gemini-Reparaturpfad durch einen absichtlich herbeigeführten roten CI-Lauf verifiziert werden?"
+    "Soll ein isolierter roter, code-behebbarer CI-Lauf initiiert werden, um den Gemini-Reparaturpfad vollständig zu verifizieren?"
    ],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-14T05:08:26+00:00"
+  "ai_at": "2026-11-14T05:26:46+00:00"
  }
 }
