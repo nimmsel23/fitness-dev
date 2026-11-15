@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-14T19:06:35+00:00",
+  "generated_at": "2026-11-15T06:38:11+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-14T19:06:16Z",
+   "pushed_at": "2026-11-15T06:37:53Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -19,12 +19,18 @@
    "main": "master",
    "has_dev": true,
    "dev_behind": 0,
-   "dev_ahead": 9,
-   "oldest_unpromoted": "2026-11-14T19:43:04+01:00",
-   "dev_head": "9c2e87a4 2026-11-14T20:05:20+01:00",
-   "master_head": "c3f9a6e4 2026-11-14T06:26:14+01:00"
+   "dev_ahead": 1,
+   "oldest_unpromoted": "2026-11-15T06:37:52Z",
+   "dev_head": "84fcea54 2026-11-15T06:37:52Z",
+   "master_head": "9c2e87a4 2026-11-14T20:05:20+01:00"
   },
   "commits": [
+   {
+    "sha": "84fcea54",
+    "date": "2026-11-15T06:37:52Z",
+    "author": "nimmdaniel",
+    "subject": "ci(check): Nachbarn auf dev-Push gegen master bauen wie der Live-Deploy (#108)"
+   },
    {
     "sha": "9c2e87a4",
     "date": "2026-11-14T20:05:20+01:00",
@@ -138,19 +144,9 @@
     "date": "2026-11-13T03:21:56+01:00",
     "author": "Alpha",
     "subject": "style(scripts): format portal.mjs with biome (fixes #104 CI check)"
-   },
-   {
-    "sha": "0c3c682a",
-    "date": "2026-11-13T01:12:33+01:00",
-    "author": "Alpha",
-    "subject": "fix(fitness): useUser ohne Provider in der Shell, Backend-Pfad + Skills nach coach-dev"
    }
   ],
   "activity": [
-   {
-    "day": "2026-10-25",
-    "n": 10
-   },
    {
     "day": "2026-10-26",
     "n": 32
@@ -230,27 +226,51 @@
    {
     "day": "2026-11-14",
     "n": 13
+   },
+   {
+    "day": "2026-11-15",
+    "n": 1
    }
   ],
   "workflows": [
-   {
-    "name": "Preview (Fitness dev)",
-    "branch": "dev",
-    "event": "push",
-    "status": "in_progress",
-    "conclusion": null,
-    "created_at": "2026-11-14T19:06:18Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43630252805",
-    "sha": "9c2e87a"
-   },
    {
     "name": "Check (Fitness)",
     "branch": "dev",
     "event": "push",
     "status": "in_progress",
     "conclusion": null,
-    "created_at": "2026-11-14T19:06:18Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43630252749",
+    "created_at": "2026-11-15T06:37:54Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43686323814",
+    "sha": "84fcea5"
+   },
+   {
+    "name": "PR-AutoMerge (Dependabot -> dev)",
+    "branch": "master",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-15T01:39:51Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43664142359",
+    "sha": "9c2e87a"
+   },
+   {
+    "name": "Merge-Agent",
+    "branch": "master",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-15T00:46:01Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43659810514",
+    "sha": "9c2e87a"
+   },
+   {
+    "name": "Auto-Promote dev -> master (Check (Fitness))",
+    "branch": "master",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-15T00:26:14Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43658155205",
     "sha": "9c2e87a"
    },
    {
@@ -259,52 +279,42 @@
     "event": "workflow_run",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-14T18:49:00Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43628687054",
-    "sha": "c3f9a6e"
-   },
-   {
-    "name": "PR-AutoMerge (Dependabot -> dev)",
-    "branch": "master",
-    "event": "workflow_run",
-    "status": "completed",
-    "conclusion": "skipped",
-    "created_at": "2026-11-14T18:49:00Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43628687038",
-    "sha": "c3f9a6e"
-   },
-   {
-    "name": "Auto-Promote dev -> master (Check (Fitness))",
-    "branch": "master",
-    "event": "workflow_run",
-    "status": "completed",
-    "conclusion": "skipped",
-    "created_at": "2026-11-14T18:48:59Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43628686977",
-    "sha": "c3f9a6e"
-   },
-   {
-    "name": "Merge-Agent",
-    "branch": "master",
-    "event": "schedule",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-14T16:44:11Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43617220593",
-    "sha": "c3f9a6e"
+    "created_at": "2026-11-14T19:07:43Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43630384449",
+    "sha": "9c2e87a"
    },
    {
     "name": "Live Deploy (Fitness master)",
     "branch": "master",
     "event": "workflow_dispatch",
     "status": "completed",
+    "conclusion": "failure",
+    "created_at": "2026-11-14T19:07:38Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43630376243",
+    "sha": "9c2e87a"
+   },
+   {
+    "name": "Preview (Fitness dev)",
+    "branch": "dev",
+    "event": "push",
+    "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-14T05:27:27Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43561614435",
-    "sha": "c3f9a6e"
+    "created_at": "2026-11-14T19:06:18Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43630252805",
+    "sha": "9c2e87a"
    }
   ],
-  "issues": [],
+  "issues": [
+   {
+    "number": 108,
+    "title": "[fitness] Live Deploy rot: CoreSkills.jsx nicht auflösbar (master 9c2e87a)",
+    "created_at": "2026-11-15T06:36:32Z",
+    "updated_at": "2026-11-15T06:36:32Z",
+    "labels": [],
+    "url": "https://github.com/nimmsel23/fitness-dev/issues/108",
+    "author": "nimmdaniel"
+   }
+  ],
   "pulls": [],
   "live_sites": [
    "https://fitness-aos.web.app",
@@ -320,37 +330,48 @@
   ]
  },
  "assessment": {
-  "status": "green",
-  "signals": [],
+  "status": "red",
+  "signals": [
+   {
+    "level": "red",
+    "key": "ci:Live Deploy (Fitness master):master",
+    "text": "„Live Deploy (Fitness master)“ auf master ist rot (failure, 9c2e87a)",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43630376243"
+   }
+  ],
   "ai": {
-   "headline": "Dev 9 Commits voraus, CI läuft, Gemini-Reparaturpfad und TodayPlan-Stabilität offen",
-   "lage": "Der `dev`-Branch ist mit neun neuen Commits, darunter mehrere CI-Anpassungen und Refactorings, dem `master`-Branch voraus. Die zugehörigen CI-Läufe \"Preview (Fitness dev)\" und \"Check (Fitness)\" für `dev` sind aktuell in Bearbeitung. Die Verifizierung des Gemini-Reparaturpfads und die Stabilität des `TodayPlan`-Screens sind weiterhin offen.",
+   "headline": "Live Deploy auf master rot, dev 1 Commit voraus, CI-Fix in Bearbeitung",
+   "lage": "Der `Live Deploy (Fitness master)` Workflow ist auf `master` (Commit `9c2e87a`) fehlgeschlagen, was in Issue #108 dokumentiert ist. Der `dev`-Branch ist dem `master` um einen Commit (`84fcea54`) voraus, welcher eine CI-Anpassung für den `Check (Fitness)` Workflow enthält, der aktuell läuft. Die Verifizierung des Gemini-Reparaturpfads und die Stabilität des `TodayPlan`-Screens sind weiterhin offen.",
    "auffaelligkeiten": [
     {
      "level": "hoch",
-     "text": "Der `dev`-Branch ist mit 9 Commits (neuester `9c2e87a4`) signifikant vor `master`, was auf umfangreiche, noch nicht integrierte Änderungen hindeutet."
+     "text": "Der Workflow „Live Deploy (Fitness master)“ auf master ist rot (failure, 9c2e87a), dokumentiert in Issue #108."
     },
     {
      "level": "mittel",
-     "text": "Die CI-Läufe \"Preview (Fitness dev)\" und \"Check (Fitness)\" für den `dev`-Branch (`9c2e87a`) sind noch `in_progress` und müssen abgeschlossen werden, um die Stabilität der neuen Commits zu bestätigen."
+     "text": "Der `Check (Fitness)` Workflow für den `dev`-Branch (Commit `84fcea5`) ist aktuell in Bearbeitung."
     },
     {
      "level": "info",
-     "text": "Mehrere Commits (`9c2e87a4`, `c56ceeb3`, `91595605`, `5f1ef785`) betreffen CI-Konfigurationen und Refactorings, insbesondere die Entkopplung von `relax-dev` und die Anpassung von Sibling-Repo-Pins."
+     "text": "Die Verifizierung des Gemini-Reparaturpfads und die Stabilität des `TodayPlan`-Screens sind laut `NEXT.md` weiterhin offen."
+    },
+    {
+     "level": "info",
+     "text": "Die verwaiste Datei `HabitJournalModal.jsx` ist laut `TODO.md` noch nicht entfernt."
     }
    ],
    "naechste_schritte": [
-    "Verifizieren des Gemini-Reparaturpfads durch einen echten roten, code-behebbaren CI-Lauf.",
-    "Testen der Stabilität des `TodayPlan`-Screens mit einem echten Plan-Klienten.",
+    "Analysieren des Fehlers im `Live Deploy (Fitness master)` Workflow (`9c2e87a`) und Beheben der Ursache.",
+    "Abwarten des `Check (Fitness)` Laufs für `dev` (`84fcea5`) und bei Erfolg den `dev`-Branch auf `master` mergen.",
     "Entfernen der verwaisten `HabitJournalModal.jsx` aus `fitness-dev/src/components/`."
    ],
-   "veraendert": "Der `dev`-Branch ist nun mit neun Commits dem `master` voraus, gegenüber fünf Commits in der letzten Einschätzung, und es wurden weitere CI-Anpassungen vorgenommen.",
+   "veraendert": "Der `dev`-Branch ist nun nur noch einen Commit dem `master` voraus (zuvor neun), und der `Live Deploy (Fitness master)` Workflow ist fehlgeschlagen, was zu Issue #108 führte.",
    "fragen": [
-    "Soll der Vite/Rolldown Preload-Guard beibehalten und der Pin `1.2.16` auf 1.3+ geprüft werden, um die Sibling-Repos zu synchronisieren?",
-    "Soll die implizite Annahme zur `sessionStorage`-Persistenz der Plan-/Manuell-Wahl als akzeptabler Trade-off dokumentiert oder eine robustere Lösung gesucht werden?"
+    "Soll der Gemini-Reparaturpfad aktiv durch einen künstlich erzeugten roten CI-Lauf verifiziert werden, wie in `NEXT.md` beschrieben?",
+    "Soll die Stabilität des `TodayPlan`-Screens mit einem echten Plan-Klienten getestet werden, wie in `NEXT.md` gefordert?"
    ],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-14T19:06:37+00:00"
+  "ai_at": "2026-11-15T06:38:13+00:00"
  }
 }
