@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fitness Dev Dashboard</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--fg:#1d1d1f;--muted:#5f6368;--line:#e3e3df;--accent:#2f6f4e;--ok:#1e7d45;--okbg:#e6f4ea;--warn:#8a5a00;--warnbg:#fff4d6;--info:#1f4e8c;--infobg:#e8f0fb}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--card:#1e1e1e;--fg:#ececec;--muted:#a0a0a0;--line:#333;--accent:#7fc8a0;--ok:#7fd49c;--okbg:#17321f;--warn:#f0c060;--warnbg:#3a2e10;--info:#9cc0f5;--infobg:#172a44}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:var(--w,820px);margin:0 auto;padding:24px 16px 64px}
+header h1{font-size:1.7rem;line-height:1.25;margin:0 0 8px}
+.lede{color:var(--muted);margin:0 0 8px}
+.meta{font-size:.85rem;color:var(--muted)}
+nav.toc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin:20px 0}
+nav.toc strong{display:block;margin-bottom:4px}
+nav.toc ol{margin:0;padding-left:20px}
+section{margin-top:32px}
+h2{font-size:1.25rem;margin:0 0 4px;padding-top:8px;border-top:1px solid var(--line)}
+.caption{font-size:.85rem;color:var(--muted);margin:0 0 10px}
+a{color:var(--accent)}
+.callout{border-left:4px solid var(--accent);background:var(--card);border-radius:8px;padding:12px 16px;margin:16px 0}
+.callout.info{border-color:var(--info);background:var(--infobg)}
+.callout b{display:block;margin-bottom:4px}
+.tbl{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;background:var(--card);margin:12px 0}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:.93rem}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font-weight:600;background:rgba(127,127,127,.07)}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;padding:1px 9px;border-radius:999px;font-size:.82rem;font-weight:600;background:var(--line)}
+.pill.ok{background:var(--okbg);color:var(--ok)}
+.pill.warn{background:var(--warnbg);color:var(--warn)}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:16px 0}
+.metric{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.metric .v{font-size:1.35rem;font-weight:700}
+.metric.ok .v{color:var(--ok)}.metric.warn .v{color:var(--warn)}
+.metric .l{font-weight:600;font-size:.9rem}
+.metric .d{font-size:.82rem;color:var(--muted)}
+dl.props{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:8px 16px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+dl.props dt{font-weight:600}dl.props dd{margin:0}
+@media (max-width:560px){dl.props{grid-template-columns:1fr}dl.props dd{margin-bottom:8px}}
+.rows{display:flex;flex-direction:column;gap:10px}
+.row{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.row .t{font-weight:600}.row .m{font-size:.82rem;color:var(--muted)}
+.row .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.bars{display:flex;flex-direction:column;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.bar{display:grid;grid-template-columns:minmax(120px,40%) 1fr;gap:10px;align-items:center;font-size:.9rem}
+.bar .track{background:rgba(127,127,127,.12);border-radius:6px;overflow:hidden}
+.bar .fill{background:var(--accent);color:#fff;font-weight:600;font-size:.8rem;padding:3px 8px;white-space:nowrap;border-radius:6px}
+@media (prefers-color-scheme:dark){.bar .fill{color:#111}}
+ol.steps{list-style:none;counter-reset:s;padding:0;margin:12px 0}
+ol.steps li{counter-increment:s;position:relative;padding:0 0 14px 44px}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:30px;height:30px;border-radius:50%;background:var(--accent);color:var(--card);font-weight:700;display:flex;align-items:center;justify-content:center}
+ol.steps b{display:block}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.cards a{display:block;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;text-decoration:none;color:var(--fg)}
+.cards a:hover{border-color:var(--accent)}
+.cards .s{font-size:.8rem;color:var(--muted)}
+footer{margin-top:40px;font-size:.82rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+.top-link{display:inline-block;margin-top:24px}
+</style>
+</head>
+<body id="top">
+<div class="wrap" style="--w:1080px">
+<header>
+<h1>Fitness Dev Dashboard</h1>
+<p class="lede">Momentaufnahme vom 16. November 2026, 07:05 (Wien). Bereich des Fitness DEV Bot: fitness-dev (main), 6pack-dev, skills-dev, plan-dev, coach-dev und ihre Pins in der VitalOS-Shell. Feature-Freeze bis 7. Februar 2027, ausgenommen freigegebene Arbeit und Bugfixes. Diese Seite ist ein Stand zu einem Zeitpunkt, kein Live-Feed.</p>
+<p class="meta">Quelle: Cursor-Page <a href="https://cursor.com/canvas/store-54236058-5833-43d4-b2a6-ee55da1a2dc0/693d8c7b-c424-42e3-ab66-1fa98794279f">Fitness Dev Dashboard</a> · als statisches HTML exportiert</p>
+</header>
+
+<nav class="toc" aria-label="Inhalt"><strong>Inhalt</strong><ol>
+<li><a href="#features">Features in Arbeit</a></li>
+<li><a href="#prs">Offene PRs und CI</a></li>
+<li><a href="#live">Live-Stand und Deploys</a></li>
+<li><a href="#merged">Zuletzt gemergt</a></li>
+<li><a href="#blockers">Blocker und Risiken</a></li>
+<li><a href="#interfaces">Schnittstellen</a></li>
+<li><a href="#issues">Offene Issues</a></li>
+<li><a href="#refresh">Aktualisierung</a></li>
+</ol></nav>
+
+<div class="callout info"><b>Wie sich diese Seite zu laufender Arbeit verhält</b>
+Keines der vitalos-Issues #27–#33 ist ein Fitness-, 6Pack- oder Skills-Dashboard. Am nächsten kommen #32 (vitalos-Meta: Shell, Store, CI und Submodule-Pins inkl. fitness, 6pack, skills und plan) und #33 (Produktzustand coach-dev). Diese Seite ersetzt diese Boards nicht; sie deckt den Bereich des Fitness DEV Bot ab und verweist nur auf die VitalOS-Pins und den Default-Branch von coach.
+Ein PM-Dev-Dashboard in ChatGPT Work existiert ebenfalls; dieser Bot kann es nicht öffnen, daher wird über seinen Inhalt nichts angenommen.
+Außerdem würde vos-Pull-Request #9 („Fitness-Dashboard täglich auf Firebase hosten“, Branch cursor/fitness-dashboard-daily-6654, Basis main, kein Draft) eine tägliche Seite nur mit Zählern unter https://vos-dashboard.web.app veröffentlichen. Dieser Pull Request war zum Lesezeitpunkt noch offen und nicht live. Diese Seite ist das erzählende Board für denselben Bereich, keine zweite Kopie dieses Generators.</div>
+
+<div class="metrics">
+<div class="metric"><div class="v">0</div><div class="l">Offene Pull Requests</div><div class="d">fitness-dev, 6pack-dev, skills-dev, plan-dev, coach-dev, vitalos</div></div>
+<div class="metric warn"><div class="v">3</div><div class="l">Offene Issues</div><div class="d">Alle in skills-dev (#23, #24, #26)</div></div>
+<div class="metric"><div class="v">13 / 8 / 5 / 0 / 6</div><div class="l">Merges seit 9.11. (7 Tage)</div><div class="d">fitness / 6pack / skills / plan / coach (vitalos: 17)</div></div>
+<div class="metric ok"><div class="v">Live-Deploy grün</div><div class="l">fitness-aos.web.app</div><div class="d">84fcea5, Live Deploy erfolgreich 15.11. 07:38 Wien</div></div>
+</div>
+
+<section id="features"><h2>Features in Arbeit</h2>
+<p>Das dezente Skills-Classic-Redesign (<a href="https://github.com/nimmsel23/skills-dev/issues/23">skills-dev#23</a>) ist als Issue noch offen, der zugehörige Draft <a href="https://github.com/nimmsel23/skills-dev/pull/22">skills-dev#22</a> wurde am 12.11. um 23:14 Wien geschlossen (gemergt). Die Freigabe des Looks durch den Owner ist der letzte Abnahmeschritt; in diesem Durchlauf nicht erneut geprüft.</p>
+<p>Die Skills-Rechtsseiten (<a href="https://github.com/nimmsel23/skills-dev/pull/20">skills-dev#20</a> und Issue #19) sind seit 12.11./13.11. geschlossen. fitness-dev#104 (roter Check, auseinandergelaufener master) ist seit 13.11. 03:27 Wien geschlossen. Offen: Der 6Pack-Runner überdeckt während eines Workouts die Shell-Navigation (kein PR gesehen). Zum Lesezeitpunkt keine offenen Pull Requests in allen sechs Repos.</p>
+</section>
+
+<section id="prs"><h2>Offene PRs und CI</h2>
+<p class="caption">Gelesen am 16.11. gegen 07:00 Wien über die GitHub-Suche (is:open) und list_check_runs_for_ref auf den Default-Branches.</p>
+<p>Keine offenen Pull Requests in fitness-dev, 6pack-dev, skills-dev, plan-dev, coach-dev oder vitalos.</p>
+<div class="tbl"><table><thead><tr><th>Repo</th><th>Default-Branch</th><th>Checks auf aktuellem Head</th></tr></thead><tbody>
+<tr><td>fitness-dev</td><td>master</td><td><span class="pill ok">Alles grün (check, deploy_live, promote, merge)</span></td></tr>
+<tr><td>6pack-dev</td><td>master</td><td><span class="pill ok">Alles grün</span></td></tr>
+<tr><td>skills-dev</td><td>master</td><td><span class="pill ok">Alles grün (check, deploy, repair)</span></td></tr>
+<tr><td>plan-dev</td><td>master</td><td><span class="pill ok">Alles grün</span></td></tr>
+<tr><td>coach-dev</td><td>dev (Default)</td><td><span class="pill ok">Alles grün</span></td></tr>
+<tr><td>vitalos</td><td>master</td><td><span class="pill ok">smoke, deploy ×2 grün (nur 3 Läufe geliefert)</span></td></tr>
+</tbody></table></div>
+</section>
+
+<section id="live"><h2>Live-Stand und Deploys</h2>
+<dl class="props">
+<dt>Fitness-Live-URL</dt><dd><a href="https://fitness-aos.web.app">https://fitness-aos.web.app</a></dd>
+<dt>Letzter Live-Deploy</dt><dd>Live Deploy (Fitness master) auf 84fcea5: erfolgreich, 15.11. 07:38 Wien. <a href="https://github.com/nimmsel23/fitness-dev/actions/runs/43686392520">Lauf</a>. Der Deploy auf 9c2e87a (14.11. 20:07 Wien) war fehlgeschlagen; der nächste lief durch.</dd>
+<dt>Auto-Promote</dt><dd>Letzte Läufe auf 84fcea5 erfolgreich (16.11. 01:25 Wien).</dd>
+<dt>Mini-App-Tabs</dt><dd>Letzter Lauf „Live Deploy (Mini-Apps je Tab)“ erfolgreich auf 99f62f2 (12.11. 14:42 Wien) nach dem Fehlschlag auf 37e7706, behoben durch fitness-dev#106. Seitdem nicht erneut gelaufen.</dd>
+<dt>Check (Fitness)</dt><dd>Letzter Lauf erfolgreich auf 84fcea5 (15.11. 07:37 Wien); auf einen Fehlschlag auf 96f5332 (14.11.) folgte Grün.</dd>
+</dl>
+</section>
+
+<section id="merged"><h2>Zuletzt gemergt</h2>
+<p class="caption">Zeitraum: gemergt am oder nach dem 9. November 2026 (UTC-Datum). Zahlen inklusive Dependency-PRs.</p>
+<div class="tbl"><table><thead><tr><th>Gemergt (UTC)</th><th>PR</th><th>Titel</th></tr></thead><tbody>
+<tr><td>15.11. 14:58</td><td><a href="https://github.com/nimmsel23/skills-dev/pull/25">skills-dev#25</a></td><td>fix(ci): 6Pack-Daten generieren; Promote/Deploy nur bei grünem Check</td></tr>
+<tr><td>14.11. 06:41</td><td><a href="https://github.com/nimmsel23/vitalos/pull/42">vitalos#42</a></td><td>chore(submodules): fitness-app pin bump</td></tr>
+<tr><td>12.11. 22:14</td><td><a href="https://github.com/nimmsel23/skills-dev/pull/22">skills-dev#22</a></td><td>Calm classic Skills design</td></tr>
+<tr><td>12.11. 14:16</td><td><a href="https://github.com/nimmsel23/fitness-dev/pull/107">fitness-dev#107</a></td><td>fix(ci): Check ohne rekursive journal-app Submodule</td></tr>
+<tr><td>12.11. 13:42</td><td><a href="https://github.com/nimmsel23/fitness-dev/pull/106">fitness-dev#106</a></td><td>fix(ci): Fitness-KB im Mini-App-Tab-Deploy</td></tr>
+<tr><td>12.11. 13:14</td><td><a href="https://github.com/nimmsel23/fitness-dev/pull/105">fitness-dev#105</a></td><td>Plain 6Pack and Skills labels inside the VitalOS shell</td></tr>
+<tr><td>12.11. 13:06</td><td><a href="https://github.com/nimmsel23/6pack-dev/pull/46">6pack-dev#46</a></td><td>VitalOS shell embed</td></tr>
+</tbody></table></div>
+<p>Summen seit 9.11.: fitness-dev 13, 6pack-dev 8, skills-dev 5, plan-dev 0, coach-dev 6, vitalos 17.</p>
+</section>
+
+<section id="blockers"><h2>Blocker und Risiken</h2>
+<div class="rows">
+<div class="row"><div class="top"><span class="t">skills-dev#24 und #26 noch offen</span><span class="pill warn">Prüfen</span></div><div class="m">Eigener Bereich</div><div>Check/Live Deploy rot (sixpackData.gen) und ein Dashboard-Status-Issue, beide vom 15.11. Der Fix #25 wurde am 15.11. um 15:58 Wien gemergt, die master-Checks sind jetzt grün; die Issues warten aufs Schließen.</div></div>
+<div class="row"><div class="top"><span class="t">VitalOS-Pins hinter den masters</span><span class="pill warn">Drift</span></div><div class="m">Schnittstelle</div><div>Die Pins von skills-app und fitness-app liegen hinter ihren masters (siehe Schnittstellen). 6pack-app und plan-app stimmen.</div></div>
+<div class="row"><div class="top"><span class="t">6Pack-Runner überdeckt die Shell-Navigation</span><span class="pill warn">Offen</span></div><div class="m">Eigener Bereich</div><div>Im Shell-Browsertest gesehen. Kein Fix-PR offen.</div></div>
+<div class="row"><div class="top"><span class="t">Feature-Freeze bis 7. Februar 2027</span><span class="pill">In Kraft</span></div><div class="m">Regel</div><div>Ausgenommen freigegebene Arbeit und Bugfixes. Neue Ideen gehen an den CPO Bot (freitags).</div></div>
+</div>
+</section>
+
+<section id="interfaces"><h2>Schnittstellen</h2>
+<p>Pins der VitalOS-Shell (nimmsel23/vitalos master) gegen den master des jeweiligen Repos, gelesen am 16.11.</p>
+<div class="tbl"><table><thead><tr><th>Shell-Pfad</th><th>Quell-Repo</th><th>Gepinnter SHA</th><th>master-Head</th><th>Abgleich</th></tr></thead><tbody>
+<tr><td>6pack-app</td><td>6pack-dev</td><td><code>51bbdc7f</code></td><td><code>51bbdc7f</code></td><td><span class="pill ok">Synchron</span></td></tr>
+<tr><td>skills-app</td><td>skills-dev</td><td><code>6098a12a</code></td><td><code>422fe84f</code></td><td><span class="pill warn">Dahinter</span></td></tr>
+<tr><td>plan-app</td><td>plan-dev</td><td><code>d4181a86</code></td><td><code>d4181a86</code></td><td><span class="pill ok">Synchron</span></td></tr>
+<tr><td>fitness-app</td><td>fitness-dev</td><td><code>9c2e87a4</code></td><td><code>84fcea54</code></td><td><span class="pill warn">Dahinter</span></td></tr>
+</tbody></table></div>
+</section>
+
+<section id="issues"><h2>Offene Issues</h2>
+<div class="tbl"><table><thead><tr><th>Issue</th><th>Titel</th></tr></thead><tbody>
+<tr><td><a href="https://github.com/nimmsel23/skills-dev/issues/26">skills-dev#26</a></td><td>Dashboard-Lage: rot</td></tr>
+<tr><td><a href="https://github.com/nimmsel23/skills-dev/issues/24">skills-dev#24</a></td><td>[fitness] Check + Live Deploy rot: sixpackData.gen</td></tr>
+<tr><td><a href="https://github.com/nimmsel23/skills-dev/issues/23">skills-dev#23</a></td><td>Classic design: understated major redesign</td></tr>
+</tbody></table></div>
+<p>Das sind drei offene Issues in skills-dev; keine in fitness-dev, 6pack-dev, plan-dev oder coach-dev.</p>
+</section>
+
+<section id="refresh"><h2>Aktualisierung</h2>
+<ul>
+<li>Diese Seite ist eine Momentaufnahme. Der Fitness DEV Bot aktualisiert die Cursor-Page mindestens täglich oder nach einem Merge bzw. einer CI-Änderung, indem er GitHub neu liest. Diese HTML-Datei ist ein Export davon und wird nicht automatisch nachgezogen.</li>
+<li>Das selbstaktualisierende öffentliche Board ist das Fitness-Komplex-Dashboard unter <a href="https://nimmsel23.github.io/dashboards/fitness/">nimmsel23.github.io/dashboards/fitness/</a> (Quelle <code>vos/fitness/dashboard/build.py</code>). Zum Zeitpunkt der Momentaufnahme hieß es in der Page noch, vos#9 sei nicht gemergt und vos/org/DASHBOARDS.md existiere nicht; inzwischen gibt es <code>org/DASHBOARDS.md</code> in vos mit einer Zeile für dieses Board.</li>
+</ul>
+</section>
+
+<details class="meta"><summary>Quellen der Momentaufnahme</summary><ul>
+<li>GitHub API, nur lesend, über cursor-github: nimmsel23/fitness-dev, 6pack-dev, skills-dev, plan-dev, coach-dev, vitalos, vos</li>
+<li>vitalos-Issues #27–#33 und vos/org (zum Zeitpunkt keine DASHBOARDS.md auf main oder auf Branch cursor/fitness-dashboard-daily-6654)</li>
+<li>fitness-dev .github/workflows/deploy-master.yml (Live-URL https://fitness-aos.web.app)</li>
+<li>list_check_runs_for_ref auf Default-Branch und Heads offener PRs; list_workflow_runs für deploy-master.yml, automerge.yml, check.yml und deploy-miniapps-Lauf 43225387762</li>
+</ul></details>
+<a class="top-link" href="#top">↑ Nach oben</a>
+
+<footer>Export einer Cursor-Page des Fitness DEV Bot als eigenständige HTML-Datei (ohne Build-Schritt). Inhaltlicher Stand: 16. November 2026.</footer>
+</div>
+</body>
+</html>
