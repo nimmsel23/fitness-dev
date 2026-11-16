@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-16T10:42:56+00:00",
+  "generated_at": "2026-11-16T11:35:55+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-16T10:42:34Z",
+   "pushed_at": "2026-11-16T11:35:33Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -19,12 +19,30 @@
    "main": "master",
    "has_dev": true,
    "dev_behind": 0,
-   "dev_ahead": 7,
-   "oldest_unpromoted": "2026-11-16T06:41:57Z",
-   "dev_head": "e8dd72f5 2026-11-16T10:42:28Z",
-   "master_head": "5a98a15a 2026-11-16T11:37:50+01:00"
+   "dev_ahead": 3,
+   "oldest_unpromoted": "2026-11-16T11:26:33Z",
+   "dev_head": "f58482a5 2026-11-16T11:35:32Z",
+   "master_head": "e8dd72f5 2026-11-16T10:42:28Z"
   },
   "commits": [
+   {
+    "sha": "f58482a5",
+    "date": "2026-11-16T11:35:32Z",
+    "author": "Cursor Agent",
+    "subject": "dashboard: Check und Dashboard starten"
+   },
+   {
+    "sha": "0d82d7ae",
+    "date": "2026-11-16T11:33:27Z",
+    "author": "Cursor Agent",
+    "subject": "dashboard: Check und Dashboard auf dev starten"
+   },
+   {
+    "sha": "9d74e763",
+    "date": "2026-11-16T11:26:33Z",
+    "author": "Cursor Agent",
+    "subject": "dashboard: master-Push baut ebenfalls dev"
+   },
    {
     "sha": "e8dd72f5",
     "date": "2026-11-16T10:42:28Z",
@@ -126,24 +144,6 @@
     "date": "2026-11-14T19:43:04+01:00",
     "author": "Alpha",
     "subject": "fix(nav): Hub nur im Sheet — mit Sheet keine Bottom-Nav, ohne Sheet Nav ohne Hub-Button"
-   },
-   {
-    "sha": "520c73f3",
-    "date": "2026-11-14T19:43:04+01:00",
-    "author": "Alpha",
-    "subject": "feat(session): Core Skills (Skills + 6Pack) eingebettet statt Absprung"
-   },
-   {
-    "sha": "4d39fdc5",
-    "date": "2026-11-14T19:43:04+01:00",
-    "author": "Alpha",
-    "subject": "feat(learn): add settings route for language and account"
-   },
-   {
-    "sha": "c3f9a6e4",
-    "date": "2026-11-14T06:26:14+01:00",
-    "author": "Alpha",
-    "subject": "fix(logbuch): Muskel-Linse zählt Belastung statt Sätze (One Set to Failure)"
    }
   ],
   "activity": [
@@ -229,7 +229,7 @@
    },
    {
     "day": "2026-11-16",
-    "n": 9
+    "n": 12
    }
   ],
   "workflows": [
@@ -239,9 +239,29 @@
     "event": "push",
     "status": "in_progress",
     "conclusion": null,
-    "created_at": "2026-11-16T10:42:36Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43851265405",
+    "created_at": "2026-11-16T11:35:35Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43859101904",
+    "sha": "f58482a"
+   },
+   {
+    "name": "Live Deploy (Fitness master)",
+    "branch": "master",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-16T10:44:12Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43851495565",
     "sha": "e8dd72f"
+   },
+   {
+    "name": "PR-AutoMerge (Dependabot -> dev)",
+    "branch": "master",
+    "event": "workflow_run",
+    "status": "completed",
+    "conclusion": "skipped",
+    "created_at": "2026-11-16T10:44:03Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43851472836",
+    "sha": "5a98a15"
    },
    {
     "name": "Gemini CI Agent",
@@ -249,39 +269,19 @@
     "event": "workflow_run",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-16T10:39:52Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43850872907",
-    "sha": "5a98a15"
-   },
-   {
-    "name": "Live Deploy (Fitness master)",
-    "branch": "master",
-    "event": "push",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-16T10:37:53Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43850583726",
+    "created_at": "2026-11-16T10:44:03Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43851472627",
     "sha": "5a98a15"
    },
    {
     "name": "Auto-Promote dev -> master (Check (Fitness))",
     "branch": "master",
-    "event": "push",
-    "status": "completed",
-    "conclusion": "failure",
-    "created_at": "2026-11-16T10:37:53Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43850583501",
-    "sha": "5a98a15"
-   },
-   {
-    "name": "PR-AutoMerge (Dependabot -> dev)",
-    "branch": "master",
-    "event": "schedule",
+    "event": "workflow_run",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-16T09:18:55Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43838619611",
-    "sha": "11d0441"
+    "created_at": "2026-11-16T10:44:03Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43851472584",
+    "sha": "5a98a15"
    },
    {
     "name": "Merge-Agent",
@@ -516,10 +516,21 @@
   ],
   "issues": [
    {
+    "number": 118,
+    "title": "Dashboard-Lage: rot",
+    "created_at": "2026-11-16T10:43:16Z",
+    "updated_at": "2026-11-16T10:43:16Z",
+    "labels": [
+     "dashboard"
+    ],
+    "url": "https://github.com/nimmsel23/fitness-dev/issues/118",
+    "author": "github-actions[bot]"
+   },
+   {
     "number": 117,
     "title": "ci: dev nach Squash von #116 wieder mit master verbinden (Promote rot)",
     "created_at": "2026-11-16T09:01:19Z",
-    "updated_at": "2026-11-16T09:01:19Z",
+    "updated_at": "2026-11-16T10:53:38Z",
     "labels": [],
     "url": "https://github.com/nimmsel23/fitness-dev/issues/117",
     "author": "nimmsel23"
@@ -540,41 +551,41 @@
   ]
  },
  "assessment": {
-  "status": "red",
-  "signals": [
-   {
-    "level": "red",
-    "key": "ci:Auto-Promote dev -> master (Check (Fitness)):master",
-    "text": "„Auto-Promote dev -> master (Check (Fitness))“ auf master ist rot (failure, 5a98a15)",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43850583501"
-   }
-  ],
+  "status": "green",
+  "signals": [],
   "ai": {
-   "headline": "Auto-Promote rot, dev 7 Commits voraus, Live Deploy grün",
-   "lage": "Der „Auto-Promote dev -> master (Check (Fitness))“ Workflow auf `master` ist mit Commit `5a98a15a` fehlgeschlagen. Infolgedessen ist der `dev`-Branch 7 Commits vor `master`. Der „Live Deploy (Fitness master)“ Workflow für `master` (Commit `5a98a15a`) wurde erfolgreich abgeschlossen. Issue #117 „ci: dev nach Squash von #116 wieder mit master verbinden (Promote rot)“ wurde erstellt.",
+   "headline": "Auto-Promote grün, dev 3 Commits voraus, Dashboard-Lage rot",
+   "lage": "Der „Auto-Promote dev -> master (Check (Fitness))“ Workflow auf `master` (Commit `5a98a15`) wurde erfolgreich abgeschlossen. Der `dev`-Branch ist 3 Commits vor `master`. Der „Check (Fitness)“ Workflow auf `dev` (Commit `f58482a5`) läuft aktuell. Issue #118 „Dashboard-Lage: rot“ wurde erstellt.",
    "auffaelligkeiten": [
     {
      "level": "hoch",
-     "text": "„Auto-Promote dev -> master (Check (Fitness))“ auf master ist rot (failure, 5a98a15a)."
+     "text": "Issue #118 „Dashboard-Lage: rot“ wurde erstellt, was auf ein Problem mit dem Dashboard hindeutet."
     },
     {
      "level": "mittel",
-     "text": "Der `dev`-Branch ist 7 Commits vor `master`, was auf eine Divergenz der Branches hindeutet."
+     "text": "Der `dev`-Branch ist 3 Commits vor `master`."
+    },
+    {
+     "level": "mittel",
+     "text": "Issue #117 „ci: dev nach Squash von #116 wieder mit master verbinden (Promote rot)“ ist noch offen, obwohl der „Auto-Promote dev -> master“ Workflow erfolgreich war, was den Titel irreführend macht."
     },
     {
      "level": "info",
-     "text": "Der „Check (Fitness)“ Workflow auf `dev` (Commit `e8dd72f5`) ist noch in Bearbeitung."
+     "text": "Der „Check (Fitness)“ Workflow auf `dev` (Commit `f58482a5`) ist aktuell in Bearbeitung."
     }
    ],
    "naechste_schritte": [
-    "Analysieren der Ursache für den fehlgeschlagenen `Auto-Promote dev -> master` Workflow (5a98a15).",
-    "Beheben des Problems, das in Issue #117 beschrieben ist, um `dev` wieder mit `master` zu synchronisieren.",
+    "Analysieren der Ursache für Issue #118 „Dashboard-Lage: rot“.",
+    "Überprüfen der Relevanz von Issue #117, insbesondere des „Promote rot“-Teils, da der „Auto-Promote“ Workflow erfolgreich war.",
     "Entfernen der verwaisten `HabitJournalModal.jsx` aus `fitness-dev/src/components/`."
    ],
-   "veraendert": "Der `dev`-Branch ist nicht mehr mit `master` synchronisiert, da der `Auto-Promote` Workflow fehlgeschlagen ist.",
-   "fragen": [],
+   "veraendert": "Der „Auto-Promote dev -> master (Check (Fitness))“ Workflow ist nun erfolgreich abgeschlossen, und `dev` ist nur noch 3 Commits vor `master` statt 7.",
+   "fragen": [
+    "Was ist die Ursache für die „Dashboard-Lage: rot“ (Issue #118)?",
+    "Ist Issue #117 „ci: dev nach Squash von #116 wieder mit master verbinden (Promote rot)“ noch aktuell, da der „Auto-Promote“ Workflow erfolgreich war?"
+   ],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-16T10:42:59+00:00"
+  "ai_at": "2026-11-16T11:35:58+00:00"
  }
 }
