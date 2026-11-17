@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-17T13:51:38+00:00",
+  "generated_at": "2026-11-17T16:05:27+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-16T13:07:47Z",
+   "pushed_at": "2026-11-17T16:05:16Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -21,10 +21,16 @@
    "dev_behind": 0,
    "dev_ahead": 0,
    "oldest_unpromoted": null,
-   "dev_head": "f58482a5 2026-11-16T11:35:32Z",
-   "master_head": "f58482a5 2026-11-16T11:35:32Z"
+   "dev_head": "49e24832 2026-11-17T17:05:02+01:00",
+   "master_head": "49e24832 2026-11-17T17:05:02+01:00"
   },
   "commits": [
+   {
+    "sha": "49e24832",
+    "date": "2026-11-17T17:05:02+01:00",
+    "author": "nimmsel23",
+    "subject": "org-bot: Workflow installieren (Org-Autonomie 16.11.2026)"
+   },
    {
     "sha": "f58482a5",
     "date": "2026-11-16T11:35:32Z",
@@ -138,18 +144,12 @@
     "date": "2026-11-14T19:43:04+01:00",
     "author": "Alpha",
     "subject": "feat(session): /skills, /core, #core öffnen Core Skills"
-   },
-   {
-    "sha": "c08dffb2",
-    "date": "2026-11-14T19:43:04+01:00",
-    "author": "Alpha",
-    "subject": "fix(nav): Hub nur im Sheet — mit Sheet keine Bottom-Nav, ohne Sheet Nav ohne Hub-Button"
    }
   ],
   "activity": [
    {
     "day": "2026-10-28",
-    "n": 3
+    "n": 2
    },
    {
     "day": "2026-10-29",
@@ -229,10 +229,40 @@
    },
    {
     "day": "2026-11-17",
-    "n": 0
+    "n": 1
    }
   ],
   "workflows": [
+   {
+    "name": "Live Deploy (Fitness master)",
+    "branch": "master",
+    "event": "push",
+    "status": "in_progress",
+    "conclusion": null,
+    "created_at": "2026-11-17T16:05:06Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44121677700",
+    "sha": "49e2483"
+   },
+   {
+    "name": "Auto-Promote dev -> master (Check (Fitness))",
+    "branch": "master",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-17T16:05:05Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44121677162",
+    "sha": "49e2483"
+   },
+   {
+    "name": "Merge-Agent",
+    "branch": "master",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-17T14:08:03Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44099785026",
+    "sha": "f58482a"
+   },
    {
     "name": "PR-AutoMerge (Dependabot -> dev)",
     "branch": "master",
@@ -241,36 +271,6 @@
     "conclusion": "success",
     "created_at": "2026-11-17T12:57:52Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44088051597",
-    "sha": "f58482a"
-   },
-   {
-    "name": "Auto-Promote dev -> master (Check (Fitness))",
-    "branch": "master",
-    "event": "schedule",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-17T09:18:02Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44054306719",
-    "sha": "f58482a"
-   },
-   {
-    "name": "Merge-Agent",
-    "branch": "master",
-    "event": "schedule",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-17T04:57:24Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44020686526",
-    "sha": "f58482a"
-   },
-   {
-    "name": "Live Deploy (Fitness master)",
-    "branch": "master",
-    "event": "workflow_dispatch",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-16T11:37:23Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43859367804",
     "sha": "f58482a"
    },
    {
@@ -543,34 +543,33 @@
   "status": "green",
   "signals": [],
   "ai": {
-   "headline": "Dev und Master synchron, CI/CD erfolgreich, Dashboard grün, Issue #117 offen",
-   "lage": "Der `dev`-Branch ist weiterhin mit `master` auf Commit `f58482a5` synchronisiert. Alle relevanten CI/CD-Workflows, einschließlich \"Check (Fitness)\", \"Auto-Promote dev -> master (Check (Fitness))\" und \"Live Deploy (Fitness master)\", wurden erfolgreich abgeschlossen. Das Dashboard ist laut `docs/NEXT.md` aktiv und grün, während Issue #117 \"Promote rot\" noch offen ist.",
+   "headline": "Dev und Master synchron, Live Deploy läuft, Issue #117 offen",
+   "lage": "Der `dev`-Branch ist mit `master` auf Commit `49e24832` synchronisiert. Der Workflow \"Live Deploy (Fitness master)\" ist aktuell in Bearbeitung. Das Dashboard ist weiterhin aktiv und grün, während Issue #117 \"Promote rot\" noch offen ist.",
    "auffaelligkeiten": [
     {
-     "level": "mittel",
-     "text": "Issue #117 \"Promote rot\" ist weiterhin offen, obwohl ein Fix-Commit `11d04417` für ein ähnliches Promote-Problem (#116) existiert und Auto-Promote-Läufe erfolgreich sind."
+     "level": "info",
+     "text": "Issue #117 \"ci: dev nach Squash von #116 wieder mit master verbinden (Promote rot)\" ist weiterhin offen."
     },
     {
      "level": "info",
-     "text": "Die verwaiste Datei `HabitJournalModal.jsx` in `fitness-dev/src/components/` ist laut `docs/TODO.md` noch vorhanden und kann entfernt werden."
+     "text": "Die verwaiste Datei `HabitJournalModal.jsx` in `fitness-dev/src/components/` ist laut `docs/TODO.md` noch vorhanden."
     },
     {
      "level": "info",
-     "text": "Die Verifizierung des Gemini CI Agent Reparaturpfads anhand eines echten roten Code-Reparaturlaufs ist in `docs/NEXT.md` noch als offene Aufgabe vermerkt."
+     "text": "Die Verifizierung des Gemini CI Agent Reparaturpfads ist laut `docs/NEXT.md` noch ausstehend."
     }
    ],
    "naechste_schritte": [
-    "Überprüfen der Relevanz von Issue #117 \"Promote rot\" und ggf. schließen.",
+    "Überprüfen des Status und Abschluss des Workflows \"Live Deploy (Fitness master)\" (run 44121677700).",
     "Entfernen der verwaisten `HabitJournalModal.jsx` aus `fitness-dev/src/components/`.",
     "Verifizieren des Gemini CI Agent Reparaturpfads wie in `docs/NEXT.md` beschrieben."
    ],
-   "veraendert": "Die Dashboard-Lage ist nun explizit als \"grün\" in `docs/NEXT.md` vermerkt, was die Unklarheit aus der letzten Einschätzung beseitigt.",
+   "veraendert": "Der `dev`- und `master`-Branch wurden auf Commit `49e24832` aktualisiert, und der \"Live Deploy (Fitness master)\"-Workflow ist aktuell in Bearbeitung, im Gegensatz zum vorherigen erfolgreichen Abschluss.",
    "fragen": [
-    "Soll Issue #117 \"Promote rot\" angesichts des Fix-Commits `11d04417` und der erfolgreichen Auto-Promote-Läufe geschlossen werden?",
-    "Wann soll der Gemini CI Agent Reparaturpfad mit einem echten roten Code-Reparaturlauf verifiziert werden?"
+    "Soll Issue #117 \"Promote rot\" angesichts der aktuellen Synchronisation von `dev` und `master` geschlossen werden?"
    ],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-17T13:51:41+00:00"
+  "ai_at": "2026-11-17T16:05:30+00:00"
  }
 }
