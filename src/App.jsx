@@ -1,5 +1,5 @@
 import { useCoachUnread } from './hooks/useCoachUnread.js'
-import { useState, useEffect, useRef, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { onMessage } from 'firebase/messaging'
 import { RefreshCw } from 'lucide-react'
 import Session from './views/Session/index.jsx'
@@ -19,7 +19,7 @@ import { getMessagingIfSupported } from '@cloud/firebase.js'
 import { getNavItems, VALID_TABS, IS_SOLO, SOLO_TAB } from './constants/NavigationItems.js'
 import { markStandaloneHost } from './views/Session/externalSessionApps.js'
 // Core Skills (Skills + 6Pack) eingebettet statt Absprung auf vos-skills/vos-6pack — gleiche Origin, gleicher Login.
-const CoreSkills = lazy(() => import('./views/Skills/CoreSkills.jsx'))
+import CoreSkills from './views/Skills/CoreSkills.jsx' // statisch, keine Dynamic Imports (AGENTS.md)
 const CORE_SKILLS_ROUTE = { skills: '', timer: 'sixpack' }
 
 import Sidebar from './components/layout/Sidebar.jsx'
@@ -565,9 +565,7 @@ export default function App() {
 
   // Core Skills vollflächig, ohne Fitness-Header/Datepicker/Nav.
   if (tab === 'session' && subTab in CORE_SKILLS_ROUTE && coreSkillsRoute !== null) return (
-    <Suspense fallback={<div className="min-h-screen bg-fit-bg" />}>
-      <CoreSkills route={coreSkillsRoute} onRouteChange={setCoreSkillsRoute} onClose={() => { setCoreSkillsRoute(null); setSubTab('today'); }} />
-    </Suspense>
+    <CoreSkills route={coreSkillsRoute} onRouteChange={setCoreSkillsRoute} onClose={() => { setCoreSkillsRoute(null); setSubTab('today'); }} />
   );
 
   return (
