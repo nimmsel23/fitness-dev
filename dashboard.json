@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-17T17:01:10+00:00",
+  "generated_at": "2026-11-18T13:26:58+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-17T17:00:53Z",
+   "pushed_at": "2026-11-17T17:01:30Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -148,12 +148,8 @@
   ],
   "activity": [
    {
-    "day": "2026-10-28",
-    "n": 2
-   },
-   {
     "day": "2026-10-29",
-    "n": 42
+    "n": 29
    },
    {
     "day": "2026-10-30",
@@ -230,37 +226,41 @@
    {
     "day": "2026-11-17",
     "n": 2
+   },
+   {
+    "day": "2026-11-18",
+    "n": 0
    }
   ],
   "workflows": [
    {
-    "name": "Auto-Promote dev -> master (Check (Fitness))",
+    "name": "PR-AutoMerge (Dependabot -> dev)",
     "branch": "master",
-    "event": "push",
+    "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-17T17:00:44Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44132211672",
+    "created_at": "2026-11-18T12:51:15Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44307887048",
     "sha": "78fcd6b"
    },
    {
-    "name": "Live Deploy (Mini-Apps je Tab)",
+    "name": "Merge-Agent",
     "branch": "master",
-    "event": "push",
-    "status": "queued",
-    "conclusion": null,
-    "created_at": "2026-11-17T17:00:44Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44132211319",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-18T12:32:25Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44304895225",
     "sha": "78fcd6b"
    },
    {
-    "name": "Live Deploy (Fitness master)",
+    "name": "Auto-Promote dev -> master (Check (Fitness))",
     "branch": "master",
-    "event": "push",
-    "status": "in_progress",
-    "conclusion": null,
-    "created_at": "2026-11-17T17:00:44Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44132211043",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-18T09:14:30Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44274066109",
     "sha": "78fcd6b"
    },
    {
@@ -269,19 +269,29 @@
     "event": "workflow_run",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-17T16:37:33Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44127891550",
-    "sha": "49e2483"
+    "created_at": "2026-11-17T17:02:46Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44132592377",
+    "sha": "78fcd6b"
    },
    {
-    "name": "PR-AutoMerge (Dependabot -> dev)",
+    "name": "Live Deploy (Mini-Apps je Tab)",
     "branch": "master",
-    "event": "workflow_run",
+    "event": "push",
     "status": "completed",
-    "conclusion": "skipped",
-    "created_at": "2026-11-17T16:37:26Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44127870134",
-    "sha": "49e2483"
+    "conclusion": "success",
+    "created_at": "2026-11-17T17:00:44Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44132211319",
+    "sha": "78fcd6b"
+   },
+   {
+    "name": "Live Deploy (Fitness master)",
+    "branch": "master",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-17T17:00:44Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44132211043",
+    "sha": "78fcd6b"
    },
    {
     "name": "Check (Fitness)",
@@ -332,16 +342,6 @@
     "created_at": "2026-11-17T16:35:30Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44127505538",
     "sha": "5e9fb9b"
-   },
-   {
-    "name": "Merge-Agent",
-    "branch": "master",
-    "event": "schedule",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-17T14:08:03Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44099785026",
-    "sha": "f58482a"
    },
    {
     "name": "Check (Fitness)",
@@ -452,26 +452,6 @@
     "created_at": "2026-11-16T06:44:10Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43818808172",
     "sha": "35f6a7c"
-   },
-   {
-    "name": "Check (Fitness)",
-    "branch": "dependabot/pip/dev/fastapi-gte-0.162.2",
-    "event": "pull_request",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-16T06:41:10Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43818460454",
-    "sha": "81d4831"
-   },
-   {
-    "name": "Merge-Agent",
-    "branch": "dependabot/pip/dev/fastapi-gte-0.162.2",
-    "event": "pull_request",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-16T06:41:10Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43818460452",
-    "sha": "81d4831"
    }
   ],
   "issues": [
@@ -503,30 +483,33 @@
   "status": "green",
   "signals": [],
   "ai": {
-   "headline": "Dev und Master synchron auf 78fcd6b4, Live Deploy läuft, Issue #117 offen",
-   "lage": "Der `dev`-Branch ist mit `master` auf Commit `78fcd6b4` synchronisiert. Der Workflow \"Live Deploy (Fitness master)\" (run 44132211043) ist in Bearbeitung, während \"Live Deploy (Mini-Apps je Tab)\" in der Warteschlange steht. Issue #117 \"Promote rot\" ist weiterhin offen.",
+   "headline": "Dev und Master synchron, Live Deploys erfolgreich, Issue #117 offen",
+   "lage": "Der `dev`-Branch ist mit `master` auf Commit `78fcd6b4` synchronisiert. Die Workflows \"Live Deploy (Fitness master)\" (run 44132211043) und \"Live Deploy (Mini-Apps je Tab)\" wurden erfolgreich abgeschlossen. Issue #117 \"Promote rot\" ist weiterhin offen.",
    "auffaelligkeiten": [
     {
-     "level": "hoch",
-     "text": "Issue #117 ist offen, obwohl die `dev`- und `master`-Branches synchronisiert sind, was auf eine Diskrepanz zwischen Issue-Status und Branch-Zustand hindeutet."
+     "level": "mittel",
+     "text": "Issue #117 \"ci: dev nach Squash von #116 wieder mit master verbinden (Promote rot)\" ist seit dem 16. November offen."
     },
     {
      "level": "info",
-     "text": "Der Workflow \"Live Deploy (Mini-Apps je Tab)\" ist in der Warteschlange, was auf eine potenzielle Verzögerung bei der Bereitstellung der Mini-Apps hindeutet."
+     "text": "Die verwaiste Datei `HabitJournalModal.jsx` in `fitness-dev/src/components/` ist laut `docs/TODO.md` noch nicht entfernt."
+    },
+    {
+     "level": "info",
+     "text": "Die Verifizierung des Gemini CI Agent Reparaturpfads anhand eines isolierten roten Checks steht laut `docs/NEXT.md` noch aus."
     }
    ],
    "naechste_schritte": [
-    "Überprüfen des Status und Abschluss des Workflows \"Live Deploy (Fitness master)\" (run 44132211043).",
-    "Entfernen der verwaisten `HabitJournalModal.jsx` aus `fitness-dev/src/components/` wie in `docs/TODO.md` beschrieben.",
-    "Verifizieren des Gemini CI Agent Reparaturpfads nach `docs/NEXT.md` anhand eines isolierten roten Checks."
+    "Prüfen, ob Issue #117 \"Promote rot\" noch relevant ist oder geschlossen werden kann.",
+    "Entfernen der Datei `HabitJournalModal.jsx` aus `fitness-dev/src/components/`.",
+    "Planen eines isolierten roten Checks zur Verifizierung des Gemini CI Agent Reparaturpfads."
    ],
-   "veraendert": "Die `dev`- und `master`-Branches wurden auf Commit `78fcd6b4` aktualisiert und sind synchron. Der zuvor laufende Live Deploy Workflow wurde durch einen neuen ersetzt.",
+   "veraendert": "Die zuvor in Bearbeitung befindlichen Live Deploy Workflows sind nun erfolgreich abgeschlossen.",
    "fragen": [
-    "Soll Issue #117 geschlossen werden, da die `dev`- und `master`-Branches synchronisiert sind?",
-    "Ist der Status \"queued\" des Workflows \"Live Deploy (Mini-Apps je Tab)\" erwartet oder erfordert er eine manuelle Intervention?"
+    "Soll Issue #117 \"Promote rot\" angesichts der aktuellen Synchronisation von `dev` und `master` geschlossen werden?"
    ],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-17T17:01:13+00:00"
+  "ai_at": "2026-11-18T13:27:00+00:00"
  }
 }
