@@ -1,13 +1,13 @@
 <title>Session Tafelbuch</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,900&display=swap">
 <style>
 /* Entwurf D = A (Logbuch-Eintrag) + C (Rhythmus-Tafel).
    Layout: Handy-first. Oben Tafel (was war/ist dran, Woche), darunter der Nachtrag als Logbuch-Blatt, Speichern unten fixiert. */
 :root{
   --bg:#e6e4df; --paper:#f6f5f2; --grid:#dcd9d2; --ink:#141414; --muted:#6b6862; --line:#c9c6bf;
   --sig:#ff4f1f; --sigsoft:#ffe1d6; --on-sig:#ffffff;
-  --display:"Archivo","Arial Narrow",sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --display:"Archivo","Arial Narrow",sans-serif; --mono:"Archivo","Arial Narrow",sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#151514;--paper:#1e1e1c;--grid:#2a2a27;--ink:#f0eee9;--muted:#9a968e;--line:#363531;--sig:#ff6a3d;--sigsoft:#3a2219;--on-sig:#ffffff;color-scheme:dark}}
 :root[data-theme="dark"]{--bg:#151514;--paper:#1e1e1c;--grid:#2a2a27;--ink:#f0eee9;--muted:#9a968e;--line:#363531;--sig:#ff6a3d;--sigsoft:#3a2219;--on-sig:#ffffff;color-scheme:dark}
@@ -31,7 +31,7 @@ body{background:var(--bg);color:var(--ink);font:15px/1.4 var(--mono);padding-lef
 .d.t{border-top-color:var(--ink)}.d.sel{border-top-color:var(--sig)}.d.sel b{color:var(--sig)}
 
 /* Logbuch-Blatt (aus A) */
-.sheet{background:var(--paper);border:1px solid var(--line);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:22px 22px;padding:14px 14px 16px;display:flex;flex-direction:column;gap:16px}
+.sheet{background:var(--paper);border-left:6px solid var(--ink);padding:14px 14px 16px;display:flex;flex-direction:column;gap:16px}
 .top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;border-bottom:3px solid var(--ink);padding-bottom:8px}
 .top h1{margin:4px 0 0;font-size:clamp(36px,11vw,56px)}
 .top h1 em{font-style:normal;color:var(--sig)}
@@ -43,7 +43,7 @@ body{background:var(--bg);color:var(--ink);font:15px/1.4 var(--mono);padding-lef
 .sh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px}
 .sh button{font:600 12px var(--mono);color:var(--sig);background:none;border:0;padding:4px 0;cursor:pointer}
 ol{list-style:none;margin:0;padding:0;border-top:1.5px solid var(--ink);background:var(--paper)}
-li{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:8px;padding:9px 0;border-bottom:1px dashed var(--line);align-items:start}
+li{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);align-items:start}
 li .n{font:900 22px var(--display);font-stretch:62%;color:var(--muted);text-align:center}
 li .nm{font:900 21px var(--display);font-stretch:75%;text-transform:uppercase;display:block;line-height:1.05}
 li .ago{font-size:11px;color:var(--muted)}
@@ -64,7 +64,7 @@ li input:focus{border-bottom-color:var(--sig);color:var(--ink);outline:none}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{font:600 13px var(--mono);border:1.5px solid var(--ink);background:var(--paper);color:var(--ink);padding:7px 11px;cursor:pointer}
 .chip.on{background:var(--ink);color:var(--paper)}
-textarea{width:100%;min-height:80px;font:16px/1.55 var(--display);border:0;border-top:3px solid var(--ink);background:transparent;color:var(--ink);padding:10px 0 0;resize:vertical}
+textarea{width:100%;min-height:80px;font:16px/1.5 var(--display);border:0;border-top:3px solid var(--ink);background:transparent;color:var(--ink);padding:10px 0 0;resize:vertical}
 .save{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:3px solid var(--ink);padding:10px max(12px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
 .save div{max-width:560px;margin:0 auto;display:flex;gap:10px;align-items:center}
 .save p{margin:0;flex:1;font-size:12px;color:var(--muted);min-width:0}
@@ -72,7 +72,7 @@ textarea{width:100%;min-height:80px;font:16px/1.55 var(--display);border:0;borde
 button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--sig);outline-offset:2px}
 </style>
 <div class="w">
-  <div class="lab">Entwurf D · A + C · Nachtrag am Handy · Beispieldaten</div>
+  <div class="lab">Entwurf D · C-Stil · Nachtrag am Handy · Beispieldaten</div>
 
   <div class="cyc" id="cyc" aria-label="Split-Zyklus">
     <button class="c" data-s="Push"><span class="lab">Sa</span><b class="disp">Push</b><span>vor 3 T.</span></button>
@@ -84,8 +84,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px soli
 
   <section class="sheet">
     <div class="top">
-      <div><div class="lab">Logbuch</div><h1 class="disp"><span id="dt">Di 18.11.</span> · <em id="sp">Pull</em></h1></div>
-      <div class="stamp">Nachtrag</div>
+      <div><div class="lab">Nachtrag</div><h1 class="disp"><span id="dt">Di 18.11.</span> · <em id="sp">Pull</em></h1></div>
     </div>
 
     <div class="fields">
