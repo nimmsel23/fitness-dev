@@ -16,6 +16,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## Fakten zum Training (immer gültig, nicht erneut nachfragen)
+
+- **Eingetragen wird NACH dem Training, nie währenddessen** — am Handy, als Nachtrag. Kein Live-/Gym-Modus-Design annehmen.
+- **Volumen wird nicht getrackt.** `sets`/`reps`/`weight` sind in echten Sessions leer. Erfasst werden: Datum, Split (`block`), Ort, Dauer, Übungen (Name + freie Notiz), Effort 1–10, Add-on (Sauna/HIIT …), Notiz.
+- **Muskelvisualisierung gehört zu Recovery, nicht zum Loggen.**
+- Session-Tab-Design: praktisch, handyoptimiert, einheitliche Bausteine („zu wenig gleich" ist das Problem), keine dekorativen Stilexperimente.
+
 ## fitness-dev: Praktisches Werkzeug der Diplom Präventiver Vitaltrainer Ausbildung
 
 **fitness-dev** ist ein Kraft-Trainings-Tracking-System (PWA Frontend, Node.js Backend) das die Pflichtaufgaben der Fitnesstrainer-Module konkret unterstützt:
