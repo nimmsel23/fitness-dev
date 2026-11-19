@@ -1,0 +1,68 @@
+<title>Session Anzeigetafel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400;62..125,600;62..125,900&display=swap">
+<style>
+/* Layout: Rhythmus-Tafel – Split-Zyklus als Hero (was ist dran?), Wochenstreifen, darunter die Einheit als kompakte Zeilen */
+:root{--bg:#e4e2dd;--fg:#141414;--card:#f2f1ee;--muted:#6b6862;--sig:#ff4f1f;--line:#c9c6bf;--font:"Archivo","Arial Narrow",sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171716;--fg:#f0eee9;--card:#21211f;--muted:#9a968e;--sig:#ff6a3d;--line:#34332f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#171716;--fg:#f0eee9;--card:#21211f;--muted:#9a968e;--sig:#ff6a3d;--line:#34332f;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.w{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.lab{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.cyc{display:grid;grid-template-columns:repeat(3,1fr);border:3px solid var(--fg)}
+.c{padding:14px;border-right:3px solid var(--fg);display:flex;flex-direction:column;gap:2px;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.c:last-child{border-right:0}
+.c b{font-stretch:62%;font-weight:900;font-size:clamp(40px,10vw,96px);line-height:.85;text-transform:uppercase}
+.c span{font-weight:600;font-size:13px}
+.c.next{background:var(--sig);color:#fff}.c.next .lab{color:#fff}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.d{border-top:4px solid var(--line);padding-top:6px;font-size:12px;font-weight:600}
+.d b{display:block;font-stretch:62%;font-weight:900;font-size:22px;text-transform:uppercase}
+.d.t{border-top-color:var(--fg)}.d.now{border-top-color:var(--sig)}
+.d small{color:var(--muted);font-weight:400}
+.ses{background:var(--card);border-left:6px solid var(--fg);padding:16px;display:flex;flex-direction:column;gap:14px}
+.head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;align-items:baseline}
+.head h1{margin:0;font-stretch:62%;font-weight:900;font-size:clamp(34px,6vw,52px);text-transform:uppercase;line-height:.9}
+.stats{display:flex;gap:18px;flex-wrap:wrap}
+.stats div b{display:block;font-stretch:75%;font-weight:900;font-size:30px;font-variant-numeric:tabular-nums}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:10px 0;border-top:1px solid var(--line);align-items:baseline}
+.row h2{margin:0;font-stretch:75%;font-weight:900;font-size:22px;text-transform:uppercase}
+.row p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.ago{font-weight:600;font-size:13px;white-space:nowrap}.ago.long{color:var(--sig)}
+.effbar{display:flex;gap:3px}.effbar i{flex:1;height:14px;background:var(--line)}.effbar i.on{background:var(--fg)}
+@media (max-width:560px){.cyc{grid-template-columns:1fr}.c{border-right:0;border-bottom:3px solid var(--fg)}.c:last-child{border-bottom:0}.d b{font-size:16px}}
+</style>
+<div class="w">
+  <div class="lab">Entwurf C · Rhythmus · Mi 19.11.</div>
+  <div class="cyc" id="cyc">
+    <button class="c"><span class="lab">zuletzt · Di</span><b>Pull</b><span>vor 1 Tag</span></button>
+    <button class="c next"><span class="lab">als Nächstes</span><b>Legs</b><span>letzte vor 8 Tagen</span></button>
+    <button class="c"><span class="lab">danach</span><b>Push</b><span>letzte vor 3 Tagen</span></button>
+  </div>
+  <div class="week">
+    <div class="d t">Do<b>Legs</b><small>45′ · 7</small></div>
+    <div class="d">Fr<b>–</b></div>
+    <div class="d t">Sa<b>Push</b><small>40′ · 8</small></div>
+    <div class="d">So<b>–</b></div>
+    <div class="d">Mo<b>–</b></div>
+    <div class="d t">Di<b>Pull</b><small>30′ · 6</small></div>
+    <div class="d now">Mi<b>?</b><small>heute</small></div>
+  </div>
+  <article class="ses">
+    <div class="head"><h1>Di 18.11. · Pull</h1><span class="lab">Fitness First Schnirchgasse</span></div>
+    <div class="stats">
+      <div><span class="lab">Dauer</span><b>30′</b></div>
+      <div style="min-width:180px;flex:1"><span class="lab">Effort 6/10</span><div class="effbar" style="margin-top:10px">${''}</div></div>
+    </div>
+    <div>
+      <div class="row"><div><h2>Klimmzug im Obergriff</h2></div><span class="ago">zuletzt vor 6 Tagen</span></div>
+      <div class="row"><div><h2>Cable Rear-Delt Fly</h2><p>einarmig, kein normaler Fly</p></div><span class="ago">vor 6 Tagen</span></div>
+      <div class="row"><div><h2>Seitheben am Kabel</h2><p>einarmig</p></div><span class="ago long">vor 23 Tagen</span></div>
+      <div class="row"><div><h2>+ Sauna</h2><p>Add-on · 15 min</p></div><span class="ago"></span></div>
+    </div>
+  </article>
+</div>
+<script>
+document.querySelector('.effbar').innerHTML=Array.from({length:10},(_,i)=>`<i class="${i<6?'on':''}"></i>`).join('');
+document.getElementById('cyc').onclick=e=>{const c=e.target.closest('.c');if(!c)return;document.querySelectorAll('.c').forEach(x=>x.classList.toggle('next',x===c))};
+</script>
