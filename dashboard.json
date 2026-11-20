@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-19T13:53:18+00:00",
+  "generated_at": "2026-11-20T13:36:23+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-18T13:27:13Z",
+   "pushed_at": "2026-11-19T13:53:41Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -148,12 +148,8 @@
   ],
   "activity": [
    {
-    "day": "2026-10-30",
-    "n": 1
-   },
-   {
     "day": "2026-10-31",
-    "n": 130
+    "n": 81
    },
    {
     "day": "2026-11-01",
@@ -230,6 +226,10 @@
    {
     "day": "2026-11-19",
     "n": 0
+   },
+   {
+    "day": "2026-11-20",
+    "n": 0
    }
   ],
   "workflows": [
@@ -239,8 +239,8 @@
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-19T11:29:21Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44515257775",
+    "created_at": "2026-11-20T11:11:32Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44725549402",
     "sha": "78fcd6b"
    },
    {
@@ -249,8 +249,8 @@
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-19T10:16:07Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44504060830",
+    "created_at": "2026-11-20T08:48:10Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44705439211",
     "sha": "78fcd6b"
    },
    {
@@ -259,8 +259,8 @@
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-19T07:59:14Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44483829968",
+    "created_at": "2026-11-20T07:27:24Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44695092828",
     "sha": "78fcd6b"
    },
    {
@@ -392,69 +392,18 @@
     "created_at": "2026-11-16T06:48:14Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43819285893",
     "sha": "6db0f71"
-   },
-   {
-    "name": "Merge-Agent",
-    "branch": "dependabot/npm_and_yarn/dev/minor-and-patch-a1bbea5fb5",
-    "event": "pull_request",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-16T06:48:13Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43819285830",
-    "sha": "6db0f71"
-   },
-   {
-    "name": "Check (Fitness)",
-    "branch": "dependabot/npm_and_yarn/dev/minor-and-patch-a1bbea5fb5",
-    "event": "pull_request",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-16T06:48:13Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43819285819",
-    "sha": "6db0f71"
-   },
-   {
-    "name": "Gemini CI Agent",
-    "branch": "dependabot/npm_and_yarn/dev/minor-and-patch-a1bbea5fb5",
-    "event": "pull_request_target",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-16T06:48:12Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43819283505",
-    "sha": "6db0f71"
-   },
-   {
-    "name": "Merge-Agent",
-    "branch": "dependabot/pip/dev/sqlalchemy-gte-2.1.8",
-    "event": "pull_request",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-16T06:44:12Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43818812753",
-    "sha": "35f6a7c"
-   },
-   {
-    "name": "Check (Fitness)",
-    "branch": "dependabot/pip/dev/sqlalchemy-gte-2.1.8",
-    "event": "pull_request",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-16T06:44:12Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43818812731",
-    "sha": "35f6a7c"
-   },
-   {
-    "name": "Gemini CI Agent",
-    "branch": "dependabot/pip/dev/sqlalchemy-gte-2.1.8",
-    "event": "pull_request_target",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-16T06:44:10Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43818808172",
-    "sha": "35f6a7c"
    }
   ],
   "issues": [
+   {
+    "number": 120,
+    "title": "Abnahme: Training starten, loggen, im Verlauf sehen – am Handy getestet",
+    "created_at": "2026-11-20T08:59:17Z",
+    "updated_at": "2026-11-20T08:59:17Z",
+    "labels": [],
+    "url": "https://github.com/nimmsel23/fitness-dev/issues/120",
+    "author": "nimmsel23"
+   },
    {
     "number": 117,
     "title": "ci: dev nach Squash von #116 wieder mit master verbinden (Promote rot)",
@@ -483,8 +432,8 @@
   "status": "green",
   "signals": [],
   "ai": {
-   "headline": "Dev und Master synchron, Workflows erfolgreich, Issue #117 offen",
-   "lage": "`dev` und `master` sind weiterhin auf Commit `78fcd6b4` synchronisiert. Die automatisierten Workflows \"PR-AutoMerge (Dependabot -> dev)\", \"Merge-Agent\" und \"Auto-Promote dev -> master (Check (Fitness))\" wurden erfolgreich abgeschlossen. Issue #117 \"Promote rot\" ist weiterhin offen.",
+   "headline": "Dev und Master synchron, Workflows erfolgreich, neue Abnahme-Issue #120",
+   "lage": "`dev` und `master` sind weiterhin auf Commit `78fcd6b4` synchronisiert. Die automatisierten Workflows \"PR-AutoMerge (Dependabot -> dev)\", \"Merge-Agent\" und \"Auto-Promote dev -> master (Check (Fitness))\" wurden erfolgreich abgeschlossen. Issue #117 \"Promote rot\" ist weiterhin offen, und ein neues Issue #120 \"Abnahme: Training starten, loggen, im Verlauf sehen – am Handy getestet\" wurde erstellt.",
    "auffaelligkeiten": [
     {
      "level": "mittel",
@@ -492,25 +441,25 @@
     },
     {
      "level": "info",
-     "text": "Die Entfernung der verwaisten Datei `HabitJournalModal.jsx` aus `fitness-dev/src/components/` ist laut `docs/TODO.md` noch ausstehend."
+     "text": "Die Entfernung der verwaisten Datei `HabitJournalModal.jsx` ist in `docs/TODO.md` als offener Punkt vermerkt."
     },
     {
-     "level": "mittel",
-     "text": "Die vollständige Verifizierung des Gemini CI Agent Reparaturpfads durch einen isolierten roten Check ist laut `docs/NEXT.md` noch offen."
+     "level": "info",
+     "text": "Die Verifizierung des Gemini CI Agent Reparaturpfads durch einen isolierten roten Check ist in `NEXT.md` noch ausstehend."
     }
    ],
    "naechste_schritte": [
     "Prüfen, ob Issue #117 \"Promote rot\" noch relevant ist oder geschlossen werden kann.",
-    "Entfernen der Datei `HabitJournalModal.jsx` aus `fitness-dev/src/components/`.",
-    "Planen eines isolierten roten Checks zur Verifizierung des Gemini CI Agent Reparaturpfads."
+    "Entfernen der Datei `HabitJournalModal.jsx` aus `fitness-dev/src/components/` gemäß `docs/TODO.md`.",
+    "Planen eines isolierten roten Checks zur Verifizierung des Gemini CI Agent Reparaturpfads, wie in `NEXT.md` beschrieben."
    ],
-   "veraendert": "Gegenüber der letzten Einschätzung sind `dev` und `master` weiterhin auf Commit `78fcd6b4` synchronisiert; neue automatisierte Workflows wie \"PR-AutoMerge (Dependabot -> dev)\" und \"Auto-Promote dev -> master (Check (Fitness))\" wurden erfolgreich ausgeführt.",
+   "veraendert": "Ein neues Issue #120 \"Abnahme: Training starten, loggen, im Verlauf sehen – am Handy getestet\" wurde eröffnet.",
    "fragen": [
-    "Soll Issue #117 \"Promote rot\" angesichts des aktuellen Branch-Status geschlossen werden?",
-    "Wann soll ein isolierter roter Check zur Verifizierung des Gemini CI Agent Reparaturpfads geplant werden?"
+    "Soll Issue #117 \"Promote rot\" geschlossen werden, da `dev` und `master` auf `78fcd6b4` synchronisiert sind?",
+    "Soll die Stabilität des `TodayPlan`-Screens mit einem echten Plan-Klienten getestet werden, wie in `NEXT.md` als \"Ungetestete Stabilität\" vermerkt?"
    ],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-19T13:53:21+00:00"
+  "ai_at": "2026-11-20T13:36:25+00:00"
  }
 }
