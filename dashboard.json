@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-20T13:36:23+00:00",
+  "generated_at": "2026-11-21T13:00:10+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-19T13:53:41Z",
+   "pushed_at": "2026-11-20T13:36:38Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -148,12 +148,8 @@
   ],
   "activity": [
    {
-    "day": "2026-10-31",
-    "n": 81
-   },
-   {
     "day": "2026-11-01",
-    "n": 54
+    "n": 37
    },
    {
     "day": "2026-11-02",
@@ -230,17 +226,21 @@
    {
     "day": "2026-11-20",
     "n": 0
+   },
+   {
+    "day": "2026-11-21",
+    "n": 0
    }
   ],
   "workflows": [
    {
-    "name": "PR-AutoMerge (Dependabot -> dev)",
+    "name": "Auto-Promote dev -> master (Check (Fitness))",
     "branch": "master",
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-20T11:11:32Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44725549402",
+    "created_at": "2026-11-21T12:45:54Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44905515560",
     "sha": "78fcd6b"
    },
    {
@@ -249,18 +249,18 @@
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-20T08:48:10Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44705439211",
+    "created_at": "2026-11-21T12:35:45Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44904698195",
     "sha": "78fcd6b"
    },
    {
-    "name": "Auto-Promote dev -> master (Check (Fitness))",
+    "name": "PR-AutoMerge (Dependabot -> dev)",
     "branch": "master",
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-20T07:27:24Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44695092828",
+    "created_at": "2026-11-21T09:28:24Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44889739719",
     "sha": "78fcd6b"
    },
    {
@@ -382,28 +382,9 @@
     "created_at": "2026-11-16T08:28:45Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43831530085",
     "sha": "a3d6ff2"
-   },
-   {
-    "name": "Preview (Fitness dev)",
-    "branch": "dependabot/npm_and_yarn/dev/minor-and-patch-a1bbea5fb5",
-    "event": "pull_request",
-    "status": "completed",
-    "conclusion": "skipped",
-    "created_at": "2026-11-16T06:48:14Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43819285893",
-    "sha": "6db0f71"
    }
   ],
   "issues": [
-   {
-    "number": 120,
-    "title": "Abnahme: Training starten, loggen, im Verlauf sehen – am Handy getestet",
-    "created_at": "2026-11-20T08:59:17Z",
-    "updated_at": "2026-11-20T08:59:17Z",
-    "labels": [],
-    "url": "https://github.com/nimmsel23/fitness-dev/issues/120",
-    "author": "nimmsel23"
-   },
    {
     "number": 117,
     "title": "ci: dev nach Squash von #116 wieder mit master verbinden (Promote rot)",
@@ -432,20 +413,28 @@
   "status": "green",
   "signals": [],
   "ai": {
-   "headline": "Dev und Master synchron, Workflows erfolgreich, neue Abnahme-Issue #120",
-   "lage": "`dev` und `master` sind weiterhin auf Commit `78fcd6b4` synchronisiert. Die automatisierten Workflows \"PR-AutoMerge (Dependabot -> dev)\", \"Merge-Agent\" und \"Auto-Promote dev -> master (Check (Fitness))\" wurden erfolgreich abgeschlossen. Issue #117 \"Promote rot\" ist weiterhin offen, und ein neues Issue #120 \"Abnahme: Training starten, loggen, im Verlauf sehen – am Handy getestet\" wurde erstellt.",
+   "headline": "Dev und Master synchron, Workflows erfolgreich, Fix für #119 integriert",
+   "lage": "`dev` und `master` sind weiterhin auf Commit `78fcd6b4` synchronisiert. Die automatisierten Workflows \"PR-AutoMerge (Dependabot -> dev)\", \"Merge-Agent\" und \"Auto-Promote dev -> master (Check (Fitness))\" wurden erfolgreich abgeschlossen. Issue #117 \"Promote rot\" ist weiterhin offen.",
    "auffaelligkeiten": [
     {
+     "level": "info",
+     "text": "Alle geplanten Workflows (\"PR-AutoMerge (Dependabot -> dev)\", \"Merge-Agent\", \"Auto-Promote dev -> master (Check (Fitness))\") wurden erfolgreich abgeschlossen."
+    },
+    {
      "level": "mittel",
-     "text": "Issue #117 \"Promote rot\" ist seit dem 16.11.2026 offen und wurde nicht adressiert."
+     "text": "Issue #117 \"ci: dev nach Squash von #116 wieder mit master verbinden (Promote rot)\" ist weiterhin offen."
     },
     {
      "level": "info",
-     "text": "Die Entfernung der verwaisten Datei `HabitJournalModal.jsx` ist in `docs/TODO.md` als offener Punkt vermerkt."
+     "text": "Commit `78fcd6b4` integriert einen Fix für Issue #119 (\"Core Skills statisch importieren statt React.lazy\")."
     },
     {
      "level": "info",
-     "text": "Die Verifizierung des Gemini CI Agent Reparaturpfads durch einen isolierten roten Check ist in `NEXT.md` noch ausstehend."
+     "text": "`docs/TODO.md` weist auf die Entfernung der verwaisten Datei `HabitJournalModal.jsx` hin."
+    },
+    {
+     "level": "info",
+     "text": "`NEXT.md` fordert die Verifizierung des Gemini CI Agent Reparaturpfads mittels eines isolierten roten Checks."
     }
    ],
    "naechste_schritte": [
@@ -453,13 +442,12 @@
     "Entfernen der Datei `HabitJournalModal.jsx` aus `fitness-dev/src/components/` gemäß `docs/TODO.md`.",
     "Planen eines isolierten roten Checks zur Verifizierung des Gemini CI Agent Reparaturpfads, wie in `NEXT.md` beschrieben."
    ],
-   "veraendert": "Ein neues Issue #120 \"Abnahme: Training starten, loggen, im Verlauf sehen – am Handy getestet\" wurde eröffnet.",
+   "veraendert": "Gegenüber der letzten Einschätzung ist Issue #120 nicht mehr in der Evidenz, und der Fix für Issue #119 (Commit `78fcd6b4`) wurde integriert.",
    "fragen": [
-    "Soll Issue #117 \"Promote rot\" geschlossen werden, da `dev` und `master` auf `78fcd6b4` synchronisiert sind?",
-    "Soll die Stabilität des `TodayPlan`-Screens mit einem echten Plan-Klienten getestet werden, wie in `NEXT.md` als \"Ungetestete Stabilität\" vermerkt?"
+    "Soll Issue #117 \"Promote rot\" angesichts des synchronisierten Zustands von `dev` und `master` geschlossen werden?"
    ],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-20T13:36:25+00:00"
+  "ai_at": "2026-11-21T13:00:13+00:00"
  }
 }
