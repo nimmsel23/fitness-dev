@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-21T20:05:28+00:00",
+  "generated_at": "2026-11-21T21:01:47+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-21T13:00:29Z",
+   "pushed_at": "2026-11-21T21:01:27Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -19,12 +19,42 @@
    "main": "master",
    "has_dev": true,
    "dev_behind": 0,
-   "dev_ahead": 0,
-   "oldest_unpromoted": null,
-   "dev_head": "78fcd6b4 2026-11-17T18:00:39+01:00",
+   "dev_ahead": 5,
+   "oldest_unpromoted": "2026-11-19T12:15:53+01:00",
+   "dev_head": "34c0f491 2026-11-21T22:01:21+01:00",
    "master_head": "78fcd6b4 2026-11-17T18:00:39+01:00"
   },
   "commits": [
+   {
+    "sha": "34c0f491",
+    "date": "2026-11-21T22:01:21+01:00",
+    "author": "Alpha",
+    "subject": "cleanup"
+   },
+   {
+    "sha": "cdaf13ec",
+    "date": "2026-11-21T19:30:59+01:00",
+    "author": "Alpha",
+    "subject": "portal: App-Links neu erzeugt (vos-portal)"
+   },
+   {
+    "sha": "bea8e2b8",
+    "date": "2026-11-19T16:16:52+01:00",
+    "author": "Alpha",
+    "subject": "layouts(entwurf-d): Logbuch-Optik raus, durchgehend Anzeigetafel-Stil"
+   },
+   {
+    "sha": "df4ac826",
+    "date": "2026-11-19T15:42:27+01:00",
+    "author": "Alpha",
+    "subject": "layouts: Session-Entwürfe Anzeigetafel (C) und Tafelbuch (D = A+C)"
+   },
+   {
+    "sha": "55cde5dc",
+    "date": "2026-11-19T12:15:53+01:00",
+    "author": "Alpha",
+    "subject": "docs(claude): Trainings-Fakten festhalten (Nachtrag, kein Volumen, Muskeln = Recovery)"
+   },
    {
     "sha": "78fcd6b4",
     "date": "2026-11-17T18:00:39+01:00",
@@ -114,42 +144,12 @@
     "date": "2026-11-15T06:37:52Z",
     "author": "nimmdaniel",
     "subject": "ci(check): Nachbarn auf dev-Push gegen master bauen wie der Live-Deploy (#108)"
-   },
-   {
-    "sha": "9c2e87a4",
-    "date": "2026-11-14T20:05:20+01:00",
-    "author": "Alpha",
-    "subject": "refactor: fitness ist relax-frei — toter Relax-Re-Export, @relax-Alias und relax-dev aus der CI raus"
-   },
-   {
-    "sha": "c56ceeb3",
-    "date": "2026-11-14T20:02:14+01:00",
-    "author": "Alpha",
-    "subject": "ci: auch plan/relax als Geschwister auf gleichem Branch (wie deploy-master)"
-   },
-   {
-    "sha": "91595605",
-    "date": "2026-11-14T20:00:59+01:00",
-    "author": "Alpha",
-    "subject": "ci: skills/6pack als Geschwister auf gleichem Branch statt vitalos-Pin"
-   },
-   {
-    "sha": "5f1ef785",
-    "date": "2026-11-14T19:59:29+01:00",
-    "author": "Alpha",
-    "subject": "revert: CI-Agent-Import zurück auf views/Skills/CoreSkills.jsx"
-   },
-   {
-    "sha": "96f5332a",
-    "date": "2026-11-14T18:47:52Z",
-    "author": "github-actions[bot]",
-    "subject": "fix(ci): source repair [ci-agent]"
    }
   ],
   "activity": [
    {
     "day": "2026-11-01",
-    "n": 21
+    "n": 18
    },
    {
     "day": "2026-11-02",
@@ -221,7 +221,7 @@
    },
    {
     "day": "2026-11-19",
-    "n": 0
+    "n": 3
    },
    {
     "day": "2026-11-20",
@@ -229,10 +229,20 @@
    },
    {
     "day": "2026-11-21",
-    "n": 0
+    "n": 2
    }
   ],
   "workflows": [
+   {
+    "name": "Check (Fitness)",
+    "branch": "dev",
+    "event": "push",
+    "status": "in_progress",
+    "conclusion": null,
+    "created_at": "2026-11-21T21:01:29Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44949338255",
+    "sha": "34c0f49"
+   },
    {
     "name": "Auto-Promote dev -> master (Check (Fitness))",
     "branch": "master",
@@ -342,16 +352,6 @@
     "created_at": "2026-11-17T16:35:30Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44127505538",
     "sha": "5e9fb9b"
-   },
-   {
-    "name": "Check (Fitness)",
-    "branch": "dev",
-    "event": "push",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-16T11:35:35Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/43859101904",
-    "sha": "f58482a"
    }
   ],
   "issues": [
@@ -380,34 +380,47 @@
   ]
  },
  "assessment": {
-  "status": "green",
-  "signals": [],
+  "status": "yellow",
+  "signals": [
+   {
+    "level": "yellow",
+    "key": "promote",
+    "text": "5 Commit(s) auf dev seit 2.4 Tagen nicht auf master promotet"
+   }
+  ],
   "ai": {
-   "headline": "Dev und Master synchron, Workflows erfolgreich, offene Aufgaben bestehen",
-   "lage": "`dev` und `master` sind weiterhin auf Commit `78fcd6b4` synchronisiert. Die automatisierten Workflows \"PR-AutoMerge (Dependabot -> dev)\", \"Merge-Agent\" und \"Auto-Promote dev -> master (Check (Fitness))\" wurden erfolgreich abgeschlossen. Issue #117 \"Promote rot\" ist weiterhin offen.",
+   "headline": "Dev 5 Commits vor Master, Auto-Promote ineffektiv, Check (Fitness) läuft",
+   "lage": "Der `dev`-Branch ist mit 5 Commits, beginnend mit `55cde5dc` vom 19. November, vor dem `master`-Branch. Obwohl der \"Auto-Promote dev -> master (Check (Fitness))\"-Workflow (Run 44943103224) erfolgreich lief, wurde `master` nicht aktualisiert. Der \"Check (Fitness)\"-Workflow für den aktuellen `dev`-Head `34c0f491` ist noch in Bearbeitung.",
    "auffaelligkeiten": [
     {
-     "level": "info",
-     "text": "Issue #117 \"Promote rot\" ist weiterhin offen und wurde seit dem 16.11.2026 nicht aktualisiert."
+     "level": "hoch",
+     "text": "Der `dev`-Branch ist 5 Commits (seit 2026-11-19) vor `master`, obwohl der \"Auto-Promote dev -> master (Check (Fitness))\"-Workflow (Run 44943103224) erfolgreich abgeschlossen wurde. Der \"Check (Fitness)\" für den aktuellen `dev`-Head `34c0f491` ist noch in Bearbeitung."
+    },
+    {
+     "level": "mittel",
+     "text": "Issue #117 \"Promote rot\" ist weiterhin offen und könnte mit der fehlenden Promotion zusammenhängen."
     },
     {
      "level": "info",
-     "text": "Die Entfernung der verwaisten Datei `HabitJournalModal.jsx` aus `fitness-dev/src/components/` gemäß `docs/TODO.md` ist noch ausstehend."
+     "text": "Die Entfernung der verwaisten Datei `HabitJournalModal.jsx` ist in `docs/TODO.md` noch ausstehend."
     },
     {
      "level": "info",
-     "text": "Die Verifizierung des Gemini CI Agent Reparaturpfads durch einen isolierten roten Check ist gemäß `NEXT.md` noch offen."
+     "text": "Die vollständige Verifizierung des Gemini CI Agent Reparaturpfads ist in `NEXT.md` noch offen."
     }
    ],
    "naechste_schritte": [
-    "Prüfen, ob Issue #117 \"Promote rot\" noch relevant ist oder geschlossen werden kann.",
-    "Entfernen der Datei `HabitJournalModal.jsx` aus `fitness-dev/src/components/` gemäß `docs/TODO.md`.",
-    "Planen eines isolierten roten Checks zur Verifizierung des Gemini CI Agent Reparaturpfads, wie in `NEXT.md` beschrieben."
+    "Analysieren, warum der \"Auto-Promote dev -> master (Check (Fitness))\"-Workflow die 5 neuen Commits auf `dev` nicht promotet hat.",
+    "Prüfen, ob Issue #117 die aktuelle Promotion-Blockade erklärt oder geschlossen werden kann.",
+    "Entfernen der Datei `HabitJournalModal.jsx` aus `fitness-dev/src/components/` gemäß `docs/TODO.md`."
    ],
-   "veraendert": "",
-   "fragen": [],
+   "veraendert": "Gegenüber der letzten Einschätzung ist der `dev`-Branch nun 5 Commits vor `master`, während zuvor beide Branches synchron waren.",
+   "fragen": [
+    "Soll der \"Auto-Promote dev -> master (Check (Fitness))\"-Workflow manuell ausgelöst werden, nachdem der aktuelle \"Check (Fitness)\" für `dev` abgeschlossen ist?",
+    "Soll Issue #117 \"Promote rot\" priorisiert werden, um die Promotion-Blockade zu beheben?"
+   ],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-21T20:05:30+00:00"
+  "ai_at": "2026-11-21T21:01:49+00:00"
  }
 }
