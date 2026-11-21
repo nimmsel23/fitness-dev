@@ -11,7 +11,7 @@
       "site": "learn-vos",
       "url": "https://learn-vos.web.app",
       "tab": null,
-      "bundledAuthDomain": "fitness-aos.firebaseapp.com"
+      "bundledAuthDomain": null
     },
     {
       "id": "client",
@@ -23,7 +23,7 @@
       "site": "fitness-aos",
       "url": "https://fitness-aos.web.app",
       "tab": null,
-      "bundledAuthDomain": "fitness-aos.firebaseapp.com",
+      "bundledAuthDomain": null,
       "authMode": "project-domain",
       "loginGate": "soft",
       "note": "Bundled authDomain fitness-aos.firebaseapp.com; Session kann Login-Bug kaschieren"
@@ -39,7 +39,7 @@
       "url": "https://vos-training.web.app",
       "tab": "session",
       "planned": false,
-      "bundledAuthDomain": "fitness-aos.firebaseapp.com",
+      "bundledAuthDomain": null,
       "authMode": "project-domain",
       "loginGate": "hard",
       "note": "Wie Fitness-Minis: authDomain noch Projekt-Domain — OAuth URI bekannt, iOS-Risiko wie vor Fuel-Fix"
@@ -55,7 +55,7 @@
       "url": "https://vos-logbuch.web.app",
       "tab": "session",
       "planned": false,
-      "bundledAuthDomain": "fitness-aos.firebaseapp.com"
+      "bundledAuthDomain": null
     },
     {
       "id": "review",
@@ -68,7 +68,7 @@
       "url": "https://vos-review.web.app",
       "tab": "review",
       "planned": false,
-      "bundledAuthDomain": "fitness-aos.firebaseapp.com"
+      "bundledAuthDomain": null
     },
     {
       "id": "atlas",
@@ -81,7 +81,7 @@
       "url": "https://vos-atlas.web.app",
       "tab": "atlas",
       "planned": false,
-      "bundledAuthDomain": "fitness-aos.firebaseapp.com"
+      "bundledAuthDomain": null
     },
     {
       "id": "touren",
@@ -94,7 +94,7 @@
       "url": "https://vos-touren.web.app",
       "tab": "touren",
       "planned": false,
-      "bundledAuthDomain": "fitness-aos.firebaseapp.com"
+      "bundledAuthDomain": null
     },
     {
       "id": "setup",
@@ -107,7 +107,7 @@
       "url": "https://vos-setup.web.app",
       "tab": "settings",
       "planned": false,
-      "bundledAuthDomain": "fitness-aos.firebaseapp.com"
+      "bundledAuthDomain": null
     },
     {
       "id": "anamnese",
@@ -120,7 +120,7 @@
       "url": "https://vos-anamnese.web.app",
       "tab": "anamnese",
       "planned": false,
-      "bundledAuthDomain": "fitness-aos.firebaseapp.com"
+      "bundledAuthDomain": null
     },
     {
       "id": "fokus",
@@ -133,9 +133,9 @@
       "url": "https://vos-fokus.web.app",
       "tab": "focus",
       "planned": false,
-      "bundledAuthDomain": "fitness-aos.firebaseapp.com"
+      "bundledAuthDomain": null
     }
   ],
   "pages": "https://nimmsel23.github.io/fitness-dev/",
-  "bundledAuthDomain": "fitness-aos.firebaseapp.com"
+  "bundledAuthDomain": null
 }
