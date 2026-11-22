@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-21T21:03:34+00:00",
+  "generated_at": "2026-11-22T12:51:57+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-21T21:03:16Z",
+   "pushed_at": "2026-11-21T21:04:59Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -19,10 +19,10 @@
    "main": "master",
    "has_dev": true,
    "dev_behind": 0,
-   "dev_ahead": 1,
-   "oldest_unpromoted": "2026-11-21T22:03:11+01:00",
+   "dev_ahead": 0,
+   "oldest_unpromoted": null,
    "dev_head": "81dadb24 2026-11-21T22:03:11+01:00",
-   "master_head": "34c0f491 2026-11-21T22:01:21+01:00"
+   "master_head": "81dadb24 2026-11-21T22:03:11+01:00"
   },
   "commits": [
    {
@@ -148,12 +148,8 @@
   ],
   "activity": [
    {
-    "day": "2026-11-01",
-    "n": 18
-   },
-   {
     "day": "2026-11-02",
-    "n": 19
+    "n": 10
    },
    {
     "day": "2026-11-03",
@@ -230,58 +226,32 @@
    {
     "day": "2026-11-21",
     "n": 3
+   },
+   {
+    "day": "2026-11-22",
+    "n": 0
    }
   ],
   "workflows": [
    {
-    "name": "Check (Fitness)",
-    "branch": "dev",
-    "event": "push",
-    "status": "in_progress",
-    "conclusion": null,
-    "created_at": "2026-11-21T21:03:18Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44949499887",
-    "sha": "81dadb2"
-   },
-   {
-    "name": "Live Deploy (Fitness master)",
+    "name": "PR-AutoMerge (Dependabot -> dev)",
     "branch": "master",
-    "event": "workflow_dispatch",
-    "status": "in_progress",
-    "conclusion": null,
-    "created_at": "2026-11-21T21:02:51Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44949457621",
-    "sha": "34c0f49"
-   },
-   {
-    "name": "Gemini CI Agent",
-    "branch": "master",
-    "event": "workflow_run",
+    "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-21T21:02:39Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44949439338",
-    "sha": "78fcd6b"
+    "created_at": "2026-11-22T10:57:20Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45014907160",
+    "sha": "81dadb2"
    },
    {
     "name": "Auto-Promote dev -> master (Check (Fitness))",
     "branch": "master",
-    "event": "workflow_run",
+    "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-21T21:02:39Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44949439325",
-    "sha": "78fcd6b"
-   },
-   {
-    "name": "PR-AutoMerge (Dependabot -> dev)",
-    "branch": "master",
-    "event": "workflow_run",
-    "status": "completed",
-    "conclusion": "skipped",
-    "created_at": "2026-11-21T21:02:39Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44949439289",
-    "sha": "78fcd6b"
+    "created_at": "2026-11-22T07:31:35Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44998628777",
+    "sha": "81dadb2"
    },
    {
     "name": "Merge-Agent",
@@ -289,9 +259,39 @@
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-21T19:47:25Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44942808726",
-    "sha": "78fcd6b"
+    "created_at": "2026-11-22T06:41:11Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44994836159",
+    "sha": "81dadb2"
+   },
+   {
+    "name": "Live Deploy (Fitness master)",
+    "branch": "master",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "failure",
+    "created_at": "2026-11-21T21:05:01Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44949654883",
+    "sha": "81dadb2"
+   },
+   {
+    "name": "Gemini CI Agent",
+    "branch": "master",
+    "event": "workflow_run",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-21T21:04:48Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44949634834",
+    "sha": "34c0f49"
+   },
+   {
+    "name": "Check (Fitness)",
+    "branch": "dev",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-21T21:03:18Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44949499887",
+    "sha": "81dadb2"
    },
    {
     "name": "Live Deploy (Mini-Apps je Tab)",
@@ -380,30 +380,40 @@
   ]
  },
  "assessment": {
-  "status": "green",
-  "signals": [],
+  "status": "red",
+  "signals": [
+   {
+    "level": "red",
+    "key": "ci:Live Deploy (Fitness master):master",
+    "text": "„Live Deploy (Fitness master)“ auf master ist rot (failure, 81dadb2)",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/44949654883"
+   }
+  ],
   "ai": {
-   "headline": "Dev 1 Commit vor Master, Master aktualisiert, Deploy läuft",
-   "lage": "Der `dev`-Branch ist mit einem Commit (`81dadb24`) vor dem `master`-Branch. Der `master`-Branch wurde auf `34c0f491` aktualisiert, was die zuvor unpromoteten Commits einschließt. Aktuell läuft ein \"Live Deploy (Fitness master)\"-Workflow für `master` (`34c0f49`) und ein \"Check (Fitness)\"-Workflow für den `dev`-Head (`81dadb24`).",
+   "headline": "Master und Dev synchronisiert, Live Deploy fehlgeschlagen",
+   "lage": "Die Branches `dev` und `master` sind auf Commit `81dadb24` synchronisiert. Der \"Auto-Promote dev -> master\"-Workflow für diesen Commit war erfolgreich. Der nachfolgende \"Live Deploy (Fitness master)\"-Workflow für `81dadb2` ist jedoch fehlgeschlagen.",
    "auffaelligkeiten": [
     {
-     "level": "mittel",
-     "text": "Issue #117 \"ci: dev nach Squash von #116 wieder mit master verbinden (Promote rot)\" ist weiterhin offen, obwohl die Promotion der älteren Commits bis `34c0f491` stattgefunden hat. Der genaue Mechanismus dieser Promotion ist aus den vorliegenden Workflow-Läufen nicht ersichtlich."
+     "level": "hoch",
+     "text": "Der \"Live Deploy (Fitness master)\"-Workflow auf `master` ist für Commit `81dadb2` fehlgeschlagen (failure, 44949654883)."
     },
     {
      "level": "info",
-     "text": "Die Datei `HabitJournalModal.jsx` ist weiterhin in `fitness-dev/src/components/` vorhanden, obwohl `docs/TODO.md` deren Entfernung seit 2026-08-27 vorsieht."
+     "text": "Issue #117 (\"ci: dev nach Squash von #116 wieder mit master verbinden (Promote rot)\") ist noch offen, obwohl der \"Auto-Promote dev -> master\"-Workflow für `81dadb2` erfolgreich war."
     }
    ],
    "naechste_schritte": [
-    "Verifizieren, wie die Commits bis `34c0f491` auf `master` gelangt sind, da der \"Auto-Promote dev -> master (Check (Fitness))\"-Workflow für diese Commits nicht in der Evidenz als erfolgreich aufgeführt ist.",
-    "Prüfen, ob Issue #117 die aktuelle Promotion-Blockade für `81dadb24` erklärt oder geschlossen werden kann.",
+    "Analysieren des Fehlers im \"Live Deploy (Fitness master)\"-Workflow (44949654883) für Commit `81dadb2`.",
+    "Prüfen, ob Issue #117 geschlossen werden kann, da der \"Auto-Promote dev -> master\"-Workflow für `81dadb2` erfolgreich war.",
     "Entfernen der Datei `HabitJournalModal.jsx` aus `fitness-dev/src/components/` gemäß `docs/TODO.md`."
    ],
-   "veraendert": "Der `master`-Branch wurde auf `34c0f491` aktualisiert, wodurch die zuvor 5 unpromoteten Commits nun enthalten sind und `dev` nur noch 1 Commit voraus ist.",
-   "fragen": [],
+   "veraendert": "Die Branches `dev` und `master` sind nun auf Commit `81dadb24` synchronisiert, und der \"Auto-Promote dev -> master\"-Workflow war erfolgreich, was die vorherige Diskrepanz und die Frage nach der Promotion von `34c0f491` klärt.",
+   "fragen": [
+    "Soll Issue #117 geschlossen werden, da der \"Auto-Promote dev -> master\"-Workflow für `81dadb2` erfolgreich war?",
+    "Soll der Gemini CI Agent-Reparaturpfad anhand des aktuellen Deploy-Fehlers (44949654883) verifiziert werden, wie in `docs/NEXT.md` beschrieben?"
+   ],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-21T21:03:36+00:00"
+  "ai_at": "2026-11-22T12:51:59+00:00"
  }
 }
