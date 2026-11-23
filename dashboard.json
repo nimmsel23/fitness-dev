@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-23T18:04:03+00:00",
+  "generated_at": "2026-11-23T18:12:00+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-23T10:55:19Z",
+   "pushed_at": "2026-11-23T18:11:34Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -18,9 +18,19 @@
   "branches": {
    "main": "master",
    "has_dev": false,
-   "master_head": "32a29b2c 2026-11-23T11:55:17+01:00"
+   "master_head": "7bc47778 2026-11-23T19:11:34+01:00"
+  },
+  "work": {
+   "branch": "master",
+   "sha": "7bc47778b192e84d6d9e4c02b49ec8429b2afd43"
   },
   "commits": [
+   {
+    "sha": "7bc47778",
+    "date": "2026-11-23T19:11:34+01:00",
+    "author": "nimmsel23",
+    "subject": "ci(dashboard): Board baut master, Push-Trigger master (Daniel 23.11.)"
+   },
    {
     "sha": "32a29b2c",
     "date": "2026-11-23T11:55:17+01:00",
@@ -134,18 +144,12 @@
     "date": "2026-11-16T11:26:33Z",
     "author": "Cursor Agent",
     "subject": "dashboard: master-Push baut ebenfalls dev"
-   },
-   {
-    "sha": "e8dd72f5",
-    "date": "2026-11-16T10:42:28Z",
-    "author": "Cursor Agent",
-    "subject": "Merge origin/master into dev (#116, 5a98a15) Co-authored-by: nimmsel23 <nimmsel23@users.noreply.github.com>"
    }
   ],
   "activity": [
    {
     "day": "2026-11-03",
-    "n": 9
+    "n": 5
    },
    {
     "day": "2026-11-04",
@@ -225,10 +229,30 @@
    },
    {
     "day": "2026-11-23",
-    "n": 8
+    "n": 9
    }
   ],
   "workflows": [
+   {
+    "name": "Live Deploy (Fitness master)",
+    "branch": "master",
+    "event": "push",
+    "status": "in_progress",
+    "conclusion": null,
+    "created_at": "2026-11-23T18:11:37Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45235733574",
+    "sha": "7bc4777"
+   },
+   {
+    "name": "Auto-Promote dev -> master (Check (Fitness))",
+    "branch": "master",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "failure",
+    "created_at": "2026-11-23T18:11:37Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45235732964",
+    "sha": "7bc4777"
+   },
    {
     "name": "Gemini CI Agent",
     "branch": "master",
@@ -240,16 +264,6 @@
     "sha": "32a29b2"
    },
    {
-    "name": "Live Deploy (Fitness master)",
-    "branch": "master",
-    "event": "workflow_dispatch",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-23T10:55:21Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45160435122",
-    "sha": "32a29b2"
-   },
-   {
     "name": "Live Deploy (Mini-Apps je Tab)",
     "branch": "master",
     "event": "push",
@@ -257,16 +271,6 @@
     "conclusion": "failure",
     "created_at": "2026-11-23T10:55:20Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45160432478",
-    "sha": "32a29b2"
-   },
-   {
-    "name": "Auto-Promote dev -> master (Check (Fitness))",
-    "branch": "master",
-    "event": "push",
-    "status": "completed",
-    "conclusion": "failure",
-    "created_at": "2026-11-23T10:55:20Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45160432344",
     "sha": "32a29b2"
    },
    {
@@ -592,6 +596,17 @@
   ],
   "issues": [
    {
+    "number": 129,
+    "title": "Dashboard-Lage: rot",
+    "created_at": "2026-11-23T18:04:27Z",
+    "updated_at": "2026-11-23T18:04:27Z",
+    "labels": [
+     "dashboard"
+    ],
+    "url": "https://github.com/nimmsel23/fitness-dev/issues/129",
+    "author": "github-actions[bot]"
+   },
+   {
     "number": 117,
     "title": "ci: dev nach Squash von #116 wieder mit master verbinden (Promote rot)",
     "created_at": "2026-11-16T09:01:19Z",
@@ -620,49 +635,50 @@
   "signals": [
    {
     "level": "red",
-    "key": "ci:Live Deploy (Mini-Apps je Tab):master",
-    "text": "„Live Deploy (Mini-Apps je Tab)“ auf master ist rot (failure, 32a29b2)",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45160432478"
+    "key": "ci:Auto-Promote dev -> master (Check (Fitness)):master",
+    "text": "„Auto-Promote dev -> master (Check (Fitness))“ auf master ist rot (failure, 7bc4777)",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45235732964"
    },
    {
     "level": "red",
-    "key": "ci:Auto-Promote dev -> master (Check (Fitness)):master",
-    "text": "„Auto-Promote dev -> master (Check (Fitness))“ auf master ist rot (failure, 32a29b2)",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45160432344"
+    "key": "ci:Live Deploy (Mini-Apps je Tab):master",
+    "text": "„Live Deploy (Mini-Apps je Tab)“ auf master ist rot (failure, 32a29b2)",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45160432478"
    }
   ],
   "ai": {
-   "headline": "Master-Branch aktualisiert, kritische CI-Fehler nach Promote",
-   "lage": "Der `master`-Branch wurde mit Commit `32a29b2c` aktualisiert, der eine Promotion von `dev` nach `master` darstellt. Zwei kritische Workflows, „Live Deploy (Mini-Apps je Tab)“ und „Auto-Promote dev -> master (Check (Fitness))“, sind für diesen Commit fehlgeschlagen. Der „Live Deploy (Fitness master)“-Workflow war jedoch erfolgreich.",
+   "headline": "Master-Branch erneut aktualisiert, kritische CI-Fehler bestehen fort",
+   "lage": "Der `master`-Branch wurde mit Commit `7bc47778` aktualisiert, der eine CI-Dashboard-Anpassung enthält. Die Workflows „Auto-Promote dev -> master (Check (Fitness))“ für `7bc4777` und „Live Deploy (Mini-Apps je Tab)“ für `32a29b2` sind weiterhin fehlgeschlagen, was auch in Issue #129 gemeldet wurde. Der „Live Deploy (Fitness master)“-Workflow läuft aktuell für den neuesten Commit.",
    "auffaelligkeiten": [
     {
      "level": "hoch",
-     "text": "„Live Deploy (Mini-Apps je Tab)“ auf master ist rot (failure, 32a29b2) (https://github.com/nimmsel23/fitness-dev/actions/runs/45160432478)"
+     "text": "„Auto-Promote dev -> master (Check (Fitness))“ auf master ist rot (failure, 7bc4777, Run 45235732964)."
     },
     {
      "level": "hoch",
-     "text": "„Auto-Promote dev -> master (Check (Fitness))“ auf master ist rot (failure, 32a29b2) (https://github.com/nimmsel23/fitness-dev/actions/runs/45160432344)"
+     "text": "„Live Deploy (Mini-Apps je Tab)“ auf master ist rot (failure, 32a29b2, Run 45160432478)."
     },
     {
      "level": "info",
-     "text": "Issue #117 „ci: dev nach Squash von #116 wieder mit master verbinden (Promote rot)“ ist weiterhin offen."
+     "text": "Issue #129 \"Dashboard-Lage: rot\" wurde automatisch erstellt und bestätigt die CI-Probleme."
     },
     {
      "level": "info",
-     "text": "Die Datei HabitJournalModal.jsx in fitness-dev/src/components/ sollte gemäß docs/TODO.md entfernt werden."
+     "text": "Der Workflow „Live Deploy (Fitness master)“ für den neuesten Commit `7bc4777` ist noch \"in_progress\" (Run 45235733574)."
     }
    ],
    "naechste_schritte": [
-    "Analysieren der Fehlerursache in den Workflows „Live Deploy (Mini-Apps je Tab)“ (45160432478) und „Auto-Promote dev -> master (Check (Fitness))“ (45160432344) für Commit 32a29b2.",
-    "Prüfen, ob Issue #117 geschlossen werden kann, da ein Promote-Commit (32a29b2c) auf master erfolgt ist.",
-    "Entfernen der Datei HabitJournalModal.jsx aus fitness-dev/src/components/ gemäß docs/TODO.md."
+    "Analysieren der Fehlerursache im Workflow „Auto-Promote dev -> master (Check (Fitness))“ (45235732964) für Commit `7bc4777`.",
+    "Analysieren der Fehlerursache im Workflow „Live Deploy (Mini-Apps je Tab)“ (45160432478) für Commit `32a29b2`.",
+    "Entfernen der Datei `HabitJournalModal.jsx` aus `fitness-dev/src/components/` gemäß `docs/TODO.md`."
    ],
-   "veraendert": "Gegenüber der letzten Einschätzung wurde der `master`-Branch mit Commit `32a29b2c` aktualisiert, wobei der „Live Deploy (Fitness master)“-Workflow nun erfolgreich ist, jedoch zwei andere kritische CI-Läufe für diesen Commit fehlschlagen.",
+   "veraendert": "Der `master`-Branch wurde mit Commit `7bc47778` erneut aktualisiert, und die kritischen CI-Fehler für „Auto-Promote dev -> master (Check (Fitness))“ bestehen für den neuen Head-Commit fort, was durch Issue #129 bestätigt wird.",
    "fragen": [
-    "Soll Issue #117 geschlossen werden, da ein Promote-Commit auf `master` stattgefunden hat?"
+    "Soll Issue #117 geschlossen werden, da ein Promote-Commit (`32a29b2c`) auf `master` erfolgt ist, auch wenn der Promote-Check fehlschlägt?",
+    "Soll die Ursache für den Fehler im „Live Deploy (Mini-Apps je Tab)“ für Commit `32a29b2` vorrangig behandelt werden, da dieser älter ist und die Mini-Apps betreffen könnte?"
    ],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-23T18:04:05+00:00"
+  "ai_at": "2026-11-23T18:12:02+00:00"
  }
 }
