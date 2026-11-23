@@ -42,20 +42,20 @@ export default function SessionModeTabs({ sessionMode, setSessionMode, subTab, o
   ];
 
   return (
-    <div className="flex w-full min-w-0 flex-wrap items-center gap-x-3 text-[11px] font-semibold sm:ml-auto sm:w-auto">
-      {tabs.map(({ key, label, ariaLabel, Icon, color, active, go }) => (
+    <div className="grid w-full min-w-0 grid-cols-2 gap-1 rounded-xl p-1 text-sm font-medium sm:ml-auto sm:w-auto sm:grid-cols-4">
+      {tabs.map(({ key, label, ariaLabel, Icon, active, go }) => (
         <button
           key={key}
           onClick={go}
           aria-label={ariaLabel}
           aria-pressed={active}
-          className="flex min-h-11 items-center gap-1 pb-0.5 whitespace-nowrap"
+          className="flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 whitespace-nowrap focus-visible:outline-2 focus-visible:outline-offset-2"
           style={{
-            color: active ? color : 'var(--dim)',
-            borderBottom: active ? `2px solid ${color}` : '2px solid transparent',
+            color: active ? 'var(--ink)' : 'var(--dim)',
+            background: active ? 'var(--card)' : 'transparent',
           }}
         >
-          <Icon size={12} /> {label}
+          <Icon size={16} /> {label}
         </button>
       ))}
     </div>

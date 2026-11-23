@@ -13,15 +13,8 @@ import SplitPicker from './SplitPicker.jsx';
 import GateNextPlanCard from './GateNextPlanCard.jsx';
 import { countSessionProgress } from './SessionGateBar.jsx';
 
-// Ring füllt sich sichtbar über eine 90-Minuten-Referenzsession, läuft danach
-// einfach weiter am Anschlag (kein harter Cutoff, nur ein Referenzrahmen für
-// den optischen Fortschritt — reine Deko, keine Funktionsgrenze).
-const RING_REFERENCE_MS = 90 * 60 * 1000;
-const RING_R = 42;
-const RING_C = 2 * Math.PI * RING_R;
-
-function StatusEyebrow({ active, completed }) {
-  const label = active ? 'LIVE · TRACKING' : completed ? 'GATE GESCHLOSSEN' : 'GATE BEREIT';
+function GateStatus({ active, completed }) {
+  const label = active ? 'Workout läuft' : completed ? 'Workout abgeschlossen' : 'Bereit für dein Training';
   const color = gateTone({ status: active ? 'active' : completed ? 'completed' : 'idle' }).color;
   return (
     <div className="flex items-center gap-2">
@@ -35,8 +28,8 @@ function StatusEyebrow({ active, completed }) {
         }}
       />
       <span
-        className="text-[10px] font-bold tracking-[0.2em] font-mono"
-        style={{ color, opacity: active ? 1 : 0.6 }}
+        className="text-sm font-medium"
+        style={{ color, opacity: 1 }}
       >
         {label}
       </span>
@@ -84,59 +77,21 @@ export default function SessionGateCard({ sessionGate, currentSubTab = null, exe
 
   // Notifications/1h-Reminder laufen in useSessionGateLifecycle (SessionEditor),
   // nicht hier — die Card existiert nur, solange das Sheet offen ist.
-  const { elapsedMs, elapsedLabel } = useGateElapsed(gate);
-  const ringProgress = gate.startedAt ? Math.min(1, elapsedMs / RING_REFERENCE_MS) : 0;
-  const ringOffset = RING_C * (1 - ringProgress);
-  const tone = gateTone(gate);
-  const ringColor = active || completed ? tone.color : 'var(--line)';
-
+  const { elapsedLabel } = useGateElapsed(gate);
   return (
     <section
-      className={`rounded-3xl p-4 sm:p-6 overflow-hidden relative ${active ? 'session-gate-stripes' : ''}`}
-      style={{ background: tone.bg, border: tone.border }}
+      className="rounded-2xl p-4 sm:p-6 relative"
+      style={{ background: 'var(--card)', border: '1px solid var(--line)' }}
     >
-      {!active && !completed && (
-        <div
-          className="session-gate-blueprint absolute inset-0 pointer-events-none opacity-[0.35]"
-          style={{ maskImage: 'linear-gradient(to bottom, black, transparent 75%)' }}
-        />
-      )}
-
       <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6">
-        {/* Ring-Stoppuhr */}
-        <div className="relative shrink-0 mx-auto sm:mx-0" style={{ width: 108, height: 108 }}>
-          <svg width={108} height={108} viewBox="0 0 100 100" className={active ? 'session-gate-ring-spin' : ''} style={{ animationDuration: '14s' }}>
-            <circle cx="50" cy="50" r={RING_R} fill="none" stroke="var(--bg2)" strokeWidth="5" />
-            <circle
-              cx="50" cy="50" r={RING_R} fill="none"
-              stroke={ringColor}
-              strokeWidth="5"
-              strokeLinecap="round"
-              strokeDasharray={RING_C}
-              strokeDashoffset={active ? ringOffset : completed ? 0 : RING_C}
-              transform="rotate(-90 50 50)"
-              style={{ transition: 'stroke-dashoffset 1s linear' }}
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span
-              className="font-mono font-bold tabular-nums leading-none"
-              style={{ fontSize: gate.startedAt ? '1.15rem' : '1.4rem', color: 'var(--ink)' }}
-            >
-              {gate.startedAt ? elapsedLabel : '—:—'}
-            </span>
-            <span className="text-[8px] font-bold tracking-[0.15em] mt-1" style={{ color: 'var(--dim)', opacity: 0.6 }}>
-              {gate.startedAt ? 'MIN : SEC' : 'STANDBY'}
-            </span>
-          </div>
-        </div>
+        {gate.startedAt && <div className="shrink-0 tabular-nums text-2xl font-semibold" style={{ color: 'var(--ink)' }} aria-label="Workout-Dauer">{elapsedLabel}</div>}
 
         {/* Status + CTA */}
         <div className="flex-1 min-w-0 w-full">
-          <StatusEyebrow active={active} completed={completed} />
           <h3 className="text-lg sm:text-xl font-bold mt-1.5" style={{ color: 'var(--ink)' }}>
             {active ? 'Session läuft.' : completed ? 'Workout ist geloggt.' : 'Was hast du trainiert?'}
           </h3>
+          <GateStatus active={active} completed={completed} />
           <p className="text-[13px] mt-1 max-w-xl" style={{ color: 'var(--dim)', opacity: 0.75 }}>
             {active
               ? 'Zeit läuft mit. Sätze und Details trägst du nach — Garderobe oder abends.'
@@ -152,7 +107,7 @@ export default function SessionGateCard({ sessionGate, currentSubTab = null, exe
               <button
                 onClick={() => onStart?.()}
                 className="flex-1 sm:flex-none sm:min-w-[15rem] h-12 px-6 rounded-full flex items-center justify-center gap-2.5 text-sm font-bold transition-all hover:scale-[1.01] active:scale-95"
-                style={{ background: 'var(--accent)', color: '#000' }}
+                style={{ background: 'var(--accent)', color: 'var(--accent-ink, #000)' }}
               >
                 <Play size={16} strokeWidth={2.5} />
                 Workout starten

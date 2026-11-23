@@ -57,10 +57,7 @@ export default function CalmHeader({
       {/* Title row */}
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="min-w-0">
-          <div className="text-[10px] font-semibold tracking-wide" style={{ color: 'var(--dim)', opacity: 0.55 }}>
-            Session
-          </div>
-          <div className="text-base font-bold truncate flex items-center gap-1.5" style={{ color: 'var(--ink)' }}>
+          <div className="text-xl font-semibold truncate flex items-center gap-1.5" style={{ color: 'var(--ink)' }}>
             {dateLabel}
             {dayOrigin && (
               <span
@@ -109,7 +106,7 @@ export default function CalmHeader({
             onClick={onSave}
             disabled={saving}
             className="flex h-11 items-center gap-1.5 rounded-full px-3.5 text-[11px] font-bold transition-all active:scale-95 disabled:opacity-50"
-            style={{ background: 'var(--accent)', color: '#000' }}
+            style={{ background: 'var(--accent)', color: 'var(--accent-ink, #000)' }}
           >
             {saving
               ? <div className="w-3 h-3 border-2 border-black/20 border-t-black rounded-full animate-spin" />
