@@ -1,41 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Play, Square, Clock3, CheckCircle2, PencilLine, Dumbbell, Activity } from 'lucide-react';
+import { Play, Square, Dumbbell, Activity } from 'lucide-react';
 import {
   normalizeSessionGate,
   isSessionGateActive,
   isSessionGateCompleted,
 } from '../../lib/sessionGate.js';
 import { useGateElapsed } from './useGateElapsed.js';
-import { gateTone, GATE_STOP_STYLE } from './gateTone.js';
+import { GATE_STOP_STYLE } from './gateTone.js';
 import GateIdleSuggestion from './GateIdleSuggestion.jsx';
 import GatePortalGrid from './GatePortalGrid.jsx';
 import SplitPicker from './SplitPicker.jsx';
 import GateNextPlanCard from './GateNextPlanCard.jsx';
 import { countSessionProgress } from './SessionGateBar.jsx';
-
-function GateStatus({ active, completed }) {
-  const label = active ? 'Workout läuft' : completed ? 'Workout abgeschlossen' : 'Bereit für dein Training';
-  const color = gateTone({ status: active ? 'active' : completed ? 'completed' : 'idle' }).color;
-  return (
-    <div className="flex items-center gap-2">
-      <span
-        className={active ? 'session-gate-dot' : ''}
-        style={{
-          width: 6, height: 6, borderRadius: 9999,
-          background: color,
-          boxShadow: active ? `0 0 0 3px color-mix(in srgb, ${color} 20%, transparent)` : 'none',
-          flexShrink: 0,
-        }}
-      />
-      <span
-        className="text-sm font-medium"
-        style={{ color, opacity: 1 }}
-      >
-        {label}
-      </span>
-    </div>
-  );
-}
 
 function TodayCounters({ exercises }) {
   const { exerciseCount, setCount, volume } = countSessionProgress(exercises);
@@ -89,17 +65,8 @@ export default function SessionGateCard({ sessionGate, currentSubTab = null, exe
         {/* Status + CTA */}
         <div className="flex-1 min-w-0 w-full">
           <h3 className="text-lg sm:text-xl font-bold mt-1.5" style={{ color: 'var(--ink)' }}>
-            {active ? 'Session läuft.' : completed ? 'Workout ist geloggt.' : 'Was hast du trainiert?'}
+            {active ? 'Workout läuft' : completed ? 'Workout beendet' : 'Training'}
           </h3>
-          <GateStatus active={active} completed={completed} />
-          <p className="text-[13px] mt-1 max-w-xl" style={{ color: 'var(--dim)', opacity: 0.75 }}>
-            {active
-              ? 'Zeit läuft mit. Sätze und Details trägst du nach — Garderobe oder abends.'
-              : completed
-                ? 'Der Trainingstag steht. Unten kannst du Übungen und Details in Ruhe nachtragen.'
-                : 'Optional Zeit starten. Übungen trägst du nachträglich ein — kein Live-Logging im Gym.'}
-          </p>
-
           <GateIdleSuggestion sessionGate={gate} onStop={onStop} className="mt-3" />
 
           <div className="flex flex-wrap items-stretch gap-2.5 mt-4">
@@ -123,25 +90,15 @@ export default function SessionGateCard({ sessionGate, currentSubTab = null, exe
               </button>
             )}
 
-            <div
-              className="w-full sm:flex-1 flex items-center gap-2 px-3 py-2 rounded-xl text-[11px] font-medium"
-              style={{ background: 'var(--bg2)', color: 'var(--dim)' }}
-            >
-              {active ? <Clock3 size={13} /> : completed ? <CheckCircle2 size={13} /> : <PencilLine size={13} />}
-              <span>
-                {active && notifStatus !== 'granted'
-                  ? notifStatus === 'denied'
-                    ? '⚠ Benachrichtigungen blockiert — in den iOS/Browser-Einstellungen für diese App erlauben.'
-                    : notifStatus === 'unsupported'
-                      ? '⚠ Benachrichtigungen auf diesem Gerät/Browser nicht unterstützt.'
-                      : '⚠ Benachrichtigungen noch nicht erlaubt — beim nächsten Start erneut bestätigen.'
-                  : active
-                    ? 'Live-Status läuft als App-Benachrichtigung weiter, solange der Browser das zulässt.'
-                    : completed
-                      ? 'Manuelles Nachtragen bleibt offen.'
-                      : 'Kein Plan-Zwang. Erst aktive Session, geloggt erst bei done.'}
-              </span>
-            </div>
+            {active && notifStatus !== 'granted' && (
+              <p role="status" className="w-full text-xs" style={{ color: 'var(--dim)' }}>
+                {notifStatus === 'denied'
+                  ? 'Benachrichtigungen sind in den Browser-Einstellungen blockiert.'
+                  : notifStatus === 'unsupported'
+                    ? 'Dieser Browser unterstützt keine Benachrichtigungen.'
+                    : 'Benachrichtigungen sind nicht erlaubt.'}
+              </p>
+            )}
           </div>
         </div>
       </div>
