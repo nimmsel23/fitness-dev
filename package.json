@@ -57,6 +57,7 @@
     "tooling:biome:lint": "pnpm dlx @biomejs/biome@2.6.6 check --formatter-enabled=true --linter-enabled=true --no-errors-on-unmatched scripts"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.2",
     "@capacitor/core": "^8.6.0",
     "@capacitor/local-notifications": "^8.3.1",
     "@dnd-kit/accessibility": "^3.1.1",
@@ -72,6 +73,7 @@
     "@firebase/installations": "^0.6.24",
     "@firebase/logger": "^0.5.2",
     "@firebase/messaging": "^0.13.3",
+    "@firebase/storage": "^0.14.6",
     "@firebase/util": "^1.12.1",
     "@firebase/webchannel-wrapper": "^1.0.7",
     "@reduxjs/toolkit": "^2.14.0",
@@ -106,6 +108,7 @@
     "internmap": "^2.0.3",
     "js-yaml": "^5.5.0",
     "lucide-react": "^1.70.0",
+    "mediabunny": "^1.66.2",
     "re2js": "^2.9.1",
     "react": "^19.3.1",
     "react-body-highlighter": "^2.0.5",

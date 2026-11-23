@@ -122,7 +122,7 @@ export default defineConfig(async ({ mode }) => {
       },
       // Singleton-Dedup: sibling apps bringen eigene node_modules mit — Vite
       // muss React/Firebase trotzdem als Einzelinstanz auflösen.
-      dedupe: ['react', 'react-dom', '@tanstack/react-query', 'firebase', 'firebase/app', 'firebase/auth', 'firebase/firestore'],
+      dedupe: ['react', 'react-dom', '@tanstack/react-query', 'firebase', 'firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
     },
     server: {
       port: 5902,
