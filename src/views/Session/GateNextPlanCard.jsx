@@ -23,7 +23,11 @@ export default function GateNextPlanCard({ onApply, onManual, className = '' }) 
 
   if (loading || !rawCycle || !next) return null;
 
-  const cycle = rawCycle.coachUid && rawCycle.coachUid !== clientUid ? clientView(rawCycle) : rawCycle;
+  // useTodayPlan resolved Coach-Pläne bereits; Fallback für Rohdaten mit published-Snapshot.
+  const cycle = rawCycle?.coachUid && rawCycle.coachUid !== clientUid && rawCycle.published
+    ? clientView(rawCycle)
+    : rawCycle;
+  const fromCoach = !!(cycle?.coachUid && cycle.coachUid !== clientUid);
   const week = planWeek(cycle);
   const microcycle = microcycleForWeek(cycle.microcycles, week);
   const routine = applyMicrocycleToRoutine(next, microcycle, week);
@@ -52,12 +56,14 @@ export default function GateNextPlanCard({ onApply, onManual, className = '' }) 
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[10px] font-bold tracking-[0.15em] font-mono truncate" style={{ color: 'var(--dim)', opacity: 0.6 }}>
-            HEUTE IM PLAN{cycle.name ? ` · ${String(cycle.name).toUpperCase()}` : ''}
+            {fromCoach ? 'PLAN VOM COACH' : 'HEUTE IM PLAN'}
+            {cycle.name ? ` · ${String(cycle.name).toUpperCase()}` : ''}
           </div>
           <div className="text-sm font-bold truncate" style={{ color: 'var(--ink)' }}>{title}</div>
           <div className="text-[11px]" style={{ color: 'var(--dim)' }}>
             {exercises.length} Übungen
             {microcycle ? ` · ${microcycleSummary(cycle.microcycles, week)}` : ''}
+            {fromCoach ? ' · bereitgestellt' : ''}
           </div>
         </div>
       </div>

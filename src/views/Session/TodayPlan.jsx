@@ -27,13 +27,18 @@ export function useTodayPlan() {
     const list = await listMacrocycles(user.uid)
     if (!list.length) { setState({ loading: false, cycle: null, nextRoutine: null, lastPerformance: null }); return }
     const full = await getMacrocycle(user.uid, pickActiveMacrocycle(list).id)
-    if (!full || !(full.macrocycle.routines || []).length) {
+    const raw = full?.macrocycle
+    // Coach-Pläne: Athlet sieht nur `published`, nie den Arbeitsstand.
+    const cycle = raw?.coachUid && raw.coachUid !== user.uid ? clientView(raw) : raw
+    const routines = cycle?.routines || []
+    if (!full || !routines.length) {
       setState({ loading: false, cycle: null, nextRoutine: null, lastPerformance: null })
       return
     }
-    const nextRoutine = full.macrocycle.routines[full.nextRoutineIndex]
-    const last = await getLastPerformance(user.uid, full.macrocycle.id, nextRoutine.id)
-    setState({ loading: false, cycle: full.macrocycle, nextRoutine, lastPerformance: last, clientUid: user.uid })
+    const idx = Number(full.nextRoutineIndex) || 0
+    const nextRoutine = routines[idx % routines.length]
+    const last = await getLastPerformance(user.uid, cycle.id, nextRoutine.id)
+    setState({ loading: false, cycle, nextRoutine, lastPerformance: last, clientUid: user.uid })
   }
 
   useEffect(() => { reload() }, [user?.uid])
@@ -45,9 +50,12 @@ export default function TodayPlan({ cycle: rawCycle, nextRoutine: next, lastPerf
   const [completing, setCompleting] = useState(false)
   const [history, setHistory] = useState([])
   useEffect(() => { getSessionHistory(30).then(h => setHistory(Array.isArray(h) ? h : [])).catch(() => {}) }, [])
-  const cycle = rawCycle.coachUid && rawCycle.coachUid !== clientUid ? clientView(rawCycle) : rawCycle
+  // useTodayPlan liefert Coach-Pläne bereits als clientView; Fallback falls Host roh übergibt.
+  const cycle = rawCycle?.coachUid && rawCycle.coachUid !== clientUid && rawCycle.published
+    ? clientView(rawCycle)
+    : rawCycle
   const routines = cycle.routines || []
-  const [pickedId, setPickedId] = useState(next.id)
+  const [pickedId, setPickedId] = useState(next?.id)
   const picked = routines.find(r => r.id === pickedId) || next
   const week = planWeek(cycle)
   const microcycle = microcycleForWeek(cycle.microcycles, week)
