@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-23T18:12:00+00:00",
+  "generated_at": "2026-11-24T05:09:50+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-23T18:11:34Z",
+   "pushed_at": "2026-11-23T21:13:14Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -17,14 +17,30 @@
   },
   "branches": {
    "main": "master",
-   "has_dev": false,
-   "master_head": "7bc47778 2026-11-23T19:11:34+01:00"
+   "has_dev": true,
+   "dev_behind": 0,
+   "dev_ahead": 0,
+   "oldest_unpromoted": null,
+   "dev_head": "829013d1 2026-11-23T22:11:12+01:00",
+   "master_head": "829013d1 2026-11-23T22:11:12+01:00"
   },
   "work": {
    "branch": "master",
-   "sha": "7bc47778b192e84d6d9e4c02b49ec8429b2afd43"
+   "sha": "829013d1cd5bbc7063c66196ae53bb1cbc13c838"
   },
   "commits": [
+   {
+    "sha": "829013d1",
+    "date": "2026-11-23T22:11:12+01:00",
+    "author": "Alpha",
+    "subject": "Simplify training navigation and session gate presentation"
+   },
+   {
+    "sha": "d92d8894",
+    "date": "2026-11-23T19:43:56+01:00",
+    "author": "nimmsel23",
+    "subject": "docs(grok): Fitness Dev Dashboard als Canvas-Kopie nach docs/grok/"
+   },
    {
     "sha": "7bc47778",
     "date": "2026-11-23T19:11:34+01:00",
@@ -132,28 +148,12 @@
     "date": "2026-11-16T11:35:32Z",
     "author": "Cursor Agent",
     "subject": "dashboard: Check und Dashboard starten"
-   },
-   {
-    "sha": "0d82d7ae",
-    "date": "2026-11-16T11:33:27Z",
-    "author": "Cursor Agent",
-    "subject": "dashboard: Check und Dashboard auf dev starten"
-   },
-   {
-    "sha": "9d74e763",
-    "date": "2026-11-16T11:26:33Z",
-    "author": "Cursor Agent",
-    "subject": "dashboard: master-Push baut ebenfalls dev"
    }
   ],
   "activity": [
    {
-    "day": "2026-11-03",
-    "n": 5
-   },
-   {
     "day": "2026-11-04",
-    "n": 32
+    "n": 28
    },
    {
     "day": "2026-11-05",
@@ -229,29 +229,33 @@
    },
    {
     "day": "2026-11-23",
-    "n": 9
+    "n": 11
+   },
+   {
+    "day": "2026-11-24",
+    "n": 0
    }
   ],
   "workflows": [
    {
-    "name": "Live Deploy (Fitness master)",
-    "branch": "master",
-    "event": "push",
-    "status": "in_progress",
-    "conclusion": null,
-    "created_at": "2026-11-23T18:11:37Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45235733574",
-    "sha": "7bc4777"
-   },
-   {
     "name": "Auto-Promote dev -> master (Check (Fitness))",
     "branch": "master",
-    "event": "push",
+    "event": "schedule",
     "status": "completed",
-    "conclusion": "failure",
-    "created_at": "2026-11-23T18:11:37Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45235732964",
-    "sha": "7bc4777"
+    "conclusion": "success",
+    "created_at": "2026-11-23T22:43:34Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45282378110",
+    "sha": "829013d"
+   },
+   {
+    "name": "Merge-Agent",
+    "branch": "master",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-23T21:35:39Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45271249729",
+    "sha": "829013d"
    },
    {
     "name": "Gemini CI Agent",
@@ -259,9 +263,49 @@
     "event": "workflow_run",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-23T10:57:42Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45160789697",
-    "sha": "32a29b2"
+    "created_at": "2026-11-23T21:13:50Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45267516030",
+    "sha": "829013d"
+   },
+   {
+    "name": "Live Deploy (Fitness master)",
+    "branch": "master",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-23T21:13:15Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45267411904",
+    "sha": "829013d"
+   },
+   {
+    "name": "PR-AutoMerge (Dependabot -> dev)",
+    "branch": "master",
+    "event": "workflow_run",
+    "status": "completed",
+    "conclusion": "skipped",
+    "created_at": "2026-11-23T21:13:03Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45267377230",
+    "sha": "d92d889"
+   },
+   {
+    "name": "Check (Fitness)",
+    "branch": "dev",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-23T21:11:46Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45267158309",
+    "sha": "829013d"
+   },
+   {
+    "name": "Preview (Fitness dev)",
+    "branch": "dev",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-23T21:11:46Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45267158271",
+    "sha": "829013d"
    },
    {
     "name": "Live Deploy (Mini-Apps je Tab)",
@@ -284,26 +328,6 @@
     "sha": "94abb9a"
    },
    {
-    "name": "PR-AutoMerge (Dependabot -> dev)",
-    "branch": "master",
-    "event": "workflow_run",
-    "status": "completed",
-    "conclusion": "skipped",
-    "created_at": "2026-11-23T10:55:13Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45160414763",
-    "sha": "bdf095d"
-   },
-   {
-    "name": "Check (Fitness)",
-    "branch": "dev",
-    "event": "pull_request",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-23T10:53:35Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45160173357",
-    "sha": "94abb9a"
-   },
-   {
     "name": "Gemini CI Agent",
     "branch": "dev",
     "event": "pull_request_target",
@@ -311,16 +335,6 @@
     "conclusion": "success",
     "created_at": "2026-11-23T10:53:35Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45160173353",
-    "sha": "94abb9a"
-   },
-   {
-    "name": "Preview (Fitness dev)",
-    "branch": "dev",
-    "event": "pull_request",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-23T10:53:35Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45160173264",
     "sha": "94abb9a"
    },
    {
@@ -332,16 +346,6 @@
     "created_at": "2026-11-23T10:53:35Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45160173263",
     "sha": "94abb9a"
-   },
-   {
-    "name": "Merge-Agent",
-    "branch": "master",
-    "event": "schedule",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-23T09:22:43Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45146469777",
-    "sha": "bdf095d"
    },
    {
     "name": "Preview (Fitness dev)",
@@ -542,56 +546,6 @@
     "created_at": "2026-11-23T06:42:56Z",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45125975982",
     "sha": "b8d0025"
-   },
-   {
-    "name": "Gemini CI Agent",
-    "branch": "dependabot/pip/dev/typer-gte-0.29.1",
-    "event": "pull_request_target",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-23T06:42:54Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45125973118",
-    "sha": "b8d0025"
-   },
-   {
-    "name": "Org-Bot (PR anlegen & mergen)",
-    "branch": "dependabot/github_actions/dev/actions-1730de5550",
-    "event": "pull_request_target",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-23T06:42:41Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45125948244",
-    "sha": "7006e65"
-   },
-   {
-    "name": "Check (Fitness)",
-    "branch": "dependabot/github_actions/dev/actions-1730de5550",
-    "event": "pull_request",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-23T06:42:31Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45125928501",
-    "sha": "7006e65"
-   },
-   {
-    "name": "Merge-Agent",
-    "branch": "dependabot/github_actions/dev/actions-1730de5550",
-    "event": "pull_request",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-23T06:42:31Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45125928425",
-    "sha": "7006e65"
-   },
-   {
-    "name": "Gemini CI Agent",
-    "branch": "dependabot/github_actions/dev/actions-1730de5550",
-    "event": "pull_request_target",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-23T06:42:30Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45125924307",
-    "sha": "7006e65"
    }
   ],
   "issues": [
@@ -599,7 +553,7 @@
     "number": 129,
     "title": "Dashboard-Lage: rot",
     "created_at": "2026-11-23T18:04:27Z",
-    "updated_at": "2026-11-23T18:04:27Z",
+    "updated_at": "2026-11-23T19:01:57Z",
     "labels": [
      "dashboard"
     ],
@@ -635,50 +589,37 @@
   "signals": [
    {
     "level": "red",
-    "key": "ci:Auto-Promote dev -> master (Check (Fitness)):master",
-    "text": "„Auto-Promote dev -> master (Check (Fitness))“ auf master ist rot (failure, 7bc4777)",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45235732964"
-   },
-   {
-    "level": "red",
     "key": "ci:Live Deploy (Mini-Apps je Tab):master",
     "text": "„Live Deploy (Mini-Apps je Tab)“ auf master ist rot (failure, 32a29b2)",
     "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45160432478"
    }
   ],
   "ai": {
-   "headline": "Master-Branch erneut aktualisiert, kritische CI-Fehler bestehen fort",
-   "lage": "Der `master`-Branch wurde mit Commit `7bc47778` aktualisiert, der eine CI-Dashboard-Anpassung enthält. Die Workflows „Auto-Promote dev -> master (Check (Fitness))“ für `7bc4777` und „Live Deploy (Mini-Apps je Tab)“ für `32a29b2` sind weiterhin fehlgeschlagen, was auch in Issue #129 gemeldet wurde. Der „Live Deploy (Fitness master)“-Workflow läuft aktuell für den neuesten Commit.",
+   "headline": "Master und Dev synchronisiert; ein kritischer CI-Fehler behoben, einer besteht fort",
+   "lage": "Der `master`-Branch ist mit `dev` synchronisiert, beide auf Commit `829013d1`. Der Workflow „Auto-Promote dev -> master (Check (Fitness))“ läuft für `829013d` erfolgreich. Der Workflow „Live Deploy (Mini-Apps je Tab)“ für Commit `32a29b2` ist weiterhin fehlgeschlagen, was auch in Issue #129 gemeldet ist.",
    "auffaelligkeiten": [
     {
      "level": "hoch",
-     "text": "„Auto-Promote dev -> master (Check (Fitness))“ auf master ist rot (failure, 7bc4777, Run 45235732964)."
+     "text": "„Live Deploy (Mini-Apps je Tab)“ auf master ist rot (failure, 32a29b2) (https://github.com/nimmsel23/fitness-dev/actions/runs/45160432478)"
     },
     {
-     "level": "hoch",
-     "text": "„Live Deploy (Mini-Apps je Tab)“ auf master ist rot (failure, 32a29b2, Run 45160432478)."
-    },
-    {
-     "level": "info",
-     "text": "Issue #129 \"Dashboard-Lage: rot\" wurde automatisch erstellt und bestätigt die CI-Probleme."
+     "level": "mittel",
+     "text": "Issue #129 \"Dashboard-Lage: rot\" ist weiterhin offen und korreliert mit dem fehlgeschlagenen Deploy."
     },
     {
      "level": "info",
-     "text": "Der Workflow „Live Deploy (Fitness master)“ für den neuesten Commit `7bc4777` ist noch \"in_progress\" (Run 45235733574)."
+     "text": "Die Aufgabe zur Entfernung von `HabitJournalModal.jsx` aus `fitness-dev/src/components/` in `docs/TODO.md` ist noch offen."
     }
    ],
    "naechste_schritte": [
-    "Analysieren der Fehlerursache im Workflow „Auto-Promote dev -> master (Check (Fitness))“ (45235732964) für Commit `7bc4777`.",
     "Analysieren der Fehlerursache im Workflow „Live Deploy (Mini-Apps je Tab)“ (45160432478) für Commit `32a29b2`.",
+    "Schließen von Issue #129, sobald der Deploy-Fehler behoben ist.",
     "Entfernen der Datei `HabitJournalModal.jsx` aus `fitness-dev/src/components/` gemäß `docs/TODO.md`."
    ],
-   "veraendert": "Der `master`-Branch wurde mit Commit `7bc47778` erneut aktualisiert, und die kritischen CI-Fehler für „Auto-Promote dev -> master (Check (Fitness))“ bestehen für den neuen Head-Commit fort, was durch Issue #129 bestätigt wird.",
-   "fragen": [
-    "Soll Issue #117 geschlossen werden, da ein Promote-Commit (`32a29b2c`) auf `master` erfolgt ist, auch wenn der Promote-Check fehlschlägt?",
-    "Soll die Ursache für den Fehler im „Live Deploy (Mini-Apps je Tab)“ für Commit `32a29b2` vorrangig behandelt werden, da dieser älter ist und die Mini-Apps betreffen könnte?"
-   ],
+   "veraendert": "Gegenüber der letzten Einschätzung sind `master` und `dev` nun synchronisiert, und der Workflow „Auto-Promote dev -> master (Check (Fitness))“ ist für den neuesten Commit `829013d` erfolgreich.",
+   "fragen": [],
    "model": "gemini-2.5-flash"
   },
-  "ai_at": "2026-11-23T18:12:02+00:00"
+  "ai_at": "2026-11-24T05:09:53+00:00"
  }
 }
