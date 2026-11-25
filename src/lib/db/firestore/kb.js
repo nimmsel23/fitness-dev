@@ -1,3 +1,4 @@
+import { isCuratedExercise as _isExpert, supersededSourceRefs as _buildSupersededExternalRefs, isSupersededSource as _isSupersededExternalExercise, mergeExercisePool } from '../shared/catalogSources.js';
 /**
  * firestore/kb.js — Exercise Knowledge Base CRUD for Firestore.
  * Favourites are localStorage-backed and mode-agnostic (→ shared/favourites.js).
@@ -23,6 +24,8 @@ import { PULL_EXERCISES } from "./pull.generated.js";
 import { LEGS_EXERCISES } from "./legs.generated.js";
 import { EXERCISE_BULK_DATA } from "./exerciseBulkData.generated.js";
 export { getFavourites, toggleFavourite } from "../shared/favourites.js";
+
+const BUNDLED_EXPERTS = [...PUSH_EXERCISES, ...PULL_EXERCISES, ...LEGS_EXERCISES].filter(_isExpert);
 
 // EXERCISE_BULK_DATA (scripts/build-exercise-bulk-data.mjs, aus
 // unreviewed_wger.yml/unreviewed_yuhonas.yml) deckt den statischen,
@@ -69,7 +72,7 @@ async function _getCuratedExercises() {
   return withoutNonExercises(
     snap.docs
       .map((d) => ({ id: d.id, ...d.data() }))
-      .filter((ex) => !ids.has(ex.exercise_id || ex.id)),
+      .filter((ex) => _isExpert(ex) || !ids.has(ex.exercise_id || ex.id)),
     NON_EXERCISE_BLOCK,
   );
 }
@@ -110,6 +113,7 @@ function _loadSessionSources() {
 }
 
 function _getExerciseSource(ex) {
+  if (_isExpert(ex)) return "coach";
   const tags = Array.isArray(ex?.tags) ? ex.tags : [];
   if (tags.includes("yuhonas") || ex?.yuhonas_id) return "yuhonas";
   if (tags.includes("wger") || tags.includes("unreviewed") || ex?.wger_id) return "wger";
@@ -129,8 +133,8 @@ function _isCurated(ex) {
 async function _getSearchPool(useMirror) {
   if (!useMirror) {
     if (!_searchCache) {
-      const [{ data }, curated] = await Promise.all([_loadBulk(), _getCuratedExercises()]);
-      _searchCache = [...data, ...curated];
+      const [{ data }, curated] = await Promise.all([_loadBulk(), _getCuratedExercises().catch(() => [])]);
+      _searchCache = mergeExercisePool(data, [...BUNDLED_EXPERTS, ...curated]);
     }
     return _searchCache;
   }
@@ -138,13 +142,13 @@ async function _getSearchPool(useMirror) {
     const { data } = await _loadBulk();
     const bulk = data.filter((ex) => !_isLegacyYuhonasBulk(ex));
     const bulkIds = new Set(bulk.map((ex) => ex.exercise_id || ex.id));
-    const snap = await getDocs(collection(db, "fitness", "kb", "exercises"));
+    const snap = await getDocs(collection(db, "fitness", "kb", "exercises")).catch(() => ({ docs: [] }));
     const curated = snap.docs
       .map((d) => ({ id: d.id, ...d.data() }))
-      .filter((ex) => !bulkIds.has(ex.exercise_id || ex.id))
+      .filter((ex) => _isExpert(ex) || !bulkIds.has(ex.exercise_id || ex.id))
       // Alte yuhonas_*-Bulk-Docs in Firestore fallen weg, kuratierte Drafts bleiben.
       .filter((ex) => !isLegacyYuhonasId(ex.exercise_id || ex.id) || _isCurated(ex));
-    _searchCacheMirror = [...bulk, ...curated];
+    _searchCacheMirror = mergeExercisePool(bulk, [...BUNDLED_EXPERTS, ...curated]);
   }
   return _searchCacheMirror;
 }
@@ -168,7 +172,6 @@ export async function searchExercises(query, limit = 12, opts = {}) {
   const qn = _normalize(q);
   const qTokens = qn.split(" ").filter(Boolean);
   const scoredAll = pool.map((ex) => {
-    if (ex.merged_into || ex.superseded_by) return { ex, score: 0 };
     const hay = [ex.display_name, ex.german, ex.english, ex.name, ex.exercise_id, ex.id, ...(ex.aliases || []), ...(ex.search_aliases || []), ...(ex.tags || [])].map(_normalize);
     let score = 0;
     if (hay.some((h) => h === qn))                                                    score = 100;
@@ -200,31 +203,6 @@ export async function searchExercises(query, limit = 12, opts = {}) {
     ok: true, source: "firestore", query: q, results, mirrorMissing,
     suggestions: results.slice(0, 3).map((r) => ({ canonical_id: r.id, display_name: r.name })),
   };
-}
-
-function _isExpert(ex) {
-  const tags = ex.tags || [];
-  return ex.source === "expert" || tags.includes("expert");
-}
-
-function _buildSupersededExternalRefs(exercises) {
-  const refs = { wger: new Set(), yuhonas: new Set() };
-  for (const ex of exercises || []) {
-    if (!_isExpert(ex)) continue;
-    if (ex.wger_id) refs.wger.add(String(ex.wger_id));
-    const external = ex.external_ids || {};
-    for (const id of external.wger || []) refs.wger.add(String(id));
-    for (const id of external.yuhonas || []) refs.yuhonas.add(String(id));
-  }
-  return refs;
-}
-
-function _isSupersededExternalExercise(ex, refs) {
-  if (_isExpert(ex)) return false;
-  if (ex.merged_into || ex.superseded_by) return true;
-  if (ex.wger_id && refs.wger.has(String(ex.wger_id))) return true;
-  if (ex.yuhonas_id && refs.yuhonas.has(String(ex.yuhonas_id))) return true;
-  return false;
 }
 
 // Push/Pull/Legs-Split der expert-approved Exercises, offline verfügbar wie

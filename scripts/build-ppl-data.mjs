@@ -48,6 +48,8 @@ const EXPORT_FIELDS = [
   'tags',
   'wger_id',
   'yuhonas_id',
+  'external_ids',
+  'source_selection',
 ]
 
 function walkYamlFiles(dir) {
