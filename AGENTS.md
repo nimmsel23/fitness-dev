@@ -27,7 +27,7 @@ Learn gehört jetzt zu diesem Repo (`apps/learn`). Node-Backend-Entwicklung geh�
 ## Mini-App-Integration
 
 - Plan ist die Quelle für Trainingsplan-/Programmeditor und Planlogik. Coach nutzt einen eigenen Pin unter `coach-dev/modules/plan`; daraus folgt kein automatisches Fitness-Update.
-- `vite-miniapp-submodules.mjs` löst Plan/6Pack/Skills **nur** über benachbarte Checkouts auf (`plan-app`/`plan-dev`, analog 6Pack/Skills) — kein verschachtelter Fallback, kein Gitlink, keine `.gitmodules` in diesem Checkout. `src/views/Plan` und `src/views/Skills` existieren hier nicht; Imports wie `../Plan/…` und `@vos-plan/…` zeigen zur Laufzeit auf den Sibling.
+- `vite-miniapp-submodules.mjs` löst Plan und die gemeinsame 6Pack-/Skills-Quelle **nur** über benachbarte Checkouts auf (`plan-app`/`plan-dev`, `6pack-app`/`6pack-dev`; Skills unter `6pack/skills`) — kein verschachtelter Fallback, kein Gitlink, keine `.gitmodules` in diesem Checkout. `src/views/Plan` und `src/views/Skills` existieren hier nicht; Imports wie `../Plan/…` und `@vos-plan/…` zeigen zur Laufzeit auf den Sibling.
 - Vor Builds und Übernahmen den tatsächlich aufgelösten Quellcheckout samt Commit prüfen. Nicht allein aus alten Submodul-Anweisungen oder aus `src/views/Plan`-Pfaden in Importen auf eine lokale Kopie schließen.
 - Standalone-Releases, Coach-Plan-Pointer, Fitness-Integration und VitalOS-Shell-Pointer sind getrennte Schritte.
 - Details zur Zuständigkeit: `docs/PLAN-OWNERSHIP.md`.

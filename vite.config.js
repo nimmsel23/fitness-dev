@@ -30,7 +30,7 @@ function siblingDir(devName, appName) {
 // Learn gehört zu Fitness; Relax bleibt ein Nachbar-Checkout.
 function resolveCrossAppAliases() {
   return {
-    // Core Skills (skills-dev) importiert 6Pack über diesen Alias.
+    // Legacy hosts may still import the shared 6Pack source through this alias.
     '@vos-sixpack': siblingDir('6pack-dev', '6pack-app'),
     '@learn': resolve(__dirname, 'src'),
   }

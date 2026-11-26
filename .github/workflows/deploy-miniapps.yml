@@ -122,7 +122,7 @@ jobs:
       - name: Checkout Nachbarn (master)
         run: |
           set -euo pipefail
-          for repo in plan-dev 6pack-dev skills-dev relax-dev; do
+          for repo in plan-dev 6pack-dev relax-dev; do
             git clone --depth 1 --branch master "https://github.com/nimmsel23/${repo}.git" "$repo"
             echo "$repo @ $(git -C "$repo" rev-parse --short HEAD)"
           done
@@ -161,7 +161,7 @@ jobs:
       - name: Install Nachbarn (je eigener Lockfile)
         run: |
           set -euo pipefail
-          for repo in plan-dev 6pack-dev skills-dev relax-dev; do
+          for repo in plan-dev 6pack-dev relax-dev; do
             echo "::group::$repo"
             if [ -f "$repo/pnpm-lock.yaml" ]; then
               (cd "$repo" && pnpm install --no-frozen-lockfile --ignore-scripts)

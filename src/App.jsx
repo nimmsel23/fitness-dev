@@ -19,6 +19,7 @@ import { getMessagingIfSupported } from '@cloud/firebase.js'
 import { getNavItems, VALID_TABS, IS_SOLO, SOLO_TAB } from './constants/NavigationItems.js'
 import { markStandaloneHost } from './views/Session/externalSessionApps.js'
 // Core Skills (Skills + 6Pack) eingebettet statt Absprung auf vos-skills/vos-6pack — gleiche Origin, gleicher Login.
+import { logWorkoutAsSession } from './lib/logExternalWorkout.js'
 import CoreSkills from './views/Skills/CoreSkills.jsx' // statisch, keine Dynamic Imports (AGENTS.md)
 const CORE_SKILLS_ROUTE = { skills: '', timer: 'sixpack' }
 
@@ -565,7 +566,7 @@ export default function App() {
 
   // Core Skills vollflächig, ohne Fitness-Header/Datepicker/Nav.
   if (tab === 'session' && subTab in CORE_SKILLS_ROUTE && coreSkillsRoute !== null) return (
-    <CoreSkills route={coreSkillsRoute} onRouteChange={setCoreSkillsRoute} onClose={() => { setCoreSkillsRoute(null); setSubTab('today'); }} />
+    <CoreSkills uid={user?.uid || 'local'} onWorkoutComplete={logWorkoutAsSession} route={coreSkillsRoute} onRouteChange={setCoreSkillsRoute} onClose={() => { setCoreSkillsRoute(null); setSubTab('today'); }} />
   );
 
   return (

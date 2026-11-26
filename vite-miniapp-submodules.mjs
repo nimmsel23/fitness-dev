@@ -28,7 +28,8 @@ function firstExisting(root, siblings) {
 export function miniAppSubmodulePlugin(root = __dirname) {
   const planRoot = firstExisting(root, ['plan-app', 'plan-dev'])
   const sixpackRoot = firstExisting(root, ['6pack-app', '6pack-dev'])
-  const skillsRoot = firstExisting(root, ['skills-app', 'skills-dev'])
+  // Skills is owned by the shared 6Pack source, never the legacy Skills repo.
+  const skillsRoot = sixpackRoot ? resolve(sixpackRoot, 'skills') : null
 
   const maps = [
     planRoot && {

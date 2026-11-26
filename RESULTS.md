@@ -413,3 +413,7 @@ Firebase-Log von sendTestPush: `TypeError: admin.firestore is not a function` (H
 - Agent-Workflow und lokale Trigger für `fitness-dev` auf `dev` eingerichtet; `GEMINI_API_KEY` als Actions-Secret gesetzt.
 - `Check`/Preview und Agent-Run [42405239691](https://github.com/nimmsel23/fitness-dev/actions/runs/42405239691) waren auf Commit `64a0d748` grün. Dieser Lauf war ein No-op auf einem erfolgreichen Check; ein roter Code-Fehler wurde noch nicht absichtlich simuliert.
 - Pushes und PR-Merges verwenden die eng berechtigte `GITHUB_TOKEN`-Workflow-Berechtigung; kein separates `SYNC_TOKEN` erforderlich.
+## 2026-11-26 — Gemeinsames Core Skills in Fitness
+
+- Resolver nutzt Skills aus 6pack/skills statt separatem Skills-Checkout; Standalone-/Mini-App-CI braucht skills-dev nicht mehr.
+- Fitness übergibt UID, Rückkehr und logWorkoutAsSession für beide Trainingsbereiche. Regression prüft stabile Session-IDs und Fehlerweitergabe ohne echte Cloud-Schreibzugriffe. Details: docs/6pack-integration.md.

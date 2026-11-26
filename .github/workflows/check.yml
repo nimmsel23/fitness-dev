@@ -61,7 +61,7 @@ jobs:
           git submodule sync
           git submodule update --init
 
-      # Skills, 6Pack, Plan sind Geschwister von Fitness, nicht der vitalos-Pin.
+      # 6Pack (mit Skills) und Plan sind Geschwister von Fitness, nicht der vitalos-Pin.
       # dev-Push/Dispatch → Nachbarn @ master: genau dieser Check gibt den Auto-Promote frei, und der
       # Live-Deploy (deploy-master.yml) baut mit Nachbarn @ master. Mit Nachbarn @ dev war der Check grün,
       # obwohl skills-dev master CoreSkills.jsx noch nicht hatte → Live-Deploy rot (#108).
@@ -71,7 +71,7 @@ jobs:
           set -euo pipefail
           if [[ -n "${{ github.base_ref }}" ]]; then B="${{ github.base_ref }}"; else B=master; fi
           [[ "$B" == master || "$B" == dev ]] || B=dev
-          for app in skills-app 6pack-app plan-app; do
+          for app in 6pack-app plan-app; do
             git -C "$app" fetch -q origin "$B"
             git -C "$app" checkout -q --detach FETCH_HEAD
             echo "$app @ $B $(git -C "$app" rev-parse --short HEAD)"
@@ -115,6 +115,9 @@ jobs:
       # exampleEntries/nonExercises-Tests KB-YML-Daten lesen.
       - name: Unit tests
         run: pnpm --filter ./fitness-app test
+
+      - name: Shared Core Skills source resolution
+        run: node --test fitness-app/scripts/miniapp-source.test.mjs
 
       - name: Tooling (Biome format scripts/)
         run: pnpm --filter ./fitness-app run tooling:biome
