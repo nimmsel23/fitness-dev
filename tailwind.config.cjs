@@ -30,14 +30,12 @@ module.exports = {
   content: [
     "./index.html",
     "./src/**/*.{js,jsx,ts,tsx}",
-    // Plan, 6Pack und Skills kommen als Submodule (src/views/{Plan,SixPack,Skills}
+    // Plan und 6Pack (inklusive skills/) kommen aus Nachbar-Checkouts (src/views/{Plan,SixPack,Skills}
     // sind nicht mehr eingecheckt) — ihre Klassen müssen direkt aus dem Checkout gescannt werden.
     path.join(miniAppDir(["plan-app", "plan-dev"]), "src/views/Plan/**/*.{js,jsx,ts,tsx}"),
     path.join(miniAppDir(["6pack-app", "6pack-dev"]), "**/*.{js,jsx,ts,tsx}"),
-    path.join(miniAppDir(["skills-app", "skills-dev"]), "**/*.{js,jsx,ts,tsx}"),
     "!" + path.join(miniAppDir(["6pack-app", "6pack-dev"]), "node_modules/**"),
     "!" + path.join(miniAppDir(["6pack-app", "6pack-dev"]), "android/**"),
-    "!" + path.join(miniAppDir(["skills-app", "skills-dev"]), "node_modules/**"),
     siblingGlob("journal-dev", "journal-app"),
     siblingGlob("habits-dev", "habit-app"),
     siblingGlob("learn-dev", "learn-app"),

@@ -417,3 +417,5 @@ Firebase-Log von sendTestPush: `TypeError: admin.firestore is not a function` (H
 
 - Resolver nutzt Skills aus 6pack/skills statt separatem Skills-Checkout; Standalone-/Mini-App-CI braucht skills-dev nicht mehr.
 - Fitness übergibt UID, Rückkehr und logWorkoutAsSession für beide Trainingsbereiche. Regression prüft stabile Session-IDs und Fehlerweitergabe ohne echte Cloud-Schreibzugriffe. Details: docs/6pack-integration.md.
+
+- Live-Build-Nachprüfung: verbliebene Skills-Checkout-Pflicht im Tailwind-Scanner entfernt; Regression prüft JS-Resolver und CSS-Konfiguration ohne Legacy-Skills-Checkout.
