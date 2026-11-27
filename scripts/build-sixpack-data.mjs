@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Shared 6Pack programs/exercises with Fitness KB anatomy enrichment.
 // Generiert src/views/SixPack/sixpackData.generated.js aus der KB
 // (fitness/catalog/kb/exercises/6pack/ + /calisthenics/) — die KB bleibt SSOT,
 // dieses Skript ist der einzige Ort, der KB-Inhalte in JS dupliziert. Läuft
@@ -19,6 +20,8 @@ if (!SIXPACK_SRC) {
   process.exit(1)
 }
 const { loadMuscles, exerciseContent } = await import(pathToFileURL(join(SIXPACK_SRC, 'catalogContent.mjs')).href)
+const SHARED_SIXPACK_DIR = join(SIXPACK_SRC, 'catalog/6pack')
+const { validateWorkoutProgram } = await import(pathToFileURL(join(SIXPACK_SRC, 'scripts/workout-validation.mjs')).href)
 const SIXPACK_DIR = join(REPO_ROOT, 'fitness/catalog/kb/exercises/6pack')
 const CALISTHENICS_DIR = join(REPO_ROOT, 'fitness/catalog/kb/exercises/calisthenics')
 const OUT_FILE = join(REPO_ROOT, 'src/views/SixPack/sixpackData.generated.js')
@@ -63,18 +66,27 @@ function isProgramFile(filename) {
 }
 
 function buildExercises() {
-  const muscles = loadMuscles(join(REPO_ROOT, 'fitness/catalog/kb/muscles'))
-  const files = readdirSync(SIXPACK_DIR).filter((f) => f.endsWith('.yml') && !isProgramFile(f))
+  const muscles = {
+    ...loadMuscles(join(SIXPACK_SRC, 'catalog/muscles')),
+    ...loadMuscles(join(REPO_ROOT, 'fitness/catalog/kb/muscles')),
+  }
+  const files = [SHARED_SIXPACK_DIR, SIXPACK_DIR].flatMap((dir) =>
+    readdirSync(dir)
+      .filter((f) => f.endsWith('.yml') && !isProgramFile(f))
+      .map((file) => join(dir, file)),
+  )
   const exercises = {}
   const coaching = {}
   for (const file of files) {
-    const doc = loadYaml(join(SIXPACK_DIR, file))
+    const doc = loadYaml(file)
     const ex = doc.exercises?.[0]
     if (!ex) continue
     const category = categoryFromTags(ex.tags)
+    const spokenName = /[\d/"]/.test(ex.name) ? (ex.aliases || []).find((alias) => !/[\d/"]/.test(alias)) : null
     exercises[ex.id] = {
       id: ex.id,
       name: ex.name,
+      ...(spokenName ? { spokenName } : {}),
       ...exerciseContent(ex, muscles, CLIPS_DIR),
       category,
       focusLabel: CATEGORY_LABELS[category] || 'Core',
@@ -90,10 +102,11 @@ function buildExercises() {
 }
 
 function buildWorkouts(exercises) {
-  const files = readdirSync(SIXPACK_DIR).filter(isProgramFile)
+  const files = readdirSync(SHARED_SIXPACK_DIR).filter(isProgramFile)
   const workouts = {}
   for (const file of files) {
-    const doc = loadYaml(join(SIXPACK_DIR, file))
+    const doc = loadYaml(join(SHARED_SIXPACK_DIR, file))
+    validateWorkoutProgram(doc, exercises, file)
     // week{N}_workouts.yml → Woche N, sonst Fallback Woche 1. Absoluter Tag =
     // (Woche-1)*7 + Tag-in-Woche, damit künftige Wochen ohne Code-Änderung
     // an der richtigen Stelle im Programm auftauchen.
@@ -161,7 +174,7 @@ const exerciseDetails = Object.fromEntries(
 )
 
 const banner = `// AUTO-GENERATED — nicht manuell editieren.
-// Quelle: fitness/catalog/kb/exercises/6pack/ + /calisthenics/ (SSOT).
+// Quelle: shared 6Pack catalog/programs + Fitness KB anatomy enrichment.
 // Neu erzeugen: npm run build:sixpack-data (läuft automatisch vor dev/build).
 `
 

@@ -20,6 +20,7 @@ import { getNavItems, VALID_TABS, IS_SOLO, SOLO_TAB } from './constants/Navigati
 import { markStandaloneHost } from './views/Session/externalSessionApps.js'
 // Core Skills (Skills + 6Pack) eingebettet statt Absprung auf vos-skills/vos-6pack — gleiche Origin, gleicher Login.
 import { logWorkoutAsSession } from './lib/logExternalWorkout.js'
+import SessionAppSurface from './components/SessionAppSurface.jsx'
 import CoreSkills from './views/Skills/CoreSkills.jsx' // statisch, keine Dynamic Imports (AGENTS.md)
 const CORE_SKILLS_ROUTE = { skills: '', timer: 'sixpack' }
 
@@ -564,10 +565,13 @@ export default function App() {
     </div>
   );
 
-  // Core Skills vollflächig, ohne Fitness-Header/Datepicker/Nav.
-  if (tab === 'session' && subTab in CORE_SKILLS_ROUTE && coreSkillsRoute !== null) return (
-    <CoreSkills uid={user?.uid || 'local'} onWorkoutComplete={logWorkoutAsSession} route={coreSkillsRoute} onRouteChange={setCoreSkillsRoute} onClose={() => { setCoreSkillsRoute(null); setSubTab('today'); }} />
-  );
+  // Full-screen app; swipe right from the left edge returns to the Session editor.
+  if (tab === 'session' && subTab in CORE_SKILLS_ROUTE && coreSkillsRoute !== null) {
+    const closeCoreSkills = () => { setCoreSkillsRoute(null); setSubTab('today'); };
+    return <SessionAppSurface onBack={closeCoreSkills}>
+      <CoreSkills uid={user?.uid || 'local'} onWorkoutComplete={logWorkoutAsSession} route={coreSkillsRoute} onRouteChange={setCoreSkillsRoute} onClose={closeCoreSkills} />
+    </SessionAppSurface>;
+  }
 
   return (
     <>

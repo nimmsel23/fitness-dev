@@ -172,3 +172,16 @@ seit HOTLIST task 115: `listSessionsForDate`/`getSession`/`getSessionHistory`/
 `getDigestSessions` taggen Cloud-Rückgaben, die lokalen Gegenstücke setzen
 `local`; Schreibwege strippen `_origin`, damit es nie persistiert). Leerer
 Tag → kein Badge. Kein Änderung am Datenfluss sonst.
+
+## Full-screen Skills/6Pack return (2026-11-27)
+
+`App.jsx` keeps CoreSkills full-screen within the unstyled `SessionAppSurface`.
+A right swipe starting in the leftmost 40 px returns to the existing Session
+editor (`subTab=today`). `useEdgeBack` ignores vertical scrolling, form/media
+controls, open dialogs and active Skills/6Pack runners; no extra header or
+navigation wrapper is drawn. The existing CoreSkills close button is retained.
+
+The Fitness generator takes complete workout weeks and missing exercise IDs from
+its shared 6Pack sibling, then enriches existing exercise IDs with the Fitness KB.
+The shared program validator and source-parity regression prevent stale Fitness
+KB workout files from hiding new weeks.

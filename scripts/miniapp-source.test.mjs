@@ -46,3 +46,31 @@ test('Tailwind scans shared Skills without a legacy Skills checkout', () => {
   assert(module.exports.content.includes('/fixture/6pack-dev/**/*.{js,jsx,ts,tsx}'))
   assert(!module.exports.content.some((pattern) => /skills-(dev|app)/.test(pattern)))
 })
+
+test('Fitness generator preserves every shared workout block, including new weeks', async () => {
+  const { existsSync } = await import('node:fs')
+  const { spawnSync } = await import('node:child_process')
+  const { pathToFileURL } = await import('node:url')
+  const yaml = await import('js-yaml')
+  const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..')
+  const shared = ['6pack-app', '6pack-dev'].map((name) => join(root, '..', name)).find(existsSync)
+  assert(shared, 'shared source checkout required')
+  const generated = spawnSync(process.execPath, [join(root, 'scripts/build-sixpack-data.mjs')], { encoding: 'utf8' })
+  assert.equal(generated.status, 0, generated.stderr)
+  const data = await import(pathToFileURL(join(root, 'src/views/SixPack/sixpackData.generated.js')).href)
+  const { readdirSync } = await import('node:fs')
+  for (const file of readdirSync(join(shared, 'catalog/6pack')).filter((name) => /^week\d+_workouts.yml$/.test(name))) {
+    const week = Number(file.match(/week(\d+)/)[1])
+    const doc = yaml.load(readFileSync(join(shared, 'catalog/6pack', file), 'utf8'))
+    for (const [day, workout] of Object.entries(doc.verified_days)) {
+      const actual = data.SIXPACK_VERIFIED_WORKOUTS[(week - 1) * 7 + Number(day)]
+      assert.equal(actual.totalSeconds, workout.total_seconds)
+      assert.deepEqual(
+        actual.items.map((item) => [item.exerciseId, item.seconds]),
+        workout.items.map((item) => [item.exercise_id, item.duration_seconds]),
+      )
+      for (const item of actual.items)
+        if (item.type === 'exercise') assert(data.SIXPACK_EXERCISE_DETAILS[item.exerciseId])
+    }
+  }
+})
