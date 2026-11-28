@@ -52,7 +52,7 @@ src/views/SixPack/sixpackData.generated.js
 public/sixpack-photos/
 .claude/hooks/*.log
 
-# Session-Handoff (TODO/NEXT lokal; RESULTS.md getrackt — CEO-Ruling 2026-11-07)
+# Repo-local handoff files; results never enter commits.
 TODO.md
 NEXT.md
 .cache/
@@ -76,3 +76,5 @@ twa/store_icon.png
 
 # KB-SOT nimmsel23/fitness, lokal/CI per Symlink eingehängt
 fitness/catalog/kb
+
+/RESULTS.md
