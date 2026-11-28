@@ -2,11 +2,18 @@
 
 Makro-Gegenstück zum Einzelsession-Tab: Training → **Logbuch** (`#session/logbuch`, Sub-Tab `logbuch`
 in `constants/NavigationItems.js`, `SESSION_SUB_TABS` in `App.jsx`, Router in `Session/index.jsx`,
-lazy geladen). Der History-Tab (`Session/SessionHistory.jsx`) bleibt unverändert — Drag&Drop-
-Umdatieren und Löschen bleiben dort; das Logbuch ist rein lesend und öffnet Sessions über
-`onOpenSession`.
+lazy geladen). Seit 2026-11-28 übernimmt die Chronik die Verwaltung der früheren Historie:
+konkrete gespeicherte Einheiten öffnen, ihr Datum korrigieren und sie gezielt löschen.
+Legacy-History-Routen öffnen die Chronik. Schreibaktionen verwenden vollständige,
+frisch gelesene Session-Dokumente, nicht die zusammengeführten Tagesaggregate.
+
 
 ## Komponenten
+
+- **SessionActions.jsx / sessionActions.js**: wählt einzelne Dokumente eines Tages
+  anhand Datum und ID, öffnet sie, verschiebt sie über relocateSession und löscht
+  nach Bestätigung. Busy-/Fehlerzustände bleiben sichtbar; Entwürfe erst nach Erfolg
+  entfernen. Belegte Ziele werden vom bestehenden Session-Move-Vertrag geschützt.
 
 - **`index.jsx`**: Shell — KPI-Leiste, Linsen-Umschalter (zuletzt gewählte Linse in `localStorage`
   `fitness-logbuch-lens`), Filter (Suche, Status, Block, Sortierung, Zeitachse), `focusExercise()`
@@ -125,3 +132,22 @@ zurück und reagiert auf `hashchange`. Ohne Linse im Link gilt weiter die zuletz
 (`cloud` | `local`) ab und gibt ihn zurück; `index.jsx` zeigt ihn als kleinen
 Badge in der Kopfzeile (Tooltip: Cloud = Firestore-Monats-Digests, Lokal =
 offline/lokale API). Reine Anzeige, keine Änderung an Laden/Aggregieren.
+
+
+## Handoff 2026-11-28
+
+Fachcode: e08ecdea und 181b165e; im Meta-Repo als Fitness-Pin 181b165e veröffentlicht.
+Historische Session-Ansicht und Chronik sind nicht zwei unabhängig weiterzupflegende
+Verwaltungsoberflächen.
+
+Die isolierte UI-Prüfung verwendete zwei synthetische Einheiten am selben Datum.
+Zusatz-Einheit öffnen, Datum ändern und Notizen/Zusatzdaten erhalten sowie nur die
+andere Einheit löschen wurden dort geprüft. Kein echtes Trainingsdokument wurde
+für den Test verändert. Geräte-/Kontoabnahme bleibt offen.
+
+Nächste Tests: mehrere Einheiten pro Tag, Haupt-ID null vs. Zusatz-ID,
+belegtes Zieldatum, fehlendes Quelldokument, Netzwerkfehler, lokale Runtime-Drafts,
+Nachladen der Wochenaggregate und Wiederöffnung im Session-Editor.
+
+Gesamter Sessionbericht und Releases:
+~/vitalos/docs/ARBEITSSTAND-2026-11-28.md.

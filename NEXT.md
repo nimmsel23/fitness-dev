@@ -41,3 +41,7 @@
 - [x] History-Alias führt zur Chronik; unerreichbaren zweiten History-Zweig entfernen; gezielte Session-Auswahl auch bei gleichem Tag erhalten.
 - [x] Fitness-Beschriftung für eingebettete 6Pack-/Skills-Einstiege korrigieren (keine falschen externen App-Labels).
 - [x] 138 Unit-Tests, Smoke, ESLint und Standalone-Firebase-Build erfolgreich; Quellfix lokal committed. Shell-Pin bleibt bis zu einem eigenen Release-Auftrag unverändert.
+
+## Session-Handoff 2026-11-28
+
+- [ ] Wiederhergestellte Logbuch-Verwaltung angemeldet und mobil abnehmen: Haupt-/Zusatz-ID, vollständige Datumsverschiebung, belegtes Ziel, fehlende Quelle, Netzwerkfehler und Aggregate. Isoliertes Fixture ist bestanden; keine echte Session als Test gelöscht. Details: src/views/Logbuch/ARCHITECTURE.md und ~/vitalos/docs/ARBEITSSTAND-2026-11-28.md.
