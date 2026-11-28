@@ -1,12 +1,12 @@
 {
  "evidence": {
-  "generated_at": "2026-11-27T14:19:56+00:00",
+  "generated_at": "2026-11-28T13:36:27+00:00",
   "repo": "nimmsel23/fitness-dev",
   "meta": {
    "name": "fitness-dev",
    "description": null,
    "html_url": "https://github.com/nimmsel23/fitness-dev",
-   "pushed_at": "2026-11-27T13:28:19Z",
+   "pushed_at": "2026-11-28T10:48:20Z",
    "default_branch": "master",
    "visibility": "public",
    "pages_url": "https://nimmsel23.github.io/fitness-dev/"
@@ -21,14 +21,32 @@
    "dev_behind": 0,
    "dev_ahead": 0,
    "oldest_unpromoted": null,
-   "dev_head": "c45f8464 2026-11-27T14:26:05+01:00",
-   "master_head": "c45f8464 2026-11-27T14:26:05+01:00"
+   "dev_head": "181b165e 2026-11-28T08:26:08+01:00",
+   "master_head": "181b165e 2026-11-28T08:26:08+01:00"
   },
   "work": {
    "branch": "master",
-   "sha": "c45f846482a9e15ef17492bafc5a8be12353aff4"
+   "sha": "181b165eb3916af49d36167f1e6aeec512ef07bd"
   },
   "commits": [
+   {
+    "sha": "181b165e",
+    "date": "2026-11-28T08:26:08+01:00",
+    "author": "Alpha",
+    "subject": "fix(logbook): preserve the Chronik lens for legacy history links"
+   },
+   {
+    "sha": "e08ecdea",
+    "date": "2026-11-28T08:24:11+01:00",
+    "author": "Alpha",
+    "subject": "fix(logbook): restore history session management and embedded app labels"
+   },
+   {
+    "sha": "bd9e98df",
+    "date": "2026-11-28T08:23:51+01:00",
+    "author": "Alpha",
+    "subject": "chore: keep fitness session results local"
+   },
    {
     "sha": "c45f8464",
     "date": "2026-11-27T14:26:05+01:00",
@@ -130,34 +148,12 @@
     "date": "2026-11-23T19:43:56+01:00",
     "author": "nimmsel23",
     "subject": "docs(grok): Fitness Dev Dashboard als Canvas-Kopie nach docs/grok/"
-   },
-   {
-    "sha": "7bc47778",
-    "date": "2026-11-23T19:11:34+01:00",
-    "author": "nimmsel23",
-    "subject": "ci(dashboard): Board baut master, Push-Trigger master (Daniel 23.11.)"
-   },
-   {
-    "sha": "32a29b2c",
-    "date": "2026-11-23T11:55:17+01:00",
-    "author": "nimmsel23",
-    "subject": "promote: dev nach master (#128)"
-   },
-   {
-    "sha": "94abb9ad",
-    "date": "2026-11-23T07:02:49Z",
-    "author": "dependabot[bot]",
-    "subject": "deps: bump the minor-and-patch group across 3 directories with 16 updates (#127)"
    }
   ],
   "activity": [
    {
-    "day": "2026-11-07",
-    "n": 13
-   },
-   {
     "day": "2026-11-08",
-    "n": 4
+    "n": 2
    },
    {
     "day": "2026-11-09",
@@ -234,18 +230,32 @@
    {
     "day": "2026-11-27",
     "n": 1
+   },
+   {
+    "day": "2026-11-28",
+    "n": 3
    }
   ],
   "workflows": [
+   {
+    "name": "Merge-Agent",
+    "branch": "master",
+    "event": "schedule",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-11-28T12:05:29Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/46142944067",
+    "sha": "181b165"
+   },
    {
     "name": "Gemini CI Agent",
     "branch": "master",
     "event": "workflow_run",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-27T13:28:24Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/46007392199",
-    "sha": "c45f846"
+    "created_at": "2026-11-28T10:48:34Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/46136906551",
+    "sha": "181b165"
    },
    {
     "name": "Live Deploy (Fitness master)",
@@ -253,9 +263,9 @@
     "event": "workflow_dispatch",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-27T13:28:20Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/46007385622",
-    "sha": "c45f846"
+    "created_at": "2026-11-28T10:48:22Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/46136891387",
+    "sha": "181b165"
    },
    {
     "name": "PR-AutoMerge (Dependabot -> dev)",
@@ -263,9 +273,9 @@
     "event": "workflow_run",
     "status": "completed",
     "conclusion": "skipped",
-    "created_at": "2026-11-27T13:28:10Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/46007363568",
-    "sha": "1f23826"
+    "created_at": "2026-11-28T10:48:12Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/46136879750",
+    "sha": "c45f846"
    },
    {
     "name": "Auto-Promote dev -> master (Check (Fitness))",
@@ -273,9 +283,9 @@
     "event": "workflow_run",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-27T13:28:10Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/46007363543",
-    "sha": "1f23826"
+    "created_at": "2026-11-28T10:48:12Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/46136879734",
+    "sha": "c45f846"
    },
    {
     "name": "Preview (Fitness dev)",
@@ -283,9 +293,9 @@
     "event": "push",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-27T13:26:33Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/46007137717",
-    "sha": "c45f846"
+    "created_at": "2026-11-28T10:47:09Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/46136798397",
+    "sha": "181b165"
    },
    {
     "name": "Check (Fitness)",
@@ -293,19 +303,9 @@
     "event": "push",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-27T13:26:33Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/46007137607",
-    "sha": "c45f846"
-   },
-   {
-    "name": "Merge-Agent",
-    "branch": "master",
-    "event": "schedule",
-    "status": "completed",
-    "conclusion": "success",
-    "created_at": "2026-11-27T12:09:03Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45996231845",
-    "sha": "1f23826"
+    "created_at": "2026-11-28T10:47:09Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/46136798395",
+    "sha": "181b165"
    },
    {
     "name": "CI-Heilung (rote Läufe wiederholen)",
@@ -313,9 +313,9 @@
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-27T08:10:41Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45963669995",
-    "sha": "1f23826"
+    "created_at": "2026-11-28T10:13:43Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/46134163313",
+    "sha": "c45f846"
    },
    {
     "name": "Org-Bot (PR anlegen & mergen)",
@@ -323,9 +323,9 @@
     "event": "schedule",
     "status": "completed",
     "conclusion": "success",
-    "created_at": "2026-11-27T05:24:16Z",
-    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/45945598860",
-    "sha": "1f23826"
+    "created_at": "2026-11-28T05:00:03Z",
+    "url": "https://github.com/nimmsel23/fitness-dev/actions/runs/46110063313",
+    "sha": "c45f846"
    }
   ],
   "issues": [
