@@ -11,8 +11,8 @@ export function parseLogbuchHash(hash) {
   const raw = String(hash || '').replace(/^#\/?/, '');
   const [path = '', query = ''] = raw.split('?');
   const [tab, sub, third] = path.split('/').filter(Boolean);
-  if (tab !== 'session' || sub !== 'logbuch') return { lens: null, ex: null };
-  const lens = LOGBUCH_LENSES.includes(third) ? third : null;
+  if (tab !== 'session' || !['logbuch', 'history'].includes(sub)) return { lens: null, ex: null };
+  const lens = LOGBUCH_LENSES.includes(third) ? third : sub === 'history' ? 'chronik' : null;
   const ex = new URLSearchParams(query).get('ex') || null;
   return { lens, ex: lens === 'kodex' || (!lens && ex) ? ex : null };
 }

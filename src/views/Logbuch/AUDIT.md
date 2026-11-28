@@ -13,7 +13,7 @@ Makro-Sicht auf alle Sessions: pro Übung zuletzt/Gipfel/Rekorde, Rhythmus über
 | `PeakProfile.jsx` | Gipfel-Profil (SVG) |
 | `RecordChronicle.jsx` | Rekord-Chronik |
 | `RhythmGrid.jsx` | Stempelkarte Übung × Woche |
-| `WeekChronik.jsx` | Wochen-Timeline (read-only Ableger von SessionHistory) |
+| `WeekChronik.jsx` | Wochen-Timeline mit Verwaltung einzelner Sessions (Öffnen, Datum ändern, Löschen) |
 
 ## Stand 2026-10-31 (Erstversion)
 - Geprüft: ESLint sauber, `vite build` ok, Unit-Tests grün, SSR-Screenshot mit echten lokalen Daten.
@@ -32,3 +32,5 @@ Makro-Sicht auf alle Sessions: pro Übung zuletzt/Gipfel/Rekorde, Rhythmus über
 Kopfzeile zeigt jetzt Cloud/Lokal-Badge aus `useLogbook().dataOrigin`
 (`_origin` der Digest-Sessions, gesetzt im `@db`-Barrel). Offen bewusst:
 Badge nur, wenn Sessions geladen sind (leeres Logbuch → keine Angabe).
+
+2026-11-28: Die bewusste Read-only-Abspaltung ist aufgehoben. SessionActions lädt vollständige Dokumente je Datum/Kennung; sessionActions.js verhindert das Zurückschreiben aggregierter Digest-Daten. Belegte Zielkennungen werden durch relocateSession abgewiesen.

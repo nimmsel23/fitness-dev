@@ -16,3 +16,8 @@ test('Deep-Link: Hash bauen, Übung nur im Kodex', () => {
   assert.equal(logbuchHash('kodex', 'id:bench'), '#session/logbuch/kodex?ex=id%3Abench');
   assert.equal(logbuchHash(null, null), '#session/logbuch');
 });
+
+
+test('legacy History links open the Chronik lens after the host normalizes the tab', () => {
+  assert.deepEqual(parseLogbuchHash('#session/history'), { lens: 'chronik', ex: null });
+});
