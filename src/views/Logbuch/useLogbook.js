@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getLogbookSessions, refreshLogbookDigest } from '@db';
 import { localToday } from '@utils';
 import { mergeSessionRuntimeDraftsIntoHistory } from '../../lib/sessionRuntimeStore.js';
+import { applySessionChange } from './sessionActions.js';
 import { buildLogbook } from './logbookStats.js';
 
 export function useLogbook() {
@@ -43,7 +44,8 @@ export function useLogbook() {
     return () => { alive = false; };
   }, [reloadTick]);
 
+  const onSessionChanged = change => setState(previous => ({ ...previous, sessions: applySessionChange(previous.sessions, change) }));
   const today = localToday();
   const book = useMemo(() => buildLogbook(state.sessions, today), [state.sessions, today]);
-  return { loading: state.loading, error: state.error, book, today, rebuild, rebuilding, dataOrigin };
+  return { loading: state.loading, error: state.error, book, today, rebuild, rebuilding, dataOrigin, onSessionChanged };
 }

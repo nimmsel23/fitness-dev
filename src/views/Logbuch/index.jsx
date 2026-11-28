@@ -64,9 +64,9 @@ function Kpi({ label, value, sub }) {
   );
 }
 
-export default function Logbuch({ onOpenSession, onInspectExercise, onSubNav }) {
-  const { loading, error, book, today, rebuild, rebuilding, dataOrigin } = useLogbook();
-  const [lens, setLensState] = useState(readLens);
+export default function Logbuch({ onOpenSession, onInspectExercise, onSubNav, initialLens }) {
+  const { loading, error, book, today, rebuild, rebuilding, dataOrigin, onSessionChanged } = useLogbook();
+  const [lens, setLensState] = useState(() => initialLens || readLens());
   const [query, setQuery] = useState('');
   const [block, setBlock] = useState('alle');
   const [status, setStatus] = useState('alle');
@@ -262,7 +262,7 @@ export default function Logbuch({ onOpenSession, onInspectExercise, onSubNav }) 
           {lens === 'rekorde' && <RecordChronicle records={book.records} onOpenSession={onOpenSession} onFocusExercise={focusExercise} />}
           {lens === 'rhythmus' && <RhythmGrid exercises={filtered} today={today} weekCount={weekCount} onFocusExercise={focusExercise} />}
           {lens === 'muskeln' && <MuscleLoad exercises={filtered} today={today} weekCount={weekCount} />}
-          {lens === 'chronik' && <WeekChronik dayRows={book.dayRows} today={today} onOpenSession={onOpenSession} />}
+          {lens === 'chronik' && <WeekChronik dayRows={book.dayRows} today={today} onOpenSession={onOpenSession} onSessionChanged={onSessionChanged} />}
         </>
       )}
     </div>

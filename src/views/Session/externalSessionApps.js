@@ -23,11 +23,10 @@ export function resetStandaloneHostForTests() {
   standaloneHost = false;
 }
 
-export function externalSessionCopy(id, { shell = false } = {}) {
+export function externalSessionCopy(id) {
   const spec = COPY[id];
   if (!spec) return null;
-  if (shell) return { label: spec.plain, external: false, ariaLabel: spec.plain };
-  return { label: spec.app, external: true, ariaLabel: `${spec.app} öffnen` };
+  return { label: spec.plain, external: false, ariaLabel: spec.plain };
 }
 
 // `shell` / `embedded` default to “not passed”. Omitted means: standalone

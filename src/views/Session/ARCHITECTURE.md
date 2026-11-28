@@ -185,3 +185,7 @@ The Fitness generator takes complete workout weeks and missing exercise IDs from
 its shared 6Pack sibling, then enriches existing exercise IDs with the Fitness KB.
 The shared program validator and source-parity regression prevent stale Fitness
 KB workout files from hiding new weeks.
+
+## Historie → Logbuch (2026-11-28)
+
+`history` ist ein kompatibler Einstieg in die Chronik-Linse des Logbuchs. Der zweite, unerreichbare History-Routerzweig ist entfernt. Chronik lädt für Verwaltungsaktionen vollständige Einzel-Session-Dokumente und nutzt `relocateSession`; aggregierte Tagesdaten werden nicht zurückgeschrieben. `openStoredSession` erhält beim Öffnen einer benannten Session am bereits ausgewählten Tag die exakte Kennung und den vollständigen Datensatz. Skills/6Pack sind im Fitness-Host eingebettet; die Labels der Session-Buttons und Portal-/Nav-Einträge sind deshalb in Fitness und VitalOS intern, während zusätzliche Standalone-Apps eigenständig bleiben.

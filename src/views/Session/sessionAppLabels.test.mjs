@@ -79,15 +79,15 @@ async function loadLabels() {
   return { mod, cleanup: () => rm(dir, { recursive: true, force: true }) };
 }
 
-test('rendered 6Pack and Skills labels follow shell vs standalone', async () => {
+test('Fitness and Shell both label embedded 6Pack and Skills as internal views', async () => {
   const { mod, cleanup } = await loadLabels();
   try {
     const standalone = mod.tabs(false);
     const shell = mod.tabs(true);
-    assert.match(standalone, /> 6Pack-App</);
-    assert.match(standalone, /> Skills-App</);
-    assert.match(standalone, /lucide-external-link/);
-    assert.doesNotMatch(standalone, /lucide-timer-reset/);
+    assert.match(standalone, /> 6Pack</);
+    assert.match(standalone, /> Skills</);
+    assert.doesNotMatch(standalone, /lucide-external-link/);
+    assert.match(standalone, /lucide-timer-reset/);
     assert.match(shell, /> 6Pack</);
     assert.match(shell, /> Skills</);
     assert.match(shell, /lucide-timer-reset/);
@@ -95,12 +95,12 @@ test('rendered 6Pack and Skills labels follow shell vs standalone', async () => 
     assert.doesNotMatch(shell, /6Pack-App/);
     assert.doesNotMatch(shell, /Skills-App/);
     assert.doesNotMatch(shell, /lucide-external-link/);
-    assert.match(standalone, /6Pack-App öffnen/);
+    assert.match(standalone, /aria-label="6Pack"/);
     assert.match(shell, /aria-label="6Pack"/);
 
     assert.deepEqual(mod.portal(false), [
-      { id: 'timer', label: '6Pack-App', icon: 'external' },
-      { id: 'skills', label: 'Skills-App', icon: 'external' },
+      { id: 'timer', label: '6Pack', icon: 'timer' },
+      { id: 'skills', label: 'Skills', icon: 'skills' },
     ]);
     assert.deepEqual(mod.portal(true), [
       { id: 'timer', label: '6Pack', icon: 'timer' },
@@ -108,8 +108,8 @@ test('rendered 6Pack and Skills labels follow shell vs standalone', async () => 
     ]);
 
     assert.deepEqual(mod.standaloneNav(), [
-      { id: 'timer', label: '6Pack-App', icon: 'external' },
-      { id: 'skills', label: 'Skills-App', icon: 'external' },
+      { id: 'timer', label: '6Pack', icon: 'timer' },
+      { id: 'skills', label: 'Skills', icon: 'skills' },
     ]);
     assert.deepEqual(mod.shellNav(), [
       { id: 'timer', label: '6Pack', icon: 'timer' },

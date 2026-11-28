@@ -40,8 +40,7 @@ Umdatieren und Löschen bleiben dort; das Logbuch ist rein lesend und öffnet Se
 ## Bewusste Entscheidungen
 
 - Kein Live-Gym-Bezug: alles nachträglich geloggt, keine Echtzeit-Annahmen.
-- Keine Vereinheitlichung mit History/Review-Verlauf — Logbuch ist eine eigene Linse, die
-  Chronik-Linse ist bewusst eine reduzierte Kopie.
+- Chronik übernimmt die Verwaltung der alten Historie: einzelne gespeicherte Sessions öffnen, Datum korrigieren und löschen. Tagesaggregate/Digests werden nie als Schreibpayload benutzt; vollständige Dokumente werden frisch gelesen, die bestehende `relocateSession`-Funktion schützt belegte Ziele.
 
 ## Update 2026-11-04 — Daten kommen aus Monats-Digests statt aus allen Sessions
 

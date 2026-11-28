@@ -1,11 +1,11 @@
 /**
  * WeekChronik — Wochen-Timeline, abgeleitet aus Session/SessionHistory.jsx
- * (Wochenköpfe, Datumsspalte, Zeitstrahl-Knoten, einklappbar), aber rein
- * lesend: kein Drag&Drop/Löschen/Umdatieren (das bleibt im History-Tab).
+ * (Wochenköpfe, Datumsspalte, Zeitstrahl-Knoten, einklappbar), mit Verwaltung einzelner Sessions: Bearbeiten, Datum ändern und Löschen.
  * Neu gegenüber History: Pausen zwischen Wochen werden benannt, Karten zeigen
  * die stärksten Lifts, Volumen und Rekord-Sterne; Tippen öffnet die Session.
  */
 
+import SessionActions from './SessionActions.jsx';
 import { useMemo, useState } from 'react';
 import { ChevronRight, Dumbbell, Activity, Star, Timer } from 'lucide-react';
 import { classifySession, ACTIVITY_EMOJI } from '../../constants/ActivityConstants';
@@ -39,11 +39,13 @@ function groupWeeks(dayRows, today) {
   });
 }
 
-function DayCard({ d, onOpen }) {
+function DayCard({ d, onOpen, onChanged }) {
+  const [manage, setManage] = useState(false);
   const { isActivity, hasFinisher, actType, label } = classifySession(d);
   const emoji = actType ? ACTIVITY_EMOJI[actType] : null;
   const color = blockColor(d.block, isActivity ? d.activity : null);
   return (
+    <div>
     <button
       onClick={() => onOpen?.(d.date)}
       className="w-full text-left rounded-2xl px-3 py-2.5 transition-all active:scale-[0.99]"
@@ -90,10 +92,13 @@ function DayCard({ d, onOpen }) {
         </div>
       )}
     </button>
+    <button type="button" className="px-3 py-2 text-xs font-semibold" onClick={() => setManage(value => !value)} aria-expanded={manage}>Einheiten verwalten</button>
+    {manage && <SessionActions date={d.date} onOpenSession={onOpen} onChanged={onChanged} />}
+    </div>
   );
 }
 
-export default function WeekChronik({ dayRows, today, onOpenSession }) {
+export default function WeekChronik({ dayRows, today, onOpenSession, onSessionChanged }) {
   const weeks = useMemo(() => groupWeeks(dayRows, today), [dayRows, today]);
   const [collapsed, setCollapsed] = useState(() => new Set());
   const toggle = (monday) => setCollapsed((prev) => {
@@ -146,7 +151,7 @@ export default function WeekChronik({ dayRows, today, onOpenSession }) {
                       <div className="w-5 flex flex-col items-center shrink-0 mt-[14px]">
                         <div className="w-2.5 h-2.5 rounded-full border-2 z-10 relative" style={{ borderColor: dot, background: dot + '30' }} />
                       </div>
-                      <div className="flex-1 pl-2 pb-3 min-w-0"><DayCard d={d} onOpen={onOpenSession} /></div>
+                      <div className="flex-1 pl-2 pb-3 min-w-0"><DayCard d={d} onOpen={onOpenSession} onChanged={onSessionChanged} /></div>
                     </div>
                   );
                 })}

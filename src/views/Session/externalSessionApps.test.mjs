@@ -7,11 +7,11 @@ import {
   resolveInShell,
 } from './externalSessionApps.js';
 
-test('standalone copy uses the App label and the external-link treatment', () => {
+test('standalone Fitness uses the same embedded labels as the Shell', () => {
   const timer = externalSessionCopy('timer', { shell: false });
   const skills = externalSessionCopy('skills', { shell: false });
-  assert.deepEqual(timer, { label: '6Pack-App', external: true, ariaLabel: '6Pack-App öffnen' });
-  assert.deepEqual(skills, { label: 'Skills-App', external: true, ariaLabel: 'Skills-App öffnen' });
+  assert.deepEqual(timer, { label: '6Pack', external: false, ariaLabel: '6Pack' });
+  assert.deepEqual(skills, { label: 'Skills', external: false, ariaLabel: 'Skills' });
 });
 
 test('shell copy is a plain in-app tab', () => {

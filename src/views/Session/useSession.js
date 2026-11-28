@@ -346,6 +346,13 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     };
   }, []);
 
+  function openStoredSession(stored) {
+    flushDirty();
+    setSessionId(stored.id ?? stored.session_id ?? null);
+    loadSessionData(stored);
+    try { sessionStorage.removeItem(PENDING_SESSION_KEY); } catch { /* optional selection cache */ }
+  }
+
   async function correctSessionDate(newDate) {
     if (movingRef.current) return;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(newDate || '')) || newDate === date) return;
@@ -463,7 +470,7 @@ export function useSession({ initialDate, initialDraft, recentDays = 7, coverage
     dragOverDate, setDragOverDate,
     rollingDays,
     // Handlers
-    save, selectSession, handleNewSession, handleDeleteSession, deleteSessionAtDate,
+    save, selectSession, openStoredSession, handleNewSession, handleDeleteSession, deleteSessionAtDate,
     startSessionGate, stopSessionGate,
     addEx, addFromTemplate, addQuick, updateEx, addSet, replaceSets, removeSet, moveEx, moveExercise, removeEx,
     exportObsidian, handleDownload, moveSessionToDate, correctSessionDate, dateMoveBusy,

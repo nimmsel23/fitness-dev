@@ -34,3 +34,10 @@
 *   **Ungetestete Stabilität des wiederhergestellten `TodayPlan`-Screens:** Die Wiedereinführung des `TodayPlan`-Habit-Screens als optionale Einstellung wurde nicht mit einem echten Plan-Klienten getestet, was angesichts früherer Bugs in dieser Komponente ein Risiko darstellt.
 *   **Implizite Annahme zur `sessionStorage`-Persistenz:** Die Speicherung der Plan-/Manuell-Wahl in `sessionStorage` ist flüchtig (z.B. bei Inkognito-Modus oder Browserdaten-Löschung), was nicht als Trade-off oder Edge-Case in der Zusammenfassung erwähnt wird.
 *   **Ungenutzter `TemplateLauncher`:** Die im Code als "hängt tot rum, unangetastet" markierte Komponente `TemplateLauncher` wurde nicht im Rahmen der Session-Flow-Anpassungen oder im `RESULTS.md` adressiert.
+
+## 2026-11-28 — Historie im Logbuch / eingebettete 6Pack-Skills
+
+- [x] Verlorene Historie-Verwaltung in Chronik integrieren: einzelne Sessions bearbeiten, Datum korrigieren und löschen; volle Dokumente, Kennungen und andere Sessions erhalten.
+- [x] History-Alias führt zur Chronik; unerreichbaren zweiten History-Zweig entfernen; gezielte Session-Auswahl auch bei gleichem Tag erhalten.
+- [x] Fitness-Beschriftung für eingebettete 6Pack-/Skills-Einstiege korrigieren (keine falschen externen App-Labels).
+- [x] 138 Unit-Tests, Smoke, ESLint und Standalone-Firebase-Build erfolgreich; Quellfix lokal committed. Shell-Pin bleibt bis zu einem eigenen Release-Auftrag unverändert.
